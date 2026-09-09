@@ -4,7 +4,8 @@
 // ==============================================================================
 
 /**
- * Mã trạng thái HTTP tiêu chuẩn
+ * @description Tập hợp các mã trạng thái HTTP tiêu chuẩn (HTTP Status Codes)
+ * Giúp tuân thủ Zero Hardcoding Rule, không gõ số magic numbers (như 200, 401, 403, 500) trong mã nguồn.
  */
 export const HTTP_STATUS = {
   OK: 200,
@@ -24,10 +25,12 @@ export const HTTP_STATUS = {
   GATEWAY_TIMEOUT: 504,
 } as const;
 
+/** Kiểu dữ liệu tương ứng của các mã trạng thái HTTP */
 export type HttpStatus = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS];
 
 /**
- * Trạng thái nghiệp vụ chung cho các Entity (Users, Orders, Products, Requests)
+ * @description Trạng thái nghiệp vụ chung cho các Entity (Users, Orders, Products, Requests)
+ * Tuân thủ quy tắc Zero Hardcoding - Không gõ chuỗi thô trong code.
  */
 export const STATUS = {
   ACTIVE: "ACTIVE",
@@ -40,12 +43,15 @@ export const STATUS = {
   DRAFT: "DRAFT",
 } as const;
 
+/** Kiểu dữ liệu của trạng thái nghiệp vụ */
 export type Status = (typeof STATUS)[keyof typeof STATUS];
 
 /**
- * Thông điệp hệ thống dùng chung cho Thông báo (Toast), Alert, Error Boundary
+ * @description Tập hợp thông điệp hệ thống dùng chung cho Thông báo (Toast), Alert, Error Boundary và Form Validation.
+ * Đảm bảo tính nhất quán của văn bản và tránh hardcode magic strings trong UI components.
  */
 export const APP_MESSAGES = {
+  /** Thông điệp khi thao tác thành công */
   SUCCESS: {
     CREATE: "Tạo mới thành công!",
     UPDATE: "Cập nhật dữ liệu thành công!",
@@ -53,6 +59,7 @@ export const APP_MESSAGES = {
     SAVE: "Lưu thông tin thành công!",
     OPERATION: "Thao tác thành công!",
   },
+  /** Thông điệp khi xảy ra lỗi hệ thống hoặc mạng */
   ERROR: {
     DEFAULT: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại!",
     NETWORK: "Không thể kết nối đến máy chủ. Vui lòng kiểm tra đường truyền mạng.",
@@ -63,6 +70,7 @@ export const APP_MESSAGES = {
     TIMEOUT: "Yêu cầu đã quá thời gian phản hồi (Timeout).",
     LOAD_FAILED: "Không thể tải dữ liệu.",
   },
+  /** Thông điệp phục vụ cho việc kiểm tra tính hợp lệ của dữ liệu (Validation) */
   VALIDATION: {
     REQUIRED: (field: string) => `${field} không được để trống`,
     INVALID_EMAIL: "Email không đúng định dạng",
