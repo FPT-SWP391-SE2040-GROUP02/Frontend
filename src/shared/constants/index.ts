@@ -28,23 +28,8 @@ export const HTTP_STATUS = {
 /** Kiểu dữ liệu tương ứng của các mã trạng thái HTTP */
 export type HttpStatus = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS];
 
-/**
- * @description Trạng thái nghiệp vụ chung cho các Entity (Users, Orders, Products, Requests)
- * Tuân thủ quy tắc Zero Hardcoding - Không gõ chuỗi thô trong code.
- */
-export const STATUS = {
-  ACTIVE: "ACTIVE",
-  INACTIVE: "INACTIVE",
-  PENDING: "PENDING",
-  APPROVED: "APPROVED",
-  REJECTED: "REJECTED",
-  CANCELLED: "CANCELLED",
-  COMPLETED: "COMPLETED",
-  DRAFT: "DRAFT",
-} as const;
+export * from "./status";
 
-/** Kiểu dữ liệu của trạng thái nghiệp vụ */
-export type Status = (typeof STATUS)[keyof typeof STATUS];
 
 /**
  * @description Tập hợp thông điệp hệ thống dùng chung cho Thông báo (Toast), Alert, Error Boundary và Form Validation.
@@ -82,4 +67,6 @@ export const APP_MESSAGES = {
 } as const;
 
 export * from "./roles";
+export * from "./styles";
+
 
