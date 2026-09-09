@@ -80,3 +80,6 @@ export const APP_MESSAGES = {
     PASSWORD_NOT_MATCH: "Mật khẩu xác nhận không trùng khớp",
   },
 } as const;
+
+export * from "./roles";
+
