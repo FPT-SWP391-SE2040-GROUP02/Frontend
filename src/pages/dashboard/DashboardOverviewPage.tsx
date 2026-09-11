@@ -94,9 +94,9 @@ export function DashboardOverviewPage() {
 
       {/* 3. Thống kê tổng quan di sản */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
+        <Card className="border-[#e2e8e3] dark:border-[#1d3b2f] bg-white dark:bg-[#0a1d15] shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#66786e)]">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#617369)]">
               Tổng giá trị di sản bảo vệ
             </CardTitle>
             <Landmark className="h-4 w-4 text-[var(--heritage-gold,#b88e4c)]" />
@@ -109,9 +109,9 @@ export function DashboardOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
+        <Card className="border-[#e2e8e3] dark:border-[#1d3b2f] bg-white dark:bg-[#0a1d15] shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#66786e)]">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#617369)]">
               Người thụ hưởng hợp pháp
             </CardTitle>
             <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -120,13 +120,13 @@ export function DashboardOverviewPage() {
             <div className="text-2xl font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4]">
               3 Người nhận
             </div>
-            <p className="text-xs text-[var(--text-muted,#66786e)] mt-1">100% tỷ lệ đã phân bổ</p>
+            <p className="text-xs text-[var(--text-muted,#617369)] mt-1">100% tỷ lệ đã phân bổ</p>
           </CardContent>
         </Card>
 
-        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
+        <Card className="border-[#e2e8e3] dark:border-[#1d3b2f] bg-white dark:bg-[#0a1d15] shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#66786e)]">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#617369)]">
               Dead Man's Switch (DMS)
             </CardTitle>
             <Clock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -141,9 +141,9 @@ export function DashboardOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
+        <Card className="border-[#e2e8e3] dark:border-[#1d3b2f] bg-white dark:bg-[#0a1d15] shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#66786e)]">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#617369)]">
               Công chứng & Pháp lý
             </CardTitle>
             <ShieldCheck className="h-4 w-4 text-[var(--heritage-gold,#b88e4c)]" />
@@ -186,56 +186,56 @@ export function DashboardOverviewPage() {
       )}
 
       {/* 6. Bảng danh mục tài sản & Lời dặn di chúc */}
-      <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15] shadow-xs overflow-hidden">
-        <CardHeader className="bg-[#f5f2ea] dark:bg-[#0e241b] border-b border-[#ddd8cb] dark:border-[#1d3b2f] flex flex-row justify-between items-center">
+      <Card className="border-[#e2e8e3] dark:border-[#1d3b2f] bg-white dark:bg-[#0a1d15] shadow-xs overflow-hidden">
+        <CardHeader className="bg-[#fafcfa] dark:bg-[#0e241b] border-b border-[#e2e8e3] dark:border-[#1d3b2f] flex flex-row justify-between items-center py-4 px-6">
           <div>
-            <CardTitle className="text-base text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4] font-bold">
-              Danh Mục Tài Sản & Lời Dặn Thừa Kế
+            <CardTitle className="text-[17.5px] text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4] font-semibold">
+              Designated Asset Allocation
             </CardTitle>
-            <p className="text-xs text-[var(--text-muted,#66786e)] mt-0.5">
-              Chỉ được giải mã khi thỏa mãn điều kiện chứng thực pháp lý và nhịp tim sinh tồn hết hạn.
+            <p className="text-xs text-[var(--text-muted,#617369)] mt-0.5">
+              Handover protocols execute automatically upon Dead-Man's Switch triggers and Legal E-KYC approval.
             </p>
           </div>
-          <Badge variant="outline" className="bg-[#fbf7ee] dark:bg-[#1f1c13] text-[#7a5b27] dark:text-[#d4af37] border-[#e8dcc6] dark:border-[#423c28]">
-            Mã hóa đầu cuối
+          <Badge variant="outline" className="bg-[#fbf7ee] dark:bg-[#1f1c13] text-[#7d5d28] dark:text-[#d4af37] border-[#e8dcc6] dark:border-[#423c28]">
+            Sealed & Encrypted
           </Badge>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader className="bg-[#efece6] dark:bg-[#0d221a]">
-              <TableRow className="border-b border-[#ddd8cb] dark:border-[#1d3b2f]">
-                <TableHead className="w-[30%]">Tài Sản & Người Thụ Hưởng</TableHead>
-                <TableHead className="w-[42%]">Lời Dặn Di Chúc Của Thân Chủ</TableHead>
-                <TableHead className="w-[28%]">Điều Kiện Chuyển Giao</TableHead>
+            <TableHeader className="bg-[#f6f9f6] dark:bg-[#0d221a]">
+              <TableRow className="border-b border-[#e2e8e3] dark:border-[#1d3b2f]">
+                <TableHead className="w-[30%] uppercase text-[11px] text-[var(--text-muted,#617369)] tracking-[0.7px]">Estate Asset & Beneficiary</TableHead>
+                <TableHead className="w-[42%] uppercase text-[11px] text-[var(--text-muted,#617369)] tracking-[0.7px]">Testator's Direct Message</TableHead>
+                <TableHead className="w-[28%] uppercase text-[11px] text-[var(--text-muted,#617369)] tracking-[0.7px]">Legal Handover Conditions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {estateAssets.map((asset) => (
-                <TableRow key={asset.id} className="hover:bg-[#fafcfb] dark:hover:bg-[#0f281f] border-b border-[#ddd8cb] dark:border-[#1d3b2f] transition-colors">
-                  <TableCell className="align-top py-4">
+                <TableRow key={asset.id} className="hover:bg-[#fafcfb] dark:hover:bg-[#0f281f] border-b border-[#e2e8e3] dark:border-[#1d3b2f] transition-colors">
+                  <TableCell className="align-top py-5 px-6">
                     <div className="font-semibold text-sm text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4]">
                       {asset.name}
                     </div>
-                    <div className="text-xs text-[var(--text-muted,#66786e)] mt-0.5">
+                    <div className="text-xs text-[var(--text-muted,#617369)] mt-0.5">
                       {asset.category}
                     </div>
-                    <div className="inline-flex items-center gap-1.5 mt-2 bg-[#fbf7ee] dark:bg-[#1a2b22] border border-[#e8dcc6] dark:border-[#2d4d3d] text-[#7a5b27] dark:text-[var(--heritage-gold,#d4af37)] text-xs font-semibold px-2.5 py-1 rounded-md">
+                    <div className="inline-flex items-center gap-1.5 mt-2 bg-[var(--gold-light,#fbf7ee)] dark:bg-[#1a2b22] border border-[var(--gold-border,#e8dcc6)] dark:border-[#2d4d3d] text-[#7a5b27] dark:text-[var(--heritage-gold,#d4af37)] text-xs font-medium px-2.5 py-1 rounded-md">
                       <span>👤</span>
-                      <span>{asset.heir} ({asset.percentage})</span>
+                      <span>Heir: {asset.heir} ({asset.percentage})</span>
                     </div>
                   </TableCell>
-                  <TableCell className="align-top py-4">
-                    <div className="bg-[#faf9f5] dark:bg-[#0f281f] border border-[#e8dcc6] dark:border-[#2d4d3d] border-l-4 border-l-[var(--heritage-gold,#b88e4c)] rounded-lg p-3 text-xs leading-relaxed text-[#1e242b] dark:text-[#f3f6f4] italic">
+                  <TableCell className="align-top py-5 px-6">
+                    <div className="instruction-text font-testament italic">
                       "{asset.testament}"
                     </div>
                   </TableCell>
-                  <TableCell className="align-top py-4">
-                    <div className="bg-[#f8faf8] dark:bg-[#0c2219] border border-[#d5e2d8] dark:border-[#1d3b2f] rounded-lg p-2.5 text-xs text-[#2d4236] dark:text-[#c4d6cd] leading-relaxed">
-                      <div className="font-semibold flex items-center gap-1 text-[var(--heritage-primary,#0b291e)] dark:text-[var(--heritage-gold,#d4af37)] mb-1">
+                  <TableCell className="align-top py-5 px-6">
+                    <div className="condition-box">
+                      <div className="font-semibold flex items-center gap-1.5 text-[var(--heritage-primary,#0b291e)] dark:text-[var(--heritage-gold,#d4af37)] mb-1 text-[12.5px]">
                         <span>🛡️</span> {asset.condition}
                       </div>
-                      <span className="text-[10.5px] text-[var(--text-muted,#66786e)]">
-                        Trạng thái: <strong className="text-emerald-700 dark:text-emerald-400">{asset.status}</strong>
+                      <span className="text-[11px] text-[var(--text-muted,#617369)]">
+                        Trạng thái: <strong className="text-emerald-700 dark:text-emerald-400 font-semibold">{asset.status}</strong>
                       </span>
                     </div>
                   </TableCell>
@@ -248,7 +248,7 @@ export function DashboardOverviewPage() {
 
       {/* 7. Két sắt bảo mật: Private Key & 12 Seed Words */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
+        <Card className="border-[#e2e8e3] dark:border-[#1d3b2f] bg-white dark:bg-[#0a1d15] shadow-xs">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4] flex items-center gap-1.5">
               <span>🔑</span> Khóa Bí Mật Két Sắt (Client-Side Encrypted)
@@ -266,7 +266,7 @@ export function DashboardOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
+        <Card className="border-[#e2e8e3] dark:border-[#1d3b2f] bg-white dark:bg-[#0a1d15] shadow-xs">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-semibold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4] flex items-center gap-1.5">
               <span>📝</span> Lưới 12 Từ Khóa Khôi Phục (BIP-39 Seed Phrase)
