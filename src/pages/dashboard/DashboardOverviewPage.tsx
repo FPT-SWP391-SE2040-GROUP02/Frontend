@@ -2,124 +2,318 @@ import { useState } from "react";
 import { PageHeader } from "@/shared/ui/PageHeader";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
-import { AsyncState } from "@/shared/ui/AsyncState";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
-import { Users, DollarSign, ShoppingCart, TrendingUp } from "lucide-react";
+import { Badge } from "@/shared/ui/badge";
+
+// Import các components chuyên biệt của LegacyVault
+import { DmsHeartbeatWidget } from "@/features/dms-heartbeat/ui/DmsHeartbeatWidget";
+import { IntegritySealCard } from "@/features/dms-heartbeat/ui/IntegritySealCard";
+import { LegalStepper } from "@/shared/ui/LegalStepper";
+import { PrivateKeyViewer } from "@/entities/asset/ui/PrivateKeyViewer";
+import { SeedPhraseGrid } from "@/entities/asset/ui/SeedPhraseGrid";
+import { DeathCertDropzone } from "@/features/claim-verification/ui/DeathCertDropzone";
+import { WebcamAffidavitModal } from "@/features/video-affidavit/ui/WebcamAffidavitModal";
+import { LegalComplianceAlert } from "@/features/estate-allocation/ui/LegalComplianceAlert";
+import { ShieldCheck, Lock, Landmark, Users, Clock, FileText } from "lucide-react";
 
 /**
- * @description Màn hình tổng quan trang quản trị (Dashboard Overview).
- * Demo các thẻ thống kê tổng hợp và bảng dữ liệu mẫu có hỗ trợ AsyncState.
- * Tuân thủ Quy tắc 7: Logic gọi API dữ liệu thực tế đánh dấu // TODO để developer tự kết nối với backend.
+ * @description Màn hình Quản trị Di sản số & Cấu hình Di chúc thông minh (LegacyVault - Smart Testament).
+ * Tích hợp toàn bộ hệ thống UI Components: DMS Pulse, Khóa bí mật, Thừa kế Điều 644 BLDS, Video minh mẫn Điều 630 BLDS.
  */
 export function DashboardOverviewPage() {
-  // TODO: 1. Sử dụng React Query hook (ví dụ useDashboardStats() hoặc useUsers()) để lấy dữ liệu thực tế từ backend C#
-  // TODO: 2. Quản lý trạng thái phân trang, tìm kiếm qua useState hoặc URL search params
-  const [isLoading] = useState<boolean>(false);
-  const [error] = useState<Error | null>(null);
+  const [currentStep, setCurrentStep] = useState<number>(2);
+  const [isWebcamOpen, setIsWebcamOpen] = useState<boolean>(false);
+  const [isDropzoneOpen, setIsDropzoneOpen] = useState<boolean>(false);
+  const [hasAgreedCompliance, setHasAgreedCompliance] = useState<boolean>(false);
 
-  // Dữ liệu mẫu minh họa giao diện ban đầu
-  const sampleUsers = [
-    { id: "1", name: "Nguyễn Văn A", email: "a@fpt.edu.vn", role: "Quản trị viên", status: "Hoạt động" },
-    { id: "2", name: "Trần Thị B", email: "b@fpt.edu.vn", role: "Nhân viên", status: "Hoạt động" },
-    { id: "3", name: "Lê Hoàng C", email: "c@fpt.edu.vn", role: "Khách hàng", status: "Chờ duyệt" },
+  // Dữ liệu mẫu danh mục tài sản di sản
+  const estateAssets = [
+    {
+      id: "AST-01",
+      name: "Crypto Cold Storage Vault",
+      category: "Digital Assets · Multi-Sig Ledger",
+      heir: "Alexander von Berg",
+      percentage: "70%",
+      testament:
+        "Tài sản này dành cho việc học đại học và quỹ bảo tồn truyền thống gia đình. Hãy sử dụng cẩn trọng và nắm giữ dài hạn.",
+      condition: "E-KYC + Zurich Notary Chamber Approval",
+      status: "Đã niêm phong",
+    },
+    {
+      id: "AST-02",
+      name: "Bản quyền Sở hữu Trí tuệ (Patent AI #892)",
+      category: "Intellectual Property · Smart Contract",
+      heir: "Victoria von Berg",
+      percentage: "30%",
+      testament: "Toàn bộ tiền bản quyền nhượng quyền thương mại công nghệ hàng năm.",
+      condition: "Xác nhận Giấy chứng tử số + Chữ ký Executor",
+      status: "Chờ đối soát",
+    },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-[1280px] mx-auto pb-12">
+      {/* 1. Header Trang & Hành Động Ký Số */}
       <PageHeader
-        title="Tổng Quan Quản Trị"
-        description="Theo dõi các chỉ số hoạt động và dữ liệu mới nhất trong hệ thống."
-        actions={<Button size="sm">+ Thêm bản ghi mới</Button>}
+        title="Quản Trị Di Chúc Số & Két Sắt Di Sản"
+        description="Cấu hình quy tắc chuyển giao tài sản tự động, nhịp tim sinh tồn DMS và đối soát công chứng."
+        actions={
+          <div className="flex gap-2.5 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDropzoneOpen(!isDropzoneOpen)}
+              className="gap-1.5"
+            >
+              <FileText className="h-4 w-4" />
+              {isDropzoneOpen ? "Đóng Dropzone" : "Scan Giấy chứng tử"}
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setIsWebcamOpen(true)}
+              className="gap-1.5 bg-emerald-800 hover:bg-emerald-900 text-white"
+            >
+              <span>🎥</span> Tuyên thệ minh mẫn (15s)
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1.5 bg-[var(--heritage-gold,#b88e4c)] hover:bg-[var(--heritage-gold-hover,#a07839)] text-white shadow-sm"
+              onClick={() => alert("Đã ký số và niêm phong Smart Will vào sổ cái!")}
+            >
+              <Lock className="h-4 w-4" /> Ký số & Niêm phong
+            </Button>
+          </div>
+        }
       />
 
-      {/* Cards thống kê tóm tắt */}
+      {/* 2. Quy trình 4 bước Legal Stepper */}
+      <LegalStepper
+        currentStep={currentStep}
+        onStepClick={(step) => setCurrentStep(step)}
+      />
+
+      {/* 3. Thống kê tổng quan di sản */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tổng doanh thu</CardTitle>
-            <DollarSign className="h-4 w-4 text-emerald-500" />
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#66786e)]">
+              Tổng giá trị di sản bảo vệ
+            </CardTitle>
+            <Landmark className="h-4 w-4 text-[var(--heritage-gold,#b88e4c)]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">128.500.000 ₫</div>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <TrendingUp className="h-3.5 w-3.5 text-emerald-500 inline" /> +12% so với tháng trước
+            <div className="text-2xl font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[var(--heritage-gold,#d4af37)]">
+              $14,850,000
+            </div>
+            <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 font-medium">● Đã mã hóa 256-Bit TLS</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#66786e)]">
+              Người thụ hưởng hợp pháp
+            </CardTitle>
+            <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4]">
+              3 Người nhận
+            </div>
+            <p className="text-xs text-[var(--text-muted,#66786e)] mt-1">100% tỷ lệ đã phân bổ</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#66786e)]">
+              Dead Man's Switch (DMS)
+            </CardTitle>
+            <Clock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4]">
+              45 Ngày
+            </div>
+            <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 font-medium flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" /> Heartbeat hoạt động
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Người dùng mới</CardTitle>
-            <Users className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted,#66786e)]">
+              Công chứng & Pháp lý
+            </CardTitle>
+            <ShieldCheck className="h-4 w-4 text-[var(--heritage-gold,#b88e4c)]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+245</div>
-            <p className="text-xs text-muted-foreground mt-1">+18 thành viên tuần này</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Đơn hàng</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+1,204</div>
-            <p className="text-xs text-muted-foreground mt-1">98% hoàn thành đúng hạn</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tỷ lệ tăng trưởng</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+24.8%</div>
-            <p className="text-xs text-muted-foreground mt-1">Vượt mục tiêu quý</p>
+            <div className="text-2xl font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[var(--heritage-gold,#d4af37)]">
+              Zurich Verified
+            </div>
+            <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 font-medium">Bảo chứng công chứng Thụy Sĩ</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Bảng dữ liệu demo bọc trong AsyncState */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh Sách Người Dùng Gần Đây</CardTitle>
+      {/* 4. Widget Nhịp tim sinh tồn DMS */}
+      <DmsHeartbeatWidget
+        daysRemaining={45}
+        hoursRemaining={14}
+        onCheckIn={async () => {
+          alert("Nhịp tim sinh tồn đã được làm mới thêm 90 ngày!");
+        }}
+      />
+
+      {/* 5. Vùng thả Giấy chứng tử số (Nếu được mở) */}
+      {isDropzoneOpen && (
+        <Card className="border-amber-200 dark:border-amber-800/60 bg-[#fdfcf9] dark:bg-[#121c16]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold text-amber-900 dark:text-amber-300">
+              Vùng Tiếp Nhận Tài Liệu Pháp Lý & Giấy Chứng Tử Số
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DeathCertDropzone
+              maxSizeMB={5}
+              onFileSelect={(file) => {
+                alert(`Đã nhận file: ${file.name}. Hệ thống đang tính mã băm SHA-256...`);
+              }}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 6. Bảng danh mục tài sản & Lời dặn di chúc */}
+      <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15] shadow-xs overflow-hidden">
+        <CardHeader className="bg-[#f5f2ea] dark:bg-[#0e241b] border-b border-[#ddd8cb] dark:border-[#1d3b2f] flex flex-row justify-between items-center">
+          <div>
+            <CardTitle className="text-base text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4] font-bold">
+              Danh Mục Tài Sản & Lời Dặn Thừa Kế
+            </CardTitle>
+            <p className="text-xs text-[var(--text-muted,#66786e)] mt-0.5">
+              Chỉ được giải mã khi thỏa mãn điều kiện chứng thực pháp lý và nhịp tim sinh tồn hết hạn.
+            </p>
+          </div>
+          <Badge variant="outline" className="bg-[#fbf7ee] dark:bg-[#1f1c13] text-[#7a5b27] dark:text-[#d4af37] border-[#e8dcc6] dark:border-[#423c28]">
+            Mã hóa đầu cuối
+          </Badge>
         </CardHeader>
-        <CardContent>
-          <AsyncState
-            isLoading={isLoading}
-            error={error}
-            isEmpty={sampleUsers.length === 0}
-            onRetry={() => {
-              // TODO: Kích hoạt refetch dữ liệu khi người dùng bấm Thử lại
-            }}
-          >
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Mã</TableHead>
-                  <TableHead>Họ và tên</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Vai trò</TableHead>
-                  <TableHead>Trạng thái</TableHead>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-[#efece6] dark:bg-[#0d221a]">
+              <TableRow className="border-b border-[#ddd8cb] dark:border-[#1d3b2f]">
+                <TableHead className="w-[30%]">Tài Sản & Người Thụ Hưởng</TableHead>
+                <TableHead className="w-[42%]">Lời Dặn Di Chúc Của Thân Chủ</TableHead>
+                <TableHead className="w-[28%]">Điều Kiện Chuyển Giao</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {estateAssets.map((asset) => (
+                <TableRow key={asset.id} className="hover:bg-[#fafcfb] dark:hover:bg-[#0f281f] border-b border-[#ddd8cb] dark:border-[#1d3b2f] transition-colors">
+                  <TableCell className="align-top py-4">
+                    <div className="font-semibold text-sm text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4]">
+                      {asset.name}
+                    </div>
+                    <div className="text-xs text-[var(--text-muted,#66786e)] mt-0.5">
+                      {asset.category}
+                    </div>
+                    <div className="inline-flex items-center gap-1.5 mt-2 bg-[#fbf7ee] dark:bg-[#1a2b22] border border-[#e8dcc6] dark:border-[#2d4d3d] text-[#7a5b27] dark:text-[var(--heritage-gold,#d4af37)] text-xs font-semibold px-2.5 py-1 rounded-md">
+                      <span>👤</span>
+                      <span>{asset.heir} ({asset.percentage})</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="align-top py-4">
+                    <div className="bg-[#faf9f5] dark:bg-[#0f281f] border border-[#e8dcc6] dark:border-[#2d4d3d] border-l-4 border-l-[var(--heritage-gold,#b88e4c)] rounded-lg p-3 text-xs leading-relaxed text-[#1e242b] dark:text-[#f3f6f4] italic">
+                      "{asset.testament}"
+                    </div>
+                  </TableCell>
+                  <TableCell className="align-top py-4">
+                    <div className="bg-[#f8faf8] dark:bg-[#0c2219] border border-[#d5e2d8] dark:border-[#1d3b2f] rounded-lg p-2.5 text-xs text-[#2d4236] dark:text-[#c4d6cd] leading-relaxed">
+                      <div className="font-semibold flex items-center gap-1 text-[var(--heritage-primary,#0b291e)] dark:text-[var(--heritage-gold,#d4af37)] mb-1">
+                        <span>🛡️</span> {asset.condition}
+                      </div>
+                      <span className="text-[10.5px] text-[var(--text-muted,#66786e)]">
+                        Trạng thái: <strong className="text-emerald-700 dark:text-emerald-400">{asset.status}</strong>
+                      </span>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sampleUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">#{user.id}</TableCell>
-                    <TableCell>{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.role}</TableCell>
-                    <TableCell>{user.status}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </AsyncState>
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
+
+      {/* 7. Két sắt bảo mật: Private Key & 12 Seed Words */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4] flex items-center gap-1.5">
+              <span>🔑</span> Khóa Bí Mật Két Sắt (Client-Side Encrypted)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <PrivateKeyViewer
+              privateKey="0x7f4b2a9c1e3d5f7a9b0c2e4f6a8d0b2c4e6f8a0b"
+              label="Master Key Giải Mã Di Sản"
+            />
+            <IntegritySealCard
+              manifestHash="8f4b2a9c1e3d5f7a9b0c2e4f6a8d0b2c4e6f8a0b2c4e6f8a0b2c4e6f8a0b2c4e"
+              statusLabel="TAMPER-PROOF"
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="border-[#ddd8cb] dark:border-[#1d3b2f] bg-[#faf9f5] dark:bg-[#0a1d15]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-semibold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f6f4] flex items-center gap-1.5">
+              <span>📝</span> Lưới 12 Từ Khóa Khôi Phục (BIP-39 Seed Phrase)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SeedPhraseGrid
+              words={[
+                "ocean",
+                "vintage",
+                "shield",
+                "legacy",
+                "glacier",
+                "timber",
+                "anchor",
+                "orbit",
+                "velvet",
+                "harbor",
+                "zenith",
+                "crystal",
+              ]}
+              blurred={false}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+
+      {/* 8. Hộp cảnh báo tuân thủ pháp luật (Điều 644 BLDS 2015) */}
+      <LegalComplianceAlert
+        isAcknowledged={hasAgreedCompliance}
+        onAcknowledgeChange={(agreed) => setHasAgreedCompliance(agreed)}
+      />
+
+      {/* 9. Modal Webcam Tuyên Thệ 15s (Khi được bấm) */}
+      {isWebcamOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <WebcamAffidavitModal
+            isOpen={isWebcamOpen}
+            onClose={() => setIsWebcamOpen(false)}
+            onRecordingComplete={(blob) => {
+              alert(`Quay hoàn tất video minh mẫn (${Math.round(blob.size / 1024)} KB). Sẵn sàng băm SHA-256.`);
+              setIsWebcamOpen(false);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }

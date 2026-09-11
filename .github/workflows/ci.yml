@@ -1,0 +1,45 @@
+name: Client CI Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "client/**"
+      - ".github/workflows/ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "client/**"
+      - ".github/workflows/ci.yml"
+
+jobs:
+  client-check:
+    name: TypeCheck, Lint & Unit Test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: client
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: 1. Kiểm tra Type-check (TypeScript)
+        run: npm run type-check
+
+      - name: 2. Kiểm tra Linting (ESLint)
+        run: npm run lint
+
+      - name: 3. Chạy Unit Test (Vitest)
+        run: npm run test:run

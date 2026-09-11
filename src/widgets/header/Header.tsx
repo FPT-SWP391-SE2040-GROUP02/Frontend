@@ -1,7 +1,10 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/shared/ui/button";
+import { setTheme, useAppDispatch, useAppSelector } from "@/app/store";
+import { UserAvatar } from "@/entities/user";
 import { ROUTES } from "@/shared/config/routes.config";
-import { Moon, Sun, Menu } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { storage } from "@/shared/utils";
+import { Menu, Moon, Sun } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 /**
  * @description Thuộc tính cấu hình cho Header component.
@@ -15,32 +18,38 @@ export interface HeaderProps {
 
 /**
  * @description Header / Navbar dùng chung toàn ứng dụng.
- * Tuân thủ Quy tắc 7: Chỉ dựng khung giao diện, các handler tương tác để developer tự viết theo // TODO.
+ * Tích hợp logo thương hiệu, nút chuyển Theme sáng/tối và hiển thị trạng thái đăng nhập.
  */
 export function Header({ showSidebarToggle = false, onToggleSidebar }: HeaderProps) {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  // 1. Lấy theme hiện tại từ Redux store
+  const theme = useAppSelector((state) => state.ui.theme);
+
+  // 2. Kiểm tra xem người dùng đã đăng nhập hay chưa dựa vào token
+  const isAuthenticated = Boolean(storage.getToken());
+
   /**
-   * @description Xử lý chuyển đổi Theme sáng/tối
+   * @description Xử lý chuyển đổi qua lại giữa Light mode và Dark mode
    */
   const handleToggleTheme = () => {
-    // TODO: 1. Lấy trạng thái theme hiện tại từ Redux store hoặc ThemeContext
-    // TODO: 2. Dispatch action setTheme chuyển đổi giữa "light" và "dark"
-    // TODO: 3. Cập nhật class 'dark' lên documentElement
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    dispatch(setTheme(nextTheme));
   };
 
   /**
-   * @description Xử lý đăng xuất tài khoản
+   * @description Xử lý đăng xuất tài khoản và điều hướng về trang Login
    */
-  const _handleLogout = () => {
-    // TODO: 1. Xóa token khỏi storage (storage.clearToken())
-    // TODO: 2. Dispatch action logout của authSlice để reset trạng thái
-    // TODO: 3. Điều hướng người dùng về trang đăng nhập: navigate(ROUTES.AUTH.LOGIN)
+  const handleLogout = () => {
+    storage.clearToken();
+    navigate(ROUTES.AUTH.LOGIN);
   };
-  void _handleLogout;
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4 md:px-8">
-        {/* Khu vực Logo & Mobile Toggle */}
+        {/* Khu vực Logo & Mobile Sidebar Toggle */}
         <div className="flex items-center gap-3">
           {showSidebarToggle && (
             <Button
@@ -54,7 +63,10 @@ export function Header({ showSidebarToggle = false, onToggleSidebar }: HeaderPro
             </Button>
           )}
 
-          <Link to={ROUTES.HOME} className="flex items-center gap-2 font-bold text-xl tracking-tight text-foreground">
+          <Link
+            to={ROUTES.HOME}
+            className="flex items-center gap-2 font-bold text-xl tracking-tight text-foreground"
+          >
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-sm">
               S
             </span>
@@ -64,29 +76,43 @@ export function Header({ showSidebarToggle = false, onToggleSidebar }: HeaderPro
 
         {/* Khu vực Action Buttons: Theme Toggle & User Info / Login Link */}
         <div className="flex items-center gap-3">
+          {/* Nút chuyển đổi giao diện Sáng / Tối */}
           <Button
             variant="ghost"
             size="icon"
             onClick={handleToggleTheme}
             aria-label="Chuyển chế độ sáng/tối"
           >
-            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5 text-amber-400 rotate-0 scale-100 transition-all" />
+            ) : (
+              <Moon className="h-5 w-5 rotate-0 scale-100 transition-all text-slate-700" />
+            )}
           </Button>
 
-          {/* Khung Auth buttons: Khi chưa login hiện Đăng nhập, khi đã login hiện Avatar */}
+          {/* Khung Auth buttons: Tự động đổi giao diện theo trạng thái đăng nhập */}
           <div className="flex items-center gap-2">
-            {/* TODO: Thay thế điều kiện hiển thị bằng biến isAuthenticated từ Redux Store */}
-            <Link to={ROUTES.AUTH.LOGIN}>
-              <Button variant="outline" size="sm">
-                Đăng nhập
-              </Button>
-            </Link>
-            <Link to={ROUTES.AUTH.REGISTER}>
-              <Button size="sm">
-                Đăng ký
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <div className="flex items-center gap-3">
+                <Link to={ROUTES.DASHBOARD.ROOT} title="Vào Dashboard">
+                  <UserAvatar fullName="Admin User" />
+                </Link>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  Đăng xuất
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link to={ROUTES.AUTH.LOGIN}>
+                  <Button variant="outline" size="sm">
+                    Đăng nhập
+                  </Button>
+                </Link>
+                <Link to={ROUTES.AUTH.REGISTER}>
+                  <Button size="sm">Đăng ký</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

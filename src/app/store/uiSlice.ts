@@ -1,58 +1,73 @@
+import { storage } from "@/shared/utils";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 /**
- * @description Các tùy chọn chủ đề giao diện được hỗ trợ.
+ * @description Các tùy chọn chủ đề giao diện được hỗ trợ trong hệ thống.
  */
 export type AppTheme = "light" | "dark" | "system";
 
 /**
- * @description Trạng thái UI toàn cục của ứng dụng.
+ * @description Trạng thái giao diện người dùng (UI State) toàn cục.
  */
 export interface UiState {
-  /** Trạng thái mở/đóng thanh Sidebar trên Dashboard */
+  /** Trạng thái mở/đóng thanh Sidebar trên trang Dashboard */
   sidebarOpen: boolean;
-  /** Chế độ giao diện sáng / tối */
+  /** Chế độ giao diện (Sáng / Tối) */
   theme: AppTheme;
+}
+
+// Khôi phục theme đã lưu từ localStorage (mặc định: "light")
+const savedTheme = (storage.get(storage.KEYS.THEME) as AppTheme) || "light";
+
+// Kích hoạt class 'dark' ngay khi vừa load ứng dụng nếu trước đó đã chọn dark
+if (savedTheme === "dark") {
+  document.documentElement.classList.add("dark");
 }
 
 const initialState: UiState = {
   sidebarOpen: true,
-  theme: "light",
+  theme: savedTheme,
 };
 
 /**
- * @description Redux Slice quản lý trạng thái giao diện (Theme, Sidebar).
- * Tuân thủ Quy tắc 7: Chỉ dựng khung sườn skeleton, developer tự hoàn thiện code logic trong reducers.
+ * @description Redux Slice quản lý trạng thái giao diện (Theme, Sidebar) toàn cục.
  */
 export const uiSlice = createSlice({
   name: "ui",
   initialState,
   reducers: {
     /**
-     * @description Đảo ngược trạng thái đóng/mở của thanh Sidebar.
+     * @description Đảo ngược trạng thái đóng/mở của thanh Sidebar trên Dashboard.
+     * @param state Trạng thái hiện tại
      */
-    toggleSidebar: (_state) => {
-      // TODO: 1. Đảo ngược giá trị boolean của _state.sidebarOpen (true -> false, false -> true)
+    toggleSidebar: (state) => {
+      state.sidebarOpen = !state.sidebarOpen;
     },
 
     /**
      * @description Thiết lập trạng thái đóng/mở cụ thể cho Sidebar.
-     * @param _state Trạng thái hiện tại
-     * @param _action Payload chứa giá trị boolean (true: mở, false: đóng)
+     * @param state Trạng thái hiện tại
+     * @param action Payload chứa giá trị boolean (true: mở, false: đóng)
      */
-    setSidebarOpen: (_state, _action: PayloadAction<boolean>) => {
-      // TODO: 1. Gán giá trị _action.payload vào _state.sidebarOpen
+    setSidebarOpen: (state, action: PayloadAction<boolean>) => {
+      state.sidebarOpen = action.payload;
     },
 
     /**
-     * @description Thiết lập Theme giao diện (light / dark / system) và lưu vào localStorage.
-     * @param _state Trạng thái hiện tại
-     * @param _action Payload chứa kiểu theme ("light" | "dark" | "system")
+     * @description Thiết lập Theme giao diện (light / dark) và tự động đồng bộ vào localStorage.
+     * @param state Trạng thái hiện tại
+     * @param action Payload chứa kiểu theme ("light" | "dark" | "system")
      */
-    setTheme: (_state, _action: PayloadAction<AppTheme>) => {
-      // TODO: 1. Cập nhật _state.theme bằng _action.payload
-      // TODO: 2. Lưu theme mới vào localStorage (sử dụng storage.set) để ghi nhớ phiên làm việc
-      // TODO: 3. Thêm hoặc xóa class 'dark' trên thẻ document.documentElement (thẻ <html>) để kích hoạt Tailwind dark mode
+    setTheme: (state, action: PayloadAction<AppTheme>) => {
+      state.theme = action.payload;
+      storage.set(storage.KEYS.THEME, action.payload);
+
+      // Đồng bộ class 'dark' trên thẻ <html> để kích hoạt Tailwind Dark Mode
+      if (action.payload === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
     },
   },
 });

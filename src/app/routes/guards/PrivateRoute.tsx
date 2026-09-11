@@ -3,7 +3,6 @@ import { ROUTES } from "@/shared/config/routes.config";
 
 /**
  * @description Route Guard bảo vệ các đường dẫn yêu cầu đăng nhập.
- * Tuân thủ Quy tắc 7: Để lại logic kiểm tra token cho developer tự hoàn thiện qua // TODO.
  */
 export function PrivateRoute() {
   // TODO: 1. Lấy thông tin trạng thái isAuthenticated từ Redux Store hoặc kiểm tra storage.getToken()

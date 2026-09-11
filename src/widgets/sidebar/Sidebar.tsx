@@ -1,6 +1,7 @@
-import { NavLink } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
-import { LayoutDashboard, Users, Settings, BarChart3 } from "lucide-react";
+import { ROLES, type Role } from "@/shared/constants";
+import { NavLink } from "react-router-dom";
+import { Shield, ScrollText, Scale, Vault } from "lucide-react";
 
 /**
  * @description Cấu trúc phần tử trong menu Sidebar.
@@ -9,7 +10,7 @@ export interface SidebarNavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  roles?: string[];
+  roles?: Role[];
 }
 
 /**
@@ -17,30 +18,32 @@ export interface SidebarNavItem {
  */
 export const SIDEBAR_ITEMS: SidebarNavItem[] = [
   {
-    title: "Tổng quan",
+    title: "Di chúc số & Di sản",
     href: ROUTES.DASHBOARD.ROOT,
-    icon: LayoutDashboard,
+    icon: ScrollText,
   },
   {
-    title: "Thống kê",
+    title: "Két sắt lưu trữ",
     href: ROUTES.DASHBOARD.ANALYTICS,
-    icon: BarChart3,
+    icon: Vault,
+    roles: [ROLES.ADMIN, ROLES.STAFF],
   },
   {
-    title: "Người dùng",
+    title: "Xác thực pháp lý",
     href: ROUTES.DASHBOARD.USERS,
-    icon: Users,
+    icon: Scale,
+    roles: [ROLES.ADMIN],
   },
   {
-    title: "Cài đặt",
+    title: "Cấu hình bảo mật",
     href: ROUTES.DASHBOARD.SETTINGS,
-    icon: Settings,
+    icon: Shield,
+    roles: [ROLES.ADMIN],
   },
 ];
 
 /**
  * @description Sidebar điều hướng cho khu vực Dashboard quản trị.
- * Tuân thủ Quy tắc 7: Để lại logic lọc quyền truy cập menu theo role cho developer tự hoàn thiện qua // TODO.
  */
 export function Sidebar() {
   // TODO: 1. Lấy thông tin user hiện tại từ Redux store: const currentUser = useAppSelector(selectCurrentUser)
