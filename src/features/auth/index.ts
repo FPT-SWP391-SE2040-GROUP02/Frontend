@@ -1,5 +1,5 @@
 export * from "./api/authService";
-export * from "./model/auth.types";
+export type * from "./model/auth.types";
 export * from "./model/auth.schema";
 export * from "./model/useAuth";
 export * from "./ui/LoginForm";

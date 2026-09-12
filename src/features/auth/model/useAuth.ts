@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../api/authService";
-import { LoginRequest, RegisterRequest, PasskeyLoginRequest, AuthSession } from "./auth.types";
+import type { LoginRequest, RegisterRequest, PasskeyLoginRequest, AuthSession } from "./auth.types";
 import { storage } from "@/shared/utils";
 
 export const authKeys = {

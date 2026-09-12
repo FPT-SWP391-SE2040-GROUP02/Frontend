@@ -6,7 +6,7 @@ import { useLogin } from "../model/useAuth";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Lock, Mail, Fingerprint, Eye, EyeOff, ShieldCheck } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
 
 /**
@@ -91,12 +91,13 @@ export function LoginForm({ onPasskeyClick, className = "" }: LoginFormProps) {
           <label className="text-xs font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]">
             Mật khẩu / Passphrase
           </label>
-          <a
-            href={ROUTES.AUTH.FORGOT_PASSWORD}
+          <Link
+            to={ROUTES.AUTH.FORGOT_PASSWORD}
+            tabIndex={-1}
             className="text-[11px] text-[var(--heritage-gold,#b88e4c)] hover:underline font-semibold"
           >
             Quên mật khẩu?
-          </a>
+          </Link>
         </div>
         <div className="relative">
           <Lock className="w-4 h-4 text-[#728574] absolute left-3 top-1/2 -translate-y-1/2" />

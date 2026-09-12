@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 import { ENV } from "@/shared/config/env";
 import { APP_MESSAGES, HTTP_STATUS } from "@/shared/constants";
+import { storage } from "@/shared/utils";
 
 /**
  * @description Instance Axios trung tâm được cấu hình sẵn baseURL, headers mặc định và timeout.
@@ -15,11 +16,16 @@ export const apiClient = axios.create({
 });
 
 /**
- * @description Request Interceptor: Tự động đính kèm JWT Bearer Token từ localStorage vào Header Authorization trước khi gửi request.
+ * Alias tương thích cho apiClient
+ */
+export const axiosClient = apiClient;
+
+/**
+ * @description Request Interceptor: Tự động đính kèm JWT Bearer Token từ storage vào Header Authorization trước khi gửi request.
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("access_token");
+    const token = storage.getToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -1,2 +1,2 @@
-export * from "./model/user.types";
+export type * from "./model/user.types";
 export * from "./ui/UserAvatarMenu";
