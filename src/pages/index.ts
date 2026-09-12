@@ -3,6 +3,8 @@ export * from "./billing/PricingPlansPage";
 export * from "./billing/BillingHistoryPage";
 export * from "./dms/DmsStatusPage";
 export * from "./dashboard/AssetsManagementPage";
+export * from "./dashboard/WillManagementPage";
+export * from "./dashboard/WillWizardPage";
 export * from "./auth/LoginPage";
 export * from "./auth/RegisterPage";
 export * from "./auth/ForgotPasswordPage";

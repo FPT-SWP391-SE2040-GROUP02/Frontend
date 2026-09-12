@@ -23,6 +23,13 @@ export const ROUTES = {
     SETTINGS: "/dashboard/settings",
   },
 
+  /** Nhóm đường dẫn Di Chúc Số & Lập Di Chúc (Will Wizard) */
+  WILLS: {
+    ROOT: "/dashboard/wills",
+    NEW: "/dashboard/wills/new",
+    DETAIL: (id: string) => `/dashboard/wills/${id}`,
+  },
+
   /** Nhóm đường dẫn bảng giá & thanh toán SePay */
   BILLING: {
     PLANS: "/pricing",
