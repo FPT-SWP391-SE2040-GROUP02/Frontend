@@ -138,8 +138,9 @@ export function CreateAssetModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-surface border-border">
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-[#FAF9F5] dark:bg-[#0A1D15] border border-border shadow-2xl">
         <DialogHeader className="border-b border-border pb-4">
+
           <div className="flex items-center gap-2 text-gold">
             <ShieldCheck className="w-5 h-5 text-[#B88E4C]" />
             <span className="eyebrow text-gold">Client-side Encryption</span>

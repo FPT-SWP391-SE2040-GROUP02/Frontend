@@ -95,21 +95,21 @@ export function AssetTable({
     switch (category) {
       case ASSET_CATEGORY.CRYPTO:
         return (
-          <div className="asset-type gold" title="Tiền mã hóa & Web3">
-            <Coins className="icon text-[#B88E4C]" />
+          <div className="w-10 h-10 rounded-lg bg-[#B88E4C]/15 border border-[#E8DCC6] flex items-center justify-center text-[#B88E4C] shrink-0" title="Tiền mã hóa & Web3">
+            <Coins className="w-5 h-5" />
           </div>
         );
       case ASSET_CATEGORY.CREDENTIAL:
         return (
-          <div className="asset-type" title="Tài khoản & Mật khẩu">
-            <KeyRound className="icon text-[#2D5A43]" />
+          <div className="w-10 h-10 rounded-lg bg-emerald-950/10 dark:bg-emerald-500/10 border border-emerald-900/20 flex items-center justify-center text-primary dark:text-emerald-400 shrink-0" title="Tài khoản & Mật khẩu">
+            <KeyRound className="w-5 h-5" />
           </div>
         );
       case ASSET_CATEGORY.DOCUMENT:
       default:
         return (
-          <div className="asset-type" title="Tài liệu mật & Di chúc">
-            <FileText className="icon text-[#66786E]" />
+          <div className="w-10 h-10 rounded-lg bg-secondary border border-border flex items-center justify-center text-muted-foreground shrink-0" title="Tài liệu mật & Di chúc">
+            <FileText className="w-5 h-5" />
           </div>
         );
     }
@@ -118,7 +118,7 @@ export function AssetTable({
   // ==================== 1. TRẠNG THÁI LOADING (SKELETON) ====================
   if (isLoading) {
     return (
-      <div className="card w-full overflow-hidden">
+      <div className="bg-card border border-border rounded-xl w-full overflow-hidden shadow-xs">
         <div className="p-6 border-b border-border space-y-4">
           <div className="flex justify-between items-center">
             <Skeleton className="h-7 w-48" />
@@ -149,7 +149,7 @@ export function AssetTable({
   // ==================== 2. TRẠNG THÁI ERROR (LỖI + NÚT THỬ LẠI) ====================
   if (isError) {
     return (
-      <div className="card w-full p-12 text-center flex flex-col items-center justify-center space-y-4">
+      <div className="bg-card border border-border rounded-xl w-full p-12 text-center flex flex-col items-center justify-center space-y-4 shadow-xs">
         <div className="w-14 h-14 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
           <AlertTriangle className="w-7 h-7" />
         </div>
@@ -176,12 +176,14 @@ export function AssetTable({
 
   // ==================== 3 & 4. TRẠNG THÁI SUCCESS & EMPTY ====================
   return (
-    <div className="card w-full overflow-hidden">
+    <div className="bg-card border border-border rounded-xl w-full overflow-hidden shadow-xs">
       {/* Header & Thanh Công Cụ Lọc */}
-      <div className="card-head">
+      <div className="p-5 sm:p-6 border-b border-border/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-bold">Danh Mục Tài Sản Số</h2>
-          <p>Quản lý và mã hóa đầu cuối các tài sản di sản trước khi niêm phong kho</p>
+          <h2 className="text-lg font-bold text-foreground">Danh Mục Tài Sản Số</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Quản lý và mã hóa đầu cuối các tài sản di sản trước khi niêm phong kho
+          </p>
         </div>
         {onCreateClick && (
           <Button
@@ -189,32 +191,32 @@ export function AssetTable({
               // TODO: Mở modal tạo mới tài sản
               onCreateClick();
             }}
-            className="btn-gold"
+            className="btn-gold shrink-0"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 mr-1.5" />
             Thêm tài sản mới
           </Button>
         )}
       </div>
 
       {/* Toolbar Tìm kiếm & Filter */}
-      <div className="asset-toolbar">
-        <div className="search">
-          <Search className="w-4 h-4 text-muted-foreground" />
+      <div className="p-4 sm:px-6 bg-muted/20 border-b border-border/60 flex flex-col sm:flex-row items-center gap-3">
+        <div className="relative flex-1 w-full">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Tìm theo tên tài sản, loại dữ liệu..."
-            className="border-0 shadow-none focus-visible:ring-0"
+            className="pl-9 h-9.5 bg-background text-xs"
           />
         </div>
 
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="filter-select"
+          className="h-9.5 rounded-lg border border-input bg-background px-3 text-xs w-full sm:w-auto font-medium focus-visible:outline-none focus-visible:border-ring"
         >
-          <option value="ALL">Tất cả loại</option>
+          <option value="ALL">Tất cả danh mục</option>
           <option value={ASSET_CATEGORY.CRYPTO}>Tiền mã hóa & Web3</option>
           <option value={ASSET_CATEGORY.CREDENTIAL}>Tài khoản & Mật khẩu</option>
           <option value={ASSET_CATEGORY.DOCUMENT}>Tài liệu mật & Di chúc</option>
@@ -241,62 +243,64 @@ export function AssetTable({
           )}
         </div>
       ) : (
-        <div className="table-scroll">
-          <table>
-            <thead>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-muted/40 text-muted-foreground border-b border-border/80 uppercase tracking-wider text-[11px] font-semibold">
               <tr>
-                <th>Tên Tài Sản & Loại</th>
-                <th>Danh Mục</th>
-                <th>Bảo Mật</th>
-                <th>Quyền Sở Hữu</th>
-                <th>Ngày Tạo</th>
-                <th className="text-right">Hành Động</th>
+                <th className="py-3 px-5">Tên Tài Sản & Loại</th>
+                <th className="py-3 px-4">Danh Mục</th>
+                <th className="py-3 px-4">Bảo Mật</th>
+                <th className="py-3 px-4">Quyền Sở Hữu</th>
+                <th className="py-3 px-4">Ngày Tạo</th>
+                <th className="py-3 px-5 text-right">Hành Động</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border/60">
               {filteredAssets.map((asset) => (
-                <tr key={asset.id} className="hover:bg-muted/30 transition-colors">
+                <tr key={asset.id} className="hover:bg-muted/20 transition-colors">
                   {/* Cột 1: Icon + Tên tài sản */}
-                  <td>
-                    <div className="asset-title">
+                  <td className="py-3.5 px-5">
+                    <div className="flex items-center gap-3">
                       {renderCategoryIcon(asset.category)}
                       <div>
-                        <strong>{asset.title}</strong>
-                        <small>{asset.dataTypeLabel}</small>
+                        <strong className="text-sm font-semibold text-foreground block">{asset.title}</strong>
+                        <span className="text-xs text-muted-foreground">{asset.dataTypeLabel}</span>
                       </div>
                     </div>
                   </td>
 
                   {/* Cột 2: Nhãn danh mục */}
-                  <td>
-                    <span className="pill gold">{asset.categoryLabel}</span>
+                  <td className="py-3.5 px-4">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold bg-[#FBF7EE] text-[#88672F] border border-[#E8DCC6] dark:bg-[#1F1C13] dark:text-[#E8DCC6] dark:border-[#423C28]">
+                      {asset.categoryLabel}
+                    </span>
                   </td>
 
                   {/* Cột 3: Trạng thái mã hóa */}
-                  <td>
-                    <div className="inline-flex items-center gap-1.5 text-xs text-emerald-800 dark:text-emerald-400">
+                  <td className="py-3.5 px-4">
+                    <div className="inline-flex items-center gap-1.5 font-medium text-emerald-700 dark:text-emerald-400">
                       <Lock className="w-3.5 h-3.5" />
                       <span>AES-GCM-256</span>
                     </div>
                   </td>
 
                   {/* Cột 4: Quyền sở hữu */}
-                  <td>
-                    <span className="text-xs text-muted-foreground">
+                  <td className="py-3.5 px-4">
+                    <span className="text-muted-foreground font-medium">
                       {asset.propertyTypeLabel}
                     </span>
                   </td>
 
                   {/* Cột 5: Ngày tạo */}
-                  <td>
-                    <span className="text-xs text-muted-foreground">
+                  <td className="py-3.5 px-4">
+                    <span className="text-muted-foreground">
                       {asset.formattedCreatedAt}
                     </span>
                   </td>
 
                   {/* Cột 6: Nút thao tác */}
-                  <td className="text-right">
-                    <div className="inline-flex items-center gap-1">
+                  <td className="py-3.5 px-5 text-right">
+                    <div className="inline-flex items-center justify-end gap-1.5">
                       {onViewDetail && (
                         <Button
                           variant="ghost"
@@ -305,7 +309,7 @@ export function AssetTable({
                             // TODO: Mở modal giải mã hoặc xem chi tiết
                             onViewDetail(asset);
                           }}
-                          className="text-xs text-primary hover:text-primary/80"
+                          className="h-8 px-2.5 text-xs text-primary dark:text-emerald-400 hover:bg-primary/10"
                         >
                           Chi tiết
                         </Button>
@@ -318,7 +322,7 @@ export function AssetTable({
                             // TODO: Xác nhận trước khi xóa tài sản
                             onDeleteAsset(asset.id);
                           }}
-                          className="text-xs text-destructive hover:bg-destructive/10"
+                          className="h-8 px-2.5 text-xs text-destructive hover:bg-destructive/10"
                         >
                           Xóa
                         </Button>

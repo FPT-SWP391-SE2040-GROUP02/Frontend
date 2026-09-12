@@ -207,8 +207,9 @@ export function AssetDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg bg-surface border-border">
+      <DialogContent className="max-w-lg bg-[#FAF9F5] dark:bg-[#0A1D15] border border-border shadow-2xl">
         <DialogHeader className="border-b border-border pb-4">
+
           <div className="flex items-center gap-2 text-gold mb-1">
             <ShieldCheck className="w-4 h-4 text-[#B88E4C]" />
             <span className="eyebrow text-gold">Chi Tiết Tài Sản Số</span>

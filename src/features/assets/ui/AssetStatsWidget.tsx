@@ -1,9 +1,9 @@
 // ==============================================================================
 // SWP391 - LegacyVault: AssetStatsWidget UI Component
-// Thẻ thống kê 4 chỉ số tài sản số chuẩn Luxury UI Kit Heritage Forest
+// Thẻ thống kê 4 chỉ số tài sản số chuẩn Luxury UI Kit Heritage Forest & Champagne Gold
 // ==============================================================================
 
-import { Shield, Coins, KeyRound, FileText } from "lucide-react";
+import { Shield, Coins, KeyRound, FileText, Lock } from "lucide-react";
 import type { AssetViewModel } from "@/entities/asset";
 import { ASSET_CATEGORY } from "@/entities/asset";
 
@@ -16,9 +16,12 @@ export interface AssetStatsWidgetProps {
 }
 
 /**
- * @description Component hiển thị 4 thẻ thống kê tài sản số: Tổng tài sản, Crypto, Tài khoản, Tài liệu mật.
+ * @description Component hiển thị 4 thẻ thống kê tài sản số với bố cục Grid 4 cột cân đối,
+ * viền mạ vàng nhẹ, icon màu sắc đặc trưng và bóng đổ sang trọng.
+ *
  * @param {AssetStatsWidgetProps} props Props chứa mảng assets
  * @returns {React.JSX.Element} Grid 4 thẻ stat
+ *
  * @example
  * ```tsx
  * <AssetStatsWidget assets={assets} />
@@ -31,63 +34,80 @@ export function AssetStatsWidget({ assets = [] }: AssetStatsWidgetProps) {
   const documentCount = assets.filter((a) => a.category === ASSET_CATEGORY.DOCUMENT).length;
 
   return (
-    <div className="stats">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Stat 1: Tổng tài sản */}
-      <div className="card stat">
-        <div className="stat-top">
-          <span>Tổng Tài Sản Đã Lưu</span>
-          <Shield className="w-4 h-4 text-primary" />
+      <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs hover:border-[#B88E4C]/50 transition-all duration-200 flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Tổng Tài Sản Đã Lưu
+          </span>
+          <div className="w-8 h-8 rounded-lg bg-emerald-950/10 dark:bg-emerald-500/10 flex items-center justify-center text-primary dark:text-emerald-400">
+            <Shield className="w-4 h-4" />
+          </div>
         </div>
-        <div className="stat-value">
-          <strong>{totalAssets}</strong>
-          <span>mục</span>
+        <div className="flex items-baseline gap-2 my-3">
+          <span className="text-3xl font-bold tracking-tight text-foreground">{totalAssets}</span>
+          <span className="text-xs text-muted-foreground font-medium">mục di sản</span>
         </div>
-        <div className="stat-bottom">
-          <span className="text-green">● 100% Mã hóa AES-256</span>
+        <div className="pt-2 border-t border-border/40 flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-medium">
+          <Lock className="w-3 h-3" />
+          <span>100% Mã hóa AES-256</span>
         </div>
       </div>
 
       {/* Stat 2: Tiền mã hóa & Web3 */}
-      <div className="card stat">
-        <div className="stat-top">
-          <span>Tiền Mã Hóa & Web3</span>
-          <Coins className="w-4 h-4 text-gold" />
+      <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs hover:border-[#B88E4C]/50 transition-all duration-200 flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Tiền Mã Hóa & Web3
+          </span>
+          <div className="w-8 h-8 rounded-lg bg-[#B88E4C]/15 flex items-center justify-center text-[#B88E4C]">
+            <Coins className="w-4 h-4" />
+          </div>
         </div>
-        <div className="stat-value">
-          <strong className="text-[#B88E4C]">{cryptoCount}</strong>
-          <span>ví / seed</span>
+        <div className="flex items-baseline gap-2 my-3">
+          <span className="text-3xl font-bold tracking-tight text-[#B88E4C]">{cryptoCount}</span>
+          <span className="text-xs text-muted-foreground font-medium">ví & seed phrase</span>
         </div>
-        <div className="stat-bottom">
-          <span className="text-gold">Ethereum, Bitcoin, Solana</span>
+        <div className="pt-2 border-t border-border/40 text-xs text-[#88672F] dark:text-[#E8DCC6]">
+          <span>Ethereum, Bitcoin, Solana</span>
         </div>
       </div>
 
       {/* Stat 3: Tài khoản & Mật khẩu */}
-      <div className="card stat">
-        <div className="stat-top">
-          <span>Tài Khoản & Mật Khẩu</span>
-          <KeyRound className="w-4 h-4 text-primary" />
+      <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs hover:border-[#B88E4C]/50 transition-all duration-200 flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Tài Khoản & Mật Khẩu
+          </span>
+          <div className="w-8 h-8 rounded-lg bg-emerald-950/10 dark:bg-emerald-500/10 flex items-center justify-center text-primary dark:text-emerald-400">
+            <KeyRound className="w-4 h-4" />
+          </div>
         </div>
-        <div className="stat-value">
-          <strong>{credentialCount}</strong>
-          <span>tài khoản</span>
+        <div className="flex items-baseline gap-2 my-3">
+          <span className="text-3xl font-bold tracking-tight text-foreground">{credentialCount}</span>
+          <span className="text-xs text-muted-foreground font-medium">tài khoản</span>
         </div>
-        <div className="stat-bottom">
-          <span>Email, Cloud & Server</span>
+        <div className="pt-2 border-t border-border/40 text-xs text-muted-foreground">
+          <span>Email, Cloud & Server SSH</span>
         </div>
       </div>
 
       {/* Stat 4: Tài liệu mật & Di chúc */}
-      <div className="card stat">
-        <div className="stat-top">
-          <span>Tài Liệu Mật & PDF</span>
-          <FileText className="w-4 h-4 text-muted-foreground" />
+      <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs hover:border-[#B88E4C]/50 transition-all duration-200 flex flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Tài Liệu Mật & PDF
+          </span>
+          <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
+            <FileText className="w-4 h-4" />
+          </div>
         </div>
-        <div className="stat-value">
-          <strong>{documentCount}</strong>
-          <span>tập tin</span>
+        <div className="flex items-baseline gap-2 my-3">
+          <span className="text-3xl font-bold tracking-tight text-foreground">{documentCount}</span>
+          <span className="text-xs text-muted-foreground font-medium">tệp tin</span>
         </div>
-        <div className="stat-bottom">
+        <div className="pt-2 border-t border-border/40 text-xs text-muted-foreground">
           <span>Hợp đồng & Văn bản pháp lý</span>
         </div>
       </div>
