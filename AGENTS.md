@@ -117,20 +117,23 @@ Khi phát triển một tính năng mới (Ví dụ: `Product Management`), luô
 - `docs:` Viết hoặc sửa tài liệu.
 - `chore:` Cập nhật cấu hình build, dependencies.
 
-### Quy Tắc Phân Nhánh Git (Git Branching Strategy):
-- **Tuyệt đối không commit trực tiếp code đang làm dở lên nhánh `main`**.
-- Nhánh `main`: Luôn ở trạng thái ổn định, build pass và test pass 100%.
-- Cú pháp đặt tên nhánh:
-  - `feat/<feature-name>`: Nhánh phát triển tính năng mới (ví dụ: `feat/core-boilerplate`, `feat/auth-login`, `feat/dashboard-stats`).
-  - `fix/<bug-name>`: Nhánh sửa lỗi (ví dụ: `fix/login-validation-error`, `fix/sidebar-collapse`).
+### Quy Tắc Phân Nhánh Git (Gitflow Branching Strategy):
+- **Tuyệt đối không commit trực tiếp code đang làm dở lên nhánh `main` hoặc `develop`**.
+- **Nhánh `main`**: Luôn ở trạng thái ổn định tuyệt đối (Production-ready), build pass và test pass 100%. Chỉ nhận merge từ `develop` hoặc `hotfix/*`.
+- **Nhánh `develop`**: Nhánh tích hợp trung tâm (Integration Branch). Mọi nhánh tính năng `feat/*` đều rẽ nhánh từ `develop` và merge trở lại vào `develop` qua Pull Request.
+- **Cú pháp đặt tên nhánh**:
+  - `feat/<feature-name>`: Nhánh phát triển tính năng mới rẽ từ `develop` (ví dụ: `feat/dms-pulse-heartbeat`, `feat/asset-management`, `feat/auth-rbac-guard`).
+  - `fix/<bug-name>`: Nhánh sửa lỗi rẽ từ `develop` (ví dụ: `fix/login-validation-error`, `fix/sidebar-collapse`).
+  - `hotfix/<bug-name>`: Nhánh sửa lỗi khẩn cấp rẽ trực tiếp từ `main`.
   - `refactor/<task-name>`: Nhánh tái cấu trúc mã nguồn (ví dụ: `refactor/api-services`).
-- Quy trình làm việc nhóm chuẩn:
-  1. Kéo code mới nhất từ nhánh chính: `git checkout main && git pull origin main`
+- **Quy trình làm việc chuẩn cho từng tính năng**:
+  1. Kéo code mới nhất từ nhánh `develop`: `git checkout develop && git pull origin develop`
   2. Tạo nhánh làm việc riêng: `git checkout -b feat/<ten-tinh-nang>`
   3. Lập trình và commit theo chuẩn Conventional Commits
-  4. Kiểm tra trước khi đẩy code: `npm run type-check` và `npm run test:run`
+  4. Kiểm tra chất lượng trước khi đẩy code: `npm run type-check` và `npm run test:run`
   5. Đẩy nhánh lên GitHub: `git push -u origin feat/<ten-tinh-nang>`
-  6. Mở Pull Request (PR) để các thành viên khác review trước khi merge vào `main`.
+  6. Mở Pull Request (PR) merge vào nhánh `develop` để các thành viên khác review.
+  7. Khi hoàn tất sprint/milestone, merge `develop` vào `main`.
 
 ---
 

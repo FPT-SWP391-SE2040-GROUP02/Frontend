@@ -77,6 +77,7 @@ export const APP_MESSAGES = {
     INVALID_PHONE: "Số điện thoại không hợp lệ",
     MIN_LENGTH: (field: string, min: number) => `${field} phải có ít nhất ${min} ký tự`,
     MAX_LENGTH: (field: string, max: number) => `${field} không được vượt quá ${max} ký tự`,
+    NUMBER: (field: string) => `${field} phải là chữ số hợp lệ`,
     PASSWORD_NOT_MATCH: "Mật khẩu xác nhận không trùng khớp",
   },
 } as const;
