@@ -3,8 +3,13 @@
 // Chuyển đổi qua lại giữa Backend C# DTO và Frontend UI ViewModel
 // ==============================================================================
 
-import type { AssetDto, AssetViewModel, CreateAssetRequest, EncryptedPayload } from "../model/asset.types";
 import type { CreateAssetFormValues } from "../model/asset.schema";
+import type {
+  AssetDto,
+  AssetViewModel,
+  CreateAssetRequest,
+  EncryptedPayload,
+} from "../model/asset.types";
 
 /**
  * @description Chuyển đổi DTO từ Backend C# ASP.NET Core thành ViewModel chuẩn hóa cho UI hiển thị.
@@ -29,7 +34,9 @@ export function toViewModel(_dto: AssetDto): AssetViewModel {
   // TODO: 4. Format ngày tháng createdAt sang chuỗi hiển thị DD/MM/YYYY HH:mm
   // TODO: 5. Đóng gói encryptedData thành EncryptedPayload { ciphertext, initializationVector, authTag }
   // TODO: 6. Trả về đối tượng AssetViewModel hoàn chỉnh
-  throw new Error("Chưa cài đặt toViewModel - Vui lòng tự hoàn thiện code logic chuyển đổi tại đây.");
+  throw new Error(
+    "Chưa cài đặt toViewModel - Vui lòng tự hoàn thiện code logic chuyển đổi tại đây.",
+  );
 }
 
 /**
@@ -46,9 +53,8 @@ export function toViewModel(_dto: AssetDto): AssetViewModel {
  */
 export function toCreatePayload(
   _form: CreateAssetFormValues,
-  _encrypted: EncryptedPayload
+  _encrypted: EncryptedPayload,
 ): CreateAssetRequest {
-
   // TODO: 1. Trích xuất vaultId, category, dataType, title, propertyType từ form
   // TODO: 2. Đính kèm encryptedCiphertext = encrypted.ciphertext
   // TODO: 3. Đính kèm initializationVector = encrypted.initializationVector

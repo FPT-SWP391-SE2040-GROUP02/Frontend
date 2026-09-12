@@ -5,6 +5,7 @@ import {
   LoginPage,
   RegisterPage,
   DashboardOverviewPage,
+  AssetsManagementPage,
   NotFoundPage,
   ForbiddenPage,
 } from "@/pages";
@@ -32,11 +33,13 @@ export function AppRoutes() {
       <Route element={<PrivateRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path={ROUTES.DASHBOARD.ROOT} element={<DashboardOverviewPage />} />
+          <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
           <Route path={ROUTES.DASHBOARD.ANALYTICS} element={<DashboardOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.USERS} element={<DashboardOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.SETTINGS} element={<DashboardOverviewPage />} />
         </Route>
       </Route>
+
 
       {/* 4. Tuyến đường lỗi */}
       <Route path={ROUTES.ERROR.FORBIDDEN} element={<ForbiddenPage />} />

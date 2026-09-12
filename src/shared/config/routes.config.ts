@@ -17,10 +17,12 @@ export const ROUTES = {
   /** Nhóm đường dẫn khu vực quản trị / nội bộ (Dashboard) */
   DASHBOARD: {
     ROOT: "/dashboard",
+    ASSETS: "/dashboard/assets",
     ANALYTICS: "/dashboard/analytics",
     USERS: "/dashboard/users",
     SETTINGS: "/dashboard/settings",
   },
+
 
   /** Nhóm trang lỗi hệ thống */
   ERROR: {

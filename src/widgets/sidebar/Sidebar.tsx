@@ -1,7 +1,7 @@
 import { ROUTES } from "@/shared/config/routes.config";
 import { ROLES, type Role } from "@/shared/constants";
 import { NavLink } from "react-router-dom";
-import { Shield, ScrollText, Scale, Vault } from "lucide-react";
+import { Shield, ScrollText, Scale, Vault, Coins } from "lucide-react";
 
 /**
  * @description Cấu trúc phần tử trong menu Sidebar.
@@ -23,11 +23,17 @@ export const SIDEBAR_ITEMS: SidebarNavItem[] = [
     icon: ScrollText,
   },
   {
+    title: "Tài sản số & Khóa mật",
+    href: ROUTES.DASHBOARD.ASSETS,
+    icon: Coins,
+  },
+  {
     title: "Két sắt lưu trữ",
     href: ROUTES.DASHBOARD.ANALYTICS,
     icon: Vault,
     roles: [ROLES.ADMIN, ROLES.STAFF],
   },
+
   {
     title: "Xác thực pháp lý",
     href: ROUTES.DASHBOARD.USERS,

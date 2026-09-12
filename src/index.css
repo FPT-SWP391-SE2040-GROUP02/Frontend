@@ -6,7 +6,8 @@
 
 @theme inline {
   --font-heading: "Plus Jakarta Sans", -apple-system, sans-serif;
-  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans:
+    "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Lora", Georgia, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -51,131 +52,134 @@
 /* ==================== EXACT USER PALETTE: HERITAGE FOREST GREEN & REFINED BRASS GOLD ==================== */
 :root {
   /* Exact Tokens from User Spec */
-  --bg-color: #F8FAF7;
-  --primary: #0B291E;         /* Deep Forest Green */
-  --primary-light: #EBF3EE;   /* Soft Sage */
-  --gold: #B88E4C;            /* Champagne Gold */
-  --gold-hover: #A07839;
-  --gold-light: #FBF7EE;      /* Warm Gold Tint */
-  --gold-border: #E8DCC6;     /* Muted Gold Border */
-  --text-main: #14241C;       /* Dark Forest Slate */
-  --text-muted: #617369;      /* Muted Sage */
-  --white: #FFFFFF;
-  --border-color: #E2E8E3;
-  --sidebar-bg: #071E16;      /* Deepest Forest Night */
-  --card-bg: #FFFFFF;
+  --bg-color: #f8faf7;
+  --primary: #0b291e; /* Deep Forest Green */
+  --primary-light: #ebf3ee; /* Soft Sage */
+  --gold: #b88e4c; /* Champagne Gold */
+  --gold-hover: #a07839;
+  --gold-light: #fbf7ee; /* Warm Gold Tint */
+  --gold-border: #e8dcc6; /* Muted Gold Border */
+  --text-main: #14241c; /* Dark Forest Slate */
+  --text-muted: #617369; /* Muted Sage */
+  --white: #ffffff;
+  --border-color: #e2e8e3;
+  --sidebar-bg: #071e16; /* Deepest Forest Night */
+  --card-bg: #ffffff;
 
   /* Specific Heritage Aliases & Soft Tactile Depth */
-  --heritage-primary: #0B291E;
-  --heritage-primary-hover: #133E2F;
-  --heritage-primary-light: #EBF3EE;
-  --heritage-gold: #B88E4C;
-  --heritage-gold-hover: #A07839;
-  --heritage-gold-light: #FBF7EE;
-  --heritage-gold-border: #E8DCC6;
-  --heritage-canvas: #F8FAF7;
-  --heritage-surface: #FFFFFF;
-  --border-ui: #E2E8E3;
+  --heritage-primary: #0b291e;
+  --heritage-primary-hover: #133e2f;
+  --heritage-primary-light: #ebf3ee;
+  --heritage-gold: #b88e4c;
+  --heritage-gold-hover: #a07839;
+  --heritage-gold-light: #fbf7ee;
+  --heritage-gold-border: #e8dcc6;
+  --heritage-canvas: #f8faf7;
+  --heritage-surface: #ffffff;
+  --border-ui: #e2e8e3;
   --shadow-raised: 0 4px 12px rgba(11, 41, 30, 0.05), 0 1px 3px rgba(11, 41, 30, 0.03);
-  --shadow-inset: inset 2px 2px 5px rgba(0, 0, 0, 0.06), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
-  --shadow-pressed: inset 3px 3px 6px rgba(11, 41, 30, 0.12), inset -2px -2px 4px rgba(255, 255, 255, 0.7);
+  --shadow-inset:
+    inset 2px 2px 5px rgba(0, 0, 0, 0.06), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
+  --shadow-pressed:
+    inset 3px 3px 6px rgba(11, 41, 30, 0.12), inset -2px -2px 4px rgba(255, 255, 255, 0.7);
 
   /* Shadcn / Tailwind Mappings */
-  --background: #F8FAF7;
-  --foreground: #14241C;
-  --card: #FFFFFF;
-  --card-foreground: #14241C;
-  --popover: #FFFFFF;
-  --popover-foreground: #14241C;
-  --primary-foreground: #FFFFFF;
-  --secondary: #EBF3EE;
-  --secondary-foreground: #0B291E;
-  --muted: #F0F4F1;
+  --background: #f8faf7;
+  --foreground: #14241c;
+  --card: #ffffff;
+  --card-foreground: #14241c;
+  --popover: #ffffff;
+  --popover-foreground: #14241c;
+  --primary-foreground: #ffffff;
+  --secondary: #ebf3ee;
+  --secondary-foreground: #0b291e;
+  --muted: #f0f4f1;
   --muted-foreground: #617369;
-  --accent: #FBF7EE;
-  --accent-foreground: #B88E4C;
-  --destructive: #991B1B;
-  --border: #E2E8E3;
-  --input: #E2E8E3;
-  --ring: #B88E4C;
-  --chart-1: #0B291E;
-  --chart-2: #B88E4C;
+  --accent: #fbf7ee;
+  --accent-foreground: #b88e4c;
+  --destructive: #991b1b;
+  --border: #e2e8e3;
+  --input: #e2e8e3;
+  --ring: #b88e4c;
+  --chart-1: #0b291e;
+  --chart-2: #b88e4c;
   --chart-3: #059669;
-  --chart-4: #D97706;
-  --chart-5: #10382B;
+  --chart-4: #d97706;
+  --chart-5: #10382b;
   --radius: 0.625rem;
 
   /* Sidebar Tokens */
-  --sidebar: #071E16;
-  --sidebar-foreground: #FAF8F5;
-  --sidebar-primary: #B88E4C;
-  --sidebar-primary-foreground: #071E16;
+  --sidebar: #071e16;
+  --sidebar-foreground: #faf8f5;
+  --sidebar-primary: #b88e4c;
+  --sidebar-primary-foreground: #071e16;
   --sidebar-accent: rgba(255, 255, 255, 0.06);
-  --sidebar-accent-foreground: #FAF8F5;
+  --sidebar-accent-foreground: #faf8f5;
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #B88E4C;
+  --sidebar-ring: #b88e4c;
 }
 
 /* ==================== THEME DARK: OBSIDIAN & DEEP EMERALD NIGHT ==================== */
 .dark {
-  --background: #06120D;
-  --foreground: #F3F6F4;
-  --card: #0A1D15;
-  --card-foreground: #F3F6F4;
-  --popover: #0A1D15;
-  --popover-foreground: #F3F6F4;
-  --primary: #D4AF37;
-  --primary-foreground: #06120D;
-  --secondary: #10291F;
-  --secondary-foreground: #F3F6F4;
-  --muted: #0D221A;
-  --muted-foreground: #8FA599;
+  --background: #06120d;
+  --foreground: #f3f6f4;
+  --card: #0a1d15;
+  --card-foreground: #f3f6f4;
+  --popover: #0a1d15;
+  --popover-foreground: #f3f6f4;
+  --primary: #d4af37;
+  --primary-foreground: #06120d;
+  --secondary: #10291f;
+  --secondary-foreground: #f3f6f4;
+  --muted: #0d221a;
+  --muted-foreground: #8fa599;
   --accent: #133327;
-  --accent-foreground: #F3F6F4;
-  --destructive: #EF4444;
-  --border: #1D3B2F;
-  --input: #1D3B2F;
-  --ring: #D4AF37;
-  --chart-1: #34D399;
-  --chart-2: #D4AF37;
-  --chart-3: #60A5FA;
-  --chart-4: #F472B6;
-  --chart-5: #A78BFA;
-  --sidebar: #050F0B;
-  --sidebar-foreground: #F3F6F4;
-  --sidebar-primary: #D4AF37;
-  --sidebar-primary-foreground: #050F0B;
-  --sidebar-accent: #0E241B;
-  --sidebar-accent-foreground: #F3F6F4;
+  --accent-foreground: #f3f6f4;
+  --destructive: #ef4444;
+  --border: #1d3b2f;
+  --input: #1d3b2f;
+  --ring: #d4af37;
+  --chart-1: #34d399;
+  --chart-2: #d4af37;
+  --chart-3: #60a5fa;
+  --chart-4: #f472b6;
+  --chart-5: #a78bfa;
+  --sidebar: #050f0b;
+  --sidebar-foreground: #f3f6f4;
+  --sidebar-primary: #d4af37;
+  --sidebar-primary-foreground: #050f0b;
+  --sidebar-accent: #0e241b;
+  --sidebar-accent-foreground: #f3f6f4;
   --sidebar-border: #153024;
-  --sidebar-ring: #D4AF37;
+  --sidebar-ring: #d4af37;
 
   /* LegacyVault Dark Tokens */
-  --bg-canvas: #06120D;
-  --surface: #0A1D15;
-  --primary-hover: #174F3D;
-  --primary-light: #0D251C;
+  --bg-canvas: #06120d;
+  --surface: #0a1d15;
+  --primary-hover: #174f3d;
+  --primary-light: #0d251c;
   --primary-surface: #071711;
-  --gold: #D4AF37;
-  --gold-hover: #E2C259;
-  --gold-light: #1F1C13;
-  --gold-border: #423C28;
-  --heritage-primary: #10382B;
-  --heritage-primary-hover: #174F3D;
-  --heritage-primary-light: #0D251C;
+  --gold: #d4af37;
+  --gold-hover: #e2c259;
+  --gold-light: #1f1c13;
+  --gold-border: #423c28;
+  --heritage-primary: #10382b;
+  --heritage-primary-hover: #174f3d;
+  --heritage-primary-light: #0d251c;
   --heritage-primary-surface: #071711;
-  --heritage-gold: #D4AF37;
-  --heritage-gold-hover: #E2C259;
-  --heritage-gold-light: #1F1C13;
-  --heritage-gold-border: #423C28;
-  --heritage-canvas: #06120D;
-  --heritage-surface: #0A1D15;
-  --text-main: #F3F6F4;
-  --text-muted: #8FA599;
+  --heritage-gold: #d4af37;
+  --heritage-gold-hover: #e2c259;
+  --heritage-gold-light: #1f1c13;
+  --heritage-gold-border: #423c28;
+  --heritage-canvas: #06120d;
+  --heritage-surface: #0a1d15;
+  --text-main: #f3f6f4;
+  --text-muted: #8fa599;
   --text-subtle: #607369;
-  --border-ui: #1D3B2F;
+  --border-ui: #1d3b2f;
   --shadow-raised: 0 6px 20px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
-  --shadow-inset: inset 2px 2px 6px rgba(0, 0, 0, 0.6), inset -1px -1px 3px rgba(255, 255, 255, 0.05);
+  --shadow-inset:
+    inset 2px 2px 6px rgba(0, 0, 0, 0.6), inset -1px -1px 3px rgba(255, 255, 255, 0.05);
 }
 
 @layer base {
@@ -211,9 +215,9 @@
   -webkit-appearance: none;
   width: 17px;
   height: 17px;
-  border: 1.5px solid #A8A295;
+  border: 1.5px solid #a8a295;
   border-radius: 4px;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   display: grid;
   place-content: center;
   cursor: pointer;
@@ -227,7 +231,7 @@
   height: 9px;
   transform: scale(0);
   transition: 100ms transform ease-in-out;
-  box-shadow: inset 1em 1em #FFFFFF;
+  box-shadow: inset 1em 1em #ffffff;
   transform-origin: center;
   clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 }
@@ -253,9 +257,9 @@
   -webkit-appearance: none;
   width: 17px;
   height: 17px;
-  border: 1.5px solid #A8A295;
+  border: 1.5px solid #a8a295;
   border-radius: 50%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   display: grid;
   place-content: center;
   cursor: pointer;
@@ -300,45 +304,203 @@
 }
 
 /* 4. Domain Testament & Legal Protocol Helpers */
-.font-testament { 
-  font-family: 'Lora', Georgia, serif; 
-  font-style: italic; 
-  font-weight: 400; 
+.font-testament {
+  font-family: "Lora", Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
   letter-spacing: 0.2px;
 }
 
-.badge-seal { 
-  font-size: 11.5px; 
-  background: var(--gold-light); 
-  color: #7D5D28; 
+.badge-seal {
+  font-size: 11.5px;
+  background: var(--gold-light);
+  color: #7d5d28;
   border: 1px solid var(--gold-border);
-  padding: 3px 10px; 
-  border-radius: 20px; 
-  font-weight: 500; 
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 5px;
 }
 
-.instruction-text { 
-  font-size: 15px; 
-  line-height: 1.7; 
-  color: #1A2820; 
-  background: #FAF9F5; 
-  padding: 16px 20px; 
-  border-radius: 8px; 
+.instruction-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #1a2820;
+  background: #faf9f5;
+  padding: 16px 20px;
+  border-radius: 8px;
   border: 1px solid var(--gold-border);
-  border-left: 3px solid var(--gold); 
+  border-left: 3px solid var(--gold);
   box-shadow: 0 1px 3px rgba(184, 142, 76, 0.03);
 }
 
-.condition-box { 
-  background-color: #F8FAF8; 
-  border: 1px solid #D5E2D8; 
-  padding: 14px 16px; 
-  border-radius: 8px; 
-  font-size: 12.5px; 
-  line-height: 1.6; 
-  color: #2D4236; 
+.condition-box {
+  background-color: #f8faf8;
+  border: 1px solid #d5e2d8;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #2d4236;
   font-weight: 400;
+}
+
+/* ==================== LEGACYVAULT LUXURY UI KIT: HERITAGE FOREST & CHAMPAGNE GOLD ==================== */
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 1.7px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.btn-gold {
+  background: #ad8443;
+  color: #fff;
+  box-shadow: 0 4px 12px #b88e4c25;
+}
+.btn-gold:hover {
+  background: #987136;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  white-space: nowrap;
+  background: var(--light, #e5ede8);
+  color: #315e46;
+}
+.pill.gold {
+  background: var(--gold-light);
+  color: #88672f;
+  border: 1px solid var(--gold-border);
+}
+.pill.gray {
+  background: #f0efe9;
+  color: var(--muted-foreground);
+}
+.pill svg.icon {
+  width: 14px;
+  height: 14px;
+}
+.monogram {
+  background: linear-gradient(135deg, #d2b774, #a57d3e);
+  color: #0b291e;
+  border: 1px solid #ccaf6b;
+  border-radius: 12px;
+  display: inline-grid;
+  place-items: center;
+  width: 45px;
+  height: 48px;
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 24px;
+  letter-spacing: -3px;
+  padding-right: 3px;
+  flex-shrink: 0;
+}
+.quote-card {
+  background: var(--primary);
+  padding: 24px;
+  color: #edf0e7;
+  border-radius: 12px;
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.quote-card .eyebrow {
+  font-size: 10px;
+  color: #baa373;
+  letter-spacing: 1px;
+}
+.quote-card blockquote {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 14px 0 20px;
+  color: #f4eee0;
+}
+.quote-card p {
+  font-size: 11px;
+  color: #9fb5a5;
+}
+.quote-card > svg {
+  color: #b79a63;
+  width: 20px;
+  margin-bottom: 14px;
+}
+.dms-banner {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  padding: 21px 24px;
+  background: #edf3ed;
+  border: 1px solid #d9e4d8;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+.dms-icon {
+  width: 43px;
+  height: 45px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  border: 1px solid #d6e2d6;
+  border-radius: 10px;
+  color: #365e45;
+}
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #40835e;
+  margin-right: 5px;
+}
+.asset-type {
+  width: 35px;
+  height: 38px;
+  background: #eef2ed;
+  border: 1px solid #e0e6dd;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #526c59;
+  flex-shrink: 0;
+}
+.asset-type.gold {
+  background: #f7f1e5;
+  color: #9c783a;
+  border-color: #eee3cc;
+}
+.table-status {
+  font-size: 10px;
+  white-space: nowrap;
+  padding: 5px 7px;
+  border-radius: 5px;
+  background: #edf4ed;
+  color: #537558;
+}
+.table-status.draft {
+  background: #faf4e6;
+  color: #9b7a3e;
+}
+.notice {
+  background: var(--gold-light);
+  border: 1px solid var(--gold-border);
+  border-radius: 8px;
+  padding: 13px 15px;
+  font-size: 12px;
+  color: #87662e;
+  line-height: 1.7;
+}
+.notice.green {
+  color: #456b4e;
+  border-color: #d5e0d2;
+  background: #eff4eb;
 }
