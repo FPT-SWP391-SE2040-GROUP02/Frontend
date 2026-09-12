@@ -50,16 +50,23 @@ export const AssetTable: React.FC<AssetTableProps> = ({
 
   const effectiveSearchTerm = (externalSearchTerm || internalSearch).trim().toLowerCase();
 
-  // Lọc dữ liệu theo từ khóa tìm kiếm (Doherty Threshold < 400ms - Phản hồi tức thì)
+  // Lọc dữ liệu theo từ khóa tìm kiếm (Doherty Threshold < 400ms - Phản hồi tức thì & Null Safety)
   const filteredItems = useMemo(() => {
-    if (!data?.items) return [];
+    if (!data?.items || !Array.isArray(data.items)) return [];
     if (!effectiveSearchTerm) return data.items;
-    return data.items.filter(
-      (item) =>
-        item.title.toLowerCase().includes(effectiveSearchTerm) ||
-        item.description.toLowerCase().includes(effectiveSearchTerm) ||
-        item.typeLabel.toLowerCase().includes(effectiveSearchTerm)
-    );
+
+    return data.items.filter((item) => {
+      if (!item) return false;
+      const title = (item.title ?? "").toLowerCase();
+      const description = (item.description ?? "").toLowerCase();
+      const typeLabel = (item.typeLabel ?? "").toLowerCase();
+
+      return (
+        title.includes(effectiveSearchTerm) ||
+        description.includes(effectiveSearchTerm) ||
+        typeLabel.includes(effectiveSearchTerm)
+      );
+    });
   }, [data?.items, effectiveSearchTerm]);
 
   const getAssetIcon = (type: AssetType) => {
