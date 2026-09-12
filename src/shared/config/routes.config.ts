@@ -23,6 +23,13 @@ export const ROUTES = {
     SETTINGS: "/dashboard/settings",
   },
 
+  /** Nhóm đường dẫn bảng giá & thanh toán SePay */
+  BILLING: {
+    PLANS: "/pricing",
+    CHECKOUT: "/billing/checkout",
+    HISTORY: "/billing/history",
+  },
+
   /** Cổng công chứng viên / Legal Verifier */
   NOTARY: {
     WORKSPACE: "/notary/workspace",

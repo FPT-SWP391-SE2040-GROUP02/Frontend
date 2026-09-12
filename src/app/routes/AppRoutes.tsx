@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import {
   LandingPage,
+  PricingPlansPage,
+  BillingHistoryPage,
   LoginPage,
   RegisterPage,
   ForgotPasswordPage,
@@ -19,7 +21,12 @@ export function AppRoutes() {
       {/* 1. Trang chủ công khai cho GUEST */}
       <Route path={ROUTES.HOME} element={<LandingPage />} />
 
-      {/* 2. Tuyến đường xác thực (Auth Routes) */}
+      {/* 2. Bảng giá & Thanh toán SePay VietQR */}
+      <Route path={ROUTES.BILLING.PLANS} element={<PricingPlansPage />} />
+      <Route path={ROUTES.BILLING.CHECKOUT} element={<PricingPlansPage />} />
+      <Route path={ROUTES.BILLING.HISTORY} element={<BillingHistoryPage />} />
+
+      {/* 3. Tuyến đường xác thực (Auth Routes) */}
       <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />
       <Route path={ROUTES.AUTH.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />

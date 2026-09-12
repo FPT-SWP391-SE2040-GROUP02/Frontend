@@ -1,4 +1,6 @@
 export * from "./public/LandingPage";
+export * from "./billing/PricingPlansPage";
+export * from "./billing/BillingHistoryPage";
 export * from "./auth/LoginPage";
 export * from "./auth/RegisterPage";
 export * from "./auth/ForgotPasswordPage";
