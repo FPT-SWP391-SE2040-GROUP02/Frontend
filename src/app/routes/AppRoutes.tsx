@@ -3,6 +3,7 @@ import {
   LandingPage,
   PricingPlansPage,
   BillingHistoryPage,
+  DmsStatusPage,
   LoginPage,
   RegisterPage,
   ForgotPasswordPage,
@@ -26,7 +27,10 @@ export function AppRoutes() {
       <Route path={ROUTES.BILLING.CHECKOUT} element={<PricingPlansPage />} />
       <Route path={ROUTES.BILLING.HISTORY} element={<BillingHistoryPage />} />
 
-      {/* 3. Tuyến đường xác thực (Auth Routes) */}
+      {/* 3. Dead Man's Switch (Nhịp sinh tồn & bàn giao di sản) */}
+      <Route path={ROUTES.DMS.ROOT} element={<DmsStatusPage />} />
+
+      {/* 4. Tuyến đường xác thực (Auth Routes) */}
       <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />
       <Route path={ROUTES.AUTH.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />

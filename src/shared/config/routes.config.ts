@@ -45,6 +45,13 @@ export const ROUTES = {
     CLAIM: "/claim/beneficiary",
   },
 
+  /** Dead Man's Switch (Nhịp sinh tồn & kích hoạt bàn giao di sản) */
+  DMS: {
+    ROOT: "/dms",
+    CONFIG: "/dms/config",
+    HISTORY: "/dms/history",
+  },
+
   /** Nhóm trang lỗi hệ thống */
   ERROR: {
     FORBIDDEN: "/403",
