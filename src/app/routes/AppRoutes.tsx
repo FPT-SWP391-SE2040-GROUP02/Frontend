@@ -1,17 +1,16 @@
-import { Routes, Route, Navigate } from "react-router-dom";
 import {
-  LandingPage,
-  PricingPlansPage,
   BillingHistoryPage,
   DmsStatusPage,
-  LoginPage,
-  RegisterPage,
-  ForgotPasswordPage,
   ForbiddenPage,
+  ForgotPasswordPage,
+  LandingPage,
+  LoginPage,
   NotFoundPage,
+  PricingPlansPage,
+  RegisterPage,
 } from "@/pages";
-import { ProtectedRoute } from "./ProtectedRoute";
 import { ROUTES } from "@/shared/config/routes.config";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 /**
  * @description Cấu hình bản đồ định tuyến (Routing map) toàn bộ ứng dụng.
