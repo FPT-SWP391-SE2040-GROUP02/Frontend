@@ -248,4 +248,56 @@ Khi phát triển các module tương ứng, **bắt buộc sử dụng đúng m
 4. **15s Video Affidavit Frame (Điều 630 BLDS)**: Khung webcam quay video tuyên thệ minh mẫn có nút REC đỏ và thanh trạng thái.
 5. **Hộp Cảnh Báo Tuân Thủ Pháp Luật (Điều 644/612 BLDS)**: Callout màu hổ phách vàng `#FFFBEB` kèm checkbox cam đoan trách nhiệm pháp lý.
 
+---
+
+## 11. QUY CHUẨN THIẾT KẾ UI/UX TIÊU CHUẨN QUỐC TẾ
+
+Mọi màn hình, giao diện và tương tác trong dự án **BẮT BUỘC PHẢI TUÂN THỦ 5 TRỤ CỘT THIẾT KẾ UI/UX CHUẨN QUỐC TẾ** (Nielsen Norman Group, WCAG 2.1 AA, Modern Design Systems & Laws of UX):
+
+### 🔹 Trụ Cột 1: 10 Nguyên Tắc Vàng Về Khả Năng Sử Dụng (10 Usability Heuristics - NN/g)
+1. **Hiển thị rõ trạng thái hệ thống (Visibility of System Status)**: Phản hồi tức thời qua Loading Skeleton, thanh tiến trình mã hóa E2EE, chấm nhịp tim DMS nhấp nháy xanh.
+2. **Khớp giữa hệ thống và thế giới thực (Match between System and Real World)**: Sử dụng ngôn ngữ di sản quen thuộc ("Két số", "Người thừa kế", "Người thụ hưởng", "Niêm phong"), ẩn các thuật ngữ kỹ thuật khó hiểu (`Ciphertext`, `Blob`).
+3. **Quyền kiểm soát và tự do của người dùng (User Control & Freedom)**: Mọi Modal, Stepper đều có nút "Hủy", "Quay lại", phím `Escape` (Emergency Exit).
+4. **Tính nhất quán và tiêu chuẩn (Consistency & Standards)**: Đồng bộ 100% về vị trí nút, màu sắc, font chữ và bo góc trên toàn bộ các trang.
+5. **Phòng ngừa lỗi hơn là sửa lỗi (Error Prevention)**: Disable nút khi dữ liệu chưa hợp lệ; hiện Modal xác nhận trước khi thực hiện hành động nhạy cảm (Xóa tài sản, Hủy di chúc).
+6. **Nhận diện thay vì ghi nhớ (Recognition rather than Recall)**: Cung cấp sẵn Dropdown, Filter Chips, Placeholder chi tiết để người dùng không phải tự nhớ thông tin từ bước trước.
+7. **Linh hoạt và hiệu quả sử dụng (Flexibility & Efficiency)**: Hỗ trợ phím tắt, tìm kiếm nhanh, nút Copy 1-click.
+8. **Thiết kế tối giản và thẩm mỹ (Aesthetic & Minimalist Design)**: Khoảng trắng (whitespace) thoáng đãng, mỗi màn hình chỉ tập trung vào một hành động chính (Primary CTA).
+9. **Nhận biết và khắc phục lỗi thân thiện (Help Users Recognize & Recover from Errors)**: Thông báo lỗi bằng tiếng Việt tự nhiên, chỉ rõ vị trí và cách sửa lỗi thay vì mã HTTP khô khan.
+10. **Trợ giúp và tài liệu hướng dẫn (Help & Documentation)**: Tooltip và Callout giải thích các căn cứ pháp lý (Điều 612, 630, 644 BLDS) ngay tại ngữ cảnh thao tác.
+
+### 🔹 Trụ Cột 2: Quy Tắc Thiết Kế Thị Giác Hiện Đại (Modern Design Systems)
+- **Hệ thống khoảng cách 8-point Grid (8pt / 4pt Spacing)**: Mọi `padding`, `margin`, `gap` đều là bội số của 4px hoặc 8px (`4px, 8px, 12px, 16px, 20px, 24px, 32px, 48px`).
+- **Quy tắc phối màu 60 - 30 - 10**:
+  - **60% Dominant Canvas**: Màu nền trung tính ấm (`#FAF9F5` hoặc `#EFECE6`).
+  - **30% Secondary Surface**: Thẻ Card, Sidebar, Header (`#0B291E` - Heritage Forest Green).
+  - **10% Accent CTA**: Nút bấm quan trọng, Badge, Focus Ring (`#B88E4C` - Champagne Gold, `#059669` - Active Green).
+- **Phân cấp Typography rõ ràng**: Sử dụng font `Plus Jakarta Sans`, phân cấp bằng độ đậm (`font-bold`, `font-semibold`) và màu sắc (`text-main #14241C` vs `text-muted #66786E`).
+- **Nổi khối xúc giác mềm (Soft Tactile / Tonal Elevation)**: Viền mỏng 1px (`border-[#DCD9D0]`) kết hợp bóng đổ mờ nhẹ (`shadow-[0_4px_16px_rgba(11,41,30,0.06)]`).
+
+### 🔹 Trụ Cột 3: Tiêu Chuẩn Tiếp Cận Quốc Tế (WCAG 2.1 / 2.2 AA Accessibility)
+- **Độ tương phản màu (Color Contrast Ratio)**: Tối thiểu **4.5:1** cho văn bản thường và **3:1** cho văn bản lớn/UI component.
+- **Vùng chạm tối thiểu (Touch Target Size)**: Nút bấm và icon tương tác có kích thước tối thiểu **44 × 44px** (Apple HIG) / **48 × 48px** (Google Material).
+- **Điều hướng bàn phím (Keyboard Accessibility & Focus Ring)**: Mọi nút bấm và ô nhập liệu đều có viền sáng rõ rệt khi nhấn `Tab` (`focus:ring-2 focus:ring-[#B88E4C] focus:outline-none`).
+
+### 🔹 Trụ Cột 4: Quy Tắc 4 Trạng Thái Giao Diện (State-Driven UI)
+Mọi màn hình nạp dữ liệu bắt buộc phải xử lý đủ 4 trạng thái:
+1. **Loading State**: Sử dụng **Skeleton Loader** mô phỏng hình dáng khối dữ liệu sắp nạp.
+2. **Error State**: Thông báo lỗi lịch sự, giải thích nguyên nhân kèm nút **"Thử lại"** (`refetch`).
+3. **Empty State**: Không để màn hình trắng; hiển thị icon minh họa + lời dẫn hướng dẫn + nút kêu gọi hành động (Primary CTA).
+4. **Success State**: Hiển thị dữ liệu trọn vẹn, hiệu ứng chuyển cảnh mềm mại (`transition-all`).
+
+### 🔹 Trụ Cột 5: Các Định Luật Tâm Lý Học Trong UX (Laws of UX)
+1. **Định luật Hick (Hick's Law)**: Giảm tải nhận thức bằng cách chia nhỏ quy trình dài thành Stepper 4 bước tuần tự.
+2. **Định luật Miller (Miller's Law & Chunking)**: Phân mảnh thông tin phức tạp thành các cụm nhỏ (ví dụ: Lưới 12 từ Seed Phrase chia 3 cột đánh số 1-12; số CCCD/tài khoản ngân hàng ngắt đoạn).
+3. **Ngưỡng Doherty (Doherty Threshold < 400ms)**: Áp dụng Optimistic UI để phản hồi tức thì (<400ms) khi người dùng bấm xác nhận nhịp sinh tồn "⚡ I'm Alive" hoặc chuyển Tab.
+
+### 🔹 Trích Dẫn Mẫu Cho Báo Cáo Khóa Luận / SRS (Mục 4.2 Quality Attributes):
+> *"The user interface of LegacyVault strictly conforms to international usability and accessibility benchmarks:
+> 1. **Nielsen Norman Group (NN/g) 10 Usability Heuristics** for intuitive system feedback, error prevention, and streamlined estate management.
+> 2. **WCAG 2.1 Level AA Accessibility Standards**, ensuring a minimum color contrast ratio of 4.5:1 and minimum interactive touch targets of 44x44px.
+> 3. **Modern 8-point Grid Spacing & Tonal Elevation System**, providing consistent visual hierarchy and seamless responsive layout across devices.
+> 4. **State-Driven UI Architecture**, guaranteeing comprehensive coverage of all four runtime states (Loading Skeleton, Error Fallback, Actionable Empty State, and Success Data View)."*
+
+
 
