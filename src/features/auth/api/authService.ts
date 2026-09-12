@@ -14,7 +14,6 @@ const baseAuthService = createBaseService<AuthSession>({
 
 /**
  * @description Dịch vụ gọi API xác thực và phân quyền (Authentication API Service).
- * Tuân thủ quy tắc 7: Để lại comment // TODO rõ ràng cho developer tự hoàn thiện logic.
  */
 export const authService = {
   ...baseAuthService,

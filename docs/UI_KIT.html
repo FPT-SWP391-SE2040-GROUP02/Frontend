@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LegacyVault - Master UI Kit & Complete Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* 1. PRIMARY: Heritage Forest */
+            --bg-canvas: #EFECE6;        
+            --surface: #FAF9F5;          
+            --primary: #0B291E;          
+            --primary-hover: #133E2F;
+            --primary-light: #E5EDE8;
+            --primary-surface: #10382B;
+            
+            /* 2. ACCENT: Champagne Gold */
+            --gold: #B88E4C;             
+            --gold-hover: #A07839;
+            --gold-light: #FBF7EE;
+            --gold-border: #E8DCC6;
+            
+            /* 3. NEUTRALS */
+            --text-main: #14241C;
+            --text-muted: #66786E;
+            --text-subtle: #8E9F96;
+            --border-ui: #DCD9D0;
+
+            /* 4. SOFT TACTILE DEPTH */
+            --shadow-raised: 0 4px 12px rgba(11, 41, 30, 0.05), 0 1px 3px rgba(11, 41, 30, 0.03);
+            --shadow-inset: inset 2px 2px 5px rgba(0,0,0,0.06), inset -2px -2px 5px rgba(255,255,255,0.8);
+            --shadow-pressed: inset 3px 3px 6px rgba(11, 41, 30, 0.12), inset -2px -2px 4px rgba(255,255,255,0.7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; 
+            background-color: var(--bg-canvas); 
+            color: var(--text-main); 
+            padding: 48px 24px;
+            display: flex;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .spec-container {
+            width: 100%;
+            max-width: 980px;
+            background: #EFECE6;
+            display: flex;
+            flex-direction: column;
+            gap: 44px;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--primary);
+            border-bottom: 1.5px solid #D6D2C4;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-tag { font-size: 11px; font-weight: 400; color: var(--text-muted); text-transform: none; letter-spacing: 0; }
+
+        .flex-row { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+        .flex-col { display: flex; flex-direction: column; gap: 14px; }
+
+        .label-sub {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        /* ==================== 1. FOUNDATIONS ==================== */
+        .layer-box {
+            width: 90px;
+            height: 90px;
+            border-radius: 14px;
+            background: #EFECE6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .layer-base { border: 1px solid #DED9CD; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+        .layer-raised { background: #FAF9F5; box-shadow: 0 6px 16px rgba(11, 41, 30, 0.08); border: 1px solid #E5DFD2; }
+        .layer-inset { box-shadow: var(--shadow-inset); border: 1px solid #DDD7C9; }
+        .layer-pressed { box-shadow: var(--shadow-pressed); border: 1px solid #D4CCC0; background: #E9E5DC; }
+
+        .token-line { width: 100%; border-radius: 4px; background: var(--primary); margin: 6px 0 12px; }
+        .radius-pill {
+            padding: 7px 14px;
+            background: #FAF9F5;
+            border: 1px solid #DDD8CD;
+            font-size: 11.5px;
+            font-weight: 500;
+            color: var(--primary);
+            text-align: center;
+        }
+
+        /* ==================== 2. CONTROLS (CHECKBOX/RADIO CHUẨN) ==================== */
+        .custom-checkbox {
+            display: inline-flex;
+            align-items: flex-start;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .custom-checkbox input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 17px;
+            height: 17px;
+            border: 1.5px solid #A8A295;
+            border-radius: 4px;
+            background-color: #FFFFFF;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 1px 0 0 0;
+            flex-shrink: 0;
+        }
+        .custom-checkbox input[type="checkbox"]::before {
+            content: "";
+            width: 9px;
+            height: 9px;
+            transform: scale(0);
+            transition: 100ms transform ease-in-out;
+            box-shadow: inset 1em 1em #FFFFFF;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .custom-checkbox input[type="checkbox"]:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        .custom-checkbox input[type="checkbox"]:checked::before {
+            transform: scale(1);
+        }
+
+        .custom-radio {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 12px;
+        }
+        .custom-radio input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 17px;
+            height: 17px;
+            border: 1.5px solid #A8A295;
+            border-radius: 50%;
+            background-color: #FFFFFF;
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        .custom-radio input[type="radio"]::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            transform: scale(0);
+            transition: 100ms transform ease-in-out;
+            background-color: var(--primary);
+        }
+        .custom-radio input[type="radio"]:checked {
+            border-color: var(--primary);
+        }
+        .custom-radio input[type="radio"]:checked::before {
+            transform: scale(1);
+        }
+
+        .btn {
+            padding: 8.5px 18px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            font-weight: 550;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .btn-primary { background-color: var(--primary); color: #FFFFFF; box-shadow: 0 3px 10px rgba(11, 41, 30, 0.2); }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        .btn-pressed { background-color: var(--primary-surface); color: #E2ECE6; box-shadow: inset 0 2px 6px rgba(0,0,0,0.3); border: 1px solid #1A4D3B; }
+        .btn-disabled { background-color: #D8D4CA; color: #9C968A; cursor: not-allowed; border: 1px solid #CCC7BC; }
+
+        .input-wrap { width: 220px; display: flex; flex-direction: column; gap: 4px; }
+        .input-field {
+            padding: 8.5px 13px;
+            border-radius: 8px;
+            border: 1px solid #D5D0C3;
+            background: #FAF9F5;
+            font-size: 12.5px;
+            font-family: inherit;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s;
+        }
+        .input-field:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184, 142, 76, 0.15); }
+        .input-error { border-color: #D9534F; background: #FFF9F9; }
+        .input-helper { font-size: 10px; color: var(--text-muted); }
+        .input-helper.error { color: #D9534F; }
+
+        .switch-box {
+            width: 44px; height: 24px; border-radius: 12px;
+            background: #CCC7BA; padding: 2px;
+            display: flex; align-items: center; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .switch-knob { width: 20px; height: 20px; border-radius: 50%; background: #FFF; transition: transform 0.2s; }
+        .switch-box.active { background: var(--primary); }
+        .switch-box.active .switch-knob { transform: translateX(20px); }
+
+        .range-slider-wrap { width: 200px; position: relative; }
+        .range-slider { -webkit-appearance: none; width: 100%; height: 5px; border-radius: 3px; background: #D2CDC1; outline: none; }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); border: 2px solid #FFF; cursor: pointer;
+        }
+
+        /* ==================== 3. NAVIGATION ==================== */
+        .pill-tabs { display: inline-flex; background: #E5E1D6; padding: 3px; border-radius: 10px; border: 1px solid #D5D0C3; }
+        .pill-tab { padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--text-muted); border-radius: 7px; cursor: pointer; }
+        .pill-tab.active { background: #FAF9F5; color: var(--primary); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .breadcrumb-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: #FAF9F5; border: 1px solid #DDD8CB; border-radius: 8px; font-size: 11.5px; color: var(--text-muted); }
+        .breadcrumb-pill strong { color: var(--primary); font-weight: 600; }
+
+        .pagination { display: inline-flex; gap: 6px; align-items: center; }
+        .page-num {
+            width: 28px; height: 28px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 500; color: var(--text-main);
+            cursor: pointer; border: 1px solid transparent;
+        }
+        .page-num.active { background: var(--primary); color: #FFF; font-weight: 600; }
+
+        .stepper-wrap { display: flex; align-items: center; gap: 12px; }
+        .step-item { display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; }
+        .step-circle {
+            width: 28px; height: 28px; border-radius: 50%;
+            border: 1.5px solid #B8B2A4; background: #FAF9F5;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 600; color: var(--text-muted);
+        }
+        .step-item.active .step-circle { background: var(--primary); border-color: var(--primary); color: #FFF; }
+        .step-text { font-size: 10.5px; color: var(--text-muted); font-weight: 500; }
+        .step-item.active .step-text { color: var(--primary); font-weight: 600; }
+        .step-popover {
+            position: absolute; top: -32px;
+            background: var(--primary); color: #FFF;
+            font-size: 9.5px; padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+        }
+
+        /* ==================== 4. DATA DISPLAY ==================== */
+        .display-card {
+            width: 170px;
+            background: #FAF9F5;
+            border: 1px solid #DDD8CB;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 4px 12px rgba(11, 41, 30, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .display-card-icon {
+            width: 32px; height: 32px; border-radius: 6px;
+            background: var(--primary-light); color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .list-group { background: #FAF9F5; border: 1px solid #DDD8CB; border-radius: 10px; width: 220px; overflow: hidden; }
+        .list-row { padding: 9px 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #EBE7DD; }
+        .list-row:last-child { border-bottom: none; }
+        .avatar-sm { width: 26px; height: 26px; border-radius: 50%; background: #D5D0C3; border: 1px solid #C4BEB0; }
+
+        .tag-pill { display: inline-flex; padding: 3px 10px; border-radius: 14px; font-size: 10.5px; font-weight: 600; }
+        .tag-new { background: #E5EDE8; color: var(--primary); border: 1px solid #C9D9CE; }
+        .tag-beta { background: var(--gold-light); color: #7D5D28; border: 1px solid var(--gold-border); }
+        .tag-count { background: var(--primary); color: #FFF; border-radius: 10px; padding: 2px 7px; font-size: 10px; }
+
+        .tooltip-box { background: #14241C; color: #FAF9F5; font-size: 11px; font-weight: 500; padding: 5px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; }
+        .compact-table-header { display: flex; background: #FAF9F5; border: 1px solid #DDD8CB; border-radius: 8px; padding: 8px 12px; font-size: 11px; font-weight: 600; color: var(--text-muted); gap: 16px; }
+
+        /* ==================== 5. FEEDBACK ==================== */
+        .modal-mini { width: 200px; background: #FAF9F5; border: 1px solid #DDD8CB; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+        .toast-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #FAF9F5; border: 1px solid #DDD8CB; border-radius: 8px; font-size: 11.5px; color: var(--text-main); width: 210px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+        .alert-banner { display: flex; align-items: center; gap: 10px; background: var(--primary); color: #FFFFFF; padding: 10px 14px; border-radius: 8px; font-size: 11.5px; font-weight: 500; width: 100%; }
+        .progress-bar-wrap { width: 100%; background: #D5D0C3; height: 6px; border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { width: 50%; height: 100%; background: var(--primary); border-radius: 3px; }
+        .skeleton-line { height: 7px; background: #DCD7CB; border-radius: 4px; margin-bottom: 6px; }
+        .empty-state-box { text-align: center; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+        /* ==================== 6. DOMAIN SPECIFIC COMPONENTS ==================== */
+        .domain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .seed-box { background: #FAF9F5; border: 1px solid #DDD8CB; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-family: monospace; display: flex; gap: 6px; }
+        .dms-card { background: #FAF9F5; border: 1px solid #DDD8CB; border-left: 4px solid #059669; border-radius: 10px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+        .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: #059669; box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7); animation: pulseAnimation 1.6s infinite; }
+        @keyframes pulseAnimation { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(5, 150, 105, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); } }
+        .dropzone-box { border: 2px dashed #C5BEAF; background: #FAF9F5; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; }
+        .crypto-seal-card { background: var(--gold-light); border: 1px solid var(--gold-border); border-radius: 10px; padding: 14px 18px; }
+        .cam-frame { background: #071E16; border-radius: 12px; overflow: hidden; border: 1.5px solid #2D4236; position: relative; }
+        .compliance-callout { background: #FFFBEB; border: 1px solid #FDE68A; border-left: 4px solid #D97706; border-radius: 8px; padding: 14px 16px; }
+        .badge-seal { background: var(--gold-light); color: #7D5D28; border: 1px solid var(--gold-border); border-radius: 20px; font-size: 11px; padding: 3px 9px; font-weight: 600; }
+
+        @media (max-width: 860px) {
+            .domain-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="spec-container">
+
+        <!-- ==================== 1. FOUNDATIONS ==================== -->
+        <div>
+            <div class="section-title">
+                <span>1. Foundations</span>
+                <span class="section-tag">Tokens, Layers & Radius Scale</span>
+            </div>
+
+            <div class="flex-row" style="justify-content: space-between; margin-bottom: 24px;">
+                <div>
+                    <div class="label-sub">Base Layer</div>
+                    <div class="layer-box layer-base">Flat Surface</div>
+                </div>
+                <div>
+                    <div class="label-sub">Raised Layer</div>
+                    <div class="layer-box layer-raised">Elevation</div>
+                </div>
+                <div>
+                    <div class="label-sub">Inset Layer</div>
+                    <div class="layer-box layer-inset">Recessed</div>
+                </div>
+                <div>
+                    <div class="label-sub">Pressed Layer</div>
+                    <div class="layer-box layer-pressed">Active Inset</div>
+                </div>
+                <div>
+                    <div class="label-sub">Iconography Rules</div>
+                    <div style="display: flex; gap: 14px; align-items: center; color: var(--primary); padding-top: 10px;">
+                        <span style="font-size: 14px;">⚙️ 16px</span>
+                        <span style="font-size: 17px;">👤 20px</span>
+                        <span style="font-size: 20px;">🔍 24px</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-row" style="justify-content: space-between; align-items: flex-end;">
+                <div style="width: 220px;">
+                    <div class="label-sub">Border Thickness Tokens</div>
+                    <div style="font-size: 11px; color: var(--text-muted);">1px Thin</div>
+                    <div class="token-line" style="height: 1px;"></div>
+                    <div style="font-size: 11px; color: var(--text-muted);">2px Regular</div>
+                    <div class="token-line" style="height: 2px;"></div>
+                    <div style="font-size: 11px; color: var(--text-muted);">4px Thick</div>
+                    <div class="token-line" style="height: 4px;"></div>
+                </div>
+
+                <div>
+                    <div class="label-sub">Radius Scale</div>
+                    <div class="flex-row" style="gap: 10px;">
+                        <div class="radius-pill" style="border-radius: 4px;">4px</div>
+                        <div class="radius-pill" style="border-radius: 8px;">8px</div>
+                        <div class="radius-pill" style="border-radius: 12px;">12px</div>
+                        <div class="radius-pill" style="border-radius: 16px;">16px</div>
+                        <div class="radius-pill" style="border-radius: 24px;">24px</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 2. CONTROLS ==================== -->
+        <div>
+            <div class="section-title">
+                <span>2. Controls</span>
+                <span class="section-tag">Buttons, Inputs & Interactive Selectors</span>
+            </div>
+
+            <div class="flex-row" style="justify-content: space-between; margin-bottom: 24px;">
+                <div class="flex-col">
+                    <div class="label-sub">Button States</div>
+                    <div class="flex-row" style="gap: 10px;">
+                        <button class="btn btn-primary">Submit Now</button>
+                        <button class="btn btn-pressed">● Sending...</button>
+                        <button class="btn btn-disabled">Not Available</button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="label-sub">Checkbox & Radio (Fixed)</div>
+                    <div class="flex-row" style="gap: 24px;">
+                        <div class="flex-col" style="gap: 10px;">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" checked>
+                                <span>Option 1</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox">
+                                <span>Option 2</span>
+                            </label>
+                        </div>
+                        <div class="flex-col" style="gap: 10px;">
+                            <label class="custom-radio">
+                                <input type="radio" name="rdo" checked>
+                                <span>Option 1</span>
+                            </label>
+                            <label class="custom-radio">
+                                <input type="radio" name="rdo">
+                                <span>Option 2</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="label-sub">Switches & Slider</div>
+                    <div class="flex-row" style="gap: 20px;">
+                        <div class="flex-col" style="gap: 8px;">
+                            <div class="switch-box active" onclick="this.classList.toggle('active')">
+                                <div class="switch-knob"></div>
+                            </div>
+                            <div class="switch-box" onclick="this.classList.toggle('active')">
+                                <div class="switch-knob"></div>
+                            </div>
+                        </div>
+                        <div class="range-slider-wrap">
+                            <input type="range" class="range-slider" min="0" max="100" value="75">
+                            <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-muted); margin-top: 4px;">
+                                <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-row" style="gap: 20px;">
+                <div class="input-wrap">
+                    <div class="label-sub">Text Field (Default)</div>
+                    <input type="text" class="input-field" value="alexander@domain.com">
+                    <span class="input-helper">Helper: Enter valid legal email</span>
+                </div>
+                <div class="input-wrap">
+                    <div class="label-sub">Text Field (Focus)</div>
+                    <input type="text" class="input-field" style="border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184, 142, 76, 0.15);" value="alexander@domain.com">
+                    <span class="input-helper">Helper: Enter valid legal email</span>
+                </div>
+                <div class="input-wrap">
+                    <div class="label-sub">Text Field (Error)</div>
+                    <input type="text" class="input-field input-error" value="invalid-email-format">
+                    <span class="input-helper error">Error: Invalid email format</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 3. NAVIGATION ==================== -->
+        <div>
+            <div class="section-title">
+                <span>3. Navigation</span>
+                <span class="section-tag">Tabs, Breadcrumbs & Stepper Progress</span>
+            </div>
+
+            <div class="flex-row" style="justify-content: space-between; align-items: center;">
+                <div>
+                    <div class="label-sub">Pill Tabs</div>
+                    <div class="pill-tabs">
+                        <div class="pill-tab active">Overview</div>
+                        <div class="pill-tab">Details</div>
+                        <div class="pill-tab">Settings</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="label-sub">Breadcrumbs</div>
+                    <div class="breadcrumb-pill">
+                        <span>Estate</span> / <span>Vault</span> / <strong>Smart Testament</strong>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="label-sub">Pagination</div>
+                    <div class="pagination">
+                        <span style="font-size: 11px; color: var(--text-muted); margin-right: 4px;">PREV</span>
+                        <div class="page-num">1</div>
+                        <div class="page-num active">2</div>
+                        <div class="page-num">3</div>
+                        <span style="font-size: 11px; color: var(--text-muted); margin-left: 4px;">NEXT</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 24px;">
+                <div class="label-sub">4-Step Legal Protocol</div>
+                <div class="stepper-wrap" style="justify-content: space-around; background: #FAF9F5; padding: 18px 20px; border-radius: 12px; border: 1px solid #DDD8CB;">
+                    <div class="step-item">
+                        <div class="step-circle" style="background: var(--primary); border-color: var(--primary); color: #FFF;">✓</div>
+                        <span class="step-text">1. Asset Vault</span>
+                    </div>
+                    <div class="step-item active">
+                        <div class="step-popover">Current Step: Heir Directives</div>
+                        <div class="step-circle">2</div>
+                        <span class="step-text">2. Heirs & Rules</span>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-circle">3</div>
+                        <span class="step-text">3. Notary Review</span>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-circle">4</div>
+                        <span class="step-text">4. Smart Seal</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 4. DATA DISPLAY ==================== -->
+        <div>
+            <div class="section-title">
+                <span>4. Data Display</span>
+                <span class="section-tag">Cards, Badges, Lists & Tooltips</span>
+            </div>
+
+            <div class="flex-row" style="justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <div class="label-sub">Card Component</div>
+                    <div class="display-card">
+                        <div class="display-card-icon">🔐</div>
+                        <div style="font-size: 13px; font-weight: 600; color: var(--primary);">Asset Ledger</div>
+                        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">Multi-sig cold storage and recovery keys.</div>
+                        <button class="btn btn-primary" style="padding: 5px 12px; font-size: 11px; margin-top: 4px;">View More</button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="label-sub">List Group</div>
+                    <div class="list-group">
+                        <div class="list-row">
+                            <div class="avatar-sm"></div>
+                            <div>
+                                <div style="font-size: 11.5px; font-weight: 600; color: var(--primary);">Alexander Doe</div>
+                                <div style="font-size: 10px; color: var(--text-muted);">Primary Beneficiary · 100%</div>
+                            </div>
+                        </div>
+                        <div class="list-row">
+                            <div class="avatar-sm"></div>
+                            <div>
+                                <div style="font-size: 11.5px; font-weight: 600; color: var(--primary);">Victoria Doe</div>
+                                <div style="font-size: 10px; color: var(--text-muted);">Secondary Beneficiary · 50%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-col" style="gap: 16px;">
+                    <div>
+                        <div class="label-sub">Badges</div>
+                        <div class="flex-row" style="gap: 8px;">
+                            <span class="tag-pill tag-new">Sealed</span>
+                            <span class="tag-pill tag-beta">E-KYC</span>
+                            <span class="tag-pill tag-count">24</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="label-sub">Tooltip</div>
+                        <div class="tooltip-box">
+                            <span>🔒 256-Bit TLS Encrypted</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="label-sub">Compact Table Header</div>
+                    <div class="compact-table-header">
+                        <span>Asset (A-Z) ▼</span>
+                        <span>Date</span>
+                        <span>Status</span>
+                        <span>Action</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 5. FEEDBACK ==================== -->
+        <div>
+            <div class="section-title">
+                <span>5. Feedback & Notifications</span>
+                <span class="section-tag">Modals, Alerts, Toasts & Progress</span>
+            </div>
+
+            <div class="flex-row" style="justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <div class="label-sub">Modal Confirmation</div>
+                    <div class="modal-mini">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--primary);">Revoke Vault?</div>
+                        <div style="font-size: 26px; margin: 8px 0;">⚠️</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Are you sure you want to revoke this testament?</div>
+                        <div class="flex-row" style="gap: 6px; justify-content: center;">
+                            <button class="btn" style="background: #EBE7DC; font-size: 11px; padding: 5px 10px;">Cancel</button>
+                            <button class="btn btn-primary" style="font-size: 11px; padding: 5px 10px; background: #991B1B;">Revoke</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-col" style="gap: 10px;">
+                    <div class="label-sub">Toast Stack</div>
+                    <div class="toast-item">
+                        <span>✓ Smart Will Sealed</span>
+                        <span style="color: var(--text-muted); font-size: 10px;">Just now</span>
+                    </div>
+                    <div class="toast-item">
+                        <span>ℹ Zurich Notary Approved</span>
+                        <span style="color: var(--text-muted); font-size: 10px;">2m ago</span>
+                    </div>
+                </div>
+
+                <div class="flex-col" style="gap: 14px; width: 230px;">
+                    <div>
+                        <div class="label-sub">Alert Banner</div>
+                        <div class="alert-banner">
+                            <span>🛡️</span>
+                            <span>Scheduled Notary Audit Active</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="label-sub">Linear Progress</div>
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; color: var(--text-muted);">
+                            <span>Encryption Progress</span><span>50%</span>
+                        </div>
+                        <div class="progress-bar-wrap">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="label-sub">Skeleton Loaders</div>
+                        <div class="skeleton-line" style="width: 100%;"></div>
+                        <div class="skeleton-line" style="width: 75%;"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="label-sub">Empty State</div>
+                    <div class="empty-state-box">
+                        <div style="font-size: 26px; opacity: 0.6;">🔍</div>
+                        <div style="font-size: 12px; font-weight: 600; color: var(--primary);">No Assets Found</div>
+                        <button class="btn btn-primary" style="padding: 4px 10px; font-size: 10.5px;">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 6. DOMAIN SPECIFIC COMPONENTS ==================== -->
+        <div>
+            <div class="section-title">
+                <span>6. Domain-Specific Protocol Components</span>
+                <span class="section-tag">Két sắt số, Dead Man's Switch, eKYC & Bộ luật Dân sự</span>
+            </div>
+
+            <div class="domain-grid">
+                <!-- 1. Masked Private Key & Seed Phrase Grid -->
+                <div style="background: #FAF9F5; border: 1px solid #DDD8CB; border-radius: 12px; padding: 18px;">
+                    <div class="label-sub">1. Private Key & 12-Word Recovery Seed Phrase</div>
+                    <div style="display: flex; gap: 8px; align-items: center; background: #FFF; padding: 8px 12px; border-radius: 8px; border: 1px solid #D5D0C3; margin-bottom: 12px;">
+                        <span id="keyText" style="font-family: monospace; font-size: 11px; letter-spacing: 2px; flex: 1; color: var(--primary);">••••••••••••••••••••••••••••••••</span>
+                        <button class="btn" style="padding: 3px 8px; font-size: 10.5px; background: #E5EDE8;" onclick="toggleKey()">👁️ Toggle</button>
+                        <button class="btn" style="padding: 3px 8px; font-size: 10.5px; background: var(--gold-light); color: var(--gold-hover); border: 1px solid var(--gold-border);" onclick="alert('Copied!')">📋 Copy</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+                        <div class="seed-box"><span style="color: var(--text-muted);">1.</span> ocean</div>
+                        <div class="seed-box"><span style="color: var(--text-muted);">2.</span> vintage</div>
+                        <div class="seed-box"><span style="color: var(--text-muted);">3.</span> shield</div>
+                        <div class="seed-box"><span style="color: var(--text-muted);">4.</span> legacy</div>
+                        <div class="seed-box"><span style="color: var(--text-muted);">5.</span> glacier</div>
+                        <div class="seed-box"><span style="color: var(--text-muted);">6.</span> timber</div>
+                    </div>
+                </div>
+
+                <!-- 2. Live DMS Heartbeat Pulse -->
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <div class="label-sub">2. Live Dead Man's Switch (DMS) Heartbeat</div>
+                    <div class="dms-card">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 38px; height: 38px; border-radius: 50%; background: #E5EDE8; display: flex; align-items: center; justify-content: center;">
+                                <div class="pulse-dot"></div>
+                            </div>
+                            <div>
+                                <div style="font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.8px; color: #059669; font-weight: 600;">Status: Active Heartbeat</div>
+                                <div style="font-size: 15px; font-weight: 600; color: var(--primary);">45 Days : 14 Hours Left</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="background: #059669; font-size: 11px; padding: 6px 12px;" onclick="alert('Heartbeat Reset!')">⚡ I'm Alive</button>
+                    </div>
+
+                    <div class="crypto-seal-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-size: 11.5px; font-weight: 600; color: #7A5B27;">🛡️ Integrity Seal (ECDSA P-256)</span>
+                            <span style="font-size: 9.5px; background: #FFF; padding: 2px 6px; border-radius: 4px; color: #7A5B27; border: 1px solid var(--gold-border);">TAMPER-PROOF</span>
+                        </div>
+                        <div style="font-family: monospace; font-size: 10px; color: var(--primary); background: #FFF; padding: 6px 8px; border-radius: 6px; border: 1px solid #E8DCC6; word-break: break-all;">
+                            8f4b2a9c1e3d5f7a9b0c2e4f6a8d0b2c4e6f8a0b2c4e6f8a0b2c4e6f8a0b2c4e
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Document Dropzone -->
+                <div>
+                    <div class="label-sub">3. Death Certificate & Legal Document Dropzone</div>
+                    <div class="dropzone-box">
+                        <div style="font-size: 26px; margin-bottom: 6px;">📄</div>
+                        <div style="font-size: 12.5px; font-weight: 600; color: var(--primary);">Kéo thả bản scan Giấy chứng tử số</div>
+                        <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 3px;">Hỗ trợ PDF, JPG, PNG (Tối đa 5MB)</div>
+                        <span class="badge-seal" style="margin-top: 8px; display: inline-block;">🔒 Tự động đóng dấu băm SHA-256</span>
+                    </div>
+                </div>
+
+                <!-- 4. 15s Video Affidavit Frame -->
+                <div>
+                    <div class="label-sub">4. Khung Webcam Tuyên thệ Minh Mẫn (Điều 630 BLDS)</div>
+                    <div class="cam-frame">
+                        <div style="height: 120px; display: flex; align-items: center; justify-content: center; color: #8DA195; font-size: 11px;">
+                            [ Live Video Stream Preview ]
+                        </div>
+                        <div style="position: absolute; top: 8px; left: 8px; display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.65); padding: 3px 8px; border-radius: 20px;">
+                            <div style="width: 7px; height: 7px; border-radius: 50%; background: #EF4444;"></div>
+                            <span style="color: #FFF; font-size: 10px; font-family: monospace; font-weight: 600;">REC 00:14 / 00:15</span>
+                        </div>
+                        <div style="background: #0B291E; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="color: #FAF8F5; font-size: 10.5px;">Điều 630 BLDS: Quay video minh mẫn</span>
+                            <button class="btn" style="background: #EF4444; color: #FFF; padding: 3px 8px; font-size: 10px;">⏹ Dừng quay</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Hộp Cảnh Báo Điều 644/612 (Checkbox Đã Sửa) -->
+            <div style="margin-top: 20px;">
+                <div class="label-sub">5. Hộp Cảnh Báo Tuân Thủ Pháp Luật (Điều 644 / Điều 612 BLDS 2015)</div>
+                <div class="compliance-callout">
+                    <div style="font-size: 12px; font-weight: 600; color: #92400E; display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
+                        ⚖️ Cảnh báo pháp lý: Thừa kế không phụ thuộc nội dung di chúc (Điều 644 BLDS 2015)
+                    </div>
+                    <div style="font-size: 11px; color: #78350F; line-height: 1.5; margin-bottom: 8px;">
+                        Kế hoạch phân bổ của bạn chưa chỉ định con chưa thành niên hoặc cha mẹ già. Họ có quyền hưởng ít nhất 2/3 một suất thừa kế theo luật định dù di chúc không chia tài sản.
+                    </div>
+                    <label class="custom-checkbox" style="color: #92400E;">
+                        <input type="checkbox">
+                        <span>Tôi cam đoan tự chịu trách nhiệm về các phát sinh tranh chấp dân sự đối với phần tài sản này</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let isMasked = true;
+        function toggleKey() {
+            const keyEl = document.getElementById('keyText');
+            if (isMasked) {
+                keyEl.innerText = "0x7F9A2C...8B31E4";
+                isMasked = false;
+            } else {
+                keyEl.innerText = "••••••••••••••••••••••••••••••••";
+                isMasked = true;
+            }
+        }
+    </script>
+</body>
+</html>
