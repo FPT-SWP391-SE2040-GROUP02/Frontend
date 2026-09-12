@@ -9,6 +9,8 @@ import {
   NotFoundPage,
   PricingPlansPage,
   RegisterPage,
+  WillManagementPage,
+  WillWizardPage,
 } from "@/pages";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Navigate, Route, Routes } from "react-router-dom";
@@ -34,12 +36,18 @@ export function AppRoutes() {
       <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
       <Route path="/assets" element={<AssetsManagementPage />} />
 
-      {/* 4. Tuyến đường xác thực (Auth Routes) */}
+      {/* 5. Quản lý Di Chúc Số & Stepper Lập Di Chúc (Will Wizard) */}
+      <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
+      <Route path="/wills" element={<WillManagementPage />} />
+      <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
+      <Route path="/wills/new" element={<WillWizardPage />} />
+
+      {/* 6. Tuyến đường xác thực (Auth Routes) */}
       <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />
       <Route path={ROUTES.AUTH.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
 
-      {/* 3. Tuyến đường lỗi */}
+      {/* 7. Tuyến đường lỗi */}
       <Route path={ROUTES.ERROR.FORBIDDEN} element={<ForbiddenPage />} />
       <Route path={ROUTES.ERROR.NOT_FOUND} element={<NotFoundPage />} />
       <Route path="*" element={<Navigate to={ROUTES.ERROR.NOT_FOUND} replace />} />
