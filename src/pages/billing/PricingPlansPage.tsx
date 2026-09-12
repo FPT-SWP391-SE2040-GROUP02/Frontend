@@ -132,10 +132,10 @@ export function PricingPlansPage() {
             </p>
           </div>
 
-          <Button variant="outline" asChild className="rounded-[20px] text-xs font-[550] gap-1.5 shadow-xs">
-            <Link to={ROUTES.BILLING.HISTORY}>
-              <CreditCard className="w-3.5 h-3.5 text-[var(--gold,#B88E4C)]" />
-              <span>Lịch Sử Hóa Đơn</span>
+          <Button variant="outline" asChild className="rounded-[20px] text-xs font-[550] shadow-xs shrink-0">
+            <Link to={ROUTES.BILLING.HISTORY} className="flex items-center gap-2 px-4 py-2 whitespace-nowrap">
+              <CreditCard className="w-4 h-4 text-[var(--gold,#B88E4C)] shrink-0" />
+              <span className="whitespace-nowrap">Lịch Sử Hóa Đơn</span>
             </Link>
           </Button>
         </div>
