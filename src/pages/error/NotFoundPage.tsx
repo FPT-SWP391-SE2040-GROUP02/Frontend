@@ -20,7 +20,7 @@ export function NotFoundPage() {
           <span className="text-xs font-mono font-bold uppercase text-amber-600 dark:text-amber-400 tracking-wider">
             HTTP 404 · Trang Không Tồn Tại
           </span>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]">
             Không Tìm Thấy Trang
           </h1>
           <p className="text-xs sm:text-sm text-[#5a6f5e] dark:text-[#9bb39f] leading-relaxed">

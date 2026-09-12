@@ -79,7 +79,7 @@ export function OtpVerificationModal({
           <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 mx-auto flex items-center justify-center mb-2">
             <KeyRound className="w-6 h-6" />
           </div>
-          <DialogTitle className="text-xl font-serif font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]">
+          <DialogTitle className="text-xl font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]">
             Xác Thực Bảo Mật 2 Lớp (2FA)
           </DialogTitle>
           <DialogDescription className="text-xs text-[#5b6f5f] dark:text-[#9bb39f]">

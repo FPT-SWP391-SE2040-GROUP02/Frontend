@@ -21,7 +21,7 @@ export function ForbiddenPage() {
           <span className="text-xs font-mono font-bold uppercase text-red-600 dark:text-red-400 tracking-wider">
             Lỗi Phân Quyền · HTTP 403 Forbidden
           </span>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]">
             Quyền Truy Cập Bị Từ Chối
           </h1>
           <p className="text-xs sm:text-sm text-[#5a6f5e] dark:text-[#9bb39f] leading-relaxed">
