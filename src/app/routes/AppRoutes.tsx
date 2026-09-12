@@ -1,4 +1,5 @@
 import {
+  AssetsManagementPage,
   BillingHistoryPage,
   DmsStatusPage,
   ForbiddenPage,
@@ -28,6 +29,10 @@ export function AppRoutes() {
 
       {/* 3. Dead Man's Switch (Nhịp sinh tồn & bàn giao di sản) */}
       <Route path={ROUTES.DMS.ROOT} element={<DmsStatusPage />} />
+
+      {/* 4. Quản lý Kho tài sản số (Digital Asset Vault) */}
+      <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
+      <Route path="/assets" element={<AssetsManagementPage />} />
 
       {/* 4. Tuyến đường xác thực (Auth Routes) */}
       <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
