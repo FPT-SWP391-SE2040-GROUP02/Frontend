@@ -1,5 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { LoginPage, RegisterPage, ForbiddenPage, NotFoundPage } from "@/pages";
+import {
+  LoginPage,
+  RegisterPage,
+  ForgotPasswordPage,
+  ForbiddenPage,
+  NotFoundPage,
+} from "@/pages";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { ROUTES } from "@/shared/config/routes.config";
 
@@ -12,6 +18,7 @@ export function AppRoutes() {
       {/* 1. Tuyến đường xác thực (Auth Routes) */}
       <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />
+      <Route path={ROUTES.AUTH.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
 
       {/* 2. Tuyến đường bảo vệ mẫu (Private Protected Route) */}
       <Route element={<ProtectedRoute />}>
