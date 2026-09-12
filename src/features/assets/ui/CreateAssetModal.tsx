@@ -135,11 +135,12 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
                   key={strat.type}
                   type="button"
                   onClick={() => handleTypeChange(strat.type)}
-                  className={`p-3 rounded-[14px] text-xs font-bold border transition-all flex flex-col items-center gap-2 ${
+                  className={`min-h-[56px] p-3 rounded-[16px] text-xs font-bold border transition-all flex flex-col items-center gap-2 focus-visible:ring-2 focus-visible:ring-[#B88E4C] focus-visible:outline-none ${
                     selectedType === strat.type
                       ? "bg-[#0B291E] text-white border-[#0B291E] shadow-sm"
                       : "bg-[#EFECE6] text-[#14241C] border-[#DCD9D0] hover:bg-[#FAF9F5]"
                   }`}
+                  aria-pressed={selectedType === strat.type}
                 >
                   <span
                     className={
@@ -168,7 +169,8 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
                 placeholder="Ví dụ: Ví Lạnh Bitcoin Gia Tộc / Tài Khoản AWS Root"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-medium"
+                className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[14px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+                required
               />
             </div>
 
@@ -181,7 +183,7 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
                 placeholder="Ghi chú thêm về mục đích hoặc mật khẩu gợi ý..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-sans outline-none"
+                className="w-full p-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[14px] text-xs font-sans outline-none focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
               />
             </div>
           </div>
@@ -210,19 +212,19 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
             </span>
           </div>
 
-          <DialogFooter className="pt-4 border-t border-[#E8E5DD] flex items-center justify-end gap-3">
+          <DialogFooter className="pt-4 border-t border-[#E8E5DD] flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="rounded-[16px] border-[#DCD9D0] text-[#14241C] hover:bg-[#EFECE6] text-xs font-semibold px-5"
+              className="w-full sm:w-auto min-h-[44px] rounded-[16px] border-[#DCD9D0] text-[#14241C] hover:bg-[#EFECE6] text-xs font-semibold px-5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             >
               Hủy bỏ
             </Button>
             <Button
               type="submit"
               disabled={isPending}
-              className="rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-6 shadow-sm flex items-center gap-1.5"
+              className="w-full sm:w-auto min-h-[44px] rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-6 shadow-sm flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             >
               <Plus className="w-4 h-4 text-[#B88E4C]" />
               {isPending ? "Đang mã hóa & niêm phong..." : "Niêm Phong Tài Sản"}

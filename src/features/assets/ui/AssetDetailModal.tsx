@@ -122,9 +122,9 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="rounded-[16px] border-[#DCD9D0] text-[#14241C] hover:bg-[#EFECE6] text-xs font-semibold px-6"
+            className="min-h-[44px] rounded-[16px] border-[#DCD9D0] text-[#14241C] hover:bg-[#EFECE6] text-xs font-semibold px-6 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
           >
-            Đóng
+            Đóng Cửa Sổ
           </Button>
         </div>
       </DialogContent>
