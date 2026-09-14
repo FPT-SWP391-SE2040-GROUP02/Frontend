@@ -17,7 +17,7 @@ const MOCK_INVOICES: Invoice[] = [
     invoiceNumber: "INV-2026-0089",
     planName: "Di Sản Gia Đình (Family Vault)",
     amount: 199000,
-    paymentMethod: "SePay VietQR (MBBank)",
+    paymentMethod: "SePay VietQR (Sacombank)",
     status: "PAID",
     issuedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
     pdfUrl: "/invoices/INV-2026-0089.pdf",

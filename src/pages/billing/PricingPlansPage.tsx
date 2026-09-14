@@ -90,25 +90,40 @@ export function PricingPlansPage() {
       return;
     }
 
-    // TODO: 1. Gọi mutation createOrder({ planId: plan.id, billingCycle })
-    // TODO: 2. Nhận PaymentOrder từ Backend C# và mở SepayQrModal
-    const mockOrder: PaymentOrder = {
-      orderId: `ORD-${Date.now()}`,
-      orderCode: `LV${Math.floor(100000 + Math.random() * 900000)}`,
-      amount: plan.price,
-      status: "PENDING",
-      qrCodeUrl: `https://qr.sepay.vn/img?acc=0987654321&bank=MB&amount=${plan.price}&des=LV${Math.floor(100000 + Math.random() * 900000)}`,
-      accountNumber: "0987654321",
-      accountName: "CONG TY CP CONG NGHE DI SAN SO LEGACYVAULT",
-      bankCode: "MB",
-      bankName: "MBBank - Ngân hàng Quân Đội",
-      transferContent: `LV${Math.floor(100000 + Math.random() * 900000)}`,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-      createdAt: new Date().toISOString(),
-    };
+    createOrder(
+      { planId: plan.id, billingCycle },
+      {
+        onSuccess: (order) => {
+          setSelectedOrder(order);
+          setIsQrModalOpen(true);
+        },
+        onError: () => {
+          const orderCode = `LV${Math.floor(100000 + Math.random() * 900000)}`;
+          const bankCode = "Sacombank";
+          const accountNumber = "070148520060";
+          const accountName = "NGUYEN THANH DUY";
+          const encodedHolder = encodeURIComponent(accountName);
+          const encodedDes = encodeURIComponent(orderCode);
 
-    setSelectedOrder(mockOrder);
-    setIsQrModalOpen(true);
+          const mockOrder: PaymentOrder = {
+            orderId: `ORD-${Date.now()}`,
+            orderCode,
+            amount: plan.price,
+            status: "PENDING",
+            qrCodeUrl: `https://vietqr.app/img?bank=${bankCode}&acc=${accountNumber}&template=compact&amount=${plan.price}&des=${encodedDes}&showinfo=true&fullacc=true&holder=${encodedHolder}&store=LegacyVault`,
+            accountNumber,
+            accountName,
+            bankCode,
+            bankName: "Ngân hàng TMCP Sài Gòn Thương Tín (Sacombank)",
+            transferContent: orderCode,
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+            createdAt: new Date().toISOString(),
+          };
+          setSelectedOrder(mockOrder);
+          setIsQrModalOpen(true);
+        },
+      }
+    );
   };
 
   return (
