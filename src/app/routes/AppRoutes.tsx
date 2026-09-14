@@ -2,21 +2,25 @@ import {
   AssetsManagementPage,
   BillingHistoryPage,
   DmsStatusPage,
+  ExecutorClaimsPage,
   ForbiddenPage,
   ForgotPasswordPage,
   LandingPage,
   LoginPage,
   NotFoundPage,
+  NotaryWorkspacePage,
   PricingPlansPage,
   RegisterPage,
   WillManagementPage,
   WillWizardPage,
 } from "@/pages";
 import { ROUTES } from "@/shared/config/routes.config";
+import { ROLES } from "@/shared/constants/roles";
+import { ProtectedRoute } from "./ProtectedRoute";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 /**
- * @description Cấu hình bản đồ định tuyến (Routing map) toàn bộ ứng dụng.
+ * @description Cấu hình bản đồ định tuyến (Routing map) toàn bộ ứng dụng có phân quyền RBAC.
  */
 export function AppRoutes() {
   return (
@@ -29,23 +33,31 @@ export function AppRoutes() {
       <Route path={ROUTES.BILLING.CHECKOUT} element={<PricingPlansPage />} />
       <Route path={ROUTES.BILLING.HISTORY} element={<BillingHistoryPage />} />
 
-      {/* 3. Dead Man's Switch (Nhịp sinh tồn & bàn giao di sản) */}
-      <Route path={ROUTES.DMS.ROOT} element={<DmsStatusPage />} />
-
-      {/* 4. Quản lý Kho tài sản số (Digital Asset Vault) */}
-      <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
-      <Route path="/assets" element={<AssetsManagementPage />} />
-
-      {/* 5. Quản lý Di Chúc Số & Stepper Lập Di Chúc (Will Wizard) */}
-      <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
-      <Route path="/wills" element={<WillManagementPage />} />
-      <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
-      <Route path="/wills/new" element={<WillWizardPage />} />
-
-      {/* 6. Tuyến đường xác thực (Auth Routes) */}
+      {/* 3. Tuyến đường xác thực (Auth Routes) */}
       <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />
       <Route path={ROUTES.AUTH.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+
+      {/* 4. Tuyến đường bảo vệ dành cho Chủ Kho Di Sản (Vault Owner & Admin) */}
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.OWNER, ROLES.ADMIN]} />}>
+        <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
+        <Route path="/assets" element={<AssetsManagementPage />} />
+        <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
+        <Route path="/wills" element={<WillManagementPage />} />
+        <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
+        <Route path="/wills/new" element={<WillWizardPage />} />
+        <Route path={ROUTES.DMS.ROOT} element={<DmsStatusPage />} />
+      </Route>
+
+      {/* 5. Tuyến đường bảo vệ dành cho Người Thi Hành Di Chúc (Digital Executor) */}
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.EXECUTOR, ROLES.ADMIN]} />}>
+        <Route path={ROUTES.EXECUTOR.CLAIM} element={<ExecutorClaimsPage />} />
+      </Route>
+
+      {/* 6. Tuyến đường bảo vệ dành cho Công Chứng Viên (Legal Verifier / Notary) */}
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.NOTARY, ROLES.ADMIN]} />}>
+        <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
+      </Route>
 
       {/* 7. Tuyến đường lỗi */}
       <Route path={ROUTES.ERROR.FORBIDDEN} element={<ForbiddenPage />} />

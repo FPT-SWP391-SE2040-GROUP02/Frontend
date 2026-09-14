@@ -8,5 +8,7 @@ export * from "./dashboard/WillWizardPage";
 export * from "./auth/LoginPage";
 export * from "./auth/RegisterPage";
 export * from "./auth/ForgotPasswordPage";
+export * from "./claims/ExecutorClaimsPage";
+export * from "./notary/NotaryWorkspacePage";
 export * from "./error/ForbiddenPage";
 export * from "./error/NotFoundPage";
