@@ -47,13 +47,6 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
   const scanUrl = watch("deathCertScanUrl");
 
   const onSubmit = (values: SubmitClaimFormValues) => {
-    // =========================================================================
-    // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
-    // =========================================================================
-    // TODO: [Developer Step - Xử lý nộp hồ sơ yêu cầu mở thừa kế]
-    // 1. Kiểm tra tính hợp lệ của values (đã qua Zod Resolver validate)
-    // 2. Kích hoạt submitClaimMutation với dữ liệu values
-    // 3. Trong callback onSuccess của mutation, gọi hàm callback props onSuccess?.()
     submitClaimMutation(values, {
       onSuccess: () => {
         onSuccess?.();
@@ -62,12 +55,6 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
   };
 
   const handleDropzoneSuccess = (fileUrl: string, fileHash: string) => {
-    // =========================================================================
-    // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
-    // =========================================================================
-    // TODO: [Developer Step - Đồng bộ tệp tải lên vào Form State]
-    // 1. Dùng setValue("deathCertScanUrl", fileUrl, { shouldValidate: true })
-    // 2. Dùng setValue("deathCertScanHash", fileHash, { shouldValidate: true })
     setValue("deathCertScanUrl", fileUrl, { shouldValidate: true });
     setValue("deathCertScanHash", fileHash, { shouldValidate: true });
   };
