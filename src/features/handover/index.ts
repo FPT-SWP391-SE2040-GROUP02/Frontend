@@ -8,3 +8,6 @@ export * from "./model/handover.types";
 export * from "./model/handover.schema";
 export * from "./model/useHandover";
 export * from "./api/handoverService";
+export * from "./ui/BiometricEkycModal";
+export * from "./ui/DecryptionHandoverCard";
+export * from "./ui/RefuseInheritanceModal";
