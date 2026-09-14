@@ -17,7 +17,6 @@ import type { EkycSessionResult } from "../model/handover.types";
 /**
  * @file BiometricEkycModal.tsx
  * @description Hộp thoại xác thực khuôn mặt sinh trắc học và kiểm tra người thật 3D (eKYC Liveness $\ge 90\%$, Face Match $\ge 85\%$).
- * Tuân thủ Rule 7 (Scaffold with TODO), Rule 8 (JSDoc 100%), Rule 10 (Master UI Kit), Rule 12 (Zero useState lạm dụng).
  */
 
 export interface BiometricEkycModalProps {
@@ -83,15 +82,7 @@ export const BiometricEkycModal: React.FC<BiometricEkycModalProps> = ({
   }, [isOpen, capturedImage]);
 
   const handleCaptureFrame = () => {
-    // =========================================================================
-    // [RULE 7 - BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // =========================================================================
-    // 1. [MỤC TIÊU]: Chụp khung hình từ webcam video và chuyển thành Base64 JPEG.
-    // 2. [INPUT]: videoRef.current (HTMLVideoElement). [OUTPUT]: setCapturedImage(dataUrl).
-    // 3. [CÁC BƯỚC TUẦN TỰ]:
-    //    - Bước 3.1: Vẽ video frame lên canvasRef qua context.drawImage.
-    //    - Bước 3.2: Xuất chuỗi imageBase64 qua canvas.toDataURL("image/jpeg", 0.9).
-    //    - Bước 3.3: Lưu vào capturedImage để preview trước khi gửi đối soát.
+    // Chụp khung hình từ webcam video và chuyển thành Base64 JPEG
     if (!videoRef.current || !canvasRef.current) return;
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -111,15 +102,7 @@ export const BiometricEkycModal: React.FC<BiometricEkycModalProps> = ({
   };
 
   const handleSubmitVerification = () => {
-    // =========================================================================
-    // [RULE 7 - BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // =========================================================================
-    // 1. [MỤC TIÊU]: Gửi ảnh khuôn mặt lên server eKYC để kiểm tra người thật 3D và tính điểm khớp CCCD.
-    // 2. [INPUT]: capturedImage (base64 string), sessionId.
-    // 3. [CÁC BƯỚC TUẦN TỰ]:
-    //    - Kích hoạt verifyEkycMutation.mutate({ sessionId: `session_${Date.now()}`, faceImageBase64: capturedImage }).
-    //    - Trong callback onSuccess: Kiểm tra result.isPassed và result.faceMatchScore >= 85.0.
-    //    - Gọi onSuccess(result) để bàn giao sang bước ghép khóa Shamir.
+    // Gửi ảnh khuôn mặt lên server eKYC để kiểm tra người thật 3D và tính điểm khớp CCCD
     if (!capturedImage) return;
 
     verifyEkycMutation.mutate(

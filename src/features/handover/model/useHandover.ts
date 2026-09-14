@@ -14,7 +14,6 @@ import type {
 /**
  * @file useHandover.ts
  * @description Custom React Query Hooks cho Phân hệ Bàn giao Di sản Số & Xác thực eKYC.
- * Tuân thủ Rule 4 (Bước 3 Hooks), Rule 12 (Server State qua TanStack Query), Rule 24 (Cache Invalidation).
  */
 
 /**
@@ -72,7 +71,7 @@ export function useConfirmHandover() {
       return response.data;
     },
     onSuccess: (_, variables) => {
-      // Rule 24: Tự động làm mới cache hồ sơ sau khi bàn giao thành công
+      // Tự động làm mới cache hồ sơ sau khi bàn giao thành công
       queryClient.invalidateQueries({
         queryKey: handoverKeys.detail(variables.claimId),
       });

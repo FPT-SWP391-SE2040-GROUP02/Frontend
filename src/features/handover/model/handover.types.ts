@@ -1,7 +1,6 @@
 /**
  * @file handover.types.ts
  * @description Định nghĩa các kiểu dữ liệu, DTOs và ViewModels cho Phân hệ Bàn giao Di sản Số & Xác thực eKYC Người thụ hưởng.
- * Tuân thủ Rule 3 (Ánh xạ chuẩn DTO C# ASP.NET Core) và Rule 8 (JSDoc 100%).
  */
 
 /**

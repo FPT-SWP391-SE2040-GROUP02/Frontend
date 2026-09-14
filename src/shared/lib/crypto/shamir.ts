@@ -1,11 +1,9 @@
 /**
  * @file shamir.ts
  * @description Thư viện mật mã học chuyên dụng cho Phân mảnh và Tái hợp khóa bí mật Shamir 2/3 (Shamir's Secret Sharing 2-of-3).
- * Tuân thủ nghiêm ngặt:
- * 1. Thuật toán phân mảnh và nội suy Lagrange trên trường hữu hạn Galois GF(256) (Rijndael Field 0x11b).
- * 2. Rule 8: 100% JSDoc/TSDoc đầy đủ mô tả tham số, kiểu trả về và ngoại lệ.
- * 3. Rule 13 & 22: Tái hợp trực tiếp tại RAM máy khách, TUYỆT ĐỐI KHÔNG ghi vào localStorage, sessionStorage hay Cookie.
- * 4. Rule 18: Sử dụng Native Web Crypto API thuần túy của trình duyệt.
+ * Thuật toán phân mảnh và nội suy Lagrange trên trường hữu hạn Galois GF(256) (Rijndael Field 0x11b).
+ * Tái hợp trực tiếp tại RAM máy khách, không lưu vào storage hoặc cookie.
+ * Sử dụng Native Web Crypto API thuần túy của trình duyệt.
  */
 
 // =========================================================================

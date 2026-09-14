@@ -14,10 +14,6 @@ import {
 /**
  * @file BeneficiaryHandoverPage.tsx
  * @description Màn hình tiếp nhận và mở khóa di sản số dành cho Người Thụ Hưởng (Beneficiary).
- * Áp dụng:
- * 1. URL State qua useSearchParams cho modal eKYC và modal từ chối (Rule 12).
- * 2. 4 trạng thái giao diện chuẩn mực: isLoading, isError, isEmpty, isSuccess (Rule 5).
- * 3. Master AppHeader và Master UI Kit (Rule 10).
  */
 
 export const BeneficiaryHandoverPage: React.FC = () => {
@@ -108,7 +104,7 @@ export const BeneficiaryHandoverPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 4 Trạng Thái Giao Diện Chuẩn Mực (Rule 5) */}
+        {/* 4 Trạng Thái Giao Diện Chuẩn Mực */}
         {isLoading ? (
           <Card className="p-12 text-center bg-white border-[#E8DCC6] rounded-[24px] space-y-3">
             <Loader2 className="w-8 h-8 text-[#B88E4C] animate-spin mx-auto" />

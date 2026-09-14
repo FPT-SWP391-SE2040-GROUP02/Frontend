@@ -1,9 +1,7 @@
 import { z } from "zod";
 
 /**
- * @file handover.schema.ts
  * @description Các Zod Schemas kiểm thực dữ liệu cho Phân hệ Bàn giao Di sản Số & Xác thực eKYC.
- * Tuân thủ Rule 4 (Bước 1 Model), Rule 7 (Validation Rules), Rule 8 (JSDoc 100%).
  */
 
 /**

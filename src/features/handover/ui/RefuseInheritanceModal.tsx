@@ -22,7 +22,6 @@ import { useRefuseInheritance } from "../model/useHandover";
  * @file RefuseInheritanceModal.tsx
  * @description Hộp thoại Người thụ hưởng từ chối nhận quyền thừa kế theo Điều 620 Bộ luật Dân sự 2015.
  * Khi từ chối thành công, hệ thống tự động kích hoạt Tầng phân bổ dự phòng (Fallback Tier 2).
- * Tuân thủ Rule 7 (Scaffold with TODO), Rule 8 (JSDoc 100%), Rule 10 (Master UI Kit), Rule 12 (React Hook Form).
  */
 
 export interface RefuseInheritanceModalProps {
@@ -42,7 +41,7 @@ export const RefuseInheritanceModal: React.FC<RefuseInheritanceModalProps> = ({
 }) => {
   const refuseMutation = useRefuseInheritance();
 
-  // Form State chuẩn với React Hook Form + Zod (Rule 12: Zero useState cho các ô input)
+  // Form State quản lý bởi React Hook Form + Zod
   const {
     register,
     handleSubmit,
@@ -59,18 +58,7 @@ export const RefuseInheritanceModal: React.FC<RefuseInheritanceModalProps> = ({
   });
 
   const onSubmit = (values: RefuseInheritanceFormValues) => {
-    // =========================================================================
-    // [RULE 7 - BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // =========================================================================
-    // 1. [MỤC TIÊU]: Kích hoạt refuseMutation gửi đơn từ chối nhận di sản lên Backend.
-    // 2. [INPUT]: values (RefuseInheritanceFormValues).
-    // 3. [CÁC BƯỚC TUẦN TỰ]:
-    //    - Gọi refuseMutation.mutate(values).
-    //    - Trong callback onSuccess: reset form, gọi onSuccess callback và đóng modal.
-    // 4. [THƯ VIỆN]: useMutation.
-    // 5. [ĐIỀU KIỆN BIÊN]: Xử lý nếu mạng mất kết nối hoặc claimId không hợp lệ.
-
-    // TODO: [Developer Step] Thay thế lệnh gọi mutation bên dưới nếu có thêm bước xác nhận OTP/PIN
+    // Gửi đơn từ chối nhận di sản lên máy chủ
     refuseMutation.mutate(
       {
         claimId: values.claimId,

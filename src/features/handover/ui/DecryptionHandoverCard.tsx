@@ -25,11 +25,7 @@ import { useConfirmHandover } from "../model/useHandover";
 /**
  * @file DecryptionHandoverCard.tsx
  * @description Thẻ ghép khóa Shamir 2/3 tại RAM máy khách và giải mã dữ liệu di sản số (AES-256-GCM).
- * Tuân thủ:
- * 1. Rule 7: Thân hàm ghép khóa & giải mã có bản thiết kế // TODO 5 thông số chi tiết cho developer.
- * 2. Rule 8: JSDoc 100%.
- * 3. Rule 13 & 22: Dữ liệu giải mã chỉ tồn tại trong RAM máy khách, bộ đếm tự động dọn sạch sau 60 giây.
- * 4. Rule 10: Bộ 5 linh kiện Master UI Kit (Masked Key, Hộp cảnh báo Điều 612/644 BLDS).
+ * Dữ liệu giải mã chỉ tồn tại trong RAM máy khách, bộ đếm tự động dọn sạch sau 60 giây.
  */
 
 export interface DecryptionHandoverCardProps {
@@ -49,7 +45,7 @@ export const DecryptionHandoverCard: React.FC<DecryptionHandoverCardProps> = ({
   onOpenRefuseModal,
   isEkycVerified,
 }) => {
-  // Local Ephemeral RAM State: Chỉ lưu trong biến RAM, tự động hủy khi unmount component (Rule 22)
+  // Biến RAM cục bộ: Chỉ lưu trong bộ nhớ tạm thời, tự hủy sau 60s hoặc unmount
   const [decryptedResult, setDecryptedResult] = useState<DecryptedHeritageResult | null>(null);
   const [ramTimeLeft, setRamTimeLeft] = useState<number>(60); // 60s đếm ngược tự hủy RAM
   const [isMasked, setIsMasked] = useState<boolean>(true);
@@ -80,22 +76,7 @@ export const DecryptionHandoverCard: React.FC<DecryptionHandoverCardProps> = ({
   const handleRecombineAndDecrypt = async () => {
     setErrorMessage(null);
 
-    // =========================================================================
-    // [RULE 7 - BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // =========================================================================
-    // 1. [MỤC TIÊU]: Tái hợp Mảnh 1 (Két di sản) + Mảnh 2 (Công chứng viên) và giải mã AES-256-GCM tại RAM.
-    // 2. [INPUT]: claim.vaultShare1, claim.notaryShare2, claim.encryptedAssetPayload, claim.assetPayloadIv.
-    //    [OUTPUT]: DecryptedHeritageResult ({ masterKeyHex, decryptedData, decryptedAt }).
-    // 3. [CÁC BƯỚC TUẦN TỰ]:
-    //    - Bước 3.1: Gọi shamirCombine([claim.vaultShare1, claim.notaryShare2]) -> thu được masterKeyHex.
-    //    - Bước 3.2: Gọi decryptHeritageAssetPayload(claim.encryptedAssetPayload, masterKeyHex, claim.assetPayloadIv).
-    //    - Bước 3.3: Lưu kết quả vào biến RAM decryptedResult và kích hoạt countdown 60s.
-    //    - Bước 3.4: Tính SHA-256 digest của decryptedData và gọi confirmHandoverMutation để đóng dấu Biên bản PDF/A.
-    // 4. [THƯ VIỆN]: @/shared/lib/crypto/shamir (Web Crypto API thuần, không lưu Storage).
-    // 5. [ĐIỀU KIỆN BIÊN]: Bắt lỗi sai mảnh khóa hoặc bản mã bị giả mạo.
-
     try {
-      // TODO: [Developer Step] Thay thế đoạn mã bên dưới sau khi hoàn thành shamirCombine và decryptHeritageAssetPayload
       const masterKeyHex = shamirCombine([claim.vaultShare1, claim.notaryShare2]);
       const decryptedText = await decryptHeritageAssetPayload(
         claim.encryptedAssetPayload,
@@ -110,24 +91,25 @@ export const DecryptionHandoverCard: React.FC<DecryptionHandoverCardProps> = ({
       });
       setRamTimeLeft(60);
 
-      // Xác nhận với server đã bàn giao di sản (chỉ gửi mã băm digest, không gửi Master Key)
+      // Tính toán SHA-256 digest của nội dung giải mã bằng Web Crypto API (Zero Egress Master Key)
+      const encoder = new TextEncoder();
+      const digestBuffer = await window.crypto.subtle.digest(
+        "SHA-256",
+        encoder.encode(decryptedText)
+      );
+      const digestHex = Array.from(new Uint8Array(digestBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      // Xác nhận với server đã bàn giao di sản (chỉ gửi mã băm digest, tuyệt đối không gửi Master Key)
       confirmHandoverMutation.mutate({
         claimId: claim.id,
-        decryptedDigest: "sha256_verified_digest_ram_only",
+        decryptedDigest: digestHex,
       });
     } catch (err) {
-      // Mock dữ liệu hiển thị cho giai đoạn scaffold khi developer chưa code xong thuật toán Shamir
-      const isPlaceholderError = err instanceof Error && err.message.includes("Chưa cài đặt");
-      if (isPlaceholderError) {
-        setDecryptedResult({
-          masterKeyHex: "e4a7c891f2b3d5e60184a2c9f8e7d1b3",
-          decryptedData: "apple abandon ability able about above absent absorb abstract absurd abuse access",
-          decryptedAt: new Date().toISOString(),
-        });
-        setRamTimeLeft(60);
-      } else {
-        setErrorMessage(err instanceof Error ? err.message : "Giải mã di sản số thất bại.");
-      }
+      setErrorMessage(
+        err instanceof Error ? err.message : "Giải mã di sản số thất bại."
+      );
     }
   };
 
@@ -274,7 +256,7 @@ export const DecryptionHandoverCard: React.FC<DecryptionHandoverCardProps> = ({
             </div>
           </div>
 
-          {/* Lưới 12 Từ Khóa Hạt Giống (Master Seed Words - Rule 10) */}
+          {/* Lưới 12 Từ Khóa Hạt Giống (Master Seed Words) */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[#0B291E] flex items-center gap-2">
@@ -303,7 +285,7 @@ export const DecryptionHandoverCard: React.FC<DecryptionHandoverCardProps> = ({
               </div>
             </div>
 
-            {/* Lưới 3 cột chuẩn Rule 10 */}
+            {/* Lưới 3 cột */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
               {seedWords.map((word, index) => (
                 <div
@@ -346,7 +328,7 @@ export const DecryptionHandoverCard: React.FC<DecryptionHandoverCardProps> = ({
         </Card>
       )}
 
-      {/* 3. Hộp Cảnh Báo Tuân Thủ Pháp Luật (Điều 612 & Điều 644 BLDS - Rule 10) */}
+      {/* 3. Hộp Cảnh Báo Tuân Thủ Pháp Luật (Điều 612 & Điều 644 BLDS) */}
       <ComplianceCallout
         title="Tuân Thủ Pháp Lý Thừa Kế (Điều 612 & Điều 644 Bộ luật Dân sự 2015)"
         description="Việc giải mã và tiếp quản di sản số chỉ hoàn tất khi Người thụ hưởng thực hiện đầy đủ nghĩa vụ đối với người thuộc diện hưởng di sản không phụ thuộc vào nội dung di chúc (cha mẹ, vợ/chồng, con chưa thành niên) theo đúng quy định của pháp luật Việt Nam."
