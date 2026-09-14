@@ -50,6 +50,13 @@ export const ROUTES = {
   /** Cổng người thụ hưởng / Beneficiary */
   BENEFICIARY: {
     CLAIM: "/claim/beneficiary",
+    HANDOVER: "/claim/beneficiary/handover",
+  },
+
+  /** Quản trị hệ thống & Sổ cái kiểm toán WORM */
+  ADMIN: {
+    ROOT: "/admin",
+    AUDIT_LOG: "/admin/audit-logs",
   },
 
   /** Dead Man's Switch (Nhịp sinh tồn & kích hoạt bàn giao di sản) */

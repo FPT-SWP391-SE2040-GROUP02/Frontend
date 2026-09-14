@@ -21,7 +21,7 @@ export const apiClient = axios.create({
 export const axiosClient = apiClient;
 
 /**
- * @description Request Interceptor: Tự động đính kèm JWT Bearer Token từ storage vào Header Authorization trước khi gửi request.
+ * @description Request Interceptor: Tự động đính kèm JWT Bearer Token, X-Active-Role và X-Demo-Mode từ storage trước khi gửi request.
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -29,6 +29,18 @@ apiClient.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Tự động đính kèm ngữ cảnh vai trò đang làm việc (Hybrid Identity context)
+    const activeRole = storage.getActiveRole();
+    if (activeRole && config.headers) {
+      config.headers["X-Active-Role"] = activeRole;
+    }
+
+    // Tự động đính kèm cờ Demo Mode nếu đang bật chu kỳ trình diễn 120s
+    if (storage.isDemoMode() && config.headers) {
+      config.headers["X-Demo-Mode"] = "true";
+    }
+
     return config;
   },
   (error: AxiosError) => {

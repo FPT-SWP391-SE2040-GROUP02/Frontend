@@ -35,20 +35,17 @@ export function ProtectedRoute({
 }: ProtectedRouteProps): ReactElement {
   const location = useLocation();
   const token = storage.getToken();
-  const currentUserRole = useAppSelector((state) => state.auth?.user?.role);
+  const stateUserRole = useAppSelector((state) => state.auth?.user?.role);
+  const currentUserRole = (stateUserRole || storage.getActiveRole()) as Role;
 
-  // TODO: 1. Kiểm tra nếu chưa có JWT token trong storage hoặc state -> Điều hướng về Login kèm redirect param:
-  // return <Navigate to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(location.pathname)}`} replace />;
-
+  // 1. Kiểm tra nếu chưa có JWT token trong storage hoặc state -> Điều hướng về Login kèm redirect param:
   if (!token) {
     return <Navigate to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  // TODO: 2. Nếu có khai báo allowedRoles, kiểm tra xem currentUserRole có nằm trong danh sách không
-  // TODO: 3. Nếu không đủ quyền (ví dụ BENEFICIARY vào trang NOTARY) -> Điều hướng về trang 403 Forbidden:
-  // return <Navigate to={ROUTES.ERROR.FORBIDDEN} replace />;
-
-  if (allowedRoles.length > 0 && currentUserRole && !allowedRoles.includes(currentUserRole as Role) && currentUserRole !== "ADMIN") {
+  // 2. Nếu có khai báo allowedRoles, kiểm tra xem currentUserRole có nằm trong danh sách không
+  // 3. Nếu không đủ quyền (ví dụ BENEFICIARY vào trang NOTARY) -> Điều hướng về trang 403 Forbidden:
+  if (allowedRoles.length > 0 && !allowedRoles.includes(currentUserRole) && currentUserRole !== "ADMIN") {
     return <Navigate to={ROUTES.ERROR.FORBIDDEN} replace />;
   }
 

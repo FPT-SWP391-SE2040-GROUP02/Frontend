@@ -13,13 +13,71 @@ export const STORAGE_KEYS = {
   ROLE: "lv_current_role",
   VIEW_MODE: "lv_view_mode",
   USER: "lv_user_info",
+  DEMO_MODE: "lv_demo_mode",
 } as const;
+
+import { type Role, ROLES } from "@/shared/constants/roles";
 
 /**
  * @description Quản lý thao tác đọc/ghi LocalStorage an toàn (chống throw exception khi SSR hoặc quota vượt ngưỡng).
  */
 export const storage = {
   KEYS: STORAGE_KEYS,
+
+  /**
+   * Lấy vai trò đang hoạt động (Active Role context)
+   * @returns {Role} Role hiện tại (mặc định là OWNER)
+   */
+  getActiveRole(): Role {
+    try {
+      if (typeof window === "undefined") return ROLES.OWNER;
+      const role = localStorage.getItem(STORAGE_KEYS.ROLE);
+      return (role as Role) || ROLES.OWNER;
+    } catch {
+      return ROLES.OWNER;
+    }
+  },
+
+  /**
+   * Lưu vai trò đang hoạt động (Active Role context)
+   * @param {Role} role Vai trò cần chuyển đổi
+   */
+  setActiveRole(role: Role): void {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEYS.ROLE, role);
+      }
+    } catch {
+      // Ignored
+    }
+  },
+
+  /**
+   * Kiểm tra trạng thái Demo Mode (chu kỳ DMS 120s)
+   * @returns {boolean} true nếu đang bật chế độ Demo
+   */
+  isDemoMode(): boolean {
+    try {
+      if (typeof window === "undefined") return false;
+      return localStorage.getItem(STORAGE_KEYS.DEMO_MODE) === "true";
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Bật hoặc tắt trạng thái Demo Mode
+   * @param {boolean} enabled Trạng thái kích hoạt
+   */
+  setDemoMode(enabled: boolean): void {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEYS.DEMO_MODE, enabled ? "true" : "false");
+      }
+    } catch {
+      // Ignored
+    }
+  },
 
   /**
    * Lấy JWT token từ storage
