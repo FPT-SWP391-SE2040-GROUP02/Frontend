@@ -17,11 +17,9 @@ export function useLogin() {
   return useMutation({
     mutationFn: (credentials: LoginRequest) => authService.login(credentials),
     onSuccess: (session: AuthSession) => {
-      // TODO: 1. Lưu session token vào localStorage
       if (session?.accessToken) {
         storage.setToken(session.accessToken);
       }
-      // TODO: 2. Invalidate cache auth
       queryClient.invalidateQueries({ queryKey: authKeys.session() });
     },
   });

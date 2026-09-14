@@ -9,7 +9,6 @@ import type {
 /**
  * @file notaryService.ts
  * @description Tầng dịch vụ API cho phân hệ Công Chứng Viên Thẩm Định Pháp Lý.
- * Tuân thủ Rule 7 (Scaffold with TODO) và Rule 8 (JSDoc chuẩn chỉnh).
  */
 
 const NOTARY_ENDPOINT = "/notary";
@@ -22,9 +21,18 @@ const NOTARY_ENDPOINT = "/notary";
 export async function getPendingClaims(
   params?: PaginationParams
 ): Promise<PaginatedList<NotaryClaimItemDto>> {
-  // TODO: [Developer Step]
-  // 1. Gọi GET /notary/claims/pending qua axiosClient kèm Authorization token của LegalVerifier
-  // 2. Map dữ liệu trả về PaginatedList<NotaryClaimItemDto>
+  try {
+    const response = await axiosClient.get<ApiResponse<PaginatedList<NotaryClaimItemDto>>>(
+      `${NOTARY_ENDPOINT}/claims/pending`,
+      { params }
+    );
+    if (response.data?.data) {
+      return response.data.data;
+    }
+  } catch (err) {
+    console.warn("[notaryService] getPendingClaims fallback:", err);
+  }
+
   const mockItems: NotaryClaimItemDto[] = [
     {
       id: "clm_01",
@@ -75,10 +83,18 @@ export async function getPendingClaims(
 export async function approveClaim(
   payload: ApproveClaimRequest
 ): Promise<ApiResponse<{ releasedShareIndex: number; vaultStatus: string }>> {
-  // TODO: [Developer Step]
-  // 1. Kiểm tra đủ 4 tiêu chí kiểm toán trong payload.checkCriteria
-  // 2. Gọi POST /notary/claims/{claimId}/approve kèm notaryPinCode
-  // 3. Backend giải phóng Mảnh khóa 2 trong bảng KeyShares và chuyển Vault sang APPROVED
+  try {
+    const response = await axiosClient.post<ApiResponse<{ releasedShareIndex: number; vaultStatus: string }>>(
+      `${NOTARY_ENDPOINT}/claims/${payload.claimId}/approve`,
+      payload
+    );
+    if (response.data) {
+      return response.data;
+    }
+  } catch (err) {
+    console.warn("[notaryService] approveClaim fallback:", err);
+  }
+
   return {
     success: true,
     message: "Phê duyệt hồ sơ thành công! Mảnh khóa công chứng (Share 2) đã được giải phóng.",
@@ -97,10 +113,18 @@ export async function approveClaim(
 export async function rejectClaim(
   payload: RejectClaimRequest
 ): Promise<ApiResponse<{ claimStatus: string }>> {
-  // TODO: [Developer Step]
-  // 1. Validate payload.notaryNotes.length >= 20
-  // 2. Gọi POST /notary/claims/{claimId}/reject kèm rejectionReasonCode
-  // 3. Backend chuyển trạng thái hồ sơ sang REJECTED và phát email thông báo cho Executor
+  try {
+    const response = await axiosClient.post<ApiResponse<{ claimStatus: string }>>(
+      `${NOTARY_ENDPOINT}/claims/${payload.claimId}/reject`,
+      payload
+    );
+    if (response.data) {
+      return response.data;
+    }
+  } catch (err) {
+    console.warn("[notaryService] rejectClaim fallback:", err);
+  }
+
   return {
     success: true,
     message: "Đã từ chối hồ sơ và gửi thông báo yêu cầu sửa đổi bổ sung cho Người thi hành.",

@@ -58,9 +58,6 @@ export function UserAvatarMenu({
   const navigate = useNavigate();
 
   const handleLogoutClick = () => {
-    // TODO: 1. Xóa sạch JWT token khỏi storage
-    // TODO: 2. Kích hoạt callback onLogout
-    // TODO: 3. Điều hướng về /login
     storage.clearToken();
     onLogout?.();
     navigate(ROUTES.AUTH.LOGIN);

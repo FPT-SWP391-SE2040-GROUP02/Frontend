@@ -55,8 +55,6 @@ export function LoginForm({ onPasskeyClick, className = "" }: LoginFormProps) {
    * @description Xử lý nộp form đăng nhập
    */
   const onSubmit = (data: LoginInput) => {
-    // TODO: 1. Gọi mutation login(data)
-    // TODO: 2. Khi thành công điều hướng về redirectUrl
     login(data, {
       onSuccess: () => {
         navigate(redirectUrl);

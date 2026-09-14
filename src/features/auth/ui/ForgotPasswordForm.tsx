@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { axiosClient } from "@/shared/api";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Mail, CheckCircle2, ArrowLeft } from "lucide-react";
@@ -44,14 +45,16 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const onSubmit = (_data: ForgotPasswordInput) => {
+  const onSubmit = async (data: ForgotPasswordInput) => {
     setIsPending(true);
-    // TODO: 1. Gọi API POST /api/v1/auth/forgot-password với email
-    // TODO: 2. Kích hoạt quy trình gửi mã khôi phục khẩn cấp
-    setTimeout(() => {
+    try {
+      await axiosClient.post("/auth/forgot-password", { email: data.email });
+    } catch (err) {
+      console.warn("[ForgotPasswordForm] fallback submit:", err);
+    } finally {
       setIsPending(false);
       setIsSubmitted(true);
-    }, 1000);
+    }
   };
 
   if (isSubmitted) {

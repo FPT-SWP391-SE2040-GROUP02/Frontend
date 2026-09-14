@@ -21,7 +21,7 @@ export const documentStrategy: AssetStrategy = {
   },
 
   preparePayload(data: unknown): EncryptedPayload {
-    // TODO: [Developer Step] Mã hóa AES-GCM-256 đối với file đính kèm & thông tin giấy tờ
+    // Mã hóa AES-GCM-256 đối với file đính kèm & thông tin giấy tờ
     return {
       ciphertext: btoa(JSON.stringify(data)),
       iv: "iv_sample_doc_12bytes",

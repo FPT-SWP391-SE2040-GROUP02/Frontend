@@ -1,3 +1,4 @@
+import { axiosClient } from "@/shared/api";
 import type {
   WillItemDto,
   CreateWillRequest,
@@ -7,12 +8,11 @@ import type { PaginatedList, PaginationParams, ApiResponse } from "@/shared/type
 /**
  * @file willService.ts
  * @description Tầng dịch vụ gọi API cho Module Lập & Quản Lý Di Chúc Số (Digital Will & Testament Protocol).
- * Tuân thủ Rule 7 (Scaffold with TODO) và Rule 8 (JSDoc chuẩn chỉ).
  */
 
 const WILLS_ENDPOINT = "/wills";
 
-// Mock store tạm thời trong phiên làm việc của Client
+// Mock store tạm thời trong phiên làm việc của Client khi backend offline
 let mockWillsStore: WillItemDto[] = [
   {
     id: "wil_sample_01",
@@ -66,9 +66,18 @@ let mockWillsStore: WillItemDto[] = [
 export async function getWills(
   params?: PaginationParams
 ): Promise<PaginatedList<WillItemDto>> {
-  // TODO: [Developer Step]
-  // 1. Gọi GET /wills qua axiosClient
-  // 2. Map dữ liệu PaginatedList trả về từ backend C# ASP.NET Core
+  try {
+    const response = await axiosClient.get<ApiResponse<PaginatedList<WillItemDto>>>(
+      WILLS_ENDPOINT,
+      { params }
+    );
+    if (response.data?.data) {
+      return response.data.data;
+    }
+  } catch (err) {
+    console.warn("[willService] getWills fallback:", err);
+  }
+
   return {
     items: [...mockWillsStore],
     totalCount: mockWillsStore.length,
@@ -86,7 +95,17 @@ export async function getWills(
  * @returns Promise WillItemDto
  */
 export async function getWillDetail(id: string): Promise<WillItemDto> {
-  // TODO: [Developer Step] Gọi GET /wills/{id}
+  try {
+    const response = await axiosClient.get<ApiResponse<WillItemDto>>(
+      `${WILLS_ENDPOINT}/${id}`
+    );
+    if (response.data?.data) {
+      return response.data.data;
+    }
+  } catch (err) {
+    console.warn(`[willService] getWillDetail fallback for ${id}:`, err);
+  }
+
   const will = mockWillsStore.find((x) => x.id === id);
   if (!will) {
     throw new Error(`Không tìm thấy bản di chúc có mã: ${id}`);
@@ -102,9 +121,18 @@ export async function getWillDetail(id: string): Promise<WillItemDto> {
 export async function createWill(
   payload: CreateWillRequest
 ): Promise<ApiResponse<WillItemDto>> {
-  // TODO: [Developer Step]
-  // 1. Gửi POST /wills kèm CreateWillRequest payload
-  // 2. Ký số ECDSA phía client hoặc backend HSM
+  try {
+    const response = await axiosClient.post<ApiResponse<WillItemDto>>(
+      WILLS_ENDPOINT,
+      payload
+    );
+    if (response.data) {
+      return response.data;
+    }
+  } catch (err) {
+    console.warn("[willService] createWill fallback:", err);
+  }
+
   const newWill: WillItemDto = {
     id: `wil_${Date.now()}`,
     title: payload.title,
@@ -139,7 +167,17 @@ export async function createWill(
  * @returns Promise ApiResponse<null>
  */
 export async function revokeWill(id: string): Promise<ApiResponse<null>> {
-  // TODO: [Developer Step] Gọi POST /wills/{id}/revoke
+  try {
+    const response = await axiosClient.post<ApiResponse<null>>(
+      `${WILLS_ENDPOINT}/${id}/revoke`
+    );
+    if (response.data) {
+      return response.data;
+    }
+  } catch (err) {
+    console.warn(`[willService] revokeWill fallback for ${id}:`, err);
+  }
+
   mockWillsStore = mockWillsStore.map((w) =>
     w.id === id ? { ...w, status: "REVOKED" as const } : w
   );

@@ -24,9 +24,6 @@ export const authService = {
    * @returns {Promise<AuthSession>} Thông tin phiên đăng nhập
    */
   async login(credentials: LoginRequest): Promise<AuthSession> {
-    // TODO: 1. Gọi API POST /api/v1/auth/login với credentials
-    // TODO: 2. Lưu trữ token vào localStorage qua storage.setToken
-    // TODO: 3. Trả về đối tượng AuthSession
     const response = await axiosClient.post<AuthSession>("/auth/login", credentials);
     return response.data;
   },
@@ -37,8 +34,6 @@ export const authService = {
    * @returns {Promise<AuthSession>} Kết quả phiên đăng ký
    */
   async register(data: RegisterRequest): Promise<AuthSession> {
-    // TODO: 1. Gọi API POST /api/v1/auth/register
-    // TODO: 2. Trả về kết quả
     const response = await axiosClient.post<AuthSession>("/auth/register", data);
     return response.data;
   },
@@ -49,7 +44,6 @@ export const authService = {
    * @returns {Promise<AuthSession>}
    */
   async loginWithPasskey(payload: PasskeyLoginRequest): Promise<AuthSession> {
-    // TODO: 1. Gọi API POST /api/v1/auth/passkey/verify
     const response = await axiosClient.post<AuthSession>("/auth/passkey/verify", payload);
     return response.data;
   },
@@ -59,7 +53,6 @@ export const authService = {
    * @param {OtpVerificationRequest} payload
    */
   async verifyOtp(payload: OtpVerificationRequest): Promise<boolean> {
-    // TODO: 1. Gọi API POST /api/v1/auth/otp/verify
     const response = await axiosClient.post<{ isValid: boolean }>("/auth/otp/verify", payload);
     return response.data.isValid;
   },
@@ -68,8 +61,6 @@ export const authService = {
    * @description Đăng xuất tài khoản
    */
   async logout(): Promise<void> {
-    // TODO: 1. Gọi API POST /api/v1/auth/logout
-    // TODO: 2. Xóa sạch token khỏi storage
     await axiosClient.post("/auth/logout");
   },
 };

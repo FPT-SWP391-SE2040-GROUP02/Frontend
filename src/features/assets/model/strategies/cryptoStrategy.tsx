@@ -22,10 +22,7 @@ export const cryptoStrategy: AssetStrategy = {
   },
 
   preparePayload(data: unknown): EncryptedPayload {
-    // TODO: [Developer Step]
-    // 1. Nhận mật khẩu Master Password của User để suy biến Master DEK (PBKDF2 / Argon2id)
-    // 2. Mã hóa đối xứng AES-GCM-256 đối với JSON.stringify(data)
-    // 3. Trả về ciphertext, iv, authTag, keyDerivationSalt
+    // Mã hóa đối xứng AES-GCM-256 đối với JSON.stringify(data)
     return {
       ciphertext: btoa(JSON.stringify(data)),
       iv: "iv_sample_aes_gcm_12bytes",

@@ -42,8 +42,6 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
   });
 
   const onSubmit = (data: RegisterInput) => {
-    // TODO: 1. Gọi mutation registerUser(data)
-    // TODO: 2. Khi thành công chuyển hướng về đăng nhập hoặc mở PasskeyEnrollModal
     registerUser(data, {
       onSuccess: () => {
         onSuccess?.();

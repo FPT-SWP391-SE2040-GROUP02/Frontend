@@ -6,10 +6,6 @@ import { getPresignedUploadUrl } from "../api/claimService";
 /**
  * @file LegalDropzone.tsx
  * @description Khung kéo thả tải lên chứng từ tử tuất/tòa án chuyên dụng cho Người Thi Hành (Executor).
- * Tuân thủ tuyệt đối:
- * 1. ZERO useState: Không sử dụng useState gây re-render thừa; hiệu ứng kéo thả được quản lý qua DOM ref/data-attributes.
- * 2. Rule 7 (Scaffold with TODO): Khung logic băm SHA-256 và đẩy Cloudflare R2 để trống cho Developer tự viết theo Hướng 1.
- * 3. Rule 8 (JSDoc): Đầy đủ tài liệu định dạng chuẩn.
  */
 
 export interface LegalDropzoneProps {

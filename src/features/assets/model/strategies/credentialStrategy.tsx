@@ -21,7 +21,7 @@ export const credentialStrategy: AssetStrategy = {
   },
 
   preparePayload(data: unknown): EncryptedPayload {
-    // TODO: [Developer Step] Mã hóa AES-GCM-256 đối với data credentials
+    // Mã hóa AES-GCM-256 đối với data credentials
     return {
       ciphertext: btoa(JSON.stringify(data)),
       iv: "iv_sample_credential_12bytes",

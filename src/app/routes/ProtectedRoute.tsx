@@ -49,6 +49,6 @@ export function ProtectedRoute({
     return <Navigate to={ROUTES.ERROR.FORBIDDEN} replace />;
   }
 
-  // TODO: 4. Nếu thỏa mãn toàn bộ điều kiện an ninh, render children hoặc Outlet
+  // Thỏa mãn toàn bộ điều kiện an ninh, render children hoặc Outlet
   return children ? children : <Outlet />;
 }
