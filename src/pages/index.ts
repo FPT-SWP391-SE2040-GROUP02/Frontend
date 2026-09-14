@@ -10,5 +10,6 @@ export * from "./auth/RegisterPage";
 export * from "./auth/ForgotPasswordPage";
 export * from "./claims/ExecutorClaimsPage";
 export * from "./notary/NotaryWorkspacePage";
+export * from "./handover/BeneficiaryHandoverPage";
 export * from "./error/ForbiddenPage";
 export * from "./error/NotFoundPage";

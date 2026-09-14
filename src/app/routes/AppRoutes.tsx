@@ -1,5 +1,6 @@
 import {
   AssetsManagementPage,
+  BeneficiaryHandoverPage,
   BillingHistoryPage,
   DmsStatusPage,
   ExecutorClaimsPage,
@@ -28,20 +29,19 @@ export function AppRoutes() {
       {/* 1. Trang chủ công khai cho GUEST */}
       <Route path={ROUTES.HOME} element={<LandingPage />} />
 
-      {/* 2. Bảng giá & Thanh toán SePay VietQR */}
-      <Route path={ROUTES.BILLING.PLANS} element={<PricingPlansPage />} />
-      <Route path={ROUTES.BILLING.CHECKOUT} element={<PricingPlansPage />} />
-      <Route path={ROUTES.BILLING.HISTORY} element={<BillingHistoryPage />} />
-
-      {/* 3. Tuyến đường xác thực (Auth Routes) */}
+      {/* 2. Nhóm trang xác thực công khai (Auth) */}
       <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />
       <Route path={ROUTES.AUTH.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
 
-      {/* 4. Tuyến đường bảo vệ dành cho Chủ Kho Di Sản (Vault Owner & Admin) */}
-      <Route element={<ProtectedRoute allowedRoles={[ROLES.OWNER, ROLES.ADMIN]} />}>
+      {/* 3. Bảng giá và gói dịch vụ */}
+      <Route path={ROUTES.BILLING.PLANS} element={<PricingPlansPage />} />
+
+      {/* 4. Tuyến đường bảo vệ dành cho Khách hàng cá nhân (Customer / Estate Owner) */}
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.CUSTOMER, ROLES.ADMIN]} />}>
+        <Route path={ROUTES.DASHBOARD.ROOT} element={<AssetsManagementPage />} />
         <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
-        <Route path="/assets" element={<AssetsManagementPage />} />
+        <Route path={ROUTES.BILLING.HISTORY} element={<BillingHistoryPage />} />
         <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
         <Route path="/wills" element={<WillManagementPage />} />
         <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
@@ -59,7 +59,12 @@ export function AppRoutes() {
         <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
       </Route>
 
-      {/* 7. Tuyến đường lỗi */}
+      {/* 7. Tuyến đường bảo vệ dành cho Người Thụ Hưởng (Beneficiary) */}
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.BENEFICIARY, ROLES.ADMIN]} />}>
+        <Route path={ROUTES.BENEFICIARY.HANDOVER} element={<BeneficiaryHandoverPage />} />
+      </Route>
+
+      {/* 8. Tuyến đường lỗi */}
       <Route path={ROUTES.ERROR.FORBIDDEN} element={<ForbiddenPage />} />
       <Route path={ROUTES.ERROR.NOT_FOUND} element={<NotFoundPage />} />
       <Route path="*" element={<Navigate to={ROUTES.ERROR.NOT_FOUND} replace />} />
