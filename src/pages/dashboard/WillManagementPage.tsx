@@ -18,6 +18,7 @@ import {
   useWills,
   type WillViewModel,
 } from "@/features/wills";
+import { AppHeader } from "@/widgets";
 
 /**
  * @file WillManagementPage.tsx
@@ -39,54 +40,8 @@ export const WillManagementPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#EFECE6] text-[#14241C] flex flex-col font-sans">
-      {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-[#FAF9F5]/95 backdrop-blur-md border-b border-[#DCD9D0] px-4 sm:px-8 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-6">
-          <Link
-            to={ROUTES.HOME}
-            className="flex items-center gap-2.5 rounded-[14px] p-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
-            aria-label="LegacyVault Trang Chủ"
-          >
-            <div className="w-10 h-10 rounded-[14px] bg-[#0B291E] flex items-center justify-center text-[#B88E4C] shadow-sm">
-              <Shield className="w-5 h-5" />
-            </div>
-            <span className="font-bold text-lg text-[#0B291E] tracking-tight">
-              Legacy<span className="text-[#B88E4C]">Vault</span>
-            </span>
-          </Link>
-
-          {/* Breadcrumbs */}
-          <nav
-            aria-label="Breadcrumb"
-            className="hidden md:flex items-center gap-2 text-xs bg-[#EFECE6] px-3.5 py-2 rounded-full border border-[#DCD9D0]"
-          >
-            <Link to={ROUTES.HOME} className="text-[#66786E] hover:text-[#0B291E]">
-              Trang Chủ
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-[#A8A295]" />
-            <span className="text-[#66786E]">Quản Trị Két</span>
-            <ChevronRight className="w-3.5 h-3.5 text-[#A8A295]" />
-            <span className="font-bold text-[#0B291E]">Di Chúc Số</span>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            to={ROUTES.DASHBOARD.ASSETS}
-            className="min-h-[44px] text-xs font-semibold text-[#66786E] hover:text-[#0B291E] px-4 py-2 rounded-[16px] hover:bg-[#EFECE6] flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
-          >
-            <span>Kho Tài Sản Số</span>
-          </Link>
-
-          <Button
-            onClick={() => navigate(ROUTES.WILLS.NEW)}
-            className="min-h-[44px] rounded-[18px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-5 shadow-sm flex items-center gap-2 transition-all focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
-          >
-            <Plus className="w-4 h-4 text-[#B88E4C]" />
-            <span>Lập Di Chúc Mới</span>
-          </Button>
-        </div>
-      </header>
+      {/* Master AppHeader tích hợp Role Switcher & Demo Mode */}
+      <AppHeader />
 
       {/* Main Container */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">

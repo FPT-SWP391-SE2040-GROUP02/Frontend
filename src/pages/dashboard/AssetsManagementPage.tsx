@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { 
   Shield, 
   Plus, 
@@ -9,9 +9,9 @@ import {
   Radio, 
   KeyRound, 
   Bitcoin, 
-  FileText,
-  Scale,
-  ExternalLink
+  FileText, 
+  Scale, 
+  ExternalLink 
 } from "lucide-react";
 import { Button } from "@/shared/ui";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -20,22 +20,78 @@ import {
   AssetStatsWidget, 
   CreateAssetModal, 
   AssetDetailModal,
-  useVaultStats 
+  useVaultStats,
+  useAssets,
 } from "@/features/assets";
 import type { AssetViewModel } from "@/features/assets";
+import { AppHeader } from "@/widgets";
 
 /**
  * @file AssetsManagementPage.tsx
  * @description Màn hình Quản lý Kho Tài Sản Số (Digital Asset Vault Management).
+ * Áp dụng URL Search Params (React Router) thay vì useState cục bộ cho bộ lọc và modal.
  * Áp dụng 5 Trụ Cột UI/UX Quốc Tế (NN/g 10 Usability Heuristics, WCAG 2.1 AA, 8pt Grid, 60-30-10, Laws of UX).
  */
 export const AssetsManagementPage: React.FC = () => {
-  const [selectedFilter, setSelectedFilter] = useState<string>("ALL");
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [selectedAsset, setSelectedAsset] = useState<AssetViewModel | null>(null);
+  // Quản lý Filter và Modal qua URL Search Params thay vì useState cục bộ
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Lấy dữ liệu thống kê để hiển thị số lượng theo từng danh mục trên filter pill (Heuristic #6: Recognition rather than Recall)
+  const selectedFilter = searchParams.get("filter") || "ALL";
+  const isCreateOpen = searchParams.get("modal") === "create";
+  const selectedAssetId = searchParams.get("assetId");
+
+  // Server State qua React Query
+  const { data: assetsData } = useAssets({
+    assetType: selectedFilter === "ALL" ? undefined : selectedFilter,
+  });
+  const selectedAsset = assetsData?.items.find((a) => a.id === selectedAssetId) || null;
+
+  // Lấy dữ liệu thống kê từ React Query
   const { data: stats } = useVaultStats();
+
+  const handleFilterChange = (filter: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (filter === "ALL") {
+        next.delete("filter");
+      } else {
+        next.set("filter", filter);
+      }
+      return next;
+    });
+  };
+
+  const handleOpenCreateModal = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("modal", "create");
+      return next;
+    });
+  };
+
+  const handleCloseCreateModal = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("modal");
+      return next;
+    });
+  };
+
+  const handleSelectAsset = (asset: AssetViewModel) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("assetId", asset.id);
+      return next;
+    });
+  };
+
+  const handleCloseDetailModal = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("assetId");
+      return next;
+    });
+  };
 
   const filterTabs = [
     { 
@@ -66,60 +122,8 @@ export const AssetsManagementPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#EFECE6] text-[#14241C] flex flex-col font-sans">
-      {/* Top Header - WCAG Touch Target compliant navigation */}
-      <header className="sticky top-0 z-40 bg-[#FAF9F5]/95 backdrop-blur-md border-b border-[#DCD9D0] px-4 sm:px-8 py-3 flex items-center justify-between shadow-[0_2px_12px_rgba(11,41,30,0.03)]">
-        <div className="flex items-center gap-6">
-          <Link 
-            to={ROUTES.HOME} 
-            className="flex items-center gap-2.5 rounded-[14px] p-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C] focus-visible:outline-none"
-            aria-label="LegacyVault Trang Chủ"
-          >
-            <div className="w-10 h-10 rounded-[14px] bg-[#0B291E] flex items-center justify-center text-[#B88E4C] shadow-sm">
-              <Shield className="w-5 h-5" />
-            </div>
-            <span className="font-bold text-lg text-[#0B291E] tracking-tight">
-              Legacy<span className="text-[#B88E4C]">Vault</span>
-            </span>
-          </Link>
-
-          {/* Breadcrumbs (Tactile pill styling) */}
-          <nav 
-            aria-label="Breadcrumb"
-            className="hidden md:flex items-center gap-2 text-xs bg-[#EFECE6] px-3.5 py-2 rounded-full border border-[#DCD9D0]"
-          >
-            <Link 
-              to={ROUTES.HOME} 
-              className="text-[#66786E] hover:text-[#0B291E] font-medium transition-colors focus-visible:underline"
-            >
-              Trang Chủ
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-[#A8A295]" />
-            <span className="text-[#66786E] font-medium">Quản Trị Két</span>
-            <ChevronRight className="w-3.5 h-3.5 text-[#A8A295]" />
-            <span className="font-bold text-[#0B291E]">Kho Tài Sản Số</span>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            to={ROUTES.DMS.ROOT}
-            className="min-h-[44px] text-xs font-bold text-[#66786E] hover:text-[#0B291E] px-4 py-2 rounded-[16px] hover:bg-[#EFECE6] flex items-center gap-2 transition-all focus-visible:ring-2 focus-visible:ring-[#059669]"
-            aria-label="Chuyển đến trang Dead Man's Switch"
-          >
-            <span className="w-2.5 h-2.5 rounded-full bg-[#059669] animate-pulse" />
-            <Radio className="w-4 h-4 text-[#059669]" />
-            <span className="hidden sm:inline">Dead Man's Switch</span>
-          </Link>
-
-          <Button
-            onClick={() => setIsCreateOpen(true)}
-            className="min-h-[44px] rounded-[18px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-5 shadow-sm flex items-center gap-2 transition-all focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
-          >
-            <Plus className="w-4 h-4 text-[#B88E4C]" />
-            <span>Thêm Tài Sản</span>
-          </Button>
-        </div>
-      </header>
+      {/* Master AppHeader tích hợp Role Switcher & Demo Mode */}
+      <AppHeader />
 
       {/* Main Container - 8pt Spacing Grid (32px / py-8) */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -139,7 +143,7 @@ export const AssetsManagementPage: React.FC = () => {
           </div>
 
           <Button
-            onClick={() => setIsCreateOpen(true)}
+            onClick={handleOpenCreateModal}
             className="min-h-[48px] px-6 rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs shadow-[0_4px_16px_rgba(11,41,30,0.2)] flex items-center gap-2 self-start sm:self-center transition-all hover:scale-[1.01] focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
           >
             <Plus className="w-4 h-4 text-[#B88E4C]" />
@@ -195,7 +199,7 @@ export const AssetsManagementPage: React.FC = () => {
                 <button
                   key={tab.value}
                   type="button"
-                  onClick={() => setSelectedFilter(tab.value)}
+                  onClick={() => handleFilterChange(tab.value)}
                   className={`min-h-[44px] px-4 py-2.5 rounded-[16px] text-xs font-bold border transition-all flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-[#B88E4C] focus-visible:outline-none ${
                     isActive
                       ? "bg-[#0B291E] text-white border-[#0B291E] shadow-sm"
@@ -224,8 +228,8 @@ export const AssetsManagementPage: React.FC = () => {
           {/* Assets Table Component */}
           <AssetTable
             selectedType={selectedFilter}
-            onSelectAsset={(asset) => setSelectedAsset(asset)}
-            onOpenCreateModal={() => setIsCreateOpen(true)}
+            onSelectAsset={handleSelectAsset}
+            onOpenCreateModal={handleOpenCreateModal}
           />
         </section>
       </main>
@@ -233,12 +237,12 @@ export const AssetsManagementPage: React.FC = () => {
       {/* Modals */}
       <CreateAssetModal
         isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
+        onClose={handleCloseCreateModal}
       />
 
       <AssetDetailModal
         asset={selectedAsset}
-        onClose={() => setSelectedAsset(null)}
+        onClose={handleCloseDetailModal}
       />
 
       {/* Footer */}

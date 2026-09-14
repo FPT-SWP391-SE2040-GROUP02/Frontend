@@ -23,49 +23,16 @@ import { ROUTES } from "@/shared/config/routes.config";
  * Tuân thủ Master UI Kit và Design System của LegacyVault.
  */
 
+import { AppHeader } from "@/widgets";
+
 export const DmsStatusPage: React.FC = () => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#EFECE6] text-[#14241C] flex flex-col font-sans">
-      {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-[#FAF9F5]/90 backdrop-blur-md border-b border-[#DCD9D0] px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link to={ROUTES.HOME} className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-[12px] bg-[#0B291E] flex items-center justify-center text-[#B88E4C] shadow-sm">
-              <Shield className="w-5 h-5" />
-            </div>
-            <span className="font-bold text-lg text-[#0B291E] tracking-tight">
-              Legacy<span className="text-[#B88E4C]">Vault</span>
-            </span>
-          </Link>
-
-          {/* Breadcrumb Pill */}
-          <nav className="hidden md:flex items-center gap-1.5 text-xs bg-[#EFECE6] px-3 py-1.5 rounded-full border border-[#DCD9D0]">
-            <Link to={ROUTES.HOME} className="text-[#66786E] hover:text-[#0B291E]">
-              Trang Chủ
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-[#A8A295]" />
-            <span className="font-semibold text-[#0B291E]">Dead Man's Switch</span>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            to={ROUTES.BILLING.PLANS}
-            className="text-xs font-semibold text-[#66786E] hover:text-[#0B291E] px-3 py-1.5 rounded-[16px] hover:bg-[#EFECE6] transition-colors"
-          >
-            Bảng Giá
-          </Link>
-          <Link
-            to={ROUTES.AUTH.LOGIN}
-            className="text-xs font-bold text-white bg-[#0B291E] hover:bg-[#133E2F] px-4 py-2 rounded-[16px] shadow-sm transition-all"
-          >
-            Đăng Nhập
-          </Link>
-        </div>
-      </header>
+      {/* Master AppHeader tích hợp Role Switcher & Demo Mode */}
+      <AppHeader />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
