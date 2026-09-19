@@ -27,7 +27,11 @@ export const submitClaimSchema = z.object({
     .min(1, "Vui lòng tải lên tệp scan chứng từ hợp pháp"),
   deathCertScanHash: z
     .string()
-    .length(64, "Mã băm SHA-256 của tệp scan phải đúng 64 ký tự hex"),
+    .length(64, "Mã băm SHA-256 của tệp scan phải đúng 64 ký tự hex")
+    .regex(
+      /^[0-9a-fA-F]{64}$/,
+      "Mã băm SHA-256 chỉ được chứa các ký tự hex hợp lệ (0-9, a-f, A-F)"
+    ),
   executorNotes: z
     .string()
     .max(500, "Ghi chú không được vượt quá 500 ký tự")

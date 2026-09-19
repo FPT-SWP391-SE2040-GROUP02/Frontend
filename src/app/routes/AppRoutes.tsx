@@ -62,6 +62,8 @@ export function AppRoutes() {
       {/* 7. Tuyến đường bảo vệ dành cho Người Thụ Hưởng (Beneficiary) */}
       <Route element={<ProtectedRoute allowedRoles={[ROLES.BENEFICIARY, ROLES.ADMIN]} />}>
         <Route path={ROUTES.BENEFICIARY.HANDOVER} element={<BeneficiaryHandoverPage />} />
+        <Route path="/handover" element={<BeneficiaryHandoverPage />} />
+        <Route path="/handover/claim" element={<BeneficiaryHandoverPage />} />
       </Route>
 
       {/* 8. Tuyến đường lỗi */}

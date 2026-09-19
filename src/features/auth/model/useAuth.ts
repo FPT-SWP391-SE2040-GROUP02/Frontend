@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../api/authService";
 import type { LoginRequest, RegisterRequest, PasskeyLoginRequest, AuthSession } from "./auth.types";
 import { storage } from "@/shared/utils";
+import { useAppDispatch } from "@/app/store";
+import { setCredentials } from "@/app/store/authSlice";
 
 export const authKeys = {
   all: ["auth"] as const,
@@ -13,12 +15,15 @@ export const authKeys = {
  */
 export function useLogin() {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
     mutationFn: (credentials: LoginRequest) => authService.login(credentials),
     onSuccess: (session: AuthSession) => {
-      if (session?.accessToken) {
+      if (session?.accessToken && session?.user) {
         storage.setToken(session.accessToken);
+        storage.setActiveRole(session.user.role);
+        dispatch(setCredentials({ user: session.user, accessToken: session.accessToken }));
       }
       queryClient.invalidateQueries({ queryKey: authKeys.session() });
     },
@@ -39,12 +44,15 @@ export function useRegister() {
  */
 export function usePasskeyLogin() {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
     mutationFn: (payload: PasskeyLoginRequest) => authService.loginWithPasskey(payload),
     onSuccess: (session: AuthSession) => {
-      if (session?.accessToken) {
+      if (session?.accessToken && session?.user) {
         storage.setToken(session.accessToken);
+        storage.setActiveRole(session.user.role);
+        dispatch(setCredentials({ user: session.user, accessToken: session.accessToken }));
       }
       queryClient.invalidateQueries({ queryKey: authKeys.session() });
     },
