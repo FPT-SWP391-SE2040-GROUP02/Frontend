@@ -78,7 +78,7 @@ export const Step3VideoAffidavit: React.FC<Step3VideoAffidavitProps> = ({
 
   // Xử lý đếm ngược khi đang quay video
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setInterval>;
     if (isRecording && secondsRemaining > 0) {
       timer = setInterval(() => {
         setSecondsRemaining((prev) => prev - 1);

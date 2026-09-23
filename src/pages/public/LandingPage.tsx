@@ -15,7 +15,8 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button } from "@/shared/ui/button";
+import { Button, buttonVariants } from "@/shared/ui/button";
+import { cn } from "cn";
 import { LiveDmsPulseCard } from "@/shared/ui/LiveDmsPulseCard";
 import { MaskedKeyDisplay } from "@/shared/ui/MaskedKeyDisplay";
 import { ComplianceCallout } from "@/shared/ui/ComplianceCallout";
@@ -66,15 +67,13 @@ export function LandingPage() {
 
           {/* Cụm Nút CTA */}
           <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild className="text-xs font-[550]">
-              <Link to={ROUTES.AUTH.LOGIN}>Đăng Nhập</Link>
-            </Button>
-            <Button asChild className="rounded-[20px] shadow-[0_3px_10px_rgba(11,41,30,0.2)]">
-              <Link to={ROUTES.AUTH.REGISTER} className="flex items-center gap-1.5">
-                <span>Khởi Tạo Két</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </Button>
+            <Link to={ROUTES.AUTH.LOGIN} className={cn(buttonVariants({ variant: "ghost" }), "text-xs font-[550]")}>
+              Đăng Nhập
+            </Link>
+            <Link to={ROUTES.AUTH.REGISTER} className={cn(buttonVariants(), "rounded-[20px] shadow-[0_3px_10px_rgba(11,41,30,0.2)] flex items-center gap-1.5")}>
+              <span>Khởi Tạo Két</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         </div>
       </header>
@@ -103,24 +102,19 @@ export function LandingPage() {
 
           {/* Cụm CTA Nổi Bật */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <Button
-              size="lg"
-              asChild
-              className="w-full sm:w-auto rounded-[20px] px-8 bg-[var(--primary,#0B291E)] hover:bg-[var(--primary-hover,#133E2F)] text-white font-[550] shadow-[0_4px_14px_rgba(11,41,30,0.25)]"
+            <Link
+              to={ROUTES.AUTH.REGISTER}
+              className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto rounded-[20px] px-8 bg-[var(--primary,#0B291E)] hover:bg-[var(--primary-hover,#133E2F)] text-white font-[550] shadow-[0_4px_14px_rgba(11,41,30,0.25)] flex items-center gap-2")}
             >
-              <Link to={ROUTES.AUTH.REGISTER} className="flex items-center gap-2">
-                <span>Khởi Tạo Két Di Sản Miễn Phí</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              asChild
-              className="w-full sm:w-auto rounded-[20px] px-6 bg-[var(--surface,#FAF9F5)] text-[var(--text-main,#14241C)] border-[#DDD8CB] font-[550]"
+              <span>Khởi Tạo Két Di Sản Miễn Phí</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <a
+              href="#ui-kit-demo"
+              className={cn(buttonVariants({ size: "lg", variant: "outline" }), "w-full sm:w-auto rounded-[20px] px-6 bg-[var(--surface,#FAF9F5)] text-[var(--text-main,#14241C)] border-[#DDD8CB] font-[550]")}
             >
-              <a href="#ui-kit-demo">Trải Nghiệm 5 Component Cốt Lõi</a>
-            </Button>
+              Trải Nghiệm 5 Component Cốt Lõi
+            </a>
           </div>
 
           {/* 3 Cam Kết Bảo Mật */}
@@ -306,13 +300,12 @@ export function LandingPage() {
           Khởi tạo két di sản số an toàn bảo mật chuẩn mật mã học và pháp lý Việt Nam.
         </p>
         <div className="pt-2">
-          <Button
-            size="lg"
-            asChild
-            className="rounded-[20px] px-8 bg-[var(--primary,#0B291E)] hover:bg-[var(--primary-hover,#133E2F)] text-white font-[550] shadow-[0_4px_14px_rgba(11,41,30,0.25)]"
+          <Link
+            to={ROUTES.AUTH.REGISTER}
+            className={cn(buttonVariants({ size: "lg" }), "rounded-[20px] px-8 bg-[var(--primary,#0B291E)] hover:bg-[var(--primary-hover,#133E2F)] text-white font-[550] shadow-[0_4px_14px_rgba(11,41,30,0.25)]")}
           >
-            <Link to={ROUTES.AUTH.REGISTER}>Khởi Tạo Két Di Sản Miễn Phí</Link>
-          </Button>
+            Khởi Tạo Két Di Sản Miễn Phí
+          </Link>
         </div>
       </section>
 

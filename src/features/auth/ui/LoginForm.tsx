@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "../model/auth.schema";
+import type { LoginRequest } from "../model/auth.types";
 import { useLogin } from "../model/useAuth";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -57,7 +58,7 @@ export function LoginForm({ onPasskeyClick, className = "" }: LoginFormProps) {
   const onSubmit = (data: LoginInput) => {
     // TODO: 1. Gọi mutation login(data)
     // TODO: 2. Khi thành công điều hướng về redirectUrl
-    login(data, {
+    login(data as LoginRequest, {
       onSuccess: () => {
         navigate(redirectUrl);
       },

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { storage } from "../storage";
 import { ROLES } from "@/shared/constants/roles";
 
-describe("storage utility - Active Role and Demo Mode", () => {
+describe("storage utility - Active Role and Object Storage", () => {
   beforeEach(() => {
     localStorage.clear();
   });
@@ -19,15 +19,16 @@ describe("storage utility - Active Role and Demo Mode", () => {
     expect(storage.getActiveRole()).toBe(ROLES.BENEFICIARY);
   });
 
-  it("should return false for demo mode by default", () => {
-    expect(storage.isDemoMode()).toBe(false);
+  it("should store and retrieve serialized objects correctly", () => {
+    const data = { theme: "dark", preferences: { sound: true } };
+    storage.set("app_prefs", data);
+    expect(storage.get("app_prefs")).toEqual(data);
+
+    storage.remove("app_prefs");
+    expect(storage.get("app_prefs")).toBeNull();
   });
 
-  it("should enable and disable demo mode correctly", () => {
-    storage.setDemoMode(true);
-    expect(storage.isDemoMode()).toBe(true);
-
-    storage.setDemoMode(false);
-    expect(storage.isDemoMode()).toBe(false);
+  it("should return default value when key does not exist", () => {
+    expect(storage.get("non_existent", "default_val")).toBe("default_val");
   });
 });

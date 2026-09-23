@@ -186,16 +186,14 @@ export const AppHeader: React.FC = () => {
 
         {/* 2. Hybrid Identity Context Switcher (Chuyển vai trò làm việc tức thì) */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="min-h-[40px] px-3.5 py-1.5 rounded-[18px] bg-[#EFECE6] hover:bg-[#E5EDE8] border border-[#DCD9D0] text-xs font-bold text-[#0B291E] flex items-center gap-2 transition-all focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
-              aria-label="Chuyển đổi vai trò làm việc"
-            >
-              <CurrentIcon className="w-4 h-4 text-[#B88E4C]" />
-              <span className="hidden sm:inline">{currentRoleMeta.label}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-[#66786E]" />
-            </button>
+          <DropdownMenuTrigger
+            type="button"
+            className="min-h-[40px] px-3.5 py-1.5 rounded-[18px] bg-[#EFECE6] hover:bg-[#E5EDE8] border border-[#DCD9D0] text-xs font-bold text-[#0B291E] flex items-center gap-2 transition-all focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+            aria-label="Chuyển đổi vai trò làm việc"
+          >
+            <CurrentIcon className="w-4 h-4 text-[#B88E4C]" />
+            <span className="hidden sm:inline">{currentRoleMeta.label}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-[#66786E]" />
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-64 bg-[#FAF9F5] border border-[#DCD9D0] shadow-lg rounded-2xl p-1.5" align="end">
             <DropdownMenuLabel className="p-2 space-y-0.5">

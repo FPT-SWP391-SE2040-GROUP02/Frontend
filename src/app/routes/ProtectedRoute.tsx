@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { type ReactElement } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAppSelector } from "@/app/store";
 import { type Role } from "@/shared/constants/roles";
@@ -34,21 +34,31 @@ export function ProtectedRoute({
   children,
 }: ProtectedRouteProps): ReactElement {
   const location = useLocation();
-  const token = storage.getToken();
-  const stateUserRole = useAppSelector((state) => state.auth?.user?.role);
-  const currentUserRole = (stateUserRole || storage.getActiveRole()) as Role;
+  const { isAuthenticated, isHydrating, user } = useAppSelector((state) => state.auth);
 
-  // 1. Kiểm tra nếu chưa có JWT token trong storage hoặc state -> Điều hướng về Login kèm redirect param:
-  if (!token) {
+  // 1. Trong lúc đang hydrate phiên từ /auth/session -> hiển thị loader trung lập, không đoán role
+  if (isHydrating) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[var(--surface,#FAF9F5)] dark:bg-[#06140E]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary,#0B291E)] border-t-transparent" />
+          <p className="text-xs font-medium text-[var(--text-muted,#66786E)]">Đang đồng bộ phiên bảo mật...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Kiểm tra nếu chưa đăng nhập -> Điều hướng về Login kèm redirect param:
+  if (!isAuthenticated || !user) {
     return <Navigate to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  // 2. Nếu có khai báo allowedRoles, kiểm tra xem currentUserRole có nằm trong danh sách không
-  // 3. Nếu không đủ quyền (ví dụ BENEFICIARY vào trang NOTARY) -> Điều hướng về trang 403 Forbidden:
+  // 3. Nếu có khai báo allowedRoles, kiểm tra xem user.role có nằm trong danh sách không
+  // Nếu không đủ quyền (ví dụ BENEFICIARY vào trang NOTARY) -> Điều hướng về trang 403 Forbidden:
+  const currentUserRole = user.role;
   if (allowedRoles.length > 0 && !allowedRoles.includes(currentUserRole) && currentUserRole !== "ADMIN") {
     return <Navigate to={ROUTES.ERROR.FORBIDDEN} replace />;
   }
 
-  // TODO: 4. Nếu thỏa mãn toàn bộ điều kiện an ninh, render children hoặc Outlet
   return children ? children : <Outlet />;
 }

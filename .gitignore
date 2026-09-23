@@ -35,9 +35,9 @@ __pycache__/
 .pytest_cache/
 **/tests/coverage-*.json
 
-# AI Agent Generated Skills & Caches (Run `uipro init --ai antigravity` to install)
-.agents/skills/
-.agents/scratch/
+# AI Agent Generated Skills & Caches
+.agents/
+*.pdf
 
 # Environment & Secrets (NEVER COMMIT)
 .env

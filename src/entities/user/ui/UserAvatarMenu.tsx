@@ -9,9 +9,10 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
 import { type Role, ROLES } from "@/shared/constants/roles";
-import { storage } from "@/shared/utils";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
+import { useAppDispatch } from "@/app/store";
+import { clearCredentials } from "@/app/store/authSlice";
 
 /**
  * @description Thuộc tính cấu hình cho UserAvatarMenu component.
@@ -56,12 +57,10 @@ export function UserAvatarMenu({
   className = "",
 }: UserAvatarMenuProps) {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const handleLogoutClick = () => {
-    // TODO: 1. Xóa sạch JWT token khỏi storage
-    // TODO: 2. Kích hoạt callback onLogout
-    // TODO: 3. Điều hướng về /login
-    storage.clearToken();
+    dispatch(clearCredentials());
     onLogout?.();
     navigate(ROUTES.AUTH.LOGIN);
   };
@@ -92,19 +91,17 @@ export function UserAvatarMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className={`relative rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--heritage-gold,#b88e4c)] focus:ring-offset-2 ${className}`}
-          aria-label="Menu tài khoản"
-        >
-          <Avatar className="h-9 w-9 border-2 border-[#d2decb] dark:border-[#1e4631] bg-gradient-to-br from-[#d8bf7d] to-[#af8946] text-[#103329] font-bold text-xs shadow-xs">
-            {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-            <AvatarFallback className="bg-transparent text-[#103329] font-bold">
-              {initials || "LV"}
-            </AvatarFallback>
-          </Avatar>
-        </button>
+      <DropdownMenuTrigger
+        type="button"
+        className={`relative rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--heritage-gold,#b88e4c)] focus:ring-offset-2 ${className}`}
+        aria-label="Menu tài khoản"
+      >
+        <Avatar className="h-9 w-9 border-2 border-[#d2decb] dark:border-[#1e4631] bg-gradient-to-br from-[#d8bf7d] to-[#af8946] text-[#103329] font-bold text-xs shadow-xs">
+          {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
+          <AvatarFallback className="bg-transparent text-[#103329] font-bold">
+            {initials || "LV"}
+          </AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-56 bg-white dark:bg-[#0c2217] border border-[#dce5d6] dark:border-[#1d402f] shadow-lg rounded-2xl p-1.5" align="end">

@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "../api/authService";
 import type { LoginRequest, RegisterRequest, PasskeyLoginRequest, AuthSession } from "./auth.types";
-import { storage } from "@/shared/utils";
+import { useAppDispatch } from "@/app/store";
+import { setCredentials } from "@/app/store/authSlice";
 
 export const authKeys = {
   all: ["auth"] as const,
@@ -13,15 +14,15 @@ export const authKeys = {
  */
 export function useLogin() {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
     mutationFn: (credentials: LoginRequest) => authService.login(credentials),
     onSuccess: (session: AuthSession) => {
-      // TODO: 1. Lưu session token vào localStorage
-      if (session?.accessToken) {
-        storage.setToken(session.accessToken);
+      // Cập nhật Redux Session State (cookie HttpOnly do Backend quản lý tự động)
+      if (session?.user) {
+        dispatch(setCredentials({ user: session.user }));
       }
-      // TODO: 2. Invalidate cache auth
       queryClient.invalidateQueries({ queryKey: authKeys.session() });
     },
   });
@@ -41,12 +42,13 @@ export function useRegister() {
  */
 export function usePasskeyLogin() {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
     mutationFn: (payload: PasskeyLoginRequest) => authService.loginWithPasskey(payload),
     onSuccess: (session: AuthSession) => {
-      if (session?.accessToken) {
-        storage.setToken(session.accessToken);
+      if (session?.user) {
+        dispatch(setCredentials({ user: session.user }));
       }
       queryClient.invalidateQueries({ queryKey: authKeys.session() });
     },

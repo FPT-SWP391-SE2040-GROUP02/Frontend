@@ -15,7 +15,6 @@ export interface UiState {
 
 const savedTheme = (storage.get(storage.KEYS.THEME) as AppTheme) || "light";
 const savedRole = storage.getActiveRole() || ROLES.OWNER;
-const savedDemo = storage.isDemoMode();
 
 if (savedTheme === "dark") {
   document.documentElement.classList.add("dark");
@@ -26,7 +25,7 @@ const initialState: UiState = {
   theme: savedTheme,
   currentRole: savedRole,
   viewMode: "senior",
-  demoMode: savedDemo,
+  demoMode: false,
 };
 
 export const uiSlice = createSlice({
@@ -58,11 +57,9 @@ export const uiSlice = createSlice({
     },
     setDemoMode: (state, action: PayloadAction<boolean>) => {
       state.demoMode = action.payload;
-      storage.setDemoMode(action.payload);
     },
     toggleDemoMode: (state) => {
       state.demoMode = !state.demoMode;
-      storage.setDemoMode(state.demoMode);
     },
   },
 });

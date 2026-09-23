@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterInput } from "../model/auth.schema";
+import type { RegisterRequest } from "../model/auth.types";
 import { useRegister } from "../model/useAuth";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -44,7 +45,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
   const onSubmit = (data: RegisterInput) => {
     // TODO: 1. Gọi mutation registerUser(data)
     // TODO: 2. Khi thành công chuyển hướng về đăng nhập hoặc mở PasskeyEnrollModal
-    registerUser(data, {
+    registerUser(data as RegisterRequest, {
       onSuccess: () => {
         onSuccess?.();
         navigate(ROUTES.AUTH.LOGIN);
