@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Sparkles, ShieldCheck, ArrowLeft, CreditCard, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button } from "@/shared/ui/button";
+import { Button, buttonVariants } from "@/shared/ui/button";
+import { cn } from "cn";
 import { PricingCard } from "@/features/billing/ui/PricingCard";
 import { SepayQrModal } from "@/features/billing/ui/SepayQrModal";
 import type { PricingPlan, PaymentOrder } from "@/features/billing/model/billing.types";
@@ -132,12 +133,13 @@ export function PricingPlansPage() {
             </p>
           </div>
 
-          <Button variant="outline" asChild className="rounded-[20px] text-xs font-[550] shadow-xs shrink-0">
-            <Link to={ROUTES.BILLING.HISTORY} className="flex items-center gap-2 px-4 py-2 whitespace-nowrap">
-              <CreditCard className="w-4 h-4 text-[var(--gold,#B88E4C)] shrink-0" />
-              <span className="whitespace-nowrap">Lịch Sử Hóa Đơn</span>
-            </Link>
-          </Button>
+          <Link
+            to={ROUTES.BILLING.HISTORY}
+            className={cn(buttonVariants({ variant: "outline" }), "rounded-[20px] text-xs font-[550] shadow-xs shrink-0 flex items-center gap-2 px-4 py-2 whitespace-nowrap")}
+          >
+            <CreditCard className="w-4 h-4 text-[var(--gold,#B88E4C)] shrink-0" />
+            <span className="whitespace-nowrap">Lịch Sử Hóa Đơn</span>
+          </Link>
         </div>
 
         {/* Cụm Pill Tabs chuyển chu kỳ thanh toán */}

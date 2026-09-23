@@ -2,7 +2,8 @@ import { useState } from "react";
 import { ArrowLeft, CreditCard, Download, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button } from "@/shared/ui/button";
+import { Button, buttonVariants } from "@/shared/ui/button";
+import { cn } from "cn";
 import { BillingHistoryTable } from "@/features/billing/ui/BillingHistoryTable";
 import { InvoiceDetailModal } from "@/features/billing/ui/InvoiceDetailModal";
 import type { Invoice } from "@/features/billing/model/billing.types";
@@ -72,9 +73,9 @@ export function BillingHistoryPage() {
             </p>
           </div>
 
-          <Button asChild className="rounded-[20px] text-xs font-[550]">
-            <Link to={ROUTES.BILLING.PLANS}>Nâng Cấp Gói Dịch Vụ</Link>
-          </Button>
+          <Link to={ROUTES.BILLING.PLANS} className={cn(buttonVariants(), "rounded-[20px] text-xs font-[550]")}>
+            Nâng Cấp Gói Dịch Vụ
+          </Link>
         </div>
 
         {/* Bảng lịch sử hóa đơn */}

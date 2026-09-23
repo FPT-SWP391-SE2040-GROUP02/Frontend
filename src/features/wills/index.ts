@@ -9,7 +9,7 @@ export * from "./model/useWills";
 export * from "./api/willService";
 export * from "./lib/adapters";
 
-export { WillStepper } from "./ui/WillStepper";
+export { WillStepper, type StepItem } from "./ui/WillStepper";
 export { Step1SelectAssets } from "./ui/Step1SelectAssets";
 export { Step2AllocateBeneficiaries } from "./ui/Step2AllocateBeneficiaries";
 export { Step3VideoAffidavit } from "./ui/Step3VideoAffidavit";

@@ -13,6 +13,7 @@ export const apiClient = axios.create({
     "Content-Type": "application/json",
   },
   timeout: 30000,
+  withCredentials: true,
 });
 
 /**
@@ -21,24 +22,21 @@ export const apiClient = axios.create({
 export const axiosClient = apiClient;
 
 /**
- * @description Request Interceptor: Tự động đính kèm JWT Bearer Token, X-Active-Role và X-Demo-Mode từ storage trước khi gửi request.
+ * @description Request Interceptor: Tự động đính kèm X-Correlation-ID và ngữ cảnh X-Active-Role.
+ * Không đọc token từ storage (sử dụng HttpOnly Secure Cookies qua withCredentials: true).
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = storage.getToken();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // 1. Gắn X-Correlation-ID truy vết phân tán cho mỗi request
+    const correlationId = globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : undefined;
+    if (correlationId && config.headers) {
+      config.headers["X-Correlation-ID"] = correlationId;
     }
 
-    // Tự động đính kèm ngữ cảnh vai trò đang làm việc (Hybrid Identity context)
+    // 2. Tự động đính kèm ngữ cảnh vai trò UI nếu có (không dùng làm căn cứ ủy quyền phía server)
     const activeRole = storage.getActiveRole();
     if (activeRole && config.headers) {
       config.headers["X-Active-Role"] = activeRole;
-    }
-
-    // Tự động đính kèm cờ Demo Mode nếu đang bật chu kỳ trình diễn 120s
-    if (storage.isDemoMode() && config.headers) {
-      config.headers["X-Demo-Mode"] = "true";
     }
 
     return config;

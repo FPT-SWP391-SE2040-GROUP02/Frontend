@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useAppSelector } from "@/app/store";
 import { type Role } from "@/shared/constants/roles";
 

@@ -52,6 +52,8 @@ export interface NotaryClaimItemDto {
   executorNotes?: string;
 }
 
+export type NotaryClaimDetailViewModel = NotaryClaimItemDto;
+
 /**
  * @description DTO phê duyệt hồ sơ và giải phóng Mảnh khóa Verifier (Shamir Share 2)
  */

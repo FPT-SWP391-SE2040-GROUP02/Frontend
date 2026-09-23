@@ -28,10 +28,14 @@ export function AppRoutes() {
       {/* 1. Trang chủ công khai cho GUEST */}
       <Route path={ROUTES.HOME} element={<LandingPage />} />
 
-      {/* 2. Bảng giá & Thanh toán SePay VietQR */}
+      {/* 2. Bảng giá công khai */}
       <Route path={ROUTES.BILLING.PLANS} element={<PricingPlansPage />} />
       <Route path={ROUTES.BILLING.CHECKOUT} element={<PricingPlansPage />} />
-      <Route path={ROUTES.BILLING.HISTORY} element={<BillingHistoryPage />} />
+
+      {/* 3. Lịch sử hóa đơn thanh toán yêu cầu đăng nhập */}
+      <Route element={<ProtectedRoute />}>
+        <Route path={ROUTES.BILLING.HISTORY} element={<BillingHistoryPage />} />
+      </Route>
 
       {/* 3. Tuyến đường xác thực (Auth Routes) */}
       <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />

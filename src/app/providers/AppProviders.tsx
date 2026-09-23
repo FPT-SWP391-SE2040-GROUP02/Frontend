@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/shared/ui/tooltip";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { queryClient } from "./queryClient";
 import { store } from "@/app/store";
+import { AuthBootstrap } from "./AuthBootstrap";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -16,7 +17,9 @@ export function AppProviders({ children }: AppProvidersProps) {
     <ErrorBoundary>
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
-          <TooltipProvider>{children}</TooltipProvider>
+          <AuthBootstrap>
+            <TooltipProvider>{children}</TooltipProvider>
+          </AuthBootstrap>
           {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>
       </Provider>

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FileText, Send, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { Button, Input, Card } from "@/shared/ui";
 import { submitClaimSchema, type SubmitClaimFormValues } from "../model/claim.schema";
+import type { SubmitClaimRequest } from "../model/claim.types";
 import { LegalDropzone } from "./LegalDropzone";
 import { useSubmitClaim } from "../model/useClaims";
 
@@ -54,7 +55,7 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
     // 1. Kiểm tra tính hợp lệ của values (đã qua Zod Resolver validate)
     // 2. Kích hoạt submitClaimMutation với dữ liệu values
     // 3. Trong callback onSuccess của mutation, gọi hàm callback props onSuccess?.()
-    submitClaimMutation(values, {
+    submitClaimMutation(values as SubmitClaimRequest, {
       onSuccess: () => {
         onSuccess?.();
       },
