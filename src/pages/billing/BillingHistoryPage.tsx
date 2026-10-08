@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { ArrowLeft, CreditCard, Download, ShieldCheck } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button, buttonVariants } from "@/shared/ui/button";
+import { buttonVariants } from "@/shared/ui/button";
 import { cn } from "cn";
 import { BillingHistoryTable } from "@/features/billing/ui/BillingHistoryTable";
 import { InvoiceDetailModal } from "@/features/billing/ui/InvoiceDetailModal";

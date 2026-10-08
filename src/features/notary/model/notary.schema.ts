@@ -50,6 +50,9 @@ export const notaryApproveSchema = z.object({
       message: "Bắt buộc xác nhận tư cách hợp pháp của Người thi hành",
     }),
   }),
+  legalAttestationConfirmed: z.literal(true, {
+    errorMap: () => ({ message: "Bạn bắt buộc phải xác nhận cam kết 'Tôi chịu trách nhiệm trước pháp luật'" }),
+  }),
   notaryNotes: z.string().optional(),
 });
 

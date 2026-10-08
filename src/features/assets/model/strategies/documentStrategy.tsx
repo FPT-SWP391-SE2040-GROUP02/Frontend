@@ -88,7 +88,7 @@ export const documentStrategy: AssetStrategy = {
   },
 
   renderDetails({ rawPayload, metadata }) {
-    let decoded: Record<string, string> = {};
+    let decoded: Record<string, string>;
     try {
       decoded = JSON.parse(decodeURIComponent(atob(rawPayload.ciphertext)));
     } catch {

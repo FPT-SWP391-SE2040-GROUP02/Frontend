@@ -1,8 +1,4 @@
-import type {
-  DmsState,
-  DmsHeartbeatConfig,
-  PingHistoryItem,
-} from "../model/dms.types";
+import type { DmsState, DmsHeartbeatConfig, PingHistoryItem } from "../model/dms.types";
 import type { DmsConfigFormInput, PingRequestInput } from "../model/dms.schema";
 import type { ApiResponse } from "@/shared/types";
 
@@ -12,7 +8,6 @@ import type { ApiResponse } from "@/shared/types";
  * Tuân thủ quy tắc 7 (Scaffold with TODO) và quy tắc 8 (JSDoc chuẩn chỉ).
  */
 
-const DMS_ENDPOINT = "/dms";
 
 /**
  * Lấy trạng thái thời gian thực của Dead Man's Switch
@@ -52,13 +47,13 @@ export async function getDmsStatus(): Promise<DmsState> {
 /**
  * Gửi nhịp xung sinh tồn (⚡ Proof-of-Life Heartbeat Ping)
  * @description Reset chu kỳ đếm ngược và ký mã băm xác nhận sự hiện diện của chủ tài khoản.
- * @param {PingRequestInput} [payload] Thông tin nguồn xác nhận (Web, Email, Telegram)
+ * @param {PingRequestInput} [_payload] Thông tin nguồn xác nhận (Web, Email, Telegram)
  * @returns {Promise<ApiResponse<{ nextPingDeadline: string; integritySealHash: string }>>}
  * @example
  * const result = await dmsService.sendPulsePing({ source: "WEB" });
  */
 export async function sendPulsePing(
-  payload?: PingRequestInput
+  _payload?: PingRequestInput
 ): Promise<ApiResponse<{ nextPingDeadline: string; integritySealHash: string }>> {
   // TODO: [Developer Step]
   // 1. Gọi POST /dms/pulse với payload { source: payload?.source || 'WEB', clientTimestamp: new Date().toISOString() }

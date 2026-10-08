@@ -1,27 +1,20 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, X, ShieldAlert, KeyRound, AlertTriangle } from "lucide-react";
-import { Button, Input, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/shared/ui";
-import { 
-  notaryApproveSchema, 
-  notaryRejectSchema, 
-  type NotaryApproveFormValues, 
-  type NotaryRejectFormValues,
-  NOTARY_REJECTION_REASONS,
-  REJECTION_REASON_LABELS
-} from "../model/notary.schema";
+import { ShieldAlert, KeyRound, AlertTriangle } from "lucide-react";
+import { Button, Input, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, CustomCheckbox } from "@/shared/ui";
+import { notaryApproveSchema, notaryRejectSchema, type NotaryApproveFormValues, type NotaryRejectFormValues, NOTARY_REJECTION_REASONS, REJECTION_REASON_LABELS } from "../model/notary.schema";
 import type { AuditCriteriaChecklist } from "../model/notary.types";
 import { useApproveClaim, useRejectClaim } from "../model/useNotaryClaims";
 
 /**
  * @file NotaryReviewModals.tsx
- * @description Các hộp thoại Phê duyệt (Ký số giải phóng Mảnh khóa 2) và Từ chối (Lý do >= 20 ký tự) cho Công chứng viên.
- * Áp dụng React Hook Form + Zod Schema (Form State chuẩn mực, không dùng useState cho các ô input).
+ * @description Các hộp thoại Phê duyệt (Duyệt chứng tử APPROVED_FOR_DELIVERY) và Từ chối (Lý do >= 20 ký tự) cho Người Xác Minh (Verifier).
+ * Tuân thủ quy định SRS 3.11.0 (DEATH-02): Verifier bắt buộc tick cam kết "Tôi chịu trách nhiệm trước pháp luật".
  */
 
 // ==============================================================================
-// 1. MODAL PHÊ DUYỆT HỒ SƠ & GIẢI PHÓNG MẢNH KHÓA SHAMIR 2
+// 1. MODAL PHÊ DUYỆT HỒ SƠ CHỨNG TỬ (APPROVED_FOR_DELIVERY)
 // ==============================================================================
 
 export interface NotaryApproveModalProps {
@@ -45,6 +38,7 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<NotaryApproveFormValues>({
     resolver: zodResolver(notaryApproveSchema),
@@ -53,8 +47,11 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
       notaryPinCode: "",
       checkCriteria,
       notaryNotes: "",
+      legalAttestationConfirmed: false as unknown as true,
     },
   });
+
+  const isAttested = watch("legalAttestationConfirmed");
 
   const onSubmit = (values: NotaryApproveFormValues) => {
     approveMutation(
@@ -82,10 +79,10 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
             <KeyRound className="w-6 h-6" />
           </div>
           <DialogTitle className="text-base font-bold text-center text-[#0B291E]">
-            Ký Số Phê Duyệt & Giải Phóng Mảnh Khóa 2
+            Ký Số Phê Duyệt Hồ Sơ Chứng Tử
           </DialogTitle>
           <DialogDescription className="text-xs text-center text-[#66786E]">
-            Thao tác này sẽ giải phóng Mảnh khóa Verifier (Shamir Share 2). Người thụ hưởng sẽ đủ điều kiện kết hợp với Mảnh khóa System để mở khóa di sản.
+            Hồ sơ sẽ chuyển trạng thái APPROVED_FOR_DELIVERY để mở luồng thông báo và thống nhất ngày bàn giao tài sản (SRS 3.11.0).
           </DialogDescription>
         </DialogHeader>
 
@@ -94,13 +91,13 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
           <div className="p-3 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] text-xs text-[#B45309] flex items-start gap-2">
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-[#F59E0B]" />
             <p className="text-[11px] leading-relaxed">
-              Bạn cam đoan đã kiểm tra kỹ lưỡng 4 tiêu chí kiểm toán và hoàn toàn chịu trách nhiệm pháp lý với chữ ký số công chứng viên này.
+              Bạn cam đoan đã kiểm tra kỹ lưỡng tính hợp pháp của giấy chứng tử và hoàn toàn chịu trách nhiệm trước pháp luật về quyết định này.
             </p>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-[#14241C]">
-              Mã PIN Chữ Ký Số Công Chứng (6 Chữ Số) <span className="text-red-500">*</span>
+              Mã PIN Chữ Ký Số Thẩm Định (6 Chữ Số) <span className="text-red-500">*</span>
             </label>
             <Input
               type="password"
@@ -124,6 +121,24 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
             />
           </div>
 
+          {/* Ô Cam Kết Trách Nhiệm Pháp Lý Bắt Buộc (DEATH-02) */}
+          <div className="p-3.5 rounded-[14px] bg-[#FAF9F5] border border-[#E8DCC6] space-y-1.5">
+            <CustomCheckbox
+              {...register("legalAttestationConfirmed")}
+              id="verifier-legal-attestation"
+              label={
+                <span className="font-bold text-[#0B291E] text-xs">
+                  Tôi chịu trách nhiệm trước pháp luật về kết quả kiểm tra và phê duyệt giấy chứng tử này.
+                </span>
+              }
+            />
+            {errors.legalAttestationConfirmed && (
+              <p className="text-[11px] text-red-600 font-semibold pl-6">
+                {errors.legalAttestationConfirmed.message}
+              </p>
+            )}
+          </div>
+
           <DialogFooter className="pt-2 gap-2">
             <Button
               type="button"
@@ -135,10 +150,10 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={isPending}
+              disabled={isPending || !isAttested}
               className="rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-5"
             >
-              {isPending ? "Đang Giải Phóng Khóa..." : "Xác Nhận & Giải Phóng Khóa"}
+              {isPending ? "Đang Phê Duyệt..." : "Phê Duyệt (APPROVED)"}
             </Button>
           </DialogFooter>
         </form>
@@ -146,6 +161,7 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
     </Dialog>
   );
 };
+
 
 // ==============================================================================
 // 2. MODAL TỪ CHỐI HỒ SƠ & YÊU CẦU BỔ SUNG (LÝ DO >= 20 KÝ TỰ)

@@ -1,8 +1,4 @@
-import type {
-  AssetItemDto,
-  CreateAssetRequest,
-  AssetVaultStats,
-} from "../model/asset.types";
+import type { AssetItemDto, CreateAssetRequest, AssetVaultStats } from "../model/asset.types";
 import type { PaginatedList, PaginationParams, ApiResponse } from "@/shared/types";
 
 /**
@@ -11,7 +7,6 @@ import type { PaginatedList, PaginationParams, ApiResponse } from "@/shared/type
  * Tuân thủ Rule 7 (Scaffold with TODO) và Rule 8 (JSDoc chuẩn chỉ).
  */
 
-const ASSETS_ENDPOINT = "/assets";
 
 function safeEncodePayload(data: unknown): string {
   return btoa(encodeURIComponent(JSON.stringify(data)));

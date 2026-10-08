@@ -67,7 +67,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
         typeLabel.includes(effectiveSearchTerm)
       );
     });
-  }, [data?.items, effectiveSearchTerm]);
+  }, [data, effectiveSearchTerm]);
 
   const getAssetIcon = (type: AssetType) => {
     switch (type) {

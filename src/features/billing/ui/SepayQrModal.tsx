@@ -1,13 +1,7 @@
 import { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/shared/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
-import { Check, Copy, Loader2, QrCode, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
+import { Check, Copy, Loader2, QrCode, CheckCircle2 } from "lucide-react";
 import type { PaymentOrder } from "../model/billing.types";
 import { usePollPaymentStatus } from "../model/useBilling";
 
@@ -41,7 +35,9 @@ export function SepayQrModal({
   const [copiedContent, setCopiedContent] = useState<boolean>(false);
   const [copiedAmount, setCopiedAmount] = useState<boolean>(false);
   const [copiedAccount, setCopiedAccount] = useState<boolean>(false);
-  const [timeLeft, setTimeLeft] = useState<number>(900); // 15 phút đếm ngược
+  const [now, setNow] = useState(Date.now);
+  const deadline = order ? Date.parse(order.expiresAt) : Number.NaN;
+  const timeLeft = Number.isFinite(deadline) ? Math.max(0, Math.ceil((deadline - now) / 1000)) : 0;
 
   // Polling trạng thái thanh toán từ SePay
   const { data: paymentStatus } = usePollPaymentStatus(order?.orderId, isOpen);
@@ -55,9 +51,8 @@ export function SepayQrModal({
   // Đếm ngược 15 phút
   useEffect(() => {
     if (!isOpen) return;
-    setTimeLeft(900);
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setNow(Date.now());
     }, 1000);
     return () => clearInterval(timer);
   }, [isOpen]);

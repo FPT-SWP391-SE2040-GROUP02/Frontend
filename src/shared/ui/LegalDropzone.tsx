@@ -1,4 +1,4 @@
-import { FileText, Lock, UploadCloud } from "lucide-react";
+import { Lock, UploadCloud } from "lucide-react";
 
 /**
  * @description Thuộc tính cấu hình cho LegalDropzone component.

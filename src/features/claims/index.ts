@@ -1,4 +1,4 @@
-export * from "./model/claim.types";
+export * from "@/entities/claim/model/claim.types";
 export * from "./model/claim.schema";
 export * from "./model/useClaims";
 export * from "./api/claimService";

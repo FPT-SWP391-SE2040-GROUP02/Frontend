@@ -1,18 +1,9 @@
-import { LogOut, User, ShieldCheck } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 import { type Role, ROLES } from "@/shared/constants/roles";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
-import { useAppDispatch } from "@/app/store";
-import { clearCredentials } from "@/app/store/authSlice";
 
 /**
  * @description Thuộc tính cấu hình cho UserAvatarMenu component.
@@ -57,12 +48,10 @@ export function UserAvatarMenu({
   className = "",
 }: UserAvatarMenuProps) {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const handleLogoutClick = () => {
-    dispatch(clearCredentials());
     onLogout?.();
-    navigate(ROUTES.AUTH.LOGIN);
+    if (!onLogout) navigate(ROUTES.AUTH.LOGOUT);
   };
 
   const getRoleBadgeLabel = (r: Role) => {

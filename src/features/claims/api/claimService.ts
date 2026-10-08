@@ -1,6 +1,6 @@
-import { axiosClient } from "@/shared/api";
+
 import type { ApiResponse, PaginatedList, PaginationParams } from "@/shared/types";
-import type { SubmitClaimRequest, ClaimItemViewModel } from "../model/claim.types";
+import type { SubmitClaimRequest, ClaimItemViewModel } from "@/entities/claim/model/claim.types";
 
 /**
  * @file claimService.ts
@@ -8,8 +8,6 @@ import type { SubmitClaimRequest, ClaimItemViewModel } from "../model/claim.type
  * Tuân thủ Rule 7 (Scaffold with TODO) và Rule 8 (JSDoc chuẩn chỉnh).
  */
 
-const CLAIMS_ENDPOINT = "/claims";
-const STORAGE_ENDPOINT = "/storage";
 
 export interface PresignedUploadResponse {
   uploadUrl: string;
@@ -20,12 +18,12 @@ export interface PresignedUploadResponse {
 /**
  * Xin URL ký sẵn (Presigned URL) của Cloudflare R2 để tải trực tiếp file scan từ trình duyệt
  * @param fileName Tên tệp tin gốc
- * @param contentType Định dạng tệp tin (ví dụ: application/pdf)
+ * @param _contentType Định dạng tệp tin (ví dụ: application/pdf)
  * @returns Promise chứa thông tin uploadUrl và objectKey
  */
 export async function getPresignedUploadUrl(
   fileName: string,
-  contentType: string
+  _contentType: string
 ): Promise<PresignedUploadResponse> {
   // TODO: [Developer Step]
   // 1. Gọi POST /storage/presigned-upload qua axiosClient kèm { fileName, contentType }
@@ -39,11 +37,11 @@ export async function getPresignedUploadUrl(
 
 /**
  * Nộp hồ sơ yêu cầu mở thừa kế kèm chứng từ tử tuất hoặc quyết định tòa án
- * @param payload Dữ liệu hồ sơ gồm thông tin hộ tịch và mã băm SHA-256
+ * @param _payload Dữ liệu hồ sơ gồm thông tin hộ tịch và mã băm SHA-256
  * @returns Promise chứa ApiResponse xác nhận đã nộp thành công
  */
 export async function submitClaim(
-  payload: SubmitClaimRequest
+  _payload: SubmitClaimRequest
 ): Promise<ApiResponse<{ claimId: string; status: string }>> {
   // TODO: [Developer Step]
   // 1. Validate payload bằng submitClaimSchema

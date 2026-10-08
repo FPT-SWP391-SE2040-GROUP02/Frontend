@@ -1,21 +1,8 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { 
-  DmsHeartbeatCard, 
-  DmsConfigModal, 
-  DmsPingHistoryModal 
-} from "@/features/dms";
-import { 
-  Shield, 
-  BookOpen, 
-  Scale, 
-  ChevronRight, 
-  Info, 
-  Radio, 
-  Bell, 
-  Lock 
-} from "lucide-react";
-import { ROUTES } from "@/shared/config/routes.config";
+
+import { DmsHeartbeatCard, DmsConfigModal, DmsPingHistoryModal } from "@/features/dms";
+import { BookOpen, Scale, Info, Radio, Bell, Lock } from "lucide-react";
+
 
 /**
  * @file DmsStatusPage.tsx

@@ -1,23 +1,9 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { 
-  Shield, 
-  Plus, 
-  ChevronRight, 
-  FileText, 
-  Scale, 
-  CheckCircle2, 
-  Radio, 
-  ExternalLink 
-} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, FileText, Scale, CheckCircle2, ExternalLink } from "lucide-react";
 import { Button } from "@/shared/ui";
 import { ROUTES } from "@/shared/config/routes.config";
-import {
-  WillTable,
-  WillDetailModal,
-  useWills,
-  type WillViewModel,
-} from "@/features/wills";
+import { WillTable, WillDetailModal, useWills, type WillViewModel } from "@/features/wills";
 import { AppHeader } from "@/widgets";
 
 /**

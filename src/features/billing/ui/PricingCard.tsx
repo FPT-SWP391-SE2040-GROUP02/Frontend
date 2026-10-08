@@ -1,4 +1,4 @@
-import { CheckCircle2, Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Sparkles, ArrowRight } from "lucide-react";
 import type { PricingPlan } from "../model/billing.types";
 import { Button } from "@/shared/ui/button";
 
@@ -43,6 +43,7 @@ export function PricingCard({
 
   const getCycleLabel = () => {
     if (plan.price === 0) return "/ vĩnh viễn";
+    if (plan.cycleText) return `/ ${plan.cycleText}`;
     switch (billingCycle) {
       case "monthly":
         return "/ tháng";
@@ -50,6 +51,8 @@ export function PricingCard({
         return "/ năm";
       case "lifetime":
         return "/ trọn đời";
+      default:
+        return "";
     }
   };
 
@@ -96,9 +99,9 @@ export function PricingCard({
             </span>
           </div>
           <div className="text-[11px] text-[var(--text-subtle,#8E9F96)] mt-1 flex items-center gap-2">
-            <span>Dung lượng: <strong>{plan.storageLimitGb} GB</strong></span>
+            <span>Dung lượng: <strong>{plan.storageLimitMb >= 1000 ? `${plan.storageLimitMb / 1000} GB` : `${plan.storageLimitMb} MB`}</strong></span>
             <span>·</span>
-            <span>Thừa kế: <strong>{plan.maxHeirs === 999 ? "Không giới hạn" : `${plan.maxHeirs} người`}</strong></span>
+            <span>Tối đa: <strong>{plan.maxAssets} tài sản</strong></span>
           </div>
         </div>
 

@@ -6,7 +6,15 @@
 /**
  * Các trạng thái vòng đời của Dead Man's Switch
  */
-export type DmsStatus = "ACTIVE" | "WARNING" | "GRACE_PERIOD" | "TRIGGERED" | "PAUSED";
+export type DmsStatus =
+  | "ACTIVE"
+  | "CHECKIN_PENDING"
+  | "CHECKIN_SUSPENDED"     // Tạm treo 90 ngày sau khi hết thời gian chờ (SRS 3.11.0 - DMS-04)
+  | "FROZEN_INACTIVITY"     // Đóng băng kho do bất hoạt sau 90 ngày không phản hồi (DMS-09)
+  | "WARNING"
+  | "GRACE_PERIOD"
+  | "TRIGGERED"
+  | "PAUSED";
 
 /**
  * Kênh gửi thông báo nhắc nhở nhịp sinh tồn
@@ -25,7 +33,7 @@ export interface NotificationChannelConfig {
 export interface DmsHeartbeatConfig {
   /** Chu kỳ kiểm tra sinh tồn (tính bằng ngày: 30 / 60 / 90 / 180) */
   checkIntervalDays: number;
-  /** Thời gian ân hạn sau khi quá hạn mà chưa nhận phản hồi (7 / 14 / 30 ngày) */
+  /** Thời gian chờ xác nhận (7 / 14 / 30 ngày) */
   gracePeriodDays: number;
   /** Tần suất nhắc nhở trước hạn (mỗi 3 ngày / mỗi 7 ngày) */
   reminderFrequencyDays: number;
@@ -36,7 +44,7 @@ export interface DmsHeartbeatConfig {
 }
 
 /**
- * @description Trạng thái thời gian thực của Dead Man's Switch
+ * @description Trạng thái thời gian thực của Dead Man's Switch (SRS 3.11.0)
  */
 export interface DmsState {
   /** Trạng thái hiện tại */
@@ -45,6 +53,10 @@ export interface DmsState {
   lastPingAt: string;
   /** Hạn chót cần gửi nhịp ping tiếp theo (ISO string) */
   nextPingDeadline: string;
+  /** Thời điểm bắt đầu tạm treo 90 ngày (suspended_at) */
+  suspendedAt?: string;
+  /** Thời điểm đóng băng do bất hoạt (freeze_at = suspended_at + 90 days) */
+  freezeAt?: string;
   /** Thời điểm kết thúc thời gian ân hạn (nếu đang ở Grace Period) */
   gracePeriodEndsAt?: string;
   /** Số ngày còn lại */
@@ -56,6 +68,7 @@ export interface DmsState {
   /** Cấu hình hiện tại */
   config: DmsHeartbeatConfig;
 }
+
 
 /**
  * @description Nhật ký một lần xác nhận sinh tồn (Ping History Item)

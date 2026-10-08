@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { useAppDispatch } from "@/app/store";
-import { setUser, clearCredentials } from "@/app/store/authSlice";
+import { setUser, clearCredentials } from "@/entities/user/model/authSlice";
 import { axiosClient } from "@/shared/api/axiosClient";
 import type { User } from "@/entities/user";
 import type { ApiResponse } from "@/shared/types";

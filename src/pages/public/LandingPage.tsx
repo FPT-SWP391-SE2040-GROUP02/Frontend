@@ -1,323 +1,301 @@
+import { ArrowRight, Plus, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
-import {
-  ShieldCheck,
-  Lock,
-  HeartPulse,
-  Scale,
-  Users,
-  Eye,
-  ArrowRight,
-  CheckCircle2,
-  Sparkles,
-  KeyRound,
-  FileCheck,
-  ChevronRight,
-  ShieldAlert,
-} from "lucide-react";
+import { Card, buttonVariants } from "@/shared/ui";
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button, buttonVariants } from "@/shared/ui/button";
-import { cn } from "cn";
-import { LiveDmsPulseCard } from "@/shared/ui/LiveDmsPulseCard";
-import { MaskedKeyDisplay } from "@/shared/ui/MaskedKeyDisplay";
-import { ComplianceCallout } from "@/shared/ui/ComplianceCallout";
-import { LegalDropzone } from "@/shared/ui/LegalDropzone";
+import { LANDING_CONTENT as content } from "./model/landing.content";
+import { LegacyVaultMark, VaultIcon } from "@/shared/ui/LegacyVaultArtwork";
+import guilloche from "@/shared/assets/legacyvault-guilloche.svg";
 
-/**
- * @description Trang chủ dành cho khách vãng lai (Public Guest Landing Page).
- * Thiết kế chuẩn 100% theo Master UI Kit (Heritage Forest & Champagne Gold).
- *
- * @returns {React.JSX.Element} Màn hình Landing Page
- */
+/** Landing công khai, dùng nội dung chọn lọc từ prototype và điều hướng thật của client. */
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-[var(--bg-canvas,#EFECE6)] dark:bg-[#071710] text-[var(--text-main,#14241C)] dark:text-[#E5EDE8] selection:bg-[var(--gold,#B88E4C)]/30 font-sans">
-      {/* 1. Header / Navbar Công Khai */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-[#FAF9F5]/90 dark:bg-[#071710]/90 border-b border-[#DCD9D0] dark:border-[#163625]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          {/* Logo & Tên Thương Hiệu */}
-          <Link to={ROUTES.HOME} className="flex items-center gap-3 group">
-            <div className="w-11 h-11 rounded-[14px] bg-[var(--primary,#0B291E)] text-[var(--gold,#B88E4C)] font-bold text-xl flex items-center justify-center shadow-[0_3px_10px_rgba(11,41,30,0.2)] group-hover:scale-105 transition-transform duration-200">
-              LV
-            </div>
-            <div>
-              <span className="font-bold text-lg tracking-wider text-[var(--primary,#0B291E)] dark:text-[#F3F7F4] block">
-                LEGACYVAULT
-              </span>
-              <span className="text-[10px] tracking-widest text-[var(--text-muted,#66786E)] dark:text-[#90A894] uppercase block font-semibold">
-                Két Di Sản Số Mật Mã Học
-              </span>
-            </div>
+    <div className="min-h-screen bg-heritage-surface text-heritage-text">
+      <a
+        href="#landing-content"
+        className="sr-only z-50 rounded-lg bg-heritage-surface p-4 focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      >
+        {content.skip}
+      </a>
+      <header className="sticky top-0 z-20 border-b border-heritage-border bg-heritage-surface/95 backdrop-blur">
+        <div className="mx-auto flex min-h-20 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-8">
+          <Link
+            to={ROUTES.HOME}
+            className="flex min-h-11 items-center gap-2 text-lg font-semibold sm:text-xl"
+          >
+            <LegacyVaultMark className="size-10 text-heritage-primary" />
+            {content.brand}
           </Link>
-
-          {/* Menu Điều Hướng Nhanh */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-[550] text-[var(--text-muted,#66786E)] dark:text-[#B4CBBA]">
-            <a href="#giai-phap" className="hover:text-[var(--primary,#0B291E)] dark:hover:text-[#F6D483] transition-colors">
-              Giải Pháp
-            </a>
-            <a href="#dms-pulse" className="hover:text-[var(--primary,#0B291E)] dark:hover:text-[#F6D483] transition-colors">
-              Dead Man's Switch
-            </a>
-            <a href="#phap-ly" className="hover:text-[var(--primary,#0B291E)] dark:hover:text-[#F6D483] transition-colors">
-              Pháp Lý Điều 644
-            </a>
-            <a href="#ui-kit-demo" className="hover:text-[var(--primary,#0B291E)] dark:hover:text-[#F6D483] transition-colors">
-              Giao Diện Mẫu
-            </a>
+          <nav
+            aria-label={content.navLabel}
+            className="order-3 flex w-full gap-5 overflow-x-auto text-sm text-heritage-muted lg:order-none lg:w-auto"
+          >
+            {content.nav.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="inline-flex min-h-11 shrink-0 items-center hover:text-heritage-primary focus-visible:outline-2 focus-visible:outline-heritage-gold"
+              >
+                {item.label}
+              </a>
+            ))}
           </nav>
-
-          {/* Cụm Nút CTA */}
-          <div className="flex items-center gap-3">
-            <Link to={ROUTES.AUTH.LOGIN} className={cn(buttonVariants({ variant: "ghost" }), "text-xs font-[550]")}>
-              Đăng Nhập
+          <div className="flex items-center gap-2">
+            <Link
+              to={ROUTES.AUTH.LOGIN}
+              className={`${buttonVariants({ variant: "ghost", size: "lg" })} px-3`}
+            >
+              {content.login}
             </Link>
-            <Link to={ROUTES.AUTH.REGISTER} className={cn(buttonVariants(), "rounded-[20px] shadow-[0_3px_10px_rgba(11,41,30,0.2)] flex items-center gap-1.5")}>
-              <span>Khởi Tạo Két</span>
-              <ChevronRight className="w-3.5 h-3.5" />
+            <Link
+              to={ROUTES.AUTH.REGISTER}
+              className={`${buttonVariants({ size: "lg" })} hidden rounded-xl sm:inline-flex`}
+            >
+              {content.register}
             </Link>
           </div>
         </div>
       </header>
-
-      {/* 2. Hero Section */}
-      <section className="relative overflow-hidden pt-14 pb-20 md:pt-20 md:pb-28">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-7">
-          {/* Badge Thông Báo */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-[20px] bg-[var(--primary-light,#E5EDE8)] dark:bg-emerald-950/60 border border-[#C9D9CE] dark:border-emerald-800 text-[var(--primary,#0B291E)] dark:text-emerald-300 text-xs font-semibold shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[var(--gold,#B88E4C)]" />
-            <span>Master UI Kit Heritage Forest & Champagne Gold Architecture</span>
+      <main id="landing-content">
+        <section className="relative overflow-hidden border-b border-heritage-border">
+          <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:px-8 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:py-24">
+            <div>
+              <p className="mb-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-heritage-muted">
+                <span className="h-px w-8 bg-heritage-gold" />
+                {content.eyebrow}
+              </p>
+              <h1 className="font-heading font-semibold text-5xl leading-[1.12] tracking-tight sm:text-6xl lg:text-7xl">
+                {content.title}
+                <br />
+                <span className="text-heritage-primary">{content.titleAccent}</span>
+              </h1>
+              <p className="mt-6 max-w-xl text-base leading-8 text-heritage-muted sm:text-lg">
+                {content.description}
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  to={ROUTES.AUTH.REGISTER}
+                  className={`${buttonVariants({ size: "lg" })} min-h-12 rounded-xl`}
+                >
+                  {content.start}
+                  <ArrowRight aria-hidden="true" />
+                </Link>
+                <a
+                  href="#cach-hoat-dong"
+                  className={`${buttonVariants({ variant: "outline", size: "lg" })} min-h-12 rounded-xl`}
+                >
+                  {content.explore}
+                </a>
+              </div>
+              <p className="mt-5 max-w-lg text-xs leading-6 text-heritage-muted">{content.note}</p>
+            </div>
+            <div className="relative rounded-[32px] bg-heritage-primary p-5 text-heritage-surface sm:p-8">
+              <img
+                src={guilloche}
+                alt=""
+                aria-hidden="true"
+                className="pointer-events-none absolute right-0 top-0 size-64 opacity-20"
+              />
+              <div className="relative flex items-center justify-between gap-3">
+                <span className="flex items-center gap-2 text-sm font-medium">
+                  <VaultIcon className="size-5 text-heritage-gold" />
+                  {content.vault}
+                </span>
+                <span className="rounded-full border border-heritage-surface/20 px-3 py-1 text-[11px] text-heritage-surface/75">
+                  {content.sample}
+                </span>
+              </div>
+              <p className="relative my-8 max-w-xs font-heading font-semibold text-3xl leading-tight sm:text-4xl">
+                {content.organized}
+              </p>
+              <ul className="relative space-y-3">
+                {content.files.map(({ title, recipient, icon: Icon }) => (
+                  <li
+                    key={title}
+                    className="flex items-center gap-4 rounded-2xl border border-heritage-surface/15 bg-heritage-surface/5 p-4"
+                  >
+                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-heritage-gold/15 text-heritage-gold">
+                      <Icon className="size-5" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">{title}</p>
+                      <p className="mt-1 text-xs text-heritage-surface/65">{recipient}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="relative mt-6 border-t border-heritage-surface/15 pt-5 text-xs leading-6 text-heritage-surface/70">
+                {content.vaultFooter}
+              </p>
+            </div>
           </div>
-
-          {/* Heading Chính */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4] leading-[1.15] tracking-tight">
-            Bảo Vệ Trọn Vẹn Di Sản Số <br className="hidden sm:inline" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8D6722] via-[#B88E4C] to-[#6E5018] dark:from-[#F6D483] dark:to-[#C5A059]">
-              Trao Gửi Thế Hệ Mai Sau
-            </span>
-          </h1>
-
-          {/* Đoạn Mô Tả Phụ */}
-          <p className="max-w-2xl mx-auto text-xs sm:text-sm text-[var(--text-muted,#66786E)] dark:text-[#A6C2AD] leading-relaxed font-medium">
-            Nền tảng ủy thác di sản số mật mã học Zero-Knowledge bảo vệ an toàn Private Key, tài liệu và tài sản số, kết hợp cơ chế kiểm tra sinh tồn <strong>Dead Man's Switch (Pulse)</strong> và tuân thủ chặt chẽ <strong>Điều 644 Bộ luật Dân sự</strong>.
+        </section>
+        <section
+          className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-8 md:grid-cols-3"
+          aria-label={content.eyebrow}
+        >
+          {content.benefits.map(({ title, description, icon: Icon }) => (
+            <div key={title} className="flex gap-4">
+              <Icon className="mt-1 size-6 shrink-0 text-heritage-primary" aria-hidden="true" />
+              <div>
+                <h2 className="font-semibold">{title}</h2>
+                <p className="mt-2 text-sm leading-6 text-heritage-muted">{description}</p>
+              </div>
+            </div>
+          ))}
+        </section>
+        <section
+          id="cach-hoat-dong"
+          className="scroll-mt-40 border-y border-heritage-border bg-heritage-primary-light/40 px-4 py-16 sm:px-8 sm:py-20"
+        >
+          <div className="mx-auto max-w-7xl">
+            <p className="text-xs font-semibold uppercase tracking-widest text-heritage-muted">
+              {content.processEyebrow}
+            </p>
+            <h2 className="mt-4 max-w-2xl font-heading font-semibold text-3xl leading-tight sm:text-4xl">
+              {content.processTitle}
+            </h2>
+            <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {content.steps.map((step) => (
+                <li key={step.number}>
+                  <span className="font-heading font-semibold text-4xl text-heritage-muted">
+                    {step.number}
+                  </span>
+                  <h3 className="mt-4 font-semibold">{step.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-heritage-muted">{step.description}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+        <section
+          id="vai-tro"
+          className="mx-auto max-w-7xl scroll-mt-40 px-4 py-16 sm:px-8 sm:py-20"
+        >
+          <p className="text-xs font-semibold uppercase tracking-widest text-heritage-muted">
+            {content.rolesEyebrow}
           </p>
-
-          {/* Cụm CTA Nổi Bật */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <Link
-              to={ROUTES.AUTH.REGISTER}
-              className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto rounded-[20px] px-8 bg-[var(--primary,#0B291E)] hover:bg-[var(--primary-hover,#133E2F)] text-white font-[550] shadow-[0_4px_14px_rgba(11,41,30,0.25)] flex items-center gap-2")}
-            >
-              <span>Khởi Tạo Két Di Sản Miễn Phí</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <a
-              href="#ui-kit-demo"
-              className={cn(buttonVariants({ size: "lg", variant: "outline" }), "w-full sm:w-auto rounded-[20px] px-6 bg-[var(--surface,#FAF9F5)] text-[var(--text-main,#14241C)] border-[#DDD8CB] font-[550]")}
-            >
-              Trải Nghiệm 5 Component Cốt Lõi
-            </a>
-          </div>
-
-          {/* 3 Cam Kết Bảo Mật */}
-          <div className="pt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left">
-            <div className="p-4 rounded-[12px] bg-[var(--surface,#FAF9F5)] border border-[#DDD8CB] dark:border-[#183D29] flex items-center gap-3 shadow-[var(--shadow-raised)]">
-              <div className="w-10 h-10 rounded-[8px] bg-[var(--primary-light,#E5EDE8)] flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5 text-[var(--primary,#0B291E)]" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">Mã Hóa Client-side</p>
-                <p className="text-[11px] text-[var(--text-muted,#66786E)]">AES-256 GCM Zero-Knowledge</p>
-              </div>
-            </div>
-            <div className="p-4 rounded-[12px] bg-[var(--surface,#FAF9F5)] border border-[#DDD8CB] dark:border-[#183D29] flex items-center gap-3 shadow-[var(--shadow-raised)]">
-              <div className="w-10 h-10 rounded-[8px] bg-[var(--gold-light,#FBF7EE)] border border-[var(--gold-border,#E8DCC6)] flex items-center justify-center shrink-0">
-                <KeyRound className="w-5 h-5 text-[var(--gold,#B88E4C)]" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">WebAuthn Passkey</p>
-                <p className="text-[11px] text-[var(--text-muted,#66786E)]">FaceID/Vân tay FIDO2</p>
-              </div>
-            </div>
-            <div className="p-4 rounded-[12px] bg-[var(--surface,#FAF9F5)] border border-[#DDD8CB] dark:border-[#183D29] flex items-center gap-3 shadow-[var(--shadow-raised)]">
-              <div className="w-10 h-10 rounded-[8px] bg-[var(--primary-light,#E5EDE8)] flex items-center justify-center shrink-0">
-                <Scale className="w-5 h-5 text-[var(--primary,#0B291E)]" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">Chuẩn Pháp Lý BLDS</p>
-                <p className="text-[11px] text-[var(--text-muted,#66786E)]">Phân bổ hợp pháp Điều 644</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Bốn Trụ Cột Đột Phá */}
-      <section id="giai-phap" className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        <div className="text-center space-y-2 max-w-2xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
-            Hệ Sinh Thái Di Sản Số Toàn Diện
+          <h2 className="mt-4 max-w-2xl font-heading font-semibold text-3xl leading-tight sm:text-4xl">
+            {content.rolesTitle}
           </h2>
-          <p className="text-xs text-[var(--text-muted,#66786E)]">
-            Thiết kế giao diện xúc giác Heritage Sanctuary mang lại sự trang trọng và an tâm tuyệt đối.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="p-5 rounded-[12px] bg-[var(--surface,#FAF9F5)] border border-[#DDD8CB] dark:border-[#1C402D] space-y-3 shadow-[var(--shadow-raised)]">
-            <div className="w-10 h-10 rounded-[8px] bg-[var(--primary-light,#E5EDE8)] flex items-center justify-center text-[var(--primary,#0B291E)]">
-              <Lock className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-sm text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
-              Két Lưu Trữ Mật Mã
-            </h3>
-            <p className="text-[11.5px] text-[var(--text-muted,#66786E)] leading-relaxed">
-              Lưu trữ an toàn Private Key ví Crypto, mật mã tài khoản, video di nguyện với mã hóa AES-256 phía client.
-            </p>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {content.roles.map(({ title, description, icon: Icon }) => (
+              <Card
+                key={title}
+                className="gap-0 rounded-2xl border-heritage-border bg-heritage-surface p-6 shadow-none"
+              >
+                <Icon className="size-7 text-heritage-primary" aria-hidden="true" />
+                <h3 className="mt-6 font-semibold">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-heritage-muted">{description}</p>
+              </Card>
+            ))}
           </div>
-
-          <div id="dms-pulse" className="p-5 rounded-[12px] bg-[var(--surface,#FAF9F5)] border border-[#DDD8CB] dark:border-[#1C402D] space-y-3 shadow-[var(--shadow-raised)]">
-            <div className="w-10 h-10 rounded-[8px] bg-[var(--gold-light,#FBF7EE)] border border-[var(--gold-border,#E8DCC6)] flex items-center justify-center text-[var(--gold,#B88E4C)]">
-              <HeartPulse className="w-5 h-5" />
+        </section>
+        <section
+          id="bao-mat"
+          className="scroll-mt-40 bg-heritage-primary px-4 py-16 text-heritage-surface sm:px-8 sm:py-20"
+        >
+          <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
+            <div>
+              <ShieldCheck className="mb-6 size-10 text-heritage-gold" aria-hidden="true" />
+              <p className="text-xs font-semibold uppercase tracking-widest text-heritage-surface/65">
+                {content.securityEyebrow}
+              </p>
+              <h2 className="mt-4 max-w-md font-heading font-semibold text-3xl leading-tight sm:text-4xl">
+                {content.securityTitle}
+              </h2>
+              <p className="mt-5 max-w-lg text-sm leading-7 text-heritage-surface/75">
+                {content.securityDescription}
+              </p>
+              <p className="mt-6 max-w-lg rounded-xl border border-heritage-surface/15 p-4 text-xs leading-6 text-heritage-surface/65">
+                {content.securityNote}
+              </p>
             </div>
-            <h3 className="font-bold text-sm text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
-              Dead Man's Switch
-            </h3>
-            <p className="text-[11.5px] text-[var(--text-muted,#66786E)] leading-relaxed">
-              Cơ chế Pulse gửi tín hiệu định kỳ. Nếu không nhận phản hồi sau thời gian ân hạn, két sẽ kích hoạt bàn giao.
-            </p>
+            <ul className="divide-y divide-heritage-surface/15">
+              {content.security.map((item) => (
+                <li key={item.title} className="py-5 first:pt-0">
+                  <h3 className="text-lg font-semibold">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-heritage-surface/75">
+                    {item.description}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          <div id="phap-ly" className="p-5 rounded-[12px] bg-[var(--surface,#FAF9F5)] border border-[#DDD8CB] dark:border-[#1C402D] space-y-3 shadow-[var(--shadow-raised)]">
-            <div className="w-10 h-10 rounded-[8px] bg-[var(--primary-light,#E5EDE8)] flex items-center justify-center text-[var(--primary,#0B291E)]">
-              <Scale className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-sm text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
-              Pháp Lý Điều 644
-            </h3>
-            <p className="text-[11.5px] text-[var(--text-muted,#66786E)] leading-relaxed">
-              Tự động tính toán kỷ phần bắt buộc cho cha mẹ già, con nhỏ, đảm bảo di chúc không bị tranh chấp vô hiệu.
+        </section>
+        <section
+          id="hoi-dap"
+          className="mx-auto grid max-w-7xl scroll-mt-40 gap-10 px-4 py-16 sm:px-8 sm:py-20 lg:grid-cols-[.8fr_1.2fr]"
+        >
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-heritage-muted">
+              {content.faqEyebrow}
             </p>
-          </div>
-
-          <div className="p-5 rounded-[12px] bg-[var(--surface,#FAF9F5)] border border-[#DDD8CB] dark:border-[#1C402D] space-y-3 shadow-[var(--shadow-raised)]">
-            <div className="w-10 h-10 rounded-[8px] bg-[var(--primary-light,#E5EDE8)] flex items-center justify-center text-[var(--primary,#0B291E)]">
-              <FileCheck className="w-5 h-5" />
-            </div>
-            <h3 className="font-bold text-sm text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
-              Giám Hộ Công Chứng
-            </h3>
-            <p className="text-[11.5px] text-[var(--text-muted,#66786E)] leading-relaxed">
-              Hồ sơ đòi di sản được Công chứng viên thẩm định và đối soát Giấy chứng tử số trước khi giải phóng khóa mã.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. Trình Diễn 5 Thành Phần Master UI Kit */}
-      <section id="ui-kit-demo" className="py-16 bg-[#FAF9F5] dark:bg-[#0A1E14] border-y border-[#DCD9D0] dark:border-[#143924]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-10">
-          <div className="text-center space-y-2">
-            <span className="text-[10.5px] font-bold tracking-widest text-[var(--gold,#B88E4C)] uppercase">
-              Quy Chuẩn UI Kit Chuẩn Mực
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
-              Bộ 5 Thành Phần Nghiệp Vụ Đặc Thù (Master UI Kit)
+            <h2 className="mt-4 max-w-sm font-heading font-semibold text-3xl leading-tight sm:text-4xl">
+              {content.faqTitle}
             </h2>
           </div>
-
-          {/* Stepper 4 bước pháp lý */}
-          <div className="bg-[var(--bg-canvas,#EFECE6)] dark:bg-[#071710] p-4 sm:p-6 rounded-[12px] border border-[#DDD8CB] dark:border-[#1C422F]">
-            <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted,#66786E)] font-bold mb-4 text-center sm:text-left">
-              4-Step Legal Protocol Stepper
-            </div>
-            <div className="stepper-wrap flex justify-around items-center">
-              <div className="step-item flex flex-col items-center gap-1">
-                <div className="w-7 h-7 rounded-full bg-[var(--primary,#0B291E)] text-white text-xs font-bold flex items-center justify-center">
-                  ✓
-                </div>
-                <span className="text-[10.5px] text-[var(--text-muted,#66786E)] font-semibold">1. Asset Vault</span>
-              </div>
-              <div className="step-item active flex flex-col items-center gap-1 relative">
-                <div className="hidden sm:block absolute -top-8 bg-[var(--primary,#0B291E)] text-white text-[9.5px] px-2 py-0.5 rounded-[4px] whitespace-nowrap">
-                  Current: Heirs & Directives
-                </div>
-                <div className="w-7 h-7 rounded-full bg-[var(--primary,#0B291E)] text-white text-xs font-bold flex items-center justify-center">
-                  2
-                </div>
-                <span className="text-[10.5px] text-[var(--primary,#0B291E)] font-bold">2. Heirs & Rules</span>
-              </div>
-              <div className="step-item flex flex-col items-center gap-1">
-                <div className="w-7 h-7 rounded-full bg-white dark:bg-[#0C2217] border border-[#B8B2A4] text-xs font-bold text-[var(--text-muted,#66786E)] flex items-center justify-center">
-                  3
-                </div>
-                <span className="text-[10.5px] text-[var(--text-muted,#66786E)] font-medium">3. Notary Review</span>
-              </div>
-              <div className="step-item flex flex-col items-center gap-1">
-                <div className="w-7 h-7 rounded-full bg-white dark:bg-[#0C2217] border border-[#B8B2A4] text-xs font-bold text-[var(--text-muted,#66786E)] flex items-center justify-center">
-                  4
-                </div>
-                <span className="text-[10.5px] text-[var(--text-muted,#66786E)] font-medium">4. Smart Seal</span>
-              </div>
-            </div>
+          <div className="divide-y divide-heritage-border border-y border-heritage-border">
+            {content.faq.map((item) => (
+              <details key={item.question} className="group py-1">
+                <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-4 font-semibold focus-visible:outline-2 focus-visible:outline-heritage-gold [&::-webkit-details-marker]:hidden">
+                  {item.question}
+                  <Plus
+                    className="size-5 shrink-0 text-heritage-muted transition-transform group-open:rotate-45"
+                    aria-hidden="true"
+                  />
+                </summary>
+                <p className="max-w-2xl pb-5 pr-8 text-sm leading-7 text-heritage-muted">
+                  {item.answer}
+                </p>
+              </details>
+            ))}
           </div>
-
-          {/* Grid các Component UI Kit */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 1. Masked Key */}
-            <MaskedKeyDisplay
-              secretKey="0x7F9A2C8B31E4092D89A1B2C3D4E5F6A7"
-              seedPhrase={["ocean", "vintage", "shield", "legacy", "glacier", "timber"]}
-            />
-
-            {/* 2. Live DMS */}
-            <LiveDmsPulseCard
-              timeLeft="45 Days : 14 Hours Left"
-              sealHash="8f4b2a9c1e3d5f7a9b0c2e4f6a8d0b2c4e6f8a0b2c4e6f8a0b2c4e6f8a0b2c4e"
-              onImAlive={() => alert("Nhịp tim kiểm tra sinh tồn đã được cập nhật an toàn!")}
-            />
-
-            {/* 3. Dropzone */}
-            <LegalDropzone
-              title="Kéo thả bản scan Giấy chứng tử số"
-              subtitle="Hỗ trợ PDF, JPG, PNG (Tối đa 5MB)"
-              sealLabel="🔒 Tự động đóng dấu băm SHA-256"
-            />
-
-            {/* 4. Compliance Callout */}
-            <ComplianceCallout
-              title="⚖️ Cảnh báo pháp lý: Thừa kế Điều 644 BLDS 2015"
-              description="Kế hoạch phân bổ cần chỉ định kỷ phần bắt buộc cho cha mẹ già hoặc con chưa thành niên để đảm bảo không bị tuyên vô hiệu."
-            />
+        </section>
+        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-heritage-border bg-heritage-primary-light/40 p-6 sm:p-8">
+            <div>
+              <h2 className="text-xl font-semibold">{content.pricingTitle}</h2>
+              <p className="mt-2 text-sm leading-6 text-heritage-muted">
+                {content.pricingDescription}
+              </p>
+            </div>
+            <Link
+              to={ROUTES.BILLING.PLANS}
+              className={`${buttonVariants({ variant: "outline", size: "lg" })} rounded-xl`}
+            >
+              {content.pricingAction}
+              <ArrowRight aria-hidden="true" />
+            </Link>
           </div>
-        </div>
-      </section>
-
-      {/* 5. Call To Action Cuối Trang */}
-      <section className="py-16 text-center max-w-4xl mx-auto px-4 sm:px-6 space-y-5">
-        <h2 className="text-2xl sm:text-4xl font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
-          Sẵn Sàng Bảo Vệ Di Sản Cho Gia Đình Bạn?
-        </h2>
-        <p className="text-xs sm:text-sm text-[var(--text-muted,#66786E)] max-w-xl mx-auto font-medium">
-          Khởi tạo két di sản số an toàn bảo mật chuẩn mật mã học và pháp lý Việt Nam.
-        </p>
-        <div className="pt-2">
+        </section>
+        <section className="border-t border-heritage-border px-4 py-16 text-center sm:px-8 sm:py-20">
+          <h2 className="font-heading font-semibold text-3xl sm:text-5xl">
+            {content.closingTitle}
+          </h2>
+          <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-heritage-muted">
+            {content.closingDescription}
+          </p>
           <Link
             to={ROUTES.AUTH.REGISTER}
-            className={cn(buttonVariants({ size: "lg" }), "rounded-[20px] px-8 bg-[var(--primary,#0B291E)] hover:bg-[var(--primary-hover,#133E2F)] text-white font-[550] shadow-[0_4px_14px_rgba(11,41,30,0.25)]")}
+            className={`${buttonVariants({ size: "lg" })} mt-7 min-h-12 rounded-xl`}
           >
-            Khởi Tạo Két Di Sản Miễn Phí
+            {content.start}
+            <ArrowRight aria-hidden="true" />
           </Link>
-        </div>
-      </section>
-
-      {/* 6. Footer */}
-      <footer className="border-t border-[#DCD9D0] dark:border-[#163625] bg-[#FAF9F5] dark:bg-[#06140E] py-8 text-center text-xs text-[var(--text-muted,#66786E)]">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 LegacyVault. Dự án đồ án kỹ thuật phần mềm SWP391 - ĐH FPT.</p>
-          <div className="flex items-center gap-6 font-semibold">
-            <Link to={ROUTES.AUTH.LOGIN} className="hover:underline">Đăng Nhập</Link>
-            <Link to={ROUTES.AUTH.REGISTER} className="hover:underline">Đăng Ký</Link>
-            <a href="#giai-phap" className="hover:underline">Giải Pháp</a>
+        </section>
+      </main>
+      <footer className="border-t border-heritage-border px-4 py-8 sm:px-8">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="font-semibold">{content.footer}</p>
+            <p className="mt-2 text-xs leading-6 text-heritage-muted">{content.note}</p>
           </div>
+          <Link
+            to={ROUTES.AUTH.LOGIN}
+            className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4"
+          >
+            {content.login}
+          </Link>
         </div>
       </footer>
     </div>

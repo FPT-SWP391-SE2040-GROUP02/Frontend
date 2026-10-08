@@ -1,17 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { 
-  FileText, 
-  ShieldCheck, 
-  Eye, 
-  RotateCcw, 
-  AlertCircle, 
-  Plus, 
-  Search, 
-  X,
-  Users,
-  Calendar,
-  Lock
-} from "lucide-react";
+import { FileText, ShieldCheck, Eye, RotateCcw, AlertCircle, Plus, Search, X } from "lucide-react";
 import { Button, Badge, Input } from "@/shared/ui";
 import { useWills, useRevokeWill } from "../model/useWills";
 import type { WillViewModel } from "../model/will.types";
@@ -46,7 +34,7 @@ export const WillTable: React.FC<WillTableProps> = ({
       const notes = (w.declarationNotes ?? "").toLowerCase();
       return title.includes(term) || notes.includes(term);
     });
-  }, [data?.items, searchTerm]);
+  }, [data, searchTerm]);
 
   // 1. Loading
   if (isLoading) {

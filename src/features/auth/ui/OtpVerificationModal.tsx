@@ -8,7 +8,7 @@ import {
 } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { KeyRound, CheckCircle2, ShieldCheck, RefreshCw } from "lucide-react";
+import { KeyRound } from "lucide-react";
 
 /**
  * @description Thuộc tính cấu hình cho OtpVerificationModal component.

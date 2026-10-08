@@ -1,11 +1,12 @@
 import { type ReactNode } from "react";
-import { useAppSelector } from "@/app/store";
 import { type Role } from "@/shared/constants/roles";
 
 /**
  * @description Thuộc tính cho component RoleGuard.
  */
 export interface RoleGuardProps {
+  /** Vai trò được tầng gọi truyền xuống; UI guard không truy cập app store. */
+  currentUserRole?: Role;
   /** Danh sách vai trò được phép hiển thị nội dung bên trong */
   allowedRoles: Role[];
   /** Nội dung component con hiển thị khi thỏa mãn quyền */
@@ -29,12 +30,12 @@ export interface RoleGuardProps {
  * ```
  */
 export function RoleGuard({
+  currentUserRole,
   allowedRoles,
   children,
   fallback = null,
 }: RoleGuardProps): ReactNode {
   // Lấy vai trò người dùng hiện tại từ Redux store hoặc Auth state
-  const currentUserRole = useAppSelector((state) => state.auth?.user?.role);
 
   // TODO: 1. Kiểm tra nếu currentUserRole nằm trong danh sách allowedRoles -> return children
   // TODO: 2. Nếu người dùng là ADMIN tối cao -> luôn luôn có quyền xem mọi hành động

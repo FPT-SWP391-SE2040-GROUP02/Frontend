@@ -1,13 +1,9 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
-import { FileCheck, Plus, History, ShieldAlert, Scale } from "lucide-react";
+import { FileCheck, Plus, History } from "lucide-react";
 import { AppHeader } from "@/widgets";
 import { Button, Card, Skeleton } from "@/shared/ui";
-import { 
-  ClaimSubmitForm, 
-  ClaimStatusCard, 
-  useExecutorClaims 
-} from "@/features/claims";
+import { ClaimSubmitForm, ClaimStatusCard, useExecutorClaims } from "@/features/claims";
 
 /**
  * @file ExecutorClaimsPage.tsx

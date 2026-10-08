@@ -1,0 +1,76 @@
+/** Nội dung bản xem trước các bước eKYC; không đại diện kết quả của dịch vụ xác minh. */
+export const EKYC_REVIEW_CONTENT = {
+  preview: "Bản xem trước UI · Không xác minh giấy tờ, khuôn mặt hoặc quyền nhận tài sản.",
+  faceTitle: "Một căn cước. Một khuôn mặt.",
+  faceDescription:
+    "Ảnh tham chiếu lấy từ căn cước đã đọc. Selfie có thể chọn trên thiết bị hoặc từ camera.",
+  comparison: "Ảnh đối chiếu",
+  changeDocument: "Đổi thẻ ở Đọc căn cước ↗",
+  reference: "Căn cước đã đọc",
+  referenceHint: "Đọc mặt trước để lấy ảnh tham chiếu.",
+  referenceDetail: "Đọc mặt trước ở bước Đọc căn cước để bắt đầu.",
+  selfie: "Selfie của bạn",
+  chooseSelfie: "Chọn selfie từ thiết bị",
+  selfieHint: "Ảnh rõ mặt, đủ sáng",
+  select: "Chọn ảnh",
+  cameraSelfie: "Lấy selfie từ kiểm tra camera",
+  threshold: "Điều chỉnh ngưỡng thử nghiệm",
+  thresholdHint: "Ngưỡng so khớp sẽ được cấu hình sau khi chốt hợp đồng dịch vụ xác minh.",
+  uploadedHint: "So khớp ảnh tải lên chưa bao gồm thử thách camera.",
+  matchResult: "Kết quả so khớp",
+  notRun: "Chưa chạy",
+  score: "—%",
+  scoreLabel: "Điểm khớp, chưa có",
+  resultWaiting: "Chờ ảnh đối chiếu",
+  resultHint: "Đọc mặt trước căn cước, rồi chọn selfie để bắt đầu.",
+  checks: ["Có một khuôn mặt trong ảnh", "Mặt nhìn thẳng, đủ sáng", "Điểm khớp đạt ngưỡng"],
+  documentPhoto: "Ảnh trên căn cước",
+  portrait: "Ảnh chân dung",
+  waiting: "Chưa có ảnh",
+  faceHint: "Giữ khuôn mặt rõ nét, đủ sáng và không bị che khuất.",
+  cameraLink: "Mở màn kiểm tra camera",
+  compare: "So khớp khuôn mặt",
+  note: "Dịch vụ so khớp chưa kết nối. Không có điểm tương đồng hoặc kết quả xác minh thực.",
+  resultTitle: "Kết quả xác minh",
+  resultDescription: "Các trạng thái dưới đây là ví dụ để kiểm tra giao diện và điều hướng.",
+  states: {
+    success: {
+      label: "Thành công mẫu",
+      title: "Ví dụ: xác minh hoàn tất",
+      detail:
+        "Đây là mẫu giao diện thành công. Tài khoản chưa được xác minh và nội dung nhận chưa được mở khóa.",
+    },
+    failure: {
+      label: "Không khớp",
+      title: "Ví dụ: chưa thể xác minh",
+      detail:
+        "Ảnh chân dung có thể chưa đủ rõ hoặc chưa khớp với giấy tờ. Kiểm tra lại ảnh và thử lại.",
+    },
+    permission: {
+      label: "Thiếu quyền camera",
+      title: "Ví dụ: camera bị chặn",
+      detail: "Cho phép camera trong cài đặt của trình duyệt rồi quay lại màn kiểm tra camera.",
+    },
+    timeout: {
+      label: "Phiên hết hạn",
+      title: "Ví dụ: phiên xác minh hết hạn",
+      detail:
+        "Bắt đầu lại để sử dụng một phiên xác minh mới. Kết quả cũ không được dùng để mở khóa nội dung.",
+    },
+    loading: {
+      label: "Đang xử lý",
+      title: "Ví dụ: đang kiểm tra",
+      detail: "Hệ thống đang đối chiếu ảnh và giấy tờ. Đây là trạng thái tải minh họa.",
+    },
+  },
+  demoNav: "Điều hướng bản xem trước",
+  steps: [
+    { id: "documents", label: "Giấy tờ" },
+    { id: "face", label: "So khớp" },
+    { id: "camera", label: "Camera" },
+    { id: "result", label: "Kết quả" },
+  ],
+  retry: "Quay lại giấy tờ",
+  returnCamera: "Quay lại camera",
+  portal: "Về cổng người nhận",
+} as const;

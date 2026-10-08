@@ -14,8 +14,9 @@ import {
 import { ROUTES } from "@/shared/config/routes.config";
 import { ROLES, type Role } from "@/shared/constants/roles";
 import { UserAvatarMenu } from "@/entities/user";
-import { useAppDispatch, useAppSelector } from "@/app/store";
-import { setRole, toggleDemoMode } from "@/app/store/uiSlice";
+import { useDispatch as useAppDispatch, useSelector } from "react-redux";
+import type { UiState } from "@/shared/model/uiSlice";
+import { setRole, toggleDemoMode } from "@/shared/model/uiSlice";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,8 +38,8 @@ export const AppHeader: React.FC = () => {
   const dispatch = useAppDispatch();
 
   // Đọc trạng thái từ Redux Store toàn cục
-  const activeRole = useAppSelector((state) => state.ui.currentRole);
-  const isDemo = useAppSelector((state) => state.ui.demoMode);
+  const activeRole = useSelector((state: { ui: UiState }) => state.ui.currentRole);
+  const isDemo = useSelector((state: { ui: UiState }) => state.ui.demoMode);
 
   const handleRoleChange = (newRole: Role) => {
     dispatch(setRole(newRole));
