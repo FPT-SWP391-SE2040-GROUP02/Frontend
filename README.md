@@ -1,81 +1,46 @@
-# SWP391 - Frontend Client
+# LegacyVault client
 
-Dự án Frontend xây dựng bằng **React 19 + TypeScript + Vite + Tailwind CSS v4 + Shadcn UI**, áp dụng kiến trúc chuẩn **Feature-Sliced Design (FSD)** kết hợp **SOLID & DRY**.
+React 19, TypeScript, Vite, Tailwind CSS, Base UI, Redux Toolkit, TanStack Query, React Hook Form và Zod. Dùng dependency đã có trong package.json.
 
----
+## Chạy local
 
-## 🚀 Công nghệ sử dụng (Tech Stack)
-
-- **Framework**: React 19 + TypeScript + Vite
-- **Styling**: Tailwind CSS v4 + Shadcn UI (Base UI Nova preset) + Lucide Icons
-- **State Management**:
-  - **Server State**: TanStack React Query v5 + React Query Devtools
-  - **Client State**: Redux Toolkit / React Context
-- **Forms & Validation**: React Hook Form + Zod
-- **HTTP Client**: Axios (với BaseService Factory Pattern)
-- **Routing**: React Router v7
-- **Testing**: Vitest + React Testing Library + JSDOM
-- **Code Quality**: ESLint + Prettier
-
----
-
-## 🛠️ Hướng dẫn cài đặt cho thành viên mới (Getting Started)
-
-### 1. Cài đặt Dependencies
-
-```bash
+```powershell
 npm install
-```
-
-### 2. Cấu hình biến môi trường
-
-Tạo file `.env` từ file mẫu `.env.example`:
-
-```bash
-cp .env.example .env
-```
-
-Cập nhật `VITE_API_BASE_URL` trỏ tới backend C# ASP.NET Core của bạn (mặc định: `http://localhost:5000/api`).
-
-### 3. Kích hoạt bộ công cụ UI/UX Pro Max (Dành cho AI Assistant)
-
-Chạy lệnh sau để khởi tạo đầy đủ bộ 7 skills UI/UX Pro Max khi làm việc với Antigravity / Gemini:
-
-```bash
-uipro init --ai antigravity
-```
-
-### 4. Khởi chạy Development Server
-
-```bash
+if (-not (Test-Path -LiteralPath .env)) { Copy-Item .env.example .env }
 npm run dev
 ```
 
----
+VITE_API_BASE_URL mặc định mẫu: http://localhost:5000/api/v1. Biến VITE_* là cấu hình công khai trong bundle; khóa R2, SMTP, FPT và LiveKit secret thuộc backend. Workspace chưa có backend C#.
 
-## 📜 Bộ lệnh chính (Available Scripts)
+## Cấu trúc
 
-- `npm run dev`: Chạy server phát triển (HMR).
-- `npm run build`: Kiểm tra kiểu dữ liệu TypeScript và build production bundle vào thư mục `dist/`.
-- `npm run preview`: Xem trước bản build production tại local.
-- `npm run lint`: Kiểm tra và tự động sửa lỗi ESLint.
-- `npm run format`: Định dạng toàn bộ code với Prettier.
-- `npm run test`: Chạy kiểm thử tự động với Vitest.
-
----
-
-## 🏗️ Cấu trúc thư mục (Feature-Sliced Design)
-
-```
+```text
 src/
-├── app/        # Global Providers, Router, Store, Styles gốc
-├── pages/      # Các màn hình hoàn chỉnh ghép từ widgets/features
-├── widgets/    # Các khối giao diện độc lập lớn (Header, Sidebar, Tables...)
-├── features/   # Nghiệp vụ theo tính năng (auth, products...) với api/, model/, ui/
-├── entities/   # Thực thể dữ liệu cốt lõi (User, Product...)
-└── shared/     # Thành phần dùng chung:
-    ├── api/    # axiosClient, createBaseService
-    ├── config/ # env.ts
-    ├── types/  # PaginatedList, SelectOption, ApiResponse
-    └── ui/     # Toàn bộ components Shadcn UI (Button, Card, Input...)
+  app/          entry, providers, routes, store assembly, styles
+  pages/        lắp ghép trang, lazy loading
+  widgets/      Header, WillWizard và các khối ghép feature
+  features/     api, model, ui theo tính năng
+  entities/     dữ liệu user/claim, authSlice
+  shared/       API, config, constants, UI, uiSlice
+scripts/        kiểm tra đồ thị import FSD
+docs/           tài liệu tích hợp được chọn để bàn giao cùng source
+legacy/         snapshot wizard cũ chỉ giữ local, không tham gia build
 ```
+
+Chiều import: app → pages → widgets → features → entities → shared. Cấm import chéo feature. App lắp ghép store; tầng thấp không import app. Kiểm tra kiến trúc dùng TypeScript AST cho alias, relative và dynamic imports.
+
+## Kiểm tra
+
+```powershell
+npm run check:architecture
+npm run type-check
+npm run lint
+npm run test:run
+npm run build
+```
+
+lint chỉ kiểm tra; lint:fix sửa lỗi có thể tự sửa. format:check kiểm tra định dạng, format ghi lại định dạng, preview xem bản build.
+
+[Tài liệu tích hợp](docs/README.md) được đóng gói cùng repository. SQL Auth, archive và prototype gốc thuộc workspace ngoài repo Frontend. Một số feature còn mock/scaffold hoặc nghiệp vụ baseline cũ; build pass chưa chứng minh phù hợp toàn bộ SRS 3.14.0.
+
+[Yêu cầu FE → BE](docs/FE_BE_INTEGRATION_REQUEST.md) là tài liệu bàn giao tích hợp. Bộ UI kit tham khảo, baseline cũ và `legacy/` không được đóng gói trong phần source hiện hành.
