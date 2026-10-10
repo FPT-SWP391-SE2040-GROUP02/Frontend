@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Send, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { Button, Input, Card, CustomCheckbox } from "@/shared/ui";
@@ -29,7 +29,7 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<SubmitClaimFormValues>({
     resolver: zodResolver(submitClaimSchema),
@@ -46,8 +46,10 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
     },
   });
 
-  const scanUrl = watch("deathCertScanUrl");
-  const isAttested = watch("legalAttestationConfirmed");
+  const [scanUrl, isAttested] = useWatch({
+    control,
+    name: ["deathCertScanUrl", "legalAttestationConfirmed"],
+  });
 
 
   const onSubmit = (values: SubmitClaimFormValues) => {

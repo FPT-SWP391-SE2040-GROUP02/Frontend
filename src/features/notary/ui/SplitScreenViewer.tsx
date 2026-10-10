@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { ZoomIn, ZoomOut, RotateCw, Maximize2, ShieldCheck, FileText, Check, X, Lock, User } from "lucide-react";
 import { Button, Card } from "@/shared/ui";
 import type { NotaryClaimDetailViewModel, AuditCriteriaChecklist } from "../model/notary.types";
@@ -32,7 +32,7 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
   const [rotationAngle, setRotationAngle] = useState<number>(0);
 
   // Form State: Sử dụng React Hook Form quản lý 4 tiêu chí kiểm toán bắt buộc thay vì useState
-  const { watch, setValue } = useForm<AuditCriteriaChecklist>({
+  const { control, setValue } = useForm<AuditCriteriaChecklist>({
     defaultValues: {
       isDocumentValid: false,
       isIdentityMatched: false,
@@ -41,7 +41,26 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
     },
   });
 
-  const criteria = watch();
+  const [
+    isDocumentValid,
+    isIdentityMatched,
+    isManifestIntegrityVerified,
+    isExecutorAuthorized,
+  ] = useWatch({
+    control,
+    name: [
+      "isDocumentValid",
+      "isIdentityMatched",
+      "isManifestIntegrityVerified",
+      "isExecutorAuthorized",
+    ],
+  });
+  const criteria: AuditCriteriaChecklist = {
+    isDocumentValid,
+    isIdentityMatched,
+    isManifestIntegrityVerified,
+    isExecutorAuthorized,
+  };
   const isTamperVerified = criteria.isManifestIntegrityVerified;
 
   const handleToggleCriterion = (key: keyof AuditCriteriaChecklist) => {

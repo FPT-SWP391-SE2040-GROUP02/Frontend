@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldAlert, KeyRound, AlertTriangle } from "lucide-react";
 import { Button, Input, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, CustomCheckbox } from "@/shared/ui";
@@ -38,7 +38,7 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors },
   } = useForm<NotaryApproveFormValues>({
     resolver: zodResolver(notaryApproveSchema),
@@ -51,7 +51,7 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
     },
   });
 
-  const isAttested = watch("legalAttestationConfirmed");
+  const isAttested = useWatch({ control, name: "legalAttestationConfirmed" });
 
   const onSubmit = (values: NotaryApproveFormValues) => {
     approveMutation(
@@ -185,7 +185,7 @@ export const NotaryRejectModal: React.FC<NotaryRejectModalProps> = ({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     reset,
     formState: { errors },
   } = useForm<NotaryRejectFormValues>({
@@ -197,7 +197,7 @@ export const NotaryRejectModal: React.FC<NotaryRejectModalProps> = ({
     },
   });
 
-  const notesValue = watch("notaryNotes") || "";
+  const notesValue = useWatch({ control, name: "notaryNotes" }) ?? "";
 
   const onSubmit = (values: NotaryRejectFormValues) => {
     rejectMutation(
