@@ -26,14 +26,12 @@ export function BeneficiaryPortalPage() {
   const state = preview ? (params.get("state") ?? "success") : "empty";
   const active: RecipientSection = view === "handover" ? "content" : view;
   const verify = preview ? ROUTES.PREVIEW.EKYC_CAMERA : ROUTES.BENEFICIARY.EKYC_CAMERA;
-  // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-  // 1. [MỤC TIÊU]: Hiển thị hồ sơ và quyền nhận nội dung theo tài khoản người thụ hưởng.
-  // 2. [INPUT & OUTPUT]: Phiên người nhận, claimId -> DTO hồ sơ, quyền và nội dung được cấp.
-  // 3. [CÁC BƯỚC]: Chốt DTO; tạo service/hooks; xử lý 4 trạng thái; lấy quyền từ backend;
-  //    yêu cầu xác nhận trước mutation nhận/từ chối; invalidate cache sau phản hồi thành công.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, Zod, Dialog hiện có.
-  // 5. [ĐIỀU KIỆN BIÊN]: Sai vai trò, mất quyền, quá hạn, nội dung khóa, lỗi tải; không
-  //    dùng optimistic update cho bàn giao; không lấy quyền từ URL; không lưu bí mật vào storage.
+  // TODO: [P2][HANDOVER-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Nối đầy đủ claim/video/nhận-từ chối/grant của từng người nhận.
+  // 2. [INPUT & OUTPUT]: Phiên + invitation/claim/handover/grant IDs riêng -> DTO và allowedActions.
+  // 3. [CÁC BƯỚC]: Sau AUTH-02/EKYC-03/DEATH-02 chốt API với BE4; model/service/hooks rồi portal; lịch/video token; quyết định sau xác nhận; nội dung qua grant endpoint.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, RHF/Zod, Dialog; native media/provider đã duyệt.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không chia %, không chờ đồng thuận 100%; quyết định 7 ngày, grant mới 30 ngày từ commit theo BE; hạn cũ không reset; hold/quyền kiểm mỗi request, không optimistic hoặc Shamir.
   return (
     <RecipientLayout active={active}>
       <header>
