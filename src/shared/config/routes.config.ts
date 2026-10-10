@@ -19,6 +19,7 @@ export const ROUTES = {
     ADMIN: "/preview/admin",
     SETTINGS: "/preview/settings",
     CHECKOUT: "/preview/checkout",
+    PACKAGE_CREATE: "/preview/packages/new",
   },
 
   /** Nhóm đường dẫn xác thực tài khoản */
