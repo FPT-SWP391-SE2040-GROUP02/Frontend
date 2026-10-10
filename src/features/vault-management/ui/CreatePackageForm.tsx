@@ -17,7 +17,7 @@ export function CreatePackageForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitSuccessful },
   } = useForm<CreatePackageFormInput>({
     mode: "onBlur",
     reValidateMode: "onBlur",
@@ -93,6 +93,12 @@ export function CreatePackageForm() {
           </p>
         )}
       </div>
+
+      {isSubmitSuccessful && (
+        <p role="status" className="text-sm text-heritage-primary">
+          {content.validationPassed}
+        </p>
+      )}
 
       <Button type="submit" className="min-h-11">
         {content.submit}

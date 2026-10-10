@@ -7,5 +7,5 @@ export const PACKAGE_FORM_CONTENT = {
   namePlaceholder: "Ví dụ: Tài liệu gia đình",
   descriptionPlaceholder: "Nhập mô tả nếu cần",
   submit: "Kiểm tra thông tin",
+  validationPassed: "Lần kiểm tra gần nhất: dữ liệu hợp lệ. Chưa tạo gói trên máy chủ.",
 } as const;
-
