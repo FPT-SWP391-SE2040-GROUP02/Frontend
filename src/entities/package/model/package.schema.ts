@@ -38,3 +38,6 @@ export const createPackageSchema = z.object({
  * Không dùng partial(): UpdatePackageRequestValidator vẫn yêu cầu name.
  */
 export const updatePackageSchema = createPackageSchema;
+
+/** Dữ liệu đầu vào của form tạo gói, suy ra từ schema; không thay thế DTO gửi API. */
+export type CreatePackageFormInput = z.input<typeof createPackageSchema>;
