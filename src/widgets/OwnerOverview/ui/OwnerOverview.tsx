@@ -10,9 +10,15 @@ import { Link } from "react-router-dom";
 import { Card, buttonVariants } from "@/shared/ui";
 import { ROUTES } from "@/shared/config/routes.config";
 import { OWNER_OVERVIEW as content } from "../model/overview.content";
+import { useSelector } from "react-redux";
+import type { AuthState } from "@/entities/user/model/authSlice";
+import { accessTokenMemory } from "@/shared/api/accessToken";
+import { OwnerVaultPanel } from "./OwnerVaultPanel";
 
 /** Dựng tổng quan Chủ kho bằng dữ liệu mẫu, tách điểm danh khỏi phản đối bàn giao. */
 export function OwnerOverview() {
+  const isAuthenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
+  const serverSessionReady = isAuthenticated && Boolean(accessTokenMemory.get());
   // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
   // 1. [MỤC TIÊU]: Hiển thị tổng quan được backend cho phép đối với Chủ kho hiện tại.
   // 2. [INPUT & OUTPUT]: DTO user/kho/điểm danh -> ViewModel, đủ loading/error/empty/success.
@@ -92,6 +98,7 @@ export function OwnerOverview() {
               {content.add}
             </Link>
           </header>
+          <OwnerVaultPanel enabled={serverSessionReady} />
           <section
             className="relative overflow-hidden rounded-3xl bg-heritage-primary p-6 text-heritage-surface sm:p-8"
             aria-labelledby="owner-status"
