@@ -1,3 +1,4 @@
+import { ASSET_TYPE_LABELS } from "@/entities/asset/model/asset.constants";
 import React from "react";
 import type { AssetStrategy } from "./assetStrategy.interface";
 import type { EncryptedPayload } from "../asset.types";
@@ -11,7 +12,7 @@ import { Input } from "@/shared/ui";
  */
 export const credentialStrategy: AssetStrategy = {
   type: "CREDENTIAL",
-  label: "Tài Khoản Số (Credentials)",
+  label: ASSET_TYPE_LABELS.CREDENTIAL,
   description: "Mật khẩu dịch vụ đám mây, mạng xã hội, cổng giao dịch và mã phục hồi 2FA.",
   badgeBg: "bg-[#E5EDE8]",
   badgeText: "text-[#0B291E]",

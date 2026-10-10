@@ -1,3 +1,4 @@
+import { ASSET_TYPE_LABELS } from "@/entities/asset/model/asset.constants";
 import React from "react";
 import type { AssetStrategy } from "./assetStrategy.interface";
 import type { EncryptedPayload } from "../asset.types";
@@ -12,8 +13,9 @@ import { Input } from "@/shared/ui";
  */
 export const cryptoStrategy: AssetStrategy = {
   type: "CRYPTO",
-  label: "Ví Tiền Mã Hóa (Crypto)",
-  description: "Khóa riêng tư (Private Key) và Cụm từ khôi phục 12/24 từ (Seed Phrase) bảo vệ Bitcoin, Ethereum, Solana.",
+  label: ASSET_TYPE_LABELS.CRYPTO,
+  description:
+    "Khóa riêng tư (Private Key) và Cụm từ khôi phục 12/24 từ (Seed Phrase) bảo vệ Bitcoin, Ethereum, Solana.",
   badgeBg: "bg-[#FBF7EE]",
   badgeText: "text-[#B88E4C]",
 

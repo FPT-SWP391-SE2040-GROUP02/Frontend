@@ -10,13 +10,8 @@ import { UserCheck, ShieldCheck, AlertCircle, CheckCircle2, Zap } from "lucide-r
  * 3. Xác nhận chính sách kho đồng sở hữu và kích hoạt kế hoạch.
  */
 
-export interface ExecutorInfo {
-  name: string;
-  email: string;
-  phone: string;
-  backupName?: string;
-  backupEmail?: string;
-}
+import type { ExecutorInfo } from "../model/willWizard.schema";
+export type { ExecutorInfo } from "../model/willWizard.schema";
 
 interface Step3ExecutorActivationProps {
   executor: ExecutorInfo;
@@ -36,7 +31,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
   onUpdateExecutor,
   policyConfirmed,
   onPolicyConfirmChange,
-  planName = "Legacy XS Max (Còn 365 ngày)",
+  planName = "Chưa xác nhận gói dịch vụ",
   validAssetsCount,
   validBundlesCount,
   isPending = false,
@@ -58,7 +53,8 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           Bước 3: Chỉ Định Người Thực Thi & Kích Hoạt Kế Hoạch
         </h2>
         <p className="text-xs text-[#66786E] mt-1 leading-relaxed">
-          Chỉ định Người thực thi (Executor) chịu trách nhiệm nộp giấy chứng tử và bắt đầu bàn giao. Kiểm tra điều kiện kích hoạt di sản theo chuẩn SRS 3.11.0 (SETUP-01).
+          Chỉ định Người thực thi (Executor) chịu trách nhiệm nộp giấy chứng tử và bắt đầu bàn giao.
+          Kiểm tra điều kiện kích hoạt di sản theo chuẩn SRS 3.11.0 (SETUP-01).
         </p>
       </div>
 
@@ -164,16 +160,28 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
 
           <div className="flex items-center justify-between p-2.5 rounded-[12px] bg-[#FAF9F5] border border-[#E8E5DD]">
             <span className="text-[#14241C]">Số lượng tài sản đã chỉ định hợp lệ:</span>
-            <span className={`font-bold flex items-center gap-1 ${validAssetsCount > 0 ? "text-[#059669]" : "text-red-500"}`}>
-              {validAssetsCount > 0 ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+            <span
+              className={`font-bold flex items-center gap-1 ${validAssetsCount > 0 ? "text-[#059669]" : "text-red-500"}`}
+            >
+              {validAssetsCount > 0 ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : (
+                <AlertCircle className="w-4 h-4" />
+              )}
               {validAssetsCount} tài sản
             </span>
           </div>
 
           <div className="flex items-center justify-between p-2.5 rounded-[12px] bg-[#FAF9F5] border border-[#E8E5DD]">
             <span className="text-[#14241C]">Kho bàn giao tự gom đã tạo (manifest):</span>
-            <span className={`font-bold flex items-center gap-1 ${validBundlesCount > 0 ? "text-[#059669]" : "text-red-500"}`}>
-              {validBundlesCount > 0 ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+            <span
+              className={`font-bold flex items-center gap-1 ${validBundlesCount > 0 ? "text-[#059669]" : "text-red-500"}`}
+            >
+              {validBundlesCount > 0 ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : (
+                <AlertCircle className="w-4 h-4" />
+              )}
               {validBundlesCount} kho bàn giao
             </span>
           </div>
@@ -188,7 +196,9 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           onChange={(e) => onPolicyConfirmChange(e.target.checked)}
           label={
             <span className="font-bold text-[#0B291E] text-xs">
-              Tôi xác nhận chính sách bàn giao: Kho một người được chọn chuyển 1:1 trước khi bắt đầu; Kho đồng sở hữu bắt buộc 100% đồng thuận; Bàn giao chỉ mở sau khi Verifier duyệt giấy chứng tử (SRS 3.11.0).
+              Tôi xác nhận chính sách bàn giao: Kho một người được chọn chuyển 1:1 trước khi bắt
+              đầu; Kho đồng sở hữu bắt buộc 100% đồng thuận; Bàn giao chỉ mở sau khi Verifier duyệt
+              giấy chứng tử (SRS 3.11.0).
             </span>
           }
         />
@@ -203,7 +213,9 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           className="w-full min-h-[50px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
         >
           <Zap className="w-4 h-4 text-[#B88E4C]" />
-          <span>{isPending ? "Đang Niêm Phong & Kích Hoạt..." : "Xác Nhận & Kích Hoạt Kế Hoạch Di Sản"}</span>
+          <span>
+            {isPending ? "Đang Niêm Phong & Kích Hoạt..." : "Xác Nhận & Kích Hoạt Kế Hoạch Di Sản"}
+          </span>
         </Button>
       </div>
     </div>
