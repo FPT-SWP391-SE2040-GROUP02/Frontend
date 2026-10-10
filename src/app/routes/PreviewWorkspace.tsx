@@ -22,7 +22,13 @@ const CONTENT = {
 
 /** Cache preview độc lập, không kế thừa dữ liệu query hoặc mutation của phiên thật. */
 const previewClient = new QueryClient({
-  defaultOptions: { queries: { retry: false } },
+  defaultOptions: {
+    queries: {
+      retry: false,
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
   mutationCache: new MutationCache({
     /** Chặn trước mutationFn và onMutate của feature, kể cả khi caller tự bật nút. */
     onMutate: () => { throw new Error(CONTENT.blockedMutation); },
