@@ -43,8 +43,12 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
   });
 
   const onSubmit = (data: RegisterInput) => {
-    // TODO: 1. Gọi mutation registerUser(data)
-    // TODO: 2. Khi thành công chuyển hướng về đăng nhập hoặc mở PasskeyEnrollModal
+    // TODO: [P0][AUTH-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Đăng ký theo DTO BE thay vì coi response legacy là phiên đầy đủ.
+    // 2. [INPUT & OUTPUT]: Form đã Zod validate -> userId và bước xác minh email hoặc lỗi trường.
+    // 3. [CÁC BƯỚC]: Sau AUTH-02 chốt POST /auth/register; adapter bỏ confirmPassword/role khỏi payload nếu DTO không nhận; gửi acceptTerms theo contract; điều hướng theo nextAction.
+    // 4. [HÀM / THƯ VIỆN]: useRegister, React Hook Form, zodResolver, service/schema Auth.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không cho client tự cấp role; không mở Passkey hoặc báo login khi còn chờ email; giữ invitation; chống double-submit và không log password.
     registerUser(data as RegisterRequest, {
       onSuccess: () => {
         onSuccess?.();

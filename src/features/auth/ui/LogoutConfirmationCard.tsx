@@ -42,16 +42,12 @@ export function LogoutConfirmationCard({
    * @description Xử lý thực hiện đăng xuất
    */
   const handleLogout = (): void => {
-    // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // 1. [MỤC TIÊU]: Gọi API POST /api/v1/auth/logout kèm tùy chọn revokeAllDevices.
-    // 2. [INPUT]: revokeAll (boolean). [OUTPUT]: Hủy token và chuyển sang trang Đã đăng xuất.
-    // 3. [CÁC BƯỚC]:
-    //    - Gọi mutation logout({ revokeAllDevices: revokeAll }).
-    //    - Chỉ điều hướng sau khi server xác nhận; lỗi giữ màn hình để thử lại.
-    // 4. [HÀM/THƯ VIỆN]: useLogout(), navigate(ROUTES.AUTH.LOGGED_OUT).
-    // 5. [ĐIỀU KIỆN BIÊN]: Hook xóa access token RAM/cache khi thành công;
-    //    không báo đã thu hồi khi mất mạng/API lỗi. Developer bổ sung cleanup
-    //    khóa nội dung nếu sau này có phiên giải mã và xử lý login/refresh race.
+    // TODO: [P0][AUTH-06] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Nghiệm thu logout với BE và xử lý các race còn lại sau bản sửa cleanup FE.
+    // 2. [INPUT & OUTPUT]: Lựa chọn logout -> server thu hồi, RAM/Redux/cache sạch rồi chuyển trang.
+    // 3. [CÁC BƯỚC]: Giữ onSuccess hiện có; chốt body revokeAllDevices với BE1; vô hiệu login/refresh/bootstrap đang bay khi logout; thay thông tin account và lịch DMS mẫu bằng dữ liệu thật.
+    // 4. [HÀM / THƯ VIỆN]: useLogout, accessTokenMemory, TanStack Query, ROUTES; test LogoutConfirmationCard.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lỗi server giữ màn để thử lại; không coi clear local là thu hồi cookie; không phục hồi phiên từ response cũ; không thêm cleanup khóa client của mô hình Shamir cũ.
     logout(
       { revokeAllDevices: revokeAll },
       {

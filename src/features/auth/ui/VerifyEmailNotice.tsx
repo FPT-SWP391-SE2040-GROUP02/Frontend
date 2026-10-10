@@ -56,14 +56,12 @@ export function VerifyEmailNotice({
    * @description Xử lý gửi lại email kích hoạt
    */
   const handleResend = (): void => {
-    // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // 1. [MỤC TIÊU]: Gửi yêu cầu POST /api/v1/auth/email/resend-verification.
-    // 2. [INPUT]: email (string). [OUTPUT]: Thông báo thành công và bắt đầu cooldown 60s.
-    // 3. [CÁC BƯỚC]:
-    //    - Gọi resendEmail(email).
-    //    - Đặt cooldown = 60.
-    // 4. [HÀM/THƯ VIỆN]: useResendEmailVerification().
-    // 5. [ĐIỀU KIỆN BIÊN]: Ngăn spam bấm liên tục bằng cooldown.
+    // TODO: [P0][AUTH-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Hoàn thiện xác minh/gửi lại email theo policy từ BE.
+    // 2. [INPUT & OUTPUT]: Token/challenge/email hợp lệ -> trạng thái bước tiếp theo và retryAt.
+    // 3. [CÁC BƯỚC]: Chốt /auth/verify-email và route resend với BE1; nối service/mutation; cooldown theo Retry-After/retryAt; chỉ báo gửi sau server xác nhận.
+    // 4. [HÀM / THƯ VIỆN]: useResendEmailVerification, Zod, TanStack Query, ROUTES.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không hardcode cooldown thành chính sách; token một lần/hết hạn; lỗi chung không lộ account; không mất invitation sau xác minh.
     if (cooldown > 0) return;
 
     resendEmail(email, {
