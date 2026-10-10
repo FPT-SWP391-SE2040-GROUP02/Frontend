@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "../model/auth.schema";
-import type { LoginRequest, InvitationContext } from "../model/auth.types";
+import type { InvitationContext } from "../model/auth.types";
 import { useLogin } from "../model/useAuth";
+import { getLoginRedirect, getLoginErrorMessage } from "../lib/loginFeedback";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Lock, Mail, AlertCircle, Info, ArrowRight } from "lucide-react";
@@ -25,8 +26,7 @@ export interface LoginFormProps {
 /**
  * @description Form Đăng Nhập trang nhã tuân thủ 100% thiết kế Mockup 1, 2, 3 và 4.
  * - Mockup 1: Trạng thái mặc định nhập Email và Mật khẩu, hỗ trợ Google SSO.
- * - Mockup 2: Trạng thái báo lỗi đăng nhập kèm số lần thử còn lại (Đếm ngược 5 lần).
- * - Mockup 3: Trạng thái tạm dừng đăng nhập 15 phút khi nhập sai quá 5 lần (Lockout timer).
+ * - Lỗi API hiển thị theo transport; trạng thái khóa/lượt thử chờ contract BE.
  * - Mockup 4: Trạng thái hiển thị ngữ cảnh gói di sản được mời nhận.
  *
  * @param {LoginFormProps} props Thuộc tính component
@@ -41,17 +41,8 @@ export function LoginForm({
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Đọc tham số URL phục vụ redirect và mô phỏng trạng thái demo (Mockup 2 & 3)
-  const redirectUrl = searchParams.get("redirect") || ROUTES.DASHBOARD.ROOT;
-  const initialAttempts = searchParams.get("state") === "invalid" ? 3 : 5;
-  const isMockLockout = searchParams.get("state") === "locked";
-
-  // Quản lý số lần thử và trạng thái khóa tạm thời (Mockup 2 & 3)
-  const [attemptsRemaining, setAttemptsRemaining] = useState<number>(initialAttempts);
-  const [isLocked, setIsLocked] = useState<boolean>(isMockLockout);
-  const [lockoutSeconds, setLockoutSeconds] = useState<number>(isMockLockout ? 872 : 0); // 14:32 = 872s
-
-  const { mutate: login, isPending } = useLogin();
+  const redirectUrl = getLoginRedirect(searchParams.get("redirect"));
+  const { mutate: login, isPending, isError, error } = useLogin();
 
   const {
     register,
@@ -66,59 +57,22 @@ export function LoginForm({
     },
   });
 
-  // Bộ đếm thời gian lùi khi bị tạm dừng 15 phút (Mockup 3)
-  useEffect(() => {
-    let timer: ReturnType<typeof setInterval>;
-    if (isLocked && lockoutSeconds > 0) {
-      timer = setInterval(() => {
-        setLockoutSeconds((prev) => {
-          if (prev <= 1) {
-            setIsLocked(false);
-            setAttemptsRemaining(5);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [isLocked, lockoutSeconds]);
-
-  /**
-   * @description Định dạng số giây còn lại sang mm:ss (VD: 14:32)
-   */
-  const formatCountdown = (totalSeconds: number): string => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  };
-
   /**
    * @description Xử lý nộp form đăng nhập
    * @param {LoginInput} data Dữ liệu email và mật khẩu
    */
   const onSubmit = (data: LoginInput): void => {
     // TODO: [P0][AUTH-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-    // 1. [MỤC TIÊU]: Nối đăng nhập thật và thay cơ chế khóa/lượt thử tự tính ở FE.
+    // 1. [MỤC TIÊU]: Nối đăng nhập thật và trạng thái khóa/lượt thử do BE xác nhận.
     // 2. [INPUT & OUTPUT]: LoginInput -> credential đã validate, challenge/email pending hoặc lỗi BE.
     // 3. [CÁC BƯỚC]: Sau AUTH-01 chốt POST /auth/login; dùng mutation; lưu access token RAM; ánh xạ /me; chỉ điều hướng sau bước xác thực đầy đủ.
     // 4. [HÀM / THƯ VIỆN]: useLogin, accessTokenSchema, React Hook Form/Zod, adapter User, ROUTES.
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lượt thử/unlockAt/Retry-After do server trả; lỗi mạng/500 không giảm lượt; không tự khóa 15 phút; validate return URL nội bộ và giữ invitation an toàn.
-    if (isLocked) return;
+    if (isPending || typeof data.email !== "string" || typeof data.password !== "string") return;
 
-    login(data as LoginRequest, {
+    login({ email: data.email, password: data.password, rememberMe: data.rememberMe }, {
       onSuccess: () => {
         navigate(redirectUrl);
-      },
-      onError: () => {
-        setAttemptsRemaining((prev) => {
-          const next = prev - 1;
-          if (next <= 0) {
-            setIsLocked(true);
-            setLockoutSeconds(900); // 15 phút
-          }
-          return Math.max(0, next);
-        });
       },
     });
   };
@@ -167,39 +121,10 @@ export function LoginForm({
         </p>
       </div>
 
-      {/* 3. KHỐI BÁO LỖI SAI THÔNG TIN (Mockup 2) */}
-      {!isLocked && attemptsRemaining < 5 && (
-        <div
-          role="alert"
-          className="p-3.5 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#9B1C1C] flex items-start gap-3 text-xs leading-relaxed"
-        >
-          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#E02424]" />
-          <div>
-            <p className="font-semibold">
-              Email hoặc mật khẩu chưa đúng. Bạn còn {attemptsRemaining} lần thử.
-            </p>
-            <p className="text-[11px] text-[#C81E1E] mt-0.5">
-              Sai 5 lần trong 15 phút, đăng nhập bằng mật khẩu sẽ tạm dừng 15 phút.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* 4. KHỐI BÁO KHÓA TẠM THỜI 15 PHÚT (Mockup 3) */}
-      {isLocked && (
-        <div
-          role="alert"
-          className="p-3.5 rounded-xl bg-[#FEF3C7] border border-[#FCD34D] text-[#92400E] flex items-start gap-3 text-xs leading-relaxed"
-        >
-          <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-[#D97706]" />
-          <div>
-            <p className="font-semibold">
-              Đăng nhập bằng mật khẩu tạm dừng. Bạn đã nhập sai 5 lần trong 15 phút.
-            </p>
-            <p className="text-[11px] text-[#B45309] mt-0.5">
-              Hãy thử lại sau {formatCountdown(lockoutSeconds)}. Tài khoản của bạn không bị khóa.
-            </p>
-          </div>
+      {isError && (
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <AlertCircle aria-hidden="true" className="mr-2 inline size-4" />
+          {getLoginErrorMessage(error)}
         </div>
       )}
 
@@ -207,6 +132,7 @@ export function LoginForm({
       <button
         type="button"
         onClick={handleGoogleLogin}
+        disabled={isPending}
         className="w-full h-11 px-4 rounded-xl border border-[#D5D0C3] hover:border-[#0A281E] bg-white text-[#0F1A16] font-medium text-xs flex items-center justify-center gap-3 transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A281E]"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
@@ -239,31 +165,35 @@ export function LoginForm({
       </div>
 
       {/* 6. FORM NHẬP EMAIL VÀ PASSWORD */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Email Field */}
         <div className="space-y-1.5 text-left">
-          <label className="text-xs font-semibold text-[#0F1A16]">Email</label>
+          <label htmlFor="login-email" className="text-xs font-semibold text-[#0F1A16]">Email</label>
           <div className="relative">
             <Mail className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
+              id="login-email"
+              autoComplete="username"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "login-email-error" : undefined}
               {...register("email")}
               type="email"
               placeholder="nam@example.com"
-              disabled={isLocked}
+              disabled={isPending}
               className={`pl-10 h-11 text-xs rounded-xl bg-white border-[#D5D0C3] focus-visible:border-[#0A281E] ${
                 errors.email ? "border-red-500" : ""
               }`}
             />
           </div>
           {errors.email && (
-            <p className="text-[11px] text-red-600 font-medium">{errors.email.message}</p>
+            <p id="login-email-error" role="alert" className="text-[11px] text-red-600 font-medium">{errors.email.message}</p>
           )}
         </div>
 
         {/* Password Field */}
         <div className="space-y-1.5 text-left">
           <div className="flex justify-between items-baseline">
-            <label className="text-xs font-semibold text-[#0F1A16]">Mật khẩu</label>
+            <label htmlFor="login-password" className="text-xs font-semibold text-[#0F1A16]">Mật khẩu</label>
             <Link
               to={ROUTES.AUTH.FORGOT_PASSWORD}
               className="text-[11px] text-[#B88E4C] hover:underline font-semibold"
@@ -274,37 +204,41 @@ export function LoginForm({
           <div className="relative">
             <Lock className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
+              id="login-password"
+              autoComplete="current-password"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? "login-password-error" : undefined}
               {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="Nhập mật khẩu của bạn"
-              disabled={isLocked}
+              disabled={isPending}
               className={`pl-10 pr-12 h-11 text-xs rounded-xl bg-white border-[#D5D0C3] focus-visible:border-[#0A281E] ${
-                errors.password || attemptsRemaining < 5 ? "border-red-400" : ""
+                errors.password ? "border-red-400" : ""
               }`}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              disabled={isLocked}
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              aria-pressed={showPassword}
+              disabled={isPending}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[#6B6B66] hover:text-[#0A281E] px-1 py-0.5 rounded focus-visible:outline-none"
             >
               {showPassword ? "Ẩn" : "Hiện"}
             </button>
           </div>
           {errors.password && (
-            <p className="text-[11px] text-red-600 font-medium">{errors.password.message}</p>
+            <p id="login-password-error" role="alert" className="text-[11px] text-red-600 font-medium">{errors.password.message}</p>
           )}
         </div>
 
         {/* Nút bấm Đăng nhập */}
         <Button
           type="submit"
-          disabled={isPending || isLocked}
+          disabled={isPending}
           className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
         >
-          {isLocked ? (
-            <span>Thử lại sau {formatCountdown(lockoutSeconds)}</span>
-          ) : isPending ? (
+          {isPending ? (
             <span>Đang xác thực...</span>
           ) : invitationContext ? (
             <>
@@ -318,10 +252,11 @@ export function LoginForm({
       </form>
 
       {/* 7. NÚT PASSKEY NẾU CÓ */}
-      {onPasskeyClick && !isLocked && (
+      {onPasskeyClick && (
         <button
           type="button"
           onClick={onPasskeyClick}
+          disabled={isPending}
           className="text-xs text-[#0A281E] hover:underline font-semibold block mx-auto pt-1"
         >
           Hoặc đăng nhập nhanh bằng Passkey / FaceID
