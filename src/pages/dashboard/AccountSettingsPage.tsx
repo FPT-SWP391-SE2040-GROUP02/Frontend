@@ -11,14 +11,12 @@ export function AccountSettingsPage() {
   const location = useLocation();
   const preview = import.meta.env.DEV && location.pathname.startsWith("/preview/");
   const view = content.tabs.find((item) => item.id === params.get("view"))?.id ?? "profile";
-  // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-  // 1. [MỤC TIÊU]: Quản lý thông tin tài khoản, bảo mật và thu hồi phiên.
-  // 2. [INPUT & OUTPUT]: Phiên hợp lệ và dữ liệu form -> DTO cập nhật hoặc danh sách phiên.
-  // 3. [CÁC BƯỚC]: Chốt contract; tạo schema/service/hooks; xử lý 4 trạng thái; xác nhận
-  //    trước thu hồi phiên; chỉ báo thành công sau phản hồi backend và invalidate cache.
-  // 4. [HÀM / THƯ VIỆN]: React Hook Form, Zod, createBaseService, TanStack Query, WebAuthn.
-  // 5. [ĐIỀU KIỆN BIÊN]: Mất phiên, mật khẩu sai, thiết bị không hỗ trợ, lỗi mạng;
-  //    không lưu mật khẩu/private key; không thay đổi bảo mật bằng state cục bộ.
+  // TODO: [P1][ACCOUNT-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Nối hồ sơ và quản trị phiên theo DTO /me và security đã chốt.
+  // 2. [INPUT & OUTPUT]: Phiên + form -> hồ sơ cập nhật/danh sách phiên/step-up challenge.
+  // 3. [CÁC BƯỚC]: Sau AUTH-02 chốt /me và endpoints security/sessions; schema -> service -> hooks -> UI bốn trạng thái; xác nhận thu hồi; invalidate sau thành công.
+  // 4. [HÀM / THƯ VIỆN]: React Hook Form, Zod, createBaseService, TanStack Query, dialogs.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không đổi role/status từ PATCH profile; Google không mặc định có password; không bỏ login method cuối; logout/đổi account dọn cache; Passkey theo AUTH-11.
   return (
     <WorkspaceFrame
       title={content.title}

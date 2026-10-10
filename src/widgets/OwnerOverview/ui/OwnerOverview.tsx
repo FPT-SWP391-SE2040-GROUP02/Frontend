@@ -19,13 +19,12 @@ import { OwnerVaultPanel } from "./OwnerVaultPanel";
 export function OwnerOverview() {
   const isAuthenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const serverSessionReady = isAuthenticated && Boolean(accessTokenMemory.get());
-  // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-  // 1. [MỤC TIÊU]: Hiển thị tổng quan được backend cho phép đối với Chủ kho hiện tại.
-  // 2. [INPUT & OUTPUT]: DTO user/kho/điểm danh -> ViewModel, đủ loading/error/empty/success.
-  // 3. [CÁC BƯỚC]: Chốt DTO; adapter tại entity; service; Query hooks; thay dữ liệu mẫu.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, queryKeys, UI primitives hiện có.
-  // 5. [ĐIỀU KIỆN BIÊN]: Không suy diễn trạng thái an toàn từ lỗi API; không cấp quyền từ dữ liệu mẫu;
-  //    không gửi heartbeat/AliveClaim khi chỉ mở trang hoặc click điều hướng.
+  // TODO: [P1][VAULT-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Thay số liệu tổng quan mẫu bằng summary/chỉ số thật.
+  // 2. [INPUT & OUTPUT]: Kho + subscription/check-in + DTO summary -> ViewModel bốn trạng thái.
+  // 3. [CÁC BƯỚC]: Sau VAULT-01 chốt summary endpoint với BE2; dùng adapter entity và Query hooks; tái dùng OwnerVaultPanel; tải dữ liệu đúng session/scope.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, entity adapters, shared/ui.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lỗi API không biến thành healthy/0; không gửi check-in/báo sống khi mở trang; không suy diễn entitlement từ UI hoặc thông tin preview.
   return (
     <div className="min-h-screen bg-heritage-surface text-heritage-text lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
       <a

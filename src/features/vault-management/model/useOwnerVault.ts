@@ -107,10 +107,9 @@ export function useDeleteOwnerPackage() {
   });
 }
 
-// TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-// 1. [MỤC TIÊU]: Developer nối form kho/gói, xử lý quyền và thông báo theo response BE.
-// 2. [INPUT & OUTPUT]: Form + session + mutation result → UI bốn trạng thái và field/toast errors.
-// 3. [CÁC BƯỚC]: Validate → kiểm session → disable pending → mutate → hiển thị kết quả server.
-// 4. [HÀM / THƯ VIỆN]: React Hook Form, zodResolver, các hooks trên và shared/ui.
-// 5. [ĐIỀU KIỆN BIÊN]: 401/404/409/422, description null, đổi account/logout phải xóa cache Owner;
-//    không nối activate trước khi BE hoàn thiện guard, không tự kết luận quyền từ vai trò UI.
+// TODO: [P1][VAULT-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+// 1. [MỤC TIÊU]: Nối form kho/gói vào hooks đã có và chốt điều kiện kích hoạt.
+// 2. [INPUT & OUTPUT]: Form + phiên -> DTO kho/gói hoặc field/toast error thật.
+// 3. [CÁC BƯỚC]: Sau AUTH-02 hoàn thiện UI RHF/Zod; gọi hooks CRUD; disable pending; invalidate query theo kho; nối activate chỉ khi BE hoàn thiện blockedReasons/guards.
+// 4. [HÀM / THƯ VIỆN]: useOwnerVault hooks, React Hook Form, zodResolver, shared/ui, package schema.
+// 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: 401/403/404/409/422, description null, stale version; đổi account/logout xóa cache Owner; UI role không cấp quyền; không auto-activate sau payment.
