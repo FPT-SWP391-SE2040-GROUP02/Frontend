@@ -51,12 +51,12 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
    */
   const onSubmit = (): void => {
     setIsPending(true);
-    // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // 1. [MỤC TIÊU]: Yêu cầu đặt lại mật khẩu qua email mà không tiết lộ tài khoản tồn tại.
-    // 2. [INPUT & OUTPUT]: Email đã validate -> phản hồi chung từ API.
-    // 3. [CÁC BƯỚC]: Chốt DTO; gọi service qua mutation; chỉ hiện xác nhận khi API phản hồi.
-    // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, React Hook Form, Zod.
-    // 5. [ĐIỀU KIỆN BIÊN]: Rate limit, mất mạng, double-submit; không ghi email/mã vào log.
+    // TODO: [P1][AUTH-08] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Thay timer giả bằng yêu cầu khôi phục mật khẩu thực.
+    // 2. [INPUT & OUTPUT]: Email hợp lệ -> phản hồi chung từ POST /auth/forgot-password.
+    // 3. [CÁC BƯỚC]: Sau AUTH-02 chốt DTO; service -> mutation -> form; bỏ setTimeout giả thành công khi nối API; chỉ chuyển màn sau phản hồi.
+    // 4. [HÀM / THƯ VIỆN]: createBaseService/shared transport, TanStack Query, React Hook Form, Zod.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không tiết lộ email tồn tại; rate limit/mất mạng/double-submit; không log email hoặc mã khôi phục.
     setTimeout(() => {
       setIsPending(false);
       setIsSubmitted(true);

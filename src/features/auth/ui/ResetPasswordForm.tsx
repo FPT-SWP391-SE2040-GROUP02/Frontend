@@ -25,14 +25,12 @@ export function ResetPasswordForm() {
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
   });
-  // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-  // 1. [MỤC TIÊU]: Đặt lại mật khẩu bằng token khôi phục dùng một lần.
-  // 2. [INPUT & OUTPUT]: Token và mật khẩu hợp lệ -> xác nhận từ backend hoặc mã lỗi.
-  // 3. [CÁC BƯỚC]: Chốt DTO/endpoint; tạo service và mutation; xác nhận token; gửi khi
-  //    người dùng đồng ý; disable double submit; xóa form/token rồi trở về đăng nhập.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, React Hook Form, Zod.
-  // 5. [ĐIỀU KIỆN BIÊN]: Token hết hạn/đã dùng, mất mạng, rate limit; không log/lưu mật khẩu
-  //    hoặc token vào storage; không báo thành công trước phản hồi backend.
+  // TODO: [P1][AUTH-09] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Nối đặt lại mật khẩu bằng token một lần.
+  // 2. [INPUT & OUTPUT]: Token + password hợp lệ -> xác nhận BE hoặc errors theo field.
+  // 3. [CÁC BƯỚC]: Sau AUTH-08 chốt POST /auth/reset-password; schema/service/mutation; gửi khi submit; chỉ xóa form và về login khi thành công.
+  // 4. [HÀM / THƯ VIỆN]: React Hook Form, zodResolver, TanStack Query, service Auth.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Token hết hạn/đã dùng, 429/mất mạng; policy thu hồi phiên do BE; không lưu/log password hoặc token; không tự tạo phiên sau reset.
   if (complete)
     return (
       <div role="status" className="space-y-5">
