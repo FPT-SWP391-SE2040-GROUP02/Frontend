@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router-dom";
-import { CircleCheck, Eye, EyeOff } from "lucide-react";
+import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { ROUTES } from "@/shared/config/routes.config";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CircleCheck, Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import {
-  resetPasswordSchema,
   RESET_PASSWORD_CONTENT as content,
+  resetPasswordSchema,
   type ResetPasswordInput,
 } from "../model/resetPassword.schema";
 
@@ -19,9 +19,12 @@ export function ResetPasswordForm() {
   const {
     register,
     handleSubmit,
+    trigger,
     reset,
-    formState: { errors },
+    formState: { errors, touchedFields },
   } = useForm<ResetPasswordInput>({
+    mode: "onBlur",
+    reValidateMode: "onBlur",
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
   });
@@ -55,40 +58,56 @@ export function ResetPasswordForm() {
       })}
       className="space-y-6"
     >
-      {(["password", "confirmPassword"] as const).map((field) => (
-        <div key={field}>
-          <label htmlFor={`reset-${field}`} className="mb-2 block text-sm font-medium">
-            {field === "password" ? content.password : content.confirm}
-          </label>
-          <div className="relative">
-            <Input
-              id={`reset-${field}`}
-              type={visible ? "text" : "password"}
-              autoComplete="new-password"
-              className="h-12 pr-14 text-sm"
-              aria-invalid={Boolean(errors[field])}
-              aria-describedby={errors[field] ? `reset-${field}-error` : "reset-password-hint"}
-              {...register(field)}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-lg"
-              className="absolute right-1 top-1"
-              aria-label={visible ? content.hide : content.show}
-              aria-pressed={visible}
-              onClick={() => setVisible(!visible)}
-            >
-              {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
-            </Button>
+      {(["password", "confirmPassword"] as const).map((field) => {
+        const registeredField = register(field);
+        const errorId = errors[field] ? `reset-${field}-error` : undefined;
+        const describedBy =
+          field === "password"
+            ? ["reset-password-hint", errorId].filter(Boolean).join(" ")
+            : errorId;
+
+        return (
+          <div key={field}>
+            <label htmlFor={`reset-${field}`} className="mb-2 block text-sm font-medium">
+              {field === "password" ? content.password : content.confirm}
+            </label>
+            <div className="relative">
+              <Input
+                id={`reset-${field}`}
+                type={visible ? "text" : "password"}
+                autoComplete="new-password"
+                className="h-12 pr-14 text-sm"
+                aria-invalid={Boolean(errors[field])}
+                aria-describedby={describedBy}
+                {...registeredField}
+                onBlur={async (event) => {
+                  await registeredField.onBlur(event);
+                  if (field === "password" && touchedFields.confirmPassword) {
+                    await trigger("confirmPassword");
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-lg"
+                className="absolute right-1 top-1"
+                aria-label={visible ? content.hide : content.show}
+                aria-pressed={visible}
+                tabIndex={-1}
+                onClick={() => setVisible(!visible)}
+              >
+                {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+              </Button>
+            </div>
+            {errors[field] && (
+              <p id={`reset-${field}-error`} role="alert" className="mt-2 text-sm text-red-700">
+                {errors[field]?.message}
+              </p>
+            )}
           </div>
-          {errors[field] && (
-            <p id={`reset-${field}-error`} role="alert" className="mt-2 text-sm text-red-700">
-              {errors[field]?.message}
-            </p>
-          )}
-        </div>
-      ))}
+        );
+      })}
       <p id="reset-password-hint" className="text-xs text-heritage-muted">
         {content.hint}
       </p>
