@@ -4,7 +4,7 @@
  * Tương thích chuẩn C# ASP.NET Core EF Core (Bảng LegalClaims và KeyShares).
  */
 
-import type { ClaimDocumentType, ClaimStatus } from "@/features/claims";
+import type { ClaimDocumentType, ClaimStatus } from "@/entities/claim/model/claim.types";
 
 /**
  * @description 4 tiêu chí kiểm toán bắt buộc của Công chứng viên trước khi phê duyệt mở thừa kế
@@ -51,6 +51,8 @@ export interface NotaryClaimItemDto {
   submittedAt: string;
   executorNotes?: string;
 }
+
+export type NotaryClaimDetailViewModel = NotaryClaimItemDto;
 
 /**
  * @description DTO phê duyệt hồ sơ và giải phóng Mảnh khóa Verifier (Shamir Share 2)

@@ -1,15 +1,7 @@
 import React from "react";
-import { 
-  FileText, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle, 
-  ExternalLink,
-  ShieldCheck 
-} from "lucide-react";
-import { Card, Badge } from "@/shared/ui";
-import type { ClaimItemViewModel } from "../model/claim.types";
+import { Clock, CheckCircle2, XCircle, ShieldCheck } from "lucide-react";
+import { Card } from "@/shared/ui";
+import type { ClaimItemViewModel } from "@/entities/claim/model/claim.types";
 
 /**
  * @file ClaimStatusCard.tsx

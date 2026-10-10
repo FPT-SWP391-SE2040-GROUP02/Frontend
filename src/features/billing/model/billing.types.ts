@@ -4,9 +4,16 @@
  */
 
 /**
- * Các cấp độ gói dịch vụ Két Di Sản
+ * Các cấp độ gói dịch vụ chuẩn SRS 3.11.0:
+ * - Dành cho Chủ sở hữu di sản (Owner): OWNER_FREE, LEGACY_XS, LEGACY_XS_MAX
+ * - Dành cho Người thụ hưởng (Recipient): RECIPIENT_FREE, RECIPIENT_PLUS
  */
-export type PlanTier = "FREE" | "FAMILY" | "LIFETIME" | "ENTERPRISE";
+export type PlanTier =
+  | "OWNER_FREE"
+  | "LEGACY_XS"
+  | "LEGACY_XS_MAX"
+  | "RECIPIENT_FREE"
+  | "RECIPIENT_PLUS";
 
 /**
  * Trạng thái thanh toán giao dịch VietQR SePay
@@ -21,22 +28,30 @@ export interface PricingPlan {
   id: string;
   /** Cấp độ gói */
   tier: PlanTier;
+  /** Phân loại đối tượng */
+  category: "OWNER" | "RECIPIENT";
   /** Tên hiển thị của gói */
   name: string;
   /** Giá tiền (VND) */
   price: number;
-  /** Chu kỳ thanh toán (tháng / năm / vĩnh viễn) */
-  billingCycle: "monthly" | "yearly" | "lifetime";
+  /** Chu kỳ thanh toán */
+  billingCycle: "365_days" | "30_days" | "lifetime";
+  /** Chu kỳ hiển thị text */
+  cycleText: string;
   /** Mô tả ngắn về gói */
   description: string;
   /** Danh sách tính năng chính của gói */
   features: string[];
   /** Đánh dấu gói nổi bật / khuyên dùng */
   isPopular?: boolean;
-  /** Giới hạn dung lượng lưu trữ (GB) */
-  storageLimitGb: number;
-  /** Số lượng người thừa kế tối đa */
-  maxHeirs: number;
+  /** Giới hạn dung lượng lưu trữ (MB) */
+  storageLimitMb: number;
+  /** Giới hạn số tài sản số tối đa */
+  maxAssets: number;
+  /** Cho phép lập & kích hoạt kế hoạch di sản */
+  allowEstatePlan?: boolean;
+  /** Cho phép xuất PDF Kế hoạch di sản có tem băm SHA-256 */
+  allowPdfExport?: boolean;
 }
 
 /**
@@ -147,4 +162,3 @@ export interface SepayTransactionItem {
   transaction_content: string;
   reference_number: string;
 }
-

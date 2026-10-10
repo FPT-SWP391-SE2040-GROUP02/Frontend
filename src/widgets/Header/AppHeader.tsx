@@ -14,8 +14,9 @@ import {
 import { ROUTES } from "@/shared/config/routes.config";
 import { ROLES, type Role } from "@/shared/constants/roles";
 import { UserAvatarMenu } from "@/entities/user";
-import { useAppDispatch, useAppSelector } from "@/app/store";
-import { setRole, toggleDemoMode } from "@/app/store/uiSlice";
+import { useDispatch as useAppDispatch, useSelector } from "react-redux";
+import type { UiState } from "@/shared/model/uiSlice";
+import { setRole, toggleDemoMode } from "@/shared/model/uiSlice";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,8 +38,8 @@ export const AppHeader: React.FC = () => {
   const dispatch = useAppDispatch();
 
   // Đọc trạng thái từ Redux Store toàn cục
-  const activeRole = useAppSelector((state) => state.ui.currentRole);
-  const isDemo = useAppSelector((state) => state.ui.demoMode);
+  const activeRole = useSelector((state: { ui: UiState }) => state.ui.currentRole);
+  const isDemo = useSelector((state: { ui: UiState }) => state.ui.demoMode);
 
   const handleRoleChange = (newRole: Role) => {
     dispatch(setRole(newRole));
@@ -186,16 +187,14 @@ export const AppHeader: React.FC = () => {
 
         {/* 2. Hybrid Identity Context Switcher (Chuyển vai trò làm việc tức thì) */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="min-h-[40px] px-3.5 py-1.5 rounded-[18px] bg-[#EFECE6] hover:bg-[#E5EDE8] border border-[#DCD9D0] text-xs font-bold text-[#0B291E] flex items-center gap-2 transition-all focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
-              aria-label="Chuyển đổi vai trò làm việc"
-            >
-              <CurrentIcon className="w-4 h-4 text-[#B88E4C]" />
-              <span className="hidden sm:inline">{currentRoleMeta.label}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-[#66786E]" />
-            </button>
+          <DropdownMenuTrigger
+            type="button"
+            className="min-h-[40px] px-3.5 py-1.5 rounded-[18px] bg-[#EFECE6] hover:bg-[#E5EDE8] border border-[#DCD9D0] text-xs font-bold text-[#0B291E] flex items-center gap-2 transition-all focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+            aria-label="Chuyển đổi vai trò làm việc"
+          >
+            <CurrentIcon className="w-4 h-4 text-[#B88E4C]" />
+            <span className="hidden sm:inline">{currentRoleMeta.label}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-[#66786E]" />
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-64 bg-[#FAF9F5] border border-[#DCD9D0] shadow-lg rounded-2xl p-1.5" align="end">
             <DropdownMenuLabel className="p-2 space-y-0.5">

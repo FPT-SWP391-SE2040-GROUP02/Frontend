@@ -1,7 +1,4 @@
-import type {
-  WillItemDto,
-  CreateWillRequest,
-} from "../model/will.types";
+import type { WillItemDto, CreateWillRequest } from "../model/will.types";
 import type { PaginatedList, PaginationParams, ApiResponse } from "@/shared/types";
 
 /**
@@ -10,7 +7,6 @@ import type { PaginatedList, PaginationParams, ApiResponse } from "@/shared/type
  * Tuân thủ Rule 7 (Scaffold with TODO) và Rule 8 (JSDoc chuẩn chỉ).
  */
 
-const WILLS_ENDPOINT = "/wills";
 
 // Mock store tạm thời trong phiên làm việc của Client
 let mockWillsStore: WillItemDto[] = [

@@ -2,24 +2,62 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../../shared/assets/fonts/be-vietnam-pro-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../../shared/assets/fonts/be-vietnam-pro-medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../../shared/assets/fonts/be-vietnam-pro-semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
 @custom-variant dark (&:is(.dark *));
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../../shared/assets/fonts/be-vietnam-pro-vietnamese-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0102-0103,U+0110-0111,U+0128-0129,U+0168-0169,U+01A0-01A1,U+01AF-01B0,U+0300-0301,U+0303-0304,U+0308-0309,U+0323,U+0329,U+1EA0-1EF9,U+20AB;
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  src: url("../../shared/assets/fonts/be-vietnam-pro-latin-700-normal.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
 
 @theme inline {
-  --font-heading: 'Plus Jakarta Sans', -apple-system, sans-serif;
-  --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
-  
+  --font-serif: "Be Vietnam Pro", system-ui, sans-serif;
+  --font-heading: "Be Vietnam Pro", system-ui, sans-serif;
+  --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
+
   --color-heritage-canvas: var(--bg-canvas);
   --color-heritage-surface: var(--surface);
   --color-heritage-primary: var(--primary);
   --color-heritage-primary-hover: var(--primary-hover);
   --color-heritage-primary-light: var(--primary-light);
   --color-heritage-primary-surface: var(--primary-surface);
-  
+
   --color-heritage-gold: var(--gold);
   --color-heritage-gold-hover: var(--gold-hover);
   --color-heritage-gold-light: var(--gold-light);
   --color-heritage-gold-border: var(--gold-border);
-  
+
   --color-heritage-text: var(--text-main);
   --color-heritage-muted: var(--text-muted);
   --color-heritage-border: var(--border-ui);
@@ -31,16 +69,16 @@
   --color-popover: var(--surface);
   --color-popover-foreground: var(--text-main);
   --color-primary: var(--primary);
-  --color-primary-foreground: #FFFFFF;
+  --color-primary-foreground: #ffffff;
   --color-secondary: var(--primary-light);
   --color-secondary-foreground: var(--primary);
   --color-muted: var(--primary-light);
   --color-muted-foreground: var(--text-muted);
   --color-accent: var(--gold-light);
   --color-accent-foreground: var(--gold-hover);
-  --color-destructive: #D9534F;
+  --color-destructive: #d9534f;
   --color-border: var(--border-ui);
-  --color-input: #D5D0C3;
+  --color-input: #d5d0c3;
   --color-ring: var(--gold);
 
   --radius-sm: 4px;
@@ -53,54 +91,56 @@
 
 :root {
   /* 1. PRIMARY: Heritage Forest */
-  --bg-canvas: #EFECE6;        
-  --surface: #FAF9F5;          
-  --primary: #0B291E;          
-  --primary-hover: #133E2F;
-  --primary-light: #E5EDE8;
-  --primary-surface: #10382B;
-  
+  --bg-canvas: #efece6;
+  --surface: #faf9f5;
+  --primary: #0b291e;
+  --primary-hover: #133e2f;
+  --primary-light: #e5ede8;
+  --primary-surface: #10382b;
+
   /* 2. ACCENT: Champagne Gold */
-  --gold: #B88E4C;             
-  --gold-hover: #A07839;
-  --gold-light: #FBF7EE;
-  --gold-border: #E8DCC6;
-  
+  --gold: #b88e4c;
+  --gold-hover: #a07839;
+  --gold-light: #fbf7ee;
+  --gold-border: #e8dcc6;
+
   /* 3. NEUTRALS */
-  --text-main: #14241C;
-  --text-muted: #66786E;
-  --text-subtle: #8E9F96;
-  --border-ui: #DCD9D0;
+  --text-main: #14241c;
+  --text-muted: #66786e;
+  --text-subtle: #8e9f96;
+  --border-ui: #dcd9d0;
 
   /* 4. SOFT TACTILE DEPTH */
   --shadow-raised: 0 4px 12px rgba(11, 41, 30, 0.05), 0 1px 3px rgba(11, 41, 30, 0.03);
-  --shadow-inset: inset 2px 2px 5px rgba(0,0,0,0.06), inset -2px -2px 5px rgba(255,255,255,0.8);
-  --shadow-pressed: inset 3px 3px 6px rgba(11, 41, 30, 0.12), inset -2px -2px 4px rgba(255,255,255,0.7);
+  --shadow-inset:
+    inset 2px 2px 5px rgba(0, 0, 0, 0.06), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
+  --shadow-pressed:
+    inset 3px 3px 6px rgba(11, 41, 30, 0.12), inset -2px -2px 4px rgba(255, 255, 255, 0.7);
 
   --radius: 0.75rem;
 }
 
 .dark {
   --bg-canvas: #071710;
-  --surface: #0C2217;
-  --primary: #F3F7F4;
-  --primary-hover: #E5EDE8;
+  --surface: #0c2217;
+  --primary: #f3f7f4;
+  --primary-hover: #e5ede8;
   --primary-light: #163828;
-  --primary-surface: #112D20;
+  --primary-surface: #112d20;
 
-  --gold: #E2C17D;
-  --gold-hover: #F6D483;
-  --gold-light: #182C1F;
-  --gold-border: #3A4D39;
+  --gold: #e2c17d;
+  --gold-hover: #f6d483;
+  --gold-light: #182c1f;
+  --gold-border: #3a4d39;
 
-  --text-main: #F3F7F4;
-  --text-muted: #9BB3A0;
-  --text-subtle: #6D8572;
-  --border-ui: #1E432F;
+  --text-main: #f3f7f4;
+  --text-muted: #9bb3a0;
+  --text-subtle: #6d8572;
+  --border-ui: #1e432f;
 
   --shadow-raised: 0 4px 14px rgba(0, 0, 0, 0.35);
-  --shadow-inset: inset 2px 2px 5px rgba(0,0,0,0.3);
-  --shadow-pressed: inset 3px 3px 6px rgba(0,0,0,0.5);
+  --shadow-inset: inset 2px 2px 5px rgba(0, 0, 0, 0.3);
+  --shadow-pressed: inset 3px 3px 6px rgba(0, 0, 0, 0.5);
 }
 
 @layer base {
@@ -110,7 +150,7 @@
   body {
     background-color: var(--bg-canvas);
     color: var(--text-main);
-    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    font-family: "Be Vietnam Pro", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -133,9 +173,9 @@
   -webkit-appearance: none;
   width: 17px;
   height: 17px;
-  border: 1.5px solid #A8A295;
+  border: 1.5px solid #a8a295;
   border-radius: 4px;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   display: grid;
   place-content: center;
   cursor: pointer;
@@ -149,7 +189,7 @@
   height: 9px;
   transform: scale(0);
   transition: 100ms transform ease-in-out;
-  box-shadow: inset 1em 1em #FFFFFF;
+  box-shadow: inset 1em 1em #ffffff;
   transform-origin: center;
   clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 }
@@ -175,9 +215,9 @@
   -webkit-appearance: none;
   width: 17px;
   height: 17px;
-  border: 1.5px solid #A8A295;
+  border: 1.5px solid #a8a295;
   border-radius: 50%;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   display: grid;
   place-content: center;
   cursor: pointer;
@@ -204,7 +244,7 @@
 /* Button variants */
 .btn-primary-heritage {
   background-color: var(--primary);
-  color: #FFFFFF;
+  color: #ffffff;
   padding: 8.5px 18px;
   border-radius: 20px;
   font-size: 12.5px;
@@ -222,9 +262,9 @@
 }
 .btn-pressed-heritage {
   background-color: var(--primary-surface);
-  color: #E2ECE6;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
-  border: 1px solid #1A4D3B;
+  color: #e2ece6;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 1px solid #1a4d3b;
 }
 
 /* Live Pulse Animation */
@@ -237,16 +277,25 @@
   animation: pulseAnimation 1.6s infinite;
 }
 @keyframes pulseAnimation {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(5, 150, 105, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(5, 150, 105, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+  }
 }
 
 /* Compliance Callout */
 .compliance-callout {
-  background: #FFFBEB;
-  border: 1px solid #FDE68A;
-  border-left: 4px solid #D97706;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #d97706;
   border-radius: 8px;
   padding: 14px 16px;
 }
@@ -261,7 +310,7 @@
 
 /* Dropzone Box */
 .dropzone-box {
-  border: 2px dashed #C5BEAF;
+  border: 2px dashed #c5beaf;
   background: var(--surface);
   border-radius: 12px;
   padding: 24px;
@@ -270,7 +319,27 @@
 }
 
 /* Badges & Tags */
-.tag-pill { display: inline-flex; padding: 3px 10px; border-radius: 14px; font-size: 10.5px; font-weight: 600; }
-.tag-new { background: var(--primary-light); color: var(--primary); border: 1px solid #C9D9CE; }
-.tag-beta { background: var(--gold-light); color: #7D5D28; border: 1px solid var(--gold-border); }
-.tag-count { background: var(--primary); color: #FFF; border-radius: 10px; padding: 2px 7px; font-size: 10px; }
+.tag-pill {
+  display: inline-flex;
+  padding: 3px 10px;
+  border-radius: 14px;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.tag-new {
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid #c9d9ce;
+}
+.tag-beta {
+  background: var(--gold-light);
+  color: #7d5d28;
+  border: 1px solid var(--gold-border);
+}
+.tag-count {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 10px;
+  padding: 2px 7px;
+  font-size: 10px;
+}

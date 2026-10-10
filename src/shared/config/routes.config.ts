@@ -5,6 +5,15 @@
 export const ROUTES = {
   /** Trang chủ công khai */
   HOME: "/",
+  /** Bản xem trước dữ liệu mẫu, chỉ được đăng ký khi chạy development. */
+  PREVIEW: {
+    OWNER: "/preview/owner",
+    EKYC_CAMERA: "/preview/ekyc/camera",
+    BENEFICIARY: "/preview/beneficiary",
+    ADMIN: "/preview/admin",
+    SETTINGS: "/preview/settings",
+    CHECKOUT: "/preview/checkout",
+  },
 
   /** Nhóm đường dẫn xác thực tài khoản */
   AUTH: {
@@ -12,6 +21,12 @@ export const ROUTES = {
     REGISTER: "/register",
     FORGOT_PASSWORD: "/forgot-password",
     RESET_PASSWORD: "/reset-password",
+    LINK_GOOGLE: "/auth/link-google",
+    VERIFY_EMAIL: "/auth/verify-email",
+    TWO_FACTOR: "/auth/2fa",
+    LOGOUT: "/logout",
+    LOGGED_OUT: "/auth/logged-out",
+    SESSION_EXPIRED: "/auth/session-expired",
   },
 
   /** Nhóm đường dẫn khu vực quản trị / nội bộ (Dashboard) */
@@ -51,6 +66,7 @@ export const ROUTES = {
   BENEFICIARY: {
     CLAIM: "/claim/beneficiary",
     HANDOVER: "/claim/beneficiary/handover",
+    EKYC_CAMERA: "/claim/beneficiary/ekyc/camera",
   },
 
   /** Quản trị hệ thống & Sổ cái kiểm toán WORM */
@@ -70,6 +86,7 @@ export const ROUTES = {
   ERROR: {
     FORBIDDEN: "/403",
     NOT_FOUND: "/404",
+    SERVER: "/500",
   },
 } as const;
 

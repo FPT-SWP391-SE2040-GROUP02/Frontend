@@ -1,16 +1,9 @@
 import React from "react";
 import { useSearchParams } from "react-router-dom";
-import { Scale, Clock, ShieldCheck, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
+import { Scale, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
 import { AppHeader } from "@/widgets";
 import { Card, Skeleton, Button } from "@/shared/ui";
-import {
-  usePendingClaims,
-  SplitScreenViewer,
-  NotaryApproveModal,
-  NotaryRejectModal,
-  type AuditCriteriaChecklist,
-  type NotaryClaimItemDto,
-} from "@/features/notary";
+import { usePendingClaims, SplitScreenViewer, NotaryApproveModal, NotaryRejectModal, type AuditCriteriaChecklist } from "@/features/notary";
 
 /**
  * @file NotaryWorkspacePage.tsx
@@ -38,7 +31,7 @@ export const NotaryWorkspacePage: React.FC = () => {
     });
   };
 
-  const handleOpenApproveModal = (criteria: AuditCriteriaChecklist) => {
+  const handleOpenApproveModal = (_criteria: AuditCriteriaChecklist) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set("modal", "approve");

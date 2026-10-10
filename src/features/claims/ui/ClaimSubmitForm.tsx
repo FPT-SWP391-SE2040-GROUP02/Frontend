@@ -1,16 +1,17 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FileText, Send, ShieldAlert, CheckCircle2 } from "lucide-react";
-import { Button, Input, Card } from "@/shared/ui";
+import { Send, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { Button, Input, Card, CustomCheckbox } from "@/shared/ui";
 import { submitClaimSchema, type SubmitClaimFormValues } from "../model/claim.schema";
+import type { SubmitClaimRequest } from "@/entities/claim/model/claim.types";
 import { LegalDropzone } from "./LegalDropzone";
 import { useSubmitClaim } from "../model/useClaims";
 
 /**
  * @file ClaimSubmitForm.tsx
- * @description Biểu mẫu nộp hồ sơ yêu cầu mở thừa kế dành cho Người Thi Hành Di Chúc.
- * Áp dụng React Hook Form + Zod Schema (Form State chuẩn mực, không dùng useState cho các ô input).
+ * @description Biểu mẫu nộp hồ sơ yêu cầu mở thừa kế dành cho Người Thi Hành Di Chúc (Executor).
+ * Tuân thủ quy định SRS 3.11.0 (DEATH-02): Bắt buộc tick cam kết "Tôi chịu trách nhiệm trước pháp luật".
  */
 
 export interface ClaimSubmitFormProps {
@@ -41,10 +42,13 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
       deathCertScanUrl: "",
       deathCertScanHash: "",
       executorNotes: "",
+      legalAttestationConfirmed: false as unknown as true,
     },
   });
 
   const scanUrl = watch("deathCertScanUrl");
+  const isAttested = watch("legalAttestationConfirmed");
+
 
   const onSubmit = (values: SubmitClaimFormValues) => {
     // =========================================================================
@@ -54,7 +58,7 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
     // 1. Kiểm tra tính hợp lệ của values (đã qua Zod Resolver validate)
     // 2. Kích hoạt submitClaimMutation với dữ liệu values
     // 3. Trong callback onSuccess của mutation, gọi hàm callback props onSuccess?.()
-    submitClaimMutation(values, {
+    submitClaimMutation(values as SubmitClaimRequest, {
       onSuccess: () => {
         onSuccess?.();
       },
@@ -109,9 +113,7 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
             {...register("documentType")}
             className="w-full px-3.5 py-2.5 rounded-[12px] bg-[#FAF9F5] border border-[#DCD9D0] text-xs font-medium text-[#14241C] focus:outline-none focus:ring-2 focus:ring-[#B88E4C]"
           >
-            <option value="DEATH_CERTIFICATE">Trích lục khai tử (UBND cấp)</option>
-            <option value="COURT_MISSING_DECREE">Quyết định Tòa án tuyên bố mất tích (Điều 68 BLDS)</option>
-            <option value="COURT_DEATH_DECREE">Quyết định Tòa án tuyên bố đã chết (Điều 71 BLDS)</option>
+            <option value="DEATH_CERTIFICATE">Trích lục khai tử / Giấy chứng tử (UBND cấp)</option>
           </select>
           {errors.documentType && (
             <p className="text-[11px] text-red-600">{errors.documentType.message}</p>
@@ -188,14 +190,35 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
         />
       </div>
 
+      {/* Ô Cam Kết Trách Nhiệm Pháp Lý Bắt Buộc (DEATH-02) */}
+      <div className="p-4 rounded-[16px] bg-[#FAF9F5] border border-[#E8DCC6] space-y-2">
+        <CustomCheckbox
+          {...register("legalAttestationConfirmed")}
+          id="executor-legal-attestation"
+          label={
+            <span className="font-bold text-[#0B291E]">
+              Tôi chịu trách nhiệm trước pháp luật về tính hợp pháp và trung thực của giấy chứng tử này.
+            </span>
+          }
+        />
+        <p className="text-[11px] text-[#66786E] pl-6 leading-relaxed">
+          Cam kết theo quy định SRS 3.11.0 (DEATH-02). Hệ thống sẽ gắn danh tính số và dấu thời gian của bạn vào bản nộp hồ sơ.
+        </p>
+        {errors.legalAttestationConfirmed && (
+          <p className="text-[11px] text-red-600 font-semibold pl-6">
+            {errors.legalAttestationConfirmed.message}
+          </p>
+        )}
+      </div>
+
       {/* Nút Submit */}
       <Button
         type="submit"
-        disabled={isPending || !scanUrl}
+        disabled={isPending || !scanUrl || !isAttested}
         className="w-full min-h-[48px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
       >
         <Send className="w-4 h-4 text-[#B88E4C]" />
-        <span>{isPending ? "Đang Gửi Hồ Sơ..." : "Nộp Hồ Sơ Mở Thừa Kế Cho Công Chứng Viên"}</span>
+        <span>{isPending ? "Đang Gửi Hồ Sơ..." : "Nộp Giấy Chứng Tử Cho Người Xác Minh (Verifier)"}</span>
       </Button>
     </form>
   );

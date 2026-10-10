@@ -7,13 +7,10 @@
  * Các khóa LocalStorage tiêu chuẩn của hệ thống LegacyVault
  */
 export const STORAGE_KEYS = {
-  TOKEN: "lv_access_token",
-  REFRESH_TOKEN: "lv_refresh_token",
   THEME: "lv_app_theme",
   ROLE: "lv_current_role",
   VIEW_MODE: "lv_view_mode",
   USER: "lv_user_info",
-  DEMO_MODE: "lv_demo_mode",
 } as const;
 
 import { type Role, ROLES } from "@/shared/constants/roles";
@@ -46,74 +43,6 @@ export const storage = {
     try {
       if (typeof window !== "undefined") {
         localStorage.setItem(STORAGE_KEYS.ROLE, role);
-      }
-    } catch {
-      // Ignored
-    }
-  },
-
-  /**
-   * Kiểm tra trạng thái Demo Mode (chu kỳ DMS 120s)
-   * @returns {boolean} true nếu đang bật chế độ Demo
-   */
-  isDemoMode(): boolean {
-    try {
-      if (typeof window === "undefined") return false;
-      return localStorage.getItem(STORAGE_KEYS.DEMO_MODE) === "true";
-    } catch {
-      return false;
-    }
-  },
-
-  /**
-   * Bật hoặc tắt trạng thái Demo Mode
-   * @param {boolean} enabled Trạng thái kích hoạt
-   */
-  setDemoMode(enabled: boolean): void {
-    try {
-      if (typeof window !== "undefined") {
-        localStorage.setItem(STORAGE_KEYS.DEMO_MODE, enabled ? "true" : "false");
-      }
-    } catch {
-      // Ignored
-    }
-  },
-
-  /**
-   * Lấy JWT token từ storage
-   * @returns {string | null} Chuỗi accessToken hoặc null nếu không tồn tại
-   */
-  getToken(): string | null {
-    try {
-      if (typeof window === "undefined") return null;
-      return localStorage.getItem(STORAGE_KEYS.TOKEN);
-    } catch {
-      return null;
-    }
-  },
-
-  /**
-   * Lưu JWT token vào storage
-   * @param {string} token Chuỗi token nhận được từ Backend
-   */
-  setToken(token: string): void {
-    try {
-      if (typeof window !== "undefined") {
-        localStorage.setItem(STORAGE_KEYS.TOKEN, token);
-      }
-    } catch {
-      // Ignored
-    }
-  },
-
-  /**
-   * Xóa JWT token và các thông tin liên quan khỏi storage
-   */
-  clearToken(): void {
-    try {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem(STORAGE_KEYS.TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
       }
     } catch {
       // Ignored

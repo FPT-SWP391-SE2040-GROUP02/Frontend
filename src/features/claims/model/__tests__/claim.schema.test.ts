@@ -11,11 +11,16 @@ describe("submitClaimSchema validation", () => {
     deathCertScanUrl: "https://storage.legacyvault.vn/claims/cert_01.pdf",
     deathCertScanHash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     executorNotes: "Hồ sơ đã đối soát hợp lệ",
+    legalAttestationConfirmed: true,
   };
 
   it("should pass validation with valid executor claim data", () => {
     const result = submitClaimSchema.safeParse(validData);
     expect(result.success).toBe(true);
+  });
+
+  it("should reject a claim without legal attestation", () => {
+    expect(submitClaimSchema.safeParse({ ...validData, legalAttestationConfirmed: false }).success).toBe(false);
   });
 
   it("should fail when deathCertScanHash is not exactly 64 hex characters", () => {

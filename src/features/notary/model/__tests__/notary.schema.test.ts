@@ -13,11 +13,16 @@ describe("notary.schema validation", () => {
         isExecutorAuthorized: true,
       },
       notaryNotes: "Đã thẩm định hợp lệ",
+      legalAttestationConfirmed: true,
     };
 
     it("should pass when PIN has 6 digits and all 4 criteria are true", () => {
       const result = notaryApproveSchema.safeParse(validApprove);
       expect(result.success).toBe(true);
+    });
+
+    it("should reject approval without legal attestation", () => {
+      expect(notaryApproveSchema.safeParse({ ...validApprove, legalAttestationConfirmed: false }).success).toBe(false);
     });
 
     it("should fail when any of the 4 criteria is false", () => {

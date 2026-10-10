@@ -1,4 +1,4 @@
 export * from "./store";
 export * from "./hooks";
-export * from "./uiSlice";
-export * from "./authSlice";
+export * from "@/shared/model/uiSlice";
+export * from "@/entities/user/model/authSlice";

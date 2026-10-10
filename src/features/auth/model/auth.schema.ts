@@ -8,7 +8,7 @@ export const loginSchema = z.object({
   email: z
     .string()
     .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Email"))
-    .email(APP_MESSAGES.VALIDATION.EMAIL),
+    .email(APP_MESSAGES.VALIDATION.INVALID_EMAIL),
   password: z
     .string()
     .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu"))
@@ -30,7 +30,7 @@ export const registerSchema = z
     email: z
       .string()
       .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Email"))
-      .email(APP_MESSAGES.VALIDATION.EMAIL),
+      .email(APP_MESSAGES.VALIDATION.INVALID_EMAIL),
     password: z
       .string()
       .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu"))
@@ -58,3 +58,28 @@ export const otpSchema = z.object({
 });
 
 export type OtpInput = z.infer<typeof otpSchema>;
+
+/**
+ * @description Zod Schema kiểm tra dữ liệu xác nhận mật khẩu để liên kết Google (Mockup 5).
+ */
+export const linkGoogleSchema = z.object({
+  password: z
+    .string()
+    .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu hiện có"))
+    .min(8, APP_MESSAGES.VALIDATION.MIN_LENGTH("Mật khẩu", 8)),
+});
+
+export type LinkGoogleInput = z.infer<typeof linkGoogleSchema>;
+
+/**
+ * @description Zod Schema kiểm tra mã xác thực 2 bước 6 chữ số (Mockup 7).
+ */
+export const twoFactorSchema = z.object({
+  code: z
+    .string()
+    .length(6, "Mã xác thực gồm chính xác 6 chữ số.")
+    .regex(/^\d{6}$/, "Mã xác thực chỉ chứa chữ số từ 0 đến 9."),
+  rememberDevice: z.boolean().optional(),
+});
+
+export type TwoFactorInput = z.infer<typeof twoFactorSchema>;

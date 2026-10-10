@@ -7,12 +7,12 @@ import { z } from "zod";
  */
 export const submitClaimSchema = z.object({
   vaultId: z.string().min(1, "Vui lòng chọn két di sản cần mở thừa kế"),
-  documentType: z.enum(["DEATH_CERTIFICATE", "COURT_MISSING_DECREE", "COURT_DEATH_DECREE"], {
-    errorMap: () => ({ message: "Vui lòng chọn loại chứng từ pháp lý hợp lệ" }),
+  documentType: z.enum(["DEATH_CERTIFICATE"], {
+    errorMap: () => ({ message: "Hệ thống chỉ tiếp nhận Giấy chứng tử hợp pháp (SRS 3.11.0)" }),
   }),
   deathCertificateNumber: z
     .string()
-    .min(3, "Số hiệu trích lục / số bản án phải có ít nhất 3 ký tự")
+    .min(3, "Số hiệu trích lục khai tử phải có ít nhất 3 ký tự")
     .max(50, "Số hiệu không được vượt quá 50 ký tự"),
   deathCertificateIssueDate: z
     .string()
@@ -32,6 +32,9 @@ export const submitClaimSchema = z.object({
     .string()
     .max(500, "Ghi chú không được vượt quá 500 ký tự")
     .optional(),
+  legalAttestationConfirmed: z.literal(true, {
+    errorMap: () => ({ message: "Bạn bắt buộc phải xác nhận cam kết 'Tôi chịu trách nhiệm trước pháp luật'" }),
+  }),
 });
 
 export type SubmitClaimFormValues = z.infer<typeof submitClaimSchema>;

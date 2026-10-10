@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getExecutorClaims, submitClaim } from "../api/claimService";
 import type { PaginationParams } from "@/shared/types";
-import type { SubmitClaimRequest } from "./claim.types";
+import type { SubmitClaimRequest } from "@/entities/claim/model/claim.types";
 
 /**
  * @file useClaims.ts

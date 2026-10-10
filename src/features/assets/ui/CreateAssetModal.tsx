@@ -111,7 +111,7 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
                 Niêm Phong Tài Sản Số Mới
               </DialogTitle>
               <DialogDescription className="text-xs text-[#66786E]">
-                Mã hóa đầu cuối Client-Side (AES-256-GCM) & Phân mảnh khóa Shamir (k out of n)
+                Mã hóa bảo vệ dữ liệu (AES-256-GCM) & Chỉ định trực tiếp không phần trăm (SRS 3.11.0)
               </DialogDescription>
             </div>
           </div>
@@ -199,16 +199,16 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
             })}
           </div>
 
-          {/* Section 4: Shamir Key Sharing Notice */}
+          {/* Section 4: Envelope Encryption & Handover Notice */}
           <div className="p-4 rounded-[16px] bg-[#FBF7EE] border border-[#E8DCC6] flex items-center justify-between text-xs text-[#78350F]">
             <div>
-              <span className="font-bold block">Phân Mảnh Khóa Shamir (2/3 Shares)</span>
+              <span className="font-bold block">Chính sách bàn giao tài sản (SRS 3.11.0)</span>
               <span className="text-[11px] text-[#A07839]">
-                Kho cần tối thiểu 2 trong 3 người thụ hưởng để phục hồi dữ liệu gốc.
+                Tài sản sẽ được tự động gom vào kho bàn giao tương ứng với tập người nhận sau khi thiết lập di sản.
               </span>
             </div>
             <span className="font-mono text-xs font-bold px-2.5 py-1 bg-[#FAF9F5] border border-[#E8DCC6] rounded-[8px] text-[#B88E4C]">
-              k = 2, n = 3
+              AES-256-GCM
             </span>
           </div>
 

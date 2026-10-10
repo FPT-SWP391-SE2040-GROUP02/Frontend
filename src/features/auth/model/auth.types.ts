@@ -57,3 +57,54 @@ export interface OtpVerificationRequest {
   otpCode: string;
   type: "LOGIN_2FA" | "REGISTER_CONFIRM" | "PASSWORD_RESET";
 }
+
+/**
+ * @description Trạng thái khóa tạm thời khi nhập sai mật khẩu quá 5 lần (Mockup 3).
+ */
+export interface LockoutInfo {
+  /** Cờ cho biết tài khoản đang bị khóa tạm thời */
+  isLocked: boolean;
+  /** Thời điểm sẽ mở khóa (ISO String hoặc định dạng HH:mm) */
+  unlockAt?: string;
+  /** Số giây còn lại */
+  remainingSeconds: number;
+  /** Số lượt thử còn lại trước khi bị khóa */
+  attemptsRemaining: number;
+}
+
+/**
+ * @description Dữ liệu ngữ cảnh khi đăng nhập từ lời mời nhận di sản (Mockup 4).
+ */
+export interface InvitationContext {
+  token: string;
+  packageName: string;
+  inviterName?: string;
+  inviterEmail?: string;
+}
+
+/**
+ * @description Yêu cầu xác nhận mật khẩu hiện tại để liên kết tài khoản Google (Mockup 5).
+ */
+export interface LinkGoogleRequest {
+  email: string;
+  currentPassword: string;
+  googleAuthCode?: string;
+}
+
+/**
+ * @description Yêu cầu xác thực hai bước TOTP cho tài khoản quản trị (Mockup 7).
+ */
+export interface TwoFactorVerifyRequest {
+  code: string;
+  rememberDevice?: boolean;
+}
+
+/**
+ * @description Tùy chọn khi người dùng xác nhận đăng xuất (Mockup 8).
+ */
+export interface LogoutOptions {
+  /** Đăng xuất khỏi mọi thiết bị đang đăng nhập */
+  revokeAllDevices?: boolean;
+  /** Lý do đăng xuất */
+  reason?: "USER_INITIATED" | "SESSION_TIMEOUT" | "SECURITY_REVOCATION";
+}

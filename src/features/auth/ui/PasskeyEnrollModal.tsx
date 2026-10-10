@@ -7,7 +7,7 @@ import {
   DialogDescription,
 } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
-import { Fingerprint, CheckCircle2, ShieldCheck, Smartphone } from "lucide-react";
+import { Fingerprint, CheckCircle2 } from "lucide-react";
 
 /**
  * @description Thuộc tính cấu hình cho PasskeyEnrollModal component.
@@ -57,7 +57,7 @@ export function PasskeyEnrollModal({
         setIsSuccess(true);
         onEnrollSuccess?.();
       }, 1200);
-    } catch (_error) {
+    } catch {
       setIsEnrolling(false);
     }
   };

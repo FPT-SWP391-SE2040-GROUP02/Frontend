@@ -1,12 +1,6 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/shared/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
-import { FileText, Download, CheckCircle2, Building, Calendar, CreditCard } from "lucide-react";
+import { FileText, Download, Building } from "lucide-react";
 import type { Invoice } from "../model/billing.types";
 
 /**

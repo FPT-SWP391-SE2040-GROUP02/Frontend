@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { UploadCloud, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { getPresignedUploadUrl } from "../api/claimService";
+
 
 /**
  * @file LegalDropzone.tsx
@@ -40,7 +40,7 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
 
   // ZERO useState: Sử dụng TanStack Query useMutation duy nhất để quản lý vòng đời Async/Server State
   const uploadMutation = useMutation<UploadedFileResult, Error, File>({
-    mutationFn: async (file: File) => {
+    mutationFn: async (_file: File) => {
       // =========================================================================
       // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
       // =========================================================================

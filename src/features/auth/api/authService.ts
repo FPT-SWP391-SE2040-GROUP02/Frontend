@@ -5,6 +5,9 @@ import type {
   RegisterRequest,
   PasskeyLoginRequest,
   OtpVerificationRequest,
+  LinkGoogleRequest,
+  TwoFactorVerifyRequest,
+  LogoutOptions,
 } from "../model/auth.types";
 import { axiosClient } from "@/shared/api/axiosClient";
 
@@ -24,9 +27,6 @@ export const authService = {
    * @returns {Promise<AuthSession>} Thông tin phiên đăng nhập
    */
   async login(credentials: LoginRequest): Promise<AuthSession> {
-    // TODO: 1. Gọi API POST /api/v1/auth/login với credentials
-    // TODO: 2. Lưu trữ token vào localStorage qua storage.setToken
-    // TODO: 3. Trả về đối tượng AuthSession
     const response = await axiosClient.post<AuthSession>("/auth/login", credentials);
     return response.data;
   },
@@ -37,8 +37,6 @@ export const authService = {
    * @returns {Promise<AuthSession>} Kết quả phiên đăng ký
    */
   async register(data: RegisterRequest): Promise<AuthSession> {
-    // TODO: 1. Gọi API POST /api/v1/auth/register
-    // TODO: 2. Trả về kết quả
     const response = await axiosClient.post<AuthSession>("/auth/register", data);
     return response.data;
   },
@@ -49,7 +47,6 @@ export const authService = {
    * @returns {Promise<AuthSession>}
    */
   async loginWithPasskey(payload: PasskeyLoginRequest): Promise<AuthSession> {
-    // TODO: 1. Gọi API POST /api/v1/auth/passkey/verify
     const response = await axiosClient.post<AuthSession>("/auth/passkey/verify", payload);
     return response.data;
   },
@@ -59,17 +56,45 @@ export const authService = {
    * @param {OtpVerificationRequest} payload
    */
   async verifyOtp(payload: OtpVerificationRequest): Promise<boolean> {
-    // TODO: 1. Gọi API POST /api/v1/auth/otp/verify
     const response = await axiosClient.post<{ isValid: boolean }>("/auth/otp/verify", payload);
     return response.data.isValid;
   },
 
   /**
-   * @description Đăng xuất tài khoản
+   * @description Xác nhận mật khẩu để liên kết tài khoản Google (Mockup 5)
+   * @param {LinkGoogleRequest} payload Thông tin email và mật khẩu hiện có
+   * @returns {Promise<AuthSession>} Phiên đăng nhập sau khi liên kết thành công
    */
-  async logout(): Promise<void> {
-    // TODO: 1. Gọi API POST /api/v1/auth/logout
-    // TODO: 2. Xóa sạch token khỏi storage
-    await axiosClient.post("/auth/logout");
+  async linkGoogleAccount(payload: LinkGoogleRequest): Promise<AuthSession> {
+    const response = await axiosClient.post<AuthSession>("/auth/google/link-account", payload);
+    return response.data;
+  },
+
+  /**
+   * @description Xác thực hai bước TOTP cho tài khoản quản trị (Mockup 7)
+   * @param {TwoFactorVerifyRequest} payload Mã 6 số và cờ ghi nhớ thiết bị
+   * @returns {Promise<AuthSession>} Phiên đăng nhập hoàn chỉnh
+   */
+  async verifyTwoFactor(payload: TwoFactorVerifyRequest): Promise<AuthSession> {
+    const response = await axiosClient.post<AuthSession>("/auth/2fa/verify-totp", payload);
+    return response.data;
+  },
+
+  /**
+   * @description Gửi lại email xác minh tài khoản (Mockup 6)
+   * @param {string} email Địa chỉ email cần gửi lại liên kết
+   * @returns {Promise<{ success: boolean }>}
+   */
+  async resendVerificationEmail(email: string): Promise<{ success: boolean }> {
+    const response = await axiosClient.post<{ success: boolean }>("/auth/email/resend-verification", { email });
+    return response.data;
+  },
+
+  /**
+   * @description Đăng xuất tài khoản người dùng và hủy phiên làm việc (Mockup 8)
+   * @param {LogoutOptions} [options] Tùy chọn đăng xuất khỏi mọi thiết bị
+   */
+  async logout(options?: LogoutOptions): Promise<void> {
+    await axiosClient.post("/auth/logout", options);
   },
 };

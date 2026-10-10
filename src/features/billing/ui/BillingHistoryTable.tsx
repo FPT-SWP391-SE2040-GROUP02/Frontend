@@ -1,4 +1,4 @@
-import { FileText, Download, CheckCircle2, RotateCcw } from "lucide-react";
+import { FileText, Download } from "lucide-react";
 import type { Invoice } from "../model/billing.types";
 import { Button } from "@/shared/ui/button";
 

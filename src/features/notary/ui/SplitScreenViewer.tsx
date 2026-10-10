@@ -1,21 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { 
-  ZoomIn, 
-  ZoomOut, 
-  RotateCw, 
-  Maximize2, 
-  ShieldCheck, 
-  FileText, 
-  Check, 
-  X, 
-  AlertCircle,
-  ExternalLink,
-  Lock,
-  User,
-  Scale
-} from "lucide-react";
-import { Button, Card, Badge } from "@/shared/ui";
+import { ZoomIn, ZoomOut, RotateCw, Maximize2, ShieldCheck, FileText, Check, X, Lock, User } from "lucide-react";
+import { Button, Card } from "@/shared/ui";
 import type { NotaryClaimDetailViewModel, AuditCriteriaChecklist } from "../model/notary.types";
 
 /**
@@ -46,7 +32,7 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
   const [rotationAngle, setRotationAngle] = useState<number>(0);
 
   // Form State: Sử dụng React Hook Form quản lý 4 tiêu chí kiểm toán bắt buộc thay vì useState
-  const { watch, setValue, getValues } = useForm<AuditCriteriaChecklist>({
+  const { watch, setValue } = useForm<AuditCriteriaChecklist>({
     defaultValues: {
       isDocumentValid: false,
       isIdentityMatched: false,

@@ -1,10 +1,6 @@
-import { axiosClient } from "@/shared/api";
+
 import type { ApiResponse, PaginatedList, PaginationParams } from "@/shared/types";
-import type {
-  NotaryClaimItemDto,
-  ApproveClaimRequest,
-  RejectClaimRequest,
-} from "../model/notary.types";
+import type { NotaryClaimItemDto, ApproveClaimRequest, RejectClaimRequest } from "../model/notary.types";
 
 /**
  * @file notaryService.ts
@@ -12,7 +8,6 @@ import type {
  * Tuân thủ Rule 7 (Scaffold with TODO) và Rule 8 (JSDoc chuẩn chỉnh).
  */
 
-const NOTARY_ENDPOINT = "/notary";
 
 /**
  * Lấy danh sách hồ sơ tử tuất/mất tích đang chờ thẩm định (CLAIM_PENDING)
@@ -69,11 +64,11 @@ export async function getPendingClaims(
 
 /**
  * Phê duyệt hồ sơ thừa kế và giải phóng Mảnh khóa Verifier (Shamir Share 2)
- * @param payload Dữ liệu phê duyệt kèm 4 tiêu chí kiểm toán và mã PIN ký số
+ * @param _payload Dữ liệu phê duyệt kèm 4 tiêu chí kiểm toán và mã PIN ký số
  * @returns Promise xác nhận phê duyệt thành công
  */
 export async function approveClaim(
-  payload: ApproveClaimRequest
+  _payload: ApproveClaimRequest
 ): Promise<ApiResponse<{ releasedShareIndex: number; vaultStatus: string }>> {
   // TODO: [Developer Step]
   // 1. Kiểm tra đủ 4 tiêu chí kiểm toán trong payload.checkCriteria
@@ -91,11 +86,11 @@ export async function approveClaim(
 
 /**
  * Từ chối hồ sơ thừa kế và gửi thông báo yêu cầu bổ sung cho Executor
- * @param payload Dữ liệu từ chối gồm mã lý do và văn bản giải trình >= 20 ký tự
+ * @param _payload Dữ liệu từ chối gồm mã lý do và văn bản giải trình >= 20 ký tự
  * @returns Promise xác nhận từ chối hồ sơ
  */
 export async function rejectClaim(
-  payload: RejectClaimRequest
+  _payload: RejectClaimRequest
 ): Promise<ApiResponse<{ claimStatus: string }>> {
   // TODO: [Developer Step]
   // 1. Validate payload.notaryNotes.length >= 20

@@ -1,15 +1,7 @@
-import { LogOut, User, ShieldCheck } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/shared/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 import { type Role, ROLES } from "@/shared/constants/roles";
-import { storage } from "@/shared/utils";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
 
@@ -58,12 +50,8 @@ export function UserAvatarMenu({
   const navigate = useNavigate();
 
   const handleLogoutClick = () => {
-    // TODO: 1. Xóa sạch JWT token khỏi storage
-    // TODO: 2. Kích hoạt callback onLogout
-    // TODO: 3. Điều hướng về /login
-    storage.clearToken();
     onLogout?.();
-    navigate(ROUTES.AUTH.LOGIN);
+    if (!onLogout) navigate(ROUTES.AUTH.LOGOUT);
   };
 
   const getRoleBadgeLabel = (r: Role) => {
@@ -92,19 +80,17 @@ export function UserAvatarMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className={`relative rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--heritage-gold,#b88e4c)] focus:ring-offset-2 ${className}`}
-          aria-label="Menu tài khoản"
-        >
-          <Avatar className="h-9 w-9 border-2 border-[#d2decb] dark:border-[#1e4631] bg-gradient-to-br from-[#d8bf7d] to-[#af8946] text-[#103329] font-bold text-xs shadow-xs">
-            {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-            <AvatarFallback className="bg-transparent text-[#103329] font-bold">
-              {initials || "LV"}
-            </AvatarFallback>
-          </Avatar>
-        </button>
+      <DropdownMenuTrigger
+        type="button"
+        className={`relative rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--heritage-gold,#b88e4c)] focus:ring-offset-2 ${className}`}
+        aria-label="Menu tài khoản"
+      >
+        <Avatar className="h-9 w-9 border-2 border-[#d2decb] dark:border-[#1e4631] bg-gradient-to-br from-[#d8bf7d] to-[#af8946] text-[#103329] font-bold text-xs shadow-xs">
+          {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
+          <AvatarFallback className="bg-transparent text-[#103329] font-bold">
+            {initials || "LV"}
+          </AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="w-56 bg-white dark:bg-[#0c2217] border border-[#dce5d6] dark:border-[#1d402f] shadow-lg rounded-2xl p-1.5" align="end">

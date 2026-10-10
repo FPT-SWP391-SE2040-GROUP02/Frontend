@@ -1,72 +1,121 @@
 import { useState } from "react";
-import { Sparkles, ShieldCheck, ArrowLeft, CreditCard, RefreshCw } from "lucide-react";
+import { Sparkles, ShieldCheck, ArrowLeft, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button } from "@/shared/ui/button";
+import { buttonVariants } from "@/shared/ui/button";
+import { cn } from "cn";
 import { PricingCard } from "@/features/billing/ui/PricingCard";
 import { SepayQrModal } from "@/features/billing/ui/SepayQrModal";
 import type { PricingPlan, PaymentOrder } from "@/features/billing/model/billing.types";
-import { useCreatePaymentOrder } from "@/features/billing/model/useBilling";
 
 /**
- * Danh sách các gói dịch vụ mẫu mặc định chuẩn Master UI Kit
+ * Danh sách các gói dịch vụ chuẩn SRS 3.11.0 (Luồng 1A & 4G)
  */
-const MOCK_PLANS: PricingPlan[] = [
+const SRS_PLANS: PricingPlan[] = [
+  // Gói Chủ sở hữu di sản (Owner)
   {
-    id: "plan-free",
-    tier: "FREE",
-    name: "Két Cơ Bản (Starter)",
+    id: "plan-owner-free",
+    tier: "OWNER_FREE",
+    category: "OWNER",
+    name: "Owner Free",
     price: 0,
     billingCycle: "lifetime",
-    description: "Dành cho cá nhân muốn trải nghiệm két số bảo mật và nhịp sinh tồn cơ bản.",
+    cycleText: "vĩnh viễn",
+    description: "Lưu trữ cá nhân và điểm danh DMS, không thiết lập di sản.",
     features: [
-      "1 Két Di Sản Cá Nhân",
-      "Dung lượng lưu trữ: 1 GB",
-      "Tối đa 1 người thừa kế (Beneficiary)",
-      "Mã hóa Client-side AES-256 GCM",
-      "Nhịp kiểm tra sinh tồn (DMS) 90 ngày",
+      "Tối đa 3 tài sản số niêm phong",
+      "Dung lượng lưu trữ: 20 MB",
+      "Mã hóa AES-256-GCM Envelope Encryption",
+      "Nhịp sinh tồn định kỳ DMS 30 - 90 ngày",
+      "Không hỗ trợ kích hoạt Kế hoạch Di sản",
     ],
-    storageLimitGb: 1,
-    maxHeirs: 1,
+    storageLimitMb: 20,
+    maxAssets: 3,
+    allowEstatePlan: false,
+    allowPdfExport: false,
   },
   {
-    id: "plan-family",
-    tier: "FAMILY",
-    name: "Di Sản Gia Đình (Family Vault)",
+    id: "plan-legacy-xs",
+    tier: "LEGACY_XS",
+    category: "OWNER",
+    name: "Legacy XS",
     price: 199000,
-    billingCycle: "monthly",
-    description: "Giải pháp hoàn hảo bảo vệ tài sản số và phân bổ di sản cho cả gia đình hạt nhân.",
+    billingCycle: "365_days",
+    cycleText: "365 ngày",
+    description: "Kế hoạch di sản tiêu chuẩn, thẩm định chứng tử và bàn giao toàn diện.",
+    features: [
+      "Tối đa 20 tài sản số đưa vào di sản",
+      "Dung lượng lưu trữ: 200 MB",
+      "Gán người nhận trực tiếp & Tự gom kho bàn giao",
+      "Chỉ định Người thực thi (Executor) & Giám sát",
+      "Thẩm định Giấy chứng tử Verifier độc lập",
+      "Quy trình cứu hộ AliveClaim 2 bước",
+    ],
+    storageLimitMb: 200,
+    maxAssets: 20,
+    allowEstatePlan: true,
+    allowPdfExport: false,
+  },
+  {
+    id: "plan-legacy-xs-max",
+    tier: "LEGACY_XS_MAX",
+    category: "OWNER",
+    name: "Legacy XS Max",
+    price: 399000,
+    billingCycle: "365_days",
+    cycleText: "365 ngày",
+    description: "Đầy đủ quyền năng di sản, thẩm định ưu tiên và xuất PDF Kế hoạch di sản.",
     isPopular: true,
     features: [
-      "Không giới hạn số lượng két con",
-      "Dung lượng lưu trữ: 50 GB",
-      "Tối đa 5 người thừa kế & 2 người giám hộ",
-      "Đăng nhập sinh trắc học WebAuthn / Passkey",
-      "Tự động tính toán phân bổ Điều 644 BLDS",
-      "Nhịp sinh tồn tùy biến (30 / 60 / 90 ngày)",
-      "Ủy thác công chứng viên số (Notary Review)",
+      "Tối đa 50 tài sản số đưa vào di sản",
+      "Dung lượng lưu trữ: 500 MB",
+      "Tất cả tính năng của gói Legacy XS",
+      "Xuất PDF Kế hoạch Di Sản kèm tem băm SHA-256",
+      "Hỗ trợ chuyển quyền 1:1 nguyên kho bàn giao",
+      "Ưu tiên thẩm định hồ sơ công chứng viên số",
     ],
-    storageLimitGb: 50,
-    maxHeirs: 5,
+    storageLimitMb: 500,
+    maxAssets: 50,
+    allowEstatePlan: true,
+    allowPdfExport: true,
+  },
+  // Gói Kho cá nhân Người thụ hưởng (Beneficiary / Recipient)
+  {
+    id: "plan-recipient-free",
+    tier: "RECIPIENT_FREE",
+    category: "RECIPIENT",
+    name: "Kho Cá Nhân Free",
+    price: 0,
+    billingCycle: "lifetime",
+    cycleText: "vĩnh viễn",
+    description: "Dành cho người thụ hưởng lưu trữ tài sản di sản nhận được trong hạn mức cơ bản.",
+    features: [
+      "Tối đa 2 tài sản di sản đã tiếp nhận",
+      "Dung lượng lưu trữ: 20 MB",
+      "Truy cập và tải về nội dung giải mã bảo mật",
+      "Lưu trữ cá nhân không phụ thuộc kho chung",
+    ],
+    storageLimitMb: 20,
+    maxAssets: 2,
   },
   {
-    id: "plan-lifetime",
-    tier: "LIFETIME",
-    name: "Di Sản Vĩnh Cửu (Lifetime Legacy)",
-    price: 2490000,
-    billingCycle: "lifetime",
-    description: "Thanh toán 1 lần duy nhất, ủy thác trọn đời có bảo chứng công chứng viên chuyên môn.",
+    id: "plan-recipient-plus",
+    tier: "RECIPIENT_PLUS",
+    category: "RECIPIENT",
+    name: "Kho Cá Nhân Plus",
+    price: 49000,
+    billingCycle: "30_days",
+    cycleText: "30 ngày",
+    description: "Mở rộng dung lượng kho cá nhân lưu trữ toàn bộ tài sản di sản tiếp nhận được.",
+    isPopular: true,
     features: [
-      "Ủy thác lưu trữ trọn đời (Không gia hạn)",
-      "Dung lượng lưu trữ: 200 GB",
-      "Không giới hạn người thừa kế & giám hộ",
-      "Khung video tuyên thệ minh mẫn Điều 630 BLDS",
-      "Công chứng viên riêng thẩm định hồ sơ",
-      "Hỗ trợ pháp lý tận nơi khi mở két",
-      "Tem băm SHA-256 & ECDSA P-256 bất biến",
+      "Tối đa 10 tài sản di sản đã tiếp nhận",
+      "Dung lượng lưu trữ: 200 MB",
+      "Tải về tốc độ cao không giới hạn băng thông",
+      "Lưu trữ dài hạn nội dung di sản giá trị cao",
     ],
-    storageLimitGb: 200,
-    maxHeirs: 999,
+    storageLimitMb: 200,
+    maxAssets: 10,
   },
 ];
 
@@ -77,21 +126,19 @@ const MOCK_PLANS: PricingPlan[] = [
  * @returns {React.JSX.Element} Màn hình bảng giá
  */
 export function PricingPlansPage() {
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly" | "lifetime">("monthly");
+  const [selectedCategory, setSelectedCategory] = useState<"OWNER" | "RECIPIENT">("OWNER");
   const [selectedOrder, setSelectedOrder] = useState<PaymentOrder | null>(null);
   const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
 
-  const { mutate: createOrder, isPending } = useCreatePaymentOrder();
 
   const handleSelectPlan = (plan: PricingPlan) => {
     // Gói miễn phí không cần sinh mã QR
     if (plan.price === 0) {
-      alert("Bạn đang sử dụng gói Két Cơ Bản Miễn Phí!");
+      alert(`Bạn đang sử dụng gói ${plan.name} Miễn Phí!`);
       return;
     }
 
-    // TODO: 1. Gọi mutation createOrder({ planId: plan.id, billingCycle })
-    // TODO: 2. Nhận PaymentOrder từ Backend C# và mở SepayQrModal
+    // Khởi tạo đơn hàng thanh toán SePay VietQR (chuẩn Napas 247)
     const mockOrder: PaymentOrder = {
       orderId: `ORD-${Date.now()}`,
       orderCode: `LV${Math.floor(100000 + Math.random() * 900000)}`,
@@ -111,6 +158,8 @@ export function PricingPlansPage() {
     setIsQrModalOpen(true);
   };
 
+  const displayedPlans = SRS_PLANS.filter((p) => p.category === selectedCategory);
+
   return (
     <div className="min-h-screen bg-[var(--bg-canvas,#EFECE6)] dark:bg-[#071710] text-[var(--text-main,#14241C)] dark:text-[#E5EDE8] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-10">
@@ -125,71 +174,61 @@ export function PricingPlansPage() {
               <span>Về Trang Chủ</span>
             </Link>
             <h1 className="text-2xl sm:text-4xl font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
-              Gói Dịch Vụ Két Di Sản Số
+              Gói Dịch Vụ & Biểu Phí Di Sản Số
             </h1>
             <p className="text-xs sm:text-sm text-[var(--text-muted,#66786E)]">
-              Bảo vệ an toàn tài sản mật mã học và phân chia di sản hợp pháp trọn đời
+              Mã hóa niêm phong Envelope Encryption AES-256-GCM · Thẩm định chứng tử pháp lý · Bảo mật Zero-Knowledge
             </p>
           </div>
 
-          <Button variant="outline" asChild className="rounded-[20px] text-xs font-[550] shadow-xs shrink-0">
-            <Link to={ROUTES.BILLING.HISTORY} className="flex items-center gap-2 px-4 py-2 whitespace-nowrap">
-              <CreditCard className="w-4 h-4 text-[var(--gold,#B88E4C)] shrink-0" />
-              <span className="whitespace-nowrap">Lịch Sử Hóa Đơn</span>
-            </Link>
-          </Button>
+          <Link
+            to={ROUTES.BILLING.HISTORY}
+            className={cn(buttonVariants({ variant: "outline" }), "rounded-[20px] text-xs font-[550] shadow-xs shrink-0 flex items-center gap-2 px-4 py-2 whitespace-nowrap")}
+          >
+            <CreditCard className="w-4 h-4 text-[var(--gold,#B88E4C)] shrink-0" />
+            <span className="whitespace-nowrap">Lịch Sử Hóa Đơn</span>
+          </Link>
         </div>
 
-        {/* Cụm Pill Tabs chuyển chu kỳ thanh toán */}
+        {/* Tab chuyển đổi Đối tượng dịch vụ chuẩn SRS 3.11.0 */}
         <div className="flex justify-center">
-          <div className="pill-tabs inline-flex bg-[#E5E1D6] dark:bg-[#0E261A] p-1 rounded-[12px] border border-[#D5D0C3] dark:border-[#1E432F]">
+          <div className="inline-flex bg-[#E5E1D6] dark:bg-[#0E261A] p-1.5 rounded-[16px] border border-[#D5D0C3] dark:border-[#1E432F] shadow-inner">
             <button
               type="button"
-              onClick={() => setBillingCycle("monthly")}
-              className={`pill-tab px-5 py-2 text-xs font-[550] rounded-[8px] transition-all ${
-                billingCycle === "monthly"
-                  ? "bg-[var(--surface,#FAF9F5)] text-[var(--primary,#0B291E)] shadow-xs font-bold"
+              onClick={() => setSelectedCategory("OWNER")}
+              className={`px-6 py-2.5 text-xs font-bold rounded-[12px] transition-all flex items-center gap-2 ${
+                selectedCategory === "OWNER"
+                  ? "bg-[var(--surface,#FAF9F5)] text-[var(--primary,#0B291E)] shadow-xs"
                   : "text-[var(--text-muted,#66786E)] hover:text-[var(--text-main,#14241C)]"
               }`}
             >
-              Theo Tháng
+              <Sparkles className="w-3.5 h-3.5 text-[var(--gold,#B88E4C)]" />
+              <span>Chủ Sở Hữu Két (Lập Kế Hoạch Di Sản)</span>
             </button>
             <button
               type="button"
-              onClick={() => setBillingCycle("yearly")}
-              className={`pill-tab px-5 py-2 text-xs font-[550] rounded-[8px] transition-all flex items-center gap-1.5 ${
-                billingCycle === "yearly"
-                  ? "bg-[var(--surface,#FAF9F5)] text-[var(--primary,#0B291E)] shadow-xs font-bold"
+              onClick={() => setSelectedCategory("RECIPIENT")}
+              className={`px-6 py-2.5 text-xs font-bold rounded-[12px] transition-all flex items-center gap-2 ${
+                selectedCategory === "RECIPIENT"
+                  ? "bg-[var(--surface,#FAF9F5)] text-[var(--primary,#0B291E)] shadow-xs"
                   : "text-[var(--text-muted,#66786E)] hover:text-[var(--text-main,#14241C)]"
               }`}
             >
-              <span>Theo Năm</span>
-              <span className="tag-pill tag-new text-[9px] py-0 px-1.5">Tiết kiệm 20%</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setBillingCycle("lifetime")}
-              className={`pill-tab px-5 py-2 text-xs font-[550] rounded-[8px] transition-all flex items-center gap-1.5 ${
-                billingCycle === "lifetime"
-                  ? "bg-[var(--surface,#FAF9F5)] text-[var(--primary,#0B291E)] shadow-xs font-bold"
-                  : "text-[var(--text-muted,#66786E)] hover:text-[var(--text-main,#14241C)]"
-              }`}
-            >
-              <span>Trọn Đời</span>
-              <span className="tag-pill tag-beta text-[9px] py-0 px-1.5">Vĩnh Cửu</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-[#059669]" />
+              <span>Người Thụ Hưởng (Kho Cá Nhân Nhận Di Sản)</span>
             </button>
           </div>
         </div>
 
         {/* Lưới các gói dịch vụ Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-          {MOCK_PLANS.map((plan) => (
+        <div className={`grid grid-cols-1 ${selectedCategory === "OWNER" ? "md:grid-cols-3" : "md:grid-cols-2 max-w-4xl mx-auto"} gap-6 pt-2`}>
+          {displayedPlans.map((plan) => (
             <PricingCard
               key={plan.id}
               plan={plan}
-              billingCycle={billingCycle}
+              billingCycle={plan.billingCycle === "365_days" ? "yearly" : plan.billingCycle === "30_days" ? "monthly" : "lifetime"}
               onSelectPlan={handleSelectPlan}
-              isCurrentPlan={plan.id === "plan-free"}
+              isCurrentPlan={plan.id === "plan-owner-free" && selectedCategory === "OWNER"}
             />
           ))}
         </div>

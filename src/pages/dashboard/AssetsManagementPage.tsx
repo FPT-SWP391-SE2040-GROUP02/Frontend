@@ -1,28 +1,9 @@
 import React from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { 
-  Shield, 
-  Plus, 
-  ChevronRight, 
-  Lock, 
-  Filter, 
-  Radio, 
-  KeyRound, 
-  Bitcoin, 
-  FileText, 
-  Scale, 
-  ExternalLink 
-} from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Plus, Lock, Filter, KeyRound, Bitcoin, FileText, Scale, ExternalLink } from "lucide-react";
 import { Button } from "@/shared/ui";
-import { ROUTES } from "@/shared/config/routes.config";
-import { 
-  AssetTable, 
-  AssetStatsWidget, 
-  CreateAssetModal, 
-  AssetDetailModal,
-  useVaultStats,
-  useAssets,
-} from "@/features/assets";
+
+import { AssetTable, AssetStatsWidget, CreateAssetModal, AssetDetailModal, useVaultStats, useAssets } from "@/features/assets";
 import type { AssetViewModel } from "@/features/assets";
 import { AppHeader } from "@/widgets";
 
