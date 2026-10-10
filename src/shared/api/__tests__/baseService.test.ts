@@ -1,4 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
+import { AxiosHeaders } from "axios";
+import { apiClient } from "../axiosClient";
+import { HTTP_STATUS } from "@/shared/constants";
 import { createBaseService } from "../baseService";
 import type { PaginatedList, SelectOption } from "@/shared/types";
 
@@ -13,7 +16,71 @@ interface CreateProductDto {
   price: number;
 }
 
+const originalAdapter = apiClient.defaults.adapter;
+
+afterEach(() => {
+  apiClient.defaults.adapter = originalAdapter;
+  vi.restoreAllMocks();
+});
+
 describe("createBaseService", () => {
+  it.each(["getById", "create", "update"] as const)(
+    "%s returns the body through the real response interceptor",
+    async (operation) => {
+      const product: MockProduct = { id: 1, name: "Laptop", price: 1000 };
+      apiClient.defaults.adapter = async (config) => ({
+        data: product,
+        status: HTTP_STATUS.OK,
+        statusText: "OK",
+        headers: new AxiosHeaders(),
+        config,
+      });
+      const service = createBaseService<MockProduct, CreateProductDto>({ endpoint: "/products" });
+      const payload: CreateProductDto = { name: product.name, price: product.price };
+
+      const result =
+        operation === "getById"
+          ? await service.getById(product.id)
+          : operation === "create"
+            ? await service.create(payload)
+            : await service.update(product.id, payload);
+
+      expect(result).toEqual(product);
+    },
+  );
+
+  it("preserves the backend envelope instead of unwrapping it twice", async () => {
+    const body = { data: { id: 1, name: "Laptop", price: 1000 } };
+    apiClient.defaults.adapter = async (config) => ({
+      data: body,
+      status: HTTP_STATUS.OK,
+      statusText: "OK",
+      headers: new AxiosHeaders(),
+      config,
+    });
+
+    const result = await apiClient.get<typeof body, typeof body>("/products/1");
+
+    expect(result).toEqual(body);
+  });
+
+  it.each([undefined, ""])(
+    "handles an empty 204 body (%s) without leaking AxiosResponse",
+    async (body) => {
+      apiClient.defaults.adapter = async (config) => ({
+        data: body,
+        status: HTTP_STATUS.NO_CONTENT,
+        statusText: "No Content",
+        headers: new AxiosHeaders(),
+        config,
+      });
+      const service = createBaseService<MockProduct>({ endpoint: "/products" });
+
+      expect(await apiClient.delete<typeof body, typeof body>("/products/1")).toBe(body);
+      expect(await service.remove(1)).toBeUndefined();
+    },
+  );
+
   it("should create a service with all standard CRUD operations", () => {
     const service = createBaseService<MockProduct, CreateProductDto>({
       endpoint: "/products",

@@ -13,7 +13,7 @@ import { apiClient } from "./axiosClient";
 export interface BaseServiceConfig<TEntity, TCreateDto, TUpdateDto, TFilterParams> {
   /** Endpoint API tương ứng (ví dụ: "/products", "/users") */
   endpoint: string;
-  /** Axios instance tùy chỉnh (mặc định dùng apiClient chung) */
+  /** Instance có interceptor trả HTTP body như apiClient; không truyền Axios instance chưa cấu hình. */
   axios?: AxiosInstance;
   /** Tùy chọn override phương thức lấy danh sách */
   getAll?: (params?: TFilterParams) => Promise<PaginatedList<TEntity>>;
@@ -55,6 +55,8 @@ export interface BaseService<TEntity, TCreateDto, TUpdateDto, TFilterParams> {
  * @description Factory hàm tạo CRUD API Service tái sử dụng cho mọi Entity trong hệ thống SWP391.
  * Tuân thủ nguyên lý SOLID (DRY & Open/Closed): Tái sử dụng tối đa logic HTTP gọi API chuẩn C# ASP.NET Core,
  * đồng thời cho phép mở rộng / override phương thức bất kỳ khi có yêu cầu đặc thù.
+ * Generic R mô tả HTTP body sau interceptor. Axios giữ conditional type với TEntity
+ * chưa xác định, nên ba thao tác trả entity cần assertion trực tiếp Promise<TEntity>.
  *
  * @template TEntity Kiểu dữ liệu của Entity (ví dụ: Product)
  * @template TCreateDto Kiểu dữ liệu gửi lên khi tạo mới (mặc định Partial<TEntity>)
@@ -90,41 +92,42 @@ export function createBaseService<
     getAll:
       config.getAll ??
       (async (params?: TFilterParams) => {
-        return axios.get<PaginatedList<TEntity>>(endpoint, {
+        return axios.get<PaginatedList<TEntity>, PaginatedList<TEntity>>(endpoint, {
           params,
-        }) as unknown as Promise<PaginatedList<TEntity>>;
+        });
       }),
 
     getById:
       config.getById ??
       (async (id: string | number) => {
-        return axios.get<TEntity>(`${endpoint}/${id}`) as unknown as Promise<TEntity>;
+        return axios.get<TEntity, TEntity>(`${endpoint}/${id}`) as Promise<TEntity>;
       }),
 
     create:
       config.create ??
       (async (data: TCreateDto) => {
-        return axios.post<TEntity>(endpoint, data) as unknown as Promise<TEntity>;
+        return axios.post<TEntity, TEntity, TCreateDto>(endpoint, data) as Promise<TEntity>;
       }),
 
     update:
       config.update ??
       (async (id: string | number, data: TUpdateDto) => {
-        return axios.put<TEntity>(`${endpoint}/${id}`, data) as unknown as Promise<TEntity>;
+        return axios.put<TEntity, TEntity, TUpdateDto>(
+          `${endpoint}/${id}`,
+          data,
+        ) as Promise<TEntity>;
       }),
 
     remove:
       config.remove ??
       (async (id: string | number) => {
-        return axios.delete(`${endpoint}/${id}`) as unknown as Promise<void>;
+        await axios.delete<void, void>(`${endpoint}/${id}`);
       }),
 
     getSelectOptions:
       config.getSelectOptions ??
       (async () => {
-        return axios.get<SelectOption[]>(`${endpoint}/select-options`) as unknown as Promise<
-          SelectOption[]
-        >;
+        return axios.get<SelectOption[], SelectOption[]>(`${endpoint}/select-options`);
       }),
   };
 }

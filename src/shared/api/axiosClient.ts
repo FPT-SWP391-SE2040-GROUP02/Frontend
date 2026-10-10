@@ -42,7 +42,9 @@ apiClient.interceptors.request.use(
     }
 
     // 1. Gắn X-Correlation-ID truy vết phân tán cho mỗi request
-    const correlationId = globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : undefined;
+    const correlationId = globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID()
+      : undefined;
     if (correlationId && config.headers) {
       config.headers["X-Correlation-ID"] = correlationId;
     }
@@ -61,11 +63,12 @@ apiClient.interceptors.request.use(
 );
 
 /**
- * @description Response Interceptor: Xử lý bóc tách payload dữ liệu `response.data` và bắt các mã lỗi HTTP phổ biến toàn cục.
+ * @description Trả HTTP body nguyên vẹn và bắt lỗi HTTP toàn cục.
+ * Không bóc trường data của envelope BE; caller khai báo generic R là kiểu body.
  */
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    return response.data !== undefined ? response.data : response;
+    return response.data;
   },
   (error: AxiosError) => {
     if (error.response) {
