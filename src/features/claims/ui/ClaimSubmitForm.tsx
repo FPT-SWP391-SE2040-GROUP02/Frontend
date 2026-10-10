@@ -54,10 +54,12 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
     // =========================================================================
     // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
     // =========================================================================
-    // TODO: [Developer Step - Xử lý nộp hồ sơ yêu cầu mở thừa kế]
-    // 1. Kiểm tra tính hợp lệ của values (đã qua Zod Resolver validate)
-    // 2. Kích hoạt submitClaimMutation với dữ liệu values
-    // 3. Trong callback onSuccess của mutation, gọi hàm callback props onSuccess?.()
+    // TODO: [P2][DEATH-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Migrate form nộp chứng tử sang death-case lifecycle.
+    // 2. [INPUT & OUTPUT]: Form + documentIds + case/version -> server xác nhận nộp hồ sơ.
+    // 3. [CÁC BƯỚC]: Sau DEATH-01..03 schema/model trước service/hooks/UI; thay SubmitClaimRequest legacy; xác nhận declaration; disable pending; callback sau BE thành công.
+    // 4. [HÀM / THƯ VIỆN]: RHF/Zod, useClaims được migrate, shared/ui Dialog, queryKeys.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không URL scan tùy ý; không tự tạo grant/duyệt; quyền Executor/hold/version/409; không optimistic cho nộp hồ sơ pháp lý.
     submitClaimMutation(values as SubmitClaimRequest, {
       onSuccess: () => {
         onSuccess?.();
@@ -69,9 +71,12 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
     // =========================================================================
     // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
     // =========================================================================
-    // TODO: [Developer Step - Đồng bộ tệp tải lên vào Form State]
-    // 1. Dùng setValue("deathCertScanUrl", fileUrl, { shouldValidate: true })
-    // 2. Dùng setValue("deathCertScanHash", fileHash, { shouldValidate: true })
+    // TODO: [P2][DEATH-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Migrate đồng bộ tệp form sang document reference.
+    // 2. [INPUT & OUTPUT]: Document DTO đúng case -> trường RHF đã validate.
+    // 3. [CÁC BƯỚC]: Sau EVIDENCE-05 thay deathCertScanUrl/hash legacy bằng field DTO chốt; setValue/clearErrors; reset khi đổi case hoặc upload không hợp lệ.
+    // 4. [HÀM / THƯ VIỆN]: React Hook Form setValue/resetField, Zod, entity adapter.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không trust public URL; file đã xóa/chưa finalize/sai case; response muộn không gắn nhầm hồ sơ; không persist chứng cứ vào browser storage.
     setValue("deathCertScanUrl", fileUrl, { shouldValidate: true });
     setValue("deathCertScanHash", fileHash, { shouldValidate: true });
   };

@@ -25,9 +25,12 @@ export async function getPresignedUploadUrl(
   fileName: string,
   _contentType: string
 ): Promise<PresignedUploadResponse> {
-  // TODO: [Developer Step]
-  // 1. Gọi POST /storage/presigned-upload qua axiosClient kèm { fileName, contentType }
-  // 2. Trả về { uploadUrl, objectKey, expiresInSeconds } từ máy chủ
+  // TODO: [P2][DEATH-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Chốt transport chứng cứ private thay presigned mock.
+  // 2. [INPUT & OUTPUT]: deathCaseId + file metadata -> documentId và trạng thái upload BE.
+  // 3. [CÁC BƯỚC]: Sau AUTH-02 chốt POST /death-cases/{id}/documents; ưu tiên upload BE theo hợp đồng; presigned chỉ khi có staging/finalize; migrate DTO URL cũ.
+  // 4. [HÀM / THƯ VIỆN]: Shared transport, FormData, Zod, TanStack Query; SHA-256 native nếu contract cần.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không tự dựng URL public từ objectKey; MIME/size/quota theo BE; quyền Executor và case/version; không coi presigned là đã tải xong.
   return {
     uploadUrl: `https://storage.legacyvault.vn/upload-mock/${encodeURIComponent(fileName)}`,
     objectKey: `claims/${Date.now()}_${fileName}`,
@@ -43,10 +46,12 @@ export async function getPresignedUploadUrl(
 export async function submitClaim(
   _payload: SubmitClaimRequest
 ): Promise<ApiResponse<{ claimId: string; status: string }>> {
-  // TODO: [Developer Step]
-  // 1. Validate payload bằng submitClaimSchema
-  // 2. Gọi POST /claims/submit qua axiosClient kèm Authorization token
-  // 3. Trả về kết quả xác nhận thụ lý hồ sơ
+  // TODO: [P2][DEATH-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Tách tạo/nộp death-case khỏi beneficiary claim.
+  // 2. [INPUT & OUTPUT]: Assignment + case/version/documentIds -> caseId/status từ BE.
+  // 3. [CÁC BƯỚC]: Sau DEATH-01 chốt POST /death-cases rồi /death-cases/{id}/submit; migrate types/schema/hooks; chờ server xác nhận, invalidate.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService, Zod, TanStack Query, death-case entity adapter.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không POST /claims/submit legacy; ghim snapshot/deadlines/hold ở BE; idempotency và bổ sung evidence; không optimistic/legal mock success.
   return {
     success: true,
     message: "Nộp hồ sơ mở thừa kế thành công! Hồ sơ đã được chuyển đến Công chứng viên thẩm định.",
@@ -65,9 +70,12 @@ export async function submitClaim(
 export async function getExecutorClaims(
   params?: PaginationParams
 ): Promise<PaginatedList<ClaimItemViewModel>> {
-  // TODO: [Developer Step]
-  // 1. Gọi GET /claims/my-claims qua axiosClient
-  // 2. Trả về PaginatedList<ClaimItemViewModel>
+  // TODO: [P2][DEATH-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Nối hồ sơ chứng tử Executor theo assignment.
+  // 2. [INPUT & OUTPUT]: Scope + page/pageSize/q -> DTO death-case data/meta.
+  // 3. [CÁC BƯỚC]: Sau DEATH-02 chốt route list với BE3; /executor/death-cases là đề nghị; migrate /claims/my-claims; adapters và queryKeys theo account/case.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService, BackendPageResponse, Zod, TanStack Query.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không lẫn /claims/me của người nhận; 403/404/empty/error; không lộ chứng cứ ngoài scope; không fallback mock khi BE lỗi.
   const mockItems: ClaimItemViewModel[] = [
     {
       id: "clm_01",

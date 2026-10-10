@@ -44,35 +44,61 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
       // =========================================================================
       // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
       // =========================================================================
-      // TODO: [Developer Step - Bước 1: Validate định dạng và dung lượng]
-      // - Kiểm tra file.type: Chỉ chấp nhận 'application/pdf', 'image/jpeg', 'image/png'
-      // - Kiểm tra file.size: Không vượt quá 20MB (20 * 1024 * 1024 bytes)
-      // - Ném lỗi (throw new Error) nếu không thỏa mãn điều kiện
+      // TODO: [P2][EVIDENCE-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+      // 1. [MỤC TIÊU]: Validate tệp theo chính sách upload chứng cứ được BE xác nhận.
+      // 2. [INPUT & OUTPUT]: File + policy MIME/size/count -> file hợp lệ hoặc inline error.
+      // 3. [CÁC BƯỚC]: Sau DEATH-01 chốt policy; schema/guard ở model; kiểm trước upload; BE vẫn kiểm nội dung thực.
+      // 4. [HÀM / THƯ VIỆN]: Zod/native File, shared constants, service policy.
+      // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không áp quota Free 20 MiB thành giới hạn mỗi chứng cứ; file rỗng/sai MIME/quá hạn; không ghi file/CCCD vào log.
 
-      // TODO: [Developer Step - Bước 2: Băm SHA-256 tại Client qua Web Crypto API]
-      // - Chuyển file sang ArrayBuffer: await file.arrayBuffer()
-      // - Tính digest SHA-256: await window.crypto.subtle.digest("SHA-256", arrayBuffer)
-      // - Convert Uint8Array sang chuỗi Hex 64 ký tự (fileHash)
+      // TODO: [P2][EVIDENCE-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+      // 1. [MỤC TIÊU]: Tính checksum chỉ khi hợp đồng upload yêu cầu.
+      // 2. [INPUT & OUTPUT]: File hợp lệ -> SHA-256 hex/checksum theo DTO.
+      // 3. [CÁC BƯỚC]: Sau EVIDENCE-01 chốt định dạng checksum; arrayBuffer -> crypto.subtle.digest -> encode; BE đối chiếu độc lập.
+      // 4. [HÀM / THƯ VIỆN]: Web Crypto API, TextEncoder/Uint8Array theo kiểu input.
+      // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Băm không chứng minh giấy tờ hợp pháp; tệp lớn/abort/mất quyền; không lưu bytes hoặc checksum kèm dữ liệu định danh vào log.
 
-      // TODO: [Developer Step - Bước 3: Xin URL ký sẵn (Presigned URL) từ Backend R2]
-      // - Gọi: const { uploadUrl, objectKey } = await getPresignedUploadUrl(file.name, file.type)
+      // TODO: [P2][EVIDENCE-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+      // 1. [MỤC TIÊU]: Khởi tạo upload private đúng death-case.
+      // 2. [INPUT & OUTPUT]: caseId/version + metadata -> upload session/document reference.
+      // 3. [CÁC BƯỚC]: Sau DEATH-01 chốt upload BE hoặc staging/presigned; service/hook riêng; kiểm scope và thời hạn; không tự bịa route /storage/presigned-upload.
+      // 4. [HÀM / THƯ VIỆN]: Shared transport, FormData, Zod, TanStack Query.
+      // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không coi URL ký sẵn là document hoàn tất; không lộ secret storage; signed URL ngắn hạn/không log; đổi case phải hủy reference cũ.
 
-      // TODO: [Developer Step - Bước 4: Đẩy trực tiếp tệp lên Cloudflare R2 qua Presigned URL (Zero Egress)]
-      // - Gọi fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } })
+      // TODO: [P2][EVIDENCE-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+      // 1. [MỤC TIÊU]: Gửi binary theo transport đã chốt và xác nhận hoàn tất.
+      // 2. [INPUT & OUTPUT]: File + upload session -> response upload/finalize BE.
+      // 3. [CÁC BƯỚC]: Sau EVIDENCE-03 upload qua service; nếu presigned thì PUT đúng headers rồi finalize; chỉ cho tiếp tục sau server xác nhận.
+      // 4. [HÀM / THƯ VIỆN]: FormData/shared transport; fetch chỉ cho presigned được xác nhận.
+      // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Mạng gián đoạn, expired URL, abort, 413/415; không đặt Bearer API lên storage URL; không tự tạo link public.
 
-      // TODO: [Developer Step - Bước 5: Trả về kết quả UploadedFileResult hoàn chỉnh]
-      // - return { fileUrl: `https://storage.legacyvault.vn/${objectKey}`, fileHash, fileName: file.name, fileSize: file.size }
+      // TODO: [P2][EVIDENCE-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+      // 1. [MỤC TIÊU]: Migrate UploadedFileResult sang reference chứng cứ BE.
+      // 2. [INPUT & OUTPUT]: Response đã validate -> documentId/name/checksum/status theo DTO.
+      // 3. [CÁC BƯỚC]: Sau EVIDENCE-04 chốt schema; đổi props/callers đồng bộ; bỏ giả định fileUrl public; adapter ở entity.
+      // 4. [HÀM / THƯ VIỆN]: Zod, TypeScript, entity adapter, RHF setValue.
+      // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không gửi URL bất kỳ làm bằng chứng; file chưa finalize hoặc thuộc case khác phải bị chặn; không giả thành công khi helper còn throw.
       
       throw new Error("Chưa cài đặt uploadMutation.mutationFn - Vui lòng tự hoàn thiện 5 bước băm SHA-256 và tải lên R2 theo Rule 7.");
     },
     onSuccess: (data) => {
-      // TODO: [Developer Step] Kích hoạt callback thông báo tải tệp thành công lên form cha
+      // TODO: [P2][EVIDENCE-06] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+      // 1. [MỤC TIÊU]: Đồng bộ form chỉ với chứng cứ đã được BE nhận.
+      // 2. [INPUT & OUTPUT]: Document response -> callback reference cho form case hiện tại.
+      // 3. [CÁC BƯỚC]: Sau EVIDENCE-05 cập nhật callback signature; kiểm case/version; invalidate document list; xóa reference khi upload lỗi/đổi hồ sơ.
+      // 4. [HÀM / THƯ VIỆN]: useMutation onSuccess, RHF setValue, queryKeys.
+      // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Callback hiện có chỉ là wiring legacy; response muộn không gắn vào case khác; không dùng URL local/public để bypass quyền.
       onUploadSuccess(data.fileUrl, data.fileHash, data.fileName);
     },
   });
 
   const handleProcessFile = (file: File) => {
-    // TODO: [Developer Step] Kích hoạt mutation xử lý tệp tin
+    // TODO: [P2][EVIDENCE-07] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Điều khiển upload theo session/case và trạng thái pending.
+    // 2. [INPUT & OUTPUT]: File chọn/drop -> một mutation đúng case hoặc validation error.
+    // 3. [CÁC BƯỚC]: Sau EVIDENCE-01..06 disable pending; guard drop/input thống nhất; hủy khi đổi phiên; thông báo API lỗi để retry.
+    // 4. [HÀM / THƯ VIỆN]: TanStack Query, refs DOM, RHF/Zod, shared/ui.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không gửi lặp nhiều drop; thiếu session/case thì chặn; không giữ evidence trong storage hoặc tái dùng upload của người khác.
     uploadMutation.mutate(file);
   };
 
