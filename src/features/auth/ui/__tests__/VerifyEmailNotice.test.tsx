@@ -1,6 +1,7 @@
 import { APP_MESSAGES } from "@/shared/constants";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { AxiosError } from "axios";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { authService } from "../../api/authService";
@@ -89,6 +90,26 @@ describe("VerifyEmailNotice resend feedback", () => {
     expect(screen.getByRole("button", { name: "Gửi lại email" })).toBeEnabled();
 
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Gửi lại sau/ })).not.toBeInTheDocument();
+
+    expect(authService.resendVerificationEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it("hiện lỗi mạng và cho người dùng chủ động thử lại", async () => {
+    vi.mocked(authService.resendVerificationEmail).mockRejectedValue(
+      new AxiosError("Network Error", AxiosError.ERR_NETWORK),
+    );
+
+    setup();
+
+    fireEvent.click(screen.getByRole("button", { name: "Gửi lại email" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(APP_MESSAGES.ERROR.NETWORK);
+
+    expect(screen.getByRole("button", { name: "Gửi lại email" })).toBeEnabled();
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
     expect(screen.queryByRole("button", { name: /Gửi lại sau/ })).not.toBeInTheDocument();
 
     expect(authService.resendVerificationEmail).toHaveBeenCalledTimes(1);
