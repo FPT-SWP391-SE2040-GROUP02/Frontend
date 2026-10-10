@@ -5,6 +5,7 @@ import {
 import { PACKAGE_FIELD_LABELS } from "@/entities/package/model/package.types";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { Textarea } from "@/shared/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { PACKAGE_FORM_CONTENT as content } from "../model/packageForm.constants";
@@ -78,13 +79,12 @@ export function CreatePackageForm() {
           {PACKAGE_FIELD_LABELS.DESCRIPTION}
         </label>
 
-        <Input
+        <Textarea
           id="package-description"
           {...register("description")}
           placeholder={content.descriptionPlaceholder}
           aria-invalid={Boolean(errors.description)}
           aria-describedby={errors.description ? "package-description-error" : undefined}
-          className="min-h-11"
         />
 
         {errors.description && (
