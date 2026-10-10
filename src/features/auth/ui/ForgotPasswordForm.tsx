@@ -1,23 +1,13 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { ROUTES } from "@/shared/config/routes.config";
 import { Button, buttonVariants } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { Mail, CheckCircle2, ArrowLeft } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, CheckCircle2, Mail } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { ROUTES } from "@/shared/config/routes.config";
-import { APP_MESSAGES } from "@/shared/constants";
+import { forgotPasswordSchema, type ForgotPasswordInput } from "../model/forgotPassword.schema";
 import { RESET_PASSWORD_CONTENT } from "../model/resetPassword.schema";
-
-const forgotPasswordSchema = z.object({
-  email: z
-    .string()
-    .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Email"))
-    .email(APP_MESSAGES.VALIDATION.INVALID_EMAIL),
-});
-
-type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
 /**
  * @description Thuộc tính cấu hình cho ForgotPasswordForm component.
@@ -42,6 +32,8 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
     handleSubmit,
     formState: { errors },
   } = useForm<ForgotPasswordInput>({
+    mode: "onBlur",
+    reValidateMode: "onBlur",
     resolver: zodResolver(forgotPasswordSchema),
   });
 
@@ -50,6 +42,7 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
    * @returns {void} Cập nhật trạng thái giao diện.
    */
   const onSubmit = (): void => {
+    if (isPending) return;
     setIsPending(true);
     // TODO: [P1][AUTH-08] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
     // 1. [MỤC TIÊU]: Thay timer giả bằng yêu cầu khôi phục mật khẩu thực.
@@ -73,8 +66,18 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
         <p className="text-sm text-[#526656] dark:text-[#a0b8a5] leading-relaxed">
           Đây là bản xem trước giao diện. Chưa có email khôi phục nào được gửi.
         </p>
-        {import.meta.env.DEV && <Link to={ROUTES.AUTH.RESET_PASSWORD} className="flex min-h-11 items-center justify-center text-sm font-medium underline underline-offset-4">{RESET_PASSWORD_CONTENT.previewLink}</Link>}
-        <Link to={ROUTES.AUTH.LOGIN} className={`${buttonVariants({ variant: "outline", size: "lg" })} mt-2`}>
+        {import.meta.env.DEV && (
+          <Link
+            to={ROUTES.AUTH.RESET_PASSWORD}
+            className="flex min-h-11 items-center justify-center text-sm font-medium underline underline-offset-4"
+          >
+            {RESET_PASSWORD_CONTENT.previewLink}
+          </Link>
+        )}
+        <Link
+          to={ROUTES.AUTH.LOGIN}
+          className={`${buttonVariants({ variant: "outline", size: "lg" })} mt-2`}
+        >
           Quay lại Đăng nhập
         </Link>
       </div>
@@ -82,7 +85,7 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={`space-y-4 w-full ${className}`}>
+    <form noValidate onSubmit={handleSubmit(onSubmit)} className={`space-y-4 w-full ${className}`}>
       <div className="space-y-1.5 text-left">
         <label
           htmlFor="forgot-email"
@@ -93,6 +96,7 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
         <div className="relative">
           <Mail className="w-4 h-4 text-[#728574] absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
+            disabled={isPending}
             id="forgot-email"
             autoComplete="email"
             aria-invalid={Boolean(errors.email)}
