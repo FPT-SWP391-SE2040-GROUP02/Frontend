@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { Info, LogOut, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
+import { APP_MESSAGES } from "@/shared/constants";
 
 /**
  * @description Thuộc tính cấu hình cho component Xác nhận đăng xuất.
@@ -31,7 +32,7 @@ export function LogoutConfirmationCard({
   const [revokeAll, setRevokeAll] = useState<boolean>(false);
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const navigate = useNavigate();
-  const { mutate: logout, isPending } = useLogout();
+  const { mutate: logout, isPending, isError } = useLogout();
 
   const displayName = user?.fullName || "Nguyễn Văn Nam";
   const displayEmail = user?.email || "nam@example.com";
@@ -46,13 +47,15 @@ export function LogoutConfirmationCard({
     // 2. [INPUT]: revokeAll (boolean). [OUTPUT]: Hủy token và chuyển sang trang Đã đăng xuất.
     // 3. [CÁC BƯỚC]:
     //    - Gọi mutation logout({ revokeAllDevices: revokeAll }).
-    //    - Điều hướng người dùng sang trang /auth/logged-out.
+    //    - Chỉ điều hướng sau khi server xác nhận; lỗi giữ màn hình để thử lại.
     // 4. [HÀM/THƯ VIỆN]: useLogout(), navigate(ROUTES.AUTH.LOGGED_OUT).
-    // 5. [ĐIỀU KIỆN BIÊN]: Xóa sạch biến RAM chứa private key/seed phrase theo Quy tắc 22 OWASP.
+    // 5. [ĐIỀU KIỆN BIÊN]: Hook xóa access token RAM/cache khi thành công;
+    //    không báo đã thu hồi khi mất mạng/API lỗi. Developer bổ sung cleanup
+    //    khóa nội dung nếu sau này có phiên giải mã và xử lý login/refresh race.
     logout(
       { revokeAllDevices: revokeAll },
       {
-        onSettled: () => {
+        onSuccess: () => {
           navigate(ROUTES.AUTH.LOGGED_OUT);
         },
       }
@@ -118,6 +121,7 @@ export function LogoutConfirmationCard({
 
       {/* Nhóm nút hành động */}
       <div className="space-y-2 pt-2">
+        {isError && <p role="alert" className="text-sm text-red-700">{APP_MESSAGES.ERROR.DEFAULT}</p>}
         <Button
           type="button"
           onClick={handleLogout}
@@ -131,6 +135,7 @@ export function LogoutConfirmationCard({
         <Button
           type="button"
           variant="outline"
+          disabled={isPending}
           onClick={() => {
             if (onClose) onClose();
             else navigate(-1);

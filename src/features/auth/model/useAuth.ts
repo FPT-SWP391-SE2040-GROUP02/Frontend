@@ -11,6 +11,7 @@ import type {
 } from "./auth.types";
 import { useDispatch as useAppDispatch } from "react-redux";
 import { setCredentials, clearCredentials } from "@/entities/user/model/authSlice";
+import { accessTokenMemory } from "@/shared/api/accessToken";
 
 export const authKeys = {
   all: ["auth"] as const,
@@ -118,6 +119,7 @@ export function useLogout() {
   return useMutation({
     mutationFn: (options?: LogoutOptions) => authService.logout(options),
     onSuccess: () => {
+      accessTokenMemory.clear();
       dispatch(clearCredentials());
       queryClient.clear();
     },
