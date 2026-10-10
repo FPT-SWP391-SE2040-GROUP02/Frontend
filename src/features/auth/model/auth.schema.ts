@@ -1,5 +1,6 @@
-import { z } from "zod";
 import { APP_MESSAGES } from "@/shared/constants";
+import { z } from "zod";
+import { newPasswordSchema } from "./password.schema";
 
 /**
  * @description Zod Schema kiểm tra hợp lệ dữ liệu Form Đăng nhập.
@@ -9,10 +10,8 @@ export const loginSchema = z.object({
     .string()
     .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Email"))
     .email(APP_MESSAGES.VALIDATION.INVALID_EMAIL),
-  password: z
-    .string()
-    .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu"))
-    .min(8, APP_MESSAGES.VALIDATION.MIN_LENGTH("Mật khẩu", 8)),
+  // Password hiện có được BE xác thực; không áp policy tạo mật khẩu mới.
+  password: z.string().min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu")),
   rememberMe: z.boolean().optional(),
 });
 
@@ -25,23 +24,19 @@ export const registerSchema = z
   .object({
     fullName: z
       .string()
+      .trim()
       .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Họ và tên"))
       .min(2, APP_MESSAGES.VALIDATION.MIN_LENGTH("Họ và tên", 2)),
     email: z
       .string()
       .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Email"))
       .email(APP_MESSAGES.VALIDATION.INVALID_EMAIL),
-    password: z
-      .string()
-      .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu"))
-      .min(8, APP_MESSAGES.VALIDATION.MIN_LENGTH("Mật khẩu", 8)),
-    confirmPassword: z
-      .string()
-      .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Xác nhận mật khẩu")),
+    password: newPasswordSchema,
+    confirmPassword: z.string().min(1, APP_MESSAGES.VALIDATION.REQUIRED("Xác nhận mật khẩu")),
     phone: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Mật khẩu xác nhận không khớp.",
+    message: APP_MESSAGES.VALIDATION.PASSWORD_NOT_MATCH,
     path: ["confirmPassword"],
   });
 
@@ -63,10 +58,7 @@ export type OtpInput = z.infer<typeof otpSchema>;
  * @description Zod Schema kiểm tra dữ liệu xác nhận mật khẩu để liên kết Google (Mockup 5).
  */
 export const linkGoogleSchema = z.object({
-  password: z
-    .string()
-    .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu hiện có"))
-    .min(8, APP_MESSAGES.VALIDATION.MIN_LENGTH("Mật khẩu", 8)),
+  password: z.string().min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu hiện có")),
 });
 
 export type LinkGoogleInput = z.infer<typeof linkGoogleSchema>;

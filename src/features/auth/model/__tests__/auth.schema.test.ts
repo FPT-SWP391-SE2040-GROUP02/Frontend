@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { loginSchema, registerSchema, otpSchema } from "../auth.schema";
+import { loginSchema, registerSchema, otpSchema, linkGoogleSchema } from "../auth.schema";
+import { APP_MESSAGES } from "@/shared/constants";
 
 describe("Module 0: Auth Zod Schemas Validation", () => {
   it("should validate a valid login payload", () => {
@@ -21,13 +22,25 @@ describe("Module 0: Auth Zod Schemas Validation", () => {
     expect(result.success).toBe(false);
   });
 
-  it("should reject password shorter than 8 chars", () => {
+  it("allows the server to verify an existing password without applying creation policy", () => {
     const invalidData = {
       email: "owner@legacyvault.io",
       password: "123",
     };
     const result = loginSchema.safeParse(invalidData);
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+    expect(linkGoogleSchema.safeParse({ password: "123" }).success).toBe(true);
+  });
+
+  it("requires an existing password for login and Google linking", () => {
+    expect(loginSchema.safeParse({ email: "owner@example.test", password: "" }).success).toBe(false);
+    expect(linkGoogleSchema.safeParse({ password: "" }).success).toBe(false);
+  });
+
+  it("does not trim an existing password", () => {
+    const password = " old password ";
+    expect(loginSchema.parse({ email: "owner@example.test", password }).password).toBe(password);
+    expect(linkGoogleSchema.parse({ password }).password).toBe(password);
   });
 
   it("should validate matching password in register schema", () => {
@@ -50,6 +63,21 @@ describe("Module 0: Auth Zod Schemas Validation", () => {
     };
     const result = registerSchema.safeParse(mismatchRegister);
     expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: ["confirmPassword"], message: APP_MESSAGES.VALIDATION.PASSWORD_NOT_MATCH }),
+    ]));
+  });
+
+  it.each(["abcdefg!", "Abcdefgh", "Abcdef!", "Abcdefg "])("rejects a new weak password on register: %s", (password) => {
+    expect(registerSchema.safeParse({
+      fullName: "Test Owner", email: "owner@example.test", password, confirmPassword: password,
+    }).success).toBe(false);
+  });
+
+  it("rejects a whitespace-only name and trims a valid display name", () => {
+    const payload = { fullName: "   ", email: "owner@example.test", password: "Abcdefg!", confirmPassword: "Abcdefg!" };
+    expect(registerSchema.safeParse(payload).success).toBe(false);
+    expect(registerSchema.parse({ ...payload, fullName: " Test Owner " }).fullName).toBe("Test Owner");
   });
 
   it("should validate 6-digit numeric OTP code", () => {

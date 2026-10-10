@@ -8,6 +8,7 @@ import { Input } from "@/shared/ui/input";
 import { User, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
+import { NEW_PASSWORD_HINT } from "../model/password.schema";
 
 /**
  * @description Thuộc tính cấu hình cho RegisterForm component.
@@ -127,14 +128,14 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
           <Input
             id="register-password"
             aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? "register-password-error" : undefined}
+            aria-describedby={errors.password ? "register-password-hint register-password-error" : "register-password-hint"}
             autoComplete="new-password"
             {...register("password")}
             type="password"
-            placeholder="Tối thiểu 8 ký tự"
             className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
           />
         </div>
+        <p id="register-password-hint" className="text-sm text-heritage-muted">{NEW_PASSWORD_HINT}</p>
         {errors.password && (
           <p id="register-password-error" role="alert" className="text-sm text-destructive">
             {errors.password.message}
