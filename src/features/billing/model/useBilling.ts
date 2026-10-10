@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { billingService } from "../api/billingService";
 import type { CreatePaymentOrderRequest } from "./billing.types";
@@ -28,8 +29,7 @@ export function usePricingPlans() {
  */
 export function useCreatePaymentOrder() {
   return useMutation({
-    mutationFn: (payload: CreatePaymentOrderRequest) =>
-      billingService.createPaymentOrder(payload),
+    mutationFn: (payload: CreatePaymentOrderRequest) => billingService.createPaymentOrder(payload),
   });
 }
 
@@ -38,30 +38,43 @@ export function useCreatePaymentOrder() {
  * @param {string | undefined} orderId Mã đơn hàng
  * @param {boolean} enabled Trạng thái kích hoạt polling
  */
-export function usePollPaymentStatus(orderId?: string, enabled = true) {
+export function usePollPaymentStatus(orderId?: string, enabled = true, expiresAt?: string) {
   const queryClient = useQueryClient();
-
-  return useQuery({
+  const deadline = expiresAt ? Date.parse(expiresAt) : undefined;
+  const canPoll = Boolean(orderId) && enabled;
+  const query = useQuery({
     queryKey: billingKeys.orderStatus(orderId || ""),
     queryFn: () => billingService.checkPaymentStatus(orderId || ""),
-    enabled: Boolean(orderId) && enabled,
-    refetchInterval: (query) => {
-      // Dừng polling khi đã thanh toán thành công hoặc hết hạn
-      if (query.state.data?.isPaid) {
-        queryClient.invalidateQueries({ queryKey: billingKeys.invoices() });
+    enabled: () =>
+      canPoll && (deadline === undefined || (Number.isFinite(deadline) && deadline > Date.now())),
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: false,
+    refetchInterval: (current) => {
+      if (
+        !canPoll ||
+        current.state.status === "error" ||
+        (deadline !== undefined && deadline <= Date.now())
+      )
         return false;
-      }
-      return 3000; // Poll mỗi 3 giây
+      const result = current.state.data;
+      return result && (result.isPaid || result.status !== "PENDING") ? false : 3000;
     },
   });
+  const isPaid = query.data?.isPaid === true && query.data.status === "PAID";
+  useEffect(() => {
+    if (isPaid) void queryClient.invalidateQueries({ queryKey: billingKeys.invoices() });
+  }, [isPaid, orderId, queryClient]);
+  return query;
 }
 
 /**
  * @description Hook lấy danh sách lịch sử hóa đơn thanh toán
  */
-export function useInvoices() {
+export function useInvoices(enabled = true) {
   return useQuery({
     queryKey: billingKeys.invoices(),
+    enabled,
     queryFn: () => billingService.getInvoices(),
   });
 }
