@@ -1,12 +1,13 @@
-import type { ReactNode } from "react";
-import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { NavLink } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
+import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactNode } from "react";
+import { NavLink } from "react-router-dom";
 
 /** Nhãn và thông báo của khu thử giao diện development. */
 const CONTENT = {
   title: "Bản xem trước giao diện legacy",
-  description: "Dữ liệu và nghiệp vụ mẫu đang chờ đồng bộ SRS mới. Các thao tác ghi bị vô hiệu hóa trong khu xem trước này.",
+  description:
+    "Dữ liệu và nghiệp vụ mẫu đang chờ đồng bộ SRS mới. Các thao tác ghi bị vô hiệu hóa trong khu xem trước này.",
   navigation: "Chọn màn hình xem trước",
   blockedMutation: "Bản xem trước chỉ cho phép xem giao diện. Thao tác chưa được gửi.",
   links: [
@@ -31,7 +32,9 @@ const previewClient = new QueryClient({
   },
   mutationCache: new MutationCache({
     /** Chặn trước mutationFn và onMutate của feature, kể cả khi caller tự bật nút. */
-    onMutate: () => { throw new Error(CONTENT.blockedMutation); },
+    onMutate: () => {
+      throw new Error(CONTENT.blockedMutation);
+    },
   }),
 });
 
@@ -52,14 +55,24 @@ export function PreviewWorkspace({ children }: PreviewWorkspaceProps) {
 
   return (
     <QueryClientProvider client={previewClient}>
-      <aside aria-label={CONTENT.title} className="border-b border-heritage-gold-border bg-heritage-gold-light p-4 text-heritage-text">
+      <aside
+        aria-label={CONTENT.title}
+        className="border-b border-heritage-gold-border bg-heritage-gold-light p-4 text-heritage-text"
+      >
         <p className="font-semibold">{CONTENT.title}</p>
         <p className="mt-1 text-sm">{CONTENT.description}</p>
         <nav aria-label={CONTENT.navigation} className="mt-3 flex flex-wrap gap-2">
           {CONTENT.links.map(({ to, label }) => (
-            <NavLink key={to} to={to} end className={({ isActive }) =>
-              `inline-flex min-h-11 items-center rounded-lg border px-4 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-primary ${isActive ? "border-heritage-primary bg-heritage-primary text-heritage-surface" : "border-heritage-border bg-heritage-surface"}`
-            }>{label}</NavLink>
+            <NavLink
+              key={to}
+              to={to}
+              end
+              className={({ isActive }) =>
+                `inline-flex min-h-11 items-center rounded-lg border px-4 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-primary ${isActive ? "border-heritage-primary bg-heritage-primary text-heritage-surface" : "border-heritage-border bg-heritage-surface"}`
+              }
+            >
+              {label}
+            </NavLink>
           ))}
         </nav>
       </aside>
