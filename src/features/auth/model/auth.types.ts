@@ -2,15 +2,15 @@ import { type Role } from "@/shared/constants/roles";
 import { type User } from "@/entities/user";
 
 /**
- * @description Thông tin phiên đăng nhập người dùng (Auth Session) trả về từ Backend C#.
+ * @description Model phiên legacy của FE; chưa phải DTO Auth C# đã xác nhận.
+ * Refresh token chỉ do BE quản lý qua cookie HttpOnly theo ADR-0003.
+ * Cần chuyển expiresIn/user sang DTO thực khi BE1 bàn giao Auth.
  */
 export interface AuthSession {
   /** Mã định danh tài khoản */
   userId: string;
   /** JWT Token truy cập hệ thống */
   accessToken: string;
-  /** Refresh Token để cấp lại accessToken mới */
-  refreshToken: string;
   /** Thời gian hết hạn của accessToken (tính bằng giây) */
   expiresIn: number;
   /** Thông tin người dùng cơ bản */
