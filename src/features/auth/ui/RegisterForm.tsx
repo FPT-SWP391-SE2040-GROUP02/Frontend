@@ -1,14 +1,16 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { registerSchema, type RegisterInput } from "../model/auth.schema";
-import type { RegisterRequest } from "../model/auth.types";
-import { useRegister } from "../model/useAuth";
+import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { User, Mail, Lock } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle, Lock, Mail, User } from "lucide-react";
+import type { FocusEvent } from "react";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "@/shared/config/routes.config";
+import { getRegisterErrorMessage } from "../lib/registerFeedback";
+import { registerSchema, type RegisterInput } from "../model/auth.schema";
+import type { RegisterRequest } from "../model/auth.types";
 import { NEW_PASSWORD_HINT } from "../model/password.schema";
+import { useRegister } from "../model/useAuth";
 
 /**
  * @description Thuộc tính cấu hình cho RegisterForm component.
@@ -33,15 +35,33 @@ export interface RegisterFormProps {
  */
 export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
   const navigate = useNavigate();
-  const { mutate: registerUser, isPending } = useRegister();
+  const { mutate: registerUser, isPending, isError, error } = useRegister();
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    trigger,
+    formState: { errors, touchedFields },
   } = useForm<RegisterInput>({
+    mode: "onBlur",
+    reValidateMode: "onBlur",
     resolver: zodResolver(registerSchema),
   });
+
+  const passwordField = register("password");
+
+  /**
+   * @description Kiểm tra mật khẩu khi rời ô và cập nhật lỗi xác nhận đã được chạm.
+   * @param event Sự kiện rời ô mật khẩu.
+   * @returns Promise hoàn thành việc kiểm tra các trường liên quan.
+   */
+  const handlePasswordBlur = async (event: FocusEvent<HTMLInputElement>): Promise<void> => {
+    await passwordField.onBlur(event);
+
+    if (touchedFields.confirmPassword) {
+      await trigger("confirmPassword");
+    }
+  };
 
   const onSubmit = (data: RegisterInput) => {
     // TODO: [P0][AUTH-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
@@ -50,6 +70,8 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
     // 3. [CÁC BƯỚC]: Sau AUTH-02 chốt POST /auth/register; adapter bỏ confirmPassword/role khỏi payload nếu DTO không nhận; gửi acceptTerms theo contract; điều hướng theo nextAction.
     // 4. [HÀM / THƯ VIỆN]: useRegister, React Hook Form, zodResolver, service/schema Auth.
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không cho client tự cấp role; không mở Passkey hoặc báo login khi còn chờ email; giữ invitation; chống double-submit và không log password.
+    if (isPending) return;
+
     registerUser(data as RegisterRequest, {
       onSuccess: () => {
         onSuccess?.();
@@ -59,7 +81,16 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={`space-y-5 w-full ${className}`}>
+    <form noValidate onSubmit={handleSubmit(onSubmit)} className={`space-y-5 w-full ${className}`}>
+      {isError && (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
+          <AlertCircle aria-hidden="true" className="mr-2 inline size-4" />
+          {getRegisterErrorMessage(error)}
+        </div>
+      )}
       {/* Full Name */}
       <div className="space-y-1 text-left">
         <label
@@ -75,6 +106,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
             aria-invalid={Boolean(errors.fullName)}
             aria-describedby={errors.fullName ? "register-fullName-error" : undefined}
             autoComplete="name"
+            disabled={isPending}
             {...register("fullName")}
             placeholder="Nguyễn Văn A"
             className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
@@ -102,6 +134,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
             aria-invalid={Boolean(errors.email)}
             aria-describedby={errors.email ? "register-email-error" : undefined}
             autoComplete="email"
+            disabled={isPending}
             {...register("email")}
             type="email"
             placeholder="owner@legacyvault.io"
@@ -128,14 +161,22 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
           <Input
             id="register-password"
             aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? "register-password-hint register-password-error" : "register-password-hint"}
+            aria-describedby={
+              errors.password
+                ? "register-password-hint register-password-error"
+                : "register-password-hint"
+            }
             autoComplete="new-password"
-            {...register("password")}
+            disabled={isPending}
+            {...passwordField}
+            onBlur={handlePasswordBlur}
             type="password"
             className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
           />
         </div>
-        <p id="register-password-hint" className="text-sm text-heritage-muted">{NEW_PASSWORD_HINT}</p>
+        <p id="register-password-hint" className="text-sm text-heritage-muted">
+          {NEW_PASSWORD_HINT}
+        </p>
         {errors.password && (
           <p id="register-password-error" role="alert" className="text-sm text-destructive">
             {errors.password.message}
@@ -158,6 +199,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
             aria-invalid={Boolean(errors.confirmPassword)}
             aria-describedby={errors.confirmPassword ? "register-confirmPassword-error" : undefined}
             autoComplete="new-password"
+            disabled={isPending}
             {...register("confirmPassword")}
             type="password"
             placeholder="Nhập lại mật khẩu"
