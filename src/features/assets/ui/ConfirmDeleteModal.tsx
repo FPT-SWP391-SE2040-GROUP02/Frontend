@@ -1,12 +1,12 @@
 import React from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription, 
-  DialogFooter, 
-  Button 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  Button,
 } from "@/shared/ui";
 import { AlertTriangle, Trash2 } from "lucide-react";
 
@@ -42,9 +42,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold text-[#14241C]">
-                {title}
-              </DialogTitle>
+              <DialogTitle className="text-lg font-bold text-[#14241C]">{title}</DialogTitle>
               <DialogDescription className="text-xs text-[#66786E]">
                 Hành động này sẽ hủy niêm phong và xóa vĩnh viễn dữ liệu
               </DialogDescription>
@@ -61,7 +59,8 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
             khỏi két di sản?
           </p>
           <div className="p-3.5 rounded-[14px] bg-[#FFFBEB] border border-[#FDE68A] text-[11px] text-[#B45309] leading-relaxed">
-            ⚠️ <strong>Cảnh báo bảo mật:</strong> Mọi khóa bí mật và liên kết người thừa kế gắn liền với tài sản này sẽ bị hủy bỏ và không thể khôi phục lại.
+            ⚠️ <strong>Cảnh báo bảo mật:</strong> Mọi khóa bí mật và liên kết người thừa kế gắn liền
+            với tài sản này sẽ bị hủy bỏ và không thể khôi phục lại.
           </div>
         </div>
 

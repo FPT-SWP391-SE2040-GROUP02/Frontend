@@ -20,10 +20,7 @@ export interface SessionExpiredCardProps {
  * @param {SessionExpiredCardProps} props Thuộc tính component
  * @returns {React.JSX.Element} Card phiên hết hạn
  */
-export function SessionExpiredCard({
-  idleMinutes = 30,
-  className = "",
-}: SessionExpiredCardProps) {
+export function SessionExpiredCard({ idleMinutes = 30, className = "" }: SessionExpiredCardProps) {
   return (
     <div className={`w-full space-y-6 text-left ${className}`}>
       {/* Icon đồng hồ hết hạn */}
@@ -38,7 +35,8 @@ export function SessionExpiredCard({
         </h1>
         <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
           Bạn đã không hoạt động trong{" "}
-          <span className="font-semibold text-[#0F1A16]">{idleMinutes} phút</span> nên chúng tôi đăng xuất bạn để bảo vệ kho di sản.
+          <span className="font-semibold text-[#0F1A16]">{idleMinutes} phút</span> nên chúng tôi
+          đăng xuất bạn để bảo vệ kho di sản.
         </p>
       </div>
 
@@ -46,7 +44,8 @@ export function SessionExpiredCard({
       <div className="p-3.5 rounded-xl bg-[#FEF3C7] border border-[#FCD34D] flex items-start gap-2.5 text-xs text-[#92400E]">
         <AlertTriangle className="w-4 h-4 text-[#D97706] flex-shrink-0 mt-0.5" />
         <span>
-          <span className="font-semibold">Thao tác đang dở có thể chưa được lưu.</span> Vui lòng đăng nhập lại và kiểm tra lại tiến trình thao tác của bạn.
+          <span className="font-semibold">Thao tác đang dở có thể chưa được lưu.</span> Vui lòng
+          đăng nhập lại và kiểm tra lại tiến trình thao tác của bạn.
         </span>
       </div>
 

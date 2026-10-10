@@ -79,9 +79,7 @@ export function PricingCard({
             <h3 className="font-bold text-base text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
               {plan.name}
             </h3>
-            {isCurrentPlan && (
-              <span className="tag-pill tag-new text-[10px]">Gói hiện tại</span>
-            )}
+            {isCurrentPlan && <span className="tag-pill tag-new text-[10px]">Gói hiện tại</span>}
           </div>
           <p className="text-xs text-[var(--text-muted,#66786E)] line-clamp-2">
             {plan.description}
@@ -99,9 +97,18 @@ export function PricingCard({
             </span>
           </div>
           <div className="text-[11px] text-[var(--text-subtle,#8E9F96)] mt-1 flex items-center gap-2">
-            <span>Dung lượng: <strong>{plan.storageLimitMb >= 1000 ? `${plan.storageLimitMb / 1000} GB` : `${plan.storageLimitMb} MB`}</strong></span>
+            <span>
+              Dung lượng:{" "}
+              <strong>
+                {plan.storageLimitMb >= 1000
+                  ? `${plan.storageLimitMb / 1000} GB`
+                  : `${plan.storageLimitMb} MB`}
+              </strong>
+            </span>
             <span>·</span>
-            <span>Tối đa: <strong>{plan.maxAssets} tài sản</strong></span>
+            <span>
+              Tối đa: <strong>{plan.maxAssets} tài sản</strong>
+            </span>
           </div>
         </div>
 
@@ -112,7 +119,10 @@ export function PricingCard({
           </div>
           <ul className="space-y-2">
             {plan.features.map((feat, idx) => (
-              <li key={idx} className="text-xs text-[var(--text-main,#14241C)] dark:text-[#E5EDE8] flex items-start gap-2">
+              <li
+                key={idx}
+                className="text-xs text-[var(--text-main,#14241C)] dark:text-[#E5EDE8] flex items-start gap-2"
+              >
                 <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0 mt-0.5" />
                 <span>{feat}</span>
               </li>

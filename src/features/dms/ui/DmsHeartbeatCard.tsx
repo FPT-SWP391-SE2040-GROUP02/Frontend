@@ -1,16 +1,17 @@
+import { APP_MESSAGES } from "@/shared/constants";
 import React, { useState } from "react";
-import { 
-  Activity, 
-  ShieldCheck, 
-  Clock, 
-  Zap, 
-  SlidersHorizontal, 
-  History, 
-  Copy, 
-  Check, 
-  AlertTriangle, 
-  PauseCircle, 
-  PlayCircle 
+import {
+  Activity,
+  ShieldCheck,
+  Clock,
+  Zap,
+  SlidersHorizontal,
+  History,
+  Copy,
+  Check,
+  AlertTriangle,
+  PauseCircle,
+  PlayCircle,
 } from "lucide-react";
 import { Button, Badge } from "@/shared/ui";
 import { useDmsStatus, useSendPulsePing, useToggleDmsPause } from "../model/useDms";
@@ -34,7 +35,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
   onOpenConfig,
   onOpenHistory,
 }) => {
-  const { data: dmsState, isLoading } = useDmsStatus();
+  const { data: dmsState, isLoading, isError, refetch } = useDmsStatus();
   const { mutate: sendPing, isPending: isPinging } = useSendPulsePing();
   const { mutate: togglePause, isPending: isTogglingPause } = useToggleDmsPause();
 
@@ -57,7 +58,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
           setSuccessMessage(res.message ?? null);
           setTimeout(() => setSuccessMessage(null), 5000);
         },
-      }
+      },
     );
   };
 
@@ -66,7 +67,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
     togglePause(nextPaused);
   };
 
-  if (isLoading || !dmsState) {
+  if (isLoading) {
     return (
       <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-8 animate-pulse">
         <div className="h-6 w-48 bg-[#EFECE6] rounded-full mb-4"></div>
@@ -75,6 +76,20 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
       </div>
     );
   }
+
+  if (isError)
+    return (
+      <div role="alert" className="p-6 space-y-3">
+        <p>{APP_MESSAGES.ERROR.LOAD_FAILED}</p>
+        <Button onClick={() => void refetch()}>{APP_MESSAGES.UI.RETRY}</Button>
+      </div>
+    );
+  if (!dmsState)
+    return (
+      <p role="status" className="p-6">
+        {APP_MESSAGES.UI.EMPTY}
+      </p>
+    );
 
   const getStatusBadge = (status: DmsStatus) => {
     switch (status) {
@@ -120,10 +135,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
 
   const progressPercent = Math.max(
     0,
-    Math.min(
-      100,
-      Math.round((dmsState.daysRemaining / dmsState.config.checkIntervalDays) * 100)
-    )
+    Math.min(100, Math.round((dmsState.daysRemaining / dmsState.config.checkIntervalDays) * 100)),
   );
 
   return (
@@ -139,9 +151,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#14241C]">
-                Cơ Chế Nhịp Sinh Tồn
-              </h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#14241C]">Cơ Chế Nhịp Sinh Tồn</h2>
             </div>
             <p className="text-xs sm:text-sm text-[#66786E]">
               Dead Man's Switch (DMS Protocol) • Bàn giao di sản tự động khi mất tín hiệu
@@ -149,9 +159,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {getStatusBadge(dmsState.status)}
-        </div>
+        <div className="flex items-center gap-2">{getStatusBadge(dmsState.status)}</div>
       </div>
 
       {/* Success Notification Alert */}
@@ -183,18 +191,14 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
                 <span className="text-4xl sm:text-5xl font-black text-[#0B291E] tracking-tight">
                   {dmsState.daysRemaining}
                 </span>
-                <span className="text-sm sm:text-base font-semibold text-[#66786E]">
-                  ngày
-                </span>
+                <span className="text-sm sm:text-base font-semibold text-[#66786E]">ngày</span>
               </div>
               <div className="text-3xl font-light text-[#A8A295]">:</div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl sm:text-4xl font-bold text-[#14241C]">
                   {dmsState.hoursRemaining}
                 </span>
-                <span className="text-xs sm:text-sm font-medium text-[#66786E]">
-                  giờ
-                </span>
+                <span className="text-xs sm:text-sm font-medium text-[#66786E]">giờ</span>
               </div>
             </div>
 
@@ -205,16 +209,20 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
                   progressPercent > 50
                     ? "bg-[#059669]"
                     : progressPercent > 20
-                    ? "bg-[#B88E4C]"
-                    : "bg-[#DC2626]"
+                      ? "bg-[#B88E4C]"
+                      : "bg-[#DC2626]"
                 }`}
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
 
             <div className="flex justify-between text-xs text-[#66786E]">
-              <span>Ping gần nhất: {new Date(dmsState.lastPingAt).toLocaleDateString("vi-VN")}</span>
-              <span>Hạn chót: {new Date(dmsState.nextPingDeadline).toLocaleDateString("vi-VN")}</span>
+              <span>
+                Ping gần nhất: {new Date(dmsState.lastPingAt).toLocaleDateString("vi-VN")}
+              </span>
+              <span>
+                Hạn chót: {new Date(dmsState.nextPingDeadline).toLocaleDateString("vi-VN")}
+              </span>
             </div>
           </div>
 
@@ -239,9 +247,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[#14241C]">
-                  Niêm Phong Mật Mã Học
-                </h3>
+                <h3 className="text-sm font-bold text-[#14241C]">Niêm Phong Mật Mã Học</h3>
                 <span className="text-[11px] font-mono text-[#B88E4C] uppercase font-semibold">
                   ECDSA P-256 Cryptographic Seal
                 </span>
@@ -249,7 +255,8 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
             </div>
 
             <p className="text-xs text-[#66786E] mb-3 leading-relaxed">
-              Mỗi nhịp sinh tồn được ký số mật mã học bất biến bằng khóa riêng và lưu trữ bằng chứng chứng thực tại sổ cái pháp lý.
+              Mỗi nhịp sinh tồn được ký số mật mã học bất biến bằng khóa riêng và lưu trữ bằng chứng
+              chứng thực tại sổ cái pháp lý.
             </p>
 
             {/* Seal Hash Display */}
@@ -272,7 +279,9 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
             </div>
 
             <div className="text-[11px] text-[#66786E] flex items-center justify-between">
-              <span>Chuẩn mã hóa: <strong>NIST P-256</strong></span>
+              <span>
+                Chuẩn mã hóa: <strong>NIST P-256</strong>
+              </span>
               <span className="text-[#059669] font-medium flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" /> Đã xác thực
               </span>

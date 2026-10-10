@@ -1,6 +1,11 @@
+import { requirePreviewWorkspace } from "@/shared/config/preview";
 
 import type { ApiResponse, PaginatedList, PaginationParams } from "@/shared/types";
-import type { NotaryClaimItemDto, ApproveClaimRequest, RejectClaimRequest } from "../model/notary.types";
+import type {
+  NotaryClaimItemDto,
+  ApproveClaimRequest,
+  RejectClaimRequest,
+} from "../model/notary.types";
 
 /**
  * @file notaryService.ts
@@ -8,15 +13,15 @@ import type { NotaryClaimItemDto, ApproveClaimRequest, RejectClaimRequest } from
  * Tuân thủ Rule 7 (Scaffold with TODO) và Rule 8 (JSDoc chuẩn chỉnh).
  */
 
-
 /**
  * Lấy danh sách hồ sơ tử tuất/mất tích đang chờ thẩm định (CLAIM_PENDING)
  * @param params Tham số phân trang
  * @returns Promise chứa danh sách hồ sơ phân trang
  */
 export async function getPendingClaims(
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<PaginatedList<NotaryClaimItemDto>> {
+  requirePreviewWorkspace();
   // TODO: [P2][VERIFIER-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Migrate hàng chờ notary mock sang Verifier death-cases.
   // 2. [INPUT & OUTPUT]: Scope/bộ lọc -> data/meta hồ sơ và criteria có version.
@@ -34,7 +39,8 @@ export async function getPendingClaims(
       ownerDateOfBirth: "1968-05-14",
       ownerAddress: "123 Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
       manifestHash: "a6c8e3d2f1b0a9c8e7d6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4",
-      ownerSignature: "MEYCIQC8v9G7p4zL2yK1m0N3b5V8c9X2a4Z7q0W1e3R5t7Y9uAIhAP1o3I5u7Y9t1R3e5W7q9Z0a2X4c6V8b0N1m2K4y6L8z",
+      ownerSignature:
+        "MEYCIQC8v9G7p4zL2yK1m0N3b5V8c9X2a4Z7q0W1e3R5t7Y9uAIhAP1o3I5u7Y9t1R3e5W7q9Z0a2X4c6V8b0N1m2K4y6L8z",
       lucidityVideoUrl: "https://storage.legacyvault.vn/mock/oath_15s.mp4",
       lucidityVideoHash: "b5c4d3e2f1a0987654321fedcba0987654321fedcba0987654321fedcba09876",
       executorId: "usr_exec_01",
@@ -71,8 +77,9 @@ export async function getPendingClaims(
  * @returns Promise xác nhận phê duyệt thành công
  */
 export async function approveClaim(
-  _payload: ApproveClaimRequest
+  _payload: ApproveClaimRequest,
 ): Promise<ApiResponse<{ releasedShareIndex: number; vaultStatus: string }>> {
+  requirePreviewWorkspace();
   // TODO: [P2][VERIFIER-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Duyệt chứng tử theo criteria/version/hold thực.
   // 2. [INPUT & OUTPUT]: caseId + reason/evidence/criteriaVersion -> decision BE.
@@ -95,8 +102,9 @@ export async function approveClaim(
  * @returns Promise xác nhận từ chối hồ sơ
  */
 export async function rejectClaim(
-  _payload: RejectClaimRequest
+  _payload: RejectClaimRequest,
 ): Promise<ApiResponse<{ claimStatus: string }>> {
+  requirePreviewWorkspace();
   // TODO: [P2][VERIFIER-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Tách từ chối và yêu cầu bổ sung chứng tử.
   // 2. [INPUT & OUTPUT]: caseId + reason/version -> rejected hoặc supplement action.

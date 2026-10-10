@@ -61,6 +61,7 @@ export const APP_MESSAGES = {
   },
   /** Thông điệp khi xảy ra lỗi hệ thống hoặc mạng */
   ERROR: {
+    FEATURE_UNAVAILABLE: "Tính năng đang được hoàn thiện. Vui lòng thử lại sau.",
     DEFAULT: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại!",
     NETWORK: "Không thể kết nối đến máy chủ. Vui lòng kiểm tra đường truyền mạng.",
     UNAUTHORIZED: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!",
@@ -81,6 +82,13 @@ export const APP_MESSAGES = {
     PASSWORD_NOT_MATCH: "Mật khẩu xác nhận không trùng khớp",
     PASSWORD_UPPERCASE: "Mật khẩu phải có ít nhất một chữ hoa.",
     PASSWORD_SPECIAL_CHARACTER: "Mật khẩu phải có ít nhất một ký tự đặc biệt.",
+  },
+  UI: {
+    LOADING: "Đang tải dữ liệu...",
+    EMPTY: "Chưa có dữ liệu.",
+    RETRY: "Thử lại",
+    PREVIEW: "Bản xem trước: dữ liệu mẫu, chưa thực hiện thao tác trên tài khoản.",
+    VALID_PREVIEW: "Dữ liệu hợp lệ. Đây là bản xem trước; chưa gửi hoặc lưu dữ liệu.",
   },
 } as const;
 

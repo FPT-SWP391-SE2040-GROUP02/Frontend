@@ -25,10 +25,7 @@ export interface LogoutConfirmationCardProps {
  * @param {LogoutConfirmationCardProps} props Thuộc tính component
  * @returns {React.JSX.Element} Thẻ xác nhận đăng xuất
  */
-export function LogoutConfirmationCard({
-  onClose,
-  className = "",
-}: LogoutConfirmationCardProps) {
+export function LogoutConfirmationCard({ onClose, className = "" }: LogoutConfirmationCardProps) {
   const [revokeAll, setRevokeAll] = useState<boolean>(false);
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const navigate = useNavigate();
@@ -54,7 +51,7 @@ export function LogoutConfirmationCard({
         onSuccess: () => {
           navigate(ROUTES.AUTH.LOGGED_OUT);
         },
-      }
+      },
     );
   };
 
@@ -89,11 +86,11 @@ export function LogoutConfirmationCard({
         <div className="flex items-start gap-2.5">
           <Info className="w-4 h-4 text-[#0A281E] flex-shrink-0 mt-0.5" />
           <div className="text-xs leading-relaxed">
-            <p className="font-semibold text-[#0A281E]">
-              Đăng xuất không thay thế điểm danh.
-            </p>
+            <p className="font-semibold text-[#0A281E]">Đăng xuất không thay thế điểm danh.</p>
             <p className="text-[#3F5B4E] mt-0.5">
-              Kỳ điểm danh tiếp theo của bạn là <span className="font-semibold text-[#0A281E]">28/10/2026</span>, còn <span className="font-semibold text-[#0A281E]">21 ngày</span>.
+              Kỳ điểm danh tiếp theo của bạn là{" "}
+              <span className="font-semibold text-[#0A281E]">28/10/2026</span>, còn{" "}
+              <span className="font-semibold text-[#0A281E]">21 ngày</span>.
             </p>
           </div>
         </div>
@@ -117,7 +114,11 @@ export function LogoutConfirmationCard({
 
       {/* Nhóm nút hành động */}
       <div className="space-y-2 pt-2">
-        {isError && <p role="alert" className="text-sm text-red-700">{APP_MESSAGES.ERROR.DEFAULT}</p>}
+        {isError && (
+          <p role="alert" className="text-sm text-red-700">
+            {APP_MESSAGES.ERROR.DEFAULT}
+          </p>
+        )}
         <Button
           type="button"
           onClick={handleLogout}

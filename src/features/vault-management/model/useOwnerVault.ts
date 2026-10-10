@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { BackendPageRequest } from "@/shared/types/backend";
-import type { CreatePackageRequest, UpdatePackageRequest } from "@/entities/package/model/package.types";
+import type {
+  CreatePackageRequest,
+  UpdatePackageRequest,
+} from "@/entities/package/model/package.types";
 import { ownerVaultService } from "../api/ownerVaultService";
 import { isAxiosError } from "axios";
 import { z } from "zod";
@@ -15,9 +18,11 @@ const vaultMissingProblemSchema = z.object({ code: z.literal("VAULT_NOT_FOUND") 
  * @returns True chỉ khi HTTP 404 đi cùng code VAULT_NOT_FOUND của BE.
  */
 export function isOwnerVaultMissing(error: unknown): boolean {
-  return isAxiosError<unknown>(error) &&
+  return (
+    isAxiosError<unknown>(error) &&
     error.response?.status === HTTP_STATUS.NOT_FOUND &&
-    vaultMissingProblemSchema.safeParse(error.response.data).success;
+    vaultMissingProblemSchema.safeParse(error.response.data).success
+  );
 }
 
 /** Cache keys riêng cho dữ liệu Owner; cần xóa cache riêng tư khi đổi account/logout. */
@@ -90,7 +95,8 @@ export interface UpdateOwnerPackageInput {
 export function useUpdateOwnerPackage() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, request }: UpdateOwnerPackageInput) => ownerVaultService.updatePackage(id, request),
+    mutationFn: ({ id, request }: UpdateOwnerPackageInput) =>
+      ownerVaultService.updatePackage(id, request),
     onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
   });
 }

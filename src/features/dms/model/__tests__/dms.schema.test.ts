@@ -40,9 +40,7 @@ describe("DMS Validation Schemas", () => {
         checkIntervalDays: 30,
         gracePeriodDays: 14,
         reminderFrequencyDays: 3,
-        channels: [
-          { type: "EMAIL", enabled: true, targetValue: "test@example.com" },
-        ],
+        channels: [{ type: "EMAIL", enabled: true, targetValue: "test@example.com" }],
         notifyExecutorOnGracePeriod: true,
       };
       const result = dmsConfigSchema.safeParse(validConfig);
@@ -54,9 +52,7 @@ describe("DMS Validation Schemas", () => {
         checkIntervalDays: 3,
         gracePeriodDays: 14,
         reminderFrequencyDays: 3,
-        channels: [
-          { type: "EMAIL", enabled: true, targetValue: "test@example.com" },
-        ],
+        channels: [{ type: "EMAIL", enabled: true, targetValue: "test@example.com" }],
       };
       const result = dmsConfigSchema.safeParse(invalidConfig);
       expect(result.success).toBe(false);
@@ -87,5 +83,25 @@ describe("DMS Validation Schemas", () => {
       expect(pingRequestSchema.safeParse({ source: "EMAIL_LINK" }).success).toBe(true);
       expect(pingRequestSchema.safeParse({ source: "TELEGRAM" }).success).toBe(true);
     });
+  });
+});
+
+describe("DMS channel boundaries", () => {
+  it("cho phép kênh tắt có địa chỉ trống", () => {
+    expect(
+      notificationChannelSchema.safeParse({ type: "EMAIL", enabled: false, targetValue: " " })
+        .success,
+    ).toBe(true);
+  });
+  it("từ chối cấu hình có toàn bộ kênh tắt", () => {
+    expect(
+      dmsConfigSchema.safeParse({
+        checkIntervalDays: 30,
+        gracePeriodDays: 14,
+        reminderFrequencyDays: 3,
+        channels: [{ type: "EMAIL", enabled: false, targetValue: "" }],
+        notifyExecutorOnGracePeriod: true,
+      }).success,
+    ).toBe(false);
   });
 });

@@ -1,6 +1,17 @@
 import React, { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { ZoomIn, ZoomOut, RotateCw, Maximize2, ShieldCheck, FileText, Check, X, Lock, User } from "lucide-react";
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Maximize2,
+  ShieldCheck,
+  FileText,
+  Check,
+  X,
+  Lock,
+  User,
+} from "lucide-react";
 import { Button, Card } from "@/shared/ui";
 import type { NotaryClaimDetailViewModel, AuditCriteriaChecklist } from "../model/notary.types";
 
@@ -41,20 +52,16 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
     },
   });
 
-  const [
-    isDocumentValid,
-    isIdentityMatched,
-    isManifestIntegrityVerified,
-    isExecutorAuthorized,
-  ] = useWatch({
-    control,
-    name: [
-      "isDocumentValid",
-      "isIdentityMatched",
-      "isManifestIntegrityVerified",
-      "isExecutorAuthorized",
-    ],
-  });
+  const [isDocumentValid, isIdentityMatched, isManifestIntegrityVerified, isExecutorAuthorized] =
+    useWatch({
+      control,
+      name: [
+        "isDocumentValid",
+        "isIdentityMatched",
+        "isManifestIntegrityVerified",
+        "isExecutorAuthorized",
+      ],
+    });
   const criteria: AuditCriteriaChecklist = {
     isDocumentValid,
     isIdentityMatched,
@@ -97,10 +104,10 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
     setValue("isManifestIntegrityVerified", true, { shouldValidate: true });
   };
 
-  const isAllCriteriaMet = 
-    criteria.isDocumentValid && 
-    criteria.isIdentityMatched && 
-    criteria.isManifestIntegrityVerified && 
+  const isAllCriteriaMet =
+    criteria.isDocumentValid &&
+    criteria.isIdentityMatched &&
+    criteria.isManifestIntegrityVerified &&
     criteria.isExecutorAuthorized;
 
   return (
@@ -160,7 +167,7 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
 
         {/* Khung hiển thị tài liệu scan */}
         <div className="relative h-[650px] rounded-[24px] bg-[#2A3439] border border-[#DCD9D0] shadow-md overflow-hidden flex items-center justify-center p-4">
-          <div 
+          <div
             className="transition-transform duration-200 shadow-2xl bg-white rounded-lg p-6 max-w-full max-h-full overflow-auto"
             style={{
               transform: `scale(${zoomLevel / 100}) rotate(${rotationAngle}deg)`,
@@ -170,7 +177,9 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
             {/* Mockup Canvas hiển thị Trích Lục Khai Tử Số chuẩn hộ tịch Việt Nam */}
             <div className="w-[420px] text-center space-y-4 text-black font-serif text-[11px] border-4 border-double border-red-800 p-6 bg-[#FCFBF7]">
               <div className="space-y-1">
-                <p className="font-bold text-[12px] uppercase">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                <p className="font-bold text-[12px] uppercase">
+                  CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+                </p>
                 <p className="italic text-[10px]">Độc lập - Tự do - Hạnh phúc</p>
                 <div className="w-24 h-[1px] bg-black mx-auto mt-1" />
               </div>
@@ -183,12 +192,27 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
               </div>
 
               <div className="text-left space-y-2 pt-2 text-[10px]">
-                <p><span className="font-bold">Họ, chữ đệm, tên:</span> {claim.ownerFullName.toUpperCase()}</p>
-                <p><span className="font-bold">Ngày, tháng, năm sinh:</span> {claim.ownerDateOfBirth}</p>
-                <p><span className="font-bold">Số định danh cá nhân / CCCD:</span> {claim.ownerNationalId}</p>
-                <p><span className="font-bold">Nơi cư trú cuối cùng:</span> {claim.ownerAddress}</p>
-                <p><span className="font-bold">Đã chết vào lúc:</span> 14 giờ 30 phút, ngày {claim.deathCertificateIssueDate}</p>
-                <p><span className="font-bold">Nơi cấp:</span> {claim.deathCertificateIssuer}</p>
+                <p>
+                  <span className="font-bold">Họ, chữ đệm, tên:</span>{" "}
+                  {claim.ownerFullName.toUpperCase()}
+                </p>
+                <p>
+                  <span className="font-bold">Ngày, tháng, năm sinh:</span> {claim.ownerDateOfBirth}
+                </p>
+                <p>
+                  <span className="font-bold">Số định danh cá nhân / CCCD:</span>{" "}
+                  {claim.ownerNationalId}
+                </p>
+                <p>
+                  <span className="font-bold">Nơi cư trú cuối cùng:</span> {claim.ownerAddress}
+                </p>
+                <p>
+                  <span className="font-bold">Đã chết vào lúc:</span> 14 giờ 30 phút, ngày{" "}
+                  {claim.deathCertificateIssueDate}
+                </p>
+                <p>
+                  <span className="font-bold">Nơi cấp:</span> {claim.deathCertificateIssuer}
+                </p>
               </div>
 
               {/* Dấu mộc đỏ mô phỏng */}
@@ -267,8 +291,12 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
           </div>
 
           <div className="p-2.5 rounded-xl bg-[#EFECE6] text-[10px] font-mono text-[#66786E] space-y-1">
-            <p className="truncate"><span className="font-bold text-[#0B291E]">Manifest:</span> {claim.manifestHash}</p>
-            <p className="truncate"><span className="font-bold text-[#0B291E]">Signature:</span> {claim.ownerSignature}</p>
+            <p className="truncate">
+              <span className="font-bold text-[#0B291E]">Manifest:</span> {claim.manifestHash}
+            </p>
+            <p className="truncate">
+              <span className="font-bold text-[#0B291E]">Signature:</span> {claim.ownerSignature}
+            </p>
           </div>
 
           <Button
@@ -277,7 +305,11 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
             className="w-full min-h-[40px] rounded-[16px] text-xs font-bold bg-[#E5EDE8] hover:bg-[#d6e5dc] text-[#0B291E] flex items-center justify-center gap-2 transition-all"
           >
             <ShieldCheck className="w-4 h-4 text-[#059669]" />
-            <span>{isTamperVerified ? "Đã Xác Thực Chữ Ký ECDSA Hợp Lệ" : "Kiểm Tra Tính Toàn Vẹn Mã Băm (Tamper Check)"}</span>
+            <span>
+              {isTamperVerified
+                ? "Đã Xác Thực Chữ Ký ECDSA Hợp Lệ"
+                : "Kiểm Tra Tính Toàn Vẹn Mã Băm (Tamper Check)"}
+            </span>
           </Button>
         </Card>
 
@@ -288,7 +320,8 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
               4 Tiêu Chí Kiểm Toán Bắt Buộc (Audit Checklist)
             </h4>
             <p className="text-[11px] text-[#66786E]">
-              Pháp lệnh Công chứng: Bắt buộc xác nhận đủ 4 tiêu chuẩn trước khi giải phóng Mảnh khóa 2.
+              Pháp lệnh Công chứng: Bắt buộc xác nhận đủ 4 tiêu chuẩn trước khi giải phóng Mảnh khóa
+              2.
             </p>
           </div>
 
@@ -326,9 +359,13 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
                       : "bg-[#FAF9F5] border-[#DCD9D0] text-[#14241C] hover:border-[#B88E4C]"
                   }`}
                 >
-                  <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                    isChecked ? "bg-[#0B291E] border-[#0B291E] text-white" : "border-[#A8A295] bg-white"
-                  }`}>
+                  <div
+                    className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                      isChecked
+                        ? "bg-[#0B291E] border-[#0B291E] text-white"
+                        : "border-[#A8A295] bg-white"
+                    }`}
+                  >
                     {isChecked && <Check className="w-3.5 h-3.5" />}
                   </div>
                   <div>

@@ -4,17 +4,17 @@
  * Tương thích chuẩn C# ASP.NET Core EF Core (Bảng LegalClaims).
  */
 
-export type ClaimDocumentType = 
-  | "DEATH_CERTIFICATE"      // Trích lục khai tử do UBND cấp
-  | "COURT_MISSING_DECREE"   // Quyết định Tòa án tuyên bố mất tích (Điều 68 BLDS)
-  | "COURT_DEATH_DECREE";    // Quyết định Tòa án tuyên bố đã chết (Điều 71 BLDS)
+export type ClaimDocumentType =
+  | "DEATH_CERTIFICATE" // Trích lục khai tử do UBND cấp
+  | "COURT_MISSING_DECREE" // Quyết định Tòa án tuyên bố mất tích (Điều 68 BLDS)
+  | "COURT_DEATH_DECREE"; // Quyết định Tòa án tuyên bố đã chết (Điều 71 BLDS)
 
-export type ClaimStatus = 
-  | "DRAFT"            // Bản nháp chưa gửi
-  | "CLAIM_PENDING"    // Đã nộp, đang chờ công chứng viên thụ lý
-  | "APPROVED"         // Đã thẩm định & phê duyệt thành công
-  | "REJECTED"         // Bị từ chối, yêu cầu bổ sung
-  | "FROZEN";          // Đóng băng khẩn cấp do tranh chấp/chủ kho hồi sinh
+export type ClaimStatus =
+  | "DRAFT" // Bản nháp chưa gửi
+  | "CLAIM_PENDING" // Đã nộp, đang chờ công chứng viên thụ lý
+  | "APPROVED" // Đã thẩm định & phê duyệt thành công
+  | "REJECTED" // Bị từ chối, yêu cầu bổ sung
+  | "FROZEN"; // Đóng băng khẩn cấp do tranh chấp/chủ kho hồi sinh
 
 /**
  * @description DTO thông tin hồ sơ tử tuất gửi lên từ Executor

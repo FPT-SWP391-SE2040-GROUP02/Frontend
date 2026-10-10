@@ -30,7 +30,10 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (import.meta.env.DEV && Object.values(ROUTES.PREVIEW).some((path) => path === window.location.pathname)) {
+    if (
+      import.meta.env.DEV &&
+      Object.values(ROUTES.PREVIEW).some((path) => path === window.location.pathname)
+    ) {
       dispatch(setHydrating(false));
       return;
     }
@@ -40,7 +43,10 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
       try {
         const response = await queryClient.fetchQuery({
           queryKey: SESSION_BOOTSTRAP.queryKey,
-          queryFn: () => axiosClient.get<LegacySessionResponse, LegacySessionResponse>(SESSION_BOOTSTRAP.endpoint),
+          queryFn: () =>
+            axiosClient.get<LegacySessionResponse, LegacySessionResponse>(
+              SESSION_BOOTSTRAP.endpoint,
+            ),
           staleTime: SESSION_BOOTSTRAP.staleTimeMs,
           retry: false,
         });
@@ -48,7 +54,12 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
 
         let user: User | null = null;
         if (response && typeof response === "object") {
-          if ("data" in response && response.data && typeof response.data === "object" && "user" in response.data) {
+          if (
+            "data" in response &&
+            response.data &&
+            typeof response.data === "object" &&
+            "user" in response.data
+          ) {
             user = (response.data as { user: User }).user;
           } else if ("user" in response && (response as { user: User }).user) {
             user = (response as { user: User }).user;

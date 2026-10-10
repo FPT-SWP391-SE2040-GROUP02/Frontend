@@ -9,13 +9,16 @@ import { APP_MESSAGES } from "@/shared/constants";
 /**
  * Schema xác thực cấu hình kênh thông báo nhịp sinh tồn
  */
-export const notificationChannelSchema = z.object({
-  type: z.enum(["EMAIL", "SMS", "TELEGRAM", "VOICE_CALL"]),
-  enabled: z.boolean(),
-  targetValue: z.string().trim().min(1, {
+export const notificationChannelSchema = z
+  .object({
+    type: z.enum(["EMAIL", "SMS", "TELEGRAM", "VOICE_CALL"]),
+    enabled: z.boolean(),
+    targetValue: z.string().trim(),
+  })
+  .refine((channel) => !channel.enabled || channel.targetValue.length > 0, {
     message: APP_MESSAGES.VALIDATION.REQUIRED("Địa chỉ liên hệ nhận thông báo"),
-  }),
-});
+    path: ["targetValue"],
+  });
 
 export type NotificationChannelFormInput = z.infer<typeof notificationChannelSchema>;
 
@@ -51,9 +54,11 @@ export const dmsConfigSchema = z.object({
     .max(14, { message: "Tần suất nhắc nhở tối đa 14 ngày" }),
 
   /** Danh sách kênh thông báo */
-  channels: z.array(notificationChannelSchema).min(1, {
-    message: "Bắt buộc kích hoạt ít nhất 1 kênh nhận thông báo cảnh báo",
-  }),
+  channels: z
+    .array(notificationChannelSchema)
+    .refine((channels) => channels.some((channel) => channel.enabled), {
+      message: "Bắt buộc kích hoạt ít nhất 1 kênh nhận thông báo cảnh báo",
+    }),
 
   /** Tự động gửi cảnh báo khẩn cấp tới người giám hộ khi vào Grace Period */
   notifyExecutorOnGracePeriod: z.boolean().default(true),

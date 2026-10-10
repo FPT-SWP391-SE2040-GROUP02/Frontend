@@ -22,10 +22,7 @@ export interface AdminTwoFactorCardProps {
  * @param {AdminTwoFactorCardProps} props Thuộc tính component
  * @returns {React.JSX.Element} Card xác thực 2 bước
  */
-export function AdminTwoFactorCard({
-  onSuccess,
-  className = "",
-}: AdminTwoFactorCardProps) {
+export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactorCardProps) {
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
@@ -105,7 +102,7 @@ export function AdminTwoFactorCard({
           setDigits(["", "", "", "", "", ""]);
           inputRefs.current[0]?.focus();
         },
-      }
+      },
     );
   };
 
@@ -119,7 +116,8 @@ export function AdminTwoFactorCard({
           Xác thực hai bước
         </h1>
         <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
-          Mở ứng dụng xác thực (Google Authenticator / Authy) và nhập mã 6 chữ số hiện trên màn hình.
+          Mở ứng dụng xác thực (Google Authenticator / Authy) và nhập mã 6 chữ số hiện trên màn
+          hình.
         </p>
       </div>
 

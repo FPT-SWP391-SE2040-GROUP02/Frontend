@@ -1,3 +1,4 @@
+import { requirePreviewWorkspace } from "@/shared/config/preview";
 
 import type { ApiResponse, PaginatedList, PaginationParams } from "@/shared/types";
 import type { SubmitClaimRequest, ClaimItemViewModel } from "@/entities/claim/model/claim.types";
@@ -7,7 +8,6 @@ import type { SubmitClaimRequest, ClaimItemViewModel } from "@/entities/claim/mo
  * @description Tầng dịch vụ API cho phân hệ Người Thi Hành Di Chúc (Executor Claims).
  * Tuân thủ Rule 7 (Scaffold with TODO) và Rule 8 (JSDoc chuẩn chỉnh).
  */
-
 
 export interface PresignedUploadResponse {
   uploadUrl: string;
@@ -23,8 +23,9 @@ export interface PresignedUploadResponse {
  */
 export async function getPresignedUploadUrl(
   fileName: string,
-  _contentType: string
+  _contentType: string,
 ): Promise<PresignedUploadResponse> {
+  requirePreviewWorkspace();
   // TODO: [P2][DEATH-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Chốt transport chứng cứ private thay presigned mock.
   // 2. [INPUT & OUTPUT]: deathCaseId + file metadata -> documentId và trạng thái upload BE.
@@ -44,8 +45,9 @@ export async function getPresignedUploadUrl(
  * @returns Promise chứa ApiResponse xác nhận đã nộp thành công
  */
 export async function submitClaim(
-  _payload: SubmitClaimRequest
+  _payload: SubmitClaimRequest,
 ): Promise<ApiResponse<{ claimId: string; status: string }>> {
+  requirePreviewWorkspace();
   // TODO: [P2][DEATH-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Tách tạo/nộp death-case khỏi beneficiary claim.
   // 2. [INPUT & OUTPUT]: Assignment + case/version/documentIds -> caseId/status từ BE.
@@ -68,8 +70,9 @@ export async function submitClaim(
  * @returns Promise chứa danh sách hồ sơ phân trang
  */
 export async function getExecutorClaims(
-  params?: PaginationParams
+  params?: PaginationParams,
 ): Promise<PaginatedList<ClaimItemViewModel>> {
+  requirePreviewWorkspace();
   // TODO: [P2][DEATH-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Nối hồ sơ chứng tử Executor theo assignment.
   // 2. [INPUT & OUTPUT]: Scope + page/pageSize/q -> DTO death-case data/meta.

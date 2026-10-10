@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { DmsHeartbeatCard, DmsConfigModal, DmsPingHistoryModal } from "@/features/dms";
 import { BookOpen, Scale, Info, Radio, Bell, Lock } from "lucide-react";
 
-
 /**
  * @file DmsStatusPage.tsx
  * @description Màn hình tổng quan Nhịp Sinh Tồn Dead Man's Switch (DMS Status & Heartbeat Hub).
@@ -33,7 +32,9 @@ export const DmsStatusPage: React.FC = () => {
             Trung Tâm Nhịp Sinh Tồn (Dead Man's Switch)
           </h1>
           <p className="text-sm sm:text-base text-[#66786E] max-w-3xl leading-relaxed">
-            Hệ thống tự động giám sát tín hiệu hoạt động định kỳ của bạn. Nếu quá hạn và không nhận được phản hồi sau thời gian ân hạn, quy trình mở khóa và bàn giao di sản số sẽ được kích hoạt an toàn cho Người thừa kế hợp pháp.
+            Hệ thống tự động giám sát tín hiệu hoạt động định kỳ của bạn. Nếu quá hạn và không nhận
+            được phản hồi sau thời gian ân hạn, quy trình mở khóa và bàn giao di sản số sẽ được kích
+            hoạt an toàn cho Người thừa kế hợp pháp.
           </p>
         </div>
 
@@ -56,14 +57,21 @@ export const DmsStatusPage: React.FC = () => {
                 </h3>
               </div>
               <p className="text-xs sm:text-sm text-[#78350F] leading-relaxed">
-                Theo quy định pháp luật Việt Nam, việc chuyển giao tài sản số và di chúc điện tử chỉ có hiệu lực pháp lý khi có sự kiện tử vong được xác lập bằng <strong>Giấy chứng tử điện tử</strong> hoặc phán quyết của Tòa án có thẩm quyền. Giao thức Dead Man's Switch đóng vai trò <em>công cụ dự phòng kỹ thuật</em> kích hoạt quy trình thẩm tra hồ sơ công chứng (Legal Notary Verification) trước khi giải mã kho khóa riêng.
+                Theo quy định pháp luật Việt Nam, việc chuyển giao tài sản số và di chúc điện tử chỉ
+                có hiệu lực pháp lý khi có sự kiện tử vong được xác lập bằng{" "}
+                <strong>Giấy chứng tử điện tử</strong> hoặc phán quyết của Tòa án có thẩm quyền.
+                Giao thức Dead Man's Switch đóng vai trò <em>công cụ dự phòng kỹ thuật</em> kích
+                hoạt quy trình thẩm tra hồ sơ công chứng (Legal Notary Verification) trước khi giải
+                mã kho khóa riêng.
               </p>
               <div className="pt-2 flex items-center gap-4 text-xs font-semibold text-[#B45309]">
                 <span className="flex items-center gap-1">
-                  <BookOpen className="w-3.5 h-3.5" /> Điều 644: Quyền thừa kế không phụ thuộc nội dung di chúc
+                  <BookOpen className="w-3.5 h-3.5" /> Điều 644: Quyền thừa kế không phụ thuộc nội
+                  dung di chúc
                 </span>
                 <span className="flex items-center gap-1">
-                  <Info className="w-3.5 h-3.5" /> Điều 612: Di sản bao gồm tài sản số có giá trị pháp lý
+                  <Info className="w-3.5 h-3.5" /> Điều 612: Di sản bao gồm tài sản số có giá trị
+                  pháp lý
                 </span>
               </div>
             </div>
@@ -80,7 +88,8 @@ export const DmsStatusPage: React.FC = () => {
               1. Nhịp Ping Định Kỳ (Pulse)
             </h4>
             <p className="text-xs text-[#66786E] leading-relaxed">
-              Bạn có thể xác nhận sự hiện diện chỉ bằng 1 chạm qua Web, Email link hoặc Telegram Bot được mã hóa an toàn.
+              Bạn có thể xác nhận sự hiện diện chỉ bằng 1 chạm qua Web, Email link hoặc Telegram Bot
+              được mã hóa an toàn.
             </p>
           </div>
 
@@ -88,11 +97,10 @@ export const DmsStatusPage: React.FC = () => {
             <div className="w-10 h-10 rounded-[12px] bg-[#FBF7EE] flex items-center justify-center text-[#B88E4C] mb-4">
               <Bell className="w-5 h-5 text-[#B88E4C]" />
             </div>
-            <h4 className="text-base font-bold text-[#14241C] mb-2">
-              2. Cảnh Báo Khẩn Đa Kênh
-            </h4>
+            <h4 className="text-base font-bold text-[#14241C] mb-2">2. Cảnh Báo Khẩn Đa Kênh</h4>
             <p className="text-xs text-[#66786E] leading-relaxed">
-              Trước khi bước vào thời gian ân hạn, hệ thống tự động gửi tin nhắn SMS, gọi điện AI Voice và cảnh báo người thân được ủy quyền.
+              Trước khi bước vào thời gian ân hạn, hệ thống tự động gửi tin nhắn SMS, gọi điện AI
+              Voice và cảnh báo người thân được ủy quyền.
             </p>
           </div>
 
@@ -100,11 +108,10 @@ export const DmsStatusPage: React.FC = () => {
             <div className="w-10 h-10 rounded-[12px] bg-[#EFECE6] flex items-center justify-center text-[#0B291E] mb-4">
               <Lock className="w-5 h-5 text-[#0B291E]" />
             </div>
-            <h4 className="text-base font-bold text-[#14241C] mb-2">
-              3. Phân Mảnh Khóa Shamir
-            </h4>
+            <h4 className="text-base font-bold text-[#14241C] mb-2">3. Phân Mảnh Khóa Shamir</h4>
             <p className="text-xs text-[#66786E] leading-relaxed">
-              Kho di sản chỉ được giải phóng khi kết hợp đủ số lượng mảnh khóa mật mã học (k out of n Shamir's Secret Sharing) và xác thực tư pháp.
+              Kho di sản chỉ được giải phóng khi kết hợp đủ số lượng mảnh khóa mật mã học (k out of
+              n Shamir's Secret Sharing) và xác thực tư pháp.
             </p>
           </div>
         </div>
@@ -112,19 +119,16 @@ export const DmsStatusPage: React.FC = () => {
 
       {/* Footer */}
       <footer className="bg-[#FAF9F5] border-t border-[#DCD9D0] py-6 px-4 text-center text-xs text-[#66786E] mt-auto">
-        <p>© 2026 LegacyVault Protocol. Nền tảng Két Di Sản Số Mật Mã Học & Bàn Giao Pháp Lý Chuẩn FPT SWP391.</p>
+        <p>
+          © 2026 LegacyVault Protocol. Nền tảng Két Di Sản Số Mật Mã Học & Bàn Giao Pháp Lý Chuẩn
+          FPT SWP391.
+        </p>
       </footer>
 
       {/* Modals */}
-      <DmsConfigModal
-        isOpen={isConfigOpen}
-        onClose={() => setIsConfigOpen(false)}
-      />
+      <DmsConfigModal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} />
 
-      <DmsPingHistoryModal
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-      />
+      <DmsPingHistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
     </div>
   );
 };

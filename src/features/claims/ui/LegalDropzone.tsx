@@ -1,7 +1,8 @@
-import React, { useRef } from "react";
+import React from "react";
+import { LegalDropzone as FileDropzone } from "@/shared/ui/LegalDropzone";
+import { APP_MESSAGES } from "@/shared/constants";
 import { useMutation } from "@tanstack/react-query";
 import { UploadCloud, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-
 
 /**
  * @file LegalDropzone.tsx
@@ -35,9 +36,6 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
   onUploadSuccess,
   disabled = false,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dropzoneContainerRef = useRef<HTMLDivElement>(null);
-
   // ZERO useState: Sử dụng TanStack Query useMutation duy nhất để quản lý vòng đời Async/Server State
   const uploadMutation = useMutation<UploadedFileResult, Error, File>({
     mutationFn: async (_file: File) => {
@@ -78,8 +76,8 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
       // 3. [CÁC BƯỚC]: Sau EVIDENCE-04 chốt schema; đổi props/callers đồng bộ; bỏ giả định fileUrl public; adapter ở entity.
       // 4. [HÀM / THƯ VIỆN]: Zod, TypeScript, entity adapter, RHF setValue.
       // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không gửi URL bất kỳ làm bằng chứng; file chưa finalize hoặc thuộc case khác phải bị chặn; không giả thành công khi helper còn throw.
-      
-      throw new Error("Chưa cài đặt uploadMutation.mutationFn - Vui lòng tự hoàn thiện 5 bước băm SHA-256 và tải lên R2 theo Rule 7.");
+
+      throw new Error(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
     },
     onSuccess: (data) => {
       // TODO: [P2][EVIDENCE-06] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
@@ -99,69 +97,25 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
     // 3. [CÁC BƯỚC]: Sau EVIDENCE-01..06 disable pending; guard drop/input thống nhất; hủy khi đổi phiên; thông báo API lỗi để retry.
     // 4. [HÀM / THƯ VIỆN]: TanStack Query, refs DOM, RHF/Zod, shared/ui.
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không gửi lặp nhiều drop; thiếu session/case thì chặn; không giữ evidence trong storage hoặc tái dùng upload của người khác.
-    uploadMutation.mutate(file);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (!disabled && !uploadMutation.isPending && dropzoneContainerRef.current) {
-      dropzoneContainerRef.current.classList.add("border-[#B88E4C]", "bg-[#FBF7EE]");
-    }
-  };
-
-  const handleDragLeave = () => {
-    if (dropzoneContainerRef.current) {
-      dropzoneContainerRef.current.classList.remove("border-[#B88E4C]", "bg-[#FBF7EE]");
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (dropzoneContainerRef.current) {
-      dropzoneContainerRef.current.classList.remove("border-[#B88E4C]", "bg-[#FBF7EE]");
-    }
     if (disabled || uploadMutation.isPending) return;
-
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleProcessFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleProcessFile(e.target.files[0]);
-    }
+    uploadMutation.mutate(file);
   };
 
   const isSuccess = uploadMutation.isSuccess && uploadMutation.data;
 
   return (
     <div className="w-full space-y-3">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="application/pdf,image/png,image/jpeg"
-        className="hidden"
-        onChange={handleFileChange}
+      <FileDropzone
+        title="Chọn tài liệu pháp lý"
         disabled={disabled || uploadMutation.isPending}
-      />
-
-      <div
-        ref={dropzoneContainerRef}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => !disabled && !uploadMutation.isPending && fileInputRef.current?.click()}
-        className={`relative border-2 border-dashed rounded-[20px] p-6 text-center cursor-pointer transition-all ${
-          isSuccess
-            ? "border-[#059669] bg-[#E5EDE8]/40"
-            : "border-[#DCD9D0] bg-[#FAF9F5] hover:border-[#B88E4C] hover:bg-[#FBF7EE]/40"
-        } ${disabled || uploadMutation.isPending ? "opacity-60 cursor-not-allowed" : ""}`}
+        onFileSelect={handleProcessFile}
       >
         {uploadMutation.isPending ? (
           <div className="flex flex-col items-center justify-center py-4 space-y-3">
             <Loader2 className="w-8 h-8 text-[#B88E4C] animate-spin" />
-            <p className="text-xs font-bold text-[#0B291E]">Đang băm SHA-256 & truyền tệp lên Cloudflare R2...</p>
+            <p className="text-xs font-bold text-[#0B291E]">
+              Đang băm SHA-256 & truyền tệp lên Cloudflare R2...
+            </p>
             <p className="text-[10px] text-[#66786E]">Vui lòng không đóng trình duyệt</p>
           </div>
         ) : isSuccess ? (
@@ -172,7 +126,8 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
             <div>
               <p className="text-xs font-bold text-[#0B291E]">{uploadMutation.data.fileName}</p>
               <p className="text-[10px] text-[#66786E]">
-                {(uploadMutation.data.fileSize / 1024 / 1024).toFixed(2)} MB • Đã niêm phong băm SHA-256
+                {(uploadMutation.data.fileSize / 1024 / 1024).toFixed(2)} MB • Đã niêm phong băm
+                SHA-256
               </p>
             </div>
             {/* Thẻ hiển thị mã băm toàn vẹn */}
@@ -184,17 +139,6 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
                 {uploadMutation.data.fileHash}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                uploadMutation.reset();
-                fileInputRef.current?.click();
-              }}
-              className="text-[11px] font-bold text-[#B88E4C] hover:underline pt-1"
-            >
-              Chọn tệp khác thay thế
-            </button>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-4 space-y-3">
@@ -203,15 +147,16 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
             </div>
             <div>
               <p className="text-xs sm:text-sm font-bold text-[#14241C]">
-                Kéo thả tệp scan hoặc <span className="text-[#B88E4C] underline">bấm để chọn file</span>
+                Kéo thả tệp scan hoặc{" "}
+                <span className="text-[#B88E4C] underline">bấm để chọn file</span>
               </p>
               <p className="text-[11px] text-[#66786E] mt-0.5">
-                Hỗ trợ PDF, PNG, JPG (Tối đa 20MB). Tệp sẽ được băm SHA-256 ngay tại máy khách.
+                Hỗ trợ PDF, PNG, JPG. Chức năng tải lên đang được hoàn thiện.
               </p>
             </div>
           </div>
         )}
-      </div>
+      </FileDropzone>
 
       {uploadMutation.error && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">

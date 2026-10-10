@@ -3,7 +3,13 @@ import { useSearchParams } from "react-router-dom";
 import { Scale, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
 import { AppHeader } from "@/widgets";
 import { Card, Skeleton, Button } from "@/shared/ui";
-import { usePendingClaims, SplitScreenViewer, NotaryApproveModal, NotaryRejectModal, type AuditCriteriaChecklist } from "@/features/notary";
+import {
+  usePendingClaims,
+  SplitScreenViewer,
+  NotaryApproveModal,
+  NotaryRejectModal,
+  type AuditCriteriaChecklist,
+} from "@/features/notary";
 
 /**
  * @file NotaryWorkspacePage.tsx
@@ -20,7 +26,7 @@ export const NotaryWorkspacePage: React.FC = () => {
   const { data: claimsData, isLoading, isError, refetch } = usePendingClaims();
 
   const pendingClaims = claimsData?.items || [];
-  const currentClaim = 
+  const currentClaim =
     pendingClaims.find((c) => c.id === selectedClaimId) || pendingClaims[0] || null;
 
   const handleSelectClaim = (id: string) => {
@@ -71,7 +77,9 @@ export const NotaryWorkspacePage: React.FC = () => {
               Bàn Làm Việc Thẩm Định Di Sản (Notary Workspace)
             </h1>
             <p className="text-xs sm:text-sm text-[#66786E] mt-1 max-w-3xl leading-relaxed">
-              Đối soát giấy chứng tử hoặc bản án Tòa án với dữ liệu di chúc số trên màn hình chia đôi (Split-Screen) và giải phóng Mảnh khóa Verifier để người thừa kế tiếp nhận tài sản.
+              Đối soát giấy chứng tử hoặc bản án Tòa án với dữ liệu di chúc số trên màn hình chia
+              đôi (Split-Screen) và giải phóng Mảnh khóa Verifier để người thừa kế tiếp nhận tài
+              sản.
             </p>
           </div>
 
@@ -99,11 +107,15 @@ export const NotaryWorkspacePage: React.FC = () => {
                       : "bg-[#FAF9F5] text-[#14241C] border-[#DCD9D0] hover:border-[#B88E4C]"
                   }`}
                 >
-                  <FileText className={`w-4 h-4 ${isSelected ? "text-[#B88E4C]" : "text-[#66786E]"}`} />
+                  <FileText
+                    className={`w-4 h-4 ${isSelected ? "text-[#B88E4C]" : "text-[#66786E]"}`}
+                  />
                   <span>{claim.vaultTitle}</span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                    isSelected ? "bg-[#133E2F] text-[#B88E4C]" : "bg-[#EFECE6] text-[#66786E]"
-                  }`}>
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded-full ${
+                      isSelected ? "bg-[#133E2F] text-[#B88E4C]" : "bg-[#EFECE6] text-[#66786E]"
+                    }`}
+                  >
                     {claim.deathCertificateNumber}
                   </span>
                 </button>
@@ -139,7 +151,8 @@ export const NotaryWorkspacePage: React.FC = () => {
             </div>
             <h3 className="text-base font-bold text-[#0B291E]">Không Có Hồ Sơ Nào Chờ Thẩm Định</h3>
             <p className="text-xs text-[#66786E] max-w-md mx-auto leading-relaxed">
-              Hiện tại toàn bộ hồ sơ yêu cầu mở thừa kế đã được xử lý hoàn tất. Các hồ sơ mới do Người thi hành nộp sẽ tự động hiển thị tại đây.
+              Hiện tại toàn bộ hồ sơ yêu cầu mở thừa kế đã được xử lý hoàn tất. Các hồ sơ mới do
+              Người thi hành nộp sẽ tự động hiển thị tại đây.
             </p>
           </Card>
         )}

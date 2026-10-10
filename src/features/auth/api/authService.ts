@@ -86,7 +86,10 @@ export const authService = {
    * @returns {Promise<{ success: boolean }>}
    */
   async resendVerificationEmail(email: string): Promise<{ success: boolean }> {
-    const response = await axiosClient.post<{ success: boolean }>("/auth/email/resend-verification", { email });
+    const response = await axiosClient.post<{ success: boolean }>(
+      "/auth/email/resend-verification",
+      { email },
+    );
     return response.data;
   },
 

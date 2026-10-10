@@ -44,7 +44,7 @@ export function RoleGuard({
   // 4. [HÀM / THƯ VIỆN]: Props, shared constants, adapter ở entities; không import app store vào shared.
   // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Admin không tự nhận quyền xem nội dung/grant hoặc duyệt danh tính; role/URL/demo không cấp quyền; thiếu dữ liệu phải đóng quyền.
 
-  const hasPermission = currentUserRole ? allowedRoles.includes(currentUserRole as Role) || currentUserRole === "ADMIN" : false;
+  const hasPermission = currentUserRole ? allowedRoles.includes(currentUserRole) : false;
 
   if (!hasPermission) {
     return fallback;

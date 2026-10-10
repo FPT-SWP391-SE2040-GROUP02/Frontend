@@ -51,9 +51,7 @@ export function ComplianceCallout({
         <span>{title}</span>
       </div>
 
-      <p className="text-[11px] text-[#78350F] leading-relaxed mb-2.5">
-        {description}
-      </p>
+      <p className="text-[11px] text-[#78350F] leading-relaxed mb-2.5">{description}</p>
 
       <CustomCheckbox
         label={<span className="text-[#92400E] text-[11px] font-semibold">{disclaimerText}</span>}

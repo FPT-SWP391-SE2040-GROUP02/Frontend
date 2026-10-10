@@ -1,3 +1,4 @@
+import { ASSET_TYPE_LABELS } from "@/entities/asset/model/asset.constants";
 import React from "react";
 import type { AssetStrategy } from "./assetStrategy.interface";
 import type { EncryptedPayload } from "../asset.types";
@@ -11,7 +12,7 @@ import { Input } from "@/shared/ui";
  */
 export const documentStrategy: AssetStrategy = {
   type: "DOCUMENT",
-  label: "Tài Liệu Số (Documents)",
+  label: ASSET_TYPE_LABELS.DOCUMENT,
   description: "Hợp đồng bảo hiểm nhân thọ, sổ đỏ số, giấy chứng nhận cổ phần và di chúc đính kèm.",
   badgeBg: "bg-[#EFECE6]",
   badgeText: "text-[#14241C]",
@@ -112,7 +113,9 @@ export const documentStrategy: AssetStrategy = {
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[11px] font-bold text-[#66786E] uppercase">Số Hiệu Giấy Tờ</span>
+              <span className="text-[11px] font-bold text-[#66786E] uppercase">
+                Số Hiệu Giấy Tờ
+              </span>
               <p className="text-sm font-bold font-mono text-[#0B291E]">
                 {decoded.identifierNumber || "GCN-QSDD-BT-2024-9912"}
               </p>

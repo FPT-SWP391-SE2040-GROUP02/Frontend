@@ -39,7 +39,9 @@ export interface DecryptedHeritageResult {
 export function shamirCombine(shares: string[]): string {
   // Legacy: baseline hiện tại dùng mã hóa và kiểm quyền nội dung ở BE.
   if (!shares || shares.length < 2) {
-    throw new Error("Yêu cầu tối thiểu 2 mảnh khóa hợp lệ để tái hợp khóa theo giải thuật Shamir 2/3.");
+    throw new Error(
+      "Yêu cầu tối thiểu 2 mảnh khóa hợp lệ để tái hợp khóa theo giải thuật Shamir 2/3.",
+    );
   }
 
   // TODO: [P0][LEGACY-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
@@ -48,7 +50,9 @@ export function shamirCombine(shares: string[]): string {
   // 3. [CÁC BƯỚC]: Trước ASSET-03/HANDOVER-01 rà callers; chuyển nội dung sang endpoint BE có quyền; bỏ phụ thuộc rồi xóa scaffold khi không còn caller.
   // 4. [HÀM / THƯ VIỆN]: rg callers, shared transport/content adapters; mã hóa và khóa ở BE.
   // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Giữ throw cho đến khi retire; không trả khóa giả; không nhận Share 2; không coi quy tắc Shamir cũ là contract BE hiện hành.
-  throw new Error("Chưa cài đặt shamirCombine - Developer tự hoàn thiện giải thuật nội suy Lagrange GF(256) theo Rule 7.");
+  throw new Error(
+    "Chưa cài đặt shamirCombine - Developer tự hoàn thiện giải thuật nội suy Lagrange GF(256) theo Rule 7.",
+  );
 }
 
 /**
@@ -62,7 +66,7 @@ export function shamirCombine(shares: string[]): string {
 export function shamirSplit(
   secretHex: string,
   totalShares: number = 3,
-  threshold: number = 2
+  threshold: number = 2,
 ): string[] {
   // Legacy: baseline hiện tại dùng mã hóa và kiểm quyền nội dung ở BE.
   if (!secretHex || secretHex.length === 0) {
@@ -78,7 +82,9 @@ export function shamirSplit(
   // 3. [CÁC BƯỚC]: Sau LEGACY-01 migrate schema/forms; bỏ threshold/totalShares khỏi DTO mới; xóa scaffold khi hết caller.
   // 4. [HÀM / THƯ VIỆN]: Zod, TypeScript compiler, rg callers; không thêm package crypto.
   // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không triển khai GF(256) mới cho baseline này; không lưu/log secret; không sửa chữ ký hàm cho đến khi callers được migrate đồng bộ.
-  throw new Error("Chưa cài đặt shamirSplit - Developer tự hoàn thiện logic phân mảnh theo Rule 7.");
+  throw new Error(
+    "Chưa cài đặt shamirSplit - Developer tự hoàn thiện logic phân mảnh theo Rule 7.",
+  );
 }
 
 /**
@@ -92,7 +98,7 @@ export function shamirSplit(
 export async function decryptHeritageAssetPayload(
   encryptedCiphertextBase64: string,
   masterKeyHex: string,
-  ivBase64: string
+  ivBase64: string,
 ): Promise<string> {
   // Legacy: baseline hiện tại dùng mã hóa và kiểm quyền nội dung ở BE.
   if (!encryptedCiphertextBase64 || !masterKeyHex || !ivBase64) {
@@ -105,5 +111,7 @@ export async function decryptHeritageAssetPayload(
   // 3. [CÁC BƯỚC]: Sau LEGACY-01 migrate Owner content hoặc grant content; dọn Blob/RAM khi rời trang; xóa helper sau khi không còn caller.
   // 4. [HÀM / THƯ VIỆN]: Shared transport, Blob/URL.revokeObjectURL, grant/content adapters.
   // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không truyền DEK/KEK/master key tới browser; không cache plaintext/storage; không bỏ kiểm quyền/hạn/hold để thay giải mã cũ.
-  throw new Error("Chưa cài đặt decryptHeritageAssetPayload - Developer tự hoàn thiện logic Web Crypto API theo Rule 7.");
+  throw new Error(
+    "Chưa cài đặt decryptHeritageAssetPayload - Developer tự hoàn thiện logic Web Crypto API theo Rule 7.",
+  );
 }

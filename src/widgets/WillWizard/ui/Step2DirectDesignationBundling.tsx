@@ -10,16 +10,14 @@ import type { AssetItemDto, AssetViewModel } from "@/features/assets";
  * 2. Hệ thống TỰ GOM toàn bộ tài sản có cùng tập person_id thành đúng một Kho bàn giao (Handover Vault).
  */
 
-export interface BeneficiaryItem {
-  id: string;
-  name: string;
-  contact: string;
-  relationship: string;
-}
-
-export interface AssetDesignationMap {
-  [assetId: string]: string[]; // assetId -> array of beneficiaryIds
-}
+import type {
+  BeneficiaryItem,
+  AssetDesignationMap,
+} from "@/features/wills/model/willWizard.schema";
+export type {
+  BeneficiaryItem,
+  AssetDesignationMap,
+} from "@/features/wills/model/willWizard.schema";
 
 interface Step2DirectDesignationBundlingProps {
   selectedAssets: Array<AssetItemDto | AssetViewModel>;
@@ -85,7 +83,9 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
           Bước 2: Chỉ Định Người Nhận & Tự Gom Kho Bàn Giao
         </h2>
         <p className="text-xs text-[#66786E] mt-1 leading-relaxed">
-          Gán người nhận cho từng tài sản số. Hệ thống sẽ tự động chuẩn hóa và gom các tài sản có cùng tập người nhận thành đúng một Kho bàn giao độc lập (SRS 3.11.0). Tuyệt đối không phân chia tỷ lệ phần trăm (%).
+          Gán người nhận cho từng tài sản số. Hệ thống sẽ tự động chuẩn hóa và gom các tài sản có
+          cùng tập người nhận thành đúng một Kho bàn giao độc lập (SRS 3.11.0). Tuyệt đối không phân
+          chia tỷ lệ phần trăm (%).
         </p>
       </div>
 
@@ -260,13 +260,17 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Package className="w-4 h-4 text-[#B88E4C]" />
-                    <span className="text-xs font-bold text-[#0B291E]">{vault.bundleId.toUpperCase()}</span>
+                    <span className="text-xs font-bold text-[#0B291E]">
+                      {vault.bundleId.toUpperCase()}
+                    </span>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    vault.recipientMode === "SINGLE_RECIPIENT"
-                      ? "bg-[#E5EDE8] text-[#059669]"
-                      : "bg-[#FFFBEB] text-[#B45309]"
-                  }`}>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      vault.recipientMode === "SINGLE_RECIPIENT"
+                        ? "bg-[#E5EDE8] text-[#059669]"
+                        : "bg-[#FFFBEB] text-[#B45309]"
+                    }`}
+                  >
                     {vault.recipientMode === "SINGLE_RECIPIENT" ? "Kho 1 Người" : "Kho Đồng Sở Hữu"}
                   </span>
                 </div>

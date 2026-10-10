@@ -32,19 +32,28 @@ export default defineConfig([
   {
     files: ["src/shared/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: ["@/app/**", "@/pages/**", "@/widgets/**", "@/features/**", "@/entities/**"] }],
+      "no-restricted-imports": [
+        "error",
+        { patterns: ["@/app/**", "@/pages/**", "@/widgets/**", "@/features/**", "@/entities/**"] },
+      ],
     },
   },
   {
     files: ["src/entities/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: ["@/app/**", "@/pages/**", "@/widgets/**", "@/features/**"] }],
+      "no-restricted-imports": [
+        "error",
+        { patterns: ["@/app/**", "@/pages/**", "@/widgets/**", "@/features/**"] },
+      ],
     },
   },
   {
     files: ["src/features/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: ["@/app/**", "@/pages/**", "@/widgets/**", "@/features/**"] }],
+      "no-restricted-imports": [
+        "error",
+        { patterns: ["@/app/**", "@/pages/**", "@/widgets/**", "@/features/**"] },
+      ],
     },
   },
   {

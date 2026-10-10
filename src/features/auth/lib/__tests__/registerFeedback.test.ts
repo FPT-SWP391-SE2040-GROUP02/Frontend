@@ -8,11 +8,17 @@ describe("register feedback", () => {
     "does not expose raw response or infer email conflict from status %s",
     (status) => {
       const response: AxiosResponse<unknown> = {
-        data: { message: "private backend details" }, status, statusText: "Error",
-        headers: {}, config: { headers: new AxiosHeaders() },
+        data: { message: "private backend details" },
+        status,
+        statusText: "Error",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
       };
-      expect(getRegisterErrorMessage(new AxiosError("failure", undefined, undefined, undefined, response)))
-        .toBe(APP_MESSAGES.ERROR.DEFAULT);
+      expect(
+        getRegisterErrorMessage(
+          new AxiosError("failure", undefined, undefined, undefined, response),
+        ),
+      ).toBe(APP_MESSAGES.ERROR.DEFAULT);
     },
   );
 });

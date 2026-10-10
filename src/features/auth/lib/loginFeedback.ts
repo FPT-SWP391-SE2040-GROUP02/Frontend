@@ -9,11 +9,17 @@ import { ROUTES } from "@/shared/config/routes.config";
  * @example getLoginRedirect("/dashboard/assets?tab=files");
  */
 export function getLoginRedirect(value: string | null): string {
-  if (!value?.startsWith("/") || value.startsWith("//") || /[\\\s\p{Cc}]/u.test(value)) return ROUTES.DASHBOARD.ROOT;
+  if (!value?.startsWith("/") || value.startsWith("//") || /[\\\s\p{Cc}]/u.test(value))
+    return ROUTES.DASHBOARD.ROOT;
   try {
     const target = new URL(value, window.location.origin);
     const decodedPath = decodeURIComponent(target.pathname);
-    if (target.origin !== window.location.origin || decodedPath.startsWith("//") || /[\\\p{Cc}]/u.test(decodedPath)) return ROUTES.DASHBOARD.ROOT;
+    if (
+      target.origin !== window.location.origin ||
+      decodedPath.startsWith("//") ||
+      /[\\\p{Cc}]/u.test(decodedPath)
+    )
+      return ROUTES.DASHBOARD.ROOT;
     if (target.pathname === ROUTES.AUTH.LOGIN) return ROUTES.DASHBOARD.ROOT;
     return `${target.pathname}${target.search}${target.hash}`;
   } catch {
@@ -29,7 +35,8 @@ export function getLoginRedirect(value: string | null): string {
  */
 export function getLoginErrorMessage(error: unknown): string {
   if (!isAxiosError(error)) return APP_MESSAGES.ERROR.DEFAULT;
-  if (error.code === AxiosError.ECONNABORTED || error.code === AxiosError.ETIMEDOUT) return APP_MESSAGES.ERROR.TIMEOUT;
+  if (error.code === AxiosError.ECONNABORTED || error.code === AxiosError.ETIMEDOUT)
+    return APP_MESSAGES.ERROR.TIMEOUT;
   if (!error.response) return APP_MESSAGES.ERROR.NETWORK;
   if (error.response.status >= HTTP_STATUS.INTERNAL_SERVER_ERROR) return APP_MESSAGES.ERROR.SERVER;
   return APP_MESSAGES.ERROR.DEFAULT;

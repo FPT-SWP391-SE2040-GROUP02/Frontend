@@ -9,7 +9,10 @@ const TOKEN_FIXTURE = {
 
 describe("accessTokenSchema", () => {
   it("accepts the documented credential fields and strips refresh tokens", () => {
-    const result = accessTokenSchema.parse({ ...TOKEN_FIXTURE, refreshToken: "must-not-propagate" });
+    const result = accessTokenSchema.parse({
+      ...TOKEN_FIXTURE,
+      refreshToken: "must-not-propagate",
+    });
     expect(result).toEqual(TOKEN_FIXTURE);
     expect(result).not.toHaveProperty("refreshToken");
   });
@@ -26,6 +29,9 @@ describe("accessTokenSchema", () => {
   );
 
   it("accepts an expiration with an explicit timezone offset", () => {
-    expect(accessTokenSchema.safeParse({ ...TOKEN_FIXTURE, expiresAt: "2026-10-10T12:00:00+07:00" }).success).toBe(true);
+    expect(
+      accessTokenSchema.safeParse({ ...TOKEN_FIXTURE, expiresAt: "2026-10-10T12:00:00+07:00" })
+        .success,
+    ).toBe(true);
   });
 });

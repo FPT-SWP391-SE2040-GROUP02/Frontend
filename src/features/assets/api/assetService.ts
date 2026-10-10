@@ -1,3 +1,4 @@
+import { requirePreviewWorkspace } from "@/shared/config/preview";
 import type { AssetItemDto, CreateAssetRequest, AssetVaultStats } from "../model/asset.types";
 import type { PaginatedList, PaginationParams, ApiResponse } from "@/shared/types";
 
@@ -6,7 +7,6 @@ import type { PaginatedList, PaginationParams, ApiResponse } from "@/shared/type
  * @description Tầng dịch vụ giao tiếp API cho module Quản Lý Tài Sản Số (Asset Management).
  * Tuân thủ Rule 7 (Scaffold with TODO) và Rule 8 (JSDoc chuẩn chỉ).
  */
-
 
 function safeEncodePayload(data: unknown): string {
   return btoa(encodeURIComponent(JSON.stringify(data)));
@@ -18,8 +18,9 @@ function safeEncodePayload(data: unknown): string {
  * @returns Promise chứa PaginatedList<AssetItemDto>
  */
 export async function getAssets(
-  params?: PaginationParams & { assetType?: string }
+  params?: PaginationParams & { assetType?: string },
 ): Promise<PaginatedList<AssetItemDto>> {
+  requirePreviewWorkspace();
   // TODO: [P1][ASSET-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Thay danh sách assets mock bằng tài sản thuộc gói đúng quyền.
   // 2. [INPUT & OUTPUT]: packageId + page/pageSize/q/sort -> data/meta DTO rồi ViewModel.
@@ -90,7 +91,8 @@ export async function getAssets(
         ciphertext: safeEncodePayload({
           documentCategory: "REAL_ESTATE_CERTIFICATE",
           identifierNumber: "GCN-QD-2024-889123",
-          notes: "Bản gốc lưu tại Két sắt ngân hàng Vietcombank chi nhánh Tân Bình. Hợp đồng ủy quyền công chứng số 102/2025/CC.",
+          notes:
+            "Bản gốc lưu tại Két sắt ngân hàng Vietcombank chi nhánh Tân Bình. Hợp đồng ủy quyền công chứng số 102/2025/CC.",
         }),
         iv: "sample_iv",
         authTag: "sample_auth_tag",
@@ -118,6 +120,7 @@ export async function getAssets(
  * @returns Promise chứa AssetItemDto
  */
 export async function getAssetDetail(id: string): Promise<AssetItemDto> {
+  requirePreviewWorkspace();
   // TODO: [P1][ASSET-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Đọc metadata và content qua hai contract riêng.
   // 2. [INPUT & OUTPUT]: assetId + quyền -> metadata; content chỉ qua endpoint được BE cho phép.
@@ -137,9 +140,8 @@ export async function getAssetDetail(id: string): Promise<AssetItemDto> {
  * @param payload Dữ liệu tạo tài sản đã mã hóa Zero-Knowledge
  * @returns Promise chứa ApiResponse<AssetItemDto>
  */
-export async function createAsset(
-  payload: CreateAssetRequest
-): Promise<ApiResponse<AssetItemDto>> {
+export async function createAsset(payload: CreateAssetRequest): Promise<ApiResponse<AssetItemDto>> {
+  requirePreviewWorkspace();
   // TODO: [P1][ASSET-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Thay tạo tài sản giả bằng upload/version theo mô hình mã hóa BE.
   // 2. [INPUT & OUTPUT]: packageId + payload/file đã validate -> asset/version/quota từ BE.
@@ -174,6 +176,7 @@ export async function createAsset(
  * @returns Promise ApiResponse
  */
 export async function deleteAsset(id: string): Promise<ApiResponse<null>> {
+  requirePreviewWorkspace();
   // TODO: [P1][ASSET-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Nối xóa tài sản với kiểm tra references/hold của BE.
   // 2. [INPUT & OUTPUT]: assetId/version -> 204 hoặc lỗi quyền/xung đột.
@@ -192,6 +195,7 @@ export async function deleteAsset(id: string): Promise<ApiResponse<null>> {
  * @returns Promise AssetVaultStats
  */
 export async function getVaultStats(): Promise<AssetVaultStats> {
+  requirePreviewWorkspace();
   // TODO: [P1][ASSET-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Thay thống kê tài sản mẫu bằng counters chính thức.
   // 2. [INPUT & OUTPUT]: Kho hiện tại -> counters/quota/used bytes có measuredAt theo DTO.

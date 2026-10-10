@@ -3,7 +3,14 @@ import { useSearchParams } from "react-router-dom";
 import { Plus, Lock, Filter, KeyRound, Bitcoin, FileText, Scale, ExternalLink } from "lucide-react";
 import { Button } from "@/shared/ui";
 
-import { AssetTable, AssetStatsWidget, CreateAssetModal, AssetDetailModal, useVaultStats, useAssets } from "@/features/assets";
+import {
+  AssetTable,
+  AssetStatsWidget,
+  CreateAssetModal,
+  AssetDetailModal,
+  useVaultStats,
+  useAssets,
+} from "@/features/assets";
 import type { AssetViewModel } from "@/features/assets";
 import { AppHeader } from "@/widgets";
 
@@ -75,29 +82,29 @@ export const AssetsManagementPage: React.FC = () => {
   };
 
   const filterTabs = [
-    { 
-      label: "Tất Cả", 
-      value: "ALL", 
-      icon: Filter, 
-      count: stats ? stats.totalAssets : undefined 
+    {
+      label: "Tất Cả",
+      value: "ALL",
+      icon: Filter,
+      count: stats ? stats.totalAssets : undefined,
     },
-    { 
-      label: "Ví Tiền Mã Hóa", 
-      value: "CRYPTO", 
-      icon: Bitcoin, 
-      count: stats ? stats.cryptoCount : undefined 
+    {
+      label: "Ví Tiền Mã Hóa",
+      value: "CRYPTO",
+      icon: Bitcoin,
+      count: stats ? stats.cryptoCount : undefined,
     },
-    { 
-      label: "Tài Khoản Số", 
-      value: "CREDENTIAL", 
-      icon: KeyRound, 
-      count: stats ? stats.credentialCount : undefined 
+    {
+      label: "Tài Khoản Số",
+      value: "CREDENTIAL",
+      icon: KeyRound,
+      count: stats ? stats.credentialCount : undefined,
     },
-    { 
-      label: "Tài Liệu Mật", 
-      value: "DOCUMENT", 
-      icon: FileText, 
-      count: stats ? stats.documentCount : undefined 
+    {
+      label: "Tài Liệu Mật",
+      value: "DOCUMENT",
+      icon: FileText,
+      count: stats ? stats.documentCount : undefined,
     },
   ];
 
@@ -119,7 +126,8 @@ export const AssetsManagementPage: React.FC = () => {
               Kho Lưu Trữ Tài Sản Số (Digital Asset Vault)
             </h1>
             <p className="text-xs sm:text-sm text-[#66786E] mt-1.5 leading-relaxed max-w-2xl">
-              Quản lý ví tiền mã hóa, tài khoản số và tài liệu mật được bảo vệ bằng cơ chế chia sẻ bí mật Shamir (k out of n), chuyển giao theo quy trình pháp lý định trước.
+              Quản lý ví tiền mã hóa, tài khoản số và tài liệu mật được bảo vệ bằng cơ chế chia sẻ
+              bí mật Shamir (k out of n), chuyển giao theo quy trình pháp lý định trước.
             </p>
           </div>
 
@@ -136,7 +144,7 @@ export const AssetsManagementPage: React.FC = () => {
         <AssetStatsWidget />
 
         {/* Legal In-Context Callout Box (NN/g Heuristic #10: Help & Documentation) */}
-        <section 
+        <section
           aria-label="Căn cứ pháp lý di sản số"
           className="p-5 sm:p-6 rounded-[22px] bg-[#FAF9F5] border border-[#E8DCC6] shadow-[0_2px_12px_rgba(184,142,76,0.08)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
         >
@@ -154,7 +162,9 @@ export const AssetsManagementPage: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-[#66786E] mt-1 leading-relaxed max-w-3xl">
-                Tài sản số, khóa bí mật ví điện tử và tài khoản dữ liệu được bảo vệ quyền tài sản theo pháp luật Việt Nam. Mọi nội dung niêm phong đều gắn liền với chữ ký số ECDSA P-256 và bằng chứng tính toàn vẹn SHA-256 phục vụ đối soát công chứng.
+                Tài sản số, khóa bí mật ví điện tử và tài khoản dữ liệu được bảo vệ quyền tài sản
+                theo pháp luật Việt Nam. Mọi nội dung niêm phong đều gắn liền với chữ ký số ECDSA
+                P-256 và bằng chứng tính toàn vẹn SHA-256 phục vụ đối soát công chứng.
               </p>
             </div>
           </div>
@@ -191,11 +201,9 @@ export const AssetsManagementPage: React.FC = () => {
                   <Icon className={`w-4 h-4 ${isActive ? "text-[#B88E4C]" : ""}`} />
                   <span>{tab.label}</span>
                   {tab.count !== undefined && (
-                    <span 
+                    <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        isActive 
-                          ? "bg-[#133E2F] text-[#B88E4C]" 
-                          : "bg-[#EFECE6] text-[#66786E]"
+                        isActive ? "bg-[#133E2F] text-[#B88E4C]" : "bg-[#EFECE6] text-[#66786E]"
                       }`}
                     >
                       {tab.count}
@@ -216,19 +224,16 @@ export const AssetsManagementPage: React.FC = () => {
       </main>
 
       {/* Modals */}
-      <CreateAssetModal
-        isOpen={isCreateOpen}
-        onClose={handleCloseCreateModal}
-      />
+      <CreateAssetModal isOpen={isCreateOpen} onClose={handleCloseCreateModal} />
 
-      <AssetDetailModal
-        asset={selectedAsset}
-        onClose={handleCloseDetailModal}
-      />
+      <AssetDetailModal asset={selectedAsset} onClose={handleCloseDetailModal} />
 
       {/* Footer */}
       <footer className="bg-[#FAF9F5] border-t border-[#DCD9D0] py-6 px-4 text-center text-xs text-[#66786E] mt-auto">
-        <p>© 2026 LegacyVault Protocol. Nền tảng Két Di Sản Số Mật Mã Học & Bàn Giao Pháp Lý Chuẩn FPT SWP391.</p>
+        <p>
+          © 2026 LegacyVault Protocol. Nền tảng Két Di Sản Số Mật Mã Học & Bàn Giao Pháp Lý Chuẩn
+          FPT SWP391.
+        </p>
       </footer>
     </div>
   );

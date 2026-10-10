@@ -51,7 +51,9 @@ export const notaryApproveSchema = z.object({
     }),
   }),
   legalAttestationConfirmed: z.literal(true, {
-    errorMap: () => ({ message: "Bạn bắt buộc phải xác nhận cam kết 'Tôi chịu trách nhiệm trước pháp luật'" }),
+    errorMap: () => ({
+      message: "Bạn bắt buộc phải xác nhận cam kết 'Tôi chịu trách nhiệm trước pháp luật'",
+    }),
   }),
   notaryNotes: z.string().optional(),
 });
@@ -66,7 +68,10 @@ export const notaryRejectSchema = z.object({
   rejectionReasonCode: z.string().min(1, "Vui lòng chọn lý do từ chối chính"),
   notaryNotes: z
     .string()
-    .min(20, "Văn bản hướng dẫn sửa đổi bổ sung phải có độ dài tối thiểu 20 ký tự giải trình cụ thể")
+    .min(
+      20,
+      "Văn bản hướng dẫn sửa đổi bổ sung phải có độ dài tối thiểu 20 ký tự giải trình cụ thể",
+    )
     .max(1000, "Văn bản giải trình không được vượt quá 1000 ký tự"),
 });
 

@@ -39,7 +39,8 @@ export function LoggedOutCard({ className = "" }: LoggedOutCardProps) {
       <div className="p-3.5 rounded-xl bg-[#FAF9F5] border border-[#E5E5DF] flex items-start gap-2.5 text-xs text-[#6B6B66]">
         <AlertTriangle className="w-4 h-4 text-[#B88E4C] flex-shrink-0 mt-0.5" />
         <span>
-          Nếu đây là <span className="font-semibold text-[#0F1A16]">máy dùng chung</span>, hãy đóng toàn bộ cửa sổ trình duyệt để đảm bảo không ai xem được lịch sử duyệt web.
+          Nếu đây là <span className="font-semibold text-[#0F1A16]">máy dùng chung</span>, hãy đóng
+          toàn bộ cửa sổ trình duyệt để đảm bảo không ai xem được lịch sử duyệt web.
         </span>
       </div>
 
