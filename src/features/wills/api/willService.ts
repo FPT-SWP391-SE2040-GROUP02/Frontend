@@ -62,9 +62,12 @@ let mockWillsStore: WillItemDto[] = [
 export async function getWills(
   params?: PaginationParams
 ): Promise<PaginatedList<WillItemDto>> {
-  // TODO: [Developer Step]
-  // 1. Gọi GET /wills qua axiosClient
-  // 2. Map dữ liệu PaginatedList trả về từ backend C# ASP.NET Core
+  // TODO: [P1][PLAN-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Migrate danh sách wills legacy sang kho/gói kế hoạch.
+  // 2. [INPUT & OUTPUT]: Kho + bộ lọc -> PackageResponse/data/meta và ViewModel.
+  // 3. [CÁC BƯỚC]: Sau VAULT-01 tái dùng ownerVaultService.listPackages; thay types/schema/adapters và queryKeys; bỏ yêu cầu GET /wills.
+  // 4. [HÀM / THƯ VIỆN]: ownerVaultService ở tầng composition hoặc entity/shared; không import chéo features.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không tạo /wills alias chỉ để giữ mock; đúng pagination BE; cache theo account; không mô tả danh sách gói như di chúc công chứng.
   return {
     items: [...mockWillsStore],
     totalCount: mockWillsStore.length,
@@ -82,7 +85,12 @@ export async function getWills(
  * @returns Promise WillItemDto
  */
 export async function getWillDetail(id: string): Promise<WillItemDto> {
-  // TODO: [Developer Step] Gọi GET /wills/{id}
+  // TODO: [P1][PLAN-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Migrate chi tiết will sang gói/chỉ định/nội dung.
+  // 2. [INPUT & OUTPUT]: packageId -> DTO gói/designations/assets/messages.
+  // 3. [CÁC BƯỚC]: Sau PLAN-01 chốt các route con; compose tại widgets/pages; adapters tại entities; UI bốn trạng thái.
+  // 4. [HÀM / THƯ VIỆN]: Package entity, shared service, TanStack Query; FSD một chiều.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không parse phân tán trong UI; 403/404/hold/version; không đọc nội dung khi chỉ có quyền metadata; không GET /wills/{id} mới.
   const will = mockWillsStore.find((x) => x.id === id);
   if (!will) {
     throw new Error(`Không tìm thấy bản di chúc có mã: ${id}`);
@@ -98,9 +106,12 @@ export async function getWillDetail(id: string): Promise<WillItemDto> {
 export async function createWill(
   payload: CreateWillRequest
 ): Promise<ApiResponse<WillItemDto>> {
-  // TODO: [Developer Step]
-  // 1. Gửi POST /wills kèm CreateWillRequest payload
-  // 2. Ký số ECDSA phía client hoặc backend HSM
+  // TODO: [P1][PLAN-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Migrate wizard tạo will sang kế hoạch gói/chỉ định/Executor.
+  // 2. [INPUT & OUTPUT]: Form từng bước -> kho/gói/designations/executor config và blockedReasons.
+  // 3. [CÁC BƯỚC]: Sau VAULT-01/ASSET-03 chốt schemas/services/hooks; người nhận nhận nguyên gói; lưu từng bước theo BE; activate khi đủ guard.
+  // 4. [HÀM / THƯ VIỆN]: RHF/Zod, shared API, widgets composition, TanStack Query.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không chia tỷ lệ %, không ký ECDSA/công chứng số, không Shamir; không chờ 100% người nhận; idempotency/concurrency, validation bước và partial failure.
   const newWill: WillItemDto = {
     id: `wil_${Date.now()}`,
     title: payload.title,
@@ -135,7 +146,12 @@ export async function createWill(
  * @returns Promise ApiResponse<null>
  */
 export async function revokeWill(id: string): Promise<ApiResponse<null>> {
-  // TODO: [Developer Step] Gọi POST /wills/{id}/revoke
+  // TODO: [P1][PLAN-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Thay revoke will legacy bằng hành động kế hoạch được BE cho phép.
+  // 2. [INPUT & OUTPUT]: packageId/vault state/version -> action hoặc blockedReason đúng contract.
+  // 3. [CÁC BƯỚC]: Sau PLAN-01 chốt sửa/xóa/hủy phù hợp SRS; migrate callers và tên UI; xác nhận trước mutation; invalidate sau BE thành công.
+  // 4. [HÀM / THƯ VIỆN]: RHF/Zod, Dialog, Query hooks, shared service.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không tự tạo POST /wills/{id}/revoke; snapshot/hold/grant có thể khóa sửa/xóa; không báo công chứng/thu hồi pháp lý từ mock local.
   mockWillsStore = mockWillsStore.map((w) =>
     w.id === id ? { ...w, status: "REVOKED" as const } : w
   );
