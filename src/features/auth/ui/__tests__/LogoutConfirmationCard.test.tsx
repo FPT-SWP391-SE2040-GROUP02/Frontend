@@ -17,8 +17,12 @@ vi.mock("../../api/authService", () => ({ authService: { logout: vi.fn() } }));
 
 /** Tài khoản giả phục vụ kiểm tra cleanup, không tạo phiên BE thật. */
 const USER: User = {
-  id: "logout-test-user", fullName: "Test Owner", email: "owner@example.test",
-  role: ROLES.OWNER, status: STATUS.ACTIVE, createdAt: "2026-10-10T00:00:00Z",
+  id: "logout-test-user",
+  fullName: "Test Owner",
+  email: "owner@example.test",
+  role: ROLES.OWNER,
+  status: STATUS.ACTIVE,
+  createdAt: "2026-10-10T00:00:00Z",
 };
 /** Query private phải được giữ khi server thất bại và xóa khi logout thành công. */
 const PRIVATE_KEY = ["logout-private-fixture"] as const;
@@ -38,18 +42,26 @@ function setup() {
   store.dispatch(setCredentials({ user: USER }));
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   client.setQueryData(PRIVATE_KEY, "private-data");
-  render(<Provider store={store}><QueryClientProvider client={client}>
-    <MemoryRouter initialEntries={[ROUTES.AUTH.LOGOUT]}><Routes>
-      <Route path={ROUTES.AUTH.LOGOUT} element={<LogoutConfirmationCard />} />
-      <Route path={ROUTES.AUTH.LOGGED_OUT} element={<p>Logout confirmed</p>} />
-    </Routes></MemoryRouter>
-  </QueryClientProvider></Provider>);
+  render(
+    <Provider store={store}>
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={[ROUTES.AUTH.LOGOUT]}>
+          <Routes>
+            <Route path={ROUTES.AUTH.LOGOUT} element={<LogoutConfirmationCard />} />
+            <Route path={ROUTES.AUTH.LOGGED_OUT} element={<p>Logout confirmed</p>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </Provider>,
+  );
   return { store, client };
 }
 
 describe("LogoutConfirmationCard", () => {
   it("keeps the session on failure and clears it only after a successful retry", async () => {
-    vi.mocked(authService.logout).mockRejectedValueOnce(new Error("network unavailable")).mockResolvedValueOnce(undefined);
+    vi.mocked(authService.logout)
+      .mockRejectedValueOnce(new Error("network unavailable"))
+      .mockResolvedValueOnce(undefined);
     const { store, client } = setup();
     fireEvent.click(screen.getByRole("button", { name: "Đăng xuất" }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
@@ -92,4 +104,3 @@ describe("LogoutConfirmationCard", () => {
     client.clear();
   });
 });
-

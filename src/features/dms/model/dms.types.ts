@@ -9,8 +9,8 @@
 export type DmsStatus =
   | "ACTIVE"
   | "CHECKIN_PENDING"
-  | "CHECKIN_SUSPENDED"     // Tạm treo 90 ngày sau khi hết thời gian chờ (SRS 3.11.0 - DMS-04)
-  | "FROZEN_INACTIVITY"     // Đóng băng kho do bất hoạt sau 90 ngày không phản hồi (DMS-09)
+  | "CHECKIN_SUSPENDED" // Tạm treo 90 ngày sau khi hết thời gian chờ (SRS 3.11.0 - DMS-04)
+  | "FROZEN_INACTIVITY" // Đóng băng kho do bất hoạt sau 90 ngày không phản hồi (DMS-09)
   | "WARNING"
   | "GRACE_PERIOD"
   | "TRIGGERED"
@@ -68,7 +68,6 @@ export interface DmsState {
   /** Cấu hình hiện tại */
   config: DmsHeartbeatConfig;
 }
-
 
 /**
  * @description Nhật ký một lần xác nhận sinh tồn (Ping History Item)

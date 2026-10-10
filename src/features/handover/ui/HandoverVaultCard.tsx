@@ -1,6 +1,18 @@
 import React from "react";
 import { Button, Card } from "@/shared/ui";
-import { Package, ArrowRightLeft, Check, X, Download, FileText, Clock, AlertTriangle, RotateCcw, Sparkles, Info } from "lucide-react";
+import {
+  Package,
+  ArrowRightLeft,
+  Check,
+  X,
+  Download,
+  FileText,
+  Clock,
+  AlertTriangle,
+  RotateCcw,
+  Sparkles,
+  Info,
+} from "lucide-react";
 import type { HandoverVaultDto } from "../model/handover.types";
 
 /**
@@ -30,7 +42,6 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
   onDecision,
   onReconsiderAccept,
 }) => {
-
   const isStarted = !!vault.handoverStartedAt;
   const isCommitted = vault.status === "HANDOVER_COMMITTED";
   const isFrozen = vault.status === "FROZEN_RECONSIDERATION";
@@ -59,16 +70,19 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-[#14241C]">{vault.planTitle}</h3>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                vault.recipientMode === "SINGLE_RECIPIENT"
-                  ? "bg-[#E5EDE8] text-[#059669]"
-                  : "bg-[#FFFBEB] text-[#B45309]"
-              }`}>
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  vault.recipientMode === "SINGLE_RECIPIENT"
+                    ? "bg-[#E5EDE8] text-[#059669]"
+                    : "bg-[#FFFBEB] text-[#B45309]"
+                }`}
+              >
                 {vault.recipientMode === "SINGLE_RECIPIENT" ? "Kho 1 Người" : "Kho Đồng Sở Hữu"}
               </span>
             </div>
             <p className="text-xs text-[#66786E]">
-              Chủ di sản: <span className="font-semibold text-[#14241C]">{vault.ownerFullName}</span>
+              Chủ di sản:{" "}
+              <span className="font-semibold text-[#14241C]">{vault.ownerFullName}</span>
             </p>
           </div>
         </div>
@@ -89,7 +103,9 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFECE6] text-[#66786E] text-xs font-bold">
-              {vault.scheduledHandoverDate ? `Hẹn bàn giao: ${vault.scheduledHandoverDate}` : "Chờ thống nhất ngày"}
+              {vault.scheduledHandoverDate
+                ? `Hẹn bàn giao: ${vault.scheduledHandoverDate}`
+                : "Chờ thống nhất ngày"}
             </span>
           )}
         </div>
@@ -108,7 +124,9 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
               <ArrowRightLeft className="w-4 h-4 text-[#B88E4C]" />
               <div>
                 <span className="font-bold text-[#0B291E]">Dự kiến chuyển nguyên kho: </span>
-                <span className="text-[#059669] font-semibold">{vault.transferChoice?.targetRecipientName}</span>
+                <span className="text-[#059669] font-semibold">
+                  {vault.transferChoice?.targetRecipientName}
+                </span>
                 <span className="text-[10px] text-[#A07839] block">
                   (Có thể đổi đích hoặc hủy trước khi Executor bấm Bắt đầu)
                 </span>
@@ -133,7 +151,8 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
           <div className="p-2.5 rounded-[12px] bg-[#FAF9F5] border border-[#E8E5DD] flex items-center gap-2 text-[11px] text-[#66786E]">
             <Info className="w-4 h-4 text-[#B88E4C] shrink-0" />
             <span>
-              {vault.coOwnedConsensusText || "Kho đồng sở hữu: Bắt buộc 100% người thụ hưởng cùng bấm Nhận mới mở quyền tải."}
+              {vault.coOwnedConsensusText ||
+                "Kho đồng sở hữu: Bắt buộc 100% người thụ hưởng cùng bấm Nhận mới mở quyền tải."}
             </span>
           </div>
         )}
@@ -153,7 +172,12 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
                 <div>
                   <span className="font-bold text-[#14241C] block">{asset.title}</span>
                   <span className="text-[10px] text-[#66786E]">
-                    Loại: {asset.assetType === "FILE" ? "Tệp tin số" : asset.assetType === "ACCOUNT" ? "Tài khoản" : "Ví Crypto"}
+                    Loại:{" "}
+                    {asset.assetType === "FILE"
+                      ? "Tệp tin số"
+                      : asset.assetType === "ACCOUNT"
+                        ? "Tài khoản"
+                        : "Ví Crypto"}
                   </span>
                 </div>
               </div>
@@ -190,17 +214,20 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
       {/* FOOTER THAO TÁC CỦA NGƯỜI DÙNG */}
       <div className="pt-3 border-t border-[#E8E5DD] flex flex-wrap items-center justify-between gap-3">
         {/* Trường hợp 1: Chưa bắt đầu -> Cho phép Chuyển 1:1 nếu là SINGLE_RECIPIENT */}
-        {!isStarted && !isExecutor && vault.recipientMode === "SINGLE_RECIPIENT" && onOpenTransferModal && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenTransferModal(vault.handoverVaultId)}
-            className="rounded-[14px] text-xs font-bold gap-1.5 border-[#B88E4C] text-[#0B291E] hover:bg-[#FBF7EE] min-h-[40px]"
-          >
-            <ArrowRightLeft className="w-4 h-4 text-[#B88E4C]" />
-            <span>{hasTransferChoice ? "Đổi Đích Chuyển 1:1" : "Chuyển Nguyên Kho 1:1"}</span>
-          </Button>
-        )}
+        {!isStarted &&
+          !isExecutor &&
+          vault.recipientMode === "SINGLE_RECIPIENT" &&
+          onOpenTransferModal && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenTransferModal(vault.handoverVaultId)}
+              className="rounded-[14px] text-xs font-bold gap-1.5 border-[#B88E4C] text-[#0B291E] hover:bg-[#FBF7EE] min-h-[40px]"
+            >
+              <ArrowRightLeft className="w-4 h-4 text-[#B88E4C]" />
+              <span>{hasTransferChoice ? "Đổi Đích Chuyển 1:1" : "Chuyển Nguyên Kho 1:1"}</span>
+            </Button>
+          )}
 
         {/* Trường hợp 2: Đã bắt đầu và đang chờ phản hồi -> Nút Nhận hoặc Từ Chối */}
         {isStarted && !isCommitted && !isFrozen && onDecision && (
@@ -247,7 +274,9 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
         {isCommitted && (
           <div className="text-xs text-[#059669] font-medium flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-[#B88E4C]" />
-            <span>Tải miễn phí trong hạn 168 giờ (còn {vault.freeDownloadHoursRemaining || 168} giờ)</span>
+            <span>
+              Tải miễn phí trong hạn 168 giờ (còn {vault.freeDownloadHoursRemaining || 168} giờ)
+            </span>
           </div>
         )}
       </div>

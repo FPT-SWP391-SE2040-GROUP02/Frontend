@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/shared/ui";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/shared/ui";
 import { ArrowRightLeft, ShieldCheck, AlertCircle } from "lucide-react";
 
 /**
@@ -75,7 +83,10 @@ export const TransferChoiceModal: React.FC<TransferChoiceModalProps> = ({
             </span>
             <ul className="list-disc pl-4 text-[11px] text-[#A07839] space-y-1">
               <li>Chuyển toàn bộ tài sản trong kho, không chia nhỏ hay cắt % di sản.</li>
-              <li>Chỉ có hiệu lực dự kiến; bạn có thể đổi đích hoặc hủy chuyển cho đến khi Người thực thi (Executor) bấm "Bắt đầu bàn giao".</li>
+              <li>
+                Chỉ có hiệu lực dự kiến; bạn có thể đổi đích hoặc hủy chuyển cho đến khi Người thực
+                thi (Executor) bấm "Bắt đầu bàn giao".
+              </li>
               <li>Sau khi bắt đầu bàn giao, lựa chọn chuyển sẽ được chốt cố định.</li>
             </ul>
           </div>

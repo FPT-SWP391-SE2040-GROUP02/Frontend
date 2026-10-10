@@ -22,13 +22,19 @@ describe("Reset password form validation", () => {
       expect(result.error.issues.some((issue) => issue.path[0] === "confirmPassword")).toBe(true);
   });
 
-  it.each(["abcdefgh!", "Abcdefgh", "Abcdefg "])("rejects matching but weak passwords: %s", (password) => {
-    expect(resetPasswordSchema.safeParse({ password, confirmPassword: password }).success).toBe(false);
-  });
+  it.each(["abcdefgh!", "Abcdefgh", "Abcdefg "])(
+    "rejects matching but weak passwords: %s",
+    (password) => {
+      expect(resetPasswordSchema.safeParse({ password, confirmPassword: password }).success).toBe(
+        false,
+      );
+    },
+  );
 
   it("requires password confirmation", () => {
     const result = resetPasswordSchema.safeParse({ password: "Abcdefg!", confirmPassword: "" });
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.issues.some((issue) => issue.path[0] === "confirmPassword")).toBe(true);
+    if (!result.success)
+      expect(result.error.issues.some((issue) => issue.path[0] === "confirmPassword")).toBe(true);
   });
 });

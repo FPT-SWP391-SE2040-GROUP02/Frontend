@@ -3,7 +3,10 @@ import * as React from "react";
 /**
  * @description Thuộc tính cấu hình cho CustomCheckbox theo chuẩn Master UI Kit LegacyVault.
  */
-export interface CustomCheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> {
+export interface CustomCheckboxProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "type"
+> {
   /** Nhãn hiển thị bên cạnh checkbox */
   label?: React.ReactNode;
   /** Class CSS tùy chỉnh */
@@ -29,10 +32,12 @@ export const CustomCheckbox = React.forwardRef<HTMLInputElement, CustomCheckboxP
     return (
       <label htmlFor={inputId} className={`custom-checkbox ${className}`}>
         <input ref={ref} type="checkbox" id={inputId} {...props} />
-        {label && <span className="text-[12px] text-[var(--text-main)] select-none pt-0.5">{label}</span>}
+        {label && (
+          <span className="text-[12px] text-[var(--text-main)] select-none pt-0.5">{label}</span>
+        )}
       </label>
     );
-  }
+  },
 );
 
 CustomCheckbox.displayName = "CustomCheckbox";

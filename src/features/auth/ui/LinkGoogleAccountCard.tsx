@@ -68,7 +68,7 @@ export function LinkGoogleAccountCard({
         onSuccess: () => {
           navigate(ROUTES.DASHBOARD.ROOT);
         },
-      }
+      },
     );
   };
 
@@ -80,7 +80,8 @@ export function LinkGoogleAccountCard({
           Email này đã có tài khoản
         </h1>
         <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
-          Địa chỉ <span className="font-medium text-[#0F1A16]">{email}</span> đã được dùng cho một tài khoản LegacyVault. Nhập mật khẩu để liên kết với Google.
+          Địa chỉ <span className="font-medium text-[#0F1A16]">{email}</span> đã được dùng cho một
+          tài khoản LegacyVault. Nhập mật khẩu để liên kết với Google.
         </p>
       </div>
 
@@ -99,9 +100,7 @@ export function LinkGoogleAccountCard({
       {/* Form nhập mật khẩu hiện tại */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5 text-left">
-          <label className="text-xs font-semibold text-[#0F1A16]">
-            Mật khẩu hiện có
-          </label>
+          <label className="text-xs font-semibold text-[#0F1A16]">Mật khẩu hiện có</label>
           <div className="relative">
             <Lock className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input

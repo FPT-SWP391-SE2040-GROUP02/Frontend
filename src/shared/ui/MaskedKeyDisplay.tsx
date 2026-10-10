@@ -46,7 +46,9 @@ export function MaskedKeyDisplay({
   };
 
   return (
-    <div className={`bg-[var(--surface)] border border-[#DDD8CB] dark:border-[#1E432F] rounded-[12px] p-4.5 space-y-3.5 shadow-xs ${className}`}>
+    <div
+      className={`bg-[var(--surface)] border border-[#DDD8CB] dark:border-[#1E432F] rounded-[12px] p-4.5 space-y-3.5 shadow-xs ${className}`}
+    >
       <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-bold">
         {title}
       </div>

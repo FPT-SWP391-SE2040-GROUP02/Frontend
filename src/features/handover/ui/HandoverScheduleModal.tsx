@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { Button, Input, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/shared/ui";
+import {
+  Button,
+  Input,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/shared/ui";
 import { Calendar, ShieldAlert, Zap, AlertCircle } from "lucide-react";
 
 /**
@@ -27,7 +36,7 @@ export const HandoverScheduleModal: React.FC<HandoverScheduleModalProps> = ({
   isPending = false,
 }) => {
   const [scheduledDate, setScheduledDate] = useState<string>(
-    currentScheduledDate || new Date().toISOString().split("T")[0]
+    currentScheduledDate || new Date().toISOString().split("T")[0],
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +65,8 @@ export const HandoverScheduleModal: React.FC<HandoverScheduleModalProps> = ({
             Ghi Ngày Bàn Giao Đã Thống Nhất
           </DialogTitle>
           <DialogDescription className="text-xs text-center text-[#66786E]">
-            Quy trình SRS 3.11.0 (Luồng 4A): Người thực thi ghi ngày chung theo giờ Asia/Ho_Chi_Minh.
+            Quy trình SRS 3.11.0 (Luồng 4A): Người thực thi ghi ngày chung theo giờ
+            Asia/Ho_Chi_Minh.
           </DialogDescription>
         </DialogHeader>
 
@@ -67,7 +77,9 @@ export const HandoverScheduleModal: React.FC<HandoverScheduleModalProps> = ({
               Quy định điều phối của Executor:
             </span>
             <p className="text-[11px] text-[#A07839] leading-relaxed">
-              Hệ thống sẽ thông báo ngày này tới toàn bộ Người thụ hưởng. Vào hoặc sau ngày đã ghi, bạn mới có quyền bấm "Bắt đầu bàn giao" để chốt khóa chuyển 1:1 và mở cửa sổ nhận tài sản.
+              Hệ thống sẽ thông báo ngày này tới toàn bộ Người thụ hưởng. Vào hoặc sau ngày đã ghi,
+              bạn mới có quyền bấm "Bắt đầu bàn giao" để chốt khóa chuyển 1:1 và mở cửa sổ nhận tài
+              sản.
             </p>
           </div>
 
@@ -118,7 +130,9 @@ export const HandoverScheduleModal: React.FC<HandoverScheduleModalProps> = ({
           <div className="pt-4 border-t border-[#E8E5DD] space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="text-[#66786E]">Trạng thái kích hoạt:</span>
-              <span className={`font-bold ${canStartHandover ? "text-[#059669]" : "text-[#B45309]"}`}>
+              <span
+                className={`font-bold ${canStartHandover ? "text-[#059669]" : "text-[#B45309]"}`}
+              >
                 {canStartHandover ? "Đã đến ngày bàn giao" : "Chưa đến ngày đã hẹn"}
               </span>
             </div>

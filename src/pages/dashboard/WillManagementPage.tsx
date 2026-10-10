@@ -19,10 +19,8 @@ export const WillManagementPage: React.FC = () => {
 
   const totalWills = willsData?.items.length || 0;
   const sealedWills = willsData?.items.filter((w) => w.status === "SEALED").length || 0;
-  const totalBeneficiaries = willsData?.items.reduce(
-    (sum, w) => sum + (w.beneficiaryCount || 0),
-    0
-  ) || 0;
+  const totalBeneficiaries =
+    willsData?.items.reduce((sum, w) => sum + (w.beneficiaryCount || 0), 0) || 0;
 
   return (
     <div className="min-h-screen bg-[#EFECE6] text-[#14241C] flex flex-col font-sans">
@@ -42,7 +40,8 @@ export const WillManagementPage: React.FC = () => {
               Quản Lý Bản Di Chúc Số (Digital Wills & Testaments)
             </h1>
             <p className="text-xs sm:text-sm text-[#66786E] mt-1.5 leading-relaxed max-w-2xl">
-              Danh mục các bản di chúc điện tử định đoạt tài sản số, bảo vệ quyền thừa kế của người thụ hưởng theo quy định Bộ Luật Dân Sự 2015.
+              Danh mục các bản di chúc điện tử định đoạt tài sản số, bảo vệ quyền thừa kế của người
+              thụ hưởng theo quy định Bộ Luật Dân Sự 2015.
             </p>
           </div>
 
@@ -97,9 +96,7 @@ export const WillManagementPage: React.FC = () => {
                 Người Thừa Kế Đã Gán
               </span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-3xl font-black text-[#B88E4C]">
-                  {totalBeneficiaries}
-                </span>
+                <span className="text-3xl font-black text-[#B88E4C]">{totalBeneficiaries}</span>
                 <span className="text-xs font-semibold text-[#14241C]">người thụ hưởng</span>
               </div>
             </div>
@@ -128,7 +125,9 @@ export const WillManagementPage: React.FC = () => {
                 </span>
               </div>
               <p className="text-xs text-[#66786E] mt-1 leading-relaxed max-w-3xl">
-                Bản di chúc số trên LegacyVault đáp ứng đầy đủ điều kiện về hình thức và nội dung theo Điều 630 BLDS, kết hợp video tuyên thệ minh mẫn 15s và chữ ký số định danh để đảm bảo tính pháp lý khi chuyển giao cho Công chứng viên đối soát.
+                Bản di chúc số trên LegacyVault đáp ứng đầy đủ điều kiện về hình thức và nội dung
+                theo Điều 630 BLDS, kết hợp video tuyên thệ minh mẫn 15s và chữ ký số định danh để
+                đảm bảo tính pháp lý khi chuyển giao cho Công chứng viên đối soát.
               </p>
             </div>
           </div>
@@ -152,14 +151,14 @@ export const WillManagementPage: React.FC = () => {
       </main>
 
       {/* Detail Modal */}
-      <WillDetailModal
-        will={selectedWill}
-        onClose={() => setSelectedWill(null)}
-      />
+      <WillDetailModal will={selectedWill} onClose={() => setSelectedWill(null)} />
 
       {/* Footer */}
       <footer className="bg-[#FAF9F5] border-t border-[#DCD9D0] py-6 px-4 text-center text-xs text-[#66786E] mt-auto">
-        <p>© 2026 LegacyVault Protocol. Nền tảng Két Di Sản Số Mật Mã Học & Bàn Giao Pháp Lý Chuẩn FPT SWP391.</p>
+        <p>
+          © 2026 LegacyVault Protocol. Nền tảng Két Di Sản Số Mật Mã Học & Bàn Giao Pháp Lý Chuẩn
+          FPT SWP391.
+        </p>
       </footer>
     </div>
   );

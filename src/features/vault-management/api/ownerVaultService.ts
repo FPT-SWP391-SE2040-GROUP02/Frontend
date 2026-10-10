@@ -1,5 +1,9 @@
 import { createBaseService, apiClient } from "@/shared/api";
-import type { BackendPageRequest, BackendPageResponse, BackendResponse } from "@/shared/types/backend";
+import type {
+  BackendPageRequest,
+  BackendPageResponse,
+  BackendResponse,
+} from "@/shared/types/backend";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import type {
   CreatePackageRequest,
@@ -23,25 +27,26 @@ const packageCrud = createBaseService<PackageResponse, CreatePackageRequest, Upd
   endpoint: OWNER_VAULT_ENDPOINTS.PACKAGES,
   /** Đọc gói thuộc quyền Owner; interceptor hiện trả response body. */
   getById: async (id) => {
-    const body = await apiClient.get<BackendResponse<PackageResponse>, BackendResponse<PackageResponse>>(
-      `${OWNER_VAULT_ENDPOINTS.PACKAGES}/${id}`,
-    );
+    const body = await apiClient.get<
+      BackendResponse<PackageResponse>,
+      BackendResponse<PackageResponse>
+    >(`${OWNER_VAULT_ENDPOINTS.PACKAGES}/${id}`);
     return body.data;
   },
   /** Tạo gói tại route lồng trong kho hiện tại. */
   create: async (payload) => {
-    const body = await apiClient.post<BackendResponse<PackageResponse>, BackendResponse<PackageResponse>>(
-      OWNER_VAULT_ENDPOINTS.MY_PACKAGES,
-      payload,
-    );
+    const body = await apiClient.post<
+      BackendResponse<PackageResponse>,
+      BackendResponse<PackageResponse>
+    >(OWNER_VAULT_ENDPOINTS.MY_PACKAGES, payload);
     return body.data;
   },
   /** PATCH hiện yêu cầu name; caller gửi description muốn giữ theo DTO BE. */
   update: async (id, payload) => {
-    const body = await apiClient.patch<BackendResponse<PackageResponse>, BackendResponse<PackageResponse>>(
-      `${OWNER_VAULT_ENDPOINTS.PACKAGES}/${id}`,
-      payload,
-    );
+    const body = await apiClient.patch<
+      BackendResponse<PackageResponse>,
+      BackendResponse<PackageResponse>
+    >(`${OWNER_VAULT_ENDPOINTS.PACKAGES}/${id}`, payload);
     return body.data;
   },
 });
@@ -53,25 +58,29 @@ const packageCrud = createBaseService<PackageResponse, CreatePackageRequest, Upd
 export const ownerVaultService = {
   /** Đọc kho; VAULT_NOT_FOUND được giữ nguyên để UI xử lý trạng thái chưa có kho. */
   async getMine(signal?: AbortSignal): Promise<VaultResponse> {
-    const body = await apiClient.get<BackendResponse<VaultResponse>, BackendResponse<VaultResponse>>(
-      OWNER_VAULT_ENDPOINTS.MINE,
-      { signal },
-    );
+    const body = await apiClient.get<
+      BackendResponse<VaultResponse>,
+      BackendResponse<VaultResponse>
+    >(OWNER_VAULT_ENDPOINTS.MINE, { signal });
     return body.data;
   },
   /** Tạo một kho cho user hiện tại; không gửi ownerId hoặc trạng thái. */
   async createMine(): Promise<VaultResponse> {
-    const body = await apiClient.post<BackendResponse<VaultResponse>, BackendResponse<VaultResponse>>(
-      OWNER_VAULT_ENDPOINTS.VAULTS,
-    );
+    const body = await apiClient.post<
+      BackendResponse<VaultResponse>,
+      BackendResponse<VaultResponse>
+    >(OWNER_VAULT_ENDPOINTS.VAULTS);
     return body.data;
   },
   /** Đọc danh sách gói và giữ toàn bộ metadata; hỗ trợ hủy request truy vấn. */
-  listPackages(params?: BackendPageRequest, signal?: AbortSignal): Promise<BackendPageResponse<PackageResponse>> {
-    return apiClient.get<BackendPageResponse<PackageResponse>, BackendPageResponse<PackageResponse>>(
-      OWNER_VAULT_ENDPOINTS.MY_PACKAGES,
-      { params, signal },
-    );
+  listPackages(
+    params?: BackendPageRequest,
+    signal?: AbortSignal,
+  ): Promise<BackendPageResponse<PackageResponse>> {
+    return apiClient.get<
+      BackendPageResponse<PackageResponse>,
+      BackendPageResponse<PackageResponse>
+    >(OWNER_VAULT_ENDPOINTS.MY_PACKAGES, { params, signal });
   },
   /** Đọc chi tiết gói theo GUID. */
   getPackage: packageCrud.getById,

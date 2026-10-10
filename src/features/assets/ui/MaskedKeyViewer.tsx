@@ -33,9 +33,7 @@ export const MaskedKeyViewer: React.FC<MaskedKeyViewerProps> = ({
   return (
     <div className="p-4 rounded-[16px] bg-[#FAF9F5] border border-[#DCD9D0] space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-[#14241C] uppercase tracking-wider">
-          {label}
-        </span>
+        <span className="text-xs font-bold text-[#14241C] uppercase tracking-wider">{label}</span>
         <div className="flex items-center gap-1">
           <Button
             type="button"

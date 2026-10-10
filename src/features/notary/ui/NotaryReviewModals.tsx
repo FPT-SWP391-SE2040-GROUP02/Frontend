@@ -2,8 +2,25 @@ import React from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldAlert, KeyRound, AlertTriangle } from "lucide-react";
-import { Button, Input, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, CustomCheckbox } from "@/shared/ui";
-import { notaryApproveSchema, notaryRejectSchema, type NotaryApproveFormValues, type NotaryRejectFormValues, NOTARY_REJECTION_REASONS, REJECTION_REASON_LABELS } from "../model/notary.schema";
+import {
+  Button,
+  Input,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  CustomCheckbox,
+} from "@/shared/ui";
+import {
+  notaryApproveSchema,
+  notaryRejectSchema,
+  type NotaryApproveFormValues,
+  type NotaryRejectFormValues,
+  NOTARY_REJECTION_REASONS,
+  REJECTION_REASON_LABELS,
+} from "../model/notary.schema";
 import type { AuditCriteriaChecklist } from "../model/notary.types";
 import { useApproveClaim, useRejectClaim } from "../model/useNotaryClaims";
 
@@ -67,7 +84,7 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
           onSuccess?.();
           onClose();
         },
-      }
+      },
     );
   };
 
@@ -82,7 +99,8 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
             Ký Số Phê Duyệt Hồ Sơ Chứng Tử
           </DialogTitle>
           <DialogDescription className="text-xs text-center text-[#66786E]">
-            Hồ sơ sẽ chuyển trạng thái APPROVED_FOR_DELIVERY để mở luồng thông báo và thống nhất ngày bàn giao tài sản (SRS 3.11.0).
+            Hồ sơ sẽ chuyển trạng thái APPROVED_FOR_DELIVERY để mở luồng thông báo và thống nhất
+            ngày bàn giao tài sản (SRS 3.11.0).
           </DialogDescription>
         </DialogHeader>
 
@@ -91,7 +109,8 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
           <div className="p-3 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] text-xs text-[#B45309] flex items-start gap-2">
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-[#F59E0B]" />
             <p className="text-[11px] leading-relaxed">
-              Bạn cam đoan đã kiểm tra kỹ lưỡng tính hợp pháp của giấy chứng tử và hoàn toàn chịu trách nhiệm trước pháp luật về quyết định này.
+              Bạn cam đoan đã kiểm tra kỹ lưỡng tính hợp pháp của giấy chứng tử và hoàn toàn chịu
+              trách nhiệm trước pháp luật về quyết định này.
             </p>
           </div>
 
@@ -128,7 +147,8 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
               id="verifier-legal-attestation"
               label={
                 <span className="font-bold text-[#0B291E] text-xs">
-                  Tôi chịu trách nhiệm trước pháp luật về kết quả kiểm tra và phê duyệt giấy chứng tử này.
+                  Tôi chịu trách nhiệm trước pháp luật về kết quả kiểm tra và phê duyệt giấy chứng
+                  tử này.
                 </span>
               }
             />
@@ -161,7 +181,6 @@ export const NotaryApproveModal: React.FC<NotaryApproveModalProps> = ({
     </Dialog>
   );
 };
-
 
 // ==============================================================================
 // 2. MODAL TỪ CHỐI HỒ SƠ & YÊU CẦU BỔ SUNG (LÝ DO >= 20 KÝ TỰ)
@@ -212,7 +231,7 @@ export const NotaryRejectModal: React.FC<NotaryRejectModalProps> = ({
           onSuccess?.();
           onClose();
         },
-      }
+      },
     );
   };
 
@@ -227,7 +246,8 @@ export const NotaryRejectModal: React.FC<NotaryRejectModalProps> = ({
             Từ Chối Hồ Sơ Yêu Cầu Mở Thừa Kế
           </DialogTitle>
           <DialogDescription className="text-xs text-center text-[#66786E]">
-            Hồ sơ sẽ chuyển sang trạng thái "Yêu cầu bổ sung". Thông báo kèm nội dung giải trình sẽ được phát đến Người thi hành.
+            Hồ sơ sẽ chuyển sang trạng thái "Yêu cầu bổ sung". Thông báo kèm nội dung giải trình sẽ
+            được phát đến Người thi hành.
           </DialogDescription>
         </DialogHeader>
 
@@ -252,8 +272,12 @@ export const NotaryRejectModal: React.FC<NotaryRejectModalProps> = ({
           {/* Ô nhập giải trình tối thiểu 20 ký tự */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs font-bold text-[#14241C]">
-              <span>Hướng Dẫn Sửa Đổi / Bổ Sung <span className="text-red-500">*</span></span>
-              <span className={`text-[10px] font-mono ${notesValue.length < 20 ? "text-amber-600" : "text-[#059669]"}`}>
+              <span>
+                Hướng Dẫn Sửa Đổi / Bổ Sung <span className="text-red-500">*</span>
+              </span>
+              <span
+                className={`text-[10px] font-mono ${notesValue.length < 20 ? "text-amber-600" : "text-[#059669]"}`}
+              >
                 {notesValue.length}/20 ký tự tối thiểu
               </span>
             </div>

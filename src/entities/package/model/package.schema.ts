@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { APP_MESSAGES } from "@/shared/constants";
-import {
-  PACKAGE_FIELD_LABELS,
-  PACKAGE_LIMITS,
-} from "./package.types";
+import { PACKAGE_FIELD_LABELS, PACKAGE_LIMITS } from "./package.types";
 
 /**
  * Schema tạo gói theo validator C#: tên bắt buộc, mô tả nullable/tùy chọn.
@@ -15,10 +12,7 @@ export const createPackageSchema = z.object({
     .regex(/\S/, APP_MESSAGES.VALIDATION.REQUIRED(PACKAGE_FIELD_LABELS.NAME))
     .max(
       PACKAGE_LIMITS.NAME_MAX_LENGTH,
-      APP_MESSAGES.VALIDATION.MAX_LENGTH(
-        PACKAGE_FIELD_LABELS.NAME,
-        PACKAGE_LIMITS.NAME_MAX_LENGTH,
-      ),
+      APP_MESSAGES.VALIDATION.MAX_LENGTH(PACKAGE_FIELD_LABELS.NAME, PACKAGE_LIMITS.NAME_MAX_LENGTH),
     ),
   description: z
     .string()

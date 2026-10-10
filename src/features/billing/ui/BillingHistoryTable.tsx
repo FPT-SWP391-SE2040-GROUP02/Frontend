@@ -69,7 +69,9 @@ export function BillingHistoryTable({
   }
 
   return (
-    <div className={`overflow-x-auto rounded-[12px] border border-[#DDD8CB] dark:border-[#1E432F] bg-[var(--surface,#FAF9F5)] shadow-xs ${className}`}>
+    <div
+      className={`overflow-x-auto rounded-[12px] border border-[#DDD8CB] dark:border-[#1E432F] bg-[var(--surface,#FAF9F5)] shadow-xs ${className}`}
+    >
       <table className="w-full text-left text-xs">
         <thead className="bg-[var(--bg-canvas,#EFECE6)] dark:bg-[#071710] border-b border-[#DDD8CB] dark:border-[#1E432F] text-[11px] font-bold text-[var(--text-muted,#66786E)] uppercase tracking-wider">
           <tr>
@@ -84,7 +86,10 @@ export function BillingHistoryTable({
         </thead>
         <tbody className="divide-y divide-[#EBE7DD] dark:divide-[#193B28]">
           {invoices.map((inv) => (
-            <tr key={inv.id} className="hover:bg-white/60 dark:hover:bg-[#0E261A] transition-colors">
+            <tr
+              key={inv.id}
+              className="hover:bg-white/60 dark:hover:bg-[#0E261A] transition-colors"
+            >
               <td className="py-3.5 px-4 font-mono font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
                 {inv.invoiceNumber}
               </td>
@@ -94,15 +99,11 @@ export function BillingHistoryTable({
               <td className="py-3.5 px-4 font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
                 {formatCurrency(inv.amount)}
               </td>
-              <td className="py-3.5 px-4 text-[var(--text-muted,#66786E)]">
-                {inv.paymentMethod}
-              </td>
+              <td className="py-3.5 px-4 text-[var(--text-muted,#66786E)]">{inv.paymentMethod}</td>
               <td className="py-3.5 px-4 text-[var(--text-muted,#66786E)]">
                 {formatDate(inv.issuedAt)}
               </td>
-              <td className="py-3.5 px-4">
-                {getStatusBadge(inv.status)}
-              </td>
+              <td className="py-3.5 px-4">{getStatusBadge(inv.status)}</td>
               <td className="py-3.5 px-4 text-right">
                 <Button
                   type="button"

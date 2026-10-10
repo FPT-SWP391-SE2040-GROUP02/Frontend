@@ -18,9 +18,17 @@ vi.mock("../../api/authService", () => ({ authService: { login: vi.fn() } }));
 
 /** Legacy session fixture; does not assert a confirmed BE Auth contract. */
 const SESSION: AuthSession = {
-  userId: "login-user", accessToken: "fixture-token", expiresIn: 300,
-  user: { id: "login-user", fullName: "Test Owner", email: "owner@example.test",
-    role: ROLES.OWNER, status: STATUS.ACTIVE, createdAt: "2026-10-10T00:00:00Z" },
+  userId: "login-user",
+  accessToken: "fixture-token",
+  expiresIn: 300,
+  user: {
+    id: "login-user",
+    fullName: "Test Owner",
+    email: "owner@example.test",
+    role: ROLES.OWNER,
+    status: STATUS.ACTIVE,
+    createdAt: "2026-10-10T00:00:00Z",
+  },
 };
 const clients: QueryClient[] = [];
 
@@ -33,7 +41,13 @@ afterEach(() => {
 /** @returns Current destination for navigation assertions. */
 function Destination() {
   const location = useLocation();
-  return <p>{location.pathname}{location.search}{location.hash}</p>;
+  return (
+    <p>
+      {location.pathname}
+      {location.search}
+      {location.hash}
+    </p>
+  );
 }
 
 /** @param query Login URL query. @returns Form rendered with real mutation and store providers. */
@@ -41,24 +55,36 @@ function setup(query = "") {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   clients.push(client);
   const store = configureStore({ reducer: { auth: authReducer } });
-  return render(<Provider store={store}><QueryClientProvider client={client}>
-    <MemoryRouter initialEntries={[`${ROUTES.AUTH.LOGIN}${query}`]}><Routes>
-      <Route path={ROUTES.AUTH.LOGIN} element={<LoginForm />} />
-      <Route path="*" element={<Destination />} />
-    </Routes></MemoryRouter>
-  </QueryClientProvider></Provider>);
+  return render(
+    <Provider store={store}>
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={[`${ROUTES.AUTH.LOGIN}${query}`]}>
+          <Routes>
+            <Route path={ROUTES.AUTH.LOGIN} element={<LoginForm />} />
+            <Route path="*" element={<Destination />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </Provider>,
+  );
 }
 
 /** @description Enter existing credentials without applying the new-password policy. */
 function fillCredentials() {
-  fireEvent.change(screen.getByLabelText("Email", { exact: true }), { target: { value: SESSION.user.email } });
-  fireEvent.change(screen.getByLabelText("Mật khẩu", { exact: true }), { target: { value: "old" } });
+  fireEvent.change(screen.getByLabelText("Email", { exact: true }), {
+    target: { value: SESSION.user.email },
+  });
+  fireEvent.change(screen.getByLabelText("Mật khẩu", { exact: true }), {
+    target: { value: "old" },
+  });
 }
 
 describe("LoginForm", () => {
   it("blocks invalid input locally before calling the API", async () => {
     setup();
-    fireEvent.change(screen.getByLabelText("Email", { exact: true }), { target: { value: "invalid" } });
+    fireEvent.change(screen.getByLabelText("Email", { exact: true }), {
+      target: { value: "invalid" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
     expect(await screen.findAllByRole("alert")).toHaveLength(2);
     expect(authService.login).not.toHaveBeenCalled();
@@ -66,7 +92,9 @@ describe("LoginForm", () => {
   });
 
   it("does not invent a lockout after repeated network errors or a URL state", async () => {
-    vi.mocked(authService.login).mockRejectedValue(new AxiosError("private transport details", AxiosError.ERR_NETWORK));
+    vi.mocked(authService.login).mockRejectedValue(
+      new AxiosError("private transport details", AxiosError.ERR_NETWORK),
+    );
     setup("?state=locked");
     fillCredentials();
     for (let attempt = 1; attempt <= 6; attempt += 1) {
@@ -76,7 +104,9 @@ describe("LoginForm", () => {
       expect(screen.getByRole("alert")).toHaveTextContent(APP_MESSAGES.ERROR.NETWORK);
     }
     expect(screen.getByLabelText("Email", { exact: true })).toHaveValue(SESSION.user.email);
-    expect(screen.queryByText(/lần thử|15 phút|private transport details/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/lần thử|15 phút|private transport details/i),
+    ).not.toBeInTheDocument();
   });
 
   it("disables credentials and alternative login while pending and prevents another click", async () => {
@@ -99,7 +129,11 @@ describe("LoginForm", () => {
     fillCredentials();
     fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
     expect(await screen.findByText(destination)).toBeInTheDocument();
-    expect(authService.login).toHaveBeenCalledWith({ email: SESSION.user.email, password: "old", rememberMe: true });
+    expect(authService.login).toHaveBeenCalledWith({
+      email: SESSION.user.email,
+      password: "old",
+      rememberMe: true,
+    });
   });
 
   it("provides an accessible password visibility toggle without changing the value", () => {
@@ -108,17 +142,33 @@ describe("LoginForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Hiện mật khẩu" }));
     expect(screen.getByLabelText("Mật khẩu", { exact: true })).toHaveAttribute("type", "text");
     expect(screen.getByLabelText("Mật khẩu", { exact: true })).toHaveValue("old");
-    expect(screen.getByRole("button", { name: "Ẩn mật khẩu" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Ẩn mật khẩu" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 });
 
 describe("login feedback boundaries", () => {
-  it.each([null, "https://evil.test", "//evil.test", "/\\evil.test", "javascript:alert(1)", "/%2f%2fevil.test", "/%5cevil.test", "/%00", "/%zz", "/login"])("rejects unsafe or recursive redirect %s", (value) => {
+  it.each([
+    null,
+    "https://evil.test",
+    "//evil.test",
+    "/\\evil.test",
+    "javascript:alert(1)",
+    "/%2f%2fevil.test",
+    "/%5cevil.test",
+    "/%00",
+    "/%zz",
+    "/login",
+  ])("rejects unsafe or recursive redirect %s", (value) => {
     expect(getLoginRedirect(value)).toBe(ROUTES.DASHBOARD.ROOT);
   });
 
   it("distinguishes timeout while hiding arbitrary exception details", () => {
-    expect(getLoginErrorMessage(new AxiosError("secret", AxiosError.ETIMEDOUT))).toBe(APP_MESSAGES.ERROR.TIMEOUT);
+    expect(getLoginErrorMessage(new AxiosError("secret", AxiosError.ETIMEDOUT))).toBe(
+      APP_MESSAGES.ERROR.TIMEOUT,
+    );
     expect(getLoginErrorMessage(new Error("secret"))).toBe(APP_MESSAGES.ERROR.DEFAULT);
   });
 });

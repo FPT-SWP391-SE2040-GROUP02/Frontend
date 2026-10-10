@@ -13,10 +13,15 @@ vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
 
 /** Kho thử nghiệm đúng shape transport, không chứng minh quyền hoặc entitlement thực. */
 const VAULT_FIXTURE: VaultResponse = {
-  id: "vault-fixture", status: VAULT_PLAN_STATUS.DRAFT,
-  storageQuotaBytes: 0, storageUsedBytes: 128, beneficiarySlotQuota: 0,
-  packageCount: 1, isContentEditable: true,
-  createdAt: "2026-10-10T00:00:00Z", updatedAt: "2026-10-10T00:00:00Z",
+  id: "vault-fixture",
+  status: VAULT_PLAN_STATUS.DRAFT,
+  storageQuotaBytes: 0,
+  storageUsedBytes: 128,
+  beneficiarySlotQuota: 0,
+  packageCount: 1,
+  isContentEditable: true,
+  createdAt: "2026-10-10T00:00:00Z",
+  updatedAt: "2026-10-10T00:00:00Z",
 };
 
 /** QueryClient dùng riêng từng test để không chia sẻ dữ liệu private giữa các case. */
@@ -33,7 +38,11 @@ afterEach(() => {
 
 /** @param enabled Cờ phiên thử nghiệm. @returns UI panel trong query provider. */
 function setup(enabled = true) {
-  return render(<QueryClientProvider client={queryClient}><OwnerVaultPanel enabled={enabled} /></QueryClientProvider>);
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <OwnerVaultPanel enabled={enabled} />
+    </QueryClientProvider>,
+  );
 }
 
 describe("OwnerVaultPanel", () => {
@@ -67,7 +76,11 @@ describe("OwnerVaultPanel", () => {
   ])("distinguishes missing vault from HTTP %s / %s", async (status, code, missing) => {
     const config = { headers: new AxiosHeaders() };
     const error = new AxiosError("test-response", undefined, config, undefined, {
-      status, statusText: "Test response", headers: {}, config, data: { code },
+      status,
+      statusText: "Test response",
+      headers: {},
+      config,
+      data: { code },
     });
     vi.mocked(ownerVaultService.getMine).mockRejectedValue(error);
     setup();
@@ -82,7 +95,10 @@ describe("OwnerVaultPanel", () => {
 
   it("shows an empty package list using the server metadata", async () => {
     vi.mocked(ownerVaultService.getMine).mockResolvedValue({ ...VAULT_FIXTURE, packageCount: 0 });
-    vi.mocked(ownerVaultService.listPackages).mockResolvedValue({ data: [], meta: { page: 1, pageSize: 20, totalItems: 0, totalPages: 0 } });
+    vi.mocked(ownerVaultService.listPackages).mockResolvedValue({
+      data: [],
+      meta: { page: 1, pageSize: 20, totalItems: 0, totalPages: 0 },
+    });
     setup();
     expect(await screen.findByText("Kho chưa có gói bàn giao.")).toBeInTheDocument();
     expect(screen.getByText("128")).toBeInTheDocument();
@@ -98,8 +114,15 @@ describe("OwnerVaultPanel", () => {
   it("renders server package names and omits absent descriptions", async () => {
     vi.mocked(ownerVaultService.getMine).mockResolvedValue(VAULT_FIXTURE);
     vi.mocked(ownerVaultService.listPackages).mockResolvedValue({
-      data: [{ id: "package-fixture", name: "Giấy tờ gia đình", description: null,
-        createdAt: VAULT_FIXTURE.createdAt, updatedAt: VAULT_FIXTURE.updatedAt }],
+      data: [
+        {
+          id: "package-fixture",
+          name: "Giấy tờ gia đình",
+          description: null,
+          createdAt: VAULT_FIXTURE.createdAt,
+          updatedAt: VAULT_FIXTURE.updatedAt,
+        },
+      ],
       meta: { page: 1, pageSize: 20, totalItems: 1, totalPages: 1 },
     });
     setup();

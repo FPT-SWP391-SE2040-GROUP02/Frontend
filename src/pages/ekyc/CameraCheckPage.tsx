@@ -14,7 +14,8 @@ export function CameraCheckPage() {
   const location = useLocation();
   const requested = params.get("step");
   const step = review.steps.find((item) => item.id === requested)?.id ?? "camera";
-  const sampleSuccess = step === "result" && (!params.get("outcome") || params.get("outcome") === "success");
+  const sampleSuccess =
+    step === "result" && (!params.get("outcome") || params.get("outcome") === "success");
   const currentStep = step === "documents" ? 0 : step === "face" ? 1 : sampleSuccess ? 3 : 2;
   const title =
     step === "documents"

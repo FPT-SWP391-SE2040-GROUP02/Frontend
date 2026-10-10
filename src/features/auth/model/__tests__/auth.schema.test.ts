@@ -33,7 +33,9 @@ describe("Module 0: Auth Zod Schemas Validation", () => {
   });
 
   it("requires an existing password for login and Google linking", () => {
-    expect(loginSchema.safeParse({ email: "owner@example.test", password: "" }).success).toBe(false);
+    expect(loginSchema.safeParse({ email: "owner@example.test", password: "" }).success).toBe(
+      false,
+    );
     expect(linkGoogleSchema.safeParse({ password: "" }).success).toBe(false);
   });
 
@@ -63,21 +65,42 @@ describe("Module 0: Auth Zod Schemas Validation", () => {
     };
     const result = registerSchema.safeParse(mismatchRegister);
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.issues).toEqual(expect.arrayContaining([
-      expect.objectContaining({ path: ["confirmPassword"], message: APP_MESSAGES.VALIDATION.PASSWORD_NOT_MATCH }),
-    ]));
+    if (!result.success)
+      expect(result.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            path: ["confirmPassword"],
+            message: APP_MESSAGES.VALIDATION.PASSWORD_NOT_MATCH,
+          }),
+        ]),
+      );
   });
 
-  it.each(["abcdefg!", "Abcdefgh", "Abcdef!", "Abcdefg "])("rejects a new weak password on register: %s", (password) => {
-    expect(registerSchema.safeParse({
-      fullName: "Test Owner", email: "owner@example.test", password, confirmPassword: password,
-    }).success).toBe(false);
-  });
+  it.each(["abcdefg!", "Abcdefgh", "Abcdef!", "Abcdefg "])(
+    "rejects a new weak password on register: %s",
+    (password) => {
+      expect(
+        registerSchema.safeParse({
+          fullName: "Test Owner",
+          email: "owner@example.test",
+          password,
+          confirmPassword: password,
+        }).success,
+      ).toBe(false);
+    },
+  );
 
   it("rejects a whitespace-only name and trims a valid display name", () => {
-    const payload = { fullName: "   ", email: "owner@example.test", password: "Abcdefg!", confirmPassword: "Abcdefg!" };
+    const payload = {
+      fullName: "   ",
+      email: "owner@example.test",
+      password: "Abcdefg!",
+      confirmPassword: "Abcdefg!",
+    };
     expect(registerSchema.safeParse(payload).success).toBe(false);
-    expect(registerSchema.parse({ ...payload, fullName: " Test Owner " }).fullName).toBe("Test Owner");
+    expect(registerSchema.parse({ ...payload, fullName: " Test Owner " }).fullName).toBe(
+      "Test Owner",
+    );
   });
 
   it("should validate 6-digit numeric OTP code", () => {

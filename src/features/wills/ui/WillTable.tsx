@@ -14,10 +14,7 @@ interface WillTableProps {
   onOpenCreateWizard: () => void;
 }
 
-export const WillTable: React.FC<WillTableProps> = ({
-  onSelectWill,
-  onOpenCreateWizard,
-}) => {
+export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreateWizard }) => {
   const { data, isLoading, isError, refetch } = useWills();
   const { mutate: revokeWill, isPending: isRevoking } = useRevokeWill();
 
@@ -39,8 +36,8 @@ export const WillTable: React.FC<WillTableProps> = ({
   // 1. Loading
   if (isLoading) {
     return (
-      <div 
-        role="status" 
+      <div
+        role="status"
         aria-label="Đang tải danh sách di chúc"
         className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-6 space-y-4"
       >
@@ -57,14 +54,16 @@ export const WillTable: React.FC<WillTableProps> = ({
   // 2. Error
   if (isError || !data) {
     return (
-      <div 
+      <div
         role="alert"
         className="bg-[#FAF9F5] border border-[#FECACA] rounded-[24px] p-8 text-center space-y-4 shadow-sm"
       >
         <AlertCircle className="w-10 h-10 text-[#DC2626] mx-auto" />
         <div>
           <h3 className="text-base font-bold text-[#14241C]">Không thể nạp danh sách di chúc số</h3>
-          <p className="text-xs text-[#66786E] mt-1">Đã xảy ra lỗi kết nối với máy chủ quản lý di chúc.</p>
+          <p className="text-xs text-[#66786E] mt-1">
+            Đã xảy ra lỗi kết nối với máy chủ quản lý di chúc.
+          </p>
         </div>
         <Button
           onClick={() => refetch()}
@@ -86,7 +85,8 @@ export const WillTable: React.FC<WillTableProps> = ({
         <div>
           <h3 className="text-lg font-bold text-[#14241C]">Chưa Có Bản Di Chúc Số Nào</h3>
           <p className="text-xs sm:text-sm text-[#66786E] max-w-md mx-auto mt-1 leading-relaxed">
-            Hãy bắt đầu khởi tạo bản di chúc số đầu tiên để định đoạt tài sản và bảo vệ quyền lợi hợp pháp của con cháu theo Bộ Luật Dân Sự 2015.
+            Hãy bắt đầu khởi tạo bản di chúc số đầu tiên để định đoạt tài sản và bảo vệ quyền lợi
+            hợp pháp của con cháu theo Bộ Luật Dân Sự 2015.
           </p>
         </div>
         <Button
@@ -127,7 +127,8 @@ export const WillTable: React.FC<WillTableProps> = ({
         </div>
 
         <div className="text-xs text-[#66786E] font-medium">
-          Hiển thị <span className="font-bold text-[#0B291E]">{filteredItems.length}</span> / {data.items.length} bản di chúc
+          Hiển thị <span className="font-bold text-[#0B291E]">{filteredItems.length}</span> /{" "}
+          {data.items.length} bản di chúc
         </div>
       </div>
 
@@ -148,12 +149,24 @@ export const WillTable: React.FC<WillTableProps> = ({
             <table className="w-full text-left border-collapse" aria-label="Danh sách di chúc số">
               <thead>
                 <tr className="border-b border-[#E8E5DD] bg-[#EFECE6]/70 text-[#66786E] text-[11px] font-bold uppercase tracking-wider">
-                  <th scope="col" className="py-4 px-6">Bản Di Chúc Số</th>
-                  <th scope="col" className="py-4 px-4">Trạng Thái Pháp Lý</th>
-                  <th scope="col" className="py-4 px-4">Tài Sản Gắn Kèm</th>
-                  <th scope="col" className="py-4 px-4">Người Thừa Kế</th>
-                  <th scope="col" className="py-4 px-4">Video Minh Mẫn</th>
-                  <th scope="col" className="py-4 px-6 text-right">Thao Tác</th>
+                  <th scope="col" className="py-4 px-6">
+                    Bản Di Chúc Số
+                  </th>
+                  <th scope="col" className="py-4 px-4">
+                    Trạng Thái Pháp Lý
+                  </th>
+                  <th scope="col" className="py-4 px-4">
+                    Tài Sản Gắn Kèm
+                  </th>
+                  <th scope="col" className="py-4 px-4">
+                    Người Thừa Kế
+                  </th>
+                  <th scope="col" className="py-4 px-4">
+                    Video Minh Mẫn
+                  </th>
+                  <th scope="col" className="py-4 px-6 text-right">
+                    Thao Tác
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E8E5DD] text-xs font-medium">
@@ -195,8 +208,8 @@ export const WillTable: React.FC<WillTableProps> = ({
                           will.status === "SEALED"
                             ? "bg-[#E5EDE8] text-[#0B291E] border-[#A2C4AF]"
                             : will.status === "REVOKED"
-                            ? "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
-                            : "bg-[#FBF7EE] text-[#B88E4C] border-[#E8DCC6]"
+                              ? "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
+                              : "bg-[#FBF7EE] text-[#B88E4C] border-[#E8DCC6]"
                         }`}
                       >
                         {will.statusLabel}
@@ -210,7 +223,8 @@ export const WillTable: React.FC<WillTableProps> = ({
 
                     {/* Beneficiaries */}
                     <td className="py-4 px-4 font-semibold text-[#14241C]">
-                      <span className="text-[#B88E4C] font-bold">{will.beneficiaryCount}</span> người
+                      <span className="text-[#B88E4C] font-bold">{will.beneficiaryCount}</span>{" "}
+                      người
                     </td>
 
                     {/* Video Affidavit Hash */}
@@ -228,10 +242,7 @@ export const WillTable: React.FC<WillTableProps> = ({
                     </td>
 
                     {/* Actions (>= 44px Touch Target) */}
-                    <td
-                      className="py-4 px-6 text-right"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"
@@ -248,7 +259,11 @@ export const WillTable: React.FC<WillTableProps> = ({
                             variant="ghost"
                             disabled={isRevoking}
                             onClick={() => {
-                              if (confirm(`Bạn có chắc chắn muốn thu hồi bản di chúc "${will.title}"?`)) {
+                              if (
+                                confirm(
+                                  `Bạn có chắc chắn muốn thu hồi bản di chúc "${will.title}"?`,
+                                )
+                              ) {
                                 revokeWill(will.id);
                               }
                             }}

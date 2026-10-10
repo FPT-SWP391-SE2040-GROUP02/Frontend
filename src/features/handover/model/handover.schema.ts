@@ -16,9 +16,14 @@ export const ekycBiometricSchema = z.object({
     .min(85, "Độ khớp sinh trắc học phải đạt tối thiểu 85.0% theo tiêu chuẩn an ninh bàn giao"),
   livenessConfidence: z
     .number({ required_error: "Vui lòng cung cấp độ tin cậy kiểm tra người thật" })
-    .min(90, "Độ tin cậy phát hiện người thật 3D (Liveness) phải đạt tối thiểu 90.0% để ngăn ngừa Deepfake"),
+    .min(
+      90,
+      "Độ tin cậy phát hiện người thật 3D (Liveness) phải đạt tối thiểu 90.0% để ngăn ngừa Deepfake",
+    ),
   biometricPassed: z.literal(true, {
-    errorMap: () => ({ message: "Bắt buộc vượt qua kiểm tra sinh trắc học trước khi mở khóa di sản" }),
+    errorMap: () => ({
+      message: "Bắt buộc vượt qua kiểm tra sinh trắc học trước khi mở khóa di sản",
+    }),
   }),
 });
 

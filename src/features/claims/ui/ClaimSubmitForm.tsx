@@ -51,7 +51,6 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
     name: ["deathCertScanUrl", "legalAttestationConfirmed"],
   });
 
-
   const onSubmit = (values: SubmitClaimFormValues) => {
     // =========================================================================
     // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
@@ -91,7 +90,8 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
         </div>
         <h3 className="text-lg font-bold text-[#0B291E]">Đã Gửi Hồ Sơ Thành Công</h3>
         <p className="text-xs text-[#66786E] max-w-md mx-auto leading-relaxed">
-          Hồ sơ yêu cầu mở thừa kế của bạn đã được tiếp nhận và chuyển đến danh sách thẩm định của Công chứng viên. Bạn sẽ nhận được thông báo ngay khi có kết quả duyệt.
+          Hồ sơ yêu cầu mở thừa kế của bạn đã được tiếp nhận và chuyển đến danh sách thẩm định của
+          Công chứng viên. Bạn sẽ nhận được thông báo ngay khi có kết quả duyệt.
         </p>
       </Card>
     );
@@ -105,7 +105,9 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
         <div className="space-y-1 leading-relaxed">
           <p className="font-bold">Quy định thẩm quyền nộp hồ sơ (Điều 562 & 611 BLDS 2015):</p>
           <p>
-            Chỉ Người thi hành di chúc hợp pháp được chủ kho chỉ định mới có quyền nộp chứng từ tử tuất hoặc bản án mất tích. Mọi hành vi làm giả chứng từ sẽ bị xử lý nghiêm minh theo pháp luật.
+            Chỉ Người thi hành di chúc hợp pháp được chủ kho chỉ định mới có quyền nộp chứng từ tử
+            tuất hoặc bản án mất tích. Mọi hành vi làm giả chứng từ sẽ bị xử lý nghiêm minh theo
+            pháp luật.
           </p>
         </div>
       </div>
@@ -147,11 +149,7 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
           <label className="text-xs font-bold text-[#14241C]">
             Ngày Cấp <span className="text-red-500">*</span>
           </label>
-          <Input
-            type="date"
-            {...register("deathCertificateIssueDate")}
-            className="bg-[#FAF9F5]"
-          />
+          <Input type="date" {...register("deathCertificateIssueDate")} className="bg-[#FAF9F5]" />
           {errors.deathCertificateIssueDate && (
             <p className="text-[11px] text-red-600">{errors.deathCertificateIssueDate.message}</p>
           )}
@@ -188,7 +186,9 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
 
       {/* Ghi chú giải trình bổ sung */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-[#14241C]">Ghi Chú Của Người Thi Hành (Tùy chọn)</label>
+        <label className="text-xs font-bold text-[#14241C]">
+          Ghi Chú Của Người Thi Hành (Tùy chọn)
+        </label>
         <textarea
           {...register("executorNotes")}
           rows={3}
@@ -204,12 +204,14 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
           id="executor-legal-attestation"
           label={
             <span className="font-bold text-[#0B291E]">
-              Tôi chịu trách nhiệm trước pháp luật về tính hợp pháp và trung thực của giấy chứng tử này.
+              Tôi chịu trách nhiệm trước pháp luật về tính hợp pháp và trung thực của giấy chứng tử
+              này.
             </span>
           }
         />
         <p className="text-[11px] text-[#66786E] pl-6 leading-relaxed">
-          Cam kết theo quy định SRS 3.11.0 (DEATH-02). Hệ thống sẽ gắn danh tính số và dấu thời gian của bạn vào bản nộp hồ sơ.
+          Cam kết theo quy định SRS 3.11.0 (DEATH-02). Hệ thống sẽ gắn danh tính số và dấu thời gian
+          của bạn vào bản nộp hồ sơ.
         </p>
         {errors.legalAttestationConfirmed && (
           <p className="text-[11px] text-red-600 font-semibold pl-6">
@@ -225,7 +227,9 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
         className="w-full min-h-[48px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
       >
         <Send className="w-4 h-4 text-[#B88E4C]" />
-        <span>{isPending ? "Đang Gửi Hồ Sơ..." : "Nộp Giấy Chứng Tử Cho Người Xác Minh (Verifier)"}</span>
+        <span>
+          {isPending ? "Đang Gửi Hồ Sơ..." : "Nộp Giấy Chứng Tử Cho Người Xác Minh (Verifier)"}
+        </span>
       </Button>
     </form>
   );

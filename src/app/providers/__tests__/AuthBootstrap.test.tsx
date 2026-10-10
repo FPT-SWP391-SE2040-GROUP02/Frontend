@@ -22,9 +22,17 @@ afterEach(() => {
 function setup() {
   const store = configureStore({ reducer: { auth: authReducer } });
   const client = new QueryClient();
-  render(<StrictMode><Provider store={store}><QueryClientProvider client={client}>
-    <AuthBootstrap><p>App content</p></AuthBootstrap>
-  </QueryClientProvider></Provider></StrictMode>);
+  render(
+    <StrictMode>
+      <Provider store={store}>
+        <QueryClientProvider client={client}>
+          <AuthBootstrap>
+            <p>App content</p>
+          </AuthBootstrap>
+        </QueryClientProvider>
+      </Provider>
+    </StrictMode>,
+  );
   return { store, client };
 }
 
@@ -37,15 +45,18 @@ describe("AuthBootstrap request budget", () => {
     client.clear();
   });
 
-  it.each(Object.values(ROUTES.PREVIEW))("does not request a session on development preview %s", (path) => {
-    vi.stubEnv("DEV", true);
-    window.history.replaceState(null, "", path);
-    const { store, client } = setup();
-    expect(axiosClient.get).not.toHaveBeenCalled();
-    expect(store.getState().auth.isHydrating).toBe(false);
-    expect(screen.getByText("App content")).toBeInTheDocument();
-    client.clear();
-  });
+  it.each(Object.values(ROUTES.PREVIEW))(
+    "does not request a session on development preview %s",
+    (path) => {
+      vi.stubEnv("DEV", true);
+      window.history.replaceState(null, "", path);
+      const { store, client } = setup();
+      expect(axiosClient.get).not.toHaveBeenCalled();
+      expect(store.getState().auth.isHydrating).toBe(false);
+      expect(screen.getByText("App content")).toBeInTheDocument();
+      client.clear();
+    },
+  );
 
   it("does not retry a failed session request", async () => {
     vi.mocked(axiosClient.get).mockRejectedValue(new Error("session unavailable"));

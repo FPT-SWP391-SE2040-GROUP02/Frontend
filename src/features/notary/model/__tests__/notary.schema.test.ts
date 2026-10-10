@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { notaryApproveSchema, notaryRejectSchema, NOTARY_REJECTION_REASONS } from "../notary.schema";
+import {
+  notaryApproveSchema,
+  notaryRejectSchema,
+  NOTARY_REJECTION_REASONS,
+} from "../notary.schema";
 
 describe("notary.schema validation", () => {
   describe("notaryApproveSchema", () => {
@@ -22,7 +26,10 @@ describe("notary.schema validation", () => {
     });
 
     it("should reject approval without legal attestation", () => {
-      expect(notaryApproveSchema.safeParse({ ...validApprove, legalAttestationConfirmed: false }).success).toBe(false);
+      expect(
+        notaryApproveSchema.safeParse({ ...validApprove, legalAttestationConfirmed: false })
+          .success,
+      ).toBe(false);
     });
 
     it("should fail when any of the 4 criteria is false", () => {

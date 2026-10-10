@@ -1,4 +1,8 @@
-import { isOwnerVaultMissing, useOwnerPackages, useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
+import {
+  isOwnerVaultMissing,
+  useOwnerPackages,
+  useOwnerVault,
+} from "@/features/vault-management/model/useOwnerVault";
 import { Button, Card, Skeleton } from "@/shared/ui";
 
 /** Nội dung panel dữ liệu server; không sử dụng số liệu hoặc chính sách từ prototype. */
@@ -37,7 +41,9 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
     <Card className="rounded-2xl border-heritage-border bg-heritage-surface p-6 shadow-none">
       <h2 className="text-lg font-semibold">{CONTENT.title}</h2>
       {!enabled ? (
-        <p role="status" className="text-sm text-heritage-muted">{CONTENT.waiting}</p>
+        <p role="status" className="text-sm text-heritage-muted">
+          {CONTENT.waiting}
+        </p>
       ) : vault.isError && isOwnerVaultMissing(vault.error) ? (
         <div role="status" className="space-y-2">
           <p className="font-medium">{CONTENT.missingTitle}</p>
@@ -76,13 +82,17 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
             </div>
           </dl>
           {packages.data.data.length === 0 ? (
-            <p role="status" className="text-sm text-heritage-muted">{CONTENT.empty}</p>
+            <p role="status" className="text-sm text-heritage-muted">
+              {CONTENT.empty}
+            </p>
           ) : (
             <ul aria-label={CONTENT.list} className="divide-y divide-heritage-border">
               {packages.data.data.map((item) => (
                 <li key={item.id} className="py-3">
                   <p className="font-medium">{item.name}</p>
-                  {item.description && <p className="mt-1 text-sm text-heritage-muted">{item.description}</p>}
+                  {item.description && (
+                    <p className="mt-1 text-sm text-heritage-muted">{item.description}</p>
+                  )}
                 </li>
               ))}
             </ul>

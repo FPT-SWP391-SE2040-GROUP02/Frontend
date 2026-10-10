@@ -40,9 +40,13 @@ describe("RAM Bearer transport", () => {
     const storageWrite = vi.spyOn(Storage.prototype, "setItem");
     const cookieWrite = vi.spyOn(document, "cookie", "set");
     accessTokenMemory.set(TEST_ACCESS_TOKEN);
-    expect((await captureRequest("/vaults/me")).headers.get("Authorization")).toBe(`Bearer ${TEST_ACCESS_TOKEN}`);
+    expect((await captureRequest("/vaults/me")).headers.get("Authorization")).toBe(
+      `Bearer ${TEST_ACCESS_TOKEN}`,
+    );
     accessTokenMemory.set("rotated-test-token");
-    expect((await captureRequest("/vaults/me")).headers.get("Authorization")).toBe("Bearer rotated-test-token");
+    expect((await captureRequest("/vaults/me")).headers.get("Authorization")).toBe(
+      "Bearer rotated-test-token",
+    );
     expect(storageWrite).not.toHaveBeenCalled();
     expect(cookieWrite).not.toHaveBeenCalled();
   });
@@ -56,7 +60,11 @@ describe("RAM Bearer transport", () => {
 
   it("does not send the RAM token to a different origin", async () => {
     accessTokenMemory.set(TEST_ACCESS_TOKEN);
-    expect((await captureRequest("https://files.example.invalid/api/v1/file")).headers.get("Authorization")).toBeUndefined();
+    expect(
+      (await captureRequest("https://files.example.invalid/api/v1/file")).headers.get(
+        "Authorization",
+      ),
+    ).toBeUndefined();
   });
 
   it("does not send the RAM token outside the API path on the same origin", async () => {

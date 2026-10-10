@@ -1,11 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { willService } from "../api/willService";
 import { toWillViewModel } from "../lib/adapters";
-import type { 
-  CreateWillRequest, 
-  WillViewModel,
-  CreateWillFormValues 
-} from "./will.types";
+import type { CreateWillRequest, WillViewModel, CreateWillFormValues } from "./will.types";
 import { toCreateWillPayload } from "../lib/adapters";
 import type { PaginationParams } from "@/shared/types";
 
