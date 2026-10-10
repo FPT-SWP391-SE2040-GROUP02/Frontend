@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { APP_MESSAGES } from "@/shared/constants";
+import { z } from "zod";
 
 /** Quy tắc tạo mật khẩu mới theo yêu cầu; không áp dụng cho xác thực mật khẩu hiện có. */
 export const PASSWORD_POLICY = {
@@ -19,6 +19,9 @@ export const NEW_PASSWORD_HINT = `Tối thiểu ${PASSWORD_POLICY.minimumLength}
 export const newPasswordSchema = z
   .string()
   .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu"))
-  .min(PASSWORD_POLICY.minimumLength, APP_MESSAGES.VALIDATION.MIN_LENGTH("Mật khẩu", PASSWORD_POLICY.minimumLength))
+  .min(
+    PASSWORD_POLICY.minimumLength,
+    APP_MESSAGES.VALIDATION.MIN_LENGTH("Mật khẩu", PASSWORD_POLICY.minimumLength),
+  )
   .regex(PASSWORD_POLICY.uppercase, APP_MESSAGES.VALIDATION.PASSWORD_UPPERCASE)
   .regex(PASSWORD_POLICY.specialCharacter, APP_MESSAGES.VALIDATION.PASSWORD_SPECIAL_CHARACTER);

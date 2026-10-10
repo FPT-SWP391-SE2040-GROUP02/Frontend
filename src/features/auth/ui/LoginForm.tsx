@@ -1,15 +1,15 @@
+import { ROUTES } from "@/shared/config/routes.config";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertCircle, ArrowRight, Info, Lock, Mail } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { loginSchema, type LoginInput } from "../model/auth.schema";
 import type { InvitationContext } from "../model/auth.types";
 import { useLogin } from "../model/useAuth";
 import { getLoginRedirect, getLoginErrorMessage } from "../lib/loginFeedback";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Lock, Mail, AlertCircle, Info, ArrowRight } from "lucide-react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { ROUTES } from "@/shared/config/routes.config";
 
 /**
  * @description Thuộc tính cấu hình cho component LoginForm.
@@ -32,11 +32,7 @@ export interface LoginFormProps {
  * @param {LoginFormProps} props Thuộc tính component
  * @returns {React.JSX.Element} Form đăng nhập
  */
-export function LoginForm({
-  onPasskeyClick,
-  invitationContext,
-  className = "",
-}: LoginFormProps) {
+export function LoginForm({ onPasskeyClick, invitationContext, className = "" }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -51,7 +47,7 @@ export function LoginForm({
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "nam@example.com",
+      email: "",
       password: "",
       rememberMe: true,
     },
@@ -102,7 +98,8 @@ export function LoginForm({
                 Bạn đang mở lời mời nhận gói “{invitationContext.packageName}”.
               </p>
               <p className="text-[#3F5B4E]">
-                Sau khi đăng nhập, bạn sẽ quay lại đúng bước xác minh. Email đăng nhập không cần trùng với email trong lời mời.
+                Sau khi đăng nhập, bạn sẽ quay lại đúng bước xác minh. Email đăng nhập không cần
+                trùng với email trong lời mời.
               </p>
             </div>
           </div>
@@ -197,6 +194,7 @@ export function LoginForm({
             <Link
               to={ROUTES.AUTH.FORGOT_PASSWORD}
               className="text-[11px] text-[#B88E4C] hover:underline font-semibold"
+              tabIndex={-1}
             >
               Quên mật khẩu?
             </Link>
@@ -278,10 +276,7 @@ export function LoginForm({
         ) : (
           <p>
             Chưa có tài khoản?{" "}
-            <Link
-              to={ROUTES.AUTH.REGISTER}
-              className="text-[#0A281E] font-bold hover:underline"
-            >
+            <Link to={ROUTES.AUTH.REGISTER} className="text-[#0A281E] font-bold hover:underline">
               Tạo kho miễn phí
             </Link>
           </p>

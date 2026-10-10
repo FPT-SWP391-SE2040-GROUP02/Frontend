@@ -1,6 +1,6 @@
-import { z } from "zod";
 import { APP_MESSAGES } from "@/shared/constants";
-import { newPasswordSchema, NEW_PASSWORD_HINT } from "./password.schema";
+import { z } from "zod";
+import { NEW_PASSWORD_HINT, newPasswordSchema } from "./password.schema";
 
 /** Nội dung giao diện đặt lại mật khẩu, chưa tích hợp endpoint khôi phục. */
 export const RESET_PASSWORD_CONTENT = {
