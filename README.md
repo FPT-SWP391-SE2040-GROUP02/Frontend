@@ -23,7 +23,7 @@ src/
   entities/     dữ liệu user/claim, authSlice
   shared/       API, config, constants, UI, uiSlice
 scripts/        kiểm tra đồ thị import FSD
-docs/           tài liệu tích hợp được chọn để bàn giao cùng source
+../docs/        tài liệu dự án và bàn giao tích hợp, nằm ngoài client
 legacy/         snapshot wizard cũ chỉ giữ local, không tham gia build
 ```
 
@@ -41,6 +41,6 @@ npm run build
 
 lint chỉ kiểm tra; lint:fix sửa lỗi có thể tự sửa. format:check kiểm tra định dạng, format ghi lại định dạng, preview xem bản build.
 
-[Tài liệu tích hợp](docs/README.md) được đóng gói cùng repository. SQL Auth, archive và prototype gốc thuộc workspace ngoài repo Frontend. Một số feature còn mock/scaffold hoặc nghiệp vụ baseline cũ; build pass chưa chứng minh phù hợp toàn bộ SRS 3.14.0.
+[Tài liệu tích hợp](../docs/README.md) nằm tại thư mục docs của workspace, ngoài repository client. Khi bàn giao riêng source FE, gửi kèm tài liệu cần thiết từ thư mục đó. Một số feature còn mock/scaffold hoặc nghiệp vụ baseline cũ; build pass chưa chứng minh phù hợp toàn bộ SRS 3.14.0.
 
-[Yêu cầu FE → BE](docs/FE_BE_INTEGRATION_REQUEST.md) là tài liệu bàn giao tích hợp. Bộ UI kit tham khảo, baseline cũ và `legacy/` không được đóng gói trong phần source hiện hành.
+[Bàn giao API theo feature](../docs/BE-FEATURE-API-HANDOFF.md) là checklist mới cho nhóm BE; [Yêu cầu FE → BE](../docs/FE_BE_INTEGRATION_REQUEST.md) giữ các yêu cầu đối soát chi tiết trước đó. Bộ UI kit tham khảo, baseline cũ và `legacy/` không được đóng gói trong phần source hiện hành.
