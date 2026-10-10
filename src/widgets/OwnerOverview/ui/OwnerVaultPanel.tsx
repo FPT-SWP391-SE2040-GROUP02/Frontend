@@ -1,10 +1,12 @@
-import { useOwnerPackages, useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
+import { isOwnerVaultMissing, useOwnerPackages, useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
 import { Button, Card, Skeleton } from "@/shared/ui";
 
 /** Nội dung panel dữ liệu server; không sử dụng số liệu hoặc chính sách từ prototype. */
 const CONTENT = {
   title: "Kho và gói bàn giao từ máy chủ",
-  waiting: "Chưa có phiên Bearer sẵn sàng. Dữ liệu kho chưa được tải.",
+  waiting: "Dữ liệu kho chưa sẵn sàng. Vui lòng đăng nhập để xem kho của bạn.",
+  missingTitle: "Bạn chưa có kho di sản.",
+  missingDescription: "Kho di sản giúp bạn sắp xếp tài sản và các gói bàn giao.",
   loading: "Đang tải kho và gói bàn giao…",
   vaultError: "Không tải được kho. Kiểm tra phiên đăng nhập hoặc thử lại.",
   packagesError: "Không tải được danh sách gói bàn giao. Vui lòng thử lại.",
@@ -36,6 +38,11 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
       <h2 className="text-lg font-semibold">{CONTENT.title}</h2>
       {!enabled ? (
         <p role="status" className="text-sm text-heritage-muted">{CONTENT.waiting}</p>
+      ) : vault.isError && isOwnerVaultMissing(vault.error) ? (
+        <div role="status" className="space-y-2">
+          <p className="font-medium">{CONTENT.missingTitle}</p>
+          <p className="text-sm text-heritage-muted">{CONTENT.missingDescription}</p>
+        </div>
       ) : vault.isError ? (
         <div role="alert" className="space-y-4">
           <p>{CONTENT.vaultError}</p>

@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
 import { VAULT_PLAN_STATUS, type VaultResponse } from "@/entities/vault/model/vault.types";
 import { OwnerVaultPanel } from "../OwnerVaultPanel";
+import { AxiosError, AxiosHeaders } from "axios";
+import { HTTP_STATUS } from "@/shared/constants";
 
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
   ownerVaultService: { getMine: vi.fn(), listPackages: vi.fn() },
@@ -37,7 +39,7 @@ function setup(enabled = true) {
 describe("OwnerVaultPanel", () => {
   it("does not request private data before the session is ready", () => {
     setup(false);
-    expect(screen.getByRole("status")).toHaveTextContent("Chưa có phiên Bearer");
+    expect(screen.getByRole("status")).toHaveTextContent("Vui lòng đăng nhập");
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
     expect(ownerVaultService.listPackages).not.toHaveBeenCalled();
   });
@@ -55,6 +57,26 @@ describe("OwnerVaultPanel", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được kho");
     fireEvent.click(screen.getByRole("button", { name: "Thử lại" }));
     await vi.waitFor(() => expect(ownerVaultService.getMine).toHaveBeenCalledTimes(2));
+    expect(ownerVaultService.listPackages).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [HTTP_STATUS.NOT_FOUND, "VAULT_NOT_FOUND", true],
+    [HTTP_STATUS.NOT_FOUND, "NOT_FOUND", false],
+    [HTTP_STATUS.INTERNAL_SERVER_ERROR, "VAULT_NOT_FOUND", false],
+  ])("distinguishes missing vault from HTTP %s / %s", async (status, code, missing) => {
+    const config = { headers: new AxiosHeaders() };
+    const error = new AxiosError("test-response", undefined, config, undefined, {
+      status, statusText: "Test response", headers: {}, config, data: { code },
+    });
+    vi.mocked(ownerVaultService.getMine).mockRejectedValue(error);
+    setup();
+    if (missing) {
+      expect(await screen.findByText("Bạn chưa có kho di sản.")).toBeInTheDocument();
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    } else {
+      expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được kho");
+    }
     expect(ownerVaultService.listPackages).not.toHaveBeenCalled();
   });
 

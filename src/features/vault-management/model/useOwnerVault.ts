@@ -2,6 +2,23 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { BackendPageRequest } from "@/shared/types/backend";
 import type { CreatePackageRequest, UpdatePackageRequest } from "@/entities/package/model/package.types";
 import { ownerVaultService } from "../api/ownerVaultService";
+import { isAxiosError } from "axios";
+import { z } from "zod";
+import { HTTP_STATUS } from "@/shared/constants";
+
+/** Lỗi chưa có kho theo snapshot BE; khác lỗi route 404 hoặc tài nguyên khác. */
+const vaultMissingProblemSchema = z.object({ code: z.literal("VAULT_NOT_FOUND") });
+
+/**
+ * @description Nhận diện phản hồi chưa tạo kho mà không coi mọi lỗi 404 là trạng thái rỗng.
+ * @param error Lỗi transport chưa xác định.
+ * @returns True chỉ khi HTTP 404 đi cùng code VAULT_NOT_FOUND của BE.
+ */
+export function isOwnerVaultMissing(error: unknown): boolean {
+  return isAxiosError<unknown>(error) &&
+    error.response?.status === HTTP_STATUS.NOT_FOUND &&
+    vaultMissingProblemSchema.safeParse(error.response.data).success;
+}
 
 /** Cache keys riêng cho dữ liệu Owner; cần xóa cache riêng tư khi đổi account/logout. */
 export const ownerVaultKeys = {
