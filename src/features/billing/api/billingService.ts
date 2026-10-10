@@ -1,11 +1,11 @@
+import { apiClient } from "@/shared/api/axiosClient";
 import { createBaseService } from "@/shared/api/baseService";
 import type {
-  PricingPlan,
   CreatePaymentOrderRequest,
-  PaymentOrder,
   Invoice,
+  PaymentOrder,
+  PricingPlan,
 } from "../model/billing.types";
-import { apiClient } from "@/shared/api/axiosClient";
 
 const baseBillingService = createBaseService<Invoice>({
   endpoint: "/billing",
@@ -13,7 +13,6 @@ const baseBillingService = createBaseService<Invoice>({
 
 /**
  * @description Dịch vụ gọi API Thanh toán SePay VietQR & Gói dịch vụ Két Di Sản.
- * Tuân thủ quy tắc 7: Để lại comment // TODO rõ ràng cho developer tự hoàn thiện code logic.
  */
 export const billingService = {
   ...baseBillingService,
@@ -62,7 +61,7 @@ export const billingService = {
     // 4. [HÀM / THƯ VIỆN]: TanStack Query enabled/refetchInterval, queryKeys, service/schema Billing.
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Dừng khi lỗi quyền hoặc terminal; không invalidate invoices trong mỗi lần tính interval; không optimistic payment hoặc đọc paid từ URL; backoff khi 429/network.
     const response = await apiClient.get<{ isPaid: boolean; status: string }>(
-      `/billing/orders/${orderId}/status`
+      `/billing/orders/${orderId}/status`,
     );
     return response.data;
   },
