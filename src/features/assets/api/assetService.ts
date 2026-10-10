@@ -20,9 +20,12 @@ function safeEncodePayload(data: unknown): string {
 export async function getAssets(
   params?: PaginationParams & { assetType?: string }
 ): Promise<PaginatedList<AssetItemDto>> {
-  // TODO: [Developer Step]
-  // 1. Gọi GET /assets qua axiosClient kèm query params
-  // 2. Map dữ liệu trả về theo PaginatedList<AssetItemDto>
+  // TODO: [P1][ASSET-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Thay danh sách assets mock bằng tài sản thuộc gói đúng quyền.
+  // 2. [INPUT & OUTPUT]: packageId + page/pageSize/q/sort -> data/meta DTO rồi ViewModel.
+  // 3. [CÁC BƯỚC]: Sau VAULT-01 chốt GET /packages/{id}/assets; migrate types/schema/pagination; tái dùng shared service; adapter ở entities; query key theo scope.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService, BackendPageResponse, Zod, TanStack Query.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không ép BE theo PaginatedList cũ; 401/403/empty/hold; mock chỉ preview, không fallback dữ liệu giả khi API lỗi.
   const mockItems: AssetItemDto[] = [
     {
       id: "ast_01",
@@ -115,7 +118,12 @@ export async function getAssets(
  * @returns Promise chứa AssetItemDto
  */
 export async function getAssetDetail(id: string): Promise<AssetItemDto> {
-  // TODO: [Developer Step] Gọi GET /assets/{id} qua axiosClient
+  // TODO: [P1][ASSET-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Đọc metadata và content qua hai contract riêng.
+  // 2. [INPUT & OUTPUT]: assetId + quyền -> metadata; content chỉ qua endpoint được BE cho phép.
+  // 3. [CÁC BƯỚC]: Sau ASSET-01 chốt GET /assets/{id} và /assets/{id}/content; parse DTO; adapter; query hooks; content đọc theo response binary/record.
+  // 4. [HÀM / THƯ VIỆN]: Shared transport, Zod, entity adapters, Blob/ObjectURL khi phù hợp.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không coi Base64 là ciphertext; không gửi DEK/KEK xuống FE; không cache plaintext lâu dài; hủy/revoke URL khi đổi phiên hoặc unmount.
   const list = await getAssets();
   const item = list.items.find((x) => x.id === id);
   if (!item) {
@@ -132,7 +140,12 @@ export async function getAssetDetail(id: string): Promise<AssetItemDto> {
 export async function createAsset(
   payload: CreateAssetRequest
 ): Promise<ApiResponse<AssetItemDto>> {
-  // TODO: [Developer Step] Gọi POST /assets
+  // TODO: [P1][ASSET-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Thay tạo tài sản giả bằng upload/version theo mô hình mã hóa BE.
+  // 2. [INPUT & OUTPUT]: packageId + payload/file đã validate -> asset/version/quota từ BE.
+  // 3. [CÁC BƯỚC]: Sau ASSET-01 chốt POST /packages/{id}/assets và PUT /assets/{id}/content; schema -> service -> hook -> form; bỏ DTO Shamir/encryptedPayload giả khi migrate.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService, RHF/Zod, FormData, TanStack Query; BE mã hóa envelope AES-256-GCM.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không đưa btoa/safeEncodePayload vào production; MIME/size/quota/version/409; private storage; presigned chỉ khi có staging/finalize được chốt; không log secret.
   const newAsset: AssetItemDto = {
     id: `ast_${Date.now()}`,
     vaultId: "vlt_01",
@@ -161,7 +174,12 @@ export async function createAsset(
  * @returns Promise ApiResponse
  */
 export async function deleteAsset(id: string): Promise<ApiResponse<null>> {
-  // TODO: [Developer Step] Gọi DELETE /assets/{id}
+  // TODO: [P1][ASSET-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Nối xóa tài sản với kiểm tra references/hold của BE.
+  // 2. [INPUT & OUTPUT]: assetId/version -> 204 hoặc lỗi quyền/xung đột.
+  // 3. [CÁC BƯỚC]: Sau ASSET-01 chốt DELETE /assets/{id}; xác nhận UI; dùng service/hook; invalidate asset/package/storage sau thành công.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService.remove, TanStack Query, Dialog, queryKeys.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không xóa local rồi báo thành công; version có snapshot/grant có thể bị chặn; 204 không parse JSON; rollback nếu sau này dùng optimistic cho metadata không nhạy cảm.
   return {
     success: true,
     message: `Đã xóa tài sản ${id} thành công`,
@@ -174,7 +192,12 @@ export async function deleteAsset(id: string): Promise<ApiResponse<null>> {
  * @returns Promise AssetVaultStats
  */
 export async function getVaultStats(): Promise<AssetVaultStats> {
-  // TODO: [Developer Step] Gọi GET /assets/stats
+  // TODO: [P1][ASSET-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Thay thống kê tài sản mẫu bằng counters chính thức.
+  // 2. [INPUT & OUTPUT]: Kho hiện tại -> counters/quota/used bytes có measuredAt theo DTO.
+  // 3. [CÁC BƯỚC]: Sau VAULT-02 chốt summary/storage endpoints; adapter dùng chung; bỏ suy đoán GET /assets/stats nếu BE không duyệt; hooks/UI bốn trạng thái.
+  // 4. [HÀM / THƯ VIỆN]: Owner summary hooks, entity adapters, shared constants.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không đếm một page thành tổng; lỗi không trả 0 giả; bytes/slots theo BE; không trộn dữ liệu giữa account.
   return {
     totalAssets: 3,
     cryptoCount: 1,
