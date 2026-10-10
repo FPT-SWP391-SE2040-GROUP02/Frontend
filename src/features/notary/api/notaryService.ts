@@ -17,9 +17,12 @@ import type { NotaryClaimItemDto, ApproveClaimRequest, RejectClaimRequest } from
 export async function getPendingClaims(
   params?: PaginationParams
 ): Promise<PaginatedList<NotaryClaimItemDto>> {
-  // TODO: [Developer Step]
-  // 1. Gọi GET /notary/claims/pending qua axiosClient kèm Authorization token của LegalVerifier
-  // 2. Map dữ liệu trả về PaginatedList<NotaryClaimItemDto>
+  // TODO: [P2][VERIFIER-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Migrate hàng chờ notary mock sang Verifier death-cases.
+  // 2. [INPUT & OUTPUT]: Scope/bộ lọc -> data/meta hồ sơ và criteria có version.
+  // 3. [CÁC BƯỚC]: Sau DEATH-02 chốt GET /verifier/death-cases và /verifier/criteria; migrate model/schema/service/hooks/adapters; query key theo scope.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService, Zod, BackendPageResponse, TanStack Query.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không /notary/claims/pending alias; không gọi đây là công chứng số; quyền/snapshot/hold/deadline do BE; không mock fallback khi lỗi.
   const mockItems: NotaryClaimItemDto[] = [
     {
       id: "clm_01",
@@ -70,10 +73,12 @@ export async function getPendingClaims(
 export async function approveClaim(
   _payload: ApproveClaimRequest
 ): Promise<ApiResponse<{ releasedShareIndex: number; vaultStatus: string }>> {
-  // TODO: [Developer Step]
-  // 1. Kiểm tra đủ 4 tiêu chí kiểm toán trong payload.checkCriteria
-  // 2. Gọi POST /notary/claims/{claimId}/approve kèm notaryPinCode
-  // 3. Backend giải phóng Mảnh khóa 2 trong bảng KeyShares và chuyển Vault sang APPROVED
+  // TODO: [P2][VERIFIER-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Duyệt chứng tử theo criteria/version/hold thực.
+  // 2. [INPUT & OUTPUT]: caseId + reason/evidence/criteriaVersion -> decision BE.
+  // 3. [CÁC BƯỚC]: Sau VERIFIER-01 chốt POST /death-cases/{id}/approve; bỏ notaryPinCode/Share 2 khỏi DTO; disable pending; chờ server rồi invalidate.
+  // 4. [HÀM / THƯ VIỆN]: RHF/Zod, shared service, TanStack Query, Dialog.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không giải phóng mảnh khóa hoặc cấp grant; không optimistic; cửa sổ phản đối/hold/assignment/version do BE; bác alive-report không tự duyệt case.
   return {
     success: true,
     message: "Phê duyệt hồ sơ thành công! Mảnh khóa công chứng (Share 2) đã được giải phóng.",
@@ -92,10 +97,12 @@ export async function approveClaim(
 export async function rejectClaim(
   _payload: RejectClaimRequest
 ): Promise<ApiResponse<{ claimStatus: string }>> {
-  // TODO: [Developer Step]
-  // 1. Validate payload.notaryNotes.length >= 20
-  // 2. Gọi POST /notary/claims/{claimId}/reject kèm rejectionReasonCode
-  // 3. Backend chuyển trạng thái hồ sơ sang REJECTED và phát email thông báo cho Executor
+  // TODO: [P2][VERIFIER-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Tách từ chối và yêu cầu bổ sung chứng tử.
+  // 2. [INPUT & OUTPUT]: caseId + reason/version -> rejected hoặc supplement action.
+  // 3. [CÁC BƯỚC]: Sau VERIFIER-01 chốt /death-cases/{id}/reject và /request-supplement; schema theo rules BE; hook riêng; hiển thị field/toast errors.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService, RHF/Zod, TanStack Query, queryKeys.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không áp min 20 ký tự tự đặt; không /notary/claims legacy; 403/409/hold/expiry; không đổi status local rồi báo đã quyết định.
   return {
     success: true,
     message: "Đã từ chối hồ sơ và gửi thông báo yêu cầu sửa đổi bổ sung cho Người thi hành.",

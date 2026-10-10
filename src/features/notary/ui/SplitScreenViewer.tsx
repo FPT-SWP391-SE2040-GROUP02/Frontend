@@ -48,7 +48,12 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
     // =========================================================================
     // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
     // =========================================================================
-    // TODO: [Developer Step] Chuyển đổi trạng thái checkbox tiêu chí kiểm toán bằng setValue
+    // TODO: [P2][VERIFIER-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Migrate checklist cứng sang criteria BE có phiên bản.
+    // 2. [INPUT & OUTPUT]: Criterion key + case/criteria version -> form state; chưa phải phê duyệt.
+    // 3. [CÁC BƯỚC]: Sau VERIFIER-01 ánh xạ criteria về form; RHF/Zod; không bật tiêu chí bằng chứng hệ thống chỉ qua click; gửi evidence/version khi quyết định.
+    // 4. [HÀM / THƯ VIỆN]: React Hook Form setValue, Zod, criteria adapter.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Checkbox không cấp quyền; criteria thay đổi reset theo version; thiếu/sai quyền/hold thì chặn quyết định; bỏ tên pháp lý công chứng legacy khi migrate UI.
     setValue(key, !criteria[key], { shouldValidate: true });
   };
 
@@ -64,7 +69,12 @@ export const SplitScreenViewer: React.FC<SplitScreenViewerProps> = ({
     // =========================================================================
     // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
     // =========================================================================
-    // TODO: [Developer Step] Kiểm toán chữ ký ECDSA P-256 và so khớp mã băm
+    // TODO: [P0][VERIFIER-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Cô lập nút tamper-check giả trước khi cho phép quyết định thật.
+    // 2. [INPUT & OUTPUT]: Case document integrity DTO -> kết quả thực hoặc unavailable.
+    // 3. [CÁC BƯỚC]: Trước VERIFIER-02 bỏ việc set true vô điều kiện khỏi luồng thật; lấy integrity từ BE đúng document/version; loading/error; chỉ dùng checksum FE khi contract yêu cầu.
+    // 4. [HÀM / THƯ VIỆN]: Verifier hooks, Zod, document adapter; Web Crypto chỉ băm file thực.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không tự đánh dấu verified, không giả ECDSA, không dùng mock hash làm bằng chứng; thiếu dữ liệu không cho duyệt; giữ hành vi mẫu trong preview cho đến khi migrate.
     setValue("isManifestIntegrityVerified", true, { shouldValidate: true });
   };
 

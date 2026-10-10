@@ -6,14 +6,12 @@ import { CAMERA_CHECK_CONTENT as content } from "../model/camera.content";
 /** Hai panel camera và thử thách của bản UI; chưa khởi tạo phiên sinh trắc học. */
 export function CameraCheckPanel() {
   const [showNotice, setShowNotice] = useState(false);
-  // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-  // 1. [MỤC TIÊU]: Hiển thị camera và thử thách theo phiên eKYC do backend cấp.
-  // 2. [INPUT & OUTPUT]: Phiên/challenge được xác thực -> trạng thái và selfie khi đạt điều kiện.
-  // 3. [CÁC BƯỚC]: Chốt DTO/API; tạo service và Query hooks; xin quyền getUserMedia khi bấm mở;
-  //    gắn stream vào video; theo dõi thử thách từ backend; dừng tracks khi tắt/unmount.
-  // 4. [HÀM / THƯ VIỆN]: MediaDevices, HTMLVideoElement, createBaseService, TanStack Query.
-  // 5. [ĐIỀU KIỆN BIÊN]: Từ chối quyền, thiếu camera, HTTPS, timeout, mất mạng; không suy diễn
-  //    thành công ở client; giữ ảnh trong RAM và dọn khi đổi phiên; không log ảnh/định danh.
+  // TODO: [P1][EKYC-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Nối camera và challenge eKYC được BE cấp.
+  // 2. [INPUT & OUTPUT]: sessionId/purpose/nonce -> evidence selfie theo policy, chưa phải PASSED.
+  // 3. [CÁC BƯỚC]: Sau AUTH-02 chốt sessions/policies/challenge với BE4; xin quyền khi bấm; bind stream; capture đúng challenge; dừng tracks khi unmount.
+  // 4. [HÀM / THƯ VIỆN]: MediaDevices/HTMLVideoElement, Zod, TanStack Query, service eKYC.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: HTTPS/thiếu camera/từ chối quyền/expiry/replay; consent trước thu thập; không tự kết luận liveness; chỉ RAM, không log ảnh/CCCD.
   return (
     <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)]">
       <section
