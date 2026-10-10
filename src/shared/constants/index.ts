@@ -79,6 +79,8 @@ export const APP_MESSAGES = {
     MAX_LENGTH: (field: string, max: number) => `${field} không được vượt quá ${max} ký tự`,
     NUMBER: (field: string) => `${field} phải là chữ số hợp lệ`,
     PASSWORD_NOT_MATCH: "Mật khẩu xác nhận không trùng khớp",
+    PASSWORD_UPPERCASE: "Mật khẩu phải có ít nhất một chữ hoa.",
+    PASSWORD_SPECIAL_CHARACTER: "Mật khẩu phải có ít nhất một ký tự đặc biệt.",
   },
 } as const;
 
