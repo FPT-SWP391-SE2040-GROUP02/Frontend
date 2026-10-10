@@ -33,6 +33,7 @@ const VerifyEmailPage = lazy(() => import("@/pages/auth/VerifyEmailPage").then((
 const WillManagementPage = lazy(() => import("@/pages/dashboard/WillManagementPage").then((module) => ({ default: module.WillManagementPage })));
 const WillWizardPage = lazy(() => import("@/pages/dashboard/WillWizardPage").then((module) => ({ default: module.WillWizardPage })));
 const OwnerOverviewPage = lazy(() => import("@/pages/dashboard/OwnerOverviewPage").then((module) => ({ default: module.OwnerOverviewPage })));
+const PreviewWorkspace = lazy(() => import("./PreviewWorkspace").then((module) => ({ default: module.PreviewWorkspace })));
 
 /**
  * @description Cấu hình bản đồ định tuyến (Routing map) toàn bộ ứng dụng có phân quyền RBAC.
@@ -50,6 +51,12 @@ export function AppRoutes() {
       {import.meta.env.DEV && <Route path={ROUTES.PREVIEW.ADMIN} element={<AdminWorkspacePage />} />}
       {import.meta.env.DEV && <Route path={ROUTES.PREVIEW.SETTINGS} element={<AccountSettingsPage />} />}
       {import.meta.env.DEV && <Route path={ROUTES.PREVIEW.CHECKOUT} element={<CheckoutPage />} />}
+      {import.meta.env.DEV && <Route path={ROUTES.PREVIEW.ASSETS} element={<PreviewWorkspace><AssetsManagementPage /></PreviewWorkspace>} />}
+      {import.meta.env.DEV && <Route path={ROUTES.PREVIEW.PLANS} element={<PreviewWorkspace><WillManagementPage /></PreviewWorkspace>} />}
+      {import.meta.env.DEV && <Route path={ROUTES.PREVIEW.PLAN_WIZARD} element={<PreviewWorkspace><WillWizardPage /></PreviewWorkspace>} />}
+      {import.meta.env.DEV && <Route path={ROUTES.PREVIEW.DMS} element={<PreviewWorkspace><DmsStatusPage /></PreviewWorkspace>} />}
+      {import.meta.env.DEV && <Route path={ROUTES.PREVIEW.EXECUTOR} element={<PreviewWorkspace><ExecutorClaimsPage /></PreviewWorkspace>} />}
+      {import.meta.env.DEV && <Route path={ROUTES.PREVIEW.VERIFIER} element={<PreviewWorkspace><NotaryWorkspacePage /></PreviewWorkspace>} />}
       <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
         <Route path={ROUTES.ADMIN.ROOT} element={<AdminWorkspacePage />} />
         <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AdminWorkspacePage />} />
