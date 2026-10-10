@@ -6,10 +6,10 @@ import { AlertCircle, ArrowRight, Info, Lock, Mail } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { getLoginErrorMessage, getLoginRedirect } from "../lib/loginFeedback";
 import { loginSchema, type LoginInput } from "../model/auth.schema";
 import type { InvitationContext } from "../model/auth.types";
 import { useLogin } from "../model/useAuth";
-import { getLoginRedirect, getLoginErrorMessage } from "../lib/loginFeedback";
 
 /**
  * @description Thuộc tính cấu hình cho component LoginForm.
@@ -45,6 +45,8 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
     handleSubmit,
     formState: { errors },
   } = useForm<LoginInput>({
+    mode: "onBlur",
+    reValidateMode: "onBlur",
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -66,11 +68,14 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lượt thử/unlockAt/Retry-After do server trả; lỗi mạng/500 không giảm lượt; không tự khóa 15 phút; validate return URL nội bộ và giữ invitation an toàn.
     if (isPending || typeof data.email !== "string" || typeof data.password !== "string") return;
 
-    login({ email: data.email, password: data.password, rememberMe: data.rememberMe }, {
-      onSuccess: () => {
-        navigate(redirectUrl);
+    login(
+      { email: data.email, password: data.password, rememberMe: data.rememberMe },
+      {
+        onSuccess: () => {
+          navigate(redirectUrl);
+        },
       },
-    });
+    );
   };
 
   /**
@@ -119,7 +124,10 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
       </div>
 
       {isError && (
-        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           <AlertCircle aria-hidden="true" className="mr-2 inline size-4" />
           {getLoginErrorMessage(error)}
         </div>
@@ -165,7 +173,9 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Email Field */}
         <div className="space-y-1.5 text-left">
-          <label htmlFor="login-email" className="text-xs font-semibold text-[#0F1A16]">Email</label>
+          <label htmlFor="login-email" className="text-xs font-semibold text-[#0F1A16]">
+            Email
+          </label>
           <div className="relative">
             <Mail className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
@@ -183,14 +193,18 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
             />
           </div>
           {errors.email && (
-            <p id="login-email-error" role="alert" className="text-[11px] text-red-600 font-medium">{errors.email.message}</p>
+            <p id="login-email-error" role="alert" className="text-[11px] text-red-600 font-medium">
+              {errors.email.message}
+            </p>
           )}
         </div>
 
         {/* Password Field */}
         <div className="space-y-1.5 text-left">
           <div className="flex justify-between items-baseline">
-            <label htmlFor="login-password" className="text-xs font-semibold text-[#0F1A16]">Mật khẩu</label>
+            <label htmlFor="login-password" className="text-xs font-semibold text-[#0F1A16]">
+              Mật khẩu
+            </label>
             <Link
               to={ROUTES.AUTH.FORGOT_PASSWORD}
               className="text-[11px] text-[#B88E4C] hover:underline font-semibold"
@@ -226,7 +240,13 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
             </button>
           </div>
           {errors.password && (
-            <p id="login-password-error" role="alert" className="text-[11px] text-red-600 font-medium">{errors.password.message}</p>
+            <p
+              id="login-password-error"
+              role="alert"
+              className="text-[11px] text-red-600 font-medium"
+            >
+              {errors.password.message}
+            </p>
           )}
         </div>
 
