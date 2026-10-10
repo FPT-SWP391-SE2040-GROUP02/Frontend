@@ -54,7 +54,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
       { source: "WEB" },
       {
         onSuccess: (res) => {
-          setSuccessMessage(res.message);
+          setSuccessMessage(res.message ?? null);
           setTimeout(() => setSuccessMessage(null), 5000);
         },
       }
