@@ -6,3 +6,7 @@ coverage
 *.tsbuildinfo
 .agents
 package-lock.json
+
+.husky/_
+legacy
+.cache
