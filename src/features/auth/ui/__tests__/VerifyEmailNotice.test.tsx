@@ -114,4 +114,28 @@ describe("VerifyEmailNotice resend feedback", () => {
 
     expect(authService.resendVerificationEmail).toHaveBeenCalledTimes(1);
   });
+
+  it("khóa nút trong lúc gửi và không gọi service lần hai", async () => {
+    vi.mocked(authService.resendVerificationEmail).mockReturnValue(
+      new Promise<{ success: boolean }>(() => {}),
+    );
+
+    setup();
+
+    fireEvent.click(screen.getByRole("button", { name: "Gửi lại email" }));
+
+    const pendingButton = await screen.findByRole("button", {
+      name: "Đang gửi...",
+    });
+
+    expect(pendingButton).toBeDisabled();
+
+    fireEvent.click(pendingButton);
+
+    expect(authService.resendVerificationEmail).toHaveBeenCalledTimes(1);
+    expect(authService.resendVerificationEmail).toHaveBeenCalledWith(EMAIL);
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
 });
