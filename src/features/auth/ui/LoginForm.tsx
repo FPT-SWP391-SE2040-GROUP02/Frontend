@@ -98,16 +98,12 @@ export function LoginForm({
    * @param {LoginInput} data Dữ liệu email và mật khẩu
    */
   const onSubmit = (data: LoginInput): void => {
-    // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // 1. [MỤC TIÊU]: Gọi API POST /api/v1/auth/login. Nếu thành công -> lưu phiên và chuyển hướng.
-    //               Nếu thất bại với 401 -> Giảm attemptsRemaining. Nếu <= 0 -> Kích hoạt isLocked 15 phút.
-    // 2. [INPUT]: data (LoginInput). [OUTPUT]: Điều hướng hoặc hiển thị banner lỗi.
-    // 3. [CÁC BƯỚC]:
-    //    - Gọi mutation login(data).
-    //    - Bắt onError: Kiểm tra error.response?.data?.attemptsRemaining.
-    //    - Nếu attemptsRemaining <= 0 -> đặt isLocked = true và lockoutSeconds = 900.
-    // 4. [HÀM/THƯ VIỆN]: useLogin(), navigate(redirectUrl).
-    // 5. [ĐIỀU KIỆN BIÊN]: Ngăn nộp form khi isLocked = true; bảo toàn giá trị ô email.
+    // TODO: [P0][AUTH-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Nối đăng nhập thật và thay cơ chế khóa/lượt thử tự tính ở FE.
+    // 2. [INPUT & OUTPUT]: LoginInput -> credential đã validate, challenge/email pending hoặc lỗi BE.
+    // 3. [CÁC BƯỚC]: Sau AUTH-01 chốt POST /auth/login; dùng mutation; lưu access token RAM; ánh xạ /me; chỉ điều hướng sau bước xác thực đầy đủ.
+    // 4. [HÀM / THƯ VIỆN]: useLogin, accessTokenSchema, React Hook Form/Zod, adapter User, ROUTES.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lượt thử/unlockAt/Retry-After do server trả; lỗi mạng/500 không giảm lượt; không tự khóa 15 phút; validate return URL nội bộ và giữ invitation an toàn.
     if (isLocked) return;
 
     login(data as LoginRequest, {
@@ -131,12 +127,12 @@ export function LoginForm({
    * @description Xử lý đăng nhập thông qua Google SSO
    */
   const handleGoogleLogin = (): void => {
-    // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // 1. [MỤC TIÊU]: Khởi tạo luồng OAuth 2.0 PKCE với Google Identity Services.
-    // 2. [INPUT]: Không có. [OUTPUT]: Redirect sang Google OAuth URL.
-    // 3. [CÁC BƯỚC]: Chuyển hướng trình duyệt đến endpoint backend /api/v1/auth/google/authorize.
-    // 4. [HÀM/THƯ VIỆN]: window.location.assign.
-    // 5. [ĐIỀU KIỆN BIÊN]: Xử lý khi tài khoản đã có email nhưng chưa liên kết (chuyển sang Mockup 5).
+    // TODO: [P1][AUTH-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Nối Google theo flow đã được BE xác nhận, không mặc định endpoint authorize legacy.
+    // 2. [INPUT & OUTPUT]: Google challenge/code hoặc ID token đúng flow -> phiên hoặc link challenge.
+    // 3. [CÁC BƯỚC]: Chốt redirect/PKCE hoặc ID token cùng BE1; đưa URL vào service/config; giữ invitation/return path; xử lý email trùng qua bước liên kết.
+    // 4. [HÀM / THƯ VIỆN]: useLogin/service Auth, ENV.API_BASE_URL, ROUTES; Google integration đã phê duyệt.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không tự gộp theo email; kiểm state/nonce phía phù hợp; không đặt token trong URL/log; không suy diễn đăng nhập thành công từ redirect.
     window.location.href = `/api/v1/auth/google/authorize?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 

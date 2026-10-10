@@ -71,16 +71,12 @@ apiClient.interceptors.response.use(
     if (error.response) {
       const status = error.response.status;
       if (status === HTTP_STATUS.UNAUTHORIZED) {
-        // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-        // 1. [MỤC TIÊU]: Khôi phục phiên Bearer qua refresh rotation theo ADR-0003.
-        // 2. [INPUT & OUTPUT]: AxiosError 401 -> retry một lần hoặc kết thúc phiên.
-        // 3. [CÁC BƯỚC]: Chờ BE chốt contract; dùng chung một promise refresh;
-        //    validate response, cập nhật token RAM rồi retry request phù hợp.
-        // 4. [HÀM / THƯ VIỆN]: Axios, accessTokenMemory; schema Auth ở tầng feature.
-        //    Điều phối Auth ở tầng trên, không import feature vào shared.
-        // 5. [ĐIỀU KIỆN BIÊN]: Không refresh login/refresh; không vòng lặp 401;
-        //    không retry mutation nhạy cảm khi chưa chốt idempotency; xóa RAM
-        //    khi refresh thất bại/logout, không khôi phục phiên sau logout race.
+        // TODO: [P0][AUTH-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+        // 1. [MỤC TIÊU]: Khôi phục phiên Bearer theo ADR-0003 sau khi BE chốt contract.
+        // 2. [INPUT & OUTPUT]: 401 của request hợp lệ -> retry an toàn một lần hoặc kết thúc phiên.
+        // 3. [CÁC BƯỚC]: Chốt DTO refresh; điều phối một promise ở tầng app/auth; validate credential; cập nhật RAM; retry theo policy.
+        // 4. [HÀM / THƯ VIỆN]: Axios, accessTokenMemory, Zod; shared không import features.
+        // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không refresh login/refresh; không retry mutation nhạy cảm thiếu idempotency; logout/đổi account phải vô hiệu response cũ; không lưu token vào storage.
         console.warn(`[API ${HTTP_STATUS.UNAUTHORIZED}]`, APP_MESSAGES.ERROR.UNAUTHORIZED);
       } else if (status === HTTP_STATUS.FORBIDDEN) {
         console.warn(`[API ${HTTP_STATUS.FORBIDDEN}]`, APP_MESSAGES.ERROR.FORBIDDEN);
