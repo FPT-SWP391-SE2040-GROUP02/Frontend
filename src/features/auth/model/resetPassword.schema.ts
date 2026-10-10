@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { loginSchema } from "./auth.schema";
+import { APP_MESSAGES } from "@/shared/constants";
+import { newPasswordSchema, NEW_PASSWORD_HINT } from "./password.schema";
 
 /** Nội dung giao diện đặt lại mật khẩu, chưa tích hợp endpoint khôi phục. */
 export const RESET_PASSWORD_CONTENT = {
@@ -11,8 +12,8 @@ export const RESET_PASSWORD_CONTENT = {
   preview: "Bản xem trước UI · Không thay đổi mật khẩu tài khoản.",
   password: "Mật khẩu mới",
   confirm: "Nhập lại mật khẩu mới",
-  mismatch: "Mật khẩu xác nhận chưa khớp.",
-  hint: "Tối thiểu 8 ký tự",
+  mismatch: APP_MESSAGES.VALIDATION.PASSWORD_NOT_MATCH,
+  hint: NEW_PASSWORD_HINT,
   show: "Hiện mật khẩu",
   hide: "Ẩn mật khẩu",
   submit: "Xem trước xác nhận",
@@ -35,9 +36,12 @@ export const RESET_PASSWORD_CONTENT = {
   ],
 } as const;
 
-/** Schema form khôi phục tái sử dụng quy tắc mật khẩu hiện có. */
+/** Schema khôi phục dùng quy tắc mật khẩu mới, độc lập validation đăng nhập. */
 export const resetPasswordSchema = z
-  .object({ password: loginSchema.shape.password, confirmPassword: z.string() })
+  .object({
+    password: newPasswordSchema,
+    confirmPassword: z.string().min(1, APP_MESSAGES.VALIDATION.REQUIRED("Xác nhận mật khẩu")),
+  })
   .refine((value) => value.password === value.confirmPassword, {
     message: RESET_PASSWORD_CONTENT.mismatch,
     path: ["confirmPassword"],
