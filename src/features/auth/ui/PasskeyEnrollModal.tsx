@@ -50,8 +50,12 @@ export function PasskeyEnrollModal({
   const handleEnrollPasskey = async () => {
     setIsEnrolling(true);
     try {
-      // TODO: 1. Gọi WebAuthn API: navigator.credentials.create(...)
-      // TODO: 2. Gửi public key credential lên Backend C#: POST /api/v1/auth/passkey/register
+      // TODO: [P3][AUTH-11] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+      // 1. [MỤC TIÊU]: Chỉ triển khai enrollment khi BE1 xác nhận Passkey nằm trong phạm vi.
+      // 2. [INPUT & OUTPUT]: Challenge/options từ BE -> PublicKeyCredential -> kết quả verify BE.
+      // 3. [CÁC BƯỚC]: Sau AUTH-02 chốt cả options và verify; yêu cầu reauthentication; gọi navigator.credentials.create; serialize theo DTO; bỏ timer giả khi nối thật.
+      // 4. [HÀM / THƯ VIỆN]: WebAuthn native, Zod, service và mutation Auth; không thêm thư viện mật mã.
+      // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Enrollment khác login; hủy prompt/thiết bị không hỗ trợ/HTTPS/rpId/challenge hết hạn; không coi navigator thành công là BE đã lưu.
       setTimeout(() => {
         setIsEnrolling(false);
         setIsSuccess(true);

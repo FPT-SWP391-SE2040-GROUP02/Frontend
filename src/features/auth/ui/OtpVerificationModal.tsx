@@ -63,8 +63,12 @@ export function OtpVerificationModal({
     setIsVerifying(true);
     setErrorMsg("");
 
-    // TODO: 1. Gọi API xác thực OTP: POST /api/v1/auth/otp/verify
-    // TODO: 2. Khi thành công gọi onVerifySuccess?.()
+    // TODO: [P3][AUTH-12] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Chốt mục đích OTP trước khi nối modal legacy.
+    // 2. [INPUT & OUTPUT]: Challenge/purpose + code -> kết quả BE đúng phiên.
+    // 3. [CÁC BƯỚC]: Sau AUTH-02 xác nhận OTP còn trong phạm vi và route; schema/service/mutation; thay timer mẫu; chỉ gọi callback sau kết quả server.
+    // 4. [HÀM / THƯ VIỆN]: React Hook Form/Zod, TanStack Query, service Auth.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không dùng một OTP tùy ý cho mọi tác vụ; không thay challenge TOTP Admin; timeout/replay/attempt limit do BE; không log OTP.
     setTimeout(() => {
       setIsVerifying(false);
       onVerifySuccess?.();
