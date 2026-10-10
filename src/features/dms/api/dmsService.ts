@@ -1,3 +1,4 @@
+import { requirePreviewWorkspace } from "@/shared/config/preview";
 import type { DmsState, DmsHeartbeatConfig, PingHistoryItem } from "../model/dms.types";
 import type { DmsConfigFormInput, PingRequestInput } from "../model/dms.schema";
 import type { ApiResponse } from "@/shared/types";
@@ -8,7 +9,6 @@ import type { ApiResponse } from "@/shared/types";
  * Tuân thủ quy tắc 7 (Scaffold with TODO) và quy tắc 8 (JSDoc chuẩn chỉ).
  */
 
-
 /**
  * Lấy trạng thái thời gian thực của Dead Man's Switch
  * @description Truy xuất thông tin chu kỳ, hạn chót ping tiếp theo, số ngày còn lại và chữ ký ECDSA P-256.
@@ -18,6 +18,7 @@ import type { ApiResponse } from "@/shared/types";
  * console.log(state.status, state.daysRemaining);
  */
 export async function getDmsStatus(): Promise<DmsState> {
+  requirePreviewWorkspace();
   // TODO: [P2][CHECKIN-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Migrate DMS status mock sang check-in đúng contract.
   // 2. [INPUT & OUTPUT]: GET /check-ins/me -> state/lastCheckInAt/nextDueAt/grace/serverTime.
@@ -55,8 +56,9 @@ export async function getDmsStatus(): Promise<DmsState> {
  * const result = await dmsService.sendPulsePing({ source: "WEB" });
  */
 export async function sendPulsePing(
-  _payload?: PingRequestInput
+  _payload?: PingRequestInput,
 ): Promise<ApiResponse<{ nextPingDeadline: string; integritySealHash: string }>> {
+  requirePreviewWorkspace();
   // TODO: [P2][CHECKIN-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Nối xác nhận định kỳ không optimistic.
   // 2. [INPUT & OUTPUT]: Payload BE đã chốt -> kỳ mới và thời gian server từ POST /check-ins.
@@ -83,8 +85,9 @@ export async function sendPulsePing(
  * await dmsService.updateDmsConfig({ checkIntervalDays: 60, gracePeriodDays: 14, ... });
  */
 export async function updateDmsConfig(
-  config: DmsConfigFormInput
+  config: DmsConfigFormInput,
 ): Promise<ApiResponse<DmsHeartbeatConfig>> {
+  requirePreviewWorkspace();
   // TODO: [P2][CHECKIN-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Nối cấu hình chu kỳ/kênh theo policy BE.
   // 2. [INPUT & OUTPUT]: Form/version -> config và kỳ áp dụng từ PATCH /vaults/me/check-in-settings.
@@ -106,6 +109,7 @@ export async function updateDmsConfig(
  * const history = await dmsService.getPingHistory();
  */
 export async function getPingHistory(): Promise<PingHistoryItem[]> {
+  requirePreviewWorkspace();
   // TODO: [P2][CHECKIN-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Đọc lịch sử check-in có phân trang đúng quyền.
   // 2. [INPUT & OUTPUT]: Query lịch sử đã được BE chốt -> DTO/data/meta -> ViewModel.
@@ -144,7 +148,10 @@ export async function getPingHistory(): Promise<PingHistoryItem[]> {
  * @param {boolean} isPaused Trạng thái tạm dừng
  * @returns {Promise<ApiResponse<{ isPaused: boolean }>>}
  */
-export async function toggleDmsPause(isPaused: boolean): Promise<ApiResponse<{ isPaused: boolean }>> {
+export async function toggleDmsPause(
+  isPaused: boolean,
+): Promise<ApiResponse<{ isPaused: boolean }>> {
+  requirePreviewWorkspace();
   // TODO: [P3][CHECKIN-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
   // 1. [MỤC TIÊU]: Rà bỏ toggle-pause/vacation legacy nếu ngoài phạm vi SRS.
   // 2. [INPUT & OUTPUT]: Các caller isPaused -> quyết định loại UI/service hoặc contract được phê duyệt.
@@ -153,7 +160,9 @@ export async function toggleDmsPause(isPaused: boolean): Promise<ApiResponse<{ i
   // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không yêu cầu POST /dms/toggle-pause chỉ vì mock tồn tại; không giả pause thành công; không dùng pause để bỏ qua deadline/hold/grant.
   return {
     success: true,
-    message: isPaused ? "Đã bật chế độ tạm dừng DMS (Vacation Mode)" : "Đã kích hoạt lại nhịp sinh tồn DMS",
+    message: isPaused
+      ? "Đã bật chế độ tạm dừng DMS (Vacation Mode)"
+      : "Đã kích hoạt lại nhịp sinh tồn DMS",
     data: { isPaused },
   };
 }

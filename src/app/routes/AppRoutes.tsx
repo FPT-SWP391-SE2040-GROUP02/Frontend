@@ -229,7 +229,7 @@ export function AppRoutes() {
           <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.DASHBOARD.USERS} element={<AdminWorkspacePage />} />
         </Route>
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.BENEFICIARY, ROLES.ADMIN]} />}>
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.BENEFICIARY]} />}>
           <Route path={ROUTES.BENEFICIARY.EKYC_CAMERA} element={<CameraCheckPage />} />
           <Route path={ROUTES.BENEFICIARY.CLAIM} element={<BeneficiaryPortalPage />} />
           <Route path={ROUTES.BENEFICIARY.HANDOVER} element={<BeneficiaryPortalPage />} />
@@ -279,7 +279,7 @@ export function AppRoutes() {
         {/* ========================================================================
           5. TUYẾN ĐƯỜNG BẢO VỆ — Chủ Kho Di Sản (Vault Owner & Admin)
          ======================================================================== */}
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.OWNER, ROLES.ADMIN]} />}>
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.OWNER]} />}>
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
           <Route path="/assets" element={<AssetsManagementPage />} />
@@ -293,14 +293,14 @@ export function AppRoutes() {
         {/* ========================================================================
           6. TUYẾN ĐƯỜNG BẢO VỆ — Người Thi Hành Di Chúc (Digital Executor)
          ======================================================================== */}
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.EXECUTOR, ROLES.ADMIN]} />}>
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.EXECUTOR]} />}>
           <Route path={ROUTES.EXECUTOR.CLAIM} element={<ExecutorClaimsPage />} />
         </Route>
 
         {/* ========================================================================
           7. TUYẾN ĐƯỜNG BẢO VỆ — Công Chứng Viên (Legal Verifier / Notary)
          ======================================================================== */}
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.NOTARY, ROLES.ADMIN]} />}>
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.NOTARY]} />}>
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
         </Route>
 

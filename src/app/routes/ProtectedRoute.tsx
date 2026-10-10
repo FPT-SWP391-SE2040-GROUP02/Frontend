@@ -4,7 +4,6 @@ import { useAppSelector } from "@/app/store";
 import { type Role } from "@/shared/constants/roles";
 import { ROUTES } from "@/shared/config/routes.config";
 
-
 /**
  * @description Thuộc tính cấu hình cho ProtectedRoute guard.
  */
@@ -29,10 +28,7 @@ export interface ProtectedRouteProps {
  * </Route>
  * ```
  */
-export function ProtectedRoute({
-  allowedRoles = [],
-  children,
-}: ProtectedRouteProps): ReactElement {
+export function ProtectedRoute({ allowedRoles = [], children }: ProtectedRouteProps): ReactElement {
   const location = useLocation();
   const { isAuthenticated, isHydrating, user } = useAppSelector((state) => state.auth);
 
@@ -42,7 +38,9 @@ export function ProtectedRoute({
       <div className="flex h-screen w-full items-center justify-center bg-[var(--surface,#FAF9F5)] dark:bg-[#06140E]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary,#0B291E)] border-t-transparent" />
-          <p className="text-xs font-medium text-[var(--text-muted,#66786E)]">Đang đồng bộ phiên bảo mật...</p>
+          <p className="text-xs font-medium text-[var(--text-muted,#66786E)]">
+            Đang đồng bộ phiên bảo mật...
+          </p>
         </div>
       </div>
     );
@@ -50,13 +48,18 @@ export function ProtectedRoute({
 
   // 2. Kiểm tra nếu chưa đăng nhập -> Điều hướng về Login kèm redirect param:
   if (!isAuthenticated || !user) {
-    return <Navigate to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+    return (
+      <Navigate
+        to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(location.pathname)}`}
+        replace
+      />
+    );
   }
 
   // 3. Nếu có khai báo allowedRoles, kiểm tra xem user.role có nằm trong danh sách không
   // Nếu không đủ quyền (ví dụ BENEFICIARY vào trang NOTARY) -> Điều hướng về trang 403 Forbidden:
   const currentUserRole = user.role;
-  if (allowedRoles.length > 0 && !allowedRoles.includes(currentUserRole) && currentUserRole !== "ADMIN") {
+  if (allowedRoles.length > 0 && !allowedRoles.includes(currentUserRole)) {
     return <Navigate to={ROUTES.ERROR.FORBIDDEN} replace />;
   }
 
