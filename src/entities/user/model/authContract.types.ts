@@ -51,6 +51,12 @@ export interface CurrentSessionDto {
   user: AuthUserDto;
 }
 
+/** Exact public AuthCsrfTokenDto returned by GET /auth/csrf. */
+export interface AuthCsrfTokenDto {
+  /** Opaque antiforgery proof for a request header; not an authentication credential. */
+  requestToken: string;
+}
+
 /** Exact successful backend envelope; no legacy success/message fields are required. */
 export interface AuthApiResponse<T> {
   /** Endpoint payload, unwrapped once by the owning API service. */

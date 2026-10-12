@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { authSessionResponseSchema, currentSessionResponseSchema } from "../authContract.schema";
+import {
+  authCsrfTokenResponseSchema,
+  authSessionResponseSchema,
+  currentSessionResponseSchema,
+} from "../authContract.schema";
 import { AUTH_SYSTEM_ROLES, AUTH_USER_STATUSES } from "../authContract.types";
 
 const user = {
@@ -15,6 +19,27 @@ const user = {
 const session = { userId: user.id, expiresIn: 900, user };
 
 describe("C# cookie auth contract", () => {
+  it("accepts the CSRF envelope and preserves its opaque proof", () => {
+    const payload = { data: { requestToken: "opaque_CSRF-proof+/=" } };
+    expect(authCsrfTokenResponseSchema.parse(payload)).toEqual(payload);
+  });
+
+  it.each([undefined, null, "", "   ", 123, {}, []])(
+    "rejects invalid CSRF proof %j",
+    (requestToken) => {
+      expect(authCsrfTokenResponseSchema.safeParse({ data: { requestToken } }).success).toBe(false);
+    },
+  );
+
+  it("rejects missing CSRF envelope and strips unexpected credentials", () => {
+    expect(authCsrfTokenResponseSchema.safeParse({ requestToken: "proof" }).success).toBe(false);
+    expect(
+      authCsrfTokenResponseSchema.parse({
+        data: { requestToken: "proof", accessToken: "secret", refreshToken: "secret" },
+      }),
+    ).toEqual({ data: { requestToken: "proof" } });
+  });
+
   it("accepts login/refresh without bearer secrets or a legacy success field", () => {
     expect(authSessionResponseSchema.parse({ data: session })).toEqual({ data: session });
   });

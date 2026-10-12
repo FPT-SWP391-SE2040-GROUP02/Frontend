@@ -2,6 +2,7 @@ import { z } from "zod";
 import { AUTH_SYSTEM_ROLES, AUTH_USER_STATUSES } from "./authContract.types";
 import type {
   AuthApiResponse,
+  AuthCsrfTokenDto,
   AuthSessionDto,
   AuthUserDto,
   CurrentSessionDto,
@@ -46,3 +47,10 @@ export const currentSessionResponseSchema: z.ZodType<AuthApiResponse<CurrentSess
     data: currentSessionDtoSchema,
   },
 );
+
+/** Validates the opaque CSRF proof without rewriting bytes or accepting whitespace-only values. */
+export const authCsrfTokenResponseSchema: z.ZodType<AuthApiResponse<AuthCsrfTokenDto>> = z.object({
+  data: z.object({
+    requestToken: z.string().refine((token) => token.trim().length > 0),
+  }),
+});
