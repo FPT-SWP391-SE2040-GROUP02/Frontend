@@ -5,11 +5,30 @@ import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import authReducer from "@/entities/user/model/authSlice";
-import { axiosClient } from "@/shared/api/axiosClient";
+import { cookieAuthService } from "@/features/auth/api/authService";
+import {
+  AUTH_SYSTEM_ROLES,
+  AUTH_USER_STATUSES,
+  type AuthUserDto,
+} from "@/entities/user/model/authContract.types";
 import { ROUTES } from "@/shared/config/routes.config";
 import { AuthBootstrap } from "../AuthBootstrap";
 
-vi.mock("@/shared/api/axiosClient", () => ({ axiosClient: { get: vi.fn() } }));
+vi.mock("@/features/auth/api/authService", () => ({
+  cookieAuthService: { getSession: vi.fn() },
+  authService: {},
+}));
+
+const sessionUser: AuthUserDto = {
+  id: "11111111-1111-4111-8111-111111111111",
+  email: "verifier@example.com",
+  fullName: "Session Verifier",
+  phone: null,
+  role: AUTH_SYSTEM_ROLES.VERIFIER,
+  status: AUTH_USER_STATUSES.ACTIVE,
+  createdAt: "2026-10-12T00:00:00Z",
+  updatedAt: null,
+};
 
 afterEach(() => {
   cleanup();
@@ -38,10 +57,17 @@ function setup() {
 
 describe("AuthBootstrap request budget", () => {
   it("deduplicates the initial session request under StrictMode", async () => {
-    vi.mocked(axiosClient.get).mockResolvedValue({ user: null });
+    vi.mocked(cookieAuthService.getSession).mockResolvedValue({ user: sessionUser });
     const { store, client } = setup();
     await waitFor(() => expect(store.getState().auth.isHydrating).toBe(false));
-    expect(axiosClient.get).toHaveBeenCalledTimes(1);
+    expect(cookieAuthService.getSession).toHaveBeenCalledTimes(1);
+    expect(store.getState().auth.user).toEqual({
+      ...sessionUser,
+      phone: undefined,
+      updatedAt: undefined,
+    });
+    expect(store.getState().auth.isAuthenticated).toBe(true);
+    expect(client.getQueryData(["auth", "session"])).toEqual({ user: sessionUser });
     client.clear();
   });
 
@@ -51,7 +77,7 @@ describe("AuthBootstrap request budget", () => {
       vi.stubEnv("DEV", true);
       window.history.replaceState(null, "", path);
       const { store, client } = setup();
-      expect(axiosClient.get).not.toHaveBeenCalled();
+      expect(cookieAuthService.getSession).not.toHaveBeenCalled();
       expect(store.getState().auth.isHydrating).toBe(false);
       expect(screen.getByText("App content")).toBeInTheDocument();
       client.clear();
@@ -59,10 +85,10 @@ describe("AuthBootstrap request budget", () => {
   );
 
   it("does not retry a failed session request", async () => {
-    vi.mocked(axiosClient.get).mockRejectedValue(new Error("session unavailable"));
+    vi.mocked(cookieAuthService.getSession).mockRejectedValue(new Error("session unavailable"));
     const { store, client } = setup();
     await waitFor(() => expect(store.getState().auth.isHydrating).toBe(false));
-    expect(axiosClient.get).toHaveBeenCalledTimes(1);
+    expect(cookieAuthService.getSession).toHaveBeenCalledTimes(1);
     expect(store.getState().auth.isAuthenticated).toBe(false);
     client.clear();
   });
@@ -70,10 +96,10 @@ describe("AuthBootstrap request budget", () => {
   it("does not bypass session bootstrap in production", async () => {
     vi.stubEnv("DEV", false);
     window.history.replaceState(null, "", ROUTES.PREVIEW.VERIFIER);
-    vi.mocked(axiosClient.get).mockResolvedValue({ user: null });
+    vi.mocked(cookieAuthService.getSession).mockResolvedValue({ user: sessionUser });
     const { store, client } = setup();
     await waitFor(() => expect(store.getState().auth.isHydrating).toBe(false));
-    expect(axiosClient.get).toHaveBeenCalledTimes(1);
+    expect(cookieAuthService.getSession).toHaveBeenCalledTimes(1);
     client.clear();
   });
 });
