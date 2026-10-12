@@ -10,6 +10,57 @@ import type {
   LogoutOptions,
 } from "../model/auth.types";
 import { axiosClient } from "@/shared/api/axiosClient";
+import {
+  authSessionResponseSchema,
+  currentSessionResponseSchema,
+} from "@/entities/user/model/authContract.schema";
+import type {
+  AuthLoginRequestDto,
+  AuthLogoutRequestDto,
+  AuthSessionDto,
+  CurrentSessionDto,
+} from "@/entities/user/model/authContract.types";
+
+/** Confirmed endpoints from the current C# AuthController. */
+const COOKIE_AUTH_ENDPOINTS = {
+  LOGIN: "/auth/login",
+  REFRESH: "/auth/refresh",
+  SESSION: "/auth/session",
+  LOGOUT: "/auth/logout",
+} as const;
+
+/** Confirmed cookie transport; legacy methods below remain until their consumers migrate. */
+export const cookieAuthService = {
+  /** Posts only the C# login fields; validates the full body before unwrapping data. */
+  async login(request: AuthLoginRequestDto): Promise<AuthSessionDto> {
+    const body = await axiosClient.post<unknown, unknown>(COOKIE_AUTH_ENDPOINTS.LOGIN, {
+      email: request.email,
+      password: request.password,
+      rememberMe: request.rememberMe,
+    });
+    return authSessionResponseSchema.parse(body).data;
+  },
+
+  /** Rotates HttpOnly cookies; JavaScript never receives or reads either bearer secret. */
+  async refresh(): Promise<AuthSessionDto> {
+    const body = await axiosClient.post<unknown, unknown>(COOKIE_AUTH_ENDPOINTS.REFRESH);
+    return authSessionResponseSchema.parse(body).data;
+  },
+
+  /** Reads the distinct current-session response through the shared credentialed client. */
+  async getSession(): Promise<CurrentSessionDto> {
+    const body = await axiosClient.get<unknown, unknown>(COOKIE_AUTH_ENDPOINTS.SESSION);
+    return currentSessionResponseSchema.parse(body).data;
+  },
+
+  /** Sends only the confirmed optional logout body; the backend clears HttpOnly cookies. */
+  async logout(request?: AuthLogoutRequestDto): Promise<void> {
+    await axiosClient.post<unknown, unknown>(
+      COOKIE_AUTH_ENDPOINTS.LOGOUT,
+      request === undefined ? undefined : { revokeAllDevices: request.revokeAllDevices },
+    );
+  },
+};
 
 const baseAuthService = createBaseService<AuthSession>({
   endpoint: "/auth",
