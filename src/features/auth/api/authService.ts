@@ -1,13 +1,11 @@
 import { createBaseService } from "@/shared/api/baseService";
 import type {
   AuthSession,
-  LoginRequest,
   RegisterRequest,
   PasskeyLoginRequest,
   OtpVerificationRequest,
   LinkGoogleRequest,
   TwoFactorVerifyRequest,
-  LogoutOptions,
 } from "../model/auth.types";
 import { axiosClient } from "@/shared/api/axiosClient";
 import {
@@ -29,7 +27,7 @@ const COOKIE_AUTH_ENDPOINTS = {
   LOGOUT: "/auth/logout",
 } as const;
 
-/** Confirmed cookie transport; legacy methods below remain until their consumers migrate. */
+/** Confirmed cookie transport for login, refresh, session and logout. */
 export const cookieAuthService = {
   /** Posts only the C# login fields; validates the full body before unwrapping data. */
   async login(request: AuthLoginRequestDto): Promise<AuthSessionDto> {
@@ -71,16 +69,6 @@ const baseAuthService = createBaseService<AuthSession>({
  */
 export const authService = {
   ...baseAuthService,
-
-  /**
-   * @description Đăng nhập bằng Email và Password
-   * @param {LoginRequest} credentials Thông tin đăng nhập
-   * @returns {Promise<AuthSession>} Thông tin phiên đăng nhập
-   */
-  async login(credentials: LoginRequest): Promise<AuthSession> {
-    const response = await axiosClient.post<AuthSession>("/auth/login", credentials);
-    return response.data;
-  },
 
   /**
    * @description Đăng ký tài khoản người dùng mới
@@ -142,13 +130,5 @@ export const authService = {
       { email },
     );
     return response.data;
-  },
-
-  /**
-   * @description Đăng xuất tài khoản người dùng và hủy phiên làm việc (Mockup 8)
-   * @param {LogoutOptions} [options] Tùy chọn đăng xuất khỏi mọi thiết bị
-   */
-  async logout(options?: LogoutOptions): Promise<void> {
-    await axiosClient.post("/auth/logout", options);
   },
 };
