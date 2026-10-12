@@ -9,6 +9,7 @@ import type {
 } from "../model/auth.types";
 import { axiosClient } from "@/shared/api/axiosClient";
 import {
+  authCsrfTokenResponseSchema,
   authSessionResponseSchema,
   currentSessionResponseSchema,
 } from "@/entities/user/model/authContract.schema";
@@ -21,27 +22,44 @@ import type {
 
 /** Confirmed endpoints from the current C# AuthController. */
 const COOKIE_AUTH_ENDPOINTS = {
+  CSRF: "/auth/csrf",
   LOGIN: "/auth/login",
   REFRESH: "/auth/refresh",
   SESSION: "/auth/session",
   LOGOUT: "/auth/logout",
 } as const;
 
+/** Header configured by the backend AuthCsrfContract. */
+const CSRF_HEADER = "X-CSRF-Token";
+
+/** Acquires fresh identity-bound proof in local RAM; acquisition failure blocks the POST. */
+async function getCsrfConfig(): Promise<{ headers: Record<string, string> }> {
+  const body = await axiosClient.get<unknown, unknown>(COOKIE_AUTH_ENDPOINTS.CSRF);
+  const { requestToken } = authCsrfTokenResponseSchema.parse(body).data;
+  return { headers: { [CSRF_HEADER]: requestToken } };
+}
+
 /** Confirmed cookie transport for login, refresh, session and logout. */
 export const cookieAuthService = {
   /** Posts only the C# login fields; validates the full body before unwrapping data. */
   async login(request: AuthLoginRequestDto): Promise<AuthSessionDto> {
-    const body = await axiosClient.post<unknown, unknown>(COOKIE_AUTH_ENDPOINTS.LOGIN, {
-      email: request.email,
-      password: request.password,
-      rememberMe: request.rememberMe,
-    });
+    const config = await getCsrfConfig();
+    const body = await axiosClient.post<unknown, unknown>(
+      COOKIE_AUTH_ENDPOINTS.LOGIN,
+      { email: request.email, password: request.password, rememberMe: request.rememberMe },
+      config,
+    );
     return authSessionResponseSchema.parse(body).data;
   },
 
   /** Rotates HttpOnly cookies; JavaScript never receives or reads either bearer secret. */
   async refresh(): Promise<AuthSessionDto> {
-    const body = await axiosClient.post<unknown, unknown>(COOKIE_AUTH_ENDPOINTS.REFRESH);
+    const config = await getCsrfConfig();
+    const body = await axiosClient.post<unknown, unknown>(
+      COOKIE_AUTH_ENDPOINTS.REFRESH,
+      undefined,
+      config,
+    );
     return authSessionResponseSchema.parse(body).data;
   },
 
@@ -53,9 +71,11 @@ export const cookieAuthService = {
 
   /** Sends only the confirmed optional logout body; the backend clears HttpOnly cookies. */
   async logout(request?: AuthLogoutRequestDto): Promise<void> {
+    const config = await getCsrfConfig();
     await axiosClient.post<unknown, unknown>(
       COOKIE_AUTH_ENDPOINTS.LOGOUT,
       request === undefined ? undefined : { revokeAllDevices: request.revokeAllDevices },
+      config,
     );
   },
 };
