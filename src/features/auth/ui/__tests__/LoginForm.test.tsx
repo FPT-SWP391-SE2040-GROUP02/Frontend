@@ -6,28 +6,33 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { AxiosError } from "axios";
 import authReducer from "@/entities/user/model/authSlice";
+import { accessTokenMemory } from "@/shared/api/accessToken";
 import { APP_MESSAGES, STATUS } from "@/shared/constants";
 import { ROLES } from "@/shared/constants/roles";
 import { ROUTES } from "@/shared/config/routes.config";
-import { authService } from "../../api/authService";
-import type { AuthSession } from "../../model/auth.types";
+import { cookieAuthService as authService } from "../../api/authService";
+import type { AuthSessionDto as AuthSession } from "@/entities/user/model/authContract.types";
 import { getLoginRedirect, getLoginErrorMessage } from "../../lib/loginFeedback";
 import { LoginForm } from "../LoginForm";
 
-vi.mock("../../api/authService", () => ({ authService: { login: vi.fn() } }));
+vi.mock("../../api/authService", () => ({
+  cookieAuthService: { login: vi.fn() },
+  authService: {},
+}));
 
-/** Legacy session fixture; does not assert a confirmed BE Auth contract. */
+/** Public cookie session fixture with no bearer tokens in JSON. */
 const SESSION: AuthSession = {
-  userId: "login-user",
-  accessToken: "fixture-token",
+  userId: "11111111-1111-4111-8111-111111111111",
   expiresIn: 300,
   user: {
-    id: "login-user",
+    id: "11111111-1111-4111-8111-111111111111",
     fullName: "Test Owner",
     email: "owner@example.test",
     role: ROLES.OWNER,
     status: STATUS.ACTIVE,
     createdAt: "2026-10-10T00:00:00Z",
+    phone: null,
+    updatedAt: null,
   },
 };
 const clients: QueryClient[] = [];
@@ -36,6 +41,7 @@ beforeEach(() => vi.resetAllMocks());
 afterEach(() => {
   cleanup();
   clients.splice(0).forEach((client) => client.clear());
+  accessTokenMemory.clear();
 });
 
 /** @returns Current destination for navigation assertions. */
@@ -55,7 +61,7 @@ function setup(query = "") {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   clients.push(client);
   const store = configureStore({ reducer: { auth: authReducer } });
-  return render(
+  const view = render(
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter initialEntries={[`${ROUTES.AUTH.LOGIN}${query}`]}>
@@ -67,6 +73,7 @@ function setup(query = "") {
       </QueryClientProvider>
     </Provider>,
   );
+  return { ...view, store, client };
 }
 
 /** @description Enter existing credentials without applying the new-password policy. */
@@ -122,13 +129,20 @@ describe("LoginForm", () => {
     expect(authService.login).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps internal query and hash after successful legacy login", async () => {
+  it("keeps internal query and hash after successful cookie login", async () => {
     vi.mocked(authService.login).mockResolvedValue(SESSION);
+    accessTokenMemory.set("stale-legacy-fixture-token");
     const destination = `${ROUTES.DASHBOARD.ROOT}/assets?tab=files#list`;
-    setup(`?redirect=${encodeURIComponent(destination)}`);
+    const { store } = setup(`?redirect=${encodeURIComponent(destination)}`);
     fillCredentials();
     fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
     expect(await screen.findByText(destination)).toBeInTheDocument();
+    expect(store.getState().auth.user).toEqual({
+      ...SESSION.user,
+      phone: undefined,
+      updatedAt: undefined,
+    });
+    expect(accessTokenMemory.get()).toBeNull();
     expect(authService.login).toHaveBeenCalledWith({
       email: SESSION.user.email,
       password: "old",

@@ -2,7 +2,9 @@ import { clearCredentials, setCredentials } from "@/entities/user/model/authSlic
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch as useAppDispatch } from "react-redux";
-import { authService } from "../api/authService";
+import { authService, cookieAuthService } from "../api/authService";
+import { toAuthUserViewModel } from "@/entities/user/lib/adapters";
+import type { AuthSessionDto } from "@/entities/user/model/authContract.types";
 import type {
   AuthSession,
   LinkGoogleRequest,
@@ -26,12 +28,12 @@ export function useLogin() {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: (credentials: LoginRequest) => authService.login(credentials),
-    onSuccess: (session: AuthSession) => {
-      // Cập nhật Redux Session State (cookie HttpOnly do Backend quản lý tự động)
-      if (session?.user) {
-        dispatch(setCredentials({ user: session.user }));
-      }
+    mutationFn: (credentials: LoginRequest) =>
+      cookieAuthService.login({ ...credentials, rememberMe: credentials.rememberMe ?? false }),
+    onSuccess: (session: AuthSessionDto) => {
+      accessTokenMemory.clear();
+      dispatch(setCredentials({ user: toAuthUserViewModel(session.user) }));
+      queryClient.setQueryData(authKeys.session(), { user: session.user });
       queryClient.invalidateQueries({ queryKey: authKeys.session() });
     },
   });
