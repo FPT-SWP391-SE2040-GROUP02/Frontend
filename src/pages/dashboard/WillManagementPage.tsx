@@ -23,20 +23,20 @@ export const WillManagementPage: React.FC = () => {
     willsData?.items.reduce((sum, w) => sum + (w.beneficiaryCount || 0), 0) || 0;
 
   return (
-    <div className="min-h-screen bg-[#EFECE6] text-[#14241C] flex flex-col font-sans">
+    <div className="min-h-screen bg-heritage-surface text-heritage-text flex flex-col font-sans">
       {/* Master AppHeader tích hợp Role Switcher & Demo Mode */}
       <AppHeader />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 min-w-0 max-w-7xl w-full mx-auto px-4 py-5 sm:px-6 lg:py-6 space-y-6">
         {/* Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div className="min-w-0">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5EDE8] border border-[#A2C4AF] text-[#0B291E] text-xs font-semibold mb-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-[#059669]" />
               <span>Chứng thư di chúc số ký mật mã học ECDSA P-256 & Băm SHA-256</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-[#0B291E] tracking-tight">
+            <h1 className="text-2xl font-bold text-heritage-primary tracking-normal">
               Quản Lý Bản Di Chúc Số (Digital Wills & Testaments)
             </h1>
             <p className="text-xs sm:text-sm text-[#66786E] mt-1.5 leading-relaxed max-w-2xl">
@@ -47,7 +47,7 @@ export const WillManagementPage: React.FC = () => {
 
           <Button
             onClick={() => navigate(ROUTES.WILLS.NEW)}
-            className="min-h-[48px] px-6 rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs shadow-[0_4px_16px_rgba(11,41,30,0.2)] flex items-center gap-2 self-start sm:self-center transition-all hover:scale-[1.01] focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+            className="min-h-11 w-full sm:w-auto justify-self-start px-4 rounded-lg bg-heritage-primary hover:bg-[#133E2F] text-white font-semibold text-sm flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-heritage-gold"
           >
             <Plus className="w-4 h-4 text-[#B88E4C]" />
             <span>Khởi Tạo Bản Di Chúc Mới</span>
@@ -55,7 +55,7 @@ export const WillManagementPage: React.FC = () => {
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 [&>div]:min-w-0 [&>div]:rounded-lg [&>div]:p-4 [&>div]:gap-3 [&>div>div:last-child]:shrink-0">
           <div className="p-5 bg-[#FAF9F5] border border-[#DCD9D0] rounded-[20px] shadow-sm flex items-center justify-between">
             <div>
               <span className="text-xs font-bold text-[#66786E] uppercase tracking-wider">
@@ -106,48 +106,51 @@ export const WillManagementPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Legal In-Context Callout Box */}
-        <section
-          aria-label="Căn cứ pháp lý di chúc điện tử"
-          className="p-5 sm:p-6 rounded-[22px] bg-[#FAF9F5] border border-[#E8DCC6] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-        >
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-[16px] bg-[#FBF7EE] border border-[#E8DCC6] flex items-center justify-center text-[#B88E4C] shrink-0 mt-0.5">
-              <Scale className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm font-bold text-[#14241C]">
-                  Giá Trị Pháp Lý Của Di Chúc Điện Tử (Điều 630 & 644 BLDS 2015)
-                </h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E5EDE8] text-[#0B291E]">
-                  BLDS 2015
-                </span>
-              </div>
-              <p className="text-xs text-[#66786E] mt-1 leading-relaxed max-w-3xl">
-                Bản di chúc số trên LegacyVault đáp ứng đầy đủ điều kiện về hình thức và nội dung
-                theo Điều 630 BLDS, kết hợp video tuyên thệ minh mẫn 15s và chữ ký số định danh để
-                đảm bảo tính pháp lý khi chuyển giao cho Công chứng viên đối soát.
-              </p>
-            </div>
-          </div>
-
-          <a
-            href="https://thuvienphapluat.vn"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-semibold text-[#B88E4C] hover:text-[#A07839] flex items-center gap-1 shrink-0 px-3 py-2 rounded-[12px] hover:bg-[#FBF7EE] transition-colors focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
+          <section
+            aria-label="Căn cứ pháp lý di chúc điện tử"
+            className="min-w-0 border-t border-heritage-border pt-6 space-y-4 lg:order-2 lg:col-span-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6"
           >
-            <span>Tra cứu quy định</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
-        </section>
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-[16px] bg-[#FBF7EE] border border-[#E8DCC6] flex items-center justify-center text-[#B88E4C] shrink-0 mt-0.5">
+                <Scale className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-sm font-bold text-[#14241C]">
+                    Giá Trị Pháp Lý Của Di Chúc Điện Tử (Điều 630 & 644 BLDS 2015)
+                  </h2>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E5EDE8] text-[#0B291E]">
+                    BLDS 2015
+                  </span>
+                </div>
+                <p className="text-xs text-[#66786E] mt-1 leading-relaxed max-w-3xl">
+                  Bản di chúc số trên LegacyVault đáp ứng đầy đủ điều kiện về hình thức và nội dung
+                  theo Điều 630 BLDS, kết hợp video tuyên thệ minh mẫn 15s và chữ ký số định danh để
+                  đảm bảo tính pháp lý khi chuyển giao cho Công chứng viên đối soát.
+                </p>
+              </div>
+            </div>
 
-        {/* Wills Table */}
-        <WillTable
-          onSelectWill={(will) => setSelectedWill(will)}
-          onOpenCreateWizard={() => navigate(ROUTES.WILLS.NEW)}
-        />
+            <a
+              href="https://thuvienphapluat.vn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold text-[#B88E4C] hover:text-[#A07839] flex items-center gap-1 shrink-0 px-3 py-2 rounded-[12px] hover:bg-[#FBF7EE] transition-colors focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+            >
+              <span>Tra cứu quy định</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </section>
+
+          {/* Wills Table */}
+          <div className="min-w-0 lg:order-1 lg:col-span-8">
+            <WillTable
+              onSelectWill={(will) => setSelectedWill(will)}
+              onOpenCreateWizard={() => navigate(ROUTES.WILLS.NEW)}
+            />
+          </div>
+        </div>
       </main>
 
       {/* Detail Modal */}

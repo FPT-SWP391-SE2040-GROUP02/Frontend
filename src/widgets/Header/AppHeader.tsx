@@ -10,6 +10,7 @@ import {
   FileCheck,
   KeyRound,
   UserCheck,
+  LogOut,
 } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import { ROLES, type Role } from "@/shared/constants/roles";
@@ -25,6 +26,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+
+const HEADER_LABELS = { logout: "Đăng xuất" } as const;
 
 /**
  * @file AppHeader.tsx
@@ -91,9 +94,9 @@ export const AppHeader: React.FC = () => {
   const CurrentIcon = currentRoleMeta.icon;
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FAF9F5]/95 backdrop-blur-md border-b border-[#DCD9D0] px-4 sm:px-8 py-2.5 flex items-center justify-between shadow-[0_2px_12px_rgba(11,41,30,0.03)] transition-colors">
+    <header className="sticky top-0 z-40 bg-heritage-surface/95 backdrop-blur-md border-b border-heritage-border px-4 sm:px-6 py-3 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center shadow-[0_2px_12px_rgba(11,41,30,0.03)] transition-colors">
       {/* Cột trái: Logo & Navigation chính */}
-      <div className="flex items-center gap-6">
+      <div className="flex min-w-0 flex-wrap items-center gap-4">
         <Link
           to={ROUTES.HOME}
           className="flex items-center gap-2.5 rounded-[14px] p-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C] focus-visible:outline-none group"
@@ -108,7 +111,10 @@ export const AppHeader: React.FC = () => {
         </Link>
 
         {/* Menu Điều hướng theo phân hệ */}
-        <nav aria-label="Main Navigation" className="hidden lg:flex items-center gap-1 text-xs">
+        <nav
+          aria-label="Main Navigation"
+          className="hidden xl:flex flex-wrap items-center gap-1 text-xs [&>a]:flex [&>a]:min-h-11 [&>a]:items-center [&>a]:rounded-lg"
+        >
           <Link
             to={ROUTES.DASHBOARD.ASSETS}
             className={`px-3 py-1.5 rounded-[12px] font-semibold transition-all ${
@@ -163,7 +169,7 @@ export const AppHeader: React.FC = () => {
       </div>
 
       {/* Cột phải: Role Switcher, Demo Mode, DMS Heartbeat & User Avatar */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
+      <div className="grid min-w-0 grid-cols-5 items-center gap-2 sm:flex sm:flex-wrap sm:justify-end [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:justify-center [&>button]:rounded-lg [&>button]:px-0 sm:[&>button]:px-3 [&>a]:min-h-11 [&>a]:justify-center [&>a]:rounded-lg [&>a]:px-0 sm:[&>a]:px-3">
         {/* 1. Công tắc Demo Mode (Chu kỳ 120s trình diễn) */}
         <button
           type="button"
@@ -181,7 +187,7 @@ export const AppHeader: React.FC = () => {
           />
           <span className="hidden md:inline">Demo Mode</span>
           <span
-            className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+            className={`hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
               isDemo ? "bg-[#F59E0B] text-white" : "bg-[#EFECE6] text-[#66786E]"
             }`}
           >
@@ -262,6 +268,14 @@ export const AppHeader: React.FC = () => {
 
         {/* 4. Avatar & Đăng xuất */}
         <UserAvatarMenu role={activeRole} />
+        <Link
+          to={ROUTES.AUTH.LOGOUT}
+          aria-label={HEADER_LABELS.logout}
+          title={HEADER_LABELS.logout}
+          className="flex size-11 shrink-0 items-center justify-center rounded-lg text-heritage-primary hover:bg-heritage-gold/10 focus-visible:outline-2 focus-visible:outline-heritage-gold"
+        >
+          <LogOut className="size-5" aria-hidden="true" />
+        </Link>
       </div>
     </header>
   );
