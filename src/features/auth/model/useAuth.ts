@@ -125,7 +125,8 @@ export function useLogout() {
       cookieAuthService.logout(
         options === undefined ? undefined : { revokeAllDevices: options.revokeAllDevices ?? false },
       ),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.cancelQueries();
       accessTokenMemory.clear();
       dispatch(clearCredentials());
       queryClient.clear();
