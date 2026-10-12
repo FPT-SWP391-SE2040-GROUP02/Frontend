@@ -3,7 +3,7 @@ import {
   useOwnerPackages,
   useOwnerVault,
 } from "@/features/vault-management/model/useOwnerVault";
-import { Button, Card, Skeleton } from "@/shared/ui";
+import { Button, Skeleton } from "@/shared/ui";
 
 /** Nội dung panel dữ liệu server; không sử dụng số liệu hoặc chính sách từ prototype. */
 const CONTENT = {
@@ -38,8 +38,13 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
   const packages = useOwnerPackages(enabled && vault.isSuccess);
 
   return (
-    <Card className="rounded-2xl border-heritage-border bg-heritage-surface p-6 shadow-none">
-      <h2 className="text-lg font-semibold">{CONTENT.title}</h2>
+    <section
+      aria-labelledby="owner-server-vault"
+      className="space-y-3 border-y border-heritage-border py-4"
+    >
+      <h2 id="owner-server-vault" className="text-base font-semibold">
+        {CONTENT.title}
+      </h2>
       {!enabled ? (
         <p role="status" className="text-sm text-heritage-muted">
           {CONTENT.waiting}
@@ -99,6 +104,6 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
           )}
         </div>
       )}
-    </Card>
+    </section>
   );
 }
