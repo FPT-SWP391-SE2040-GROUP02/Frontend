@@ -121,7 +121,10 @@ export function useLogout() {
   const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: (options?: LogoutOptions) => authService.logout(options),
+    mutationFn: (options?: LogoutOptions) =>
+      cookieAuthService.logout(
+        options === undefined ? undefined : { revokeAllDevices: options.revokeAllDevices ?? false },
+      ),
     onSuccess: () => {
       accessTokenMemory.clear();
       dispatch(clearCredentials());

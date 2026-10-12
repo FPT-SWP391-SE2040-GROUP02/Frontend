@@ -10,10 +10,13 @@ import { STATUS } from "@/shared/constants";
 import { ROLES } from "@/shared/constants/roles";
 import { ROUTES } from "@/shared/config/routes.config";
 import { accessTokenMemory } from "@/shared/api/accessToken";
-import { authService } from "../../api/authService";
+import { cookieAuthService as authService } from "../../api/authService";
 import { LogoutConfirmationCard } from "../LogoutConfirmationCard";
 
-vi.mock("../../api/authService", () => ({ authService: { logout: vi.fn() } }));
+vi.mock("../../api/authService", () => ({
+  cookieAuthService: { logout: vi.fn() },
+  authService: {},
+}));
 
 /** Tài khoản giả phục vụ kiểm tra cleanup, không tạo phiên BE thật. */
 const USER: User = {
@@ -76,6 +79,7 @@ describe("LogoutConfirmationCard", () => {
     expect(accessTokenMemory.get()).toBeNull();
     expect(client.getQueryData(PRIVATE_KEY)).toBeUndefined();
     expect(authService.logout).toHaveBeenCalledTimes(2);
+    expect(authService.logout).toHaveBeenLastCalledWith({ revokeAllDevices: false });
     client.clear();
   });
 
@@ -94,7 +98,7 @@ describe("LogoutConfirmationCard", () => {
     client.clear();
   });
 
-  it("passes the all-devices choice to the existing logout service", async () => {
+  it("passes the all-devices choice to the cookie logout service", async () => {
     vi.mocked(authService.logout).mockResolvedValue(undefined);
     const { client } = setup();
     fireEvent.click(screen.getByRole("checkbox"));
