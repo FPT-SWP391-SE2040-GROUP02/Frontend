@@ -1,6 +1,6 @@
 # LegacyVault frontend instructions
 
-The workspace charter in ../AGENTS.md and direct user instructions take precedence. This file applies to the client repository when shared independently.
+The workspace charter in [../AGENTS.md](../AGENTS.md), the [LegacyVault profile](../docs/LEGACYVAULT_PROFILE.md), and direct user instructions take precedence. This file supplies frontend details when the client repository is shared independently. Include the charter/profile when handing off the repository; do not assume they are tracked by client Git.
 
 ## Architecture and contracts
 
@@ -19,12 +19,12 @@ The workspace charter in ../AGENTS.md and direct user instructions take preceden
 - Validate on blur and revalidate on blur. Use useWatch for field subscriptions. Disable pending actions and prevent duplicate submission.
 - Cover loading, error with retry, empty and success states. Do not replace API errors or empty results with mock data.
 - Use shared UI, semantic controls, accessible names/errors, focus trapping and Escape for dialogs. Respect the Heritage design tokens.
-- Use APP_MESSAGES, HTTP_STATUS, status constants and ENV.API_BASE_URL. Add TSDoc to new exported types, functions, hooks and components.
-- No optimistic legal decisions, check-in, handover, identity verification or payment. Invalidate the relevant cache only after a confirmed server result.
+- Use APP_MESSAGES for shared/API messages, HTTP_STATUS, status constants and ENV.API_BASE_URL. Feature content may live with its feature; obvious one-off literals do not require constants. Document public exports, contracts and non-obvious invariants; avoid comments that only repeat the code.
+- No optimistic legal decisions, check-in, handover, identity verification or payment. After a confirmed server result, synchronize the relevant cache by invalidating, updating from the response or clearing it as appropriate.
 
 ## Auth, permissions and previews
 
-- Access tokens live only in RAM. Refresh cookies belong to BE. Never persist tokens, private keys, seed phrases, passwords or plaintext to Web Storage/cookies, or log them.
+- Current Auth uses backend-owned HttpOnly access/refresh cookies; frontend never reads either bearer secret or persists them in Web Storage. The legacy bearer helper is RAM-only and is not the current cookie contract. Never persist private keys, seed phrases, passwords or decrypted sensitive data in Web Storage/cookies, or log them.
 - ADMIN is not an automatic owner/executor/verifier and never bypasses allowedRoles. UI guards do not replace BE authorization.
 - Fixtures are limited to declared development preview routes. Never fabricate successful authentication, payment, activation, upload or cryptographic verification.
 - Keep unconfirmed business integration as an explicit TODO blueprint. Do not infer API contracts from fixture types.
@@ -35,8 +35,8 @@ The workspace charter in ../AGENTS.md and direct user instructions take preceden
 - AI supplies scaffolds, contracts, UI, validation and tests; the developer owns business/crypto/submit logic unless directly authorized otherwise.
 - Every business TODO includes goal, input/output, sequential steps, functions/libraries, and edge cases/errors.
 - Never truncate file content in supplied full-file examples. Reuse approved/native APIs before adding dependencies.
-- Follow Conventional Commits and the assigned Jira key; never invent a Jira identifier. Feature branches originate from develop; do not push directly to main/develop.
-- Work in 2–3-file checkpoints unless the user explicitly asks for a single combined pass. Do not discard user edits.
-- Before completion run type-check, lint, architecture checks, relevant tests, format check and build. Keep dependency lockfiles aligned.
+- Follow Conventional Commits and the assigned Jira key; never invent a Jira identifier. A missing key does not block local edits/checks; obtain the real key or an explicit exception before committing. Feature branches originate from develop; do not push directly to main/develop. Commit/push/merge require authorization within the task.
+- Use checkpoints for coherent, reviewable changes; 2–3 files are a scope signal, not a hard limit. Do not stop merely to wait for a manual commit: provide commands and continue authorized local work. Stop only for an explicit pause, a required unresolved decision, an action outside authorization or inability to proceed safely. Do not discard user edits.
+- For code changes run type-check, lint, architecture checks, relevant tests, format check and build. For documentation-only changes check content, links and diff; no unrelated rebuild is required. Keep dependency lockfiles aligned.
 - Husky runs type-check and lint-staged before commit; CI checks the full frontend on pull requests.
 - Put project documents in ../docs, outside client, as requested by the user. Keep .env, dependencies, build output, caches, local snapshots and archives out of Git.
