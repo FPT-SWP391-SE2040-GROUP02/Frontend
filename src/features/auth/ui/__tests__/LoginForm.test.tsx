@@ -13,7 +13,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { cookieAuthService as authService } from "../../api/authService";
 import type { AuthSessionDto as AuthSession } from "@/entities/user/model/authContract.types";
 import { getLoginRedirect, getLoginErrorMessage } from "../../lib/loginFeedback";
-import { LoginForm } from "../LoginForm";
+import { LoginForm, type LoginFormProps } from "../LoginForm";
 
 vi.mock("../../api/authService", () => ({
   cookieAuthService: { login: vi.fn() },
@@ -57,7 +57,7 @@ function Destination() {
 }
 
 /** @param query Login URL query. @returns Form rendered with real mutation and store providers. */
-function setup(query = "") {
+function setup(query = "", invitationContext?: LoginFormProps["invitationContext"]) {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   clients.push(client);
   const store = configureStore({ reducer: { auth: authReducer } });
@@ -66,7 +66,10 @@ function setup(query = "") {
       <QueryClientProvider client={client}>
         <MemoryRouter initialEntries={[`${ROUTES.AUTH.LOGIN}${query}`]}>
           <Routes>
-            <Route path={ROUTES.AUTH.LOGIN} element={<LoginForm />} />
+            <Route
+              path={ROUTES.AUTH.LOGIN}
+              element={<LoginForm invitationContext={invitationContext} />}
+            />
             <Route path="*" element={<Destination />} />
           </Routes>
         </MemoryRouter>
@@ -87,6 +90,41 @@ function fillCredentials() {
 }
 
 describe("LoginForm", () => {
+  it("shows an unverified invitation notice and encodes the complete token in the register link", () => {
+    const token = "opaque&redirect=https://example.invalid#fragment+=";
+    setup("?pkg=Private%20vault&from=Private%20owner", { token });
+    expect(screen.getByText("Bạn đang mở liên kết lời mời.")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Thông tin và hiệu lực lời mời cần được hệ thống xác minh/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Private vault|Private owner/)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Tạo tài khoản để nhận" })).toHaveAttribute(
+      "href",
+      `${ROUTES.AUTH.REGISTER}?invitation=${encodeURIComponent(token)}`,
+    );
+  });
+
+  it("keeps the form and credentials when Google login is unavailable", () => {
+    const initialUrl = window.location.href;
+    setup();
+    fillCredentials();
+    const googleButton = screen.getByRole("button", { name: "Tiếp tục với Google" });
+    fireEvent.click(googleButton);
+    expect(screen.getByRole("status")).toHaveTextContent(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
+    expect(googleButton).toHaveAccessibleDescription(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
+    expect(screen.getByLabelText("Email", { exact: true })).toHaveValue(SESSION.user.email);
+    expect(screen.getByLabelText("Mật khẩu", { exact: true })).toHaveValue("old");
+    expect(authService.login).not.toHaveBeenCalled();
+    expect(window.location.href).toBe(initialUrl);
+  });
+
+  it("keeps password recovery in the keyboard tab order", () => {
+    setup();
+    const recovery = screen.getByRole("link", { name: "Quên mật khẩu?" });
+    expect(recovery).toHaveAttribute("href", ROUTES.AUTH.FORGOT_PASSWORD);
+    expect(recovery.tabIndex).toBe(0);
+  });
+
   it("does not restore the previous account's pending query after confirmed login", async () => {
     vi.mocked(authService.login).mockResolvedValue(SESSION);
     const { client, store } = setup();

@@ -10,6 +10,7 @@ import { getLoginErrorMessage, getLoginRedirect } from "../lib/loginFeedback";
 import { loginSchema, type LoginInput } from "../model/auth.schema";
 import type { InvitationContext } from "../model/auth.types";
 import { useLogin } from "../model/useAuth";
+import { APP_MESSAGES } from "@/shared/constants";
 
 /**
  * @description Thuộc tính cấu hình cho component LoginForm.
@@ -17,8 +18,8 @@ import { useLogin } from "../model/useAuth";
 export interface LoginFormProps {
   /** Callback khi người dùng bấm đăng nhập bằng Passkey / Sinh trắc học */
   onPasskeyClick?: () => void;
-  /** Dữ liệu ngữ cảnh khi người dùng mở từ đường dẫn lời mời nhận di sản (Mockup 4) */
-  invitationContext?: InvitationContext;
+  /** Unverified invitation marker; private package/owner details require server authorization. */
+  invitationContext?: Pick<InvitationContext, "token">;
   /** Lớp CSS bổ trợ */
   className?: string;
 }
@@ -27,13 +28,14 @@ export interface LoginFormProps {
  * @description Form Đăng Nhập trang nhã tuân thủ 100% thiết kế Mockup 1, 2, 3 và 4.
  * - Mockup 1: Trạng thái mặc định nhập Email và Mật khẩu, hỗ trợ Google SSO.
  * - Lỗi API hiển thị theo transport; trạng thái khóa/lượt thử chờ contract BE.
- * - Mockup 4: Trạng thái hiển thị ngữ cảnh gói di sản được mời nhận.
+ * - Lời mời chỉ hiển thị thông báo trung tính; chưa xác minh ngữ cảnh từ server.
  *
  * @param {LoginFormProps} props Thuộc tính component
  * @returns {React.JSX.Element} Form đăng nhập
  */
 export function LoginForm({ onPasskeyClick, invitationContext, className = "" }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showGoogleUnavailable, setShowGoogleUnavailable] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -63,8 +65,8 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
     // TODO: [P0][AUTH-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
     // 1. [MỤC TIÊU]: Nối đăng nhập thật và trạng thái khóa/lượt thử do BE xác nhận.
     // 2. [INPUT & OUTPUT]: LoginInput -> credential đã validate, challenge/email pending hoặc lỗi BE.
-    // 3. [CÁC BƯỚC]: Sau AUTH-01 chốt POST /auth/login; dùng mutation; lưu access token RAM; ánh xạ /me; chỉ điều hướng sau bước xác thực đầy đủ.
-    // 4. [HÀM / THƯ VIỆN]: useLogin, accessTokenSchema, React Hook Form/Zod, adapter User, ROUTES.
+    // 3. [CÁC BƯỚC]: Giữ POST /auth/login cookie hiện có; chốt DTO challenge/email pending trước khi nối nhánh mới; chỉ điều hướng sau bước xác thực đầy đủ.
+    // 4. [HÀM / THƯ VIỆN]: useLogin, cookieAuthService, React Hook Form/Zod, adapter User, ROUTES.
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lượt thử/unlockAt/Retry-After do server trả; lỗi mạng/500 không giảm lượt; không tự khóa 15 phút; validate return URL nội bộ và giữ invitation an toàn.
     if (isPending || typeof data.email !== "string" || typeof data.password !== "string") return;
 
@@ -88,7 +90,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
     // 3. [CÁC BƯỚC]: Chốt redirect/PKCE hoặc ID token cùng BE1; đưa URL vào service/config; giữ invitation/return path; xử lý email trùng qua bước liên kết.
     // 4. [HÀM / THƯ VIỆN]: useLogin/service Auth, ENV.API_BASE_URL, ROUTES; Google integration đã phê duyệt.
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không tự gộp theo email; kiểm state/nonce phía phù hợp; không đặt token trong URL/log; không suy diễn đăng nhập thành công từ redirect.
-    window.location.href = `/api/v1/auth/google/authorize?redirect=${encodeURIComponent(redirectUrl)}`;
+    setShowGoogleUnavailable(true);
   };
 
   return (
@@ -99,12 +101,9 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
           <div className="flex items-start gap-3">
             <Info className="w-5 h-5 text-[#0A281E] flex-shrink-0 mt-0.5" />
             <div className="text-xs leading-relaxed space-y-1">
-              <p className="font-semibold text-sm">
-                Bạn đang mở lời mời nhận gói “{invitationContext.packageName}”.
-              </p>
+              <p className="font-semibold text-sm">Bạn đang mở liên kết lời mời.</p>
               <p className="text-[#3F5B4E]">
-                Sau khi đăng nhập, bạn sẽ quay lại đúng bước xác minh. Email đăng nhập không cần
-                trùng với email trong lời mời.
+                Đăng nhập để tiếp tục. Thông tin và hiệu lực lời mời cần được hệ thống xác minh.
               </p>
             </div>
           </div>
@@ -138,6 +137,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
         type="button"
         onClick={handleGoogleLogin}
         disabled={isPending}
+        aria-describedby={showGoogleUnavailable ? "google-login-unavailable" : undefined}
         className="w-full h-11 px-4 rounded-xl border border-[#D5D0C3] hover:border-[#0A281E] bg-white text-[#0F1A16] font-medium text-xs flex items-center justify-center gap-3 transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A281E]"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
@@ -160,6 +160,11 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
         </svg>
         <span>Tiếp tục với Google</span>
       </button>
+      {showGoogleUnavailable && (
+        <p id="google-login-unavailable" role="status" className="text-xs text-[#6B6B66]">
+          {APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE}
+        </p>
+      )}
 
       {/* Dải phân cách hoặc dùng email */}
       <div className="relative flex items-center justify-center">
@@ -208,7 +213,6 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
             <Link
               to={ROUTES.AUTH.FORGOT_PASSWORD}
               className="text-[11px] text-[#B88E4C] hover:underline font-semibold"
-              tabIndex={-1}
             >
               Quên mật khẩu?
             </Link>
@@ -287,7 +291,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
           <p>
             Chưa có tài khoản?{" "}
             <Link
-              to={`${ROUTES.AUTH.REGISTER}?invitation=${invitationContext.token}`}
+              to={`${ROUTES.AUTH.REGISTER}?invitation=${encodeURIComponent(invitationContext.token)}`}
               className="text-[#0A281E] font-bold hover:underline"
             >
               Tạo tài khoản để nhận
