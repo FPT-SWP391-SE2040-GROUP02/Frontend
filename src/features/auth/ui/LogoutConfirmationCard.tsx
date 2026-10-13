@@ -7,6 +7,7 @@ import { Info, LogOut, ShieldCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
 import { APP_MESSAGES } from "@/shared/constants";
+import { LOGOUT_CONTENT, LOGOUT_ROLE_LABELS } from "../model/logout.content";
 
 /**
  * @description Thuộc tính cấu hình cho component Xác nhận đăng xuất.
@@ -31,9 +32,7 @@ export function LogoutConfirmationCard({ onClose, className = "" }: LogoutConfir
   const navigate = useNavigate();
   const { mutate: logout, isPending, isError } = useLogout();
 
-  const displayName = user?.fullName || "Nguyễn Văn Nam";
-  const displayEmail = user?.email || "nam@example.com";
-  const displayRole = user?.role === "ADMIN" ? "Quản trị viên" : "Chủ kho di sản";
+  const displayName = user?.fullName || LOGOUT_CONTENT.unnamedAccount;
 
   /**
    * @description Xử lý thực hiện đăng xuất
@@ -68,30 +67,32 @@ export function LogoutConfirmationCard({ onClose, className = "" }: LogoutConfir
       </div>
 
       {/* Thông tin tài khoản người dùng (User Pill) */}
-      <div className="p-3.5 rounded-2xl bg-white border border-[#E5E5DF] flex items-center gap-3.5 shadow-sm">
-        <div className="w-10 h-10 rounded-full bg-[#0A281E] text-[#FAFAF6] font-bold text-base flex items-center justify-center flex-shrink-0">
-          {displayName.charAt(0)}
+      {user ? (
+        <div className="p-3.5 rounded-2xl bg-white border border-[#E5E5DF] flex items-center gap-3.5 shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-[#0A281E] text-[#FAFAF6] font-bold text-base flex items-center justify-center flex-shrink-0">
+            {displayName.charAt(0)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-[#0F1A16] truncate">{displayName}</p>
+            <p className="text-[11px] text-[#6B6B66] truncate">
+              {LOGOUT_ROLE_LABELS[user.role]} · {user.email}
+            </p>
+          </div>
+          <ShieldCheck className="w-4 h-4 text-[#B88E4C] flex-shrink-0" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-[#0F1A16] truncate">{displayName}</p>
-          <p className="text-[11px] text-[#6B6B66] truncate">
-            {displayRole} · {displayEmail}
-          </p>
-        </div>
-        <ShieldCheck className="w-4 h-4 text-[#B88E4C] flex-shrink-0" />
-      </div>
+      ) : (
+        <p role="status" className="text-sm text-[#6B6B66]">
+          {LOGOUT_CONTENT.accountUnavailable}
+        </p>
+      )}
 
       {/* CẢNH BÁO SỐNG CÒN DMS - QUY TẮC NGHIỆP VỤ ĐIỂM DANH SINH TỒN */}
       <div className="p-4 rounded-2xl bg-[#F0F5F2] border border-[#CCDCD2] text-[#0A281E] space-y-1">
         <div className="flex items-start gap-2.5">
           <Info className="w-4 h-4 text-[#0A281E] flex-shrink-0 mt-0.5" />
           <div className="text-xs leading-relaxed">
-            <p className="font-semibold text-[#0A281E]">Đăng xuất không thay thế điểm danh.</p>
-            <p className="text-[#3F5B4E] mt-0.5">
-              Kỳ điểm danh tiếp theo của bạn là{" "}
-              <span className="font-semibold text-[#0A281E]">28/10/2026</span>, còn{" "}
-              <span className="font-semibold text-[#0A281E]">21 ngày</span>.
-            </p>
+            <p className="font-semibold text-[#0A281E]">{LOGOUT_CONTENT.dmsReminder}</p>
+            <p className="text-[#3F5B4E] mt-0.5">{LOGOUT_CONTENT.dmsGuidance}</p>
           </div>
         </div>
       </div>

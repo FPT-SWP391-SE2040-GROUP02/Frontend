@@ -12,6 +12,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { cookieAuthService as authService } from "../../api/authService";
 import { LogoutConfirmationCard } from "../LogoutConfirmationCard";
+import { LOGOUT_CONTENT, LOGOUT_ROLE_LABELS } from "../../model/logout.content";
 
 vi.mock("../../api/authService", () => ({
   cookieAuthService: { logout: vi.fn() },
@@ -40,9 +41,9 @@ afterEach(() => {
 });
 
 /** @returns Providers thật và state để kiểm tra kết quả từ UI đến hook. */
-function setup() {
+function setup(user: User | null = USER) {
   const store = configureStore({ reducer: { auth: authReducer } });
-  store.dispatch(setCredentials({ user: USER }));
+  if (user) store.dispatch(setCredentials({ user }));
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   client.setQueryData(PRIVATE_KEY, "private-data");
   render(
@@ -61,6 +62,21 @@ function setup() {
 }
 
 describe("LogoutConfirmationCard", () => {
+  it("does not fabricate an account or heartbeat deadline when account data is absent", () => {
+    const { client } = setup(null);
+    expect(screen.getByRole("status")).toHaveTextContent(LOGOUT_CONTENT.accountUnavailable);
+    expect(screen.getByText(LOGOUT_CONTENT.dmsGuidance)).toBeInTheDocument();
+    expect(screen.queryByText(/Nguyễn Văn Nam|nam@example.com|28\/10\/2026|21 ngày/)).toBeNull();
+    client.clear();
+  });
+
+  it.each(Object.values(ROLES))("displays the actual account and role %s", (role) => {
+    const { client } = setup({ ...USER, role });
+    expect(screen.getByText(USER.fullName)).toBeInTheDocument();
+    expect(screen.getByText(`${LOGOUT_ROLE_LABELS[role]} · ${USER.email}`)).toBeInTheDocument();
+    client.clear();
+  });
+
   it("keeps the session on failure and clears it only after a successful retry", async () => {
     vi.mocked(authService.logout)
       .mockRejectedValueOnce(new Error("network unavailable"))
