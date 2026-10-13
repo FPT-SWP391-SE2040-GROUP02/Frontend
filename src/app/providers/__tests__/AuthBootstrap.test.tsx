@@ -5,7 +5,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
-import { useLogout } from "@/features/auth/model/useAuth";
+import { authKeys, useLogin, useLogout } from "@/features/auth/model/useAuth";
 import { toAuthUserViewModel } from "@/entities/user/lib/adapters";
 import { cookieAuthService } from "@/features/auth/api/authService";
 import {
@@ -17,7 +17,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { AuthBootstrap } from "../AuthBootstrap";
 
 vi.mock("@/features/auth/api/authService", () => ({
-  cookieAuthService: { getSession: vi.fn(), logout: vi.fn() },
+  cookieAuthService: { getSession: vi.fn(), login: vi.fn(), logout: vi.fn() },
   authService: {},
 }));
 
@@ -61,7 +61,59 @@ function LogoutAction() {
   return <button onClick={() => logout.mutate(undefined)}>Confirm logout</button>;
 }
 
+/** Exercise confirmed login while the initial session request remains in flight. */
+function LoginAction() {
+  const login = useLogin();
+  return (
+    <button
+      onClick={() => login.mutate({ email: sessionUser.email, password: "fixture-password" })}
+    >
+      Confirm login
+    </button>
+  );
+}
+
 describe("AuthBootstrap request budget", () => {
+  it.each(["success", "failure"] as const)(
+    "preserves the new login after late bootstrap %s",
+    async (outcome) => {
+      let resolveSession!: (value: { user: AuthUserDto }) => void;
+      let rejectSession!: (reason: Error) => void;
+      vi.mocked(cookieAuthService.getSession).mockReturnValue(
+        new Promise((resolve, reject) => {
+          resolveSession = resolve;
+          rejectSession = reject;
+        }),
+      );
+      vi.mocked(cookieAuthService.login).mockResolvedValue({
+        userId: sessionUser.id,
+        expiresIn: 900,
+        user: sessionUser,
+      });
+      const { store, client } = setup(<LoginAction />);
+      await waitFor(() => expect(cookieAuthService.getSession).toHaveBeenCalledTimes(1));
+      fireEvent.click(screen.getByRole("button", { name: "Confirm login" }));
+      await waitFor(() => expect(store.getState().auth.user?.id).toBe(sessionUser.id));
+      await act(async () => {
+        if (outcome === "success") {
+          resolveSession({
+            user: {
+              ...sessionUser,
+              id: "22222222-2222-4222-8222-222222222222",
+              email: "old@example.test",
+            },
+          });
+        } else {
+          rejectSession(new Error("old session expired"));
+        }
+      });
+      expect(store.getState().auth.isAuthenticated).toBe(true);
+      expect(store.getState().auth.user).toEqual(toAuthUserViewModel(sessionUser));
+      expect(client.getQueryData(authKeys.session())).toEqual({ user: sessionUser });
+      client.clear();
+    },
+  );
+
   it("does not restore a late bootstrap response after confirmed logout", async () => {
     let resolveSession!: (value: { user: AuthUserDto }) => void;
     vi.mocked(cookieAuthService.getSession).mockReturnValue(

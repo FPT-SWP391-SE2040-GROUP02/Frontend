@@ -30,7 +30,9 @@ export function useLogin() {
   return useMutation({
     mutationFn: (credentials: LoginRequest) =>
       cookieAuthService.login({ ...credentials, rememberMe: credentials.rememberMe ?? false }),
-    onSuccess: (session: AuthSessionDto) => {
+    onSuccess: async (session: AuthSessionDto) => {
+      // Finish cancellation before publishing the new account; bootstrap may clear its old state.
+      await queryClient.cancelQueries({ queryKey: authKeys.session() });
       accessTokenMemory.clear();
       dispatch(setCredentials({ user: toAuthUserViewModel(session.user) }));
       queryClient.setQueryData(authKeys.session(), { user: session.user });
