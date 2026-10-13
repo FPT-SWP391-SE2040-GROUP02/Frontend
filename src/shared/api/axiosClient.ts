@@ -86,10 +86,10 @@ apiClient.interceptors.response.use(
       } else if (status === HTTP_STATUS.NOT_FOUND) {
         console.warn(`[API ${HTTP_STATUS.NOT_FOUND}]`, APP_MESSAGES.ERROR.NOT_FOUND);
       } else if (status >= HTTP_STATUS.INTERNAL_SERVER_ERROR) {
-        console.error(`[API ${status}]`, APP_MESSAGES.ERROR.SERVER, error.response.data);
+        console.error(`[API ${status}]`, APP_MESSAGES.ERROR.SERVER);
       }
     } else {
-      console.error("[API Network Error]", APP_MESSAGES.ERROR.NETWORK, error.message);
+      console.error("[API Network Error]", APP_MESSAGES.ERROR.NETWORK);
     }
 
     return Promise.reject(error);
