@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -87,6 +87,57 @@ function fillCredentials() {
 }
 
 describe("LoginForm", () => {
+  it("does not restore the previous account's pending query after confirmed login", async () => {
+    vi.mocked(authService.login).mockResolvedValue(SESSION);
+    const { client, store } = setup();
+    const previousAccountKey = ["vaults", "previous-account"];
+    let resolvePrevious!: (value: string) => void;
+    const pending = client
+      .fetchQuery({
+        queryKey: previousAccountKey,
+        queryFn: () =>
+          new Promise<string>((resolve) => {
+            resolvePrevious = resolve;
+          }),
+      })
+      .catch(() => undefined);
+    fillCredentials();
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    await waitFor(() => expect(store.getState().auth.isAuthenticated).toBe(true));
+    await act(async () => {
+      resolvePrevious("Previous owner's private data");
+      await pending;
+    });
+    expect(client.getQueryData(previousAccountKey)).toBeUndefined();
+    expect(store.getState().auth.user?.id).toBe(SESSION.user.id);
+  });
+
+  it("removes cached data from the previous account after confirmed login", async () => {
+    vi.mocked(authService.login).mockResolvedValue(SESSION);
+    const { client, store } = setup();
+    const previousAccountKey = ["vaults", "previous-account"];
+    client.setQueryData(previousAccountKey, { privateName: "Previous owner's vault" });
+    fillCredentials();
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    await waitFor(() => expect(store.getState().auth.isAuthenticated).toBe(true));
+    expect(client.getQueryData(previousAccountKey)).toBeUndefined();
+    expect(client.getQueryData(["auth", "session"])).toEqual({ user: SESSION.user });
+  });
+
+  it("keeps existing cached data when login fails", async () => {
+    vi.mocked(authService.login).mockRejectedValue(
+      new AxiosError("network unavailable", AxiosError.ERR_NETWORK),
+    );
+    const { client } = setup();
+    const previousAccountKey = ["vaults", "previous-account"];
+    const previousData = { privateName: "Previous owner's vault" };
+    client.setQueryData(previousAccountKey, previousData);
+    fillCredentials();
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(APP_MESSAGES.ERROR.NETWORK);
+    expect(client.getQueryData(previousAccountKey)).toEqual(previousData);
+  });
+
   it("blocks invalid input locally before calling the API", async () => {
     setup();
     fireEvent.change(screen.getByLabelText("Email", { exact: true }), {

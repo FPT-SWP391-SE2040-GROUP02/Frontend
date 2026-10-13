@@ -31,8 +31,9 @@ export function useLogin() {
     mutationFn: (credentials: LoginRequest) =>
       cookieAuthService.login({ ...credentials, rememberMe: credentials.rememberMe ?? false }),
     onSuccess: async (session: AuthSessionDto) => {
-      // Finish cancellation before publishing the new account; bootstrap may clear its old state.
-      await queryClient.cancelQueries({ queryKey: authKeys.session() });
+      // Finish cancellation before clearing the previous account's cache and publishing the new one.
+      await queryClient.cancelQueries();
+      queryClient.clear();
       accessTokenMemory.clear();
       dispatch(setCredentials({ user: toAuthUserViewModel(session.user) }));
       queryClient.setQueryData(authKeys.session(), { user: session.user });
