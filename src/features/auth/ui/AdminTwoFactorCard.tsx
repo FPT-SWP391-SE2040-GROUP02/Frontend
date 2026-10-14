@@ -3,6 +3,8 @@ import { useTwoFactorVerify } from "../model/useAuth";
 import { Button } from "@/shared/ui/button";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
+import { twoFactorSchema } from "../model/auth.schema";
+import { getLoginErrorMessage } from "../lib/loginFeedback";
 import { ROUTES } from "@/shared/config/routes.config";
 
 /**
@@ -64,10 +66,7 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     if (!pasted) return;
 
-    const updated = [...digits];
-    for (let i = 0; i < pasted.length; i++) {
-      updated[i] = pasted[i];
-    }
+    const updated = Array.from({ length: 6 }, (_, index) => pasted[index] ?? "");
     setDigits(updated);
 
     const focusIdx = Math.min(pasted.length, 5);
@@ -80,7 +79,7 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     const code = digits.join("");
-    if (code.length !== 6) return;
+    if (isPending || !twoFactorSchema.safeParse({ code }).success) return;
 
     // TODO: [P0][AUTH-07] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
     // 1. [MỤC TIÊU]: Hoàn thiện challenge TOTP Admin trước khi cấp phiên đầy đủ.
@@ -127,7 +126,7 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
           role="alert"
           className="p-3 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#9B1C1C] text-xs"
         >
-          {error?.message || "Mã xác thực không hợp lệ hoặc đã hết hạn. Vui lòng thử lại."}
+          {getLoginErrorMessage(error)}
         </div>
       )}
 
@@ -143,6 +142,8 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
               type="text"
               inputMode="numeric"
               maxLength={1}
+              disabled={isPending}
+              autoComplete={idx === 0 ? "one-time-code" : "off"}
               value={digit}
               onChange={(e) => handleDigitChange(idx, e.target.value)}
               onKeyDown={(e) => handleKeyDown(idx, e)}
