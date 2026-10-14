@@ -17,7 +17,7 @@ export function VerifyEmailPage() {
       sideTitle="Kho của bạn vẫn kín, dù bạn vắng mặt."
       sideSubtitle="Đăng nhập để điểm danh, xem các gói và người nhận. Không ai đọc được tài sản của bạn."
     >
-      <VerifyEmailNotice email={email} />
+      <VerifyEmailNotice email={email} token={searchParams.get("token")} />
     </HeritageAuthLayout>
   );
 }

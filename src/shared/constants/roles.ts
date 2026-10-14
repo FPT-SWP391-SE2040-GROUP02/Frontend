@@ -3,6 +3,8 @@
  * Tương thích với chuẩn phân quyền ASP.NET Core Identity RBAC.
  */
 export const ROLES = {
+  /** Vai trò tài khoản thường của Backend; không tự chứng minh quan hệ Owner/Executor/Beneficiary. */
+  USER: "USER",
   /** Quản trị viên tối cao: Toàn quyền hệ thống & Giám sát Audit Log */
   ADMIN: "ADMIN",
   /** Chủ sở hữu két di sản số (Vault Owner): Toàn quyền cấu hình tài sản & điểm danh DMS */

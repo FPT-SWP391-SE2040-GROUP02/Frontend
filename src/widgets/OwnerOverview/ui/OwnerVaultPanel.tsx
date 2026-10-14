@@ -4,6 +4,7 @@ import {
   useOwnerVault,
 } from "@/features/vault-management/model/useOwnerVault";
 import { Button, Skeleton } from "@/shared/ui";
+import { OwnerResourcesPanel } from "./OwnerResourcesPanel";
 
 /** Nội dung panel dữ liệu server; không sử dụng số liệu hoặc chính sách từ prototype. */
 const CONTENT = {
@@ -35,7 +36,7 @@ interface OwnerVaultPanelProps {
  */
 export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
   const vault = useOwnerVault(enabled);
-  const packages = useOwnerPackages(enabled && vault.isSuccess);
+  const packages = useOwnerPackages(vault.data?.id ?? "", enabled && vault.isSuccess);
 
   return (
     <section
@@ -79,20 +80,20 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
           <dl className="grid gap-4 sm:grid-cols-2">
             <div>
               <dt className="text-sm text-heritage-muted">{CONTENT.packages}</dt>
-              <dd className="text-2xl font-semibold">{packages.data.meta.totalItems}</dd>
+              <dd className="text-2xl font-semibold">{packages.data.totalCount}</dd>
             </div>
             <div>
               <dt className="text-sm text-heritage-muted">{CONTENT.storage}</dt>
               <dd className="text-2xl font-semibold">{vault.data.storageUsedBytes}</dd>
             </div>
           </dl>
-          {packages.data.data.length === 0 ? (
+          {packages.data.items.length === 0 ? (
             <p role="status" className="text-sm text-heritage-muted">
               {CONTENT.empty}
             </p>
           ) : (
             <ul aria-label={CONTENT.list} className="divide-y divide-heritage-border">
-              {packages.data.data.map((item) => (
+              {packages.data.items.map((item) => (
                 <li key={item.id} className="py-3">
                   <p className="font-medium">{item.name}</p>
                   {item.description && (
@@ -104,6 +105,7 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
           )}
         </div>
       )}
+      {enabled && vault.isSuccess && <OwnerResourcesPanel vaultId={vault.data.id} />}
     </section>
   );
 }

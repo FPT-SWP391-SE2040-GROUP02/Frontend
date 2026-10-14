@@ -17,3 +17,10 @@ export const VERIFY_EMAIL_CONTENT = {
   resendAccepted:
     "Yêu cầu đã được tiếp nhận. Nếu tài khoản cần xác minh, bạn sẽ nhận được email hướng dẫn.",
 } as const;
+
+/** Token theo VerifyEmailRequest C#: không sửa bytes của proof opaque. */
+export const emailVerificationTokenSchema = z
+  .string()
+  .min(1, "Thiếu token xác minh.")
+  .max(256, "Token xác minh không hợp lệ.")
+  .refine((token) => token.trim().length > 0, "Thiếu token xác minh.");

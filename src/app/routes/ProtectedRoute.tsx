@@ -50,7 +50,7 @@ export function ProtectedRoute({ allowedRoles = [], children }: ProtectedRoutePr
   if (!isAuthenticated || !user) {
     return (
       <Navigate
-        to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(location.pathname)}`}
+        to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(location.pathname + location.search + location.hash)}`}
         replace
       />
     );
