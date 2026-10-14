@@ -8,11 +8,18 @@ export const ROUTES = {
   /** Bản xem trước dữ liệu mẫu, chỉ được đăng ký khi chạy development. */
   PREVIEW: {
     OWNER: "/preview/owner",
+    ASSETS: "/preview/assets",
+    PLANS: "/preview/plans",
+    PLAN_WIZARD: "/preview/plans/new",
+    DMS: "/preview/dms",
+    EXECUTOR: "/preview/executor",
+    VERIFIER: "/preview/verifier",
     EKYC_CAMERA: "/preview/ekyc/camera",
     BENEFICIARY: "/preview/beneficiary",
     ADMIN: "/preview/admin",
     SETTINGS: "/preview/settings",
     CHECKOUT: "/preview/checkout",
+    PACKAGE_CREATE: "/preview/packages/new",
   },
 
   /** Nhóm đường dẫn xác thực tài khoản */

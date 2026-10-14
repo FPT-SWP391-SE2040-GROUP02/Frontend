@@ -24,9 +24,10 @@ export const dmsKeys = {
  * @example
  * const { data: dmsState, isLoading, refetch } = useDmsStatus();
  */
-export function useDmsStatus() {
+export function useDmsStatus(enabled = true) {
   return useQuery({
     queryKey: dmsKeys.status(),
+    enabled,
     queryFn: () => dmsService.getDmsStatus(),
     staleTime: 1000 * 60, // 1 phút
     refetchInterval: 1000 * 60 * 5, // Tự động refetch mỗi 5 phút
@@ -80,9 +81,10 @@ export function useUpdateDmsConfig() {
  * @example
  * const { data: history, isLoading } = usePingHistory();
  */
-export function usePingHistory() {
+export function usePingHistory(enabled = true) {
   return useQuery({
     queryKey: dmsKeys.history(),
+    enabled,
     queryFn: () => dmsService.getPingHistory(),
     staleTime: 1000 * 60 * 5,
   });

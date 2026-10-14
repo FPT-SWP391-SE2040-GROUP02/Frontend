@@ -23,6 +23,7 @@
     "jsx": "react-jsx",
 
     /* Linting (Handled by ESLint) */
+    "strict": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "erasableSyntaxOnly": true,

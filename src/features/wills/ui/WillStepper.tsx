@@ -44,8 +44,8 @@ export const WillStepper: React.FC<WillStepperProps> = ({
                   isCurrent
                     ? "bg-[#0B291E] text-white border-[#0B291E] shadow-md ring-1 ring-[#B88E4C]"
                     : isCompleted
-                    ? "bg-[#FAF9F5] text-[#14241C] border-[#A2C4AF] hover:border-[#0B291E]"
-                    : "bg-[#FAF9F5]/70 text-[#66786E] border-[#DCD9D0] opacity-75 cursor-not-allowed"
+                      ? "bg-[#FAF9F5] text-[#14241C] border-[#A2C4AF] hover:border-[#0B291E]"
+                      : "bg-[#FAF9F5]/70 text-[#66786E] border-[#DCD9D0] opacity-75 cursor-not-allowed"
                 }`}
                 aria-current={isCurrent ? "step" : undefined}
               >
@@ -55,8 +55,8 @@ export const WillStepper: React.FC<WillStepperProps> = ({
                     isCurrent
                       ? "bg-[#B88E4C] text-[#0B291E]"
                       : isCompleted
-                      ? "bg-[#E5EDE8] text-[#059669]"
-                      : "bg-[#EFECE6] text-[#66786E]"
+                        ? "bg-[#E5EDE8] text-[#059669]"
+                        : "bg-[#EFECE6] text-[#66786E]"
                   }`}
                 >
                   {isCompleted ? <Check className="w-4 h-4" /> : step.number}

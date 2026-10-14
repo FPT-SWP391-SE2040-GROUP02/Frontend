@@ -30,14 +30,12 @@ export function IdentityReviewPanel({ result, portal }: IdentityReviewPanelProps
       ? (requested as keyof typeof content.states)
       : "success";
   const state = content.states[outcome];
-  // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-  // 1. [MỤC TIÊU]: Trình bày kết quả eKYC xác thực từ backend theo phiên người nhận.
-  // 2. [INPUT & OUTPUT]: DTO phiên/ảnh hợp lệ -> kết quả, lý do lỗi và bước tiếp theo.
-  // 3. [CÁC BƯỚC]: Chốt contract; tạo service/Query hooks; gửi ảnh khi xác nhận; xử lý
-  //    loading/error/empty/success; chỉ cho chuyển bước khi backend xác nhận điều kiện.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, Zod, MediaDevices.
-  // 5. [ĐIỀU KIỆN BIÊN]: Timeout, thiếu ảnh, sai phiên, từ chối quyền; không dùng URL
-  //    outcome để cấp quyền; không lưu hoặc ghi log sinh trắc học.
+  // TODO: [P1][EKYC-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Trình bày outcome xác minh từ BE, dùng chung ba purpose.
+  // 2. [INPUT & OUTPUT]: sessionId -> sessionStatus/outcome/reasonCodes/nextAction.
+  // 3. [CÁC BƯỚC]: Sau EKYC-01..02 chốt finalize/get session; POST finalize rồi poll có terminal; adapter kết quả; bỏ outcome URL như nguồn tin thật.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService/shared transport, Zod, TanStack Query, entity adapters.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: PASSED không tự cấp grant; REVIEW_REQUIRED khác FAILED và lỗi kỹ thuật; người nhận đối chiếu snapshot ở BE; không tự quyết danh tính từ ảnh FE.
   if (result)
     return (
       <section className="rounded-2xl border border-heritage-border bg-heritage-surface p-6 sm:p-10">

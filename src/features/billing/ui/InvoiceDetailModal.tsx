@@ -1,4 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { FileText, Download, Building } from "lucide-react";
 import type { Invoice } from "../model/billing.types";
@@ -21,11 +27,7 @@ export interface InvoiceDetailModalProps {
  * @param {InvoiceDetailModalProps} props Thuộc tính component
  * @returns {React.JSX.Element} Modal chi tiết hóa đơn
  */
-export function InvoiceDetailModal({
-  invoice,
-  isOpen,
-  onClose,
-}: InvoiceDetailModalProps) {
+export function InvoiceDetailModal({ invoice, isOpen, onClose }: InvoiceDetailModalProps) {
   if (!invoice) return null;
 
   const formatCurrency = (val: number) => {
@@ -80,7 +82,9 @@ export function InvoiceDetailModal({
               </span>
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-[#EBE7DD] dark:border-[#1E432F]">
-              <span className="font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">Tổng thanh toán:</span>
+              <span className="font-bold text-[var(--primary,#0B291E)] dark:text-[#F3F7F4]">
+                Tổng thanh toán:
+              </span>
               <span className="font-bold text-base text-[#059669]">
                 {formatCurrency(invoice.amount)}
               </span>

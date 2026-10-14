@@ -1,6 +1,13 @@
 import { LogOut, ShieldCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 import { type Role, ROLES } from "@/shared/constants/roles";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -93,7 +100,10 @@ export function UserAvatarMenu({
         </Avatar>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-56 bg-white dark:bg-[#0c2217] border border-[#dce5d6] dark:border-[#1d402f] shadow-lg rounded-2xl p-1.5" align="end">
+      <DropdownMenuContent
+        className="w-56 bg-white dark:bg-[#0c2217] border border-[#dce5d6] dark:border-[#1d402f] shadow-lg rounded-2xl p-1.5"
+        align="end"
+      >
         <DropdownMenuLabel className="p-2 space-y-1">
           <p className="text-xs font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4] truncate">
             {fullName}

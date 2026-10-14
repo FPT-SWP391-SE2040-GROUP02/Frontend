@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router-dom";
-import { CircleCheck, Eye, EyeOff } from "lucide-react";
+import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { ROUTES } from "@/shared/config/routes.config";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CircleCheck, Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import {
-  resetPasswordSchema,
   RESET_PASSWORD_CONTENT as content,
+  resetPasswordSchema,
   type ResetPasswordInput,
 } from "../model/resetPassword.schema";
 
@@ -19,20 +19,21 @@ export function ResetPasswordForm() {
   const {
     register,
     handleSubmit,
+    trigger,
     reset,
-    formState: { errors },
+    formState: { errors, touchedFields },
   } = useForm<ResetPasswordInput>({
+    mode: "onBlur",
+    reValidateMode: "onBlur",
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
   });
-  // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-  // 1. [MỤC TIÊU]: Đặt lại mật khẩu bằng token khôi phục dùng một lần.
-  // 2. [INPUT & OUTPUT]: Token và mật khẩu hợp lệ -> xác nhận từ backend hoặc mã lỗi.
-  // 3. [CÁC BƯỚC]: Chốt DTO/endpoint; tạo service và mutation; xác nhận token; gửi khi
-  //    người dùng đồng ý; disable double submit; xóa form/token rồi trở về đăng nhập.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, React Hook Form, Zod.
-  // 5. [ĐIỀU KIỆN BIÊN]: Token hết hạn/đã dùng, mất mạng, rate limit; không log/lưu mật khẩu
-  //    hoặc token vào storage; không báo thành công trước phản hồi backend.
+  // TODO: [P1][AUTH-09] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Nối đặt lại mật khẩu bằng token một lần.
+  // 2. [INPUT & OUTPUT]: Token + password hợp lệ -> xác nhận BE hoặc errors theo field.
+  // 3. [CÁC BƯỚC]: Sau AUTH-08 chốt POST /auth/reset-password; schema/service/mutation; gửi khi submit; chỉ xóa form và về login khi thành công.
+  // 4. [HÀM / THƯ VIỆN]: React Hook Form, zodResolver, TanStack Query, service Auth.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Token hết hạn/đã dùng, 429/mất mạng; policy thu hồi phiên do BE; không lưu/log password hoặc token; không tự tạo phiên sau reset.
   if (complete)
     return (
       <div role="status" className="space-y-5">
@@ -57,40 +58,56 @@ export function ResetPasswordForm() {
       })}
       className="space-y-6"
     >
-      {(["password", "confirmPassword"] as const).map((field) => (
-        <div key={field}>
-          <label htmlFor={`reset-${field}`} className="mb-2 block text-sm font-medium">
-            {field === "password" ? content.password : content.confirm}
-          </label>
-          <div className="relative">
-            <Input
-              id={`reset-${field}`}
-              type={visible ? "text" : "password"}
-              autoComplete="new-password"
-              className="h-12 pr-14 text-sm"
-              aria-invalid={Boolean(errors[field])}
-              aria-describedby={errors[field] ? `reset-${field}-error` : "reset-password-hint"}
-              {...register(field)}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-lg"
-              className="absolute right-1 top-1"
-              aria-label={visible ? content.hide : content.show}
-              aria-pressed={visible}
-              onClick={() => setVisible(!visible)}
-            >
-              {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
-            </Button>
+      {(["password", "confirmPassword"] as const).map((field) => {
+        const registeredField = register(field);
+        const errorId = errors[field] ? `reset-${field}-error` : undefined;
+        const describedBy =
+          field === "password"
+            ? ["reset-password-hint", errorId].filter(Boolean).join(" ")
+            : errorId;
+
+        return (
+          <div key={field}>
+            <label htmlFor={`reset-${field}`} className="mb-2 block text-sm font-medium">
+              {field === "password" ? content.password : content.confirm}
+            </label>
+            <div className="relative">
+              <Input
+                id={`reset-${field}`}
+                type={visible ? "text" : "password"}
+                autoComplete="new-password"
+                className="h-12 pr-14 text-sm"
+                aria-invalid={Boolean(errors[field])}
+                aria-describedby={describedBy}
+                {...registeredField}
+                onBlur={async (event) => {
+                  await registeredField.onBlur(event);
+                  if (field === "password" && touchedFields.confirmPassword) {
+                    await trigger("confirmPassword");
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-lg"
+                className="absolute right-1 top-1"
+                aria-label={visible ? content.hide : content.show}
+                aria-pressed={visible}
+                tabIndex={-1}
+                onClick={() => setVisible(!visible)}
+              >
+                {visible ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+              </Button>
+            </div>
+            {errors[field] && (
+              <p id={`reset-${field}-error`} role="alert" className="mt-2 text-sm text-red-700">
+                {errors[field]?.message}
+              </p>
+            )}
           </div>
-          {errors[field] && (
-            <p id={`reset-${field}-error`} role="alert" className="mt-2 text-sm text-red-700">
-              {errors[field]?.message}
-            </p>
-          )}
-        </div>
-      ))}
+        );
+      })}
       <p id="reset-password-hint" className="text-xs text-heritage-muted">
         {content.hint}
       </p>

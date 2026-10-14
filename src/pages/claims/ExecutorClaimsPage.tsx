@@ -41,7 +41,8 @@ export const ExecutorClaimsPage: React.FC = () => {
               Cổng Người Thi Hành Di Chúc (Executor Portal)
             </h1>
             <p className="text-xs sm:text-sm text-[#66786E] mt-1 max-w-2xl leading-relaxed">
-              Quản lý và nộp chứng từ pháp lý tử tuất hoặc quyết định tuyên bố mất tích/đã chết của Tòa án để kích hoạt quy trình thẩm định mở thừa kế.
+              Quản lý và nộp chứng từ pháp lý tử tuất hoặc quyết định tuyên bố mất tích/đã chết của
+              Tòa án để kích hoạt quy trình thẩm định mở thừa kế.
             </p>
           </div>
 
@@ -75,7 +76,9 @@ export const ExecutorClaimsPage: React.FC = () => {
         {currentTab === "submit" ? (
           <div className="p-6 sm:p-8 rounded-[24px] bg-[#FAF9F5] border border-[#DCD9D0] shadow-sm space-y-6">
             <div>
-              <h2 className="text-base font-bold text-[#0B291E]">Nộp Chứng Từ Pháp Lý Mở Thừa Kế</h2>
+              <h2 className="text-base font-bold text-[#0B291E]">
+                Nộp Chứng Từ Pháp Lý Mở Thừa Kế
+              </h2>
               <p className="text-xs text-[#66786E] mt-0.5">
                 Vui lòng điền chính xác thông tin hộ tịch và tải lên bản scan có dấu mộc đỏ hợp lệ.
               </p>

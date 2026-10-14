@@ -7,17 +7,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] shadow-[0_3px_10px_rgba(11,41,30,0.2)]",
+        default:
+          "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] shadow-[0_3px_10px_rgba(11,41,30,0.2)]",
         outline:
           "border-[#DDD8CB] dark:border-[#1E432F] bg-[var(--surface)] text-[var(--text-main)] hover:bg-[var(--primary-light)] hover:text-[var(--primary)]",
-        secondary:
-          "bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[#D5E3D9]",
-        ghost:
-          "hover:bg-[var(--primary-light)] hover:text-[var(--primary)]",
-        destructive:
-          "bg-[#991B1B] text-white hover:bg-[#7F1D1D]",
-        gold:
-          "bg-[var(--gold)] text-white hover:bg-[var(--gold-hover)] shadow-sm",
+        secondary: "bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[#D5E3D9]",
+        ghost: "hover:bg-[var(--primary-light)] hover:text-[var(--primary)]",
+        destructive: "bg-[#991B1B] text-white hover:bg-[#7F1D1D]",
+        gold: "bg-[var(--gold)] text-white hover:bg-[var(--gold-hover)] shadow-sm",
         pressed:
           "bg-[var(--primary-surface)] text-[#E2ECE6] shadow-[inset_0_2px_6px_rgba(0,0,0,0.3)] border border-[#1A4D3B]",
         link: "text-[var(--gold)] underline-offset-4 hover:underline font-semibold",

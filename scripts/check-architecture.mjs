@@ -18,25 +18,39 @@ let fileCount = 0;
 function inspect(directory) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     const filename = path.join(directory, entry.name);
-    if (entry.isDirectory()) { inspect(filename); continue; }
+    if (entry.isDirectory()) {
+      inspect(filename);
+      continue;
+    }
     if (!/\.tsx?$/.test(entry.name)) continue;
     fileCount++;
-    const source = ts.createSourceFile(filename, readFileSync(filename, "utf8"), ts.ScriptTarget.Latest, true);
+    const source = ts.createSourceFile(
+      filename,
+      readFileSync(filename, "utf8"),
+      ts.ScriptTarget.Latest,
+      true,
+    );
     const [originLayer, originSlice] = path.relative(sourceRoot, filename).split(path.sep);
 
     /** @description Inspect a syntax node and then its children. @param {import("typescript").Node} node Syntax node. @returns {void} */
     function visit(node) {
       let specifier;
-      if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) specifier = node.moduleSpecifier;
-      if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword) specifier = node.arguments[0];
+      if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node))
+        specifier = node.moduleSpecifier;
+      if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword)
+        specifier = node.arguments[0];
       if (specifier && ts.isStringLiteral(specifier)) {
         const name = specifier.text;
-        const target = name.startsWith("@/") ? path.join(sourceRoot, name.slice(2))
-          : name.startsWith(".") ? path.resolve(path.dirname(filename), name) : null;
+        const target = name.startsWith("@/")
+          ? path.join(sourceRoot, name.slice(2))
+          : name.startsWith(".")
+            ? path.resolve(path.dirname(filename), name)
+            : null;
         if (target) {
           const [targetLayer, targetSlice] = path.relative(sourceRoot, target).split(path.sep);
           const upward = layers.indexOf(targetLayer) > layers.indexOf(originLayer);
-          const crossFeature = originLayer === "features" && targetLayer === "features" && originSlice !== targetSlice;
+          const crossFeature =
+            originLayer === "features" && targetLayer === "features" && originSlice !== targetSlice;
           if (upward || crossFeature) {
             const { line } = source.getLineAndCharacterOfPosition(specifier.getStart(source));
             violations.push(`${path.relative(sourceRoot, filename)}:${line + 1} -> ${name}`);

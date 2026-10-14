@@ -1,16 +1,7 @@
+import { APP_MESSAGES } from "@/shared/constants";
 import React from "react";
-import { 
-  Input, 
-  Badge 
-} from "@/shared/ui";
-import { 
-  Lock, 
-  Bitcoin, 
-  KeyRound, 
-  FileText, 
-  CheckCircle2, 
-  AlertCircle 
-} from "lucide-react";
+import { Input, Badge } from "@/shared/ui";
+import { Lock, Bitcoin, KeyRound, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import { useAssets } from "@/features/assets";
 import type { AssetType } from "@/features/assets";
 
@@ -40,19 +31,12 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
   onSelectAllAssets,
   errorMessage,
 }) => {
-  const { data: assetsData, isLoading } = useAssets();
+  const { data: assetsData, isLoading, isError, refetch } = useAssets();
 
+  /** @description Ánh xạ icon theo loại tài sản. */
   const getAssetIcon = (type: AssetType) => {
-    switch (type) {
-      case "CRYPTO":
-        return <Bitcoin className="w-4 h-4 text-[#B88E4C]" />;
-      case "CREDENTIAL":
-        return <KeyRound className="w-4 h-4 text-[#0B291E]" />;
-      case "DOCUMENT":
-        return <FileText className="w-4 h-4 text-[#66786E]" />;
-      default:
-        return <Lock className="w-4 h-4" />;
-    }
+    const Icon = { CRYPTO: Bitcoin, CREDENTIAL: KeyRound, DOCUMENT: FileText }[type];
+    return <Icon className="w-4 h-4" />;
   };
 
   return (
@@ -63,13 +47,14 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
           Bước 1: Khai Báo Ý Chí & Chọn Di Sản Cần Định Đoạt
         </h2>
         <p className="text-xs text-[#66786E] mt-1 leading-relaxed">
-          Đặt tên định danh cho bản di chúc và lựa chọn các tài sản số trong két di sản được bảo vệ bằng mã hóa AES-256-GCM để đưa vào phương án phân chia thừa kế.
+          Đặt tên định danh cho bản di chúc và lựa chọn các tài sản số trong két di sản được bảo vệ
+          bằng mã hóa AES-256-GCM để đưa vào phương án phân chia thừa kế.
         </p>
       </div>
 
       {errorMessage && (
-        <div 
-          role="alert" 
+        <div
+          role="alert"
           className="p-3.5 rounded-[14px] bg-[#FEF2F2] border border-[#FECACA] flex items-center gap-2 text-xs text-[#DC2626] font-medium"
         >
           <AlertCircle className="w-4 h-4 shrink-0" />
@@ -80,7 +65,10 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
       {/* Form Inputs */}
       <div className="space-y-4 p-5 sm:p-6 bg-[#FAF9F5] border border-[#DCD9D0] rounded-[22px] shadow-sm">
         <div>
-          <label htmlFor="will-title" className="block text-xs font-bold text-[#14241C] uppercase mb-1.5">
+          <label
+            htmlFor="will-title"
+            className="block text-xs font-bold text-[#14241C] uppercase mb-1.5"
+          >
             Tiêu Đề Bản Di Chúc Số *
           </label>
           <Input
@@ -95,7 +83,10 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
         </div>
 
         <div>
-          <label htmlFor="will-notes" className="block text-xs font-bold text-[#14241C] uppercase mb-1.5">
+          <label
+            htmlFor="will-notes"
+            className="block text-xs font-bold text-[#14241C] uppercase mb-1.5"
+          >
             Lời Dặn Dò / Ý Nguyện Chung (Không bắt buộc)
           </label>
           <textarea
@@ -140,7 +131,14 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
           )}
         </div>
 
-        {isLoading ? (
+        {isError ? (
+          <div role="alert">
+            <p>{APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE}</p>
+            <button type="button" onClick={() => void refetch()}>
+              {APP_MESSAGES.UI.RETRY}
+            </button>
+          </div>
+        ) : isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[1, 2].map((i) => (
               <div
@@ -163,7 +161,8 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
               const isSelected = selectedAssetIds.includes(asset.id);
 
               return (
-                <div
+                <button
+                  type="button"
                   key={asset.id}
                   onClick={() => onToggleAsset(asset.id)}
                   tabIndex={0}
@@ -186,9 +185,7 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
                       {getAssetIcon(asset.assetType)}
                     </div>
                     <div>
-                      <span className="font-bold text-[#14241C] text-xs block">
-                        {asset.title}
-                      </span>
+                      <span className="font-bold text-[#14241C] text-xs block">{asset.title}</span>
                       <span className="text-[11px] text-[#66786E] line-clamp-1 mt-0.5">
                         {asset.description}
                       </span>
@@ -212,7 +209,7 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
                   >
                     {isSelected && <CheckCircle2 className="w-5 h-5" />}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>

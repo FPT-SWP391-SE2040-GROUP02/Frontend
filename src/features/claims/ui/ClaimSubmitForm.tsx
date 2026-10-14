@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Send, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { Button, Input, Card, CustomCheckbox } from "@/shared/ui";
@@ -29,7 +29,7 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { errors },
   } = useForm<SubmitClaimFormValues>({
     resolver: zodResolver(submitClaimSchema),
@@ -46,18 +46,21 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
     },
   });
 
-  const scanUrl = watch("deathCertScanUrl");
-  const isAttested = watch("legalAttestationConfirmed");
-
+  const [scanUrl, isAttested] = useWatch({
+    control,
+    name: ["deathCertScanUrl", "legalAttestationConfirmed"],
+  });
 
   const onSubmit = (values: SubmitClaimFormValues) => {
     // =========================================================================
     // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
     // =========================================================================
-    // TODO: [Developer Step - Xử lý nộp hồ sơ yêu cầu mở thừa kế]
-    // 1. Kiểm tra tính hợp lệ của values (đã qua Zod Resolver validate)
-    // 2. Kích hoạt submitClaimMutation với dữ liệu values
-    // 3. Trong callback onSuccess của mutation, gọi hàm callback props onSuccess?.()
+    // TODO: [P2][DEATH-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Migrate form nộp chứng tử sang death-case lifecycle.
+    // 2. [INPUT & OUTPUT]: Form + documentIds + case/version -> server xác nhận nộp hồ sơ.
+    // 3. [CÁC BƯỚC]: Sau DEATH-01..03 schema/model trước service/hooks/UI; thay SubmitClaimRequest legacy; xác nhận declaration; disable pending; callback sau BE thành công.
+    // 4. [HÀM / THƯ VIỆN]: RHF/Zod, useClaims được migrate, shared/ui Dialog, queryKeys.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không URL scan tùy ý; không tự tạo grant/duyệt; quyền Executor/hold/version/409; không optimistic cho nộp hồ sơ pháp lý.
     submitClaimMutation(values as SubmitClaimRequest, {
       onSuccess: () => {
         onSuccess?.();
@@ -69,9 +72,12 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
     // =========================================================================
     // [RULE 7 - BẮT BUỘC TỰ CODE LOGIC THỰC THI]
     // =========================================================================
-    // TODO: [Developer Step - Đồng bộ tệp tải lên vào Form State]
-    // 1. Dùng setValue("deathCertScanUrl", fileUrl, { shouldValidate: true })
-    // 2. Dùng setValue("deathCertScanHash", fileHash, { shouldValidate: true })
+    // TODO: [P2][DEATH-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Migrate đồng bộ tệp form sang document reference.
+    // 2. [INPUT & OUTPUT]: Document DTO đúng case -> trường RHF đã validate.
+    // 3. [CÁC BƯỚC]: Sau EVIDENCE-05 thay deathCertScanUrl/hash legacy bằng field DTO chốt; setValue/clearErrors; reset khi đổi case hoặc upload không hợp lệ.
+    // 4. [HÀM / THƯ VIỆN]: React Hook Form setValue/resetField, Zod, entity adapter.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không trust public URL; file đã xóa/chưa finalize/sai case; response muộn không gắn nhầm hồ sơ; không persist chứng cứ vào browser storage.
     setValue("deathCertScanUrl", fileUrl, { shouldValidate: true });
     setValue("deathCertScanHash", fileHash, { shouldValidate: true });
   };
@@ -84,7 +90,8 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
         </div>
         <h3 className="text-lg font-bold text-[#0B291E]">Đã Gửi Hồ Sơ Thành Công</h3>
         <p className="text-xs text-[#66786E] max-w-md mx-auto leading-relaxed">
-          Hồ sơ yêu cầu mở thừa kế của bạn đã được tiếp nhận và chuyển đến danh sách thẩm định của Công chứng viên. Bạn sẽ nhận được thông báo ngay khi có kết quả duyệt.
+          Hồ sơ yêu cầu mở thừa kế của bạn đã được tiếp nhận và chuyển đến danh sách thẩm định của
+          Công chứng viên. Bạn sẽ nhận được thông báo ngay khi có kết quả duyệt.
         </p>
       </Card>
     );
@@ -98,7 +105,9 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
         <div className="space-y-1 leading-relaxed">
           <p className="font-bold">Quy định thẩm quyền nộp hồ sơ (Điều 562 & 611 BLDS 2015):</p>
           <p>
-            Chỉ Người thi hành di chúc hợp pháp được chủ kho chỉ định mới có quyền nộp chứng từ tử tuất hoặc bản án mất tích. Mọi hành vi làm giả chứng từ sẽ bị xử lý nghiêm minh theo pháp luật.
+            Chỉ Người thi hành di chúc hợp pháp được chủ kho chỉ định mới có quyền nộp chứng từ tử
+            tuất hoặc bản án mất tích. Mọi hành vi làm giả chứng từ sẽ bị xử lý nghiêm minh theo
+            pháp luật.
           </p>
         </div>
       </div>
@@ -140,11 +149,7 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
           <label className="text-xs font-bold text-[#14241C]">
             Ngày Cấp <span className="text-red-500">*</span>
           </label>
-          <Input
-            type="date"
-            {...register("deathCertificateIssueDate")}
-            className="bg-[#FAF9F5]"
-          />
+          <Input type="date" {...register("deathCertificateIssueDate")} className="bg-[#FAF9F5]" />
           {errors.deathCertificateIssueDate && (
             <p className="text-[11px] text-red-600">{errors.deathCertificateIssueDate.message}</p>
           )}
@@ -181,7 +186,9 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
 
       {/* Ghi chú giải trình bổ sung */}
       <div className="space-y-1.5">
-        <label className="text-xs font-bold text-[#14241C]">Ghi Chú Của Người Thi Hành (Tùy chọn)</label>
+        <label className="text-xs font-bold text-[#14241C]">
+          Ghi Chú Của Người Thi Hành (Tùy chọn)
+        </label>
         <textarea
           {...register("executorNotes")}
           rows={3}
@@ -197,12 +204,14 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
           id="executor-legal-attestation"
           label={
             <span className="font-bold text-[#0B291E]">
-              Tôi chịu trách nhiệm trước pháp luật về tính hợp pháp và trung thực của giấy chứng tử này.
+              Tôi chịu trách nhiệm trước pháp luật về tính hợp pháp và trung thực của giấy chứng tử
+              này.
             </span>
           }
         />
         <p className="text-[11px] text-[#66786E] pl-6 leading-relaxed">
-          Cam kết theo quy định SRS 3.11.0 (DEATH-02). Hệ thống sẽ gắn danh tính số và dấu thời gian của bạn vào bản nộp hồ sơ.
+          Cam kết theo quy định SRS 3.11.0 (DEATH-02). Hệ thống sẽ gắn danh tính số và dấu thời gian
+          của bạn vào bản nộp hồ sơ.
         </p>
         {errors.legalAttestationConfirmed && (
           <p className="text-[11px] text-red-600 font-semibold pl-6">
@@ -218,7 +227,9 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
         className="w-full min-h-[48px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
       >
         <Send className="w-4 h-4 text-[#B88E4C]" />
-        <span>{isPending ? "Đang Gửi Hồ Sơ..." : "Nộp Giấy Chứng Tử Cho Người Xác Minh (Verifier)"}</span>
+        <span>
+          {isPending ? "Đang Gửi Hồ Sơ..." : "Nộp Giấy Chứng Tử Cho Người Xác Minh (Verifier)"}
+        </span>
       </Button>
     </form>
   );

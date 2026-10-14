@@ -1,6 +1,6 @@
-import { useSearchParams } from "react-router-dom";
 import { HeritageAuthLayout } from "@/features/auth/ui/HeritageAuthLayout";
 import { VerifyEmailNotice } from "@/features/auth/ui/VerifyEmailNotice";
+import { useSearchParams } from "react-router-dom";
 
 /**
  * @description Trang Xác minh Email (Mockup 6 - XacMinhEmail.dc.html).
@@ -10,7 +10,7 @@ import { VerifyEmailNotice } from "@/features/auth/ui/VerifyEmailNotice";
  */
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
-  const email = searchParams.get("email") ?? "nam@example.com";
+  const email = searchParams.get("email") ?? "";
 
   return (
     <HeritageAuthLayout

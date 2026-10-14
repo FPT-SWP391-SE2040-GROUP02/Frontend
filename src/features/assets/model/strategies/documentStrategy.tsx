@@ -1,3 +1,4 @@
+import { ASSET_TYPE_LABELS } from "@/entities/asset/model/asset.constants";
 import React from "react";
 import type { AssetStrategy } from "./assetStrategy.interface";
 import type { EncryptedPayload } from "../asset.types";
@@ -11,7 +12,7 @@ import { Input } from "@/shared/ui";
  */
 export const documentStrategy: AssetStrategy = {
   type: "DOCUMENT",
-  label: "Tài Liệu Số (Documents)",
+  label: ASSET_TYPE_LABELS.DOCUMENT,
   description: "Hợp đồng bảo hiểm nhân thọ, sổ đỏ số, giấy chứng nhận cổ phần và di chúc đính kèm.",
   badgeBg: "bg-[#EFECE6]",
   badgeText: "text-[#14241C]",
@@ -21,7 +22,12 @@ export const documentStrategy: AssetStrategy = {
   },
 
   preparePayload(data: unknown): EncryptedPayload {
-    // TODO: [Developer Step] Mã hóa AES-GCM-256 đối với file đính kèm & thông tin giấy tờ
+    // TODO: [P0][ASSET-08] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Loại preparePayload mã hóa giả khỏi luồng thật cho tài liệu.
+    // 2. [INPUT & OUTPUT]: Form đã validate -> payload theo DTO asset/content của BE, không EncryptedPayload legacy.
+    // 3. [CÁC BƯỚC]: Trước ASSET-03 chốt model mã hóa BE; migrate signature/callers; chỉ giữ strategy validate/render; cô lập btoa và sample iv/tag/salt trong preview rồi xóa khi hết caller.
+    // 4. [HÀM / THƯ VIỆN]: Zod schema hiện có, Strategy map, FormData/shared transport; AES-GCM/envelope do BE xử lý.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không triển khai Master Password/Shamir ở FE; Base64 không bảo mật; không lưu/log seed/password/plaintext vào storage; kiểm cả caller khi đổi interface.
     return {
       ciphertext: btoa(JSON.stringify(data)),
       iv: "iv_sample_doc_12bytes",
@@ -107,7 +113,9 @@ export const documentStrategy: AssetStrategy = {
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[11px] font-bold text-[#66786E] uppercase">Số Hiệu Giấy Tờ</span>
+              <span className="text-[11px] font-bold text-[#66786E] uppercase">
+                Số Hiệu Giấy Tờ
+              </span>
               <p className="text-sm font-bold font-mono text-[#0B291E]">
                 {decoded.identifierNumber || "GCN-QSDD-BT-2024-9912"}
               </p>

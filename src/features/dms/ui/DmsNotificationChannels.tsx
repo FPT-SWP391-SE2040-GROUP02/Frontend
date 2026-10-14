@@ -11,11 +11,13 @@ import type { NotificationChannelConfig } from "../model/dms.types";
 interface DmsNotificationChannelsProps {
   channels: NotificationChannelConfig[];
   onChange: (channels: NotificationChannelConfig[]) => void;
+  onBlur?: () => void;
 }
 
 export const DmsNotificationChannels: React.FC<DmsNotificationChannelsProps> = ({
   channels,
   onChange,
+  onBlur,
 }) => {
   const getChannelIcon = (type: string) => {
     switch (type) {
@@ -60,7 +62,7 @@ export const DmsNotificationChannels: React.FC<DmsNotificationChannelsProps> = (
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" onBlur={onBlur}>
       {channels.map((channel, idx) => (
         <div
           key={channel.type}
@@ -83,6 +85,7 @@ export const DmsNotificationChannels: React.FC<DmsNotificationChannelsProps> = (
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
+                aria-label={getChannelTitle(channel.type)}
                 checked={channel.enabled}
                 onChange={() => handleToggle(idx)}
                 className="sr-only peer"
@@ -95,14 +98,15 @@ export const DmsNotificationChannels: React.FC<DmsNotificationChannelsProps> = (
             <div className="mt-3">
               <Input
                 type="text"
+                aria-label={getChannelTitle(channel.type) + " - địa chỉ nhận"}
                 value={channel.targetValue}
                 onChange={(e) => handleValueChange(idx, e.target.value)}
                 placeholder={
                   channel.type === "EMAIL"
                     ? "name@example.com"
                     : channel.type === "TELEGRAM"
-                    ? "@telegram_username hoặc chat_id"
-                    : "+84 988 123 456"
+                      ? "@telegram_username hoặc chat_id"
+                      : "+84 988 123 456"
                 }
                 className="h-10 text-xs bg-white border-[#D5D0C3] focus:border-[#B88E4C] rounded-[10px]"
               />

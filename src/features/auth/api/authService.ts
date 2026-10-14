@@ -1,15 +1,84 @@
 import { createBaseService } from "@/shared/api/baseService";
 import type {
   AuthSession,
-  LoginRequest,
   RegisterRequest,
   PasskeyLoginRequest,
   OtpVerificationRequest,
   LinkGoogleRequest,
   TwoFactorVerifyRequest,
-  LogoutOptions,
 } from "../model/auth.types";
 import { axiosClient } from "@/shared/api/axiosClient";
+import {
+  authCsrfTokenResponseSchema,
+  authSessionResponseSchema,
+  currentSessionResponseSchema,
+} from "@/entities/user/model/authContract.schema";
+import type {
+  AuthLoginRequestDto,
+  AuthLogoutRequestDto,
+  AuthSessionDto,
+  CurrentSessionDto,
+} from "@/entities/user/model/authContract.types";
+
+/** Confirmed endpoints from the current C# AuthController. */
+const COOKIE_AUTH_ENDPOINTS = {
+  CSRF: "/auth/csrf",
+  LOGIN: "/auth/login",
+  REFRESH: "/auth/refresh",
+  SESSION: "/auth/session",
+  LOGOUT: "/auth/logout",
+} as const;
+
+/** Header configured by the backend AuthCsrfContract. */
+const CSRF_HEADER = "X-CSRF-Token";
+
+/** Acquires fresh identity-bound proof in local RAM; acquisition failure blocks the POST. */
+async function getCsrfConfig(): Promise<{ headers: Record<string, string> }> {
+  const body = await axiosClient.get<unknown, unknown>(COOKIE_AUTH_ENDPOINTS.CSRF);
+  const { requestToken } = authCsrfTokenResponseSchema.parse(body).data;
+  return { headers: { [CSRF_HEADER]: requestToken } };
+}
+
+/** Confirmed cookie transport for login, refresh, session and logout. */
+export const cookieAuthService = {
+  /** Posts only the C# login fields; validates the full body before unwrapping data. */
+  async login(request: AuthLoginRequestDto): Promise<AuthSessionDto> {
+    const config = await getCsrfConfig();
+    const body = await axiosClient.post<unknown, unknown>(
+      COOKIE_AUTH_ENDPOINTS.LOGIN,
+      { email: request.email, password: request.password, rememberMe: request.rememberMe },
+      config,
+    );
+    return authSessionResponseSchema.parse(body).data;
+  },
+
+  /** Rotates HttpOnly cookies; JavaScript never receives or reads either bearer secret. */
+  async refresh(): Promise<AuthSessionDto> {
+    const config = await getCsrfConfig();
+    const body = await axiosClient.post<unknown, unknown>(
+      COOKIE_AUTH_ENDPOINTS.REFRESH,
+      undefined,
+      config,
+    );
+    return authSessionResponseSchema.parse(body).data;
+  },
+
+  /** Reads the distinct current-session response through the shared credentialed client. */
+  async getSession(): Promise<CurrentSessionDto> {
+    const body = await axiosClient.get<unknown, unknown>(COOKIE_AUTH_ENDPOINTS.SESSION);
+    return currentSessionResponseSchema.parse(body).data;
+  },
+
+  /** Sends only the confirmed optional logout body; the backend clears HttpOnly cookies. */
+  async logout(request?: AuthLogoutRequestDto): Promise<void> {
+    const config = await getCsrfConfig();
+    await axiosClient.post<unknown, unknown>(
+      COOKIE_AUTH_ENDPOINTS.LOGOUT,
+      request === undefined ? undefined : { revokeAllDevices: request.revokeAllDevices },
+      config,
+    );
+  },
+};
 
 const baseAuthService = createBaseService<AuthSession>({
   endpoint: "/auth",
@@ -20,16 +89,6 @@ const baseAuthService = createBaseService<AuthSession>({
  */
 export const authService = {
   ...baseAuthService,
-
-  /**
-   * @description Đăng nhập bằng Email và Password
-   * @param {LoginRequest} credentials Thông tin đăng nhập
-   * @returns {Promise<AuthSession>} Thông tin phiên đăng nhập
-   */
-  async login(credentials: LoginRequest): Promise<AuthSession> {
-    const response = await axiosClient.post<AuthSession>("/auth/login", credentials);
-    return response.data;
-  },
 
   /**
    * @description Đăng ký tài khoản người dùng mới
@@ -86,15 +145,10 @@ export const authService = {
    * @returns {Promise<{ success: boolean }>}
    */
   async resendVerificationEmail(email: string): Promise<{ success: boolean }> {
-    const response = await axiosClient.post<{ success: boolean }>("/auth/email/resend-verification", { email });
+    const response = await axiosClient.post<{ success: boolean }>(
+      "/auth/email/resend-verification",
+      { email },
+    );
     return response.data;
-  },
-
-  /**
-   * @description Đăng xuất tài khoản người dùng và hủy phiên làm việc (Mockup 8)
-   * @param {LogoutOptions} [options] Tùy chọn đăng xuất khỏi mọi thiết bị
-   */
-  async logout(options?: LogoutOptions): Promise<void> {
-    await axiosClient.post("/auth/logout", options);
   },
 };

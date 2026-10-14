@@ -25,14 +25,12 @@ export function AdminWorkspacePage() {
       .toLocaleLowerCase("vi-VN")
       .includes(search.toLocaleLowerCase("vi-VN")),
   );
-  // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-  // 1. [MỤC TIÊU]: Quản trị người dùng và tra cứu audit log theo quyền Admin.
-  // 2. [INPUT & OUTPUT]: Phiên Admin và bộ lọc URL -> DTO phân trang/thống kê/audit.
-  // 3. [CÁC BƯỚC]: Chốt contract; tạo service/hooks; áp dụng bộ lọc; xử lý 4 trạng thái;
-  //    xác nhận trước thay đổi quyền; chỉ cập nhật cache sau backend xác nhận.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, Zod, useSearchParams.
-  // 5. [ĐIỀU KIỆN BIÊN]: Mất quyền, dữ liệu rỗng, 429/500; không lộ bí mật trong audit;
-  //    không lấy quyền Admin hoặc dữ liệu người dùng từ URL.
+  // TODO: [P3][ADMIN-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Nối quản trị/audit/incidents/config theo quyền được BE cấp.
+  // 2. [INPUT & OUTPUT]: Admin session + URL filters -> DTO queues/users/audit/incidents/actions.
+  // 3. [CÁC BƯỚC]: Sau AUTH-07 chốt endpoints /admin với BE1; model/schema/service/hooks; UI bốn trạng thái; step-up/reason/version trước thao tác; invalidate sau server xác nhận.
+  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, RHF/Zod, useSearchParams, Dialog.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không self-elevation hoặc bỏ Admin cuối; không đọc nội dung tài sản/duyệt danh tính thay actor; không log secret; lỗi health không đổi thành healthy/0; không lấy role từ URL.
   return (
     <WorkspaceFrame
       title={content.title}

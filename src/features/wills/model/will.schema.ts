@@ -39,7 +39,7 @@ export const allocationsArraySchema = z
     },
     {
       message: "Tổng tỷ lệ thừa kế của tất cả người thụ hưởng phải chính xác bằng 100%",
-    }
+    },
   );
 
 /**
@@ -52,9 +52,7 @@ export const affidavitProofSchema = z.object({
   videoDurationSeconds: z
     .number()
     .min(15, "Thời lượng video tuyên thệ tối thiểu phải đạt 15 giây theo quy chuẩn pháp lý"),
-  sha256Hash: z
-    .string()
-    .min(10, "Mã băm toàn vẹn SHA-256 không hợp lệ"),
+  sha256Hash: z.string().min(10, "Mã băm toàn vẹn SHA-256 không hợp lệ"),
   recordedAt: z.string().min(1, "Thiếu thời gian ghi hình"),
   videoUrl: z.string().optional(),
   isConfirmed: z.literal(true, {
@@ -97,9 +95,7 @@ export const step2AllocationSchema = z.object({
 export const createWillSchema = z.object({
   title: z.string().min(3, "Tiêu đề bản di chúc phải có ít nhất 3 ký tự"),
   declarationNotes: z.string().optional(),
-  selectedAssetIds: z
-    .array(z.string())
-    .min(1, "Cần chọn ít nhất 1 tài sản số"),
+  selectedAssetIds: z.array(z.string()).min(1, "Cần chọn ít nhất 1 tài sản số"),
   allocations: allocationsArraySchema,
   legalComplianceConfirmed: z.literal(true, {
     errorMap: () => ({ message: "Chưa cam đoan tuân thủ Điều 644 BLDS 2015" }),

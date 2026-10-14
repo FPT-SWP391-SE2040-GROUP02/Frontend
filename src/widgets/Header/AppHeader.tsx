@@ -1,15 +1,16 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { 
-  Shield, 
-  Radio, 
-  ChevronDown, 
-  Sparkles, 
-  Check, 
+import {
+  Shield,
+  Radio,
+  ChevronDown,
+  Sparkles,
+  Check,
   Scale,
   FileCheck,
   KeyRound,
-  UserCheck
+  UserCheck,
+  LogOut,
 } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import { ROLES, type Role } from "@/shared/constants/roles";
@@ -25,6 +26,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu";
+
+const HEADER_LABELS = { logout: "Đăng xuất" } as const;
 
 /**
  * @file AppHeader.tsx
@@ -91,11 +94,11 @@ export const AppHeader: React.FC = () => {
   const CurrentIcon = currentRoleMeta.icon;
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FAF9F5]/95 backdrop-blur-md border-b border-[#DCD9D0] px-4 sm:px-8 py-2.5 flex items-center justify-between shadow-[0_2px_12px_rgba(11,41,30,0.03)] transition-colors">
+    <header className="sticky top-0 z-40 bg-heritage-surface/95 backdrop-blur-md border-b border-heritage-border px-4 sm:px-6 py-3 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center shadow-[0_2px_12px_rgba(11,41,30,0.03)] transition-colors">
       {/* Cột trái: Logo & Navigation chính */}
-      <div className="flex items-center gap-6">
-        <Link 
-          to={ROUTES.HOME} 
+      <div className="flex min-w-0 flex-wrap items-center gap-4">
+        <Link
+          to={ROUTES.HOME}
           className="flex items-center gap-2.5 rounded-[14px] p-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C] focus-visible:outline-none group"
           aria-label="LegacyVault Trang Chủ"
         >
@@ -108,7 +111,10 @@ export const AppHeader: React.FC = () => {
         </Link>
 
         {/* Menu Điều hướng theo phân hệ */}
-        <nav aria-label="Main Navigation" className="hidden lg:flex items-center gap-1 text-xs">
+        <nav
+          aria-label="Main Navigation"
+          className="hidden xl:flex flex-wrap items-center gap-1 text-xs [&>a]:flex [&>a]:min-h-11 [&>a]:items-center [&>a]:rounded-lg"
+        >
           <Link
             to={ROUTES.DASHBOARD.ASSETS}
             className={`px-3 py-1.5 rounded-[12px] font-semibold transition-all ${
@@ -163,24 +169,28 @@ export const AppHeader: React.FC = () => {
       </div>
 
       {/* Cột phải: Role Switcher, Demo Mode, DMS Heartbeat & User Avatar */}
-      <div className="flex items-center gap-2.5 sm:gap-3">
+      <div className="grid min-w-0 grid-cols-5 items-center gap-2 sm:flex sm:flex-wrap sm:justify-end [&>button]:min-h-11 [&>button]:min-w-11 [&>button]:justify-center [&>button]:rounded-lg [&>button]:px-0 sm:[&>button]:px-3 [&>a]:min-h-11 [&>a]:justify-center [&>a]:rounded-lg [&>a]:px-0 sm:[&>a]:px-3">
         {/* 1. Công tắc Demo Mode (Chu kỳ 120s trình diễn) */}
         <button
           type="button"
           onClick={handleToggleDemoMode}
           className={`min-h-[40px] px-3 py-1.5 rounded-[16px] text-xs font-bold flex items-center gap-1.5 transition-all border ${
-            isDemo 
-              ? "bg-[#FFFBEB] border-[#F59E0B] text-[#B45309] shadow-xs" 
+            isDemo
+              ? "bg-[#FFFBEB] border-[#F59E0B] text-[#B45309] shadow-xs"
               : "bg-[#FAF9F5] border-[#DCD9D0] text-[#66786E] hover:border-[#A8A295]"
           }`}
           title="Bật/Tắt chế độ trình diễn hội đồng: Chu kỳ DMS 120s"
           aria-label="Toggle Demo Mode"
         >
-          <Sparkles className={`w-3.5 h-3.5 ${isDemo ? "text-[#F59E0B] animate-spin" : "text-[#A8A295]"}`} />
+          <Sparkles
+            className={`w-3.5 h-3.5 ${isDemo ? "text-[#F59E0B] animate-spin" : "text-[#A8A295]"}`}
+          />
           <span className="hidden md:inline">Demo Mode</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
-            isDemo ? "bg-[#F59E0B] text-white" : "bg-[#EFECE6] text-[#66786E]"
-          }`}>
+          <span
+            className={`hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
+              isDemo ? "bg-[#F59E0B] text-white" : "bg-[#EFECE6] text-[#66786E]"
+            }`}
+          >
             {isDemo ? "120s" : "OFF"}
           </span>
         </button>
@@ -196,47 +206,52 @@ export const AppHeader: React.FC = () => {
             <span className="hidden sm:inline">{currentRoleMeta.label}</span>
             <ChevronDown className="w-3.5 h-3.5 text-[#66786E]" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-64 bg-[#FAF9F5] border border-[#DCD9D0] shadow-lg rounded-2xl p-1.5" align="end">
+          <DropdownMenuContent
+            className="w-64 bg-[#FAF9F5] border border-[#DCD9D0] shadow-lg rounded-2xl p-1.5"
+            align="end"
+          >
             <DropdownMenuLabel className="p-2 space-y-0.5">
               <p className="text-xs font-bold text-[#0B291E]">Chuyển Ngữ Cảnh Vai Trò</p>
-              <p className="text-[10px] text-[#66786E]">Hệ thống gắn Header X-Active-Role tức thời</p>
+              <p className="text-[10px] text-[#66786E]">
+                Hệ thống gắn Header X-Active-Role tức thời
+              </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-[#EFECE6]" />
 
-            {[
-              ROLES.OWNER,
-              ROLES.BENEFICIARY,
-              ROLES.EXECUTOR,
-              ROLES.NOTARY,
-              ROLES.ADMIN,
-            ].map((roleKey) => {
-              const meta = getRoleMeta(roleKey);
-              const RoleIcon = meta.icon;
-              const isSelected = activeRole === roleKey;
+            {[ROLES.OWNER, ROLES.BENEFICIARY, ROLES.EXECUTOR, ROLES.NOTARY, ROLES.ADMIN].map(
+              (roleKey) => {
+                const meta = getRoleMeta(roleKey);
+                const RoleIcon = meta.icon;
+                const isSelected = activeRole === roleKey;
 
-              return (
-                <DropdownMenuItem
-                  key={roleKey}
-                  onClick={() => handleRoleChange(roleKey)}
-                  className={`p-2 rounded-xl cursor-pointer flex items-center justify-between transition-colors ${
-                    isSelected ? "bg-[#E5EDE8] text-[#0B291E]" : "hover:bg-[#EFECE6] text-[#14241C]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                      isSelected ? "bg-[#0B291E] text-[#B88E4C]" : "bg-[#EFECE6] text-[#66786E]"
-                    }`}>
-                      <RoleIcon className="w-3.5 h-3.5" />
+                return (
+                  <DropdownMenuItem
+                    key={roleKey}
+                    onClick={() => handleRoleChange(roleKey)}
+                    className={`p-2 rounded-xl cursor-pointer flex items-center justify-between transition-colors ${
+                      isSelected
+                        ? "bg-[#E5EDE8] text-[#0B291E]"
+                        : "hover:bg-[#EFECE6] text-[#14241C]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                          isSelected ? "bg-[#0B291E] text-[#B88E4C]" : "bg-[#EFECE6] text-[#66786E]"
+                        }`}
+                      >
+                        <RoleIcon className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold leading-tight">{meta.label}</p>
+                        <p className="text-[10px] text-[#66786E]">{meta.desc}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold leading-tight">{meta.label}</p>
-                      <p className="text-[10px] text-[#66786E]">{meta.desc}</p>
-                    </div>
-                  </div>
-                  {isSelected && <Check className="w-4 h-4 text-[#059669]" />}
-                </DropdownMenuItem>
-              );
-            })}
+                    {isSelected && <Check className="w-4 h-4 text-[#059669]" />}
+                  </DropdownMenuItem>
+                );
+              },
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -253,6 +268,14 @@ export const AppHeader: React.FC = () => {
 
         {/* 4. Avatar & Đăng xuất */}
         <UserAvatarMenu role={activeRole} />
+        <Link
+          to={ROUTES.AUTH.LOGOUT}
+          aria-label={HEADER_LABELS.logout}
+          title={HEADER_LABELS.logout}
+          className="flex size-11 shrink-0 items-center justify-center rounded-lg text-heritage-primary hover:bg-heritage-gold/10 focus-visible:outline-2 focus-visible:outline-heritage-gold"
+        >
+          <LogOut className="size-5" aria-hidden="true" />
+        </Link>
       </div>
     </header>
   );

@@ -1,3 +1,6 @@
+import { isPreviewWorkspace } from "@/shared/config/preview";
+import { APP_MESSAGES } from "@/shared/constants";
+import { Button } from "@/shared/ui";
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -44,8 +47,9 @@ export function BillingHistoryPage() {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
 
-  const { data: serverInvoices } = useInvoices();
-  const invoices = serverInvoices && serverInvoices.length > 0 ? serverInvoices : MOCK_INVOICES;
+  const preview = isPreviewWorkspace();
+  const { data: serverInvoices, isLoading, isError, refetch } = useInvoices(!preview);
+  const invoices = preview ? MOCK_INVOICES : (serverInvoices ?? []);
 
   const handleViewInvoice = (inv: Invoice) => {
     setSelectedInvoice(inv);
@@ -73,7 +77,10 @@ export function BillingHistoryPage() {
             </p>
           </div>
 
-          <Link to={ROUTES.BILLING.PLANS} className={cn(buttonVariants(), "rounded-[20px] text-xs font-[550]")}>
+          <Link
+            to={ROUTES.BILLING.PLANS}
+            className={cn(buttonVariants(), "rounded-[20px] text-xs font-[550]")}
+          >
             Nâng Cấp Gói Dịch Vụ
           </Link>
         </div>
@@ -86,10 +93,19 @@ export function BillingHistoryPage() {
             </span>
           </div>
 
-          <BillingHistoryTable
-            invoices={invoices}
-            onViewInvoice={handleViewInvoice}
-          />
+          {preview && <p role="status">{APP_MESSAGES.UI.PREVIEW}</p>}
+          {!preview && isLoading ? (
+            <p role="status">{APP_MESSAGES.UI.LOADING}</p>
+          ) : !preview && isError ? (
+            <div role="alert">
+              <p>{APP_MESSAGES.ERROR.LOAD_FAILED}</p>
+              <Button onClick={() => void refetch()}>{APP_MESSAGES.UI.RETRY}</Button>
+            </div>
+          ) : invoices.length === 0 ? (
+            <p role="status">{APP_MESSAGES.UI.EMPTY}</p>
+          ) : (
+            <BillingHistoryTable invoices={invoices} onViewInvoice={handleViewInvoice} />
+          )}
         </div>
       </div>
 

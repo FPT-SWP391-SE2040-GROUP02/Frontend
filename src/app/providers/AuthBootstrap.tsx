@@ -1,10 +1,18 @@
 import { useEffect, type ReactNode } from "react";
 import { useAppDispatch } from "@/app/store";
-import { setUser, clearCredentials } from "@/entities/user/model/authSlice";
-import { axiosClient } from "@/shared/api/axiosClient";
-import type { User } from "@/entities/user";
-import type { ApiResponse } from "@/shared/types";
+import { setUser, clearCredentials, setHydrating } from "@/entities/user/model/authSlice";
+import { cookieAuthService } from "@/features/auth/api/authService";
+import { authKeys } from "@/features/auth/model/useAuth";
+import { toAuthUserViewModel } from "@/entities/user/lib/adapters";
+import { useQueryClient } from "@tanstack/react-query";
+import { ROUTES } from "@/shared/config/routes.config";
 
+/** Session cache lifetime shared with the cookie authentication query. */
+const SESSION_BOOTSTRAP = {
+  staleTimeMs: 5 * 60 * 1000,
+};
+
+/** Application content rendered after session hydration starts. */
 interface AuthBootstrapProps {
   children: ReactNode;
 }
@@ -15,31 +23,30 @@ interface AuthBootstrapProps {
  */
 export function AuthBootstrap({ children }: AuthBootstrapProps) {
   const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (
+      import.meta.env.DEV &&
+      Object.values(ROUTES.PREVIEW).some((path) => path === window.location.pathname)
+    ) {
+      dispatch(setHydrating(false));
+      return;
+    }
     let isMounted = true;
 
+    /** Restore the validated cookie session without retrying authentication failures. */
     async function hydrateSession() {
       try {
-        const response = await axiosClient.get<ApiResponse<{ user: User }> | { user: User } | User>("/auth/session");
+        const response = await queryClient.fetchQuery({
+          queryKey: authKeys.session(),
+          queryFn: cookieAuthService.getSession,
+          staleTime: SESSION_BOOTSTRAP.staleTimeMs,
+          retry: false,
+        });
         if (!isMounted) return;
 
-        let user: User | null = null;
-        if (response && typeof response === "object") {
-          if ("data" in response && response.data && typeof response.data === "object" && "user" in response.data) {
-            user = (response.data as { user: User }).user;
-          } else if ("user" in response && (response as { user: User }).user) {
-            user = (response as { user: User }).user;
-          } else if ("id" in response && "email" in response) {
-            user = response as unknown as User;
-          }
-        }
-
-        if (user) {
-          dispatch(setUser(user));
-        } else {
-          dispatch(clearCredentials());
-        }
+        dispatch(setUser(toAuthUserViewModel(response.user)));
       } catch {
         if (isMounted) {
           dispatch(clearCredentials());
@@ -52,7 +59,7 @@ export function AuthBootstrap({ children }: AuthBootstrapProps) {
     return () => {
       isMounted = false;
     };
-  }, [dispatch]);
+  }, [dispatch, queryClient]);
 
   return <>{children}</>;
 }

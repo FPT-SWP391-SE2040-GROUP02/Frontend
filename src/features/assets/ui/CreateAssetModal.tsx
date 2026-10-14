@@ -1,17 +1,21 @@
-import React, { useState } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription, 
+import React from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { assetPreviewSchema, type AssetPreviewInput } from "../model/assetPreview.schema";
+import { APP_MESSAGES } from "@/shared/constants";
+import { Textarea } from "@/shared/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
   DialogFooter,
   Button,
-  Input 
+  Input,
 } from "@/shared/ui";
 import { Plus, Shield, Bitcoin, KeyRound, FileText } from "lucide-react";
 import { availableAssetStrategies, getAssetStrategy } from "../model/strategies/assetStrategyMap";
-import { useCreateAsset } from "../model/useAssets";
 import type { AssetType } from "../model/asset.types";
 
 /**
@@ -24,82 +28,58 @@ interface CreateAssetModalProps {
   onClose: () => void;
 }
 
-export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
-  const { mutate: createAsset, isPending } = useCreateAsset();
-
-  const [selectedType, setSelectedType] = useState<AssetType>("CRYPTO");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [specificData, setSpecificData] = useState<Record<string, unknown>>({});
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onClose }) => {
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    getValues,
+    clearErrors,
+    trigger,
+    reset,
+    formState: { errors, isSubmitSuccessful },
+  } = useForm<AssetPreviewInput>({
+    resolver: zodResolver(assetPreviewSchema),
+    mode: "onBlur",
+    reValidateMode: "onBlur",
+    defaultValues: { title: "", description: "", assetType: "CRYPTO", specificData: {} },
+  });
+  const [selectedType, specificData] = useWatch({ control, name: ["assetType", "specificData"] });
   const activeStrategy = getAssetStrategy(selectedType);
-
-  const handleTypeChange = (type: AssetType) => {
-    setSelectedType(type);
-    setSpecificData({});
-    setErrorMessage(null);
+  /** @description Đổi loại tài sản và xóa dữ liệu riêng của loại trước trong RAM. */
+  const handleTypeChange = (type: AssetType): void => {
+    setValue("assetType", type);
+    setValue("specificData", {});
+    clearErrors("specificData");
   };
-
-  const handleSpecificDataChange = (field: string, value: unknown) => {
-    setSpecificData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMessage(null);
-
-    if (!title.trim()) {
-      setErrorMessage("Vui lòng nhập tên tài sản");
-      return;
-    }
-
-    // Validate theo Strategy hiện tại
-    if (!activeStrategy.validate(specificData)) {
-      setErrorMessage("Vui lòng điền đầy đủ và chính xác các trường bắt buộc theo loại tài sản");
-      return;
-    }
-
-    createAsset(
-      {
-        title: title.trim(),
-        assetType: selectedType,
-        description: description.trim(),
-        beneficiaryIds: ["ben_default_01"],
-        shamirThreshold: 2,
-        shamirTotalShares: 3,
-        specificData,
-      },
-      {
-        onSuccess: () => {
-          onClose();
-          setTitle("");
-          setDescription("");
-          setSpecificData({});
-        },
-        onError: (err) => {
-          setErrorMessage(err.message || "Đã xảy ra lỗi khi tạo tài sản");
-        },
-      }
+  /** @description Cập nhật form state; validation chạy khi blur, không theo từng phím gõ. */
+  const handleSpecificDataChange = (field: string, value: unknown): void => {
+    setValue(
+      "specificData",
+      { ...getValues("specificData"), [field]: value },
+      { shouldDirty: true },
     );
   };
-
-  const getTypeIcon = (type: AssetType) => {
-    switch (type) {
-      case "CRYPTO":
-        return <Bitcoin className="w-4 h-4" />;
-      case "CREDENTIAL":
-        return <KeyRound className="w-4 h-4" />;
-      case "DOCUMENT":
-        return <FileText className="w-4 h-4" />;
-    }
+  /** @description Chỉ kiểm tra form preview; không gọi API hoặc mã hóa giả. */
+  const onSubmit = (): void => {
+    // TODO: [P0][ASSET-03] DEVELOPER BLUEPRINT
+    // 1. [MỤC TIÊU]: Tạo tài sản thật sau khi BE chốt DTO, quyền và cơ chế upload/content.
+    // 2. [INPUT & OUTPUT]: Form hợp lệ + packageId -> asset DTO được BE xác nhận.
+    // 3. [CÁC BƯỚC]: Chốt contract; schema/service/hooks; thay preview handler; invalidate khi server thành công.
+    // 4. [HÀM / THƯ VIỆN]: RHF/Zod, shared transport, TanStack Query.
+    // 5. [ĐIỀU KIỆN BIÊN]: Không beneficiary giả, Base64 giả mã hóa, Shamir hoặc plaintext trong storage/log.
+  };
+  /** @description Xóa dữ liệu nhạy cảm của form khi người dùng đóng modal. */
+  const handleClose = (): void => {
+    reset();
+    onClose();
   };
 
+  const typeIcons = { CRYPTO: Bitcoin, CREDENTIAL: KeyRound, DOCUMENT: FileText };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="max-w-2xl bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="pb-4 border-b border-[#E8E5DD]">
           <div className="flex items-center gap-3">
@@ -111,17 +91,30 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
                 Niêm Phong Tài Sản Số Mới
               </DialogTitle>
               <DialogDescription className="text-xs text-[#66786E]">
-                Mã hóa bảo vệ dữ liệu (AES-256-GCM) & Chỉ định trực tiếp không phần trăm (SRS 3.11.0)
+                {APP_MESSAGES.UI.PREVIEW}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
-          {errorMessage && (
-            <div className="p-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[12px] text-xs text-[#DC2626] font-medium">
-              {errorMessage}
-            </div>
+        <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-4">
+          {isSubmitSuccessful && <p role="status">{APP_MESSAGES.UI.VALID_PREVIEW}</p>}
+          {errors.title && (
+            <p id="asset-title-error" role="alert">
+              {errors.title.message}
+            </p>
+          )}
+          {errors.description && (
+            <p id="asset-description-error" role="alert">
+              {errors.description.message}
+            </p>
+          )}
+          {errors.specificData && (
+            <p id="asset-specific-error" role="alert">
+              {typeof errors.specificData.message === "string"
+                ? errors.specificData.message
+                : APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE}
+            </p>
           )}
 
           {/* Section 1: Asset Type Tabs (Strategy Selection) */}
@@ -143,19 +136,15 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
                   aria-pressed={selectedType === strat.type}
                 >
                   <span
-                    className={
-                      selectedType === strat.type ? "text-[#B88E4C]" : "text-[#66786E]"
-                    }
+                    className={selectedType === strat.type ? "text-[#B88E4C]" : "text-[#66786E]"}
                   >
-                    {getTypeIcon(strat.type)}
+                    {React.createElement(typeIcons[strat.type], { className: "w-4 h-4" })}
                   </span>
                   <span>{strat.label}</span>
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-[#66786E] mt-2 italic">
-              {activeStrategy.description}
-            </p>
+            <p className="text-[11px] text-[#66786E] mt-2 italic">{activeStrategy.description}</p>
           </div>
 
           {/* Section 2: General Info */}
@@ -167,10 +156,10 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
               <Input
                 type="text"
                 placeholder="Ví dụ: Ví Lạnh Bitcoin Gia Tộc / Tài Khoản AWS Root"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                {...register("title")}
+                aria-invalid={Boolean(errors.title)}
+                aria-describedby="asset-title-error"
                 className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[14px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
-                required
               />
             </div>
 
@@ -178,18 +167,22 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
               <label className="block text-xs font-bold text-[#14241C] mb-1.5">
                 Mô Tả / Chỉ Dẫn Cho Người Thừa Kế
               </label>
-              <textarea
+              <Textarea
                 rows={2}
                 placeholder="Ghi chú thêm về mục đích hoặc mật khẩu gợi ý..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                {...register("description")}
+                aria-invalid={Boolean(errors.description)}
+                aria-describedby="asset-description-error"
                 className="w-full p-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[14px] text-xs font-sans outline-none focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
               />
             </div>
           </div>
 
           {/* Section 3: Dynamic Fields rendered by Active Strategy */}
-          <div className="pt-2 border-t border-[#E8E5DD]">
+          <div
+            className="pt-2 border-t border-[#E8E5DD]"
+            onBlur={() => void trigger("specificData")}
+          >
             <label className="block text-xs font-bold text-[#14241C] uppercase mb-3">
               2. Dữ Liệu Bảo Mật Riêng Biệt ({activeStrategy.label})
             </label>
@@ -204,7 +197,8 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
             <div>
               <span className="font-bold block">Chính sách bàn giao tài sản (SRS 3.11.0)</span>
               <span className="text-[11px] text-[#A07839]">
-                Tài sản sẽ được tự động gom vào kho bàn giao tương ứng với tập người nhận sau khi thiết lập di sản.
+                Tài sản sẽ được tự động gom vào kho bàn giao tương ứng với tập người nhận sau khi
+                thiết lập di sản.
               </span>
             </div>
             <span className="font-mono text-xs font-bold px-2.5 py-1 bg-[#FAF9F5] border border-[#E8DCC6] rounded-[8px] text-[#B88E4C]">
@@ -216,18 +210,18 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={handleClose}
               className="w-full sm:w-auto min-h-[44px] rounded-[16px] border-[#DCD9D0] text-[#14241C] hover:bg-[#EFECE6] text-xs font-semibold px-5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             >
               Hủy bỏ
             </Button>
             <Button
               type="submit"
-              disabled={isPending}
+
               className="w-full sm:w-auto min-h-[44px] rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-6 shadow-sm flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             >
               <Plus className="w-4 h-4 text-[#B88E4C]" />
-              {isPending ? "Đang mã hóa & niêm phong..." : "Niêm Phong Tài Sản"}
+              Kiểm tra dữ liệu
             </Button>
           </DialogFooter>
         </form>
@@ -235,3 +229,7 @@ export const CreateAssetModal: React.FC<CreateAssetModalProps> = ({
     </Dialog>
   );
 };
+
+/** @description Unmount form khi đóng để xóa dữ liệu nhạy cảm khỏi phiên modal. */
+export const CreateAssetModal: React.FC<CreateAssetModalProps> = (props) =>
+  props.isOpen ? <CreateAssetModalContent {...props} /> : null;

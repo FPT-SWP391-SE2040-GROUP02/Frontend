@@ -16,14 +16,12 @@ export function CheckoutPage() {
       ? (requested as keyof typeof content.states)
       : "pending";
   const result = content.states[state];
-  // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-  // 1. [MỤC TIÊU]: Thanh toán gói bằng đơn hàng và trạng thái được xác nhận bởi backend.
-  // 2. [INPUT & OUTPUT]: planId, phiên và DTO đơn -> QR/giá/trạng thái giao dịch thực.
-  // 3. [CÁC BƯỚC]: Chốt DTO; dùng billingService/hooks; lấy giá; tạo đơn khi xác nhận;
-  //    polling trạng thái; chỉ kích hoạt gói sau xác nhận backend và invalidate cache.
-  // 4. [HÀM / THƯ VIỆN]: billingService, TanStack Query, Zod, queryKeys.
-  // 5. [ĐIỀU KIỆN BIÊN]: Đơn hết hạn, trùng giao dịch, timeout; không optimistic payment;
-  //    không lấy giá hoặc trạng thái paid từ URL; không tạo lại đơn khi chưa đối soát.
+  // TODO: [P1][BILLING-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Thay checkout mẫu bằng order/status/subscription thực.
+  // 2. [INPUT & OUTPUT]: planId + phiên -> QR/giá/hạn/trạng thái đơn được BE xác nhận.
+  // 3. [CÁC BƯỚC]: Sau BILLING-01..03 dùng service/hooks; tạo khi xác nhận; polling có terminal; chỉ hiển thị entitlement từ subscription BE; bỏ paid/amount lấy từ URL.
+  // 4. [HÀM / THƯ VIỆN]: RHF/Zod, TanStack Query, billingService/queryKeys, shared/ui.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không optimistic payment; đơn muộn/trùng/cancel/expired phải đối soát; không auto-activate kho; không poll vô hạn hoặc tạo lại đơn khi mất mạng.
   return (
     <WorkspaceFrame title={content.title} description={content.description} preview={preview}>
       {preview && (

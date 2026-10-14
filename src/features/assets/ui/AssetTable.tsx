@@ -1,15 +1,15 @@
 import React, { useState, useMemo } from "react";
-import { 
-  Lock, 
-  Trash2, 
-  Eye, 
-  AlertCircle, 
-  Plus, 
-  Bitcoin, 
-  KeyRound, 
+import {
+  Lock,
+  Trash2,
+  Eye,
+  AlertCircle,
+  Plus,
+  Bitcoin,
+  KeyRound,
   FileText,
   Search,
-  X
+  X,
 } from "lucide-react";
 import { Button, Badge, Input } from "@/shared/ui";
 import { useAssets, useDeleteAsset } from "../model/useAssets";
@@ -40,7 +40,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
   externalSearchTerm = "",
 }) => {
   const { data, isLoading, isError, refetch } = useAssets(
-    selectedType && selectedType !== "ALL" ? { assetType: selectedType } : undefined
+    selectedType && selectedType !== "ALL" ? { assetType: selectedType } : undefined,
   );
   const { mutate: deleteAsset, isPending: isDeleting } = useDeleteAsset();
 
@@ -105,8 +105,8 @@ export const AssetTable: React.FC<AssetTableProps> = ({
   // 1. Trạng thái Loading (Skeleton)
   if (isLoading) {
     return (
-      <div 
-        role="status" 
+      <div
+        role="status"
         aria-label="Đang tải danh sách tài sản"
         className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-6 space-y-4"
       >
@@ -123,7 +123,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
   // 2. Trạng thái Error
   if (isError || !data) {
     return (
-      <div 
+      <div
         role="alert"
         className="bg-[#FAF9F5] border border-[#FECACA] rounded-[24px] p-8 text-center space-y-4 shadow-sm"
       >
@@ -156,7 +156,8 @@ export const AssetTable: React.FC<AssetTableProps> = ({
         <div>
           <h3 className="text-lg font-bold text-[#14241C]">Kho Di Sản Chưa Có Tài Sản Nào</h3>
           <p className="text-xs sm:text-sm text-[#66786E] max-w-md mx-auto mt-1 leading-relaxed">
-            Hãy bắt đầu bảo vệ ví tiền mã hóa, tài khoản số hoặc tài liệu mật bằng mã hóa cấp quân sự AES-256-GCM.
+            Hãy bắt đầu bảo vệ ví tiền mã hóa, tài khoản số hoặc tài liệu mật bằng mã hóa cấp quân
+            sự AES-256-GCM.
           </p>
         </div>
         <Button
@@ -197,15 +198,20 @@ export const AssetTable: React.FC<AssetTableProps> = ({
         </div>
 
         <div className="text-xs text-[#66786E] font-medium self-end sm:self-center">
-          Hiển thị <span className="font-bold text-[#0B291E]">{filteredItems.length}</span> / {data.items.length} tài sản
+          Hiển thị <span className="font-bold text-[#0B291E]">{filteredItems.length}</span> /{" "}
+          {data.items.length} tài sản
         </div>
       </div>
 
       {/* Kết quả tìm kiếm rỗng */}
       {filteredItems.length === 0 ? (
         <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-8 text-center space-y-2">
-          <p className="text-sm font-semibold text-[#14241C]">Không tìm thấy tài sản khớp với "{effectiveSearchTerm}"</p>
-          <p className="text-xs text-[#66786E]">Vui lòng kiểm tra lại từ khóa hoặc xóa bộ lọc tìm kiếm.</p>
+          <p className="text-sm font-semibold text-[#14241C]">
+            Không tìm thấy tài sản khớp với "{effectiveSearchTerm}"
+          </p>
+          <p className="text-xs text-[#66786E]">
+            Vui lòng kiểm tra lại từ khóa hoặc xóa bộ lọc tìm kiếm.
+          </p>
           <Button
             variant="outline"
             onClick={() => setInternalSearch("")}
@@ -217,15 +223,30 @@ export const AssetTable: React.FC<AssetTableProps> = ({
       ) : (
         <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] overflow-hidden shadow-[0_4px_20px_rgba(11,41,30,0.04)]">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse" aria-label="Bảng danh sách tài sản số">
+            <table
+              className="w-full text-left border-collapse"
+              aria-label="Bảng danh sách tài sản số"
+            >
               <thead>
                 <tr className="border-b border-[#E8E5DD] bg-[#EFECE6]/70 text-[#66786E] text-[11px] font-bold uppercase tracking-wider">
-                  <th scope="col" className="py-4 px-6">Tài Sản Số</th>
-                  <th scope="col" className="py-4 px-4">Loại Tài Sản</th>
-                  <th scope="col" className="py-4 px-4">Người Thừa Kế</th>
-                  <th scope="col" className="py-4 px-4">Phân Mảnh Khóa</th>
-                  <th scope="col" className="py-4 px-4">Ngày Niêm Phong</th>
-                  <th scope="col" className="py-4 px-6 text-right">Thao Tác</th>
+                  <th scope="col" className="py-4 px-6">
+                    Tài Sản Số
+                  </th>
+                  <th scope="col" className="py-4 px-4">
+                    Loại Tài Sản
+                  </th>
+                  <th scope="col" className="py-4 px-4">
+                    Người Thừa Kế
+                  </th>
+                  <th scope="col" className="py-4 px-4">
+                    Phân Mảnh Khóa
+                  </th>
+                  <th scope="col" className="py-4 px-4">
+                    Ngày Niêm Phong
+                  </th>
+                  <th scope="col" className="py-4 px-6 text-right">
+                    Thao Tác
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E8E5DD] text-xs font-medium">
@@ -264,7 +285,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                     <td className="py-4 px-4">
                       <Badge
                         className={`px-2.5 py-1 text-[11px] font-semibold rounded-full border ${getBadgeStyle(
-                          asset.assetType
+                          asset.assetType,
                         )}`}
                       >
                         {asset.typeLabel}
@@ -273,7 +294,8 @@ export const AssetTable: React.FC<AssetTableProps> = ({
 
                     {/* Beneficiaries Count */}
                     <td className="py-4 px-4 text-[#14241C]">
-                      <span className="font-bold text-[#0B291E]">{asset.beneficiaryCount}</span> người
+                      <span className="font-bold text-[#0B291E]">{asset.beneficiaryCount}</span>{" "}
+                      người
                     </td>
 
                     {/* Shamir Threshold */}
@@ -287,10 +309,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                     </td>
 
                     {/* Actions with >= 44px Touch Target (WCAG 2.1 AA) */}
-                    <td
-                      className="py-4 px-6 text-right"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <td className="py-4 px-6 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"
@@ -333,4 +352,3 @@ export const AssetTable: React.FC<AssetTableProps> = ({
     </div>
   );
 };
-

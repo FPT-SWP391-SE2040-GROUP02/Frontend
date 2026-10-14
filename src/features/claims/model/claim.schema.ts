@@ -14,9 +14,7 @@ export const submitClaimSchema = z.object({
     .string()
     .min(3, "Số hiệu trích lục khai tử phải có ít nhất 3 ký tự")
     .max(50, "Số hiệu không được vượt quá 50 ký tự"),
-  deathCertificateIssueDate: z
-    .string()
-    .min(1, "Vui lòng chọn ngày cấp chứng từ"),
+  deathCertificateIssueDate: z.string().min(1, "Vui lòng chọn ngày cấp chứng từ"),
   deathCertificateIssuer: z
     .string()
     .min(5, "Nơi cấp chứng từ phải có ít nhất 5 ký tự (VD: UBND Phường Bến Nghé)")
@@ -25,15 +23,12 @@ export const submitClaimSchema = z.object({
     .string()
     .url("Đường dẫn tệp scan không hợp lệ")
     .min(1, "Vui lòng tải lên tệp scan chứng từ hợp pháp"),
-  deathCertScanHash: z
-    .string()
-    .length(64, "Mã băm SHA-256 của tệp scan phải đúng 64 ký tự hex"),
-  executorNotes: z
-    .string()
-    .max(500, "Ghi chú không được vượt quá 500 ký tự")
-    .optional(),
+  deathCertScanHash: z.string().length(64, "Mã băm SHA-256 của tệp scan phải đúng 64 ký tự hex"),
+  executorNotes: z.string().max(500, "Ghi chú không được vượt quá 500 ký tự").optional(),
   legalAttestationConfirmed: z.literal(true, {
-    errorMap: () => ({ message: "Bạn bắt buộc phải xác nhận cam kết 'Tôi chịu trách nhiệm trước pháp luật'" }),
+    errorMap: () => ({
+      message: "Bạn bắt buộc phải xác nhận cam kết 'Tôi chịu trách nhiệm trước pháp luật'",
+    }),
   }),
 });
 

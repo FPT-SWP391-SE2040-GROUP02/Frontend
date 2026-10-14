@@ -1,5 +1,12 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/ui/dialog";
+import { APP_MESSAGES } from "@/shared/constants";
+import { useState, useEffect, useRef } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/shared/ui/dialog";
 import { Button } from "@/shared/ui/button";
 import { Check, Copy, Loader2, QrCode, CheckCircle2 } from "lucide-react";
 import type { PaymentOrder } from "../model/billing.types";
@@ -26,12 +33,7 @@ export interface SepayQrModalProps {
  * @param {SepayQrModalProps} props Thuộc tính component
  * @returns {React.JSX.Element} Modal VietQR SePay
  */
-export function SepayQrModal({
-  order,
-  isOpen,
-  onClose,
-  onPaymentSuccess,
-}: SepayQrModalProps) {
+export function SepayQrModal({ order, isOpen, onClose, onPaymentSuccess }: SepayQrModalProps) {
   const [copiedContent, setCopiedContent] = useState<boolean>(false);
   const [copiedAmount, setCopiedAmount] = useState<boolean>(false);
   const [copiedAccount, setCopiedAccount] = useState<boolean>(false);
@@ -40,13 +42,25 @@ export function SepayQrModal({
   const timeLeft = Number.isFinite(deadline) ? Math.max(0, Math.ceil((deadline - now) / 1000)) : 0;
 
   // Polling trạng thái thanh toán từ SePay
-  const { data: paymentStatus } = usePollPaymentStatus(order?.orderId, isOpen);
+  const completedOrderId = useRef<string | null>(null);
+  const { data: paymentStatus, isError } = usePollPaymentStatus(
+    order?.orderId,
+    isOpen && order?.status === "PENDING" && timeLeft > 0,
+    order?.expiresAt,
+  );
 
   useEffect(() => {
-    if (paymentStatus?.isPaid) {
+    if (
+      isOpen &&
+      order &&
+      paymentStatus?.isPaid === true &&
+      paymentStatus.status === "PAID" &&
+      completedOrderId.current !== order.orderId
+    ) {
+      completedOrderId.current = order.orderId;
       onPaymentSuccess?.();
     }
-  }, [paymentStatus, onPaymentSuccess]);
+  }, [paymentStatus, onPaymentSuccess, isOpen, order]);
 
   // Đếm ngược 15 phút
   useEffect(() => {
@@ -79,7 +93,9 @@ export function SepayQrModal({
     }
   };
 
-  const isPaid = paymentStatus?.isPaid;
+  const isPaid = paymentStatus?.isPaid === true && paymentStatus.status === "PAID";
+  const terminalStatus = paymentStatus?.status ?? order.status;
+  const stopped = isError || timeLeft === 0 || (!isPaid && terminalStatus !== "PENDING");
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -93,7 +109,7 @@ export function SepayQrModal({
           </DialogTitle>
           <DialogDescription className="text-xs text-[var(--text-muted,#66786E)]">
             {isPaid
-              ? "Két di sản của bạn đã được nâng cấp hạn mức thành công."
+              ? "Hệ thống đã xác nhận thanh toán cho đơn hàng."
               : "Quét mã QR bằng ứng dụng ngân hàng để kích hoạt dịch vụ tự động."}
           </DialogDescription>
         </DialogHeader>
@@ -108,7 +124,10 @@ export function SepayQrModal({
                 Mã đơn hàng: #{order.orderCode}
               </p>
               <p className="text-xs text-[var(--text-muted,#66786E)]">
-                Số tiền: {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(order.amount)}
+                Số tiền:{" "}
+                {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
+                  order.amount,
+                )}
               </p>
             </div>
             <Button
@@ -119,13 +138,23 @@ export function SepayQrModal({
               Hoàn Tất & Xem Két Di Sản
             </Button>
           </div>
+        ) : stopped ? (
+          <p role="alert">
+            {isError
+              ? APP_MESSAGES.ERROR.LOAD_FAILED
+              : "Đơn hàng đã dừng hoặc hết hạn. Vui lòng kiểm tra lại trạng thái đơn hàng."}
+          </p>
         ) : (
           <div className="space-y-4 pt-2">
             {/* Khung Mã QR VietQR */}
             <div className="p-4 rounded-[12px] bg-white dark:bg-[#071710] border border-[#DDD8CB] dark:border-[#1E432F] flex flex-col items-center justify-center shadow-xs">
               <div className="relative w-48 h-48 bg-white p-2 rounded-[8px] flex items-center justify-center border border-[#EBE7DD]">
                 {order.qrCodeUrl ? (
-                  <img src={order.qrCodeUrl} alt="VietQR SePay" className="w-full h-full object-contain" />
+                  <img
+                    src={order.qrCodeUrl}
+                    alt="VietQR SePay"
+                    className="w-full h-full object-contain"
+                  />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center text-xs text-[var(--text-muted,#66786E)] gap-2">
                     <QrCode className="w-12 h-12 text-[#B88E4C]" />
@@ -164,7 +193,11 @@ export function SepayQrModal({
                     className="p-1 text-[var(--gold,#B88E4C)] hover:text-[var(--gold-hover,#A07839)]"
                     aria-label="Sao chép số tài khoản"
                   >
-                    {copiedAccount ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    {copiedAccount ? (
+                      <Check className="w-3 h-3 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -182,7 +215,9 @@ export function SepayQrModal({
                 <span className="text-[var(--text-muted,#66786E)] font-bold">Số tiền:</span>
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-sm text-[#059669]">
-                    {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(order.amount)}
+                    {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
+                      order.amount,
+                    )}
                   </span>
                   <button
                     type="button"
@@ -190,7 +225,11 @@ export function SepayQrModal({
                     className="p-1 text-[var(--gold,#B88E4C)] hover:text-[var(--gold-hover,#A07839)]"
                     aria-label="Sao chép số tiền"
                   >
-                    {copiedAmount ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    {copiedAmount ? (
+                      <Check className="w-3 h-3 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -212,7 +251,11 @@ export function SepayQrModal({
                   onClick={() => copyToClipboard(order.transferContent, "content")}
                   className="gap-1 text-[10.5px]"
                 >
-                  {copiedContent ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                  {copiedContent ? (
+                    <Check className="w-3 h-3 text-emerald-600" />
+                  ) : (
+                    <Copy className="w-3 h-3" />
+                  )}
                   <span>{copiedContent ? "Đã copy" : "Copy"}</span>
                 </Button>
               </div>

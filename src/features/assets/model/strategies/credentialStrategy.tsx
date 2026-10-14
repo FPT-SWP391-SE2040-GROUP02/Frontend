@@ -1,3 +1,4 @@
+import { ASSET_TYPE_LABELS } from "@/entities/asset/model/asset.constants";
 import React from "react";
 import type { AssetStrategy } from "./assetStrategy.interface";
 import type { EncryptedPayload } from "../asset.types";
@@ -11,7 +12,7 @@ import { Input } from "@/shared/ui";
  */
 export const credentialStrategy: AssetStrategy = {
   type: "CREDENTIAL",
-  label: "Tài Khoản Số (Credentials)",
+  label: ASSET_TYPE_LABELS.CREDENTIAL,
   description: "Mật khẩu dịch vụ đám mây, mạng xã hội, cổng giao dịch và mã phục hồi 2FA.",
   badgeBg: "bg-[#E5EDE8]",
   badgeText: "text-[#0B291E]",
@@ -21,7 +22,12 @@ export const credentialStrategy: AssetStrategy = {
   },
 
   preparePayload(data: unknown): EncryptedPayload {
-    // TODO: [Developer Step] Mã hóa AES-GCM-256 đối với data credentials
+    // TODO: [P0][ASSET-07] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Loại preparePayload mã hóa giả khỏi luồng thật cho credential.
+    // 2. [INPUT & OUTPUT]: Form đã validate -> payload theo DTO asset/content của BE, không EncryptedPayload legacy.
+    // 3. [CÁC BƯỚC]: Trước ASSET-03 chốt model mã hóa BE; migrate signature/callers; chỉ giữ strategy validate/render; cô lập btoa và sample iv/tag/salt trong preview rồi xóa khi hết caller.
+    // 4. [HÀM / THƯ VIỆN]: Zod schema hiện có, Strategy map, FormData/shared transport; AES-GCM/envelope do BE xử lý.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không triển khai Master Password/Shamir ở FE; Base64 không bảo mật; không lưu/log seed/password/plaintext vào storage; kiểm cả caller khi đổi interface.
     return {
       ciphertext: btoa(JSON.stringify(data)),
       iv: "iv_sample_credential_12bytes",

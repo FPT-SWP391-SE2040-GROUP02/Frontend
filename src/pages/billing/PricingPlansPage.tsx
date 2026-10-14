@@ -1,12 +1,12 @@
+import type { PricingPlan } from "@/features/billing/model/billing.types";
+import { APP_MESSAGES } from "@/shared/constants";
 import { useState } from "react";
 import { Sparkles, ShieldCheck, ArrowLeft, CreditCard } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonVariants } from "@/shared/ui/button";
 import { cn } from "cn";
 import { PricingCard } from "@/features/billing/ui/PricingCard";
-import { SepayQrModal } from "@/features/billing/ui/SepayQrModal";
-import type { PricingPlan, PaymentOrder } from "@/features/billing/model/billing.types";
 
 /**
  * Danh sách các gói dịch vụ chuẩn SRS 3.11.0 (Luồng 1A & 4G)
@@ -126,36 +126,20 @@ const SRS_PLANS: PricingPlan[] = [
  * @returns {React.JSX.Element} Màn hình bảng giá
  */
 export function PricingPlansPage() {
-  const [selectedCategory, setSelectedCategory] = useState<"OWNER" | "RECIPIENT">("OWNER");
-  const [selectedOrder, setSelectedOrder] = useState<PaymentOrder | null>(null);
-  const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
-
-
-  const handleSelectPlan = (plan: PricingPlan) => {
-    // Gói miễn phí không cần sinh mã QR
-    if (plan.price === 0) {
-      alert(`Bạn đang sử dụng gói ${plan.name} Miễn Phí!`);
-      return;
-    }
-
-    // Khởi tạo đơn hàng thanh toán SePay VietQR (chuẩn Napas 247)
-    const mockOrder: PaymentOrder = {
-      orderId: `ORD-${Date.now()}`,
-      orderCode: `LV${Math.floor(100000 + Math.random() * 900000)}`,
-      amount: plan.price,
-      status: "PENDING",
-      qrCodeUrl: `https://qr.sepay.vn/img?acc=0987654321&bank=MB&amount=${plan.price}&des=LV${Math.floor(100000 + Math.random() * 900000)}`,
-      accountNumber: "0987654321",
-      accountName: "CONG TY CP CONG NGHE DI SAN SO LEGACYVAULT",
-      bankCode: "MB",
-      bankName: "MBBank - Ngân hàng Quân Đội",
-      transferContent: `LV${Math.floor(100000 + Math.random() * 900000)}`,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-      createdAt: new Date().toISOString(),
-    };
-
-    setSelectedOrder(mockOrder);
-    setIsQrModalOpen(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedCategory = searchParams.get("category") === "RECIPIENT" ? "RECIPIENT" : "OWNER";
+  /** @description Giữ tab bảng giá trong URL để reload hoặc chia sẻ cùng trạng thái. */
+  const setSelectedCategory = (category: "OWNER" | "RECIPIENT"): void => {
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.set("category", category);
+      return next;
+    });
+  };
+  const [feedback, setFeedback] = useState<string | null>(null);
+  /** @description Chặn tạo QR/đơn mẫu; order và giá phải do server xác nhận. */
+  const handleSelectPlan = (_plan: PricingPlan): void => {
+    setFeedback(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
   };
 
   const displayedPlans = SRS_PLANS.filter((p) => p.category === selectedCategory);
@@ -163,6 +147,8 @@ export function PricingPlansPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-canvas,#EFECE6)] dark:bg-[#071710] text-[var(--text-main,#14241C)] dark:text-[#E5EDE8] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-10">
+        <p role="status">{APP_MESSAGES.UI.PREVIEW}</p>
+        {feedback && <p role="alert">{feedback}</p>}
         {/* Header điều hướng & Tiêu đề */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#DCD9D0] dark:border-[#163625] pb-6">
           <div className="space-y-1 text-center sm:text-left">
@@ -177,13 +163,17 @@ export function PricingPlansPage() {
               Gói Dịch Vụ & Biểu Phí Di Sản Số
             </h1>
             <p className="text-xs sm:text-sm text-[var(--text-muted,#66786E)]">
-              Mã hóa niêm phong Envelope Encryption AES-256-GCM · Thẩm định chứng tử pháp lý · Bảo mật Zero-Knowledge
+              Mã hóa niêm phong Envelope Encryption AES-256-GCM · Thẩm định chứng tử pháp lý · Bảo
+              mật Zero-Knowledge
             </p>
           </div>
 
           <Link
             to={ROUTES.BILLING.HISTORY}
-            className={cn(buttonVariants({ variant: "outline" }), "rounded-[20px] text-xs font-[550] shadow-xs shrink-0 flex items-center gap-2 px-4 py-2 whitespace-nowrap")}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "rounded-[20px] text-xs font-[550] shadow-xs shrink-0 flex items-center gap-2 px-4 py-2 whitespace-nowrap",
+            )}
           >
             <CreditCard className="w-4 h-4 text-[var(--gold,#B88E4C)] shrink-0" />
             <span className="whitespace-nowrap">Lịch Sử Hóa Đơn</span>
@@ -221,12 +211,20 @@ export function PricingPlansPage() {
         </div>
 
         {/* Lưới các gói dịch vụ Pricing Cards */}
-        <div className={`grid grid-cols-1 ${selectedCategory === "OWNER" ? "md:grid-cols-3" : "md:grid-cols-2 max-w-4xl mx-auto"} gap-6 pt-2`}>
+        <div
+          className={`grid grid-cols-1 ${selectedCategory === "OWNER" ? "md:grid-cols-3" : "md:grid-cols-2 max-w-4xl mx-auto"} gap-6 pt-2`}
+        >
           {displayedPlans.map((plan) => (
             <PricingCard
               key={plan.id}
               plan={plan}
-              billingCycle={plan.billingCycle === "365_days" ? "yearly" : plan.billingCycle === "30_days" ? "monthly" : "lifetime"}
+              billingCycle={
+                plan.billingCycle === "365_days"
+                  ? "yearly"
+                  : plan.billingCycle === "30_days"
+                    ? "monthly"
+                    : "lifetime"
+              }
               onSelectPlan={handleSelectPlan}
               isCurrentPlan={plan.id === "plan-owner-free" && selectedCategory === "OWNER"}
             />
@@ -244,7 +242,8 @@ export function PricingPlansPage() {
                 Thanh Toán Tự Động 24/7 Qua Cổng SePay VietQR
               </p>
               <p className="text-[var(--text-muted,#66786E)]">
-                Kích hoạt tài khoản tức thì sau 3 giây quét mã QR Napas 247 · Xuất hóa đơn điện tử VAT tự động.
+                Kích hoạt tài khoản tức thì sau 3 giây quét mã QR Napas 247 · Xuất hóa đơn điện tử
+                VAT tự động.
               </p>
             </div>
           </div>
@@ -260,14 +259,6 @@ export function PricingPlansPage() {
       </div>
 
       {/* Modal Quét Mã SePay VietQR */}
-      <SepayQrModal
-        order={selectedOrder}
-        isOpen={isQrModalOpen}
-        onClose={() => setIsQrModalOpen(false)}
-        onPaymentSuccess={() => {
-          alert("Chúc mừng! Đơn hàng của bạn đã thanh toán thành công qua SePay!");
-        }}
-      />
     </div>
   );
 }

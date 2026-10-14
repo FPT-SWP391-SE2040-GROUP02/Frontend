@@ -1,24 +1,18 @@
 import React, { useState } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogTitle, 
-  Button, 
-  Badge 
-} from "@/shared/ui";
-import { 
-  FileText, 
-  ShieldCheck, 
-  Calendar, 
-  Users, 
-  Hash, 
-  Printer, 
-  Copy, 
-  Check, 
-  X, 
+import { Dialog, DialogContent, DialogTitle, Button, Badge } from "@/shared/ui";
+import {
+  FileText,
+  ShieldCheck,
+  Calendar,
+  Users,
+  Hash,
+  Printer,
+  Copy,
+  Check,
+  X,
   Lock,
   Scale,
-  Video
+  Video,
 } from "lucide-react";
 import type { WillViewModel } from "../model/will.types";
 
@@ -53,7 +47,7 @@ export const WillDetailModal: React.FC<WillDetailModalProps> = ({ will, onClose 
 
   return (
     <Dialog open={Boolean(will)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent 
+      <DialogContent
         showCloseButton={false}
         className="w-[95vw] sm:w-[720px] md:w-[820px] max-w-4xl max-h-[90vh] bg-[#FAF9F5] border border-[#DCD9D0] rounded-[28px] p-0 overflow-hidden shadow-[0_24px_64px_rgba(11,41,30,0.2)] flex flex-col"
       >
@@ -102,7 +96,11 @@ export const WillDetailModal: React.FC<WillDetailModalProps> = ({ will, onClose 
                   aria-label="Sao chép mã hồ sơ di chúc"
                   className="hover:text-white transition-colors flex items-center gap-1 text-[11px] text-[#B88E4C]"
                 >
-                  {copiedId ? <Check className="w-3.5 h-3.5 text-[#059669]" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedId ? (
+                    <Check className="w-3.5 h-3.5 text-[#059669]" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
                   <span>{copiedId ? "Đã chép" : "Sao chép"}</span>
                 </button>
                 <span>•</span>
@@ -199,12 +197,8 @@ export const WillDetailModal: React.FC<WillDetailModalProps> = ({ will, onClose 
                       <td className="py-3.5 px-4 font-bold text-[#14241C]">
                         {item.beneficiaryName}
                       </td>
-                      <td className="py-3.5 px-4 text-[#66786E]">
-                        {item.relationship}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono text-[#66786E]">
-                        {item.citizenId}
-                      </td>
+                      <td className="py-3.5 px-4 text-[#66786E]">{item.relationship}</td>
+                      <td className="py-3.5 px-4 font-mono text-[#66786E]">{item.citizenId}</td>
                       <td className="py-3.5 px-4 text-right">
                         <span className="font-mono font-bold text-[#0B291E] bg-[#FBF7EE] border border-[#E8DCC6] px-3 py-1 rounded-full text-xs">
                           {item.percentage}%
@@ -245,7 +239,11 @@ export const WillDetailModal: React.FC<WillDetailModalProps> = ({ will, onClose 
                     aria-label="Sao chép mã băm video"
                     className="hover:text-[#14241C] p-1 flex items-center gap-1 text-[10px] text-[#B88E4C]"
                   >
-                    {copiedHash ? <Check className="w-3 h-3 text-[#059669]" /> : <Copy className="w-3 h-3" />}
+                    {copiedHash ? (
+                      <Check className="w-3 h-3 text-[#059669]" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
                     <span>{copiedHash ? "Đã chép" : "Chép"}</span>
                   </button>
                 </div>
@@ -269,7 +267,9 @@ export const WillDetailModal: React.FC<WillDetailModalProps> = ({ will, onClose 
           <Button
             type="button"
             variant="outline"
-            onClick={() => alert("Đang kết nối hệ thống trích xuất Chứng thư di chúc số điện tử...")}
+            onClick={() =>
+              alert("Đang kết nối hệ thống trích xuất Chứng thư di chúc số điện tử...")
+            }
             className="min-h-[44px] rounded-[16px] border-[#DCD9D0] text-xs font-semibold px-4 flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
           >
             <Printer className="w-4 h-4" />

@@ -1,12 +1,13 @@
+import { APP_MESSAGES } from "@/shared/constants";
 import React from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogDescription,
   Badge,
-  Button 
+  Button,
 } from "@/shared/ui";
 import { History, Globe, Mail, Send, Smartphone, CheckCircle, ShieldCheck } from "lucide-react";
 import { usePingHistory } from "../model/useDms";
@@ -21,11 +22,8 @@ interface DmsPingHistoryModalProps {
   onClose: () => void;
 }
 
-export const DmsPingHistoryModal: React.FC<DmsPingHistoryModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
-  const { data: history, isLoading } = usePingHistory();
+export const DmsPingHistoryModal: React.FC<DmsPingHistoryModalProps> = ({ isOpen, onClose }) => {
+  const { data: history, isLoading, isError, refetch } = usePingHistory(isOpen);
 
   const getSourceIcon = (source: string) => {
     switch (source) {
@@ -77,7 +75,12 @@ export const DmsPingHistoryModal: React.FC<DmsPingHistoryModalProps> = ({
         </DialogHeader>
 
         <div className="py-4">
-          {isLoading ? (
+          {isError ? (
+            <div role="alert">
+              <p>{APP_MESSAGES.ERROR.LOAD_FAILED}</p>
+              <Button onClick={() => void refetch()}>{APP_MESSAGES.UI.RETRY}</Button>
+            </div>
+          ) : isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-16 bg-[#EFECE6] rounded-[14px] animate-pulse" />

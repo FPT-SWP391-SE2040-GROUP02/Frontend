@@ -19,7 +19,8 @@ export const CAMERA_CHECK_CONTENT = {
     read: "Đọc thông tin",
     notice: "OCR chưa được kết nối. Chưa đọc hoặc xác minh thông tin căn cước.",
     identity: "Thông tin nhận diện",
-    identityHint: "Thông tin sẽ xuất hiện tại đây sau khi đọc giấy tờ. Hiện chưa có dữ liệu xác minh.",
+    identityHint:
+      "Thông tin sẽ xuất hiện tại đây sau khi đọc giấy tờ. Hiện chưa có dữ liệu xác minh.",
     fields: ["Số căn cước", "Họ và tên", "Nơi cư trú / địa chỉ thường trú"],
     waiting: "Chờ đọc giấy tờ",
     continue: "Tiếp tục so khớp mặt",

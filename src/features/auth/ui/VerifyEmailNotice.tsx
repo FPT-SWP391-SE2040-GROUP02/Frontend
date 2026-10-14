@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
-import { useResendEmailVerification } from "../model/useAuth";
-import { Button } from "@/shared/ui/button";
-import { Mail, ArrowLeft, RefreshCw } from "lucide-react";
-import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
+import { APP_MESSAGES } from "@/shared/constants";
+import { Button } from "@/shared/ui/button";
+import { ArrowLeft, Mail, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { getRegisterErrorMessage } from "../lib/registerFeedback";
+import { useResendEmailVerification } from "../model/useAuth";
+import { verificationEmailSchema, VERIFY_EMAIL_CONTENT } from "../model/verifyEmail.schema";
 
 /**
  * @description Thuộc tính cấu hình cho component Thông báo xác minh email.
@@ -22,12 +25,18 @@ export interface VerifyEmailNoticeProps {
  * @param {VerifyEmailNoticeProps} props Thuộc tính component
  * @returns {React.JSX.Element} Card thông báo xác minh email
  */
-export function VerifyEmailNotice({
-  email = "nam@example.com",
-  className = "",
-}: VerifyEmailNoticeProps) {
+export function VerifyEmailNotice({ email = "", className = "" }: VerifyEmailNoticeProps) {
   const [cooldown, setCooldown] = useState<number>(0);
-  const { mutate: resendEmail, isPending } = useResendEmailVerification();
+  const {
+    mutate: resendEmail,
+    isPending,
+    isError,
+    isSuccess,
+    error,
+    data: resendResult,
+  } = useResendEmailVerification();
+  const emailResult = verificationEmailSchema.safeParse(email);
+  const isEmailValid = emailResult.success;
 
   // Đếm ngược 60 giây sau khi bấm Gửi lại email
   useEffect(() => {
@@ -56,19 +65,20 @@ export function VerifyEmailNotice({
    * @description Xử lý gửi lại email kích hoạt
    */
   const handleResend = (): void => {
-    // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // 1. [MỤC TIÊU]: Gửi yêu cầu POST /api/v1/auth/email/resend-verification.
-    // 2. [INPUT]: email (string). [OUTPUT]: Thông báo thành công và bắt đầu cooldown 60s.
-    // 3. [CÁC BƯỚC]:
-    //    - Gọi resendEmail(email).
-    //    - Đặt cooldown = 60.
-    // 4. [HÀM/THƯ VIỆN]: useResendEmailVerification().
-    // 5. [ĐIỀU KIỆN BIÊN]: Ngăn spam bấm liên tục bằng cooldown.
-    if (cooldown > 0) return;
+    // TODO: [P0][AUTH-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Hoàn thiện xác minh/gửi lại email theo policy từ BE.
+    // 2. [INPUT & OUTPUT]: Token/challenge/email hợp lệ -> trạng thái bước tiếp theo và retryAt.
+    // 3. [CÁC BƯỚC]: Chốt /auth/verify-email và route resend với BE1; nối service/mutation; cooldown theo Retry-After/retryAt; chỉ báo gửi sau server xác nhận.
+    // 4. [HÀM / THƯ VIỆN]: useResendEmailVerification, Zod, TanStack Query, ROUTES.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không hardcode cooldown thành chính sách; token một lần/hết hạn; lỗi chung không lộ account; không mất invitation sau xác minh.
 
-    resendEmail(email, {
-      onSuccess: () => {
-        setCooldown(60);
+    if (isPending || cooldown > 0 || !emailResult.success) return;
+
+    resendEmail(emailResult.data, {
+      onSuccess: (result) => {
+        if (result?.success === true) {
+          setCooldown(60);
+        }
       },
     });
   };
@@ -85,18 +95,42 @@ export function VerifyEmailNotice({
         <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]">
           Hãy xác minh email của bạn
         </h1>
-        <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
-          Chúng tôi đã gửi một liên kết đến{" "}
-          <span className="font-semibold text-[#0F1A16]">{maskEmail(email)}</span>. Mở email và bấm liên kết để hoàn tất đăng nhập.
-        </p>
+        {emailResult.success ? (
+          <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
+            Kiểm tra hộp thư của{" "}
+            <span className="font-semibold text-[#0F1A16]">{maskEmail(emailResult.data)}</span> để
+            tìm liên kết xác minh nếu bạn đã yêu cầu gửi email.
+          </p>
+        ) : (
+          <p role="alert" className="text-sm text-red-700">
+            Thiếu email hợp lệ. Vui lòng quay lại đăng ký.
+          </p>
+        )}
       </div>
 
       {/* Nút gửi lại email kèm thời gian đếm ngược */}
+      {isError && (
+        <p role="alert" className="text-sm text-red-700">
+          {getRegisterErrorMessage(error)}
+        </p>
+      )}
+
+      {isSuccess && resendResult?.success === true && (
+        <p role="status" className="text-sm text-emerald-700">
+          {VERIFY_EMAIL_CONTENT.resendAccepted}
+        </p>
+      )}
+
+      {isSuccess && resendResult?.success !== true && (
+        <p role="alert" className="text-sm text-red-700">
+          {APP_MESSAGES.ERROR.DEFAULT}
+        </p>
+      )}
       <div className="space-y-3 pt-2">
         <Button
           type="button"
           onClick={handleResend}
-          disabled={cooldown > 0 || isPending}
+          disabled={!isEmailValid || cooldown > 0 || isPending}
           className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isPending ? "animate-spin" : ""}`} />
@@ -116,10 +150,7 @@ export function VerifyEmailNotice({
 
       {/* Điều hướng thay đổi email hoặc chuyển tài khoản */}
       <div className="pt-6 border-t border-[#E5E5DF] flex items-center justify-between text-xs">
-        <Link
-          to={ROUTES.AUTH.REGISTER}
-          className="text-[#6B6B66] hover:text-[#0A281E] font-medium"
-        >
+        <Link to={ROUTES.AUTH.REGISTER} className="text-[#6B6B66] hover:text-[#0A281E] font-medium">
           Đổi email
         </Link>
         <Link

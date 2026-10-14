@@ -20,7 +20,9 @@ describe("submitClaimSchema validation", () => {
   });
 
   it("should reject a claim without legal attestation", () => {
-    expect(submitClaimSchema.safeParse({ ...validData, legalAttestationConfirmed: false }).success).toBe(false);
+    expect(
+      submitClaimSchema.safeParse({ ...validData, legalAttestationConfirmed: false }).success,
+    ).toBe(false);
   });
 
   it("should fail when deathCertScanHash is not exactly 64 hex characters", () => {

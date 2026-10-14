@@ -9,11 +9,7 @@
  * - Dành cho Người thụ hưởng (Recipient): RECIPIENT_FREE, RECIPIENT_PLUS
  */
 export type PlanTier =
-  | "OWNER_FREE"
-  | "LEGACY_XS"
-  | "LEGACY_XS_MAX"
-  | "RECIPIENT_FREE"
-  | "RECIPIENT_PLUS";
+  "OWNER_FREE" | "LEGACY_XS" | "LEGACY_XS_MAX" | "RECIPIENT_FREE" | "RECIPIENT_PLUS";
 
 /**
  * Trạng thái thanh toán giao dịch VietQR SePay

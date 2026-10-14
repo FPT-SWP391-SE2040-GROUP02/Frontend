@@ -27,7 +27,7 @@ export const cryptoDataSchema = z.object({
         const words = val.trim().split(/\s+/);
         return words.length === 12 || words.length === 24;
       },
-      { message: "Cụm từ khôi phục (Seed phrase) bắt buộc phải có đúng 12 hoặc 24 từ" }
+      { message: "Cụm từ khôi phục (Seed phrase) bắt buộc phải có đúng 12 hoặc 24 từ" },
     ),
   privateKey: z.string().trim().optional(),
 });
@@ -52,9 +52,7 @@ export const credentialDataSchema = z.object({
     .string()
     .trim()
     .min(1, { message: APP_MESSAGES.VALIDATION.REQUIRED("Tên đăng nhập / Email") }),
-  password: z
-    .string()
-    .min(1, { message: APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu tài khoản") }),
+  password: z.string().min(1, { message: APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu tài khoản") }),
   twoFactorBackupCodes: z.string().trim().optional(),
 });
 

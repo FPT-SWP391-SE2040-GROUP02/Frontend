@@ -1,23 +1,17 @@
 import React, { useState } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogTitle, 
-  Button,
-  Badge 
-} from "@/shared/ui";
-import { 
-  ShieldCheck, 
-  Lock, 
-  Calendar, 
-  Users, 
-  Hash, 
-  Copy, 
-  Check, 
-  X, 
-  KeyRound, 
-  FileText, 
-  Bitcoin 
+import { Dialog, DialogContent, DialogTitle, Button, Badge } from "@/shared/ui";
+import {
+  ShieldCheck,
+  Lock,
+  Calendar,
+  Users,
+  Hash,
+  Copy,
+  Check,
+  X,
+  KeyRound,
+  FileText,
+  Bitcoin,
 } from "lucide-react";
 import { getAssetStrategy } from "../model/strategies/assetStrategyMap";
 import type { AssetViewModel, AssetType } from "../model/asset.types";
@@ -33,10 +27,7 @@ interface AssetDetailModalProps {
   onClose: () => void;
 }
 
-export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
-  asset,
-  onClose,
-}) => {
+export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClose }) => {
   const [copiedId, setCopiedId] = useState(false);
 
   if (!asset) return null;
@@ -64,7 +55,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
 
   return (
     <Dialog open={Boolean(asset)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent 
+      <DialogContent
         showCloseButton={false}
         className="w-[95vw] sm:w-[720px] md:w-[820px] max-w-4xl max-h-[90vh] bg-[#FAF9F5] border border-[#DCD9D0] rounded-[28px] p-0 overflow-hidden shadow-[0_24px_64px_rgba(11,41,30,0.2)] flex flex-col"
       >
@@ -107,7 +98,11 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
                   aria-label="Sao chép ID tài sản"
                   className="hover:text-white transition-colors flex items-center gap-1 text-[11px] text-[#B88E4C]"
                 >
-                  {copiedId ? <Check className="w-3.5 h-3.5 text-[#059669]" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedId ? (
+                    <Check className="w-3.5 h-3.5 text-[#059669]" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
                   <span>{copiedId ? "Đã chép" : "Sao chép"}</span>
                 </button>
               </div>
@@ -197,7 +192,9 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
             <ShieldCheck className="w-5 h-5 text-[#059669] shrink-0 mt-0.5" />
             <div className="leading-relaxed">
               <strong className="font-bold block">Bảo Mật Zero-Knowledge Client-Side:</strong>
-              Dữ liệu mật mã trên chỉ được giải mã tạm thời tại bộ nhớ RAM trên máy tính của bạn và sẽ tự động giải phóng ngay khi đóng cửa sổ này. Máy chủ máy chủ không lưu giữ khóa giải mã thô.
+              Dữ liệu mật mã trên chỉ được giải mã tạm thời tại bộ nhớ RAM trên máy tính của bạn và
+              sẽ tự động giải phóng ngay khi đóng cửa sổ này. Máy chủ máy chủ không lưu giữ khóa
+              giải mã thô.
             </div>
           </div>
         </div>

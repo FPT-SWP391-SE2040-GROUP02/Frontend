@@ -7,6 +7,8 @@ export const ROLES = {
   ADMIN: "ADMIN",
   /** Chủ sở hữu két di sản số (Vault Owner): Toàn quyền cấu hình tài sản & điểm danh DMS */
   OWNER: "OWNER",
+  /** Vai trò xác minh hệ thống do backend cấp; không tự đổi thành NOTARY. */
+  VERIFIER: "VERIFIER",
   /** Người giám hộ di sản (Digital Executor): Quản lý hồ sơ mở kho & nộp giấy chứng tử */
   EXECUTOR: "EXECUTOR",
   /** Người thụ hưởng (Beneficiary): eKYC & nhận tài sản thừa kế */

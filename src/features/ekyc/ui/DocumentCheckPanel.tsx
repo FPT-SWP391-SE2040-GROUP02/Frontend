@@ -23,14 +23,12 @@ export function DocumentCheckPanel() {
     setError(valid ? "" : content.invalid);
     setNotice(false);
   }
-  // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-  // 1. [MỤC TIÊU]: Đọc giấy tờ theo phiên eKYC, cho người dùng đối chiếu dữ liệu trước khi tiếp tục.
-  // 2. [INPUT & OUTPUT]: Ảnh hai mặt và phiên hợp lệ -> DTO OCR cùng trạng thái xác minh từ backend.
-  // 3. [CÁC BƯỚC]: Chốt DTO; tạo service và Query hooks; tải ảnh khi người dùng xác nhận;
-  //    hiển thị loading/error/empty/success; đối chiếu kết quả rồi chuyển bước so khớp.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, React Hook Form, Zod.
-  // 5. [ĐIỀU KIỆN BIÊN]: Ảnh mờ/sai mặt, OCR thiếu, timeout, phiên hết hạn; không lưu ảnh
-  //    hoặc thông tin định danh vào storage/log; hủy dữ liệu khi rời phiên.
+  // TODO: [P1][EKYC-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+  // 1. [MỤC TIÊU]: Upload và hiển thị OCR giấy tờ đúng phiên eKYC.
+  // 2. [INPUT & OUTPUT]: sessionId + ảnh FRONT/BACK -> DTO chất lượng/OCR/trạng thái BE.
+  // 3. [CÁC BƯỚC]: Sau EKYC-01 chốt multipart /ekyc/sessions/{id}/document; model/schema -> service -> hooks; gửi khi xác nhận; UI bốn trạng thái.
+  // 4. [HÀM / THƯ VIỆN]: FormData/shared transport, RHF/Zod, TanStack Query.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Sai mặt/ảnh mờ/thiếu OCR/timeout/expired; purpose OWNER_ENROLLMENT/BENEFICIARY_CLAIM/OWNER_ALIVE phải chốt enum; không lưu ảnh vào storage/log.
   return (
     <div className="grid items-start gap-6 xl:grid-cols-2">
       <section

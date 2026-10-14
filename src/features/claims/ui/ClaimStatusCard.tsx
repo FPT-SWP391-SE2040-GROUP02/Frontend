@@ -66,15 +66,21 @@ export const ClaimStatusCard: React.FC<ClaimStatusCardProps> = ({ claim }) => {
         <div>
           <span className="text-[#66786E] block text-[11px]">Số Hiệu Chứng Từ:</span>
           <span className="font-bold text-[#14241C]">{claim.deathCertificateNumber}</span>
-          <span className="text-[#66786E] block text-[10px]">Cấp ngày: {claim.deathCertificateIssueDate}</span>
+          <span className="text-[#66786E] block text-[10px]">
+            Cấp ngày: {claim.deathCertificateIssueDate}
+          </span>
         </div>
       </div>
 
       {/* Thông tin thẩm định của Công chứng viên */}
       {claim.notaryNotes && (
-        <div className={`p-3 rounded-xl text-xs space-y-1 ${
-          claim.claimStatus === "REJECTED" ? "bg-red-50 text-red-800 border border-red-200" : "bg-[#E5EDE8] text-[#0B291E]"
-        }`}>
+        <div
+          className={`p-3 rounded-xl text-xs space-y-1 ${
+            claim.claimStatus === "REJECTED"
+              ? "bg-red-50 text-red-800 border border-red-200"
+              : "bg-[#E5EDE8] text-[#0B291E]"
+          }`}
+        >
           <div className="flex items-center gap-1.5 font-bold">
             <ShieldCheck className="w-4 h-4 text-[#B88E4C]" />
             <span>Nhận xét của Công chứng viên ({claim.reviewedByNotaryName || "Notary"}):</span>

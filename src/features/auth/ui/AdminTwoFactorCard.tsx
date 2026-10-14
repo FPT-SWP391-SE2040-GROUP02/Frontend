@@ -22,10 +22,7 @@ export interface AdminTwoFactorCardProps {
  * @param {AdminTwoFactorCardProps} props Thuộc tính component
  * @returns {React.JSX.Element} Card xác thực 2 bước
  */
-export function AdminTwoFactorCard({
-  onSuccess,
-  className = "",
-}: AdminTwoFactorCardProps) {
+export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactorCardProps) {
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
@@ -85,14 +82,12 @@ export function AdminTwoFactorCard({
     const code = digits.join("");
     if (code.length !== 6) return;
 
-    // TODO: [BẢN THIẾT KẾ THỰC THI - DEVELOPER BLUEPRINT]
-    // 1. [MỤC TIÊU]: Gọi API POST /api/v1/auth/2fa/verify-totp để xác thực mã TOTP.
-    // 2. [INPUT]: code (6 số). [OUTPUT]: Cấp full access token cho Admin.
-    // 3. [CÁC BƯỚC]:
-    //    - Gọi verify2Fa({ code }).
-    //    - onSuccess: Gọi onSuccess callback hoặc điều hướng sang /admin.
-    // 4. [HÀM/THƯ VIỆN]: useTwoFactorVerify(), navigate(ROUTES.ADMIN.ROOT).
-    // 5. [ĐIỀU KIỆN BIÊN]: Xóa trống 6 ô nếu mã sai để người dùng nhập lại.
+    // TODO: [P0][AUTH-07] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
+    // 1. [MỤC TIÊU]: Hoàn thiện challenge TOTP Admin trước khi cấp phiên đầy đủ.
+    // 2. [INPUT & OUTPUT]: challengeId + code giữ số 0 đầu -> credential hoặc retry/expiry từ BE.
+    // 3. [CÁC BƯỚC]: Chốt POST /auth/2fa/verify; dùng RHF/Zod; gửi challenge đúng phiên; validate response; cập nhật RAM/Redux; điều hướng khi server cho phép.
+    // 4. [HÀM / THƯ VIỆN]: useTwoFactorVerify, React Hook Form, Zod, accessTokenSchema, ROUTES.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không suy ra challengeId từ email; hạn/lượt thử/replay do BE; paste ngắn phải xóa ô cũ; không cấp quyền Admin chỉ từ UI.
     verify2Fa(
       { code },
       {
@@ -107,7 +102,7 @@ export function AdminTwoFactorCard({
           setDigits(["", "", "", "", "", ""]);
           inputRefs.current[0]?.focus();
         },
-      }
+      },
     );
   };
 
@@ -121,7 +116,8 @@ export function AdminTwoFactorCard({
           Xác thực hai bước
         </h1>
         <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
-          Mở ứng dụng xác thực (Google Authenticator / Authy) và nhập mã 6 chữ số hiện trên màn hình.
+          Mở ứng dụng xác thực (Google Authenticator / Authy) và nhập mã 6 chữ số hiện trên màn
+          hình.
         </p>
       </div>
 

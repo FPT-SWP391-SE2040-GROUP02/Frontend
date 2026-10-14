@@ -31,9 +31,7 @@ export const AssetStatsWidget: React.FC = () => {
             Tổng Tài Sản Số Đã Niêm Phong
           </span>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-3xl font-black text-[#0B291E]">
-              {stats.totalAssets}
-            </span>
+            <span className="text-3xl font-black text-[#0B291E]">{stats.totalAssets}</span>
             <span className="text-xs font-semibold text-[#059669] bg-[#E5EDE8] px-2 py-0.5 rounded-full">
               AES-256-GCM
             </span>
@@ -76,9 +74,7 @@ export const AssetStatsWidget: React.FC = () => {
             <span className="text-3xl font-black text-[#B88E4C]">
               {stats.assignedBeneficiariesCount}
             </span>
-            <span className="text-xs font-semibold text-[#14241C]">
-              người thừa kế hợp pháp
-            </span>
+            <span className="text-xs font-semibold text-[#14241C]">người thừa kế hợp pháp</span>
           </div>
         </div>
         <div className="w-12 h-12 rounded-[16px] bg-[#FBF7EE] border border-[#E8DCC6] flex items-center justify-center text-[#B88E4C]">
