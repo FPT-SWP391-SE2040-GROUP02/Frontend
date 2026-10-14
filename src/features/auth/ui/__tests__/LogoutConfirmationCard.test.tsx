@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -10,12 +10,12 @@ import { STATUS } from "@/shared/constants";
 import { ROLES } from "@/shared/constants/roles";
 import { ROUTES } from "@/shared/config/routes.config";
 import { accessTokenMemory } from "@/shared/api/accessToken";
-import { cookieAuthService as authService } from "../../api/authService";
+import { sessionAuthService as authService } from "../../api/authService";
 import { LogoutConfirmationCard } from "../LogoutConfirmationCard";
 import { LOGOUT_CONTENT, LOGOUT_ROLE_LABELS } from "../../model/logout.content";
 
 vi.mock("../../api/authService", () => ({
-  cookieAuthService: { logout: vi.fn() },
+  sessionAuthService: { logout: vi.fn() },
   authService: {},
 }));
 
@@ -100,7 +100,12 @@ describe("LogoutConfirmationCard", () => {
   });
 
   it("waits for server confirmation and prevents duplicate clicks", async () => {
-    vi.mocked(authService.logout).mockReturnValue(new Promise<void>(() => {}));
+    let resolveLogout!: () => void;
+    vi.mocked(authService.logout).mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveLogout = resolve;
+      }),
+    );
     const { store, client } = setup();
     fireEvent.click(screen.getByRole("button", { name: "Đăng xuất" }));
     const pendingButton = await screen.findByRole("button", { name: "Đang xử lý..." });
@@ -111,6 +116,9 @@ describe("LogoutConfirmationCard", () => {
     expect(store.getState().auth.isAuthenticated).toBe(true);
     expect(accessTokenMemory.get()).toBe("test-access-token");
     expect(screen.queryByText("Logout confirmed")).not.toBeInTheDocument();
+    await act(async () => {
+      resolveLogout();
+    });
     client.clear();
   });
 

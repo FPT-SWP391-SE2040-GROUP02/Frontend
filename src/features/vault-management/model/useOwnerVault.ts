@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { BackendPageRequest } from "@/shared/types/backend";
+import type { PaginationParams } from "@/shared/types";
 import type {
   CreatePackageRequest,
   UpdatePackageRequest,
@@ -9,14 +9,8 @@ import { isAxiosError } from "axios";
 import { z } from "zod";
 import { HTTP_STATUS } from "@/shared/constants";
 
-/** Lỗi chưa có kho theo snapshot BE; khác lỗi route 404 hoặc tài nguyên khác. */
 const vaultMissingProblemSchema = z.object({ code: z.literal("VAULT_NOT_FOUND") });
-
-/**
- * @description Nhận diện phản hồi chưa tạo kho mà không coi mọi lỗi 404 là trạng thái rỗng.
- * @param error Lỗi transport chưa xác định.
- * @returns True chỉ khi HTTP 404 đi cùng code VAULT_NOT_FOUND của BE.
- */
+/** Nhận diện chưa có kho; 404 route sai không được coi là empty. */
 export function isOwnerVaultMissing(error: unknown): boolean {
   return (
     isAxiosError<unknown>(error) &&
@@ -25,19 +19,15 @@ export function isOwnerVaultMissing(error: unknown): boolean {
   );
 }
 
-/** Cache keys riêng cho dữ liệu Owner; cần xóa cache riêng tư khi đổi account/logout. */
+/** Cache riêng theo kho; auth transitions hủy và xóa dữ liệu khi đổi identity. */
 export const ownerVaultKeys = {
-  /** Prefix dùng invalidate cả kho và gói sau mutation thành công. */
   all: ["owner-vault"] as const,
-  /** Kho của user đang đăng nhập. */
   mine: ["owner-vault", "mine"] as const,
-  /** Danh sách gói, phân biệt theo query wire. */
-  packages: (params?: BackendPageRequest) => ["owner-vault", "packages", params ?? {}] as const,
-  /** Chi tiết gói. */
-  package: (id: string) => ["owner-vault", "package", id] as const,
+  packages: (vaultId: string, params?: PaginationParams) =>
+    ["owner-vault", vaultId, "containers", params ?? {}] as const,
+  package: (vaultId: string, id: string) => ["owner-vault", vaultId, "container", id] as const,
 };
-
-/** Đọc kho sau khi session sẵn sàng; caller phải truyền cờ xác thực. */
+/** Chỉ đọc khi caller xác nhận session sẵn sàng. */
 export function useOwnerVault(enabled: boolean) {
   return useQuery({
     queryKey: ownerVaultKeys.mine,
@@ -46,76 +36,73 @@ export function useOwnerVault(enabled: boolean) {
     retry: false,
   });
 }
-
-/** Đọc gói và meta; không tự suy luận pageIndex hoặc unwrap thêm một cấp data. */
-export function useOwnerPackages(enabled: boolean, params?: BackendPageRequest) {
+/** Không gửi request container khi chưa biết vaultId. */
+export function useOwnerPackages(vaultId: string, enabled: boolean, params?: PaginationParams) {
   return useQuery({
-    queryKey: ownerVaultKeys.packages(params),
-    queryFn: ({ signal }) => ownerVaultService.listPackages(params, signal),
-    enabled,
+    queryKey: ownerVaultKeys.packages(vaultId, params),
+    queryFn: ({ signal }) => ownerVaultService.listPackages(vaultId, params, signal),
+    enabled: enabled && Boolean(vaultId),
+    retry: false,
   });
 }
-
-/** Đọc gói khi caller đã có session và GUID; ownership vẫn do BE kiểm tra. */
-export function useOwnerPackage(id: string, enabled: boolean) {
+/** Đọc gói trong scope kho; ownership vẫn do Backend kiểm tra. */
+export function useOwnerPackage(vaultId: string, id: string, enabled: boolean) {
   return useQuery({
-    queryKey: ownerVaultKeys.package(id),
-    queryFn: () => ownerVaultService.getPackage(id),
-    enabled: enabled && Boolean(id),
+    queryKey: ownerVaultKeys.package(vaultId, id),
+    queryFn: ({ signal }) => ownerVaultService.getPackage(vaultId, id, signal),
+    enabled: enabled && Boolean(vaultId) && Boolean(id),
+    retry: false,
   });
 }
-
-/** Tạo kho và làm mới cache Owner sau response thành công. */
+/** Tạo kho; không retry mutation. */
 export function useCreateOwnerVault() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: ownerVaultService.createMine,
+    mutationFn: () => ownerVaultService.createMine(),
+    retry: false,
+    onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
+  });
+}
+/** Transport tạo gói; UI submit nghiệp vụ vẫn scaffold. */
+export function useCreateOwnerPackage(vaultId: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreatePackageRequest) =>
+      ownerVaultService.createPackage(vaultId, payload),
+    retry: false,
+    onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
+  });
+}
+/** PUT giữ etag từ lần đọc; 409 cần tải lại và người dùng quyết định. */
+export function useUpdateOwnerPackage(vaultId: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, request }: { id: string; request: UpdatePackageRequest }) =>
+      ownerVaultService.updatePackage(vaultId, id, request),
+    retry: false,
+    onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
+  });
+}
+/** Lưu trữ gói; confirmation không được tự bật khi server trả 409. */
+export function useArchiveOwnerPackage(vaultId: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      confirmPlanDeactivation = false,
+    }: {
+      id: string;
+      confirmPlanDeactivation?: boolean;
+    }) => ownerVaultService.archivePackage(vaultId, id, confirmPlanDeactivation),
+    retry: false,
     onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
   });
 }
 
-/** Tạo gói; chưa triển khai form submit/optimistic business logic. */
-export function useCreateOwnerPackage() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: CreatePackageRequest) => ownerVaultService.createPackage(payload),
-    onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
-  });
-}
-
-/** Input mutation sửa gói; request giữ đủ name và description muốn lưu. */
-export interface UpdateOwnerPackageInput {
-  /** GUID gói cần sửa. */
-  id: string;
-  /** Payload PATCH theo DTO BE. */
-  request: UpdatePackageRequest;
-}
-
-/** Sửa gói và làm mới list/detail/kho sau thành công. */
-export function useUpdateOwnerPackage() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, request }: UpdateOwnerPackageInput) =>
-      ownerVaultService.updatePackage(id, request),
-    onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
-  });
-}
-
-/** Xóa gói; dọn detail đã xóa trước khi invalidate danh sách/kho. */
-export function useDeleteOwnerPackage() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => ownerVaultService.deletePackage(id),
-    onSuccess: (_result, id) => {
-      client.removeQueries({ queryKey: ownerVaultKeys.package(id), exact: true });
-      return client.invalidateQueries({ queryKey: ownerVaultKeys.all });
-    },
-  });
-}
-
-// TODO: [P1][VAULT-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-// 1. [MỤC TIÊU]: Nối form kho/gói vào hooks đã có và chốt điều kiện kích hoạt.
-// 2. [INPUT & OUTPUT]: Form + phiên -> DTO kho/gói hoặc field/toast error thật.
-// 3. [CÁC BƯỚC]: Sau AUTH-02 hoàn thiện UI RHF/Zod; gọi hooks CRUD; disable pending; invalidate query theo kho; nối activate chỉ khi BE hoàn thiện blockedReasons/guards.
-// 4. [HÀM / THƯ VIỆN]: useOwnerVault hooks, React Hook Form, zodResolver, shared/ui, package schema.
-// 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: 401/403/404/409/422, description null, stale version; đổi account/logout xóa cache Owner; UI role không cấp quyền; không auto-activate sau payment.
+// TODO: [P1][VAULT-01] DEVELOPER BLUEPRINT
+// 1. Mục tiêu: nối submit kho/container khi được phép implementation nghiệp vụ.
+// 2. Input/output: vaultId + form/schema + etag -> DTO raw hoặc lỗi giữ nguyên.
+// 3. Bước: RHF/Zod -> hook -> disable pending -> success thật -> invalidate; 409 tải lại,
+//    confirmation tác động kế hoạch chỉ gửi khi người dùng đồng ý.
+// 4. API/thư viện: /vaults, /vaults/{vaultId}/containers, Query, RHF, Zod.
+// 5. Biên/lỗi: 401/403/404/409; không auto-activate; không optimistic; đổi identity clear cache.

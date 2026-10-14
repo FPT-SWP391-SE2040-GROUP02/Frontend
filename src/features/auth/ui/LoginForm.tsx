@@ -10,6 +10,7 @@ import { getLoginErrorMessage, getLoginRedirect } from "../lib/loginFeedback";
 import { loginSchema, type LoginInput } from "../model/auth.schema";
 import type { InvitationContext } from "../model/auth.types";
 import { useLogin } from "../model/useAuth";
+import { ROLES } from "@/shared/constants/roles";
 import { APP_MESSAGES } from "@/shared/constants";
 
 /**
@@ -65,16 +66,26 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
     // TODO: [P0][AUTH-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
     // 1. [MỤC TIÊU]: Nối đăng nhập thật và trạng thái khóa/lượt thử do BE xác nhận.
     // 2. [INPUT & OUTPUT]: LoginInput -> credential đã validate, challenge/email pending hoặc lỗi BE.
-    // 3. [CÁC BƯỚC]: Giữ POST /auth/login cookie hiện có; chốt DTO challenge/email pending trước khi nối nhánh mới; chỉ điều hướng sau bước xác thực đầy đủ.
-    // 4. [HÀM / THƯ VIỆN]: useLogin, cookieAuthService, React Hook Form/Zod, adapter User, ROUTES.
+    // 3. [CÁC BƯỚC]: Dùng POST /auth/login raw Bearer RAM hiện có; chốt DTO challenge/email pending trước khi nối nhánh mới; chỉ điều hướng sau bước xác thực đầy đủ.
+    // 4. [HÀM / THƯ VIỆN]: useLogin, sessionAuthService, React Hook Form/Zod, adapter User, ROUTES.
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lượt thử/unlockAt/Retry-After do server trả; lỗi mạng/500 không giảm lượt; không tự khóa 15 phút; validate return URL nội bộ và giữ invitation an toàn.
     if (isPending || typeof data.email !== "string" || typeof data.password !== "string") return;
 
     login(
       { email: data.email, password: data.password, rememberMe: data.rememberMe },
       {
-        onSuccess: () => {
-          navigate(redirectUrl);
+        onSuccess: ({ user }) => {
+          if (!user.emailVerified) {
+            navigate(
+              `${ROUTES.AUTH.VERIFY_EMAIL}?${new URLSearchParams({ email: user.email, redirect: redirectUrl })}`,
+            );
+          } else if (!searchParams.get("redirect") && user.role === ROLES.ADMIN) {
+            navigate(ROUTES.ADMIN.ROOT);
+          } else if (!searchParams.get("redirect") && user.role === ROLES.VERIFIER) {
+            navigate(ROUTES.NOTARY.WORKSPACE);
+          } else {
+            navigate(redirectUrl);
+          }
         },
       },
     );

@@ -12,10 +12,11 @@ const user: AuthUserDto = {
   role: AUTH_SYSTEM_ROLES.VERIFIER,
   status: AUTH_USER_STATUSES.ACTIVE,
   createdAt: "2026-10-12T00:00:00Z",
-  updatedAt: null,
+  emailVerified: true,
+  hasPassword: true,
 };
 
-describe("cookie auth user adapter", () => {
+describe("Backend raw user adapter", () => {
   it("preserves the system role without granting NOTARY or OWNER membership", () => {
     const mapped = toAuthUserViewModel(user);
     expect(mapped.role).toBe(ROLES.VERIFIER);
@@ -37,7 +38,8 @@ describe("cookie auth user adapter", () => {
       ...publicUser,
       ...{ passwordHash: "must-not-propagate" },
     });
-    expect(mapped).toEqual(publicUser);
+    expect(mapped).toEqual({ ...user, phone: "0900000000" });
+    expect(mapped).not.toHaveProperty("updatedAt");
     expect(mapped).not.toHaveProperty("passwordHash");
   });
 });

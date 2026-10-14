@@ -1,4 +1,9 @@
-import { createBaseService } from "@/shared/api/baseService";
+import { APP_MESSAGES } from "@/shared/constants";
+import {
+  googleLoginRequestSchema,
+  googleLinkRequestSchema,
+  googleLoginResponseSchema,
+} from "../model/googleAuth.schema";
 import type {
   AuthSession,
   RegisterRequest,
@@ -7,6 +12,8 @@ import type {
   LinkGoogleRequest,
   TwoFactorVerifyRequest,
 } from "../model/auth.types";
+import { backendUserResponseSchema } from "@/entities/user/model/backendUser.schema";
+import { emailVerificationTokenSchema } from "../model/verifyEmail.schema";
 import { axiosClient } from "@/shared/api/axiosClient";
 import {
   authCsrfTokenResponseSchema,
@@ -20,7 +27,7 @@ import type {
   CurrentSessionDto,
 } from "@/entities/user/model/authContract.types";
 
-/** Confirmed endpoints from the current C# AuthController. */
+/** Endpoints từ Backend/AuthController tại commit 838ebe1. */
 const COOKIE_AUTH_ENDPOINTS = {
   CSRF: "/auth/csrf",
   LOGIN: "/auth/login",
@@ -35,12 +42,12 @@ const CSRF_HEADER = "X-CSRF-Token";
 /** Acquires fresh identity-bound proof in local RAM; acquisition failure blocks the POST. */
 async function getCsrfConfig(): Promise<{ headers: Record<string, string> }> {
   const body = await axiosClient.get<unknown, unknown>(COOKIE_AUTH_ENDPOINTS.CSRF);
-  const { requestToken } = authCsrfTokenResponseSchema.parse(body).data;
+  const { requestToken } = authCsrfTokenResponseSchema.parse(body);
   return { headers: { [CSRF_HEADER]: requestToken } };
 }
 
-/** Confirmed cookie transport for login, refresh, session and logout. */
-export const cookieAuthService = {
+/** Transport Bearer RAM + refresh cookie; caller phối hợp auth transitions. */
+export const sessionAuthService = {
   /** Posts only the C# login fields; validates the full body before unwrapping data. */
   async login(request: AuthLoginRequestDto): Promise<AuthSessionDto> {
     const config = await getCsrfConfig();
@@ -49,10 +56,10 @@ export const cookieAuthService = {
       { email: request.email, password: request.password, rememberMe: request.rememberMe },
       config,
     );
-    return authSessionResponseSchema.parse(body).data;
+    return authSessionResponseSchema.parse(body);
   },
 
-  /** Rotates HttpOnly cookies; JavaScript never receives or reads either bearer secret. */
+  /** Xoay refresh cookie HttpOnly và nhận access token raw; chỉ giữ token trong RAM. */
   async refresh(): Promise<AuthSessionDto> {
     const config = await getCsrfConfig();
     const body = await axiosClient.post<unknown, unknown>(
@@ -60,13 +67,13 @@ export const cookieAuthService = {
       undefined,
       config,
     );
-    return authSessionResponseSchema.parse(body).data;
+    return authSessionResponseSchema.parse(body);
   },
 
-  /** Reads the distinct current-session response through the shared credentialed client. */
+  /** Đọc raw UserResponse bằng Bearer từ shared RAM interceptor. */
   async getSession(): Promise<CurrentSessionDto> {
     const body = await axiosClient.get<unknown, unknown>(COOKIE_AUTH_ENDPOINTS.SESSION);
-    return currentSessionResponseSchema.parse(body).data;
+    return currentSessionResponseSchema.parse(body);
   },
 
   /** Sends only the confirmed optional logout body; the backend clears HttpOnly cookies. */
@@ -80,24 +87,35 @@ export const cookieAuthService = {
   },
 };
 
-const baseAuthService = createBaseService<AuthSession>({
-  endpoint: "/auth",
-});
-
 /**
  * @description Dịch vụ gọi API xác thực và phân quyền (Authentication API Service).
  */
 export const authService = {
-  ...baseAuthService,
+  /**
+   * @description Đăng ký theo DTO Backend; 202 không body chỉ xác nhận tiếp nhận, chưa cấp phiên.
+   * @param data Bốn trường của RegisterRequest C#; không gửi role/phone từ client.
+   * @returns Promise hoàn thành khi HTTP thành công; lỗi giữ nguyên để UI xử lý.
+   */
+  async register(data: RegisterRequest): Promise<void> {
+    await axiosClient.post<unknown, unknown>("/auth/register", {
+      email: data.email,
+      password: data.password,
+      confirmPassword: data.confirmPassword,
+      fullName: data.fullName,
+    });
+  },
 
   /**
-   * @description Đăng ký tài khoản người dùng mới
-   * @param {RegisterRequest} data Thông tin đăng ký
-   * @returns {Promise<AuthSession>} Kết quả phiên đăng ký
+   * @description Contract xác minh token; response là UserResponse công khai, không phải session.
+   * @param token Token opaque từ liên kết email; giữ nguyên bytes và không ghi log/storage.
+   * @returns User đã validate; không tự đăng nhập hoặc cấp quyền từ kết quả này.
    */
-  async register(data: RegisterRequest): Promise<AuthSession> {
-    const response = await axiosClient.post<AuthSession>("/auth/register", data);
-    return response.data;
+  async verifyEmail(token: string) {
+    const requestToken = emailVerificationTokenSchema.parse(token);
+    const body = await axiosClient.post<unknown, unknown>("/auth/verify-email", {
+      token: requestToken,
+    });
+    return backendUserResponseSchema.parse(body);
   },
 
   /**
@@ -105,18 +123,16 @@ export const authService = {
    * @param {PasskeyLoginRequest} payload Dữ liệu xác thực sinh trắc học
    * @returns {Promise<AuthSession>}
    */
-  async loginWithPasskey(payload: PasskeyLoginRequest): Promise<AuthSession> {
-    const response = await axiosClient.post<AuthSession>("/auth/passkey/verify", payload);
-    return response.data;
+  async loginWithPasskey(_payload: PasskeyLoginRequest): Promise<AuthSession> {
+    throw new Error(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
   },
 
   /**
    * @description Xác thực mã OTP
    * @param {OtpVerificationRequest} payload
    */
-  async verifyOtp(payload: OtpVerificationRequest): Promise<boolean> {
-    const response = await axiosClient.post<{ isValid: boolean }>("/auth/otp/verify", payload);
-    return response.data.isValid;
+  async verifyOtp(_payload: OtpVerificationRequest): Promise<boolean> {
+    throw new Error(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
   },
 
   /**
@@ -125,8 +141,27 @@ export const authService = {
    * @returns {Promise<AuthSession>} Phiên đăng nhập sau khi liên kết thành công
    */
   async linkGoogleAccount(payload: LinkGoogleRequest): Promise<AuthSession> {
-    const response = await axiosClient.post<AuthSession>("/auth/google/link-account", payload);
-    return response.data;
+    const request = googleLinkRequestSchema.parse(payload);
+    const config = await getCsrfConfig();
+    const body = await axiosClient.post<unknown, unknown>(
+      "/auth/google/link-confirm",
+      request,
+      config,
+    );
+    return authSessionResponseSchema.parse(body);
+  },
+
+  /** Google ID token được Backend xác minh; không nhận email/profile thay cho token. */
+  async loginWithGoogle(payload: {
+    idToken: string;
+    nonce?: string;
+    rememberMe: boolean;
+    returnUrl?: string;
+  }) {
+    const request = googleLoginRequestSchema.parse(payload);
+    const config = await getCsrfConfig();
+    const body = await axiosClient.post<unknown, unknown>("/auth/google", request, config);
+    return googleLoginResponseSchema.parse(body);
   },
 
   /**
@@ -134,21 +169,16 @@ export const authService = {
    * @param {TwoFactorVerifyRequest} payload Mã 6 số và cờ ghi nhớ thiết bị
    * @returns {Promise<AuthSession>} Phiên đăng nhập hoàn chỉnh
    */
-  async verifyTwoFactor(payload: TwoFactorVerifyRequest): Promise<AuthSession> {
-    const response = await axiosClient.post<AuthSession>("/auth/2fa/verify-totp", payload);
-    return response.data;
+  async verifyTwoFactor(_payload: TwoFactorVerifyRequest): Promise<AuthSession> {
+    throw new Error(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
   },
 
   /**
-   * @description Gửi lại email xác minh tài khoản (Mockup 6)
-   * @param {string} email Địa chỉ email cần gửi lại liên kết
-   * @returns {Promise<{ success: boolean }>}
+   * @description Gửi yêu cầu theo Backend AuthController; 202 không có body chỉ xác nhận tiếp nhận.
+   * @param email Địa chỉ nhận liên kết xác minh.
+   * @returns Promise hoàn thành khi HTTP thành công; không chứng minh email đã được giao.
    */
-  async resendVerificationEmail(email: string): Promise<{ success: boolean }> {
-    const response = await axiosClient.post<{ success: boolean }>(
-      "/auth/email/resend-verification",
-      { email },
-    );
-    return response.data;
+  async resendVerificationEmail(email: string): Promise<void> {
+    await axiosClient.post<unknown, unknown>("/auth/resend-verification", { email });
   },
 };

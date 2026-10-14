@@ -1,21 +1,5 @@
-import { type Role } from "@/shared/constants/roles";
-import { type User } from "@/entities/user";
-
-/**
- * @description Model phiên legacy của FE; chưa phải DTO Auth C# đã xác nhận.
- * Refresh token chỉ do BE quản lý qua cookie HttpOnly theo ADR-0003.
- * Cần chuyển expiresIn/user sang DTO thực khi BE1 bàn giao Auth.
- */
-export interface AuthSession {
-  /** Mã định danh tài khoản */
-  userId: string;
-  /** JWT Token truy cập hệ thống */
-  accessToken: string;
-  /** Thời gian hết hạn của accessToken (tính bằng giây) */
-  expiresIn: number;
-  /** Thông tin người dùng cơ bản */
-  user: User;
-}
+/** Alias session raw Backend; không dùng userId/envelope legacy. */
+export type AuthSession = import("@/entities/user/model/authContract.types").AuthSessionDto;
 
 /**
  * @description Payload yêu cầu đăng nhập bằng Email và Password.
@@ -34,8 +18,6 @@ export interface RegisterRequest {
   email: string;
   password: string;
   confirmPassword: string;
-  phone?: string;
-  role?: Role;
 }
 
 /**
@@ -86,9 +68,9 @@ export interface InvitationContext {
  * @description Yêu cầu xác nhận mật khẩu hiện tại để liên kết tài khoản Google (Mockup 5).
  */
 export interface LinkGoogleRequest {
-  email: string;
-  currentPassword: string;
-  googleAuthCode?: string;
+  linkTicket: string;
+  password: string;
+  rememberMe: boolean;
 }
 
 /**

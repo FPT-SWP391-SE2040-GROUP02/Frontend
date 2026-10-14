@@ -1,80 +1,40 @@
 import { ROLES } from "@/shared/constants/roles";
 import { STATUS } from "@/shared/constants";
+import type { BackendUserResponse } from "./backendUser.schema";
 
-/** System roles serialized by the current C# UserDto; vault relationships are separate. */
+/** Roles hệ thống của Backend chính thức; quan hệ tài nguyên được kiểm tra riêng. */
 export const AUTH_SYSTEM_ROLES = {
-  OWNER: ROLES.OWNER,
-  VERIFIER: "VERIFIER",
+  USER: ROLES.USER,
+  VERIFIER: ROLES.VERIFIER,
   ADMIN: ROLES.ADMIN,
 } as const;
-
-/** Account statuses serialized by the current C# UserDto. */
+/** Trạng thái tài khoản của UserResponse C#. */
 export const AUTH_USER_STATUSES = {
-  PENDING: STATUS.PENDING,
   ACTIVE: STATUS.ACTIVE,
-  INACTIVE: STATUS.INACTIVE,
+  LOCKED: STATUS.LOCKED,
+  DISABLED: STATUS.DISABLED,
 } as const;
-
-/** Exact public UserDto from backend Identity/AuthDtos.cs. */
-export interface AuthUserDto {
-  /** Account identifier. */
-  id: string;
-  /** Normalized email. */
-  email: string;
-  /** Display name. */
-  fullName: string;
-  /** Optional phone serialized as null when absent. */
-  phone: string | null;
-  /** Server-assigned system role. */
-  role: (typeof AUTH_SYSTEM_ROLES)[keyof typeof AUTH_SYSTEM_ROLES];
-  /** Server-assigned account status. */
-  status: (typeof AUTH_USER_STATUSES)[keyof typeof AUTH_USER_STATUSES];
-  /** ISO timestamp with timezone. */
-  createdAt: string;
-  /** Nullable last update timestamp. */
-  updatedAt: string | null;
-}
-
-/** Login/refresh response payload; both bearer secrets are HttpOnly cookies. */
+/** DTO công khai của Backend, không chứa password hash hoặc token. */
+export type AuthUserDto = BackendUserResponse;
+/** Response raw login/refresh; credential chỉ đi vào RAM chuyên dụng. */
 export interface AuthSessionDto {
-  /** Account identifier for this session. */
-  userId: string;
-  /** Remaining access JWT lifetime in seconds. */
+  accessToken: string;
   expiresIn: number;
-  /** Public account data. */
   user: AuthUserDto;
 }
-
-/** GET /auth/session payload. */
-export interface CurrentSessionDto {
-  /** Public account data. */
-  user: AuthUserDto;
-}
-
-/** Exact public AuthCsrfTokenDto returned by GET /auth/csrf. */
+/** GET session trả trực tiếp UserResponse. */
+export type CurrentSessionDto = AuthUserDto;
+/** Proof raw do GET csrf cấp. */
 export interface AuthCsrfTokenDto {
-  /** Opaque antiforgery proof for a request header; not an authentication credential. */
   requestToken: string;
 }
-
-/** Exact successful backend envelope; no legacy success/message fields are required. */
-export interface AuthApiResponse<T> {
-  /** Endpoint payload, unwrapped once by the owning API service. */
-  data: T;
-}
-
-/** POST /auth/login request; form defaults supply rememberMe explicitly. */
+/** Body LoginRequest C#. */
 export interface AuthLoginRequestDto {
-  /** Email supplied by the user. */
   email: string;
-  /** Password kept only for the request. */
   password: string;
-  /** Whether the refresh cookie persists across browser sessions. */
   rememberMe: boolean;
 }
-
-/** POST /auth/logout optional body. */
+/** Body tùy chọn LogoutRequest C#. */
 export interface AuthLogoutRequestDto {
-  /** Revoke every device when authorized; otherwise only the current family. */
   revokeAllDevices: boolean;
 }

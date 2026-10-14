@@ -1,56 +1,20 @@
 import { z } from "zod";
-import { AUTH_SYSTEM_ROLES, AUTH_USER_STATUSES } from "./authContract.types";
-import type {
-  AuthApiResponse,
-  AuthCsrfTokenDto,
-  AuthSessionDto,
-  AuthUserDto,
-  CurrentSessionDto,
-} from "./authContract.types";
+import { backendUserResponseSchema } from "./backendUser.schema";
 
-/** Validates public C# user data and removes unexpected fields, including secrets. */
-export const authUserDtoSchema: z.ZodType<AuthUserDto> = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
-  fullName: z.string(),
-  phone: z.string().nullable(),
-  role: z.enum([AUTH_SYSTEM_ROLES.OWNER, AUTH_SYSTEM_ROLES.VERIFIER, AUTH_SYSTEM_ROLES.ADMIN]),
-  status: z.enum([
-    AUTH_USER_STATUSES.PENDING,
-    AUTH_USER_STATUSES.ACTIVE,
-    AUTH_USER_STATUSES.INACTIVE,
-  ]),
-  createdAt: z.string().datetime({ offset: true }),
-  updatedAt: z.string().datetime({ offset: true }).nullable(),
-});
-
-/** Cookie session payload; access/refresh tokens are not JSON credentials. */
-export const authSessionDtoSchema: z.ZodType<AuthSessionDto> = z.object({
-  userId: z.string().uuid(),
+/** UserResponse raw của Backend, strip properties ngoài hợp đồng. */
+export const authUserDtoSchema = backendUserResponseSchema;
+/** Login/refresh raw body; token opaque giữ nguyên bytes, không kiểm chữ ký JWT tại FE. */
+export const authSessionResponseSchema = z.object({
+  accessToken: z
+    .string()
+    .min(1)
+    .refine((token) => token.trim().length > 0),
   expiresIn: z.number().int().nonnegative(),
   user: authUserDtoSchema,
 });
-
-/** Public payload returned by GET /auth/session. */
-export const currentSessionDtoSchema: z.ZodType<CurrentSessionDto> = z.object({
-  user: authUserDtoSchema,
-});
-
-/** Login/refresh envelope returned by the current C# controller. */
-export const authSessionResponseSchema: z.ZodType<AuthApiResponse<AuthSessionDto>> = z.object({
-  data: authSessionDtoSchema,
-});
-
-/** Bootstrap envelope returned by the current C# controller. */
-export const currentSessionResponseSchema: z.ZodType<AuthApiResponse<CurrentSessionDto>> = z.object(
-  {
-    data: currentSessionDtoSchema,
-  },
-);
-
-/** Validates the opaque CSRF proof without rewriting bytes or accepting whitespace-only values. */
-export const authCsrfTokenResponseSchema: z.ZodType<AuthApiResponse<AuthCsrfTokenDto>> = z.object({
-  data: z.object({
-    requestToken: z.string().refine((token) => token.trim().length > 0),
-  }),
+/** GET session trả UserResponse trực tiếp. */
+export const currentSessionResponseSchema = authUserDtoSchema;
+/** Proof không auth credential, không trim/đổi bytes hoặc persist. */
+export const authCsrfTokenResponseSchema = z.object({
+  requestToken: z.string().refine((token) => token.trim().length > 0),
 });

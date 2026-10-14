@@ -35,7 +35,7 @@ afterEach(() => {
  * @description Render thông báo với React Query và router thật.
  * @returns Kết quả render để kiểm tra giao diện.
  */
-function setup() {
+function setup(token: string | null = null) {
   const client = new QueryClient({
     defaultOptions: {
       mutations: {
@@ -49,17 +49,15 @@ function setup() {
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter>
-        <VerifyEmailNotice email={EMAIL} />
+        <VerifyEmailNotice email={EMAIL} token={token} />
       </MemoryRouter>
     </QueryClientProvider>,
   );
 }
 
 describe("VerifyEmailNotice resend feedback", () => {
-  it("hiện thông báo tiếp nhận và khóa nút khi success là true", async () => {
-    vi.mocked(authService.resendVerificationEmail).mockResolvedValue({
-      success: true,
-    });
+  it("hiện thông báo tiếp nhận và khóa nút với response không có body", async () => {
+    vi.mocked(authService.resendVerificationEmail).mockResolvedValue(undefined);
 
     setup();
 
@@ -76,10 +74,8 @@ describe("VerifyEmailNotice resend feedback", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("hiện lỗi và cho thử lại khi success là false", async () => {
-    vi.mocked(authService.resendVerificationEmail).mockResolvedValue({
-      success: false,
-    });
+  it("hiện lỗi và cho thử lại khi request bị từ chối", async () => {
+    vi.mocked(authService.resendVerificationEmail).mockRejectedValue(new Error("request rejected"));
 
     setup();
 
@@ -116,9 +112,7 @@ describe("VerifyEmailNotice resend feedback", () => {
   });
 
   it("khóa nút trong lúc gửi và không gọi service lần hai", async () => {
-    vi.mocked(authService.resendVerificationEmail).mockReturnValue(
-      new Promise<{ success: boolean }>(() => {}),
-    );
+    vi.mocked(authService.resendVerificationEmail).mockReturnValue(new Promise<void>(() => {}));
 
     setup();
 
@@ -137,5 +131,23 @@ describe("VerifyEmailNotice resend feedback", () => {
 
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+});
+
+describe("VerifyEmailNotice token scaffold", () => {
+  it.each(["", " ", "x".repeat(257)])(
+    "shows an invalid-link error for an invalid token",
+    (token) => {
+      setup(token);
+      expect(screen.getByRole("alert")).toHaveTextContent("Liên kết xác minh không hợp lệ");
+      expect(authService.resendVerificationEmail).not.toHaveBeenCalled();
+      expect(screen.queryByRole("button", { name: "Gửi lại email" })).not.toBeInTheDocument();
+    },
+  );
+  it("does not claim success or submit a token from a URL automatically", () => {
+    setup("opaque-fixture-token");
+    expect(screen.getByRole("alert")).toHaveTextContent("chưa khả dụng");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(authService.resendVerificationEmail).not.toHaveBeenCalled();
   });
 });

@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Lock, ShieldCheck } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
+import { getLoginErrorMessage, getLoginRedirect } from "../lib/loginFeedback";
 import { ROUTES } from "@/shared/config/routes.config";
 
 /**
@@ -15,6 +16,10 @@ import { ROUTES } from "@/shared/config/routes.config";
 export interface LinkGoogleAccountCardProps {
   /** Email tài khoản Google cần liên kết */
   email?: string;
+  /** Ticket chỉ từ Google response trong RAM; không lấy từ email/URL. */
+  linkTicket?: string;
+  rememberMe?: boolean;
+  returnUrl?: string;
   /** Tên đầy đủ từ hồ sơ Google */
   fullName?: string;
   /** Lớp CSS bổ trợ */
@@ -29,13 +34,16 @@ export interface LinkGoogleAccountCardProps {
  * @returns {React.JSX.Element} Card xác nhận liên kết
  */
 export function LinkGoogleAccountCard({
-  email = "nam@example.com",
-  fullName = "Nguyễn Văn Nam",
+  email = "",
+  fullName = "",
+  linkTicket,
+  rememberMe = false,
+  returnUrl,
   className = "",
 }: LinkGoogleAccountCardProps) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { mutate: linkAccount, isPending } = useLinkGoogle();
+  const { mutate: linkAccount, isPending, isError, error } = useLinkGoogle();
 
   const {
     register,
@@ -43,6 +51,8 @@ export function LinkGoogleAccountCard({
     formState: { errors },
   } = useForm<LinkGoogleInput>({
     resolver: zodResolver(linkGoogleSchema),
+    mode: "onBlur",
+    reValidateMode: "onBlur",
     defaultValues: {
       password: "",
     },
@@ -59,18 +69,33 @@ export function LinkGoogleAccountCard({
     // 3. [CÁC BƯỚC]: Sau AUTH-03 chốt POST /auth/google/link; thay DTO email/password legacy bằng DTO chốt; gửi qua hook; xử lý nextAction và return path.
     // 4. [HÀM / THƯ VIỆN]: useLinkGoogle, RHF/Zod, accessTokenSchema, ROUTES.
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không link dựa email FE gửi; conflict/expiry/replay/lockout do BE; lỗi mạng không mặc định là sai password; không làm mất phương thức đăng nhập cuối.
+    if (isPending || !linkTicket) return;
     linkAccount(
       {
-        email,
-        currentPassword: data.password,
+        linkTicket,
+        password: data.password,
+        rememberMe,
       },
       {
         onSuccess: () => {
-          navigate(ROUTES.DASHBOARD.ROOT);
+          navigate(getLoginRedirect(returnUrl ?? null));
         },
       },
     );
   };
+
+  if (!linkTicket)
+    return (
+      <div className="space-y-4">
+        <h1 className="font-serif text-2xl">Liên kết Google</h1>
+        <p role="alert" className="text-sm text-red-700">
+          Thiếu phiên liên kết Google hợp lệ. Vui lòng quay lại đăng nhập.
+        </p>
+        <Link to={ROUTES.AUTH.LOGIN} className="inline-flex min-h-11 items-center underline">
+          Quay lại đăng nhập
+        </Link>
+      </div>
+    );
 
   return (
     <div className={`w-full space-y-6 text-left ${className}`}>
@@ -97,13 +122,28 @@ export function LinkGoogleAccountCard({
         <ShieldCheck className="w-4 h-4 text-[#B88E4C] flex-shrink-0" />
       </div>
 
+      {!linkTicket && (
+        <p role="alert" className="text-sm text-red-700">
+          Thiếu phiên liên kết Google hợp lệ. Vui lòng quay lại đăng nhập.
+        </p>
+      )}
+      {isError && (
+        <p role="alert" className="text-sm text-red-700">
+          {getLoginErrorMessage(error)}
+        </p>
+      )}
       {/* Form nhập mật khẩu hiện tại */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5 text-left">
-          <label className="text-xs font-semibold text-[#0F1A16]">Mật khẩu hiện có</label>
+          <label htmlFor="google-link-password" className="text-xs font-semibold text-[#0F1A16]">
+            Mật khẩu hiện có
+          </label>
           <div className="relative">
             <Lock className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
+              id="google-link-password"
+              disabled={isPending || !linkTicket}
+              autoComplete="current-password"
               {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="Nhập mật khẩu hiện tại của bạn"
@@ -126,7 +166,7 @@ export function LinkGoogleAccountCard({
 
         <Button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || !linkTicket}
           className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50 mt-2"
         >
           {isPending ? "Đang xác nhận..." : "Xác nhận và liên kết"}
