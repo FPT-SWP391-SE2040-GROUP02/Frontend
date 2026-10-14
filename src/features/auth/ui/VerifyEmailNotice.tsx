@@ -5,11 +5,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getRegisterErrorMessage } from "../lib/registerFeedback";
 import { useResendEmailVerification } from "../model/useAuth";
-import {
-  emailVerificationTokenSchema,
-  verificationEmailSchema,
-  VERIFY_EMAIL_CONTENT,
-} from "../model/verifyEmail.schema";
+import { EmailVerificationCard } from "./EmailVerificationCard";
+import { ResendVerificationForm } from "./ResendVerificationForm";
+import { verificationEmailSchema, VERIFY_EMAIL_CONTENT } from "../model/verifyEmail.schema";
 
 /**
  * @description Thuộc tính cấu hình cho component Thông báo xác minh email.
@@ -17,8 +15,10 @@ import {
 export interface VerifyEmailNoticeProps {
   /** Địa chỉ email nhận liên kết xác thực */
   email?: string;
-  /** Token opaque từ liên kết Backend; submit xác minh vẫn là scaffold. */
+  /** Token opaque từ liên kết Backend. */
   token?: string | null;
+  /** Callback sau response xác nhận; page gỡ token khỏi URL. */
+  onVerified?: () => void;
   /** Lớp CSS bổ trợ */
   className?: string;
 }
@@ -33,6 +33,7 @@ export interface VerifyEmailNoticeProps {
 export function VerifyEmailNotice({
   email = "",
   token = null,
+  onVerified,
   className = "",
 }: VerifyEmailNoticeProps) {
   const [cooldown, setCooldown] = useState<number>(0);
@@ -92,29 +93,16 @@ export function VerifyEmailNotice({
   };
 
   if (token !== null) {
-    const tokenResult = emailVerificationTokenSchema.safeParse(token);
-    // TODO: [AUTH] DEVELOPER BLUEPRINT - xác minh token chưa có submit mới được duyệt.
-    // 1. Mục tiêu: xác minh email qua token Backend, không tự tạo session.
-    // 2. Input/output: token opaque -> UserResponse đã validate hoặc lỗi expiry/replay.
-    // 3. Các bước: thêm mutation thủ công; gọi authService.verifyEmail; chỉ báo thành công
-    //    khi emailVerified=true; gỡ token khỏi URL sau kết quả; giữ return/invitation đã validate.
-    // 4. API/thư viện: POST /auth/verify-email, TanStack Query, Zod, React Router.
-    // 5. Biên/lỗi: không POST tự động khi mount/StrictMode; pending chống nộp lặp;
-    //    token hết hạn/đã dùng có đường phục hồi, không ghi token vào storage/log/Redux.
     return (
-      <div className={`w-full space-y-4 text-left ${className}`}>
-        <h1 className="font-serif text-2xl">Xác minh email</h1>
-        <p role="alert" className="text-sm text-red-700">
-          {tokenResult.success
-            ? "Xác minh bằng liên kết chưa khả dụng. Vui lòng thử lại sau."
-            : "Liên kết xác minh không hợp lệ. Vui lòng yêu cầu liên kết mới."}
-        </p>
-        <Link to={ROUTES.AUTH.LOGIN} className="inline-flex min-h-11 items-center underline">
-          Quay lại đăng nhập
-        </Link>
-      </div>
+      <EmailVerificationCard
+        key={token}
+        token={token}
+        onVerified={onVerified}
+        className={className}
+      />
     );
   }
+  if (!isEmailValid) return <ResendVerificationForm className={className} />;
 
   return (
     <div className={`w-full space-y-6 text-left ${className}`}>
