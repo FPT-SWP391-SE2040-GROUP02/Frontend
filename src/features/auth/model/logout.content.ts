@@ -2,6 +2,7 @@ import { ROLES, type Role } from "@/shared/constants/roles";
 
 /** Account role labels for logout confirmation; never infer vault ownership from another role. */
 export const LOGOUT_ROLE_LABELS: Record<Role, string> = {
+  [ROLES.USER]: "Thành viên",
   [ROLES.ADMIN]: "Quản trị viên",
   [ROLES.OWNER]: "Chủ kho di sản",
   [ROLES.VERIFIER]: "Người xác minh",

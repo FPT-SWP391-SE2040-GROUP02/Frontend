@@ -258,6 +258,8 @@ export function AppRoutes() {
 
         {/* Mockup 6 — Xác minh Email sau đăng ký / đăng nhập */}
         <Route path={ROUTES.AUTH.VERIFY_EMAIL} element={<VerifyEmailPage />} />
+        {/* Đường dẫn email hiện tại do Backend AppUrlProvider tạo. */}
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         {/* Mockup 7 — Xác thực hai bước TOTP dành cho Admin */}
         <Route path={ROUTES.AUTH.TWO_FACTOR} element={<TwoFactorPage />} />
@@ -279,7 +281,7 @@ export function AppRoutes() {
         {/* ========================================================================
           5. TUYẾN ĐƯỜNG BẢO VỆ — Chủ Kho Di Sản (Vault Owner & Admin)
          ======================================================================== */}
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.OWNER]} />}>
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.USER]} />}>
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
           <Route path="/assets" element={<AssetsManagementPage />} />
@@ -300,7 +302,7 @@ export function AppRoutes() {
         {/* ========================================================================
           7. TUYẾN ĐƯỜNG BẢO VỆ — Công Chứng Viên (Legal Verifier / Notary)
          ======================================================================== */}
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.NOTARY]} />}>
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.VERIFIER]} />}>
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
         </Route>
 

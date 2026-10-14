@@ -10,29 +10,30 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { APP_MESSAGES, STATUS } from "@/shared/constants";
 import { ROLES } from "@/shared/constants/roles";
 import { ROUTES } from "@/shared/config/routes.config";
-import { cookieAuthService as authService } from "../../api/authService";
+import { sessionAuthService as authService } from "../../api/authService";
 import type { AuthSessionDto as AuthSession } from "@/entities/user/model/authContract.types";
 import { getLoginRedirect, getLoginErrorMessage } from "../../lib/loginFeedback";
 import { LoginForm, type LoginFormProps } from "../LoginForm";
 
 vi.mock("../../api/authService", () => ({
-  cookieAuthService: { login: vi.fn() },
+  sessionAuthService: { login: vi.fn() },
   authService: {},
 }));
 
 /** Public cookie session fixture with no bearer tokens in JSON. */
 const SESSION: AuthSession = {
-  userId: "11111111-1111-4111-8111-111111111111",
+  accessToken: "fixture-login-access",
   expiresIn: 300,
   user: {
     id: "11111111-1111-4111-8111-111111111111",
     fullName: "Test Owner",
     email: "owner@example.test",
-    role: ROLES.OWNER,
+    role: ROLES.USER,
     status: STATUS.ACTIVE,
     createdAt: "2026-10-10T00:00:00Z",
     phone: null,
-    updatedAt: null,
+    emailVerified: true,
+    hasPassword: true,
   },
 };
 const clients: QueryClient[] = [];
@@ -206,7 +207,12 @@ describe("LoginForm", () => {
   });
 
   it("disables credentials and alternative login while pending and prevents another click", async () => {
-    vi.mocked(authService.login).mockReturnValue(new Promise<AuthSession>(() => {}));
+    let rejectLogin!: (error: Error) => void;
+    vi.mocked(authService.login).mockReturnValue(
+      new Promise<AuthSession>((_, reject) => {
+        rejectLogin = reject;
+      }),
+    );
     setup();
     fillCredentials();
     fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
@@ -216,6 +222,9 @@ describe("LoginForm", () => {
     expect(screen.getByLabelText("Mật khẩu", { exact: true })).toBeDisabled();
     fireEvent.click(pending);
     expect(authService.login).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      rejectLogin(new Error("fixture cleanup"));
+    });
   });
 
   it("keeps internal query and hash after successful cookie login", async () => {
@@ -229,9 +238,8 @@ describe("LoginForm", () => {
     expect(store.getState().auth.user).toEqual({
       ...SESSION.user,
       phone: undefined,
-      updatedAt: undefined,
     });
-    expect(accessTokenMemory.get()).toBeNull();
+    expect(accessTokenMemory.get()).toBe(SESSION.accessToken);
     expect(authService.login).toHaveBeenCalledWith({
       email: SESSION.user.email,
       password: "old",

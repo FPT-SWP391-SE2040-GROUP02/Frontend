@@ -2,11 +2,11 @@ import { clearCredentials, setCredentials } from "@/entities/user/model/authSlic
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch as useAppDispatch } from "react-redux";
-import { authService, cookieAuthService } from "../api/authService";
+import { authService, sessionAuthService } from "../api/authService";
+import { runAuthTransition, notifyAuthChange } from "./authTransitions";
 import { toAuthUserViewModel } from "@/entities/user/lib/adapters";
 import type { AuthSessionDto } from "@/entities/user/model/authContract.types";
 import type {
-  AuthSession,
   LinkGoogleRequest,
   LoginRequest,
   LogoutOptions,
@@ -29,16 +29,21 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: (credentials: LoginRequest) =>
-      cookieAuthService.login({ ...credentials, rememberMe: credentials.rememberMe ?? false }),
-    onSuccess: async (session: AuthSessionDto) => {
-      // Finish cancellation before clearing the previous account's cache and publishing the new one.
-      await queryClient.cancelQueries();
-      queryClient.clear();
-      accessTokenMemory.clear();
-      dispatch(setCredentials({ user: toAuthUserViewModel(session.user) }));
-      queryClient.setQueryData(authKeys.session(), { user: session.user });
-      queryClient.invalidateQueries({ queryKey: authKeys.session() });
-    },
+      runAuthTransition(
+        () =>
+          sessionAuthService.login({ ...credentials, rememberMe: credentials.rememberMe ?? false }),
+        async (session: AuthSessionDto, current) => {
+          await queryClient.cancelQueries();
+          if (!current()) throw new Error("Auth context changed");
+          queryClient.clear();
+          accessTokenMemory.set(session.accessToken);
+          dispatch(setCredentials({ user: toAuthUserViewModel(session.user) }));
+          queryClient.setQueryData(authKeys.session(), { user: session.user });
+          notifyAuthChange();
+        },
+      ).then((session) => ({ user: session.user })),
+    retry: false,
+    networkMode: "always",
   });
 }
 
@@ -55,17 +60,9 @@ export function useRegister() {
  * @description Hook xử lý Đăng nhập bằng Passkey sinh trắc học FIDO2.
  */
 export function usePasskeyLogin() {
-  const queryClient = useQueryClient();
-  const dispatch = useAppDispatch();
-
   return useMutation({
     mutationFn: (payload: PasskeyLoginRequest) => authService.loginWithPasskey(payload),
-    onSuccess: (session: AuthSession) => {
-      if (session?.user) {
-        dispatch(setCredentials({ user: session.user }));
-      }
-      queryClient.invalidateQueries({ queryKey: authKeys.session() });
-    },
+    retry: false,
   });
 }
 
@@ -75,15 +72,22 @@ export function usePasskeyLogin() {
 export function useLinkGoogle() {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
-
   return useMutation({
-    mutationFn: (payload: LinkGoogleRequest) => authService.linkGoogleAccount(payload),
-    onSuccess: (session: AuthSession) => {
-      if (session?.user) {
-        dispatch(setCredentials({ user: session.user }));
-      }
-      queryClient.invalidateQueries({ queryKey: authKeys.session() });
-    },
+    mutationFn: (payload: LinkGoogleRequest) =>
+      runAuthTransition(
+        () => authService.linkGoogleAccount(payload),
+        async (session, current) => {
+          await queryClient.cancelQueries();
+          if (!current()) throw new Error("Auth context changed");
+          queryClient.clear();
+          accessTokenMemory.set(session.accessToken);
+          dispatch(setCredentials({ user: toAuthUserViewModel(session.user) }));
+          queryClient.setQueryData(authKeys.session(), { user: session.user });
+          notifyAuthChange();
+        },
+      ).then((session) => ({ user: session.user })),
+    retry: false,
+    networkMode: "always",
   });
 }
 
@@ -91,18 +95,11 @@ export function useLinkGoogle() {
  * @description Hook xử lý xác thực hai bước TOTP cho tài khoản quản trị (Mockup 7).
  */
 export function useTwoFactorVerify() {
-  const queryClient = useQueryClient();
-  const dispatch = useAppDispatch();
-
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: (payload: TwoFactorVerifyRequest) => authService.verifyTwoFactor(payload),
-    onSuccess: (session: AuthSession) => {
-      if (session?.user) {
-        dispatch(setCredentials({ user: session.user }));
-      }
-      queryClient.invalidateQueries({ queryKey: authKeys.session() });
-    },
+    retry: false,
   });
+  return { ...mutation, isAvailable: false };
 }
 
 /**
@@ -125,14 +122,23 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: (options?: LogoutOptions) =>
-      cookieAuthService.logout(
-        options === undefined ? undefined : { revokeAllDevices: options.revokeAllDevices ?? false },
+      runAuthTransition(
+        () =>
+          sessionAuthService.logout(
+            options === undefined
+              ? undefined
+              : { revokeAllDevices: options.revokeAllDevices ?? false },
+          ),
+        async (_, current) => {
+          await queryClient.cancelQueries();
+          if (!current()) throw new Error("Auth context changed");
+          accessTokenMemory.clear();
+          dispatch(clearCredentials());
+          queryClient.clear();
+          notifyAuthChange();
+        },
       ),
-    onSuccess: async () => {
-      await queryClient.cancelQueries();
-      accessTokenMemory.clear();
-      dispatch(clearCredentials());
-      queryClient.clear();
-    },
+    retry: false,
+    networkMode: "always",
   });
 }

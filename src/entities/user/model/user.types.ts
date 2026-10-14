@@ -23,6 +23,9 @@ export interface User {
   createdAt: string;
   /** Thời điểm cập nhật thông tin gần nhất */
   updatedAt?: string;
+  /** Xác minh email/phương thức mật khẩu do Backend xác nhận. */
+  emailVerified?: boolean;
+  hasPassword?: boolean;
 }
 
 /**

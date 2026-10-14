@@ -12,9 +12,10 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-function setup(pending = false, error: Error | null = null) {
+function setup(pending = false, error: Error | null = null, available = true) {
   vi.mocked(useTwoFactorVerify).mockReturnValue({
     mutate,
+    isAvailable: available,
     isPending: pending,
     isError: error !== null,
     error,
@@ -68,4 +69,13 @@ describe("AdminTwoFactorCard", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(APP_MESSAGES.ERROR.DEFAULT);
     expect(screen.queryByText("private backend details")).not.toBeInTheDocument();
   });
+});
+
+it("does not submit an unavailable Backend TOTP flow", () => {
+  const inputs = setup(false, null, false);
+  paste(inputs[0], "012345");
+  expect(screen.getByRole("status")).toHaveTextContent(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
+  expect(screen.getByRole("button", { name: "Xác nhận" })).toBeDisabled();
+  fireEvent.submit(inputs[0].closest("form")!);
+  expect(mutate).not.toHaveBeenCalled();
 });

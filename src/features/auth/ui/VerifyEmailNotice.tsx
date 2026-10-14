@@ -1,12 +1,15 @@
 import { ROUTES } from "@/shared/config/routes.config";
-import { APP_MESSAGES } from "@/shared/constants";
 import { Button } from "@/shared/ui/button";
 import { ArrowLeft, Mail, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getRegisterErrorMessage } from "../lib/registerFeedback";
 import { useResendEmailVerification } from "../model/useAuth";
-import { verificationEmailSchema, VERIFY_EMAIL_CONTENT } from "../model/verifyEmail.schema";
+import {
+  emailVerificationTokenSchema,
+  verificationEmailSchema,
+  VERIFY_EMAIL_CONTENT,
+} from "../model/verifyEmail.schema";
 
 /**
  * @description Thuộc tính cấu hình cho component Thông báo xác minh email.
@@ -14,6 +17,8 @@ import { verificationEmailSchema, VERIFY_EMAIL_CONTENT } from "../model/verifyEm
 export interface VerifyEmailNoticeProps {
   /** Địa chỉ email nhận liên kết xác thực */
   email?: string;
+  /** Token opaque từ liên kết Backend; submit xác minh vẫn là scaffold. */
+  token?: string | null;
   /** Lớp CSS bổ trợ */
   className?: string;
 }
@@ -25,7 +30,11 @@ export interface VerifyEmailNoticeProps {
  * @param {VerifyEmailNoticeProps} props Thuộc tính component
  * @returns {React.JSX.Element} Card thông báo xác minh email
  */
-export function VerifyEmailNotice({ email = "", className = "" }: VerifyEmailNoticeProps) {
+export function VerifyEmailNotice({
+  email = "",
+  token = null,
+  className = "",
+}: VerifyEmailNoticeProps) {
   const [cooldown, setCooldown] = useState<number>(0);
   const {
     mutate: resendEmail,
@@ -33,7 +42,6 @@ export function VerifyEmailNotice({ email = "", className = "" }: VerifyEmailNot
     isError,
     isSuccess,
     error,
-    data: resendResult,
   } = useResendEmailVerification();
   const emailResult = verificationEmailSchema.safeParse(email);
   const isEmailValid = emailResult.success;
@@ -68,20 +76,43 @@ export function VerifyEmailNotice({ email = "", className = "" }: VerifyEmailNot
     // TODO: [P0][AUTH-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
     // 1. [MỤC TIÊU]: Hoàn thiện xác minh/gửi lại email theo policy từ BE.
     // 2. [INPUT & OUTPUT]: Token/challenge/email hợp lệ -> trạng thái bước tiếp theo và retryAt.
-    // 3. [CÁC BƯỚC]: Chốt /auth/verify-email và route resend với BE1; nối service/mutation; cooldown theo Retry-After/retryAt; chỉ báo gửi sau server xác nhận.
+    // 3. [CÁC BƯỚC]: Service resend đã khớp /auth/resend-verification trả 202 không body; tiếp tục xác minh token; cooldown theo Retry-After/retryAt; chỉ báo gửi sau server xác nhận.
     // 4. [HÀM / THƯ VIỆN]: useResendEmailVerification, Zod, TanStack Query, ROUTES.
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không hardcode cooldown thành chính sách; token một lần/hết hạn; lỗi chung không lộ account; không mất invitation sau xác minh.
 
     if (isPending || cooldown > 0 || !emailResult.success) return;
 
     resendEmail(emailResult.data, {
-      onSuccess: (result) => {
-        if (result?.success === true) {
-          setCooldown(60);
-        }
+      onSuccess: () => {
+        setCooldown(60);
       },
     });
   };
+
+  if (token !== null) {
+    const tokenResult = emailVerificationTokenSchema.safeParse(token);
+    // TODO: [AUTH] DEVELOPER BLUEPRINT - xác minh token chưa có submit mới được duyệt.
+    // 1. Mục tiêu: xác minh email qua token Backend, không tự tạo session.
+    // 2. Input/output: token opaque -> UserResponse đã validate hoặc lỗi expiry/replay.
+    // 3. Các bước: thêm mutation thủ công; gọi authService.verifyEmail; chỉ báo thành công
+    //    khi emailVerified=true; gỡ token khỏi URL sau kết quả; giữ return/invitation đã validate.
+    // 4. API/thư viện: POST /auth/verify-email, TanStack Query, Zod, React Router.
+    // 5. Biên/lỗi: không POST tự động khi mount/StrictMode; pending chống nộp lặp;
+    //    token hết hạn/đã dùng có đường phục hồi, không ghi token vào storage/log/Redux.
+    return (
+      <div className={`w-full space-y-4 text-left ${className}`}>
+        <h1 className="font-serif text-2xl">Xác minh email</h1>
+        <p role="alert" className="text-sm text-red-700">
+          {tokenResult.success
+            ? "Xác minh bằng liên kết chưa khả dụng. Vui lòng thử lại sau."
+            : "Liên kết xác minh không hợp lệ. Vui lòng yêu cầu liên kết mới."}
+        </p>
+        <Link to={ROUTES.AUTH.LOGIN} className="inline-flex min-h-11 items-center underline">
+          Quay lại đăng nhập
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className={`w-full space-y-6 text-left ${className}`}>
@@ -115,17 +146,12 @@ export function VerifyEmailNotice({ email = "", className = "" }: VerifyEmailNot
         </p>
       )}
 
-      {isSuccess && resendResult?.success === true && (
+      {isSuccess && (
         <p role="status" className="text-sm text-emerald-700">
           {VERIFY_EMAIL_CONTENT.resendAccepted}
         </p>
       )}
 
-      {isSuccess && resendResult?.success !== true && (
-        <p role="alert" className="text-sm text-red-700">
-          {APP_MESSAGES.ERROR.DEFAULT}
-        </p>
-      )}
       <div className="space-y-3 pt-2">
         <Button
           type="button"
