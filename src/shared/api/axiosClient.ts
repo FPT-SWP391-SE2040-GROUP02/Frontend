@@ -82,12 +82,8 @@ apiClient.interceptors.response.use(
     if (error.response) {
       const status = error.response.status;
       if (status === HTTP_STATUS.UNAUTHORIZED) {
-        // TODO: [P0][AUTH-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-        // 1. [MỤC TIÊU]: Khôi phục phiên cookie HttpOnly, rotation absolute và strict replay thu hồi cả family.
-        // 2. [INPUT & OUTPUT]: 401 từ API đã cấu hình -> refresh tối đa một lần, retry GET/HEAD an toàn hoặc trả lỗi gốc.
-        // 3. [CÁC BƯỚC]: Tầng app/auth đăng ký coordinator; single-flight trong tab; khóa liên tab và đồng bộ generation; gọi sessionAuthService.refresh; validate DTO; retry theo policy, không đọc/ghi bearer secret.
-        // 4. [HÀM / THƯ VIỆN]: Axios, sessionAuthService, Zod, Web Locks và BroadcastChannel ở tầng app/auth; shared chỉ nhận callback, không import features.
-        // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Loại login/refresh/logout và URL ngoài API; không tự retry mutation; logout/đổi account vô hiệu generation cũ; chờ refresh đang bay trước logout vì response vẫn có Set-Cookie; thiếu khóa liên tab thì không tự refresh; không retry lỗi mạng/429; CSRF phải được chốt trước khi bật.
+        // AuthBootstrap sở hữu restore và coordinator; SESSION_EXPIRED được báo qua
+        // reportSessionFailure. Transport giữ lỗi 401, không tự refresh hoặc retry request.
         console.warn(`[API ${HTTP_STATUS.UNAUTHORIZED}]`, APP_MESSAGES.ERROR.UNAUTHORIZED);
       } else if (status === HTTP_STATUS.FORBIDDEN) {
         console.warn(`[API ${HTTP_STATUS.FORBIDDEN}]`, APP_MESSAGES.ERROR.FORBIDDEN);

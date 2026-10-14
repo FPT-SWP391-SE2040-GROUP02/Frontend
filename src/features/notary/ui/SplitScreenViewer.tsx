@@ -1,27 +1,23 @@
-import React, { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Button, Card } from "@/shared/ui";
 import {
+  Check,
+  FileText,
+  Lock,
+  Maximize2,
+  RotateCw,
+  ShieldCheck,
+  User,
+  X,
   ZoomIn,
   ZoomOut,
-  RotateCw,
-  Maximize2,
-  ShieldCheck,
-  FileText,
-  Check,
-  X,
-  Lock,
-  User,
 } from "lucide-react";
-import { Button, Card } from "@/shared/ui";
-import type { NotaryClaimDetailViewModel, AuditCriteriaChecklist } from "../model/notary.types";
+import React, { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import type { AuditCriteriaChecklist, NotaryClaimDetailViewModel } from "../model/notary.types";
 
 /**
  * @file SplitScreenViewer.tsx
  * @description Màn hình chia đôi (Split-Screen) thẩm định chứng từ tử tuất số cho Công chứng viên.
- * Tuân thủ:
- * 1. Form State bằng React Hook Form (useForm) thay vì lạm dụng useState cho danh sách 4 tiêu chí kiểm toán.
- * 2. Rule 7: Khung thẩm định có comment // TODO: [Developer Step] chi tiết.
- * 3. Rule 8: JSDoc chuẩn chỉnh.
  */
 
 export interface SplitScreenViewerProps {

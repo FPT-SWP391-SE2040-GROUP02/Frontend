@@ -23,11 +23,13 @@ export function OwnerOverview() {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const serverSessionReady = isAuthenticated && Boolean(accessTokenMemory.get());
   // TODO: [P1][VAULT-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-  // 1. [MỤC TIÊU]: Thay số liệu tổng quan mẫu bằng summary/chỉ số thật.
-  // 2. [INPUT & OUTPUT]: Kho + subscription/check-in + DTO summary -> ViewModel bốn trạng thái.
-  // 3. [CÁC BƯỚC]: Sau VAULT-01 chốt summary endpoint với BE2; dùng adapter entity và Query hooks; tái dùng OwnerVaultPanel; tải dữ liệu đúng session/scope.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService, TanStack Query, entity adapters, shared/ui.
-  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lỗi API không biến thành healthy/0; không gửi check-in/báo sống khi mở trang; không suy diễn entitlement từ UI hoặc thông tin preview.
+  // 1. [MỤC TIÊU]: Nối tiến độ thiết lập và hoạt động gần đây hiện chỉ có ở preview.
+  // 2. [INPUT & OUTPUT]: DTO progress/activity được BE chốt -> ViewModel tổng quan.
+  // 3. [CÁC BƯỚC]: Chốt endpoint/fields còn thiếu; entity adapter -> query -> UI bốn trạng thái.
+  //    Kho/gói, assets, beneficiaries và check-in đã được đọc qua OwnerVaultPanel.
+  // 4. [HÀM / THƯ VIỆN]: TanStack Query, entity adapters, shared/ui; contract summary cần được chốt.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không dùng fixtures/healthy/0 khi API lỗi;
+  //    không suy diễn tiến độ hoặc activity từ counters, không POST check-in khi mở trang.
   return (
     <div className="min-h-screen bg-heritage-surface text-heritage-text lg:grid lg:grid-cols-[224px_minmax(0,1fr)]">
       <a
