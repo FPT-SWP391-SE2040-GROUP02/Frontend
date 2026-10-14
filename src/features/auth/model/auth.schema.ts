@@ -26,14 +26,15 @@ export const registerSchema = z
       .string()
       .trim()
       .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Họ và tên"))
-      .min(2, APP_MESSAGES.VALIDATION.MIN_LENGTH("Họ và tên", 2)),
+      .min(2, APP_MESSAGES.VALIDATION.MIN_LENGTH("Họ và tên", 2))
+      .max(200, "Họ và tên không được vượt quá 200 ký tự."),
     email: z
       .string()
       .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Email"))
-      .email(APP_MESSAGES.VALIDATION.INVALID_EMAIL),
-    password: newPasswordSchema,
+      .email(APP_MESSAGES.VALIDATION.INVALID_EMAIL)
+      .max(256, "Email không được vượt quá 256 ký tự."),
+    password: newPasswordSchema.max(128, "Mật khẩu không được vượt quá 128 ký tự."),
     confirmPassword: z.string().min(1, APP_MESSAGES.VALIDATION.REQUIRED("Xác nhận mật khẩu")),
-    phone: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: APP_MESSAGES.VALIDATION.PASSWORD_NOT_MATCH,
@@ -58,7 +59,10 @@ export type OtpInput = z.infer<typeof otpSchema>;
  * @description Zod Schema kiểm tra dữ liệu xác nhận mật khẩu để liên kết Google (Mockup 5).
  */
 export const linkGoogleSchema = z.object({
-  password: z.string().min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu hiện có")),
+  password: z
+    .string()
+    .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Mật khẩu hiện có"))
+    .max(128, APP_MESSAGES.VALIDATION.MAX_LENGTH("Mật khẩu", 128)),
 });
 
 export type LinkGoogleInput = z.infer<typeof linkGoogleSchema>;

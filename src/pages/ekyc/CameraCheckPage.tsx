@@ -7,6 +7,7 @@ import { EKYC_REVIEW_CONTENT as review } from "@/features/ekyc/model/review.cont
 import { RecipientLayout } from "@/widgets/RecipientLayout/RecipientLayout";
 import { ConfirmedIcon } from "@/shared/ui/LegacyVaultArtwork";
 import { ROUTES } from "@/shared/config/routes.config";
+import { EkycStatusPanel } from "@/features/ekyc/ui/EkycStatusPanel";
 
 /** Luồng eKYC UI mẫu; URL chỉ điều hướng giao diện và không cấp quyền xác minh. */
 export function CameraCheckPage() {
@@ -34,6 +35,13 @@ export function CameraCheckPage() {
           ? review.resultDescription
           : content.description;
   const preview = import.meta.env.DEV && location.pathname.startsWith("/preview/");
+  if (!preview) {
+    return (
+      <RecipientLayout active="verify">
+        <EkycStatusPanel />
+      </RecipientLayout>
+    );
+  }
   const portal = preview ? ROUTES.PREVIEW.BENEFICIARY : ROUTES.BENEFICIARY.CLAIM;
   return (
     <RecipientLayout active="verify">

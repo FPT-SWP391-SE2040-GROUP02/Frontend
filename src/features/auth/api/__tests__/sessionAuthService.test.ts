@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { axiosClient } from "@/shared/api/axiosClient";
 import { AUTH_SYSTEM_ROLES, AUTH_USER_STATUSES } from "@/entities/user/model/authContract.types";
-import { cookieAuthService } from "../authService";
+import { sessionAuthService } from "../authService";
 
 vi.mock("@/shared/api/axiosClient", () => {
   const client = { post: vi.fn(), get: vi.fn() };
@@ -16,22 +16,23 @@ const user = {
   role: AUTH_SYSTEM_ROLES.VERIFIER,
   status: AUTH_USER_STATUSES.ACTIVE,
   createdAt: "2026-10-12T00:00:00Z",
-  updatedAt: null,
+  emailVerified: true,
+  hasPassword: true,
 };
-const session = { userId: user.id, expiresIn: 900, user };
+const session = { accessToken: "fixture-access", expiresIn: 900, user };
 const login = { email: user.email, password: "fixture-password", rememberMe: false };
 
 const csrfConfig = { headers: { "X-CSRF-Token": "fixture-proof" } };
 
 beforeEach(() => {
   vi.resetAllMocks();
-  vi.mocked(axiosClient.get).mockResolvedValue({ data: { requestToken: "fixture-proof" } });
+  vi.mocked(axiosClient.get).mockResolvedValue({ requestToken: "fixture-proof" });
 });
 
-describe("confirmed cookie auth service", () => {
-  it("reads the HTTP body envelope once and sends only confirmed login fields", async () => {
-    vi.mocked(axiosClient.post).mockResolvedValue({ data: session });
-    expect(await cookieAuthService.login({ ...login, ...{ role: "ADMIN" } })).toEqual(session);
+describe("Backend Bearer and refresh-cookie transport", () => {
+  it("reads the raw HTTP body once and sends only confirmed login fields", async () => {
+    vi.mocked(axiosClient.post).mockResolvedValue(session);
+    expect(await sessionAuthService.login({ ...login, ...{ role: "ADMIN" } })).toEqual(session);
     expect(axiosClient.get).toHaveBeenCalledWith("/auth/csrf");
     expect(axiosClient.get).toHaveBeenCalledTimes(1);
     expect(axiosClient.post).toHaveBeenCalledWith("/auth/login", login, csrfConfig);
@@ -40,17 +41,18 @@ describe("confirmed cookie auth service", () => {
     );
   });
 
-  it("refreshes without sending or returning bearer secrets", async () => {
+  it("refreshes with access token in RAM contract and strips refresh secrets", async () => {
     vi.mocked(axiosClient.post).mockResolvedValue({
-      data: { ...session, accessToken: "unexpected-secret", refreshToken: "unexpected-secret" },
+      ...session,
+      refreshToken: "unexpected-secret",
     });
-    expect(await cookieAuthService.refresh()).toEqual(session);
+    expect(await sessionAuthService.refresh()).toEqual(session);
     expect(axiosClient.post).toHaveBeenCalledWith("/auth/refresh", undefined, csrfConfig);
   });
 
-  it("reads the current-session envelope instead of assuming a login response", async () => {
-    vi.mocked(axiosClient.get).mockResolvedValue({ data: { user } });
-    expect(await cookieAuthService.getSession()).toEqual({ user });
+  it("reads the raw current-session response instead of assuming a login response", async () => {
+    vi.mocked(axiosClient.get).mockResolvedValue(user);
+    expect(await sessionAuthService.getSession()).toEqual(user);
     expect(axiosClient.get).toHaveBeenCalledWith("/auth/session");
     expect(axiosClient.get).toHaveBeenCalledTimes(1);
   });
@@ -59,21 +61,21 @@ describe("confirmed cookie auth service", () => {
     "rejects incompatible successful login bodies",
     async (body) => {
       vi.mocked(axiosClient.post).mockResolvedValue(body);
-      await expect(cookieAuthService.login(login)).rejects.toThrow();
+      await expect(sessionAuthService.login(login)).rejects.toThrow();
     },
   );
 
   it("propagates transport failures without fabricating a session", async () => {
     const failure = new Error("fixture-network-failure");
     vi.mocked(axiosClient.post).mockRejectedValue(failure);
-    await expect(cookieAuthService.refresh()).rejects.toBe(failure);
+    await expect(sessionAuthService.refresh()).rejects.toBe(failure);
   });
 
   it("supports bodyless logout and strips legacy request fields", async () => {
     vi.mocked(axiosClient.post).mockResolvedValue(undefined);
-    await cookieAuthService.logout();
+    await sessionAuthService.logout();
     expect(axiosClient.post).toHaveBeenLastCalledWith("/auth/logout", undefined, csrfConfig);
-    await cookieAuthService.logout({ revokeAllDevices: true, ...{ reason: "legacy" } });
+    await sessionAuthService.logout({ revokeAllDevices: true, ...{ reason: "legacy" } });
     expect(axiosClient.post).toHaveBeenLastCalledWith(
       "/auth/logout",
       { revokeAllDevices: true },
@@ -87,17 +89,17 @@ describe("confirmed cookie auth service", () => {
       const failure = new Error("csrf-unavailable");
       vi.mocked(axiosClient.get).mockRejectedValue(failure);
       const request =
-        action === "login" ? cookieAuthService.login(login) : cookieAuthService[action]();
+        action === "login" ? sessionAuthService.login(login) : sessionAuthService[action]();
       await expect(request).rejects.toBe(failure);
       expect(axiosClient.post).not.toHaveBeenCalled();
     },
   );
 
-  it.each([{ data: { requestToken: "" } }, { requestToken: "unwrapped" }])(
+  it.each([{ data: { requestToken: "" } }, { data: { requestToken: "wrapped" } }])(
     "blocks POST when proof body is invalid",
     async (body) => {
       vi.mocked(axiosClient.get).mockResolvedValue(body);
-      await expect(cookieAuthService.refresh()).rejects.toThrow();
+      await expect(sessionAuthService.refresh()).rejects.toThrow();
       expect(axiosClient.post).not.toHaveBeenCalled();
     },
   );
@@ -107,11 +109,11 @@ describe("confirmed cookie auth service", () => {
     const cookieWrite = vi.spyOn(document, "cookie", "set");
     try {
       vi.mocked(axiosClient.get)
-        .mockResolvedValueOnce({ data: { requestToken: "anonymous-proof" } })
-        .mockResolvedValueOnce({ data: { requestToken: "authenticated-proof" } });
-      vi.mocked(axiosClient.post).mockResolvedValue({ data: session });
-      await cookieAuthService.login(login);
-      await cookieAuthService.logout();
+        .mockResolvedValueOnce({ requestToken: "anonymous-proof" })
+        .mockResolvedValueOnce({ requestToken: "authenticated-proof" });
+      vi.mocked(axiosClient.post).mockResolvedValue(session);
+      await sessionAuthService.login(login);
+      await sessionAuthService.logout();
       expect(axiosClient.get).toHaveBeenCalledTimes(2);
       expect(axiosClient.post).toHaveBeenNthCalledWith(1, "/auth/login", login, {
         headers: { "X-CSRF-Token": "anonymous-proof" },

@@ -24,7 +24,7 @@ The workspace charter in [../AGENTS.md](../AGENTS.md), the [LegacyVault profile]
 
 ## Auth, permissions and previews
 
-- Current Auth uses backend-owned HttpOnly access/refresh cookies; frontend never reads either bearer secret or persists them in Web Storage. The legacy bearer helper is RAM-only and is not the current cookie contract. Never persist private keys, seed phrases, passwords or decrypted sensitive data in Web Storage/cookies, or log them.
+- User decision on 14/10/2026 selects the official Backend hybrid contract: access JWT in JSON, RAM-only Bearer helper, refresh token in HttpOnly cookie. Never read refresh cookies or persist auth tokens in Web Storage. Use sessionAuthService with the official Backend raw DTO schemas; session cache and Redux hold public user data only. Coordinate cookie mutations in-tab and across tabs before refresh; do not enable blind automatic 401 retries. Cookie-changing auth POSTs require fresh identity-bound antiforgery proof. Never persist private keys, seed phrases, passwords or decrypted sensitive data in Web Storage/cookies, or log them.
 - ADMIN is not an automatic owner/executor/verifier and never bypasses allowedRoles. UI guards do not replace BE authorization.
 - Fixtures are limited to declared development preview routes. Never fabricate successful authentication, payment, activation, upload or cryptographic verification.
 - Keep unconfirmed business integration as an explicit TODO blueprint. Do not infer API contracts from fixture types.

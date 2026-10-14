@@ -34,6 +34,8 @@ export type HttpStatus = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS];
  */
 export const STATUS = {
   ACTIVE: "ACTIVE",
+  LOCKED: "LOCKED",
+  DISABLED: "DISABLED",
   INACTIVE: "INACTIVE",
   PENDING: "PENDING",
   APPROVED: "APPROVED",

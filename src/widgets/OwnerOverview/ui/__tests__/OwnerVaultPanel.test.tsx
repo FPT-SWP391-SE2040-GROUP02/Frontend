@@ -2,7 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
-import { VAULT_PLAN_STATUS, type VaultResponse } from "@/entities/vault/model/vault.types";
+import type { VaultResponse } from "@/entities/vault/model/vault.types";
+import {
+  vaultFixture,
+  containerFixture,
+  pageFixture,
+  VAULT_ID,
+} from "@/shared/api/__tests__/backend.fixtures";
 import { OwnerVaultPanel } from "../OwnerVaultPanel";
 import { AxiosError, AxiosHeaders } from "axios";
 import { HTTP_STATUS } from "@/shared/constants";
@@ -10,19 +16,10 @@ import { HTTP_STATUS } from "@/shared/constants";
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
   ownerVaultService: { getMine: vi.fn(), listPackages: vi.fn() },
 }));
+vi.mock("../OwnerResourcesPanel", () => ({ OwnerResourcesPanel: () => null }));
 
 /** Kho thử nghiệm đúng shape transport, không chứng minh quyền hoặc entitlement thực. */
-const VAULT_FIXTURE: VaultResponse = {
-  id: "vault-fixture",
-  status: VAULT_PLAN_STATUS.DRAFT,
-  storageQuotaBytes: 0,
-  storageUsedBytes: 128,
-  beneficiarySlotQuota: 0,
-  packageCount: 1,
-  isContentEditable: true,
-  createdAt: "2026-10-10T00:00:00Z",
-  updatedAt: "2026-10-10T00:00:00Z",
-};
+const VAULT_FIXTURE: VaultResponse = { ...vaultFixture };
 
 /** QueryClient dùng riêng từng test để không chia sẻ dữ liệu private giữa các case. */
 let queryClient: QueryClient;
@@ -94,11 +91,11 @@ describe("OwnerVaultPanel", () => {
   });
 
   it("shows an empty package list using the server metadata", async () => {
-    vi.mocked(ownerVaultService.getMine).mockResolvedValue({ ...VAULT_FIXTURE, packageCount: 0 });
-    vi.mocked(ownerVaultService.listPackages).mockResolvedValue({
-      data: [],
-      meta: { page: 1, pageSize: 20, totalItems: 0, totalPages: 0 },
+    vi.mocked(ownerVaultService.getMine).mockResolvedValue({
+      ...VAULT_FIXTURE,
+      activeContainerCount: 0,
     });
+    vi.mocked(ownerVaultService.listPackages).mockResolvedValue(pageFixture([]));
     setup();
     expect(await screen.findByText("Kho chưa có gói bàn giao.")).toBeInTheDocument();
     expect(screen.getByText("128")).toBeInTheDocument();
@@ -113,20 +110,18 @@ describe("OwnerVaultPanel", () => {
 
   it("renders server package names and omits absent descriptions", async () => {
     vi.mocked(ownerVaultService.getMine).mockResolvedValue(VAULT_FIXTURE);
-    vi.mocked(ownerVaultService.listPackages).mockResolvedValue({
-      data: [
-        {
-          id: "package-fixture",
-          name: "Giấy tờ gia đình",
-          description: null,
-          createdAt: VAULT_FIXTURE.createdAt,
-          updatedAt: VAULT_FIXTURE.updatedAt,
-        },
-      ],
-      meta: { page: 1, pageSize: 20, totalItems: 1, totalPages: 1 },
-    });
+    vi.mocked(ownerVaultService.listPackages).mockResolvedValue(
+      pageFixture([
+        { ...containerFixture, assetIds: [], beneficiaryIds: [], missingRequirements: [] },
+      ]),
+    );
     setup();
     expect(await screen.findByRole("list")).toHaveTextContent("Giấy tờ gia đình");
+    expect(ownerVaultService.listPackages).toHaveBeenCalledWith(
+      VAULT_ID,
+      undefined,
+      expect.any(AbortSignal),
+    );
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });
