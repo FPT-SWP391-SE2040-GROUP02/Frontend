@@ -63,12 +63,7 @@ export function LinkGoogleAccountCard({
    * @param {LinkGoogleInput} data Dữ liệu mật khẩu
    */
   const onSubmit = (data: LinkGoogleInput): void => {
-    // TODO: [P1][AUTH-10] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-    // 1. [MỤC TIÊU]: Liên kết Google qua challenge và xác thực lại account hiện có.
-    // 2. [INPUT & OUTPUT]: Link challenge + reauthentication -> phiên/kết quả liên kết từ BE.
-    // 3. [CÁC BƯỚC]: Sau AUTH-03 chốt POST /auth/google/link; thay DTO email/password legacy bằng DTO chốt; gửi qua hook; xử lý nextAction và return path.
-    // 4. [HÀM / THƯ VIỆN]: useLinkGoogle, RHF/Zod, accessTokenSchema, ROUTES.
-    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không link dựa email FE gửi; conflict/expiry/replay/lockout do BE; lỗi mạng không mặc định là sai password; không làm mất phương thức đăng nhập cuối.
+    // Ticket phải đến từ Google response trong RAM; luồng lấy ID token còn ở AUTH-03.
     if (isPending || !linkTicket) return;
     linkAccount(
       {

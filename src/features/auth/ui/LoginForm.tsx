@@ -64,11 +64,13 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
    */
   const onSubmit = (data: LoginInput): void => {
     // TODO: [P0][AUTH-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-    // 1. [MỤC TIÊU]: Nối đăng nhập thật và trạng thái khóa/lượt thử do BE xác nhận.
-    // 2. [INPUT & OUTPUT]: LoginInput -> credential đã validate, challenge/email pending hoặc lỗi BE.
-    // 3. [CÁC BƯỚC]: Dùng POST /auth/login raw Bearer RAM hiện có; chốt DTO challenge/email pending trước khi nối nhánh mới; chỉ điều hướng sau bước xác thực đầy đủ.
-    // 4. [HÀM / THƯ VIỆN]: useLogin, sessionAuthService, React Hook Form/Zod, adapter User, ROUTES.
-    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lượt thử/unlockAt/Retry-After do server trả; lỗi mạng/500 không giảm lượt; không tự khóa 15 phút; validate return URL nội bộ và giữ invitation an toàn.
+    // 1. [MỤC TIÊU]: Hiển thị trạng thái khóa/lượt thử từ BE thay cho thông báo lỗi chung.
+    // 2. [INPUT & OUTPUT]: ProblemDetails và Retry-After -> thông báo/thời gian thử lại từ server.
+    // 3. [CÁC BƯỚC]: Chốt trường lỗi được phép hiển thị; parse trong loginFeedback;
+    //    nối UI inline. POST login, Bearer RAM và điều hướng theo user đã triển khai.
+    // 4. [HÀM / THƯ VIỆN]: getLoginErrorMessage, Zod, Axios headers, tests LoginForm.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lỗi mạng/500 không giảm lượt; không tự khóa 15 phút;
+    //    không in response nội bộ hoặc suy diễn unlockAt khi server không trả.
     if (isPending || typeof data.email !== "string" || typeof data.password !== "string") return;
 
     login(
@@ -96,11 +98,13 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
    */
   const handleGoogleLogin = (): void => {
     // TODO: [P1][AUTH-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-    // 1. [MỤC TIÊU]: Nối Google theo flow đã được BE xác nhận, không mặc định endpoint authorize legacy.
-    // 2. [INPUT & OUTPUT]: Google challenge/code hoặc ID token đúng flow -> phiên hoặc link challenge.
-    // 3. [CÁC BƯỚC]: Chốt redirect/PKCE hoặc ID token cùng BE1; đưa URL vào service/config; giữ invitation/return path; xử lý email trùng qua bước liên kết.
-    // 4. [HÀM / THƯ VIỆN]: useLogin/service Auth, ENV.API_BASE_URL, ROUTES; Google integration đã phê duyệt.
-    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không tự gộp theo email; kiểm state/nonce phía phù hợp; không đặt token trong URL/log; không suy diễn đăng nhập thành công từ redirect.
+    // 1. [MỤC TIÊU]: Lấy Google ID token và nối hai nhánh session/linkTicket đã có contract.
+    // 2. [INPUT & OUTPUT]: Public OAuth client ID + thao tác người dùng -> ID token/nonce -> GoogleLoginResponse.
+    // 3. [CÁC BƯỚC]: Chốt client ID/cách lấy credential; gọi authService.loginWithGoogle qua
+    //    coordinator; nhận session hoặc chuyển linkTicket trong RAM tới form link-confirm.
+    // 4. [HÀM / THƯ VIỆN]: Google integration đã duyệt, authService, runAuthTransition, Zod, ROUTES.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Cancel/expiry; không tự gộp email; không đưa ID token
+    //    hoặc ticket vào URL/storage/log; return/invitation cần validate; chỉ công bố phiên sau server response.
     setShowGoogleUnavailable(true);
   };
 
