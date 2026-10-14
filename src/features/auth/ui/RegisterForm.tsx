@@ -64,11 +64,13 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
 
   const onSubmit = (data: RegisterInput) => {
     // TODO: [P0][AUTH-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-    // 1. [MỤC TIÊU]: Đăng ký theo DTO BE thay vì coi response legacy là phiên đầy đủ.
-    // 2. [INPUT & OUTPUT]: Form đã Zod validate -> 202 Accepted không body; chưa tạo session và chưa chứng minh thư đã giao.
-    // 3. [CÁC BƯỚC]: Service chỉ gửi email/password/confirmPassword/fullName theo Backend; giữ màn chờ xác minh hiện có sau 202; tiếp tục đối soát invitation context và policy callback.
-    // 4. [HÀM / THƯ VIỆN]: useRegister, React Hook Form, zodResolver, service/schema Auth.
-    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không cho client tự cấp role; không mở Passkey hoặc báo login khi còn chờ email; giữ invitation; chống double-submit và không log password.
+    // 1. [MỤC TIÊU]: Giữ ngữ cảnh lời mời qua đăng ký và xác minh khi contract được duyệt.
+    // 2. [INPUT & OUTPUT]: Invitation marker chưa tin cậy + form -> return context đã validate.
+    // 3. [CÁC BƯỚC]: Chốt API xác minh lời mời/callback; truyền context qua màn chờ email;
+    //    Backend kiểm quyền trước khi mở tài nguyên. Luồng register 202 hiện có đã triển khai.
+    // 4. [HÀM / THƯ VIỆN]: useRegister, React Router, Zod; API invitation cần được chốt.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lời mời hết hạn/sai account; không tự cấp role,
+    //    không coi đăng ký là đăng nhập hoặc làm lộ nội dung từ marker chưa xác minh.
     if (isPending) return;
 
     registerUser(data, {
