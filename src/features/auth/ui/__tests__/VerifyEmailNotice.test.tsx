@@ -11,6 +11,7 @@ import { VerifyEmailNotice } from "../VerifyEmailNotice";
 vi.mock("../../api/authService", () => ({
   authService: {
     resendVerificationEmail: vi.fn(),
+    verifyEmail: vi.fn(),
   },
 }));
 
@@ -134,7 +135,7 @@ describe("VerifyEmailNotice resend feedback", () => {
   });
 });
 
-describe("VerifyEmailNotice token scaffold", () => {
+describe("VerifyEmailNotice token boundary", () => {
   it.each(["", " ", "x".repeat(257)])(
     "shows an invalid-link error for an invalid token",
     (token) => {
@@ -146,8 +147,9 @@ describe("VerifyEmailNotice token scaffold", () => {
   );
   it("does not claim success or submit a token from a URL automatically", () => {
     setup("opaque-fixture-token");
-    expect(screen.getByRole("alert")).toHaveTextContent("chưa khả dụng");
+    expect(screen.getByRole("button", { name: "Xác minh email" })).toBeEnabled();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(authService.verifyEmail).not.toHaveBeenCalled();
     expect(authService.resendVerificationEmail).not.toHaveBeenCalled();
   });
 });
