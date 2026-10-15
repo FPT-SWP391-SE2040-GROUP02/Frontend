@@ -28,9 +28,9 @@ describe("OwnerOverview data boundaries", () => {
     expect(screen.queryByText("Mọi thứ đang ở đúng nơi.")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Kho của bạn");
   });
-  it("keeps fixture UI on the declared development preview only", () => {
+  it("never restores fixture data on a retired preview URL", () => {
     setup("/preview/owner");
-    expect(screen.queryByRole("region", { name: "Server vault" })).not.toBeInTheDocument();
-    expect(screen.getByText("Mọi thứ đang ở đúng nơi.")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Server vault" })).toBeInTheDocument();
+    expect(screen.queryByText("Mọi thứ đang ở đúng nơi.")).not.toBeInTheDocument();
   });
 });

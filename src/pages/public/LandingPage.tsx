@@ -1,3 +1,4 @@
+import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { ArrowRight, Plus, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, buttonVariants } from "@/shared/ui";
@@ -8,6 +9,7 @@ import guilloche from "@/shared/assets/legacyvault-guilloche.svg";
 
 /** Landing công khai, dùng nội dung chọn lọc từ prototype và điều hướng thật của client. */
 export function LandingPage() {
+  const accountHome = useAccountHome();
   return (
     <div className="min-h-screen bg-heritage-surface text-heritage-text">
       <a
@@ -19,7 +21,7 @@ export function LandingPage() {
       <header className="sticky top-0 z-20 border-b border-heritage-border bg-heritage-surface/95 backdrop-blur">
         <div className="mx-auto flex min-h-20 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-8">
           <Link
-            to={ROUTES.HOME}
+            to={accountHome}
             className="flex min-h-11 items-center gap-2 text-lg font-semibold sm:text-xl"
           >
             <LegacyVaultMark className="size-10 text-heritage-primary" />
@@ -41,10 +43,10 @@ export function LandingPage() {
           </nav>
           <div className="flex items-center gap-2">
             <Link
-              to={ROUTES.AUTH.LOGIN}
+              to={accountHome === ROUTES.HOME ? ROUTES.AUTH.LOGIN : accountHome}
               className={`${buttonVariants({ variant: "ghost", size: "lg" })} px-3`}
             >
-              {content.login}
+              {accountHome === ROUTES.HOME ? content.login : "Về dashboard"}
             </Link>
             <Link
               to={ROUTES.AUTH.REGISTER}

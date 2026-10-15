@@ -17,6 +17,12 @@ export function invalidateAuthSession(): void {
   accessTokenMemory.clear();
 }
 
+/** Bỏ credential từ popup đã mở trước khi context bị vô hiệu (ví dụ logout ở tab khác). */
+export function captureAuthContext(): () => boolean {
+  const generation = revision;
+  return () => generation === revision;
+}
+
 /** Thông báo tab khác đóng context riêng tư; không publish credentials. */
 export function notifyAuthChange(): void {
   if (typeof BroadcastChannel === "undefined") return;

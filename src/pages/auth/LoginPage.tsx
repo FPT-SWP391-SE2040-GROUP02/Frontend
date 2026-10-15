@@ -6,7 +6,7 @@ import { useSearchParams } from "react-router-dom";
 import { AUTH_LAYOUT_CONTENT } from "@/features/auth/model/authLayout.content";
 
 /**
- * @description Trang đăng nhập cookie; Google/Passkey chưa tích hợp được báo rõ.
+ * @description Trang đăng nhập Bearer RAM/refresh cookie; Google dùng GIS, Passkey chưa khả dụng.
  * URL chỉ cung cấp dấu hiệu có lời mời, không xác minh tên gói/chủ kho hoặc lockout.
  *
  * @returns {React.JSX.Element} Trang đăng nhập

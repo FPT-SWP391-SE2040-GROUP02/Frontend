@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { Button } from "@/shared/ui";
 import { ekycService } from "../api/ekycService";
+import { EkycUploads } from "./EkycUploads";
 const labels = {
   NOT_STARTED: "Bạn chưa xác minh danh tính.",
   PENDING: "Đang chờ bước so khớp khuôn mặt.",
@@ -42,17 +43,7 @@ export function EkycStatusPanel() {
       ) : (
         <p role="status">{labels[status.data.status]}</p>
       )}
-      <p className="text-sm text-heritage-muted">
-        Chức năng gửi ảnh giấy tờ và selfie đang được chuẩn bị.
-      </p>
+      {authenticated && status.isSuccess && <EkycUploads />}
     </section>
   );
 }
-
-// TODO: [EKYC] Submit mới theo profile scaffold.
-// 1. Mục tiêu: document -> xác nhận OCR -> selfie -> kết quả server.
-// 2. Input/output: File JPEG/PNG <=8 MiB -> document RAM, canMatchFace/expiresAt -> status.
-// 3. Bước: người dùng chọn ảnh; submit một lần; canMatchFace mới cho selfie; hết hạn đọc lại;
-//    chỉ công bố PASSED sau response; không nhận outcome/step URL làm bằng chứng.
-// 4. API/thư viện: ekycService, RHF/Zod, Query, File/FormData.
-// 5. Biên/lỗi: 401/409/413/503; pending/double-submit; không lưu OCR/ảnh/CCCD vào storage/log/cache.

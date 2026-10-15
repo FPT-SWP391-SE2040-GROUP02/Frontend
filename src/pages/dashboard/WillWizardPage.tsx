@@ -1,5 +1,13 @@
-import { WillWizard } from "@/widgets/WillWizard/ui/WillWizard";
-/** @description Trang lắp ghép wizard; không giữ validation, form state hoặc payload nghiệp vụ. */
+import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
+import { OwnerSection } from "@/widgets/OwnerWorkspace/OwnerSection";
+/** Trạng thái chức năng chưa tích hợp; không hiển thị dữ liệu hay thành công giả. */
 export function WillWizardPage() {
-  return <WillWizard />;
+  return (
+    <OwnerWorkspace
+      title="Tạo kế hoạch bàn giao"
+      description="Thông tin trong không gian cá nhân của bạn."
+    >
+      <OwnerSection section="plans" />
+    </OwnerWorkspace>
+  );
 }
