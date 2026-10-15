@@ -157,7 +157,7 @@ Lệnh kiểm tra FSD phân tích imports alias, relative và dynamic bằng Typ
 | Google                         | GIS popup → ID token/nonce → login hoặc xác nhận mật khẩu; ticket và Bearer chỉ RAM. OAuth thật cần origin Google Cloud hợp lệ           |
 | Executor/chứng tử              | Kho được giao, draft/files/submit/version đã nối controller chính thức; không giả kết luận Verifier                                      |
 | Người nhận/bàn giao            | `/receive?token=...` đúng email BE; claim/turns/accept/decline và tải blob theo grant. Còn phụ thuộc BE xác minh turn/khởi động bàn giao |
-| Các module còn thiếu BE        | Billing, quản lý phương thức đăng nhập, Admin/Verifier và activation chưa mở API; giữ chưa khả dụng                                      |
+| Các module còn thiếu BE        | Billing, quản lý phương thức đăng nhập, Admin/Verifier còn thiếu API; Executor/activation đã nối checklist, consent và API chính thức    |
 
 Access token chỉ giữ trong **RAM**; refresh token nằm trong cookie **HttpOnly**. Các POST auth thay đổi refresh cookie sử dụng CSRF proof. Response xác minh email không tự tạo phiên đăng nhập.
 

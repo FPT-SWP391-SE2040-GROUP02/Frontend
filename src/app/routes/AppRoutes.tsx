@@ -25,6 +25,11 @@ const InvitationPage = lazy(() =>
     default: module.InvitationPage,
   })),
 );
+const ExecutorInvitationPage = lazy(() =>
+  import("@/pages/claims/ExecutorInvitationPage").then((module) => ({
+    default: module.ExecutorInvitationPage,
+  })),
+);
 const BillingHistoryPage = lazy(() =>
   import("@/pages/billing/BillingHistoryPage").then((module) => ({
     default: module.BillingHistoryPage,
@@ -145,6 +150,7 @@ export function AppRoutes() {
         <Route path={ROUTES.HOME} element={<LandingPage />} />
         <Route path="/invitations/:token" element={<InvitationPage />} />
         <Route path={ROUTES.RECEIVE} element={<InvitationPage />} />
+        <Route path={ROUTES.EXECUTOR.INVITATION} element={<ExecutorInvitationPage />} />
         <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
           <Route path={ROUTES.ADMIN.ROOT} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AdminWorkspacePage />} />

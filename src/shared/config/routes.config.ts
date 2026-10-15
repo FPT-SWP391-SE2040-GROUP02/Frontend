@@ -52,6 +52,7 @@ export const ROUTES = {
 
   /** Cổng người giám hộ di sản / Digital Executor */
   EXECUTOR: {
+    INVITATION: "/executor-invitation",
     CLAIM: "/executor/claim",
   },
 
