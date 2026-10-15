@@ -1,3 +1,5 @@
+import { Link, useInRouterContext } from "react-router-dom";
+import type { ReactNode } from "react";
 import { LegacyVaultMark } from "./LegacyVaultArtwork";
 import { buttonVariants } from "./button";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -6,6 +8,7 @@ import guilloche from "@/shared/assets/legacyvault-guilloche.svg";
 
 /** Nội dung và hành động của một màn hình lỗi; hoạt động cả ngoài Router. */
 export interface ErrorScreenProps {
+  homeHref?: string;
   code: string;
   title: string;
   description: string;
@@ -14,14 +17,21 @@ export interface ErrorScreenProps {
 }
 
 /** Màn hình lỗi Heritage dùng chung cho HTTP và ErrorBoundary. */
-export function ErrorScreen({ code, title, description, retry, login }: ErrorScreenProps) {
+export function ErrorScreen({
+  code,
+  title,
+  description,
+  retry,
+  login,
+  homeHref = ROUTES.HOME,
+}: ErrorScreenProps) {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-heritage-surface text-heritage-text">
       <header className="relative z-10 mx-auto w-full max-w-7xl px-6 py-6 sm:px-10">
-        <a href={ROUTES.HOME} className="inline-flex min-h-11 items-center gap-3 font-semibold">
+        <HomeLink href={homeHref} className="inline-flex min-h-11 items-center gap-3 font-semibold">
           <LegacyVaultMark className="size-10 text-heritage-primary" />
           {content.brand}
-        </a>
+        </HomeLink>
       </header>
       <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-12 text-center">
         <p className="font-heading text-8xl font-semibold tracking-tight text-heritage-gold sm:text-9xl">
@@ -32,16 +42,16 @@ export function ErrorScreen({ code, title, description, retry, login }: ErrorScr
           {description}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <a href={ROUTES.HOME} className={buttonVariants({ size: "lg" })}>
+          <HomeLink href={homeHref} className={buttonVariants({ size: "lg" })}>
             {content.home}
-          </a>
+          </HomeLink>
           {login && (
-            <a
+            <HomeLink
               href={ROUTES.AUTH.LOGIN}
               className={buttonVariants({ variant: "outline", size: "lg" })}
             >
               {content.login}
-            </a>
+            </HomeLink>
           )}
           {retry && (
             <button
@@ -64,5 +74,27 @@ export function ErrorScreen({ code, title, description, retry, login }: ErrorScr
         {content.note}
       </footer>
     </div>
+  );
+}
+
+/** Giữ điều hướng SPA khi có Router; ErrorBoundary standalone vẫn dùng được. */
+function HomeLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  const inRouter = useInRouterContext();
+  return inRouter ? (
+    <Link to={href} className={className}>
+      {children}
+    </Link>
+  ) : (
+    <a href={href} className={className}>
+      {children}
+    </a>
   );
 }

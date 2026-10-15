@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { linkGoogleSchema, type LinkGoogleInput } from "../model/auth.schema";
@@ -7,8 +7,10 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Lock, ShieldCheck } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
-import { getLoginErrorMessage, getLoginRedirect } from "../lib/loginFeedback";
+import { getLoginRedirect } from "../lib/loginFeedback";
+import { getGoogleErrorMessage } from "../lib/googleFeedback";
 import { ROUTES } from "@/shared/config/routes.config";
+import type { BackendUserResponse } from "@/entities/user/model/backendUser.schema";
 
 /**
  * @description Thuộc tính cho component Liên kết tài khoản Google.
@@ -20,6 +22,10 @@ export interface LinkGoogleAccountCardProps {
   linkTicket?: string;
   rememberMe?: boolean;
   returnUrl?: string;
+  /** Điều hướng dùng cùng chính sách email/role với đăng nhập thường. */
+  onComplete?: (user: BackendUserResponse) => void;
+  /** Bỏ vé khỏi form và quay lại Google; giữ nguyên redirect của màn đăng nhập. */
+  onCancel?: () => void;
   /** Tên đầy đủ từ hồ sơ Google */
   fullName?: string;
   /** Lớp CSS bổ trợ */
@@ -39,9 +45,15 @@ export function LinkGoogleAccountCard({
   linkTicket,
   rememberMe = false,
   returnUrl,
+  onComplete,
+  onCancel,
   className = "",
 }: LinkGoogleAccountCardProps) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    heading.current?.focus();
+  }, []);
   const navigate = useNavigate();
   const { mutate: linkAccount, isPending, isError, error } = useLinkGoogle();
 
@@ -63,7 +75,7 @@ export function LinkGoogleAccountCard({
    * @param {LinkGoogleInput} data Dữ liệu mật khẩu
    */
   const onSubmit = (data: LinkGoogleInput): void => {
-    // Ticket phải đến từ Google response trong RAM; luồng lấy ID token còn ở AUTH-03.
+    // Ticket phải đến từ Google response trong RAM.
     if (isPending || !linkTicket) return;
     linkAccount(
       {
@@ -72,8 +84,9 @@ export function LinkGoogleAccountCard({
         rememberMe,
       },
       {
-        onSuccess: () => {
-          navigate(getLoginRedirect(returnUrl ?? null));
+        onSuccess: ({ user }) => {
+          if (onComplete) onComplete(user);
+          else navigate(getLoginRedirect(returnUrl ?? null));
         },
       },
     );
@@ -96,7 +109,11 @@ export function LinkGoogleAccountCard({
     <div className={`w-full space-y-6 text-left ${className}`}>
       {/* Tiêu đề & Diễn giải */}
       <div className="space-y-1">
-        <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]">
+        <h1
+          ref={heading}
+          tabIndex={-1}
+          className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]"
+        >
           Email này đã có tài khoản
         </h1>
         <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
@@ -106,25 +123,21 @@ export function LinkGoogleAccountCard({
       </div>
 
       {/* Thẻ người dùng Google (User Pill) */}
-      <div className="p-3 rounded-2xl bg-white border border-[#E5E5DF] flex items-center gap-3.5 shadow-sm">
-        <div className="w-10 h-10 rounded-full bg-[#EAF2ED] text-[#0A281E] font-bold text-base flex items-center justify-center flex-shrink-0">
-          {fullName.charAt(0)}
+      {fullName && (
+        <div className="p-3 rounded-2xl bg-white border border-[#E5E5DF] flex items-center gap-3.5 shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-[#EAF2ED] text-[#0A281E] font-bold text-base flex items-center justify-center flex-shrink-0">
+            {fullName.charAt(0)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-[#0F1A16] truncate">{fullName}</p>
+            <p className="text-[11px] text-[#6B6B66] truncate">{email}, từ Google</p>
+          </div>
+          <ShieldCheck className="w-4 h-4 text-[#B88E4C] flex-shrink-0" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-[#0F1A16] truncate">{fullName}</p>
-          <p className="text-[11px] text-[#6B6B66] truncate">{email}, từ Google</p>
-        </div>
-        <ShieldCheck className="w-4 h-4 text-[#B88E4C] flex-shrink-0" />
-      </div>
-
-      {!linkTicket && (
-        <p role="alert" className="text-sm text-red-700">
-          Thiếu phiên liên kết Google hợp lệ. Vui lòng quay lại đăng nhập.
-        </p>
       )}
       {isError && (
         <p role="alert" className="text-sm text-red-700">
-          {getLoginErrorMessage(error)}
+          {getGoogleErrorMessage(error)}
         </p>
       )}
       {/* Form nhập mật khẩu hiện tại */}
@@ -139,6 +152,8 @@ export function LinkGoogleAccountCard({
               id="google-link-password"
               disabled={isPending || !linkTicket}
               autoComplete="current-password"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? "google-link-password-error" : undefined}
               {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="Nhập mật khẩu hiện tại của bạn"
@@ -149,13 +164,22 @@ export function LinkGoogleAccountCard({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[#6B6B66] hover:text-[#0A281E] px-1 py-0.5 rounded focus-visible:outline-none"
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              aria-pressed={showPassword}
+              disabled={isPending}
+              className="absolute right-0 top-1/2 -translate-y-1/2 min-h-11 min-w-11 text-xs font-medium text-[#6B6B66] hover:text-[#0A281E] rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A281E]"
             >
               {showPassword ? "Ẩn" : "Hiện"}
             </button>
           </div>
           {errors.password && (
-            <p className="text-[11px] text-red-600 font-medium">{errors.password.message}</p>
+            <p
+              id="google-link-password-error"
+              role="alert"
+              className="text-[11px] text-red-600 font-medium"
+            >
+              {errors.password.message}
+            </p>
           )}
         </div>
 
@@ -170,12 +194,23 @@ export function LinkGoogleAccountCard({
 
       {/* Nút hủy chuyển về dùng email khác */}
       <div className="pt-4 border-t border-[#E5E5DF] text-center">
-        <Link
-          to={ROUTES.AUTH.LOGIN}
-          className="text-xs text-[#0A281E] hover:underline font-semibold"
-        >
-          Dùng email khác
-        </Link>
+        {onCancel ? (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={onCancel}
+            className="min-h-11 text-xs text-[#0A281E] underline"
+          >
+            Quay lại đăng nhập Google
+          </button>
+        ) : (
+          <Link
+            to={ROUTES.AUTH.LOGIN}
+            className="text-xs text-[#0A281E] hover:underline font-semibold"
+          >
+            Dùng email khác
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
-import { type ReactElement } from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAppSelector } from "@/app/store";
-import { type Role } from "@/shared/constants/roles";
 import { ROUTES } from "@/shared/config/routes.config";
+import { type Role } from "@/shared/constants/roles";
+import { Fragment, type ReactElement } from "react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 /**
  * @description Thuộc tính cấu hình cho ProtectedRoute guard.
@@ -63,5 +63,6 @@ export function ProtectedRoute({ allowedRoles = [], children }: ProtectedRoutePr
     return <Navigate to={ROUTES.ERROR.FORBIDDEN} replace />;
   }
 
-  return children ? children : <Outlet />;
+  // Hủy local form/OCR/file RAM của danh tính cũ cả khi route không đổi.
+  return <Fragment key={user.id}>{children ?? <Outlet />}</Fragment>;
 }

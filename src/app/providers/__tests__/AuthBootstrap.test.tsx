@@ -1,20 +1,20 @@
-import { accessTokenMemory } from "@/shared/api/accessToken";
-import { StrictMode } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { configureStore } from "@reduxjs/toolkit";
-import { Provider } from "react-redux";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
-import { authKeys, useLogin, useLogout } from "@/features/auth/model/useAuth";
 import { toAuthUserViewModel } from "@/entities/user/lib/adapters";
-import { sessionAuthService } from "@/features/auth/api/authService";
 import {
   AUTH_SYSTEM_ROLES,
   AUTH_USER_STATUSES,
   type AuthUserDto,
 } from "@/entities/user/model/authContract.types";
+import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
+import { sessionAuthService } from "@/features/auth/api/authService";
+import { authKeys, useLogin, useLogout } from "@/features/auth/model/useAuth";
+import { accessTokenMemory } from "@/shared/api/accessToken";
 import { ROUTES } from "@/shared/config/routes.config";
+import { configureStore } from "@reduxjs/toolkit";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { StrictMode } from "react";
+import { Provider } from "react-redux";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { AuthBootstrap } from "../AuthBootstrap";
 
 vi.mock("@/features/auth/api/authService", () => ({
@@ -149,19 +149,6 @@ describe("AuthBootstrap request budget", () => {
     client.clear();
   });
 
-  it.each(Object.values(ROUTES.PREVIEW))(
-    "does not request a session on development preview %s",
-    (path) => {
-      vi.stubEnv("DEV", true);
-      window.history.replaceState(null, "", path);
-      const { store, client } = setup();
-      expect(sessionAuthService.getSession).not.toHaveBeenCalled();
-      expect(store.getState().auth.isHydrating).toBe(false);
-      expect(screen.getByText("App content")).toBeInTheDocument();
-      client.clear();
-    },
-  );
-
   it("does not retry a failed session request", async () => {
     vi.mocked(sessionAuthService.getSession).mockRejectedValue(new Error("session unavailable"));
     const { store, client } = setup();
@@ -173,7 +160,7 @@ describe("AuthBootstrap request budget", () => {
 
   it("does not bypass session bootstrap in production", async () => {
     vi.stubEnv("DEV", false);
-    window.history.replaceState(null, "", ROUTES.PREVIEW.VERIFIER);
+    window.history.replaceState(null, "", "/preview/verifier");
     vi.mocked(sessionAuthService.getSession).mockResolvedValue(sessionUser);
     const { store, client } = setup();
     await waitFor(() => expect(store.getState().auth.isHydrating).toBe(false));

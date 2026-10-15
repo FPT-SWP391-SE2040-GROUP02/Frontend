@@ -1,23 +1,22 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { isAxiosError } from "axios";
 import { useAppDispatch } from "@/app/store";
-import { setUser, clearCredentials, setHydrating } from "@/entities/user/model/authSlice";
+import { toAuthUserViewModel } from "@/entities/user/lib/adapters";
+import { clearCredentials, setHydrating, setUser } from "@/entities/user/model/authSlice";
 import { sessionAuthService } from "@/features/auth/api/authService";
-import { authKeys } from "@/features/auth/model/useAuth";
 import {
-  canRestoreSession,
-  runAuthTransition,
-  invalidateAuthSession,
   AUTH_CHANGE_CHANNEL,
   AUTH_TAB_ID,
+  canRestoreSession,
+  invalidateAuthSession,
+  runAuthTransition,
 } from "@/features/auth/model/authTransitions";
-import { toAuthUserViewModel } from "@/entities/user/lib/adapters";
-import { isCancelledError, useQueryClient } from "@tanstack/react-query";
-import { subscribeSessionFailure } from "@/shared/api/sessionFailure";
+import { authKeys } from "@/features/auth/model/useAuth";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import { subscribeSessionFailure } from "@/shared/api/sessionFailure";
 import { APP_MESSAGES, HTTP_STATUS } from "@/shared/constants";
-import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
+import { isCancelledError, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { useEffect, useState, type ReactNode } from "react";
 
 /** Restore raw Bearer session; Query cache chỉ giữ user, không giữ credential. */
 export function AuthBootstrap({ children }: { children: ReactNode }) {
@@ -57,13 +56,6 @@ export function AuthBootstrap({ children }: { children: ReactNode }) {
   }, [dispatch, queryClient]);
 
   useEffect(() => {
-    if (
-      import.meta.env.DEV &&
-      Object.values(ROUTES.PREVIEW).some((path) => path === window.location.pathname)
-    ) {
-      dispatch(setHydrating(false));
-      return;
-    }
     // Không xoay shared cookie tự động khi thiếu cross-tab lock. Manual login vẫn dùng được.
     if (!accessTokenMemory.get() && !canRestoreSession()) {
       dispatch(clearCredentials());

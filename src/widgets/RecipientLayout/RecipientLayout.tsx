@@ -1,15 +1,15 @@
-import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { ROUTES } from "@/shared/config/routes.config";
-import { OverviewIcon, TrustedIcon, VaultIcon, MessageIcon } from "@/shared/ui/LegacyVaultArtwork";
+import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import guilloche from "@/shared/assets/auth-guilloche.svg";
+import { ROUTES } from "@/shared/config/routes.config";
+import { OverviewIcon, TrustedIcon } from "@/shared/ui/LegacyVaultArtwork";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
+import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 
 const shell = {
   brand: "LegacyVault",
   menu: "Menu người nhận",
   role: "Người nhận",
-  previewUser: "Tài khoản mẫu",
   logout: "Đăng xuất",
   overview: "Tổng quan",
   verify: "Xác minh",
@@ -26,22 +26,19 @@ export interface RecipientLayoutProps {
   children: ReactNode;
 }
 
-/** Sidebar dùng chung theo UI kit, route preview tách khỏi cổng được bảo vệ. */
+/** Sidebar dùng chung cho cổng người nhận. */
 export function RecipientLayout({ active, children }: RecipientLayoutProps) {
-  const location = useLocation();
-  const preview = import.meta.env.DEV && location.pathname.startsWith("/preview/");
-  const root = preview ? ROUTES.PREVIEW.BENEFICIARY : ROUTES.BENEFICIARY.CLAIM;
-  const verify = preview ? ROUTES.PREVIEW.EKYC_CAMERA : ROUTES.BENEFICIARY.EKYC_CAMERA;
+  const accountHome = useAccountHome();
+  const root = ROUTES.BENEFICIARY.CLAIM;
+  const verify = ROUTES.BENEFICIARY.EKYC_CAMERA;
   const items = [
     { id: "overview", label: shell.overview, icon: OverviewIcon, to: root },
     { id: "verify", label: shell.verify, icon: TrustedIcon, to: `${verify}?step=documents` },
-    { id: "content", label: shell.content, icon: VaultIcon, to: `${root}?view=content` },
-    { id: "messages", label: shell.messages, icon: MessageIcon, to: `${root}?view=messages` },
   ];
   return (
     <WorkspaceShell
       brand={shell.brand}
-      homeHref={ROUTES.HOME}
+      homeHref={accountHome}
       logoutHref={ROUTES.AUTH.LOGOUT}
       logoutLabel={shell.logout}
       navigation={
@@ -71,7 +68,7 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
             className="mx-auto mb-3 hidden size-16 opacity-40 [@media(min-height:800px)]:block"
           />
           <div>
-            <p className="text-sm font-semibold">{preview ? shell.previewUser : shell.role}</p>
+            <p className="text-sm font-semibold">{shell.role}</p>
             <p className="mt-1 text-xs text-heritage-surface/65">{shell.role}</p>
           </div>
         </>

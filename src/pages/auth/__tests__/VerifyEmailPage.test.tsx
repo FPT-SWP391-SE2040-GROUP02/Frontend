@@ -1,3 +1,6 @@
+import { configureStore } from "@reduxjs/toolkit";
+import { Provider } from "react-redux";
+import authReducer from "@/entities/user/model/authSlice";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
@@ -37,10 +40,13 @@ function setup(path: string, history = [path]) {
     ],
     { initialEntries: history, initialIndex: history.length - 1 },
   );
+  const store = configureStore({ reducer: { auth: authReducer } });
   render(
-    <QueryClientProvider client={client}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>,
+    <Provider store={store}>
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </Provider>,
   );
   return router;
 }
