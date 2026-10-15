@@ -147,17 +147,18 @@ Lệnh kiểm tra FSD phân tích imports alias, relative và dynamic bằng Typ
 
 ## Trạng thái tích hợp
 
-| Phạm vi                        | Trạng thái hiện tại                                                                                                                      |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Auth cốt lõi                   | Login, restore sau reload, logout và logout mọi thiết bị đã nối Backend                                                                  |
-| Xác minh email                 | Submit thủ công, xử lý token lỗi, gỡ token URL sau thành công và xin liên kết mới                                                        |
-| Kho và gói                     | Tạo/sửa kho; tạo/detail/sửa/lưu trữ container; thêm/gỡ tài sản và người nhận; PUT giữ etag, không tự xác nhận tác động kế hoạch          |
-| Tài sản, người nhận, điểm danh | Form TEXT/file; CRUD hồ sơ người nhận; điểm danh và lịch; pending/failure/cache/identity guards đã nối services thật                     |
-| eKYC                           | Document → kiểm tra OCR trong RAM → selfie → trạng thái server; cần provider dev hợp lệ để nghiệm thu E2E                                |
-| Google                         | GIS popup → ID token/nonce → login hoặc xác nhận mật khẩu; ticket và Bearer chỉ RAM. OAuth thật cần origin Google Cloud hợp lệ           |
-| Executor/chứng tử              | Kho được giao, draft/files/submit/version đã nối controller chính thức; không giả kết luận Verifier                                      |
-| Người nhận/bàn giao            | `/receive?token=...` đúng email BE; claim/turns/accept/decline và tải blob theo grant. Còn phụ thuộc BE xác minh turn/khởi động bàn giao |
-| Các module còn thiếu BE        | Billing, quản lý phương thức đăng nhập, Admin/Verifier còn thiếu API; Executor/activation đã nối checklist, consent và API chính thức    |
+| Phạm vi                        | Trạng thái hiện tại                                                                                                                                      |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth cốt lõi                   | Login, restore sau reload, logout và logout mọi thiết bị đã nối Backend                                                                                  |
+| Xác minh email                 | Submit thủ công, xử lý token lỗi, gỡ token URL sau thành công và xin liên kết mới                                                                        |
+| Kho và gói                     | Tạo/sửa kho; tạo/detail/sửa/lưu trữ container; thêm/gỡ tài sản và người nhận; PUT giữ etag, không tự xác nhận tác động kế hoạch                          |
+| Tài sản, người nhận, điểm danh | Form TEXT/file; CRUD hồ sơ người nhận; điểm danh và lịch; pending/failure/cache/identity guards đã nối services thật                                     |
+| eKYC                           | Document → kiểm tra OCR trong RAM → selfie → trạng thái server; cần provider dev hợp lệ để nghiệm thu E2E                                                |
+| Google                         | GIS popup → ID token/nonce → login hoặc xác nhận mật khẩu; ticket và Bearer chỉ RAM. OAuth thật cần origin Google Cloud hợp lệ                           |
+| Executor/chứng tử              | Kho được giao, draft/files/submit/version đã nối controller chính thức; không giả kết luận Verifier                                                      |
+| Người nhận/bàn giao            | `/receive?token=...` đúng email BE; claim/turns/accept/decline và tải blob theo grant. Còn phụ thuộc BE xác minh turn/khởi động bàn giao                 |
+| Verifier                       | `/verifier/death-cases*` (list, detail, review flag, supplement, approve, reject, file content) nối đúng controller; workspace mới ở `/notary/workspace` |
+| Các module còn thiếu BE        | Billing, quản lý phương thức đăng nhập, Admin còn thiếu API; Executor/activation đã nối checklist, consent và API chính thức                             |
 
 Access token chỉ giữ trong **RAM**; refresh token nằm trong cookie **HttpOnly**. Các POST auth thay đổi refresh cookie sử dụng CSRF proof. Response xác minh email không tự tạo phiên đăng nhập.
 
