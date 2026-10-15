@@ -1,14 +1,14 @@
-import React from "react";
+import { useAccountHome } from "@/entities/user/model/useAccountHome";
+import { useAssets } from "@/features/assets";
+import { Step3ExecutorActivation, WillStepper, type StepItem } from "@/features/wills";
 import { useWillWizardForm } from "@/features/wills/model/useWillWizardForm";
-import { APP_MESSAGES } from "@/shared/constants";
-import { Link } from "react-router-dom";
-import { Shield, ChevronRight, ArrowLeft, ArrowRight, Lock } from "lucide-react";
-import { Button } from "@/shared/ui";
 import { ROUTES } from "@/shared/config/routes.config";
-import { WillStepper, Step3ExecutorActivation, type StepItem } from "@/features/wills";
+import { Button } from "@/shared/ui";
+import { ArrowLeft, ArrowRight, ChevronRight, Lock, Shield } from "lucide-react";
+import React from "react";
+import { Link } from "react-router-dom";
 import { Step1SelectAssets } from "./Step1SelectAssets";
 import { Step2DirectDesignationBundling } from "./Step2DirectDesignationBundling";
-import { useAssets } from "@/features/assets";
 
 /**
  * @file WillWizardPage.tsx
@@ -26,6 +26,7 @@ const WIZARD_STEPS: StepItem[] = [
 
 /** @description Ghép các bước Wills và danh sách Assets; nghiệp vụ form thuộc feature Wills. */
 export const WillWizard: React.FC = () => {
+  const accountHome = useAccountHome();
   const { data: assetsData } = useAssets();
   const {
     formValues,
@@ -54,7 +55,7 @@ export const WillWizard: React.FC = () => {
       <header className="sticky top-0 z-40 bg-[#FAF9F5]/95 backdrop-blur-md border-b border-[#DCD9D0] px-4 sm:px-8 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-6">
           <Link
-            to={ROUTES.HOME}
+            to={accountHome}
             className="flex items-center gap-2.5 rounded-[14px] p-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             aria-label="LegacyVault Trang Chủ"
           >
@@ -96,7 +97,7 @@ export const WillWizard: React.FC = () => {
 
       {/* Main Container */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
-        <p role="status">{APP_MESSAGES.UI.PREVIEW}</p>
+        <p role="status">Tính năng tạo và kích hoạt kế hoạch đang được hoàn thiện.</p>
         {/* Stepper Navigation */}
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5EDE8] border border-[#A2C4AF] text-[#0B291E] text-xs font-semibold">

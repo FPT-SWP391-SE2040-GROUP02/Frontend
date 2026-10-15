@@ -73,6 +73,18 @@ Giá trị mặc định phải bao gồm **`/api/v1`**. Service sử dụng rou
 
 Mọi biến `VITE_*` là cấu hình công khai và có thể xuất hiện trong bundle. Credentials R2, SMTP, LiveKit API secret và JWT signing key thuộc Backend; không đưa vào frontend hoặc commit `.env`. Khởi động lại Vite sau khi đổi cấu hình môi trường.
 
+### Đăng nhập Google local
+
+Dùng OAuth client loại **Web application**. Đặt `VITE_GOOGLE_CLIENT_ID` trong `.env` của FE, cùng giá trị với `GoogleAuth:ClientId` của Backend. Public client ID được phép có trong bundle; không cần client secret cho luồng GIS ID token này. Backend không tự đọc `.env`; có thể cấu hình bằng `GoogleAuth__ClientId` trong môi trường tiến trình hoặc appsettings theo môi trường. Development đã được cấu hình bằng public client ID do người dùng cung cấp; production phải cấu hình riêng.
+
+Trong [Google Cloud Credentials](https://console.cloud.google.com/apis/credentials), chọn đúng project → OAuth 2.0 Client IDs → Web client (giao diện Google Auth Platform: Clients → chọn client). Thêm `http://localhost:5173` vào **Authorized JavaScript origins**, lưu và tải lại màn đăng nhập. Origin không có đường dẫn `/login`; phải khớp protocol/host/port đang dùng. Google khuyến nghị thêm cả `http://localhost` khi kiểm thử local. Nguồn: [Google GIS setup](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid). Luồng popup callback hiện tại không cần redirect URI. Khi app ở Testing, kiểm tra tài khoản thử nghiệm/Audience nếu Google yêu cầu.
+
+Sau khi đổi `.env`, khởi động lại Vite. Dùng cổng 5173 cố định (`npm run dev -- --port 5173 --strictPort`) để tránh origin tự đổi khi cổng bận. Backend CORS Development cho phép `http://localhost:5173` với credentials; dùng cùng hostname localhost cho FE và API local.
+
+Nút Google được Google SDK render; popup đóng mà không trả credential thì vẫn giữ màn đăng nhập. Khi email trùng, form xác nhận mật khẩu hiển thị ngay tại màn này; vé không đi qua URL/router state/storage. Hủy hoặc reload phải lấy vé mới. Chỉ cập nhật phiên sau response server; lỗi vé hết hạn/đã dùng có đường quay lại Google.
+
+Nếu console báo `The given origin is not allowed for the given client ID`, sửa Authorized JavaScript origins của đúng client. Nếu dùng CSP/COOP trên hosting, đối chiếu [Google setup](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid) để cho phép SDK/frame/connect Google và popup theo cấu hình hosting; không gỡ security headers để che lỗi.
+
 ### 3. Khởi chạy Backend
 
 Chuẩn bị SQL Server, cấu hình development và áp dụng migrations theo hướng dẫn Backend. API không tự migrate khi khởi động; .NET cũng không tự nạp file `.env`.
@@ -107,7 +119,7 @@ src/
 ├── entities/     # DTO, schemas, adapters và state của thực thể
 └── shared/
     ├── api/      # Axios, transport và createBaseService
-    ├── config/   # Cấu hình môi trường, routes và preview
+    ├── config/   # Cấu hình môi trường và routes
     ├── constants/
     ├── lib/
     ├── types/
@@ -135,19 +147,21 @@ Lệnh kiểm tra FSD phân tích imports alias, relative và dynamic bằng Typ
 
 ## Trạng thái tích hợp
 
-| Phạm vi                        | Trạng thái hiện tại                                                                              |
-| ------------------------------ | ------------------------------------------------------------------------------------------------ |
-| Auth cốt lõi                   | Login, restore sau reload, logout và logout mọi thiết bị đã nối Backend                          |
-| Xác minh email                 | Submit thủ công, xử lý token lỗi, gỡ token URL sau thành công và xin liên kết mới                |
-| Kho và gói                     | Màn tổng quan đọc dữ liệu thật; service dùng containers, PUT kèm `etag` và DELETE lưu trữ        |
-| Tài sản, người nhận, điểm danh | Có schema/service và các khối đọc dữ liệu thật trên tổng quan; submit nghiệp vụ còn scaffold     |
-| eKYC                           | Màn thật đọc trạng thái Backend; contract gửi document/selfie đã có, submit UI còn scaffold      |
-| Google                         | Service/schema và form link-confirm đã có; bước lấy ID token và nối luồng đăng nhập còn scaffold |
-| Các module khác                | Billing, claims, verifier và handover cần tiếp tục đối soát contract và triển khai               |
+| Phạm vi                        | Trạng thái hiện tại                                                                                                                      |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth cốt lõi                   | Login, restore sau reload, logout và logout mọi thiết bị đã nối Backend                                                                  |
+| Xác minh email                 | Submit thủ công, xử lý token lỗi, gỡ token URL sau thành công và xin liên kết mới                                                        |
+| Kho và gói                     | Tạo/sửa kho; tạo/detail/sửa/lưu trữ container; thêm/gỡ tài sản và người nhận; PUT giữ etag, không tự xác nhận tác động kế hoạch          |
+| Tài sản, người nhận, điểm danh | Form TEXT/file; CRUD hồ sơ người nhận; điểm danh và lịch; pending/failure/cache/identity guards đã nối services thật                     |
+| eKYC                           | Document → kiểm tra OCR trong RAM → selfie → trạng thái server; cần provider dev hợp lệ để nghiệm thu E2E                                |
+| Google                         | GIS popup → ID token/nonce → login hoặc xác nhận mật khẩu; ticket và Bearer chỉ RAM. OAuth thật cần origin Google Cloud hợp lệ           |
+| Executor/chứng tử              | Kho được giao, draft/files/submit/version đã nối controller chính thức; không giả kết luận Verifier                                      |
+| Người nhận/bàn giao            | `/receive?token=...` đúng email BE; claim/turns/accept/decline và tải blob theo grant. Còn phụ thuộc BE xác minh turn/khởi động bàn giao |
+| Các module còn thiếu BE        | Billing, quản lý phương thức đăng nhập, Admin/Verifier và activation chưa mở API; giữ chưa khả dụng                                      |
 
 Access token chỉ giữ trong **RAM**; refresh token nằm trong cookie **HttpOnly**. Các POST auth thay đổi refresh cookie sử dụng CSRF proof. Response xác minh email không tự tạo phiên đăng nhập.
 
-Các route `/preview/*` chỉ được đăng ký trong Development và dùng dữ liệu minh họa. Kết quả build hoặc tests không tự chứng minh các luồng scaffold đã hoạt động đầy đủ với Backend.
+Các route `/preview/*` đã được gỡ. Các màn chính dùng cùng sidebar; dữ liệu thật qua schema/service chính thức, không fixture/thành công giả. Submit riêng tư dùng `usePrivateAction`: chặn trùng, không retry/optimistic, không đưa payload vào MutationCache, bỏ response khi unmount hoặc Bearer đổi. ProtectedRoute remount local form theo user ID; auth transitions tiếp tục sở hữu private query cleanup. Bảng giá theo SRS chỉ tham khảo, checkout không tạo đơn/QR mẫu. Build và tests không thay nghiệm thu browser/SQL/provider thật. Xem [roadmap và checkpoint triển khai](../docs/plans/BE-FE-INTEGRATION-ROADMAP.md).
 
 ## Scripts
 

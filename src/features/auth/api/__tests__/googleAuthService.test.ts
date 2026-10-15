@@ -10,6 +10,16 @@ beforeEach(() => {
   vi.mocked(axiosClient.get).mockResolvedValue({ requestToken: "proof" });
 });
 describe("Google and unavailable Backend contracts", () => {
+  it("does not post either Google action when CSRF proof acquisition fails", async () => {
+    vi.mocked(axiosClient.get).mockRejectedValue(new Error("proof unavailable"));
+    await expect(
+      authService.loginWithGoogle({ idToken: "fixture", nonce: "nonce", rememberMe: false }),
+    ).rejects.toThrow("proof unavailable");
+    await expect(
+      authService.linkGoogleAccount({ linkTicket: "ticket", password: "old", rememberMe: false }),
+    ).rejects.toThrow("proof unavailable");
+    expect(axiosClient.post).not.toHaveBeenCalled();
+  });
   it("preserves a link challenge without treating it as a session", async () => {
     const challenge = {
       signedIn: false,

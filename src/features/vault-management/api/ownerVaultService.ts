@@ -39,6 +39,13 @@ export const ownerVaultService = {
       ),
     );
   },
+  /** PUT chỉ metadata kho, giữ etag đọc ban đầu; không tự retry 409. */
+  async updateMine(vaultId: string, request: z.infer<typeof createVaultSchema> & { etag: string }) {
+    const body = createVaultSchema.extend({ etag: z.string().min(1).max(64) }).parse(request);
+    return vaultResponseSchema.parse(
+      await apiClient.put<unknown, unknown>(`/vaults/${idSchema.parse(vaultId)}`, body),
+    );
+  },
   /** Scope theo vaultId, phân trang raw items/totalCount. */
   async listPackages(
     vaultId: string,
@@ -84,5 +91,26 @@ export const ownerVaultService = {
         params: { confirmPlanDeactivation },
       }),
     );
+  },
+  /** Quan hệ container: thêm bằng body DTO, gỡ bằng URL + confirmation tường minh. */
+  async changeMember(
+    vaultId: string,
+    containerId: string,
+    relation: "assets" | "beneficiaries",
+    memberId: string,
+    attach: boolean,
+    confirmPlanDeactivation = false,
+  ) {
+    const base = `${container(vaultId, containerId)}/${relation}`;
+    const member = idSchema.parse(memberId);
+    const result = attach
+      ? await apiClient.post<unknown, unknown>(
+          base,
+          relation === "assets" ? { assetId: member } : { beneficiaryId: member },
+        )
+      : await apiClient.delete<unknown, unknown>(`${base}/${member}`, {
+          params: { confirmPlanDeactivation },
+        });
+    return packageResponseSchema.parse(result);
   },
 };

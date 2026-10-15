@@ -47,10 +47,10 @@ export interface UserAvatarMenuProps {
  * ```
  */
 export function UserAvatarMenu({
-  fullName = "Alexander Hayes",
-  email = "alexander.h@legacyvault.io",
+  fullName = "Tài khoản",
+  email = "",
   avatarUrl,
-  role = ROLES.OWNER,
+  role = ROLES.USER,
   onLogout,
   className = "",
 }: UserAvatarMenuProps) {

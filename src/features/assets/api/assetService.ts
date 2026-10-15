@@ -1,16 +1,20 @@
-import { requirePreviewWorkspace } from "@/shared/config/preview";
-import type { AssetItemDto, CreateAssetRequest, AssetVaultStats } from "../model/asset.types";
-import type { PaginatedList, PaginationParams, ApiResponse } from "@/shared/types";
+import { APP_MESSAGES } from "@/shared/constants";
 
-/**
- * @file assetService.ts
- * @description Tầng dịch vụ giao tiếp API cho module Quản Lý Tài Sản Số (Asset Management).
- * Tuân thủ Rule 7 (Scaffold with TODO) và Rule 8 (JSDoc chuẩn chỉ).
- */
+/** Legacy contracts retained for callers; no fixture or simulated successful operation. */
 
-function safeEncodePayload(data: unknown): string {
-  return btoa(encodeURIComponent(JSON.stringify(data)));
-}
+// TODO: Integrate only after matching the official Backend DTOs and permission rules.
+
+// Input/output: typed signatures below; no fixture fallback.
+
+// Steps: confirm contract, validate schema, call service, publish confirmed result through hooks.
+
+// API/library: existing official services, Zod and TanStack Query; do not invent endpoints.
+
+// Edges: auth failures, missing resources, version conflicts and duplicate writes must remain errors.
+
+import type { AssetItemDto, AssetVaultStats, CreateAssetRequest } from "../model/asset.types";
+
+import type { ApiResponse, PaginatedList, PaginationParams } from "@/shared/types";
 
 /**
  * Lấy danh sách tài sản số có phân trang và lọc theo loại
@@ -18,100 +22,11 @@ function safeEncodePayload(data: unknown): string {
  * @returns Promise chứa PaginatedList<AssetItemDto>
  */
 export async function getAssets(
-  params?: PaginationParams & { assetType?: string },
+  _params?: PaginationParams & {
+    assetType?: string;
+  },
 ): Promise<PaginatedList<AssetItemDto>> {
-  requirePreviewWorkspace();
-  // TODO: [P1][ASSET-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-  // 1. [MỤC TIÊU]: Thay danh sách assets mock bằng tài sản thuộc gói đúng quyền.
-  // 2. [INPUT & OUTPUT]: packageId + page/pageSize/q/sort -> data/meta DTO rồi ViewModel.
-  // 3. [CÁC BƯỚC]: Sau VAULT-01 chốt GET /packages/{id}/assets; migrate types/schema/pagination; tái dùng shared service; adapter ở entities; query key theo scope.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService, BackendPageResponse, Zod, TanStack Query.
-  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không ép BE theo PaginatedList cũ; 401/403/empty/hold; mock chỉ preview, không fallback dữ liệu giả khi API lỗi.
-  const mockItems: AssetItemDto[] = [
-    {
-      id: "ast_01",
-      vaultId: "vlt_01",
-      title: "Ví Lạnh Bitcoin & Ethereum Gia Tộc",
-      assetType: "CRYPTO",
-      description: "Chứa 2.5 BTC và 30 ETH dự phòng tại ví cứng Ledger Nano X",
-      status: "ACTIVE",
-      beneficiaryCount: 2,
-      shamirThreshold: 2,
-      shamirTotalShares: 3,
-      encryptedPayload: {
-        ciphertext: safeEncodePayload({
-          network: "ETHEREUM (ERC-20)",
-          walletAddress: "0x71C865768268571a82fD859345D181d1392b7D3",
-          seedPhrase: "abandon amount liar amount expire adjust cage candy arch gather drum bullet",
-          privateKey: "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f360888",
-        }),
-        iv: "sample_iv",
-        authTag: "sample_auth_tag",
-        keyDerivationSalt: "sample_salt",
-      },
-      createdAt: "2026-08-15T08:30:00Z",
-      updatedAt: "2026-09-01T10:00:00Z",
-    },
-    {
-      id: "ast_02",
-      vaultId: "vlt_01",
-      title: "Tài Khoản AWS Cloud & Domain Công Ty",
-      assetType: "CREDENTIAL",
-      description: "Tài khoản Root AWS quản lý hạ tầng Cloud và cụm cơ sở dữ liệu",
-      status: "ACTIVE",
-      beneficiaryCount: 1,
-      shamirThreshold: 2,
-      shamirTotalShares: 3,
-      encryptedPayload: {
-        ciphertext: safeEncodePayload({
-          serviceName: "Amazon Web Services (AWS Root)",
-          serviceUrl: "https://signin.aws.amazon.com/console",
-          username: "root-admin@legacyvault.vn",
-          password: "AwsRootMasterPassword2026!@#",
-          twoFactorBackupCodes: "88912304 99120485 11029482 77102938",
-        }),
-        iv: "sample_iv",
-        authTag: "sample_auth_tag",
-        keyDerivationSalt: "sample_salt",
-      },
-      createdAt: "2026-08-20T14:15:00Z",
-      updatedAt: "2026-08-20T14:15:00Z",
-    },
-    {
-      id: "ast_03",
-      vaultId: "vlt_01",
-      title: "Sổ Đỏ Bất Động Sản Biệt Thự Thảo Điền",
-      assetType: "DOCUMENT",
-      description: "Giấy chứng nhận quyền sử dụng đất số GCN-QD-2024-889123 tại TP. Thủ Đức",
-      status: "ACTIVE",
-      beneficiaryCount: 2,
-      shamirThreshold: 2,
-      shamirTotalShares: 3,
-      encryptedPayload: {
-        ciphertext: safeEncodePayload({
-          documentCategory: "REAL_ESTATE_CERTIFICATE",
-          identifierNumber: "GCN-QD-2024-889123",
-          notes:
-            "Bản gốc lưu tại Két sắt ngân hàng Vietcombank chi nhánh Tân Bình. Hợp đồng ủy quyền công chứng số 102/2025/CC.",
-        }),
-        iv: "sample_iv",
-        authTag: "sample_auth_tag",
-        keyDerivationSalt: "sample_salt",
-      },
-      createdAt: "2026-09-02T09:00:00Z",
-      updatedAt: "2026-09-02T09:00:00Z",
-    },
-  ];
-
-  return {
-    items: mockItems,
-    totalCount: mockItems.length,
-    pageIndex: params?.pageIndex || 1,
-    pageSize: params?.pageSize || 10,
-    totalPages: 1,
-    hasPreviousPage: false,
-    hasNextPage: false,
-  };
+  throw new Error(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
 }
 
 /**
@@ -119,20 +34,8 @@ export async function getAssets(
  * @param id Định danh tài sản
  * @returns Promise chứa AssetItemDto
  */
-export async function getAssetDetail(id: string): Promise<AssetItemDto> {
-  requirePreviewWorkspace();
-  // TODO: [P1][ASSET-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-  // 1. [MỤC TIÊU]: Đọc metadata và content qua hai contract riêng.
-  // 2. [INPUT & OUTPUT]: assetId + quyền -> metadata; content chỉ qua endpoint được BE cho phép.
-  // 3. [CÁC BƯỚC]: Sau ASSET-01 chốt GET /assets/{id} và /assets/{id}/content; parse DTO; adapter; query hooks; content đọc theo response binary/record.
-  // 4. [HÀM / THƯ VIỆN]: Shared transport, Zod, entity adapters, Blob/ObjectURL khi phù hợp.
-  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không coi Base64 là ciphertext; không gửi DEK/KEK xuống FE; không cache plaintext lâu dài; hủy/revoke URL khi đổi phiên hoặc unmount.
-  const list = await getAssets();
-  const item = list.items.find((x) => x.id === id);
-  if (!item) {
-    throw new Error(`Không tìm thấy tài sản có ID: ${id}`);
-  }
-  return item;
+export async function getAssetDetail(_id: string): Promise<AssetItemDto> {
+  throw new Error(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
 }
 
 /**
@@ -140,34 +43,10 @@ export async function getAssetDetail(id: string): Promise<AssetItemDto> {
  * @param payload Dữ liệu tạo tài sản đã mã hóa Zero-Knowledge
  * @returns Promise chứa ApiResponse<AssetItemDto>
  */
-export async function createAsset(payload: CreateAssetRequest): Promise<ApiResponse<AssetItemDto>> {
-  requirePreviewWorkspace();
-  // TODO: [P1][ASSET-03] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-  // 1. [MỤC TIÊU]: Thay tạo tài sản giả bằng upload/version theo mô hình mã hóa BE.
-  // 2. [INPUT & OUTPUT]: packageId + payload/file đã validate -> asset/version/quota từ BE.
-  // 3. [CÁC BƯỚC]: Sau ASSET-01 chốt POST /packages/{id}/assets và PUT /assets/{id}/content; schema -> service -> hook -> form; bỏ DTO Shamir/encryptedPayload giả khi migrate.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService, RHF/Zod, FormData, TanStack Query; BE mã hóa envelope AES-256-GCM.
-  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không đưa btoa/safeEncodePayload vào production; MIME/size/quota/version/409; private storage; presigned chỉ khi có staging/finalize được chốt; không log secret.
-  const newAsset: AssetItemDto = {
-    id: `ast_${Date.now()}`,
-    vaultId: "vlt_01",
-    title: payload.title,
-    assetType: payload.assetType,
-    description: payload.description,
-    status: "ACTIVE",
-    beneficiaryCount: payload.beneficiaryIds.length,
-    shamirThreshold: payload.shamirThreshold,
-    shamirTotalShares: payload.shamirTotalShares,
-    encryptedPayload: payload.encryptedPayload,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  return {
-    success: true,
-    message: "Đã thêm và niêm phong tài sản số thành công!",
-    data: newAsset,
-  };
+export async function createAsset(
+  _payload: CreateAssetRequest,
+): Promise<ApiResponse<AssetItemDto>> {
+  throw new Error(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
 }
 
 /**
@@ -175,19 +54,8 @@ export async function createAsset(payload: CreateAssetRequest): Promise<ApiRespo
  * @param id Định danh tài sản cần xóa
  * @returns Promise ApiResponse
  */
-export async function deleteAsset(id: string): Promise<ApiResponse<null>> {
-  requirePreviewWorkspace();
-  // TODO: [P1][ASSET-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-  // 1. [MỤC TIÊU]: Nối xóa tài sản với kiểm tra references/hold của BE.
-  // 2. [INPUT & OUTPUT]: assetId/version -> 204 hoặc lỗi quyền/xung đột.
-  // 3. [CÁC BƯỚC]: Sau ASSET-01 chốt DELETE /assets/{id}; xác nhận UI; dùng service/hook; invalidate asset/package/storage sau thành công.
-  // 4. [HÀM / THƯ VIỆN]: createBaseService.remove, TanStack Query, Dialog, queryKeys.
-  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không xóa local rồi báo thành công; version có snapshot/grant có thể bị chặn; 204 không parse JSON; rollback nếu sau này dùng optimistic cho metadata không nhạy cảm.
-  return {
-    success: true,
-    message: `Đã xóa tài sản ${id} thành công`,
-    data: null,
-  };
+export async function deleteAsset(_id: string): Promise<ApiResponse<null>> {
+  throw new Error(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
 }
 
 /**
@@ -195,21 +63,7 @@ export async function deleteAsset(id: string): Promise<ApiResponse<null>> {
  * @returns Promise AssetVaultStats
  */
 export async function getVaultStats(): Promise<AssetVaultStats> {
-  requirePreviewWorkspace();
-  // TODO: [P1][ASSET-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-  // 1. [MỤC TIÊU]: Thay thống kê tài sản mẫu bằng counters chính thức.
-  // 2. [INPUT & OUTPUT]: Kho hiện tại -> counters/quota/used bytes có measuredAt theo DTO.
-  // 3. [CÁC BƯỚC]: Sau VAULT-02 chốt summary/storage endpoints; adapter dùng chung; bỏ suy đoán GET /assets/stats nếu BE không duyệt; hooks/UI bốn trạng thái.
-  // 4. [HÀM / THƯ VIỆN]: Owner summary hooks, entity adapters, shared constants.
-  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không đếm một page thành tổng; lỗi không trả 0 giả; bytes/slots theo BE; không trộn dữ liệu giữa account.
-  return {
-    totalAssets: 3,
-    cryptoCount: 1,
-    credentialCount: 1,
-    documentCount: 1,
-    assignedBeneficiariesCount: 3,
-    vaultStatus: "ACTIVE",
-  };
+  throw new Error(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
 }
 
 export const assetService = {

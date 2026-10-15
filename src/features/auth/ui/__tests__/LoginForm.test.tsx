@@ -10,14 +10,32 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { APP_MESSAGES, STATUS } from "@/shared/constants";
 import { ROLES } from "@/shared/constants/roles";
 import { ROUTES } from "@/shared/config/routes.config";
-import { sessionAuthService as authService } from "../../api/authService";
+import {
+  authService as googleService,
+  sessionAuthService as authService,
+} from "../../api/authService";
 import type { AuthSessionDto as AuthSession } from "@/entities/user/model/authContract.types";
 import { getLoginRedirect, getLoginErrorMessage } from "../../lib/loginFeedback";
+import { invalidateAuthSession } from "../../model/authTransitions";
 import { LoginForm, type LoginFormProps } from "../LoginForm";
 
 vi.mock("../../api/authService", () => ({
   sessionAuthService: { login: vi.fn() },
-  authService: {},
+  authService: { loginWithGoogle: vi.fn(), linkGoogleAccount: vi.fn() },
+}));
+
+vi.mock("../GoogleSignInButton", () => ({
+  GoogleSignInButton: ({
+    disabled,
+    onCredential,
+  }: {
+    disabled: boolean;
+    onCredential: (token: string, nonce: string) => Promise<void>;
+  }) => (
+    <button disabled={disabled} onClick={() => void onCredential("google-credential", "nonce")}>
+      Tiếp tục với Google
+    </button>
+  ),
 }));
 
 /** Public cookie session fixture with no bearer tokens in JSON. */
@@ -105,18 +123,112 @@ describe("LoginForm", () => {
     );
   });
 
-  it("keeps the form and credentials when Google login is unavailable", () => {
-    const initialUrl = window.location.href;
-    setup();
-    fillCredentials();
-    const googleButton = screen.getByRole("button", { name: "Tiếp tục với Google" });
-    fireEvent.click(googleButton);
-    expect(screen.getByRole("status")).toHaveTextContent(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
-    expect(googleButton).toHaveAccessibleDescription(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
-    expect(screen.getByLabelText("Email", { exact: true })).toHaveValue(SESSION.user.email);
-    expect(screen.getByLabelText("Mật khẩu", { exact: true })).toHaveValue("old");
-    expect(authService.login).not.toHaveBeenCalled();
-    expect(window.location.href).toBe(initialUrl);
+  it("publishes the Google session without retaining its bearer in mutation results", async () => {
+    vi.mocked(googleService.loginWithGoogle).mockResolvedValue({
+      signedIn: true,
+      accountCreated: false,
+      returnUrl: "https://evil.test",
+      session: SESSION,
+    });
+    const { client, store } = setup("?redirect=%2Fdashboard%3Ftab%3Dfiles%23list");
+    client.setQueryData(["previous-private-data"], "private");
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục với Google" }));
+    expect(await screen.findByText("/dashboard?tab=files#list")).toBeInTheDocument();
+    expect(googleService.loginWithGoogle).toHaveBeenCalledWith({
+      idToken: "google-credential",
+      nonce: "nonce",
+      rememberMe: true,
+      returnUrl: "/dashboard?tab=files#list",
+    });
+    expect(store.getState().auth.user?.id).toBe(SESSION.user.id);
+    expect(accessTokenMemory.get()).toBe(SESSION.accessToken);
+    expect(client.getQueryData(["previous-private-data"])).toBeUndefined();
+    expect(
+      JSON.stringify(
+        client
+          .getMutationCache()
+          .getAll()
+          .map((item) => item.state.data),
+      ),
+    ).not.toContain(SESSION.accessToken);
+  });
+
+  it("keeps the link ticket off URL/storage, then confirms the existing password and signs in", async () => {
+    vi.mocked(googleService.loginWithGoogle).mockResolvedValue({
+      signedIn: false,
+      accountCreated: false,
+      returnUrl: null,
+      linkTicket: "secret-ticket",
+      maskedEmail: "o***@example.test",
+    });
+    vi.mocked(googleService.linkGoogleAccount).mockResolvedValue(SESSION);
+    const { store, client } = setup("?redirect=%2Fdashboard%3Ftab%3Dfiles");
+    client.setQueryData(["previous-private-data"], "private");
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục với Google" }));
+    expect(await screen.findByText("Email này đã có tài khoản")).toBeInTheDocument();
+    expect(store.getState().auth.isAuthenticated).toBe(false);
+    expect(accessTokenMemory.get()).toBeNull();
+    expect(client.getQueryData(["previous-private-data"])).toBe("private");
+    expect(window.location.href).not.toContain("secret-ticket");
+    expect(JSON.stringify(localStorage)).not.toContain("secret-ticket");
+    expect(JSON.stringify(sessionStorage)).not.toContain("secret-ticket");
+    fireEvent.change(screen.getByLabelText("Mật khẩu hiện có"), { target: { value: "old" } });
+    fireEvent.click(screen.getByRole("button", { name: "Xác nhận và liên kết" }));
+    expect(await screen.findByText("/dashboard?tab=files")).toBeInTheDocument();
+    expect(googleService.linkGoogleAccount).toHaveBeenCalledWith({
+      linkTicket: "secret-ticket",
+      password: "old",
+      rememberMe: true,
+    });
+    expect(store.getState().auth.isAuthenticated).toBe(true);
+    expect(client.getQueryData(["previous-private-data"])).toBeUndefined();
+  });
+
+  it("shows an invalid-ticket recovery action and cancels back to Google", async () => {
+    vi.mocked(googleService.loginWithGoogle).mockResolvedValue({
+      signedIn: false,
+      accountCreated: false,
+      returnUrl: null,
+      linkTicket: "expired",
+      maskedEmail: "o***@example.test",
+    });
+    vi.mocked(googleService.linkGoogleAccount).mockRejectedValue({
+      isAxiosError: true,
+      response: {
+        status: 400,
+        data: { code: "INVALID_LINK_TICKET", detail: "private server info" },
+      },
+    });
+    const { store } = setup();
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục với Google" }));
+    fireEvent.change(await screen.findByLabelText("Mật khẩu hiện có"), {
+      target: { value: "old" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Xác nhận và liên kết" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Phiên liên kết không còn hợp lệ");
+    expect(screen.queryByText("private server info")).not.toBeInTheDocument();
+    expect(store.getState().auth.isAuthenticated).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Quay lại đăng nhập Google" }));
+    expect(screen.getByRole("button", { name: "Tiếp tục với Google" })).toBeEnabled();
+  });
+
+  it("does not publish a late Google response after auth was invalidated", async () => {
+    let complete!: (value: Awaited<ReturnType<typeof googleService.loginWithGoogle>>) => void;
+    vi.mocked(googleService.loginWithGoogle).mockReturnValue(
+      new Promise((resolve) => {
+        complete = resolve;
+      }),
+    );
+    const { store } = setup();
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục với Google" }));
+    await waitFor(() => expect(googleService.loginWithGoogle).toHaveBeenCalledOnce());
+    invalidateAuthSession();
+    await act(async () =>
+      complete({ signedIn: true, accountCreated: false, returnUrl: null, session: SESSION }),
+    );
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
+    expect(store.getState().auth.isAuthenticated).toBe(false);
+    expect(accessTokenMemory.get()).toBeNull();
   });
 
   it("keeps password recovery in the keyboard tab order", () => {

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ROUTES } from "@/shared/config/routes.config";
+import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { LegacyVaultMark } from "@/shared/ui/LegacyVaultArtwork";
 import guilloche from "@/shared/assets/auth-guilloche.svg";
 import { AUTH_LAYOUT_CONTENT as content } from "../model/authLayout.content";
@@ -24,6 +24,7 @@ export function HeritageAuthLayout({
   sideBadge,
   children,
 }: HeritageAuthLayoutProps) {
+  const accountHome = useAccountHome();
   return (
     <div className="flex min-h-screen w-full flex-col bg-heritage-surface font-sans text-heritage-text lg:flex-row">
       <aside className="relative flex w-full shrink-0 flex-col justify-between overflow-hidden bg-heritage-primary p-6 text-heritage-surface sm:p-8 lg:min-h-screen lg:w-[520px] lg:p-12 xl:w-[560px] xl:p-14">
@@ -34,7 +35,7 @@ export function HeritageAuthLayout({
           className="pointer-events-none absolute -bottom-48 -right-48 size-[600px] select-none opacity-40 motion-safe:animate-[spin_180s_linear_infinite] sm:-bottom-60 sm:-right-60 sm:size-[800px]"
         />
         <Link
-          to={ROUTES.HOME}
+          to={accountHome}
           className="relative z-10 inline-flex min-h-11 w-fit items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-heritage-gold"
         >
           <LegacyVaultMark className="size-11 shrink-0 text-heritage-surface" />

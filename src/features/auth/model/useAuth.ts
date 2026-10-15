@@ -6,6 +6,8 @@ import { authService, sessionAuthService } from "../api/authService";
 import { runAuthTransition, notifyAuthChange } from "./authTransitions";
 import { toAuthUserViewModel } from "@/entities/user/lib/adapters";
 import type { AuthSessionDto } from "@/entities/user/model/authContract.types";
+import type { z } from "zod";
+import type { googleLoginRequestSchema } from "./googleAuth.schema";
 import type {
   LinkGoogleRequest,
   LoginRequest,
@@ -47,6 +49,33 @@ export function useLogin() {
   });
 }
 
+/** Google challenge không cấp phiên; chỉ publish và giữ public user sau signedIn=true. */
+export function useGoogleLogin() {
+  const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
+  return useMutation({
+    gcTime: 0,
+    mutationFn: (payload: z.infer<typeof googleLoginRequestSchema>) =>
+      runAuthTransition(
+        () => authService.loginWithGoogle(payload),
+        async (result, current) => {
+          if (!result.signedIn) return;
+          await queryClient.cancelQueries();
+          if (!current()) throw new Error("Auth context changed");
+          queryClient.clear();
+          accessTokenMemory.set(result.session.accessToken);
+          dispatch(setCredentials({ user: toAuthUserViewModel(result.session.user) }));
+          queryClient.setQueryData(authKeys.session(), { user: result.session.user });
+          notifyAuthChange();
+        },
+      ).then((result) =>
+        result.signedIn ? { signedIn: true as const, user: result.session.user } : result,
+      ),
+    retry: false,
+    networkMode: "always",
+  });
+}
+
 /**
  * @description Hook xử lý Đăng ký tài khoản mới.
  */
@@ -73,6 +102,7 @@ export function useLinkGoogle() {
   const queryClient = useQueryClient();
   const dispatch = useAppDispatch();
   return useMutation({
+    gcTime: 0,
     mutationFn: (payload: LinkGoogleRequest) =>
       runAuthTransition(
         () => authService.linkGoogleAccount(payload),
