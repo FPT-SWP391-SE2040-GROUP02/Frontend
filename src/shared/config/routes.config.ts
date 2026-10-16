@@ -5,22 +5,7 @@
 export const ROUTES = {
   /** Trang chủ công khai */
   HOME: "/",
-  /** Bản xem trước dữ liệu mẫu, chỉ được đăng ký khi chạy development. */
-  PREVIEW: {
-    OWNER: "/preview/owner",
-    ASSETS: "/preview/assets",
-    PLANS: "/preview/plans",
-    PLAN_WIZARD: "/preview/plans/new",
-    DMS: "/preview/dms",
-    EXECUTOR: "/preview/executor",
-    VERIFIER: "/preview/verifier",
-    EKYC_CAMERA: "/preview/ekyc/camera",
-    BENEFICIARY: "/preview/beneficiary",
-    ADMIN: "/preview/admin",
-    SETTINGS: "/preview/settings",
-    CHECKOUT: "/preview/checkout",
-    PACKAGE_CREATE: "/preview/packages/new",
-  },
+  RECEIVE: "/receive",
 
   /** Nhóm đường dẫn xác thực tài khoản */
   AUTH: {
@@ -40,6 +25,7 @@ export const ROUTES = {
   DASHBOARD: {
     ROOT: "/dashboard",
     ASSETS: "/dashboard/assets",
+    BENEFICIARIES: "/dashboard/beneficiaries",
     ANALYTICS: "/dashboard/analytics",
     USERS: "/dashboard/users",
     SETTINGS: "/dashboard/settings",
@@ -66,6 +52,7 @@ export const ROUTES = {
 
   /** Cổng người giám hộ di sản / Digital Executor */
   EXECUTOR: {
+    INVITATION: "/executor-invitation",
     CLAIM: "/executor/claim",
   },
 

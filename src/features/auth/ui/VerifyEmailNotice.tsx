@@ -1,11 +1,12 @@
 import { ROUTES } from "@/shared/config/routes.config";
-import { APP_MESSAGES } from "@/shared/constants";
 import { Button } from "@/shared/ui/button";
 import { ArrowLeft, Mail, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getRegisterErrorMessage } from "../lib/registerFeedback";
 import { useResendEmailVerification } from "../model/useAuth";
+import { EmailVerificationCard } from "./EmailVerificationCard";
+import { ResendVerificationForm } from "./ResendVerificationForm";
 import { verificationEmailSchema, VERIFY_EMAIL_CONTENT } from "../model/verifyEmail.schema";
 
 /**
@@ -14,6 +15,10 @@ import { verificationEmailSchema, VERIFY_EMAIL_CONTENT } from "../model/verifyEm
 export interface VerifyEmailNoticeProps {
   /** Địa chỉ email nhận liên kết xác thực */
   email?: string;
+  /** Token opaque từ liên kết Backend. */
+  token?: string | null;
+  /** Callback sau response xác nhận; page gỡ token khỏi URL. */
+  onVerified?: () => void;
   /** Lớp CSS bổ trợ */
   className?: string;
 }
@@ -25,7 +30,12 @@ export interface VerifyEmailNoticeProps {
  * @param {VerifyEmailNoticeProps} props Thuộc tính component
  * @returns {React.JSX.Element} Card thông báo xác minh email
  */
-export function VerifyEmailNotice({ email = "", className = "" }: VerifyEmailNoticeProps) {
+export function VerifyEmailNotice({
+  email = "",
+  token = null,
+  onVerified,
+  className = "",
+}: VerifyEmailNoticeProps) {
   const [cooldown, setCooldown] = useState<number>(0);
   const {
     mutate: resendEmail,
@@ -33,7 +43,6 @@ export function VerifyEmailNotice({ email = "", className = "" }: VerifyEmailNot
     isError,
     isSuccess,
     error,
-    data: resendResult,
   } = useResendEmailVerification();
   const emailResult = verificationEmailSchema.safeParse(email);
   const isEmailValid = emailResult.success;
@@ -66,22 +75,34 @@ export function VerifyEmailNotice({ email = "", className = "" }: VerifyEmailNot
    */
   const handleResend = (): void => {
     // TODO: [P0][AUTH-05] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-    // 1. [MỤC TIÊU]: Hoàn thiện xác minh/gửi lại email theo policy từ BE.
-    // 2. [INPUT & OUTPUT]: Token/challenge/email hợp lệ -> trạng thái bước tiếp theo và retryAt.
-    // 3. [CÁC BƯỚC]: Chốt /auth/verify-email và route resend với BE1; nối service/mutation; cooldown theo Retry-After/retryAt; chỉ báo gửi sau server xác nhận.
-    // 4. [HÀM / THƯ VIỆN]: useResendEmailVerification, Zod, TanStack Query, ROUTES.
-    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không hardcode cooldown thành chính sách; token một lần/hết hạn; lỗi chung không lộ account; không mất invitation sau xác minh.
+    // 1. [MỤC TIÊU]: Dùng thời gian chờ gửi lại do server trả thay cho cooldown UI 60 giây.
+    // 2. [INPUT & OUTPUT]: Retry-After/retryAt được BE chốt -> thời điểm cho phép thử lại.
+    // 3. [CÁC BƯỚC]: Chốt contract rate limit; đọc header/DTO trong service/feedback;
+    //    cập nhật cooldown kể cả khi 429. Luồng resend 202 và thông báo tiếp nhận đã triển khai.
+    // 4. [HÀM / THƯ VIỆN]: useResendEmailVerification, Axios headers, Zod, fake timers trong tests.
+    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Thiếu/sai header, retryAt đã qua; không coi cooldown
+    //    cục bộ là policy Backend hoặc 202 là bằng chứng email đã được giao.
 
     if (isPending || cooldown > 0 || !emailResult.success) return;
 
     resendEmail(emailResult.data, {
-      onSuccess: (result) => {
-        if (result?.success === true) {
-          setCooldown(60);
-        }
+      onSuccess: () => {
+        setCooldown(60);
       },
     });
   };
+
+  if (token !== null) {
+    return (
+      <EmailVerificationCard
+        key={token}
+        token={token}
+        onVerified={onVerified}
+        className={className}
+      />
+    );
+  }
+  if (!isEmailValid) return <ResendVerificationForm className={className} />;
 
   return (
     <div className={`w-full space-y-6 text-left ${className}`}>
@@ -115,17 +136,12 @@ export function VerifyEmailNotice({ email = "", className = "" }: VerifyEmailNot
         </p>
       )}
 
-      {isSuccess && resendResult?.success === true && (
+      {isSuccess && (
         <p role="status" className="text-sm text-emerald-700">
           {VERIFY_EMAIL_CONTENT.resendAccepted}
         </p>
       )}
 
-      {isSuccess && resendResult?.success !== true && (
-        <p role="alert" className="text-sm text-red-700">
-          {APP_MESSAGES.ERROR.DEFAULT}
-        </p>
-      )}
       <div className="space-y-3 pt-2">
         <Button
           type="button"

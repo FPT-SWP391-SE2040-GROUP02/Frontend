@@ -25,7 +25,13 @@ export function WorkspaceShell({
   children,
 }: WorkspaceShellProps) {
   return (
-    <div className="min-h-screen bg-heritage-surface text-heritage-text lg:grid lg:grid-cols-[224px_minmax(0,1fr)]">
+    <div className="min-h-screen bg-heritage-canvas text-heritage-text lg:grid lg:grid-cols-[224px_minmax(0,1fr)]">
+      <a
+        href="#workspace-content"
+        className="sr-only z-50 rounded-lg bg-heritage-surface px-4 py-3 text-heritage-primary focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+      >
+        Đến nội dung chính
+      </a>
       <aside className="flex flex-col border-b border-heritage-border bg-heritage-primary text-heritage-surface lg:sticky lg:top-0 lg:h-dvh lg:overflow-y-auto lg:border-b-0">
         <div className="flex min-h-20 shrink-0 items-center justify-between gap-2 px-4 lg:px-5">
           <Link
@@ -56,7 +62,11 @@ export function WorkspaceShell({
           </Link>
         </div>
       </aside>
-      <main className="min-w-0 px-4 py-5 sm:px-6 lg:p-6">
+      <main
+        id="workspace-content"
+        tabIndex={-1}
+        className="min-w-0 px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8"
+      >
         <div className="mx-auto w-full max-w-7xl space-y-6 [&_h1]:text-2xl [&_h1]:tracking-normal">
           {children}
         </div>

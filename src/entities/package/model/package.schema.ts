@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { APP_MESSAGES } from "@/shared/constants";
+import { z } from "zod";
 import { PACKAGE_FIELD_LABELS, PACKAGE_LIMITS } from "./package.types";
 
 /**
@@ -28,10 +28,29 @@ export const createPackageSchema = z.object({
 });
 
 /**
- * Schema sửa gói dùng cùng quy tắc với tạo gói trong snapshot BE.
- * Không dùng partial(): UpdatePackageRequestValidator vẫn yêu cầu name.
+ * Schema PUT theo UpdateContainerRequest: etag bắt buộc; null giữ nguyên giá trị.
  */
-export const updatePackageSchema = createPackageSchema;
+export const updatePackageSchema = z.object({
+  etag: z.string().min(1).max(64),
+  name: z.string().max(PACKAGE_LIMITS.NAME_MAX_LENGTH).nullable().optional(),
+  description: createPackageSchema.shape.description,
+});
+
+/** Raw ContainerResponse; lưu trữ không xóa hẳn gói. */
+export const packageResponseSchema = z.object({
+  id: z.string().uuid(),
+  vaultId: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  status: z.enum(["DRAFT", "READY", "ARCHIVED"]),
+  assetIds: z.array(z.string().uuid()),
+  beneficiaryIds: z.array(z.string().uuid()),
+  missingRequirements: z.array(z.string()),
+  createdAt: z.string().datetime({ offset: true }),
+  updatedAt: z.string().datetime({ offset: true }).nullable(),
+  archivedAt: z.string().datetime({ offset: true }).nullable(),
+  etag: z.string().min(1).max(64),
+});
 
 /** Dữ liệu đầu vào của form tạo gói, suy ra từ schema; không thay thế DTO gửi API. */
 export type CreatePackageFormInput = z.input<typeof createPackageSchema>;

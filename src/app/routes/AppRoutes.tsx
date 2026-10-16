@@ -10,6 +10,26 @@ const AssetsManagementPage = lazy(() =>
     default: module.AssetsManagementPage,
   })),
 );
+const ContainerDetailPage = lazy(() =>
+  import("@/pages/dashboard/ContainerDetailPage").then((module) => ({
+    default: module.ContainerDetailPage,
+  })),
+);
+const BeneficiariesPage = lazy(() =>
+  import("@/pages/dashboard/BeneficiariesPage").then((module) => ({
+    default: module.BeneficiariesPage,
+  })),
+);
+const InvitationPage = lazy(() =>
+  import("@/pages/beneficiary/InvitationPage").then((module) => ({
+    default: module.InvitationPage,
+  })),
+);
+const ExecutorInvitationPage = lazy(() =>
+  import("@/pages/claims/ExecutorInvitationPage").then((module) => ({
+    default: module.ExecutorInvitationPage,
+  })),
+);
 const BillingHistoryPage = lazy(() =>
   import("@/pages/billing/BillingHistoryPage").then((module) => ({
     default: module.BillingHistoryPage,
@@ -117,15 +137,6 @@ const OwnerOverviewPage = lazy(() =>
     default: module.OwnerOverviewPage,
   })),
 );
-const PreviewWorkspace = lazy(() =>
-  import("./PreviewWorkspace").then((module) => ({ default: module.PreviewWorkspace })),
-);
-
-const CreatePackagePreviewPage = lazy(() =>
-  import("@/pages/vault/CreatePackagePreviewPage").then((module) => ({
-    default: module.CreatePackagePreviewPage,
-  })),
-);
 
 /**
  * @description Cấu hình bản đồ định tuyến (Routing map) toàn bộ ứng dụng có phân quyền RBAC.
@@ -137,99 +148,15 @@ export function AppRoutes() {
       <Routes>
         {/* 1. Trang chủ công khai cho GUEST */}
         <Route path={ROUTES.HOME} element={<LandingPage />} />
-        {import.meta.env.DEV && (
-          <Route path={ROUTES.PREVIEW.OWNER} element={<OwnerOverviewPage />} />
-        )}
-        {import.meta.env.DEV && (
-          <Route path={ROUTES.PREVIEW.EKYC_CAMERA} element={<CameraCheckPage />} />
-        )}
-        {import.meta.env.DEV && (
-          <Route path={ROUTES.PREVIEW.BENEFICIARY} element={<BeneficiaryPortalPage />} />
-        )}
-        {import.meta.env.DEV && (
-          <Route path={ROUTES.PREVIEW.ADMIN} element={<AdminWorkspacePage />} />
-        )}
-        {import.meta.env.DEV && (
-          <Route path={ROUTES.PREVIEW.SETTINGS} element={<AccountSettingsPage />} />
-        )}
-        {import.meta.env.DEV && <Route path={ROUTES.PREVIEW.CHECKOUT} element={<CheckoutPage />} />}
-        {import.meta.env.DEV && (
-          <Route
-            path={ROUTES.PREVIEW.ASSETS}
-            element={
-              <PreviewWorkspace>
-                <AssetsManagementPage />
-              </PreviewWorkspace>
-            }
-          />
-        )}
-        {import.meta.env.DEV && (
-          <Route
-            path={ROUTES.PREVIEW.PLANS}
-            element={
-              <PreviewWorkspace>
-                <WillManagementPage />
-              </PreviewWorkspace>
-            }
-          />
-        )}
-        {import.meta.env.DEV && (
-          <Route
-            path={ROUTES.PREVIEW.PLAN_WIZARD}
-            element={
-              <PreviewWorkspace>
-                <WillWizardPage />
-              </PreviewWorkspace>
-            }
-          />
-        )}
-        {import.meta.env.DEV && (
-          <Route
-            path={ROUTES.PREVIEW.DMS}
-            element={
-              <PreviewWorkspace>
-                <DmsStatusPage />
-              </PreviewWorkspace>
-            }
-          />
-        )}
-        {import.meta.env.DEV && (
-          <Route
-            path={ROUTES.PREVIEW.EXECUTOR}
-            element={
-              <PreviewWorkspace>
-                <ExecutorClaimsPage />
-              </PreviewWorkspace>
-            }
-          />
-        )}
-        {import.meta.env.DEV && (
-          <Route
-            path={ROUTES.PREVIEW.VERIFIER}
-            element={
-              <PreviewWorkspace>
-                <NotaryWorkspacePage />
-              </PreviewWorkspace>
-            }
-          />
-        )}
-
-        {import.meta.env.DEV && (
-          <Route
-            path={ROUTES.PREVIEW.PACKAGE_CREATE}
-            element={
-              <PreviewWorkspace>
-                <CreatePackagePreviewPage />
-              </PreviewWorkspace>
-            }
-          />
-        )}
+        <Route path="/invitations/:token" element={<InvitationPage />} />
+        <Route path={ROUTES.RECEIVE} element={<InvitationPage />} />
+        <Route path={ROUTES.EXECUTOR.INVITATION} element={<ExecutorInvitationPage />} />
         <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
           <Route path={ROUTES.ADMIN.ROOT} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.DASHBOARD.USERS} element={<AdminWorkspacePage />} />
         </Route>
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.BENEFICIARY]} />}>
+        <Route element={<ProtectedRoute />}>
           <Route path={ROUTES.BENEFICIARY.EKYC_CAMERA} element={<CameraCheckPage />} />
           <Route path={ROUTES.BENEFICIARY.CLAIM} element={<BeneficiaryPortalPage />} />
           <Route path={ROUTES.BENEFICIARY.HANDOVER} element={<BeneficiaryPortalPage />} />
@@ -258,6 +185,8 @@ export function AppRoutes() {
 
         {/* Mockup 6 — Xác minh Email sau đăng ký / đăng nhập */}
         <Route path={ROUTES.AUTH.VERIFY_EMAIL} element={<VerifyEmailPage />} />
+        {/* Đường dẫn email hiện tại do Backend AppUrlProvider tạo. */}
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         {/* Mockup 7 — Xác thực hai bước TOTP dành cho Admin */}
         <Route path={ROUTES.AUTH.TWO_FACTOR} element={<TwoFactorPage />} />
@@ -279,13 +208,15 @@ export function AppRoutes() {
         {/* ========================================================================
           5. TUYẾN ĐƯỜNG BẢO VỆ — Chủ Kho Di Sản (Vault Owner & Admin)
          ======================================================================== */}
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.OWNER]} />}>
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.USER]} />}>
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
+          <Route path={ROUTES.DASHBOARD.BENEFICIARIES} element={<BeneficiariesPage />} />
           <Route path="/assets" element={<AssetsManagementPage />} />
           <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
           <Route path="/wills" element={<WillManagementPage />} />
           <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
+          <Route path="/dashboard/wills/:id" element={<ContainerDetailPage />} />
           <Route path="/wills/new" element={<WillWizardPage />} />
           <Route path={ROUTES.DMS.ROOT} element={<DmsStatusPage />} />
         </Route>
@@ -293,14 +224,14 @@ export function AppRoutes() {
         {/* ========================================================================
           6. TUYẾN ĐƯỜNG BẢO VỆ — Người Thi Hành Di Chúc (Digital Executor)
          ======================================================================== */}
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.EXECUTOR]} />}>
+        <Route element={<ProtectedRoute />}>
           <Route path={ROUTES.EXECUTOR.CLAIM} element={<ExecutorClaimsPage />} />
         </Route>
 
         {/* ========================================================================
           7. TUYẾN ĐƯỜNG BẢO VỆ — Công Chứng Viên (Legal Verifier / Notary)
          ======================================================================== */}
-        <Route element={<ProtectedRoute allowedRoles={[ROLES.NOTARY]} />}>
+        <Route element={<ProtectedRoute allowedRoles={[ROLES.VERIFIER]} />}>
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
         </Route>
 

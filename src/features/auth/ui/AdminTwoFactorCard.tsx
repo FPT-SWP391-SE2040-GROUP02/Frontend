@@ -3,6 +3,9 @@ import { useTwoFactorVerify } from "../model/useAuth";
 import { Button } from "@/shared/ui/button";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
+import { twoFactorSchema } from "../model/auth.schema";
+import { getLoginErrorMessage } from "../lib/loginFeedback";
+import { APP_MESSAGES } from "@/shared/constants";
 import { ROUTES } from "@/shared/config/routes.config";
 
 /**
@@ -26,7 +29,7 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
-  const { mutate: verify2Fa, isPending, isError, error } = useTwoFactorVerify();
+  const { mutate: verify2Fa, isPending, isError, error, isAvailable } = useTwoFactorVerify();
 
   // Tự động focus ô đầu tiên khi mount
   useEffect(() => {
@@ -64,10 +67,7 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     if (!pasted) return;
 
-    const updated = [...digits];
-    for (let i = 0; i < pasted.length; i++) {
-      updated[i] = pasted[i];
-    }
+    const updated = Array.from({ length: 6 }, (_, index) => pasted[index] ?? "");
     setDigits(updated);
 
     const focusIdx = Math.min(pasted.length, 5);
@@ -80,7 +80,7 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     const code = digits.join("");
-    if (code.length !== 6) return;
+    if (!isAvailable || isPending || !twoFactorSchema.safeParse({ code }).success) return;
 
     // TODO: [P0][AUTH-07] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
     // 1. [MỤC TIÊU]: Hoàn thiện challenge TOTP Admin trước khi cấp phiên đầy đủ.
@@ -121,13 +121,18 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
         </p>
       </div>
 
+      {!isAvailable && (
+        <p role="status" className="text-sm text-[#6B6B66]">
+          {APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE}
+        </p>
+      )}
       {/* Thông báo lỗi nếu mã sai */}
       {isError && (
         <div
           role="alert"
           className="p-3 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#9B1C1C] text-xs"
         >
-          {error?.message || "Mã xác thực không hợp lệ hoặc đã hết hạn. Vui lòng thử lại."}
+          {getLoginErrorMessage(error)}
         </div>
       )}
 
@@ -143,6 +148,8 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
               type="text"
               inputMode="numeric"
               maxLength={1}
+              disabled={isPending}
+              autoComplete={idx === 0 ? "one-time-code" : "off"}
               value={digit}
               onChange={(e) => handleDigitChange(idx, e.target.value)}
               onKeyDown={(e) => handleKeyDown(idx, e)}
@@ -155,7 +162,7 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
         {/* Nút bấm Xác nhận */}
         <Button
           type="submit"
-          disabled={!isComplete || isPending}
+          disabled={!isAvailable || !isComplete || isPending}
           className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50"
         >
           {isPending ? "Đang xác thực..." : "Xác nhận"}

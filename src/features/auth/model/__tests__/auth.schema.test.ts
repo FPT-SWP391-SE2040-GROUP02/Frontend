@@ -114,3 +114,19 @@ describe("Module 0: Auth Zod Schemas Validation", () => {
     expect(otpSchema.safeParse(invalidOtpAlpha).success).toBe(false);
   });
 });
+
+describe("RegisterRequest Backend field limits", () => {
+  const payload = {
+    fullName: "Test User",
+    email: "user@example.test",
+    password: "Abcdefg!",
+    confirmPassword: "Abcdefg!",
+  };
+  it.each([
+    { fullName: "x".repeat(201) },
+    { email: "x".repeat(250) + "@example.test" },
+    { password: "A".repeat(128) + "!", confirmPassword: "A".repeat(128) + "!" },
+  ])("rejects values exceeding the C# field limits", (fields) => {
+    expect(registerSchema.safeParse({ ...payload, ...fields }).success).toBe(false);
+  });
+});

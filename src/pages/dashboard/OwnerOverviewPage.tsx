@@ -1,6 +1,6 @@
 import { OwnerOverview } from "@/widgets/OwnerOverview/ui/OwnerOverview";
 
-/** Trang tổng quan Chủ kho; hiện chỉ là UI dữ liệu mẫu để duyệt trước tích hợp. */
+/** Tổng quan đọc Backend chính thức, không hiển thị dữ liệu minh họa. */
 export function OwnerOverviewPage() {
   return <OwnerOverview />;
 }

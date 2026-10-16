@@ -35,12 +35,11 @@ export function RoleGuard({
   children,
   fallback = null,
 }: RoleGuardProps): ReactNode {
-  // Lấy vai trò người dùng hiện tại từ Redux store hoặc Auth state
-
   // TODO: [P0][ACCESS-01] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-  // 1. [MỤC TIÊU]: Thay cơ chế ADMIN bypass legacy bằng quyền UI đúng scope tài nguyên.
+  // 1. [MỤC TIÊU]: Bổ sung allowedActions theo tài nguyên khi Backend có contract tương ứng.
   // 2. [INPUT & OUTPUT]: System roles + resource contexts/allowedActions từ BE -> children hoặc fallback.
-  // 3. [CÁC BƯỚC]: Sau AUTH-01 chốt DTO /me; caller tầng trên truyền quyền đã ánh xạ; bỏ bypass ADMIN mặc định; API vẫn kiểm quyền độc lập.
+  // 3. [CÁC BƯỚC]: Chốt DTO quyền tài nguyên; caller tầng trên ánh xạ và truyền props;
+  //    giữ deny-by-default. Guard vai trò hiện có đã bỏ ADMIN bypass, nhận role qua props.
   // 4. [HÀM / THƯ VIỆN]: Props, shared constants, adapter ở entities; không import app store vào shared.
   // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Admin không tự nhận quyền xem nội dung/grant hoặc duyệt danh tính; role/URL/demo không cấp quyền; thiếu dữ liệu phải đóng quyền.
 
