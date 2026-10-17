@@ -24,13 +24,17 @@
   gap: 12px;
   padding: 0 16px 20px;
 }
-.owner-role-picker {
+.owner-workspace-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex: 1;
   min-width: 0;
 }
 .owner-menu-toggle {
   display: flex;
   width: 52px;
+  min-height: 44px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -41,22 +45,6 @@
 .owner-menu-toggle:focus-visible {
   outline: 2px solid #e2c17d;
   outline-offset: 3px;
-}
-.owner-role-trigger {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border: 1px solid #ffffff26;
-  border-radius: 12px;
-  background: #ffffff08;
-  cursor: pointer;
-}
-.owner-role-trigger:hover,
-.owner-role-trigger[data-popup-open] {
-  background: #ffffff14;
-  border-color: #b88e4c80;
 }
 .owner-role-icon {
   display: grid;
@@ -105,7 +93,6 @@
   color: #e2c17d;
   font-weight: 600;
 }
-.owner-role-trigger:focus-visible,
 .owner-nav-link:focus-visible {
   outline: 2px solid #e2c17d;
   outline-offset: 3px;
@@ -277,10 +264,6 @@
   }
   .owner-controls {
     padding-bottom: 12px;
-  }
-  .owner-role-trigger {
-    gap: 8px;
-    padding: 8px;
   }
   .owner-role-icon {
     width: 32px;

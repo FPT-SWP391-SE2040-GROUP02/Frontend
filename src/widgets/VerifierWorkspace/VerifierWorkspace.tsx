@@ -1,5 +1,6 @@
-import { useSearchParams } from "react-router-dom";
-import { Scale, ClipboardCheck } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { Scale, ClipboardCheck, LogOut } from "lucide-react";
+import { ROUTES } from "@/shared/config/routes.config";
 import {
   VerifierCaseList,
   VerifierCaseDetail,
@@ -14,9 +15,18 @@ export function VerifierWorkspace() {
   return (
     <div className="space-y-6">
       <header className="space-y-1 border-b border-heritage-border pb-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-heritage-gold/30 bg-heritage-gold/10 px-3 py-1 text-xs font-semibold text-heritage-primary">
-          <Scale className="size-3.5" aria-hidden="true" />
-          Cổng thẩm định chứng tử (DeathCase Review)
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-heritage-gold/30 bg-heritage-gold/10 px-3 py-1 text-xs font-semibold text-heritage-primary">
+            <Scale className="size-3.5" aria-hidden="true" />
+            Cổng thẩm định chứng tử (DeathCase Review)
+          </div>
+          <Link
+            to={ROUTES.AUTH.LOGOUT}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-heritage-border px-4 text-sm font-semibold text-heritage-primary hover:bg-heritage-gold/10 focus-visible:outline-2 focus-visible:outline-heritage-gold"
+          >
+            <LogOut className="size-4" aria-hidden="true" />
+            Đăng xuất
+          </Link>
         </div>
         <h1 className="text-2xl font-bold tracking-tight">Bàn làm việc Verifier</h1>
         <p className="text-sm text-heritage-muted">

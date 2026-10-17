@@ -17,6 +17,34 @@ afterEach(() => {
 });
 
 describe("workspace logo navigation", () => {
+  it.each(["/dashboard", "/executor/claim"])("has no role switcher in %s", (path) => {
+    const store = configureStore({ reducer: { auth: authReducer } });
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={[path]}>
+          <OwnerWorkspace title="Fixture" description="Fixture">
+            <p>Content</p>
+          </OwnerWorkspace>
+        </MemoryRouter>
+      </Provider>,
+    );
+    expect(screen.queryByText("Chuyển vai trò")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Nội dung được nhận" })).not.toBeInTheDocument();
+    if (path === "/dashboard")
+      expect(screen.queryByRole("link", { name: "Nhiệm vụ Executor" })).not.toBeInTheDocument();
+    else {
+      expect(screen.getByRole("link", { name: "Nhiệm vụ Executor" })).toHaveAttribute(
+        "aria-current",
+        "page",
+      );
+      expect(screen.queryByRole("link", { name: "Kho của tôi" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Cài đặt" })).not.toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "LegacyVault" })).toHaveAttribute(
+        "href",
+        "/executor/claim",
+      );
+    }
+  });
   it("opens the phone navigation and closes it after choosing an Owner page", () => {
     const store = configureStore({ reducer: { auth: authReducer } });
     render(

@@ -63,6 +63,7 @@ function BeneficiaryEkycScreen({ turnId }: { turnId: string | null }) {
     live!.identityMatch === "MATCHED" &&
     live!.purpose === "BENEFICIARY_CLAIM" &&
     statusMatchesTurn &&
+    !action.succeeded &&
     !action.pending;
 
   // Reset kết quả complete khi đổi turnId; giữ state theo turnId.
