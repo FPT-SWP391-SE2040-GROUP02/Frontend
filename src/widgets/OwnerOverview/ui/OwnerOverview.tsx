@@ -1,9 +1,11 @@
 import { useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Vault, Layers3, Activity } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { ROUTES } from "@/shared/config/routes.config";
+import { EkycStatusPanel } from "@/features/ekyc/ui/EkycStatusPanel";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { OwnerVaultPanel } from "./OwnerVaultPanel";
 
@@ -29,33 +31,41 @@ const shortcuts = [
 ];
 /** Tổng quan chính thức, không có counters hoặc trạng thái minh họa. */
 export function OwnerOverview() {
+  const queryClient = useQueryClient();
   const { user, isAuthenticated } = useSelector((state: { auth: AuthState }) => state.auth);
   return (
     <OwnerWorkspace
-      title={user?.fullName ? `Chào ${user.fullName},` : "Kho của bạn"}
+      title={user?.fullName ? `Chào ${user.fullName}` : "Kho của bạn"}
       description="Sắp xếp nội dung quan trọng và theo dõi kho di sản của bạn."
     >
-      <nav aria-label="Truy cập nhanh" className="grid gap-4 md:grid-cols-3">
+      <nav aria-label="Truy cập nhanh" className="owner-shortcuts grid gap-3 xl:grid-cols-3">
         {shortcuts.map(({ title, description, to, icon: Icon }) => (
           <Link
             key={to}
             to={to}
-            className="group rounded-xl border border-heritage-border bg-heritage-surface p-5 transition-colors hover:border-heritage-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-heritage-gold"
+            className="group flex items-center gap-4 rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-sm transition-colors hover:border-heritage-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-heritage-gold xl:block"
           >
-            <div className="mb-5 flex items-center justify-between">
-              <span className="rounded-lg bg-heritage-primary/5 p-3 text-heritage-primary">
+            <div className="flex shrink-0 items-center justify-between xl:mb-5">
+              <span className="rounded-xl bg-heritage-primary/5 p-3 text-heritage-primary">
                 <Icon className="size-5" aria-hidden="true" />
               </span>
-              <ArrowUpRight
-                className="size-4 text-heritage-muted group-hover:text-heritage-primary"
-                aria-hidden="true"
-              />
             </div>
-            <h2 className="text-sm font-semibold">{title}</h2>
-            <p className="mt-2 text-sm leading-6 text-heritage-muted">{description}</p>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-semibold">{title}</h2>
+              <p className="mt-1 text-xs leading-5 text-heritage-muted xl:mt-2">{description}</p>
+            </div>
+            <ArrowUpRight
+              className="size-5 shrink-0 text-heritage-muted group-hover:text-heritage-primary xl:mt-4"
+              aria-hidden="true"
+            />
           </Link>
         ))}
       </nav>
+      <EkycStatusPanel
+        purpose="OWNER_ENROLLMENT"
+        turnId={null}
+        onVerified={() => void queryClient.invalidateQueries({ queryKey: ["plan-setup"] })}
+      />
       <OwnerVaultPanel enabled={isAuthenticated && Boolean(accessTokenMemory.get())} />
     </OwnerWorkspace>
   );

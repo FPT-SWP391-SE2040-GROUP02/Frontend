@@ -84,6 +84,9 @@ describe("official Backend transport through real Axios interceptors", () => {
       spoofCheckPassed: null,
       createdAt: null,
       completedAt: null,
+      purpose: null,
+      identityMatch: "NOT_CHECKED",
+      backSideChecked: false,
     };
     respond(status, (config) => expect(config.url).toBe("/ekyc/me"));
     expect(await ekycService.getStatus()).toEqual(status);
@@ -95,6 +98,7 @@ describe("official Backend transport through real Axios interceptors", () => {
       fullName: "",
       dateOfBirth: "",
       residenceAddress: "",
+      identityMatch: "NOT_CHECKED",
       canMatchFace: false,
       expiresAt: null,
       warnings: ["No face found"],
@@ -108,6 +112,7 @@ describe("official Backend transport through real Axios interceptors", () => {
       (
         await ekycService.submitDocument(
           new File(["public-test-fixture"], "test.png", { type: "image/png" }),
+          "OWNER_ENROLLMENT",
         )
       ).canMatchFace,
     ).toBe(false);
@@ -118,12 +123,63 @@ describe("official Backend transport through real Axios interceptors", () => {
       calls++;
     });
     await expect(
-      ekycService.matchFace(new File(["test"], "test.txt", { type: "text/plain" })),
+      ekycService.sendLivenessFrame(new File(["test"], "test.txt", { type: "text/plain" })),
     ).rejects.toThrow();
     await expect(
-      ekycService.submitDocument(new File([], "test.png", { type: "image/png" })),
+      ekycService.submitDocument(
+        new File([], "test.png", { type: "image/png" }),
+        "OWNER_ENROLLMENT",
+      ),
     ).rejects.toThrow();
     expect(calls).toBe(0);
+  });
+  it("starts liveness and posts frames as multipart with proper DTO", async () => {
+    const liveness = {
+      actions: [
+        { key: "blink", label: "Chớp mắt" },
+        { key: "left", label: "Quay trái" },
+      ],
+      completed: ["blink"],
+      currentIndex: 1,
+      prompt: "Quay trái.",
+      calibrated: true,
+      challengeCompleted: false,
+      padPassed: false,
+      passed: false,
+      failedReason: "",
+      frameHint: "",
+      expiresInSeconds: 90,
+    };
+    respond(liveness, (config) => {
+      expect(config.url).toBe("/ekyc/liveness/start");
+      expect(config.method).toBe("post");
+    });
+    expect((await ekycService.startLiveness()).currentIndex).toBe(1);
+    respond({ ...liveness, passed: true, challengeCompleted: true }, (config) => {
+      expect(config.url).toBe("/ekyc/liveness/frame");
+      expect(config.data).toBeInstanceOf(FormData);
+    });
+    expect(
+      (await ekycService.sendLivenessFrame(new File(["frame"], "frame.png", { type: "image/png" })))
+        .passed,
+    ).toBe(true);
+    respond(
+      {
+        status: "PASSED",
+        verificationId: CONTAINER_ID,
+        citizenIdLast4: "8901",
+        faceMatchScore: 0.42,
+        matchThreshold: 0.363,
+        spoofCheckPassed: true,
+        createdAt: null,
+        completedAt: null,
+        purpose: "OWNER_ENROLLMENT",
+        identityMatch: "MATCHED",
+        backSideChecked: true,
+      },
+      (config) => expect(config.url).toBe("/ekyc/liveness/complete"),
+    );
+    expect((await ekycService.completeLiveness()).status).toBe("PASSED");
   });
   it("reads raw vault and keeps independent vault/plan/service states", async () => {
     respond(vaultFixture, (config) => expect(config.url).toBe("/vaults/me"));

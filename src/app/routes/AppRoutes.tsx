@@ -137,6 +137,9 @@ const OwnerOverviewPage = lazy(() =>
     default: module.OwnerOverviewPage,
   })),
 );
+const AuditLogPage = lazy(() =>
+  import("@/pages/dashboard/AuditLogPage").then((module) => ({ default: module.AuditLogPage })),
+);
 
 /**
  * @description Cấu hình bản đồ định tuyến (Routing map) toàn bộ ứng dụng có phân quyền RBAC.
@@ -212,6 +215,7 @@ export function AppRoutes() {
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
           <Route path={ROUTES.DASHBOARD.BENEFICIARIES} element={<BeneficiariesPage />} />
+          <Route path={ROUTES.DASHBOARD.AUDIT_LOG} element={<AuditLogPage />} />
           <Route path="/assets" element={<AssetsManagementPage />} />
           <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
           <Route path="/wills" element={<WillManagementPage />} />

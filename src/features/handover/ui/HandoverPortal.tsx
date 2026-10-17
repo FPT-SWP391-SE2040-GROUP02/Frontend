@@ -44,7 +44,7 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
       {turn.status === "IDENTITY_IN_PROGRESS" && (
         <p className="text-sm leading-6">
           <Link
-            to={ROUTES.BENEFICIARY.EKYC_CAMERA}
+            to={`${ROUTES.BENEFICIARY.EKYC_CAMERA}?turnId=${turn.id}`}
             className="inline-flex min-h-11 items-center underline"
           >
             Xác minh danh tính

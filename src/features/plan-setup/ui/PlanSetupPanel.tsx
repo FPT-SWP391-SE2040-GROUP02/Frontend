@@ -11,7 +11,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { inviteExecutorSchema, type planSetupSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
 
-const labels: Record<string, string> = {
+const missingLabels: Record<string, string> = {
   ACCOUNT_NOT_ACTIVE: "Tài khoản chưa hoạt động.",
   EMAIL_VERIFICATION_REQUIRED: "Cần xác minh email.",
   VAULT_NOT_OPEN: "Kho phải đang mở.",
@@ -21,6 +21,12 @@ const labels: Record<string, string> = {
   PRIMARY_EXECUTOR_REQUIRED: "Cần Executor chính đã chấp nhận nhiệm vụ.",
   BACKUP_EXECUTOR_REQUIRED: "Executor chính là người nhận: cần dự phòng độc lập đã chấp nhận.",
   PLAN_NOT_DRAFT: "Kế hoạch đã rời trạng thái nháp.",
+  NO_ASSET: "Gói chưa có tài sản.",
+  NO_DESIGNATION: "Gói chưa có người nhận.",
+};
+const warningLabels: Record<string, string> = {
+  NO_BACKUP_EXECUTOR:
+    "Chưa có Executor dự phòng. Nếu Executor chính không thể thực hiện nhiệm vụ, kế hoạch có thể chậm trễ.",
 };
 const statuses = {
   INVITED: "Chờ phản hồi",
@@ -103,18 +109,15 @@ function PlanSetupForm({
           <ul className="list-disc space-y-2 pl-6">
             {setup.missingRequirements.map((item) => (
               <li key={item}>
-                {Object.hasOwn(labels, item)
-                  ? labels[item]
+                {Object.hasOwn(missingLabels, item)
+                  ? missingLabels[item]
                   : "Còn điều kiện cần kiểm tra với máy chủ."}
               </li>
             ))}
           </ul>
         )}
         {setup.missingRequirements.includes("OWNER_EKYC_REQUIRED") && (
-          <Link
-            className="inline-flex min-h-11 items-center underline"
-            to={ROUTES.BENEFICIARY.EKYC_CAMERA}
-          >
+          <Link className="inline-flex min-h-11 items-center underline" to={ROUTES.DASHBOARD.ROOT}>
             Đi xác minh danh tính
           </Link>
         )}
@@ -122,6 +125,72 @@ function PlanSetupForm({
           <p role="status">Đủ điều kiện hiện tại. Đọc cảnh báo trước khi kích hoạt.</p>
         )}
       </div>
+      {setup.containers.length > 0 && (
+        <div className="space-y-3 border-t border-heritage-border pt-4">
+          <h3 className="font-semibold">Gói trong kho</h3>
+          <ul className="divide-y divide-heritage-border rounded-lg border">
+            {setup.containers.map((c) => (
+              <li
+                key={c.id}
+                className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm"
+              >
+                <span className="min-w-0 break-words font-medium">{c.name}</span>
+                <span className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs ${
+                      c.status === "READY"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-amber-100 text-amber-800"
+                    }`}
+                  >
+                    {c.status === "READY" ? "Sẵn sàng bàn giao" : "Chưa đủ điều kiện"}
+                  </span>
+                  <span className="text-heritage-muted">
+                    {c.assetCount} tài sản · {c.designationCount} người nhận
+                  </span>
+                  {c.missingRequirements.length > 0 && (
+                    <span className="text-xs text-destructive">
+                      {c.missingRequirements
+                        .map((code) => missingLabels[code] ?? "Gói còn điều kiện cần kiểm tra.")
+                        .join(" ")}
+                    </span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {setup.containers.length === 0 && <p>Chưa có gói nào để bàn giao.</p>}
+      {setup.assetsOutsideContainer.length > 0 && (
+        <div className="space-y-3 border-t border-heritage-border pt-4">
+          <h3 className="font-semibold">Tài sản chưa thuộc gói</h3>
+          <p className="text-sm text-heritage-muted">
+            Những tài sản này chưa được giao cho ai và sẽ không nằm trong phạm vi bàn giao.
+          </p>
+          <ul className="list-disc space-y-1 pl-6 text-sm">
+            {setup.assetsOutsideContainer.map((a) => (
+              <li key={a.id} className="break-words">
+                {a.name}{" "}
+                <span className="text-heritage-muted">
+                  ({a.kind === "FILE" ? "Tệp" : "Văn bản"})
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {setup.assetsOutsideContainer.length === 0 && <p>Không có tài sản ngoài gói.</p>}
+      {setup.warnings.length > 0 && (
+        <div className="space-y-2 border-t border-heritage-border pt-4">
+          <h3 className="font-semibold">Cảnh báo</h3>
+          <ul className="list-disc space-y-1 pl-6 text-sm text-amber-800">
+            {setup.warnings.map((w) => (
+              <li key={w}>{Object.hasOwn(warningLabels, w) ? warningLabels[w] : w}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className="space-y-4 border-t border-heritage-border pt-4">
         <h3 className="font-semibold">Executor của kho</h3>
         <p className="text-sm leading-6">{setup.executorScopeText}</p>

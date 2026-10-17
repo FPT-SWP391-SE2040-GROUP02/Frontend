@@ -12,6 +12,19 @@ export const executorSchema = z.object({
   acceptedScopeVersion: z.string().nullable(),
   etag: z.string().min(1),
 });
+const containerSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  status: z.enum(["READY", "DRAFT"]),
+  assetCount: z.number().int().nonnegative(),
+  designationCount: z.number().int().nonnegative(),
+  missingRequirements: z.array(z.string()),
+});
+const assetOutsideContainerSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  kind: z.enum(["FILE", "TEXT"]),
+});
 export const planSetupSchema = z.object({
   planStatus: z.string(),
   configVersion: z.number().int().positive(),
@@ -22,6 +35,12 @@ export const planSetupSchema = z.object({
   executorScopeVersion: z.string(),
   executorScopeText: z.string(),
   executors: z.array(executorSchema),
+  /** Các gói trong kho, kèm lý do chưa sẵn sàng. */
+  containers: z.array(containerSchema),
+  /** Tài sản chưa thuộc gói nào — nằm ngoài phạm vi bàn giao. */
+  assetsOutsideContainer: z.array(assetOutsideContainerSchema),
+  /** Cảnh báo không chặn activate; chỉ đọc, không disable nút. */
+  warnings: z.array(z.string()),
 });
 export const executorInfoSchema = z.object({
   role: z.enum(["PRIMARY", "BACKUP"]),

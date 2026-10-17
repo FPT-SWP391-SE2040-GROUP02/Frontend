@@ -1,30 +1,67 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
+import type { z } from "zod";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { Button } from "@/shared/ui";
 import { ekycService } from "../api/ekycService";
+import { ekycPurposeSchema } from "../model/ekyc.schema";
 import { EkycUploads } from "./EkycUploads";
+
+type Purpose = z.infer<typeof ekycPurposeSchema>;
+
 const labels = {
   NOT_STARTED: "Bạn chưa xác minh danh tính.",
   PENDING: "Đang chờ bước so khớp khuôn mặt.",
   PASSED: "Danh tính đã được xác minh.",
   FAILED: "Lần xác minh chưa đạt yêu cầu.",
-};
-/** Màn thật lấy trạng thái từ server; URL ?step=result không thể tạo kết quả thành công. */
-export function EkycStatusPanel() {
+} as const;
+
+const matchLabels = {
+  NOT_CHECKED: "Chưa đối chiếu thông tin người nhận.",
+  MATCHED: "Thông tin giấy tờ khớp với người nhận được chỉ định.",
+  NEEDS_REVIEW: "Cần kiểm tra thêm.",
+  WRONG_PERSON: "Không khớp với người trên giấy tờ.",
+} as const;
+
+/** Màn thật lấy trạng thái từ server; URL ?turnId không tạo kết quả thành công. */
+export function EkycStatusPanel({
+  purpose,
+  turnId,
+  canComplete,
+  onComplete,
+  completeResult,
+  onVerificationBound,
+  onVerified,
+}: {
+  purpose: Purpose;
+  turnId?: string | null;
+  /** Page/widget chỉ định khi đủ điều kiện; tránh EkycStatusPanel phụ thuộc chéo feature. */
+  canComplete?: boolean;
+  /** Hoàn tất danh tính do page/widget xử lý (gọi handoverService). */
+  onComplete?: () => void;
+  /** Báo kết quả từ action ngoài (error/success). */
+  completeResult?: { error?: string; succeeded?: boolean } | null;
+  /** Báo verificationId mới từ document response; page dùng để so khớp với status khi bật complete. */
+  onVerificationBound?: (verificationId: string | null) => void;
+  onVerified?: () => void;
+}) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
+  const userId = useSelector((state: { auth: AuthState }) => state.auth.user?.id);
   const status = useQuery({
     queryKey: ["ekyc", "me"],
     queryFn: ({ signal }) => ekycService.getStatus(signal),
     enabled: authenticated,
     retry: false,
   });
+  const needsTurnId = purpose === "BENEFICIARY_CLAIM" && !turnId;
+  const live = status.data;
   return (
     <section
       aria-label="Trạng thái xác minh danh tính"
       className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
     >
       <h1 className="text-2xl font-semibold">Xác minh danh tính</h1>
+      <p className="text-sm text-heritage-muted">Mục đích: {purpose}</p>
       {!authenticated ? (
         <p role="status">Vui lòng đăng nhập để xem trạng thái xác minh.</p>
       ) : status.isPending ? (
@@ -41,9 +78,40 @@ export function EkycStatusPanel() {
           </Button>
         </div>
       ) : (
-        <p role="status">{labels[status.data.status]}</p>
+        <div className="space-y-2 text-sm">
+          <p role="status">{labels[live!.status]}</p>
+          <p className="text-heritage-muted">{matchLabels[live!.identityMatch]}</p>
+          {live!.backSideChecked && <p className="text-heritage-muted">Đã đọc mặt sau giấy tờ.</p>}
+        </div>
       )}
-      {authenticated && status.isSuccess && <EkycUploads />}
+      {needsTurnId && (
+        <p role="alert" className="text-sm text-destructive">
+          Mở màn này từ một lượt bàn giao cụ thể để gửi ảnh xác minh.
+        </p>
+      )}
+      {authenticated && status.isSuccess && !needsTurnId && (
+        <>
+          <EkycUploads
+            key={`${userId}:${purpose}:${turnId ?? ""}`}
+            purpose={purpose}
+            turnId={turnId ?? null}
+            canComplete={Boolean(canComplete)}
+            onComplete={() => onComplete?.()}
+            onVerificationBound={(id) => onVerificationBound?.(id)}
+            onVerified={onVerified}
+          />
+          {completeResult?.error && (
+            <p role="alert" className="text-sm text-destructive">
+              {completeResult.error}
+            </p>
+          )}
+          {completeResult?.succeeded && (
+            <p role="status" className="text-sm text-heritage-primary">
+              Đã chốt danh tính. Lượt bàn giao sẽ được máy chủ cập nhật trạng thái.
+            </p>
+          )}
+        </>
+      )}
     </section>
   );
 }

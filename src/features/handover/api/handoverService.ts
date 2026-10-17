@@ -34,6 +34,12 @@ export const handoverService = {
       await apiClient.post<unknown, unknown>(`${turn(value)}/${decision}`),
     );
   },
+  /** Chốt danh tính lượt bàn giao; BE chuyển READY_TO_ACCEPT nếu đủ điều kiện. */
+  async completeIdentity(value: string) {
+    return handoverTurnSchema.parse(
+      await apiClient.post<unknown, unknown>(`${turn(value)}/identity/complete`),
+    );
+  },
   async assets(grantId: string, signal?: AbortSignal) {
     return z.array(handoverItemSchema).parse(
       await apiClient.get<unknown, unknown>(`/handover/grants/${id.parse(grantId)}/assets`, {

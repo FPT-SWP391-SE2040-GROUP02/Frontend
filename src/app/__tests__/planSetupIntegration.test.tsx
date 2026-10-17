@@ -26,6 +26,18 @@ const setupFixture = {
   executorScopeVersion: "executor-2026-10-15",
   executorScopeText: "Phạm vi Executor.",
   executors: [],
+  containers: [
+    {
+      id: CONTAINER_ID,
+      name: "Gói gia đình",
+      status: "READY",
+      assetCount: 5,
+      designationCount: 2,
+      missingRequirements: [],
+    },
+  ],
+  assetsOutsideContainer: [],
+  warnings: [],
 };
 const invitationFixture = {
   id: CONTAINER_ID,
@@ -101,6 +113,9 @@ it("missing eKYC and Executor keep activation disabled even after acknowledgemen
     ...setupFixture,
     canActivate: false,
     missingRequirements: ["OWNER_EKYC_REQUIRED", "PRIMARY_EXECUTOR_REQUIRED"],
+    containers: [],
+    assetsOutsideContainer: [],
+    warnings: [],
   });
   const post = vi.spyOn(apiClient, "post");
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
@@ -210,3 +225,69 @@ it("guest only inspects and receives login redirect, no acceptance controls", as
 it("rejects a malformed readiness response rather than pretending activation is available", () => {
   expect(planSetupSchema.safeParse({ ...setupFixture, canActivate: "true" }).success).toBe(false);
 });
+
+it("shows READY/DRAFT, outside assets and a nonblocking backup warning", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...setupFixture,
+    containers: [
+      ...setupFixture.containers,
+      {
+        id: VAULT_ID,
+        name: "Gói nháp",
+        status: "DRAFT",
+        assetCount: 0,
+        designationCount: 0,
+        missingRequirements: ["NO_ASSET", "NO_DESIGNATION"],
+      },
+    ],
+    assetsOutsideContainer: [{ id: VAULT_ID, name: "Tài sản ngoài gói", kind: "TEXT" }],
+    warnings: ["NO_BACKUP_EXECUTOR"],
+  });
+  setup(<PlanSetupPanel vaultId={VAULT_ID} />);
+  expect(await screen.findByText("Gói gia đình")).toBeInTheDocument();
+  expect(screen.getByText("Gói nháp")).toBeInTheDocument();
+  expect(screen.getByText(/Gói chưa có tài sản/)).toHaveTextContent("Gói chưa có người nhận.");
+  expect(screen.getByText("Tài sản ngoài gói")).toBeInTheDocument();
+  expect(screen.getByText(/Chưa có Executor dự phòng/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("checkbox"));
+  expect(screen.getByRole("button", { name: "Kích hoạt kế hoạch" })).toBeEnabled();
+});
+
+it("shows empty lists and sends Owner eKYC to the Owner dashboard", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...setupFixture,
+    containers: [],
+    canActivate: false,
+    missingRequirements: ["OWNER_EKYC_REQUIRED"],
+  });
+  setup(<PlanSetupPanel vaultId={VAULT_ID} />);
+  expect(await screen.findByText("Chưa có gói nào để bàn giao.")).toBeInTheDocument();
+  expect(screen.getByText("Không có tài sản ngoài gói.")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Đi xác minh danh tính" })).toHaveAttribute(
+    "href",
+    "/dashboard",
+  );
+});
+
+it("recovers a failed readiness request without automatically activating", async () => {
+  const get = vi
+    .spyOn(apiClient, "get")
+    .mockRejectedValueOnce(new Error("network"))
+    .mockResolvedValue(setupFixture);
+  const post = vi.spyOn(apiClient, "post");
+  setup(<PlanSetupPanel vaultId={VAULT_ID} />);
+  await screen.findByRole("alert");
+  fireEvent.click(screen.getByRole("button", { name: "Thử lại" }));
+  await screen.findByText("Gói gia đình");
+  expect(get).toHaveBeenCalledTimes(2);
+  expect(post).not.toHaveBeenCalled();
+});
+
+it.each(["containers", "assetsOutsideContainer", "warnings"])(
+  "rejects a missing %s contract field",
+  (field) => {
+    const response: Record<string, unknown> = { ...setupFixture };
+    delete response[field];
+    expect(planSetupSchema.safeParse(response).success).toBe(false);
+  },
+);
