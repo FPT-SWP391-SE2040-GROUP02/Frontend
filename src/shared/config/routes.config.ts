@@ -26,6 +26,7 @@ export const ROUTES = {
     ROOT: "/dashboard",
     ASSETS: "/dashboard/assets",
     BENEFICIARIES: "/dashboard/beneficiaries",
+    AUDIT_LOG: "/dashboard/audit-log",
     ANALYTICS: "/dashboard/analytics",
     USERS: "/dashboard/users",
     SETTINGS: "/dashboard/settings",
