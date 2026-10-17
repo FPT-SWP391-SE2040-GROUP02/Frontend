@@ -11,8 +11,6 @@ import {
   ChevronRight,
   Users,
   History,
-  ChevronsUpDown,
-  Check,
   Menu,
   X,
 } from "lucide-react";
@@ -21,13 +19,6 @@ import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "./owner-workspace.css";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuItem,
-} from "@/shared/ui/dropdown-menu";
 
 const navigation = [
   { label: "Tổng quan", to: ROUTES.DASHBOARD.ROOT, icon: Home },
@@ -55,7 +46,7 @@ export function OwnerWorkspace({
   description: string;
   children: ReactNode;
 }) {
-  const home = useAccountHome();
+  const accountHome = useAccountHome();
   const location = useLocation();
   const aliases: Record<string, string> = {
     "/assets": ROUTES.DASHBOARD.ASSETS,
@@ -71,6 +62,8 @@ export function OwnerWorkspace({
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const isExecutor = path.startsWith(ROUTES.EXECUTOR.CLAIM);
   const RoleIcon = isExecutor ? Layers3 : Vault;
+  const home = isExecutor ? ROUTES.EXECUTOR.CLAIM : accountHome;
+  const workspaceNavigation = isExecutor ? [roleNavigation[0], navigation[7]] : navigation;
   const [navigationOpen, setNavigationOpen] = useState(false);
   return (
     <WorkspaceShell
@@ -82,46 +75,18 @@ export function OwnerWorkspace({
       navigation={
         <>
           <div className="owner-controls">
-            <div className="owner-role-picker">
-              <DropdownMenu>
-                <DropdownMenuTrigger className="owner-role-trigger">
-                  <span className="owner-role-icon">
-                    <RoleIcon className="size-5" aria-hidden="true" />
-                  </span>
-                  <span className="min-w-0 flex-1 text-left">
-                    <span className="block text-xs text-white/65">Chuyển vai trò</span>
-                    <span className="mt-1 block text-sm font-semibold">
-                      {isExecutor ? "Executor" : "Chủ kho"}
-                    </span>
-                  </span>
-                  <ChevronsUpDown className="size-4 text-white/65" aria-hidden="true" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="min-w-64 rounded-xl border border-heritage-border p-2 shadow-xl">
-                  <DropdownMenuLabel className="px-3 py-2">Chuyển vai trò</DropdownMenuLabel>
-                  {[
-                    { label: "Chủ kho", to: ROUTES.DASHBOARD.ROOT, icon: Vault },
-                    ...roleNavigation,
-                  ].map(({ to, label, icon: Icon }) => (
-                    <DropdownMenuItem
-                      key={to}
-                      render={<Link to={to} />}
-                      onClick={() => setNavigationOpen(false)}
-                      className="min-h-11 gap-3 rounded-lg px-3"
-                    >
-                      <Icon className="size-4" aria-hidden="true" />
-                      {label}
-                      {(to === ROUTES.DASHBOARD.ROOT ? !isExecutor : current?.to === to) && (
-                        <Check className="ml-auto size-4" aria-label="Vai trò hiện tại" />
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="owner-workspace-label">
+              <span className="owner-role-icon">
+                <RoleIcon className="size-5" aria-hidden="true" />
+              </span>
+              <span className="text-sm font-semibold">
+                {isExecutor ? "Không gian Executor" : "Không gian Chủ kho"}
+              </span>
             </div>
             <button
               type="button"
               className="owner-menu-toggle"
-              aria-label="Menu Chủ kho"
+              aria-label={isExecutor ? "Menu Executor" : "Menu Chủ kho"}
               aria-expanded={navigationOpen}
               aria-controls="owner-navigation"
               onClick={() => setNavigationOpen(!navigationOpen)}
@@ -133,14 +98,16 @@ export function OwnerWorkspace({
               )}
             </button>
           </div>
-          <p className="owner-menu-caption">Quản lý kho</p>
+          <p className="owner-menu-caption">
+            {isExecutor ? "Nhiệm vụ được phân công" : "Quản lý kho"}
+          </p>
           <nav
             id="owner-navigation"
-            aria-label="Điều hướng Chủ kho"
+            aria-label={isExecutor ? "Điều hướng Executor" : "Điều hướng Chủ kho"}
             className="owner-navigation"
             data-open={navigationOpen}
           >
-            {navigation.map(({ to, label, icon: Icon }) => (
+            {workspaceNavigation.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
                 to={to}
