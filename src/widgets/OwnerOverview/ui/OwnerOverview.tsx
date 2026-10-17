@@ -1,9 +1,11 @@
 import { useSelector } from "react-redux";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Vault, Layers3, Activity } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { ROUTES } from "@/shared/config/routes.config";
+import { EkycStatusPanel } from "@/features/ekyc/ui/EkycStatusPanel";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { OwnerVaultPanel } from "./OwnerVaultPanel";
 
@@ -29,6 +31,7 @@ const shortcuts = [
 ];
 /** Tổng quan chính thức, không có counters hoặc trạng thái minh họa. */
 export function OwnerOverview() {
+  const queryClient = useQueryClient();
   const { user, isAuthenticated } = useSelector((state: { auth: AuthState }) => state.auth);
   return (
     <OwnerWorkspace
@@ -58,6 +61,11 @@ export function OwnerOverview() {
           </Link>
         ))}
       </nav>
+      <EkycStatusPanel
+        purpose="OWNER_ENROLLMENT"
+        turnId={null}
+        onVerified={() => void queryClient.invalidateQueries({ queryKey: ["plan-setup"] })}
+      />
       <OwnerVaultPanel enabled={isAuthenticated && Boolean(accessTokenMemory.get())} />
     </OwnerWorkspace>
   );

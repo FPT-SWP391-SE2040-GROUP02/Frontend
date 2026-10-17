@@ -4,133 +4,304 @@ import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { ekycDocumentSchema } from "../model/ekyc.schema";
+import { ekycDocumentSchema, ekycPurposeSchema, ekycStatusSchema } from "../model/ekyc.schema";
 import { ekycService } from "../api/ekycService";
+import { LivenessPanel } from "./LivenessPanel";
+import { EkycReviewForm } from "./EkycReviewForm";
 
-/** Quy trình document → đọc OCR trong RAM → xác nhận → selfie; không upload tự động. */
-export function EkycUploads() {
+type Purpose = z.infer<typeof ekycPurposeSchema>;
+type Document = z.infer<typeof ekycDocumentSchema>;
+type Status = z.infer<typeof ekycStatusSchema>;
+
+type Step = "consent" | "front" | "back" | "liveness" | "done";
+
+function validateImage(file: File | null): string {
+  if (!file) return "Chọn ảnh JPEG/PNG không rỗng, tối đa 8 MiB.";
+  if (file.size === 0) return "Chọn ảnh JPEG/PNG không rỗng, tối đa 8 MiB.";
+  if (file.size > 8 * 1024 * 1024) return "Chọn ảnh JPEG/PNG không rỗng, tối đa 8 MiB.";
+  if (!["image/jpeg", "image/png"].includes(file.type)) return "Chỉ chấp nhận ảnh JPEG hoặc PNG.";
+  return "";
+}
+
+/** Quy trình consent → front → back → liveness; ảnh/OCR chỉ trong RAM. */
+export function EkycUploads({
+  purpose,
+  turnId,
+  canComplete,
+  onComplete,
+  onVerificationBound,
+  onVerified,
+}: {
+  purpose: Purpose;
+  /** Chỉ áp dụng cho BENEFICIARY_CLAIM; các purpose khác bỏ qua. */
+  turnId?: string | null;
+  /** Server PASSED + MATCHED + purpose đúng; quyết định do page. */
+  canComplete: boolean;
+  /** Bước chốt danh tính do page xử lý để tránh phụ thuộc chéo feature. */
+  onComplete: () => void;
+  /** Báo verificationId mới từ /ekyc/document để page bind với context turn. */
+  onVerificationBound?: (verificationId: string | null) => void;
+  /** Notify the composing widget after a confirmed server result. */
+  onVerified?: () => void;
+}) {
   const client = useQueryClient();
-  const action = usePrivateAction();
-  const [document, setDocument] = useState<z.infer<typeof ekycDocumentSchema> | null>(null);
-  const [image, setImage] = useState<File | null>(null);
+  const [step, setStep] = useState<Step>("consent");
+  const [ocr, setOcr] = useState<Document | null>(null);
+  const [status, setStatus] = useState<Status | null>(null);
+  const [frontImage, setFrontImage] = useState<File | null>(null);
+  const [backImage, setBackImage] = useState<File | null>(null);
+  const [frontError, setFrontError] = useState("");
+  const [backError, setBackError] = useState("");
   const [confirmed, setConfirmed] = useState(false);
-  const [validation, setValidation] = useState("");
+
+  // Action riêng cho mỗi bước để lỗi hiển thị đúng chỗ và retry đúng bước.
+  const consentAction = usePrivateAction();
+  const frontAction = usePrivateAction();
+  const backAction = usePrivateAction();
+
+  function resetAll() {
+    setStep("consent");
+    setOcr(null);
+    setStatus(null);
+    setFrontImage(null);
+    setBackImage(null);
+    setConfirmed(false);
+    setFrontError("");
+    setBackError("");
+    onVerificationBound?.(null);
+  }
+
+  async function handleConsent() {
+    await consentAction.execute(
+      () => ekycService.submitConsent(purpose),
+      () => {
+        setStep("front");
+      },
+    );
+  }
+
+  async function handleFront(form: HTMLFormElement) {
+    setFrontError("");
+    const err = validateImage(frontImage);
+    if (err) {
+      setFrontError(err);
+      return;
+    }
+    const file = frontImage;
+    await frontAction.execute(
+      () => ekycService.submitDocument(file!, purpose, turnId),
+      (result) => {
+        setOcr(result);
+        setFrontImage(null);
+        form.reset();
+        setStep("back");
+        setConfirmed(false);
+        onVerificationBound?.(result.canMatchFace ? result.verificationId : null);
+        void client.invalidateQueries({ queryKey: ["ekyc"] });
+      },
+    );
+  }
+
+  async function handleBack(form: HTMLFormElement) {
+    setBackError("");
+    const err = validateImage(backImage);
+    if (err) {
+      setBackError(err);
+      return;
+    }
+    if (!confirmed || !ocr?.canMatchFace || !ocr.verificationId) {
+      setBackError("Bạn cần xác nhận thông tin đọc được từ giấy tờ trước khi gửi mặt sau.");
+      return;
+    }
+    const file = backImage;
+    await backAction.execute(
+      () => ekycService.submitDocumentBack(file!, purpose, turnId),
+      (result) => {
+        setStatus(result);
+        setBackImage(null);
+        form.reset();
+        // canMatchFace=false hoặc verificationId=null: không cho mở camera liveness.
+        const canStartLiveness = ocr?.canMatchFace !== false && ocr?.verificationId != null;
+        if (canStartLiveness) {
+          setOcr(null);
+          setStep("liveness");
+        } else {
+          setStep("done");
+        }
+        void client.invalidateQueries({ queryKey: ["ekyc"] });
+      },
+    );
+  }
+
   return (
     <section className="space-y-4 border-t border-heritage-border pt-6">
-      <h2 className="text-lg font-semibold">
-        {document ? "Bước 2: So khớp khuôn mặt" : "Bước 1: Ảnh mặt trước CCCD"}
-      </h2>
-      <p className="text-sm leading-6 text-heritage-muted">
-        Ảnh được gửi tới hệ thống và dịch vụ xác minh danh tính đã cấu hình khi bạn bấm gửi. Chọn
-        JPEG hoặc PNG, tối đa 8 MiB. Không gửi giấy tờ của người khác.
-      </p>
-      {document && (
+      <h2 className="text-lg font-semibold">Xác minh danh tính</h2>
+
+      {step === "consent" && (
         <div className="space-y-3 rounded-lg border border-heritage-border p-4 text-sm">
           <p>
-            {document.fullName} · {document.dateOfBirth}
+            Mục đích xác minh: <strong>{purpose}</strong>.
           </p>
-          <p>CCCD: ****{document.idNumber.slice(-4)}</p>
-          <p>
-            Hạn bước so khớp:{" "}
-            {document.expiresAt ? new Date(document.expiresAt).toLocaleString("vi-VN") : "Chưa có"}
+          <p className="text-heritage-muted">
+            Ảnh giấy tờ và thử thách camera chỉ dùng để xác minh danh tính và được xử lý trong phiên
+            này. Hệ thống không lưu ảnh, OCR hoặc dữ liệu giấy tờ vào bộ nhớ trình duyệt.
           </p>
-          <label className="flex min-h-11 items-center gap-3">
-            <input
-              type="checkbox"
-              className="size-5"
-              checked={confirmed}
-              disabled={action.pending}
-              onChange={(event) => setConfirmed(event.target.checked)}
-            />
-            Tôi đã kiểm tra thông tin đọc được từ giấy tờ.
-          </label>
-          {!document.canMatchFace && (
-            <p role="alert">Máy chủ chưa cho phép so khớp. Hãy bắt đầu lại với ảnh rõ hơn.</p>
-          )}
+          <p className="text-heritage-muted">Phiên đồng ý có hiệu lực trong 30 phút.</p>
           <Button
-            variant="outline"
-            disabled={action.pending}
-            onClick={() => {
-              setDocument(null);
-              setImage(null);
-              setConfirmed(false);
+            type="button"
+            className="min-h-11"
+            disabled={consentAction.pending}
+            onClick={() => void handleConsent()}
+          >
+            {consentAction.pending ? "Đang gửi đồng ý…" : "Tôi đồng ý và tiếp tục"}
+          </Button>
+          {consentAction.error && (
+            <p role="alert" className="text-sm text-destructive">
+              {consentAction.error}
+            </p>
+          )}
+        </div>
+      )}
+
+      {step === "front" && (
+        <form
+          className="space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleFront(event.currentTarget);
+          }}
+        >
+          <h3 className="text-base font-semibold">Bước 1: Ảnh mặt trước giấy tờ</h3>
+          <p className="text-sm text-heritage-muted">JPEG/PNG, tối đa 8 MiB.</p>
+          <fieldset disabled={frontAction.pending} className="space-y-3">
+            <Input
+              type="file"
+              accept="image/jpeg,image/png"
+              aria-label="Ảnh mặt trước giấy tờ"
+              onChange={(event) => setFrontImage(event.target.files?.[0] ?? null)}
+            />
+            <Button type="submit" className="min-h-11" disabled={!frontImage}>
+              {frontAction.pending ? "Đang gửi…" : "Gửi ảnh mặt trước"}
+            </Button>
+          </fieldset>
+          {(frontError || frontAction.error) && (
+            <p role="alert" className="text-sm text-destructive">
+              {frontError || frontAction.error}
+            </p>
+          )}
+        </form>
+      )}
+
+      {step === "back" && (
+        <>
+          {ocr && (
+            <EkycReviewForm
+              key={ocr.verificationId ?? "unreadable"}
+              document={ocr}
+              purpose={purpose}
+              turnId={turnId}
+              confirmed={confirmed}
+              disabled={backAction.pending}
+              onConfirmed={() => setConfirmed(true)}
+              onEdit={() => setConfirmed(false)}
+            />
+          )}
+          <form
+            className="space-y-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleBack(event.currentTarget);
             }}
           >
-            Bắt đầu lại với giấy tờ khác
+            <h3 className="text-base font-semibold">Bước 2: Ảnh mặt sau giấy tờ</h3>
+            <p className="text-sm text-heritage-muted">JPEG/PNG, tối đa 8 MiB.</p>
+            <fieldset
+              disabled={
+                backAction.pending || !confirmed || !ocr?.canMatchFace || !ocr.verificationId
+              }
+              className="space-y-3"
+            >
+              <Input
+                type="file"
+                accept="image/jpeg,image/png"
+                aria-label="Ảnh mặt sau giấy tờ"
+                onChange={(event) => setBackImage(event.target.files?.[0] ?? null)}
+              />
+              <Button type="submit" className="min-h-11" disabled={!backImage || !confirmed}>
+                {backAction.pending ? "Đang gửi…" : "Gửi ảnh mặt sau"}
+              </Button>
+            </fieldset>
+            {status?.backSideChecked === false && (
+              <p role="status" className="text-sm text-heritage-muted">
+                Máy chủ chưa đọc được mặt sau. Bạn có thể tiếp tục nhưng nên gửi lại ảnh rõ hơn.
+              </p>
+            )}
+            {(backError || backAction.error) && (
+              <p role="alert" className="text-sm text-destructive">
+                {backError || backAction.error}
+              </p>
+            )}
+          </form>
+        </>
+      )}
+
+      {step === "liveness" && (
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold">Bước 3: Thử thách camera</h3>
+          <LivenessPanel
+            onCompleted={(s) => {
+              setStatus(s);
+              setOcr(null);
+              setConfirmed(false);
+              setStep("done");
+              void client.invalidateQueries({ queryKey: ["ekyc"] });
+              onVerified?.();
+            }}
+          />
+          <Button type="button" variant="outline" className="min-h-11" onClick={resetAll}>
+            Bắt đầu lại từ đầu
           </Button>
         </div>
       )}
-      <form
-        className="space-y-4"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          setValidation("");
-          if (
-            !image ||
-            image.size === 0 ||
-            image.size > 8 * 1024 * 1024 ||
-            !["image/jpeg", "image/png"].includes(image.type)
-          ) {
-            setValidation("Chọn ảnh JPEG/PNG không rỗng, tối đa 8 MiB.");
-            return;
-          }
-          const form = event.currentTarget;
-          const saved = document
-            ? await action.execute(
-                () => ekycService.matchFace(image),
-                (result) => {
-                  client.setQueryData(["ekyc", "me"], result);
-                  void client.invalidateQueries({ queryKey: ["ekyc"] });
-                  setDocument(null);
-                  setConfirmed(false);
-                },
-              )
-            : await action.execute(
-                () => ekycService.submitDocument(image),
-                (result) => {
-                  setDocument(result);
-                  setConfirmed(false);
-                  void client.invalidateQueries({ queryKey: ["ekyc"] });
-                },
-              );
-          if (saved) {
-            setImage(null);
-            form.reset();
-          }
-        }}
-      >
-        <fieldset disabled={action.pending} className="space-y-4">
-          <label className="block space-y-2 text-sm">
-            {document ? "Ảnh selfie" : "Ảnh mặt trước giấy tờ"}
-            <Input
-              key={document?.verificationId ?? "document"}
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={(event) => setImage(event.target.files?.[0] ?? null)}
-            />
-          </label>
-          <Button
-            type="submit"
-            disabled={document !== null && (!document.canMatchFace || !confirmed)}
-            className="min-h-11"
-          >
-            {action.pending
-              ? "Đang xác minh…"
-              : document
-                ? "Gửi ảnh selfie để so khớp"
-                : "Gửi ảnh giấy tờ"}
+
+      {step === "done" && status && (
+        <div className="space-y-3 rounded-lg border border-heritage-border p-4 text-sm">
+          {status.status === "FAILED" || status.identityMatch === "WRONG_PERSON" ? (
+            <p role="alert">
+              {status.identityMatch === "WRONG_PERSON"
+                ? "Khuôn mặt không khớp với giấy tờ. Không thể hoàn tất lượt này."
+                : "Lần xác minh chưa đạt yêu cầu."}
+            </p>
+          ) : status.identityMatch === "NEEDS_REVIEW" ? (
+            <p role="alert">Cần kiểm tra thêm trước khi hoàn tất danh tính.</p>
+          ) : (
+            <p role="status">Đã hoàn tất bước xác minh.</p>
+          )}
+          <Button type="button" variant="outline" className="min-h-11" onClick={resetAll}>
+            Bắt đầu lại từ đầu
           </Button>
-        </fieldset>
-      </form>
-      {(validation || action.error) && (
-        <p role="alert" className="text-sm text-destructive">
-          {validation || action.error}
-        </p>
+        </div>
       )}
-      {action.succeeded && (
-        <p role="status" className="text-sm text-heritage-primary">
-          Đã nhận phản hồi từ máy chủ. Kết quả xác minh hiển thị ở trạng thái phía trên.
-        </p>
+
+      {canComplete && (
+        <div className="space-y-3 rounded-lg border border-heritage-border p-4 text-sm">
+          <p>Đủ điều kiện hoàn tất danh tính cho lượt bàn giao.</p>
+          <Button type="button" className="min-h-11" onClick={onComplete}>
+            Hoàn tất danh tính lượt nhận
+          </Button>
+        </div>
+      )}
+
+      {step !== "done" && (
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-11"
+          onClick={resetAll}
+          disabled={frontAction.pending || backAction.pending}
+        >
+          Bắt đầu lại từ đầu
+        </Button>
       )}
     </section>
   );
