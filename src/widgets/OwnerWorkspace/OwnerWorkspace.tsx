@@ -31,9 +31,9 @@ const navigation = [
   { label: "Cài đặt", to: ROUTES.DASHBOARD.SETTINGS, icon: Settings },
 ];
 
-const roleNavigation = [
+const executorNavigation = [
   { label: "Nhiệm vụ Executor", to: ROUTES.EXECUTOR.CLAIM, icon: Layers3 },
-  { label: "Nội dung được nhận", to: ROUTES.BENEFICIARY.CLAIM, icon: Users },
+  { label: "Cài đặt", to: ROUTES.DASHBOARD.SETTINGS, icon: Settings },
 ];
 
 /** Khung chính thống nhất; logo điều hướng nội bộ và giữ nguyên phiên/cache. */
@@ -55,7 +55,7 @@ export function OwnerWorkspace({
     [ROUTES.BILLING.HISTORY]: ROUTES.BILLING.PLANS,
   };
   const path = aliases[location.pathname] ?? location.pathname;
-  const current = [...navigation, ...roleNavigation].find(
+  const current = [...navigation, ...executorNavigation].find(
     ({ to }) => path === to || (to !== ROUTES.DASHBOARD.ROOT && path.startsWith(`${to}/`)),
   );
   const PageIcon = current?.icon ?? Home;
@@ -63,7 +63,7 @@ export function OwnerWorkspace({
   const isExecutor = path.startsWith(ROUTES.EXECUTOR.CLAIM);
   const RoleIcon = isExecutor ? Layers3 : Vault;
   const home = isExecutor ? ROUTES.EXECUTOR.CLAIM : accountHome;
-  const workspaceNavigation = isExecutor ? [roleNavigation[0], navigation[7]] : navigation;
+  const workspaceNavigation = isExecutor ? executorNavigation : navigation;
   const [navigationOpen, setNavigationOpen] = useState(false);
   return (
     <WorkspaceShell

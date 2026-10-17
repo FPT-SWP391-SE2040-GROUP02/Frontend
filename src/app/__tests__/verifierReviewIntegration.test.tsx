@@ -148,6 +148,7 @@ it("tải danh sách hồ sơ, chọn hồ sơ hiển thị chi tiết với CCC
       String(url).endsWith(`/verifier/death-cases/${CASE_ID}`) ? detailFixture : listFixture,
     );
   setup(<VerifierWorkspace />);
+  expect(screen.getByRole("link", { name: "Đăng xuất" })).toHaveAttribute("href", "/logout");
   await selectFirstCase(user);
   expect(get).toHaveBeenCalledWith(
     expect.stringContaining(`/verifier/death-cases/${CASE_ID}`),
