@@ -33,7 +33,6 @@ const navigation = [
 
 const executorNavigation = [
   { label: "Nhiệm vụ Executor", to: ROUTES.EXECUTOR.CLAIM, icon: Layers3 },
-  { label: "Cài đặt", to: ROUTES.DASHBOARD.SETTINGS, icon: Settings },
 ];
 
 /** Khung chính thống nhất; logo điều hướng nội bộ và giữ nguyên phiên/cache. */

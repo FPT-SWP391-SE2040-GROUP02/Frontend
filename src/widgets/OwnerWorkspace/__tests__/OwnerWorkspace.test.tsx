@@ -38,6 +38,7 @@ describe("workspace logo navigation", () => {
         "page",
       );
       expect(screen.queryByRole("link", { name: "Kho của tôi" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("link", { name: "Cài đặt" })).not.toBeInTheDocument();
       expect(screen.getByRole("link", { name: "LegacyVault" })).toHaveAttribute(
         "href",
         "/executor/claim",
