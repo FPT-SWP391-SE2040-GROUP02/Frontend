@@ -5,6 +5,7 @@ import { LegacyVaultMark } from "./LegacyVaultArtwork";
 
 /** Shared presentation contract; role navigation and account data remain with the caller. */
 export interface WorkspaceShellProps {
+  className?: string;
   brand: string;
   homeHref: string;
   logoutHref: string;
@@ -16,6 +17,7 @@ export interface WorkspaceShellProps {
 
 /** Responsive workspace geometry shared across roles, with an always reachable logout action. */
 export function WorkspaceShell({
+  className = "",
   brand,
   homeHref,
   logoutHref,
@@ -25,7 +27,9 @@ export function WorkspaceShell({
   children,
 }: WorkspaceShellProps) {
   return (
-    <div className="min-h-screen bg-heritage-canvas text-heritage-text lg:grid lg:grid-cols-[224px_minmax(0,1fr)]">
+    <div
+      className={`min-h-screen bg-heritage-canvas text-heritage-text lg:grid lg:grid-cols-[224px_minmax(0,1fr)] ${className}`}
+    >
       <a
         href="#workspace-content"
         className="sr-only z-50 rounded-lg bg-heritage-surface px-4 py-3 text-heritage-primary focus:not-sr-only focus:fixed focus:left-4 focus:top-4"

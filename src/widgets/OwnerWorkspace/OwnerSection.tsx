@@ -73,7 +73,8 @@ function ResourceList({ vaultId, section }: { vaultId: string; section: "assets"
   const Icon = section === "assets" ? FileText : FolderOpen;
   return (
     <section aria-label={section === "assets" ? "Tài sản" : "Gói bàn giao"} className="space-y-4">
-      <p className="text-sm text-heritage-muted">
+      <p className="flex items-center gap-2 text-sm font-medium text-heritage-muted">
+        <Icon className="size-4 text-heritage-gold" aria-hidden="true" />
         {data.totalCount} {section === "assets" ? "tài sản" : "gói bàn giao"}
       </p>
       {data.items.length === 0 ? (
@@ -82,17 +83,20 @@ function ResourceList({ vaultId, section }: { vaultId: string; section: "assets"
           description="Nội dung trong kho sẽ được hiển thị tại đây khi có dữ liệu."
         />
       ) : (
-        <ul className="divide-y divide-heritage-border overflow-hidden rounded-xl border border-heritage-border bg-heritage-surface">
+        <ul className="grid gap-4 sm:grid-cols-2">
           {data.items.map((item) => (
-            <li key={item.id} className="flex items-start gap-4 p-5">
-              <div className="rounded-lg bg-heritage-primary/5 p-3 text-heritage-primary">
+            <li
+              key={item.id}
+              className="flex min-w-0 flex-col items-start gap-4 rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-sm"
+            >
+              <div className="rounded-xl border border-heritage-border bg-heritage-primary/5 p-3 text-heritage-primary">
                 <Icon className="size-5" aria-hidden="true" />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 w-full">
                 <h2 className="break-words text-sm font-semibold">
                   {section === "plans" ? (
                     <Link
-                      className="inline-flex min-h-11 items-center underline underline-offset-4"
+                      className="inline-flex min-h-11 items-center text-heritage-primary underline decoration-heritage-gold/50 underline-offset-4 hover:decoration-heritage-gold focus-visible:outline-2 focus-visible:outline-heritage-gold"
                       to={ROUTES.WILLS.DETAIL(item.id)}
                     >
                       {item.name}
@@ -102,7 +106,9 @@ function ResourceList({ vaultId, section }: { vaultId: string; section: "assets"
                   )}
                 </h2>
                 {item.description && (
-                  <p className="mt-1 break-words text-sm text-heritage-muted">{item.description}</p>
+                  <p className="mt-2 break-words text-xs leading-6 text-heritage-muted">
+                    {item.description}
+                  </p>
                 )}
               </div>
             </li>

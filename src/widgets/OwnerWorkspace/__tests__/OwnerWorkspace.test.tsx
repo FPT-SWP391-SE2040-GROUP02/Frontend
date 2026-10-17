@@ -17,6 +17,32 @@ afterEach(() => {
 });
 
 describe("workspace logo navigation", () => {
+  it("opens the phone navigation and closes it after choosing an Owner page", () => {
+    const store = configureStore({ reducer: { auth: authReducer } });
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={["/dashboard"]}>
+          <OwnerWorkspace title="Kho" description="Fixture">
+            <p>Nội dung</p>
+          </OwnerWorkspace>
+        </MemoryRouter>
+      </Provider>,
+    );
+    const toggle = screen.getByRole("button", { name: "Menu Chủ kho" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(screen.getByRole("link", { name: "Kho của tôi" }));
+    expect(screen.getByRole("button", { name: "Menu Chủ kho" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    expect(screen.getByRole("link", { name: "Kho của tôi" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
   it.each([
     ["/assets?filter=all#list", "Kho của tôi"],
     ["/wills/new", "Kế hoạch bàn giao"],

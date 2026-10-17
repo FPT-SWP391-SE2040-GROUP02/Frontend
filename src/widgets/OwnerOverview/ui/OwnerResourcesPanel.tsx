@@ -2,6 +2,7 @@ import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { Button } from "@/shared/ui";
+import { FileText, Users, Activity } from "lucide-react";
 
 /** Các khối đọc Backend; lỗi riêng từng module, không fallback dữ liệu mẫu. */
 export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
@@ -11,12 +12,14 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
   const sections = [
     {
       title: "Tài sản trong kho",
+      icon: FileText,
       query: assets,
       value: assets.data ? `${assets.data.totalCount} tài sản` : "",
       items: assets.data?.items.map((item) => ({ id: item.id, label: item.name })) ?? [],
     },
     {
       title: "Hồ sơ người nhận",
+      icon: Users,
       query: beneficiaries,
       value: beneficiaries.data ? `${beneficiaries.data.totalCount} hồ sơ` : "",
       items: beneficiaries.data?.items.map((item) => ({ id: item.id, label: item.fullName })) ?? [],
@@ -30,14 +33,13 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
     PAUSED: "Đang tạm dừng",
   };
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      {sections.map(({ title, query, value, items }) => (
-        <section
-          key={title}
-          aria-label={title}
-          className="space-y-3 rounded-lg border border-heritage-border p-4"
-        >
-          <h3 className="font-semibold">{title}</h3>
+    <div className="grid gap-4 xl:grid-cols-3">
+      {sections.map(({ title, icon: Icon, query, value, items }) => (
+        <section key={title} aria-label={title} className="owner-resource-card">
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
+            <Icon className="size-4 text-heritage-gold" aria-hidden="true" />
+            {title}
+          </h3>
           {query.isPending ? (
             <p role="status">Đang tải…</p>
           ) : query.isError ? (
@@ -53,9 +55,9 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
             </div>
           ) : (
             <>
-              <p>{value}</p>
+              <p className="text-xl font-semibold tracking-tight">{value}</p>
               {items.length ? (
-                <ul>
+                <ul className="owner-resource-list">
                   {items.map((item) => (
                     <li key={item.id}>{item.label}</li>
                   ))}
@@ -67,11 +69,11 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
           )}
         </section>
       ))}
-      <section
-        aria-label="Điểm danh"
-        className="space-y-3 rounded-lg border border-heritage-border p-4"
-      >
-        <h3 className="font-semibold">Điểm danh</h3>
+      <section aria-label="Điểm danh" className="owner-resource-card">
+        <h3 className="flex items-center gap-2 text-sm font-semibold">
+          <Activity className="size-4 text-heritage-gold" aria-hidden="true" />
+          Điểm danh
+        </h3>
         {checkIn.isPending ? (
           <p role="status">Đang tải…</p>
         ) : checkIn.isError ? (
@@ -87,9 +89,13 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
           </div>
         ) : checkIn.data ? (
           <>
-            <p>{checkInLabels[checkIn.data.status]}</p>
-            <p>Chu kỳ: {checkIn.data.settings.cycleDays} ngày</p>
-            <p>Thời gian chờ: {checkIn.data.settings.graceDays} ngày</p>
+            <p className="text-lg font-semibold">{checkInLabels[checkIn.data.status]}</p>
+            <p className="text-xs text-heritage-muted">
+              Chu kỳ: {checkIn.data.settings.cycleDays} ngày
+            </p>
+            <p className="text-xs text-heritage-muted">
+              Thời gian chờ: {checkIn.data.settings.graceDays} ngày
+            </p>
           </>
         ) : null}
       </section>
