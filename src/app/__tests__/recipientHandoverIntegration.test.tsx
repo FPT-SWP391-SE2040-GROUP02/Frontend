@@ -1,15 +1,23 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { AxiosError, AxiosHeaders } from "axios";
+import {
+  AxiosError,
+  AxiosHeaders,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from "axios";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
+import type { ReactNode } from "react";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
+import { InvitationPanel } from "@/features/handover/ui/InvitationPanel";
+import { remainingText } from "@/features/handover/model/handover.format";
 
 const originalAdapter = apiClient.defaults.adapter;
 const GRANT_ID = "0198a000-0000-7000-8000-000000000001";
@@ -48,6 +56,9 @@ function committedTurn(grantStatus: string) {
     grant: { id: GRANT_ID, status: grantStatus, expiresAt: "2026-12-30T00:00:00Z" },
   };
 }
+function turnWithStatus(status: string, extra: object = {}) {
+  return { ...committedTurn("ACTIVE"), status, items: [], grant: null, ...extra };
+}
 beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   accessTokenMemory.set("recipient-fixture");
@@ -59,18 +70,29 @@ afterEach(() => {
   apiClient.defaults.adapter = originalAdapter;
   vi.restoreAllMocks();
 });
-function setup() {
+function setup(children: ReactNode = <HandoverPortal />, path = "/") {
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(setCredentials({ user }));
   render(
     <Provider store={store}>
       <QueryClientProvider client={client}>
-        <MemoryRouter>
-          <HandoverPortal />
-        </MemoryRouter>
+        <MemoryRouter initialEntries={[path]}>{children}</MemoryRouter>
       </QueryClientProvider>
     </Provider>,
   );
+  return store;
+}
+function ok(config: InternalAxiosRequestConfig, data: unknown): AxiosResponse {
+  return { config, data, status: 200, statusText: "OK", headers: new AxiosHeaders() };
+}
+function problem(config: never, status: number, body: object) {
+  return new AxiosError("private", "ERR_BAD_REQUEST", config, undefined, {
+    config,
+    data: body,
+    status,
+    statusText: "Error",
+    headers: new AxiosHeaders(),
+  });
 }
 /** Giả lập Backend: GET danh sách trả lượt; GET nội dung trả lỗi dạng Blob như responseType blob. */
 function backendDownloadFails(status: number, body: object, grantStatus = "ACTIVE") {
@@ -84,14 +106,22 @@ function backendDownloadFails(status: number, body: object, grantStatus = "ACTIV
         headers: new AxiosHeaders(),
       });
     }
-    return {
-      config,
-      data: [committedTurn(grantStatus)],
-      status: 200,
-      statusText: "OK",
-      headers: new AxiosHeaders(),
-    };
+    return ok(config, [committedTurn(grantStatus)]);
   };
+}
+/** Tải nội dung treo cho tới khi test gọi release, để đổi phiên/tài khoản giữa chừng. */
+function backendDownloadHangs() {
+  const control = { release: (_blob: Blob) => {} };
+  apiClient.defaults.adapter = async (config) => {
+    if (config.url?.endsWith("/content")) {
+      const data = await new Promise<Blob>((resolve) => {
+        control.release = resolve;
+      });
+      return ok(config, data);
+    }
+    return ok(config, [committedTurn("ACTIVE")]);
+  };
+  return control;
 }
 
 it("shows a Vietnamese grant status and offers download only for an ACTIVE grant", async () => {
@@ -120,13 +150,11 @@ it("explains why GRANT_NOT_ACTIVE rejected the download using the BE reason", as
 });
 
 it("saves the file only after the Backend returns the content and then releases the object URL", async () => {
-  apiClient.defaults.adapter = async (config) => ({
-    config,
-    data: config.url?.endsWith("/content") ? new Blob(["noi dung"]) : [committedTurn("ACTIVE")],
-    status: 200,
-    statusText: "OK",
-    headers: new AxiosHeaders(),
-  });
+  apiClient.defaults.adapter = async (config) =>
+    ok(
+      config,
+      config.url?.endsWith("/content") ? new Blob(["noi dung"]) : [committedTurn("ACTIVE")],
+    );
   const createUrl = vi.fn(() => "blob:fixture");
   const revokeUrl = vi.fn();
   Object.assign(URL, { createObjectURL: createUrl, revokeObjectURL: revokeUrl });
@@ -138,29 +166,107 @@ it("saves the file only after the Backend returns the content and then releases 
   await waitFor(() => expect(revokeUrl).toHaveBeenCalledWith("blob:fixture"), { timeout: 3000 });
 });
 
-it("ignores a download that finishes after the session credential changed", async () => {
-  let release: (blob: Blob) => void = () => undefined;
-  apiClient.defaults.adapter = async (config) => {
-    if (config.url?.endsWith("/content")) {
-      const data = await new Promise<Blob>((resolve) => {
-        release = resolve;
-      });
-      return { config, data, status: 200, statusText: "OK", headers: new AxiosHeaders() };
-    }
-    return {
-      config,
-      data: [committedTurn("ACTIVE")],
-      status: 200,
-      statusText: "OK",
-      headers: new AxiosHeaders(),
-    };
-  };
+it("ignores a download that finishes after the account changed", async () => {
+  const control = backendDownloadHangs();
   const createUrl = vi.spyOn(URL, "createObjectURL");
+  const store = setup();
+  fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Tải nội dung" })).toBeDisabled());
+  store.dispatch(setCredentials({ user: { ...user, id: CONTAINER_ID } }));
+  control.release(new Blob(["noi dung"]));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Tải nội dung" })).toBeEnabled());
+  expect(createUrl).not.toHaveBeenCalled();
+});
+
+it("still saves the file when only the access token was refreshed for the same user", async () => {
+  const control = backendDownloadHangs();
+  Object.assign(URL, { createObjectURL: vi.fn(() => "blob:fixture"), revokeObjectURL: vi.fn() });
+  const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
   setup();
   fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
   await waitFor(() => expect(screen.getByRole("button", { name: "Tải nội dung" })).toBeDisabled());
-  accessTokenMemory.set("another-user");
-  release(new Blob(["noi dung"]));
-  await waitFor(() => expect(screen.getByRole("button", { name: "Tải nội dung" })).toBeEnabled());
-  expect(createUrl).not.toHaveBeenCalled();
+  accessTokenMemory.set("refreshed-token");
+  control.release(new Blob(["noi dung"]));
+  await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
+});
+
+it("shows a network failure of the download instead of staying silent", async () => {
+  apiClient.defaults.adapter = async (config) => {
+    if (config.url?.endsWith("/content")) {
+      throw new AxiosError("Network Error", "ERR_NETWORK", config);
+    }
+    return ok(config, [committedTurn("ACTIVE")]);
+  };
+  setup();
+  fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Không kết nối được máy chủ");
+});
+
+it("shows the Backend reason when claiming an invitation is rejected", async () => {
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "get") return ok(config, { valid: true, responseExpired: false });
+    throw problem(config as never, 409, {
+      code: "HANDOVER_NOT_ALLOWED",
+      reason: "OWNER_CANNOT_CLAIM",
+    });
+  };
+  setup(<InvitationPanel />, "/receive?token=invitation-fixture");
+  fireEvent.click(await screen.findByRole("button", { name: "Xác nhận nhận lời mời" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Chủ kho không thể tự nhận");
+  expect(screen.queryByRole("link", { name: "Xem lượt bàn giao của tôi" })).not.toBeInTheDocument();
+});
+
+it("declines only after an explicit confirmation and then shows the server state", async () => {
+  let declined = false;
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "post") {
+      declined = true;
+      return ok(config, turnWithStatus("DECLINED"));
+    }
+    return ok(config, [turnWithStatus(declined ? "DECLINED" : "READY_TO_ACCEPT")]);
+  };
+  const post = vi.spyOn(apiClient, "post");
+  setup();
+  const decline = await screen.findByRole("button", { name: "Từ chối tiếp nhận" });
+  expect(decline).toBeDisabled();
+  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(decline);
+  expect(await screen.findByText("Bạn đã từ chối lượt bàn giao này.")).toBeInTheDocument();
+  expect(post).toHaveBeenCalledWith(`/handover/turns/${CONTAINER_ID}/decline`);
+  expect(screen.queryByRole("button", { name: "Đồng ý tiếp nhận" })).not.toBeInTheDocument();
+});
+
+it("explains a rejected decision with the Backend reason and keeps the turn undecided", async () => {
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "post") {
+      throw problem(config as never, 409, { code: "HANDOVER_NOT_ALLOWED", reason: "WRONG_STATE" });
+    }
+    return ok(config, [turnWithStatus("READY_TO_ACCEPT")]);
+  };
+  setup();
+  fireEvent.click(await screen.findByRole("checkbox"));
+  fireEvent.click(screen.getByRole("button", { name: "Đồng ý tiếp nhận" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("không cho phép thao tác này");
+  expect(screen.queryByText(/Quyền xem/)).not.toBeInTheDocument();
+});
+
+it("describes terminal states and counts down from the server time, not the local clock", async () => {
+  apiClient.defaults.adapter = async (config) =>
+    ok(config, [
+      turnWithStatus("READY_TO_ACCEPT", {
+        serverTime: "2026-10-18T00:00:00Z",
+        decisionDeadline: "2026-10-20T03:00:00Z",
+      }),
+      turnWithStatus("DECISION_EXPIRED"),
+    ]);
+  setup();
+  expect(await screen.findByText("Còn 2 ngày 3 giờ để quyết định")).toBeInTheDocument();
+  expect(screen.getByText(/Hạn quyết định đã kết thúc nên lượt này/)).toBeInTheDocument();
+});
+
+it("formats the remaining time from server time", () => {
+  expect(remainingText("2026-10-20T03:00:00Z", "2026-10-18T00:00:00Z")).toBe("Còn 2 ngày 3 giờ");
+  expect(remainingText("2026-10-18T02:30:00Z", "2026-10-18T00:00:00Z")).toBe("Còn 2 giờ 30 phút");
+  expect(remainingText("2026-10-18T00:20:00Z", "2026-10-18T00:00:00Z")).toBe("Còn 20 phút");
+  expect(remainingText("2026-10-17T00:00:00Z", "2026-10-18T00:00:00Z")).toBe("Đã quá hạn");
 });
