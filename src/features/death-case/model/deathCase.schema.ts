@@ -44,9 +44,22 @@ export const deathCaseSchema = z.object({
   }),
   reviewVersionNo: z.number().int().nullable(),
   missingRequirements: z.array(z.string()),
+  /** Có khi SUPPLEMENT_REQUIRED; không chứa thông tin Verifier. Fixture cũ không có trường này. */
+  supplementRequest: z
+    .object({
+      versionNo: z.number().int().positive(),
+      reason: z.string(),
+      requestedParts: z.array(z.string()),
+      requestedAt: timestamp,
+      dueAt: timestamp.nullish(),
+      overdue: z.boolean().optional(),
+    })
+    .nullish(),
+  /** Có khi REJECTED: lý do Verifier nhập để Executor mở hồ sơ mới. */
+  rejectReason: z.string().nullish(),
   ownerNotice: z
     .object({
-      status: z.enum(["PENDING", "DELIVERED", "FAILED"]),
+      status: z.enum(["PENDING", "DELIVERED", "FAILED", "CANCELLED"]),
       deliveredAt: timestamp.nullable(),
     })
     .nullable(),
