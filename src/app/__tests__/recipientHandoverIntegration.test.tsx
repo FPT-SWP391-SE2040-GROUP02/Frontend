@@ -18,6 +18,7 @@ import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backe
 import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
 import { InvitationPanel } from "@/features/handover/ui/InvitationPanel";
 import { remainingText } from "@/features/handover/model/handover.format";
+import { handoverService } from "@/features/handover/api/handoverService";
 
 const originalAdapter = apiClient.defaults.adapter;
 const GRANT_ID = "0198a000-0000-7000-8000-000000000001";
@@ -269,4 +270,38 @@ it("formats the remaining time from server time", () => {
   expect(remainingText("2026-10-18T02:30:00Z", "2026-10-18T00:00:00Z")).toBe("Còn 2 giờ 30 phút");
   expect(remainingText("2026-10-18T00:20:00Z", "2026-10-18T00:00:00Z")).toBe("Còn 20 phút");
   expect(remainingText("2026-10-17T00:00:00Z", "2026-10-18T00:00:00Z")).toBe("Đã quá hạn");
+});
+
+it("tells the recipient the invitation was already claimed by another account", async () => {
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "get") return ok(config, { valid: true, responseExpired: false });
+    throw problem(config as never, 409, { code: "HANDOVER_ALREADY_CLAIMED" });
+  };
+  setup(<InvitationPanel />, "/receive?token=invitation-fixture");
+  fireEvent.click(await screen.findByRole("button", { name: "Xác nhận nhận lời mời" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Lời mời đã được nhận");
+  expect(screen.queryByRole("link", { name: "Xem lượt bàn giao của tôi" })).not.toBeInTheDocument();
+});
+
+it("does not leak or invent turns when the Backend hides a turn that is not the user's", async () => {
+  apiClient.defaults.adapter = async (config) => {
+    throw problem(config as never, 404, { code: "HANDOVER_NOT_FOUND" });
+  };
+  setup();
+  expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được các lượt của bạn");
+  expect(screen.queryByRole("button", { name: "Đồng ý tiếp nhận" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Tải nội dung" })).not.toBeInTheDocument();
+  await expect(handoverService.get(CONTAINER_ID)).rejects.toMatchObject({
+    response: { status: 404 },
+  });
+});
+
+it.each([
+  ["BLOCKED", "Đang bị tạm giữ, chưa thể tải"],
+  ["REVOKED", "Đã bị thu hồi"],
+])("shows a %s grant without any download button", async (grantStatus, label) => {
+  apiClient.defaults.adapter = async (config) => ok(config, [committedTurn(grantStatus)]);
+  setup();
+  expect(await screen.findByText(new RegExp(label))).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Tải nội dung" })).not.toBeInTheDocument();
 });
