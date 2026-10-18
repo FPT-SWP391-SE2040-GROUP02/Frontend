@@ -7,6 +7,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { handoverService } from "../api/handoverService";
 import type { handoverTurnSchema } from "../model/handover.schema";
+import { useGrantDownload } from "../model/useGrantDownload";
 const labels: Record<string, string> = {
   INVITED: "Được mời",
   INITIAL_RESPONSE_EXPIRED: "Đã qua hạn phản hồi ban đầu",
@@ -18,8 +19,15 @@ const labels: Record<string, string> = {
   CANCELLED: "Đã hủy",
   LAPSED: "Đã kết thúc",
 };
+const grantLabels: Record<string, string> = {
+  ACTIVE: "Đang hiệu lực",
+  EXPIRED: "Đã hết hạn, không còn tải được",
+  BLOCKED: "Đang bị tạm giữ, chưa thể tải",
+  REVOKED: "Đã bị thu hồi",
+};
 function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
   const action = usePrivateAction();
+  const content = useGrantDownload();
   const client = useQueryClient();
   const [confirmed, setConfirmed] = useState(false);
   const refresh = () => {
@@ -89,7 +97,7 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
       )}
       {turn.grant && (
         <p className="text-sm">
-          Quyền xem/tải: {turn.grant.status} · đến{" "}
+          Quyền xem/tải: {grantLabels[turn.grant.status] ?? turn.grant.status} · đến{" "}
           {new Date(turn.grant.expiresAt).toLocaleString("vi-VN")}
         </p>
       )}
@@ -103,21 +111,11 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
               {turn.grant?.status === "ACTIVE" && (
                 <Button
                   variant="outline"
-                  disabled={action.pending}
+                  disabled={content.pending || action.pending}
                   onClick={() =>
-                    void action.execute(
+                    void content.download(
                       () => handoverService.download(turn.grant!.id, item.id),
-                      (blob) => {
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement("a");
-                        link.href = url;
-                        link.download = (item.fileName ?? `${item.name}.txt`).replace(
-                          /[^\p{L}\p{N} ._()-]/gu,
-                          "_",
-                        );
-                        link.click();
-                        setTimeout(() => URL.revokeObjectURL(url), 1000);
-                      },
+                      (item.fileName ?? `${item.name}.txt`).replace(/[^\p{L}\p{N} ._()-]/gu, "_"),
                     )
                   }
                 >
@@ -128,10 +126,10 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
           ))}
         </ul>
       )}
-      {action.pending && <p role="status">Đang xử lý yêu cầu…</p>}
-      {action.error && (
+      {(action.pending || content.pending) && <p role="status">Đang xử lý yêu cầu…</p>}
+      {(action.error || content.error) && (
         <p role="alert" className="text-sm text-destructive">
-          {action.error}
+          {action.error || content.error}
         </p>
       )}
     </article>
