@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { AxiosError, AxiosHeaders } from "axios";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -350,4 +350,46 @@ it("accepts an owner notice cancelled by a rejection instead of failing to read 
   const record = await deathCaseService.get(CASE_ID);
   expect(record.ownerNotice?.status).toBe("CANCELLED");
   expect(get).toHaveBeenCalledTimes(1);
+});
+
+const vaultRow = {
+  vaultId: VAULT_ID,
+  ownerFullName: "Fixture",
+  role: "PRIMARY",
+  planStatus: "ACTIVE",
+  checkInOverdue: false,
+  openDeathCaseId: null,
+};
+
+it("opens the last rejected case from the vault list and shows its reason", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation((url) => {
+    if (url === "/executor/vaults")
+      return Promise.resolve([{ ...vaultRow, lastRejectedDeathCaseId: CASE_ID }]);
+    if (url === `/executor/death-cases/${CASE_ID}`)
+      return Promise.resolve({ ...deathCase("REJECTED"), rejectReason: "Giấy không hợp lệ" });
+    if (url === `/executor/death-cases/${CASE_ID}/handover-progress`)
+      return Promise.resolve(notStarted);
+    return Promise.reject(new Error(`unexpected ${String(url)}`));
+  });
+  setup(<ExecutorPortal />, "/executor/claim");
+  expect(await screen.findByRole("button", { name: "Mở hồ sơ chứng tử" })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Xem hồ sơ bị từ chối gần nhất" }));
+  expect(await screen.findByRole("heading", { name: "Hồ sơ đã bị từ chối" })).toBeInTheDocument();
+  expect(screen.getByText("Lý do: Giấy không hợp lệ")).toBeInTheDocument();
+});
+
+it("hides the rejected case button when the vault has none or the Backend predates the field", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation((url) => {
+    if (url === "/executor/vaults")
+      return Promise.resolve([
+        vaultRow,
+        { ...vaultRow, vaultId: OTHER_CASE_ID, lastRejectedDeathCaseId: null },
+      ]);
+    return Promise.reject(new Error(`unexpected ${String(url)}`));
+  });
+  setup(<ExecutorPortal />, "/executor/claim");
+  expect(await screen.findAllByRole("button", { name: "Mở hồ sơ chứng tử" })).toHaveLength(2);
+  expect(
+    screen.queryByRole("button", { name: "Xem hồ sơ bị từ chối gần nhất" }),
+  ).not.toBeInTheDocument();
 });
