@@ -2,7 +2,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, ArrowRight, Info, Lock, Mail } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, Info, Lock, Mail } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { GoogleSignInButton } from "./GoogleSignInButton";
 import { LinkGoogleAccountCard } from "./LinkGoogleAccountCard";
@@ -55,9 +55,13 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
   const google = useGoogleLogin();
   const isPending = loginPending || google.isPending;
 
+  const emailParam = searchParams.get("email") ?? "";
+  const isVerifiedBanner = searchParams.get("verified") === "true";
+
   const {
     register,
     handleSubmit,
+    setValue,
     getValues,
     formState: { errors },
   } = useForm<LoginInput>({
@@ -65,11 +69,17 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
     reValidateMode: "onBlur",
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      email: emailParam,
       password: "",
       rememberMe: true,
     },
   });
+
+  useEffect(() => {
+    if (emailParam) {
+      setValue("email", emailParam);
+    }
+  }, [emailParam, setValue]);
 
   const finishLogin = (user: BackendUserResponse): void => {
     if (!user.emailVerified) {
@@ -142,7 +152,23 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
 
   return (
     <div className={`w-full space-y-6 ${className}`}>
-      {/* 1. KHỐI NGỮ CẢNH LỜI MỜI NHẬN DI SẢN (Mockup 4) */}
+      {/* 1. KHỐI THÔNG BÁO XÁC MINH EMAIL THÀNH CÔNG */}
+      {isVerifiedBanner && (
+        <div
+          role="status"
+          className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 space-y-1 text-left"
+        >
+          <div className="flex items-center gap-2 font-semibold text-sm text-emerald-900">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+            <span>Xác minh email thành công!</span>
+          </div>
+          <p className="text-xs text-emerald-800 leading-relaxed pl-7">
+            Địa chỉ email của bạn đã được kích hoạt. Vui lòng nhập mật khẩu để đăng nhập vào tài khoản.
+          </p>
+        </div>
+      )}
+
+      {/* 1b. KHỐI NGỮ CẢNH LỜI MỜI NHẬN DI SẢN (Mockup 4) */}
       {invitationContext && (
         <div className="p-4 rounded-2xl bg-[#EAF2ED] border border-[#C5DCD0] text-[#0A281E] space-y-2">
           <div className="flex items-start gap-3">
