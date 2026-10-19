@@ -190,7 +190,15 @@ export const blockerLabels: Record<z.infer<typeof approveBlockerSchema>, string>
   OWNER_NOT_NOTIFIED: "Owner chưa được thông báo về hồ sơ này.",
   OBJECTION_PERIOD_NOT_OVER: "Đang trong thời gian chờ Owner phản đối (72 giờ).",
   FLAGS_NOT_REVIEWED: "Còn cờ chưa được xem xét.",
-  VERIFIER_CONFLICT: "Bạn có quan hệ với kho này nên không được duyệt hồ sơ.",
+  VERIFIER_CONFLICT:
+    "Bạn có quan hệ với kho này nên chỉ được xem, không được ra quyết định trên hồ sơ.",
+};
+/** Nhãn cho trạng thái báo Owner; `DELIVERED` được ghép thêm `deliveredAt` ở UI. */
+export const ownerNoticeLabels: Record<z.infer<typeof ownerNoticeStatusSchema>, string> = {
+  PENDING: "Đang chờ gửi",
+  DELIVERED: "Đã gửi",
+  FAILED: "Gửi lỗi",
+  CANCELLED: "Đã hủy",
 };
 /** Nhãn cho decision. */
 export const decisionLabels: Record<z.infer<typeof verifierDecisionKindSchema>, string> = {

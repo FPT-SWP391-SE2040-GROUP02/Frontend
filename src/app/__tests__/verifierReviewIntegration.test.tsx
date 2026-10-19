@@ -1,10 +1,10 @@
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { AxiosError, AxiosHeaders } from "axios";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
@@ -17,6 +17,7 @@ import { verifierReviewService } from "@/features/verifier-review/api/verifierRe
 const CASE_ID = "33333333-3333-4333-8333-333333333333";
 const FLAG_ID = "44444444-4444-4444-8444-444444444444";
 const FILE_ID = "55555555-5555-4555-8555-555555555555";
+const CASE_B_ID = "66666666-6666-4666-8666-666666666666";
 const originalAdapter = apiClient.defaults.adapter;
 let client: QueryClient;
 
@@ -104,6 +105,15 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+function LocationProbe() {
+  return <span data-testid="search">{useLocation().search}</span>;
+}
+
+const formatTimestamp = (value: string) =>
+  new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(
+    new Date(value),
+  );
+
 function setup(children: ReactNode, initialPath = "/notary/workspace") {
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(
@@ -125,7 +135,15 @@ function setup(children: ReactNode, initialPath = "/notary/workspace") {
       <QueryClientProvider client={client}>
         <MemoryRouter initialEntries={[initialPath]}>
           <Routes>
-            <Route path="/notary/workspace" element={children} />
+            <Route
+              path="/notary/workspace"
+              element={
+                <>
+                  {children}
+                  <LocationProbe />
+                </>
+              }
+            />
           </Routes>
         </MemoryRouter>
       </QueryClientProvider>
@@ -360,4 +378,335 @@ it("không có blob được cache sau khi tải nội dung tệp", async () => 
         .map((q) => ({ key: q.queryKey })),
     ),
   ).not.toContain(blob.toString());
+});
+
+it("modal duyệt hiện nhãn tiếng Việt của blocker, không hiện mã thô", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}&modal=approve`);
+  const dialog = await screen.findByRole("dialog");
+  expect(dialog).toHaveTextContent("Còn cờ chưa được xem xét.");
+  expect(dialog).not.toHaveTextContent("FLAGS_NOT_REVIEWED");
+});
+
+it("kết quả mở bàn giao vẫn hiện sau khi duyệt, không bị GET chi tiết ghi đè", async () => {
+  const user = userEvent.setup();
+  let detailReads = 0;
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
+    if (!String(url).endsWith(CASE_ID)) return listFixture;
+    detailReads += 1;
+    return { ...detailFixture, canApprove: true, approveBlockers: [] };
+  });
+  vi.spyOn(apiClient, "post").mockResolvedValue({
+    ...detailFixture,
+    status: "APPROVED_FOR_HANDOVER",
+    etag: "v-2",
+    closedAt: CREATED_AT,
+    canApprove: false,
+    approveBlockers: ["NOT_UNDER_REVIEW"],
+    handover: { turnCount: 2, invitationsSent: 2, invitationsFailed: 0 },
+  });
+  setup(<VerifierWorkspace />);
+  await selectFirstCase(user);
+  await user.click(screen.getByRole("button", { name: "Duyệt mở bàn giao" }));
+  await user.type(screen.getByLabelText("Lý do duyệt"), "Đủ căn cứ");
+  await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận các thông tin/ }));
+  await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra phạm vi/ }));
+  await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
+  expect(await screen.findByText(/Đã mở 2 lượt bàn giao/)).toBeInTheDocument();
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  expect(screen.getByText(/Đã mở 2 lượt bàn giao/)).toBeInTheDocument();
+  expect(detailReads).toBe(1);
+  expect(screen.queryByRole("button", { name: /^Từ chối$/ })).not.toBeInTheDocument();
+});
+
+it("hồ sơ chờ bổ sung chỉ còn nút từ chối, không xem xét cờ hay duyệt", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID)
+      ? { ...detailFixture, status: "SUPPLEMENT_REQUIRED", approveBlockers: ["NOT_UNDER_REVIEW"] }
+      : listFixture,
+  );
+  const post = vi.spyOn(apiClient, "post").mockResolvedValue(detailFixture);
+  setup(<VerifierWorkspace />);
+  await selectFirstCase(user);
+  expect(screen.queryByRole("button", { name: "Xem xét" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /Yêu cầu bổ sung/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Duyệt mở bàn giao" })).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
+  await user.type(screen.getByLabelText("Lý do từ chối"), "Executor không bổ sung đúng hạn");
+  await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
+  await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
+  await waitFor(() =>
+    expect(post).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}/reject`, {
+      etag: "v-1",
+      reason: "Executor không bổ sung đúng hạn",
+    }),
+  );
+});
+
+it("VERIFIER_CONFLICT chỉ cho xem: ẩn mọi thao tác ghi, kể cả modal mở qua URL", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID)
+      ? { ...detailFixture, approveBlockers: ["FLAGS_NOT_REVIEWED", "VERIFIER_CONFLICT"] }
+      : listFixture,
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
+  expect(await screen.findByText(/chỉ được xem, không được ra quyết định/)).toBeInTheDocument();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Xem xét" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /Yêu cầu bổ sung/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Duyệt mở bàn giao" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /^Từ chối$/ })).not.toBeInTheDocument();
+});
+
+it("hiện mốc thời gian phản đối, báo Owner và hồ sơ trước bị từ chối", async () => {
+  const objectionEndsAt = "2026-10-05T03:00:00+00:00";
+  const deliveredAt = "2026-10-02T08:30:00+00:00";
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID)
+      ? {
+          ...detailFixture,
+          objectionEndsAt,
+          ownerNotice: { status: "DELIVERED", deliveredAt },
+          previousCase: {
+            id: "77777777-7777-4777-8777-777777777777",
+            closedAt: CREATED_AT,
+            rejectReason: "Giấy chứng tử không rõ nét",
+          },
+        }
+      : listFixture,
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}`);
+  const timeline = await screen.findByRole("region", { name: "Mốc thời gian" });
+  expect(timeline).toHaveTextContent(`Hết hạn phản đối${formatTimestamp(objectionEndsAt)}`);
+  expect(timeline).toHaveTextContent(`Báo OwnerĐã gửi ${formatTimestamp(deliveredAt)}`);
+  const previous = screen.getByRole("region", { name: "Hồ sơ trước bị từ chối" });
+  expect(previous).toHaveTextContent("Hồ sơ trước của kho này đã bị từ chối");
+  expect(previous).toHaveTextContent(formatTimestamp(CREATED_AT));
+  expect(previous).toHaveTextContent("Giấy chứng tử không rõ nét");
+});
+
+it("mốc thời gian chưa có hiện Chưa bắt đầu và Chưa có, không có hồ sơ trước", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? { ...detailFixture, ownerNotice: null } : listFixture,
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}`);
+  const timeline = await screen.findByRole("region", { name: "Mốc thời gian" });
+  expect(timeline).toHaveTextContent("Chưa bắt đầu");
+  expect(timeline).toHaveTextContent("Chưa có");
+  expect(screen.queryByText(/đã bị từ chối/)).not.toBeInTheDocument();
+});
+
+it("hồ sơ chờ bổ sung ghi đang chờ Executor, không hiện Hạn xét ở danh sách lẫn chi tiết", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID)
+      ? { ...detailFixture, status: "SUPPLEMENT_REQUIRED", approveBlockers: ["NOT_UNDER_REVIEW"] }
+      : { ...listFixture, items: [{ ...summaryFixture, status: "SUPPLEMENT_REQUIRED" }] },
+  );
+  setup(<VerifierWorkspace />);
+  await screen.findByRole("button", { name: /Hồ sơ #33333333/ });
+  expect(screen.getAllByText("Đang chờ Executor bổ sung")).toHaveLength(1);
+  await selectFirstCase(user);
+  expect(screen.getAllByText(/Đang chờ Executor bổ sung/)).toHaveLength(2);
+  expect(screen.queryByText(/Hạn xét/)).not.toBeInTheDocument();
+});
+
+it("hồ sơ đang xét vẫn hiện Hạn xét ở danh sách và chi tiết", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}`);
+  await screen.findByText("012345678901");
+  expect(screen.getAllByText(/Hạn xét/)).toHaveLength(2);
+  expect(screen.queryByText(/Đang chờ Executor bổ sung/)).not.toBeInTheDocument();
+});
+
+it("GET chi tiết 404 báo hồ sơ không còn được giao và nút Về danh sách xóa caseId", async () => {
+  const user = userEvent.setup();
+  const get = vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
+    if (String(url).endsWith(CASE_ID))
+      throw new AxiosError("not found", undefined, undefined, undefined, {
+        status: 404,
+        statusText: "Not Found",
+        config: { headers: new AxiosHeaders() },
+        headers: {},
+        data: { code: "DEATH_CASE_NOT_FOUND" },
+      });
+    return listFixture;
+  });
+  const listCalls = () => get.mock.calls.filter(([url]) => !String(url).endsWith(CASE_ID)).length;
+  setup(
+    <VerifierWorkspace />,
+    `/notary/workspace?caseId=${CASE_ID}&modal=approve&flagId=${FLAG_ID}`,
+  );
+  expect(await screen.findByText("Hồ sơ không còn được giao cho bạn.")).toBeInTheDocument();
+  const detailPane = screen.getByRole("region", { name: "Chi tiết hồ sơ" });
+  expect(within(detailPane).queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
+  const before = listCalls();
+  await user.click(screen.getByRole("button", { name: "Về danh sách" }));
+  await waitFor(() => expect(screen.getByTestId("search").textContent).toBe(""));
+  expect(
+    screen.getByText("Chọn một hồ sơ ở danh sách bên trái để bắt đầu xét."),
+  ).toBeInTheDocument();
+  await waitFor(() => expect(listCalls()).toBeGreaterThan(before));
+});
+
+it("lỗi khác 404 của GET chi tiết vẫn giữ Thử lại, không báo mất phân công", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
+    if (String(url).endsWith(CASE_ID))
+      throw new AxiosError("boom", undefined, undefined, undefined, {
+        status: 500,
+        statusText: "Server Error",
+        config: { headers: new AxiosHeaders() },
+        headers: {},
+        data: { code: "INTERNAL" },
+      });
+    return listFixture;
+  });
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}`);
+  expect(await screen.findByText(/Không đọc được hồ sơ/)).toBeInTheDocument();
+  expect(screen.queryByText("Hồ sơ không còn được giao cho bạn.")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Về danh sách" })).not.toBeInTheDocument();
+});
+
+it("đổi sang hồ sơ khác không giữ modal và lỗi của hồ sơ cũ", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
+    if (String(url).endsWith(CASE_ID)) return detailFixture;
+    if (String(url).endsWith(CASE_B_ID)) return { ...detailFixture, id: CASE_B_ID, etag: "v-b" };
+    return {
+      ...listFixture,
+      items: [summaryFixture, { ...summaryFixture, id: CASE_B_ID }],
+      totalCount: 2,
+    };
+  });
+  vi.spyOn(apiClient, "post").mockRejectedValue(
+    new AxiosError("conflict", undefined, undefined, undefined, {
+      status: 409,
+      statusText: "Conflict",
+      config: { headers: new AxiosHeaders() },
+      headers: {},
+      data: { code: "EDIT_CONFLICT" },
+    }),
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
+  await user.type(await screen.findByLabelText("Lý do từ chối"), "Không đủ căn cứ");
+  await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
+  await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(/đã thay đổi/);
+  // Dialog đang mở nên danh sách bị ẩn khỏi cây truy cập; click trực tiếp như khi người dùng đổi hồ sơ.
+  fireEvent.click(await screen.findByRole("button", { name: /Hồ sơ #66666666/, hidden: true }));
+  expect(
+    await screen.findByRole("heading", { name: /Hồ sơ #66666666/, level: 2 }),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByTestId("search").textContent).toBe(`?caseId=${CASE_B_ID}`);
+});
+
+it("tải trang lỗi 500 hiện lỗi và không tạo object URL", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
+    if (String(url).includes("/files/"))
+      throw new AxiosError("integrity", undefined, undefined, undefined, {
+        status: 500,
+        statusText: "Server Error",
+        config: { headers: new AxiosHeaders() },
+        headers: {},
+        data: { code: "CONTENT_INTEGRITY_FAILED" },
+      });
+    return String(url).endsWith(`/verifier/death-cases/${CASE_ID}`) ? detailFixture : listFixture;
+  });
+  const create = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:fixture");
+  setup(<VerifierWorkspace />);
+  await selectFirstCase(user);
+  await user.click(await screen.findByRole("button", { name: "Tải nội dung" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(/Máy chủ đang gặp sự cố/);
+  expect(create).not.toHaveBeenCalled();
+});
+
+it("yêu cầu bổ sung thành công gửi đúng etag, lý do và các phần cần bổ sung", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+  );
+  const post = vi.spyOn(apiClient, "post").mockResolvedValue({
+    ...detailFixture,
+    status: "SUPPLEMENT_REQUIRED",
+    etag: "v-2",
+    approveBlockers: ["NOT_UNDER_REVIEW"],
+  });
+  setup(<VerifierWorkspace />);
+  await selectFirstCase(user);
+  await user.click(screen.getByRole("button", { name: /Yêu cầu bổ sung/ }));
+  await user.type(screen.getByLabelText("Lý do"), "Thiếu trang giấy tờ");
+  await user.click(screen.getByRole("checkbox", { name: "Trang giấy tờ" }));
+  await user.click(screen.getByRole("checkbox", { name: "Số CCCD" }));
+  await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận yêu cầu này/ }));
+  await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
+  await waitFor(() =>
+    expect(post).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}/request-supplement`, {
+      etag: "v-1",
+      reason: "Thiếu trang giấy tờ",
+      requestedParts: ["FILES", "OWNER_CITIZEN_ID"],
+    }),
+  );
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(screen.getByTestId("search").textContent).not.toMatch(/modal/);
+});
+
+it("409 EDIT_CONFLICT: Tải lại hồ sơ đọc lại chi tiết từ server và đóng dialog", async () => {
+  const user = userEvent.setup();
+  let detailReads = 0;
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
+    if (!String(url).endsWith(CASE_ID)) return listFixture;
+    detailReads += 1;
+    return detailFixture;
+  });
+  vi.spyOn(apiClient, "post").mockRejectedValue(
+    new AxiosError("conflict", undefined, undefined, undefined, {
+      status: 409,
+      statusText: "Conflict",
+      config: { headers: new AxiosHeaders() },
+      headers: {},
+      data: { code: "EDIT_CONFLICT" },
+    }),
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
+  await user.type(await screen.findByLabelText("Lý do từ chối"), "Không đủ căn cứ");
+  await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
+  await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
+  await user.click(await screen.findByRole("button", { name: "Tải lại hồ sơ" }));
+  await waitFor(() => expect(detailReads).toBe(2));
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(screen.getByTestId("search").textContent).toBe(`?caseId=${CASE_ID}`);
+});
+
+it("Escape đóng dialog và xóa modal khỏi URL", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
+  expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  expect(screen.getByTestId("search").textContent).toContain("modal=reject");
+  await user.keyboard("{Escape}");
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(screen.getByTestId("search").textContent).toBe(`?caseId=${CASE_ID}`);
+});
+
+it("ô lý do là textarea giới hạn 1000 ký tự và checkbox có vùng bấm tối thiểu 44px", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}&modal=supplement`);
+  const reason = await screen.findByLabelText("Lý do");
+  expect(reason.tagName).toBe("TEXTAREA");
+  expect(reason).toHaveAttribute("maxlength", "1000");
+  for (const name of ["Trang giấy tờ", /Tôi xác nhận yêu cầu này/]) {
+    expect(screen.getByRole("checkbox", { name }).closest("label")).toHaveClass("min-h-11");
+  }
 });
