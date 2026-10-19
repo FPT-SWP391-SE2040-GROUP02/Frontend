@@ -81,7 +81,10 @@ export function EmailVerificationCard({
       </h1>
 
       {!valid ? (
-        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {content.invalidLink}
         </div>
       ) : mutation.isPending ? (
@@ -108,7 +111,10 @@ export function EmailVerificationCard({
       ) : (
         <div className="space-y-4">
           {feedback && (
-            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 leading-relaxed">
+            <div
+              role="alert"
+              className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 leading-relaxed"
+            >
               {feedback.message}
             </div>
           )}
@@ -126,7 +132,10 @@ export function EmailVerificationCard({
       )}
 
       <div className="flex flex-wrap gap-4 pt-2 text-sm">
-        <Link to={ROUTES.AUTH.LOGIN} className="inline-flex min-h-11 items-center underline text-[#0B291E] font-medium">
+        <Link
+          to={ROUTES.AUTH.LOGIN}
+          className="inline-flex min-h-11 items-center underline text-[#0B291E] font-medium"
+        >
           {content.login}
         </Link>
         {!mutation.isSuccess && (

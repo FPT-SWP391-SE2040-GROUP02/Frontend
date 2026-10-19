@@ -31,9 +31,9 @@ describe("register feedback", () => {
       config: { headers: new AxiosHeaders() },
     };
     expect(
-      getRegisterErrorMessage(
-        new AxiosError("failure", undefined, undefined, undefined, response),
-      ),
-    ).toBe("Địa chỉ email này đã được sử dụng. Vui lòng đăng nhập hoặc sử dụng tính năng Quên mật khẩu.");
+      getRegisterErrorMessage(new AxiosError("failure", undefined, undefined, undefined, response)),
+    ).toBe(
+      "Địa chỉ email này đã được sử dụng. Vui lòng đăng nhập hoặc sử dụng tính năng Quên mật khẩu.",
+    );
   });
 });
