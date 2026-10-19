@@ -5,6 +5,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { AxiosError, AxiosHeaders, type InternalAxiosRequestConfig } from "axios";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
@@ -21,18 +22,23 @@ vi.mock("@/features/ekyc/ui/EkycStatusPanel", () => ({
         Complete identity
       </button>
       {props.completeResult?.succeeded && <p>Completion succeeded</p>}
+      {props.completeResult?.error && <p role="alert">{props.completeResult.error}</p>}
     </>
   ),
 }));
 
+let client: QueryClient;
+
 afterEach(() => {
   cleanup();
+  client.clear();
   accessTokenMemory.clear();
   vi.restoreAllMocks();
 });
 
-it("prevents completing the same identity again after a successful transition", async () => {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+/** Dựng trang với eKYC PASSED/MATCHED của đúng lượt để nút hoàn tất bật được. */
+function renderPassedIdentity() {
+  client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(
     setCredentials({
@@ -62,6 +68,20 @@ it("prevents completing the same identity again after a successful transition", 
     identityMatch: "MATCHED",
     backSideChecked: true,
   });
+  render(
+    <Provider store={store}>
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={[`/verify/camera?turnId=${CONTAINER_ID}`]}>
+          <CameraCheckPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </Provider>,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Bind verification" }));
+  return screen.getByRole("button", { name: "Complete identity" });
+}
+
+it("prevents completing the same identity again after a successful transition", async () => {
   const post = vi.spyOn(apiClient, "post").mockResolvedValue({
     id: CONTAINER_ID,
     status: "READY_TO_ACCEPT",
@@ -74,22 +94,29 @@ it("prevents completing the same identity again after a successful transition", 
     items: [],
     grant: null,
   });
-  render(
-    <Provider store={store}>
-      <QueryClientProvider client={client}>
-        <MemoryRouter initialEntries={[`/verify/camera?turnId=${CONTAINER_ID}`]}>
-          <CameraCheckPage />
-        </MemoryRouter>
-      </QueryClientProvider>
-    </Provider>,
-  );
-  fireEvent.click(screen.getByRole("button", { name: "Bind verification" }));
-  const complete = screen.getByRole("button", { name: "Complete identity" });
+  const complete = renderPassedIdentity();
   await waitFor(() => expect(complete).toBeEnabled());
   fireEvent.click(complete);
   await screen.findByText("Completion succeeded");
   expect(complete).toBeDisabled();
   fireEvent.click(complete);
   expect(post).toHaveBeenCalledExactlyOnceWith(`/handover/turns/${CONTAINER_ID}/identity/complete`);
-  client.clear();
+});
+
+it("explains that completing identity is blocked while the vault is on hold", async () => {
+  const config = { headers: new AxiosHeaders() } as InternalAxiosRequestConfig;
+  vi.spyOn(apiClient, "post").mockRejectedValue(
+    new AxiosError("private", "ERR_BAD_REQUEST", config, undefined, {
+      config,
+      data: { code: "HANDOVER_NOT_ALLOWED", reason: "HOLD_ACTIVE" },
+      status: 409,
+      statusText: "Conflict",
+      headers: new AxiosHeaders(),
+    }),
+  );
+  const complete = renderPassedIdentity();
+  await waitFor(() => expect(complete).toBeEnabled());
+  fireEvent.click(complete);
+  expect(await screen.findByRole("alert")).toHaveTextContent("Kho đang bị tạm giữ");
+  expect(screen.queryByText("Completion succeeded")).not.toBeInTheDocument();
 });

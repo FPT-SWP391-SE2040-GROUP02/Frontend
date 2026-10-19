@@ -30,6 +30,13 @@ const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> = {
   VERIFIER_REASSIGNED: "Giao lại Verifier",
   OBJECTION_REPORTED: "Báo còn sống",
   OBJECTION_CONCLUDED: "Kết luận báo còn sống",
+  DEATH_CASE_OPENED: "Mở hồ sơ chứng tử",
+  DEATH_CASE_SUBMITTED: "Gửi hồ sơ chứng tử",
+  DEATH_CASE_VERSION_CREATED: "Tạo bản bổ sung hồ sơ",
+  DEATH_CASE_FLAG_REVIEWED: "Xem xét cờ cảnh báo hồ sơ",
+  DEATH_CASE_SUPPLEMENT_REQUESTED: "Yêu cầu bổ sung hồ sơ",
+  DEATH_CASE_REJECTED: "Từ chối hồ sơ chứng tử",
+  DEATH_CASE_APPROVED: "Duyệt hồ sơ chứng tử",
 };
 
 /**

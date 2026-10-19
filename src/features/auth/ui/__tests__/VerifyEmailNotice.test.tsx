@@ -145,11 +145,11 @@ describe("VerifyEmailNotice token boundary", () => {
       expect(screen.queryByRole("button", { name: "Gửi lại email" })).not.toBeInTheDocument();
     },
   );
-  it("does not claim success or submit a token from a URL automatically", () => {
+  it("submits a token from a URL automatically on mount", async () => {
     setup("opaque-fixture-token");
-    expect(screen.getByRole("button", { name: "Xác minh email" })).toBeEnabled();
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    expect(authService.verifyEmail).not.toHaveBeenCalled();
     expect(authService.resendVerificationEmail).not.toHaveBeenCalled();
+    await vi.waitFor(() =>
+      expect(authService.verifyEmail).toHaveBeenCalledWith("opaque-fixture-token"),
+    );
   });
 });

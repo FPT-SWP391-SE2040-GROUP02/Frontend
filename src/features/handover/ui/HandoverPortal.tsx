@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import type { z } from "zod";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { handoverService } from "../api/handoverService";
 import type { handoverTurnSchema } from "../model/handover.schema";
+import { useGrantDownload } from "../model/useGrantDownload";
+import { useHandoverAction } from "../model/useHandoverAction";
+import { remainingText } from "../model/handover.format";
 const labels: Record<string, string> = {
   INVITED: "Được mời",
   INITIAL_RESPONSE_EXPIRED: "Đã qua hạn phản hồi ban đầu",
@@ -18,8 +20,24 @@ const labels: Record<string, string> = {
   CANCELLED: "Đã hủy",
   LAPSED: "Đã kết thúc",
 };
+const statusHints: Record<string, string> = {
+  INITIAL_RESPONSE_EXPIRED:
+    "Đã qua hạn phản hồi ban đầu nhưng bạn vẫn có thể nhận lời mời; máy chủ sẽ kiểm tra khi bạn xác nhận.",
+  DECISION_EXPIRED: "Hạn quyết định đã kết thúc nên lượt này không còn nhận được nữa.",
+  DECLINED: "Bạn đã từ chối lượt bàn giao này.",
+  CANCELLED:
+    "Lượt bàn giao này đã bị hủy vì chủ kho đã được xác nhận còn sống. Nội dung không còn được bàn giao.",
+  LAPSED: "Lượt bàn giao này đã kết thúc.",
+};
+const grantLabels: Record<string, string> = {
+  ACTIVE: "Đang hiệu lực",
+  EXPIRED: "Đã hết hạn, không còn tải được",
+  BLOCKED: "Đang tạm dừng trong lúc hồ sơ được xác minh lại, chưa thể tải",
+  REVOKED: "Đã bị thu hồi, không còn tải được",
+};
 function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
-  const action = usePrivateAction();
+  const action = useHandoverAction();
+  const content = useGrantDownload();
   const client = useQueryClient();
   const [confirmed, setConfirmed] = useState(false);
   const refresh = () => {
@@ -35,6 +53,17 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
           <> · Hạn quyết định: {new Date(turn.decisionDeadline).toLocaleString("vi-VN")}</>
         )}
       </p>
+      {statusHints[turn.status] && <p className="text-sm">{statusHints[turn.status]}</p>}
+      {turn.status === "READY_TO_ACCEPT" && turn.decisionDeadline && (
+        <p className="text-sm font-medium">
+          {remainingText(turn.decisionDeadline, turn.serverTime)} để quyết định
+        </p>
+      )}
+      {turn.status === "INVITED" && (
+        <p className="text-sm font-medium">
+          {remainingText(turn.responseDeadline, turn.serverTime)} để phản hồi lời mời
+        </p>
+      )}
       {turn.identityBypassed && (
         <p role="status" className="text-sm text-amber-800">
           Môi trường Development đang bỏ qua bước xác minh danh tính. Đây không phải bằng chứng danh
@@ -89,7 +118,7 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
       )}
       {turn.grant && (
         <p className="text-sm">
-          Quyền xem/tải: {turn.grant.status} · đến{" "}
+          Quyền xem/tải: {grantLabels[turn.grant.status] ?? turn.grant.status} · đến{" "}
           {new Date(turn.grant.expiresAt).toLocaleString("vi-VN")}
         </p>
       )}
@@ -103,21 +132,11 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
               {turn.grant?.status === "ACTIVE" && (
                 <Button
                   variant="outline"
-                  disabled={action.pending}
+                  disabled={content.pending || action.pending}
                   onClick={() =>
-                    void action.execute(
+                    void content.download(
                       () => handoverService.download(turn.grant!.id, item.id),
-                      (blob) => {
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement("a");
-                        link.href = url;
-                        link.download = (item.fileName ?? `${item.name}.txt`).replace(
-                          /[^\p{L}\p{N} ._()-]/gu,
-                          "_",
-                        );
-                        link.click();
-                        setTimeout(() => URL.revokeObjectURL(url), 1000);
-                      },
+                      (item.fileName ?? `${item.name}.txt`).replace(/[^\p{L}\p{N} ._()-]/gu, "_"),
                     )
                   }
                 >
@@ -128,10 +147,10 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
           ))}
         </ul>
       )}
-      {action.pending && <p role="status">Đang xử lý yêu cầu…</p>}
-      {action.error && (
+      {(action.pending || content.pending) && <p role="status">Đang xử lý yêu cầu…</p>}
+      {(action.error || content.error) && (
         <p role="alert" className="text-sm text-destructive">
-          {action.error}
+          {action.error || content.error}
         </p>
       )}
     </article>
