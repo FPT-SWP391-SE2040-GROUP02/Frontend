@@ -1,0 +1,66 @@
+import { z } from "zod";
+const timestamp = z.string().datetime({ offset: true });
+const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+export const executorVaultSchema = z.object({
+  vaultId: z.string().uuid(),
+  ownerFullName: z.string(),
+  role: z.enum(["PRIMARY", "BACKUP"]),
+  planStatus: z.string(),
+  checkInOverdue: z.boolean(),
+  openDeathCaseId: z.string().uuid().nullable(),
+});
+/** Hồ sơ chỉ có CCCD che, không có nội dung file hoặc Verifier được giao. */
+export const deathCaseSchema = z.object({
+  id: z.string().uuid(),
+  vaultId: z.string().uuid(),
+  status: z.enum([
+    "DRAFT",
+    "UNDER_REVIEW",
+    "SUPPLEMENT_REQUIRED",
+    "APPROVED_FOR_HANDOVER",
+    "REJECTED",
+    "SUSPENDED",
+  ]),
+  currentVersion: z.object({
+    versionNo: z.number().int().positive(),
+    isDraft: z.boolean(),
+    ownerFullName: z.string().nullable(),
+    ownerCitizenIdLast4: z.string().nullable(),
+    dateOfDeath: date.nullable(),
+    certificateNumber: z.string().nullable(),
+    issuedOn: date.nullable(),
+    issuedBy: z.string().nullable(),
+    files: z.array(
+      z.object({
+        id: z.string().uuid(),
+        position: z.number().int(),
+        fileName: z.string(),
+        contentType: z.string(),
+        sizeBytes: z.number().int().nonnegative(),
+        uploadedAt: timestamp,
+      }),
+    ),
+    submittedAt: timestamp.nullable(),
+  }),
+  reviewVersionNo: z.number().int().nullable(),
+  missingRequirements: z.array(z.string()),
+  ownerNotice: z
+    .object({
+      status: z.enum(["PENDING", "DELIVERED", "FAILED"]),
+      deliveredAt: timestamp.nullable(),
+    })
+    .nullable(),
+  objectionEndsAt: timestamp.nullable(),
+  createdAt: timestamp,
+  updatedAt: timestamp.nullable(),
+  etag: z.string().min(1).max(64),
+});
+export const deathDraftSchema = z.object({
+  etag: z.string().min(1).max(64),
+  ownerFullName: z.string().max(200),
+  ownerCitizenId: z.string().max(32).nullable().optional(),
+  dateOfDeath: date.nullable().optional(),
+  certificateNumber: z.string().max(100),
+  issuedOn: date.nullable().optional(),
+  issuedBy: z.string().max(200),
+});

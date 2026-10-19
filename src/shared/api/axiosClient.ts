@@ -1,6 +1,14 @@
-import axios, { type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
+import axios, {
+  type AxiosError,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from "axios";
 import { ENV } from "@/shared/config/env";
 import { APP_MESSAGES, HTTP_STATUS } from "@/shared/constants";
+import { storage } from "@/shared/utils";
+import { reportSessionFailure } from "./sessionFailure";
+import { accessTokenMemory } from "./accessToken";
 
 /**
  * @description Instance Axios trung tâm được cấu hình sẵn baseURL, headers mặc định và timeout.
@@ -12,17 +20,48 @@ export const apiClient = axios.create({
     "Content-Type": "application/json",
   },
   timeout: 30000,
+  withCredentials: true,
 });
 
 /**
- * @description Request Interceptor: Tự động đính kèm JWT Bearer Token từ localStorage vào Header Authorization trước khi gửi request.
+ * Alias tương thích cho apiClient
+ */
+export const axiosClient = apiClient;
+
+/** Cùng boundary cho Bearer credential và thông báo hết phiên. */
+function isApiRequest(config: AxiosRequestConfig): boolean {
+  const apiUrl = new URL(ENV.API_BASE_URL, window.location.origin);
+  const requestUrl = new URL(apiClient.getUri(config), window.location.origin);
+  const apiPath = apiUrl.pathname.replace(/\/$/, "");
+  return (
+    requestUrl.origin === apiUrl.origin &&
+    (requestUrl.pathname === apiPath || requestUrl.pathname.startsWith(`${apiPath}/`))
+  );
+}
+
+/**
+ * @description Request Interceptor: Tự động đính kèm X-Correlation-ID và ngữ cảnh X-Active-Role.
+ * Gắn Bearer từ RAM chỉ tới base API đã cấu hình; cookie refresh do BE quản lý.
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("access_token");
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const accessToken = accessTokenMemory.get();
+    if (accessToken && isApiRequest(config))
+      config.headers.set("Authorization", `Bearer ${accessToken}`);
+
+    const correlationId = globalThis.crypto?.randomUUID
+      ? globalThis.crypto.randomUUID()
+      : undefined;
+    if (correlationId && config.headers) {
+      config.headers["X-Correlation-ID"] = correlationId;
     }
+
+    // 2. Tự động đính kèm ngữ cảnh vai trò UI nếu có (không dùng làm căn cứ ủy quyền phía server)
+    const activeRole = storage.getActiveRole();
+    if (activeRole && config.headers) {
+      config.headers["X-Active-Role"] = activeRole;
+    }
+
     return config;
   },
   (error: AxiosError) => {
@@ -31,26 +70,30 @@ apiClient.interceptors.request.use(
 );
 
 /**
- * @description Response Interceptor: Xử lý bóc tách payload dữ liệu `response.data` và bắt các mã lỗi HTTP phổ biến toàn cục.
+ * @description Trả HTTP body nguyên vẹn và bắt lỗi HTTP toàn cục.
+ * Không bóc trường data của envelope BE; caller khai báo generic R là kiểu body.
  */
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    return response.data !== undefined ? response.data : response;
+    return response.data;
   },
   (error: AxiosError) => {
+    if (error.config && isApiRequest(error.config)) reportSessionFailure(error);
     if (error.response) {
       const status = error.response.status;
       if (status === HTTP_STATUS.UNAUTHORIZED) {
+        // AuthBootstrap sở hữu restore và coordinator; SESSION_EXPIRED được báo qua
+        // reportSessionFailure. Transport giữ lỗi 401, không tự refresh hoặc retry request.
         console.warn(`[API ${HTTP_STATUS.UNAUTHORIZED}]`, APP_MESSAGES.ERROR.UNAUTHORIZED);
       } else if (status === HTTP_STATUS.FORBIDDEN) {
         console.warn(`[API ${HTTP_STATUS.FORBIDDEN}]`, APP_MESSAGES.ERROR.FORBIDDEN);
       } else if (status === HTTP_STATUS.NOT_FOUND) {
         console.warn(`[API ${HTTP_STATUS.NOT_FOUND}]`, APP_MESSAGES.ERROR.NOT_FOUND);
       } else if (status >= HTTP_STATUS.INTERNAL_SERVER_ERROR) {
-        console.error(`[API ${status}]`, APP_MESSAGES.ERROR.SERVER, error.response.data);
+        console.error(`[API ${status}]`, APP_MESSAGES.ERROR.SERVER);
       }
     } else {
-      console.error("[API Network Error]", APP_MESSAGES.ERROR.NETWORK, error.message);
+      console.error("[API Network Error]", APP_MESSAGES.ERROR.NETWORK);
     }
 
     return Promise.reject(error);
