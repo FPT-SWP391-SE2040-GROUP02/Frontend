@@ -18,6 +18,8 @@ const CASE_ID = "33333333-3333-4333-8333-333333333333";
 const FLAG_ID = "44444444-4444-4444-8444-444444444444";
 const FILE_ID = "55555555-5555-4555-8555-555555555555";
 const CASE_B_ID = "66666666-6666-4666-8666-666666666666";
+// Đầu id khác cuối: bắt lỗi dùng 8 ký tự đầu thay vì mã hồ sơ của BE (8 ký tự cuối, in hoa).
+const MIXED_CASE_ID = "0199e7a4-3c1b-7f2d-9a41-5e6b8c0d1a2f";
 const originalAdapter = apiClient.defaults.adapter;
 let client: QueryClient;
 
@@ -755,3 +757,55 @@ it("ô lý do là textarea giới hạn 1000 ký tự và checkbox có vùng b�
     expect(screen.getByRole("checkbox", { name }).closest("label")).toHaveClass("min-h-11");
   }
 });
+
+it("mã hồ sơ ở danh sách và tiêu đề chi tiết là 8 ký tự cuối của id, in hoa như email BE", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(MIXED_CASE_ID)
+      ? { ...detailFixture, id: MIXED_CASE_ID }
+      : { ...listFixture, items: [{ ...summaryFixture, id: MIXED_CASE_ID }] },
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${MIXED_CASE_ID}`);
+  expect(await screen.findByRole("button", { name: /Hồ sơ #8C0D1A2F/ })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "Hồ sơ #8C0D1A2F", level: 2 })).toBeVisible();
+  expect(screen.queryByText(/Hồ sơ #0199E7A4/i)).not.toBeInTheDocument();
+});
+
+it("supplementOverdueAt có giá trị hiện nhãn Bổ sung quá hạn ở danh sách và chi tiết theo giờ Việt Nam", async () => {
+  const overdueAt = "2026-10-10T17:30:00Z";
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID)
+      ? { ...detailFixture, status: "SUPPLEMENT_REQUIRED", supplementOverdueAt: overdueAt }
+      : {
+          ...listFixture,
+          items: [
+            { ...summaryFixture, status: "SUPPLEMENT_REQUIRED", supplementOverdueAt: overdueAt },
+          ],
+        },
+  );
+  setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}`);
+  await screen.findByText("012345678901");
+  expect(screen.getAllByText("Bổ sung quá hạn")).toHaveLength(2);
+  // 17:30 UTC = 00:30 ngày hôm sau theo giờ Việt Nam.
+  expect(
+    screen.getByText(/Executor bổ sung quá hạn từ .*00:30.*giờ Việt\s+Nam/),
+  ).toBeInTheDocument();
+});
+
+it.each([
+  ["null", { supplementOverdueAt: null }],
+  ["thiếu trường (BE cũ)", {}],
+])(
+  "supplementOverdueAt %s không hiện nhãn Bổ sung quá hạn và vẫn parse được",
+  async (_name, extra) => {
+    vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+      String(url).endsWith(CASE_ID)
+        ? { ...detailFixture, ...extra }
+        : { ...listFixture, items: [{ ...summaryFixture, ...extra }] },
+    );
+    setup(<VerifierWorkspace />, `/notary/workspace?caseId=${CASE_ID}`);
+    await screen.findByText("012345678901");
+    expect(screen.getByRole("button", { name: /Hồ sơ #33333333/ })).toBeInTheDocument();
+    expect(screen.queryByText(/Bổ sung quá hạn/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/bổ sung quá hạn từ/)).not.toBeInTheDocument();
+  },
+);
