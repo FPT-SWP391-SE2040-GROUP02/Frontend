@@ -432,3 +432,27 @@ it("explains why a supplement version cannot be created", async () => {
   fireEvent.click(await screen.findByRole("button", { name: "Tạo phiên bản bổ sung" }));
   expect(await screen.findByText(/Chưa tạo được phiên bản bổ sung/)).toBeInTheDocument();
 });
+
+it("calls the resend invitation route without a body and validates the response", async () => {
+  const post = vi.spyOn(apiClient, "post").mockResolvedValue({
+    turnId: TURN_ID,
+    invitationSentAt: SERVER_TIME,
+    responseDeadline: "2026-10-22T10:00:00+00:00",
+    leaked: "dropped",
+  });
+  const result = await deathCaseService.resendInvitation(CASE_ID, TURN_ID);
+  expect(post).toHaveBeenCalledWith(
+    `/executor/death-cases/${CASE_ID}/handover-turns/${TURN_ID}/resend-invitation`,
+  );
+  expect(result).toEqual({
+    turnId: TURN_ID,
+    invitationSentAt: SERVER_TIME,
+    responseDeadline: "2026-10-22T10:00:00+00:00",
+  });
+});
+
+it("rejects a non-UUID turn id before sending the resend request", async () => {
+  const post = vi.spyOn(apiClient, "post");
+  await expect(deathCaseService.resendInvitation(CASE_ID, "not-a-uuid")).rejects.toThrow();
+  expect(post).not.toHaveBeenCalled();
+});

@@ -65,3 +65,12 @@ export const handoverProgressSchema = z.object({
 
 export type HandoverProgress = z.infer<typeof handoverProgressSchema>;
 export type HandoverProgressTurn = z.infer<typeof progressTurnSchema>;
+
+/** ResendHandoverInvitationResponse: hạn phản hồi không đặt lại, trừ khi lời mời chưa từng giao được. */
+export const resendInvitationSchema = z.object({
+  turnId: z.string().uuid(),
+  invitationSentAt: timestamp,
+  responseDeadline: timestamp,
+});
+
+export type ResendInvitationResult = z.infer<typeof resendInvitationSchema>;

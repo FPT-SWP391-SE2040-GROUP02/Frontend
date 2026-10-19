@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api/axiosClient";
 import { deathCaseSchema, deathDraftSchema, executorVaultSchema } from "../model/deathCase.schema";
-import { handoverProgressSchema } from "../model/handoverProgress.schema";
+import { handoverProgressSchema, resendInvitationSchema } from "../model/handoverProgress.schema";
 const id = z.string().uuid();
 const path = (caseId: string) => `/executor/death-cases/${id.parse(caseId)}`;
 const versionRequest = z.object({ etag: z.string().min(1).max(64) });
@@ -62,6 +62,17 @@ export const deathCaseService = {
   async handoverProgress(caseId: string, signal?: AbortSignal) {
     return handoverProgressSchema.parse(
       await apiClient.get<unknown, unknown>(`${path(caseId)}/handover-progress`, { signal }),
+    );
+  },
+  /**
+   * Gửi lại lời mời cho lượt chưa ai nhận (INVITED, INITIAL_RESPONSE_EXPIRED); link cũ hết dùng.
+   * Không có body. Lỗi là HANDOVER_NOT_ALLOWED kèm reason (409, hoặc 503 khi gửi thư lỗi).
+   */
+  async resendInvitation(caseId: string, turnId: string) {
+    return resendInvitationSchema.parse(
+      await apiClient.post<unknown, unknown>(
+        `${path(caseId)}/handover-turns/${id.parse(turnId)}/resend-invitation`,
+      ),
     );
   },
 };
