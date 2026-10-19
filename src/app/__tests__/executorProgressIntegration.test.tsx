@@ -456,3 +456,46 @@ it("rejects a non-UUID turn id before sending the resend request", async () => {
   await expect(deathCaseService.resendInvitation(CASE_ID, "not-a-uuid")).rejects.toThrow();
   expect(post).not.toHaveBeenCalled();
 });
+
+it("offers resend only for turns nobody has claimed and refreshes progress after success", async () => {
+  const get = vi.spyOn(apiClient, "get").mockResolvedValue(started);
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  const post = vi.spyOn(apiClient, "post").mockResolvedValue({
+    turnId: TURN_ID,
+    invitationSentAt: SERVER_TIME,
+    responseDeadline: "2026-10-22T10:00:00+00:00",
+  });
+  setup(<HandoverProgressPanel caseId={CASE_ID} />);
+  const buttons = await screen.findAllByRole("button", { name: "Gửi lại lời mời" });
+  expect(buttons).toHaveLength(1);
+  fireEvent.click(buttons[0]);
+  expect(await screen.findByText(/Đã gửi lại lời mời lúc/)).toBeInTheDocument();
+  expect(post).toHaveBeenCalledWith(
+    `/executor/death-cases/${CASE_ID}/handover-turns/${TURN_ID}/resend-invitation`,
+  );
+  expect(get).toHaveBeenCalledTimes(2);
+});
+
+it("does not resend when the Executor cancels the confirmation", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue(started);
+  vi.spyOn(window, "confirm").mockReturnValue(false);
+  const post = vi.spyOn(apiClient, "post");
+  setup(<HandoverProgressPanel caseId={CASE_ID} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Gửi lại lời mời" }));
+  expect(post).not.toHaveBeenCalled();
+});
+
+it.each([
+  [409, "RESEND_TOO_SOON", "Vui lòng thử lại sau 15 phút"],
+  [409, "HOLD_ACTIVE", "Kho đang bị tạm giữ"],
+  [503, "INVITATION_SEND_FAILED", "Gửi thư lời mời chưa thành công"],
+])("shows the resend reason %s %s", async (status, reason, text) => {
+  vi.spyOn(apiClient, "get").mockResolvedValue(started);
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  vi.spyOn(apiClient, "post").mockRejectedValue(
+    rejectedWith(status, { code: "HANDOVER_NOT_ALLOWED", reason }),
+  );
+  setup(<HandoverProgressPanel caseId={CASE_ID} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Gửi lại lời mời" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(text);
+});
