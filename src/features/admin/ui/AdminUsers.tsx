@@ -5,6 +5,7 @@ import type { AdminUser, AdminUserStatus, AdminUsersPage } from "../model/admin.
 import { ROLE_LABELS, STATUS_LABELS, formatDate, formatDateTime } from "../model/admin.content";
 import { useAdminUsers } from "../model/useAdmin";
 import { useAdminUsersSearchParams } from "../model/useAdminUsersSearchParams";
+import { AdminUserActions } from "./AdminUserActions";
 import { AdminErrorMessage } from "./AdminStateMessage";
 import { AdminUsersFilters } from "./AdminUsersFilters";
 
@@ -14,7 +15,7 @@ const STATUS_STYLES: Record<AdminUserStatus, string> = {
   DISABLED: "bg-stone-100 text-stone-700 border-stone-300",
 };
 
-/** Danh sách tài khoản chỉ đọc: GET /admin/users, bộ lọc trên URL, không có thao tác đổi vai trò/khóa. */
+/** Danh sách tài khoản: GET /admin/users, bộ lọc trên URL; đổi vai trò và khóa/mở tài khoản qua hộp thoại có lý do. */
 export function AdminUsers() {
   const search = useAdminUsersSearchParams();
   const query = useAdminUsers(search.query);
@@ -197,6 +198,9 @@ function UsersTable({ data }: { data: AdminUsersPage }) {
             <th scope="col" className="px-4 py-3 font-semibold">
               Đăng nhập gần nhất
             </th>
+            <th scope="col" className="px-4 py-3 font-semibold">
+              Thao tác
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-heritage-border">
@@ -223,6 +227,9 @@ function UsersTable({ data }: { data: AdminUsersPage }) {
               <td className="px-4 py-3">{user.emailVerified ? "Đã xác minh" : "Chưa xác minh"}</td>
               <td className="px-4 py-3 tabular-nums">{formatDate(user.createdAt)}</td>
               <td className="px-4 py-3 tabular-nums">{lastLogin(user)}</td>
+              <td className="px-4 py-3">
+                <AdminUserActions user={user} />
+              </td>
             </tr>
           ))}
         </tbody>
@@ -262,6 +269,7 @@ function UsersCards({ data }: { data: AdminUsersPage }) {
               <dd>{lastLogin(user)}</dd>
             </div>
           </dl>
+          <AdminUserActions user={user} />
         </li>
       ))}
     </ul>
