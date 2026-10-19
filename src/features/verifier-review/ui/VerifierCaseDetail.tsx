@@ -7,6 +7,7 @@ import { HTTP_STATUS } from "@/shared/constants";
 import { Button } from "@/shared/ui/button";
 import { useVerifierCase, verifierKeys } from "../model/useVerifierReview";
 import { verifierReviewService } from "../api/verifierReviewService";
+import { caseCode } from "../model/caseCode";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   caseStatusLabels,
@@ -27,6 +28,14 @@ const formatDate = (value: string | null) =>
         new Date(value),
       )
     : "—";
+
+/** Thời điểm theo giờ Việt Nam, không phụ thuộc múi giờ trình duyệt. */
+const formatVietnamTime = (value: string) =>
+  new Intl.DateTimeFormat("vi-VN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Ho_Chi_Minh",
+  }).format(new Date(value));
 
 const blobName = (item: { fileName: string }) =>
   item.fileName.replace(/[^\p{L}\p{N} ._()-]/gu, "_");
@@ -88,10 +97,15 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     <article className="space-y-6">
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="text-lg font-semibold">Hồ sơ #{detail.id.slice(0, 8)}</h2>
+          <h2 className="text-lg font-semibold">Hồ sơ #{caseCode(detail.id)}</h2>
           <span className="rounded-full bg-heritage-primary/10 px-3 py-1 text-xs font-semibold text-heritage-primary">
             {status}
           </span>
+          {detail.supplementOverdueAt && (
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+              Bổ sung quá hạn
+            </span>
+          )}
           {detail.closedAt && (
             <span className="rounded-full bg-heritage-muted/10 px-3 py-1 text-xs font-semibold text-heritage-muted">
               Đóng {formatDate(detail.closedAt)}
@@ -105,6 +119,12 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
             ? "Đang chờ Executor bổ sung"
             : `Hạn xét ${formatDate(detail.assignment.dueAt)}`}
         </p>
+        {detail.supplementOverdueAt && (
+          <p className="text-sm text-amber-800">
+            Executor bổ sung quá hạn từ {formatVietnamTime(detail.supplementOverdueAt)} (giờ Việt
+            Nam).
+          </p>
+        )}
       </header>
       <section
         aria-label="Mốc thời gian"

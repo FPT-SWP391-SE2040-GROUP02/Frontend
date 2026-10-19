@@ -56,6 +56,8 @@ export const verifierCaseSummarySchema = z.object({
   objectionEndsAt: timestamp.nullable(),
   unreviewedFlagCount: z.number().int().nonnegative(),
   closedAt: timestamp.nullable(),
+  /** Có giá trị = Executor bổ sung quá hạn 7 ngày; null/thiếu = chưa quá hạn hoặc đã gửi lại (BE mục 6.12). */
+  supplementOverdueAt: timestamp.nullable().optional(),
 });
 /** Bản Executor gửi gần nhất mà Verifier đang xét (đã giải mã, có CCCD đầy đủ Owner). */
 export const verifierReviewVersionSchema = z.object({
@@ -140,6 +142,8 @@ export const verifierCaseDetailSchema = z.object({
   approveBlockers: z.array(approveBlockerSchema),
   previousCase: verifierPreviousCaseSchema,
   handover: verifierHandoverSchema,
+  /** Có giá trị = Executor bổ sung quá hạn 7 ngày; null/thiếu = chưa quá hạn hoặc đã gửi lại (BE mục 6.12). */
+  supplementOverdueAt: timestamp.nullable().optional(),
 });
 /** Review một cờ. */
 export const reviewFlagRequestSchema = z.object({

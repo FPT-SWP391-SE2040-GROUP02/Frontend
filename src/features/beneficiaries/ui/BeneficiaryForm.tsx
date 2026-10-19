@@ -35,7 +35,6 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
       dateOfBirth: record?.dateOfBirth ?? "",
       email: record?.email ?? "",
       phone: record?.phone ?? "",
-      confirmMinor: false,
     },
   });
   const sync = () => {
@@ -79,7 +78,6 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
                   dateOfBirth: result.dateOfBirth,
                   email: result.email ?? "",
                   phone: result.phone ?? "",
-                  confirmMinor: false,
                 });
             },
           );
@@ -116,11 +114,6 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
           <label className="block space-y-2 text-sm">
             Số điện thoại
             <Input type="tel" {...register("phone")} aria-invalid={Boolean(errors.phone)} />
-          </label>
-          <label className="flex min-h-11 items-start gap-3 rounded-lg bg-amber-50 p-4 text-sm leading-6">
-            <input type="checkbox" className="mt-1 size-5" {...register("confirmMinor")} />
-            Nếu người nhận chưa đủ 18 tuổi, tôi đã đọc và xác nhận cảnh báo: việc bàn giao có thể
-            cần người đại diện và xác minh bổ sung.
           </label>
           {Object.entries(errors).map(([key, error]) => (
             <p key={key} role="alert" className="text-sm text-destructive">
