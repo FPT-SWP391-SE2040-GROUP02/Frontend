@@ -225,6 +225,35 @@
     height: 100dvh;
     overflow-y: auto;
     border-bottom: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(184, 142, 76, 0.25) transparent;
+  }
+  .owner-workspace > aside::-webkit-scrollbar {
+    width: 4px;
+  }
+  .owner-workspace > aside::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .owner-workspace > aside::-webkit-scrollbar-thumb {
+    background: rgba(184, 142, 76, 0.25);
+    border-radius: 9999px;
+  }
+  .owner-workspace > aside::-webkit-scrollbar-thumb:hover {
+    background: rgba(184, 142, 76, 0.55);
+  }
+  .owner-workspace > aside > div:first-child {
+    min-height: 64px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  .owner-controls {
+    padding-bottom: 12px;
+  }
+  .owner-menu-caption {
+    padding-bottom: 8px;
+  }
+  .owner-nav-link {
+    min-height: 42px;
   }
   .owner-workspace > aside > div:last-child {
     display: block;

@@ -34,6 +34,13 @@ describe("auditLogResponseSchema", () => {
     ["VERIFIER_REASSIGNED", "DEATH_CASE"],
     ["OBJECTION_REPORTED", "DEATH_CASE"],
     ["OBJECTION_CONCLUDED", "DEATH_CASE"],
+    ["DEATH_CASE_OPENED", "DEATH_CASE"],
+    ["DEATH_CASE_SUBMITTED", "DEATH_CASE"],
+    ["DEATH_CASE_VERSION_CREATED", "DEATH_CASE"],
+    ["DEATH_CASE_FLAG_REVIEWED", "DEATH_CASE"],
+    ["DEATH_CASE_SUPPLEMENT_REQUESTED", "DEATH_CASE"],
+    ["DEATH_CASE_REJECTED", "DEATH_CASE"],
+    ["DEATH_CASE_APPROVED", "DEATH_CASE"],
   ])("accepts the updated BE wire event %s and its target", (action, targetType) => {
     expect(auditLogResponseSchema.parse({ ...baseEntry, action, targetType })).toMatchObject({
       action,

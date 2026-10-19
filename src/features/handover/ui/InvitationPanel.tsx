@@ -3,10 +3,10 @@ import { useId } from "react";
 import { useSelector } from "react-redux";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AuthState } from "@/entities/user/model/authSlice";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { handoverService } from "../api/handoverService";
+import { useHandoverAction } from "../model/useHandoverAction";
 /** Kiểm link công khai; claim chỉ sau khi người đã đăng nhập chủ động bấm. */
 export function InvitationPanel() {
   const { token: pathToken } = useParams();
@@ -14,7 +14,7 @@ export function InvitationPanel() {
   const token = pathToken ?? params.get("token") ?? "";
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const client = useQueryClient();
-  const action = usePrivateAction();
+  const action = useHandoverAction();
   const requestId = useId();
   // Không đưa token vào query key/cache bền vững; route token đổi thì remount tại page.
   const query = useQuery({
