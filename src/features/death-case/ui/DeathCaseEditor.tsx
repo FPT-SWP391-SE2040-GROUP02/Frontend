@@ -26,6 +26,9 @@ export function DeathCaseEditor({ record }: { record: Case }) {
   const action = useDeathCaseAction();
   const client = useQueryClient();
   const version = record.currentVersion;
+  /** Owner báo còn sống: hồ sơ tạm dừng chờ Verifier kết luận, Backend từ chối mọi thao tác sửa/gửi. */
+  const suspended = record.status === "SUSPENDED";
+  const editable = version.isDraft && !suspended;
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     mode: "onBlur",
@@ -60,6 +63,12 @@ export function DeathCaseEditor({ record }: { record: Case }) {
       <p className="text-sm">
         Trạng thái: {record.status} · {version.isDraft ? "Bản nháp" : "Bản đã gửi"}
       </p>
+      {suspended && (
+        <p role="status" className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+          Chủ kho đã báo còn sống. Hồ sơ đang tạm dừng chờ Verifier kết luận, nên tạm thời không sửa
+          hay gửi được.
+        </p>
+      )}
       {record.missingRequirements.length > 0 && (
         <p className="text-sm text-amber-800">
           Chưa đủ thông tin để gửi: {record.missingRequirements.join(", ")}
@@ -90,10 +99,7 @@ export function DeathCaseEditor({ record }: { record: Case }) {
           ),
         )}
       >
-        <fieldset
-          disabled={action.pending || !version.isDraft}
-          className="grid gap-4 sm:grid-cols-2"
-        >
+        <fieldset disabled={action.pending || !editable} className="grid gap-4 sm:grid-cols-2">
           {(
             [
               ["ownerFullName", "Họ tên Chủ kho", "text"],
@@ -141,7 +147,7 @@ export function DeathCaseEditor({ record }: { record: Case }) {
               </span>
               <Button
                 variant="outline"
-                disabled={action.pending || !version.isDraft || form.formState.isDirty}
+                disabled={action.pending || !editable || form.formState.isDirty}
                 onClick={() => {
                   if (window.confirm("Gỡ trang giấy này khỏi bản nháp?"))
                     void action.execute(
@@ -178,10 +184,7 @@ export function DeathCaseEditor({ record }: { record: Case }) {
         >
           <fieldset
             disabled={
-              action.pending ||
-              !version.isDraft ||
-              version.files.length >= 10 ||
-              form.formState.isDirty
+              action.pending || !editable || version.files.length >= 10 || form.formState.isDirty
             }
             className="space-y-3"
           >
@@ -220,6 +223,7 @@ export function DeathCaseEditor({ record }: { record: Case }) {
           <Button
             disabled={
               action.pending ||
+              suspended ||
               !confirmed ||
               form.formState.isDirty ||
               record.missingRequirements.length > 0

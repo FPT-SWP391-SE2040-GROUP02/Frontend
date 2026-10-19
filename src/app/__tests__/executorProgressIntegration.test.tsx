@@ -499,3 +499,21 @@ it.each([
   fireEvent.click(await screen.findByRole("button", { name: "Gửi lại lời mời" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(text);
 });
+
+it("explains a suspended case and locks editing while the Verifier concludes the objection", async () => {
+  portalWith(deathCase("SUSPENDED"));
+  setup(<ExecutorPortal />, `/executor/claim?caseId=${CASE_ID}`);
+  expect(await screen.findByText(/Chủ kho đã báo còn sống/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Tạo phiên bản bổ sung" })).toBeDisabled();
+});
+
+it("locks a draft of a suspended case so nothing can be saved or submitted", async () => {
+  portalWith({
+    ...deathCase("SUSPENDED"),
+    currentVersion: { ...deathCase("SUSPENDED").currentVersion, isDraft: true, submittedAt: null },
+  });
+  setup(<ExecutorPortal />, `/executor/claim?caseId=${CASE_ID}`);
+  expect(await screen.findByRole("button", { name: "Lưu bản nháp" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Tải trang giấy lên" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Xác nhận gửi hồ sơ" })).toBeDisabled();
+});
