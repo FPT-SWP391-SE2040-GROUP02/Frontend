@@ -2,6 +2,7 @@ import { useSearchParams } from "react-router-dom";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
 import { useVerifierCases, verifierKeys } from "../model/useVerifierReview";
+import { caseCode } from "../model/caseCode";
 import { caseStatusLabels } from "../model/verifierReview.schema";
 import type { z } from "zod";
 import type { verifierCaseStatusSchema } from "../model/verifierReview.schema";
@@ -81,7 +82,7 @@ export function VerifierCaseList({ onSelect }: { onSelect: (caseId: string) => v
                 }`}
               >
                 <div className="min-w-0 space-y-1">
-                  <p className="break-words text-sm font-semibold">Hồ sơ #{item.id.slice(0, 8)}</p>
+                  <p className="break-words text-sm font-semibold">Hồ sơ #{caseCode(item.id)}</p>
                   <p className="text-xs text-heritage-muted">
                     CCCD · ****{item.ownerCitizenIdLast4 ?? "—"} · Ngày mất:{" "}
                     {item.dateOfDeath ?? "—"}
@@ -96,6 +97,11 @@ export function VerifierCaseList({ onSelect }: { onSelect: (caseId: string) => v
                   <span className="rounded-full bg-heritage-primary/10 px-3 py-1 text-xs font-semibold text-heritage-primary">
                     {status}
                   </span>
+                  {item.supplementOverdueAt && (
+                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                      Bổ sung quá hạn
+                    </span>
+                  )}
                   {item.unreviewedFlagCount > 0 && (
                     <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
                       {item.unreviewedFlagCount} cờ chưa xét
