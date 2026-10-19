@@ -1,8 +1,8 @@
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
 import { deathCaseService } from "../api/deathCaseService";
+import { useDeathCaseAction } from "../model/useDeathCaseAction";
 import { DeathCaseEditor } from "./DeathCaseEditor";
 import { HandoverProgressPanel } from "./HandoverProgressPanel";
 import { ReviewFeedback } from "./ReviewFeedback";
@@ -35,7 +35,7 @@ function CaseDetail({ id }: { id: string }) {
 export function ExecutorPortal() {
   const [params, setParams] = useSearchParams();
   const selected = params.get("caseId");
-  const action = usePrivateAction();
+  const action = useDeathCaseAction();
   const client = useQueryClient();
   const query = useQuery({
     queryKey: ["executor-vaults"],

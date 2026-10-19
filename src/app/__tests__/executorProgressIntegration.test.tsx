@@ -393,3 +393,42 @@ it("hides the rejected case button when the vault has none or the Backend predat
     screen.queryByRole("button", { name: "Xem hồ sơ bị từ chối gần nhất" }),
   ).not.toBeInTheDocument();
 });
+
+function rejectedWith(status: number, data: unknown) {
+  return new AxiosError("Request failed", "ERR_BAD_REQUEST", undefined, undefined, {
+    data,
+    status,
+    statusText: "",
+    headers: new AxiosHeaders(),
+    config: { headers: new AxiosHeaders() },
+  });
+}
+
+it("explains why a death case cannot be opened instead of the generic conflict message", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation((url) => {
+    if (url === "/executor/vaults") return Promise.resolve([vaultRow]);
+    return Promise.reject(new Error(`unexpected ${String(url)}`));
+  });
+  vi.spyOn(apiClient, "post").mockRejectedValue(
+    rejectedWith(409, {
+      code: "DEATH_CASE_NOT_ALLOWED",
+      reason: "PLAN_NOT_RUNNING",
+      planStatus: "DRAFT",
+    }),
+  );
+  setup(<ExecutorPortal />, "/executor/claim");
+  fireEvent.click(await screen.findByRole("button", { name: "Mở hồ sơ chứng tử" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Kế hoạch bàn giao của kho chưa kích hoạt hoặc đã sang giai đoạn khác",
+  );
+});
+
+it("explains why a supplement version cannot be created", async () => {
+  portalWith(deathCase("UNDER_REVIEW"));
+  vi.spyOn(apiClient, "post").mockRejectedValue(
+    rejectedWith(409, { code: "DEATH_CASE_NOT_ALLOWED", reason: "CASE_NOT_REVISABLE" }),
+  );
+  setup(<ExecutorPortal />, `/executor/claim?caseId=${CASE_ID}`);
+  fireEvent.click(await screen.findByRole("button", { name: "Tạo phiên bản bổ sung" }));
+  expect(await screen.findByText(/Chưa tạo được phiên bản bổ sung/)).toBeInTheDocument();
+});

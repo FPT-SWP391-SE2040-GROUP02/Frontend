@@ -3,11 +3,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import type { deathCaseSchema } from "../model/deathCase.schema";
 import { deathCaseService } from "../api/deathCaseService";
+import { useDeathCaseAction } from "../model/useDeathCaseAction";
 type Case = z.infer<typeof deathCaseSchema>;
 const schema = z.object({
   ownerFullName: z.string().max(200),
@@ -23,7 +23,7 @@ export function DeathCaseEditor({ record }: { record: Case }) {
   const [confirmed, setConfirmed] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
-  const action = usePrivateAction();
+  const action = useDeathCaseAction();
   const client = useQueryClient();
   const version = record.currentVersion;
   const form = useForm<z.infer<typeof schema>>({
