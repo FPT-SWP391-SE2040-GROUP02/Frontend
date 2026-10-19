@@ -6,8 +6,8 @@ import { useSelector } from "react-redux";
 import { RecipientLayout } from "@/widgets/RecipientLayout/RecipientLayout";
 import { EkycStatusPanel } from "@/features/ekyc/ui/EkycStatusPanel";
 import { handoverService } from "@/features/handover/api/handoverService";
+import { useHandoverAction } from "@/features/handover/model/useHandoverAction";
 import { ekycService } from "@/features/ekyc/api/ekycService";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import type { AuthState } from "@/entities/user/model/authSlice";
 
 /** Đọc turnId từ query string; nếu thiếu/không hợp lệ thì không gửi ảnh. */
@@ -42,7 +42,8 @@ function BeneficiaryEkycScreen({ turnId }: { turnId: string | null }) {
     enabled: authenticated,
     retry: false,
   });
-  const action = usePrivateAction();
+  // Hiện lý do cụ thể của HANDOVER_NOT_ALLOWED (vd. HOLD_ACTIVE khi kho đang bị tạm giữ).
+  const action = useHandoverAction();
   const [startedTurnId, setStartedTurnId] = useState<string | null>(null);
   const [boundVerificationId, setBoundVerificationId] = useState<string | null>(null);
 
