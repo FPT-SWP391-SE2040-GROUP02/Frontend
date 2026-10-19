@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { resetPasswordSchema } from "../resetPassword.schema";
 
 describe("Reset password form validation", () => {
+  it("rejects passwords over the backend limit", () => {
+    const password = "A!" + "x".repeat(127);
+    expect(resetPasswordSchema.safeParse({ password, confirmPassword: password }).success).toBe(
+      false,
+    );
+  });
   it("accepts matching passwords satisfying the new password policy", () => {
     expect(
       resetPasswordSchema.safeParse({ password: "Abcdefg!", confirmPassword: "Abcdefg!" }).success,
