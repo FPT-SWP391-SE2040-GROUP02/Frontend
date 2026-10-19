@@ -146,7 +146,19 @@ it("explains why GRANT_NOT_ACTIVE rejected the download using the BE reason", as
   const createUrl = vi.spyOn(URL, "createObjectURL");
   setup();
   fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("tạm giữ");
+  expect(await screen.findByRole("alert")).toHaveTextContent("đang được xác minh lại");
+  expect(createUrl).not.toHaveBeenCalled();
+});
+
+it.each([
+  ["HOLD_ACTIVE", "Kho đang bị tạm giữ"],
+  ["CONTENT_DELETED", "chính sách lưu dữ liệu"],
+])("explains a download denied with GRANT_NOT_ACTIVE reason %s", async (reason, text) => {
+  backendDownloadFails(403, { code: "GRANT_NOT_ACTIVE", reason });
+  const createUrl = vi.spyOn(URL, "createObjectURL");
+  setup();
+  fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent(text);
   expect(createUrl).not.toHaveBeenCalled();
 });
 
@@ -297,11 +309,60 @@ it("does not leak or invent turns when the Backend hides a turn that is not the 
 });
 
 it.each([
-  ["BLOCKED", "Đang bị tạm giữ, chưa thể tải"],
-  ["REVOKED", "Đã bị thu hồi"],
+  ["BLOCKED", "Đang tạm dừng trong lúc hồ sơ được xác minh lại, chưa thể tải"],
+  ["REVOKED", "Đã bị thu hồi, không còn tải được"],
 ])("shows a %s grant without any download button", async (grantStatus, label) => {
   apiClient.defaults.adapter = async (config) => ok(config, [committedTurn(grantStatus)]);
   setup();
   expect(await screen.findByText(new RegExp(label))).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Tải nội dung" })).not.toBeInTheDocument();
+});
+
+it("explains a cancelled turn as a stopped handover, not a system error", async () => {
+  apiClient.defaults.adapter = async (config) => ok(config, [turnWithStatus("CANCELLED")]);
+  setup();
+  expect(await screen.findByText(/chủ kho đã được xác nhận còn sống/)).toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
+it("explains a claim blocked by an active hold", async () => {
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "get") return ok(config, { valid: true, responseExpired: false });
+    throw problem(config as never, 409, { code: "HANDOVER_NOT_ALLOWED", reason: "HOLD_ACTIVE" });
+  };
+  setup(<InvitationPanel />, "/receive?token=invitation-fixture");
+  fireEvent.click(await screen.findByRole("button", { name: "Xác nhận nhận lời mời" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Các hạn đang được giữ nguyên");
+  expect(screen.queryByRole("link", { name: "Xem lượt bàn giao của tôi" })).not.toBeInTheDocument();
+});
+
+it("explains a decision blocked by an active hold and keeps the turn undecided", async () => {
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "post") {
+      throw problem(config as never, 409, { code: "HANDOVER_NOT_ALLOWED", reason: "HOLD_ACTIVE" });
+    }
+    return ok(config, [turnWithStatus("READY_TO_ACCEPT")]);
+  };
+  setup();
+  fireEvent.click(await screen.findByRole("checkbox"));
+  fireEvent.click(screen.getByRole("button", { name: "Đồng ý tiếp nhận" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Kho đang bị tạm giữ");
+  expect(screen.getByRole("button", { name: "Đồng ý tiếp nhận" })).toBeInTheDocument();
+});
+
+it("still lets the recipient claim after the initial response deadline (BR-58)", async () => {
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "get") return ok(config, { valid: true, responseExpired: true });
+    return ok(config, turnWithStatus("IDENTITY_IN_PROGRESS"));
+  };
+  const post = vi.spyOn(apiClient, "post");
+  setup(<InvitationPanel />, "/receive?token=invitation-fixture");
+  expect(await screen.findByText(/Đã qua hạn phản hồi ban đầu/)).toBeInTheDocument();
+  const claim = screen.getByRole("button", { name: "Xác nhận nhận lời mời" });
+  expect(claim).toBeEnabled();
+  fireEvent.click(claim);
+  expect(
+    await screen.findByRole("link", { name: "Xem lượt bàn giao của tôi" }),
+  ).toBeInTheDocument();
+  expect(post).toHaveBeenCalledTimes(1);
 });
