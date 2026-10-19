@@ -163,7 +163,8 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
             <span>Xác minh email thành công!</span>
           </div>
           <p className="text-xs text-emerald-800 leading-relaxed pl-7">
-            Địa chỉ email của bạn đã được kích hoạt. Vui lòng nhập mật khẩu để đăng nhập vào tài khoản.
+            Địa chỉ email của bạn đã được kích hoạt. Vui lòng nhập mật khẩu để đăng nhập vào tài
+            khoản.
           </p>
         </div>
       )}

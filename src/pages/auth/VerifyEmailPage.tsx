@@ -104,11 +104,7 @@ export function VerifyEmailPage() {
           </div>
         </section>
       ) : (
-        <VerifyEmailNotice
-          email={email}
-          token={token}
-          onVerified={handleVerified}
-        />
+        <VerifyEmailNotice email={email} token={token} onVerified={handleVerified} />
       )}
     </HeritageAuthLayout>
   );
