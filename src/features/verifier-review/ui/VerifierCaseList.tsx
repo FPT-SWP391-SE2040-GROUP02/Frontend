@@ -1,6 +1,7 @@
 import { useSearchParams } from "react-router-dom";
+import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
-import { useVerifierCases } from "../model/useVerifierReview";
+import { useVerifierCases, verifierKeys } from "../model/useVerifierReview";
 import { caseStatusLabels } from "../model/verifierReview.schema";
 import type { z } from "zod";
 import type { verifierCaseStatusSchema } from "../model/verifierReview.schema";
@@ -26,6 +27,18 @@ export function VerifierCaseList({ onSelect }: { onSelect: (caseId: string) => v
   };
   const pagination: PaginationParams = { pageIndex: page, pageSize: 20 };
   const query = useVerifierCases(pagination);
+  const client = useQueryClient();
+  const detailFetching = useIsFetching({
+    queryKey: verifierKeys.detail(selected ?? "none"),
+    exact: true,
+  });
+  const refreshing = query.isFetching || detailFetching > 0;
+  const refresh = () => {
+    void query.refetch();
+    if (selected) {
+      void client.invalidateQueries({ queryKey: verifierKeys.detail(selected), exact: true });
+    }
+  };
   if (query.isPending)
     return (
       <p role="status" className="py-8 text-sm text-heritage-muted">
@@ -36,7 +49,7 @@ export function VerifierCaseList({ onSelect }: { onSelect: (caseId: string) => v
     return (
       <div role="alert" className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-4">
         <p className="text-sm text-red-800">Không tải được danh sách hồ sơ.</p>
-        <Button onClick={() => void query.refetch()} disabled={query.isFetching}>
+        <Button onClick={refresh} disabled={refreshing}>
           Thử lại
         </Button>
       </div>
@@ -49,7 +62,7 @@ export function VerifierCaseList({ onSelect }: { onSelect: (caseId: string) => v
       )}
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-heritage-muted">{data.totalCount} hồ sơ đang được giao</p>
-        <Button variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()}>
+        <Button variant="outline" disabled={refreshing} onClick={refresh}>
           Tải lại
         </Button>
       </div>

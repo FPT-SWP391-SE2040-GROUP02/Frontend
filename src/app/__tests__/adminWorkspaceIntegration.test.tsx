@@ -14,6 +14,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { ROLES } from "@/shared/constants/roles";
 import { ProtectedRoute } from "@/app/routes/ProtectedRoute";
 import { AdminWorkspacePage } from "@/pages/admin/AdminWorkspacePage";
+import { AdminUsersFilters } from "@/features/admin/ui/AdminUsersFilters";
 
 const dashboardFixture = {
   openIncidents: 4,
@@ -213,6 +214,51 @@ it("gõ tìm kiếm chỉ gọi một lần sau debounce và quay về trang 1",
   });
   expect(screen.getByTestId("location")).toHaveTextContent(`${ROUTES.DASHBOARD.USERS}?q=lan`);
 });
+
+it("đổi tìm kiếm từ URL hủy debounce cũ và đồng bộ ô nhập", async () => {
+  vi.useFakeTimers();
+  const onChange = vi.fn();
+  const props = {
+    filters: { search: "old", role: undefined, status: undefined },
+    hasFilters: true,
+    onChange,
+    onClear: vi.fn(),
+  };
+  const view = render(<AdminUsersFilters {...props} />);
+  fireEvent.change(screen.getByLabelText("Tìm theo tên hoặc email"), {
+    target: { value: "pending" },
+  });
+  view.rerender(<AdminUsersFilters {...props} filters={{ ...props.filters, search: "back" }} />);
+  expect(screen.getByLabelText("Tìm theo tên hoặc email")).toHaveValue("back");
+  await act(async () => {
+    vi.advanceTimersByTime(450);
+  });
+  expect(onChange).not.toHaveBeenCalled();
+});
+
+it.each(["?q=an", "?role=ADMIN"])(
+  "xoá bộ lọc %s hủy tìm kiếm đang chờ debounce",
+  async (search) => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const get = vi.spyOn(apiClient, "get").mockResolvedValue(pageOf(1));
+    setup(`${ROUTES.DASHBOARD.USERS}${search}`);
+    await screen.findAllByText("user11@example.test");
+    const input = screen.getByLabelText("Tìm theo tên hoặc email");
+    fireEvent.change(input, { target: { value: "new" } });
+    fireEvent.click(screen.getByRole("button", { name: "Xoá bộ lọc" }));
+    expect(input).toHaveValue("");
+    await act(async () => {
+      vi.advanceTimersByTime(450);
+    });
+    expect(screen.getByTestId("location")).toHaveTextContent(
+      new RegExp(`${ROUTES.DASHBOARD.USERS}$`),
+    );
+    expect(get).not.toHaveBeenCalledWith(
+      "/admin/users",
+      expect.objectContaining({ params: expect.objectContaining({ search: "new" }) }),
+    );
+  },
+);
 
 it("đổi vai trò về trang 1; xoá bộ lọc trả URL sạch", async () => {
   const user = userEvent.setup();

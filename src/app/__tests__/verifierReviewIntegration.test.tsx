@@ -174,6 +174,51 @@ it("tải danh sách hồ sơ, chọn hồ sơ hiển thị chi tiết với CCC
   );
 });
 
+it("Tải lại cập nhật quyền duyệt của hồ sơ đang chọn kể cả khi cache còn fresh", async () => {
+  const user = userEvent.setup();
+  client.setDefaultOptions({ queries: { retry: false, staleTime: 300_000 } });
+  let eligible = false;
+  const get = vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID)
+      ? {
+          ...detailFixture,
+          canApprove: eligible,
+          approveBlockers: eligible ? [] : ["OBJECTION_PERIOD_NOT_OVER"],
+        }
+      : listFixture,
+  );
+  setup(<VerifierWorkspace />);
+  await selectFirstCase(user);
+  expect(screen.getByRole("button", { name: "Duyệt mở bàn giao" })).toBeDisabled();
+  get.mockClear();
+  eligible = true;
+  await user.click(screen.getByRole("button", { name: "Tải lại" }));
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Duyệt mở bàn giao" })).toBeEnabled(),
+  );
+  expect(get).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}`, expect.anything());
+  expect(get).toHaveBeenCalledWith("/verifier/death-cases", expect.anything());
+});
+
+it("Tải lại thất bại ở chi tiết hiện lỗi và cho phép phục hồi", async () => {
+  const user = userEvent.setup();
+  let failDetail = false;
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
+    if (!String(url).endsWith(CASE_ID)) return listFixture;
+    if (failDetail) throw new Error("unavailable");
+    return detailFixture;
+  });
+  setup(<VerifierWorkspace />);
+  await selectFirstCase(user);
+  failDetail = true;
+  await user.click(screen.getByRole("button", { name: "Tải lại" }));
+  expect(await screen.findByText(/Không đọc được hồ sơ/)).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Duyệt mở bàn giao" })).not.toBeInTheDocument();
+  failDetail = false;
+  await user.click(screen.getByRole("button", { name: "Thử lại" }));
+  expect(await screen.findByText("012345678901")).toBeInTheDocument();
+});
+
 it("chi tiết lỗi có thông báo và thử lại thay vì giả chưa chọn hồ sơ", async () => {
   const user = userEvent.setup();
   const get = vi.spyOn(apiClient, "get").mockRejectedValue(new Error("unavailable"));

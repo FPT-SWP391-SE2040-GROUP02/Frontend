@@ -35,7 +35,7 @@ export function AdminUsersFilters({
     setDraft(filters.search);
   }
 
-  useEffect(() => () => window.clearTimeout(timer.current), []);
+  useEffect(() => () => window.clearTimeout(timer.current), [filters.search]);
 
   const commitSearch = (value: string) => {
     window.clearTimeout(timer.current);
@@ -119,7 +119,15 @@ export function AdminUsersFilters({
         </div>
 
         {hasFilters && (
-          <Button variant="outline" className="min-h-11" onClick={onClear}>
+          <Button
+            variant="outline"
+            className="min-h-11"
+            onClick={() => {
+              window.clearTimeout(timer.current);
+              setDraft("");
+              onClear();
+            }}
+          >
             Xoá bộ lọc
           </Button>
         )}
