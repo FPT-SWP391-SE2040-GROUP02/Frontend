@@ -1,14 +1,19 @@
 import { useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { CheckCircle2, AlertTriangle, ShieldAlert, FileText, Download, X } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { HTTP_STATUS } from "@/shared/constants";
 import { Button } from "@/shared/ui/button";
-import { useVerifierCase } from "../model/useVerifierReview";
+import { useVerifierCase, verifierKeys } from "../model/useVerifierReview";
 import { verifierReviewService } from "../api/verifierReviewService";
+import { getVerifierActions } from "../model/verifierActions";
 import {
   caseStatusLabels,
   flagLabels,
   blockerLabels,
   decisionLabels,
+  ownerNoticeLabels,
   type verifierCaseStatusSchema,
   type verifierFlagKindSchema,
   type verifierDecisionKindSchema,
@@ -31,13 +36,32 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
   const [params, setParams] = useSearchParams();
   const download = usePrivateAction();
   const query = useVerifierCase(caseId);
+  const client = useQueryClient();
+  const backToList = () => {
+    const next = new URLSearchParams(params);
+    next.delete("caseId");
+    next.delete("modal");
+    next.delete("flagId");
+    setParams(next);
+    void client.invalidateQueries({ queryKey: verifierKeys.lists() });
+  };
   if (query.isPending)
     return (
       <p role="status" className="py-8 text-sm text-heritage-muted">
         Đang tải hồ sơ…
       </p>
     );
-  if (query.isError)
+  if (query.isError) {
+    // 404 DEATH_CASE_NOT_FOUND: hồ sơ không tồn tại hoặc phân công đã kết thúc (giao lại Verifier khác).
+    if (isAxiosError(query.error) && query.error.response?.status === HTTP_STATUS.NOT_FOUND)
+      return (
+        <div role="alert" className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4">
+          <p className="text-sm text-amber-800">Hồ sơ không còn được giao cho bạn.</p>
+          <Button type="button" onClick={backToList}>
+            Về danh sách
+          </Button>
+        </div>
+      );
     return (
       <div role="alert" className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-4">
         <p className="text-sm text-red-800">
@@ -48,9 +72,11 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
         </Button>
       </div>
     );
+  }
   const detail = query.data;
   const review = detail.reviewVersion;
   const status = caseStatusLabels[detail.status as z.infer<typeof verifierCaseStatusSchema>];
+  const actions = getVerifierActions(detail);
   const openModal = (kind: "approve" | "reject" | "reviewFlag" | "supplement", flagId?: string) => {
     const next = new URLSearchParams(params);
     next.set("modal", kind);
@@ -73,10 +99,45 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           )}
         </div>
         <p className="text-sm text-heritage-muted">
-          Kho: {detail.vaultId} · Phân công từ {formatDate(detail.assignment.assignedAt)} · Hạn xét{" "}
-          {formatDate(detail.assignment.dueAt)}
+          Kho: {detail.vaultId} · Phân công từ {formatDate(detail.assignment.assignedAt)} ·{" "}
+          {/* BE không tính quá hạn khi chờ bổ sung; dueAt được tính lại lúc Executor gửi lại. */}
+          {detail.status === "SUPPLEMENT_REQUIRED"
+            ? "Đang chờ Executor bổ sung"
+            : `Hạn xét ${formatDate(detail.assignment.dueAt)}`}
         </p>
       </header>
+      <section
+        aria-label="Mốc thời gian"
+        className="space-y-3 rounded-xl border border-heritage-border bg-heritage-surface p-5"
+      >
+        <h3 className="font-semibold">Mốc thời gian</h3>
+        <dl className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label="Hết hạn phản đối"
+            value={detail.objectionEndsAt ? formatDate(detail.objectionEndsAt) : "Chưa bắt đầu"}
+          />
+          <Field
+            label="Báo Owner"
+            value={
+              detail.ownerNotice
+                ? detail.ownerNotice.status === "DELIVERED" && detail.ownerNotice.deliveredAt
+                  ? `${ownerNoticeLabels.DELIVERED} ${formatDate(detail.ownerNotice.deliveredAt)}`
+                  : ownerNoticeLabels[detail.ownerNotice.status]
+                : "Chưa có"
+            }
+          />
+        </dl>
+      </section>
+      {detail.previousCase && (
+        <section
+          aria-label="Hồ sơ trước bị từ chối"
+          className="space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-5 text-sm text-amber-800"
+        >
+          <h3 className="font-semibold">Hồ sơ trước của kho này đã bị từ chối</h3>
+          <p>Đóng lúc: {formatDate(detail.previousCase.closedAt)}</p>
+          <p className="break-words">Lý do: {detail.previousCase.rejectReason ?? "—"}</p>
+        </section>
+      )}
       <section
         aria-label="Bản đang xét"
         className="space-y-3 rounded-xl border border-heritage-border bg-heritage-surface p-5"
@@ -186,7 +247,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                       {reviewed ? `Đã xét ${formatDate(flag.reviewedAt)}` : "Chưa xét"}
                     </p>
                   </div>
-                  {!reviewed && (
+                  {!reviewed && actions.canReviewFlag && (
                     <Button variant="outline" onClick={() => openModal("reviewFlag", flag.id)}>
                       Xem xét
                     </Button>
@@ -247,16 +308,20 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           </p>
         </div>
       )}
-      {detail.status === "UNDER_REVIEW" && (
+      {actions.canReject && (
         <footer className="flex flex-wrap items-center gap-3">
-          <Button onClick={() => openModal("supplement")} variant="outline">
-            <AlertTriangle className="size-4" aria-hidden="true" />
-            Yêu cầu bổ sung
-          </Button>
-          <Button disabled={!detail.canApprove} onClick={() => openModal("approve")}>
-            <CheckCircle2 className="size-4" aria-hidden="true" />
-            Duyệt mở bàn giao
-          </Button>
+          {actions.canRequestSupplement && (
+            <Button onClick={() => openModal("supplement")} variant="outline">
+              <AlertTriangle className="size-4" aria-hidden="true" />
+              Yêu cầu bổ sung
+            </Button>
+          )}
+          {actions.canOpenApprove && (
+            <Button disabled={!detail.canApprove} onClick={() => openModal("approve")}>
+              <CheckCircle2 className="size-4" aria-hidden="true" />
+              Duyệt mở bàn giao
+            </Button>
+          )}
           <Button onClick={() => openModal("reject")} variant="outline">
             <X className="size-4" aria-hidden="true" />
             Từ chối

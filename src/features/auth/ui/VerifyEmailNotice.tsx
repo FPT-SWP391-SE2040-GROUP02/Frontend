@@ -17,8 +17,8 @@ export interface VerifyEmailNoticeProps {
   email?: string;
   /** Token opaque từ liên kết Backend. */
   token?: string | null;
-  /** Callback sau response xác nhận; page gỡ token khỏi URL. */
-  onVerified?: () => void;
+  /** Callback sau response xác nhận; page gỡ token khỏi URL và nhận email đã xác minh. */
+  onVerified?: (email?: string) => void;
   /** Lớp CSS bổ trợ */
   className?: string;
 }

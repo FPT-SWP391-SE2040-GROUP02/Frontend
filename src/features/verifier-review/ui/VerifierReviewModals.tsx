@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
+import { Textarea } from "@/shared/ui/textarea";
 import { CustomCheckbox } from "@/shared/ui/CustomCheckbox";
 import {
   Dialog,
@@ -21,8 +21,11 @@ import {
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
   supplementPartSchema,
+  blockerLabels,
+  flagLabels,
   type supplementPartSchema as supplementPartSchemaType,
 } from "../model/verifierReview.schema";
+import { getVerifierActions } from "../model/verifierActions";
 import {
   useApproveCase,
   useRejectCase,
@@ -78,7 +81,9 @@ export function VerifierReviewModals({ caseId, detail }: { caseId: string; detai
     setParams(next);
   };
   if (!modal) return null;
-  if (modal === "reviewFlag" && flagId) {
+  // Modal mở qua URL vẫn theo cùng luật với nút: không mở thao tác BE sẽ chặn.
+  const actions = getVerifierActions(detail);
+  if (modal === "reviewFlag" && flagId && actions.canReviewFlag) {
     return (
       <ReviewFlagModal
         key={`${caseId}:${detail.etag}:${flagId}`}
@@ -89,7 +94,7 @@ export function VerifierReviewModals({ caseId, detail }: { caseId: string; detai
       />
     );
   }
-  if (modal === "supplement") {
+  if (modal === "supplement" && actions.canRequestSupplement) {
     return (
       <RequestSupplementModal
         key={`${caseId}:${detail.etag}`}
@@ -99,7 +104,7 @@ export function VerifierReviewModals({ caseId, detail }: { caseId: string; detai
       />
     );
   }
-  if (modal === "approve") {
+  if (modal === "approve" && actions.canOpenApprove) {
     return (
       <ApproveModal
         key={`${caseId}:${detail.etag}`}
@@ -109,7 +114,7 @@ export function VerifierReviewModals({ caseId, detail }: { caseId: string; detai
       />
     );
   }
-  if (modal === "reject") {
+  if (modal === "reject" && actions.canReject) {
     return (
       <RejectModal
         key={`${caseId}:${detail.etag}`}
@@ -155,21 +160,29 @@ function ReviewFlagModal({
         <DialogHeader>
           <DialogTitle>Xem xét cờ</DialogTitle>
           <DialogDescription>
-            {flag ? `${flag.kind}: ${flag.detail}` : "Cờ không tìm thấy trong hồ sơ hiện tại."}
+            {flag
+              ? `${flagLabels[flag.kind]}: ${flag.detail}`
+              : "Cờ không tìm thấy trong hồ sơ hiện tại."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
           <label className="block text-sm">
             Ghi chú xem xét
-            <Input {...form.register("note")} maxLength={1000} />
+            <Textarea
+              {...form.register("note")}
+              maxLength={1000}
+              aria-invalid={Boolean(form.formState.errors.note)}
+              className="mt-1 min-h-24"
+            />
             {form.formState.errors.note && (
               <span className="text-xs text-destructive">{form.formState.errors.note.message}</span>
             )}
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" {...form.register("confirm")} />
-            Tôi đã xem xét cờ này.
-          </label>
+          <CustomCheckbox
+            className="min-h-11 w-full items-center!"
+            label="Tôi đã xem xét cờ này."
+            {...form.register("confirm")}
+          />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
@@ -240,7 +253,12 @@ function RequestSupplementModal({
         <form onSubmit={onSubmit} className="space-y-3">
           <label className="block text-sm">
             Lý do
-            <Input {...form.register("reason")} maxLength={1000} />
+            <Textarea
+              {...form.register("reason")}
+              maxLength={1000}
+              aria-invalid={Boolean(form.formState.errors.reason)}
+              className="mt-1 min-h-24"
+            />
             {form.formState.errors.reason && (
               <span className="text-xs text-destructive">
                 {form.formState.errors.reason.message}
@@ -250,20 +268,19 @@ function RequestSupplementModal({
           <fieldset className="space-y-2 text-sm">
             <legend className="text-xs text-heritage-muted">Phần cần bổ sung</legend>
             {allSupplementParts.map((part) => (
-              <label key={part} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  value={part}
-                  checked={parts.includes(part)}
-                  onChange={(event) => {
-                    const next = event.target.checked
-                      ? [...parts, part]
-                      : parts.filter((p) => p !== part);
-                    form.setValue("parts", next, { shouldValidate: true });
-                  }}
-                />
-                {supplementPartLabels[part]}
-              </label>
+              <CustomCheckbox
+                key={part}
+                className="min-h-11 w-full items-center!"
+                label={supplementPartLabels[part]}
+                value={part}
+                checked={parts.includes(part)}
+                onChange={(event) => {
+                  const next = event.target.checked
+                    ? [...parts, part]
+                    : parts.filter((p) => p !== part);
+                  form.setValue("parts", next, { shouldValidate: true });
+                }}
+              />
             ))}
             {form.formState.errors.parts && (
               <span className="text-xs text-destructive">
@@ -271,10 +288,11 @@ function RequestSupplementModal({
               </span>
             )}
           </fieldset>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" {...form.register("confirm")} />
-            Tôi xác nhận yêu cầu này sẽ được gửi cho Executor.
-          </label>
+          <CustomCheckbox
+            className="min-h-11 w-full items-center!"
+            label="Tôi xác nhận yêu cầu này sẽ được gửi cho Executor."
+            {...form.register("confirm")}
+          />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
@@ -339,7 +357,7 @@ function ApproveModal({
             <p className="font-semibold">Chưa duyệt được vì:</p>
             <ul className="mt-1 list-disc space-y-1 pl-4">
               {blockers.map((b) => (
-                <li key={b}>{b}</li>
+                <li key={b}>{blockerLabels[b]}</li>
               ))}
             </ul>
           </div>
@@ -347,7 +365,12 @@ function ApproveModal({
         <form onSubmit={onSubmit} className="space-y-3">
           <label className="block text-sm">
             Lý do duyệt
-            <Input {...form.register("reason")} maxLength={1000} />
+            <Textarea
+              {...form.register("reason")}
+              maxLength={1000}
+              aria-invalid={Boolean(form.formState.errors.reason)}
+              className="mt-1 min-h-24"
+            />
             {form.formState.errors.reason && (
               <span className="text-xs text-destructive">
                 {form.formState.errors.reason.message}
@@ -356,11 +379,13 @@ function ApproveModal({
           </label>
           <CustomCheckbox
             id="verifier-approve-confirm"
+            className="min-h-11 w-full items-center!"
             label="Tôi xác nhận các thông tin đã được đối soát và duyệt hồ sơ này."
             {...form.register("confirm")}
           />
           <CustomCheckbox
             id="verifier-approve-legal"
+            className="min-h-11 w-full items-center!"
             label="Tôi đã kiểm tra phạm vi bàn giao và người nhận."
             {...form.register("legalConfirm")}
           />
@@ -420,17 +445,23 @@ function RejectModal({
         <form onSubmit={onSubmit} className="space-y-3">
           <label className="block text-sm">
             Lý do từ chối
-            <Input {...form.register("reason")} maxLength={1000} />
+            <Textarea
+              {...form.register("reason")}
+              maxLength={1000}
+              aria-invalid={Boolean(form.formState.errors.reason)}
+              className="mt-1 min-h-24"
+            />
             {form.formState.errors.reason && (
               <span className="text-xs text-destructive">
                 {form.formState.errors.reason.message}
               </span>
             )}
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" {...form.register("confirm")} />
-            Tôi xác nhận từ chối hồ sơ này.
-          </label>
+          <CustomCheckbox
+            className="min-h-11 w-full items-center!"
+            label="Tôi xác nhận từ chối hồ sơ này."
+            {...form.register("confirm")}
+          />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>

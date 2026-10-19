@@ -1,44 +1,43 @@
 import { Link, useSearchParams } from "react-router-dom";
+import { useState } from "react";
 import { CircleAlert } from "lucide-react";
 import { HeritageAuthLayout } from "@/features/auth/ui/HeritageAuthLayout";
 import { ResetPasswordForm } from "@/features/auth/ui/ResetPasswordForm";
 import { RESET_PASSWORD_CONTENT as content } from "@/features/auth/model/resetPassword.schema";
+import { passwordResetTokenSchema } from "@/features/auth/model/resetPassword.schema";
 import { ROUTES } from "@/shared/config/routes.config";
 
-/** Trang khôi phục UI, không xác thực token hoặc thay đổi thông tin đăng nhập. */
+/** Link thiếu/trùng token không gửi API; chỉ BE xác nhận token còn hiệu lực. */
 export function ResetPasswordPage() {
-  const [params] = useSearchParams();
-  const state = params.get("state");
-  const invalid = state === "invalid";
-  const unavailable = invalid || state === "expired";
+  const [params, setParams] = useSearchParams();
+  const tokens = params.getAll("token");
+  const token = tokens.length === 0 ? null : tokens.length === 1 ? tokens[0] : "";
+  const [previousToken, setPreviousToken] = useState(token);
+  const [completed, setCompleted] = useState(false);
+  if (token !== previousToken) {
+    setPreviousToken(token);
+    if (token !== null) setCompleted(false);
+  }
+  const valid = passwordResetTokenSchema.safeParse(token).success;
   return (
     <HeritageAuthLayout sideTitle={content.sideTitle} sideSubtitle={content.sideDescription}>
       <header className="mb-8 space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{content.title}</h1>
         <p className="text-sm leading-7 text-heritage-muted">{content.description}</p>
-        <p className="text-xs leading-6 text-heritage-muted">{content.preview}</p>
       </header>
-      {import.meta.env.DEV && (
-        <nav aria-label={content.demoNav} className="mb-6 flex flex-wrap gap-2">
-          {content.variants.map((item) => (
-            <Link
-              key={item.id}
-              to={`?state=${item.id}`}
-              className="flex min-h-11 items-center rounded-xl border border-heritage-border px-3 text-xs"
-              aria-current={(state ?? "form") === item.id ? "page" : undefined}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      )}
-      {unavailable ? (
+      {completed && token === null ? (
+        <section role="status" className="space-y-5">
+          <h2 className="text-xl font-semibold">{content.completed}</h2>
+          <p>{content.completedDetail}</p>
+          <Link to={ROUTES.AUTH.LOGIN} className="inline-flex min-h-11 items-center underline">
+            {content.login}
+          </Link>
+        </section>
+      ) : !valid || token === null ? (
         <section className="space-y-5">
           <CircleAlert aria-hidden="true" className="size-12 text-heritage-gold" />
-          <h2 className="text-xl font-semibold">{invalid ? content.invalid : content.expired}</h2>
-          <p className="text-sm leading-7 text-heritage-muted">
-            {invalid ? content.invalidDetail : content.expiredDetail}
-          </p>
+          <h2 className="text-xl font-semibold">{content.invalid}</h2>
+          <p className="text-sm leading-7 text-heritage-muted">{content.invalidDetail}</p>
           <Link
             className="flex min-h-11 items-center justify-center rounded-xl bg-heritage-primary px-5 text-sm text-white"
             to={ROUTES.AUTH.FORGOT_PASSWORD}
@@ -53,7 +52,21 @@ export function ResetPasswordPage() {
           </Link>
         </section>
       ) : (
-        <ResetPasswordForm key={state} />
+        <ResetPasswordForm
+          key={token}
+          token={token}
+          onCompleted={() => {
+            setCompleted(true);
+            setParams(
+              (previous) => {
+                const next = new URLSearchParams(previous);
+                next.delete("token");
+                return next;
+              },
+              { replace: true },
+            );
+          }}
+        />
       )}
     </HeritageAuthLayout>
   );

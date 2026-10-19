@@ -97,6 +97,26 @@ function installAdapter({
 }
 
 describe("OwnerAuditLog transport", () => {
+  it("renders and filters the new death-case audit events without rejecting the page", async () => {
+    const calls = installAdapter({
+      page: pageFixture([
+        {
+          ...entry,
+          actorRole: "VERIFIER",
+          action: "DEATH_CASE_APPROVED",
+          targetType: "DEATH_CASE",
+        },
+      ]),
+    });
+    setup("/dashboard/audit-log?action=DEATH_CASE_APPROVED");
+    expect(await screen.findByText("DEATH_CASE_APPROVED")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Loại thao tác" })).toHaveValue(
+      "DEATH_CASE_APPROVED",
+    );
+    expect(calls.find((call) => call.url?.endsWith("/audit-logs"))?.params?.action).toBe(
+      "DEATH_CASE_APPROVED",
+    );
+  });
   it("calls GET /vaults/{vaultId}/audit-logs with sortBy=at and isAscending=false", async () => {
     const calls = installAdapter();
     setup("/dashboard/audit-log");
