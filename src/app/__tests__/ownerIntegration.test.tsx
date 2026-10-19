@@ -196,7 +196,7 @@ it("does not silently confirm plan deactivation when detaching the last asset", 
   expect(remove).toHaveBeenCalledTimes(1);
   expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
 });
-it("requires contact information before submitting a beneficiary and never auto-confirms minor status", async () => {
+it("requires contact information before submitting a beneficiary", async () => {
   const post = vi.spyOn(apiClient, "post");
   setup(<BeneficiaryForm vaultId={VAULT_ID} />);
   fireEvent.click(screen.getByText("Thêm người nhận"));
@@ -205,7 +205,6 @@ it("requires contact information before submitting a beneficiary and never auto-
   fireEvent.change(screen.getByLabelText("Ngày sinh"), { target: { value: "2015-01-01" } });
   fireEvent.click(screen.getByRole("button", { name: "Tạo hồ sơ người nhận" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("ít nhất email");
-  expect(screen.getByRole("checkbox")).not.toBeChecked();
   expect(post).not.toHaveBeenCalled();
 });
 const checkIn = {

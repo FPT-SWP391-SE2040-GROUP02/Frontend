@@ -31,7 +31,6 @@ const messages: Record<string, string> = {
   PLAN_DEACTIVATION_CONFIRMATION_REQUIRED:
     "Thao tác này sẽ đưa kế hoạch về nháp. Đọc cảnh báo và xác nhận trước khi tiếp tục.",
   BENEFICIARY_IDENTITY_CONFLICT: "Số định danh đã có hồ sơ với thông tin khác.",
-  MINOR_CONFIRMATION_REQUIRED: "Người nhận chưa đủ 18 tuổi. Cần xác nhận cảnh báo trước khi lưu.",
   BENEFICIARY_IN_USE: "Người nhận đang được gắn vào gói. Hãy gỡ khỏi các gói trước.",
   BENEFICIARY_SLOTS_EXCEEDED: "Kho không còn suất người nhận.",
   CHECKIN_NOT_ALLOWED: "Kế hoạch hiện không cho phép điểm danh.",
