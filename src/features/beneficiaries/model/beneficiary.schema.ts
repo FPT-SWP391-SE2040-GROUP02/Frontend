@@ -20,7 +20,6 @@ const contact = {
   dateOfBirth: date,
   email: z.string().max(254).nullable().optional(),
   phone: z.string().max(20).nullable().optional(),
-  confirmMinor: z.boolean().optional(),
 };
 /** Shape CreateBeneficiaryRequest; tuổi/liên hệ/dedup do service Backend kiểm. */
 export const createBeneficiarySchema = z.object({
