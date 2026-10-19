@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api/axiosClient";
 import { invitationSchema, handoverTurnSchema, handoverItemSchema } from "../model/handover.schema";
+import { readBlobProblem } from "../model/handover.errors";
 const id = z.string().uuid();
 const token = z.string().min(1).max(512);
 const turn = (value: string) => `/handover/turns/${id.parse(value)}`;
@@ -49,9 +50,13 @@ export const handoverService = {
   },
   /** Không cache blob, không dùng public URL để vượt Bearer hoặc integrity check của BE. */
   async download(grantId: string, itemId: string): Promise<Blob> {
-    return apiClient.get<Blob, Blob>(
-      `/handover/grants/${id.parse(grantId)}/assets/${id.parse(itemId)}/content`,
-      { responseType: "blob" },
-    );
+    try {
+      return await apiClient.get<Blob, Blob>(
+        `/handover/grants/${id.parse(grantId)}/assets/${id.parse(itemId)}/content`,
+        { responseType: "blob" },
+      );
+    } catch (failure) {
+      throw await readBlobProblem(failure);
+    }
   },
 };
