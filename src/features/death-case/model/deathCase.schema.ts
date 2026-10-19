@@ -8,6 +8,8 @@ export const executorVaultSchema = z.object({
   planStatus: z.string(),
   checkInOverdue: z.boolean(),
   openDeathCaseId: z.string().uuid().nullable(),
+  /** Hồ sơ bị từ chối gần nhất của kho, để Executor xem lại lý do. Backend cũ không có trường này. */
+  lastRejectedDeathCaseId: z.string().uuid().nullish(),
 });
 /** Hồ sơ chỉ có CCCD che, không có nội dung file hoặc Verifier được giao. */
 export const deathCaseSchema = z.object({

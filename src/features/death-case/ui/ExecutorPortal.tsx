@@ -89,6 +89,16 @@ export function ExecutorPortal() {
                   Mở hồ sơ chứng tử
                 </Button>
               )}
+              {vault.lastRejectedDeathCaseId && (
+                <div>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setParams({ caseId: vault.lastRejectedDeathCaseId! })}
+                  >
+                    Xem hồ sơ bị từ chối gần nhất
+                  </Button>
+                </div>
+              )}
             </li>
           ))}
         </ul>
