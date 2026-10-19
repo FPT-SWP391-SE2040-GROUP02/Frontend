@@ -73,7 +73,11 @@ export function VerifierCaseList({ onSelect }: { onSelect: (caseId: string) => v
                     CCCD · ****{item.ownerCitizenIdLast4 ?? "—"} · Ngày mất:{" "}
                     {item.dateOfDeath ?? "—"}
                   </p>
-                  <p className="text-xs text-heritage-muted">Hạn xét: {formatDate(item.dueAt)}</p>
+                  <p className="text-xs text-heritage-muted">
+                    {item.status === "SUPPLEMENT_REQUIRED"
+                      ? "Đang chờ Executor bổ sung"
+                      : `Hạn xét: ${formatDate(item.dueAt)}`}
+                  </p>
                 </div>
                 <div className="flex flex-col items-end gap-1 text-right">
                   <span className="rounded-full bg-heritage-primary/10 px-3 py-1 text-xs font-semibold text-heritage-primary">

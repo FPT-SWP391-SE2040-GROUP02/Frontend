@@ -12,7 +12,8 @@ import type { z } from "zod";
 
 export const verifierKeys = {
   all: ["verifier-cases"] as const,
-  list: (params?: PaginationParams) => [...verifierKeys.all, "list", params ?? {}] as const,
+  lists: () => [...verifierKeys.all, "list"] as const,
+  list: (params?: PaginationParams) => [...verifierKeys.lists(), params ?? {}] as const,
   detail: (caseId: string) => [...verifierKeys.all, "detail", caseId] as const,
 };
 /** Hồ sơ Verifier đang được giao. */
@@ -33,10 +34,14 @@ export function useVerifierCase(caseId: string | null) {
     retry: false,
   });
 }
-/** Cập nhật cache detail từ response schema thật; invalidate list. */
+/**
+ * Cập nhật cache detail từ response schema thật; chỉ invalidate list.
+ * Không GET lại detail: response duyệt lần đầu có `handover`, GET sau đó luôn trả `handover = null`
+ * nên GET lại sẽ xóa mất kết quả mở bàn giao Verifier vừa thấy.
+ */
 function publish(client: ReturnType<typeof useQueryClient>, caseId: string, detail: unknown) {
   client.setQueryData(verifierKeys.detail(caseId), detail);
-  void client.invalidateQueries({ queryKey: verifierKeys.all });
+  void client.invalidateQueries({ queryKey: verifierKeys.lists() });
 }
 
 async function perform<T>(
