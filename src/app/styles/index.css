@@ -347,3 +347,67 @@
   padding: 2px 7px;
   font-size: 10px;
 }
+
+/* ==========================================================================
+   LUXURY HERITAGE CUSTOM SCROLLBARS
+   ========================================================================== */
+
+/* Global custom scrollbars: thin, rounded, non-intrusive */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(11, 41, 30, 0.18) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(11, 41, 30, 0.18);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(11, 41, 30, 0.38);
+}
+
+/* Dark containers & sidebars: luxury gold subtle scrollbar */
+aside,
+.owner-workspace > aside,
+.bg-heritage-primary {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 142, 76, 0.3) transparent;
+}
+
+aside::-webkit-scrollbar,
+.owner-workspace > aside::-webkit-scrollbar,
+.bg-heritage-primary::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+aside::-webkit-scrollbar-track,
+.owner-workspace > aside::-webkit-scrollbar-track,
+.bg-heritage-primary::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+aside::-webkit-scrollbar-thumb,
+.owner-workspace > aside::-webkit-scrollbar-thumb,
+.bg-heritage-primary::-webkit-scrollbar-thumb {
+  background: rgba(184, 142, 76, 0.3);
+  border-radius: 9999px;
+}
+
+aside::-webkit-scrollbar-thumb:hover,
+.owner-workspace > aside::-webkit-scrollbar-thumb:hover,
+.bg-heritage-primary::-webkit-scrollbar-thumb:hover {
+  background: rgba(184, 142, 76, 0.6);
+}
+
