@@ -16,7 +16,9 @@ import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
 import { AssetList } from "@/features/assets/ui/AssetList";
 import { NewContainerForm } from "@/features/vault-management/ui/NewContainerForm";
 import { ROUTES } from "@/shared/config/routes.config";
-import { OwnerPlanSetup } from "./OwnerPlanSetup";
+import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
+import { OwnerTrustedPeople } from "./OwnerTrustedPeople";
+import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
 
 function Empty({ title, description }: { title: string; description: string }) {
   return (
@@ -176,7 +178,7 @@ function CheckIn({ vaultId }: { vaultId: string }) {
 }
 
 /** Chỉ đọc DTO đã được tích hợp; chờ kho thật trước khi mount các truy vấn phụ thuộc. */
-export function OwnerSection({ section }: { section: "assets" | "plans" | "check-in" }) {
+export function OwnerSection({ section }: { section: "assets" | "plans" | "check-in" | "trusted" }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const vault = useOwnerVault(authenticated && Boolean(accessTokenMemory.get()));
   if (vault.isError && isOwnerVaultMissing(vault.error))
@@ -203,6 +205,7 @@ export function OwnerSection({ section }: { section: "assets" | "plans" | "check
       </div>
     );
   if (section === "check-in") return <CheckIn vaultId={vault.data.id} />;
+  if (section === "trusted") return <OwnerTrustedPeople vaultId={vault.data.id} />;
   if (section === "assets")
     return (
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -215,7 +218,8 @@ export function OwnerSection({ section }: { section: "assets" | "plans" | "check
     );
   return (
     <div className="space-y-6">
-      <OwnerPlanSetup vaultId={vault.data.id} vaultService={vault.data} />
+      <OwnerHandoverOverview vaultId={vault.data.id} />
+      <PlanSetupPanel vaultId={vault.data.id} />
       <NewContainerForm vaultId={vault.data.id} />
       <PlanList vaultId={vault.data.id} />
     </div>
