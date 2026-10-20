@@ -1,6 +1,6 @@
 import { useSearchParams, Link } from "react-router-dom";
 import type { ReactNode } from "react";
-import { Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { useOwnerPackages } from "@/features/vault-management/model/useOwnerVault";
@@ -100,9 +100,10 @@ export function OwnerGroups({
           <Link
             to={ROUTES.DASHBOARD.GROUP_DETAIL(group.id)}
             aria-label={`Mở nhóm ${group.name}`}
-            className="inline-flex min-h-11 shrink-0 items-center px-2 text-sm font-semibold text-[#7A5B24] hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
+            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-[20px] border border-[#B68F4C] bg-[#E0C486] px-5 text-sm font-semibold text-[#0A281E] transition-colors hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
           >
-            Mở
+            Mở nhóm
+            <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </li>,
       );

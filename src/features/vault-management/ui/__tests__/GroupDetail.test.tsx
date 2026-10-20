@@ -119,6 +119,24 @@ describe("chi tiết nhóm", () => {
     expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
   });
 
+  it("hiện mô tả nhóm và lưu mô tả mới cùng etag hiện tại", async () => {
+    const put = vi
+      .spyOn(apiClient, "put")
+      .mockResolvedValue({ ...group({ description: "Giấy tờ nhà" }), etag: "container-v2" });
+    renderGroup(group({ description: "Giấy tờ cũ" }));
+    expect(screen.getAllByText("Giấy tờ cũ").length).toBeGreaterThan(0);
+    fireEvent.change(screen.getByLabelText("Mô tả (không bắt buộc)"), {
+      target: { value: "Giấy tờ nhà" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
+    await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
+    expect(put.mock.calls[0][1]).toMatchObject({
+      name: containerFixture.name,
+      description: "Giấy tờ nhà",
+      etag: containerFixture.etag,
+    });
+  });
+
   it("nhóm đã lưu trữ chỉ xem, khóa mọi nút thay đổi", () => {
     renderGroup(group({ status: "ARCHIVED" }));
     expect(screen.getByText(/đã được lưu trữ/)).toBeInTheDocument();

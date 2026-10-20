@@ -4,7 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import type { PackageResponse } from "@/entities/package/model/package.types";
-import { createPackageSchema } from "@/entities/package/model/package.schema";
+import {
+  createPackageSchema,
+  type CreatePackageFormInput,
+} from "@/entities/package/model/package.schema";
 import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
@@ -17,6 +20,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
+import { Textarea } from "@/shared/ui/textarea";
 import { ownerVaultService } from "../api/ownerVaultService";
 import { ownerVaultKeys } from "../model/useOwnerVault";
 
@@ -147,16 +151,16 @@ export function GroupDetail({
     handleSubmit,
     reset,
     formState: { errors, isDirty },
-  } = useForm<{ name: string }>({
-    resolver: zodResolver(createPackageSchema.pick({ name: true })),
+  } = useForm<CreatePackageFormInput>({
+    resolver: zodResolver(createPackageSchema),
     mode: "onBlur",
     reValidateMode: "onBlur",
-    defaultValues: { name: container.name },
+    defaultValues: { name: container.name, description: container.description ?? "" },
   });
 
   function publish(result: PackageResponse): void {
     setEtag(result.etag);
-    reset({ name: result.name });
+    reset({ name: result.name, description: result.description ?? "" });
     setConfirm(false);
     client.setQueryData(ownerVaultKeys.package(result.vaultId, result.id), result);
     void client.invalidateQueries({ queryKey: ownerVaultKeys.all });
@@ -254,6 +258,9 @@ export function GroupDetail({
           <h2 className="break-words text-2xl font-medium text-heritage-primary">
             {container.name}
           </h2>
+          {container.description && (
+            <p className="mt-1 break-words text-sm">{container.description}</p>
+          )}
           <p className="mt-1 text-sm text-heritage-muted">
             {container.assetIds.length} mục · Người nhận: {peopleLine}
           </p>
@@ -294,7 +301,7 @@ export function GroupDetail({
       )}
       {isDirty && (
         <p className="text-sm text-heritage-muted">
-          Lưu tên nhóm trước khi thay đổi mục, người nhận hoặc xóa nhóm.
+          Lưu thông tin nhóm trước khi thay đổi mục, người nhận hoặc xóa nhóm.
         </p>
       )}
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -349,6 +356,8 @@ export function GroupDetail({
               () =>
                 ownerVaultService.updatePackage(container.vaultId, container.id, {
                   name: values.name,
+                  // Chuỗi rỗng = xóa mô tả; Backend giữ nguyên trường không gửi.
+                  description: values.description,
                   etag,
                 }),
               publish,
@@ -367,6 +376,20 @@ export function GroupDetail({
           {errors.name && (
             <p role="alert" className="text-sm text-destructive">
               {errors.name.message}
+            </p>
+          )}
+          <label className="block space-y-2 text-sm font-semibold">
+            Mô tả (không bắt buộc)
+            <Textarea
+              disabled={blocked}
+              {...register("description")}
+              aria-invalid={Boolean(errors.description)}
+              className="font-normal"
+            />
+          </label>
+          {errors.description && (
+            <p role="alert" className="text-sm text-destructive">
+              {errors.description.message}
             </p>
           )}
           <div className="flex flex-wrap gap-3">
