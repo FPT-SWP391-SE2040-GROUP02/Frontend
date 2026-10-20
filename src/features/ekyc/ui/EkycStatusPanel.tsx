@@ -55,13 +55,18 @@ export function EkycStatusPanel({
   });
   const needsTurnId = purpose === "BENEFICIARY_CLAIM" && !turnId;
   const live = status.data;
+  const owner = purpose === "OWNER_ENROLLMENT";
   return (
     <section
       aria-label="Trạng thái xác minh danh tính"
       className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
     >
-      <h1 className="text-2xl font-semibold">Xác minh danh tính</h1>
-      <p className="text-sm text-heritage-muted">Mục đích: {purpose}</p>
+      {owner ? (
+        <h2 className="text-xl font-semibold">Trạng thái xác minh</h2>
+      ) : (
+        <h1 className="text-2xl font-semibold">Xác minh danh tính</h1>
+      )}
+      {!owner && <p className="text-sm text-heritage-muted">Mục đích: {purpose}</p>}
       {!authenticated ? (
         <p role="status">Vui lòng đăng nhập để xem trạng thái xác minh.</p>
       ) : status.isPending ? (
@@ -79,8 +84,12 @@ export function EkycStatusPanel({
         </div>
       ) : (
         <div className="space-y-2 text-sm">
-          <p role="status">{labels[live!.status]}</p>
-          <p className="text-heritage-muted">{matchLabels[live!.identityMatch]}</p>
+          <p role="status">
+            {owner && live!.purpose !== "OWNER_ENROLLMENT" && live!.status !== "NOT_STARTED"
+              ? "Kết quả gần nhất thuộc luồng xác minh khác. Tiếp tục bên dưới để xác minh cho Chủ kho."
+              : labels[live!.status]}
+          </p>
+          {!owner && <p className="text-heritage-muted">{matchLabels[live!.identityMatch]}</p>}
           {live!.backSideChecked && <p className="text-heritage-muted">Đã đọc mặt sau giấy tờ.</p>}
         </div>
       )}

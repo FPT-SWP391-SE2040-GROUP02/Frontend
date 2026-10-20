@@ -45,6 +45,29 @@ function setup(
   );
 }
 describe("EkycStatusPanel", () => {
+  it("does not show a beneficiary verification as a passed owner enrollment", async () => {
+    vi.mocked(ekycService.getStatus).mockResolvedValue({
+      status: "PASSED",
+      verificationId: null,
+      citizenIdLast4: "",
+      faceMatchScore: 0.4,
+      matchThreshold: 0.363,
+      spoofCheckPassed: true,
+      createdAt: null,
+      completedAt: null,
+      purpose: "BENEFICIARY_CLAIM",
+      identityMatch: "MATCHED",
+      backSideChecked: true,
+    });
+    setup(true, { purpose: "OWNER_ENROLLMENT" });
+    expect(
+      await screen.findByText(/Kết quả gần nhất thuộc luồng xác minh khác/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Danh tính đã được xác minh.")).not.toBeInTheDocument();
+    expect(screen.queryByText(/khớp với người nhận được chỉ định/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/OWNER_ENROLLMENT/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
+  });
   it("does not request before authentication", () => {
     setup(false);
     expect(screen.getByRole("status")).toHaveTextContent("Vui lòng đăng nhập");

@@ -13,6 +13,7 @@ import {
   History,
   Menu,
   X,
+  ShieldCheck,
 } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
@@ -73,9 +74,11 @@ export function OwnerWorkspace({
     [ROUTES.BILLING.HISTORY]: ROUTES.BILLING.PLANS,
   };
   const path = aliases[location.pathname] ?? location.pathname;
-  const current = [...navigation, ...executorNavigation].find(
-    ({ to }) => path === to || (to !== ROUTES.DASHBOARD.ROOT && path.startsWith(`${to}/`)),
-  );
+  const current = [
+    ...navigation,
+    ...executorNavigation,
+    { label: "Xác minh danh tính", to: ROUTES.DASHBOARD.IDENTITY, icon: ShieldCheck },
+  ].find(({ to }) => path === to || (to !== ROUTES.DASHBOARD.ROOT && path.startsWith(`${to}/`)));
   const PageIcon = current?.icon ?? Home;
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const isExecutor = path.startsWith(ROUTES.EXECUTOR.CLAIM);

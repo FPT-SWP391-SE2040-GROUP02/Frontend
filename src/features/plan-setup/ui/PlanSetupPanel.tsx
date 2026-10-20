@@ -130,7 +130,10 @@ function PlanSetupForm({
           </ul>
         )}
         {setup.missingRequirements.includes("OWNER_EKYC_REQUIRED") && (
-          <Link className="inline-flex min-h-11 items-center underline" to={ROUTES.DASHBOARD.ROOT}>
+          <Link
+            className="inline-flex min-h-11 items-center underline"
+            to={ROUTES.DASHBOARD.IDENTITY}
+          >
             Đi xác minh danh tính
           </Link>
         )}

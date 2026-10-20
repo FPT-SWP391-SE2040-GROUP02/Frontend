@@ -137,6 +137,11 @@ const OwnerOverviewPage = lazy(() =>
     default: module.OwnerOverviewPage,
   })),
 );
+const OwnerIdentityPage = lazy(() =>
+  import("@/pages/dashboard/OwnerIdentityPage").then((module) => ({
+    default: module.OwnerIdentityPage,
+  })),
+);
 const AuditLogPage = lazy(() =>
   import("@/pages/dashboard/AuditLogPage").then((module) => ({ default: module.AuditLogPage })),
 );
@@ -213,6 +218,7 @@ export function AppRoutes() {
          ======================================================================== */}
         <Route element={<ProtectedRoute allowedRoles={[ROLES.USER]} />}>
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
+          <Route path={ROUTES.DASHBOARD.IDENTITY} element={<OwnerIdentityPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
           <Route path={ROUTES.DASHBOARD.BENEFICIARIES} element={<BeneficiariesPage />} />
           <Route path={ROUTES.DASHBOARD.AUDIT_LOG} element={<AuditLogPage />} />

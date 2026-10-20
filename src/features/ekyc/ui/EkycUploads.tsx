@@ -137,12 +137,18 @@ export function EkycUploads({
 
   return (
     <section className="space-y-4 border-t border-heritage-border pt-6">
-      <h2 className="text-lg font-semibold">Xác minh danh tính</h2>
+      <h2 className="text-lg font-semibold">
+        {purpose === "OWNER_ENROLLMENT" ? "Thực hiện xác minh" : "Xác minh danh tính"}
+      </h2>
 
       {step === "consent" && (
         <div className="space-y-3 rounded-lg border border-heritage-border p-4 text-sm">
           <p>
-            Mục đích xác minh: <strong>{purpose}</strong>.
+            Mục đích xác minh:{" "}
+            <strong>
+              {purpose === "OWNER_ENROLLMENT" ? "Xác minh danh tính Chủ kho" : purpose}
+            </strong>
+            .
           </p>
           <p className="text-heritage-muted">
             Ảnh giấy tờ và thử thách camera chỉ dùng để xác minh danh tính và được xử lý trong phiên
