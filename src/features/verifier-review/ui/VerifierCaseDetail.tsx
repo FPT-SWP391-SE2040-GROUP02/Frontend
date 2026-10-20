@@ -8,6 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { useVerifierCase, verifierKeys } from "../model/useVerifierReview";
 import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
+import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   caseStatusLabels,
@@ -126,6 +127,11 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           </p>
         )}
       </header>
+      <VerifierObjectionBlock
+        caseId={detail.id}
+        enabled={detail.status === "SUSPENDED"}
+        canConclude={!detail.approveBlockers.includes("VERIFIER_CONFLICT")}
+      />
       <section
         aria-label="Mốc thời gian"
         className="space-y-3 rounded-xl border border-heritage-border bg-heritage-surface p-5"
