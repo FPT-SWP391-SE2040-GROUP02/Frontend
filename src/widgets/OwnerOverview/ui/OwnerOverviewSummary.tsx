@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
-import { Activity, FileText, HardDrive, Layers3, Plus, Users } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import { QuickCheckIn } from "@/features/dms/ui/QuickCheckIn";
 import { useOwnerDeathCase } from "@/features/owner-objection/model/useOwnerDeathCase";
+import { ActivityIcon } from "@/shared/ui/LegacyVaultArtwork";
 import { overviewDate, presentOverviewPlan, storagePercent } from "../model/overviewPresentation";
 import type { OverviewResources } from "../model/useOverviewResources";
 import { OverviewQueryState } from "./OverviewQueryState";
@@ -28,14 +28,6 @@ export function OwnerOverviewSummary({
   const plan = presentOverviewPlan(vault.planStatus);
   return (
     <>
-      <div className="overview-toolbar">
-        <p className="overview-muted">
-          Tổng quan kho <strong>{vault.name}</strong>
-        </p>
-        <Link className="overview-primary-action" to={ROUTES.DASHBOARD.ASSETS}>
-          <Plus size={17} aria-hidden="true" /> Thêm tài sản
-        </Link>
-      </div>
       <section className="overview-hero" aria-label="Trạng thái kho và điểm danh">
         <div className="overview-hero-message">
           <p className="overview-eyebrow">
@@ -58,7 +50,8 @@ export function OwnerOverviewSummary({
         </div>
         <div className="overview-check-in">
           <h3>
-            <Activity size={16} aria-hidden="true" /> Điểm danh định kỳ
+            <ActivityIcon className="size-4 shrink-0 text-heritage-gold" aria-hidden="true" /> Điểm
+            danh định kỳ
           </h3>
           <OverviewQueryState query={data.checkIn}>
             {data.checkIn.data && (
@@ -90,18 +83,14 @@ export function OwnerOverviewSummary({
       </section>
       <section aria-label="Thống kê kho" className="overview-metrics">
         <div className="overview-stat">
-          <h2>
-            <FileText size={16} aria-hidden="true" /> Tài sản trong kho
-          </h2>
+          <h2>Tài sản trong kho</h2>
           <OverviewQueryState query={data.assets}>
             <p className="overview-stat-value">{data.assets.data?.totalCount}</p>
             <p className="overview-muted">Tài sản đã lưu trong kho</p>
           </OverviewQueryState>
         </div>
         <div className="overview-stat">
-          <h2>
-            <HardDrive size={16} aria-hidden="true" /> Dung lượng đã dùng
-          </h2>
+          <h2>Dung lượng đã dùng</h2>
           <p className="overview-storage-value">
             <strong>{formatStorageMegabytes(vault.storageUsedBytes)}</strong>
             <span> / {formatStorageMegabytes(vault.storageQuotaBytes)}</span>
@@ -124,9 +113,7 @@ export function OwnerOverviewSummary({
           </div>
         </div>
         <div className="overview-stat">
-          <h2>
-            <Users size={16} aria-hidden="true" /> Hồ sơ người nhận
-          </h2>
+          <h2>Hồ sơ người nhận</h2>
           <OverviewQueryState query={data.beneficiaries}>
             <p className="overview-stat-value">{data.beneficiaries.data?.totalCount}</p>
             <p className="overview-muted">
@@ -135,9 +122,7 @@ export function OwnerOverviewSummary({
           </OverviewQueryState>
         </div>
         <div className="overview-stat">
-          <h2>
-            <Layers3 size={16} aria-hidden="true" /> Gói bàn giao
-          </h2>
+          <h2>Gói bàn giao</h2>
           <p className="overview-stat-value">{vault.activeContainerCount}</p>
           <p className="overview-muted">Gói chưa lưu trữ trong kho</p>
         </div>

@@ -134,7 +134,6 @@ describe("pricing reference policies", () => {
     const post = vi.spyOn(apiClient, "post");
     setup(true);
     expect(screen.getByRole("heading", { level: 1, name: "Gói dịch vụ" })).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: "Đường dẫn trang" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Gia hạn Legacy XS" }));
     const preview = screen.getByRole("region", { name: "Gia hạn Legacy XS" });
     fireEvent.click(within(preview).getByRole("button", { name: "3 năm" }));

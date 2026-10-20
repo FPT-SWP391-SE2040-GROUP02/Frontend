@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { History } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { VaultServiceInfo } from "@/entities/vault/ui/VaultServiceInfo";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
+import { StarIcon } from "@/shared/ui/LegacyVaultArtwork";
 import type { OverviewResources } from "../model/useOverviewResources";
 import { overviewDate } from "../model/overviewPresentation";
 import { OverviewQueryState } from "./OverviewQueryState";
@@ -109,7 +109,10 @@ export function OwnerOverviewDetails({
             <ul className="overview-activity">
               {data.audit.data.items.map((entry) => (
                 <li key={entry.id}>
-                  <History size={15} aria-hidden="true" />
+                  <StarIcon
+                    className="size-3.5 shrink-0 text-heritage-gold mt-1"
+                    aria-hidden="true"
+                  />
                   <div>
                     <p>{activityLabels[entry.action] ?? "Hoạt động của kho"}</p>
                     <p className="overview-muted">

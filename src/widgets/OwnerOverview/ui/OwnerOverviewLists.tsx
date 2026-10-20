@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { FileText, LockKeyhole, Users } from "lucide-react";
+import { FileText } from "lucide-react";
+import { LockIcon, RecipientsIcon } from "@/shared/ui/LegacyVaultArtwork";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { OverviewResources } from "../model/useOverviewResources";
 import { overviewDate } from "../model/overviewPresentation";
@@ -34,7 +35,7 @@ export function OwnerOverviewLists({ data }: { data: OverviewResources }) {
                     <tr key={asset.id}>
                       <td>
                         <span className="overview-asset-name">
-                          <LockKeyhole size={14} aria-hidden="true" />
+                          <LockIcon width={14} height={14} aria-hidden="true" />
                           {asset.name}
                         </span>
                       </td>
@@ -79,7 +80,7 @@ export function OwnerOverviewLists({ data }: { data: OverviewResources }) {
             </ul>
           ) : (
             <div className="overview-empty">
-              <Users size={28} aria-hidden="true" />
+              <RecipientsIcon width={28} height={28} aria-hidden="true" />
               <p>Chưa có hồ sơ người nhận.</p>
             </div>
           )}

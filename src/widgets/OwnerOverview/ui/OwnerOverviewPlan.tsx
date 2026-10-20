@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Check, Circle, ShieldCheck } from "lucide-react";
+import { Circle } from "lucide-react";
+import { ConfirmedIcon, TrustedIcon } from "@/shared/ui/LegacyVaultArtwork";
 import type { OverviewResources } from "../model/useOverviewResources";
 import { OverviewQueryState } from "./OverviewQueryState";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -71,7 +72,7 @@ export function OwnerOverviewPlan({ data }: { data: OverviewResources }) {
                     <li key={step.label}>
                       <span className={step.done ? "overview-check is-complete" : "overview-check"}>
                         {step.done ? (
-                          <Check size={14} aria-hidden="true" />
+                          <ConfirmedIcon className="size-3.5" aria-hidden="true" />
                         ) : (
                           <Circle size={14} aria-hidden="true" />
                         )}
@@ -118,7 +119,7 @@ export function OwnerOverviewPlan({ data }: { data: OverviewResources }) {
         </section>
       </div>
       <section className="overview-identity" aria-label="Xác minh danh tính Chủ kho">
-        <ShieldCheck size={24} aria-hidden="true" />
+        <TrustedIcon className="size-6 text-heritage-gold shrink-0" aria-hidden="true" />
         <div>
           <h2>Xác minh danh tính</h2>
           <OverviewQueryState query={data.setup}>
