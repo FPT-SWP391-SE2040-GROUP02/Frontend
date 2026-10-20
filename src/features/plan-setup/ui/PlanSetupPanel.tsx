@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { z } from "zod";
 import { Button } from "@/shared/ui/button";
@@ -10,6 +10,7 @@ import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
 import { inviteExecutorSchema, type planSetupSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
+import { usePlanSetup } from "../model/usePlanSetup";
 import type { VaultServiceData } from "@/entities/vault/model/vaultServicePresentation";
 import { VaultServiceInfo } from "@/entities/vault/ui/VaultServiceInfo";
 
@@ -48,11 +49,7 @@ export function PlanSetupPanel({
   beneficiaries?: { id: string; label: string }[];
   vaultService?: VaultServiceData;
 }) {
-  const query = useQuery({
-    queryKey: ["plan-setup", vaultId],
-    queryFn: ({ signal }) => planSetupService.get(vaultId, signal),
-    retry: false,
-  });
+  const query = usePlanSetup(vaultId);
   if (query.isPending) return <p role="status">Đang kiểm tra điều kiện kích hoạt…</p>;
   if (query.isError)
     return (

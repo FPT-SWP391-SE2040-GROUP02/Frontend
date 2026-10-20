@@ -97,8 +97,8 @@ describe("workspace logo navigation", () => {
 
   it.each([
     ["/assets?filter=all#list", "Kho của tôi"],
-    ["/wills/new", "Kế hoạch bàn giao"],
-    ["/dashboard/wills/new", "Kế hoạch bàn giao"],
+    ["/wills/new", "Bàn giao"],
+    ["/dashboard/wills/new", "Bàn giao"],
     ["/billing/history", "Gói dịch vụ"],
   ])("keeps the correct navigation item active on %s", (path, label) => {
     const store = configureStore({ reducer: { auth: authReducer } });

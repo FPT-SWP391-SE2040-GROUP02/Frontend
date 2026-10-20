@@ -17,6 +17,7 @@ import { AssetList } from "@/features/assets/ui/AssetList";
 import { NewContainerForm } from "@/features/vault-management/ui/NewContainerForm";
 import { ROUTES } from "@/shared/config/routes.config";
 import { OwnerPlanSetup } from "./OwnerPlanSetup";
+import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
 
 function Empty({ title, description }: { title: string; description: string }) {
   return (
@@ -215,7 +216,10 @@ export function OwnerSection({ section }: { section: "assets" | "plans" | "check
     );
   return (
     <div className="space-y-6">
-      <OwnerPlanSetup vaultId={vault.data.id} vaultService={vault.data} />
+      <OwnerHandoverOverview vaultId={vault.data.id} />
+      <div id="kich-hoat-ke-hoach" className="scroll-mt-6">
+        <OwnerPlanSetup vaultId={vault.data.id} vaultService={vault.data} />
+      </div>
       <NewContainerForm vaultId={vault.data.id} />
       <PlanList vaultId={vault.data.id} />
     </div>
