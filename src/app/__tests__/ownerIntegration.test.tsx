@@ -197,7 +197,6 @@ it("does not silently confirm plan deactivation when detaching the last asset", 
 it("requires contact information before submitting a beneficiary", async () => {
   const post = vi.spyOn(apiClient, "post");
   setup(<BeneficiaryForm vaultId={VAULT_ID} />);
-  fireEvent.click(screen.getByText("Thêm người nhận"));
   fireEvent.change(screen.getByLabelText("Số CCCD"), { target: { value: "012345678901" } });
   fireEvent.change(screen.getByLabelText("Họ tên"), { target: { value: "Người nhận thử" } });
   fireEvent.change(screen.getByLabelText("Ngày sinh"), { target: { value: "2015-01-01" } });
