@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HeartPulse } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { Button } from "@/shared/ui/button";
+import { buttonStyles } from "@/shared/ui/heritageKit";
 import { Textarea } from "@/shared/ui/textarea";
 import { CustomCheckbox } from "@/shared/ui/CustomCheckbox";
 import {
@@ -47,11 +47,16 @@ export function VerifierObjectionBlock({
   if (!enabled || query.isPending) return null;
   if (query.isError)
     return (
-      <div role="alert" className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-4">
-        <p className="text-sm text-red-800">Không đọc được lời báo còn sống của hồ sơ này.</p>
-        <Button variant="outline" onClick={() => void query.refetch()} disabled={query.isFetching}>
+      <div role="alert" className="space-y-3 rounded-2xl bg-[#F8E1DE] p-5">
+        <p className="text-sm text-[#7A1A14]">Không đọc được lời báo còn sống của hồ sơ này.</p>
+        <button
+          type="button"
+          className={buttonStyles.outline}
+          onClick={() => void query.refetch()}
+          disabled={query.isFetching}
+        >
           Thử lại
-        </Button>
+        </button>
       </div>
     );
   const objection = query.data;
@@ -60,7 +65,7 @@ export function VerifierObjectionBlock({
   return (
     <section
       aria-label="Báo còn sống"
-      className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-5 text-sm text-amber-900"
+      className="space-y-3 rounded-2xl border border-[#E6C98B] bg-[#F1E6CC] p-6 text-sm text-[#5A4318]"
     >
       <h3 className="flex items-center gap-2 text-base font-semibold">
         <HeartPulse className="size-5" aria-hidden="true" />
@@ -107,9 +112,9 @@ export function VerifierObjectionBlock({
         <p role="status">Selfie đã khớp nên bạn không thể bác lời báo (ALIVE-05).</p>
       )}
       {canConclude && options.length > 0 && (
-        <Button type="button" onClick={() => setOpen(true)}>
+        <button type="button" className={buttonStyles.dark} onClick={() => setOpen(true)}>
           Kết luận lời báo
-        </Button>
+        </button>
       )}
       {open && <ConcludeDialog caseId={caseId} options={options} onClose={() => setOpen(false)} />}
     </section>
@@ -158,7 +163,7 @@ function ConcludeDialog({
   });
   return (
     <Dialog open onOpenChange={(next) => !next && !action.pending && onClose()}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>Kết luận lời báo còn sống</DialogTitle>
           <DialogDescription>
@@ -170,7 +175,10 @@ function ConcludeDialog({
           <fieldset className="space-y-2">
             <legend className="text-sm font-semibold">Kết luận</legend>
             {options.map((option) => (
-              <label key={option} className="flex min-h-11 items-center gap-2 text-sm">
+              <label
+                key={option}
+                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-[#BDB8A6] bg-white px-4 py-3 text-sm font-medium has-[:checked]:border-[#0A281E] has-[:checked]:bg-[#F4F1E6]"
+              >
                 <input type="radio" value={option} {...form.register("conclusion")} />
                 {objectionConclusionLabels[option]}
               </label>
@@ -206,12 +214,21 @@ function ConcludeDialog({
             </p>
           )}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={onClose}
+              disabled={action.pending}
+            >
               Hủy
-            </Button>
-            <Button type="submit" disabled={action.pending || !confirmed}>
+            </button>
+            <button
+              type="submit"
+              className={buttonStyles.gold}
+              disabled={action.pending || !confirmed}
+            >
               {action.pending ? "Đang ghi…" : "Ghi kết luận"}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>
