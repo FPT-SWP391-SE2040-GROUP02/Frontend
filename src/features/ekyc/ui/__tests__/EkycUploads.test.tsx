@@ -99,21 +99,21 @@ async function reachReview(frontAddress: string) {
   fireEvent.click(screen.getByRole("button", { name: "Tôi đồng ý và tiếp tục" }));
   const input = await screen.findByLabelText("Ảnh mặt trước giấy tờ");
   await userEvent.upload(input, image("front.jpg"));
-  fireEvent.click(screen.getByRole("button", { name: "Gửi ảnh mặt trước" }));
+  fireEvent.click(screen.getByRole("button", { name: "Đọc thông tin" }));
   await screen.findByLabelText("Họ và tên");
 }
 
 async function sendBack() {
   await userEvent.upload(screen.getByLabelText("Ảnh mặt sau giấy tờ"), image("back.jpg"));
-  fireEvent.click(screen.getByRole("button", { name: "Gửi ảnh mặt sau" }));
+  fireEvent.click(screen.getByRole("button", { name: "Đọc mặt sau" }));
 }
 
-const address = () => screen.getByLabelText("Địa chỉ cư trú") as HTMLInputElement;
+const address = () => screen.getByLabelText("Nơi cư trú / địa chỉ thường trú") as HTMLInputElement;
 
 describe("EkycUploads: mặt sau trước khi xác nhận (BR-88)", () => {
   it("cho gửi mặt sau ngay khi chưa xác nhận và gợi ý khi mặt trước thiếu địa chỉ", async () => {
     await reachReview("");
-    expect(screen.getByText(/Gửi ảnh mặt sau thật nét ở Bước 2/)).toBeInTheDocument();
+    expect(screen.getByText(/Thêm ảnh mặt sau thật nét ở tab Mặt sau/)).toBeInTheDocument();
     expect(screen.getByLabelText("Ảnh mặt sau giấy tờ")).toBeEnabled();
   });
 
@@ -130,7 +130,7 @@ describe("EkycUploads: mặt sau trước khi xác nhận (BR-88)", () => {
     // Chưa xác nhận thì chưa sang bước camera.
     expect(screen.queryByText("Thử thách camera đang mở")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Xác nhận và gửi thông tin" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
     expect(await screen.findByText("Thử thách camera đang mở")).toBeInTheDocument();
     expect(ekycService.confirmDocument).toHaveBeenCalledWith(
       expect.objectContaining({ residenceAddress: "12 Đường Thử, Quận 1" }),
@@ -147,7 +147,7 @@ describe("EkycUploads: mặt sau trước khi xác nhận (BR-88)", () => {
 
     expect(await screen.findByText(/Chưa đọc được địa chỉ từ mặt sau/)).toBeInTheDocument();
     expect(address().value).toBe("");
-    fireEvent.click(screen.getByRole("button", { name: "Xác nhận và gửi thông tin" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
     expect(await screen.findByText("Nhập địa chỉ cư trú.")).toBeInTheDocument();
     expect(ekycService.confirmDocument).not.toHaveBeenCalled();
     expect(screen.queryByText("Thử thách camera đang mở")).not.toBeInTheDocument();
@@ -165,18 +165,11 @@ describe("EkycUploads: mặt sau trước khi xác nhận (BR-88)", () => {
     expect(address().value).toBe("Địa chỉ mặt trước");
   });
 
-  it("vẫn hỗ trợ thứ tự cũ: xác nhận trước rồi gửi mặt sau thì sang camera", async () => {
+  it("mặt sau là tùy chọn: xác nhận bản khai xong là sang camera, không đòi gửi mặt sau", async () => {
     await reachReview("Địa chỉ mặt trước");
-    fireEvent.click(screen.getByRole("button", { name: "Xác nhận và gửi thông tin" }));
-    await screen.findByText(/Máy chủ đã nhận bản thông tin xác nhận/);
-    expect(screen.queryByText("Thử thách camera đang mở")).not.toBeInTheDocument();
-
-    vi.mocked(ekycService.submitDocumentBack).mockResolvedValue({
-      ...status,
-      residenceAddress: "",
-    });
-    await sendBack();
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
     expect(await screen.findByText("Thử thách camera đang mở")).toBeInTheDocument();
+    expect(ekycService.submitDocumentBack).not.toHaveBeenCalled();
   });
 
   it("gửi mặt trước mới thì bỏ địa chỉ mặt sau cũ", async () => {
