@@ -1,152 +1,155 @@
-import { Archive, FileText, HeartHandshake, KeyRound, ShieldCheck, Users } from "lucide-react";
-
-/** Nội dung landing chọn lọc từ prototype; không phải cam kết đã nghiệm thu backend. */
+/**
+ * Nội dung landing theo Mẫu G "Bông hoa là logo" của bộ thiết kế handoff.
+ * Giá và dung lượng chép từ biểu phí SRS §8.1 (khớp trang bảng giá); backend chỉ giới hạn theo
+ * dung lượng và số suất người nhận, không giới hạn số tài sản. Không phải cam kết đã nghiệm thu.
+ */
 export const LANDING_CONTENT = {
   brand: "LegacyVault",
+  skip: "Đến nội dung chính",
   navLabel: "Điều hướng chính",
   nav: [
+    { label: "Ý nghĩa bông hoa", href: "#y-nghia" },
     { label: "Cách hoạt động", href: "#cach-hoat-dong" },
-    { label: "Vai trò", href: "#vai-tro" },
-    { label: "Bảo mật", href: "#bao-mat" },
-    { label: "Hỏi đáp", href: "#hoi-dap" },
+    { label: "Gói dịch vụ", href: "#goi" },
   ],
   login: "Đăng nhập",
-  register: "Tạo tài khoản",
-  eyebrow: "Chuẩn bị hôm nay, an tâm ngày mai",
-  title: "Điều bạn để lại,",
-  titleAccent: "đến đúng người.",
-  description:
-    "Sắp xếp tài liệu, thông tin truy cập và lời nhắn trong một nơi. Ghi rõ ai sẽ nhận, ai hỗ trợ xác nhận và điều gì cần làm khi đến lúc.",
-  start: "Bắt đầu kế hoạch của bạn",
-  explore: "Xem cách hoạt động",
-  note: "Dịch vụ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc.",
-  vault: "Kho của gia đình",
-  sample: "Minh họa giao diện",
-  organized: "Những điều quan trọng, được sắp xếp.",
-  files: [
-    { title: "Giấy tờ gia đình", recipient: "Dành cho An và Bình", icon: FileText },
-    { title: "Thông tin tài khoản", recipient: "Dành cho An", icon: KeyRound },
-    { title: "Lời nhắn gửi các con", recipient: "Dành cho An và Bình", icon: HeartHandshake },
-  ],
-  vaultFooter: "Người nhận và điều kiện bàn giao được ghi trong kế hoạch.",
-  benefits: [
+  dashboard: "Về dashboard",
+  hero: {
+    tagline: "Di sản được giao đúng người, đúng lúc.",
+    description:
+      "Nơi bạn gửi lại tài sản số, giấy tờ và lời nhắn cho người thân. Chỉ trao đi khi đã qua nhiều lớp xác nhận, và bạn vẫn có thể dừng lại.",
+    start: "Lập kho của bạn",
+    explore: "Xem cách hoạt động",
+  },
+  meaning: {
+    eyebrow: "Vì sao là bông hoa",
+    title: "Mỗi vòng là một lớp bảo vệ.",
+    description:
+      "Biểu tượng của LegacyVault được dệt từ nhiều vòng đường nét chồng lên nhau, như hoa văn trên giấy tờ có giá. Càng nhiều lớp, càng khó đi tắt. Trước khi kho mở ra, mọi bàn giao đều phải đi qua bốn lớp xác nhận.",
+    layers: [
+      {
+        title: "Người thực hiện báo tin",
+        detail: "Một người bạn đã chỉ định báo rằng đã đến lúc. Chưa có gì được mở.",
+      },
+      {
+        title: "Người xét duyệt xác nhận",
+        detail: "Một người độc lập xem lại hồ sơ rồi mới cho đi tiếp.",
+      },
+      {
+        title: "Người nhận xác minh danh tính",
+        detail: "eKYC cơ bản để đúng người mới nhận được kho.",
+      },
+      {
+        title: "72 giờ để phản đối",
+        detail: "Bạn, hoặc người thân của bạn, vẫn có thể dừng. Chỉ cần bấm “Tôi còn sống”.",
+      },
+    ],
+  },
+  how: {
+    eyebrow: "Cách hoạt động",
+    title: "Bạn sắp đặt một lần. Phần còn lại, nhẹ nhàng.",
+    description:
+      "Nội dung kho được mã hóa AES-256-GCM trên máy chủ. Người thực hiện và Người xét duyệt chỉ giữ vai trò xác nhận, không đọc được nội dung.",
+    steps: [
+      {
+        title: "Lập kho",
+        detail: "Chủ kho ghi lại tài sản số, tài liệu và lời nhắn, rồi chọn người nhận.",
+      },
+      {
+        title: "Chỉ định người tin cậy",
+        detail: "Chọn Người thực hiện và Người xét duyệt. Họ không đọc được nội dung kho.",
+      },
+      {
+        title: "Giữ liên lạc",
+        detail: "Hệ thống nhắc định kỳ. Bạn chỉ cần xác nhận mình vẫn ổn.",
+      },
+      {
+        title: "Bàn giao đúng lúc",
+        detail: "Qua đủ các lớp xác nhận, người nhận có 7 ngày để tải về.",
+      },
+    ],
+  },
+  honesty: [
     {
-      title: "Một nơi để ghi lại",
-      description: "Tài liệu và thông tin quan trọng không còn nằm rải rác.",
-      icon: Archive,
+      title: "Nói thật về bảo mật",
+      detail:
+        "Mã hóa phía máy chủ, không phải mã hóa đầu cuối. Chúng tôi nói rõ để bạn chọn nội dung phù hợp.",
     },
     {
-      title: "Rõ người, rõ vai trò",
-      description: "Phân biệt người nhận với người hỗ trợ xác nhận bàn giao.",
-      icon: Users,
+      title: "Xác minh ở mức cơ bản",
+      detail:
+        "eKYC giúp nhận diện người nhận, nhưng chưa có giá trị pháp lý như thủ tục công chứng.",
     },
     {
-      title: "Theo dõi từng bước",
-      description: "Biết kế hoạch còn thiếu gì và cần làm gì tiếp theo.",
-      icon: ShieldCheck,
-    },
-  ],
-  processEyebrow: "Bắt đầu từ những điều đơn giản",
-  processTitle: "Một kế hoạch rõ ràng, từng bước một.",
-  steps: [
-    {
-      number: "01",
-      title: "Tạo tài khoản",
-      description: "Đăng ký và hoàn tất các bước xác thực tài khoản.",
-    },
-    {
-      number: "02",
-      title: "Sắp xếp kho",
-      description: "Thêm tài liệu, thông tin truy cập và nội dung muốn giữ lại.",
-    },
-    {
-      number: "03",
-      title: "Chỉ định người",
-      description: "Ghi rõ người nhận và mời người hỗ trợ theo từng vai trò.",
-    },
-    {
-      number: "04",
-      title: "Giữ kế hoạch cập nhật",
-      description: "Kiểm tra chỉ định và điểm danh theo lịch của anh, chị.",
-    },
-  ],
-  rolesEyebrow: "Mỗi người một trách nhiệm",
-  rolesTitle: "Sự tin cậy bắt đầu từ vai trò rõ ràng.",
-  roles: [
-    {
-      title: "Chủ kho",
-      description: "Sắp xếp nội dung và quyết định các chỉ định trong kế hoạch.",
-      icon: Archive,
-    },
-    {
-      title: "Người thực hiện",
-      description: "Báo tin, cung cấp hồ sơ và hỗ trợ quy trình bàn giao.",
-      icon: HeartHandshake,
-    },
-    {
-      title: "Người xét duyệt",
-      description: "Kiểm tra hồ sơ theo phạm vi được phép, độc lập với người báo tin.",
-      icon: ShieldCheck,
-    },
-    {
-      title: "Người nhận",
-      description: "Xác minh danh tính và thực hiện các bước nhận nội dung được chỉ định.",
-      icon: Users,
+      title: "Không thay thế di chúc",
+      detail:
+        "LegacyVault giúp trao thông tin và tài sản số. Phân chia tài sản hợp pháp vẫn cần di chúc.",
     },
   ],
-  securityEyebrow: "Hiểu rõ trước khi trao gửi",
-  securityTitle: "Bảo vệ dữ liệu, nói rõ giới hạn.",
-  securityDescription:
-    "Niềm tin cần thông tin rõ ràng. LegacyVault được thiết kế với quyền truy cập theo vai trò và các bước xác nhận trước khi bàn giao.",
-  security: [
-    {
-      title: "Mã hóa phía máy chủ",
-      description:
-        "Thiết kế sử dụng AES-256-GCM phía máy chủ. Đây không phải mã hóa đầu cuối hoặc mô hình Zero-Knowledge.",
-    },
-    {
-      title: "Đăng nhập không đồng nghĩa quyền nhận",
-      description:
-        "Người nhận còn phải xác minh danh tính và hoàn tất các điều kiện của quy trình bàn giao.",
-    },
-    {
-      title: "Điểm danh và phản đối là hai việc riêng",
-      description:
-        "Điểm danh định kỳ giữ liên lạc với hệ thống; phản đối được xử lý theo trạng thái hồ sơ bàn giao.",
-    },
-  ],
-  securityNote:
-    "Sản phẩm đang ở giai đoạn prototype. Các khả năng bảo mật cần được kiểm thử và nghiệm thu khi tích hợp backend.",
-  faqEyebrow: "Những điều thường được hỏi",
-  faqTitle: "Hiểu rõ rồi mới bắt đầu.",
-  faq: [
-    {
-      question: "LegacyVault có thay thế di chúc không?",
-      answer:
-        "Không. LegacyVault hỗ trợ lưu giữ và bàn giao dữ liệu số; không thay thế di chúc, công chứng hay thủ tục thừa kế.",
-    },
-    {
-      question: "Tôi nên bắt đầu bằng những gì?",
-      answer:
-        "Bắt đầu bằng danh sách tài liệu và thông tin anh, chị muốn sắp xếp, sau đó xác định người nhận. Chỉ đưa dữ liệu nhạy cảm vào hệ thống sau khi hiểu rõ cách bảo vệ và quyền truy cập.",
-    },
-    {
-      question: "Người được mời có thể mở kho ngay không?",
-      answer:
-        "Lời mời hoặc việc đăng nhập không tự cấp quyền đọc nội dung. Quyền truy cập phụ thuộc vai trò, xác minh danh tính và điều kiện bàn giao.",
-    },
-    {
-      question: "Các gói dịch vụ có gì khác nhau?",
-      answer:
-        "Xem trang gói dịch vụ để đối chiếu hạn mức và quyền lợi hiện có. Landing page không dùng giá hoặc số liệu minh họa làm cam kết thanh toán.",
-    },
-  ],
-  pricingTitle: "Chọn quy mô phù hợp với kế hoạch.",
-  pricingDescription: "Xem các gói dịch vụ và quyền lợi trước khi quyết định.",
-  pricingAction: "Xem gói dịch vụ",
-  closingTitle: "Bắt đầu bằng một điều quan trọng.",
-  closingDescription:
-    "Một tài liệu được sắp xếp, một người được chỉ định. Kế hoạch của anh, chị có thể bắt đầu từ đó.",
-  footer: "LegacyVault · Dự án SWP391",
-  skip: "Đến nội dung chính",
+  pricing: {
+    eyebrow: "Gói dịch vụ",
+    title: "Bắt đầu miễn phí, nâng cấp khi cần.",
+    description: "Giá theo biểu phí hiện hành. Gói XS và XS Max tính theo chu kỳ 365 ngày.",
+    featuredPlan: "XS Max",
+    action: "Tạo tài khoản",
+    plans: [
+      {
+        name: "Free",
+        price: "0đ",
+        features: [
+          "Dung lượng 20 MiB",
+          "Lưu trữ nội dung cá nhân, chưa thiết lập kế hoạch bàn giao",
+        ],
+      },
+      {
+        name: "XS",
+        price: "199.000đ / 365 ngày",
+        features: [
+          "Dung lượng 200 MiB",
+          "Thiết lập kế hoạch bàn giao, điểm danh và quy trình bàn giao",
+        ],
+      },
+      {
+        name: "XS Max",
+        price: "399.000đ / 365 ngày",
+        features: ["Mọi quyền lợi của XS", "Dung lượng 500 MiB", "PDF tổng hợp kế hoạch"],
+      },
+    ],
+  },
+  footer: {
+    tagline: "Giữ hôm nay, trao mai sau.",
+    commitmentTitle: "Cam kết của chúng tôi",
+    commitments: [
+      "Nói rõ giới hạn.",
+      "Bạn luôn dừng được bàn giao.",
+      "Không ai nắm toàn quyền một mình.",
+    ],
+    canTitle: "Làm được",
+    can: [
+      "Lưu kho, mã hóa AES-256-GCM",
+      "Bàn giao qua bốn lớp xác nhận",
+      "Gửi lời nhắn đúng lúc",
+      "Dừng bàn giao bằng “Tôi còn sống”",
+    ],
+    cannotTitle: "Chưa làm được",
+    cannot: [
+      "Thay thế di chúc",
+      "Mã hóa đầu cuối",
+      "eKYC có giá trị pháp lý",
+      "Phân chia tài sản hợp pháp",
+    ],
+    productTitle: "Sản phẩm",
+    productLinks: [
+      { label: "Ý nghĩa bông hoa", href: "#y-nghia" },
+      { label: "Cách hoạt động", href: "#cach-hoat-dong" },
+      { label: "Gói dịch vụ", href: "#goi" },
+    ],
+    supportTitle: "Hỗ trợ",
+    supportItems: ["Hỏi đáp", "Liên hệ"],
+    legalTitle: "Pháp lý",
+    legalItems: ["Điều khoản", "Quyền riêng tư"],
+    sampleNote: "Hình giao diện dùng dữ liệu mẫu.",
+    address: "[ĐỊA CHỈ CÔNG TY]",
+    legal: "Không phải dịch vụ pháp lý.",
+  },
 } as const;
