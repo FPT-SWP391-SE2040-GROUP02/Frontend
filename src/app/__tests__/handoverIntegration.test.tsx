@@ -15,7 +15,7 @@ import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
 import { InvitationPanel } from "@/features/handover/ui/InvitationPanel";
 import { deathCaseService } from "@/features/death-case/api/deathCaseService";
 import { ProtectedRoute } from "@/app/routes/ProtectedRoute";
-import { ExecutorPortal } from "@/features/death-case/ui/ExecutorPortal";
+import { ExecutorOverviewPage } from "@/pages/executor/ExecutorOverviewPage";
 import { CameraCheckPage } from "@/pages/ekyc/CameraCheckPage";
 import { ROUTES } from "@/shared/config/routes.config";
 
@@ -319,10 +319,10 @@ it("lets a system USER reach Executor data and leaves resource permissions to Ba
   setup(
     <Routes>
       <Route element={<ProtectedRoute />}>
-        <Route path="/executor/claim" element={<ExecutorPortal />} />
+        <Route path="/executor" element={<ExecutorOverviewPage />} />
       </Route>
     </Routes>,
-    "/executor/claim",
+    "/executor",
   );
   expect(
     await screen.findByText("Tài khoản chưa có nhiệm vụ Executor đang hiệu lực."),

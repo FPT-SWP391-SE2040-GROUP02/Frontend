@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
+  ArrowLeftRight,
   Home,
   Vault,
   Layers3,
@@ -16,6 +17,8 @@ import {
 } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
+import { useExecutorVaults } from "@/features/death-case/model/useExecutorVaults";
+import { accessTokenMemory } from "@/shared/api/accessToken";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "./owner-workspace.css";
@@ -31,9 +34,21 @@ const navigation = [
   { label: "Cài đặt", to: ROUTES.DASHBOARD.SETTINGS, icon: Settings },
 ];
 
-const executorNavigation = [
-  { label: "Nhiệm vụ Executor", to: ROUTES.EXECUTOR.CLAIM, icon: Layers3 },
-];
+/** Nút chuyển sang vai Người thực hiện; chỉ hiện khi tài khoản đang là Executor của ít nhất một kho. */
+function ExecutorRoleSwitch() {
+  const isAuthenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
+  const vaults = useExecutorVaults(isAuthenticated && Boolean(accessTokenMemory.get()));
+  if (!vaults.data || vaults.data.length === 0) return null;
+  return (
+    <Link
+      to={ROUTES.EXECUTOR.ROOT}
+      className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E0C486] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E8CF9B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+    >
+      <ArrowLeftRight className="size-4" aria-hidden="true" />
+      Sang vai Người thực hiện
+    </Link>
+  );
+}
 
 /** Khung chính thống nhất; logo điều hướng nội bộ và giữ nguyên phiên/cache. */
 export function OwnerWorkspace({
@@ -54,15 +69,12 @@ export function OwnerWorkspace({
     [ROUTES.BILLING.HISTORY]: ROUTES.BILLING.PLANS,
   };
   const path = aliases[location.pathname] ?? location.pathname;
-  const current = [...navigation, ...executorNavigation].find(
+  const current = navigation.find(
     ({ to }) => path === to || (to !== ROUTES.DASHBOARD.ROOT && path.startsWith(`${to}/`)),
   );
   const PageIcon = current?.icon ?? Home;
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
-  const isExecutor = path.startsWith(ROUTES.EXECUTOR.CLAIM);
-  const RoleIcon = isExecutor ? Layers3 : Vault;
-  const home = isExecutor ? ROUTES.EXECUTOR.CLAIM : accountHome;
-  const workspaceNavigation = isExecutor ? executorNavigation : navigation;
+  const home = accountHome;
   const [navigationOpen, setNavigationOpen] = useState(false);
   return (
     <WorkspaceShell
@@ -76,16 +88,14 @@ export function OwnerWorkspace({
           <div className="owner-controls">
             <div className="owner-workspace-label">
               <span className="owner-role-icon">
-                <RoleIcon className="size-5" aria-hidden="true" />
+                <Vault className="size-5" aria-hidden="true" />
               </span>
-              <span className="text-sm font-semibold">
-                {isExecutor ? "Không gian Executor" : "Không gian Chủ kho"}
-              </span>
+              <span className="text-sm font-semibold">Không gian Chủ kho</span>
             </div>
             <button
               type="button"
               className="owner-menu-toggle"
-              aria-label={isExecutor ? "Menu Executor" : "Menu Chủ kho"}
+              aria-label="Menu Chủ kho"
               aria-expanded={navigationOpen}
               aria-controls="owner-navigation"
               onClick={() => setNavigationOpen(!navigationOpen)}
@@ -97,16 +107,14 @@ export function OwnerWorkspace({
               )}
             </button>
           </div>
-          <p className="owner-menu-caption">
-            {isExecutor ? "Nhiệm vụ được phân công" : "Quản lý kho"}
-          </p>
+          <p className="owner-menu-caption">Quản lý kho</p>
           <nav
             id="owner-navigation"
-            aria-label={isExecutor ? "Điều hướng Executor" : "Điều hướng Chủ kho"}
+            aria-label="Điều hướng Chủ kho"
             className="owner-navigation"
             data-open={navigationOpen}
           >
-            {workspaceNavigation.map(({ to, label, icon: Icon }) => (
+            {navigation.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
                 to={to}
@@ -129,6 +137,7 @@ export function OwnerWorkspace({
       }
       footer={
         <>
+          <ExecutorRoleSwitch />
           <div className="flex items-center gap-3">
             <span
               className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 font-semibold text-heritage-gold"
@@ -164,7 +173,7 @@ export function OwnerWorkspace({
           </span>
           <div className="min-w-0">
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-heritage-muted">
-              {isExecutor ? "Không gian Executor" : "Không gian Chủ kho"}
+              Không gian Chủ kho
             </p>
             <h1 className="text-2xl font-semibold text-heritage-primary">{title}</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-heritage-muted">{description}</p>

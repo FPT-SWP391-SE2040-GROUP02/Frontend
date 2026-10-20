@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -10,6 +10,25 @@ import { apiClient } from "@/shared/api/axiosClient";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { OwnerWorkspace } from "../OwnerWorkspace";
 
+function renderWorkspace(
+  store: ReturnType<typeof configureStore>,
+  path: string,
+  title = "Fixture",
+) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <Provider store={store}>
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={[path]}>
+          <OwnerWorkspace title={title} description="Fixture">
+            <p>Nội dung</p>
+          </OwnerWorkspace>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </Provider>,
+  );
+}
+
 afterEach(() => {
   cleanup();
   accessTokenMemory.clear();
@@ -17,45 +36,48 @@ afterEach(() => {
 });
 
 describe("workspace logo navigation", () => {
-  it.each(["/dashboard", "/executor/claim"])("has no role switcher in %s", (path) => {
-    const store = configureStore({ reducer: { auth: authReducer } });
-    render(
-      <Provider store={store}>
-        <MemoryRouter initialEntries={[path]}>
-          <OwnerWorkspace title="Fixture" description="Fixture">
-            <p>Content</p>
-          </OwnerWorkspace>
-        </MemoryRouter>
-      </Provider>,
-    );
+  it("has no Executor menu or role switcher when the account has no Executor vault", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    accessTokenMemory.set("owner-workspace-fixture");
+    const store = configureStore({
+      reducer: { auth: authReducer },
+      preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
+    });
+    renderWorkspace(store, "/dashboard");
+    await waitFor(() => expect(apiClient.get).toHaveBeenCalled());
     expect(screen.queryByText("Chuyển vai trò")).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Nội dung được nhận" })).not.toBeInTheDocument();
-    if (path === "/dashboard")
-      expect(screen.queryByRole("link", { name: "Nhiệm vụ Executor" })).not.toBeInTheDocument();
-    else {
-      expect(screen.getByRole("link", { name: "Nhiệm vụ Executor" })).toHaveAttribute(
-        "aria-current",
-        "page",
-      );
-      expect(screen.queryByRole("link", { name: "Kho của tôi" })).not.toBeInTheDocument();
-      expect(screen.queryByRole("link", { name: "Cài đặt" })).not.toBeInTheDocument();
-      expect(screen.getByRole("link", { name: "LegacyVault" })).toHaveAttribute(
-        "href",
-        "/executor/claim",
-      );
-    }
+    expect(screen.queryByRole("link", { name: "Nhiệm vụ Executor" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Sang vai Người thực hiện" }),
+    ).not.toBeInTheDocument();
   });
+
+  it("offers the switch to the Executor space only for accounts with an Executor vault", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      {
+        vaultId: "22222222-2222-4222-8222-222222222222",
+        ownerFullName: "Chủ kho",
+        role: "PRIMARY",
+        planStatus: "ACTIVE",
+        checkInOverdue: false,
+        openDeathCaseId: null,
+      },
+    ]);
+    accessTokenMemory.set("owner-workspace-fixture");
+    const store = configureStore({
+      reducer: { auth: authReducer },
+      preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
+    });
+    renderWorkspace(store, "/dashboard");
+    expect(await screen.findByRole("link", { name: "Sang vai Người thực hiện" })).toHaveAttribute(
+      "href",
+      "/executor",
+    );
+  });
+
   it("opens the phone navigation and closes it after choosing an Owner page", () => {
     const store = configureStore({ reducer: { auth: authReducer } });
-    render(
-      <Provider store={store}>
-        <MemoryRouter initialEntries={["/dashboard"]}>
-          <OwnerWorkspace title="Kho" description="Fixture">
-            <p>Nội dung</p>
-          </OwnerWorkspace>
-        </MemoryRouter>
-      </Provider>,
-    );
+    renderWorkspace(store, "/dashboard", "Kho");
     const toggle = screen.getByRole("button", { name: "Menu Chủ kho" });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(toggle);
@@ -78,15 +100,7 @@ describe("workspace logo navigation", () => {
     ["/billing/history", "Gói dịch vụ"],
   ])("keeps the correct navigation item active on %s", (path, label) => {
     const store = configureStore({ reducer: { auth: authReducer } });
-    render(
-      <Provider store={store}>
-        <MemoryRouter initialEntries={[path]}>
-          <OwnerWorkspace title="Fixture" description="Fixture">
-            <p>Nội dung</p>
-          </OwnerWorkspace>
-        </MemoryRouter>
-      </Provider>,
-    );
+    renderWorkspace(store, path);
     expect(screen.getByRole("link", { name: label })).toHaveAttribute("aria-current", "page");
     expect(
       screen.getAllByRole("link").filter((link) => link.getAttribute("aria-current") === "page"),
@@ -116,7 +130,7 @@ describe("workspace logo navigation", () => {
       const client = new QueryClient();
       const key = ["private-vault", "fixture"];
       client.setQueryData(key, { name: "Private fixture" });
-      const get = vi.spyOn(apiClient, "get");
+      const get = vi.spyOn(apiClient, "get").mockResolvedValue([]);
       const post = vi.spyOn(apiClient, "post");
       const target =
         role === "ADMIN" ? "/admin" : role === "VERIFIER" ? "/notary/workspace" : "/dashboard";
@@ -139,6 +153,7 @@ describe("workspace logo navigation", () => {
           </QueryClientProvider>
         </Provider>,
       );
+      get.mockClear();
       fireEvent.click(screen.getByRole("link", { name: "LegacyVault" }));
       expect(screen.getByText("Account dashboard")).toBeInTheDocument();
       expect(store.getState().auth).toEqual(original);
