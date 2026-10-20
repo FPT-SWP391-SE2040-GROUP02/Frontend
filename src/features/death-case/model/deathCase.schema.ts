@@ -8,6 +8,8 @@ export const executorVaultSchema = z.object({
   planStatus: z.string(),
   checkInOverdue: z.boolean(),
   openDeathCaseId: z.string().uuid().nullable(),
+  /** Hồ sơ bị từ chối gần nhất của kho, để Executor xem lại lý do. Backend cũ không có trường này. */
+  lastRejectedDeathCaseId: z.string().uuid().nullish(),
 });
 /** Hồ sơ chỉ có CCCD che, không có nội dung file hoặc Verifier được giao. */
 export const deathCaseSchema = z.object({
@@ -44,9 +46,22 @@ export const deathCaseSchema = z.object({
   }),
   reviewVersionNo: z.number().int().nullable(),
   missingRequirements: z.array(z.string()),
+  /** Có khi SUPPLEMENT_REQUIRED; không chứa thông tin Verifier. Fixture cũ không có trường này. */
+  supplementRequest: z
+    .object({
+      versionNo: z.number().int().positive(),
+      reason: z.string(),
+      requestedParts: z.array(z.string()),
+      requestedAt: timestamp,
+      dueAt: timestamp.nullish(),
+      overdue: z.boolean().optional(),
+    })
+    .nullish(),
+  /** Có khi REJECTED: lý do Verifier nhập để Executor mở hồ sơ mới. */
+  rejectReason: z.string().nullish(),
   ownerNotice: z
     .object({
-      status: z.enum(["PENDING", "DELIVERED", "FAILED"]),
+      status: z.enum(["PENDING", "DELIVERED", "FAILED", "CANCELLED"]),
       deliveredAt: timestamp.nullable(),
     })
     .nullable(),

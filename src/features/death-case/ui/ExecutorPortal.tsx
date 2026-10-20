@@ -4,6 +4,8 @@ import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
 import { deathCaseService } from "../api/deathCaseService";
 import { DeathCaseEditor } from "./DeathCaseEditor";
+import { HandoverProgressPanel } from "./HandoverProgressPanel";
+import { ReviewFeedback } from "./ReviewFeedback";
 function CaseDetail({ id }: { id: string }) {
   const query = useQuery({
     queryKey: ["death-case", id],
@@ -23,7 +25,9 @@ function CaseDetail({ id }: { id: string }) {
       <Button variant="outline" onClick={() => window.location.reload()}>
         Tải lại hồ sơ và bỏ thay đổi chưa lưu
       </Button>
+      <ReviewFeedback record={query.data} />
       <DeathCaseEditor record={query.data} />
+      {query.data.status !== "DRAFT" && <HandoverProgressPanel caseId={id} />}
     </div>
   );
 }
@@ -84,6 +88,16 @@ export function ExecutorPortal() {
                 >
                   Mở hồ sơ chứng tử
                 </Button>
+              )}
+              {vault.lastRejectedDeathCaseId && (
+                <div>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setParams({ caseId: vault.lastRejectedDeathCaseId! })}
+                  >
+                    Xem hồ sơ bị từ chối gần nhất
+                  </Button>
+                </div>
               )}
             </li>
           ))}
