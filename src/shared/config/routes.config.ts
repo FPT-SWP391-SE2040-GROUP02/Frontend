@@ -51,7 +51,13 @@ export const ROUTES = {
 
   /** Cổng công chứng viên / Legal Verifier */
   NOTARY: {
+    /** Tổng quan Người xét duyệt (Verifier); cũng là trang chủ của vai trò này. */
     WORKSPACE: "/notary/workspace",
+    /** Hàng chờ; ?caseId= mở chi tiết một hồ sơ. */
+    QUEUE: "/notary/queue",
+    CRITERIA: "/notary/criteria",
+    HISTORY: "/notary/history",
+    SETTINGS: "/notary/settings",
   },
 
   /** Cổng người giám hộ di sản / Digital Executor */
