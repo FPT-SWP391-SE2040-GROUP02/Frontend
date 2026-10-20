@@ -18,6 +18,7 @@ import {
 } from "@/shared/ui/dialog";
 import { backendAssetService } from "../api/backendAssetService";
 import type { BackendAsset } from "../model/backendAsset.schema";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 
 type DialogKind = "download" | "edit" | "version" | "delete";
 
@@ -291,7 +292,7 @@ function VersionDialog({
       return;
     }
     if (!file || file.size === 0 || file.size > MAX_UPLOAD_BYTES)
-      return setProblem("Chọn tệp không rỗng, tối đa 500 MiB.");
+      return setProblem(`Chọn tệp không rỗng, tối đa ${formatStorageSize(MAX_UPLOAD_BYTES)}.`);
     setProblem("");
     void action.execute(
       () => backendAssetService.createFileVersion(vaultId, asset.id, file, asset.etag),

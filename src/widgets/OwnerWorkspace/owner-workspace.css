@@ -89,29 +89,17 @@
 }
 .owner-nav-link[aria-current="page"] {
   border-color: #b88e4c40;
-  background: #b88e4c1c;
-  color: #e2c17d;
+  background: #265a47;
+  color: #e6c98b;
   font-weight: 600;
+  box-shadow: inset 3px 0 0 #b68f4c;
 }
 .owner-nav-link:focus-visible {
   outline: 2px solid #e2c17d;
   outline-offset: 3px;
 }
 .owner-page-header {
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--border-ui);
-}
-.owner-page-header > nav {
-  margin-bottom: 20px;
-}
-.owner-page-icon {
-  display: none;
-  flex-shrink: 0;
-  padding: 16px;
-  border: 1px solid var(--gold-border);
-  border-radius: 16px;
-  background: var(--gold-light);
-  color: var(--gold-hover);
+  padding-bottom: 4px;
 }
 .owner-shortcuts > a:first-child {
   border-color: var(--gold-border);
@@ -247,10 +235,7 @@
     padding-bottom: 12px;
   }
   .owner-controls {
-    padding-bottom: 12px;
-  }
-  .owner-menu-caption {
-    padding-bottom: 8px;
+    display: none;
   }
   .owner-nav-link {
     min-height: 42px;
@@ -266,12 +251,6 @@
   }
   .owner-navigation {
     flex-direction: column;
-  }
-  .owner-menu-caption {
-    display: block;
-  }
-  .owner-page-icon {
-    display: block;
   }
 }
 @media (max-width: 767px) {

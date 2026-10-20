@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileText, Lock, Upload } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { Input } from "@/shared/ui/input";
 import type { DeathCase } from "../model/deathCase.schema";
 import { executorVaultsKey } from "../model/useExecutorVaults";
@@ -126,7 +127,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
     setFileError("");
     if (!file) return;
     if (file.size === 0 || file.size > MAX_BYTES || !ALLOWED_TYPES.includes(file.type)) {
-      setFileError("Chọn tệp đúng định dạng, không rỗng, tối đa 20 MiB.");
+      setFileError(`Chọn tệp đúng định dạng, không rỗng, tối đa ${formatStorageSize(MAX_BYTES)}.`);
       return;
     }
     await action.execute(() => deathCaseService.upload(record.id, file), publish);
@@ -359,7 +360,8 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
             Chọn tệp
           </button>
           <p className="mt-3 text-xs text-heritage-muted">
-            PDF, JPG, PNG, WEBP · Tối đa 20 MiB mỗi tệp · Không tự gửi hồ sơ sau khi tải tệp lên.
+            PDF, JPG, PNG, WEBP · Tối đa {formatStorageSize(MAX_BYTES)} mỗi tệp · Không tự gửi hồ sơ
+            sau khi tải tệp lên.
           </p>
         </div>
         {fileError && (

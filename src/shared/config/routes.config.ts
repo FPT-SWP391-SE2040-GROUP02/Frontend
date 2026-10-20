@@ -23,6 +23,7 @@ export const ROUTES = {
 
   /** Nhóm đường dẫn khu vực quản trị / nội bộ (Dashboard) */
   DASHBOARD: {
+    IDENTITY: "/dashboard/identity",
     ROOT: "/dashboard",
     ASSETS: "/dashboard/assets",
     BENEFICIARIES: "/dashboard/beneficiaries",

@@ -20,3 +20,4 @@ export * from "./tabs";
 export * from "./tooltip";
 export * from "./skeleton";
 export * from "./table";
+export * from "./LegacyVaultArtwork";

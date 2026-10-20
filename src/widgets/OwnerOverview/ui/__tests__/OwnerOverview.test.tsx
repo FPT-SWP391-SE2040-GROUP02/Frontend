@@ -6,8 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "@/entities/user/model/authSlice";
 import { OwnerOverview } from "../OwnerOverview";
-vi.mock("../OwnerVaultPanel", () => ({
-  OwnerVaultPanel: () => <section aria-label="Server vault">Dữ liệu server</section>,
+vi.mock("../OwnerDashboard", () => ({
+  OwnerDashboard: () => <section aria-label="Server vault">Dữ liệu server</section>,
 }));
 let client: QueryClient;
 afterEach(() => {

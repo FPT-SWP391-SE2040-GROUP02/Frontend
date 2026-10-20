@@ -265,7 +265,7 @@ it("shows empty lists and sends Owner eKYC to the Owner dashboard", async () => 
   expect(screen.getByText("Không có tài sản ngoài gói.")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Đi xác minh danh tính" })).toHaveAttribute(
     "href",
-    "/dashboard",
+    "/dashboard/identity",
   );
 });
 

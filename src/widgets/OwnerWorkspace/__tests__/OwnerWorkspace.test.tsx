@@ -9,6 +9,8 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { apiClient } from "@/shared/api/axiosClient";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { OwnerWorkspace } from "../OwnerWorkspace";
+import { ownerVaultKeys } from "@/features/vault-management/model/useOwnerVault";
+import { vaultFixture } from "@/shared/api/__tests__/backend.fixtures";
 
 function renderWorkspace(
   store: ReturnType<typeof configureStore>,
@@ -69,10 +71,10 @@ describe("workspace logo navigation", () => {
       preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
     });
     renderWorkspace(store, "/dashboard");
-    expect(await screen.findByRole("link", { name: "Sang vai Người thực hiện" })).toHaveAttribute(
-      "href",
-      "/executor",
-    );
+    // Có hai lối vào: mục trong menu (điện thoại) và nút ở chân khung.
+    const links = await screen.findAllByRole("link", { name: "Sang vai Người thực hiện" });
+    expect(links.length).toBeGreaterThan(0);
+    links.forEach((link) => expect(link).toHaveAttribute("href", "/executor"));
   });
 
   it("opens the phone navigation and closes it after choosing an Owner page", () => {
@@ -128,6 +130,9 @@ describe("workspace logo navigation", () => {
       const original = store.getState().auth;
       accessTokenMemory.set("navigation-fixture-access");
       const client = new QueryClient();
+      // Có dữ liệu kho trước khi bấm logo: kiểm tra riêng điều hướng không tạo request hoặc đổi phiên.
+      client.setQueryDefaults(ownerVaultKeys.mine, { staleTime: Infinity });
+      client.setQueryData(ownerVaultKeys.mine, { ...vaultFixture, serviceTier: "XS_MAX" });
       const key = ["private-vault", "fixture"];
       client.setQueryData(key, { name: "Private fixture" });
       const get = vi.spyOn(apiClient, "get").mockResolvedValue([]);
@@ -153,6 +158,8 @@ describe("workspace logo navigation", () => {
           </QueryClientProvider>
         </Provider>,
       );
+      if (role === "USER") expect(screen.getByText("Legacy XS Max")).toBeInTheDocument();
+      else expect(screen.queryByText("Legacy XS Max")).not.toBeInTheDocument();
       get.mockClear();
       fireEvent.click(screen.getByRole("link", { name: "LegacyVault" }));
       expect(screen.getByText("Account dashboard")).toBeInTheDocument();

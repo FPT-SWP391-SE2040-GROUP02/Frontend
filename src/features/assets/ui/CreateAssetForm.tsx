@@ -8,6 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { backendAssetService } from "../api/backendAssetService";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 
 const schema = z.object({
   name: z.string().regex(/\S/, "Nhập tên tài sản.").max(200),
@@ -55,7 +56,9 @@ export function CreateAssetForm({
             kind === "FILE" &&
             (!file || file.size === 0 || file.size > Math.min(500 * 1024 * 1024, remainingBytes))
           ) {
-            setFileError("Chọn tệp không rỗng, tối đa 500 MiB và không vượt dung lượng còn lại.");
+            setFileError(
+              `Chọn tệp không rỗng, tối đa ${formatStorageSize(500 * 1024 * 1024)} và không vượt dung lượng còn lại.`,
+            );
             return;
           }
           const saved = await action.execute(

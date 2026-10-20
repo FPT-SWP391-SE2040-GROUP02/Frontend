@@ -219,7 +219,7 @@ export function OwnerSection({ section }: { section: "assets" | "plans" | "check
   if (section === "check-in") return <CheckIn vaultId={vault.data.id} />;
   return (
     <div className="space-y-6">
-      {section === "plans" && <OwnerPlanSetup vaultId={vault.data.id} />}
+      {section === "plans" && <OwnerPlanSetup vaultId={vault.data.id} vaultService={vault.data} />}
       {section === "assets" ? (
         <CreateAssetForm
           vaultId={vault.data.id}
