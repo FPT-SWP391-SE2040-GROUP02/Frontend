@@ -59,10 +59,10 @@ it("prefills OCR, sends only the edited declaration on explicit confirmation, th
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(status);
   setup();
   expect(screen.getByLabelText("Ngày sinh")).toHaveValue("2000-02-01");
-  expect(screen.getByLabelText("Số CCCD")).toHaveAttribute("type", "password");
+  expect(screen.getByLabelText("Số căn cước")).toHaveAttribute("type", "password");
   fireEvent.change(screen.getByLabelText("Họ và tên"), { target: { value: "  Tên đã sửa  " } });
   expect(post).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("button", { name: "Xác nhận và gửi thông tin" }));
+  fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
   await screen.findByRole("status");
   expect(post).toHaveBeenCalledExactlyOnceWith("/ekyc/document/confirm", {
     verificationId,
@@ -85,14 +85,14 @@ it("keeps edits on failure and sends the beneficiary turn context on retry", asy
     .mockRejectedValueOnce(new Error("test failure"))
     .mockResolvedValue({ ...status, purpose: "BENEFICIARY_CLAIM" });
   setup(true);
-  fireEvent.change(screen.getByLabelText("Địa chỉ cư trú"), {
+  fireEvent.change(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú"), {
     target: { value: "Địa chỉ đã sửa" },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Xác nhận và gửi thông tin" }));
+  fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
   await screen.findByRole("alert");
-  expect(screen.getByLabelText("Địa chỉ cư trú")).toHaveValue("Địa chỉ đã sửa");
+  expect(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú")).toHaveValue("Địa chỉ đã sửa");
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Xác nhận và gửi thông tin" }));
+  fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
   await screen.findByRole("status");
   expect(post).toHaveBeenLastCalledWith(
     "/ekyc/document/confirm",
@@ -112,12 +112,12 @@ it("rejects invalid input without posting and guards duplicate submits while pen
       }),
   );
   setup();
-  fireEvent.change(screen.getByLabelText("Số CCCD"), { target: { value: "abc" } });
-  fireEvent.click(screen.getByRole("button", { name: "Xác nhận và gửi thông tin" }));
+  fireEvent.change(screen.getByLabelText("Số căn cước"), { target: { value: "abc" } });
+  fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("CCCD cần đủ 12 chữ số.");
   expect(post).not.toHaveBeenCalled();
-  fireEvent.change(screen.getByLabelText("Số CCCD"), { target: { value: document.idNumber } });
-  fireEvent.click(screen.getByRole("button", { name: "Xác nhận và gửi thông tin" }));
+  fireEvent.change(screen.getByLabelText("Số căn cước"), { target: { value: document.idNumber } });
+  fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   const pending = screen.getByRole("button", { name: "Đang xác nhận…" });
   expect(pending).toBeDisabled();

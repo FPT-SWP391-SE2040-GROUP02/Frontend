@@ -101,24 +101,24 @@ it("does not submit selfie before the OCR confirmation and keeps OCR out of the 
   fireEvent.change(screen.getByLabelText("Ảnh mặt trước giấy tờ"), {
     target: { files: [new File(["fixture"], "id.png", { type: "image/png" })] },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Gửi ảnh mặt trước" }));
+  fireEvent.click(screen.getByRole("button", { name: "Đọc thông tin" }));
   expect(await screen.findByLabelText("Ảnh mặt sau giấy tờ")).toBeInTheDocument();
-  // Xác nhận OCR
-  fireEvent.click(screen.getByRole("button", { name: "Xác nhận và gửi thông tin" }));
-  await screen.findByText("Máy chủ đã nhận bản thông tin xác nhận. Tiếp tục gửi ảnh mặt sau.");
+  // Mặt sau là tùy chọn: gửi trước để điền địa chỉ, rồi mới xác nhận OCR.
   fireEvent.change(screen.getByLabelText("Ảnh mặt sau giấy tờ"), {
     target: { files: [new File(["fixture"], "id-back.png", { type: "image/png" })] },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Gửi ảnh mặt sau" }));
-  // Chỉ mở camera sau khi xác nhận bản thông tin và gửi mặt sau.
+  fireEvent.click(screen.getByRole("button", { name: "Đọc mặt sau" }));
+  await screen.findByText(/Đã nhận ảnh mặt sau/);
+  // Chỉ mở camera sau khi xác nhận bản thông tin.
+  fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
   expect(
     await screen.findByRole("button", { name: "Bắt đầu thử thách camera" }),
   ).toBeInTheDocument();
   expect(post.mock.calls.map((c) => c[0])).toEqual([
     "/ekyc/consent",
     "/ekyc/document",
-    "/ekyc/document/confirm",
     "/ekyc/document-back",
+    "/ekyc/document/confirm",
   ]);
   expect(screen.queryByText("012345678901")).not.toBeInTheDocument();
   expect(
@@ -228,14 +228,9 @@ it("only allows Beneficiary identity-complete when PASSED + MATCHED + bound veri
   fireEvent.change(await screen.findByLabelText("Ảnh mặt trước giấy tờ"), {
     target: { files: [new File(["fixture"], "id.png", { type: "image/png" })] },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Gửi ảnh mặt trước" }));
-  fireEvent.click(await screen.findByRole("button", { name: "Xác nhận và gửi thông tin" }));
-  await screen.findByText("Máy chủ đã nhận bản thông tin xác nhận. Tiếp tục gửi ảnh mặt sau.");
-  fireEvent.change(await screen.findByLabelText("Ảnh mặt sau giấy tờ"), {
-    target: { files: [new File(["fixture"], "id-back.png", { type: "image/png" })] },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Gửi ảnh mặt sau" }));
-  // Sau mặt sau → bước liveness
+  fireEvent.click(screen.getByRole("button", { name: "Đọc thông tin" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Tiếp tục so khớp mặt" }));
+  // Xác nhận bản khai → bước liveness (mặt sau là tùy chọn)
   const startLiveness = await screen.findByRole("button", {
     name: "Bắt đầu thử thách camera",
   });

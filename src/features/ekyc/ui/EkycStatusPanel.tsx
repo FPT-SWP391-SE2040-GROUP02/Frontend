@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import type { z } from "zod";
@@ -55,33 +56,42 @@ export function EkycStatusPanel({
   });
   const needsTurnId = purpose === "BENEFICIARY_CLAIM" && !turnId;
   const live = status.data;
+
+  let banner: ReactNode = null;
+  if (!authenticated) {
+    banner = <p role="status">Vui lòng đăng nhập để xem trạng thái xác minh.</p>;
+  } else if (status.isPending) {
+    banner = <p role="status">Đang tải trạng thái xác minh…</p>;
+  } else if (status.isError) {
+    banner = (
+      <div role="alert">
+        <p>Không tải được trạng thái xác minh.</p>
+        <Button
+          className="mt-3 min-h-11"
+          disabled={status.isFetching}
+          onClick={() => void status.refetch()}
+        >
+          Thử lại
+        </Button>
+      </div>
+    );
+  } else if (live) {
+    banner = (
+      <div className="space-y-1 text-sm">
+        <p role="status" className="font-semibold">
+          {labels[live.status]}
+        </p>
+        <p className="text-heritage-muted">{matchLabels[live.identityMatch]}</p>
+        {live.backSideChecked && <p className="text-heritage-muted">Đã đọc mặt sau giấy tờ.</p>}
+      </div>
+    );
+  }
+
   return (
-    <section
-      aria-label="Trạng thái xác minh danh tính"
-      className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
-    >
-      <h1 className="text-2xl font-semibold">Xác minh danh tính</h1>
-      <p className="text-sm text-heritage-muted">Mục đích: {purpose}</p>
-      {!authenticated ? (
-        <p role="status">Vui lòng đăng nhập để xem trạng thái xác minh.</p>
-      ) : status.isPending ? (
-        <p role="status">Đang tải trạng thái xác minh…</p>
-      ) : status.isError ? (
-        <div role="alert">
-          <p>Không tải được trạng thái xác minh.</p>
-          <Button
-            className="mt-3 min-h-11"
-            disabled={status.isFetching}
-            onClick={() => void status.refetch()}
-          >
-            Thử lại
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-2 text-sm">
-          <p role="status">{labels[live!.status]}</p>
-          <p className="text-heritage-muted">{matchLabels[live!.identityMatch]}</p>
-          {live!.backSideChecked && <p className="text-heritage-muted">Đã đọc mặt sau giấy tờ.</p>}
+    <section aria-label="Trạng thái xác minh danh tính" className="space-y-6">
+      {banner && (
+        <div className="rounded-2xl border border-heritage-border bg-heritage-surface px-6 py-4">
+          {banner}
         </div>
       )}
       {needsTurnId && (
@@ -112,6 +122,10 @@ export function EkycStatusPanel({
           )}
         </>
       )}
+      <div className="flex flex-wrap justify-between gap-2 text-xs text-heritage-muted">
+        <p>Xác minh cơ bản, không có giá trị pháp lý. LegacyVault không thay thế di chúc.</p>
+        <p>Chưa xác thực giấy tờ thật/giả hoặc bảo đảm chống deepfake.</p>
+      </div>
     </section>
   );
 }

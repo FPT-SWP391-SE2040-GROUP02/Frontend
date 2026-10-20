@@ -100,6 +100,7 @@ describe("workspace logo navigation", () => {
     ["/wills/new", "Bàn giao"],
     ["/dashboard/wills/new", "Bàn giao"],
     ["/billing/history", "Gói dịch vụ"],
+    ["/dashboard/identity", "Xác minh"],
   ])("keeps the correct navigation item active on %s", (path, label) => {
     const store = configureStore({ reducer: { auth: authReducer } });
     renderWorkspace(store, path);

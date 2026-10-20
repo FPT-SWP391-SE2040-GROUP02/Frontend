@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { ArrowLeftRight, Menu, X } from "lucide-react";
+import { ArrowLeftRight, Menu, ScanFace, X } from "lucide-react";
 import {
   OverviewIcon,
   VaultIcon,
@@ -45,6 +45,7 @@ const navigation = [
   { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon },
   { label: "Người nhận", to: ROUTES.DASHBOARD.BENEFICIARIES, icon: RecipientsIcon },
   { label: "Người tin cậy", to: ROUTES.DASHBOARD.TRUSTED_PEOPLE, icon: TrustedIcon },
+  { label: "Xác minh", to: ROUTES.DASHBOARD.IDENTITY, icon: ScanFace },
   { label: "Điểm danh", to: ROUTES.DMS.ROOT, icon: ActivityIcon },
   { label: "Nhật ký hoạt động", to: ROUTES.DASHBOARD.AUDIT_LOG, icon: HistoryIcon },
   { label: "Gói dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon },
@@ -84,10 +85,9 @@ export function OwnerWorkspace({
     [ROUTES.BILLING.HISTORY]: ROUTES.BILLING.PLANS,
   };
   const path = aliases[location.pathname] ?? location.pathname;
-  const current = [
-    ...navigation,
-    { label: "Xác minh danh tính", to: ROUTES.DASHBOARD.IDENTITY, icon: TrustedIcon },
-  ].find(({ to }) => path === to || (to !== ROUTES.DASHBOARD.ROOT && path.startsWith(`${to}/`)));
+  const current = navigation.find(
+    ({ to }) => path === to || (to !== ROUTES.DASHBOARD.ROOT && path.startsWith(`${to}/`)),
+  );
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const showOwnerService = user?.role === "USER" && Boolean(accessTokenMemory.get());
   const showSwitchRole = useCanSwitchToExecutor();
