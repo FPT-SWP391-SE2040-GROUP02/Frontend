@@ -1,3 +1,5 @@
+import type { ReferenceServicePlan } from "@/features/billing/model/servicePlanPreview";
+
 /** Bảng tham khảo SRS 3.15.0 §8.1; không dùng để tính đơn hàng hoặc cấp quyền cho tài khoản. */
 export const PRICING_CATALOG = [
   {
@@ -6,7 +8,11 @@ export const PRICING_CATALOG = [
     termPrices: [],
     includedBeneficiarySlots: 0,
     storage: 20,
-    features: ["Lưu trữ nội dung cá nhân", "Chưa thiết lập kế hoạch bàn giao"],
+    features: [
+      "Lưu trữ nội dung cá nhân",
+      "Chưa thiết lập kế hoạch bàn giao",
+      "Không có người nhận",
+    ],
   },
   {
     serviceTier: "XS",
@@ -32,4 +38,4 @@ export const PRICING_CATALOG = [
     storage: 500,
     features: ["Các tính năng của Legacy XS", "PDF tổng hợp kế hoạch"],
   },
-] as const;
+] as const satisfies readonly ReferenceServicePlan[];

@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import type { VaultResponse } from "@/entities/vault/model/vault.types";
+import { apiClient } from "@/shared/api/axiosClient";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
@@ -27,9 +29,14 @@ afterEach(() => {
   cleanup();
   client.clear();
   accessTokenMemory.clear();
+  vi.restoreAllMocks();
 });
 
-function setup(owner = false) {
+function setup(
+  owner = false,
+  vaultChanges: Partial<VaultResponse> = {},
+  role: "USER" | "ADMIN" | "VERIFIER" = "USER",
+) {
   const store = configureStore({ reducer: { auth: authReducer } });
   if (owner) {
     store.dispatch(
@@ -38,7 +45,7 @@ function setup(owner = false) {
           id: "11111111-1111-4111-8111-111111111111",
           fullName: "Pricing fixture",
           email: "pricing@example.test",
-          role: "USER",
+          role,
           status: "ACTIVE",
           createdAt: "2026-10-15T00:00:00Z",
           emailVerified: true,
@@ -55,6 +62,7 @@ function setup(owner = false) {
       beneficiarySlots: 3,
       includedBeneficiarySlots: 2,
       extraBeneficiarySlots: 1,
+      ...vaultChanges,
     });
   }
   render(
@@ -82,22 +90,21 @@ describe("pricing reference policies", () => {
     expect(screen.getByText(/Không giới hạn số tài sản theo hạng/)).toBeInTheDocument();
   });
 
-  it("shows total reference prices for all paid terms without a purchase action", () => {
+  it("switches reference prices by term and sends guests to login", () => {
     setup();
-    for (const name of ["Legacy XS", "Legacy XS Max"]) {
-      const card = planCard(name);
-      for (const years of [1, 3, 5]) {
-        expect(card.getByText(`${years} năm`)).toBeInTheDocument();
-      }
-    }
-    for (const price of [/199\.000/, /499\.000/, /799\.000/]) {
-      expect(planCard("Legacy XS").getByText(price)).toBeInTheDocument();
-    }
-    for (const price of [/399\.000/, /999\.000/, /1\.599\.000/]) {
-      expect(planCard("Legacy XS Max").getByText(price)).toBeInTheDocument();
-    }
+    expect(
+      planCard("Legacy XS").getByText(/199\.000/, { selector: "p.service-plan-price" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "3 năm" }));
+    expect(planCard("Legacy XS").getByText(/499\.000/, { selector: "p" })).toBeInTheDocument();
+    expect(planCard("Legacy XS Max").getByText(/999\.000/, { selector: "p" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "5 năm" }));
+    expect(planCard("Legacy XS").getByText(/799\.000/, { selector: "p" })).toBeInTheDocument();
+    expect(
+      planCard("Legacy XS Max").getByText(/1\.599\.000/, { selector: "p" }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Giá là tổng cho cả kỳ/)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /mua|thanh toán/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Mua gói XS" })).toHaveAttribute("href", "/login");
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
   });
 
@@ -114,9 +121,96 @@ describe("pricing reference policies", () => {
   it("keeps the current account entitlement from the server separate from the catalog", () => {
     setup(true);
     const current = screen.getByRole("region", { name: "Gói hiện tại của kho" });
-    expect(within(current).getByText("3")).toBeInTheDocument();
+    expect(within(current).getByText(/\/ 3 đã dùng/)).toBeInTheDocument();
     expect(planCard("Legacy XS").getByText("2 người")).toBeInTheDocument();
     expect(planCard("Legacy XS").getByText("Gói hiện tại")).toBeInTheDocument();
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
   });
+
+  it("opens renewal inline, retains add-on slots, and never creates a payment order", () => {
+    const post = vi.spyOn(apiClient, "post");
+    setup(true);
+    expect(screen.getByRole("heading", { level: 1, name: "Gói dịch vụ" })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "Đường dẫn trang" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Gia hạn Legacy XS" }));
+    const preview = screen.getByRole("region", { name: "Gia hạn Legacy XS" });
+    fireEvent.click(within(preview).getByRole("button", { name: "3 năm" }));
+    expect(preview).toHaveTextContent("1 suất, giữ nguyên");
+    expect(preview).toHaveTextContent("147.000");
+    expect(preview).toHaveTextContent("646.000");
+    fireEvent.click(within(preview).getByRole("button", { name: "Tạo đơn và thanh toán" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Thanh toán chưa khả dụng");
+    expect(post).not.toHaveBeenCalled();
+    fireEvent.click(within(preview).getByRole("button", { name: "Đóng xem trước" }));
+    expect(screen.queryByRole("region", { name: "Gia hạn Legacy XS" })).not.toBeInTheDocument();
+  });
+
+  it("blocks changing tier mid-term and explains the add-on purchase is unavailable", () => {
+    setup(true);
+    expect(
+      planCard("Legacy XS Max").getByRole("button", { name: "Đổi hạng khi hết kỳ" }),
+    ).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Mua thêm suất người nhận" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Chưa hỗ trợ mua thêm suất trên hệ thống");
+  });
+
+  it("updates the preview and add-on action when the current period expires while open", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-20T00:00:00Z"));
+    try {
+      setup(true, { serviceExpiresAt: "2026-10-20T00:00:01Z" });
+      fireEvent.click(screen.getByRole("button", { name: "Gia hạn Legacy XS" }));
+      act(() => vi.advanceTimersByTime(1001));
+      expect(
+        screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole("region", { name: "Gói hiện tại của kho" })).toHaveTextContent(
+        "Đã hết hạn dịch vụ",
+      );
+      expect(screen.getByRole("region", { name: "Gia hạn Legacy XS" })).toHaveTextContent(
+        "Từ lúc thanh toán thành công",
+      );
+    } finally {
+      cleanup();
+      vi.useRealTimers();
+    }
+  });
+
+  it.each(["ADMIN", "VERIFIER"] as const)(
+    "keeps %s out of owner queries and purchase previews",
+    (role) => {
+      setup(true, {}, role);
+      expect(ownerVaultService.getMine).not.toHaveBeenCalled();
+      expect(
+        screen.queryByRole("region", { name: "Gói hiện tại của kho" }),
+      ).not.toBeInTheDocument();
+      for (const button of screen.getAllByRole("button", { name: "Gói dành cho chủ kho" }))
+        expect(button).toBeDisabled();
+    },
+  );
+
+  it("allows a Free owner to preview buying, without inventing a service start date", () => {
+    setup(true, {
+      serviceTier: "FREE",
+      serviceStatus: "FREE",
+      serviceExpiresAt: null,
+      extraBeneficiarySlots: 0,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Mua gói XS" }));
+    const preview = screen.getByRole("region", { name: "Mua Legacy XS" });
+    expect(preview).toHaveTextContent("Từ lúc thanh toán thành công");
+    expect(preview).toHaveTextContent("Hệ thống xác nhận khi tạo đơn");
+    expect(preview).not.toHaveTextContent("2099");
+  });
+
+  it.each(["CLOSED", "DEATH_CASE_OPEN", "HANDOVER_IN_PROGRESS", "BLOCKED"])(
+    "does not offer payment actions for locked state %s",
+    (locked) => {
+      setup(true, locked === "CLOSED" ? { status: "CLOSED" } : { planStatus: locked });
+      expect(screen.queryByRole("button", { name: "Gia hạn Legacy XS" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
+      ).not.toBeInTheDocument();
+    },
+  );
 });
