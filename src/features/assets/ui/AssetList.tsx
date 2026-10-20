@@ -2,6 +2,7 @@ import { useDeferredValue, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { FolderOpen, Lock, Search } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { buttonStyles, Chip, formatDate, Panel } from "@/shared/ui/heritageKit";
 import { useVaultAssets } from "../model/useVaultAssets";
 
@@ -123,7 +124,7 @@ export function AssetList({ vaultId }: { vaultId: string }) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] text-left text-sm">
+            <table className="w-full min-w-[560px] text-left text-sm">
               <caption className="sr-only">Các mục trong kho</caption>
               <thead>
                 <tr className="border-b border-heritage-border text-xs text-heritage-muted">
@@ -132,6 +133,9 @@ export function AssetList({ vaultId }: { vaultId: string }) {
                   </th>
                   <th scope="col" className="px-4 py-3 font-semibold">
                     Loại
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Dung lượng
                   </th>
                   <th scope="col" className="px-4 py-3 font-semibold">
                     Cập nhật
@@ -155,6 +159,9 @@ export function AssetList({ vaultId }: { vaultId: string }) {
                     </td>
                     <td className="px-4 py-4">
                       <Chip tone="neutral">{kindLabels[item.kind]}</Chip>
+                    </td>
+                    <td className="px-4 py-4 text-heritage-muted">
+                      {formatStorageSize(item.currentVersion.sizeBytes)}
                     </td>
                     <td className="px-4 py-4 text-heritage-muted">
                       {formatDate(item.updatedAt ?? item.createdAt)}

@@ -70,6 +70,12 @@ describe("AssetList", () => {
     expect(rows).toHaveLength(3);
     expect(within(rows[1]).getByText("Văn bản")).toBeInTheDocument();
     expect(within(rows[2]).getByText("Tệp")).toBeInTheDocument();
+    // Cột Dung lượng lấy từ phiên bản hiện tại của mục (100 byte trong dữ liệu mẫu).
+    expect(
+      within(screen.getByRole("table")).getByRole("columnheader", { name: "Dung lượng" }),
+    ).toBeInTheDocument();
+    expect(within(rows[1]).getByText("100 B")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("100 B")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ví điện tử" })).toHaveAttribute(
       "href",
       "/dashboard/assets/44444444-4444-4444-8444-444444444441",
