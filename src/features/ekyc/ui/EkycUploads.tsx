@@ -53,6 +53,9 @@ export function EkycUploads({
   const [frontError, setFrontError] = useState("");
   const [backError, setBackError] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  // BR-88: mặt sau có thể gửi trước khi xác nhận; địa chỉ đọc từ mặt sau chỉ ở RAM để điền vào bản khai.
+  const [backSent, setBackSent] = useState(false);
+  const [backAddress, setBackAddress] = useState("");
 
   // Action riêng cho mỗi bước để lỗi hiển thị đúng chỗ và retry đúng bước.
   const consentAction = usePrivateAction();
@@ -66,9 +69,20 @@ export function EkycUploads({
     setFrontImage(null);
     setBackImage(null);
     setConfirmed(false);
+    setBackSent(false);
+    setBackAddress("");
     setFrontError("");
     setBackError("");
     onVerificationBound?.(null);
+  }
+
+  /** Chỉ sang thử thách camera khi đã xác nhận bản khai VÀ đã gửi mặt sau, theo thứ tự nào cũng được. */
+  function goToLiveness() {
+    // canMatchFace=false hoặc verificationId=null: không cho mở camera liveness.
+    const canStartLiveness = ocr?.canMatchFace !== false && ocr?.verificationId != null;
+    setOcr(null);
+    setBackAddress("");
+    setStep(canStartLiveness ? "liveness" : "done");
   }
 
   async function handleConsent() {
@@ -96,6 +110,8 @@ export function EkycUploads({
         form.reset();
         setStep("back");
         setConfirmed(false);
+        setBackSent(false);
+        setBackAddress("");
         onVerificationBound?.(result.canMatchFace ? result.verificationId : null);
         void client.invalidateQueries({ queryKey: ["ekyc"] });
       },
@@ -109,8 +125,8 @@ export function EkycUploads({
       setBackError(err);
       return;
     }
-    if (!confirmed || !ocr?.canMatchFace || !ocr.verificationId) {
-      setBackError("Bạn cần xác nhận thông tin đọc được từ giấy tờ trước khi gửi mặt sau.");
+    if (!ocr?.canMatchFace || !ocr.verificationId) {
+      setBackError("Hãy gửi lại mặt trước giấy tờ có khuôn mặt rõ trước khi gửi mặt sau.");
       return;
     }
     const file = backImage;
@@ -120,14 +136,10 @@ export function EkycUploads({
         setStatus(result);
         setBackImage(null);
         form.reset();
-        // canMatchFace=false hoặc verificationId=null: không cho mở camera liveness.
-        const canStartLiveness = ocr?.canMatchFace !== false && ocr?.verificationId != null;
-        if (canStartLiveness) {
-          setOcr(null);
-          setStep("liveness");
-        } else {
-          setStep("done");
-        }
+        setBackSent(true);
+        setBackAddress(result.residenceAddress);
+        // Đã xác nhận trước: đi tiếp ngay. Chưa xác nhận: ở lại để người dùng đối chiếu địa chỉ rồi bấm xác nhận.
+        if (confirmed) goToLiveness();
         void client.invalidateQueries({ queryKey: ["ekyc"] });
       },
     );
@@ -202,7 +214,12 @@ export function EkycUploads({
               turnId={turnId}
               confirmed={confirmed}
               disabled={backAction.pending}
-              onConfirmed={() => setConfirmed(true)}
+              suggestedAddress={backAddress}
+              backSent={backSent}
+              onConfirmed={() => {
+                setConfirmed(true);
+                if (backSent) goToLiveness();
+              }}
               onEdit={() => setConfirmed(false)}
             />
           )}
@@ -216,9 +233,7 @@ export function EkycUploads({
             <h3 className="text-base font-semibold">Bước 2: Ảnh mặt sau giấy tờ</h3>
             <p className="text-sm text-heritage-muted">JPEG/PNG, tối đa 8 MiB.</p>
             <fieldset
-              disabled={
-                backAction.pending || !confirmed || !ocr?.canMatchFace || !ocr.verificationId
-              }
+              disabled={backAction.pending || !ocr?.canMatchFace || !ocr.verificationId}
               className="space-y-3"
             >
               <Input
@@ -227,10 +242,16 @@ export function EkycUploads({
                 aria-label="Ảnh mặt sau giấy tờ"
                 onChange={(event) => setBackImage(event.target.files?.[0] ?? null)}
               />
-              <Button type="submit" className="min-h-11" disabled={!backImage || !confirmed}>
+              <Button type="submit" className="min-h-11" disabled={!backImage}>
                 {backAction.pending ? "Đang gửi…" : "Gửi ảnh mặt sau"}
               </Button>
             </fieldset>
+            {backSent && !confirmed && (
+              <p role="status" className="text-sm text-heritage-muted">
+                Đã nhận ảnh mặt sau. Kiểm tra thông tin ở trên rồi bấm Xác nhận và gửi thông tin để
+                tiếp tục.
+              </p>
+            )}
             {status?.backSideChecked === false && (
               <p role="status" className="text-sm text-heritage-muted">
                 Máy chủ chưa đọc được mặt sau. Bạn có thể tiếp tục nhưng nên gửi lại ảnh rõ hơn.

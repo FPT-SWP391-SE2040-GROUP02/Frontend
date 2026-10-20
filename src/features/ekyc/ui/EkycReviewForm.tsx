@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
@@ -20,6 +20,8 @@ export function EkycReviewForm({
   turnId,
   confirmed,
   disabled,
+  suggestedAddress = "",
+  backSent = false,
   onConfirmed,
   onEdit,
 }: {
@@ -28,6 +30,10 @@ export function EkycReviewForm({
   turnId?: string | null;
   confirmed: boolean;
   disabled: boolean;
+  /** Nơi cư trú đọc từ mặt sau; chỉ điền khi ô địa chỉ đang trống, người dùng vẫn đối chiếu và sửa được. */
+  suggestedAddress?: string;
+  /** Đã gửi mặt sau thành công (kể cả khi chưa đọc được địa chỉ). */
+  backSent?: boolean;
   onConfirmed: () => void;
   onEdit: () => void;
 }) {
@@ -44,6 +50,8 @@ export function EkycReviewForm({
     register,
     handleSubmit,
     reset,
+    getValues,
+    setValue,
     formState: { errors },
   } = useForm<z.infer<typeof ekycReviewSchema>>({
     resolver: zodResolver(ekycReviewSchema),
@@ -51,6 +59,14 @@ export function EkycReviewForm({
     reValidateMode: "onBlur",
     defaultValues: defaults,
   });
+  // BR-88: thẻ gắn chip in địa chỉ ở mặt sau. Mặt sau đọc được thì điền giúp, nhưng không ghi đè địa chỉ đã có.
+  useEffect(() => {
+    if (suggestedAddress && !getValues("residenceAddress")) {
+      setValue("residenceAddress", suggestedAddress, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [suggestedAddress, getValues, setValue]);
+  const addressFromBack = Boolean(suggestedAddress) && !defaults.residenceAddress;
+  const addressMissing = !defaults.residenceAddress && !suggestedAddress;
   const fields = [
     ["fullName", "Họ và tên", "text"],
     ["dateOfBirth", "Ngày sinh", "date"],
@@ -99,6 +115,19 @@ export function EkycReviewForm({
               aria-describedby={errors[name] ? `${prefix}-${name}-error` : undefined}
               inputMode={name === "idNumber" ? "numeric" : undefined}
             />
+            {name === "residenceAddress" && !confirmed && addressMissing && (
+              <p className="text-sm text-heritage-muted">
+                Căn cước gắn chip in địa chỉ ở mặt sau.{" "}
+                {backSent
+                  ? "Chưa đọc được địa chỉ từ mặt sau; hãy nhập theo giấy tờ gốc hoặc gửi lại ảnh mặt sau rõ hơn."
+                  : "Gửi ảnh mặt sau thật nét ở Bước 2 để hệ thống điền giúp, hoặc tự nhập."}
+              </p>
+            )}
+            {name === "residenceAddress" && !confirmed && addressFromBack && (
+              <p className="text-sm text-heritage-muted">
+                Địa chỉ được đọc từ mặt sau. Hãy đối chiếu với giấy tờ gốc và sửa nếu sai.
+              </p>
+            )}
             {errors[name] && (
               <p id={`${prefix}-${name}-error`} role="alert" className="text-sm text-destructive">
                 {errors[name]?.message}
@@ -158,7 +187,8 @@ export function EkycReviewForm({
       )}
       {confirmed && (
         <p role="status" className="text-sm">
-          Máy chủ đã nhận bản thông tin xác nhận. Tiếp tục gửi ảnh mặt sau.
+          Máy chủ đã nhận bản thông tin xác nhận.
+          {backSent ? "" : " Tiếp tục gửi ảnh mặt sau."}
         </p>
       )}
     </form>
