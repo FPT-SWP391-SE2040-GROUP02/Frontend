@@ -113,6 +113,26 @@ describe("EkycStatusPanel", () => {
       await screen.findByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
     ).toBeInTheDocument();
   });
+  it("hides upload form when OWNER_ENROLLMENT is already PASSED on server", async () => {
+    vi.mocked(ekycService.getStatus).mockResolvedValue({
+      status: "PASSED",
+      verificationId: null,
+      citizenIdLast4: "1234",
+      faceMatchScore: 0.5,
+      matchThreshold: 0.363,
+      spoofCheckPassed: true,
+      createdAt: null,
+      completedAt: null,
+      purpose: "OWNER_ENROLLMENT",
+      identityMatch: "NOT_CHECKED",
+      backSideChecked: false,
+    });
+    setup(true, { purpose: "OWNER_ENROLLMENT", turnId: null });
+    expect(await screen.findByText("Danh tính đã được xác minh.")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
+    ).not.toBeInTheDocument();
+  });
   it("does not offer complete button when page does not enable it", async () => {
     vi.mocked(ekycService.getStatus).mockResolvedValue({
       status: "PASSED",

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import type { z } from "zod";
@@ -55,6 +56,17 @@ export function EkycStatusPanel({
   });
   const needsTurnId = purpose === "BENEFICIARY_CLAIM" && !turnId;
   const live = status.data;
+  // Owner đã đạt từ trước (server PASSED) thì không bắt chụp lại khi quay về màn này. Chốt theo lần tải đầu:
+  // đang làm dở trong phiên thì vẫn giữ EkycUploads để hiện bước "done" và gọi onVerified.
+  const [alreadyPassedOnLoad, setAlreadyPassedOnLoad] = useState<boolean | null>(null);
+  if (alreadyPassedOnLoad === null && live) {
+    setAlreadyPassedOnLoad(
+      purpose === "OWNER_ENROLLMENT" &&
+        live.status === "PASSED" &&
+        live.purpose === "OWNER_ENROLLMENT",
+    );
+  }
+  const hideUploads = alreadyPassedOnLoad === true;
   return (
     <section
       aria-label="Trạng thái xác minh danh tính"
@@ -89,7 +101,7 @@ export function EkycStatusPanel({
           Mở màn này từ một lượt bàn giao cụ thể để gửi ảnh xác minh.
         </p>
       )}
-      {authenticated && status.isSuccess && !needsTurnId && (
+      {authenticated && status.isSuccess && !needsTurnId && !hideUploads && (
         <>
           <EkycUploads
             key={`${userId}:${purpose}:${turnId ?? ""}`}
