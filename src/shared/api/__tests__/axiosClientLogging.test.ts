@@ -53,4 +53,16 @@ describe("HTTP error logging", () => {
       );
     },
   );
+
+  it("does not report a cancelled request as a network error", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const controller = new AbortController();
+    const request = apiClient.get("/logging-fixture", {
+      signal: controller.signal,
+      adapter: async () => new Promise(() => {}),
+    });
+    controller.abort();
+    await expect(request).rejects.toMatchObject({ code: AxiosError.ERR_CANCELED });
+    expect(log).not.toHaveBeenCalled();
+  });
 });

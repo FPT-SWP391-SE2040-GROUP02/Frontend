@@ -84,8 +84,10 @@ export function LinkGoogleAccountCard({
         rememberMe,
       },
       {
-        onSuccess: ({ user }) => {
-          if (onComplete) onComplete(user);
+        onSuccess: (outcome) => {
+          // Admin đã bật 2FA: chưa có phiên, sang bước nhập mã.
+          if ("twoFactorRequired" in outcome) navigate(ROUTES.AUTH.TWO_FACTOR);
+          else if (onComplete) onComplete(outcome.user);
           else navigate(getLoginRedirect(returnUrl ?? null));
         },
       },

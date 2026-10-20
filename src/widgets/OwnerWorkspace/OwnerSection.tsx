@@ -14,6 +14,7 @@ import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { CheckInActions } from "@/features/dms/ui/CheckInActions";
 import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
+import { AssetActions } from "@/features/assets/ui/AssetActions";
 import { NewContainerForm } from "@/features/vault-management/ui/NewContainerForm";
 import { ROUTES } from "@/shared/config/routes.config";
 import { OwnerPlanSetup } from "./OwnerPlanSetup";
@@ -111,6 +112,9 @@ function ResourceList({ vaultId, section }: { vaultId: string; section: "assets"
                   </p>
                 )}
               </div>
+              {section === "assets" && "kind" in item && (
+                <AssetActions vaultId={vaultId} asset={item} />
+              )}
             </li>
           ))}
         </ul>

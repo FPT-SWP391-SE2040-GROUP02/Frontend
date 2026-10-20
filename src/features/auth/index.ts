@@ -11,6 +11,8 @@ export * from "./ui/OtpVerificationModal";
 export * from "./ui/LinkGoogleAccountCard";
 export * from "./ui/VerifyEmailNotice";
 export * from "./ui/AdminTwoFactorCard";
+export * from "./ui/AdminTwoFactorSettings";
+export * from "./ui/LoginMethodsPanel";
 export * from "./ui/LogoutConfirmationCard";
 export * from "./ui/LoggedOutCard";
 export * from "./ui/SessionExpiredCard";

@@ -6,6 +6,8 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { ROUTES } from "@/shared/config/routes.config";
 import { EkycStatusPanel } from "@/features/ekyc/ui/EkycStatusPanel";
+import { OwnerDeathCasePanel } from "@/features/owner-objection";
+import { useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { OwnerVaultPanel } from "./OwnerVaultPanel";
 
@@ -33,6 +35,8 @@ const shortcuts = [
 export function OwnerOverview() {
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useSelector((state: { auth: AuthState }) => state.auth);
+  const sessionReady = isAuthenticated && Boolean(accessTokenMemory.get());
+  const vault = useOwnerVault(sessionReady);
   return (
     <OwnerWorkspace
       title={user?.fullName ? `Chào ${user.fullName}` : "Kho của bạn"}
@@ -61,12 +65,16 @@ export function OwnerOverview() {
           </Link>
         ))}
       </nav>
+      <OwnerDeathCasePanel
+        vaultId={vault.data?.id ?? ""}
+        enabled={sessionReady && vault.isSuccess}
+      />
       <EkycStatusPanel
         purpose="OWNER_ENROLLMENT"
         turnId={null}
         onVerified={() => void queryClient.invalidateQueries({ queryKey: ["plan-setup"] })}
       />
-      <OwnerVaultPanel enabled={isAuthenticated && Boolean(accessTokenMemory.get())} />
+      <OwnerVaultPanel enabled={sessionReady} />
     </OwnerWorkspace>
   );
 }

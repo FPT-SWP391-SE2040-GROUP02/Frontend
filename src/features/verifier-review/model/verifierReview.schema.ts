@@ -210,3 +210,61 @@ export const decisionLabels: Record<z.infer<typeof verifierDecisionKindSchema>, 
   REJECTED: "Từ chối",
   APPROVED: "Duyệt mở bàn giao",
 };
+
+/** Kết luận của Verifier cho lời báo còn sống (BE ObjectionConclusion). */
+export const objectionConclusionSchema = z.enum([
+  "ALIVE_CONFIRMED",
+  "OBJECTION_REJECTED",
+  "INSUFFICIENT_EVIDENCE",
+]);
+/** Lời báo "Tôi còn sống" nhìn từ Verifier (BE ObjectionResponse). */
+export const verifierObjectionSchema = z.object({
+  id: z.string().uuid(),
+  status: z.enum(["OPEN", "CONCLUDED"]),
+  firstReportedAt: timestamp,
+  lastReportedAt: timestamp,
+  reportCount: z.number().int().nonnegative(),
+  selfieDeadlineAt: timestamp,
+  selfieWindowOpen: z.boolean(),
+  selfiePassed: z.boolean(),
+  selfiePassedAt: timestamp.nullable(),
+  selfieAttemptsRemaining: z.number().int().nonnegative(),
+  verifierDueAt: timestamp.nullable(),
+  insufficientEvidenceCount: z.number().int().nonnegative(),
+  conclusion: objectionConclusionSchema.nullable(),
+  conclusionReason: z.string().nullable(),
+  concludedAt: timestamp.nullable(),
+  serverTime: timestamp,
+});
+/** Kết luận lời báo; lý do bắt buộc, tối đa 1000 ký tự (BE ConcludeObjectionRequest). */
+export const concludeObjectionRequestSchema = z.object({
+  conclusion: objectionConclusionSchema,
+  reason: z
+    .string()
+    .trim()
+    .min(1, "Cần nhập lý do kết luận.")
+    .max(1000, "Lý do tối đa 1000 ký tự."),
+});
+export const objectionConclusionLabels: Record<
+  z.infer<typeof objectionConclusionSchema>,
+  string
+> = {
+  ALIVE_CONFIRMED: "Xác nhận Owner còn sống",
+  OBJECTION_REJECTED: "Bác lời báo",
+  INSUFFICIENT_EVIDENCE: "Chưa đủ bằng chứng",
+};
+/**
+ * Kết luận nào còn mở cho lời báo này, theo luật BE mục 6.14:
+ * ALIVE_CONFIRMED cần selfie đạt hoặc đã quá 7 ngày; OBJECTION_REJECTED bị chặn khi selfie đã đạt (ALIVE-05).
+ * Nút chỉ phản ánh luật; BE vẫn là nơi quyết định.
+ */
+export function allowedObjectionConclusions(
+  objection: z.infer<typeof verifierObjectionSchema>,
+): z.infer<typeof objectionConclusionSchema>[] {
+  if (objection.status !== "OPEN") return [];
+  const options: z.infer<typeof objectionConclusionSchema>[] = [];
+  if (objection.selfiePassed || !objection.selfieWindowOpen) options.push("ALIVE_CONFIRMED");
+  if (!objection.selfiePassed) options.push("OBJECTION_REJECTED");
+  options.push("INSUFFICIENT_EVIDENCE");
+  return options;
+}
