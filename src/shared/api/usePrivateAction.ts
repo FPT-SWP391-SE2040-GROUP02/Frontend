@@ -20,6 +20,10 @@ const handoverNotAllowedReasons: Record<string, string> = {
 const executorNotAllowedReasons: Record<string, string> = {
   INVITEE_EMAIL_MISMATCH:
     "Lời mời này gửi tới một email khác. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
+  REPLACEMENT_REQUIRED:
+    "Người thực hiện chính đã nhận nhiệm vụ nên không thu hồi trực tiếp. Hãy mời người thay; người cũ tự thôi khi người mới chấp nhận.",
+  BACKUP_EXECUTOR_REQUIRED:
+    "Người thực hiện chính cũng là người nhận nên kho cần giữ ít nhất một người dự phòng độc lập. Hãy mời người dự phòng khác trước.",
 };
 
 /** Reason-specific messages for ASSET_IN_USE */

@@ -42,13 +42,10 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
     void client.invalidateQueries({ queryKey: ["owner-vault"] });
   };
   return (
-    <details className="rounded-xl border border-heritage-border bg-heritage-surface p-6">
-      <summary className="min-h-11 cursor-pointer font-semibold">
-        {record ? `${record.fullName} · ****${record.citizenIdLast4}` : "Thêm người nhận"}
-      </summary>
+    <div>
       <form
         noValidate
-        className="mt-4 space-y-4"
+        className="space-y-4"
         onSubmit={handleSubmit(async (values) => {
           if (!record && !/^\d{12}$/.test(values.citizenId.replace(/\s/g, ""))) {
             setError("citizenId", { message: "CCCD cần đủ 12 chữ số." });
@@ -97,7 +94,11 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
           )}
           <label className="block space-y-2 text-sm">
             Họ tên
-            <Input {...register("fullName")} aria-invalid={Boolean(errors.fullName)} />
+            <Input
+              placeholder="Ví dụ: Nguyễn Văn An"
+              {...register("fullName")}
+              aria-invalid={Boolean(errors.fullName)}
+            />
           </label>
           <label className="block space-y-2 text-sm">
             Ngày sinh
@@ -120,7 +121,11 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
               {error?.message}
             </p>
           ))}
-          <Button type="submit" className="min-h-11">
+          <Button
+            type="submit"
+            size="lg"
+            className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+          >
             {action.pending ? "Đang lưu…" : record ? "Lưu hồ sơ" : "Tạo hồ sơ người nhận"}
           </Button>
         </fieldset>
@@ -139,6 +144,8 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
           </label>
           <Button
             variant="outline"
+            size="lg"
+            className="border-red-300 text-red-700 hover:bg-red-50"
             disabled={action.pending || !deleteConfirmed || record.containerIds.length > 0}
             onClick={() =>
               void action.execute(() => beneficiaryService.remove(vaultId, record.id), sync)
@@ -147,7 +154,7 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
             Xóa hồ sơ
           </Button>
           {record.containerIds.length > 0 && (
-            <p className="text-xs text-heritage-muted">Gỡ khỏi các gói trước khi xóa hồ sơ.</p>
+            <p className="text-xs text-heritage-muted">Gỡ khỏi các nhóm trước khi xóa hồ sơ.</p>
           )}
         </div>
       )}
@@ -161,6 +168,6 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
           Đã lưu thay đổi.
         </p>
       )}
-    </details>
+    </div>
   );
 }
