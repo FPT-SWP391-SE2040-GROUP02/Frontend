@@ -58,7 +58,11 @@ const ALLOWED_ACTIONS = ["Báo tin cho hệ thống", "Theo dõi tiến trình b
 const FORBIDDEN_ACTIONS = ["Đọc nội dung kho", "Tự duyệt hồ sơ"];
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(value));
 }
 
 function isLive(executor: Executor): boolean {

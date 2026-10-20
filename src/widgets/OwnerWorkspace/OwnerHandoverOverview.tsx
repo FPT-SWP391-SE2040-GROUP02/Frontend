@@ -52,7 +52,11 @@ function formatDate(value: string | null): string {
   if (value === null) {
     return "Chưa có";
   }
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(value));
 }
 
 function ProcessCard() {

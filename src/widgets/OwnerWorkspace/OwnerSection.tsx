@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { Vault, FolderOpen, Activity } from "lucide-react";
+import { Vault, FolderOpen } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { Button } from "@/shared/ui/button";
@@ -7,8 +7,6 @@ import {
   useOwnerVault,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
-import { useCheckIn } from "@/features/dms/model/useCheckIn";
-import { CheckInActions } from "@/features/dms/ui/CheckInActions";
 import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
 import { AssetList } from "@/features/assets/ui/AssetList";
@@ -16,6 +14,7 @@ import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
 import { OwnerTrustedPeople } from "./OwnerTrustedPeople";
 import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
 import { OwnerGroups } from "./OwnerGroups";
+import { OwnerCheckIn } from "./OwnerCheckIn";
 
 function Empty({ title, description }: { title: string; description: string }) {
   return (
@@ -39,53 +38,6 @@ function QueryError({ retry, pending }: { retry: () => void; pending: boolean })
         Thử lại
       </Button>
     </div>
-  );
-}
-
-const checkInLabels = {
-  NOT_STARTED: "Chưa bắt đầu",
-  ACTIVE: "Đang trong kỳ điểm danh",
-  CHECKIN_OVERDUE: "Đã quá hạn điểm danh",
-  AWAITING_CHECK: "Đang chờ kiểm tra",
-  PAUSED: "Đang tạm dừng",
-};
-function CheckIn({ vaultId }: { vaultId: string }) {
-  const query = useCheckIn(vaultId);
-  if (query.isPending)
-    return (
-      <p role="status" className="py-8 text-sm text-heritage-muted">
-        Đang tải trạng thái điểm danh…
-      </p>
-    );
-  if (query.isError)
-    return <QueryError retry={() => void query.refetch()} pending={query.isFetching} />;
-  if (!query.data) return null;
-  const data = query.data;
-  const date = (value: string | null) =>
-    value
-      ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(
-          new Date(value),
-        )
-      : "Chưa có";
-  return (
-    <section className="space-y-6 rounded-xl border border-heritage-border bg-heritage-surface p-6">
-      <Activity className="size-7 text-heritage-gold" aria-hidden="true" />
-      <h2 className="text-lg font-semibold">{checkInLabels[data.status]}</h2>
-      <dl className="grid gap-6 sm:grid-cols-2">
-        {[
-          ["Lần điểm danh gần nhất", date(data.lastCheckInAt)],
-          ["Hạn điểm danh tiếp theo", date(data.nextCheckInDueAt)],
-          ["Chu kỳ", `${data.settings.cycleDays} ngày`],
-          ["Thời gian ân hạn", `${data.settings.graceDays} ngày`],
-        ].map(([label, value]) => (
-          <div key={label}>
-            <dt className="text-xs text-heritage-muted">{label}</dt>
-            <dd className="mt-2 text-sm font-medium">{value}</dd>
-          </div>
-        ))}
-      </dl>
-      <CheckInActions key={data.settings.etag} vaultId={vaultId} status={data} />
-    </section>
   );
 }
 
@@ -123,7 +75,7 @@ export function OwnerSection({
         Đang tải kho của bạn…
       </div>
     );
-  if (section === "check-in") return <CheckIn vaultId={vault.data.id} />;
+  if (section === "check-in") return <OwnerCheckIn vaultId={vault.data.id} />;
   if (section === "trusted") return <OwnerTrustedPeople vaultId={vault.data.id} />;
   if (section === "groups") {
     let open = false;
