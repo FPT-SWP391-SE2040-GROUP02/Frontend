@@ -2,8 +2,15 @@ import { useSearchParams } from "react-router-dom";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
 import { Button } from "@/shared/ui/button";
+import type { VaultServiceData } from "@/entities/vault/model/vaultServicePresentation";
 /** Compose person metadata with setup without cross-feature imports. */
-export function OwnerPlanSetup({ vaultId }: { vaultId: string }) {
+export function OwnerPlanSetup({
+  vaultId,
+  vaultService,
+}: {
+  vaultId: string;
+  vaultService?: VaultServiceData;
+}) {
   const [params, setParams] = useSearchParams();
   const requested = Number(params.get("executorBeneficiaryPage") ?? 1);
   const page =
@@ -26,6 +33,7 @@ export function OwnerPlanSetup({ vaultId }: { vaultId: string }) {
     <div className="space-y-4">
       <PlanSetupPanel
         vaultId={vaultId}
+        vaultService={vaultService}
         beneficiaries={people.data.items.map((item) => ({
           id: item.id,
           label: `${item.fullName} · ****${item.citizenIdLast4}`,

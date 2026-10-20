@@ -10,9 +10,19 @@ const AssetsManagementPage = lazy(() =>
     default: module.AssetsManagementPage,
   })),
 );
+const AssetDetailPage = lazy(() =>
+  import("@/pages/dashboard/AssetDetailPage").then((module) => ({
+    default: module.AssetDetailPage,
+  })),
+);
 const ContainerDetailPage = lazy(() =>
   import("@/pages/dashboard/ContainerDetailPage").then((module) => ({
     default: module.ContainerDetailPage,
+  })),
+);
+const OwnerIdentityPage = lazy(() =>
+  import("@/pages/dashboard/OwnerIdentityPage").then((module) => ({
+    default: module.OwnerIdentityPage,
   })),
 );
 const BeneficiariesPage = lazy(() =>
@@ -38,9 +48,29 @@ const BillingHistoryPage = lazy(() =>
 const DmsStatusPage = lazy(() =>
   import("@/pages/dms/DmsStatusPage").then((module) => ({ default: module.DmsStatusPage })),
 );
-const ExecutorClaimsPage = lazy(() =>
-  import("@/pages/claims/ExecutorClaimsPage").then((module) => ({
-    default: module.ExecutorClaimsPage,
+const ExecutorOverviewPage = lazy(() =>
+  import("@/pages/executor/ExecutorOverviewPage").then((module) => ({
+    default: module.ExecutorOverviewPage,
+  })),
+);
+const ExecutorReportPage = lazy(() =>
+  import("@/pages/executor/ExecutorReportPage").then((module) => ({
+    default: module.ExecutorReportPage,
+  })),
+);
+const ExecutorProgressPage = lazy(() =>
+  import("@/pages/executor/ExecutorProgressPage").then((module) => ({
+    default: module.ExecutorProgressPage,
+  })),
+);
+const ExecutorPermissionsPage = lazy(() =>
+  import("@/pages/executor/ExecutorPermissionsPage").then((module) => ({
+    default: module.ExecutorPermissionsPage,
+  })),
+);
+const ExecutorSettingsPage = lazy(() =>
+  import("@/pages/executor/ExecutorSettingsPage").then((module) => ({
+    default: module.ExecutorSettingsPage,
   })),
 );
 const ForbiddenPage = lazy(() =>
@@ -99,6 +129,26 @@ const AccountSettingsPage = lazy(() =>
 );
 const CheckoutPage = lazy(() =>
   import("@/pages/billing/CheckoutPage").then((module) => ({ default: module.CheckoutPage })),
+);
+const VerifierQueuePage = lazy(() =>
+  import("@/pages/notary/VerifierQueuePage").then((module) => ({
+    default: module.VerifierQueuePage,
+  })),
+);
+const VerifierHistoryPage = lazy(() =>
+  import("@/pages/notary/VerifierHistoryPage").then((module) => ({
+    default: module.VerifierHistoryPage,
+  })),
+);
+const VerifierCriteriaPage = lazy(() =>
+  import("@/pages/notary/VerifierCriteriaPage").then((module) => ({
+    default: module.VerifierCriteriaPage,
+  })),
+);
+const VerifierSettingsPage = lazy(() =>
+  import("@/pages/notary/VerifierSettingsPage").then((module) => ({
+    default: module.VerifierSettingsPage,
+  })),
 );
 const NotaryWorkspacePage = lazy(() =>
   import("@/pages/notary/NotaryWorkspacePage").then((module) => ({
@@ -214,6 +264,8 @@ export function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={[ROLES.USER]} />}>
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
+          <Route path="/dashboard/assets/:assetId" element={<AssetDetailPage />} />
+          <Route path={ROUTES.DASHBOARD.IDENTITY} element={<OwnerIdentityPage />} />
           <Route path={ROUTES.DASHBOARD.BENEFICIARIES} element={<BeneficiariesPage />} />
           <Route path={ROUTES.DASHBOARD.AUDIT_LOG} element={<AuditLogPage />} />
           <Route path="/assets" element={<AssetsManagementPage />} />
@@ -229,7 +281,16 @@ export function AppRoutes() {
           6. TUYẾN ĐƯỜNG BẢO VỆ — Người Thi Hành Di Chúc (Digital Executor)
          ======================================================================== */}
         <Route element={<ProtectedRoute />}>
-          <Route path={ROUTES.EXECUTOR.CLAIM} element={<ExecutorClaimsPage />} />
+          <Route path={ROUTES.EXECUTOR.ROOT} element={<ExecutorOverviewPage />} />
+          <Route path={ROUTES.EXECUTOR.REPORT} element={<ExecutorReportPage />} />
+          <Route path={ROUTES.EXECUTOR.PROGRESS} element={<ExecutorProgressPage />} />
+          <Route path={ROUTES.EXECUTOR.PERMISSIONS} element={<ExecutorPermissionsPage />} />
+          <Route path={ROUTES.EXECUTOR.SETTINGS} element={<ExecutorSettingsPage />} />
+          {/* Đường dẫn cũ của cổng Executor. */}
+          <Route
+            path={ROUTES.EXECUTOR.CLAIM}
+            element={<Navigate to={ROUTES.EXECUTOR.ROOT} replace />}
+          />
         </Route>
 
         {/* ========================================================================
@@ -237,6 +298,10 @@ export function AppRoutes() {
          ======================================================================== */}
         <Route element={<ProtectedRoute allowedRoles={[ROLES.VERIFIER]} />}>
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
+          <Route path={ROUTES.NOTARY.QUEUE} element={<VerifierQueuePage />} />
+          <Route path={ROUTES.NOTARY.HISTORY} element={<VerifierHistoryPage />} />
+          <Route path={ROUTES.NOTARY.CRITERIA} element={<VerifierCriteriaPage />} />
+          <Route path={ROUTES.NOTARY.SETTINGS} element={<VerifierSettingsPage />} />
         </Route>
 
         {/* ========================================================================

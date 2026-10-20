@@ -224,3 +224,110 @@ export function ConfirmedIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+/** LockIcon: biểu tượng ổ khóa bảo mật theo handoff. */
+export function LockIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+
+/** StarIcon: biểu tượng ngôi sao hoạt động gần đây theo handoff. */
+export function StarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...props} viewBox="0 0 24 24" aria-hidden="true">
+      <polygon
+        points="12.0,2.0 14.5,8.6 21.5,8.9 16.0,13.3 17.9,20.1 12.0,16.2 6.1,20.1 8.0,13.3 2.5,8.9 9.5,8.6"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+/** ActivityIcon: biểu tượng điểm danh / nhịp tim theo handoff. */
+export function ActivityIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+    </svg>
+  );
+}
+
+/** HistoryIcon: biểu tượng nhật ký hoạt động theo handoff. */
+export function HistoryIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M12 7v5l4 2" />
+    </svg>
+  );
+}
+
+/** SearchIcon: biểu tượng tìm kiếm theo handoff. */
+export function SearchIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="6" />
+      <path d="M20 20l-4-4" />
+    </svg>
+  );
+}
+
+/** CalendarIcon: biểu tượng lịch theo handoff. */
+export function CalendarIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
+    </svg>
+  );
+}

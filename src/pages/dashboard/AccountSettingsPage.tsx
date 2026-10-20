@@ -4,14 +4,11 @@ import { LoginMethodsPanel } from "@/features/auth";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
-/** Hồ sơ từ phiên Backend và quản lý phương thức đăng nhập đã có API. */
-export function AccountSettingsPage() {
+/** Nội dung cài đặt dùng chung cho mọi không gian (Chủ kho, Người thực hiện). */
+export function AccountSettingsContent() {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   return (
-    <OwnerWorkspace
-      title="Cài đặt tài khoản"
-      description="Thông tin hồ sơ và phương thức bảo vệ tài khoản của bạn."
-    >
+    <>
       <section className="rounded-xl border border-heritage-border bg-heritage-surface p-6">
         <div className="flex items-center gap-4 border-b border-heritage-border pb-6">
           <span
@@ -54,6 +51,18 @@ export function AccountSettingsPage() {
       >
         Xác minh danh tính của tôi
       </Link>
+    </>
+  );
+}
+
+/** Hồ sơ từ phiên Backend và quản lý phương thức đăng nhập đã có API. */
+export function AccountSettingsPage() {
+  return (
+    <OwnerWorkspace
+      title="Cài đặt tài khoản"
+      description="Thông tin hồ sơ và phương thức bảo vệ tài khoản của bạn."
+    >
+      <AccountSettingsContent />
     </OwnerWorkspace>
   );
 }

@@ -6,10 +6,11 @@ export const handoverProgressKey = (caseId: string) =>
   ["death-case", caseId, "handover-progress"] as const;
 
 /** Tiến độ bàn giao chỉ đọc của một hồ sơ; không retry để 404 quyền không bị gọi lặp. */
-export function useHandoverProgress(caseId: string) {
+export function useHandoverProgress(caseId: string, enabled = true) {
   return useQuery({
     queryKey: handoverProgressKey(caseId),
     queryFn: ({ signal }) => deathCaseService.handoverProgress(caseId, signal),
     retry: false,
+    enabled,
   });
 }
