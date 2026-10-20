@@ -1,0 +1,24 @@
+/* Hoa guilloche ở hero xoay rất chậm (180 giây/vòng), giống Mẫu G. */
+.landing-flower .spin {
+  transform-origin: 400px 400px;
+  animation: landing-flower-spin 180s linear infinite;
+}
+
+@keyframes landing-flower-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-flower .spin {
+    animation: none;
+  }
+}
+
+/* Dải hoa văn vàng mảnh ở mép trên chân trang. */
+.landing-footer {
+  background-image: repeating-linear-gradient(135deg, #b68f4c55 0 2px, transparent 2px 8px);
+  background-size: 100% 6px;
+  background-repeat: no-repeat;
+}

@@ -1,303 +1,379 @@
-import { useAccountHome } from "@/entities/user/model/useAccountHome";
-import { ArrowRight, Plus, ShieldCheck } from "lucide-react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Card, buttonVariants } from "@/shared/ui";
+import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { ROUTES } from "@/shared/config/routes.config";
+import { LegacyVaultMark } from "@/shared/ui/LegacyVaultArtwork";
+import guillocheMarkup from "@/shared/assets/legacyvault-guilloche.svg?raw";
 import { LANDING_CONTENT as content } from "./model/landing.content";
-import { LegacyVaultMark, VaultIcon } from "@/shared/ui/LegacyVaultArtwork";
-import guilloche from "@/shared/assets/legacyvault-guilloche.svg";
+import "./landing.css";
 
-/** Landing công khai, dùng nội dung chọn lọc từ prototype và điều hướng thật của client. */
+/*
+ * Landing công khai theo Mẫu G "Bông hoa là logo". Màu cố định theo bản thiết kế (nền xanh đậm / kem)
+ * nên không đổi theo chế độ tối của ứng dụng.
+ */
+const FOCUS_RING =
+  "focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#E6C98B]";
+const GOLD_BUTTON = `inline-flex min-h-12 items-center justify-center rounded-md bg-[#B68F4C] px-6 text-sm font-semibold text-[#0A281E] transition-colors hover:bg-[#E6C98B] ${FOCUS_RING}`;
+const HEADING = "font-serif font-normal tracking-normal";
+
+/**
+ * Hoa nhúng trực tiếp để CSS của trang điều khiển được phần `.spin` bên trong SVG
+ * (thẻ img không cho CSS ngoài vào). Nguồn là asset của dự án, không phải dữ liệu người dùng.
+ */
+function AnimatedGuilloche({ className }: { className: string }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`landing-flower ${className}`}
+      dangerouslySetInnerHTML={{ __html: guillocheMarkup }}
+    />
+  );
+}
+
+interface SectionHeadProps {
+  eyebrow: string;
+  title: string;
+  description: string;
+  dark?: boolean;
+}
+
+function SectionHead({ eyebrow, title, description, dark }: SectionHeadProps) {
+  let titleColor = "text-[#0A281E]";
+  let descriptionColor = "text-[#4E6257]";
+  if (dark) {
+    titleColor = "text-[#F3EFE6]";
+    descriptionColor = "text-[#F3EFE6]/75";
+  }
+  return (
+    <div>
+      <p className={`${HEADING} text-base italic text-[#B68F4C]`}>{eyebrow}</p>
+      <h2 className={`${HEADING} mt-2 text-3xl leading-tight sm:text-4xl ${titleColor}`}>
+        {title}
+      </h2>
+      <p className={`mt-4 text-base leading-7 ${descriptionColor}`}>{description}</p>
+    </div>
+  );
+}
+
+function LayerCards() {
+  const cards: ReactNode[] = [];
+  let layerNumber = 0;
+  for (const layer of content.meaning.layers) {
+    layerNumber = layerNumber + 1;
+    cards.push(
+      <li key={layer.title} className="rounded-lg border border-[#E0DACB] bg-[#FAF9F5] p-5">
+        <span className={`${HEADING} text-3xl italic text-[#B68F4C]`}>{layerNumber}</span>
+        <h3 className={`${HEADING} mt-2 text-xl leading-snug text-[#0A281E]`}>{layer.title}</h3>
+        <p className="mt-3 text-sm leading-6 text-[#4E6257]">{layer.detail}</p>
+      </li>,
+    );
+  }
+  return <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{cards}</ol>;
+}
+
+function HowSteps() {
+  const rows: ReactNode[] = [];
+  let stepNumber = 0;
+  for (const step of content.how.steps) {
+    stepNumber = stepNumber + 1;
+    rows.push(
+      <li key={step.title} className="flex gap-5 border-b border-[#F3EFE6]/15 py-5 first:pt-0">
+        <span className={`${HEADING} w-10 shrink-0 text-2xl italic text-[#B68F4C]`}>
+          {String(stepNumber).padStart(2, "0")}
+        </span>
+        <div>
+          <h3 className={`${HEADING} text-xl text-[#F3EFE6]`}>{step.title}</h3>
+          <p className="mt-1 text-sm leading-6 text-[#F3EFE6]/70">{step.detail}</p>
+        </div>
+      </li>,
+    );
+  }
+  return <ol>{rows}</ol>;
+}
+
+function HonestyColumns() {
+  const columns: ReactNode[] = [];
+  for (const item of content.honesty) {
+    columns.push(
+      <div key={item.title}>
+        <h3 className={`${HEADING} text-xl text-[#0A281E]`}>{item.title}</h3>
+        <p className="mt-2 text-sm leading-6 text-[#4E6257]">{item.detail}</p>
+      </div>,
+    );
+  }
+  return <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">{columns}</div>;
+}
+
+function PricingCards() {
+  const cards: ReactNode[] = [];
+  for (const plan of content.pricing.plans) {
+    const features: ReactNode[] = [];
+    for (const feature of plan.features) {
+      features.push(
+        <li key={feature} className="flex gap-2 text-sm leading-6 text-[#2C4136]">
+          <span className="text-[#B68F4C]" aria-hidden="true">
+            –
+          </span>
+          {feature}
+        </li>,
+      );
+    }
+    let cardBorder = "border-[#D8D2C4]";
+    if (plan.name === content.pricing.featuredPlan) {
+      cardBorder = "border-[#B68F4C]";
+    }
+    cards.push(
+      <li key={plan.name} className={`rounded-lg border bg-[#FAF9F5] p-6 ${cardBorder}`}>
+        <h3 className={`${HEADING} text-2xl text-[#0A281E]`}>{plan.name}</h3>
+        <p className="mt-3 font-semibold text-[#7A5B24]">{plan.price}</p>
+        <ul className="mt-4 space-y-2">{features}</ul>
+      </li>,
+    );
+  }
+  return <ul className="mt-10 grid gap-4 md:grid-cols-3">{cards}</ul>;
+}
+
+function FooterBullets({ items }: { items: readonly string[] }) {
+  const rows: ReactNode[] = [];
+  for (const item of items) {
+    rows.push(
+      <li key={item} className="flex items-start gap-2 font-serif text-lg text-[#F3EFE6]">
+        <span className="text-[#E6C98B]" aria-hidden="true">
+          •
+        </span>
+        {item}
+      </li>,
+    );
+  }
+  return <ul className="mt-3 space-y-1">{rows}</ul>;
+}
+
+interface FooterPanelProps {
+  title: string;
+  items: readonly string[];
+  cannot?: boolean;
+}
+
+/** Khung "Làm được" (dấu ✓ vàng) và "Chưa làm được" (dấu × xám). */
+function FooterPanel({ title, items, cannot }: FooterPanelProps) {
+  let mark = "✓";
+  let markColor = "text-[#E6C98B]";
+  if (cannot) {
+    mark = "×";
+    markColor = "text-[#F3EFE6]/50";
+  }
+  const rows: ReactNode[] = [];
+  for (const item of items) {
+    rows.push(
+      <li key={item} className="flex items-start gap-3 text-xs text-[#F3EFE6]/85">
+        <span className={markColor} aria-hidden="true">
+          {mark}
+        </span>
+        {item}
+      </li>,
+    );
+  }
+  return (
+    <div className="rounded-xl border border-[#E6C98B]/20 bg-[#F3EFE6]/5 p-5">
+      <h3 className={`${HEADING} text-base text-[#E6C98B]`}>{title}</h3>
+      <ul className="mt-4 space-y-3">{rows}</ul>
+    </div>
+  );
+}
+
+/** Cột chữ thuần: chưa có trang đích thật nên không tạo liên kết giả. */
+function FooterTextColumn({ title, items }: { title: string; items: readonly string[] }) {
+  const rows: ReactNode[] = [];
+  for (const item of items) {
+    rows.push(<li key={item}>{item}</li>);
+  }
+  return (
+    <div>
+      <h3 className="text-xs font-semibold">{title}</h3>
+      <ul className="mt-4 space-y-3 text-xs text-[#F3EFE6]/70">{rows}</ul>
+    </div>
+  );
+}
+
+/** Landing công khai; điều hướng đăng nhập/đăng ký dùng route thật của client. */
 export function LandingPage() {
   const accountHome = useAccountHome();
+  const isGuest = accountHome === ROUTES.HOME;
+  let loginTarget: string = accountHome;
+  let loginLabel: string = content.dashboard;
+  if (isGuest) {
+    loginTarget = ROUTES.AUTH.LOGIN;
+    loginLabel = content.login;
+  }
+
+  const navLinks: ReactNode[] = [];
+  for (const item of content.nav) {
+    navLinks.push(
+      <a
+        key={item.href}
+        href={item.href}
+        className={`inline-flex min-h-11 shrink-0 items-center text-sm text-[#F3EFE6]/80 hover:text-[#E6C98B] ${FOCUS_RING}`}
+      >
+        {item.label}
+      </a>,
+    );
+  }
+
+  const productLinks: ReactNode[] = [];
+  for (const link of content.footer.productLinks) {
+    productLinks.push(
+      <li key={link.href}>
+        <a href={link.href} className={`hover:text-[#E6C98B] ${FOCUS_RING}`}>
+          {link.label}
+        </a>
+      </li>,
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-heritage-surface text-heritage-text">
+    <div id="top" className="min-h-screen bg-[#EFECE6] font-sans text-[#14241C]">
       <a
         href="#landing-content"
-        className="sr-only z-50 rounded-lg bg-heritage-surface p-4 focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+        className="sr-only z-50 rounded-lg bg-[#FAF9F5] p-4 focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
       >
         {content.skip}
       </a>
-      <header className="sticky top-0 z-20 border-b border-heritage-border bg-heritage-surface/95 backdrop-blur">
-        <div className="mx-auto flex min-h-20 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-8">
+
+      <section className="bg-[#0A281E] text-[#F3EFE6]">
+        <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-8">
           <Link
             to={accountHome}
-            className="flex min-h-11 items-center gap-2 text-lg font-semibold sm:text-xl"
+            aria-label={`${content.brand}, về trang chủ`}
+            className={`flex min-h-11 items-center gap-2 font-serif text-lg ${FOCUS_RING}`}
           >
-            <LegacyVaultMark className="size-10 text-heritage-primary" />
+            <LegacyVaultMark className="size-8" />
             {content.brand}
           </Link>
           <nav
             aria-label={content.navLabel}
-            className="order-3 flex w-full gap-5 overflow-x-auto text-sm text-heritage-muted lg:order-none lg:w-auto"
+            className="order-3 flex w-full justify-center gap-6 overflow-x-auto md:order-none md:w-auto"
           >
-            {content.nav.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="inline-flex min-h-11 shrink-0 items-center hover:text-heritage-primary focus-visible:outline-2 focus-visible:outline-heritage-gold"
-              >
-                {item.label}
-              </a>
-            ))}
+            {navLinks}
           </nav>
-          <div className="flex items-center gap-2">
-            <Link
-              to={accountHome === ROUTES.HOME ? ROUTES.AUTH.LOGIN : accountHome}
-              className={`${buttonVariants({ variant: "ghost", size: "lg" })} px-3`}
-            >
-              {accountHome === ROUTES.HOME ? content.login : "Về dashboard"}
+          <Link
+            to={loginTarget}
+            className={`inline-flex min-h-11 items-center rounded-md border border-[#E6C98B]/60 px-4 text-sm text-[#E6C98B] hover:bg-[#E6C98B]/10 ${FOCUS_RING}`}
+          >
+            {loginLabel}
+          </Link>
+        </header>
+        <div
+          id="landing-content"
+          tabIndex={-1}
+          className="mx-auto flex max-w-3xl flex-col items-center px-4 pb-20 pt-8 text-center focus:outline-none sm:px-8 sm:pb-28"
+        >
+          <AnimatedGuilloche className="pointer-events-none size-72 sm:size-96" />
+          <h1 className={`${HEADING} mt-6 text-5xl sm:text-7xl`}>{content.brand}</h1>
+          <p className={`${HEADING} mt-4 text-xl italic text-[#E6C98B] sm:text-2xl`}>
+            {content.hero.tagline}
+          </p>
+          <p className="mt-5 max-w-xl text-base leading-7 text-[#F3EFE6]/80">
+            {content.hero.description}
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link to={ROUTES.AUTH.REGISTER} className={GOLD_BUTTON}>
+              {content.hero.start}
             </Link>
-            <Link
-              to={ROUTES.AUTH.REGISTER}
-              className={`${buttonVariants({ size: "lg" })} hidden rounded-xl sm:inline-flex`}
+            <a
+              href="#cach-hoat-dong"
+              className={`inline-flex min-h-12 items-center justify-center rounded-md border border-[#E6C98B]/60 px-6 text-sm font-semibold text-[#E6C98B] hover:bg-[#E6C98B]/10 ${FOCUS_RING}`}
             >
-              {content.register}
-            </Link>
+              {content.hero.explore}
+            </a>
           </div>
         </div>
-      </header>
-      <main id="landing-content">
-        <section className="relative overflow-hidden border-b border-heritage-border">
-          <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:px-8 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:py-24">
-            <div>
-              <p className="mb-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-heritage-muted">
-                <span className="h-px w-8 bg-heritage-gold" />
-                {content.eyebrow}
-              </p>
-              <h1 className="font-heading font-semibold text-5xl leading-[1.12] tracking-tight sm:text-6xl lg:text-7xl">
-                {content.title}
-                <br />
-                <span className="text-heritage-primary">{content.titleAccent}</span>
-              </h1>
-              <p className="mt-6 max-w-xl text-base leading-8 text-heritage-muted sm:text-lg">
-                {content.description}
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  to={ROUTES.AUTH.REGISTER}
-                  className={`${buttonVariants({ size: "lg" })} min-h-12 rounded-xl`}
-                >
-                  {content.start}
-                  <ArrowRight aria-hidden="true" />
-                </Link>
-                <a
-                  href="#cach-hoat-dong"
-                  className={`${buttonVariants({ variant: "outline", size: "lg" })} min-h-12 rounded-xl`}
-                >
-                  {content.explore}
-                </a>
-              </div>
-              <p className="mt-5 max-w-lg text-xs leading-6 text-heritage-muted">{content.note}</p>
-            </div>
-            <div className="relative rounded-[32px] bg-heritage-primary p-5 text-heritage-surface sm:p-8">
-              <img
-                src={guilloche}
-                alt=""
-                aria-hidden="true"
-                className="pointer-events-none absolute right-0 top-0 size-64 opacity-20"
-              />
-              <div className="relative flex items-center justify-between gap-3">
-                <span className="flex items-center gap-2 text-sm font-medium">
-                  <VaultIcon className="size-5 text-heritage-gold" />
-                  {content.vault}
-                </span>
-                <span className="rounded-full border border-heritage-surface/20 px-3 py-1 text-[11px] text-heritage-surface/75">
-                  {content.sample}
-                </span>
-              </div>
-              <p className="relative my-8 max-w-xs font-heading font-semibold text-3xl leading-tight sm:text-4xl">
-                {content.organized}
-              </p>
-              <ul className="relative space-y-3">
-                {content.files.map(({ title, recipient, icon: Icon }) => (
-                  <li
-                    key={title}
-                    className="flex items-center gap-4 rounded-2xl border border-heritage-surface/15 bg-heritage-surface/5 p-4"
-                  >
-                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-heritage-gold/15 text-heritage-gold">
-                      <Icon className="size-5" aria-hidden="true" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{title}</p>
-                      <p className="mt-1 text-xs text-heritage-surface/65">{recipient}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <p className="relative mt-6 border-t border-heritage-surface/15 pt-5 text-xs leading-6 text-heritage-surface/70">
-                {content.vaultFooter}
-              </p>
-            </div>
+      </section>
+
+      <section id="y-nghia" className="px-4 py-16 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-2xl">
+            <SectionHead
+              eyebrow={content.meaning.eyebrow}
+              title={content.meaning.title}
+              description={content.meaning.description}
+            />
           </div>
-        </section>
-        <section
-          className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:px-8 md:grid-cols-3"
-          aria-label={content.eyebrow}
-        >
-          {content.benefits.map(({ title, description, icon: Icon }) => (
-            <div key={title} className="flex gap-4">
-              <Icon className="mt-1 size-6 shrink-0 text-heritage-primary" aria-hidden="true" />
-              <div>
-                <h2 className="font-semibold">{title}</h2>
-                <p className="mt-2 text-sm leading-6 text-heritage-muted">{description}</p>
-              </div>
-            </div>
-          ))}
-        </section>
-        <section
-          id="cach-hoat-dong"
-          className="scroll-mt-40 border-y border-heritage-border bg-heritage-primary-light/40 px-4 py-16 sm:px-8 sm:py-20"
-        >
-          <div className="mx-auto max-w-7xl">
-            <p className="text-xs font-semibold uppercase tracking-widest text-heritage-muted">
-              {content.processEyebrow}
-            </p>
-            <h2 className="mt-4 max-w-2xl font-heading font-semibold text-3xl leading-tight sm:text-4xl">
-              {content.processTitle}
-            </h2>
-            <ol className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              {content.steps.map((step) => (
-                <li key={step.number}>
-                  <span className="font-heading font-semibold text-4xl text-heritage-muted">
-                    {step.number}
-                  </span>
-                  <h3 className="mt-4 font-semibold">{step.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-heritage-muted">{step.description}</p>
-                </li>
-              ))}
-            </ol>
+          <LayerCards />
+        </div>
+      </section>
+
+      <section id="cach-hoat-dong" className="bg-[#14241C] px-4 py-16 sm:px-8 sm:py-24">
+        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-2 lg:gap-20">
+          <SectionHead
+            eyebrow={content.how.eyebrow}
+            title={content.how.title}
+            description={content.how.description}
+            dark
+          />
+          <HowSteps />
+        </div>
+      </section>
+
+      <section className="px-4 py-14 sm:px-8 sm:py-20">
+        <HonestyColumns />
+      </section>
+
+      <section id="goi" className="bg-[#E6E1D4] px-4 py-16 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-2xl">
+            <SectionHead
+              eyebrow={content.pricing.eyebrow}
+              title={content.pricing.title}
+              description={content.pricing.description}
+            />
           </div>
-        </section>
-        <section
-          id="vai-tro"
-          className="mx-auto max-w-7xl scroll-mt-40 px-4 py-16 sm:px-8 sm:py-20"
-        >
-          <p className="text-xs font-semibold uppercase tracking-widest text-heritage-muted">
-            {content.rolesEyebrow}
-          </p>
-          <h2 className="mt-4 max-w-2xl font-heading font-semibold text-3xl leading-tight sm:text-4xl">
-            {content.rolesTitle}
-          </h2>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {content.roles.map(({ title, description, icon: Icon }) => (
-              <Card
-                key={title}
-                className="gap-0 rounded-2xl border-heritage-border bg-heritage-surface p-6 shadow-none"
-              >
-                <Icon className="size-7 text-heritage-primary" aria-hidden="true" />
-                <h3 className="mt-6 font-semibold">{title}</h3>
-                <p className="mt-3 text-sm leading-7 text-heritage-muted">{description}</p>
-              </Card>
-            ))}
-          </div>
-        </section>
-        <section
-          id="bao-mat"
-          className="scroll-mt-40 bg-heritage-primary px-4 py-16 text-heritage-surface sm:px-8 sm:py-20"
-        >
-          <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
-            <div>
-              <ShieldCheck className="mb-6 size-10 text-heritage-gold" aria-hidden="true" />
-              <p className="text-xs font-semibold uppercase tracking-widest text-heritage-surface/65">
-                {content.securityEyebrow}
-              </p>
-              <h2 className="mt-4 max-w-md font-heading font-semibold text-3xl leading-tight sm:text-4xl">
-                {content.securityTitle}
-              </h2>
-              <p className="mt-5 max-w-lg text-sm leading-7 text-heritage-surface/75">
-                {content.securityDescription}
-              </p>
-              <p className="mt-6 max-w-lg rounded-xl border border-heritage-surface/15 p-4 text-xs leading-6 text-heritage-surface/65">
-                {content.securityNote}
-              </p>
-            </div>
-            <ul className="divide-y divide-heritage-surface/15">
-              {content.security.map((item) => (
-                <li key={item.title} className="py-5 first:pt-0">
-                  <h3 className="text-lg font-semibold">{item.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-heritage-surface/75">
-                    {item.description}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-        <section
-          id="hoi-dap"
-          className="mx-auto grid max-w-7xl scroll-mt-40 gap-10 px-4 py-16 sm:px-8 sm:py-20 lg:grid-cols-[.8fr_1.2fr]"
-        >
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-heritage-muted">
-              {content.faqEyebrow}
-            </p>
-            <h2 className="mt-4 max-w-sm font-heading font-semibold text-3xl leading-tight sm:text-4xl">
-              {content.faqTitle}
-            </h2>
-          </div>
-          <div className="divide-y divide-heritage-border border-y border-heritage-border">
-            {content.faq.map((item) => (
-              <details key={item.question} className="group py-1">
-                <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-4 font-semibold focus-visible:outline-2 focus-visible:outline-heritage-gold [&::-webkit-details-marker]:hidden">
-                  {item.question}
-                  <Plus
-                    className="size-5 shrink-0 text-heritage-muted transition-transform group-open:rotate-45"
-                    aria-hidden="true"
-                  />
-                </summary>
-                <p className="max-w-2xl pb-5 pr-8 text-sm leading-7 text-heritage-muted">
-                  {item.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-        </section>
-        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-8">
-          <div className="flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-heritage-border bg-heritage-primary-light/40 p-6 sm:p-8">
-            <div>
-              <h2 className="text-xl font-semibold">{content.pricingTitle}</h2>
-              <p className="mt-2 text-sm leading-6 text-heritage-muted">
-                {content.pricingDescription}
-              </p>
-            </div>
-            <Link
-              to={ROUTES.BILLING.PLANS}
-              className={`${buttonVariants({ variant: "outline", size: "lg" })} rounded-xl`}
-            >
-              {content.pricingAction}
-              <ArrowRight aria-hidden="true" />
-            </Link>
-          </div>
-        </section>
-        <section className="border-t border-heritage-border px-4 py-16 text-center sm:px-8 sm:py-20">
-          <h2 className="font-heading font-semibold text-3xl sm:text-5xl">
-            {content.closingTitle}
-          </h2>
-          <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-heritage-muted">
-            {content.closingDescription}
-          </p>
-          <Link
-            to={ROUTES.AUTH.REGISTER}
-            className={`${buttonVariants({ size: "lg" })} mt-7 min-h-12 rounded-xl`}
-          >
-            {content.start}
-            <ArrowRight aria-hidden="true" />
+          <PricingCards />
+          <Link to={ROUTES.AUTH.REGISTER} className={`${GOLD_BUTTON} mt-8`}>
+            {content.pricing.action}
           </Link>
-        </section>
-      </main>
-      <footer className="border-t border-heritage-border px-4 py-8 sm:px-8">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="font-semibold">{content.footer}</p>
-            <p className="mt-2 text-xs leading-6 text-heritage-muted">{content.note}</p>
+        </div>
+      </section>
+
+      <footer className="landing-footer bg-[#0A281E] px-4 pb-10 pt-14 text-[#F3EFE6] sm:px-8">
+        <div className="mx-auto max-w-6xl space-y-10">
+          <div className="grid gap-8 lg:grid-cols-2">
+            <div>
+              <p className="flex items-center gap-3 font-serif text-2xl">
+                <LegacyVaultMark className="size-10 shrink-0" />
+                {content.brand}
+              </p>
+              <p className={`${HEADING} mt-3 text-base italic text-[#E6C98B]`}>
+                {content.footer.tagline}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-xs text-[#E6C98B]">{content.footer.commitmentTitle}</h3>
+              <FooterBullets items={content.footer.commitments} />
+            </div>
           </div>
-          <Link
-            to={ROUTES.AUTH.LOGIN}
-            className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4"
-          >
-            {content.login}
-          </Link>
+          <div className="grid gap-4 md:grid-cols-2">
+            <FooterPanel title={content.footer.canTitle} items={content.footer.can} />
+            <FooterPanel title={content.footer.cannotTitle} items={content.footer.cannot} cannot />
+          </div>
+          <div className="grid gap-8 border-t border-[#F3EFE6]/15 pt-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <h3 className="text-xs font-semibold">{content.footer.productTitle}</h3>
+              <ul className="mt-4 space-y-3 text-xs text-[#F3EFE6]/70">{productLinks}</ul>
+            </div>
+            <FooterTextColumn
+              title={content.footer.supportTitle}
+              items={content.footer.supportItems}
+            />
+            <FooterTextColumn title={content.footer.legalTitle} items={content.footer.legalItems} />
+            <p className="text-xs leading-5 text-[#F3EFE6]/60 lg:text-right">
+              {content.footer.sampleNote}
+              <br />
+              {content.footer.address}
+            </p>
+          </div>
+          <p className="text-xs text-[#F3EFE6]/60">
+            © {new Date().getFullYear()} {content.brand}. {content.footer.legal}
+          </p>
         </div>
       </footer>
     </div>
