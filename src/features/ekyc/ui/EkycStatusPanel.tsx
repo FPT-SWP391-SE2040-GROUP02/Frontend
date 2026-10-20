@@ -48,9 +48,11 @@ export function EkycStatusPanel({
 }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const userId = useSelector((state: { auth: AuthState }) => state.auth.user?.id);
+  // Chỉ Owner xét theo mục đích riêng (xác minh một lần); người nhận vẫn xem lượt mới nhất và quét theo từng lượt.
+  const statusPurpose = purpose === "OWNER_ENROLLMENT" ? purpose : undefined;
   const status = useQuery({
-    queryKey: ["ekyc", "me"],
-    queryFn: ({ signal }) => ekycService.getStatus(signal),
+    queryKey: ["ekyc", "me", statusPurpose],
+    queryFn: ({ signal }) => ekycService.getStatus(signal, statusPurpose),
     enabled: authenticated,
     retry: false,
   });

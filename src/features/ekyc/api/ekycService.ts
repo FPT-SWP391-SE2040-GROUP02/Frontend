@@ -41,9 +41,17 @@ export const ekycService = {
       ),
     );
   },
-  /** GET trạng thái của principal hiện tại. */
-  async getStatus(signal?: AbortSignal) {
-    return ekycStatusSchema.parse(await apiClient.get<unknown, unknown>("/ekyc/me", { signal }));
+  /**
+   * GET trạng thái của principal hiện tại. Có purpose thì server chỉ xét mục đích đó (OWNER_ENROLLMENT giữ kết quả
+   * đã đạt: Owner xác minh một lần).
+   */
+  async getStatus(signal?: AbortSignal, purpose?: string) {
+    return ekycStatusSchema.parse(
+      await apiClient.get<unknown, unknown>("/ekyc/me", {
+        signal,
+        params: purpose ? { purpose } : undefined,
+      }),
+    );
   },
   /** POST đồng ý thu thập; chỉ gọi sau khi user chủ động bấm đồng ý, không tự chạy khi mount. */
   async submitConsent(purpose: string) {
