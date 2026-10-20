@@ -181,12 +181,12 @@ it("keeps inspect separate from acceptance, sends token in body and never caches
     };
   };
   setup(<ExecutorInvitationPanel token={token} />);
-  const accept = await screen.findByRole("button", { name: "Chấp nhận nhiệm vụ" });
+  const accept = await screen.findByRole("button", { name: "Chấp nhận lời mời" });
   expect(accept).toBeDisabled();
   expect(requests).toHaveLength(1);
   fireEvent.click(screen.getByRole("checkbox"));
   fireEvent.click(accept);
-  expect(await screen.findByText("Bạn đã chấp nhận nhiệm vụ Executor.")).toBeInTheDocument();
+  expect(await screen.findByText("Bạn đã là người thực hiện")).toBeInTheDocument();
   expect(requests).toHaveLength(2);
   expect(requests[1].url).toBe("/executor-invitations/respond");
   expect(JSON.parse(String(requests[1].data))).toMatchObject({
@@ -218,7 +218,7 @@ it("guest only inspects and receives login redirect, no acceptance controls", as
     "href",
     expect.stringContaining("%23token%3D"),
   );
-  expect(screen.queryByRole("button", { name: "Chấp nhận nhiệm vụ" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Chấp nhận lời mời" })).not.toBeInTheDocument();
   expect(post).toHaveBeenCalledTimes(1);
 });
 
@@ -265,7 +265,7 @@ it("shows empty lists and sends Owner eKYC to the Owner dashboard", async () => 
   expect(screen.getByText("Không có tài sản ngoài gói.")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Đi xác minh danh tính" })).toHaveAttribute(
     "href",
-    "/dashboard",
+    "/dashboard/identity",
   );
 });
 

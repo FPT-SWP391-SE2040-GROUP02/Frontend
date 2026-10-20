@@ -79,3 +79,6 @@ export const deathDraftSchema = z.object({
   issuedOn: date.nullable().optional(),
   issuedBy: z.string().max(200),
 });
+
+export type ExecutorVault = z.infer<typeof executorVaultSchema>;
+export type DeathCase = z.infer<typeof deathCaseSchema>;

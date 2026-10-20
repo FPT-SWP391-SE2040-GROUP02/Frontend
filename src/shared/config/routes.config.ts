@@ -23,8 +23,11 @@ export const ROUTES = {
 
   /** Nhóm đường dẫn khu vực quản trị / nội bộ (Dashboard) */
   DASHBOARD: {
+    IDENTITY: "/dashboard/identity",
     ROOT: "/dashboard",
     ASSETS: "/dashboard/assets",
+    /** Chi tiết một mục trong kho: thông tin, phiên bản, thêm phiên bản, xóa. */
+    ASSET_DETAIL: (id: string) => `/dashboard/assets/${id}`,
     BENEFICIARIES: "/dashboard/beneficiaries",
     AUDIT_LOG: "/dashboard/audit-log",
     ANALYTICS: "/dashboard/analytics",
@@ -54,7 +57,13 @@ export const ROUTES = {
   /** Cổng người giám hộ di sản / Digital Executor */
   EXECUTOR: {
     INVITATION: "/executor-invitation",
+    /** Tên cũ của cổng Executor; giữ để link/email cũ vẫn dùng được, chuyển về ROOT. */
     CLAIM: "/executor/claim",
+    ROOT: "/executor",
+    REPORT: "/executor/report",
+    PROGRESS: "/executor/progress",
+    PERMISSIONS: "/executor/permissions",
+    SETTINGS: "/executor/settings",
   },
 
   /** Cổng người thụ hưởng / Beneficiary */
