@@ -9,6 +9,8 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { apiClient } from "@/shared/api/axiosClient";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { OwnerWorkspace } from "../OwnerWorkspace";
+import { ownerVaultKeys } from "@/features/vault-management/model/useOwnerVault";
+import { vaultFixture } from "@/shared/api/__tests__/backend.fixtures";
 
 afterEach(() => {
   cleanup();
@@ -114,6 +116,9 @@ describe("workspace logo navigation", () => {
       const original = store.getState().auth;
       accessTokenMemory.set("navigation-fixture-access");
       const client = new QueryClient();
+      // Có dữ liệu kho trước khi bấm logo: kiểm tra riêng điều hướng không tạo request hoặc đổi phiên.
+      client.setQueryDefaults(ownerVaultKeys.mine, { staleTime: Infinity });
+      client.setQueryData(ownerVaultKeys.mine, { ...vaultFixture, serviceTier: "XS_MAX" });
       const key = ["private-vault", "fixture"];
       client.setQueryData(key, { name: "Private fixture" });
       const get = vi.spyOn(apiClient, "get");
@@ -139,6 +144,8 @@ describe("workspace logo navigation", () => {
           </QueryClientProvider>
         </Provider>,
       );
+      if (role === "USER") expect(screen.getByText("Legacy XS Max")).toBeInTheDocument();
+      else expect(screen.queryByText("Legacy XS Max")).not.toBeInTheDocument();
       fireEvent.click(screen.getByRole("link", { name: "LegacyVault" }));
       expect(screen.getByText("Account dashboard")).toBeInTheDocument();
       expect(store.getState().auth).toEqual(original);

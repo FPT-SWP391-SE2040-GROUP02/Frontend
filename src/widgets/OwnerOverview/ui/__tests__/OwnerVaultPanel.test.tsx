@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
+import { VaultServiceInfo } from "@/entities/vault/ui/VaultServiceInfo";
 import {
   vaultFixture,
   containerFixture,
@@ -106,6 +107,65 @@ describe("OwnerVaultPanel", () => {
     vi.mocked(ownerVaultService.listPackages).mockRejectedValue(new Error("packages unavailable"));
     setup();
     expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được danh sách gói");
+  });
+
+  it("shows the vault service even if the package list fails", async () => {
+    vi.mocked(ownerVaultService.getMine).mockResolvedValue({
+      ...VAULT_FIXTURE,
+      serviceTier: "XS",
+      serviceStatus: "PAID_ACTIVE",
+      serviceExpiresAt: "2099-11-20T23:59:59+07:00",
+    });
+    vi.mocked(ownerVaultService.listPackages).mockRejectedValue(new Error("packages unavailable"));
+    setup();
+    expect(await screen.findByText("Legacy XS")).toBeInTheDocument();
+    expect(screen.getByText("Đang hiệu lực")).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được danh sách gói");
+  });
+
+  it("does not advertise a past-due paid service as active before its stored status changes", async () => {
+    vi.mocked(ownerVaultService.getMine).mockResolvedValue({
+      ...VAULT_FIXTURE,
+      serviceTier: "XS_MAX",
+      serviceStatus: "PAID_ACTIVE",
+      serviceExpiresAt: "2000-01-01T00:00:00Z",
+    });
+    vi.mocked(ownerVaultService.listPackages).mockResolvedValue(pageFixture([]));
+    setup();
+    expect(await screen.findByText("Legacy XS Max")).toBeInTheDocument();
+    expect(screen.getByText("Đã hết hạn dịch vụ")).toBeInTheDocument();
+    expect(screen.queryByText("Đang hiệu lực")).not.toBeInTheDocument();
+  });
+
+  it("uses the current time immediately when a refetch changes the service", () => {
+    const clock = vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-20T10:00:00Z"));
+    try {
+      const view = render(
+        <VaultServiceInfo
+          service={{
+            ...VAULT_FIXTURE,
+            serviceTier: "FREE",
+            serviceStatus: "FREE",
+            serviceExpiresAt: null,
+          }}
+        />,
+      );
+      clock.mockReturnValue(Date.parse("2026-10-20T11:00:00Z"));
+      view.rerender(
+        <VaultServiceInfo
+          service={{
+            ...VAULT_FIXTURE,
+            serviceTier: "XS",
+            serviceStatus: "PAID_ACTIVE",
+            serviceExpiresAt: "2026-10-20T10:30:00Z",
+          }}
+        />,
+      );
+      expect(screen.getByText("Đã hết hạn dịch vụ")).toBeInTheDocument();
+      expect(screen.queryByText("Đang hiệu lực")).not.toBeInTheDocument();
+    } finally {
+      clock.mockRestore();
+    }
   });
 
   it("renders server package names and omits absent descriptions", async () => {

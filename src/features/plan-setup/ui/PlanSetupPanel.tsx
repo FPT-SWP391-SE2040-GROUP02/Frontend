@@ -10,6 +10,8 @@ import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
 import { inviteExecutorSchema, type planSetupSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
+import type { VaultServiceData } from "@/entities/vault/model/vaultServicePresentation";
+import { VaultServiceInfo } from "@/entities/vault/ui/VaultServiceInfo";
 
 const missingLabels: Record<string, string> = {
   ACCOUNT_NOT_ACTIVE: "Tài khoản chưa hoạt động.",
@@ -40,9 +42,11 @@ const statuses = {
 export function PlanSetupPanel({
   vaultId,
   beneficiaries = [],
+  vaultService,
 }: {
   vaultId: string;
   beneficiaries?: { id: string; label: string }[];
+  vaultService?: VaultServiceData;
 }) {
   const query = useQuery({
     queryKey: ["plan-setup", vaultId],
@@ -65,6 +69,7 @@ export function PlanSetupPanel({
       vaultId={vaultId}
       setup={query.data}
       beneficiaries={beneficiaries}
+      vaultService={vaultService}
     />
   );
 }
@@ -73,10 +78,12 @@ function PlanSetupForm({
   vaultId,
   setup,
   beneficiaries,
+  vaultService,
 }: {
   vaultId: string;
   setup: z.infer<typeof planSetupSchema>;
   beneficiaries: { id: string; label: string }[];
+  vaultService?: VaultServiceData;
 }) {
   const client = useQueryClient();
   const action = usePrivateAction();
@@ -100,6 +107,12 @@ function PlanSetupForm({
     >
       <div className="space-y-3">
         <h2 className="text-xl font-semibold">Kích hoạt kế hoạch</h2>
+        {vaultService && vaultService.id === vaultId && (
+          <div className="space-y-2 rounded-lg border border-heritage-border bg-heritage-canvas p-4">
+            <h3 className="text-sm font-medium">Gói dịch vụ của kho</h3>
+            <VaultServiceInfo service={vaultService} />
+          </div>
+        )}
         <p>
           {draft
             ? "Kế hoạch đang nháp; gói Sẵn sàng chưa tự kích hoạt lịch điểm danh."

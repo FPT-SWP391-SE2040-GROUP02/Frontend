@@ -8,6 +8,7 @@ import { Button, Skeleton } from "@/shared/ui";
 import { OwnerResourcesPanel } from "./OwnerResourcesPanel";
 import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
 import { EditVaultForm } from "@/features/vault-management/ui/EditVaultForm";
+import { VaultServiceInfo } from "@/entities/vault/ui/VaultServiceInfo";
 
 /** Nội dung panel dữ liệu server; không sử dụng số liệu hoặc chính sách từ prototype. */
 const CONTENT = {
@@ -62,6 +63,7 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
           </span>
         )}
       </div>
+      {enabled && vault.isSuccess && <VaultServiceInfo service={vault.data} />}
       {!enabled ? (
         <p role="status" className="text-sm text-heritage-muted">
           {CONTENT.waiting}

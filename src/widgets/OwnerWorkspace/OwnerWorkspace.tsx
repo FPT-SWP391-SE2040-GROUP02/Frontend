@@ -18,7 +18,26 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
+import { accessTokenMemory } from "@/shared/api/accessToken";
+import { VaultServiceBadge } from "@/entities/vault/ui/VaultServiceInfo";
+import {
+  isOwnerVaultMissing,
+  useOwnerVault,
+} from "@/features/vault-management/model/useOwnerVault";
 import "./owner-workspace.css";
+
+/** Chỉ mount khi phiên Owner sẵn sàng; dùng chung cache kho với các màn nội dung. */
+function OwnerServiceTier() {
+  const vault = useOwnerVault(true);
+  if (vault.isPending) return <p className="text-xs text-white/65">Đang tải gói…</p>;
+  if (vault.isError) {
+    if (isOwnerVaultMissing(vault.error)) {
+      return <p className="text-xs text-white/65">Chưa có kho</p>;
+    }
+    return <p className="text-xs text-white/65">Chưa tải được gói</p>;
+  }
+  return <VaultServiceBadge tier={vault.data.serviceTier} sidebar />;
+}
 
 const navigation = [
   { label: "Tổng quan", to: ROUTES.DASHBOARD.ROOT, icon: Home },
@@ -60,6 +79,7 @@ export function OwnerWorkspace({
   const PageIcon = current?.icon ?? Home;
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const isExecutor = path.startsWith(ROUTES.EXECUTOR.CLAIM);
+  const showOwnerService = !isExecutor && user?.role === "USER" && Boolean(accessTokenMemory.get());
   const RoleIcon = isExecutor ? Layers3 : Vault;
   const home = isExecutor ? ROUTES.EXECUTOR.CLAIM : accountHome;
   const workspaceNavigation = isExecutor ? executorNavigation : navigation;
@@ -138,7 +158,13 @@ export function OwnerWorkspace({
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
-              <p className="mt-1 text-xs text-white/65">Không gian cá nhân</p>
+              <div className="mt-1">
+                {showOwnerService ? (
+                  <OwnerServiceTier key={user.id} />
+                ) : (
+                  <p className="text-xs text-white/65">Không gian cá nhân</p>
+                )}
+              </div>
             </div>
           </div>
         </>
