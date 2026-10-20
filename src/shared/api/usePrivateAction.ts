@@ -4,8 +4,78 @@ import { z } from "zod";
 import { accessTokenMemory } from "./accessToken";
 import { HTTP_STATUS } from "@/shared/constants";
 
-const problem = z.object({ code: z.string().optional() });
+const problem = z.object({ code: z.string().optional(), reason: z.string().optional() });
+
+/** Reason-specific messages for HANDOVER_NOT_ALLOWED */
+const handoverNotAllowedReasons: Record<string, string> = {
+  HOLD_ACTIVE: "Kho đang bị tạm giữ, tạm thời chưa thực hiện được. Các hạn đang được giữ nguyên.",
+  PLAN_NOT_IN_HANDOVER: "Kế hoạch không còn ở giai đoạn bàn giao.",
+  WRONG_STATE: "Lượt này đã có người nhận hoặc đã kết thúc.",
+  RESEND_TOO_SOON: "Vừa gửi xong, vui lòng thử lại sau 15 phút.",
+  NO_EMAIL: "Người nhận chưa có email.",
+  INVITATION_SEND_FAILED: "Chưa gửi được thư mời. Chưa có gì thay đổi, vui lòng thử lại sau.",
+};
+
+/** Reason-specific messages for EXECUTOR_NOT_ALLOWED */
+const executorNotAllowedReasons: Record<string, string> = {
+  INVITEE_EMAIL_MISMATCH:
+    "Lời mời này gửi tới một email khác. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
+};
+
+/** Reason-specific messages for ASSET_IN_USE */
+const assetInUseReasons: Record<string, string> = {
+  IN_CONTAINER: "Tài sản đang nằm trong một gói. Hãy gỡ khỏi gói trước khi xóa.",
+  PINNED_IN_HANDOVER: "Tài sản đã được ghim vào một lượt bàn giao nên không thể xóa.",
+};
+
+/** Reason-specific messages for VAULT_NOT_EDITABLE */
+const vaultNotEditableReasons: Record<string, string> = {
+  HOLD_ACTIVE: "Kho đang bị tạm giữ nên chưa thể chỉnh sửa.",
+};
+
+/** Reason-specific messages for DEATH_CASE_NOT_ALLOWED (báo còn sống, mục 6.14) */
+const deathCaseNotAllowedReasons: Record<string, string> = {
+  OBJECTION_ALREADY_REJECTED:
+    "Lời báo trước đã bị bác. Hãy gửi một ảnh selfie mới để mở lại thay vì báo trơn.",
+  OBJECTION_WINDOW_CLOSED: "Đã hết hạn 7 ngày gửi selfie cho lời báo này.",
+  SELFIE_ATTEMPTS_EXCEEDED: "Bạn đã hết lượt thử selfie trong 24 giờ. Hãy thử lại sau.",
+  OBJECTION_NOT_OPEN: "Hồ sơ này chưa có lời báo còn sống đang mở.",
+  ALIVE_EVIDENCE_REQUIRED:
+    "Chưa thể xác nhận còn sống: cần selfie đạt hoặc đã qua 7 ngày chờ bằng chứng.",
+  OWNER_SELFIE_PASSED:
+    "Owner đã có selfie khớp nên không thể bác lời báo. Chọn xác nhận còn sống hoặc chưa đủ bằng chứng.",
+};
+
+/** Ưu tiên `reason` của BE trước thông báo chung theo `code`. */
+const reasonMessages: Record<string, Record<string, string>> = {
+  HANDOVER_NOT_ALLOWED: handoverNotAllowedReasons,
+  EXECUTOR_NOT_ALLOWED: executorNotAllowedReasons,
+  ASSET_IN_USE: assetInUseReasons,
+  VAULT_NOT_EDITABLE: vaultNotEditableReasons,
+  DEATH_CASE_NOT_ALLOWED: deathCaseNotAllowedReasons,
+};
+
+/** 401 nhưng phiên còn sống (BE mục 6.2a, 6.4). */
+const reauthCodes = new Set([
+  "INVALID_TWO_FACTOR_CODE",
+  "REAUTHENTICATION_FAILED",
+  "INVALID_GOOGLE_TOKEN",
+]);
+
 const messages: Record<string, string> = {
+  REAUTHENTICATION_FAILED: "Mật khẩu hiện tại chưa đúng. Kiểm tra và thử lại.",
+  INVALID_GOOGLE_TOKEN:
+    "Đăng nhập Google chưa hợp lệ hoặc không phải tài khoản Google đã liên kết. Thử lại bằng đúng tài khoản.",
+  GOOGLE_ACCOUNT_ALREADY_LINKED:
+    "Tài khoản Google này đã được liên kết với một tài khoản LegacyVault khác.",
+  LAST_LOGIN_METHOD: "Đây là phương thức đăng nhập cuối cùng nên không thể gỡ.",
+  LOGIN_METHOD_ALREADY_EXISTS: "Tài khoản đã có mật khẩu. Tải lại để xem trạng thái mới nhất.",
+  INVALID_TWO_FACTOR_CODE:
+    "Mã chưa đúng hoặc đã dùng. Kiểm tra mã đang hiện trên ứng dụng xác thực rồi thử lại.",
+  TWO_FACTOR_ALREADY_ENABLED: "Xác thực hai bước đã được bật. Tải lại để xem trạng thái.",
+  TWO_FACTOR_SETUP_REQUIRED: "Cần tạo khóa mới trước khi xác nhận. Bắt đầu lại từ bước tạo khóa.",
+  TWO_FACTOR_NOT_ENABLED: "Xác thực hai bước chưa được bật. Tải lại để xem trạng thái.",
+  TWO_FACTOR_ADMIN_ONLY: "Chỉ tài khoản quản trị mới dùng được xác thực hai bước.",
   EXECUTOR_INVITATION_INVALID:
     "Lời mời Executor không hợp lệ hoặc đã hết hạn. Liên hệ Chủ kho để gửi lại.",
   EXECUTOR_INVITATION_CONFLICT: "Lời mời hoặc phân công đã tồn tại/thay đổi. Tải lại để kiểm tra.",
@@ -16,6 +86,7 @@ const messages: Record<string, string> = {
   POLICY_ACKNOWLEDGEMENT_REQUIRED: "Cần đọc và xác nhận nội dung hiện hành trước khi tiếp tục.",
   VALIDATION_ERROR: "Dữ liệu chưa hợp lệ. Kiểm tra các trường đã nhập trước khi gửi lại.",
   VAULT_NOT_FOUND: "Không tìm thấy kho. Tải lại để kiểm tra kho của tài khoản hiện tại.",
+  ASSET_IN_USE: "Tài sản đang được sử dụng nên chưa xóa được.",
   ASSET_NOT_FOUND: "Không tìm thấy tài sản trong kho. Tải lại danh sách trước khi tiếp tục.",
   CONTAINER_NOT_FOUND: "Không tìm thấy gói bàn giao. Tải lại danh sách trước khi tiếp tục.",
   BENEFICIARY_NOT_FOUND: "Không tìm thấy hồ sơ người nhận. Tải lại danh sách trước khi tiếp tục.",
@@ -66,6 +137,10 @@ export function privateActionError(error: unknown): string {
     if (!error.response)
       return "Không kết nối được máy chủ. Kiểm tra kết nối và tải lại danh sách trước khi gửi lại.";
     const status = error.response.status;
+    // Các mã 401 này là lỗi xác thực lại/nhập mã, phiên vẫn còn: không được báo hết phiên.
+    const reauthCode = problem.safeParse(error.response.data).data?.code;
+    if (status === HTTP_STATUS.UNAUTHORIZED && reauthCode && reauthCodes.has(reauthCode))
+      return messages[reauthCode];
     if (status === HTTP_STATUS.UNAUTHORIZED) return "Phiên đã hết hạn. Vui lòng đăng nhập lại.";
     if (status === HTTP_STATUS.PAYLOAD_TOO_LARGE)
       return "Tệp vượt quá giới hạn tải lên của máy chủ.";
@@ -73,11 +148,22 @@ export function privateActionError(error: unknown): string {
       return "Bạn thao tác quá nhanh. Vui lòng chờ rồi thử lại.";
     const parsed = problem.safeParse(error.response?.data);
     const code = parsed.success ? parsed.data.code : undefined;
+    const reasonOnServerError =
+      status === HTTP_STATUS.SERVICE_UNAVAILABLE &&
+      code === "HANDOVER_NOT_ALLOWED" &&
+      parsed.success &&
+      parsed.data.reason === "INVITATION_SEND_FAILED";
     if (
       status >= HTTP_STATUS.INTERNAL_SERVER_ERROR &&
-      !(status === HTTP_STATUS.SERVICE_UNAVAILABLE && code === "EKYC_SERVICE_UNAVAILABLE")
+      !(status === HTTP_STATUS.SERVICE_UNAVAILABLE && code === "EKYC_SERVICE_UNAVAILABLE") &&
+      !reasonOnServerError
     )
       return "Máy chủ đang gặp sự cố. Tải lại để kiểm tra kết quả; nếu lỗi tiếp diễn, vui lòng liên hệ hỗ trợ.";
+    const reason = parsed.success ? parsed.data.reason : undefined;
+    if (code && reason) {
+      const byReason = reasonMessages[code];
+      if (byReason && Object.hasOwn(byReason, reason)) return byReason[reason];
+    }
     if (code && Object.hasOwn(messages, code)) return messages[code];
     if (status === HTTP_STATUS.FORBIDDEN) return "Bạn không có quyền thực hiện thao tác này.";
     if (status === HTTP_STATUS.BAD_REQUEST)
