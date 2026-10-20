@@ -36,6 +36,12 @@ describe("OwnerOverview data boundaries", () => {
     expect(screen.queryByText("Mọi thứ đang ở đúng nơi.")).not.toBeInTheDocument();
     expect(screen.getAllByRole("heading", { level: 1 })[0]).toHaveTextContent("Kho của bạn");
   });
+  it("does not show Owner eKYC to an account without a vault (Executor/recipient)", () => {
+    setup("/dashboard");
+    expect(
+      screen.queryByRole("region", { name: "Trạng thái xác minh danh tính" }),
+    ).not.toBeInTheDocument();
+  });
   it("never restores fixture data on a retired preview URL", () => {
     setup("/preview/owner");
     expect(screen.getByRole("region", { name: "Server vault" })).toBeInTheDocument();

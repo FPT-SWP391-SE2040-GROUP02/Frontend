@@ -69,11 +69,14 @@ export function OwnerOverview() {
         vaultId={vault.data?.id ?? ""}
         enabled={sessionReady && vault.isSuccess}
       />
-      <EkycStatusPanel
-        purpose="OWNER_ENROLLMENT"
-        turnId={null}
-        onVerified={() => void queryClient.invalidateQueries({ queryKey: ["plan-setup"] })}
-      />
+      {/* Chỉ Owner (đã có kho) cần xác minh danh tính; Executor/người nhận dùng chung màn này nhưng không có kho. */}
+      {vault.isSuccess && (
+        <EkycStatusPanel
+          purpose="OWNER_ENROLLMENT"
+          turnId={null}
+          onVerified={() => void queryClient.invalidateQueries({ queryKey: ["plan-setup"] })}
+        />
+      )}
       <OwnerVaultPanel enabled={sessionReady} />
     </OwnerWorkspace>
   );
