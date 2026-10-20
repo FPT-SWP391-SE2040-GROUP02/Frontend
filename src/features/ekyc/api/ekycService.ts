@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import { apiClient } from "@/shared/api";
 import {
+  ekycBackSchema,
   ekycConsentRequestSchema,
   ekycConsentResponseSchema,
   ekycDocumentSchema,
@@ -65,10 +66,13 @@ export const ekycService = {
       ),
     );
   },
-  /** POST ảnh mặt sau; response là EkycStatusResponse, không cần gửi lại turnId. */
+  /**
+   * POST ảnh mặt sau; response là EkycBackResponse (trạng thái lượt + nơi cư trú đọc từ mặt sau), không cần gửi
+   * lại turnId. Có thể gửi trước bước xác nhận bản khai: BE chỉ cần đã đọc mặt trước.
+   */
   async submitDocumentBack(file: File, purpose: string, handoverTurnId?: string | null) {
     const parsed = ekycPurposeSchema.parse(purpose);
-    return ekycStatusSchema.parse(
+    return ekycBackSchema.parse(
       await apiClient.post<unknown, unknown>(
         "/ekyc/document-back",
         imageForm(file, turnIdFor(parsed, handoverTurnId)),
