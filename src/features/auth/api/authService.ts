@@ -14,6 +14,11 @@ import type {
 } from "../model/auth.types";
 import { backendUserResponseSchema } from "@/entities/user/model/backendUser.schema";
 import { emailVerificationTokenSchema } from "../model/verifyEmail.schema";
+import {
+  loginOutcomeSchema,
+  twoFactorVerifyRequestSchema,
+  type TwoFactorChallenge,
+} from "../model/twoFactor.schema";
 import { axiosClient } from "@/shared/api/axiosClient";
 import {
   authCsrfTokenResponseSchema,
@@ -48,15 +53,18 @@ async function getCsrfConfig(): Promise<{ headers: Record<string, string> }> {
 
 /** Transport Bearer RAM + refresh cookie; caller phối hợp auth transitions. */
 export const sessionAuthService = {
-  /** Posts only the C# login fields; validates the full body before unwrapping data. */
-  async login(request: AuthLoginRequestDto): Promise<AuthSessionDto> {
+  /**
+   * Posts only the C# login fields; validates the full body before unwrapping data.
+   * Admin đã bật 2FA nhận thử thách thay cho phiên (chưa có cookie).
+   */
+  async login(request: AuthLoginRequestDto): Promise<AuthSessionDto | TwoFactorChallenge> {
     const config = await getCsrfConfig();
     const body = await axiosClient.post<unknown, unknown>(
       COOKIE_AUTH_ENDPOINTS.LOGIN,
       { email: request.email, password: request.password, rememberMe: request.rememberMe },
       config,
     );
-    return authSessionResponseSchema.parse(body);
+    return loginOutcomeSchema.parse(body);
   },
 
   /** Xoay refresh cookie HttpOnly và nhận access token raw; chỉ giữ token trong RAM. */
@@ -140,7 +148,7 @@ export const authService = {
    * @param {LinkGoogleRequest} payload Thông tin email và mật khẩu hiện có
    * @returns {Promise<AuthSession>} Phiên đăng nhập sau khi liên kết thành công
    */
-  async linkGoogleAccount(payload: LinkGoogleRequest): Promise<AuthSession> {
+  async linkGoogleAccount(payload: LinkGoogleRequest): Promise<AuthSession | TwoFactorChallenge> {
     const request = googleLinkRequestSchema.parse(payload);
     const config = await getCsrfConfig();
     const body = await axiosClient.post<unknown, unknown>(
@@ -148,7 +156,7 @@ export const authService = {
       request,
       config,
     );
-    return authSessionResponseSchema.parse(body);
+    return loginOutcomeSchema.parse(body);
   },
 
   /** Google ID token được Backend xác minh; không nhận email/profile thay cho token. */
@@ -165,12 +173,18 @@ export const authService = {
   },
 
   /**
-   * @description Xác thực hai bước TOTP cho tài khoản quản trị (Mockup 7)
-   * @param {TwoFactorVerifyRequest} payload Mã 6 số và cờ ghi nhớ thiết bị
-   * @returns {Promise<AuthSession>} Phiên đăng nhập hoàn chỉnh
+   * @description Hoàn tất đăng nhập Admin bằng mã TOTP hoặc mã khôi phục (BE mục 6.2a).
+   * @param {TwoFactorVerifyRequest} payload Token thử thách từ RAM và mã người dùng nhập
+   * @returns {Promise<AuthSession>} Phiên đầy đủ; BE đặt cookie lv_refresh
    */
-  async verifyTwoFactor(_payload: TwoFactorVerifyRequest): Promise<AuthSession> {
-    throw new Error(APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE);
+  async verifyTwoFactor(payload: TwoFactorVerifyRequest): Promise<AuthSession> {
+    const request = twoFactorVerifyRequestSchema.parse({
+      challengeToken: payload.challengeToken,
+      code: payload.code.trim(),
+    });
+    const config = await getCsrfConfig();
+    const body = await axiosClient.post<unknown, unknown>("/auth/2fa/verify", request, config);
+    return authSessionResponseSchema.parse(body);
   },
 
   /**

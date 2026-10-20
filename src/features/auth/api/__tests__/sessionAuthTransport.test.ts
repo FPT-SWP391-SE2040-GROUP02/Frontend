@@ -118,6 +118,7 @@ describe("Auth service through the real Axios body interceptor", () => {
       password: "fixture",
       rememberMe: false,
     });
+    if ("twoFactorRequired" in session) throw new Error("unexpected challenge");
     accessTokenMemory.set(session.accessToken);
     expect(await sessionAuthService.getSession()).toEqual(user);
     expect(routes).toEqual(["/auth/csrf", "/auth/login", "/auth/session"]);

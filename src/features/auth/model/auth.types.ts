@@ -77,8 +77,10 @@ export interface LinkGoogleRequest {
  * @description Yêu cầu xác thực hai bước TOTP cho tài khoản quản trị (Mockup 7).
  */
 export interface TwoFactorVerifyRequest {
+  /** Token thử thách từ login/google/link-confirm; chỉ giữ trong RAM. */
+  challengeToken: string;
+  /** Mã TOTP 6 số hoặc mã khôi phục. */
   code: string;
-  rememberDevice?: boolean;
 }
 
 /**

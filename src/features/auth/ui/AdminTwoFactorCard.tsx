@@ -4,8 +4,10 @@ import { Button } from "@/shared/ui/button";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { twoFactorSchema } from "../model/auth.schema";
-import { getLoginErrorMessage } from "../lib/loginFeedback";
-import { APP_MESSAGES } from "@/shared/constants";
+import { getTwoFactorErrorMessage, isTwoFactorChallengeLost } from "../lib/twoFactorFeedback";
+import { recoveryCodeSchema } from "../model/twoFactor.schema";
+import { twoFactorChallengeMemory } from "../model/twoFactorChallenge";
+import { Input } from "@/shared/ui/input";
 import { ROUTES } from "@/shared/config/routes.config";
 
 /**
@@ -29,7 +31,12 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
   const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
-  const { mutate: verify2Fa, isPending, isError, error, isAvailable } = useTwoFactorVerify();
+  const { mutate: verify2Fa, isPending, isError, error } = useTwoFactorVerify();
+  // Thử thách chỉ có trong RAM của tab; không có thì bước này không thể hoàn tất.
+  const [hasChallenge] = useState(() => twoFactorChallengeMemory.get() !== null);
+  const [useRecovery, setUseRecovery] = useState(false);
+  const [recovery, setRecovery] = useState("");
+  const challengeLost = !hasChallenge || (isError && isTwoFactorChallengeLost(error));
 
   // Tự động focus ô đầu tiên khi mount
   useEffect(() => {
@@ -40,7 +47,17 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
    * @description Xử lý thay đổi từng chữ số và tự động focus ô kế tiếp
    */
   const handleDigitChange = (index: number, value: string): void => {
-    const cleanChar = value.replace(/\D/g, "").slice(-1);
+    const clean = value.replace(/\D/g, "");
+    // Autofill OTP của điện thoại/trình quản lý mật khẩu điền cả mã vào một ô: chia sang các ô sau.
+    if (clean.length >= 3) {
+      const updated = [...digits];
+      for (let offset = 0; offset < clean.length && index + offset < 6; offset += 1)
+        updated[index + offset] = clean[offset];
+      setDigits(updated);
+      inputRefs.current[Math.min(index + clean.length, 5)]?.focus();
+      return;
+    }
+    const cleanChar = clean.slice(-1);
     const updated = [...digits];
     updated[index] = cleanChar;
     setDigits(updated);
@@ -75,38 +92,32 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
   };
 
   /**
-   * @description Xử lý nộp mã 6 số
+   * @description Nộp mã TOTP 6 số hoặc mã khôi phục; BE là nơi quyết định hạn, lượt thử và replay.
    */
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
-    const code = digits.join("");
-    if (!isAvailable || isPending || !twoFactorSchema.safeParse({ code }).success) return;
-
-    // TODO: [P0][AUTH-07] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
-    // 1. [MỤC TIÊU]: Hoàn thiện challenge TOTP Admin trước khi cấp phiên đầy đủ.
-    // 2. [INPUT & OUTPUT]: challengeId + code giữ số 0 đầu -> credential hoặc retry/expiry từ BE.
-    // 3. [CÁC BƯỚC]: Chốt POST /auth/2fa/verify; dùng RHF/Zod; gửi challenge đúng phiên; validate response; cập nhật RAM/Redux; điều hướng khi server cho phép.
-    // 4. [HÀM / THƯ VIỆN]: useTwoFactorVerify, React Hook Form, Zod, accessTokenSchema, ROUTES.
-    // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Không suy ra challengeId từ email; hạn/lượt thử/replay do BE; paste ngắn phải xóa ô cũ; không cấp quyền Admin chỉ từ UI.
-    verify2Fa(
-      { code },
-      {
-        onSuccess: () => {
-          if (onSuccess) {
-            onSuccess();
-          } else {
-            navigate(ROUTES.ADMIN.ROOT);
-          }
-        },
-        onError: () => {
-          setDigits(["", "", "", "", "", ""]);
-          inputRefs.current[0]?.focus();
-        },
+    if (challengeLost || isPending) return;
+    const code = useRecovery ? recovery.trim() : digits.join("");
+    const valid = useRecovery
+      ? recoveryCodeSchema.safeParse(code).success
+      : twoFactorSchema.safeParse({ code }).success;
+    if (!valid) return;
+    verify2Fa(code, {
+      onSuccess: ({ user }) => {
+        if (onSuccess) onSuccess();
+        else navigate(user.role === "ADMIN" ? ROUTES.ADMIN.ROOT : ROUTES.DASHBOARD.ROOT);
       },
-    );
+      onError: () => {
+        setDigits(["", "", "", "", "", ""]);
+        setRecovery("");
+        if (!useRecovery) inputRefs.current[0]?.focus();
+      },
+    });
   };
 
-  const isComplete = digits.every((d) => d !== "");
+  const isComplete = useRecovery
+    ? recoveryCodeSchema.safeParse(recovery.trim()).success
+    : digits.every((d) => d !== "");
 
   return (
     <div className={`w-full space-y-6 text-left ${className}`}>
@@ -121,9 +132,10 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
         </p>
       </div>
 
-      {!isAvailable && (
-        <p role="status" className="text-sm text-[#6B6B66]">
-          {APP_MESSAGES.ERROR.FEATURE_UNAVAILABLE}
+      {!hasChallenge && !isError && (
+        <p role="alert" className="text-sm text-[#9B1C1C]">
+          Chưa có phiên xác thực. Hãy đăng nhập bằng mật khẩu hoặc Google trước, rồi nhập mã tại
+          đây.
         </p>
       )}
       {/* Thông báo lỗi nếu mã sai */}
@@ -132,37 +144,69 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
           role="alert"
           className="p-3 rounded-xl bg-[#FDE8E8] border border-[#F8B4B4] text-[#9B1C1C] text-xs"
         >
-          {getLoginErrorMessage(error)}
+          {getTwoFactorErrorMessage(error)}
         </div>
       )}
 
       {/* Form 6 ô số OTP */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-center justify-between gap-2 sm:gap-3" onPaste={handlePaste}>
-          {digits.map((digit, idx) => (
-            <input
-              key={idx}
-              ref={(el) => {
-                inputRefs.current[idx] = el;
-              }}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              disabled={isPending}
-              autoComplete={idx === 0 ? "one-time-code" : "off"}
-              value={digit}
-              onChange={(e) => handleDigitChange(idx, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(idx, e)}
-              className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-bold rounded-xl bg-white border border-[#D5D0C3] focus:border-[#0A281E] focus:outline-none focus:ring-2 focus:ring-[#0A281E]/10 transition-all text-[#0F1A16] shadow-sm"
-              aria-label={`Chữ số thứ ${idx + 1}`}
+        {useRecovery ? (
+          <div className="space-y-1.5">
+            <label htmlFor="two-factor-recovery" className="text-xs font-semibold text-[#0F1A16]">
+              Mã khôi phục
+            </label>
+            <Input
+              id="two-factor-recovery"
+              value={recovery}
+              onChange={(e) => setRecovery(e.target.value)}
+              disabled={isPending || challengeLost}
+              autoComplete="off"
+              placeholder="XXXXXX-XXXXXX"
+              maxLength={13}
+              className="h-11 rounded-xl bg-white border-[#D5D0C3] font-mono tracking-wider"
             />
-          ))}
-        </div>
+            <p className="text-[11px] text-[#6B6B66]">
+              Mỗi mã khôi phục chỉ dùng được một lần, không phân biệt hoa thường.
+            </p>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2 sm:gap-3" onPaste={handlePaste}>
+            {digits.map((digit, idx) => (
+              <input
+                key={idx}
+                ref={(el) => {
+                  inputRefs.current[idx] = el;
+                }}
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                disabled={isPending || challengeLost}
+                autoComplete={idx === 0 ? "one-time-code" : "off"}
+                value={digit}
+                onChange={(e) => handleDigitChange(idx, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(idx, e)}
+                className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-bold rounded-xl bg-white border border-[#D5D0C3] focus:border-[#0A281E] focus:outline-none focus:ring-2 focus:ring-[#0A281E]/10 transition-all text-[#0F1A16] shadow-sm"
+                aria-label={`Chữ số thứ ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => {
+            setUseRecovery((value) => !value);
+            setRecovery("");
+          }}
+          className="min-h-11 text-xs font-semibold text-[#0A281E] underline"
+        >
+          {useRecovery ? "Dùng mã từ ứng dụng xác thực" : "Dùng mã khôi phục"}
+        </button>
 
         {/* Nút bấm Xác nhận */}
         <Button
           type="submit"
-          disabled={!isAvailable || !isComplete || isPending}
+          disabled={challengeLost || !isComplete || isPending}
           className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50"
         >
           {isPending ? "Đang xác thực..." : "Xác nhận"}
@@ -172,7 +216,7 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
       {/* Hộp thoại thông tin bảo mật phiên quản trị 15 phút */}
       <div className="p-3.5 rounded-xl bg-[#FAF9F5] border border-[#E5E5DF] flex items-center gap-3 text-xs text-[#6B6B66]">
         <ShieldAlert className="w-4 h-4 text-[#B88E4C] flex-shrink-0" />
-        <span>Phiên quản trị tự kết thúc sau 15 phút không hoạt động để bảo vệ hệ thống.</span>
+        <span>Mã chỉ dùng được một lần và thử thách đăng nhập hết hạn sau 5 phút.</span>
       </div>
 
       {/* Quay lại đăng nhập */}

@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { AdminHolds, AdminIncidents, AdminOverview, AdminUsers } from "@/features/admin";
+import { AdminTwoFactorSettings } from "@/features/auth";
 import { ROUTES } from "@/shared/config/routes.config";
 import {
   WorkspaceFrame,
@@ -12,6 +13,7 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
   { id: "holds", label: "Tạm giữ", to: `${ROUTES.ADMIN.ROOT}?view=holds` },
   { id: "users", label: "Người dùng", to: ROUTES.DASHBOARD.USERS },
   { id: "audit", label: "Nhật ký kiểm toán", to: ROUTES.ADMIN.AUDIT_LOG },
+  { id: "security", label: "Bảo mật tài khoản", to: `${ROUTES.ADMIN.ROOT}?view=security` },
 ];
 
 const VIEWS = {
@@ -35,6 +37,10 @@ const VIEWS = {
     title: "Nhật ký kiểm toán",
     description: "Dấu vết thao tác quản trị.",
   },
+  security: {
+    title: "Bảo mật tài khoản",
+    description: "Bật hoặc tắt xác thực hai bước cho tài khoản quản trị của bạn.",
+  },
 } as const;
 
 type AdminView = keyof typeof VIEWS;
@@ -44,7 +50,7 @@ function viewFor(pathname: string, search: string): AdminView {
   if (pathname === ROUTES.DASHBOARD.USERS) return "users";
   if (pathname === ROUTES.ADMIN.AUDIT_LOG) return "audit";
   const view = new URLSearchParams(search).get("view");
-  if (view === "incidents" || view === "holds") return view;
+  if (view === "incidents" || view === "holds" || view === "security") return view;
   return "overview";
 }
 
@@ -64,6 +70,7 @@ export function AdminWorkspacePage() {
       {view === "incidents" && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}
       {view === "users" && <AdminUsers />}
+      {view === "security" && <AdminTwoFactorSettings />}
       {view === "audit" && (
         <section
           role="status"
