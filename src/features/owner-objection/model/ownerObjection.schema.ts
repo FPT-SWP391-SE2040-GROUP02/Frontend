@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 
 const timestamp = z.string().datetime({ offset: true });
 
@@ -48,8 +49,10 @@ export const SELFIE_CONTENT_TYPES = ["image/jpeg", "image/png"] as const;
 
 /** Trả thông báo lỗi tiếng Việt, chuỗi rỗng khi ảnh hợp lệ. */
 export function validateSelfie(file: File | null): string {
-  if (!file || file.size === 0) return "Chọn ảnh selfie JPEG/PNG không rỗng, tối đa 8 MiB.";
-  if (file.size > SELFIE_MAX_BYTES) return "Ảnh selfie vượt quá 8 MiB.";
+  if (!file || file.size === 0)
+    return `Chọn ảnh selfie JPEG/PNG không rỗng, tối đa ${formatStorageSize(SELFIE_MAX_BYTES)}.`;
+  if (file.size > SELFIE_MAX_BYTES)
+    return `Ảnh selfie vượt quá ${formatStorageSize(SELFIE_MAX_BYTES)}.`;
   if (!(SELFIE_CONTENT_TYPES as readonly string[]).includes(file.type))
     return "Chỉ chấp nhận ảnh JPEG hoặc PNG.";
   return "";

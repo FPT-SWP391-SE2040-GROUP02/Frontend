@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { formatVaultServiceExpiry } from "@/entities/vault/model/vaultServicePresentation";
 import { Button } from "@/shared/ui/button";
+import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import {
   getReferenceRenewal,
   referenceMoney,
@@ -130,7 +131,8 @@ export function ServicePlanPreview({
         <div>
           <dt>Dung lượng · Người nhận</dt>
           <dd>
-            {plan.storage} MiB · {plan.includedBeneficiarySlots + renewal.extraSlots} người
+            {formatStorageMegabytes(plan.storage * 1_048_576)} ·{" "}
+            {plan.includedBeneficiarySlots + renewal.extraSlots} người
           </dd>
         </div>
       </dl>

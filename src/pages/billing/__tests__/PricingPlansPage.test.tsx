@@ -87,6 +87,9 @@ describe("pricing reference policies", () => {
     expect(planCard("Owner Free").getByText("0 người")).toBeInTheDocument();
     expect(planCard("Legacy XS").getByText("2 người")).toBeInTheDocument();
     expect(planCard("Legacy XS Max").getByText("5 người")).toBeInTheDocument();
+    expect(planCard("Owner Free").getByText("20 MB")).toBeInTheDocument();
+    expect(planCard("Legacy XS").getByText("200 MB")).toBeInTheDocument();
+    expect(planCard("Legacy XS Max").getByText("500 MB")).toBeInTheDocument();
     expect(screen.getByText(/Không giới hạn số tài sản theo hạng/)).toBeInTheDocument();
   });
 

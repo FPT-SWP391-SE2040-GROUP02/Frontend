@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { handoverService } from "../api/handoverService";
 import type { handoverTurnSchema } from "../model/handover.schema";
 import { useGrantDownload } from "../model/useGrantDownload";
@@ -127,7 +128,7 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
           {turn.items.map((item) => (
             <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <span className="text-sm">
-                {item.name} · {item.sizeBytes.toLocaleString("vi-VN")} byte
+                {item.name} · {formatStorageSize(item.sizeBytes)}
               </span>
               {turn.grant?.status === "ACTIVE" && (
                 <Button

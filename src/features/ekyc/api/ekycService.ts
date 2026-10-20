@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { apiClient } from "@/shared/api";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import {
   ekycConsentRequestSchema,
   ekycConsentResponseSchema,
@@ -17,7 +18,9 @@ function imageForm(file: File, handoverTurnId?: string) {
     file.size === 0 ||
     file.size > MAX_IMAGE_BYTES
   )
-    throw new Error("Chọn ảnh JPEG hoặc PNG có dung lượng tối đa 8 MiB.");
+    throw new Error(
+      `Chọn ảnh JPEG hoặc PNG có dung lượng tối đa ${formatStorageSize(MAX_IMAGE_BYTES)}.`,
+    );
   const form = new FormData();
   form.append("file", file);
   if (handoverTurnId) form.append("handoverTurnId", handoverTurnId);

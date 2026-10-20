@@ -1,3 +1,5 @@
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
+
 /** Nội dung UI mẫu của màn 37; không phải DTO hoặc kết quả xác minh thực. */
 export const CAMERA_CHECK_CONTENT = {
   brand: "LegacyVault",
@@ -10,10 +12,10 @@ export const CAMERA_CHECK_CONTENT = {
     choose: "Chọn ảnh căn cước",
     drop: "Kéo ảnh vào khung hoặc bấm để chọn",
     hint: "Chọn ảnh rõ nét, đủ bốn góc, không bị lóa hoặc che khuất.",
-    formats: "JPG, PNG, WebP · Tối đa 8 MB",
+    formats: `JPG, PNG, WebP · Tối đa ${formatStorageSize(8 * 1024 * 1024)}`,
     accept: "image/jpeg,image/png,image/webp",
     maxBytes: 8 * 1024 * 1024,
-    invalid: "Vui lòng chọn ảnh JPG, PNG hoặc WebP không quá 8 MB.",
+    invalid: `Vui lòng chọn ảnh JPG, PNG hoặc WebP không quá ${formatStorageSize(8 * 1024 * 1024)}.`,
     empty: "Chưa chọn ảnh",
     selected: "Đã chọn ảnh trên thiết bị",
     read: "Đọc thông tin",

@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { ekycDocumentSchema, ekycPurposeSchema, ekycStatusSchema } from "../model/ekyc.schema";
 import { ekycService } from "../api/ekycService";
 import { LivenessPanel } from "./LivenessPanel";
@@ -16,9 +17,10 @@ type Status = z.infer<typeof ekycStatusSchema>;
 type Step = "consent" | "front" | "back" | "liveness" | "done";
 
 function validateImage(file: File | null): string {
-  if (!file) return "Chọn ảnh JPEG/PNG không rỗng, tối đa 8 MiB.";
-  if (file.size === 0) return "Chọn ảnh JPEG/PNG không rỗng, tối đa 8 MiB.";
-  if (file.size > 8 * 1024 * 1024) return "Chọn ảnh JPEG/PNG không rỗng, tối đa 8 MiB.";
+  const sizeError = `Chọn ảnh JPEG/PNG không rỗng, tối đa ${formatStorageSize(8 * 1024 * 1024)}.`;
+  if (!file) return sizeError;
+  if (file.size === 0) return sizeError;
+  if (file.size > 8 * 1024 * 1024) return sizeError;
   if (!["image/jpeg", "image/png"].includes(file.type)) return "Chỉ chấp nhận ảnh JPEG hoặc PNG.";
   return "";
 }
@@ -172,7 +174,9 @@ export function EkycUploads({
           }}
         >
           <h3 className="text-base font-semibold">Bước 1: Ảnh mặt trước giấy tờ</h3>
-          <p className="text-sm text-heritage-muted">JPEG/PNG, tối đa 8 MiB.</p>
+          <p className="text-sm text-heritage-muted">
+            JPEG/PNG, tối đa {formatStorageSize(8 * 1024 * 1024)}.
+          </p>
           <fieldset disabled={frontAction.pending} className="space-y-3">
             <Input
               type="file"
@@ -214,7 +218,9 @@ export function EkycUploads({
             }}
           >
             <h3 className="text-base font-semibold">Bước 2: Ảnh mặt sau giấy tờ</h3>
-            <p className="text-sm text-heritage-muted">JPEG/PNG, tối đa 8 MiB.</p>
+            <p className="text-sm text-heritage-muted">
+              JPEG/PNG, tối đa {formatStorageSize(8 * 1024 * 1024)}.
+            </p>
             <fieldset
               disabled={
                 backAction.pending || !confirmed || !ocr?.canMatchFace || !ocr.verificationId

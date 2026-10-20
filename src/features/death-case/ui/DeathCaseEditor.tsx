@@ -8,6 +8,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import type { deathCaseSchema } from "../model/deathCase.schema";
 import { deathCaseService } from "../api/deathCaseService";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 type Case = z.infer<typeof deathCaseSchema>;
 const schema = z.object({
   ownerFullName: z.string().max(200),
@@ -131,7 +132,8 @@ export function DeathCaseEditor({ record }: { record: Case }) {
       <section className="space-y-3 border-t border-heritage-border pt-4">
         <h3 className="font-semibold">Trang giấy chứng tử ({version.files.length}/10)</h3>
         <p className="text-xs text-heritage-muted">
-          PDF/JPEG/PNG/WEBP, tối đa 20 MiB mỗi tệp. Không tự gửi hồ sơ sau khi tải tệp lên.
+          PDF/JPEG/PNG/WEBP, tối đa {formatStorageSize(20 * 1024 * 1024)} mỗi tệp. Không tự gửi hồ
+          sơ sau khi tải tệp lên.
         </p>
         <ul className="space-y-2">
           {version.files.map((item) => (
@@ -166,7 +168,9 @@ export function DeathCaseEditor({ record }: { record: Case }) {
               file.size > 20 * 1024 * 1024 ||
               !["application/pdf", "image/jpeg", "image/png", "image/webp"].includes(file.type)
             ) {
-              setFileError("Chọn tệp đúng định dạng, không rỗng, tối đa 20 MiB.");
+              setFileError(
+                `Chọn tệp đúng định dạng, không rỗng, tối đa ${formatStorageSize(20 * 1024 * 1024)}.`,
+              );
               return;
             }
             const target = event.currentTarget;

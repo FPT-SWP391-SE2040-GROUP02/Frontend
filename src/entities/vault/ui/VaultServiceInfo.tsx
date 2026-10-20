@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import type { VaultResponse } from "../model/vault.types";
 import {
   formatVaultServiceExpiry,
@@ -64,9 +65,6 @@ function VaultServiceDetails({ service, showQuota = false }: VaultServiceInfoPro
     warning: "text-amber-800",
     neutral: "text-heritage-muted",
   };
-  const quota = new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(
-    service.storageQuotaBytes / 1_048_576,
-  );
   return (
     <div className="space-y-4" aria-label="Thông tin gói dịch vụ của kho">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -85,7 +83,9 @@ function VaultServiceDetails({ service, showQuota = false }: VaultServiceInfoPro
         <dl className="grid gap-4 border-t border-heritage-border pt-4 sm:grid-cols-2">
           <div>
             <dt className="text-xs text-heritage-muted">Dung lượng</dt>
-            <dd className="mt-1 text-xl font-semibold text-heritage-primary">{quota} MiB</dd>
+            <dd className="mt-1 text-xl font-semibold text-heritage-primary">
+              {formatStorageMegabytes(service.storageQuotaBytes)}
+            </dd>
           </div>
           <div>
             <dt className="text-xs text-heritage-muted">Suất người nhận</dt>

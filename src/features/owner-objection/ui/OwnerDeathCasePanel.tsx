@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { HeartPulse, ShieldAlert } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { Input } from "@/shared/ui/input";
 import { CustomCheckbox } from "@/shared/ui/CustomCheckbox";
 import {
@@ -18,6 +19,7 @@ import { ownerDeathCaseKeys, useOwnerDeathCase } from "../model/useOwnerDeathCas
 import {
   conclusionLabels,
   validateSelfie,
+  SELFIE_MAX_BYTES,
   type OwnerDeathCase,
   type OwnerObjection,
 } from "../model/ownerObjection.schema";
@@ -245,7 +247,8 @@ function SelfieForm({ vaultId, reopen }: { vaultId: string; reopen: boolean }) {
         {reopen ? "Gửi bằng chứng mới (selfie)" : "Gửi ảnh selfie xác minh"}
       </label>
       <p className="text-xs text-heritage-muted">
-        Ảnh JPEG/PNG chụp trực tiếp, một khuôn mặt rõ nét, tối đa 8 MiB.
+        Ảnh JPEG/PNG chụp trực tiếp, một khuôn mặt rõ nét, tối đa{" "}
+        {formatStorageSize(SELFIE_MAX_BYTES)}.
       </p>
       <Input
         ref={input}

@@ -9,6 +9,7 @@ import { OwnerResourcesPanel } from "./OwnerResourcesPanel";
 import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
 import { EditVaultForm } from "@/features/vault-management/ui/EditVaultForm";
 import { VaultServiceInfo } from "@/entities/vault/ui/VaultServiceInfo";
+import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 
 /** Nội dung panel dữ liệu server; không sử dụng số liệu hoặc chính sách từ prototype. */
 const CONTENT = {
@@ -23,7 +24,7 @@ const CONTENT = {
   retry: "Thử lại",
   empty: "Kho chưa có gói bàn giao.",
   packages: "Tổng số gói bàn giao",
-  storage: "Dung lượng đã dùng (byte)",
+  storage: "Dung lượng đã dùng",
   list: "Gói bàn giao trên trang hiện tại",
 } as const;
 
@@ -118,14 +119,14 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
                 <HardDrive className="size-4" aria-hidden="true" />
                 {CONTENT.storage}
               </dt>
-              <dd>{vault.data.storageUsedBytes}</dd>
-              <dd className="owner-metric-caption">
-                Trên{" "}
-                {new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(
-                  vault.data.storageQuotaBytes / 1_048_576,
-                )}{" "}
-                MiB dung lượng
+              <dd className="flex flex-wrap items-baseline gap-x-2">
+                <span>{formatStorageMegabytes(vault.data.storageUsedBytes)}</span>
+                <span className="text-base font-normal text-heritage-muted">
+                  {" / "}
+                  {formatStorageMegabytes(vault.data.storageQuotaBytes)}
+                </span>
               </dd>
+              <dd className="owner-metric-caption">Đã dùng / Tổng dung lượng</dd>
             </div>
             <div className="owner-metric">
               <dt>

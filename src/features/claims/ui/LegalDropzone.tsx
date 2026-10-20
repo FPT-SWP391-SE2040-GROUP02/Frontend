@@ -1,4 +1,5 @@
 import React from "react";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { LegalDropzone as FileDropzone } from "@/shared/ui/LegalDropzone";
 import { APP_MESSAGES } from "@/shared/constants";
 import { useMutation } from "@tanstack/react-query";
@@ -126,8 +127,7 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
             <div>
               <p className="text-xs font-bold text-[#0B291E]">{uploadMutation.data.fileName}</p>
               <p className="text-[10px] text-[#66786E]">
-                {(uploadMutation.data.fileSize / 1024 / 1024).toFixed(2)} MB • Đã niêm phong băm
-                SHA-256
+                {formatStorageSize(uploadMutation.data.fileSize)} • Đã niêm phong băm SHA-256
               </p>
             </div>
             {/* Thẻ hiển thị mã băm toàn vẹn */}

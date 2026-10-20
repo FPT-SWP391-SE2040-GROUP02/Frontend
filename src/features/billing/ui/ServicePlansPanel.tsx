@@ -9,6 +9,7 @@ import {
 } from "@/entities/vault/model/vaultServicePresentation";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button, buttonVariants } from "@/shared/ui/button";
+import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import {
   canPreviewBilling,
   getReferencePlanAction,
@@ -104,14 +105,8 @@ function ServicePlansContent({
             <div>
               <dt>Dung lượng</dt>
               <dd>
-                {new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(
-                  vault.storageUsedBytes / 1_048_576,
-                )}{" "}
-                /{" "}
-                {new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 1 }).format(
-                  vault.storageQuotaBytes / 1_048_576,
-                )}{" "}
-                MiB
+                {formatStorageMegabytes(vault.storageUsedBytes)} /{" "}
+                {formatStorageMegabytes(vault.storageQuotaBytes)}
               </dd>
             </div>
             <div>
@@ -167,7 +162,7 @@ function ServicePlansContent({
               <dl className="service-plan-quota">
                 <div>
                   <dt>Dung lượng</dt>
-                  <dd>{plan.storage} MiB</dd>
+                  <dd>{formatStorageMegabytes(plan.storage * 1_048_576)}</dd>
                 </div>
                 <div>
                   <dt>{isFree ? "Người nhận" : "Người nhận kèm gói"}</dt>

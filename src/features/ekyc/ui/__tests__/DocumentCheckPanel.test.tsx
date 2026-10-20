@@ -35,7 +35,7 @@ describe("Document preview file selection", () => {
     fireEvent.change(input, {
       target: { files: [new File(["sample"], "document.pdf", { type: "application/pdf" })] },
     });
-    expect(screen.getByRole("alert")).toHaveTextContent("không quá 8 MB");
+    expect(screen.getByRole("alert")).toHaveTextContent("không quá 8,39 MB");
     expect(screen.getByRole("button", { name: "Đọc thông tin" })).toBeDisabled();
   });
   it("applies the same validation to dropped files", () => {
@@ -59,5 +59,17 @@ describe("Document preview file selection", () => {
     fireEvent.change(input, { target: { files: [file] } });
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Đọc thông tin" })).toBeDisabled();
+  });
+
+  it("keeps the original byte limit while displaying decimal MB", () => {
+    const input = setup();
+    fireEvent.change(input, {
+      target: {
+        files: [new File([new Uint8Array(8 * 1024 * 1024)], "at-limit.png", { type: "image/png" })],
+      },
+    });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Đọc thông tin" })).toBeEnabled();
+    expect(screen.getByText(/Tối đa 8,39 MB/)).toBeInTheDocument();
   });
 });

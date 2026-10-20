@@ -99,7 +99,7 @@ describe("OwnerVaultPanel", () => {
     vi.mocked(ownerVaultService.listPackages).mockResolvedValue(pageFixture([]));
     setup();
     expect(await screen.findByText("Kho chưa có gói bàn giao.")).toBeInTheDocument();
-    expect(screen.getByText("128")).toBeInTheDocument();
+    expect(screen.getByText("< 0,01 MB")).toBeInTheDocument();
   });
 
   it("shows package errors separately from vault errors", async () => {
@@ -107,6 +107,25 @@ describe("OwnerVaultPanel", () => {
     vi.mocked(ownerVaultService.listPackages).mockRejectedValue(new Error("packages unavailable"));
     setup();
     expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được danh sách gói");
+  });
+
+  it.each([
+    [58285, "0,06 MB"],
+    [7 * 1_048_576, "7 MB"],
+    [0, "0 MB"],
+  ])("shows %s used bytes beside the quota in MB", async (storageUsedBytes, expected) => {
+    vi.mocked(ownerVaultService.getMine).mockResolvedValue({
+      ...VAULT_FIXTURE,
+      storageUsedBytes,
+      storageQuotaBytes: 209715200,
+    });
+    vi.mocked(ownerVaultService.listPackages).mockResolvedValue(pageFixture([]));
+    setup();
+    const usedStorage = await screen.findByText(expected);
+    expect(usedStorage.parentElement).toHaveTextContent(`${expected} / 200 MB`);
+    expect(screen.getByText("Đã dùng / Tổng dung lượng")).toBeInTheDocument();
+    expect(screen.queryByText(/Trên .* dung lượng/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Dung lượng đã dùng (byte)")).not.toBeInTheDocument();
   });
 
   it("shows the vault service even if the package list fails", async () => {

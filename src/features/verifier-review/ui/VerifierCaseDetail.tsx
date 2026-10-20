@@ -5,6 +5,7 @@ import { CheckCircle2, AlertTriangle, ShieldAlert, FileText, Download, X } from 
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
 import { Button } from "@/shared/ui/button";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { useVerifierCase, verifierKeys } from "../model/useVerifierReview";
 import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
@@ -197,8 +198,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                   <span className="inline-flex min-w-0 items-center gap-2 text-sm">
                     <FileText className="size-4 text-heritage-gold" aria-hidden="true" />
                     <span className="break-all">
-                      Trang {file.position} · {file.fileName} ·{" "}
-                      {file.sizeBytes.toLocaleString("vi-VN")} byte
+                      Trang {file.position} · {file.fileName} · {formatStorageSize(file.sizeBytes)}
                     </span>
                   </span>
                   <Button
