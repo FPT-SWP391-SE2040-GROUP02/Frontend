@@ -45,9 +45,11 @@ function renderRow(overrides: Partial<z.infer<typeof beneficiaryResponseSchema>>
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <ul>
-            <BeneficiaryRow vaultId={VAULT_ID} record={{ ...record, ...overrides }} />
-          </ul>
+          <table>
+            <tbody>
+              <BeneficiaryRow vaultId={VAULT_ID} record={{ ...record, ...overrides }} />
+            </tbody>
+          </table>
         </MemoryRouter>
       </QueryClientProvider>
     </Provider>,
@@ -58,7 +60,8 @@ describe("hàng người nhận", () => {
   it("hiện tên, 4 số cuối CCCD, liên hệ và số nhóm đang gắn", () => {
     renderRow();
     expect(screen.getByText("Nguyễn Văn An")).toBeInTheDocument();
-    expect(screen.getByText(/\*\*\*\*8901 · an@example.test/)).toBeInTheDocument();
+    expect(screen.getByText(/•••• 8901/)).toBeInTheDocument();
+    expect(screen.getByText("an@example.test")).toBeInTheDocument();
     expect(screen.getByText("2 nhóm")).toBeInTheDocument();
   });
 
@@ -91,5 +94,24 @@ describe("hàng người nhận", () => {
     fireEvent.click(within(dialog).getByRole("checkbox"));
     expect(within(dialog).getByRole("button", { name: "Xóa hồ sơ" })).toBeDisabled();
     expect(within(dialog).getByText(/Gỡ khỏi các nhóm trước khi xóa/)).toBeInTheDocument();
+  });
+
+  it("Xóa mở hộp thoại xác nhận và gọi API xóa khi hồ sơ chưa vào nhóm", async () => {
+    const remove = vi.spyOn(apiClient, "delete").mockResolvedValue(undefined);
+    renderRow({ containerIds: [] });
+    fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Xóa hồ sơ" }));
+    await waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
+  });
+
+  it("Xóa báo không xóa được khi hồ sơ còn nằm trong nhóm", async () => {
+    const remove = vi.spyOn(apiClient, "delete").mockResolvedValue(undefined);
+    renderRow();
+    fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Không xóa được người nhận")).toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: "Xóa hồ sơ" })).not.toBeInTheDocument();
+    expect(remove).not.toHaveBeenCalled();
   });
 });

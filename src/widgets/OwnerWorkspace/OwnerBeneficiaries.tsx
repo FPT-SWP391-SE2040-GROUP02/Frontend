@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   useOwnerVault,
@@ -9,9 +9,17 @@ import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiarie
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
 import { BeneficiaryRow } from "@/features/beneficiaries/ui/BeneficiaryRow";
 import { Button } from "@/shared/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 /** Trang quản lý hồ sơ chỉ cache DTO đã che CCCD. */
 export function OwnerBeneficiaries() {
   const [params, setParams] = useSearchParams();
+  const [adding, setAdding] = useState(false);
   const requested = Number(params.get("page") ?? 1);
   const page =
     Number.isSafeInteger(requested) && requested > 0 && requested <= 1_000_000 ? requested : 1;
@@ -38,7 +46,16 @@ export function OwnerBeneficiaries() {
     rows.push(<BeneficiaryRow key={record.id} vaultId={vault.data.id} record={record} />);
   }
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button
+          size="lg"
+          className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+          onClick={() => setAdding(true)}
+        >
+          Thêm người nhận
+        </Button>
+      </div>
       <section
         aria-label="Danh sách người nhận"
         className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
@@ -56,7 +73,33 @@ export function OwnerBeneficiaries() {
             Chưa có hồ sơ trên trang này.
           </p>
         )}
-        <ul className="mt-2">{rows}</ul>
+        {rows.length > 0 && (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <caption className="sr-only">Danh sách người nhận</caption>
+              <thead>
+                <tr className="border-b border-heritage-border text-xs text-heritage-muted">
+                  <th scope="col" className="py-3 pr-4 font-semibold">
+                    Họ tên
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    CCCD
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Liên hệ
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Nhóm
+                  </th>
+                  <th scope="col" className="py-3 pl-4 text-right font-semibold">
+                    <span className="sr-only">Thao tác</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-heritage-border">{rows}</tbody>
+            </table>
+          </div>
+        )}
         <nav
           aria-label="Phân trang người nhận"
           className="mt-4 flex items-center justify-between gap-3"
@@ -78,13 +121,19 @@ export function OwnerBeneficiaries() {
           </Button>
         </nav>
       </section>
-      <section
-        aria-label="Thêm người nhận"
-        className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
-      >
-        <h2 className="mb-4 text-xl font-medium text-heritage-primary">Thêm người nhận</h2>
-        <BeneficiaryForm vaultId={vault.data.id} />
-      </section>
+      {adding && (
+        <Dialog open onOpenChange={(open) => !open && setAdding(false)}>
+          <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Thêm người nhận</DialogTitle>
+              <DialogDescription>
+                Tạo hồ sơ không tự gắn người nhận vào nhóm. Số CCCD chỉ hiện 4 số cuối sau khi lưu.
+              </DialogDescription>
+            </DialogHeader>
+            <BeneficiaryForm vaultId={vault.data.id} />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
