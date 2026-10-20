@@ -96,13 +96,12 @@ it("creates TEXT via raw Axios transport, clears the form, and never caches plai
     return { data: asset, config, status: 201, statusText: "Created", headers: new AxiosHeaders() };
   };
   setup(<CreateAssetForm vaultId={VAULT_ID} remainingBytes={1024} />);
-  fireEvent.click(screen.getByText("Thêm tài sản"));
-  fireEvent.change(screen.getByLabelText("Tên tài sản"), { target: { value: "Ghi chú" } });
+  fireEvent.change(screen.getByLabelText("Tên mục"), { target: { value: "Ghi chú" } });
   fireEvent.change(screen.getByLabelText("Nội dung bí mật"), {
     target: { value: "private-content-fixture" },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Lưu tài sản" }));
-  expect(await screen.findByRole("status")).toHaveTextContent("Đã lưu tài sản");
+  fireEvent.click(screen.getByRole("button", { name: "Lưu vào kho" }));
+  expect(await screen.findByRole("status")).toHaveTextContent("Đã lưu vào kho");
   expect(request.mock.calls[0][0].url).toBe(`/vaults/${VAULT_ID}/assets/text`);
   expect(JSON.parse(request.mock.calls[0][0].data)).toMatchObject({
     content: "private-content-fixture",
@@ -121,13 +120,12 @@ it("creates TEXT via raw Axios transport, clears the form, and never caches plai
 it("rejects an oversized file without sending a request", async () => {
   const post = vi.spyOn(apiClient, "post");
   setup(<CreateAssetForm vaultId={VAULT_ID} remainingBytes={2} />);
-  fireEvent.click(screen.getByText("Thêm tài sản"));
-  fireEvent.change(screen.getByLabelText("Loại tài sản"), { target: { value: "FILE" } });
-  fireEvent.change(screen.getByLabelText("Tên tài sản"), { target: { value: "Tệp" } });
+  fireEvent.click(screen.getByRole("button", { name: "Tệp" }));
+  fireEvent.change(screen.getByLabelText("Tên mục"), { target: { value: "Tệp" } });
   fireEvent.change(screen.getByLabelText("Tệp tài sản"), {
     target: { files: [new File(["oversize"], "fixture.txt")] },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Lưu tài sản" }));
+  fireEvent.click(screen.getByRole("button", { name: "Lưu vào kho" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("dung lượng còn lại");
   expect(post).not.toHaveBeenCalled();
 });

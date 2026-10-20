@@ -10,6 +10,11 @@ const AssetsManagementPage = lazy(() =>
     default: module.AssetsManagementPage,
   })),
 );
+const AssetDetailPage = lazy(() =>
+  import("@/pages/dashboard/AssetDetailPage").then((module) => ({
+    default: module.AssetDetailPage,
+  })),
+);
 const ContainerDetailPage = lazy(() =>
   import("@/pages/dashboard/ContainerDetailPage").then((module) => ({
     default: module.ContainerDetailPage,
@@ -239,6 +244,7 @@ export function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={[ROLES.USER]} />}>
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
+          <Route path="/dashboard/assets/:assetId" element={<AssetDetailPage />} />
           <Route path={ROUTES.DASHBOARD.IDENTITY} element={<OwnerIdentityPage />} />
           <Route path={ROUTES.DASHBOARD.BENEFICIARIES} element={<BeneficiariesPage />} />
           <Route path={ROUTES.DASHBOARD.AUDIT_LOG} element={<AuditLogPage />} />

@@ -26,6 +26,8 @@ export const ROUTES = {
     IDENTITY: "/dashboard/identity",
     ROOT: "/dashboard",
     ASSETS: "/dashboard/assets",
+    /** Chi tiết một mục trong kho: thông tin, phiên bản, thêm phiên bản, xóa. */
+    ASSET_DETAIL: (id: string) => `/dashboard/assets/${id}`,
     BENEFICIARIES: "/dashboard/beneficiaries",
     AUDIT_LOG: "/dashboard/audit-log",
     ANALYTICS: "/dashboard/analytics",

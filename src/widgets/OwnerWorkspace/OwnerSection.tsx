@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Vault, FileText, FolderOpen, Activity } from "lucide-react";
+import { Vault, FolderOpen, Activity } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { Button } from "@/shared/ui/button";
@@ -9,12 +9,11 @@ import {
   useOwnerPackages,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
-import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { CheckInActions } from "@/features/dms/ui/CheckInActions";
 import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
-import { AssetActions } from "@/features/assets/ui/AssetActions";
+import { AssetList } from "@/features/assets/ui/AssetList";
 import { NewContainerForm } from "@/features/vault-management/ui/NewContainerForm";
 import { ROUTES } from "@/shared/config/routes.config";
 import { OwnerPlanSetup } from "./OwnerPlanSetup";
@@ -44,17 +43,12 @@ function QueryError({ retry, pending }: { retry: () => void; pending: boolean })
   );
 }
 
-function ResourceList({ vaultId, section }: { vaultId: string; section: "assets" | "plans" }) {
+function PlanList({ vaultId }: { vaultId: string }) {
   const [params, setParams] = useSearchParams();
   const requested = Number(params.get("page") ?? 1);
   const page =
     Number.isSafeInteger(requested) && requested >= 1 && requested <= 1_000_000 ? requested : 1;
-  const assets = useVaultAssets(section === "assets" ? vaultId : "", {
-    pageIndex: page,
-    pageSize: 10,
-  });
-  const plans = useOwnerPackages(vaultId, section === "plans", { pageIndex: page, pageSize: 10 });
-  const query = section === "assets" ? assets : plans;
+  const query = useOwnerPackages(vaultId, true, { pageIndex: page, pageSize: 10 });
   const data = query.data;
   const setPage = (value: number) =>
     setParams((previous) => {
@@ -71,12 +65,11 @@ function ResourceList({ vaultId, section }: { vaultId: string; section: "assets"
   if (query.isError)
     return <QueryError retry={() => void query.refetch()} pending={query.isFetching} />;
   if (!data) return null;
-  const Icon = section === "assets" ? FileText : FolderOpen;
   return (
-    <section aria-label={section === "assets" ? "Tài sản" : "Gói bàn giao"} className="space-y-4">
+    <section aria-label="Gói bàn giao" className="space-y-4">
       <p className="flex items-center gap-2 text-sm font-medium text-heritage-muted">
-        <Icon className="size-4 text-heritage-gold" aria-hidden="true" />
-        {data.totalCount} {section === "assets" ? "tài sản" : "gói bàn giao"}
+        <FolderOpen className="size-4 text-heritage-gold" aria-hidden="true" />
+        {data.totalCount} gói bàn giao
       </p>
       {data.items.length === 0 ? (
         <Empty
@@ -91,20 +84,16 @@ function ResourceList({ vaultId, section }: { vaultId: string; section: "assets"
               className="flex min-w-0 flex-col items-start gap-4 rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-sm"
             >
               <div className="rounded-xl border border-heritage-border bg-heritage-primary/5 p-3 text-heritage-primary">
-                <Icon className="size-5" aria-hidden="true" />
+                <FolderOpen className="size-5" aria-hidden="true" />
               </div>
               <div className="min-w-0 w-full">
                 <h2 className="break-words text-sm font-semibold">
-                  {section === "plans" ? (
-                    <Link
-                      className="inline-flex min-h-11 items-center text-heritage-primary underline decoration-heritage-gold/50 underline-offset-4 hover:decoration-heritage-gold focus-visible:outline-2 focus-visible:outline-heritage-gold"
-                      to={ROUTES.WILLS.DETAIL(item.id)}
-                    >
-                      {item.name}
-                    </Link>
-                  ) : (
-                    item.name
-                  )}
+                  <Link
+                    className="inline-flex min-h-11 items-center text-heritage-primary underline decoration-heritage-gold/50 underline-offset-4 hover:decoration-heritage-gold focus-visible:outline-2 focus-visible:outline-heritage-gold"
+                    to={ROUTES.WILLS.DETAIL(item.id)}
+                  >
+                    {item.name}
+                  </Link>
                 </h2>
                 {item.description && (
                   <p className="mt-2 break-words text-xs leading-6 text-heritage-muted">
@@ -112,9 +101,6 @@ function ResourceList({ vaultId, section }: { vaultId: string; section: "assets"
                   </p>
                 )}
               </div>
-              {section === "assets" && "kind" in item && (
-                <AssetActions vaultId={vaultId} asset={item} />
-              )}
             </li>
           ))}
         </ul>
@@ -217,18 +203,21 @@ export function OwnerSection({ section }: { section: "assets" | "plans" | "check
       </div>
     );
   if (section === "check-in") return <CheckIn vaultId={vault.data.id} />;
-  return (
-    <div className="space-y-6">
-      {section === "plans" && <OwnerPlanSetup vaultId={vault.data.id} vaultService={vault.data} />}
-      {section === "assets" ? (
+  if (section === "assets")
+    return (
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <AssetList vaultId={vault.data.id} />
         <CreateAssetForm
           vaultId={vault.data.id}
           remainingBytes={vault.data.storageRemainingBytes}
         />
-      ) : (
-        <NewContainerForm vaultId={vault.data.id} />
-      )}
-      <ResourceList vaultId={vault.data.id} section={section} />
+      </div>
+    );
+  return (
+    <div className="space-y-6">
+      <OwnerPlanSetup vaultId={vault.data.id} vaultService={vault.data} />
+      <NewContainerForm vaultId={vault.data.id} />
+      <PlanList vaultId={vault.data.id} />
     </div>
   );
 }

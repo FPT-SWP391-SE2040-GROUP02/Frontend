@@ -1,12 +1,13 @@
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AxiosError, AxiosHeaders } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { backendAssetService } from "../../api/backendAssetService";
 import type { BackendAsset } from "../../model/backendAsset.schema";
-import { AssetActions } from "../AssetActions";
+import { AssetDetail } from "../AssetDetail";
 
 const VAULT_ID = "33333333-3333-4333-8333-333333333333";
 const ASSET_ID = "44444444-4444-4444-8444-444444444444";
@@ -51,17 +52,35 @@ function problem(status: number, code: string, reason?: string) {
   });
 }
 
-function renderActions(asset: BackendAsset = baseAsset) {
+function renderDetail(asset: BackendAsset = baseAsset) {
   const invalidate = vi.spyOn(client, "invalidateQueries");
+  const onDeleted = vi.fn();
   render(
     <QueryClientProvider client={client}>
-      <AssetActions vaultId={VAULT_ID} asset={asset} />
+      <MemoryRouter>
+        <AssetDetail vaultId={VAULT_ID} asset={asset} onDeleted={onDeleted} />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
-  return invalidate;
+  return { invalidate, onDeleted };
 }
 
-describe("AssetActions", () => {
+/** Mở hộp thoại xóa và tick xác nhận; trả về hộp thoại để tìm nút bên trong. */
+async function openDeleteDialog(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: "Xóa mục" }));
+  const dialog = screen.getByRole("dialog");
+  await user.click(within(dialog).getByRole("checkbox"));
+  return dialog;
+}
+
+describe("AssetDetail", () => {
+  it("lists every version, marks the current one and shows its date and size", () => {
+    renderDetail();
+    expect(screen.getByText("Phiên bản 2 (hiện tại)")).toBeInTheDocument();
+    expect(screen.getByText("Phiên bản 1")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tải xuống phiên bản 2" })).toBeInTheDocument();
+  });
+
   it("downloads the chosen version through a temporary object URL", async () => {
     const user = userEvent.setup();
     const download = vi
@@ -71,10 +90,8 @@ describe("AssetActions", () => {
     const revoke = vi.fn();
     Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke });
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
-    renderActions();
-    await user.click(screen.getByRole("button", { name: "Tải xuống" }));
-    await user.selectOptions(screen.getByLabelText("Phiên bản"), "1");
-    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Tải xuống" }));
+    renderDetail();
+    await user.click(screen.getByRole("button", { name: "Tải xuống phiên bản 1" }));
     await waitFor(() => expect(click).toHaveBeenCalled());
     expect(download).toHaveBeenCalledWith(VAULT_ID, ASSET_ID, 1);
     expect(create).toHaveBeenCalledTimes(1);
@@ -87,9 +104,8 @@ describe("AssetActions", () => {
       name: "Tên mới",
       etag: "etag-2",
     });
-    const invalidate = renderActions();
-    await user.click(screen.getByRole("button", { name: "Sửa" }));
-    const name = screen.getByLabelText("Tên tài sản");
+    const { invalidate } = renderDetail();
+    const name = screen.getByLabelText("Tên mục");
     await user.clear(name);
     await user.type(name, "Tên mới");
     await user.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
@@ -103,23 +119,21 @@ describe("AssetActions", () => {
   it("does not call the Backend when nothing changed", async () => {
     const user = userEvent.setup();
     const update = vi.spyOn(backendAssetService, "update");
-    renderActions();
-    await user.click(screen.getByRole("button", { name: "Sửa" }));
+    renderDetail();
     await user.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
     expect(update).not.toHaveBeenCalled();
   });
 
-  it("tells the Owner to reload on an edit conflict and keeps the dialog open", async () => {
+  it("tells the Owner to reload on an edit conflict and keeps the form", async () => {
     const user = userEvent.setup();
     vi.spyOn(backendAssetService, "update").mockRejectedValue(problem(409, "EDIT_CONFLICT"));
-    renderActions();
-    await user.click(screen.getByRole("button", { name: "Sửa" }));
-    const name = screen.getByLabelText("Tên tài sản");
+    renderDetail();
+    const name = screen.getByLabelText("Tên mục");
     await user.clear(name);
     await user.type(name, "Khác");
     await user.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/Dữ liệu đã thay đổi/);
-    expect(screen.getByLabelText("Tên tài sản")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tên mục")).toBeInTheDocument();
   });
 
   it("creates a new TEXT version with the etag and never keeps the content afterwards", async () => {
@@ -127,32 +141,47 @@ describe("AssetActions", () => {
     const version = vi
       .spyOn(backendAssetService, "createTextVersion")
       .mockResolvedValue({ ...baseAsset, etag: "etag-2" });
-    renderActions();
-    await user.click(screen.getByRole("button", { name: "Thay nội dung" }));
+    renderDetail();
+    await user.click(screen.getByRole("button", { name: "Thêm phiên bản mới" }));
     await user.type(screen.getByLabelText("Nội dung mới"), "bí mật mới");
-    await user.click(screen.getByRole("button", { name: "Lưu phiên bản mới" }));
+    await user.click(screen.getByRole("button", { name: "Tải lên" }));
     await waitFor(() => expect(version).toHaveBeenCalledTimes(1));
     expect(version).toHaveBeenCalledWith(VAULT_ID, ASSET_ID, {
       content: "bí mật mới",
       etag: "etag-1",
     });
-    expect(client.getQueryCache().getAll()).toHaveLength(0);
+    expect(
+      client
+        .getQueryCache()
+        .getAll()
+        .filter((query) => query.state.data !== undefined),
+    ).toHaveLength(0);
   });
 
-  it("uploads a file as a new version for a FILE asset and rejects an empty file first", async () => {
+  it("uploads a file as a new version for a FILE asset and rejects a missing file first", async () => {
     const user = userEvent.setup();
     const version = vi
       .spyOn(backendAssetService, "createFileVersion")
       .mockResolvedValue({ ...baseAsset, kind: "FILE", etag: "etag-2" });
-    renderActions({ ...baseAsset, kind: "FILE" });
-    await user.click(screen.getByRole("button", { name: "Thay nội dung" }));
-    await user.click(screen.getByRole("button", { name: "Lưu phiên bản mới" }));
+    renderDetail({ ...baseAsset, kind: "FILE" });
+    await user.click(screen.getByRole("button", { name: "Thêm phiên bản mới" }));
+    await user.click(screen.getByRole("button", { name: "Tải lên" }));
     expect(screen.getByRole("alert")).toHaveTextContent(/Chọn tệp/);
     expect(version).not.toHaveBeenCalled();
     const file = new File(["abc"], "a.txt", { type: "text/plain" });
     await user.upload(screen.getByLabelText("Tệp mới"), file);
-    await user.click(screen.getByRole("button", { name: "Lưu phiên bản mới" }));
+    await user.click(screen.getByRole("button", { name: "Tải lên" }));
     await waitFor(() => expect(version).toHaveBeenCalledWith(VAULT_ID, ASSET_ID, file, "etag-1"));
+  });
+
+  it("keeps the delete button disabled until the Owner confirms", async () => {
+    const user = userEvent.setup();
+    const remove = vi.spyOn(backendAssetService, "remove").mockResolvedValue();
+    renderDetail();
+    await user.click(screen.getByRole("button", { name: "Xóa mục" }));
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByRole("button", { name: "Xóa mục" })).toBeDisabled();
+    expect(remove).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -161,10 +190,14 @@ describe("AssetActions", () => {
   ])("explains why deletion is refused (%s) and keeps the asset", async (reason, expected) => {
     const user = userEvent.setup();
     vi.spyOn(backendAssetService, "remove").mockRejectedValue(problem(409, "ASSET_IN_USE", reason));
-    renderActions();
-    await user.click(screen.getByRole("button", { name: "Xóa" }));
-    await user.click(screen.getByRole("button", { name: "Xóa vĩnh viễn" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(expected);
+    renderDetail();
+    const dialog = await openDeleteDialog(user);
+    await user.click(within(dialog).getByRole("button", { name: "Xóa mục" }));
+    expect(
+      await screen.findByRole("heading", { name: "Chưa xóa được mục này" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(expected);
+    expect(screen.getByRole("link", { name: "Mở gói bàn giao" })).toBeInTheDocument();
   });
 
   it("explains a hold on the vault when deletion is blocked by VAULT_NOT_EDITABLE", async () => {
@@ -172,23 +205,24 @@ describe("AssetActions", () => {
     vi.spyOn(backendAssetService, "remove").mockRejectedValue(
       problem(409, "VAULT_NOT_EDITABLE", "HOLD_ACTIVE"),
     );
-    renderActions();
-    await user.click(screen.getByRole("button", { name: "Xóa" }));
-    await user.click(screen.getByRole("button", { name: "Xóa vĩnh viễn" }));
+    renderDetail();
+    const dialog = await openDeleteDialog(user);
+    await user.click(within(dialog).getByRole("button", { name: "Xóa mục" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/tạm giữ/);
   });
 
-  it("deletes only after confirmation, once, then refreshes", async () => {
+  it("deletes only after confirmation, once, then refreshes and leaves the page", async () => {
     const user = userEvent.setup();
     const remove = vi.spyOn(backendAssetService, "remove").mockResolvedValue();
-    const invalidate = renderActions();
-    await user.click(screen.getByRole("button", { name: "Xóa" }));
+    const { invalidate, onDeleted } = renderDetail();
+    const dialog = await openDeleteDialog(user);
     expect(remove).not.toHaveBeenCalled();
-    await user.dblClick(screen.getByRole("button", { name: "Xóa vĩnh viễn" }));
+    await user.dblClick(within(dialog).getByRole("button", { name: "Xóa mục" }));
     await waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
     expect(remove).toHaveBeenCalledWith(VAULT_ID, ASSET_ID);
     await waitFor(() =>
       expect(invalidate).toHaveBeenCalledWith({ queryKey: ["vault-assets", VAULT_ID] }),
     );
+    await waitFor(() => expect(onDeleted).toHaveBeenCalledTimes(1));
   });
 });
