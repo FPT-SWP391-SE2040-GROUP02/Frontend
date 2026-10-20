@@ -29,6 +29,8 @@ export const ROUTES = {
     /** Chi tiết một mục trong kho: thông tin, phiên bản, thêm phiên bản, xóa. */
     ASSET_DETAIL: (id: string) => `/dashboard/assets/${id}`,
     BENEFICIARIES: "/dashboard/beneficiaries",
+    /** Người tin cậy của Chủ kho: Người thực hiện (Executor) và Người xét duyệt. */
+    TRUSTED_PEOPLE: "/dashboard/trusted-people",
     AUDIT_LOG: "/dashboard/audit-log",
     ANALYTICS: "/dashboard/analytics",
     USERS: "/dashboard/users",

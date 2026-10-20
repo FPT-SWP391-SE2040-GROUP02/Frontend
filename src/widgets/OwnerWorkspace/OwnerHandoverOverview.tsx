@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
+import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { checkInService } from "@/features/dms/api/checkInService";
@@ -145,12 +147,12 @@ function TrustedPeopleCard({ vaultId }: { vaultId: string }) {
     let primaryStatus = "Cần mời";
     let primaryNeedsAction = true;
     let primaryAction: ReactNode = (
-      <a
-        href="#kich-hoat-ke-hoach"
+      <Link
+        to={ROUTES.DASHBOARD.TRUSTED_PEOPLE}
         className="mt-4 inline-flex min-h-11 items-center justify-center self-start rounded-lg bg-[#E0C486] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-heritage-gold"
       >
         Mời người thực hiện
-      </a>
+      </Link>
     );
     if (primary !== null) {
       primaryName = primary.inviteeEmail;

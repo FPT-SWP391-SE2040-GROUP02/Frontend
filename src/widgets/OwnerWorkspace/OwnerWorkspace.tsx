@@ -44,6 +44,7 @@ const navigation = [
   { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon },
   { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon },
   { label: "Người nhận", to: ROUTES.DASHBOARD.BENEFICIARIES, icon: RecipientsIcon },
+  { label: "Người tin cậy", to: ROUTES.DASHBOARD.TRUSTED_PEOPLE, icon: TrustedIcon },
   { label: "Điểm danh", to: ROUTES.DMS.ROOT, icon: ActivityIcon },
   { label: "Nhật ký hoạt động", to: ROUTES.DASHBOARD.AUDIT_LOG, icon: HistoryIcon },
   { label: "Gói dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon },

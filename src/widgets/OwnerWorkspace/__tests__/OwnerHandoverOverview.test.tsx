@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
@@ -58,7 +59,9 @@ afterEach(() => {
 function renderOverview() {
   return render(
     <QueryClientProvider client={client}>
-      <OwnerHandoverOverview vaultId={VAULT_ID} />
+      <MemoryRouter>
+        <OwnerHandoverOverview vaultId={VAULT_ID} />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }
@@ -75,7 +78,7 @@ describe("tổng quan bàn giao của Chủ kho", () => {
     expect(screen.getByText("Cần mời")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Mời người thực hiện" })).toHaveAttribute(
       "href",
-      "#kich-hoat-ke-hoach",
+      "/dashboard/trusted-people",
     );
     expect(screen.getByText("Hệ thống phân công")).toBeInTheDocument();
     expect(screen.getByText(/Chưa có yêu cầu bàn giao/)).toBeInTheDocument();

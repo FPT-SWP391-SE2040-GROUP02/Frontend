@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
@@ -11,6 +11,7 @@ import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
+import { ExecutorsSection } from "@/features/plan-setup/ui/ExecutorsSection";
 import { ExecutorInvitationPanel } from "@/features/plan-setup/ui/ExecutorInvitationPanel";
 import { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 
@@ -148,7 +149,7 @@ it("retains server failure and does not retry activation or show success", async
 
 it("does not misreport an undelivered invitation as accepted or sent", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue({ ...setupFixture, executors: [invitationFixture] });
-  setup(<PlanSetupPanel vaultId={VAULT_ID} />);
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
   expect(await screen.findByText(/Chưa xác nhận gửi được email/)).toBeInTheDocument();
   expect(screen.getByText(/Chờ phản hồi/)).toBeInTheDocument();
   expect(screen.queryByText("Đã chấp nhận")).not.toBeInTheDocument();
@@ -291,3 +292,148 @@ it.each(["containers", "assetsOutsideContainer", "warnings"])(
     expect(planSetupSchema.safeParse(response).success).toBe(false);
   },
 );
+
+it("hiện checklist kích hoạt: mục đạt có dấu tích, mục thiếu kèm lối đi tiếp", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...setupFixture,
+    canActivate: false,
+    missingRequirements: ["OWNER_EKYC_REQUIRED", "PRIMARY_EXECUTOR_REQUIRED"],
+  });
+  setup(<PlanSetupPanel vaultId={VAULT_ID} />);
+  expect(await screen.findByText("Có ít nhất một gói sẵn sàng bàn giao.")).toBeInTheDocument();
+  expect(screen.getByText("Gói dịch vụ trả phí còn hạn.")).toBeInTheDocument();
+  expect(screen.getByText("Cần Executor chính đã chấp nhận nhiệm vụ.")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Đến Người tin cậy" })).toHaveAttribute(
+    "href",
+    "/dashboard/trusted-people",
+  );
+  expect(screen.getByRole("link", { name: "Đi xác minh danh tính" })).toBeInTheDocument();
+  expect(screen.queryByText("Đã xác minh danh tính eKYC.")).not.toBeInTheDocument();
+});
+
+const acceptedPrimary = {
+  ...invitationFixture,
+  id: VAULT_ID,
+  role: "PRIMARY",
+  status: "ACCEPTED",
+  inviteeEmail: "chinh@example.test",
+  acceptedAt: CREATED_AT,
+  invitationSentAt: CREATED_AT,
+};
+const acceptedBackup = {
+  ...acceptedPrimary,
+  id: CONTAINER_ID,
+  role: "BACKUP",
+  inviteeEmail: "duphong@example.test",
+};
+
+it("Người tin cậy: kế hoạch nháp mời được Executor, vai mặc định là chính", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue(setupFixture);
+  const post = vi.spyOn(apiClient, "post").mockResolvedValue(invitationFixture);
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Mời người thực hiện" }));
+  const dialog = await screen.findByRole("dialog");
+  fireEvent.change(within(dialog).getByLabelText("Email Executor"), {
+    target: { value: "executor@example.test" },
+  });
+  fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
+  await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+  expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executors`, {
+    email: "executor@example.test",
+    role: "PRIMARY",
+    beneficiaryId: null,
+  });
+});
+
+it("Người tin cậy: thiếu người dự phòng thì hiện 'Còn thiếu' và nút mời dự phòng", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue({ ...setupFixture, executors: [acceptedPrimary] });
+  const post = vi.spyOn(apiClient, "post").mockResolvedValue(invitationFixture);
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
+  expect(await screen.findByText("chinh@example.test")).toBeInTheDocument();
+  expect(screen.getByText("Còn thiếu")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: /Mời người dự phòng/ }));
+  const dialog = await screen.findByRole("dialog");
+  fireEvent.change(within(dialog).getByLabelText("Email Executor"), {
+    target: { value: "duphong@example.test" },
+  });
+  fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
+  await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+  expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executors`, {
+    email: "duphong@example.test",
+    role: "BACKUP",
+    beneficiaryId: null,
+  });
+});
+
+it("Người tin cậy: kế hoạch đang chạy không cho thu hồi người chính trực tiếp, chỉ mời người thay", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...setupFixture,
+    planStatus: "ACTIVE",
+    executors: [acceptedPrimary, acceptedBackup],
+  });
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
+  await screen.findByText("chinh@example.test");
+  expect(screen.getByRole("button", { name: "Mời người thay" })).toBeInTheDocument();
+  // Chỉ người dự phòng có nút Thu hồi; người chính phải đi qua "Mời người thay".
+  expect(screen.getAllByRole("button", { name: "Thu hồi" })).toHaveLength(1);
+  expect(screen.getByText(/không thu hồi trực tiếp/)).toBeInTheDocument();
+});
+
+it("Người tin cậy: thu hồi người dự phòng gửi etag hiện tại và chờ Backend xác nhận", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...setupFixture,
+    planStatus: "ACTIVE",
+    executors: [acceptedPrimary, acceptedBackup],
+  });
+  const post = vi
+    .spyOn(apiClient, "post")
+    .mockResolvedValue({ ...acceptedBackup, status: "REVOKED" });
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Thu hồi" }));
+  const dialog = await screen.findByRole("dialog");
+  expect(within(dialog).getByText("Thu hồi duphong@example.test?")).toBeInTheDocument();
+  expect(post).not.toHaveBeenCalled();
+  fireEvent.click(within(dialog).getByRole("button", { name: "Thu hồi" }));
+  await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+  expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executors/${CONTAINER_ID}/revoke`, {
+    etag: '"0"',
+  });
+});
+
+it("Người tin cậy: giữ nguyên lỗi của Backend khi thu hồi bị chặn, không báo thành công", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...setupFixture,
+    planStatus: "ACTIVE",
+    executors: [acceptedPrimary, acceptedBackup],
+  });
+  vi.spyOn(apiClient, "post").mockRejectedValue(
+    new AxiosError("private", undefined, undefined, undefined, {
+      status: 409,
+      statusText: "Conflict",
+      config: { headers: new AxiosHeaders() },
+      headers: {},
+      data: { code: "EXECUTOR_NOT_ALLOWED", reason: "BACKUP_EXECUTOR_REQUIRED" },
+    }),
+  );
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Thu hồi" }));
+  const dialog = await screen.findByRole("dialog");
+  fireEvent.click(within(dialog).getByRole("button", { name: "Thu hồi" }));
+  expect(await within(dialog).findByRole("alert")).toHaveTextContent(
+    "kho cần giữ ít nhất một người dự phòng độc lập",
+  );
+});
+
+it("Người tin cậy: kế hoạch có hồ sơ báo tử chỉ xem, không có nút thao tác", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...setupFixture,
+    planStatus: "DEATH_CASE_OPEN",
+    executors: [acceptedPrimary, acceptedBackup],
+  });
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
+  await screen.findByText("chinh@example.test");
+  expect(screen.getByText(/Bạn chỉ xem được/)).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Mời người thực hiện" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Thu hồi" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Mời người thay" })).not.toBeInTheDocument();
+});
