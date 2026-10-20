@@ -15,8 +15,8 @@ import {
   pageFixture,
 } from "@/shared/api/__tests__/backend.fixtures";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
-import { ContainerEditor } from "@/features/vault-management/ui/ContainerEditor";
-import { NewContainerForm } from "@/features/vault-management/ui/NewContainerForm";
+import { GroupDetail } from "@/features/vault-management/ui/GroupDetail";
+import { CreateGroupDialog } from "@/features/vault-management/ui/CreateGroupDialog";
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
 import { CheckInActions } from "@/features/dms/ui/CheckInActions";
 import { ownerVaultKeys } from "@/features/vault-management/model/useOwnerVault";
@@ -71,6 +71,23 @@ it("reads container selection pagination from the URL and lets users reach anoth
   expect(pages).toContain(2);
   fireEvent.click(previous);
   await waitFor(() => expect(pages).toContain(1));
+});
+it("hides selection pagination when the vault has only one page of choices", async () => {
+  apiClient.defaults.adapter = async (config) => {
+    let data: unknown = pageFixture([]);
+    if (config.url === "/vaults/me") data = vaultFixture;
+    else if (config.url?.endsWith(`/containers/${CONTAINER_ID}`)) data = containerFixture;
+    return { data, config, status: 200, statusText: "OK", headers: new AxiosHeaders() };
+  };
+  setup(
+    <Routes>
+      <Route path="/dashboard/wills/:id" element={<OwnerContainer />} />
+    </Routes>,
+    `/dashboard/wills/${CONTAINER_ID}`,
+  );
+  expect(await screen.findByRole("button", { name: "Xóa nhóm" })).toBeInTheDocument();
+  expect(screen.queryByRole("navigation", { name: "Phân trang lựa chọn cho nhóm" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Tải lại nhóm và bỏ thay đổi chưa lưu" })).toBeNull();
 });
 const asset = {
   id: CONTAINER_ID,
@@ -131,11 +148,13 @@ it("rejects an oversized file without sending a request", async () => {
 });
 it("creates a scoped container only after valid submit", async () => {
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(containerFixture);
-  setup(<NewContainerForm vaultId={VAULT_ID} />);
-  fireEvent.click(screen.getByText("Tạo gói bàn giao"));
-  fireEvent.change(screen.getByLabelText("Tên gói"), { target: { value: "Hồ sơ" } });
-  fireEvent.click(screen.getByRole("button", { name: "Tạo gói" }));
-  expect(await screen.findByRole("status")).toHaveTextContent("Đã tạo gói");
+  const onClose = vi.fn();
+  setup(<CreateGroupDialog vaultId={VAULT_ID} onClose={onClose} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Tạo nhóm" }));
+  expect(post).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByLabelText("Tên nhóm"), { target: { value: "Hồ sơ" } });
+  fireEvent.click(screen.getByRole("button", { name: "Tạo nhóm" }));
+  await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
   expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/containers`, {
     name: "Hồ sơ",
     description: "",
@@ -147,7 +166,7 @@ it("retains edits after a 409 and never overwrites using a fresh etag or retries
     response: { status: 409, data: { code: "EDIT_CONFLICT" } },
   });
   setup(
-    <ContainerEditor
+    <GroupDetail
       container={{
         ...containerFixture,
         assetIds: [],
@@ -158,10 +177,10 @@ it("retains edits after a 409 and never overwrites using a fresh etag or retries
       beneficiaries={[]}
     />,
   );
-  fireEvent.change(screen.getByLabelText("Tên gói"), { target: { value: "Tên đang sửa" } });
-  fireEvent.click(screen.getByRole("button", { name: "Lưu thông tin gói" }));
+  fireEvent.change(screen.getByLabelText("Tên nhóm"), { target: { value: "Tên đang sửa" } });
+  fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Dữ liệu đã thay đổi");
-  expect(screen.getByLabelText("Tên gói")).toHaveValue("Tên đang sửa");
+  expect(screen.getByLabelText("Tên nhóm")).toHaveValue("Tên đang sửa");
   expect(put).toHaveBeenCalledTimes(1);
   expect(put.mock.calls[0][1]).toMatchObject({ etag: "container-v1" });
   expect(client.getQueryData(ownerVaultKeys.package(VAULT_ID, CONTAINER_ID))).toBeUndefined();
@@ -178,7 +197,7 @@ it("does not silently confirm plan deactivation when detaching the last asset", 
   };
   const remove = vi.spyOn(apiClient, "delete");
   setup(
-    <ContainerEditor
+    <GroupDetail
       container={{
         ...containerFixture,
         assetIds: [VAULT_ID],
@@ -189,7 +208,7 @@ it("does not silently confirm plan deactivation when detaching the last asset", 
       beneficiaries={[]}
     />,
   );
-  fireEvent.click(screen.getByRole("button", { name: "Gỡ" }));
+  fireEvent.click(screen.getByRole("button", { name: "Gỡ khỏi nhóm" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("đưa kế hoạch về nháp");
   expect(remove).toHaveBeenCalledTimes(1);
   expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });

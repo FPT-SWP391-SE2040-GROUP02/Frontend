@@ -1,4 +1,3 @@
-import { Link, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Vault, FolderOpen, Activity } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
@@ -6,7 +5,6 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { Button } from "@/shared/ui/button";
 import {
   useOwnerVault,
-  useOwnerPackages,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
@@ -14,11 +12,10 @@ import { CheckInActions } from "@/features/dms/ui/CheckInActions";
 import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
 import { AssetList } from "@/features/assets/ui/AssetList";
-import { NewContainerForm } from "@/features/vault-management/ui/NewContainerForm";
-import { ROUTES } from "@/shared/config/routes.config";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
 import { OwnerTrustedPeople } from "./OwnerTrustedPeople";
 import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
+import { OwnerGroups } from "./OwnerGroups";
 
 function Empty({ title, description }: { title: string; description: string }) {
   return (
@@ -42,91 +39,6 @@ function QueryError({ retry, pending }: { retry: () => void; pending: boolean })
         Thử lại
       </Button>
     </div>
-  );
-}
-
-function PlanList({ vaultId }: { vaultId: string }) {
-  const [params, setParams] = useSearchParams();
-  const requested = Number(params.get("page") ?? 1);
-  const page =
-    Number.isSafeInteger(requested) && requested >= 1 && requested <= 1_000_000 ? requested : 1;
-  const query = useOwnerPackages(vaultId, true, { pageIndex: page, pageSize: 10 });
-  const data = query.data;
-  const setPage = (value: number) =>
-    setParams((previous) => {
-      const next = new URLSearchParams(previous);
-      next.set("page", String(value));
-      return next;
-    });
-  if (query.isPending)
-    return (
-      <p role="status" className="py-8 text-sm text-heritage-muted">
-        Đang tải danh sách…
-      </p>
-    );
-  if (query.isError)
-    return <QueryError retry={() => void query.refetch()} pending={query.isFetching} />;
-  if (!data) return null;
-  return (
-    <section aria-label="Gói bàn giao" className="space-y-4">
-      <p className="flex items-center gap-2 text-sm font-medium text-heritage-muted">
-        <FolderOpen className="size-4 text-heritage-gold" aria-hidden="true" />
-        {data.totalCount} gói bàn giao
-      </p>
-      {data.items.length === 0 ? (
-        <Empty
-          title={page === 1 ? "Chưa có nội dung" : "Trang này không có nội dung"}
-          description="Nội dung trong kho sẽ được hiển thị tại đây khi có dữ liệu."
-        />
-      ) : (
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {data.items.map((item) => (
-            <li
-              key={item.id}
-              className="flex min-w-0 flex-col items-start gap-4 rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-sm"
-            >
-              <div className="rounded-xl border border-heritage-border bg-heritage-primary/5 p-3 text-heritage-primary">
-                <FolderOpen className="size-5" aria-hidden="true" />
-              </div>
-              <div className="min-w-0 w-full">
-                <h2 className="break-words text-sm font-semibold">
-                  <Link
-                    className="inline-flex min-h-11 items-center text-heritage-primary underline decoration-heritage-gold/50 underline-offset-4 hover:decoration-heritage-gold focus-visible:outline-2 focus-visible:outline-heritage-gold"
-                    to={ROUTES.WILLS.DETAIL(item.id)}
-                  >
-                    {item.name}
-                  </Link>
-                </h2>
-                {item.description && (
-                  <p className="mt-2 break-words text-xs leading-6 text-heritage-muted">
-                    {item.description}
-                  </p>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-      {(page > 1 || data.totalCount > 10) && (
-        <nav aria-label="Phân trang" className="flex items-center justify-between gap-4">
-          <Button
-            variant="outline"
-            disabled={page === 1 || query.isFetching}
-            onClick={() => setPage(page - 1)}
-          >
-            Trang trước
-          </Button>
-          <span className="text-sm">Trang {page}</span>
-          <Button
-            variant="outline"
-            disabled={page * 10 >= data.totalCount || query.isFetching}
-            onClick={() => setPage(page + 1)}
-          >
-            Trang sau
-          </Button>
-        </nav>
-      )}
-    </section>
   );
 }
 
@@ -178,7 +90,14 @@ function CheckIn({ vaultId }: { vaultId: string }) {
 }
 
 /** Chỉ đọc DTO đã được tích hợp; chờ kho thật trước khi mount các truy vấn phụ thuộc. */
-export function OwnerSection({ section }: { section: "assets" | "plans" | "check-in" | "trusted" }) {
+export function OwnerSection({
+  section,
+  groupCreate,
+}: {
+  section: "assets" | "groups" | "plans" | "check-in" | "trusted";
+  /** Chỉ dùng cho section "groups": trạng thái hộp thoại "Tạo nhóm" do trang cha điều khiển. */
+  groupCreate?: { open: boolean; onOpenChange: (open: boolean) => void };
+}) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const vault = useOwnerVault(authenticated && Boolean(accessTokenMemory.get()));
   if (vault.isError && isOwnerVaultMissing(vault.error))
@@ -206,6 +125,19 @@ export function OwnerSection({ section }: { section: "assets" | "plans" | "check
     );
   if (section === "check-in") return <CheckIn vaultId={vault.data.id} />;
   if (section === "trusted") return <OwnerTrustedPeople vaultId={vault.data.id} />;
+  if (section === "groups") {
+    let open = false;
+    let onOpenChange = (value: boolean): void => {
+      void value;
+    };
+    if (groupCreate) {
+      open = groupCreate.open;
+      onOpenChange = groupCreate.onOpenChange;
+    }
+    return (
+      <OwnerGroups vaultId={vault.data.id} createOpen={open} onCreateOpenChange={onOpenChange} />
+    );
+  }
   if (section === "assets")
     return (
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -220,8 +152,6 @@ export function OwnerSection({ section }: { section: "assets" | "plans" | "check
     <div className="space-y-6">
       <OwnerHandoverOverview vaultId={vault.data.id} />
       <PlanSetupPanel vaultId={vault.data.id} />
-      <NewContainerForm vaultId={vault.data.id} />
-      <PlanList vaultId={vault.data.id} />
     </div>
   );
 }

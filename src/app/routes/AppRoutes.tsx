@@ -269,6 +269,7 @@ export function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={[ROLES.USER]} />}>
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
+          <Route path="/dashboard/assets/groups/:id" element={<ContainerDetailPage />} />
           <Route path="/dashboard/assets/:assetId" element={<AssetDetailPage />} />
           <Route path={ROUTES.DASHBOARD.IDENTITY} element={<OwnerIdentityPage />} />
           <Route path={ROUTES.DASHBOARD.BENEFICIARIES} element={<BeneficiariesPage />} />
