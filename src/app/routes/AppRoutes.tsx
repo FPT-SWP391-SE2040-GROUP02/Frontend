@@ -89,6 +89,18 @@ const ForgotPasswordPage = lazy(() =>
 const LandingPage = lazy(() =>
   import("@/pages/public/LandingPage").then((module) => ({ default: module.LandingPage })),
 );
+const FaqPage = lazy(() =>
+  import("@/pages/public/FaqPage").then((module) => ({ default: module.FaqPage })),
+);
+const ContactPage = lazy(() =>
+  import("@/pages/public/ContactPage").then((module) => ({ default: module.ContactPage })),
+);
+const TermsPage = lazy(() =>
+  import("@/pages/public/TermsPage").then((module) => ({ default: module.TermsPage })),
+);
+const PrivacyPage = lazy(() =>
+  import("@/pages/public/PrivacyPage").then((module) => ({ default: module.PrivacyPage })),
+);
 const LinkGooglePage = lazy(() =>
   import("@/pages/auth/LinkGooglePage").then((module) => ({ default: module.LinkGooglePage })),
 );
@@ -206,6 +218,10 @@ export function AppRoutes() {
       <Routes>
         {/* 1. Trang chủ công khai cho GUEST */}
         <Route path={ROUTES.HOME} element={<LandingPage />} />
+        <Route path={ROUTES.PUBLIC.FAQ} element={<FaqPage />} />
+        <Route path={ROUTES.PUBLIC.CONTACT} element={<ContactPage />} />
+        <Route path={ROUTES.PUBLIC.TERMS} element={<TermsPage />} />
+        <Route path={ROUTES.PUBLIC.PRIVACY} element={<PrivacyPage />} />
         <Route path="/invitations/:token" element={<InvitationPage />} />
         <Route path={ROUTES.RECEIVE} element={<InvitationPage />} />
         <Route path={ROUTES.EXECUTOR.INVITATION} element={<ExecutorInvitationPage />} />
