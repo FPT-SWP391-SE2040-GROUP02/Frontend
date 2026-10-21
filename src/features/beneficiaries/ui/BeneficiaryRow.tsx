@@ -59,15 +59,12 @@ function DeleteBeneficiaryDialog({
         <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
           <DialogHeader>
             <DialogTitle>Không xóa được người nhận</DialogTitle>
-            <DialogDescription>Hồ sơ đang được dùng nên kho giữ lại.</DialogDescription>
           </DialogHeader>
           <Notice tone="danger" role="alert">
-            {record.fullName} đang nằm trong {describeGroups(record.containerIds, groupNames)}. Hãy
-            gỡ người nhận khỏi gói bàn giao trước khi xóa hồ sơ.
-          </Notice>
-          <Notice tone="warning">
-            Nếu người nhận đã được ghim vào một lượt bàn giao đang chạy, hồ sơ không thể xóa cho tới
-            khi bàn giao kết thúc.
+            <span className="font-semibold">
+              {record.fullName} đang ở trong {describeGroups(record.containerIds, groupNames)}.
+            </span>{" "}
+            Hãy gỡ ra trước khi xóa.
           </Notice>
           <DialogFooter>
             <button type="button" className={buttonStyles.outline} onClick={onClose}>
