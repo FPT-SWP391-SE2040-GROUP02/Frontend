@@ -32,7 +32,7 @@ export const billingPlansSchema = z.object({
 });
 
 /** Loại đơn do Backend tự xác định từ quyền dịch vụ của kho. */
-export const billingKindSchema = z.enum(["PURCHASE", "ADDON", "UPGRADE"]);
+export const billingKindSchema = z.enum(["PURCHASE", "ADDON", "UPGRADE", "RENEWAL"]);
 
 /** POST /billing/quote: báo giá không ghi DB. Số tiền chỉ hiển thị, không bao giờ gửi lại. */
 export const billingQuoteSchema = z.object({
@@ -92,4 +92,6 @@ export const billingSelectionSchema = z.object({
   tier: billingTierSchema.optional(),
   years: billingYearsSchema.optional(),
   extraSlots: z.number().int().min(0).max(20),
+  /** true = gia hạn khi kho còn hạn; kho đã hết hạn Backend tự hiểu là gia hạn. */
+  renew: z.boolean().optional(),
 });

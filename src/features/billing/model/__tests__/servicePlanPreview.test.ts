@@ -43,27 +43,32 @@ describe("hành động trên thẻ gói", () => {
     expect(getReferencePlanAction(xsMax, paidVault, now)).toBe("upgrade");
   });
 
-  it("kho XS Max còn hạn: mua thêm suất ở XS Max, hạ về XS chưa hỗ trợ", () => {
+  it("kho XS Max còn hạn: mua thêm suất ở XS Max, hạ về XS chọn ở bước gia hạn", () => {
     const maxVault = { ...paidVault, serviceTier: "XS_MAX" as const };
     expect(getReferencePlanAction(xsMax, maxVault, now)).toBe("addon");
     expect(getReferencePlanAction(xs, maxVault, now)).toBe("downgrade");
   });
 
-  it("hết hạn hoặc ân hạn thì không có nâng hạng", () => {
+  it("hết hạn hoặc ân hạn thì không nâng hạng, chỉ còn gia hạn", () => {
     const grace = { ...paidVault, serviceStatus: "GRACE_READ_ONLY" };
-    expect(getReferencePlanAction(xsMax, grace, now)).toBe("blocked");
+    expect(getReferencePlanAction(xsMax, grace, now)).toBe("renew");
   });
 
-  it("hết hạn hoặc ân hạn thì chưa mua được vì hệ thống chưa hỗ trợ gia hạn", () => {
+  it("hết hạn, ân hạn hoặc chờ rà soát thì mọi hạng đều là gia hạn", () => {
     const expired = { ...paidVault, serviceStatus: "GRACE_READ_ONLY" };
-    expect(getReferencePlanAction(xs, expired, now)).toBe("blocked");
+    expect(getReferencePlanAction(xs, expired, now)).toBe("renew");
+    const review = { ...paidVault, serviceStatus: "EXPIRED_REVIEW" };
+    expect(getReferencePlanAction(xsMax, review, now)).toBe("renew");
     const past = { ...paidVault, serviceExpiresAt: "2020-01-01T00:00:00Z" };
-    expect(getReferencePlanAction(xs, past, now)).toBe("blocked");
+    expect(getReferencePlanAction(xs, past, now)).toBe("renew");
   });
 
-  it.each([null, "invalid"])("hạn dịch vụ là %s thì không cho mua thêm", (serviceExpiresAt) => {
-    expect(getReferencePlanAction(xs, { ...paidVault, serviceExpiresAt }, now)).toBe("blocked");
-  });
+  it.each([null, "invalid"])(
+    "hạn dịch vụ là %s thì không mua thêm được, chỉ gia hạn",
+    (serviceExpiresAt) => {
+      expect(getReferencePlanAction(xs, { ...paidVault, serviceExpiresAt }, now)).toBe("renew");
+    },
+  );
 
   it.each(["DEATH_CASE_OPEN", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"])(
     "kế hoạch %s thì chặn mua",

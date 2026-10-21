@@ -153,6 +153,18 @@ describe("thanh toán đơn đang chờ", () => {
     expect(screen.queryByRole("timer")).not.toBeInTheDocument();
   });
 
+  it("đơn gia hạn đã trả: ghi rõ hạng và số năm gia hạn", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue({
+      ...pendingOrder,
+      kind: "RENEWAL",
+      status: "PAID",
+      qrImageUrl: null,
+      paidAt: "2026-10-18T12:03:00+00:00",
+    });
+    renderCheckout();
+    expect(await screen.findByText("Gia hạn gói XS · 3 năm")).toBeInTheDocument();
+  });
+
   it("đơn nâng hạng đã trả: ghi rõ nâng lên XS Max và giữ nguyên hạn", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue({
       ...pendingOrder,

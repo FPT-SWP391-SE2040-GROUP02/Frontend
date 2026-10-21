@@ -22,10 +22,12 @@ export interface ReferenceServicePlan {
  * - buy: kho Free mua mới;
  * - addon: kho đã trả phí còn hạn, mua thêm suất người nhận (cùng hạng);
  * - upgrade: kho đang XS còn hạn, nâng lên XS Max giữa kỳ (trả phần chênh theo thời gian còn lại, giữ nguyên hạn);
- * - downgrade: đang có kỳ hạng cao hơn, chưa hỗ trợ hạ hạng giữa kỳ;
+ * - downgrade: đang có kỳ hạng cao hơn; muốn hạ hạng thì chọn ở bước gia hạn;
+ * - renew: kho đã hết hạn, đang ân hạn hoặc chờ rà soát: gia hạn (chọn hạng cho kỳ mới);
  * - blocked: chưa mua được (kho đóng, kế hoạch khóa, hết hạn cần gia hạn mà hệ thống chưa hỗ trợ...).
  */
-export type PlanPreviewAction = "none" | "buy" | "addon" | "upgrade" | "downgrade" | "blocked";
+export type PlanPreviewAction =
+  "none" | "buy" | "addon" | "upgrade" | "downgrade" | "renew" | "blocked";
 const DAY_MS = 86_400_000;
 const BYTES_PER_MB = 1_048_576;
 
@@ -60,7 +62,8 @@ export function getReferencePlanAction(
   if (plan.serviceTier === "FREE") return "none";
   if (!canPreviewBilling(vault)) return "blocked";
   if (vault.serviceTier === "FREE" && vault.serviceStatus === "FREE") return "buy";
-  if (!isCurrentPaidService(vault, now)) return "blocked";
+  // Hết hạn, ân hạn, chờ rà soát (kể cả đã quá hạn khi chưa có job đổi trạng thái): chỉ còn gia hạn.
+  if (!isCurrentPaidService(vault, now)) return "renew";
   if (plan.serviceTier !== vault.serviceTier) {
     if (vault.serviceTier === "XS" && plan.serviceTier === "XS_MAX") return "upgrade";
     return "downgrade";

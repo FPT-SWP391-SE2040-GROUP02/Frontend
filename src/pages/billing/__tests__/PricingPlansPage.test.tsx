@@ -246,12 +246,12 @@ describe("pricing reference policies", () => {
     expect(input).toHaveValue(1);
   });
 
-  it("kho XS Max không hạ hạng giữa kỳ, nút bị khóa và nói rõ", () => {
+  it("kho XS Max: thẻ XS bị khóa, hạ hạng chọn ở bước Gia hạn gói", () => {
     setup(true, { serviceTier: "XS_MAX" });
     expect(
-      planCard("Legacy XS").getByRole("button", { name: "Chưa hỗ trợ hạ hạng" }),
+      planCard("Legacy XS").getByRole("button", { name: "Hạ hạng khi gia hạn" }),
     ).toBeDisabled();
-    expect(planCard("Legacy XS").getByText(/chưa hỗ trợ hạ hạng giữa kỳ/)).toBeInTheDocument();
+    expect(planCard("Legacy XS").getByText(/chọn ở bước Gia hạn gói/)).toBeInTheDocument();
   });
 
   it("kho XS còn hạn: thẻ XS Max có nút Nâng lên XS Max, không còn chữ đợi hết kỳ", () => {
@@ -341,6 +341,83 @@ describe("pricing reference policies", () => {
     }
   });
 
+  it("gia hạn sớm: nút Gia hạn gói, chọn hạng và số năm, báo giá của Backend nối tiếp hạn cũ", async () => {
+    const renewalQuote: BillingQuote = {
+      ...purchaseQuote,
+      kind: "RENEWAL",
+      extraSlots: 1,
+      slotAmount: 49000,
+      totalAmount: 248000,
+      beneficiarySlots: 3,
+      serviceStartsAt: "AFTER_CURRENT_TERM",
+      serviceExpiresAt: "2099-10-20T00:00:00Z",
+    };
+    const post = vi.spyOn(apiClient, "post").mockImplementation((url: string) => {
+      if (url === "/billing/quote") return Promise.resolve(renewalQuote);
+      return Promise.reject(new Error("dừng ở đây"));
+    });
+    setup(true);
+    fireEvent.click(screen.getByRole("button", { name: "Gia hạn gói" }));
+    const panel = screen.getByRole("region", { name: "Gia hạn Legacy XS" });
+    await waitFor(() => expect(panel).toHaveTextContent("248.000"));
+    expect(panel).toHaveTextContent("Nối tiếp hạn hiện tại");
+    // Điền sẵn số suất thêm đang có (1), gửi cờ renew; Backend tự tính tiền.
+    expect(post.mock.calls[0][0]).toBe("/billing/quote");
+    expect(post.mock.calls[0][1]).toEqual({ tier: "XS", years: 1, extraSlots: 1, renew: true });
+    // Đổi hạng cho kỳ mới
+    fireEvent.click(within(panel).getByRole("button", { name: "Legacy XS Max" }));
+    await waitFor(() =>
+      expect(post).toHaveBeenLastCalledWith(
+        "/billing/quote",
+        { tier: "XS_MAX", years: 1, extraSlots: 1, renew: true },
+        expect.anything(),
+      ),
+    );
+    const createButton = within(panel).getByRole("button", { name: "Tạo đơn gia hạn" });
+    await waitFor(() => expect(createButton).toBeEnabled());
+    fireEvent.click(createButton);
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith("/billing/orders", {
+        tier: "XS_MAX",
+        years: 1,
+        extraSlots: 1,
+        renew: true,
+      }),
+    );
+  });
+
+  it("kho đã hết hạn: các thẻ đều là Gia hạn, kỳ mới tính từ lúc thanh toán", async () => {
+    const lateQuote: BillingQuote = {
+      ...purchaseQuote,
+      kind: "RENEWAL",
+      serviceStartsAt: "ON_PAYMENT",
+      serviceExpiresAt: null,
+    };
+    vi.spyOn(apiClient, "post").mockResolvedValue(lateQuote);
+    setup(true, { serviceStatus: "GRACE_READ_ONLY", serviceExpiresAt: "2020-01-01T00:00:00Z" });
+    expect(
+      screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
+    ).not.toBeInTheDocument();
+    expect(
+      planCard("Legacy XS Max").getByRole("button", { name: "Gia hạn Legacy XS Max" }),
+    ).toBeEnabled();
+    fireEvent.click(planCard("Legacy XS").getByRole("button", { name: "Gia hạn Legacy XS" }));
+    const panel = screen.getByRole("region", { name: "Gia hạn Legacy XS" });
+    await waitFor(() => expect(panel).toHaveTextContent("199.000"));
+    expect(panel).toHaveTextContent("Từ lúc thanh toán thành công");
+  });
+
+  it("gia hạn xuống mức nhỏ hơn dữ liệu đang dùng: hiện lỗi tiếng Việt và khóa nút tạo đơn", async () => {
+    vi.spyOn(apiClient, "post").mockRejectedValue(
+      backendError(409, "PAYMENT_NOT_ALLOWED", "USAGE_EXCEEDS_PLAN"),
+    );
+    setup(true);
+    fireEvent.click(screen.getByRole("button", { name: "Gia hạn gói" }));
+    const panel = screen.getByRole("region", { name: "Gia hạn Legacy XS" });
+    expect(await within(panel).findByRole("alert")).toHaveTextContent("vượt mức của lựa chọn này");
+    expect(within(panel).getByRole("button", { name: "Tạo đơn gia hạn" })).toBeDisabled();
+  });
+
   it.each(["ADMIN", "VERIFIER"] as const)(
     "keeps %s out of owner queries and purchase previews",
     (role) => {
@@ -417,6 +494,7 @@ describe("pricing reference policies", () => {
       expect(
         screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
       ).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Gia hạn gói" })).not.toBeInTheDocument();
     },
   );
 });

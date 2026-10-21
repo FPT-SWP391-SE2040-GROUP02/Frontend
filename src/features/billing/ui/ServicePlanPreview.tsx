@@ -53,6 +53,8 @@ export function PurchasePanel({
   mode,
   years,
   maxExtraSlots,
+  catalog = [],
+  defaultExtraSlots = 0,
   onTermChange,
   onClose,
 }: {
@@ -60,6 +62,10 @@ export function PurchasePanel({
   mode: BillingKind;
   years: ReferencePlanTerm["years"];
   maxExtraSlots: number;
+  /** Các hạng trả phí để chọn hạng cho kỳ mới khi gia hạn. */
+  catalog?: readonly ReferenceServicePlan[];
+  /** Số suất thêm đang có của kho, điền sẵn khi gia hạn (người dùng đổi được). */
+  defaultExtraSlots?: number;
   onTermChange: (years: ReferencePlanTerm["years"]) => void;
   onClose: () => void;
 }) {
@@ -69,11 +75,27 @@ export function PurchasePanel({
   const action = usePrivateAction();
   const isAddon = mode === "ADDON";
   const isUpgrade = mode === "UPGRADE";
+  const isRenewal = mode === "RENEWAL";
   let minExtraSlots = 0;
+  let initialSlots = 0;
   if (isAddon) {
     minExtraSlots = 1;
+    initialSlots = 1;
   }
-  const [extraSlots, setExtraSlots] = useState(minExtraSlots);
+  if (isRenewal) {
+    initialSlots = Math.min(maxExtraSlots, Math.max(0, defaultExtraSlots));
+  }
+  const [extraSlots, setExtraSlots] = useState(initialSlots);
+  // Gia hạn được chọn hạng cho kỳ mới (cùng hạng hoặc đổi hạng).
+  const [renewTier, setRenewTier] = useState(plan.serviceTier);
+  let activePlan = plan;
+  if (isRenewal) {
+    for (const item of catalog) {
+      if (item.serviceTier === renewTier) {
+        activePlan = item;
+      }
+    }
+  }
 
   // Mua thêm suất: Backend bỏ qua hạng và số năm, chỉ cần số suất.
   let selection: BillingSelection = {
@@ -88,8 +110,21 @@ export function PurchasePanel({
     // Nâng hạng: chỉ chọn XS_MAX, không kèm suất; số tiền do Backend tính theo thời gian còn lại.
     selection = { tier: "XS_MAX", extraSlots: 0 };
   }
+  if (isRenewal) {
+    // Gia hạn: gửi cờ renew để Backend hiểu là gia hạn dù kho còn hạn; số suất là suất thêm của kỳ mới.
+    selection = {
+      tier: activePlan.serviceTier as "XS" | "XS_MAX",
+      years,
+      extraSlots,
+      renew: true,
+    };
+  }
   const quote = useBillingQuote(selection, true);
 
+  let slotsLabel = "Suất người nhận mua thêm";
+  if (isRenewal) {
+    slotsLabel = "Suất người nhận mua thêm cho kỳ mới";
+  }
   let createLabel = "Tạo đơn và thanh toán";
   if (action.pending) {
     createLabel = "Đang tạo đơn…";
@@ -101,6 +136,16 @@ export function PurchasePanel({
     title = "Mua thêm suất";
     periodHeading = "Số suất mua thêm";
     periodHint = "Suất mới hết hạn cùng ngày với gói; giá tính theo thời gian còn lại.";
+  }
+  if (isRenewal) {
+    title = `Gia hạn ${activePlan.name}`;
+    periodHeading = "Kỳ gia hạn";
+    periodHint =
+      "Còn hạn thì kỳ mới nối tiếp hạn hiện tại, không mất ngày còn lại. Đã hết hạn thì tính từ lúc thanh toán.";
+    createLabel = "Tạo đơn gia hạn";
+    if (action.pending) {
+      createLabel = "Đang tạo đơn…";
+    }
   }
   if (isUpgrade) {
     title = `Nâng lên ${plan.name}`;
@@ -139,6 +184,13 @@ export function PurchasePanel({
   } else if (quote.data) {
     const data = quote.data;
     let periodLabel = "Từ lúc thanh toán thành công";
+    if (data.kind === "RENEWAL" && data.serviceStartsAt === "AFTER_CURRENT_TERM") {
+      periodLabel = "Nối tiếp hạn hiện tại";
+      const currentExpiry = formatVaultServiceExpiry(data.serviceExpiresAt);
+      if (currentExpiry) {
+        periodLabel = `Nối tiếp hạn hiện tại (${currentExpiry})`;
+      }
+    }
     if (data.kind === "ADDON" || data.kind === "UPGRADE") {
       periodLabel = "Giữ nguyên hạn hiện tại";
       const expiry = formatVaultServiceExpiry(data.serviceExpiresAt);
@@ -149,10 +201,10 @@ export function PurchasePanel({
     body = (
       <>
         <dl className="service-plan-summary">
-          {data.kind === "PURCHASE" && (
+          {(data.kind === "PURCHASE" || data.kind === "RENEWAL") && (
             <div>
               <dt>
-                {plan.name} · {data.years} năm
+                {activePlan.name} · {data.years} năm
               </dt>
               <dd>{referenceMoney.format(data.tierAmount)}</dd>
             </div>
@@ -221,9 +273,25 @@ export function PurchasePanel({
           <ServiceTermPicker years={years} onChange={onTermChange} showDays={false} />
         )}
       </div>
+      {isRenewal && catalog.length > 0 && (
+        <div className="service-plan-terms" role="group" aria-label="Chọn hạng cho kỳ mới">
+          {catalog.map((item) => (
+            <Button
+              key={item.serviceTier}
+              variant="ghost"
+              aria-pressed={item.serviceTier === renewTier}
+              onClick={() => setRenewTier(item.serviceTier)}
+            >
+              <span>{item.name}</span>
+            </Button>
+          ))}
+        </div>
+      )}
       {!isUpgrade && (
         <label className="service-plan-slots">
-          <span>Suất người nhận mua thêm (tối đa {maxExtraSlots})</span>
+          <span>
+            {slotsLabel} (tối đa {maxExtraSlots})
+          </span>
           <input
             type="number"
             inputMode="numeric"

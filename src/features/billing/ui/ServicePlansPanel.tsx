@@ -11,10 +11,12 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { Button, buttonVariants } from "@/shared/ui/button";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import {
+  canPreviewBilling,
   getReferencePlanAction,
   getRemainingServiceDays,
   isCurrentPaidService,
   referenceMoney,
+  type PlanPreviewAction,
   type ReferenceServicePlan,
   type ReferencePlanTerm,
 } from "../model/servicePlanPreview";
@@ -52,6 +54,8 @@ function ServicePlansContent({
   const [years, setYears] = useState<ReferencePlanTerm["years"]>(1);
   const [selectedTier, setSelectedTier] = useState<VaultResponse["serviceTier"] | null>(null);
   const [now, setNow] = useState(Date.now);
+  // true = người dùng mở bước gia hạn từ nút ở phần Gói hiện tại (hạng mặc định là hạng hiện tại).
+  const [renewing, setRenewing] = useState(false);
   const opener = useRef<HTMLButtonElement | null>(null);
   const pendingOrder = useCurrentOrder(access === "owner");
   const policyId = useId();
@@ -66,23 +70,31 @@ function ServicePlansContent({
   }, [expiry, now]);
 
   let selectedPlan = catalog.find((plan) => plan.serviceTier === selectedTier);
+  let selectedAction: PlanPreviewAction = "none";
+  if (selectedPlan && vault && access === "owner") {
+    selectedAction = getReferencePlanAction(selectedPlan, vault, now);
+    if (renewing && vault.serviceTier !== "FREE" && canPreviewBilling(vault)) {
+      selectedAction = "renew";
+    }
+  }
   if (
     !vault ||
     access !== "owner" ||
-    (selectedPlan &&
-      !["buy", "addon", "upgrade"].includes(getReferencePlanAction(selectedPlan, vault, now)))
-  )
+    !["buy", "addon", "upgrade", "renew"].includes(selectedAction)
+  ) {
     selectedPlan = undefined;
-  let selectedMode: "PURCHASE" | "ADDON" | "UPGRADE" = "PURCHASE";
-  if (selectedPlan && vault) {
-    const selectedAction = getReferencePlanAction(selectedPlan, vault, now);
-    if (selectedAction === "addon") {
-      selectedMode = "ADDON";
-    }
-    if (selectedAction === "upgrade") {
-      selectedMode = "UPGRADE";
-    }
   }
+  let selectedMode: "PURCHASE" | "ADDON" | "UPGRADE" | "RENEWAL" = "PURCHASE";
+  if (selectedAction === "addon") {
+    selectedMode = "ADDON";
+  }
+  if (selectedAction === "upgrade") {
+    selectedMode = "UPGRADE";
+  }
+  if (selectedAction === "renew") {
+    selectedMode = "RENEWAL";
+  }
+  const paidCatalog = catalog.filter((plan) => plan.serviceTier !== "FREE");
   const currentPaid = vault && isCurrentPaidService(vault, now);
   const status = vault && getVaultServiceStatus(vault, now);
   const remainingDays = vault && getRemainingServiceDays(vault, now);
@@ -129,6 +141,18 @@ function ServicePlansContent({
               </dd>
             </div>
           </dl>
+          {access === "owner" && vault.serviceTier !== "FREE" && canPreviewBilling(vault) && (
+            <Button
+              className="service-plan-button service-plan-primary"
+              onClick={(event) => {
+                opener.current = event.currentTarget;
+                setRenewing(true);
+                setSelectedTier(vault.serviceTier);
+              }}
+            >
+              Gia hạn gói
+            </Button>
+          )}
         </section>
       )}
       <div className="service-plan-catalog-heading">
@@ -146,7 +170,8 @@ function ServicePlansContent({
           const action = vault ? getReferencePlanAction(plan, vault, now) : "blocked";
           let label = `Mua gói ${plan.serviceTier === "XS" ? "XS" : "XS Max"}`;
           if (action === "upgrade") label = `Nâng lên ${plan.name.replace("Legacy ", "")}`;
-          if (action === "downgrade") label = "Chưa hỗ trợ hạ hạng";
+          if (action === "downgrade") label = "Hạ hạng khi gia hạn";
+          if (action === "renew") label = `Gia hạn ${plan.name}`;
           if (action === "blocked" && access === "owner") label = "Chưa thể chọn mua gói";
           if (access === "unavailable") label = unavailableLabel;
           return (
@@ -240,10 +265,11 @@ function ServicePlansContent({
                       action !== "upgrade" && (
                         <Button
                           variant="outline"
-                          className={`service-plan-button${!current && action === "buy" ? " service-plan-primary" : ""}`}
-                          disabled={access !== "owner" || action !== "buy"}
+                          className={`service-plan-button${(!current && action === "buy") || (current && action === "renew") ? " service-plan-primary" : ""}`}
+                          disabled={access !== "owner" || (action !== "buy" && action !== "renew")}
                           onClick={(event) => {
                             opener.current = event.currentTarget;
+                            setRenewing(false);
                             setSelectedTier(plan.serviceTier);
                           }}
                         >
@@ -259,8 +285,14 @@ function ServicePlansContent({
                     )}
                     {action === "downgrade" && (
                       <p className="service-plan-fineprint">
-                        Bạn đang có kỳ {getVaultServiceName(vault!.serviceTier)} còn hạn. Hệ thống
-                        chưa hỗ trợ hạ hạng giữa kỳ.
+                        Bạn đang có kỳ {getVaultServiceName(vault!.serviceTier)} còn hạn. Muốn dùng
+                        hạng thấp hơn, chọn ở bước Gia hạn gói.
+                      </p>
+                    )}
+                    {action === "renew" && (
+                      <p className="service-plan-fineprint">
+                        Gói đã hết hạn hoặc đang ân hạn. Gia hạn để dùng tiếp; kỳ mới tính từ lúc
+                        thanh toán.
                       </p>
                     )}
                     {action === "blocked" && access === "owner" && (
@@ -293,8 +325,11 @@ function ServicePlansContent({
           mode={selectedMode}
           years={years}
           maxExtraSlots={maxExtraSlots}
+          catalog={paidCatalog}
+          defaultExtraSlots={vault.extraBeneficiarySlots}
           onTermChange={setYears}
           onClose={() => {
+            setRenewing(false);
             setSelectedTier(null);
             opener.current?.focus();
           }}
@@ -330,8 +365,8 @@ function ServicePlansContent({
         </section>
       </footer>
       <p className="service-plan-fineprint">
-        Giá chính thức do hệ thống báo khi bạn chọn mua. Mua gói mới cần Chủ kho đã xác minh eKYC.
-        Chưa hỗ trợ gia hạn gói đã hết hạn.
+        Giá chính thức do hệ thống báo khi bạn chọn mua. Mua gói mới cần Chủ kho đã xác minh eKYC;
+        gia hạn và nâng hạng thì không cần.
       </p>
     </div>
   );

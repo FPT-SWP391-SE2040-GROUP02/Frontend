@@ -55,7 +55,9 @@ const paymentNotAllowedReasons: Record<string, string> = {
   VAULT_CLOSED: "Kho đã đóng nên không mua được dịch vụ.",
   PLAN_LOCKED: "Kế hoạch đang trong giai đoạn bàn giao hoặc bị khóa nên chưa mua được dịch vụ.",
   OWNER_EKYC_REQUIRED: "Cần hoàn tất xác minh danh tính eKYC của Chủ kho trước khi mua gói.",
-  RENEWAL_NOT_SUPPORTED: "Gói đã hết hạn hoặc đang trong kỳ ân hạn; hệ thống chưa hỗ trợ gia hạn.",
+  RENEWAL_NOT_SUPPORTED: "Kho không có kỳ dịch vụ phù hợp để thao tác này.",
+  USAGE_EXCEEDS_PLAN:
+    "Dữ liệu đang dùng (dung lượng hoặc số người nhận) vượt mức của lựa chọn này. Chọn hạng lớn hơn, thêm suất người nhận hoặc giảm dữ liệu trước.",
 };
 
 /** Reason-specific messages for PAYMENT_ORDER_NOT_PAYABLE */

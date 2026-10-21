@@ -261,6 +261,13 @@ function FinishedOrder({ order }: { order: PaymentOrder }) {
   }, [paid, client]);
 
   let kindLabel = "Mua thêm suất người nhận";
+  if (order.kind === "RENEWAL") {
+    let renewTierName = "XS Max";
+    if (order.tier === "XS") {
+      renewTierName = "XS";
+    }
+    kindLabel = `Gia hạn gói ${renewTierName} · ${order.years} năm`;
+  }
   if (order.kind === "UPGRADE") {
     kindLabel = "Nâng hạng lên XS Max (giữ nguyên hạn dịch vụ)";
   }
