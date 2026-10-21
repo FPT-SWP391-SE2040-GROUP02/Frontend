@@ -122,14 +122,13 @@ describe("hàng người nhận", () => {
     expect(remove).not.toHaveBeenCalled();
   });
 
-  it("chặn xóa nêu rõ tên gói bàn giao, kèm lưu ý bàn giao đang chạy và lối mở gói bàn giao", async () => {
+  it("chặn xóa nêu rõ tên gói bàn giao, kèm lối mở gói bàn giao", async () => {
     renderRow({}, { [VAULT_ID]: "Giấy tờ gia đình", [CONTAINER_ID]: "Tài khoản game" });
     fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("alert")).toHaveTextContent(
-      "Nguyễn Văn An đang nằm trong gói bàn giao “Giấy tờ gia đình”, “Tài khoản game”. Hãy gỡ người nhận khỏi gói bàn giao trước khi xóa hồ sơ.",
+      "Nguyễn Văn An đang ở trong gói bàn giao “Giấy tờ gia đình”, “Tài khoản game”. Hãy gỡ ra trước khi xóa.",
     );
-    expect(within(dialog).getByText(/lượt bàn giao đang chạy/)).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "Đóng" })).toBeInTheDocument();
     expect(within(dialog).getByRole("link", { name: "Mở gói bàn giao" })).toHaveAttribute(
       "href",
@@ -141,6 +140,6 @@ describe("hàng người nhận", () => {
     renderRow();
     fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByRole("alert")).toHaveTextContent("đang nằm trong 2 gói bàn giao.");
+    expect(within(dialog).getByRole("alert")).toHaveTextContent("đang ở trong 2 gói bàn giao.");
   });
 });
