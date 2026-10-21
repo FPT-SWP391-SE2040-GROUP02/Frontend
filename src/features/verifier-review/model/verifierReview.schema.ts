@@ -25,6 +25,17 @@ export const supplementPartSchema = z.enum([
   "ISSUED_BY",
   "FILES",
 ]);
+/** Nhãn tiếng Việt cho mã phần cần bổ sung. */
+export const supplementPartLabels: Record<z.infer<typeof supplementPartSchema>, string> = {
+  OWNER_FULL_NAME: "Họ tên chủ kho",
+  OWNER_CITIZEN_ID: "Số CCCD",
+  DATE_OF_DEATH: "Ngày mất",
+  CERTIFICATE_NUMBER: "Số giấy chứng tử",
+  ISSUED_ON: "Ngày cấp",
+  ISSUED_BY: "Nơi cấp",
+  FILES: "Trang giấy tờ",
+};
+
 /** Lý do chặn duyệt (BE VerifierDeathCaseResponse.ApproveBlockers). */
 export const approveBlockerSchema = z.enum([
   "NOT_UNDER_REVIEW",

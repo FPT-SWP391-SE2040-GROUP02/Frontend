@@ -229,7 +229,10 @@ export function AppRoutes() {
           <Route path={ROUTES.ADMIN.ROOT} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.DASHBOARD.USERS} element={<AdminWorkspacePage />} />
-          <Route path="/admin/incidents" element={<Navigate to="/admin?view=incidents" replace />} />
+          <Route
+            path="/admin/incidents"
+            element={<Navigate to="/admin?view=incidents" replace />}
+          />
           <Route path="/admin/holds" element={<Navigate to="/admin?view=holds" replace />} />
           <Route path="/admin/security" element={<Navigate to="/admin?view=security" replace />} />
           <Route path="/admin/users" element={<Navigate to={ROUTES.DASHBOARD.USERS} replace />} />

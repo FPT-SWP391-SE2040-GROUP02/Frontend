@@ -323,7 +323,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
       </div>
 
       <Panel
-        title="Chứng từ"
+        title={supplement ? "Bản bổ sung" : "Chứng từ"}
         action={<Chip tone="success">{`${version.files.length}/${MAX_FILES} tệp`}</Chip>}
       >
         <div
@@ -336,7 +336,9 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
           className={`rounded-2xl border-2 border-dashed px-6 py-10 text-center ${dragging ? "border-[#B68F4C] bg-[#F1E6CC]/40" : "border-[#9DB0A5]"}`}
         >
           <Upload className="mx-auto size-7 text-heritage-muted" aria-hidden="true" />
-          <p className="mt-3 font-semibold">Kéo giấy chứng tử vào đây</p>
+          <p className="mt-3 font-semibold">
+            {supplement ? "Kéo tệp bổ sung vào đây" : "Kéo giấy chứng tử vào đây"}
+          </p>
           <p className="mt-1 text-sm text-heritage-muted">hoặc bấm để chọn tệp</p>
           <input
             ref={fileInput}

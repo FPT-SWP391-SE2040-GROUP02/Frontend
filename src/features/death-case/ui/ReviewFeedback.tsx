@@ -17,7 +17,7 @@ export function ReviewFeedback({ record }: { record: DeathCase }) {
         className="space-y-3 rounded-2xl border border-[#E6C98B] bg-[#F1E6CC] p-6 text-[#5A4318]"
       >
         <h3 id="supplement-request-title" className="text-lg font-semibold">
-          Verifier yêu cầu bổ sung (bản {supplement.versionNo})
+          Yêu cầu từ Người xét duyệt (bản {supplement.versionNo})
         </h3>
         <p className="text-sm">Lý do: {supplement.reason}</p>
         <p className="text-sm">

@@ -12,7 +12,7 @@ export function VerifierQueuePage() {
       description={
         hasCase
           ? "Xem giấy tờ, kiểm tra các cờ rồi ra quyết định."
-          : "Các hồ sơ chứng tử đang được giao cho bạn xét."
+          : "Các hồ sơ báo tin đang chờ bạn xét duyệt. Bạn chỉ xác nhận hồ sơ, không xem nội dung kho."
       }
     >
       <VerifierQueue />
