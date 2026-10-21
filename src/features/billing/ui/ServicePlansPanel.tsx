@@ -327,6 +327,7 @@ function ServicePlansContent({
           maxExtraSlots={maxExtraSlots}
           catalog={paidCatalog}
           defaultExtraSlots={vault.extraBeneficiarySlots}
+          lockTier={Boolean(currentPaid)}
           onTermChange={setYears}
           onClose={() => {
             setRenewing(false);

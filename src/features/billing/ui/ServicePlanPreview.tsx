@@ -55,6 +55,7 @@ export function PurchasePanel({
   maxExtraSlots,
   catalog = [],
   defaultExtraSlots = 0,
+  lockTier = false,
   onTermChange,
   onClose,
 }: {
@@ -66,6 +67,8 @@ export function PurchasePanel({
   catalog?: readonly ReferenceServicePlan[];
   /** Số suất thêm đang có của kho, điền sẵn khi gia hạn (người dùng đổi được). */
   defaultExtraSlots?: number;
+  /** Gia hạn khi còn hạn phải giữ nguyên hạng (lên hạng dùng nâng hạng); đã hết hạn thì chọn hạng tự do. */
+  lockTier?: boolean;
   onTermChange: (years: ReferencePlanTerm["years"]) => void;
   onClose: () => void;
 }) {
@@ -273,7 +276,13 @@ export function PurchasePanel({
           <ServiceTermPicker years={years} onChange={onTermChange} showDays={false} />
         )}
       </div>
-      {isRenewal && catalog.length > 0 && (
+      {isRenewal && lockTier && (
+        <p className="service-plan-fineprint">
+          Gia hạn khi còn hạn giữ nguyên {activePlan.name}. Muốn lên hạng cao hơn, dùng nút Nâng
+          hạng ở thẻ gói; muốn hạ hạng, chờ hết kỳ.
+        </p>
+      )}
+      {isRenewal && !lockTier && catalog.length > 0 && (
         <div className="service-plan-terms" role="group" aria-label="Chọn hạng cho kỳ mới">
           {catalog.map((item) => (
             <Button

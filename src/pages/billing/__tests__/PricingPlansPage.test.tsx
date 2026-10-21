@@ -364,21 +364,18 @@ describe("pricing reference policies", () => {
     // Điền sẵn số suất thêm đang có (1), gửi cờ renew; Backend tự tính tiền.
     expect(post.mock.calls[0][0]).toBe("/billing/quote");
     expect(post.mock.calls[0][1]).toEqual({ tier: "XS", years: 1, extraSlots: 1, renew: true });
-    // Đổi hạng cho kỳ mới
-    fireEvent.click(within(panel).getByRole("button", { name: "Legacy XS Max" }));
-    await waitFor(() =>
-      expect(post).toHaveBeenLastCalledWith(
-        "/billing/quote",
-        { tier: "XS_MAX", years: 1, extraSlots: 1, renew: true },
-        expect.anything(),
-      ),
-    );
+    // Còn hạn thì giữ nguyên hạng: không có ô chọn hạng, chỉ có lời chỉ sang Nâng hạng.
+    expect(
+      within(panel).queryByRole("group", { name: "Chọn hạng cho kỳ mới" }),
+    ).not.toBeInTheDocument();
+    expect(panel).toHaveTextContent("giữ nguyên Legacy XS");
+    expect(panel).toHaveTextContent("dùng nút Nâng hạng");
     const createButton = within(panel).getByRole("button", { name: "Tạo đơn gia hạn" });
     await waitFor(() => expect(createButton).toBeEnabled());
     fireEvent.click(createButton);
     await waitFor(() =>
       expect(post).toHaveBeenCalledWith("/billing/orders", {
-        tier: "XS_MAX",
+        tier: "XS",
         years: 1,
         extraSlots: 1,
         renew: true,
@@ -393,7 +390,7 @@ describe("pricing reference policies", () => {
       serviceStartsAt: "ON_PAYMENT",
       serviceExpiresAt: null,
     };
-    vi.spyOn(apiClient, "post").mockResolvedValue(lateQuote);
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(lateQuote);
     setup(true, { serviceStatus: "GRACE_READ_ONLY", serviceExpiresAt: "2020-01-01T00:00:00Z" });
     expect(
       screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
@@ -405,6 +402,15 @@ describe("pricing reference policies", () => {
     const panel = screen.getByRole("region", { name: "Gia hạn Legacy XS" });
     await waitFor(() => expect(panel).toHaveTextContent("199.000"));
     expect(panel).toHaveTextContent("Từ lúc thanh toán thành công");
+    // Đã hết hạn thì kỳ mới tính từ lúc trả nên được chọn hạng tự do.
+    fireEvent.click(within(panel).getByRole("button", { name: "Legacy XS Max" }));
+    await waitFor(() =>
+      expect(post).toHaveBeenLastCalledWith(
+        "/billing/quote",
+        { tier: "XS_MAX", years: 1, extraSlots: 1, renew: true },
+        expect.anything(),
+      ),
+    );
   });
 
   it("gia hạn xuống mức nhỏ hơn dữ liệu đang dùng: hiện lỗi tiếng Việt và khóa nút tạo đơn", async () => {
