@@ -255,12 +255,23 @@ export function LandingPage() {
           >
             {navLinks}
           </nav>
-          <Link
-            to={loginTarget}
-            className={`inline-flex min-h-11 items-center rounded-md border border-[#E6C98B]/60 px-4 text-sm text-[#E6C98B] hover:bg-[#E6C98B]/10 ${FOCUS_RING}`}
-          >
-            {loginLabel}
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to={loginTarget}
+              className={`inline-flex min-h-11 items-center rounded-md border border-[#E6C98B]/60 px-4 text-sm text-[#E6C98B] hover:bg-[#E6C98B]/10 ${FOCUS_RING}`}
+            >
+              {loginLabel}
+            </Link>
+            {/* Chỉ khách chưa đăng nhập mới thấy nút Đăng ký. */}
+            {isGuest && (
+              <Link
+                to={ROUTES.AUTH.REGISTER}
+                className={`inline-flex min-h-11 items-center rounded-md bg-[#B68F4C] px-4 text-sm font-semibold text-[#0A281E] transition-colors hover:bg-[#E6C98B] ${FOCUS_RING}`}
+              >
+                {content.register}
+              </Link>
+            )}
+          </div>
         </header>
         <div
           id="landing-content"

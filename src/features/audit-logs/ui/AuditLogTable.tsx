@@ -1,16 +1,39 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui";
 import type { AuditLogEntry } from "../model/auditLog.schema";
+import {
+  ACTION_LABELS,
+  ACTOR_ROLE_LABELS,
+  OUTCOME_LABELS,
+  TARGET_TYPE_LABELS,
+  displayName,
+  friendlyReason,
+  shortId,
+  type AuditNameMap,
+} from "../model/auditLogLabels";
 
 const dateTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
   dateStyle: "short",
   timeStyle: "short",
 });
 
+const OUTCOME_STYLES: Record<AuditLogEntry["outcome"], string> = {
+  SUCCEEDED: "bg-green-100 text-green-800",
+  DENIED: "bg-amber-100 text-amber-800",
+  FAILED: "bg-red-100 text-red-800",
+};
+
 /**
- * @description Bảng chỉ-đọc hiển thị dòng nhật ký. Không tạo N+1 để tra tên từng dòng;
- * FE đối chiếu id bằng module tài sản/người nhận nếu cần.
+ * @description Bảng chỉ-đọc hiển thị dòng nhật ký bằng tiếng Việt. Không tạo N+1 để tra tên từng dòng;
+ * mã đối tượng chỉ hiện dạng rút gọn (đủ để phân biệt), UUID đầy đủ nằm trong tooltip.
  */
-export function AuditLogTable({ items }: { items: AuditLogEntry[] }) {
+export function AuditLogTable({
+  items,
+  names = {},
+}: {
+  items: AuditLogEntry[];
+  /** id → tên thật (tài sản, người nhận, nhóm); thiếu thì hiện mã rút gọn. */
+  names?: AuditNameMap;
+}) {
   return (
     <Table>
       <TableHeader>
@@ -21,33 +44,53 @@ export function AuditLogTable({ items }: { items: AuditLogEntry[] }) {
           <TableHead scope="col">Đối tượng</TableHead>
           <TableHead scope="col">Phiên bản</TableHead>
           <TableHead scope="col">Kết quả</TableHead>
-          <TableHead scope="col">Lý do</TableHead>
+          <TableHead scope="col">Ghi chú</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {items.map((entry) => (
-          <TableRow key={entry.id}>
-            <TableCell>{dateTimeFormatter.format(new Date(entry.at))}</TableCell>
-            <TableCell>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">{entry.actorRole}</span>
-                <span className="text-xs text-heritage-muted">{entry.actorUserId ?? "—"}</span>
-              </div>
-            </TableCell>
-            <TableCell className="font-mono text-xs">{entry.action}</TableCell>
-            <TableCell>
-              <div className="flex flex-col">
-                <span className="text-sm">{entry.targetType}</span>
-                <span className="text-xs text-heritage-muted">{entry.targetId ?? "—"}</span>
-              </div>
-            </TableCell>
-            <TableCell>{entry.targetVersion ?? "—"}</TableCell>
-            <TableCell>{entry.outcome}</TableCell>
-            <TableCell className="max-w-xs whitespace-normal break-words text-xs text-heritage-muted">
-              {entry.reason ?? "—"}
-            </TableCell>
-          </TableRow>
-        ))}
+        {items.map((entry) => {
+          // Chủ kho tự thao tác trên kho của mình nên không cần hiện mã tài khoản; vai trò khác thì hiện để truy vết.
+          const showActorId = entry.actorRole !== "OWNER" && entry.actorUserId !== null;
+          return (
+            <TableRow key={entry.id}>
+              <TableCell>{dateTimeFormatter.format(new Date(entry.at))}</TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{ACTOR_ROLE_LABELS[entry.actorRole]}</span>
+                  {showActorId && entry.actorUserId && (
+                    <span className="text-xs text-heritage-muted" title={entry.actorUserId}>
+                      {shortId(entry.actorUserId)}
+                    </span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="font-medium" title={entry.action}>
+                {ACTION_LABELS[entry.action]}
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="text-sm">{TARGET_TYPE_LABELS[entry.targetType]}</span>
+                  {entry.targetId && (
+                    <span className="text-xs text-heritage-muted" title={entry.targetId}>
+                      {displayName(entry.targetId, names)}
+                    </span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>{entry.targetVersion ?? "—"}</TableCell>
+              <TableCell>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${OUTCOME_STYLES[entry.outcome]}`}
+                >
+                  {OUTCOME_LABELS[entry.outcome]}
+                </span>
+              </TableCell>
+              <TableCell className="max-w-xs whitespace-normal break-words text-xs text-heritage-muted">
+                {entry.reason ? friendlyReason(entry.reason, names) : "—"}
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

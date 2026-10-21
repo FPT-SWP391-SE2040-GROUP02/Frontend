@@ -10,9 +10,26 @@ import { beneficiaryService } from "../api/beneficiaryService";
 import { beneficiaryResponseSchema, createBeneficiarySchema } from "../model/beneficiary.schema";
 
 type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
+// Ghi đè thông báo lỗi mặc định (tiếng Anh) của schema dùng chung bằng tiếng Việt để hiện ngay dưới từng ô.
 const formSchema = createBeneficiarySchema
-  .omit({ citizenId: true })
-  .extend({ citizenId: z.string().max(32) });
+  .omit({ citizenId: true, fullName: true, dateOfBirth: true })
+  .extend({
+    citizenId: z.string().max(32, "Số CCCD quá dài."),
+    fullName: z.string().max(200, "Họ tên tối đa 200 ký tự.").regex(/\S/, "Vui lòng nhập họ tên."),
+    dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Vui lòng chọn ngày sinh."),
+  });
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) {
+    return null;
+  }
+  return (
+    <span role="alert" className="block text-sm text-destructive">
+      {message}
+    </span>
+  );
+}
+
 /** CCCD đầy đủ chỉ ở form RAM; sửa giữ etag ban đầu và không cho thay CCCD. */
 export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?: Beneficiary }) {
   const action = usePrivateAction();
@@ -90,6 +107,7 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
                 {...register("citizenId")}
                 aria-invalid={Boolean(errors.citizenId)}
               />
+              <FieldError message={errors.citizenId?.message} />
             </label>
           )}
           <label className="block space-y-2 text-sm">
@@ -99,6 +117,7 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
               {...register("fullName")}
               aria-invalid={Boolean(errors.fullName)}
             />
+            <FieldError message={errors.fullName?.message} />
           </label>
           <label className="block space-y-2 text-sm">
             Ngày sinh
@@ -107,20 +126,18 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
               {...register("dateOfBirth")}
               aria-invalid={Boolean(errors.dateOfBirth)}
             />
+            <FieldError message={errors.dateOfBirth?.message} />
           </label>
           <label className="block space-y-2 text-sm">
             Email
             <Input type="email" {...register("email")} aria-invalid={Boolean(errors.email)} />
+            <FieldError message={errors.email?.message} />
           </label>
           <label className="block space-y-2 text-sm">
             Số điện thoại
             <Input type="tel" {...register("phone")} aria-invalid={Boolean(errors.phone)} />
+            <FieldError message={errors.phone?.message} />
           </label>
-          {Object.entries(errors).map(([key, error]) => (
-            <p key={key} role="alert" className="text-sm text-destructive">
-              {error?.message}
-            </p>
-          ))}
           <Button
             type="submit"
             size="lg"
