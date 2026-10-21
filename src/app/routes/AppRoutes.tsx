@@ -229,6 +229,10 @@ export function AppRoutes() {
           <Route path={ROUTES.ADMIN.ROOT} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.DASHBOARD.USERS} element={<AdminWorkspacePage />} />
+          <Route path="/admin/incidents" element={<Navigate to="/admin?view=incidents" replace />} />
+          <Route path="/admin/holds" element={<Navigate to="/admin?view=holds" replace />} />
+          <Route path="/admin/security" element={<Navigate to="/admin?view=security" replace />} />
+          <Route path="/admin/users" element={<Navigate to={ROUTES.DASHBOARD.USERS} replace />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path={ROUTES.BENEFICIARY.EKYC_CAMERA} element={<CameraCheckPage />} />
@@ -253,6 +257,7 @@ export function AppRoutes() {
 
         {/* Mockup 1 & 2 & 3 & 4 — Đăng nhập (bình thường / sai / khóa / lời mời) */}
         <Route path={ROUTES.AUTH.LOGIN} element={<LoginPage />} />
+        <Route path="/auth/login" element={<Navigate to={ROUTES.AUTH.LOGIN} replace />} />
 
         {/* Mockup 5 — Liên kết tài khoản Google */}
         <Route path={ROUTES.AUTH.LINK_GOOGLE} element={<LinkGooglePage />} />
@@ -267,6 +272,7 @@ export function AppRoutes() {
 
         {/* Mockup 8 — Xác nhận Đăng xuất kèm cảnh báo DMS */}
         <Route path={ROUTES.AUTH.LOGOUT} element={<LogoutConfirmationPage />} />
+        <Route path="/auth/logout" element={<Navigate to={ROUTES.AUTH.LOGOUT} replace />} />
 
         {/* Mockup 9 — Đã Đăng xuất thành công */}
         <Route path={ROUTES.AUTH.LOGGED_OUT} element={<LoggedOutPage />} />
@@ -276,8 +282,14 @@ export function AppRoutes() {
 
         {/* Tuyến đường đăng ký và quên mật khẩu */}
         <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />
+        <Route path="/auth/register" element={<Navigate to={ROUTES.AUTH.REGISTER} replace />} />
         <Route path={ROUTES.AUTH.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+        <Route
+          path="/auth/forgot-password"
+          element={<Navigate to={ROUTES.AUTH.FORGOT_PASSWORD} replace />}
+        />
         <Route path={ROUTES.AUTH.RESET_PASSWORD} element={<ResetPasswordPage />} />
+        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
 
         {/* ========================================================================
           5. TUYẾN ĐƯỜNG BẢO VỆ — Chủ Kho Di Sản (Vault Owner & Admin)
@@ -298,6 +310,8 @@ export function AppRoutes() {
           <Route path="/dashboard/wills/:id" element={<ContainerDetailPage />} />
           <Route path="/wills/new" element={<WillWizardPage />} />
           <Route path={ROUTES.DMS.ROOT} element={<DmsStatusPage />} />
+          <Route path={ROUTES.DMS.CONFIG} element={<DmsStatusPage />} />
+          <Route path={ROUTES.DMS.HISTORY} element={<DmsStatusPage />} />
         </Route>
 
         {/* ========================================================================

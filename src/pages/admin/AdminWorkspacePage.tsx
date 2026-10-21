@@ -1,5 +1,11 @@
 import { useLocation } from "react-router-dom";
-import { AdminHolds, AdminIncidents, AdminOverview, AdminUsers } from "@/features/admin";
+import {
+  AdminDevTools,
+  AdminHolds,
+  AdminIncidents,
+  AdminOverview,
+  AdminUsers,
+} from "@/features/admin";
 import { AdminTwoFactorSettings } from "@/features/auth";
 import { ROUTES } from "@/shared/config/routes.config";
 import {
@@ -15,6 +21,16 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
   { id: "audit", label: "Nhật ký kiểm toán", to: ROUTES.ADMIN.AUDIT_LOG },
   { id: "security", label: "Bảo mật tài khoản", to: `${ROUTES.ADMIN.ROOT}?view=security` },
 ];
+
+/** Công cụ thử nghiệm chỉ có khi chạy `npm run dev`; bản build không có mục này (Backend cũng chỉ mở ở Development). */
+const DEV_TOOLS_ENABLED = import.meta.env.DEV;
+
+const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
+  ? [
+      ...NAVIGATION,
+      { id: "dev-tools", label: "Công cụ thử nghiệm", to: `${ROUTES.ADMIN.ROOT}?view=dev-tools` },
+    ]
+  : NAVIGATION;
 
 const VIEWS = {
   overview: {
@@ -41,6 +57,10 @@ const VIEWS = {
     title: "Bảo mật tài khoản",
     description: "Bật hoặc tắt xác thực hai bước cho tài khoản quản trị của bạn.",
   },
+  "dev-tools": {
+    title: "Công cụ thử nghiệm",
+    description: "Tua thời gian của một hồ sơ để thử luồng bàn giao mà không phải chờ.",
+  },
 } as const;
 
 type AdminView = keyof typeof VIEWS;
@@ -51,6 +71,7 @@ function viewFor(pathname: string, search: string): AdminView {
   if (pathname === ROUTES.ADMIN.AUDIT_LOG) return "audit";
   const view = new URLSearchParams(search).get("view");
   if (view === "incidents" || view === "holds" || view === "security") return view;
+  if (view === "dev-tools" && DEV_TOOLS_ENABLED) return view;
   return "overview";
 }
 
@@ -62,7 +83,7 @@ export function AdminWorkspacePage() {
     <WorkspaceFrame
       role="admin"
       active={view}
-      navigation={NAVIGATION}
+      navigation={NAVIGATION_WITH_DEV_TOOLS}
       title={VIEWS[view].title}
       description={VIEWS[view].description}
     >
@@ -71,6 +92,7 @@ export function AdminWorkspacePage() {
       {view === "holds" && <AdminHolds />}
       {view === "users" && <AdminUsers />}
       {view === "security" && <AdminTwoFactorSettings />}
+      {view === "dev-tools" && <AdminDevTools />}
       {view === "audit" && (
         <section
           role="status"

@@ -45,12 +45,14 @@ export function AccountSettingsContent() {
         </p>
       </section>
       <LoginMethodsPanel />
-      <Link
-        className="inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4"
-        to={ROUTES.BENEFICIARY.EKYC_CAMERA}
-      >
-        Xác minh danh tính của tôi
-      </Link>
+      {(!user || user.role === "USER") && (
+        <Link
+          className="inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4"
+          to={ROUTES.DASHBOARD.IDENTITY}
+        >
+          Xác minh danh tính của tôi
+        </Link>
+      )}
     </>
   );
 }

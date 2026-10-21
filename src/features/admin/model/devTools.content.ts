@@ -1,0 +1,70 @@
+import type { DevClock, DevMilestoneKey } from "./devTools.schema";
+
+/** Nội dung từng mốc trên màn hình công cụ thử nghiệm, theo thứ tự từ trên xuống. */
+export const DEV_MILESTONES: Record<
+  DevMilestoneKey,
+  { title: string; description: string; code?: string; effect: string; done: string }
+> = {
+  CHECKIN_OVERDUE: {
+    title: "Quá hạn điểm danh",
+    description: "Đưa kỳ điểm danh hiện tại sang “Quá hạn”, vẫn còn thời gian chờ.",
+    code: "CHECKIN_OVERDUE",
+    effect: "chuyển kỳ điểm danh hiện tại sang quá hạn, vẫn còn thời gian chờ",
+    done: "Đã tua tới “Quá hạn điểm danh”. Chủ kho thấy trạng thái quá hạn. Có thể tua tiếp mốc kế.",
+  },
+  GRACE_ENDED: {
+    title: "Hết thời gian chờ",
+    description: "Đưa sang bước kiểm tra và mở sự cố cho Người thực hiện.",
+    code: "AWAITING_CHECK",
+    effect: "chuyển sang bước kiểm tra và mở sự cố cho Người thực hiện",
+    done: "Đã tua tới “Hết thời gian chờ”. Sự cố đã mở cho Người thực hiện. Có thể tua tiếp mốc kế.",
+  },
+  OBJECTION_WINDOW_ENDED: {
+    title: "Hết 72 giờ phản đối",
+    description: "Cho Người xét duyệt duyệt được hồ sơ chứng tử ngay.",
+    effect: "hết 72 giờ phản đối để Người xét duyệt duyệt được hồ sơ chứng tử ngay",
+    done: "Đã tua tới “Hết 72 giờ phản đối”. Người xét duyệt có thể duyệt hồ sơ.",
+  },
+  SELFIE_DEADLINE_PASSED: {
+    title: "Hết hạn selfie 7 ngày",
+    description: "Cho Người xét duyệt kết luận “còn sống” khi không có eKYC thật.",
+    effect: "hết hạn gửi selfie 7 ngày để Người xét duyệt kết luận lời báo còn sống",
+    done: "Đã tua tới “Hết hạn selfie 7 ngày”. Người xét duyệt có thể kết luận lời báo còn sống.",
+  },
+};
+
+/** Nhãn trạng thái kế hoạch theo PlanStatus của Backend; giá trị lạ hiện nguyên chuỗi. */
+const PLAN_STATUS_LABELS: Record<string, string> = {
+  DRAFT: "Nháp",
+  ACTIVE: "Đang hoạt động",
+  CHECKIN_OVERDUE: "Quá hạn điểm danh",
+  AWAITING_CHECK: "Chờ kiểm tra",
+  DEATH_CASE_OPEN: "Đang xử lý chứng tử",
+  HANDOVER_IN_PROGRESS: "Đang bàn giao",
+  BLOCKED: "Bị chặn",
+  CLOSED: "Đã đóng",
+};
+
+export function planStatusLabel(status: string) {
+  return Object.hasOwn(PLAN_STATUS_LABELS, status) ? PLAN_STATUS_LABELS[status] : status;
+}
+
+export const CHECK_IN_STATE_LABELS: Record<DevClock["checkInState"], string> = {
+  ON_TIME: "Đúng hạn",
+  OVERDUE: "Quá hạn",
+  NOT_RUNNING: "Không chạy",
+};
+
+export const CLOCK_STATE_LABELS: Record<DevClock["clockState"], string> = {
+  REAL_TIME: "Thời gian thực",
+  SHIFTED: "Đã tua",
+};
+
+export const DEV_TOOLS_NOTICE =
+  "Trang này chỉ có ở môi trường Development và chỉ quản trị viên dùng được. Bản chạy thật không có. Mọi thao tác được ghi vào nhật ký kiểm toán.";
+
+export const DEV_TOOLS_FOOTNOTE =
+  "Tua theo thứ tự từ trên xuống. “Về thời gian hiện tại” đưa đồng hồ của hồ sơ về thời gian thực; trạng thái đã phát sinh khi tua được giữ nguyên.";
+
+export const RESET_DONE =
+  "Đồng hồ của hồ sơ đã về thời gian hiện tại. Trạng thái đã phát sinh được giữ nguyên.";
