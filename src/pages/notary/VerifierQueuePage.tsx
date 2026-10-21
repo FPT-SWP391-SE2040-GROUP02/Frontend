@@ -11,7 +11,7 @@ export function VerifierQueuePage() {
       title={hasCase ? "Xét duyệt hồ sơ" : "Hàng chờ"}
       description={
         hasCase
-          ? "Xem giấy tờ, kiểm tra các cờ rồi ra quyết định."
+          ? "Xem giấy tờ, kiểm tra các cảnh báo rồi ra quyết định."
           : "Các hồ sơ báo tin đang chờ bạn xét duyệt. Bạn chỉ xác nhận hồ sơ, không xem nội dung kho."
       }
     >

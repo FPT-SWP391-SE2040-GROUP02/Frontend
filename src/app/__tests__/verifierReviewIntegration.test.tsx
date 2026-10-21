@@ -280,10 +280,10 @@ it("ghi chú cờ trống được báo inline và không gửi mutation", async
   const post = vi.spyOn(apiClient, "post");
   setup(<VerifierQueue />);
   await selectFirstCase(user);
-  await user.click(screen.getByRole("button", { name: "Xem xét" }));
-  await user.click(screen.getByRole("checkbox", { name: /Tôi đã xem xét/ }));
+  await user.click(screen.getByRole("button", { name: "Kiểm tra" }));
+  await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra/ }));
   await user.click(screen.getByRole("button", { name: "Ghi nhận" }));
-  expect(await screen.findByText("Cần nhập ghi chú xem xét cờ.")).toBeInTheDocument();
+  expect(await screen.findByText("Cần nhập ghi chú kiểm tra cảnh báo.")).toBeInTheDocument();
   expect(post).not.toHaveBeenCalled();
 });
 
@@ -301,9 +301,9 @@ it("không ghi lại cache riêng tư khi mutation hoàn tất sau đổi phiên
   );
   setup(<VerifierQueue />);
   await selectFirstCase(user);
-  await user.click(screen.getByRole("button", { name: "Xem xét" }));
-  await user.type(screen.getByLabelText("Ghi chú xem xét"), "Đã kiểm tra");
-  await user.click(screen.getByRole("checkbox", { name: /Tôi đã xem xét/ }));
+  await user.click(screen.getByRole("button", { name: "Kiểm tra" }));
+  await user.type(screen.getByLabelText("Ghi chú kiểm tra"), "Đã kiểm tra");
+  await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra/ }));
   await user.click(screen.getByRole("button", { name: "Ghi nhận" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   accessTokenMemory.set("different-user-session");
@@ -334,10 +334,10 @@ it("nút Duyệt bị disable khi canApprove=false, chỉ bật sau khi duyệt 
   await selectFirstCase(user);
   const approve = await screen.findByRole("button", { name: /^Chấp thuận$/ });
   expect(approve).toBeDisabled();
-  await user.click(await screen.findByRole("button", { name: "Xem xét" }));
-  await user.type(await screen.findByLabelText("Ghi chú xem xét"), "Đã rà soát kỹ");
+  await user.click(await screen.findByRole("button", { name: "Kiểm tra" }));
+  await user.type(await screen.findByLabelText("Ghi chú kiểm tra"), "Đã rà soát kỹ");
   const confirmCheckbox = await screen.findByRole("checkbox", {
-    name: /Tôi đã xem xét cờ này/,
+    name: /Tôi đã kiểm tra cảnh báo này/,
   });
   await user.click(confirmCheckbox);
   await waitFor(() => expect(confirmCheckbox).toBeChecked());
@@ -429,7 +429,7 @@ it("modal duyệt hiện nhãn tiếng Việt của blocker, không hiện mã t
   );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=approve`);
   const dialog = await screen.findByRole("dialog");
-  expect(dialog).toHaveTextContent("Còn cờ chưa được xem xét.");
+  expect(dialog).toHaveTextContent("Còn cảnh báo chưa được kiểm tra.");
   expect(dialog).not.toHaveTextContent("FLAGS_NOT_REVIEWED");
 });
 
@@ -474,7 +474,7 @@ it("hồ sơ chờ bổ sung chỉ còn nút từ chối, không xem xét cờ h
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(detailFixture);
   setup(<VerifierQueue />);
   await selectFirstCase(user);
-  expect(screen.queryByRole("button", { name: "Xem xét" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Kiểm tra" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /Yêu cầu bổ sung/ })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Chấp thuận" })).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
@@ -498,7 +498,7 @@ it("VERIFIER_CONFLICT chỉ cho xem: ẩn mọi thao tác ghi, kể cả modal m
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
   expect(await screen.findByText(/chỉ được xem, không được ra quyết định/)).toBeInTheDocument();
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Xem xét" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Kiểm tra" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /Yêu cầu bổ sung/ })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Chấp thuận" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /^Từ chối$/ })).not.toBeInTheDocument();

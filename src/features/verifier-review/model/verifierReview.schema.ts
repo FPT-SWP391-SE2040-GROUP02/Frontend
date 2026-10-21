@@ -9,7 +9,7 @@ export const verifierCaseStatusSchema = z.enum([
   "REJECTED",
   "SUSPENDED",
 ]);
-/** Cờ phát hiện trên bản Executor gửi (BE VerifierFlagResponse.Kind). */
+/** Cảnh báo hệ thống phát hiện trên bản Executor gửi (BE VerifierFlagResponse.Kind). */
 export const verifierFlagKindSchema = z.enum(["CHECKIN_AFTER_DEATH", "IDENTITY_MISMATCH"]);
 /** Quyết định Verifier đã ra (BE VerifierDecisionResponse.Kind). */
 export const verifierDecisionKindSchema = z.enum(["SUPPLEMENT_REQUESTED", "REJECTED", "APPROVED"]);
@@ -91,7 +91,7 @@ export const verifierOlderVersionSchema = z.object({
   submittedAt: timestamp.nullable(),
   files: z.array(verifierFileSchema),
 });
-/** Cờ của bản đang xét. */
+/** Cảnh báo của bản đang xét. */
 export const verifierFlagSchema = z.object({
   id: z.string().uuid(),
   kind: verifierFlagKindSchema,
@@ -162,7 +162,7 @@ export const reviewFlagRequestSchema = z.object({
   note: z
     .string()
     .trim()
-    .min(1, "Cần nhập ghi chú xem xét cờ.")
+    .min(1, "Cần nhập ghi chú kiểm tra cảnh báo.")
     .max(1000, "Ghi chú tối đa 1000 ký tự."),
 });
 /** Yêu cầu Executor bổ sung. */
@@ -195,8 +195,8 @@ export const caseStatusLabels: Record<z.infer<typeof verifierCaseStatusSchema>, 
 };
 /** Nhãn cho cờ. */
 export const flagLabels: Record<z.infer<typeof verifierFlagKindSchema>, string> = {
-  CHECKIN_AFTER_DEATH: "Có lượt điểm danh sau ngày mất",
-  IDENTITY_MISMATCH: "Thông tin nhân thân chưa khớp",
+  CHECKIN_AFTER_DEATH: "Chủ kho vẫn điểm danh sau ngày mất ghi trên giấy",
+  IDENTITY_MISMATCH: "CCCD trên hồ sơ khác CCCD chủ kho đã xác minh",
 };
 /** Nhãn cho blocker. */
 export const blockerLabels: Record<z.infer<typeof approveBlockerSchema>, string> = {
@@ -204,7 +204,7 @@ export const blockerLabels: Record<z.infer<typeof approveBlockerSchema>, string>
   NEWER_VERSION_PENDING: "Đang có bản mới chờ xét; chờ Verifier xét bản mới nhất.",
   OWNER_NOT_NOTIFIED: "Owner chưa được thông báo về hồ sơ này.",
   OBJECTION_PERIOD_NOT_OVER: "Đang trong thời gian chờ Owner phản đối (72 giờ).",
-  FLAGS_NOT_REVIEWED: "Còn cờ chưa được xem xét.",
+  FLAGS_NOT_REVIEWED: "Còn cảnh báo chưa được kiểm tra.",
   VERIFIER_CONFLICT:
     "Bạn có quan hệ với kho này nên chỉ được xem, không được ra quyết định trên hồ sơ.",
 };

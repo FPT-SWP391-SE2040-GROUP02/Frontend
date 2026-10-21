@@ -332,15 +332,22 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
             </div>
           </section>
           <section
-            aria-label="Cờ cần xem xét"
+            aria-label="Cảnh báo cần kiểm tra"
             className="space-y-3 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-xl font-semibold text-heritage-primary">Cờ của bản đang xét</h3>
-              {unreviewedFlags > 0 && <Chip tone="warning">{unreviewedFlags} cần xem xét</Chip>}
+              <h3 className="text-xl font-semibold text-heritage-primary">
+                Cảnh báo của hồ sơ này
+              </h3>
+              {unreviewedFlags > 0 && <Chip tone="warning">{unreviewedFlags} chưa kiểm tra</Chip>}
             </div>
+            <p className="text-sm text-heritage-muted">
+              Hệ thống tự phát hiện những điểm bất thường khi người thực hiện nộp hồ sơ, ví dụ chủ
+              kho vẫn điểm danh sau ngày mất hoặc CCCD không khớp. Bạn cần kiểm tra từng cảnh báo và
+              ghi chú trước khi chấp thuận.
+            </p>
             {detail.flags.length === 0 ? (
-              <p className="text-sm text-heritage-muted">Không có cờ nào.</p>
+              <p className="text-sm text-heritage-muted">Không có cảnh báo nào.</p>
             ) : (
               <ul className="divide-y divide-heritage-border">
                 {detail.flags.map((flag) => {
@@ -365,7 +372,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                       </div>
                       <div className="flex items-center gap-3">
                         <Chip tone={reviewed ? "success" : "warning"}>
-                          {reviewed ? "Đã xem xét" : "Cần xem xét"}
+                          {reviewed ? "Đã kiểm tra" : "Chưa kiểm tra"}
                         </Chip>
                         {!reviewed && actions.canReviewFlag && (
                           <button
@@ -373,7 +380,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                             className={buttonStyles.outline}
                             onClick={() => openModal("reviewFlag", flag.id)}
                           >
-                            Xem xét
+                            Kiểm tra
                           </button>
                         )}
                       </div>
@@ -464,9 +471,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                   role="status"
                   className="mb-4 rounded-xl bg-[#F8E1DE] p-4 text-sm text-[#7A1A14]"
                 >
-                  Chưa thể duyệt vì:{" "}
-                  {conditions.map((row) => row.title.toLocaleLowerCase("vi-VN")).join("; ")}. Bạn có
-                  thể yêu cầu bổ sung hoặc từ chối.
+                  Chưa thể duyệt vì: {conditions.map((row) => row.reason).join("; ")}. Bạn có thể
+                  yêu cầu bổ sung hoặc từ chối.
                 </p>
               )}
               <div className="flex flex-wrap gap-3">

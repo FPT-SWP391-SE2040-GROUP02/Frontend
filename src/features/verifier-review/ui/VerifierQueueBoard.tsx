@@ -229,7 +229,9 @@ export function VerifierQueueBoard({
                                 <Chip tone="warning">Bổ sung quá hạn</Chip>
                               )}
                               {item.unreviewedFlagCount > 0 && (
-                                <Chip tone="warning">{item.unreviewedFlagCount} cờ chưa xét</Chip>
+                                <Chip tone="warning">
+                                  {item.unreviewedFlagCount} cảnh báo chưa kiểm tra
+                                </Chip>
                               )}
                             </div>
                           </td>
