@@ -150,16 +150,16 @@ function ReviewFlagModal({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
         <DialogHeader>
-          <DialogTitle>Xem xét cờ</DialogTitle>
+          <DialogTitle>Kiểm tra cảnh báo</DialogTitle>
           <DialogDescription>
             {flag
-              ? `${flagLabels[flag.kind]}: ${flag.detail}`
-              : "Cờ không tìm thấy trong hồ sơ hiện tại."}
+              ? `${flagLabels[flag.kind]}: ${flag.detail} Hãy xem cảnh báo này có đáng lo không rồi ghi lại nhận định của bạn. Kiểm tra hết cảnh báo thì mới duyệt được hồ sơ.`
+              : "Không tìm thấy cảnh báo trong hồ sơ hiện tại."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
           <label className="block text-sm">
-            Ghi chú xem xét
+            Ghi chú kiểm tra
             <Textarea
               {...form.register("note")}
               maxLength={1000}
@@ -172,7 +172,7 @@ function ReviewFlagModal({
           </label>
           <CustomCheckbox
             className="min-h-11 w-full items-center!"
-            label="Tôi đã xem xét cờ này."
+            label="Tôi đã kiểm tra cảnh báo này."
             {...form.register("confirm")}
           />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}

@@ -156,7 +156,7 @@ describe("Verifier queue and history", () => {
     setup("/notary/queue");
     expect(await screen.findByRole("button", { name: /Xem hồ sơ #33333333/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Xem hồ sơ #66666666/ })).not.toBeInTheDocument();
-    expect(screen.getByText("2 cờ chưa xét")).toBeInTheDocument();
+    expect(screen.getByText("2 cảnh báo chưa kiểm tra")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Hàng chờ" })).toBeInTheDocument();
   });
 

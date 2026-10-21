@@ -82,15 +82,26 @@ export interface ConditionRow {
   key: Blocker;
   title: string;
   detail: string;
+  /** Cụm ngắn đặt sau "Chưa thể duyệt vì:" ở thẻ Quyết định. */
+  reason: string;
   chip: string;
 }
+
+const conditionReasons: Record<Blocker, string> = {
+  NOT_UNDER_REVIEW: "hồ sơ không còn ở bước xét duyệt",
+  NEWER_VERSION_PENDING: "đang có bản mới chờ xét",
+  OWNER_NOT_NOTIFIED: "chưa báo cho chủ kho",
+  OBJECTION_PERIOD_NOT_OVER: "chưa hết 72 giờ chủ kho được phản đối",
+  FLAGS_NOT_REVIEWED: "còn cảnh báo chưa kiểm tra",
+  VERIFIER_CONFLICT: "bạn có quan hệ với kho này",
+};
 
 const conditionTitles: Record<Blocker, string> = {
   NOT_UNDER_REVIEW: "Hồ sơ đang ở bước xét duyệt",
   NEWER_VERSION_PENDING: "Không có bản mới chờ xét",
   OWNER_NOT_NOTIFIED: "Đã báo chủ kho",
   OBJECTION_PERIOD_NOT_OVER: "Đã hết 72 giờ phản đối",
-  FLAGS_NOT_REVIEWED: "Các cờ đã được xem xét",
+  FLAGS_NOT_REVIEWED: "Mọi cảnh báo đã được kiểm tra",
   VERIFIER_CONFLICT: "Không có quan hệ với kho này",
 };
 
@@ -116,9 +127,9 @@ export function conditionRows(
       if (left) detail = `Còn ${left}. Chưa thể duyệt.`;
     }
     if (key === "FLAGS_NOT_REVIEWED") {
-      detail = `Còn ${unreviewedFlags} cờ chưa xem xét.`;
+      detail = `Còn ${unreviewedFlags} cảnh báo chưa kiểm tra.`;
       chip = "Thiếu";
     }
-    return { key, title: conditionTitles[key], detail, chip };
+    return { key, title: conditionTitles[key], detail, reason: conditionReasons[key], chip };
   });
 }
