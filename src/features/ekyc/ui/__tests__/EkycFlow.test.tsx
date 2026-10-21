@@ -199,6 +199,13 @@ describe("ô chọn ảnh giấy tờ", () => {
     expect(screen.getByRole("button", { name: "Đọc thông tin" })).toBeEnabled();
   });
 
+  it("hiện ảnh xem trước của tệp đã chọn", async () => {
+    const input = await reachFront();
+    await userEvent.upload(input, new File(["x"], "can-cuoc.jpg", { type: "image/jpeg" }));
+    const preview = await screen.findByRole("img", { name: /Ảnh đã chọn: can-cuoc.jpg/ });
+    await waitFor(() => expect(preview.getAttribute("src")).toMatch(/^data:/));
+  });
+
   it("nhận ảnh kéo thả", async () => {
     await reachFront();
     const zone = screen.getByText("Chọn ảnh mặt trước").closest("div") as HTMLElement;
