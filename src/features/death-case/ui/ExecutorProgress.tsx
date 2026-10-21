@@ -7,6 +7,7 @@ import { useHandoverProgress } from "../model/useHandoverProgress";
 import { deriveLog, deriveSteps, type StepState } from "../model/progressSteps";
 import { remainingText } from "../model/remainingText";
 import { HandoverProgressPanel } from "./HandoverProgressPanel";
+import { ReviewFeedback } from "./ReviewFeedback";
 import { buttonStyles, Chip, formatDateTime, InfoRow, Panel } from "@/shared/ui/heritageKit";
 import { caseStatusInfo } from "./executorLabels";
 
@@ -110,6 +111,8 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
         )}
       </Panel>
 
+      {record && <ReviewFeedback record={record} />}
+
       {record && (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <Panel title="Nhật ký">
@@ -145,7 +148,7 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
         </div>
       )}
 
-      {record && record.status !== "DRAFT" && caseId && <HandoverProgressPanel caseId={caseId} />}
+      {approved && caseId && <HandoverProgressPanel caseId={caseId} />}
     </div>
   );
 }

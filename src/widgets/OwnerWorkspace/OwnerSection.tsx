@@ -2,6 +2,7 @@ import { useSelector } from "react-redux";
 import { Vault, FolderOpen } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { Button } from "@/shared/ui/button";
 import {
   useOwnerVault,
@@ -90,16 +91,51 @@ export function OwnerSection({
       <OwnerGroups vaultId={vault.data.id} createOpen={open} onCreateOpenChange={onOpenChange} />
     );
   }
-  if (section === "assets")
+  if (section === "assets") {
+    const usedBytes = Math.max(0, vault.data.storageUsedBytes);
+    const quotaBytes = Math.max(1, vault.data.storageQuotaBytes);
+    const usedPercent = Math.min(100, Math.round((usedBytes / quotaBytes) * 100));
     return (
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <AssetList vaultId={vault.data.id} />
-        <CreateAssetForm
-          vaultId={vault.data.id}
-          remainingBytes={vault.data.storageRemainingBytes}
-        />
+      <div className="space-y-6">
+        <section
+          aria-label="Dung lượng kho"
+          className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <span className="font-semibold text-heritage-text">Dung lượng sử dụng</span>
+            <span className="text-heritage-muted">
+              Đã dùng{" "}
+              <strong className="font-semibold text-heritage-text">
+                {formatStorageSize(usedBytes)}
+              </strong>{" "}
+              / {formatStorageSize(vault.data.storageQuotaBytes)} (còn{" "}
+              {formatStorageSize(vault.data.storageRemainingBytes)})
+            </span>
+          </div>
+          <div
+            role="progressbar"
+            aria-label="Dung lượng đã dùng"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={usedPercent}
+            className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-[#ECE8DB]"
+          >
+            <div
+              className="h-full rounded-full bg-[#0A281E] transition-all"
+              style={{ width: `${usedPercent}%` }}
+            />
+          </div>
+        </section>
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <AssetList vaultId={vault.data.id} />
+          <CreateAssetForm
+            vaultId={vault.data.id}
+            remainingBytes={vault.data.storageRemainingBytes}
+          />
+        </div>
       </div>
     );
+  }
   return (
     <div className="space-y-6">
       <OwnerHandoverOverview vaultId={vault.data.id} />

@@ -42,7 +42,6 @@ export const ROUTES = {
     /** Người tin cậy của Chủ kho: Người thực hiện (Executor) và Người xét duyệt. */
     TRUSTED_PEOPLE: "/dashboard/trusted-people",
     AUDIT_LOG: "/dashboard/audit-log",
-    ANALYTICS: "/dashboard/analytics",
     USERS: "/dashboard/users",
     SETTINGS: "/dashboard/settings",
   },
