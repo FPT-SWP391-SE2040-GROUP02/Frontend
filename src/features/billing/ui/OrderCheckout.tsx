@@ -261,6 +261,9 @@ function FinishedOrder({ order }: { order: PaymentOrder }) {
   }, [paid, client]);
 
   let kindLabel = "Mua thêm suất người nhận";
+  if (order.kind === "UPGRADE") {
+    kindLabel = "Nâng hạng lên XS Max (giữ nguyên hạn dịch vụ)";
+  }
   if (order.kind === "PURCHASE") {
     let tierName = "XS Max";
     if (order.tier === "XS") {

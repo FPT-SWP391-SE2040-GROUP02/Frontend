@@ -246,11 +246,59 @@ describe("pricing reference policies", () => {
     expect(input).toHaveValue(1);
   });
 
-  it("blocks changing tier mid-term", () => {
+  it("kho XS Max không hạ hạng giữa kỳ, nút bị khóa và nói rõ", () => {
+    setup(true, { serviceTier: "XS_MAX" });
+    expect(
+      planCard("Legacy XS").getByRole("button", { name: "Chưa hỗ trợ hạ hạng" }),
+    ).toBeDisabled();
+    expect(planCard("Legacy XS").getByText(/chưa hỗ trợ hạ hạng giữa kỳ/)).toBeInTheDocument();
+  });
+
+  it("kho XS còn hạn: thẻ XS Max có nút Nâng lên XS Max, không còn chữ đợi hết kỳ", () => {
     setup(true);
     expect(
-      planCard("Legacy XS Max").getByRole("button", { name: "Đổi hạng khi hết kỳ" }),
-    ).toBeDisabled();
+      planCard("Legacy XS Max").getByRole("button", { name: "Nâng lên XS Max" }),
+    ).toBeEnabled();
+    expect(screen.queryByText(/Đổi hạng khi hết kỳ/)).not.toBeInTheDocument();
+    expect(
+      planCard("Legacy XS Max").getByText(/Chỉ trả phần chênh theo thời gian còn lại/),
+    ).toBeInTheDocument();
+  });
+
+  it("nâng hạng: báo giá của Backend, không có ô chọn năm hay suất, chỉ tạo đơn khi xác nhận", async () => {
+    const upgradeQuote: BillingQuote = {
+      ...addonQuote,
+      kind: "UPGRADE",
+      tier: "XS_MAX",
+      extraSlots: 0,
+      tierAmount: 250000,
+      slotAmount: 0,
+      totalAmount: 250000,
+      storageQuotaBytes: 524288000,
+      includedBeneficiarySlots: 5,
+      beneficiarySlots: 6,
+    };
+    const post = vi.spyOn(apiClient, "post").mockImplementation((url: string) => {
+      if (url === "/billing/quote") return Promise.resolve(upgradeQuote);
+      return Promise.reject(new Error("dừng ở đây"));
+    });
+    setup(true);
+    fireEvent.click(planCard("Legacy XS Max").getByRole("button", { name: "Nâng lên XS Max" }));
+    const panel = screen.getByRole("region", { name: "Nâng lên Legacy XS Max" });
+    await waitFor(() => expect(panel).toHaveTextContent("250.000"));
+    expect(panel).toHaveTextContent("Phần chênh nâng lên Legacy XS Max");
+    expect(panel).toHaveTextContent("500 MB");
+    expect(panel).toHaveTextContent("6 người");
+    expect(within(panel).queryByLabelText(/Suất người nhận mua thêm/)).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("group", { name: "Chọn kỳ dịch vụ" })).not.toBeInTheDocument();
+    // Chỉ gửi hạng đích và số suất 0: không gửi số tiền hay số năm (SEC-04, PAY-11).
+    expect(post.mock.calls[0][0]).toBe("/billing/quote");
+    expect(post.mock.calls[0][1]).toEqual({ tier: "XS_MAX", extraSlots: 0 });
+    expect(post).toHaveBeenCalledTimes(1);
+    fireEvent.click(within(panel).getByRole("button", { name: "Tạo đơn nâng hạng" }));
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith("/billing/orders", { tier: "XS_MAX", extraSlots: 0 }),
+    );
   });
 
   it("giá của Owner lấy từ Backend, không phải bảng tĩnh", async () => {

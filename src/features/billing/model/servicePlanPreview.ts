@@ -21,10 +21,11 @@ export interface ReferenceServicePlan {
  * Hành động của một thẻ gói với kho hiện tại:
  * - buy: kho Free mua mới;
  * - addon: kho đã trả phí còn hạn, mua thêm suất người nhận (cùng hạng);
- * - change-later: đang có kỳ khác hạng, đổi hạng khi hết kỳ;
+ * - upgrade: kho đang XS còn hạn, nâng lên XS Max giữa kỳ (trả phần chênh theo thời gian còn lại, giữ nguyên hạn);
+ * - downgrade: đang có kỳ hạng cao hơn, chưa hỗ trợ hạ hạng giữa kỳ;
  * - blocked: chưa mua được (kho đóng, kế hoạch khóa, hết hạn cần gia hạn mà hệ thống chưa hỗ trợ...).
  */
-export type PlanPreviewAction = "none" | "buy" | "addon" | "change-later" | "blocked";
+export type PlanPreviewAction = "none" | "buy" | "addon" | "upgrade" | "downgrade" | "blocked";
 const DAY_MS = 86_400_000;
 const BYTES_PER_MB = 1_048_576;
 
@@ -60,7 +61,10 @@ export function getReferencePlanAction(
   if (!canPreviewBilling(vault)) return "blocked";
   if (vault.serviceTier === "FREE" && vault.serviceStatus === "FREE") return "buy";
   if (!isCurrentPaidService(vault, now)) return "blocked";
-  if (plan.serviceTier !== vault.serviceTier) return "change-later";
+  if (plan.serviceTier !== vault.serviceTier) {
+    if (vault.serviceTier === "XS" && plan.serviceTier === "XS_MAX") return "upgrade";
+    return "downgrade";
+  }
   return "addon";
 }
 

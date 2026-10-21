@@ -153,6 +153,28 @@ describe("thanh toán đơn đang chờ", () => {
     expect(screen.queryByRole("timer")).not.toBeInTheDocument();
   });
 
+  it("đơn nâng hạng đã trả: ghi rõ nâng lên XS Max và giữ nguyên hạn", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue({
+      ...pendingOrder,
+      kind: "UPGRADE",
+      tier: "XS_MAX",
+      years: null,
+      extraSlots: 0,
+      tierAmount: 250000,
+      slotAmount: 0,
+      totalAmount: 250000,
+      status: "PAID",
+      qrImageUrl: null,
+      paidAt: "2026-10-18T12:03:00+00:00",
+    });
+    renderCheckout();
+    expect(
+      await screen.findByText(/Nâng hạng lên XS Max \(giữ nguyên hạn dịch vụ\)/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/250\.000/)).toBeInTheDocument();
+    expect(screen.getByText(/Quyền dịch vụ của kho đã được cập nhật/)).toBeInTheDocument();
+  });
+
   it.each([
     ["EXPIRED", /Đơn đã hết hạn/],
     ["CANCELLED", /Đơn đã bị hủy/],

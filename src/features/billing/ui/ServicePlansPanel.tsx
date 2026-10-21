@@ -69,12 +69,19 @@ function ServicePlansContent({
   if (
     !vault ||
     access !== "owner" ||
-    (selectedPlan && !["buy", "addon"].includes(getReferencePlanAction(selectedPlan, vault, now)))
+    (selectedPlan &&
+      !["buy", "addon", "upgrade"].includes(getReferencePlanAction(selectedPlan, vault, now)))
   )
     selectedPlan = undefined;
-  let selectedMode: "PURCHASE" | "ADDON" = "PURCHASE";
-  if (selectedPlan && vault && getReferencePlanAction(selectedPlan, vault, now) === "addon") {
-    selectedMode = "ADDON";
+  let selectedMode: "PURCHASE" | "ADDON" | "UPGRADE" = "PURCHASE";
+  if (selectedPlan && vault) {
+    const selectedAction = getReferencePlanAction(selectedPlan, vault, now);
+    if (selectedAction === "addon") {
+      selectedMode = "ADDON";
+    }
+    if (selectedAction === "upgrade") {
+      selectedMode = "UPGRADE";
+    }
   }
   const currentPaid = vault && isCurrentPaidService(vault, now);
   const status = vault && getVaultServiceStatus(vault, now);
@@ -138,7 +145,8 @@ function ServicePlansContent({
           const term = plan.termPrices.find((value) => value.years === years);
           const action = vault ? getReferencePlanAction(plan, vault, now) : "blocked";
           let label = `Mua gói ${plan.serviceTier === "XS" ? "XS" : "XS Max"}`;
-          if (action === "change-later") label = "Đổi hạng khi hết kỳ";
+          if (action === "upgrade") label = `Nâng lên ${plan.name.replace("Legacy ", "")}`;
+          if (action === "downgrade") label = "Chưa hỗ trợ hạ hạng";
           if (action === "blocked" && access === "owner") label = "Chưa thể chọn mua gói";
           if (access === "unavailable") label = unavailableLabel;
           return (
@@ -211,13 +219,25 @@ function ServicePlansContent({
                         Mua thêm suất người nhận
                       </Button>
                     )}
+                    {action === "upgrade" && access === "owner" && (
+                      <Button
+                        className="service-plan-button service-plan-primary"
+                        onClick={(event) => {
+                          opener.current = event.currentTarget;
+                          setSelectedTier(plan.serviceTier);
+                        }}
+                      >
+                        {label}
+                      </Button>
+                    )}
                     {access === "guest" ? (
                       <Link
                         className={`${buttonVariants({ variant: "outline" })} service-plan-button service-plan-primary`}
                         to={ROUTES.AUTH.LOGIN}
                       >{`Mua gói ${plan.serviceTier === "XS" ? "XS" : "XS Max"}`}</Link>
                     ) : (
-                      action !== "addon" && (
+                      action !== "addon" &&
+                      action !== "upgrade" && (
                         <Button
                           variant="outline"
                           className={`service-plan-button${!current && action === "buy" ? " service-plan-primary" : ""}`}
@@ -231,10 +251,16 @@ function ServicePlansContent({
                         </Button>
                       )
                     )}
-                    {action === "change-later" && (
+                    {action === "upgrade" && (
                       <p className="service-plan-fineprint">
-                        Bạn đang có kỳ {getVaultServiceName(vault!.serviceTier)} còn hạn. Đổi hạng
-                        khi kỳ hiện tại kết thúc, nếu dữ liệu vừa hạn mức mới.
+                        Chỉ trả phần chênh theo thời gian còn lại của kỳ hiện tại. Hạn dịch vụ giữ
+                        nguyên, dung lượng và số suất tăng ngay.
+                      </p>
+                    )}
+                    {action === "downgrade" && (
+                      <p className="service-plan-fineprint">
+                        Bạn đang có kỳ {getVaultServiceName(vault!.serviceTier)} còn hạn. Hệ thống
+                        chưa hỗ trợ hạ hạng giữa kỳ.
                       </p>
                     )}
                     {action === "blocked" && access === "owner" && (

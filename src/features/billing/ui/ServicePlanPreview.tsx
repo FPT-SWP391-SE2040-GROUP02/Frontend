@@ -68,6 +68,7 @@ export function PurchasePanel({
   const client = useQueryClient();
   const action = usePrivateAction();
   const isAddon = mode === "ADDON";
+  const isUpgrade = mode === "UPGRADE";
   let minExtraSlots = 0;
   if (isAddon) {
     minExtraSlots = 1;
@@ -83,6 +84,10 @@ export function PurchasePanel({
   if (isAddon) {
     selection = { extraSlots };
   }
+  if (isUpgrade) {
+    // Nâng hạng: chỉ chọn XS_MAX, không kèm suất; số tiền do Backend tính theo thời gian còn lại.
+    selection = { tier: "XS_MAX", extraSlots: 0 };
+  }
   const quote = useBillingQuote(selection, true);
 
   let createLabel = "Tạo đơn và thanh toán";
@@ -96,6 +101,16 @@ export function PurchasePanel({
     title = "Mua thêm suất";
     periodHeading = "Số suất mua thêm";
     periodHint = "Suất mới hết hạn cùng ngày với gói; giá tính theo thời gian còn lại.";
+  }
+  if (isUpgrade) {
+    title = `Nâng lên ${plan.name}`;
+    periodHeading = "Nâng hạng giữa kỳ";
+    periodHint =
+      "Chỉ trả phần chênh theo thời gian còn lại của kỳ hiện tại. Hạn dịch vụ giữ nguyên; dung lượng và số suất tăng ngay.";
+    createLabel = "Tạo đơn nâng hạng";
+    if (action.pending) {
+      createLabel = "Đang tạo đơn…";
+    }
   }
 
   function changeSlots(value: number): void {
@@ -124,7 +139,7 @@ export function PurchasePanel({
   } else if (quote.data) {
     const data = quote.data;
     let periodLabel = "Từ lúc thanh toán thành công";
-    if (data.kind === "ADDON") {
+    if (data.kind === "ADDON" || data.kind === "UPGRADE") {
       periodLabel = "Giữ nguyên hạn hiện tại";
       const expiry = formatVaultServiceExpiry(data.serviceExpiresAt);
       if (expiry) {
@@ -142,10 +157,18 @@ export function PurchasePanel({
               <dd>{referenceMoney.format(data.tierAmount)}</dd>
             </div>
           )}
-          <div>
-            <dt>Suất người nhận mua thêm · {data.extraSlots} suất</dt>
-            <dd>{referenceMoney.format(data.slotAmount)}</dd>
-          </div>
+          {data.kind === "UPGRADE" && (
+            <div>
+              <dt>Phần chênh nâng lên {plan.name}</dt>
+              <dd>{referenceMoney.format(data.tierAmount)}</dd>
+            </div>
+          )}
+          {data.kind !== "UPGRADE" && (
+            <div>
+              <dt>Suất người nhận mua thêm · {data.extraSlots} suất</dt>
+              <dd>{referenceMoney.format(data.slotAmount)}</dd>
+            </div>
+          )}
           <div>
             <dt>Thời hạn dịch vụ</dt>
             <dd>{periodLabel}</dd>
@@ -194,19 +217,23 @@ export function PurchasePanel({
           <h3>{periodHeading}</h3>
           <p>{periodHint}</p>
         </div>
-        {!isAddon && <ServiceTermPicker years={years} onChange={onTermChange} showDays={false} />}
+        {!isAddon && !isUpgrade && (
+          <ServiceTermPicker years={years} onChange={onTermChange} showDays={false} />
+        )}
       </div>
-      <label className="service-plan-slots">
-        <span>Suất người nhận mua thêm (tối đa {maxExtraSlots})</span>
-        <input
-          type="number"
-          inputMode="numeric"
-          min={minExtraSlots}
-          max={maxExtraSlots}
-          value={extraSlots}
-          onChange={(event) => changeSlots(event.target.valueAsNumber)}
-        />
-      </label>
+      {!isUpgrade && (
+        <label className="service-plan-slots">
+          <span>Suất người nhận mua thêm (tối đa {maxExtraSlots})</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={minExtraSlots}
+            max={maxExtraSlots}
+            value={extraSlots}
+            onChange={(event) => changeSlots(event.target.valueAsNumber)}
+          />
+        </label>
+      )}
       {body}
       {action.error && (
         <StatusBanner tone="error" className="mt-4">

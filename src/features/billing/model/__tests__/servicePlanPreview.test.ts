@@ -38,9 +38,20 @@ describe("hành động trên thẻ gói", () => {
     expect(getReferencePlanAction(free, vaultFixture, now)).toBe("none");
   });
 
-  it("kho đã trả phí còn hạn: cùng hạng mua thêm suất, khác hạng đợi hết kỳ", () => {
+  it("kho XS còn hạn: cùng hạng mua thêm suất, lên XS Max là nâng hạng giữa kỳ", () => {
     expect(getReferencePlanAction(xs, paidVault, now)).toBe("addon");
-    expect(getReferencePlanAction(xsMax, paidVault, now)).toBe("change-later");
+    expect(getReferencePlanAction(xsMax, paidVault, now)).toBe("upgrade");
+  });
+
+  it("kho XS Max còn hạn: mua thêm suất ở XS Max, hạ về XS chưa hỗ trợ", () => {
+    const maxVault = { ...paidVault, serviceTier: "XS_MAX" as const };
+    expect(getReferencePlanAction(xsMax, maxVault, now)).toBe("addon");
+    expect(getReferencePlanAction(xs, maxVault, now)).toBe("downgrade");
+  });
+
+  it("hết hạn hoặc ân hạn thì không có nâng hạng", () => {
+    const grace = { ...paidVault, serviceStatus: "GRACE_READ_ONLY" };
+    expect(getReferencePlanAction(xsMax, grace, now)).toBe("blocked");
   });
 
   it("hết hạn hoặc ân hạn thì chưa mua được vì hệ thống chưa hỗ trợ gia hạn", () => {
