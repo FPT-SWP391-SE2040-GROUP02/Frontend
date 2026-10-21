@@ -15,6 +15,7 @@ export const LANDING_CONTENT = {
     { label: "Gói dịch vụ", href: "#goi" },
   ],
   login: "Đăng nhập",
+  register: "Đăng ký",
   dashboard: "Về dashboard",
   hero: {
     tagline: "Di sản được giao đúng người, đúng lúc.",

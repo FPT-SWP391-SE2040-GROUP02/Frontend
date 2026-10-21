@@ -1,18 +1,38 @@
 import { z } from "zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { StatusBanner } from "@/shared/ui/status-banner";
+import { ROUTES } from "@/shared/config/routes.config";
 import { beneficiaryService } from "../api/beneficiaryService";
 import { beneficiaryResponseSchema, createBeneficiarySchema } from "../model/beneficiary.schema";
 
 type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
+// Ghi đè thông báo lỗi mặc định (tiếng Anh) của schema dùng chung bằng tiếng Việt để hiện ngay dưới từng ô.
 const formSchema = createBeneficiarySchema
-  .omit({ citizenId: true })
-  .extend({ citizenId: z.string().max(32) });
+  .omit({ citizenId: true, fullName: true, dateOfBirth: true })
+  .extend({
+    citizenId: z.string().max(32, "Số CCCD quá dài."),
+    fullName: z.string().max(200, "Họ tên tối đa 200 ký tự.").regex(/\S/, "Vui lòng nhập họ tên."),
+    dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Vui lòng chọn ngày sinh."),
+  });
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) {
+    return null;
+  }
+  return (
+    <span role="alert" className="block text-sm text-destructive">
+      {message}
+    </span>
+  );
+}
+
 /** CCCD đầy đủ chỉ ở form RAM; sửa giữ etag ban đầu và không cho thay CCCD. */
 export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?: Beneficiary }) {
   const action = usePrivateAction();
@@ -90,6 +110,7 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
                 {...register("citizenId")}
                 aria-invalid={Boolean(errors.citizenId)}
               />
+              <FieldError message={errors.citizenId?.message} />
             </label>
           )}
           <label className="block space-y-2 text-sm">
@@ -99,6 +120,7 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
               {...register("fullName")}
               aria-invalid={Boolean(errors.fullName)}
             />
+            <FieldError message={errors.fullName?.message} />
           </label>
           <label className="block space-y-2 text-sm">
             Ngày sinh
@@ -107,20 +129,18 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
               {...register("dateOfBirth")}
               aria-invalid={Boolean(errors.dateOfBirth)}
             />
+            <FieldError message={errors.dateOfBirth?.message} />
           </label>
           <label className="block space-y-2 text-sm">
             Email
             <Input type="email" {...register("email")} aria-invalid={Boolean(errors.email)} />
+            <FieldError message={errors.email?.message} />
           </label>
           <label className="block space-y-2 text-sm">
             Số điện thoại
             <Input type="tel" {...register("phone")} aria-invalid={Boolean(errors.phone)} />
+            <FieldError message={errors.phone?.message} />
           </label>
-          {Object.entries(errors).map(([key, error]) => (
-            <p key={key} role="alert" className="text-sm text-destructive">
-              {error?.message}
-            </p>
-          ))}
           <Button
             type="submit"
             size="lg"
@@ -154,19 +174,26 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
             Xóa hồ sơ
           </Button>
           {record.containerIds.length > 0 && (
-            <p className="text-xs text-heritage-muted">Gỡ khỏi các nhóm trước khi xóa hồ sơ.</p>
+            <p className="text-xs text-heritage-muted">
+              Gỡ khỏi các gói bàn giao trước khi xóa hồ sơ.
+            </p>
           )}
         </div>
       )}
       {action.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          {action.error}
-        </p>
+        <StatusBanner tone="error" className="mt-4">
+          <p>{action.error}</p>
+          {action.error.includes("gói dịch vụ trả phí") && (
+            <Link className="inline-block underline" to={ROUTES.BILLING.PLANS}>
+              Xem gói dịch vụ
+            </Link>
+          )}
+        </StatusBanner>
       )}
       {action.succeeded && (
-        <p role="status" className="mt-4 text-sm text-heritage-primary">
-          Đã lưu thay đổi.
-        </p>
+        <StatusBanner tone="success" className="mt-4">
+          <p>Đã lưu thay đổi.</p>
+        </StatusBanner>
       )}
     </div>
   );

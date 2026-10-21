@@ -23,8 +23,12 @@ export function isOwnerVaultMissing(error: unknown): boolean {
 export const ownerVaultKeys = {
   all: ["owner-vault"] as const,
   mine: ["owner-vault", "mine"] as const,
-  packages: (vaultId: string, params?: PaginationParams) =>
-    ["owner-vault", vaultId, "containers", params ?? {}] as const,
+  packages: (vaultId: string, params?: PaginationParams, includeArchived = false) => {
+    if (includeArchived) {
+      return ["owner-vault", vaultId, "containers", params ?? {}, "with-archived"] as const;
+    }
+    return ["owner-vault", vaultId, "containers", params ?? {}] as const;
+  },
   package: (vaultId: string, id: string) => ["owner-vault", vaultId, "container", id] as const,
 };
 /** Chỉ đọc khi caller xác nhận session sẵn sàng. */
@@ -37,10 +41,20 @@ export function useOwnerVault(enabled: boolean) {
   });
 }
 /** Không gửi request container khi chưa biết vaultId. */
-export function useOwnerPackages(vaultId: string, enabled: boolean, params?: PaginationParams) {
+export function useOwnerPackages(
+  vaultId: string,
+  enabled: boolean,
+  params?: PaginationParams,
+  includeArchived = false,
+) {
   return useQuery({
-    queryKey: ownerVaultKeys.packages(vaultId, params),
-    queryFn: ({ signal }) => ownerVaultService.listPackages(vaultId, params, signal),
+    queryKey: ownerVaultKeys.packages(vaultId, params, includeArchived),
+    queryFn: ({ signal }) => {
+      if (includeArchived) {
+        return ownerVaultService.listPackages(vaultId, params, signal, true);
+      }
+      return ownerVaultService.listPackages(vaultId, params, signal);
+    },
     enabled: enabled && Boolean(vaultId),
     retry: false,
   });

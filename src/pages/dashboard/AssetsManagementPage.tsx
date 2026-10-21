@@ -8,7 +8,7 @@ const GROUPS_TAB = "groups";
 const TAB_BASE =
   "inline-flex min-h-9 items-center rounded-lg px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-heritage-gold";
 
-/** Kho của tôi: tab "Mục trong kho" và tab "Nhóm"; tab nằm trên URL (?tab=groups). */
+/** Kho của tôi: tab "Mục trong kho" và tab "Gói bàn giao"; tab nằm trên URL (?tab=groups). */
 export function AssetsManagementPage() {
   const [params, setParams] = useSearchParams();
   const [creating, setCreating] = useState(false);
@@ -36,14 +36,14 @@ export function AssetsManagementPage() {
         className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
         onClick={() => setCreating(true)}
       >
-        Tạo nhóm
+        Tạo gói bàn giao
       </Button>
     );
   }
   return (
     <OwnerWorkspace
       title="Kho của tôi"
-      description="Mọi thứ bạn muốn để lại, được giữ kín. Người nhận được gắn theo nhóm, không gắn từng mục."
+      description="Mọi thứ bạn muốn để lại, được giữ kín. Người nhận được gắn theo gói bàn giao, không gắn từng mục."
       headerAction={headerAction}
     >
       <div
@@ -67,7 +67,7 @@ export function AssetsManagementPage() {
           className={groupsTabStyle}
           onClick={() => selectTab(true)}
         >
-          Nhóm
+          Gói bàn giao
         </button>
       </div>
       <div role="tabpanel">

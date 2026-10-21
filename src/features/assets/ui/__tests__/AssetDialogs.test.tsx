@@ -197,7 +197,7 @@ describe("AssetDetail", () => {
       await screen.findByRole("heading", { name: "Chưa xóa được mục này" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent(expected);
-    expect(screen.getByRole("link", { name: "Mở nhóm" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Mở gói bàn giao" })).toBeInTheDocument();
   });
 
   it("explains a hold on the vault when deletion is blocked by VAULT_NOT_EDITABLE", async () => {

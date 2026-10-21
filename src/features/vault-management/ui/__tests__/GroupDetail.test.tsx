@@ -62,20 +62,20 @@ function backendError(code: string) {
   });
 }
 
-describe("chi tiết nhóm", () => {
-  it("hiện tên nhóm, số mục, người nhận và trạng thái Sẵn sàng", () => {
+describe("chi tiết gói bàn giao", () => {
+  it("hiện tên gói bàn giao, số mục, người nhận và trạng thái Sẵn sàng", () => {
     renderGroup();
     expect(screen.getByRole("heading", { name: containerFixture.name })).toBeInTheDocument();
     expect(screen.getByText(/1 mục · Người nhận: Con trưởng/)).toBeInTheDocument();
     expect(screen.getByText("Sẵn sàng")).toBeInTheDocument();
     expect(screen.getByText("Sổ tiết kiệm")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Quay lại nhóm" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Quay lại gói bàn giao" })).toHaveAttribute(
       "href",
       "/dashboard/assets?tab=groups",
     );
   });
 
-  it("gán người nhận chưa có trong nhóm và chờ Backend xác nhận", async () => {
+  it("gán người nhận chưa có trong gói bàn giao và chờ Backend xác nhận", async () => {
     const post = vi
       .spyOn(apiClient, "post")
       .mockResolvedValue({ ...group(), beneficiaryIds: [PERSON_ID, OTHER_PERSON_ID] });
@@ -89,6 +89,18 @@ describe("chi tiết nhóm", () => {
       `/vaults/${VAULT_ID}/containers/${CONTAINER_ID}/beneficiaries`,
       { beneficiaryId: OTHER_PERSON_ID },
     );
+  });
+
+  it("lưu tên gói bàn giao xong vẫn giữ ô đồng ý đã tick", async () => {
+    const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...group(), name: "Tên mới" });
+    renderGroup();
+    const consent = screen.getByRole("checkbox", { name: /đưa kế hoạch về Nháp/ });
+    fireEvent.click(consent);
+    fireEvent.change(screen.getByLabelText("Tên gói bàn giao"), { target: { value: "Tên mới" } });
+    fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
+    await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText("Đã lưu thay đổi.")).toBeInTheDocument();
+    expect(consent).toBeChecked();
   });
 
   it("gói Free bị chặn thì giữ lỗi của Backend kèm đường nâng cấp", async () => {
@@ -105,21 +117,21 @@ describe("chi tiết nhóm", () => {
     );
   });
 
-  it("xóa nhóm hỏi xác nhận trước, rồi lưu trữ không tự đồng ý đưa kế hoạch về Nháp", async () => {
+  it("xóa gói bàn giao hỏi xác nhận trước, rồi lưu trữ không tự đồng ý đưa kế hoạch về Nháp", async () => {
     const remove = vi
       .spyOn(apiClient, "delete")
       .mockResolvedValue({ ...group(), status: "ARCHIVED" });
     renderGroup();
-    fireEvent.click(screen.getByRole("button", { name: "Xóa nhóm" }));
+    fireEvent.click(screen.getByRole("button", { name: "Xóa gói bàn giao" }));
     const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText(/^Xóa nhóm “.+”\?$/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/^Xóa gói bàn giao “.+”\?$/)).toBeInTheDocument();
     expect(remove).not.toHaveBeenCalled();
-    fireEvent.click(within(dialog).getByRole("button", { name: "Xóa nhóm" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Xóa gói bàn giao" }));
     await waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
     expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
   });
 
-  it("hiện mô tả nhóm và lưu mô tả mới cùng etag hiện tại", async () => {
+  it("hiện mô tả gói bàn giao và lưu mô tả mới cùng etag hiện tại", async () => {
     const put = vi
       .spyOn(apiClient, "put")
       .mockResolvedValue({ ...group({ description: "Giấy tờ nhà" }), etag: "container-v2" });
@@ -137,10 +149,10 @@ describe("chi tiết nhóm", () => {
     });
   });
 
-  it("nhóm đã lưu trữ chỉ xem, khóa mọi nút thay đổi", () => {
+  it("gói bàn giao đã lưu trữ chỉ xem, khóa mọi nút thay đổi", () => {
     renderGroup(group({ status: "ARCHIVED" }));
     expect(screen.getByText(/đã được lưu trữ/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Gỡ khỏi nhóm" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Xóa nhóm" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Gỡ khỏi gói bàn giao" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Xóa gói bàn giao" })).toBeDisabled();
   });
 });

@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
+import { CircleAlert, CircleCheck, FileText, UserRound } from "lucide-react";
 import type { PackageResponse } from "@/entities/package/model/package.types";
 import {
   createPackageSchema,
@@ -43,6 +44,7 @@ const missingLabels: Record<string, string> = {
 
 interface MemberCardProps {
   title: string;
+  icon: ReactNode;
   relation: Relation;
   assigned: Option[];
   available: Option[];
@@ -56,7 +58,7 @@ interface MemberCardProps {
   onAdd: (relation: Relation, id: string) => void;
 }
 
-/** Một khối "Mục trong nhóm" hoặc "Người nhận của nhóm": danh sách đã gắn, nút gỡ, và chọn thêm. */
+/** Một khối "Mục trong gói bàn giao" hoặc "Người nhận của gói bàn giao": danh sách đã gắn, nút gỡ, và chọn thêm. */
 function MemberCard(props: MemberCardProps) {
   const { relation, assigned, available, disabled } = props;
   const rows: ReactNode[] = [];
@@ -64,11 +66,25 @@ function MemberCard(props: MemberCardProps) {
     rows.push(
       <li
         key={item.id}
-        className="flex items-center justify-between gap-3 border-b border-heritage-border py-4 last:border-b-0"
+        className="flex items-center justify-between gap-3 rounded-xl border border-heritage-border bg-heritage-canvas p-4"
       >
-        <div className="min-w-0">
-          <p className="break-words font-semibold">{item.label}</p>
-          {item.detail && <p className="text-xs text-heritage-muted">{item.detail}</p>}
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#F1E7D0] text-[#7A5B24]"
+            aria-hidden="true"
+          >
+            {props.icon}
+          </span>
+          <div className="min-w-0">
+            <p className="break-words text-base font-semibold text-heritage-primary">
+              {item.label}
+            </p>
+            {item.detail && (
+              <span className="mt-1 inline-block rounded-full bg-heritage-primary/10 px-2.5 py-0.5 text-xs font-medium text-heritage-muted">
+                {item.detail}
+              </span>
+            )}
+          </div>
         </div>
         <Button
           variant="outline"
@@ -102,7 +118,7 @@ function MemberCard(props: MemberCardProps) {
     <section aria-label={props.title} className={CARD}>
       <h2 className="text-xl font-medium text-heritage-primary">{props.title}</h2>
       {rows.length === 0 && <p className="mt-4 text-sm text-heritage-muted">{props.emptyText}</p>}
-      <ul className="mt-2">{rows}</ul>
+      <ul className="mt-4 space-y-3">{rows}</ul>
       {available.length > 0 && (
         <form className="mt-4 flex flex-wrap gap-3" onSubmit={submit}>
           <select
@@ -126,7 +142,7 @@ function MemberCard(props: MemberCardProps) {
 }
 
 /**
- * Chi tiết một Nhóm (container) theo thiết kế: mục trong nhóm, người nhận của nhóm, đổi tên và xóa.
+ * Chi tiết một gói bàn giao (container) theo thiết kế: mục trong gói bàn giao, người nhận của gói bàn giao, đổi tên và xóa.
  * Chỉnh sửa một snapshot etag; 409 phải tải lại, không ghi đè bằng etag mới. Xóa là lưu trữ, không xóa dữ liệu.
  */
 export function GroupDetail({
@@ -158,10 +174,13 @@ export function GroupDetail({
     defaultValues: { name: container.name, description: container.description ?? "" },
   });
 
-  function publish(result: PackageResponse): void {
+  // Sự đồng ý đưa kế hoạch về Nháp chỉ dùng một lần cho thao tác gỡ/xóa; lưu tên hay thêm mục thì giữ nguyên ô đã tick.
+  function publish(result: PackageResponse, consumeConsent = false): void {
     setEtag(result.etag);
     reset({ name: result.name, description: result.description ?? "" });
-    setConfirm(false);
+    if (consumeConsent) {
+      setConfirm(false);
+    }
     client.setQueryData(ownerVaultKeys.package(result.vaultId, result.id), result);
     void client.invalidateQueries({ queryKey: ownerVaultKeys.all });
     void client.invalidateQueries({ queryKey: ["vault-beneficiaries", result.vaultId] });
@@ -179,14 +198,14 @@ export function GroupDetail({
           false,
           confirm,
         ),
-      publish,
+      (result) => publish(result, true),
     );
   }
 
   function addMember(relation: Relation, id: string): void {
     void action.execute(
       () => ownerVaultService.changeMember(container.vaultId, container.id, relation, id, true),
-      publish,
+      (result) => publish(result),
     );
   }
 
@@ -194,7 +213,7 @@ export function GroupDetail({
     void action.execute(
       () => ownerVaultService.archivePackage(container.vaultId, container.id, confirm),
       (result) => {
-        publish(result);
+        publish(result, true);
         setDeleting(false);
         navigate(`${ROUTES.DASHBOARD.ASSETS}?tab=groups`);
       },
@@ -278,60 +297,50 @@ export function GroupDetail({
             to={`${ROUTES.DASHBOARD.ASSETS}?tab=groups`}
             className="inline-flex min-h-11 items-center rounded-[20px] border border-heritage-border px-5 text-sm font-semibold hover:bg-heritage-primary/5 focus-visible:outline-2 focus-visible:outline-heritage-gold"
           >
-            Quay lại nhóm
+            Quay lại gói bàn giao
           </Link>
         </div>
       </div>
       {archived && (
         <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
-          Nhóm này đã được lưu trữ nên không chỉnh sửa được.
+          Gói bàn giao này đã được lưu trữ nên không chỉnh sửa được.
         </p>
-      )}
-      {container.status === "READY" && !archived && (
-        <label className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F1E7D0] p-4 text-sm leading-6 text-[#7A5B24]">
-          <input
-            type="checkbox"
-            className="mt-1 size-5"
-            checked={confirm}
-            onChange={(event) => setConfirm(event.target.checked)}
-          />
-          Tôi đồng ý đưa kế hoạch về Nháp nếu thao tác gỡ hoặc xóa làm mất nhóm Sẵn sàng cuối cùng.
-          Bỏ chọn nếu chưa đồng ý.
-        </label>
       )}
       {isDirty && (
         <p className="text-sm text-heritage-muted">
-          Lưu thông tin nhóm trước khi thay đổi mục, người nhận hoặc xóa nhóm.
+          Lưu thông tin gói bàn giao trước khi thay đổi mục, người nhận hoặc xóa gói bàn giao.
         </p>
       )}
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <MemberCard
-          title="Mục trong nhóm"
+          title="Mục trong gói bàn giao"
+          icon={<FileText className="size-5" />}
           relation="assets"
           assigned={assetOptions.assigned}
           available={assetOptions.available}
-          removeLabel="Gỡ khỏi nhóm"
-          addLabel="Thêm mục vào nhóm"
+          removeLabel="Gỡ khỏi gói bàn giao"
+          addLabel="Thêm mục vào gói bàn giao"
           selectLabel="Chọn mục"
-          emptyText="Nhóm chưa có mục nào."
+          emptyText="Gói bàn giao chưa có mục nào."
           disabled={blocked || isDirty}
           note={null}
           onRemove={removeMember}
           onAdd={addMember}
         />
         <MemberCard
-          title="Người nhận của nhóm"
+          title="Người nhận của gói bàn giao"
+          icon={<UserRound className="size-5" />}
           relation="beneficiaries"
           assigned={personOptions.assigned}
           available={personOptions.available}
           removeLabel="Gỡ"
           addLabel="Gán người nhận"
           selectLabel="Chọn người nhận"
-          emptyText="Nhóm chưa có người nhận."
+          emptyText="Gói bàn giao chưa có người nhận."
           disabled={blocked || isDirty}
           note={
             <>
-              <p>Người nhận được gắn theo nhóm, không gắn từng mục.</p>
+              <p>Người nhận được gắn theo gói bàn giao, không gắn từng mục.</p>
               {personOptions.available.length === 0 && (
                 <p className="mt-2">
                   Chưa còn hồ sơ nào để gán.{" "}
@@ -346,8 +355,8 @@ export function GroupDetail({
           onAdd={addMember}
         />
       </div>
-      <section aria-label="Đổi tên và xóa nhóm" className={CARD}>
-        <h2 className="text-xl font-medium text-heritage-primary">Đổi tên và xóa nhóm</h2>
+      <section aria-label="Đổi tên và xóa gói bàn giao" className={CARD}>
+        <h2 className="text-xl font-medium text-heritage-primary">Đổi tên và xóa gói bàn giao</h2>
         <form
           noValidate
           className="mt-4 space-y-4"
@@ -360,12 +369,12 @@ export function GroupDetail({
                   description: values.description,
                   etag,
                 }),
-              publish,
+              (result) => publish(result),
             ),
           )}
         >
           <label className="block space-y-2 text-sm font-semibold">
-            Tên nhóm
+            Tên gói bàn giao
             <Input
               disabled={blocked}
               {...register("name")}
@@ -392,6 +401,18 @@ export function GroupDetail({
               {errors.description.message}
             </p>
           )}
+          {container.status === "READY" && !archived && (
+            <label className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F1E7D0] p-4 text-sm leading-6 text-[#7A5B24]">
+              <input
+                type="checkbox"
+                className="mt-1 size-5"
+                checked={confirm}
+                onChange={(event) => setConfirm(event.target.checked)}
+              />
+              Tôi đồng ý đưa kế hoạch về Nháp nếu thao tác gỡ hoặc xóa làm mất gói bàn giao Sẵn sàng
+              cuối cùng. Bỏ chọn nếu chưa đồng ý.
+            </label>
+          )}
           <div className="flex flex-wrap gap-3">
             <Button type="submit" size="lg" className={GOLD_BUTTON} disabled={blocked}>
               Lưu
@@ -404,31 +425,52 @@ export function GroupDetail({
               disabled={blocked || isDirty}
               onClick={() => setDeleting(true)}
             >
-              Xóa nhóm
+              Xóa gói bàn giao
             </Button>
           </div>
         </form>
       </section>
-      {action.pending && <p role="status">Đang lưu thay đổi…</p>}
+      {action.pending && (
+        <p
+          role="status"
+          className="rounded-xl border border-heritage-border bg-heritage-surface px-4 py-3 text-sm text-heritage-muted"
+        >
+          Đang lưu thay đổi…
+        </p>
+      )}
       {action.error && (
-        <div role="alert" className="space-y-2 text-sm text-destructive">
-          <p>{action.error}</p>
-          {needsUpgrade && (
-            <Link className="underline" to={ROUTES.BILLING.PLANS}>
-              Xem gói dịch vụ
-            </Link>
-          )}
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+        >
+          <CircleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <div className="space-y-2">
+            <p>{action.error}</p>
+            {needsUpgrade && (
+              <Link className="underline" to={ROUTES.BILLING.PLANS}>
+                Xem gói dịch vụ
+              </Link>
+            )}
+          </div>
         </div>
       )}
-      {action.succeeded && <p role="status">Đã lưu thay đổi.</p>}
+      {action.succeeded && (
+        <p
+          role="status"
+          className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800"
+        >
+          <CircleCheck className="size-5 shrink-0" aria-hidden="true" />
+          Đã lưu thay đổi.
+        </p>
+      )}
       {deleting && (
         <Dialog open onOpenChange={(open) => !open && !action.pending && setDeleting(false)}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Xóa nhóm “{container.name}”?</DialogTitle>
+              <DialogTitle>Xóa gói bàn giao “{container.name}”?</DialogTitle>
               <DialogDescription>
-                Các mục trong nhóm vẫn ở lại kho nhưng sẽ không còn người nhận. Nếu kế hoạch đang
-                hoạt động, kế hoạch có thể về Nháp.
+                Các mục trong gói bàn giao vẫn ở lại kho nhưng sẽ không còn người nhận. Nếu kế hoạch
+                đang hoạt động, kế hoạch có thể về Nháp.
               </DialogDescription>
             </DialogHeader>
             <label className="flex items-start gap-3 rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
@@ -438,8 +480,8 @@ export function GroupDetail({
                 checked={confirm}
                 onChange={(event) => setConfirm(event.target.checked)}
               />
-              Xóa nhóm cuối cùng có người nhận có thể đưa kế hoạch về Nháp. Tôi đồng ý nếu điều đó
-              xảy ra.
+              Xóa gói bàn giao cuối cùng có người nhận có thể đưa kế hoạch về Nháp. Tôi đồng ý nếu
+              điều đó xảy ra.
             </label>
             {action.error && (
               <p role="alert" className="text-sm text-destructive">
@@ -463,7 +505,7 @@ export function GroupDetail({
                 disabled={action.pending}
                 onClick={archive}
               >
-                Xóa nhóm
+                Xóa gói bàn giao
               </Button>
             </DialogFooter>
           </DialogContent>

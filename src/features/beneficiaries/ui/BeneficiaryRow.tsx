@@ -1,12 +1,17 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
+import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
+import { StatusBanner } from "@/shared/ui/status-banner";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
@@ -16,65 +21,116 @@ import { BeneficiaryForm } from "./BeneficiaryForm";
 
 type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
 
-/** Hộp thoại xác nhận xóa; hồ sơ còn nằm trong nhóm thì không cho xóa (Backend cũng chặn). */
+/** Ghép tên các gói bàn giao đang chứa người nhận; gói bàn giao không tra được tên thì chỉ đếm số lượng. */
+function describeGroups(containerIds: string[], groupNames: Record<string, string>): string {
+  const names: string[] = [];
+  for (const id of containerIds) {
+    if (Object.hasOwn(groupNames, id)) {
+      names.push(`“${groupNames[id]}”`);
+    }
+  }
+  if (names.length === 0) {
+    return `${containerIds.length} gói bàn giao`;
+  }
+  if (names.length < containerIds.length) {
+    return `${names.join(", ")} và ${containerIds.length - names.length} gói bàn giao khác`;
+  }
+  return `gói bàn giao ${names.join(", ")}`;
+}
+
+/** Hộp thoại xác nhận xóa; hồ sơ còn nằm trong gói bàn giao thì không cho xóa (Backend cũng chặn). */
 function DeleteBeneficiaryDialog({
   vaultId,
   record,
+  groupNames,
   onClose,
 }: {
   vaultId: string;
   record: Beneficiary;
+  groupNames: Record<string, string>;
   onClose: () => void;
 }) {
   const action = usePrivateAction();
   const client = useQueryClient();
   const blocked = record.containerIds.length > 0;
+  if (blocked) {
+    return (
+      <Dialog open onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
+          <DialogHeader>
+            <DialogTitle>Không xóa được người nhận</DialogTitle>
+          </DialogHeader>
+          <Notice tone="danger" role="alert">
+            <span className="font-semibold">
+              {record.fullName} đang ở trong {describeGroups(record.containerIds, groupNames)}.
+            </span>{" "}
+            Hãy gỡ ra trước khi xóa.
+          </Notice>
+          <DialogFooter>
+            <button type="button" className={buttonStyles.outline} onClick={onClose}>
+              Đóng
+            </button>
+            <Link to={`${ROUTES.DASHBOARD.ASSETS}?tab=groups`} className={buttonStyles.gold}>
+              Mở gói bàn giao
+            </Link>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
   return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
         <DialogHeader>
-          <DialogTitle>{blocked ? "Không xóa được người nhận" : "Xóa người nhận"}</DialogTitle>
+          <DialogTitle>Xóa người nhận</DialogTitle>
           <DialogDescription>
-            {blocked
-              ? `${record.fullName} đang nằm trong ${record.containerIds.length} nhóm. Gỡ người nhận khỏi các nhóm trước khi xóa hồ sơ.`
-              : `Xóa hồ sơ ${record.fullName} (****${record.citizenIdLast4})? Thao tác này không hoàn tác được.`}
+            Xóa hồ sơ {record.fullName} (****{record.citizenIdLast4})? Thao tác này không hoàn tác
+            được.
           </DialogDescription>
         </DialogHeader>
-        {action.error && (
-          <p role="alert" className="text-sm text-destructive">
-            {action.error}
-          </p>
-        )}
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose}>
-            {blocked ? "Đã hiểu" : "Hủy"}
+        {action.error && <StatusBanner tone="error">{action.error}</StatusBanner>}
+        <DialogFooter>
+          <button
+            type="button"
+            className={buttonStyles.outline}
+            disabled={action.pending}
+            onClick={onClose}
+          >
+            Hủy
+          </button>
+          <Button
+            className="bg-red-700 text-white hover:bg-red-800"
+            disabled={action.pending}
+            onClick={() =>
+              void action.execute(
+                () => beneficiaryService.remove(vaultId, record.id),
+                () => {
+                  void client.invalidateQueries({ queryKey: ["vault-beneficiaries", vaultId] });
+                  void client.invalidateQueries({ queryKey: ["owner-vault"] });
+                  onClose();
+                },
+              )
+            }
+          >
+            {action.pending ? "Đang xóa…" : "Xóa hồ sơ"}
           </Button>
-          {!blocked && (
-            <Button
-              className="bg-red-700 text-white hover:bg-red-800"
-              disabled={action.pending}
-              onClick={() =>
-                void action.execute(
-                  () => beneficiaryService.remove(vaultId, record.id),
-                  () => {
-                    void client.invalidateQueries({ queryKey: ["vault-beneficiaries", vaultId] });
-                    void client.invalidateQueries({ queryKey: ["owner-vault"] });
-                    onClose();
-                  },
-                )
-              }
-            >
-              {action.pending ? "Đang xóa…" : "Xóa hồ sơ"}
-            </Button>
-          )}
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-/** Một hàng trong bảng người nhận: tên, CCCD che, liên hệ, số nhóm; "Sửa" và "Xóa" mở hộp thoại. */
-export function BeneficiaryRow({ vaultId, record }: { vaultId: string; record: Beneficiary }) {
+/** Một hàng trong bảng người nhận: tên, CCCD che, liên hệ, số gói bàn giao; "Sửa" và "Xóa" mở hộp thoại. */
+export function BeneficiaryRow({
+  vaultId,
+  record,
+  groupNames = {},
+}: {
+  vaultId: string;
+  record: Beneficiary;
+  /** id gói bàn giao → tên gói bàn giao, do widget tra; thiếu thì thông báo chỉ nêu số gói bàn giao. */
+  groupNames?: Record<string, string>;
+}) {
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   let contact = "Chưa có liên hệ";
@@ -83,9 +139,9 @@ export function BeneficiaryRow({ vaultId, record }: { vaultId: string; record: B
   } else if (record.phone) {
     contact = record.phone;
   }
-  let groupLabel = "Chưa vào nhóm nào";
+  let groupLabel = "Chưa vào gói bàn giao nào";
   if (record.containerIds.length > 0) {
-    groupLabel = `${record.containerIds.length} nhóm`;
+    groupLabel = `${record.containerIds.length} gói bàn giao`;
   }
   return (
     <tr>
@@ -146,6 +202,7 @@ export function BeneficiaryRow({ vaultId, record }: { vaultId: string; record: B
           <DeleteBeneficiaryDialog
             vaultId={vaultId}
             record={record}
+            groupNames={groupNames}
             onClose={() => setDeleting(false)}
           />
         )}

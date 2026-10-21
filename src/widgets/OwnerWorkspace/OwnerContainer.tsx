@@ -30,7 +30,7 @@ export function OwnerContainer() {
   if (vault.isError || container.isError)
     return (
       <div role="alert" className="space-y-4">
-        <p>Không đọc được nhóm trong kho của bạn. Kiểm tra đường dẫn hoặc tải lại.</p>
+        <p>Không đọc được gói bàn giao trong kho của bạn. Kiểm tra đường dẫn hoặc tải lại.</p>
         <Button
           onClick={() => {
             void vault.refetch();
@@ -41,7 +41,7 @@ export function OwnerContainer() {
         </Button>
       </div>
     );
-  if (vault.isPending || container.isPending) return <p role="status">Đang tải nhóm…</p>;
+  if (vault.isPending || container.isPending) return <p role="status">Đang tải gói bàn giao…</p>;
   // Mỗi trang lựa chọn tối đa 100 mục; chỉ hiện nút chuyển trang khi kho thật sự có hơn một trang.
   const showAssetNav = assetPage > 1 || Boolean(assets.data?.hasNextPage);
   const showBeneficiaryNav = beneficiaryPage > 1 || Boolean(beneficiaries.data?.hasNextPage);
@@ -67,7 +67,10 @@ export function OwnerContainer() {
         </p>
       )}
       {(showAssetNav || showBeneficiaryNav) && (
-        <nav aria-label="Phân trang lựa chọn cho nhóm" className="grid gap-3 sm:grid-cols-2">
+        <nav
+          aria-label="Phân trang lựa chọn cho gói bàn giao"
+          className="grid gap-3 sm:grid-cols-2"
+        >
           {showAssetNav && (
             <div className="flex flex-wrap items-center gap-3 text-xs">
               <Button

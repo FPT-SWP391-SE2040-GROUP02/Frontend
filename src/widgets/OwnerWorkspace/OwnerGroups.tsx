@@ -11,8 +11,8 @@ const PAGE_SIZE = 10;
 const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
 
 /**
- * Tab "Nhóm" của Kho của tôi: danh sách nhóm và tạo nhóm. Người nhận được gắn theo nhóm.
- * Nút "Tạo nhóm" ở đầu trang do trang cha điều khiển qua `createOpen`.
+ * Tab "Gói bàn giao" của Kho của tôi: danh sách gói bàn giao và tạo gói bàn giao. Người nhận được gắn theo gói bàn giao.
+ * Nút "Tạo gói bàn giao" ở đầu trang do trang cha điều khiển qua `createOpen`.
  */
 export function OwnerGroups({
   vaultId,
@@ -30,7 +30,7 @@ export function OwnerGroups({
     page = requested;
   }
   const query = useOwnerPackages(vaultId, true, { pageIndex: page, pageSize: PAGE_SIZE });
-  // Mục chưa thuộc nhóm nào sẽ không nằm trong phạm vi bàn giao; chỉ nhắc khi đã biết chắc.
+  // Mục chưa thuộc gói bàn giao nào sẽ không nằm trong phạm vi bàn giao; chỉ nhắc khi đã biết chắc.
   const planSetup = usePlanSetup(vaultId);
 
   function goTo(value: number): void {
@@ -43,33 +43,34 @@ export function OwnerGroups({
   if (query.isPending) {
     body = (
       <p role="status" className="mt-4 text-sm text-heritage-muted">
-        Đang tải danh sách nhóm…
+        Đang tải danh sách gói bàn giao…
       </p>
     );
   } else if (query.isError) {
     body = (
       <div role="alert" className="mt-4 space-y-3">
-        <p className="text-sm">Không tải được danh sách nhóm.</p>
+        <p className="text-sm">Không tải được danh sách gói bàn giao.</p>
         <Button variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()}>
           Thử lại
         </Button>
       </div>
     );
   } else if (query.data.items.length === 0) {
-    let emptyTitle = "Bạn chưa có nhóm nào.";
+    let emptyTitle = "Bạn chưa có gói bàn giao nào.";
     if (page > 1) {
-      emptyTitle = "Trang này không có nhóm.";
+      emptyTitle = "Trang này không có gói bàn giao.";
     }
     body = (
       <div className="mt-6 space-y-3">
         <Check className="size-5 text-green-700" aria-hidden="true" />
         <p className="font-semibold">{emptyTitle}</p>
         <p className="text-sm text-heritage-muted">
-          Nhóm gom các mục có cùng người nhận. Tạo nhóm trước, rồi thêm mục và gán người nhận.
+          Gói bàn giao gom các mục có cùng người nhận. Tạo gói bàn giao trước, rồi thêm mục và gán
+          người nhận.
         </p>
         {page === 1 && (
           <Button size="lg" className={GOLD_BUTTON} onClick={() => onCreateOpenChange(true)}>
-            Tạo nhóm đầu tiên
+            Tạo gói bàn giao đầu tiên
           </Button>
         )}
       </div>
@@ -99,10 +100,10 @@ export function OwnerGroups({
           </span>
           <Link
             to={ROUTES.DASHBOARD.GROUP_DETAIL(group.id)}
-            aria-label={`Mở nhóm ${group.name}`}
+            aria-label={`Mở gói bàn giao ${group.name}`}
             className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-[20px] border border-[#B68F4C] bg-[#E0C486] px-5 text-sm font-semibold text-[#0A281E] transition-colors hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
           >
-            Mở nhóm
+            Mở gói bàn giao
             <ArrowRight className="size-4" aria-hidden="true" />
           </Link>
         </li>,
@@ -113,7 +114,7 @@ export function OwnerGroups({
         <ul className="mt-2">{rows}</ul>
         {(page > 1 || query.data.hasNextPage) && (
           <nav
-            aria-label="Phân trang nhóm"
+            aria-label="Phân trang gói bàn giao"
             className="mt-4 flex items-center justify-between gap-3"
           >
             <Button
@@ -146,15 +147,15 @@ export function OwnerGroups({
     <div className="space-y-6">
       {outsideCount > 0 && (
         <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
-          Có {outsideCount} mục chưa thuộc nhóm nào. Những mục này chưa được giao cho ai và sẽ không
-          nằm trong phạm vi bàn giao.
+          Có {outsideCount} mục chưa thuộc gói bàn giao nào. Những mục này chưa được giao cho ai và
+          sẽ không nằm trong phạm vi bàn giao.
         </p>
       )}
       <section
-        aria-label="Danh sách nhóm"
+        aria-label="Danh sách gói bàn giao"
         className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
       >
-        <h2 className="text-xl font-medium text-heritage-primary">Danh sách nhóm</h2>
+        <h2 className="text-xl font-medium text-heritage-primary">Danh sách gói bàn giao</h2>
         {body}
       </section>
       {createOpen && (

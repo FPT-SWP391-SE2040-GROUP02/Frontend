@@ -65,6 +65,9 @@ describe("Trang thông tin công khai", () => {
     expect(within(header).getByRole("link", { name: "Gói dịch vụ" }).getAttribute("href")).toBe(
       "/#goi",
     );
+    expect(screen.getByRole("link", { name: "Đăng ký" }).getAttribute("href")).toBe(
+      ROUTES.AUTH.REGISTER,
+    );
     const footer = screen.getByRole("contentinfo");
     expect(within(footer).getByRole("link", { name: "Quyền riêng tư" }).getAttribute("href")).toBe(
       ROUTES.PUBLIC.PRIVACY,
