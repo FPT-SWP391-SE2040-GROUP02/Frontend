@@ -246,6 +246,14 @@ describe("pricing reference policies", () => {
     expect(input).toHaveValue(1);
   });
 
+  it("Chủ kho có nút sang Lịch sử thanh toán", () => {
+    setup(true);
+    expect(screen.getByRole("link", { name: "Lịch sử thanh toán" })).toHaveAttribute(
+      "href",
+      "/billing/history",
+    );
+  });
+
   it("kho XS Max: thẻ XS bị khóa, hạ hạng chọn ở bước Gia hạn gói", () => {
     setup(true, { serviceTier: "XS_MAX" });
     expect(

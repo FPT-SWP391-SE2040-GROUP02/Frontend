@@ -95,7 +95,14 @@ export function PricingPlansPage() {
         description="Lựa chọn dung lượng và dịch vụ phù hợp với nhu cầu lưu trữ."
       >
         {showCurrentService ? (
-          <OwnerCatalog key={user.id} />
+          <>
+            <div className="flex justify-end">
+              <Link to={ROUTES.BILLING.HISTORY} className={buttonVariants({ variant: "outline" })}>
+                Lịch sử thanh toán
+              </Link>
+            </div>
+            <OwnerCatalog key={user.id} />
+          </>
         ) : (
           <ServicePlansPanel
             catalog={PRICING_CATALOG}

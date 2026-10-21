@@ -6,8 +6,10 @@ import type {
   billingSelectionSchema,
   billingTierSchema,
   billingYearsSchema,
+  paymentOrderPageSchema,
   paymentOrderSchema,
   paymentOrderStatusSchema,
+  paymentOrderSummarySchema,
 } from "./billing.schema";
 
 export type BillingTier = z.infer<typeof billingTierSchema>;
@@ -17,4 +19,6 @@ export type BillingPlans = z.infer<typeof billingPlansSchema>;
 export type BillingQuote = z.infer<typeof billingQuoteSchema>;
 export type BillingSelection = z.infer<typeof billingSelectionSchema>;
 export type PaymentOrder = z.infer<typeof paymentOrderSchema>;
+export type PaymentOrderSummary = z.infer<typeof paymentOrderSummarySchema>;
+export type PaymentOrderPage = z.infer<typeof paymentOrderPageSchema>;
 export type PaymentOrderStatus = z.infer<typeof paymentOrderStatusSchema>;

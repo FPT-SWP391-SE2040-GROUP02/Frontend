@@ -7,6 +7,7 @@ export const billingKeys = {
   all: ["billing"] as const,
   plans: () => [...billingKeys.all, "plans"] as const,
   quote: (selection: BillingSelection) => [...billingKeys.all, "quote", selection] as const,
+  history: (pageIndex: number) => [...billingKeys.all, "history", pageIndex] as const,
   currentOrder: () => [...billingKeys.all, "order", "current"] as const,
   order: (id: string) => [...billingKeys.all, "order", id] as const,
 };
@@ -33,6 +34,20 @@ export function useBillingQuote(selection: BillingSelection, enabled: boolean) {
     retry: false,
     staleTime: 0,
     gcTime: 0,
+  });
+}
+
+/** Số đơn mỗi trang của lịch sử thanh toán. */
+export const ORDER_HISTORY_PAGE_SIZE = 10;
+
+/** Lịch sử đơn thanh toán của kho, phân trang, mới nhất trước. */
+export function useOrderHistory(pageIndex: number, enabled: boolean) {
+  return useQuery({
+    queryKey: billingKeys.history(pageIndex),
+    queryFn: ({ signal }) => billingService.listOrders(pageIndex, ORDER_HISTORY_PAGE_SIZE, signal),
+    enabled,
+    retry: false,
+    staleTime: 0,
   });
 }
 

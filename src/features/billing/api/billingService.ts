@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api/axiosClient";
+import { paginationRequestSchema } from "@/shared/api/pagination.schema";
 import {
   billingPlansSchema,
   billingQuoteSchema,
   billingSelectionSchema,
+  paymentOrderPageSchema,
   paymentOrderSchema,
 } from "../model/billing.schema";
 import type { BillingSelection } from "../model/billing.types";
@@ -42,6 +44,19 @@ export const billingService = {
         "/billing/orders",
         billingSelectionSchema.parse(selection),
       ),
+    );
+  },
+
+  /** Lịch sử đơn của kho, mới nhất trước. */
+  async listOrders(pageIndex: number, pageSize: number, signal?: AbortSignal) {
+    const params = paginationRequestSchema.parse({
+      pageIndex,
+      pageSize,
+      sortBy: "createdAt",
+      isAscending: false,
+    });
+    return paymentOrderPageSchema.parse(
+      await apiClient.get<unknown, unknown>("/billing/orders", { params, signal }),
     );
   },
 

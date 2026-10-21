@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginatedListSchema } from "@/shared/api/pagination.schema";
 
 /** Hạng dịch vụ trả phí Backend bán (mục 6.18 của hợp đồng API). */
 export const billingTierSchema = z.enum(["XS", "XS_MAX"]);
@@ -86,6 +87,25 @@ export const paymentOrderSchema = z.object({
   serverTime: z.string(),
   notice: z.string(),
 });
+
+/** Một dòng lịch sử thanh toán (GET /billing/orders): không có ngân hàng hay mã QR. */
+export const paymentOrderSummarySchema = z.object({
+  id: z.string().uuid(),
+  kind: billingKindSchema,
+  status: paymentOrderStatusSchema,
+  tier: billingTierSchema,
+  years: z.number().int().nullable(),
+  extraSlots: z.number().int().nonnegative(),
+  totalAmount: money,
+  currency: z.string(),
+  paymentCode: z.string(),
+  createdAt: z.string(),
+  expiresAt: z.string(),
+  paidAt: z.string().nullable(),
+  cancelledAt: z.string().nullable(),
+});
+
+export const paymentOrderPageSchema = paginatedListSchema(paymentOrderSummarySchema);
 
 /** Body quote/orders: chỉ gửi lựa chọn, không gửi vaultId, số tiền, loại đơn hay trạng thái (SEC-04, PAY-11). */
 export const billingSelectionSchema = z.object({

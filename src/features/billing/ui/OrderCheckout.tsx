@@ -322,6 +322,12 @@ function FinishedOrder({ order }: { order: PaymentOrder }) {
         >
           Về gói dịch vụ
         </Link>
+        <Link
+          to={ROUTES.BILLING.HISTORY}
+          className={buttonVariants({ variant: "outline", size: "lg" })}
+        >
+          Lịch sử thanh toán
+        </Link>
         {paid && (
           <Link
             to={ROUTES.DASHBOARD.ASSETS}
