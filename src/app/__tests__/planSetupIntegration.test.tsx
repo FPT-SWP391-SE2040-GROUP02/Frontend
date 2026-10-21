@@ -290,6 +290,12 @@ it("hiện checklist kích hoạt: mục đạt có dấu tích, mục thiếu k
   );
   expect(screen.getByRole("link", { name: "Đi xác minh danh tính" })).toBeInTheDocument();
   expect(screen.queryByText("Đã xác minh danh tính eKYC.")).not.toBeInTheDocument();
+  // Hai điều kiện thiếu trong bốn điều kiện: đạt 2/4, thanh tiến độ 50%.
+  expect(screen.getByText("Đã đạt 2/4 điều kiện")).toBeInTheDocument();
+  expect(screen.getByRole("progressbar", { name: "Tiến độ điều kiện kích hoạt" })).toHaveAttribute(
+    "aria-valuenow",
+    "50",
+  );
 });
 
 const acceptedPrimary = {

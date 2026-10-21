@@ -20,7 +20,7 @@ import { Textarea } from "@/shared/ui/textarea";
 import { ownerVaultService } from "../api/ownerVaultService";
 import { ownerVaultKeys } from "../model/useOwnerVault";
 
-/** Tạo Nhóm (container) rỗng trong kho của Chủ kho; không tự kích hoạt kế hoạch. */
+/** Tạo Gói bàn giao (container) rỗng trong kho của Chủ kho; không tự kích hoạt kế hoạch. */
 export function CreateGroupDialog({ vaultId, onClose }: { vaultId: string; onClose: () => void }) {
   const client = useQueryClient();
   const action = usePrivateAction();
@@ -38,9 +38,10 @@ export function CreateGroupDialog({ vaultId, onClose }: { vaultId: string; onClo
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Tạo nhóm</DialogTitle>
+          <DialogTitle>Tạo gói bàn giao</DialogTitle>
           <DialogDescription>
-            Nhóm gom các mục có cùng người nhận. Tạo nhóm trước, rồi thêm mục và gán người nhận.
+            Gói bàn giao gom các mục có cùng người nhận. Tạo gói bàn giao trước, rồi thêm mục và gán
+            người nhận.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -61,7 +62,7 @@ export function CreateGroupDialog({ vaultId, onClose }: { vaultId: string; onClo
         >
           <fieldset disabled={action.pending} className="space-y-4">
             <label className="block space-y-2 text-sm">
-              Tên nhóm
+              Tên gói bàn giao
               <Input
                 placeholder="Ví dụ: Giấy tờ gia đình"
                 {...register("name")}
@@ -104,7 +105,7 @@ export function CreateGroupDialog({ vaultId, onClose }: { vaultId: string; onClo
               className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
               disabled={action.pending}
             >
-              Tạo nhóm
+              Tạo gói bàn giao
             </Button>
           </DialogFooter>
         </form>

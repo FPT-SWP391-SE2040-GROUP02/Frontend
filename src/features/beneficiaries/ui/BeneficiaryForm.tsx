@@ -1,11 +1,14 @@
 import { z } from "zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { StatusBanner } from "@/shared/ui/status-banner";
+import { ROUTES } from "@/shared/config/routes.config";
 import { beneficiaryService } from "../api/beneficiaryService";
 import { beneficiaryResponseSchema, createBeneficiarySchema } from "../model/beneficiary.schema";
 
@@ -171,19 +174,26 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
             Xóa hồ sơ
           </Button>
           {record.containerIds.length > 0 && (
-            <p className="text-xs text-heritage-muted">Gỡ khỏi các nhóm trước khi xóa hồ sơ.</p>
+            <p className="text-xs text-heritage-muted">
+              Gỡ khỏi các gói bàn giao trước khi xóa hồ sơ.
+            </p>
           )}
         </div>
       )}
       {action.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          {action.error}
-        </p>
+        <StatusBanner tone="error" className="mt-4">
+          <p>{action.error}</p>
+          {action.error.includes("gói dịch vụ trả phí") && (
+            <Link className="inline-block underline" to={ROUTES.BILLING.PLANS}>
+              Xem gói dịch vụ
+            </Link>
+          )}
+        </StatusBanner>
       )}
       {action.succeeded && (
-        <p role="status" className="mt-4 text-sm text-heritage-primary">
-          Đã lưu thay đổi.
-        </p>
+        <StatusBanner tone="success" className="mt-4">
+          <p>Đã lưu thay đổi.</p>
+        </StatusBanner>
       )}
     </div>
   );

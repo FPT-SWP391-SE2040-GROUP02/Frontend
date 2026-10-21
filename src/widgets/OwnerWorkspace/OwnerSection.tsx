@@ -47,7 +47,7 @@ export function OwnerSection({
   groupCreate,
 }: {
   section: "assets" | "groups" | "plans" | "check-in" | "trusted";
-  /** Chỉ dùng cho section "groups": trạng thái hộp thoại "Tạo nhóm" do trang cha điều khiển. */
+  /** Chỉ dùng cho section "groups": trạng thái hộp thoại "Tạo gói bàn giao" do trang cha điều khiển. */
   groupCreate?: { open: boolean; onOpenChange: (open: boolean) => void };
 }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);

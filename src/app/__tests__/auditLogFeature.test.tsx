@@ -128,11 +128,11 @@ describe("OwnerAuditLog transport", () => {
       ]),
     });
     setup("/dashboard/audit-log");
-    const row = (await screen.findByRole("cell", { name: "Gán người nhận cho nhóm" })).closest(
-      "tr",
-    ) as HTMLElement;
+    const row = (
+      await screen.findByRole("cell", { name: "Gán người nhận cho gói bàn giao" })
+    ).closest("tr") as HTMLElement;
     expect(row).toHaveTextContent("Chủ kho");
-    expect(row).toHaveTextContent("Nhóm");
+    expect(row).toHaveTextContent("Gói bàn giao");
     expect(row).toHaveTextContent("Thành công");
     expect(row).toHaveTextContent("Người nhận #963788");
     expect(row).not.toHaveTextContent("CONTAINER_BENEFICIARY_ADDED");
@@ -184,12 +184,12 @@ describe("OwnerAuditLog transport", () => {
       return { data, config, status: 200, statusText: "OK", headers: new AxiosHeaders() };
     };
     setup("/dashboard/audit-log");
-    const added = (await screen.findByRole("cell", { name: "Gán người nhận cho nhóm" })).closest(
-      "tr",
-    ) as HTMLElement;
+    const added = (
+      await screen.findByRole("cell", { name: "Gán người nhận cho gói bàn giao" })
+    ).closest("tr") as HTMLElement;
     await waitFor(() => expect(added).toHaveTextContent("Người nhận Trịnh Lê Thiên Quan"));
     const removed = screen
-      .getByRole("cell", { name: "Gỡ người nhận khỏi nhóm" })
+      .getByRole("cell", { name: "Gỡ người nhận khỏi gói bàn giao" })
       .closest("tr") as HTMLElement;
     expect(removed).toHaveTextContent("Người nhận #abcdef");
     const vaultRow = screen
@@ -290,7 +290,7 @@ describe("OwnerAuditLog URL state", () => {
       expect(await screen.findByRole("alert")).toHaveTextContent("Ngày lọc không hợp lệ");
       expect(calls.filter((c) => c.url?.endsWith("/audit-logs"))).toHaveLength(0);
       fireEvent.click(screen.getByRole("button", { name: "Đặt lại" }));
-      await screen.findByRole("cell", { name: "Tạo nhóm" });
+      await screen.findByRole("cell", { name: "Tạo gói bàn giao" });
       expect(locationRef.current).not.toContain("from=");
       expect(locationRef.current).not.toContain("to=");
     },
@@ -411,7 +411,7 @@ describe("OwnerAuditLog UI states", () => {
     });
     expect(locationRef.current).toContain("action=CONTAINER_CREATED");
     expect(locationRef.current).toContain("from=2026-10-01");
-    expect(await screen.findByRole("cell", { name: "Tạo nhóm" })).toBeInTheDocument();
+    expect(await screen.findByRole("cell", { name: "Tạo gói bàn giao" })).toBeInTheDocument();
     expect(screen.queryByText(/Trang hiện vượt quá phạm vi/)).not.toBeInTheDocument();
   });
 });
@@ -448,7 +448,7 @@ describe("OwnerAuditLog cache", () => {
     hasNewEntry = true;
     await client.invalidateQueries({ queryKey: ["owner-vault"] });
     setup("/dashboard/audit-log");
-    expect(await screen.findByRole("cell", { name: "Tạo nhóm" })).toBeInTheDocument();
+    expect(await screen.findByRole("cell", { name: "Tạo gói bàn giao" })).toBeInTheDocument();
     expect(screen.queryByText("Chưa có dòng nhật ký nào khớp bộ lọc.")).not.toBeInTheDocument();
   });
 });

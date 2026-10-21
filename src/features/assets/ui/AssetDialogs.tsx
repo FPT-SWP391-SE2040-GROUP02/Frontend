@@ -224,7 +224,7 @@ export function DeleteDialog({
               Đóng
             </button>
             <Link to={`${ROUTES.DASHBOARD.ASSETS}?tab=groups`} className={buttonStyles.gold}>
-              Mở nhóm
+              Mở gói bàn giao
             </Link>
           </DialogFooter>
         </DialogContent>
