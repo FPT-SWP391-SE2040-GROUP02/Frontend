@@ -5,7 +5,7 @@ export function BeneficiariesPage() {
   return (
     <OwnerWorkspace
       title="Người nhận"
-      description="Người nhận được gắn theo nhóm, không gắn từng mục. Số CCCD chỉ hiện 4 số cuối."
+      description="Người nhận được gắn theo gói bàn giao, không gắn từng mục. Số CCCD chỉ hiện 4 số cuối."
     >
       <OwnerBeneficiaries />
     </OwnerWorkspace>

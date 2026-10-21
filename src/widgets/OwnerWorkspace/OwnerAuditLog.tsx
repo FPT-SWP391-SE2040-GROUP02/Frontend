@@ -28,8 +28,8 @@ import type { AuditLogFilterState } from "@/features/audit-logs/model/auditLog.t
 import type { AuditNameMap } from "@/features/audit-logs/model/auditLogLabels";
 
 /**
- * Tra tên cho nhật ký từ trang đầu (tối đa 100) của tài sản, người nhận, nhóm.
- * Nhóm lấy cả nhóm đã lưu trữ vì nhật ký còn dòng "Xóa nhóm"; tài sản/người nhận đã xóa vẫn hiện mã rút gọn.
+ * Tra tên cho nhật ký từ trang đầu (tối đa 100) của tài sản, người nhận, gói bàn giao.
+ * Gói bàn giao lấy cả gói bàn giao đã lưu trữ vì nhật ký còn dòng "Xóa gói bàn giao"; tài sản/người nhận đã xóa vẫn hiện mã rút gọn.
  */
 const NAME_LOOKUP = { pageIndex: 1, pageSize: 100 };
 

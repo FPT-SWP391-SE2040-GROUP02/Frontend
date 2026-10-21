@@ -14,13 +14,13 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   ASSET_VERSION_CREATED: "Tạo phiên bản tài sản",
   ASSET_DELETED: "Xóa tài sản",
   ASSET_CONTENT_DOWNLOADED: "Tải nội dung tài sản",
-  CONTAINER_CREATED: "Tạo nhóm",
-  CONTAINER_UPDATED: "Sửa nhóm",
-  CONTAINER_ARCHIVED: "Xóa (lưu trữ) nhóm",
-  CONTAINER_ASSET_ADDED: "Thêm mục vào nhóm",
-  CONTAINER_ASSET_REMOVED: "Gỡ mục khỏi nhóm",
-  CONTAINER_BENEFICIARY_ADDED: "Gán người nhận cho nhóm",
-  CONTAINER_BENEFICIARY_REMOVED: "Gỡ người nhận khỏi nhóm",
+  CONTAINER_CREATED: "Tạo gói bàn giao",
+  CONTAINER_UPDATED: "Sửa gói bàn giao",
+  CONTAINER_ARCHIVED: "Xóa (lưu trữ) gói bàn giao",
+  CONTAINER_ASSET_ADDED: "Thêm mục vào gói bàn giao",
+  CONTAINER_ASSET_REMOVED: "Gỡ mục khỏi gói bàn giao",
+  CONTAINER_BENEFICIARY_ADDED: "Gán người nhận cho gói bàn giao",
+  CONTAINER_BENEFICIARY_REMOVED: "Gỡ người nhận khỏi gói bàn giao",
   PLAN_DEACTIVATED: "Kế hoạch về nháp",
   BENEFICIARY_CREATED: "Tạo hồ sơ người nhận",
   BENEFICIARY_UPDATED: "Sửa hồ sơ người nhận",
@@ -58,7 +58,7 @@ export const TARGET_TYPE_LABELS: Record<(typeof auditTargetTypeValues)[number], 
   VAULT: "Kho",
   PLAN: "Kế hoạch bàn giao",
   ASSET: "Tài sản",
-  CONTAINER: "Nhóm",
+  CONTAINER: "Gói bàn giao",
   BENEFICIARY: "Người nhận",
   CHECK_IN: "Điểm danh",
   DEATH_CASE: "Hồ sơ chứng tử",
@@ -80,7 +80,7 @@ export function shortId(id: string): string {
 
 const UUID_PATTERN = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
 
-/** Tên hiển thị theo id (tài sản, người nhận, nhóm) do widget tra từ các danh sách đã tải. */
+/** Tên hiển thị theo id (tài sản, người nhận, gói bàn giao) do widget tra từ các danh sách đã tải. */
 export type AuditNameMap = Record<string, string>;
 
 /** Tên thật nếu tra được, không thì mã rút gọn (đối tượng đã xóa hoặc nằm ngoài trang đã tải). */

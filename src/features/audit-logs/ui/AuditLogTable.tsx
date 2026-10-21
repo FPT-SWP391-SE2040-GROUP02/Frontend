@@ -31,7 +31,7 @@ export function AuditLogTable({
   names = {},
 }: {
   items: AuditLogEntry[];
-  /** id → tên thật (tài sản, người nhận, nhóm); thiếu thì hiện mã rút gọn. */
+  /** id → tên thật (tài sản, người nhận, gói bàn giao); thiếu thì hiện mã rút gọn. */
   names?: AuditNameMap;
 }) {
   return (

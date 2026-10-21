@@ -174,7 +174,9 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
             Xóa hồ sơ
           </Button>
           {record.containerIds.length > 0 && (
-            <p className="text-xs text-heritage-muted">Gỡ khỏi các nhóm trước khi xóa hồ sơ.</p>
+            <p className="text-xs text-heritage-muted">
+              Gỡ khỏi các gói bàn giao trước khi xóa hồ sơ.
+            </p>
           )}
         </div>
       )}

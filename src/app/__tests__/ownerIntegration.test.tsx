@@ -86,9 +86,13 @@ it("hides selection pagination when the vault has only one page of choices", asy
     </Routes>,
     `/dashboard/wills/${CONTAINER_ID}`,
   );
-  expect(await screen.findByRole("button", { name: "Xóa nhóm" })).toBeInTheDocument();
-  expect(screen.queryByRole("navigation", { name: "Phân trang lựa chọn cho nhóm" })).toBeNull();
-  expect(screen.queryByRole("button", { name: "Tải lại nhóm và bỏ thay đổi chưa lưu" })).toBeNull();
+  expect(await screen.findByRole("button", { name: "Xóa gói bàn giao" })).toBeInTheDocument();
+  expect(
+    screen.queryByRole("navigation", { name: "Phân trang lựa chọn cho gói bàn giao" }),
+  ).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: "Tải lại gói bàn giao và bỏ thay đổi chưa lưu" }),
+  ).toBeNull();
 });
 const asset = {
   id: CONTAINER_ID,
@@ -151,10 +155,10 @@ it("creates a scoped container only after valid submit", async () => {
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(containerFixture);
   const onClose = vi.fn();
   setup(<CreateGroupDialog vaultId={VAULT_ID} onClose={onClose} />);
-  fireEvent.click(await screen.findByRole("button", { name: "Tạo nhóm" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Tạo gói bàn giao" }));
   expect(post).not.toHaveBeenCalled();
-  fireEvent.change(screen.getByLabelText("Tên nhóm"), { target: { value: "Hồ sơ" } });
-  fireEvent.click(screen.getByRole("button", { name: "Tạo nhóm" }));
+  fireEvent.change(screen.getByLabelText("Tên gói bàn giao"), { target: { value: "Hồ sơ" } });
+  fireEvent.click(screen.getByRole("button", { name: "Tạo gói bàn giao" }));
   await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
   expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/containers`, {
     name: "Hồ sơ",
@@ -178,10 +182,12 @@ it("retains edits after a 409 and never overwrites using a fresh etag or retries
       beneficiaries={[]}
     />,
   );
-  fireEvent.change(screen.getByLabelText("Tên nhóm"), { target: { value: "Tên đang sửa" } });
+  fireEvent.change(screen.getByLabelText("Tên gói bàn giao"), {
+    target: { value: "Tên đang sửa" },
+  });
   fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Dữ liệu đã thay đổi");
-  expect(screen.getByLabelText("Tên nhóm")).toHaveValue("Tên đang sửa");
+  expect(screen.getByLabelText("Tên gói bàn giao")).toHaveValue("Tên đang sửa");
   expect(put).toHaveBeenCalledTimes(1);
   expect(put.mock.calls[0][1]).toMatchObject({ etag: "container-v1" });
   expect(client.getQueryData(ownerVaultKeys.package(VAULT_ID, CONTAINER_ID))).toBeUndefined();
@@ -209,7 +215,7 @@ it("does not silently confirm plan deactivation when detaching the last asset", 
       beneficiaries={[]}
     />,
   );
-  fireEvent.click(screen.getByRole("button", { name: "Gỡ khỏi nhóm" }));
+  fireEvent.click(screen.getByRole("button", { name: "Gỡ khỏi gói bàn giao" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("đưa kế hoạch về nháp");
   expect(remove).toHaveBeenCalledTimes(1);
   expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });

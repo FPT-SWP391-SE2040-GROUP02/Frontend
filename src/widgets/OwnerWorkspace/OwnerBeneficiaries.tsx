@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
+  useOwnerPackages,
   useOwnerVault,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
@@ -25,6 +26,17 @@ export function OwnerBeneficiaries() {
     Number.isSafeInteger(requested) && requested > 0 && requested <= 1_000_000 ? requested : 1;
   const vault = useOwnerVault(true);
   const list = useBeneficiaries(vault.data?.id ?? "", { pageIndex: page, pageSize: 10 });
+  // Tên gói bàn giao để báo rõ người nhận đang nằm trong gói bàn giao nào khi chặn xóa hồ sơ.
+  const groups = useOwnerPackages(vault.data?.id ?? "", Boolean(vault.data), {
+    pageIndex: 1,
+    pageSize: 100,
+  });
+  const groupNames: Record<string, string> = {};
+  if (groups.data) {
+    for (const group of groups.data.items) {
+      groupNames[group.id] = group.name;
+    }
+  }
   if (vault.isError && isOwnerVaultMissing(vault.error)) return <CreateVaultForm />;
   if (vault.isError || list.isError)
     return (
@@ -43,7 +55,14 @@ export function OwnerBeneficiaries() {
   if (vault.isPending || list.isPending) return <p role="status">Đang tải hồ sơ người nhận…</p>;
   const rows: ReactNode[] = [];
   for (const record of list.data.items) {
-    rows.push(<BeneficiaryRow key={record.id} vaultId={vault.data.id} record={record} />);
+    rows.push(
+      <BeneficiaryRow
+        key={record.id}
+        vaultId={vault.data.id}
+        record={record}
+        groupNames={groupNames}
+      />,
+    );
   }
   return (
     <div className="space-y-6">
@@ -66,7 +85,7 @@ export function OwnerBeneficiaries() {
         </div>
         <p className="mt-1 text-xs text-heritage-muted">
           {vault.data.usedBeneficiarySlots}/{vault.data.beneficiarySlots} suất đang dùng. Tạo hồ sơ
-          không tự gắn người nhận vào nhóm.
+          không tự gắn người nhận vào gói bàn giao.
         </p>
         {rows.length === 0 && (
           <p role="status" className="mt-4 text-sm text-heritage-muted">
@@ -89,7 +108,7 @@ export function OwnerBeneficiaries() {
                     Liên hệ
                   </th>
                   <th scope="col" className="px-4 py-3 font-semibold">
-                    Nhóm
+                    Gói bàn giao
                   </th>
                   <th scope="col" className="py-3 pl-4 text-right font-semibold">
                     <span className="sr-only">Thao tác</span>
@@ -127,7 +146,8 @@ export function OwnerBeneficiaries() {
             <DialogHeader>
               <DialogTitle>Thêm người nhận</DialogTitle>
               <DialogDescription>
-                Tạo hồ sơ không tự gắn người nhận vào nhóm. Số CCCD chỉ hiện 4 số cuối sau khi lưu.
+                Tạo hồ sơ không tự gắn người nhận vào gói bàn giao. Số CCCD chỉ hiện 4 số cuối sau
+                khi lưu.
               </DialogDescription>
             </DialogHeader>
             <BeneficiaryForm vaultId={vault.data.id} />
