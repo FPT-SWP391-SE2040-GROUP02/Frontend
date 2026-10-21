@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import type { z } from "zod";
@@ -56,6 +56,9 @@ export function EkycStatusPanel({
   });
   const needsTurnId = purpose === "BENEFICIARY_CLAIM" && !turnId;
   const live = status.data;
+  // Owner đã PASSED thì khóa; lượt vừa chốt trong phiên này vẫn giữ màn kết quả đến khi rời trang.
+  const [finishedHere, setFinishedHere] = useState(false);
+  const locked = purpose === "OWNER_ENROLLMENT" && live?.status === "PASSED" && !finishedHere;
 
   let banner: ReactNode = null;
   if (!authenticated) {
@@ -99,7 +102,7 @@ export function EkycStatusPanel({
           Mở màn này từ một lượt bàn giao cụ thể để gửi ảnh xác minh.
         </p>
       )}
-      {authenticated && status.isSuccess && !needsTurnId && (
+      {authenticated && status.isSuccess && !needsTurnId && !locked && (
         <>
           <EkycUploads
             key={`${userId}:${purpose}:${turnId ?? ""}`}
@@ -108,7 +111,10 @@ export function EkycStatusPanel({
             canComplete={Boolean(canComplete)}
             onComplete={() => onComplete?.()}
             onVerificationBound={(id) => onVerificationBound?.(id)}
-            onVerified={onVerified}
+            onVerified={() => {
+              setFinishedHere(true);
+              onVerified?.();
+            }}
           />
           {completeResult?.error && (
             <p role="alert" className="text-sm text-destructive">
