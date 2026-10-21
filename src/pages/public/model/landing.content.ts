@@ -1,3 +1,5 @@
+import { ROUTES } from "@/shared/config/routes.config";
+
 /**
  * Nội dung landing theo Mẫu G "Bông hoa là logo" của bộ thiết kế handoff.
  * Giá và dung lượng chép từ biểu phí SRS §8.1 (khớp trang bảng giá); backend chỉ giới hạn theo
@@ -125,20 +127,6 @@ export const LANDING_CONTENT = {
       "Bạn luôn dừng được bàn giao.",
       "Không ai nắm toàn quyền một mình.",
     ],
-    canTitle: "Làm được",
-    can: [
-      "Lưu kho, mã hóa AES-256-GCM",
-      "Bàn giao qua bốn lớp xác nhận",
-      "Gửi lời nhắn đúng lúc",
-      "Dừng bàn giao bằng “Tôi còn sống”",
-    ],
-    cannotTitle: "Chưa làm được",
-    cannot: [
-      "Thay thế di chúc",
-      "Mã hóa đầu cuối",
-      "eKYC có giá trị pháp lý",
-      "Phân chia tài sản hợp pháp",
-    ],
     productTitle: "Sản phẩm",
     productLinks: [
       { label: "Ý nghĩa bông hoa", href: "#y-nghia" },
@@ -146,11 +134,18 @@ export const LANDING_CONTENT = {
       { label: "Gói dịch vụ", href: "#goi" },
     ],
     supportTitle: "Hỗ trợ",
-    supportItems: ["Hỏi đáp", "Liên hệ"],
+    supportItems: [
+      { label: "Hỏi đáp", to: ROUTES.PUBLIC.FAQ },
+      { label: "Liên hệ", to: ROUTES.PUBLIC.CONTACT },
+    ],
     legalTitle: "Pháp lý",
-    legalItems: ["Điều khoản", "Quyền riêng tư"],
+    legalItems: [
+      { label: "Điều khoản", to: ROUTES.PUBLIC.TERMS },
+      { label: "Quyền riêng tư", to: ROUTES.PUBLIC.PRIVACY },
+    ],
     sampleNote: "Hình giao diện dùng dữ liệu mẫu.",
-    address: "[ĐỊA CHỈ CÔNG TY]",
+    address:
+      "Lô E2a-7, Đường D1, Khu Công nghệ cao, Phường Tăng Nhơn Phú, TP. Hồ Chí Minh (thuộc TP. Thủ Đức cũ)",
     legal: "Không phải dịch vụ pháp lý.",
   },
 } as const;
