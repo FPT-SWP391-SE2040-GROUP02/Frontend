@@ -75,6 +75,12 @@ describe("workspace logo navigation", () => {
     const links = await screen.findAllByRole("link", { name: "Sang vai Người thực hiện" });
     expect(links.length).toBeGreaterThan(0);
     links.forEach((link) => expect(link).toHaveAttribute("href", "/executor"));
+    // Chỉ một nút hiện ở mỗi cỡ màn hình: mục trong menu chỉ dành cho điện thoại (< 768px), nút ở chân khung từ 768px
+    // trở lên. Trước đây mục trong menu ẩn từ 1024px nên màn 768–1023px thấy hai nút.
+    const inMenu = links.filter((link) => link.className.includes("owner-nav-link"));
+    expect(inMenu).toHaveLength(1);
+    expect(inMenu[0].className).toContain("md:hidden");
+    expect(inMenu[0].className).not.toContain("lg:hidden");
   });
 
   it("opens the phone navigation and closes it after choosing an Owner page", () => {
