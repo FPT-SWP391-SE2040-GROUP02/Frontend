@@ -145,7 +145,7 @@ export function OwnerWorkspace({
               <Link
                 to={ROUTES.EXECUTOR.ROOT}
                 // Từ 768px trở lên chân khung đã có nút chuyển vai (xem owner-workspace.css), nên mục này chỉ cho điện thoại.
-                className="owner-nav-link md:hidden"
+                className="owner-nav-link owner-nav-link--phone-only"
                 onClick={() => setNavigationOpen(false)}
               >
                 <ArrowLeftRight className="size-[18px] shrink-0" aria-hidden="true" />

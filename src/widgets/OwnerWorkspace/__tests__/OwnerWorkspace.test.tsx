@@ -79,8 +79,9 @@ describe("workspace logo navigation", () => {
     // trở lên. Trước đây mục trong menu ẩn từ 1024px nên màn 768–1023px thấy hai nút.
     const inMenu = links.filter((link) => link.className.includes("owner-nav-link"));
     expect(inMenu).toHaveLength(1);
-    expect(inMenu[0].className).toContain("md:hidden");
-    expect(inMenu[0].className).not.toContain("lg:hidden");
+    // Dùng class CSS riêng vì `display: flex` của .owner-nav-link nằm ngoài layer nên thắng `md:hidden` của Tailwind.
+    expect(inMenu[0].className).toContain("owner-nav-link--phone-only");
+    expect(inMenu[0].className).not.toContain("md:hidden");
   });
 
   it("opens the phone navigation and closes it after choosing an Owner page", () => {
