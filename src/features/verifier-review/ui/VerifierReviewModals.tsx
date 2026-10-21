@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/shared/ui/button";
+import { buttonStyles } from "@/shared/ui/heritageKit";
 import { Textarea } from "@/shared/ui/textarea";
 import { CustomCheckbox } from "@/shared/ui/CustomCheckbox";
 import {
@@ -55,16 +55,16 @@ function ReviewError({ error, onClose }: { error: string; onClose: () => void })
   return (
     <div role="alert" className="space-y-2 text-sm text-destructive">
       <p>{error}</p>
-      <Button
+      <button
         type="button"
-        variant="outline"
+        className={buttonStyles.outline}
         onClick={() => {
           void client.invalidateQueries({ queryKey: verifierKeys.all });
           onClose();
         }}
       >
         Tải lại hồ sơ
-      </Button>
+      </button>
     </div>
   );
 }
@@ -156,7 +156,7 @@ function ReviewFlagModal({
   const flag = detail.flags.find((f) => f.id === flagId);
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>Xem xét cờ</DialogTitle>
           <DialogDescription>
@@ -185,12 +185,21 @@ function ReviewFlagModal({
           />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={onClose}
+              disabled={action.pending}
+            >
               Hủy
-            </Button>
-            <Button type="submit" disabled={action.pending || !confirmed}>
+            </button>
+            <button
+              type="submit"
+              className={buttonStyles.gold}
+              disabled={action.pending || !confirmed}
+            >
               {action.pending ? "Đang ghi…" : "Ghi nhận"}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -243,7 +252,7 @@ function RequestSupplementModal({
   });
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>Yêu cầu bổ sung</DialogTitle>
           <DialogDescription>
@@ -295,12 +304,21 @@ function RequestSupplementModal({
           />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={onClose}
+              disabled={action.pending}
+            >
               Hủy
-            </Button>
-            <Button type="submit" disabled={action.pending || !confirm || parts.length === 0}>
+            </button>
+            <button
+              type="submit"
+              className={buttonStyles.gold}
+              disabled={action.pending || !confirm || parts.length === 0}
+            >
               {action.pending ? "Đang gửi…" : "Gửi yêu cầu"}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -342,7 +360,7 @@ function ApproveModal({
   });
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>Duyệt hồ sơ và mở bàn giao</DialogTitle>
           <DialogDescription>
@@ -391,15 +409,21 @@ function ApproveModal({
           />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={onClose}
+              disabled={action.pending}
+            >
               Hủy
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
+              className={buttonStyles.gold}
               disabled={action.pending || !detail.canApprove || !confirm || !legalConfirm}
             >
               {action.pending ? "Đang duyệt…" : "Duyệt"}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -435,7 +459,7 @@ function RejectModal({
   });
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>Từ chối hồ sơ</DialogTitle>
           <DialogDescription>
@@ -464,16 +488,23 @@ function RejectModal({
           />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={onClose}
+              disabled={action.pending}
+            >
               Hủy
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
-              variant="destructive"
+              className={
+                "inline-flex min-h-11 items-center justify-center rounded-xl bg-[#A32119] px-6 text-sm font-semibold text-white hover:bg-[#8A1B14] disabled:pointer-events-none disabled:opacity-50"
+              }
               disabled={action.pending || !confirm || !reason.trim()}
             >
               {action.pending ? "Đang từ chối…" : "Từ chối"}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>

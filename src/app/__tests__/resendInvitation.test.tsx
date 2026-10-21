@@ -84,10 +84,17 @@ function renderPanel() {
 }
 
 it("chỉ hiện nút gửi lại ở lượt chưa ai nhận", async () => {
+  const user = userEvent.setup();
   vi.spyOn(apiClient, "get").mockResolvedValue(progress);
   renderPanel();
   await screen.findByText(/Gói đã nhận/);
-  expect(screen.getAllByRole("button", { name: "Gửi lại lời mời" })).toHaveLength(2);
+  const details = screen.getAllByRole("button", { name: "Xem chi tiết" });
+  // Lượt đang chờ (chọn sẵn) và lượt quá hạn phản hồi có nút; lượt đã nhận thì không.
+  expect(screen.getAllByRole("button", { name: "Gửi lại lời mời" })).toHaveLength(1);
+  await user.click(details[1]);
+  expect(screen.getAllByRole("button", { name: "Gửi lại lời mời" })).toHaveLength(1);
+  await user.click(details[2]);
+  expect(screen.queryByRole("button", { name: "Gửi lại lời mời" })).not.toBeInTheDocument();
 });
 
 it("cần xác nhận rồi mới gọi BE, gọi một lần và đọc lại tiến độ sau khi thành công", async () => {
@@ -99,7 +106,7 @@ it("cần xác nhận rồi mới gọi BE, gọi một lần và đọc lại t
     responseDeadline: "2026-10-22T10:00:00+00:00",
   });
   renderPanel();
-  await screen.findByText(/Gói đang chờ/);
+  await screen.findAllByText(/Gói đang chờ/);
   await user.click(screen.getAllByRole("button", { name: "Gửi lại lời mời" })[0]);
   expect(post).not.toHaveBeenCalled();
   await user.dblClick(screen.getByRole("button", { name: "Xác nhận gửi lại" }));
@@ -118,7 +125,7 @@ it("hiện lý do cụ thể khi gửi lại quá sớm và không báo thành c
     problem(409, { code: "HANDOVER_NOT_ALLOWED", reason: "RESEND_TOO_SOON" }),
   );
   renderPanel();
-  await screen.findByText(/Gói đang chờ/);
+  await screen.findAllByText(/Gói đang chờ/);
   await user.click(screen.getAllByRole("button", { name: "Gửi lại lời mời" })[0]);
   await user.click(screen.getByRole("button", { name: "Xác nhận gửi lại" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(/15 phút/);
@@ -132,7 +139,7 @@ it("báo gửi thư lỗi (503) là chưa thay đổi gì thay vì lỗi máy ch
     problem(503, { code: "HANDOVER_NOT_ALLOWED", reason: "INVITATION_SEND_FAILED" }),
   );
   renderPanel();
-  await screen.findByText(/Gói đang chờ/);
+  await screen.findAllByText(/Gói đang chờ/);
   await user.click(screen.getAllByRole("button", { name: "Gửi lại lời mời" })[0]);
   await user.click(screen.getByRole("button", { name: "Xác nhận gửi lại" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(/Chưa gửi được thư mời/);

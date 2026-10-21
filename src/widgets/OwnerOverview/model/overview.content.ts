@@ -25,7 +25,7 @@ export const OWNER_OVERVIEW = {
   nav: [
     { label: "Tổng quan", to: ROUTES.DASHBOARD.ROOT, icon: OverviewIcon, active: true },
     { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon, active: false },
-    { label: "Kế hoạch bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon, active: false },
+    { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon, active: false },
     { label: "Điểm danh", to: ROUTES.DMS.ROOT, icon: Activity, active: false },
     { label: "Gói dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon, active: false },
   ],

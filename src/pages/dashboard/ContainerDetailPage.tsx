@@ -4,8 +4,8 @@ import { OwnerContainer } from "@/widgets/OwnerWorkspace/OwnerContainer";
 export function ContainerDetailPage() {
   return (
     <OwnerWorkspace
-      title="Chi tiết gói bàn giao"
-      description="Sắp xếp nội dung và người nhận của gói; trạng thái sẵn sàng do máy chủ xác nhận."
+      title="Kho của tôi"
+      description="Mọi thứ bạn muốn để lại, được giữ kín. Người nhận được gắn theo nhóm, không gắn từng mục."
     >
       <OwnerContainer />
     </OwnerWorkspace>

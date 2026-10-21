@@ -23,9 +23,16 @@ export const ROUTES = {
 
   /** Nhóm đường dẫn khu vực quản trị / nội bộ (Dashboard) */
   DASHBOARD: {
+    IDENTITY: "/dashboard/identity",
     ROOT: "/dashboard",
     ASSETS: "/dashboard/assets",
+    /** Chi tiết một mục trong kho: thông tin, phiên bản, thêm phiên bản, xóa. */
+    ASSET_DETAIL: (id: string) => `/dashboard/assets/${id}`,
+    /** Chi tiết một Nhóm (container): mục, người nhận, đổi tên, xóa. */
+    GROUP_DETAIL: (id: string) => `/dashboard/assets/groups/${id}`,
     BENEFICIARIES: "/dashboard/beneficiaries",
+    /** Người tin cậy của Chủ kho: Người thực hiện (Executor) và Người xét duyệt. */
+    TRUSTED_PEOPLE: "/dashboard/trusted-people",
     AUDIT_LOG: "/dashboard/audit-log",
     ANALYTICS: "/dashboard/analytics",
     USERS: "/dashboard/users",
@@ -48,13 +55,25 @@ export const ROUTES = {
 
   /** Cổng công chứng viên / Legal Verifier */
   NOTARY: {
+    /** Tổng quan Người xét duyệt (Verifier); cũng là trang chủ của vai trò này. */
     WORKSPACE: "/notary/workspace",
+    /** Hàng chờ; ?caseId= mở chi tiết một hồ sơ. */
+    QUEUE: "/notary/queue",
+    CRITERIA: "/notary/criteria",
+    HISTORY: "/notary/history",
+    SETTINGS: "/notary/settings",
   },
 
   /** Cổng người giám hộ di sản / Digital Executor */
   EXECUTOR: {
     INVITATION: "/executor-invitation",
+    /** Tên cũ của cổng Executor; giữ để link/email cũ vẫn dùng được, chuyển về ROOT. */
     CLAIM: "/executor/claim",
+    ROOT: "/executor",
+    REPORT: "/executor/report",
+    PROGRESS: "/executor/progress",
+    PERMISSIONS: "/executor/permissions",
+    SETTINGS: "/executor/settings",
   },
 
   /** Cổng người thụ hưởng / Beneficiary */

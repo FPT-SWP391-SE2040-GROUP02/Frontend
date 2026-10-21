@@ -13,8 +13,16 @@ const formSchema = z.object({
   cycleDays: z.enum(["30", "60", "90"]),
   graceDays: z.enum(["7", "14", "30"]),
 });
-/** POST/PATCH do người dùng chủ động; server sở hữu thời gian và quyền điểm danh. */
-export function CheckInActions({ vaultId, status }: { vaultId: string; status: Status }) {
+const CYCLE_OPTIONS = [30, 60, 90];
+const GRACE_OPTIONS = [7, 14, 30];
+const SELECT_CLASS =
+  "block min-h-11 w-full rounded-lg border border-heritage-border bg-heritage-surface px-3";
+
+/**
+ * Lịch điểm danh: chu kỳ và thời gian ân hạn. Giữ etag đọc ban đầu; 409 phải tải lại, không ghi đè.
+ * Khi đang có kỳ chạy, lịch mới áp dụng từ kỳ sau và không đổi hạn hiện tại.
+ */
+export function CheckInSettingsForm({ vaultId, status }: { vaultId: string; status: Status }) {
   const [etag] = useState(status.settings.etag);
   const action = usePrivateAction();
   const client = useQueryClient();
@@ -29,28 +37,15 @@ export function CheckInActions({ vaultId, status }: { vaultId: string; status: S
         "7" | "14" | "30",
     },
   });
-  const sync = (result: Status) => {
+
+  function sync(result: Status): void {
     client.setQueryData(["vault-check-in", vaultId], result);
     void client.invalidateQueries({ queryKey: ["vault-check-in", vaultId] });
     void client.invalidateQueries({ queryKey: ["owner-vault"] });
-  };
+  }
+
   return (
-    <div className="space-y-6 border-t border-heritage-border pt-6">
-      <div className="space-y-3">
-        <Button
-          disabled={
-            action.pending ||
-            !["ACTIVE", "CHECKIN_OVERDUE", "AWAITING_CHECK"].includes(status.planStatus)
-          }
-          onClick={() => void action.execute(() => checkInService.checkIn(), sync)}
-        >
-          Tôi vẫn hoạt động — điểm danh
-        </Button>
-        <p className="text-xs leading-5 text-heritage-muted">
-          Chỉ được xác nhận sau phản hồi máy chủ. Kế hoạch nháp hoặc đang bàn giao không thể điểm
-          danh.
-        </p>
-      </div>
+    <div className="space-y-4">
       <form
         noValidate
         className="space-y-4"
@@ -68,15 +63,11 @@ export function CheckInActions({ vaultId, status }: { vaultId: string; status: S
           ),
         )}
       >
-        <h3 className="font-semibold">Lịch điểm danh</h3>
-        <fieldset disabled={action.pending} className="grid gap-4 sm:grid-cols-2">
+        <fieldset disabled={action.pending} className="space-y-4">
           <label className="block space-y-2 text-sm">
             Chu kỳ
-            <select
-              {...form.register("cycleDays")}
-              className="block min-h-11 w-full rounded-lg border border-heritage-border bg-heritage-surface px-3"
-            >
-              {[30, 60, 90].map((days) => (
+            <select {...form.register("cycleDays")} className={SELECT_CLASS}>
+              {CYCLE_OPTIONS.map((days) => (
                 <option key={days} value={days}>
                   {days} ngày
                 </option>
@@ -85,18 +76,19 @@ export function CheckInActions({ vaultId, status }: { vaultId: string; status: S
           </label>
           <label className="block space-y-2 text-sm">
             Thời gian ân hạn
-            <select
-              {...form.register("graceDays")}
-              className="block min-h-11 w-full rounded-lg border border-heritage-border bg-heritage-surface px-3"
-            >
-              {[7, 14, 30].map((days) => (
+            <select {...form.register("graceDays")} className={SELECT_CLASS}>
+              {GRACE_OPTIONS.map((days) => (
                 <option key={days} value={days}>
                   {days} ngày
                 </option>
               ))}
             </select>
           </label>
-          <Button type="submit" variant="outline" className="min-h-11 sm:col-span-2">
+          <Button
+            type="submit"
+            size="lg"
+            className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+          >
             Lưu lịch điểm danh
           </Button>
         </fieldset>
