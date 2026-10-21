@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { ServicePlansPanel } from "@/features/billing/ui/ServicePlansPanel";
+import { useBillingPlans } from "@/features/billing/model/useBilling";
+import { buildPlanCatalog } from "@/features/billing/model/servicePlanPreview";
 import {
   isOwnerVaultMissing,
   useOwnerVault,
@@ -13,9 +15,16 @@ import { Button, buttonVariants } from "@/shared/ui/button";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { PRICING_CATALOG } from "./model/pricing.content";
 
-/** Hook riêng cho Owner, tiếp tục dùng cache kho hiện có và không gọi API thanh toán. */
+const TIER_NAMES: Record<string, string> = { XS: "Legacy XS", XS_MAX: "Legacy XS Max" };
+const TIER_FEATURES: Record<string, readonly string[]> = {
+  XS: PRICING_CATALOG[1].features,
+  XS_MAX: PRICING_CATALOG[2].features,
+};
+
+/** Owner xem bảng giá do Backend công bố (GET /billing/plans); khách chỉ thấy bảng tham khảo. */
 function OwnerCatalog() {
   const vault = useOwnerVault(true);
+  const plans = useBillingPlans(vault.isSuccess);
   return (
     <>
       {vault.isPending && <p role="status">Đang tải gói dịch vụ…</p>}
@@ -40,9 +49,28 @@ function OwnerCatalog() {
           </Button>
         </div>
       )}
-      {vault.isSuccess ? (
-        <ServicePlansPanel catalog={PRICING_CATALOG} vault={vault.data} access="owner" />
-      ) : (
+      {vault.isSuccess && plans.isError && (
+        <div role="alert" className="space-y-3">
+          <p>Không tải được bảng giá từ máy chủ.</p>
+          <Button
+            variant="outline"
+            disabled={plans.isFetching}
+            onClick={() => void plans.refetch()}
+          >
+            Thử lại
+          </Button>
+        </div>
+      )}
+      {vault.isSuccess && plans.isPending && <p role="status">Đang tải bảng giá…</p>}
+      {vault.isSuccess && plans.data && (
+        <ServicePlansPanel
+          catalog={buildPlanCatalog(plans.data, TIER_FEATURES, TIER_NAMES, PRICING_CATALOG[0])}
+          vault={vault.data}
+          access="owner"
+          maxExtraSlots={plans.data.extraSlot.maxPerOrder}
+        />
+      )}
+      {!vault.isSuccess && (
         <ServicePlansPanel
           catalog={PRICING_CATALOG}
           access="unavailable"

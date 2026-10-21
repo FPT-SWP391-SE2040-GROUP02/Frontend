@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { AxiosError, AxiosHeaders } from "axios";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { apiClient } from "@/shared/api/axiosClient";
 import { configureStore } from "@reduxjs/toolkit";
@@ -11,11 +12,86 @@ import { ownerVaultService } from "@/features/vault-management/api/ownerVaultSer
 import { ownerVaultKeys } from "@/features/vault-management/model/useOwnerVault";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { vaultFixture } from "@/shared/api/__tests__/backend.fixtures";
+import { billingKeys } from "@/features/billing/model/useBilling";
+import type { BillingPlans, BillingQuote } from "@/features/billing/model/billing.types";
 import { PricingPlansPage } from "../PricingPlansPage";
 
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
   ownerVaultService: { getMine: vi.fn() },
 }));
+
+const plansFixture: BillingPlans = {
+  policyVersion: "2026-10",
+  currency: "VND",
+  tiers: [
+    {
+      tier: "XS",
+      storageQuotaBytes: 209715200,
+      includedBeneficiarySlots: 2,
+      prices: [
+        { years: 1, amount: 199000, serviceDays: 365 },
+        { years: 3, amount: 499000, serviceDays: 1095 },
+        { years: 5, amount: 799000, serviceDays: 1825 },
+      ],
+    },
+    {
+      tier: "XS_MAX",
+      storageQuotaBytes: 524288000,
+      includedBeneficiarySlots: 5,
+      prices: [
+        { years: 1, amount: 399000, serviceDays: 365 },
+        { years: 3, amount: 999000, serviceDays: 1095 },
+        { years: 5, amount: 1599000, serviceDays: 1825 },
+      ],
+    },
+  ],
+  extraSlot: { pricePerYear: 49000, maxPerOrder: 20 },
+  notice: "Thanh toán không tự kích hoạt bàn giao.",
+};
+
+const purchaseQuote: BillingQuote = {
+  kind: "PURCHASE",
+  tier: "XS",
+  years: 1,
+  extraSlots: 0,
+  tierAmount: 199000,
+  slotAmount: 0,
+  totalAmount: 199000,
+  currency: "VND",
+  storageQuotaBytes: 209715200,
+  includedBeneficiarySlots: 2,
+  beneficiarySlots: 2,
+  serviceDays: 365,
+  serviceStartsAt: "ON_PAYMENT",
+  serviceExpiresAt: null,
+  policyVersion: "2026-10",
+  notice: "Thanh toán không tự kích hoạt bàn giao.",
+  serverTime: "2026-10-20T00:00:00Z",
+};
+
+const addonQuote: BillingQuote = {
+  ...purchaseQuote,
+  kind: "ADDON",
+  years: null,
+  extraSlots: 1,
+  tierAmount: 0,
+  slotAmount: 24165,
+  totalAmount: 24165,
+  beneficiarySlots: 3,
+  serviceDays: null,
+  serviceStartsAt: null,
+  serviceExpiresAt: "2099-10-20T00:00:00Z",
+};
+
+function backendError(status: number, code: string, reason?: string) {
+  return new AxiosError("private", undefined, undefined, undefined, {
+    status,
+    statusText: "Conflict",
+    config: { headers: new AxiosHeaders() },
+    headers: {},
+    data: { code, reason },
+  });
+}
 
 let client: QueryClient;
 
@@ -54,6 +130,8 @@ function setup(
       }),
     );
     accessTokenMemory.set("pricing-fixture-access");
+    client.setQueryData(billingKeys.plans(), plansFixture);
+    client.setQueryData(billingKeys.currentOrder(), null);
     client.setQueryData(ownerVaultKeys.mine, {
       ...vaultFixture,
       serviceTier: "XS",
@@ -118,7 +196,7 @@ describe("pricing reference policies", () => {
     expect(policy).toHaveTextContent("Tối đa 20 suất mỗi đơn");
     expect(policy).toHaveTextContent("hết hạn cùng ngày với gói");
     expect(policy).toHaveTextContent("thời gian còn lại");
-    expect(policy).toHaveTextContent("Chưa hỗ trợ mua thêm suất trên hệ thống");
+    expect(policy).not.toHaveTextContent("Chưa hỗ trợ mua thêm suất");
   });
 
   it("keeps the current account entitlement from the server separate from the catalog", () => {
@@ -130,47 +208,84 @@ describe("pricing reference policies", () => {
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
   });
 
-  it("opens renewal inline, retains add-on slots, and never creates a payment order", () => {
-    const post = vi.spyOn(apiClient, "post");
+  it("mua thêm suất: hiện báo giá của Backend và chỉ tạo đơn khi người dùng xác nhận", async () => {
+    const post = vi.spyOn(apiClient, "post").mockImplementation((url: string) => {
+      if (url === "/billing/quote") return Promise.resolve(addonQuote);
+      return Promise.reject(new Error(`không mong đợi ${url}`));
+    });
     setup(true);
     expect(screen.getByRole("heading", { level: 1, name: "Gói dịch vụ" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Gia hạn Legacy XS" }));
-    const preview = screen.getByRole("region", { name: "Gia hạn Legacy XS" });
-    fireEvent.click(within(preview).getByRole("button", { name: "3 năm" }));
-    expect(preview).toHaveTextContent("1 suất, giữ nguyên");
-    expect(preview).toHaveTextContent("147.000");
-    expect(preview).toHaveTextContent("646.000");
-    fireEvent.click(within(preview).getByRole("button", { name: "Tạo đơn và thanh toán" }));
-    expect(screen.getByRole("status")).toHaveTextContent("Thanh toán chưa khả dụng");
-    expect(post).not.toHaveBeenCalled();
-    fireEvent.click(within(preview).getByRole("button", { name: "Đóng xem trước" }));
-    expect(screen.queryByRole("region", { name: "Gia hạn Legacy XS" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Mua thêm suất người nhận" }));
+    const panel = screen.getByRole("region", { name: "Mua thêm suất" });
+    await waitFor(() => expect(panel).toHaveTextContent("24.165"));
+    expect(panel).toHaveTextContent("Tổng thanh toán");
+    expect(panel).toHaveTextContent("3 người");
+    // Chỉ gửi số suất: không gửi số tiền, hạng, loại đơn hay vaultId (SEC-04, PAY-11).
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post.mock.calls[0][0]).toBe("/billing/quote");
+    expect(post.mock.calls[0][1]).toEqual({ extraSlots: 1 });
+    fireEvent.click(within(panel).getByRole("button", { name: "Đóng khung mua" }));
+    expect(screen.queryByRole("region", { name: "Mua thêm suất" })).not.toBeInTheDocument();
+    expect(post).toHaveBeenCalledTimes(1);
   });
 
-  it("blocks changing tier mid-term and explains the add-on purchase is unavailable", () => {
+  it("đổi số suất mua thêm thì báo giá lại và giữ trong giới hạn của Backend", async () => {
+    const post = vi
+      .spyOn(apiClient, "post")
+      .mockResolvedValue({ ...addonQuote, extraSlots: 5, slotAmount: 120825, totalAmount: 120825 });
+    setup(true);
+    fireEvent.click(screen.getByRole("button", { name: "Mua thêm suất người nhận" }));
+    const input = await screen.findByLabelText(/Suất người nhận mua thêm/);
+    fireEvent.change(input, { target: { value: "5" } });
+    await waitFor(() =>
+      expect(post).toHaveBeenLastCalledWith("/billing/quote", { extraSlots: 5 }, expect.anything()),
+    );
+    fireEvent.change(input, { target: { value: "99" } });
+    expect(input).toHaveValue(20);
+    fireEvent.change(input, { target: { value: "0" } });
+    expect(input).toHaveValue(1);
+  });
+
+  it("blocks changing tier mid-term", () => {
     setup(true);
     expect(
       planCard("Legacy XS Max").getByRole("button", { name: "Đổi hạng khi hết kỳ" }),
     ).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Mua thêm suất người nhận" }));
-    expect(screen.getByRole("status")).toHaveTextContent("Chưa hỗ trợ mua thêm suất trên hệ thống");
   });
 
-  it("updates the preview and add-on action when the current period expires while open", () => {
+  it("giá của Owner lấy từ Backend, không phải bảng tĩnh", async () => {
+    setup(true);
+    act(() => {
+      client.setQueryData(billingKeys.plans(), {
+        ...plansFixture,
+        tiers: [
+          { ...plansFixture.tiers[0], prices: [{ years: 1, amount: 211000, serviceDays: 365 }] },
+          plansFixture.tiers[1],
+        ],
+      });
+    });
+    await waitFor(() =>
+      expect(
+        planCard("Legacy XS").getByText(/211\.000/, { selector: "p.service-plan-price" }),
+      ).toBeInTheDocument(),
+    );
+  });
+
+  it("hết kỳ khi đang mở khung mua thêm thì đóng khung và bỏ nút mua thêm", async () => {
+    vi.spyOn(apiClient, "post").mockResolvedValue(addonQuote);
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-10-20T00:00:00Z"));
     try {
       setup(true, { serviceExpiresAt: "2026-10-20T00:00:01Z" });
-      fireEvent.click(screen.getByRole("button", { name: "Gia hạn Legacy XS" }));
+      fireEvent.click(screen.getByRole("button", { name: "Mua thêm suất người nhận" }));
+      expect(screen.getByRole("region", { name: "Mua thêm suất" })).toBeInTheDocument();
       act(() => vi.advanceTimersByTime(1001));
+      expect(screen.queryByRole("region", { name: "Mua thêm suất" })).not.toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
       ).not.toBeInTheDocument();
       expect(screen.getByRole("region", { name: "Gói hiện tại của kho" })).toHaveTextContent(
         "Đã hết hạn dịch vụ",
-      );
-      expect(screen.getByRole("region", { name: "Gia hạn Legacy XS" })).toHaveTextContent(
-        "Từ lúc thanh toán thành công",
       );
     } finally {
       cleanup();
@@ -191,7 +306,11 @@ describe("pricing reference policies", () => {
     },
   );
 
-  it("allows a Free owner to preview buying, without inventing a service start date", () => {
+  it("kho Free mua gói: báo giá từ Backend, kỳ bắt đầu khi thanh toán, tạo đơn mới gọi /billing/orders", async () => {
+    const post = vi.spyOn(apiClient, "post").mockImplementation((url: string) => {
+      if (url === "/billing/quote") return Promise.resolve(purchaseQuote);
+      return Promise.reject(new Error("dừng ở đây"));
+    });
     setup(true, {
       serviceTier: "FREE",
       serviceStatus: "FREE",
@@ -199,17 +318,54 @@ describe("pricing reference policies", () => {
       extraBeneficiarySlots: 0,
     });
     fireEvent.click(screen.getByRole("button", { name: "Mua gói XS" }));
-    const preview = screen.getByRole("region", { name: "Mua Legacy XS" });
-    expect(preview).toHaveTextContent("Từ lúc thanh toán thành công");
-    expect(preview).toHaveTextContent("Hệ thống xác nhận khi tạo đơn");
-    expect(preview).not.toHaveTextContent("2099");
+    const panel = screen.getByRole("region", { name: "Mua Legacy XS" });
+    await waitFor(() => expect(panel).toHaveTextContent("199.000"));
+    expect(panel).toHaveTextContent("Từ lúc thanh toán thành công");
+    expect(panel).not.toHaveTextContent("2099");
+    expect(post.mock.calls[0][1]).toEqual({ tier: "XS", years: 1, extraSlots: 0 });
+    fireEvent.click(within(panel).getByRole("button", { name: "Tạo đơn và thanh toán" }));
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith("/billing/orders", {
+        tier: "XS",
+        years: 1,
+        extraSlots: 0,
+      }),
+    );
+  });
+
+  it("báo giá bị từ chối vì chưa eKYC thì nói rõ bằng tiếng Việt và khóa nút tạo đơn", async () => {
+    vi.spyOn(apiClient, "post").mockRejectedValue(
+      backendError(409, "PAYMENT_NOT_ALLOWED", "OWNER_EKYC_REQUIRED"),
+    );
+    setup(true, {
+      serviceTier: "FREE",
+      serviceStatus: "FREE",
+      serviceExpiresAt: null,
+      extraBeneficiarySlots: 0,
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Mua gói XS" }));
+    const panel = screen.getByRole("region", { name: "Mua Legacy XS" });
+    expect(await within(panel).findByRole("alert")).toHaveTextContent("xác minh danh tính eKYC");
+    expect(within(panel).getByRole("button", { name: "Tạo đơn và thanh toán" })).toBeDisabled();
+  });
+
+  it("đang có đơn chờ thì nhắc tiếp tục thanh toán", async () => {
+    setup(true);
+    act(() => {
+      client.setQueryData(billingKeys.currentOrder(), {
+        id: "22222222-2222-4222-8222-222222222222",
+      });
+    });
+    expect(await screen.findByRole("link", { name: "Tiếp tục thanh toán" })).toHaveAttribute(
+      "href",
+      "/billing/checkout?order=22222222-2222-4222-8222-222222222222",
+    );
   });
 
   it.each(["CLOSED", "DEATH_CASE_OPEN", "HANDOVER_IN_PROGRESS", "BLOCKED"])(
     "does not offer payment actions for locked state %s",
     (locked) => {
       setup(true, locked === "CLOSED" ? { status: "CLOSED" } : { planStatus: locked });
-      expect(screen.queryByRole("button", { name: "Gia hạn Legacy XS" })).not.toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
       ).not.toBeInTheDocument();

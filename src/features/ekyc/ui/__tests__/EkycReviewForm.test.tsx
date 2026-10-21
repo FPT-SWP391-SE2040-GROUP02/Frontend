@@ -142,3 +142,18 @@ it("validates real ISO dates, limits, and safely maps only known OCR date format
   expect(ocrDateForInput("29/02/2001")).toBe("");
   expect(ocrDateForInput("unknown")).toBe("");
 });
+
+it("số căn cước ẩn mặc định, có nút Hiện/Ẩn ngay trong ô để người dùng đối chiếu với thẻ", () => {
+  setup();
+  const field = screen.getByLabelText("Số căn cước");
+  expect(field).toHaveAttribute("type", "password");
+  const toggle = screen.getByRole("button", { name: "Hiện số căn cước" });
+  expect(toggle).toHaveTextContent("Hiện");
+  fireEvent.click(toggle);
+  expect(field).toHaveAttribute("type", "text");
+  expect(field).toHaveValue(document.idNumber);
+  const hide = screen.getByRole("button", { name: "Ẩn số căn cước" });
+  expect(hide).toHaveTextContent("Ẩn");
+  fireEvent.click(hide);
+  expect(field).toHaveAttribute("type", "password");
+});

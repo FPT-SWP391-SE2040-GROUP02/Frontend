@@ -10,8 +10,8 @@ export function BillingHistoryPage() {
         role="status"
         className="rounded-xl border border-heritage-border bg-heritage-surface p-6 text-sm leading-6 text-heritage-muted"
       >
-        Hóa đơn sẽ được hiển thị tại đây khi chức năng thanh toán được kết nối. Chưa có dữ liệu hóa
-        đơn để hiển thị.
+        Hệ thống chưa có danh sách đơn đã thanh toán để hiển thị. Đơn đang chờ và kết quả từng đơn
+        xem ở trang Thanh toán sau khi bạn tạo đơn.
       </section>
     </OwnerWorkspace>
   );

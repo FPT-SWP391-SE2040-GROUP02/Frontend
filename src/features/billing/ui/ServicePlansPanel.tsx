@@ -11,7 +11,6 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { Button, buttonVariants } from "@/shared/ui/button";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import {
-  canPreviewBilling,
   getReferencePlanAction,
   getRemainingServiceDays,
   isCurrentPaidService,
@@ -19,7 +18,8 @@ import {
   type ReferenceServicePlan,
   type ReferencePlanTerm,
 } from "../model/servicePlanPreview";
-import { ServicePlanPreview, ServiceTermPicker } from "./ServicePlanPreview";
+import { PurchasePanel, ServiceTermPicker } from "./ServicePlanPreview";
+import { useCurrentOrder } from "../model/useBilling";
 import "./service-plans.css";
 
 interface ServicePlansPanelProps {
@@ -27,6 +27,8 @@ interface ServicePlansPanelProps {
   vault?: VaultResponse;
   access: "guest" | "owner" | "unavailable";
   unavailableLabel?: string;
+  /** Số suất tối đa mỗi đơn do Backend công bố (GET /billing/plans). */
+  maxExtraSlots?: number;
 }
 
 /** Dữ liệu kho đổi thì đóng bản xem trước cũ và lấy lại mốc giờ, không đổi cache hay quyền. */
@@ -45,12 +47,13 @@ function ServicePlansContent({
   vault,
   access,
   unavailableLabel = "Chưa thể chọn mua gói",
+  maxExtraSlots = 20,
 }: ServicePlansPanelProps) {
   const [years, setYears] = useState<ReferencePlanTerm["years"]>(1);
   const [selectedTier, setSelectedTier] = useState<VaultResponse["serviceTier"] | null>(null);
-  const [addonNotice, setAddonNotice] = useState(false);
   const [now, setNow] = useState(Date.now);
   const opener = useRef<HTMLButtonElement | null>(null);
+  const pendingOrder = useCurrentOrder(access === "owner");
   const policyId = useId();
   const expiry = Date.parse(vault?.serviceExpiresAt ?? "");
   useEffect(() => {
@@ -66,10 +69,13 @@ function ServicePlansContent({
   if (
     !vault ||
     access !== "owner" ||
-    (selectedPlan && !["buy", "renew"].includes(getReferencePlanAction(selectedPlan, vault, now)))
+    (selectedPlan && !["buy", "addon"].includes(getReferencePlanAction(selectedPlan, vault, now)))
   )
     selectedPlan = undefined;
-  const selectedTerm = selectedPlan?.termPrices.find((term) => term.years === years);
+  let selectedMode: "PURCHASE" | "ADDON" = "PURCHASE";
+  if (selectedPlan && vault && getReferencePlanAction(selectedPlan, vault, now) === "addon") {
+    selectedMode = "ADDON";
+  }
   const currentPaid = vault && isCurrentPaidService(vault, now);
   const status = vault && getVaultServiceStatus(vault, now);
   const remainingDays = vault && getRemainingServiceDays(vault, now);
@@ -132,7 +138,6 @@ function ServicePlansContent({
           const term = plan.termPrices.find((value) => value.years === years);
           const action = vault ? getReferencePlanAction(plan, vault, now) : "blocked";
           let label = `Mua gói ${plan.serviceTier === "XS" ? "XS" : "XS Max"}`;
-          if (action === "renew") label = `Gia hạn ${plan.name}`;
           if (action === "change-later") label = "Đổi hạng khi hết kỳ";
           if (action === "blocked" && access === "owner") label = "Chưa thể chọn mua gói";
           if (access === "unavailable") label = unavailableLabel;
@@ -195,36 +200,36 @@ function ServicePlansContent({
                   </p>
                 ) : (
                   <>
-                    {current &&
-                      currentPaid &&
-                      vault &&
-                      canPreviewBilling(vault) &&
-                      access === "owner" && (
-                        <Button
-                          className="service-plan-button service-plan-primary"
-                          onClick={() => setAddonNotice(true)}
-                        >
-                          Mua thêm suất người nhận
-                        </Button>
-                      )}
+                    {action === "addon" && access === "owner" && (
+                      <Button
+                        className="service-plan-button service-plan-primary"
+                        onClick={(event) => {
+                          opener.current = event.currentTarget;
+                          setSelectedTier(plan.serviceTier);
+                        }}
+                      >
+                        Mua thêm suất người nhận
+                      </Button>
+                    )}
                     {access === "guest" ? (
                       <Link
                         className={`${buttonVariants({ variant: "outline" })} service-plan-button service-plan-primary`}
                         to={ROUTES.AUTH.LOGIN}
                       >{`Mua gói ${plan.serviceTier === "XS" ? "XS" : "XS Max"}`}</Link>
                     ) : (
-                      <Button
-                        variant="outline"
-                        className={`service-plan-button${!current && action === "buy" ? " service-plan-primary" : ""}`}
-                        disabled={access !== "owner" || !["buy", "renew"].includes(action)}
-                        onClick={(event) => {
-                          opener.current = event.currentTarget;
-                          setAddonNotice(false);
-                          setSelectedTier(plan.serviceTier);
-                        }}
-                      >
-                        {label}
-                      </Button>
+                      action !== "addon" && (
+                        <Button
+                          variant="outline"
+                          className={`service-plan-button${!current && action === "buy" ? " service-plan-primary" : ""}`}
+                          disabled={access !== "owner" || action !== "buy"}
+                          onClick={(event) => {
+                            opener.current = event.currentTarget;
+                            setSelectedTier(plan.serviceTier);
+                          }}
+                        >
+                          {label}
+                        </Button>
+                      )
                     )}
                     {action === "change-later" && (
                       <p className="service-plan-fineprint">
@@ -244,19 +249,24 @@ function ServicePlansContent({
           );
         })}
       </section>
-      {addonNotice && (
+      {pendingOrder.data && access === "owner" && (
         <p role="status" className="service-plan-notice">
-          Chưa hỗ trợ mua thêm suất trên hệ thống. Thanh toán chưa khả dụng; số suất người nhận của
-          kho chưa thay đổi.
+          Bạn đang có một đơn chờ thanh toán.{" "}
+          <Link
+            className="underline"
+            to={`${ROUTES.BILLING.CHECKOUT}?order=${pendingOrder.data.id}`}
+          >
+            Tiếp tục thanh toán
+          </Link>
         </p>
       )}
-      {selectedPlan && selectedTerm && vault && (
-        <ServicePlanPreview
-          key={`${vault.id}:${selectedPlan.serviceTier}`}
+      {selectedPlan && vault && (
+        <PurchasePanel
+          key={`${vault.id}:${selectedPlan.serviceTier}:${selectedMode}`}
           plan={selectedPlan}
-          term={selectedTerm}
-          vault={vault}
-          now={now}
+          mode={selectedMode}
+          years={years}
+          maxExtraSlots={maxExtraSlots}
           onTermChange={setYears}
           onClose={() => {
             setSelectedTier(null);
@@ -278,7 +288,6 @@ function ServicePlansContent({
             49.000đ/suất/năm. Tối đa 20 suất mỗi đơn, hết hạn cùng ngày với gói. Mua giữa kỳ tính
             theo thời gian còn lại, làm tròn lên đến đồng.
           </p>
-          <p>Chưa hỗ trợ mua thêm suất trên hệ thống.</p>
         </section>
         <section>
           <h3>Dung lượng</h3>
@@ -295,8 +304,8 @@ function ServicePlansContent({
         </section>
       </footer>
       <p className="service-plan-fineprint">
-        Bảng giá chỉ để tham khảo. Thanh toán chưa khả dụng; chưa có đơn hàng nào được tạo. Điều
-        kiện eKYC, kỳ chờ và giá chính thức sẽ do hệ thống xác nhận khi mở thanh toán.
+        Giá chính thức do hệ thống báo khi bạn chọn mua. Mua gói mới cần Chủ kho đã xác minh eKYC.
+        Chưa hỗ trợ gia hạn gói đã hết hạn.
       </p>
     </div>
   );

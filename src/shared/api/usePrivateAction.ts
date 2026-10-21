@@ -50,6 +50,23 @@ const deathCaseNotAllowedReasons: Record<string, string> = {
     "Owner đã có selfie khớp nên không thể bác lời báo. Chọn xác nhận còn sống hoặc chưa đủ bằng chứng.",
 };
 
+/** Reason-specific messages for PAYMENT_NOT_ALLOWED (báo giá/tạo đơn, mục 6.18) */
+const paymentNotAllowedReasons: Record<string, string> = {
+  VAULT_CLOSED: "Kho đã đóng nên không mua được dịch vụ.",
+  PLAN_LOCKED: "Kế hoạch đang trong giai đoạn bàn giao hoặc bị khóa nên chưa mua được dịch vụ.",
+  OWNER_EKYC_REQUIRED: "Cần hoàn tất xác minh danh tính eKYC của Chủ kho trước khi mua gói.",
+  RENEWAL_NOT_SUPPORTED: "Gói đã hết hạn hoặc đang trong kỳ ân hạn; hệ thống chưa hỗ trợ gia hạn.",
+};
+
+/** Reason-specific messages for PAYMENT_ORDER_NOT_PAYABLE */
+const paymentOrderNotPayableReasons: Record<string, string> = {
+  PAID: "Đơn này đã được thanh toán.",
+  EXPIRED: "Đơn đã hết hạn. Hãy tạo đơn mới.",
+  CANCELLED: "Đơn đã bị hủy. Hãy tạo đơn mới.",
+  VAULT_CLOSED: "Kho đã đóng nên không thanh toán được đơn này.",
+  ENTITLEMENT_CHANGED: "Quyền dịch vụ của kho đã thay đổi sau khi tạo đơn. Hãy tạo đơn mới.",
+};
+
 /** Ưu tiên `reason` của BE trước thông báo chung theo `code`. */
 const reasonMessages: Record<string, Record<string, string>> = {
   HANDOVER_NOT_ALLOWED: handoverNotAllowedReasons,
@@ -57,6 +74,8 @@ const reasonMessages: Record<string, Record<string, string>> = {
   ASSET_IN_USE: assetInUseReasons,
   VAULT_NOT_EDITABLE: vaultNotEditableReasons,
   DEATH_CASE_NOT_ALLOWED: deathCaseNotAllowedReasons,
+  PAYMENT_NOT_ALLOWED: paymentNotAllowedReasons,
+  PAYMENT_ORDER_NOT_PAYABLE: paymentOrderNotPayableReasons,
 };
 
 /** 401 nhưng phiên còn sống (BE mục 6.2a, 6.4). */
@@ -129,6 +148,11 @@ const messages: Record<string, string> = {
   HANDOVER_ALREADY_CLAIMED: "Lời mời đã được nhận. Kiểm tra danh sách lượt bàn giao của bạn.",
   HANDOVER_DECISION_EXPIRED: "Thời hạn quyết định đã kết thúc. Tải lại trạng thái bàn giao.",
   GRANT_NOT_ACTIVE: "Quyền tải nội dung hiện không còn hiệu lực. Tải lại trạng thái bàn giao.",
+  PAYMENT_NOT_ALLOWED: "Chưa thể mua dịch vụ lúc này. Tải lại để kiểm tra trạng thái kho.",
+  PAYMENT_ORDER_PENDING:
+    "Kho đang có một đơn chờ thanh toán khác. Hãy hoàn tất hoặc hủy đơn đó trước khi tạo đơn mới.",
+  PAYMENT_ORDER_NOT_PAYABLE: "Đơn này không còn thanh toán được. Tải lại để xem trạng thái.",
+  PAYMENT_ORDER_NOT_FOUND: "Không tìm thấy đơn thanh toán của kho này.",
   CONTENT_INTEGRITY_FAILED:
     "Không thể xác nhận tính toàn vẹn của nội dung. Vui lòng liên hệ hỗ trợ.",
 };

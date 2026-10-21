@@ -1,68 +1,98 @@
 import { describe, expect, it } from "vitest";
 import { vaultFixture } from "@/shared/api/__tests__/backend.fixtures";
 import {
+  buildPlanCatalog,
   getReferencePlanAction,
-  getReferenceRenewal,
   type ReferenceServicePlan,
 } from "../servicePlanPreview";
+import type { BillingPlans } from "../billing.types";
 
 const now = Date.parse("2026-10-20T00:00:00Z");
+const free: ReferenceServicePlan = {
+  serviceTier: "FREE",
+  name: "Owner Free",
+  storage: 20,
+  includedBeneficiarySlots: 0,
+  termPrices: [],
+  features: [],
+};
 const xs: ReferenceServicePlan = {
   serviceTier: "XS",
   name: "Legacy XS",
   storage: 200,
   includedBeneficiarySlots: 2,
-  termPrices: [
-    { years: 1, days: 365, price: 199000 },
-    { years: 3, days: 1095, price: 499000 },
-  ],
+  termPrices: [{ years: 1, days: 365, price: 199000 }],
   features: [],
 };
+const xsMax: ReferenceServicePlan = { ...xs, serviceTier: "XS_MAX", name: "Legacy XS Max" };
 const paidVault = {
   ...vaultFixture,
   serviceTier: "XS" as const,
   serviceStatus: "PAID_ACTIVE",
   serviceExpiresAt: "2027-04-18T00:00:00Z",
-  extraBeneficiarySlots: 1,
 };
 
-describe("reference service preview", () => {
-  it("extends by exactly 365 days across a leap year", () => {
-    const result = getReferenceRenewal(xs, xs.termPrices[0], paidVault, now);
-    expect(result.startsAt).toBe("2027-04-18T00:00:00.000Z");
-    expect(result.endsAt).toBe("2028-04-17T00:00:00.000Z");
+describe("hành động trên thẻ gói", () => {
+  it("kho Free mua mới một hạng trả phí, gói Free thì không có hành động", () => {
+    expect(getReferencePlanAction(xs, vaultFixture, now)).toBe("buy");
+    expect(getReferencePlanAction(free, vaultFixture, now)).toBe("none");
   });
 
-  it("retains current add-on slots and includes their full renewal term", () => {
-    const result = getReferenceRenewal(xs, xs.termPrices[1], paidVault, now);
-    expect(result.extraSlots).toBe(1);
-    expect(result.extraPrice).toBe(147000);
-    expect(result.total).toBe(646000);
+  it("kho đã trả phí còn hạn: cùng hạng mua thêm suất, khác hạng đợi hết kỳ", () => {
+    expect(getReferencePlanAction(xs, paidVault, now)).toBe("addon");
+    expect(getReferencePlanAction(xsMax, paidVault, now)).toBe("change-later");
   });
 
-  it("does not fabricate start or end dates for late renewals", () => {
-    const result = getReferenceRenewal(
-      xs,
-      xs.termPrices[0],
-      { ...paidVault, serviceExpiresAt: "2020-01-01T00:00:00Z", serviceStatus: "GRACE_READ_ONLY" },
-      now,
-    );
-    expect(result.startsAt).toBeNull();
-    expect(result.endsAt).toBeNull();
+  it("hết hạn hoặc ân hạn thì chưa mua được vì hệ thống chưa hỗ trợ gia hạn", () => {
+    const expired = { ...paidVault, serviceStatus: "GRACE_READ_ONLY" };
+    expect(getReferencePlanAction(xs, expired, now)).toBe("blocked");
+    const past = { ...paidVault, serviceExpiresAt: "2020-01-01T00:00:00Z" };
+    expect(getReferencePlanAction(xs, past, now)).toBe("blocked");
   });
 
-  it.each([null, "invalid"])("blocks a paid preview when expiry is %s", (serviceExpiresAt) => {
+  it.each([null, "invalid"])("hạn dịch vụ là %s thì không cho mua thêm", (serviceExpiresAt) => {
     expect(getReferencePlanAction(xs, { ...paidVault, serviceExpiresAt }, now)).toBe("blocked");
   });
 
-  it("blocks buying a smaller late-renewal plan that cannot contain current usage", () => {
-    const vault = {
-      ...paidVault,
-      serviceTier: "XS_MAX" as const,
-      serviceStatus: "EXPIRED_REVIEW",
-      serviceExpiresAt: "2020-01-01T00:00:00Z",
-      usedBeneficiarySlots: 3,
-    };
-    expect(getReferencePlanAction(xs, vault, now)).toBe("blocked");
+  it.each(["DEATH_CASE_OPEN", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"])(
+    "kế hoạch %s thì chặn mua",
+    (planStatus) => {
+      expect(getReferencePlanAction(xs, { ...vaultFixture, planStatus }, now)).toBe("blocked");
+    },
+  );
+
+  it("kho đã đóng thì chặn mua", () => {
+    expect(getReferencePlanAction(xs, { ...vaultFixture, status: "CLOSED" }, now)).toBe("blocked");
+  });
+});
+
+describe("bảng giá lấy từ Backend", () => {
+  const plans: BillingPlans = {
+    policyVersion: "2026-10",
+    currency: "VND",
+    tiers: [
+      {
+        tier: "XS",
+        storageQuotaBytes: 209715200,
+        includedBeneficiarySlots: 2,
+        prices: [
+          { years: 1, amount: 199000, serviceDays: 365 },
+          { years: 3, amount: 499000, serviceDays: 1095 },
+        ],
+      },
+    ],
+    extraSlot: { pricePerYear: 49000, maxPerOrder: 20 },
+    notice: "Thanh toán không tự kích hoạt bàn giao.",
+  };
+
+  it("ghép gói Free cố định với các hạng trả phí, đổi byte sang MB", () => {
+    const catalog = buildPlanCatalog(plans, { XS: ["Tính năng A"] }, { XS: "Legacy XS" }, free);
+    expect(catalog.map((plan) => plan.serviceTier)).toEqual(["FREE", "XS"]);
+    expect(catalog[1].storage).toBe(200);
+    expect(catalog[1].termPrices).toEqual([
+      { years: 1, days: 365, price: 199000 },
+      { years: 3, days: 1095, price: 499000 },
+    ]);
+    expect(catalog[1].features).toEqual(["Tính năng A"]);
   });
 });

@@ -222,10 +222,10 @@ export function AppRoutes() {
 
         {/* 2. Bảng giá công khai */}
         <Route path={ROUTES.BILLING.PLANS} element={<PricingPlansPage />} />
-        <Route path={ROUTES.BILLING.CHECKOUT} element={<CheckoutPage />} />
 
-        {/* 3. Lịch sử hóa đơn thanh toán yêu cầu đăng nhập */}
+        {/* 3. Thanh toán và lịch sử hóa đơn yêu cầu đăng nhập */}
         <Route element={<ProtectedRoute />}>
+          <Route path={ROUTES.BILLING.CHECKOUT} element={<CheckoutPage />} />
           <Route path={ROUTES.BILLING.HISTORY} element={<BillingHistoryPage />} />
           <Route path={ROUTES.DASHBOARD.SETTINGS} element={<AccountSettingsPage />} />
         </Route>

@@ -1,14 +1,20 @@
 import { useId, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { formatVaultServiceExpiry } from "@/entities/vault/model/vaultServicePresentation";
+import { privateActionError, usePrivateAction } from "@/shared/api/usePrivateAction";
+import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
+import { StatusBanner } from "@/shared/ui/status-banner";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
+import { billingService } from "../api/billingService";
+import type { BillingKind, BillingSelection } from "../model/billing.types";
+import { billingKeys, useBillingQuote } from "../model/useBilling";
 import {
-  getReferenceRenewal,
   referenceMoney,
-  type ReferenceServicePlan,
   type ReferencePlanTerm,
+  type ReferenceServicePlan,
 } from "../model/servicePlanPreview";
 
 export function ServiceTermPicker({
@@ -38,28 +44,128 @@ export function ServiceTermPicker({
   );
 }
 
-/** Khung nội bộ chỉ xem trước; không gọi billingService hoặc ghi dữ liệu thanh toán. */
-export function ServicePlanPreview({
+/**
+ * Bước chọn mua một hạng (PURCHASE) hoặc mua thêm suất người nhận (ADDON).
+ * Giá, dung lượng và thời hạn lấy từ báo giá của Backend; client chỉ gửi lựa chọn và không tự tính tiền.
+ */
+export function PurchasePanel({
   plan,
-  term,
-  vault,
-  now,
+  mode,
+  years,
+  maxExtraSlots,
   onTermChange,
   onClose,
 }: {
   plan: ReferenceServicePlan;
-  term: ReferencePlanTerm;
-  vault: VaultResponse;
-  now: number;
+  mode: BillingKind;
+  years: ReferencePlanTerm["years"];
+  maxExtraSlots: number;
   onTermChange: (years: ReferencePlanTerm["years"]) => void;
   onClose: () => void;
 }) {
   const titleId = useId();
-  const [unavailable, setUnavailable] = useState(false);
-  const renewal = getReferenceRenewal(plan, term, vault, now);
-  const isRenewal = vault.serviceTier === plan.serviceTier;
-  const title = `${isRenewal ? "Gia hạn" : "Mua"} ${plan.name}`;
-  // Focus ở nút đóng khi mở khung; đây là section nội tuyến, không khóa focus như modal.
+  const navigate = useNavigate();
+  const client = useQueryClient();
+  const action = usePrivateAction();
+  const isAddon = mode === "ADDON";
+  let minExtraSlots = 0;
+  if (isAddon) {
+    minExtraSlots = 1;
+  }
+  const [extraSlots, setExtraSlots] = useState(minExtraSlots);
+
+  // Mua thêm suất: Backend bỏ qua hạng và số năm, chỉ cần số suất.
+  let selection: BillingSelection = {
+    tier: plan.serviceTier as "XS" | "XS_MAX",
+    years,
+    extraSlots,
+  };
+  if (isAddon) {
+    selection = { extraSlots };
+  }
+  const quote = useBillingQuote(selection, true);
+
+  let createLabel = "Tạo đơn và thanh toán";
+  if (action.pending) {
+    createLabel = "Đang tạo đơn…";
+  }
+  let title = `Mua ${plan.name}`;
+  let periodHeading = "Kỳ dịch vụ";
+  let periodHint = "Kỳ mới bắt đầu từ lúc thanh toán thành công.";
+  if (isAddon) {
+    title = "Mua thêm suất";
+    periodHeading = "Số suất mua thêm";
+    periodHint = "Suất mới hết hạn cùng ngày với gói; giá tính theo thời gian còn lại.";
+  }
+
+  function changeSlots(value: number): void {
+    if (!Number.isFinite(value)) return;
+    setExtraSlots(Math.min(maxExtraSlots, Math.max(minExtraSlots, Math.trunc(value))));
+  }
+
+  function createOrder(): void {
+    void action.execute(
+      () => billingService.createOrder(selection),
+      (order) => {
+        client.setQueryData(billingKeys.order(order.id), order);
+        void client.invalidateQueries({ queryKey: billingKeys.currentOrder() });
+        navigate(`${ROUTES.BILLING.CHECKOUT}?order=${order.id}`);
+      },
+    );
+  }
+
+  let body = <p role="status">Đang báo giá…</p>;
+  if (quote.isError) {
+    body = (
+      <StatusBanner tone="error">
+        <p>{privateActionError(quote.error)}</p>
+      </StatusBanner>
+    );
+  } else if (quote.data) {
+    const data = quote.data;
+    let periodLabel = "Từ lúc thanh toán thành công";
+    if (data.kind === "ADDON") {
+      periodLabel = "Giữ nguyên hạn hiện tại";
+      const expiry = formatVaultServiceExpiry(data.serviceExpiresAt);
+      if (expiry) {
+        periodLabel = `Đến hết ${expiry}`;
+      }
+    }
+    body = (
+      <>
+        <dl className="service-plan-summary">
+          {data.kind === "PURCHASE" && (
+            <div>
+              <dt>
+                {plan.name} · {data.years} năm
+              </dt>
+              <dd>{referenceMoney.format(data.tierAmount)}</dd>
+            </div>
+          )}
+          <div>
+            <dt>Suất người nhận mua thêm · {data.extraSlots} suất</dt>
+            <dd>{referenceMoney.format(data.slotAmount)}</dd>
+          </div>
+          <div>
+            <dt>Thời hạn dịch vụ</dt>
+            <dd>{periodLabel}</dd>
+          </div>
+          <div>
+            <dt>Dung lượng · Người nhận</dt>
+            <dd>
+              {formatStorageMegabytes(data.storageQuotaBytes)} · {data.beneficiarySlots} người
+            </dd>
+          </div>
+        </dl>
+        <div className="service-plan-total">
+          <span>Tổng thanh toán</span>
+          <strong>{referenceMoney.format(data.totalAmount)}</strong>
+        </div>
+        <p className="service-plan-fineprint">{data.notice}</p>
+      </>
+    );
+  }
+
   return (
     <section
       className="service-plan-preview"
@@ -76,7 +182,7 @@ export function ServicePlanPreview({
         <Button
           variant="outline"
           size="icon"
-          aria-label="Đóng xem trước"
+          aria-label="Đóng khung mua"
           onClick={onClose}
           autoFocus
         >
@@ -85,79 +191,35 @@ export function ServicePlanPreview({
       </div>
       <div className="service-plan-renewal-period">
         <div>
-          <h3>Kỳ {isRenewal ? "gia hạn" : "dịch vụ"}</h3>
-          <p>
-            {renewal.startsAt
-              ? `Kỳ mới nối tiếp hạn cũ (${formatVaultServiceExpiry(renewal.startsAt)}), không mất ngày còn lại.`
-              : "Kỳ mới bắt đầu từ lúc thanh toán thành công; hệ thống xác nhận khi tạo đơn."}
-          </p>
+          <h3>{periodHeading}</h3>
+          <p>{periodHint}</p>
         </div>
-        <ServiceTermPicker years={term.years} onChange={onTermChange} showDays={false} />
+        {!isAddon && <ServiceTermPicker years={years} onChange={onTermChange} showDays={false} />}
       </div>
-      <dl className="service-plan-summary">
-        <div>
-          <dt>
-            {plan.name} · {term.years} năm
-          </dt>
-          <dd>{referenceMoney.format(term.price)}</dd>
-        </div>
-        <div>
-          <dt>Suất mua thêm đang có</dt>
-          <dd>
-            {renewal.extraSlots} suất{isRenewal ? ", giữ nguyên" : " bổ sung"}
-          </dd>
-        </div>
-        {renewal.extraSlots > 0 && (
-          <div>
-            <dt>Giá tham khảo suất bổ sung · {term.years} năm</dt>
-            <dd>{referenceMoney.format(renewal.extraPrice)}</dd>
-          </div>
-        )}
-        <div>
-          <dt>Kỳ mới bắt đầu</dt>
-          <dd>{formatVaultServiceExpiry(renewal.startsAt) ?? "Từ lúc thanh toán thành công"}</dd>
-        </div>
-        <div>
-          <dt>Kỳ mới kết thúc</dt>
-          <dd>{formatVaultServiceExpiry(renewal.endsAt) ?? "Hệ thống xác nhận khi tạo đơn"}</dd>
-        </div>
-        <div>
-          <dt>Hạng</dt>
-          <dd>
-            {isRenewal ? "Giữ " : "Chọn "}
-            {plan.name}
-          </dd>
-        </div>
-        <div>
-          <dt>Dung lượng · Người nhận</dt>
-          <dd>
-            {formatStorageMegabytes(plan.storage * 1_048_576)} ·{" "}
-            {plan.includedBeneficiarySlots + renewal.extraSlots} người
-          </dd>
-        </div>
-      </dl>
-      <div className="service-plan-total">
-        <span>Tổng thanh toán tham khảo</span>
-        <strong>{referenceMoney.format(renewal.total)}</strong>
-      </div>
-      <p className="service-plan-fineprint">
-        Giá và thời hạn chỉ để xem trước, chưa phải báo giá chính thức. Thanh toán không tự kích
-        hoạt bàn giao.
-      </p>
+      <label className="service-plan-slots">
+        <span>Suất người nhận mua thêm (tối đa {maxExtraSlots})</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          min={minExtraSlots}
+          max={maxExtraSlots}
+          value={extraSlots}
+          onChange={(event) => changeSlots(event.target.valueAsNumber)}
+        />
+      </label>
+      {body}
+      {action.error && (
+        <StatusBanner tone="error" className="mt-4">
+          <p>{action.error}</p>
+        </StatusBanner>
+      )}
       <Button
         className="service-plan-button service-plan-primary"
-        onClick={() => {
-          // Chưa có contract tạo đơn: thông báo rõ, không giả lập QR, đơn hàng hoặc thanh toán thành công.
-          setUnavailable(true);
-        }}
+        disabled={!quote.data || action.pending}
+        onClick={createOrder}
       >
-        Tạo đơn và thanh toán
+        {createLabel}
       </Button>
-      {unavailable && (
-        <p role="status" className="service-plan-notice">
-          Thanh toán chưa khả dụng. Chưa có đơn hàng nào được tạo và quyền của kho không thay đổi.
-        </p>
-      )}
     </section>
   );
 }
