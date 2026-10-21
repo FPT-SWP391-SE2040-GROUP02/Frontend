@@ -16,6 +16,9 @@ const dateTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
   timeStyle: "short",
 });
 
+/** Điểm danh và đơn thanh toán không có API tra tên; mã rút gọn không giúp ích nên chỉ hiện trong tooltip. */
+const HIDE_CODE_TYPES: readonly AuditLogEntry["targetType"][] = ["CHECK_IN", "PAYMENT_ORDER"];
+
 const OUTCOME_STYLES: Record<AuditLogEntry["outcome"], string> = {
   SUCCEEDED: "bg-green-100 text-green-800",
   DENIED: "bg-amber-100 text-amber-800",
@@ -69,8 +72,10 @@ export function AuditLogTable({
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
-                  <span className="text-sm">{TARGET_TYPE_LABELS[entry.targetType]}</span>
-                  {entry.targetId && (
+                  <span className="text-sm" title={entry.targetId ?? undefined}>
+                    {TARGET_TYPE_LABELS[entry.targetType]}
+                  </span>
+                  {entry.targetId && !HIDE_CODE_TYPES.includes(entry.targetType) && (
                     <span className="text-xs text-heritage-muted" title={entry.targetId}>
                       {displayName(entry.targetId, names)}
                     </span>

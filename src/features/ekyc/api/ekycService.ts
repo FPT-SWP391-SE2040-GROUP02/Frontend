@@ -12,6 +12,8 @@ import {
   ekycStatusSchema,
 } from "../model/ekyc.schema";
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+/** Khớp thời gian BE chờ dịch vụ OCR (120 giây); mặc định 30 giây của axios quá ngắn cho lần đọc đầu. */
+const OCR_TIMEOUT_MS = 120_000;
 function imageForm(file: File, handoverTurnId?: string) {
   if (
     !["image/jpeg", "image/png"].includes(file.type) ||
@@ -62,7 +64,8 @@ export const ekycService = {
       await apiClient.post<unknown, unknown>(
         "/ekyc/document",
         imageForm(file, turnIdFor(parsed, handoverTurnId)),
-        { headers: { "Content-Type": undefined } },
+        // Đọc OCR có thể lâu (lần đầu nạp mô hình); BE chờ dịch vụ eKYC tối đa 120 giây (Ekyc:TimeoutSeconds).
+        { headers: { "Content-Type": undefined }, timeout: OCR_TIMEOUT_MS },
       ),
     );
   },
@@ -76,7 +79,7 @@ export const ekycService = {
       await apiClient.post<unknown, unknown>(
         "/ekyc/document-back",
         imageForm(file, turnIdFor(parsed, handoverTurnId)),
-        { headers: { "Content-Type": undefined } },
+        { headers: { "Content-Type": undefined }, timeout: OCR_TIMEOUT_MS },
       ),
     );
   },

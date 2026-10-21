@@ -97,6 +97,58 @@ function installAdapter({
 }
 
 describe("OwnerAuditLog transport", () => {
+  it("đối tượng điểm danh và đơn thanh toán không hiện mã rút gọn khó hiểu, mã đầy đủ ở tooltip", async () => {
+    installAdapter({
+      page: pageFixture([
+        { ...entry, action: "CHECKED_IN", targetType: "CHECK_IN" },
+        {
+          ...entry,
+          id: "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a31",
+          action: "PAYMENT_PAID",
+          targetType: "PAYMENT_ORDER",
+        },
+      ]),
+    });
+    setup("/dashboard/audit-log");
+    await screen.findAllByRole("cell", { name: "Điểm danh" });
+    const shortCode = "#" + entry.targetId.slice(-6);
+    expect(screen.queryByText(shortCode)).not.toBeInTheDocument();
+    expect(screen.getAllByTitle(entry.targetId).length).toBeGreaterThan(0);
+  });
+
+  it("hiển thị được dòng nhật ký thanh toán (hệ thống ghi) mà không làm hỏng cả trang", async () => {
+    installAdapter({
+      page: pageFixture([
+        {
+          ...entry,
+          actorRole: "SYSTEM",
+          actorUserId: null,
+          action: "PAYMENT_PAID",
+          targetType: "PAYMENT_ORDER",
+        },
+        {
+          ...entry,
+          id: "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a21",
+          action: "PAYMENT_ORDER_CREATED",
+          targetType: "PAYMENT_ORDER",
+        },
+        {
+          ...entry,
+          id: "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a22",
+          action: "PAYMENT_ORDER_CANCELLED",
+          targetType: "PAYMENT_ORDER",
+        },
+      ]),
+    });
+    setup("/dashboard/audit-log");
+    expect(await screen.findByRole("cell", { name: "Thanh toán thành công" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "Tạo đơn thanh toán" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "Hủy đơn thanh toán" })).toBeInTheDocument();
+    expect(screen.getAllByText("Đơn thanh toán").length).toBeGreaterThan(0);
+    expect(screen.getByText("Hệ thống")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("renders and filters the new death-case audit events without rejecting the page", async () => {
     const calls = installAdapter({
       page: pageFixture([

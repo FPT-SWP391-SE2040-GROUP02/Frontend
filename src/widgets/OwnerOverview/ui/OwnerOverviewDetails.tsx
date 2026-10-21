@@ -45,6 +45,9 @@ const activityLabels: Record<string, string> = {
   OBJECTION_CONCLUDED: "Kết luận báo còn sống",
   HOLD_PLACED: "Tạm giữ kho",
   HOLD_RELEASED: "Gỡ tạm giữ kho",
+  PAYMENT_ORDER_CREATED: "Tạo đơn thanh toán",
+  PAYMENT_ORDER_CANCELLED: "Hủy đơn thanh toán",
+  PAYMENT_PAID: "Thanh toán thành công",
 };
 
 export function OwnerOverviewDetails({

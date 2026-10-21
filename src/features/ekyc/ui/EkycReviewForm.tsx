@@ -1,7 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock } from "lucide-react";
 import type { z } from "zod";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
@@ -97,21 +97,47 @@ export function EkycReviewForm({
     if (name === "idNumber") {
       inputMode = "numeric";
     }
+    let inputPadding = "";
+    let toggleLabel = "Hiện số căn cước";
+    let toggleText = "Hiện";
+    let toggleIcon = <Eye className="size-4" aria-hidden="true" />;
+    if (name === "idNumber") {
+      inputPadding = "pr-24";
+    }
+    if (showId) {
+      toggleLabel = "Ẩn số căn cước";
+      toggleText = "Ẩn";
+      toggleIcon = <EyeOff className="size-4" aria-hidden="true" />;
+    }
     fieldRows.push(
       <div key={name} className="min-w-0 space-y-2">
         <label htmlFor={`${prefix}-${name}`} className="text-sm font-semibold">
           {label}
         </label>
-        <Input
-          id={`${prefix}-${name}`}
-          type={type}
-          {...register(name)}
-          readOnly={confirmed}
-          className="min-h-11 w-full min-w-0"
-          aria-invalid={Boolean(errors[name])}
-          aria-describedby={errors[name] ? `${prefix}-${name}-error` : undefined}
-          inputMode={inputMode}
-        />
+        <div className="relative">
+          <Input
+            id={`${prefix}-${name}`}
+            type={type}
+            {...register(name)}
+            readOnly={confirmed}
+            className={`min-h-11 w-full min-w-0 ${inputPadding}`}
+            aria-invalid={Boolean(errors[name])}
+            aria-describedby={errors[name] ? `${prefix}-${name}-error` : undefined}
+            inputMode={inputMode}
+          />
+          {name === "idNumber" && (
+            <button
+              type="button"
+              className="absolute inset-y-0 right-2 my-auto flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-heritage-primary hover:bg-heritage-primary/10 focus-visible:outline-2 focus-visible:outline-heritage-gold"
+              aria-pressed={showId}
+              aria-label={toggleLabel}
+              onClick={() => setShowId(!showId)}
+            >
+              {toggleIcon}
+              {toggleText}
+            </button>
+          )}
+        </div>
         {errors[name] && (
           <p id={`${prefix}-${name}-error`} role="alert" className="text-sm text-destructive">
             {errors[name]?.message}
@@ -155,15 +181,6 @@ export function EkycReviewForm({
       </p>
       <fieldset disabled={disabled || action.pending} className="mt-4 min-w-0 space-y-4">
         {fieldRows}
-        <Button
-          type="button"
-          variant="ghost"
-          className="-mt-2 px-0 text-xs text-heritage-muted"
-          aria-pressed={showId}
-          onClick={() => setShowId(!showId)}
-        >
-          {showId ? "Ẩn số căn cước" : "Hiện số căn cước"}
-        </Button>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="min-w-0 space-y-2">
             <label htmlFor={`${prefix}-dateOfBirth`} className="text-sm font-semibold">

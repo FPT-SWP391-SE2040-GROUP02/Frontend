@@ -391,3 +391,22 @@
     gap: 16px;
   }
 }
+
+.service-plan-slots {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+
+.service-plan-slots input {
+  width: 5.5rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border-ui);
+  border-radius: 0.75rem;
+  background: transparent;
+  text-align: right;
+}

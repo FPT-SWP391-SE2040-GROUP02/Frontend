@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState, type DragEvent } from "react";
+import { useEffect, useId, useState, type DragEvent } from "react";
 import { Upload } from "lucide-react";
 
 /** Chọn ảnh bằng bấm hoặc kéo thả; xem trước chỉ trong RAM (blob URL) và được thu hồi khi đổi/đóng. */
@@ -18,20 +18,29 @@ export function EkycDropzone({
 }) {
   const inputId = useId();
   const [dragging, setDragging] = useState(false);
-  // Blob URL chỉ để xem trước trong RAM; môi trường không có createObjectURL thì bỏ qua xem trước.
-  const previewUrl = useMemo(() => {
-    if (!file || typeof URL.createObjectURL !== "function") {
-      return null;
-    }
-    return URL.createObjectURL(file);
-  }, [file]);
+  // Xem trước đọc ảnh thành data URL trong RAM (không dùng blob URL cần thu hồi, tránh vỡ ảnh khi React Strict Mode
+  // chạy effect hai lần ở môi trường dev). Cặp {file, url} để ảnh cũ không hiện khi đã đổi sang tệp khác.
+  const [preview, setPreview] = useState<{ file: File; url: string } | null>(null);
   useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
+    if (!file || typeof FileReader === "undefined") {
+      return;
+    }
+    let cancelled = false;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (!cancelled && typeof reader.result === "string") {
+        setPreview({ file, url: reader.result });
       }
     };
-  }, [previewUrl]);
+    reader.readAsDataURL(file);
+    return () => {
+      cancelled = true;
+    };
+  }, [file]);
+  let previewUrl: string | null = null;
+  if (file && preview && preview.file === file) {
+    previewUrl = preview.url;
+  }
 
   function handleDrop(event: DragEvent<HTMLDivElement>): void {
     event.preventDefault();

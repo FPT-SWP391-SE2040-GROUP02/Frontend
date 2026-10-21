@@ -43,6 +43,9 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   DEATH_CASE_SUPPLEMENT_REQUESTED: "Yêu cầu bổ sung hồ sơ",
   DEATH_CASE_REJECTED: "Từ chối hồ sơ chứng tử",
   DEATH_CASE_APPROVED: "Duyệt hồ sơ chứng tử",
+  PAYMENT_ORDER_CREATED: "Tạo đơn thanh toán",
+  PAYMENT_ORDER_CANCELLED: "Hủy đơn thanh toán",
+  PAYMENT_PAID: "Thanh toán thành công",
 };
 
 export const ACTOR_ROLE_LABELS: Record<(typeof auditActorRoleValues)[number], string> = {
@@ -65,6 +68,7 @@ export const TARGET_TYPE_LABELS: Record<(typeof auditTargetTypeValues)[number], 
   HOLD: "Tạm giữ",
   INCIDENT: "Sự cố",
   USER: "Tài khoản",
+  PAYMENT_ORDER: "Đơn thanh toán",
 };
 
 export const OUTCOME_LABELS: Record<(typeof auditOutcomeValues)[number], string> = {

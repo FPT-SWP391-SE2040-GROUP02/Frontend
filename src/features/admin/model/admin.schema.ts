@@ -75,6 +75,7 @@ export const INCIDENT_TYPES = [
   "OWNER_ALIVE",
   "INTEGRATION",
   "MANUAL",
+  "PAYMENT",
 ] as const;
 /** `IncidentStatus` của Backend. */
 export const INCIDENT_STATUSES = ["OPEN", "IN_PROGRESS", "RESOLVED"] as const;

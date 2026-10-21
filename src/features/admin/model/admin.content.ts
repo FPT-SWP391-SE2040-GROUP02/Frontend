@@ -91,6 +91,7 @@ export const INCIDENT_TYPE_LABELS: Record<IncidentType, string> = {
   OWNER_ALIVE: "Chủ kho báo còn sống",
   INTEGRATION: "Lỗi tích hợp",
   MANUAL: "Tạo thủ công",
+  PAYMENT: "Giao dịch thanh toán lệch",
 };
 
 export const INCIDENT_STATUS_LABELS: Record<IncidentStatus, string> = {

@@ -240,6 +240,10 @@
   .owner-nav-link {
     min-height: 42px;
   }
+  /* Từ 768px chân khung đã có nút chuyển vai nên ẩn mục trùng trong menu (CSS ngoài layer thắng class Tailwind). */
+  .owner-nav-link--phone-only {
+    display: none;
+  }
   .owner-workspace > aside > div:last-child {
     display: block;
   }
