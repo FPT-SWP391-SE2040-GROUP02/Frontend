@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui";
 import { ekycService } from "../api/ekycService";
 import { ekycPurposeSchema } from "../model/ekyc.schema";
 import { EkycUploads } from "./EkycUploads";
+import { EkycVerifiedCard } from "./EkycVerifiedCard";
 
 type Purpose = z.infer<typeof ekycPurposeSchema>;
 
@@ -61,7 +62,10 @@ export function EkycStatusPanel({
   const locked = purpose === "OWNER_ENROLLMENT" && live?.status === "PASSED" && !finishedHere;
 
   let banner: ReactNode = null;
-  if (!authenticated) {
+  if (locked && live) {
+    // Đã xác minh đạt: hiện màn kết quả đầy đủ thay cho dòng trạng thái.
+    banner = <EkycVerifiedCard live={live} />;
+  } else if (!authenticated) {
     banner = <p role="status">Vui lòng đăng nhập để xem trạng thái xác minh.</p>;
   } else if (status.isPending) {
     banner = <p role="status">Đang tải trạng thái xác minh…</p>;
@@ -92,7 +96,8 @@ export function EkycStatusPanel({
 
   return (
     <section aria-label="Trạng thái xác minh danh tính" className="space-y-6">
-      {banner && (
+      {banner && locked && banner}
+      {banner && !locked && (
         <div className="rounded-2xl border border-heritage-border bg-heritage-surface px-6 py-4">
           {banner}
         </div>
