@@ -1,47 +1,8 @@
 import { useId } from "react";
 import { Button, Input } from "@/shared/ui";
 import { auditActionValues } from "../model/auditLog.schema";
+import { ACTION_LABELS } from "../model/auditLogLabels";
 import type { AuditLogFilterState } from "../model/auditLog.types";
-
-/** Nhãn tiếng Việt cho wire action; giữ mapping tập trung ở UI. */
-const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> = {
-  VAULT_CREATED: "Tạo kho",
-  VAULT_UPDATED: "Sửa thông tin kho",
-  ASSET_CREATED: "Tải tài sản lên",
-  ASSET_UPDATED: "Sửa tài sản",
-  ASSET_VERSION_CREATED: "Tạo phiên bản tài sản",
-  ASSET_DELETED: "Xóa tài sản",
-  ASSET_CONTENT_DOWNLOADED: "Tải nội dung tài sản",
-  CONTAINER_CREATED: "Tạo gói bàn giao",
-  CONTAINER_UPDATED: "Sửa gói bàn giao",
-  CONTAINER_ARCHIVED: "Lưu trữ gói",
-  CONTAINER_ASSET_ADDED: "Gắn tài sản vào gói",
-  CONTAINER_ASSET_REMOVED: "Gỡ tài sản khỏi gói",
-  CONTAINER_BENEFICIARY_ADDED: "Chỉ định người nhận",
-  CONTAINER_BENEFICIARY_REMOVED: "Bỏ chỉ định người nhận",
-  PLAN_DEACTIVATED: "Kế hoạch về nháp",
-  BENEFICIARY_CREATED: "Tạo hồ sơ người nhận",
-  BENEFICIARY_UPDATED: "Sửa hồ sơ người nhận",
-  BENEFICIARY_DELETED: "Xóa hồ sơ người nhận",
-  CHECKED_IN: "Điểm danh",
-  CHECK_IN_SETTINGS_UPDATED: "Đổi lịch điểm danh",
-  HOLD_PLACED: "Đặt tạm giữ",
-  HOLD_RELEASED: "Gỡ tạm giữ",
-  INCIDENT_ASSIGNED: "Giao xử lý sự cố",
-  INCIDENT_RESOLVED: "Đóng sự cố",
-  USER_ROLE_CHANGED: "Đổi vai trò tài khoản",
-  USER_STATUS_CHANGED: "Đổi trạng thái tài khoản",
-  VERIFIER_REASSIGNED: "Giao lại Verifier",
-  OBJECTION_REPORTED: "Báo còn sống",
-  OBJECTION_CONCLUDED: "Kết luận báo còn sống",
-  DEATH_CASE_OPENED: "Mở hồ sơ chứng tử",
-  DEATH_CASE_SUBMITTED: "Gửi hồ sơ chứng tử",
-  DEATH_CASE_VERSION_CREATED: "Tạo bản bổ sung hồ sơ",
-  DEATH_CASE_FLAG_REVIEWED: "Xem xét cờ cảnh báo hồ sơ",
-  DEATH_CASE_SUPPLEMENT_REQUESTED: "Yêu cầu bổ sung hồ sơ",
-  DEATH_CASE_REJECTED: "Từ chối hồ sơ chứng tử",
-  DEATH_CASE_APPROVED: "Duyệt hồ sơ chứng tử",
-};
 
 /**
  * @description Bộ lọc URL-driven. Mỗi thay đổi action/from/to cập nhật URL ngay (URL là nguồn chính)

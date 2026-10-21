@@ -91,6 +91,18 @@ describe("chi tiết nhóm", () => {
     );
   });
 
+  it("lưu tên nhóm xong vẫn giữ ô đồng ý đã tick", async () => {
+    const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...group(), name: "Tên mới" });
+    renderGroup();
+    const consent = screen.getByRole("checkbox", { name: /đưa kế hoạch về Nháp/ });
+    fireEvent.click(consent);
+    fireEvent.change(screen.getByLabelText("Tên nhóm"), { target: { value: "Tên mới" } });
+    fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
+    await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText("Đã lưu thay đổi.")).toBeInTheDocument();
+    expect(consent).toBeChecked();
+  });
+
   it("gói Free bị chặn thì giữ lỗi của Backend kèm đường nâng cấp", async () => {
     vi.spyOn(apiClient, "post").mockRejectedValue(backendError("PAID_TIER_REQUIRED"));
     renderGroup();

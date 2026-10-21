@@ -6,8 +6,11 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import {
   isOwnerVaultMissing,
+  useOwnerPackages,
   useOwnerVault,
 } from "@/features/vault-management/model/useOwnerVault";
+import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
+import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
 import { useVaultAuditLogs } from "@/features/audit-logs/model/useVaultAuditLogs";
 import {
   AUDIT_LOG_PAGE_SIZE,
@@ -22,6 +25,13 @@ import {
 import { AuditLogFilters } from "@/features/audit-logs/ui/AuditLogFilters";
 import { AuditLogTable } from "@/features/audit-logs/ui/AuditLogTable";
 import type { AuditLogFilterState } from "@/features/audit-logs/model/auditLog.types";
+import type { AuditNameMap } from "@/features/audit-logs/model/auditLogLabels";
+
+/**
+ * Tra tên cho nhật ký từ trang đầu (tối đa 100) của tài sản, người nhận, nhóm.
+ * Nhóm lấy cả nhóm đã lưu trữ vì nhật ký còn dòng "Xóa nhóm"; tài sản/người nhận đã xóa vẫn hiện mã rút gọn.
+ */
+const NAME_LOOKUP = { pageIndex: 1, pageSize: 100 };
 
 /**
  * @description Widget Owner duy nhất cho nhật ký hoạt động của kho.
@@ -50,6 +60,34 @@ export function OwnerAuditLog() {
     },
     ready && Boolean(vault.data) && !filterError,
   );
+
+  const lookupEnabled = ready && Boolean(vault.data);
+  const assetNames = useVaultAssets(vaultId, NAME_LOOKUP);
+  const beneficiaryNames = useBeneficiaries(vaultId, NAME_LOOKUP);
+  const groupNames = useOwnerPackages(vaultId, lookupEnabled, NAME_LOOKUP, true);
+  const names: AuditNameMap = {};
+  if (vault.data) {
+    let vaultName = "Kho của tôi";
+    if (vault.data.name) {
+      vaultName = vault.data.name;
+    }
+    names[vault.data.id] = vaultName;
+  }
+  if (assetNames.data) {
+    for (const item of assetNames.data.items) {
+      names[item.id] = item.name;
+    }
+  }
+  if (beneficiaryNames.data) {
+    for (const item of beneficiaryNames.data.items) {
+      names[item.id] = item.fullName;
+    }
+  }
+  if (groupNames.data) {
+    for (const item of groupNames.data.items) {
+      names[item.id] = item.name;
+    }
+  }
 
   function commit(next: Partial<AuditLogFilterState>) {
     setSearchParams(buildAuditLogSearch(searchParams, { ...state, ...next }));
@@ -200,7 +238,7 @@ export function OwnerAuditLog() {
             {logs.data.totalCount} dòng · trang {logs.data.pageIndex}/
             {Math.max(1, logs.data.totalPages)}
           </p>
-          <AuditLogTable items={logs.data.items} />
+          <AuditLogTable items={logs.data.items} names={names} />
           <nav
             aria-label="Phân trang nhật ký"
             className="flex flex-wrap items-center justify-between gap-3"
