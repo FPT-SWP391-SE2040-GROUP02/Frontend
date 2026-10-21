@@ -21,6 +21,7 @@ import {
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
   supplementPartSchema,
+  supplementPartLabels,
   blockerLabels,
   flagLabels,
   type supplementPartSchema as supplementPartSchemaType,
@@ -38,15 +39,6 @@ import type { verifierCaseDetailSchema } from "../model/verifierReview.schema";
 type Detail = z.infer<typeof verifierCaseDetailSchema>;
 type SupplementPart = z.infer<typeof supplementPartSchemaType>;
 
-const supplementPartLabels: Record<SupplementPart, string> = {
-  OWNER_FULL_NAME: "Họ tên Owner",
-  OWNER_CITIZEN_ID: "Số CCCD",
-  DATE_OF_DEATH: "Ngày mất",
-  CERTIFICATE_NUMBER: "Số giấy chứng tử",
-  ISSUED_ON: "Ngày cấp",
-  ISSUED_BY: "Nơi cấp",
-  FILES: "Trang giấy tờ",
-};
 const allSupplementParts: SupplementPart[] = supplementPartSchema.options;
 const confirmation = z.boolean().refine(Boolean, "Cần xác nhận trước khi tiếp tục.");
 
@@ -256,15 +248,16 @@ function RequestSupplementModal({
         <DialogHeader>
           <DialogTitle>Yêu cầu bổ sung</DialogTitle>
           <DialogDescription>
-            Executor sẽ nhận được thông báo với lý do và các phần cần bổ sung.
+            Người thực hiện sẽ nhận được thông báo với lý do và các phần cần bổ sung.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
           <label className="block text-sm">
-            Lý do
+            Lý do <span aria-hidden="true">*</span>
             <Textarea
               {...form.register("reason")}
               maxLength={1000}
+              placeholder="Nêu rõ cần bổ sung điều gì"
               aria-invalid={Boolean(form.formState.errors.reason)}
               className="mt-1 min-h-24"
             />
@@ -275,7 +268,9 @@ function RequestSupplementModal({
             )}
           </label>
           <fieldset className="space-y-2 text-sm">
-            <legend className="text-xs text-heritage-muted">Phần cần bổ sung</legend>
+            <legend className="text-xs text-heritage-muted">
+              Phần cần bổ sung <span aria-hidden="true">*</span>
+            </legend>
             {allSupplementParts.map((part) => (
               <CustomCheckbox
                 key={part}
@@ -299,7 +294,7 @@ function RequestSupplementModal({
           </fieldset>
           <CustomCheckbox
             className="min-h-11 w-full items-center!"
-            label="Tôi xác nhận yêu cầu này sẽ được gửi cho Executor."
+            label="Tôi xác nhận yêu cầu này sẽ được gửi cho Người thực hiện."
             {...form.register("confirm")}
           />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
