@@ -357,7 +357,7 @@ it("shows the Verifier supplement request with readable parts and its deadline",
   });
   setup(<ExecutorReport vault={vaultOf()} />, "/executor/report");
   expect(
-    await screen.findByRole("heading", { name: "Verifier yêu cầu bổ sung (bản 1)" }),
+    await screen.findByRole("heading", { name: "Yêu cầu từ Người xét duyệt (bản 1)" }),
   ).toBeInTheDocument();
   expect(screen.getByText("Lý do: Ảnh trang 2 bị mờ")).toBeInTheDocument();
   expect(
@@ -375,7 +375,7 @@ it("shows the reject reason of a rejected case and no supplement block", async (
   setup(<ExecutorReport vault={vaultOf()} />, "/executor/report");
   expect(await screen.findByRole("heading", { name: "Hồ sơ đã bị từ chối" })).toBeInTheDocument();
   expect(screen.getByText("Lý do: Giấy chứng tử không khớp CCCD Chủ kho")).toBeInTheDocument();
-  expect(screen.queryByText(/Verifier yêu cầu bổ sung/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Yêu cầu từ Người xét duyệt/)).not.toBeInTheDocument();
 });
 
 it("accepts an owner notice cancelled by a rejection instead of failing to read the case", async () => {

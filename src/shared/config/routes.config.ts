@@ -7,6 +7,14 @@ export const ROUTES = {
   HOME: "/",
   RECEIVE: "/receive",
 
+  /** Trang thông tin công khai: hỗ trợ và pháp lý (liên kết từ chân trang landing) */
+  PUBLIC: {
+    FAQ: "/faq",
+    CONTACT: "/contact",
+    TERMS: "/terms",
+    PRIVACY: "/privacy",
+  },
+
   /** Nhóm đường dẫn xác thực tài khoản */
   AUTH: {
     LOGIN: "/login",
@@ -34,7 +42,6 @@ export const ROUTES = {
     /** Người tin cậy của Chủ kho: Người thực hiện (Executor) và Người xét duyệt. */
     TRUSTED_PEOPLE: "/dashboard/trusted-people",
     AUDIT_LOG: "/dashboard/audit-log",
-    ANALYTICS: "/dashboard/analytics",
     USERS: "/dashboard/users",
     SETTINGS: "/dashboard/settings",
   },

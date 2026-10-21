@@ -127,10 +127,6 @@ export function VerifierShell({
         {badge}
       </header>
       {children}
-      <footer className="pt-2 text-xs leading-5 text-heritage-muted">
-        LegacyVault hỗ trợ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc hoặc thủ tục thừa
-        kế. Vai trò Verifier do Backend xác minh từ DB; FE không cấp quyền.
-      </footer>
     </WorkspaceShell>
   );
 }

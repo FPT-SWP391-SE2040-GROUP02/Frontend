@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { AlertTriangle, CheckCircle2, Download, FileText, ShieldAlert, X } from "lucide-react";
+import { CheckCircle2, ChevronLeft, Download, Eye, FileText, Lock, RefreshCw } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
@@ -9,17 +9,16 @@ import { buttonStyles, Chip, Notice, Panel } from "@/shared/ui/heritageKit";
 import { useVerifierCase, verifierKeys } from "../model/useVerifierReview";
 import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
-import { queueStatus } from "../model/verifierPresentation";
+import { conditionRows, queueStatus } from "../model/verifierPresentation";
 import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
-  blockerLabels,
   decisionLabels,
+  supplementPartLabels,
   ownerNoticeLabels,
   type verifierFlagKindSchema,
   type verifierDecisionKindSchema,
-  type approveBlockerSchema,
 } from "../model/verifierReview.schema";
 import type { z } from "zod";
 
@@ -30,6 +29,28 @@ const formatDate = (value: string | null) =>
       )
     : "—";
 
+/** Dạng gọn "18/10/2026 07:20" cho mốc thời gian; ngày đứng trước giờ. */
+const formatCompact = (value: string) => {
+  const parts = new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Ho_Chi_Minh",
+  }).formatToParts(new Date(value));
+  const pick = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${pick("day")}/${pick("month")}/${pick("year")} ${pick("hour")}:${pick("minute")}`;
+};
+
+/** Ngày dạng "05/10/2026" từ chuỗi ISO yyyy-mm-dd của BE; thiếu thì hiện "—". */
+const formatDay = (value: string | null) => {
+  if (!value) return "—";
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+};
+
 /** Thời điểm theo giờ Việt Nam, không phụ thuộc múi giờ trình duyệt. */
 const formatVietnamTime = (value: string) =>
   new Intl.DateTimeFormat("vi-VN", {
@@ -37,6 +58,13 @@ const formatVietnamTime = (value: string) =>
     timeStyle: "short",
     timeZone: "Asia/Ho_Chi_Minh",
   }).format(new Date(value));
+
+const FILE_TYPE_LABELS: Record<string, string> = {
+  "application/pdf": "PDF",
+  "image/jpeg": "JPG",
+  "image/png": "PNG",
+  "image/webp": "WEBP",
+};
 
 const blobName = (item: { fileName: string }) =>
   item.fileName.replace(/[^\p{L}\p{N} ._()-]/gu, "_");
@@ -92,7 +120,40 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
   const review = detail.reviewVersion;
   const status = queueStatus[detail.status];
   const actions = getVerifierActions(detail);
+  const latestSupplement = detail.decisions
+    .filter((decision) => decision.kind === "SUPPLEMENT_REQUESTED")
+    .sort((a, b) => a.decidedAt.localeCompare(b.decidedAt))
+    .at(-1);
+  const requestedPartsText = (latestSupplement?.requestedParts ?? [])
+    .map((part) => supplementPartLabels[part].toLocaleLowerCase("vi-VN"))
+    .join(", ");
   const unreviewedFlags = detail.flags.filter((flag) => !flag.reviewedAt).length;
+  const objectionEnded =
+    detail.objectionEndsAt !== null &&
+    new Date(detail.objectionEndsAt).getTime() <= query.dataUpdatedAt;
+  const notice = detail.ownerNotice;
+  const noticeDelivered =
+    notice !== null && notice.status === "DELIVERED" && notice.deliveredAt !== null;
+  let noticeText = "Chưa có";
+  if (notice !== null && noticeDelivered && notice.deliveredAt !== null) {
+    noticeText = `${ownerNoticeLabels.DELIVERED} ${formatCompact(notice.deliveredAt)}`;
+  } else if (notice !== null) {
+    noticeText = ownerNoticeLabels[notice.status];
+  }
+  let objectionText = "Chưa bắt đầu";
+  if (detail.objectionEndsAt !== null) {
+    objectionText = `${formatCompact(detail.objectionEndsAt)} · ${objectionEnded ? "đã qua" : "chưa đến"}`;
+  }
+  const timeline = [
+    { label: "Báo chủ kho", text: noticeText, done: noticeDelivered },
+    { label: "Hết hạn phản đối", text: objectionText, done: objectionEnded },
+  ];
+  const conditions = conditionRows(
+    detail.approveBlockers,
+    detail.objectionEndsAt,
+    unreviewedFlags,
+    query.dataUpdatedAt,
+  );
   const openModal = (kind: "approve" | "reject" | "reviewFlag" | "supplement", flagId?: string) => {
     const next = new URLSearchParams(params);
     next.set("modal", kind);
@@ -103,26 +164,38 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
   return (
     <article className="space-y-6">
       <header className="space-y-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <button type="button" className={buttonStyles.outline} onClick={backToList}>
-            Về hàng chờ
-          </button>
-          <button
-            type="button"
-            className={buttonStyles.outline}
-            disabled={query.isFetching}
-            onClick={() => {
-              // Đọc lại chi tiết (kể cả khi cache còn mới) và đánh dấu danh sách cũ để lần mở sau tải lại.
-              void query.refetch();
-              void client.invalidateQueries({ queryKey: verifierKeys.lists() });
-            }}
-          >
-            Tải lại
-          </button>
-          <h2 className="text-lg font-semibold">Hồ sơ #{caseCode(detail.id)}</h2>
-          <Chip tone={status.tone}>{status.label}</Chip>
-          {detail.supplementOverdueAt && <Chip tone="warning">Bổ sung quá hạn</Chip>}
-          {detail.closedAt && <Chip tone="neutral">Đóng {formatDate(detail.closedAt)}</Chip>}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-2xl font-semibold text-heritage-primary">
+              Hồ sơ #{caseCode(detail.id)}
+            </h2>
+            <Chip tone={status.tone}>{status.label}</Chip>
+            {detail.supplementOverdueAt && <Chip tone="warning">Bổ sung quá hạn</Chip>}
+            {detail.closedAt && <Chip tone="neutral">Đóng {formatDate(detail.closedAt)}</Chip>}
+          </div>
+          <div className="flex items-center gap-3">
+            <button type="button" className={buttonStyles.outline} onClick={backToList}>
+              <ChevronLeft className="size-4" aria-hidden="true" />
+              Về hàng chờ
+            </button>
+            <button
+              type="button"
+              aria-label="Tải lại"
+              title="Tải lại"
+              className={buttonStyles.outline}
+              disabled={query.isFetching}
+              onClick={() => {
+                // Đọc lại chi tiết (kể cả khi cache còn mới) và đánh dấu danh sách cũ để lần mở sau tải lại.
+                void query.refetch();
+                void client.invalidateQueries({ queryKey: verifierKeys.lists() });
+              }}
+            >
+              <RefreshCw
+                className={`size-4 ${query.isFetching ? "animate-spin" : ""}`}
+                aria-hidden="true"
+              />
+            </button>
+          </div>
         </div>
         <p className="text-sm text-heritage-muted">
           Kho: {detail.vaultId} · Phân công từ {formatDate(detail.assignment.assignedAt)} ·{" "}
@@ -138,9 +211,9 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           </p>
         )}
       </header>
-      <Notice tone="warning" title="Bạn chỉ xác nhận hồ sơ, không xem nội dung kho">
-        Quyết định của bạn được ghi lại.
-      </Notice>
+      <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#5A4318]">
+        Bạn chỉ xác nhận hồ sơ, không xem nội dung kho. Quyết định của bạn được ghi lại.
+      </p>
       <VerifierObjectionBlock
         caseId={detail.id}
         enabled={detail.status === "SUSPENDED"}
@@ -154,6 +227,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       )}
       {detail.status === "SUPPLEMENT_REQUIRED" && (
         <Notice tone="warning" title="Đã gửi yêu cầu bổ sung">
+          {requestedPartsText && <span className="block">Đã yêu cầu: {requestedPartsText}.</span>}
           Người thực hiện sẽ nộp bản bổ sung. Hồ sơ quay lại hàng chờ khi có bản mới.
         </Notice>
       )}
@@ -167,60 +241,90 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               Bản đang xét (v{review.versionNo})
             </h3>
             <dl className="grid gap-4 sm:grid-cols-2">
-              <Field label="Họ tên Owner" value={review.ownerFullName ?? "—"} />
+              <Field label="Họ tên chủ kho" value={review.ownerFullName ?? "—"} />
               <Field
-                label="CCCD"
+                label="CCCD (theo giấy tờ)"
                 value={review.ownerCitizenId ? review.ownerCitizenId : "—"}
                 sensitive={Boolean(review.ownerCitizenId)}
               />
-              <Field label="4 số cuối CCCD" value={review.ownerCitizenIdLast4 ?? "—"} />
-              <Field label="Ngày mất" value={review.dateOfDeath ?? "—"} />
+              <Field label="Ngày mất" value={formatDay(review.dateOfDeath)} />
               <Field label="Số giấy chứng tử" value={review.certificateNumber ?? "—"} />
-              <Field label="Ngày cấp" value={review.issuedOn ?? "—"} />
+              <Field label="Ngày cấp" value={formatDay(review.issuedOn)} />
               <Field label="Nơi cấp" value={review.issuedBy ?? "—"} />
-              <Field label="Gửi lúc" value={formatDate(review.submittedAt)} />
+              <Field
+                label="Gửi lúc"
+                value={review.submittedAt ? formatCompact(review.submittedAt) : "—"}
+              />
             </dl>
             <div>
               <h4 className="text-sm font-semibold">Trang giấy tờ</h4>
               {review.files.length === 0 ? (
                 <p className="text-sm text-heritage-muted">Không có trang giấy nào.</p>
               ) : (
-                <ul className="mt-2 divide-y divide-heritage-border">
+                <ul className="mt-2 space-y-3">
                   {review.files.map((file) => (
                     <li
                       key={file.id}
-                      className="flex flex-wrap items-center justify-between gap-3 py-3"
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-heritage-border bg-white p-3"
                     >
                       <span className="inline-flex min-w-0 items-center gap-3 text-sm">
                         <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB]">
                           <FileText className="size-5 text-heritage-muted" aria-hidden="true" />
                         </span>
-                        <span className="break-all">
-                          Trang {file.position} · {file.fileName} ·{" "}
-                          {formatStorageSize(file.sizeBytes)}
+                        <span className="min-w-0">
+                          <span className="block break-all font-semibold">
+                            Trang {file.position} · {file.fileName}
+                          </span>
+                          <span className="block text-xs text-heritage-muted">
+                            {FILE_TYPE_LABELS[file.contentType] ?? "Tệp"} ·{" "}
+                            {formatStorageSize(file.sizeBytes)}
+                          </span>
                         </span>
                       </span>
-                      <button
-                        type="button"
-                        className={buttonStyles.outline}
-                        disabled={download.pending}
-                        onClick={() =>
-                          void download.execute(
-                            () => verifierReviewService.downloadFile(detail.id, file.id),
-                            (blob) => {
-                              const url = URL.createObjectURL(blob);
-                              const link = document.createElement("a");
-                              link.href = url;
-                              link.download = blobName(file);
-                              link.click();
-                              setTimeout(() => URL.revokeObjectURL(url), 1000);
-                            },
-                          )
-                        }
-                      >
-                        <Download className="size-4" aria-hidden="true" />
-                        Tải nội dung
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          aria-label={`Xem trang ${file.position}`}
+                          className={buttonStyles.outline}
+                          disabled={download.pending}
+                          onClick={() =>
+                            void download.execute(
+                              () => verifierReviewService.downloadFile(detail.id, file.id),
+                              (blob) => {
+                                // Mở ở tab mới; blob chỉ nằm trong RAM và bị thu hồi sau 1 phút.
+                                const url = URL.createObjectURL(blob);
+                                window.open(url, "_blank", "noopener");
+                                setTimeout(() => URL.revokeObjectURL(url), 60_000);
+                              },
+                            )
+                          }
+                        >
+                          <Eye className="size-4" aria-hidden="true" />
+                          Xem
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Tải xuống trang ${file.position}`}
+                          className={buttonStyles.outline}
+                          disabled={download.pending}
+                          onClick={() =>
+                            void download.execute(
+                              () => verifierReviewService.downloadFile(detail.id, file.id),
+                              (blob) => {
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement("a");
+                                link.href = url;
+                                link.download = blobName(file);
+                                link.click();
+                                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                              },
+                            )
+                          }
+                        >
+                          <Download className="size-4" aria-hidden="true" />
+                          Tải xuống
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -233,7 +337,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-xl font-semibold text-heritage-primary">Cờ của bản đang xét</h3>
-              {unreviewedFlags > 0 && <Chip tone="warning">{unreviewedFlags} cần review</Chip>}
+              {unreviewedFlags > 0 && <Chip tone="warning">{unreviewedFlags} cần xem xét</Chip>}
             </div>
             {detail.flags.length === 0 ? (
               <p className="text-sm text-heritage-muted">Không có cờ nào.</p>
@@ -261,7 +365,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                       </div>
                       <div className="flex items-center gap-3">
                         <Chip tone={reviewed ? "success" : "warning"}>
-                          {reviewed ? "Đã review" : "Cần review"}
+                          {reviewed ? "Đã xem xét" : "Cần xem xét"}
                         </Chip>
                         {!reviewed && actions.canReviewFlag && (
                           <button
@@ -330,19 +434,20 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
         <div className="space-y-6">
           <Panel title="Điều kiện để duyệt">
             {!detail.canApprove && detail.approveBlockers.length > 0 ? (
-              <div role="status" className="space-y-3">
-                <div className="flex items-start gap-2 text-sm text-[#7A5B25]">
-                  <ShieldAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-                  <ul className="list-disc space-y-1 pl-4">
-                    {detail.approveBlockers.map((item) => (
-                      <li key={item}>
-                        {blockerLabels[item as z.infer<typeof approveBlockerSchema>]}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <Chip tone="danger">Chặn duyệt</Chip>
-              </div>
+              <ul role="status" className="divide-y divide-heritage-border">
+                {conditions.map((row) => (
+                  <li
+                    key={row.key}
+                    className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold">{row.title}</p>
+                      <p className="text-sm text-heritage-muted">{row.detail}</p>
+                    </div>
+                    <Chip tone={row.chip === "Thiếu" ? "neutral" : "danger"}>{row.chip}</Chip>
+                  </li>
+                ))}
+              </ul>
             ) : detail.canApprove ? (
               <p role="status" className="flex items-center gap-2 text-sm">
                 <CheckCircle2 className="size-5 text-[#1F7A55]" aria-hidden="true" />
@@ -354,17 +459,17 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           </Panel>
           {actions.canReject && (
             <Panel title="Quyết định">
+              {actions.canOpenApprove && !detail.canApprove && conditions.length > 0 && (
+                <p
+                  role="status"
+                  className="mb-4 rounded-xl bg-[#F8E1DE] p-4 text-sm text-[#7A1A14]"
+                >
+                  Chưa thể duyệt vì:{" "}
+                  {conditions.map((row) => row.title.toLocaleLowerCase("vi-VN")).join("; ")}. Bạn có
+                  thể yêu cầu bổ sung hoặc từ chối.
+                </p>
+              )}
               <div className="flex flex-wrap gap-3">
-                {actions.canRequestSupplement && (
-                  <button
-                    type="button"
-                    className={buttonStyles.outline}
-                    onClick={() => openModal("supplement")}
-                  >
-                    <AlertTriangle className="size-4" aria-hidden="true" />
-                    Yêu cầu bổ sung
-                  </button>
-                )}
                 {actions.canOpenApprove && (
                   <button
                     type="button"
@@ -372,8 +477,16 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                     disabled={!detail.canApprove}
                     onClick={() => openModal("approve")}
                   >
-                    <CheckCircle2 className="size-4" aria-hidden="true" />
-                    Duyệt mở bàn giao
+                    Chấp thuận
+                  </button>
+                )}
+                {actions.canRequestSupplement && (
+                  <button
+                    type="button"
+                    className={buttonStyles.outline}
+                    onClick={() => openModal("supplement")}
+                  >
+                    Yêu cầu bổ sung
                   </button>
                 )}
                 <button
@@ -381,11 +494,11 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                   className={buttonStyles.danger}
                   onClick={() => openModal("reject")}
                 >
-                  <X className="size-4" aria-hidden="true" />
                   Từ chối
                 </button>
               </div>
-              <p className="mt-4 text-xs text-heritage-muted">
+              <p className="mt-4 flex items-start gap-2 text-xs text-heritage-muted">
+                <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
                 Quyết định được ghi nhật ký và gửi tới người thực hiện. Chấp thuận chưa mở kho;
                 người nhận còn phải xác minh.
               </p>
@@ -396,22 +509,20 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
             className="space-y-3 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
           >
             <h3 className="text-xl font-semibold text-heritage-primary">Mốc thời gian</h3>
-            <dl className="grid gap-4">
-              <Field
-                label="Hết hạn phản đối"
-                value={detail.objectionEndsAt ? formatDate(detail.objectionEndsAt) : "Chưa bắt đầu"}
-              />
-              <Field
-                label="Báo Owner"
-                value={
-                  detail.ownerNotice
-                    ? detail.ownerNotice.status === "DELIVERED" && detail.ownerNotice.deliveredAt
-                      ? `${ownerNoticeLabels.DELIVERED} ${formatDate(detail.ownerNotice.deliveredAt)}`
-                      : ownerNoticeLabels[detail.ownerNotice.status]
-                    : "Chưa có"
-                }
-              />
-            </dl>
+            <ol className="space-y-5">
+              {timeline.map((item) => (
+                <li key={item.label} className="flex gap-3 text-sm">
+                  <span
+                    aria-hidden="true"
+                    className={`mt-1.5 size-2.5 shrink-0 rounded-full ${item.done ? "bg-[#2E9E6E]" : "bg-[#BDB8A6]"}`}
+                  />
+                  <div>
+                    <p className="font-semibold">{item.label}</p>
+                    <p className="text-heritage-muted">{item.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </section>
           {detail.previousCase && (
             <section
