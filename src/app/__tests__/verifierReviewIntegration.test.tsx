@@ -194,9 +194,7 @@ it("Tải lại cập nhật quyền duyệt của hồ sơ đang chọn kể c�
   get.mockClear();
   eligible = true;
   await user.click(screen.getByRole("button", { name: "Tải lại" }));
-  await waitFor(() =>
-    expect(screen.getByRole("button", { name: "Chấp thuận" })).toBeEnabled(),
-  );
+  await waitFor(() => expect(screen.getByRole("button", { name: "Chấp thuận" })).toBeEnabled());
   expect(get).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}`, expect.anything());
 });
 
