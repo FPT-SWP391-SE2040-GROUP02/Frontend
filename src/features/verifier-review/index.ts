@@ -8,3 +8,4 @@ export * from "./ui/VerifierCaseList";
 export * from "./ui/VerifierCaseDetail";
 export * from "./ui/VerifierObjectionBlock";
 export * from "./ui/VerifierReviewModals";
+export * from "./ui/AiNotaryAssessmentCard";

@@ -11,6 +11,7 @@ import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
 import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
+import { AiNotaryAssessmentCard } from "./AiNotaryAssessmentCard";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
@@ -438,6 +439,15 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           )}
         </div>
         <div className="space-y-6">
+          <AiNotaryAssessmentCard
+            caseId={detail.id}
+            onSelectAction={(action, note) => {
+              if (note) {
+                void navigator.clipboard.writeText(note);
+              }
+              openModal(action);
+            }}
+          />
           <Panel title="Điều kiện để duyệt">
             {!detail.canApprove && detail.approveBlockers.length > 0 ? (
               <ul role="status" className="divide-y divide-heritage-border">
