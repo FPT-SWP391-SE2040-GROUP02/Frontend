@@ -15,6 +15,7 @@ import {
 } from "@/shared/ui/dialog";
 import { ownerObjectionService } from "../api/ownerObjectionService";
 import { ownerDeathCaseKeys, useOwnerDeathCase } from "../model/useOwnerDeathCase";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 import {
   conclusionLabels,
   validateSelfie,
@@ -39,12 +40,7 @@ const caseStatusLabels: Record<string, string> = {
   DRAFT: "Bản nháp",
 };
 
-const formatDate = (value: string | null | undefined) =>
-  value
-    ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(
-        new Date(value),
-      )
-    : "—";
+const formatDate = (value: string | null | undefined) => (value ? formatDateTime(value) : "—");
 
 /**
  * Cảnh báo "Có hồ sơ chứng tử" và luồng "Tôi còn sống" của Owner (BE mục 6.14).

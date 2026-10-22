@@ -143,4 +143,18 @@ describe("màn Điểm danh định kỳ", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Không tải được dữ liệu");
     expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
   });
+
+  it("khóa nút điểm danh khi vừa điểm danh trong vòng 60 giây", () => {
+    vi.mocked(useCheckIn).mockReturnValue(
+      statusResult({
+        serverTime: "2026-10-08T00:00:30Z",
+        lastCheckInAt: "2026-10-08T00:00:00Z",
+      }) as never,
+    );
+    renderCheckIn();
+    const button = screen.getByRole("button", { name: "Đã điểm danh" });
+    expect(button).toBeDisabled();
+    expect(screen.getByText(/Đã ghi nhận điểm danh/)).toBeInTheDocument();
+  });
 });
+

@@ -20,14 +20,10 @@ import {
   type verifierFlagKindSchema,
   type verifierDecisionKindSchema,
 } from "../model/verifierReview.schema";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 import type { z } from "zod";
 
-const formatDate = (value: string | null) =>
-  value
-    ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(
-        new Date(value),
-      )
-    : "—";
+const formatDate = (value: string | null) => (value ? formatDateTime(value) : "—");
 
 /** Dạng gọn "18/10/2026 07:20" cho mốc thời gian; ngày đứng trước giờ. */
 const formatCompact = (value: string) => {
@@ -54,8 +50,11 @@ const formatDay = (value: string | null) => {
 /** Thời điểm theo giờ Việt Nam, không phụ thuộc múi giờ trình duyệt. */
 const formatVietnamTime = (value: string) =>
   new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "medium",
-    timeStyle: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
     timeZone: "Asia/Ho_Chi_Minh",
   }).format(new Date(value));
 

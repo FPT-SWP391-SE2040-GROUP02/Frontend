@@ -28,14 +28,7 @@ const filterOptions: ReadonlyArray<{ value: Filter; label: string }> = [
   { value: "SUPPLEMENT", label: "Chờ bổ sung" },
 ];
 
-const dueFormat = new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" });
-
-const dateTime = new Intl.DateTimeFormat("vi-VN", {
-  day: "2-digit",
-  month: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-});
+import { formatDateTime } from "@/shared/lib/dateFormat";
 
 function parseFilter(value: string | null): Filter {
   const found = filterOptions.find((option) => option.value === value);
@@ -220,7 +213,7 @@ export function VerifierQueueBoard({
                             </p>
                           </td>
                           <td className="px-4 py-4">
-                            {dateTime.format(new Date(item.assignedAt))}
+                            {formatDateTime(item.assignedAt)}
                           </td>
                           <td className="px-4 py-4">
                             <div className="flex flex-wrap items-center gap-2">
@@ -239,7 +232,7 @@ export function VerifierQueueBoard({
                             <p>{queueTimeText(item, category, now)}</p>
                             {category !== "SUPPLEMENT" && (
                               <p className="text-xs text-heritage-muted">
-                                Hạn xét: {dueFormat.format(new Date(item.dueAt))}
+                                Hạn xét: {formatDateTime(item.dueAt)}
                               </p>
                             )}
                           </td>

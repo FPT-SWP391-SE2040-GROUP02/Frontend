@@ -11,6 +11,7 @@ import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 import { VerifierQueue } from "@/widgets/VerifierWorkspace/VerifierQueue";
 import { verifierReviewService } from "@/features/verifier-review/api/verifierReviewService";
 
@@ -111,10 +112,7 @@ function LocationProbe() {
   return <span data-testid="search">{useLocation().search}</span>;
 }
 
-const formatTimestamp = (value: string) =>
-  new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(
-    new Date(value),
-  );
+const formatTimestamp = (value: string) => formatDateTime(value);
 
 function setup(children: ReactNode, initialPath = "/notary/workspace") {
   const store = configureStore({ reducer: { auth: authReducer } });

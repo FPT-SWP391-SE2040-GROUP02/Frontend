@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
@@ -24,7 +25,14 @@ export function CheckInNowButton({
 }) {
   const action = usePrivateAction();
   const client = useQueryClient();
+  const [mountedNow] = useState(() => Date.now());
   const canCheckIn = CHECK_IN_PLAN_STATUSES.includes(status.planStatus);
+
+  const lastCheckInMs = status.lastCheckInAt ? new Date(status.lastCheckInAt).getTime() : 0;
+  const serverMs = status.serverTime ? new Date(status.serverTime).getTime() : mountedNow;
+  const diffSeconds = Math.floor((serverMs - lastCheckInMs) / 1000);
+  const isWithin60Seconds = lastCheckInMs > 0 && diffSeconds >= 0 && diffSeconds < 60;
+  const isCheckedIn = action.succeeded || isWithin60Seconds;
 
   function sync(result: Status): void {
     client.setQueryData(["vault-check-in", vaultId], result);
@@ -37,11 +45,16 @@ export function CheckInNowButton({
       <Button
         size="lg"
         className={className}
-        disabled={action.pending || !canCheckIn}
+        disabled={action.pending || !canCheckIn || isCheckedIn}
         onClick={() => void action.execute(() => checkInService.checkIn(), sync)}
       >
-        {label}
+        {action.pending ? "Đang gửi yêu cầu…" : isCheckedIn ? "Đã điểm danh" : label}
       </Button>
+      {isCheckedIn && (
+        <p role="status" className="mt-3 text-xs font-medium text-emerald-800">
+          Đã ghi nhận điểm danh. Hệ thống chỉ mở kỳ tiếp theo sau 60 giây nếu bạn điểm danh lại.
+        </p>
+      )}
       {!canCheckIn && (
         <p className="mt-3 text-xs leading-5 opacity-75">
           Kế hoạch chưa kích hoạt hoặc đang bàn giao nên chưa điểm danh được.

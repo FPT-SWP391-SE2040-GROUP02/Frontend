@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
@@ -9,6 +9,7 @@ import { checkInService } from "@/features/dms/api/checkInService";
 import type { checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { useOwnerDeathCase } from "@/features/owner-objection/model/useOwnerDeathCase";
+import { formatDate } from "@/shared/lib/dateFormat";
 import type { z } from "zod";
 
 type CheckInStatus = z.infer<typeof checkInStatusSchema>;
@@ -47,17 +48,6 @@ const executorStatusLabels = {
   REVOKED: "Đã thu hồi",
   SUSPENDED: "Cần chấp nhận lại",
 };
-
-function formatDate(value: string | null): string {
-  if (value === null) {
-    return "Chưa có";
-  }
-  return new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(value));
-}
 
 function ProcessCard() {
   const rows: ReactNode[] = [];
@@ -203,6 +193,7 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
   const query = useCheckIn(vaultId);
   const action = usePrivateAction();
   const client = useQueryClient();
+  const [mountedNow] = useState(() => Date.now());
 
   function syncAfterCheckIn(result: CheckInStatus): void {
     client.setQueryData(["vault-check-in", vaultId], result);
@@ -246,6 +237,12 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
       }
     }
     const canCheckIn = ["ACTIVE", "CHECKIN_OVERDUE", "AWAITING_CHECK"].includes(data.planStatus);
+    const lastCheckInMs = data.lastCheckInAt ? new Date(data.lastCheckInAt).getTime() : 0;
+    const serverMs = data.serverTime ? new Date(data.serverTime).getTime() : mountedNow;
+    const diffSeconds = Math.floor((serverMs - lastCheckInMs) / 1000);
+    const isWithin60Seconds = lastCheckInMs > 0 && diffSeconds >= 0 && diffSeconds < 60;
+    const isCheckedIn = action.succeeded || isWithin60Seconds;
+
     body = (
       <>
         <p className="mt-4 text-sm">Lần gần nhất: {formatDate(data.lastCheckInAt)}</p>
@@ -255,11 +252,16 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
         </p>
         <Button
           className="mt-5 min-h-11 bg-[#E0C486] px-6 font-semibold text-[#0A281E] hover:bg-[#E6C98B]"
-          disabled={!canCheckIn || action.pending}
+          disabled={!canCheckIn || action.pending || isCheckedIn}
           onClick={() => void action.execute(() => checkInService.checkIn(), syncAfterCheckIn)}
         >
-          Điểm danh
+          {action.pending ? "Đang gửi…" : isCheckedIn ? "Đã điểm danh" : "Điểm danh"}
         </Button>
+        {isCheckedIn && (
+          <p role="status" className="mt-3 text-xs text-[#E0C486]">
+            Đã ghi nhận điểm danh thành công.
+          </p>
+        )}
         {!canCheckIn && (
           <p className="mt-3 text-xs text-white/70">
             Kế hoạch chưa kích hoạt nên chưa điểm danh được.

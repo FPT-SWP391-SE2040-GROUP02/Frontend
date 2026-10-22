@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 import { loginMethodsService } from "../api/loginMethodsService";
 import { sessionAuthService } from "../api/authService";
 import { loginMethodKeys, useLoginMethods } from "../model/useLoginMethods";
@@ -23,12 +24,7 @@ import { GoogleSignInButton } from "./GoogleSignInButton";
 
 type DialogKind = "link-google" | "unlink-google" | "set-password" | "remove-password";
 
-const formatDate = (value: string | null) =>
-  value
-    ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(
-        new Date(value),
-      )
-    : "Chưa có";
+const formatDate = (value: string | null) => (value ? formatDateTime(value) : "Chưa có");
 
 /**
  * Quản lý phương thức đăng nhập của chính người dùng (BE mục 6.4): liên kết/gỡ Google, đặt/gỡ mật

@@ -7,6 +7,7 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
 import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 import { planSetupService } from "../api/planSetupService";
 
 const capabilities = [
@@ -111,7 +112,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
       </div>
       <Notice tone="warning">
         Lời mời còn hiệu lực {remaining} ngày (đến{" "}
-        {new Date(query.data.expiresAt).toLocaleString("vi-VN")}). Bạn không đọc được nội dung kho.
+        {formatDateTime(query.data.expiresAt)}). Bạn không đọc được nội dung kho.
       </Notice>
       <p className="text-xs leading-6 text-heritage-muted">{query.data.scopeText}</p>
       {query.data.status === "ACCEPTED" ? (

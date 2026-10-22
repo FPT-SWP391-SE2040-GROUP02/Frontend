@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { z } from "zod";
+import { formatDate } from "@/shared/lib/dateFormat";
 import { Button } from "@/shared/ui/button";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { CheckInNowButton } from "@/features/dms/ui/CheckInNowButton";
@@ -13,17 +14,6 @@ const MS_PER_MINUTE = 60 * 1000;
 const MS_PER_HOUR = 60 * MS_PER_MINUTE;
 const MS_PER_DAY = 24 * MS_PER_HOUR;
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
-
-function formatDate(value: string | null): string {
-  if (value === null) {
-    return "Chưa có";
-  }
-  return new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(value));
-}
 
 function formatDateTime(value: string): string {
   const date = new Date(value);
@@ -39,12 +29,15 @@ function pad(value: number): string {
 
 /** Giờ hiện tại theo đồng hồ máy chủ (lệch so với máy người dùng được bù), cập nhật mỗi 30 giây. */
 function useServerNow(serverTime: string): number {
-  const [offset] = useState(() => new Date(serverTime).getTime() - Date.now());
-  const [now, setNow] = useState(() => Date.now() + offset);
+  const [serverMs] = useState(() => new Date(serverTime).getTime());
+  const [clientStart] = useState(() => Date.now());
+  const [now, setNow] = useState(serverMs);
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now() + offset), 30 * 1000);
+    const timer = window.setInterval(() => {
+      setNow(serverMs + (Date.now() - clientStart));
+    }, 30 * 1000);
     return () => window.clearInterval(timer);
-  }, [offset]);
+  }, [serverMs, clientStart]);
   return now;
 }
 
