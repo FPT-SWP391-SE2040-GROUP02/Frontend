@@ -23,6 +23,7 @@ export function VerifierQueue() {
           next.set("caseId", id);
           next.delete("modal");
           next.delete("flagId");
+          next.delete("reason");
           setParams(next);
         }}
       />

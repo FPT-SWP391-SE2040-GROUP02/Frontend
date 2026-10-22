@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 import {
   allowedObjectionConclusions,
   concludeObjectionRequestSchema,
@@ -22,12 +23,7 @@ import {
 } from "../model/verifierReview.schema";
 import { useConcludeObjection, useVerifierObjection } from "../model/useVerifierReview";
 
-const formatDate = (value: string | null) =>
-  value
-    ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(
-        new Date(value),
-      )
-    : "—";
+const formatDate = (value: string | null) => (value ? formatDateTime(value) : "—");
 
 /**
  * Khối "Báo còn sống" đặt trên phần xét giấy tờ để Verifier không bỏ sót.

@@ -11,6 +11,7 @@ import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
 import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
+import { AiNotaryAssessmentCard } from "./AiNotaryAssessmentCard";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
@@ -20,14 +21,10 @@ import {
   type verifierFlagKindSchema,
   type verifierDecisionKindSchema,
 } from "../model/verifierReview.schema";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 import type { z } from "zod";
 
-const formatDate = (value: string | null) =>
-  value
-    ? new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short" }).format(
-        new Date(value),
-      )
-    : "—";
+const formatDate = (value: string | null) => (value ? formatDateTime(value) : "—");
 
 /** Dạng gọn "18/10/2026 07:20" cho mốc thời gian; ngày đứng trước giờ. */
 const formatCompact = (value: string) => {
@@ -54,8 +51,11 @@ const formatDay = (value: string | null) => {
 /** Thời điểm theo giờ Việt Nam, không phụ thuộc múi giờ trình duyệt. */
 const formatVietnamTime = (value: string) =>
   new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "medium",
-    timeStyle: "short",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
     timeZone: "Asia/Ho_Chi_Minh",
   }).format(new Date(value));
 
@@ -80,6 +80,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     next.delete("caseId");
     next.delete("modal");
     next.delete("flagId");
+    next.delete("reason");
     setParams(next);
     void client.invalidateQueries({ queryKey: verifierKeys.lists() });
   };
@@ -154,11 +155,17 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     unreviewedFlags,
     query.dataUpdatedAt,
   );
-  const openModal = (kind: "approve" | "reject" | "reviewFlag" | "supplement", flagId?: string) => {
+  const openModal = (
+    kind: "approve" | "reject" | "reviewFlag" | "supplement",
+    flagId?: string,
+    note?: string,
+  ) => {
     const next = new URLSearchParams(params);
     next.set("modal", kind);
     if (kind === "reviewFlag" && flagId) next.set("flagId", flagId);
     else next.delete("flagId");
+    if (note) next.set("reason", note);
+    else next.delete("reason");
     setParams(next);
   };
   return (
@@ -231,7 +238,18 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           Người thực hiện sẽ nộp bản bổ sung. Hồ sơ quay lại hàng chờ khi có bản mới.
         </Notice>
       )}
+
+      {/* KHỐI TRỢ LÝ AI NOTARY CO-PILOT THẨM ĐỊNH TOÀN CẢNH (FULL-WIDTH) */}
+      <AiNotaryAssessmentCard
+        caseId={detail.id}
+        actions={actions}
+        onSelectAction={(action, note) => {
+          openModal(action, undefined, note);
+        }}
+      />
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        {/* CỘT TRÁI (3fr): HỒ SƠ & TÀI LIỆU CHỨNG TỪ */}
         <div className="space-y-6">
           <section
             aria-label="Bản đang xét"
@@ -438,34 +456,12 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
             </section>
           )}
         </div>
+
+        {/* CỘT PHẢI (2fr): BẢNG ĐIỀU KHIỂN HÀNH ĐỘNG CỦA CÔNG CHỨNG VIÊN */}
         <div className="space-y-6">
-          <Panel title="Điều kiện để duyệt">
-            {!detail.canApprove && detail.approveBlockers.length > 0 ? (
-              <ul role="status" className="divide-y divide-heritage-border">
-                {conditions.map((row) => (
-                  <li
-                    key={row.key}
-                    className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold">{row.title}</p>
-                      <p className="text-sm text-heritage-muted">{row.detail}</p>
-                    </div>
-                    <Chip tone={row.chip === "Thiếu" ? "neutral" : "danger"}>{row.chip}</Chip>
-                  </li>
-                ))}
-              </ul>
-            ) : detail.canApprove ? (
-              <p role="status" className="flex items-center gap-2 text-sm">
-                <CheckCircle2 className="size-5 text-[#1F7A55]" aria-hidden="true" />
-                Đủ điều kiện duyệt.
-              </p>
-            ) : (
-              <p className="text-sm text-heritage-muted">Không có điều kiện chặn.</p>
-            )}
-          </Panel>
+          {/* 1. QUYẾT ĐỊNH CỦA VERIFIER: ĐƯA LÊN TRÊN ĐẦU ĐỂ DỄ THẤY VÀ THAO TÁC NGAY */}
           {actions.canReject && (
-            <Panel title="Quyết định">
+            <Panel title="Quyết định của Người xét duyệt">
               {actions.canOpenApprove && !detail.canApprove && conditions.length > 0 && (
                 <p
                   role="status"
@@ -510,6 +506,35 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               </p>
             </Panel>
           )}
+
+          {/* 2. ĐIỀU KIỆN ĐỂ DUYỆT */}
+          <Panel title="Điều kiện để duyệt">
+            {!detail.canApprove && detail.approveBlockers.length > 0 ? (
+              <ul role="status" className="divide-y divide-heritage-border">
+                {conditions.map((row) => (
+                  <li
+                    key={row.key}
+                    className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold">{row.title}</p>
+                      <p className="text-sm text-heritage-muted">{row.detail}</p>
+                    </div>
+                    <Chip tone={row.chip === "Thiếu" ? "neutral" : "danger"}>{row.chip}</Chip>
+                  </li>
+                ))}
+              </ul>
+            ) : detail.canApprove ? (
+              <p role="status" className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="size-5 text-[#1F7A55]" aria-hidden="true" />
+                Đủ điều kiện duyệt.
+              </p>
+            ) : (
+              <p className="text-sm text-heritage-muted">Không có điều kiện chặn.</p>
+            )}
+          </Panel>
+
+          {/* 3. MỐC THỜI GIAN */}
           <section
             aria-label="Mốc thời gian"
             className="space-y-3 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
@@ -530,6 +555,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               ))}
             </ol>
           </section>
+
+          {/* 4. HỒ SƠ TRƯỚC BỊ TỪ CHỐI (NẾU CÓ) */}
           {detail.previousCase && (
             <section
               aria-label="Hồ sơ trước bị từ chối"

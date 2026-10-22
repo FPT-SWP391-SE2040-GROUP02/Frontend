@@ -1,3 +1,4 @@
+import { formatDate } from "@/shared/lib/dateFormat";
 import { ASSET_TYPE_LABELS } from "../model/asset.constants";
 import type { AssetItemDto, AssetViewModel } from "../model/asset.types";
 /**
@@ -12,11 +13,7 @@ export function toViewModel(dto: AssetItemDto): AssetViewModel {
     TRANSFERRED: "Đã Bàn Giao",
   };
 
-  const formattedDate = new Date(dto.createdAt).toLocaleDateString("vi-VN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  const formattedDate = formatDate(dto.createdAt);
 
   return {
     id: dto.id,

@@ -74,14 +74,7 @@ export const ERROR_MESSAGES: Record<AdminErrorKind, string> = {
   other: APP_MESSAGES.ERROR.LOAD_FAILED,
 };
 
-const dateTimeFormat = new Intl.DateTimeFormat("vi-VN", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
-const dateFormat = new Intl.DateTimeFormat("vi-VN", { dateStyle: "short" });
-
-export const formatDateTime = (value: string) => dateTimeFormat.format(new Date(value));
-export const formatDate = (value: string) => dateFormat.format(new Date(value));
+export { formatDate, formatDateTime } from "@/shared/lib/dateFormat";
 
 export const INCIDENT_TYPE_LABELS: Record<IncidentType, string> = {
   NO_VERIFIER: "Chưa có người xét duyệt",

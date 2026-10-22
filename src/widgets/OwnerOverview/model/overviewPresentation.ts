@@ -43,11 +43,10 @@ export function presentOverviewPlan(status: string) {
   );
 }
 
+import { formatDate } from "@/shared/lib/dateFormat";
+
 export function overviewDate(value: string | null | undefined): string {
-  if (!value) return "Chưa có";
-  const timestamp = Date.parse(value);
-  if (!Number.isFinite(timestamp)) return "Chưa có";
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short" }).format(timestamp);
+  return formatDate(value);
 }
 
 /** Phần trăm chỉ dùng cho thanh dung lượng; không thay thế kiểm tra quota bằng byte. */

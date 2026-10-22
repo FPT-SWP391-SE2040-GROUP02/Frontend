@@ -143,8 +143,4 @@ export function InfoRow({ label, children }: { label: string; children: ReactNod
   );
 }
 
-const dateTime = new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" });
-const dateOnly = new Intl.DateTimeFormat("vi-VN", { dateStyle: "short" });
-
-export const formatDateTime = (value: string) => dateTime.format(new Date(value));
-export const formatDate = (value: string) => dateOnly.format(new Date(value));
+export { formatDate, formatDateTime } from "@/shared/lib/dateFormat";

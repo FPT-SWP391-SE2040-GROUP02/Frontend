@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
+import { ReactReduxContext } from "react-redux";
 import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,6 +10,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { StatusBanner } from "@/shared/ui/status-banner";
 import { ROUTES } from "@/shared/config/routes.config";
+import type { AuthState } from "@/entities/user/model/authSlice";
 import { beneficiaryService } from "../api/beneficiaryService";
 import { beneficiaryResponseSchema, createBeneficiarySchema } from "../model/beneficiary.schema";
 
@@ -37,6 +39,8 @@ function FieldError({ message }: { message?: string }) {
 export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?: Beneficiary }) {
   const action = usePrivateAction();
   const client = useQueryClient();
+  const reduxContext = useContext(ReactReduxContext);
+  const ownerEmail = reduxContext ? (reduxContext.store.getState() as { auth?: AuthState })?.auth?.user?.email : undefined;
   const [etag, setEtag] = useState(record?.etag);
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
   const {
@@ -79,13 +83,31 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
             setError("email", { message: "Email không hợp lệ." });
             return;
           }
+          if (
+            values.email &&
+            ownerEmail &&
+            values.email.trim().toLowerCase() === ownerEmail.trim().toLowerCase()
+          ) {
+            setError("email", {
+              message: "Email người thụ hưởng không được trùng với email của Chủ kho.",
+            });
+            return;
+          }
           const { citizenId, ...contact } = values;
+          let createdNew = false;
           const saved = await action.execute(
             () =>
               record
                 ? beneficiaryService.update(vaultId, record.id, { ...contact, etag: etag! })
                 : beneficiaryService.create(vaultId, { ...contact, citizenId }),
             (result) => {
+              if (result.isExisting) {
+                setError("citizenId", {
+                  message: "Số CCCD này đã tồn tại trong danh sách người nhận của kho.",
+                });
+                return;
+              }
+              createdNew = true;
               sync();
               setEtag(result.etag);
               if (record)
@@ -98,7 +120,7 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
                 });
             },
           );
-          if (saved && !record) reset();
+          if (saved && !record && createdNew) reset();
         })}
       >
         <fieldset disabled={action.pending} className="space-y-4">

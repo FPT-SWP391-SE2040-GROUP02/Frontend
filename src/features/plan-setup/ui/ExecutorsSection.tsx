@@ -1,9 +1,11 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, Lock, X } from "lucide-react";
 import { z } from "zod";
+import { formatDate } from "@/shared/lib/dateFormat";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -15,6 +17,7 @@ import {
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import type { AuthState } from "@/entities/user/model/authSlice";
 import { inviteExecutorSchema, type executorSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
 import { usePlanSetup } from "../model/usePlanSetup";
@@ -56,14 +59,6 @@ const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6"
 const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
 const ALLOWED_ACTIONS = ["Báo tin cho hệ thống", "Theo dõi tiến trình bàn giao"];
 const FORBIDDEN_ACTIONS = ["Đọc nội dung kho", "Tự duyệt hồ sơ"];
-
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(value));
-}
 
 function isLive(executor: Executor): boolean {
   return (
@@ -133,7 +128,7 @@ interface InviteDialogProps {
   vaultId: string;
   role: ExecutorRole | null;
   replacing: Executor | null;
-  beneficiaries: Beneficiary[];
+  existingExecutors: Executor[];
   sync: () => void;
   onClose: () => void;
 }
@@ -142,17 +137,56 @@ function InviteDialog({
   vaultId,
   role,
   replacing,
-  beneficiaries,
+  existingExecutors,
   sync,
   onClose,
 }: InviteDialogProps) {
   const action = usePrivateAction();
+  const ownerEmail = useSelector((state: { auth: AuthState }) => state.auth.user?.email);
+
+  const inviteSchema = useMemo(
+    () =>
+      inviteExecutorSchema.superRefine((data, ctx) => {
+        const email = data.email.trim().toLowerCase();
+        if (ownerEmail && email === ownerEmail.trim().toLowerCase()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["email"],
+            message: "Bạn không thể tự mời chính mình làm Người thực hiện.",
+          });
+          return;
+        }
+        if (replacing && email === replacing.inviteeEmail.trim().toLowerCase()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["email"],
+            message: "Người thay thế phải có email khác với Người thực hiện hiện tại.",
+          });
+          return;
+        }
+        const duplicate = existingExecutors.find(
+          (e) =>
+            e.inviteeEmail.trim().toLowerCase() === email &&
+            (e.status === "INVITED" || e.status === "ACCEPTED" || e.status === "SUSPENDED") &&
+            (!replacing || e.id !== replacing.id),
+        );
+        if (duplicate) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["email"],
+            message: `Email này đã được mời hoặc đang là Người thực hiện ${duplicate.role === "PRIMARY" ? "chính" : "dự phòng"}.`,
+          });
+        }
+      }),
+    [ownerEmail, existingExecutors, replacing],
+  );
+
   let defaultRole: ExecutorRole = "PRIMARY";
   if (role !== null) {
     defaultRole = role;
   }
   const form = useForm<z.infer<typeof inviteExecutorSchema>>({
-    resolver: zodResolver(inviteExecutorSchema),
+    resolver: zodResolver(inviteSchema),
     mode: "onBlur",
     reValidateMode: "onBlur",
     defaultValues: { email: "", role: defaultRole, beneficiaryId: null },
@@ -211,38 +245,6 @@ function InviteDialog({
                   <option value="BACKUP">Executor dự phòng</option>
                 </select>
               </label>
-            )}
-            <label className="block space-y-2 text-sm">
-              Người này có nhận tài sản trong kho không?
-              <select
-                className="block min-h-11 w-full rounded-lg border px-3"
-                {...form.register("beneficiaryId", {
-                  setValueAs: (value: unknown) => {
-                    if (typeof value === "string") {
-                      const trimmed = value.trim();
-                      if (trimmed !== "") {
-                        return trimmed;
-                      }
-                    }
-                    return null;
-                  },
-                })}
-              >
-                <option value="">Không, người này không nhận tài sản</option>
-                {beneficiaries.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    Có, người nhận: {item.label}
-                  </option>
-                ))}
-              </select>
-              <span className="block text-xs text-heritage-muted">
-                Nếu có, kho cần thêm một người dự phòng độc lập không nhận tài sản.
-              </span>
-            </label>
-            {form.formState.errors.beneficiaryId && (
-              <p role="alert" className="text-sm text-destructive">
-                Chọn hồ sơ người nhận hợp lệ thuộc kho.
-              </p>
             )}
           </fieldset>
           <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">{notice}</p>
@@ -529,7 +531,7 @@ function RecentActivity({ executors }: { executors: Executor[] }) {
  */
 export function ExecutorsSection({
   vaultId,
-  beneficiaries = [],
+  beneficiaries: _beneficiaries = [],
 }: {
   vaultId: string;
   beneficiaries?: Beneficiary[];
@@ -667,7 +669,7 @@ export function ExecutorsSection({
           vaultId={vaultId}
           role={dialog.role}
           replacing={dialog.replacing}
-          beneficiaries={beneficiaries}
+          existingExecutors={setup.executors}
           sync={sync}
           onClose={() => setDialog(null)}
         />

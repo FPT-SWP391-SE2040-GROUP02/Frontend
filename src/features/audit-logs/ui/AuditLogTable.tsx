@@ -11,10 +11,7 @@ import {
   type AuditNameMap,
 } from "../model/auditLogLabels";
 
-const dateTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
+import { formatDateTime } from "@/shared/lib/dateFormat";
 
 /** Điểm danh và đơn thanh toán không có API tra tên; mã rút gọn không giúp ích nên chỉ hiện trong tooltip. */
 const HIDE_CODE_TYPES: readonly AuditLogEntry["targetType"][] = ["CHECK_IN", "PAYMENT_ORDER"];
@@ -56,7 +53,7 @@ export function AuditLogTable({
           const showActorId = entry.actorRole !== "OWNER" && entry.actorUserId !== null;
           return (
             <TableRow key={entry.id}>
-              <TableCell>{dateTimeFormatter.format(new Date(entry.at))}</TableCell>
+              <TableCell>{formatDateTime(entry.at)}</TableCell>
               <TableCell>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{ACTOR_ROLE_LABELS[entry.actorRole]}</span>

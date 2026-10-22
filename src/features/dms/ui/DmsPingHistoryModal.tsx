@@ -10,6 +10,7 @@ import {
   Button,
 } from "@/shared/ui";
 import { History, Globe, Mail, Send, Smartphone, CheckCircle, ShieldCheck } from "lucide-react";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 import { usePingHistory } from "../model/useDms";
 
 /**
@@ -113,7 +114,7 @@ export const DmsPingHistoryModal: React.FC<DmsPingHistoryModalProps> = ({ isOpen
                         </Badge>
                       </div>
                       <div className="text-[11px] text-[#66786E] mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
-                        <span>Thời gian: {new Date(item.pingedAt).toLocaleString("vi-VN")}</span>
+                        <span>Thời gian: {formatDateTime(item.pingedAt)}</span>
                         {item.ipAddress && <span>IP: {item.ipAddress}</span>}
                       </div>
                     </div>

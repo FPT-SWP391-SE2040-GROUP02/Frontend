@@ -13,7 +13,8 @@ export const beneficiaryResponseSchema = z.object({
   containerIds: z.array(z.string().uuid()),
   createdAt: z.string().datetime({ offset: true }),
   updatedAt: z.string().datetime({ offset: true }).nullable(),
-  etag: z.string().min(1).max(64),
+  etag: z.string().min(1).max(64),
+  isExisting: z.boolean().optional(),
 });
 const contact = {
   fullName: z.string().max(200),
