@@ -4,10 +4,13 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import { HeritageAuthLayout } from "@/features/auth/ui/HeritageAuthLayout";
 import { ExecutorInvitationPanel } from "@/features/plan-setup/ui/ExecutorInvitationPanel";
 
-/** Public invitation landing; login is requested before responding. Fragment avoids HTTP/referrer token exposure. */
+/** Public invitation landing; login is requested before responding. Supports both hash and query parameters. */
 export function ExecutorInvitationPage() {
-  const { hash } = useLocation();
-  const token = new URLSearchParams(hash.slice(1)).get("token") ?? "";
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const hashString = location.hash.startsWith("#") ? location.hash.slice(1) : location.hash;
+  const hashParams = new URLSearchParams(hashString);
+  const token = hashParams.get("token") || searchParams.get("token") || "";
   const userId = useSelector((state: { auth: AuthState }) => state.auth.user?.id);
   return (
     <HeritageAuthLayout
