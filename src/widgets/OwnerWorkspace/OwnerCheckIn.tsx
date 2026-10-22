@@ -4,6 +4,7 @@ import { formatDate } from "@/shared/lib/dateFormat";
 import { Button } from "@/shared/ui/button";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { CheckInNowButton } from "@/features/dms/ui/CheckInNowButton";
+import { SmartwatchCheckInButton } from "@/features/dms/ui/SmartwatchCheckInButton";
 import { CheckInSettingsForm } from "@/features/dms/ui/CheckInSettingsForm";
 import type { checkInPeriodSchema, checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
 
@@ -178,6 +179,7 @@ export function OwnerCheckIn({ vaultId }: { vaultId: string }) {
               className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
             />
           </div>
+          <SmartwatchCheckInButton vaultId={vaultId} status={status} />
         </section>
         <section aria-label="Lịch điểm danh" className={CARD}>
           <h2 className="mb-4 text-xl font-medium text-heritage-primary">Lịch điểm danh</h2>
