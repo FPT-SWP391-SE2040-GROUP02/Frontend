@@ -33,7 +33,11 @@ const formatVietnamTime = (value: string) => {
   }
 };
 
-export function AiNotaryAssessmentCard({ caseId, actions, onSelectAction }: AiNotaryAssessmentCardProps) {
+export function AiNotaryAssessmentCard({
+  caseId,
+  actions,
+  onSelectAction,
+}: AiNotaryAssessmentCardProps) {
   const [assessment, setAssessment] = useState<AiDossierAnalysisResponse | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -98,7 +102,8 @@ export function AiNotaryAssessmentCard({ caseId, actions, onSelectAction }: AiNo
           badgeBg: "bg-[#7A5B25] text-white",
           actionType: "supplement" as const,
           isAllowed: actions ? actions.canRequestSupplement : true,
-          disabledReason: "Hồ sơ hiện đang ở trạng thái chờ Executor bổ sung (SUPPLEMENT_REQUIRED), chưa thể gửi thêm yêu cầu.",
+          disabledReason:
+            "Hồ sơ hiện đang ở trạng thái chờ Executor bổ sung (SUPPLEMENT_REQUIRED), chưa thể gửi thêm yêu cầu.",
         };
       case "REJECT":
         return {
@@ -171,7 +176,9 @@ export function AiNotaryAssessmentCard({ caseId, actions, onSelectAction }: AiNo
               Trợ lý AI hỗ trợ rà soát 4 tiêu chuẩn pháp lý trước khi ra phán quyết
             </p>
             <p className="text-xs leading-relaxed text-heritage-muted">
-              Tự động đối chiếu CCCD chủ kho với hồ sơ eKYC, phân tích trật tự mốc thời gian tử vong so với lịch sử điểm danh sinh tồn (DMS), kiểm tra tính hợp pháp của trích lục chứng tử và phát hiện cờ gian lận.
+              Tự động đối chiếu CCCD chủ kho với hồ sơ eKYC, phân tích trật tự mốc thời gian tử vong
+              so với lịch sử điểm danh sinh tồn (DMS), kiểm tra tính hợp pháp của trích lục chứng tử
+              và phát hiện cờ gian lận.
             </p>
           </div>
           <button
@@ -192,7 +199,8 @@ export function AiNotaryAssessmentCard({ caseId, actions, onSelectAction }: AiNo
             Đang đối chiếu dữ liệu với Google Gemini AI…
           </p>
           <p className="text-xs text-heritage-muted max-w-sm">
-            Hệ thống đang kiểm tra CCCD, trật tự thời gian điểm danh sinh tồn và tính toàn vẹn của chứng từ.
+            Hệ thống đang kiểm tra CCCD, trật tự thời gian điểm danh sinh tồn và tính toàn vẹn của
+            chứng từ.
           </p>
         </div>
       )}
@@ -265,10 +273,7 @@ export function AiNotaryAssessmentCard({ caseId, actions, onSelectAction }: AiNo
                           className={buttonStyles.gold}
                           disabled={!recStyle.isAllowed}
                           onClick={() =>
-                            onSelectAction(
-                              recStyle.actionType,
-                              assessment.proposedDecisionNote,
-                            )
+                            onSelectAction(recStyle.actionType, assessment.proposedDecisionNote)
                           }
                         >
                           <FileCheck className="size-4" aria-hidden="true" />

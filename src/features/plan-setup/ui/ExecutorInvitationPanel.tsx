@@ -111,8 +111,8 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         </ul>
       </div>
       <Notice tone="warning">
-        Lời mời còn hiệu lực {remaining} ngày (đến{" "}
-        {formatDateTime(query.data.expiresAt)}). Bạn không đọc được nội dung kho.
+        Lời mời còn hiệu lực {remaining} ngày (đến {formatDateTime(query.data.expiresAt)}). Bạn
+        không đọc được nội dung kho.
       </Notice>
       <p className="text-xs leading-6 text-heritage-muted">{query.data.scopeText}</p>
       {query.data.status === "ACCEPTED" ? (

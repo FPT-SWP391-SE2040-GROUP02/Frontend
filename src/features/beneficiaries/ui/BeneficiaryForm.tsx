@@ -40,7 +40,9 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
   const action = usePrivateAction();
   const client = useQueryClient();
   const reduxContext = useContext(ReactReduxContext);
-  const ownerEmail = reduxContext ? (reduxContext.store.getState() as { auth?: AuthState })?.auth?.user?.email : undefined;
+  const ownerEmail = reduxContext
+    ? (reduxContext.store.getState() as { auth?: AuthState })?.auth?.user?.email
+    : undefined;
   const [etag, setEtag] = useState(record?.etag);
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
   const {

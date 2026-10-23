@@ -50,9 +50,7 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
       <p className="text-sm">{labels[turn.status]}</p>
       <p className="text-sm text-heritage-muted">
         Hạn phản hồi: {formatDateTime(turn.responseDeadline)}
-        {turn.decisionDeadline && (
-          <> · Hạn quyết định: {formatDateTime(turn.decisionDeadline)}</>
-        )}
+        {turn.decisionDeadline && <> · Hạn quyết định: {formatDateTime(turn.decisionDeadline)}</>}
       </p>
       {statusHints[turn.status] && <p className="text-sm">{statusHints[turn.status]}</p>}
       {turn.status === "READY_TO_ACCEPT" && turn.decisionDeadline && (

@@ -157,4 +157,3 @@ describe("màn Điểm danh định kỳ", () => {
     expect(screen.getByText(/Đã ghi nhận điểm danh/)).toBeInTheDocument();
   });
 });
-

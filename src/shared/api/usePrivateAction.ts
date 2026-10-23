@@ -136,7 +136,8 @@ const messages: Record<string, string> = {
   ASSET_ALREADY_IN_CONTAINER: "Tài sản đang nằm trong một gói khác.",
   PLAN_DEACTIVATION_CONFIRMATION_REQUIRED:
     "Thao tác này sẽ đưa kế hoạch về nháp. Đọc cảnh báo và xác nhận trước khi tiếp tục.",
-  BENEFICIARY_IDENTITY_CONFLICT: "Số CCCD này đã tồn tại trong danh sách người nhận của kho (với thông tin khác). Vui lòng kiểm tra lại.",
+  BENEFICIARY_IDENTITY_CONFLICT:
+    "Số CCCD này đã tồn tại trong danh sách người nhận của kho (với thông tin khác). Vui lòng kiểm tra lại.",
   BENEFICIARY_IN_USE: "Người nhận đang được gắn vào gói. Hãy gỡ khỏi các gói trước.",
   BENEFICIARY_SLOTS_EXCEEDED: "Kho không còn suất người nhận.",
   CHECKIN_NOT_ALLOWED: "Kế hoạch hiện không cho phép điểm danh.",

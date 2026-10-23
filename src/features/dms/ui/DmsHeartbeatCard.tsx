@@ -221,12 +221,8 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
             </div>
 
             <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 text-xs text-[#66786E]">
-              <span>
-                Ping gần nhất: {formatDate(dmsState.lastPingAt)}
-              </span>
-              <span>
-                Hạn chót: {formatDate(dmsState.nextPingDeadline)}
-              </span>
+              <span>Ping gần nhất: {formatDate(dmsState.lastPingAt)}</span>
+              <span>Hạn chót: {formatDate(dmsState.nextPingDeadline)}</span>
             </div>
           </div>
 

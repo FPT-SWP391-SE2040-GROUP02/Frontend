@@ -212,9 +212,7 @@ export function VerifierQueueBoard({
                               Ngày mất: {item.dateOfDeath ?? "—"}
                             </p>
                           </td>
-                          <td className="px-4 py-4">
-                            {formatDateTime(item.assignedAt)}
-                          </td>
+                          <td className="px-4 py-4">{formatDateTime(item.assignedAt)}</td>
                           <td className="px-4 py-4">
                             <div className="flex flex-wrap items-center gap-2">
                               <Chip tone={status.tone}>{status.label}</Chip>
