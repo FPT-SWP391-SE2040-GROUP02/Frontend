@@ -1,3 +1,4 @@
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -86,7 +87,13 @@ function setup() {
   render(
     <Provider store={store}>
       <QueryClientProvider client={client}>
-        <EkycUploads purpose="OWNER_ENROLLMENT" canComplete={false} onComplete={() => undefined} />
+        <MemoryRouter>
+          <EkycUploads
+            purpose="OWNER_ENROLLMENT"
+            canComplete={false}
+            onComplete={() => undefined}
+          />
+        </MemoryRouter>
       </QueryClientProvider>
     </Provider>,
   );
@@ -96,7 +103,8 @@ function setup() {
 async function reachReview(frontAddress: string) {
   vi.mocked(ekycService.submitDocument).mockResolvedValue(front(frontAddress));
   setup();
-  fireEvent.click(screen.getByRole("button", { name: "Tôi đồng ý và tiếp tục" }));
+  for (const box of screen.getAllByRole("checkbox")) fireEvent.click(box);
+  fireEvent.click(screen.getByRole("button", { name: "Đồng ý và bắt đầu" }));
   const input = await screen.findByLabelText("Ảnh mặt trước giấy tờ");
   await userEvent.upload(input, image("front.jpg"));
   fireEvent.click(screen.getByRole("button", { name: "Đọc thông tin" }));
@@ -182,7 +190,7 @@ describe("EkycUploads: mặt sau trước khi xác nhận (BR-88)", () => {
     await waitFor(() => expect(address().value).toBe("Địa chỉ mặt sau cũ"));
 
     fireEvent.click(screen.getByRole("button", { name: "Bắt đầu lại từ đầu" }));
-    expect(screen.getByRole("button", { name: "Tôi đồng ý và tiếp tục" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Đồng ý và bắt đầu" })).toBeInTheDocument();
     expect(screen.queryByDisplayValue("Địa chỉ mặt sau cũ")).not.toBeInTheDocument();
   });
 });

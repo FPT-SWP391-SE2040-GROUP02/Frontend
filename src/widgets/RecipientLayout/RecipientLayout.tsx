@@ -1,4 +1,7 @@
+import { useSelector } from "react-redux";
+import type { AuthState } from "@/entities/user/model/authSlice";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
+import { Initial } from "@/shared/ui/heritageKit";
 import guilloche from "@/shared/assets/auth-guilloche.svg";
 import { ROUTES } from "@/shared/config/routes.config";
 import { OverviewIcon, TrustedIcon } from "@/shared/ui/LegacyVaultArtwork";
@@ -29,6 +32,7 @@ export interface RecipientLayoutProps {
 /** Sidebar dùng chung cho cổng người nhận. */
 export function RecipientLayout({ active, children }: RecipientLayoutProps) {
   const accountHome = useAccountHome();
+  const fullName = useSelector((state: { auth: AuthState }) => state.auth.user?.fullName);
   const root = ROUTES.BENEFICIARY.CLAIM;
   const verify = ROUTES.BENEFICIARY.EKYC_CAMERA;
   const items = [
@@ -67,9 +71,12 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
             aria-hidden="true"
             className="mx-auto mb-3 hidden size-16 opacity-40 [@media(min-height:800px)]:block"
           />
-          <div>
-            <p className="text-sm font-semibold">{shell.role}</p>
-            <p className="mt-1 text-xs text-heritage-surface/65">{shell.role}</p>
+          <div className="flex items-center gap-3">
+            {fullName && <Initial name={fullName} className="size-10" />}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">{fullName ?? shell.role}</p>
+              <p className="mt-0.5 text-xs text-heritage-gold">{shell.role}</p>
+            </div>
           </div>
         </>
       }

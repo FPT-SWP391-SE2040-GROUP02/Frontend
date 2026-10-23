@@ -12,6 +12,7 @@ import {
 import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
+import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
 import {
   Dialog,
   DialogContent,
@@ -54,6 +55,8 @@ interface MemberCardProps {
   emptyText: string;
   disabled: boolean;
   note: ReactNode;
+  /** Liệt kê cả người đã gán lẫn chưa gán, mỗi dòng một nút Gán/Gỡ (thiết kế 099) thay cho ô chọn. */
+  inlineAssign?: boolean;
   onRemove: (relation: Relation, id: string) => void;
   onAdd: (relation: Relation, id: string) => void;
 }
@@ -96,6 +99,68 @@ function MemberCard(props: MemberCardProps) {
           {props.removeLabel}
         </Button>
       </li>,
+    );
+  }
+  if (props.inlineAssign) {
+    const people: ReactNode[] = [];
+    for (const item of assigned) {
+      people.push(
+        <li
+          key={item.id}
+          className="flex items-center justify-between gap-3 border-b border-heritage-border py-4 last:border-b-0"
+        >
+          <div className="min-w-0">
+            <p className="break-words font-semibold text-heritage-primary">{item.label}</p>
+            {item.detail && <p className="text-xs text-heritage-muted">{item.detail}</p>}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Chip tone="success">Đã gán</Chip>
+            <button
+              type="button"
+              aria-label={`Gỡ ${item.label}`}
+              className={buttonStyles.danger}
+              disabled={disabled}
+              onClick={() => props.onRemove(relation, item.id)}
+            >
+              {props.removeLabel}
+            </button>
+          </div>
+        </li>,
+      );
+    }
+    for (const item of available) {
+      people.push(
+        <li
+          key={item.id}
+          className="flex items-center justify-between gap-3 border-b border-heritage-border py-4 last:border-b-0"
+        >
+          <div className="min-w-0">
+            <p className="break-words font-semibold text-heritage-primary">{item.label}</p>
+            {item.detail && <p className="text-xs text-heritage-muted">{item.detail}</p>}
+          </div>
+          <button
+            type="button"
+            aria-label={`Gán ${item.label}`}
+            className={`${buttonStyles.outline} shrink-0`}
+            disabled={disabled}
+            onClick={() => props.onAdd(relation, item.id)}
+          >
+            Gán
+          </button>
+        </li>,
+      );
+    }
+    return (
+      <section aria-label={props.title} className={CARD}>
+        <h2 className="text-xl font-medium text-heritage-primary">{props.title}</h2>
+        {people.length === 0 && (
+          <p className="mt-4 text-sm text-heritage-muted">{props.emptyText}</p>
+        )}
+        <ul className="mt-2">{people}</ul>
+        <div className="mt-4 rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+          {props.note}
+        </div>
+      </section>
     );
   }
   const options: ReactNode[] = [];
@@ -311,7 +376,38 @@ export function GroupDetail({
           Lưu thông tin gói bàn giao trước khi thay đổi mục, người nhận hoặc xóa gói bàn giao.
         </p>
       )}
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <MemberCard
+          title="Người nhận của gói bàn giao"
+          icon={<UserRound className="size-5" />}
+          relation="beneficiaries"
+          inlineAssign
+          assigned={personOptions.assigned}
+          available={personOptions.available}
+          removeLabel="Gỡ"
+          addLabel="Gán"
+          selectLabel="Chọn người nhận"
+          emptyText="Gói bàn giao chưa có người nhận."
+          disabled={blocked || isDirty}
+          note={
+            <>
+              <p>
+                Gỡ người nhận không xóa mục khỏi kho. Người nhận gắn theo gói bàn giao, không gắn
+                từng mục.
+              </p>
+              {personOptions.available.length === 0 && (
+                <p className="mt-2">
+                  Chưa còn hồ sơ nào để gán.{" "}
+                  <Link className="underline" to={ROUTES.DASHBOARD.BENEFICIARIES}>
+                    Thêm người nhận
+                  </Link>
+                </p>
+              )}
+            </>
+          }
+          onRemove={removeMember}
+          onAdd={addMember}
+        />
         <MemberCard
           title="Mục trong gói bàn giao"
           icon={<FileText className="size-5" />}
@@ -324,33 +420,6 @@ export function GroupDetail({
           emptyText="Gói bàn giao chưa có mục nào."
           disabled={blocked || isDirty}
           note={null}
-          onRemove={removeMember}
-          onAdd={addMember}
-        />
-        <MemberCard
-          title="Người nhận của gói bàn giao"
-          icon={<UserRound className="size-5" />}
-          relation="beneficiaries"
-          assigned={personOptions.assigned}
-          available={personOptions.available}
-          removeLabel="Gỡ"
-          addLabel="Gán người nhận"
-          selectLabel="Chọn người nhận"
-          emptyText="Gói bàn giao chưa có người nhận."
-          disabled={blocked || isDirty}
-          note={
-            <>
-              <p>Người nhận được gắn theo gói bàn giao, không gắn từng mục.</p>
-              {personOptions.available.length === 0 && (
-                <p className="mt-2">
-                  Chưa còn hồ sơ nào để gán.{" "}
-                  <Link className="underline" to={ROUTES.DASHBOARD.BENEFICIARIES}>
-                    Thêm người nhận
-                  </Link>
-                </p>
-              )}
-            </>
-          }
           onRemove={removeMember}
           onAdd={addMember}
         />

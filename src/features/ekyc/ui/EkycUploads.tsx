@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from "react";
+import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, Lock, X } from "lucide-react";
+import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
 import { ekycDocumentSchema, ekycPurposeSchema, ekycStatusSchema } from "../model/ekyc.schema";
@@ -21,6 +23,118 @@ type Tab = "front" | "back";
 
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
 const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
+const CONSENT_PROMISES = [
+  "Chụp hoặc tải ảnh căn cước, mặt trước và mặt sau",
+  "Chụp ảnh khuôn mặt và thử thách camera trực tiếp",
+  "So khớp khuôn mặt với ảnh trên căn cước",
+  "Chỉ dùng để xác minh bạn là người nhận được chỉ định",
+];
+const PREPARE_CHIPS = ["Căn cước còn hạn, bản gốc", "Nơi đủ sáng", "Bỏ khẩu trang, kính tối màu"];
+
+/**
+ * Bước đồng ý trước khi chụp (thiết kế 113): hai ô xác nhận, chỉ khi tick đủ mới bật "Đồng ý và bắt đầu".
+ * Hai ô chỉ là bước xác nhận ở giao diện; Backend ghi nhận đồng ý qua lệnh consent của nút bắt đầu.
+ */
+function ConsentStep({
+  purposeLabel,
+  pending,
+  error,
+  onAgree,
+}: {
+  purposeLabel: string;
+  pending: boolean;
+  error: string;
+  onAgree: () => void;
+}) {
+  const accountHome = useAccountHome();
+  const [processing, setProcessing] = useState(false);
+  const [readOnly, setReadOnly] = useState(false);
+  const ready = processing && readOnly;
+  return (
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <section aria-labelledby="ekyc-consent-title" className={`${CARD} space-y-4`}>
+        <h3 id="ekyc-consent-title" className="text-xl font-medium text-heritage-primary">
+          Chúng tôi sẽ làm gì với ảnh của bạn
+        </h3>
+        <ul className="space-y-2 text-sm">
+          {CONSENT_PROMISES.map((text) => (
+            <li key={text} className="flex items-start gap-2">
+              <Check className="mt-0.5 size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+              {text}
+            </li>
+          ))}
+        </ul>
+        <p className="border-b border-heritage-border pb-4 text-sm text-heritage-muted">
+          Mục đích: {purposeLabel}. Đây là xác minh cơ bản, không có giá trị pháp lý. Ảnh được mã
+          hóa và xóa theo chính sách lưu giữ. Phiên đồng ý có hiệu lực trong 30 phút.
+        </p>
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-5 shrink-0"
+            checked={processing}
+            disabled={pending}
+            onChange={(event) => setProcessing(event.target.checked)}
+          />
+          Tôi đồng ý cho LegacyVault xử lý ảnh căn cước và khuôn mặt của tôi để xác minh danh tính.
+        </label>
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-5 shrink-0"
+            checked={readOnly}
+            disabled={pending}
+            onChange={(event) => setReadOnly(event.target.checked)}
+          />
+          Tôi hiểu thông tin đọc từ căn cước không thể chỉnh sửa. Nếu sai, tôi chụp lại.
+        </label>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            type="button"
+            size="lg"
+            className={`${GOLD_BUTTON} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+            disabled={!ready || pending}
+            onClick={onAgree}
+          >
+            {pending ? "Đang gửi đồng ý…" : "Đồng ý và bắt đầu"}
+          </Button>
+          <Link
+            to={accountHome}
+            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#0A281E] px-6 text-sm font-semibold text-[#0A281E] hover:bg-[#F4F1E6]"
+          >
+            Để sau
+          </Link>
+        </div>
+        {error && (
+          <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+            {error}
+          </p>
+        )}
+      </section>
+      <section aria-labelledby="ekyc-prepare-title" className={`${CARD} space-y-4`}>
+        <h3 id="ekyc-prepare-title" className="text-xl font-medium text-heritage-primary">
+          Chuẩn bị
+        </h3>
+        <ul className="flex flex-wrap gap-2">
+          {PREPARE_CHIPS.map((text) => (
+            <li
+              key={text}
+              className="flex items-center gap-2 rounded-full bg-heritage-canvas px-3 py-1.5 text-xs"
+            >
+              <Check className="size-3.5 text-[#1F7A55]" aria-hidden="true" />
+              {text}
+            </li>
+          ))}
+        </ul>
+        <p className="flex items-start gap-2 text-xs text-heritage-muted">
+          <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+          Ảnh chỉ dùng để đối chiếu. Không chia sẻ cho chủ kho hay người khác.
+        </p>
+      </section>
+    </div>
+  );
+}
+
 const PURPOSE_LABELS: Record<Purpose, string> = {
   OWNER_ENROLLMENT: "xác minh Chủ kho",
   BENEFICIARY_CLAIM: "xác minh Người nhận để nhận bàn giao",
@@ -321,6 +435,10 @@ export function EkycUploads({
 
   let title = "Đọc thông tin căn cước";
   let description = "Thêm mặt trước để bắt đầu. Với thẻ mới, thêm mặt sau để lấy nơi cư trú.";
+  if (step === "consent") {
+    title = "Trước khi chụp";
+    description = "Xin bạn đọc và đồng ý. Bạn chỉ phải làm bước này một lần cho lần xác minh này.";
+  }
   if (step === "liveness") {
     title = "Bạn đang ở trước camera.";
     description =
@@ -368,31 +486,12 @@ export function EkycUploads({
       <EkycStepper current={stepNumber} />
 
       {step === "consent" && (
-        <div className={`${CARD} space-y-3 text-sm`}>
-          <h3 className="text-xl font-medium text-heritage-primary">Trước khi bắt đầu</h3>
-          <p>
-            Mục đích: <strong>{PURPOSE_LABELS[purpose]}</strong>.
-          </p>
-          <p className="text-heritage-muted">
-            Ảnh giấy tờ và thử thách camera chỉ dùng để xác minh danh tính và được xử lý trong phiên
-            này. Hệ thống không lưu ảnh, OCR hoặc dữ liệu giấy tờ vào bộ nhớ trình duyệt.
-          </p>
-          <p className="text-heritage-muted">Phiên đồng ý có hiệu lực trong 30 phút.</p>
-          <Button
-            type="button"
-            size="lg"
-            className={GOLD_BUTTON}
-            disabled={consentAction.pending}
-            onClick={() => void handleConsent()}
-          >
-            {consentAction.pending ? "Đang gửi đồng ý…" : "Tôi đồng ý và tiếp tục"}
-          </Button>
-          {consentAction.error && (
-            <p role="alert" className="text-sm text-destructive">
-              {consentAction.error}
-            </p>
-          )}
-        </div>
+        <ConsentStep
+          purposeLabel={PURPOSE_LABELS[purpose]}
+          pending={consentAction.pending}
+          error={consentAction.error}
+          onAgree={() => void handleConsent()}
+        />
       )}
 
       {documentStep && (
