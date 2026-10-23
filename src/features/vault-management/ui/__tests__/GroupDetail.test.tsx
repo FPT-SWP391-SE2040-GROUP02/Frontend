@@ -80,10 +80,9 @@ describe("chi tiết gói bàn giao", () => {
       .spyOn(apiClient, "post")
       .mockResolvedValue({ ...group(), beneficiaryIds: [PERSON_ID, OTHER_PERSON_ID] });
     renderGroup();
-    const select = screen.getByLabelText("Chọn người nhận");
-    expect(within(select).queryByRole("option", { name: "Con trưởng" })).not.toBeInTheDocument();
-    fireEvent.change(select, { target: { value: OTHER_PERSON_ID } });
-    fireEvent.click(screen.getByRole("button", { name: "Gán người nhận" }));
+    expect(screen.getByRole("button", { name: "Gỡ Con trưởng" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Gán Con trưởng" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^Gán / }));
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
     expect(post).toHaveBeenCalledWith(
       `/vaults/${VAULT_ID}/containers/${CONTAINER_ID}/beneficiaries`,
@@ -106,10 +105,7 @@ describe("chi tiết gói bàn giao", () => {
   it("gói Free bị chặn thì giữ lỗi của Backend kèm đường nâng cấp", async () => {
     vi.spyOn(apiClient, "post").mockRejectedValue(backendError("PAID_TIER_REQUIRED"));
     renderGroup();
-    fireEvent.change(screen.getByLabelText("Chọn người nhận"), {
-      target: { value: OTHER_PERSON_ID },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Gán người nhận" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Gán / }));
     expect(await screen.findByRole("alert")).toHaveTextContent("gói dịch vụ trả phí");
     expect(screen.getByRole("link", { name: "Xem gói dịch vụ" })).toHaveAttribute(
       "href",

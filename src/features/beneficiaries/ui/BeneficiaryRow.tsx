@@ -4,9 +4,7 @@ import type { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button } from "@/shared/ui/button";
-import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
-import { StatusBanner } from "@/shared/ui/status-banner";
+import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
 import {
   Dialog,
   DialogContent,
@@ -21,24 +19,60 @@ import { BeneficiaryForm } from "./BeneficiaryForm";
 
 type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
 
-/** Ghép tên các gói bàn giao đang chứa người nhận; gói bàn giao không tra được tên thì chỉ đếm số lượng. */
-function describeGroups(containerIds: string[], groupNames: Record<string, string>): string {
+const DIALOG_CLASS = "max-w-lg bg-[#FBFAF5] p-7";
+const DIALOG_TITLE = "text-xl font-semibold text-heritage-primary";
+const RED_BUTTON =
+  "inline-flex min-h-11 items-center justify-center rounded-xl bg-[#A32119] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#8A1B14] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50";
+
+/** "1990-05-12" → "12/05/1990". */
+function formatBirthDate(value: string): string {
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+/** Tên các gói bàn giao đang chứa người nhận; gói không tra được tên thì ghi chung. */
+function listGroupNames(containerIds: string[], groupNames: Record<string, string>): string[] {
   const names: string[] = [];
   for (const id of containerIds) {
     if (Object.hasOwn(groupNames, id)) {
-      names.push(`“${groupNames[id]}”`);
+      names.push(groupNames[id]);
+    } else {
+      names.push("Gói bàn giao khác");
     }
   }
-  if (names.length === 0) {
-    return `${containerIds.length} gói bàn giao`;
-  }
-  if (names.length < containerIds.length) {
-    return `${names.join(", ")} và ${containerIds.length - names.length} gói bàn giao khác`;
-  }
-  return `gói bàn giao ${names.join(", ")}`;
+  return names;
 }
 
-/** Hộp thoại xác nhận xóa; hồ sơ còn nằm trong gói bàn giao thì không cho xóa (Backend cũng chặn). */
+/** Hộp thoại sửa hồ sơ; dùng cả ở hàng và khi mở lại hồ sơ đã có từ form thêm. */
+export function EditBeneficiaryDialog({
+  vaultId,
+  record,
+  onClose,
+}: {
+  vaultId: string;
+  record: Beneficiary;
+  onClose: () => void;
+}) {
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        className={`${DIALOG_CLASS} max-h-[90dvh] overflow-y-auto`}
+        showCloseButton={false}
+      >
+        <DialogHeader>
+          <DialogTitle className={DIALOG_TITLE}>Sửa người nhận</DialogTitle>
+          <DialogDescription className="text-heritage-muted">
+            Thay đổi áp dụng cho các gói bàn giao đã gán người này. Muốn đổi số CCCD thì xóa hồ sơ
+            rồi tạo lại.
+          </DialogDescription>
+        </DialogHeader>
+        <BeneficiaryForm vaultId={vaultId} record={record} onCancel={onClose} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Hộp thoại xóa; hồ sơ còn nằm trong gói bàn giao thì không cho xóa (Backend cũng chặn). */
 function DeleteBeneficiaryDialog({
   vaultId,
   record,
@@ -52,20 +86,29 @@ function DeleteBeneficiaryDialog({
 }) {
   const action = usePrivateAction();
   const client = useQueryClient();
+  const [understood, setUnderstood] = useState(false);
   const blocked = record.containerIds.length > 0;
   if (blocked) {
     return (
       <Dialog open onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
+        <DialogContent className={DIALOG_CLASS} showCloseButton={false}>
           <DialogHeader>
-            <DialogTitle>Không xóa được người nhận</DialogTitle>
+            <DialogTitle className={DIALOG_TITLE}>Không xóa được người nhận</DialogTitle>
+            <DialogDescription className="text-heritage-muted">
+              {record.fullName} đang được gán vào gói bàn giao nên hệ thống giữ lại.
+            </DialogDescription>
           </DialogHeader>
-          <Notice tone="danger" role="alert">
-            <span className="font-semibold">
-              {record.fullName} đang ở trong {describeGroups(record.containerIds, groupNames)}.
-            </span>{" "}
-            Hãy gỡ ra trước khi xóa.
-          </Notice>
+          <ul className="divide-y divide-heritage-border">
+            {listGroupNames(record.containerIds, groupNames).map((name, index) => (
+              <li key={`${name}-${index}`} className="py-3 text-sm font-semibold">
+                {name}
+              </li>
+            ))}
+          </ul>
+          <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+            {record.fullName} đang ở trong {record.containerIds.length} gói bàn giao. Hãy gỡ người
+            nhận khỏi các gói trên, rồi xóa lại.
+          </p>
           <DialogFooter>
             <button type="button" className={buttonStyles.outline} onClick={onClose}>
               Đóng
@@ -80,15 +123,29 @@ function DeleteBeneficiaryDialog({
   }
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
-      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
+      <DialogContent className={DIALOG_CLASS} showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>Xóa người nhận</DialogTitle>
-          <DialogDescription>
-            Xóa hồ sơ {record.fullName} (****{record.citizenIdLast4})? Thao tác này không hoàn tác
-            được.
+          <DialogTitle className={DIALOG_TITLE}>Xóa “{record.fullName}”?</DialogTitle>
+          <DialogDescription className="text-heritage-muted">
+            Hồ sơ người nhận (****{record.citizenIdLast4}) sẽ bị xóa khỏi kho. Người này chưa thuộc
+            gói bàn giao nào.
           </DialogDescription>
         </DialogHeader>
-        {action.error && <StatusBanner tone="error">{action.error}</StatusBanner>}
+        <label className="flex min-h-11 items-center gap-3 text-sm">
+          <input
+            type="checkbox"
+            className="size-5"
+            checked={understood}
+            disabled={action.pending}
+            onChange={(event) => setUnderstood(event.target.checked)}
+          />
+          Tôi hiểu thao tác này không hoàn tác được.
+        </label>
+        {action.error && (
+          <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+            {action.error}
+          </p>
+        )}
         <DialogFooter>
           <button
             type="button"
@@ -98,9 +155,10 @@ function DeleteBeneficiaryDialog({
           >
             Hủy
           </button>
-          <Button
-            className="bg-red-700 text-white hover:bg-red-800"
-            disabled={action.pending}
+          <button
+            type="button"
+            className={RED_BUTTON}
+            disabled={action.pending || !understood}
             onClick={() =>
               void action.execute(
                 () => beneficiaryService.remove(vaultId, record.id),
@@ -112,24 +170,29 @@ function DeleteBeneficiaryDialog({
               )
             }
           >
-            {action.pending ? "Đang xóa…" : "Xóa hồ sơ"}
-          </Button>
+            {action.pending ? "Đang xóa…" : "Xóa người nhận"}
+          </button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-/** Một hàng trong bảng người nhận: tên, CCCD che, liên hệ, số gói bàn giao; "Sửa" và "Xóa" mở hộp thoại. */
+/**
+ * Một hàng trong bảng người nhận: avatar, họ tên và ngày sinh, CCCD che, liên hệ, số gói bàn giao;
+ * "Sửa" và "Xóa" mở hộp thoại. `readOnly` (gói dịch vụ đang gia hạn) khóa "Sửa" nhưng vẫn cho xóa.
+ */
 export function BeneficiaryRow({
   vaultId,
   record,
   groupNames = {},
+  readOnly = false,
 }: {
   vaultId: string;
   record: Beneficiary;
   /** id gói bàn giao → tên gói bàn giao, do widget tra; thiếu thì thông báo chỉ nêu số gói bàn giao. */
   groupNames?: Record<string, string>;
+  readOnly?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -148,55 +211,51 @@ export function BeneficiaryRow({
       <td className="py-4 pr-4">
         <div className="flex items-center gap-3">
           <span
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#E0C486] font-semibold text-[#0A281E]"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#E0C486] font-semibold text-[#0A281E]"
             aria-hidden="true"
           >
             {record.fullName.charAt(0).toUpperCase()}
           </span>
-          <span className="break-words font-semibold">{record.fullName}</span>
+          <span className="min-w-0">
+            <span className="block break-words font-semibold">{record.fullName}</span>
+            <span className="block text-xs text-heritage-muted">
+              Sinh {formatBirthDate(record.dateOfBirth)}
+            </span>
+          </span>
+          {record.isMinor && <Chip tone="neutral">Chưa đủ 18 tuổi</Chip>}
         </div>
       </td>
       <td className="px-4 py-4 font-mono text-xs text-heritage-muted">
         •••• {record.citizenIdLast4}
       </td>
       <td className="break-words px-4 py-4 text-heritage-muted">{contact}</td>
-      <td className="px-4 py-4">
-        <span className="rounded-full bg-[#F1E7D0] px-3 py-1 text-xs text-[#7A5B24]">
-          {groupLabel}
-        </span>
-      </td>
+      <td className="px-4 py-4 text-heritage-muted">{groupLabel}</td>
       <td className="py-4 pl-4">
         <div className="flex justify-end gap-2">
-          <Button
-            variant="outline"
-            className="border-heritage-primary font-semibold text-heritage-primary"
+          <button
+            type="button"
+            className={`${buttonStyles.outline} disabled:border-transparent disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
             aria-label={`Sửa hồ sơ ${record.fullName}`}
+            disabled={readOnly}
             onClick={() => setEditing(true)}
           >
             Sửa
-          </Button>
-          <Button
-            variant="outline"
-            className="border-red-300 font-semibold text-red-700 hover:bg-red-50"
+          </button>
+          <button
+            type="button"
+            className={buttonStyles.danger}
             aria-label={`Xóa hồ sơ ${record.fullName}`}
             onClick={() => setDeleting(true)}
           >
             Xóa
-          </Button>
+          </button>
         </div>
         {editing && (
-          <Dialog open onOpenChange={(open) => !open && setEditing(false)}>
-            <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Sửa hồ sơ {record.fullName}</DialogTitle>
-                <DialogDescription>
-                  Số CCCD (****{record.citizenIdLast4}) không sửa được. Muốn đổi thì xóa hồ sơ rồi
-                  tạo lại.
-                </DialogDescription>
-              </DialogHeader>
-              <BeneficiaryForm vaultId={vaultId} record={record} />
-            </DialogContent>
-          </Dialog>
+          <EditBeneficiaryDialog
+            vaultId={vaultId}
+            record={record}
+            onClose={() => setEditing(false)}
+          />
         )}
         {deleting && (
           <DeleteBeneficiaryDialog

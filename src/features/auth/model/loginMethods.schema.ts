@@ -24,6 +24,8 @@ export const linkGoogleMethodSchema = z.object({
   currentPassword,
 });
 export const unlinkGoogleMethodSchema = z.object({ currentPassword });
+/** Chỉ kiểm tra mật khẩu hiện tại, không đổi dữ liệu (mở bước chọn Google khi liên kết). */
+export const verifyPasswordMethodSchema = z.object({ currentPassword });
 export const removePasswordMethodSchema = z.object({
   currentPassword,
   googleIdToken: googleToken,

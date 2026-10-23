@@ -67,6 +67,7 @@ describe("hàng người nhận", () => {
   it("hiện tên, 4 số cuối CCCD, liên hệ và số gói bàn giao đang gắn", () => {
     renderRow();
     expect(screen.getByText("Nguyễn Văn An")).toBeInTheDocument();
+    expect(screen.getByText("Sinh 20/05/1990")).toBeInTheDocument();
     expect(screen.getByText(/•••• 8901/)).toBeInTheDocument();
     expect(screen.getByText("an@example.test")).toBeInTheDocument();
     expect(screen.getByText("2 gói bàn giao")).toBeInTheDocument();
@@ -86,21 +87,40 @@ describe("hàng người nhận", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sửa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).queryByLabelText("Số CCCD")).not.toBeInTheDocument();
-    fireEvent.change(within(dialog).getByLabelText("Họ tên"), {
+    expect(within(dialog).getByText("•••••••• 8901")).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText(/^Họ và tên/), {
       target: { value: "Nguyễn Văn Bình" },
     });
-    fireEvent.click(within(dialog).getByRole("button", { name: "Lưu hồ sơ" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Lưu thay đổi" }));
     await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
     expect(put.mock.calls[0][1]).toMatchObject({ etag: '"0"', fullName: "Nguyễn Văn Bình" });
   });
 
-  it("khóa nút xóa khi hồ sơ còn nằm trong gói bàn giao", async () => {
+  it("hộp thoại sửa báo số gói bàn giao bị ảnh hưởng và không còn nút xóa", async () => {
     renderRow();
     fireEvent.click(screen.getByRole("button", { name: "Sửa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
-    fireEvent.click(within(dialog).getByRole("checkbox"));
-    expect(within(dialog).getByRole("button", { name: "Xóa hồ sơ" })).toBeDisabled();
-    expect(within(dialog).getByText(/Gỡ khỏi các gói bàn giao trước khi xóa/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Người này đang thuộc 2 gói bàn giao/)).toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: /Xóa/ })).not.toBeInTheDocument();
+  });
+
+  it("khóa Sửa khi gói dịch vụ đang gia hạn nhưng vẫn cho Xóa", () => {
+    const store = configureStore({ reducer: { auth: authReducer } });
+    render(
+      <Provider store={store}>
+        <QueryClientProvider client={client}>
+          <MemoryRouter>
+            <table>
+              <tbody>
+                <BeneficiaryRow vaultId={VAULT_ID} record={record} readOnly />
+              </tbody>
+            </table>
+          </MemoryRouter>
+        </QueryClientProvider>
+      </Provider>,
+    );
+    expect(screen.getByRole("button", { name: "Sửa hồ sơ Nguyễn Văn An" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" })).toBeEnabled();
   });
 
   it("Xóa mở hộp thoại xác nhận và gọi API xóa khi hồ sơ chưa vào gói bàn giao", async () => {
@@ -108,7 +128,10 @@ describe("hàng người nhận", () => {
     renderRow({ containerIds: [] });
     fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
-    fireEvent.click(within(dialog).getByRole("button", { name: "Xóa hồ sơ" }));
+    const confirm = within(dialog).getByRole("button", { name: "Xóa người nhận" });
+    expect(confirm).toBeDisabled();
+    fireEvent.click(within(dialog).getByRole("checkbox"));
+    fireEvent.click(confirm);
     await waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
   });
 
@@ -126,8 +149,10 @@ describe("hàng người nhận", () => {
     renderRow({}, { [VAULT_ID]: "Giấy tờ gia đình", [CONTAINER_ID]: "Tài khoản game" });
     fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Giấy tờ gia đình");
+    expect(dialog).toHaveTextContent("Tài khoản game");
     expect(within(dialog).getByRole("alert")).toHaveTextContent(
-      "Nguyễn Văn An đang ở trong gói bàn giao “Giấy tờ gia đình”, “Tài khoản game”. Hãy gỡ ra trước khi xóa.",
+      "Nguyễn Văn An đang ở trong 2 gói bàn giao. Hãy gỡ người nhận khỏi các gói trên, rồi xóa lại.",
     );
     expect(within(dialog).getByRole("button", { name: "Đóng" })).toBeInTheDocument();
     expect(within(dialog).getByRole("link", { name: "Mở gói bàn giao" })).toHaveAttribute(

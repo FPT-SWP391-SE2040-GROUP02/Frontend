@@ -93,9 +93,7 @@ describe("EkycStatusPanel", () => {
     });
     setup(true, { purpose: "BENEFICIARY_CLAIM", turnId: null });
     expect(await screen.findByRole("alert")).toHaveTextContent("Mở màn này từ một lượt bàn giao");
-    expect(
-      screen.queryByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Đồng ý và bắt đầu" })).not.toBeInTheDocument();
   });
   it("shows upload form for OWNER_ENROLLMENT without turnId", async () => {
     vi.mocked(ekycService.getStatus).mockResolvedValue({
@@ -112,9 +110,7 @@ describe("EkycStatusPanel", () => {
       backSideChecked: false,
     });
     setup(true, { purpose: "OWNER_ENROLLMENT", turnId: null });
-    expect(
-      await screen.findByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Đồng ý và bắt đầu" })).toBeInTheDocument();
   });
   it("does not offer complete button when page does not enable it", async () => {
     vi.mocked(ekycService.getStatus).mockResolvedValue({
@@ -135,9 +131,7 @@ describe("EkycStatusPanel", () => {
       turnId: "11111111-1111-1111-1111-111111111111",
       canComplete: false,
     });
-    expect(
-      await screen.findByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Đồng ý và bắt đầu" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Hoàn tất danh tính lượt nhận" }),
     ).not.toBeInTheDocument();
@@ -188,26 +182,30 @@ describe("EkycStatusPanel", () => {
     const { rerender } = render(
       <Provider store={store}>
         <QueryClientProvider client={client}>
-          <EkycStatusPanel
-            purpose="BENEFICIARY_CLAIM"
-            turnId="11111111-1111-1111-1111-111111111111"
-            canComplete
-            completeResult={{ error: "Lỗi máy chủ." }}
-          />
+          <MemoryRouter>
+            <EkycStatusPanel
+              purpose="BENEFICIARY_CLAIM"
+              turnId="11111111-1111-1111-1111-111111111111"
+              canComplete
+              completeResult={{ error: "Lỗi máy chủ." }}
+            />
+          </MemoryRouter>
         </QueryClientProvider>
       </Provider>,
     );
-    await screen.findByRole("button", { name: "Tôi đồng ý và tiếp tục" });
+    await screen.findByRole("button", { name: "Đồng ý và bắt đầu" });
     expect(screen.getByText("Lỗi máy chủ.")).toBeInTheDocument();
     rerender(
       <Provider store={store}>
         <QueryClientProvider client={client}>
-          <EkycStatusPanel
-            purpose="BENEFICIARY_CLAIM"
-            turnId="11111111-1111-1111-1111-111111111111"
-            canComplete
-            completeResult={{ succeeded: true }}
-          />
+          <MemoryRouter>
+            <EkycStatusPanel
+              purpose="BENEFICIARY_CLAIM"
+              turnId="11111111-1111-1111-1111-111111111111"
+              canComplete
+              completeResult={{ succeeded: true }}
+            />
+          </MemoryRouter>
         </QueryClientProvider>
       </Provider>,
     );
@@ -232,9 +230,7 @@ describe("EkycStatusPanel", () => {
       turnId: "11111111-1111-1111-1111-111111111111",
       canComplete: false,
     });
-    expect(
-      await screen.findByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Đồng ý và bắt đầu" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Hoàn tất danh tính lượt nhận" }),
     ).not.toBeInTheDocument();
@@ -258,9 +254,7 @@ describe("EkycStatusPanel", () => {
       turnId: "11111111-1111-1111-1111-111111111111",
       canComplete: false,
     });
-    expect(
-      await screen.findByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Đồng ý và bắt đầu" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Hoàn tất danh tính lượt nhận" }),
     ).not.toBeInTheDocument();
@@ -295,8 +289,6 @@ describe("EkycStatusPanel", () => {
       "/dashboard",
     );
     // Đã đạt thì khóa: không còn form tải giấy tờ.
-    expect(
-      screen.queryByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Đồng ý và bắt đầu" })).not.toBeInTheDocument();
   });
 });

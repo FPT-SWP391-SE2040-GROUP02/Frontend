@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
   AxiosError,
@@ -129,14 +129,14 @@ it("shows a Vietnamese grant status and offers download only for an ACTIVE grant
   backendDownloadFails(500, {}, "EXPIRED");
   setup();
   expect(await screen.findByText(/Đã hết hạn, không còn tải được/)).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Tải nội dung" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /^Tải xuống/ })).not.toBeInTheDocument();
 });
 
 it("keeps the 500 CONTENT_INTEGRITY_FAILED code from a Blob body and never reports success", async () => {
   backendDownloadFails(500, { code: "CONTENT_INTEGRITY_FAILED" });
   const createUrl = vi.spyOn(URL, "createObjectURL");
   setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
+  fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent("tính toàn vẹn");
   expect(createUrl).not.toHaveBeenCalled();
 });
@@ -145,7 +145,7 @@ it("explains why GRANT_NOT_ACTIVE rejected the download using the BE reason", as
   backendDownloadFails(403, { code: "GRANT_NOT_ACTIVE", reason: "BLOCKED" });
   const createUrl = vi.spyOn(URL, "createObjectURL");
   setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
+  fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent("đang được xác minh lại");
   expect(createUrl).not.toHaveBeenCalled();
 });
@@ -157,7 +157,7 @@ it.each([
   backendDownloadFails(403, { code: "GRANT_NOT_ACTIVE", reason });
   const createUrl = vi.spyOn(URL, "createObjectURL");
   setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
+  fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent(text);
   expect(createUrl).not.toHaveBeenCalled();
 });
@@ -173,7 +173,7 @@ it("saves the file only after the Backend returns the content and then releases 
   Object.assign(URL, { createObjectURL: createUrl, revokeObjectURL: revokeUrl });
   const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
   setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
+  fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
   await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
   expect(createUrl).toHaveBeenCalledTimes(1);
   await waitFor(() => expect(revokeUrl).toHaveBeenCalledWith("blob:fixture"), { timeout: 3000 });
@@ -183,11 +183,11 @@ it("ignores a download that finishes after the account changed", async () => {
   const control = backendDownloadHangs();
   const createUrl = vi.spyOn(URL, "createObjectURL");
   const store = setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
-  await waitFor(() => expect(screen.getByRole("button", { name: "Tải nội dung" })).toBeDisabled());
+  fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
+  await waitFor(() => expect(screen.getByRole("button", { name: /^Tải xuống/ })).toBeDisabled());
   store.dispatch(setCredentials({ user: { ...user, id: CONTAINER_ID } }));
   control.release(new Blob(["noi dung"]));
-  await waitFor(() => expect(screen.getByRole("button", { name: "Tải nội dung" })).toBeEnabled());
+  await waitFor(() => expect(screen.getByRole("button", { name: /^Tải xuống/ })).toBeEnabled());
   expect(createUrl).not.toHaveBeenCalled();
 });
 
@@ -196,8 +196,8 @@ it("still saves the file when only the access token was refreshed for the same u
   Object.assign(URL, { createObjectURL: vi.fn(() => "blob:fixture"), revokeObjectURL: vi.fn() });
   const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
   setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
-  await waitFor(() => expect(screen.getByRole("button", { name: "Tải nội dung" })).toBeDisabled());
+  fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
+  await waitFor(() => expect(screen.getByRole("button", { name: /^Tải xuống/ })).toBeDisabled());
   accessTokenMemory.set("refreshed-token");
   control.release(new Blob(["noi dung"]));
   await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
@@ -211,7 +211,7 @@ it("shows a network failure of the download instead of staying silent", async ()
     return ok(config, [committedTurn("ACTIVE")]);
   };
   setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Tải nội dung" }));
+  fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Không kết nối được máy chủ");
 });
 
@@ -224,7 +224,7 @@ it("shows the Backend reason when claiming an invitation is rejected", async () 
     });
   };
   setup(<InvitationPanel />, "/receive?token=invitation-fixture");
-  fireEvent.click(await screen.findByRole("button", { name: "Xác nhận nhận lời mời" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Nhận lời mời" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Chủ kho không thể tự nhận");
   expect(screen.queryByRole("link", { name: "Xem lượt bàn giao của tôi" })).not.toBeInTheDocument();
 });
@@ -240,13 +240,21 @@ it("declines only after an explicit confirmation and then shows the server state
   };
   const post = vi.spyOn(apiClient, "post");
   setup();
-  const decline = await screen.findByRole("button", { name: "Từ chối tiếp nhận" });
-  expect(decline).toBeDisabled();
-  fireEvent.click(screen.getByRole("checkbox"));
+  const decline = await screen.findByRole("button", { name: "Từ chối" });
   fireEvent.click(decline);
+  const dialog = await screen.findByRole("dialog");
+  expect(dialog).toHaveTextContent("Từ chối nhận?");
+  expect(post).not.toHaveBeenCalled();
+  fireEvent.click(within(dialog).getByRole("button", { name: "Giữ lại" }));
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(post).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Từ chối" }));
+  fireEvent.click(
+    within(await screen.findByRole("dialog")).getByRole("button", { name: "Từ chối nhận" }),
+  );
   expect(await screen.findByText("Bạn đã từ chối lượt bàn giao này.")).toBeInTheDocument();
   expect(post).toHaveBeenCalledWith(`/handover/turns/${CONTAINER_ID}/decline`);
-  expect(screen.queryByRole("button", { name: "Đồng ý tiếp nhận" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Đồng ý nhận" })).not.toBeInTheDocument();
 });
 
 it("explains a rejected decision with the Backend reason and keeps the turn undecided", async () => {
@@ -258,7 +266,7 @@ it("explains a rejected decision with the Backend reason and keeps the turn unde
   };
   setup();
   fireEvent.click(await screen.findByRole("checkbox"));
-  fireEvent.click(screen.getByRole("button", { name: "Đồng ý tiếp nhận" }));
+  fireEvent.click(screen.getByRole("button", { name: "Đồng ý nhận" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("không cho phép thao tác này");
   expect(screen.queryByText(/Quyền xem/)).not.toBeInTheDocument();
 });
@@ -290,7 +298,7 @@ it("tells the recipient the invitation was already claimed by another account", 
     throw problem(config as never, 409, { code: "HANDOVER_ALREADY_CLAIMED" });
   };
   setup(<InvitationPanel />, "/receive?token=invitation-fixture");
-  fireEvent.click(await screen.findByRole("button", { name: "Xác nhận nhận lời mời" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Nhận lời mời" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Lời mời đã được nhận");
   expect(screen.queryByRole("link", { name: "Xem lượt bàn giao của tôi" })).not.toBeInTheDocument();
 });
@@ -301,8 +309,8 @@ it("does not leak or invent turns when the Backend hides a turn that is not the 
   };
   setup();
   expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được các lượt của bạn");
-  expect(screen.queryByRole("button", { name: "Đồng ý tiếp nhận" })).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Tải nội dung" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Đồng ý nhận" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /^Tải xuống/ })).not.toBeInTheDocument();
   await expect(handoverService.get(CONTAINER_ID)).rejects.toMatchObject({
     response: { status: 404 },
   });
@@ -315,7 +323,7 @@ it.each([
   apiClient.defaults.adapter = async (config) => ok(config, [committedTurn(grantStatus)]);
   setup();
   expect(await screen.findByText(new RegExp(label))).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Tải nội dung" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /^Tải xuống/ })).not.toBeInTheDocument();
 });
 
 it("explains a cancelled turn as a stopped handover, not a system error", async () => {
@@ -331,7 +339,7 @@ it("explains a claim blocked by an active hold", async () => {
     throw problem(config as never, 409, { code: "HANDOVER_NOT_ALLOWED", reason: "HOLD_ACTIVE" });
   };
   setup(<InvitationPanel />, "/receive?token=invitation-fixture");
-  fireEvent.click(await screen.findByRole("button", { name: "Xác nhận nhận lời mời" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Nhận lời mời" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Các hạn đang được giữ nguyên");
   expect(screen.queryByRole("link", { name: "Xem lượt bàn giao của tôi" })).not.toBeInTheDocument();
 });
@@ -345,9 +353,9 @@ it("explains a decision blocked by an active hold and keeps the turn undecided",
   };
   setup();
   fireEvent.click(await screen.findByRole("checkbox"));
-  fireEvent.click(screen.getByRole("button", { name: "Đồng ý tiếp nhận" }));
+  fireEvent.click(screen.getByRole("button", { name: "Đồng ý nhận" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Kho đang bị tạm giữ");
-  expect(screen.getByRole("button", { name: "Đồng ý tiếp nhận" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeInTheDocument();
 });
 
 it("still lets the recipient claim after the initial response deadline (BR-58)", async () => {
@@ -358,7 +366,7 @@ it("still lets the recipient claim after the initial response deadline (BR-58)",
   const post = vi.spyOn(apiClient, "post");
   setup(<InvitationPanel />, "/receive?token=invitation-fixture");
   expect(await screen.findByText(/Đã qua hạn phản hồi ban đầu/)).toBeInTheDocument();
-  const claim = screen.getByRole("button", { name: "Xác nhận nhận lời mời" });
+  const claim = screen.getByRole("button", { name: "Nhận lời mời" });
   expect(claim).toBeEnabled();
   fireEvent.click(claim);
   expect(

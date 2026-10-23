@@ -40,7 +40,7 @@ describe("form thêm người nhận", () => {
   it("bỏ trống họ tên và ngày sinh thì báo tiếng Việt, không hiện chữ Invalid", async () => {
     const post = vi.spyOn(apiClient, "post");
     renderForm();
-    fireEvent.click(screen.getByRole("button", { name: "Tạo hồ sơ người nhận" }));
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     expect(await screen.findByText("Vui lòng nhập họ tên.")).toBeInTheDocument();
     expect(screen.getByText("Vui lòng chọn ngày sinh.")).toBeInTheDocument();
     expect(screen.queryByText(/invalid/i)).not.toBeInTheDocument();
@@ -49,8 +49,8 @@ describe("form thêm người nhận", () => {
 
   it("hiện lỗi ngay dưới ô tương ứng", async () => {
     renderForm();
-    fireEvent.click(screen.getByRole("button", { name: "Tạo hồ sơ người nhận" }));
-    const nameLabel = (await screen.findByLabelText("Họ tên")).closest("label") as HTMLElement;
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    const nameLabel = (await screen.findByLabelText(/^Họ và tên/)).closest("label") as HTMLElement;
     expect(nameLabel).toHaveTextContent("Vui lòng nhập họ tên.");
   });
 
@@ -65,11 +65,11 @@ describe("form thêm người nhận", () => {
       }),
     );
     renderForm();
-    fireEvent.change(screen.getByLabelText("Số CCCD"), { target: { value: "083206000699" } });
-    fireEvent.change(screen.getByLabelText("Họ tên"), { target: { value: "Quan" } });
-    fireEvent.change(screen.getByLabelText("Ngày sinh"), { target: { value: "2000-02-16" } });
-    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "quan@example.test" } });
-    fireEvent.click(screen.getByRole("button", { name: "Tạo hồ sơ người nhận" }));
+    fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "083206000699" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Quan" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2000-02-16" } });
+    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "quan@example.test" } });
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("gói dịch vụ trả phí");
     expect(screen.getByRole("link", { name: "Xem gói dịch vụ" })).toHaveAttribute(
       "href",

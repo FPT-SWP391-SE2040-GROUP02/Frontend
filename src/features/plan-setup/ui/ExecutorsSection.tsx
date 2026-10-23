@@ -55,6 +55,14 @@ const PLAN_CHIP_LABELS: Record<string, string> = {
   CLOSED: "Đã đóng",
 };
 
+/** Lý do khóa ở đầu câu thông báo chỉ xem (thiết kế 186). */
+const LOCKED_REASONS: Record<string, string> = {
+  DEATH_CASE_OPEN: "Kế hoạch đang có hồ sơ báo tử",
+  HANDOVER_IN_PROGRESS: "Kế hoạch đang bàn giao",
+  BLOCKED: "Kế hoạch đang bị chặn",
+  CLOSED: "Kế hoạch đã đóng",
+};
+
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
 const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
 const ALLOWED_ACTIONS = ["Báo tin cho hệ thống", "Theo dõi tiến trình bàn giao"];
@@ -96,10 +104,13 @@ function ActionList({
   title,
   items,
   allowed,
+  readOnly = false,
 }: {
   title: string;
   items: string[];
   allowed: boolean;
+  /** Chế độ chỉ xem (thiết kế 186): chữ màu theo nhóm, không biểu tượng. */
+  readOnly?: boolean;
 }) {
   let titleColor = "text-red-700";
   let mark: ReactNode = <X className="size-4 text-red-700" aria-hidden="true" />;
@@ -109,11 +120,27 @@ function ActionList({
   }
   const rows: ReactNode[] = [];
   for (const item of items) {
+    if (readOnly) {
+      rows.push(
+        <li key={item} className={`text-sm font-medium ${titleColor}`}>
+          {item}
+        </li>,
+      );
+      continue;
+    }
     rows.push(
       <li key={item} className="flex items-center gap-3 text-sm">
         {mark}
         {item}
       </li>,
+    );
+  }
+  if (readOnly) {
+    return (
+      <div className="mt-5">
+        <p className={`text-sm font-semibold ${titleColor}`}>{title}</p>
+        <ul className="mt-3 space-y-2">{rows}</ul>
+      </div>
     );
   }
   return (
@@ -298,6 +325,9 @@ function RevokeDialog({
             {executor.inviteeEmail} sẽ không còn là {roleLabel} của kho này.
           </DialogDescription>
         </DialogHeader>
+        <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
+          Hồ sơ đang xử lý (nếu có) sẽ được giữ nguyên.
+        </p>
         {action.error && (
           <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
             {action.error}
@@ -445,8 +475,13 @@ function RoleCard(props: RoleCardProps) {
           giữ vai trò đến khi người mới chấp nhận.
         </p>
       )}
-      <ActionList title="Được làm" items={ALLOWED_ACTIONS} allowed />
-      <ActionList title="Không được làm" items={FORBIDDEN_ACTIONS} allowed={false} />
+      <ActionList title="Được làm" items={ALLOWED_ACTIONS} allowed readOnly={!manageable} />
+      <ActionList
+        title="Không được làm"
+        items={FORBIDDEN_ACTIONS}
+        allowed={false}
+        readOnly={!manageable}
+      />
       {manageable && (
         <div className="mt-6 flex flex-wrap gap-3">
           {role === "PRIMARY" && holder.status === "ACCEPTED" && (
@@ -577,10 +612,17 @@ export function ExecutorsSection({
   if (Object.hasOwn(PLAN_CHIP_LABELS, setup.planStatus)) {
     chipLabel = PLAN_CHIP_LABELS[setup.planStatus];
   }
+  let chipClass = "bg-green-100 text-green-800";
   let banner: ReactNode = null;
   if (!manageable) {
-    banner =
-      "Kế hoạch đang có hồ sơ báo tử hoặc đang bàn giao nên chưa thể mời, gửi lại hay thu hồi người thực hiện. Bạn chỉ xem được.";
+    // Bị khóa: chip "Chỉ xem" thay cho trạng thái kế hoạch, lý do nằm ở thông báo bên dưới.
+    chipLabel = "Chỉ xem";
+    chipClass = "bg-[#ECE8DB] text-[#3D3A2E]";
+    let reason = "Kế hoạch đang bị khóa";
+    if (Object.hasOwn(LOCKED_REASONS, setup.planStatus)) {
+      reason = LOCKED_REASONS[setup.planStatus];
+    }
+    banner = `${reason} nên bạn chưa thể mời, gửi lại hay thu hồi người thực hiện. Bạn chỉ xem được.`;
   } else if (planRunning) {
     banner =
       "Kế hoạch đang hoạt động. Bạn vẫn mời, gửi lại và thu hồi được. Người thực hiện chính đã nhận nhiệm vụ không thu hồi trực tiếp: hãy mời người thay, người cũ giữ vai trò tới khi người mới chấp nhận.";
@@ -590,7 +632,7 @@ export function ExecutorsSection({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-end gap-3">
-        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${chipClass}`}>
           {chipLabel}
         </span>
         {manageable && (
@@ -647,21 +689,30 @@ export function ExecutorsSection({
         </div>
       )}
       <p className="text-sm leading-6">{setup.executorScopeText}</p>
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <section aria-label="Vì sao có người xét duyệt riêng" className={CARD}>
-          <h2 className="text-xl font-medium text-heritage-primary">
-            Vì sao có người xét duyệt riêng?
-          </h2>
-          <p className="mt-3 text-sm leading-6 text-heritage-muted">
-            Người báo tin và người xét duyệt là hai người khác nhau. Người xét duyệt là nhân viên do
-            hệ thống hoặc quản trị viên phân công, bạn không mời và không thấy họ. Mỗi lần bàn giao
-            còn có 72 giờ để bạn lên tiếng và bước xác minh eKYC cho người nhận.
-          </p>
-          <p className="mt-4 flex items-center gap-2 text-xs text-heritage-muted">
-            <Lock className="size-4 shrink-0" aria-hidden="true" />
-            Nội dung kho được mã hóa trên máy chủ. Không ai trong nhóm này đọc được.
-          </p>
-        </section>
+      {/* Thiết kế 135: kế hoạch đang chạy thì bỏ thẻ giải thích, Hoạt động gần đây chiếm cả hàng. */}
+      <div
+        className={
+          planRunning
+            ? "grid items-start gap-6"
+            : "grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+        }
+      >
+        {!planRunning && (
+          <section aria-label="Vì sao có người xét duyệt riêng" className={CARD}>
+            <h2 className="text-xl font-medium text-heritage-primary">
+              Vì sao có người xét duyệt riêng?
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-heritage-muted">
+              Người báo tin và người xét duyệt là hai người khác nhau. Người xét duyệt là nhân viên
+              do hệ thống hoặc quản trị viên phân công, bạn không mời và không thấy họ. Mỗi lần bàn
+              giao còn có 72 giờ để bạn lên tiếng và bước xác minh eKYC cho người nhận.
+            </p>
+            <p className="mt-4 flex items-center gap-2 text-xs text-heritage-muted">
+              <Lock className="size-4 shrink-0" aria-hidden="true" />
+              Nội dung kho được mã hóa trên máy chủ. Không ai trong nhóm này đọc được.
+            </p>
+          </section>
+        )}
         <RecentActivity executors={setup.executors} />
       </div>
       {dialog !== null && dialog.kind === "invite" && (

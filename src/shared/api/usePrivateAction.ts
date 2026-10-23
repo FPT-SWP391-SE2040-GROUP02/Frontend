@@ -98,11 +98,11 @@ const reauthCodes = new Set([
 ]);
 
 const messages: Record<string, string> = {
-  REAUTHENTICATION_FAILED: "Mật khẩu hiện tại chưa đúng. Kiểm tra và thử lại.",
+  REAUTHENTICATION_FAILED: "Mật khẩu hiện tại chưa đúng. Bạn nhập lại rồi thử tiếp.",
   INVALID_GOOGLE_TOKEN:
     "Đăng nhập Google chưa hợp lệ hoặc không phải tài khoản Google đã liên kết. Thử lại bằng đúng tài khoản.",
   GOOGLE_ACCOUNT_ALREADY_LINKED:
-    "Tài khoản Google này đã được liên kết với một tài khoản LegacyVault khác.",
+    "Tài khoản Google này đã được dùng ở một tài khoản LegacyVault khác. Hãy chọn tài khoản Google khác.",
   LAST_LOGIN_METHOD: "Đây là phương thức đăng nhập cuối cùng nên không thể gỡ.",
   LOGIN_METHOD_ALREADY_EXISTS: "Tài khoản đã có mật khẩu. Tải lại để xem trạng thái mới nhất.",
   INVALID_TWO_FACTOR_CODE:

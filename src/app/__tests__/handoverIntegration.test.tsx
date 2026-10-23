@@ -95,7 +95,8 @@ it("does not submit selfie before the OCR confirmation and keeps OCR out of the 
     <EkycUploads purpose="OWNER_ENROLLMENT" canComplete={false} onComplete={() => undefined} />,
   );
   // Bước consent
-  fireEvent.click(screen.getByRole("button", { name: "Tôi đồng ý và tiếp tục" }));
+  for (const box of screen.getAllByRole("checkbox")) fireEvent.click(box);
+  fireEvent.click(screen.getByRole("button", { name: "Đồng ý và bắt đầu" }));
   expect(await screen.findByLabelText("Ảnh mặt trước giấy tờ")).toBeInTheDocument();
   // Bước front
   fireEvent.change(screen.getByLabelText("Ảnh mặt trước giấy tờ"), {
@@ -223,7 +224,8 @@ it("only allows Beneficiary identity-complete when PASSED + MATCHED + bound veri
     `${ROUTES.BENEFICIARY.EKYC_CAMERA}?turnId=${CONTAINER_ID}`,
   );
   // Bấm consent
-  fireEvent.click(await screen.findByRole("button", { name: "Tôi đồng ý và tiếp tục" }));
+  for (const box of await screen.findAllByRole("checkbox")) fireEvent.click(box);
+  fireEvent.click(await screen.findByRole("button", { name: "Đồng ý và bắt đầu" }));
   // Front + back
   fireEvent.change(await screen.findByLabelText("Ảnh mặt trước giấy tờ"), {
     target: { files: [new File(["fixture"], "id.png", { type: "image/png" })] },
@@ -258,7 +260,8 @@ it("does not call face-match before liveness is configured", async () => {
     />,
   );
   // consent bị pending vì post trả rỗng; đây chỉ là regression: face-match không bao giờ gọi.
-  fireEvent.click(screen.getByRole("button", { name: "Tôi đồng ý và tiếp tục" }));
+  for (const box of screen.getAllByRole("checkbox")) fireEvent.click(box);
+  fireEvent.click(screen.getByRole("button", { name: "Đồng ý và bắt đầu" }));
   await new Promise((r) => setTimeout(r, 10));
   expect(post.mock.calls.map((c) => c[0])).not.toContain("/ekyc/face-match");
 });
@@ -300,7 +303,7 @@ it("requires an explicit receiving decision and preserves absence of grant after
   };
   const post = vi.spyOn(apiClient, "post");
   setup(<HandoverPortal />);
-  const accept = await screen.findByRole("button", { name: "Đồng ý tiếp nhận" });
+  const accept = await screen.findByRole("button", { name: "Đồng ý nhận" });
   expect(accept).toBeDisabled();
   fireEvent.click(screen.getByRole("checkbox"));
   fireEvent.click(accept);
@@ -416,12 +419,12 @@ it("never uses a cached passing verification to complete a different turn", asyn
     );
   }
   setup(<SwitchTurn />, ROUTES.BENEFICIARY.EKYC_CAMERA + "?turnId=" + CONTAINER_ID);
-  await screen.findByRole("button", { name: "Tôi đồng ý và tiếp tục" });
+  await screen.findByRole("button", { name: "Đồng ý và bắt đầu" });
   expect(
     screen.queryByRole("button", { name: "Hoàn tất danh tính lượt nhận" }),
   ).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Đổi lượt" }));
-  await screen.findByRole("button", { name: "Tôi đồng ý và tiếp tục" });
+  await screen.findByRole("button", { name: "Đồng ý và bắt đầu" });
   expect(
     screen.queryByRole("button", { name: "Hoàn tất danh tính lượt nhận" }),
   ).not.toBeInTheDocument();

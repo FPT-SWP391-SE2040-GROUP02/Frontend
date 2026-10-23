@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   useOwnerPackages,
   useOwnerVault,
@@ -8,19 +8,57 @@ import {
 import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
-import { BeneficiaryRow } from "@/features/beneficiaries/ui/BeneficiaryRow";
+import { BeneficiaryRow, EditBeneficiaryDialog } from "@/features/beneficiaries/ui/BeneficiaryRow";
+import { beneficiaryResponseSchema } from "@/features/beneficiaries/model/beneficiary.schema";
+import { ROUTES } from "@/shared/config/routes.config";
+import { buttonStyles } from "@/shared/ui/heritageKit";
+import type { z } from "zod";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
+
+/** Gói Free chưa tạo được hồ sơ người nhận (BE trả 403 PAID_TIER_REQUIRED); hiện hộp thoại này thay cho form (thiết kế 169). */
+function PaidTierDialog({ onClose }: { onClose: () => void }) {
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-lg bg-[#FBFAF5] p-7" showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-heritage-primary">
+            Cần gói trả phí
+          </DialogTitle>
+          <DialogDescription className="text-heritage-muted">
+            Gói Miễn phí chưa thêm được người nhận. Bạn cần nâng lên gói trả phí để tạo hồ sơ người
+            nhận.
+          </DialogDescription>
+        </DialogHeader>
+        <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+          Kho và nội dung hiện có vẫn giữ nguyên.
+        </p>
+        <DialogFooter>
+          <button type="button" className={buttonStyles.outline} onClick={onClose}>
+            Để sau
+          </button>
+          <Link to={ROUTES.BILLING.PLANS} className={buttonStyles.gold}>
+            Xem gói dịch vụ
+          </Link>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /** Trang quản lý hồ sơ chỉ cache DTO đã che CCCD. */
 export function OwnerBeneficiaries() {
   const [params, setParams] = useSearchParams();
   const [adding, setAdding] = useState(false);
+  const [reopened, setReopened] = useState<Beneficiary | null>(null);
   const requested = Number(params.get("page") ?? 1);
   const page =
     Number.isSafeInteger(requested) && requested > 0 && requested <= 1_000_000 ? requested : 1;
@@ -53,6 +91,9 @@ export function OwnerBeneficiaries() {
       </div>
     );
   if (vault.isPending || list.isPending) return <p role="status">Đang tải hồ sơ người nhận…</p>;
+  // Gia hạn (GRACE_READ_ONLY): không thêm/sửa được, vẫn xóa được (thiết kế 173). Gói Free cần nâng cấp để thêm.
+  const readOnly = vault.data.serviceStatus === "GRACE_READ_ONLY";
+  const freeTier = vault.data.serviceTier === "FREE";
   const rows: ReactNode[] = [];
   for (const record of list.data.items) {
     rows.push(
@@ -61,19 +102,27 @@ export function OwnerBeneficiaries() {
         vaultId={vault.data.id}
         record={record}
         groupNames={groupNames}
+        readOnly={readOnly}
       />,
     );
   }
   return (
     <div className="space-y-6">
+      {readOnly && (
+        <p role="status" className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+          Gói dịch vụ đang trong thời gian gia hạn. Bạn chưa thêm hoặc sửa được người nhận, nhưng
+          vẫn xóa được.
+        </p>
+      )}
       <div className="flex justify-end">
-        <Button
-          size="lg"
-          className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+        <button
+          type="button"
+          className={`${buttonStyles.gold} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+          disabled={readOnly}
           onClick={() => setAdding(true)}
         >
           Thêm người nhận
-        </Button>
+        </button>
       </div>
       <section
         aria-label="Danh sách người nhận"
@@ -140,19 +189,39 @@ export function OwnerBeneficiaries() {
           </Button>
         </nav>
       </section>
-      {adding && (
+      {adding && freeTier && <PaidTierDialog onClose={() => setAdding(false)} />}
+      {adding && !freeTier && (
         <Dialog open onOpenChange={(open) => !open && setAdding(false)}>
-          <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+          <DialogContent
+            className="max-h-[90dvh] max-w-lg overflow-y-auto bg-[#FBFAF5] p-7"
+            showCloseButton={false}
+          >
             <DialogHeader>
-              <DialogTitle>Thêm người nhận</DialogTitle>
-              <DialogDescription>
-                Tạo hồ sơ không tự gắn người nhận vào gói bàn giao. Số CCCD chỉ hiện 4 số cuối sau
-                khi lưu.
+              <DialogTitle className="text-xl font-semibold text-heritage-primary">
+                Thêm người nhận
+              </DialogTitle>
+              <DialogDescription className="text-heritage-muted">
+                Nhập thông tin để đối chiếu khi bàn giao. Tạo hồ sơ không tự gắn người nhận vào gói
+                bàn giao.
               </DialogDescription>
             </DialogHeader>
-            <BeneficiaryForm vaultId={vault.data.id} />
+            <BeneficiaryForm
+              vaultId={vault.data.id}
+              onCancel={() => setAdding(false)}
+              onOpenExisting={(existing) => {
+                setAdding(false);
+                setReopened(existing);
+              }}
+            />
           </DialogContent>
         </Dialog>
+      )}
+      {reopened && (
+        <EditBeneficiaryDialog
+          vaultId={vault.data.id}
+          record={reopened}
+          onClose={() => setReopened(null)}
+        />
       )}
     </div>
   );
