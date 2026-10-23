@@ -702,7 +702,8 @@ it("yêu cầu bổ sung thành công gửi đúng etag, lý do và các phần 
     }),
   );
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-  expect(screen.getByTestId("search").textContent).not.toMatch(/modal/);
+  // URL bỏ `modal` sau khi dialog đóng; chờ thay vì kiểm ngay để không phụ thuộc tốc độ máy.
+  await waitFor(() => expect(screen.getByTestId("search").textContent).not.toMatch(/modal/));
 });
 
 it("409 EDIT_CONFLICT: Tải lại hồ sơ đọc lại chi tiết từ server và đóng dialog", async () => {
