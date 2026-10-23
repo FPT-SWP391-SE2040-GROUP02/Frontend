@@ -455,10 +455,7 @@ it("Người tin cậy: rào lỗi ngay trên form nếu mời trùng email vớ
   });
   fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   expect(
-    await within(dialog).findByText(
-      "Email này đã được mời hoặc đang là Người thực hiện chính.",
-    ),
+    await within(dialog).findByText("Email này đã được mời hoặc đang là Người thực hiện chính."),
   ).toBeInTheDocument();
   expect(post).not.toHaveBeenCalled();
 });
-

@@ -69,11 +69,7 @@ function inferSuggestedParts(reasonText: string): SupplementPart[] {
   if (lower.includes("ngày cấp")) {
     suggested.push("ISSUED_ON");
   }
-  if (
-    lower.includes("nơi cấp") ||
-    lower.includes("cơ quan cấp") ||
-    lower.includes("ubnd")
-  ) {
+  if (lower.includes("nơi cấp") || lower.includes("cơ quan cấp") || lower.includes("ubnd")) {
     suggested.push("ISSUED_BY");
   }
   if (
@@ -279,7 +275,12 @@ function RequestSupplementModal({
     ),
     mode: "onBlur",
     reValidateMode: "onBlur",
-    defaultValues: { etag: detail.etag, reason: initialReason, parts: defaultParts, confirm: false },
+    defaultValues: {
+      etag: detail.etag,
+      reason: initialReason,
+      parts: defaultParts,
+      confirm: false,
+    },
   });
   const parts = useWatch({ control: form.control, name: "parts" }) ?? [];
   const confirm = useWatch({ control: form.control, name: "confirm" });
@@ -406,7 +407,12 @@ function ApproveModal({
     ),
     mode: "onBlur",
     reValidateMode: "onBlur",
-    defaultValues: { etag: detail.etag, reason: initialReason, confirm: false, legalConfirm: false },
+    defaultValues: {
+      etag: detail.etag,
+      reason: initialReason,
+      confirm: false,
+      legalConfirm: false,
+    },
   });
   const blockers = detail.approveBlockers;
   const confirm = useWatch({ control: form.control, name: "confirm" });

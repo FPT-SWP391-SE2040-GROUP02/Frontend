@@ -32,7 +32,9 @@ export function SmartwatchCheckInButton({
   };
 
   return (
-    <div className={`mt-4 rounded-xl border border-emerald-600/20 bg-emerald-500/5 p-4 ${className ?? ""}`}>
+    <div
+      className={`mt-4 rounded-xl border border-emerald-600/20 bg-emerald-500/5 p-4 ${className ?? ""}`}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2.5 w-2.5">
@@ -49,7 +51,8 @@ export function SmartwatchCheckInButton({
       </div>
 
       <p className="mt-2 text-xs text-heritage-muted">
-        Cảm biến quang học BioActive theo dõi xung mạch máu và trạng thái tiếp xúc da tay để điểm danh sinh tồn DMS tự động.
+        Cảm biến quang học BioActive theo dõi xung mạch máu và trạng thái tiếp xúc da tay để điểm
+        danh sinh tồn DMS tự động.
       </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -66,7 +69,9 @@ export function SmartwatchCheckInButton({
 
       {pairingCode && (
         <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-center">
-          <p className="text-xs font-medium text-amber-900">Mã ghép nối cho đồng hồ (hiệu lực 5 phút):</p>
+          <p className="text-xs font-medium text-amber-900">
+            Mã ghép nối cho đồng hồ (hiệu lực 5 phút):
+          </p>
           <div className="my-1.5 flex justify-center gap-2 font-mono text-2xl font-bold tracking-widest text-amber-800">
             {pairingCode.split("").map((digit, i) => (
               <span key={i} className="rounded bg-white/80 px-2.5 py-1 shadow-xs">

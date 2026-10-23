@@ -4,7 +4,11 @@ import { z } from "zod";
 import { accessTokenMemory } from "./accessToken";
 import { HTTP_STATUS } from "@/shared/constants";
 
-const problem = z.object({ code: z.string().optional(), reason: z.string().optional() });
+const problem = z.object({
+  code: z.string().optional(),
+  reason: z.string().optional(),
+  missingRequirements: z.array(z.string()).optional(),
+});
 
 /** Reason-specific messages for HANDOVER_NOT_ALLOWED */
 const handoverNotAllowedReasons: Record<string, string> = {
@@ -69,6 +73,12 @@ const paymentOrderNotPayableReasons: Record<string, string> = {
   ENTITLEMENT_CHANGED: "Quyền dịch vụ của kho đã thay đổi sau khi tạo đơn. Hãy tạo đơn mới.",
 };
 
+/** Mã trong missingRequirements cần thông báo riêng thay cho thông báo chung của DEATH_CASE_INCOMPLETE. */
+const missingRequirementMessages: Record<string, string> = {
+  DEATH_CERTIFICATE_NOT_RECOGNIZED:
+    "Hệ thống không nhận ra trang nào là giấy chứng tử hoặc trích lục khai tử. Hãy tải lên ảnh chụp rõ giấy chứng tử rồi gửi lại.",
+};
+
 /** Ưu tiên `reason` của BE trước thông báo chung theo `code`. */
 const reasonMessages: Record<string, Record<string, string>> = {
   HANDOVER_NOT_ALLOWED: handoverNotAllowedReasons,
@@ -126,7 +136,8 @@ const messages: Record<string, string> = {
   ASSET_ALREADY_IN_CONTAINER: "Tài sản đang nằm trong một gói khác.",
   PLAN_DEACTIVATION_CONFIRMATION_REQUIRED:
     "Thao tác này sẽ đưa kế hoạch về nháp. Đọc cảnh báo và xác nhận trước khi tiếp tục.",
-  BENEFICIARY_IDENTITY_CONFLICT: "Số CCCD này đã tồn tại trong danh sách người nhận của kho (với thông tin khác). Vui lòng kiểm tra lại.",
+  BENEFICIARY_IDENTITY_CONFLICT:
+    "Số CCCD này đã tồn tại trong danh sách người nhận của kho (với thông tin khác). Vui lòng kiểm tra lại.",
   BENEFICIARY_IN_USE: "Người nhận đang được gắn vào gói. Hãy gỡ khỏi các gói trước.",
   BENEFICIARY_SLOTS_EXCEEDED: "Kho không còn suất người nhận.",
   CHECKIN_NOT_ALLOWED: "Kế hoạch hiện không cho phép điểm danh.",
@@ -194,6 +205,10 @@ export function privateActionError(error: unknown): string {
       const byReason = reasonMessages[code];
       if (byReason && Object.hasOwn(byReason, reason)) return byReason[reason];
     }
+    const missing = parsed.success ? (parsed.data.missingRequirements ?? []) : [];
+    const missingMessage = missing.find((item) => Object.hasOwn(missingRequirementMessages, item));
+    if (code === "DEATH_CASE_INCOMPLETE" && missingMessage)
+      return missingRequirementMessages[missingMessage];
     if (code && Object.hasOwn(messages, code)) return messages[code];
     if (status === HTTP_STATUS.FORBIDDEN) return "Bạn không có quyền thực hiện thao tác này.";
     if (status === HTTP_STATUS.BAD_REQUEST)
