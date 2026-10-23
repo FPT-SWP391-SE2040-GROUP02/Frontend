@@ -6,6 +6,7 @@ import {
   removePasswordMethodSchema,
   setPasswordMethodSchema,
   unlinkGoogleMethodSchema,
+  verifyPasswordMethodSchema,
 } from "../model/loginMethods.schema";
 
 const BASE = "/me/login-methods";
@@ -19,6 +20,13 @@ export const loginMethodsService = {
     return z
       .array(loginMethodSchema)
       .parse(await axiosClient.get<unknown, unknown>(BASE, { signal }));
+  },
+  /** Kiểm tra mật khẩu hiện tại (204), không đổi gì; sai thì 401 REAUTHENTICATION_FAILED. */
+  async verifyPassword(request: z.infer<typeof verifyPasswordMethodSchema>): Promise<void> {
+    await axiosClient.post<unknown, unknown>(
+      `${BASE}/password/verify`,
+      verifyPasswordMethodSchema.parse(request),
+    );
   },
   /** Thêm Google: cần Google ID token mới và mật khẩu hiện tại. */
   async linkGoogle(request: z.infer<typeof linkGoogleMethodSchema>) {
