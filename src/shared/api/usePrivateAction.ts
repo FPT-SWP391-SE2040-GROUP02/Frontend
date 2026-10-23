@@ -52,6 +52,21 @@ const deathCaseNotAllowedReasons: Record<string, string> = {
     "Chưa thể xác nhận còn sống: cần selfie đạt hoặc đã qua 7 ngày chờ bằng chứng.",
   OWNER_SELFIE_PASSED:
     "Owner đã có selfie khớp nên không thể bác lời báo. Chọn xác nhận còn sống hoặc chưa đủ bằng chứng.",
+  // Lý do khi Người xét duyệt chấp thuận, bổ sung, từ chối hoặc xem xét cờ bị Backend từ chối.
+  PLAN_STATE_INVALID:
+    "Kế hoạch của kho không còn ở trạng thái mở hồ sơ, hoặc kho đã có lượt bàn giao. Tải lại hồ sơ để xem trạng thái mới nhất.",
+  HOLD_ACTIVE: "Kho đang bị tạm giữ nên chưa chấp thuận được. Chờ gỡ tạm giữ rồi thử lại.",
+  CASE_CLOSED: "Hồ sơ đã được chấp thuận, từ chối hoặc tạm dừng nên không thao tác thêm được.",
+  NOT_UNDER_REVIEW: "Hồ sơ không còn ở bước xét duyệt. Tải lại để xem trạng thái mới nhất.",
+  NEWER_VERSION_PENDING:
+    "Người thực hiện đang có bản mới chờ xét nên chưa chấp thuận được bản này.",
+  OWNER_NOT_NOTIFIED: "Chưa báo được cho Chủ kho nên đồng hồ 72 giờ phản đối chưa chạy.",
+  OBJECTION_PERIOD_NOT_OVER: "Chưa hết 72 giờ để Chủ kho phản đối.",
+  FLAGS_NOT_REVIEWED: "Còn cảnh báo của bản đang xét chưa được kiểm tra.",
+  VERIFIER_CONFLICT: "Bạn có quan hệ với kho này nên chỉ được xem, không được quyết định.",
+  PLAN_NOT_RUNNING: "Kế hoạch chưa chạy hoặc đã sang giai đoạn khác nên chưa thao tác được.",
+  VERSION_LOCKED: "Bản hồ sơ này đã được gửi nên không sửa được nữa.",
+  CASE_NOT_REVISABLE: "Hồ sơ chưa ở trạng thái cần bổ sung nên chưa tạo bản mới được.",
 };
 
 /** Reason-specific messages for PAYMENT_NOT_ALLOWED (báo giá/tạo đơn, mục 6.18) */

@@ -182,17 +182,12 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     query.dataUpdatedAt,
   );
   const blockedReason = conditions.map((row) => row.reason).join("; ");
-  const openModal = (
-    kind: "approve" | "reject" | "reviewFlag" | "supplement",
-    flagId?: string,
-    note?: string,
-  ) => {
+  const openModal = (kind: "approve" | "reject" | "reviewFlag" | "supplement", flagId?: string) => {
     const next = new URLSearchParams(params);
     next.set("modal", kind);
     if (kind === "reviewFlag" && flagId) next.set("flagId", flagId);
     else next.delete("flagId");
-    if (note) next.set("reason", note);
-    else next.delete("reason");
+    next.delete("reason");
     setParams(next);
   };
   return (
@@ -265,15 +260,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           Người thực hiện sẽ nộp bản bổ sung. Hồ sơ quay lại hàng chờ khi có bản mới.
         </Notice>
       )}
-
-      {/* KHỐI TRỢ LÝ AI NOTARY CO-PILOT THẨM ĐỊNH TOÀN CẢNH (FULL-WIDTH) */}
-      <AiNotaryAssessmentCard
-        caseId={detail.id}
-        actions={actions}
-        onSelectAction={(action, note) => {
-          openModal(action, undefined, note);
-        }}
-      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         {/* CỘT TRÁI (3fr): HỒ SƠ & TÀI LIỆU CHỨNG TỪ */}
@@ -435,6 +421,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               </ul>
             )}
           </section>
+          {/* Gợi ý của AI chỉ để tham khảo, đặt sau hồ sơ và cảnh báo: không mở biểu mẫu, không điền sẵn lý do. */}
+          <AiNotaryAssessmentCard caseId={detail.id} />
           {detail.versions.length > 0 && (
             <section
               aria-label="Các bản cũ"
