@@ -188,11 +188,13 @@ it("Tải lại cập nhật quyền duyệt của hồ sơ đang chọn kể c�
   );
   setup(<VerifierQueue />);
   await selectFirstCase(user);
-  expect(screen.getByRole("button", { name: "Chấp thuận" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Duyệt mở bàn giao" })).toBeDisabled();
   get.mockClear();
   eligible = true;
   await user.click(screen.getByRole("button", { name: "Tải lại" }));
-  await waitFor(() => expect(screen.getByRole("button", { name: "Chấp thuận" })).toBeEnabled());
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Duyệt mở bàn giao" })).toBeEnabled(),
+  );
   expect(get).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}`, expect.anything());
 });
 
@@ -209,7 +211,7 @@ it("Tải lại thất bại ở chi tiết hiện lỗi và cho phép phục h�
   failDetail = true;
   await user.click(screen.getByRole("button", { name: "Tải lại" }));
   expect(await screen.findByText(/Không đọc được hồ sơ/)).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Chấp thuận" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Duyệt mở bàn giao" })).not.toBeInTheDocument();
   failDetail = false;
   await user.click(screen.getByRole("button", { name: "Thử lại" }));
   expect(await screen.findByText("012345678901")).toBeInTheDocument();
@@ -254,7 +256,7 @@ it("duyệt chỉ gửi sau hai xác nhận và dùng etag của hồ sơ đang 
     .mockResolvedValue({ ...detailFixture, status: "APPROVED_FOR_HANDOVER" });
   setup(<VerifierQueue />);
   await selectFirstCase(user);
-  await user.click(screen.getByRole("button", { name: "Chấp thuận" }));
+  await user.click(screen.getByRole("button", { name: "Duyệt mở bàn giao" }));
   const submit = screen.getByRole("button", { name: /^Duyệt$/ });
   expect(submit).toBeDisabled();
   await user.type(screen.getByLabelText("Lý do duyệt"), "Đã đối soát đầy đủ");
@@ -330,7 +332,7 @@ it("nút Duyệt bị disable khi canApprove=false, chỉ bật sau khi duyệt 
   });
   setup(<VerifierQueue />);
   await selectFirstCase(user);
-  const approve = await screen.findByRole("button", { name: /^Chấp thuận$/ });
+  const approve = await screen.findByRole("button", { name: /^Duyệt mở bàn giao$/ });
   expect(approve).toBeDisabled();
   await user.click(await screen.findByRole("button", { name: "Kiểm tra" }));
   await user.type(await screen.findByLabelText("Ghi chú kiểm tra"), "Đã rà soát kỹ");
@@ -450,7 +452,7 @@ it("kết quả mở bàn giao vẫn hiện sau khi duyệt, không bị GET chi
   });
   setup(<VerifierQueue />);
   await selectFirstCase(user);
-  await user.click(screen.getByRole("button", { name: "Chấp thuận" }));
+  await user.click(screen.getByRole("button", { name: "Duyệt mở bàn giao" }));
   await user.type(screen.getByLabelText("Lý do duyệt"), "Đủ căn cứ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận các thông tin/ }));
   await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra phạm vi/ }));
@@ -474,7 +476,7 @@ it("hồ sơ chờ bổ sung chỉ còn nút từ chối, không xem xét cờ h
   await selectFirstCase(user);
   expect(screen.queryByRole("button", { name: "Kiểm tra" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /Yêu cầu bổ sung/ })).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Chấp thuận" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Duyệt mở bàn giao" })).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
   await user.type(screen.getByLabelText("Lý do từ chối"), "Executor không bổ sung đúng hạn");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
@@ -498,7 +500,7 @@ it("VERIFIER_CONFLICT chỉ cho xem: ẩn mọi thao tác ghi, kể cả modal m
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Kiểm tra" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /Yêu cầu bổ sung/ })).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Chấp thuận" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Duyệt mở bàn giao" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /^Từ chối$/ })).not.toBeInTheDocument();
 });
 
@@ -522,7 +524,7 @@ it("hiện mốc thời gian phản đối, báo Owner và hồ sơ trước b�
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
   const timeline = await screen.findByRole("region", { name: "Mốc thời gian" });
   expect(timeline).toHaveTextContent("Hết hạn phản đối05/10/2026 10:00 · đã qua");
-  expect(timeline).toHaveTextContent("Báo chủ khoĐã gửi 02/10/2026 15:30");
+  expect(timeline).toHaveTextContent("Đã báo chủ khoĐã gửi 02/10/2026 15:30");
   const previous = screen.getByRole("region", { name: "Hồ sơ trước bị từ chối" });
   expect(previous).toHaveTextContent("Hồ sơ trước của kho này đã bị từ chối");
   expect(previous).toHaveTextContent(formatTimestamp(CREATED_AT));
@@ -572,7 +574,9 @@ it("hồ sơ đang xét vẫn hiện Hạn xét ở chi tiết", async () => {
   );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
   await screen.findByText("012345678901");
-  expect(screen.getAllByText(/Hạn xét/)).toHaveLength(1);
+  // Một lần ở dòng phân công dưới tiêu đề, một lần ở mốc "Hạn xét duyệt".
+  expect(screen.getAllByText(/Hạn xét/)).toHaveLength(2);
+  expect(screen.getByRole("region", { name: "Mốc thời gian" })).toHaveTextContent("Hạn xét duyệt");
   expect(screen.queryByText(/Đang chờ Executor bổ sung/)).not.toBeInTheDocument();
 });
 
