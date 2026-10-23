@@ -1,13 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { checkInService } from "@/features/dms/api/checkInService";
+import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { VAULT_ID } from "@/shared/api/__tests__/backend.fixtures";
 import { OwnerCheckIn } from "../OwnerCheckIn";
 
 vi.mock("@/features/dms/model/useCheckIn", () => ({ useCheckIn: vi.fn() }));
 vi.mock("@/features/dms/api/checkInService", () => ({
-  checkInService: { checkIn: vi.fn(), updateSettings: vi.fn() },
+  checkInService: { checkIn: vi.fn(), updateSettings: vi.fn(), getSmartwatchPairingCode: vi.fn() },
 }));
 
 const SERVER_TIME = "2026-10-08T00:00:00Z";
@@ -59,6 +62,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   client.clear();
+  accessTokenMemory.clear();
 });
 
 function renderCheckIn() {
@@ -124,12 +128,28 @@ describe("màn Điểm danh định kỳ", () => {
     expect(rows[2]).toHaveTextContent("Đã ghi");
   });
 
-  it("chưa có kỳ nào thì báo trống; không bịa cài đặt nhắc email hay tin nhắn", () => {
+  it("chưa có kỳ nào thì báo trống; không bịa công tắc cài đặt nhắc", () => {
     vi.mocked(useCheckIn).mockReturnValue(statusResult() as never);
     renderCheckIn();
     expect(screen.getByText("Chưa có lần điểm danh nào.")).toBeInTheDocument();
-    expect(screen.queryByText(/Nhắc qua email/)).not.toBeInTheDocument();
+    // Backend gửi email nhắc trước hạn 7 ngày và 1 ngày (CheckInReminderKind): chỉ hiện thông tin, không có công tắc.
+    expect(screen.getByText("Gửi trước hạn 7 ngày và 1 ngày")).toBeInTheDocument();
     expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  });
+
+  it("bấm Kết nối đồng hồ thì xin mã ghép và hiện 6 số kèm thời hạn", async () => {
+    vi.mocked(useCheckIn).mockReturnValue(statusResult() as never);
+    const pairingCode = vi
+      .mocked(checkInService.getSmartwatchPairingCode)
+      .mockResolvedValue({ code: "482915", expiresInSeconds: 300 });
+    accessTokenMemory.set("owner-fixture");
+    renderCheckIn();
+    expect(pairingCode).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Kết nối đồng hồ" }));
+    expect(await screen.findByRole("dialog")).toHaveTextContent("Kết nối đồng hồ thông minh");
+    expect(screen.getByRole("group", { name: "Mã ghép nối 4 8 2 9 1 5" })).toBeInTheDocument();
+    expect(screen.getByText(/Mã hết hạn sau 0[45]:\d\d/)).toBeInTheDocument();
+    expect(pairingCode).toHaveBeenCalledTimes(1);
   });
 
   it("giữ lỗi và cho thử lại thay vì hiện trạng thái rỗng", () => {
