@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import { apiClient } from "@/shared/api";
 import {
+  ekycBackSchema,
   ekycConsentRequestSchema,
   ekycConsentResponseSchema,
   ekycDocumentSchema,
@@ -11,6 +12,8 @@ import {
   ekycStatusSchema,
 } from "../model/ekyc.schema";
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+/** Khớp thời gian BE chờ dịch vụ OCR (120 giây); mặc định 30 giây của axios quá ngắn cho lần đọc đầu. */
+const OCR_TIMEOUT_MS = 120_000;
 function imageForm(file: File, handoverTurnId?: string) {
   if (
     !["image/jpeg", "image/png"].includes(file.type) ||
@@ -61,18 +64,22 @@ export const ekycService = {
       await apiClient.post<unknown, unknown>(
         "/ekyc/document",
         imageForm(file, turnIdFor(parsed, handoverTurnId)),
-        { headers: { "Content-Type": undefined } },
+        // Đọc OCR có thể lâu (lần đầu nạp mô hình); BE chờ dịch vụ eKYC tối đa 120 giây (Ekyc:TimeoutSeconds).
+        { headers: { "Content-Type": undefined }, timeout: OCR_TIMEOUT_MS },
       ),
     );
   },
-  /** POST ảnh mặt sau; response là EkycStatusResponse, không cần gửi lại turnId. */
+  /**
+   * POST ảnh mặt sau; response là EkycBackResponse (trạng thái lượt + nơi cư trú đọc từ mặt sau), không cần gửi
+   * lại turnId. Có thể gửi trước bước xác nhận bản khai: BE chỉ cần đã đọc mặt trước.
+   */
   async submitDocumentBack(file: File, purpose: string, handoverTurnId?: string | null) {
     const parsed = ekycPurposeSchema.parse(purpose);
-    return ekycStatusSchema.parse(
+    return ekycBackSchema.parse(
       await apiClient.post<unknown, unknown>(
         "/ekyc/document-back",
         imageForm(file, turnIdFor(parsed, handoverTurnId)),
-        { headers: { "Content-Type": undefined } },
+        { headers: { "Content-Type": undefined }, timeout: OCR_TIMEOUT_MS },
       ),
     );
   },

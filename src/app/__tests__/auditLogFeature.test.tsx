@@ -97,6 +97,58 @@ function installAdapter({
 }
 
 describe("OwnerAuditLog transport", () => {
+  it("đối tượng điểm danh và đơn thanh toán không hiện mã rút gọn khó hiểu, mã đầy đủ ở tooltip", async () => {
+    installAdapter({
+      page: pageFixture([
+        { ...entry, action: "CHECKED_IN", targetType: "CHECK_IN" },
+        {
+          ...entry,
+          id: "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a31",
+          action: "PAYMENT_PAID",
+          targetType: "PAYMENT_ORDER",
+        },
+      ]),
+    });
+    setup("/dashboard/audit-log");
+    await screen.findAllByRole("cell", { name: "Điểm danh" });
+    const shortCode = "#" + entry.targetId.slice(-6);
+    expect(screen.queryByText(shortCode)).not.toBeInTheDocument();
+    expect(screen.getAllByTitle(entry.targetId).length).toBeGreaterThan(0);
+  });
+
+  it("hiển thị được dòng nhật ký thanh toán (hệ thống ghi) mà không làm hỏng cả trang", async () => {
+    installAdapter({
+      page: pageFixture([
+        {
+          ...entry,
+          actorRole: "SYSTEM",
+          actorUserId: null,
+          action: "PAYMENT_PAID",
+          targetType: "PAYMENT_ORDER",
+        },
+        {
+          ...entry,
+          id: "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a21",
+          action: "PAYMENT_ORDER_CREATED",
+          targetType: "PAYMENT_ORDER",
+        },
+        {
+          ...entry,
+          id: "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a22",
+          action: "PAYMENT_ORDER_CANCELLED",
+          targetType: "PAYMENT_ORDER",
+        },
+      ]),
+    });
+    setup("/dashboard/audit-log");
+    expect(await screen.findByRole("cell", { name: "Thanh toán thành công" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "Tạo đơn thanh toán" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "Hủy đơn thanh toán" })).toBeInTheDocument();
+    expect(screen.getAllByText("Đơn thanh toán").length).toBeGreaterThan(0);
+    expect(screen.getByText("Hệ thống")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("renders and filters the new death-case audit events without rejecting the page", async () => {
     const calls = installAdapter({
       page: pageFixture([
@@ -109,7 +161,7 @@ describe("OwnerAuditLog transport", () => {
       ]),
     });
     setup("/dashboard/audit-log?action=DEATH_CASE_APPROVED");
-    expect(await screen.findByText("DEATH_CASE_APPROVED")).toBeInTheDocument();
+    expect(await screen.findByRole("cell", { name: "Duyệt hồ sơ chứng tử" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Loại thao tác" })).toHaveValue(
       "DEATH_CASE_APPROVED",
     );
@@ -117,6 +169,87 @@ describe("OwnerAuditLog transport", () => {
       "DEATH_CASE_APPROVED",
     );
   });
+  it("hiện nhãn tiếng Việt và mã rút gọn, không phô bày mã kỹ thuật hay UUID đầy đủ", async () => {
+    installAdapter({
+      page: pageFixture([
+        {
+          ...entry,
+          action: "CONTAINER_BENEFICIARY_ADDED",
+          reason: "Người nhận 01a15ccf-7c06-797e-b417-086d7d963788",
+        },
+      ]),
+    });
+    setup("/dashboard/audit-log");
+    const row = (
+      await screen.findByRole("cell", { name: "Gán người nhận cho gói bàn giao" })
+    ).closest("tr") as HTMLElement;
+    expect(row).toHaveTextContent("Chủ kho");
+    expect(row).toHaveTextContent("Gói bàn giao");
+    expect(row).toHaveTextContent("Thành công");
+    expect(row).toHaveTextContent("Người nhận #963788");
+    expect(row).not.toHaveTextContent("CONTAINER_BENEFICIARY_ADDED");
+    expect(row).not.toHaveTextContent("SUCCEEDED");
+    expect(row).not.toHaveTextContent("086d7d963788");
+  });
+
+  it("tra tên thật của người nhận từ danh sách hồ sơ, không có thì giữ mã rút gọn", async () => {
+    const personId = "01a15ccf-7c06-797e-b417-086d7d963788";
+    const person = {
+      id: personId,
+      citizenIdLast4: "0696",
+      fullName: "Trịnh Lê Thiên Quan",
+      dateOfBirth: "1990-05-20",
+      email: "quan@example.test",
+      phone: null,
+      isMinor: false,
+      minorAcknowledgedAt: null,
+      containerIds: [],
+      createdAt: "2026-10-14T00:00:00Z",
+      updatedAt: null,
+      etag: '"0"',
+    };
+    const auditPage = pageFixture([
+      {
+        ...entry,
+        action: "CONTAINER_BENEFICIARY_ADDED" as const,
+        reason: `Người nhận ${personId}`,
+      },
+      {
+        ...entry,
+        id: "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a11",
+        action: "CONTAINER_BENEFICIARY_REMOVED" as const,
+        reason: "Người nhận 01a15ccf-aaaa-797e-b417-000000abcdef",
+      },
+      {
+        ...entry,
+        id: "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a12",
+        action: "VAULT_UPDATED" as const,
+        targetType: "VAULT" as const,
+        targetId: VAULT_ID,
+      },
+    ]);
+    apiClient.defaults.adapter = async (config) => {
+      let data: unknown = pageFixture([]);
+      if (config.url === "/vaults/me") data = vaultFixture;
+      else if (config.url?.endsWith("/audit-logs")) data = auditPage;
+      else if (config.url?.endsWith("/beneficiaries")) data = pageFixture([person]);
+      return { data, config, status: 200, statusText: "OK", headers: new AxiosHeaders() };
+    };
+    setup("/dashboard/audit-log");
+    const added = (
+      await screen.findByRole("cell", { name: "Gán người nhận cho gói bàn giao" })
+    ).closest("tr") as HTMLElement;
+    await waitFor(() => expect(added).toHaveTextContent("Người nhận Trịnh Lê Thiên Quan"));
+    const removed = screen
+      .getByRole("cell", { name: "Gỡ người nhận khỏi gói bàn giao" })
+      .closest("tr") as HTMLElement;
+    expect(removed).toHaveTextContent("Người nhận #abcdef");
+    const vaultRow = screen
+      .getByRole("cell", { name: "Sửa thông tin kho" })
+      .closest("tr") as HTMLElement;
+    await waitFor(() => expect(vaultRow).toHaveTextContent("Kho thử nghiệm"));
+  });
+
   it("calls GET /vaults/{vaultId}/audit-logs with sortBy=at and isAscending=false", async () => {
     const calls = installAdapter();
     setup("/dashboard/audit-log");
@@ -209,7 +342,7 @@ describe("OwnerAuditLog URL state", () => {
       expect(await screen.findByRole("alert")).toHaveTextContent("Ngày lọc không hợp lệ");
       expect(calls.filter((c) => c.url?.endsWith("/audit-logs"))).toHaveLength(0);
       fireEvent.click(screen.getByRole("button", { name: "Đặt lại" }));
-      await screen.findByText("CONTAINER_CREATED");
+      await screen.findByRole("cell", { name: "Tạo gói bàn giao" });
       expect(locationRef.current).not.toContain("from=");
       expect(locationRef.current).not.toContain("to=");
     },
@@ -330,7 +463,7 @@ describe("OwnerAuditLog UI states", () => {
     });
     expect(locationRef.current).toContain("action=CONTAINER_CREATED");
     expect(locationRef.current).toContain("from=2026-10-01");
-    expect(await screen.findByText("CONTAINER_CREATED")).toBeInTheDocument();
+    expect(await screen.findByRole("cell", { name: "Tạo gói bàn giao" })).toBeInTheDocument();
     expect(screen.queryByText(/Trang hiện vượt quá phạm vi/)).not.toBeInTheDocument();
   });
 });
@@ -367,7 +500,7 @@ describe("OwnerAuditLog cache", () => {
     hasNewEntry = true;
     await client.invalidateQueries({ queryKey: ["owner-vault"] });
     setup("/dashboard/audit-log");
-    expect(await screen.findByText("CONTAINER_CREATED")).toBeInTheDocument();
+    expect(await screen.findByRole("cell", { name: "Tạo gói bàn giao" })).toBeInTheDocument();
     expect(screen.queryByText("Chưa có dòng nhật ký nào khớp bộ lọc.")).not.toBeInTheDocument();
   });
 });

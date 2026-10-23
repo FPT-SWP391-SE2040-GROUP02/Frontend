@@ -32,6 +32,15 @@ export const planSetupService = {
       ),
     );
   },
+  /** Thu hồi lời mời hoặc Executor (SETUP-06); gọi lặp trên dòng đã kết thúc trả trạng thái hiện tại. */
+  async revoke(id: string, executorId: string, etag: string) {
+    return executorSchema.parse(
+      await apiClient.post<unknown, unknown>(
+        `${vault(id)}/executors/${z.string().uuid().parse(executorId)}/revoke`,
+        { etag },
+      ),
+    );
+  },
   async activate(
     id: string,
     request: { configVersion: number; policyVersion: string; acknowledgePolicy: boolean },

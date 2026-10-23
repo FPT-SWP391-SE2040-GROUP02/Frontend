@@ -16,6 +16,7 @@ import {
 import { Button, Badge } from "@/shared/ui";
 import { useDmsStatus, useSendPulsePing, useToggleDmsPause } from "../model/useDms";
 import type { DmsStatus } from "../model/dms.types";
+import { formatDate } from "@/shared/lib/dateFormat";
 
 const HEARTBEAT_LABELS = { copySeal: "Sao chép chuỗi mã băm" } as const;
 
@@ -221,10 +222,10 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
 
             <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 text-xs text-[#66786E]">
               <span>
-                Ping gần nhất: {new Date(dmsState.lastPingAt).toLocaleDateString("vi-VN")}
+                Ping gần nhất: {formatDate(dmsState.lastPingAt)}
               </span>
               <span>
-                Hạn chót: {new Date(dmsState.nextPingDeadline).toLocaleDateString("vi-VN")}
+                Hạn chót: {formatDate(dmsState.nextPingDeadline)}
               </span>
             </div>
           </div>

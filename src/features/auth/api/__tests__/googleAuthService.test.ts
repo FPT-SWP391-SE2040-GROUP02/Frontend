@@ -64,8 +64,75 @@ describe("Google and unavailable Backend contracts", () => {
       { headers: { "X-CSRF-Token": "proof" } },
     );
   });
-  it("does not send a TOTP request to an endpoint absent from Backend", async () => {
-    await expect(authService.verifyTwoFactor({ code: "012345" })).rejects.toThrow();
+  it("posts the challenge token and code with CSRF proof and returns the full session", async () => {
+    const session = {
+      accessToken: "fixture-access",
+      expiresIn: 900,
+      user: {
+        id: "11111111-1111-4111-8111-111111111111",
+        email: "admin@example.test",
+        fullName: "Admin",
+        phone: null,
+        role: "ADMIN",
+        status: "ACTIVE",
+        emailVerified: true,
+        hasPassword: true,
+        createdAt: "2026-10-20T00:00:00+00:00",
+      },
+    };
+    vi.mocked(axiosClient.post).mockResolvedValue(session);
+    expect(
+      await authService.verifyTwoFactor({ challengeToken: "challenge", code: " 012345 " }),
+    ).toMatchObject({ accessToken: "fixture-access" });
+    expect(axiosClient.post).toHaveBeenCalledWith(
+      "/auth/2fa/verify",
+      { challengeToken: "challenge", code: "012345" },
+      { headers: { "X-CSRF-Token": "proof" } },
+    );
+  });
+  it("accepts a recovery code and keeps its case for the Backend to normalise", async () => {
+    vi.mocked(axiosClient.post).mockRejectedValue(new Error("fixture denied"));
+    await expect(
+      authService.verifyTwoFactor({ challengeToken: "challenge", code: "ab12cd-34ef56" }),
+    ).rejects.toThrow("fixture denied");
+    expect(axiosClient.post).toHaveBeenCalledWith(
+      "/auth/2fa/verify",
+      { challengeToken: "challenge", code: "ab12cd-34ef56" },
+      expect.anything(),
+    );
+  });
+  it.each([
+    ["no token", { challengeToken: "", code: "012345" }],
+    ["a short code", { challengeToken: "challenge", code: "12345" }],
+    ["a code with letters", { challengeToken: "challenge", code: "12345a" }],
+  ])("does not post %s", async (_label, payload) => {
+    await expect(authService.verifyTwoFactor(payload)).rejects.toThrow();
     expect(axiosClient.post).not.toHaveBeenCalled();
+  });
+  it("keeps the Google 2FA challenge apart from a link challenge", async () => {
+    const challenge = {
+      signedIn: false,
+      twoFactorRequired: true,
+      challengeToken: "challenge",
+      challengeExpiresIn: 300,
+    };
+    vi.mocked(axiosClient.post).mockResolvedValue(challenge);
+    expect(await authService.loginWithGoogle({ idToken: "fixture", rememberMe: false })).toEqual(
+      challenge,
+    );
+  });
+  it("returns the challenge from link-confirm instead of failing to parse a session", async () => {
+    vi.mocked(axiosClient.post).mockResolvedValue({
+      twoFactorRequired: true,
+      challengeToken: "challenge",
+      expiresIn: 300,
+    });
+    expect(
+      await authService.linkGoogleAccount({
+        linkTicket: "ticket",
+        password: "old",
+        rememberMe: false,
+      }),
+    ).toMatchObject({ twoFactorRequired: true, challengeToken: "challenge" });
   });
 });

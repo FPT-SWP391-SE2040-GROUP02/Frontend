@@ -24,6 +24,14 @@ export const ekycStatusSchema = z.object({
   backSideChecked: z.boolean(),
 });
 /**
+ * Response POST /ekyc/document-back: trạng thái lượt kèm nơi cư trú đọc từ mặt sau (BR-88). Địa chỉ chỉ có ở
+ * phản hồi này để người dùng đối chiếu rồi điền vào bản khai; không có ở GET /ekyc/me và không được lưu.
+ * BE cũ chưa trả trường này thì coi như không đọc được.
+ */
+export const ekycBackSchema = ekycStatusSchema.extend({
+  residenceAddress: z.string().default(""),
+});
+/**
  * OCR chỉ giữ RAM trong form; không persist dữ liệu giấy tờ vào cache/storage.
  * Response mặt trước trả đúng DTO: KHÔNG có purpose/backSideChecked ở đây.
  */

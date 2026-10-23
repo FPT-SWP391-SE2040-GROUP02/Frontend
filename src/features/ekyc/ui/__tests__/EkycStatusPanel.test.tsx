@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
+import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import authReducer from "@/entities/user/model/authSlice";
 import { ekycService } from "../../api/ekycService";
@@ -33,13 +34,15 @@ function setup(
   render(
     <Provider store={store}>
       <QueryClientProvider client={client}>
-        <EkycStatusPanel
-          purpose={props.purpose}
-          turnId={props.turnId ?? null}
-          canComplete={props.canComplete}
-          onComplete={props.onComplete}
-          completeResult={props.completeResult}
-        />
+        <MemoryRouter>
+          <EkycStatusPanel
+            purpose={props.purpose}
+            turnId={props.turnId ?? null}
+            canComplete={props.canComplete}
+            onComplete={props.onComplete}
+            completeResult={props.completeResult}
+          />
+        </MemoryRouter>
       </QueryClientProvider>
     </Provider>,
   );
@@ -260,6 +263,40 @@ describe("EkycStatusPanel", () => {
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Hoàn tất danh tính lượt nhận" }),
+    ).not.toBeInTheDocument();
+  });
+  it("Owner đã đạt: hiện màn kết quả với thông tin từ máy chủ và gợi ý bước tiếp theo", async () => {
+    vi.mocked(ekycService.getStatus).mockResolvedValue({
+      status: "PASSED",
+      verificationId: "11111111-1111-4111-8111-111111111111",
+      citizenIdLast4: "5608",
+      faceMatchScore: 0.52,
+      matchThreshold: 0.363,
+      spoofCheckPassed: true,
+      createdAt: "2026-10-20T08:00:00Z",
+      completedAt: "2026-10-20T08:05:00Z",
+      purpose: "OWNER_ENROLLMENT",
+      identityMatch: "NOT_CHECKED",
+      backSideChecked: true,
+    });
+    setup(true);
+    expect(await screen.findByText("Danh tính đã được xác minh.")).toBeInTheDocument();
+    const result = screen.getByRole("region", { name: "Kết quả xác minh danh tính" });
+    expect(result).toHaveTextContent("•••• 5608");
+    expect(result).toHaveTextContent("Qua kiểm tra chống giả mạo");
+    expect(result).toHaveTextContent("Đã đọc");
+    expect(result).toHaveTextContent("90 ngày");
+    expect(screen.getByRole("link", { name: "Chọn gói dịch vụ" })).toHaveAttribute(
+      "href",
+      "/pricing",
+    );
+    expect(screen.getByRole("link", { name: "Về Tổng quan" })).toHaveAttribute(
+      "href",
+      "/dashboard",
+    );
+    // Đã đạt thì khóa: không còn form tải giấy tờ.
+    expect(
+      screen.queryByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
     ).not.toBeInTheDocument();
   });
 });

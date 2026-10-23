@@ -1,20 +1,24 @@
 import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
+import { HeritageAuthLayout } from "@/features/auth/ui/HeritageAuthLayout";
 import { ExecutorInvitationPanel } from "@/features/plan-setup/ui/ExecutorInvitationPanel";
-import { AppHeader } from "@/widgets/Header/AppHeader";
-/** Public invitation landing; login is requested before responding. Fragment avoids HTTP/referrer token exposure. */
+
+/** Public invitation landing; login is requested before responding. Supports both hash and query parameters. */
 export function ExecutorInvitationPage() {
-  const { hash } = useLocation();
-  const token = new URLSearchParams(hash.slice(1)).get("token") ?? "";
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const hashString = location.hash.startsWith("#") ? location.hash.slice(1) : location.hash;
+  const hashParams = new URLSearchParams(hashString);
+  const token = hashParams.get("token") || searchParams.get("token") || "";
   const userId = useSelector((state: { auth: AuthState }) => state.auth.user?.id);
   return (
-    <>
-      <AppHeader />
-      <main className="mx-auto max-w-3xl space-y-6 p-6">
-        <h1 className="text-2xl font-semibold">Lời mời nhiệm vụ Executor</h1>
-        <ExecutorInvitationPanel key={`${token}:${userId ?? "guest"}`} token={token} />
-      </main>
-    </>
+    <HeritageAuthLayout
+      sideTitle="Một việc nhỏ, một trách nhiệm lớn."
+      sideSubtitle="Người thực hiện báo tin khi Chủ kho qua đời và theo dõi tiến trình bàn giao."
+      sideBadge="LỜI MỜI NGƯỜI THỰC HIỆN"
+    >
+      <ExecutorInvitationPanel key={`${token}:${userId ?? "guest"}`} token={token} />
+    </HeritageAuthLayout>
   );
 }

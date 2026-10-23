@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { LogOut } from "lucide-react";
-import { LegacyVaultMark } from "./LegacyVaultArtwork";
+import { LegacyVaultMark, LogoutIcon } from "./LegacyVaultArtwork";
 
 /** Shared presentation contract; role navigation and account data remain with the caller. */
 export interface WorkspaceShellProps {
@@ -51,7 +50,7 @@ export function WorkspaceShell({
             title={logoutLabel}
             className="flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-heritage-surface/10 focus-visible:outline-2 focus-visible:outline-heritage-gold lg:hidden"
           >
-            <LogOut className="size-5" aria-hidden="true" />
+            <LogoutIcon className="size-5" aria-hidden="true" />
           </Link>
         </div>
         {navigation}
@@ -61,7 +60,7 @@ export function WorkspaceShell({
             to={logoutHref}
             className="mt-3 flex min-h-11 items-center gap-2 text-sm text-heritage-surface/80 hover:text-heritage-gold focus-visible:outline-2 focus-visible:outline-heritage-gold"
           >
-            <LogOut className="size-4" aria-hidden="true" />
+            <LogoutIcon className="size-4" aria-hidden="true" />
             {logoutLabel}
           </Link>
         </div>

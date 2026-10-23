@@ -10,6 +10,10 @@ export const auditActionValues = [
   "VAULT_CREATED",
   "VAULT_UPDATED",
   "ASSET_CREATED",
+  "ASSET_UPDATED",
+  "ASSET_VERSION_CREATED",
+  "ASSET_DELETED",
+  "ASSET_CONTENT_DOWNLOADED",
   "CONTAINER_CREATED",
   "CONTAINER_UPDATED",
   "CONTAINER_ARCHIVED",
@@ -39,6 +43,9 @@ export const auditActionValues = [
   "DEATH_CASE_SUPPLEMENT_REQUESTED",
   "DEATH_CASE_REJECTED",
   "DEATH_CASE_APPROVED",
+  "PAYMENT_ORDER_CREATED",
+  "PAYMENT_ORDER_CANCELLED",
+  "PAYMENT_PAID",
 ] as const;
 
 /** Wire role người thực hiện; SYSTEM dùng khi job nền. */
@@ -63,6 +70,7 @@ export const auditTargetTypeValues = [
   "HOLD",
   "INCIDENT",
   "USER",
+  "PAYMENT_ORDER",
 ] as const;
 
 /** Kết quả; hiện tại Backend chỉ ghi SUCCEEDED. */

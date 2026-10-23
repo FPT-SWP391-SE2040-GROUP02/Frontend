@@ -23,12 +23,19 @@ export const googleLinkRequestSchema = z.object({
   rememberMe: z.boolean(),
 });
 /** Response Google có hai nhánh, không nhầm challenge thành session. */
-export const googleLoginResponseSchema = z.discriminatedUnion("signedIn", [
+export const googleLoginResponseSchema = z.union([
   z.object({
     signedIn: z.literal(true),
     accountCreated: z.boolean(),
     returnUrl: z.string().nullable(),
     session: authSessionResponseSchema,
+  }),
+  /** Admin đã bật 2FA: có thử thách, chưa có phiên (dạng phẳng của BE). */
+  z.object({
+    signedIn: z.literal(false),
+    twoFactorRequired: z.literal(true),
+    challengeToken: z.string().min(1).max(512),
+    challengeExpiresIn: z.number().int().positive(),
   }),
   z.object({
     signedIn: z.literal(false),

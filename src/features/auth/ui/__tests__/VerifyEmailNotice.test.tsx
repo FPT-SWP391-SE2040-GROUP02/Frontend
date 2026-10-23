@@ -148,6 +148,8 @@ describe("VerifyEmailNotice token boundary", () => {
   it("submits a token from a URL automatically on mount", async () => {
     setup("opaque-fixture-token");
     expect(authService.resendVerificationEmail).not.toHaveBeenCalled();
-    await vi.waitFor(() => expect(authService.verifyEmail).toHaveBeenCalledWith("opaque-fixture-token"));
+    await vi.waitFor(() =>
+      expect(authService.verifyEmail).toHaveBeenCalledWith("opaque-fixture-token"),
+    );
   });
 });

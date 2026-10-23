@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Check, CircleAlert, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { z } from "zod";
 import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { StatusBanner } from "@/shared/ui/status-banner";
 import { ROUTES } from "@/shared/config/routes.config";
-import { inviteExecutorSchema, type planSetupSchema } from "../model/planSetup.schema";
+import type { planSetupSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
+import { usePlanSetup } from "../model/usePlanSetup";
 
 const missingLabels: Record<string, string> = {
   ACCOUNT_NOT_ACTIVE: "Tài khoản chưa hoạt động.",
@@ -28,27 +28,112 @@ const warningLabels: Record<string, string> = {
   NO_BACKUP_EXECUTOR:
     "Chưa có Executor dự phòng. Nếu Executor chính không thể thực hiện nhiệm vụ, kế hoạch có thể chậm trễ.",
 };
-const statuses = {
-  INVITED: "Chờ phản hồi",
-  ACCEPTED: "Đã chấp nhận",
-  DECLINED: "Đã từ chối",
-  EXPIRED: "Hết hạn",
-  REVOKED: "Đã thu hồi",
-  SUSPENDED: "Cần chấp nhận lại",
-};
+const CHECKLIST_ITEMS = [
+  { code: "OWNER_EKYC_REQUIRED", done: "Đã xác minh danh tính eKYC.", link: "identity" },
+  { code: "READY_CONTAINER_REQUIRED", done: "Có ít nhất một gói sẵn sàng bàn giao.", link: "" },
+  {
+    code: "PRIMARY_EXECUTOR_REQUIRED",
+    done: "Người thực hiện chính đã chấp nhận nhiệm vụ.",
+    link: "trusted",
+  },
+  { code: "PAID_SERVICE_REQUIRED", done: "Gói dịch vụ trả phí còn hạn.", link: "" },
+];
+
+const ROW_LINK =
+  "inline-flex min-h-9 shrink-0 items-center rounded-full border border-heritage-border px-4 text-sm font-semibold text-heritage-primary hover:bg-heritage-primary/5 focus-visible:outline-2 focus-visible:outline-heritage-gold";
+
+/** Đếm điều kiện đạt/tổng, gồm cả mã lạ của máy chủ, để hiện tiến độ ở đầu thẻ. */
+function countProgress(missing: string[]): { done: number; total: number } {
+  let done = 0;
+  const known: string[] = [];
+  for (const item of CHECKLIST_ITEMS) {
+    known.push(item.code);
+    if (!missing.includes(item.code)) {
+      done = done + 1;
+    }
+  }
+  let extra = 0;
+  for (const code of missing) {
+    if (!known.includes(code)) {
+      extra = extra + 1;
+    }
+  }
+  return { done, total: CHECKLIST_ITEMS.length + extra };
+}
+
+/** Danh sách điều kiện kích hoạt: dòng nào đạt hiện dấu tích, dòng nào thiếu kèm lý do và đường đi tiếp. */
+function ActivationChecklist({ missing }: { missing: string[] }) {
+  const rows: ReactNode[] = [];
+  const known: string[] = [];
+  for (const item of CHECKLIST_ITEMS) {
+    known.push(item.code);
+    const isMissing = missing.includes(item.code);
+    let text = item.done;
+    if (isMissing) {
+      text = missingLabels[item.code];
+    }
+    let action: ReactNode = null;
+    if (isMissing && item.link === "identity") {
+      action = (
+        <Link className={ROW_LINK} to={ROUTES.DASHBOARD.IDENTITY}>
+          Đi xác minh danh tính
+        </Link>
+      );
+    }
+    if (isMissing && item.link === "trusted") {
+      action = (
+        <Link className={ROW_LINK} to={ROUTES.DASHBOARD.TRUSTED_PEOPLE}>
+          Đến Người tin cậy
+        </Link>
+      );
+    }
+    rows.push(<ChecklistRow key={item.code} ok={!isMissing} text={text} action={action} />);
+  }
+  // Mã khác (kho chưa mở, email chưa xác minh, Executor dự phòng...) vẫn hiện để không giấu điều kiện của máy chủ.
+  for (const code of missing) {
+    if (known.includes(code)) {
+      continue;
+    }
+    let text = "Còn điều kiện cần kiểm tra với máy chủ.";
+    if (Object.hasOwn(missingLabels, code)) {
+      text = missingLabels[code];
+    }
+    rows.push(<ChecklistRow key={code} ok={false} text={text} action={null} />);
+  }
+  return <ul className="space-y-3">{rows}</ul>;
+}
+
+function ChecklistRow({ ok, text, action }: { ok: boolean; text: string; action: ReactNode }) {
+  let mark = (
+    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-700">
+      <X className="size-4" aria-hidden="true" />
+    </span>
+  );
+  let rowStyle = "border-heritage-border bg-heritage-canvas";
+  if (ok) {
+    mark = (
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700">
+        <Check className="size-4" aria-hidden="true" />
+      </span>
+    );
+    rowStyle = "border-green-200 bg-green-50/60";
+  }
+  return (
+    <li
+      className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border px-4 py-3 text-sm ${rowStyle}`}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        {mark}
+        <span className="leading-6">{text}</span>
+      </div>
+      {action}
+    </li>
+  );
+}
+
 /** Owner-scoped readiness; no auto-invite or activation, all confirmations default false. */
-export function PlanSetupPanel({
-  vaultId,
-  beneficiaries = [],
-}: {
-  vaultId: string;
-  beneficiaries?: { id: string; label: string }[];
-}) {
-  const query = useQuery({
-    queryKey: ["plan-setup", vaultId],
-    queryFn: ({ signal }) => planSetupService.get(vaultId, signal),
-    retry: false,
-  });
+export function PlanSetupPanel({ vaultId }: { vaultId: string }) {
+  const query = usePlanSetup(vaultId);
   if (query.isPending) return <p role="status">Đang kiểm tra điều kiện kích hoạt…</p>;
   if (query.isError)
     return (
@@ -64,7 +149,6 @@ export function PlanSetupPanel({
       key={`${vaultId}:${query.data.configVersion}:${query.data.policyVersion}:${query.data.planStatus}`}
       vaultId={vaultId}
       setup={query.data}
-      beneficiaries={beneficiaries}
     />
   );
 }
@@ -72,221 +156,93 @@ export function PlanSetupPanel({
 function PlanSetupForm({
   vaultId,
   setup,
-  beneficiaries,
 }: {
   vaultId: string;
   setup: z.infer<typeof planSetupSchema>;
-  beneficiaries: { id: string; label: string }[];
 }) {
   const client = useQueryClient();
   const action = usePrivateAction();
   const [acknowledge, setAcknowledge] = useState(false);
-  const form = useForm<z.infer<typeof inviteExecutorSchema>>({
-    resolver: zodResolver(inviteExecutorSchema),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
-    defaultValues: { email: "", role: "PRIMARY", beneficiaryId: null },
-  });
   const sync = () => {
     void client.invalidateQueries({ queryKey: ["plan-setup", vaultId] });
     void client.invalidateQueries({ queryKey: ["owner-vault"] });
     void client.invalidateQueries({ queryKey: ["vault-check-in", vaultId] });
   };
   const draft = setup.planStatus === "DRAFT";
+  const progress = countProgress(setup.missingRequirements);
+  let progressPercent = 0;
+  if (progress.total > 0) {
+    progressPercent = Math.round((progress.done / progress.total) * 100);
+  }
+  const needsUpgrade = action.error.includes("gói dịch vụ trả phí");
+  const warnings: ReactNode[] = [];
+  for (const w of setup.warnings) {
+    let text = w;
+    if (Object.hasOwn(warningLabels, w)) {
+      text = warningLabels[w];
+    }
+    warnings.push(<li key={w}>{text}</li>);
+  }
   return (
     <section
-      className="space-y-6 rounded-xl border border-heritage-border bg-heritage-surface p-6"
+      className="space-y-6 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
       aria-label="Kích hoạt kế hoạch"
     >
-      <div className="space-y-3">
-        <h2 className="text-xl font-semibold">Kích hoạt kế hoạch</h2>
-        <p>
-          {draft
-            ? "Kế hoạch đang nháp; gói Sẵn sàng chưa tự kích hoạt lịch điểm danh."
-            : `Trạng thái kế hoạch: ${setup.planStatus}`}
-        </p>
-        {draft && (
-          <ul className="list-disc space-y-2 pl-6">
-            {setup.missingRequirements.map((item) => (
-              <li key={item}>
-                {Object.hasOwn(missingLabels, item)
-                  ? missingLabels[item]
-                  : "Còn điều kiện cần kiểm tra với máy chủ."}
-              </li>
-            ))}
-          </ul>
-        )}
-        {setup.missingRequirements.includes("OWNER_EKYC_REQUIRED") && (
-          <Link className="inline-flex min-h-11 items-center underline" to={ROUTES.DASHBOARD.ROOT}>
-            Đi xác minh danh tính
-          </Link>
-        )}
-        {draft && setup.canActivate && (
-          <p role="status">Đủ điều kiện hiện tại. Đọc cảnh báo trước khi kích hoạt.</p>
-        )}
-      </div>
-      {setup.containers.length > 0 && (
-        <div className="space-y-3 border-t border-heritage-border pt-4">
-          <h3 className="font-semibold">Gói trong kho</h3>
-          <ul className="divide-y divide-heritage-border rounded-lg border">
-            {setup.containers.map((c) => (
-              <li
-                key={c.id}
-                className="flex flex-wrap items-center justify-between gap-3 p-3 text-sm"
-              >
-                <span className="min-w-0 break-words font-medium">{c.name}</span>
-                <span className="flex flex-wrap items-center gap-2">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs ${
-                      c.status === "READY"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-amber-100 text-amber-800"
-                    }`}
-                  >
-                    {c.status === "READY" ? "Sẵn sàng bàn giao" : "Chưa đủ điều kiện"}
-                  </span>
-                  <span className="text-heritage-muted">
-                    {c.assetCount} tài sản · {c.designationCount} người nhận
-                  </span>
-                  {c.missingRequirements.length > 0 && (
-                    <span className="text-xs text-destructive">
-                      {c.missingRequirements
-                        .map((code) => missingLabels[code] ?? "Gói còn điều kiện cần kiểm tra.")
-                        .join(" ")}
-                    </span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {setup.containers.length === 0 && <p>Chưa có gói nào để bàn giao.</p>}
-      {setup.assetsOutsideContainer.length > 0 && (
-        <div className="space-y-3 border-t border-heritage-border pt-4">
-          <h3 className="font-semibold">Tài sản chưa thuộc gói</h3>
-          <p className="text-sm text-heritage-muted">
-            Những tài sản này chưa được giao cho ai và sẽ không nằm trong phạm vi bàn giao.
-          </p>
-          <ul className="list-disc space-y-1 pl-6 text-sm">
-            {setup.assetsOutsideContainer.map((a) => (
-              <li key={a.id} className="break-words">
-                {a.name}{" "}
-                <span className="text-heritage-muted">
-                  ({a.kind === "FILE" ? "Tệp" : "Văn bản"})
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {setup.assetsOutsideContainer.length === 0 && <p>Không có tài sản ngoài gói.</p>}
-      {setup.warnings.length > 0 && (
-        <div className="space-y-2 border-t border-heritage-border pt-4">
-          <h3 className="font-semibold">Cảnh báo</h3>
-          <ul className="list-disc space-y-1 pl-6 text-sm text-amber-800">
-            {setup.warnings.map((w) => (
-              <li key={w}>{Object.hasOwn(warningLabels, w) ? warningLabels[w] : w}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <div className="space-y-4 border-t border-heritage-border pt-4">
-        <h3 className="font-semibold">Executor của kho</h3>
-        <p className="text-sm leading-6">{setup.executorScopeText}</p>
-        {setup.executors.map((item) => (
-          <div key={item.id} className="space-y-2 rounded-lg border border-heritage-border p-4">
-            <p>
-              {item.role === "PRIMARY" ? "Executor chính" : "Executor dự phòng"}:{" "}
-              {item.inviteeEmail} · {statuses[item.status]}
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h2 className="text-xl font-medium text-heritage-primary">Sẵn sàng kích hoạt</h2>
+            <p className="text-sm text-heritage-muted">
+              {draft
+                ? "Kế hoạch đang nháp; gói Sẵn sàng chưa tự kích hoạt lịch điểm danh."
+                : `Trạng thái kế hoạch: ${setup.planStatus}`}
             </p>
-            {item.status === "INVITED" && !item.invitationSentAt && (
-              <p role="status" className="text-sm text-amber-800">
-                Chưa xác nhận gửi được email. Cần cấu hình SMTP và bật gửi lời mời; người được mời
-                chưa thể nhận nhiệm vụ từ email này.
-              </p>
-            )}
-            {draft &&
-              (["INVITED", "EXPIRED", "SUSPENDED"].includes(item.status) ||
-                (item.status === "ACCEPTED" &&
-                  item.acceptedScopeVersion !== setup.executorScopeVersion)) && (
-                <Button
-                  variant="outline"
-                  disabled={action.pending}
-                  onClick={() =>
-                    void action.execute(
-                      () => planSetupService.resend(vaultId, item.id, item.etag),
-                      sync,
-                    )
-                  }
-                >
-                  Gửi lại lời mời
-                </Button>
-              )}
           </div>
-        ))}
+          {draft && (
+            <span className="rounded-full bg-[#F1E7D0] px-3 py-1 text-xs font-semibold text-[#7A5B24]">
+              Đã đạt {progress.done}/{progress.total} điều kiện
+            </span>
+          )}
+        </div>
         {draft && (
-          <form
-            className="space-y-4"
-            noValidate
-            onSubmit={form.handleSubmit(async (values) => {
-              if (await action.execute(() => planSetupService.invite(vaultId, values), sync))
-                form.reset();
-            })}
+          <div
+            className="h-2 overflow-hidden rounded-full bg-heritage-canvas"
+            role="progressbar"
+            aria-label="Tiến độ điều kiện kích hoạt"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progressPercent}
           >
-            <fieldset disabled={action.pending} className="space-y-4">
-              <label className="block space-y-2 text-sm">
-                Email Executor
-                <Input
-                  type="email"
-                  {...form.register("email")}
-                  aria-invalid={Boolean(form.formState.errors.email)}
-                />
-              </label>
-              {form.formState.errors.email && (
-                <p role="alert">{form.formState.errors.email.message}</p>
-              )}
-              <label className="block space-y-2 text-sm">
-                Vai trò Executor
-                <select
-                  {...form.register("role")}
-                  className="block min-h-11 w-full rounded-lg border px-3"
-                >
-                  <option value="PRIMARY">Executor chính</option>
-                  <option value="BACKUP">Executor dự phòng</option>
-                </select>
-              </label>
-              <label className="block space-y-2 text-sm">
-                Executor cũng là người nhận?
-                <select
-                  className="block min-h-11 w-full rounded-lg border px-3"
-                  {...form.register("beneficiaryId", {
-                    setValueAs: (value: unknown) =>
-                      typeof value === "string" ? value.trim() || null : null,
-                  })}
-                >
-                  <option value="">Không phải người nhận trong kho</option>
-                  {beneficiaries.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {form.formState.errors.beneficiaryId && (
-                <p role="alert">Chọn ID hồ sơ người nhận hợp lệ thuộc kho.</p>
-              )}
-              <Button type="submit">Tạo lời mời Executor</Button>
-            </fieldset>
-          </form>
+            <div
+              className="h-full rounded-full bg-[#B68F4C]"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        )}
+        {draft && <ActivationChecklist missing={setup.missingRequirements} />}
+        {draft && setup.canActivate && (
+          <StatusBanner tone="success">
+            <p>Đủ điều kiện hiện tại. Đọc cảnh báo trước khi kích hoạt.</p>
+          </StatusBanner>
         )}
       </div>
+      {warnings.length > 0 && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <CircleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <div className="space-y-1">
+            <h3 className="font-semibold">Cảnh báo</h3>
+            <ul className="list-disc space-y-1 pl-5">{warnings}</ul>
+          </div>
+        </div>
+      )}
       {draft && (
-        <div className="space-y-4 border-t border-heritage-border pt-4">
-          <h3 className="font-semibold">Thông tin trước khi kích hoạt</h3>
-          <p className="text-sm leading-6">{setup.policyText}</p>
-          <p className="text-xs text-heritage-muted">Phiên bản: {setup.policyVersion}</p>
-          <label className="flex min-h-11 items-start gap-3 text-sm">
+        <div className="space-y-4 rounded-xl bg-heritage-canvas p-5">
+          <div className="space-y-2">
+            <h3 className="font-semibold text-heritage-primary">Thông tin trước khi kích hoạt</h3>
+            <p className="text-sm leading-6 text-heritage-muted">{setup.policyText}</p>
+            <p className="text-xs text-heritage-muted">Phiên bản: {setup.policyVersion}</p>
+          </div>
+          <label className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F1E7D0] p-4 text-sm leading-6 text-[#7A5B24]">
             <input
               type="checkbox"
               className="mt-1 size-5"
@@ -298,6 +254,8 @@ function PlanSetupForm({
             kích hoạt kế hoạch này.
           </label>
           <Button
+            size="lg"
+            className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B] disabled:opacity-60"
             disabled={!setup.canActivate || !acknowledge || action.pending}
             onClick={() =>
               void action.execute(
@@ -315,14 +273,28 @@ function PlanSetupForm({
           </Button>
         </div>
       )}
-      {action.pending && <p role="status">Đang gửi yêu cầu…</p>}
+      {action.pending && (
+        <p
+          role="status"
+          className="rounded-xl border border-heritage-border bg-heritage-surface px-4 py-3 text-sm text-heritage-muted"
+        >
+          Đang gửi yêu cầu…
+        </p>
+      )}
       {action.error && (
-        <div role="alert" className="space-y-3 text-destructive">
+        <StatusBanner tone="error">
           <p>{action.error}</p>
-          <Button variant="outline" onClick={sync}>
-            Tải lại điều kiện
-          </Button>
-        </div>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={sync}>
+              Tải lại điều kiện
+            </Button>
+            {needsUpgrade && (
+              <Link className={ROW_LINK} to={ROUTES.BILLING.PLANS}>
+                Xem gói dịch vụ
+              </Link>
+            )}
+          </div>
+        </StatusBanner>
       )}
     </section>
   );

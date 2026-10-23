@@ -3,12 +3,15 @@ import { apiClient } from "@/shared/api";
 import { paginatedListSchema, paginationRequestSchema } from "@/shared/api/pagination.schema";
 import type { PaginationParams } from "@/shared/types";
 import {
+  aiDossierAnalysisResponseSchema,
   approveCaseRequestSchema,
+  concludeObjectionRequestSchema,
   rejectCaseRequestSchema,
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
   verifierCaseDetailSchema,
   verifierCaseSummarySchema,
+  verifierObjectionSchema,
 } from "../model/verifierReview.schema";
 const id = z.string().uuid();
 const listSchema = paginatedListSchema(verifierCaseSummarySchema);
@@ -75,6 +78,33 @@ export const verifierReviewService = {
       await apiClient.post<unknown, unknown>(
         `/verifier/death-cases/${id.parse(caseId)}/reject`,
         rejectCaseRequestSchema.parse(request),
+      ),
+    );
+  },
+  /** Lời báo còn sống của hồ sơ; 404 khi chưa có hoặc hồ sơ không còn giao cho bạn. */
+  async getObjection(caseId: string, signal?: AbortSignal) {
+    return verifierObjectionSchema.parse(
+      await apiClient.get<unknown, unknown>(`/verifier/death-cases/${id.parse(caseId)}/objection`, {
+        signal,
+      }),
+    );
+  },
+  /** Kết luận lời báo còn sống; cần selfie đạt hoặc hết 7 ngày cho ALIVE_CONFIRMED. */
+  async concludeObjection(caseId: string, request: z.infer<typeof concludeObjectionRequestSchema>) {
+    return verifierObjectionSchema.parse(
+      await apiClient.post<unknown, unknown>(
+        `/verifier/death-cases/${id.parse(caseId)}/objection/conclude`,
+        concludeObjectionRequestSchema.parse(request),
+      ),
+    );
+  },
+  /** Trợ lý Gemini AI Co-Pilot hỗ trợ phân tích hồ sơ báo tử. */
+  async assessWithAi(caseId: string, signal?: AbortSignal) {
+    return aiDossierAnalysisResponseSchema.parse(
+      await apiClient.post<unknown, unknown>(
+        `/verifier/death-cases/${id.parse(caseId)}/ai-assess`,
+        {},
+        { signal },
       ),
     );
   },

@@ -113,7 +113,10 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
     login(
       { email: data.email, password: data.password, rememberMe: data.rememberMe },
       {
-        onSuccess: ({ user }) => finishLogin(user),
+        onSuccess: (outcome) => {
+          if ("twoFactorRequired" in outcome) navigate(ROUTES.AUTH.TWO_FACTOR);
+          else finishLogin(outcome.user);
+        },
       },
     );
   };
@@ -129,6 +132,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
       });
       if (!mounted.current) return;
       if (result.signedIn) finishLogin(result.user);
+      else if ("twoFactorRequired" in result) navigate(ROUTES.AUTH.TWO_FACTOR);
       else setLink({ linkTicket: result.linkTicket, maskedEmail: result.maskedEmail });
     } catch {
       // Mutation giữ lỗi cho UI; không retry cookie mutation tự động.
@@ -163,7 +167,8 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
             <span>Xác minh email thành công!</span>
           </div>
           <p className="text-xs text-emerald-800 leading-relaxed pl-7">
-            Địa chỉ email của bạn đã được kích hoạt. Vui lòng nhập mật khẩu để đăng nhập vào tài khoản.
+            Địa chỉ email của bạn đã được kích hoạt. Vui lòng nhập mật khẩu để đăng nhập vào tài
+            khoản.
           </p>
         </div>
       )}

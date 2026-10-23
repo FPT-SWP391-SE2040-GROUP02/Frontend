@@ -1,6 +1,6 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import { useOwnerVault, useOwnerPackage } from "@/features/vault-management/model/useOwnerVault";
-import { ContainerEditor } from "@/features/vault-management/ui/ContainerEditor";
+import { GroupDetail } from "@/features/vault-management/ui/GroupDetail";
 import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
 import { Button } from "@/shared/ui/button";
@@ -30,7 +30,7 @@ export function OwnerContainer() {
   if (vault.isError || container.isError)
     return (
       <div role="alert" className="space-y-4">
-        <p>Không đọc được gói trong kho của bạn. Kiểm tra đường dẫn hoặc tải lại.</p>
+        <p>Không đọc được gói bàn giao trong kho của bạn. Kiểm tra đường dẫn hoặc tải lại.</p>
         <Button
           onClick={() => {
             void vault.refetch();
@@ -42,11 +42,14 @@ export function OwnerContainer() {
       </div>
     );
   if (vault.isPending || container.isPending) return <p role="status">Đang tải gói bàn giao…</p>;
+  // Mỗi trang lựa chọn tối đa 100 mục; chỉ hiện nút chuyển trang khi kho thật sự có hơn một trang.
+  const showAssetNav = assetPage > 1 || Boolean(assets.data?.hasNextPage);
+  const showBeneficiaryNav = beneficiaryPage > 1 || Boolean(beneficiaries.data?.hasNextPage);
   return (
     <div className="space-y-4">
       {(assets.isError || beneficiaries.isError) && (
         <div role="alert" className="space-y-3">
-          <p>Chưa tải được một số lựa chọn tài sản/người nhận.</p>
+          <p>Chưa tải được một số lựa chọn mục/người nhận.</p>
           <Button
             variant="outline"
             onClick={() => {
@@ -58,54 +61,67 @@ export function OwnerContainer() {
           </Button>
         </div>
       )}
-      <p className="text-xs leading-5 text-heritage-muted">
-        Mỗi trang lựa chọn hiển thị tối đa 100 mục; các mục đã gắn luôn có thể gỡ. Khi dữ liệu đã
-        đổi ở nơi khác, tải lại trước khi sửa tiếp.
-      </p>
       {(assets.isPending || beneficiaries.isPending) && (
         <p role="status" className="text-sm">
           Đang tải danh sách lựa chọn…
         </p>
       )}
-      <nav aria-label="Phân trang lựa chọn cho gói" className="grid gap-3 sm:grid-cols-2">
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <Button
-            variant="outline"
-            disabled={assetPage === 1 || assets.isFetching}
-            onClick={() => setPage("assetPage", assetPage - 1)}
-          >
-            Trang tài sản trước
-          </Button>
-          <span>Trang {assetPage}</span>
-          <Button
-            variant="outline"
-            disabled={!assets.data?.hasNextPage || assets.isFetching}
-            onClick={() => setPage("assetPage", assetPage + 1)}
-          >
-            Trang tài sản sau
-          </Button>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <Button
-            variant="outline"
-            disabled={beneficiaryPage === 1 || beneficiaries.isFetching}
-            onClick={() => setPage("beneficiaryPage", beneficiaryPage - 1)}
-          >
-            Trang người nhận trước
-          </Button>
-          <span>Trang {beneficiaryPage}</span>
-          <Button
-            variant="outline"
-            disabled={!beneficiaries.data?.hasNextPage || beneficiaries.isFetching}
-            onClick={() => setPage("beneficiaryPage", beneficiaryPage + 1)}
-          >
-            Trang người nhận sau
-          </Button>
-        </div>
-      </nav>
-      <ContainerEditor
+      {(showAssetNav || showBeneficiaryNav) && (
+        <nav
+          aria-label="Phân trang lựa chọn cho gói bàn giao"
+          className="grid gap-3 sm:grid-cols-2"
+        >
+          {showAssetNav && (
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              <Button
+                variant="outline"
+                disabled={assetPage === 1 || assets.isFetching}
+                onClick={() => setPage("assetPage", assetPage - 1)}
+              >
+                Trang tài sản trước
+              </Button>
+              <span>Trang {assetPage}</span>
+              <Button
+                variant="outline"
+                disabled={!assets.data?.hasNextPage || assets.isFetching}
+                onClick={() => setPage("assetPage", assetPage + 1)}
+              >
+                Trang tài sản sau
+              </Button>
+            </div>
+          )}
+          {showBeneficiaryNav && (
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              <Button
+                variant="outline"
+                disabled={beneficiaryPage === 1 || beneficiaries.isFetching}
+                onClick={() => setPage("beneficiaryPage", beneficiaryPage - 1)}
+              >
+                Trang người nhận trước
+              </Button>
+              <span>Trang {beneficiaryPage}</span>
+              <Button
+                variant="outline"
+                disabled={!beneficiaries.data?.hasNextPage || beneficiaries.isFetching}
+                onClick={() => setPage("beneficiaryPage", beneficiaryPage + 1)}
+              >
+                Trang người nhận sau
+              </Button>
+            </div>
+          )}
+        </nav>
+      )}
+      <GroupDetail
         container={container.data}
-        assets={assets.data?.items.map((item) => ({ id: item.id, label: item.name })) ?? []}
+        assets={
+          assets.data?.items.map((item) => {
+            let detail = "Văn bản";
+            if (item.kind === "FILE") {
+              detail = "Tệp";
+            }
+            return { id: item.id, label: item.name, detail };
+          }) ?? []
+        }
         beneficiaries={
           beneficiaries.data?.items.map((item) => ({
             id: item.id,
@@ -113,9 +129,6 @@ export function OwnerContainer() {
           })) ?? []
         }
       />
-      <Button variant="outline" onClick={() => window.location.reload()}>
-        Tải lại gói và bỏ thay đổi chưa lưu
-      </Button>
     </div>
   );
 }

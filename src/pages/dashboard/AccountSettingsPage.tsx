@@ -1,16 +1,14 @@
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
+import { LoginMethodsPanel } from "@/features/auth";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
-/** Hồ sơ từ phiên Backend, không cung cấp thao tác bảo mật chưa được tích hợp. */
-export function AccountSettingsPage() {
+/** Nội dung cài đặt dùng chung cho mọi không gian (Chủ kho, Người thực hiện). */
+export function AccountSettingsContent() {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   return (
-    <OwnerWorkspace
-      title="Cài đặt tài khoản"
-      description="Thông tin hồ sơ và phương thức bảo vệ tài khoản của bạn."
-    >
+    <>
       <section className="rounded-xl border border-heritage-border bg-heritage-surface p-6">
         <div className="flex items-center gap-4 border-b border-heritage-border pb-6">
           <span
@@ -43,15 +41,30 @@ export function AccountSettingsPage() {
           ))}
         </dl>
         <p className="mt-6 border-t border-heritage-border pt-4 text-xs text-heritage-muted">
-          Chỉnh sửa hồ sơ và quản lý phương thức đăng nhập đang được hoàn thiện.
+          Chỉnh sửa hồ sơ đang được hoàn thiện.
         </p>
       </section>
-      <Link
-        className="inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4"
-        to={ROUTES.BENEFICIARY.EKYC_CAMERA}
-      >
-        Xác minh danh tính của tôi
-      </Link>
+      <LoginMethodsPanel />
+      {(!user || user.role === "USER") && (
+        <Link
+          className="inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4"
+          to={ROUTES.DASHBOARD.IDENTITY}
+        >
+          Xác minh danh tính của tôi
+        </Link>
+      )}
+    </>
+  );
+}
+
+/** Hồ sơ từ phiên Backend và quản lý phương thức đăng nhập đã có API. */
+export function AccountSettingsPage() {
+  return (
+    <OwnerWorkspace
+      title="Cài đặt tài khoản"
+      description="Thông tin hồ sơ và phương thức bảo vệ tài khoản của bạn."
+    >
+      <AccountSettingsContent />
     </OwnerWorkspace>
   );
 }

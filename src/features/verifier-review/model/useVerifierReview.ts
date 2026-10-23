@@ -1,9 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
+import { HTTP_STATUS } from "@/shared/constants";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import type { PaginationParams } from "@/shared/types";
 import { verifierReviewService } from "../api/verifierReviewService";
 import type {
   approveCaseRequestSchema,
+  concludeObjectionRequestSchema,
   rejectCaseRequestSchema,
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
@@ -15,6 +18,7 @@ export const verifierKeys = {
   lists: () => [...verifierKeys.all, "list"] as const,
   list: (params?: PaginationParams) => [...verifierKeys.lists(), params ?? {}] as const,
   detail: (caseId: string) => [...verifierKeys.all, "detail", caseId] as const,
+  objection: (caseId: string) => [...verifierKeys.all, "objection", caseId] as const,
 };
 /** Hồ sơ Verifier đang được giao. */
 export function useVerifierCases(params?: PaginationParams) {
@@ -79,4 +83,38 @@ export function useRejectCase() {
   const client = useQueryClient();
   return (caseId: string, request: z.infer<typeof rejectCaseRequestSchema>) =>
     perform(client, caseId, () => verifierReviewService.reject(caseId, request));
+}
+/** Lời báo còn sống của hồ sơ; `null` khi BE trả 404 (chưa có lời báo hoặc không còn được giao). */
+export function useVerifierObjection(caseId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: verifierKeys.objection(caseId),
+    queryFn: async ({ signal }) => {
+      try {
+        return await verifierReviewService.getObjection(caseId, signal);
+      } catch (error) {
+        if (isAxiosError(error) && error.response?.status === HTTP_STATUS.NOT_FOUND) return null;
+        throw error;
+      }
+    },
+    enabled,
+    gcTime: 0,
+    retry: false,
+  });
+}
+/**
+ * Kết luận lời báo. Response chỉ có ObjectionResponse nên đọc lại detail và objection
+ * sau khi BE xác nhận; không optimistic (quyết định Verifier).
+ */
+export function useConcludeObjection() {
+  const client = useQueryClient();
+  return async (caseId: string, request: z.infer<typeof concludeObjectionRequestSchema>) => {
+    const credential = accessTokenMemory.get();
+    const result = await verifierReviewService.concludeObjection(caseId, request);
+    if (credential && accessTokenMemory.get() === credential) {
+      client.setQueryData(verifierKeys.objection(caseId), result);
+      void client.invalidateQueries({ queryKey: verifierKeys.detail(caseId) });
+      void client.invalidateQueries({ queryKey: verifierKeys.lists() });
+    }
+    return result;
+  };
 }

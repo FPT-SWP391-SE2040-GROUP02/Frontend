@@ -1,3 +1,4 @@
+import { formatDate, formatDateTime } from "@/shared/lib/dateFormat";
 import type { WillItemDto, WillViewModel } from "../model/will.types";
 /**
  * Chuyển đổi từ Raw DTO (nhận từ C# API) sang ViewModel (cho Component UI)
@@ -13,21 +14,9 @@ export function toWillViewModel(dto: WillItemDto): WillViewModel {
     REVOKED: "Đã Thu Hồi",
   };
 
-  const formattedDate = new Date(dto.createdAt).toLocaleDateString("vi-VN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
+  const formattedDate = formatDate(dto.createdAt);
 
-  const sealedDate = dto.seal?.sealedAt
-    ? new Date(dto.seal.sealedAt).toLocaleDateString("vi-VN", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : undefined;
+  const sealedDate = dto.seal?.sealedAt ? formatDateTime(dto.seal.sealedAt) : undefined;
 
   const hash = dto.affidavitProof?.sha256Hash || "";
   const affidavitHashShort =

@@ -1,0 +1,9 @@
+/* Khung Executor dùng lại kiểu của khung Chủ kho; chỉ khác ở thanh nhãn vai trò, chỉ hiện trên điện thoại. */
+.executor-controls {
+  display: none;
+}
+@media (max-width: 767px) {
+  .executor-controls {
+    display: flex;
+  }
+}

@@ -87,9 +87,7 @@ describe("VerifyEmailPage URL lifecycle", () => {
           resolveOld = done;
         }),
     );
-    vi.mocked(authService.verifyEmail).mockImplementationOnce(
-      () => new Promise(() => {}),
-    );
+    vi.mocked(authService.verifyEmail).mockImplementationOnce(() => new Promise(() => {}));
     const router = setup("/verify-email?token=old");
     await vi.waitFor(() => expect(authService.verifyEmail).toHaveBeenCalledWith("old"));
     await act(async () => router.navigate("/verify-email?token=new"));

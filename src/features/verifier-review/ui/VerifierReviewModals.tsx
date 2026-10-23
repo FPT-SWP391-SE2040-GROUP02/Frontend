@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/shared/ui/button";
+import { buttonStyles } from "@/shared/ui/heritageKit";
 import { Textarea } from "@/shared/ui/textarea";
 import { CustomCheckbox } from "@/shared/ui/CustomCheckbox";
 import {
@@ -21,6 +21,7 @@ import {
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
   supplementPartSchema,
+  supplementPartLabels,
   blockerLabels,
   flagLabels,
   type supplementPartSchema as supplementPartSchemaType,
@@ -38,33 +39,71 @@ import type { verifierCaseDetailSchema } from "../model/verifierReview.schema";
 type Detail = z.infer<typeof verifierCaseDetailSchema>;
 type SupplementPart = z.infer<typeof supplementPartSchemaType>;
 
-const supplementPartLabels: Record<SupplementPart, string> = {
-  OWNER_FULL_NAME: "Họ tên Owner",
-  OWNER_CITIZEN_ID: "Số CCCD",
-  DATE_OF_DEATH: "Ngày mất",
-  CERTIFICATE_NUMBER: "Số giấy chứng tử",
-  ISSUED_ON: "Ngày cấp",
-  ISSUED_BY: "Nơi cấp",
-  FILES: "Trang giấy tờ",
-};
 const allSupplementParts: SupplementPart[] = supplementPartSchema.options;
 const confirmation = z.boolean().refine(Boolean, "Cần xác nhận trước khi tiếp tục.");
+
+function inferSuggestedParts(reasonText: string): SupplementPart[] {
+  if (!reasonText) return [];
+  const lower = reasonText.toLowerCase();
+  const suggested: SupplementPart[] = [];
+  if (lower.includes("cccd") || lower.includes("căn cước") || lower.includes("định danh")) {
+    suggested.push("OWNER_CITIZEN_ID");
+  }
+  if (lower.includes("họ tên") || lower.includes("tên chủ")) {
+    suggested.push("OWNER_FULL_NAME");
+  }
+  if (
+    lower.includes("ngày mất") ||
+    lower.includes("thời điểm tử vong") ||
+    lower.includes("ngày qua đời")
+  ) {
+    suggested.push("DATE_OF_DEATH");
+  }
+  if (
+    lower.includes("số giấy") ||
+    lower.includes("số trích lục") ||
+    lower.includes("số chứng tử")
+  ) {
+    suggested.push("CERTIFICATE_NUMBER");
+  }
+  if (lower.includes("ngày cấp")) {
+    suggested.push("ISSUED_ON");
+  }
+  if (
+    lower.includes("nơi cấp") ||
+    lower.includes("cơ quan cấp") ||
+    lower.includes("ubnd")
+  ) {
+    suggested.push("ISSUED_BY");
+  }
+  if (
+    lower.includes("giấy tờ") ||
+    lower.includes("trang") ||
+    lower.includes("ảnh") ||
+    lower.includes("tài liệu") ||
+    lower.includes("đính kèm") ||
+    lower.includes("mờ")
+  ) {
+    suggested.push("FILES");
+  }
+  return suggested;
+}
 
 function ReviewError({ error, onClose }: { error: string; onClose: () => void }) {
   const client = useQueryClient();
   return (
     <div role="alert" className="space-y-2 text-sm text-destructive">
       <p>{error}</p>
-      <Button
+      <button
         type="button"
-        variant="outline"
+        className={buttonStyles.outline}
         onClick={() => {
           void client.invalidateQueries({ queryKey: verifierKeys.all });
           onClose();
         }}
       >
         Tải lại hồ sơ
-      </Button>
+      </button>
     </div>
   );
 }
@@ -74,10 +113,12 @@ export function VerifierReviewModals({ caseId, detail }: { caseId: string; detai
   const [params, setParams] = useSearchParams();
   const modal = params.get("modal");
   const flagId = params.get("flagId");
+  const reason = params.get("reason");
   const close = () => {
     const next = new URLSearchParams(params);
     next.delete("modal");
     next.delete("flagId");
+    next.delete("reason");
     setParams(next);
   };
   if (!modal) return null;
@@ -97,9 +138,10 @@ export function VerifierReviewModals({ caseId, detail }: { caseId: string; detai
   if (modal === "supplement" && actions.canRequestSupplement) {
     return (
       <RequestSupplementModal
-        key={`${caseId}:${detail.etag}`}
+        key={`${caseId}:${detail.etag}:${reason ?? ""}`}
         caseId={caseId}
         detail={detail}
+        initialReason={reason ?? ""}
         onClose={close}
       />
     );
@@ -107,9 +149,10 @@ export function VerifierReviewModals({ caseId, detail }: { caseId: string; detai
   if (modal === "approve" && actions.canOpenApprove) {
     return (
       <ApproveModal
-        key={`${caseId}:${detail.etag}`}
+        key={`${caseId}:${detail.etag}:${reason ?? ""}`}
         caseId={caseId}
         detail={detail}
+        initialReason={reason ?? ""}
         onClose={close}
       />
     );
@@ -117,9 +160,10 @@ export function VerifierReviewModals({ caseId, detail }: { caseId: string; detai
   if (modal === "reject" && actions.canReject) {
     return (
       <RejectModal
-        key={`${caseId}:${detail.etag}`}
+        key={`${caseId}:${detail.etag}:${reason ?? ""}`}
         caseId={caseId}
         detail={detail}
+        initialReason={reason ?? ""}
         onClose={close}
       />
     );
@@ -156,23 +200,23 @@ function ReviewFlagModal({
   const flag = detail.flags.find((f) => f.id === flagId);
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px] max-h-[88vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Xem xét cờ</DialogTitle>
+          <DialogTitle>Kiểm tra cảnh báo</DialogTitle>
           <DialogDescription>
             {flag
-              ? `${flagLabels[flag.kind]}: ${flag.detail}`
-              : "Cờ không tìm thấy trong hồ sơ hiện tại."}
+              ? `${flagLabels[flag.kind]}: ${flag.detail} Hãy xem cảnh báo này có đáng lo không rồi ghi lại nhận định của bạn. Kiểm tra hết cảnh báo thì mới duyệt được hồ sơ.`
+              : "Không tìm thấy cảnh báo trong hồ sơ hiện tại."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-3">
           <label className="block text-sm">
-            Ghi chú xem xét
+            Ghi chú kiểm tra
             <Textarea
               {...form.register("note")}
               maxLength={1000}
               aria-invalid={Boolean(form.formState.errors.note)}
-              className="mt-1 min-h-24"
+              className="mt-1 min-h-24 max-h-36"
             />
             {form.formState.errors.note && (
               <span className="text-xs text-destructive">{form.formState.errors.note.message}</span>
@@ -180,17 +224,26 @@ function ReviewFlagModal({
           </label>
           <CustomCheckbox
             className="min-h-11 w-full items-center!"
-            label="Tôi đã xem xét cờ này."
+            label="Tôi đã kiểm tra cảnh báo này."
             {...form.register("confirm")}
           />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={onClose}
+              disabled={action.pending}
+            >
               Hủy
-            </Button>
-            <Button type="submit" disabled={action.pending || !confirmed}>
+            </button>
+            <button
+              type="submit"
+              className={buttonStyles.gold}
+              disabled={action.pending || !confirmed}
+            >
               {action.pending ? "Đang ghi…" : "Ghi nhận"}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -201,14 +254,17 @@ function ReviewFlagModal({
 function RequestSupplementModal({
   caseId,
   detail,
+  initialReason = "",
   onClose,
 }: {
   caseId: string;
   detail: Detail;
+  initialReason?: string;
   onClose: () => void;
 }) {
   const action = usePrivateAction();
   const request = useRequestSupplement();
+  const defaultParts = inferSuggestedParts(initialReason);
   const form = useForm<{
     etag: string;
     reason: string;
@@ -223,7 +279,7 @@ function RequestSupplementModal({
     ),
     mode: "onBlur",
     reValidateMode: "onBlur",
-    defaultValues: { etag: detail.etag, reason: "", parts: [], confirm: false },
+    defaultValues: { etag: detail.etag, reason: initialReason, parts: defaultParts, confirm: false },
   });
   const parts = useWatch({ control: form.control, name: "parts" }) ?? [];
   const confirm = useWatch({ control: form.control, name: "confirm" });
@@ -243,21 +299,24 @@ function RequestSupplementModal({
   });
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[620px] max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Yêu cầu bổ sung</DialogTitle>
           <DialogDescription>
-            Executor sẽ nhận được thông báo với lý do và các phần cần bổ sung.
+            Người thực hiện sẽ nhận được thông báo với lý do và các phần cần bổ sung.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-3">
+        <form onSubmit={onSubmit} className="space-y-4">
           <label className="block text-sm">
-            Lý do
+            <span className="font-medium text-heritage-primary">
+              Lý do <span aria-hidden="true">*</span>
+            </span>
             <Textarea
               {...form.register("reason")}
               maxLength={1000}
+              placeholder="Nêu rõ cần bổ sung điều gì"
               aria-invalid={Boolean(form.formState.errors.reason)}
-              className="mt-1 min-h-24"
+              className="mt-1 min-h-24 max-h-36"
             />
             {form.formState.errors.reason && (
               <span className="text-xs text-destructive">
@@ -266,22 +325,33 @@ function RequestSupplementModal({
             )}
           </label>
           <fieldset className="space-y-2 text-sm">
-            <legend className="text-xs text-heritage-muted">Phần cần bổ sung</legend>
-            {allSupplementParts.map((part) => (
-              <CustomCheckbox
-                key={part}
-                className="min-h-11 w-full items-center!"
-                label={supplementPartLabels[part]}
-                value={part}
-                checked={parts.includes(part)}
-                onChange={(event) => {
-                  const next = event.target.checked
-                    ? [...parts, part]
-                    : parts.filter((p) => p !== part);
-                  form.setValue("parts", next, { shouldValidate: true });
-                }}
-              />
-            ))}
+            <div className="flex items-center justify-between">
+              <legend className="text-xs font-semibold uppercase tracking-wider text-heritage-muted">
+                Phần cần bổ sung <span aria-hidden="true">*</span>
+              </legend>
+              {parts.length > 0 && (
+                <span className="text-xs font-medium text-heritage-gold">
+                  Đã chọn {parts.length}/{allSupplementParts.length}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {allSupplementParts.map((part) => (
+                <CustomCheckbox
+                  key={part}
+                  className="min-h-11 w-full items-center! text-xs py-2 px-3"
+                  label={supplementPartLabels[part]}
+                  value={part}
+                  checked={parts.includes(part)}
+                  onChange={(event) => {
+                    const next = event.target.checked
+                      ? [...parts, part]
+                      : parts.filter((p) => p !== part);
+                    form.setValue("parts", next, { shouldValidate: true });
+                  }}
+                />
+              ))}
+            </div>
             {form.formState.errors.parts && (
               <span className="text-xs text-destructive">
                 {form.formState.errors.parts.message as string}
@@ -290,17 +360,26 @@ function RequestSupplementModal({
           </fieldset>
           <CustomCheckbox
             className="min-h-11 w-full items-center!"
-            label="Tôi xác nhận yêu cầu này sẽ được gửi cho Executor."
+            label="Tôi xác nhận yêu cầu này sẽ được gửi cho Người thực hiện."
             {...form.register("confirm")}
           />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={onClose}
+              disabled={action.pending}
+            >
               Hủy
-            </Button>
-            <Button type="submit" disabled={action.pending || !confirm || parts.length === 0}>
+            </button>
+            <button
+              type="submit"
+              className={buttonStyles.gold}
+              disabled={action.pending || !confirm || parts.length === 0}
+            >
               {action.pending ? "Đang gửi…" : "Gửi yêu cầu"}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -311,10 +390,12 @@ function RequestSupplementModal({
 function ApproveModal({
   caseId,
   detail,
+  initialReason = "",
   onClose,
 }: {
   caseId: string;
   detail: Detail;
+  initialReason?: string;
   onClose: () => void;
 }) {
   const action = usePrivateAction();
@@ -325,7 +406,7 @@ function ApproveModal({
     ),
     mode: "onBlur",
     reValidateMode: "onBlur",
-    defaultValues: { etag: detail.etag, reason: "", confirm: false, legalConfirm: false },
+    defaultValues: { etag: detail.etag, reason: initialReason, confirm: false, legalConfirm: false },
   });
   const blockers = detail.approveBlockers;
   const confirm = useWatch({ control: form.control, name: "confirm" });
@@ -342,7 +423,7 @@ function ApproveModal({
   });
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[560px] max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Duyệt hồ sơ và mở bàn giao</DialogTitle>
           <DialogDescription>
@@ -369,7 +450,7 @@ function ApproveModal({
               {...form.register("reason")}
               maxLength={1000}
               aria-invalid={Boolean(form.formState.errors.reason)}
-              className="mt-1 min-h-24"
+              className="mt-1 min-h-24 max-h-36"
             />
             {form.formState.errors.reason && (
               <span className="text-xs text-destructive">
@@ -391,15 +472,21 @@ function ApproveModal({
           />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={onClose}
+              disabled={action.pending}
+            >
               Hủy
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
+              className={buttonStyles.gold}
               disabled={action.pending || !detail.canApprove || !confirm || !legalConfirm}
             >
               {action.pending ? "Đang duyệt…" : "Duyệt"}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -410,10 +497,12 @@ function ApproveModal({
 function RejectModal({
   caseId,
   detail,
+  initialReason = "",
   onClose,
 }: {
   caseId: string;
   detail: Detail;
+  initialReason?: string;
   onClose: () => void;
 }) {
   const action = usePrivateAction();
@@ -422,7 +511,7 @@ function RejectModal({
     resolver: zodResolver(rejectCaseRequestSchema.extend({ confirm: confirmation })),
     mode: "onBlur",
     reValidateMode: "onBlur",
-    defaultValues: { etag: detail.etag, reason: "", confirm: false },
+    defaultValues: { etag: detail.etag, reason: initialReason, confirm: false },
   });
   const reason = useWatch({ control: form.control, name: "reason" }) ?? "";
   const confirm = useWatch({ control: form.control, name: "confirm" });
@@ -435,7 +524,7 @@ function RejectModal({
   });
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[560px] max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Từ chối hồ sơ</DialogTitle>
           <DialogDescription>
@@ -449,7 +538,7 @@ function RejectModal({
               {...form.register("reason")}
               maxLength={1000}
               aria-invalid={Boolean(form.formState.errors.reason)}
-              className="mt-1 min-h-24"
+              className="mt-1 min-h-24 max-h-36"
             />
             {form.formState.errors.reason && (
               <span className="text-xs text-destructive">
@@ -464,16 +553,23 @@ function RejectModal({
           />
           {action.error && <ReviewError error={action.error} onClose={onClose} />}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={action.pending}>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={onClose}
+              disabled={action.pending}
+            >
               Hủy
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
-              variant="destructive"
+              className={
+                "inline-flex min-h-11 items-center justify-center rounded-xl bg-[#A32119] px-6 text-sm font-semibold text-white hover:bg-[#8A1B14] disabled:pointer-events-none disabled:opacity-50"
+              }
               disabled={action.pending || !confirm || !reason.trim()}
             >
               {action.pending ? "Đang từ chối…" : "Từ chối"}
-            </Button>
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>

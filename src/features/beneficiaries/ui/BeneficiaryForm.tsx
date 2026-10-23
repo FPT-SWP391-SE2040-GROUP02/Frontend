@@ -1,22 +1,46 @@
 import { z } from "zod";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
+import { ReactReduxContext } from "react-redux";
+import { Link } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+import { StatusBanner } from "@/shared/ui/status-banner";
+import { ROUTES } from "@/shared/config/routes.config";
+import type { AuthState } from "@/entities/user/model/authSlice";
 import { beneficiaryService } from "../api/beneficiaryService";
 import { beneficiaryResponseSchema, createBeneficiarySchema } from "../model/beneficiary.schema";
 
 type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
+// Ghi đè thông báo lỗi mặc định (tiếng Anh) của schema dùng chung bằng tiếng Việt để hiện ngay dưới từng ô.
 const formSchema = createBeneficiarySchema
-  .omit({ citizenId: true })
-  .extend({ citizenId: z.string().max(32) });
+  .omit({ citizenId: true, fullName: true, dateOfBirth: true })
+  .extend({
+    citizenId: z.string().max(32, "Số CCCD quá dài."),
+    fullName: z.string().max(200, "Họ tên tối đa 200 ký tự.").regex(/\S/, "Vui lòng nhập họ tên."),
+    dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Vui lòng chọn ngày sinh."),
+  });
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) {
+    return null;
+  }
+  return (
+    <span role="alert" className="block text-sm text-destructive">
+      {message}
+    </span>
+  );
+}
+
 /** CCCD đầy đủ chỉ ở form RAM; sửa giữ etag ban đầu và không cho thay CCCD. */
 export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?: Beneficiary }) {
   const action = usePrivateAction();
   const client = useQueryClient();
+  const reduxContext = useContext(ReactReduxContext);
+  const ownerEmail = reduxContext ? (reduxContext.store.getState() as { auth?: AuthState })?.auth?.user?.email : undefined;
   const [etag, setEtag] = useState(record?.etag);
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
   const {
@@ -35,7 +59,6 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
       dateOfBirth: record?.dateOfBirth ?? "",
       email: record?.email ?? "",
       phone: record?.phone ?? "",
-      confirmMinor: false,
     },
   });
   const sync = () => {
@@ -43,13 +66,10 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
     void client.invalidateQueries({ queryKey: ["owner-vault"] });
   };
   return (
-    <details className="rounded-xl border border-heritage-border bg-heritage-surface p-6">
-      <summary className="min-h-11 cursor-pointer font-semibold">
-        {record ? `${record.fullName} · ****${record.citizenIdLast4}` : "Thêm người nhận"}
-      </summary>
+    <div>
       <form
         noValidate
-        className="mt-4 space-y-4"
+        className="space-y-4"
         onSubmit={handleSubmit(async (values) => {
           if (!record && !/^\d{12}$/.test(values.citizenId.replace(/\s/g, ""))) {
             setError("citizenId", { message: "CCCD cần đủ 12 chữ số." });
@@ -63,13 +83,31 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
             setError("email", { message: "Email không hợp lệ." });
             return;
           }
+          if (
+            values.email &&
+            ownerEmail &&
+            values.email.trim().toLowerCase() === ownerEmail.trim().toLowerCase()
+          ) {
+            setError("email", {
+              message: "Email người thụ hưởng không được trùng với email của Chủ kho.",
+            });
+            return;
+          }
           const { citizenId, ...contact } = values;
+          let createdNew = false;
           const saved = await action.execute(
             () =>
               record
                 ? beneficiaryService.update(vaultId, record.id, { ...contact, etag: etag! })
                 : beneficiaryService.create(vaultId, { ...contact, citizenId }),
             (result) => {
+              if (result.isExisting) {
+                setError("citizenId", {
+                  message: "Số CCCD này đã tồn tại trong danh sách người nhận của kho.",
+                });
+                return;
+              }
+              createdNew = true;
               sync();
               setEtag(result.etag);
               if (record)
@@ -79,11 +117,10 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
                   dateOfBirth: result.dateOfBirth,
                   email: result.email ?? "",
                   phone: result.phone ?? "",
-                  confirmMinor: false,
                 });
             },
           );
-          if (saved && !record) reset();
+          if (saved && !record && createdNew) reset();
         })}
       >
         <fieldset disabled={action.pending} className="space-y-4">
@@ -95,11 +132,17 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
                 {...register("citizenId")}
                 aria-invalid={Boolean(errors.citizenId)}
               />
+              <FieldError message={errors.citizenId?.message} />
             </label>
           )}
           <label className="block space-y-2 text-sm">
             Họ tên
-            <Input {...register("fullName")} aria-invalid={Boolean(errors.fullName)} />
+            <Input
+              placeholder="Ví dụ: Nguyễn Văn An"
+              {...register("fullName")}
+              aria-invalid={Boolean(errors.fullName)}
+            />
+            <FieldError message={errors.fullName?.message} />
           </label>
           <label className="block space-y-2 text-sm">
             Ngày sinh
@@ -108,26 +151,23 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
               {...register("dateOfBirth")}
               aria-invalid={Boolean(errors.dateOfBirth)}
             />
+            <FieldError message={errors.dateOfBirth?.message} />
           </label>
           <label className="block space-y-2 text-sm">
             Email
             <Input type="email" {...register("email")} aria-invalid={Boolean(errors.email)} />
+            <FieldError message={errors.email?.message} />
           </label>
           <label className="block space-y-2 text-sm">
             Số điện thoại
             <Input type="tel" {...register("phone")} aria-invalid={Boolean(errors.phone)} />
+            <FieldError message={errors.phone?.message} />
           </label>
-          <label className="flex min-h-11 items-start gap-3 rounded-lg bg-amber-50 p-4 text-sm leading-6">
-            <input type="checkbox" className="mt-1 size-5" {...register("confirmMinor")} />
-            Nếu người nhận chưa đủ 18 tuổi, tôi đã đọc và xác nhận cảnh báo: việc bàn giao có thể
-            cần người đại diện và xác minh bổ sung.
-          </label>
-          {Object.entries(errors).map(([key, error]) => (
-            <p key={key} role="alert" className="text-sm text-destructive">
-              {error?.message}
-            </p>
-          ))}
-          <Button type="submit" className="min-h-11">
+          <Button
+            type="submit"
+            size="lg"
+            className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+          >
             {action.pending ? "Đang lưu…" : record ? "Lưu hồ sơ" : "Tạo hồ sơ người nhận"}
           </Button>
         </fieldset>
@@ -146,6 +186,8 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
           </label>
           <Button
             variant="outline"
+            size="lg"
+            className="border-red-300 text-red-700 hover:bg-red-50"
             disabled={action.pending || !deleteConfirmed || record.containerIds.length > 0}
             onClick={() =>
               void action.execute(() => beneficiaryService.remove(vaultId, record.id), sync)
@@ -154,20 +196,27 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
             Xóa hồ sơ
           </Button>
           {record.containerIds.length > 0 && (
-            <p className="text-xs text-heritage-muted">Gỡ khỏi các gói trước khi xóa hồ sơ.</p>
+            <p className="text-xs text-heritage-muted">
+              Gỡ khỏi các gói bàn giao trước khi xóa hồ sơ.
+            </p>
           )}
         </div>
       )}
       {action.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          {action.error}
-        </p>
+        <StatusBanner tone="error" className="mt-4">
+          <p>{action.error}</p>
+          {action.error.includes("gói dịch vụ trả phí") && (
+            <Link className="inline-block underline" to={ROUTES.BILLING.PLANS}>
+              Xem gói dịch vụ
+            </Link>
+          )}
+        </StatusBanner>
       )}
       {action.succeeded && (
-        <p role="status" className="mt-4 text-sm text-heritage-primary">
-          Đã lưu thay đổi.
-        </p>
+        <StatusBanner tone="success" className="mt-4">
+          <p>Đã lưu thay đổi.</p>
+        </StatusBanner>
       )}
-    </details>
+    </div>
   );
 }

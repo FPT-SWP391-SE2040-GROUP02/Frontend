@@ -6,6 +6,8 @@ import { authService, sessionAuthService } from "../api/authService";
 import { runAuthTransition, notifyAuthChange } from "./authTransitions";
 import { toAuthUserViewModel } from "@/entities/user/lib/adapters";
 import type { AuthSessionDto } from "@/entities/user/model/authContract.types";
+import { isTwoFactorChallenge, type TwoFactorChallenge } from "./twoFactor.schema";
+import { TwoFactorChallengeMissingError, twoFactorChallengeMemory } from "./twoFactorChallenge";
 import type { z } from "zod";
 import type { googleLoginRequestSchema } from "./googleAuth.schema";
 import type {
@@ -14,13 +16,20 @@ import type {
   LogoutOptions,
   PasskeyLoginRequest,
   RegisterRequest,
-  TwoFactorVerifyRequest,
 } from "./auth.types";
 
 export const authKeys = {
   all: ["auth"] as const,
   session: () => [...authKeys.all, "session"] as const,
 };
+
+/** Kết quả đăng nhập: phiên đã cấp, hoặc Admin phải nhập mã 2FA ở bước kế. */
+export type SignInOutcome = { user: AuthSessionDto["user"] } | { twoFactorRequired: true };
+
+/** Giữ thử thách trong RAM; không cấp phiên, không đổi Redux/cache. */
+function keepChallenge(challenge: TwoFactorChallenge): void {
+  twoFactorChallengeMemory.set(challenge);
+}
 
 /**
  * @description Hook xử lý Đăng nhập tài khoản bằng React Query useMutation.
@@ -34,7 +43,11 @@ export function useLogin() {
       runAuthTransition(
         () =>
           sessionAuthService.login({ ...credentials, rememberMe: credentials.rememberMe ?? false }),
-        async (session: AuthSessionDto, current) => {
+        async (session: AuthSessionDto | TwoFactorChallenge, current) => {
+          if (isTwoFactorChallenge(session)) {
+            keepChallenge(session);
+            return;
+          }
           await queryClient.cancelQueries();
           if (!current()) throw new Error("Auth context changed");
           queryClient.clear();
@@ -43,7 +56,9 @@ export function useLogin() {
           queryClient.setQueryData(authKeys.session(), { user: session.user });
           notifyAuthChange();
         },
-      ).then((session) => ({ user: session.user })),
+      ).then((session): SignInOutcome =>
+        isTwoFactorChallenge(session) ? { twoFactorRequired: true } : { user: session.user },
+      ),
     retry: false,
     networkMode: "always",
   });
@@ -59,7 +74,15 @@ export function useGoogleLogin() {
       runAuthTransition(
         () => authService.loginWithGoogle(payload),
         async (result, current) => {
-          if (!result.signedIn) return;
+          if (!result.signedIn) {
+            if ("twoFactorRequired" in result)
+              keepChallenge({
+                twoFactorRequired: true,
+                challengeToken: result.challengeToken,
+                expiresIn: result.challengeExpiresIn,
+              });
+            return;
+          }
           await queryClient.cancelQueries();
           if (!current()) throw new Error("Auth context changed");
           queryClient.clear();
@@ -69,7 +92,11 @@ export function useGoogleLogin() {
           notifyAuthChange();
         },
       ).then((result) =>
-        result.signedIn ? { signedIn: true as const, user: result.session.user } : result,
+        result.signedIn
+          ? { signedIn: true as const, user: result.session.user }
+          : "twoFactorRequired" in result
+            ? { signedIn: false as const, twoFactorRequired: true as const }
+            : result,
       ),
     retry: false,
     networkMode: "always",
@@ -107,6 +134,10 @@ export function useLinkGoogle() {
       runAuthTransition(
         () => authService.linkGoogleAccount(payload),
         async (session, current) => {
+          if (isTwoFactorChallenge(session)) {
+            keepChallenge(session);
+            return;
+          }
           await queryClient.cancelQueries();
           if (!current()) throw new Error("Auth context changed");
           queryClient.clear();
@@ -115,7 +146,9 @@ export function useLinkGoogle() {
           queryClient.setQueryData(authKeys.session(), { user: session.user });
           notifyAuthChange();
         },
-      ).then((session) => ({ user: session.user })),
+      ).then((session): SignInOutcome =>
+        isTwoFactorChallenge(session) ? { twoFactorRequired: true } : { user: session.user },
+      ),
     retry: false,
     networkMode: "always",
   });
@@ -125,11 +158,30 @@ export function useLinkGoogle() {
  * @description Hook xử lý xác thực hai bước TOTP cho tài khoản quản trị (Mockup 7).
  */
 export function useTwoFactorVerify() {
-  const mutation = useMutation({
-    mutationFn: (payload: TwoFactorVerifyRequest) => authService.verifyTwoFactor(payload),
+  const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
+  return useMutation({
+    gcTime: 0,
+    mutationFn: (code: string) => {
+      const challengeToken = twoFactorChallengeMemory.get();
+      if (!challengeToken) return Promise.reject(new TwoFactorChallengeMissingError());
+      return runAuthTransition(
+        () => authService.verifyTwoFactor({ challengeToken, code }),
+        async (session, current) => {
+          await queryClient.cancelQueries();
+          if (!current()) throw new Error("Auth context changed");
+          queryClient.clear();
+          accessTokenMemory.set(session.accessToken);
+          dispatch(setCredentials({ user: toAuthUserViewModel(session.user) }));
+          queryClient.setQueryData(authKeys.session(), { user: session.user });
+          twoFactorChallengeMemory.clear();
+          notifyAuthChange();
+        },
+      ).then((session) => ({ user: session.user }));
+    },
     retry: false,
+    networkMode: "always",
   });
-  return { ...mutation, isAvailable: false };
 }
 
 /**

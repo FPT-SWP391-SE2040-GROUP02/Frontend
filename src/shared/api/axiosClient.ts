@@ -92,7 +92,8 @@ apiClient.interceptors.response.use(
       } else if (status >= HTTP_STATUS.INTERNAL_SERVER_ERROR) {
         console.error(`[API ${status}]`, APP_MESSAGES.ERROR.SERVER);
       }
-    } else {
+    } else if (!axios.isCancel(error)) {
+      // Request bị hủy chủ động (AbortSignal của TanStack Query, đổi trang) không phải lỗi mạng.
       console.error("[API Network Error]", APP_MESSAGES.ERROR.NETWORK);
     }
 

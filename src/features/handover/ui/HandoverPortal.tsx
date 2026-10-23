@@ -9,6 +9,7 @@ import type { handoverTurnSchema } from "../model/handover.schema";
 import { useGrantDownload } from "../model/useGrantDownload";
 import { useHandoverAction } from "../model/useHandoverAction";
 import { remainingText } from "../model/handover.format";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 const labels: Record<string, string> = {
   INVITED: "Được mời",
   INITIAL_RESPONSE_EXPIRED: "Đã qua hạn phản hồi ban đầu",
@@ -25,14 +26,15 @@ const statusHints: Record<string, string> = {
     "Đã qua hạn phản hồi ban đầu nhưng bạn vẫn có thể nhận lời mời; máy chủ sẽ kiểm tra khi bạn xác nhận.",
   DECISION_EXPIRED: "Hạn quyết định đã kết thúc nên lượt này không còn nhận được nữa.",
   DECLINED: "Bạn đã từ chối lượt bàn giao này.",
-  CANCELLED: "Lượt bàn giao này đã bị hủy.",
+  CANCELLED:
+    "Lượt bàn giao này đã bị hủy vì chủ kho đã được xác nhận còn sống. Nội dung không còn được bàn giao.",
   LAPSED: "Lượt bàn giao này đã kết thúc.",
 };
 const grantLabels: Record<string, string> = {
   ACTIVE: "Đang hiệu lực",
   EXPIRED: "Đã hết hạn, không còn tải được",
-  BLOCKED: "Đang bị tạm giữ, chưa thể tải",
-  REVOKED: "Đã bị thu hồi",
+  BLOCKED: "Đang tạm dừng trong lúc hồ sơ được xác minh lại, chưa thể tải",
+  REVOKED: "Đã bị thu hồi, không còn tải được",
 };
 function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
   const action = useHandoverAction();
@@ -47,9 +49,9 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
       <h2 className="text-lg font-semibold">{turn.container?.name ?? "Lượt bàn giao"}</h2>
       <p className="text-sm">{labels[turn.status]}</p>
       <p className="text-sm text-heritage-muted">
-        Hạn phản hồi: {new Date(turn.responseDeadline).toLocaleString("vi-VN")}
+        Hạn phản hồi: {formatDateTime(turn.responseDeadline)}
         {turn.decisionDeadline && (
-          <> · Hạn quyết định: {new Date(turn.decisionDeadline).toLocaleString("vi-VN")}</>
+          <> · Hạn quyết định: {formatDateTime(turn.decisionDeadline)}</>
         )}
       </p>
       {statusHints[turn.status] && <p className="text-sm">{statusHints[turn.status]}</p>}
@@ -118,7 +120,7 @@ function TurnCard({ turn }: { turn: z.infer<typeof handoverTurnSchema> }) {
       {turn.grant && (
         <p className="text-sm">
           Quyền xem/tải: {grantLabels[turn.grant.status] ?? turn.grant.status} · đến{" "}
-          {new Date(turn.grant.expiresAt).toLocaleString("vi-VN")}
+          {formatDateTime(turn.grant.expiresAt)}
         </p>
       )}
       {turn.items.length > 0 && (

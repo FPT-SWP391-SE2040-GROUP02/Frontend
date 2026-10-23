@@ -9,7 +9,7 @@ export const verifierCaseStatusSchema = z.enum([
   "REJECTED",
   "SUSPENDED",
 ]);
-/** Cờ phát hiện trên bản Executor gửi (BE VerifierFlagResponse.Kind). */
+/** Cảnh báo hệ thống phát hiện trên bản Executor gửi (BE VerifierFlagResponse.Kind). */
 export const verifierFlagKindSchema = z.enum(["CHECKIN_AFTER_DEATH", "IDENTITY_MISMATCH"]);
 /** Quyết định Verifier đã ra (BE VerifierDecisionResponse.Kind). */
 export const verifierDecisionKindSchema = z.enum(["SUPPLEMENT_REQUESTED", "REJECTED", "APPROVED"]);
@@ -25,6 +25,17 @@ export const supplementPartSchema = z.enum([
   "ISSUED_BY",
   "FILES",
 ]);
+/** Nhãn tiếng Việt cho mã phần cần bổ sung. */
+export const supplementPartLabels: Record<z.infer<typeof supplementPartSchema>, string> = {
+  OWNER_FULL_NAME: "Họ tên chủ kho",
+  OWNER_CITIZEN_ID: "Số CCCD",
+  DATE_OF_DEATH: "Ngày mất",
+  CERTIFICATE_NUMBER: "Số giấy chứng tử",
+  ISSUED_ON: "Ngày cấp",
+  ISSUED_BY: "Nơi cấp",
+  FILES: "Trang giấy tờ",
+};
+
 /** Lý do chặn duyệt (BE VerifierDeathCaseResponse.ApproveBlockers). */
 export const approveBlockerSchema = z.enum([
   "NOT_UNDER_REVIEW",
@@ -56,6 +67,8 @@ export const verifierCaseSummarySchema = z.object({
   objectionEndsAt: timestamp.nullable(),
   unreviewedFlagCount: z.number().int().nonnegative(),
   closedAt: timestamp.nullable(),
+  /** Có giá trị = Executor bổ sung quá hạn 7 ngày; null/thiếu = chưa quá hạn hoặc đã gửi lại (BE mục 6.12). */
+  supplementOverdueAt: timestamp.nullable().optional(),
 });
 /** Bản Executor gửi gần nhất mà Verifier đang xét (đã giải mã, có CCCD đầy đủ Owner). */
 export const verifierReviewVersionSchema = z.object({
@@ -78,7 +91,7 @@ export const verifierOlderVersionSchema = z.object({
   submittedAt: timestamp.nullable(),
   files: z.array(verifierFileSchema),
 });
-/** Cờ của bản đang xét. */
+/** Cảnh báo của bản đang xét. */
 export const verifierFlagSchema = z.object({
   id: z.string().uuid(),
   kind: verifierFlagKindSchema,
@@ -140,6 +153,8 @@ export const verifierCaseDetailSchema = z.object({
   approveBlockers: z.array(approveBlockerSchema),
   previousCase: verifierPreviousCaseSchema,
   handover: verifierHandoverSchema,
+  /** Có giá trị = Executor bổ sung quá hạn 7 ngày; null/thiếu = chưa quá hạn hoặc đã gửi lại (BE mục 6.12). */
+  supplementOverdueAt: timestamp.nullable().optional(),
 });
 /** Review một cờ. */
 export const reviewFlagRequestSchema = z.object({
@@ -147,7 +162,7 @@ export const reviewFlagRequestSchema = z.object({
   note: z
     .string()
     .trim()
-    .min(1, "Cần nhập ghi chú xem xét cờ.")
+    .min(1, "Cần nhập ghi chú kiểm tra cảnh báo.")
     .max(1000, "Ghi chú tối đa 1000 ký tự."),
 });
 /** Yêu cầu Executor bổ sung. */
@@ -180,8 +195,8 @@ export const caseStatusLabels: Record<z.infer<typeof verifierCaseStatusSchema>, 
 };
 /** Nhãn cho cờ. */
 export const flagLabels: Record<z.infer<typeof verifierFlagKindSchema>, string> = {
-  CHECKIN_AFTER_DEATH: "Có lượt điểm danh sau ngày mất",
-  IDENTITY_MISMATCH: "Thông tin nhân thân chưa khớp",
+  CHECKIN_AFTER_DEATH: "Chủ kho vẫn điểm danh sau ngày mất ghi trên giấy",
+  IDENTITY_MISMATCH: "CCCD trên hồ sơ khác CCCD chủ kho đã xác minh",
 };
 /** Nhãn cho blocker. */
 export const blockerLabels: Record<z.infer<typeof approveBlockerSchema>, string> = {
@@ -189,7 +204,7 @@ export const blockerLabels: Record<z.infer<typeof approveBlockerSchema>, string>
   NEWER_VERSION_PENDING: "Đang có bản mới chờ xét; chờ Verifier xét bản mới nhất.",
   OWNER_NOT_NOTIFIED: "Owner chưa được thông báo về hồ sơ này.",
   OBJECTION_PERIOD_NOT_OVER: "Đang trong thời gian chờ Owner phản đối (72 giờ).",
-  FLAGS_NOT_REVIEWED: "Còn cờ chưa được xem xét.",
+  FLAGS_NOT_REVIEWED: "Còn cảnh báo chưa được kiểm tra.",
   VERIFIER_CONFLICT:
     "Bạn có quan hệ với kho này nên chỉ được xem, không được ra quyết định trên hồ sơ.",
 };
@@ -206,3 +221,91 @@ export const decisionLabels: Record<z.infer<typeof verifierDecisionKindSchema>, 
   REJECTED: "Từ chối",
   APPROVED: "Duyệt mở bàn giao",
 };
+
+/** Kết luận của Verifier cho lời báo còn sống (BE ObjectionConclusion). */
+export const objectionConclusionSchema = z.enum([
+  "ALIVE_CONFIRMED",
+  "OBJECTION_REJECTED",
+  "INSUFFICIENT_EVIDENCE",
+]);
+/** Lời báo "Tôi còn sống" nhìn từ Verifier (BE ObjectionResponse). */
+export const verifierObjectionSchema = z.object({
+  id: z.string().uuid(),
+  status: z.enum(["OPEN", "CONCLUDED"]),
+  firstReportedAt: timestamp,
+  lastReportedAt: timestamp,
+  reportCount: z.number().int().nonnegative(),
+  selfieDeadlineAt: timestamp,
+  selfieWindowOpen: z.boolean(),
+  selfiePassed: z.boolean(),
+  selfiePassedAt: timestamp.nullable(),
+  selfieAttemptsRemaining: z.number().int().nonnegative(),
+  verifierDueAt: timestamp.nullable(),
+  insufficientEvidenceCount: z.number().int().nonnegative(),
+  conclusion: objectionConclusionSchema.nullable(),
+  conclusionReason: z.string().nullable(),
+  concludedAt: timestamp.nullable(),
+  serverTime: timestamp,
+});
+/** Kết luận lời báo; lý do bắt buộc, tối đa 1000 ký tự (BE ConcludeObjectionRequest). */
+export const concludeObjectionRequestSchema = z.object({
+  conclusion: objectionConclusionSchema,
+  reason: z
+    .string()
+    .trim()
+    .min(1, "Cần nhập lý do kết luận.")
+    .max(1000, "Lý do tối đa 1000 ký tự."),
+});
+export const objectionConclusionLabels: Record<
+  z.infer<typeof objectionConclusionSchema>,
+  string
+> = {
+  ALIVE_CONFIRMED: "Xác nhận Owner còn sống",
+  OBJECTION_REJECTED: "Bác lời báo",
+  INSUFFICIENT_EVIDENCE: "Chưa đủ bằng chứng",
+};
+/**
+ * Kết luận nào còn mở cho lời báo này, theo luật BE mục 6.14:
+ * ALIVE_CONFIRMED cần selfie đạt hoặc đã quá 7 ngày; OBJECTION_REJECTED bị chặn khi selfie đã đạt (ALIVE-05).
+ * Nút chỉ phản ánh luật; BE vẫn là nơi quyết định.
+ */
+/** Mức độ rủi ro do Gemini AI phân tích (BE AiDossierAnalysisResponse.RiskLevel). */
+export const aiDossierRiskLevelSchema = z.enum(["LOW", "MEDIUM", "HIGH"]);
+
+/** Đề xuất của trợ lý công chứng AI (BE AiDossierAnalysisResponse.Recommendation). */
+export const aiDossierRecommendationSchema = z.enum(["APPROVE", "SUPPLEMENT", "REJECT"]);
+
+/** Một tiêu chí trong bảng đối chiếu thẩm định hồ sơ của AI. */
+export const aiDossierChecklistItemSchema = z.object({
+  category: z.string(),
+  status: z.string(),
+  detail: z.string(),
+});
+
+/** Kết quả thẩm định hồ sơ báo tử bởi Gemini AI Notary Co-Pilot. */
+export const aiDossierAnalysisResponseSchema = z.object({
+  caseId: z.string().uuid(),
+  summary: z.string(),
+  riskLevel: aiDossierRiskLevelSchema,
+  riskReason: z.string(),
+  recommendation: aiDossierRecommendationSchema,
+  recommendationReason: z.string(),
+  checklist: z.array(aiDossierChecklistItemSchema),
+  proposedDecisionNote: z.string(),
+  analyzedAt: timestamp,
+  modelName: z.string(),
+});
+
+export type AiDossierAnalysisResponse = z.infer<typeof aiDossierAnalysisResponseSchema>;
+export type AiDossierChecklistItem = z.infer<typeof aiDossierChecklistItemSchema>;
+
+export function allowedObjectionConclusions(
+  objection: z.infer<typeof verifierObjectionSchema>,
+): z.infer<typeof objectionConclusionSchema>[] {
+  if (objection.status !== "OPEN") return [];
+  const options: z.infer<typeof objectionConclusionSchema>[] = [];
+  if (objection.selfiePassed || !objection.selfieWindowOpen) options.push("ALIVE_CONFIRMED");
+  if (!objection.selfiePassed) options.push("OBJECTION_REJECTED");
+  options.push("INSUFFICIENT_EVIDENCE");
+  return options;
+}
