@@ -8,6 +8,7 @@ import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { Input } from "@/shared/ui/input";
 import type { DeathCase } from "../model/deathCase.schema";
+import { type CertificateFileCheck, readCertificateRejection } from "../model/certificateCheck";
 import { executorVaultsKey } from "../model/useExecutorVaults";
 import { deathCaseService } from "../api/deathCaseService";
 import { buttonStyles, Chip, formatDateTime, Panel } from "@/shared/ui/heritageKit";
@@ -75,12 +76,28 @@ function VersionTimeline({ record }: { record: DeathCase }) {
   );
 }
 
+/** Kết quả AI cho một trang sau lần gửi bị chặn; không có kết quả thì không hiện gì. */
+function CertificateCheckNote({ check }: { check: CertificateFileCheck | undefined }) {
+  if (!check) return null;
+  if (check.status === "NOT_RECOGNIZED")
+    return (
+      <p className="mt-1 text-xs text-destructive">
+        Không phải giấy chứng tử{check.documentType ? ` (AI nhận ra: ${check.documentType})` : ""}
+      </p>
+    );
+  if (check.status === "UNAVAILABLE")
+    return <p className="mt-1 text-xs text-heritage-muted">Chưa kiểm tra được trang này</p>;
+  return <p className="mt-1 text-xs text-[#2E9E6E]">Là giấy chứng tử</p>;
+}
+
 /** Một snapshot hồ sơ; full CCCD/file chỉ nằm trong local form, không cache. */
 export function DeathCaseEditor({ record }: { record: DeathCase }) {
   const [etag, setEtag] = useState(record.etag);
   const [confirmed, setConfirmed] = useState(false);
   const [fileError, setFileError] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [certificateChecks, setCertificateChecks] = useState<CertificateFileCheck[] | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const action = usePrivateAction();
   const client = useQueryClient();
@@ -101,6 +118,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
   });
   const publish = (result: DeathCase) => {
     setEtag(result.etag);
+    setCertificateChecks(null);
     setConfirmed(false);
     form.reset({
       ownerFullName: result.currentVersion.ownerFullName ?? "",
@@ -132,6 +150,21 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
     }
     await action.execute(() => deathCaseService.upload(record.id, file), publish);
   };
+  /** Gửi hồ sơ: BE cho AI xem các trang; bị chặn thì giữ kết quả từng trang để hiện cạnh tệp. */
+  const submit = async () => {
+    setCertificateChecks(null);
+    setSubmitting(true);
+    await action.execute(async () => {
+      try {
+        return await deathCaseService.submit(record.id, record.etag);
+      } catch (failure) {
+        setCertificateChecks(readCertificateRejection(failure));
+        throw failure;
+      }
+    }, publish);
+    setSubmitting(false);
+  };
+  const checkOf = (fileId: string) => certificateChecks?.find((check) => check.fileId === fileId);
   const onDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setDragging(false);
@@ -260,12 +293,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                       record.missingRequirements.length > 0
                     }
                     className={buttonStyles.gold}
-                    onClick={() =>
-                      void action.execute(
-                        () => deathCaseService.submit(record.id, record.etag),
-                        publish,
-                      )
-                    }
+                    onClick={() => void submit()}
                   >
                     {supplement ? "Nộp bản bổ sung" : "Gửi hồ sơ"}
                   </button>
@@ -304,12 +332,17 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
             )}
             {action.pending && (
               <p role="status" className="mt-3 text-sm">
-                Đang xử lý hồ sơ…
+                {submitting ? "Đang kiểm tra giấy chứng tử…" : "Đang xử lý hồ sơ…"}
               </p>
             )}
             {action.error && (
               <p role="alert" className="mt-3 text-sm text-destructive">
                 {action.error}
+              </p>
+            )}
+            {certificateChecks && (
+              <p className="mt-2 text-xs text-heritage-muted">
+                Kết quả nhận diện từng trang được ghi ở danh sách chứng từ bên dưới.
               </p>
             )}
             {action.succeeded && (
@@ -386,6 +419,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                     {typeLabels[item.contentType] ?? "Tệp"} · {formatSize(item.sizeBytes)} · tải lúc{" "}
                     {formatDateTime(item.uploadedAt)}
                   </p>
+                  <CertificateCheckNote check={checkOf(item.id)} />
                 </div>
               </div>
               <button

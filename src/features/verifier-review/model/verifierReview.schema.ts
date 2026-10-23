@@ -10,7 +10,11 @@ export const verifierCaseStatusSchema = z.enum([
   "SUSPENDED",
 ]);
 /** Cảnh báo hệ thống phát hiện trên bản Executor gửi (BE VerifierFlagResponse.Kind). */
-export const verifierFlagKindSchema = z.enum(["CHECKIN_AFTER_DEATH", "IDENTITY_MISMATCH"]);
+export const verifierFlagKindSchema = z.enum([
+  "CHECKIN_AFTER_DEATH",
+  "IDENTITY_MISMATCH",
+  "CERTIFICATE_UNVERIFIED",
+]);
 /** Quyết định Verifier đã ra (BE VerifierDecisionResponse.Kind). */
 export const verifierDecisionKindSchema = z.enum(["SUPPLEMENT_REQUESTED", "REJECTED", "APPROVED"]);
 /** Trạng thái thông báo Owner (BE DeathCaseNoticeResponse.Status). */
@@ -197,6 +201,7 @@ export const caseStatusLabels: Record<z.infer<typeof verifierCaseStatusSchema>, 
 export const flagLabels: Record<z.infer<typeof verifierFlagKindSchema>, string> = {
   CHECKIN_AFTER_DEATH: "Chủ kho vẫn điểm danh sau ngày mất ghi trên giấy",
   IDENTITY_MISMATCH: "CCCD trên hồ sơ khác CCCD chủ kho đã xác minh",
+  CERTIFICATE_UNVERIFIED: "AI chưa kiểm tra được trang nào là giấy chứng tử, cần tự xem kỹ",
 };
 /** Nhãn cho blocker. */
 export const blockerLabels: Record<z.infer<typeof approveBlockerSchema>, string> = {

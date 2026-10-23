@@ -89,6 +89,17 @@ describe("official BE business errors", () => {
     expect(privateActionError(failure(status, ""))).not.toContain("Không hoàn tất được thao tác");
   });
 
+  it("explains when AI finds no death certificate page", () => {
+    const message = privateActionError(
+      failure(409, {
+        code: "DEATH_CASE_INCOMPLETE",
+        missingRequirements: ["DEATH_CERTIFICATE_NOT_RECOGNIZED"],
+        fileChecks: [],
+      }),
+    );
+    expect(message).toContain("không nhận ra trang nào là giấy chứng tử");
+  });
+
   it("distinguishes timeout from network errors and advises checking before resubmitting", () => {
     expect(privateActionError(new AxiosError("private", AxiosError.ECONNABORTED))).toContain(
       "phản hồi quá lâu",

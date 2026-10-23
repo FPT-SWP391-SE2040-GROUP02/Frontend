@@ -37,4 +37,5 @@ export const requirementLabels: Record<string, string> = {
   ISSUED_ON: "Ngày cấp",
   ISSUED_BY: "Nơi cấp",
   FILES: "Trang giấy chứng tử",
+  DEATH_CERTIFICATE_NOT_RECOGNIZED: "Ảnh giấy chứng tử rõ nét",
 };
