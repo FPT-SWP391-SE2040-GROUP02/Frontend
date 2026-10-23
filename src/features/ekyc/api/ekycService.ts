@@ -14,6 +14,57 @@ import {
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 /** Khớp thời gian BE chờ dịch vụ OCR (120 giây); mặc định 30 giây của axios quá ngắn cho lần đọc đầu. */
 const OCR_TIMEOUT_MS = 120_000;
+/** Nén và giảm kích thước ảnh chụp điện thoại quá lớn (>1.5MB) trước khi tải lên mạng để tăng tốc độ và tránh timeout. */
+async function optimizeImageForUpload(file: File): Promise<File> {
+  if (file.size <= 1.5 * 1024 * 1024 || typeof window === "undefined" || typeof document === "undefined") {
+    return file;
+  }
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const maxSide = 1200;
+      let width = img.width;
+      let height = img.height;
+      if (width > maxSide || height > maxSide) {
+        if (width > height) {
+          height = Math.round((height * maxSide) / width);
+          width = maxSide;
+        } else {
+          width = Math.round((width * maxSide) / height);
+          height = maxSide;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob || blob.size >= file.size) {
+            resolve(file);
+          } else {
+            resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: "image/jpeg" }));
+          }
+        },
+        "image/jpeg",
+        0.88,
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+}
+
 function imageForm(file: File, handoverTurnId?: string) {
   if (
     !["image/jpeg", "image/png"].includes(file.type) ||
@@ -60,10 +111,11 @@ export const ekycService = {
   /** POST ảnh mặt trước; OCR chỉ giữ RAM. */
   async submitDocument(file: File, purpose: string, handoverTurnId?: string | null) {
     const parsed = ekycPurposeSchema.parse(purpose);
+    const optimizedFile = await optimizeImageForUpload(file);
     return ekycDocumentSchema.parse(
       await apiClient.post<unknown, unknown>(
         "/ekyc/document",
-        imageForm(file, turnIdFor(parsed, handoverTurnId)),
+        imageForm(optimizedFile, turnIdFor(parsed, handoverTurnId)),
         // Đọc OCR có thể lâu (lần đầu nạp mô hình); BE chờ dịch vụ eKYC tối đa 120 giây (Ekyc:TimeoutSeconds).
         { headers: { "Content-Type": undefined }, timeout: OCR_TIMEOUT_MS },
       ),
@@ -75,10 +127,11 @@ export const ekycService = {
    */
   async submitDocumentBack(file: File, purpose: string, handoverTurnId?: string | null) {
     const parsed = ekycPurposeSchema.parse(purpose);
+    const optimizedFile = await optimizeImageForUpload(file);
     return ekycBackSchema.parse(
       await apiClient.post<unknown, unknown>(
         "/ekyc/document-back",
-        imageForm(file, turnIdFor(parsed, handoverTurnId)),
+        imageForm(optimizedFile, turnIdFor(parsed, handoverTurnId)),
         { headers: { "Content-Type": undefined }, timeout: OCR_TIMEOUT_MS },
       ),
     );
