@@ -131,7 +131,8 @@ function History({ periods }: { periods: Period[] }) {
 }
 
 /**
- * Màn "Điểm danh định kỳ" theo thiết kế: đếm ngược tới hạn, nút điểm danh, lịch (chu kỳ/ân hạn) và lịch sử các kỳ.
+ * Màn "Điểm danh định kỳ" theo thiết kế: đếm ngược tới hạn, nút điểm danh, cách điểm danh (kèm ghép đồng hồ),
+ * lịch (chu kỳ/ân hạn) và lịch sử các kỳ.
  * Thời gian và quyền điểm danh do máy chủ quyết định; không có cài đặt nhắc email/SMS vì Backend chưa hỗ trợ.
  */
 export function OwnerCheckIn({ vaultId }: { vaultId: string }) {
@@ -161,7 +162,7 @@ export function OwnerCheckIn({ vaultId }: { vaultId: string }) {
   const status = query.data;
   return (
     <div className="space-y-6">
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="grid items-start gap-6 lg:grid-cols-2">
         <section aria-label="Hạn tiếp theo" className={CARD}>
           <h2 className="text-xl font-medium text-heritage-primary">
             Hạn tiếp theo: {formatDate(status.nextCheckInDueAt)}
@@ -179,13 +180,13 @@ export function OwnerCheckIn({ vaultId }: { vaultId: string }) {
               className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
             />
           </div>
-          <SmartwatchCheckInButton vaultId={vaultId} status={status} />
         </section>
-        <section aria-label="Lịch điểm danh" className={CARD}>
-          <h2 className="mb-4 text-xl font-medium text-heritage-primary">Lịch điểm danh</h2>
-          <CheckInSettingsForm key={status.settings.etag} vaultId={vaultId} status={status} />
-        </section>
+        <SmartwatchCheckInButton vaultId={vaultId} status={status} />
       </div>
+      <section aria-label="Lịch điểm danh" className={CARD}>
+        <h2 className="mb-4 text-xl font-medium text-heritage-primary">Lịch điểm danh</h2>
+        <CheckInSettingsForm key={status.settings.etag} vaultId={vaultId} status={status} />
+      </section>
       <History periods={status.history.items} />
     </div>
   );

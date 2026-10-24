@@ -3,12 +3,12 @@ import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { ReactReduxContext } from "react-redux";
 import { Link } from "react-router-dom";
+import { ShieldCheck } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { StatusBanner } from "@/shared/ui/status-banner";
+import { buttonStyles } from "@/shared/ui/heritageKit";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { beneficiaryService } from "../api/beneficiaryService";
@@ -24,19 +24,39 @@ const formSchema = createBeneficiarySchema
     dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Vui lòng chọn ngày sinh."),
   });
 
+const LABEL = "block space-y-1.5 text-sm font-semibold";
+const HINT = "block text-xs font-normal text-heritage-muted";
+const FIELD = "min-h-11 bg-white font-normal placeholder:text-heritage-muted";
+
 function FieldError({ message }: { message?: string }) {
   if (!message) {
     return null;
   }
   return (
-    <span role="alert" className="block text-sm text-destructive">
+    <span role="alert" className="block text-sm font-normal text-destructive">
       {message}
     </span>
   );
 }
 
-/** CCCD đầy đủ chỉ ở form RAM; sửa giữ etag ban đầu và không cho thay CCCD. */
-export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?: Beneficiary }) {
+/**
+ * Form thêm/sửa người nhận theo thiết kế 154/155/172: hai cột, gợi ý dưới từng ô, khung thông tin cuối form.
+ * CCCD đầy đủ chỉ ở form RAM; sửa giữ etag ban đầu và không cho thay CCCD. Xóa hồ sơ nằm ở hộp thoại riêng của hàng.
+ * Backend chưa có trường "Quan hệ" nên form không có ô này.
+ */
+export function BeneficiaryForm({
+  vaultId,
+  record,
+  onCancel,
+  onOpenExisting,
+}: {
+  vaultId: string;
+  record?: Beneficiary;
+  /** Có thì hiện nút Hủy cạnh nút lưu (form đặt trong hộp thoại). */
+  onCancel?: () => void;
+  /** Gọi khi người dùng muốn mở hồ sơ đã có (CCCD đã tồn tại với cùng thông tin). */
+  onOpenExisting?: (existing: Beneficiary) => void;
+}) {
   const action = usePrivateAction();
   const client = useQueryClient();
   const reduxContext = useContext(ReactReduxContext);
@@ -44,12 +64,13 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
     ? (reduxContext.store.getState() as { auth?: AuthState })?.auth?.user?.email
     : undefined;
   const [etag, setEtag] = useState(record?.etag);
-  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [existing, setExisting] = useState<Beneficiary | null>(null);
   const {
     register,
     handleSubmit,
     reset,
     setError,
+    clearErrors,
     formState: { errors },
   } = useForm<z.input<typeof formSchema>, unknown, z.output<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,12 +88,24 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
     void client.invalidateQueries({ queryKey: ["vault-beneficiaries", vaultId] });
     void client.invalidateQueries({ queryKey: ["owner-vault"] });
   };
+  let note =
+    "Cần ít nhất một cách liên hệ: email hoặc số điện thoại. Số CCCD được mã hóa; hệ thống chỉ hiện 4 số cuối.";
+  if (record && record.containerIds.length > 0) {
+    note = `Người này đang thuộc ${record.containerIds.length} gói bàn giao. Sửa thông tin sẽ cập nhật cấu hình kế hoạch bàn giao.`;
+  } else if (record) {
+    note = "Cần ít nhất một cách liên hệ: email hoặc số điện thoại.";
+  }
+  let submitLabel = "Thêm người nhận";
+  if (record) {
+    submitLabel = "Lưu thay đổi";
+  }
   return (
     <div>
       <form
         noValidate
         className="space-y-4"
         onSubmit={handleSubmit(async (values) => {
+          setExisting(null);
           if (!record && !/^\d{12}$/.test(values.citizenId.replace(/\s/g, ""))) {
             setError("citizenId", { message: "CCCD cần đủ 12 chữ số." });
             return;
@@ -104,8 +137,9 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
                 : beneficiaryService.create(vaultId, { ...contact, citizenId }),
             (result) => {
               if (result.isExisting) {
+                setExisting(result);
                 setError("citizenId", {
-                  message: "Số CCCD này đã tồn tại trong danh sách người nhận của kho.",
+                  message: `Số CCCD này đã có trong kho: “${result.fullName}”. Hãy kiểm tra lại, hoặc mở hồ sơ đã có để sửa.`,
                 });
                 return;
               }
@@ -126,98 +160,119 @@ export function BeneficiaryForm({ vaultId, record }: { vaultId: string; record?:
         })}
       >
         <fieldset disabled={action.pending} className="space-y-4">
-          {!record && (
-            <label className="block space-y-2 text-sm">
-              Số CCCD
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className={LABEL}>
+              Họ và tên *
               <Input
-                autoComplete="off"
-                {...register("citizenId")}
-                aria-invalid={Boolean(errors.citizenId)}
+                placeholder="Ví dụ: Nguyễn Văn An"
+                className={FIELD}
+                {...register("fullName")}
+                aria-invalid={Boolean(errors.fullName)}
               />
-              <FieldError message={errors.citizenId?.message} />
+              <FieldError message={errors.fullName?.message} />
             </label>
+            <label className={LABEL}>
+              Ngày sinh *
+              <Input
+                type="date"
+                className={FIELD}
+                {...register("dateOfBirth")}
+                aria-invalid={Boolean(errors.dateOfBirth)}
+              />
+              <span className={HINT}>Không được là ngày trong tương lai.</span>
+              <FieldError message={errors.dateOfBirth?.message} />
+            </label>
+            {record ? (
+              <div className={LABEL}>
+                <span>Số CCCD</span>
+                <p className="flex min-h-11 items-center gap-2 rounded-lg border border-heritage-border bg-[#ECE8DB] px-3 font-mono text-sm font-normal text-heritage-muted">
+                  <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
+                  <span>•••••••• {record.citizenIdLast4}</span>
+                </p>
+                <span className={HINT}>Không đổi được sau khi lưu.</span>
+              </div>
+            ) : (
+              <label className={LABEL}>
+                Số CCCD *
+                <Input
+                  autoComplete="off"
+                  inputMode="numeric"
+                  placeholder="12 chữ số"
+                  className={FIELD}
+                  {...register("citizenId", { onChange: () => clearErrors("citizenId") })}
+                  aria-invalid={Boolean(errors.citizenId)}
+                />
+                <span className={HINT}>
+                  Đúng 12 chữ số, giữ cả số 0 ở đầu. Không đổi được sau khi lưu.
+                </span>
+              </label>
+            )}
+            <label className={LABEL}>
+              Email
+              <Input
+                type="email"
+                placeholder="ten@email.com"
+                className={FIELD}
+                {...register("email")}
+                aria-invalid={Boolean(errors.email)}
+              />
+              <FieldError message={errors.email?.message} />
+            </label>
+            <label className={`${LABEL} sm:col-start-2`}>
+              Số điện thoại
+              <Input
+                type="tel"
+                placeholder="09xx xxx xxx"
+                className={FIELD}
+                {...register("phone")}
+                aria-invalid={Boolean(errors.phone)}
+              />
+              <span className={HINT}>9 đến 15 chữ số, có thể bắt đầu bằng +.</span>
+              <FieldError message={errors.phone?.message} />
+            </label>
+          </div>
+          {errors.citizenId && !record ? (
+            <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+              {errors.citizenId.message}
+            </p>
+          ) : (
+            <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">{note}</p>
           )}
-          <label className="block space-y-2 text-sm">
-            Họ tên
-            <Input
-              placeholder="Ví dụ: Nguyễn Văn An"
-              {...register("fullName")}
-              aria-invalid={Boolean(errors.fullName)}
-            />
-            <FieldError message={errors.fullName?.message} />
-          </label>
-          <label className="block space-y-2 text-sm">
-            Ngày sinh
-            <Input
-              type="date"
-              {...register("dateOfBirth")}
-              aria-invalid={Boolean(errors.dateOfBirth)}
-            />
-            <FieldError message={errors.dateOfBirth?.message} />
-          </label>
-          <label className="block space-y-2 text-sm">
-            Email
-            <Input type="email" {...register("email")} aria-invalid={Boolean(errors.email)} />
-            <FieldError message={errors.email?.message} />
-          </label>
-          <label className="block space-y-2 text-sm">
-            Số điện thoại
-            <Input type="tel" {...register("phone")} aria-invalid={Boolean(errors.phone)} />
-            <FieldError message={errors.phone?.message} />
-          </label>
-          <Button
-            type="submit"
-            size="lg"
-            className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
-          >
-            {action.pending ? "Đang lưu…" : record ? "Lưu hồ sơ" : "Tạo hồ sơ người nhận"}
-          </Button>
+          <div className="flex flex-wrap justify-end gap-3">
+            {existing && onOpenExisting && (
+              <button
+                type="button"
+                className={buttonStyles.outline}
+                onClick={() => onOpenExisting(existing)}
+              >
+                Mở hồ sơ đã có
+              </button>
+            )}
+            {onCancel && (
+              <button type="button" className={buttonStyles.outline} onClick={onCancel}>
+                Hủy
+              </button>
+            )}
+            <button type="submit" className={buttonStyles.gold}>
+              {action.pending ? "Đang lưu…" : submitLabel}
+            </button>
+          </div>
         </fieldset>
       </form>
-      {record && (
-        <div className="mt-6 space-y-3 border-t border-heritage-border pt-4">
-          <label className="flex min-h-11 items-center gap-3 text-sm">
-            <input
-              type="checkbox"
-              className="size-5"
-              checked={deleteConfirmed}
-              disabled={action.pending}
-              onChange={(event) => setDeleteConfirmed(event.target.checked)}
-            />
-            Tôi xác nhận xóa hồ sơ người nhận này.
-          </label>
-          <Button
-            variant="outline"
-            size="lg"
-            className="border-red-300 text-red-700 hover:bg-red-50"
-            disabled={action.pending || !deleteConfirmed || record.containerIds.length > 0}
-            onClick={() =>
-              void action.execute(() => beneficiaryService.remove(vaultId, record.id), sync)
-            }
-          >
-            Xóa hồ sơ
-          </Button>
-          {record.containerIds.length > 0 && (
-            <p className="text-xs text-heritage-muted">
-              Gỡ khỏi các gói bàn giao trước khi xóa hồ sơ.
-            </p>
-          )}
-        </div>
-      )}
       {action.error && (
-        <StatusBanner tone="error" className="mt-4">
+        <div role="alert" className="mt-4 rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
           <p>{action.error}</p>
           {action.error.includes("gói dịch vụ trả phí") && (
-            <Link className="inline-block underline" to={ROUTES.BILLING.PLANS}>
+            <Link className="mt-1 inline-block font-semibold underline" to={ROUTES.BILLING.PLANS}>
               Xem gói dịch vụ
             </Link>
           )}
-        </StatusBanner>
+        </div>
       )}
-      {action.succeeded && (
-        <StatusBanner tone="success" className="mt-4">
-          <p>Đã lưu thay đổi.</p>
-        </StatusBanner>
+      {action.succeeded && !existing && (
+        <p role="status" className="mt-4 rounded-xl bg-[#E3EFE8] px-4 py-3 text-sm text-[#1F7A55]">
+          Đã lưu thay đổi.
+        </p>
       )}
     </div>
   );

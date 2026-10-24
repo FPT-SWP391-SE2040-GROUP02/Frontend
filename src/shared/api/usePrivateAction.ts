@@ -8,7 +8,32 @@ const problem = z.object({
   code: z.string().optional(),
   reason: z.string().optional(),
   missingRequirements: z.array(z.string()).optional(),
+  errors: z.record(z.string(), z.array(z.string())).optional(),
 });
+
+const MAX_VALIDATION_MESSAGES = 3;
+const MAX_VALIDATION_MESSAGE_LENGTH = 200;
+const VIETNAMESE_LETTER = /[À-ỹ]/;
+
+/**
+ * Thông báo kiểm tra dữ liệu do Backend viết bằng tiếng Việt cho người dùng (không chứa nội dung bí mật).
+ * Chỉ nhận câu có chữ tiếng Việt và đủ ngắn để không đưa lỗi kỹ thuật tiếng Anh của framework ra giao diện.
+ */
+function validationMessages(errors: Record<string, string[]> | undefined): string[] {
+  if (!errors) return [];
+  const found: string[] = [];
+  for (const list of Object.values(errors)) {
+    for (const text of list) {
+      const message = text.trim();
+      const usable =
+        message.length > 0 &&
+        message.length <= MAX_VALIDATION_MESSAGE_LENGTH &&
+        VIETNAMESE_LETTER.test(message);
+      if (usable && !found.includes(message)) found.push(message);
+    }
+  }
+  return found.slice(0, MAX_VALIDATION_MESSAGES);
+}
 
 /** Reason-specific messages for HANDOVER_NOT_ALLOWED */
 const handoverNotAllowedReasons: Record<string, string> = {
@@ -52,6 +77,21 @@ const deathCaseNotAllowedReasons: Record<string, string> = {
     "Chưa thể xác nhận còn sống: cần selfie đạt hoặc đã qua 7 ngày chờ bằng chứng.",
   OWNER_SELFIE_PASSED:
     "Owner đã có selfie khớp nên không thể bác lời báo. Chọn xác nhận còn sống hoặc chưa đủ bằng chứng.",
+  // Lý do khi Người xét duyệt chấp thuận, bổ sung, từ chối hoặc xem xét cờ bị Backend từ chối.
+  PLAN_STATE_INVALID:
+    "Kế hoạch của kho không còn ở trạng thái mở hồ sơ, hoặc kho đã có lượt bàn giao. Tải lại hồ sơ để xem trạng thái mới nhất.",
+  HOLD_ACTIVE: "Kho đang bị tạm giữ nên chưa chấp thuận được. Chờ gỡ tạm giữ rồi thử lại.",
+  CASE_CLOSED: "Hồ sơ đã được chấp thuận, từ chối hoặc tạm dừng nên không thao tác thêm được.",
+  NOT_UNDER_REVIEW: "Hồ sơ không còn ở bước xét duyệt. Tải lại để xem trạng thái mới nhất.",
+  NEWER_VERSION_PENDING:
+    "Người thực hiện đang có bản mới chờ xét nên chưa chấp thuận được bản này.",
+  OWNER_NOT_NOTIFIED: "Chưa báo được cho Chủ kho nên đồng hồ 72 giờ phản đối chưa chạy.",
+  OBJECTION_PERIOD_NOT_OVER: "Chưa hết 72 giờ để Chủ kho phản đối.",
+  FLAGS_NOT_REVIEWED: "Còn cảnh báo của bản đang xét chưa được kiểm tra.",
+  VERIFIER_CONFLICT: "Bạn có quan hệ với kho này nên chỉ được xem, không được quyết định.",
+  PLAN_NOT_RUNNING: "Kế hoạch chưa chạy hoặc đã sang giai đoạn khác nên chưa thao tác được.",
+  VERSION_LOCKED: "Bản hồ sơ này đã được gửi nên không sửa được nữa.",
+  CASE_NOT_REVISABLE: "Hồ sơ chưa ở trạng thái cần bổ sung nên chưa tạo bản mới được.",
 };
 
 /** Reason-specific messages for PAYMENT_NOT_ALLOWED (báo giá/tạo đơn, mục 6.18) */
@@ -98,11 +138,11 @@ const reauthCodes = new Set([
 ]);
 
 const messages: Record<string, string> = {
-  REAUTHENTICATION_FAILED: "Mật khẩu hiện tại chưa đúng. Kiểm tra và thử lại.",
+  REAUTHENTICATION_FAILED: "Mật khẩu hiện tại chưa đúng. Bạn nhập lại rồi thử tiếp.",
   INVALID_GOOGLE_TOKEN:
     "Đăng nhập Google chưa hợp lệ hoặc không phải tài khoản Google đã liên kết. Thử lại bằng đúng tài khoản.",
   GOOGLE_ACCOUNT_ALREADY_LINKED:
-    "Tài khoản Google này đã được liên kết với một tài khoản LegacyVault khác.",
+    "Tài khoản Google này đã được dùng ở một tài khoản LegacyVault khác. Hãy chọn tài khoản Google khác.",
   LAST_LOGIN_METHOD: "Đây là phương thức đăng nhập cuối cùng nên không thể gỡ.",
   LOGIN_METHOD_ALREADY_EXISTS: "Tài khoản đã có mật khẩu. Tải lại để xem trạng thái mới nhất.",
   INVALID_TWO_FACTOR_CODE:
@@ -170,7 +210,10 @@ const messages: Record<string, string> = {
     "Không thể xác nhận tính toàn vẹn của nội dung. Vui lòng liên hệ hỗ trợ.",
 };
 
-/** Chỉ hiển thị thông báo do FE quản lý; không đưa exception/body nhạy cảm ra UI. */
+/**
+ * Chỉ hiển thị thông báo do FE quản lý; không đưa exception/body nhạy cảm ra UI. Ngoại lệ: VALIDATION_ERROR hiện
+ * câu lỗi tiếng Việt cụ thể của Backend (xem validationMessages) để người dùng biết trường nào sai.
+ */
 export function privateActionError(error: unknown): string {
   if (isAxiosError<unknown>(error)) {
     if (error.code === AxiosError.ECONNABORTED || error.code === AxiosError.ETIMEDOUT)
@@ -209,6 +252,10 @@ export function privateActionError(error: unknown): string {
     const missingMessage = missing.find((item) => Object.hasOwn(missingRequirementMessages, item));
     if (code === "DEATH_CASE_INCOMPLETE" && missingMessage)
       return missingRequirementMessages[missingMessage];
+    if (code === "VALIDATION_ERROR") {
+      const specific = validationMessages(parsed.success ? parsed.data.errors : undefined);
+      if (specific.length > 0) return specific.join(" ");
+    }
     if (code && Object.hasOwn(messages, code)) return messages[code];
     if (status === HTTP_STATUS.FORBIDDEN) return "Bạn không có quyền thực hiện thao tác này.";
     if (status === HTTP_STATUS.BAD_REQUEST)

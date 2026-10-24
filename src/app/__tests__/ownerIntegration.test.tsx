@@ -100,13 +100,9 @@ const asset = {
   name: "Ghi chú",
   description: null,
   kind: "TEXT",
-  currentVersion: {
-    versionNumber: 1,
-    fileName: null,
-    contentType: "text/plain",
-    sizeBytes: 4,
-    createdAt: CREATED_AT,
-  },
+  fileName: null,
+  contentType: "text/plain",
+  sizeBytes: 4,
   createdAt: CREATED_AT,
   updatedAt: null,
   etag: "asset-v1",
@@ -223,10 +219,10 @@ it("does not silently confirm plan deactivation when detaching the last asset", 
 it("requires contact information before submitting a beneficiary", async () => {
   const post = vi.spyOn(apiClient, "post");
   setup(<BeneficiaryForm vaultId={VAULT_ID} />);
-  fireEvent.change(screen.getByLabelText("Số CCCD"), { target: { value: "012345678901" } });
-  fireEvent.change(screen.getByLabelText("Họ tên"), { target: { value: "Người nhận thử" } });
-  fireEvent.change(screen.getByLabelText("Ngày sinh"), { target: { value: "2015-01-01" } });
-  fireEvent.click(screen.getByRole("button", { name: "Tạo hồ sơ người nhận" }));
+  fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "012345678901" } });
+  fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Người nhận thử" } });
+  fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2015-01-01" } });
+  fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("ít nhất email");
   expect(post).not.toHaveBeenCalled();
 });

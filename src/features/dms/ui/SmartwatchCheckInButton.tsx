@@ -1,95 +1,213 @@
-import { useState } from "react";
-import { Button } from "@/shared/ui/button";
+import { useEffect, useState, type ReactNode } from "react";
+import { Mail, Smartphone, Watch } from "lucide-react";
+import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { buttonStyles } from "@/shared/ui/heritageKit";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import { checkInService } from "../api/checkInService";
 
-/**
- * Khung quản lý và ghép nối đồng hồ thông minh (Samsung Galaxy Watch)
- * Sinh mã PIN 6 số động để liên kết thiết bị với tài khoản chủ kho.
- */
-export function SmartwatchCheckInButton({
-  className,
+interface PairingCode {
+  code: string;
+  /** Mốc hết hạn theo đồng hồ máy người dùng, tính từ expiresInSeconds BE trả về. */
+  expiresAt: number;
+}
+
+function MethodRow({
+  icon,
+  title,
+  description,
+  aside,
 }: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  aside: ReactNode;
+}) {
+  return (
+    <li className="flex items-center gap-4 border-b border-heritage-border py-4 last:border-b-0">
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#E3EFE8] text-[#1F7A55]">
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold">{title}</p>
+        <p className="text-xs text-heritage-muted">{description}</p>
+      </div>
+      {aside}
+    </li>
+  );
+}
+
+const IN_USE_CHIP = (
+  <span className="shrink-0 rounded-full bg-[#E3EFE8] px-3 py-1 text-xs font-semibold text-[#1F7A55]">
+    Đang dùng
+  </span>
+);
+
+/** Đếm ngược "mm:ss" tới khi mã hết hạn, cập nhật mỗi giây. */
+function useSecondsLeft(expiresAt: number | null): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (expiresAt === null) return undefined;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [expiresAt]);
+  if (expiresAt === null) return 0;
+  return Math.max(0, Math.ceil((expiresAt - now) / 1000));
+}
+
+function formatMinutes(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+/**
+ * Thẻ "Cách điểm danh" (thiết kế 189) và hộp thoại ghép đồng hồ bằng mã 6 số (thiết kế 190).
+ *
+ * Backend hiện chỉ có POST /smartwatch/pairing-code (mã sống 5 phút, dùng một lần) và
+ * POST /smartwatch/pair cho đồng hồ; chưa lưu thiết bị đã ghép, chưa có API xem trạng thái,
+ * gỡ kết nối hay cài đặt đồng hồ. Vì vậy thẻ không hiện "đã kết nối" hay "mất tín hiệu"
+ * (thiết kế 191–193) cho tới khi Backend bổ sung các API đó.
+ */
+export function SmartwatchCheckInButton(_props: {
   vaultId?: string;
   status?: unknown;
   className?: string;
 }) {
-  const [pairingCode, setPairingCode] = useState<string | null>(null);
-  const [isGettingCode, setIsGettingCode] = useState(false);
-  const [pairingError, setPairingError] = useState<string | null>(null);
+  const action = usePrivateAction();
+  const [pairing, setPairing] = useState<PairingCode | null>(null);
+  const [open, setOpen] = useState(false);
+  const secondsLeft = useSecondsLeft(pairing?.expiresAt ?? null);
+  const expired = pairing !== null && secondsLeft === 0;
 
-  const handleGetPairingCode = async () => {
-    setIsGettingCode(true);
-    setPairingError(null);
-    try {
-      const res = await checkInService.getSmartwatchPairingCode();
-      setPairingCode(res.code);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Không thể tạo mã ghép nối lúc này.";
-      setPairingError(message);
-    } finally {
-      setIsGettingCode(false);
-    }
-  };
+  function requestCode(): void {
+    void action.execute(
+      () => checkInService.getSmartwatchPairingCode(),
+      (result) => {
+        setPairing({ code: result.code, expiresAt: Date.now() + result.expiresInSeconds * 1000 });
+        setOpen(true);
+      },
+    );
+  }
+
+  function close(): void {
+    setOpen(false);
+    setPairing(null);
+  }
+
+  let codeStatus = "";
+  if (pairing !== null) {
+    codeStatus = expired
+      ? "Mã đã hết hạn. Bấm “Tạo mã mới” để lấy mã khác."
+      : `Mã hết hạn sau ${formatMinutes(secondsLeft)}.`;
+  }
 
   return (
-    <div
-      className={`mt-4 rounded-xl border border-emerald-600/20 bg-emerald-500/5 p-4 ${className ?? ""}`}
+    <section
+      aria-labelledby="check-in-methods-title"
+      className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-          </span>
-          <span className="text-xs font-semibold text-emerald-800">
-            Hệ sinh thái Galaxy Watch trực tuyến
-          </span>
-        </div>
-        <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold tracking-wider text-emerald-800 uppercase">
-          Sinh trắc học PPG
-        </span>
-      </div>
-
-      <p className="mt-2 text-xs text-heritage-muted">
-        Cảm biến quang học BioActive theo dõi xung mạch máu và trạng thái tiếp xúc da tay để điểm
-        danh sinh tồn DMS tự động.
-      </p>
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          className="border-amber-600/30 text-amber-900 hover:bg-amber-600/10"
-          disabled={isGettingCode}
-          onClick={handleGetPairingCode}
-        >
-          {isGettingCode ? "Đang tạo mã..." : "🔗 Ghép nối đồng hồ mới"}
-        </Button>
-      </div>
-
-      {pairingCode && (
-        <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-center">
-          <p className="text-xs font-medium text-amber-900">
-            Mã ghép nối cho đồng hồ (hiệu lực 5 phút):
-          </p>
-          <div className="my-1.5 flex justify-center gap-2 font-mono text-2xl font-bold tracking-widest text-amber-800">
-            {pairingCode.split("").map((digit, i) => (
-              <span key={i} className="rounded bg-white/80 px-2.5 py-1 shadow-xs">
-                {digit}
-              </span>
-            ))}
-          </div>
-          <p className="text-[11px] text-amber-700">
-            Mở ứng dụng <strong>LegacyVault Watch</strong> và nhập 6 số này để liên kết.
-          </p>
-        </div>
-      )}
-
-      {pairingError && (
-        <p role="alert" className="mt-2 text-xs text-red-700">
-          {pairingError}
+      <h2 id="check-in-methods-title" className="text-xl font-medium text-heritage-primary">
+        Cách điểm danh
+      </h2>
+      <ul className="mt-2">
+        <MethodRow
+          icon={<Smartphone className="size-5" aria-hidden="true" />}
+          title="Điện thoại và máy tính"
+          description="Bấm “Điểm danh” trên LegacyVault"
+          aside={IN_USE_CHIP}
+        />
+        <MethodRow
+          icon={<Mail className="size-5" aria-hidden="true" />}
+          title="Nhắc qua email"
+          description="Gửi trước hạn 7 ngày và 1 ngày"
+          aside={IN_USE_CHIP}
+        />
+        <MethodRow
+          icon={<Watch className="size-5" aria-hidden="true" />}
+          title="Đồng hồ thông minh"
+          description="Ghép đồng hồ bằng mã 6 số. Bấm một nút trên đồng hồ, đồng hồ đo nhịp tim để xác nhận."
+          aside={
+            <button
+              type="button"
+              className={`${buttonStyles.gold} shrink-0`}
+              disabled={action.pending}
+              onClick={requestCode}
+            >
+              {action.pending && !open ? "Đang tạo mã…" : "Kết nối đồng hồ"}
+            </button>
+          }
+        />
+      </ul>
+      {action.error && !open && (
+        <p role="alert" className="mt-3 text-sm text-destructive">
+          {action.error}
         </p>
       )}
-    </div>
+      <Dialog open={open} onOpenChange={(next) => !next && close()}>
+        <DialogContent className="max-w-lg bg-[#FBFAF5] p-7" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-heritage-primary">
+              Kết nối đồng hồ thông minh
+            </DialogTitle>
+            <DialogDescription className="text-heritage-muted">
+              Mỗi tài khoản kết nối một đồng hồ. Mã chỉ dùng một lần.
+            </DialogDescription>
+          </DialogHeader>
+          <ol className="list-decimal space-y-1 pl-5 text-sm">
+            <li>Mở ứng dụng LegacyVault trên đồng hồ.</li>
+            <li>Chọn “Ghép với tài khoản”.</li>
+            <li>Nhập mã 6 số dưới đây.</li>
+          </ol>
+          {pairing !== null && (
+            <div
+              aria-label={`Mã ghép nối ${pairing.code.split("").join(" ")}`}
+              role="group"
+              className={`flex justify-center gap-2 ${expired ? "opacity-40" : ""}`}
+            >
+              {pairing.code.split("").map((digit, index) => (
+                <span
+                  key={index}
+                  aria-hidden="true"
+                  className="flex h-16 w-12 items-center justify-center rounded-xl border-2 border-[#0A281E] bg-white font-mono text-3xl font-semibold text-[#0A281E]"
+                >
+                  {digit}
+                </span>
+              ))}
+            </div>
+          )}
+          <p role="status" className="text-center text-sm text-heritage-muted">
+            {codeStatus}
+          </p>
+          <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+            Chưa có ứng dụng trên đồng hồ? Cài LegacyVault từ cửa hàng ứng dụng của đồng hồ.
+          </p>
+          {action.error && (
+            <p role="alert" className="text-sm text-destructive">
+              {action.error}
+            </p>
+          )}
+          <DialogFooter className="gap-3 sm:justify-end">
+            <button type="button" className={buttonStyles.outline} onClick={close}>
+              Hủy
+            </button>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              disabled={action.pending}
+              onClick={requestCode}
+            >
+              {action.pending ? "Đang tạo mã…" : "Tạo mã mới"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </section>
   );
 }

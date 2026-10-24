@@ -35,6 +35,7 @@ describe("loginMethodsService", () => {
   it.each([
     ["linkGoogle", { idToken: "t", nonce: "n", currentPassword: "p" }, "/me/login-methods/google"],
     ["unlinkGoogle", { currentPassword: "p" }, "/me/login-methods/google/unlink"],
+    ["verifyPassword", { currentPassword: "p" }, "/me/login-methods/password/verify"],
     [
       "setPassword",
       { googleIdToken: "t", nonce: "n", newPassword: "12345678", confirmPassword: "12345678" },

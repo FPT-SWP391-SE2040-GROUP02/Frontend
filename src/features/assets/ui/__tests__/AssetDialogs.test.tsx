@@ -17,13 +17,9 @@ const baseAsset: BackendAsset = {
   kind: "TEXT",
   name: "Ghi chú",
   description: "Mô tả cũ",
-  currentVersion: {
-    versionNumber: 2,
-    fileName: null,
-    contentType: "text/plain",
-    sizeBytes: 12,
-    createdAt: "2026-10-20T00:00:00+00:00",
-  },
+  fileName: null,
+  contentType: "text/plain",
+  sizeBytes: 12,
   createdAt: "2026-10-19T00:00:00+00:00",
   updatedAt: null,
   etag: "etag-1",
@@ -74,14 +70,14 @@ async function openDeleteDialog(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("AssetDetail", () => {
-  it("lists every version, marks the current one and shows its date and size", () => {
+  it("shows the single content with its date and size and no version list", () => {
     renderDetail();
-    expect(screen.getByText("Phiên bản 2 (hiện tại)")).toBeInTheDocument();
-    expect(screen.getByText("Phiên bản 1")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Tải xuống phiên bản 2" })).toBeInTheDocument();
+    expect(screen.queryByText(/Phiên bản/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Thêm phiên bản mới" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tải xuống nội dung" })).toBeInTheDocument();
   });
 
-  it("downloads the chosen version through a temporary object URL", async () => {
+  it("downloads the content through a temporary object URL", async () => {
     const user = userEvent.setup();
     const download = vi
       .spyOn(backendAssetService, "download")
@@ -91,9 +87,9 @@ describe("AssetDetail", () => {
     Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke });
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
     renderDetail();
-    await user.click(screen.getByRole("button", { name: "Tải xuống phiên bản 1" }));
+    await user.click(screen.getByRole("button", { name: "Tải xuống nội dung" }));
     await waitFor(() => expect(click).toHaveBeenCalled());
-    expect(download).toHaveBeenCalledWith(VAULT_ID, ASSET_ID, 1);
+    expect(download).toHaveBeenCalledWith(VAULT_ID, ASSET_ID);
     expect(create).toHaveBeenCalledTimes(1);
   });
 
@@ -134,44 +130,6 @@ describe("AssetDetail", () => {
     await user.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/Dữ liệu đã thay đổi/);
     expect(screen.getByLabelText("Tên mục")).toBeInTheDocument();
-  });
-
-  it("creates a new TEXT version with the etag and never keeps the content afterwards", async () => {
-    const user = userEvent.setup();
-    const version = vi
-      .spyOn(backendAssetService, "createTextVersion")
-      .mockResolvedValue({ ...baseAsset, etag: "etag-2" });
-    renderDetail();
-    await user.click(screen.getByRole("button", { name: "Thêm phiên bản mới" }));
-    await user.type(screen.getByLabelText("Nội dung mới"), "bí mật mới");
-    await user.click(screen.getByRole("button", { name: "Tải lên" }));
-    await waitFor(() => expect(version).toHaveBeenCalledTimes(1));
-    expect(version).toHaveBeenCalledWith(VAULT_ID, ASSET_ID, {
-      content: "bí mật mới",
-      etag: "etag-1",
-    });
-    expect(
-      client
-        .getQueryCache()
-        .getAll()
-        .filter((query) => query.state.data !== undefined),
-    ).toHaveLength(0);
-  });
-
-  it("uploads a file as a new version for a FILE asset and rejects a missing file first", async () => {
-    const user = userEvent.setup();
-    const version = vi
-      .spyOn(backendAssetService, "createFileVersion")
-      .mockResolvedValue({ ...baseAsset, kind: "FILE", etag: "etag-2" });
-    renderDetail({ ...baseAsset, kind: "FILE" });
-    await user.click(screen.getByRole("button", { name: "Thêm phiên bản mới" }));
-    await user.click(screen.getByRole("button", { name: "Tải lên" }));
-    expect(screen.getByRole("alert")).toHaveTextContent(/Chọn tệp/);
-    expect(version).not.toHaveBeenCalled();
-    const file = new File(["abc"], "a.txt", { type: "text/plain" });
-    await user.upload(screen.getByLabelText("Tệp mới"), file);
-    await user.click(screen.getByRole("button", { name: "Tải lên" }));
-    await waitFor(() => expect(version).toHaveBeenCalledWith(VAULT_ID, ASSET_ID, file, "etag-1"));
   });
 
   it("keeps the delete button disabled until the Owner confirms", async () => {

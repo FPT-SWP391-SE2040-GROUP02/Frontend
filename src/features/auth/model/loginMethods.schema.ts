@@ -24,6 +24,8 @@ export const linkGoogleMethodSchema = z.object({
   currentPassword,
 });
 export const unlinkGoogleMethodSchema = z.object({ currentPassword });
+/** Chỉ kiểm tra mật khẩu hiện tại, không đổi dữ liệu (mở bước chọn Google khi liên kết). */
+export const verifyPasswordMethodSchema = z.object({ currentPassword });
 export const removePasswordMethodSchema = z.object({
   currentPassword,
   googleIdToken: googleToken,
@@ -42,6 +44,11 @@ export const newPasswordFieldsSchema = z
     message: "Mật khẩu nhập lại không khớp.",
     path: ["confirmPassword"],
   });
+export const changePasswordMethodSchema = z.object({
+  currentPassword,
+  newPassword: z.string().min(8).max(128),
+  confirmPassword: z.string().max(128),
+});
 export const setPasswordMethodSchema = z.object({
   googleIdToken: googleToken,
   nonce,

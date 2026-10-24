@@ -15,8 +15,11 @@ const schema = z.object({
   name: z.string().max(200, "Tên kho tối đa 200 ký tự."),
   description: z.string().max(1000, "Mô tả tối đa 1000 ký tự."),
 });
-/** Tạo chủ động; POST có thể trả cùng kho đã được tạo ở tab khác. */
-export function CreateVaultForm() {
+/**
+ * Tạo chủ động; POST có thể trả cùng kho đã được tạo ở tab khác.
+ * showIntro=false ẩn đoạn giới thiệu khi trang bao ngoài đã giải thích (màn chưa có kho).
+ */
+export function CreateVaultForm({ showIntro = true }: { showIntro?: boolean }) {
   const client = useQueryClient();
   const action = usePrivateAction();
   const {
@@ -44,13 +47,19 @@ export function CreateVaultForm() {
       className="space-y-4 rounded-xl border border-heritage-border bg-heritage-surface p-6 text-left"
     >
       <h2 className="text-lg font-semibold">Tạo kho của tôi</h2>
-      <p className="text-sm leading-6 text-heritage-muted">
-        Bắt đầu với một kho cá nhân để sắp xếp nội dung. Để trống tên nếu muốn dùng tên mặc định.
-      </p>
+      {showIntro && (
+        <p className="text-sm leading-6 text-heritage-muted">
+          Bắt đầu với một kho cá nhân để sắp xếp nội dung. Để trống tên nếu muốn dùng tên mặc định.
+        </p>
+      )}
       <fieldset disabled={action.pending} className="space-y-4">
         <label className="block space-y-2 text-sm">
           Tên kho (không bắt buộc)
-          <Input {...register("name")} aria-invalid={Boolean(errors.name)} />
+          <Input
+            {...register("name")}
+            placeholder="Để trống để dùng tên mặc định"
+            aria-invalid={Boolean(errors.name)}
+          />
         </label>
         {errors.name && (
           <p role="alert" className="text-sm text-destructive">
@@ -59,7 +68,11 @@ export function CreateVaultForm() {
         )}
         <label className="block space-y-2 text-sm">
           Mô tả (không bắt buộc)
-          <Textarea {...register("description")} aria-invalid={Boolean(errors.description)} />
+          <Textarea
+            {...register("description")}
+            placeholder="Ví dụ: Giấy tờ và tài khoản của gia đình"
+            aria-invalid={Boolean(errors.description)}
+          />
         </label>
         {errors.description && (
           <p role="alert" className="text-sm text-destructive">

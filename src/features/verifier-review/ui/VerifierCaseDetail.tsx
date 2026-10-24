@@ -1,7 +1,17 @@
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { CheckCircle2, ChevronLeft, Download, Eye, FileText, Lock, RefreshCw } from "lucide-react";
+import { useId, type ReactNode } from "react";
+import {
+  CheckCircle2,
+  ChevronLeft,
+  Download,
+  Eye,
+  FileText,
+  RefreshCw,
+  TriangleAlert,
+  X,
+} from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
@@ -143,29 +153,41 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
   }
   let objectionText = "Chưa bắt đầu";
   if (detail.objectionEndsAt !== null) {
-    objectionText = `${formatCompact(detail.objectionEndsAt)} · ${objectionEnded ? "đã qua" : "chưa đến"}`;
+    let remainText = "đã qua";
+    if (!objectionEnded) {
+      const hoursLeft = Math.max(
+        1,
+        Math.ceil((new Date(detail.objectionEndsAt).getTime() - query.dataUpdatedAt) / 3_600_000),
+      );
+      remainText = `còn ${hoursLeft} giờ`;
+    }
+    objectionText = `${formatCompact(detail.objectionEndsAt)} · ${remainText}`;
   }
   const timeline = [
-    { label: "Báo chủ kho", text: noticeText, done: noticeDelivered },
+    { label: "Đã báo chủ kho", text: noticeText, done: noticeDelivered },
     { label: "Hết hạn phản đối", text: objectionText, done: objectionEnded },
   ];
+  // Khi chờ bổ sung BE chưa tính hạn mới, nên không hiện mốc hạn xét.
+  if (detail.status !== "SUPPLEMENT_REQUIRED" && detail.assignment.dueAt) {
+    timeline.push({
+      label: "Hạn xét duyệt",
+      text: formatCompact(detail.assignment.dueAt),
+      done: false,
+    });
+  }
   const conditions = conditionRows(
     detail.approveBlockers,
     detail.objectionEndsAt,
     unreviewedFlags,
     query.dataUpdatedAt,
   );
-  const openModal = (
-    kind: "approve" | "reject" | "reviewFlag" | "supplement",
-    flagId?: string,
-    note?: string,
-  ) => {
+  const blockedReason = conditions.map((row) => row.reason).join("; ");
+  const openModal = (kind: "approve" | "reject" | "reviewFlag" | "supplement", flagId?: string) => {
     const next = new URLSearchParams(params);
     next.set("modal", kind);
     if (kind === "reviewFlag" && flagId) next.set("flagId", flagId);
     else next.delete("flagId");
-    if (note) next.set("reason", note);
-    else next.delete("reason");
+    next.delete("reason");
     setParams(next);
   };
   return (
@@ -238,15 +260,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           Người thực hiện sẽ nộp bản bổ sung. Hồ sơ quay lại hàng chờ khi có bản mới.
         </Notice>
       )}
-
-      {/* KHỐI TRỢ LÝ AI NOTARY CO-PILOT THẨM ĐỊNH TOÀN CẢNH (FULL-WIDTH) */}
-      <AiNotaryAssessmentCard
-        caseId={detail.id}
-        actions={actions}
-        onSelectAction={(action, note) => {
-          openModal(action, undefined, note);
-        }}
-      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         {/* CỘT TRÁI (3fr): HỒ SƠ & TÀI LIỆU CHỨNG TỪ */}
@@ -408,6 +421,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               </ul>
             )}
           </section>
+          {/* Gợi ý của AI chỉ để tham khảo, đặt sau hồ sơ và cảnh báo: không mở biểu mẫu, không điền sẵn lý do. */}
+          <AiNotaryAssessmentCard caseId={detail.id} />
           {detail.versions.length > 0 && (
             <section
               aria-label="Các bản cũ"
@@ -457,73 +472,19 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           )}
         </div>
 
-        {/* CỘT PHẢI (2fr): BẢNG ĐIỀU KHIỂN HÀNH ĐỘNG CỦA CÔNG CHỨNG VIÊN */}
+        {/* CỘT PHẢI (2fr): ĐIỀU KIỆN → QUYẾT ĐỊNH → MỐC THỜI GIAN, theo thiết kế 184/185 */}
         <div className="space-y-6">
-          {/* 1. QUYẾT ĐỊNH CỦA VERIFIER: ĐƯA LÊN TRÊN ĐẦU ĐỂ DỄ THẤY VÀ THAO TÁC NGAY */}
-          {actions.canReject && (
-            <Panel title="Quyết định của Người xét duyệt">
-              {actions.canOpenApprove && !detail.canApprove && conditions.length > 0 && (
-                <p
-                  role="status"
-                  className="mb-4 rounded-xl bg-[#F8E1DE] p-4 text-sm text-[#7A1A14]"
-                >
-                  Chưa thể duyệt vì: {conditions.map((row) => row.reason).join("; ")}. Bạn có thể
-                  yêu cầu bổ sung hoặc từ chối.
-                </p>
-              )}
-              <div className="flex flex-wrap gap-3">
-                {actions.canOpenApprove && (
-                  <button
-                    type="button"
-                    className={buttonStyles.gold}
-                    disabled={!detail.canApprove}
-                    onClick={() => openModal("approve")}
-                  >
-                    Chấp thuận
-                  </button>
-                )}
-                {actions.canRequestSupplement && (
-                  <button
-                    type="button"
-                    className={buttonStyles.outline}
-                    onClick={() => openModal("supplement")}
-                  >
-                    Yêu cầu bổ sung
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className={buttonStyles.danger}
-                  onClick={() => openModal("reject")}
-                >
-                  Từ chối
-                </button>
-              </div>
-              <p className="mt-4 flex items-start gap-2 text-xs text-heritage-muted">
-                <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-                Quyết định được ghi nhật ký và gửi tới người thực hiện. Chấp thuận chưa mở kho;
-                người nhận còn phải xác minh.
-              </p>
-            </Panel>
-          )}
-
-          {/* 2. ĐIỀU KIỆN ĐỂ DUYỆT */}
+          {/* 1. ĐIỀU KIỆN ĐỂ DUYỆT */}
           <Panel title="Điều kiện để duyệt">
-            {!detail.canApprove && detail.approveBlockers.length > 0 ? (
-              <ul role="status" className="divide-y divide-heritage-border">
-                {conditions.map((row) => (
-                  <li
-                    key={row.key}
-                    className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold">{row.title}</p>
-                      <p className="text-sm text-heritage-muted">{row.detail}</p>
-                    </div>
-                    <Chip tone={row.chip === "Thiếu" ? "neutral" : "danger"}>{row.chip}</Chip>
-                  </li>
-                ))}
-              </ul>
+            {!detail.canApprove && conditions.length > 0 ? (
+              <div role="status" className="rounded-xl bg-[#F8E1DE] p-4 text-sm text-[#7A1A14]">
+                <p>Chưa thể duyệt vì: {blockedReason}. Bạn có thể yêu cầu bổ sung hoặc từ chối.</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+                  {conditions.map((row) => (
+                    <li key={row.key}>{row.detail}</li>
+                  ))}
+                </ul>
+              </div>
             ) : detail.canApprove ? (
               <p role="status" className="flex items-center gap-2 text-sm">
                 <CheckCircle2 className="size-5 text-[#1F7A55]" aria-hidden="true" />
@@ -533,6 +494,48 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               <p className="text-sm text-heritage-muted">Không có điều kiện chặn.</p>
             )}
           </Panel>
+
+          {/* 2. QUYẾT ĐỊNH: ba ô có icon và mô tả */}
+          {actions.canReject && (
+            <Panel title="Quyết định">
+              <div className="space-y-3">
+                {actions.canOpenApprove && (
+                  <DecisionTile
+                    tone="approve"
+                    icon={<CheckCircle2 className="size-5" aria-hidden="true" />}
+                    title="Duyệt mở bàn giao"
+                    description={
+                      detail.canApprove
+                        ? "Hồ sơ hợp lệ. Người nhận sẽ được mời xác minh."
+                        : `Chưa duyệt được: ${blockedReason}.`
+                    }
+                    disabled={!detail.canApprove}
+                    onClick={() => openModal("approve")}
+                  />
+                )}
+                {actions.canRequestSupplement && (
+                  <DecisionTile
+                    tone="supplement"
+                    icon={<TriangleAlert className="size-5" aria-hidden="true" />}
+                    title="Yêu cầu bổ sung"
+                    description="Gửi lại cho người thực hiện, kèm lý do."
+                    onClick={() => openModal("supplement")}
+                  />
+                )}
+                <DecisionTile
+                  tone="reject"
+                  icon={<X className="size-5" aria-hidden="true" />}
+                  title="Từ chối"
+                  description="Hồ sơ không hợp lệ. Cần nêu lý do."
+                  onClick={() => openModal("reject")}
+                />
+              </div>
+              <p className="mt-4 text-sm text-heritage-muted">
+                Quyết định được ghi nhật ký và gửi tới người thực hiện. Chấp thuận chưa mở kho;
+                người nhận còn phải xác minh.
+              </p>
+            </Panel>
+          )}
 
           {/* 3. MỐC THỜI GIAN */}
           <section
@@ -575,6 +578,79 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
         </p>
       )}
     </article>
+  );
+}
+
+const DECISION_TILE_STYLES = {
+  approve: {
+    tile: "border-transparent bg-[#E0C486] text-[#0A281E] hover:bg-[#E8CF9B]",
+    icon: "bg-[#0A281E]/10 text-[#0A281E]",
+    title: "text-[#0A281E]",
+    text: "text-[#3D3A2E]",
+  },
+  supplement: {
+    tile: "border-[#0A281E] bg-white text-[#0A281E] hover:bg-[#F4F1E6]",
+    icon: "bg-[#ECE8DB] text-[#0A281E]",
+    title: "text-[#0A281E]",
+    text: "text-heritage-muted",
+  },
+  reject: {
+    tile: "border-[#A32119] bg-white hover:bg-[#FBEFED]",
+    icon: "bg-[#F8E1DE] text-[#A32119]",
+    title: "text-[#A32119]",
+    text: "text-[#A32119]",
+  },
+} as const;
+
+/** Ô quyết định: icon tròn, tiêu đề và một dòng mô tả; ô duyệt bị khóa hiện nền xám và lý do. */
+function DecisionTile({
+  tone,
+  icon,
+  title,
+  description,
+  disabled,
+  onClick,
+}: {
+  tone: keyof typeof DECISION_TILE_STYLES;
+  icon: ReactNode;
+  title: string;
+  description: string;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  const descriptionId = useId();
+  const style = DECISION_TILE_STYLES[tone];
+  let tileClass: string = style.tile;
+  let iconClass: string = style.icon;
+  let titleClass: string = style.title;
+  let textClass: string = style.text;
+  if (disabled) {
+    tileClass = "cursor-not-allowed border-transparent bg-[#ECE8DB]";
+    iconClass = "bg-[#DAD5C5] text-[#8A8574]";
+    titleClass = "text-[#8A8574]";
+    textClass = "text-[#8A8574]";
+  }
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-label={title}
+      aria-describedby={descriptionId}
+      className={`flex w-full items-center gap-4 rounded-xl border px-4 py-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold ${tileClass}`}
+    >
+      <span
+        className={`flex size-10 shrink-0 items-center justify-center rounded-full ${iconClass}`}
+      >
+        {icon}
+      </span>
+      <span className="min-w-0">
+        <span className={`block font-semibold ${titleClass}`}>{title}</span>
+        <span id={descriptionId} className={`block text-sm ${textClass}`}>
+          {description}
+        </span>
+      </span>
+    </button>
   );
 }
 

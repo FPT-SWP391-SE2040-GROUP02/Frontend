@@ -58,7 +58,7 @@ function fillPassword() {
   });
 }
 
-it("sends one forgot-password request, waits for acknowledgement and uses neutral copy", async () => {
+it("sends one forgot-password request, waits for acknowledgement and shows the success copy", async () => {
   let finish!: () => void;
   const post = vi.spyOn(apiClient, "post").mockImplementation(
     () =>
@@ -74,15 +74,29 @@ it("sends one forgot-password request, waits for acknowledgement and uses neutra
   fireEvent.click(send);
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   fireEvent.click(send);
-  expect(screen.queryByText("Đã tiếp nhận yêu cầu")).not.toBeInTheDocument();
+  expect(screen.queryByText("Gửi email thành công")).not.toBeInTheDocument();
   expect(send).toBeDisabled();
   finish();
-  await screen.findByText("Đã tiếp nhận yêu cầu");
+  await screen.findByText("Gửi email thành công");
   expect(post).toHaveBeenCalledExactlyOnceWith("/auth/forgot-password", {
     email: "unknown@example.test",
   });
-  expect(screen.getByText(/Nếu email thuộc tài khoản đủ điều kiện/)).toBeInTheDocument();
+  expect(screen.getByText(/đã gửi liên kết đặt lại mật khẩu/)).toBeInTheDocument();
   expect(client.getMutationCache().getAll()).toHaveLength(0);
+});
+
+it("shows a not-registered error and keeps the form for unknown emails", async () => {
+  vi.spyOn(apiClient, "post").mockRejectedValue(failure(404, "EMAIL_NOT_FOUND"));
+  setup(<ForgotPasswordForm />);
+  fireEvent.change(screen.getByLabelText("Email đã đăng ký"), {
+    target: { value: "khongco@example.test" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Yêu cầu đặt lại mật khẩu" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("chưa được đăng ký");
+  expect(screen.queryByText("Gửi email thành công")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Email đã đăng ký")).toHaveValue("khongco@example.test");
+  fireEvent.change(screen.getByLabelText("Email đã đăng ký"), { target: { value: "khongco@" } });
+  expect(screen.queryByText(/chưa được đăng ký/)).not.toBeInTheDocument();
 });
 
 it("keeps the email on rate limit and exposes no server details", async () => {

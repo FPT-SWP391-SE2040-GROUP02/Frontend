@@ -1,3 +1,4 @@
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -98,7 +99,13 @@ function setup() {
   render(
     <Provider store={store}>
       <QueryClientProvider client={client}>
-        <EkycUploads purpose="OWNER_ENROLLMENT" canComplete={false} onComplete={() => undefined} />
+        <MemoryRouter>
+          <EkycUploads
+            purpose="OWNER_ENROLLMENT"
+            canComplete={false}
+            onComplete={() => undefined}
+          />
+        </MemoryRouter>
       </QueryClientProvider>
     </Provider>,
   );
@@ -106,7 +113,8 @@ function setup() {
 
 async function reachLiveness() {
   setup();
-  fireEvent.click(screen.getByRole("button", { name: "Tôi đồng ý và tiếp tục" }));
+  for (const box of screen.getAllByRole("checkbox")) fireEvent.click(box);
+  fireEvent.click(screen.getByRole("button", { name: "Đồng ý và bắt đầu" }));
   const input = await screen.findByLabelText("Ảnh mặt trước giấy tờ");
   await userEvent.upload(input, new File(["x"], "front.jpg", { type: "image/jpeg" }));
   fireEvent.click(screen.getByRole("button", { name: "Đọc thông tin" }));
@@ -155,9 +163,7 @@ describe("luồng eKYC theo thiết kế", () => {
     expect(await screen.findByText("Chưa đủ độ khớp")).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent("Lần xác minh chưa đạt yêu cầu.");
     fireEvent.click(screen.getByRole("button", { name: "Đọc lại căn cước" }));
-    expect(
-      await screen.findByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Đồng ý và bắt đầu" })).toBeInTheDocument();
   });
 
   it("sai người thì nói rõ không hoàn tất được lượt này", async () => {
@@ -187,7 +193,8 @@ describe("luồng eKYC theo thiết kế", () => {
 describe("ô chọn ảnh giấy tờ", () => {
   async function reachFront() {
     setup();
-    fireEvent.click(screen.getByRole("button", { name: "Tôi đồng ý và tiếp tục" }));
+    for (const box of screen.getAllByRole("checkbox")) fireEvent.click(box);
+    fireEvent.click(screen.getByRole("button", { name: "Đồng ý và bắt đầu" }));
     return screen.findByLabelText("Ảnh mặt trước giấy tờ");
   }
 

@@ -16,7 +16,11 @@ const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const OCR_TIMEOUT_MS = 120_000;
 /** Nén và giảm kích thước ảnh chụp điện thoại quá lớn (>1.5MB) trước khi tải lên mạng để tăng tốc độ và tránh timeout. */
 async function optimizeImageForUpload(file: File): Promise<File> {
-  if (file.size <= 1.5 * 1024 * 1024 || typeof window === "undefined" || typeof document === "undefined") {
+  if (
+    file.size <= 1.5 * 1024 * 1024 ||
+    typeof window === "undefined" ||
+    typeof document === "undefined"
+  ) {
     return file;
   }
   return new Promise((resolve) => {
@@ -50,7 +54,9 @@ async function optimizeImageForUpload(file: File): Promise<File> {
           if (!blob || blob.size >= file.size) {
             resolve(file);
           } else {
-            resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: "image/jpeg" }));
+            resolve(
+              new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: "image/jpeg" }),
+            );
           }
         },
         "image/jpeg",

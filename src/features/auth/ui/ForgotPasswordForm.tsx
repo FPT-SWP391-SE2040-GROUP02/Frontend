@@ -19,7 +19,7 @@ export interface ForgotPasswordFormProps {
 }
 
 /**
- * @description Gửi yêu cầu khôi phục thật, không tiết lộ tài khoản có tồn tại.
+ * @description Gửi yêu cầu khôi phục; email chưa đăng ký bị BE trả EMAIL_NOT_FOUND và hiện lỗi dưới ô nhập.
  *
  * @param {ForgotPasswordFormProps} props Thuộc tính component
  * @returns {React.JSX.Element} Form khôi phục mật khẩu
@@ -68,11 +68,11 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
       <div className="space-y-4 text-center w-full py-4">
         <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto " />
         <h3 className="text-base font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]">
-          Đã tiếp nhận yêu cầu
+          Gửi email thành công
         </h3>
         <p className="text-sm text-[#526656] dark:text-[#a0b8a5] leading-relaxed">
-          Nếu email thuộc tài khoản đủ điều kiện, bạn sẽ nhận được liên kết đặt lại mật khẩu. Kiểm
-          tra hộp thư và dùng liên kết mới nhất.
+          Chúng tôi đã gửi liên kết đặt lại mật khẩu đến email của bạn. Kiểm tra hộp thư (cả mục
+          Spam) và dùng liên kết mới nhất.
         </p>
         <Link
           to={ROUTES.AUTH.LOGIN}
@@ -112,7 +112,7 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
             autoComplete="email"
             aria-invalid={Boolean(errors.email)}
             aria-describedby={errors.email ? "forgot-email-error" : undefined}
-            {...register("email")}
+            {...register("email", { onChange: () => setError("") })}
             type="email"
             placeholder="owner@legacyvault.io"
             className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"

@@ -161,7 +161,7 @@ export function AssetList({ vaultId }: { vaultId: string }) {
                       <Chip tone="neutral">{kindLabels[item.kind]}</Chip>
                     </td>
                     <td className="px-4 py-4 text-heritage-muted">
-                      {formatStorageSize(item.currentVersion.sizeBytes)}
+                      {formatStorageSize(item.sizeBytes)}
                     </td>
                     <td className="px-4 py-4 text-heritage-muted">
                       {formatDate(item.updatedAt ?? item.createdAt)}
