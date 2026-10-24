@@ -143,7 +143,7 @@ export function ExecutorReport({ vault }: { vault: ExecutorVault }) {
       <div className="flex justify-end">
         <button
           type="button"
-          className="text-sm font-medium text-heritage-muted underline underline-offset-4"
+          className={buttonStyles.outline}
           onClick={() => window.location.reload()}
         >
           Tải lại hồ sơ và bỏ thay đổi chưa lưu
