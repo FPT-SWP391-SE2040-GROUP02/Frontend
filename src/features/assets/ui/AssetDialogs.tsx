@@ -82,8 +82,8 @@ export function DeleteDialog({
         <DialogHeader>
           <DialogTitle>Xóa “{asset.name}”?</DialogTitle>
           <DialogDescription>
-            Mục và nội dung sẽ bị xóa khỏi kho. Thao tác này không thể hoàn tác. Mục đang nằm
-            trong gói hoặc đã ghim vào lượt bàn giao thì không xóa được.
+            Mục và nội dung sẽ bị xóa khỏi kho. Thao tác này không thể hoàn tác. Mục đang nằm trong
+            gói hoặc đã ghim vào lượt bàn giao thì không xóa được.
           </DialogDescription>
         </DialogHeader>
         <label className="flex min-h-11 items-center gap-3 text-sm">

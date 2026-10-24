@@ -11,8 +11,7 @@ const safeFileName = (value: string) => value.replace(/[^\p{L}\p{N} ._()-]/gu, "
  */
 export function useAssetDownload(vaultId: string, asset: BackendAsset) {
   const action = usePrivateAction();
-  const fileName =
-    asset.kind === "TEXT" ? `${asset.name}.txt` : (asset.fileName ?? asset.name);
+  const fileName = asset.kind === "TEXT" ? `${asset.name}.txt` : (asset.fileName ?? asset.name);
   const download = () =>
     void action.execute(
       () => backendAssetService.download(vaultId, asset.id),

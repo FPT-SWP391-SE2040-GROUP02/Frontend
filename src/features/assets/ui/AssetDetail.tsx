@@ -138,9 +138,7 @@ export function AssetDetail({
           </div>
           <div>
             <dt className="text-xs text-heritage-muted">Dung lượng</dt>
-            <dd className="mt-1 font-semibold">
-              {formatStorageSize(asset.sizeBytes)}
-            </dd>
+            <dd className="mt-1 font-semibold">{formatStorageSize(asset.sizeBytes)}</dd>
           </div>
         </dl>
         <EditForm key={asset.etag} vaultId={vaultId} asset={asset} onSaved={refresh} />
@@ -178,8 +176,8 @@ export function AssetDetail({
         )}
         <p className="mt-4 flex items-start gap-2 border-t border-heritage-border pt-4 text-xs text-heritage-muted">
           <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-          Nội dung không đổi sau khi tạo. Muốn thay, hãy tạo mục mới rồi xóa mục này. Người nhận nhận
-          đúng nội dung này khi bàn giao.
+          Nội dung không đổi sau khi tạo. Muốn thay, hãy tạo mục mới rồi xóa mục này. Người nhận
+          nhận đúng nội dung này khi bàn giao.
         </p>
       </Panel>
       {dialog === "delete" && (
