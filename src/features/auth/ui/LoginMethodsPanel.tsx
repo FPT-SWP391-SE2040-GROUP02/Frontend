@@ -22,12 +22,13 @@ import { loginMethodKeys, useLoginMethods } from "../model/useLoginMethods";
 import { newPasswordFieldsSchema } from "../model/loginMethods.schema";
 import { GoogleSignInButton } from "./GoogleSignInButton";
 
-type DialogKind = "link-google" | "unlink-google" | "set-password" | "remove-password";
+type DialogKind = "link-google" | "set-password" | "change-password";
 
 /**
- * Quản lý phương thức đăng nhập của chính người dùng (BE mục 6.4): liên kết/gỡ Google, đặt/gỡ mật
- * khẩu. Mọi thay đổi phải xác thực lại nên mật khẩu và Google ID token chỉ nằm trong state của
- * dialog: không cache, không Web Storage, không log. Không optimistic: danh sách đọc lại sau BE.
+ * Quản lý phương thức đăng nhập của chính người dùng (BE mục 6.4): liên kết Google, đặt mật khẩu
+ * hoặc đổi mật khẩu (không còn gỡ liên kết Google / gỡ mật khẩu). Mọi thay đổi phải xác thực lại
+ * nên mật khẩu và Google ID token chỉ nằm trong state của dialog: không cache, không Web Storage,
+ * không log. Không optimistic: danh sách đọc lại sau BE.
  */
 export function LoginMethodsPanel() {
   const query = useLoginMethods();
@@ -58,10 +59,6 @@ export function LoginMethodsPanel() {
       .catch(() => undefined);
   };
 
-  const lastMethod = methods.length === 1;
-  let lastMethodHint = "Hãy liên kết Google";
-  if (google && !password) lastMethodHint = "Hãy đặt mật khẩu";
-
   return (
     <section
       aria-labelledby="login-methods-title"
@@ -73,11 +70,6 @@ export function LoginMethodsPanel() {
         </h2>
         <Chip tone="neutral">{methods.length}/2 phương thức</Chip>
       </div>
-      {lastMethod && (
-        <p role="status" className="mt-4 rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
-          Đây là phương thức đăng nhập cuối cùng nên không thể gỡ. {lastMethodHint} trước.
-        </p>
-      )}
       <ul className="mt-4">
         <MethodRow
           icon={<Mail className="size-5" aria-hidden="true" />}
@@ -93,10 +85,9 @@ export function LoginMethodsPanel() {
               <button
                 type="button"
                 className={buttonStyles.outline}
-                disabled={!password.canRemove || !google}
-                onClick={() => setDialog("remove-password")}
+                onClick={() => setDialog("change-password")}
               >
-                Gỡ mật khẩu
+                Đổi mật khẩu
               </button>
             ) : (
               <button
@@ -125,17 +116,7 @@ export function LoginMethodsPanel() {
               : "Chưa liên kết. Liên kết để đăng nhập nhanh hơn."
           }
           actions={
-            google ? (
-              <button
-                type="button"
-                aria-label="Gỡ liên kết Google"
-                className={`${buttonStyles.outline} disabled:border-transparent disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
-                disabled={!google.canRemove}
-                onClick={() => setDialog("unlink-google")}
-              >
-                Gỡ liên kết
-              </button>
-            ) : (
+            google ? null : (
               <button
                 type="button"
                 className={buttonStyles.gold}
@@ -149,20 +130,16 @@ export function LoginMethodsPanel() {
       </ul>
       <p className="mt-4 flex items-start gap-2 text-xs text-heritage-muted">
         <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
-        Bạn đang dùng {methods.length} phương thức. Bạn cần giữ ít nhất một phương thức. Gỡ hoặc
-        thêm phương thức cần xác thực lại.
+        Bạn đang dùng {methods.length} phương thức. Thêm phương thức cần xác thực lại.
       </p>
       {dialog === "link-google" && (
         <LinkGoogleDialog onClose={() => setDialog(null)} onDone={done} />
       )}
-      {dialog === "unlink-google" && (
-        <UnlinkGoogleDialog onClose={() => setDialog(null)} onDone={done} />
+      {dialog === "change-password" && (
+        <ChangePasswordDialog onClose={() => setDialog(null)} onDone={done} />
       )}
       {dialog === "set-password" && (
         <SetPasswordDialog onClose={() => setDialog(null)} onDone={done} />
-      )}
-      {dialog === "remove-password" && (
-        <RemovePasswordDialog onClose={() => setDialog(null)} onDone={done} />
       )}
     </section>
   );
@@ -264,10 +241,6 @@ function ErrorLine({ message }: { message: string }) {
   ) : null;
 }
 
-function InfoBox({ children }: { children: React.ReactNode }) {
-  return <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">{children}</p>;
-}
-
 function CancelButton({ onClick, disabled }: { onClick: () => void; disabled: boolean }) {
   return (
     <button type="button" className={buttonStyles.outline} onClick={onClick} disabled={disabled}>
@@ -352,14 +325,34 @@ function LinkGoogleDialog({ onClose, onDone }: DialogProps) {
   );
 }
 
-function UnlinkGoogleDialog({ onClose, onDone }: DialogProps) {
+/** Đổi mật khẩu: mật khẩu hiện tại + mật khẩu mới (BE xác thực lại, không đổi phiên đăng nhập). */
+function ChangePasswordDialog({ onClose, onDone }: DialogProps) {
   const action = usePrivateAction();
   const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [touched, setTouched] = useState(false);
+  const [confirmTouched, setConfirmTouched] = useState(false);
+  const fields = newPasswordFieldsSchema.safeParse({ newPassword, confirmPassword });
+  const sameAsCurrent = newPassword.length > 0 && newPassword === currentPassword;
+  // Lỗi "nhập lại không khớp" chỉ hiện sau khi người dùng đã gõ ô nhập lại hoặc bấm gửi.
+  const fieldIssue =
+    touched && !fields.success
+      ? fields.error.issues.find((issue) => confirmTouched || issue.path[0] !== "confirmPassword")
+      : undefined;
+  const problem = sameAsCurrent
+    ? "Mật khẩu mới không được trùng mật khẩu hiện tại."
+    : (fieldIssue?.message ?? "");
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!currentPassword) return;
+    if (!currentPassword || sameAsCurrent) return;
+    if (!fields.success) {
+      setTouched(true);
+      setConfirmTouched(true);
+      return;
+    }
     void action.execute(
-      () => loginMethodsService.unlinkGoogle({ currentPassword }),
+      () => loginMethodsService.changePassword({ currentPassword, newPassword, confirmPassword }),
       () => onDone(),
     );
   };
@@ -367,37 +360,55 @@ function UnlinkGoogleDialog({ onClose, onDone }: DialogProps) {
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
       <DialogContent className={DIALOG_CLASS} showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle className={DIALOG_TITLE}>Gỡ liên kết Google?</DialogTitle>
+          <DialogTitle className={DIALOG_TITLE}>Đổi mật khẩu</DialogTitle>
           <DialogDescription className="text-heritage-muted">
-            Sau khi gỡ, bạn chỉ đăng nhập bằng email và mật khẩu. Bạn nhập mật khẩu hiện tại để xác
-            nhận.
+            Nhập mật khẩu hiện tại và mật khẩu mới (ít nhất 8 ký tự).
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
           <PasswordField
-            id="unlink-google-password"
+            id="change-password-current"
             label="Mật khẩu hiện tại"
-            placeholder="Nhập mật khẩu"
+            placeholder="Nhập mật khẩu hiện tại"
             value={currentPassword}
             onChange={setCurrentPassword}
             autoComplete="current-password"
             disabled={action.pending}
           />
-          {action.error ? (
-            <ErrorLine message={action.error} />
-          ) : (
-            <InfoBox>
-              Mật khẩu sai sẽ báo “Mật khẩu hiện tại chưa đúng” và bạn vẫn đang đăng nhập.
-            </InfoBox>
-          )}
+          <PasswordField
+            id="change-password-new"
+            label="Mật khẩu mới"
+            placeholder="Nhập mật khẩu mới"
+            value={newPassword}
+            onChange={(value) => {
+              setNewPassword(value);
+              setTouched(true);
+            }}
+            autoComplete="new-password"
+            disabled={action.pending}
+          />
+          <PasswordField
+            id="change-password-confirm"
+            label="Nhập lại mật khẩu mới"
+            placeholder="Nhập lại"
+            value={confirmPassword}
+            onChange={(value) => {
+              setConfirmPassword(value);
+              setTouched(true);
+              setConfirmTouched(true);
+            }}
+            autoComplete="new-password"
+            disabled={action.pending}
+          />
+          <ErrorLine message={problem || action.error} />
           <DialogFooter>
             <CancelButton onClick={onClose} disabled={action.pending} />
             <button
               type="submit"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#A32119] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#8A1B14] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50"
-              disabled={action.pending || !currentPassword}
+              className={buttonStyles.gold}
+              disabled={action.pending || !currentPassword || !newPassword || sameAsCurrent}
             >
-              {action.pending ? "Đang gỡ…" : "Gỡ liên kết"}
+              {action.pending ? "Đang đổi…" : "Đổi mật khẩu"}
             </button>
           </DialogFooter>
         </form>
@@ -463,47 +474,6 @@ function SetPasswordDialog({ onClose, onDone }: DialogProps) {
         </p>
         <GoogleSignInButton disabled={action.pending || !fields.success} onCredential={submit} />
         <ErrorLine message={action.error} />
-        <DialogFooter>
-          <CancelButton onClick={onClose} disabled={action.pending} />
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function RemovePasswordDialog({ onClose, onDone }: DialogProps) {
-  const action = usePrivateAction();
-  const [currentPassword, setCurrentPassword] = useState("");
-  const submit = async (googleIdToken: string, nonce: string) => {
-    await action.execute(
-      () => loginMethodsService.removePassword({ currentPassword, googleIdToken, nonce }),
-      () => onDone(),
-    );
-  };
-  return (
-    <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
-      <DialogContent className={DIALOG_CLASS} showCloseButton={false}>
-        <DialogHeader>
-          <DialogTitle className={DIALOG_TITLE}>Gỡ mật khẩu?</DialogTitle>
-          <DialogDescription className="text-heritage-muted">
-            Sau khi gỡ, bạn chỉ đăng nhập bằng Google. Cần mật khẩu hiện tại và đăng nhập lại Google
-            để xác nhận.
-          </DialogDescription>
-        </DialogHeader>
-        <PasswordField
-          id="remove-password-current"
-          label="Mật khẩu hiện tại"
-          placeholder="Nhập mật khẩu hiện tại"
-          value={currentPassword}
-          onChange={setCurrentPassword}
-          autoComplete="current-password"
-          disabled={action.pending}
-        />
-        <ErrorLine message={action.error} />
-        <GoogleSignInButton
-          disabled={action.pending || currentPassword.length === 0}
-          onCredential={submit}
-        />
         <DialogFooter>
           <CancelButton onClick={onClose} disabled={action.pending} />
         </DialogFooter>

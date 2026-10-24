@@ -4,7 +4,7 @@ import { resetPasswordRequestSchema, type ResetPasswordInput } from "../model/re
 
 /** Anonymous commands; these endpoints do not mutate auth cookies or require CSRF in BE. */
 export const passwordRecoveryService = {
-  /** 202 acknowledges a request, not account existence or email delivery. */
+  /** 202: email có tài khoản, link đã được yêu cầu gửi. 404 EMAIL_NOT_FOUND: email chưa đăng ký. */
   async request(email: string): Promise<void> {
     await axiosClient.post<unknown, unknown>(
       "/auth/forgot-password",

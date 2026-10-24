@@ -14,6 +14,11 @@ export function passwordRecoveryFeedback(error: unknown): {
       message: "Liên kết không hợp lệ, đã hết hạn hoặc đã dùng. Yêu cầu liên kết mới.",
       invalidToken: true,
     };
+  if (problem?.success && problem.data.code === "EMAIL_NOT_FOUND")
+    return {
+      message: "Email này chưa được đăng ký trong hệ thống. Vui lòng kiểm tra lại.",
+      invalidToken: false,
+    };
   return {
     invalidToken: false,
     message:

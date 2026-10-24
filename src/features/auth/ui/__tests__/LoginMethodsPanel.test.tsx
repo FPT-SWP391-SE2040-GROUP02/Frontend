@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
+import { MemoryRouter } from "react-router-dom";
 import { AxiosError, AxiosHeaders } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import authReducer from "@/entities/user/model/authSlice";
@@ -85,70 +86,31 @@ function renderPanel() {
   render(
     <Provider store={store}>
       <QueryClientProvider client={client}>
-        <LoginMethodsPanel />
+        <MemoryRouter>
+          <LoginMethodsPanel />
+        </MemoryRouter>
       </QueryClientProvider>
     </Provider>,
   );
 }
 
 describe("LoginMethodsPanel", () => {
-  it("lists both methods with status chips and offers to unlink Google when a password remains", async () => {
+  it("lists both methods with status chips, offers change-password and no removal actions", async () => {
     vi.spyOn(loginMethodsService, "list").mockResolvedValue([password, google]);
     renderPanel();
     expect(await screen.findByText(/owner@gmail.test/)).toBeInTheDocument();
     expect(screen.getByText("2/2 phương thức")).toBeInTheDocument();
     expect(screen.getByText("Đang dùng")).toBeInTheDocument();
     expect(screen.getByText("Đã liên kết")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Gỡ liên kết Google" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Gỡ mật khẩu" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Đổi mật khẩu" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: /Gỡ/ })).not.toBeInTheDocument();
   });
 
-  it("locks removal of the last method instead of letting the user try", async () => {
-    vi.spyOn(loginMethodsService, "list").mockResolvedValue([{ ...password, canRemove: false }]);
+  it("offers to link Google when only the password exists", async () => {
+    vi.spyOn(loginMethodsService, "list").mockResolvedValue([password]);
     renderPanel();
-    expect(
-      await screen.findByText(
-        /phương thức đăng nhập cuối cùng nên không thể gỡ\. Hãy liên kết Google trước/,
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByText("1/2 phương thức")).toBeInTheDocument();
-    // Không có Google nên không thể gỡ mật khẩu dù canRemove.
-    expect(screen.getByRole("button", { name: "Gỡ mật khẩu" })).toBeDisabled();
+    expect(await screen.findByText("1/2 phương thức")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Liên kết Google" })).toBeEnabled();
-  });
-
-  it("unlinks Google with the current password and refreshes the list and profile", async () => {
-    const u = userEvent.setup();
-    const list = vi
-      .spyOn(loginMethodsService, "list")
-      .mockResolvedValueOnce([password, google])
-      .mockResolvedValue([password]);
-    const unlink = vi.spyOn(loginMethodsService, "unlinkGoogle").mockResolvedValue();
-    renderPanel();
-    await u.click(await screen.findByRole("button", { name: "Gỡ liên kết Google" }));
-    const confirm = screen.getByRole("button", { name: "Gỡ liên kết" });
-    expect(confirm).toBeDisabled();
-    await u.type(screen.getByLabelText("Mật khẩu hiện tại"), "OldPass123!");
-    await u.click(confirm);
-    await waitFor(() => expect(unlink).toHaveBeenCalledWith({ currentPassword: "OldPass123!" }));
-    await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
-    expect(sessionAuthService.getSession).toHaveBeenCalled();
-  });
-
-  it("keeps the dialog and says the password is wrong without calling it an expired session", async () => {
-    const u = userEvent.setup();
-    vi.spyOn(loginMethodsService, "list").mockResolvedValue([password, google]);
-    vi.spyOn(loginMethodsService, "unlinkGoogle").mockRejectedValue(
-      problem(401, "REAUTHENTICATION_FAILED"),
-    );
-    renderPanel();
-    await u.click(await screen.findByRole("button", { name: "Gỡ liên kết Google" }));
-    await u.type(screen.getByLabelText("Mật khẩu hiện tại"), "wrong");
-    await u.click(screen.getByRole("button", { name: "Gỡ liên kết" }));
-    const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent(/Mật khẩu hiện tại chưa đúng/);
-    expect(alert).not.toHaveTextContent(/hết hạn/);
-    expect(screen.getByLabelText("Mật khẩu hiện tại")).toBeInTheDocument();
   });
 
   it("shows the Google step only after the password is confirmed, then links with the fresh token", async () => {
@@ -250,22 +212,60 @@ describe("LoginMethodsPanel", () => {
     );
   });
 
-  it("removes the password only with the current password plus a fresh Google token", async () => {
+  it("changes the password with the current one and refreshes the list", async () => {
     const u = userEvent.setup();
-    vi.spyOn(loginMethodsService, "list").mockResolvedValue([password, google]);
-    const remove = vi.spyOn(loginMethodsService, "removePassword").mockResolvedValue();
+    const list = vi.spyOn(loginMethodsService, "list").mockResolvedValue([password, google]);
+    const change = vi.spyOn(loginMethodsService, "changePassword").mockResolvedValue();
     renderPanel();
-    await u.click(await screen.findByRole("button", { name: "Gỡ mật khẩu" }));
-    expect(screen.getByRole("button", { name: "Google giả" })).toBeDisabled();
+    await u.click(await screen.findByRole("button", { name: "Đổi mật khẩu" }));
     await u.type(screen.getByLabelText("Mật khẩu hiện tại"), "OldPass123!");
-    await u.click(screen.getByRole("button", { name: "Google giả" }));
+    await u.type(screen.getByLabelText("Mật khẩu mới"), "NewPass123!");
+    await u.type(screen.getByLabelText("Nhập lại mật khẩu mới"), "NewPass123!");
+    await u.click(screen.getAllByRole("button", { name: "Đổi mật khẩu" }).at(-1)!);
     await waitFor(() =>
-      expect(remove).toHaveBeenCalledWith({
+      expect(change).toHaveBeenCalledWith({
         currentPassword: "OldPass123!",
-        googleIdToken: "google-token",
-        nonce: "n1",
+        newPassword: "NewPass123!",
+        confirmPassword: "NewPass123!",
       }),
     );
+    await waitFor(() => expect(list).toHaveBeenCalledTimes(2));
+  });
+
+  it("blocks a mismatched confirmation and reports a wrong current password", async () => {
+    const u = userEvent.setup();
+    vi.spyOn(loginMethodsService, "list").mockResolvedValue([password, google]);
+    const change = vi
+      .spyOn(loginMethodsService, "changePassword")
+      .mockRejectedValue(problem(401, "REAUTHENTICATION_FAILED"));
+    renderPanel();
+    await u.click(await screen.findByRole("button", { name: "Đổi mật khẩu" }));
+    await u.type(screen.getByLabelText("Mật khẩu hiện tại"), "wrong");
+    await u.type(screen.getByLabelText("Mật khẩu mới"), "NewPass123!");
+    await u.type(screen.getByLabelText("Nhập lại mật khẩu mới"), "Different1!");
+    const submit = screen.getAllByRole("button", { name: "Đổi mật khẩu" }).at(-1)!;
+    await u.click(submit);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/không khớp/);
+    expect(change).not.toHaveBeenCalled();
+    await u.clear(screen.getByLabelText("Nhập lại mật khẩu mới"));
+    await u.type(screen.getByLabelText("Nhập lại mật khẩu mới"), "NewPass123!");
+    await u.click(submit);
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Mật khẩu hiện tại chưa đúng/);
+  });
+
+  it("rejects a new password equal to the current one without calling the API", async () => {
+    const u = userEvent.setup();
+    vi.spyOn(loginMethodsService, "list").mockResolvedValue([password, google]);
+    const change = vi.spyOn(loginMethodsService, "changePassword").mockResolvedValue();
+    renderPanel();
+    await u.click(await screen.findByRole("button", { name: "Đổi mật khẩu" }));
+    await u.type(screen.getByLabelText("Mật khẩu hiện tại"), "SamePass123!");
+    await u.type(screen.getByLabelText("Mật khẩu mới"), "SamePass123!");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      /không được trùng mật khẩu hiện tại/,
+    );
+    expect(screen.getAllByRole("button", { name: "Đổi mật khẩu" }).at(-1)).toBeDisabled();
+    expect(change).not.toHaveBeenCalled();
   });
 
   it("offers a retry when the list cannot be read", async () => {

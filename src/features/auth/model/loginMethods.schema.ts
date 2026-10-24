@@ -44,6 +44,11 @@ export const newPasswordFieldsSchema = z
     message: "Mật khẩu nhập lại không khớp.",
     path: ["confirmPassword"],
   });
+export const changePasswordMethodSchema = z.object({
+  currentPassword,
+  newPassword: z.string().min(8).max(128),
+  confirmPassword: z.string().max(128),
+});
 export const setPasswordMethodSchema = z.object({
   googleIdToken: googleToken,
   nonce,

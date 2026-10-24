@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { axiosClient } from "@/shared/api/axiosClient";
 import {
+  changePasswordMethodSchema,
   linkGoogleMethodSchema,
   loginMethodSchema,
   removePasswordMethodSchema,
@@ -49,6 +50,13 @@ export const loginMethodsService = {
     await axiosClient.post<unknown, unknown>(
       `${BASE}/password`,
       setPasswordMethodSchema.parse(request),
+    );
+  },
+  /** Đổi mật khẩu app khi đang đăng nhập (204): cần mật khẩu hiện tại; sai thì 401 REAUTHENTICATION_FAILED. */
+  async changePassword(request: z.infer<typeof changePasswordMethodSchema>): Promise<void> {
+    await axiosClient.post<unknown, unknown>(
+      `${BASE}/password/change`,
+      changePasswordMethodSchema.parse(request),
     );
   },
   /** Gỡ mật khẩu, chỉ còn Google: cần mật khẩu hiện tại và Google ID token mới. */
