@@ -8,7 +8,32 @@ const problem = z.object({
   code: z.string().optional(),
   reason: z.string().optional(),
   missingRequirements: z.array(z.string()).optional(),
+  errors: z.record(z.string(), z.array(z.string())).optional(),
 });
+
+const MAX_VALIDATION_MESSAGES = 3;
+const MAX_VALIDATION_MESSAGE_LENGTH = 200;
+const VIETNAMESE_LETTER = /[À-ỹ]/;
+
+/**
+ * Thông báo kiểm tra dữ liệu do Backend viết bằng tiếng Việt cho người dùng (không chứa nội dung bí mật).
+ * Chỉ nhận câu có chữ tiếng Việt và đủ ngắn để không đưa lỗi kỹ thuật tiếng Anh của framework ra giao diện.
+ */
+function validationMessages(errors: Record<string, string[]> | undefined): string[] {
+  if (!errors) return [];
+  const found: string[] = [];
+  for (const list of Object.values(errors)) {
+    for (const text of list) {
+      const message = text.trim();
+      const usable =
+        message.length > 0 &&
+        message.length <= MAX_VALIDATION_MESSAGE_LENGTH &&
+        VIETNAMESE_LETTER.test(message);
+      if (usable && !found.includes(message)) found.push(message);
+    }
+  }
+  return found.slice(0, MAX_VALIDATION_MESSAGES);
+}
 
 /** Reason-specific messages for HANDOVER_NOT_ALLOWED */
 const handoverNotAllowedReasons: Record<string, string> = {
@@ -185,7 +210,10 @@ const messages: Record<string, string> = {
     "Không thể xác nhận tính toàn vẹn của nội dung. Vui lòng liên hệ hỗ trợ.",
 };
 
-/** Chỉ hiển thị thông báo do FE quản lý; không đưa exception/body nhạy cảm ra UI. */
+/**
+ * Chỉ hiển thị thông báo do FE quản lý; không đưa exception/body nhạy cảm ra UI. Ngoại lệ: VALIDATION_ERROR hiện
+ * câu lỗi tiếng Việt cụ thể của Backend (xem validationMessages) để người dùng biết trường nào sai.
+ */
 export function privateActionError(error: unknown): string {
   if (isAxiosError<unknown>(error)) {
     if (error.code === AxiosError.ECONNABORTED || error.code === AxiosError.ETIMEDOUT)
@@ -224,6 +252,10 @@ export function privateActionError(error: unknown): string {
     const missingMessage = missing.find((item) => Object.hasOwn(missingRequirementMessages, item));
     if (code === "DEATH_CASE_INCOMPLETE" && missingMessage)
       return missingRequirementMessages[missingMessage];
+    if (code === "VALIDATION_ERROR") {
+      const specific = validationMessages(parsed.success ? parsed.data.errors : undefined);
+      if (specific.length > 0) return specific.join(" ");
+    }
     if (code && Object.hasOwn(messages, code)) return messages[code];
     if (status === HTTP_STATUS.FORBIDDEN) return "Bạn không có quyền thực hiện thao tác này.";
     if (status === HTTP_STATUS.BAD_REQUEST)
