@@ -1,4 +1,4 @@
-import type { DevClock, DevMilestoneKey } from "./devTools.schema";
+import type { DevClock, DevEkycReset, DevMilestoneKey } from "./devTools.schema";
 
 /** Nội dung từng mốc trên màn hình công cụ thử nghiệm, theo thứ tự từ trên xuống. */
 export const DEV_MILESTONES: Record<
@@ -68,3 +68,17 @@ export const DEV_TOOLS_FOOTNOTE =
 
 export const RESET_DONE =
   "Đồng hồ của hồ sơ đã về thời gian hiện tại. Trạng thái đã phát sinh được giữ nguyên.";
+
+export const EKYC_RESET_DESCRIPTION =
+  "Xóa toàn bộ dữ liệu eKYC của một tài khoản (lượt xác minh, đồng ý chụp ảnh, danh tính đã gắn, mẫu khuôn mặt) để làm lại eKYC từ đầu, kể cả với CCCD khác. Email, vai trò, kho và vai Người thực hiện giữ nguyên.";
+
+/** Thông báo sau khi đặt lại; chỉ dùng số lượng máy chủ trả về. */
+export function ekycResetDone(result: DevEkycReset) {
+  const removedNothing =
+    result.verificationsRemoved === 0 &&
+    result.consentsRemoved === 0 &&
+    !result.identityRemoved &&
+    result.faceTemplatesRemoved === 0;
+  if (removedNothing) return `Tài khoản ${result.email} chưa có dữ liệu eKYC, không có gì để xóa.`;
+  return `Đã đặt lại eKYC của ${result.email}: xóa ${result.verificationsRemoved} lượt xác minh, ${result.consentsRemoved} lần đồng ý${result.identityRemoved ? ", danh tính đã gắn" : ""}${result.faceTemplatesRemoved > 0 ? ", mẫu khuôn mặt" : ""}. Tài khoản có thể làm lại eKYC.`;
+}

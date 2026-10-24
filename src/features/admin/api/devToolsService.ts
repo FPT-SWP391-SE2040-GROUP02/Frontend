@@ -2,8 +2,11 @@ import { z } from "zod";
 import { apiClient } from "@/shared/api";
 import {
   devClockSchema,
+  devEkycResetRequestSchema,
+  devEkycResetSchema,
   devTimeTravelRequestSchema,
   devVaultOptionsSchema,
+  type DevEkycResetRequest,
   type DevTimeTravelRequest,
 } from "../model/devTools.schema";
 
@@ -40,6 +43,15 @@ export const devToolsService = {
   async resetClock(vaultId: string) {
     return devClockSchema.parse(
       await apiClient.post<unknown, unknown>(`${vault(vaultId)}/reset-clock`),
+    );
+  },
+  /** Xóa dữ liệu eKYC của một tài khoản để làm lại từ đầu; trả số lượng đã xóa. */
+  async resetEkyc(request: DevEkycResetRequest) {
+    return devEkycResetSchema.parse(
+      await apiClient.post<unknown, unknown>(
+        "/admin/dev-tools/users/ekyc-reset",
+        devEkycResetRequestSchema.parse(request),
+      ),
     );
   },
 };

@@ -79,4 +79,29 @@ describe("devToolsService", () => {
     await expect(devToolsService.getClock("khong-phai-uuid")).rejects.toBeInstanceOf(ZodError);
     expect(get).not.toHaveBeenCalled();
   });
+  it("đặt lại eKYC gửi email đã chuẩn hóa và đọc số lượng đã xóa", async () => {
+    const result = {
+      userId: VAULT_ID,
+      email: "owner@example.test",
+      verificationsRemoved: 1,
+      consentsRemoved: 3,
+      identityRemoved: true,
+      faceTemplatesRemoved: 1,
+    };
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(result);
+    await expect(devToolsService.resetEkyc({ email: "  owner@example.test " })).resolves.toEqual(
+      result,
+    );
+    expect(post).toHaveBeenCalledWith("/admin/dev-tools/users/ekyc-reset", {
+      email: "owner@example.test",
+    });
+  });
+
+  it("không gọi API đặt lại eKYC khi email không hợp lệ", async () => {
+    const post = vi.spyOn(apiClient, "post");
+    await expect(devToolsService.resetEkyc({ email: "khong-phai-email" })).rejects.toBeInstanceOf(
+      ZodError,
+    );
+    expect(post).not.toHaveBeenCalled();
+  });
 });
