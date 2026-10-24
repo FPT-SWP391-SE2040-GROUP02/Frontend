@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { History } from "lucide-react";
+import { History, ScanFace } from "lucide-react";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { buttonStyles, Chip, Notice, Panel } from "@/shared/ui/heritageKit";
 import { devToolsService } from "../api/devToolsService";
@@ -11,16 +11,24 @@ import {
   DEV_MILESTONES,
   DEV_TOOLS_FOOTNOTE,
   DEV_TOOLS_NOTICE,
+  EKYC_RESET_DESCRIPTION,
   RESET_DONE,
+  ekycResetDone,
   planStatusLabel,
 } from "../model/devTools.content";
-import { devClockSchema, type DevClock, type DevMilestone } from "../model/devTools.schema";
+import {
+  devClockSchema,
+  devEkycResetSchema,
+  type DevClock,
+  type DevMilestone,
+} from "../model/devTools.schema";
 import { adminKeys } from "../model/useAdmin";
 import { devToolsKeys, useDevClock, useDevVaults } from "../model/useDevTools";
 import { AdminActionDialog } from "./AdminActionDialog";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
-type PendingDialog = { kind: "travel"; milestone: DevMilestone } | { kind: "reset" } | null;
+type PendingDialog =
+  { kind: "travel"; milestone: DevMilestone } | { kind: "reset" } | { kind: "ekyc" } | null;
 
 /**
  * Công cụ thử nghiệm (chỉ Development): chọn một kho thử rồi tua tới từng mốc của luồng điểm danh,
@@ -135,6 +143,21 @@ export function AdminDevTools() {
         </Panel>
       )}
 
+      <Panel title="Đặt lại eKYC" labelledBy="dev-tools-ekyc">
+        <p className="text-sm text-heritage-muted">{EKYC_RESET_DESCRIPTION}</p>
+        <button
+          type="button"
+          className={`${buttonStyles.outline} mt-4`}
+          onClick={() => {
+            setDone("");
+            setDialog({ kind: "ekyc" });
+          }}
+        >
+          <ScanFace className="size-4" aria-hidden="true" />
+          Đặt lại eKYC của một tài khoản
+        </button>
+      </Panel>
+
       {dialog?.kind === "travel" && (
         <AdminActionDialog
           title={`Tua tới “${DEV_MILESTONES[dialog.milestone.key].title}”?`}
@@ -158,6 +181,22 @@ export function AdminDevTools() {
           submit={() => devToolsService.resetClock(vaultId)}
           onClose={() => setDialog(null)}
           onDone={(result) => publish(result, RESET_DONE)}
+        />
+      )}
+      {dialog?.kind === "ekyc" && (
+        <AdminActionDialog
+          title="Đặt lại eKYC?"
+          description="Toàn bộ dữ liệu eKYC của tài khoản sẽ bị xóa và không hoàn tác được. Chủ kho phải làm lại eKYC trước khi mua gói mới hoặc kích hoạt kế hoạch. Chỉ dùng trên môi trường Development."
+          submitLabel="Đặt lại eKYC"
+          fields={[{ name: "email", label: "Email tài khoản", kind: "text", maxLength: 256 }]}
+          defaultValues={{ email: "" }}
+          confirmLabel="Tôi hiểu đây là dữ liệu thử."
+          submit={(values) => devToolsService.resetEkyc({ email: values.email })}
+          onClose={() => setDialog(null)}
+          onDone={(result) => {
+            const parsed = devEkycResetSchema.safeParse(result);
+            if (parsed.success) setDone(ekycResetDone(parsed.data));
+          }}
         />
       )}
     </div>

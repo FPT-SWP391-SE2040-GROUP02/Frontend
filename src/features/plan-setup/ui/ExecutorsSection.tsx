@@ -109,7 +109,7 @@ function ActionList({
   title: string;
   items: string[];
   allowed: boolean;
-  /** Chế độ chỉ xem (thiết kế 186): chữ màu theo nhóm, không biểu tượng. */
+  /** Chế độ chỉ xem (thiết kế 186): chữ màu theo nhóm, tiêu đề đậm hơn, vẫn có biểu tượng. */
   readOnly?: boolean;
 }) {
   let titleColor = "text-red-700";
@@ -120,16 +120,10 @@ function ActionList({
   }
   const rows: ReactNode[] = [];
   for (const item of items) {
-    if (readOnly) {
-      rows.push(
-        <li key={item} className={`text-sm font-medium ${titleColor}`}>
-          {item}
-        </li>,
-      );
-      continue;
-    }
+    // Chế độ chỉ xem vẫn có biểu tượng để phân biệt nhóm khi không chỉ dựa vào màu chữ.
+    const rowTone = readOnly ? `font-medium ${titleColor}` : "";
     rows.push(
-      <li key={item} className="flex items-center gap-3 text-sm">
+      <li key={item} className={`flex items-center gap-3 text-sm ${rowTone}`}>
         {mark}
         {item}
       </li>,
