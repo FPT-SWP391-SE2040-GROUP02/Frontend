@@ -12,7 +12,7 @@ import { Textarea } from "@/shared/ui/textarea";
 import { backendAssetService } from "../api/backendAssetService";
 import type { BackendAsset } from "../model/backendAsset.schema";
 import { useAssetDownload } from "../model/useAssetDownload";
-import { DeleteDialog, VersionDialog } from "./AssetDialogs";
+import { DeleteDialog } from "./AssetDialogs";
 
 const editSchema = z.object({
   name: z.string().regex(/\S/, "Nhập tên mục.").max(200, "Tên tối đa 200 ký tự."),
@@ -103,9 +103,8 @@ function EditForm({
 }
 
 /**
- * Chi tiết một mục (thiết kế "Kho — Mục chi tiết"): thông tin và sửa tên/ghi chú, danh sách phiên bản với
- * nút tải từng phiên bản, thêm phiên bản mới và xóa mục. Backend chỉ trả số phiên bản và thông tin của phiên
- * bản hiện tại, nên ngày và dung lượng chỉ hiện cho bản hiện tại.
+ * Chi tiết một mục (thiết kế "Kho — Mục chi tiết"): thông tin và sửa tên/ghi chú, tải nội dung và xóa mục.
+ * Nội dung không đổi sau khi tạo; muốn thay thì tạo mục mới rồi xóa mục cũ.
  */
 export function AssetDetail({
   vaultId,
@@ -116,11 +115,9 @@ export function AssetDetail({
   asset: BackendAsset;
   onDeleted: () => void;
 }) {
-  const [dialog, setDialog] = useState<"version" | "delete" | null>(null);
+  const [dialog, setDialog] = useState<"delete" | null>(null);
   const client = useQueryClient();
   const download = useAssetDownload(vaultId, asset);
-  const latest = asset.currentVersion.versionNumber;
-  const versions = Array.from({ length: latest }, (_, index) => latest - index);
   /** Đọc lại danh sách, chi tiết và dung lượng kho sau khi có thay đổi được Backend xác nhận. */
   const refresh = () => {
     void client.invalidateQueries({ queryKey: ["vault-assets", vaultId] });
@@ -142,7 +139,7 @@ export function AssetDetail({
           <div>
             <dt className="text-xs text-heritage-muted">Dung lượng</dt>
             <dd className="mt-1 font-semibold">
-              {formatStorageSize(asset.currentVersion.sizeBytes)}
+              {formatStorageSize(asset.sizeBytes)}
             </dd>
           </div>
         </dl>
@@ -151,52 +148,29 @@ export function AssetDetail({
           <button type="submit" form="asset-edit-form" className={buttonStyles.gold}>
             Lưu thay đổi
           </button>
-          <button
-            type="button"
-            className={buttonStyles.outline}
-            onClick={() => setDialog("version")}
-          >
-            Thêm phiên bản mới
-          </button>
           <button type="button" className={buttonStyles.danger} onClick={() => setDialog("delete")}>
             Xóa mục
           </button>
         </div>
       </Panel>
-      <Panel title="Phiên bản">
-        <ul className="divide-y divide-heritage-border">
-          {versions.map((number) => {
-            const current = number === latest;
-            return (
-              <li
-                key={number}
-                className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0"
-              >
-                <div>
-                  <p className="font-semibold">
-                    Phiên bản {number}
-                    {current ? " (hiện tại)" : ""}
-                  </p>
-                  {current && (
-                    <p className="text-sm text-heritage-muted">
-                      {formatDateTime(asset.currentVersion.createdAt)} ·{" "}
-                      {formatStorageSize(asset.currentVersion.sizeBytes)}
-                    </p>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  aria-label={`Tải xuống phiên bản ${number}`}
-                  className={buttonStyles.outline}
-                  disabled={download.pending}
-                  onClick={() => download.download(number)}
-                >
-                  Tải xuống
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+      <Panel title="Nội dung">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold">{asset.fileName ?? kindLabels[asset.kind]}</p>
+            <p className="text-sm text-heritage-muted">
+              {formatDateTime(asset.createdAt)} · {formatStorageSize(asset.sizeBytes)}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Tải xuống nội dung"
+            className={buttonStyles.outline}
+            disabled={download.pending}
+            onClick={download.download}
+          >
+            Tải xuống
+          </button>
+        </div>
         {download.error && (
           <p role="alert" className="mt-3 text-sm text-destructive">
             {download.error}
@@ -204,19 +178,10 @@ export function AssetDetail({
         )}
         <p className="mt-4 flex items-start gap-2 border-t border-heritage-border pt-4 text-xs text-heritage-muted">
           <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-          Mỗi lần thêm phiên bản, bản cũ vẫn được giữ. Người nhận chỉ thấy bản mới nhất khi bàn
-          giao.
+          Nội dung không đổi sau khi tạo. Muốn thay, hãy tạo mục mới rồi xóa mục này. Người nhận nhận
+          đúng nội dung này khi bàn giao.
         </p>
       </Panel>
-      {dialog === "version" && (
-        <VersionDialog
-          key={asset.etag}
-          vaultId={vaultId}
-          asset={asset}
-          onClose={() => setDialog(null)}
-          onDone={refresh}
-        />
-      )}
       {dialog === "delete" && (
         <DeleteDialog
           vaultId={vaultId}

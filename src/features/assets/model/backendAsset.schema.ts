@@ -6,13 +6,9 @@ export const backendAssetSchema = z.object({
   kind: z.enum(["FILE", "TEXT"]),
   name: z.string(),
   description: z.string().nullable(),
-  currentVersion: z.object({
-    versionNumber: z.number().int().positive(),
-    fileName: z.string().nullable(),
-    contentType: z.string(),
-    sizeBytes: z.number().int().nonnegative(),
-    createdAt: z.string().datetime({ offset: true }),
-  }),
+  fileName: z.string().nullable(),
+  contentType: z.string(),
+  sizeBytes: z.number().int().nonnegative(),
   createdAt: z.string().datetime({ offset: true }),
   updatedAt: z.string().datetime({ offset: true }).nullable(),
   etag: z.string().min(1).max(64),
@@ -33,14 +29,5 @@ export const updateAssetSchema = z
   .refine((value) => value.name !== undefined || value.description !== undefined, {
     message: "Chưa có thay đổi nào.",
   });
-
-/** Phiên bản mới của tài sản TEXT; nội dung chỉ nằm trong form, không vào cache/log. */
-export const newTextVersionSchema = z.object({
-  content: z.string().regex(/\S/, "Nhập nội dung mới.").max(100000),
-  etag: z.string().min(1).max(64),
-});
-
-/** Phiên bản cần tải: số nguyên dương, mặc định phiên bản hiện tại. */
-export const assetVersionSchema = z.number().int().positive();
 
 export type BackendAsset = z.infer<typeof backendAssetSchema>;
