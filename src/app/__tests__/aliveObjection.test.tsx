@@ -227,6 +227,18 @@ it("Verifier phải chủ động chọn kết luận, không có lựa chọn m
   for (const radio of screen.getAllByRole("radio")) expect(radio).not.toBeChecked();
 });
 
+it("Verifier rời nhóm kết luận khi chưa chọn thì thấy lỗi tiếng Việt, chọn xong lỗi biến mất", async () => {
+  const user = userEvent.setup();
+  renderVerifier(objection());
+  await user.click(await screen.findByRole("button", { name: "Kết luận lời báo" }));
+  screen.getByRole("radio", { name: "Bác lời báo" }).focus();
+  await user.tab();
+  expect(await screen.findByText("Chọn một kết luận.")).toBeInTheDocument();
+  expect(screen.queryByText(/Expected string/)).not.toBeInTheDocument();
+  await user.click(screen.getByRole("radio", { name: "Chưa đủ bằng chứng" }));
+  await waitFor(() => expect(screen.queryByText("Chọn một kết luận.")).not.toBeInTheDocument());
+});
+
 it("Verifier không được bác lời báo khi selfie đã đạt (ALIVE-05)", async () => {
   const user = userEvent.setup();
   renderVerifier(objection({ selfiePassed: true, selfiePassedAt: CREATED_AT }));

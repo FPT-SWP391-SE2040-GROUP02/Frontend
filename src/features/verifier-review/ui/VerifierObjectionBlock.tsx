@@ -132,8 +132,9 @@ function ConcludeDialog({
   const form = useForm<{ conclusion: string; reason: string; confirm: boolean }>({
     resolver: zodResolver(
       concludeObjectionRequestSchema.extend({
+        // Nhóm radio chưa chọn gì thì react-hook-form đọc ra null, nên cần thông báo tiếng Việt cho cả kiểu null.
         conclusion: z
-          .string()
+          .string({ invalid_type_error: "Chọn một kết luận." })
           .min(1, "Chọn một kết luận.")
           .pipe(concludeObjectionRequestSchema.shape.conclusion),
         confirm: z.boolean().refine(Boolean, "Cần xác nhận trước khi tiếp tục."),
@@ -175,7 +176,14 @@ function ConcludeDialog({
                 key={option}
                 className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-[#BDB8A6] bg-white px-4 py-3 text-sm font-medium has-[:checked]:border-[#0A281E] has-[:checked]:bg-[#F4F1E6]"
               >
-                <input type="radio" value={option} {...form.register("conclusion")} />
+                {/* Chọn xong thì xóa dòng lỗi cũ ngay; việc kiểm tra vẫn theo quy tắc "validate on blur" của FE. */}
+                <input
+                  type="radio"
+                  value={option}
+                  {...form.register("conclusion", {
+                    onChange: () => form.clearErrors("conclusion"),
+                  })}
+                />
                 {objectionConclusionLabels[option]}
               </label>
             ))}
