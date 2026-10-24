@@ -26,6 +26,10 @@ export interface User {
   /** Xác minh email/phương thức mật khẩu do Backend xác nhận. */
   emailVerified?: boolean;
   hasPassword?: boolean;
+  /** Backend có ảnh đại diện của người dùng; tải bằng GET /me/avatar (cần Bearer), không có đường dẫn công khai. */
+  hasAvatar?: boolean;
+  /** Lần đổi ảnh gần nhất (ISO), dùng làm khóa tải lại ảnh. */
+  avatarUpdatedAt?: string;
 }
 
 /**
