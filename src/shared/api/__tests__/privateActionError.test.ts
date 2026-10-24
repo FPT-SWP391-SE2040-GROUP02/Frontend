@@ -1,6 +1,6 @@
 import { AxiosError, AxiosHeaders } from "axios";
 import { describe, expect, it } from "vitest";
-import { privateActionError } from "../usePrivateAction";
+import { extractValidationFieldErrors, privateActionError } from "../usePrivateAction";
 
 function failure(status: number, data: unknown) {
   const config = { headers: new AxiosHeaders() };
@@ -152,5 +152,41 @@ describe("VALIDATION_ERROR shows the specific Vietnamese message from the Backen
       }),
     );
     expect(message).toBe("Lỗi một. Lỗi hai. Lỗi ba.");
+  });
+});
+
+describe("extractValidationFieldErrors", () => {
+  it("normalizes PascalCase and prefixed keys to camelCase", () => {
+    const err = failure(400, {
+      code: "VALIDATION_ERROR",
+      errors: {
+        Email: ["Email không hợp lệ."],
+        "$.DateOfBirth": ["Ngày sinh không hợp lệ."],
+        "request.CitizenId": ["CCCD cần đủ 12 chữ số."],
+      },
+    });
+    const fieldErrors = extractValidationFieldErrors(err);
+    expect(fieldErrors).toEqual({
+      email: ["Email không hợp lệ."],
+      dateOfBirth: ["Ngày sinh không hợp lệ."],
+      citizenId: ["CCCD cần đủ 12 chữ số."],
+    });
+  });
+
+  it("handles string values instead of string array", () => {
+    const err = failure(400, {
+      errors: {
+        fullName: "Họ tên là bắt buộc.",
+      },
+    });
+    const fieldErrors = extractValidationFieldErrors(err);
+    expect(fieldErrors).toEqual({
+      fullName: ["Họ tên là bắt buộc."],
+    });
+  });
+
+  it("returns empty object for non-validation errors", () => {
+    expect(extractValidationFieldErrors(new Error("network"))).toEqual({});
+    expect(extractValidationFieldErrors(failure(500, {}))).toEqual({});
   });
 });

@@ -275,6 +275,36 @@ export function privateActionError(error: unknown): string {
 }
 
 /**
+ * Trích xuất map lỗi theo trường từ response 400 (ProblemDetails / ValidationProblemDetails).
+ * Chuẩn hóa tên trường về camelCase và bỏ các tiền tố như $. hoặc request.
+ */
+export function extractValidationFieldErrors(error: unknown): Record<string, string[]> {
+  if (!isAxiosError(error) || !error.response?.data) return {};
+  const data = error.response.data as Record<string, unknown>;
+  const parsed = problem.safeParse(data);
+  const rawErrors =
+    parsed.success && parsed.data.errors
+      ? parsed.data.errors
+      : (data.errors as Record<string, unknown> | undefined);
+  if (!rawErrors || typeof rawErrors !== "object") return {};
+
+  const result: Record<string, string[]> = {};
+  for (const [key, val] of Object.entries(rawErrors)) {
+    const trimmed = key.replace(/^\$\.?|^request\./, "");
+    const lastDot = trimmed.lastIndexOf(".");
+    const leaf = lastDot >= 0 ? trimmed.substring(lastDot + 1) : trimmed;
+    const normalizedKey = leaf.length > 0 ? leaf[0].toLowerCase() + leaf.substring(1) : leaf;
+
+    if (Array.isArray(val)) {
+      result[normalizedKey] = val.map((v) => String(v));
+    } else if (typeof val === "string") {
+      result[normalizedKey] = [val];
+    }
+  }
+  return result;
+}
+
+/**
  * Submit riêng tư không retry/optimistic và không đưa payload vào MutationCache.
  * Chặn double-submit; chỉ publish kết quả khi vẫn mount và Bearer không đổi.
  * Server có thể đã ghi dù client bỏ response; cần đọc lại trước retry thủ công.
@@ -284,6 +314,7 @@ export function usePrivateAction() {
   const busy = useRef(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [succeeded, setSucceeded] = useState(false);
   useEffect(() => {
     mounted.current = true;
@@ -294,6 +325,7 @@ export function usePrivateAction() {
   async function execute<T>(
     operation: () => Promise<T>,
     publish: (result: T) => void,
+    onFailure?: (error: unknown, fieldErrors: Record<string, string[]>) => void,
   ): Promise<boolean> {
     if (busy.current) return false;
     const credential = accessTokenMemory.get();
@@ -305,6 +337,7 @@ export function usePrivateAction() {
     busy.current = true;
     setPending(true);
     setError("");
+    setFieldErrors({});
     setSucceeded(false);
     try {
       const result = await operation();
@@ -313,12 +346,19 @@ export function usePrivateAction() {
       setSucceeded(true);
       return true;
     } catch (failure) {
-      if (current()) setError(privateActionError(failure));
+      if (current()) {
+        const extracted = extractValidationFieldErrors(failure);
+        setError(privateActionError(failure));
+        setFieldErrors(extracted);
+        if (onFailure) {
+          onFailure(failure, extracted);
+        }
+      }
       return false;
     } finally {
       busy.current = false;
       if (mounted.current) setPending(false);
     }
   }
-  return { execute, pending, error, succeeded };
+  return { execute, pending, error, fieldErrors, succeeded };
 }

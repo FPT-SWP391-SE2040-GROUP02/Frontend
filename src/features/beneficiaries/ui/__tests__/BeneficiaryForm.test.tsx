@@ -23,8 +23,24 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function renderForm() {
-  const store = configureStore({ reducer: { auth: authReducer } });
+function renderForm(currentUser?: { id: string; email: string; fullName: string }) {
+  const store = configureStore({
+    reducer: { auth: authReducer },
+    preloadedState: currentUser
+      ? {
+          auth: {
+            user: {
+              ...currentUser,
+              role: "OWNER" as const,
+              status: "ACTIVE" as const,
+              createdAt: "2026-01-01T00:00:00Z",
+            },
+            isAuthenticated: true,
+            isHydrating: false,
+          },
+        }
+      : undefined,
+  });
   render(
     <Provider store={store}>
       <QueryClientProvider client={client}>
@@ -75,5 +91,77 @@ describe("form thêm người nhận", () => {
       "href",
       "/pricing",
     );
+  });
+
+  it("kiểm tra CCCD không đủ 12 chữ số báo lỗi ngay dưới ô CCCD", async () => {
+    const post = vi.spyOn(apiClient, "post");
+    renderForm();
+    fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "123456789" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Văn A" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2000-01-01" } });
+    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "a@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    const citizenIdLabel = (await screen.findByLabelText(/^Số CCCD/)).closest("label") as HTMLElement;
+    expect(citizenIdLabel).toHaveTextContent("CCCD cần đủ 12 chữ số.");
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("chặn email trùng với email của Chủ kho ngay trên form", async () => {
+    const post = vi.spyOn(apiClient, "post");
+    renderForm({ id: "owner-1", email: "nthanhduy310@gmail.com", fullName: "Nguyễn Thanh Duy" });
+    fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "087206004150" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Thanh Duy" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2006-10-12" } });
+    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "nthanhduy310@gmail.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    const emailLabel = (await screen.findByLabelText(/^Email/)).closest("label") as HTMLElement;
+    expect(emailLabel).toHaveTextContent("Email người thụ hưởng không được trùng với email của Chủ kho.");
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("chặn ngày sinh ở tương lai ngay trên form", async () => {
+    const post = vi.spyOn(apiClient, "post");
+    renderForm();
+    fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "087206004150" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Thanh Duy" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2099-01-01" } });
+    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "duy@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    const dobLabel = (await screen.findByLabelText(/^Ngày sinh/)).closest("label") as HTMLElement;
+    expect(dobLabel).toHaveTextContent("Ngày sinh không được ở tương lai.");
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("ánh xạ lỗi validation từ máy chủ lên đúng ô input và hiển thị danh sách trường lỗi ở banner", async () => {
+    vi.spyOn(apiClient, "post").mockRejectedValue(
+      new AxiosError("Bad Request", undefined, undefined, undefined, {
+        status: 400,
+        statusText: "Bad Request",
+        config: { headers: new AxiosHeaders() },
+        headers: {},
+        data: {
+          code: "VALIDATION_ERROR",
+          errors: {
+            email: ["Email người thụ hưởng không được trùng với email của Chủ kho."],
+            citizenId: ["Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho."],
+          },
+        },
+      }),
+    );
+    renderForm();
+    fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "087206004150" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Thanh Duy" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2006-10-12" } });
+    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "other@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+
+    const emailLabel = (await screen.findByLabelText(/^Email/)).closest("label") as HTMLElement;
+    expect(emailLabel).toHaveTextContent("Email người thụ hưởng không được trùng với email của Chủ kho.");
+
+    const citizenIdLabel = screen.getByLabelText(/^Số CCCD/).closest("label") as HTMLElement;
+    expect(citizenIdLabel).toHaveTextContent("Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho.");
+
+    // Banner hiển thị chỉ dẫn rõ ràng trường nào đang bị lỗi
+    expect(screen.getByText(/Vui lòng kiểm tra và chỉnh sửa lại các ô có thông báo lỗi màu đỏ ở trên/)).toBeInTheDocument();
   });
 });
