@@ -32,6 +32,9 @@ The workspace charter in [../AGENTS.md](../AGENTS.md), the [LegacyVault profile]
 
 ## AI collaboration and Git
 
+- **BẮT BUỘC 1 — Luôn Pull trước khi sửa**: Trước khi bắt đầu bất kỳ phân tích, đề xuất hay chỉnh sửa code nào, Agent bắt buộc phải chạy `git pull origin develop` để cập nhật thay đổi mới nhất từ nhóm, không sửa trên code cũ.
+- **BẮT BUỘC 2 — Luôn Tạo nhánh trước khi code**: Tuyệt đối không code trực tiếp trên `develop` hay `main`. Mọi thay đổi code (feature, bugfix, refactor, docs) bắt buộc phải checkout sang nhánh riêng tạo từ `develop` (`feat/<slug>`, `fix/<slug>`, `docs/<slug>`) trước khi chỉnh sửa file.
+
 - AI supplies scaffolds, contracts, UI, validation and tests; the developer owns business/crypto/submit logic unless directly authorized otherwise.
 - Every business TODO includes goal, input/output, sequential steps, functions/libraries, and edge cases/errors.
 - Never truncate file content in supplied full-file examples. Reuse approved/native APIs before adding dependencies.
