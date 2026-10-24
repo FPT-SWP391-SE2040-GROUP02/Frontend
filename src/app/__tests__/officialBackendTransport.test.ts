@@ -31,13 +31,9 @@ const asset = {
   kind: "TEXT",
   name: "Ghi chú",
   description: null,
-  currentVersion: {
-    versionNumber: 1,
-    fileName: null,
-    contentType: "text/plain",
-    sizeBytes: 20,
-    createdAt: CREATED_AT,
-  },
+  fileName: null,
+  contentType: "text/plain",
+  sizeBytes: 20,
   createdAt: CREATED_AT,
   updatedAt: null,
   etag: "asset-v1",
@@ -268,12 +264,12 @@ describe("official Backend transport through real Axios interceptors", () => {
     });
     expect(calls).toBe(1);
   });
-  it("reads asset metadata and rejects missing version fields", async () => {
+  it("reads asset metadata and rejects missing content fields", async () => {
     respond(pageFixture([asset]), (config) =>
       expect(config.url).toBe(`/vaults/${VAULT_ID}/assets`),
     );
     expect((await backendAssetService.list(VAULT_ID)).items[0].kind).toBe("TEXT");
-    respond({ ...asset, currentVersion: {} });
+    respond({ ...asset, contentType: undefined });
     await expect(backendAssetService.get(VAULT_ID, CONTAINER_ID)).rejects.toThrow();
   });
   it("uploads FormData with browser-managed boundary", async () => {

@@ -6,16 +6,15 @@ import type { BackendAsset } from "./backendAsset.schema";
 const safeFileName = (value: string) => value.replace(/[^\p{L}\p{N} ._()-]/gu, "_").slice(0, 120);
 
 /**
- * Tải một phiên bản của tài sản về máy. Backend giải mã và kiểm toàn vẹn trước byte đầu tiên;
+ * Tải nội dung của tài sản về máy. Backend giải mã và kiểm toàn vẹn trước byte đầu tiên;
  * blob chỉ nằm trong object URL tạm rồi được thu hồi, không vào cache.
  */
 export function useAssetDownload(vaultId: string, asset: BackendAsset) {
   const action = usePrivateAction();
-  const fileName =
-    asset.kind === "TEXT" ? `${asset.name}.txt` : (asset.currentVersion.fileName ?? asset.name);
-  const download = (version: number) =>
+  const fileName = asset.kind === "TEXT" ? `${asset.name}.txt` : (asset.fileName ?? asset.name);
+  const download = () =>
     void action.execute(
-      () => backendAssetService.download(vaultId, asset.id, version),
+      () => backendAssetService.download(vaultId, asset.id),
       (blob) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
