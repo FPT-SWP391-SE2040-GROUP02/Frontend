@@ -14,6 +14,7 @@ import {
   TrustedIcon,
 } from "@/shared/ui/LegacyVaultArtwork";
 import type { AuthState } from "@/entities/user/model/authSlice";
+import { UserAvatar } from "@/entities/user/ui/UserAvatar";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
@@ -167,12 +168,11 @@ export function OwnerWorkspace({
             </Link>
           )}
           <div className="flex items-center gap-3">
-            <span
-              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#E0C486] font-semibold text-[#0A281E]"
-              aria-hidden="true"
-            >
-              {user?.fullName?.trim().charAt(0).toUpperCase() || "T"}
-            </span>
+            <UserAvatar
+              user={user}
+              fallbackLetter="T"
+              className="size-10 bg-[#E0C486] text-[#0A281E]"
+            />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-white">
                 {user?.fullName ?? "Tài khoản"}

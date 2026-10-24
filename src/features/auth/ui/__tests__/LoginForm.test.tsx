@@ -350,6 +350,8 @@ describe("LoginForm", () => {
     expect(store.getState().auth.user).toEqual({
       ...SESSION.user,
       phone: undefined,
+      hasAvatar: false,
+      avatarUpdatedAt: undefined,
     });
     expect(accessTokenMemory.get()).toBe(SESSION.accessToken);
     expect(authService.login).toHaveBeenCalledWith({

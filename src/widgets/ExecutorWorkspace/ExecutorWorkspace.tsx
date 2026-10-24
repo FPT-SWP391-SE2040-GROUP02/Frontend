@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
+import { UserAvatar } from "@/entities/user/ui/UserAvatar";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
@@ -113,12 +114,11 @@ export function ExecutorWorkspace({
             Sang vai Chủ kho
           </Link>
           <div className="flex items-center gap-3">
-            <span
-              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#E0C486] font-semibold text-[#0A281E]"
-              aria-hidden="true"
-            >
-              {user?.fullName?.trim().charAt(0).toLocaleUpperCase("vi-VN") || "N"}
-            </span>
+            <UserAvatar
+              user={user}
+              fallbackLetter="N"
+              className="size-10 bg-[#E0C486] text-[#0A281E]"
+            />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
               <p className="mt-0.5 text-xs text-[#E6C98B]">Người thực hiện</p>
