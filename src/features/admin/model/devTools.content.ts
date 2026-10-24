@@ -1,4 +1,9 @@
-import type { DevClock, DevEkycReset, DevMilestoneKey } from "./devTools.schema";
+import type {
+  DevClock,
+  DevEkycReset,
+  DevMilestoneKey,
+  DevRewindBeforeEkyc,
+} from "./devTools.schema";
 
 /** Nội dung từng mốc trên màn hình công cụ thử nghiệm, theo thứ tự từ trên xuống. */
 export const DEV_MILESTONES: Record<
@@ -81,4 +86,27 @@ export function ekycResetDone(result: DevEkycReset) {
     result.faceTemplatesRemoved === 0;
   if (removedNothing) return `Tài khoản ${result.email} chưa có dữ liệu eKYC, không có gì để xóa.`;
   return `Đã đặt lại eKYC của ${result.email}: xóa ${result.verificationsRemoved} lượt xác minh, ${result.consentsRemoved} lần đồng ý${result.identityRemoved ? ", danh tính đã gắn" : ""}${result.faceTemplatesRemoved > 0 ? ", mẫu khuôn mặt" : ""}. Tài khoản có thể làm lại eKYC.`;
+}
+
+export const REWIND_DESCRIPTION =
+  "Đưa kho đang chọn về thời điểm ngay trước bước xác minh danh tính và mua gói: xóa eKYC của Chủ kho, trả gói dịch vụ về Free và hủy đơn thanh toán đang chờ. Đơn đã trả, tài sản, người nhận, gói tài sản và Người thực hiện giữ nguyên. Chỉ dùng khi kế hoạch còn Nháp.";
+
+/** Thông báo sau khi đưa kho về trước eKYC; chỉ dùng số lượng máy chủ trả về. */
+export function rewindDone(result: DevRewindBeforeEkyc) {
+  const ekycRemoved =
+    result.verificationsRemoved > 0 ||
+    result.consentsRemoved > 0 ||
+    result.identityRemoved ||
+    result.faceTemplatesRemoved > 0;
+  const changed = ekycRemoved || result.entitlementReset || result.pendingOrdersCancelled > 0;
+  if (!changed) {
+    return `Kho của ${result.ownerEmail} đã ở trước bước eKYC và mua gói, không có gì để đổi.`;
+  }
+  const parts: string[] = [];
+  if (ekycRemoved) parts.push("xóa eKYC");
+  if (result.entitlementReset) parts.push(`trả gói ${result.previousTier} về Free`);
+  if (result.pendingOrdersCancelled > 0) {
+    parts.push(`hủy ${result.pendingOrdersCancelled} đơn đang chờ`);
+  }
+  return `Đã đưa kho của ${result.ownerEmail} về trước eKYC và mua gói: ${parts.join(", ")}. Chủ kho có thể làm eKYC rồi mua gói lại.`;
 }

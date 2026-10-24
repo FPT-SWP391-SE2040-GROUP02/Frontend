@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { History, ScanFace } from "lucide-react";
+import { History, Rewind, ScanFace } from "lucide-react";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { buttonStyles, Chip, Notice, Panel } from "@/shared/ui/heritageKit";
 import { devToolsService } from "../api/devToolsService";
@@ -13,12 +13,15 @@ import {
   DEV_TOOLS_NOTICE,
   EKYC_RESET_DESCRIPTION,
   RESET_DONE,
+  REWIND_DESCRIPTION,
   ekycResetDone,
   planStatusLabel,
+  rewindDone,
 } from "../model/devTools.content";
 import {
   devClockSchema,
   devEkycResetSchema,
+  devRewindBeforeEkycSchema,
   type DevClock,
   type DevMilestone,
 } from "../model/devTools.schema";
@@ -28,7 +31,11 @@ import { AdminActionDialog } from "./AdminActionDialog";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
 type PendingDialog =
-  { kind: "travel"; milestone: DevMilestone } | { kind: "reset" } | { kind: "ekyc" } | null;
+  | { kind: "travel"; milestone: DevMilestone }
+  | { kind: "reset" }
+  | { kind: "ekyc" }
+  | { kind: "rewind" }
+  | null;
 
 /**
  * Công cụ thử nghiệm (chỉ Development): chọn một kho thử rồi tua tới từng mốc của luồng điểm danh,
@@ -143,6 +150,29 @@ export function AdminDevTools() {
         </Panel>
       )}
 
+      {vaultId && (
+        <Panel title="Về trước eKYC và mua gói" labelledBy="dev-tools-rewind">
+          <p className="text-sm text-heritage-muted">{REWIND_DESCRIPTION}</p>
+          <button
+            type="button"
+            className={`${buttonStyles.outline} mt-4`}
+            disabled={selected !== undefined && selected.planStatus !== "DRAFT"}
+            onClick={() => {
+              setDone("");
+              setDialog({ kind: "rewind" });
+            }}
+          >
+            <Rewind className="size-4" aria-hidden="true" />
+            Đưa kho về trước eKYC và mua gói
+          </button>
+          {selected !== undefined && selected.planStatus !== "DRAFT" && (
+            <p className="mt-2 text-xs text-heritage-muted">
+              Kế hoạch đã kích hoạt nên không thể đưa kho về thời điểm này.
+            </p>
+          )}
+        </Panel>
+      )}
+
       <Panel title="Đặt lại eKYC" labelledBy="dev-tools-ekyc">
         <p className="text-sm text-heritage-muted">{EKYC_RESET_DESCRIPTION}</p>
         <button
@@ -181,6 +211,25 @@ export function AdminDevTools() {
           submit={() => devToolsService.resetClock(vaultId)}
           onClose={() => setDialog(null)}
           onDone={(result) => publish(result, RESET_DONE)}
+        />
+      )}
+      {dialog?.kind === "rewind" && (
+        <AdminActionDialog
+          title="Đưa kho về trước eKYC và mua gói?"
+          description={`${vaultLabel}: eKYC của Chủ kho sẽ bị xóa, gói dịch vụ trở về Free và các đơn thanh toán đang chờ bị hủy. Thao tác thay đổi dữ liệu của hồ sơ thử và không hoàn tác được. Chỉ dùng trên môi trường Development.`}
+          submitLabel="Đưa về trước eKYC"
+          fields={[]}
+          defaultValues={{}}
+          confirmLabel="Tôi hiểu đây là dữ liệu thử."
+          submit={() => devToolsService.rewindBeforeEkyc(vaultId)}
+          onClose={() => setDialog(null)}
+          onDone={(result) => {
+            const parsed = devRewindBeforeEkycSchema.safeParse(result);
+            if (parsed.success) {
+              void client.invalidateQueries({ queryKey: adminKeys.all });
+              setDone(rewindDone(parsed.data));
+            }
+          }}
         />
       )}
       {dialog?.kind === "ekyc" && (
