@@ -140,9 +140,8 @@ function ConcludeDialog({
         confirm: z.boolean().refine(Boolean, "Cần xác nhận trước khi tiếp tục."),
       }),
     ),
-    // onTouched: kiểm tra lần đầu khi rời ô, sau đó kiểm tra lại mỗi lần đổi để dòng lỗi cũ biến mất khi Verifier đã chọn.
-    mode: "onTouched",
-    reValidateMode: "onChange",
+    mode: "onBlur",
+    reValidateMode: "onBlur",
     defaultValues: { conclusion: "", reason: "", confirm: false },
   });
   const confirmed = useWatch({ control: form.control, name: "confirm" });
@@ -177,7 +176,14 @@ function ConcludeDialog({
                 key={option}
                 className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-[#BDB8A6] bg-white px-4 py-3 text-sm font-medium has-[:checked]:border-[#0A281E] has-[:checked]:bg-[#F4F1E6]"
               >
-                <input type="radio" value={option} {...form.register("conclusion")} />
+                {/* Chọn xong thì xóa dòng lỗi cũ ngay; việc kiểm tra vẫn theo quy tắc "validate on blur" của FE. */}
+                <input
+                  type="radio"
+                  value={option}
+                  {...form.register("conclusion", {
+                    onChange: () => form.clearErrors("conclusion"),
+                  })}
+                />
                 {objectionConclusionLabels[option]}
               </label>
             ))}
