@@ -1,15 +1,12 @@
-import { useState } from "react";
 import type { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
 import type { checkInStatusSchema } from "../model/checkIn.schema";
 import { checkInService } from "../api/checkInService";
+import { dailyCheckInState } from "../model/dailyCheckIn";
 
 type Status = z.infer<typeof checkInStatusSchema>;
-
-/** Kế hoạch ở các trạng thái này mới điểm danh được; Backend vẫn là nơi quyết định. */
-const CHECK_IN_PLAN_STATUSES = ["ACTIVE", "CHECKIN_OVERDUE", "AWAITING_CHECK"];
 
 /** Nút điểm danh do người dùng chủ động bấm; chỉ ghi nhận sau phản hồi máy chủ, không tự điểm danh khi mở trang. */
 export function CheckInNowButton({
@@ -17,27 +14,23 @@ export function CheckInNowButton({
   status,
   label,
   className,
+  onCheckedIn,
 }: {
   vaultId: string;
   status: Status;
   label: string;
   className?: string;
+  onCheckedIn?: () => void;
 }) {
   const action = usePrivateAction();
   const client = useQueryClient();
-  const [mountedNow] = useState(() => Date.now());
-  const canCheckIn = CHECK_IN_PLAN_STATUSES.includes(status.planStatus);
-
-  const lastCheckInMs = status.lastCheckInAt ? new Date(status.lastCheckInAt).getTime() : 0;
-  const serverMs = status.serverTime ? new Date(status.serverTime).getTime() : mountedNow;
-  const diffSeconds = Math.floor((serverMs - lastCheckInMs) / 1000);
-  const isWithin60Seconds = lastCheckInMs > 0 && diffSeconds >= 0 && diffSeconds < 60;
-  const isCheckedIn = action.succeeded || isWithin60Seconds;
+  const { canCheckIn, checkedInToday, planAllowsCheckIn } = dailyCheckInState(status);
 
   function sync(result: Status): void {
     client.setQueryData(["vault-check-in", vaultId], result);
     void client.invalidateQueries({ queryKey: ["vault-check-in", vaultId] });
     void client.invalidateQueries({ queryKey: ["owner-vault"] });
+    onCheckedIn?.();
   }
 
   return (
@@ -45,17 +38,18 @@ export function CheckInNowButton({
       <Button
         size="lg"
         className={className}
-        disabled={action.pending || !canCheckIn || isCheckedIn}
+        disabled={action.pending || !canCheckIn}
         onClick={() => void action.execute(() => checkInService.checkIn(), sync)}
       >
-        {action.pending ? "Đang gửi yêu cầu…" : isCheckedIn ? "Đã điểm danh" : label}
+        {action.pending ? "Đang gửi yêu cầu…" : checkedInToday ? "Đã điểm danh hôm nay" : label}
       </Button>
-      {isCheckedIn && (
+      {checkedInToday && (
         <p role="status" className="mt-3 text-xs font-medium text-emerald-800">
-          Đã ghi nhận điểm danh. Hệ thống chỉ mở kỳ tiếp theo sau 60 giây nếu bạn điểm danh lại.
+          Đã ghi nhận điểm danh hôm nay. Bạn có thể điểm danh lại từ 00:00 ngày tiếp theo (giờ Việt
+          Nam).
         </p>
       )}
-      {!canCheckIn && (
+      {!planAllowsCheckIn && (
         <p className="mt-3 text-xs leading-5 opacity-75">
           Kế hoạch chưa kích hoạt hoặc đang bàn giao nên chưa điểm danh được.
         </p>
