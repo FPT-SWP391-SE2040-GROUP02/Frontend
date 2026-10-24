@@ -97,6 +97,31 @@ describe("devToolsService", () => {
     });
   });
 
+  it("đưa kho về trước eKYC gọi đúng endpoint và đọc số lượng đã đổi", async () => {
+    const result = {
+      vaultId: VAULT_ID,
+      ownerEmail: "owner@example.test",
+      verificationsRemoved: 1,
+      consentsRemoved: 1,
+      identityRemoved: true,
+      faceTemplatesRemoved: 0,
+      previousTier: "XS",
+      entitlementReset: true,
+      pendingOrdersCancelled: 1,
+    };
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(result);
+    await expect(devToolsService.rewindBeforeEkyc(VAULT_ID)).resolves.toEqual(result);
+    expect(post).toHaveBeenCalledWith(`/admin/dev-tools/vaults/${VAULT_ID}/rewind-before-ekyc`);
+  });
+
+  it("không gọi API đưa về trước eKYC khi mã kho không hợp lệ", async () => {
+    const post = vi.spyOn(apiClient, "post");
+    await expect(devToolsService.rewindBeforeEkyc("khong-phai-uuid")).rejects.toBeInstanceOf(
+      ZodError,
+    );
+    expect(post).not.toHaveBeenCalled();
+  });
+
   it("không gọi API đặt lại eKYC khi email không hợp lệ", async () => {
     const post = vi.spyOn(apiClient, "post");
     await expect(devToolsService.resetEkyc({ email: "khong-phai-email" })).rejects.toBeInstanceOf(
