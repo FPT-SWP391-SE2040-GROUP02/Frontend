@@ -391,7 +391,8 @@ export function BeneficiaryForm({
           </div>
           {existing ? (
             <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
-              Số CCCD này đã có trong kho: “{existing.fullName}”. Hãy kiểm tra lại, hoặc mở hồ sơ đã có để sửa.
+              Số CCCD này đã có trong kho: “{existing.fullName}”. Hãy kiểm tra lại, hoặc mở hồ sơ đã
+              có để sửa.
             </p>
           ) : (
             <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">{note}</p>
@@ -418,7 +419,10 @@ export function BeneficiaryForm({
         </fieldset>
       </form>
       {action.error && (
-        <div role="alert" className="mt-4 rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119] space-y-1">
+        <div
+          role="alert"
+          className="mt-4 rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119] space-y-1"
+        >
           <p className="font-semibold">{action.error}</p>
           {errorFieldNames.length > 0 && (
             <p className="text-xs text-[#7A1913]">

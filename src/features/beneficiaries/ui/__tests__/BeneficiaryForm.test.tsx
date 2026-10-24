@@ -101,7 +101,9 @@ describe("form thêm người nhận", () => {
     fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2000-01-01" } });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "a@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
-    const citizenIdLabel = (await screen.findByLabelText(/^Số CCCD/)).closest("label") as HTMLElement;
+    const citizenIdLabel = (await screen.findByLabelText(/^Số CCCD/)).closest(
+      "label",
+    ) as HTMLElement;
     expect(citizenIdLabel).toHaveTextContent("CCCD cần đủ 12 chữ số.");
     expect(post).not.toHaveBeenCalled();
   });
@@ -110,12 +112,18 @@ describe("form thêm người nhận", () => {
     const post = vi.spyOn(apiClient, "post");
     renderForm({ id: "owner-1", email: "nthanhduy310@gmail.com", fullName: "Nguyễn Thanh Duy" });
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "087206004150" } });
-    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Thanh Duy" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), {
+      target: { value: "Nguyễn Thanh Duy" },
+    });
     fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2006-10-12" } });
-    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "nthanhduy310@gmail.com" } });
+    fireEvent.change(screen.getByLabelText(/^Email/), {
+      target: { value: "nthanhduy310@gmail.com" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     const emailLabel = (await screen.findByLabelText(/^Email/)).closest("label") as HTMLElement;
-    expect(emailLabel).toHaveTextContent("Email người thụ hưởng không được trùng với email của Chủ kho.");
+    expect(emailLabel).toHaveTextContent(
+      "Email người thụ hưởng không được trùng với email của Chủ kho.",
+    );
     expect(post).not.toHaveBeenCalled();
   });
 
@@ -123,7 +131,9 @@ describe("form thêm người nhận", () => {
     const post = vi.spyOn(apiClient, "post");
     renderForm();
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "087206004150" } });
-    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Thanh Duy" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), {
+      target: { value: "Nguyễn Thanh Duy" },
+    });
     fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2099-01-01" } });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "duy@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
@@ -150,18 +160,26 @@ describe("form thêm người nhận", () => {
     );
     renderForm();
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "087206004150" } });
-    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Thanh Duy" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), {
+      target: { value: "Nguyễn Thanh Duy" },
+    });
     fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2006-10-12" } });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "other@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
 
     const emailLabel = (await screen.findByLabelText(/^Email/)).closest("label") as HTMLElement;
-    expect(emailLabel).toHaveTextContent("Email người thụ hưởng không được trùng với email của Chủ kho.");
+    expect(emailLabel).toHaveTextContent(
+      "Email người thụ hưởng không được trùng với email của Chủ kho.",
+    );
 
     const citizenIdLabel = screen.getByLabelText(/^Số CCCD/).closest("label") as HTMLElement;
-    expect(citizenIdLabel).toHaveTextContent("Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho.");
+    expect(citizenIdLabel).toHaveTextContent(
+      "Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho.",
+    );
 
     // Banner hiển thị chỉ dẫn rõ ràng trường nào đang bị lỗi
-    expect(screen.getByText(/Vui lòng kiểm tra và chỉnh sửa lại các ô có thông báo lỗi màu đỏ ở trên/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Vui lòng kiểm tra và chỉnh sửa lại các ô có thông báo lỗi màu đỏ ở trên/),
+    ).toBeInTheDocument();
   });
 });
