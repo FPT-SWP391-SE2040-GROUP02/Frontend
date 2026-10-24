@@ -119,6 +119,12 @@ const paymentOrderNotPayableReasons: Record<string, string> = {
   ENTITLEMENT_CHANGED: "Quyền dịch vụ của kho đã thay đổi sau khi tạo đơn. Hãy tạo đơn mới.",
 };
 
+/** Reason-specific messages for EKYC_SERVICE_UNAVAILABLE (BE giữ mã 503 nhưng cho biết nguyên nhân thật) */
+const ekycServiceUnavailableReasons: Record<string, string> = {
+  FACE_TEMPLATE_MISSING:
+    "Chủ kho chưa có mẫu khuôn mặt vì chưa hoàn tất xác minh eKYC. Hãy hoàn tất eKYC ở mục Xác minh rồi gửi lại selfie.",
+};
+
 /** Mã trong missingRequirements cần thông báo riêng thay cho thông báo chung của DEATH_CASE_INCOMPLETE. */
 const missingRequirementMessages: Record<string, string> = {
   DEATH_CERTIFICATE_NOT_RECOGNIZED:
@@ -134,6 +140,7 @@ const reasonMessages: Record<string, Record<string, string>> = {
   DEATH_CASE_NOT_ALLOWED: deathCaseNotAllowedReasons,
   PAYMENT_NOT_ALLOWED: paymentNotAllowedReasons,
   PAYMENT_ORDER_NOT_PAYABLE: paymentOrderNotPayableReasons,
+  EKYC_SERVICE_UNAVAILABLE: ekycServiceUnavailableReasons,
 };
 
 /** 401 nhưng phiên còn sống (BE mục 6.2a, 6.4). */

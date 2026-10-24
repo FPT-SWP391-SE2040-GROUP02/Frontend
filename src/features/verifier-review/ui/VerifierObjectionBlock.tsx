@@ -132,15 +132,17 @@ function ConcludeDialog({
   const form = useForm<{ conclusion: string; reason: string; confirm: boolean }>({
     resolver: zodResolver(
       concludeObjectionRequestSchema.extend({
+        // Nhóm radio chưa chọn gì thì react-hook-form đọc ra null, nên cần thông báo tiếng Việt cho cả kiểu null.
         conclusion: z
-          .string()
+          .string({ invalid_type_error: "Chọn một kết luận." })
           .min(1, "Chọn một kết luận.")
           .pipe(concludeObjectionRequestSchema.shape.conclusion),
         confirm: z.boolean().refine(Boolean, "Cần xác nhận trước khi tiếp tục."),
       }),
     ),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+    // onTouched: kiểm tra lần đầu khi rời ô, sau đó kiểm tra lại mỗi lần đổi để dòng lỗi cũ biến mất khi Verifier đã chọn.
+    mode: "onTouched",
+    reValidateMode: "onChange",
     defaultValues: { conclusion: "", reason: "", confirm: false },
   });
   const confirmed = useWatch({ control: form.control, name: "confirm" });
