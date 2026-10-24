@@ -25,9 +25,9 @@ import { GoogleSignInButton } from "./GoogleSignInButton";
 type DialogKind = "link-google" | "set-password" | "change-password";
 
 /**
- * Quản lý phương thức đăng nhập của chính người dùng (BE mục 6.4): liên kết Google, đặt mật khẩu
- * hoặc đổi mật khẩu (không còn gỡ liên kết Google / gỡ mật khẩu). Mọi thay đổi phải xác thực lại
- * nên mật khẩu và Google ID token chỉ nằm trong state của dialog: không cache, không Web Storage,
+ * Quản lý phương thức đăng nhập của chính người dùng (BE mục 6.4): liên kết Google, thêm mật khẩu
+ * (tài khoản đăng ký bằng Google) hoặc đổi mật khẩu. Google đã liên kết thì khóa, không gỡ được.
+ * Mọi thay đổi phải xác thực lại nên mật khẩu và Google ID token chỉ nằm trong state của dialog: không cache, không Web Storage,
  * không log. Không optimistic: danh sách đọc lại sau BE.
  */
 export function LoginMethodsPanel() {
@@ -95,7 +95,7 @@ export function LoginMethodsPanel() {
                 className={buttonStyles.gold}
                 onClick={() => setDialog("set-password")}
               >
-                Đặt mật khẩu
+                Thêm mật khẩu
               </button>
             )
           }
@@ -116,7 +116,18 @@ export function LoginMethodsPanel() {
               : "Chưa liên kết. Liên kết để đăng nhập nhanh hơn."
           }
           actions={
-            google ? null : (
+            google ? (
+              <button
+                type="button"
+                disabled
+                aria-label="Không thể gỡ liên kết Google"
+                title="Liên kết Google đã được khóa, không thể gỡ."
+                className={`${buttonStyles.outline} inline-flex items-center gap-2 disabled:border-transparent disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+              >
+                <Lock className="size-4" aria-hidden="true" />
+                Đã khóa
+              </button>
+            ) : (
               <button
                 type="button"
                 className={buttonStyles.gold}
@@ -438,7 +449,7 @@ function SetPasswordDialog({ onClose, onDone }: DialogProps) {
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
       <DialogContent className={DIALOG_CLASS} showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle className={DIALOG_TITLE}>Đặt mật khẩu</DialogTitle>
+          <DialogTitle className={DIALOG_TITLE}>Thêm mật khẩu</DialogTitle>
           <DialogDescription className="text-heritage-muted">
             Bạn sẽ đăng nhập được bằng cả Google và mật khẩu. Mật khẩu ít nhất 8 ký tự.
           </DialogDescription>

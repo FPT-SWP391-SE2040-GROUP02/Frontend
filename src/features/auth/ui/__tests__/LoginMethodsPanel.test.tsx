@@ -103,7 +103,8 @@ describe("LoginMethodsPanel", () => {
     expect(screen.getByText("Đang dùng")).toBeInTheDocument();
     expect(screen.getByText("Đã liên kết")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Đổi mật khẩu" })).toBeEnabled();
-    expect(screen.queryByRole("button", { name: /Gỡ/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Không thể gỡ liên kết Google" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: /^Gỡ/ })).not.toBeInTheDocument();
   });
 
   it("offers to link Google when only the password exists", async () => {
@@ -189,7 +190,7 @@ describe("LoginMethodsPanel", () => {
     vi.spyOn(loginMethodsService, "list").mockResolvedValue([google]);
     const set = vi.spyOn(loginMethodsService, "setPassword").mockResolvedValue();
     renderPanel();
-    await u.click(await screen.findByRole("button", { name: "Đặt mật khẩu" }));
+    await u.click(await screen.findByRole("button", { name: "Thêm mật khẩu" }));
     const googleButton = screen.getByRole("button", { name: "Google giả" });
     expect(googleButton).toBeDisabled();
     await u.type(screen.getByLabelText("Mật khẩu mới"), "short");
