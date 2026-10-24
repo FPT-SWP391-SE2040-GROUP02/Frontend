@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { LoginMethodsPanel } from "@/features/auth";
+import { AvatarEditor } from "@/features/profile-avatar";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -10,17 +11,12 @@ export function AccountSettingsContent() {
   return (
     <>
       <section className="rounded-xl border border-heritage-border bg-heritage-surface p-6">
-        <div className="flex items-center gap-4 border-b border-heritage-border pb-6">
-          <span
-            aria-hidden="true"
-            className="flex size-14 shrink-0 items-center justify-center rounded-full bg-heritage-primary text-xl font-semibold text-heritage-surface"
-          >
-            {(user?.fullName || user?.email || "?").trim().slice(0, 1).toLocaleUpperCase("vi-VN")}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-heritage-border pb-6">
           <div className="min-w-0">
             <h2 className="text-lg font-semibold">Hồ sơ cá nhân</h2>
             <p className="mt-1 break-words text-sm text-heritage-muted">{user?.email}</p>
           </div>
+          <AvatarEditor />
         </div>
         <dl className="mt-6 grid gap-6 sm:grid-cols-2">
           {[

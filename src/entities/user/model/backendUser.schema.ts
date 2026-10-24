@@ -10,6 +10,10 @@ export const backendUserResponseSchema = z.object({
   status: z.enum(["ACTIVE", "LOCKED", "DISABLED"]),
   emailVerified: z.boolean(),
   hasPassword: z.boolean(),
+  /** Có ảnh đại diện; thiếu trường thì coi như chưa có (Backend cũ). */
+  hasAvatar: z.boolean().optional(),
+  /** Lần đổi ảnh gần nhất; đổi giá trị thì tải lại ảnh. */
+  avatarUpdatedAt: z.string().datetime({ offset: true }).nullable().optional(),
   createdAt: z.string().datetime({ offset: true }),
 });
 

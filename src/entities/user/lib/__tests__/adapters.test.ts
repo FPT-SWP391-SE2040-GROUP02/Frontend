@@ -32,13 +32,29 @@ describe("Backend raw user adapter", () => {
     expect(user.phone).toBeNull();
   });
 
+  it("maps the avatar flag and timestamp from the Backend and defaults to no avatar", () => {
+    expect(toAuthUserViewModel(user).hasAvatar).toBe(false);
+    const withAvatar = toAuthUserViewModel({
+      ...user,
+      hasAvatar: true,
+      avatarUpdatedAt: "2026-10-24T06:00:00Z",
+    });
+    expect(withAvatar.hasAvatar).toBe(true);
+    expect(withAvatar.avatarUpdatedAt).toBe("2026-10-24T06:00:00Z");
+  });
+
   it("preserves populated contact/timestamps and strips unexpected properties", () => {
     const publicUser = { ...user, phone: "0900000000", updatedAt: "2026-10-12T01:00:00Z" };
     const mapped = toAuthUserViewModel({
       ...publicUser,
       ...{ passwordHash: "must-not-propagate" },
     });
-    expect(mapped).toEqual({ ...user, phone: "0900000000" });
+    expect(mapped).toEqual({
+      ...user,
+      phone: "0900000000",
+      hasAvatar: false,
+      avatarUpdatedAt: undefined,
+    });
     expect(mapped).not.toHaveProperty("updatedAt");
     expect(mapped).not.toHaveProperty("passwordHash");
   });

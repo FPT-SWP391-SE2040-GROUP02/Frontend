@@ -17,5 +17,7 @@ export function toAuthUserViewModel(dto: AuthUserDto): User {
     createdAt: dto.createdAt,
     emailVerified: dto.emailVerified,
     hasPassword: dto.hasPassword,
+    hasAvatar: dto.hasAvatar === true,
+    avatarUpdatedAt: dto.avatarUpdatedAt ?? undefined,
   };
 }
