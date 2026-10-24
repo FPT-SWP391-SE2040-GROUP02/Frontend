@@ -61,6 +61,14 @@ describe("official BE business errors", () => {
     expect(message.toLowerCase()).toContain(expected.toLowerCase());
   });
 
+  it("tells the owner to finish eKYC when the face template is missing", () => {
+    const message = privateActionError(
+      failure(503, { code: "EKYC_SERVICE_UNAVAILABLE", reason: "FACE_TEMPLATE_MISSING" }),
+    );
+    expect(message).toContain("hoàn tất xác minh eKYC");
+    expect(message).not.toContain("chưa sẵn sàng");
+  });
+
   it("falls back to the generic code message for an unknown reason", () => {
     const message = privateActionError(
       failure(409, { code: "HANDOVER_NOT_ALLOWED", reason: "constructor" }),
