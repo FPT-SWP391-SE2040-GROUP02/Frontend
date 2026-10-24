@@ -69,7 +69,7 @@ export function OwnerOverviewSummary({
                 </dl>
                 <QuickCheckIn
                   vaultId={vault.id}
-                  planStatus={data.checkIn.data.planStatus}
+                  status={data.checkIn.data}
                   onCheckedIn={() => void data.audit.refetch()}
                 />
                 <p className="overview-check-in-note">
