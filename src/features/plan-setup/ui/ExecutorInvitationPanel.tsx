@@ -29,6 +29,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
   const [acknowledge, setAcknowledge] = useState(false);
   const [decision, setDecision] = useState<boolean | null>(null);
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
+  const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const client = useQueryClient();
   const action = usePrivateAction();
   const query = useQuery({
@@ -126,6 +127,19 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         </Link>
       ) : (
         <>
+          {user?.email && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-heritage-border bg-heritage-surface px-4 py-3 text-xs text-heritage-muted">
+              <span>
+                Đang đăng nhập: <strong className="text-heritage-primary">{user.email}</strong>
+              </span>
+              <Link
+                to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(`${ROUTES.EXECUTOR.INVITATION}#token=${encodeURIComponent(token)}`)}`}
+                className="font-medium text-heritage-primary underline hover:text-heritage-primary/80"
+              >
+                Đổi tài khoản
+              </Link>
+            </div>
+          )}
           <label className="flex min-h-11 items-start gap-3 text-sm leading-6">
             <input
               type="checkbox"
@@ -162,9 +176,19 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         </>
       )}
       {action.error && (
-        <p role="alert" className="text-destructive">
-          {action.error}
-        </p>
+        <div role="alert" className="space-y-2 rounded-xl border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-medium text-destructive">{action.error}</p>
+          <p className="text-xs text-red-700">
+            Nếu đây không phải tài khoản được mời, hãy{" "}
+            <Link
+              to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(`${ROUTES.EXECUTOR.INVITATION}#token=${encodeURIComponent(token)}`)}`}
+              className="font-semibold underline hover:text-red-900"
+            >
+              đăng xuất và đăng nhập bằng email người được mời
+            </Link>
+            .
+          </p>
+        </div>
       )}
     </div>
   );

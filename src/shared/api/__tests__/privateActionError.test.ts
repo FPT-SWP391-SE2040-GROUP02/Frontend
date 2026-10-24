@@ -49,6 +49,7 @@ describe("official BE business errors", () => {
   });
 
   it.each([
+    ["EXECUTOR_NOT_ALLOWED", "OWNER_CANNOT_ACCEPT", "chủ kho"],
     ["EXECUTOR_NOT_ALLOWED", "INVITEE_EMAIL_MISMATCH", "email khác"],
     ["HANDOVER_NOT_ALLOWED", "HOLD_ACTIVE", "tạm giữ"],
     ["HANDOVER_NOT_ALLOWED", "RESEND_TOO_SOON", "15 phút"],
