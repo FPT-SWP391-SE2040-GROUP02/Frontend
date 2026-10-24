@@ -44,3 +44,20 @@ export type DevClock = z.infer<typeof devClockSchema>;
 /** POST /admin/dev-tools/vaults/{vaultId}/time-travel. */
 export const devTimeTravelRequestSchema = z.object({ milestone: devMilestoneKeySchema });
 export type DevTimeTravelRequest = z.infer<typeof devTimeTravelRequestSchema>;
+
+/** POST /admin/dev-tools/users/ekyc-reset: email tài khoản cần làm lại eKYC từ đầu. */
+export const devEkycResetRequestSchema = z.object({
+  email: z.string().trim().email("Email không hợp lệ.").max(256),
+});
+export type DevEkycResetRequest = z.infer<typeof devEkycResetRequestSchema>;
+
+/** DevEkycResetResponse: chỉ số lượng đã xóa, không có dữ liệu định danh. */
+export const devEkycResetSchema = z.object({
+  userId: z.string().uuid(),
+  email: z.string(),
+  verificationsRemoved: z.number().int().nonnegative(),
+  consentsRemoved: z.number().int().nonnegative(),
+  identityRemoved: z.boolean(),
+  faceTemplatesRemoved: z.number().int().nonnegative(),
+});
+export type DevEkycReset = z.infer<typeof devEkycResetSchema>;
