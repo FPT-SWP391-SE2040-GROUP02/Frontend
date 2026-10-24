@@ -118,10 +118,16 @@ function ActionList({
     titleColor = "text-green-700";
     mark = <Check className="size-4 text-green-700" aria-hidden="true" />;
   }
+  // Chế độ chỉ xem vẫn có biểu tượng để phân biệt nhóm khi không chỉ dựa vào màu chữ.
+  // Nhóm "Được làm" luôn chữ xanh; nhóm "Không được làm" chỉ tô đỏ ở chế độ chỉ xem.
+  let rowTone = "";
+  if (readOnly) {
+    rowTone = `font-medium ${titleColor}`;
+  } else if (allowed) {
+    rowTone = titleColor;
+  }
   const rows: ReactNode[] = [];
   for (const item of items) {
-    // Chế độ chỉ xem vẫn có biểu tượng để phân biệt nhóm khi không chỉ dựa vào màu chữ.
-    const rowTone = readOnly ? `font-medium ${titleColor}` : "";
     rows.push(
       <li key={item} className={`flex items-center gap-3 text-sm ${rowTone}`}>
         {mark}
