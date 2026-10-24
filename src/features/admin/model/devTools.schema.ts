@@ -61,3 +61,17 @@ export const devEkycResetSchema = z.object({
   faceTemplatesRemoved: z.number().int().nonnegative(),
 });
 export type DevEkycReset = z.infer<typeof devEkycResetSchema>;
+
+/** DevRewindBeforeEkycResponse: chỉ số lượng đã đổi, không có dữ liệu định danh. */
+export const devRewindBeforeEkycSchema = z.object({
+  vaultId: z.string().uuid(),
+  ownerEmail: z.string(),
+  verificationsRemoved: z.number().int().nonnegative(),
+  consentsRemoved: z.number().int().nonnegative(),
+  identityRemoved: z.boolean(),
+  faceTemplatesRemoved: z.number().int().nonnegative(),
+  previousTier: z.string(),
+  entitlementReset: z.boolean(),
+  pendingOrdersCancelled: z.number().int().nonnegative(),
+});
+export type DevRewindBeforeEkyc = z.infer<typeof devRewindBeforeEkycSchema>;

@@ -4,6 +4,7 @@ import {
   devClockSchema,
   devEkycResetRequestSchema,
   devEkycResetSchema,
+  devRewindBeforeEkycSchema,
   devTimeTravelRequestSchema,
   devVaultOptionsSchema,
   type DevEkycResetRequest,
@@ -52,6 +53,12 @@ export const devToolsService = {
         "/admin/dev-tools/users/ekyc-reset",
         devEkycResetRequestSchema.parse(request),
       ),
+    );
+  },
+  /** Đưa kho về trước eKYC và mua gói: xóa eKYC của Chủ kho, trả gói về Free, hủy đơn đang chờ. */
+  async rewindBeforeEkyc(vaultId: string) {
+    return devRewindBeforeEkycSchema.parse(
+      await apiClient.post<unknown, unknown>(`${vault(vaultId)}/rewind-before-ekyc`),
     );
   },
 };
