@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
@@ -6,6 +6,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { checkInService } from "@/features/dms/api/checkInService";
+import { dailyCheckInState } from "@/features/dms/model/dailyCheckIn";
 import type { checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { useOwnerDeathCase } from "@/features/owner-objection/model/useOwnerDeathCase";
@@ -193,7 +194,6 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
   const query = useCheckIn(vaultId);
   const action = usePrivateAction();
   const client = useQueryClient();
-  const [mountedNow] = useState(() => Date.now());
 
   function syncAfterCheckIn(result: CheckInStatus): void {
     client.setQueryData(["vault-check-in", vaultId], result);
@@ -236,12 +236,7 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
         remaining = " (đã quá hạn)";
       }
     }
-    const canCheckIn = ["ACTIVE", "CHECKIN_OVERDUE", "AWAITING_CHECK"].includes(data.planStatus);
-    const lastCheckInMs = data.lastCheckInAt ? new Date(data.lastCheckInAt).getTime() : 0;
-    const serverMs = data.serverTime ? new Date(data.serverTime).getTime() : mountedNow;
-    const diffSeconds = Math.floor((serverMs - lastCheckInMs) / 1000);
-    const isWithin60Seconds = lastCheckInMs > 0 && diffSeconds >= 0 && diffSeconds < 60;
-    const isCheckedIn = action.succeeded || isWithin60Seconds;
+    const { canCheckIn, checkedInToday, planAllowsCheckIn } = dailyCheckInState(data);
 
     body = (
       <>
@@ -252,17 +247,17 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
         </p>
         <Button
           className="mt-5 min-h-11 bg-[#E0C486] px-6 font-semibold text-[#0A281E] hover:bg-[#E6C98B]"
-          disabled={!canCheckIn || action.pending || isCheckedIn}
+          disabled={!canCheckIn || action.pending}
           onClick={() => void action.execute(() => checkInService.checkIn(), syncAfterCheckIn)}
         >
-          {action.pending ? "Đang gửi…" : isCheckedIn ? "Đã điểm danh" : "Điểm danh"}
+          {action.pending ? "Đang gửi…" : checkedInToday ? "Đã điểm danh hôm nay" : "Điểm danh"}
         </Button>
-        {isCheckedIn && (
+        {checkedInToday && (
           <p role="status" className="mt-3 text-xs text-[#E0C486]">
-            Đã ghi nhận điểm danh thành công.
+            Đã điểm danh hôm nay. Mở lại từ 00:00 ngày tiếp theo (giờ Việt Nam).
           </p>
         )}
-        {!canCheckIn && (
+        {!planAllowsCheckIn && (
           <p className="mt-3 text-xs text-white/70">
             Kế hoạch chưa kích hoạt nên chưa điểm danh được.
           </p>

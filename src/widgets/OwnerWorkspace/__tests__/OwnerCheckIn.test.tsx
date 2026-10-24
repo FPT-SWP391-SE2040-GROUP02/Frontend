@@ -164,16 +164,27 @@ describe("màn Điểm danh định kỳ", () => {
     expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
   });
 
-  it("khóa nút điểm danh khi vừa điểm danh trong vòng 60 giây", () => {
+  it("khóa nút cả ngày sau khi đã điểm danh từ nhiều giờ trước, kể cả khi mở lại trang", () => {
     vi.mocked(useCheckIn).mockReturnValue(
       statusResult({
-        serverTime: "2026-10-08T00:00:30Z",
+        serverTime: "2026-10-08T08:00:00Z",
         lastCheckInAt: "2026-10-08T00:00:00Z",
       }) as never,
     );
     renderCheckIn();
-    const button = screen.getByRole("button", { name: "Đã điểm danh" });
+    const button = screen.getByRole("button", { name: "Đã điểm danh hôm nay" });
     expect(button).toBeDisabled();
     expect(screen.getByText(/Đã ghi nhận điểm danh/)).toBeInTheDocument();
+  });
+
+  it("mở lại nút lúc 00:00 Việt Nam dù lần trước mới cách một giây", () => {
+    vi.mocked(useCheckIn).mockReturnValue(
+      statusResult({
+        serverTime: "2026-10-08T17:00:00Z",
+        lastCheckInAt: "2026-10-08T16:59:59Z",
+      }) as never,
+    );
+    renderCheckIn();
+    expect(screen.getByRole("button", { name: "Điểm danh bây giờ" })).toBeEnabled();
   });
 });

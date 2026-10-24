@@ -234,15 +234,18 @@ describe("Owner dashboard from server metadata", () => {
     const button = await screen.findByRole("button", { name: "Điểm danh" });
     expect(submit).not.toHaveBeenCalled();
     fireEvent.click(button);
-    expect(screen.getByRole("button", { name: "Đang xác nhận…" })).toBeDisabled();
-    expect(screen.queryByText("Máy chủ đã ghi nhận điểm danh.")).not.toBeInTheDocument();
-    finish({
+    expect(screen.getByRole("button", { name: "Đang gửi yêu cầu…" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Đã điểm danh hôm nay" })).not.toBeInTheDocument();
+    const checkedIn: ReturnType<typeof checkInFixture> = {
       ...checkInFixture(),
       status: "ACTIVE",
       planStatus: "ACTIVE",
       lastCheckInAt: CREATED_AT,
-    });
-    expect(await screen.findByText("Máy chủ đã ghi nhận điểm danh.")).toBeInTheDocument();
+      serverTime: CREATED_AT,
+    };
+    vi.mocked(checkInService.get).mockResolvedValue(checkedIn);
+    finish(checkedIn);
+    expect(await screen.findByRole("button", { name: "Đã điểm danh hôm nay" })).toBeDisabled();
     expect(submit).toHaveBeenCalledTimes(1);
     await vi.waitFor(() => expect(auditLogService.list).toHaveBeenCalledTimes(2));
   });
