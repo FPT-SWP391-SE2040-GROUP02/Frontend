@@ -35,6 +35,7 @@ describe("official BE business errors", () => {
     [409, "CONTENT_INTEGRITY_FAILED", "tính toàn vẹn"],
     [503, "EKYC_SERVICE_UNAVAILABLE", "Dịch vụ xác minh"],
   ])("maps %s %s without displaying raw title/errors", (status, code, expected) => {
+    // VALIDATION_ERROR có thể hiện câu lỗi cụ thể; các mã khác không bao giờ hiện errors thô.
     const message = privateActionError(
       failure(Number(status), {
         status,
@@ -108,5 +109,47 @@ describe("official BE business errors", () => {
       "Không kết nối được máy chủ",
     );
     expect(privateActionError(new Error("private"))).not.toContain("private");
+  });
+});
+
+describe("VALIDATION_ERROR shows the specific Vietnamese message from the Backend", () => {
+  it("returns the field messages instead of the generic text", () => {
+    const message = privateActionError(
+      failure(400, {
+        code: "VALIDATION_ERROR",
+        errors: {
+          citizenId: ["Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho."],
+          email: ["Email không hợp lệ."],
+        },
+      }),
+    );
+    expect(message).toBe(
+      "Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho. Email không hợp lệ.",
+    );
+  });
+
+  it("drops technical English text and falls back to the generic message", () => {
+    const message = privateActionError(
+      failure(400, {
+        code: "VALIDATION_ERROR",
+        errors: { "$.name": ["The JSON value could not be converted to System.String."] },
+      }),
+    );
+    expect(message).toContain("Dữ liệu chưa hợp lệ");
+    expect(message).not.toContain("JSON");
+  });
+
+  it("keeps at most three distinct messages", () => {
+    const message = privateActionError(
+      failure(400, {
+        code: "VALIDATION_ERROR",
+        errors: {
+          a: ["Lỗi một."],
+          b: ["Lỗi hai.", "Lỗi một."],
+          c: ["Lỗi ba.", "Lỗi bốn."],
+        },
+      }),
+    );
+    expect(message).toBe("Lỗi một. Lỗi hai. Lỗi ba.");
   });
 });
