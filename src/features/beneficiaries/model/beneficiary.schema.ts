@@ -8,7 +8,6 @@ export const beneficiaryResponseSchema = z.object({
   dateOfBirth: date,
   email: z.string().nullable(),
   phone: z.string().nullable(),
-  isMinor: z.boolean(),
   minorAcknowledgedAt: z.string().datetime({ offset: true }).nullable(),
   containerIds: z.array(z.string().uuid()),
   createdAt: z.string().datetime({ offset: true }),
