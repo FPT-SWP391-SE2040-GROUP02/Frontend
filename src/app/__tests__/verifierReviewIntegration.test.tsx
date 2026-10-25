@@ -72,6 +72,17 @@ const detailFixture = {
   approveBlockers: ["FLAGS_NOT_REVIEWED"],
   previousCase: null,
   handover: null,
+  ownerIdentity: {
+    verified: false,
+    citizenId: null,
+    fullName: null,
+    dateOfBirth: null,
+    verifiedAt: null,
+    citizenIdMatches: null,
+    fullNameMatches: null,
+    hasDocumentImage: false,
+    documentImageCapturedAt: null,
+  },
 };
 const summaryFixture = {
   id: CASE_ID,

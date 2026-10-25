@@ -137,6 +137,21 @@ export const verifierHandoverSchema = z
     invitationsFailed: z.number().int().nonnegative(),
   })
   .nullable();
+/**
+ * Danh tính Owner đã xác minh qua eKYC, để đối chiếu với bản Executor khai (BE VerifierOwnerIdentityResponse,
+ * BR-48 sửa 25/10/2026: Verifier được giao xem đủ 12 số CCCD). `*Matches` null khi một bên chưa có dữ liệu.
+ */
+export const verifierOwnerIdentitySchema = z.object({
+  verified: z.boolean(),
+  citizenId: z.string().nullable(),
+  fullName: z.string().nullable(),
+  dateOfBirth: date.nullable(),
+  verifiedAt: timestamp.nullable(),
+  citizenIdMatches: z.boolean().nullable(),
+  fullNameMatches: z.boolean().nullable(),
+  hasDocumentImage: z.boolean(),
+  documentImageCapturedAt: timestamp.nullable(),
+});
 /** Chi tiết hồ sơ Verifier được giao. */
 export const verifierCaseDetailSchema = z.object({
   id: z.string().uuid(),
@@ -159,6 +174,7 @@ export const verifierCaseDetailSchema = z.object({
   handover: verifierHandoverSchema,
   /** Có giá trị = Executor bổ sung quá hạn 7 ngày; null/thiếu = chưa quá hạn hoặc đã gửi lại (BE mục 6.12). */
   supplementOverdueAt: timestamp.nullable().optional(),
+  ownerIdentity: verifierOwnerIdentitySchema,
 });
 /** Review một cờ. */
 export const reviewFlagRequestSchema = z.object({
@@ -245,6 +261,11 @@ export const verifierObjectionSchema = z.object({
   selfiePassed: z.boolean(),
   selfiePassedAt: timestamp.nullable(),
   selfieAttemptsRemaining: z.number().int().nonnegative(),
+  /** Có ảnh selfie của lần thử gần nhất (BR-50 sửa); xem qua GET .../objection/selfie-image. */
+  hasSelfieImage: z.boolean(),
+  selfieImageCapturedAt: timestamp.nullable(),
+  /** Ảnh đang lưu có khớp mẫu khuôn mặt không; null khi chưa có ảnh. */
+  selfieImageMatched: z.boolean().nullable(),
   verifierDueAt: timestamp.nullable(),
   insufficientEvidenceCount: z.number().int().nonnegative(),
   conclusion: objectionConclusionSchema.nullable(),

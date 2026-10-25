@@ -26,6 +26,9 @@ const objection = (overrides: Record<string, unknown> = {}) => ({
   selfiePassed: false,
   selfiePassedAt: null,
   selfieAttemptsRemaining: 3,
+  hasSelfieImage: false,
+  selfieImageCapturedAt: null,
+  selfieImageMatched: null,
   verifierDueAt: CREATED_AT,
   insufficientEvidenceCount: 0,
   conclusion: null,
@@ -194,6 +197,17 @@ const verifierDetail = {
   approveBlockers: ["NOT_UNDER_REVIEW"],
   previousCase: null,
   handover: null,
+  ownerIdentity: {
+    verified: false,
+    citizenId: null,
+    fullName: null,
+    dateOfBirth: null,
+    verifiedAt: null,
+    citizenIdMatches: null,
+    fullNameMatches: null,
+    hasDocumentImage: false,
+    documentImageCapturedAt: null,
+  },
 };
 
 function renderVerifier(objectionBody: unknown) {
@@ -285,4 +299,84 @@ it("Verifier chỉ xem được khi có VERIFIER_CONFLICT", async () => {
   );
   expect(await screen.findByText("Owner báo còn sống")).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Kết luận lời báo" })).not.toBeInTheDocument();
+});
+
+const verifiedIdentity = {
+  verified: true,
+  citizenId: "012345678901",
+  fullName: "NGUYỄN VĂN B",
+  dateOfBirth: "1950-03-04",
+  verifiedAt: CREATED_AT,
+  citizenIdMatches: true,
+  fullNameMatches: false,
+  hasDocumentImage: true,
+  documentImageCapturedAt: CREATED_AT,
+};
+
+function renderVerifierWith(getImpl: (path: string) => unknown) {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) => getImpl(String(url)));
+  render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter>
+        <VerifierCaseDetail caseId={CASE_ID} />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+it("Verifier đối chiếu danh tính đã xác minh và xem ảnh CCCD cạnh selfie gần nhất", async () => {
+  vi.spyOn(URL, "createObjectURL").mockImplementation((blob) =>
+    (blob as Blob).type === "image/png" ? "blob:cccd" : "blob:selfie",
+  );
+  vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+  renderVerifierWith((path) => {
+    if (path.endsWith("/owner-identity/document-image"))
+      return new Blob(["cccd"], { type: "image/png" });
+    if (path.endsWith("/objection/selfie-image"))
+      return new Blob(["selfie"], { type: "image/jpeg" });
+    if (path.endsWith("/objection"))
+      return objection({
+        hasSelfieImage: true,
+        selfieImageCapturedAt: CREATED_AT,
+        selfieImageMatched: false,
+      });
+    return { ...verifierDetail, ownerIdentity: verifiedIdentity };
+  });
+
+  const table = await screen.findByRole("table");
+  expect(table).toHaveTextContent("NGUYỄN VĂN B");
+  expect(table).toHaveTextContent("Nguyễn Văn A");
+  expect(table).toHaveTextContent("04/03/1950");
+  expect(screen.getByText("Khớp")).toBeInTheDocument();
+  expect(screen.getByText("Không khớp")).toBeInTheDocument();
+  expect(await screen.findByText("Không khớp mẫu")).toBeInTheDocument();
+
+  const documents = await screen.findAllByRole("img", { name: "Ảnh mặt trước CCCD của chủ kho" });
+  expect(documents).toHaveLength(2);
+  for (const image of documents) expect(image).toHaveAttribute("src", "blob:cccd");
+  expect(
+    await screen.findByRole("img", { name: "Ảnh selfie gần nhất của chủ kho" }),
+  ).toHaveAttribute("src", "blob:selfie");
+});
+
+it("Chủ kho chưa xác minh thì không có bảng đối chiếu; ảnh 404 hiện 'Không có ảnh.'", async () => {
+  vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+  renderVerifierWith((path) => {
+    if (path.endsWith("/objection/selfie-image"))
+      throw new AxiosError("missing", undefined, undefined, undefined, {
+        status: 404,
+        statusText: "Not Found",
+        config: { headers: new AxiosHeaders() },
+        headers: {},
+        data: { code: "IDENTITY_IMAGE_NOT_FOUND" },
+      });
+    if (path.endsWith("/objection"))
+      return objection({ hasSelfieImage: true, selfieImageCapturedAt: CREATED_AT });
+    return verifierDetail;
+  });
+
+  expect(await screen.findByText(/Chủ kho chưa xác minh danh tính/)).toBeInTheDocument();
+  expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  expect(await screen.findByText("Chưa có ảnh CCCD lưu lúc xác minh.")).toBeInTheDocument();
+  expect(await screen.findByText("Không có ảnh.")).toBeInTheDocument();
 });

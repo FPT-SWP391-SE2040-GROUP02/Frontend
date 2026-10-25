@@ -16,27 +16,33 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { formatDateTime } from "@/shared/lib/dateFormat";
+import { Chip } from "@/shared/ui/heritageKit";
 import {
   allowedObjectionConclusions,
   concludeObjectionRequestSchema,
   objectionConclusionLabels,
+  type verifierOwnerIdentitySchema,
 } from "../model/verifierReview.schema";
 import { useConcludeObjection, useVerifierObjection } from "../model/useVerifierReview";
+import { VerifierIdentityImage } from "./VerifierIdentityImage";
 
 const formatDate = (value: string | null) => (value ? formatDateTime(value) : "—");
 
 /**
  * Khối "Báo còn sống" đặt trên phần xét giấy tờ để Verifier không bỏ sót.
+ * Có ảnh CCCD lúc eKYC cạnh selfie gần nhất để Verifier tự đối chiếu (BR-48, BR-50 sửa).
  * `canConclude=false` (VERIFIER_CONFLICT) chỉ cho xem.
  */
 export function VerifierObjectionBlock({
   caseId,
   enabled,
   canConclude,
+  ownerIdentity,
 }: {
   caseId: string;
   enabled: boolean;
   canConclude: boolean;
+  ownerIdentity: z.infer<typeof verifierOwnerIdentitySchema>;
 }) {
   const query = useVerifierObjection(caseId, enabled);
   const [open, setOpen] = useState(false);
@@ -89,6 +95,41 @@ export function VerifierObjectionBlock({
           />
         )}
       </dl>
+      <div aria-label="Đối chiếu ảnh" className="grid gap-4 sm:grid-cols-2">
+        <figure className="space-y-2">
+          <figcaption className="text-xs font-semibold">Ảnh CCCD lúc xác minh (eKYC)</figcaption>
+          {ownerIdentity.hasDocumentImage ? (
+            <VerifierIdentityImage
+              caseId={caseId}
+              kind="owner-document"
+              version={ownerIdentity.documentImageCapturedAt}
+              alt="Ảnh mặt trước CCCD của chủ kho"
+            />
+          ) : (
+            <p className="text-sm">Chưa có ảnh CCCD lưu lúc xác minh.</p>
+          )}
+        </figure>
+        <figure className="space-y-2">
+          <figcaption className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+            Selfie gần nhất
+            {objection.selfieImageMatched === true && <Chip tone="success">Khớp mẫu</Chip>}
+            {objection.selfieImageMatched === false && <Chip tone="danger">Không khớp mẫu</Chip>}
+          </figcaption>
+          {objection.hasSelfieImage ? (
+            <>
+              <VerifierIdentityImage
+                caseId={caseId}
+                kind="objection-selfie"
+                version={objection.selfieImageCapturedAt}
+                alt="Ảnh selfie gần nhất của chủ kho"
+              />
+              <p className="text-xs">Chụp lúc {formatDate(objection.selfieImageCapturedAt)}</p>
+            </>
+          ) : (
+            <p className="text-sm">Chủ kho chưa gửi selfie nào được so khớp.</p>
+          )}
+        </figure>
+      </div>
       {objection.conclusion && (
         <div role="status" className="rounded-lg border border-amber-300 bg-white p-3">
           <p className="font-semibold">
