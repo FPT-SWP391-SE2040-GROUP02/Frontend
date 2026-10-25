@@ -4,7 +4,7 @@ import type { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
-import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
+import { buttonStyles } from "@/shared/ui/heritageKit";
 import {
   Dialog,
   DialogContent,
@@ -222,7 +222,6 @@ export function BeneficiaryRow({
               Sinh {formatBirthDate(record.dateOfBirth)}
             </span>
           </span>
-          {record.isMinor && <Chip tone="neutral">Chưa đủ 18 tuổi</Chip>}
         </div>
       </td>
       <td className="px-4 py-4 font-mono text-xs text-heritage-muted">
