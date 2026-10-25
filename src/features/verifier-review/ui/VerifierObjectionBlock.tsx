@@ -140,6 +140,15 @@ export function VerifierObjectionBlock({
           )}
         </div>
       )}
+      {objection.conclusion === null &&
+        objection.insufficientEvidenceCount > 0 &&
+        !objection.selfiePassed && (
+          <p role="status" className="break-words">
+            Đã yêu cầu chủ kho chụp selfie mới (lần {objection.insufficientEvidenceCount}
+            ). Hạn mới: {formatDate(objection.selfieDeadlineAt)}.
+            {objection.conclusionReason && ` Lý do: ${objection.conclusionReason}`}
+          </p>
+        )}
       {!objection.selfiePassed && objection.selfieWindowOpen && (
         <p role="status">
           Chưa thể xác nhận còn sống: cần selfie đạt hoặc đợi hết hạn 7 ngày của Owner.
