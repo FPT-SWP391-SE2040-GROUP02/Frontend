@@ -159,6 +159,11 @@ function ObjectionState({ vaultId, objection }: { vaultId: string; objection: Ow
     !objection.selfiePassed &&
     objection.selfieAttemptsRemaining > 0 &&
     (objection.selfieWindowOpen || rejected);
+  // BR-76 (c): Verifier ghi "chưa đủ bằng chứng" là yêu cầu chụp selfie mới; BE đã bỏ kết quả cũ và mở hạn mới.
+  const retakeRequested =
+    objection.conclusion === null &&
+    objection.insufficientEvidenceCount > 0 &&
+    !objection.selfiePassed;
   return (
     <div className="space-y-3 text-sm text-amber-900">
       <p className="font-medium">
@@ -184,6 +189,20 @@ function ObjectionState({ vaultId, objection }: { vaultId: string; objection: Ow
           <Info label="Hạn Verifier kết luận" value={formatDate(objection.verifierDueAt)} />
         )}
       </dl>
+      {retakeRequested && (
+        <div role="alert" className="rounded-lg border border-amber-400 bg-white p-3">
+          <p className="font-semibold">
+            Verifier cần thêm bằng chứng: hãy chụp selfie trực tiếp mới.
+          </p>
+          <p className="mt-1">
+            Ảnh selfie trước không còn được tính. Gửi ảnh mới trước{" "}
+            {formatDate(objection.selfieDeadlineAt)}; quá hạn thì Verifier có thể bác lời báo.
+          </p>
+          {objection.conclusionReason && (
+            <p className="mt-1 break-words">Lý do: {objection.conclusionReason}</p>
+          )}
+        </div>
+      )}
       {objection.selfiePassed && !confirmedAlive && (
         <p role="status" className="rounded-lg bg-emerald-50 p-3 text-emerald-800">
           Ảnh selfie đã khớp mẫu khuôn mặt ({formatDate(objection.selfiePassedAt)}). Đang chờ

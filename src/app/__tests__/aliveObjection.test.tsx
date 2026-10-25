@@ -147,6 +147,40 @@ it("Owner chặn ảnh sai định dạng trước khi gọi BE và báo lượt
   );
 });
 
+it("Verifier ghi chưa đủ bằng chứng thì Owner thấy lý do, hạn mới và được chụp selfie lại", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue(
+    ownerCase(
+      "SUSPENDED",
+      objection({
+        selfiePassed: false,
+        selfiePassedAt: null,
+        selfieWindowOpen: true,
+        selfieAttemptsRemaining: 3,
+        insufficientEvidenceCount: 1,
+        conclusionReason: "Ảnh mờ, cần chụp lại",
+      }),
+    ),
+  );
+  renderOwner();
+  const alert = await screen.findByRole("alert");
+  expect(alert).toHaveTextContent("Verifier cần thêm bằng chứng: hãy chụp selfie trực tiếp mới.");
+  expect(alert).toHaveTextContent("Lý do: Ảnh mờ, cần chụp lại");
+  expect(screen.getByLabelText("Gửi ảnh selfie xác minh")).toBeInTheDocument();
+  expect(screen.queryByText(/Đang chờ\s+Verifier kết luận/)).not.toBeInTheDocument();
+});
+
+it("Verifier thấy đã yêu cầu chủ kho chụp lại sau khi ghi chưa đủ bằng chứng", async () => {
+  renderVerifier(
+    objection({
+      insufficientEvidenceCount: 1,
+      conclusionReason: "Ảnh mờ, cần chụp lại",
+    }),
+  );
+  expect(await screen.findByText(/Đã yêu cầu chủ kho chụp selfie mới \(lần 1\)/)).toHaveTextContent(
+    "Lý do: Ảnh mờ, cần chụp lại",
+  );
+});
+
 it("Owner được gửi bằng chứng mới sau khi lời báo bị bác", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(
     ownerCase(
