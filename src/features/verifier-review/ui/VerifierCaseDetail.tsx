@@ -21,6 +21,7 @@ import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
 import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
+import { VerifierOwnerIdentityPanel } from "./VerifierOwnerIdentityPanel";
 import { AiNotaryAssessmentCard } from "./AiNotaryAssessmentCard";
 import { getVerifierActions } from "../model/verifierActions";
 import {
@@ -247,6 +248,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
         caseId={detail.id}
         enabled={detail.status === "SUSPENDED"}
         canConclude={!detail.approveBlockers.includes("VERIFIER_CONFLICT")}
+        ownerIdentity={detail.ownerIdentity}
       />
       {detail.handover && (
         <Notice tone="success" role="status" title="Hồ sơ đã được chấp thuận">
@@ -362,6 +364,11 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               )}
             </div>
           </section>
+          <VerifierOwnerIdentityPanel
+            caseId={detail.id}
+            review={review}
+            identity={detail.ownerIdentity}
+          />
           <section
             aria-label="Cảnh báo cần kiểm tra"
             className="space-y-3 rounded-2xl border border-heritage-border bg-heritage-surface p-6"

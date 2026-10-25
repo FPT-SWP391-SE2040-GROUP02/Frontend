@@ -41,6 +41,23 @@ export const verifierReviewService = {
       { responseType: "blob" },
     );
   },
+  /**
+   * Ảnh mặt trước CCCD Owner chụp lúc eKYC (BR-48 sửa); 404 IDENTITY_IMAGE_NOT_FOUND khi Owner xác minh trước khi có
+   * chức năng lưu ảnh. Blob chỉ giữ trong RAM.
+   */
+  async downloadOwnerDocumentImage(caseId: string, signal?: AbortSignal): Promise<Blob> {
+    return apiClient.get<Blob, Blob>(
+      `/verifier/death-cases/${id.parse(caseId)}/owner-identity/document-image`,
+      { responseType: "blob", signal },
+    );
+  },
+  /** Ảnh selfie của lần thử gần nhất trong lời báo còn sống (BR-50 sửa); 404 khi chưa có ảnh. */
+  async downloadObjectionSelfieImage(caseId: string, signal?: AbortSignal): Promise<Blob> {
+    return apiClient.get<Blob, Blob>(
+      `/verifier/death-cases/${id.parse(caseId)}/objection/selfie-image`,
+      { responseType: "blob", signal },
+    );
+  },
   /** Xem xét một cờ; etag mới trong response dùng cho thao tác kế tiếp. */
   async reviewFlag(
     caseId: string,
