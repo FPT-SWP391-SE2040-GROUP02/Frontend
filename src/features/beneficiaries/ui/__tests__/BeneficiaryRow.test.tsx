@@ -69,12 +69,12 @@ describe("hàng người nhận", () => {
     expect(screen.getByText("Sinh 20/05/1990")).toBeInTheDocument();
     expect(screen.getByText(/•••• 8901/)).toBeInTheDocument();
     expect(screen.getByText("an@example.test")).toBeInTheDocument();
-    expect(screen.getByText("2 gói bàn giao")).toBeInTheDocument();
+    expect(screen.getByText("2 gói bàn giao · đang dùng 1 suất")).toBeInTheDocument();
   });
 
   it("báo chưa vào gói bàn giao nào và rơi về số điện thoại khi không có email", () => {
     renderRow({ containerIds: [], email: null, phone: "0901234567" });
-    expect(screen.getByText("Chưa vào gói bàn giao nào")).toBeInTheDocument();
+    expect(screen.getByText("Chưa vào gói bàn giao nào · chưa dùng suất")).toBeInTheDocument();
     expect(screen.getByText(/0901234567/)).toBeInTheDocument();
   });
 

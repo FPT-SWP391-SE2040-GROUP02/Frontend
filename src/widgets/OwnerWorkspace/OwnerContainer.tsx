@@ -126,8 +126,13 @@ export function OwnerContainer() {
           beneficiaries.data?.items.map((item) => ({
             id: item.id,
             label: `${item.fullName} · ****${item.citizenIdLast4}`,
+            designated: item.containerIds.length > 0,
           })) ?? []
         }
+        slots={{
+          used: vault.data.usedBeneficiarySlots,
+          total: vault.data.beneficiarySlots,
+        }}
       />
     </div>
   );

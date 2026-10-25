@@ -25,7 +25,7 @@ function group(overrides: Partial<PackageResponse> = {}): PackageResponse {
 }
 
 const assets = [{ id: ASSET_ID, label: "Sổ tiết kiệm", detail: "Giấy tờ" }];
-const people = [
+const people: { id: string; label: string; designated?: boolean }[] = [
   { id: PERSON_ID, label: "Con trưởng" },
   { id: OTHER_PERSON_ID, label: "Vợ" },
 ];
@@ -42,11 +42,19 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function renderGroup(container: PackageResponse = group()) {
+function renderGroup(
+  container: PackageResponse = group(),
+  options: { beneficiaries?: typeof people; slots?: { used: number; total: number } } = {},
+) {
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter>
-        <GroupDetail container={container} assets={assets} beneficiaries={people} />
+        <GroupDetail
+          container={container}
+          assets={assets}
+          beneficiaries={options.beneficiaries ?? people}
+          slots={options.slots}
+        />
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -88,6 +96,32 @@ describe("chi tiết gói bàn giao", () => {
       `/vaults/${VAULT_ID}/containers/${CONTAINER_ID}/beneficiaries`,
       { beneficiaryId: OTHER_PERSON_ID },
     );
+  });
+
+  it("hiện số suất đang dùng và báo gán người mới sẽ dùng 1 suất khi còn suất", () => {
+    renderGroup(group(), { slots: { used: 1, total: 3 } });
+    expect(screen.getByText(/Suất người nhận của kho: 1\/3 đang dùng\./)).toBeInTheDocument();
+    expect(screen.getByText("Gán sẽ dùng 1 suất")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Gán Vợ" })).toBeEnabled();
+  });
+
+  it("hết suất thì khóa nút Gán của người mới và chỉ đường mua thêm suất", () => {
+    renderGroup(group(), { slots: { used: 3, total: 3 } });
+    expect(screen.getByText("Hết suất người nhận")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Gán Vợ" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: "Mua thêm suất" })).toHaveAttribute("href", "/pricing");
+  });
+
+  it("hết suất vẫn cho gán người đã ở gói bàn giao khác vì không tốn thêm suất", () => {
+    renderGroup(group(), {
+      beneficiaries: [
+        { id: PERSON_ID, label: "Con trưởng" },
+        { id: OTHER_PERSON_ID, label: "Vợ", designated: true },
+      ],
+      slots: { used: 3, total: 3 },
+    });
+    expect(screen.getByText("Đã ở gói bàn giao khác, gán thêm không tốn suất")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Gán Vợ" })).toBeEnabled();
   });
 
   it("lưu tên gói bàn giao xong vẫn giữ ô đồng ý đã tick", async () => {

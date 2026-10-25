@@ -202,9 +202,10 @@ export function BeneficiaryRow({
   } else if (record.phone) {
     contact = record.phone;
   }
-  let groupLabel = "Chưa vào gói bàn giao nào";
+  // QUOTA-03: chỉ người đã vào ít nhất một gói bàn giao mới chiếm suất; hồ sơ chưa gán thì chưa dùng suất.
+  let groupLabel = "Chưa vào gói bàn giao nào · chưa dùng suất";
   if (record.containerIds.length > 0) {
-    groupLabel = `${record.containerIds.length} gói bàn giao`;
+    groupLabel = `${record.containerIds.length} gói bàn giao · đang dùng 1 suất`;
   }
   return (
     <tr>

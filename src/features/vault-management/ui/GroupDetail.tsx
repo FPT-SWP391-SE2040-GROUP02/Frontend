@@ -31,6 +31,16 @@ interface Option {
   label: string;
   /** Dòng phụ dưới tên (ví dụ loại mục: Tệp, Văn bản). */
   detail?: string;
+  /** Người nhận đã ở ít nhất một gói bàn giao của kho, tức là đã chiếm suất (QUOTA-03). */
+  designated?: boolean;
+  /** Không cho gán dòng này (ví dụ hết suất người nhận). */
+  blocked?: boolean;
+}
+
+/** Suất người nhận của kho: số người khác nhau đã có chỉ định và tổng suất được dùng. */
+export interface BeneficiarySlots {
+  used: number;
+  total: number;
 }
 
 type Relation = "assets" | "beneficiaries";
@@ -54,6 +64,8 @@ interface MemberCardProps {
   selectLabel: string;
   emptyText: string;
   disabled: boolean;
+  /** Dòng tóm tắt dưới tiêu đề (ví dụ số suất người nhận đang dùng). */
+  summary?: ReactNode;
   note: ReactNode;
   /** Liệt kê cả người đã gán lẫn chưa gán, mỗi dòng một nút Gán/Gỡ (thiết kế 099) thay cho ô chọn. */
   inlineAssign?: boolean;
@@ -142,7 +154,7 @@ function MemberCard(props: MemberCardProps) {
             type="button"
             aria-label={`Gán ${item.label}`}
             className={`${buttonStyles.outline} shrink-0`}
-            disabled={disabled}
+            disabled={disabled || item.blocked === true}
             onClick={() => props.onAdd(relation, item.id)}
           >
             Gán
@@ -153,6 +165,7 @@ function MemberCard(props: MemberCardProps) {
     return (
       <section aria-label={props.title} className={CARD}>
         <h2 className="text-xl font-medium text-heritage-primary">{props.title}</h2>
+        {props.summary}
         {people.length === 0 && (
           <p className="mt-4 text-sm text-heritage-muted">{props.emptyText}</p>
         )}
@@ -214,10 +227,13 @@ export function GroupDetail({
   container,
   assets,
   beneficiaries,
+  slots,
 }: {
   container: PackageResponse;
   assets: Option[];
   beneficiaries: Option[];
+  /** Không truyền thì không hiện thông tin suất (BE vẫn chặn khi vượt suất). */
+  slots?: BeneficiarySlots;
 }) {
   const [etag, setEtag] = useState(container.etag);
   const [confirm, setConfirm] = useState(false);
@@ -308,6 +324,41 @@ export function GroupDetail({
   const assetOptions = pick(assets, container.assetIds);
   const personOptions = pick(beneficiaries, container.beneficiaryIds);
 
+  // QUOTA-03, QUOTA-05: suất đếm theo người khác nhau đã có chỉ định trong kho. Người đã ở gói khác gán thêm không tốn suất;
+  // người mới chỉ gán được khi còn suất. FE chỉ báo trước, BE vẫn là nơi chặn (BENEFICIARY_SLOTS_EXCEEDED).
+  let slotsFull = false;
+  if (slots) {
+    slotsFull = slots.used >= slots.total;
+    const annotated: Option[] = [];
+    for (const option of personOptions.available) {
+      if (option.designated === true) {
+        annotated.push({ ...option, detail: "Đã ở gói bàn giao khác, gán thêm không tốn suất" });
+      } else if (slotsFull) {
+        annotated.push({ ...option, detail: "Hết suất người nhận", blocked: true });
+      } else {
+        annotated.push({ ...option, detail: "Gán sẽ dùng 1 suất" });
+      }
+    }
+    personOptions.available = annotated;
+  }
+  let slotSummary: ReactNode = null;
+  if (slots) {
+    slotSummary = (
+      <p className="mt-1 text-sm text-heritage-muted">
+        Suất người nhận của kho: {slots.used}/{slots.total} đang dùng.
+        {slotsFull && (
+          <>
+            {" "}
+            Đã hết suất cho người mới.{" "}
+            <Link className="underline" to={ROUTES.BILLING.PLANS}>
+              Mua thêm suất
+            </Link>
+          </>
+        )}
+      </p>
+    );
+  }
+
   let statusLabel = "Chưa sẵn sàng";
   let statusStyle = "bg-amber-100 text-amber-800";
   if (container.status === "READY") {
@@ -389,6 +440,7 @@ export function GroupDetail({
           selectLabel="Chọn người nhận"
           emptyText="Gói bàn giao chưa có người nhận."
           disabled={blocked || isDirty}
+          summary={slotSummary}
           note={
             <>
               <p>
