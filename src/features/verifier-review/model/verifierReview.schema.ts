@@ -287,7 +287,7 @@ export const objectionConclusionLabels: Record<
   string
 > = {
   ALIVE_CONFIRMED: "Xác nhận Owner còn sống",
-  OBJECTION_REJECTED: "Bác lời báo",
+  OBJECTION_REJECTED: "Từ chối báo tử",
   INSUFFICIENT_EVIDENCE: "Chưa đủ bằng chứng",
 };
 /**

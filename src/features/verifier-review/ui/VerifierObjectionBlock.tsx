@@ -155,7 +155,7 @@ export function VerifierObjectionBlock({
         </p>
       )}
       {objection.selfiePassed && (
-        <p role="status">Selfie đã khớp nên bạn không thể bác lời báo (ALIVE-05).</p>
+        <p role="status">Selfie đã khớp nên bạn không thể từ chối báo tử (ALIVE-05).</p>
       )}
       {canConclude && options.length > 0 && (
         <button type="button" className={buttonStyles.dark} onClick={() => setOpen(true)}>

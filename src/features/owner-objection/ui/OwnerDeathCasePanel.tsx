@@ -196,7 +196,7 @@ function ObjectionState({ vaultId, objection }: { vaultId: string; objection: Ow
           </p>
           <p className="mt-1">
             Ảnh selfie trước không còn được tính. Gửi ảnh mới trước{" "}
-            {formatDate(objection.selfieDeadlineAt)}; quá hạn thì Verifier có thể bác lời báo.
+            {formatDate(objection.selfieDeadlineAt)}; quá hạn thì Verifier có thể từ chối báo tử.
           </p>
           {objection.conclusionReason && (
             <p className="mt-1 break-words">Lý do: {objection.conclusionReason}</p>

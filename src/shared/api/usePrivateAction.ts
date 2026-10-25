@@ -80,7 +80,7 @@ const deathCaseNotAllowedReasons: Record<string, string> = {
   ALIVE_EVIDENCE_REQUIRED:
     "Chưa thể xác nhận còn sống: cần selfie đạt hoặc đã qua 7 ngày chờ bằng chứng.",
   OWNER_SELFIE_PASSED:
-    "Owner đã có selfie khớp nên không thể bác lời báo. Chọn xác nhận còn sống hoặc chưa đủ bằng chứng.",
+    "Owner đã có selfie khớp nên không thể từ chối báo tử. Chọn xác nhận còn sống hoặc chưa đủ bằng chứng.",
   // Lý do khi Người xét duyệt chấp thuận, bổ sung, từ chối hoặc xem xét cờ bị Backend từ chối.
   PLAN_STATE_INVALID:
     "Kế hoạch của kho không còn ở trạng thái mở hồ sơ, hoặc kho đã có lượt bàn giao. Tải lại hồ sơ để xem trạng thái mới nhất.",
