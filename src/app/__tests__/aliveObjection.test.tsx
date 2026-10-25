@@ -264,7 +264,7 @@ it("Verifier thấy khối báo còn sống và không được xác nhận còn
   expect(screen.getByText(/Chưa thể xác nhận còn sống/)).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Kết luận lời báo" }));
   expect(screen.queryByRole("radio", { name: "Xác nhận Owner còn sống" })).not.toBeInTheDocument();
-  expect(screen.getByRole("radio", { name: "Bác lời báo" })).toBeInTheDocument();
+  expect(screen.getByRole("radio", { name: "Từ chối báo tử" })).toBeInTheDocument();
   expect(screen.getByRole("radio", { name: "Chưa đủ bằng chứng" })).toBeInTheDocument();
 });
 
@@ -279,7 +279,7 @@ it("Verifier rời nhóm kết luận khi chưa chọn thì thấy lỗi tiếng
   const user = userEvent.setup();
   renderVerifier(objection());
   await user.click(await screen.findByRole("button", { name: "Kết luận lời báo" }));
-  screen.getByRole("radio", { name: "Bác lời báo" }).focus();
+  screen.getByRole("radio", { name: "Từ chối báo tử" }).focus();
   await user.tab();
   expect(await screen.findByText("Chọn một kết luận.")).toBeInTheDocument();
   expect(screen.queryByText(/Expected string/)).not.toBeInTheDocument();
@@ -287,11 +287,11 @@ it("Verifier rời nhóm kết luận khi chưa chọn thì thấy lỗi tiếng
   await waitFor(() => expect(screen.queryByText("Chọn một kết luận.")).not.toBeInTheDocument());
 });
 
-it("Verifier không được bác lời báo khi selfie đã đạt (ALIVE-05)", async () => {
+it("Verifier không được từ chối báo tử khi selfie đã đạt (ALIVE-05)", async () => {
   const user = userEvent.setup();
   renderVerifier(objection({ selfiePassed: true, selfiePassedAt: CREATED_AT }));
   await user.click(await screen.findByRole("button", { name: "Kết luận lời báo" }));
-  expect(screen.queryByRole("radio", { name: "Bác lời báo" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("radio", { name: "Từ chối báo tử" })).not.toBeInTheDocument();
   expect(screen.getByRole("radio", { name: "Xác nhận Owner còn sống" })).toBeInTheDocument();
 });
 
