@@ -15,6 +15,7 @@ export const ROLE_LABELS: Record<AdminUserRole, string> = {
   USER: "Người dùng",
   VERIFIER: "Người xét duyệt",
   ADMIN: "Quản trị viên",
+  EXECUTOR: "Người thừa hành",
 };
 
 export const STATUS_LABELS: Record<AdminUserStatus, string> = {

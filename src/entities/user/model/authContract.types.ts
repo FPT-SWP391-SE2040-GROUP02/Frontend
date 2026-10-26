@@ -7,6 +7,7 @@ export const AUTH_SYSTEM_ROLES = {
   USER: ROLES.USER,
   VERIFIER: ROLES.VERIFIER,
   ADMIN: ROLES.ADMIN,
+  EXECUTOR: ROLES.EXECUTOR,
 } as const;
 /** Trạng thái tài khoản của UserResponse C#. */
 export const AUTH_USER_STATUSES = {

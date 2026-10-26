@@ -91,6 +91,17 @@ export function ekycResetDone(result: DevEkycReset) {
 export const REWIND_DESCRIPTION =
   "Đưa kho đang chọn về thời điểm ngay trước bước xác minh danh tính và mua gói: xóa eKYC của Chủ kho, trả gói dịch vụ về Free và hủy đơn thanh toán đang chờ. Đơn đã trả, tài sản, người nhận, gói tài sản và Người thực hiện giữ nguyên. Chỉ dùng khi kế hoạch còn Nháp.";
 
+export const EKYC_THRESHOLD_DESCRIPTION =
+  "Ngưỡng cao (> 0.45) tăng cường bảo mật chống giả mạo nhưng khắt khe hơn. Ngưỡng thấp (< 0.30) hỗ trợ nhận diện dễ hơn trong điều kiện thiếu sáng hoặc camera độ phân giải thấp.";
+
+export function ekycThresholdDone(result: { currentThreshold: number }) {
+  return `Đã cập nhật ngưỡng so khớp khuôn mặt eKYC về ${result.currentThreshold.toFixed(3)}. Áp dụng ngay cho các lượt so khớp kế tiếp (bộ nhớ, chưa lưu DB).`;
+}
+
+export function ekycThresholdResetDone(defaultThreshold: number) {
+  return `Đã đặt lại ngưỡng so khớp về giá trị mặc định ${defaultThreshold.toFixed(3)} (chuẩn khuyến nghị của mô hình InsightFace).`;
+}
+
 /** Thông báo sau khi đưa kho về trước eKYC; chỉ dùng số lượng máy chủ trả về. */
 export function rewindDone(result: DevRewindBeforeEkyc) {
   const ekycRemoved =

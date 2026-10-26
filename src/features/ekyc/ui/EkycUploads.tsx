@@ -2,10 +2,16 @@ import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Check, Lock, X } from "lucide-react";
+import { ArrowRight, Check, Lock, X, ZoomIn } from "lucide-react";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import { ekycDocumentSchema, ekycPurposeSchema, ekycStatusSchema } from "../model/ekyc.schema";
 import { ekycService } from "../api/ekycService";
 import { LivenessPanel } from "./LivenessPanel";
@@ -13,6 +19,7 @@ import { EkycReviewForm } from "./EkycReviewForm";
 import { EkycStepper } from "./EkycStepper";
 import { EkycDropzone } from "./EkycDropzone";
 import { MatchRing } from "./MatchRing";
+import { useImagePreview } from "./useImagePreview";
 
 type Purpose = z.infer<typeof ekycPurposeSchema>;
 type Document = z.infer<typeof ekycDocumentSchema>;
@@ -181,8 +188,66 @@ function CheckRow({ state, text }: { state: "pass" | "fail" | "unknown"; text: s
   );
 }
 
+/** Nhãn 3 pha đọc ảnh: tải lên (NN%) → OCR → hoàn tất; pha hiện theo tiến độ upload thật. */
+function ocrPhaseLabel(pending: boolean, succeeded: boolean, percent: number | null): string {
+  if (succeeded) return "Hoàn tất đọc dữ liệu";
+  if (pending) {
+    return percent !== null && percent < 100
+      ? `Đang tải ảnh lên… ${percent}%`
+      : "Đang phân tích OCR…";
+  }
+  return "Sẵn sàng";
+}
+
+/** Ảnh đã gửi kèm nút phóng to; không có ảnh thì giữ placeholder xám cũ. */
+function CompareTile({ url, label }: { url: string | null; label: string }) {
+  const [zoomed, setZoomed] = useState(false);
+  return (
+    <div>
+      <div
+        className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-heritage-canvas"
+        aria-hidden="true"
+      >
+        {url ? (
+          <>
+            <img src={url} alt="" className="size-full object-contain" />
+            <button
+              type="button"
+              onClick={() => setZoomed(true)}
+              aria-label={`Phóng to ${label}`}
+              className="absolute right-2 top-2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
+            >
+              <ZoomIn className="size-4" aria-hidden="true" />
+            </button>
+          </>
+        ) : (
+          <span className="size-14 rounded-full bg-heritage-border" />
+        )}
+      </div>
+      <p className="mt-3">{label}</p>
+      <Dialog open={zoomed} onOpenChange={setZoomed}>
+        <DialogContent aria-label={label}>
+          <DialogTitle>{label}</DialogTitle>
+          <DialogDescription>Ảnh đã gửi đến máy chủ để đối chiếu.</DialogDescription>
+          {url && <img src={url} alt="" className="max-h-[70vh] rounded-lg object-contain" />}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 /** Kết quả so khớp theo trạng thái Backend trả về; không tự quyết PASSED hay MATCHED. */
-function ResultStep({ status, onRestart }: { status: Status; onRestart: () => void }) {
+function ResultStep({
+  status,
+  frontUrl,
+  backUrl,
+  onRestart,
+}: {
+  status: Status;
+  frontUrl: string | null;
+  backUrl: string | null;
+  onRestart: () => void;
+}) {
   const wrongPerson = status.identityMatch === "WRONG_PERSON";
   const needsReview = status.identityMatch === "NEEDS_REVIEW";
   const failed = status.status === "FAILED" || wrongPerson;
@@ -245,24 +310,9 @@ function ResultStep({ status, onRestart }: { status: Status; onRestart: () => vo
       <section aria-label="Ảnh đối chiếu" className={CARD}>
         <h3 className="text-xl font-medium text-heritage-primary">Ảnh đối chiếu</h3>
         <div className="mt-5 grid grid-cols-2 gap-4 text-center text-sm font-semibold">
-          <div>
-            <div
-              className="flex aspect-[4/3] items-center justify-center rounded-xl bg-heritage-canvas"
-              aria-hidden="true"
-            >
-              <span className="size-14 rounded-full bg-heritage-border" />
-            </div>
-            <p className="mt-3">Căn cước đã đọc</p>
-          </div>
-          <div>
-            <div
-              className="flex aspect-[4/3] items-center justify-center rounded-xl bg-heritage-canvas"
-              aria-hidden="true"
-            >
-              <span className="size-14 rounded-full bg-heritage-border" />
-            </div>
-            <p className="mt-3">Selfie của bạn</p>
-          </div>
+          <CompareTile url={frontUrl ?? backUrl} label="Căn cước đã đọc" />
+          {/* Selfie là ảnh camera, pixel được xóa theo thiết kế (useLiveness) nên không giữ blob để preview. */}
+          <CompareTile url={null} label="Selfie của bạn" />
         </div>
         <p className="mt-4 flex items-center gap-2 text-xs text-heritage-muted">
           <Lock className="size-3.5 shrink-0" aria-hidden="true" />
@@ -332,11 +382,19 @@ export function EkycUploads({
   // BR-88: mặt sau có thể gửi trước khi xác nhận; địa chỉ đọc từ mặt sau chỉ ở RAM để điền vào bản khai.
   const [backSent, setBackSent] = useState(false);
   const [backAddress, setBackAddress] = useState("");
+  // Ảnh đã gửi giữ lại (blob URL thu hồi khi đổi/unmount) để xem trước + zoom trước bước so khớp.
+  const [sentFront, setSentFront] = useState<File | null>(null);
+  const [sentBack, setSentBack] = useState<File | null>(null);
+  const [frontPercent, setFrontPercent] = useState<number | null>(null);
+  const [backPercent, setBackPercent] = useState<number | null>(null);
 
   // Action riêng cho mỗi bước để lỗi hiển thị đúng chỗ và retry đúng bước.
   const consentAction = usePrivateAction();
   const frontAction = usePrivateAction();
   const backAction = usePrivateAction();
+
+  const sentFrontUrl = useImagePreview(sentFront);
+  const sentBackUrl = useImagePreview(sentBack);
 
   function resetAll() {
     setStep("consent");
@@ -348,6 +406,10 @@ export function EkycUploads({
     setConfirmed(false);
     setBackSent(false);
     setBackAddress("");
+    setSentFront(null);
+    setSentBack(null);
+    setFrontPercent(null);
+    setBackPercent(null);
     setFrontError("");
     setBackError("");
     onVerificationBound?.(null);
@@ -383,11 +445,14 @@ export function EkycUploads({
       return;
     }
     const file = frontImage;
+    setFrontPercent(null);
     await frontAction.execute(
-      () => ekycService.submitDocument(file!, purpose, turnId),
+      () => ekycService.submitDocument(file!, purpose, turnId, (p) => setFrontPercent(p)),
       (result) => {
         setOcr(result);
+        setSentFront(file);
         setFrontImage(null);
+        setFrontPercent(null);
         setStep("back");
         setTab("back");
         setConfirmed(false);
@@ -411,11 +476,14 @@ export function EkycUploads({
       return;
     }
     const file = backImage;
+    setBackPercent(null);
     await backAction.execute(
-      () => ekycService.submitDocumentBack(file!, purpose, turnId),
+      () => ekycService.submitDocumentBack(file!, purpose, turnId, (p) => setBackPercent(p)),
       (result) => {
         setStatus(result);
+        setSentBack(file);
         setBackImage(null);
+        setBackPercent(null);
         setBackSent(true);
         setBackAddress(result.residenceAddress);
         void client.invalidateQueries({ queryKey: ["ekyc"] });
@@ -551,9 +619,30 @@ export function EkycUploads({
                     className="w-full justify-between"
                     disabled={!frontImage}
                   >
-                    {frontAction.pending ? "Đang đọc…" : "Đọc thông tin"}
+                    {frontAction.pending ? "Đang xử lý…" : "Đọc thông tin"}
                     <ArrowRight className="size-4" aria-hidden="true" />
                   </Button>
+                  {frontAction.pending && (
+                    <div>
+                      <p role="status" className="text-xs text-heritage-muted">
+                        {ocrPhaseLabel(frontAction.pending, frontAction.succeeded, frontPercent)}
+                      </p>
+                      <div
+                        role="progressbar"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={frontPercent ?? 100}
+                        className="mt-2 h-1.5 overflow-hidden rounded-full bg-heritage-canvas"
+                      >
+                        <div
+                          className="h-full bg-[#1d4d3c]"
+                          style={{
+                            width: frontPercent === null ? "100%" : `${frontPercent}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </fieldset>
                 {(frontError || frontAction.error) && (
                   <p role="alert" className="text-sm text-destructive">
@@ -593,9 +682,30 @@ export function EkycUploads({
                     className="w-full justify-between"
                     disabled={!backImage}
                   >
-                    {backAction.pending ? "Đang đọc…" : "Đọc mặt sau"}
+                    {backAction.pending ? "Đang xử lý…" : "Đọc mặt sau"}
                     <ArrowRight className="size-4" aria-hidden="true" />
                   </Button>
+                  {backAction.pending && (
+                    <div>
+                      <p role="status" className="text-xs text-heritage-muted">
+                        {ocrPhaseLabel(backAction.pending, backAction.succeeded, backPercent)}
+                      </p>
+                      <div
+                        role="progressbar"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={backPercent ?? 100}
+                        className="mt-2 h-1.5 overflow-hidden rounded-full bg-heritage-canvas"
+                      >
+                        <div
+                          className="h-full bg-[#1d4d3c]"
+                          style={{
+                            width: backPercent === null ? "100%" : `${backPercent}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </fieldset>
                 {!ocr && (
                   <p className="text-sm text-heritage-muted">
@@ -663,7 +773,14 @@ export function EkycUploads({
         />
       )}
 
-      {step === "done" && status && <ResultStep status={status} onRestart={resetAll} />}
+      {step === "done" && status && (
+        <ResultStep
+          status={status}
+          frontUrl={sentFrontUrl}
+          backUrl={sentBackUrl}
+          onRestart={resetAll}
+        />
+      )}
 
       {canComplete && (
         <div className={`${CARD} space-y-3 text-sm`}>

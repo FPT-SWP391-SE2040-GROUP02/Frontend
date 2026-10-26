@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -98,6 +98,20 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
   const [dragging, setDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [certificateChecks, setCertificateChecks] = useState<CertificateFileCheck[] | null>(null);
+  // Tiến độ + xem trước ảnh vừa tải trong phiên này (blob URL; thu hồi khi xóa tệp/unmount).
+  const [uploading, setUploading] = useState(false);
+  const [uploadPercent, setUploadPercent] = useState<number | null>(null);
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
+  const previewUrlsRef = useRef(previewUrls);
+  useEffect(() => {
+    previewUrlsRef.current = previewUrls;
+  }, [previewUrls]);
+  useEffect(
+    () => () => {
+      Object.values(previewUrlsRef.current).forEach((url) => URL.revokeObjectURL(url));
+    },
+    [],
+  );
   const fileInput = useRef<HTMLInputElement>(null);
   const action = usePrivateAction();
   const client = useQueryClient();
@@ -148,7 +162,32 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
       setFileError(`Chọn tệp đúng định dạng, không rỗng, tối đa ${formatStorageSize(MAX_BYTES)}.`);
       return;
     }
-    await action.execute(() => deathCaseService.upload(record.id, file), publish);
+    // Ảnh tạo blob URL để xem trước; PDF giữ icon tĩnh. Thu hồi nếu upload lỗi.
+    const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
+    setUploading(true);
+    setUploadPercent(null);
+    const ok = await action.execute(
+      () => deathCaseService.upload(record.id, file, (percent) => setUploadPercent(percent)),
+      (result) => {
+        if (previewUrl) {
+          const known = new Set(record.currentVersion.files.map((item) => item.id));
+          const added = result.currentVersion.files.find((item) => !known.has(item.id));
+          if (added) {
+            setPreviewUrls((current) => ({ ...current, [added.id]: previewUrl }));
+          } else {
+            URL.revokeObjectURL(previewUrl);
+          }
+        }
+        setUploading(false);
+        setUploadPercent(null);
+        publish(result);
+      },
+    );
+    if (!ok && previewUrl) URL.revokeObjectURL(previewUrl);
+    if (!ok) {
+      setUploading(false);
+      setUploadPercent(null);
+    }
   };
   /** Gửi hồ sơ: BE cho AI xem các trang; bị chặn thì giữ kết quả từng trang để hiện cạnh tệp. */
   const submit = async () => {
@@ -404,13 +443,49 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
             {fileError}
           </p>
         )}
+        {uploading && (
+          <div className="mt-3">
+            <p role="status" className="text-xs font-medium text-heritage-muted">
+              {uploadPercent !== null && uploadPercent < 100
+                ? `Đang tải tệp lên… ${uploadPercent}%`
+                : "Đã gửi tệp, đang mã hóa và lưu trên máy chủ…"}
+            </p>
+            <div
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={uploadPercent ?? 100}
+              className="mt-2 h-1.5 overflow-hidden rounded-full bg-heritage-canvas"
+            >
+              <div
+                className="h-full rounded-full bg-[#1F7A55]"
+                style={{
+                  width:
+                    uploadPercent === null || uploadPercent >= 100
+                      ? "100%"
+                      : `${uploadPercent}%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
         <ul className="mt-4 divide-y divide-heritage-border">
           {version.files.map((item) => (
             <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB]">
-                  <FileText className="size-5 text-heritage-muted" aria-hidden="true" />
-                </span>
+                {previewUrls[item.id] ? (
+                  <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#ECE8DB]">
+                    <img
+                      src={previewUrls[item.id]}
+                      alt={`Xem trước ${item.fileName}`}
+                      className="size-full object-cover"
+                    />
+                  </span>
+                ) : (
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB]">
+                    <FileText className="size-5 text-heritage-muted" aria-hidden="true" />
+                  </span>
+                )}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">
                     {item.position}. {item.fileName}
@@ -431,7 +506,16 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                   if (window.confirm("Gỡ trang giấy này khỏi bản nháp?"))
                     void action.execute(
                       () => deathCaseService.removeFile(record.id, item.id),
-                      publish,
+                      (result) => {
+                        setPreviewUrls((current) => {
+                          const url = current[item.id];
+                          if (url) URL.revokeObjectURL(url);
+                          const next = { ...current };
+                          delete next[item.id];
+                          return next;
+                        });
+                        publish(result);
+                      },
                     );
                 }}
               >

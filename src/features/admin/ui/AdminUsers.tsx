@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import type { AdminUser, AdminUserStatus, AdminUsersPage } from "../model/admin.schema";
 import { ROLE_LABELS, STATUS_LABELS, formatDate, formatDateTime } from "../model/admin.content";
-import { useAdminUsers } from "../model/useAdmin";
+import { adminKeys, useAdminUsers } from "../model/useAdmin";
+import { AdminCreateUserDialog } from "./AdminCreateUserDialog";
 import { useAdminUsersSearchParams } from "../model/useAdminUsersSearchParams";
 import { AdminUserActions } from "./AdminUserActions";
 import { AdminErrorMessage } from "./AdminStateMessage";
@@ -21,6 +23,14 @@ export function AdminUsers() {
   const query = useAdminUsers(search.query);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const previousPage = useRef(search.page);
+  const client = useQueryClient();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createdFeedback, setCreatedFeedback] = useState<string | null>(null);
+
+  const handleCreated = (user: AdminUser) => {
+    void client.invalidateQueries({ queryKey: [...adminKeys.all, "users"] });
+    setCreatedFeedback(`Đã tạo tài khoản ${user.email} (${ROLE_LABELS[user.role]}) thành công.`);
+  };
 
   // Đổi trang: đưa focus về đầu kết quả để người dùng bàn phím không mất vị trí.
   useEffect(() => {
@@ -37,14 +47,30 @@ export function AdminUsers() {
         onClear={search.clearFilters}
       />
       <section aria-labelledby="admin-users-heading" className="space-y-3">
-        <h2
-          id="admin-users-heading"
-          ref={headingRef}
-          tabIndex={-1}
-          className="text-lg font-semibold outline-none"
-        >
-          Danh sách tài khoản
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2
+            id="admin-users-heading"
+            ref={headingRef}
+            tabIndex={-1}
+            className="text-lg font-semibold outline-none"
+          >
+            Danh sách tài khoản
+          </h2>
+          <Button
+            type="button"
+            onClick={() => {
+              setCreatedFeedback(null);
+              setCreateOpen(true);
+            }}
+          >
+            + Tạo tài khoản
+          </Button>
+        </div>
+        {createdFeedback && (
+          <div role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            {createdFeedback}
+          </div>
+        )}
         <UsersResult
           page={search.page}
           hasFilters={search.hasFilters}
@@ -53,6 +79,13 @@ export function AdminUsers() {
           onClear={search.clearFilters}
         />
       </section>
+      {createOpen && (
+        <AdminCreateUserDialog
+          open={createOpen}
+          onClose={() => setCreateOpen(false)}
+          onDone={handleCreated}
+        />
+      )}
     </div>
   );
 }

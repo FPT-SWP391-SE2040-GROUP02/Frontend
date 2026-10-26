@@ -48,10 +48,10 @@ describe("Backend 838ebe1 raw contract", () => {
       currentSessionResponseSchema.safeParse({ ...user, emailVerified: undefined }).success,
     ).toBe(false);
   });
-  it.each(["USER", "VERIFIER", "ADMIN"])("preserves system role %s", (role) => {
+  it.each(["USER", "VERIFIER", "ADMIN", "EXECUTOR"])("preserves system role %s", (role) => {
     expect(currentSessionResponseSchema.parse({ ...user, role }).role).toBe(role);
   });
-  it.each(["OWNER", "NOTARY", "EXECUTOR", "unexpected"])("rejects non-system role %s", (role) => {
+  it.each(["OWNER", "NOTARY", "unexpected"])("rejects non-system role %s", (role) => {
     expect(currentSessionResponseSchema.safeParse({ ...user, role }).success).toBe(false);
   });
   it.each([-1, 1.5, "900"])("rejects invalid expiresIn %s", (expiresIn) => {

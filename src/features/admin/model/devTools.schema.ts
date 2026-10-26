@@ -75,3 +75,18 @@ export const devRewindBeforeEkycSchema = z.object({
   pendingOrdersCancelled: z.number().int().nonnegative(),
 });
 export type DevRewindBeforeEkyc = z.infer<typeof devRewindBeforeEkycSchema>;
+
+/** GET /admin/dev-tools/ekyc-threshold → ngưỡng so khớp khuôn mặt eKYC đang chạy (DevEkycThresholdResponse). */
+export const devEkycThresholdSchema = z.object({
+  currentThreshold: z.number(),
+  defaultThreshold: z.number(),
+  min: z.number(),
+  max: z.number(),
+});
+export type DevEkycThreshold = z.infer<typeof devEkycThresholdSchema>;
+
+/** PUT /admin/dev-tools/ekyc-threshold: ngưỡng mới trong dải an toàn [min; max]. */
+export const devUpdateEkycThresholdRequestSchema = z.object({
+  threshold: z.number(),
+});
+export type DevUpdateEkycThresholdRequest = z.infer<typeof devUpdateEkycThresholdRequestSchema>;

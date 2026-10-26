@@ -36,8 +36,14 @@ export const backendAssetService = {
       ),
     );
   },
-  /** Multipart trực tiếp theo AssetsController, không giả presigned URL. */
-  async upload(vaultId: string, file: File, name?: string, description?: string) {
+  /** Multipart trực tiếp theo AssetsController, không giả presigned URL; progress theo byte đã gửi. */
+  async upload(
+    vaultId: string,
+    file: File,
+    name?: string,
+    description?: string,
+    onUploadProgress?: (percent: number) => void,
+  ) {
     const fields = z
       .object({
         name: z.string().max(200).optional(),
@@ -51,6 +57,11 @@ export const backendAssetService = {
     return backendAssetSchema.parse(
       await apiClient.post<unknown, unknown>(assets(vaultId), form, {
         headers: { "Content-Type": undefined },
+        onUploadProgress: (event) => {
+          if (event.total && onUploadProgress) {
+            onUploadProgress(Math.round((event.loaded / event.total) * 100));
+          }
+        },
       }),
     );
   },

@@ -97,6 +97,11 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
       (!searchParams.get("redirect") || redirectUrl.startsWith(ROUTES.DASHBOARD.ROOT))
     ) {
       navigate(ROUTES.NOTARY.WORKSPACE);
+    } else if (
+      user.role === ROLES.EXECUTOR &&
+      (!searchParams.get("redirect") || redirectUrl.startsWith(ROUTES.DASHBOARD.ROOT))
+    ) {
+      navigate(ROUTES.EXECUTOR.ROOT);
     } else {
       navigate(redirectUrl);
     }

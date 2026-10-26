@@ -9,7 +9,7 @@ import { buttonStyles, Panel } from "@/shared/ui/heritageKit";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { backendAssetService } from "../api/backendAssetService";
-import { ADD_ASSET_NAME_ID } from "../model/addAssetForm";
+import { ADD_ASSET_NAME_ID, MAX_ASSET_FILE_BYTES, validateAssetFile } from "../model/addAssetForm";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 
 const schema = z.object({
@@ -38,6 +38,8 @@ export function CreateAssetForm({
   const [kind, setKind] = useState<Kind>("TEXT");
   const [fileError, setFileError] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  // Tiến độ pha 1 (gửi byte lên mạng); pha 2 là "máy chủ mã hóa/lưu" khi pending sau khi upload xong.
+  const [uploadPercent, setUploadPercent] = useState<number | null>(null);
   // Đổi khóa để ô chọn tệp được dựng lại và quên tệp đã chọn.
   const [fileInputKey, setFileInputKey] = useState(0);
   const {
@@ -56,7 +58,19 @@ export function CreateAssetForm({
     reset();
     setFile(null);
     setFileError("");
+    setUploadPercent(null);
     setFileInputKey((value) => value + 1);
+  };
+  const pickFile = (next: File | null) => {
+    setFile(next);
+    // Chọn lại tệp (kể cả hủy chọn) phải làm mờ "Đã lưu vào kho" và lỗi cũ của tệp trước.
+    action.reset();
+    setUploadPercent(null);
+    if (next) {
+      setFileError(validateAssetFile(next, remainingBytes));
+    } else {
+      setFileError("");
+    }
   };
   const nameField = register("name");
   return (
@@ -66,25 +80,30 @@ export function CreateAssetForm({
         noValidate
         className="space-y-4"
         onSubmit={handleSubmit(async (values) => {
+          if (kind === "FILE") {
+            const error = validateAssetFile(file, remainingBytes);
+            if (error) {
+              setFileError(error);
+              return;
+            }
+          }
           setFileError("");
           if (kind === "TEXT" && !values.content.trim()) {
             setError("content", { message: "Nhập nội dung." });
             return;
           }
-          if (
-            kind === "FILE" &&
-            (!file || file.size === 0 || file.size > Math.min(500 * 1024 * 1024, remainingBytes))
-          ) {
-            setFileError(
-              `Chọn tệp không rỗng, tối đa ${formatStorageSize(500 * 1024 * 1024)} và không vượt dung lượng còn lại.`,
-            );
-            return;
-          }
+          setUploadPercent(null);
           const saved = await action.execute(
             () =>
               kind === "TEXT"
                 ? backendAssetService.createText(vaultId, values)
-                : backendAssetService.upload(vaultId, file!, values.name, values.description),
+                : backendAssetService.upload(
+                    vaultId,
+                    file!,
+                    values.name,
+                    values.description,
+                    (percent) => setUploadPercent(percent),
+                  ),
             () => {
               void client.invalidateQueries({ queryKey: ["vault-assets", vaultId] });
               void client.invalidateQueries({ queryKey: ["owner-vault"] });
@@ -155,15 +174,53 @@ export function CreateAssetForm({
               />
             </label>
           ) : (
-            <label className="block text-sm font-medium">
-              Tệp tài sản
-              <Input
-                key={fileInputKey}
-                type="file"
-                className="mt-2 h-auto rounded-xl bg-white px-3 py-2.5 text-sm font-normal"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              />
-            </label>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">
+                Tệp tài sản
+                <Input
+                  key={fileInputKey}
+                  type="file"
+                  className="mt-2 h-auto rounded-xl bg-white px-3 py-2.5 text-sm font-normal"
+                  onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+                />
+              </label>
+              {file && (
+                <p className="text-xs text-heritage-muted">
+                  Đã chọn: {file.name} · {file.size} bytes
+                </p>
+              )}
+            </div>
+          )}
+          {kind === "FILE" && (
+            <p className="text-xs text-heritage-muted">
+              Tệp tối đa {formatStorageSize(MAX_ASSET_FILE_BYTES)}.
+            </p>
+          )}
+          {kind === "FILE" && action.pending && (
+            <div className="space-y-1">
+              <p role="status" className="text-xs font-medium">
+                {uploadPercent !== null && uploadPercent < 100
+                  ? `Đang tải tệp lên… ${uploadPercent}%`
+                  : "Đã gửi tệp, đang mã hóa và lưu trên máy chủ…"}
+              </p>
+              <div
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={uploadPercent ?? 100}
+                className="h-2 overflow-hidden rounded-full bg-heritage-canvas"
+              >
+                <div
+                  className="h-full rounded-full bg-[#1F7A55]"
+                  style={{
+                    width:
+                      uploadPercent === null || uploadPercent >= 100
+                        ? "100%"
+                        : `${uploadPercent}%`,
+                  }}
+                />
+              </div>
+            </div>
           )}
           {(errors.content || fileError) && (
             <p role="alert" className="text-sm text-destructive">

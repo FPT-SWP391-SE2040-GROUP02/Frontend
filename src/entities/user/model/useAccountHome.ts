@@ -9,6 +9,7 @@ export function useAccountHome(): string {
     if (!state.auth.isAuthenticated) return ROUTES.HOME;
     if (state.auth.user?.role === ROLES.ADMIN) return ROUTES.ADMIN.ROOT;
     if (state.auth.user?.role === ROLES.VERIFIER) return ROUTES.NOTARY.WORKSPACE;
+    if (state.auth.user?.role === ROLES.EXECUTOR) return ROUTES.EXECUTOR.ROOT;
     return ROUTES.DASHBOARD.ROOT;
   });
 }

@@ -12,9 +12,11 @@ import {
   DEV_TOOLS_FOOTNOTE,
   DEV_TOOLS_NOTICE,
   EKYC_RESET_DESCRIPTION,
+  EKYC_THRESHOLD_DESCRIPTION,
   RESET_DONE,
   REWIND_DESCRIPTION,
   ekycResetDone,
+  ekycThresholdDone,
   planStatusLabel,
   rewindDone,
 } from "../model/devTools.content";
@@ -23,10 +25,12 @@ import {
   devEkycResetSchema,
   devRewindBeforeEkycSchema,
   type DevClock,
+  type DevEkycThreshold,
   type DevMilestone,
 } from "../model/devTools.schema";
 import { adminKeys } from "../model/useAdmin";
-import { devToolsKeys, useDevClock, useDevVaults } from "../model/useDevTools";
+import { useAdminAction } from "../model/useAdminAction";
+import { devToolsKeys, useDevClock, useDevEkycThreshold, useDevVaults } from "../model/useDevTools";
 import { AdminActionDialog } from "./AdminActionDialog";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
@@ -188,6 +192,8 @@ export function AdminDevTools() {
         </button>
       </Panel>
 
+      <EkycThresholdPanel onDone={(message) => setDone(message)} />
+
       {dialog?.kind === "travel" && (
         <AdminActionDialog
           title={`Tua tới “${DEV_MILESTONES[dialog.milestone.key].title}”?`}
@@ -323,5 +329,120 @@ function MilestoneRow({
         {passed ? "Đã qua mốc này" : "Tua tới mốc này"}
       </button>
     </li>
+  );
+}
+
+function EkycThresholdPanel({ onDone }: { onDone: (message: string) => void }) {
+  const threshold = useDevEkycThreshold();
+  const { execute, pending, error } = useAdminAction();
+  const client = useQueryClient();
+  const data = threshold.data;
+  const currentThreshold = data?.currentThreshold;
+  const [userDraft, setUserDraft] = useState<number | null>(null);
+  const draft = userDraft ?? currentThreshold ?? 0.363;
+
+  const min = data?.min ?? 0.2;
+  const max = data?.max ?? 0.6;
+  const step = 0.01;
+  const defaultValue = data?.defaultThreshold ?? 0.363;
+  const inSafeRange = draft >= min && draft <= max;
+
+  function apply(nextValue: number) {
+    onDone("");
+    void execute(
+      () => devToolsService.updateEkycThreshold(nextValue),
+      (result: DevEkycThreshold) => {
+        client.setQueryData(devToolsKeys.ekycThreshold(), result);
+        setUserDraft(null);
+        onDone(ekycThresholdDone(result));
+      },
+    );
+  }
+
+  return (
+    <Panel title="Cấu hình ngưỡng so khớp khuôn mặt eKYC" labelledBy="dev-tools-ekyc-threshold">
+      {threshold.isPending && <Skeleton className="h-40 rounded-xl" />}
+      {threshold.isError && (
+        <AdminErrorMessage
+          error={threshold.error}
+          onRetry={() => void threshold.refetch()}
+          retrying={threshold.isFetching}
+        />
+      )}
+      {threshold.isSuccess && (
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip tone={threshold.data.currentThreshold === defaultValue ? "success" : "neutral"}>
+              {threshold.data.currentThreshold.toFixed(3)}
+              {threshold.data.currentThreshold === defaultValue ? " (Chuẩn khuyến nghị)" : ""}
+            </Chip>
+            <p className="text-xs text-heritage-muted">
+              Dải an toàn {min.toFixed(2)} – {max.toFixed(2)} · mặc định {defaultValue.toFixed(3)}
+            </p>
+          </div>
+          <p className="text-sm text-heritage-muted">{EKYC_THRESHOLD_DESCRIPTION}</p>
+
+          <div>
+            <label className="flex items-center justify-between text-sm font-semibold" htmlFor="ekyc-threshold-range">
+              Ngưỡng đang chọn: {draft.toFixed(2)}
+              <input
+                id="ekyc-threshold-number"
+                type="number"
+                min={min}
+                max={max}
+                step={step}
+                value={draft}
+                aria-label="Ngưỡng so khớp khuôn mặt"
+                onChange={(event) => {
+                  const value = Number.parseFloat(event.target.value);
+                  if (Number.isNaN(value)) return;
+                  setUserDraft(Math.max(min, Math.min(max, value)));
+                }}
+                className="h-9 w-24 rounded-lg border border-heritage-border bg-white px-3 text-right text-sm tabular-nums"
+              />
+            </label>
+            <input
+              id="ekyc-threshold-range"
+              type="range"
+              min={min}
+              max={max}
+              step={step}
+              value={draft}
+              onChange={(event) => setUserDraft(Number.parseFloat(event.target.value))}
+              className="mt-2 w-full accent-[#7A5B25]"
+            />
+          </div>
+          {!inSafeRange && (
+            <p role="alert" className="text-sm text-destructive">
+              Ngưỡng phải nằm trong dải an toàn {min.toFixed(2)} – {max.toFixed(2)}.
+            </p>
+          )}
+          {error && !pending && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              className={buttonStyles.gold}
+              disabled={pending || !inSafeRange}
+              onClick={() => apply(draft)}
+            >
+              Cập nhật ngưỡng
+            </button>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              disabled={pending}
+              onClick={() => apply(defaultValue)}
+            >
+              Đặt lại mặc định ({defaultValue.toFixed(3)})
+            </button>
+          </div>
+        </div>
+      )}
+    </Panel>
   );
 }

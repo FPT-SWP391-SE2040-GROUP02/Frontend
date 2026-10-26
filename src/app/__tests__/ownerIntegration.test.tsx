@@ -144,7 +144,7 @@ it("rejects an oversized file without sending a request", async () => {
     target: { files: [new File(["oversize"], "fixture.txt")] },
   });
   fireEvent.click(screen.getByRole("button", { name: "Lưu vào kho" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("dung lượng còn lại");
+  expect(await screen.findByRole("alert")).toHaveTextContent("khả dụng còn lại");
   expect(post).not.toHaveBeenCalled();
 });
 it("creates a scoped container only after valid submit", async () => {

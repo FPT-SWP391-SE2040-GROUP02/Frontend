@@ -365,5 +365,11 @@ export function usePrivateAction() {
       if (mounted.current) setPending(false);
     }
   }
-  return { execute, pending, error, fieldErrors, succeeded };
+  /** Xoá feedback (thành công/lỗi/ký trường) để UI không hiển thị thông báo cũ; không chạm `pending`. */
+  function reset() {
+    setError("");
+    setFieldErrors({});
+    setSucceeded(false);
+  }
+  return { execute, reset, pending, error, fieldErrors, succeeded };
 }

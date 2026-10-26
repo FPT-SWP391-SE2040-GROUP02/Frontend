@@ -28,13 +28,23 @@ export const deathCaseService = {
       ),
     );
   },
-  async upload(caseId: string, file: File) {
+  /** Multipart tệp kèm tiến độ theo byte đã gửi; không cache nội dung giấy tờ. */
+  async upload(caseId: string, file: File, onUploadProgress?: (percent: number) => void) {
     const body = new FormData();
     body.append("file", file);
     return deathCaseSchema.parse(
-      await apiClient.post<unknown, unknown>(`${path(caseId)}/files`, body, {
-        headers: { "Content-Type": undefined },
-      }),
+      await apiClient.post<unknown, unknown>(
+        `${path(caseId)}/files`,
+        body,
+        {
+          headers: { "Content-Type": undefined },
+          onUploadProgress: (event) => {
+            if (onUploadProgress && event.total) {
+              onUploadProgress(Math.round((event.loaded / event.total) * 100));
+            }
+          },
+        },
+      ),
     );
   },
   async removeFile(caseId: string, fileId: string) {
