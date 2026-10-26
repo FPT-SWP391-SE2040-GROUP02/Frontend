@@ -13,15 +13,18 @@ import {
   verifierCaseSummarySchema,
   verifierObjectionSchema,
 } from "../model/verifierReview.schema";
+
 const id = z.string().uuid();
 const listSchema = paginatedListSchema(verifierCaseSummarySchema);
+const verifierListQuerySchema = paginationRequestSchema.omit({ searchTerm: true });
+
 /** Transport Verifier theo controller thật; không dùng legacy notary/claim fixture. */
 export const verifierReviewService = {
-  /** Hồ sơ đang giao cho tôi; sortBy: dueAt (mặc định) | assignedAt. */
+  /** Hồ sơ đang giao cho tôi; sortBy: dueAt (mặc định) | assignedAt; không gửi searchTerm thừa. */
   async list(params?: PaginationParams, signal?: AbortSignal) {
     return listSchema.parse(
       await apiClient.get<unknown, unknown>("/verifier/death-cases", {
-        params: paginationRequestSchema.parse(params ?? {}),
+        params: verifierListQuerySchema.parse(params ?? {}),
         signal,
       }),
     );
