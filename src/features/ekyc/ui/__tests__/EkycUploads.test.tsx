@@ -134,7 +134,6 @@ describe("EkycUploads: mặt sau trước khi xác nhận (BR-88)", () => {
     await sendBack();
 
     await waitFor(() => expect(address().value).toBe("12 Đường Thử, Quận 1"));
-    expect(screen.getByText(/Địa chỉ được đọc từ mặt sau/)).toBeInTheDocument();
     // Chưa xác nhận thì chưa sang bước camera.
     expect(screen.queryByText("Thử thách camera đang mở")).not.toBeInTheDocument();
 

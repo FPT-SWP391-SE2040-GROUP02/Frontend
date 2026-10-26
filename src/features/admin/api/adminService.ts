@@ -22,6 +22,8 @@ import {
   reviewHoldRequestSchema,
   reviewIncidentRequestSchema,
   type AdminUsersQuery,
+  type CreateAdminUserRequest,
+  createAdminUserRequestSchema,
   type AssignIncidentRequest,
   type ChangeUserRoleRequest,
   type ChangeUserStatusRequest,
@@ -46,6 +48,13 @@ export const adminService = {
   async getDashboard(signal?: AbortSignal) {
     return adminDashboardSchema.parse(
       await apiClient.get<unknown, unknown>("/admin/dashboard", { signal }),
+    );
+  },
+  /** Tạo tài khoản hệ thống mới (Verifier, Executor, Admin). */
+  async createUser(body: CreateAdminUserRequest, signal?: AbortSignal) {
+    const payload = createAdminUserRequestSchema.parse(body);
+    return adminUserSchema.parse(
+      await apiClient.post<unknown, unknown>("/admin/users", payload, { signal }),
     );
   },
   /** Danh sách tài khoản; bỏ `search` rỗng thay vì gửi `search=`. */

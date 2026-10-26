@@ -4,8 +4,10 @@ import {
   devClockSchema,
   devEkycResetRequestSchema,
   devEkycResetSchema,
+  devEkycThresholdSchema,
   devRewindBeforeEkycSchema,
   devTimeTravelRequestSchema,
+  devUpdateEkycThresholdRequestSchema,
   devVaultOptionsSchema,
   type DevEkycResetRequest,
   type DevTimeTravelRequest,
@@ -59,6 +61,21 @@ export const devToolsService = {
   async rewindBeforeEkyc(vaultId: string) {
     return devRewindBeforeEkycSchema.parse(
       await apiClient.post<unknown, unknown>(`${vault(vaultId)}/rewind-before-ekyc`),
+    );
+  },
+  /** Ngưỡng so khớp khuôn mặt eKYC đang chạy (gồm cả override runtime nếu đã đặt). */
+  async getEkycThreshold(signal?: AbortSignal) {
+    return devEkycThresholdSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/dev-tools/ekyc-threshold", { signal }),
+    );
+  },
+  /** Đặt lại ngưỡng so khớp (override runtime trong bộ nhớ, không lưu DB); ngoài dải an toàn thì 400. */
+  async updateEkycThreshold(threshold: number) {
+    return devEkycThresholdSchema.parse(
+      await apiClient.put<unknown, unknown>(
+        "/admin/dev-tools/ekyc-threshold",
+        devUpdateEkycThresholdRequestSchema.parse({ threshold }),
+      ),
     );
   },
 };

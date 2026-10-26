@@ -2,7 +2,7 @@ import { z } from "zod";
 import { paginatedListSchema } from "@/shared/api/pagination.schema";
 
 /** Vai trò tài khoản theo `UserRole` của Backend (wire viết hoa). */
-export const ADMIN_USER_ROLES = ["USER", "VERIFIER", "ADMIN"] as const;
+export const ADMIN_USER_ROLES = ["USER", "VERIFIER", "ADMIN", "EXECUTOR"] as const;
 /** Trạng thái tài khoản theo `UserStatus` của Backend (wire viết hoa). */
 export const ADMIN_USER_STATUSES = ["ACTIVE", "LOCKED", "DISABLED"] as const;
 
@@ -241,3 +241,12 @@ export type ReviewHoldRequest = z.infer<typeof reviewHoldRequestSchema>;
 export type ChangeUserRoleRequest = z.infer<typeof changeUserRoleRequestSchema>;
 export type ChangeUserStatusRequest = z.infer<typeof changeUserStatusRequestSchema>;
 export type ReassignVerifierRequest = z.infer<typeof reassignVerifierRequestSchema>;
+
+export const createAdminUserRequestSchema = z.object({
+  fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
+  email: z.string().trim().email("Địa chỉ email không hợp lệ.").max(256),
+  password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128),
+  role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),
+  phone: z.string().trim().max(32).optional(),
+});
+export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;

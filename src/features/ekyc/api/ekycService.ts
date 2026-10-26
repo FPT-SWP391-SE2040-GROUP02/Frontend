@@ -89,6 +89,16 @@ function turnIdFor(purpose: string, handoverTurnId?: string | null): string | un
   if (!handoverTurnId) throw new Error("Thiếu mã lượt bàn giao cho BENEFICIARY_CLAIM.");
   return handoverTurnId;
 }
+/** Đổi sự kiện byte của axios thành phần trăm tròn; bỏ sự kiện thiếu tổng (multipart thường có). */
+function progressHandler(
+  onUploadProgress?: (percent: number) => void,
+): (event: { loaded: number; total?: number }) => void {
+  return (event) => {
+    if (onUploadProgress && event.total) {
+      onUploadProgress(Math.round((event.loaded / event.total) * 100));
+    }
+  };
+}
 /** Transport eKYC; không retry gửi ảnh, không tự quyết PASSED/MATCHED. */
 export const ekycService = {
   /** Xác nhận bản tự khai sau khi người dùng sửa; không nâng kết quả đối chiếu ảnh. */
@@ -114,8 +124,13 @@ export const ekycService = {
       ),
     );
   },
-  /** POST ảnh mặt trước; OCR chỉ giữ RAM. */
-  async submitDocument(file: File, purpose: string, handoverTurnId?: string | null) {
+  /** POST ảnh mặt trước; OCR chỉ giữ RAM; progress theo byte đã gửi. */
+  async submitDocument(
+    file: File,
+    purpose: string,
+    handoverTurnId?: string | null,
+    onUploadProgress?: (percent: number) => void,
+  ) {
     const parsed = ekycPurposeSchema.parse(purpose);
     const optimizedFile = await optimizeImageForUpload(file);
     return ekycDocumentSchema.parse(
@@ -123,7 +138,11 @@ export const ekycService = {
         "/ekyc/document",
         imageForm(optimizedFile, turnIdFor(parsed, handoverTurnId)),
         // Đọc OCR có thể lâu (lần đầu nạp mô hình); BE chờ dịch vụ eKYC tối đa 120 giây (Ekyc:TimeoutSeconds).
-        { headers: { "Content-Type": undefined }, timeout: OCR_TIMEOUT_MS },
+        {
+          headers: { "Content-Type": undefined },
+          timeout: OCR_TIMEOUT_MS,
+          onUploadProgress: progressHandler(onUploadProgress),
+        },
       ),
     );
   },
@@ -131,14 +150,23 @@ export const ekycService = {
    * POST ảnh mặt sau; response là EkycBackResponse (trạng thái lượt + nơi cư trú đọc từ mặt sau), không cần gửi
    * lại turnId. Có thể gửi trước bước xác nhận bản khai: BE chỉ cần đã đọc mặt trước.
    */
-  async submitDocumentBack(file: File, purpose: string, handoverTurnId?: string | null) {
+  async submitDocumentBack(
+    file: File,
+    purpose: string,
+    handoverTurnId?: string | null,
+    onUploadProgress?: (percent: number) => void,
+  ) {
     const parsed = ekycPurposeSchema.parse(purpose);
     const optimizedFile = await optimizeImageForUpload(file);
     return ekycBackSchema.parse(
       await apiClient.post<unknown, unknown>(
         "/ekyc/document-back",
         imageForm(optimizedFile, turnIdFor(parsed, handoverTurnId)),
-        { headers: { "Content-Type": undefined }, timeout: OCR_TIMEOUT_MS },
+        {
+          headers: { "Content-Type": undefined },
+          timeout: OCR_TIMEOUT_MS,
+          onUploadProgress: progressHandler(onUploadProgress),
+        },
       ),
     );
   },

@@ -8,6 +8,7 @@ import {
 } from "@/features/admin";
 import { AdminTwoFactorSettings } from "@/features/auth";
 import { ROUTES } from "@/shared/config/routes.config";
+import { ENV } from "@/shared/config/env";
 import {
   WorkspaceFrame,
   type WorkspaceNavigationItem,
@@ -22,8 +23,11 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
   { id: "security", label: "Bảo mật tài khoản", to: `${ROUTES.ADMIN.ROOT}?view=security` },
 ];
 
-/** Công cụ thử nghiệm chỉ có khi chạy `npm run dev`; bản build không có mục này (Backend cũng chỉ mở ở Development). */
-const DEV_TOOLS_ENABLED = import.meta.env.DEV;
+/**
+ * Công cụ thử nghiệm bật khi chạy `npm run dev` HOẶC bản build/preview có VITE_ENABLE_DEVTOOLS=true
+ * (Backend DevToolsController cũng mở ở Development hoặc Staging).
+ */
+const DEV_TOOLS_ENABLED = import.meta.env.DEV || ENV.ENABLE_DEVTOOLS;
 
 const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
   ? [

@@ -67,15 +67,7 @@ export function EkycReviewForm({
       setValue("residenceAddress", suggestedAddress, { shouldValidate: true, shouldDirty: true });
     }
   }, [suggestedAddress, getValues, setValue]);
-  const addressFromBack = Boolean(suggestedAddress) && !defaults.residenceAddress;
   const addressMissing = !defaults.residenceAddress && !suggestedAddress;
-  // Nguồn địa chỉ chỉ để người dùng biết gợi ý đến từ đâu; vẫn phải đối chiếu giấy tờ gốc.
-  let addressSource = "Chưa có địa chỉ";
-  if (defaults.residenceAddress) {
-    addressSource = "Mặt trước thẻ";
-  } else if (suggestedAddress) {
-    addressSource = "Mặt sau thẻ";
-  }
   let statusChip = "Có thể chỉnh sửa";
   let statusStyle = "bg-[#F1E7D0] text-[#7A5B24]";
   if (confirmed) {
@@ -181,36 +173,24 @@ export function EkycReviewForm({
       </p>
       <fieldset disabled={disabled || action.pending} className="mt-4 min-w-0 space-y-4">
         {fieldRows}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="min-w-0 space-y-2">
-            <label htmlFor={`${prefix}-dateOfBirth`} className="text-sm font-semibold">
-              Ngày sinh
-            </label>
-            <Input
-              id={`${prefix}-dateOfBirth`}
-              type="date"
-              {...register("dateOfBirth")}
-              readOnly={confirmed}
-              className="min-h-11 w-full min-w-0"
-              aria-invalid={Boolean(errors.dateOfBirth)}
-              aria-describedby={errors.dateOfBirth ? `${prefix}-dateOfBirth-error` : undefined}
-            />
-            {errors.dateOfBirth && (
-              <p
-                id={`${prefix}-dateOfBirth-error`}
-                role="alert"
-                className="text-sm text-destructive"
-              >
-                {errors.dateOfBirth.message}
-              </p>
-            )}
-          </div>
-          <div className="min-w-0 space-y-2">
-            <p className="text-sm font-semibold">Nguồn địa chỉ</p>
-            <p className="flex min-h-11 items-center rounded-lg border border-heritage-border bg-heritage-canvas px-3 text-sm text-heritage-muted">
-              {addressSource}
+        <div className="min-w-0 space-y-2">
+          <label htmlFor={`${prefix}-dateOfBirth`} className="text-sm font-semibold">
+            Ngày sinh
+          </label>
+          <Input
+            id={`${prefix}-dateOfBirth`}
+            type="date"
+            {...register("dateOfBirth")}
+            readOnly={confirmed}
+            className="min-h-11 w-full min-w-0"
+            aria-invalid={Boolean(errors.dateOfBirth)}
+            aria-describedby={errors.dateOfBirth ? `${prefix}-dateOfBirth-error` : undefined}
+          />
+          {errors.dateOfBirth && (
+            <p id={`${prefix}-dateOfBirth-error`} role="alert" className="text-sm text-destructive">
+              {errors.dateOfBirth.message}
             </p>
-          </div>
+          )}
         </div>
         <div className="min-w-0 space-y-2">
           <label htmlFor={`${prefix}-residenceAddress`} className="text-sm font-semibold">
@@ -232,11 +212,6 @@ export function EkycReviewForm({
               {backSent
                 ? "Chưa đọc được địa chỉ từ mặt sau; hãy nhập theo giấy tờ gốc hoặc gửi lại ảnh mặt sau rõ hơn."
                 : "Thêm ảnh mặt sau thật nét ở tab Mặt sau để hệ thống điền giúp, hoặc tự nhập."}
-            </p>
-          )}
-          {!confirmed && addressFromBack && (
-            <p className="text-sm text-heritage-muted">
-              Địa chỉ được đọc từ mặt sau. Hãy đối chiếu với giấy tờ gốc và sửa nếu sai.
             </p>
           )}
           {errors.residenceAddress && (
