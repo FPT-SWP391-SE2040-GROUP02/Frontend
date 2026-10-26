@@ -461,9 +461,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                 className="h-full rounded-full bg-[#1F7A55]"
                 style={{
                   width:
-                    uploadPercent === null || uploadPercent >= 100
-                      ? "100%"
-                      : `${uploadPercent}%`,
+                    uploadPercent === null || uploadPercent >= 100 ? "100%" : `${uploadPercent}%`,
                 }}
               />
             </div>

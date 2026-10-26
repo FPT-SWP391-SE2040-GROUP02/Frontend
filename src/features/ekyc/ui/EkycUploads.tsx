@@ -6,12 +6,7 @@ import { ArrowRight, Check, Lock, X, ZoomIn } from "lucide-react";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Button } from "@/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/shared/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
 import { ekycDocumentSchema, ekycPurposeSchema, ekycStatusSchema } from "../model/ekyc.schema";
 import { ekycService } from "../api/ekycService";
 import { LivenessPanel } from "./LivenessPanel";

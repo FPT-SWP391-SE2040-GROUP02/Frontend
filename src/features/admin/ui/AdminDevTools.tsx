@@ -383,7 +383,10 @@ function EkycThresholdPanel({ onDone }: { onDone: (message: string) => void }) {
           <p className="text-sm text-heritage-muted">{EKYC_THRESHOLD_DESCRIPTION}</p>
 
           <div>
-            <label className="flex items-center justify-between text-sm font-semibold" htmlFor="ekyc-threshold-range">
+            <label
+              className="flex items-center justify-between text-sm font-semibold"
+              htmlFor="ekyc-threshold-range"
+            >
               Ngưỡng đang chọn: {draft.toFixed(2)}
               <input
                 id="ekyc-threshold-number"

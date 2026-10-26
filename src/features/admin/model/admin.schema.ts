@@ -242,7 +242,6 @@ export type ChangeUserRoleRequest = z.infer<typeof changeUserRoleRequestSchema>;
 export type ChangeUserStatusRequest = z.infer<typeof changeUserStatusRequestSchema>;
 export type ReassignVerifierRequest = z.infer<typeof reassignVerifierRequestSchema>;
 
-
 export const createAdminUserRequestSchema = z.object({
   fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
   email: z.string().trim().email("Địa chỉ email không hợp lệ.").max(256),

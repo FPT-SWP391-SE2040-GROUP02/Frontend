@@ -67,7 +67,10 @@ export function AdminUsers() {
           </Button>
         </div>
         {createdFeedback && (
-          <div role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <div
+            role="status"
+            className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+          >
             {createdFeedback}
           </div>
         )}

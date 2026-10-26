@@ -187,11 +187,7 @@ export function EkycReviewForm({
             aria-describedby={errors.dateOfBirth ? `${prefix}-dateOfBirth-error` : undefined}
           />
           {errors.dateOfBirth && (
-            <p
-              id={`${prefix}-dateOfBirth-error`}
-              role="alert"
-              className="text-sm text-destructive"
-            >
+            <p id={`${prefix}-dateOfBirth-error`} role="alert" className="text-sm text-destructive">
               {errors.dateOfBirth.message}
             </p>
           )}

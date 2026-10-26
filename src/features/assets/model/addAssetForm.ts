@@ -13,10 +13,7 @@ export const MAX_ASSET_FILE_BYTES = 500_000_000;
  * Kiểm tra tệp tài sản theo đúng thứ tự ưu tiên; trả thông báo lỗi cụ thể, rỗng nếu hợp lệ.
  * Mỗi trường hợp có một câu riêng để người dùng biết chính xác cách sửa.
  */
-export function validateAssetFile(
-  file: File | null,
-  remainingBytes: number,
-): string {
+export function validateAssetFile(file: File | null, remainingBytes: number): string {
   if (!file) return "Vui lòng chọn tệp tài sản.";
   if (file.size === 0) return "Tệp đã chọn rỗng (0 bytes). Vui lòng chọn tệp hợp lệ.";
   if (file.size > MAX_ASSET_FILE_BYTES) {

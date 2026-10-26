@@ -67,13 +67,17 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
         <DialogHeader>
           <DialogTitle>Tạo tài khoản hệ thống mới</DialogTitle>
           <DialogDescription>
-            Cấp tài khoản cho Người xét duyệt (Công chứng viên), Người thừa hành hoặc Quản trị viên. Tài khoản được kích hoạt ngay.
+            Cấp tài khoản cho Người xét duyệt (Công chứng viên), Người thừa hành hoặc Quản trị viên.
+            Tài khoản được kích hoạt ngay.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label htmlFor="create-user-fullname" className="block text-sm font-medium text-heritage-text">
+            <label
+              htmlFor="create-user-fullname"
+              className="block text-sm font-medium text-heritage-text"
+            >
               Họ và tên <span className="text-destructive">*</span>
             </label>
             <Input
@@ -92,7 +96,10 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
           </div>
 
           <div>
-            <label htmlFor="create-user-email" className="block text-sm font-medium text-heritage-text">
+            <label
+              htmlFor="create-user-email"
+              className="block text-sm font-medium text-heritage-text"
+            >
               Email đăng nhập <span className="text-destructive">*</span>
             </label>
             <Input
@@ -112,7 +119,10 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
           </div>
 
           <div>
-            <label htmlFor="create-user-role" className="block text-sm font-medium text-heritage-text">
+            <label
+              htmlFor="create-user-role"
+              className="block text-sm font-medium text-heritage-text"
+            >
               Vai trò hệ thống <span className="text-destructive">*</span>
             </label>
             <select
@@ -128,7 +138,10 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
 
           <div>
             <div className="flex items-center justify-between">
-              <label htmlFor="create-user-password" className="block text-sm font-medium text-heritage-text">
+              <label
+                htmlFor="create-user-password"
+                className="block text-sm font-medium text-heritage-text"
+              >
                 Mật khẩu khởi tạo <span className="text-destructive">*</span>
               </label>
               <button
@@ -156,7 +169,10 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
           </div>
 
           <div>
-            <label htmlFor="create-user-phone" className="block text-sm font-medium text-heritage-text">
+            <label
+              htmlFor="create-user-phone"
+              className="block text-sm font-medium text-heritage-text"
+            >
               Số điện thoại <span className="text-xs text-heritage-muted">(không bắt buộc)</span>
             </label>
             <Input

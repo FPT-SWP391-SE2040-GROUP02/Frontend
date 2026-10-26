@@ -33,18 +33,14 @@ export const deathCaseService = {
     const body = new FormData();
     body.append("file", file);
     return deathCaseSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${path(caseId)}/files`,
-        body,
-        {
-          headers: { "Content-Type": undefined },
-          onUploadProgress: (event) => {
-            if (onUploadProgress && event.total) {
-              onUploadProgress(Math.round((event.loaded / event.total) * 100));
-            }
-          },
+      await apiClient.post<unknown, unknown>(`${path(caseId)}/files`, body, {
+        headers: { "Content-Type": undefined },
+        onUploadProgress: (event) => {
+          if (onUploadProgress && event.total) {
+            onUploadProgress(Math.round((event.loaded / event.total) * 100));
+          }
         },
-      ),
+      }),
     );
   },
   async removeFile(caseId: string, fileId: string) {

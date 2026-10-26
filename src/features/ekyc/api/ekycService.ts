@@ -162,7 +162,11 @@ export const ekycService = {
       await apiClient.post<unknown, unknown>(
         "/ekyc/document-back",
         imageForm(optimizedFile, turnIdFor(parsed, handoverTurnId)),
-        { headers: { "Content-Type": undefined }, timeout: OCR_TIMEOUT_MS, onUploadProgress: progressHandler(onUploadProgress) },
+        {
+          headers: { "Content-Type": undefined },
+          timeout: OCR_TIMEOUT_MS,
+          onUploadProgress: progressHandler(onUploadProgress),
+        },
       ),
     );
   },
