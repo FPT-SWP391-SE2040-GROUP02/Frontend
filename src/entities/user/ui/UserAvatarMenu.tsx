@@ -70,6 +70,7 @@ export function UserAvatarMenu({
       case ROLES.BENEFICIARY:
         return "Người Thừa Kế";
       case ROLES.NOTARY:
+      case ROLES.VERIFIER:
         return "Công Chứng Viên";
       case ROLES.ADMIN:
         return "Quản Trị Viên";
