@@ -86,9 +86,16 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
       navigate(
         `${ROUTES.AUTH.VERIFY_EMAIL}?${new URLSearchParams({ email: user.email, redirect: redirectUrl })}`,
       );
-    } else if (!searchParams.get("redirect") && user.role === ROLES.ADMIN) {
+    } else if (
+      user.role === ROLES.ADMIN &&
+      (!searchParams.get("redirect") ||
+        (redirectUrl.startsWith(ROUTES.DASHBOARD.ROOT) && redirectUrl !== ROUTES.DASHBOARD.USERS))
+    ) {
       navigate(ROUTES.ADMIN.ROOT);
-    } else if (!searchParams.get("redirect") && user.role === ROLES.VERIFIER) {
+    } else if (
+      user.role === ROLES.VERIFIER &&
+      (!searchParams.get("redirect") || redirectUrl.startsWith(ROUTES.DASHBOARD.ROOT))
+    ) {
       navigate(ROUTES.NOTARY.WORKSPACE);
     } else {
       navigate(redirectUrl);
