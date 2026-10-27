@@ -4,13 +4,18 @@ import { paginationRequestSchema } from "@/shared/api/pagination.schema";
 import type { PaginationParams } from "@/shared/types";
 import { checkInStatusSchema, updateCheckInSettingsSchema } from "../model/checkIn.schema";
 
+const checkInHistoryQuerySchema = paginationRequestSchema.pick({
+  pageIndex: true,
+  pageSize: true,
+});
+
 /** Transport điểm danh chính thức; không có endpoint pause/history riêng. */
 export const checkInService = {
-  /** GET chỉ đọc, không tự điểm danh khi mở trang. */
-  async get(params?: PaginationParams, signal?: AbortSignal) {
+  /** GET chỉ đọc, không tự điểm danh khi mở trang; chỉ gửi phân trang lịch sử. */
+  async get(params?: Pick<PaginationParams, "pageIndex" | "pageSize">, signal?: AbortSignal) {
     return checkInStatusSchema.parse(
       await apiClient.get<unknown, unknown>("/check-ins/me", {
-        params: paginationRequestSchema.parse(params ?? {}),
+        params: checkInHistoryQuerySchema.parse(params ?? {}),
         signal,
       }),
     );
@@ -20,12 +25,7 @@ export const checkInService = {
     return checkInStatusSchema.parse(await apiClient.post<unknown, unknown>("/check-ins"));
   },
   /** POST điểm danh sinh trắc học qua Smartwatch (Galaxy Watch). */
-  async checkInViaSmartwatch(request: {
-    heartRate: number;
-    deviceId?: string;
-    isOnWrist: boolean;
-    timestamp?: number;
-  }) {
+  async checkInViaSmartwatch(request: { heartRate: number; isOnWrist: boolean }) {
     return checkInStatusSchema.parse(
       await apiClient.post<unknown, unknown>("/check-ins/smartwatch", request),
     );
