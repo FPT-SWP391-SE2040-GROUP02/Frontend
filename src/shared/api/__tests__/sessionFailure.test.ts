@@ -41,4 +41,50 @@ describe("Session failure transport boundary", () => {
       }
     },
   );
+
+  it("reports session failure on /auth/session 401 SESSION_EXPIRED but ignores other /auth/ endpoints", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const expired = vi.fn();
+    const unsubscribe = subscribeSessionFailure(expired);
+    accessTokenMemory.set("active-token");
+
+    const failureSession = new AxiosError("session expired");
+    await expect(
+      apiClient.get("/auth/session", {
+        adapter: async (config) => {
+          failureSession.config = config;
+          failureSession.response = {
+            status: 401,
+            statusText: "Unauthorized",
+            headers: {},
+            config,
+            data: { code: "SESSION_EXPIRED" },
+          };
+          throw failureSession;
+        },
+      }),
+    ).rejects.toBe(failureSession);
+    expect(expired).toHaveBeenCalledTimes(1);
+
+    const failureLogin = new AxiosError("login failed");
+    await expect(
+      apiClient.post("/auth/login", undefined, {
+        adapter: async (config) => {
+          failureLogin.config = config;
+          failureLogin.response = {
+            status: 401,
+            statusText: "Unauthorized",
+            headers: {},
+            config,
+            data: { code: "SESSION_EXPIRED" },
+          };
+          throw failureLogin;
+        },
+      }),
+    ).rejects.toBe(failureLogin);
+    // Vẫn chỉ là 1 lần từ /auth/session, không tăng thêm từ /auth/login
+    expect(expired).toHaveBeenCalledTimes(1);
+
+    unsubscribe();
+  });
 });
