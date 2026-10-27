@@ -36,6 +36,21 @@ export const checkInService = {
       "/smartwatch/pairing-code",
     );
   },
+  /** GET kiểm tra trạng thái ghép nối của mã PIN 6 số. */
+  async getSmartwatchPairingStatus(code: string, signal?: AbortSignal) {
+    return apiClient.get<
+      unknown,
+      {
+        paired: boolean;
+        status: "pending" | "paired" | "expired";
+        deviceName?: string;
+        pairedAt?: string;
+      }
+    >("/smartwatch/pairing-status", {
+      params: { code },
+      signal,
+    });
+  },
   /** PATCH giữ etag; 409 yêu cầu tải lại, không optimistic. */
   async updateSettings(request: z.infer<typeof updateCheckInSettingsSchema>) {
     return checkInStatusSchema.parse(
