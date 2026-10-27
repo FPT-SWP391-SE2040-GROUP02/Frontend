@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { AxiosError, AxiosHeaders } from "axios";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -121,7 +121,9 @@ describe("thanh toán đơn đang chờ", () => {
     });
     const invalidate = vi.spyOn(client, "invalidateQueries");
     renderCheckout();
-    fireEvent.click(await screen.findByRole("button", { name: /Thanh toán thử/ }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Mô phỏng đã thanh toán|Thanh toán thử/ }),
+    );
     await waitFor(() => expect(post).toHaveBeenCalledWith(`/billing/orders/${ORDER_ID}/dev-pay`));
     expect(await screen.findByText(/Đã thanh toán/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Về Kho của tôi" })).toBeInTheDocument();
@@ -132,7 +134,9 @@ describe("thanh toán đơn đang chờ", () => {
     vi.spyOn(apiClient, "get").mockResolvedValue(pendingOrder);
     vi.spyOn(apiClient, "post").mockRejectedValue(backendError(404, "PAYMENT_ORDER_NOT_FOUND"));
     renderCheckout();
-    fireEvent.click(await screen.findByRole("button", { name: /Thanh toán thử/ }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Mô phỏng đã thanh toán|Thanh toán thử/ }),
+    );
     expect(await screen.findByText(/chưa bật thanh toán thử/)).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Mã QR chuyển khoản" })).toBeInTheDocument();
   });
@@ -198,7 +202,9 @@ describe("thanh toán đơn đang chờ", () => {
       "href",
       "/pricing",
     );
-    expect(screen.queryByRole("button", { name: /Thanh toán thử/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Mô phỏng đã thanh toán|Thanh toán thử/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("không tải được đơn thì cho thử lại, không giả kết quả", async () => {
