@@ -116,7 +116,7 @@ it("calls /liveness/complete after the server reports challenge passed", async (
   });
   expect(vi.mocked(ekycService.sendLivenessFrame)).toHaveBeenCalledTimes(1);
   expect(vi.mocked(ekycService.completeLiveness)).toHaveBeenCalledTimes(1);
-  expect(onCompleted).toHaveBeenCalledWith(statusOk);
+  expect(onCompleted).toHaveBeenCalledWith(statusOk, expect.any(String));
 });
 
 it("stops camera and frame requests after a terminal frame", async () => {
