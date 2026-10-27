@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { AxiosError, AxiosHeaders } from "axios";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { avatarService } from "@/entities/user/api/avatarService";
 import authReducer, { setUser } from "@/entities/user/model/authSlice";
@@ -23,10 +24,13 @@ const USER: User = {
 function renderEditor(user: User = USER) {
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(setUser(user));
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
-    <Provider store={store}>
-      <AvatarEditor />
-    </Provider>,
+    <QueryClientProvider client={queryClient}>
+      <Provider store={store}>
+        <AvatarEditor />
+      </Provider>
+    </QueryClientProvider>,
   );
   return store;
 }

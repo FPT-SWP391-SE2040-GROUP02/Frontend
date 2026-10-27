@@ -37,9 +37,34 @@ export function useLiveness() {
   const expiry = useRef<number | null>(null);
   const epoch = useRef(0);
   const mounted = useRef(true);
+  /** Bằng chứng selfie (blob URL) khi thử thách đạt; null khi chưa chụp hoặc đã bàn giao/thu hồi. */
+  const selfieUrlRef = useRef<string | null>(null);
   const publish = useCallback((next: LivenessState) => {
     stateRef.current = next;
     setState(next);
+  }, []);
+
+  /** Thu hồi blob URL selfie (an toàn cả khi trình duyệt/jsdom không có revokeObjectURL). */
+  const releaseSelfie = useCallback(() => {
+    const url = selfieUrlRef.current;
+    selfieUrlRef.current = null;
+    if (url) {
+      try {
+        URL.revokeObjectURL(url);
+      } catch {
+        /* jsdom: chỉ dọn tham chiếu, không có object URL thật để revoke. */
+      }
+    }
+  }, []);
+
+  /**
+   * Chuyển quyền sở hữu blob URL selfie sang component nhận onCompleted (parent tự revoke khi
+   * "Bắt đầu lại" hay unmount). Sau khi bàn giao, hook không còn giữ URL nên không double-revoke.
+   */
+  const handoffSelfie = useCallback((): string | null => {
+    const url = selfieUrlRef.current;
+    selfieUrlRef.current = null;
+    return url;
   }, []);
 
   const stop = useCallback(() => {
@@ -187,5 +212,5 @@ export function useLiveness() {
     stop();
     if (mounted.current) publish({ kind: "idle" });
   }, [publish, stop]);
-  return { state, start, complete, cancel, videoRef, canvasRef };
+  return { state, start, complete, cancel, videoRef, canvasRef, releaseSelfie, handoffSelfie };
 }
