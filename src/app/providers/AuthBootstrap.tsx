@@ -1,4 +1,4 @@
-import { useAppDispatch } from "@/app/store";
+import { useAppDispatch, useAppSelector } from "@/app/store";
 import { toAuthUserViewModel } from "@/entities/user/lib/adapters";
 import { clearCredentials, setHydrating, setUser } from "@/entities/user/model/authSlice";
 import { sessionAuthService } from "@/features/auth/api/authService";
@@ -22,6 +22,7 @@ import { useEffect, useState, type ReactNode } from "react";
 export function AuthBootstrap({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
+  const user = useAppSelector((state) => state.auth.user);
   const [attempt, setAttempt] = useState(0);
   const [failed, setFailed] = useState(false);
 
@@ -88,6 +89,8 @@ export function AuthBootstrap({ children }: { children: ReactNode }) {
         accessTokenMemory.clear();
         dispatch(clearCredentials());
         setFailed(!(isAxiosError(error) && error.response?.status === HTTP_STATUS.UNAUTHORIZED));
+      } finally {
+        if (mounted) dispatch(setHydrating(false));
       }
     }
     void hydrate();
@@ -95,6 +98,47 @@ export function AuthBootstrap({ children }: { children: ReactNode }) {
       mounted = false;
     };
   }, [dispatch, queryClient, attempt]);
+
+  // Đồng bộ phiên đa trình duyệt: kiểm tra tính hợp lệ khi tab hiển thị lại hoặc định kỳ 10 giây
+  useEffect(() => {
+    if (!user || !accessTokenMemory.get()) return;
+
+    let inFlight = false;
+    const checkActiveSession = async () => {
+      if (inFlight || !accessTokenMemory.get()) return;
+      inFlight = true;
+      try {
+        await sessionAuthService.getSession();
+      } catch {
+        // Lỗi 401 SESSION_EXPIRED từ server (do thiết bị khác đã thu hồi toàn bộ phiên)
+        // sẽ tự động kích hoạt reportSessionFailure trong axios interceptor -> resetSession().
+      } finally {
+        inFlight = false;
+      }
+    };
+
+    const intervalId = window.setInterval(() => {
+      void checkActiveSession();
+    }, 10_000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void checkActiveSession();
+      }
+    };
+    const handleFocus = () => {
+      void checkActiveSession();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [user]);
 
   return (
     <>

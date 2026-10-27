@@ -199,3 +199,23 @@ describe("Bearer restore after reload", () => {
     client.clear();
   });
 });
+
+describe("Cross-browser active session verification", () => {
+  it("triggers getSession when tab visibility changes to visible", async () => {
+    vi.mocked(sessionAuthService.getSession).mockResolvedValue(sessionUser);
+    const { store, client } = setup();
+    await waitFor(() => expect(store.getState().auth.isAuthenticated).toBe(true));
+    expect(sessionAuthService.getSession).toHaveBeenCalledTimes(1);
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "visible",
+    });
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+    await waitFor(() => expect(sessionAuthService.getSession).toHaveBeenCalledTimes(2));
+    client.clear();
+  });
+});

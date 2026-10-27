@@ -9,7 +9,7 @@ export function subscribeSessionFailure(listener: () => void): () => void {
     listeners.delete(listener);
   };
 }
-/** Chỉ đóng phiên hiện tại: bỏ qua 401 đến muộn của access token cũ và các Auth POST. */
+/** Chỉ đóng phiên hiện tại: bỏ qua 401 đến muộn của access token cũ và các Auth POST (ngoại trừ /auth/session). */
 export function reportSessionFailure(error: AxiosError): void {
   const body: unknown = error.response?.data;
   if (
@@ -22,6 +22,6 @@ export function reportSessionFailure(error: AxiosError): void {
     return;
   const token = accessTokenMemory.get();
   if (!token || error.config?.headers.get("Authorization") !== `Bearer ${token}`) return;
-  if (error.config.url?.includes("/auth/")) return;
+  if (error.config.url?.includes("/auth/") && !error.config.url.includes("/auth/session")) return;
   for (const listener of listeners) listener();
 }
