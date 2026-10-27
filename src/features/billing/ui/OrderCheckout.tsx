@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { isAxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
@@ -185,7 +185,7 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
         </StatusBanner>
       )}
       <div className="flex flex-wrap items-center gap-3">
-        {import.meta.env.DEV && (
+        {!devPayOff && (
           <Button
             type="button"
             size="lg"
@@ -204,7 +204,7 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
               )
             }
           >
-            Thanh toán thử (môi trường dev)
+            {devPay.pending ? "Đang xử lý mô phỏng…" : "Mô phỏng đã thanh toán (Demo)"}
           </Button>
         )}
         {!confirmingCancel && (
