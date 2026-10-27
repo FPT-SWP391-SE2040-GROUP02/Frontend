@@ -64,8 +64,8 @@ describe("AssetList", () => {
     expect(await screen.findByText("12 mục")).toBeInTheDocument();
     const rows = within(screen.getByRole("table")).getAllByRole("row");
     expect(rows).toHaveLength(3);
-    expect(within(rows[1]).getByText("Văn bản")).toBeInTheDocument();
-    expect(within(rows[2]).getByText("Tệp")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("Ghi chú bí mật")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("Tệp tải lên")).toBeInTheDocument();
     // Cột Dung lượng lấy từ phiên bản hiện tại của mục (100 byte trong dữ liệu mẫu).
     expect(
       within(screen.getByRole("table")).getByRole("columnheader", { name: "Dung lượng" }),
@@ -85,10 +85,13 @@ describe("AssetList", () => {
     );
     setup();
     await screen.findByRole("link", { name: "Ví điện tử" });
-    fireEvent.click(screen.getByRole("button", { name: "Tệp" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tệp tải lên" }));
     expect(screen.queryByRole("link", { name: "Ví điện tử" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Sổ tiết kiệm" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Tệp" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Tệp tải lên" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("asks the Backend to search by name", async () => {

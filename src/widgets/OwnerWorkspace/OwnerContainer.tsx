@@ -115,9 +115,9 @@ export function OwnerContainer() {
         container={container.data}
         assets={
           assets.data?.items.map((item) => {
-            let detail = "Văn bản";
+            let detail = "Ghi chú bí mật";
             if (item.kind === "FILE") {
-              detail = "Tệp";
+              detail = "Tệp tải lên";
             }
             return { id: item.id, label: item.name, detail };
           }) ?? []

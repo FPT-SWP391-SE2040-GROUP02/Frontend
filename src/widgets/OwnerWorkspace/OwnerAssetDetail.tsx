@@ -13,7 +13,7 @@ import {
 } from "@/features/vault-management/model/useOwnerVault";
 import { OwnerWorkspace } from "./OwnerWorkspace";
 
-const kindLabels = { FILE: "Tệp", TEXT: "Văn bản" } as const;
+const kindLabels = { FILE: "Tệp tải lên", TEXT: "Ghi chú bí mật" } as const;
 
 /** Lối quay về danh sách kho, dùng cả khi đang tải hoặc lỗi. */
 function BackToVault() {

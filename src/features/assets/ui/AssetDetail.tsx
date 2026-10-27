@@ -19,7 +19,7 @@ const editSchema = z.object({
   description: z.string().max(1000, "Ghi chú tối đa 1000 ký tự."),
 });
 
-const kindLabels = { FILE: "Tệp", TEXT: "Văn bản" } as const;
+const kindLabels = { FILE: "Tệp tải lên", TEXT: "Ghi chú bí mật" } as const;
 
 /** Đổi tên và ghi chú; chỉ gửi trường đã đổi cùng etag hiện tại (xung đột thì báo tải lại). */
 function EditForm({

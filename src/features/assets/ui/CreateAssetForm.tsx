@@ -21,8 +21,8 @@ const schema = z.object({
 type Kind = "TEXT" | "FILE";
 
 const kinds: Array<{ value: Kind; label: string }> = [
-  { value: "TEXT", label: "Văn bản" },
-  { value: "FILE", label: "Tệp" },
+  { value: "TEXT", label: "Ghi chú bí mật" },
+  { value: "FILE", label: "Tệp tải lên" },
 ];
 
 /** Nội dung chỉ ở form RAM; không nằm trong MutationCache/QueryCache, tên/ghi chú không chứa bí mật. */
