@@ -12,11 +12,11 @@ type KindFilter = "ALL" | "FILE" | "TEXT";
 
 const tabs: Array<{ value: KindFilter; label: string }> = [
   { value: "ALL", label: "Tất cả" },
-  { value: "FILE", label: "Tệp" },
-  { value: "TEXT", label: "Văn bản" },
+  { value: "FILE", label: "Tệp tải lên" },
+  { value: "TEXT", label: "Ghi chú bí mật" },
 ];
 
-const kindLabels = { FILE: "Tệp", TEXT: "Văn bản" } as const;
+const kindLabels = { FILE: "Tệp tải lên", TEXT: "Ghi chú bí mật" } as const;
 
 /**
  * Danh sách mục trong kho (thiết kế "Kho của tôi"): tìm theo tên (Backend), lọc theo loại trong trang

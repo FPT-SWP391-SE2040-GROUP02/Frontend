@@ -138,7 +138,7 @@ it("creates TEXT via raw Axios transport, clears the form, and never caches plai
 it("rejects an oversized file without sending a request", async () => {
   const post = vi.spyOn(apiClient, "post");
   setup(<CreateAssetForm vaultId={VAULT_ID} remainingBytes={2} />);
-  fireEvent.click(screen.getByRole("button", { name: "Tệp" }));
+  fireEvent.click(screen.getByRole("button", { name: "Tệp tải lên" }));
   fireEvent.change(screen.getByLabelText("Tên mục"), { target: { value: "Tệp" } });
   fireEvent.change(screen.getByLabelText("Tệp tài sản"), {
     target: { files: [new File(["oversize"], "fixture.txt")] },
