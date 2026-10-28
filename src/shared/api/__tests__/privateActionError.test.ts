@@ -56,6 +56,9 @@ describe("official BE business errors", () => {
     ["ASSET_IN_USE", "IN_CONTAINER", "gỡ khỏi gói"],
     ["ASSET_IN_USE", "PINNED_IN_HANDOVER", "ghim"],
     ["VAULT_NOT_EDITABLE", "HOLD_ACTIVE", "tạm giữ"],
+    ["EKYC_IDENTITY_MISMATCH", "CITIZEN_ID_ALREADY_USED", "tài khoản khác"],
+    ["EKYC_IDENTITY_MISMATCH", "BENEFICIARY_CONFLICT", "người nhận"],
+    ["EKYC_IDENTITY_MISMATCH", "WRONG_PERSON", "danh tính đã gắn"],
   ])("prefers the reason-specific message for %s/%s", (code, reason, expected) => {
     const message = privateActionError(failure(409, { code, reason }));
     expect(message.toLowerCase()).toContain(expected.toLowerCase());

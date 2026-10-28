@@ -130,6 +130,15 @@ const missingRequirementMessages: Record<string, string> = {
 };
 
 /** Ưu tiên `reason` của BE trước thông báo chung theo `code`. */
+/** Reason-specific messages for EKYC_IDENTITY_MISMATCH */
+const ekycIdentityMismatchReasons: Record<string, string> = {
+  CITIZEN_ID_ALREADY_USED:
+    "Số CCCD này đã được sử dụng để xác minh cho một tài khoản khác trong hệ thống.",
+  BENEFICIARY_CONFLICT:
+    "Số CCCD trên giấy tờ trùng với một người nhận bạn đã thêm. Người nhận không được trùng với Chủ kho; hãy xóa hoặc sửa hồ sơ người nhận đó trước.",
+  WRONG_PERSON: "Giấy tờ không khớp với danh tính đã gắn cho tài khoản này.",
+};
+
 const reasonMessages: Record<string, Record<string, string>> = {
   HANDOVER_NOT_ALLOWED: handoverNotAllowedReasons,
   EXECUTOR_NOT_ALLOWED: executorNotAllowedReasons,
@@ -139,6 +148,7 @@ const reasonMessages: Record<string, Record<string, string>> = {
   PAYMENT_NOT_ALLOWED: paymentNotAllowedReasons,
   PAYMENT_ORDER_NOT_PAYABLE: paymentOrderNotPayableReasons,
   EKYC_SERVICE_UNAVAILABLE: ekycServiceUnavailableReasons,
+  EKYC_IDENTITY_MISMATCH: ekycIdentityMismatchReasons,
 };
 
 /** 401 nhưng phiên còn sống (BE mục 6.2a, 6.4). */
@@ -199,6 +209,8 @@ const messages: Record<string, string> = {
     "Cần đồng ý điều khoản xác minh trước khi tiếp tục. Bắt đầu lại từ bước đồng ý.",
   EKYC_DOCUMENT_MISMATCH:
     "Mặt trước và mặt sau không khớp. Kiểm tra ảnh và gửi lại cùng một giấy tờ.",
+  EKYC_IDENTITY_MISMATCH:
+    "Giấy tờ không khớp hoặc số CCCD này đã được sử dụng trong hệ thống.",
   EKYC_SERVICE_UNAVAILABLE: "Dịch vụ xác minh hiện chưa sẵn sàng. Vui lòng thử lại sau.",
   DEATH_CASE_NOT_FOUND: "Không tìm thấy hồ sơ chứng tử trong phạm vi truy cập của bạn.",
   DEATH_CASE_NOT_ALLOWED:
