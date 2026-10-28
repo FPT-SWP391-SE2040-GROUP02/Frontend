@@ -29,7 +29,6 @@ import { EkycStepper } from "./EkycStepper";
 
 import { EkycDropzone } from "./EkycDropzone";
 
-
 import { useImagePreview } from "./useImagePreview";
 
 type Purpose = z.infer<typeof ekycPurposeSchema>;
@@ -272,7 +271,6 @@ function ocrPhaseLabel(pending: boolean, succeeded: boolean, percent: number | n
   return "Sẵn sàng";
 }
 
-
 /** Kết quả so khớp theo trạng thái Backend trả về; không tự quyết PASSED hay MATCHED. */
 
 function ResultStep({
@@ -405,7 +403,7 @@ function ResultStep({
             </span>
 
             <div className="flex aspect-[85.6/53.98] items-center justify-center overflow-hidden rounded-xl border border-heritage-border bg-heritage-canvas">
-              {frontUrl ?? backUrl ? (
+              {(frontUrl ?? backUrl) ? (
                 <img
                   src={frontUrl ?? backUrl ?? undefined}
                   alt="Căn cước đã đọc"
@@ -496,7 +494,11 @@ function ResultStep({
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-valuenow={scoreNum !== null && scoreNum !== undefined ? Math.min(100, Math.round(scoreNum * 100)) : 0}
+            aria-valuenow={
+              scoreNum !== null && scoreNum !== undefined
+                ? Math.min(100, Math.round(scoreNum * 100))
+                : 0
+            }
             className="h-2 w-full overflow-hidden rounded-full bg-heritage-canvas"
           >
             <div
@@ -504,9 +506,10 @@ function ResultStep({
                 passed ? "bg-[#4F46E5]" : "bg-amber-500"
               }`}
               style={{
-                width: scoreNum !== null && scoreNum !== undefined
-                  ? `${Math.min(100, Math.max(5, Math.round(scoreNum * 100)))}%`
-                  : "0%",
+                width:
+                  scoreNum !== null && scoreNum !== undefined
+                    ? `${Math.min(100, Math.max(5, Math.round(scoreNum * 100)))}%`
+                    : "0%",
               }}
             />
           </div>
@@ -537,9 +540,7 @@ function ResultStep({
               />
             </div>
 
-            <figcaption className="mt-2 text-xs font-medium text-heritage-muted">
-              Selfie
-            </figcaption>
+            <figcaption className="mt-2 text-xs font-medium text-heritage-muted">Selfie</figcaption>
           </figure>
         </div>
 
@@ -554,8 +555,8 @@ function ResultStep({
         </ul>
 
         <div className="mt-6 rounded-2xl border border-green-200/80 bg-green-50/80 p-3.5 text-xs leading-relaxed text-green-900">
-          Selfie đạt ngưỡng so khớp với CCCD đã đọc. 0.0 giây. Ảnh tham chiếu được khóa từ mặt trước đã đọc.
-          Điểm cosine không phải phần trăm xác suất.
+          Selfie đạt ngưỡng so khớp với CCCD đã đọc. 0.0 giây. Ảnh tham chiếu được khóa từ mặt trước
+          đã đọc. Điểm cosine không phải phần trăm xác suất.
         </div>
       </section>
     </div>

@@ -94,6 +94,9 @@ export function OwnerBeneficiaries() {
   // Gia hạn (GRACE_READ_ONLY): không thêm/sửa được, vẫn xóa được (thiết kế 173). Gói Free cần nâng cấp để thêm.
   const readOnly = vault.data.serviceStatus === "GRACE_READ_ONLY";
   const freeTier = vault.data.serviceTier === "FREE";
+  // Số hồ sơ (tính cả hồ sơ chưa ở gói nào) không vượt tổng suất; BE vẫn chặn lại bằng 409 BENEFICIARY_SLOTS_EXCEEDED.
+  // Danh sách không lọc nên totalCount là tổng số hồ sơ của kho.
+  const profileLimitReached = !freeTier && list.data.totalCount >= vault.data.beneficiarySlots;
   const rows: ReactNode[] = [];
   for (const record of list.data.items) {
     rows.push(
@@ -114,11 +117,20 @@ export function OwnerBeneficiaries() {
           vẫn xóa được.
         </p>
       )}
+      {profileLimitReached && !readOnly && (
+        <p role="status" className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+          Kho đã đủ {vault.data.beneficiarySlots} người nhận theo suất hiện có. Mua thêm suất hoặc
+          xóa hồ sơ chưa dùng để thêm người mới.{" "}
+          <Link className="font-semibold underline" to={ROUTES.BILLING.PLANS}>
+            Xem gói dịch vụ
+          </Link>
+        </p>
+      )}
       <div className="flex justify-end">
         <button
           type="button"
           className={`${buttonStyles.gold} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
-          disabled={readOnly}
+          disabled={readOnly || profileLimitReached}
           onClick={() => setAdding(true)}
         >
           Thêm người nhận
@@ -133,8 +145,9 @@ export function OwnerBeneficiaries() {
           <span className="text-xs font-semibold text-[#7A5B24]">{list.data.totalCount} người</span>
         </div>
         <p className="mt-1 text-xs text-heritage-muted">
-          {vault.data.usedBeneficiarySlots}/{vault.data.beneficiarySlots} suất đang dùng. Tạo hồ sơ
-          không tự gắn người nhận vào gói bàn giao.
+          Đã thêm {list.data.totalCount}/{vault.data.beneficiarySlots} người nhận,{" "}
+          {vault.data.usedBeneficiarySlots} người đang ở gói bàn giao. Tạo hồ sơ không tự gắn người
+          nhận vào gói bàn giao.
         </p>
         {rows.length === 0 && (
           <p role="status" className="mt-4 text-sm text-heritage-muted">
