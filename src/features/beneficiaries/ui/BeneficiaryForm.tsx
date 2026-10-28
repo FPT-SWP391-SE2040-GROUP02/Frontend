@@ -430,7 +430,8 @@ export function BeneficiaryForm({
               <span className="font-semibold">{errorFieldNames.join(", ")}</span>.
             </p>
           )}
-          {action.error.includes("gói dịch vụ trả phí") && (
+          {(action.error.includes("gói dịch vụ trả phí") ||
+            action.error.includes("suất người nhận")) && (
             <Link className="mt-1 inline-block font-semibold underline" to={ROUTES.BILLING.PLANS}>
               Xem gói dịch vụ
             </Link>
