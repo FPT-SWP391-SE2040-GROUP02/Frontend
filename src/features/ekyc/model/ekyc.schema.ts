@@ -106,10 +106,7 @@ export const ekycReviewSchema = z.object({
   dateOfBirth: z
     .string()
     .trim()
-    .refine(
-      isValidDateOfBirth,
-      "Ngày sinh không hợp lệ hoặc ở tương lai (định dạng DD/MM/YYYY).",
-    ),
+    .refine(isValidDateOfBirth, "Ngày sinh không hợp lệ hoặc ở tương lai (định dạng DD/MM/YYYY)."),
   residenceAddress: z
     .string()
     .trim()
@@ -118,7 +115,10 @@ export const ekycReviewSchema = z.object({
 });
 /** Ngữ cảnh lượt do BE cấp, kèm bản tự khai sau OCR đã chuyển sang ISO YYYY-MM-DD. */
 export const ekycDocumentConfirmationSchema = z.object({
-  idNumber: z.string().trim().regex(/^[0-9]{12}$/),
+  idNumber: z
+    .string()
+    .trim()
+    .regex(/^[0-9]{12}$/),
   fullName: z.string().trim().min(1).max(200),
   dateOfBirth: z
     .string()

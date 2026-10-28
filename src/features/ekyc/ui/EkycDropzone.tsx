@@ -138,12 +138,7 @@ export function EkycDropzone({
       <p className="text-xs text-heritage-muted">JPG, PNG · Tối đa 8 MiB</p>
 
       {file && (
-        <ImageCropModal
-          open={cropOpen}
-          onOpenChange={setCropOpen}
-          file={file}
-          onCrop={onFile}
-        />
+        <ImageCropModal open={cropOpen} onOpenChange={setCropOpen} file={file} onCrop={onFile} />
       )}
     </div>
   );

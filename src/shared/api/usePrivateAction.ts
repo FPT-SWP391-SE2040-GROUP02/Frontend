@@ -209,8 +209,7 @@ const messages: Record<string, string> = {
     "Cần đồng ý điều khoản xác minh trước khi tiếp tục. Bắt đầu lại từ bước đồng ý.",
   EKYC_DOCUMENT_MISMATCH:
     "Mặt trước và mặt sau không khớp. Kiểm tra ảnh và gửi lại cùng một giấy tờ.",
-  EKYC_IDENTITY_MISMATCH:
-    "Giấy tờ không khớp hoặc số CCCD này đã được sử dụng trong hệ thống.",
+  EKYC_IDENTITY_MISMATCH: "Giấy tờ không khớp hoặc số CCCD này đã được sử dụng trong hệ thống.",
   EKYC_SERVICE_UNAVAILABLE: "Dịch vụ xác minh hiện chưa sẵn sàng. Vui lòng thử lại sau.",
   DEATH_CASE_NOT_FOUND: "Không tìm thấy hồ sơ chứng tử trong phạm vi truy cập của bạn.",
   DEATH_CASE_NOT_ALLOWED:

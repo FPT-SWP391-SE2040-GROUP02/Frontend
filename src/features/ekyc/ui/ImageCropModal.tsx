@@ -1,12 +1,7 @@
 import { useRef, useState } from "react";
 import { RotateCw, ZoomIn, ZoomOut, Check, Crop } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/shared/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
 import { useImagePreview } from "./useImagePreview";
 
 // Tỷ lệ chuẩn CCCD Việt Nam (ID-1): 85.6mm x 53.98mm ≈ 1.586
@@ -246,11 +241,7 @@ export function ImageCropModal({
         </div>
 
         <div className="mt-4 flex justify-end gap-3 pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Hủy
           </Button>
           <Button
