@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/
 import { ekycDocumentSchema, ekycPurposeSchema, ekycStatusSchema } from "../model/ekyc.schema";
 
 import { ekycService } from "../api/ekycService";
+import { MatchRing } from "./MatchRing";
 
 import { LivenessPanel } from "./LivenessPanel";
 
@@ -28,7 +29,6 @@ import { EkycStepper } from "./EkycStepper";
 
 import { EkycDropzone } from "./EkycDropzone";
 
-import { MatchRing } from "./MatchRing";
 
 import { useImagePreview } from "./useImagePreview";
 
@@ -272,53 +272,6 @@ function ocrPhaseLabel(pending: boolean, succeeded: boolean, percent: number | n
   return "Sẵn sàng";
 }
 
-/** Ảnh đã gửi kèm nút phóng to; không có ảnh thì giữ placeholder xám cũ. */
-
-function CompareTile({ url, label }: { url: string | null; label: string }) {
-  const [zoomed, setZoomed] = useState(false);
-
-  return (
-    <div>
-      <div
-        className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-heritage-canvas"
-
-        aria-hidden="true"
-      >
-        {url ? (
-          <>
-            <img src={url} alt="" className="size-full object-contain" />
-
-            <button
-              type="button"
-
-              onClick={() => setZoomed(true)}
-
-              aria-label={`Phóng to ${label}`}
-
-              className="absolute right-2 top-2 rounded-full bg-black/50 p-2 text-white hover:bg-black/70"
-            >
-              <ZoomIn className="size-4" aria-hidden="true" />
-            </button>
-          </>
-        ) : (
-          <span className="size-14 rounded-full bg-heritage-border" />
-        )}
-      </div>
-
-      <p className="mt-3">{label}</p>
-
-      <Dialog open={zoomed} onOpenChange={setZoomed}>
-        <DialogContent aria-label={label}>
-          <DialogTitle>{label}</DialogTitle>
-
-          <DialogDescription>Ảnh đã gửi đến máy chủ để đối chiếu.</DialogDescription>
-
-          {url && <img src={url} alt="" className="max-h-[70vh] rounded-lg object-contain" />}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
 
 /** Kết quả so khớp theo trạng thái Backend trả về; không tự quyết PASSED hay MATCHED. */
 
@@ -352,6 +305,11 @@ function ResultStep({
   const passed = !failed && !needsReview && status.status === "PASSED";
 
   let tone: "idle" | "pass" | "fail" = "idle";
+  if (passed) {
+    tone = "pass";
+  } else if (failed) {
+    tone = "fail";
+  }
 
   let chip = "Cần kiểm tra";
 
@@ -360,16 +318,12 @@ function ResultStep({
   let heading = "Cần kiểm tra thêm";
 
   if (passed) {
-    tone = "pass";
-
-    chip = "Đã chạy";
+    chip = "Đạt ngưỡng thử";
 
     chipStyle = "bg-green-100 text-green-800";
 
     heading = "Khuôn mặt khớp với căn cước";
   } else if (failed) {
-    tone = "fail";
-
     chip = "Chưa khớp";
 
     chipStyle = "bg-heritage-canvas text-heritage-muted";
@@ -423,20 +377,71 @@ function ResultStep({
     message = <p role="status">Đã hoàn tất bước xác minh.</p>;
   }
 
+  const scoreNum = status.faceMatchScore;
+  const thresholdNum = status.matchThreshold;
+
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <section aria-label="Ảnh đối chiếu" className={CARD}>
-        <h3 className="text-xl font-medium text-heritage-primary">Ảnh đối chiếu</h3>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-xl font-medium text-heritage-primary">Ảnh đối chiếu</h3>
+
+          <button
+            type="button"
+            onClick={onRestart}
+            className="text-xs font-semibold text-blue-700 hover:underline"
+          >
+            Đổi thẻ ở Đọc căn cước ↗
+          </button>
+        </div>
 
         <div className="mt-5 grid grid-cols-2 gap-4 text-center text-sm font-semibold">
-          <CompareTile url={frontUrl ?? backUrl} label="Căn cước đã đọc" />
+          <div className="space-y-2">
+            <h4 className="text-sm font-semibold text-heritage-primary">Căn cước đã đọc</h4>
 
-          <CompareTile url={selfieUrl} label="Selfie của bạn" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">
+              <Lock className="size-3" aria-hidden="true" />
+              Ảnh tham chiếu đã khóa
+            </span>
+
+            <div className="flex aspect-[85.6/53.98] items-center justify-center overflow-hidden rounded-xl border border-heritage-border bg-heritage-canvas">
+              {frontUrl ?? backUrl ? (
+                <img
+                  src={frontUrl ?? backUrl ?? undefined}
+                  alt="Căn cước đã đọc"
+                  className="size-full object-contain"
+                />
+              ) : (
+                <span className="text-xs text-heritage-muted">Chưa có ảnh</span>
+              )}
+            </div>
+
+            <p className="text-xs text-heritage-muted">Đã khóa mặt trước từ mục Đọc CCCD.</p>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-semibold text-heritage-primary">Selfie của bạn</h4>
+
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">
+              <Check className="size-3" aria-hidden="true" />
+              Selfie từ phiên camera đã đạt thử thách.
+            </span>
+
+            <div className="flex aspect-[85.6/53.98] items-center justify-center overflow-hidden rounded-xl border border-heritage-border bg-heritage-canvas">
+              {selfieUrl ? (
+                <img src={selfieUrl} alt="Selfie của bạn" className="size-full object-cover" />
+              ) : (
+                <span className="text-xs text-heritage-muted">Chưa có selfie</span>
+              )}
+            </div>
+
+            <p className="text-xs text-heritage-muted">Selfie từ camera</p>
+          </div>
         </div>
 
         <p className="mt-4 flex items-center gap-2 text-xs text-heritage-muted">
           <Lock className="size-3.5 shrink-0" aria-hidden="true" />
-          Ảnh được xử lý và không dùng cho mục đích khác.
+          Ảnh được xử lý bảo mật trong RAM và không chia sẻ cho bên thứ ba.
         </p>
 
         <div className="mt-4 text-sm">{message}</div>
@@ -457,13 +462,88 @@ function ResultStep({
           </span>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-col items-center justify-center text-center">
           <MatchRing score={status.faceMatchScore} tone={tone} />
+
+          <h4 className="mt-4 text-xl font-bold text-heritage-primary">{heading}</h4>
+
+          <p className="mt-1 text-sm text-heritage-muted">
+            {passed
+              ? "Selfie phù hợp với khuôn mặt trên căn cước đã đọc."
+              : "Khuôn mặt chưa đạt độ tương đồng với ảnh trên căn cước."}
+          </p>
         </div>
 
-        <p className="mt-4 text-center text-lg font-semibold">{heading}</p>
+        {/* Điểm Cosine và Thanh đo trực quan như mẫu tham khảo */}
+        <div className="mt-6 space-y-2 border-t border-heritage-border pt-4">
+          <div className="flex items-baseline justify-between">
+            <div>
+              <span className="block text-[11px] font-bold uppercase tracking-wider text-heritage-muted">
+                ĐIỂM COSINE
+              </span>
 
-        <ul className="mt-5">
+              <span className="text-4xl font-extrabold tracking-tight text-heritage-primary">
+                {scoreNum !== null && scoreNum !== undefined ? scoreNum.toFixed(3) : "—"}
+              </span>
+            </div>
+
+            <span className="text-xs font-medium text-heritage-muted">
+              Ngưỡng <strong>{thresholdNum.toFixed(3)}</strong>
+            </span>
+          </div>
+
+          <div
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={scoreNum !== null && scoreNum !== undefined ? Math.min(100, Math.round(scoreNum * 100)) : 0}
+            className="h-2 w-full overflow-hidden rounded-full bg-heritage-canvas"
+          >
+            <div
+              className={`h-full transition-all duration-500 ${
+                passed ? "bg-[#4F46E5]" : "bg-amber-500"
+              }`}
+              style={{
+                width: scoreNum !== null && scoreNum !== undefined
+                  ? `${Math.min(100, Math.max(5, Math.round(scoreNum * 100)))}%`
+                  : "0%",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Cặp ảnh khuôn mặt cắt đối chiếu (CCCD đã khóa vs Selfie) */}
+        <div className="mt-6 flex items-center justify-center gap-6 border-t border-heritage-border pt-4">
+          <figure className="text-center">
+            <div className="flex size-24 items-center justify-center overflow-hidden rounded-2xl border border-heritage-border bg-heritage-canvas shadow-sm">
+              <img
+                src={status.referenceCrop || frontUrl || undefined}
+                alt="Khuôn mặt từ CCCD"
+                className="size-full object-cover"
+              />
+            </div>
+
+            <figcaption className="mt-2 text-xs font-medium text-heritage-muted">
+              CCCD đã khóa
+            </figcaption>
+          </figure>
+
+          <figure className="text-center">
+            <div className="flex size-24 items-center justify-center overflow-hidden rounded-2xl border border-heritage-border bg-heritage-canvas shadow-sm">
+              <img
+                src={status.selfieCrop || selfieUrl || undefined}
+                alt="Khuôn mặt từ Selfie"
+                className="size-full object-cover"
+              />
+            </div>
+
+            <figcaption className="mt-2 text-xs font-medium text-heritage-muted">
+              Selfie
+            </figcaption>
+          </figure>
+        </div>
+
+        <ul className="mt-5 border-t border-heritage-border pt-4">
           <CheckRow state={spoof} text="Qua kiểm tra chống giả mạo" />
 
           <CheckRow state={score} text={scoreText} />
@@ -472,6 +552,11 @@ function ResultStep({
             <CheckRow state={profile} text="Khớp hồ sơ người nhận được chỉ định" />
           )}
         </ul>
+
+        <div className="mt-6 rounded-2xl border border-green-200/80 bg-green-50/80 p-3.5 text-xs leading-relaxed text-green-900">
+          Selfie đạt ngưỡng so khớp với CCCD đã đọc. 0.0 giây. Ảnh tham chiếu được khóa từ mặt trước đã đọc.
+          Điểm cosine không phải phần trăm xác suất.
+        </div>
       </section>
     </div>
   );

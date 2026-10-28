@@ -20,7 +20,13 @@ export function AppProviders({ children }: AppProvidersProps) {
           <AuthBootstrap>
             <TooltipProvider>{children}</TooltipProvider>
           </AuthBootstrap>
-          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+          {import.meta.env.DEV && (
+            <ReactQueryDevtools
+              initialIsOpen={false}
+              buttonPosition="bottom-right"
+              position="bottom"
+            />
+          )}
         </QueryClientProvider>
       </Provider>
     </ErrorBoundary>
