@@ -22,6 +22,8 @@ export const ekycStatusSchema = z.object({
   purpose: ekycPurposeSchema.nullable(),
   identityMatch: identityMatchSchema,
   backSideChecked: z.boolean(),
+  referenceCrop: z.string().nullable().optional(),
+  selfieCrop: z.string().nullable().optional(),
 });
 /**
  * Response POST /ekyc/document-back: trạng thái lượt kèm nơi cư trú đọc từ mặt sau (BR-88). Địa chỉ chỉ có ở
@@ -46,6 +48,54 @@ export const ekycDocumentSchema = z.object({
   expiresAt: timestamp.nullable(),
   warnings: z.array(z.string()),
 });
+/** Kiểm tra chuỗi ngày sinh (hỗ trợ cả DD/MM/YYYY cho người dùng và YYYY-MM-DD cho ISO). */
+export function isValidDateOfBirth(value: string): boolean {
+  const trimmed = value.trim();
+  const dmy = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed);
+  if (dmy) {
+    const d = parseInt(dmy[1], 10);
+    const m = parseInt(dmy[2], 10);
+    const y = parseInt(dmy[3], 10);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+    const dt = new Date(y, m - 1, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return false;
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    return dt <= today;
+  }
+  const ymd = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (ymd) {
+    const y = parseInt(ymd[1], 10);
+    const m = parseInt(ymd[2], 10);
+    const d = parseInt(ymd[3], 10);
+    if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+    const dt = new Date(y, m - 1, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return false;
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    return dt <= today;
+  }
+  return false;
+}
+
+/** Chuyển DD/MM/YYYY hoặc YYYY-MM-DD sang ISO YYYY-MM-DD để gửi xuống Backend. */
+export function formatToIsoDate(value: string): string {
+  const trimmed = value.trim();
+  const dmy = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed);
+  if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`;
+  return trimmed;
+}
+
+/** Chuyển định dạng bất kỳ (DD/MM/YYYY hoặc YYYY-MM-DD) sang DD/MM/YYYY để hiển thị. */
+export function formatToDdMmYyyy(value: string): string {
+  const trimmed = value.trim();
+  const dmy = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed);
+  if (dmy) return trimmed;
+  const ymd = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (ymd) return `${ymd[3]}/${ymd[2]}/${ymd[1]}`;
+  return trimmed;
+}
+
 /** Chỉ bản người dùng chủ động xác nhận mới được gửi xuống BE; không lưu vào Query cache. */
 export const ekycReviewSchema = z.object({
   idNumber: z
@@ -55,10 +105,10 @@ export const ekycReviewSchema = z.object({
   fullName: z.string().trim().min(1, "Nhập họ tên.").max(200, "Họ tên tối đa 200 ký tự."),
   dateOfBirth: z
     .string()
-    .date("Ngày sinh không hợp lệ.")
+    .trim()
     .refine(
-      (value) => value <= new Date().toISOString().slice(0, 10),
-      "Ngày sinh không được ở tương lai.",
+      isValidDateOfBirth,
+      "Ngày sinh không hợp lệ hoặc ở tương lai (định dạng DD/MM/YYYY).",
     ),
   residenceAddress: z
     .string()
@@ -66,18 +116,49 @@ export const ekycReviewSchema = z.object({
     .min(1, "Nhập địa chỉ cư trú.")
     .max(1000, "Địa chỉ tối đa 1000 ký tự."),
 });
-/** Ngữ cảnh lượt do BE cấp, kèm bản tự khai sau OCR. */
-export const ekycDocumentConfirmationSchema = ekycReviewSchema.extend({
+/** Ngữ cảnh lượt do BE cấp, kèm bản tự khai sau OCR đã chuyển sang ISO YYYY-MM-DD. */
+export const ekycDocumentConfirmationSchema = z.object({
+  idNumber: z.string().trim().regex(/^[0-9]{12}$/),
+  fullName: z.string().trim().min(1).max(200),
+  dateOfBirth: z
+    .string()
+    .date("Ngày sinh không hợp lệ.")
+    .refine(
+      (value) => value <= new Date().toISOString().slice(0, 10),
+      "Ngày sinh không được ở tương lai.",
+    ),
+  residenceAddress: z.string().trim().min(1).max(1000),
   verificationId: z.string().uuid(),
   purpose: ekycPurposeSchema,
   handoverTurnId: z.string().uuid().optional(),
 });
 
-/** Chỉ chuyển định dạng OCR đã biết; dữ liệu khác để trống cho người dùng nhập lại. */
+/** Chỉ chuyển định dạng OCR đã biết sang DD/MM/YYYY; dữ liệu khác để trống cho người dùng nhập lại. */
 export function ocrDateForInput(value: string): string {
-  const parts = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
-  const date = parts ? `${parts[3]}-${parts[2]}-${parts[1]}` : value.trim();
-  return z.string().date().safeParse(date).success ? date : "";
+  const trimmed = value.trim();
+  const parts = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(trimmed);
+  if (parts) {
+    const d = parseInt(parts[1], 10);
+    const m = parseInt(parts[2], 10);
+    const y = parseInt(parts[3], 10);
+    const dt = new Date(y, m - 1, d);
+    if (dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d) {
+      return trimmed;
+    }
+    return "";
+  }
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (iso) {
+    const y = parseInt(iso[1], 10);
+    const m = parseInt(iso[2], 10);
+    const d = parseInt(iso[3], 10);
+    const dt = new Date(y, m - 1, d);
+    if (dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d) {
+      return `${iso[3]}/${iso[2]}/${iso[1]}`;
+    }
+    return "";
+  }
+  return "";
 }
 /** Response đồng ý thu thập; hiệu lực 30 phút do BE cấp. */
 export const ekycConsentResponseSchema = z.object({

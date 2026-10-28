@@ -58,7 +58,7 @@ function setup(beneficiary = false) {
 it("prefills OCR, sends only the edited declaration on explicit confirmation, then locks until edit", async () => {
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(status);
   setup();
-  expect(screen.getByLabelText("Ngày sinh")).toHaveValue("2000-02-01");
+  expect(screen.getByLabelText("Ngày sinh")).toHaveValue("01/02/2000");
   expect(screen.getByLabelText("Số căn cước")).toHaveAttribute("type", "password");
   fireEvent.change(screen.getByLabelText("Họ và tên"), { target: { value: "  Tên đã sửa  " } });
   expect(post).not.toHaveBeenCalled();
@@ -138,7 +138,7 @@ it("validates real ISO dates, limits, and safely maps only known OCR date format
     { idNumber: "１２３４５６７８９０１２" },
   ])
     expect(ekycReviewSchema.safeParse({ ...values, ...bad }).success).toBe(false);
-  expect(ocrDateForInput("29/02/2000")).toBe("2000-02-29");
+  expect(ocrDateForInput("29/02/2000")).toBe("29/02/2000");
   expect(ocrDateForInput("29/02/2001")).toBe("");
   expect(ocrDateForInput("unknown")).toBe("");
 });

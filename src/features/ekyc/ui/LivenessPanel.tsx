@@ -2,7 +2,7 @@ import { useEffect, type ReactNode } from "react";
 
 import type { z } from "zod";
 
-import { Check } from "lucide-react";
+import { Camera, Check } from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
 
@@ -19,7 +19,8 @@ export function LivenessPanel({
 }: {
   onCompleted: (status: z.infer<typeof ekycStatusSchema>, selfieUrl?: string | null) => void;
 }) {
-  const { state, start, complete, cancel, videoRef, canvasRef, handoffSelfie } = useLiveness();
+  const { state, start, complete, cancel, captureSelfie, videoRef, canvasRef, handoffSelfie } =
+    useLiveness();
 
   useEffect(() => {
     if (state.kind !== "completed") return;
@@ -206,9 +207,21 @@ export function LivenessPanel({
           )}
 
           {cameraOn && (
-            <Button type="button" variant="outline" size="lg" onClick={cancel}>
-              Hủy thử thách
-            </Button>
+            <>
+              <Button
+                type="button"
+                size="lg"
+                className="bg-[#1d4d3c] text-white flex items-center gap-2"
+                onClick={() => void captureSelfie()}
+              >
+                <Camera className="size-4" aria-hidden="true" />
+                Chụp selfie &amp; đối chiếu ngay
+              </Button>
+
+              <Button type="button" variant="outline" size="lg" onClick={cancel}>
+                Hủy thử thách
+              </Button>
+            </>
           )}
         </div>
       </section>

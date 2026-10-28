@@ -1,127 +1,73 @@
 import { useEffect, useId, useState } from "react";
-
 import { useForm } from "react-hook-form";
-
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import { ArrowRight, Eye, EyeOff, Lock, ZoomIn } from "lucide-react";
-
+import { ArrowRight, Eye, EyeOff, Lock } from "lucide-react";
 import type { z } from "zod";
-
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-
 import { Button } from "@/shared/ui/button";
-
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
-
 import { Input } from "@/shared/ui/input";
-
 import { Textarea } from "@/shared/ui/textarea";
-
 import { ekycService } from "../api/ekycService";
-
 import {
   ekycDocumentSchema,
   ekycPurposeSchema,
   ekycReviewSchema,
+  formatToIsoDate,
   ocrDateForInput,
 } from "../model/ekyc.schema";
 
 /** Bản OCR chỉ ở RAM: sửa → gửi xác nhận → chuyển sang thử thách camera sau phản hồi BE. */
-
 export function EkycReviewForm({
   document,
-
   purpose,
-
   turnId,
-
   confirmed,
-
   disabled,
-
   suggestedAddress = "",
-
   backSent = false,
-
-  frontUrl,
-
-  backUrl,
-
   onConfirmed,
-
   onEdit,
 }: {
   document: z.infer<typeof ekycDocumentSchema>;
-
   purpose: z.infer<typeof ekycPurposeSchema>;
-
   turnId?: string | null;
-
   confirmed: boolean;
-
   disabled: boolean;
-
   /** Nơi cư trú đọc từ mặt sau; chỉ điền khi ô địa chỉ đang trống, người dùng vẫn đối chiếu và sửa được. */
-
   suggestedAddress?: string;
-
   /** Đã gửi mặt sau thành công (kể cả khi chưa đọc được địa chỉ). */
-
   backSent?: boolean;
-
   frontUrl?: string | null;
-
   backUrl?: string | null;
-
   onConfirmed: () => void;
-
   onEdit: () => void;
 }) {
   const action = usePrivateAction();
-
   const prefix = useId();
-
   const [showId, setShowId] = useState(false);
-
-  const [zoomFront, setZoomFront] = useState(false);
-
-  const [zoomBack, setZoomBack] = useState(false);
 
   const defaults = {
     idNumber: document.idNumber,
-
     fullName: document.fullName,
-
     dateOfBirth: ocrDateForInput(document.dateOfBirth),
-
     residenceAddress: document.residenceAddress,
   };
 
   const {
     register,
-
     handleSubmit,
-
     reset,
-
     getValues,
-
     setValue,
-
     formState: { errors },
   } = useForm<z.infer<typeof ekycReviewSchema>>({
     resolver: zodResolver(ekycReviewSchema),
-
     mode: "onBlur",
-
     reValidateMode: "onBlur",
-
     defaultValues: defaults,
   });
 
   // BR-88: thẻ gắn chip in địa chỉ ở mặt sau. Mặt sau đọc được thì điền giúp, nhưng không ghi đè địa chỉ đã có.
-
   useEffect(() => {
     if (suggestedAddress && !getValues("residenceAddress")) {
       setValue("residenceAddress", suggestedAddress, { shouldValidate: true, shouldDirty: true });
@@ -131,18 +77,14 @@ export function EkycReviewForm({
   const addressMissing = !defaults.residenceAddress && !suggestedAddress;
 
   let statusChip = "Có thể chỉnh sửa";
-
   let statusStyle = "bg-[#F1E7D0] text-[#7A5B24]";
-
   if (confirmed) {
     statusChip = "Đã gửi";
-
     statusStyle = "bg-green-100 text-green-800";
   }
 
   const textFields = [
     ["idNumber", "Số căn cước"],
-
     ["fullName", "Họ và tên"],
   ] as const;
 
@@ -150,23 +92,18 @@ export function EkycReviewForm({
 
   for (const [name, label] of textFields) {
     let type = "text";
-
     if (name === "idNumber" && !showId) {
       type = "password";
     }
 
     let inputMode: "numeric" | undefined;
-
     if (name === "idNumber") {
       inputMode = "numeric";
     }
 
     let inputPadding = "";
-
     let toggleLabel = "Hiện số căn cước";
-
     let toggleText = "Hiện";
-
     let toggleIcon = <Eye className="size-4" aria-hidden="true" />;
 
     if (name === "idNumber") {
@@ -175,9 +112,7 @@ export function EkycReviewForm({
 
     if (showId) {
       toggleLabel = "Ẩn số căn cước";
-
       toggleText = "Ẩn";
-
       toggleIcon = <EyeOff className="size-4" aria-hidden="true" />;
     }
 
@@ -186,40 +121,27 @@ export function EkycReviewForm({
         <label htmlFor={`${prefix}-${name}`} className="text-sm font-semibold">
           {label}
         </label>
-
         <div className="relative">
           <Input
             id={`${prefix}-${name}`}
-
             type={type}
-
             {...register(name)}
-
             readOnly={confirmed}
-
             className={`min-h-11 w-full min-w-0 ${inputPadding}`}
-
             aria-invalid={Boolean(errors[name])}
-
             aria-describedby={errors[name] ? `${prefix}-${name}-error` : undefined}
-
             inputMode={inputMode}
           />
 
           {name === "idNumber" && (
             <button
               type="button"
-
               className="absolute inset-y-0 right-2 my-auto flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-heritage-primary hover:bg-heritage-primary/10 focus-visible:outline-2 focus-visible:outline-heritage-gold"
-
               aria-pressed={showId}
-
               aria-label={toggleLabel}
-
               onClick={() => setShowId(!showId)}
             >
               {toggleIcon}
-
               {toggleText}
             </button>
           )}
@@ -237,13 +159,9 @@ export function EkycReviewForm({
   return (
     <form
       noValidate
-
       autoComplete="off"
-
       aria-label="Thông tin nhận diện"
-
       className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
-
       onSubmit={handleSubmit(async (values) => {
         if (confirmed || !document.canMatchFace || !document.verificationId) return;
 
@@ -251,17 +169,13 @@ export function EkycReviewForm({
           () =>
             ekycService.confirmDocument({
               ...values,
-
+              dateOfBirth: formatToIsoDate(values.dateOfBirth),
               verificationId: document.verificationId!,
-
               purpose,
-
               ...(purpose === "BENEFICIARY_CLAIM" && turnId ? { handoverTurnId: turnId } : {}),
             }),
-
           () => {
             setShowId(false);
-
             onConfirmed();
           },
         );
@@ -269,129 +183,35 @@ export function EkycReviewForm({
     >
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-xl font-medium text-heritage-primary">Thông tin nhận diện</h3>
-
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyle}`}>
           {statusChip}
         </span>
       </div>
 
       <p className="mt-4 text-sm text-heritage-muted">
-        Đối chiếu với thẻ gốc trước khi tiếp tục. Bạn có thể sửa nếu máy đọc sai.
+        Đối chiếu với thẻ gốc ở bên trái trước khi tiếp tục. Bạn có thể sửa nếu máy đọc sai.
       </p>
-
-      {frontUrl && (
-        <div className="mt-4 rounded-xl border border-heritage-border bg-heritage-canvas/60 p-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-heritage-muted">
-            <span>Ảnh căn cước đối chiếu:</span>
-
-            <span className="font-normal text-heritage-primary">Bấm ảnh để phóng to</span>
-          </div>
-
-          <div className="mt-2 flex flex-wrap gap-3">
-            <button
-              type="button"
-
-              onClick={() => setZoomFront(true)}
-
-              className="group relative flex aspect-[4/3] w-28 items-center justify-center overflow-hidden rounded-lg border border-heritage-border bg-heritage-surface hover:border-heritage-gold focus-visible:outline-2 focus-visible:outline-heritage-gold"
-
-              aria-label="Phóng to ảnh mặt trước để đối chiếu"
-            >
-              <img src={frontUrl} alt="Mặt trước căn cước" className="size-full object-contain" />
-
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                <ZoomIn className="size-4 text-white" aria-hidden="true" />
-              </div>
-
-              <span className="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 text-center text-[10px] font-medium text-white">
-                Mặt trước
-              </span>
-            </button>
-
-            {backUrl && (
-              <button
-                type="button"
-
-                onClick={() => setZoomBack(true)}
-
-                className="group relative flex aspect-[4/3] w-28 items-center justify-center overflow-hidden rounded-lg border border-heritage-border bg-heritage-surface hover:border-heritage-gold focus-visible:outline-2 focus-visible:outline-heritage-gold"
-
-                aria-label="Phóng to ảnh mặt sau để đối chiếu"
-              >
-                <img src={backUrl} alt="Mặt sau căn cước" className="size-full object-contain" />
-
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                  <ZoomIn className="size-4 text-white" aria-hidden="true" />
-                </div>
-
-                <span className="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 text-center text-[10px] font-medium text-white">
-                  Mặt sau
-                </span>
-              </button>
-            )}
-          </div>
-
-          <Dialog open={zoomFront} onOpenChange={setZoomFront}>
-            <DialogContent aria-label="Mặt trước căn cước đối chiếu">
-              <DialogTitle>Mặt trước căn cước</DialogTitle>
-
-              <DialogDescription>
-                Ảnh mặt trước đã tải lên để đối chiếu với thông tin biểu mẫu.
-              </DialogDescription>
-
-              <img
-                src={frontUrl}
-
-                alt="Mặt trước căn cước phóng to"
-
-                className="max-h-[75vh] w-full rounded-lg object-contain"
-              />
-            </DialogContent>
-          </Dialog>
-
-          {backUrl && (
-            <Dialog open={zoomBack} onOpenChange={setZoomBack}>
-              <DialogContent aria-label="Mặt sau căn cước đối chiếu">
-                <DialogTitle>Mặt sau căn cước</DialogTitle>
-
-                <DialogDescription>
-                  Ảnh mặt sau đã tải lên để đối chiếu với thông tin biểu mẫu.
-                </DialogDescription>
-
-                <img
-                  src={backUrl}
-
-                  alt="Mặt sau căn cước phóng to"
-
-                  className="max-h-[75vh] w-full rounded-lg object-contain"
-                />
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-      )}
 
       <fieldset disabled={disabled || action.pending} className="mt-4 min-w-0 space-y-4">
         {fieldRows}
 
         <div className="min-w-0 space-y-2">
-          <label htmlFor={`${prefix}-dateOfBirth`} className="text-sm font-semibold">
-            Ngày sinh
-          </label>
+          <div className="flex items-center justify-between">
+            <label htmlFor={`${prefix}-dateOfBirth`} className="text-sm font-semibold">
+              Ngày sinh
+            </label>
+            <span className="text-xs text-heritage-muted">Định dạng DD/MM/YYYY</span>
+          </div>
 
           <Input
             id={`${prefix}-dateOfBirth`}
-
-            type="date"
-
+            type="text"
+            inputMode="numeric"
+            placeholder="DD/MM/YYYY"
             {...register("dateOfBirth")}
-
             readOnly={confirmed}
-
             className="min-h-11 w-full min-w-0"
-
             aria-invalid={Boolean(errors.dateOfBirth)}
-
             aria-describedby={errors.dateOfBirth ? `${prefix}-dateOfBirth-error` : undefined}
           />
 
@@ -409,15 +229,10 @@ export function EkycReviewForm({
 
           <Textarea
             id={`${prefix}-residenceAddress`}
-
             {...register("residenceAddress")}
-
             readOnly={confirmed}
-
             rows={3}
-
             aria-invalid={Boolean(errors.residenceAddress)}
-
             aria-describedby={
               errors.residenceAddress ? `${prefix}-residenceAddress-error` : undefined
             }
@@ -435,9 +250,7 @@ export function EkycReviewForm({
           {errors.residenceAddress && (
             <p
               id={`${prefix}-residenceAddress-error`}
-
               role="alert"
-
               className="text-sm text-destructive"
             >
               {errors.residenceAddress.message}
@@ -456,14 +269,10 @@ export function EkycReviewForm({
             <>
               <Button
                 type="button"
-
                 variant="outline"
-
                 size="lg"
-
                 onClick={() => {
                   reset(defaults);
-
                   setShowId(false);
                 }}
               >
@@ -472,15 +281,11 @@ export function EkycReviewForm({
 
               <Button
                 type="submit"
-
                 size="lg"
-
                 className="flex-1 justify-between bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
-
                 disabled={!document.canMatchFace || !document.verificationId}
               >
                 {action.pending ? "Đang xác nhận…" : "Tiếp tục so khớp mặt"}
-
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Button>
             </>
