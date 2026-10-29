@@ -53,13 +53,44 @@ function renderForm(currentUser?: { id: string; email: string; fullName: string 
 }
 
 describe("form thêm người nhận", () => {
-  it("bỏ trống họ tên và ngày sinh thì báo tiếng Việt, không hiện chữ Invalid", async () => {
+  it("bỏ trống họ tên, ngày sinh, email thì báo tiếng Việt, không hiện chữ Invalid", async () => {
     const post = vi.spyOn(apiClient, "post");
     renderForm();
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     expect(await screen.findByText("Vui lòng nhập họ tên.")).toBeInTheDocument();
     expect(screen.getByText("Vui lòng chọn ngày sinh.")).toBeInTheDocument();
+    expect(screen.getByText("Vui lòng nhập email.")).toBeInTheDocument();
     expect(screen.queryByText(/invalid/i)).not.toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("kiểm tra họ tên ít nhất 2 ký tự và không chứa số hay ký tự đặc biệt", async () => {
+    const post = vi.spyOn(apiClient, "post");
+    renderForm();
+    fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "083206000699" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "A" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2000-02-16" } });
+    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "valid@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    expect(await screen.findByText("Họ và tên phải có ít nhất 2 ký tự.")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Văn 123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    expect(
+      await screen.findByText("Họ và tên chỉ được chứa chữ cái và khoảng trắng."),
+    ).toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("kiểm tra email là bắt buộc và phải đúng định dạng", async () => {
+    const post = vi.spyOn(apiClient, "post");
+    renderForm();
+    fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "083206000699" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Văn An" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2000-02-16" } });
+    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "invalid-email" } });
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    expect(await screen.findByText("Email không hợp lệ.")).toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
 

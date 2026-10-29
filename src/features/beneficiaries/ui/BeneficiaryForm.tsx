@@ -21,7 +21,7 @@ interface BeneficiaryFormValues {
   citizenId: string;
   fullName: string;
   dateOfBirth: string;
-  email?: string;
+  email: string;
   phone?: string;
 }
 
@@ -95,10 +95,20 @@ export function BeneficiaryForm({
           citizenId: z.string().max(32, "Số CCCD quá dài."),
           fullName: z
             .string()
+            .min(1, "Vui lòng nhập họ tên.")
+            .regex(/\S/, "Vui lòng nhập họ tên.")
+            .min(2, "Họ và tên phải có ít nhất 2 ký tự.")
             .max(200, "Họ tên tối đa 200 ký tự.")
-            .regex(/\S/, "Vui lòng nhập họ tên."),
+            .regex(/^[\p{L}\s]+$/u, "Họ và tên chỉ được chứa chữ cái và khoảng trắng."),
           dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Vui lòng chọn ngày sinh."),
-          email: z.string().max(254, "Email tối đa 254 ký tự.").optional().or(z.literal("")),
+          email: z
+            .string()
+            .min(1, "Vui lòng nhập email.")
+            .max(254, "Email tối đa 254 ký tự.")
+            .refine(
+              (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()),
+              "Email không hợp lệ.",
+            ),
           phone: z.string().max(20, "Số điện thoại tối đa 20 ký tự.").optional().or(z.literal("")),
         })
         .superRefine((values, ctx) => {
@@ -129,39 +139,27 @@ export function BeneficiaryForm({
             }
           }
 
-          // 3. Phải có ít nhất một cách liên hệ
-          const hasEmail = Boolean(values.email?.trim());
-          const hasPhone = Boolean(values.phone?.trim());
-          if (!hasEmail && !hasPhone) {
+          // 3. Email bắt buộc và không trùng email Chủ kho
+          const trimmedEmail = values.email?.trim() ?? "";
+          if (!trimmedEmail) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               path: ["email"],
-              message: "Cần ít nhất email hoặc số điện thoại.",
+              message: "Vui lòng nhập email.",
+            });
+          } else if (
+            ownerEmail &&
+            trimmedEmail.toLowerCase() === ownerEmail.trim().toLowerCase()
+          ) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["email"],
+              message: "Email người thụ hưởng không được trùng với email của Chủ kho.",
             });
           }
 
-          // 4. Kiểm tra định dạng email và không trùng email Chủ kho
-          if (hasEmail && values.email) {
-            const trimmedEmail = values.email.trim();
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["email"],
-                message: "Email không hợp lệ.",
-              });
-            } else if (
-              ownerEmail &&
-              trimmedEmail.toLowerCase() === ownerEmail.trim().toLowerCase()
-            ) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["email"],
-                message: "Email người thụ hưởng không được trùng với email của Chủ kho.",
-              });
-            }
-          }
-
-          // 5. Kiểm tra định dạng số điện thoại nếu có nhập
+          // 4. Kiểm tra định dạng số điện thoại nếu có nhập
+          const hasPhone = Boolean(values.phone?.trim());
           if (hasPhone && values.phone) {
             const cleanedPhone = values.phone.replace(/[\s.-]/g, "");
             if (!/^\+?[0-9]{9,15}$/.test(cleanedPhone)) {
@@ -202,11 +200,11 @@ export function BeneficiaryForm({
   };
 
   let note =
-    "Cần ít nhất một cách liên hệ: email hoặc số điện thoại. Số CCCD được mã hóa; hệ thống chỉ hiện 4 số cuối.";
+    "Email là bắt buộc để gửi thông báo nhận bàn giao. Số CCCD được mã hóa; hệ thống chỉ hiện 4 số cuối.";
   if (record && record.containerIds.length > 0) {
     note = `Người này đang thuộc ${record.containerIds.length} gói bàn giao. Sửa thông tin sẽ cập nhật cấu hình kế hoạch bàn giao.`;
   } else if (record) {
-    note = "Cần ít nhất một cách liên hệ: email hoặc số điện thoại.";
+    note = "Email là bắt buộc để gửi thông báo nhận bàn giao.";
   }
   let submitLabel = "Thêm người nhận";
   if (record) {
@@ -236,14 +234,14 @@ export function BeneficiaryForm({
                 ? beneficiaryService.update(vaultId, record.id, {
                     fullName: values.fullName.trim(),
                     dateOfBirth: values.dateOfBirth,
-                    email: values.email?.trim() || null,
+                    email: values.email.trim(),
                     phone: values.phone?.trim() ? values.phone.replace(/[\s.-]/g, "") : null,
                     etag: etag!,
                   })
                 : beneficiaryService.create(vaultId, {
                     fullName: values.fullName.trim(),
                     dateOfBirth: values.dateOfBirth,
-                    email: values.email?.trim() || null,
+                    email: values.email.trim(),
                     phone: values.phone?.trim() ? values.phone.replace(/[\s.-]/g, "") : null,
                     citizenId: cleanCitizenId,
                   }),
@@ -352,7 +350,7 @@ export function BeneficiaryForm({
               </label>
             )}
             <label className={LABEL}>
-              Email
+              Email *
               <Input
                 type="email"
                 placeholder="ten@email.com"
@@ -360,9 +358,6 @@ export function BeneficiaryForm({
                 {...register("email", {
                   onChange: () => {
                     clearErrors("email");
-                    if (errors.phone?.message?.includes("Cần ít nhất")) {
-                      clearErrors("phone");
-                    }
                   },
                 })}
                 aria-invalid={Boolean(errors.email)}
@@ -378,9 +373,6 @@ export function BeneficiaryForm({
                 {...register("phone", {
                   onChange: () => {
                     clearErrors("phone");
-                    if (errors.email?.message?.includes("Cần ít nhất")) {
-                      clearErrors("email");
-                    }
                   },
                 })}
                 aria-invalid={Boolean(errors.phone)}

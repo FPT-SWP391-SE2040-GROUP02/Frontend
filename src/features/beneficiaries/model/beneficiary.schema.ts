@@ -16,22 +16,29 @@ export const beneficiaryResponseSchema = z.object({
 
   isExisting: z.boolean().optional(),
 });
-const contact = {
-  fullName: z.string().max(200),
-  dateOfBirth: date,
-  email: z.string().max(254).nullable().optional(),
-  phone: z.string().max(20).nullable().optional(),
-};
-/** Shape CreateBeneficiaryRequest; tuổi/liên hệ/dedup do service Backend kiểm. */
+const fullNameRule = z
+  .string()
+  .min(2, "Họ và tên phải có ít nhất 2 ký tự.")
+  .max(200, "Họ tên tối đa 200 ký tự.")
+  .regex(/^[\p{L}\s]+$/u, "Họ và tên chỉ được chứa chữ cái và khoảng trắng.");
+
+/** Shape CreateBeneficiaryRequest; họ tên, ngày sinh, email bắt buộc. */
 export const createBeneficiarySchema = z.object({
-  ...contact,
-  fullName: contact.fullName.regex(/\S/),
+  fullName: fullNameRule,
+  dateOfBirth: date,
+  email: z
+    .string()
+    .min(1, "Email là bắt buộc.")
+    .max(254, "Email tối đa 254 ký tự.")
+    .email("Email không hợp lệ."),
+  phone: z.string().max(20).nullable().optional(),
   citizenId: z.string().regex(/\S/).max(32),
 });
-/** PUT không cho đổi CCCD; null giữ nguyên, contact chuỗi rỗng xóa. */
+/** PUT không cho đổi CCCD; null giữ nguyên. */
 export const updateBeneficiarySchema = z.object({
-  ...contact,
-  fullName: contact.fullName.nullable().optional(),
+  fullName: fullNameRule.nullable().optional(),
   dateOfBirth: date.nullable().optional(),
+  email: z.string().max(254).nullable().optional(),
+  phone: z.string().max(20).nullable().optional(),
   etag: z.string().min(1).max(64),
 });
