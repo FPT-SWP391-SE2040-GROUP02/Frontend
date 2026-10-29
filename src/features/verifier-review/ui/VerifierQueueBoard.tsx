@@ -88,7 +88,7 @@ export function VerifierQueueBoard({
   const visible = rows.filter(({ item, category }) => {
     if (filter !== "ALL" && category !== filter) return false;
     if (!keyword) return true;
-    const haystack = `${caseCode(item.id)} ${item.ownerCitizenIdLast4 ?? ""}`.toLowerCase();
+    const haystack = `${caseCode(item.id)} ${item.ownerCitizenIdLast4 ?? ""} ${item.executorFullName ?? ""} ${item.executorEmail ?? ""}`.toLowerCase();
     return haystack.includes(keyword);
   });
   const updateParam = (name: string, value: string) => {
@@ -182,7 +182,7 @@ export function VerifierQueueBoard({
                         Mã hồ sơ
                       </th>
                       <th scope="col" className="px-4 py-3 font-semibold">
-                        Chủ kho
+                        Chủ kho & Người yêu cầu
                       </th>
                       <th scope="col" className="px-4 py-3 font-semibold">
                         Nhận lúc
@@ -209,6 +209,9 @@ export function VerifierQueueBoard({
                               CCCD ****{item.ownerCitizenIdLast4 ?? "—"}
                             </p>
                             <p className="text-heritage-muted">
+                              Người yêu cầu: {item.executorFullName ?? "Người thừa hành"}
+                            </p>
+                            <p className="text-xs text-heritage-muted">
                               Ngày mất: {item.dateOfDeath ?? "—"}
                             </p>
                           </td>

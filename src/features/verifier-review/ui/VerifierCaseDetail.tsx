@@ -267,6 +267,38 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
         {/* CỘT TRÁI (3fr): HỒ SƠ & TÀI LIỆU CHỨNG TỪ */}
         <div className="space-y-6">
           <section
+            aria-label="Người thực hiện yêu cầu"
+            className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-xl font-semibold text-heritage-primary">
+                Người thực hiện yêu cầu (Người thừa hành)
+              </h3>
+              <Chip tone="neutral">
+                {detail.executor?.role ?? "Người thừa hành"}
+              </Chip>
+            </div>
+            <dl className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label="Họ và tên người gửi"
+                value={detail.executor?.fullName ?? "—"}
+              />
+              <Field
+                label="Email liên hệ"
+                value={detail.executor?.email ?? "—"}
+              />
+              <Field
+                label="Số điện thoại"
+                value={detail.executor?.phone ?? "—"}
+              />
+              <Field
+                label="Thời điểm nộp yêu cầu"
+                value={review.submittedAt ? formatCompact(review.submittedAt) : "—"}
+              />
+            </dl>
+          </section>
+
+          <section
             aria-label="Bản đang xét"
             className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
           >

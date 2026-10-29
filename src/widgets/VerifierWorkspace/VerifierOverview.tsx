@@ -63,7 +63,8 @@ export function VerifierOverview() {
                     <div className="min-w-0">
                       <p className="font-semibold">Hồ sơ #{caseCode(item.id)}</p>
                       <p className="text-sm text-heritage-muted">
-                        CCCD · ****{item.ownerCitizenIdLast4 ?? "—"}
+                        Chủ kho: ****{item.ownerCitizenIdLast4 ?? "—"} · Yêu cầu bởi:{" "}
+                        {item.executorFullName ?? "Người thừa hành"}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">

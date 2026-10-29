@@ -73,6 +73,8 @@ export const verifierCaseSummarySchema = z.object({
   closedAt: timestamp.nullable(),
   /** Có giá trị = Executor bổ sung quá hạn 7 ngày; null/thiếu = chưa quá hạn hoặc đã gửi lại (BE mục 6.12). */
   supplementOverdueAt: timestamp.nullable().optional(),
+  executorFullName: z.string().nullable().optional(),
+  executorEmail: z.string().nullable().optional(),
 });
 /** Bản Executor gửi gần nhất mà Verifier đang xét (đã giải mã, có CCCD đầy đủ Owner). */
 export const verifierReviewVersionSchema = z.object({
@@ -152,6 +154,18 @@ export const verifierOwnerIdentitySchema = z.object({
   hasDocumentImage: z.boolean(),
   documentImageCapturedAt: timestamp.nullable(),
 });
+/** Thông tin Người thực hiện (Executor) gửi yêu cầu hồ sơ này. */
+export const verifierExecutorSchema = z
+  .object({
+    id: z.string().uuid(),
+    fullName: z.string(),
+    email: z.string(),
+    phone: z.string().nullable().optional(),
+    role: z.string().nullable().optional(),
+  })
+  .nullable()
+  .optional();
+
 /** Chi tiết hồ sơ Verifier được giao. */
 export const verifierCaseDetailSchema = z.object({
   id: z.string().uuid(),
@@ -175,6 +189,7 @@ export const verifierCaseDetailSchema = z.object({
   /** Có giá trị = Executor bổ sung quá hạn 7 ngày; null/thiếu = chưa quá hạn hoặc đã gửi lại (BE mục 6.12). */
   supplementOverdueAt: timestamp.nullable().optional(),
   ownerIdentity: verifierOwnerIdentitySchema,
+  executor: verifierExecutorSchema,
 });
 /** Review một cờ. */
 export const reviewFlagRequestSchema = z.object({
