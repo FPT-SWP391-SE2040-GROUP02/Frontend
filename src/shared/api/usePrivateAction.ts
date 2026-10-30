@@ -230,6 +230,15 @@ const messages: Record<string, string> = {
   PAYMENT_ORDER_NOT_FOUND: "Không tìm thấy đơn thanh toán của kho này.",
   CONTENT_INTEGRITY_FAILED:
     "Không thể xác nhận tính toàn vẹn của nội dung. Vui lòng liên hệ hỗ trợ.",
+  VAULT_PIN_NOT_SET: "Kho đã có tài sản nên cần đặt mã PIN trước khi tiếp tục.",
+  VAULT_PIN_ALREADY_SET: "Kho đã có mã PIN. Dùng chức năng đổi mã PIN.",
+  VAULT_PIN_REQUIRED: "Thao tác này cần nhập mã PIN của kho.",
+  INVALID_VAULT_PIN: "Mã PIN chưa đúng.",
+  VAULT_PIN_LOCKED: "Mã PIN đang bị khóa tạm vì nhập sai nhiều lần. Vui lòng thử lại sau.",
+  VAULT_PIN_TOO_WEAK:
+    "Mã PIN quá dễ đoán. Không dùng các số giống nhau hoặc dãy số liên tiếp (111111, 123456...).",
+  VAULT_PIN_RESET_NEEDS_PASSWORD:
+    "Tài khoản của bạn chưa có mật khẩu nên chưa đặt lại mã PIN được. Hãy đặt mật khẩu ở mục Phương thức đăng nhập trước.",
 };
 
 /**

@@ -274,23 +274,12 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               <h3 className="text-xl font-semibold text-heritage-primary">
                 Người thực hiện yêu cầu (Người thừa hành)
               </h3>
-              <Chip tone="neutral">
-                {detail.executor?.role ?? "Người thừa hành"}
-              </Chip>
+              <Chip tone="neutral">{detail.executor?.role ?? "Người thừa hành"}</Chip>
             </div>
             <dl className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Họ và tên người gửi"
-                value={detail.executor?.fullName ?? "—"}
-              />
-              <Field
-                label="Email liên hệ"
-                value={detail.executor?.email ?? "—"}
-              />
-              <Field
-                label="Số điện thoại"
-                value={detail.executor?.phone ?? "—"}
-              />
+              <Field label="Họ và tên người gửi" value={detail.executor?.fullName ?? "—"} />
+              <Field label="Email liên hệ" value={detail.executor?.email ?? "—"} />
+              <Field label="Số điện thoại" value={detail.executor?.phone ?? "—"} />
               <Field
                 label="Thời điểm nộp yêu cầu"
                 value={review.submittedAt ? formatCompact(review.submittedAt) : "—"}

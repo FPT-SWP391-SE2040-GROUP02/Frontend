@@ -105,10 +105,7 @@ export function BeneficiaryForm({
             .string()
             .min(1, "Vui lòng nhập email.")
             .max(254, "Email tối đa 254 ký tự.")
-            .refine(
-              (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()),
-              "Email không hợp lệ.",
-            ),
+            .refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()), "Email không hợp lệ."),
           phone: z.string().max(20, "Số điện thoại tối đa 20 ký tự.").optional().or(z.literal("")),
         })
         .superRefine((values, ctx) => {
@@ -147,10 +144,7 @@ export function BeneficiaryForm({
               path: ["email"],
               message: "Vui lòng nhập email.",
             });
-          } else if (
-            ownerEmail &&
-            trimmedEmail.toLowerCase() === ownerEmail.trim().toLowerCase()
-          ) {
+          } else if (ownerEmail && trimmedEmail.toLowerCase() === ownerEmail.trim().toLowerCase()) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               path: ["email"],

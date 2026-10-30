@@ -88,7 +88,8 @@ export function VerifierQueueBoard({
   const visible = rows.filter(({ item, category }) => {
     if (filter !== "ALL" && category !== filter) return false;
     if (!keyword) return true;
-    const haystack = `${caseCode(item.id)} ${item.ownerCitizenIdLast4 ?? ""} ${item.executorFullName ?? ""} ${item.executorEmail ?? ""}`.toLowerCase();
+    const haystack =
+      `${caseCode(item.id)} ${item.ownerCitizenIdLast4 ?? ""} ${item.executorFullName ?? ""} ${item.executorEmail ?? ""}`.toLowerCase();
     return haystack.includes(keyword);
   });
   const updateParam = (name: string, value: string) => {

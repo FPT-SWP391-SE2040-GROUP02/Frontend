@@ -9,6 +9,7 @@ import { APP_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 import { storage } from "@/shared/utils";
 import { reportSessionFailure } from "./sessionFailure";
 import { accessTokenMemory } from "./accessToken";
+import { notifyAssetCreated, resolveVaultPinFailure } from "./vaultPin";
 
 /**
  * @description Instance Axios trung tâm được cấu hình sẵn baseURL, headers mặc định và timeout.
@@ -75,9 +76,15 @@ apiClient.interceptors.request.use(
  */
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
+    notifyAssetCreated(response.config, response.status);
     return response.data;
   },
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    // Thao tác kho cần mã PIN: hỏi người dùng rồi gửi lại request kèm header PIN (xem vaultPin.ts).
+    if (error.config && isApiRequest(error.config)) {
+      const pinRetry = await resolveVaultPinFailure(error, (config) => apiClient.request(config));
+      if (pinRetry.handled) return pinRetry.value;
+    }
     if (error.config && isApiRequest(error.config)) reportSessionFailure(error);
     if (error.response) {
       const status = error.response.status;
