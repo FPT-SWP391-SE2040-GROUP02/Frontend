@@ -18,16 +18,13 @@ const missingLabels: Record<string, string> = {
   PAID_SERVICE_REQUIRED: "Cần gói trả phí còn hạn.",
   OWNER_EKYC_REQUIRED: "Chủ kho cần hoàn tất xác minh danh tính eKYC.",
   READY_CONTAINER_REQUIRED: "Cần ít nhất một gói có tài sản và người nhận hợp lệ.",
-  PRIMARY_EXECUTOR_REQUIRED: "Cần Executor chính đã chấp nhận nhiệm vụ.",
-  BACKUP_EXECUTOR_REQUIRED: "Executor chính là người nhận: cần dự phòng độc lập đã chấp nhận.",
+  PRIMARY_EXECUTOR_REQUIRED: "Cần Executor đã chấp nhận nhiệm vụ.",
   PLAN_NOT_DRAFT: "Kế hoạch đã rời trạng thái nháp.",
   NO_ASSET: "Gói chưa có tài sản.",
   NO_DESIGNATION: "Gói chưa có người nhận.",
 };
-const warningLabels: Record<string, string> = {
-  NO_BACKUP_EXECUTOR:
-    "Chưa có Executor dự phòng. Nếu Executor chính không thể thực hiện nhiệm vụ, kế hoạch có thể chậm trễ.",
-};
+// Backend hiện không trả cảnh báo nào; mã lạ (nếu có) vẫn hiện nguyên văn.
+const warningLabels: Record<string, string> = {};
 const CHECKLIST_ITEMS = [
   { code: "OWNER_EKYC_REQUIRED", done: "Đã xác minh danh tính eKYC.", link: "identity" },
   { code: "READY_CONTAINER_REQUIRED", done: "Có ít nhất một gói sẵn sàng bàn giao.", link: "" },
@@ -89,7 +86,7 @@ function ActivationChecklist({ missing }: { missing: string[] }) {
     }
     rows.push(<ChecklistRow key={item.code} ok={!isMissing} text={text} action={action} />);
   }
-  // Mã khác (kho chưa mở, email chưa xác minh, Executor dự phòng...) vẫn hiện để không giấu điều kiện của máy chủ.
+  // Mã khác (kho chưa mở, email chưa xác minh...) vẫn hiện để không giấu điều kiện của máy chủ.
   for (const code of missing) {
     if (known.includes(code)) {
       continue;

@@ -120,9 +120,8 @@ function TrustedPeopleCard({ vaultId }: { vaultId: string }) {
       </div>
     );
   } else {
-    // Mỗi vai lấy lời mời còn hiệu lực gần nhất; lời mời đã thu hồi/từ chối không tính là người hiện tại.
+    // Lấy lời mời còn hiệu lực gần nhất; lời mời đã thu hồi/từ chối không tính là người hiện tại.
     let primary = null;
-    let backup = null;
     for (const executor of query.data.executors) {
       const isCurrent =
         executor.status === "INVITED" ||
@@ -131,11 +130,8 @@ function TrustedPeopleCard({ vaultId }: { vaultId: string }) {
       if (!isCurrent) {
         continue;
       }
-      if (executor.role === "PRIMARY" && primary === null) {
+      if (primary === null) {
         primary = executor;
-      }
-      if (executor.role === "BACKUP" && backup === null) {
-        backup = executor;
       }
     }
     let primaryName = "Chưa mời";
@@ -155,10 +151,6 @@ function TrustedPeopleCard({ vaultId }: { vaultId: string }) {
       primaryNeedsAction = primary.status !== "ACCEPTED";
       primaryAction = null;
     }
-    let backupLine = "Chưa có Executor dự phòng.";
-    if (backup !== null) {
-      backupLine = `Dự phòng: ${backup.inviteeEmail} · ${executorStatusLabels[backup.status]}`;
-    }
     content = (
       <div className="grid gap-4 sm:grid-cols-2">
         <TrustedPerson
@@ -167,7 +159,6 @@ function TrustedPeopleCard({ vaultId }: { vaultId: string }) {
           status={primaryStatus}
           needsAction={primaryNeedsAction}
         >
-          <p className="mt-3 break-words text-xs text-heritage-muted">{backupLine}</p>
           {primaryAction}
         </TrustedPerson>
         <TrustedPerson

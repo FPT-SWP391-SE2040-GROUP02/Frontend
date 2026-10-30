@@ -231,8 +231,14 @@ it("only allows Beneficiary identity-complete when PASSED + MATCHED + bound veri
     target: { files: [new File(["fixture"], "id.png", { type: "image/png" })] },
   });
   fireEvent.click(screen.getByRole("button", { name: "Đọc thông tin" }));
+  // Mặt sau bắt buộc trước khi sang bước camera.
+  fireEvent.change(await screen.findByLabelText("Ảnh mặt sau giấy tờ"), {
+    target: { files: [new File(["fixture"], "back.png", { type: "image/png" })] },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Đọc mặt sau" }));
+  await screen.findByText(/Đã nhận ảnh mặt sau/);
   fireEvent.click(await screen.findByRole("button", { name: "Tiếp tục so khớp mặt" }));
-  // Xác nhận bản khai → bước liveness (mặt sau là tùy chọn)
+  // Xác nhận bản khai → bước liveness
   const startLiveness = await screen.findByRole("button", {
     name: "Bắt đầu thử thách camera",
   });

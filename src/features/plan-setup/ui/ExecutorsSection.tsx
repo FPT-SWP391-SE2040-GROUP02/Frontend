@@ -23,14 +23,11 @@ import { planSetupService } from "../api/planSetupService";
 import { usePlanSetup } from "../model/usePlanSetup";
 
 type Executor = z.infer<typeof executorSchema>;
-type ExecutorRole = Executor["role"];
 type Beneficiary = { id: string; label: string };
 
-/** Hộp thoại đang mở: mời (role null = Chủ kho tự chọn vai), mời người thay, hoặc thu hồi. */
+/** Hộp thoại đang mở: mời, mời người thay, hoặc thu hồi. */
 type DialogState =
-  | { kind: "invite"; role: ExecutorRole | null; replacing: Executor | null }
-  | { kind: "revoke"; executor: Executor }
-  | null;
+  { kind: "invite"; replacing: Executor | null } | { kind: "revoke"; executor: Executor } | null;
 
 const statuses = {
   INVITED: "Chờ phản hồi",
@@ -77,10 +74,10 @@ function isLive(executor: Executor): boolean {
 }
 
 /** Người đang giữ vai: ưu tiên người đã chấp nhận (người thay đang chờ không thay họ cho tới khi chấp nhận). */
-function currentHolder(executors: Executor[], role: ExecutorRole): Executor | null {
+function currentHolder(executors: Executor[]): Executor | null {
   let holder: Executor | null = null;
   for (const executor of executors) {
-    if (executor.role !== role || !isLive(executor)) {
+    if (!isLive(executor)) {
       continue;
     }
     if (holder === null || executor.status === "ACCEPTED") {
@@ -90,10 +87,10 @@ function currentHolder(executors: Executor[], role: ExecutorRole): Executor | nu
   return holder;
 }
 
-/** Lời mời thay đang chờ phản hồi của vai chính (khác người đang giữ vai). */
+/** Lời mời thay đang chờ phản hồi (khác người đang giữ vai). */
 function pendingReplacement(executors: Executor[], holder: Executor | null): Executor | null {
   for (const executor of executors) {
-    if (executor.role === "PRIMARY" && executor.status === "INVITED" && executor !== holder) {
+    if (executor.status === "INVITED" && executor !== holder) {
       return executor;
     }
   }
@@ -147,21 +144,13 @@ function ActionList({
 
 interface InviteDialogProps {
   vaultId: string;
-  role: ExecutorRole | null;
   replacing: Executor | null;
   existingExecutors: Executor[];
   sync: () => void;
   onClose: () => void;
 }
 
-function InviteDialog({
-  vaultId,
-  role,
-  replacing,
-  existingExecutors,
-  sync,
-  onClose,
-}: InviteDialogProps) {
+function InviteDialog({ vaultId, replacing, existingExecutors, sync, onClose }: InviteDialogProps) {
   const action = usePrivateAction();
   const ownerEmail = useSelector((state: { auth: AuthState }) => state.auth.user?.email);
 
@@ -195,34 +184,26 @@ function InviteDialog({
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["email"],
-            message: `Email này đã được mời hoặc đang là Người thực hiện ${duplicate.role === "PRIMARY" ? "chính" : "dự phòng"}.`,
+            message: "Email này đã được mời hoặc đang là Người thực hiện.",
           });
         }
       }),
     [ownerEmail, existingExecutors, replacing],
   );
 
-  let defaultRole: ExecutorRole = "PRIMARY";
-  if (role !== null) {
-    defaultRole = role;
-  }
   const form = useForm<z.infer<typeof inviteExecutorSchema>>({
     resolver: zodResolver(inviteSchema),
     mode: "onBlur",
     reValidateMode: "onBlur",
-    defaultValues: { email: "", role: defaultRole, beneficiaryId: null },
+    defaultValues: { email: "", beneficiaryId: null },
   });
   let title = "Mời người thực hiện";
   let description = "Người được mời sẽ nhận email để chấp nhận nhiệm vụ.";
   let notice = "Lời mời có hiệu lực 7 ngày.";
   if (replacing !== null) {
     title = `Mời người thay ${replacing.inviteeEmail}`;
-    description = `Người mới sẽ là người thực hiện chính khi chấp nhận lời mời. Đến lúc đó ${replacing.inviteeEmail} tự động thành “Đã thu hồi”. Trong lúc chờ, người cũ vẫn giữ vai trò.`;
-    notice = `Lời mời có hiệu lực 7 ngày. Hết hạn mà chưa chấp nhận thì ${replacing.inviteeEmail} vẫn là người chính.`;
-  } else if (role === "BACKUP") {
-    title = "Mời người dự phòng";
-  } else if (role === "PRIMARY") {
-    title = "Mời người thực hiện chính";
+    description = `Người mới sẽ là người thực hiện khi chấp nhận lời mời. Đến lúc đó ${replacing.inviteeEmail} tự động thành “Đã thu hồi”. Trong lúc chờ, người cũ vẫn giữ vai trò.`;
+    notice = `Lời mời có hiệu lực 7 ngày. Hết hạn mà chưa chấp nhận thì ${replacing.inviteeEmail} vẫn là người thực hiện.`;
   }
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
@@ -254,18 +235,6 @@ function InviteDialog({
               <p role="alert" className="text-sm text-destructive">
                 {form.formState.errors.email.message}
               </p>
-            )}
-            {role === null && (
-              <label className="block space-y-2 text-sm">
-                Vai trò Executor
-                <select
-                  {...form.register("role")}
-                  className="block min-h-11 w-full rounded-lg border px-3"
-                >
-                  <option value="PRIMARY">Executor chính</option>
-                  <option value="BACKUP">Executor dự phòng</option>
-                </select>
-              </label>
             )}
           </fieldset>
           <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">{notice}</p>
@@ -306,17 +275,13 @@ function RevokeDialog({
   onClose: () => void;
 }) {
   const action = usePrivateAction();
-  let roleLabel = "người thực hiện chính";
-  if (executor.role === "BACKUP") {
-    roleLabel = "người thực hiện dự phòng";
-  }
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Thu hồi {executor.inviteeEmail}?</DialogTitle>
           <DialogDescription>
-            {executor.inviteeEmail} sẽ không còn là {roleLabel} của kho này.
+            {executor.inviteeEmail} sẽ không còn là người thực hiện của kho này.
           </DialogDescription>
         </DialogHeader>
         <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
@@ -362,28 +327,21 @@ function RevokeDialog({
 
 interface RoleCardProps {
   title: string;
-  role: ExecutorRole;
   holder: Executor | null;
   pending: Executor | null;
   manageable: boolean;
   planRunning: boolean;
   scopeVersion: string;
   busy: boolean;
-  onInvite: (role: ExecutorRole, replacing: Executor | null) => void;
+  onInvite: (replacing: Executor | null) => void;
   onRevoke: (executor: Executor) => void;
   onResend: (executor: Executor) => void;
 }
 
 function RoleCard(props: RoleCardProps) {
-  const { title, role, holder, pending, manageable, planRunning, scopeVersion, busy } = props;
+  const { title, holder, pending, manageable, planRunning, scopeVersion, busy } = props;
   if (holder === null) {
-    let hint = "Người thực hiện chính báo tin khi bạn qua đời và theo dõi tiến trình.";
-    let buttonLabel = "Mời người thực hiện chính";
-    if (role === "BACKUP") {
-      hint =
-        "Người dự phòng có quyền như người chính. Nên mời một người khác, để nếu cần thì kế hoạch không bị kẹt.";
-      buttonLabel = "Mời người dự phòng";
-    }
+    const hint = "Người thực hiện báo tin khi bạn qua đời và theo dõi tiến trình.";
     return (
       <section aria-label={title} className={CARD}>
         <h2 className="text-xl font-medium text-heritage-primary">{title}</h2>
@@ -407,19 +365,16 @@ function RoleCard(props: RoleCardProps) {
             size="lg"
             className={`${GOLD_BUTTON} mt-5 w-full justify-between`}
             disabled={busy}
-            onClick={() => props.onInvite(role, null)}
+            onClick={() => props.onInvite(null)}
           >
-            {buttonLabel}
+            Mời người thực hiện
             <ArrowRight className="size-4" aria-hidden="true" />
           </Button>
         )}
       </section>
     );
   }
-  let description = "Người báo tin khi bạn qua đời và theo dõi tiến trình.";
-  if (role === "BACKUP") {
-    description = "Thay người thực hiện chính khi họ không báo tin được.";
-  }
+  const description = "Người báo tin khi bạn qua đời và theo dõi tiến trình.";
   let beneficiaryNote = "Người này không nhận tài sản trong kho này.";
   if (holder.isBeneficiary) {
     beneficiaryNote = "Người này cũng là người nhận trong kho này.";
@@ -432,8 +387,8 @@ function RoleCard(props: RoleCardProps) {
     holder.status === "INVITED" ||
     holder.status === "SUSPENDED" ||
     (holder.status === "ACCEPTED" && holder.acceptedScopeVersion !== scopeVersion);
-  // Người chính đã nhận nhiệm vụ khi kế hoạch chạy: Backend yêu cầu mời người thay, không thu hồi trực tiếp.
-  const mustReplace = role === "PRIMARY" && holder.status === "ACCEPTED" && planRunning;
+  // Người thực hiện đã nhận nhiệm vụ khi kế hoạch chạy: Backend yêu cầu mời người thay, không thu hồi trực tiếp.
+  const mustReplace = holder.status === "ACCEPTED" && planRunning;
   return (
     <section aria-label={title} className={CARD}>
       <h2 className="text-xl font-medium text-heritage-primary">{title}</h2>
@@ -478,12 +433,12 @@ function RoleCard(props: RoleCardProps) {
       />
       {manageable && (
         <div className="mt-6 flex flex-wrap gap-3">
-          {role === "PRIMARY" && holder.status === "ACCEPTED" && (
+          {holder.status === "ACCEPTED" && (
             <Button
               size="lg"
               className={GOLD_BUTTON}
               disabled={busy}
-              onClick={() => props.onInvite("PRIMARY", holder)}
+              onClick={() => props.onInvite(holder)}
             >
               Mời người thay
             </Button>
@@ -555,7 +510,7 @@ function RecentActivity({ executors }: { executors: Executor[] }) {
 }
 
 /**
- * Màn "Người tin cậy" theo thiết kế: Người thực hiện chính/dự phòng do Chủ kho mời; Người xét duyệt do hệ thống phân công.
+ * Màn "Người tin cậy" theo thiết kế: một Người thực hiện do Chủ kho mời; Người xét duyệt do hệ thống phân công.
  * Mọi thao tác (mời, mời thay, gửi lại, thu hồi) do Chủ kho chủ động; kết quả và điều kiện do Backend quyết định.
  */
 export function ExecutorsSection({
@@ -599,8 +554,7 @@ export function ExecutorsSection({
   const setup = query.data;
   const manageable = !LOCKED_PLAN_STATUSES.includes(setup.planStatus);
   const planRunning = RUNNING_PLAN_STATUSES.includes(setup.planStatus);
-  const primary = currentHolder(setup.executors, "PRIMARY");
-  const backup = currentHolder(setup.executors, "BACKUP");
+  const primary = currentHolder(setup.executors);
   const replacement = pendingReplacement(setup.executors, primary);
   let chipLabel = "Đang nháp";
   if (Object.hasOwn(PLAN_CHIP_LABELS, setup.planStatus)) {
@@ -619,7 +573,7 @@ export function ExecutorsSection({
     banner = `${reason} nên bạn chưa thể mời, gửi lại hay thu hồi người thực hiện. Bạn chỉ xem được.`;
   } else if (planRunning) {
     banner =
-      "Kế hoạch đang hoạt động. Bạn vẫn mời, gửi lại và thu hồi được. Người thực hiện chính đã nhận nhiệm vụ không thu hồi trực tiếp: hãy mời người thay, người cũ giữ vai trò tới khi người mới chấp nhận.";
+      "Kế hoạch đang hoạt động. Bạn vẫn mời, gửi lại và thu hồi được. Người thực hiện đã nhận nhiệm vụ không thu hồi trực tiếp: hãy mời người thay, người cũ giữ vai trò tới khi người mới chấp nhận.";
   }
   const busy = resendAction.pending;
 
@@ -629,50 +583,24 @@ export function ExecutorsSection({
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${chipClass}`}>
           {chipLabel}
         </span>
-        {manageable && (
-          <Button
-            size="lg"
-            className={GOLD_BUTTON}
-            disabled={busy}
-            onClick={() => setDialog({ kind: "invite", role: null, replacing: null })}
-          >
-            Mời người thực hiện
-          </Button>
-        )}
       </div>
       {banner !== null && (
         <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
           {banner}
         </p>
       )}
-      <div className="grid items-start gap-6 lg:grid-cols-2">
-        <RoleCard
-          title="Người thực hiện chính"
-          role="PRIMARY"
-          holder={primary}
-          pending={replacement}
-          manageable={manageable}
-          planRunning={planRunning}
-          scopeVersion={setup.executorScopeVersion}
-          busy={busy}
-          onInvite={(role, replacing) => setDialog({ kind: "invite", role, replacing })}
-          onRevoke={(executor) => setDialog({ kind: "revoke", executor })}
-          onResend={resend}
-        />
-        <RoleCard
-          title="Người thực hiện dự phòng"
-          role="BACKUP"
-          holder={backup}
-          pending={null}
-          manageable={manageable}
-          planRunning={planRunning}
-          scopeVersion={setup.executorScopeVersion}
-          busy={busy}
-          onInvite={(role, replacing) => setDialog({ kind: "invite", role, replacing })}
-          onRevoke={(executor) => setDialog({ kind: "revoke", executor })}
-          onResend={resend}
-        />
-      </div>
+      <RoleCard
+        title="Người thực hiện"
+        holder={primary}
+        pending={replacement}
+        manageable={manageable}
+        planRunning={planRunning}
+        scopeVersion={setup.executorScopeVersion}
+        busy={busy}
+        onInvite={(replacing) => setDialog({ kind: "invite", replacing })}
+        onRevoke={(executor) => setDialog({ kind: "revoke", executor })}
+        onResend={resend}
+      />
       {resendAction.pending && <p role="status">Đang gửi yêu cầu…</p>}
       {resendAction.error && (
         <div role="alert" className="space-y-3 text-destructive">
@@ -712,7 +640,6 @@ export function ExecutorsSection({
       {dialog !== null && dialog.kind === "invite" && (
         <InviteDialog
           vaultId={vaultId}
-          role={dialog.role}
           replacing={dialog.replacing}
           existingExecutors={setup.executors}
           sync={sync}

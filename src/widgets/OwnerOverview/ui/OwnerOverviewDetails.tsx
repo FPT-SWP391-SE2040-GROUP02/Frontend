@@ -26,7 +26,8 @@ const activityLabels: Record<string, string> = {
   ASSET_CONTENT_DOWNLOADED: "Tải nội dung tài sản",
   CONTAINER_CREATED: "Tạo gói bàn giao",
   CONTAINER_UPDATED: "Cập nhật gói bàn giao",
-  CONTAINER_ARCHIVED: "Lưu trữ gói bàn giao",
+  CONTAINER_ARCHIVED: "Xóa gói bàn giao",
+  CONTAINER_REMOVED: "Xóa gói bàn giao",
   CONTAINER_ASSET_ADDED: "Thêm tài sản vào gói",
   CONTAINER_ASSET_REMOVED: "Gỡ tài sản khỏi gói",
   CONTAINER_BENEFICIARY_ADDED: "Chỉ định người nhận",
@@ -68,11 +69,7 @@ export function OwnerOverviewDetails({
             {executors.length ? (
               executors.map((person) => (
                 <div key={person.id}>
-                  <h3>
-                    {person.role === "PRIMARY"
-                      ? "Người thực hiện chính"
-                      : "Người thực hiện dự phòng"}
-                  </h3>
+                  <h3>Người thực hiện</h3>
                   <p className="overview-person-email">{person.inviteeEmail}</p>
                   <p className="overview-muted">
                     {person.status === "ACCEPTED" &&

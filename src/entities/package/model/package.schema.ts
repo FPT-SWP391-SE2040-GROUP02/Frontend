@@ -36,19 +36,19 @@ export const updatePackageSchema = z.object({
   description: createPackageSchema.shape.description,
 });
 
-/** Raw ContainerResponse; lưu trữ không xóa hẳn gói. */
+/** Raw ContainerResponse; xóa gói (REMOVED) không xóa hẳn dòng nhưng không khôi phục được. */
 export const packageResponseSchema = z.object({
   id: z.string().uuid(),
   vaultId: z.string().uuid(),
   name: z.string(),
   description: z.string().nullable(),
-  status: z.enum(["DRAFT", "READY", "ARCHIVED"]),
+  status: z.enum(["DRAFT", "READY", "REMOVED"]),
   assetIds: z.array(z.string().uuid()),
   beneficiaryIds: z.array(z.string().uuid()),
   missingRequirements: z.array(z.string()),
   createdAt: z.string().datetime({ offset: true }),
   updatedAt: z.string().datetime({ offset: true }).nullable(),
-  archivedAt: z.string().datetime({ offset: true }).nullable(),
+  removedAt: z.string().datetime({ offset: true }).nullable(),
   etag: z.string().min(1).max(64),
 });
 

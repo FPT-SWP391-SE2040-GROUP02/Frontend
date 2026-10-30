@@ -124,7 +124,7 @@ export function OwnerOverviewSummary({
         <div className="overview-stat">
           <h2>Gói bàn giao</h2>
           <p className="overview-stat-value">{vault.activeContainerCount}</p>
-          <p className="overview-muted">Gói chưa lưu trữ trong kho</p>
+          <p className="overview-muted">Gói đang dùng trong kho</p>
         </div>
       </section>
     </>

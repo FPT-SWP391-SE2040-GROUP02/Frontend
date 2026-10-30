@@ -16,7 +16,9 @@ export const auditActionValues = [
   "ASSET_CONTENT_DOWNLOADED",
   "CONTAINER_CREATED",
   "CONTAINER_UPDATED",
+  // Tên cũ của CONTAINER_REMOVED, chỉ còn trong nhật ký ghi trước khi đổi tên.
   "CONTAINER_ARCHIVED",
+  "CONTAINER_REMOVED",
   "CONTAINER_ASSET_ADDED",
   "CONTAINER_ASSET_REMOVED",
   "CONTAINER_BENEFICIARY_ADDED",
