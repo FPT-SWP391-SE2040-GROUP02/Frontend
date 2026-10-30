@@ -1077,22 +1077,24 @@ it("423 SIGNING_LOCKED hiện giờ mở khóa và khóa nút gửi kể cả kh
 
 it("hết lockedUntil thì nút gửi được mở lại", async () => {
   const user = userEvent.setup();
-  const lockedUntil = new Date(Date.now() + 1500).toISOString();
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID) ? approvableDetail : listFixture,
   );
-  vi.spyOn(apiClient, "post").mockRejectedValue(
-    httpError(423, { code: "SIGNING_LOCKED", lockedUntil }),
-  );
+  // Tính lockedUntil lúc POST được gọi, không phải lúc test bắt đầu: khi chạy cả bộ test
+  // máy chậm, bước điền form có thể vượt quá thời gian khóa và làm test chập chờn.
+  vi.spyOn(apiClient, "post").mockImplementation(async () => {
+    const lockedUntil = new Date(Date.now() + 3000).toISOString();
+    throw httpError(423, { code: "SIGNING_LOCKED", lockedUntil });
+  });
   await fillApprove(user);
   await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
   await screen.findByText(/Chức năng ký số đang tạm khóa/);
   await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
   expect(screen.getByRole("button", { name: /^Duyệt$/ })).toBeDisabled();
   await waitFor(() => expect(screen.getByRole("button", { name: /^Duyệt$/ })).toBeEnabled(), {
-    timeout: 4000,
+    timeout: 6000,
   });
-});
+}, 10000);
 
 it("lỗi khác khi duyệt vẫn hiện ReviewError với nút Tải lại hồ sơ", async () => {
   const user = userEvent.setup();
