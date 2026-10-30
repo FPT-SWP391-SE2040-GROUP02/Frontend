@@ -59,6 +59,8 @@ export const devEkycResetSchema = z.object({
   consentsRemoved: z.number().int().nonnegative(),
   identityRemoved: z.boolean(),
   faceTemplatesRemoved: z.number().int().nonnegative(),
+  vaultRemoved: z.boolean(),
+  filesRemoved: z.number().int().nonnegative(),
 });
 export type DevEkycReset = z.infer<typeof devEkycResetSchema>;
 
