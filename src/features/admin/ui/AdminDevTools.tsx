@@ -177,7 +177,7 @@ export function AdminDevTools() {
         </Panel>
       )}
 
-      <Panel title="Đặt lại tài khoản về ban đầu" labelledBy="dev-tools-ekyc">
+      <Panel title="Đặt lại eKYC" labelledBy="dev-tools-ekyc">
         <p className="text-sm text-heritage-muted">{EKYC_RESET_DESCRIPTION}</p>
         <button
           type="button"
@@ -188,7 +188,7 @@ export function AdminDevTools() {
           }}
         >
           <ScanFace className="size-4" aria-hidden="true" />
-          Đặt lại một tài khoản về ban đầu
+          Đặt lại eKYC của một tài khoản
         </button>
       </Panel>
 
@@ -240,9 +240,9 @@ export function AdminDevTools() {
       )}
       {dialog?.kind === "ekyc" && (
         <AdminActionDialog
-          title="Đặt lại tài khoản về ban đầu?"
+          title="Đặt lại eKYC?"
           description="Toàn bộ eKYC và kho của tài khoản (kèm mọi dữ liệu trong kho và tệp mã hóa) sẽ bị xóa, không hoàn tác được. Tài khoản quay về lúc vừa đăng ký: phải tạo kho, làm eKYC, mua gói lại từ đầu. Chỉ dùng trên môi trường Development."
-          submitLabel="Đặt lại tài khoản"
+          submitLabel="Đặt lại eKYC"
           fields={[{ name: "email", label: "Email tài khoản", kind: "text", maxLength: 256 }]}
           defaultValues={{ email: "" }}
           confirmLabel="Tôi hiểu đây là dữ liệu thử."
