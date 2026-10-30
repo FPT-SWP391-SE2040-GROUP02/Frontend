@@ -72,9 +72,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
       <Card className="p-5 bg-[#FAF9F5] border-[#DCD9D0] rounded-[20px] space-y-4">
         <div className="flex items-center gap-2">
           <UserCheck className="w-5 h-5 text-[#B88E4C]" />
-          <h3 className="text-sm font-bold text-[#14241C]">
-            1. Người Thực Thi (Executor) *
-          </h3>
+          <h3 className="text-sm font-bold text-[#14241C]">1. Người Thực Thi (Executor) *</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
