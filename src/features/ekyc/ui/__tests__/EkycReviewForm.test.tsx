@@ -48,6 +48,7 @@ function setup(beneficiary = false) {
         turnId={turnId}
         confirmed={confirmed}
         disabled={false}
+        backSent
         onConfirmed={() => setConfirmed(true)}
         onEdit={() => setConfirmed(false)}
       />

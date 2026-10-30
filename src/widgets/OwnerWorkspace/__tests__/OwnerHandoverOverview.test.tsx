@@ -89,8 +89,8 @@ describe("tổng quan bàn giao của Chủ kho", () => {
   it("hiện Người thực hiện đã xác nhận và khóa điểm danh khi kế hoạch còn nháp", () => {
     vi.mocked(usePlanSetup).mockReturnValue(
       planSetupResult([
-        { id: "e1", role: "PRIMARY", status: "ACCEPTED", inviteeEmail: "hai@example.test" },
-        { id: "e2", role: "BACKUP", status: "REVOKED", inviteeEmail: "cu@example.test" },
+        { id: "e1", status: "ACCEPTED", inviteeEmail: "hai@example.test" },
+        { id: "e2", status: "REVOKED", inviteeEmail: "cu@example.test" },
       ]) as never,
     );
     vi.mocked(useCheckIn).mockReturnValue(checkInResult("DRAFT") as never);
@@ -100,7 +100,7 @@ describe("tổng quan bàn giao của Chủ kho", () => {
     expect(screen.getByText("hai@example.test")).toBeInTheDocument();
     expect(screen.getByText("Đã xác nhận lời mời")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Mời người thực hiện" })).not.toBeInTheDocument();
-    expect(screen.getByText("Chưa có Executor dự phòng.")).toBeInTheDocument();
+    expect(screen.queryByText(/dự phòng/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Điểm danh" })).toBeDisabled();
   });
 

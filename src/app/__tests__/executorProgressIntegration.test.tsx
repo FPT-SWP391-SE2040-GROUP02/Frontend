@@ -132,7 +132,6 @@ function deathCase(status: string) {
 const vaultOf = (overrides: Record<string, unknown> = {}) => ({
   vaultId: VAULT_ID,
   ownerFullName: "Fixture",
-  role: "PRIMARY" as const,
   planStatus: "ACTIVE",
   checkInOverdue: false,
   openDeathCaseId: CASE_ID,

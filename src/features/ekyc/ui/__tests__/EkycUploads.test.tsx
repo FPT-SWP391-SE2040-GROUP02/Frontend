@@ -172,11 +172,22 @@ describe("EkycUploads: mặt sau trước khi xác nhận (BR-88)", () => {
     expect(address().value).toBe("Địa chỉ mặt trước");
   });
 
-  it("mặt sau là tùy chọn: xác nhận bản khai xong là sang camera, không đòi gửi mặt sau", async () => {
+  it("mặt sau bắt buộc: chưa đọc mặt sau thì chưa cho sang camera", async () => {
     await reachReview("Địa chỉ mặt trước");
-    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
+    expect(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" })).toBeDisabled();
+    expect(screen.getByText(/Cần đọc mặt sau giấy tờ/)).toBeInTheDocument();
+
+    vi.mocked(ekycService.submitDocumentBack).mockResolvedValue({
+      ...status,
+      residenceAddress: "",
+    });
+    await sendBack();
+    await screen.findByText(/Đã nhận ảnh mặt sau/);
+
+    const next = screen.getByRole("button", { name: "Tiếp tục so khớp mặt" });
+    expect(next).toBeEnabled();
+    fireEvent.click(next);
     expect(await screen.findByText("Thử thách camera đang mở")).toBeInTheDocument();
-    expect(ekycService.submitDocumentBack).not.toHaveBeenCalled();
   });
 
   it("gửi mặt trước mới thì bỏ địa chỉ mặt sau cũ", async () => {

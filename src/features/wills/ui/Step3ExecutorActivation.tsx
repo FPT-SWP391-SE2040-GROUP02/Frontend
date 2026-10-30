@@ -5,7 +5,7 @@ import { UserCheck, ShieldCheck, AlertCircle, CheckCircle2, Zap } from "lucide-r
 /**
  * @file Step3ExecutorActivation.tsx
  * @description Bước 3 của Thiết Lập Kế Hoạch Di Sản (SRS 3.11.0 - Luồng 1B - SETUP-01):
- * 1. Chỉ định Người thi hành chính (Executor) và Người thi hành dự phòng.
+ * 1. Chỉ định Người thi hành (Executor).
  * 2. Đối soát điều kiện kích hoạt di sản (SETUP-01: Gói XS/XS Max, Executor, chỉ định hợp lệ).
  * 3. Xác nhận chính sách kho đồng sở hữu và kích hoạt kế hoạch.
  */
@@ -72,9 +72,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
       <Card className="p-5 bg-[#FAF9F5] border-[#DCD9D0] rounded-[20px] space-y-4">
         <div className="flex items-center gap-2">
           <UserCheck className="w-5 h-5 text-[#B88E4C]" />
-          <h3 className="text-sm font-bold text-[#14241C]">
-            1. Người Thực Thi Chính (Primary Executor) *
-          </h3>
+          <h3 className="text-sm font-bold text-[#14241C]">1. Người Thực Thi (Executor) *</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -114,28 +112,6 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
               onChange={(e) => onUpdateExecutor("phone", e.target.value)}
               placeholder="VD: 0912345678"
               className="h-10 text-xs bg-white"
-            />
-          </div>
-        </div>
-
-        {/* Người thi hành dự phòng */}
-        <div className="pt-3 border-t border-[#E8E5DD] space-y-3">
-          <label className="text-xs font-bold text-[#66786E] uppercase block">
-            Người Thực Thi Dự Phòng (Tùy chọn - Tự động thay thế nếu người chính mất tư cách)
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input
-              value={executor.backupName || ""}
-              onChange={(e) => onUpdateExecutor("backupName", e.target.value)}
-              placeholder="Họ tên người dự phòng (VD: Lê Thị Mai)"
-              className="h-9 text-xs bg-white"
-            />
-            <Input
-              type="email"
-              value={executor.backupEmail || ""}
-              onChange={(e) => onUpdateExecutor("backupEmail", e.target.value)}
-              placeholder="Email người dự phòng"
-              className="h-9 text-xs bg-white"
             />
           </div>
         </div>

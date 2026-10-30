@@ -22,7 +22,6 @@ const OTHER_VAULT_ID = "44444444-4444-4444-8444-444444444444";
 const vault = (overrides: Record<string, unknown> = {}) => ({
   vaultId: VAULT_ID,
   ownerFullName: "Anh Nam",
-  role: "PRIMARY",
   planStatus: "ACTIVE",
   checkInOverdue: false,
   openDeathCaseId: null,
@@ -140,7 +139,7 @@ describe("Executor overview", () => {
     reportLinks.forEach((link) => expect(link).toHaveAttribute("href", "/executor/report"));
     expect(screen.getByText("Bạn không đọc được")).toBeInTheDocument();
     expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
-    expect(screen.getByText("Executor chính")).toBeInTheDocument();
+    expect(screen.getAllByText("Executor").length).toBeGreaterThan(0);
   });
 
   it("warns when the Owner is overdue and points to the open case", async () => {
@@ -163,7 +162,7 @@ describe("Executor overview", () => {
   it("lets an Executor of several vaults choose one and remembers the choice", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
       vault(),
-      vault({ vaultId: OTHER_VAULT_ID, ownerFullName: "Bà Hạnh", role: "BACKUP" }),
+      vault({ vaultId: OTHER_VAULT_ID, ownerFullName: "Bà Hạnh" }),
     ]);
     setup("/executor");
     expect(await screen.findByRole("heading", { level: 1, name: "Chọn kho" })).toBeInTheDocument();
@@ -188,7 +187,7 @@ describe("Executor permissions", () => {
   it("lists what the Executor can and cannot do and the accepted invitations", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor/permissions");
-    expect(await screen.findByText("Anh Nam mời bạn làm Executor chính")).toBeInTheDocument();
+    expect(await screen.findByText("Anh Nam mời bạn làm Executor")).toBeInTheDocument();
     expect(screen.getByText("Báo tin khi Chủ kho qua đời")).toBeInTheDocument();
     expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
     expect(screen.getByText("Đã chấp nhận")).toBeInTheDocument();

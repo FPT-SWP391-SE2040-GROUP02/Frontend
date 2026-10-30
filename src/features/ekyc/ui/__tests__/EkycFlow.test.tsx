@@ -73,6 +73,10 @@ beforeEach(() => {
   } as never);
   vi.mocked(ekycService.submitDocument).mockResolvedValue(document);
   vi.mocked(ekycService.confirmDocument).mockResolvedValue(statusFixture() as never);
+  vi.mocked(ekycService.submitDocumentBack).mockResolvedValue({
+    ...statusFixture({ status: "PENDING" }),
+    residenceAddress: "",
+  } as never);
 });
 afterEach(() => {
   cleanup();
@@ -119,6 +123,13 @@ async function reachLiveness() {
   await userEvent.upload(input, new File(["x"], "front.jpg", { type: "image/jpeg" }));
   fireEvent.click(screen.getByRole("button", { name: "Đọc thông tin" }));
   await screen.findByLabelText("Họ và tên");
+  // Mặt sau bắt buộc trước khi sang camera.
+  await userEvent.upload(
+    screen.getByLabelText("Ảnh mặt sau giấy tờ"),
+    new File(["y"], "back.jpg", { type: "image/jpeg" }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Đọc mặt sau" }));
+  await screen.findByText(/Đã nhận ảnh mặt sau/);
   fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
   await screen.findByRole("button", { name: "Hoàn tất thử thách" });
 }
@@ -233,7 +244,7 @@ describe("ô chọn ảnh giấy tờ", () => {
     expect(ekycService.submitDocument).not.toHaveBeenCalled();
   });
 
-  it("mặt sau là tùy chọn: chưa đọc mặt trước thì tab mặt sau bị khóa", async () => {
+  it("mặt sau bắt buộc nhưng chỉ mở sau khi đã đọc mặt trước", async () => {
     await reachFront();
     fireEvent.click(screen.getByRole("tab", { name: /Mặt sau/ }));
     expect(screen.getByLabelText("Ảnh mặt sau giấy tờ")).toBeDisabled();

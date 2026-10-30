@@ -26,6 +26,7 @@ import { LivenessPanel } from "./LivenessPanel";
 import { EkycReviewForm } from "./EkycReviewForm";
 
 import { EkycStepper } from "./EkycStepper";
+import { EkycOcrProgress } from "./EkycOcrProgress";
 
 import { EkycDropzone } from "./EkycDropzone";
 
@@ -255,20 +256,6 @@ function CheckRow({ state, text }: { state: "pass" | "fail" | "unknown"; text: s
       {text}
     </li>
   );
-}
-
-/** Nhãn 3 pha đọc ảnh: tải lên (NN%) → OCR → hoàn tất; pha hiện theo tiến độ upload thật. */
-
-function ocrPhaseLabel(pending: boolean, succeeded: boolean, percent: number | null): string {
-  if (succeeded) return "Hoàn tất đọc dữ liệu";
-
-  if (pending) {
-    return percent !== null && percent < 100
-      ? `Đang tải ảnh lên… ${percent}%`
-      : "Đang phân tích OCR…";
-  }
-
-  return "Sẵn sàng";
 }
 
 /** Kết quả so khớp theo trạng thái Backend trả về; không tự quyết PASSED hay MATCHED. */
@@ -563,7 +550,7 @@ function ResultStep({
   );
 }
 
-/** Quy trình consent → giấy tờ (mặt trước, mặt sau tùy chọn) → thử thách camera → kết quả; ảnh/OCR chỉ trong RAM. */
+/** Quy trình consent → giấy tờ (mặt trước, mặt sau bắt buộc) → thử thách camera → kết quả; ảnh/OCR chỉ trong RAM. */
 
 export function EkycUploads({
   purpose,
@@ -710,7 +697,7 @@ export function EkycUploads({
     onVerificationBound?.(null);
   }
 
-  /** Sang thử thách camera sau khi bản khai đã được xác nhận; mặt sau là tùy chọn. */
+  /** Sang thử thách camera sau khi bản khai đã được xác nhận và đã gửi mặt sau (Backend chặn EKYC_BACK_REQUIRED). */
 
   function goToLiveness() {
     // canMatchFace=false hoặc verificationId=null: không cho mở camera liveness.
@@ -838,7 +825,7 @@ export function EkycUploads({
 
   let title = "Đọc thông tin căn cước";
 
-  let description = "Thêm mặt trước để bắt đầu. Với thẻ mới, thêm mặt sau để lấy nơi cư trú.";
+  let description = "Chụp đủ hai mặt giấy tờ: mặt trước trước, rồi đến mặt sau.";
 
   if (step === "consent") {
     title = "Trước khi chụp";
@@ -964,7 +951,7 @@ export function EkycUploads({
 
                 onClick={() => setTab("back")}
               >
-                2 Mặt sau <span className="text-xs font-normal">tùy chọn</span>
+                2 Mặt sau <span className="text-xs font-normal">bắt buộc</span>
               </button>
             </div>
 
@@ -1089,33 +1076,7 @@ export function EkycUploads({
                     <ArrowRight className="size-4" aria-hidden="true" />
                   </Button>
 
-                  {frontAction.pending && (
-                    <div>
-                      <p role="status" className="text-xs text-heritage-muted">
-                        {ocrPhaseLabel(frontAction.pending, frontAction.succeeded, frontPercent)}
-                      </p>
-
-                      <div
-                        role="progressbar"
-
-                        aria-valuemin={0}
-
-                        aria-valuemax={100}
-
-                        aria-valuenow={frontPercent ?? 100}
-
-                        className="mt-2 h-1.5 overflow-hidden rounded-full bg-heritage-canvas"
-                      >
-                        <div
-                          className="h-full bg-[#1d4d3c]"
-
-                          style={{
-                            width: frontPercent === null ? "100%" : `${frontPercent}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  {frontAction.pending && <EkycOcrProgress uploadPercent={frontPercent} />}
                 </fieldset>
 
                 {(frontError || frontAction.error) && (
@@ -1242,38 +1203,12 @@ export function EkycUploads({
                     <ArrowRight className="size-4" aria-hidden="true" />
                   </Button>
 
-                  {backAction.pending && (
-                    <div>
-                      <p role="status" className="text-xs text-heritage-muted">
-                        {ocrPhaseLabel(backAction.pending, backAction.succeeded, backPercent)}
-                      </p>
-
-                      <div
-                        role="progressbar"
-
-                        aria-valuemin={0}
-
-                        aria-valuemax={100}
-
-                        aria-valuenow={backPercent ?? 100}
-
-                        className="mt-2 h-1.5 overflow-hidden rounded-full bg-heritage-canvas"
-                      >
-                        <div
-                          className="h-full bg-[#1d4d3c]"
-
-                          style={{
-                            width: backPercent === null ? "100%" : `${backPercent}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  {backAction.pending && <EkycOcrProgress uploadPercent={backPercent} />}
                 </fieldset>
 
                 {!ocr && (
                   <p className="text-sm text-heritage-muted">
-                    Đọc mặt trước trước, rồi mới thêm mặt sau (không bắt buộc).
+                    Đọc mặt trước trước, rồi mới thêm mặt sau (bắt buộc).
                   </p>
                 )}
 
@@ -1285,7 +1220,8 @@ export function EkycUploads({
 
                 {status?.backSideChecked === false && (
                   <p role="status" className="text-sm text-heritage-muted">
-                    Máy chủ chưa đọc được mặt sau. Bạn có thể tiếp tục nhưng nên gửi lại ảnh rõ hơn.
+                    Mặt sau không có mã MRZ để đối chiếu hai mặt (thường gặp ở thẻ đời cũ). Bạn vẫn
+                    có thể tiếp tục; nếu là thẻ gắn chip, nên gửi lại ảnh rõ hơn.
                   </p>
                 )}
 

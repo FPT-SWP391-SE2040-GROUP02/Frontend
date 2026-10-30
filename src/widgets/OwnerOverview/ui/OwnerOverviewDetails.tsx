@@ -69,11 +69,7 @@ export function OwnerOverviewDetails({
             {executors.length ? (
               executors.map((person) => (
                 <div key={person.id}>
-                  <h3>
-                    {person.role === "PRIMARY"
-                      ? "Người thực hiện chính"
-                      : "Người thực hiện dự phòng"}
-                  </h3>
+                  <h3>Người thực hiện</h3>
                   <p className="overview-person-email">{person.inviteeEmail}</p>
                   <p className="overview-muted">
                     {person.status === "ACCEPTED" &&

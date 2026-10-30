@@ -105,7 +105,6 @@ describe("Owner dashboard from server metadata", () => {
     setup.executors = [
       {
         id: VAULT_ID,
-        role: "PRIMARY",
         status: "ACCEPTED",
         inviteeEmail: "executor@example.test",
         isBeneficiary: false,

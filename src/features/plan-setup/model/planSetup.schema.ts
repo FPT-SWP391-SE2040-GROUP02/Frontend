@@ -2,7 +2,6 @@ import { z } from "zod";
 const date = z.string().datetime({ offset: true });
 export const executorSchema = z.object({
   id: z.string().uuid(),
-  role: z.enum(["PRIMARY", "BACKUP"]),
   status: z.enum(["INVITED", "ACCEPTED", "DECLINED", "EXPIRED", "REVOKED", "SUSPENDED"]),
   inviteeEmail: z.string(),
   isBeneficiary: z.boolean(),
@@ -43,7 +42,6 @@ export const planSetupSchema = z.object({
   warnings: z.array(z.string()),
 });
 export const executorInfoSchema = z.object({
-  role: z.enum(["PRIMARY", "BACKUP"]),
   expiresAt: date,
   status: z.enum(["INVITED", "ACCEPTED"]),
   scopeVersion: z.string().min(1),
@@ -51,6 +49,5 @@ export const executorInfoSchema = z.object({
 });
 export const inviteExecutorSchema = z.object({
   email: z.string().trim().email("Nhập email hợp lệ.").max(254),
-  role: z.enum(["PRIMARY", "BACKUP"]),
   beneficiaryId: z.string().uuid().nullable(),
 });
