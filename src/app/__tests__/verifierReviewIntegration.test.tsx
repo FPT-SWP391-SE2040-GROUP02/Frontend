@@ -21,6 +21,8 @@ const FILE_ID = "55555555-5555-4555-8555-555555555555";
 const CASE_B_ID = "66666666-6666-4666-8666-666666666666";
 // Đầu id khác cuối: bắt lỗi dùng 8 ký tự đầu thay vì mã hồ sơ của BE (8 ký tự cuối, in hoa).
 const MIXED_CASE_ID = "0199e7a4-3c1b-7f2d-9a41-5e6b8c0d1a2f";
+// Mật khẩu giả cho test ký số; không phải mật khẩu thật của tài khoản nào.
+const SIGNING_PASSWORD = "mat-khau-thu";
 const originalAdapter = apiClient.defaults.adapter;
 let client: QueryClient;
 
@@ -274,11 +276,13 @@ it("duyệt chỉ gửi sau hai xác nhận và dùng etag của hồ sơ đang 
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận các thông tin/ }));
   expect(submit).toBeDisabled();
   await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra phạm vi/ }));
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
   await user.click(submit);
   await waitFor(() =>
     expect(post).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}/approve`, {
       etag: "v-1",
       reason: "Đã đối soát đầy đủ",
+      password: SIGNING_PASSWORD,
     }),
   );
 });
@@ -305,6 +309,7 @@ it("duyệt bị từ chối thì nêu đúng lý do của Backend thay vì câu
   await user.type(screen.getByLabelText("Lý do duyệt"), "Đã đối soát đầy đủ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận các thông tin/ }));
   await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra phạm vi/ }));
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "Kế hoạch của kho không còn ở trạng thái mở hồ sơ",
@@ -451,6 +456,7 @@ it("modal từ chối yêu cầu lý do không rỗng và xác nhận theo contr
   const reasonInput = await screen.findByLabelText("Lý do từ chối");
   await user.type(reasonInput, "   ");
   await user.click(await screen.findByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
   const submitBtn = await screen.findByRole("button", { name: /^Từ chối$/ });
   expect(submitBtn).toBeDisabled();
   await user.clear(reasonInput);
@@ -523,6 +529,7 @@ it("kết quả mở bàn giao vẫn hiện sau khi duyệt, không bị GET chi
   await user.type(screen.getByLabelText("Lý do duyệt"), "Đủ căn cứ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận các thông tin/ }));
   await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra phạm vi/ }));
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
   expect(await screen.findByText(/Đã mở 2 lượt bàn giao/)).toBeInTheDocument();
   await new Promise((resolve) => setTimeout(resolve, 50));
@@ -547,11 +554,13 @@ it("hồ sơ chờ bổ sung chỉ còn nút từ chối, không xem xét cờ h
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
   await user.type(screen.getByLabelText("Lý do từ chối"), "Executor không bổ sung đúng hạn");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
   await waitFor(() =>
     expect(post).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}/reject`, {
       etag: "v-1",
       reason: "Executor không bổ sung đúng hạn",
+      password: SIGNING_PASSWORD,
     }),
   );
 });
@@ -712,6 +721,7 @@ it("đổi sang hồ sơ khác không giữ modal và lỗi của hồ sơ cũ",
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
   await user.type(await screen.findByLabelText("Lý do từ chối"), "Không đủ căn cứ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent(/đã thay đổi/);
   // Dialog đang mở nên phần còn lại bị ẩn khỏi cây truy cập; click trực tiếp như khi người dùng quay về hàng chờ.
@@ -797,6 +807,7 @@ it("409 EDIT_CONFLICT: Tải lại hồ sơ đọc lại chi tiết từ server 
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
   await user.type(await screen.findByLabelText("Lý do từ chối"), "Không đủ căn cứ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
   await user.click(await screen.findByRole("button", { name: "Tải lại hồ sơ" }));
   await waitFor(() => expect(detailReads).toBe(2));

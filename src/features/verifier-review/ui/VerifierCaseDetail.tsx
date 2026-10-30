@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { useId, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -23,10 +23,12 @@ import { conditionRows, queueStatus } from "../model/verifierPresentation";
 import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
 import { VerifierOwnerIdentityPanel } from "./VerifierOwnerIdentityPanel";
 import { AiNotaryAssessmentCard } from "./AiNotaryAssessmentCard";
+import { DecisionSignatureDialog, DecisionSignatureStatusLabel } from "./DecisionSignatureDialog";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
   decisionLabels,
+  hasDecisionSignatureLabel,
   supplementPartLabels,
   ownerNoticeLabels,
   type verifierFlagKindSchema,
@@ -86,6 +88,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
   const download = usePrivateAction();
   const query = useVerifierCase(caseId);
   const client = useQueryClient();
+  const [signatureOpen, setSignatureOpen] = useState(false);
   const backToList = () => {
     const next = new URLSearchParams(params);
     next.delete("caseId");
@@ -262,6 +265,26 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           Người thực hiện sẽ nộp bản bổ sung. Hồ sơ quay lại hàng chờ khi có bản mới.
         </Notice>
       )}
+      {hasDecisionSignatureLabel(detail.decisionSignatureStatus) && (
+        <section
+          aria-label="Chữ ký số của quyết định"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-heritage-border bg-heritage-surface px-6 py-4"
+        >
+          <DecisionSignatureStatusLabel status={detail.decisionSignatureStatus} />
+          <button
+            type="button"
+            className={buttonStyles.outline}
+            onClick={() => setSignatureOpen(true)}
+          >
+            Xem chữ ký số
+          </button>
+        </section>
+      )}
+      <DecisionSignatureDialog
+        caseId={detail.id}
+        open={signatureOpen}
+        onClose={() => setSignatureOpen(false)}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         {/* CỘT TRÁI (3fr): HỒ SƠ & TÀI LIỆU CHỨNG TỪ */}

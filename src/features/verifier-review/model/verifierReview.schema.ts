@@ -166,6 +166,44 @@ export const verifierExecutorSchema = z
   .nullable()
   .optional();
 
+/**
+ * Trạng thái chữ ký số của quyết định cuối (BE mục 6.12, DEATH-14): VALID khớp; INVALID dữ liệu quyết định/trang
+ * giấy bị sửa sau khi ký hoặc khóa không khớp; NOT_SIGNED quyết định cũ trước khi có chữ ký; NO_FINAL_DECISION chưa
+ * duyệt hay từ chối.
+ */
+export const decisionSignatureStatusSchema = z.enum([
+  "VALID",
+  "INVALID",
+  "NOT_SIGNED",
+  "NO_FINAL_DECISION",
+]);
+/** Phiếu chữ ký số của quyết định cuối (BE DecisionSignatureResponse); các trường null khi chưa có. */
+export const decisionSignatureSchema = z.object({
+  status: decisionSignatureStatusSchema,
+  decisionKind: z.enum(["APPROVED", "REJECTED"]).nullable(),
+  versionNo: z.number().int().positive().nullable(),
+  decidedAt: timestamp.nullable(),
+  signedByUserId: z.string().uuid().nullable(),
+  signedByFullName: z.string().nullable(),
+  algorithm: z.string().nullable(),
+  keyFingerprint: z.string().nullable(),
+  signatureBase64: z.string().nullable(),
+});
+/**
+ * Phần body lỗi ký số FE cần đọc: 403 SIGNING_PASSWORD_INVALID (+attemptsRemaining, không có khi tài khoản chưa có
+ * mật khẩu), 423 SIGNING_LOCKED (+lockedUntil). `lockedUntil` để chuỗi, UI tự kiểm ngày hợp lệ.
+ */
+export const signingProblemSchema = z.object({
+  code: z.string().optional(),
+  attemptsRemaining: z.number().int().nonnegative().optional(),
+  lockedUntil: z.string().optional(),
+});
+/** Mật khẩu tài khoản để ký số quyết định; chỉ nằm trong state form của modal, không lưu, không log. */
+const signingPassword = z
+  .string()
+  .min(1, "Cần nhập mật khẩu để ký số.")
+  .max(256, "Mật khẩu tối đa 256 ký tự.");
+
 /** Chi tiết hồ sơ Verifier được giao. */
 export const verifierCaseDetailSchema = z.object({
   id: z.string().uuid(),
@@ -190,6 +228,8 @@ export const verifierCaseDetailSchema = z.object({
   supplementOverdueAt: timestamp.nullable().optional(),
   ownerIdentity: verifierOwnerIdentitySchema,
   executor: verifierExecutorSchema,
+  /** Kết quả tự kiểm chữ ký số của quyết định cuối (BE D12); BE cũ không có trường này thì FE ẩn nhãn. */
+  decisionSignatureStatus: decisionSignatureStatusSchema.optional(),
 });
 /** Review một cờ. */
 export const reviewFlagRequestSchema = z.object({
@@ -210,15 +250,17 @@ export const requestSupplementRequestSchema = z.object({
     .max(1000, "Lý do tối đa 1000 ký tự."),
   requestedParts: z.array(supplementPartSchema).min(1, "Chọn ít nhất một phần cần bổ sung."),
 });
-/** Duyệt hồ sơ và mở bàn giao. */
+/** Duyệt hồ sơ và mở bàn giao; quyết định được ký số nên cần mật khẩu tài khoản (DEATH-14). */
 export const approveCaseRequestSchema = z.object({
   etag: z.string().min(1).max(64),
   reason: z.string().trim().min(1, "Cần nhập lý do duyệt.").max(1000, "Lý do tối đa 1000 ký tự."),
+  password: signingPassword,
 });
-/** Từ chối hồ sơ. */
+/** Từ chối hồ sơ; quyết định được ký số nên cần mật khẩu tài khoản (DEATH-14). */
 export const rejectCaseRequestSchema = z.object({
   etag: z.string().min(1).max(64),
   reason: z.string().trim().min(1, "Cần nhập lý do từ chối.").max(1000, "Lý do tối đa 1000 ký tự."),
+  password: signingPassword,
 });
 /** Nhãn tiếng Việt cho status hồ sơ. */
 export const caseStatusLabels: Record<z.infer<typeof verifierCaseStatusSchema>, string> = {
@@ -250,6 +292,21 @@ export const ownerNoticeLabels: Record<z.infer<typeof ownerNoticeStatusSchema>, 
   DELIVERED: "Đã gửi",
   FAILED: "Gửi lỗi",
   CANCELLED: "Đã hủy",
+};
+/** Trạng thái chữ ký số có nhãn hiển thị; NO_FINAL_DECISION không có nhãn (UI ẩn). */
+export type LabelledSignatureStatus = Exclude<
+  z.infer<typeof decisionSignatureStatusSchema>,
+  "NO_FINAL_DECISION"
+>;
+/** Có nhãn trạng thái chữ ký hay không (ẩn khi chưa có quyết định cuối hoặc BE cũ không trả trường này). */
+export const hasDecisionSignatureLabel = (
+  status: z.infer<typeof decisionSignatureStatusSchema> | undefined,
+): status is LabelledSignatureStatus => status !== undefined && status !== "NO_FINAL_DECISION";
+/** Nhãn trạng thái chữ ký số. */
+export const decisionSignatureLabels: Record<LabelledSignatureStatus, string> = {
+  VALID: "✓ Đã ký số – hợp lệ",
+  INVALID: "✕ Dữ liệu quyết định đã bị sửa sau khi ký",
+  NOT_SIGNED: "Quyết định chưa được ký số (trước khi có chức năng)",
 };
 /** Nhãn cho decision. */
 export const decisionLabels: Record<z.infer<typeof verifierDecisionKindSchema>, string> = {

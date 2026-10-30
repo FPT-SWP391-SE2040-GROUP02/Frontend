@@ -1,4 +1,5 @@
-import { useForm, useWatch } from "react-hook-form";
+import { useEffect, useId, useState } from "react";
+import { useForm, useWatch, type UseFormRegisterReturn } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +28,11 @@ import {
   type supplementPartSchema as supplementPartSchemaType,
 } from "../model/verifierReview.schema";
 import { getVerifierActions } from "../model/verifierActions";
+import {
+  readSigningFailure,
+  signingFailureMessage,
+  type SigningFailure,
+} from "../model/signingError";
 import {
   useApproveCase,
   useRejectCase,
@@ -102,6 +108,89 @@ function ReviewError({ error, onClose }: { error: string; onClose: () => void })
       </button>
     </div>
   );
+}
+
+/** setTimeout chỉ nhận tối đa 2^31-1 ms; khóa ký dài nhất 24 giờ nên không vượt, giữ chặn cho chắc. */
+const MAX_TIMER_MS = 2_147_483_647;
+
+/**
+ * Lỗi ký số của một lần mở modal Duyệt/Từ chối. Đang khóa (423 có lockedUntil) thì `locked` = true tới đúng
+ * lockedUntil rồi tự mở lại; đóng modal là mất trạng thái (BE vẫn chặn nếu còn khóa).
+ */
+function useSigningFailure() {
+  const [failure, setFailure] = useState<SigningFailure | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const lockedUntil = failure?.kind === "locked" ? failure.lockedUntil : null;
+  useEffect(() => {
+    if (lockedUntil === null) return;
+    const timer = setTimeout(
+      () => setNow(Date.now()),
+      Math.min(Math.max(lockedUntil - Date.now(), 0), MAX_TIMER_MS),
+    );
+    return () => clearTimeout(timer);
+  }, [lockedUntil]);
+  return {
+    failure,
+    locked: lockedUntil !== null && now < lockedUntil,
+    clear: () => setFailure(null),
+    /** Ghi nhận lỗi ký số nếu có; lỗi khác để null để UI giữ ReviewError. */
+    capture: (error: unknown) => {
+      setNow(Date.now());
+      setFailure(readSigningFailure(error));
+    },
+  };
+}
+
+/** Ô mật khẩu xác nhận ký số; giá trị chỉ nằm trong state form của modal. */
+function SigningPasswordField({
+  registration,
+  error,
+}: {
+  registration: UseFormRegisterReturn<"password">;
+  error?: string;
+}) {
+  const inputId = useId();
+  const hintId = useId();
+  return (
+    <div className="space-y-1 text-sm">
+      <label htmlFor={inputId} className="block">
+        Mật khẩu xác nhận ký số
+      </label>
+      <input
+        id={inputId}
+        type="password"
+        autoComplete="current-password"
+        maxLength={256}
+        aria-invalid={Boolean(error)}
+        aria-describedby={hintId}
+        className="min-h-11 w-full rounded-xl border border-heritage-border bg-heritage-surface px-3 py-2 text-sm text-heritage-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-primary aria-invalid:border-destructive"
+        {...registration}
+      />
+      <p id={hintId} className="text-xs text-heritage-muted">
+        Quyết định sẽ được ký số bằng khóa của bạn. Nhập sai 5 lần sẽ tạm khóa chức năng ký.
+      </p>
+      {error && <span className="text-xs text-destructive">{error}</span>}
+    </div>
+  );
+}
+
+/** Lỗi ký số có câu riêng (không kèm "Tải lại hồ sơ" vì tải lại không giúp gì); lỗi khác giữ ReviewError. */
+function DecisionError({
+  signing,
+  error,
+  onClose,
+}: {
+  signing: SigningFailure | null;
+  error: string;
+  onClose: () => void;
+}) {
+  if (signing)
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        {signingFailureMessage(signing)}
+      </p>
+    );
+  return error ? <ReviewError error={error} onClose={onClose} /> : null;
 }
 
 /** Các modal cho Verifier: review flag, request supplement, approve, reject. Mỗi modal dùng confirmation mặc định false. */
@@ -401,7 +490,14 @@ function ApproveModal({
 }) {
   const action = usePrivateAction();
   const approve = useApproveCase();
-  const form = useForm<{ etag: string; reason: string; confirm: boolean; legalConfirm: boolean }>({
+  const signing = useSigningFailure();
+  const form = useForm<{
+    etag: string;
+    reason: string;
+    password: string;
+    confirm: boolean;
+    legalConfirm: boolean;
+  }>({
     resolver: zodResolver(
       approveCaseRequestSchema.extend({ confirm: confirmation, legalConfirm: confirmation }),
     ),
@@ -410,6 +506,7 @@ function ApproveModal({
     defaultValues: {
       etag: detail.etag,
       reason: initialReason,
+      password: "",
       confirm: false,
       legalConfirm: false,
     },
@@ -417,14 +514,20 @@ function ApproveModal({
   const blockers = detail.approveBlockers;
   const confirm = useWatch({ control: form.control, name: "confirm" });
   const legalConfirm = useWatch({ control: form.control, name: "legalConfirm" });
+  const password = useWatch({ control: form.control, name: "password" }) ?? "";
   const onSubmit = form.handleSubmit((values) => {
+    const request = approveCaseRequestSchema.parse({
+      etag: values.etag,
+      reason: values.reason,
+      password: values.password,
+    });
+    // Mật khẩu chỉ dùng cho đúng một lần gửi; lý do và ô xác nhận giữ nguyên để thử lại.
+    form.setValue("password", "");
+    signing.clear();
     void action.execute(
-      () =>
-        approve(
-          caseId,
-          approveCaseRequestSchema.parse({ etag: values.etag, reason: values.reason }),
-        ),
+      () => approve(caseId, request),
       () => onClose(),
+      (error) => signing.capture(error),
     );
   });
   return (
@@ -476,7 +579,11 @@ function ApproveModal({
             label="Tôi đã kiểm tra phạm vi bàn giao và người nhận."
             {...form.register("legalConfirm")}
           />
-          {action.error && <ReviewError error={action.error} onClose={onClose} />}
+          <SigningPasswordField
+            registration={form.register("password")}
+            error={form.formState.errors.password?.message}
+          />
+          <DecisionError signing={signing.failure} error={action.error} onClose={onClose} />
           <DialogFooter>
             <button
               type="button"
@@ -489,7 +596,14 @@ function ApproveModal({
             <button
               type="submit"
               className={buttonStyles.gold}
-              disabled={action.pending || !detail.canApprove || !confirm || !legalConfirm}
+              disabled={
+                action.pending ||
+                signing.locked ||
+                !detail.canApprove ||
+                !confirm ||
+                !legalConfirm ||
+                !password
+              }
             >
               {action.pending ? "Đang duyệt…" : "Duyệt"}
             </button>
@@ -513,19 +627,29 @@ function RejectModal({
 }) {
   const action = usePrivateAction();
   const reject = useRejectCase();
-  const form = useForm<{ etag: string; reason: string; confirm: boolean }>({
+  const signing = useSigningFailure();
+  const form = useForm<{ etag: string; reason: string; password: string; confirm: boolean }>({
     resolver: zodResolver(rejectCaseRequestSchema.extend({ confirm: confirmation })),
     mode: "onBlur",
     reValidateMode: "onBlur",
-    defaultValues: { etag: detail.etag, reason: initialReason, confirm: false },
+    defaultValues: { etag: detail.etag, reason: initialReason, password: "", confirm: false },
   });
   const reason = useWatch({ control: form.control, name: "reason" }) ?? "";
   const confirm = useWatch({ control: form.control, name: "confirm" });
+  const password = useWatch({ control: form.control, name: "password" }) ?? "";
   const onSubmit = form.handleSubmit((values) => {
+    const request = rejectCaseRequestSchema.parse({
+      etag: values.etag,
+      reason: values.reason,
+      password: values.password,
+    });
+    // Mật khẩu chỉ dùng cho đúng một lần gửi; lý do và ô xác nhận giữ nguyên để thử lại.
+    form.setValue("password", "");
+    signing.clear();
     void action.execute(
-      () =>
-        reject(caseId, rejectCaseRequestSchema.parse({ etag: values.etag, reason: values.reason })),
+      () => reject(caseId, request),
       () => onClose(),
+      (error) => signing.capture(error),
     );
   });
   return (
@@ -557,7 +681,11 @@ function RejectModal({
             label="Tôi xác nhận từ chối hồ sơ này."
             {...form.register("confirm")}
           />
-          {action.error && <ReviewError error={action.error} onClose={onClose} />}
+          <SigningPasswordField
+            registration={form.register("password")}
+            error={form.formState.errors.password?.message}
+          />
+          <DecisionError signing={signing.failure} error={action.error} onClose={onClose} />
           <DialogFooter>
             <button
               type="button"
@@ -572,7 +700,7 @@ function RejectModal({
               className={
                 "inline-flex min-h-11 items-center justify-center rounded-xl bg-[#A32119] px-6 text-sm font-semibold text-white hover:bg-[#8A1B14] disabled:pointer-events-none disabled:opacity-50"
               }
-              disabled={action.pending || !confirm || !reason.trim()}
+              disabled={action.pending || signing.locked || !confirm || !reason.trim() || !password}
             >
               {action.pending ? "Đang từ chối…" : "Từ chối"}
             </button>
