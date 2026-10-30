@@ -37,7 +37,7 @@ export const containerFixture = {
   missingRequirements: ["NO_ASSET", "NO_DESIGNATION"],
   createdAt: CREATED_AT,
   updatedAt: null,
-  archivedAt: null,
+  removedAt: null,
   etag: "container-v1",
 } as const;
 /** Raw PaginatedList<T>. */

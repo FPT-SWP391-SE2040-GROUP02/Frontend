@@ -51,11 +51,11 @@ export const ownerVaultService = {
     vaultId: string,
     params?: PaginationParams,
     signal?: AbortSignal,
-    includeArchived = false,
+    includeRemoved = false,
   ) {
     return packageListSchema.parse(
       await apiClient.get<unknown, unknown>(containers(vaultId), {
-        params: { ...paginationRequestSchema.parse(params ?? {}), includeArchived },
+        params: { ...paginationRequestSchema.parse(params ?? {}), includeRemoved },
         signal,
       }),
     );
@@ -84,8 +84,8 @@ export const ownerVaultService = {
       ),
     );
   },
-  /** DELETE trả gói ARCHIVED; caller phải có đồng ý của người dùng trước khi gửi xác nhận tác động kế hoạch. */
-  async archivePackage(vaultId: string, id: string, confirmPlanDeactivation = false) {
+  /** DELETE xóa gói (trả gói REMOVED, không khôi phục được); caller phải có đồng ý của người dùng trước khi gửi xác nhận tác động kế hoạch. */
+  async removePackage(vaultId: string, id: string, confirmPlanDeactivation = false) {
     return packageResponseSchema.parse(
       await apiClient.delete<unknown, unknown>(container(vaultId, id), {
         params: { confirmPlanDeactivation },

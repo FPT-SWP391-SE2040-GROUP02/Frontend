@@ -23,9 +23,9 @@ export function isOwnerVaultMissing(error: unknown): boolean {
 export const ownerVaultKeys = {
   all: ["owner-vault"] as const,
   mine: ["owner-vault", "mine"] as const,
-  packages: (vaultId: string, params?: PaginationParams, includeArchived = false) => {
-    if (includeArchived) {
-      return ["owner-vault", vaultId, "containers", params ?? {}, "with-archived"] as const;
+  packages: (vaultId: string, params?: PaginationParams, includeRemoved = false) => {
+    if (includeRemoved) {
+      return ["owner-vault", vaultId, "containers", params ?? {}, "with-removed"] as const;
     }
     return ["owner-vault", vaultId, "containers", params ?? {}] as const;
   },
@@ -45,12 +45,12 @@ export function useOwnerPackages(
   vaultId: string,
   enabled: boolean,
   params?: PaginationParams,
-  includeArchived = false,
+  includeRemoved = false,
 ) {
   return useQuery({
-    queryKey: ownerVaultKeys.packages(vaultId, params, includeArchived),
+    queryKey: ownerVaultKeys.packages(vaultId, params, includeRemoved),
     queryFn: ({ signal }) => {
-      if (includeArchived) {
+      if (includeRemoved) {
         return ownerVaultService.listPackages(vaultId, params, signal, true);
       }
       return ownerVaultService.listPackages(vaultId, params, signal);
@@ -98,7 +98,7 @@ export function useUpdateOwnerPackage(vaultId: string) {
   });
 }
 /** Lưu trữ gói; confirmation không được tự bật khi server trả 409. */
-export function useArchiveOwnerPackage(vaultId: string) {
+export function useRemoveOwnerPackage(vaultId: string) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -107,7 +107,7 @@ export function useArchiveOwnerPackage(vaultId: string) {
     }: {
       id: string;
       confirmPlanDeactivation?: boolean;
-    }) => ownerVaultService.archivePackage(vaultId, id, confirmPlanDeactivation),
+    }) => ownerVaultService.removePackage(vaultId, id, confirmPlanDeactivation),
     retry: false,
     onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
   });

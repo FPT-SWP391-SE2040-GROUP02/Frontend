@@ -113,10 +113,10 @@ describe("chi tiết gói bàn giao", () => {
     );
   });
 
-  it("xóa gói bàn giao hỏi xác nhận trước, rồi lưu trữ không tự đồng ý đưa kế hoạch về Nháp", async () => {
+  it("xóa gói bàn giao hỏi xác nhận trước, rồi xóa không tự đồng ý đưa kế hoạch về Nháp", async () => {
     const remove = vi
       .spyOn(apiClient, "delete")
-      .mockResolvedValue({ ...group(), status: "ARCHIVED" });
+      .mockResolvedValue({ ...group(), status: "REMOVED" });
     renderGroup();
     fireEvent.click(screen.getByRole("button", { name: "Xóa gói bàn giao" }));
     const dialog = await screen.findByRole("dialog");
@@ -145,9 +145,9 @@ describe("chi tiết gói bàn giao", () => {
     });
   });
 
-  it("gói bàn giao đã lưu trữ chỉ xem, khóa mọi nút thay đổi", () => {
-    renderGroup(group({ status: "ARCHIVED" }));
-    expect(screen.getByText(/đã được lưu trữ/)).toBeInTheDocument();
+  it("gói bàn giao đã xóa chỉ xem, khóa mọi nút thay đổi", () => {
+    renderGroup(group({ status: "REMOVED" }));
+    expect(screen.getByText(/đã bị xóa/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Gỡ khỏi gói bàn giao" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Xóa gói bàn giao" })).toBeDisabled();
   });
