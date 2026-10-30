@@ -46,7 +46,7 @@ export function EkycVerifiedCard({ live }: { live: z.infer<typeof ekycStatusSche
   if (live.spoofCheckPassed === true) {
     spoof = "Qua kiểm tra chống giả mạo";
   }
-  let backSide = "Chưa đọc (tùy chọn)";
+  let backSide = "Chưa đối chiếu được mã MRZ";
   if (live.backSideChecked) {
     backSide = "Đã đọc";
   }

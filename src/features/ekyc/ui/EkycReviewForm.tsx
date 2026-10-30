@@ -283,7 +283,8 @@ export function EkycReviewForm({
                 type="submit"
                 size="lg"
                 className="flex-1 justify-between bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
-                disabled={!document.canMatchFace || !document.verificationId}
+                disabled={!document.canMatchFace || !document.verificationId || !backSent}
+                aria-describedby={backSent ? undefined : `${prefix}-back-required`}
               >
                 {action.pending ? "Đang xác nhận…" : "Tiếp tục so khớp mặt"}
                 <ArrowRight className="size-4" aria-hidden="true" />
@@ -291,6 +292,12 @@ export function EkycReviewForm({
             </>
           )}
         </div>
+
+        {!confirmed && !backSent && (
+          <p id={`${prefix}-back-required`} className="text-sm text-heritage-muted">
+            Cần đọc mặt sau giấy tờ ở tab Mặt sau trước khi tiếp tục so khớp mặt.
+          </p>
+        )}
       </fieldset>
 
       {!document.canMatchFace && (
