@@ -71,6 +71,23 @@ apiClient.interceptors.request.use(
 );
 
 /**
+ * Request tải tệp dùng responseType "blob", nên khi Backend trả lỗi thì ProblemDetails (JSON) cũng bị gói thành Blob.
+ * Đọc lại thành object để xử lý PIN (VAULT_PIN_REQUIRED...) và thông báo lỗi theo mã giống các request JSON.
+ * Blob không phải JSON thì giữ nguyên.
+ */
+async function readJsonErrorFromBlob(error: AxiosError): Promise<void> {
+  const response = error.response;
+  if (!response || !(response.data instanceof Blob)) return;
+  const blob = response.data;
+  if (!blob.type.includes("json")) return;
+  try {
+    response.data = JSON.parse(await blob.text()) as unknown;
+  } catch {
+    // Nội dung hỏng: để nguyên Blob, phía gọi rơi về thông báo theo mã trạng thái.
+  }
+}
+
+/**
  * @description Trả HTTP body nguyên vẹn và bắt lỗi HTTP toàn cục.
  * Không bóc trường data của envelope BE; caller khai báo generic R là kiểu body.
  */
@@ -80,6 +97,7 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   async (error: AxiosError) => {
+    await readJsonErrorFromBlob(error);
     // Thao tác kho cần mã PIN: hỏi người dùng rồi gửi lại request kèm header PIN (xem vaultPin.ts).
     if (error.config && isApiRequest(error.config)) {
       const pinRetry = await resolveVaultPinFailure(error, (config) => apiClient.request(config));
