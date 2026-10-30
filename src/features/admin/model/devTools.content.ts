@@ -75,7 +75,7 @@ export const RESET_DONE =
   "Đồng hồ của hồ sơ đã về thời gian hiện tại. Trạng thái đã phát sinh được giữ nguyên.";
 
 export const EKYC_RESET_DESCRIPTION =
-  "Xóa toàn bộ dữ liệu eKYC của một tài khoản (lượt xác minh, đồng ý chụp ảnh, danh tính đã gắn, mẫu khuôn mặt) để làm lại eKYC từ đầu, kể cả với CCCD khác. Email, vai trò, kho và vai Người thực hiện giữ nguyên.";
+  "Đưa một tài khoản về lúc vừa đăng ký và đăng nhập được: xóa toàn bộ eKYC và xóa hẳn kho của tài khoản cùng mọi thứ trong kho (tài sản, gói, người nhận, Người thực hiện, kế hoạch, điểm danh, hồ sơ chứng tử, bàn giao, thanh toán, tệp mã hóa). Email, mật khẩu, vai trò và vai Người thực hiện ở kho người khác giữ nguyên.";
 
 /** Thông báo sau khi đặt lại; chỉ dùng số lượng máy chủ trả về. */
 export function ekycResetDone(result: DevEkycReset) {
@@ -83,9 +83,14 @@ export function ekycResetDone(result: DevEkycReset) {
     result.verificationsRemoved === 0 &&
     result.consentsRemoved === 0 &&
     !result.identityRemoved &&
-    result.faceTemplatesRemoved === 0;
-  if (removedNothing) return `Tài khoản ${result.email} chưa có dữ liệu eKYC, không có gì để xóa.`;
-  return `Đã đặt lại eKYC của ${result.email}: xóa ${result.verificationsRemoved} lượt xác minh, ${result.consentsRemoved} lần đồng ý${result.identityRemoved ? ", danh tính đã gắn" : ""}${result.faceTemplatesRemoved > 0 ? ", mẫu khuôn mặt" : ""}. Tài khoản có thể làm lại eKYC.`;
+    result.faceTemplatesRemoved === 0 &&
+    !result.vaultRemoved;
+  if (removedNothing)
+    return `Tài khoản ${result.email} chưa có eKYC và chưa có kho, không có gì để xóa.`;
+  const vaultPart = result.vaultRemoved
+    ? `, xóa kho cùng toàn bộ dữ liệu trong kho và ${result.filesRemoved} tệp mã hóa`
+    : "";
+  return `Đã đặt lại ${result.email} về lúc vừa đăng ký: xóa ${result.verificationsRemoved} lượt xác minh, ${result.consentsRemoved} lần đồng ý${result.identityRemoved ? ", danh tính đã gắn" : ""}${result.faceTemplatesRemoved > 0 ? ", mẫu khuôn mặt" : ""}${vaultPart}. Tài khoản đăng nhập lại để tạo kho, làm eKYC và mua gói từ đầu.`;
 }
 
 export const REWIND_DESCRIPTION =

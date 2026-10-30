@@ -241,7 +241,7 @@ export function AdminDevTools() {
       {dialog?.kind === "ekyc" && (
         <AdminActionDialog
           title="Đặt lại eKYC?"
-          description="Toàn bộ dữ liệu eKYC của tài khoản sẽ bị xóa và không hoàn tác được. Chủ kho phải làm lại eKYC trước khi mua gói mới hoặc kích hoạt kế hoạch. Chỉ dùng trên môi trường Development."
+          description="Toàn bộ eKYC và kho của tài khoản (kèm mọi dữ liệu trong kho và tệp mã hóa) sẽ bị xóa, không hoàn tác được. Tài khoản quay về lúc vừa đăng ký: phải tạo kho, làm eKYC, mua gói lại từ đầu. Chỉ dùng trên môi trường Development."
           submitLabel="Đặt lại eKYC"
           fields={[{ name: "email", label: "Email tài khoản", kind: "text", maxLength: 256 }]}
           defaultValues={{ email: "" }}

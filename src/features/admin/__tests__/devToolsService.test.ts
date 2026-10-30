@@ -87,6 +87,8 @@ describe("devToolsService", () => {
       consentsRemoved: 3,
       identityRemoved: true,
       faceTemplatesRemoved: 1,
+      vaultRemoved: true,
+      filesRemoved: 4,
     };
     const post = vi.spyOn(apiClient, "post").mockResolvedValue(result);
     await expect(devToolsService.resetEkyc({ email: "  owner@example.test " })).resolves.toEqual(
