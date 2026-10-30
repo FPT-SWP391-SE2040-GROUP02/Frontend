@@ -2,9 +2,19 @@ import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { LoginMethodsPanel } from "@/features/auth";
 import { AvatarEditor } from "@/features/profile-avatar";
+import { VaultPinPanel } from "@/features/vault-pin";
+import { useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
+
+/** Mã PIN của kho: chỉ hiện cho Chủ kho đã có kho (chưa có kho hoặc lỗi tải thì ẩn, không có gì để bảo vệ). */
+function VaultPinSection() {
+  const vault = useOwnerVault(true);
+  if (!vault.data) return null;
+  return <VaultPinPanel vaultId={vault.data.id} />;
+}
+
 /** Nội dung cài đặt dùng chung cho mọi không gian (Chủ kho, Người thực hiện). */
 export function AccountSettingsContent() {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
@@ -41,6 +51,7 @@ export function AccountSettingsContent() {
         </p>
       </section>
       <LoginMethodsPanel />
+      {user?.role === "USER" && <VaultPinSection />}
       {(!user || user.role === "USER") && (
         <Link
           className="inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4"

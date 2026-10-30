@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/shared/ui/tooltip";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { queryClient } from "./queryClient";
 import { store } from "@/app/store";
+import { VaultPinDialogHost } from "@/features/vault-pin";
 import { AuthBootstrap } from "./AuthBootstrap";
 
 interface AppProvidersProps {
@@ -19,6 +20,7 @@ export function AppProviders({ children }: AppProvidersProps) {
         <QueryClientProvider client={queryClient}>
           <AuthBootstrap>
             <TooltipProvider>{children}</TooltipProvider>
+            <VaultPinDialogHost />
           </AuthBootstrap>
           {import.meta.env.DEV && (
             <ReactQueryDevtools
