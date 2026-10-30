@@ -29,8 +29,6 @@ export function useWillWizardForm() {
         name: "",
         email: "",
         phone: "",
-        backupName: "",
-        backupEmail: "",
       },
       policyConfirmed: false,
     },

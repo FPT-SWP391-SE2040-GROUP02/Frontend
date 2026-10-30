@@ -52,9 +52,7 @@ const executorNotAllowedReasons: Record<string, string> = {
   INVITEE_EMAIL_MISMATCH:
     "Lời mời này gửi tới một email khác. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
   REPLACEMENT_REQUIRED:
-    "Người thực hiện chính đã nhận nhiệm vụ nên không thu hồi trực tiếp. Hãy mời người thay; người cũ tự thôi khi người mới chấp nhận.",
-  BACKUP_EXECUTOR_REQUIRED:
-    "Người thực hiện chính cũng là người nhận nên kho cần giữ ít nhất một người dự phòng độc lập. Hãy mời người dự phòng khác trước.",
+    "Người thực hiện đã nhận nhiệm vụ nên không thu hồi trực tiếp. Hãy mời người thay; người cũ tự thôi khi người mới chấp nhận.",
   PLAN_NOT_DRAFT: "Kế hoạch của kho không ở trạng thái cho phép phản hồi lời mời Executor lúc này.",
   INDEPENDENT_EXECUTOR_REQUIRED: "Bạn đã đảm nhiệm một vai trò Người thực hiện khác trong kho này.",
 };
@@ -205,6 +203,7 @@ const messages: Record<string, string> = {
   EKYC_IMAGE_REJECTED:
     "Ảnh chưa đáp ứng yêu cầu xác minh. Hãy chọn ảnh rõ, đúng mặt giấy tờ hoặc selfie rồi thử lại.",
   EKYC_DOCUMENT_EXPIRED: "Bước giấy tờ đã hết hạn hoặc đã được dùng. Bắt đầu lại với ảnh giấy tờ.",
+  EKYC_BACK_REQUIRED: "Cần chụp và gửi mặt sau giấy tờ trước khi tiếp tục.",
   EKYC_CONSENT_REQUIRED:
     "Cần đồng ý điều khoản xác minh trước khi tiếp tục. Bắt đầu lại từ bước đồng ý.",
   EKYC_DOCUMENT_MISMATCH:

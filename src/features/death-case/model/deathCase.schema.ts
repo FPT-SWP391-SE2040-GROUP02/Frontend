@@ -4,7 +4,6 @@ const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const executorVaultSchema = z.object({
   vaultId: z.string().uuid(),
   ownerFullName: z.string(),
-  role: z.enum(["PRIMARY", "BACKUP"]),
   planStatus: z.string(),
   checkInOverdue: z.boolean(),
   openDeathCaseId: z.string().uuid().nullable(),

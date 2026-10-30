@@ -56,10 +56,7 @@ export function ExecutorPermissions({
                 key={vault.vaultId}
                 className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0 last:pb-0"
               >
-                <p className="font-semibold">
-                  {vault.ownerFullName} mời bạn làm{" "}
-                  {vault.role === "PRIMARY" ? "Executor chính" : "Executor dự phòng"}
-                </p>
+                <p className="font-semibold">{vault.ownerFullName} mời bạn làm Executor</p>
                 <Chip tone="success">Đã chấp nhận</Chip>
               </li>
             ))}

@@ -70,9 +70,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           <Panel title="Kho được giao cho bạn">
             <dl>
               <InfoRow label="Chủ kho">{vault.ownerFullName}</InfoRow>
-              <InfoRow label="Vai trò">
-                {vault.role === "PRIMARY" ? "Executor chính" : "Executor dự phòng"}
-              </InfoRow>
+              <InfoRow label="Vai trò">Executor</InfoRow>
               <InfoRow label="Kế hoạch">{planStatusLabel(vault.planStatus)}</InfoRow>
               <InfoRow label="Hồ sơ báo tin">{hasCase ? "Đang mở" : "Chưa có"}</InfoRow>
               <InfoRow label="Nội dung kho">Bạn không đọc được</InfoRow>
@@ -118,9 +116,7 @@ export function VaultPicker({
               <Initial name={vault.ownerFullName} />
               <div className="min-w-0">
                 <h2 className="truncate font-semibold">Kho của {vault.ownerFullName}</h2>
-                <p className="text-xs text-heritage-muted">
-                  {vault.role === "PRIMARY" ? "Executor chính" : "Executor dự phòng"}
-                </p>
+                <p className="text-xs text-heritage-muted">Executor</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">

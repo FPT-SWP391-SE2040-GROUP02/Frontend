@@ -13,8 +13,6 @@ export const willWizardSchema = z.object({
     name: z.string(),
     email: z.string(),
     phone: z.string(),
-    backupName: z.string().optional(),
-    backupEmail: z.string().optional(),
   }),
   policyConfirmed: z.boolean(),
 });

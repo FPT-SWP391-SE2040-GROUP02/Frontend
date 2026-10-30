@@ -98,10 +98,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         Xem kỹ trước khi quyết định. Bạn có thể từ chối.
       </p>
       <div className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5">
-        <p className="text-sm font-semibold">
-          Vai trò được mời: {query.data.role === "PRIMARY" ? "Executor chính" : "Executor dự phòng"}
-          .
-        </p>
+        <p className="text-sm font-semibold">Vai trò được mời: Executor.</p>
         <ul className="space-y-2 text-sm">
           {capabilities.map((item) => (
             <li key={item} className="flex items-center gap-2">
