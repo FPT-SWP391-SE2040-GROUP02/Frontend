@@ -95,6 +95,49 @@ describe("vault pin retry in the api client", () => {
     });
   });
 
+  it("asks for the pin when a blob download gets the error as a json blob", async () => {
+    const requestPin = vi.fn().mockResolvedValue("482913");
+    const unregister = registerVaultPinHandler(handler({ requestPin }));
+    const problem = new Blob([JSON.stringify({ code: "VAULT_PIN_REQUIRED" })], {
+      type: "application/problem+json",
+    });
+    const file = new Blob(["secret"], { type: "text/plain" });
+    const calls = script([
+      { status: 403, body: problem },
+      { status: 200, body: file },
+    ]);
+
+    const result = await apiClient.get<Blob, Blob>(`/vaults/${VAULT}/assets/${ASSET}/content`, {
+      responseType: "blob",
+    });
+    unregister();
+
+    expect(result).toBe(file);
+    expect(calls.sentPins).toEqual([undefined, "482913"]);
+    expect(requestPin).toHaveBeenCalledWith({
+      vaultId: VAULT,
+      reason: "required",
+      attemptsRemaining: undefined,
+    });
+  });
+
+  it("turns a json blob error into an object so its code can be shown", async () => {
+    const unregister = registerVaultPinHandler(handler());
+    const problem = new Blob([JSON.stringify({ code: "VAULT_PIN_REQUIRED" })], {
+      type: "application/problem+json",
+    });
+    script([{ status: 403, body: problem }]);
+
+    await expect(
+      apiClient.get<Blob, Blob>(`/vaults/${VAULT}/assets/${ASSET}/content`, {
+        responseType: "blob",
+      }),
+    ).rejects.toMatchObject({
+      response: { status: 403, data: { code: "VAULT_PIN_REQUIRED" } },
+    });
+    unregister();
+  });
+
   it("keeps the original error when the user cancels", async () => {
     const unregister = registerVaultPinHandler(handler());
     script([required]);
