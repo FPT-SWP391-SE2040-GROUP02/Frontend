@@ -193,7 +193,7 @@ describe("official Backend transport through real Axios interceptors", () => {
         searchTerm: "gia đình",
         sortBy: "name",
         isAscending: false,
-        includeArchived: false,
+        includeRemoved: false,
       });
     });
     expect(
@@ -233,18 +233,16 @@ describe("official Backend transport through real Axios interceptors", () => {
     expect(createPackageSchema.safeParse({ name: "a".repeat(200) }).success).toBe(true);
     expect(createPackageSchema.safeParse({ name: "a".repeat(201) }).success).toBe(false);
   });
-  it("archives with DELETE and requires explicit plan-impact confirmation", async () => {
-    respond({ ...containerFixture, status: "ARCHIVED", archivedAt: CREATED_AT }, (config) => {
+  it("removes a package with DELETE and requires explicit plan-impact confirmation", async () => {
+    respond({ ...containerFixture, status: "REMOVED", removedAt: CREATED_AT }, (config) => {
       expect(config.method).toBe("delete");
       expect(config.params).toEqual({ confirmPlanDeactivation: false });
     });
-    expect((await ownerVaultService.archivePackage(VAULT_ID, CONTAINER_ID)).status).toBe(
-      "ARCHIVED",
-    );
-    respond({ ...containerFixture, status: "ARCHIVED", archivedAt: CREATED_AT }, (config) =>
+    expect((await ownerVaultService.removePackage(VAULT_ID, CONTAINER_ID)).status).toBe("REMOVED");
+    respond({ ...containerFixture, status: "REMOVED", removedAt: CREATED_AT }, (config) =>
       expect(config.params).toEqual({ confirmPlanDeactivation: true }),
     );
-    await ownerVaultService.archivePackage(VAULT_ID, CONTAINER_ID, true);
+    await ownerVaultService.removePackage(VAULT_ID, CONTAINER_ID, true);
   });
   it("does not retry a 409 mutation or turn it into success", async () => {
     let calls = 0;
@@ -258,7 +256,7 @@ describe("official Backend transport through real Axios interceptors", () => {
         config,
       });
     };
-    await expect(ownerVaultService.archivePackage(VAULT_ID, CONTAINER_ID)).rejects.toMatchObject({
+    await expect(ownerVaultService.removePackage(VAULT_ID, CONTAINER_ID)).rejects.toMatchObject({
       response: { status: 409 },
     });
     expect(calls).toBe(1);

@@ -208,7 +208,7 @@ function MemberCard(props: MemberCardProps) {
 
 /**
  * Chi tiết một gói bàn giao (container) theo thiết kế: mục trong gói bàn giao, người nhận của gói bàn giao, đổi tên và xóa.
- * Chỉnh sửa một snapshot etag; 409 phải tải lại, không ghi đè bằng etag mới. Xóa là lưu trữ, không xóa dữ liệu.
+ * Chỉnh sửa một snapshot etag; 409 phải tải lại, không ghi đè bằng etag mới. Xóa gói chuyển REMOVED: không xóa hẳn dữ liệu nhưng không khôi phục được.
  */
 export function GroupDetail({
   container,
@@ -225,7 +225,7 @@ export function GroupDetail({
   const action = usePrivateAction();
   const client = useQueryClient();
   const navigate = useNavigate();
-  const archived = container.status === "ARCHIVED";
+  const removed = container.status === "REMOVED";
 
   const {
     register,
@@ -274,9 +274,9 @@ export function GroupDetail({
     );
   }
 
-  function archive(): void {
+  function removeGroup(): void {
     void action.execute(
-      () => ownerVaultService.archivePackage(container.vaultId, container.id, confirm),
+      () => ownerVaultService.removePackage(container.vaultId, container.id, confirm),
       (result) => {
         publish(result, true);
         setDeleting(false);
@@ -313,8 +313,8 @@ export function GroupDetail({
   if (container.status === "READY") {
     statusLabel = "Sẵn sàng";
     statusStyle = "bg-green-100 text-green-800";
-  } else if (archived) {
-    statusLabel = "Đã lưu trữ";
+  } else if (removed) {
+    statusLabel = "Đã xóa";
     statusStyle = "bg-heritage-primary/10 text-heritage-muted";
   }
   const names: string[] = [];
@@ -333,7 +333,7 @@ export function GroupDetail({
   }
   // Thông báo "cần gói trả phí" kèm đường nâng cấp thay vì chỉ báo lỗi chung.
   const needsUpgrade = action.error.includes("gói dịch vụ trả phí");
-  const blocked = action.pending || archived;
+  const blocked = action.pending || removed;
 
   return (
     <div className="space-y-6">
@@ -348,7 +348,7 @@ export function GroupDetail({
           <p className="mt-1 text-sm text-heritage-muted">
             {container.assetIds.length} mục · Người nhận: {peopleLine}
           </p>
-          {missing.length > 0 && !archived && (
+          {missing.length > 0 && !removed && (
             <p className="mt-1 text-sm text-heritage-muted">
               Cần hoàn thiện: {missing.join(", ")}.
             </p>
@@ -366,9 +366,9 @@ export function GroupDetail({
           </Link>
         </div>
       </div>
-      {archived && (
+      {removed && (
         <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
-          Gói bàn giao này đã được lưu trữ nên không chỉnh sửa được.
+          Gói bàn giao này đã bị xóa nên không chỉnh sửa được.
         </p>
       )}
       {isDirty && (
@@ -470,7 +470,7 @@ export function GroupDetail({
               {errors.description.message}
             </p>
           )}
-          {container.status === "READY" && !archived && (
+          {container.status === "READY" && !removed && (
             <label className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F1E7D0] p-4 text-sm leading-6 text-[#7A5B24]">
               <input
                 type="checkbox"
@@ -539,7 +539,8 @@ export function GroupDetail({
               <DialogTitle>Xóa gói bàn giao “{container.name}”?</DialogTitle>
               <DialogDescription>
                 Các mục trong gói bàn giao vẫn ở lại kho nhưng sẽ không còn người nhận. Nếu kế hoạch
-                đang hoạt động, kế hoạch có thể về Nháp.
+                đang hoạt động, kế hoạch có thể về Nháp. Không thể dùng lại gói đã xóa; muốn trao
+                lại thì tạo gói bàn giao mới.
               </DialogDescription>
             </DialogHeader>
             <label className="flex items-start gap-3 rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
@@ -572,7 +573,7 @@ export function GroupDetail({
                 variant="destructive"
                 size="lg"
                 disabled={action.pending}
-                onClick={archive}
+                onClick={removeGroup}
               >
                 Xóa gói bàn giao
               </Button>

@@ -193,7 +193,7 @@ const messages: Record<string, string> = {
   VAULT_NOT_EDITABLE: "Kho hiện không cho phép chỉnh sửa.",
   STORAGE_QUOTA_EXCEEDED: "Kho không đủ dung lượng cho nội dung này.",
   CONTAINER_LIMIT_EXCEEDED: "Kho đã đạt giới hạn số gói bàn giao.",
-  CONTAINER_ARCHIVED: "Gói đã lưu trữ, không thể chỉnh sửa.",
+  CONTAINER_REMOVED: "Gói bàn giao đã bị xóa, không thể chỉnh sửa.",
   ASSET_ALREADY_IN_CONTAINER: "Tài sản đang nằm trong một gói khác.",
   PLAN_DEACTIVATION_CONFIRMATION_REQUIRED:
     "Thao tác này sẽ đưa kế hoạch về nháp. Đọc cảnh báo và xác nhận trước khi tiếp tục.",
