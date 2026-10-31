@@ -19,15 +19,12 @@ export function classifyAdminError(error: unknown): AdminErrorKind {
 
 const problem = z.object({ code: z.string().optional(), reason: z.string().optional() });
 
-/** Lý do cụ thể của 409 ADMIN_ACTION_NOT_ALLOWED (AdminService, HoldService). */
+/** Lý do cụ thể của 409 ADMIN_ACTION_NOT_ALLOWED (AdminService). */
 const ACTION_REASONS: Record<string, string> = {
   CANNOT_CHANGE_SELF: "Bạn không thể đổi vai trò hoặc trạng thái của chính mình.",
   LAST_ADMIN: "Hệ thống phải còn ít nhất một quản trị viên đang hoạt động.",
   CASE_NOT_PENDING:
     "Hồ sơ này không còn ở giai đoạn chờ xét nên không giao lại người xét duyệt được.",
-  HOLD_OWNER_ALIVE:
-    "Tạm giữ do chủ kho báo còn sống chỉ được gỡ khi người xét duyệt kết luận. Quản trị viên không tự gỡ.",
-  HOLD_RELEASED: "Tạm giữ này đã được gỡ. Tải lại để xem trạng thái mới nhất.",
 };
 
 /** Câu báo theo mã lỗi riêng của khu vực quản trị. */
