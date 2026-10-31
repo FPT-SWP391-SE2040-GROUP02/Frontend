@@ -28,6 +28,7 @@ export const handoverTurnSchema = z.object({
   responseDeadline: timestamp,
   decisionDeadline: timestamp.nullable(),
   identityBypassed: z.boolean(),
+  identityConfirmedByExecutor: z.boolean(),
   container: z.object({ name: z.string() }).nullable(),
   items: z.array(handoverItemSchema),
   grant: z

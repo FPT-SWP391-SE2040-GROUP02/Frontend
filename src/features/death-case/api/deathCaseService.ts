@@ -6,7 +6,11 @@ import {
   executorCheckInSchema,
   executorVaultSchema,
 } from "../model/deathCase.schema";
-import { handoverProgressSchema, resendInvitationSchema } from "../model/handoverProgress.schema";
+import {
+  confirmIdentitySchema,
+  handoverProgressSchema,
+  resendInvitationSchema,
+} from "../model/handoverProgress.schema";
 const id = z.string().uuid();
 const path = (caseId: string) => `/executor/death-cases/${id.parse(caseId)}`;
 const versionRequest = z.object({ etag: z.string().min(1).max(64) });
@@ -86,6 +90,14 @@ export const deathCaseService = {
     return resendInvitationSchema.parse(
       await apiClient.post<unknown, unknown>(
         `${path(caseId)}/handover-turns/${id.parse(turnId)}/resend-invitation`,
+      ),
+    );
+  },
+  /** Xác nhận đúng người bằng tay khi người nhận không qua được eKYC; lượt sang READY_TO_ACCEPT (BR-122). */
+  async confirmIdentity(caseId: string, turnId: string) {
+    return confirmIdentitySchema.parse(
+      await apiClient.post<unknown, unknown>(
+        `${path(caseId)}/handover-turns/${id.parse(turnId)}/confirm-identity`,
       ),
     );
   },
