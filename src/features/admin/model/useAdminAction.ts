@@ -4,7 +4,7 @@ import { adminActionError } from "./adminError";
 
 /**
  * Như usePrivateAction nhưng hiện lý do riêng của lỗi quản trị (CANNOT_CHANGE_SELF, LAST_ADMIN,
- * HOLD_OWNER_ALIVE, INCIDENT_NOT_OPEN...). Vẫn chặn bấm lặp, không retry, không optimistic;
+ * INCIDENT_NOT_OPEN...). Vẫn chặn bấm lặp, không retry, không optimistic;
  * lỗi khác dùng thông báo chung.
  */
 export function useAdminAction() {

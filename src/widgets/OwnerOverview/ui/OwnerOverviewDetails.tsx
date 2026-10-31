@@ -49,6 +49,7 @@ const activityLabels: Record<string, string> = {
   PAYMENT_ORDER_CREATED: "Tạo đơn thanh toán",
   PAYMENT_ORDER_CANCELLED: "Hủy đơn thanh toán",
   PAYMENT_PAID: "Thanh toán thành công",
+  SERVICE_GRACE_STARTED: "Hết hạn dịch vụ, chuyển sang chỉ đọc",
 };
 
 export function OwnerOverviewDetails({

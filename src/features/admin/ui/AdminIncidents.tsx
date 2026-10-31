@@ -29,7 +29,6 @@ import {
 } from "../model/useAdmin";
 import { useAdminIncidentParams } from "../model/useAdminListParams";
 import { AdminActionDialog } from "./AdminActionDialog";
-import { PlaceHoldDialog } from "./AdminHoldDialogs";
 import { AdminPagination } from "./AdminPagination";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
@@ -244,7 +243,7 @@ function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => vo
   );
 }
 
-type IncidentDialog = "assign" | "note" | "review" | "resolve" | "reassign" | "hold";
+type IncidentDialog = "assign" | "note" | "review" | "resolve" | "reassign";
 
 function IncidentDetailView({ incidentId, onBack }: { incidentId: string; onBack: () => void }) {
   const query = useAdminIncident(incidentId);
@@ -374,11 +373,6 @@ function IncidentDetailBody({
           <Button className="min-h-11" variant="outline" onClick={() => setDialog("review")}>
             Hẹn xem lại
           </Button>
-          {detail.vaultId && (
-            <Button className="min-h-11" variant="outline" onClick={() => setDialog("hold")}>
-              Đặt tạm giữ kho
-            </Button>
-          )}
           <Button className="min-h-11" variant="outline" onClick={() => setDialog("resolve")}>
             Đóng sự cố
           </Button>
@@ -516,9 +510,6 @@ function IncidentDetailBody({
           onClose={close}
           onDone={done}
         />
-      )}
-      {dialog === "hold" && detail.vaultId && (
-        <PlaceHoldDialog vaultId={detail.vaultId} onClose={close} />
       )}
     </div>
   );
