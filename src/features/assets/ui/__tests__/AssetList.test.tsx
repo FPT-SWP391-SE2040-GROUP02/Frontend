@@ -118,6 +118,8 @@ describe("AssetList", () => {
     vi.spyOn(backendAssetService, "list").mockResolvedValue(page([asset(1, "TEXT", "Ví điện tử")]));
     setup();
     await reveal();
+    // act rỗng cho React chạy effect gắn sự kiện chuyển tab trước khi phát sự kiện (máy chậm có thể chưa kịp).
+    await act(async () => {});
     const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
     act(() => {
       document.dispatchEvent(new Event("visibilitychange"));

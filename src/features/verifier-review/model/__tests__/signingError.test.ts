@@ -37,7 +37,7 @@ it("423 SIGNING_LOCKED đọc lockedUntil và báo giờ mở khóa", () => {
   );
   expect(failure).toEqual({ kind: "locked", lockedUntil: new Date(LOCKED_UNTIL).getTime() });
   expect(signingFailureMessage(failure!)).toBe(
-    `Chức năng ký số đang tạm khóa đến ${formatDateTime(LOCKED_UNTIL)}.`,
+    `Chức năng duyệt/từ chối đang tạm khóa đến ${formatDateTime(LOCKED_UNTIL)}.`,
   );
 });
 
@@ -46,7 +46,7 @@ it("423 SIGNING_LOCKED thiếu hoặc sai lockedUntil vẫn báo khóa, không b
     const failure = readSigningFailure(httpError(423, data));
     expect(failure).toEqual({ kind: "locked", lockedUntil: null });
     expect(signingFailureMessage(failure!)).toBe(
-      "Chức năng ký số đang tạm khóa. Vui lòng thử lại sau.",
+      "Chức năng duyệt/từ chối đang tạm khóa. Vui lòng thử lại sau.",
     );
   }
 });
