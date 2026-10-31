@@ -79,5 +79,14 @@ export const deathDraftSchema = z.object({
   issuedBy: z.string().max(200),
 });
 
+/** Kết quả Executor điểm danh thay chủ kho: kế hoạch về ACTIVE và có kỳ điểm danh mới. */
+export const executorCheckInSchema = z.object({
+  vaultId: z.string().uuid(),
+  planStatus: z.string(),
+  checkedInAt: timestamp,
+  nextCheckInDueAt: timestamp,
+  graceEndsAt: timestamp,
+});
+
 export type ExecutorVault = z.infer<typeof executorVaultSchema>;
 export type DeathCase = z.infer<typeof deathCaseSchema>;

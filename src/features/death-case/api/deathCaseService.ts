@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api/axiosClient";
-import { deathCaseSchema, deathDraftSchema, executorVaultSchema } from "../model/deathCase.schema";
+import {
+  deathCaseSchema,
+  deathDraftSchema,
+  executorCheckInSchema,
+  executorVaultSchema,
+} from "../model/deathCase.schema";
 import { handoverProgressSchema, resendInvitationSchema } from "../model/handoverProgress.schema";
 const id = z.string().uuid();
 const path = (caseId: string) => `/executor/death-cases/${id.parse(caseId)}`;
@@ -11,6 +16,12 @@ export const deathCaseService = {
     return z
       .array(executorVaultSchema)
       .parse(await apiClient.get<unknown, unknown>("/executor/vaults", { signal }));
+  },
+  /** Điểm danh thay chủ kho khi chủ kho quá hạn và kho chưa có hồ sơ chứng tử đang mở. */
+  async checkInForOwner(vaultId: string) {
+    return executorCheckInSchema.parse(
+      await apiClient.post<unknown, unknown>(`/executor/vaults/${id.parse(vaultId)}/check-in`),
+    );
   },
   async open(vaultId: string) {
     return deathCaseSchema.parse(
