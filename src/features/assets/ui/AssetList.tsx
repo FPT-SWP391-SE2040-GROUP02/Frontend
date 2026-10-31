@@ -1,12 +1,19 @@
-import { useDeferredValue, useState } from "react";
+import { useDeferredValue, useEffect, useEffectEvent, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { FolderOpen, Lock, Search } from "lucide-react";
+import { Eye, EyeOff, FolderOpen, Lock, Search } from "lucide-react";
+import type { VaultPinConfirmation } from "@/shared/api/vaultPin";
+import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { buttonStyles, Chip, formatDate, Panel } from "@/shared/ui/heritageKit";
 import { useVaultAssets } from "../model/useVaultAssets";
 
 const PAGE_SIZE = 10;
+
+/** Hiện thông tin quá lâu thì tự che lại; muốn xem tiếp phải nhập lại PIN. */
+export const REVEAL_DURATION_MS = 3 * 60 * 1000;
+
+const MASK = "••••••";
 
 type KindFilter = "ALL" | "FILE" | "TEXT";
 
@@ -21,11 +28,47 @@ const kindLabels = { FILE: "Tệp tải lên", TEXT: "Ghi chú bí mật" } as c
 /**
  * Danh sách mục trong kho (thiết kế "Kho của tôi"): tìm theo tên (Backend), lọc theo loại trong trang
  * đang xem, mở trang chi tiết để sửa. Chỉ metadata; nội dung không bao giờ nằm trong danh sách.
+ *
+ * Mặc định che tên, loại, dung lượng, ngày của mọi mục (chống nhìn trộm màn hình). Bấm con mắt thì hỏi mã PIN kho
+ * (`confirmPin`), đúng mới hiện. Tự che lại khi bấm con mắt lần nữa, chuyển tab, rời trang hoặc sau
+ * REVEAL_DURATION_MS. Đang che thì khóa lọc, tìm kiếm và lối mở chi tiết vì các thao tác đó cũng lộ thông tin.
+ * Đây là che trên giao diện; Backend vẫn trả danh sách như cũ.
  */
-export function AssetList({ vaultId }: { vaultId: string }) {
+export function AssetList({
+  vaultId,
+  confirmPin,
+}: {
+  vaultId: string;
+  /** Hỏi và kiểm mã PIN kho; widget nối hộp thoại PIN với API kiểm PIN. */
+  confirmPin: () => Promise<VaultPinConfirmation>;
+}) {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [kind, setKind] = useState<KindFilter>("ALL");
+  const [revealed, setRevealed] = useState(false);
+  const unlock = usePrivateAction();
+  const reveal = () =>
+    void unlock.execute(confirmPin, (result) => {
+      if (result.confirmed) setRevealed(true);
+    });
+  const hide = () => {
+    setRevealed(false);
+    setSearch("");
+    setKind("ALL");
+  };
+  const hideFromEffect = useEffectEvent(hide);
+  useEffect(() => {
+    if (!revealed) return;
+    const timer = window.setTimeout(hideFromEffect, REVEAL_DURATION_MS);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") hideFromEffect();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [revealed]);
   const searchTerm = useDeferredValue(search.trim());
   const requested = Number(params.get("page") ?? 1);
   const page =
@@ -48,17 +91,42 @@ export function AssetList({ vaultId }: { vaultId: string }) {
       title="Danh sách mục"
       labelledBy="asset-list-title"
       action={
-        data && <span className="text-sm font-semibold text-[#7A5B25]">{data.totalCount} mục</span>
+        <div className="flex items-center gap-3">
+          {data && (
+            <span className="text-sm font-semibold text-[#7A5B25]">{data.totalCount} mục</span>
+          )}
+          <button
+            type="button"
+            aria-pressed={revealed}
+            aria-label={revealed ? "Ẩn thông tin các mục" : "Hiện thông tin các mục"}
+            title={revealed ? "Ẩn thông tin" : "Hiện thông tin (cần mã PIN)"}
+            disabled={unlock.pending}
+            onClick={revealed ? hide : reveal}
+            className="inline-flex size-10 items-center justify-center rounded-full border border-[#BDB8A6] text-[#0A281E] transition-colors hover:bg-[#F4F1E6] disabled:opacity-50"
+          >
+            {revealed ? (
+              <EyeOff className="size-4" aria-hidden="true" />
+            ) : (
+              <Eye className="size-4" aria-hidden="true" />
+            )}
+          </button>
+        </div>
       }
     >
+      {unlock.error && (
+        <p role="alert" className="mb-3 text-sm text-destructive">
+          {unlock.error}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2" role="group" aria-label="Lọc theo loại">
         {tabs.map((tab) => (
           <button
             key={tab.value}
             type="button"
             aria-pressed={kind === tab.value}
+            disabled={!revealed}
             onClick={() => setKind(tab.value)}
-            className={`min-h-10 rounded-full border px-4 text-sm font-semibold transition-colors ${
+            className={`min-h-10 rounded-full border px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               kind === tab.value
                 ? "border-[#0A281E] bg-[#0A281E] text-white"
                 : "border-[#BDB8A6] bg-transparent text-[#0A281E] hover:bg-[#F4F1E6]"
@@ -78,12 +146,13 @@ export function AssetList({ vaultId }: { vaultId: string }) {
           type="search"
           value={search}
           maxLength={200}
-          placeholder="Tìm theo tên mục"
+          disabled={!revealed}
+          placeholder={revealed ? "Tìm theo tên mục" : "Bấm con mắt để tìm theo tên mục"}
           onChange={(event) => {
             setSearch(event.target.value);
             if (page !== 1) setPage(1);
           }}
-          className="h-12 w-full rounded-xl border border-[#BDB8A6] bg-white pl-11 pr-4 text-sm"
+          className="h-12 w-full rounded-xl border border-[#BDB8A6] bg-white pl-11 pr-4 text-sm disabled:cursor-not-allowed disabled:bg-[#F4F1E6]"
         />
       </label>
       <div className="mt-4">
@@ -146,38 +215,56 @@ export function AssetList({ vaultId }: { vaultId: string }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-heritage-border">
-                {items.map((item) => (
-                  <tr key={item.id}>
-                    <td className="py-4 pr-4">
-                      <Link
-                        to={ROUTES.DASHBOARD.ASSET_DETAIL(item.id)}
-                        className="inline-flex items-center gap-2 font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
-                      >
-                        <Lock className="size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
-                        <span className="break-words">{item.name}</span>
-                      </Link>
-                    </td>
-                    <td className="px-4 py-4">
-                      <Chip tone="neutral">{kindLabels[item.kind]}</Chip>
-                    </td>
-                    <td className="px-4 py-4 text-heritage-muted">
-                      {formatStorageSize(item.sizeBytes)}
-                    </td>
-                    <td className="px-4 py-4 text-heritage-muted">
-                      {formatDate(item.updatedAt ?? item.createdAt)}
-                    </td>
-                    <td className="py-4 pl-4 text-right">
-                      {/* edit=1: trang chi tiết hỏi mã PIN ngay khi mở, đúng PIN mới hiện form sửa. */}
-                      <Link
-                        to={`${ROUTES.DASHBOARD.ASSET_DETAIL(item.id)}?edit=1`}
-                        aria-label={`Sửa ${item.name}`}
-                        className="font-semibold text-[#7A5B25] hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
-                      >
-                        Sửa
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {items.map((item) =>
+                  revealed ? (
+                    <tr key={item.id}>
+                      <td className="py-4 pr-4">
+                        <Link
+                          to={ROUTES.DASHBOARD.ASSET_DETAIL(item.id)}
+                          className="inline-flex items-center gap-2 font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
+                        >
+                          <Lock className="size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+                          <span className="break-words">{item.name}</span>
+                        </Link>
+                      </td>
+                      <td className="px-4 py-4">
+                        <Chip tone="neutral">{kindLabels[item.kind]}</Chip>
+                      </td>
+                      <td className="px-4 py-4 text-heritage-muted">
+                        {formatStorageSize(item.sizeBytes)}
+                      </td>
+                      <td className="px-4 py-4 text-heritage-muted">
+                        {formatDate(item.updatedAt ?? item.createdAt)}
+                      </td>
+                      <td className="py-4 pl-4 text-right">
+                        {/* edit=1: trang chi tiết hỏi mã PIN ngay khi mở, đúng PIN mới hiện form sửa. */}
+                        <Link
+                          to={`${ROUTES.DASHBOARD.ASSET_DETAIL(item.id)}?edit=1`}
+                          aria-label={`Sửa ${item.name}`}
+                          className="font-semibold text-[#7A5B25] hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
+                        >
+                          Sửa
+                        </Link>
+                      </td>
+                    </tr>
+                  ) : (
+                    // Đang che: không đưa tên vào cả nhãn trợ năng, không cho mở chi tiết.
+                    <tr key={item.id} aria-label="Mục đang ẩn">
+                      <td className="py-4 pr-4 font-semibold">
+                        <span className="inline-flex items-center gap-2">
+                          <Lock className="size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+                          {MASK}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <Chip tone="neutral">{MASK}</Chip>
+                      </td>
+                      <td className="px-4 py-4 text-heritage-muted">{MASK}</td>
+                      <td className="px-4 py-4 text-heritage-muted">{MASK}</td>
+                      <td className="py-4 pl-4" />
+                    </tr>
+                  ),
+                )}
               </tbody>
             </table>
           </div>

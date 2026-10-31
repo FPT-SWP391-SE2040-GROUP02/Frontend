@@ -1,11 +1,12 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import type { VaultPinConfirmation } from "@/shared/api/vaultPin";
 import { backendAssetService } from "../../api/backendAssetService";
 import type { BackendAsset } from "../../model/backendAsset.schema";
-import { AssetList } from "../AssetList";
+import { AssetList, REVEAL_DURATION_MS } from "../AssetList";
 
 const VAULT_ID = "33333333-3333-4333-8333-333333333333";
 
@@ -45,23 +46,98 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function setup() {
-  return render(
+function setup(
+  confirmPin: () => Promise<VaultPinConfirmation> = () =>
+    Promise.resolve<VaultPinConfirmation>({ confirmed: true, pin: "482913" }),
+) {
+  const pin = vi.fn(confirmPin);
+  render(
     <QueryClientProvider client={client}>
       <MemoryRouter>
-        <AssetList vaultId={VAULT_ID} />
+        <AssetList vaultId={VAULT_ID} confirmPin={pin} />
       </MemoryRouter>
     </QueryClientProvider>,
   );
+  return pin;
+}
+
+/** Bấm con mắt và chờ danh sách hiện thật (PIN giả luôn đúng). */
+async function reveal() {
+  fireEvent.click(await screen.findByRole("button", { name: "Hiện thông tin các mục" }));
+  await screen.findByRole("button", { name: "Ẩn thông tin các mục" });
 }
 
 describe("AssetList", () => {
+  it("masks name, kind, size and date until the PIN is confirmed", async () => {
+    vi.spyOn(backendAssetService, "list").mockResolvedValue(page([asset(1, "TEXT", "Ví điện tử")]));
+    const confirmPin = setup();
+    const rows = await screen.findAllByRole("row", { name: "Mục đang ẩn" });
+    expect(rows).toHaveLength(1);
+    expect(screen.queryByText("Ví điện tử")).not.toBeInTheDocument();
+    expect(screen.queryByText("Ghi chú bí mật", { selector: "span" })).not.toBeInTheDocument();
+    expect(screen.queryByText("100 B")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.getByRole("searchbox")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Tệp tải lên" })).toBeDisabled();
+    expect(confirmPin).not.toHaveBeenCalled();
+
+    await reveal();
+    expect(confirmPin).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("link", { name: "Ví điện tử" })).toBeInTheDocument();
+
+    // Bấm lần nữa thì che lại ngay, không hỏi PIN.
+    fireEvent.click(screen.getByRole("button", { name: "Ẩn thông tin các mục" }));
+    expect(screen.queryByText("Ví điện tử")).not.toBeInTheDocument();
+    expect(confirmPin).toHaveBeenCalledTimes(1);
+  });
+
+  it("stays masked when the PIN prompt is cancelled", async () => {
+    vi.spyOn(backendAssetService, "list").mockResolvedValue(page([asset(1, "TEXT", "Ví điện tử")]));
+    const confirmPin = setup(() => Promise.resolve<VaultPinConfirmation>({ confirmed: false }));
+    fireEvent.click(await screen.findByRole("button", { name: "Hiện thông tin các mục" }));
+    await waitFor(() => expect(confirmPin).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole("button", { name: "Hiện thông tin các mục" })).toBeEnabled();
+    expect(screen.queryByText("Ví điện tử")).not.toBeInTheDocument();
+  });
+
+  it("masks again when the tab is hidden", async () => {
+    vi.spyOn(backendAssetService, "list").mockResolvedValue(page([asset(1, "TEXT", "Ví điện tử")]));
+    setup();
+    await reveal();
+    const visibility = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    visibility.mockRestore();
+    expect(screen.queryByText("Ví điện tử")).not.toBeInTheDocument();
+  });
+
+  it("masks again after the reveal time runs out", async () => {
+    vi.spyOn(backendAssetService, "list").mockResolvedValue(page([asset(1, "TEXT", "Ví điện tử")]));
+    // Giả giờ từ đầu để hẹn giờ tự che được tạo bằng đồng hồ giả; shouldAdvanceTime giữ cho các bước chờ vẫn chạy.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      setup();
+      await reveal();
+      // act rỗng cho React chạy effect đặt hẹn giờ tự che trước khi tua. Không tua trong waitFor vì tua 3 phút
+      // cũng làm hết hạn chờ của chính waitFor (nó dùng đồng hồ giả).
+      await act(async () => {});
+      act(() => {
+        vi.advanceTimersByTime(REVEAL_DURATION_MS);
+      });
+      expect(screen.queryByText("Ví điện tử")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("shows the total, kind, update date and a link to each item's detail page", async () => {
     vi.spyOn(backendAssetService, "list").mockResolvedValue(
       page([asset(1, "TEXT", "Ví điện tử"), asset(2, "FILE", "Sổ tiết kiệm")], 12),
     );
     setup();
     expect(await screen.findByText("12 mục")).toBeInTheDocument();
+    await reveal();
     const rows = within(screen.getByRole("table")).getAllByRole("row");
     expect(rows).toHaveLength(3);
     expect(within(rows[1]).getByText("Ghi chú bí mật")).toBeInTheDocument();
@@ -88,6 +164,7 @@ describe("AssetList", () => {
       page([asset(1, "TEXT", "Ví điện tử"), asset(2, "FILE", "Sổ tiết kiệm")]),
     );
     setup();
+    await reveal();
     await screen.findByRole("link", { name: "Ví điện tử" });
     fireEvent.click(screen.getByRole("button", { name: "Tệp tải lên" }));
     expect(screen.queryByRole("link", { name: "Ví điện tử" })).not.toBeInTheDocument();
@@ -103,6 +180,7 @@ describe("AssetList", () => {
       .spyOn(backendAssetService, "list")
       .mockResolvedValue(page([asset(1, "TEXT", "Ví điện tử")]));
     setup();
+    await reveal();
     await screen.findByRole("link", { name: "Ví điện tử" });
     fireEvent.change(screen.getByRole("searchbox", { name: "Tìm theo tên mục" }), {
       target: { value: "ví" },
@@ -119,6 +197,7 @@ describe("AssetList", () => {
   it("says nothing matches a search instead of showing the empty vault message", async () => {
     vi.spyOn(backendAssetService, "list").mockResolvedValue(page([]));
     setup();
+    await reveal();
     fireEvent.change(await screen.findByRole("searchbox", { name: "Tìm theo tên mục" }), {
       target: { value: "xyz" },
     });

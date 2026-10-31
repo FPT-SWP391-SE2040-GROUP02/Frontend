@@ -2,6 +2,8 @@ import { useSelector } from "react-redux";
 import { Vault, FolderOpen } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import { confirmVaultPin } from "@/shared/api/vaultPin";
+import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { Button } from "@/shared/ui/button";
 import {
@@ -127,7 +129,12 @@ export function OwnerSection({
           </div>
         </section>
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <AssetList vaultId={vault.data.id} />
+          <AssetList
+            vaultId={vault.data.id}
+            confirmPin={() =>
+              confirmVaultPin(vault.data.id, (pin) => vaultPinService.verify(vault.data.id, pin))
+            }
+          />
           <CreateAssetForm
             vaultId={vault.data.id}
             remainingBytes={vault.data.storageRemainingBytes}
