@@ -1,4 +1,4 @@
-import { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import { isAxiosError, type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { z } from "zod";
 
 /** Header BE đọc mã PIN kho (docs/api-contract.md mục 6.20). Không bao giờ ghi vào log hay storage. */
@@ -51,7 +51,34 @@ const pinProblemSchema = z.object({
 });
 
 type Retry = (config: InternalAxiosRequestConfig) => Promise<unknown>;
+type PinProblem = z.infer<typeof pinProblemSchema>;
 export type VaultPinFailureResult = { handled: true; value: unknown } | { handled: false };
+
+const PIN_CODES = new Set([
+  "VAULT_PIN_REQUIRED",
+  "INVALID_VAULT_PIN",
+  "VAULT_PIN_NOT_SET",
+  "VAULT_PIN_LOCKED",
+]);
+
+/** Hỏi người dùng theo mã lỗi PIN của Backend; trả PIN vừa nhập/đặt, hoặc null khi hủy, bị khóa hay mã khác. */
+async function askForPin(
+  active: VaultPinHandler,
+  vaultId: string,
+  problem: PinProblem,
+): Promise<string | null> {
+  const { code, attemptsRemaining, lockedUntil } = problem;
+  if (code === "VAULT_PIN_REQUIRED" || code === "INVALID_VAULT_PIN") {
+    return active.requestPin({
+      vaultId,
+      reason: code === "INVALID_VAULT_PIN" ? "invalid" : "required",
+      attemptsRemaining,
+    });
+  }
+  if (code === "VAULT_PIN_NOT_SET") return active.requestNewPin(vaultId);
+  if (code === "VAULT_PIN_LOCKED") active.notifyLocked(lockedUntil);
+  return null;
+}
 
 /**
  * Khi Backend đòi PIN (thiếu, sai, chưa đặt) cho một thao tác của kho: hỏi người dùng qua handler đã đăng ký rồi
@@ -71,24 +98,42 @@ export async function resolveVaultPinFailure(
 
   const parsed = pinProblemSchema.safeParse(error.response.data);
   if (!parsed.success) return { handled: false };
-  const { code, attemptsRemaining, lockedUntil } = parsed.data;
 
-  let pin: string | null = null;
-  if (code === "VAULT_PIN_REQUIRED" || code === "INVALID_VAULT_PIN") {
-    pin = await active.requestPin({
-      vaultId,
-      reason: code === "INVALID_VAULT_PIN" ? "invalid" : "required",
-      attemptsRemaining,
-    });
-  } else if (code === "VAULT_PIN_NOT_SET") {
-    pin = await active.requestNewPin(vaultId);
-  } else if (code === "VAULT_PIN_LOCKED") {
-    active.notifyLocked(lockedUntil);
-  }
+  const pin = await askForPin(active, vaultId, parsed.data);
   if (pin === null) return { handled: false };
 
   config.headers.set(VAULT_PIN_HEADER, pin);
   return { handled: true, value: await retry(config) };
+}
+
+/** Kết quả hỏi PIN trước một thao tác. `pin` trống khi kho chưa cần PIN (chưa có tài sản, chưa đặt PIN). */
+export type VaultPinConfirmation = { confirmed: true; pin?: string } | { confirmed: false };
+
+/**
+ * Hỏi mã PIN trước một thao tác (không đợi Backend đòi), dùng chung hộp thoại PIN của app. `check` gửi PIN cho
+ * Backend kiểm (lần đầu không kèm PIN): thiếu/sai thì hỏi lại kèm số lần còn lại, kho chưa có PIN thì mời đặt,
+ * bị khóa thì báo khóa. Hủy hoặc bị khóa → confirmed=false. Lỗi không phải lỗi PIN, hoặc app chưa đăng ký hộp
+ * thoại, thì ném lại cho caller hiện thông báo. PIN trả về chỉ giữ trong RAM, không ghi log hay storage.
+ */
+export async function confirmVaultPin(
+  vaultId: string,
+  check: (pin?: string) => Promise<void>,
+): Promise<VaultPinConfirmation> {
+  let pin: string | undefined = undefined;
+  for (;;) {
+    try {
+      await check(pin);
+      return { confirmed: true, pin };
+    } catch (error) {
+      const active = handler;
+      const parsed = pinProblemSchema.safeParse(isAxiosError(error) ? error.response?.data : null);
+      const code = parsed.success ? parsed.data.code : undefined;
+      if (!active || !parsed.success || !code || !PIN_CODES.has(code)) throw error;
+      const next = await askForPin(active, vaultId, parsed.data);
+      if (next === null) return { confirmed: false };
+      pin = next;
+    }
+  }
 }
 
 /** Sau khi tạo tài sản (201) báo handler để mời đặt PIN nếu kho cần mà chưa có. Lỗi của handler không ảnh hưởng request. */
