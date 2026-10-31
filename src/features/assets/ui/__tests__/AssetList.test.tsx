@@ -76,7 +76,11 @@ describe("AssetList", () => {
       "href",
       "/dashboard/assets/44444444-4444-4444-8444-444444444441",
     );
-    expect(screen.getByRole("link", { name: "Sửa Sổ tiết kiệm" })).toBeInTheDocument();
+    // "Sửa" mở trang chi tiết ở chế độ sửa: trang hỏi mã PIN trước khi hiện form.
+    expect(screen.getByRole("link", { name: "Sửa Sổ tiết kiệm" })).toHaveAttribute(
+      "href",
+      "/dashboard/assets/44444444-4444-4444-8444-444444444442?edit=1",
+    );
   });
 
   it("filters the loaded page by kind", async () => {
