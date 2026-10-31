@@ -48,6 +48,8 @@ export const auditActionValues = [
   "PAYMENT_ORDER_CREATED",
   "PAYMENT_ORDER_CANCELLED",
   "PAYMENT_PAID",
+  // Job hết hạn dịch vụ: kho trả phí hết kỳ sang ân hạn chỉ đọc (OPLAN-01).
+  "SERVICE_GRACE_STARTED",
 ] as const;
 
 /** Wire role người thực hiện; SYSTEM dùng khi job nền. */
