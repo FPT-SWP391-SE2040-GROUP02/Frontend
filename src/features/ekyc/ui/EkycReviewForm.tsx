@@ -237,9 +237,7 @@ export function EkycReviewForm({
             id={`${prefix}-dateOfExpiry`}
             type="text"
             value={
-              document.dateOfExpiry
-                ? formatToDdMmYyyy(document.dateOfExpiry)
-                : "Không thời hạn"
+              document.dateOfExpiry ? formatToDdMmYyyy(document.dateOfExpiry) : "Không thời hạn"
             }
             readOnly
             className="min-h-11 w-full min-w-0 bg-heritage-muted/10 text-heritage-muted cursor-not-allowed"

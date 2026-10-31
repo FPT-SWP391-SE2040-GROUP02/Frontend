@@ -7,6 +7,7 @@ import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
 import { deathCaseService } from "../api/deathCaseService";
 import {
+  canConfirmIdentity,
   RESENDABLE_TURN_STATUSES,
   type HandoverProgress,
   type HandoverProgressTurn,
@@ -155,6 +156,60 @@ function ResendInvitation({ caseId, turnId }: { caseId: string; turnId: string }
   );
 }
 
+/**
+ * Executor xác nhận đúng người bằng tay khi người nhận không qua được eKYC (BR-122). Executor tự gặp hoặc liên lạc
+ * ngoài hệ thống. Không optimistic: chỉ báo thành công sau response của BE, rồi đọc lại tiến độ.
+ */
+function ConfirmIdentity({ caseId, turnId }: { caseId: string; turnId: string }) {
+  const client = useQueryClient();
+  const action = usePrivateAction();
+  const [confirming, setConfirming] = useState(false);
+  const confirm = () =>
+    void action.execute(
+      () => deathCaseService.confirmIdentity(caseId, turnId),
+      () => {
+        setConfirming(false);
+        void client.invalidateQueries({ queryKey: handoverProgressKey(caseId) });
+      },
+    );
+  return (
+    <div className="space-y-2">
+      {!confirming ? (
+        <button type="button" className={buttonStyles.dark} onClick={() => setConfirming(true)}>
+          Xác nhận đúng người
+        </button>
+      ) : (
+        <div className="space-y-3 rounded-xl border border-heritage-border bg-white/60 p-4 text-sm">
+          <p className="font-medium">Tôi đã xác nhận đúng người</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={buttonStyles.dark}
+              onClick={confirm}
+              disabled={action.pending}
+            >
+              {action.pending ? "Đang xác nhận…" : "Xác nhận"}
+            </button>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={() => setConfirming(false)}
+              disabled={action.pending}
+            >
+              Hủy
+            </button>
+          </div>
+        </div>
+      )}
+      {action.error && (
+        <p role="alert" className="text-sm text-destructive">
+          {action.error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 const isFinished = (turn: HandoverProgressTurn) =>
   turn.status === "HANDOVER_COMMITTED" &&
   turn.totalItems > 0 &&
@@ -210,6 +265,21 @@ function TurnDetail({
         <div className="mt-4">
           <ResendInvitation caseId={caseId} turnId={turn.turnId} />
         </div>
+      )}
+      {canConfirmIdentity(turn) && (
+        <div className="mt-4">
+          <ConfirmIdentity caseId={caseId} turnId={turn.turnId} />
+        </div>
+      )}
+      {turn.status === "IDENTITY_IN_PROGRESS" && turn.claimedByYou && (
+        <p className="mt-4 text-sm text-heritage-muted">
+          Lượt này do chính tài khoản của bạn nhận nên bạn không tự xác nhận được.
+        </p>
+      )}
+      {turn.identityConfirmedByExecutor && (
+        <p className="mt-4 text-sm text-heritage-muted">
+          Danh tính người nhận đã được Executor xác nhận bằng tay.
+        </p>
       )}
       <p className="mt-5 text-sm font-semibold">
         Đã tải {turn.downloadedItems}/{turn.totalItems} tài sản

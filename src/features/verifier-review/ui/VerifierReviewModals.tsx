@@ -110,11 +110,11 @@ function ReviewError({ error, onClose }: { error: string; onClose: () => void })
   );
 }
 
-/** setTimeout chỉ nhận tối đa 2^31-1 ms; khóa ký dài nhất 24 giờ nên không vượt, giữ chặn cho chắc. */
+/** setTimeout chỉ nhận tối đa 2^31-1 ms; khóa dài nhất 24 giờ nên không vượt, giữ chặn cho chắc. */
 const MAX_TIMER_MS = 2_147_483_647;
 
 /**
- * Lỗi ký số của một lần mở modal Duyệt/Từ chối. Đang khóa (423 có lockedUntil) thì `locked` = true tới đúng
+ * Lỗi xác nhận mật khẩu của một lần mở modal Duyệt/Từ chối. Đang khóa (423 có lockedUntil) thì `locked` = true tới đúng
  * lockedUntil rồi tự mở lại; đóng modal là mất trạng thái (BE vẫn chặn nếu còn khóa).
  */
 function useSigningFailure() {
@@ -133,7 +133,7 @@ function useSigningFailure() {
     failure,
     locked: lockedUntil !== null && now < lockedUntil,
     clear: () => setFailure(null),
-    /** Ghi nhận lỗi ký số nếu có; lỗi khác để null để UI giữ ReviewError. */
+    /** Ghi nhận lỗi xác nhận mật khẩu nếu có; lỗi khác để null để UI giữ ReviewError. */
     capture: (error: unknown) => {
       setNow(Date.now());
       setFailure(readSigningFailure(error));
@@ -141,7 +141,7 @@ function useSigningFailure() {
   };
 }
 
-/** Ô mật khẩu xác nhận ký số; giá trị chỉ nằm trong state form của modal. */
+/** Ô mật khẩu xác nhận (DEATH-03); giá trị chỉ nằm trong state form của modal. */
 function SigningPasswordField({
   registration,
   error,
@@ -154,7 +154,7 @@ function SigningPasswordField({
   return (
     <div className="space-y-1 text-sm">
       <label htmlFor={inputId} className="block">
-        Mật khẩu xác nhận ký số
+        Mật khẩu xác nhận
       </label>
       <input
         id={inputId}
@@ -167,14 +167,15 @@ function SigningPasswordField({
         {...registration}
       />
       <p id={hintId} className="text-xs text-heritage-muted">
-        Quyết định sẽ được ký số bằng khóa của bạn. Nhập sai 5 lần sẽ tạm khóa chức năng ký.
+        Nhập mật khẩu tài khoản để xác nhận quyết định. Nhập sai 5 lần sẽ tạm khóa chức năng
+        duyệt/từ chối.
       </p>
       {error && <span className="text-xs text-destructive">{error}</span>}
     </div>
   );
 }
 
-/** Lỗi ký số có câu riêng (không kèm "Tải lại hồ sơ" vì tải lại không giúp gì); lỗi khác giữ ReviewError. */
+/** Lỗi xác nhận mật khẩu có câu riêng (không kèm "Tải lại hồ sơ" vì tải lại không giúp gì); lỗi khác giữ ReviewError. */
 function DecisionError({
   signing,
   error,

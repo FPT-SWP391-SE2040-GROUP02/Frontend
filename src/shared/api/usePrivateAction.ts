@@ -39,7 +39,9 @@ function validationMessages(errors: Record<string, string[]> | undefined): strin
 const handoverNotAllowedReasons: Record<string, string> = {
   HOLD_ACTIVE: "Kho đang bị tạm giữ, tạm thời chưa thực hiện được. Các hạn đang được giữ nguyên.",
   PLAN_NOT_IN_HANDOVER: "Kế hoạch không còn ở giai đoạn bàn giao.",
-  WRONG_STATE: "Lượt này đã có người nhận hoặc đã kết thúc.",
+  WRONG_STATE:
+    "Lượt này không còn ở bước phù hợp để thực hiện thao tác này (đã có người nhận, đã chuyển bước hoặc đã kết thúc).",
+  OWN_TURN: "Lượt này do chính tài khoản của bạn nhận nên bạn không tự xác nhận được.",
   RESEND_TOO_SOON: "Vừa gửi xong, vui lòng thử lại sau 15 phút.",
   NO_EMAIL: "Người nhận chưa có email.",
   INVITATION_SEND_FAILED: "Chưa gửi được thư mời. Chưa có gì thay đổi, vui lòng thử lại sau.",

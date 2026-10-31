@@ -19,7 +19,6 @@ export const verifierKeys = {
   list: (params?: PaginationParams) => [...verifierKeys.lists(), params ?? {}] as const,
   detail: (caseId: string) => [...verifierKeys.all, "detail", caseId] as const,
   objection: (caseId: string) => [...verifierKeys.all, "objection", caseId] as const,
-  signature: (caseId: string) => [...verifierKeys.all, "signature", caseId] as const,
 };
 /** Hồ sơ Verifier đang được giao. */
 export function useVerifierCases(params?: PaginationParams) {
@@ -75,29 +74,15 @@ export function useRequestSupplement() {
   return (caseId: string, request: z.infer<typeof requestSupplementRequestSchema>) =>
     perform(client, caseId, () => verifierReviewService.requestSupplement(caseId, request));
 }
-/** Quyết định cuối vừa được ký: phiếu chữ ký cũ (nếu có trong cache) không còn đúng. */
-function invalidateSignature(client: ReturnType<typeof useQueryClient>, caseId: string) {
-  void client.invalidateQueries({ queryKey: verifierKeys.signature(caseId) });
-}
 export function useApproveCase() {
   const client = useQueryClient();
-  return async (caseId: string, request: z.infer<typeof approveCaseRequestSchema>) => {
-    const detail = await perform(client, caseId, () =>
-      verifierReviewService.approve(caseId, request),
-    );
-    invalidateSignature(client, caseId);
-    return detail;
-  };
+  return (caseId: string, request: z.infer<typeof approveCaseRequestSchema>) =>
+    perform(client, caseId, () => verifierReviewService.approve(caseId, request));
 }
 export function useRejectCase() {
   const client = useQueryClient();
-  return async (caseId: string, request: z.infer<typeof rejectCaseRequestSchema>) => {
-    const detail = await perform(client, caseId, () =>
-      verifierReviewService.reject(caseId, request),
-    );
-    invalidateSignature(client, caseId);
-    return detail;
-  };
+  return (caseId: string, request: z.infer<typeof rejectCaseRequestSchema>) =>
+    perform(client, caseId, () => verifierReviewService.reject(caseId, request));
 }
 /** Lời báo còn sống của hồ sơ; `null` khi BE trả 404 (chưa có lời báo hoặc không còn được giao). */
 export function useVerifierObjection(caseId: string, enabled: boolean) {
@@ -106,26 +91,6 @@ export function useVerifierObjection(caseId: string, enabled: boolean) {
     queryFn: async ({ signal }) => {
       try {
         return await verifierReviewService.getObjection(caseId, signal);
-      } catch (error) {
-        if (isAxiosError(error) && error.response?.status === HTTP_STATUS.NOT_FOUND) return null;
-        throw error;
-      }
-    },
-    enabled,
-    gcTime: 0,
-    retry: false,
-  });
-}
-/**
- * Phiếu chữ ký số của quyết định cuối; chỉ gọi khi mở dialog (`enabled`), không giữ cache sau khi đóng.
- * `null` khi BE trả 404 (BE cũ chưa có API hoặc hồ sơ không còn giao cho bạn).
- */
-export function useDecisionSignature(caseId: string, enabled: boolean) {
-  return useQuery({
-    queryKey: verifierKeys.signature(caseId),
-    queryFn: async ({ signal }) => {
-      try {
-        return await verifierReviewService.getDecisionSignature(caseId, signal);
       } catch (error) {
         if (isAxiosError(error) && error.response?.status === HTTP_STATUS.NOT_FOUND) return null;
         throw error;
