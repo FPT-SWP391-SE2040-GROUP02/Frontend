@@ -36,6 +36,14 @@ export const DEV_MILESTONES: Record<
     effect: "hết hạn gửi selfie 7 ngày để Người xét duyệt kết luận lời báo còn sống",
     done: "Đã tua tới “Hết hạn selfie 7 ngày”. Người xét duyệt có thể kết luận lời báo còn sống.",
   },
+  SERVICE_EXPIRED: {
+    title: "Hết hạn dịch vụ",
+    description:
+      "Đưa kho đang trả phí sang ân hạn chỉ đọc: chặn thêm mới, vẫn xem, tải, giảm và gia hạn được.",
+    code: "GRACE_READ_ONLY",
+    effect: "cho hạn dịch vụ của kho về quá khứ để kho sang ân hạn chỉ đọc",
+    done: "Đã tua tới “Hết hạn dịch vụ”. Kho đang ở ân hạn chỉ đọc; chủ kho vẫn gia hạn được.",
+  },
 };
 
 /** Nhãn trạng thái kế hoạch theo PlanStatus của Backend; giá trị lạ hiện nguyên chuỗi. */

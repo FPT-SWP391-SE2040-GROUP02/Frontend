@@ -94,7 +94,6 @@ export const HOLD_TYPES = ["OWNER_ALIVE", "DISPUTE", "ADMIN"] as const;
 /** `HoldStatus` của Backend. */
 export const HOLD_STATUSES = ["ACTIVE", "RELEASED"] as const;
 /** Phạm vi Admin được đặt hold (HoldService chỉ nhận VAULT hoặc CONTAINER). */
-export const HOLD_PLACE_SCOPES = ["VAULT", "CONTAINER"] as const;
 /** Loại đối tượng của sự cố giao được Verifier (IncidentService.TargetDeathCase). */
 export const INCIDENT_TARGET_DEATH_CASE = "DEATH_CASE";
 
@@ -212,15 +211,6 @@ export const resolveIncidentRequestSchema = z.object({
   note: text1000("Vui lòng ghi kết quả xử lý."),
   etag,
 });
-export const placeHoldRequestSchema = z.object({
-  vaultId: uuid,
-  scope: z.enum(HOLD_PLACE_SCOPES).optional(),
-  targetId: uuid.optional(),
-  reason: reason500,
-  reviewAt: dateTime.optional(),
-});
-export const releaseHoldRequestSchema = z.object({ reason: reason500, etag });
-export const reviewHoldRequestSchema = z.object({ nextReviewAt: dateTime, etag });
 export const changeUserRoleRequestSchema = z.object({
   role: adminUserRoleSchema,
   reason: reason500,
@@ -235,9 +225,6 @@ export type AssignIncidentRequest = z.infer<typeof assignIncidentRequestSchema>;
 export type IncidentNoteRequest = z.infer<typeof incidentNoteRequestSchema>;
 export type ReviewIncidentRequest = z.infer<typeof reviewIncidentRequestSchema>;
 export type ResolveIncidentRequest = z.infer<typeof resolveIncidentRequestSchema>;
-export type PlaceHoldRequest = z.infer<typeof placeHoldRequestSchema>;
-export type ReleaseHoldRequest = z.infer<typeof releaseHoldRequestSchema>;
-export type ReviewHoldRequest = z.infer<typeof reviewHoldRequestSchema>;
 export type ChangeUserRoleRequest = z.infer<typeof changeUserRoleRequestSchema>;
 export type ChangeUserStatusRequest = z.infer<typeof changeUserStatusRequestSchema>;
 export type ReassignVerifierRequest = z.infer<typeof reassignVerifierRequestSchema>;

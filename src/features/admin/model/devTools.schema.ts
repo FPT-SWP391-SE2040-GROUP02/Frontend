@@ -1,11 +1,12 @@
 import { z } from "zod";
 
-/** Bốn mốc tua của công cụ thử nghiệm, đúng thứ tự hiển thị (DevToolsRules của Backend). */
+/** Các mốc tua của công cụ thử nghiệm, đúng thứ tự hiển thị (DevToolsRules của Backend). */
 export const DEV_MILESTONE_KEYS = [
   "CHECKIN_OVERDUE",
   "GRACE_ENDED",
   "OBJECTION_WINDOW_ENDED",
   "SELFIE_DEADLINE_PASSED",
+  "SERVICE_EXPIRED",
 ] as const;
 
 export const devMilestoneKeySchema = z.enum(DEV_MILESTONE_KEYS);
@@ -31,7 +32,7 @@ export const devVaultOptionSchema = z.object({
 export type DevVaultOption = z.infer<typeof devVaultOptionSchema>;
 export const devVaultOptionsSchema = z.array(devVaultOptionSchema);
 
-/** DevClockResponse: trạng thái kế hoạch, điểm danh, đồng hồ và bốn mốc. */
+/** DevClockResponse: trạng thái kế hoạch, điểm danh, đồng hồ và các mốc tua. */
 export const devClockSchema = z.object({
   vaultId: z.string().uuid(),
   planStatus: z.string(),
