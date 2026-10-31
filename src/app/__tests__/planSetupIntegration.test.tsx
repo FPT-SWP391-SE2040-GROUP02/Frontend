@@ -220,6 +220,29 @@ it("guest only inspects and receives login redirect, no acceptance controls", as
   expect(post).toHaveBeenCalledTimes(1);
 });
 
+it("shows the real reason and no retry when the invitation is no longer valid", async () => {
+  vi.spyOn(apiClient, "post").mockRejectedValue(
+    new AxiosError("private", undefined, undefined, undefined, {
+      status: 404,
+      statusText: "Not Found",
+      config: { headers: new AxiosHeaders() },
+      headers: {},
+      data: { code: "EXECUTOR_INVITATION_INVALID" },
+    }),
+  );
+  setup(<ExecutorInvitationPanel token={"x".repeat(40)} />, false);
+  expect(await screen.findByText("Lời mời không còn dùng được")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Về trang chủ" })).toBeInTheDocument();
+});
+
+it("offers retry when the invitation check fails because of the network", async () => {
+  vi.spyOn(apiClient, "post").mockRejectedValue(new AxiosError("net"));
+  setup(<ExecutorInvitationPanel token={"x".repeat(40)} />, false);
+  expect(await screen.findByText("Không kết nối được máy chủ")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
+});
+
 it("rejects a malformed readiness response rather than pretending activation is available", () => {
   expect(planSetupSchema.safeParse({ ...setupFixture, canActivate: "true" }).success).toBe(false);
 });

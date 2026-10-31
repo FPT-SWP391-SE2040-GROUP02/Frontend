@@ -9,6 +9,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { planSetupService } from "../api/planSetupService";
+import { invitationInspectFailure } from "../lib/invitationInspectError";
 
 const capabilities = [
   "Báo tin cho hệ thống",
@@ -39,23 +40,29 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
     gcTime: 0,
   });
   if (query.isPending) return <p role="status">Đang kiểm tra lời mời Executor…</p>;
-  if (query.isError)
+  if (query.isError) {
+    const failure = invitationInspectFailure(query.error, token);
     return (
       <div role="alert" className="space-y-4">
-        <h1 className="text-3xl font-semibold text-heritage-primary">Không đọc được lời mời</h1>
-        <p className="text-sm leading-6 text-heritage-muted">
-          Lời mời không hợp lệ hoặc không thể đọc. Kiểm tra liên kết hoặc thử lại.
-        </p>
-        <button
-          type="button"
-          className={`${buttonStyles.dark} w-full`}
-          onClick={() => void query.refetch()}
-          disabled={query.isFetching}
-        >
-          Thử lại
-        </button>
+        <h1 className="text-3xl font-semibold text-heritage-primary">{failure.title}</h1>
+        <p className="text-sm leading-6 text-heritage-muted">{failure.message}</p>
+        {failure.retryable ? (
+          <button
+            type="button"
+            className={`${buttonStyles.dark} w-full`}
+            onClick={() => void query.refetch()}
+            disabled={query.isFetching}
+          >
+            Thử lại
+          </button>
+        ) : (
+          <Link className={`${buttonStyles.dark} w-full`} to={ROUTES.HOME}>
+            Về trang chủ
+          </Link>
+        )}
       </div>
     );
+  }
   if (action.succeeded && decision) {
     return (
       <div role="status" className="space-y-5">

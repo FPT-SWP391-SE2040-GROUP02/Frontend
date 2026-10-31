@@ -6,9 +6,9 @@ import {
   planSetupSchema,
   executorInfoSchema,
   inviteExecutorSchema,
+  invitationTokenSchema as tokenSchema,
 } from "../model/planSetup.schema";
 const vault = (id: string) => `/vaults/${z.string().uuid().parse(id)}`;
-const tokenSchema = z.string().min(32).max(512);
 /** Confirmed raw BE contract. No invitation token in cache keys, responses or logs. */
 export const planSetupService = {
   async get(id: string, signal?: AbortSignal) {
