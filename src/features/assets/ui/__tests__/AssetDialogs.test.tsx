@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import type { VaultPinConfirmation } from "@/shared/api/vaultPin";
 import { backendAssetService } from "../../api/backendAssetService";
+import { forgetPinUnlock, rememberPinUnlock } from "../../model/pinUnlock";
 import type { BackendAsset } from "../../model/backendAsset.schema";
 import { AssetDetail } from "../AssetDetail";
 
@@ -34,6 +35,8 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  // Lần mở khóa PIN được nhớ trong RAM theo kho; xóa để mỗi test bắt đầu từ trạng thái chưa nhập PIN.
+  forgetPinUnlock(VAULT_ID);
   client.clear();
   accessTokenMemory.clear();
   vi.restoreAllMocks();
@@ -57,6 +60,7 @@ function renderDetail(
   const invalidate = vi.spyOn(client, "invalidateQueries");
   const onDeleted = vi.fn();
   const onEditRequestHandled = vi.fn();
+  const onPinCancelled = vi.fn();
   const confirmPin = vi.fn(
     options.confirmPin ??
       (() => Promise.resolve<VaultPinConfirmation>({ confirmed: true, pin: PIN })),
@@ -69,32 +73,34 @@ function renderDetail(
           asset={asset}
           onDeleted={onDeleted}
           confirmPin={confirmPin}
+          onPinCancelled={onPinCancelled}
           editRequested={options.editRequested}
           onEditRequestHandled={onEditRequestHandled}
         />
       </MemoryRouter>
     </QueryClientProvider>,
   );
-  return { invalidate, onDeleted, confirmPin, onEditRequestHandled };
+  return { invalidate, onDeleted, confirmPin, onEditRequestHandled, onPinCancelled };
 }
 
-/** Bấm "Sửa" (PIN giả được chấp nhận) và chờ form hiện ra; trả về ô tên. */
+/** Chờ PIN lúc vào trang được chấp nhận, bấm "Sửa" và chờ form hiện ra; trả về ô tên. */
 async function startEditing(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("button", { name: "Sửa" }));
+  await user.click(await screen.findByRole("button", { name: "Sửa" }));
   return screen.findByLabelText("Tên mục");
 }
 
 /** Mở hộp thoại xóa và tick xác nhận; trả về hộp thoại để tìm nút bên trong. */
 async function openDeleteDialog(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("button", { name: "Xóa mục" }));
+  await user.click(await screen.findByRole("button", { name: "Xóa mục" }));
   const dialog = screen.getByRole("dialog");
   await user.click(within(dialog).getByRole("checkbox"));
   return dialog;
 }
 
 describe("AssetDetail", () => {
-  it("shows the single content with its date and size and no version list", () => {
+  it("shows the single content with its date and size and no version list", async () => {
     renderDetail();
+    expect(await screen.findByRole("button", { name: "Tải xuống nội dung" })).toBeInTheDocument();
     expect(screen.queryByText(/Phiên bản/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Thêm phiên bản mới" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tải xuống nội dung" })).toBeInTheDocument();
@@ -110,21 +116,42 @@ describe("AssetDetail", () => {
     Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke });
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
     renderDetail();
-    await user.click(screen.getByRole("button", { name: "Tải xuống nội dung" }));
+    await user.click(await screen.findByRole("button", { name: "Tải xuống nội dung" }));
     await waitFor(() => expect(click).toHaveBeenCalled());
     expect(download).toHaveBeenCalledWith(VAULT_ID, ASSET_ID);
     expect(create).toHaveBeenCalledTimes(1);
   });
 
-  it("shows the name and note read-only until the PIN is confirmed", () => {
-    const { confirmPin } = renderDetail();
+  it("asks for the PIN on arrival and masks everything until it is confirmed", async () => {
+    const { confirmPin } = renderDetail(baseAsset, {
+      confirmPin: () => new Promise<VaultPinConfirmation>(() => {}),
+    });
+    await waitFor(() => expect(confirmPin).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText("Ghi chú")).not.toBeInTheDocument();
+    expect(screen.queryByText("Mô tả cũ")).not.toBeInTheDocument();
+    expect(screen.queryByText("12 B")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sửa" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Xóa mục" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tải xuống nội dung" })).not.toBeInTheDocument();
+  });
+
+  it("shows the name and note read-only once the PIN is confirmed", async () => {
+    renderDetail();
+    expect(await screen.findByText("Mô tả cũ")).toBeInTheDocument();
     expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument();
-    expect(screen.getByText("Mô tả cũ")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Lưu thay đổi" })).not.toBeInTheDocument();
+  });
+
+  it("does not ask again when the PIN was already entered on the list", async () => {
+    rememberPinUnlock(VAULT_ID, PIN);
+    const user = userEvent.setup();
+    const { confirmPin } = renderDetail();
+    const name = await startEditing(user);
+    expect(name).toHaveValue("Ghi chú");
     expect(confirmPin).not.toHaveBeenCalled();
   });
 
-  it("opens the form only after the PIN is confirmed", async () => {
+  it("opens the form without asking the PIN a second time", async () => {
     const user = userEvent.setup();
     const { confirmPin } = renderDetail();
     const name = await startEditing(user);
@@ -132,23 +159,20 @@ describe("AssetDetail", () => {
     expect(name).toHaveValue("Ghi chú");
   });
 
-  it("stays read-only when the PIN dialog is cancelled", async () => {
-    const user = userEvent.setup();
-    const { confirmPin } = renderDetail(baseAsset, {
+  it("leaves the page when the PIN dialog on arrival is cancelled", async () => {
+    const { confirmPin, onPinCancelled } = renderDetail(baseAsset, {
       confirmPin: () => Promise.resolve<VaultPinConfirmation>({ confirmed: false }),
     });
-    await user.click(screen.getByRole("button", { name: "Sửa" }));
-    await waitFor(() => expect(confirmPin).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Sửa" })).toBeEnabled());
-    expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument();
+    await waitFor(() => expect(onPinCancelled).toHaveBeenCalledTimes(1));
+    expect(confirmPin).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Mô tả cũ")).not.toBeInTheDocument();
   });
 
-  it("explains when the PIN could not be checked", async () => {
-    const user = userEvent.setup();
+  it("explains when the PIN could not be checked and offers to try again", async () => {
     renderDetail(baseAsset, { confirmPin: () => Promise.reject(problem(500, "INTERNAL")) });
-    await user.click(screen.getByRole("button", { name: "Sửa" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/Máy chủ đang gặp sự cố/);
-    expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nhập mã PIN để xem" })).toBeInTheDocument();
+    expect(screen.queryByText("Mô tả cũ")).not.toBeInTheDocument();
   });
 
   it("asks for the PIN on arrival when the list's Sửa link was used", async () => {
@@ -221,14 +245,14 @@ describe("AssetDetail", () => {
     await waitFor(() => expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument());
   });
 
-  it("closes the form on Hủy and asks for the PIN again next time", async () => {
+  it("closes the form on Hủy and reopens it without a new PIN while still unlocked", async () => {
     const user = userEvent.setup();
     const { confirmPin } = renderDetail();
     await startEditing(user);
     await user.click(screen.getByRole("button", { name: "Hủy" }));
     expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument();
     await startEditing(user);
-    expect(confirmPin).toHaveBeenCalledTimes(2);
+    expect(confirmPin).toHaveBeenCalledTimes(1);
   });
 
   it("tells the Owner to reload on an edit conflict and keeps the form", async () => {
@@ -247,7 +271,7 @@ describe("AssetDetail", () => {
     const user = userEvent.setup();
     const remove = vi.spyOn(backendAssetService, "remove").mockResolvedValue();
     renderDetail();
-    await user.click(screen.getByRole("button", { name: "Xóa mục" }));
+    await user.click(await screen.findByRole("button", { name: "Xóa mục" }));
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByRole("button", { name: "Xóa mục" })).toBeDisabled();
     expect(remove).not.toHaveBeenCalled();

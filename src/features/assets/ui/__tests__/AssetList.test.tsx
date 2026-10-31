@@ -6,6 +6,7 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import type { VaultPinConfirmation } from "@/shared/api/vaultPin";
 import { backendAssetService } from "../../api/backendAssetService";
 import type { BackendAsset } from "../../model/backendAsset.schema";
+import { forgetPinUnlock, readPinUnlock, rememberPinUnlock } from "../../model/pinUnlock";
 import { AssetList, REVEAL_DURATION_MS } from "../AssetList";
 
 const VAULT_ID = "33333333-3333-4333-8333-333333333333";
@@ -41,6 +42,8 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  // Lần mở khóa PIN được nhớ trong RAM theo kho; xóa để mỗi test bắt đầu từ trạng thái đang che.
+  forgetPinUnlock(VAULT_ID);
   client.clear();
   accessTokenMemory.clear();
   vi.restoreAllMocks();
@@ -89,6 +92,17 @@ describe("AssetList", () => {
     fireEvent.click(screen.getByRole("button", { name: "Ẩn thông tin các mục" }));
     expect(screen.queryByText("Ví điện tử")).not.toBeInTheDocument();
     expect(confirmPin).toHaveBeenCalledTimes(1);
+  });
+
+  it("reuses a recent PIN unlock (e.g. back from the detail page) and forgets it when hidden", async () => {
+    vi.spyOn(backendAssetService, "list").mockResolvedValue(page([asset(1, "TEXT", "Ví điện tử")]));
+    rememberPinUnlock(VAULT_ID, "482913");
+    const confirmPin = setup();
+    expect(await screen.findByRole("link", { name: "Ví điện tử" })).toBeInTheDocument();
+    expect(confirmPin).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Ẩn thông tin các mục" }));
+    expect(screen.queryByText("Ví điện tử")).not.toBeInTheDocument();
+    expect(readPinUnlock(VAULT_ID)).toBeNull();
   });
 
   it("stays masked when the PIN prompt is cancelled", async () => {

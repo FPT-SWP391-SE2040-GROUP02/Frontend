@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { isAxiosError } from "axios";
@@ -28,12 +29,14 @@ function BackToVault() {
 
 /**
  * Trang chi tiết một mục trong kho. Quyền truy cập do Backend kiểm theo kho của người dùng.
- * `?edit=1` (nút "Sửa" ở danh sách) mở trang và hỏi mã PIN ngay; hỏi xong thì bỏ tham số khỏi URL.
+ * Vào trang là hỏi mã PIN kho; chưa nhập thì che cả tiêu đề (tên mục), hủy thì về danh sách.
+ * `?edit=1` (nút "Sửa" ở danh sách) mở form sửa ngay khi có PIN; vào trang xong thì bỏ tham số khỏi URL.
  */
 export function OwnerAssetDetail({ assetId }: { assetId: string }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const editRequested = searchParams.get("edit") === "1";
+  const [revealed, setRevealed] = useState(false);
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const vault = useOwnerVault(authenticated && Boolean(accessTokenMemory.get()));
   const vaultId = vault.data?.id ?? "";
@@ -43,11 +46,11 @@ export function OwnerAssetDetail({ assetId }: { assetId: string }) {
     asset.isError && isAxiosError(asset.error) && asset.error.response?.status === 404;
   return (
     <OwnerWorkspace
-      title={asset.data?.name ?? "Chi tiết mục"}
+      title={asset.data && revealed ? asset.data.name : "Chi tiết mục"}
       description={
-        asset.data
+        asset.data && revealed
           ? `${kindLabels[asset.data.kind]} trong kho cá nhân của bạn`
-          : "Thông tin và các phiên bản của mục trong kho."
+          : "Nhập mã PIN của kho để xem thông tin mục."
       }
       headerAction={
         <div className="flex flex-wrap items-center gap-3">
@@ -89,6 +92,8 @@ export function OwnerAssetDetail({ assetId }: { assetId: string }) {
           vaultId={vault.data.id}
           asset={asset.data}
           onDeleted={() => navigate(ROUTES.DASHBOARD.ASSETS)}
+          onPinCancelled={() => navigate(ROUTES.DASHBOARD.ASSETS)}
+          onRevealedChange={setRevealed}
           confirmPin={() => confirmVaultPin(vaultId, (pin) => vaultPinService.verify(vaultId, pin))}
           editRequested={editRequested}
           onEditRequestHandled={() => setSearchParams({}, { replace: true })}
