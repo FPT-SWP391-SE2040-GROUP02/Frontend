@@ -20,7 +20,7 @@ const createUserSchema = z.object({
   fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
   email: z.string().trim().email("Địa chỉ email không hợp lệ.").max(256),
   password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự.").max(128),
-  role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),
+  role: z.enum(["VERIFIER", "ADMIN"]),
   phone: z.string().trim().max(32).optional(),
 });
 
@@ -33,7 +33,8 @@ interface AdminCreateUserDialogProps {
 }
 
 /**
- * Hộp thoại tạo tài khoản nhân sự mới (Công chứng viên, Người thừa hành, Quản trị viên).
+ * Hộp thoại tạo tài khoản nhân sự mới (Công chứng viên, Quản trị viên). Không tạo tài khoản Người thực hiện:
+ * Executor là người ngoài do Owner mời theo từng kho (ROLE-02).
  * Tài khoản được kích hoạt ngay lập tức (không cần chờ email verification).
  */
 export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUserDialogProps) {
@@ -67,8 +68,8 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
         <DialogHeader>
           <DialogTitle>Tạo tài khoản hệ thống mới</DialogTitle>
           <DialogDescription>
-            Cấp tài khoản cho Người xét duyệt (Công chứng viên), Người thừa hành hoặc Quản trị viên.
-            Tài khoản được kích hoạt ngay.
+            Cấp tài khoản cho Người xét duyệt (Công chứng viên) hoặc Quản trị viên. Tài khoản được
+            kích hoạt ngay.
           </DialogDescription>
         </DialogHeader>
 
@@ -131,7 +132,6 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
               className="mt-1 min-h-11 w-full rounded-lg border border-heritage-border bg-white px-3 text-sm"
             >
               <option value="VERIFIER">Người xét duyệt (Công chứng viên - VERIFIER)</option>
-              <option value="EXECUTOR">Người thừa hành (Giám hộ di sản - EXECUTOR)</option>
               <option value="ADMIN">Quản trị viên (ADMIN)</option>
             </select>
           </div>
