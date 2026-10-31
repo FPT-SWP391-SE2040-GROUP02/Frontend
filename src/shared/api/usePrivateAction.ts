@@ -137,7 +137,14 @@ const ekycIdentityMismatchReasons: Record<string, string> = {
   WRONG_PERSON: "Giấy tờ không khớp với danh tính đã gắn cho tài khoản này.",
 };
 
+/** Reason-specific messages for CHECKIN_NOT_ALLOWED (Executor điểm danh thay chủ kho) */
+const checkInNotAllowedReasons: Record<string, string> = {
+  PLAN_NOT_OVERDUE: "Chủ kho không còn quá hạn điểm danh. Tải lại để xem trạng thái mới nhất.",
+  DEATH_CASE_OPEN: "Kho đã có hồ sơ chứng tử đang mở nên không điểm danh thay được nữa.",
+};
+
 const reasonMessages: Record<string, Record<string, string>> = {
+  CHECKIN_NOT_ALLOWED: checkInNotAllowedReasons,
   HANDOVER_NOT_ALLOWED: handoverNotAllowedReasons,
   EXECUTOR_NOT_ALLOWED: executorNotAllowedReasons,
   ASSET_IN_USE: assetInUseReasons,

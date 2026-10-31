@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AxiosError, AxiosHeaders } from "axios";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -149,6 +150,70 @@ describe("Executor overview", () => {
     setup("/executor");
     expect(await screen.findByText("Anh Nam đã quá hạn điểm danh")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Xem hồ sơ báo tin" })).toBeInTheDocument();
+    // Đã có hồ sơ chứng tử thì không điểm danh thay nữa.
+    expect(
+      screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the proxy check-in while the Owner is not overdue", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
+    setup("/executor");
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("checks in for the overdue Owner and hides the button once the vault is safe again", async () => {
+    const get = vi
+      .spyOn(apiClient, "get")
+      .mockResolvedValueOnce([vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true })])
+      .mockResolvedValue([vault()]);
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue({
+      vaultId: VAULT_ID,
+      planStatus: "ACTIVE",
+      checkedInAt: "2026-10-31T01:00:00Z",
+      nextCheckInDueAt: "2026-11-30T01:00:00Z",
+      graceEndsAt: "2026-12-07T01:00:00Z",
+    });
+    setup("/executor");
+    const button = await screen.findByRole("button", { name: "Điểm danh thay chủ kho" });
+    expect(
+      screen.getByText("Điểm danh hộ owner cho đến khi có giấy chứng tử."),
+    ).toBeInTheDocument();
+
+    await userEvent.click(button);
+
+    expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/check-in`);
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
+    ).not.toBeInTheDocument();
+    expect(get).toHaveBeenCalledTimes(2);
+  });
+
+  it("explains why the proxy check-in was refused", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true }),
+    ]);
+    const headers = new AxiosHeaders();
+    vi.spyOn(apiClient, "post").mockRejectedValue(
+      new AxiosError("fail", "ERR", { headers }, undefined, {
+        status: 409,
+        statusText: "",
+        headers: {},
+        config: { headers },
+        data: { code: "CHECKIN_NOT_ALLOWED", reason: "DEATH_CASE_OPEN" },
+      }),
+    );
+    setup("/executor");
+
+    await userEvent.click(await screen.findByRole("button", { name: "Điểm danh thay chủ kho" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Kho đã có hồ sơ chứng tử đang mở nên không điểm danh thay được nữa.",
+    );
   });
 
   it("says there is no duty when the account is not an Executor of any vault", async () => {
