@@ -10,7 +10,8 @@ export function ExecutorInvitationPage() {
   const searchParams = new URLSearchParams(location.search);
   const hashString = location.hash.startsWith("#") ? location.hash.slice(1) : location.hash;
   const hashParams = new URLSearchParams(hashString);
-  const token = hashParams.get("token") || searchParams.get("token") || "";
+  const rawToken = hashParams.get("token") || searchParams.get("token") || "";
+  const token = rawToken.trim().replace(/[.,;:\s]+$/, "");
   const userId = useSelector((state: { auth: AuthState }) => state.auth.user?.id);
   return (
     <HeritageAuthLayout
