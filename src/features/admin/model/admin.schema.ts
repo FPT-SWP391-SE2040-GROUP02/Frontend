@@ -3,6 +3,12 @@ import { paginatedListSchema } from "@/shared/api/pagination.schema";
 
 /** Vai trò tài khoản theo `UserRole` của Backend (wire viết hoa). */
 export const ADMIN_USER_ROLES = ["USER", "VERIFIER", "ADMIN", "EXECUTOR"] as const;
+/**
+ * Vai trò Admin được cấp khi đổi vai trò. Không có EXECUTOR: người thực hiện là người ngoài do Owner mời theo
+ * từng kho (ROLE-02), BE trả 400 nếu gửi EXECUTOR. ADMIN_USER_ROLES vẫn giữ để đọc và lọc tài khoản cũ.
+ */
+export const ASSIGNABLE_USER_ROLES = ["USER", "VERIFIER", "ADMIN"] as const;
+export const assignableUserRoleSchema = z.enum(ASSIGNABLE_USER_ROLES);
 /** Trạng thái tài khoản theo `UserStatus` của Backend (wire viết hoa). */
 export const ADMIN_USER_STATUSES = ["ACTIVE", "LOCKED", "DISABLED"] as const;
 
@@ -212,7 +218,7 @@ export const resolveIncidentRequestSchema = z.object({
   etag,
 });
 export const changeUserRoleRequestSchema = z.object({
-  role: adminUserRoleSchema,
+  role: assignableUserRoleSchema,
   reason: reason500,
 });
 export const changeUserStatusRequestSchema = z.object({
@@ -233,7 +239,7 @@ export const createAdminUserRequestSchema = z.object({
   fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
   email: z.string().trim().email("Địa chỉ email không hợp lệ.").max(256),
   password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128),
-  role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),
+  role: z.enum(["VERIFIER", "ADMIN"]),
   phone: z.string().trim().max(32).optional(),
 });
 export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;

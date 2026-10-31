@@ -380,6 +380,39 @@ it("Người tin cậy: kế hoạch nháp thu hồi Executor gửi etag hiện 
   });
 });
 
+it("Người tin cậy: gửi lại lời mời thành công thì báo đã gửi kèm hạn mới", async () => {
+  const suspended = { ...acceptedPrimary, status: "SUSPENDED" };
+  vi.spyOn(apiClient, "get").mockResolvedValue({ ...setupFixture, executors: [suspended] });
+  const post = vi.spyOn(apiClient, "post").mockResolvedValue({
+    ...suspended,
+    status: "INVITED",
+    acceptedAt: null,
+    invitationSentAt: CREATED_AT,
+  });
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Gửi lại lời mời" }));
+  await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+  expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executors/${VAULT_ID}/resend`, {
+    etag: '"0"',
+  });
+  expect(await screen.findByText(/Đã gửi lại lời mời tới chinh@example.test/)).toBeInTheDocument();
+});
+
+it("Người tin cậy: gửi lại mà máy chủ chưa gửi được email thì không báo đã gửi", async () => {
+  const suspended = { ...acceptedPrimary, status: "SUSPENDED" };
+  vi.spyOn(apiClient, "get").mockResolvedValue({ ...setupFixture, executors: [suspended] });
+  vi.spyOn(apiClient, "post").mockResolvedValue({
+    ...suspended,
+    status: "INVITED",
+    acceptedAt: null,
+    invitationSentAt: null,
+  });
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Gửi lại lời mời" }));
+  expect(await screen.findByText(/chưa gửi được email/)).toBeInTheDocument();
+  expect(screen.queryByText(/Đã gửi lại lời mời tới/)).not.toBeInTheDocument();
+});
+
 it("Người tin cậy: giữ nguyên lỗi của Backend khi thu hồi bị chặn, không báo thành công", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue({
     ...setupFixture,

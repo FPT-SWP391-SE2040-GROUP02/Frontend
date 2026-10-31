@@ -406,6 +406,26 @@ describe("Tài khoản", () => {
     });
   });
 
+  it("không cho tạo hay đổi sang vai trò EXECUTOR (Executor do Owner mời theo từng kho)", async () => {
+    usersBackend();
+    setup(ROUTES.DASHBOARD.USERS);
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
+    const createDialog = await screen.findByRole("dialog");
+    const createOptions = within(within(createDialog).getByLabelText(/Vai trò hệ thống/))
+      .getAllByRole("option")
+      .map((option) => option.getAttribute("value"));
+    expect(createOptions).toEqual(["VERIFIER", "ADMIN"]);
+    fireEvent.click(within(createDialog).getByRole("button", { name: "Hủy" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    fireEvent.click((await screen.findAllByRole("button", { name: /Đổi vai trò của Bạn Hai/ }))[0]);
+    const roleDialog = await screen.findByRole("dialog");
+    const roleOptions = within(within(roleDialog).getByLabelText("Vai trò mới"))
+      .getAllByRole("option")
+      .map((option) => option.getAttribute("value"));
+    expect(roleOptions).not.toContain("EXECUTOR");
+  });
+
   it.each([
     ["LAST_ADMIN", "phải còn ít nhất một quản trị viên"],
     ["CANNOT_CHANGE_SELF", "không thể đổi vai trò hoặc trạng thái của chính mình"],
