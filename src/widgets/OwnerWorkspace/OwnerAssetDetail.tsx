@@ -1,8 +1,10 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { isAxiosError } from "axios";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import { confirmVaultPin } from "@/shared/api/vaultPin";
+import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles, Chip, Notice } from "@/shared/ui/heritageKit";
 import { useAssetDetail } from "@/features/assets/model/useAssetDetail";
@@ -24,9 +26,14 @@ function BackToVault() {
   );
 }
 
-/** Trang chi tiết một mục trong kho. Quyền truy cập do Backend kiểm theo kho của người dùng. */
+/**
+ * Trang chi tiết một mục trong kho. Quyền truy cập do Backend kiểm theo kho của người dùng.
+ * `?edit=1` (nút "Sửa" ở danh sách) mở trang và hỏi mã PIN ngay; hỏi xong thì bỏ tham số khỏi URL.
+ */
 export function OwnerAssetDetail({ assetId }: { assetId: string }) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editRequested = searchParams.get("edit") === "1";
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const vault = useOwnerVault(authenticated && Boolean(accessTokenMemory.get()));
   const vaultId = vault.data?.id ?? "";
@@ -82,6 +89,9 @@ export function OwnerAssetDetail({ assetId }: { assetId: string }) {
           vaultId={vault.data.id}
           asset={asset.data}
           onDeleted={() => navigate(ROUTES.DASHBOARD.ASSETS)}
+          confirmPin={() => confirmVaultPin(vaultId, (pin) => vaultPinService.verify(vaultId, pin))}
+          editRequested={editRequested}
+          onEditRequestHandled={() => setSearchParams({}, { replace: true })}
         />
       )}
     </OwnerWorkspace>

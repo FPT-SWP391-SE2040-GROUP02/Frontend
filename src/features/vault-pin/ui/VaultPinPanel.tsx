@@ -140,9 +140,9 @@ export function VaultPinPanel({ vaultId }: { vaultId: string }) {
   return (
     <Panel title="Mã PIN của kho" labelledBy="vault-pin-heading">
       <p className="mb-4 text-sm text-heritage-muted">
-        Mã PIN gồm 6 chữ số, được hỏi trước khi tải nội dung tài sản, xóa tài sản, đổi người nhận,
-        đổi Người thực hiện hoặc xóa gói. PIN chỉ có bạn biết, người khác dùng tài khoản của bạn
-        cũng không làm được các việc này.
+        Mã PIN gồm 6 chữ số, được hỏi trước khi tải nội dung tài sản, sửa hoặc xóa tài sản, đổi
+        người nhận, đổi Người thực hiện hoặc xóa gói. PIN chỉ có bạn biết, người khác dùng tài khoản
+        của bạn cũng không làm được các việc này.
       </p>
       {body}
     </Panel>

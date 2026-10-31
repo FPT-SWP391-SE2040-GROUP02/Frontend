@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiClient } from "@/shared/api";
+import { apiClient, VAULT_PIN_HEADER } from "@/shared/api";
 import { paginatedListSchema, paginationRequestSchema } from "@/shared/api/pagination.schema";
 import type { PaginationParams } from "@/shared/types";
 import {
@@ -74,12 +74,23 @@ export const backendAssetService = {
       responseType: "blob",
     });
   },
-  /** Đổi tên hoặc mô tả; không tạo phiên bản mới. */
-  async update(vaultId: string, assetId: string, request: z.infer<typeof updateAssetSchema>) {
+  /**
+   * Đổi tên hoặc mô tả; không tạo phiên bản mới. Backend đòi PIN kho: truyền PIN đã kiểm khi mở chế độ sửa để
+   * khỏi hỏi lại; thiếu hoặc PIN đã đổi thì transport tự hỏi qua hộp thoại PIN.
+   */
+  async update(
+    vaultId: string,
+    assetId: string,
+    request: z.infer<typeof updateAssetSchema>,
+    pin?: string,
+  ) {
+    const headers: Record<string, string> = {};
+    if (pin !== undefined) headers[VAULT_PIN_HEADER] = pin;
     return backendAssetSchema.parse(
       await apiClient.put<unknown, unknown>(
         `${assets(vaultId)}/${id.parse(assetId)}`,
         updateAssetSchema.parse(request),
+        { headers },
       ),
     );
   },

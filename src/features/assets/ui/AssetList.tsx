@@ -167,8 +167,9 @@ export function AssetList({ vaultId }: { vaultId: string }) {
                       {formatDate(item.updatedAt ?? item.createdAt)}
                     </td>
                     <td className="py-4 pl-4 text-right">
+                      {/* edit=1: trang chi tiết hỏi mã PIN ngay khi mở, đúng PIN mới hiện form sửa. */}
                       <Link
-                        to={ROUTES.DASHBOARD.ASSET_DETAIL(item.id)}
+                        to={`${ROUTES.DASHBOARD.ASSET_DETAIL(item.id)}?edit=1`}
                         aria-label={`Sửa ${item.name}`}
                         className="font-semibold text-[#7A5B25] hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
                       >

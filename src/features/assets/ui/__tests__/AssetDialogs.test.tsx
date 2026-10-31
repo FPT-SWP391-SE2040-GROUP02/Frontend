@@ -5,12 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AxiosError, AxiosHeaders } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import type { VaultPinConfirmation } from "@/shared/api/vaultPin";
 import { backendAssetService } from "../../api/backendAssetService";
 import type { BackendAsset } from "../../model/backendAsset.schema";
 import { AssetDetail } from "../AssetDetail";
 
 const VAULT_ID = "33333333-3333-4333-8333-333333333333";
 const ASSET_ID = "44444444-4444-4444-8444-444444444444";
+const PIN = "482913";
 const baseAsset: BackendAsset = {
   id: ASSET_ID,
   vaultId: VAULT_ID,
@@ -48,17 +50,38 @@ function problem(status: number, code: string, reason?: string) {
   });
 }
 
-function renderDetail(asset: BackendAsset = baseAsset) {
+function renderDetail(
+  asset: BackendAsset = baseAsset,
+  options: { confirmPin?: () => Promise<VaultPinConfirmation>; editRequested?: boolean } = {},
+) {
   const invalidate = vi.spyOn(client, "invalidateQueries");
   const onDeleted = vi.fn();
+  const onEditRequestHandled = vi.fn();
+  const confirmPin = vi.fn(
+    options.confirmPin ??
+      (() => Promise.resolve<VaultPinConfirmation>({ confirmed: true, pin: PIN })),
+  );
   render(
     <QueryClientProvider client={client}>
       <MemoryRouter>
-        <AssetDetail vaultId={VAULT_ID} asset={asset} onDeleted={onDeleted} />
+        <AssetDetail
+          vaultId={VAULT_ID}
+          asset={asset}
+          onDeleted={onDeleted}
+          confirmPin={confirmPin}
+          editRequested={options.editRequested}
+          onEditRequestHandled={onEditRequestHandled}
+        />
       </MemoryRouter>
     </QueryClientProvider>,
   );
-  return { invalidate, onDeleted };
+  return { invalidate, onDeleted, confirmPin, onEditRequestHandled };
+}
+
+/** Bấm "Sửa" (PIN giả được chấp nhận) và chờ form hiện ra; trả về ô tên. */
+async function startEditing(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: "Sửa" }));
+  return screen.findByLabelText("Tên mục");
 }
 
 /** Mở hộp thoại xóa và tick xác nhận; trả về hộp thoại để tìm nút bên trong. */
@@ -93,7 +116,49 @@ describe("AssetDetail", () => {
     expect(create).toHaveBeenCalledTimes(1);
   });
 
-  it("sends only the changed field with the current etag and refreshes after success", async () => {
+  it("shows the name and note read-only until the PIN is confirmed", () => {
+    const { confirmPin } = renderDetail();
+    expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument();
+    expect(screen.getByText("Mô tả cũ")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Lưu thay đổi" })).not.toBeInTheDocument();
+    expect(confirmPin).not.toHaveBeenCalled();
+  });
+
+  it("opens the form only after the PIN is confirmed", async () => {
+    const user = userEvent.setup();
+    const { confirmPin } = renderDetail();
+    const name = await startEditing(user);
+    expect(confirmPin).toHaveBeenCalledTimes(1);
+    expect(name).toHaveValue("Ghi chú");
+  });
+
+  it("stays read-only when the PIN dialog is cancelled", async () => {
+    const user = userEvent.setup();
+    const { confirmPin } = renderDetail(baseAsset, {
+      confirmPin: () => Promise.resolve<VaultPinConfirmation>({ confirmed: false }),
+    });
+    await user.click(screen.getByRole("button", { name: "Sửa" }));
+    await waitFor(() => expect(confirmPin).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Sửa" })).toBeEnabled());
+    expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument();
+  });
+
+  it("explains when the PIN could not be checked", async () => {
+    const user = userEvent.setup();
+    renderDetail(baseAsset, { confirmPin: () => Promise.reject(problem(500, "INTERNAL")) });
+    await user.click(screen.getByRole("button", { name: "Sửa" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Máy chủ đang gặp sự cố/);
+    expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument();
+  });
+
+  it("asks for the PIN on arrival when the list's Sửa link was used", async () => {
+    const { confirmPin, onEditRequestHandled } = renderDetail(baseAsset, { editRequested: true });
+    expect(await screen.findByLabelText("Tên mục")).toBeInTheDocument();
+    expect(confirmPin).toHaveBeenCalledTimes(1);
+    expect(onEditRequestHandled).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends only the changed field with the etag and the confirmed PIN, then goes back to read-only", async () => {
     const user = userEvent.setup();
     const update = vi.spyOn(backendAssetService, "update").mockResolvedValue({
       ...baseAsset,
@@ -101,30 +166,76 @@ describe("AssetDetail", () => {
       etag: "etag-2",
     });
     const { invalidate } = renderDetail();
-    const name = screen.getByLabelText("Tên mục");
+    const name = await startEditing(user);
     await user.clear(name);
     await user.type(name, "Tên mới");
     await user.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
     await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
-    expect(update).toHaveBeenCalledWith(VAULT_ID, ASSET_ID, { etag: "etag-1", name: "Tên mới" });
+    expect(update).toHaveBeenCalledWith(
+      VAULT_ID,
+      ASSET_ID,
+      { etag: "etag-1", name: "Tên mới" },
+      PIN,
+    );
     await waitFor(() =>
       expect(invalidate).toHaveBeenCalledWith({ queryKey: ["vault-assets", VAULT_ID] }),
     );
+    await waitFor(() => expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument());
   });
 
-  it("does not call the Backend when nothing changed", async () => {
+  it("keeps Lưu thay đổi disabled until something changes", async () => {
     const user = userEvent.setup();
     const update = vi.spyOn(backendAssetService, "update");
     renderDetail();
-    await user.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+    const name = await startEditing(user);
+    const save = screen.getByRole("button", { name: "Lưu thay đổi" });
+    expect(save).toBeDisabled();
+    await user.type(name, " mới");
+    expect(save).toBeEnabled();
+    await user.clear(name);
+    await user.type(name, "Ghi chú");
+    expect(save).toBeDisabled();
     expect(update).not.toHaveBeenCalled();
+  });
+
+  it("shows the save in progress and blocks a second submit", async () => {
+    const user = userEvent.setup();
+    let finish: (value: BackendAsset) => void = () => {};
+    const update = vi.spyOn(backendAssetService, "update").mockImplementation(
+      () =>
+        new Promise<BackendAsset>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    renderDetail();
+    const name = await startEditing(user);
+    await user.type(name, " mới");
+    await user.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
+    const saving = await screen.findByRole("button", { name: "Đang lưu…" });
+    expect(saving).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Hủy" })).toBeDisabled();
+    expect(screen.getByLabelText("Tên mục")).toBeDisabled();
+    await user.click(saving);
+    expect(update).toHaveBeenCalledTimes(1);
+    finish({ ...baseAsset, name: "Ghi chú mới", etag: "etag-2" });
+    await waitFor(() => expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument());
+  });
+
+  it("closes the form on Hủy and asks for the PIN again next time", async () => {
+    const user = userEvent.setup();
+    const { confirmPin } = renderDetail();
+    await startEditing(user);
+    await user.click(screen.getByRole("button", { name: "Hủy" }));
+    expect(screen.queryByLabelText("Tên mục")).not.toBeInTheDocument();
+    await startEditing(user);
+    expect(confirmPin).toHaveBeenCalledTimes(2);
   });
 
   it("tells the Owner to reload on an edit conflict and keeps the form", async () => {
     const user = userEvent.setup();
     vi.spyOn(backendAssetService, "update").mockRejectedValue(problem(409, "EDIT_CONFLICT"));
     renderDetail();
-    const name = screen.getByLabelText("Tên mục");
+    const name = await startEditing(user);
     await user.clear(name);
     await user.type(name, "Khác");
     await user.click(screen.getByRole("button", { name: "Lưu thay đổi" }));
