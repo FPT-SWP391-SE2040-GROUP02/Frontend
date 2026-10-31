@@ -4,6 +4,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import type { ExecutorVault } from "../model/deathCase.schema";
 import { buttonStyles, Chip, InfoRow, Initial, Notice, Panel } from "@/shared/ui/heritageKit";
 import { planStatusLabel } from "./executorLabels";
+import { ProxyCheckIn } from "./ProxyCheckIn";
 
 const duties = [
   { title: "Báo tin", text: "Cho hệ thống biết đã đến lúc bàn giao." },
@@ -33,6 +34,11 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
         >
           Hãy liên hệ để chắc chắn trước khi báo tin. Nếu Chủ kho còn khỏe, họ có thể dừng bằng “Tôi
           còn sống”.
+          {!hasCase && (
+            <div className="mt-3">
+              <ProxyCheckIn vaultId={vault.vaultId} />
+            </div>
+          )}
         </Notice>
       ) : (
         <Notice
