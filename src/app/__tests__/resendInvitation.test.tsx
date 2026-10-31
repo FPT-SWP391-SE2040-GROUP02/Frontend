@@ -17,6 +17,8 @@ const turn = (turnId: string, status: string, containerName: string) => ({
   turnId,
   containerName,
   beneficiaryCitizenIdLast4: "8901",
+  claimedByYou: false,
+  identityConfirmedByExecutor: false,
   status,
   invitedAt: "2026-10-19T08:00:00+00:00",
   responseDeadline: "2026-10-22T10:00:00+00:00",

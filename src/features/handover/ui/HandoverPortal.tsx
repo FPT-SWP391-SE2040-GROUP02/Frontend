@@ -173,11 +173,20 @@ function TurnCard({ turn }: { turn: Turn }) {
                 chứng danh tính đã được xác minh.
               </p>
             )}
+            {turn.identityConfirmedByExecutor && (
+              <p role="status" className="text-sm text-heritage-muted">
+                Danh tính của bạn đã được Executor của kho xác nhận.
+              </p>
+            )}
             {turn.status === "IDENTITY_IN_PROGRESS" && (
               <div className="space-y-3">
                 <p className="text-sm leading-6 text-heritage-muted">
                   Nếu đã hoàn tất mà lượt vẫn chờ, tải lại; hệ thống cần xác nhận danh tính cho lượt
                   trước khi mở quyết định.
+                </p>
+                <p className="text-sm leading-6 text-heritage-muted">
+                  Nếu không thể xác minh bằng eKYC, hãy liên hệ Executor của kho để được xác nhận
+                  trực tiếp.
                 </p>
                 <Link
                   to={`${ROUTES.BENEFICIARY.EKYC_CAMERA}?turnId=${turn.id}`}
