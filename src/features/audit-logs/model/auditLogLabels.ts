@@ -48,6 +48,19 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   PAYMENT_ORDER_CANCELLED: "Hủy đơn thanh toán",
   PAYMENT_PAID: "Thanh toán thành công",
   SERVICE_GRACE_STARTED: "Hết hạn dịch vụ, chuyển sang chỉ đọc",
+  VAULT_PIN_SET: "Đặt mã PIN kho",
+  VAULT_PIN_CHANGED: "Đổi mã PIN kho",
+  VAULT_PIN_RESET: "Đặt lại mã PIN kho",
+  VAULT_PIN_WRONG: "Nhập sai mã PIN kho",
+  VAULT_PIN_LOCKED: "Mã PIN kho bị khóa tạm",
+  TIER_OVERRIDE_BELOW_RECOMMENDED: "Chọn tầng bảo mật thấp hơn khuyến nghị",
+  DEATH_CASE_SUPPLEMENT_EXHAUSTED: "Đóng hồ sơ sau 3 vòng bổ sung",
+  DEV_TIME_TRAVEL: "Tua thời gian thử nghiệm",
+  DEV_CLOCK_RESET: "Đưa đồng hồ về thời gian thực",
+  DEV_EKYC_RESET: "Đặt lại dữ liệu eKYC",
+  DEV_REWIND_BEFORE_EKYC: "Tua kho về trước eKYC",
+  DEV_UPDATE_EKYC_THRESHOLD: "Cập nhật ngưỡng so khớp khuôn mặt",
+  ADMIN_CREATED_USER: "Tạo tài khoản hệ thống",
 };
 
 export const ACTOR_ROLE_LABELS: Record<(typeof auditActorRoleValues)[number], string> = {

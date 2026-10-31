@@ -42,6 +42,7 @@ export const ekycDocumentSchema = z.object({
   idNumber: z.string(),
   fullName: z.string(),
   dateOfBirth: z.string(),
+  dateOfExpiry: z.string().optional(),
   residenceAddress: z.string(),
   identityMatch: identityMatchSchema,
   canMatchFace: z.boolean(),

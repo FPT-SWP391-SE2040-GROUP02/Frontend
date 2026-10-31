@@ -12,6 +12,7 @@ import {
   ekycDocumentSchema,
   ekycPurposeSchema,
   ekycReviewSchema,
+  formatToDdMmYyyy,
   formatToIsoDate,
   ocrDateForInput,
 } from "../model/ekyc.schema";
@@ -220,6 +221,29 @@ export function EkycReviewForm({
               {errors.dateOfBirth.message}
             </p>
           )}
+        </div>
+
+        <div className="min-w-0 space-y-2">
+          <div className="flex items-center justify-between">
+            <label htmlFor={`${prefix}-dateOfExpiry`} className="text-sm font-semibold">
+              Có giá trị đến / Date of expiry
+            </label>
+            <span className="text-xs text-heritage-muted">
+              {document.dateOfExpiry ? "Thời hạn đọc từ thẻ" : "Không thời hạn hoặc không đọc được"}
+            </span>
+          </div>
+
+          <Input
+            id={`${prefix}-dateOfExpiry`}
+            type="text"
+            value={
+              document.dateOfExpiry
+                ? formatToDdMmYyyy(document.dateOfExpiry)
+                : "Không thời hạn"
+            }
+            readOnly
+            className="min-h-11 w-full min-w-0 bg-heritage-muted/10 text-heritage-muted cursor-not-allowed"
+          />
         </div>
 
         <div className="min-w-0 space-y-2">

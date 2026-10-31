@@ -50,6 +50,22 @@ export const auditActionValues = [
   "PAYMENT_PAID",
   // Job hết hạn dịch vụ: kho trả phí hết kỳ sang ân hạn chỉ đọc (OPLAN-01).
   "SERVICE_GRACE_STARTED",
+  // Thao tác mã PIN của kho
+  "VAULT_PIN_SET",
+  "VAULT_PIN_CHANGED",
+  "VAULT_PIN_RESET",
+  "VAULT_PIN_WRONG",
+  "VAULT_PIN_LOCKED",
+  // Cảnh báo override tầng bảo mật và kết thúc bổ sung
+  "TIER_OVERRIDE_BELOW_RECOMMENDED",
+  "DEATH_CASE_SUPPLEMENT_EXHAUSTED",
+  // Thao tác công cụ dev và quản trị
+  "DEV_TIME_TRAVEL",
+  "DEV_CLOCK_RESET",
+  "DEV_EKYC_RESET",
+  "DEV_REWIND_BEFORE_EKYC",
+  "DEV_UPDATE_EKYC_THRESHOLD",
+  "ADMIN_CREATED_USER",
 ] as const;
 
 /** Wire role người thực hiện; SYSTEM dùng khi job nền. */
