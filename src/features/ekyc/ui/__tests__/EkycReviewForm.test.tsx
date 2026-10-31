@@ -13,7 +13,6 @@ const document = {
   idNumber: "012345678901",
   fullName: "Tên OCR",
   dateOfBirth: "01/02/2000",
-  dateOfExpiry: "2035-10-15",
   residenceAddress: "Địa chỉ OCR",
   identityMatch: "NOT_CHECKED" as const,
   canMatchFace: true,
@@ -160,23 +159,18 @@ it("số căn cước ẩn mặc định, có nút Hiện/Ẩn ngay trong ô đ�
   expect(field).toHaveAttribute("type", "password");
 });
 
-it("hiển thị thời hạn căn cước từ dòng Có giá trị đến / Date of expiry", () => {
-  function Harness() {
-    return (
-      <EkycReviewForm
-        document={{ ...document, dateOfExpiry: "2035-10-15" }}
-        purpose="OWNER_ENROLLMENT"
-        confirmed={false}
-        disabled={false}
-        backSent
-        onConfirmed={() => {}}
-        onEdit={() => {}}
-      />
-    );
-  }
-  render(<Harness />);
-  const expiryField = screen.getByLabelText(/Có giá trị đến/i);
-  expect(expiryField).toBeInTheDocument();
-  expect(expiryField).toHaveValue("15/10/2035");
-  expect(expiryField).toHaveAttribute("readonly");
+it("không còn ô Có giá trị đến / Date of expiry vì máy đọc không đọc được dòng này", () => {
+  render(
+    <EkycReviewForm
+      document={document}
+      purpose="OWNER_ENROLLMENT"
+      confirmed={false}
+      disabled={false}
+      backSent
+      onConfirmed={() => {}}
+      onEdit={() => {}}
+    />,
+  );
+  expect(screen.queryByLabelText(/Có giá trị đến/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Date of expiry/i)).not.toBeInTheDocument();
 });
