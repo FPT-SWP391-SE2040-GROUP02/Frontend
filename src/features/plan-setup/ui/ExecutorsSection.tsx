@@ -379,7 +379,7 @@ function RoleCard(props: RoleCardProps) {
   if (holder.isBeneficiary) {
     beneficiaryNote = "Người này cũng là người nhận trong kho này.";
   }
-  let dateLine = `Lời mời hết hạn ngày ${formatDate(holder.expiresAt)}`;
+  let dateLine = `Lời mời còn hiệu lực đến ngày ${formatDate(holder.expiresAt)}`;
   if (holder.acceptedAt !== null) {
     dateLine = `Chấp nhận lời mời ngày ${formatDate(holder.acceptedAt)}`;
   }
@@ -523,6 +523,8 @@ export function ExecutorsSection({
   const query = usePlanSetup(vaultId);
   const client = useQueryClient();
   const resendAction = usePrivateAction();
+  /** Lời mời vừa gửi lại thành công (BE xác nhận), để báo cho Owner; null khi chưa gửi hoặc đang gửi lần khác. */
+  const [resent, setResent] = useState<Executor | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
 
   function sync(): void {
@@ -532,9 +534,13 @@ export function ExecutorsSection({
   }
 
   function resend(executor: Executor): void {
+    setResent(null);
     void resendAction.execute(
       () => planSetupService.resend(vaultId, executor.id, executor.etag),
-      sync,
+      (result) => {
+        setResent(result);
+        sync();
+      },
     );
   }
 
@@ -601,7 +607,22 @@ export function ExecutorsSection({
         onRevoke={(executor) => setDialog({ kind: "revoke", executor })}
         onResend={resend}
       />
-      {resendAction.pending && <p role="status">Đang gửi yêu cầu…</p>}
+      {resendAction.pending && <p role="status">Đang gửi lại lời mời…</p>}
+      {resent && !resendAction.pending && resent.invitationSentAt && (
+        <p
+          role="status"
+          className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800"
+        >
+          Đã gửi lại lời mời tới {resent.inviteeEmail}. Lời mời còn hiệu lực đến ngày{" "}
+          {formatDate(resent.expiresAt)}.
+        </p>
+      )}
+      {resent && !resendAction.pending && !resent.invitationSentAt && (
+        <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
+          Đã tạo lời mời mới cho {resent.inviteeEmail} nhưng chưa gửi được email. Kiểm tra cấu hình
+          gửi thư rồi bấm Gửi lại lời mời.
+        </p>
+      )}
       {resendAction.error && (
         <div role="alert" className="space-y-3 text-destructive">
           <p>{resendAction.error}</p>

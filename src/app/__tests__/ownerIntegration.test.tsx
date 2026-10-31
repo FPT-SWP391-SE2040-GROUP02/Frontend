@@ -212,7 +212,7 @@ it("does not silently confirm plan deactivation when detaching the last asset", 
     />,
   );
   fireEvent.click(screen.getByRole("button", { name: "Gỡ khỏi gói bàn giao" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("đưa kế hoạch về nháp");
+  expect(await screen.findByRole("dialog")).toHaveTextContent("đưa kế hoạch về Nháp");
   expect(remove).toHaveBeenCalledTimes(1);
   expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
 });
