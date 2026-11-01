@@ -1,8 +1,18 @@
-import { useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { ROUTES } from "@/shared/config/routes.config";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import { deathCaseService } from "../api/deathCaseService";
-import type { ExecutorVault } from "../model/deathCase.schema";
+import type { DeathCase, ExecutorVault } from "../model/deathCase.schema";
 import { executorVaultsKey } from "../model/useExecutorVaults";
 import { useActiveCaseId, useDeathCase } from "../model/useDeathCase";
 import { DeathCaseEditor } from "./DeathCaseEditor";
@@ -48,6 +58,81 @@ function OpenCaseButton({ vault, label }: { vault: ExecutorVault; label: string 
         </p>
       )}
     </div>
+  );
+}
+
+/**
+ * Hồ sơ còn nháp (chưa gửi lần nào): Executor lỡ mở hoặc chưa có giấy tờ thì hủy để kho trở lại như chưa báo tin,
+ * nhờ vậy mở lại hồ sơ hoặc điểm danh thay chủ kho được. Hồ sơ đã gửi thì BE từ chối.
+ */
+function CancelDraftPanel({ vault, record }: { vault: ExecutorVault; record: DeathCase }) {
+  const [confirming, setConfirming] = useState(false);
+  const navigate = useNavigate();
+  const client = useQueryClient();
+  const action = usePrivateAction();
+  return (
+    <Panel title="Hủy hồ sơ nháp">
+      <p className="mb-4 text-sm leading-6 text-heritage-muted">
+        Hồ sơ chưa được gửi nên Chủ kho chưa được báo. Hủy sẽ xóa thông tin và các trang giấy đã
+        tải; bạn có thể mở hồ sơ mới khi có đủ giấy tờ.
+      </p>
+      <button
+        type="button"
+        className={buttonStyles.danger}
+        onClick={() => {
+          action.reset();
+          setConfirming(true);
+        }}
+      >
+        Hủy hồ sơ nháp
+      </button>
+      {confirming && (
+        <Dialog open onOpenChange={(open) => !open && !action.pending && setConfirming(false)}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Hủy hồ sơ nháp?</DialogTitle>
+              <DialogDescription>
+                Thông tin đã khai và các trang giấy chứng tử đã tải sẽ bị xóa, không khôi phục được.
+                Chủ kho không nhận thông báo nào.
+              </DialogDescription>
+            </DialogHeader>
+            {action.error && (
+              <p role="alert" className="text-sm text-destructive">
+                {action.error}
+              </p>
+            )}
+            <DialogFooter>
+              <button
+                type="button"
+                className={buttonStyles.outline}
+                disabled={action.pending}
+                onClick={() => setConfirming(false)}
+              >
+                Giữ hồ sơ
+              </button>
+              <button
+                type="button"
+                className={buttonStyles.danger}
+                disabled={action.pending}
+                onClick={() =>
+                  void action.execute(
+                    () => deathCaseService.cancelDraft(record.id),
+                    () => {
+                      client.removeQueries({ queryKey: ["death-case", record.id] });
+                      void client.invalidateQueries({ queryKey: executorVaultsKey });
+                      setConfirming(false);
+                      navigate(`${ROUTES.EXECUTOR.ROOT}?vault=${vault.vaultId}`);
+                    },
+                  )
+                }
+              >
+                Hủy hồ sơ nháp
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </Panel>
   );
 }
 
@@ -151,6 +236,7 @@ export function ExecutorReport({ vault }: { vault: ExecutorVault }) {
       </div>
       <ReviewFeedback record={record} />
       <DeathCaseEditor record={record} />
+      {record.status === "DRAFT" && <CancelDraftPanel vault={vault} record={record} />}
       {record.status === "REJECTED" && !vault.openDeathCaseId && (
         <Panel title="Mở hồ sơ mới">
           <p className="mb-4 text-sm leading-6 text-heritage-muted">

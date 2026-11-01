@@ -63,6 +63,10 @@ export const deathCaseService = {
       await apiClient.delete<unknown, unknown>(`${path(caseId)}/files/${id.parse(fileId)}`),
     );
   },
+  /** Hủy hồ sơ còn nháp (chưa gửi lần nào): BE xóa hồ sơ và các trang đã tải, trả 204. */
+  async cancelDraft(caseId: string) {
+    await apiClient.delete<unknown, unknown>(`${path(caseId)}/draft`);
+  },
   async submit(caseId: string, etag: string) {
     return deathCaseSchema.parse(
       await apiClient.post<unknown, unknown>(`${path(caseId)}/submit`, {

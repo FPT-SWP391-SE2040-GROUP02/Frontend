@@ -38,6 +38,7 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   OBJECTION_REPORTED: "Báo còn sống",
   OBJECTION_CONCLUDED: "Kết luận báo còn sống",
   DEATH_CASE_OPENED: "Mở hồ sơ chứng tử",
+  DEATH_CASE_DRAFT_CANCELLED: "Hủy hồ sơ chứng tử nháp",
   DEATH_CASE_SUBMITTED: "Gửi hồ sơ chứng tử",
   DEATH_CASE_VERSION_CREATED: "Tạo bản bổ sung hồ sơ",
   DEATH_CASE_FLAG_REVIEWED: "Xem xét cờ cảnh báo hồ sơ",

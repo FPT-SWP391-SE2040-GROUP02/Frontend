@@ -6,6 +6,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { FileText, Lock, Upload } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import type { DeathCase } from "../model/deathCase.schema";
 import { type CertificateFileCheck, readCertificateRejection } from "../model/certificateCheck";
@@ -90,10 +98,26 @@ function CertificateCheckNote({ check }: { check: CertificateFileCheck | undefin
   return <p className="mt-1 text-xs text-[#2E9E6E]">Là giấy chứng tử</p>;
 }
 
+/**
+ * DEATH-04, D5: câu giải thích khi bản hiện tại đã gửi. Đang xét hoặc cần bổ sung thì Executor tạo được bản mới
+ * (chép từ bản đã gửi); Verifier vẫn xét bản đã gửi cho tới khi bản mới được nộp.
+ */
+function reviewText(status: string): string {
+  if (status === "SUPPLEMENT_REQUIRED") {
+    return "Người xét duyệt yêu cầu bổ sung. Tạo bản bổ sung để sửa hoặc thêm giấy tờ rồi nộp lại.";
+  }
+  if (status === "UNDER_REVIEW") {
+    return "Hồ sơ đang được xét. Cần sửa hoặc thêm giấy tờ thì tạo bản bổ sung; Người xét duyệt vẫn xét bản đã gửi cho tới khi bạn nộp bản mới. Đổi họ tên, CCCD hoặc ngày mất của Chủ kho thì Chủ kho được báo lại và 72 giờ phản đối tính lại từ đầu.";
+  }
+  return "Hồ sơ đã đóng nên không sửa hay bổ sung được nữa.";
+}
+
 /** Một snapshot hồ sơ; full CCCD/file chỉ nằm trong local form, không cache. */
 export function DeathCaseEditor({ record }: { record: DeathCase }) {
   const [etag, setEtag] = useState(record.etag);
   const [confirmed, setConfirmed] = useState(false);
+  /** Đang hỏi lại trước khi tạo bản bổ sung (chặn bấm nhầm: bản nháp mới chặn Verifier duyệt tới khi nộp). */
+  const [askingVersion, setAskingVersion] = useState(false);
   const [fileError, setFileError] = useState("");
   const [dragging, setDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -114,6 +138,8 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
   );
   const fileInput = useRef<HTMLInputElement>(null);
   const action = usePrivateAction();
+  /** Câu báo kết quả của thao tác vừa xong (lưu, tải tệp, gửi, tạo bản bổ sung); null khi chưa có. */
+  const [notice, setNotice] = useState<string | null>(null);
   const client = useQueryClient();
   const version = record.currentVersion;
   const supplement = version.versionNo > 1;
@@ -130,7 +156,8 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
       issuedBy: version.issuedBy ?? "",
     },
   });
-  const publish = (result: DeathCase) => {
+  const publish = (result: DeathCase, message: string | null = null) => {
+    setNotice(message);
     setEtag(result.etag);
     setCertificateChecks(null);
     setConfirmed(false);
@@ -180,7 +207,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
         }
         setUploading(false);
         setUploadPercent(null);
-        publish(result);
+        publish(result, "Đã tải trang giấy lên bản nháp.");
       },
     );
     if (!ok && previewUrl) URL.revokeObjectURL(previewUrl);
@@ -193,14 +220,26 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
   const submit = async () => {
     setCertificateChecks(null);
     setSubmitting(true);
-    await action.execute(async () => {
-      try {
-        return await deathCaseService.submit(record.id, record.etag);
-      } catch (failure) {
-        setCertificateChecks(readCertificateRejection(failure));
-        throw failure;
-      }
-    }, publish);
+    await action.execute(
+      async () => {
+        try {
+          return await deathCaseService.submit(record.id, record.etag);
+        } catch (failure) {
+          setCertificateChecks(readCertificateRejection(failure));
+          throw failure;
+        }
+      },
+      (result) => {
+        if (supplement) {
+          publish(result, "Đã nộp bản bổ sung. Người xét duyệt sẽ xét bản mới này.");
+        } else {
+          publish(
+            result,
+            "Đã gửi hồ sơ. Chủ kho sẽ được báo qua email và có 72 giờ để phản đối trước khi xét duyệt.",
+          );
+        }
+      },
+    );
     setSubmitting(false);
   };
   const checkOf = (fileId: string) => certificateChecks?.find((check) => check.fileId === fileId);
@@ -228,7 +267,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                     dateOfDeath: values.dateOfDeath || undefined,
                     issuedOn: values.issuedOn || undefined,
                   }),
-                publish,
+                (result) => publish(result, "Đã lưu nháp."),
               ),
             )}
           >
@@ -348,25 +387,72 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
             ) : (
               <>
                 <p className="mb-4 text-sm leading-6 text-heritage-muted">
-                  Hồ sơ đã được gửi và đang ở bước xét duyệt. Bạn chỉ sửa được khi Người xét duyệt
-                  yêu cầu bổ sung.
+                  {reviewText(record.status)}
                 </p>
-                <button
-                  type="button"
-                  className={buttonStyles.outline}
-                  disabled={
-                    action.pending ||
-                    !["UNDER_REVIEW", "SUPPLEMENT_REQUIRED"].includes(record.status)
-                  }
-                  onClick={() =>
-                    void action.execute(
-                      () => deathCaseService.newVersion(record.id, record.etag),
-                      publish,
-                    )
-                  }
-                >
-                  Tạo bản bổ sung
-                </button>
+                {["UNDER_REVIEW", "SUPPLEMENT_REQUIRED"].includes(record.status) && (
+                  <button
+                    type="button"
+                    className={buttonStyles.outline}
+                    disabled={action.pending}
+                    onClick={() => {
+                      action.reset();
+                      setAskingVersion(true);
+                    }}
+                  >
+                    Tạo bản bổ sung
+                  </button>
+                )}
+                {askingVersion && (
+                  <Dialog
+                    open
+                    onOpenChange={(open) => !open && !action.pending && setAskingVersion(false)}
+                  >
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle>Tạo bản bổ sung?</DialogTitle>
+                        <DialogDescription>
+                          Bản bổ sung chép sẵn thông tin và giấy tờ của bản đã gửi để bạn sửa hoặc
+                          thêm. Trong lúc bạn soạn, Người xét duyệt chưa duyệt được hồ sơ cho tới
+                          khi bạn nộp bản mới. Bản đã gửi giữ nguyên, không bị sửa.
+                        </DialogDescription>
+                      </DialogHeader>
+                      {action.error && (
+                        <p role="alert" className="text-sm text-destructive">
+                          {action.error}
+                        </p>
+                      )}
+                      <DialogFooter>
+                        <button
+                          type="button"
+                          className={buttonStyles.outline}
+                          disabled={action.pending}
+                          onClick={() => setAskingVersion(false)}
+                        >
+                          Hủy
+                        </button>
+                        <button
+                          type="button"
+                          className={buttonStyles.gold}
+                          disabled={action.pending}
+                          onClick={() =>
+                            void action.execute(
+                              () => deathCaseService.newVersion(record.id, record.etag),
+                              (result) => {
+                                setAskingVersion(false);
+                                publish(
+                                  result,
+                                  `Đã tạo bản bổ sung số ${result.currentVersion.versionNo}. Sửa thông tin hoặc giấy tờ cần thiết rồi bấm “Nộp bản bổ sung”.`,
+                                );
+                              },
+                            )
+                          }
+                        >
+                          Tạo bản bổ sung
+                        </button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                )}
               </>
             )}
             {action.pending && (
@@ -384,9 +470,9 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                 Kết quả nhận diện từng trang được ghi ở danh sách chứng từ bên dưới.
               </p>
             )}
-            {action.succeeded && (
+            {notice && !action.pending && !action.error && (
               <p role="status" className="mt-3 text-sm">
-                Máy chủ đã lưu yêu cầu. Tải lại trước khi sửa tiếp.
+                {notice}
               </p>
             )}
           </Panel>
@@ -512,7 +598,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                           delete next[item.id];
                           return next;
                         });
-                        publish(result);
+                        publish(result, "Đã gỡ trang giấy khỏi bản nháp.");
                       },
                     );
                 }}

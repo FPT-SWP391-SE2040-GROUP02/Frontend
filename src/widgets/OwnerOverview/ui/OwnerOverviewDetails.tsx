@@ -39,6 +39,7 @@ const activityLabels: Record<string, string> = {
   CHECK_IN_SETTINGS_UPDATED: "Cập nhật lịch điểm danh",
   PLAN_DEACTIVATED: "Dừng kích hoạt kế hoạch",
   DEATH_CASE_OPENED: "Mở hồ sơ chứng tử",
+  DEATH_CASE_DRAFT_CANCELLED: "Hủy hồ sơ chứng tử nháp",
   DEATH_CASE_SUBMITTED: "Gửi hồ sơ chứng tử",
   DEATH_CASE_APPROVED: "Duyệt hồ sơ chứng tử",
   DEATH_CASE_REJECTED: "Từ chối hồ sơ chứng tử",
