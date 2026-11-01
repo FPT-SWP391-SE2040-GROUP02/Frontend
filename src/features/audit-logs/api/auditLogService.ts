@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api";
-import { auditLogPageSchema, auditLogQuerySchema } from "../model/auditLog.schema";
+import {
+  adminAuditLogPageSchema,
+  auditLogPageSchema,
+  auditLogQuerySchema,
+} from "../model/auditLog.schema";
 import type { AuditLogQuery } from "../model/auditLog.schema";
 
 const id = z.string().uuid();
@@ -19,6 +23,16 @@ export const auditLogService = {
     const params = auditLogQuerySchema.parse(query);
     return auditLogPageSchema.parse(
       await apiClient.get<unknown, unknown>(path(vaultId), { params, signal }),
+    );
+  },
+  /**
+   * Nhật ký toàn hệ thống cho Admin: GET /admin/audit-logs trả raw `PaginatedList<AdminAuditLogResponse>`,
+   * cùng quy ước query với nhật ký kho. Không phải Admin → Backend trả 404 (SEC-04).
+   */
+  async listAll(query: AuditLogQuery, signal?: AbortSignal) {
+    const params = auditLogQuerySchema.parse(query);
+    return adminAuditLogPageSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/audit-logs", { params, signal }),
     );
   },
 };

@@ -91,6 +91,7 @@ export const auditTargetTypeValues = [
   "INCIDENT",
   "USER",
   "PAYMENT_ORDER",
+  "CONFIGURATION",
 ] as const;
 
 /** Kết quả; hiện tại Backend chỉ ghi SUCCEEDED. */
@@ -116,6 +117,19 @@ export const auditLogResponseSchema = z.object({
   reason: z.string().nullable(),
 });
 
+/**
+ * @description Raw DTO `AdminAuditLogResponse` (GET /admin/audit-logs): `AuditLogResponse` kèm kho liên quan
+ * và tên, email người thực hiện (null khi job nền thực hiện hoặc tài khoản không còn).
+ */
+export const adminAuditLogResponseSchema = auditLogResponseSchema.extend({
+  vaultId: uuid.nullable(),
+  actorFullName: z.string().nullable(),
+  actorEmail: z.string().nullable(),
+});
+
+/** Raw `PaginatedList<AdminAuditLogResponse>`; service parse đúng một lần. */
+export const adminAuditLogPageSchema = paginatedListSchema(adminAuditLogResponseSchema);
+
 /** Raw `PaginatedList<AuditLogResponse>`; service parse đúng một lần. */
 export const auditLogPageSchema = paginatedListSchema(auditLogResponseSchema);
 
@@ -138,3 +152,5 @@ export const auditLogQuerySchema = paginationRequestSchema
 export type AuditLogQuery = z.infer<typeof auditLogQuerySchema>;
 export type AuditLogEntry = z.infer<typeof auditLogResponseSchema>;
 export type AuditAction = (typeof auditActionValues)[number];
+export type AdminAuditLogEntry = z.infer<typeof adminAuditLogResponseSchema>;
+export type AdminAuditLogPage = z.infer<typeof adminAuditLogPageSchema>;
