@@ -16,13 +16,14 @@ function renderWorkspace(
   store: ReturnType<typeof configureStore>,
   path: string,
   title = "Fixture",
+  eyebrow?: string,
 ) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter initialEntries={[path]}>
-          <OwnerWorkspace title={title} description="Fixture">
+          <OwnerWorkspace title={title} eyebrow={eyebrow} description="Fixture">
             <p>Nội dung</p>
           </OwnerWorkspace>
         </MemoryRouter>
@@ -99,6 +100,16 @@ describe("workspace logo navigation", () => {
       "aria-current",
       "page",
     );
+  });
+
+  it("shows the eyebrow above the title only when one is given", () => {
+    const store = configureStore({ reducer: { auth: authReducer } });
+    renderWorkspace(store, "/dashboard", "kho cua tao", "Kho của tôi");
+    expect(screen.getByRole("heading", { level: 1, name: "kho cua tao" })).toBeInTheDocument();
+    expect(screen.getByText("Kho của tôi", { selector: "p" })).toBeInTheDocument();
+    cleanup();
+    renderWorkspace(store, "/dashboard", "Fixture");
+    expect(screen.queryByText("Kho của tôi", { selector: "p" })).not.toBeInTheDocument();
   });
 
   it.each([
