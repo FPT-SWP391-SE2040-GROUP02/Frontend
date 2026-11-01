@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import { SelfieCamera } from "./SelfieCamera";
 import { ownerObjectionService } from "../api/ownerObjectionService";
 import { ownerDeathCaseKeys, useOwnerDeathCase } from "../model/useOwnerDeathCase";
 import { formatDateTime } from "@/shared/lib/dateFormat";
@@ -234,6 +235,7 @@ function SelfieForm({ vaultId, reopen }: { vaultId: string; reopen: boolean }) {
   const action = usePrivateAction();
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [fromCamera, setFromCamera] = useState(false);
   const [fileError, setFileError] = useState("");
   const [notice, setNotice] = useState("");
   const submit = () => {
@@ -246,6 +248,7 @@ function SelfieForm({ vaultId, reopen }: { vaultId: string; reopen: boolean }) {
       (result) => {
         client.setQueryData(ownerDeathCaseKeys.vault(vaultId), result);
         setFile(null);
+        setFromCamera(false);
         if (input.current) input.current.value = "";
         if (!result.objection?.selfiePassed)
           setNotice(
@@ -262,6 +265,15 @@ function SelfieForm({ vaultId, reopen }: { vaultId: string; reopen: boolean }) {
       <p className="text-xs text-heritage-muted">
         Ảnh JPEG/PNG chụp trực tiếp, một khuôn mặt rõ nét, tối đa 8 MiB.
       </p>
+      <SelfieCamera
+        disabled={action.pending}
+        onCapture={(captured) => {
+          if (input.current) input.current.value = "";
+          setFile(captured);
+          setFromCamera(true);
+          setFileError("");
+        }}
+      />
       <Input
         ref={input}
         id="owner-objection-selfie"
@@ -271,9 +283,15 @@ function SelfieForm({ vaultId, reopen }: { vaultId: string; reopen: boolean }) {
         aria-invalid={Boolean(fileError)}
         onChange={(event) => {
           setFile(event.target.files?.[0] ?? null);
+          setFromCamera(false);
           setFileError("");
         }}
       />
+      {file && fromCamera && (
+        <p role="status" className="text-xs text-heritage-muted">
+          Đã chụp ảnh: {file.name}
+        </p>
+      )}
       {fileError && <p className="text-xs text-destructive">{fileError}</p>}
       {notice && (
         <p role="status" className="text-sm text-amber-800">
