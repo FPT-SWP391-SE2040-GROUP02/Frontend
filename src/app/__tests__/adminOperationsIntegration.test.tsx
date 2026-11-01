@@ -353,6 +353,36 @@ describe("Sự cố", () => {
     expect(screen.queryByRole("button", { name: "Giao người xét duyệt" })).not.toBeInTheDocument();
   });
 
+  it("sự cố chủ kho báo còn sống chỉ cho giao lại người xét duyệt của hồ sơ, không giao hay đóng tay", async () => {
+    backend((call) => {
+      if (call.url === `/admin/incidents/${INCIDENT_ID}`)
+        return incidentDetail({ type: "OWNER_ALIVE", status: "IN_PROGRESS" });
+      if (call.url === "/admin/users")
+        return call.params?.role === "VERIFIER"
+          ? page([userBody(VERIFIER_ID, "VERIFIER", "Cô Lan")])
+          : page([]);
+      return undefined;
+    });
+    setup(`${incidentsPath}&incident=${INCIDENT_ID}`);
+    fireEvent.click(await screen.findByRole("button", { name: "Giao người xét duyệt" }));
+    expect(screen.queryByRole("button", { name: "Giao người phụ trách" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Đóng sự cố" })).not.toBeInTheDocument();
+    expect(screen.getByText(/Sự cố này đi theo hồ sơ/)).toBeInTheDocument();
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("lời báo còn sống và sự cố cùng chuyển");
+    await userEvent.selectOptions(
+      await within(dialog).findByLabelText("Người xét duyệt"),
+      VERIFIER_ID,
+    );
+    await userEvent.type(within(dialog).getByLabelText("Lý do"), "Người cũ nghỉ phép");
+    fireEvent.click(within(dialog).getByRole("checkbox"));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Giao người xét duyệt" }));
+    await waitFor(() =>
+      expect(callsTo("post", `/admin/death-cases/${CASE_ID}/reassign-verifier`)).toHaveLength(1),
+    );
+    expect(calls.some((call) => call.url.endsWith("/assign"))).toBe(false);
+  });
+
   it("hẹn xem lại gửi thời điểm ISO và đúng etag", async () => {
     backend((call) =>
       call.url === `/admin/incidents/${INCIDENT_ID}` ? incidentDetail() : page([]),
