@@ -1,6 +1,5 @@
 import { ROUTES } from "@/shared/config/routes.config";
 import { ROLES } from "@/shared/constants/roles";
-import { Skeleton } from "@/shared/ui/skeleton";
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
@@ -208,13 +207,27 @@ const AuditLogPage = lazy(() =>
   import("@/pages/dashboard/AuditLogPage").then((module) => ({ default: module.AuditLogPage })),
 );
 
+/** Hiện trong lúc tải file của trang; có chữ và vòng xoay để không bị nhầm với trang trắng. */
+function PageLoading() {
+  return (
+    <div
+      role="status"
+      aria-label="Đang tải trang"
+      className="flex h-screen w-full flex-col items-center justify-center gap-3 bg-[var(--surface,#FAF9F5)]"
+    >
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary,#0B291E)] border-t-transparent" />
+      <p className="text-xs font-medium text-[var(--text-muted,#66786E)]">Đang tải trang…</p>
+    </div>
+  );
+}
+
 /**
  * @description Cấu hình bản đồ định tuyến (Routing map) toàn bộ ứng dụng có phân quyền RBAC.
  * Bao gồm đầy đủ 10 trạng thái vòng đời xác thực & quản lý phiên (Auth & Session Lifecycle).
  */
 export function AppRoutes() {
   return (
-    <Suspense fallback={<Skeleton className="min-h-screen w-full" aria-label="Đang tải trang" />}>
+    <Suspense fallback={<PageLoading />}>
       <Routes>
         {/* 1. Trang chủ công khai cho GUEST */}
         <Route path={ROUTES.HOME} element={<LandingPage />} />
