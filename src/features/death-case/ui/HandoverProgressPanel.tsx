@@ -48,13 +48,6 @@ const turnChips: Record<HandoverProgressTurn["status"], { label: string; tone: T
   LAPSED: { label: "Đã kết thúc", tone: "neutral" },
 };
 
-const grantStatusLabels: Record<NonNullable<HandoverProgressTurn["grantStatus"]>, string> = {
-  ACTIVE: "đang trong thời hạn tải",
-  BLOCKED: "đang bị tạm khóa",
-  EXPIRED: "đã hết hạn tải",
-  REVOKED: "đã bị thu hồi",
-};
-
 const summaryLabels: Array<[keyof HandoverProgress["summary"], string]> = [
   ["waitingResponse", "Chờ phản hồi"],
   ["inVerification", "Đang xác minh"],
@@ -249,16 +242,17 @@ function TurnDetail({
             <dd className="font-medium">{formatDateTime(turn.decidedAt)}</dd>
           </div>
         )}
-        {turn.grantStatus && (
-          <div>
-            <dt className="text-heritage-muted">Quyền tải</dt>
-            <dd className="font-medium">
-              {grantStatusLabels[turn.grantStatus]}
-              {turn.grantStatus === "ACTIVE" && turn.grantExpiresAt
-                ? `, hết hạn ${formatDateTime(turn.grantExpiresAt)} (${remainingText(turn.grantExpiresAt, serverTime)})`
-                : ""}
-            </dd>
-          </div>
+        {turn.beneficiaryFullName && (
+          <>
+            <div>
+              <dt className="text-heritage-muted">Người nhận</dt>
+              <dd className="font-medium">{turn.beneficiaryFullName}</dd>
+            </div>
+            <div>
+              <dt className="text-heritage-muted">Số điện thoại liên hệ</dt>
+              <dd className="font-medium">{turn.beneficiaryPhone ?? "Chưa có"}</dd>
+            </div>
+          </>
         )}
       </dl>
       {RESENDABLE_TURN_STATUSES.includes(turn.status) && (

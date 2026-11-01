@@ -81,6 +81,8 @@ const started = {
       turnId: OTHER_CASE_ID,
       containerName: "Tài khoản ngân hàng",
       beneficiaryCitizenIdLast4: "1234",
+      beneficiaryFullName: "Nguyễn Văn An",
+      beneficiaryPhone: "0901234567",
       claimedByYou: false,
       identityConfirmedByExecutor: false,
       status: "HANDOVER_COMMITTED",
@@ -183,9 +185,7 @@ function setup(children: ReactNode, path = "/") {
 it("calls the real progress route with an abort signal and drops fields outside the contract", async () => {
   const leaked = {
     ...started,
-    turns: [
-      { ...started.turns[0], beneficiaryFullName: "Nguyen Van A", citizenId: "012345678901" },
-    ],
+    turns: [{ ...started.turns[0], beneficiaryEmail: "a@example.com", citizenId: "012345678901" }],
   };
   const get = vi.spyOn(apiClient, "get").mockResolvedValue(leaked);
   const controller = new AbortController();
@@ -194,7 +194,7 @@ it("calls the real progress route with an abort signal and drops fields outside 
     signal: controller.signal,
   });
   expect(JSON.stringify(result)).not.toContain("012345678901");
-  expect(JSON.stringify(result)).not.toContain("Nguyen Van A");
+  expect(JSON.stringify(result)).not.toContain("a@example.com");
 });
 
 it("rejects a non-UUID case id before sending any request", async () => {
@@ -224,12 +224,16 @@ it("shows summary, per-turn deadlines counted from serverTime and download state
   expect(screen.getByText("Đã mời, chờ người nhận phản hồi")).toBeInTheDocument();
   expect(screen.getByText(/còn 2 ngày 2 giờ/)).toBeInTheDocument();
   expect(screen.getByText("Đã tải 0/1 tài sản")).toBeInTheDocument();
+  expect(screen.queryByText("Số điện thoại liên hệ")).not.toBeInTheDocument();
   expect(screen.getByText("Giấy tờ nhà (tệp)")).toBeInTheDocument();
   expect(screen.getAllByText("Chưa tải").length).toBeGreaterThan(0);
   // Chọn lượt thứ hai để xem chi tiết người nhận đã đồng ý.
   fireEvent.click(screen.getAllByRole("button", { name: "Xem chi tiết" })[1]);
   expect(await screen.findByText("Người nhận đã đồng ý nhận")).toBeInTheDocument();
-  expect(screen.getByText(/đang trong thời hạn tải, hết hạn/)).toBeInTheDocument();
+  // Đã bàn giao: hiện họ tên và số điện thoại người nhận, không còn dòng "Quyền tải".
+  expect(screen.getByText("Nguyễn Văn An")).toBeInTheDocument();
+  expect(screen.getByText("0901234567")).toBeInTheDocument();
+  expect(screen.queryByText("Quyền tải")).not.toBeInTheDocument();
   expect(screen.getByText("Đã tải 1/1 tài sản")).toBeInTheDocument();
   expect(screen.getByText("Mật khẩu ví (văn bản)")).toBeInTheDocument();
   expect(screen.getByText(/Tải lần đầu/)).toBeInTheDocument();
