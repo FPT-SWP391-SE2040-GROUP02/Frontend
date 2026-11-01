@@ -16,7 +16,7 @@ export const ROLE_LABELS: Record<AdminUserRole, string> = {
   USER: "Người dùng",
   VERIFIER: "Người xét duyệt",
   ADMIN: "Quản trị viên",
-  EXECUTOR: "Người thừa hành",
+  EXECUTOR: "Người thực hiện",
 };
 
 export const STATUS_LABELS: Record<AdminUserStatus, string> = {
@@ -80,7 +80,7 @@ export { formatDate, formatDateTime } from "@/shared/lib/dateFormat";
 
 export const INCIDENT_TYPE_LABELS: Record<IncidentType, string> = {
   NO_VERIFIER: "Chưa có người xét duyệt",
-  NO_EXECUTOR: "Chưa có người thi hành",
+  NO_EXECUTOR: "Chưa có người thực hiện",
   CHECK_IN_OVERDUE: "Quá hạn điểm danh",
   NOTIFICATION_FAILED: "Gửi thông báo thất bại",
   OWNER_ALIVE: "Chủ kho báo còn sống",

@@ -105,7 +105,7 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
         <div className="space-y-1 leading-relaxed">
           <p className="font-bold">Quy định thẩm quyền nộp hồ sơ (Điều 562 & 611 BLDS 2015):</p>
           <p>
-            Chỉ Người thi hành di chúc hợp pháp được chủ kho chỉ định mới có quyền nộp chứng từ tử
+            Chỉ Người thực hiện di chúc hợp pháp được chủ kho chỉ định mới có quyền nộp chứng từ tử
             tuất hoặc bản án mất tích. Mọi hành vi làm giả chứng từ sẽ bị xử lý nghiêm minh theo
             pháp luật.
           </p>

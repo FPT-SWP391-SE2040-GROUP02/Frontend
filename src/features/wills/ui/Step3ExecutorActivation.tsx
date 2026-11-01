@@ -5,7 +5,7 @@ import { UserCheck, ShieldCheck, AlertCircle, CheckCircle2, Zap } from "lucide-r
 /**
  * @file Step3ExecutorActivation.tsx
  * @description Bước 3 của Thiết Lập Kế Hoạch Di Sản (SRS 3.11.0 - Luồng 1B - SETUP-01):
- * 1. Chỉ định Người thi hành (Executor).
+ * 1. Chỉ định Người thực hiện (Executor).
  * 2. Đối soát điều kiện kích hoạt di sản (SETUP-01: Gói XS/XS Max, Executor, chỉ định hợp lệ).
  * 3. Xác nhận chính sách kho đồng sở hữu và kích hoạt kế hoạch.
  */

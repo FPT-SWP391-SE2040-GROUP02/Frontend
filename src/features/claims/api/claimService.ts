@@ -50,7 +50,7 @@ export async function submitClaim(__payload: SubmitClaimRequest): Promise<
 }
 
 /**
- * Lấy danh sách hồ sơ do Người thi hành hiện tại quản lý
+ * Lấy danh sách hồ sơ do Người thực hiện hiện tại quản lý
  * @param params Tham số phân trang và lọc
  * @returns Promise chứa danh sách hồ sơ phân trang
  */

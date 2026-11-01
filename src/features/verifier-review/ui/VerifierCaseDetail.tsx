@@ -81,6 +81,13 @@ const FILE_TYPE_LABELS: Record<string, string> = {
   "image/webp": "WEBP",
 };
 
+/** Hồ sơ đã ra khỏi bước xét duyệt thì ô điều kiện chỉ nói trạng thái, không gợi ý bổ sung hay từ chối. */
+const CLOSED_CONDITION_TEXT: Record<string, string> = {
+  APPROVED_FOR_HANDOVER: "Hồ sơ đã được duyệt, không cần xét thêm.",
+  REJECTED: "Hồ sơ đã bị từ chối, không cần xét thêm.",
+  SUSPENDED: "Hồ sơ đang tạm dừng vì chủ kho báo còn sống. Xử lý lời báo trước khi xét tiếp.",
+};
+
 const blobName = (item: { fileName: string }) =>
   item.fileName.replace(/[^\p{L}\p{N} ._()-]/gu, "_");
 
@@ -309,27 +316,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
         {/* CỘT TRÁI (3fr): HỒ SƠ & TÀI LIỆU CHỨNG TỪ */}
         <div className="space-y-6">
           <section
-            aria-label="Người thực hiện yêu cầu"
-            className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-xl font-semibold text-heritage-primary">
-                Người thực hiện yêu cầu (Người thừa hành)
-              </h3>
-              <Chip tone="neutral">{detail.executor?.role ?? "Người thừa hành"}</Chip>
-            </div>
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <Field label="Họ và tên người gửi" value={detail.executor?.fullName ?? "—"} />
-              <Field label="Email liên hệ" value={detail.executor?.email ?? "—"} />
-              <Field label="Số điện thoại" value={detail.executor?.phone ?? "—"} />
-              <Field
-                label="Thời điểm nộp yêu cầu"
-                value={review.submittedAt ? formatCompact(review.submittedAt) : "—"}
-              />
-            </dl>
-          </section>
-
-          <section
             aria-label="Bản đang xét"
             className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
           >
@@ -544,7 +530,11 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
         <div className="space-y-6">
           {/* 1. ĐIỀU KIỆN ĐỂ DUYỆT */}
           <Panel title="Điều kiện để duyệt">
-            {!detail.canApprove && conditions.length > 0 ? (
+            {CLOSED_CONDITION_TEXT[detail.status] ? (
+              <p role="status" className="text-sm text-heritage-muted">
+                {CLOSED_CONDITION_TEXT[detail.status]}
+              </p>
+            ) : !detail.canApprove && conditions.length > 0 ? (
               <div role="status" className="rounded-xl bg-[#F8E1DE] p-4 text-sm text-[#7A1A14]">
                 <p>Chưa thể duyệt vì: {blockedReason}. Bạn có thể yêu cầu bổ sung hoặc từ chối.</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
