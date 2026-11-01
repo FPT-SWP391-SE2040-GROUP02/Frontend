@@ -156,6 +156,16 @@ describe("Executor overview", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("does not call the vault safe once a death case is open", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({ planStatus: "DEATH_CASE_OPEN", openDeathCaseId: CASE_ID }),
+    ]);
+    setup("/executor");
+    expect(await screen.findByText("Hồ sơ báo tin về Anh Nam đang được xử lý")).toBeInTheDocument();
+    expect(screen.queryByText("Kho của Anh Nam đang an toàn")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Xem hồ sơ báo tin" })).toBeInTheDocument();
+  });
+
   it("hides the proxy check-in while the Owner is not overdue", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor");

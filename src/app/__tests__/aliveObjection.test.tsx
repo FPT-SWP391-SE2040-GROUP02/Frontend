@@ -380,7 +380,7 @@ it("Verifier đối chiếu danh tính đã xác minh và xem ảnh CCCD cạnh 
   const table = await screen.findByRole("table");
   expect(table).toHaveTextContent("NGUYỄN VĂN B");
   expect(table).toHaveTextContent("Nguyễn Văn A");
-  expect(table).toHaveTextContent("04/03/1950");
+  expect(table).not.toHaveTextContent("Ngày sinh");
   expect(screen.getByText("Khớp")).toBeInTheDocument();
   expect(screen.getByText("Không khớp")).toBeInTheDocument();
   expect(await screen.findByText("Không khớp mẫu")).toBeInTheDocument();

@@ -8,13 +8,6 @@ import type {
 } from "../model/verifierReview.schema";
 import { VerifierIdentityImage } from "./VerifierIdentityImage";
 
-/** Ngày dạng "05/10/2026" từ chuỗi ISO yyyy-mm-dd của BE; thiếu thì hiện "—". */
-const formatDay = (value: string | null) => {
-  if (!value) return "—";
-  const [year, month, day] = value.split("-");
-  return `${day}/${month}/${year}`;
-};
-
 /** Chip kết quả so khớp do BE tính; null (một bên thiếu dữ liệu) thì không hiện chip. */
 function MatchChip({ matches }: { matches: boolean | null }) {
   if (matches === null) return null;
@@ -94,14 +87,6 @@ export function VerifierOwnerIdentityPanel({
                   <td className="py-2.5">
                     <MatchChip matches={identity.citizenIdMatches} />
                   </td>
-                </tr>
-                <tr>
-                  <th scope="row" className="py-2.5 pr-3 font-medium">
-                    Ngày sinh
-                  </th>
-                  <td className="py-2.5 pr-3 text-heritage-muted">Không khai</td>
-                  <td className="py-2.5 pr-3 font-semibold">{formatDay(identity.dateOfBirth)}</td>
-                  <td className="py-2.5" />
                 </tr>
               </tbody>
             </table>
