@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { ROLE_LABELS, reviewDateError } from "../model/admin.content";
 import type { AdminUserRole } from "../model/admin.schema";
@@ -228,18 +229,34 @@ export function AdminActionDialog({
                   />
                 )}
                 {field.kind === "select" && (
-                  <select
-                    id={fieldId}
-                    {...form.register(field.name)}
-                    aria-invalid={Boolean(error)}
-                    className="mt-1 min-h-11 w-full rounded-lg border border-heritage-border bg-white px-3 text-sm"
-                  >
-                    {field.options.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                  // Không dùng <select> native: popup của nó vẽ trống chữ khi nằm trong hộp thoại.
+                  <Controller
+                    control={form.control}
+                    name={field.name}
+                    render={({ field: control }) => (
+                      <Select
+                        items={field.options}
+                        value={String(control.value ?? "")}
+                        onValueChange={(value) => control.onChange(value ?? "")}
+                      >
+                        <SelectTrigger
+                          id={fieldId}
+                          aria-invalid={Boolean(error)}
+                          onBlur={control.onBlur}
+                          className="mt-1 min-h-11 w-full rounded-lg border-heritage-border bg-white px-3"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent alignItemWithTrigger={false}>
+                          {field.options.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 )}
                 {field.kind === "user" && (
                   <Controller
