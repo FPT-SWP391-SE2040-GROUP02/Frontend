@@ -3,6 +3,7 @@ import { Lock } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { ExecutorVault } from "../model/deathCase.schema";
 import { buttonStyles, Chip, InfoRow, Initial, Notice, Panel } from "@/shared/ui/heritageKit";
+import { useRejectedAck } from "../model/useRejectedAck";
 import { planStatusLabel } from "./executorLabels";
 import { ProxyCheckIn } from "./ProxyCheckIn";
 
@@ -20,6 +21,8 @@ const limits = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Tự chọn n
 /** Tổng quan một kho Executor đang phụ trách (thiết kế "Người thực hiện — Tổng quan"). */
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   const hasCase = Boolean(vault.openDeathCaseId);
+  const rejectedAck = useRejectedAck(vault.lastRejectedDeathCaseId);
+  const hasRejectedCase = Boolean(vault.lastRejectedDeathCaseId) && !rejectedAck.acknowledged;
   return (
     <div className="space-y-6">
       {vault.checkInOverdue && (
@@ -55,7 +58,25 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           Theo dõi tiến trình xét duyệt và bổ sung hồ sơ khi Người xét duyệt yêu cầu.
         </Notice>
       )}
-      {!vault.checkInOverdue && !hasCase && (
+      {!vault.checkInOverdue && !hasCase && hasRejectedCase && (
+        <Notice
+          tone="danger"
+          title={`Hồ sơ báo tin về ${vault.ownerFullName} đã bị từ chối`}
+          action={
+            <div className="flex flex-wrap gap-3">
+              <Link className={buttonStyles.outline} to={ROUTES.EXECUTOR.REPORT}>
+                Xem lý do
+              </Link>
+              <button type="button" className={buttonStyles.gold} onClick={rejectedAck.acknowledge}>
+                Tiếp tục
+              </button>
+            </div>
+          }
+        >
+          Hồ sơ đã được xử lý và đóng. Bạn chỉ nên báo tin lại khi chắc chắn và có giấy tờ phù hợp.
+        </Notice>
+      )}
+      {!vault.checkInOverdue && !hasCase && !hasRejectedCase && (
         <Notice
           tone="success"
           title={`Kho của ${vault.ownerFullName} đang an toàn`}
