@@ -50,3 +50,41 @@ it("nút tổng quan khóa theo dữ liệu server và mở lại khi server san
   view.unmount();
   client.clear();
 });
+
+it("hiện Executor đã điểm danh hộ, khóa nút và không ghi ngày", () => {
+  const client = new QueryClient();
+  const status = checkInStatusSchema.parse({
+    status: "ACTIVE",
+    planStatus: "ACTIVE",
+    serverTime: "2026-11-01T10:24:00Z",
+    lastCheckInAt: "2026-09-02T08:00:00Z",
+    checkedInByExecutorToday: true,
+    nextCheckInDueAt: "2026-12-31T10:24:00Z",
+    graceEndsAt: null,
+    settings: {
+      cycleDays: 60,
+      graceDays: 14,
+      pendingCycleDays: null,
+      pendingGraceDays: null,
+      etag: "0",
+    },
+    history: {
+      items: [],
+      totalCount: 0,
+      pageIndex: 1,
+      pageSize: 10,
+      totalPages: 0,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    },
+  });
+  const view = render(
+    <QueryClientProvider client={client}>
+      <QuickCheckIn vaultId="test-vault" status={status} />
+    </QueryClientProvider>,
+  );
+  expect(screen.getByRole("button", { name: "Executor đã điểm danh hộ" })).toBeDisabled();
+  expect(screen.getByRole("status")).toHaveTextContent("Executor đã điểm danh hộ bạn hôm nay");
+  view.unmount();
+  client.clear();
+});

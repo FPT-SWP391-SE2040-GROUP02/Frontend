@@ -231,6 +231,7 @@ const checkIn = {
   planStatus: "DRAFT",
   serverTime: CREATED_AT,
   lastCheckInAt: null,
+  checkedInByExecutorToday: false,
   nextCheckInDueAt: null,
   graceEndsAt: null,
   settings: {
