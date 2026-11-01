@@ -5,6 +5,9 @@ export const executorVaultSchema = z.object({
   vaultId: z.string().uuid(),
   ownerFullName: z.string(),
   planStatus: z.string(),
+  /** Hướng dẫn Chủ kho để lại cho Executor; xem được trước khi hồ sơ được duyệt. Backend cũ không có trường này. */
+  executorNote: z.string().nullish(),
+  executorNoteUpdatedAt: timestamp.nullish(),
   checkInOverdue: z.boolean(),
   openDeathCaseId: z.string().uuid().nullable(),
   /** Hồ sơ bị từ chối gần nhất của kho, để Executor xem lại lý do. Backend cũ không có trường này. */
