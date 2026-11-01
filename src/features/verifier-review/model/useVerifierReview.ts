@@ -18,6 +18,8 @@ export const verifierKeys = {
   lists: () => [...verifierKeys.all, "list"] as const,
   list: (params?: PaginationParams) => [...verifierKeys.lists(), params ?? {}] as const,
   detail: (caseId: string) => [...verifierKeys.all, "detail", caseId] as const,
+  // Ngoài nhóm "verifier-cases": invalidate cả nhóm (tải lại sau 409) không kéo theo một lần dò thừa.
+  freshness: (caseId: string) => ["verifier-case-freshness", caseId] as const,
   objection: (caseId: string) => [...verifierKeys.all, "objection", caseId] as const,
 };
 /** Hồ sơ Verifier đang được giao. */
@@ -36,8 +38,41 @@ export function useVerifierCase(caseId: string | null) {
     enabled: Boolean(caseId),
     gcTime: 0,
     retry: false,
+    // Không tự thay nội dung Verifier đang đọc; thay đổi ở nơi khác do useVerifierCaseFreshness báo.
+    refetchOnWindowFocus: false,
   });
 }
+/** Chu kỳ dò hồ sơ có đổi ở nơi khác (Executor tạo hoặc nộp bản bổ sung, Owner phản đối, job giao lại). */
+export const FRESHNESS_INTERVAL_MS = 30_000;
+
+/**
+ * Dò ngầm etag mới nhất của hồ sơ đang xét, cache riêng nên KHÔNG thay dữ liệu Verifier đang đọc:
+ * thấy khác thì trang báo và để Verifier tự tải lại, tránh quyết định trên nội dung chưa kịp xem.
+ * Chỉ dò khi hồ sơ còn chờ quyết định; tab ẩn thì ngừng, quay lại tab thì dò ngay.
+ * Bắt đầu từ etag vừa tải (không GET lại lúc mở trang), lần dò đầu sau một chu kỳ hoặc khi quay lại tab.
+ */
+export function useVerifierCaseFreshness(
+  caseId: string,
+  enabled: boolean,
+  loadedEtag: string | undefined,
+  loadedAt: number,
+) {
+  return useQuery({
+    queryKey: verifierKeys.freshness(caseId),
+    queryFn: async ({ signal }) => (await verifierReviewService.get(caseId, signal)).etag,
+    initialData: loadedEtag,
+    initialDataUpdatedAt: loadedAt,
+    enabled: enabled && loadedEtag !== undefined,
+    staleTime: FRESHNESS_INTERVAL_MS,
+    gcTime: 0,
+    retry: false,
+    refetchOnMount: false,
+    refetchInterval: FRESHNESS_INTERVAL_MS,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: "always",
+  });
+}
+
 /**
  * Cập nhật cache detail từ response schema thật; chỉ invalidate list.
  * Không GET lại detail: response duyệt lần đầu có `handover`, GET sau đó luôn trả `handover = null`

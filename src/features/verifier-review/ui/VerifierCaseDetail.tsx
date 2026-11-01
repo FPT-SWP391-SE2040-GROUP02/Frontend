@@ -17,7 +17,11 @@ import { HTTP_STATUS } from "@/shared/constants";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { buttonStyles, Chip, Notice, Panel } from "@/shared/ui/heritageKit";
-import { useVerifierCase, verifierKeys } from "../model/useVerifierReview";
+import {
+  useVerifierCase,
+  useVerifierCaseFreshness,
+  verifierKeys,
+} from "../model/useVerifierReview";
 import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
@@ -86,6 +90,17 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
   const [params, setParams] = useSearchParams();
   const download = usePrivateAction();
   const query = useVerifierCase(caseId);
+  // Chỉ dò thay đổi khi hồ sơ còn chờ quyết định; đã duyệt thì GET lại sẽ mất kết quả mở bàn giao.
+  const awaitingDecision =
+    query.data !== undefined &&
+    (query.data.status === "UNDER_REVIEW" || query.data.status === "SUPPLEMENT_REQUIRED") &&
+    !query.data.handover;
+  const freshness = useVerifierCaseFreshness(
+    caseId,
+    awaitingDecision,
+    query.data?.etag,
+    query.dataUpdatedAt,
+  );
   const client = useQueryClient();
   const backToList = () => {
     const next = new URLSearchParams(params);
@@ -126,6 +141,11 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     );
   }
   const detail = query.data;
+  // Lần dò mới hơn dữ liệu đang hiện mà etag khác: hồ sơ đã đổi ở nơi khác sau khi trang được tải.
+  const changedElsewhere =
+    freshness.data !== undefined &&
+    freshness.data !== detail.etag &&
+    freshness.dataUpdatedAt > query.dataUpdatedAt;
   const review = detail.reviewVersion;
   const status = queueStatus[detail.status];
   const actions = getVerifierActions(detail);
@@ -251,6 +271,32 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
         <Notice tone="success" role="status" title="Hồ sơ đã được chấp thuận">
           Đã mở {detail.handover.turnCount} lượt bàn giao · {detail.handover.invitationsSent} lời
           mời đã gửi · {detail.handover.invitationsFailed} lời mời chưa gửi được.
+        </Notice>
+      )}
+      {changedElsewhere && (
+        <Notice tone="warning" role="alert" title="Hồ sơ vừa thay đổi">
+          <span className="block">
+            Hồ sơ đã được cập nhật sau khi bạn mở trang (ví dụ Executor tạo hoặc nộp bản bổ sung).
+            Tải lại để xem nội dung mới trước khi ra quyết định.
+          </span>
+          <button
+            type="button"
+            className={`mt-3 ${buttonStyles.dark}`}
+            disabled={query.isFetching}
+            onClick={() => {
+              void query.refetch();
+              void client.invalidateQueries({ queryKey: verifierKeys.lists() });
+            }}
+          >
+            Xem bản mới nhất
+          </button>
+        </Notice>
+      )}
+      {detail.approveBlockers.includes("NEWER_VERSION_PENDING") && (
+        <Notice tone="warning" title="Executor đang soạn bản bổ sung">
+          Bạn đang xem bản đã gửi
+          {review ? ` số ${review.versionNo}` : ""}. Chưa duyệt được cho tới khi Executor nộp bản
+          mới; bạn vẫn có thể yêu cầu bổ sung hoặc từ chối.
         </Notice>
       )}
       {detail.status === "SUPPLEMENT_REQUIRED" && (
