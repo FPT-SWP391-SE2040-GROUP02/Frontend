@@ -8,13 +8,20 @@ export const executorVaultsKey = ["executor-vaults"] as const;
 
 const STORAGE_KEY = "lv-executor-vault";
 
-/** Các kho mà tài khoản đang là Executor hiệu lực. Không retry để 401/403 không bị gọi lặp. */
+/**
+ * Các kho mà tài khoản đang là Executor hiệu lực. Không retry để 401/403 không bị gọi lặp.
+ * Hồ sơ do Verifier quyết định ở phiên khác nên cache mặc định (5 phút) sẽ cũ: luôn tải lại khi mở màn hình
+ * hoặc quay lại tab, và hỏi lại định kỳ khi đang xem.
+ */
 export function useExecutorVaults(enabled = true) {
   return useQuery({
     queryKey: executorVaultsKey,
     queryFn: ({ signal }) => deathCaseService.vaults(signal),
     retry: false,
     enabled,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30_000,
   });
 }
 

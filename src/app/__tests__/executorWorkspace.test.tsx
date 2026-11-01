@@ -19,6 +19,7 @@ import { ExecutorProgressPage } from "@/pages/executor/ExecutorProgressPage";
 
 const CASE_ID = "33333333-3333-4333-8333-333333333333";
 const OTHER_VAULT_ID = "44444444-4444-4444-8444-444444444444";
+const OVERDUE_REJECTED_CASE_ID = "55555555-5555-4555-8555-555555555555";
 
 const vault = (overrides: Record<string, unknown> = {}) => ({
   vaultId: VAULT_ID,
@@ -64,6 +65,7 @@ beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   accessTokenMemory.set("executor-workspace-fixture");
   window.sessionStorage.clear();
+  window.localStorage.clear();
 });
 
 afterEach(() => {
@@ -164,6 +166,38 @@ describe("Executor overview", () => {
     expect(await screen.findByText("Hồ sơ báo tin về Anh Nam đang được xử lý")).toBeInTheDocument();
     expect(screen.queryByText("Kho của Anh Nam đang an toàn")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Xem hồ sơ báo tin" })).toBeInTheDocument();
+  });
+
+  it("says the case was rejected instead of calling the vault safe or still processing", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([vault({ lastRejectedDeathCaseId: CASE_ID })]);
+    setup("/executor");
+    expect(await screen.findByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).toBeInTheDocument();
+    expect(screen.queryByText("Kho của Anh Nam đang an toàn")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hồ sơ báo tin về Anh Nam đang được xử lý")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Xem lý do" })).toHaveAttribute(
+      "href",
+      "/executor/report",
+    );
+    // Hồ sơ bị từ chối là đã xử lý xong: bấm Tiếp tục thì banner trở lại màu xanh "an toàn".
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục" }));
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(screen.queryByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).not.toBeInTheDocument();
+  });
+
+  it("shows the rejected banner before the overdue banner, then the overdue one after Tiếp tục", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({
+        planStatus: "AWAITING_CHECK",
+        checkInOverdue: true,
+        lastRejectedDeathCaseId: OVERDUE_REJECTED_CASE_ID,
+      }),
+    ]);
+    setup("/executor");
+    expect(await screen.findByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).toBeInTheDocument();
+    expect(screen.queryByText("Anh Nam đã quá hạn điểm danh")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục" }));
+    expect(await screen.findByText("Anh Nam đã quá hạn điểm danh")).toBeInTheDocument();
+    expect(screen.queryByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).not.toBeInTheDocument();
   });
 
   it("hides the proxy check-in while the Owner is not overdue", async () => {

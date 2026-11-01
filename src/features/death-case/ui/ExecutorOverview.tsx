@@ -3,6 +3,7 @@ import { Lock } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { ExecutorVault } from "../model/deathCase.schema";
 import { buttonStyles, Chip, InfoRow, Initial, Notice, Panel } from "@/shared/ui/heritageKit";
+import { useRejectedAck } from "../model/useRejectedAck";
 import { planStatusLabel } from "./executorLabels";
 import { ProxyCheckIn } from "./ProxyCheckIn";
 
@@ -20,9 +21,33 @@ const limits = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Tự chọn n
 /** Tổng quan một kho Executor đang phụ trách (thiết kế "Người thực hiện — Tổng quan"). */
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   const hasCase = Boolean(vault.openDeathCaseId);
+  const rejectedAck = useRejectedAck(vault.lastRejectedDeathCaseId);
+  // Báo "bị từ chối" đi TRƯỚC mọi banner khác (kể cả "quá hạn điểm danh", vì từ chối trả kế hoạch về trạng thái
+  // trước đó nên kho có thể quá hạn ngay); bấm "Tiếp tục" thì mới tới banner theo trạng thái kế hoạch.
+  const showRejected =
+    !hasCase && Boolean(vault.lastRejectedDeathCaseId) && !rejectedAck.acknowledged;
   return (
     <div className="space-y-6">
-      {vault.checkInOverdue && (
+      {showRejected && (
+        <Notice
+          tone="danger"
+          title={`Hồ sơ báo tin về ${vault.ownerFullName} đã bị từ chối`}
+          action={
+            <div className="flex flex-wrap gap-3">
+              <Link className={buttonStyles.outline} to={ROUTES.EXECUTOR.REPORT}>
+                Xem lý do
+              </Link>
+              <button type="button" className={buttonStyles.gold} onClick={rejectedAck.acknowledge}>
+                Tiếp tục
+              </button>
+            </div>
+          }
+        >
+          Hồ sơ của bạn không được Người xét duyệt chấp thuận. Hồ sơ đã được xử lý và đóng; bạn chỉ
+          nên báo tin lại khi chắc chắn và có giấy tờ phù hợp.
+        </Notice>
+      )}
+      {!showRejected && vault.checkInOverdue && (
         <Notice
           tone="warning"
           title={`${vault.ownerFullName} đã quá hạn điểm danh`}
@@ -55,7 +80,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           Theo dõi tiến trình xét duyệt và bổ sung hồ sơ khi Người xét duyệt yêu cầu.
         </Notice>
       )}
-      {!vault.checkInOverdue && !hasCase && (
+      {!vault.checkInOverdue && !hasCase && !showRejected && (
         <Notice
           tone="success"
           title={`Kho của ${vault.ownerFullName} đang an toàn`}
