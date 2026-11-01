@@ -309,6 +309,9 @@ function TurnDetail({
   );
 }
 
+/** Số thẻ người nhận thấy được trước khi khung danh sách phải cuộn. */
+const VISIBLE_RECIPIENTS = 3;
+
 /** Thanh tiến độ tải của một gói; đủ thì chuyển màu xanh. */
 function DownloadBar({ downloaded, total }: { downloaded: number; total: number }) {
   const percent = total > 0 ? Math.min(100, Math.round((downloaded / total) * 100)) : 0;
@@ -514,9 +517,19 @@ function ProgressBody({
           </li>
         ))}
       </ul>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel title="Theo người nhận">
-          <ul className="space-y-4">
+          {groups.length > VISIBLE_RECIPIENTS && (
+            <p className="-mt-2 mb-3 text-sm text-heritage-muted">
+              {groups.length} người nhận, cuộn trong khung để xem thêm.
+            </p>
+          )}
+          {/* Nhiều người nhận thì cuộn trong khung (khoảng 3 thẻ), để phần chi tiết bên cạnh không bị đẩy xa. */}
+          <ul
+            aria-label="Danh sách người nhận"
+            tabIndex={groups.length > VISIBLE_RECIPIENTS ? 0 : undefined}
+            className="max-h-[40rem] space-y-4 overflow-y-auto overscroll-contain pr-1"
+          >
             {groups.map((group) => (
               <RecipientCard
                 key={group.key}

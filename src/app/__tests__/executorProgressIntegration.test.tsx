@@ -258,6 +258,25 @@ it("groups packages of the same recipient into one card by beneficiaryId", async
   expect(within(packages).getAllByRole("button", { name: "Xem chi tiết" })).toHaveLength(2);
 });
 
+it("keeps a long recipient list scrollable inside its frame", async () => {
+  const [first] = started.turns;
+  const turns = ["1", "2", "3", "4"].map((digit) => ({
+    ...first,
+    turnId: `5555555${digit}-5555-4555-8555-555555555555`,
+    beneficiaryId: `8888888${digit}-8888-4888-8888-888888888888`,
+    beneficiaryFullName: `Người nhận ${digit}`,
+  }));
+  vi.spyOn(apiClient, "get").mockResolvedValue({ ...started, turns });
+  setup(<HandoverProgressPanel caseId={CASE_ID} />);
+  expect(
+    await screen.findByText("4 người nhận, cuộn trong khung để xem thêm."),
+  ).toBeInTheDocument();
+  const list = screen.getByRole("list", { name: "Danh sách người nhận" });
+  expect(list).toHaveClass("overflow-y-auto");
+  // Cuộn được bằng bàn phím khi danh sách dài.
+  expect(list).toHaveAttribute("tabindex", "0");
+});
+
 it("turns a 404 into a permission message with retry, never into an empty progress", async () => {
   const url = `/executor/death-cases/${CASE_ID}/handover-progress`;
   const get = vi.spyOn(apiClient, "get").mockRejectedValue(notFound(url));
