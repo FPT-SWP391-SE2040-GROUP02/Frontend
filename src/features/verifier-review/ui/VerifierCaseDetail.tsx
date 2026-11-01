@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useId, type ReactNode } from "react";
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
+import { ROUTES } from "@/shared/config/routes.config";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { buttonStyles, Chip, Notice, Panel } from "@/shared/ui/heritageKit";
 import { useVerifierCase, verifierKeys } from "../model/useVerifierReview";
@@ -102,16 +103,12 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       </p>
     );
   if (query.isError) {
-    // 404 DEATH_CASE_NOT_FOUND: hồ sơ không tồn tại hoặc phân công đã kết thúc (giao lại Verifier khác).
-    if (isAxiosError(query.error) && query.error.response?.status === HTTP_STATUS.NOT_FOUND)
-      return (
-        <div role="alert" className="space-y-3 rounded-2xl bg-[#F1E6CC] p-5">
-          <p className="text-sm text-[#5A4318]">Hồ sơ không còn được giao cho bạn.</p>
-          <button type="button" className={buttonStyles.dark} onClick={backToList}>
-            Về danh sách
-          </button>
-        </div>
-      );
+    // 404 DEATH_CASE_NOT_FOUND: hồ sơ không tồn tại hoặc phân công đã kết thúc (giao lại Verifier khác)
+    // → quay về trang tổng quan thay vì để người xét duyệt ở một trang không có gì để xem.
+    if (isAxiosError(query.error) && query.error.response?.status === HTTP_STATUS.NOT_FOUND) {
+      void client.invalidateQueries({ queryKey: verifierKeys.lists() });
+      return <Navigate to={ROUTES.NOTARY.WORKSPACE} replace />;
+    }
     return (
       <div role="alert" className="space-y-3 rounded-2xl bg-[#F8E1DE] p-5">
         <p className="text-sm text-[#7A1A14]">

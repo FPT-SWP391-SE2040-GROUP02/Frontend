@@ -656,8 +656,7 @@ it("hồ sơ đang xét vẫn hiện Hạn xét ở chi tiết", async () => {
   expect(screen.queryByText(/Đang chờ Executor bổ sung/)).not.toBeInTheDocument();
 });
 
-it("GET chi tiết 404 báo hồ sơ không còn được giao và nút Về danh sách xóa caseId", async () => {
-  const user = userEvent.setup();
+it("GET chi tiết 404 tự chuyển về trang tổng quan, xóa caseId và tải lại danh sách", async () => {
   const get = vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
     if (String(url).endsWith(CASE_ID))
       throw new AxiosError("not found", undefined, undefined, undefined, {
@@ -671,13 +670,11 @@ it("GET chi tiết 404 báo hồ sơ không còn được giao và nút Về dan
   });
   const listCalls = () => get.mock.calls.filter(([url]) => !String(url).endsWith(CASE_ID)).length;
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=approve&flagId=${FLAG_ID}`);
-  expect(await screen.findByText("Hồ sơ không còn được giao cho bạn.")).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
-  const before = listCalls();
-  await user.click(screen.getByRole("button", { name: "Về danh sách" }));
   await waitFor(() => expect(screen.getByTestId("search").textContent).toBe(""));
   expect(await screen.findByRole("region", { name: "Hồ sơ chứng tử" })).toBeInTheDocument();
-  await waitFor(() => expect(listCalls()).toBeGreaterThan(before));
+  expect(screen.queryByText("Hồ sơ không còn được giao cho bạn.")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
+  await waitFor(() => expect(listCalls()).toBeGreaterThan(0));
 });
 
 it("lỗi khác 404 của GET chi tiết vẫn giữ Thử lại, không báo mất phân công", async () => {
