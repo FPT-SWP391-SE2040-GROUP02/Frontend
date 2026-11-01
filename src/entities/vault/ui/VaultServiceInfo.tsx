@@ -3,6 +3,7 @@ import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import type { VaultResponse } from "../model/vault.types";
 import {
   formatVaultServiceExpiry,
+  getDisplayedServiceTier,
   getVaultServiceName,
   getVaultServiceStatus,
   type VaultServiceData,
@@ -68,7 +69,7 @@ function VaultServiceDetails({ service, showQuota = false }: VaultServiceInfoPro
   return (
     <div className="space-y-4" aria-label="Thông tin gói dịch vụ của kho">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <VaultServiceBadge tier={service.serviceTier} />
+        <VaultServiceBadge tier={getDisplayedServiceTier(service, now)} />
         <span className={`inline-flex items-center gap-2 text-sm ${statusColors[status.tone]}`}>
           <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-current" />
           {status.label}
