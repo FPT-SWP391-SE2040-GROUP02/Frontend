@@ -158,7 +158,8 @@ describe("màn Điểm danh định kỳ", () => {
     expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   });
 
-  it("bấm Kết nối đồng hồ thì xin mã ghép và hiện 6 số kèm thời hạn", async () => {
+  // Tạm tắt cùng nút "Kết nối đồng hồ" (Coming soon); bật lại khi mở lại tính năng ghép đồng hồ.
+  it.skip("bấm Kết nối đồng hồ thì xin mã ghép và hiện 6 số kèm thời hạn", async () => {
     vi.mocked(useCheckIn).mockReturnValue(statusResult() as never);
     const pairingCode = vi
       .mocked(checkInService.getSmartwatchPairingCode)

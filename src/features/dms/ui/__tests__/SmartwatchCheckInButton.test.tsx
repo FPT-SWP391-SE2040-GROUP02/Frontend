@@ -16,13 +16,15 @@ afterEach(() => {
 });
 
 describe("SmartwatchCheckInButton", () => {
-  it("hiển thị danh sách phương thức và nút kết nối đồng hồ", () => {
+  it("hiển thị danh sách phương thức và nút đồng hồ bị khóa với nhãn Coming soon", () => {
     render(<SmartwatchCheckInButton />);
     expect(screen.getByText("Cách điểm danh")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Kết nối đồng hồ" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Coming soon" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Kết nối đồng hồ" })).not.toBeInTheDocument();
   });
 
-  it("mở hộp thoại mã PIN và tự động hiển thị thông báo thành công khi nhận trạng thái đã ghép", async () => {
+  // Tạm tắt cùng nút "Kết nối đồng hồ" (Coming soon); bật lại khi mở lại tính năng ghép đồng hồ.
+  it.skip("mở hộp thoại mã PIN và tự động hiển thị thông báo thành công khi nhận trạng thái đã ghép", async () => {
     vi.spyOn(checkInService, "getSmartwatchPairingCode").mockResolvedValue({
       code: "123456",
       expiresInSeconds: 300,
