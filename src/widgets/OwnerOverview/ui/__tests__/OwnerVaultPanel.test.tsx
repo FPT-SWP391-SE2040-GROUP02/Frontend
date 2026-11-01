@@ -151,7 +151,9 @@ describe("OwnerVaultPanel", () => {
     });
     vi.mocked(ownerVaultService.listPackages).mockResolvedValue(pageFixture([]));
     setup();
-    expect(await screen.findByText("Legacy XS Max")).toBeInTheDocument();
+    // Quá hạn thì nhãn gói hiện Free, không còn tên gói trả phí cũ.
+    expect(await screen.findByText("Free")).toBeInTheDocument();
+    expect(screen.queryByText("Legacy XS Max")).not.toBeInTheDocument();
     expect(screen.getByText("Đã hết hạn dịch vụ")).toBeInTheDocument();
     expect(screen.queryByText("Đang hiệu lực")).not.toBeInTheDocument();
   });

@@ -4,6 +4,7 @@ import { Check, Minus, ShieldCheck } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import {
   formatVaultServiceExpiry,
+  getDisplayedServiceTier,
   getVaultServiceName,
   getVaultServiceStatus,
 } from "@/entities/vault/model/vaultServicePresentation";
@@ -113,7 +114,7 @@ function ServicePlansContent({
           <div className="service-plan-current-title">
             <span>Gói hiện tại</span>
             <strong>
-              {getVaultServiceName(vault.serviceTier)}
+              {getVaultServiceName(getDisplayedServiceTier(vault, now))}
               {currentPaid && remainingDays !== null ? ` · còn ${remainingDays} ngày` : ""}
             </strong>
             {!currentPaid && <small>{status.label}</small>}
