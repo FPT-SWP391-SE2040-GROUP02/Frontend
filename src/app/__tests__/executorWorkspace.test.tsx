@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -282,6 +282,60 @@ describe("Executor report", () => {
     expect(post).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole("button", { name: "Mở hồ sơ chứng tử" }));
     expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/death-case`);
+  });
+
+  it("cancels a draft only after confirming, then goes back to the overview", async () => {
+    let open = true;
+    const remove = vi.spyOn(apiClient, "delete").mockImplementation(() => {
+      open = false;
+      return Promise.resolve(undefined);
+    });
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") {
+        return Promise.resolve([vault({ openDeathCaseId: open ? CASE_ID : null })]);
+      }
+      if (url === `/executor/death-cases/${CASE_ID}`) return Promise.resolve(deathCase("DRAFT"));
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    await userEvent.click(await screen.findByRole("button", { name: "Hủy hồ sơ nháp" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("không khôi phục được");
+    expect(remove).not.toHaveBeenCalled();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Hủy hồ sơ nháp" }));
+    await waitFor(() =>
+      expect(remove).toHaveBeenCalledWith(`/executor/death-cases/${CASE_ID}/draft`),
+    );
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("keeps the draft when the Executor backs out, and shows no cancel button once submitted", async () => {
+    const remove = vi.spyOn(apiClient, "delete");
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
+      if (url === `/executor/death-cases/${CASE_ID}`) return Promise.resolve(deathCase("DRAFT"));
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    await userEvent.click(await screen.findByRole("button", { name: "Hủy hồ sơ nháp" }));
+    await userEvent.click(
+      within(await screen.findByRole("dialog")).getByRole("button", { name: "Giữ hồ sơ" }),
+    );
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(remove).not.toHaveBeenCalled();
+    cleanup();
+    client.clear();
+
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
+      if (url === `/executor/death-cases/${CASE_ID}`)
+        return Promise.resolve(deathCase("UNDER_REVIEW"));
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    expect(await screen.findByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Hủy hồ sơ nháp" })).not.toBeInTheDocument();
   });
 
   it("shows the draft editor with missing items and keeps submit disabled until confirmed", async () => {
