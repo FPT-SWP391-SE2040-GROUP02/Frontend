@@ -85,6 +85,7 @@ export const TARGET_TYPE_LABELS: Record<(typeof auditTargetTypeValues)[number], 
   INCIDENT: "Sự cố",
   USER: "Tài khoản",
   PAYMENT_ORDER: "Đơn thanh toán",
+  CONFIGURATION: "Cấu hình hệ thống",
 };
 
 export const OUTCOME_LABELS: Record<(typeof auditOutcomeValues)[number], string> = {
@@ -111,7 +112,16 @@ export function displayName(id: string, names: AuditNameMap): string {
   return shortId(id);
 }
 
+/** Mã lý do Backend ghi khi hồ sơ chứng tử bị từ chối (lý do tự do của Verifier không vào nhật ký). */
+const REASON_CODE_LABELS: Record<string, string> = {
+  VERIFIER_REJECTED: "Người xét duyệt từ chối hồ sơ",
+  ALIVE_CONFIRMED: "Người xét duyệt xác nhận chủ kho còn sống",
+};
+
 /** Lý do do Backend ghi kèm UUID ("Người nhận 01a1…"); thay bằng tên thật hoặc mã rút gọn cho dễ đọc. */
 export function friendlyReason(reason: string, names: AuditNameMap = {}): string {
+  if (Object.hasOwn(REASON_CODE_LABELS, reason)) {
+    return REASON_CODE_LABELS[reason];
+  }
   return reason.replace(UUID_PATTERN, (match) => displayName(match, names));
 }

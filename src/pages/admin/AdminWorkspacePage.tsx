@@ -6,6 +6,7 @@ import {
   AdminOverview,
   AdminUsers,
 } from "@/features/admin";
+import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
 import { AdminTwoFactorSettings } from "@/features/auth";
 import { ROUTES } from "@/shared/config/routes.config";
 import { ENV } from "@/shared/config/env";
@@ -55,7 +56,7 @@ const VIEWS = {
   },
   audit: {
     title: "Nhật ký kiểm toán",
-    description: "Dấu vết thao tác quản trị.",
+    description: "Dấu vết thao tác trên toàn hệ thống, mới nhất trước, kể cả các hồ sơ bị từ chối.",
   },
   security: {
     title: "Bảo mật tài khoản",
@@ -97,14 +98,7 @@ export function AdminWorkspacePage() {
       {view === "users" && <AdminUsers />}
       {view === "security" && <AdminTwoFactorSettings />}
       {view === "dev-tools" && <AdminDevTools />}
-      {view === "audit" && (
-        <section
-          role="status"
-          className="mt-6 rounded-xl border border-heritage-border p-6 text-sm text-heritage-muted"
-        >
-          Nhật ký kiểm toán quản trị chưa có API ở Backend, nên màn hình này chưa hiển thị dữ liệu.
-        </section>
-      )}
+      {view === "audit" && <AdminAuditLogs />}
     </WorkspaceFrame>
   );
 }

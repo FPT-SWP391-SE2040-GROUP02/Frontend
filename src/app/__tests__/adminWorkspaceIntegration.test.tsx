@@ -343,10 +343,126 @@ it("users 404 không thành danh sách rỗng; 400 có đặt lại bộ lọc",
   );
 });
 
-it("trang nhật ký kiểm toán không gọi API và không dựng dữ liệu mẫu", async () => {
-  const get = vi.spyOn(apiClient, "get");
+const AUDIT_ACTOR_ID = "00000000-0000-4000-8000-0000000000a1";
+const AUDIT_CASE_ID = "00000000-0000-4000-8000-0000000000c1";
+const makeAuditEntry = (index: number, overrides: Record<string, unknown> = {}) => ({
+  id: `00000000-0000-4000-8000-${String(900 + index).padStart(12, "0")}`,
+  at: "2026-10-18T02:42:00+00:00",
+  actorRole: "VERIFIER",
+  actorUserId: AUDIT_ACTOR_ID,
+  action: "DEATH_CASE_REJECTED",
+  targetType: "DEATH_CASE",
+  targetId: AUDIT_CASE_ID,
+  targetVersion: 1,
+  outcome: "SUCCEEDED",
+  reason: "VERIFIER_REJECTED",
+  vaultId: VAULT_ID,
+  actorFullName: "Người xét duyệt A",
+  actorEmail: "verifier@example.test",
+  ...overrides,
+});
+const auditPage = (items: unknown[], overrides: Record<string, unknown> = {}) => ({
+  items,
+  totalCount: items.length,
+  pageIndex: 1,
+  pageSize: 20,
+  totalPages: items.length === 0 ? 0 : 1,
+  hasPreviousPage: false,
+  hasNextPage: false,
+  ...overrides,
+});
+const auditCalls = (get: { mock: { calls: unknown[][] } }) =>
+  get.mock.calls.filter((call) => call[0] === "/admin/audit-logs");
+
+it("nhật ký kiểm toán hiện dòng thật từ API, kể cả hồ sơ bị Verifier từ chối, mới nhất trước", async () => {
+  const get = vi.spyOn(apiClient, "get").mockResolvedValue(
+    auditPage([
+      makeAuditEntry(1),
+      makeAuditEntry(2, {
+        actorRole: "ADMIN",
+        action: "USER_ROLE_CHANGED",
+        targetType: "USER",
+        reason: "Nhân viên mới",
+        actorFullName: "Quản trị A",
+        actorEmail: "admin@example.test",
+      }),
+    ]),
+  );
   setup(ROUTES.ADMIN.AUDIT_LOG);
-  expect(await screen.findByText(/chưa có API ở Backend/)).toBeInTheDocument();
-  expect(get).not.toHaveBeenCalled();
+
+  // "Từ chối hồ sơ chứng tử" cũng là một lựa chọn trong bộ lọc nên chỉ kiểm trong bảng.
+  const table = within(await screen.findByRole("table"));
+  expect(table.getByText("Từ chối hồ sơ chứng tử")).toBeInTheDocument();
+  expect(table.getByText("Người xét duyệt từ chối hồ sơ")).toBeInTheDocument();
+  expect(table.getByText("Người xét duyệt A")).toBeInTheDocument();
+  expect(table.getByText("verifier@example.test")).toBeInTheDocument();
+  expect(table.getByText("Đổi vai trò tài khoản")).toBeInTheDocument();
+  expect(screen.queryByText(/chưa có API ở Backend/)).not.toBeInTheDocument();
+  const [, config] = auditCalls(get)[0] as [string, { params: Record<string, unknown> }];
+  expect(config.params).toMatchObject({
+    pageIndex: 1,
+    pageSize: 20,
+    sortBy: "at",
+    isAscending: false,
+  });
+});
+
+it("nhật ký kiểm toán rỗng hiện trạng thái rỗng, không dựng dữ liệu mẫu", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue(auditPage([]));
+  setup(ROUTES.ADMIN.AUDIT_LOG);
+  expect(await screen.findByText("Chưa có dòng nhật ký nào khớp bộ lọc.")).toBeInTheDocument();
   expect(screen.queryByText(/DEMO-AUDIT/)).not.toBeInTheDocument();
+});
+
+it("nhật ký kiểm toán lỗi mạng có nút thử lại và tải lại được", async () => {
+  const user = userEvent.setup();
+  const get = vi.spyOn(apiClient, "get").mockRejectedValueOnce(httpError(500));
+  get.mockResolvedValue(auditPage([makeAuditEntry(1)]));
+  setup(ROUTES.ADMIN.AUDIT_LOG);
+  expect(await screen.findByRole("alert")).toHaveTextContent("Không thể tải dữ liệu.");
+  await user.click(screen.getByRole("button", { name: "Thử lại" }));
+  expect(
+    within(await screen.findByRole("table")).getByText("Từ chối hồ sơ chứng tử"),
+  ).toBeInTheDocument();
+  expect(auditCalls(get)).toHaveLength(2);
+});
+
+it("nhật ký kiểm toán 404 báo không có quyền, không thành danh sách rỗng và không có thử lại", async () => {
+  vi.spyOn(apiClient, "get").mockRejectedValue(httpError(404));
+  setup(ROUTES.ADMIN.AUDIT_LOG);
+  expect(await screen.findByText(/không có quyền truy cập nhật ký/)).toBeInTheDocument();
+  expect(screen.queryByText("Chưa có dòng nhật ký nào khớp bộ lọc.")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
+});
+
+it("nhật ký kiểm toán phân trang theo URL và lọc theo loại thao tác về trang 1", async () => {
+  const user = userEvent.setup();
+  const get = vi
+    .spyOn(apiClient, "get")
+    .mockResolvedValue(
+      auditPage([makeAuditEntry(1)], { totalCount: 45, totalPages: 3, hasNextPage: true }),
+    );
+  setup(ROUTES.ADMIN.AUDIT_LOG);
+  await screen.findByRole("table");
+  await user.click(screen.getByRole("button", { name: "Trang sau" }));
+  expect(screen.getByTestId("location")).toHaveTextContent("page=2");
+  await waitFor(() =>
+    expect(
+      auditCalls(get).some(
+        (call) => (call[1] as { params: { pageIndex: number } }).params.pageIndex === 2,
+      ),
+    ).toBe(true),
+  );
+
+  await user.selectOptions(screen.getByLabelText("Loại thao tác"), "DEATH_CASE_REJECTED");
+  expect(screen.getByTestId("location")).toHaveTextContent("action=DEATH_CASE_REJECTED");
+  expect(screen.getByTestId("location")).not.toHaveTextContent("page=2");
+  await waitFor(() =>
+    expect(
+      auditCalls(get).some(
+        (call) =>
+          (call[1] as { params: { action?: string } }).params.action === "DEATH_CASE_REJECTED",
+      ),
+    ).toBe(true),
+  );
 });
