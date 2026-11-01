@@ -14,6 +14,12 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import type { User } from "@/entities/user";
 import { beneficiaryService } from "../api/beneficiaryService";
 import { beneficiaryResponseSchema } from "../model/beneficiary.schema";
+import {
+  CITIZEN_ID_FORMAT_MESSAGE,
+  PHONE_FORMAT_MESSAGE,
+  isValidCitizenIdFormat,
+  isVietnamPhone,
+} from "../model/beneficiaryFormat";
 
 type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
 
@@ -133,6 +139,12 @@ export function BeneficiaryForm({
                 path: ["citizenId"],
                 message: "CCCD cần đủ 12 chữ số.",
               });
+            } else if (!isValidCitizenIdFormat(rawCitizenId)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["citizenId"],
+                message: CITIZEN_ID_FORMAT_MESSAGE,
+              });
             }
           }
 
@@ -152,17 +164,15 @@ export function BeneficiaryForm({
             });
           }
 
-          // 4. Kiểm tra định dạng số điện thoại nếu có nhập
+          // 4. Số điện thoại Việt Nam nếu có nhập. Khi sửa chỉ kiểm lúc đổi số, để hồ sơ cũ vẫn sửa được.
           const hasPhone = Boolean(values.phone?.trim());
-          if (hasPhone && values.phone) {
-            const cleanedPhone = values.phone.replace(/[\s.-]/g, "");
-            if (!/^\+?[0-9]{9,15}$/.test(cleanedPhone)) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["phone"],
-                message: "Số điện thoại không hợp lệ (9 đến 15 chữ số).",
-              });
-            }
+          const phoneChanged = !record || (values.phone ?? "") !== (record.phone ?? "");
+          if (hasPhone && values.phone && phoneChanged && !isVietnamPhone(values.phone)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["phone"],
+              message: PHONE_FORMAT_MESSAGE,
+            });
           }
         }),
     [record, todayStr, ownerEmail],
@@ -371,7 +381,7 @@ export function BeneficiaryForm({
                 })}
                 aria-invalid={Boolean(errors.phone)}
               />
-              <span className={HINT}>9 đến 15 chữ số, có thể bắt đầu bằng +.</span>
+              <span className={HINT}>Số Việt Nam, ví dụ 0912345678 hoặc +84912345678.</span>
               <FieldError message={errors.phone?.message} />
             </label>
           </div>
