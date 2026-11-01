@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
+import { useVaultPageTitle } from "@/features/vault-management/model/useVaultPageTitle";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { OwnerSection } from "@/widgets/OwnerWorkspace/OwnerSection";
 
@@ -12,6 +13,7 @@ const TAB_BASE =
 export function AssetsManagementPage() {
   const [params, setParams] = useSearchParams();
   const [creating, setCreating] = useState(false);
+  const pageTitle = useVaultPageTitle();
   const onGroups = params.get("tab") === GROUPS_TAB;
 
   function selectTab(groups: boolean): void {
@@ -42,7 +44,8 @@ export function AssetsManagementPage() {
   }
   return (
     <OwnerWorkspace
-      title="Kho của tôi"
+      title={pageTitle.title}
+      eyebrow={pageTitle.eyebrow}
       description="Mọi thứ bạn muốn để lại, được giữ kín. Người nhận được gắn theo gói bàn giao, không gắn từng mục."
       headerAction={headerAction}
     >

@@ -65,6 +65,8 @@ function useCanSwitchToExecutor(): boolean {
 
 export interface OwnerWorkspaceProps {
   title: string;
+  /** Nhãn nhỏ phía trên tiêu đề, dùng khi tiêu đề là dữ liệu riêng (ví dụ tên kho). */
+  eyebrow?: string;
   description: string;
   headerAction?: ReactNode;
   children: ReactNode;
@@ -73,6 +75,7 @@ export interface OwnerWorkspaceProps {
 /** Khung chính thống nhất; logo điều hướng nội bộ và giữ nguyên phiên/cache. */
 export function OwnerWorkspace({
   title,
+  eyebrow,
   description,
   headerAction,
   children,
@@ -190,7 +193,12 @@ export function OwnerWorkspace({
     >
       <header className="owner-page-header flex flex-wrap items-center justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-heritage-primary">
+          {eyebrow && (
+            <p className="text-xs font-semibold uppercase tracking-wider text-heritage-muted">
+              {eyebrow}
+            </p>
+          )}
+          <h1 className="break-words text-2xl sm:text-3xl font-medium tracking-tight text-heritage-primary">
             {title}
           </h1>
           <p className="mt-1 text-sm text-heritage-muted">{description}</p>
