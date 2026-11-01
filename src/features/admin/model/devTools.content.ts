@@ -74,7 +74,7 @@ export const CLOCK_STATE_LABELS: Record<DevClock["clockState"], string> = {
 };
 
 export const DEV_TOOLS_NOTICE =
-  "Trang này chỉ có ở môi trường Development và chỉ quản trị viên dùng được. Bản chạy thật không có. Mọi thao tác được ghi vào nhật ký kiểm toán.";
+  "Trang này chỉ có ở môi trường Development và chỉ quản trị viên dùng được. Bản chạy thật không có. Mọi thao tác được ghi vào nhật ký hoạt động.";
 
 export const DEV_TOOLS_FOOTNOTE =
   "Tua theo thứ tự từ trên xuống. “Về thời gian hiện tại” đưa đồng hồ của hồ sơ về thời gian thực; trạng thái đã phát sinh khi tua được giữ nguyên.";

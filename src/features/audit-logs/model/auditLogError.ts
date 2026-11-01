@@ -18,7 +18,7 @@ export function classifyAuditLogError(error: unknown): AuditLogErrorView {
     const status = error.response.status;
     // BE trả 404 cho người không phải Admin đang hoạt động (SEC-04); 403 xử lý như nhau.
     if (status === HTTP_STATUS.NOT_FOUND || status === HTTP_STATUS.FORBIDDEN) {
-      return { message: "Bạn không có quyền truy cập nhật ký kiểm toán.", canRetry: false };
+      return { message: "Bạn không có quyền truy cập nhật ký hoạt động.", canRetry: false };
     }
     if (status === HTTP_STATUS.UNAUTHORIZED) {
       return { message: APP_MESSAGES.ERROR.UNAUTHORIZED, canRetry: false };

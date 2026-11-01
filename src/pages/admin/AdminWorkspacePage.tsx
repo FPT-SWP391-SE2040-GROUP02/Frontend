@@ -4,6 +4,7 @@ import {
   AdminHolds,
   AdminIncidents,
   AdminOverview,
+  AdminPayments,
   AdminUsers,
 } from "@/features/admin";
 import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
@@ -19,8 +20,9 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
   { id: "overview", label: "Tổng quan", to: ROUTES.ADMIN.ROOT },
   { id: "incidents", label: "Sự cố", to: `${ROUTES.ADMIN.ROOT}?view=incidents` },
   { id: "holds", label: "Tạm giữ", to: `${ROUTES.ADMIN.ROOT}?view=holds` },
+  { id: "payments", label: "Giao dịch thanh toán", to: `${ROUTES.ADMIN.ROOT}?view=payments` },
   { id: "users", label: "Người dùng", to: ROUTES.DASHBOARD.USERS },
-  { id: "audit", label: "Nhật ký kiểm toán", to: ROUTES.ADMIN.AUDIT_LOG },
+  { id: "audit", label: "Nhật ký hoạt động", to: ROUTES.ADMIN.AUDIT_LOG },
   { id: "security", label: "Bảo mật tài khoản", to: `${ROUTES.ADMIN.ROOT}?view=security` },
 ];
 
@@ -50,13 +52,18 @@ const VIEWS = {
     title: "Tạm giữ",
     description: "Xem, đặt, rà soát và gỡ tạm giữ trên kho hoặc gói.",
   },
+  payments: {
+    title: "Giao dịch thanh toán",
+    description: "Tiền vào qua SePay và kết quả đối chiếu với đơn. Chỉ xem, không sửa giao dịch.",
+  },
   users: {
     title: "Người dùng",
     description: "Tìm tài khoản, đổi vai trò hoặc khóa tài khoản kèm lý do.",
   },
   audit: {
-    title: "Nhật ký kiểm toán",
-    description: "Dấu vết thao tác trên toàn hệ thống, mới nhất trước, kể cả các hồ sơ bị từ chối.",
+    title: "Nhật ký hoạt động",
+    description:
+      "Ai đã làm gì và lúc nào trên toàn hệ thống, mới nhất trước, kể cả các hồ sơ bị từ chối.",
   },
   security: {
     title: "Bảo mật tài khoản",
@@ -70,12 +77,13 @@ const VIEWS = {
 
 type AdminView = keyof typeof VIEWS;
 
-/** Sự cố và tạm giữ dùng `?view=` trên route gốc để không cần thêm route mới. */
+/** Sự cố, tạm giữ và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
 function viewFor(pathname: string, search: string): AdminView {
   if (pathname === ROUTES.DASHBOARD.USERS) return "users";
   if (pathname === ROUTES.ADMIN.AUDIT_LOG) return "audit";
   const view = new URLSearchParams(search).get("view");
-  if (view === "incidents" || view === "holds" || view === "security") return view;
+  if (view === "incidents" || view === "holds" || view === "payments" || view === "security")
+    return view;
   if (view === "dev-tools" && DEV_TOOLS_ENABLED) return view;
   return "overview";
 }
@@ -95,6 +103,7 @@ export function AdminWorkspacePage() {
       {view === "overview" && <AdminOverview />}
       {view === "incidents" && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}
+      {view === "payments" && <AdminPayments />}
       {view === "users" && <AdminUsers />}
       {view === "security" && <AdminTwoFactorSettings />}
       {view === "dev-tools" && <AdminDevTools />}

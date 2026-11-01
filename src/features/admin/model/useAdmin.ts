@@ -1,6 +1,12 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { adminService } from "../api/adminService";
-import type { AdminUserRole, AdminUsersQuery, HoldsQuery, IncidentsQuery } from "./admin.schema";
+import type {
+  AdminUserRole,
+  AdminUsersQuery,
+  HoldsQuery,
+  IncidentsQuery,
+  PaymentTransactionsQuery,
+} from "./admin.schema";
 
 export const adminKeys = {
   all: ["admin"] as const,
@@ -11,6 +17,8 @@ export const adminKeys = {
   incident: (incidentId: string) => [...adminKeys.all, "incident", incidentId] as const,
   holds: (query: HoldsQuery) => [...adminKeys.all, "holds", query] as const,
   hold: (holdId: string) => [...adminKeys.all, "hold", holdId] as const,
+  paymentTransactions: (query: PaymentTransactionsQuery) =>
+    [...adminKeys.all, "payment-transactions", query] as const,
 };
 
 /** Bộ đếm tổng quan; không tự retry để 404/401 hiện ngay. */
@@ -75,6 +83,16 @@ export function useAdminHold(holdId: string) {
   return useQuery({
     queryKey: adminKeys.hold(holdId),
     queryFn: ({ signal }) => adminService.getHold(holdId, signal),
+    retry: false,
+  });
+}
+
+/** Một trang giao dịch tiền vào; giữ trang trước khi đổi bộ lọc để bảng không nháy trắng. */
+export function useAdminPaymentTransactions(query: PaymentTransactionsQuery) {
+  return useQuery({
+    queryKey: adminKeys.paymentTransactions(query),
+    queryFn: ({ signal }) => adminService.listPaymentTransactions(query, signal),
+    placeholderData: keepPreviousData,
     retry: false,
   });
 }

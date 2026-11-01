@@ -21,7 +21,7 @@ import { AuditLogFilters } from "./AuditLogFilters";
 import { AdminAuditLogTable } from "./AdminAuditLogTable";
 
 /**
- * @description Màn Nhật ký kiểm toán của Admin: danh sách thật từ GET /admin/audit-logs, mới nhất trước.
+ * @description Màn Nhật ký hoạt động của Admin: danh sách thật từ GET /admin/audit-logs, mới nhất trước.
  * URL là nguồn chính cho bộ lọc và trang; đổi bộ lọc đưa về trang 1. Không có dữ liệu mẫu: lỗi API hiện lỗi
  * kèm thử lại, danh sách rỗng hiện trạng thái rỗng.
  */
@@ -77,7 +77,7 @@ export function AdminAuditLogs() {
   return (
     <section aria-labelledby="admin-audit-log" className="mt-6 space-y-5">
       <h2 id="admin-audit-log" className="sr-only">
-        Danh sách nhật ký kiểm toán
+        Danh sách nhật ký hoạt động
       </h2>
       <AuditLogFilters
         state={state}

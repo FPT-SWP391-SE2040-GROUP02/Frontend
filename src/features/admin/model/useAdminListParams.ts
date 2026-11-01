@@ -4,8 +4,10 @@ import {
   holdStatusSchema,
   incidentStatusSchema,
   incidentTypeSchema,
+  paymentTransactionStatusSchema,
   type HoldsQuery,
   type IncidentsQuery,
+  type PaymentTransactionsQuery,
 } from "./admin.schema";
 
 const MAX_PAGE = 1_000_000;
@@ -92,5 +94,27 @@ export function useAdminHoldParams() {
     clearFilters: () => write({ hstatus: undefined }),
     setPage: (next: number) => write({ page: next > 1 ? String(next) : undefined }, false),
     select: (id: string | undefined) => write({ hold: id }, false),
+  };
+}
+
+/** Bộ lọc Giao dịch thanh toán trên URL (`pstatus`, `page`); giá trị ngoài enum bị bỏ qua. */
+export function useAdminPaymentParams() {
+  const { params, write } = useParamWriter();
+  const status = paymentTransactionStatusSchema.safeParse(params.get("pstatus"));
+  const filters = { status: status.success ? status.data : undefined };
+  const page = readPage(params.get("page"));
+  const query: PaymentTransactionsQuery = {
+    status: filters.status,
+    pageIndex: page,
+    pageSize: ADMIN_LIST_PAGE_SIZE,
+  };
+  return {
+    filters,
+    page,
+    query,
+    hasFilters: Boolean(filters.status),
+    setStatus: (value: string | undefined) => write({ pstatus: value }),
+    clearFilters: () => write({ pstatus: undefined }),
+    setPage: (next: number) => write({ page: next > 1 ? String(next) : undefined }, false),
   };
 }
