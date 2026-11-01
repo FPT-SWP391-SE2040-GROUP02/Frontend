@@ -22,7 +22,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   const hasCase = Boolean(vault.openDeathCaseId);
   return (
     <div className="space-y-6">
-      {vault.checkInOverdue ? (
+      {vault.checkInOverdue && (
         <Notice
           tone="warning"
           title={`${vault.ownerFullName} đã quá hạn điểm danh`}
@@ -40,13 +40,28 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
             </div>
           )}
         </Notice>
-      ) : (
+      )}
+      {/* Đã có hồ sơ báo tin thì kế hoạch không còn "quá hạn" (đã khóa), nhưng cũng không phải "an toàn". */}
+      {!vault.checkInOverdue && hasCase && (
+        <Notice
+          tone="warning"
+          title={`Hồ sơ báo tin về ${vault.ownerFullName} đang được xử lý`}
+          action={
+            <Link className={buttonStyles.gold} to={ROUTES.EXECUTOR.REPORT}>
+              Xem hồ sơ báo tin
+            </Link>
+          }
+        >
+          Theo dõi tiến trình xét duyệt và bổ sung hồ sơ khi Người xét duyệt yêu cầu.
+        </Notice>
+      )}
+      {!vault.checkInOverdue && !hasCase && (
         <Notice
           tone="success"
           title={`Kho của ${vault.ownerFullName} đang an toàn`}
           action={
             <Link className={buttonStyles.gold} to={ROUTES.EXECUTOR.REPORT}>
-              {hasCase ? "Xem hồ sơ báo tin" : "Báo tin"}
+              Báo tin
             </Link>
           }
         >
