@@ -158,6 +158,12 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+/** Mở ô chọn tùy biến trong hộp thoại rồi bấm một lựa chọn theo nhãn hiển thị. */
+async function chooseOption(dialog: HTMLElement, fieldLabel: string, optionName: string) {
+  await userEvent.click(within(dialog).getByLabelText(fieldLabel));
+  await userEvent.click(await screen.findByRole("option", { name: optionName }));
+}
+
 function setup(path: string) {
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(
@@ -392,7 +398,7 @@ describe("Tài khoản", () => {
     const dialog = await screen.findByRole("dialog");
     const submit = within(dialog).getByRole("button", { name: "Đổi vai trò" });
     expect(submit).toBeDisabled();
-    await userEvent.selectOptions(within(dialog).getByLabelText("Vai trò mới"), "VERIFIER");
+    await chooseOption(dialog, "Vai trò mới", "Người xét duyệt");
     await userEvent.type(within(dialog).getByLabelText("Lý do"), "Bổ sung người xét duyệt");
     fireEvent.click(within(dialog).getByRole("checkbox"));
     await waitFor(() => expect(submit).toBeEnabled());
@@ -420,10 +426,9 @@ describe("Tài khoản", () => {
 
     fireEvent.click((await screen.findAllByRole("button", { name: /Đổi vai trò của Bạn Hai/ }))[0]);
     const roleDialog = await screen.findByRole("dialog");
-    const roleOptions = within(within(roleDialog).getByLabelText("Vai trò mới"))
-      .getAllByRole("option")
-      .map((option) => option.getAttribute("value"));
-    expect(roleOptions).not.toContain("EXECUTOR");
+    await userEvent.click(within(roleDialog).getByLabelText("Vai trò mới"));
+    const roleOptions = (await screen.findAllByRole("option")).map((option) => option.textContent);
+    expect(roleOptions).toEqual(["Người dùng", "Người xét duyệt", "Quản trị viên"]);
   });
 
   it.each([
@@ -440,7 +445,7 @@ describe("Tài khoản", () => {
       (await screen.findAllByRole("button", { name: /Đổi trạng thái của Bạn Hai/ }))[0],
     );
     const dialog = await screen.findByRole("dialog");
-    await userEvent.selectOptions(within(dialog).getByLabelText("Trạng thái mới"), "LOCKED");
+    await chooseOption(dialog, "Trạng thái mới", "Tạm khóa");
     await userEvent.type(within(dialog).getByLabelText("Lý do"), "Nghi ngờ truy cập trái phép");
     fireEvent.click(within(dialog).getByRole("checkbox"));
     fireEvent.click(within(dialog).getByRole("button", { name: "Đổi trạng thái" }));
