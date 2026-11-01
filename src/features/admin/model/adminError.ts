@@ -25,6 +25,8 @@ const ACTION_REASONS: Record<string, string> = {
   LAST_ADMIN: "Hệ thống phải còn ít nhất một quản trị viên đang hoạt động.",
   CASE_NOT_PENDING:
     "Hồ sơ này không còn ở giai đoạn chờ xét nên không giao lại người xét duyệt được.",
+  INCIDENT_FOLLOWS_CASE:
+    "Sự cố này đi theo hồ sơ chứng tử. Hãy dùng Giao người xét duyệt để chuyển cả hồ sơ.",
 };
 
 /** Câu báo theo mã lỗi riêng của khu vực quản trị. */
