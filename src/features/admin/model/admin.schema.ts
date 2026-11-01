@@ -82,6 +82,7 @@ export const INCIDENT_TYPES = [
   "INTEGRATION",
   "MANUAL",
   "PAYMENT",
+  "SUSPICIOUS_LOGIN",
 ] as const;
 /** `IncidentStatus` của Backend. */
 export const INCIDENT_STATUSES = ["OPEN", "IN_PROGRESS", "RESOLVED"] as const;

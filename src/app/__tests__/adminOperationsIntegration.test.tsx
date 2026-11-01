@@ -231,6 +231,24 @@ describe("Sự cố", () => {
     );
   });
 
+  it("hiện sự cố đăng nhập bất thường (tài khoản bị khóa vì sai mật khẩu, không gắn kho)", async () => {
+    backend(() =>
+      page([
+        incidentSummary({
+          type: "SUSPICIOUS_LOGIN",
+          vaultId: null,
+          targetType: "USER",
+          targetId: OTHER_USER_ID,
+          summary:
+            "Nhập sai mật khẩu 5 lần trong 15 phút từ dải IP 203.0.113.0/24; tài khoản bị tạm khóa 15 phút.",
+        }),
+      ]),
+    );
+    setup(incidentsPath);
+    expect(await screen.findByText(/Nhập sai mật khẩu 5 lần/)).toBeInTheDocument();
+    expect(screen.getAllByText("Đăng nhập bất thường").length).toBeGreaterThan(0);
+  });
+
   it("phân biệt danh sách rỗng khi không và có bộ lọc, và cho xóa bộ lọc", async () => {
     backend(() => page([]));
     setup(`${incidentsPath}&status=RESOLVED`);
