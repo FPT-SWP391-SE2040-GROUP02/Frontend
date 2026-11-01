@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Lock } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 import type { ExecutorVault } from "../model/deathCase.schema";
 import { buttonStyles, Chip, InfoRow, Initial, Notice, Panel } from "@/shared/ui/heritageKit";
 import { useRejectedAck } from "../model/useRejectedAck";
@@ -94,24 +95,41 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
         </Notice>
       )}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <Panel title="Bạn sẽ làm gì?">
-          <ol className="divide-y divide-heritage-border">
-            {duties.map((duty, index) => (
-              <li key={duty.title} className="flex gap-4 py-4 first:pt-0 last:pb-0">
-                <span
-                  aria-hidden="true"
-                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]"
-                >
-                  {index + 1}
-                </span>
-                <div>
-                  <p className="font-semibold">{duty.title}</p>
-                  <p className="mt-1 text-sm text-heritage-muted">{duty.text}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </Panel>
+        <div className="space-y-6">
+          <Panel title={`Hướng dẫn từ ${vault.ownerFullName}`}>
+            {vault.executorNote && (
+              <>
+                <p className="whitespace-pre-line text-sm leading-relaxed">{vault.executorNote}</p>
+                {vault.executorNoteUpdatedAt && (
+                  <p className="mt-3 text-xs text-heritage-muted">
+                    Cập nhật {formatDateTime(vault.executorNoteUpdatedAt)}
+                  </p>
+                )}
+              </>
+            )}
+            {!vault.executorNote && (
+              <p className="text-sm text-heritage-muted">Chủ kho chưa để lại hướng dẫn.</p>
+            )}
+          </Panel>
+          <Panel title="Bạn sẽ làm gì?">
+            <ol className="divide-y divide-heritage-border">
+              {duties.map((duty, index) => (
+                <li key={duty.title} className="flex gap-4 py-4 first:pt-0 last:pb-0">
+                  <span
+                    aria-hidden="true"
+                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]"
+                  >
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className="font-semibold">{duty.title}</p>
+                    <p className="mt-1 text-sm text-heritage-muted">{duty.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </Panel>
+        </div>
         <div className="space-y-6">
           <Panel title="Kho được giao cho bạn">
             <dl>

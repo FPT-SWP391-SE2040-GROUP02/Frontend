@@ -5,6 +5,9 @@ export const vaultResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   description: z.string().nullable(),
+  /** Hướng dẫn Chủ kho để lại cho Executor. Backend cũ không có trường này. */
+  executorNote: z.string().nullish(),
+  executorNoteUpdatedAt: z.string().datetime({ offset: true }).nullish(),
   status: z.enum(["OPEN", "CLOSED"]),
   closedAt: z.string().datetime({ offset: true }).nullable(),
   planStatus: z.string().min(1),

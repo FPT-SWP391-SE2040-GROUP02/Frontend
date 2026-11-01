@@ -19,6 +19,10 @@ const createVaultSchema = z.object({
   name: z.string().max(200).nullable().optional(),
   description: z.string().max(1000).nullable().optional(),
 });
+const updateVaultSchema = createVaultSchema.extend({
+  etag: z.string().min(1).max(64),
+  executorNote: z.string().max(2000).optional(),
+});
 const containers = (vaultId: string) => `/vaults/${idSchema.parse(vaultId)}/containers`;
 const container = (vaultId: string, id: string) => `${containers(vaultId)}/${idSchema.parse(id)}`;
 
@@ -39,9 +43,9 @@ export const ownerVaultService = {
       ),
     );
   },
-  /** PUT chỉ metadata kho, giữ etag đọc ban đầu; không tự retry 409. */
-  async updateMine(vaultId: string, request: z.infer<typeof createVaultSchema> & { etag: string }) {
-    const body = createVaultSchema.extend({ etag: z.string().min(1).max(64) }).parse(request);
+  /** PUT metadata kho và hướng dẫn cho Executor (bỏ trường = giữ nguyên), giữ etag đọc ban đầu; không tự retry 409. */
+  async updateMine(vaultId: string, request: z.infer<typeof updateVaultSchema>) {
+    const body = updateVaultSchema.parse(request);
     return vaultResponseSchema.parse(
       await apiClient.put<unknown, unknown>(`/vaults/${idSchema.parse(vaultId)}`, body),
     );
