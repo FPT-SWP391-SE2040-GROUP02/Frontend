@@ -38,6 +38,7 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   OBJECTION_REPORTED: "Báo còn sống",
   OBJECTION_CONCLUDED: "Kết luận báo còn sống",
   DEATH_CASE_OPENED: "Mở hồ sơ chứng tử",
+  DEATH_CASE_DRAFT_CANCELLED: "Hủy hồ sơ chứng tử nháp",
   DEATH_CASE_SUBMITTED: "Gửi hồ sơ chứng tử",
   DEATH_CASE_VERSION_CREATED: "Tạo bản bổ sung hồ sơ",
   DEATH_CASE_FLAG_REVIEWED: "Xem xét cờ cảnh báo hồ sơ",
@@ -47,6 +48,20 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   PAYMENT_ORDER_CREATED: "Tạo đơn thanh toán",
   PAYMENT_ORDER_CANCELLED: "Hủy đơn thanh toán",
   PAYMENT_PAID: "Thanh toán thành công",
+  SERVICE_GRACE_STARTED: "Hết hạn dịch vụ, chuyển sang chỉ đọc",
+  VAULT_PIN_SET: "Đặt mã PIN kho",
+  VAULT_PIN_CHANGED: "Đổi mã PIN kho",
+  VAULT_PIN_RESET: "Đặt lại mã PIN kho",
+  VAULT_PIN_WRONG: "Nhập sai mã PIN kho",
+  VAULT_PIN_LOCKED: "Mã PIN kho bị khóa tạm",
+  TIER_OVERRIDE_BELOW_RECOMMENDED: "Chọn tầng bảo mật thấp hơn khuyến nghị",
+  DEATH_CASE_SUPPLEMENT_EXHAUSTED: "Đóng hồ sơ sau 3 vòng bổ sung",
+  DEV_TIME_TRAVEL: "Tua thời gian thử nghiệm",
+  DEV_CLOCK_RESET: "Đưa đồng hồ về thời gian thực",
+  DEV_EKYC_RESET: "Đặt lại dữ liệu eKYC",
+  DEV_REWIND_BEFORE_EKYC: "Tua kho về trước eKYC",
+  DEV_UPDATE_EKYC_THRESHOLD: "Cập nhật ngưỡng so khớp khuôn mặt",
+  ADMIN_CREATED_USER: "Tạo tài khoản hệ thống",
 };
 
 export const ACTOR_ROLE_LABELS: Record<(typeof auditActorRoleValues)[number], string> = {
@@ -70,6 +85,7 @@ export const TARGET_TYPE_LABELS: Record<(typeof auditTargetTypeValues)[number], 
   INCIDENT: "Sự cố",
   USER: "Tài khoản",
   PAYMENT_ORDER: "Đơn thanh toán",
+  CONFIGURATION: "Cấu hình hệ thống",
 };
 
 export const OUTCOME_LABELS: Record<(typeof auditOutcomeValues)[number], string> = {
@@ -96,7 +112,16 @@ export function displayName(id: string, names: AuditNameMap): string {
   return shortId(id);
 }
 
+/** Mã lý do Backend ghi khi hồ sơ chứng tử bị từ chối (lý do tự do của Verifier không vào nhật ký). */
+const REASON_CODE_LABELS: Record<string, string> = {
+  VERIFIER_REJECTED: "Người xét duyệt từ chối hồ sơ",
+  ALIVE_CONFIRMED: "Người xét duyệt xác nhận chủ kho còn sống",
+};
+
 /** Lý do do Backend ghi kèm UUID ("Người nhận 01a1…"); thay bằng tên thật hoặc mã rút gọn cho dễ đọc. */
 export function friendlyReason(reason: string, names: AuditNameMap = {}): string {
+  if (Object.hasOwn(REASON_CODE_LABELS, reason)) {
+    return REASON_CODE_LABELS[reason];
+  }
   return reason.replace(UUID_PATTERN, (match) => displayName(match, names));
 }

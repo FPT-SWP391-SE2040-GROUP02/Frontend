@@ -6,5 +6,6 @@ import type { AuditLogQuery } from "./auditLog.schema";
  */
 export const auditLogKeys = {
   all: ["audit-logs"] as const,
+  adminList: (query?: AuditLogQuery) => ["audit-logs", "admin", query ?? {}] as const,
   list: (vaultId: string, query?: AuditLogQuery) => ["audit-logs", vaultId, query ?? {}] as const,
 };

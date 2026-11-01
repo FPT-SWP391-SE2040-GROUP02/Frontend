@@ -39,6 +39,7 @@ export const auditActionValues = [
   "OBJECTION_REPORTED",
   "OBJECTION_CONCLUDED",
   "DEATH_CASE_OPENED",
+  "DEATH_CASE_DRAFT_CANCELLED",
   "DEATH_CASE_SUBMITTED",
   "DEATH_CASE_VERSION_CREATED",
   "DEATH_CASE_FLAG_REVIEWED",
@@ -48,6 +49,24 @@ export const auditActionValues = [
   "PAYMENT_ORDER_CREATED",
   "PAYMENT_ORDER_CANCELLED",
   "PAYMENT_PAID",
+  // Job hết hạn dịch vụ: kho trả phí hết kỳ sang ân hạn chỉ đọc (OPLAN-01).
+  "SERVICE_GRACE_STARTED",
+  // Thao tác mã PIN của kho
+  "VAULT_PIN_SET",
+  "VAULT_PIN_CHANGED",
+  "VAULT_PIN_RESET",
+  "VAULT_PIN_WRONG",
+  "VAULT_PIN_LOCKED",
+  // Cảnh báo override tầng bảo mật và kết thúc bổ sung
+  "TIER_OVERRIDE_BELOW_RECOMMENDED",
+  "DEATH_CASE_SUPPLEMENT_EXHAUSTED",
+  // Thao tác công cụ dev và quản trị
+  "DEV_TIME_TRAVEL",
+  "DEV_CLOCK_RESET",
+  "DEV_EKYC_RESET",
+  "DEV_REWIND_BEFORE_EKYC",
+  "DEV_UPDATE_EKYC_THRESHOLD",
+  "ADMIN_CREATED_USER",
 ] as const;
 
 /** Wire role người thực hiện; SYSTEM dùng khi job nền. */
@@ -73,6 +92,7 @@ export const auditTargetTypeValues = [
   "INCIDENT",
   "USER",
   "PAYMENT_ORDER",
+  "CONFIGURATION",
 ] as const;
 
 /** Kết quả; hiện tại Backend chỉ ghi SUCCEEDED. */
@@ -98,6 +118,19 @@ export const auditLogResponseSchema = z.object({
   reason: z.string().nullable(),
 });
 
+/**
+ * @description Raw DTO `AdminAuditLogResponse` (GET /admin/audit-logs): `AuditLogResponse` kèm kho liên quan
+ * và tên, email người thực hiện (null khi job nền thực hiện hoặc tài khoản không còn).
+ */
+export const adminAuditLogResponseSchema = auditLogResponseSchema.extend({
+  vaultId: uuid.nullable(),
+  actorFullName: z.string().nullable(),
+  actorEmail: z.string().nullable(),
+});
+
+/** Raw `PaginatedList<AdminAuditLogResponse>`; service parse đúng một lần. */
+export const adminAuditLogPageSchema = paginatedListSchema(adminAuditLogResponseSchema);
+
 /** Raw `PaginatedList<AuditLogResponse>`; service parse đúng một lần. */
 export const auditLogPageSchema = paginatedListSchema(auditLogResponseSchema);
 
@@ -120,3 +153,5 @@ export const auditLogQuerySchema = paginationRequestSchema
 export type AuditLogQuery = z.infer<typeof auditLogQuerySchema>;
 export type AuditLogEntry = z.infer<typeof auditLogResponseSchema>;
 export type AuditAction = (typeof auditActionValues)[number];
+export type AdminAuditLogEntry = z.infer<typeof adminAuditLogResponseSchema>;
+export type AdminAuditLogPage = z.infer<typeof adminAuditLogPageSchema>;

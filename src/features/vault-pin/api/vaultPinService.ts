@@ -1,4 +1,5 @@
 import { axiosClient } from "@/shared/api/axiosClient";
+import { VAULT_PIN_HEADER } from "@/shared/api/vaultPin";
 import {
   changePinFormSchema,
   resetPinFormSchema,
@@ -40,6 +41,15 @@ export const vaultPinService = {
         confirmPin,
       }),
     );
+  },
+  /**
+   * Chỉ kiểm PIN (204), dùng trước khi mở chế độ sửa tài sản. Không kèm PIN thì Backend trả lỗi PIN để
+   * confirmVaultPin biết cần hỏi; đường /pin/... không đi qua hộp thoại tự động của transport.
+   */
+  async verify(vaultId: string, pin?: string): Promise<void> {
+    const headers: Record<string, string> = {};
+    if (pin !== undefined) headers[VAULT_PIN_HEADER] = pin;
+    await axiosClient.post<unknown, unknown>(`${pinUrl(vaultId)}/verify`, null, { headers });
   },
   /** Quên PIN: đúng mật khẩu tài khoản thì đặt PIN mới ngay và gỡ khóa; sai mật khẩu thì 401 REAUTHENTICATION_FAILED. */
   async reset(vaultId: string, values: ResetPinFormValues) {

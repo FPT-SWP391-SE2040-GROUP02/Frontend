@@ -1,7 +1,7 @@
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
@@ -21,7 +21,7 @@ const FILE_ID = "55555555-5555-4555-8555-555555555555";
 const CASE_B_ID = "66666666-6666-4666-8666-666666666666";
 // Đầu id khác cuối: bắt lỗi dùng 8 ký tự đầu thay vì mã hồ sơ của BE (8 ký tự cuối, in hoa).
 const MIXED_CASE_ID = "0199e7a4-3c1b-7f2d-9a41-5e6b8c0d1a2f";
-// Mật khẩu giả cho test ký số; không phải mật khẩu thật của tài khoản nào.
+// Mật khẩu giả cho test xác nhận Duyệt/Từ chối; không phải mật khẩu thật của tài khoản nào.
 const SIGNING_PASSWORD = "mat-khau-thu";
 const originalAdapter = apiClient.defaults.adapter;
 let client: QueryClient;
@@ -276,7 +276,7 @@ it("duyệt chỉ gửi sau hai xác nhận và dùng etag của hồ sơ đang 
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận các thông tin/ }));
   expect(submit).toBeDisabled();
   await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra phạm vi/ }));
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   await user.click(submit);
   await waitFor(() =>
     expect(post).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}/approve`, {
@@ -309,7 +309,7 @@ it("duyệt bị từ chối thì nêu đúng lý do của Backend thay vì câu
   await user.type(screen.getByLabelText("Lý do duyệt"), "Đã đối soát đầy đủ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận các thông tin/ }));
   await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra phạm vi/ }));
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "Kế hoạch của kho không còn ở trạng thái mở hồ sơ",
@@ -428,7 +428,7 @@ it("modal từ chối yêu cầu lý do không rỗng và xác nhận theo contr
   const reasonInput = await screen.findByLabelText("Lý do từ chối");
   await user.type(reasonInput, "   ");
   await user.click(await screen.findByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   const submitBtn = await screen.findByRole("button", { name: /^Từ chối$/ });
   expect(submitBtn).toBeDisabled();
   await user.clear(reasonInput);
@@ -501,7 +501,7 @@ it("kết quả mở bàn giao vẫn hiện sau khi duyệt, không bị GET chi
   await user.type(screen.getByLabelText("Lý do duyệt"), "Đủ căn cứ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận các thông tin/ }));
   await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra phạm vi/ }));
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
   expect(await screen.findByText(/Đã mở 2 lượt bàn giao/)).toBeInTheDocument();
   await new Promise((resolve) => setTimeout(resolve, 50));
@@ -526,7 +526,7 @@ it("hồ sơ chờ bổ sung chỉ còn nút từ chối, không xem xét cờ h
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
   await user.type(screen.getByLabelText("Lý do từ chối"), "Executor không bổ sung đúng hạn");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
   await waitFor(() =>
     expect(post).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}/reject`, {
@@ -628,8 +628,46 @@ it("hồ sơ đang xét vẫn hiện Hạn xét ở chi tiết", async () => {
   expect(screen.queryByText(/Đang chờ Executor bổ sung/)).not.toBeInTheDocument();
 });
 
-it("GET chi tiết 404 báo hồ sơ không còn được giao và nút Về danh sách xóa caseId", async () => {
+it("Executor đang soạn bản bổ sung thì Verifier thấy lý do chưa duyệt được", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID)
+      ? { ...detailFixture, canApprove: false, approveBlockers: ["NEWER_VERSION_PENDING"] }
+      : listFixture,
+  );
+  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
+  expect(await screen.findByText("Executor đang soạn bản bổ sung")).toBeInTheDocument();
+  expect(screen.getByText(/Bạn đang xem bản đã gửi số 1/)).toBeInTheDocument();
+});
+
+it("quay lại tab thấy hồ sơ đã đổi thì báo, không tự thay nội dung; bấm xem bản mới mới tải lại", async () => {
   const user = userEvent.setup();
+  let etag = "v-1";
+  let detailReads = 0;
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
+    if (!String(url).endsWith(CASE_ID)) return listFixture;
+    detailReads += 1;
+    return { ...detailFixture, etag };
+  });
+  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
+  await screen.findByText("012345678901");
+  expect(detailReads).toBe(1);
+  expect(screen.queryByText("Hồ sơ vừa thay đổi")).not.toBeInTheDocument();
+
+  etag = "v-2";
+  act(() => {
+    focusManager.setFocused(false);
+    focusManager.setFocused(true);
+  });
+
+  expect(await screen.findByText("Hồ sơ vừa thay đổi")).toBeInTheDocument();
+  expect(detailReads).toBe(2);
+  await user.click(screen.getByRole("button", { name: "Xem bản mới nhất" }));
+  await waitFor(() => expect(screen.queryByText("Hồ sơ vừa thay đổi")).not.toBeInTheDocument());
+  expect(detailReads).toBe(3);
+  focusManager.setFocused(undefined);
+});
+
+it("GET chi tiết 404 tự chuyển về trang tổng quan, xóa caseId và tải lại danh sách", async () => {
   const get = vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
     if (String(url).endsWith(CASE_ID))
       throw new AxiosError("not found", undefined, undefined, undefined, {
@@ -643,13 +681,11 @@ it("GET chi tiết 404 báo hồ sơ không còn được giao và nút Về dan
   });
   const listCalls = () => get.mock.calls.filter(([url]) => !String(url).endsWith(CASE_ID)).length;
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=approve&flagId=${FLAG_ID}`);
-  expect(await screen.findByText("Hồ sơ không còn được giao cho bạn.")).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
-  const before = listCalls();
-  await user.click(screen.getByRole("button", { name: "Về danh sách" }));
   await waitFor(() => expect(screen.getByTestId("search").textContent).toBe(""));
   expect(await screen.findByRole("region", { name: "Hồ sơ chứng tử" })).toBeInTheDocument();
-  await waitFor(() => expect(listCalls()).toBeGreaterThan(before));
+  expect(screen.queryByText("Hồ sơ không còn được giao cho bạn.")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
+  await waitFor(() => expect(listCalls()).toBeGreaterThan(0));
 });
 
 it("lỗi khác 404 của GET chi tiết vẫn giữ Thử lại, không báo mất phân công", async () => {
@@ -693,7 +729,7 @@ it("đổi sang hồ sơ khác không giữ modal và lỗi của hồ sơ cũ",
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
   await user.type(await screen.findByLabelText("Lý do từ chối"), "Không đủ căn cứ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent(/đã thay đổi/);
   // Dialog đang mở nên phần còn lại bị ẩn khỏi cây truy cập; click trực tiếp như khi người dùng quay về hàng chờ.
@@ -779,7 +815,7 @@ it("409 EDIT_CONFLICT: Tải lại hồ sơ đọc lại chi tiết từ server 
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
   await user.type(await screen.findByLabelText("Lý do từ chối"), "Không đủ căn cứ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
   await user.click(await screen.findByRole("button", { name: "Tải lại hồ sơ" }));
   await waitFor(() => expect(detailReads).toBe(2));
@@ -886,21 +922,8 @@ it.each([
   },
 );
 
-// ---- Chữ ký số của Verifier (DEATH-14, BE mục 6.12) ----
+// ---- Xác nhận bằng mật khẩu của Verifier (DEATH-03, BE mục 6.12) ----
 
-const SIGNER_ID = "77777777-7777-4777-8777-777777777777";
-const SIGNATURE_BASE64 = "k3JxQm9yZ2VkU2lnbmF0dXJlQmFzZTY0VmFsdWVGb3JUZXN0cw==";
-const signatureFixture = {
-  status: "VALID",
-  decisionKind: "APPROVED",
-  versionNo: 1,
-  decidedAt: "2026-10-30T10:15:30.1234567+00:00",
-  signedByUserId: SIGNER_ID,
-  signedByFullName: "Trần Thị B",
-  algorithm: "RSA-2048-PSS-SHA256",
-  keyFingerprint: "7F3A-91C2-04BE-55D1",
-  signatureBase64: SIGNATURE_BASE64,
-};
 const approvableDetail = { ...detailFixture, canApprove: true, approveBlockers: [] };
 const closedDetail = {
   ...detailFixture,
@@ -929,20 +952,19 @@ async function fillApprove(
   await user.type(await screen.findByLabelText("Lý do duyệt"), "Đã đối soát đầy đủ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận các thông tin/ }));
   await user.click(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra phạm vi/ }));
-  if (password !== null)
-    await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), password);
+  if (password !== null) await user.type(screen.getByLabelText("Mật khẩu xác nhận"), password);
 }
 
-it("ô mật khẩu ký số là password với autocomplete current-password và có câu giải thích", async () => {
+it("ô mật khẩu xác nhận là password với autocomplete current-password và có câu giải thích", async () => {
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID) ? approvableDetail : listFixture,
   );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=approve`);
-  const input = await screen.findByLabelText("Mật khẩu xác nhận ký số");
+  const input = await screen.findByLabelText("Mật khẩu xác nhận");
   expect(input).toHaveAttribute("type", "password");
   expect(input).toHaveAttribute("autocomplete", "current-password");
   expect(input).toHaveAccessibleDescription(
-    "Quyết định sẽ được ký số bằng khóa của bạn. Nhập sai 5 lần sẽ tạm khóa chức năng ký.",
+    "Nhập mật khẩu tài khoản để xác nhận quyết định. Nhập sai 5 lần sẽ tạm khóa chức năng duyệt/từ chối.",
   );
 });
 
@@ -955,7 +977,7 @@ it("nút Duyệt bị khóa khi chưa nhập mật khẩu dù đã điền lý d
   await fillApprove(user, null);
   const submit = screen.getByRole("button", { name: /^Duyệt$/ });
   expect(submit).toBeDisabled();
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   expect(submit).toBeEnabled();
   expect(post).not.toHaveBeenCalled();
 });
@@ -968,14 +990,13 @@ it("nút Từ chối bị khóa khi chưa nhập mật khẩu và gửi kèm pas
   const post = vi.spyOn(apiClient, "post").mockResolvedValue({
     ...detailFixture,
     status: "REJECTED",
-    decisionSignatureStatus: "VALID",
   });
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
   await user.type(await screen.findByLabelText("Lý do từ chối"), "Giấy tờ giả");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
   const submit = screen.getByRole("button", { name: /^Từ chối$/ });
   expect(submit).toBeDisabled();
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   await user.click(submit);
   await waitFor(() =>
     expect(post).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}/reject`, {
@@ -998,10 +1019,10 @@ it("403 sai mật khẩu báo số lần còn lại, xóa ô mật khẩu, giữ
   await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
   const alert = await screen.findByRole("alert");
   expect(alert).toHaveTextContent("Mật khẩu chưa đúng. Còn 3 lần thử trước khi bị tạm khóa.");
-  // Không hiện câu chung "không có quyền" hay nút "Tải lại hồ sơ" cho lỗi ký số.
+  // Không hiện câu chung "không có quyền" hay nút "Tải lại hồ sơ" cho lỗi xác nhận mật khẩu.
   expect(alert).not.toHaveTextContent(/không có quyền/);
   expect(screen.queryByRole("button", { name: "Tải lại hồ sơ" })).not.toBeInTheDocument();
-  expect(screen.getByLabelText("Mật khẩu xác nhận ký số")).toHaveValue("");
+  expect(screen.getByLabelText("Mật khẩu xác nhận")).toHaveValue("");
   expect(screen.getByLabelText("Lý do duyệt")).toHaveValue("Đã đối soát đầy đủ");
   expect(screen.getByRole("checkbox", { name: /Tôi xác nhận các thông tin/ })).toBeChecked();
   expect(screen.getByRole("checkbox", { name: /Tôi đã kiểm tra phạm vi/ })).toBeChecked();
@@ -1021,7 +1042,7 @@ it("403 không có attemptsRemaining báo tài khoản chưa có mật khẩu", 
   await fillApprove(user);
   await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
-    "Tài khoản chưa có mật khẩu nên chưa ký số được. Vui lòng đặt mật khẩu trong cài đặt tài khoản.",
+    "Tài khoản chưa có mật khẩu nên chưa xác nhận được. Vui lòng đặt mật khẩu trong cài đặt tài khoản.",
   );
 });
 
@@ -1037,12 +1058,12 @@ it("423 SIGNING_LOCKED hiện giờ mở khóa và khóa nút gửi kể cả kh
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=reject`);
   await user.type(await screen.findByLabelText("Lý do từ chối"), "Không đủ căn cứ");
   await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối/ }));
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   await user.click(screen.getByRole("button", { name: /^Từ chối$/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent(
-    `Chức năng ký số đang tạm khóa đến ${formatTimestamp(lockedUntil)}.`,
+    `Chức năng duyệt/từ chối đang tạm khóa đến ${formatTimestamp(lockedUntil)}.`,
   );
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   expect(screen.getByRole("button", { name: /^Từ chối$/ })).toBeDisabled();
   expect(post).toHaveBeenCalledTimes(1);
 });
@@ -1060,8 +1081,8 @@ it("hết lockedUntil thì nút gửi được mở lại", async () => {
   });
   await fillApprove(user);
   await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
-  await screen.findByText(/Chức năng ký số đang tạm khóa/);
-  await user.type(screen.getByLabelText("Mật khẩu xác nhận ký số"), SIGNING_PASSWORD);
+  await screen.findByText(/Chức năng duyệt\/từ chối đang tạm khóa/);
+  await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   expect(screen.getByRole("button", { name: /^Duyệt$/ })).toBeDisabled();
   await waitFor(() => expect(screen.getByRole("button", { name: /^Duyệt$/ })).toBeEnabled(), {
     timeout: 6000,
@@ -1087,9 +1108,7 @@ it("mật khẩu không nằm trong storage, query cache, mutation cache hay URL
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID) ? approvableDetail : listFixture,
   );
-  const post = vi
-    .spyOn(apiClient, "post")
-    .mockResolvedValue({ ...closedDetail, decisionSignatureStatus: "VALID" });
+  const post = vi.spyOn(apiClient, "post").mockResolvedValue(closedDetail);
   await fillApprove(user);
   await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
@@ -1107,192 +1126,31 @@ it("mật khẩu không nằm trong storage, query cache, mutation cache hay URL
   expect(screen.getByTestId("search").textContent).not.toContain(SIGNING_PASSWORD);
 });
 
-it("duyệt thành công cập nhật nhãn chữ ký từ response mà không GET lại chi tiết", async () => {
+it("duyệt thành công cập nhật trạng thái từ response, không có nhãn hay nút xem chữ ký", async () => {
   const user = userEvent.setup();
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? approvableDetail : listFixture,
-  );
-  vi.spyOn(apiClient, "post").mockResolvedValue({
-    ...closedDetail,
-    decisionSignatureStatus: "VALID",
-  });
+  const get = vi
+    .spyOn(apiClient, "get")
+    .mockImplementation(async (url) =>
+      String(url).endsWith(CASE_ID) ? approvableDetail : listFixture,
+    );
+  vi.spyOn(apiClient, "post").mockResolvedValue(closedDetail);
   await fillApprove(user);
-  expect(screen.queryByText("✓ Đã ký số – hợp lệ")).not.toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: /^Duyệt$/ }));
-  expect(await screen.findByText("✓ Đã ký số – hợp lệ")).toBeInTheDocument();
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  expect(screen.queryByText(/ký số/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /chữ ký/i })).not.toBeInTheDocument();
+  expect(get.mock.calls.some(([url]) => String(url).includes("decision-signature"))).toBe(false);
 });
 
-it.each([
-  ["VALID", "✓ Đã ký số – hợp lệ"],
-  ["NOT_SIGNED", "Quyết định chưa được ký số (trước khi có chức năng)"],
-])("nhãn chữ ký %s hiện đúng câu và có nút Xem chữ ký số", async (status, label) => {
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID)
-      ? { ...closedDetail, decisionSignatureStatus: status }
-      : listFixture,
-  );
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  expect(await screen.findByText(label)).toBeInTheDocument();
-  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Xem chữ ký số" })).toBeInTheDocument();
-});
-
-it("nhãn INVALID là cảnh báo role=alert", async () => {
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID)
-      ? { ...closedDetail, decisionSignatureStatus: "INVALID" }
-      : listFixture,
-  );
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  expect(await screen.findByRole("alert")).toHaveTextContent(
-    "✕ Dữ liệu quyết định đã bị sửa sau khi ký",
-  );
-  expect(screen.getByRole("button", { name: "Xem chữ ký số" })).toBeInTheDocument();
-});
-
-it.each([
-  ["NO_FINAL_DECISION", { decisionSignatureStatus: "NO_FINAL_DECISION" }],
-  ["thiếu trường (BE cũ)", {}],
-])("không có quyết định cuối hoặc %s thì ẩn nhãn và nút Xem chữ ký số", async (_name, extra) => {
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? { ...detailFixture, ...extra } : listFixture,
-  );
+it("chi tiết hồ sơ đã đóng không gọi API phiếu chữ ký và không hiện nhãn chữ ký", async () => {
+  const get = vi
+    .spyOn(apiClient, "get")
+    .mockImplementation(async (url) =>
+      String(url).endsWith(CASE_ID) ? closedDetail : listFixture,
+    );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
   await screen.findByText("012345678901");
-  expect(screen.queryByText(/Đã ký số|bị sửa sau khi ký|chưa được ký số/)).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Xem chữ ký số" })).not.toBeInTheDocument();
-});
-
-it("schema chi tiết parse được response cũ không có decisionSignatureStatus", async () => {
-  vi.spyOn(apiClient, "get").mockResolvedValueOnce(detailFixture);
-  expect((await verifierReviewService.get(CASE_ID)).decisionSignatureStatus).toBeUndefined();
-  vi.spyOn(apiClient, "get").mockResolvedValueOnce({
-    ...detailFixture,
-    decisionSignatureStatus: "SOMETHING_ELSE",
-  });
-  await expect(verifierReviewService.get(CASE_ID)).rejects.toThrow();
-});
-
-it("dialog chỉ gọi API phiếu khi mở và hiện phiếu VALID đủ thông tin, chữ ký rút gọn", async () => {
-  const user = userEvent.setup();
-  const get = vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
-    if (String(url).endsWith("/decision-signature")) return signatureFixture;
-    return String(url).endsWith(CASE_ID)
-      ? { ...closedDetail, decisionSignatureStatus: "VALID" }
-      : listFixture;
-  });
-  const signatureCalls = () =>
-    get.mock.calls.filter(([url]) => String(url).endsWith("/decision-signature")).length;
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  await user.click(await screen.findByRole("button", { name: "Xem chữ ký số" }));
-  const dialog = await screen.findByRole("dialog", { name: "Chữ ký số của quyết định" });
-  expect(get).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}/decision-signature`, {
-    signal: expect.any(AbortSignal),
-  });
-  expect(await within(dialog).findByText("✓ Đã ký số – hợp lệ")).toBeInTheDocument();
-  expect(dialog).toHaveTextContent("Duyệt (bản 1)");
-  expect(dialog).toHaveTextContent("Trần Thị B");
-  expect(dialog).toHaveTextContent(formatTimestamp(signatureFixture.decidedAt));
-  expect(dialog).toHaveTextContent("RSA-2048-PSS-SHA256");
-  expect(dialog).toHaveTextContent("7F3A-91C2-04BE-55D1");
-  expect(dialog).toHaveTextContent(/chữ ký số nội bộ hệ thống/);
-  const preview = within(dialog).getByText(`${SIGNATURE_BASE64.slice(0, 24)}…`);
-  expect(preview).toHaveAttribute("title", SIGNATURE_BASE64);
-  expect(dialog).not.toHaveTextContent(SIGNATURE_BASE64);
-  expect(signatureCalls()).toBe(1);
-  await user.click(within(dialog).getByRole("button", { name: "Đóng" }));
-  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-  expect(signatureCalls()).toBe(1);
-});
-
-it("Kiểm tra lại gọi lại API phiếu và hiện trạng thái INVALID mới", async () => {
-  const user = userEvent.setup();
-  let reads = 0;
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
-    if (String(url).endsWith("/decision-signature")) {
-      reads += 1;
-      return reads === 1 ? signatureFixture : { ...signatureFixture, status: "INVALID" };
-    }
-    return String(url).endsWith(CASE_ID)
-      ? { ...closedDetail, decisionSignatureStatus: "VALID" }
-      : listFixture;
-  });
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  await user.click(await screen.findByRole("button", { name: "Xem chữ ký số" }));
-  const dialog = await screen.findByRole("dialog");
-  expect(await within(dialog).findByText("✓ Đã ký số – hợp lệ")).toBeInTheDocument();
-  await user.click(within(dialog).getByRole("button", { name: "Kiểm tra lại" }));
-  expect(
-    await within(dialog).findByText("✕ Dữ liệu quyết định đã bị sửa sau khi ký"),
-  ).toBeInTheDocument();
-  expect(reads).toBe(2);
-});
-
-it("GET phiếu 404 báo máy chủ chưa hỗ trợ, màn chi tiết không vỡ", async () => {
-  const user = userEvent.setup();
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
-    if (String(url).endsWith("/decision-signature"))
-      throw httpError(404, { code: "DEATH_CASE_NOT_FOUND" });
-    return String(url).endsWith(CASE_ID)
-      ? { ...closedDetail, decisionSignatureStatus: "VALID" }
-      : listFixture;
-  });
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  await user.click(await screen.findByRole("button", { name: "Xem chữ ký số" }));
-  const dialog = await screen.findByRole("dialog");
-  expect(await within(dialog).findByText(/Máy chủ chưa hỗ trợ xem chữ ký số/)).toBeInTheDocument();
-  await user.keyboard("{Escape}");
-  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-  expect(screen.getByRole("heading", { name: /Hồ sơ #33333333/, level: 2 })).toBeInTheDocument();
-});
-
-it("GET phiếu lỗi 500 báo không kiểm tra được và Kiểm tra lại thử lại được", async () => {
-  const user = userEvent.setup();
-  let reads = 0;
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
-    if (String(url).endsWith("/decision-signature")) {
-      reads += 1;
-      if (reads === 1) throw httpError(500, {});
-      return signatureFixture;
-    }
-    return String(url).endsWith(CASE_ID)
-      ? { ...closedDetail, decisionSignatureStatus: "VALID" }
-      : listFixture;
-  });
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  await user.click(await screen.findByRole("button", { name: "Xem chữ ký số" }));
-  const dialog = await screen.findByRole("dialog");
-  expect(await within(dialog).findByRole("alert")).toHaveTextContent(
-    /Không kiểm tra được chữ ký số/,
-  );
-  await user.click(within(dialog).getByRole("button", { name: "Kiểm tra lại" }));
-  expect(await within(dialog).findByText("✓ Đã ký số – hợp lệ")).toBeInTheDocument();
-});
-
-it("phiếu NOT_SIGNED hiện các trường thiếu là gạch ngang, không bịa chữ ký", async () => {
-  const user = userEvent.setup();
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
-    if (String(url).endsWith("/decision-signature"))
-      return {
-        ...signatureFixture,
-        status: "NOT_SIGNED",
-        decisionKind: "REJECTED",
-        signedByUserId: null,
-        signedByFullName: null,
-        algorithm: null,
-        keyFingerprint: null,
-        signatureBase64: null,
-      };
-    return String(url).endsWith(CASE_ID)
-      ? { ...closedDetail, decisionSignatureStatus: "NOT_SIGNED" }
-      : listFixture;
-  });
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  await user.click(await screen.findByRole("button", { name: "Xem chữ ký số" }));
-  const dialog = await screen.findByRole("dialog");
-  expect(
-    await within(dialog).findByText("Quyết định chưa được ký số (trước khi có chức năng)"),
-  ).toBeInTheDocument();
-  expect(dialog).toHaveTextContent("Từ chối (bản 1)");
-  expect(within(dialog).getAllByText("—").length).toBeGreaterThanOrEqual(4);
+  expect(screen.queryByText(/ký số|bị sửa sau khi ký/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /chữ ký/i })).not.toBeInTheDocument();
+  expect(get.mock.calls.some(([url]) => String(url).includes("decision-signature"))).toBe(false);
 });

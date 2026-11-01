@@ -10,6 +10,8 @@ export const checkInPeriodSchema = z.object({
   checkedInAt: timestamp.nullable(),
   overdueAt: timestamp.nullable(),
   awaitingCheckAt: timestamp.nullable(),
+  /** Lúc kỳ đóng; có mà checkedInAt null = kỳ bị dừng vì kế hoạch không còn chạy (SETUP-16). BE cũ không trả. */
+  closedAt: timestamp.nullable().optional(),
 });
 /** Raw CheckInStatusResponse, không suy diễn từ mock DMS. */
 export const checkInStatusSchema = z.object({

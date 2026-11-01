@@ -126,6 +126,27 @@ describe("màn Điểm danh định kỳ", () => {
     expect(rows[0]).toHaveTextContent("Đang chạy");
     expect(rows[1]).toHaveTextContent("Quá hạn");
     expect(rows[2]).toHaveTextContent("Đã ghi");
+    expect(rows[2]).toHaveTextContent("Điểm danh");
+    expect(rows[0]).toHaveTextContent("Bắt đầu");
+  });
+
+  it("kỳ bị dừng khi kế hoạch về Nháp hiện Đã dừng, không phải Đang chạy", () => {
+    vi.mocked(useCheckIn).mockReturnValue(
+      statusResult({}, [
+        period(1, { closedAt: "2026-09-10T00:00:00Z" }),
+        period(2, { startedAt: "2026-09-11T00:00:00Z" }),
+      ]) as never,
+    );
+    renderCheckIn();
+    const rows = within(screen.getByRole("region", { name: "Lịch sử điểm danh" })).getAllByRole(
+      "listitem",
+    );
+    expect(rows[0]).toHaveTextContent("Kỳ 2");
+    expect(rows[0]).toHaveTextContent("Đang chạy");
+    expect(rows[1]).toHaveTextContent("Kỳ 1");
+    expect(rows[1]).toHaveTextContent("Đã dừng");
+    expect(rows[1]).toHaveTextContent("vì kế hoạch về Nháp");
+    expect(rows[1]).not.toHaveTextContent("Đang chạy");
   });
 
   it("chưa có kỳ nào thì báo trống; không bịa công tắc cài đặt nhắc", () => {

@@ -158,3 +158,19 @@ it("số căn cước ẩn mặc định, có nút Hiện/Ẩn ngay trong ô đ�
   fireEvent.click(hide);
   expect(field).toHaveAttribute("type", "password");
 });
+
+it("không còn ô Có giá trị đến / Date of expiry vì máy đọc không đọc được dòng này", () => {
+  render(
+    <EkycReviewForm
+      document={document}
+      purpose="OWNER_ENROLLMENT"
+      confirmed={false}
+      disabled={false}
+      backSent
+      onConfirmed={() => {}}
+      onEdit={() => {}}
+    />,
+  );
+  expect(screen.queryByLabelText(/Có giá trị đến/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Date of expiry/i)).not.toBeInTheDocument();
+});

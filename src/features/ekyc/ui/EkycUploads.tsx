@@ -583,9 +583,9 @@ export function EkycUploads({
 
   onVerificationBound?: (verificationId: string | null) => void;
 
-  /** Notify the composing widget after a confirmed server result. */
+  /** Báo widget bao ngoài kết quả máy chủ vừa chốt (đạt hay chưa đạt). */
 
-  onVerified?: () => void;
+  onVerified?: (result: Status) => void;
 }) {
   const client = useQueryClient();
 
@@ -1296,7 +1296,7 @@ export function EkycUploads({
 
             void client.invalidateQueries({ queryKey: ["ekyc"] });
 
-            onVerified?.();
+            onVerified?.(s);
           }}
         />
       )}

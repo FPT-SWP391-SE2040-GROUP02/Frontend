@@ -331,94 +331,32 @@ describe("Sự cố", () => {
   });
 });
 
-describe("Tạm giữ", () => {
-  it("hold do chủ kho báo còn sống không có nút gỡ và giải thích vì sao", async () => {
+describe("Tạm giữ (chỉ xem)", () => {
+  it("hold do chủ kho báo còn sống giải thích vì sao và không có nút thao tác", async () => {
     backend(() => holdBody({ id: OWNER_ALIVE_HOLD_ID, type: "OWNER_ALIVE" }));
     setup(`${holdsPath}&hold=${OWNER_ALIVE_HOLD_ID}`);
     expect(
       await screen.findByText(/chỉ người xét duyệt kết luận mới gỡ được/i),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Hẹn rà soát" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Hẹn rà soát" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Gỡ tạm giữ" })).not.toBeInTheDocument();
   });
 
-  it("gỡ hold gửi lý do và etag, rồi hiện trạng thái đã gỡ", async () => {
-    let released = false;
-    backend((call) => {
-      if (call.url.endsWith("/release")) {
-        released = true;
-        return holdBody({ status: "RELEASED", releasedAt: CREATED_AT, releaseReason: "Đã xong" });
-      }
-      return released
-        ? holdBody({ status: "RELEASED", releasedAt: CREATED_AT, releaseReason: "Đã xong" })
-        : holdBody();
-    });
+  it("chi tiết hold khác cũng chỉ xem, không có nút hẹn rà soát hay gỡ", async () => {
+    backend(() => holdBody());
     setup(`${holdsPath}&hold=${HOLD_ID}`);
-    fireEvent.click(await screen.findByRole("button", { name: "Gỡ tạm giữ" }));
-    const dialog = await screen.findByRole("dialog");
-    const submit = within(dialog).getByRole("button", { name: "Gỡ tạm giữ" });
-    expect(submit).toBeDisabled();
-    await userEvent.type(within(dialog).getByLabelText("Lý do gỡ"), "Đã xong");
-    fireEvent.click(within(dialog).getByRole("checkbox"));
-    await waitFor(() => expect(submit).toBeEnabled());
-    fireEvent.click(submit);
-    expect(
-      await screen.findByText("Tạm giữ đã được gỡ nên không còn thao tác."),
-    ).toBeInTheDocument();
-    expect(callsTo("post", `/admin/holds/${HOLD_ID}/release`)[0].body).toEqual({
-      reason: "Đã xong",
-      etag: "hold-1",
-    });
-  });
-
-  it("báo lý do riêng khi Backend từ chối gỡ hold báo còn sống", async () => {
-    backend((call) =>
-      call.url.endsWith("/release")
-        ? new Fail(409, { code: "ADMIN_ACTION_NOT_ALLOWED", reason: "HOLD_OWNER_ALIVE" })
-        : holdBody(),
-    );
-    setup(`${holdsPath}&hold=${HOLD_ID}`);
-    fireEvent.click(await screen.findByRole("button", { name: "Gỡ tạm giữ" }));
-    const dialog = await screen.findByRole("dialog");
-    await userEvent.type(within(dialog).getByLabelText("Lý do gỡ"), "Thử gỡ");
-    fireEvent.click(within(dialog).getByRole("checkbox"));
-    fireEvent.click(within(dialog).getByRole("button", { name: "Gỡ tạm giữ" }));
-    expect(await within(dialog).findByRole("alert")).toHaveTextContent(
-      "chỉ được gỡ khi người xét duyệt kết luận",
-    );
-  });
-
-  it("đặt hold gửi đúng body và mở hold vừa tạo", async () => {
-    backend((call) => {
-      if (call.method === "post" && call.url === "/admin/holds") return holdBody();
-      if (call.url === `/admin/holds/${HOLD_ID}`) return holdBody();
-      return page([]);
-    });
-    setup(holdsPath);
-    fireEvent.click(await screen.findByRole("button", { name: "Đặt tạm giữ" }));
-    const dialog = await screen.findByRole("dialog");
-    await userEvent.type(within(dialog).getByLabelText("Mã kho"), KHO_ID);
-    await userEvent.type(within(dialog).getByLabelText("Lý do"), "Tranh chấp quyền thừa kế");
-    fireEvent.click(within(dialog).getByRole("button", { name: "Đặt tạm giữ" }));
-    await waitFor(() => expect(callsTo("post", "/admin/holds")).toHaveLength(1));
-    expect(callsTo("post", "/admin/holds")[0].body).toEqual({
-      vaultId: KHO_ID,
-      scope: "VAULT",
-      reason: "Tranh chấp quyền thừa kế",
-    });
     expect(await screen.findByText("Phạm vi")).toBeInTheDocument();
+    expect(screen.getByText(/Quản trị viên chỉ xem/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Hẹn rà soát" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Gỡ tạm giữ" })).not.toBeInTheDocument();
+    expect(calls.filter((call) => call.method === "post")).toHaveLength(0);
   });
 
-  it("không gửi khi mã kho không hợp lệ", async () => {
-    backend(() => page([]));
+  it("danh sách tạm giữ không có nút đặt tạm giữ", async () => {
+    backend(() => page([holdBody()]));
     setup(holdsPath);
-    fireEvent.click(await screen.findByRole("button", { name: "Đặt tạm giữ" }));
-    const dialog = await screen.findByRole("dialog");
-    await userEvent.type(within(dialog).getByLabelText("Mã kho"), "khong-phai-uuid");
-    await userEvent.type(within(dialog).getByLabelText("Lý do"), "Thử");
-    fireEvent.click(within(dialog).getByRole("button", { name: "Đặt tạm giữ" }));
-    expect(await within(dialog).findByText(/Mã kho/i, { selector: "label" })).toBeInTheDocument();
-    expect(callsTo("post", "/admin/holds")).toHaveLength(0);
+    expect(await screen.findByText("Tranh chấp quyền thừa kế")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Đặt tạm giữ" })).not.toBeInTheDocument();
   });
 });
 
@@ -466,6 +404,26 @@ describe("Tài khoản", () => {
       role: "VERIFIER",
       reason: "Bổ sung người xét duyệt",
     });
+  });
+
+  it("không cho tạo hay đổi sang vai trò EXECUTOR (Executor do Owner mời theo từng kho)", async () => {
+    usersBackend();
+    setup(ROUTES.DASHBOARD.USERS);
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
+    const createDialog = await screen.findByRole("dialog");
+    const createOptions = within(within(createDialog).getByLabelText(/Vai trò hệ thống/))
+      .getAllByRole("option")
+      .map((option) => option.getAttribute("value"));
+    expect(createOptions).toEqual(["VERIFIER", "ADMIN"]);
+    fireEvent.click(within(createDialog).getByRole("button", { name: "Hủy" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    fireEvent.click((await screen.findAllByRole("button", { name: /Đổi vai trò của Bạn Hai/ }))[0]);
+    const roleDialog = await screen.findByRole("dialog");
+    const roleOptions = within(within(roleDialog).getByLabelText("Vai trò mới"))
+      .getAllByRole("option")
+      .map((option) => option.getAttribute("value"));
+    expect(roleOptions).not.toContain("EXECUTOR");
   });
 
   it.each([
@@ -540,7 +498,6 @@ describe("Hợp đồng dịch vụ và thông báo lỗi", () => {
       { code: "ADMIN_ACTION_NOT_ALLOWED", reason: "CASE_NOT_PENDING" },
       "không còn ở giai đoạn chờ xét",
     ],
-    [{ code: "ADMIN_ACTION_NOT_ALLOWED", reason: "HOLD_RELEASED" }, "đã được gỡ"],
   ])("adminActionError đọc %j", (body, text) => {
     const config = { headers: new AxiosHeaders() } as InternalAxiosRequestConfig;
     const error = new AxiosError("x", "ERR", config, undefined, {

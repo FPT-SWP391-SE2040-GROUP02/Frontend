@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import type { z } from "zod";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { Button } from "@/shared/ui";
 import { ekycService } from "../api/ekycService";
-import { ekycPurposeSchema } from "../model/ekyc.schema";
+import { ekycPurposeSchema, type ekycStatusSchema } from "../model/ekyc.schema";
 import { EkycUploads } from "./EkycUploads";
 import { EkycVerifiedCard } from "./EkycVerifiedCard";
 
@@ -56,9 +56,24 @@ export function EkycStatusPanel({
     retry: false,
   });
   const needsTurnId = purpose === "BENEFICIARY_CLAIM" && !turnId;
+  const client = useQueryClient();
   const live = status.data;
-  // Owner đã PASSED thì khóa; lượt vừa chốt trong phiên này vẫn giữ màn kết quả đến khi rời trang.
+  // Owner đã PASSED thì hiện thẳng màn "Danh tính đã được xác minh". Lượt vừa chốt mà CHƯA đạt thì giữ màn
+  // kết quả so khớp (để biết lý do và làm lại) đến khi rời trang.
   const [finishedHere, setFinishedHere] = useState(false);
+  const handleVerified = (result: z.infer<typeof ekycStatusSchema>) => {
+    const passed =
+      result.status === "PASSED" &&
+      result.identityMatch !== "WRONG_PERSON" &&
+      result.identityMatch !== "NEEDS_REVIEW";
+    if (purpose === "OWNER_ENROLLMENT" && passed) {
+      // Dùng ngay kết quả máy chủ vừa trả để chuyển màn, không chờ lần tải lại trạng thái.
+      client.setQueryData(["ekyc", "me"], result);
+    } else {
+      setFinishedHere(true);
+    }
+    onVerified?.();
+  };
   const locked = purpose === "OWNER_ENROLLMENT" && live?.status === "PASSED" && !finishedHere;
 
   let banner: ReactNode = null;
@@ -116,10 +131,7 @@ export function EkycStatusPanel({
             canComplete={Boolean(canComplete)}
             onComplete={() => onComplete?.()}
             onVerificationBound={(id) => onVerificationBound?.(id)}
-            onVerified={() => {
-              setFinishedHere(true);
-              onVerified?.();
-            }}
+            onVerified={handleVerified}
           />
           {completeResult?.error && (
             <p role="alert" className="text-sm text-destructive">

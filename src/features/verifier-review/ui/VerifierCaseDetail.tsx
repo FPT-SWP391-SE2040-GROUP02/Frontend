@@ -1,7 +1,7 @@
-import { useSearchParams } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { useId, useState, type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -14,20 +14,23 @@ import {
 } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
+import { ROUTES } from "@/shared/config/routes.config";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { buttonStyles, Chip, Notice, Panel } from "@/shared/ui/heritageKit";
-import { useVerifierCase, verifierKeys } from "../model/useVerifierReview";
+import {
+  useVerifierCase,
+  useVerifierCaseFreshness,
+  verifierKeys,
+} from "../model/useVerifierReview";
 import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
 import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
 import { VerifierOwnerIdentityPanel } from "./VerifierOwnerIdentityPanel";
-import { DecisionSignatureDialog, DecisionSignatureStatusLabel } from "./DecisionSignatureDialog";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
   decisionLabels,
-  hasDecisionSignatureLabel,
   supplementPartLabels,
   ownerNoticeLabels,
   type verifierFlagKindSchema,
@@ -86,8 +89,18 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
   const [params, setParams] = useSearchParams();
   const download = usePrivateAction();
   const query = useVerifierCase(caseId);
+  // Chỉ dò thay đổi khi hồ sơ còn chờ quyết định; đã duyệt thì GET lại sẽ mất kết quả mở bàn giao.
+  const awaitingDecision =
+    query.data !== undefined &&
+    (query.data.status === "UNDER_REVIEW" || query.data.status === "SUPPLEMENT_REQUIRED") &&
+    !query.data.handover;
+  const freshness = useVerifierCaseFreshness(
+    caseId,
+    awaitingDecision,
+    query.data?.etag,
+    query.dataUpdatedAt,
+  );
   const client = useQueryClient();
-  const [signatureOpen, setSignatureOpen] = useState(false);
   const backToList = () => {
     const next = new URLSearchParams(params);
     next.delete("caseId");
@@ -104,16 +117,12 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       </p>
     );
   if (query.isError) {
-    // 404 DEATH_CASE_NOT_FOUND: hồ sơ không tồn tại hoặc phân công đã kết thúc (giao lại Verifier khác).
-    if (isAxiosError(query.error) && query.error.response?.status === HTTP_STATUS.NOT_FOUND)
-      return (
-        <div role="alert" className="space-y-3 rounded-2xl bg-[#F1E6CC] p-5">
-          <p className="text-sm text-[#5A4318]">Hồ sơ không còn được giao cho bạn.</p>
-          <button type="button" className={buttonStyles.dark} onClick={backToList}>
-            Về danh sách
-          </button>
-        </div>
-      );
+    // 404 DEATH_CASE_NOT_FOUND: hồ sơ không tồn tại hoặc phân công đã kết thúc (giao lại Verifier khác)
+    // → quay về trang tổng quan thay vì để người xét duyệt ở một trang không có gì để xem.
+    if (isAxiosError(query.error) && query.error.response?.status === HTTP_STATUS.NOT_FOUND) {
+      void client.invalidateQueries({ queryKey: verifierKeys.lists() });
+      return <Navigate to={ROUTES.NOTARY.WORKSPACE} replace />;
+    }
     return (
       <div role="alert" className="space-y-3 rounded-2xl bg-[#F8E1DE] p-5">
         <p className="text-sm text-[#7A1A14]">
@@ -131,6 +140,11 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     );
   }
   const detail = query.data;
+  // Lần dò mới hơn dữ liệu đang hiện mà etag khác: hồ sơ đã đổi ở nơi khác sau khi trang được tải.
+  const changedElsewhere =
+    freshness.data !== undefined &&
+    freshness.data !== detail.etag &&
+    freshness.dataUpdatedAt > query.dataUpdatedAt;
   const review = detail.reviewVersion;
   const status = queueStatus[detail.status];
   const actions = getVerifierActions(detail);
@@ -258,32 +272,38 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           mời đã gửi · {detail.handover.invitationsFailed} lời mời chưa gửi được.
         </Notice>
       )}
+      {changedElsewhere && (
+        <Notice tone="warning" role="alert" title="Hồ sơ vừa thay đổi">
+          <span className="block">
+            Hồ sơ đã được cập nhật sau khi bạn mở trang (ví dụ Executor tạo hoặc nộp bản bổ sung).
+            Tải lại để xem nội dung mới trước khi ra quyết định.
+          </span>
+          <button
+            type="button"
+            className={`mt-3 ${buttonStyles.dark}`}
+            disabled={query.isFetching}
+            onClick={() => {
+              void query.refetch();
+              void client.invalidateQueries({ queryKey: verifierKeys.lists() });
+            }}
+          >
+            Xem bản mới nhất
+          </button>
+        </Notice>
+      )}
+      {detail.approveBlockers.includes("NEWER_VERSION_PENDING") && (
+        <Notice tone="warning" title="Executor đang soạn bản bổ sung">
+          Bạn đang xem bản đã gửi
+          {review ? ` số ${review.versionNo}` : ""}. Chưa duyệt được cho tới khi Executor nộp bản
+          mới; bạn vẫn có thể yêu cầu bổ sung hoặc từ chối.
+        </Notice>
+      )}
       {detail.status === "SUPPLEMENT_REQUIRED" && (
         <Notice tone="warning" title="Đã gửi yêu cầu bổ sung">
           {requestedPartsText && <span className="block">Đã yêu cầu: {requestedPartsText}.</span>}
           Người thực hiện sẽ nộp bản bổ sung. Hồ sơ quay lại hàng chờ khi có bản mới.
         </Notice>
       )}
-      {hasDecisionSignatureLabel(detail.decisionSignatureStatus) && (
-        <section
-          aria-label="Chữ ký số của quyết định"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-heritage-border bg-heritage-surface px-6 py-4"
-        >
-          <DecisionSignatureStatusLabel status={detail.decisionSignatureStatus} />
-          <button
-            type="button"
-            className={buttonStyles.outline}
-            onClick={() => setSignatureOpen(true)}
-          >
-            Xem chữ ký số
-          </button>
-        </section>
-      )}
-      <DecisionSignatureDialog
-        caseId={detail.id}
-        open={signatureOpen}
-        onClose={() => setSignatureOpen(false)}
-      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         {/* CỘT TRÁI (3fr): HỒ SƠ & TÀI LIỆU CHỨNG TỪ */}

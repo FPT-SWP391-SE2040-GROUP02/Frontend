@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AxiosError, AxiosHeaders, type InternalAxiosRequestConfig } from "axios";
 import { apiClient } from "@/shared/api/axiosClient";
 import {
+  confirmVaultPin,
   registerVaultPinHandler,
   VAULT_PIN_HEADER,
   type VaultPinHandler,
@@ -233,5 +234,134 @@ describe("vault pin retry in the api client", () => {
     unregister();
 
     expect(afterAssetCreated).not.toHaveBeenCalled();
+  });
+});
+
+/** Lỗi Backend dựng sẵn cho hàm kiểm PIN giả. */
+function pinError(status: number, body: unknown) {
+  const config = { headers: new AxiosHeaders() } as InternalAxiosRequestConfig;
+  return new AxiosError("failed", AxiosError.ERR_BAD_REQUEST, config, undefined, {
+    data: body,
+    status,
+    statusText: String(status),
+    headers: new AxiosHeaders(),
+    config,
+  });
+}
+
+/** Hàm kiểm PIN giả: lần lượt ném các lỗi đã dựng, hết lỗi thì cho qua; ghi lại PIN của từng lần gọi. */
+function checker(failures: AxiosError[]) {
+  const sentPins: Array<string | undefined> = [];
+  const check = async (pin?: string) => {
+    sentPins.push(pin);
+    const failure = failures.shift();
+    if (failure) throw failure;
+  };
+  return { check, sentPins };
+}
+
+describe("confirmVaultPin before an action", () => {
+  it("asks for the pin when the Backend wants one and returns the accepted pin", async () => {
+    const requestPin = vi.fn().mockResolvedValue("482913");
+    const unregister = registerVaultPinHandler(handler({ requestPin }));
+    const { check, sentPins } = checker([pinError(403, { code: "VAULT_PIN_REQUIRED" })]);
+
+    const result = await confirmVaultPin(VAULT, check);
+    unregister();
+
+    expect(result).toEqual({ confirmed: true, pin: "482913" });
+    expect(sentPins).toEqual([undefined, "482913"]);
+    expect(requestPin).toHaveBeenCalledWith({
+      vaultId: VAULT,
+      reason: "required",
+      attemptsRemaining: undefined,
+    });
+  });
+
+  it("asks again after a wrong pin and tells how many tries are left", async () => {
+    const requestPin = vi.fn().mockResolvedValueOnce("111222").mockResolvedValueOnce("482913");
+    const unregister = registerVaultPinHandler(handler({ requestPin }));
+    const { check, sentPins } = checker([
+      pinError(403, { code: "VAULT_PIN_REQUIRED" }),
+      pinError(403, { code: "INVALID_VAULT_PIN", attemptsRemaining: 4 }),
+    ]);
+
+    const result = await confirmVaultPin(VAULT, check);
+    unregister();
+
+    expect(result).toEqual({ confirmed: true, pin: "482913" });
+    expect(sentPins).toEqual([undefined, "111222", "482913"]);
+    expect(requestPin).toHaveBeenNthCalledWith(2, {
+      vaultId: VAULT,
+      reason: "invalid",
+      attemptsRemaining: 4,
+    });
+  });
+
+  it("confirms without a pin when the vault does not need one yet", async () => {
+    const requestPin = vi.fn();
+    const unregister = registerVaultPinHandler(handler({ requestPin }));
+    const { check } = checker([]);
+
+    const result = await confirmVaultPin(VAULT, check);
+    unregister();
+
+    expect(result).toEqual({ confirmed: true, pin: undefined });
+    expect(requestPin).not.toHaveBeenCalled();
+  });
+
+  it("offers to set a pin when the vault has none and uses the new pin", async () => {
+    const requestNewPin = vi.fn().mockResolvedValue("482913");
+    const unregister = registerVaultPinHandler(handler({ requestNewPin }));
+    const { check, sentPins } = checker([pinError(409, { code: "VAULT_PIN_NOT_SET" })]);
+
+    const result = await confirmVaultPin(VAULT, check);
+    unregister();
+
+    expect(result).toEqual({ confirmed: true, pin: "482913" });
+    expect(requestNewPin).toHaveBeenCalledWith(VAULT);
+    expect(sentPins).toEqual([undefined, "482913"]);
+  });
+
+  it("is not confirmed when the user cancels", async () => {
+    const unregister = registerVaultPinHandler(handler());
+    const { check } = checker([pinError(403, { code: "VAULT_PIN_REQUIRED" })]);
+
+    const result = await confirmVaultPin(VAULT, check);
+    unregister();
+
+    expect(result).toEqual({ confirmed: false });
+  });
+
+  it("only informs and is not confirmed once the pin is locked", async () => {
+    const notifyLocked = vi.fn();
+    const requestPin = vi.fn();
+    const unregister = registerVaultPinHandler(handler({ notifyLocked, requestPin }));
+    const { check } = checker([
+      pinError(423, { code: "VAULT_PIN_LOCKED", lockedUntil: "2026-10-30T09:00:00Z" }),
+    ]);
+
+    const result = await confirmVaultPin(VAULT, check);
+    unregister();
+
+    expect(result).toEqual({ confirmed: false });
+    expect(notifyLocked).toHaveBeenCalledWith("2026-10-30T09:00:00Z");
+    expect(requestPin).not.toHaveBeenCalled();
+  });
+
+  it("passes other errors to the caller", async () => {
+    const unregister = registerVaultPinHandler(handler());
+    const failure = pinError(500, { code: "INTERNAL" });
+    const { check } = checker([failure]);
+
+    await expect(confirmVaultPin(VAULT, check)).rejects.toBe(failure);
+    unregister();
+  });
+
+  it("passes the pin error to the caller when no dialog is registered", async () => {
+    const failure = pinError(403, { code: "VAULT_PIN_REQUIRED" });
+    const { check } = checker([failure]);
+
+    await expect(confirmVaultPin(VAULT, check)).rejects.toBe(failure);
   });
 });

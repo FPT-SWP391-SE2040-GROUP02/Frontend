@@ -55,6 +55,10 @@ function periodChip(period: Period): { label: string; style: string } {
   if (period.checkedInAt !== null) {
     return { label: "Đã ghi", style: "bg-green-100 text-green-800" };
   }
+  // Kỳ đóng mà không có điểm danh: lịch bị dừng vì kế hoạch về Nháp hoặc không còn chạy.
+  if (period.closedAt) {
+    return { label: "Đã dừng", style: "bg-[#ECE8DB] text-[#4D4D4B]" };
+  }
   if (period.awaitingCheckAt !== null) {
     return { label: "Chờ kiểm tra", style: "bg-red-100 text-red-800" };
   }
@@ -98,9 +102,12 @@ function History({ periods }: { periods: Period[] }) {
   const rows: ReactNode[] = [];
   for (const period of ordered) {
     const chip = periodChip(period);
-    let when = formatDateTime(period.startedAt);
+    let when = `Bắt đầu ${formatDateTime(period.startedAt)}`;
+    let detail = `Kỳ ${period.sequence} · hạn ${formatDate(period.dueAt)}`;
     if (period.checkedInAt !== null) {
-      when = formatDateTime(period.checkedInAt);
+      when = `Điểm danh ${formatDateTime(period.checkedInAt)}`;
+    } else if (period.closedAt) {
+      detail = `Kỳ ${period.sequence} · dừng lúc ${formatDateTime(period.closedAt)} vì kế hoạch về Nháp`;
     }
     rows.push(
       <li
@@ -109,9 +116,7 @@ function History({ periods }: { periods: Period[] }) {
       >
         <div>
           <p className="font-semibold">{when}</p>
-          <p className="text-xs text-heritage-muted">
-            Kỳ {period.sequence} · hạn {formatDate(period.dueAt)}
-          </p>
+          <p className="text-xs text-heritage-muted">{detail}</p>
         </div>
         <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${chip.style}`}>
           {chip.label}

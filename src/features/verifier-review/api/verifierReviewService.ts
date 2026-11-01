@@ -5,7 +5,6 @@ import type { PaginationParams } from "@/shared/types";
 import {
   approveCaseRequestSchema,
   concludeObjectionRequestSchema,
-  decisionSignatureSchema,
   rejectCaseRequestSchema,
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
@@ -98,18 +97,6 @@ export const verifierReviewService = {
       await apiClient.post<unknown, unknown>(
         `/verifier/death-cases/${id.parse(caseId)}/reject`,
         rejectCaseRequestSchema.parse(request),
-      ),
-    );
-  },
-  /**
-   * Kiểm tra lại chữ ký số của quyết định cuối (DEATH-14); BE không ghi gì, Cache-Control: no-store.
-   * 404 khi hồ sơ không còn giao cho bạn hoặc BE cũ chưa có API này.
-   */
-  async getDecisionSignature(caseId: string, signal?: AbortSignal) {
-    return decisionSignatureSchema.parse(
-      await apiClient.get<unknown, unknown>(
-        `/verifier/death-cases/${id.parse(caseId)}/decision-signature`,
-        { signal },
       ),
     );
   },

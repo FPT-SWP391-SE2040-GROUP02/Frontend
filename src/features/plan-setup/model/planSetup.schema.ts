@@ -1,5 +1,7 @@
 import { z } from "zod";
 const date = z.string().datetime({ offset: true });
+/** Cùng giới hạn độ dài với `InspectExecutorInvitationRequest.Token` phía Backend. */
+export const invitationTokenSchema = z.string().min(32).max(512);
 export const executorSchema = z.object({
   id: z.string().uuid(),
   status: z.enum(["INVITED", "ACCEPTED", "DECLINED", "EXPIRED", "REVOKED", "SUSPENDED"]),

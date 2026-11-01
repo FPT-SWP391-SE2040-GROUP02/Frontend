@@ -39,7 +39,9 @@ function validationMessages(errors: Record<string, string[]> | undefined): strin
 const handoverNotAllowedReasons: Record<string, string> = {
   HOLD_ACTIVE: "Kho đang bị tạm giữ, tạm thời chưa thực hiện được. Các hạn đang được giữ nguyên.",
   PLAN_NOT_IN_HANDOVER: "Kế hoạch không còn ở giai đoạn bàn giao.",
-  WRONG_STATE: "Lượt này đã có người nhận hoặc đã kết thúc.",
+  WRONG_STATE:
+    "Lượt này không còn ở bước phù hợp để thực hiện thao tác này (đã có người nhận, đã chuyển bước hoặc đã kết thúc).",
+  OWN_TURN: "Lượt này do chính tài khoản của bạn nhận nên bạn không tự xác nhận được.",
   RESEND_TOO_SOON: "Vừa gửi xong, vui lòng thử lại sau 15 phút.",
   NO_EMAIL: "Người nhận chưa có email.",
   INVITATION_SEND_FAILED: "Chưa gửi được thư mời. Chưa có gì thay đổi, vui lòng thử lại sau.",
@@ -137,7 +139,14 @@ const ekycIdentityMismatchReasons: Record<string, string> = {
   WRONG_PERSON: "Giấy tờ không khớp với danh tính đã gắn cho tài khoản này.",
 };
 
+/** Reason-specific messages for CHECKIN_NOT_ALLOWED (Executor điểm danh thay chủ kho) */
+const checkInNotAllowedReasons: Record<string, string> = {
+  PLAN_NOT_OVERDUE: "Chủ kho không còn quá hạn điểm danh. Tải lại để xem trạng thái mới nhất.",
+  DEATH_CASE_OPEN: "Kho đã có hồ sơ chứng tử đang mở nên không điểm danh thay được nữa.",
+};
+
 const reasonMessages: Record<string, Record<string, string>> = {
+  CHECKIN_NOT_ALLOWED: checkInNotAllowedReasons,
   HANDOVER_NOT_ALLOWED: handoverNotAllowedReasons,
   EXECUTOR_NOT_ALLOWED: executorNotAllowedReasons,
   ASSET_IN_USE: assetInUseReasons,

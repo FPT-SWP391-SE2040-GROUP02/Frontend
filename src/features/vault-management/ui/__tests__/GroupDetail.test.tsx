@@ -52,10 +52,10 @@ function renderGroup(container: PackageResponse = group()) {
   );
 }
 
-function backendError(code: string) {
+function backendError(code: string, status = 403) {
   return new AxiosError("private", undefined, undefined, undefined, {
-    status: 403,
-    statusText: "Forbidden",
+    status,
+    statusText: "Error",
     config: { headers: new AxiosHeaders() },
     headers: {},
     data: { code },
@@ -90,16 +90,64 @@ describe("chi tiết gói bàn giao", () => {
     );
   });
 
-  it("lưu tên gói bàn giao xong vẫn giữ ô đồng ý đã tick", async () => {
+  it("khung thông tin gói không có ô đồng ý; Lưu và Hoàn tác chỉ bật khi đã sửa", async () => {
     const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...group(), name: "Tên mới" });
     renderGroup();
-    const consent = screen.getByRole("checkbox", { name: /đưa kế hoạch về Nháp/ });
-    fireEvent.click(consent);
+    expect(
+      screen.queryByRole("checkbox", { name: /đưa kế hoạch về Nháp/ }),
+    ).not.toBeInTheDocument();
+    const save = screen.getByRole("button", { name: "Lưu" });
+    const undo = screen.getByRole("button", { name: "Hoàn tác" });
+    expect(save).toBeDisabled();
+    expect(undo).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Tên gói bàn giao"), { target: { value: "Tên mới" } });
-    fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
+    await waitFor(() => expect(save).toBeEnabled());
+    fireEvent.click(save);
     await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
     expect(await screen.findByText("Đã lưu thay đổi.")).toBeInTheDocument();
-    expect(consent).toBeChecked();
+  });
+
+  it("gỡ không cần hỏi thì gỡ luôn, không gửi xác nhận", async () => {
+    const remove = vi
+      .spyOn(apiClient, "delete")
+      .mockResolvedValue({ ...group(), beneficiaryIds: [] });
+    renderGroup();
+    fireEvent.click(screen.getByRole("button", { name: "Gỡ Con trưởng" }));
+    await waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
+    expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("gỡ làm mất gói Sẵn sàng cuối cùng thì hỏi rồi mới gửi lại kèm xác nhận", async () => {
+    const remove = vi
+      .spyOn(apiClient, "delete")
+      .mockRejectedValueOnce(backendError("PLAN_DEACTIVATION_CONFIRMATION_REQUIRED", 409))
+      .mockResolvedValueOnce({ ...group(), beneficiaryIds: [] });
+    renderGroup();
+    fireEvent.click(screen.getByRole("button", { name: "Gỡ Con trưởng" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Gỡ người nhận khỏi gói bàn giao?");
+    expect(dialog).toHaveTextContent("đưa kế hoạch về Nháp");
+    expect(dialog).toHaveTextContent("Người thực hiện phải chấp nhận lại lời mời");
+    expect(dialog).toHaveTextContent("không nộp được hồ sơ chứng tử");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục, đưa kế hoạch về Nháp" }));
+    await waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
+    expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
+    expect(remove.mock.calls[1][1]).toMatchObject({ params: { confirmPlanDeactivation: true } });
+  });
+
+  it("bấm Hủy ở hộp thoại hỏi thì không gỡ gì", async () => {
+    const remove = vi
+      .spyOn(apiClient, "delete")
+      .mockRejectedValue(backendError("PLAN_DEACTIVATION_CONFIRMATION_REQUIRED", 409));
+    renderGroup();
+    fireEvent.click(screen.getByRole("button", { name: "Gỡ khỏi gói bàn giao" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Gỡ mục khỏi gói bàn giao?");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Hủy" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(remove).toHaveBeenCalledTimes(1);
   });
 
   it("gói Free bị chặn thì giữ lỗi của Backend kèm đường nâng cấp", async () => {
@@ -113,7 +161,7 @@ describe("chi tiết gói bàn giao", () => {
     );
   });
 
-  it("xóa gói bàn giao hỏi xác nhận trước, rồi xóa không tự đồng ý đưa kế hoạch về Nháp", async () => {
+  it("xóa gói bàn giao hỏi xác nhận trước, hộp thoại không có ô tick, lần đầu không gửi xác nhận", async () => {
     const remove = vi
       .spyOn(apiClient, "delete")
       .mockResolvedValue({ ...group(), status: "REMOVED" });
@@ -121,10 +169,29 @@ describe("chi tiết gói bàn giao", () => {
     fireEvent.click(screen.getByRole("button", { name: "Xóa gói bàn giao" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText(/^Xóa gói bàn giao “.+”\?$/)).toBeInTheDocument();
+    expect(within(dialog).queryByRole("checkbox")).not.toBeInTheDocument();
     expect(remove).not.toHaveBeenCalled();
     fireEvent.click(within(dialog).getByRole("button", { name: "Xóa gói bàn giao" }));
     await waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
     expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
+  });
+
+  it("xóa gói Sẵn sàng cuối cùng thì hỏi đưa kế hoạch về Nháp rồi xóa kèm xác nhận", async () => {
+    const remove = vi
+      .spyOn(apiClient, "delete")
+      .mockRejectedValueOnce(backendError("PLAN_DEACTIVATION_CONFIRMATION_REQUIRED", 409))
+      .mockResolvedValueOnce({ ...group(), status: "REMOVED" });
+    renderGroup();
+    fireEvent.click(screen.getByRole("button", { name: "Xóa gói bàn giao" }));
+    fireEvent.click(
+      within(await screen.findByRole("dialog")).getByRole("button", { name: "Xóa gói bàn giao" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByRole("dialog")).toHaveTextContent("đưa kế hoạch về Nháp"),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục, đưa kế hoạch về Nháp" }));
+    await waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
+    expect(remove.mock.calls[1][1]).toMatchObject({ params: { confirmPlanDeactivation: true } });
   });
 
   it("hiện mô tả gói bàn giao và lưu mô tả mới cùng etag hiện tại", async () => {

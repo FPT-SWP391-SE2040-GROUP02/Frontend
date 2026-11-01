@@ -1,7 +1,8 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AxiosError, AxiosHeaders } from "axios";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -18,6 +19,7 @@ import { ExecutorProgressPage } from "@/pages/executor/ExecutorProgressPage";
 
 const CASE_ID = "33333333-3333-4333-8333-333333333333";
 const OTHER_VAULT_ID = "44444444-4444-4444-8444-444444444444";
+const OVERDUE_REJECTED_CASE_ID = "55555555-5555-4555-8555-555555555555";
 
 const vault = (overrides: Record<string, unknown> = {}) => ({
   vaultId: VAULT_ID,
@@ -63,6 +65,7 @@ beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   accessTokenMemory.set("executor-workspace-fixture");
   window.sessionStorage.clear();
+  window.localStorage.clear();
 });
 
 afterEach(() => {
@@ -149,6 +152,138 @@ describe("Executor overview", () => {
     setup("/executor");
     expect(await screen.findByText("Anh Nam đã quá hạn điểm danh")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Xem hồ sơ báo tin" })).toBeInTheDocument();
+    // Đã có hồ sơ chứng tử thì không điểm danh thay nữa.
+    expect(
+      screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not call the vault safe once a death case is open", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({ planStatus: "DEATH_CASE_OPEN", openDeathCaseId: CASE_ID }),
+    ]);
+    setup("/executor");
+    expect(await screen.findByText("Hồ sơ báo tin về Anh Nam đang được xử lý")).toBeInTheDocument();
+    expect(screen.queryByText("Kho của Anh Nam đang an toàn")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Xem hồ sơ báo tin" })).toBeInTheDocument();
+  });
+
+  it("says the case was rejected instead of calling the vault safe or still processing", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([vault({ lastRejectedDeathCaseId: CASE_ID })]);
+    setup("/executor");
+    expect(await screen.findByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).toBeInTheDocument();
+    expect(screen.queryByText("Kho của Anh Nam đang an toàn")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hồ sơ báo tin về Anh Nam đang được xử lý")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Xem lý do" })).toHaveAttribute(
+      "href",
+      "/executor/report",
+    );
+    // Hồ sơ bị từ chối là đã xử lý xong: bấm Tiếp tục thì banner trở lại màu xanh "an toàn".
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục" }));
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(screen.queryByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).not.toBeInTheDocument();
+  });
+
+  it("shows the rejected banner before the overdue banner, then the overdue one after Tiếp tục", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({
+        planStatus: "AWAITING_CHECK",
+        checkInOverdue: true,
+        lastRejectedDeathCaseId: OVERDUE_REJECTED_CASE_ID,
+      }),
+    ]);
+    setup("/executor");
+    expect(await screen.findByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).toBeInTheDocument();
+    expect(screen.queryByText("Anh Nam đã quá hạn điểm danh")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Tiếp tục" }));
+    expect(await screen.findByText("Anh Nam đã quá hạn điểm danh")).toBeInTheDocument();
+    expect(screen.queryByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).not.toBeInTheDocument();
+  });
+
+  it("hides the proxy check-in while the Owner is not overdue", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
+    setup("/executor");
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("checks in for the overdue Owner and hides the button once the vault is safe again", async () => {
+    const get = vi
+      .spyOn(apiClient, "get")
+      .mockResolvedValueOnce([vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true })])
+      .mockResolvedValue([vault()]);
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue({
+      vaultId: VAULT_ID,
+      planStatus: "ACTIVE",
+      checkedInAt: "2026-10-31T01:00:00Z",
+      nextCheckInDueAt: "2026-11-30T01:00:00Z",
+      graceEndsAt: "2026-12-07T01:00:00Z",
+    });
+    setup("/executor");
+    const button = await screen.findByRole("button", { name: "Điểm danh thay chủ kho" });
+    expect(
+      screen.getByText("Điểm danh hộ owner cho đến khi có giấy chứng tử."),
+    ).toBeInTheDocument();
+
+    await userEvent.click(button);
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("không hoàn tác được");
+    expect(post).not.toHaveBeenCalled();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Xác nhận điểm danh thay" }));
+
+    expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/check-in`);
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
+    ).not.toBeInTheDocument();
+    expect(get).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not check in when the Executor cancels the confirmation", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true }),
+    ]);
+    const post = vi.spyOn(apiClient, "post");
+    setup("/executor");
+
+    await userEvent.click(await screen.findByRole("button", { name: "Điểm danh thay chủ kho" }));
+    await userEvent.click(
+      within(await screen.findByRole("dialog")).getByRole("button", { name: "Hủy" }),
+    );
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(post).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Điểm danh thay chủ kho" })).toBeInTheDocument();
+  });
+
+  it("explains why the proxy check-in was refused", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true }),
+    ]);
+    const headers = new AxiosHeaders();
+    vi.spyOn(apiClient, "post").mockRejectedValue(
+      new AxiosError("fail", "ERR", { headers }, undefined, {
+        status: 409,
+        statusText: "",
+        headers: {},
+        config: { headers },
+        data: { code: "CHECKIN_NOT_ALLOWED", reason: "DEATH_CASE_OPEN" },
+      }),
+    );
+    setup("/executor");
+
+    await userEvent.click(await screen.findByRole("button", { name: "Điểm danh thay chủ kho" }));
+    await userEvent.click(
+      within(await screen.findByRole("dialog")).getByRole("button", {
+        name: "Xác nhận điểm danh thay",
+      }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Kho đã có hồ sơ chứng tử đang mở nên không điểm danh thay được nữa.",
+    );
   });
 
   it("says there is no duty when the account is not an Executor of any vault", async () => {
@@ -207,6 +342,114 @@ describe("Executor report", () => {
     expect(post).not.toHaveBeenCalled();
     await userEvent.click(screen.getByRole("button", { name: "Mở hồ sơ chứng tử" }));
     expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/death-case`);
+  });
+
+  it("cancels a draft only after confirming, then goes back to the overview", async () => {
+    let open = true;
+    const remove = vi.spyOn(apiClient, "delete").mockImplementation(() => {
+      open = false;
+      return Promise.resolve(undefined);
+    });
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") {
+        return Promise.resolve([vault({ openDeathCaseId: open ? CASE_ID : null })]);
+      }
+      if (url === `/executor/death-cases/${CASE_ID}`) return Promise.resolve(deathCase("DRAFT"));
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    await userEvent.click(await screen.findByRole("button", { name: "Hủy hồ sơ nháp" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("không khôi phục được");
+    expect(remove).not.toHaveBeenCalled();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Hủy hồ sơ nháp" }));
+    await waitFor(() =>
+      expect(remove).toHaveBeenCalledWith(`/executor/death-cases/${CASE_ID}/draft`),
+    );
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("keeps the draft when the Executor backs out, and shows no cancel button once submitted", async () => {
+    const remove = vi.spyOn(apiClient, "delete");
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
+      if (url === `/executor/death-cases/${CASE_ID}`) return Promise.resolve(deathCase("DRAFT"));
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    await userEvent.click(await screen.findByRole("button", { name: "Hủy hồ sơ nháp" }));
+    await userEvent.click(
+      within(await screen.findByRole("dialog")).getByRole("button", { name: "Giữ hồ sơ" }),
+    );
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(remove).not.toHaveBeenCalled();
+    cleanup();
+    client.clear();
+
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
+      if (url === `/executor/death-cases/${CASE_ID}`)
+        return Promise.resolve(deathCase("UNDER_REVIEW"));
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    expect(await screen.findByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Hủy hồ sơ nháp" })).not.toBeInTheDocument();
+  });
+
+  it("explains the supplement while under review and confirms the new draft version", async () => {
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(
+      deathCase("UNDER_REVIEW", {
+        currentVersion: { ...deathCase("DRAFT").currentVersion, versionNo: 2 },
+        reviewVersionNo: 1,
+        etag: "case-v2",
+      }),
+    );
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
+      if (url === `/executor/death-cases/${CASE_ID}`) {
+        return Promise.resolve(deathCase("UNDER_REVIEW", { reviewVersionNo: 1 }));
+      }
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    expect(
+      await screen.findByText(/Người xét duyệt vẫn xét bản đã gửi cho tới khi bạn nộp bản mới/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Máy chủ đã lưu yêu cầu/)).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Tạo bản bổ sung" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Người xét duyệt chưa duyệt được hồ sơ");
+    expect(post).not.toHaveBeenCalled();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Hủy" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(post).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: "Tạo bản bổ sung" }));
+    await userEvent.click(
+      within(await screen.findByRole("dialog")).getByRole("button", { name: "Tạo bản bổ sung" }),
+    );
+
+    expect(post).toHaveBeenCalledWith(`/executor/death-cases/${CASE_ID}/versions`, {
+      etag: "case-v1",
+    });
+    expect(await screen.findByText(/Đã tạo bản bổ sung số 2/)).toBeInTheDocument();
+  });
+
+  it("hides the supplement button once the case is closed", async () => {
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
+      if (url === `/executor/death-cases/${CASE_ID}`)
+        return Promise.resolve(deathCase("SUSPENDED"));
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    expect(
+      await screen.findByText("Hồ sơ đã đóng nên không sửa hay bổ sung được nữa."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tạo bản bổ sung" })).not.toBeInTheDocument();
   });
 
   it("shows the draft editor with missing items and keeps submit disabled until confirmed", async () => {

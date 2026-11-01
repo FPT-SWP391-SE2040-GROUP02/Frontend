@@ -3,6 +3,12 @@ import { paginatedListSchema } from "@/shared/api/pagination.schema";
 
 /** Vai trò tài khoản theo `UserRole` của Backend (wire viết hoa). */
 export const ADMIN_USER_ROLES = ["USER", "VERIFIER", "ADMIN", "EXECUTOR"] as const;
+/**
+ * Vai trò Admin được cấp khi đổi vai trò. Không có EXECUTOR: người thực hiện là người ngoài do Owner mời theo
+ * từng kho (ROLE-02), BE trả 400 nếu gửi EXECUTOR. ADMIN_USER_ROLES vẫn giữ để đọc và lọc tài khoản cũ.
+ */
+export const ASSIGNABLE_USER_ROLES = ["USER", "VERIFIER", "ADMIN"] as const;
+export const assignableUserRoleSchema = z.enum(ASSIGNABLE_USER_ROLES);
 /** Trạng thái tài khoản theo `UserStatus` của Backend (wire viết hoa). */
 export const ADMIN_USER_STATUSES = ["ACTIVE", "LOCKED", "DISABLED"] as const;
 
@@ -94,7 +100,6 @@ export const HOLD_TYPES = ["OWNER_ALIVE", "DISPUTE", "ADMIN"] as const;
 /** `HoldStatus` của Backend. */
 export const HOLD_STATUSES = ["ACTIVE", "RELEASED"] as const;
 /** Phạm vi Admin được đặt hold (HoldService chỉ nhận VAULT hoặc CONTAINER). */
-export const HOLD_PLACE_SCOPES = ["VAULT", "CONTAINER"] as const;
 /** Loại đối tượng của sự cố giao được Verifier (IncidentService.TargetDeathCase). */
 export const INCIDENT_TARGET_DEATH_CASE = "DEATH_CASE";
 
@@ -212,17 +217,8 @@ export const resolveIncidentRequestSchema = z.object({
   note: text1000("Vui lòng ghi kết quả xử lý."),
   etag,
 });
-export const placeHoldRequestSchema = z.object({
-  vaultId: uuid,
-  scope: z.enum(HOLD_PLACE_SCOPES).optional(),
-  targetId: uuid.optional(),
-  reason: reason500,
-  reviewAt: dateTime.optional(),
-});
-export const releaseHoldRequestSchema = z.object({ reason: reason500, etag });
-export const reviewHoldRequestSchema = z.object({ nextReviewAt: dateTime, etag });
 export const changeUserRoleRequestSchema = z.object({
-  role: adminUserRoleSchema,
+  role: assignableUserRoleSchema,
   reason: reason500,
 });
 export const changeUserStatusRequestSchema = z.object({
@@ -235,9 +231,6 @@ export type AssignIncidentRequest = z.infer<typeof assignIncidentRequestSchema>;
 export type IncidentNoteRequest = z.infer<typeof incidentNoteRequestSchema>;
 export type ReviewIncidentRequest = z.infer<typeof reviewIncidentRequestSchema>;
 export type ResolveIncidentRequest = z.infer<typeof resolveIncidentRequestSchema>;
-export type PlaceHoldRequest = z.infer<typeof placeHoldRequestSchema>;
-export type ReleaseHoldRequest = z.infer<typeof releaseHoldRequestSchema>;
-export type ReviewHoldRequest = z.infer<typeof reviewHoldRequestSchema>;
 export type ChangeUserRoleRequest = z.infer<typeof changeUserRoleRequestSchema>;
 export type ChangeUserStatusRequest = z.infer<typeof changeUserStatusRequestSchema>;
 export type ReassignVerifierRequest = z.infer<typeof reassignVerifierRequestSchema>;
@@ -246,7 +239,7 @@ export const createAdminUserRequestSchema = z.object({
   fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
   email: z.string().trim().email("Địa chỉ email không hợp lệ.").max(256),
   password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128),
-  role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),
+  role: z.enum(["VERIFIER", "ADMIN"]),
   phone: z.string().trim().max(32).optional(),
 });
 export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;

@@ -18,8 +18,9 @@ export const verifierKeys = {
   lists: () => [...verifierKeys.all, "list"] as const,
   list: (params?: PaginationParams) => [...verifierKeys.lists(), params ?? {}] as const,
   detail: (caseId: string) => [...verifierKeys.all, "detail", caseId] as const,
+  // Ngoài nhóm "verifier-cases": invalidate cả nhóm (tải lại sau 409) không kéo theo một lần dò thừa.
+  freshness: (caseId: string) => ["verifier-case-freshness", caseId] as const,
   objection: (caseId: string) => [...verifierKeys.all, "objection", caseId] as const,
-  signature: (caseId: string) => [...verifierKeys.all, "signature", caseId] as const,
 };
 /** Hồ sơ Verifier đang được giao. */
 export function useVerifierCases(params?: PaginationParams) {
@@ -37,8 +38,41 @@ export function useVerifierCase(caseId: string | null) {
     enabled: Boolean(caseId),
     gcTime: 0,
     retry: false,
+    // Không tự thay nội dung Verifier đang đọc; thay đổi ở nơi khác do useVerifierCaseFreshness báo.
+    refetchOnWindowFocus: false,
   });
 }
+/** Chu kỳ dò hồ sơ có đổi ở nơi khác (Executor tạo hoặc nộp bản bổ sung, Owner phản đối, job giao lại). */
+export const FRESHNESS_INTERVAL_MS = 30_000;
+
+/**
+ * Dò ngầm etag mới nhất của hồ sơ đang xét, cache riêng nên KHÔNG thay dữ liệu Verifier đang đọc:
+ * thấy khác thì trang báo và để Verifier tự tải lại, tránh quyết định trên nội dung chưa kịp xem.
+ * Chỉ dò khi hồ sơ còn chờ quyết định; tab ẩn thì ngừng, quay lại tab thì dò ngay.
+ * Bắt đầu từ etag vừa tải (không GET lại lúc mở trang), lần dò đầu sau một chu kỳ hoặc khi quay lại tab.
+ */
+export function useVerifierCaseFreshness(
+  caseId: string,
+  enabled: boolean,
+  loadedEtag: string | undefined,
+  loadedAt: number,
+) {
+  return useQuery({
+    queryKey: verifierKeys.freshness(caseId),
+    queryFn: async ({ signal }) => (await verifierReviewService.get(caseId, signal)).etag,
+    initialData: loadedEtag,
+    initialDataUpdatedAt: loadedAt,
+    enabled: enabled && loadedEtag !== undefined,
+    staleTime: FRESHNESS_INTERVAL_MS,
+    gcTime: 0,
+    retry: false,
+    refetchOnMount: false,
+    refetchInterval: FRESHNESS_INTERVAL_MS,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: "always",
+  });
+}
+
 /**
  * Cập nhật cache detail từ response schema thật; chỉ invalidate list.
  * Không GET lại detail: response duyệt lần đầu có `handover`, GET sau đó luôn trả `handover = null`
@@ -75,29 +109,15 @@ export function useRequestSupplement() {
   return (caseId: string, request: z.infer<typeof requestSupplementRequestSchema>) =>
     perform(client, caseId, () => verifierReviewService.requestSupplement(caseId, request));
 }
-/** Quyết định cuối vừa được ký: phiếu chữ ký cũ (nếu có trong cache) không còn đúng. */
-function invalidateSignature(client: ReturnType<typeof useQueryClient>, caseId: string) {
-  void client.invalidateQueries({ queryKey: verifierKeys.signature(caseId) });
-}
 export function useApproveCase() {
   const client = useQueryClient();
-  return async (caseId: string, request: z.infer<typeof approveCaseRequestSchema>) => {
-    const detail = await perform(client, caseId, () =>
-      verifierReviewService.approve(caseId, request),
-    );
-    invalidateSignature(client, caseId);
-    return detail;
-  };
+  return (caseId: string, request: z.infer<typeof approveCaseRequestSchema>) =>
+    perform(client, caseId, () => verifierReviewService.approve(caseId, request));
 }
 export function useRejectCase() {
   const client = useQueryClient();
-  return async (caseId: string, request: z.infer<typeof rejectCaseRequestSchema>) => {
-    const detail = await perform(client, caseId, () =>
-      verifierReviewService.reject(caseId, request),
-    );
-    invalidateSignature(client, caseId);
-    return detail;
-  };
+  return (caseId: string, request: z.infer<typeof rejectCaseRequestSchema>) =>
+    perform(client, caseId, () => verifierReviewService.reject(caseId, request));
 }
 /** Lời báo còn sống của hồ sơ; `null` khi BE trả 404 (chưa có lời báo hoặc không còn được giao). */
 export function useVerifierObjection(caseId: string, enabled: boolean) {
@@ -106,26 +126,6 @@ export function useVerifierObjection(caseId: string, enabled: boolean) {
     queryFn: async ({ signal }) => {
       try {
         return await verifierReviewService.getObjection(caseId, signal);
-      } catch (error) {
-        if (isAxiosError(error) && error.response?.status === HTTP_STATUS.NOT_FOUND) return null;
-        throw error;
-      }
-    },
-    enabled,
-    gcTime: 0,
-    retry: false,
-  });
-}
-/**
- * Phiếu chữ ký số của quyết định cuối; chỉ gọi khi mở dialog (`enabled`), không giữ cache sau khi đóng.
- * `null` khi BE trả 404 (BE cũ chưa có API hoặc hồ sơ không còn giao cho bạn).
- */
-export function useDecisionSignature(caseId: string, enabled: boolean) {
-  return useQuery({
-    queryKey: verifierKeys.signature(caseId),
-    queryFn: async ({ signal }) => {
-      try {
-        return await verifierReviewService.getDecisionSignature(caseId, signal);
       } catch (error) {
         if (isAxiosError(error) && error.response?.status === HTTP_STATUS.NOT_FOUND) return null;
         throw error;

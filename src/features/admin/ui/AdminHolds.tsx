@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
@@ -13,7 +13,6 @@ import { HOLD_STATUSES, type Hold, type HoldStatus } from "../model/admin.schema
 import { adminActionError } from "../model/adminError";
 import { adminKeys, useAdminHold, useAdminHolds } from "../model/useAdmin";
 import { useAdminHoldParams } from "../model/useAdminListParams";
-import { PlaceHoldDialog, ReleaseHoldDialog, ReviewHoldDialog } from "./AdminHoldDialogs";
 import { AdminPagination } from "./AdminPagination";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
@@ -41,15 +40,17 @@ function ReviewOverdueBadge() {
   );
 }
 
-/** Danh sách và chi tiết tạm giữ (hold): bộ lọc và hold đang xem nằm trên URL. */
+/**
+ * Danh sách và chi tiết tạm giữ (hold), chỉ xem: bộ lọc và hold đang xem nằm trên URL.
+ * Hold do hệ thống đặt và gỡ (chủ kho báo còn sống); quản trị viên không đặt, hẹn rà soát hay gỡ bằng tay.
+ */
 export function AdminHolds() {
   const params = useAdminHoldParams();
-  const [placing, setPlacing] = useState(false);
   if (params.selectedId)
     return <HoldDetailView holdId={params.selectedId} onBack={() => params.select(undefined)} />;
   return (
     <div className="mt-6 space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex flex-wrap items-end gap-3">
         <label className="block text-sm">
           Trạng thái
           <select
@@ -65,9 +66,6 @@ export function AdminHolds() {
             ))}
           </select>
         </label>
-        <Button className="min-h-11" onClick={() => setPlacing(true)}>
-          Đặt tạm giữ
-        </Button>
       </div>
       <section aria-labelledby="admin-holds-heading" className="space-y-3">
         <h2 id="admin-holds-heading" className="text-lg font-semibold">
@@ -75,12 +73,6 @@ export function AdminHolds() {
         </h2>
         <HoldResult params={params} />
       </section>
-      {placing && (
-        <PlaceHoldDialog
-          onClose={() => setPlacing(false)}
-          onDone={(hold) => params.select(hold.id)}
-        />
-      )}
     </div>
   );
 }
@@ -220,8 +212,6 @@ function HoldDetailView({ holdId, onBack }: { holdId: string; onBack: () => void
   return <HoldDetailBody hold={query.data} back={back} refreshing={query.isFetching} />;
 }
 
-type HoldDialog = "review" | "release";
-
 function HoldDetailBody({
   hold,
   back,
@@ -232,11 +222,8 @@ function HoldDetailBody({
   refreshing: boolean;
 }) {
   const client = useQueryClient();
-  const [dialog, setDialog] = useState<HoldDialog | null>(null);
   const active = hold.status === "ACTIVE";
   const ownerAlive = hold.type === "OWNER_ALIVE";
-  const close = () => setDialog(null);
-  const dialogKey = `${hold.id}:${hold.etag}`;
   return (
     <div className="mt-6 space-y-6" aria-busy={refreshing}>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -279,29 +266,12 @@ function HoldDetailBody({
           role="status"
           className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"
         >
-          Tạm giữ này do chủ kho báo còn sống. Chỉ người xét duyệt kết luận mới gỡ được; quản trị
-          viên không có thao tác gỡ.
+          Tạm giữ này do chủ kho báo còn sống. Chỉ người xét duyệt kết luận mới gỡ được.
         </p>
       )}
-      {active ? (
-        <section aria-label="Thao tác" className="flex flex-wrap gap-3">
-          <Button className="min-h-11" variant="outline" onClick={() => setDialog("review")}>
-            Hẹn rà soát
-          </Button>
-          {!ownerAlive && (
-            <Button className="min-h-11" onClick={() => setDialog("release")}>
-              Gỡ tạm giữ
-            </Button>
-          )}
-        </section>
-      ) : (
-        <p role="status" className="text-sm text-heritage-muted">
-          Tạm giữ đã được gỡ nên không còn thao tác.
-        </p>
-      )}
-
-      {dialog === "review" && <ReviewHoldDialog key={dialogKey} hold={hold} onClose={close} />}
-      {dialog === "release" && <ReleaseHoldDialog key={dialogKey} hold={hold} onClose={close} />}
+      <p role="note" className="text-sm text-heritage-muted">
+        Tạm giữ do hệ thống đặt và gỡ. Quản trị viên chỉ xem, không có thao tác trên tạm giữ.
+      </p>
     </div>
   );
 }

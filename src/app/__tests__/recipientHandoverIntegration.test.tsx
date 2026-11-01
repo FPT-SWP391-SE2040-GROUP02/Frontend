@@ -43,6 +43,7 @@ function committedTurn(grantStatus: string) {
     responseDeadline: "2026-12-01T00:00:00Z",
     decisionDeadline: "2026-12-02T00:00:00Z",
     identityBypassed: false,
+    identityConfirmedByExecutor: false,
     container: { name: "Gói thử" },
     items: [
       {

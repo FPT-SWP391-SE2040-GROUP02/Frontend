@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
+import { isAxiosError } from "axios";
 import { CircleAlert, CircleCheck, FileText, UserRound } from "lucide-react";
 import type { PackageResponse } from "@/entities/package/model/package.types";
 import {
@@ -38,6 +39,15 @@ type Relation = "assets" | "beneficiaries";
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
 const DANGER_BUTTON = "border-red-300 text-red-700 hover:bg-red-50";
 const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
+/**
+ * SETUP-16: BE báo thao tác gỡ/xóa sẽ làm mất gói Sẵn sàng cuối cùng của kế hoạch đang chạy (kế hoạch về Nháp) và
+ * chưa gỡ gì. Chỉ lúc này FE mới hỏi Owner, đồng ý thì gửi lại kèm confirmPlanDeactivation.
+ */
+function needsPlanConfirmation(error: unknown): boolean {
+  if (!isAxiosError<{ code?: unknown }>(error) || !error.response) return false;
+  return error.response.data?.code === "PLAN_DEACTIVATION_CONFIRMATION_REQUIRED";
+}
+
 const missingLabels: Record<string, string> = {
   NO_ASSET: "chưa có mục nào",
   NO_DESIGNATION: "chưa có người nhận",
@@ -220,8 +230,9 @@ export function GroupDetail({
   beneficiaries: Option[];
 }) {
   const [etag, setEtag] = useState(container.etag);
-  const [confirm, setConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  /** Thao tác đang chờ Owner đồng ý đưa kế hoạch về Nháp (BE vừa yêu cầu); null khi không có. */
+  const [impact, setImpact] = useState<{ title: string; retry: () => void } | null>(null);
   const action = usePrivateAction();
   const client = useQueryClient();
   const navigate = useNavigate();
@@ -239,20 +250,27 @@ export function GroupDetail({
     defaultValues: { name: container.name, description: container.description ?? "" },
   });
 
-  // Sự đồng ý đưa kế hoạch về Nháp chỉ dùng một lần cho thao tác gỡ/xóa; lưu tên hay thêm mục thì giữ nguyên ô đã tick.
-  function publish(result: PackageResponse, consumeConsent = false): void {
+  function publish(result: PackageResponse): void {
     setEtag(result.etag);
     reset({ name: result.name, description: result.description ?? "" });
-    if (consumeConsent) {
-      setConfirm(false);
-    }
     client.setQueryData(ownerVaultKeys.package(result.vaultId, result.id), result);
     void client.invalidateQueries({ queryKey: ownerVaultKeys.all });
     void client.invalidateQueries({ queryKey: ["vault-beneficiaries", result.vaultId] });
     void client.invalidateQueries({ queryKey: ["plan-setup", result.vaultId] });
   }
 
-  function removeMember(relation: Relation, id: string): void {
+  /** BE yêu cầu xác nhận thì bỏ câu lỗi chung và mở hộp thoại hỏi; lỗi khác giữ nguyên để hiện. */
+  function askPlanConfirmation(error: unknown, title: string, retry: () => void): void {
+    if (!needsPlanConfirmation(error)) return;
+    action.reset();
+    setImpact({ title, retry });
+  }
+
+  function sendRemoveMember(relation: Relation, id: string, confirmed: boolean): void {
+    let title = "Gỡ người nhận khỏi gói bàn giao?";
+    if (relation === "assets") {
+      title = "Gỡ mục khỏi gói bàn giao?";
+    }
     void action.execute(
       () =>
         ownerVaultService.changeMember(
@@ -261,10 +279,15 @@ export function GroupDetail({
           relation,
           id,
           false,
-          confirm,
+          confirmed,
         ),
-      (result) => publish(result, true),
+      (result) => publish(result),
+      (error) => askPlanConfirmation(error, title, () => sendRemoveMember(relation, id, true)),
     );
+  }
+
+  function removeMember(relation: Relation, id: string): void {
+    sendRemoveMember(relation, id, false);
   }
 
   function addMember(relation: Relation, id: string): void {
@@ -274,13 +297,20 @@ export function GroupDetail({
     );
   }
 
-  function removeGroup(): void {
+  function removeGroup(confirmed: boolean): void {
     void action.execute(
-      () => ownerVaultService.removePackage(container.vaultId, container.id, confirm),
+      () => ownerVaultService.removePackage(container.vaultId, container.id, confirmed),
       (result) => {
-        publish(result, true);
+        publish(result);
         setDeleting(false);
         navigate(`${ROUTES.DASHBOARD.ASSETS}?tab=groups`);
+      },
+      (error) => {
+        if (!needsPlanConfirmation(error)) return;
+        setDeleting(false);
+        askPlanConfirmation(error, `Xóa gói bàn giao “${container.name}”?`, () =>
+          removeGroup(true),
+        );
       },
     );
   }
@@ -424,8 +454,8 @@ export function GroupDetail({
           onAdd={addMember}
         />
       </div>
-      <section aria-label="Đổi tên và xóa gói bàn giao" className={CARD}>
-        <h2 className="text-xl font-medium text-heritage-primary">Đổi tên và xóa gói bàn giao</h2>
+      <section aria-label="Thông tin gói bàn giao" className={CARD}>
+        <h2 className="text-xl font-medium text-heritage-primary">Thông tin gói bàn giao</h2>
         <form
           noValidate
           className="mt-4 space-y-4"
@@ -470,34 +500,44 @@ export function GroupDetail({
               {errors.description.message}
             </p>
           )}
-          {container.status === "READY" && !removed && (
-            <label className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F1E7D0] p-4 text-sm leading-6 text-[#7A5B24]">
-              <input
-                type="checkbox"
-                className="mt-1 size-5"
-                checked={confirm}
-                onChange={(event) => setConfirm(event.target.checked)}
-              />
-              Tôi đồng ý đưa kế hoạch về Nháp nếu thao tác gỡ hoặc xóa làm mất gói bàn giao Sẵn sàng
-              cuối cùng. Bỏ chọn nếu chưa đồng ý.
-            </label>
-          )}
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" size="lg" className={GOLD_BUTTON} disabled={blocked}>
+            <Button type="submit" size="lg" className={GOLD_BUTTON} disabled={blocked || !isDirty}>
               Lưu
             </Button>
             <Button
               type="button"
               variant="outline"
               size="lg"
-              className={DANGER_BUTTON}
-              disabled={blocked || isDirty}
-              onClick={() => setDeleting(true)}
+              disabled={blocked || !isDirty}
+              onClick={() => {
+                action.reset();
+                reset();
+              }}
             >
-              Xóa gói bàn giao
+              Hoàn tác
             </Button>
           </div>
         </form>
+      </section>
+      <section
+        aria-label="Xóa gói bàn giao"
+        className="rounded-2xl border border-red-200 bg-heritage-surface p-6"
+      >
+        <h2 className="text-xl font-medium text-heritage-primary">Xóa gói bàn giao</h2>
+        <p className="mt-2 text-sm text-heritage-muted">
+          Các mục vẫn ở lại kho nhưng gói bàn giao không còn người nhận. Không khôi phục được gói đã
+          xóa.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className={`mt-4 ${DANGER_BUTTON}`}
+          disabled={blocked || isDirty}
+          onClick={() => setDeleting(true)}
+        >
+          Xóa gói bàn giao
+        </Button>
       </section>
       {action.pending && (
         <p
@@ -538,21 +578,10 @@ export function GroupDetail({
             <DialogHeader>
               <DialogTitle>Xóa gói bàn giao “{container.name}”?</DialogTitle>
               <DialogDescription>
-                Các mục trong gói bàn giao vẫn ở lại kho nhưng sẽ không còn người nhận. Nếu kế hoạch
-                đang hoạt động, kế hoạch có thể về Nháp. Không thể dùng lại gói đã xóa; muốn trao
-                lại thì tạo gói bàn giao mới.
+                Các mục trong gói bàn giao vẫn ở lại kho nhưng sẽ không còn người nhận. Không thể
+                dùng lại gói đã xóa; muốn trao lại thì tạo gói bàn giao mới.
               </DialogDescription>
             </DialogHeader>
-            <label className="flex items-start gap-3 rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
-              <input
-                type="checkbox"
-                className="mt-1 size-5"
-                checked={confirm}
-                onChange={(event) => setConfirm(event.target.checked)}
-              />
-              Xóa gói bàn giao cuối cùng có người nhận có thể đưa kế hoạch về Nháp. Tôi đồng ý nếu
-              điều đó xảy ra.
-            </label>
             {action.error && (
               <p role="alert" className="text-sm text-destructive">
                 {action.error}
@@ -573,9 +602,52 @@ export function GroupDetail({
                 variant="destructive"
                 size="lg"
                 disabled={action.pending}
-                onClick={removeGroup}
+                onClick={() => removeGroup(false)}
               >
                 Xóa gói bàn giao
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      {impact && (
+        <Dialog open onOpenChange={(open) => !open && !action.pending && setImpact(null)}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{impact.title}</DialogTitle>
+              <DialogDescription>
+                Đây là gói bàn giao Sẵn sàng cuối cùng. Thao tác này sẽ đưa kế hoạch về Nháp, ngừng
+                theo dõi điểm danh, và Người thực hiện phải chấp nhận lại lời mời. Họ không nộp được
+                hồ sơ chứng tử cho tới khi bạn kích hoạt lại kế hoạch.
+              </DialogDescription>
+            </DialogHeader>
+            {action.error && (
+              <p role="alert" className="text-sm text-destructive">
+                {action.error}
+              </p>
+            )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                disabled={action.pending}
+                onClick={() => setImpact(null)}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="lg"
+                disabled={action.pending}
+                onClick={() => {
+                  const retry = impact.retry;
+                  setImpact(null);
+                  retry();
+                }}
+              >
+                Tiếp tục, đưa kế hoạch về Nháp
               </Button>
             </DialogFooter>
           </DialogContent>

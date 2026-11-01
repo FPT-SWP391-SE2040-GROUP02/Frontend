@@ -6,9 +6,9 @@ import { Button } from "@/shared/ui/button";
 import { adminService } from "../api/adminService";
 import { ROLE_LABELS, STATUS_LABELS } from "../model/admin.content";
 import {
-  ADMIN_USER_ROLES,
+  ASSIGNABLE_USER_ROLES,
   ADMIN_USER_STATUSES,
-  adminUserRoleSchema,
+  assignableUserRoleSchema,
   adminUserStatusSchema,
   type AdminUser,
 } from "../model/admin.schema";
@@ -61,15 +61,19 @@ export function AdminUserActions({ user }: { user: AdminUser }) {
               name: "role",
               label: "Vai trò mới",
               kind: "select",
-              options: ADMIN_USER_ROLES.map((role) => ({ value: role, label: ROLE_LABELS[role] })),
+              options: ASSIGNABLE_USER_ROLES.map((role) => ({
+                value: role,
+                label: ROLE_LABELS[role],
+              })),
             },
             { name: "reason", label: "Lý do", kind: "textarea", maxLength: 500 },
           ]}
-          defaultValues={{ role: user.role, reason: "" }}
+          // Tài khoản cũ mang vai trò EXECUTOR không còn được cấp lại, mặc định chọn USER.
+          defaultValues={{ role: user.role === "EXECUTOR" ? "USER" : user.role, reason: "" }}
           confirmLabel="Tôi xác nhận đổi vai trò của tài khoản này."
           submit={(values) =>
             adminService.changeUserRole(user.id, {
-              role: adminUserRoleSchema.parse(values.role),
+              role: assignableUserRoleSchema.parse(values.role),
               reason: values.reason,
             })
           }

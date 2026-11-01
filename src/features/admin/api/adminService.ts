@@ -15,11 +15,8 @@ import {
   incidentNoteRequestSchema,
   incidentsPageSchema,
   incidentsQuerySchema,
-  placeHoldRequestSchema,
   reassignVerifierRequestSchema,
-  releaseHoldRequestSchema,
   resolveIncidentRequestSchema,
-  reviewHoldRequestSchema,
   reviewIncidentRequestSchema,
   type AdminUsersQuery,
   type CreateAdminUserRequest,
@@ -30,11 +27,8 @@ import {
   type HoldsQuery,
   type IncidentNoteRequest,
   type IncidentsQuery,
-  type PlaceHoldRequest,
   type ReassignVerifierRequest,
-  type ReleaseHoldRequest,
   type ResolveIncidentRequest,
-  type ReviewHoldRequest,
   type ReviewIncidentRequest,
 } from "../model/admin.schema";
 
@@ -162,29 +156,5 @@ export const adminService = {
   },
   async getHold(holdId: string, signal?: AbortSignal) {
     return holdSchema.parse(await apiClient.get<unknown, unknown>(hold(holdId), { signal }));
-  },
-  /** Đặt hold lên kho hoặc gói; BE trả 201. */
-  async placeHold(request: PlaceHoldRequest) {
-    return holdSchema.parse(
-      await apiClient.post<unknown, unknown>("/admin/holds", placeHoldRequestSchema.parse(request)),
-    );
-  },
-  /** Hẹn lần rà soát hold tiếp theo (tối đa 7 ngày, BR-70). */
-  async reviewHold(holdId: string, request: ReviewHoldRequest) {
-    return holdSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${hold(holdId)}/review`,
-        reviewHoldRequestSchema.parse(request),
-      ),
-    );
-  },
-  /** Gỡ hold; hold OWNER_ALIVE chỉ Verifier gỡ được nên BE trả 409 HOLD_OWNER_ALIVE (BR-71). */
-  async releaseHold(holdId: string, request: ReleaseHoldRequest) {
-    return holdSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${hold(holdId)}/release`,
-        releaseHoldRequestSchema.parse(request),
-      ),
-    );
   },
 };
