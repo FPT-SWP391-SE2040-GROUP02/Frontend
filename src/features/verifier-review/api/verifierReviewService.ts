@@ -3,7 +3,6 @@ import { apiClient } from "@/shared/api";
 import { paginatedListSchema, paginationRequestSchema } from "@/shared/api/pagination.schema";
 import type { PaginationParams } from "@/shared/types";
 import {
-  aiDossierAnalysisResponseSchema,
   approveCaseRequestSchema,
   concludeObjectionRequestSchema,
   rejectCaseRequestSchema,
@@ -115,16 +114,6 @@ export const verifierReviewService = {
       await apiClient.post<unknown, unknown>(
         `/verifier/death-cases/${id.parse(caseId)}/objection/conclude`,
         concludeObjectionRequestSchema.parse(request),
-      ),
-    );
-  },
-  /** Trợ lý Gemini AI Co-Pilot hỗ trợ phân tích hồ sơ báo tử. */
-  async assessWithAi(caseId: string, signal?: AbortSignal) {
-    return aiDossierAnalysisResponseSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `/verifier/death-cases/${id.parse(caseId)}/ai-assess`,
-        {},
-        { signal },
       ),
     );
   },

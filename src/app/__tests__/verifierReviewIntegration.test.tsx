@@ -316,34 +316,6 @@ it("duyệt bị từ chối thì nêu đúng lý do của Backend thay vì câu
   );
 });
 
-it("gợi ý của AI chỉ để tham khảo: không mở biểu mẫu và không điền sẵn lý do", async () => {
-  const user = userEvent.setup();
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
-  );
-  vi.spyOn(apiClient, "post").mockResolvedValue({
-    caseId: CASE_ID,
-    summary: "Tóm tắt",
-    riskLevel: "HIGH",
-    riskReason: "Rủi ro",
-    recommendation: "REJECT",
-    recommendationReason: "Lý do gợi ý",
-    checklist: [],
-    proposedDecisionNote: "VĂN BẢN AI SOẠN SẴN",
-    analyzedAt: CREATED_AT,
-    modelName: "gemini-flash-lite-latest",
-  });
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  await user.click(await screen.findByRole("button", { name: /Xem gợi ý của AI/ }));
-  expect(await screen.findByText("Nghiêng về từ chối")).toBeInTheDocument();
-  expect(screen.getByText(/Quyết định thuộc Người xét duyệt/)).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: /Mở biểu mẫu/ })).not.toBeInTheDocument();
-  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-  // Văn bản AI chỉ hiện để đọc; muốn dùng thì Người xét duyệt tự mở biểu mẫu và tự viết hoặc dán.
-  await user.click(screen.getByRole("button", { name: "Từ chối" }));
-  expect(await screen.findByLabelText(/^Lý do/)).toHaveValue("");
-});
-
 it("ghi chú cờ trống được báo inline và không gửi mutation", async () => {
   const user = userEvent.setup();
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
