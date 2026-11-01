@@ -22,7 +22,6 @@ import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
 import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
 import { VerifierOwnerIdentityPanel } from "./VerifierOwnerIdentityPanel";
-import { AiNotaryAssessmentCard } from "./AiNotaryAssessmentCard";
 import { DecisionSignatureDialog, DecisionSignatureStatusLabel } from "./DecisionSignatureDialog";
 import { getVerifierActions } from "../model/verifierActions";
 import {
@@ -472,8 +471,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               </ul>
             )}
           </section>
-          {/* Gợi ý của AI chỉ để tham khảo, đặt sau hồ sơ và cảnh báo: không mở biểu mẫu, không điền sẵn lý do. */}
-          <AiNotaryAssessmentCard caseId={detail.id} />
           {detail.versions.length > 0 && (
             <section
               aria-label="Các bản cũ"

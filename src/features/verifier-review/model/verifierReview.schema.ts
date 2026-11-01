@@ -367,36 +367,6 @@ export const objectionConclusionLabels: Record<
  * ALIVE_CONFIRMED cần selfie đạt hoặc đã quá 7 ngày; OBJECTION_REJECTED bị chặn khi selfie đã đạt (ALIVE-05).
  * Nút chỉ phản ánh luật; BE vẫn là nơi quyết định.
  */
-/** Mức độ rủi ro do Gemini AI phân tích (BE AiDossierAnalysisResponse.RiskLevel). */
-export const aiDossierRiskLevelSchema = z.enum(["LOW", "MEDIUM", "HIGH"]);
-
-/** Đề xuất của trợ lý công chứng AI (BE AiDossierAnalysisResponse.Recommendation). */
-export const aiDossierRecommendationSchema = z.enum(["APPROVE", "SUPPLEMENT", "REJECT"]);
-
-/** Một tiêu chí trong bảng đối chiếu thẩm định hồ sơ của AI. */
-export const aiDossierChecklistItemSchema = z.object({
-  category: z.string(),
-  status: z.string(),
-  detail: z.string(),
-});
-
-/** Kết quả thẩm định hồ sơ báo tử bởi Gemini AI Notary Co-Pilot. */
-export const aiDossierAnalysisResponseSchema = z.object({
-  caseId: z.string().uuid(),
-  summary: z.string(),
-  riskLevel: aiDossierRiskLevelSchema,
-  riskReason: z.string(),
-  recommendation: aiDossierRecommendationSchema,
-  recommendationReason: z.string(),
-  checklist: z.array(aiDossierChecklistItemSchema),
-  proposedDecisionNote: z.string(),
-  analyzedAt: timestamp,
-  modelName: z.string(),
-});
-
-export type AiDossierAnalysisResponse = z.infer<typeof aiDossierAnalysisResponseSchema>;
-export type AiDossierChecklistItem = z.infer<typeof aiDossierChecklistItemSchema>;
-
 export function allowedObjectionConclusions(
   objection: z.infer<typeof verifierObjectionSchema>,
 ): z.infer<typeof objectionConclusionSchema>[] {
