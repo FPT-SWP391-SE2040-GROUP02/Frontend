@@ -227,7 +227,8 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
         remaining = " (đã quá hạn)";
       }
     }
-    const { canCheckIn, checkedInToday, planAllowsCheckIn } = dailyCheckInState(data);
+    const { canCheckIn, checkedInToday, executorCheckedInToday, planAllowsCheckIn } =
+      dailyCheckInState(data);
 
     body = (
       <>
@@ -241,8 +242,19 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
           disabled={!canCheckIn || action.pending}
           onClick={() => void action.execute(() => checkInService.checkIn(), syncAfterCheckIn)}
         >
-          {action.pending ? "Đang gửi…" : checkedInToday ? "Đã điểm danh hôm nay" : "Điểm danh"}
+          {action.pending
+            ? "Đang gửi…"
+            : executorCheckedInToday
+              ? "Executor đã điểm danh hộ"
+              : checkedInToday
+                ? "Đã điểm danh hôm nay"
+                : "Điểm danh"}
         </Button>
+        {executorCheckedInToday && (
+          <p role="status" className="mt-3 text-xs text-[#E0C486]">
+            Executor đã điểm danh hộ bạn hôm nay. Mở lại từ 00:00 ngày tiếp theo (giờ Việt Nam).
+          </p>
+        )}
         {checkedInToday && (
           <p role="status" className="mt-3 text-xs text-[#E0C486]">
             Đã điểm danh hôm nay. Mở lại từ 00:00 ngày tiếp theo (giờ Việt Nam).

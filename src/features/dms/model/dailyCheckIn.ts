@@ -4,7 +4,7 @@ import type { checkInStatusSchema } from "./checkIn.schema";
 type DailyStatus = Pick<
   z.infer<typeof checkInStatusSchema>,
   "planStatus" | "lastCheckInAt" | "serverTime"
->;
+> & { checkedInByExecutorToday?: boolean };
 const DAY_MS = 24 * 60 * 60 * 1000;
 const VIETNAM_OFFSET_MS = 7 * 60 * 60 * 1000;
 
@@ -17,7 +17,14 @@ export function dailyCheckInState(status: DailyStatus) {
   const planAllowsCheckIn = ["ACTIVE", "CHECKIN_OVERDUE", "AWAITING_CHECK"].includes(
     status.planStatus,
   );
-  return { checkedInToday, planAllowsCheckIn, canCheckIn: planAllowsCheckIn && !checkedInToday };
+  // Executor đã điểm danh hộ hôm nay thì chủ kho coi như đã được điểm danh: khóa nút, không ghi giờ vì nhật ký đã có.
+  const executorCheckedInToday = status.checkedInByExecutorToday === true;
+  return {
+    checkedInToday,
+    executorCheckedInToday,
+    planAllowsCheckIn,
+    canCheckIn: planAllowsCheckIn && !checkedInToday && !executorCheckedInToday,
+  };
 }
 
 /** Đọc trạng thái từ đồng hồ tối đa mỗi 30s và tại ranh giới ngày theo giờ server. */

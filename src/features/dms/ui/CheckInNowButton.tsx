@@ -24,7 +24,8 @@ export function CheckInNowButton({
 }) {
   const action = usePrivateAction();
   const client = useQueryClient();
-  const { canCheckIn, checkedInToday, planAllowsCheckIn } = dailyCheckInState(status);
+  const { canCheckIn, checkedInToday, executorCheckedInToday, planAllowsCheckIn } =
+    dailyCheckInState(status);
 
   function sync(result: Status): void {
     client.setQueryData(["vault-check-in", vaultId], result);
@@ -41,8 +42,20 @@ export function CheckInNowButton({
         disabled={action.pending || !canCheckIn}
         onClick={() => void action.execute(() => checkInService.checkIn(), sync)}
       >
-        {action.pending ? "Đang gửi yêu cầu…" : checkedInToday ? "Đã điểm danh hôm nay" : label}
+        {action.pending
+          ? "Đang gửi yêu cầu…"
+          : executorCheckedInToday
+            ? "Executor đã điểm danh hộ"
+            : checkedInToday
+              ? "Đã điểm danh hôm nay"
+              : label}
       </Button>
+      {executorCheckedInToday && (
+        <p role="status" className="mt-3 text-xs font-medium text-emerald-800">
+          Executor đã điểm danh hộ bạn hôm nay. Bạn có thể điểm danh lại từ 00:00 ngày tiếp theo
+          (giờ Việt Nam).
+        </p>
+      )}
       {checkedInToday && (
         <p role="status" className="mt-3 text-xs font-medium text-emerald-800">
           Đã ghi nhận điểm danh hôm nay. Bạn có thể điểm danh lại từ 00:00 ngày tiếp theo (giờ Việt
