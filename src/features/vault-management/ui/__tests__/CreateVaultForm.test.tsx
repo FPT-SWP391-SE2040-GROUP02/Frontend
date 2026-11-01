@@ -23,10 +23,10 @@ it("posts only the confirmed DTO and publishes the returned vault after success"
       </MemoryRouter>
     </QueryClientProvider>,
   );
-  fireEvent.change(screen.getByLabelText("Tên kho (không bắt buộc)"), {
+  fireEvent.change(screen.getByLabelText("Tên kho"), {
     target: { value: "Kho gia đình" },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Tạo kho của tôi" }));
+  fireEvent.click(screen.getByRole("button", { name: "Xác nhận" }));
   await vi.waitFor(() => expect(client.getQueryData(ownerVaultKeys.mine)).toEqual(vaultFixture));
   expect(post).toHaveBeenCalledWith("/vaults", { name: "Kho gia đình", description: "" });
   client.clear();
@@ -45,7 +45,7 @@ it("keeps failures out of the owner cache and provides email recovery", async ()
       </MemoryRouter>
     </QueryClientProvider>,
   );
-  fireEvent.click(screen.getByRole("button", { name: "Tạo kho của tôi" }));
+  fireEvent.click(screen.getByRole("button", { name: "Xác nhận" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("xác minh email");
   expect(client.getQueryData(ownerVaultKeys.mine)).toBeUndefined();
   client.clear();
