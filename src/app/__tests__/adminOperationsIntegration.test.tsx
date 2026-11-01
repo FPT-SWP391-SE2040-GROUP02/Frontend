@@ -83,6 +83,25 @@ const holdBody = (over: Record<string, unknown> = {}) => ({
   etag: "hold-1",
   ...over,
 });
+const paymentBody = (over: Record<string, unknown> = {}) => ({
+  id: "88888888-8888-4888-8888-888888888888",
+  provider: "SePay",
+  environment: "Test",
+  providerTransactionId: 92704,
+  status: "MATCHED",
+  reconciliationReason: null,
+  transferType: "IN",
+  transferAmount: 199000,
+  currency: "VND",
+  paymentOrderId: null,
+  paymentCode: "LVTEST01",
+  gateway: "TestBank",
+  referenceCode: "REF-01",
+  transactionAt: "2026-10-19T00:00:00Z",
+  receivedAt: "2026-10-19T00:00:05Z",
+  processedAt: "2026-10-19T00:00:05Z",
+  ...over,
+});
 const userBody = (id: string, role: string, name: string) => ({
   id,
   email: `${name.toLowerCase().replaceAll(" ", "")}@example.test`,
@@ -363,6 +382,55 @@ describe("Tạm giữ (chỉ xem)", () => {
     setup(holdsPath);
     expect(await screen.findByText("Tranh chấp quyền thừa kế")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Đặt tạm giữ" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Giao dịch thanh toán (chỉ xem)", () => {
+  const paymentsPath = `${ROUTES.ADMIN.ROOT}?view=payments`;
+
+  it("hiện giao dịch, lý do lệch và không có nút sửa giao dịch", async () => {
+    backend(() =>
+      page([
+        paymentBody(),
+        paymentBody({
+          id: "99999999-9999-4999-8999-999999999999",
+          providerTransactionId: 92705,
+          status: "RECONCILIATION_REQUIRED",
+          reconciliationReason: "AMOUNT_MISMATCH",
+          transferAmount: 150000,
+        }),
+      ]),
+    );
+    setup(paymentsPath);
+    expect(await screen.findByText("Lý do: Số tiền khác tổng tiền đơn")).toBeInTheDocument();
+    expect(screen.getByText(/199\.000 VND/)).toBeInTheDocument();
+    expect(screen.getAllByText("Cần đối chiếu").length).toBeGreaterThan(0);
+    expect(screen.getByText("2 giao dịch · Trang 1/1")).toBeInTheDocument();
+    expect(within(screen.getByRole("note")).getByRole("link", { name: "Sự cố" })).toHaveAttribute(
+      "href",
+      `${ROUTES.ADMIN.ROOT}?view=incidents&type=PAYMENT`,
+    );
+    expect(callsTo("get", "/admin/payment-transactions")[0].params).toEqual({
+      pageIndex: 1,
+      pageSize: 20,
+    });
+    expect(calls.filter((call) => call.method !== "get")).toHaveLength(0);
+  });
+
+  it("lọc theo trạng thái gửi đúng tham số và báo rỗng khi không khớp", async () => {
+    backend((call) => {
+      if (call.params?.status === "RESOLVED") return page([]);
+      return page([paymentBody()]);
+    });
+    setup(paymentsPath);
+    expect(await screen.findByText(/199\.000 VND/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Trạng thái"), { target: { value: "RESOLVED" } });
+    expect(await screen.findByText("Không có giao dịch khớp bộ lọc.")).toBeInTheDocument();
+    expect(callsTo("get", "/admin/payment-transactions").at(-1)?.params).toEqual({
+      status: "RESOLVED",
+      pageIndex: 1,
+      pageSize: 20,
+    });
   });
 });
 

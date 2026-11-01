@@ -15,6 +15,8 @@ import {
   incidentNoteRequestSchema,
   incidentsPageSchema,
   incidentsQuerySchema,
+  paymentTransactionsPageSchema,
+  paymentTransactionsQuerySchema,
   reassignVerifierRequestSchema,
   resolveIncidentRequestSchema,
   reviewIncidentRequestSchema,
@@ -27,6 +29,7 @@ import {
   type HoldsQuery,
   type IncidentNoteRequest,
   type IncidentsQuery,
+  type PaymentTransactionsQuery,
   type ReassignVerifierRequest,
   type ResolveIncidentRequest,
   type ReviewIncidentRequest,
@@ -156,5 +159,18 @@ export const adminService = {
   },
   async getHold(holdId: string, signal?: AbortSignal) {
     return holdSchema.parse(await apiClient.get<unknown, unknown>(hold(holdId), { signal }));
+  },
+
+  /** Giao dịch tiền vào, mới nhất trước; chỉ đọc (AdminPaymentsController). */
+  async listPaymentTransactions(query: PaymentTransactionsQuery, signal?: AbortSignal) {
+    const parsed = paymentTransactionsQuerySchema.parse(query);
+    const params: Record<string, string | number> = {
+      pageIndex: parsed.pageIndex,
+      pageSize: parsed.pageSize,
+    };
+    if (parsed.status) params.status = parsed.status;
+    return paymentTransactionsPageSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/payment-transactions", { params, signal }),
+    );
   },
 };
