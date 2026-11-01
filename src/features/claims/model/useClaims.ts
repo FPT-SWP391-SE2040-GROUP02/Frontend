@@ -16,7 +16,7 @@ export const claimKeys = {
 };
 
 /**
- * Hook truy xuất danh sách hồ sơ của Người thi hành
+ * Hook truy xuất danh sách hồ sơ của Người thực hiện
  */
 export function useExecutorClaims(params?: PaginationParams) {
   return useQuery({

@@ -210,7 +210,7 @@ export function VerifierQueueBoard({
                               CCCD ****{item.ownerCitizenIdLast4 ?? "—"}
                             </p>
                             <p className="text-heritage-muted">
-                              Người yêu cầu: {item.executorFullName ?? "Người thừa hành"}
+                              Người yêu cầu: {item.executorFullName ?? "Người thực hiện"}
                             </p>
                             <p className="text-xs text-heritage-muted">
                               Ngày mất: {item.dateOfDeath ?? "—"}

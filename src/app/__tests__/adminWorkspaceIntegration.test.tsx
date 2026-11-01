@@ -374,7 +374,7 @@ const auditPage = (items: unknown[], overrides: Record<string, unknown> = {}) =>
 const auditCalls = (get: { mock: { calls: unknown[][] } }) =>
   get.mock.calls.filter((call) => call[0] === "/admin/audit-logs");
 
-it("nhật ký kiểm toán hiện dòng thật từ API, kể cả hồ sơ bị Verifier từ chối, mới nhất trước", async () => {
+it("nhật ký hoạt động hiện dòng thật từ API, kể cả hồ sơ bị Verifier từ chối, mới nhất trước", async () => {
   const get = vi.spyOn(apiClient, "get").mockResolvedValue(
     auditPage([
       makeAuditEntry(1),
@@ -407,14 +407,14 @@ it("nhật ký kiểm toán hiện dòng thật từ API, kể cả hồ sơ b�
   });
 });
 
-it("nhật ký kiểm toán rỗng hiện trạng thái rỗng, không dựng dữ liệu mẫu", async () => {
+it("nhật ký hoạt động rỗng hiện trạng thái rỗng, không dựng dữ liệu mẫu", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(auditPage([]));
   setup(ROUTES.ADMIN.AUDIT_LOG);
   expect(await screen.findByText("Chưa có dòng nhật ký nào khớp bộ lọc.")).toBeInTheDocument();
   expect(screen.queryByText(/DEMO-AUDIT/)).not.toBeInTheDocument();
 });
 
-it("nhật ký kiểm toán lỗi mạng có nút thử lại và tải lại được", async () => {
+it("nhật ký hoạt động lỗi mạng có nút thử lại và tải lại được", async () => {
   const user = userEvent.setup();
   const get = vi.spyOn(apiClient, "get").mockRejectedValueOnce(httpError(500));
   get.mockResolvedValue(auditPage([makeAuditEntry(1)]));
@@ -427,7 +427,7 @@ it("nhật ký kiểm toán lỗi mạng có nút thử lại và tải lại đ
   expect(auditCalls(get)).toHaveLength(2);
 });
 
-it("nhật ký kiểm toán 404 báo không có quyền, không thành danh sách rỗng và không có thử lại", async () => {
+it("nhật ký hoạt động 404 báo không có quyền, không thành danh sách rỗng và không có thử lại", async () => {
   vi.spyOn(apiClient, "get").mockRejectedValue(httpError(404));
   setup(ROUTES.ADMIN.AUDIT_LOG);
   expect(await screen.findByText(/không có quyền truy cập nhật ký/)).toBeInTheDocument();
@@ -435,7 +435,7 @@ it("nhật ký kiểm toán 404 báo không có quyền, không thành danh sác
   expect(screen.queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
 });
 
-it("nhật ký kiểm toán phân trang theo URL và lọc theo loại thao tác về trang 1", async () => {
+it("nhật ký hoạt động phân trang theo URL và lọc theo loại thao tác về trang 1", async () => {
   const user = userEvent.setup();
   const get = vi
     .spyOn(apiClient, "get")

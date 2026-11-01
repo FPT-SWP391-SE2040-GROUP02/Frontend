@@ -606,6 +606,33 @@ it("hồ sơ chờ bổ sung ghi đang chờ Executor, không hiện Hạn xét 
   expect(screen.queryByText(/Hạn xét/)).not.toBeInTheDocument();
 });
 
+it("hồ sơ đã duyệt chỉ báo đã duyệt ở ô điều kiện, không gợi ý bổ sung hay từ chối", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID)
+      ? {
+          ...detailFixture,
+          status: "APPROVED_FOR_HANDOVER",
+          canApprove: false,
+          approveBlockers: ["NOT_UNDER_REVIEW"],
+        }
+      : listFixture,
+  );
+  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
+  expect(await screen.findByText("Hồ sơ đã được duyệt, không cần xét thêm.")).toBeInTheDocument();
+  expect(screen.queryByText(/Chưa thể duyệt vì/)).not.toBeInTheDocument();
+});
+
+it("không có khung người gửi; thời điểm nộp nằm ở bản đang xét", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+  );
+  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
+  const version = await screen.findByRole("region", { name: "Bản đang xét" });
+  expect(version).toHaveTextContent("Gửi lúc");
+  expect(screen.queryByRole("region", { name: "Người gửi hồ sơ" })).not.toBeInTheDocument();
+  expect(screen.queryByText("Email liên hệ")).not.toBeInTheDocument();
+});
+
 it("hồ sơ đang xét vẫn hiện Hạn xét ở danh sách", async () => {
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID) ? detailFixture : listFixture,

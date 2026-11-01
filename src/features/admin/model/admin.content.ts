@@ -8,6 +8,7 @@ import type {
   IncidentStatus,
   IncidentType,
   INCIDENT_EVENT_KINDS,
+  PaymentTransactionStatus,
 } from "./admin.schema";
 import type { AdminErrorKind } from "./adminError";
 
@@ -15,7 +16,7 @@ export const ROLE_LABELS: Record<AdminUserRole, string> = {
   USER: "Người dùng",
   VERIFIER: "Người xét duyệt",
   ADMIN: "Quản trị viên",
-  EXECUTOR: "Người thừa hành",
+  EXECUTOR: "Người thực hiện",
 };
 
 export const STATUS_LABELS: Record<AdminUserStatus, string> = {
@@ -79,7 +80,7 @@ export { formatDate, formatDateTime } from "@/shared/lib/dateFormat";
 
 export const INCIDENT_TYPE_LABELS: Record<IncidentType, string> = {
   NO_VERIFIER: "Chưa có người xét duyệt",
-  NO_EXECUTOR: "Chưa có người thi hành",
+  NO_EXECUTOR: "Chưa có người thực hiện",
   CHECK_IN_OVERDUE: "Quá hạn điểm danh",
   NOTIFICATION_FAILED: "Gửi thông báo thất bại",
   OWNER_ALIVE: "Chủ kho báo còn sống",
@@ -124,6 +125,34 @@ export const HOLD_SCOPE_LABELS: Record<string, string> = {
 };
 
 export const holdScopeLabel = (scope: string) => HOLD_SCOPE_LABELS[scope] ?? scope;
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentTransactionStatus, string> = {
+  RECEIVED: "Đã nhận",
+  MATCHED: "Khớp đơn",
+  RECONCILIATION_REQUIRED: "Cần đối chiếu",
+  RESOLVED: "Đã xử lý",
+};
+
+/** Lý do lệch theo PaymentReconciliationReasons của Backend. */
+export const PAYMENT_REASON_LABELS: Record<string, string> = {
+  NOT_INCOMING: "Không phải tiền vào",
+  WRONG_ACCOUNT: "Chuyển sai tài khoản nhận",
+  CODE_MISSING: "Không có mã thanh toán",
+  ORDER_NOT_FOUND: "Mã không khớp đơn nào",
+  AMOUNT_MISMATCH: "Số tiền khác tổng tiền đơn",
+  ALREADY_PAID: "Đơn đã được thanh toán trước đó",
+  ORDER_CANCELLED: "Đơn đã bị hủy",
+  TIME_UNKNOWN: "Không đọc được giờ tiền vào",
+  LATE_AFTER_EXPIRY: "Tiền vào sau khi đơn hết hạn",
+};
+
+export const paymentReasonLabel = (reason: string) => PAYMENT_REASON_LABELS[reason] ?? reason;
+
+const moneyFormatter = new Intl.NumberFormat("vi-VN");
+
+/** Số tiền nguyên kèm đơn vị Backend trả, ví dụ "199.000 VND". */
+export const formatMoney = (amount: number, currency: string) =>
+  `${moneyFormatter.format(amount)} ${currency}`;
 
 /** Hạn xem lại tối đa 7 ngày (BR-70, BR-72); Backend vẫn là nơi quyết định. */
 export const MAX_REVIEW_DAYS = 7;

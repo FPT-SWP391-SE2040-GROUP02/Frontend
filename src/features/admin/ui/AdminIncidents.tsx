@@ -415,7 +415,7 @@ function IncidentDetailBody({
         <AdminActionDialog
           key={dialogKey}
           title="Giao người phụ trách"
-          description="Chỉ giao được cho quản trị viên hoặc người xét duyệt đang hoạt động, và không phải chủ kho hay người thi hành của kho này."
+          description="Chỉ giao được cho quản trị viên hoặc người xét duyệt đang hoạt động, và không phải chủ kho hay người thực hiện của kho này."
           submitLabel="Giao"
           fields={[
             {

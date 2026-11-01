@@ -196,6 +196,51 @@ export const holdsQuerySchema = z.object({
 });
 export type HoldsQuery = z.infer<typeof holdsQuerySchema>;
 
+/** Trạng thái giao dịch tiền vào theo AdminPaymentsController (api-contract 6.18). */
+export const PAYMENT_TRANSACTION_STATUSES = [
+  "RECEIVED",
+  "MATCHED",
+  "RECONCILIATION_REQUIRED",
+  "RESOLVED",
+] as const;
+export const paymentTransactionStatusSchema = z.enum(PAYMENT_TRANSACTION_STATUSES);
+export type PaymentTransactionStatus = z.infer<typeof paymentTransactionStatusSchema>;
+
+/**
+ * AdminPaymentTransactionResponse, chỉ đọc (ADMIN-09). BE không trả nội dung chuyển khoản hay số tài khoản (SEC-07).
+ * `reconciliationReason` giữ chuỗi để BE thêm lý do mới không làm hỏng màn.
+ */
+export const paymentTransactionSchema = z.object({
+  id: uuid,
+  provider: z.string(),
+  environment: z.string(),
+  providerTransactionId: z.number().int(),
+  status: paymentTransactionStatusSchema,
+  reconciliationReason: z.string().nullable(),
+  transferType: z.string(),
+  transferAmount: z.number().int(),
+  currency: z.string(),
+  paymentOrderId: uuid.nullable(),
+  paymentCode: z.string().nullable(),
+  gateway: z.string().nullable(),
+  referenceCode: z.string().nullable(),
+  transactionAt: dateTime.nullable(),
+  receivedAt: dateTime,
+  processedAt: dateTime.nullable(),
+});
+export type PaymentTransaction = z.infer<typeof paymentTransactionSchema>;
+
+export const paymentTransactionsPageSchema = paginatedListSchema(paymentTransactionSchema);
+export type PaymentTransactionsPage = z.infer<typeof paymentTransactionsPageSchema>;
+
+/** Query GET /admin/payment-transactions. */
+export const paymentTransactionsQuerySchema = z.object({
+  status: paymentTransactionStatusSchema.optional(),
+  pageIndex: z.number().int().positive(),
+  pageSize: z.number().int().min(1).max(100),
+});
+export type PaymentTransactionsQuery = z.infer<typeof paymentTransactionsQuerySchema>;
+
 /* Request body: độ dài theo DataAnnotations của Backend. */
 const reason500 = z.string().trim().min(1, "Vui lòng ghi lý do.").max(500, "Tối đa 500 ký tự.");
 const text1000 = (message: string) =>
