@@ -15,8 +15,11 @@ function VaultPinSection() {
   return <VaultPinPanel vaultId={vault.data.id} />;
 }
 
-/** Nội dung cài đặt dùng chung cho mọi không gian (Chủ kho, Người thực hiện). */
-export function AccountSettingsContent() {
+/**
+ * Nội dung cài đặt dùng chung cho mọi không gian (Chủ kho, Người thực hiện).
+ * `showVaultPin=false` ẩn mục mã PIN kho (Người thực hiện không sở hữu kho nên không cần).
+ */
+export function AccountSettingsContent({ showVaultPin = true }: { showVaultPin?: boolean }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   return (
     <>
@@ -51,7 +54,7 @@ export function AccountSettingsContent() {
         </p>
       </section>
       <LoginMethodsPanel />
-      {user?.role === "USER" && <VaultPinSection />}
+      {showVaultPin && user?.role === "USER" && <VaultPinSection />}
       {(!user || user.role === "USER") && (
         <Link
           className="inline-flex min-h-11 items-center text-sm font-medium underline underline-offset-4"

@@ -8,7 +8,7 @@ export function ExecutorSettingsPage() {
       title="Cài đặt"
       description="Thông tin cá nhân và bảo mật tài khoản. Vai trò do hệ thống cấp, bạn không đọc được nội dung kho."
     >
-      <AccountSettingsContent />
+      <AccountSettingsContent showVaultPin={false} />
     </ExecutorWorkspace>
   );
 }

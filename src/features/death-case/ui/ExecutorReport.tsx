@@ -225,15 +225,6 @@ export function ExecutorReport({ vault }: { vault: ExecutorVault }) {
   const record = query.data;
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        <button
-          type="button"
-          className={buttonStyles.outline}
-          onClick={() => window.location.reload()}
-        >
-          Tải lại hồ sơ và bỏ thay đổi chưa lưu
-        </button>
-      </div>
       <ReviewFeedback record={record} />
       <DeathCaseEditor record={record} />
       {record.status === "DRAFT" && <CancelDraftPanel vault={vault} record={record} />}

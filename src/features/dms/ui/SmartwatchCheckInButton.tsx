@@ -188,13 +188,13 @@ export function SmartwatchCheckInButton(_props: {
                 </button>
               </div>
             ) : (
+              // Tạm khóa: tính năng ghép đồng hồ chưa mở. Bỏ khóa bằng cách trả lại onClick={requestCode}.
               <button
                 type="button"
-                className={`${buttonStyles.gold} shrink-0`}
-                disabled={action.pending}
-                onClick={requestCode}
+                disabled
+                className="inline-flex min-h-11 shrink-0 cursor-not-allowed items-center justify-center rounded-xl bg-[#E4E2DA] px-6 text-sm font-semibold text-[#8A8880]"
               >
-                {action.pending && !open ? "Đang tạo mã…" : "Kết nối đồng hồ"}
+                Coming soon
               </button>
             )
           }

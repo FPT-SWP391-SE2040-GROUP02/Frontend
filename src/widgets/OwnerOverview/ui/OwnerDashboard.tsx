@@ -44,7 +44,7 @@ export function OwnerDashboard({ enabled }: { enabled: boolean }) {
 
 const ONBOARDING_STEPS = [
   {
-    title: "Tạo kho",
+    title: "Đặt tên kho của bạn",
     text: "Kho là nơi bạn gom mật khẩu, giấy tờ và lời nhắn.",
     badge: "Bây giờ",
   },
