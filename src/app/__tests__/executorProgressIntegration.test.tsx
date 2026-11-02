@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { AxiosError, AxiosHeaders } from "axios";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -207,19 +207,18 @@ it("explains that handover has not started instead of showing an empty list", as
   vi.spyOn(apiClient, "get").mockResolvedValue(notStarted);
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
   expect(await screen.findByText(/Bàn giao chưa bắt đầu/)).toBeInTheDocument();
-  expect(screen.queryByText("Tổng số lượt")).not.toBeInTheDocument();
+  expect(screen.queryByText("Theo người nhận")).not.toBeInTheDocument();
 });
 
 it("shows summary, per-turn deadlines counted from serverTime and download state", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(started);
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
-  expect(await screen.findByText("Tổng số lượt")).toBeInTheDocument();
-  expect(
-    screen.getByText(/Gói “Tài liệu gia đình” · người nhận CCCD \*\*\*8901/),
-  ).toBeInTheDocument();
-  expect(
-    screen.getByText(/Gói “Tài khoản ngân hàng” · người nhận CCCD \*\*\*1234/),
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Theo người nhận")).toBeInTheDocument();
+  // Mỗi người nhận một thẻ: chưa có họ tên thì hiện "Người nhận" kèm 4 số cuối CCCD.
+  expect(screen.getByText("Gói “Tài liệu gia đình”")).toBeInTheDocument();
+  expect(screen.getByText("CCCD ***8901")).toBeInTheDocument();
+  expect(screen.getByText("Gói “Tài khoản ngân hàng”")).toBeInTheDocument();
+  expect(screen.getByText("CCCD ***1234")).toBeInTheDocument();
   // Lượt đầu được chọn sẵn: hạn tính theo serverTime và tài sản chưa tải.
   expect(screen.getByText("Đã mời, chờ người nhận phản hồi")).toBeInTheDocument();
   expect(screen.getByText(/còn 2 ngày 2 giờ/)).toBeInTheDocument();
@@ -231,12 +230,51 @@ it("shows summary, per-turn deadlines counted from serverTime and download state
   fireEvent.click(screen.getAllByRole("button", { name: "Xem chi tiết" })[1]);
   expect(await screen.findByText("Người nhận đã đồng ý nhận")).toBeInTheDocument();
   // Đã bàn giao: hiện họ tên và số điện thoại người nhận, không còn dòng "Quyền tải".
-  expect(screen.getByText("Nguyễn Văn An")).toBeInTheDocument();
-  expect(screen.getByText("0901234567")).toBeInTheDocument();
+  // Họ tên và số điện thoại vừa ở đầu thẻ người nhận vừa ở phần chi tiết.
+  expect(screen.getAllByText("Nguyễn Văn An")).toHaveLength(2);
+  expect(screen.getAllByText("0901234567")).toHaveLength(2);
   expect(screen.queryByText("Quyền tải")).not.toBeInTheDocument();
   expect(screen.getByText("Đã tải 1/1 tài sản")).toBeInTheDocument();
   expect(screen.getByText("Mật khẩu ví (văn bản)")).toBeInTheDocument();
   expect(screen.getByText(/Tải lần đầu/)).toBeInTheDocument();
+});
+
+it("groups packages of the same recipient into one card by beneficiaryId", async () => {
+  const BENEFICIARY_ID = "88888888-8888-4888-8888-888888888888";
+  const [first, second] = started.turns;
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...started,
+    turns: [
+      { ...first, beneficiaryId: BENEFICIARY_ID, beneficiaryFullName: "Trần Thị Bình" },
+      { ...second, beneficiaryId: BENEFICIARY_ID, beneficiaryFullName: "Trần Thị Bình" },
+    ],
+  });
+  setup(<HandoverProgressPanel caseId={CASE_ID} />);
+  const packages = await screen.findByRole("list", { name: "Các gói của Trần Thị Bình" });
+  expect(within(packages).getByText("Gói “Tài liệu gia đình”")).toBeInTheDocument();
+  expect(within(packages).getByText("Gói “Tài khoản ngân hàng”")).toBeInTheDocument();
+  expect(screen.getByText("2 gói")).toBeInTheDocument();
+  // Hai gói vẫn là hai lượt riêng, mỗi gói một nút xem chi tiết.
+  expect(within(packages).getAllByRole("button", { name: "Xem chi tiết" })).toHaveLength(2);
+});
+
+it("keeps a long recipient list scrollable inside its frame", async () => {
+  const [first] = started.turns;
+  const turns = ["1", "2", "3", "4"].map((digit) => ({
+    ...first,
+    turnId: `5555555${digit}-5555-4555-8555-555555555555`,
+    beneficiaryId: `8888888${digit}-8888-4888-8888-888888888888`,
+    beneficiaryFullName: `Người nhận ${digit}`,
+  }));
+  vi.spyOn(apiClient, "get").mockResolvedValue({ ...started, turns });
+  setup(<HandoverProgressPanel caseId={CASE_ID} />);
+  expect(
+    await screen.findByText("4 người nhận, cuộn trong khung để xem thêm."),
+  ).toBeInTheDocument();
+  const list = screen.getByRole("list", { name: "Danh sách người nhận" });
+  expect(list).toHaveClass("overflow-y-auto");
+  // Cuộn được bằng bàn phím khi danh sách dài.
+  expect(list).toHaveAttribute("tabindex", "0");
 });
 
 it("turns a 404 into a permission message with retry, never into an empty progress", async () => {
@@ -281,7 +319,7 @@ it("keeps the newly selected case when the previous case answers late", async ()
   expect(await screen.findByText(/Bàn giao chưa bắt đầu/)).toBeInTheDocument();
   releaseOld(started);
   await Promise.resolve();
-  expect(screen.queryByText("Tổng số lượt")).not.toBeInTheDocument();
+  expect(screen.queryByText("Theo người nhận")).not.toBeInTheDocument();
 });
 
 it("loads progress on the Progress page for a submitted case", async () => {
@@ -294,7 +332,7 @@ it("loads progress on the Progress page for a submitted case", async () => {
   });
   setup(<ExecutorProgress vault={vaultOf()} />, "/executor/progress");
   expect(await screen.findByRole("heading", { name: "Tiến độ bàn giao" })).toBeInTheDocument();
-  expect(await screen.findByText("Tổng số lượt")).toBeInTheDocument();
+  expect(await screen.findByText("Theo người nhận")).toBeInTheDocument();
   expect(get).toHaveBeenCalledWith(
     `/executor/death-cases/${CASE_ID}/handover-progress`,
     expect.objectContaining({ signal: expect.any(AbortSignal) }),
