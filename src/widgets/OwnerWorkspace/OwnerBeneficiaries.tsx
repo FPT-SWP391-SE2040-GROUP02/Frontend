@@ -5,7 +5,7 @@ import {
   useOwnerVault,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
-import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
+import { AutoCreateVault } from "@/features/vault-management/ui/AutoCreateVault";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
 import { BeneficiaryRow, EditBeneficiaryDialog } from "@/features/beneficiaries/ui/BeneficiaryRow";
@@ -75,7 +75,7 @@ export function OwnerBeneficiaries() {
       groupNames[group.id] = group.name;
     }
   }
-  if (vault.isError && isOwnerVaultMissing(vault.error)) return <CreateVaultForm />;
+  if (vault.isError && isOwnerVaultMissing(vault.error)) return <AutoCreateVault />;
   if (vault.isError || list.isError)
     return (
       <div role="alert" className="space-y-4">

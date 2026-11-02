@@ -1,36 +1,35 @@
 import { useSelector } from "react-redux";
-import { Vault, FolderOpen } from "lucide-react";
+import { Vault } from "lucide-react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { confirmVaultPin } from "@/shared/api/vaultPin";
 import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { Button } from "@/shared/ui/button";
+import type { VaultResponse } from "@/entities/vault/model/vault.types";
+import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
 import {
   useOwnerVault,
+  useOwnerPackages,
+  ownerVaultKeys,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
-import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
+import { AutoCreateVault } from "@/features/vault-management/ui/AutoCreateVault";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
+import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
+import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { AssetList } from "@/features/assets/ui/AssetList";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
 import { OwnerTrustedPeople } from "./OwnerTrustedPeople";
 import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
 import { OwnerGroups } from "./OwnerGroups";
+import { CreatePackageWithAssetsDialog } from "./CreatePackageWithAssetsDialog";
 import { OwnerCheckIn } from "./OwnerCheckIn";
 
-function Empty({ title, description }: { title: string; description: string }) {
-  return (
-    <div
-      role="status"
-      className="rounded-xl border border-dashed border-heritage-border bg-heritage-surface px-6 py-12 text-center"
-    >
-      <FolderOpen className="mx-auto mb-4 size-8 text-heritage-gold" aria-hidden="true" />
-      <h2 className="text-base font-semibold">{title}</h2>
-      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-heritage-muted">{description}</p>
-    </div>
-  );
-}
+/** Số gói tối đa đưa vào ô chọn gói của form thêm mục. */
+const FORM_PACKAGE_LIMIT = 100;
 
 /** Hiển thị lỗi có đường phục hồi; không chuyển lỗi API thành empty/zero. */
 function QueryError({ retry, pending }: { retry: () => void; pending: boolean }) {
@@ -55,16 +54,7 @@ export function OwnerSection({
 }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const vault = useOwnerVault(authenticated && Boolean(accessTokenMemory.get()));
-  if (vault.isError && isOwnerVaultMissing(vault.error))
-    return (
-      <div className="space-y-6">
-        <Empty
-          title="Bạn chưa có kho di sản"
-          description="Kho giúp bạn sắp xếp tài sản, người nhận và kế hoạch bàn giao."
-        />
-        <CreateVaultForm />
-      </div>
-    );
+  if (vault.isError && isOwnerVaultMissing(vault.error)) return <AutoCreateVault />;
   if (vault.isError)
     return <QueryError retry={() => void vault.refetch()} pending={vault.isFetching} />;
   if (!authenticated) return <p role="status">Vui lòng đăng nhập để xem kho.</p>;
@@ -94,59 +84,117 @@ export function OwnerSection({
     );
   }
   if (section === "assets") {
-    const usedBytes = Math.max(0, vault.data.storageUsedBytes);
-    const quotaBytes = Math.max(1, vault.data.storageQuotaBytes);
-    const usedPercent = Math.min(100, Math.round((usedBytes / quotaBytes) * 100));
-    return (
-      <div className="space-y-6">
-        <section
-          aria-label="Dung lượng kho"
-          className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-            <span className="font-semibold text-heritage-text">Dung lượng sử dụng</span>
-            <span className="text-heritage-muted">
-              Đã dùng{" "}
-              <strong className="font-semibold text-heritage-text">
-                {formatStorageSize(usedBytes)}
-              </strong>{" "}
-              / {formatStorageSize(vault.data.storageQuotaBytes)} (còn{" "}
-              {formatStorageSize(vault.data.storageRemainingBytes)})
-            </span>
-          </div>
-          <div
-            role="progressbar"
-            aria-label="Dung lượng đã dùng"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={usedPercent}
-            className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-[#ECE8DB]"
-          >
-            <div
-              className="h-full rounded-full bg-[#0A281E] transition-all"
-              style={{ width: `${usedPercent}%` }}
-            />
-          </div>
-        </section>
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <AssetList
-            vaultId={vault.data.id}
-            confirmPin={() =>
-              confirmVaultPin(vault.data.id, (pin) => vaultPinService.verify(vault.data.id, pin))
-            }
-          />
-          <CreateAssetForm
-            vaultId={vault.data.id}
-            remainingBytes={vault.data.storageRemainingBytes}
-          />
-        </div>
-      </div>
-    );
+    return <AssetsAndGroups vault={vault.data} />;
   }
   return (
     <div className="space-y-6">
       <OwnerHandoverOverview vaultId={vault.data.id} />
       <PlanSetupPanel vaultId={vault.data.id} />
+    </div>
+  );
+}
+
+/**
+ * Kho của tôi: mục trong kho và gói bàn giao trong cùng một trang. Form thêm mục chọn gói đã có
+ * (cập nhật gói), danh sách gói bàn giao nằm bên dưới.
+ */
+function AssetsAndGroups({ vault }: { vault: VaultResponse }) {
+  const client = useQueryClient();
+  const [creating, setCreating] = useState(false);
+  const vaultAssets = useVaultAssets(vault.id, { pageIndex: 1, pageSize: FORM_PACKAGE_LIMIT });
+  const assetOptions: Array<{ id: string; name: string }> = [];
+  if (vaultAssets.data) {
+    for (const item of vaultAssets.data.items) {
+      assetOptions.push({ id: item.id, name: item.name });
+    }
+  }
+  const vaultPeople = useBeneficiaries(vault.id, { pageIndex: 1, pageSize: FORM_PACKAGE_LIMIT });
+  const peopleOptions: Array<{ id: string; name: string }> = [];
+  if (vaultPeople.data) {
+    for (const item of vaultPeople.data.items) {
+      peopleOptions.push({ id: item.id, name: item.fullName });
+    }
+  }
+  const packages = useOwnerPackages(vault.id, true, { pageIndex: 1, pageSize: FORM_PACKAGE_LIMIT });
+  const packageOptions: Array<{ id: string; name: string }> = [];
+  if (packages.data) {
+    for (const item of packages.data.items) {
+      if (item.status !== "REMOVED") {
+        packageOptions.push({ id: item.id, name: item.name });
+      }
+    }
+  }
+  async function addToPackage(assetId: string, packageId: string): Promise<void> {
+    await ownerVaultService.changeMember(vault.id, packageId, "assets", assetId, true);
+    void client.invalidateQueries({ queryKey: ownerVaultKeys.all });
+  }
+  const usedBytes = Math.max(0, vault.storageUsedBytes);
+  const quotaBytes = Math.max(1, vault.storageQuotaBytes);
+  const usedPercent = Math.min(100, Math.round((usedBytes / quotaBytes) * 100));
+  return (
+    <div className="space-y-6">
+      <section
+        aria-label="Dung lượng kho"
+        className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+          <span className="font-semibold text-heritage-text">Dung lượng sử dụng</span>
+          <span className="text-heritage-muted">
+            Đã dùng{" "}
+            <strong className="font-semibold text-heritage-text">
+              {formatStorageSize(usedBytes)}
+            </strong>{" "}
+            / {formatStorageSize(vault.storageQuotaBytes)} (còn{" "}
+            {formatStorageSize(vault.storageRemainingBytes)})
+          </span>
+        </div>
+        <div
+          role="progressbar"
+          aria-label="Dung lượng đã dùng"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={usedPercent}
+          className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-[#ECE8DB]"
+        >
+          <div
+            className="h-full rounded-full bg-[#0A281E] transition-all"
+            style={{ width: `${usedPercent}%` }}
+          />
+        </div>
+      </section>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <AssetList
+          vaultId={vault.id}
+          confirmPin={() =>
+            confirmVaultPin(vault.id, (pin) => vaultPinService.verify(vault.id, pin))
+          }
+        />
+        <CreateAssetForm
+          vaultId={vault.id}
+          remainingBytes={vault.storageRemainingBytes}
+          packages={packageOptions}
+          addToPackage={addToPackage}
+        />
+      </div>
+      <div className="flex justify-end">
+        <Button
+          size="lg"
+          className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+          onClick={() => setCreating(true)}
+        >
+          Tạo gói bàn giao
+        </Button>
+      </div>
+      <OwnerGroups vaultId={vault.id} />
+      {creating && (
+        <CreatePackageWithAssetsDialog
+          vaultId={vault.id}
+          remainingBytes={vault.storageRemainingBytes}
+          existingAssets={assetOptions}
+          existingPeople={peopleOptions}
+          onClose={() => setCreating(false)}
+        />
+      )}
     </div>
   );
 }

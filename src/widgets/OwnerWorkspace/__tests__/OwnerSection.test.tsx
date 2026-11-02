@@ -12,7 +12,7 @@ import { vaultFixture } from "@/shared/api/__tests__/backend.fixtures";
 import { OwnerSection } from "../OwnerSection";
 
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
-  ownerVaultService: { getMine: vi.fn(), listPackages: vi.fn() },
+  ownerVaultService: { getMine: vi.fn(), listPackages: vi.fn(), createMine: vi.fn() },
 }));
 vi.mock("@/features/assets/api/backendAssetService", () => ({
   backendAssetService: { list: vi.fn() },
@@ -60,8 +60,10 @@ describe("official workspace data states", () => {
       isAxiosError: true,
       response: { status: 404, data: { code: "VAULT_NOT_FOUND" } },
     });
+    vi.mocked(ownerVaultService.createMine).mockReturnValue(new Promise(() => {}));
     setup();
-    expect(await screen.findByText("Bạn chưa có kho di sản")).toBeInTheDocument();
+    expect(await screen.findByText("Đang chuẩn bị kho…")).toBeInTheDocument();
+    expect(ownerVaultService.createMine).toHaveBeenCalledTimes(1);
     expect(backendAssetService.list).not.toHaveBeenCalled();
     expect(ownerVaultService.listPackages).not.toHaveBeenCalled();
   });

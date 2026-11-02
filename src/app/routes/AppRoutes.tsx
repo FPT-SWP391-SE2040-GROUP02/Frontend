@@ -29,6 +29,26 @@ const OwnerIdentityPage = lazy(() =>
     default: module.OwnerIdentityPage,
   })),
 );
+const OwnerSetupPage = lazy(() =>
+  import("@/pages/dashboard/OwnerSetupPage").then((module) => ({
+    default: module.OwnerSetupPage,
+  })),
+);
+const RecipientStepsPage = lazy(() =>
+  import("@/pages/beneficiary/RecipientStepsPage").then((module) => ({
+    default: module.RecipientStepsPage,
+  })),
+);
+const ExecutorStepsPage = lazy(() =>
+  import("@/pages/executor/ExecutorStepsPage").then((module) => ({
+    default: module.ExecutorStepsPage,
+  })),
+);
+const VerifierStepsPage = lazy(() =>
+  import("@/pages/notary/VerifierStepsPage").then((module) => ({
+    default: module.VerifierStepsPage,
+  })),
+);
 const BeneficiariesPage = lazy(() =>
   import("@/pages/dashboard/BeneficiariesPage").then((module) => ({
     default: module.BeneficiariesPage,
@@ -252,6 +272,7 @@ export function AppRoutes() {
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path={ROUTES.BENEFICIARY.EKYC_CAMERA} element={<CameraCheckPage />} />
+          <Route path={ROUTES.BENEFICIARY.STEPS} element={<RecipientStepsPage />} />
           <Route path={ROUTES.BENEFICIARY.CLAIM} element={<BeneficiaryPortalPage />} />
           <Route path={ROUTES.BENEFICIARY.HANDOVER} element={<BeneficiaryPortalPage />} />
         </Route>
@@ -311,6 +332,7 @@ export function AppRoutes() {
           5. TUYẾN ĐƯỜNG BẢO VỆ — Chủ Kho Di Sản (Vault Owner & Admin)
          ======================================================================== */}
         <Route element={<ProtectedRoute allowedRoles={[ROLES.USER]} />}>
+          <Route path={ROUTES.SETUP} element={<OwnerSetupPage />} />
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
           <Route path="/dashboard/assets/groups/:id" element={<ContainerDetailPage />} />
@@ -334,6 +356,7 @@ export function AppRoutes() {
           6. TUYẾN ĐƯỜNG BẢO VỆ — Người Thi Hành Di Chúc (Digital Executor)
          ======================================================================== */}
         <Route element={<ProtectedRoute />}>
+          <Route path={ROUTES.EXECUTOR.STEPS} element={<ExecutorStepsPage />} />
           <Route path={ROUTES.EXECUTOR.ROOT} element={<ExecutorOverviewPage />} />
           <Route path={ROUTES.EXECUTOR.REPORT} element={<ExecutorReportPage />} />
           <Route path={ROUTES.EXECUTOR.PROGRESS} element={<ExecutorProgressPage />} />
@@ -350,6 +373,7 @@ export function AppRoutes() {
           7. TUYẾN ĐƯỜNG BẢO VỆ — Công Chứng Viên (Legal Verifier / Notary)
          ======================================================================== */}
         <Route element={<ProtectedRoute allowedRoles={[ROLES.VERIFIER]} />}>
+          <Route path={ROUTES.NOTARY.STEPS} element={<VerifierStepsPage />} />
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
           <Route path={ROUTES.NOTARY.QUEUE} element={<VerifierQueuePage />} />
           <Route path={ROUTES.NOTARY.HISTORY} element={<VerifierHistoryPage />} />

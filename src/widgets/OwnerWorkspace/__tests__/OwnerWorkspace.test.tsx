@@ -116,7 +116,7 @@ describe("workspace logo navigation", () => {
     ["/assets?filter=all#list", "Kho của tôi"],
     ["/wills/new", "Bàn giao"],
     ["/dashboard/wills/new", "Bàn giao"],
-    ["/billing/history", "Gói dịch vụ"],
+    ["/billing/history", "Hạng dịch vụ"],
     ["/dashboard/identity", "Xác minh"],
   ])("keeps the correct navigation item active on %s", (path, label) => {
     const store = configureStore({ reducer: { auth: authReducer } });
@@ -156,7 +156,7 @@ describe("workspace logo navigation", () => {
       const get = vi.spyOn(apiClient, "get").mockResolvedValue([]);
       const post = vi.spyOn(apiClient, "post");
       const target =
-        role === "ADMIN" ? "/admin" : role === "VERIFIER" ? "/notary/workspace" : "/dashboard";
+        role === "ADMIN" ? "/admin" : role === "VERIFIER" ? "/notary/steps" : "/dashboard";
       render(
         <Provider store={store}>
           <QueryClientProvider client={client}>

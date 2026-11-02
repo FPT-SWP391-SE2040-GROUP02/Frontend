@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { ROUTES } from "@/shared/config/routes.config";
+import { WIZARD_ENABLED } from "@/shared/config/wizard.config";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
 import { useHandoverAction } from "../model/useHandoverAction";
@@ -16,6 +17,8 @@ const CHECKLIST = ["Xác minh danh tính của bạn", "Chờ bàn giao", "Tải
  * Link công khai chỉ cho biết lời mời hợp lệ và còn hạn phản hồi, nên không nêu tên Chủ kho hay số ngày còn lại.
  */
 export function InvitationPanel() {
+  let nextRoute: string = ROUTES.BENEFICIARY.CLAIM;
+  if (WIZARD_ENABLED.recipient) nextRoute = ROUTES.BENEFICIARY.STEPS;
   const { token: pathToken } = useParams();
   const [params] = useSearchParams();
   const token = pathToken ?? params.get("token") ?? "";
@@ -110,7 +113,7 @@ export function InvitationPanel() {
         </p>
       )}
       {action.succeeded && (
-        <Link className={`${buttonStyles.gold} w-full`} to={ROUTES.BENEFICIARY.CLAIM}>
+        <Link className={`${buttonStyles.gold} w-full`} to={nextRoute}>
           Xem lượt bàn giao của tôi
         </Link>
       )}

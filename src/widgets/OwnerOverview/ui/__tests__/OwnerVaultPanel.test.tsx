@@ -15,7 +15,7 @@ import { AxiosError, AxiosHeaders } from "axios";
 import { HTTP_STATUS } from "@/shared/constants";
 
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
-  ownerVaultService: { getMine: vi.fn(), listPackages: vi.fn() },
+  ownerVaultService: { getMine: vi.fn(), listPackages: vi.fn(), createMine: vi.fn() },
 }));
 vi.mock("../OwnerResourcesPanel", () => ({ OwnerResourcesPanel: () => null }));
 
@@ -81,9 +81,11 @@ describe("OwnerVaultPanel", () => {
       data: { code },
     });
     vi.mocked(ownerVaultService.getMine).mockRejectedValue(error);
+    vi.mocked(ownerVaultService.createMine).mockReturnValue(new Promise(() => {}));
     setup();
     if (missing) {
-      expect(await screen.findByText("Bạn chưa có kho di sản.")).toBeInTheDocument();
+      expect(await screen.findByText("Đang chuẩn bị kho…")).toBeInTheDocument();
+      expect(ownerVaultService.createMine).toHaveBeenCalledTimes(1);
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     } else {
       expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được kho");

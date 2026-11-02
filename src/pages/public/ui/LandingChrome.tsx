@@ -15,6 +15,11 @@ export const FOCUS_RING =
   "focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#E6C98B]";
 export const HEADING = "font-serif font-normal tracking-normal";
 
+/* Chân trang: một tông vàng cho tiêu đề cột, một tông kem cho liên kết; chữ từ 16px, vùng bấm cao 44px. */
+const FOOTER_TITLE = "text-base font-semibold text-[#E6C98B]";
+const FOOTER_LIST = "mt-3 space-y-1";
+const FOOTER_LINK = `inline-flex min-h-11 items-center text-base text-[#F3EFE6]/90 hover:text-[#E6C98B] ${FOCUS_RING}`;
+
 /**
  * Hoa nhúng trực tiếp để CSS của trang điều khiển được phần `.spin` bên trong SVG
  * (thẻ img không cho CSS ngoài vào). Nguồn là asset của dự án, không phải dữ liệu người dùng.
@@ -124,7 +129,7 @@ function FooterTextColumn({ title, items }: { title: string; items: readonly Foo
   for (const item of items) {
     rows.push(
       <li key={item.to}>
-        <Link to={item.to} className={`hover:text-[#E6C98B] ${FOCUS_RING}`}>
+        <Link to={item.to} className={FOOTER_LINK}>
           {item.label}
         </Link>
       </li>,
@@ -132,8 +137,8 @@ function FooterTextColumn({ title, items }: { title: string; items: readonly Foo
   }
   return (
     <div>
-      <h3 className="text-xs font-semibold">{title}</h3>
-      <ul className="mt-4 space-y-3 text-xs text-[#F3EFE6]/70">{rows}</ul>
+      <h3 className={FOOTER_TITLE}>{title}</h3>
+      <ul className={FOOTER_LIST}>{rows}</ul>
     </div>
   );
 }
@@ -144,7 +149,7 @@ export function LandingFooter({ onLanding }: { onLanding: boolean }) {
   for (const link of content.footer.productLinks) {
     productLinks.push(
       <li key={link.href}>
-        <a href={anchorHref(link.href, onLanding)} className={`hover:text-[#E6C98B] ${FOCUS_RING}`}>
+        <a href={anchorHref(link.href, onLanding)} className={FOOTER_LINK}>
           {link.label}
         </a>
       </li>,
@@ -165,28 +170,28 @@ export function LandingFooter({ onLanding }: { onLanding: boolean }) {
             </p>
           </div>
           <div>
-            <h3 className="text-xs text-[#E6C98B]">{content.footer.commitmentTitle}</h3>
+            <h3 className={FOOTER_TITLE}>{content.footer.commitmentTitle}</h3>
             <FooterBullets items={content.footer.commitments} />
           </div>
         </div>
         <div className="grid gap-8 border-t border-[#F3EFE6]/15 pt-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <h3 className="text-xs font-semibold">{content.footer.productTitle}</h3>
-            <ul className="mt-4 space-y-3 text-xs text-[#F3EFE6]/70">{productLinks}</ul>
+            <h3 className={FOOTER_TITLE}>{content.footer.productTitle}</h3>
+            <ul className={FOOTER_LIST}>{productLinks}</ul>
           </div>
           <FooterTextColumn
             title={content.footer.supportTitle}
             items={content.footer.supportItems}
           />
           <FooterTextColumn title={content.footer.legalTitle} items={content.footer.legalItems} />
-          <p className="text-xs leading-5 text-[#F3EFE6]/60 lg:text-right">
+          <p className="text-sm leading-6 text-[#F3EFE6]/80 lg:text-right">
             {content.footer.sampleNote}
             <br />
             {content.footer.address}
           </p>
         </div>
-        <p className="text-xs text-[#F3EFE6]/60">
-          © {new Date().getFullYear()} {content.brand}. {content.footer.legal}
+        <p className="text-sm text-[#F3EFE6]/80">
+          ©{new Date().getFullYear()} {content.brand}. {content.footer.legal}
         </p>
       </div>
     </footer>

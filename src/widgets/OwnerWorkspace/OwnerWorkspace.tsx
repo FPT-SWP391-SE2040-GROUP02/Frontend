@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ComponentType, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ArrowLeftRight, Menu, ScanFace, X } from "lucide-react";
@@ -40,18 +40,41 @@ function OwnerServiceTier() {
   return <VaultServiceBadge tier={vault.data.serviceTier} sidebar />;
 }
 
-const navigation = [
-  { label: "Tổng quan", to: ROUTES.DASHBOARD.ROOT, icon: OverviewIcon },
-  { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon },
-  { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon },
-  { label: "Người nhận", to: ROUTES.DASHBOARD.BENEFICIARIES, icon: RecipientsIcon },
-  { label: "Người tin cậy", to: ROUTES.DASHBOARD.TRUSTED_PEOPLE, icon: TrustedIcon },
-  { label: "Xác minh", to: ROUTES.DASHBOARD.IDENTITY, icon: ScanFace },
-  { label: "Điểm danh", to: ROUTES.DMS.ROOT, icon: ActivityIcon },
-  { label: "Nhật ký hoạt động", to: ROUTES.DASHBOARD.AUDIT_LOG, icon: HistoryIcon },
-  { label: "Gói dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon },
-  { label: "Cài đặt", to: ROUTES.DASHBOARD.SETTINGS, icon: SettingsIcon },
+interface NavItem {
+  label: string;
+  to: string;
+  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
+}
+
+/** Menu gom 3 nhóm để Chủ kho không phải đọc 10 mục ngang hàng. */
+const navigationGroups: Array<{ heading: string; items: NavItem[] }> = [
+  {
+    heading: "Kế hoạch của tôi",
+    items: [
+      { label: "Tổng quan", to: ROUTES.DASHBOARD.ROOT, icon: OverviewIcon },
+      { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon },
+      { label: "Người nhận", to: ROUTES.DASHBOARD.BENEFICIARIES, icon: RecipientsIcon },
+      { label: "Người tin cậy", to: ROUTES.DASHBOARD.TRUSTED_PEOPLE, icon: TrustedIcon },
+      { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon },
+    ],
+  },
+  {
+    heading: "Theo dõi",
+    items: [
+      { label: "Điểm danh", to: ROUTES.DMS.ROOT, icon: ActivityIcon },
+      { label: "Nhật ký hoạt động", to: ROUTES.DASHBOARD.AUDIT_LOG, icon: HistoryIcon },
+    ],
+  },
+  {
+    heading: "Tài khoản",
+    items: [
+      { label: "Xác minh", to: ROUTES.DASHBOARD.IDENTITY, icon: ScanFace },
+      { label: "Hạng dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon },
+      { label: "Cài đặt", to: ROUTES.DASHBOARD.SETTINGS, icon: SettingsIcon },
+    ],
+  },
 ];
+const navigation = navigationGroups.flatMap((group) => group.items);
 
 /**
  * Chỉ tài khoản đang là Executor của ít nhất một kho mới có nút sang vai Người thực hiện;
@@ -127,23 +150,30 @@ export function OwnerWorkspace({
             className="owner-navigation"
             data-open={navigationOpen}
           >
-            {navigation.map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                aria-current={current?.to === to ? "page" : undefined}
-                className="owner-nav-link"
-                onClick={() => setNavigationOpen(false)}
-              >
-                <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                {label}
-                {current?.to === to && (
-                  <span
-                    className="ml-auto size-1.5 rounded-full bg-heritage-gold"
-                    aria-hidden="true"
-                  />
-                )}
-              </Link>
+            {navigationGroups.map((group) => (
+              <div key={group.heading} className="space-y-1">
+                <p className="px-3 pt-3 text-xs font-semibold uppercase tracking-wider text-white/55">
+                  {group.heading}
+                </p>
+                {group.items.map(({ to, label, icon: Icon }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    aria-current={current?.to === to ? "page" : undefined}
+                    className="owner-nav-link"
+                    onClick={() => setNavigationOpen(false)}
+                  >
+                    <Icon className="size-[18px] shrink-0" aria-hidden="true" />
+                    {label}
+                    {current?.to === to && (
+                      <span
+                        className="ml-auto size-1.5 rounded-full bg-heritage-gold"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </Link>
+                ))}
+              </div>
             ))}
             {showSwitchRole && (
               <Link

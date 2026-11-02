@@ -6,6 +6,7 @@ import { Check } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
 import { ROUTES } from "@/shared/config/routes.config";
+import { WIZARD_ENABLED } from "@/shared/config/wizard.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { planSetupService } from "../api/planSetupService";
@@ -26,6 +27,8 @@ function daysLeft(expiresAt: string): number {
 
 /** Token only in fragment/component RAM; inspect never claims, confirmation never defaults true. */
 export function ExecutorInvitationPanel({ token }: { token: string }) {
+  let nextRoute: string = ROUTES.EXECUTOR.ROOT;
+  if (WIZARD_ENABLED.executor) nextRoute = ROUTES.EXECUTOR.STEPS;
   const id = useId();
   const [acknowledge, setAcknowledge] = useState(false);
   const [decision, setDecision] = useState<boolean | null>(null);
@@ -73,8 +76,8 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
           Kho đã được thêm vào tài khoản của bạn.
         </p>
         <Notice tone="success">Bạn có thể xem kho và tiến trình trong trang Tổng quan.</Notice>
-        <Link className={`${buttonStyles.dark} w-full`} to={ROUTES.EXECUTOR.ROOT}>
-          Vào trang Tổng quan
+        <Link className={`${buttonStyles.dark} w-full`} to={nextRoute}>
+          Bắt đầu từng bước
         </Link>
       </div>
     );

@@ -12,16 +12,17 @@ const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover
 
 /**
  * Tab "Gói bàn giao" của Kho của tôi: danh sách gói bàn giao và tạo gói bàn giao. Người nhận được gắn theo gói bàn giao.
- * Nút "Tạo gói bàn giao" ở đầu trang do trang cha điều khiển qua `createOpen`.
+ * Nút "Tạo gói bàn giao" ở đầu trang do trang cha điều khiển qua `createOpen`; không truyền thì không tạo được.
  */
 export function OwnerGroups({
   vaultId,
-  createOpen,
+  createOpen = false,
   onCreateOpenChange,
 }: {
   vaultId: string;
-  createOpen: boolean;
-  onCreateOpenChange: (open: boolean) => void;
+  createOpen?: boolean;
+  /** Bỏ trống khi trang không cho tạo gói bàn giao (chỉ xem/cập nhật): ẩn nút và hộp thoại tạo. */
+  onCreateOpenChange?: (open: boolean) => void;
 }) {
   const [params, setParams] = useSearchParams();
   const requested = Number(params.get("page") ?? 1);
@@ -65,10 +66,10 @@ export function OwnerGroups({
         <Check className="size-5 text-green-700" aria-hidden="true" />
         <p className="font-semibold">{emptyTitle}</p>
         <p className="text-sm text-heritage-muted">
-          Gói bàn giao gom các mục có cùng người nhận. Tạo gói bàn giao trước, rồi thêm mục và gán
-          người nhận.
+          Gói bàn giao gom các mục có cùng người nhận.
+          {onCreateOpenChange && " Tạo gói bàn giao trước, rồi thêm mục và gán người nhận."}
         </p>
-        {page === 1 && (
+        {page === 1 && onCreateOpenChange && (
           <Button size="lg" className={GOLD_BUTTON} onClick={() => onCreateOpenChange(true)}>
             Tạo gói bàn giao đầu tiên
           </Button>
@@ -158,7 +159,7 @@ export function OwnerGroups({
         <h2 className="text-xl font-medium text-heritage-primary">Danh sách gói bàn giao</h2>
         {body}
       </section>
-      {createOpen && (
+      {createOpen && onCreateOpenChange && (
         <CreateGroupDialog vaultId={vaultId} onClose={() => onCreateOpenChange(false)} />
       )}
     </div>
