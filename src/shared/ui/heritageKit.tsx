@@ -70,7 +70,10 @@ export function Panel({
   return (
     <section
       aria-labelledby={title && labelledBy ? labelledBy : undefined}
-      className={cn("rounded-2xl border border-heritage-border bg-heritage-surface p-6 min-w-0 max-w-full", className)}
+      className={cn(
+        "rounded-2xl border border-heritage-border bg-heritage-surface p-6 min-w-0 max-w-full",
+        className,
+      )}
     >
       {(title || action) && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

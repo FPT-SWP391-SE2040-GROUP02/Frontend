@@ -66,7 +66,8 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     unit: "ngày",
     step: 1,
     defaultValue: "30",
-    description: "Chu kỳ điểm danh mặc định của chủ kho. Chủ kho vẫn chọn được 30, 60 hoặc 90 ngày.",
+    description:
+      "Chu kỳ điểm danh mặc định của chủ kho. Chủ kho vẫn chọn được 30, 60 hoặc 90 ngày.",
     src: "CheckInRules.DefaultCycleDays",
     dataType: "NUMBER",
   },
@@ -582,8 +583,10 @@ export function AdminSettings() {
   }, [diffList]);
 
   const batchMutation = useMutation({
-    mutationFn: (data: { items: Array<{ key: string; value: string; isEnabled?: boolean }>; reason?: string }) =>
-      adminSettingsService.batchUpdate(data.items, data.reason),
+    mutationFn: (data: {
+      items: Array<{ key: string; value: string; isEnabled?: boolean }>;
+      reason?: string;
+    }) => adminSettingsService.batchUpdate(data.items, data.reason),
     onSuccess: (updated) => {
       queryClient.setQueryData<SystemSetting[]>(["admin-settings"], (old) => {
         if (!old) return updated;
@@ -597,7 +600,10 @@ export function AdminSettings() {
       setConfirmOpen(false);
       setAuditReason("");
       setSecurityAcknowledged(false);
-      setNotice({ text: `Đã lưu thành công ${updated.length} thay đổi cấu hình vào hệ thống và ghi nhận vào Audit Log.`, ok: true });
+      setNotice({
+        text: `Đã lưu thành công ${updated.length} thay đổi cấu hình vào hệ thống và ghi nhận vào Audit Log.`,
+        ok: true,
+      });
       setTimeout(() => setNotice(null), 5000);
     },
     onError: (err: unknown) => {
@@ -893,7 +899,9 @@ export function AdminSettings() {
                                   />
                                   <span
                                     className={`text-xs font-semibold ${
-                                      currentVal === "true" ? "text-green-700 dark:text-green-400" : "text-zinc-500"
+                                      currentVal === "true"
+                                        ? "text-green-700 dark:text-green-400"
+                                        : "text-zinc-500"
                                     }`}
                                   >
                                     {currentVal === "true" ? "Bật" : "Tắt"}
@@ -1070,7 +1078,9 @@ export function AdminSettings() {
                               : "text-zinc-500"
                           }`}
                         >
-                          {getValue("Plans.XsMax.On", "true") === "true" ? "Đang mở bán" : "Tạm ngừng"}
+                          {getValue("Plans.XsMax.On", "true") === "true"
+                            ? "Đang mở bán"
+                            : "Tạm ngừng"}
                         </span>
                       </div>
                     </td>
@@ -1140,7 +1150,11 @@ export function AdminSettings() {
                           <span className="text-xs text-heritage-muted">VND</span>
                         </div>
                         <span className="block text-[11px] text-green-700">
-                          ≈ {money(Math.round(parseInt(getValue("Plans.Xs.Price3Y", "499000"), 10) / 3))}/năm
+                          ≈{" "}
+                          {money(
+                            Math.round(parseInt(getValue("Plans.Xs.Price3Y", "499000"), 10) / 3),
+                          )}
+                          /năm
                         </span>
                       </div>
                     </td>
@@ -1159,7 +1173,11 @@ export function AdminSettings() {
                           <span className="text-xs text-heritage-muted">VND</span>
                         </div>
                         <span className="block text-[11px] text-green-700">
-                          ≈ {money(Math.round(parseInt(getValue("Plans.XsMax.Price3Y", "999000"), 10) / 3))}/năm
+                          ≈{" "}
+                          {money(
+                            Math.round(parseInt(getValue("Plans.XsMax.Price3Y", "999000"), 10) / 3),
+                          )}
+                          /năm
                         </span>
                       </div>
                     </td>
@@ -1187,7 +1205,11 @@ export function AdminSettings() {
                           <span className="text-xs text-heritage-muted">VND</span>
                         </div>
                         <span className="block text-[11px] text-green-700">
-                          ≈ {money(Math.round(parseInt(getValue("Plans.Xs.Price5Y", "799000"), 10) / 5))}/năm
+                          ≈{" "}
+                          {money(
+                            Math.round(parseInt(getValue("Plans.Xs.Price5Y", "799000"), 10) / 5),
+                          )}
+                          /năm
                         </span>
                       </div>
                     </td>
@@ -1206,7 +1228,13 @@ export function AdminSettings() {
                           <span className="text-xs text-heritage-muted">VND</span>
                         </div>
                         <span className="block text-[11px] text-green-700">
-                          ≈ {money(Math.round(parseInt(getValue("Plans.XsMax.Price5Y", "1599000"), 10) / 5))}/năm
+                          ≈{" "}
+                          {money(
+                            Math.round(
+                              parseInt(getValue("Plans.XsMax.Price5Y", "1599000"), 10) / 5,
+                            ),
+                          )}
+                          /năm
                         </span>
                       </div>
                     </td>
@@ -1384,16 +1412,6 @@ export function AdminSettings() {
                     <td className="p-4 text-xs font-semibold text-heritage-text">50 gói</td>
                     <td className="p-4 text-xs font-semibold text-heritage-text">50 gói</td>
                   </tr>
-                  <tr>
-                    <th className="p-4 font-medium text-heritage-text">Xuất PDF di sản</th>
-                    <td className="p-4 text-xs font-semibold text-heritage-muted">Không</td>
-                    <td className="p-4 text-xs font-semibold text-heritage-muted">Không</td>
-                    <td className="p-4">
-                      <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">
-                        Có hỗ trợ
-                      </span>
-                    </td>
-                  </tr>
                 </tbody>
               </table>
             </div>
@@ -1555,8 +1573,10 @@ export function AdminSettings() {
                   CẢNH BÁO AN NINH & VẬN HÀNH HỆ THỐNG
                 </p>
                 <p className="leading-relaxed text-red-800 dark:text-red-300">
-                  Danh sách này bao gồm các tham số nhạy cảm (bảo mật, hạn mức lưu trữ, chế độ bảo trì hoặc tài chính).
-                  Mọi thao tác thay đổi sẽ được ghi nhận vĩnh viễn vào <strong>Nhật ký kiểm toán (Audit Log)</strong> kèm định danh tài khoản Quản trị viên, địa chỉ IP và lý do bắt buộc.
+                  Danh sách này bao gồm các tham số nhạy cảm (bảo mật, hạn mức lưu trữ, chế độ bảo
+                  trì hoặc tài chính). Mọi thao tác thay đổi sẽ được ghi nhận vĩnh viễn vào{" "}
+                  <strong>Nhật ký kiểm toán (Audit Log)</strong> kèm định danh tài khoản Quản trị
+                  viên, địa chỉ IP và lý do bắt buộc.
                 </p>
               </div>
             </div>
@@ -1650,7 +1670,8 @@ export function AdminSettings() {
                 className="mt-0.5 size-4 rounded border-red-300 text-red-600 focus:ring-red-500"
               />
               <span>
-                Tôi xác nhận là Quản trị viên có thẩm quyền, đã kiểm tra kỹ lưỡng các tham số nhạy cảm và chịu trách nhiệm về quyết định áp dụng này.
+                Tôi xác nhận là Quản trị viên có thẩm quyền, đã kiểm tra kỹ lưỡng các tham số nhạy
+                cảm và chịu trách nhiệm về quyết định áp dụng này.
               </span>
             </label>
           )}

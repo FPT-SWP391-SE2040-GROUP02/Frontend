@@ -151,7 +151,14 @@ interface InviteDialogProps {
   onClose: () => void;
 }
 
-function InviteDialog({ vaultId, replacing, existingExecutors, sync, onSuccess, onClose }: InviteDialogProps) {
+function InviteDialog({
+  vaultId,
+  replacing,
+  existingExecutors,
+  sync,
+  onSuccess,
+  onClose,
+}: InviteDialogProps) {
   const action = usePrivateAction();
   const [emailCheck, setEmailCheck] = useState<{
     checked: boolean;

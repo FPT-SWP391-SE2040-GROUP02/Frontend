@@ -79,8 +79,6 @@ test.describe("Test Suite 3: Auth & Security (Admin & Login)", () => {
     // Bước khẳng định lần thứ 5: Khóa tài khoản
     const lockAlert = page.getByRole("alert");
     await expect(lockAlert).toBeVisible();
-    await expect(lockAlert).toContainText(
-      "Bạn đã thử quá nhiều lần. Vui lòng chờ rồi thử lại.",
-    );
+    await expect(lockAlert).toContainText("Bạn đã thử quá nhiều lần. Vui lòng chờ rồi thử lại.");
   });
 });

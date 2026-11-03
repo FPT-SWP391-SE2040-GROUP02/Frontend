@@ -74,7 +74,11 @@ export function CreateAssetForm({
   };
   const nameField = register("name");
   return (
-    <Panel title="Thêm mục mới" labelledBy="add-asset-title" className="self-start min-w-0 w-full max-w-full">
+    <Panel
+      title="Thêm mục mới"
+      labelledBy="add-asset-title"
+      className="self-start min-w-0 w-full max-w-full"
+    >
       <form
         id="add-asset"
         noValidate
@@ -186,7 +190,8 @@ export function CreateAssetForm({
               </label>
               {file && (
                 <p className="break-all text-xs text-heritage-muted">
-                  Đã chọn: <span className="font-medium text-heritage-text">{file.name}</span> · {file.size} bytes
+                  Đã chọn: <span className="font-medium text-heritage-text">{file.name}</span> ·{" "}
+                  {file.size} bytes
                 </p>
               )}
             </div>

@@ -83,7 +83,12 @@ export function CreateGroupDialog({
     let active = true;
     apiClient
       .get<{
-        items: Array<{ id: string; fullName: string; citizenIdLast4?: string; email?: string | null }>;
+        items: Array<{
+          id: string;
+          fullName: string;
+          citizenIdLast4?: string;
+          email?: string | null;
+        }>;
       }>(`/vaults/${vaultId}/beneficiaries`, { params: { pageIndex: 1, pageSize: 100 } })
       .then((res) => {
         if (active && res.data?.items) {
@@ -136,7 +141,8 @@ export function CreateGroupDialog({
         <DialogHeader>
           <DialogTitle>Tạo gói bàn giao</DialogTitle>
           <DialogDescription>
-            Gói bàn giao gom các tài sản và người nhận có chung mục đích chuyển giao. Bạn có thể chọn người nhận và tài sản ngay tại đây.
+            Gói bàn giao gom các tài sản và người nhận có chung mục đích chuyển giao. Bạn có thể
+            chọn người nhận và tài sản ngay tại đây.
           </DialogDescription>
         </DialogHeader>
         <form

@@ -1,8 +1,21 @@
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, Clock, RefreshCw, ShieldAlert, ArrowRight, UserCheck, Shield } from "lucide-react";
+import {
+  AlertTriangle,
+  Clock,
+  RefreshCw,
+  ShieldAlert,
+  ArrowRight,
+  UserCheck,
+  Shield,
+} from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { DASHBOARD_GROUPS, formatDateTime, INCIDENT_TYPE_LABELS, INCIDENT_STATUS_LABELS } from "../model/admin.content";
+import {
+  DASHBOARD_GROUPS,
+  formatDateTime,
+  INCIDENT_TYPE_LABELS,
+  INCIDENT_STATUS_LABELS,
+} from "../model/admin.content";
 import { useAdminDashboard, useAdminIncidents } from "../model/useAdmin";
 import { AdminErrorMessage } from "./AdminStateMessage";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -15,7 +28,12 @@ export function AdminOverview() {
 
   if (query.isPending)
     return (
-      <div role="status" aria-busy="true" aria-label="Đang tải số liệu quản trị" className="mt-6 space-y-6">
+      <div
+        role="status"
+        aria-busy="true"
+        aria-label="Đang tải số liệu quản trị"
+        className="mt-6 space-y-6"
+      >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }, (_, index) => (
             <Skeleton key={index} className="h-28 rounded-2xl" />
@@ -91,16 +109,22 @@ export function AdminOverview() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-heritage-muted">Sự cố quá hạn SLA</span>
-            <div className={`flex size-8 items-center justify-center rounded-xl ${
-              data.overdueIncidents > 0 ? "bg-red-200 text-red-900" : "bg-heritage-primary/10 text-heritage-primary"
-            }`}>
+            <div
+              className={`flex size-8 items-center justify-center rounded-xl ${
+                data.overdueIncidents > 0
+                  ? "bg-red-200 text-red-900"
+                  : "bg-heritage-primary/10 text-heritage-primary"
+              }`}
+            >
               <Clock className="size-4" />
             </div>
           </div>
           <div className="mt-4 flex items-baseline justify-between">
-            <b className={`text-3xl font-bold tabular-nums ${
-              data.overdueIncidents > 0 ? "text-red-700" : "text-heritage-primary"
-            }`}>
+            <b
+              className={`text-3xl font-bold tabular-nums ${
+                data.overdueIncidents > 0 ? "text-red-700" : "text-heritage-primary"
+              }`}
+            >
               {data.overdueIncidents}
             </b>
             <span className="flex items-center gap-1 text-xs font-semibold text-heritage-muted group-hover:text-heritage-primary">
@@ -172,16 +196,22 @@ export function AdminOverview() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-heritage-muted">Chờ người xét duyệt</span>
-            <div className={`flex size-8 items-center justify-center rounded-xl ${
-              data.casesWithoutVerifier > 0 ? "bg-amber-200 text-amber-900" : "bg-heritage-primary/10 text-heritage-primary"
-            }`}>
+            <div
+              className={`flex size-8 items-center justify-center rounded-xl ${
+                data.casesWithoutVerifier > 0
+                  ? "bg-amber-200 text-amber-900"
+                  : "bg-heritage-primary/10 text-heritage-primary"
+              }`}
+            >
               <UserCheck className="size-4" />
             </div>
           </div>
           <div className="mt-4 flex items-baseline justify-between">
-            <b className={`text-3xl font-bold tabular-nums ${
-              data.casesWithoutVerifier > 0 ? "text-amber-800" : "text-heritage-primary"
-            }`}>
+            <b
+              className={`text-3xl font-bold tabular-nums ${
+                data.casesWithoutVerifier > 0 ? "text-amber-800" : "text-heritage-primary"
+              }`}
+            >
               {data.casesWithoutVerifier}
             </b>
             <span className="flex items-center gap-1 text-xs font-semibold text-heritage-muted group-hover:text-heritage-primary">
@@ -196,9 +226,7 @@ export function AdminOverview() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <h2 className="text-base font-bold text-heritage-primary">
-              Việc cần làm ưu tiên
-            </h2>
+            <h2 className="text-base font-bold text-heritage-primary">Việc cần làm ưu tiên</h2>
             <p className="text-xs text-heritage-muted">
               Các sự cố vận hành đang mở có mức độ ưu tiên cao nhất cần giải quyết
             </p>
@@ -213,9 +241,7 @@ export function AdminOverview() {
           </Button>
         </div>
 
-        {urgentIncidents.isPending && (
-          <Skeleton className="h-44 w-full rounded-2xl" />
-        )}
+        {urgentIncidents.isPending && <Skeleton className="h-44 w-full rounded-2xl" />}
 
         {urgentIncidents.isSuccess && urgentIncidents.data.items.length === 0 && (
           <div className="rounded-2xl border border-dashed border-heritage-border bg-heritage-surface p-8 text-center">
@@ -256,9 +282,7 @@ export function AdminOverview() {
                           {INCIDENT_STATUS_LABELS[incident.status]}
                         </span>
                       </div>
-                      <p className="line-clamp-1 text-xs text-heritage-text">
-                        {incident.summary}
-                      </p>
+                      <p className="line-clamp-1 text-xs text-heritage-text">{incident.summary}</p>
                       <p className="text-[11px] text-heritage-muted">
                         Hạn xử lý: <time>{formatDateTime(incident.dueAt)}</time>
                       </p>
@@ -267,7 +291,9 @@ export function AdminOverview() {
                     <div className="flex items-center gap-3 sm:shrink-0">
                       <Button
                         size="sm"
-                        onClick={() => navigate(`${ROUTES.ADMIN.ROOT}?view=incidents&incidentId=${incident.id}`)}
+                        onClick={() =>
+                          navigate(`${ROUTES.ADMIN.ROOT}?view=incidents&incidentId=${incident.id}`)
+                        }
                         className="bg-[#E0C486] text-xs font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
                       >
                         Xử lý sự cố
@@ -328,7 +354,8 @@ export function AdminOverview() {
       </div>
 
       <p className="text-xs text-heritage-muted">
-        Zero-Knowledge: Quản trị viên chỉ quản lý hạ tầng và giám sát vận hành, tuyệt đối không giải mã và không đọc nội dung kho của người dùng.
+        Zero-Knowledge: Quản trị viên chỉ quản lý hạ tầng và giám sát vận hành, tuyệt đối không giải
+        mã và không đọc nội dung kho của người dùng.
       </p>
     </div>
   );

@@ -73,14 +73,18 @@ export function ExecutorOwnerSwitcher() {
     const StatusIcon = status.icon;
     return (
       <div className="mb-4 rounded-xl border border-heritage-border/70 bg-white/70 p-3 text-sm dark:bg-white/5">
-        <p className="text-xs font-medium uppercase tracking-wider text-heritage-muted">Chủ kho phụ trách</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-heritage-muted">
+          Chủ kho phụ trách
+        </p>
         <div className="mt-2 flex items-center gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-heritage-primary text-xs font-bold text-white shadow-sm">
             {getInitials(selected.ownerFullName)}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold text-heritage-primary">{selected.ownerFullName}</p>
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${status.className}`}>
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${status.className}`}
+            >
               <StatusIcon className="size-3" aria-hidden="true" />
               {status.label}
             </span>
@@ -96,7 +100,9 @@ export function ExecutorOwnerSwitcher() {
 
   return (
     <div ref={containerRef} className="relative mb-4">
-      <p className="mb-1 text-xs font-medium uppercase tracking-wider text-heritage-muted">Chủ kho đang làm việc</p>
+      <p className="mb-1 text-xs font-medium uppercase tracking-wider text-heritage-muted">
+        Chủ kho đang làm việc
+      </p>
       <button
         type="button"
         aria-haspopup="menu"
@@ -114,7 +120,9 @@ export function ExecutorOwnerSwitcher() {
               {active?.ownerFullName ?? "Chọn chủ kho"}
             </p>
             {activeStatus && ActiveIcon && (
-              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${activeStatus.className}`}>
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${activeStatus.className}`}
+              >
                 <ActiveIcon className="size-3" aria-hidden="true" />
                 {activeStatus.label}
               </span>
@@ -162,7 +170,9 @@ export function ExecutorOwnerSwitcher() {
                   </div>
                   <div className="min-w-0">
                     <p className="truncate font-medium">{vault.ownerFullName}</p>
-                    <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] ${status.className}`}>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] ${status.className}`}
+                    >
                       <StatusIcon className="size-2.5" aria-hidden="true" />
                       {status.label}
                     </span>

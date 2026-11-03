@@ -92,10 +92,7 @@ export function VerifierOwnerIdentityPanel({
               </tbody>
             </table>
           </div>
-          <CitizenIdDiffGrid
-            declaredId={review.ownerCitizenId}
-            verifiedId={identity.citizenId}
-          />
+          <CitizenIdDiffGrid declaredId={review.ownerCitizenId} verifiedId={identity.citizenId} />
           {identity.verifiedAt && (
             <p className="text-xs text-heritage-muted">
               Xác minh lúc {formatDateTime(identity.verifiedAt)}.

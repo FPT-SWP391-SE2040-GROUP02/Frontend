@@ -48,7 +48,8 @@ const VIEWS = {
   },
   settings: {
     title: "Cấu hình tham số hệ thống",
-    description: "Quản lý và điều chỉnh các tham số dịch vụ, giới hạn quota và tính năng hệ thống theo thời gian thực.",
+    description:
+      "Quản lý và điều chỉnh các tham số dịch vụ, giới hạn quota và tính năng hệ thống theo thời gian thực.",
   },
   incidents: {
     title: "Sự cố vận hành",

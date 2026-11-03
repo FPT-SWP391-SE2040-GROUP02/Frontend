@@ -252,7 +252,6 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
 
   return (
     <div className="space-y-6">
-
       <DeathCaseWizardSteps record={record} isFormDirty={form.formState.isDirty} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel title="Thông tin báo tin">
@@ -313,7 +312,6 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
         </Panel>
 
         <div className="space-y-6">
-
           <Panel title="Gửi hồ sơ">
             {version.isDraft ? (
               <>

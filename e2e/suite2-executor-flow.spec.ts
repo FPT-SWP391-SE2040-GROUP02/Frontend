@@ -165,14 +165,10 @@ test.describe("Test Suite 2: Executor Flow", () => {
     await page.goto("/executor");
 
     // Khẳng định Banner trạng thái đang xử lý hiển thị
-    await expect(
-      page.getByText("Hồ sơ báo tin về Nguyễn Văn Nam đang được xử lý"),
-    ).toBeVisible();
+    await expect(page.getByText("Hồ sơ báo tin về Nguyễn Văn Nam đang được xử lý")).toBeVisible();
 
     // KHẲNG ĐỊNH QUAN TRỌNG: Text "Kho của Nguyễn Văn Nam đang an toàn" TUYỆT ĐỐI KHÔNG xuất hiện
-    await expect(
-      page.getByText("Kho của Nguyễn Văn Nam đang an toàn"),
-    ).not.toBeVisible();
+    await expect(page.getByText("Kho của Nguyễn Văn Nam đang an toàn")).not.toBeVisible();
     await expect(page.getByRole("link", { name: "Xem hồ sơ báo tin" })).toBeVisible();
   });
 });

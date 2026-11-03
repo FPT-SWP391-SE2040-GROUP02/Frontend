@@ -40,8 +40,7 @@ export function CitizenIdDiffGrid({ declaredId, verifiedId }: CitizenIdDiffGridP
   const totalDeclaredDigits = declared.length;
   const totalVerifiedDigits = verified.length;
   const hasMismatch = positions.some((p) => p.isMismatch);
-  const isExact12Match =
-    totalDeclaredDigits === 12 && totalVerifiedDigits === 12 && !hasMismatch;
+  const isExact12Match = totalDeclaredDigits === 12 && totalVerifiedDigits === 12 && !hasMismatch;
 
   return (
     <div
@@ -49,7 +48,10 @@ export function CitizenIdDiffGrid({ declaredId, verifiedId }: CitizenIdDiffGridP
       className="space-y-3 rounded-xl border border-heritage-border bg-white/70 p-4 dark:bg-black/20"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 id={labelId} className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-heritage-muted">
+        <h4
+          id={labelId}
+          className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-heritage-muted"
+        >
           <span>Đối chiếu 12 số CCCD</span>
         </h4>
         {isExact12Match ? (
@@ -81,7 +83,10 @@ export function CitizenIdDiffGrid({ declaredId, verifiedId }: CitizenIdDiffGridP
 
           {/* Hàng CCCD Người khai báo */}
           <div className="grid grid-cols-[110px_repeat(12,1fr)] items-center gap-1">
-            <span className="truncate text-xs font-medium text-heritage-muted" title="Người khai báo">
+            <span
+              className="truncate text-xs font-medium text-heritage-muted"
+              title="Người khai báo"
+            >
               Người khai:
             </span>
             {positions.map((p) => (
@@ -103,7 +108,10 @@ export function CitizenIdDiffGrid({ declaredId, verifiedId }: CitizenIdDiffGridP
 
           {/* Hàng CCCD eKYC trong Vault */}
           <div className="grid grid-cols-[110px_repeat(12,1fr)] items-center gap-1">
-            <span className="truncate text-xs font-medium text-heritage-muted" title="eKYC trong Vault">
+            <span
+              className="truncate text-xs font-medium text-heritage-muted"
+              title="eKYC trong Vault"
+            >
               eKYC Vault:
             </span>
             {positions.map((p) => (
@@ -129,11 +137,19 @@ export function CitizenIdDiffGrid({ declaredId, verifiedId }: CitizenIdDiffGridP
             {positions.map((p) => (
               <div key={`res-${p.index}`} className="flex justify-center">
                 {p.matches ? (
-                  <Check className="size-3.5 text-[#1f7a55] dark:text-[#62d2a2]" aria-label="Khớp" />
+                  <Check
+                    className="size-3.5 text-[#1f7a55] dark:text-[#62d2a2]"
+                    aria-label="Khớp"
+                  />
                 ) : p.isMismatch ? (
-                  <X className="size-3.5 text-[#a32119] dark:text-[#ff9189]" aria-label="Sai lệch" />
+                  <X
+                    className="size-3.5 text-[#a32119] dark:text-[#ff9189]"
+                    aria-label="Sai lệch"
+                  />
                 ) : (
-                  <span className="text-xs text-heritage-muted" aria-label="Chưa xác minh">·</span>
+                  <span className="text-xs text-heritage-muted" aria-label="Chưa xác minh">
+                    ·
+                  </span>
                 )}
               </div>
             ))}
@@ -143,7 +159,8 @@ export function CitizenIdDiffGrid({ declaredId, verifiedId }: CitizenIdDiffGridP
 
       {hasMismatch && (
         <p className="text-xs text-[#a32119] dark:text-[#ff9189]">
-          ⚠️ Lưu ý: Có sự sai lệch giữa số CCCD do Người thực hiện khai và dữ liệu eKYC của Chủ kho. Hãy kiểm tra kỹ bản scan giấy tờ trước khi phê duyệt.
+          ⚠️ Lưu ý: Có sự sai lệch giữa số CCCD do Người thực hiện khai và dữ liệu eKYC của Chủ kho.
+          Hãy kiểm tra kỹ bản scan giấy tờ trước khi phê duyệt.
         </p>
       )}
     </div>
