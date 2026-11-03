@@ -174,10 +174,8 @@ describe("Executor overview", () => {
     expect(await screen.findByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).toBeInTheDocument();
     expect(screen.queryByText("Kho của Anh Nam đang an toàn")).not.toBeInTheDocument();
     expect(screen.queryByText("Hồ sơ báo tin về Anh Nam đang được xử lý")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Xem lý do" })).toHaveAttribute(
-      "href",
-      "/executor/report",
-    );
+    // Không còn nút "Xem lý do": banner đỏ chỉ có "Tiếp tục".
+    expect(screen.queryByRole("link", { name: "Xem lý do" })).not.toBeInTheDocument();
     // Hồ sơ bị từ chối là đã xử lý xong: bấm Tiếp tục thì banner trở lại màu xanh "an toàn".
     fireEvent.click(screen.getByRole("button", { name: "Tiếp tục" }));
     expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
