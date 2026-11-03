@@ -74,11 +74,11 @@ export function CreateAssetForm({
   };
   const nameField = register("name");
   return (
-    <Panel title="Thêm mục mới" labelledBy="add-asset-title" className="self-start">
+    <Panel title="Thêm mục mới" labelledBy="add-asset-title" className="self-start min-w-0 w-full max-w-full">
       <form
         id="add-asset"
         noValidate
-        className="space-y-4"
+        className="min-w-0 w-full space-y-4"
         onSubmit={handleSubmit(async (values) => {
           if (kind === "FILE") {
             const error = validateAssetFile(file, remainingBytes);
@@ -133,7 +133,7 @@ export function CreateAssetForm({
             </button>
           ))}
         </div>
-        <fieldset disabled={action.pending} className="space-y-4">
+        <fieldset disabled={action.pending} className="min-w-0 w-full space-y-4">
           <label className="block text-sm font-medium">
             Tên mục
             <Input
@@ -180,13 +180,13 @@ export function CreateAssetForm({
                 <Input
                   key={fileInputKey}
                   type="file"
-                  className="mt-2 h-auto rounded-xl bg-white px-3 py-2.5 text-sm font-normal"
+                  className="mt-2 h-auto w-full max-w-full overflow-hidden text-ellipsis rounded-xl bg-white px-3 py-2.5 text-sm font-normal"
                   onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
                 />
               </label>
               {file && (
-                <p className="text-xs text-heritage-muted">
-                  Đã chọn: {file.name} · {file.size} bytes
+                <p className="break-all text-xs text-heritage-muted">
+                  Đã chọn: <span className="font-medium text-heritage-text">{file.name}</span> · {file.size} bytes
                 </p>
               )}
             </div>

@@ -131,7 +131,7 @@ export function EnterPinForm({ onSubmit, onCancel, onForgot }: EnterPinFormProps
     >
       <PinField
         id="vault-pin-enter"
-        label="Mã PIN của kho"
+        label="Mã PIN bảo vệ"
         autoFocus
         error={errors.pin?.message}
         {...form.register("pin")}

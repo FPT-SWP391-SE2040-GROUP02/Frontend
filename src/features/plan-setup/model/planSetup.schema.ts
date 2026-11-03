@@ -12,6 +12,7 @@ export const executorSchema = z.object({
   invitationSentAt: date.nullable(),
   acceptedScopeVersion: z.string().nullable(),
   etag: z.string().min(1),
+  accountExists: z.boolean().optional(),
 });
 const containerSchema = z.object({
   id: z.string().uuid(),

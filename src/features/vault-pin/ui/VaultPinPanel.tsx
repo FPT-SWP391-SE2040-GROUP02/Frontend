@@ -9,7 +9,7 @@ import { ChangePinForm, ForgotPinForm, SetPinForm } from "./PinForms";
 type Mode = "idle" | "set" | "change" | "forgot";
 
 const NOTICES: Record<Exclude<Mode, "idle">, string> = {
-  set: "Đã đặt mã PIN cho kho. Bạn sẽ nhận email thông báo.",
+  set: "Đã thiết lập Mã PIN bảo vệ thành công. Bạn sẽ nhận email thông báo.",
   change: "Đã đổi mã PIN. Bạn sẽ nhận email thông báo.",
   forgot: "Đã đặt lại mã PIN. Bạn sẽ nhận email thông báo.",
 };
@@ -71,8 +71,8 @@ export function VaultPinPanel({ vaultId }: { vaultId: string }) {
           )}
         </div>
         {!data.isSet && data.isRequired && (
-          <Notice tone="warning" role="status" title="Kho đã có tài sản nhưng chưa có mã PIN">
-            Hãy đặt mã PIN để tiếp tục thêm tài sản và bảo vệ các thao tác nhạy cảm.
+          <Notice tone="warning" role="status" title="Chưa thiết lập Mã PIN bảo vệ tài sản">
+            Hãy đặt Mã PIN bảo vệ để tiếp tục thêm tài sản và bảo vệ các thao tác an toàn.
           </Notice>
         )}
         {notice && (
@@ -84,7 +84,7 @@ export function VaultPinPanel({ vaultId }: { vaultId: string }) {
           <div className="flex flex-wrap gap-3">
             {!data.isSet && (
               <button type="button" className={buttonStyles.dark} onClick={() => open("set")}>
-                Đặt mã PIN
+                Đặt Mã PIN bảo vệ
               </button>
             )}
             {data.isSet && (
@@ -138,7 +138,7 @@ export function VaultPinPanel({ vaultId }: { vaultId: string }) {
   }
 
   return (
-    <Panel title="Mã PIN của kho" labelledBy="vault-pin-heading">
+    <Panel title="Mã PIN bảo vệ" labelledBy="vault-pin-heading">
       <p className="mb-4 text-sm text-heritage-muted">
         Mã PIN gồm 6 chữ số, được hỏi trước khi tải nội dung tài sản, sửa hoặc xóa tài sản, đổi
         người nhận, đổi Người thực hiện hoặc xóa gói. PIN chỉ có bạn biết, người khác dùng tài khoản

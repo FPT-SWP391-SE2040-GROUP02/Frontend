@@ -36,7 +36,7 @@ function enterMessage(request: VaultPinPromptRequest): string {
       ? "Mã PIN chưa đúng. Vui lòng nhập lại."
       : `Mã PIN chưa đúng. Còn ${left} trên ${PIN_MAX_ATTEMPTS} lần thử trước khi bị khóa tạm.`;
   }
-  return "Thao tác này cần mã PIN của kho. Nhập mã PIN để tiếp tục.";
+  return "Thao tác này cần Mã PIN bảo vệ. Nhập mã PIN để tiếp tục.";
 }
 
 function EnterPinPrompt({
@@ -72,7 +72,7 @@ function EnterPinPrompt({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Nhập mã PIN của kho</DialogTitle>
+        <DialogTitle>Nhập Mã PIN bảo vệ</DialogTitle>
         <DialogDescription>{enterMessage(prompt.request)}</DialogDescription>
       </DialogHeader>
       <EnterPinForm onSubmit={onSubmit} onCancel={onCancel} onForgot={() => setForgot(true)} />
@@ -193,9 +193,9 @@ export function VaultPinDialogHost() {
           {current.kind === "set" && (
             <>
               <DialogHeader>
-                <DialogTitle>Đặt mã PIN cho kho</DialogTitle>
+                <DialogTitle>Đặt Mã PIN bảo vệ</DialogTitle>
                 <DialogDescription>
-                  Kho đã có tài sản nên cần mã PIN 6 chữ số. Mã PIN được hỏi trước khi tải nội dung
+                  Kho đã có tài sản nên cần Mã PIN bảo vệ gồm 6 chữ số. Mã PIN được hỏi trước khi tải nội dung
                   tài sản, sửa hoặc xóa tài sản, đổi người nhận hoặc Người thực hiện.
                 </DialogDescription>
               </DialogHeader>

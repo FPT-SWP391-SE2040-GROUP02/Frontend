@@ -18,6 +18,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "./executor-workspace.css";
+import { ExecutorOwnerSwitcher } from "./ExecutorOwnerSwitcher";
 
 interface NavItem {
   label: string;
@@ -89,6 +90,9 @@ export function ExecutorWorkspace({
             className="owner-navigation"
             data-open={navigationOpen}
           >
+            <div className="px-2 pt-2">
+              <ExecutorOwnerSwitcher />
+            </div>
             {executorNavigation.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}

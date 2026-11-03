@@ -17,7 +17,6 @@ export function OwnerOverviewPlan({ data }: { data: OverviewResources }) {
   const setup = data.setup.data;
   const steps = setup
     ? [
-        { label: "Tạo kho di sản", done: true, to: ROUTES.DASHBOARD.ASSETS },
         {
           label: "Thêm tài sản đầu tiên",
           done: data.assets.isSuccess ? data.assets.data.totalCount > 0 : null,
