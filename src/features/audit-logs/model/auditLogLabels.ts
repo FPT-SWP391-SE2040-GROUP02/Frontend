@@ -64,6 +64,7 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   ADMIN_CREATED_USER: "Tạo tài khoản hệ thống",
   SYSTEM_CONFIG_UPDATED: "Cập nhật cấu hình dịch vụ",
   SYSTEM_CONFIG_RESET: "Khôi phục cấu hình dịch vụ",
+  SYSTEM_SETTING_UPDATED: "Cập nhật tham số hệ thống",
 };
 
 export const ACTOR_ROLE_LABELS: Record<(typeof auditActorRoleValues)[number], string> = {

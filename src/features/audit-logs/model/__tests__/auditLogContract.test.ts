@@ -57,6 +57,7 @@ describe("auditLogResponseSchema", () => {
     ["ADMIN_CREATED_USER", "USER"],
     ["SYSTEM_CONFIG_UPDATED", "CONFIGURATION"],
     ["SYSTEM_CONFIG_RESET", "CONFIGURATION"],
+    ["SYSTEM_SETTING_UPDATED", "CONFIGURATION"],
   ])("accepts the updated BE wire event %s and its target", (action, targetType) => {
     expect(auditLogResponseSchema.parse({ ...baseEntry, action, targetType })).toMatchObject({
       action,
