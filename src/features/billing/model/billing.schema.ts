@@ -2,8 +2,9 @@ import { z } from "zod";
 import { paginatedListSchema } from "@/shared/api/pagination.schema";
 
 /** Hạng dịch vụ trả phí Backend bán (mục 6.18 của hợp đồng API). */
-export const billingTierSchema = z.enum(["XS", "XS_MAX"]);
-export const billingYearsSchema = z.union([z.literal(1), z.literal(3), z.literal(5)]);
+export const billingTierSchema = z.string().min(1).max(32);
+/** Số năm của một kỳ bán; Admin cấu hình danh sách kỳ (1 đến 10 năm), nên không còn cố định 1, 3, 5. */
+export const billingYearsSchema = z.number().int().min(1).max(10);
 
 const money = z.number().int().nonnegative();
 
@@ -14,6 +15,14 @@ export const billingPlansSchema = z.object({
   tiers: z.array(
     z.object({
       tier: billingTierSchema,
+      /** false = Admin đã tạm ngừng mở bán hạng này; thiếu trường (Backend cũ) thì coi là đang bán. */
+      onSale: z.boolean().optional(),
+      /** Tên, phụ đề và thứ tự do Admin đặt; Backend cũ không gửi thì dùng bảng tên mặc định. */
+      name: z.string().optional(),
+      subtitle: z.string().optional(),
+      order: z.number().int().optional(),
+      /** true = Admin đã xóa gói: không vẽ thẻ gói, chỉ dùng để so thứ tự với gói đang dùng. */
+      hidden: z.boolean().optional(),
       storageQuotaBytes: z.number().int().positive(),
       includedBeneficiarySlots: z.number().int().nonnegative(),
       prices: z.array(

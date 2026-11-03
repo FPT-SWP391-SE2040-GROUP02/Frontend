@@ -12,6 +12,7 @@ import { billingService } from "../api/billingService";
 import type { BillingKind, BillingSelection } from "../model/billing.types";
 import { billingKeys, useBillingQuote } from "../model/useBilling";
 import {
+  collectTermYears,
   referenceMoney,
   type ReferencePlanTerm,
   type ReferenceServicePlan,
@@ -20,15 +21,18 @@ import {
 export function ServiceTermPicker({
   years,
   onChange,
+  options,
   showDays = true,
 }: {
   years: ReferencePlanTerm["years"];
   onChange: (years: ReferencePlanTerm["years"]) => void;
+  /** Các kỳ đang bán do Backend công bố (Admin thêm, bớt được). */
+  options: readonly number[];
   showDays?: boolean;
 }) {
   return (
     <div className="service-plan-terms" role="group" aria-label="Chọn kỳ dịch vụ">
-      {([1, 3, 5] as const).map((value) => (
+      {options.map((value) => (
         <Button
           key={value}
           variant="ghost"
@@ -102,7 +106,7 @@ export function PurchasePanel({
 
   // Mua thêm suất: Backend bỏ qua hạng và số năm, chỉ cần số suất.
   let selection: BillingSelection = {
-    tier: plan.serviceTier as "XS" | "XS_MAX",
+    tier: plan.serviceTier,
     years,
     extraSlots,
   };
@@ -110,13 +114,13 @@ export function PurchasePanel({
     selection = { extraSlots };
   }
   if (isUpgrade) {
-    // Nâng hạng: chỉ chọn XS_MAX, không kèm suất; số tiền do Backend tính theo thời gian còn lại.
-    selection = { tier: "XS_MAX", extraSlots: 0 };
+    // Nâng hạng: chỉ chọn gói đích, không kèm suất; số tiền do Backend tính theo thời gian còn lại.
+    selection = { tier: plan.serviceTier, extraSlots: 0 };
   }
   if (isRenewal) {
     // Gia hạn: gửi cờ renew để Backend hiểu là gia hạn dù kho còn hạn; số suất là suất thêm của kỳ mới.
     selection = {
-      tier: activePlan.serviceTier as "XS" | "XS_MAX",
+      tier: activePlan.serviceTier,
       years,
       extraSlots,
       renew: true,
@@ -273,7 +277,12 @@ export function PurchasePanel({
           <p>{periodHint}</p>
         </div>
         {!isAddon && !isUpgrade && (
-          <ServiceTermPicker years={years} onChange={onTermChange} showDays={false} />
+          <ServiceTermPicker
+            years={years}
+            onChange={onTermChange}
+            options={collectTermYears(catalog.length > 0 ? catalog : [plan])}
+            showDays={false}
+          />
         )}
       </div>
       {isRenewal && lockTier && (

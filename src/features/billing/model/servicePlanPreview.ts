@@ -3,7 +3,7 @@ import type { BillingPlans } from "./billing.types";
 
 /** Một dòng trong bảng giá hiển thị; Owner lấy từ GET /billing/plans, khách chỉ xem bảng tham khảo. */
 export interface ReferencePlanTerm {
-  readonly years: 1 | 3 | 5;
+  readonly years: number;
   readonly days: number;
   readonly price: number;
 }
@@ -15,19 +15,36 @@ export interface ReferenceServicePlan {
   readonly includedBeneficiarySlots: number;
   readonly storage: number;
   readonly features: readonly string[];
+  /** false = Admin đã tạm ngừng mở bán hạng này (GET /billing/plans); thiếu thì coi là đang bán. */
+  readonly onSale?: boolean;
+  /** Thứ tự gói tăng dần (gói đứng sau cao hơn khi nâng hạng); thiếu thì suy từ mã gói gốc. */
+  readonly order?: number;
+  /** true = Admin đã xóa gói: không vẽ thẻ, chỉ giữ để biết thứ tự của gói kho đang dùng. */
+  readonly hidden?: boolean;
+  readonly subtitle?: string;
+}
+
+/** Thứ tự mặc định của các gói gốc khi bảng giá không gửi `order` (bảng tham khảo cho khách, Backend cũ). */
+const DEFAULT_ORDER: Readonly<Record<string, number>> = { FREE: 0, XS: 10, XS_MAX: 20 };
+
+/** Thứ tự của một mã gói trong danh mục; không biết thì coi là thấp nhất để không tự cho là nâng hạng. */
+export function planOrder(code: string, catalog: readonly ReferenceServicePlan[] = []): number {
+  const found = catalog.find((plan) => plan.serviceTier === code);
+  return found?.order ?? DEFAULT_ORDER[code] ?? 0;
 }
 
 /**
  * Hành động của một thẻ gói với kho hiện tại:
  * - buy: kho Free mua mới;
  * - addon: kho đã trả phí còn hạn, mua thêm suất người nhận (cùng hạng);
- * - upgrade: kho đang XS còn hạn, nâng lên XS Max giữa kỳ (trả phần chênh theo thời gian còn lại, giữ nguyên hạn);
+ * - upgrade: kho đang dùng gói còn hạn, nâng lên gói đứng sau giữa kỳ (trả phần chênh theo thời gian còn lại, giữ nguyên hạn);
  * - downgrade: đang có kỳ hạng cao hơn; muốn hạ hạng thì chọn ở bước gia hạn;
  * - renew: kho đã hết hạn, đang ân hạn hoặc chờ rà soát: gia hạn (chọn hạng cho kỳ mới);
- * - blocked: chưa mua được (kho đóng, kế hoạch khóa, hết hạn cần gia hạn mà hệ thống chưa hỗ trợ...).
+ * - blocked: chưa mua được (kho đóng, kế hoạch khóa, hết hạn cần gia hạn mà hệ thống chưa hỗ trợ...);
+ * - offSale: Admin đã tạm ngừng mở bán hạng này, không tạo đơn mới (mua mới, nâng hạng, gia hạn, mua thêm suất), kể cả người đang dùng.
  */
 export type PlanPreviewAction =
-  "none" | "buy" | "addon" | "upgrade" | "downgrade" | "renew" | "blocked";
+  "none" | "buy" | "addon" | "upgrade" | "downgrade" | "renew" | "blocked" | "offSale";
 const DAY_MS = 86_400_000;
 const BYTES_PER_MB = 1_048_576;
 
@@ -58,14 +75,30 @@ export function getReferencePlanAction(
   plan: ReferenceServicePlan,
   vault: VaultResponse,
   now: number,
+  catalog: readonly ReferenceServicePlan[] = [],
 ): PlanPreviewAction {
   if (plan.serviceTier === "FREE") return "none";
   if (!canPreviewBilling(vault)) return "blocked";
+  const action = getPurchaseAction(plan, vault, now, catalog);
+  const sells =
+    action === "buy" || action === "addon" || action === "upgrade" || action === "renew";
+  if (sells && plan.onSale === false) return "offSale";
+  return action;
+}
+
+function getPurchaseAction(
+  plan: ReferenceServicePlan,
+  vault: VaultResponse,
+  now: number,
+  catalog: readonly ReferenceServicePlan[],
+): PlanPreviewAction {
   if (vault.serviceTier === "FREE" && vault.serviceStatus === "FREE") return "buy";
   // Hết hạn, ân hạn, chờ rà soát (kể cả đã quá hạn khi chưa có job đổi trạng thái): chỉ còn gia hạn.
   if (!isCurrentPaidService(vault, now)) return "renew";
   if (plan.serviceTier !== vault.serviceTier) {
-    if (vault.serviceTier === "XS" && plan.serviceTier === "XS_MAX") return "upgrade";
+    // Gói đứng sau gói đang dùng (theo thứ tự) là nâng hạng; gói đứng trước là hạ hạng ở bước gia hạn.
+    if (planOrder(plan.serviceTier, catalog) > planOrder(vault.serviceTier, catalog))
+      return "upgrade";
     return "downgrade";
   }
   return "addon";
@@ -86,14 +119,29 @@ export function buildPlanCatalog(
     }
     catalog.push({
       serviceTier: tier.tier,
-      name: names[tier.tier] ?? tier.tier,
+      name: tier.name ?? names[tier.tier] ?? tier.tier,
+      subtitle: tier.subtitle,
+      order: tier.order,
+      hidden: tier.hidden === true,
       termPrices,
       includedBeneficiarySlots: tier.includedBeneficiarySlots,
       storage: Math.round(tier.storageQuotaBytes / BYTES_PER_MB),
       features: features[tier.tier] ?? [],
+      onSale: tier.onSale !== false,
     });
   }
   return catalog;
+}
+
+/** Các kỳ (số năm) đang có giá ở ít nhất một hạng, tăng dần; dùng để vẽ nút chọn kỳ. */
+export function collectTermYears(catalog: readonly ReferenceServicePlan[]): number[] {
+  const years: number[] = [];
+  for (const plan of catalog) {
+    for (const term of plan.termPrices) {
+      if (!years.includes(term.years)) years.push(term.years);
+    }
+  }
+  return years.sort((a, b) => a - b);
 }
 
 export function getRemainingServiceDays(vault: VaultResponse, now: number): number | null {
