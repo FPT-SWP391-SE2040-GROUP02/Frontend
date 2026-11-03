@@ -8,18 +8,38 @@ import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
 import { backendAssetService } from "@/features/assets/api/backendAssetService";
+import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
 import { vaultFixture } from "@/shared/api/__tests__/backend.fixtures";
 import { OwnerSection } from "../OwnerSection";
 
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
   ownerVaultService: { getMine: vi.fn(), createMine: vi.fn(), listPackages: vi.fn() },
 }));
+vi.mock("@/features/vault-pin/api/vaultPinService", () => ({
+  vaultPinService: { getStatus: vi.fn(), set: vi.fn(), verify: vi.fn() },
+}));
 vi.mock("@/features/assets/api/backendAssetService", () => ({
   backendAssetService: { list: vi.fn() },
 }));
+const emptyAssetPage = {
+  items: [],
+  pageIndex: 1,
+  pageSize: 10,
+  totalCount: 0,
+  totalPages: 0,
+  hasPreviousPage: false,
+  hasNextPage: false,
+};
+const pinStatus = (isSet: boolean) => ({
+  isSet,
+  isRequired: false,
+  lockedUntil: null,
+  attemptsRemaining: isSet ? 5 : null,
+});
 let client: QueryClient;
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.mocked(vaultPinService.getStatus).mockResolvedValue(pinStatus(true));
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   accessTokenMemory.set("resource-fixture");
 });
@@ -116,5 +136,24 @@ describe("official workspace data states", () => {
       { pageIndex: 1, pageSize: 10 },
       expect.any(AbortSignal),
     );
+  });
+  it("locks adding assets and asks to set a PIN while the vault has none", async () => {
+    vi.mocked(ownerVaultService.getMine).mockResolvedValue(vaultFixture);
+    vi.mocked(backendAssetService.list).mockResolvedValue(emptyAssetPage);
+    vi.mocked(vaultPinService.getStatus).mockResolvedValue(pinStatus(false));
+    setup();
+    expect(await screen.findByText("Bạn chưa đặt mã PIN cho kho")).toBeInTheDocument();
+    expect(screen.getByText("Thêm tài sản đang bị khóa")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Đặt mã PIN" })).toBeInTheDocument();
+  });
+  it("shows the add-asset form without the PIN notice once a PIN is set", async () => {
+    vi.mocked(ownerVaultService.getMine).mockResolvedValue(vaultFixture);
+    vi.mocked(backendAssetService.list).mockResolvedValue(emptyAssetPage);
+    setup();
+    expect(await screen.findByText("Chưa có nội dung")).toBeInTheDocument();
+    await vi.waitFor(() => expect(vaultPinService.getStatus).toHaveBeenCalled());
+    expect(screen.queryByText("Bạn chưa đặt mã PIN cho kho")).not.toBeInTheDocument();
+    expect(screen.queryByText("Thêm tài sản đang bị khóa")).not.toBeInTheDocument();
+    expect(await screen.findByRole("group", { name: "Loại mục" })).toBeInTheDocument();
   });
 });
