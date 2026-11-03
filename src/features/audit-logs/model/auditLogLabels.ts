@@ -62,6 +62,8 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   DEV_REWIND_BEFORE_EKYC: "Tua kho về trước eKYC",
   DEV_UPDATE_EKYC_THRESHOLD: "Cập nhật ngưỡng so khớp khuôn mặt",
   ADMIN_CREATED_USER: "Tạo tài khoản hệ thống",
+  SYSTEM_CONFIG_UPDATED: "Cập nhật cấu hình dịch vụ",
+  SYSTEM_CONFIG_RESET: "Khôi phục cấu hình dịch vụ",
 };
 
 export const ACTOR_ROLE_LABELS: Record<(typeof auditActorRoleValues)[number], string> = {

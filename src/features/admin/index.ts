@@ -5,6 +5,7 @@ export { AdminIncidents } from "./ui/AdminIncidents";
 export { AdminHolds } from "./ui/AdminHolds";
 export { AdminPayments } from "./ui/AdminPayments";
 export { AdminDevTools } from "./ui/AdminDevTools";
+export { AdminSystemConfig } from "./ui/AdminSystemConfig";
 export { adminService } from "./api/adminService";
 export { adminKeys, useAdminDashboard, useAdminUsers } from "./model/useAdmin";
 export type {
