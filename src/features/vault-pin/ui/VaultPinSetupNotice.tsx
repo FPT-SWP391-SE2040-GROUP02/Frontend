@@ -2,17 +2,24 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Lock } from "lucide-react";
 import { buttonStyles } from "@/shared/ui/heritageKit";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
 import { vaultPinKeys } from "../model/useVaultPin";
 import { SetPinForm } from "./PinForms";
 
 /**
  * Hiện trên đầu màn Tài sản khi kho chưa đặt mã PIN. Backend chặn tạo tài sản (409 VAULT_PIN_NOT_SET)
- * cho tới khi có PIN, nên màn bao ngoài khóa form thêm tài sản; đặt xong thì cập nhật cache trạng thái PIN
- * từ response để màn tự mở khóa.
+ * cho tới khi có PIN, nên màn bao ngoài khóa form thêm tài sản. Bấm "Đặt mã PIN" mở hộp thoại; đặt xong thì
+ * cập nhật cache trạng thái PIN từ response để màn tự mở khóa.
  */
 export function VaultPinSetupNotice({ vaultId }: { vaultId: string }) {
   const queryClient = useQueryClient();
-  const [formOpen, setFormOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   return (
     <section
       aria-labelledby="vault-pin-setup-title"
@@ -35,21 +42,29 @@ export function VaultPinSetupNotice({ vaultId }: { vaultId: string }) {
           </p>
         </div>
       </div>
-      {formOpen ? (
-        <div className="max-w-md rounded-xl bg-heritage-surface p-5">
+      <button type="button" className={buttonStyles.dark} onClick={() => setDialogOpen(true)}>
+        Đặt mã PIN
+      </button>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Đặt Mã PIN bảo vệ</DialogTitle>
+            <DialogDescription>
+              Mã PIN gồm 6 chữ số, được hỏi trước khi tải nội dung tài sản, sửa hoặc xóa tài sản,
+              đổi người nhận hoặc Người thực hiện.
+            </DialogDescription>
+          </DialogHeader>
           <SetPinForm
             vaultId={vaultId}
             onDone={(_pin, status) => {
+              setDialogOpen(false);
               queryClient.setQueryData(vaultPinKeys.status(vaultId), status);
             }}
-            onCancel={() => setFormOpen(false)}
+            onCancel={() => setDialogOpen(false)}
+            cancelLabel="Để sau"
           />
-        </div>
-      ) : (
-        <button type="button" className={buttonStyles.dark} onClick={() => setFormOpen(true)}>
-          Đặt mã PIN
-        </button>
-      )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

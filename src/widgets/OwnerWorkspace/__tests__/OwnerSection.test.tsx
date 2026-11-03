@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
@@ -145,6 +146,27 @@ describe("official workspace data states", () => {
     expect(await screen.findByText("Bạn chưa đặt mã PIN cho kho")).toBeInTheDocument();
     expect(screen.getByText("Thêm tài sản đang bị khóa")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Đặt mã PIN" })).toBeInTheDocument();
+  });
+  it("sets the PIN in a dialog and then unlocks adding assets", async () => {
+    vi.mocked(ownerVaultService.getMine).mockResolvedValue(vaultFixture);
+    vi.mocked(backendAssetService.list).mockResolvedValue(emptyAssetPage);
+    vi.mocked(vaultPinService.getStatus).mockResolvedValue(pinStatus(false));
+    vi.mocked(vaultPinService.set).mockResolvedValue(pinStatus(true));
+    setup();
+    await userEvent.click(await screen.findByRole("button", { name: "Đặt mã PIN" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText("Đặt Mã PIN bảo vệ")).toBeInTheDocument();
+    await userEvent.type(within(dialog).getByLabelText("Mã PIN mới"), "482913");
+    await userEvent.type(within(dialog).getByLabelText("Nhập lại mã PIN"), "482913");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Đặt mã PIN" }));
+
+    expect(vaultPinService.set).toHaveBeenCalledWith(vaultFixture.id, {
+      pin: "482913",
+      confirmPin: "482913",
+    });
+    await vi.waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(screen.queryByText("Bạn chưa đặt mã PIN cho kho")).not.toBeInTheDocument();
+    expect(await screen.findByRole("group", { name: "Loại mục" })).toBeInTheDocument();
   });
   it("shows the add-asset form without the PIN notice once a PIN is set", async () => {
     vi.mocked(ownerVaultService.getMine).mockResolvedValue(vaultFixture);
