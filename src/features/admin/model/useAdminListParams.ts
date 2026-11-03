@@ -44,7 +44,7 @@ export function useAdminIncidentParams() {
   const filters = {
     status: status.success ? status.data : undefined,
     type: type.success ? type.data : undefined,
-    overdueOnly: params.get("overdue") === "1",
+    overdueOnly: params.get("overdue") === "1" || params.get("overdue") === "true",
   };
   const page = readPage(params.get("page"));
   const query: IncidentsQuery = {
@@ -54,7 +54,7 @@ export function useAdminIncidentParams() {
     pageIndex: page,
     pageSize: ADMIN_LIST_PAGE_SIZE,
   };
-  const selectedId = params.get("incident");
+  const selectedId = params.get("incident") || params.get("incidentId");
   return {
     filters,
     page,

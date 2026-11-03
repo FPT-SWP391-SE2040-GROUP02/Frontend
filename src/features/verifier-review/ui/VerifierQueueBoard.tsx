@@ -30,6 +30,14 @@ const filterOptions: ReadonlyArray<{ value: Filter; label: string }> = [
 
 import { formatDateTime } from "@/shared/lib/dateFormat";
 
+const filterMeta: Record<Filter, { dotColor: string }> = {
+  ALL: { dotColor: "bg-heritage-muted" },
+  REVIEW: { dotColor: "bg-blue-500" },
+  WAIT_OBJECTION: { dotColor: "bg-amber-500" },
+  OBJECTED: { dotColor: "bg-rose-500" },
+  SUPPLEMENT: { dotColor: "bg-orange-500" },
+};
+
 function parseFilter(value: string | null): Filter {
   const found = filterOptions.find((option) => option.value === value);
   if (found) return found.value;
@@ -145,12 +153,27 @@ export function VerifierQueueBoard({
                   aria-pressed={filter === option.value}
                   className={
                     filter === option.value
-                      ? "min-h-11 rounded-full bg-heritage-primary px-4 text-sm font-semibold text-white"
-                      : "min-h-11 rounded-full border border-heritage-border px-4 text-sm hover:bg-[#F4F1E6]"
+                      ? "inline-flex items-center gap-2 min-h-11 rounded-full bg-heritage-primary px-4 text-sm font-semibold text-white shadow-sm"
+                      : "inline-flex items-center gap-2 min-h-11 rounded-full border border-heritage-border bg-white/60 px-4 text-sm hover:bg-[#F4F1E6] dark:bg-black/20"
                   }
                   onClick={() => updateParam(FILTER_PARAM, option.value)}
                 >
-                  {option.label} {counts[option.value]}
+                  {option.value !== "ALL" && (
+                    <span
+                      className={`size-2 shrink-0 rounded-full ${filterMeta[option.value].dotColor}`}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span>{option.label}</span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${
+                      filter === option.value
+                        ? "bg-white/20 text-white"
+                        : "bg-heritage-border/50 text-heritage-muted"
+                    }`}
+                  >
+                    {counts[option.value]}
+                  </span>
                 </button>
               ))}
               <label className="relative ml-auto block min-w-56 flex-1 sm:max-w-sm">

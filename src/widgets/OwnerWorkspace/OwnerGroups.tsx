@@ -65,8 +65,7 @@ export function OwnerGroups({
         <Check className="size-5 text-green-700" aria-hidden="true" />
         <p className="font-semibold">{emptyTitle}</p>
         <p className="text-sm text-heritage-muted">
-          Gói bàn giao gom các mục có cùng người nhận. Tạo gói bàn giao trước, rồi thêm mục và gán
-          người nhận.
+          Gói bàn giao gom các tài sản và người nhận có chung mục đích chuyển giao di sản.
         </p>
         {page === 1 && (
           <Button size="lg" className={GOLD_BUTTON} onClick={() => onCreateOpenChange(true)}>

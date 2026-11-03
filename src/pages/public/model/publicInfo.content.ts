@@ -110,7 +110,7 @@ export const FAQ_CONTENT = {
         {
           question: "Các gói có gì khác nhau?",
           answer:
-            "Free: 0đ, 20 MiB, lưu nội dung cá nhân, chưa thiết lập kế hoạch bàn giao. XS: 199.000đ / 365 ngày, 200 MiB, có kế hoạch bàn giao, điểm danh và quy trình bàn giao. XS Max: 399.000đ / 365 ngày, 500 MiB, kèm PDF tổng hợp kế hoạch.",
+            "Free: 0đ, 20 MiB, lưu nội dung cá nhân, chưa thiết lập kế hoạch bàn giao. XS: 199.000đ / 365 ngày, 200 MiB, có kế hoạch bàn giao, điểm danh và quy trình bàn giao. XS Max: 399.000đ / 365 ngày, 500 MiB.",
         },
         {
           question: "Gói hết hạn thì dữ liệu của tôi thế nào?",

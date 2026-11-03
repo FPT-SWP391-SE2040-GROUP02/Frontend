@@ -115,7 +115,7 @@ export const LANDING_CONTENT = {
       {
         name: "XS Max",
         price: "399.000đ / 365 ngày",
-        features: ["Mọi quyền lợi của XS", "Dung lượng 500 MiB", "PDF tổng hợp kế hoạch"],
+        features: ["Mọi quyền lợi của XS", "Dung lượng 500 MiB"],
       },
     ],
   },

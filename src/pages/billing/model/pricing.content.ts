@@ -36,6 +36,6 @@ export const PRICING_CATALOG = [
     ],
     includedBeneficiarySlots: 5,
     storage: 500,
-    features: ["Các tính năng của Legacy XS", "PDF tổng hợp kế hoạch"],
+    features: ["Các tính năng của Legacy XS"],
   },
 ] as const satisfies readonly ReferenceServicePlan[];
