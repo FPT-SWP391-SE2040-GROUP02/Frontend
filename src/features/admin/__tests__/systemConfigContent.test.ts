@@ -81,6 +81,43 @@ describe("statusChip", () => {
   });
 });
 
+describe("SEPAY content", () => {
+  const content = SYSTEM_CONFIG_SERVICES.SEPAY;
+  const schema = buildConfigFormSchema(content.fields);
+  const valid = {
+    environment: "Test",
+    bankCode: "MBBank",
+    accountNumber: "1234567890",
+    accountName: "CONG TY A",
+    webhookApiKey: "",
+    reason: "đổi tài khoản",
+    enabled: true,
+  };
+
+  it("nhận môi trường Test và Live, cho phép để trống khóa và tài khoản", () => {
+    expect(schema.safeParse(valid).success).toBe(true);
+    expect(schema.safeParse({ ...valid, environment: "Live" }).success).toBe(true);
+    expect(
+      schema.safeParse({ ...valid, bankCode: "", accountNumber: "", accountName: "" }).success,
+    ).toBe(true);
+  });
+
+  it.each(["Prod", "test", ""])("từ chối môi trường %j", (environment) => {
+    expect(schema.safeParse({ ...valid, environment }).success).toBe(false);
+  });
+
+  it("không có nút thử kết nối", () => {
+    expect(content.canTest).toBe(false);
+  });
+
+  it("chỉ đòi gõ lại tên dịch vụ khi chuyển sang Live", () => {
+    const confirm = content.confirm;
+    expect(confirm?.({ environment: "Test" }, { environment: "Live" })).toBe(true);
+    expect(confirm?.({ environment: "Live" }, { environment: "Live" })).toBe(false);
+    expect(confirm?.({ environment: "Live" }, { environment: "Test" })).toBe(false);
+  });
+});
+
 describe("EKYC content", () => {
   const schema = buildConfigFormSchema(SYSTEM_CONFIG_SERVICES.EKYC.fields);
   const valid = {

@@ -75,11 +75,17 @@ const secretsRequestSchema = z.record(z.string(), z.string()).transform((secrets
   return kept;
 });
 
-/** Chỉ giữ `secrets` trong body khi còn ít nhất một khóa. */
-function withSecretsIfAny<T extends { secrets?: Record<string, string> }>(body: T) {
-  const { secrets, ...rest } = body;
-  if (secrets && Object.keys(secrets).length > 0) return { ...rest, secrets };
-  return rest;
+/** Chỉ giữ `secrets` khi còn ít nhất một khóa và `confirmText` khi không rỗng. */
+function withOptionalParts<T extends { secrets?: Record<string, string>; confirmText?: string }>(
+  body: T,
+) {
+  const { secrets, confirmText, ...rest } = body;
+  const hasSecrets = secrets !== undefined && Object.keys(secrets).length > 0;
+  return {
+    ...rest,
+    ...(hasSecrets ? { secrets } : {}),
+    ...(confirmText ? { confirmText } : {}),
+  };
 }
 
 /** PUT /admin/system-config/{serviceKey}/{slot}. */
@@ -89,15 +95,17 @@ export const updateSystemConfigRequestSchema = z
     secrets: secretsRequestSchema.optional(),
     enabled: z.boolean(),
     reason: reasonSchema,
+    /** Tên dịch vụ gõ lại để xác nhận thay đổi nguy hiểm (chuyển SePay sang Live, đổi bucket R2). */
+    confirmText: z.string().trim().optional(),
     version: z.number().int().nonnegative(),
   })
-  .transform(withSecretsIfAny);
+  .transform(withOptionalParts);
 export type UpdateSystemConfigRequest = z.input<typeof updateSystemConfigRequestSchema>;
 
 /** POST .../test: giá trị nháp, chưa lưu. */
 export const testSystemConfigRequestSchema = z
   .object({ settings: settingsSchema, secrets: secretsRequestSchema.optional() })
-  .transform(withSecretsIfAny);
+  .transform(withOptionalParts);
 export type TestSystemConfigRequest = z.input<typeof testSystemConfigRequestSchema>;
 
 /** POST .../reset. */

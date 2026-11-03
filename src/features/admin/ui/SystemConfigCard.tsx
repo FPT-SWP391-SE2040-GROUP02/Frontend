@@ -4,6 +4,7 @@ import {
   SOURCE_LABELS,
   SYSTEM_CONFIG_SERVICES,
   statusChip,
+  type ConfigFieldSpec,
 } from "../model/systemConfig.content";
 import type {
   ConfigSlotName,
@@ -22,6 +23,15 @@ function secretText(secret: SystemConfigSlot["secrets"][number] | undefined): st
   if (!secret?.hasValue) return "Chưa có khóa";
   if (secret.last4) return `•••• ${secret.last4}`;
   return "Đã có khóa";
+}
+
+/** Giá trị thường của một trường: ô chọn hiện nhãn tiếng Việt, các ô khác hiện nguyên giá trị. */
+function settingText(field: ConfigFieldSpec, value: string | undefined): string {
+  const raw = value ?? "";
+  if (field.kind === "select") {
+    return field.options?.find((option) => option.value === raw)?.label ?? raw;
+  }
+  return raw;
 }
 
 function lastCallText(status: SystemConfigEntry["status"]): string {
@@ -64,7 +74,7 @@ export function SystemConfigCard({ service, onEdit, onReset }: SystemConfigCardP
                   <InfoRow key={field.name} label={field.label}>
                     {field.kind === "secret"
                       ? secretText(slot.secrets.find((item) => item.name === field.name))
-                      : (slot.settings[field.name] ?? "")}
+                      : settingText(field, slot.settings[field.name])}
                   </InfoRow>
                 ))}
                 <InfoRow label="Nguồn">{SOURCE_LABELS[slot.source]}</InfoRow>

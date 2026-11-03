@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { SystemConfigEntry } from "./systemConfig.schema";
 
 /** Loại ô nhập của một trường cấu hình: chữ, số nguyên, hoặc khóa bí mật (chỉ ghi, không bao giờ hiện lại). */
-export type ConfigFieldKind = "text" | "number" | "secret" | "url";
+export type ConfigFieldKind = "text" | "number" | "secret" | "url" | "select";
 
 export interface ConfigFieldSpec {
   name: string;
@@ -11,6 +11,10 @@ export interface ConfigFieldSpec {
   hint?: string;
   min?: number;
   max?: number;
+  /** Ô chữ không bắt buộc: để trống là hợp lệ. */
+  optional?: boolean;
+  /** Các lựa chọn của ô `select`: giá trị gửi lên và nhãn hiển thị. */
+  options?: { value: string; label: string }[];
   /** Luật hình dạng cho ô chữ; Backend vẫn là nơi quyết định cuối cùng. */
   pattern?: RegExp;
   patternMessage?: string;
@@ -22,6 +26,11 @@ export interface ServiceContent {
   fields: ConfigFieldSpec[];
   /** Backend có bộ thử kết nối cho dịch vụ này không; không có thì ẩn nút "Thử kết nối". */
   canTest: boolean;
+  /**
+   * Thay đổi từ `before` sang `after` (các trường thường) có cần gõ lại tên dịch vụ để xác nhận không.
+   * Khớp với SystemConfigCatalog.RequiresConfirm của Backend, nơi quyết định cuối cùng.
+   */
+  confirm?: (before: Record<string, string>, after: Record<string, string>) => boolean;
 }
 
 /** Nội dung từng dịch vụ đã nối. Dịch vụ Backend trả về mà chưa có ở đây thì trang không hiện thẻ. */
@@ -43,6 +52,40 @@ export const SYSTEM_CONFIG_SERVICES: Record<string, ServiceContent> = {
       { name: "apiKey", label: "Khóa API", kind: "secret" },
     ],
     canTest: true,
+  },
+  SEPAY: {
+    title: "SePay (nhận tiền thanh toán)",
+    description:
+      "Tài khoản nhận tiền hiện QR cho chủ kho và khóa để SePay báo giao dịch về. Đổi sai có thể làm đơn không đối soát được.",
+    fields: [
+      {
+        name: "environment",
+        label: "Môi trường",
+        kind: "select",
+        options: [
+          { value: "Test", label: "Thử nghiệm (Test)" },
+          { value: "Live", label: "Thật (Live)" },
+        ],
+        hint: "Chuyển sang Thật nghĩa là bắt đầu nhận tiền thật.",
+      },
+      {
+        name: "bankCode",
+        label: "Mã ngân hàng",
+        kind: "text",
+        optional: true,
+        hint: "Ví dụ MBBank (theo SePay/VietQR).",
+      },
+      { name: "accountNumber", label: "Số tài khoản nhận tiền", kind: "text", optional: true },
+      { name: "accountName", label: "Tên chủ tài khoản", kind: "text", optional: true },
+      {
+        name: "webhookApiKey",
+        label: "Khóa webhook SePay",
+        kind: "secret",
+        hint: "Khóa SePay gửi trong header Authorization. Đổi khóa ở đây thì phải đổi cùng khóa trong SePay, nếu không giao dịch sẽ bị từ chối.",
+      },
+    ],
+    canTest: false,
+    confirm: (before, after) => after.environment === "Live" && before.environment !== "Live",
   },
   EKYC: {
     title: "eKYC (xác minh danh tính)",
@@ -138,6 +181,13 @@ function isHttpUrl(value: string): boolean {
 
 function fieldSchema(field: ConfigFieldSpec): z.ZodTypeAny {
   if (field.kind === "secret") return z.string().max(512, "Tối đa 512 ký tự.");
+  if (field.kind === "select") {
+    const allowed = (field.options ?? []).map((option) => option.value);
+    return z.string().refine((value) => allowed.includes(value), "Chọn một giá trị hợp lệ.");
+  }
+  // Ô chữ không bắt buộc (ví dụ tài khoản ngân hàng) được để trống.
+  if (field.kind === "text" && field.optional)
+    return z.string().trim().max(100, "Tối đa 100 ký tự.");
   const required = z.string().trim().min(1, "Trường này là bắt buộc.");
   if (field.kind === "url") {
     return required

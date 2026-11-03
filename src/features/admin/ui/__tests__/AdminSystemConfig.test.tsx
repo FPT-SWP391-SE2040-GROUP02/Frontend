@@ -133,6 +133,41 @@ describe("AdminSystemConfig", () => {
     await waitFor(() => expect(get).toHaveBeenCalledTimes(2));
   });
 
+  it("hiện SePay với nhãn môi trường tiếng Việt, khóa che và không có ô dự phòng", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue({
+      services: [
+        {
+          serviceKey: "SEPAY",
+          supportsFallback: false,
+          slots: [
+            {
+              slot: "PRIMARY",
+              enabled: true,
+              source: "DATABASE",
+              settings: {
+                environment: "Live",
+                bankCode: "MBBank",
+                accountNumber: "1234567890",
+                accountName: "CONG TY A",
+              },
+              secrets: [{ name: "webhookApiKey", hasValue: true, last4: "9z8y" }],
+              version: 1,
+              updatedAt: "2026-11-03T10:00:00+00:00",
+              updatedBy: "Cô Lan",
+            },
+          ],
+          status,
+        },
+      ],
+    });
+    renderPage();
+    expect(await screen.findByText("SePay (nhận tiền thanh toán)")).toBeInTheDocument();
+    expect(screen.getByText("Thật (Live)")).toBeInTheDocument();
+    expect(screen.getByText("1234567890")).toBeInTheDocument();
+    expect(screen.getByText("•••• 9z8y")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sửa dịch vụ dự phòng" })).not.toBeInTheDocument();
+  });
+
   it("ẩn nút khôi phục khi ô chính đang dùng cấu hình của máy chủ", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue(listOf("APPSETTINGS"));
     renderPage();

@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
@@ -198,6 +199,90 @@ describe("SystemConfigDialog", () => {
   it("ô chính không có công tắc bật", () => {
     renderDialog("PRIMARY");
     expect(screen.queryByLabelText("Bật dịch vụ dự phòng")).not.toBeInTheDocument();
+  });
+
+  describe("SePay", () => {
+    const sePaySlot = {
+      slot: "PRIMARY" as const,
+      enabled: true,
+      source: "DATABASE" as const,
+      settings: {
+        environment: "Test",
+        bankCode: "MBBank",
+        accountNumber: "1234567890",
+        accountName: "CONG TY A",
+      },
+      secrets: [{ name: "webhookApiKey", hasValue: true, last4: null }],
+      version: 2,
+      updatedAt: "2026-11-03T10:00:00+00:00",
+      updatedBy: "Cô Lan",
+    };
+    const sePayEntry: SystemConfigEntry = {
+      serviceKey: "SEPAY",
+      supportsFallback: false,
+      slots: [sePaySlot],
+      status: { activeSlot: null, lastOutcome: null, lastAt: null, lastErrorCode: null },
+    };
+
+    function renderSePay() {
+      accessTokenMemory.set("fixture");
+      const client = new QueryClient();
+      render(
+        <QueryClientProvider client={client}>
+          <SystemConfigDialog
+            service={sePayEntry}
+            slot="PRIMARY"
+            onClose={vi.fn()}
+            onSaved={vi.fn()}
+          />
+        </QueryClientProvider>,
+      );
+    }
+
+    async function chooseEnvironment(label: string) {
+      const user = userEvent.setup();
+      await user.click(screen.getByRole("combobox", { name: "Môi trường" }));
+      await user.click(await screen.findByRole("option", { name: label }));
+    }
+
+    it("hiện môi trường đang dùng bằng nhãn tiếng Việt và không có nút thử kết nối", () => {
+      renderSePay();
+      expect(screen.getByRole("combobox", { name: "Môi trường" })).toHaveTextContent(
+        "Thử nghiệm (Test)",
+      );
+      expect(
+        screen.queryByRole("button", { name: "Thử kết nối bằng giá trị đang nhập" }),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/Gõ lại SEPAY/)).not.toBeInTheDocument();
+    });
+
+    it("chuyển sang Live thì đòi gõ lại SEPAY mới cho lưu, rồi gửi confirmText", async () => {
+      const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...sePaySlot, version: 3 });
+      renderSePay();
+      await chooseEnvironment("Thật (Live)");
+      type("Lý do thay đổi", "bắt đầu nhận tiền thật");
+      const confirmField = await screen.findByLabelText(/Gõ lại SEPAY/);
+      expect(screen.getByRole("button", { name: "Lưu" })).toBeDisabled();
+
+      fireEvent.change(confirmField, { target: { value: "sepay" } });
+      await waitFor(() => expect(screen.getByRole("button", { name: "Lưu" })).toBeEnabled());
+      clickSave();
+
+      await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
+      expect(put.mock.calls[0][1]).toMatchObject({
+        settings: { environment: "Live" },
+        confirmText: "sepay",
+        version: 2,
+      });
+    });
+
+    it("đổi lại về Test thì không còn đòi xác nhận", async () => {
+      renderSePay();
+      await chooseEnvironment("Thật (Live)");
+      expect(await screen.findByLabelText(/Gõ lại SEPAY/)).toBeInTheDocument();
+      await chooseEnvironment("Thử nghiệm (Test)");
+      await waitFor(() => expect(screen.queryByLabelText(/Gõ lại SEPAY/)).not.toBeInTheDocument());
+    });
   });
 
   describe("eKYC", () => {

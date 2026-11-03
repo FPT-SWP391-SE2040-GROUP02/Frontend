@@ -84,6 +84,18 @@ describe("systemConfigService", () => {
     });
   });
 
+  it("lưu: gửi confirmText đã cắt khoảng trắng, bỏ khi để trống", async () => {
+    const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...primarySlot, version: 1 });
+    const base = { settings: draft, enabled: true, reason: "chuyển Live", version: 0 };
+    await systemConfigService.update("SEPAY", "PRIMARY", { ...base, confirmText: " SEPAY " });
+    expect(put).toHaveBeenLastCalledWith(
+      "/admin/system-config/SEPAY/PRIMARY",
+      expect.objectContaining({ confirmText: "SEPAY" }),
+    );
+    await systemConfigService.update("SEPAY", "PRIMARY", { ...base, confirmText: "  " });
+    expect(put.mock.calls[1][1]).not.toHaveProperty("confirmText");
+  });
+
   it("lưu: gửi khóa khi người dùng nhập khóa mới", async () => {
     const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...primarySlot, version: 1 });
     await systemConfigService.update("GEMINI", "FALLBACK", {

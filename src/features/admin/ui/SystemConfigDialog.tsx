@@ -1,6 +1,6 @@
 import { useId, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useForm, type FieldErrors, type Resolver } from "react-hook-form";
+import { Controller, useForm, useWatch, type FieldErrors, type Resolver } from "react-hook-form";
 import { Button } from "@/shared/ui/button";
 import { CustomCheckbox } from "@/shared/ui/CustomCheckbox";
 import {
@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
 import { systemConfigService } from "../api/systemConfigService";
 import {
@@ -41,7 +42,10 @@ interface SystemConfigDialogProps {
 }
 
 /** Giá trị trong form → body gửi đi: trường thường và trường khóa tách riêng, đã bỏ khoảng trắng hai đầu. */
-function splitValues(fields: ConfigFieldSpec[], values: ConfigFormValues) {
+function splitValues(
+  fields: ConfigFieldSpec[],
+  values: Record<string, string | boolean | undefined>,
+) {
   const settings: Record<string, string> = {};
   const secrets: Record<string, string> = {};
   for (const field of fields) {
@@ -91,6 +95,7 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
 
   const defaults: ConfigFormValues = {
     reason: "",
+    confirmText: "",
     enabled: slot === "PRIMARY" || slotData?.enabled === true,
   };
   for (const field of content.fields) {
@@ -103,8 +108,15 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
     defaultValues: defaults,
   });
 
+  // Theo dõi giá trị đang nhập để biết thay đổi này có cần gõ lại tên dịch vụ không (R2 đổi bucket, SePay sang Live...).
+  const watched: Partial<ConfigFormValues> = useWatch({ control: form.control });
+
   if (!slotData) return null;
   const busy = saver.pending || tester.pending;
+  const needsConfirm =
+    content.confirm?.(slotData.settings, splitValues(content.fields, watched).settings) === true;
+  const confirmValue = typeof watched.confirmText === "string" ? watched.confirmText : "";
+  const confirmed = !needsConfirm || confirmValue.trim().toUpperCase() === service.serviceKey;
 
   const onSubmit = form.handleSubmit((values) => {
     const { settings, secrets } = splitValues(content.fields, values);
@@ -115,6 +127,7 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
           secrets,
           enabled: values.enabled === true,
           reason: typeof values.reason === "string" ? values.reason : "",
+          confirmText: needsConfirm ? confirmValue : undefined,
           version: slotData.version,
         }),
       () => {
@@ -166,16 +179,48 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
                 <label htmlFor={fieldId} className="block font-medium">
                   {field.label}
                 </label>
-                <Input
-                  id={fieldId}
-                  autoComplete={field.kind === "secret" ? "new-password" : "off"}
-                  type={field.kind === "secret" ? "password" : "text"}
-                  inputMode={inputModeOf(field.kind)}
-                  placeholder={field.kind === "secret" ? SECRET_PLACEHOLDER : undefined}
-                  aria-invalid={Boolean(error)}
-                  className="mt-1"
-                  {...form.register(field.name)}
-                />
+                {field.kind === "select" && (
+                  // Không dùng <select> native: popup của nó vẽ trống chữ khi nằm trong hộp thoại.
+                  <Controller
+                    control={form.control}
+                    name={field.name}
+                    render={({ field: control }) => (
+                      <Select
+                        items={field.options ?? []}
+                        value={String(control.value ?? "")}
+                        onValueChange={(value) => control.onChange(value ?? "")}
+                      >
+                        <SelectTrigger
+                          id={fieldId}
+                          aria-invalid={Boolean(error)}
+                          onBlur={control.onBlur}
+                          className="mt-1 min-h-11 w-full rounded-lg border-heritage-border bg-white px-3"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent alignItemWithTrigger={false}>
+                          {(field.options ?? []).map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                )}
+                {field.kind !== "select" && (
+                  <Input
+                    id={fieldId}
+                    autoComplete={field.kind === "secret" ? "new-password" : "off"}
+                    type={field.kind === "secret" ? "password" : "text"}
+                    inputMode={inputModeOf(field.kind)}
+                    placeholder={field.kind === "secret" ? SECRET_PLACEHOLDER : undefined}
+                    aria-invalid={Boolean(error)}
+                    className="mt-1"
+                    {...form.register(field.name)}
+                  />
+                )}
                 {field.kind === "secret" && (
                   <p className="mt-1 text-xs text-heritage-muted">
                     {secretStatus?.hasValue
@@ -194,6 +239,22 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
               </div>
             );
           })}
+          {needsConfirm && (
+            <div className="text-sm">
+              <label htmlFor={`${idBase}-confirm`} className="block font-medium">
+                Gõ lại {service.serviceKey} để xác nhận
+              </label>
+              <Input
+                id={`${idBase}-confirm`}
+                autoComplete="off"
+                className="mt-1"
+                {...form.register("confirmText")}
+              />
+              <p className="mt-1 text-xs text-heritage-muted">
+                Thay đổi này ảnh hưởng tới tiền hoặc dữ liệu thật nên cần xác nhận thêm.
+              </p>
+            </div>
+          )}
           <div className="text-sm">
             <label htmlFor={`${idBase}-reason`} className="block font-medium">
               Lý do thay đổi
@@ -240,7 +301,7 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
                 Thử kết nối bằng giá trị đang nhập
               </Button>
             )}
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" disabled={busy || !confirmed}>
               {saver.pending ? "Đang lưu…" : "Lưu"}
             </Button>
           </DialogFooter>
