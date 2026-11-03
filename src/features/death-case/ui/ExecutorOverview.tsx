@@ -3,7 +3,7 @@ import { Lock } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import type { ExecutorVault } from "../model/deathCase.schema";
-import { buttonStyles, Chip, InfoRow, Initial, Notice, Panel } from "@/shared/ui/heritageKit";
+import { buttonStyles, InfoRow, Notice, Panel } from "@/shared/ui/heritageKit";
 import { useRejectedAck } from "../model/useRejectedAck";
 import { planStatusLabel } from "./executorLabels";
 import { ProxyCheckIn } from "./ProxyCheckIn";
@@ -156,59 +156,6 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           </Panel>
         </div>
       </div>
-    </div>
-  );
-}
-
-/** Màn "Chọn kho" khi một tài khoản là Executor của nhiều kho (thiết kế 78). */
-export function VaultPicker({
-  vaults,
-  onSelect,
-}: {
-  vaults: ExecutorVault[];
-  onSelect: (vaultId: string) => void;
-}) {
-  return (
-    <div className="space-y-6">
-      <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {vaults.map((vault, index) => (
-          <li
-            key={vault.vaultId}
-            className="space-y-3 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
-          >
-            <div className="flex items-center gap-3">
-              <Initial name={vault.ownerFullName} />
-              <div className="min-w-0">
-                <h2 className="truncate font-semibold">Kho của {vault.ownerFullName}</h2>
-                <p className="text-xs text-heritage-muted">Executor</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Chip tone={vault.checkInOverdue ? "warning" : "success"}>
-                {vault.checkInOverdue ? "Quá hạn điểm danh" : planStatusLabel(vault.planStatus)}
-              </Chip>
-              {vault.openDeathCaseId && <Chip tone="neutral">Có hồ sơ đang mở</Chip>}
-            </div>
-            <button
-              type="button"
-              onClick={() => onSelect(vault.vaultId)}
-              aria-label={`Vào kho của ${vault.ownerFullName}`}
-              className={`${index === 0 ? buttonStyles.gold : buttonStyles.outline} w-full`}
-            >
-              Vào kho
-            </button>
-          </li>
-        ))}
-      </ul>
-      <Panel title="Lưu ý">
-        <p className="text-sm leading-6">
-          Mỗi kho có hồ sơ và tiến trình riêng. Bạn không đọc được nội dung của bất kỳ kho nào.
-        </p>
-        <p className="mt-3 flex items-center gap-2 text-xs text-heritage-muted">
-          <Lock className="size-3.5" aria-hidden="true" />
-          Quyền Executor chỉ gồm báo tin và theo dõi tiến trình.
-        </p>
-      </Panel>
     </div>
   );
 }

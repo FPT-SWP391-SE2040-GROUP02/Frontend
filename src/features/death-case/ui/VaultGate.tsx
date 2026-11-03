@@ -1,14 +1,15 @@
 import type { ReactNode } from "react";
 import type { ExecutorVault } from "../model/deathCase.schema";
 import type { useSelectedExecutorVault } from "../model/useExecutorVaults";
-import { VaultPicker } from "./ExecutorOverview";
+import { ExecutorVaultList } from "./ExecutorVaultList";
 import { buttonStyles, Panel } from "@/shared/ui/heritageKit";
 
 type VaultState = ReturnType<typeof useSelectedExecutorVault>;
 
 /**
- * Cổng chung của các trang Executor: tải kho, báo lỗi, chưa có nhiệm vụ, chọn kho (khi có nhiều kho),
- * rồi mới hiện nội dung cho kho đang chọn. Quyền trên từng kho vẫn do Backend kiểm tra.
+ * Cổng chung của các trang Executor: tải kho, báo lỗi, chưa có nhiệm vụ, danh sách kho kèm việc cần làm
+ * (khi có nhiều kho mà chưa chọn), rồi mới hiện nội dung cho kho đang chọn. Đổi kho dùng bộ chuyển kho ở đầu
+ * sidebar. Quyền trên từng kho vẫn do Backend kiểm tra.
  */
 export function VaultGate({
   state,
@@ -17,7 +18,7 @@ export function VaultGate({
   state: VaultState;
   children: (vault: ExecutorVault) => ReactNode;
 }) {
-  const { query, vaults, selected, select, clear } = state;
+  const { query, vaults, selected, select, open } = state;
   if (query.isPending) return <p role="status">Đang tải các kho được phân công…</p>;
   if (query.isError) {
     return (
@@ -41,24 +42,6 @@ export function VaultGate({
       </Panel>
     );
   }
-  if (!selected) return <VaultPicker vaults={vaults} onSelect={select} />;
-  return (
-    <div className="space-y-6">
-      {vaults.length > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#F4F1E6] px-4 py-3 text-sm">
-          <span>
-            Đang xem kho của <strong>{selected.ownerFullName}</strong>
-          </span>
-          <button
-            type="button"
-            className="font-semibold underline underline-offset-4"
-            onClick={clear}
-          >
-            Đổi kho
-          </button>
-        </div>
-      )}
-      {children(selected)}
-    </div>
-  );
+  if (!selected) return <ExecutorVaultList vaults={vaults} onSelect={select} onOpen={open} />;
+  return <>{children(selected)}</>;
 }
