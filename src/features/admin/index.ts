@@ -6,6 +6,7 @@ export { AdminHolds } from "./ui/AdminHolds";
 export { AdminPayments } from "./ui/AdminPayments";
 export { AdminDevTools } from "./ui/AdminDevTools";
 export { AdminSettings } from "./ui/AdminSettings";
+export { AdminSystemConfig } from "./ui/AdminSystemConfig";
 export { adminService } from "./api/adminService";
 export { adminSettingsService } from "./api/adminSettingsService";
 export { adminKeys, useAdminDashboard, useAdminUsers } from "./model/useAdmin";

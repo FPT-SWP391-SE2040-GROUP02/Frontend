@@ -55,6 +55,8 @@ describe("auditLogResponseSchema", () => {
     ["DEV_REWIND_BEFORE_EKYC", "VAULT"],
     ["DEV_UPDATE_EKYC_THRESHOLD", "USER"],
     ["ADMIN_CREATED_USER", "USER"],
+    ["SYSTEM_CONFIG_UPDATED", "CONFIGURATION"],
+    ["SYSTEM_CONFIG_RESET", "CONFIGURATION"],
   ])("accepts the updated BE wire event %s and its target", (action, targetType) => {
     expect(auditLogResponseSchema.parse({ ...baseEntry, action, targetType })).toMatchObject({
       action,
