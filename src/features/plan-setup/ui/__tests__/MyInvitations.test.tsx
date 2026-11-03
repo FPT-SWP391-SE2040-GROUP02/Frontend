@@ -134,9 +134,18 @@ describe("MyInvitationsInbox", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được lời mời");
   });
 
-  it("opens the invitation page from a pasted email link and rejects other text", async () => {
+  it("hides the paste-link box unless asked for (Owner space)", async () => {
     vi.mocked(planSetupService.mine).mockResolvedValue(data());
     renderWithRoutes(<MyInvitationsInbox />);
+    expect(
+      await screen.findByText("Không có lời mời nào đang chờ bạn trả lời."),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Link hoặc mã lời mời")).not.toBeInTheDocument();
+  });
+
+  it("opens the invitation page from a pasted email link and rejects other text", async () => {
+    vi.mocked(planSetupService.mine).mockResolvedValue(data());
+    renderWithRoutes(<MyInvitationsInbox showPasteLink />);
     const input = await screen.findByLabelText("Link hoặc mã lời mời");
     await userEvent.type(input, "không phải link");
     await userEvent.click(screen.getByRole("button", { name: "Kiểm tra lời mời" }));

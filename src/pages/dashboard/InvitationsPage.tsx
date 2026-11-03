@@ -48,11 +48,14 @@ function ResponsibleVaults() {
   );
 }
 
-/** Nội dung trang Lời mời, dùng chung cho không gian Chủ kho và Người thực hiện. */
-export function InvitationsContent() {
+/**
+ * Nội dung trang Lời mời, dùng chung cho không gian Chủ kho và Người thực hiện.
+ * Ô dán link mời chỉ hiện bên Người thực hiện (`showPasteLink`).
+ */
+export function InvitationsContent({ showPasteLink = false }: { showPasteLink?: boolean }) {
   return (
     <div className="space-y-6">
-      <MyInvitationsInbox />
+      <MyInvitationsInbox showPasteLink={showPasteLink} />
       <ResponsibleVaults />
     </div>
   );

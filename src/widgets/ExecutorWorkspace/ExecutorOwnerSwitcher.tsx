@@ -133,44 +133,49 @@ export function ExecutorOwnerSwitcher() {
         <div
           role="menu"
           aria-label="Các kho bạn phụ trách"
-          className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto rounded-xl border border-heritage-border bg-white p-2 text-heritage-primary shadow-xl"
+          className="absolute left-0 right-0 top-full z-50 mt-2 rounded-xl border border-heritage-border bg-white p-2 text-heritage-primary shadow-xl"
         >
           <p className="px-2 py-1.5 text-xs font-semibold text-heritage-muted">
             {vaults.length} kho bạn phụ trách
           </p>
-          {sorted.map((vault) => {
-            const isSelected = selected?.vaultId === vault.vaultId;
-            const task = vaultTask(vault);
-            return (
-              <button
-                key={vault.vaultId}
-                type="button"
-                role="menuitem"
-                aria-current={isSelected ? "true" : undefined}
-                onClick={() => {
-                  select(vault.vaultId);
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors ${isSelected ? "bg-[#FBF3E0]" : "hover:bg-[#F4F1E6]"}`}
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#0A281E] text-[11px] font-semibold text-white"
+          {/* Hiện khoảng 3 kho, nhiều hơn thì cuộn trong danh sách; tiêu đề và "Xem tất cả kho" luôn thấy. */}
+          <div className="max-h-[13.5rem] overflow-y-auto overscroll-contain">
+            {sorted.map((vault) => {
+              const isSelected = selected?.vaultId === vault.vaultId;
+              const task = vaultTask(vault);
+              return (
+                <button
+                  key={vault.vaultId}
+                  type="button"
+                  role="menuitem"
+                  aria-current={isSelected ? "true" : undefined}
+                  onClick={() => {
+                    select(vault.vaultId);
+                    setOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors ${isSelected ? "bg-[#FBF3E0]" : "hover:bg-[#F4F1E6]"}`}
                 >
-                  {ownerInitials(vault.ownerFullName)}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">{vault.ownerFullName}</span>
-                  <Chip tone={task.tone} className="mt-1 px-2 py-0.5 text-[11px]">
-                    {task.label}
-                  </Chip>
-                </span>
-                {isSelected && (
-                  <Check className="size-4 shrink-0 text-[#B88E4C]" aria-hidden="true" />
-                )}
-              </button>
-            );
-          })}
+                  <span
+                    aria-hidden="true"
+                    className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#0A281E] text-[11px] font-semibold text-white"
+                  >
+                    {ownerInitials(vault.ownerFullName)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">
+                      {vault.ownerFullName}
+                    </span>
+                    <Chip tone={task.tone} className="mt-1 px-2 py-0.5 text-[11px]">
+                      {task.label}
+                    </Chip>
+                  </span>
+                  {isSelected && (
+                    <Check className="size-4 shrink-0 text-[#B88E4C]" aria-hidden="true" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
           <div className="mt-1 border-t border-heritage-border pt-1">
             <button
               type="button"

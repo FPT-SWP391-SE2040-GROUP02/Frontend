@@ -17,8 +17,9 @@ const CAPABILITIES = ["Báo tin cho hệ thống khi Chủ kho qua đời", "The
 /**
  * Trang Lời mời: lời mời đang chờ (chấp nhận/từ chối ngay, không cần link email), ô dán link cho lời mời gửi
  * tới email khác, và lời mời đã kết thúc. Quyết định chỉ gửi khi người dùng bấm; Backend kiểm tra email và phạm vi.
+ * `showPasteLink`: chỉ bật ở không gian Người thực hiện; bên Chủ kho người mới chỉ cần bấm link trong email.
  */
-export function MyInvitationsInbox() {
+export function MyInvitationsInbox({ showPasteLink = false }: { showPasteLink?: boolean }) {
   const invitations = useMyInvitations();
   const [acceptedOwner, setAcceptedOwner] = useState<string | null>(null);
   let pendingBody;
@@ -91,7 +92,7 @@ export function MyInvitationsInbox() {
         </div>
         {pendingBody}
       </Panel>
-      <PasteInvitationLink />
+      {showPasteLink && <PasteInvitationLink />}
       {invitations.isSuccess && invitations.data.ended.length > 0 && (
         <EndedInvitations items={invitations.data.ended} />
       )}

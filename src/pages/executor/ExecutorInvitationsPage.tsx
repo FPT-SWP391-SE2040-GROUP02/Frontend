@@ -8,7 +8,7 @@ export function ExecutorInvitationsPage() {
       title="Lời mời"
       description="Ai mời bạn làm Người thực hiện, bạn nhận hay từ chối, và bạn đang nhận trách nhiệm cho những kho nào."
     >
-      <InvitationsContent />
+      <InvitationsContent showPasteLink />
     </ExecutorWorkspace>
   );
 }
