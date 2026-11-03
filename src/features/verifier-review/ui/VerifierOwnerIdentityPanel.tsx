@@ -7,6 +7,7 @@ import type {
   verifierReviewVersionSchema,
 } from "../model/verifierReview.schema";
 import { VerifierIdentityImage } from "./VerifierIdentityImage";
+import { CitizenIdDiffGrid } from "./CitizenIdDiffGrid";
 
 /** Chip kết quả so khớp do BE tính; null (một bên thiếu dữ liệu) thì không hiện chip. */
 function MatchChip({ matches }: { matches: boolean | null }) {
@@ -91,6 +92,7 @@ export function VerifierOwnerIdentityPanel({
               </tbody>
             </table>
           </div>
+          <CitizenIdDiffGrid declaredId={review.ownerCitizenId} verifiedId={identity.citizenId} />
           {identity.verifiedAt && (
             <p className="text-xs text-heritage-muted">
               Xác minh lúc {formatDateTime(identity.verifiedAt)}.

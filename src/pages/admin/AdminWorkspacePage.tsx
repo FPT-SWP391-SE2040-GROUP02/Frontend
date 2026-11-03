@@ -5,6 +5,7 @@ import {
   AdminIncidents,
   AdminOverview,
   AdminPayments,
+  AdminSettings,
   AdminSystemConfig,
   AdminUsers,
 } from "@/features/admin";
@@ -19,6 +20,7 @@ import {
 
 const NAVIGATION: WorkspaceNavigationItem[] = [
   { id: "overview", label: "Tổng quan", to: ROUTES.ADMIN.ROOT },
+  { id: "settings", label: "Cấu hình hệ thống", to: `${ROUTES.ADMIN.ROOT}?view=settings` },
   { id: "incidents", label: "Sự cố", to: `${ROUTES.ADMIN.ROOT}?view=incidents` },
   { id: "holds", label: "Tạm giữ", to: `${ROUTES.ADMIN.ROOT}?view=holds` },
   { id: "payments", label: "Giao dịch thanh toán", to: `${ROUTES.ADMIN.ROOT}?view=payments` },
@@ -49,6 +51,11 @@ const VIEWS = {
   overview: {
     title: "Tổng quan quản trị",
     description: "Số liệu vận hành hệ thống. Quản trị viên không đọc được nội dung kho.",
+  },
+  settings: {
+    title: "Cấu hình tham số hệ thống",
+    description:
+      "Quản lý và điều chỉnh các tham số dịch vụ, giới hạn quota và tính năng hệ thống theo thời gian thực.",
   },
   incidents: {
     title: "Sự cố vận hành",
@@ -87,12 +94,13 @@ const VIEWS = {
 
 type AdminView = keyof typeof VIEWS;
 
-/** Sự cố, tạm giữ và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
+/** Sự cố, tạm giữ, cấu hình và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
 function viewFor(pathname: string, search: string): AdminView {
   if (pathname === ROUTES.DASHBOARD.USERS) return "users";
   if (pathname === ROUTES.ADMIN.AUDIT_LOG) return "audit";
   const view = new URLSearchParams(search).get("view");
   if (
+    view === "settings" ||
     view === "incidents" ||
     view === "holds" ||
     view === "payments" ||
@@ -117,6 +125,7 @@ export function AdminWorkspacePage() {
       description={VIEWS[view].description}
     >
       {view === "overview" && <AdminOverview />}
+      {view === "settings" && <AdminSettings />}
       {view === "incidents" && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}

@@ -21,6 +21,7 @@ import { executorVaultsKey } from "../model/useExecutorVaults";
 import { deathCaseService } from "../api/deathCaseService";
 import { buttonStyles, Chip, formatDateTime, Panel } from "@/shared/ui/heritageKit";
 import { requirementLabels } from "./executorLabels";
+import { DeathCaseWizardSteps } from "./DeathCaseWizardSteps";
 
 const MAX_FILES = 10;
 const MAX_BYTES = 20 * 1024 * 1024;
@@ -251,6 +252,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
 
   return (
     <div className="space-y-6">
+      <DeathCaseWizardSteps record={record} isFormDirty={form.formState.isDirty} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel title="Thông tin báo tin">
           <form
