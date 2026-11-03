@@ -99,6 +99,34 @@ export const SYSTEM_CONFIG_SERVICES: Record<string, ServiceContent> = {
     ],
     canTest: true,
   },
+  R2: {
+    title: "Cloudflare R2 (lưu nội dung đã mã hóa)",
+    description:
+      "Nơi lưu nội dung tài sản đã mã hóa. Chỉ có tác dụng khi máy chủ đang chạy chế độ lưu trữ R2. Đổi tài khoản hoặc bucket nghĩa là kho không còn đọc được dữ liệu đã lưu ở nơi cũ.",
+    fields: [
+      {
+        name: "accountId",
+        label: "Mã tài khoản Cloudflare",
+        kind: "text",
+        pattern: /^[A-Za-z0-9-]{1,64}$/,
+        patternMessage: "Chỉ gồm chữ, số và dấu gạch ngang (tối đa 64 ký tự).",
+        hint: "Dùng để dựng địa chỉ https://<mã>.r2.cloudflarestorage.com.",
+      },
+      {
+        name: "bucketName",
+        label: "Tên bucket",
+        kind: "text",
+        pattern: /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/,
+        patternMessage:
+          "3 đến 63 ký tự, chỉ chữ thường, số và dấu gạch ngang, không bắt đầu hoặc kết thúc bằng gạch ngang.",
+      },
+      { name: "accessKeyId", label: "Mã khóa truy cập (Access Key ID)", kind: "secret" },
+      { name: "secretAccessKey", label: "Khóa bí mật (Secret Access Key)", kind: "secret" },
+    ],
+    canTest: true,
+    confirm: (before, after) =>
+      after.accountId !== before.accountId || after.bucketName !== before.bucketName,
+  },
   SEPAY: {
     title: "SePay (nhận tiền thanh toán)",
     description:

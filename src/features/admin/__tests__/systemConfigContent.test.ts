@@ -81,6 +81,42 @@ describe("statusChip", () => {
   });
 });
 
+describe("R2 content", () => {
+  const content = SYSTEM_CONFIG_SERVICES.R2;
+  const schema = buildConfigFormSchema(content.fields);
+  const valid = {
+    accountId: "0a1b2c3d4e5f",
+    bucketName: "legacyvault-assets",
+    accessKeyId: "",
+    secretAccessKey: "",
+    reason: "đổi khóa truy cập",
+    enabled: true,
+  };
+
+  it("nhận tài khoản và bucket hợp lệ, cho phép để trống khóa (giữ khóa cũ)", () => {
+    expect(schema.safeParse(valid).success).toBe(true);
+  });
+
+  it.each(["evil.com/x#", "a.b", "acc 1", "../x", ""])("từ chối tài khoản %j", (accountId) => {
+    expect(schema.safeParse({ ...valid, accountId }).success).toBe(false);
+  });
+
+  it.each(["Bucket", "a", "a_b", "-abc", "bucket.name", ""])("từ chối bucket %j", (bucketName) => {
+    expect(schema.safeParse({ ...valid, bucketName }).success).toBe(false);
+  });
+
+  it("có nút thử kết nối", () => {
+    expect(content.canTest).toBe(true);
+  });
+
+  it("đòi gõ lại tên dịch vụ khi đổi tài khoản hoặc bucket, không đòi khi chỉ đổi khóa", () => {
+    const before = { accountId: "acc1", bucketName: "bucket-one" };
+    expect(content.confirm?.(before, { accountId: "acc2", bucketName: "bucket-one" })).toBe(true);
+    expect(content.confirm?.(before, { accountId: "acc1", bucketName: "bucket-two" })).toBe(true);
+    expect(content.confirm?.(before, { accountId: "acc1", bucketName: "bucket-one" })).toBe(false);
+  });
+});
+
 describe("SMTP content", () => {
   const content = SYSTEM_CONFIG_SERVICES.SMTP;
   const schema = buildConfigFormSchema(content.fields);
