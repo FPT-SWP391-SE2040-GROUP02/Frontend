@@ -21,17 +21,17 @@ export function PricingPlansPage() {
     return (
       <OwnerWorkspace
         title="Gói dịch vụ"
-        description="Lựa chọn dung lượng và dịch vụ phù hợp với nhu cầu lưu trữ."
+        description="Chọn dung lượng và số người nhận phù hợp."
+        headerAction={
+          showCurrentService ? (
+            <Link to={ROUTES.BILLING.HISTORY} className={buttonVariants({ variant: "outline" })}>
+              Lịch sử thanh toán
+            </Link>
+          ) : undefined
+        }
       >
         {showCurrentService ? (
-          <>
-            <div className="flex justify-end">
-              <Link to={ROUTES.BILLING.HISTORY} className={buttonVariants({ variant: "outline" })}>
-                Lịch sử thanh toán
-              </Link>
-            </div>
-            <OwnerCatalog key={user.id} />
-          </>
+          <OwnerCatalog key={user.id} />
         ) : (
           <ServicePlansPanel
             catalog={PRICING_CATALOG}

@@ -1,6 +1,7 @@
 import { ROUTES } from "@/shared/config/routes.config";
 import { ROLES } from "@/shared/constants/roles";
 import { lazy, Suspense } from "react";
+import { PageLoader } from "@/shared/ui/PageLoader";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./ProtectedRoute";
 
@@ -8,6 +9,9 @@ const AssetsManagementPage = lazy(() =>
   import("@/pages/dashboard/AssetsManagementPage").then((module) => ({
     default: module.AssetsManagementPage,
   })),
+);
+const PackagesPage = lazy(() =>
+  import("@/pages/dashboard/PackagesPage").then((module) => ({ default: module.PackagesPage })),
 );
 const AssetDetailPage = lazy(() =>
   import("@/pages/dashboard/AssetDetailPage").then((module) => ({
@@ -17,11 +21,6 @@ const AssetDetailPage = lazy(() =>
 const ContainerDetailPage = lazy(() =>
   import("@/pages/dashboard/ContainerDetailPage").then((module) => ({
     default: module.ContainerDetailPage,
-  })),
-);
-const TrustedPeoplePage = lazy(() =>
-  import("@/pages/dashboard/TrustedPeoplePage").then((module) => ({
-    default: module.TrustedPeoplePage,
   })),
 );
 const OwnerIdentityPage = lazy(() =>
@@ -49,9 +48,14 @@ const VerifierStepsPage = lazy(() =>
     default: module.VerifierStepsPage,
   })),
 );
-const BeneficiariesPage = lazy(() =>
-  import("@/pages/dashboard/BeneficiariesPage").then((module) => ({
-    default: module.BeneficiariesPage,
+const RelatedPeoplePage = lazy(() =>
+  import("@/pages/dashboard/RelatedPeoplePage").then((module) => ({
+    default: module.RelatedPeoplePage,
+  })),
+);
+const PeopleGuidePage = lazy(() =>
+  import("@/pages/dashboard/PeopleGuidePage").then((module) => ({
+    default: module.PeopleGuidePage,
   })),
 );
 const InvitationPage = lazy(() =>
@@ -210,14 +214,6 @@ const TwoFactorPage = lazy(() =>
 const VerifyEmailPage = lazy(() =>
   import("@/pages/auth/VerifyEmailPage").then((module) => ({ default: module.VerifyEmailPage })),
 );
-const WillManagementPage = lazy(() =>
-  import("@/pages/dashboard/WillManagementPage").then((module) => ({
-    default: module.WillManagementPage,
-  })),
-);
-const WillWizardPage = lazy(() =>
-  import("@/pages/dashboard/WillWizardPage").then((module) => ({ default: module.WillWizardPage })),
-);
 const OwnerOverviewPage = lazy(() =>
   import("@/pages/dashboard/OwnerOverviewPage").then((module) => ({
     default: module.OwnerOverviewPage,
@@ -227,27 +223,13 @@ const AuditLogPage = lazy(() =>
   import("@/pages/dashboard/AuditLogPage").then((module) => ({ default: module.AuditLogPage })),
 );
 
-/** Hiện trong lúc tải file của trang; có chữ và vòng xoay để không bị nhầm với trang trắng. */
-function PageLoading() {
-  return (
-    <div
-      role="status"
-      aria-label="Đang tải trang"
-      className="flex h-screen w-full flex-col items-center justify-center gap-3 bg-[var(--surface,#FAF9F5)]"
-    >
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary,#0B291E)] border-t-transparent" />
-      <p className="text-xs font-medium text-[var(--text-muted,#66786E)]">Đang tải trang…</p>
-    </div>
-  );
-}
-
 /**
  * @description Cấu hình bản đồ định tuyến (Routing map) toàn bộ ứng dụng có phân quyền RBAC.
  * Bao gồm đầy đủ 10 trạng thái vòng đời xác thực & quản lý phiên (Auth & Session Lifecycle).
  */
 export function AppRoutes() {
   return (
-    <Suspense fallback={<PageLoading />}>
+    <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* 1. Trang chủ công khai cho GUEST */}
         <Route path={ROUTES.HOME} element={<LandingPage />} />
@@ -335,18 +317,31 @@ export function AppRoutes() {
           <Route path={ROUTES.SETUP} element={<OwnerSetupPage />} />
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
+          <Route path={ROUTES.DASHBOARD.PACKAGES} element={<PackagesPage />} />
           <Route path="/dashboard/assets/groups/:id" element={<ContainerDetailPage />} />
           <Route path="/dashboard/assets/:assetId" element={<AssetDetailPage />} />
           <Route path={ROUTES.DASHBOARD.IDENTITY} element={<OwnerIdentityPage />} />
-          <Route path={ROUTES.DASHBOARD.BENEFICIARIES} element={<BeneficiariesPage />} />
-          <Route path={ROUTES.DASHBOARD.TRUSTED_PEOPLE} element={<TrustedPeoplePage />} />
+          <Route path={ROUTES.DASHBOARD.BENEFICIARIES} element={<RelatedPeoplePage />} />
+          <Route path={ROUTES.DASHBOARD.PEOPLE_GUIDE} element={<PeopleGuidePage />} />
+          {/* Đường cũ của tab Người tin cậy: giờ nằm chung tab Người liên quan. */}
+          <Route
+            path={ROUTES.DASHBOARD.TRUSTED_PEOPLE}
+            element={<Navigate to={ROUTES.DASHBOARD.BENEFICIARIES} replace />}
+          />
           <Route path={ROUTES.DASHBOARD.AUDIT_LOG} element={<AuditLogPage />} />
           <Route path="/assets" element={<AssetsManagementPage />} />
-          <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
-          <Route path="/wills" element={<WillManagementPage />} />
-          <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
+          {/* Trang Bàn giao đã bỏ: đường cũ chuyển về Gói bàn giao. */}
+          <Route
+            path={ROUTES.WILLS.ROOT}
+            element={<Navigate to={ROUTES.DASHBOARD.PACKAGES} replace />}
+          />
+          <Route path="/wills" element={<Navigate to={ROUTES.DASHBOARD.PACKAGES} replace />} />
+          <Route
+            path={ROUTES.WILLS.NEW}
+            element={<Navigate to={ROUTES.DASHBOARD.PACKAGES} replace />}
+          />
           <Route path="/dashboard/wills/:id" element={<ContainerDetailPage />} />
-          <Route path="/wills/new" element={<WillWizardPage />} />
+          <Route path="/wills/new" element={<Navigate to={ROUTES.DASHBOARD.PACKAGES} replace />} />
           <Route path={ROUTES.DMS.ROOT} element={<DmsStatusPage />} />
           <Route path={ROUTES.DMS.CONFIG} element={<DmsStatusPage />} />
           <Route path={ROUTES.DMS.HISTORY} element={<DmsStatusPage />} />

@@ -150,7 +150,7 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
             <h2 className="text-xl font-medium text-heritage-primary">Thông tin chuyển khoản</h2>
             <p className="mt-1 text-sm text-heritage-muted">{intro}</p>
           </div>
-          <div className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-[#7A5B24]">
+          <div className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-heritage-warning">
             <p className="text-xs">Số tiền cần chuyển</p>
             <p className="text-3xl font-semibold">{referenceMoney.format(order.totalAmount)}</p>
           </div>
@@ -189,7 +189,7 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
           <Button
             type="button"
             size="lg"
-            className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+            className="bg-heritage-gold-soft font-semibold text-heritage-on-gold shadow-none hover:bg-heritage-gold-soft-hover"
             disabled={devPay.pending || cancel.pending}
             onClick={() =>
               void devPay.execute(

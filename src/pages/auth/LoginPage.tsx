@@ -19,6 +19,7 @@ export function LoginPage() {
   return (
     <>
       <HeritageAuthLayout
+        activeTab="login"
         sideTitle={AUTH_LAYOUT_CONTENT.title}
         sideSubtitle={AUTH_LAYOUT_CONTENT.subtitle}
       >

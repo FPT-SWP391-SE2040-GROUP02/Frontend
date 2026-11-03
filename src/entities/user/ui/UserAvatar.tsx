@@ -13,7 +13,7 @@ export interface UserAvatarProps {
   user?: UserAvatarSubject | null;
   /** Chữ cái hiện khi chưa có tên hoặc ảnh. */
   fallbackLetter?: string;
-  /** Class kích thước và màu nền của vòng tròn, ví dụ "size-10 bg-[#E0C486] text-[#0A281E]". */
+  /** Class kích thước và màu nền của vòng tròn, ví dụ "size-10 bg-heritage-gold-soft text-heritage-on-gold". */
   className?: string;
 }
 

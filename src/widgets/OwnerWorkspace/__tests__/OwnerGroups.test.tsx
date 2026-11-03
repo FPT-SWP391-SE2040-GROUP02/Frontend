@@ -8,8 +8,10 @@ import { OwnerGroups } from "../OwnerGroups";
 
 vi.mock("@/features/vault-management/model/useOwnerVault", () => ({ useOwnerPackages: vi.fn() }));
 vi.mock("@/features/plan-setup/model/usePlanSetup", () => ({ usePlanSetup: vi.fn() }));
-vi.mock("@/features/vault-management/ui/CreateGroupDialog", () => ({
-  CreateGroupDialog: () => <div role="dialog">Tạo gói bàn giao</div>,
+vi.mock("../PackageDialog", () => ({
+  PackageDialog: ({ existing }: { existing?: { name: string } }) => (
+    <div role="dialog">{existing ? `Chỉnh sửa ${existing.name}` : "Tạo gói bàn giao"}</div>
+  ),
 }));
 
 function listResult(items: unknown[], hasNextPage = false) {
@@ -22,12 +24,12 @@ function listResult(items: unknown[], hasNextPage = false) {
   };
 }
 
-function planResult(outside: number) {
+function planResult(outside: number, containers: unknown[] = [], planStatus = "ACTIVE") {
   const assets = [];
   for (let index = 0; index < outside; index += 1) {
     assets.push({ id: `a${index}`, name: "Mục", kind: "TEXT" });
   }
-  return { data: { assetsOutsideContainer: assets } };
+  return { data: { assetsOutsideContainer: assets, containers, planStatus } };
 }
 
 beforeEach(() => {
@@ -72,9 +74,51 @@ describe("tab Gói bàn giao trong Kho của tôi", () => {
     expect(screen.getByText("2 mục · 1 người nhận")).toBeInTheDocument();
     expect(screen.getByText("Sẵn sàng")).toBeInTheDocument();
     expect(screen.getByText("Chưa sẵn sàng")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Mở gói bàn giao/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: `Chỉnh sửa bàn giao ${containerFixture.name}` }),
+    );
+    expect(screen.getByRole("dialog")).toHaveTextContent(`Chỉnh sửa ${containerFixture.name}`);
+  });
+
+  it("gói chưa sẵn sàng hiện lý do còn thiếu, gói sẵn sàng thì không", () => {
+    vi.mocked(useOwnerPackages).mockReturnValue(
+      listResult([
+        { ...containerFixture, status: "READY" },
+        { ...containerFixture, id: VAULT_ID, name: "Nhóm nháp", status: "DRAFT" },
+      ]) as never,
+    );
+    vi.mocked(usePlanSetup).mockReturnValue(
+      planResult(0, [
+        { id: CONTAINER_ID, status: "READY", missingRequirements: [] },
+        {
+          id: VAULT_ID,
+          status: "DRAFT",
+          missingRequirements: ["NO_ASSET", "NO_DESIGNATION", "CODE_LA"],
+        },
+      ]) as never,
+    );
+    renderGroups();
     expect(
-      screen.getByRole("link", { name: `Mở gói bàn giao ${containerFixture.name}` }),
-    ).toHaveAttribute("href", `/dashboard/assets/groups/${CONTAINER_ID}`);
+      screen.getByText("Chưa sẵn sàng: chưa có mục nào, chưa có người nhận, còn thiếu điều kiện."),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText(/Chưa sẵn sàng:/)).toHaveLength(1);
+  });
+
+  it("kế hoạch còn nháp: một lối vào bước kích hoạt; đã kích hoạt thì không có", () => {
+    vi.mocked(useOwnerPackages).mockReturnValue(listResult([containerFixture]) as never);
+    vi.mocked(usePlanSetup).mockReturnValue(planResult(0, [], "DRAFT") as never);
+    renderGroups();
+    expect(screen.getAllByRole("link", { name: "Kích hoạt kế hoạch" })).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "Kích hoạt kế hoạch" })).toHaveAttribute(
+      "href",
+      "/setup?step=activate",
+    );
+    cleanup();
+    vi.mocked(usePlanSetup).mockReturnValue(planResult(0, [], "ACTIVE") as never);
+    renderGroups();
+    expect(screen.queryByRole("link", { name: "Kích hoạt kế hoạch" })).not.toBeInTheDocument();
   });
 
   it("nhắc có mục chưa thuộc gói bàn giao nào", () => {

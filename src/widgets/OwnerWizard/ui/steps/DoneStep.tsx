@@ -60,7 +60,7 @@ export function DoneStep({ vault, setup }: OwnerStepProps) {
           vaultId={vault.id}
           status={status}
           label="Tôi vẫn ổn — điểm danh"
-          className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+          className="bg-heritage-gold-soft font-semibold text-heritage-on-gold shadow-none hover:bg-heritage-gold-soft-hover"
         />
       </Panel>
       <Link to={ROUTES.DASHBOARD.ROOT} className={buttonStyles.dark}>

@@ -38,7 +38,8 @@ type Relation = "assets" | "beneficiaries";
 
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
 const DANGER_BUTTON = "border-red-300 text-red-700 hover:bg-red-50";
-const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
+const GOLD_BUTTON =
+  "bg-heritage-gold-soft font-semibold text-heritage-on-gold shadow-none hover:bg-heritage-gold-soft-hover";
 /**
  * SETUP-16: BE báo thao tác gỡ/xóa sẽ làm mất gói Sẵn sàng cuối cùng của kế hoạch đang chạy (kế hoạch về Nháp) và
  * chưa gỡ gì. Chỉ lúc này FE mới hỏi Owner, đồng ý thì gửi lại kèm confirmPlanDeactivation.
@@ -83,7 +84,7 @@ function MemberCard(props: MemberCardProps) {
       >
         <div className="flex min-w-0 items-center gap-3">
           <span
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#F1E7D0] text-[#7A5B24]"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-warning-bg text-heritage-warning"
             aria-hidden="true"
           >
             {props.icon}
@@ -167,7 +168,7 @@ function MemberCard(props: MemberCardProps) {
           <p className="mt-4 text-sm text-heritage-muted">{props.emptyText}</p>
         )}
         <ul className="mt-2">{people}</ul>
-        <div className="mt-4 rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <div className="mt-4 rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
           {props.note}
         </div>
       </section>
@@ -397,7 +398,10 @@ export function GroupDetail({
         </div>
       </div>
       {removed && (
-        <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
+        <p
+          role="status"
+          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
+        >
           Gói bàn giao này đã bị xóa nên không chỉnh sửa được.
         </p>
       )}

@@ -25,4 +25,15 @@ describe("Button component", () => {
     const button = screen.getByRole("button", { name: /disabled button/i });
     expect(button).toBeDisabled();
   });
+
+  it.each([
+    ["gold", "bg-heritage-gold-soft"],
+    ["dark", "bg-heritage-sidebar"],
+    ["danger", "text-heritage-danger"],
+  ] as const)("variant %s dùng màu từ theme, không viết hex", (variant, themeClass) => {
+    render(<Button variant={variant}>Nút</Button>);
+    const button = screen.getByRole("button", { name: "Nút" });
+    expect(button.className).toContain(themeClass);
+    expect(button.className).not.toMatch(/#[0-9A-Fa-f]{6}/);
+  });
 });

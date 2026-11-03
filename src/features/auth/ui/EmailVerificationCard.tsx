@@ -76,7 +76,7 @@ export function EmailVerificationCard({
       aria-labelledby="verify-email-title"
       className={`w-full space-y-5 text-left ${className}`}
     >
-      <h1 id="verify-email-title" className="font-serif text-2xl font-bold text-[#0B291E]">
+      <h1 id="verify-email-title" className="font-serif text-2xl font-bold text-heritage-primary">
         {content.title}
       </h1>
 
@@ -102,7 +102,7 @@ export function EmailVerificationCard({
           <div className="pt-2">
             <Link
               to={`${ROUTES.AUTH.LOGIN}?verified=true${mutation.data?.email ? `&email=${encodeURIComponent(mutation.data.email)}` : ""}`}
-              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#0B291E] px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#133E2B] focus-visible:outline-2 focus-visible:outline-[#B88E4C]"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-heritage-sidebar px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#133E2B] focus-visible:outline-2 focus-visible:outline-heritage-gold"
             >
               Đăng nhập vào tài khoản ngay
             </Link>
@@ -134,7 +134,7 @@ export function EmailVerificationCard({
       <div className="flex flex-wrap gap-4 pt-2 text-sm">
         <Link
           to={ROUTES.AUTH.LOGIN}
-          className="inline-flex min-h-11 items-center underline text-[#0B291E] font-medium"
+          className="inline-flex min-h-11 items-center underline text-heritage-primary font-medium"
         >
           {content.login}
         </Link>

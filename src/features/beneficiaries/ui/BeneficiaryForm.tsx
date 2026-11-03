@@ -64,6 +64,7 @@ export function BeneficiaryForm({
   record,
   onCancel,
   onOpenExisting,
+  onCreated,
 }: {
   vaultId: string;
   record?: Beneficiary;
@@ -71,6 +72,8 @@ export function BeneficiaryForm({
   onCancel?: () => void;
   /** Gọi khi người dùng muốn mở hồ sơ đã có (CCCD đã tồn tại với cùng thông tin). */
   onOpenExisting?: (existing: Beneficiary) => void;
+  /** Gọi sau khi Backend xác nhận đã tạo hồ sơ mới (không gọi khi CCCD đã có sẵn), kèm id hồ sơ. */
+  onCreated?: (beneficiaryId: string) => void;
 }) {
   const action = usePrivateAction();
   const client = useQueryClient();
@@ -259,6 +262,9 @@ export function BeneficiaryForm({
               }
               createdNew = true;
               sync();
+              if (!record && onCreated) {
+                onCreated(result.id);
+              }
               setEtag(result.etag);
               if (record) {
                 reset({
@@ -325,7 +331,7 @@ export function BeneficiaryForm({
             {record ? (
               <div className={LABEL}>
                 <span>Số CCCD</span>
-                <p className="flex min-h-11 items-center gap-2 rounded-lg border border-heritage-border bg-[#ECE8DB] px-3 font-mono text-sm font-normal text-heritage-muted">
+                <p className="flex min-h-11 items-center gap-2 rounded-lg border border-heritage-border bg-heritage-neutral-bg px-3 font-mono text-sm font-normal text-heritage-muted">
                   <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
                   <span>•••••••• {record.citizenIdLast4}</span>
                 </p>
@@ -386,12 +392,17 @@ export function BeneficiaryForm({
             </label>
           </div>
           {existing ? (
-            <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+            <p
+              role="alert"
+              className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+            >
               Số CCCD này đã có trong kho: “{existing.fullName}”. Hãy kiểm tra lại, hoặc mở hồ sơ đã
               có để sửa.
             </p>
           ) : (
-            <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">{note}</p>
+            <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
+              {note}
+            </p>
           )}
           <div className="flex flex-wrap justify-end gap-3">
             {existing && onOpenExisting && (
@@ -408,7 +419,7 @@ export function BeneficiaryForm({
                 Hủy
               </button>
             )}
-            <button type="submit" className={buttonStyles.gold}>
+            <button type="submit" className={buttonStyles.dark}>
               {action.pending ? "Đang lưu…" : submitLabel}
             </button>
           </div>
@@ -417,7 +428,7 @@ export function BeneficiaryForm({
       {action.error && (
         <div
           role="alert"
-          className="mt-4 rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119] space-y-1"
+          className="mt-4 rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger space-y-1"
         >
           <p className="font-semibold">{action.error}</p>
           {errorFieldNames.length > 0 && (
@@ -435,7 +446,10 @@ export function BeneficiaryForm({
         </div>
       )}
       {action.succeeded && !existing && (
-        <p role="status" className="mt-4 rounded-xl bg-[#E3EFE8] px-4 py-3 text-sm text-[#1F7A55]">
+        <p
+          role="status"
+          className="mt-4 rounded-xl bg-[#E3EFE8] px-4 py-3 text-sm text-heritage-success"
+        >
           Đã lưu thay đổi.
         </p>
       )}

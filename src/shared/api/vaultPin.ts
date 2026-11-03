@@ -6,11 +6,15 @@ export const VAULT_PIN_HEADER = "X-Vault-Pin";
 
 export type VaultPinPromptReason = "required" | "invalid";
 
+/** Hỏi PIN để làm gì: "reveal" là mở khóa xem thông tin tài sản (hộp thoại nói rõ và giữ mở khóa vài phút). */
+export type VaultPinPurpose = "reveal";
+
 export interface VaultPinPromptRequest {
   vaultId: string;
   reason: VaultPinPromptReason;
   /** Còn mấy lần nhập sai trước khi bị khóa; chỉ có khi reason = "invalid". */
   attemptsRemaining?: number;
+  purpose?: VaultPinPurpose;
 }
 
 /**
@@ -66,6 +70,7 @@ async function askForPin(
   active: VaultPinHandler,
   vaultId: string,
   problem: PinProblem,
+  purpose?: VaultPinPurpose,
 ): Promise<string | null> {
   const { code, attemptsRemaining, lockedUntil } = problem;
   if (code === "VAULT_PIN_REQUIRED" || code === "INVALID_VAULT_PIN") {
@@ -73,6 +78,7 @@ async function askForPin(
       vaultId,
       reason: code === "INVALID_VAULT_PIN" ? "invalid" : "required",
       attemptsRemaining,
+      purpose,
     });
   }
   if (code === "VAULT_PIN_NOT_SET") return active.requestNewPin(vaultId);
@@ -118,6 +124,7 @@ export type VaultPinConfirmation = { confirmed: true; pin?: string } | { confirm
 export async function confirmVaultPin(
   vaultId: string,
   check: (pin?: string) => Promise<void>,
+  options?: { purpose?: VaultPinPurpose },
 ): Promise<VaultPinConfirmation> {
   let pin: string | undefined = undefined;
   for (;;) {
@@ -129,7 +136,7 @@ export async function confirmVaultPin(
       const parsed = pinProblemSchema.safeParse(isAxiosError(error) ? error.response?.data : null);
       const code = parsed.success ? parsed.data.code : undefined;
       if (!active || !parsed.success || !code || !PIN_CODES.has(code)) throw error;
-      const next = await askForPin(active, vaultId, parsed.data);
+      const next = await askForPin(active, vaultId, parsed.data, options?.purpose);
       if (next === null) return { confirmed: false };
       pin = next;
     }

@@ -1,5 +1,5 @@
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
-import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
+import { buttonStyles, InfoRow, Notice, Panel } from "@/shared/ui/heritageKit";
 import type { OwnerStepProps } from "./stepTypes";
 
 const MISSING_TO_STEP: Record<string, { stepId: string; label: string }> = {
@@ -39,6 +39,14 @@ export function ActivateStep({ vault, setup, onSelectStep }: OwnerStepProps) {
           </ul>
         </Notice>
       )}
+      <Panel title="Kế hoạch của bạn gồm" labelledBy="activate-summary-title">
+        <dl>
+          <InfoRow label="Gói bàn giao">{vault.activeContainerCount}</InfoRow>
+          <InfoRow label="Người nhận">
+            {vault.usedBeneficiarySlots} / {vault.beneficiarySlots} suất đã chỉ định
+          </InfoRow>
+        </dl>
+      </Panel>
       <PlanSetupPanel vaultId={vault.id} />
     </div>
   );

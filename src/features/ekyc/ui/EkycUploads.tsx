@@ -44,7 +44,8 @@ type Tab = "front" | "back";
 
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
 
-const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
+const GOLD_BUTTON =
+  "bg-heritage-gold-soft font-semibold text-heritage-on-gold shadow-none hover:bg-heritage-gold-soft-hover";
 
 const CONSENT_PROMISES = [
   "Chụp hoặc tải ảnh căn cước, mặt trước và mặt sau",
@@ -101,7 +102,7 @@ function ConsentStep({
         <ul className="space-y-2 text-sm">
           {CONSENT_PROMISES.map((text) => (
             <li key={text} className="flex items-start gap-2">
-              <Check className="mt-0.5 size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+              <Check className="mt-0.5 size-4 shrink-0 text-heritage-success" aria-hidden="true" />
 
               {text}
             </li>
@@ -149,7 +150,7 @@ function ConsentStep({
 
             size="lg"
 
-            className={`${GOLD_BUTTON} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+            className={`${GOLD_BUTTON} disabled:bg-heritage-neutral-bg disabled:text-heritage-muted disabled:opacity-100`}
 
             disabled={!ready || pending}
 
@@ -161,14 +162,17 @@ function ConsentStep({
           <Link
             to={accountHome}
 
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#0A281E] px-6 text-sm font-semibold text-[#0A281E] hover:bg-[#F4F1E6]"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-heritage-primary px-6 text-sm font-semibold text-heritage-primary hover:bg-heritage-neutral-bg"
           >
             Để sau
           </Link>
         </div>
 
         {error && (
-          <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+          <p
+            role="alert"
+            className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+          >
             {error}
           </p>
         )}
@@ -186,7 +190,7 @@ function ConsentStep({
 
               className="flex items-center gap-2 rounded-full bg-heritage-canvas px-3 py-1.5 text-xs"
             >
-              <Check className="size-3.5 text-[#1F7A55]" aria-hidden="true" />
+              <Check className="size-3.5 text-heritage-success" aria-hidden="true" />
 
               {text}
             </li>
@@ -194,7 +198,7 @@ function ConsentStep({
         </ul>
 
         <p className="flex items-start gap-2 text-xs text-heritage-muted">
-          <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+          <Lock className="mt-0.5 size-3.5 shrink-0 text-heritage-success" aria-hidden="true" />
           Ảnh chỉ dùng để đối chiếu. Không chia sẻ cho chủ kho hay người khác.
         </p>
       </section>
@@ -298,7 +302,7 @@ function ResultStep({
 
   let chip = "Cần kiểm tra";
 
-  let chipStyle = "bg-[#F1E7D0] text-[#7A5B24]";
+  let chipStyle = "bg-heritage-warning-bg text-heritage-warning";
 
   let heading = "Cần kiểm tra thêm";
 

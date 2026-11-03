@@ -61,6 +61,20 @@
   --color-heritage-gold-hover: var(--gold-hover);
   --color-heritage-gold-light: var(--gold-light);
   --color-heritage-gold-border: var(--gold-border);
+  --color-heritage-gold-soft: var(--gold-soft);
+  --color-heritage-gold-soft-hover: var(--gold-soft-hover);
+  --color-heritage-on-gold: var(--on-gold);
+
+  --color-heritage-sidebar: var(--sidebar-bg);
+
+  --color-heritage-success: var(--success-fg);
+  --color-heritage-success-bg: var(--success-bg);
+  --color-heritage-warning: var(--warning-fg);
+  --color-heritage-warning-bg: var(--warning-bg);
+  --color-heritage-danger: var(--danger-fg);
+  --color-heritage-danger-bg: var(--danger-bg);
+  --color-heritage-neutral: var(--neutral-fg);
+  --color-heritage-neutral-bg: var(--neutral-bg);
 
   --color-heritage-text: var(--text-main);
   --color-heritage-muted: var(--text-muted);
@@ -107,6 +121,23 @@
   --gold-hover: #a07839;
   --gold-light: #fbf7ee;
   --gold-border: #e8dcc6;
+  /* Vàng nhạt cho nút/viên chính; chữ trên nền vàng luôn là xanh đậm, không đảo màu ở chế độ tối. */
+  --gold-soft: #e0c486;
+  --gold-soft-hover: #e8cf9b;
+  --on-gold: #0a281e;
+
+  /* Cột bên luôn xanh đậm ở cả hai chế độ (--primary đảo thành màu sáng ở chế độ tối). */
+  --sidebar-bg: #0b291e;
+
+  /* Màu trạng thái: chữ và nền đi thành cặp. */
+  --success-fg: #1f7a55;
+  --success-bg: #ddefe6;
+  --warning-fg: #7a5b24;
+  --warning-bg: #f1e6cc;
+  --danger-fg: #a32119;
+  --danger-bg: #f8e1de;
+  --neutral-fg: #4d4d4b;
+  --neutral-bg: #ece8db;
 
   /* 3. NEUTRALS */
   --text-main: #14241c;
@@ -136,6 +167,20 @@
   --gold-hover: #f6d483;
   --gold-light: #182c1f;
   --gold-border: #3a4d39;
+  --gold-soft: #e2c17d;
+  --gold-soft-hover: #f6d483;
+  --on-gold: #0a281e;
+
+  --sidebar-bg: #0b291e;
+
+  --success-fg: #7fd4ac;
+  --success-bg: #12362a;
+  --warning-fg: #e2c17d;
+  --warning-bg: #33301a;
+  --danger-fg: #f2a29b;
+  --danger-bg: #3a1c1a;
+  --neutral-fg: #c8d4cc;
+  --neutral-bg: #1b3a2b;
 
   --text-main: #f3f7f4;
   --text-muted: #9bb3a0;
@@ -292,6 +337,39 @@
   100% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+  }
+}
+
+/* Màn hình chờ toàn trang: hiện sau 150ms để trang tải nhanh không nháy */
+.page-loader {
+  animation: pageLoaderIn 300ms ease-out 150ms backwards;
+}
+.page-loader-mark {
+  animation: pageLoaderBreath 1.8s ease-in-out infinite;
+}
+@keyframes pageLoaderIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes pageLoaderBreath {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-loader,
+  .page-loader-mark {
+    animation: none;
   }
 }
 

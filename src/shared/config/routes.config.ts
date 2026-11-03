@@ -41,9 +41,13 @@ export const ROUTES = {
     ASSET_DETAIL: (id: string) => `/dashboard/assets/${id}`,
     /** Chi tiết một gói bàn giao (container): mục, người nhận, đổi tên, xóa. */
     GROUP_DETAIL: (id: string) => `/dashboard/assets/groups/${id}`,
+    /** Gói bàn giao của Chủ kho: danh sách gói, tạo, đổi tên, chọn tài sản và người nhận. */
+    PACKAGES: "/dashboard/packages",
     BENEFICIARIES: "/dashboard/beneficiaries",
     /** Người tin cậy của Chủ kho: Người thực hiện (Executor) và Người xét duyệt. */
     TRUSTED_PEOPLE: "/dashboard/trusted-people",
+    /** Hướng dẫn vai trò Người nhận (người thụ hưởng) và Người thực hiện (người thực thi); nằm dưới tab Người liên quan. */
+    PEOPLE_GUIDE: "/dashboard/beneficiaries/guide",
     AUDIT_LOG: "/dashboard/audit-log",
     USERS: "/dashboard/users",
     SETTINGS: "/dashboard/settings",

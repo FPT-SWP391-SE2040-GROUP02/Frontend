@@ -62,7 +62,7 @@ function VersionTimeline({ record }: { record: DeathCase }) {
             <li key={no} className="flex gap-3 text-sm">
               <span
                 aria-hidden="true"
-                className={`mt-1.5 size-2.5 shrink-0 rounded-full ${submitted ? "bg-[#2E9E6E]" : "bg-[#BDB8A6]"}`}
+                className={`mt-1.5 size-2.5 shrink-0 rounded-full ${submitted ? "bg-[#2E9E6E]" : "bg-heritage-border"}`}
               />
               <div>
                 <p className="font-semibold">
@@ -491,7 +491,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
-          className={`rounded-2xl border-2 border-dashed px-6 py-10 text-center ${dragging ? "border-[#B68F4C] bg-[#F1E6CC]/40" : "border-[#9DB0A5]"}`}
+          className={`rounded-2xl border-2 border-dashed px-6 py-10 text-center ${dragging ? "border-heritage-gold bg-heritage-warning-bg/40" : "border-[#9DB0A5]"}`}
         >
           <Upload className="mx-auto size-7 text-heritage-muted" aria-hidden="true" />
           <p className="mt-3 font-semibold">
@@ -544,7 +544,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
               className="mt-2 h-1.5 overflow-hidden rounded-full bg-heritage-canvas"
             >
               <div
-                className="h-full rounded-full bg-[#1F7A55]"
+                className="h-full rounded-full bg-heritage-success"
                 style={{
                   width:
                     uploadPercent === null || uploadPercent >= 100 ? "100%" : `${uploadPercent}%`,
@@ -558,7 +558,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
             <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div className="flex min-w-0 items-center gap-3">
                 {previewUrls[item.id] ? (
-                  <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#ECE8DB]">
+                  <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-heritage-neutral-bg">
                     <img
                       src={previewUrls[item.id]}
                       alt={`Xem trước ${item.fileName}`}
@@ -566,7 +566,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                     />
                   </span>
                 ) : (
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB]">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-heritage-neutral-bg">
                     <FileText className="size-5 text-heritage-muted" aria-hidden="true" />
                   </span>
                 )}

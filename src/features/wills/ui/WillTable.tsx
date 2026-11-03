@@ -39,12 +39,12 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
       <div
         role="status"
         aria-label="Đang tải danh sách di chúc"
-        className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-6 space-y-4"
+        className="bg-heritage-surface border border-heritage-border rounded-[24px] p-6 space-y-4"
       >
-        <div className="h-10 bg-[#EFECE6] rounded-[14px] w-1/3 animate-pulse" />
+        <div className="h-10 bg-heritage-canvas rounded-[14px] w-1/3 animate-pulse" />
         <div className="space-y-3">
           {[1, 2].map((i) => (
-            <div key={i} className="h-16 bg-[#EFECE6] rounded-[16px] animate-pulse" />
+            <div key={i} className="h-16 bg-heritage-canvas rounded-[16px] animate-pulse" />
           ))}
         </div>
       </div>
@@ -56,18 +56,20 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
     return (
       <div
         role="alert"
-        className="bg-[#FAF9F5] border border-[#FECACA] rounded-[24px] p-8 text-center space-y-4 shadow-sm"
+        className="bg-heritage-surface border border-heritage-danger/30 rounded-[24px] p-8 text-center space-y-4 shadow-sm"
       >
-        <AlertCircle className="w-10 h-10 text-[#DC2626] mx-auto" />
+        <AlertCircle className="w-10 h-10 text-heritage-danger mx-auto" />
         <div>
-          <h3 className="text-base font-bold text-[#14241C]">Không thể nạp danh sách di chúc số</h3>
-          <p className="text-xs text-[#66786E] mt-1">
+          <h3 className="text-base font-bold text-heritage-text">
+            Không thể nạp danh sách di chúc số
+          </h3>
+          <p className="text-xs text-heritage-muted mt-1">
             Đã xảy ra lỗi kết nối với máy chủ quản lý di chúc.
           </p>
         </div>
         <Button
           onClick={() => refetch()}
-          className="min-h-[44px] rounded-[16px] bg-[#0B291E] text-white text-xs font-semibold px-6 shadow-sm focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+          className="min-h-[44px] rounded-[16px] bg-heritage-sidebar text-white text-xs font-semibold px-6 shadow-sm focus-visible:ring-2 focus-visible:ring-heritage-gold"
         >
           Thử Lại Ngay
         </Button>
@@ -78,22 +80,22 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
   // 3. Empty
   if (data.items.length === 0) {
     return (
-      <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-12 text-center space-y-4 shadow-[0_2px_12px_rgba(11,41,30,0.04)]">
-        <div className="w-16 h-16 rounded-[20px] bg-[#E5EDE8] text-[#0B291E] flex items-center justify-center mx-auto shadow-sm">
+      <div className="bg-heritage-surface border border-heritage-border rounded-[24px] p-12 text-center space-y-4 shadow-[0_2px_12px_rgba(11,41,30,0.04)]">
+        <div className="w-16 h-16 rounded-[20px] bg-heritage-primary-light text-heritage-primary flex items-center justify-center mx-auto shadow-sm">
           <FileText className="w-8 h-8" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-[#14241C]">Chưa Có Bản Di Chúc Số Nào</h3>
-          <p className="text-xs sm:text-sm text-[#66786E] max-w-md mx-auto mt-1 leading-relaxed">
+          <h3 className="text-lg font-bold text-heritage-text">Chưa Có Bản Di Chúc Số Nào</h3>
+          <p className="text-xs sm:text-sm text-heritage-muted max-w-md mx-auto mt-1 leading-relaxed">
             Hãy bắt đầu khởi tạo bản di chúc số đầu tiên để định đoạt tài sản và bảo vệ quyền lợi
             hợp pháp của con cháu theo Bộ Luật Dân Sự 2015.
           </p>
         </div>
         <Button
           onClick={onOpenCreateWizard}
-          className="min-h-[44px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs px-6 py-3 shadow-[0_4px_16px_rgba(11,41,30,0.2)] flex items-center gap-2 mx-auto focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+          className="min-h-[44px] rounded-[20px] bg-heritage-sidebar hover:bg-heritage-sidebar/90 text-white font-bold text-xs px-6 py-3 shadow-[0_4px_16px_rgba(11,41,30,0.2)] flex items-center gap-2 mx-auto focus-visible:ring-2 focus-visible:ring-heritage-gold"
         >
-          <Plus className="w-4 h-4 text-[#B88E4C]" />
+          <Plus className="w-4 h-4 text-heritage-gold" />
           Lập Bản Di Chúc Đầu Tiên
         </Button>
       </div>
@@ -106,35 +108,37 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
       {/* Search Toolbar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:max-w-xs">
-          <Search className="w-4 h-4 text-[#A8A295] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-heritage-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             type="text"
             placeholder="Tìm kiếm theo tiêu đề di chúc..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-11 pl-10 pr-9 bg-[#FAF9F5] border-[#DCD9D0] focus:border-[#B88E4C] rounded-[16px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+            className="h-11 pl-10 pr-9 bg-heritage-surface border-heritage-border focus:border-heritage-gold rounded-[16px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-heritage-gold"
             aria-label="Tìm kiếm di chúc"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
               aria-label="Xóa tìm kiếm"
-              className="w-7 h-7 rounded-full flex items-center justify-center text-[#66786E] hover:text-[#14241C] absolute right-2 top-1/2 -translate-y-1/2"
+              className="w-7 h-7 rounded-full flex items-center justify-center text-heritage-muted hover:text-heritage-text absolute right-2 top-1/2 -translate-y-1/2"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        <div className="text-xs text-[#66786E] font-medium">
-          Hiển thị <span className="font-bold text-[#0B291E]">{filteredItems.length}</span> /{" "}
+        <div className="text-xs text-heritage-muted font-medium">
+          Hiển thị <span className="font-bold text-heritage-primary">{filteredItems.length}</span> /{" "}
           {data.items.length} bản di chúc
         </div>
       </div>
 
       {filteredItems.length === 0 ? (
-        <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-8 text-center space-y-2">
-          <p className="text-sm font-semibold text-[#14241C]">Không tìm thấy bản di chúc phù hợp</p>
+        <div className="bg-heritage-surface border border-heritage-border rounded-[24px] p-8 text-center space-y-2">
+          <p className="text-sm font-semibold text-heritage-text">
+            Không tìm thấy bản di chúc phù hợp
+          </p>
           <Button
             variant="outline"
             onClick={() => setSearchTerm("")}
@@ -144,11 +148,11 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
           </Button>
         </div>
       ) : (
-        <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] overflow-hidden shadow-[0_4px_20px_rgba(11,41,30,0.04)]">
+        <div className="bg-heritage-surface border border-heritage-border rounded-[24px] overflow-hidden shadow-[0_4px_20px_rgba(11,41,30,0.04)]">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse" aria-label="Danh sách di chúc số">
               <thead>
-                <tr className="border-b border-[#E8E5DD] bg-[#EFECE6]/70 text-[#66786E] text-[11px] font-bold uppercase tracking-wider">
+                <tr className="border-b border-heritage-neutral-bg bg-heritage-canvas/70 text-heritage-muted text-[11px] font-bold uppercase tracking-wider">
                   <th scope="col" className="py-4 px-6">
                     Bản Di Chúc Số
                   </th>
@@ -169,7 +173,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E8E5DD] text-xs font-medium">
+              <tbody className="divide-y divide-heritage-neutral-bg text-xs font-medium">
                 {filteredItems.map((will) => (
                   <tr
                     key={will.id}
@@ -187,14 +191,14 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                     {/* Title */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-[12px] bg-[#EFECE6] border border-[#DCD9D0] flex items-center justify-center shrink-0 group-hover:border-[#B88E4C] transition-colors">
-                          <FileText className="w-5 h-5 text-[#0B291E]" />
+                        <div className="w-10 h-10 rounded-[12px] bg-heritage-canvas border border-heritage-border flex items-center justify-center shrink-0 group-hover:border-heritage-gold transition-colors">
+                          <FileText className="w-5 h-5 text-heritage-primary" />
                         </div>
                         <div>
-                          <span className="font-bold text-[#14241C] text-sm block group-hover:text-[#0B291E]">
+                          <span className="font-bold text-heritage-text text-sm block group-hover:text-heritage-primary">
                             {will.title}
                           </span>
-                          <span className="text-[11px] text-[#66786E] truncate max-w-xs block">
+                          <span className="text-[11px] text-heritage-muted truncate max-w-xs block">
                             {will.declarationNotes}
                           </span>
                         </div>
@@ -206,10 +210,10 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                       <Badge
                         className={`px-3 py-1 text-[11px] font-semibold rounded-full border ${
                           will.status === "SEALED"
-                            ? "bg-[#E5EDE8] text-[#0B291E] border-[#A2C4AF]"
+                            ? "bg-heritage-primary-light text-heritage-primary border-[#A2C4AF]"
                             : will.status === "REVOKED"
-                              ? "bg-[#FEF2F2] text-[#DC2626] border-[#FECACA]"
-                              : "bg-[#FBF7EE] text-[#B88E4C] border-[#E8DCC6]"
+                              ? "bg-heritage-danger-bg text-heritage-danger border-heritage-danger/30"
+                              : "bg-heritage-gold-light text-heritage-gold border-heritage-gold-border"
                         }`}
                       >
                         {will.statusLabel}
@@ -217,27 +221,28 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                     </td>
 
                     {/* Asset count */}
-                    <td className="py-4 px-4 font-semibold text-[#14241C]">
-                      <span className="text-[#0B291E] font-bold">{will.assetCount}</span> tài sản
+                    <td className="py-4 px-4 font-semibold text-heritage-text">
+                      <span className="text-heritage-primary font-bold">{will.assetCount}</span> tài
+                      sản
                     </td>
 
                     {/* Beneficiaries */}
-                    <td className="py-4 px-4 font-semibold text-[#14241C]">
-                      <span className="text-[#B88E4C] font-bold">{will.beneficiaryCount}</span>{" "}
+                    <td className="py-4 px-4 font-semibold text-heritage-text">
+                      <span className="text-heritage-gold font-bold">{will.beneficiaryCount}</span>{" "}
                       người
                     </td>
 
                     {/* Video Affidavit Hash */}
                     <td className="py-4 px-4">
                       {will.hasAffidavit ? (
-                        <div className="flex items-center gap-1.5 text-[#059669]">
+                        <div className="flex items-center gap-1.5 text-heritage-success">
                           <ShieldCheck className="w-4 h-4 shrink-0" />
                           <span className="font-mono text-[10px]">
                             SHA: {will.affidavitHashShort}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-[#66786E] text-[11px]">Chưa có</span>
+                        <span className="text-heritage-muted text-[11px]">Chưa có</span>
                       )}
                     </td>
 
@@ -248,9 +253,9 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                           variant="ghost"
                           onClick={() => onSelectWill(will)}
                           aria-label={`Xem chi tiết di chúc ${will.title}`}
-                          className="min-h-[44px] px-3.5 rounded-[12px] text-xs text-[#0B291E] hover:bg-[#E5EDE8] flex items-center gap-1.5 font-semibold focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+                          className="min-h-[44px] px-3.5 rounded-[12px] text-xs text-heritage-primary hover:bg-heritage-primary-light flex items-center gap-1.5 font-semibold focus-visible:ring-2 focus-visible:ring-heritage-gold"
                         >
-                          <Eye className="w-4 h-4 text-[#B88E4C]" />
+                          <Eye className="w-4 h-4 text-heritage-gold" />
                           <span>Xem</span>
                         </Button>
 
@@ -268,7 +273,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                               }
                             }}
                             aria-label={`Thu hồi di chúc ${will.title}`}
-                            className="min-h-[44px] px-3 rounded-[12px] text-xs text-[#DC2626] hover:bg-[#FEF2F2] flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-[#DC2626]"
+                            className="min-h-[44px] px-3 rounded-[12px] text-xs text-heritage-danger hover:bg-heritage-danger-bg flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-heritage-danger"
                           >
                             <RotateCcw className="w-4 h-4" />
                             <span>Thu Hồi</span>

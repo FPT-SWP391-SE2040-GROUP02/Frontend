@@ -9,11 +9,11 @@ import { useVaultAuditLogs } from "@/features/audit-logs/model/useVaultAuditLogs
 export function useOverviewResources(vaultId: string) {
   const assets = useVaultAssets(vaultId, {
     pageIndex: 1,
-    pageSize: 5,
+    pageSize: 3,
     sortBy: "createdAt",
     isAscending: false,
   });
-  const beneficiaries = useBeneficiaries(vaultId, { pageIndex: 1, pageSize: 4 });
+  const beneficiaries = useBeneficiaries(vaultId, { pageIndex: 1, pageSize: 3 });
   const checkIn = useCheckIn(vaultId);
   const setup = useQuery({
     queryKey: ["plan-setup", vaultId],

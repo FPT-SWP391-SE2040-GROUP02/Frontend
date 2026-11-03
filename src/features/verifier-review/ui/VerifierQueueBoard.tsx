@@ -122,7 +122,7 @@ export function VerifierQueueBoard({
       >
         {rows.length === 0 ? (
           <section aria-label="Hồ sơ chứng tử" className="space-y-3 py-2">
-            <CheckCircle2 className="size-6 text-[#1F7A55]" aria-hidden="true" />
+            <CheckCircle2 className="size-6 text-heritage-success" aria-hidden="true" />
             <p role="status" className="text-lg font-semibold text-heritage-primary">
               Hiện chưa có hồ sơ nào chờ bạn.
             </p>
@@ -146,7 +146,7 @@ export function VerifierQueueBoard({
                   className={
                     filter === option.value
                       ? "min-h-11 rounded-full bg-heritage-primary px-4 text-sm font-semibold text-white"
-                      : "min-h-11 rounded-full border border-heritage-border px-4 text-sm hover:bg-[#F4F1E6]"
+                      : "min-h-11 rounded-full border border-heritage-border px-4 text-sm hover:bg-heritage-neutral-bg"
                   }
                   onClick={() => updateParam(FILTER_PARAM, option.value)}
                 >

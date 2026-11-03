@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Minus, ShieldCheck } from "lucide-react";
+import { Check, ChevronDown, Minus, ShieldCheck } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import {
   formatVaultServiceExpiry,
@@ -101,10 +101,6 @@ function ServicePlansContent({
 
   return (
     <div className="service-plans">
-      <p className="service-plan-intro">
-        Giá là tổng cho cả kỳ, đã gồm thuế nếu có. Thanh toán một lần bằng chuyển khoản, không tự
-        động trừ tiền.
-      </p>
       {vault && status && (
         <section className="service-plan-current" aria-label="Gói hiện tại của kho">
           <span className="service-plan-shield">
@@ -156,11 +152,8 @@ function ServicePlansContent({
         </section>
       )}
       <div className="service-plan-catalog-heading">
-        <div>
-          <h2>Chọn kỳ hạn</h2>
-          <p>Kỳ càng dài, giá mỗi năm càng thấp.</p>
-        </div>
-        <ServiceTermPicker years={years} onChange={setYears} />
+        <h2>Chọn kỳ hạn</h2>
+        <ServiceTermPicker years={years} onChange={setYears} showDays={false} />
       </div>
       <section aria-label="Các gói dịch vụ" className="service-plan-grid">
         {catalog.map((plan) => {
@@ -174,6 +167,14 @@ function ServicePlansContent({
           if (action === "renew") label = `Gia hạn ${plan.name}`;
           if (action === "blocked" && access === "owner") label = "Chưa thể chọn mua gói";
           if (access === "unavailable") label = unavailableLabel;
+          let caption = "Không có kỳ hạn";
+          if (!isFree) {
+            caption = `cho ${years} năm`;
+            if (years > 1) {
+              const perYear = referenceMoney.format(Math.round((term?.price ?? 0) / years));
+              caption = `${caption} · ${perYear}/năm`;
+            }
+          }
           return (
             <article
               key={plan.serviceTier}
@@ -192,11 +193,7 @@ function ServicePlansContent({
                 )}
               </div>
               <p className="service-plan-price">{referenceMoney.format(term?.price ?? 0)}</p>
-              <p className="service-plan-price-caption">
-                {isFree
-                  ? "Không có kỳ hạn"
-                  : `${years} năm · tương đương ${referenceMoney.format(Math.round((term?.price ?? 0) / years))}/năm`}
-              </p>
+              <p className="service-plan-price-caption">{caption}</p>
               <dl className="service-plan-quota">
                 <div>
                   <dt>Dung lượng</dt>
@@ -218,19 +215,10 @@ function ServicePlansContent({
                     <span>{feature}</span>
                   </li>
                 ))}
-                {!isFree && (
-                  <li>
-                    <Check aria-hidden="true" />
-                    <span>Mua thêm suất người nhận, 49.000 đ/suất/năm</span>
-                  </li>
-                )}
               </ul>
               <div className="service-plan-card-actions">
                 {isFree ? (
-                  <p className="service-plan-fineprint">
-                    Gói nền mặc định. Chuyển về Free cần đáp ứng điều kiện; không tự động chuyển khi
-                    hết hạn.
-                  </p>
+                  <p className="service-plan-fineprint">Gói mặc định, không cần mua.</p>
                 ) : (
                   <>
                     {action === "addon" && access === "owner" && (
@@ -279,25 +267,22 @@ function ServicePlansContent({
                     )}
                     {action === "upgrade" && (
                       <p className="service-plan-fineprint">
-                        Chỉ trả phần chênh theo thời gian còn lại của kỳ hiện tại. Hạn dịch vụ giữ
-                        nguyên, dung lượng và số suất tăng ngay.
+                        Chỉ trả phần chênh theo thời gian còn lại của kỳ hiện tại.
                       </p>
                     )}
                     {action === "downgrade" && (
                       <p className="service-plan-fineprint">
-                        Bạn đang có kỳ {getVaultServiceName(vault!.serviceTier)} còn hạn. Muốn dùng
-                        hạng thấp hơn, chọn ở bước Gia hạn gói.
+                        Muốn hạ hạng, chọn ở bước Gia hạn gói.
                       </p>
                     )}
                     {action === "renew" && (
                       <p className="service-plan-fineprint">
-                        Gói đã hết hạn hoặc đang ân hạn. Gia hạn để dùng tiếp; kỳ mới tính từ lúc
-                        thanh toán.
+                        Gói đã hết hạn; kỳ mới tính từ lúc thanh toán.
                       </p>
                     )}
                     {action === "blocked" && access === "owner" && (
                       <p className="service-plan-fineprint">
-                        Cần kiểm tra trạng thái kho, thời hạn dịch vụ và hạn mức trước khi chọn gói.
+                        Kiểm tra trạng thái kho và hạn dịch vụ trước.
                       </p>
                     )}
                   </>
@@ -336,39 +321,59 @@ function ServicePlansContent({
           }}
         />
       )}
-      <footer className="service-plan-policies">
-        <section>
-          <h3>1 năm = 365 ngày</h3>
-          <p>
-            Mua mới tính từ lúc thanh toán thành công. Gia hạn sớm nối tiếp hạn cũ. Thanh toán không
-            thay cho điểm danh.
-          </p>
-        </section>
-        <section aria-labelledby={policyId}>
-          <h3 id={policyId}>Mua thêm suất người nhận</h3>
-          <p>
-            49.000đ/suất/năm. Tối đa 20 suất mỗi đơn, hết hạn cùng ngày với gói. Mua giữa kỳ tính
-            theo thời gian còn lại, làm tròn lên đến đồng.
-          </p>
-        </section>
-        <section>
-          <h3>Dung lượng</h3>
-          <p>
-            Không giới hạn số tài sản theo hạng. Tổng dung lượng phải nằm trong hạn mức của gói và
-            tuân thủ giới hạn kỹ thuật khi tải lên.
-          </p>
-        </section>
-        <section>
-          <h3>Không hoàn tiền giữa kỳ</h3>
-          <p>
-            Người nhận di sản không phải trả phí. Một người ở nhiều gói tài sản chỉ tính một suất.
-          </p>
-        </section>
-      </footer>
-      <p className="service-plan-fineprint">
-        Giá chính thức do hệ thống báo khi bạn chọn mua. Mua gói mới cần Chủ kho đã xác minh eKYC;
-        gia hạn và nâng hạng thì không cần.
+      <p className="service-plan-intro">
+        Giá là tổng cho cả kỳ, đã gồm thuế nếu có. Thanh toán một lần bằng chuyển khoản, không tự
+        động trừ tiền. Không hoàn tiền giữa kỳ.
       </p>
+      <details className="service-plan-policies">
+        <summary>
+          Chính sách chi tiết
+          <ChevronDown aria-hidden="true" className="size-4" />
+        </summary>
+        <div className="service-plan-policy-list">
+          <section>
+            <h3>1 năm = 365 ngày</h3>
+            <p>
+              Mua mới tính từ lúc thanh toán thành công. Gia hạn sớm nối tiếp hạn cũ. Thanh toán
+              không thay cho điểm danh.
+            </p>
+          </section>
+          <section aria-labelledby={policyId}>
+            <h3 id={policyId}>Mua thêm suất người nhận</h3>
+            <p>
+              49.000đ/suất/năm. Tối đa 20 suất mỗi đơn, hết hạn cùng ngày với gói. Mua giữa kỳ tính
+              theo thời gian còn lại, làm tròn lên đến đồng.
+            </p>
+          </section>
+          <section>
+            <h3>Dung lượng</h3>
+            <p>
+              Không giới hạn số tài sản theo hạng. Tổng dung lượng phải nằm trong hạn mức của gói và
+              tuân thủ giới hạn kỹ thuật khi tải lên.
+            </p>
+          </section>
+          <section>
+            <h3>Người nhận di sản</h3>
+            <p>
+              Người nhận di sản không phải trả phí. Một người ở nhiều gói tài sản chỉ tính một suất.
+            </p>
+          </section>
+          <section>
+            <h3>Gói Free</h3>
+            <p>
+              Gói nền mặc định. Chuyển về Free cần đáp ứng điều kiện; không tự động chuyển khi hết
+              hạn.
+            </p>
+          </section>
+          <section>
+            <h3>Giá và eKYC</h3>
+            <p>
+              Giá chính thức do hệ thống báo khi bạn chọn mua. Mua gói mới cần Chủ kho đã xác minh
+              eKYC; gia hạn và nâng hạng thì không cần.
+            </p>
+          </section>
+        </div>
+      </details>
     </div>
   );
 }

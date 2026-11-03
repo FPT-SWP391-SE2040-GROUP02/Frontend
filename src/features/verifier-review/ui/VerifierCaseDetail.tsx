@@ -131,8 +131,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       return <Navigate to={ROUTES.NOTARY.WORKSPACE} replace />;
     }
     return (
-      <div role="alert" className="space-y-3 rounded-2xl bg-[#F8E1DE] p-5">
-        <p className="text-sm text-[#7A1A14]">
+      <div role="alert" className="space-y-3 rounded-2xl bg-heritage-danger-bg p-5">
+        <p className="text-sm text-heritage-danger">
           Không đọc được hồ sơ hoặc bạn không có quyền trong kho này.
         </p>
         <button
@@ -258,13 +258,13 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
             : `Hạn xét ${formatDate(detail.assignment.dueAt)}`}
         </p>
         {detail.supplementOverdueAt && (
-          <p className="text-sm text-[#7A5B25]">
+          <p className="text-sm text-heritage-warning">
             Executor bổ sung quá hạn từ {formatVietnamTime(detail.supplementOverdueAt)} (giờ Việt
             Nam).
           </p>
         )}
       </header>
-      <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#5A4318]">
+      <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-[#5A4318]">
         Bạn chỉ xác nhận hồ sơ, không xem nội dung kho. Quyết định của bạn được ghi lại.
       </p>
       <VerifierObjectionBlock
@@ -350,7 +350,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                       className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-heritage-border bg-white p-3"
                     >
                       <span className="inline-flex min-w-0 items-center gap-3 text-sm">
-                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB]">
+                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-heritage-neutral-bg">
                           <FileText className="size-5 text-heritage-muted" aria-hidden="true" />
                         </span>
                         <span className="min-w-0">
@@ -535,7 +535,10 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                 {CLOSED_CONDITION_TEXT[detail.status]}
               </p>
             ) : !detail.canApprove && conditions.length > 0 ? (
-              <div role="status" className="rounded-xl bg-[#F8E1DE] p-4 text-sm text-[#7A1A14]">
+              <div
+                role="status"
+                className="rounded-xl bg-heritage-danger-bg p-4 text-sm text-heritage-danger"
+              >
                 <p>Chưa thể duyệt vì: {blockedReason}. Bạn có thể yêu cầu bổ sung hoặc từ chối.</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
                   {conditions.map((row) => (
@@ -545,7 +548,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               </div>
             ) : detail.canApprove ? (
               <p role="status" className="flex items-center gap-2 text-sm">
-                <CheckCircle2 className="size-5 text-[#1F7A55]" aria-hidden="true" />
+                <CheckCircle2 className="size-5 text-heritage-success" aria-hidden="true" />
                 Đủ điều kiện duyệt.
               </p>
             ) : (
@@ -606,7 +609,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                 <li key={item.label} className="flex gap-3 text-sm">
                   <span
                     aria-hidden="true"
-                    className={`mt-1.5 size-2.5 shrink-0 rounded-full ${item.done ? "bg-[#2E9E6E]" : "bg-[#BDB8A6]"}`}
+                    className={`mt-1.5 size-2.5 shrink-0 rounded-full ${item.done ? "bg-[#2E9E6E]" : "bg-heritage-border"}`}
                   />
                   <div>
                     <p className="font-semibold">{item.label}</p>
@@ -621,7 +624,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           {detail.previousCase && (
             <section
               aria-label="Hồ sơ trước bị từ chối"
-              className="space-y-2 rounded-2xl border border-[#E6C98B] bg-[#F1E6CC] p-6 text-sm text-[#5A4318]"
+              className="space-y-2 rounded-2xl border border-heritage-gold-soft-hover bg-heritage-warning-bg p-6 text-sm text-[#5A4318]"
             >
               <h3 className="text-lg font-semibold">Hồ sơ trước của kho này đã bị từ chối</h3>
               <p>Đóng lúc: {formatDate(detail.previousCase.closedAt)}</p>
@@ -641,22 +644,22 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
 
 const DECISION_TILE_STYLES = {
   approve: {
-    tile: "border-transparent bg-[#E0C486] text-[#0A281E] hover:bg-[#E8CF9B]",
-    icon: "bg-[#0A281E]/10 text-[#0A281E]",
-    title: "text-[#0A281E]",
+    tile: "border-transparent bg-heritage-gold-soft text-heritage-on-gold hover:bg-heritage-gold-soft-hover",
+    icon: "bg-heritage-sidebar/10 text-heritage-primary",
+    title: "text-heritage-primary",
     text: "text-[#3D3A2E]",
   },
   supplement: {
-    tile: "border-[#0A281E] bg-white text-[#0A281E] hover:bg-[#F4F1E6]",
-    icon: "bg-[#ECE8DB] text-[#0A281E]",
-    title: "text-[#0A281E]",
+    tile: "border-heritage-primary bg-white text-heritage-primary hover:bg-heritage-neutral-bg",
+    icon: "bg-heritage-neutral-bg text-heritage-primary",
+    title: "text-heritage-primary",
     text: "text-heritage-muted",
   },
   reject: {
-    tile: "border-[#A32119] bg-white hover:bg-[#FBEFED]",
-    icon: "bg-[#F8E1DE] text-[#A32119]",
-    title: "text-[#A32119]",
-    text: "text-[#A32119]",
+    tile: "border-heritage-danger bg-white hover:bg-[#FBEFED]",
+    icon: "bg-heritage-danger-bg text-heritage-danger",
+    title: "text-heritage-danger",
+    text: "text-heritage-danger",
   },
 } as const;
 
@@ -683,10 +686,10 @@ function DecisionTile({
   let titleClass: string = style.title;
   let textClass: string = style.text;
   if (disabled) {
-    tileClass = "cursor-not-allowed border-transparent bg-[#ECE8DB]";
-    iconClass = "bg-[#DAD5C5] text-[#8A8574]";
-    titleClass = "text-[#8A8574]";
-    textClass = "text-[#8A8574]";
+    tileClass = "cursor-not-allowed border-transparent bg-heritage-neutral-bg";
+    iconClass = "bg-[#DAD5C5] text-heritage-muted";
+    titleClass = "text-heritage-muted";
+    textClass = "text-heritage-muted";
   }
   return (
     <button

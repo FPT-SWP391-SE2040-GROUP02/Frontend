@@ -119,9 +119,7 @@ it("missing eKYC and Executor keep activation disabled even after acknowledgemen
   });
   const post = vi.spyOn(apiClient, "post");
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
-  expect(
-    await screen.findByText("Chủ kho cần hoàn tất xác minh danh tính eKYC."),
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Chưa đủ điều kiện để kích hoạt kế hoạch.")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("checkbox"));
   expect(screen.getByRole("button", { name: "Kích hoạt kế hoạch" })).toBeDisabled();
   expect(post).not.toHaveBeenCalled();
@@ -256,17 +254,16 @@ it("lets Owner activate when the server says canActivate and shows no backup war
   expect(screen.getByRole("button", { name: "Kích hoạt kế hoạch" })).toBeEnabled();
 });
 
-it("sends Owner eKYC to the Owner dashboard", async () => {
-  vi.spyOn(apiClient, "get").mockResolvedValue({
-    ...setupFixture,
-    canActivate: false,
-    missingRequirements: ["OWNER_EKYC_REQUIRED"],
-  });
+it("ẩn thông tin trước khi kích hoạt, bấm vào mới hiện", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue(setupFixture);
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
-  expect(await screen.findByRole("link", { name: "Đi xác minh danh tính" })).toHaveAttribute(
-    "href",
-    "/dashboard/identity",
-  );
+  const toggle = await screen.findByRole("button", { name: "Thông tin trước khi kích hoạt" });
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
+  expect(screen.queryByText("Cảnh báo hạn phản hồi, tải và lưu/xóa.")).not.toBeInTheDocument();
+  fireEvent.click(toggle);
+  expect(toggle).toHaveAttribute("aria-expanded", "true");
+  expect(screen.getByText("Cảnh báo hạn phản hồi, tải và lưu/xóa.")).toBeInTheDocument();
+  expect(screen.getByText("Phiên bản: setup-2026-10-15")).toBeInTheDocument();
 });
 
 it("recovers a failed readiness request without automatically activating", async () => {
@@ -292,28 +289,21 @@ it.each(["containers", "assetsOutsideContainer", "warnings"])(
   },
 );
 
-it("hiện checklist kích hoạt: mục đạt có dấu tích, mục thiếu kèm lối đi tiếp", async () => {
+it("không hiện danh sách điều kiện kích hoạt, chỉ báo chưa đủ điều kiện", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue({
     ...setupFixture,
     canActivate: false,
     missingRequirements: ["OWNER_EKYC_REQUIRED", "PRIMARY_EXECUTOR_REQUIRED"],
   });
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
-  expect(await screen.findByText("Có ít nhất một gói sẵn sàng bàn giao.")).toBeInTheDocument();
-  expect(screen.getByText("Gói dịch vụ trả phí còn hạn.")).toBeInTheDocument();
-  expect(screen.getByText("Cần Executor đã chấp nhận nhiệm vụ.")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Đến Người tin cậy" })).toHaveAttribute(
-    "href",
-    "/dashboard/trusted-people",
-  );
-  expect(screen.getByRole("link", { name: "Đi xác minh danh tính" })).toBeInTheDocument();
-  expect(screen.queryByText("Đã xác minh danh tính eKYC.")).not.toBeInTheDocument();
-  // Hai điều kiện thiếu trong bốn điều kiện: đạt 2/4, thanh tiến độ 50%.
-  expect(screen.getByText("Đã đạt 2/4 điều kiện")).toBeInTheDocument();
-  expect(screen.getByRole("progressbar", { name: "Tiến độ điều kiện kích hoạt" })).toHaveAttribute(
-    "aria-valuenow",
-    "50",
-  );
+  expect(await screen.findByText("Chưa đủ điều kiện để kích hoạt kế hoạch.")).toBeInTheDocument();
+  expect(
+    screen.queryByText("Chủ kho cần hoàn tất xác minh danh tính eKYC."),
+  ).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Đến Người tin cậy" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Đi xác minh danh tính" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Kích hoạt kế hoạch" })).toBeDisabled();
 });
 
 const acceptedPrimary = {
@@ -344,6 +334,18 @@ it("Người tin cậy: kế hoạch nháp mời được Executor, không gửi
     email: "executor@example.test",
     beneficiaryId: null,
   });
+});
+
+it("Người tin cậy: chỉ còn thẻ Người thực hiện, không có thẻ giải thích, hoạt động, phạm vi hay chip", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue(setupFixture);
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
+  expect(await screen.findByRole("region", { name: "Người thực hiện" })).toBeInTheDocument();
+  expect(
+    screen.queryByRole("region", { name: "Vì sao có người xét duyệt riêng" }),
+  ).not.toBeInTheDocument();
+  expect(screen.queryByRole("region", { name: "Hoạt động gần đây" })).not.toBeInTheDocument();
+  expect(screen.queryByText("Phạm vi Executor.")).not.toBeInTheDocument();
+  expect(screen.queryByText("Đang nháp")).not.toBeInTheDocument();
 });
 
 it("Người tin cậy: kế hoạch đang chạy không cho thu hồi người chính trực tiếp, chỉ mời người thay", async () => {

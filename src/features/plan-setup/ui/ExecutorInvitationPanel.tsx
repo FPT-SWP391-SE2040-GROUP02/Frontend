@@ -112,7 +112,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         <ul className="space-y-2 text-sm">
           {capabilities.map((item) => (
             <li key={item} className="flex items-center gap-2">
-              <Check className="size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+              <Check className="size-4 shrink-0 text-heritage-success" aria-hidden="true" />
               {item}
             </li>
           ))}

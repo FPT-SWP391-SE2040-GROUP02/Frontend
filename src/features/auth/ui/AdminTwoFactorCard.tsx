@@ -123,10 +123,10 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
     <div className={`w-full space-y-6 text-left ${className}`}>
       {/* Tiêu đề & Diễn giải */}
       <div className="space-y-1">
-        <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]">
+        <h1 className="font-serif text-2xl sm:text-3xl font-normal text-heritage-text">
           Xác thực hai bước
         </h1>
-        <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
+        <p className="text-xs sm:text-sm text-heritage-muted leading-relaxed">
           Mở ứng dụng xác thực (Google Authenticator / Authy) và nhập mã 6 chữ số hiện trên màn
           hình.
         </p>
@@ -152,7 +152,10 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
       <form onSubmit={handleSubmit} className="space-y-6">
         {useRecovery ? (
           <div className="space-y-1.5">
-            <label htmlFor="two-factor-recovery" className="text-xs font-semibold text-[#0F1A16]">
+            <label
+              htmlFor="two-factor-recovery"
+              className="text-xs font-semibold text-heritage-text"
+            >
               Mã khôi phục
             </label>
             <Input
@@ -163,9 +166,9 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
               autoComplete="off"
               placeholder="XXXXXX-XXXXXX"
               maxLength={13}
-              className="h-11 rounded-xl bg-white border-[#D5D0C3] font-mono tracking-wider"
+              className="h-11 rounded-xl bg-white border-heritage-border font-mono tracking-wider"
             />
-            <p className="text-[11px] text-[#6B6B66]">
+            <p className="text-[11px] text-heritage-muted">
               Mỗi mã khôi phục chỉ dùng được một lần, không phân biệt hoa thường.
             </p>
           </div>
@@ -185,7 +188,7 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
                 value={digit}
                 onChange={(e) => handleDigitChange(idx, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(idx, e)}
-                className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-bold rounded-xl bg-white border border-[#D5D0C3] focus:border-[#0A281E] focus:outline-none focus:ring-2 focus:ring-[#0A281E]/10 transition-all text-[#0F1A16] shadow-sm"
+                className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-bold rounded-xl bg-white border border-heritage-border focus:border-heritage-primary focus:outline-none focus:ring-2 focus:ring-heritage-primary/10 transition-all text-heritage-text shadow-sm"
                 aria-label={`Chữ số thứ ${idx + 1}`}
               />
             ))}
@@ -198,7 +201,7 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
             setUseRecovery((value) => !value);
             setRecovery("");
           }}
-          className="min-h-11 text-xs font-semibold text-[#0A281E] underline"
+          className="min-h-11 text-xs font-semibold text-heritage-primary underline"
         >
           {useRecovery ? "Dùng mã từ ứng dụng xác thực" : "Dùng mã khôi phục"}
         </button>
@@ -207,23 +210,23 @@ export function AdminTwoFactorCard({ onSuccess, className = "" }: AdminTwoFactor
         <Button
           type="submit"
           disabled={challengeLost || !isComplete || isPending}
-          className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50"
+          className="w-full h-11 rounded-xl bg-heritage-sidebar hover:bg-heritage-sidebar/90 text-heritage-surface text-xs font-semibold shadow-md transition-all disabled:opacity-50"
         >
           {isPending ? "Đang xác thực..." : "Xác nhận"}
         </Button>
       </form>
 
       {/* Hộp thoại thông tin bảo mật phiên quản trị 15 phút */}
-      <div className="p-3.5 rounded-xl bg-[#FAF9F5] border border-[#E5E5DF] flex items-center gap-3 text-xs text-[#6B6B66]">
-        <ShieldAlert className="w-4 h-4 text-[#B88E4C] flex-shrink-0" />
+      <div className="p-3.5 rounded-xl bg-heritage-surface border border-heritage-border flex items-center gap-3 text-xs text-heritage-muted">
+        <ShieldAlert className="w-4 h-4 text-heritage-gold flex-shrink-0" />
         <span>Mã chỉ dùng được một lần và thử thách đăng nhập hết hạn sau 5 phút.</span>
       </div>
 
       {/* Quay lại đăng nhập */}
-      <div className="pt-4 border-t border-[#E5E5DF] text-center">
+      <div className="pt-4 border-t border-heritage-border text-center">
         <Link
           to={ROUTES.AUTH.LOGIN}
-          className="inline-flex items-center gap-1.5 text-xs text-[#0A281E] font-bold hover:underline"
+          className="inline-flex items-center gap-1.5 text-xs text-heritage-primary font-bold hover:underline"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Quay lại đăng nhập</span>

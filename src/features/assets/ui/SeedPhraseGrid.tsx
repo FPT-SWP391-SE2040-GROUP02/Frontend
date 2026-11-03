@@ -30,16 +30,18 @@ export const SeedPhraseGrid: React.FC<SeedPhraseGridProps> = ({
   };
 
   return (
-    <div className="p-5 rounded-[20px] bg-[#FAF9F5] border border-[#E8DCC6] shadow-[0_2px_12px_rgba(184,142,76,0.06)] space-y-4">
+    <div className="p-5 rounded-[20px] bg-heritage-surface border border-heritage-gold-border shadow-[0_2px_12px_rgba(184,142,76,0.06)] space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E8E5DD]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-heritage-neutral-bg">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-[10px] bg-[#FBF7EE] border border-[#E8DCC6] flex items-center justify-center text-[#B88E4C]">
+          <div className="w-8 h-8 rounded-[10px] bg-heritage-gold-light border border-heritage-gold-border flex items-center justify-center text-heritage-gold">
             <Lock className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-[#14241C]">{title}</h4>
-            <span className="text-[11px] text-[#66786E]">Chuẩn phân mảnh mật mã học BIP-39</span>
+            <h4 className="text-sm font-bold text-heritage-text">{title}</h4>
+            <span className="text-[11px] text-heritage-muted">
+              Chuẩn phân mảnh mật mã học BIP-39
+            </span>
           </div>
         </div>
 
@@ -49,7 +51,7 @@ export const SeedPhraseGrid: React.FC<SeedPhraseGridProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => setIsVisible(!isVisible)}
-            className="h-8 px-2.5 rounded-[10px] text-xs text-[#66786E] hover:text-[#0B291E] hover:bg-[#EFECE6] flex items-center gap-1"
+            className="h-8 px-2.5 rounded-[10px] text-xs text-heritage-muted hover:text-heritage-primary hover:bg-heritage-canvas flex items-center gap-1"
           >
             {isVisible ? (
               <>
@@ -69,12 +71,12 @@ export const SeedPhraseGrid: React.FC<SeedPhraseGridProps> = ({
             variant="outline"
             size="sm"
             onClick={handleCopy}
-            className="h-8 px-3 rounded-[10px] text-xs border-[#DCD9D0] text-[#0B291E] hover:bg-[#EFECE6] flex items-center gap-1 font-semibold"
+            className="h-8 px-3 rounded-[10px] text-xs border-heritage-border text-heritage-primary hover:bg-heritage-canvas flex items-center gap-1 font-semibold"
           >
             {copied ? (
               <>
-                <Check className="w-3.5 h-3.5 text-[#059669]" />
-                <span className="text-[#059669]">Đã chép</span>
+                <Check className="w-3.5 h-3.5 text-heritage-success" />
+                <span className="text-heritage-success">Đã chép</span>
               </>
             ) : (
               <>
@@ -91,19 +93,19 @@ export const SeedPhraseGrid: React.FC<SeedPhraseGridProps> = ({
         {words.map((word, index) => (
           <div
             key={index}
-            className="flex items-center gap-2 p-2.5 bg-[#EFECE6] border border-[#DCD9D0] rounded-[12px] transition-all hover:border-[#B88E4C]"
+            className="flex items-center gap-2 p-2.5 bg-heritage-canvas border border-heritage-border rounded-[12px] transition-all hover:border-heritage-gold"
           >
-            <span className="w-6 h-6 rounded-full bg-[#FAF9F5] text-[11px] font-bold text-[#A8A295] flex items-center justify-center shrink-0 border border-[#DCD9D0]">
+            <span className="w-6 h-6 rounded-full bg-heritage-surface text-[11px] font-bold text-heritage-muted flex items-center justify-center shrink-0 border border-heritage-border">
               {index + 1}
             </span>
-            <span className="font-mono text-xs font-semibold text-[#0B291E] truncate select-all">
+            <span className="font-mono text-xs font-semibold text-heritage-primary truncate select-all">
               {isVisible ? word : "••••••"}
             </span>
           </div>
         ))}
       </div>
 
-      <p className="text-[11px] text-[#66786E] text-center italic">
+      <p className="text-[11px] text-heritage-muted text-center italic">
         Thứ tự các từ từ 1 đến 12 là chìa khóa duy nhất để tái tạo ví và phân quyền thừa kế.
       </p>
     </div>

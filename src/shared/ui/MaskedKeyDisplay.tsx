@@ -47,15 +47,15 @@ export function MaskedKeyDisplay({
 
   return (
     <div
-      className={`bg-[var(--surface)] border border-[#DDD8CB] dark:border-[#1E432F] rounded-[12px] p-4.5 space-y-3.5 shadow-xs ${className}`}
+      className={`bg-[var(--surface)] border border-heritage-border dark:border-heritage-border rounded-[12px] p-4.5 space-y-3.5 shadow-xs ${className}`}
     >
       <div className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-bold">
         {title}
       </div>
 
       {/* Dải che Private Key */}
-      <div className="flex items-center gap-2 bg-white dark:bg-[#071710] p-2 sm:p-2.5 rounded-[8px] border border-[#D5D0C3] dark:border-[#1E432F]">
-        <span className="font-mono text-xs tracking-wider flex-1 text-[var(--primary)] dark:text-[#E5EDE8] truncate select-all">
+      <div className="flex items-center gap-2 bg-white dark:bg-[#071710] p-2 sm:p-2.5 rounded-[8px] border border-heritage-border dark:border-heritage-border">
+        <span className="font-mono text-xs tracking-wider flex-1 text-[var(--primary)] dark:text-heritage-primary-light truncate select-all">
           {isMasked ? "••••••••••••••••••••••••••••••••" : secretKey}
         </span>
 
@@ -88,10 +88,12 @@ export function MaskedKeyDisplay({
           {seedPhrase.map((word, idx) => (
             <div
               key={idx}
-              className="bg-white dark:bg-[#071710] border border-[#DDD8CB] dark:border-[#1E432F] px-2.5 py-1.5 rounded-[6px] text-[11px] font-mono flex items-center gap-1.5"
+              className="bg-white dark:bg-[#071710] border border-heritage-border dark:border-heritage-border px-2.5 py-1.5 rounded-[6px] text-[11px] font-mono flex items-center gap-1.5"
             >
               <span className="text-[var(--text-muted)] font-semibold select-none">{idx + 1}.</span>
-              <span className="text-[var(--primary)] dark:text-[#F3F7F4] font-medium">{word}</span>
+              <span className="text-[var(--primary)] dark:text-heritage-text font-medium">
+                {word}
+              </span>
             </div>
           ))}
         </div>

@@ -107,20 +107,20 @@ export function VerifyEmailNotice({
   return (
     <div className={`w-full space-y-6 text-left ${className}`}>
       {/* Icon đại diện thư gửi */}
-      <div className="w-12 h-12 rounded-2xl bg-[#EAF2ED] text-[#0A281E] flex items-center justify-center">
-        <Mail className="w-6 h-6 text-[#0A281E]" />
+      <div className="w-12 h-12 rounded-2xl bg-[#EAF2ED] text-heritage-primary flex items-center justify-center">
+        <Mail className="w-6 h-6 text-heritage-primary" />
       </div>
 
       {/* Tiêu đề & Diễn giải */}
       <div className="space-y-2">
-        <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]">
+        <h1 className="font-serif text-2xl sm:text-3xl font-normal text-heritage-text">
           Hãy xác minh email của bạn
         </h1>
         {emailResult.success ? (
-          <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
+          <p className="text-xs sm:text-sm text-heritage-muted leading-relaxed">
             Kiểm tra hộp thư của{" "}
-            <span className="font-semibold text-[#0F1A16]">{maskEmail(emailResult.data)}</span> để
-            tìm liên kết xác minh nếu bạn đã yêu cầu gửi email.
+            <span className="font-semibold text-heritage-text">{maskEmail(emailResult.data)}</span>{" "}
+            để tìm liên kết xác minh nếu bạn đã yêu cầu gửi email.
           </p>
         ) : (
           <p role="alert" className="text-sm text-red-700">
@@ -147,7 +147,7 @@ export function VerifyEmailNotice({
           type="button"
           onClick={handleResend}
           disabled={!isEmailValid || cooldown > 0 || isPending}
-          className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full h-11 rounded-xl bg-heritage-sidebar hover:bg-heritage-sidebar/90 text-heritage-surface text-xs font-semibold shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isPending ? "animate-spin" : ""}`} />
           {cooldown > 0 ? (
@@ -159,19 +159,22 @@ export function VerifyEmailNotice({
           )}
         </Button>
 
-        <p className="text-[11px] text-[#8C8C85] text-center">
+        <p className="text-[11px] text-heritage-muted text-center">
           Chưa thấy email? Hãy kiểm tra thư rác hoặc hộp thư quảng cáo.
         </p>
       </div>
 
       {/* Điều hướng thay đổi email hoặc chuyển tài khoản */}
-      <div className="pt-6 border-t border-[#E5E5DF] flex items-center justify-between text-xs">
-        <Link to={ROUTES.AUTH.REGISTER} className="text-[#6B6B66] hover:text-[#0A281E] font-medium">
+      <div className="pt-6 border-t border-heritage-border flex items-center justify-between text-xs">
+        <Link
+          to={ROUTES.AUTH.REGISTER}
+          className="text-heritage-muted hover:text-heritage-primary font-medium"
+        >
           Đổi email
         </Link>
         <Link
           to={ROUTES.AUTH.LOGIN}
-          className="inline-flex items-center gap-1.5 text-[#0A281E] font-bold hover:underline"
+          className="inline-flex items-center gap-1.5 text-heritage-primary font-bold hover:underline"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Đăng nhập tài khoản khác</span>

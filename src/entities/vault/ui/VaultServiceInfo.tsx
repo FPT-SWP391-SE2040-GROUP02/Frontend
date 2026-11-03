@@ -16,7 +16,7 @@ export function VaultServiceBadge({
   sidebar?: boolean;
 }) {
   let colors = "border-heritage-gold/40 bg-heritage-gold/20 text-heritage-primary";
-  if (sidebar) colors = "border-heritage-gold/60 bg-heritage-gold text-[#0b291e]";
+  if (sidebar) colors = "border-heritage-gold/60 bg-heritage-gold text-heritage-primary";
   if (tier === "FREE") {
     colors = "border-heritage-border bg-heritage-canvas text-heritage-muted";
     if (sidebar) colors = "border-white/35 bg-transparent text-white/80";

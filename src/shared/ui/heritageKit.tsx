@@ -10,24 +10,24 @@ const buttonBase =
 
 /** Kiểu nút theo thiết kế (nền vàng chữ xanh đen, nền xanh đậm, viền, đỏ). Dùng cho cả <button> và <Link>. */
 export const buttonStyles = {
-  gold: `${buttonBase} bg-[#E0C486] text-[#0A281E] hover:bg-[#E8CF9B]`,
-  dark: `${buttonBase} bg-[#0A281E] text-white hover:bg-[#12392C]`,
-  outline: `${buttonBase} border border-[#BDB8A6] bg-transparent text-[#0A281E] hover:bg-[#F4F1E6]`,
-  danger: `${buttonBase} border border-[#A32119] bg-transparent text-[#A32119] hover:bg-[#F8E1DE]`,
+  gold: `${buttonBase} bg-heritage-gold-soft text-heritage-on-gold hover:bg-heritage-gold-soft-hover`,
+  dark: `${buttonBase} bg-heritage-sidebar text-white hover:bg-heritage-sidebar/90`,
+  outline: `${buttonBase} border border-heritage-border bg-transparent text-heritage-text hover:bg-heritage-neutral-bg`,
+  danger: `${buttonBase} border border-heritage-danger bg-transparent text-heritage-danger hover:bg-heritage-danger-bg`,
 };
 
 const chipTones: Record<Tone, string> = {
-  success: "bg-[#DDEFE6] text-[#1F7A55]",
-  warning: "bg-[#F1E6CC] text-[#7A5B25]",
-  neutral: "bg-[#ECE8DB] text-[#4D4D4B]",
-  danger: "bg-[#F8E1DE] text-[#A32119]",
+  success: "bg-heritage-success-bg text-heritage-success",
+  warning: "bg-heritage-warning-bg text-heritage-warning",
+  neutral: "bg-heritage-neutral-bg text-heritage-neutral",
+  danger: "bg-heritage-danger-bg text-heritage-danger",
 };
 
 const noticeTones: Record<Tone, string> = {
-  success: "bg-[#DDEFE6] text-[#1F7A55]",
-  warning: "bg-[#F1E6CC] text-[#7A5B25]",
-  neutral: "bg-[#ECE8DB] text-heritage-muted",
-  danger: "bg-[#F8E1DE] text-[#A32119]",
+  success: "bg-heritage-success-bg text-heritage-success",
+  warning: "bg-heritage-warning-bg text-heritage-warning",
+  neutral: "bg-heritage-neutral-bg text-heritage-muted",
+  danger: "bg-heritage-danger-bg text-heritage-danger",
 };
 
 /** Nhãn trạng thái dạng viên thuốc. */
@@ -124,7 +124,7 @@ export function Initial({ name, className }: { name: string; className?: string 
     <span
       aria-hidden="true"
       className={cn(
-        "flex size-11 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-base font-semibold text-[#0A281E]",
+        "flex size-11 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft text-base font-semibold text-heritage-on-gold",
         className,
       )}
     >

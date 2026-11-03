@@ -264,7 +264,7 @@ export function AssetDetail({
           <>
             <AssetInfo asset={asset} />
             {saved && (
-              <p role="status" className="mt-4 text-sm text-[#1F7A55]">
+              <p role="status" className="mt-4 text-sm text-heritage-success">
                 Đã lưu thay đổi.
               </p>
             )}

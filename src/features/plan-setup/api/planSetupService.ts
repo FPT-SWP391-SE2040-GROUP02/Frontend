@@ -24,6 +24,15 @@ export const planSetupService = {
       ),
     );
   },
+  /** Owner-only: email đã có tài khoản chưa, để báo trước khi mời Executor. Chỉ trả có/không. */
+  async checkExecutorAccount(id: string, email: string, signal?: AbortSignal) {
+    return z.object({ accountExists: z.boolean() }).parse(
+      await apiClient.get<unknown, unknown>(`${vault(id)}/executors/account-check`, {
+        params: { email },
+        signal,
+      }),
+    );
+  },
   async resend(id: string, executorId: string, etag: string) {
     return executorSchema.parse(
       await apiClient.post<unknown, unknown>(

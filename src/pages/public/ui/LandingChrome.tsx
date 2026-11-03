@@ -16,9 +16,10 @@ export const FOCUS_RING =
 export const HEADING = "font-serif font-normal tracking-normal";
 
 /* Chân trang: một tông vàng cho tiêu đề cột, một tông kem cho liên kết; chữ từ 16px, vùng bấm cao 44px. */
-const FOOTER_TITLE = "text-base font-semibold text-[#E6C98B]";
+const FOOTER_TITLE = "text-base font-semibold text-[#7A5B24]";
 const FOOTER_LIST = "mt-3 space-y-1";
-const FOOTER_LINK = `inline-flex min-h-11 items-center text-base text-[#F3EFE6]/90 hover:text-[#E6C98B] ${FOCUS_RING}`;
+const FOOTER_LINK =
+  "inline-flex min-h-11 items-center text-base text-[#2C4136] hover:text-[#7A5B24] hover:underline focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#7A5B24]";
 
 /**
  * Hoa nhúng trực tiếp để CSS của trang điều khiển được phần `.spin` bên trong SVG
@@ -107,8 +108,8 @@ function FooterBullets({ items }: { items: readonly string[] }) {
   const rows: ReactNode[] = [];
   for (const item of items) {
     rows.push(
-      <li key={item} className="flex items-start gap-2 font-serif text-lg text-[#F3EFE6]">
-        <span className="text-[#E6C98B]" aria-hidden="true">
+      <li key={item} className="flex items-start gap-2 font-serif text-lg text-[#14241C]">
+        <span className="text-[#7A5B24]" aria-hidden="true">
           •
         </span>
         {item}
@@ -157,7 +158,7 @@ export function LandingFooter({ onLanding }: { onLanding: boolean }) {
   }
 
   return (
-    <footer className="landing-footer bg-[#0A281E] px-4 pb-10 pt-14 text-[#F3EFE6] sm:px-8">
+    <footer className="landing-footer bg-white px-4 pb-10 pt-14 text-[#14241C] sm:px-8">
       <div className="mx-auto max-w-6xl space-y-10">
         <div className="grid gap-8 lg:grid-cols-2">
           <div>
@@ -165,7 +166,7 @@ export function LandingFooter({ onLanding }: { onLanding: boolean }) {
               <LegacyVaultMark className="size-10 shrink-0" />
               {content.brand}
             </p>
-            <p className={`${HEADING} mt-3 text-base italic text-[#E6C98B]`}>
+            <p className={`${HEADING} mt-3 text-base italic text-[#7A5B24]`}>
               {content.footer.tagline}
             </p>
           </div>
@@ -174,7 +175,7 @@ export function LandingFooter({ onLanding }: { onLanding: boolean }) {
             <FooterBullets items={content.footer.commitments} />
           </div>
         </div>
-        <div className="grid gap-8 border-t border-[#F3EFE6]/15 pt-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 border-t border-[#14241C]/15 pt-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className={FOOTER_TITLE}>{content.footer.productTitle}</h3>
             <ul className={FOOTER_LIST}>{productLinks}</ul>
@@ -184,13 +185,13 @@ export function LandingFooter({ onLanding }: { onLanding: boolean }) {
             items={content.footer.supportItems}
           />
           <FooterTextColumn title={content.footer.legalTitle} items={content.footer.legalItems} />
-          <p className="text-sm leading-6 text-[#F3EFE6]/80 lg:text-right">
+          <p className="text-sm leading-6 text-[#4E6257] lg:text-right">
             {content.footer.sampleNote}
             <br />
             {content.footer.address}
           </p>
         </div>
-        <p className="text-sm text-[#F3EFE6]/80">
+        <p className="text-sm text-[#4E6257]">
           ©{new Date().getFullYear()} {content.brand}. {content.footer.legal}
         </p>
       </div>

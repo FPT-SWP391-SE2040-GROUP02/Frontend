@@ -159,8 +159,8 @@ export function CreateAssetForm({
               }}
               className={`min-h-11 rounded-xl border px-3 text-sm font-semibold transition-colors ${
                 kind === item.value
-                  ? "border-[#B68F4C] bg-[#F1E6CC] text-[#0A281E]"
-                  : "border-[#BDB8A6] bg-white text-[#0A281E] hover:bg-[#F4F1E6]"
+                  ? "border-heritage-gold bg-heritage-warning-bg text-heritage-primary"
+                  : "border-heritage-border bg-white text-heritage-primary hover:bg-heritage-neutral-bg"
               }`}
             >
               {item.label}
@@ -245,7 +245,7 @@ export function CreateAssetForm({
                 className="h-2 overflow-hidden rounded-full bg-heritage-canvas"
               >
                 <div
-                  className="h-full rounded-full bg-[#1F7A55]"
+                  className="h-full rounded-full bg-heritage-success"
                   style={{
                     width:
                       uploadPercent === null || uploadPercent >= 100 ? "100%" : `${uploadPercent}%`,
@@ -265,7 +265,7 @@ export function CreateAssetForm({
               <select
                 value={packageId}
                 onChange={(e) => setPackageId(e.target.value)}
-                className="mt-2 h-12 w-full rounded-xl border border-[#BDB8A6] bg-white px-4 text-sm font-normal"
+                className="mt-2 h-12 w-full rounded-xl border border-heritage-border bg-white px-4 text-sm font-normal"
               >
                 <option value="">Chưa thêm vào gói nào</option>
                 {packages.map((item) => (
@@ -277,7 +277,7 @@ export function CreateAssetForm({
             </label>
           )}
           <p className="flex items-start gap-2 text-xs leading-5 text-heritage-muted">
-            <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+            <Lock className="mt-0.5 size-3.5 shrink-0 text-heritage-success" aria-hidden="true" />
             Nội dung được mã hóa AES-256-GCM trên máy chủ.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -295,7 +295,7 @@ export function CreateAssetForm({
           </p>
         )}
         {action.succeeded && (
-          <p role="status" className="text-sm text-[#1F7A55]">
+          <p role="status" className="text-sm text-heritage-success">
             Đã lưu vào kho.
           </p>
         )}

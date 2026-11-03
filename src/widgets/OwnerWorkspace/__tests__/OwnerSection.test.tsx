@@ -89,7 +89,7 @@ describe("official workspace data states", () => {
     expect(await screen.findByText("Chưa có nội dung")).toBeInTheDocument();
     expect(backendAssetService.list).toHaveBeenCalledWith(
       vaultFixture.id,
-      { pageIndex: 1, pageSize: 10 },
+      { pageIndex: 1, pageSize: 100 },
       expect.any(AbortSignal),
     );
   });

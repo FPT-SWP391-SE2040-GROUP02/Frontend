@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   useOwnerPackages,
   useOwnerVault,
@@ -11,7 +12,8 @@ import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
 import { BeneficiaryRow, EditBeneficiaryDialog } from "@/features/beneficiaries/ui/BeneficiaryRow";
 import { beneficiaryResponseSchema } from "@/features/beneficiaries/model/beneficiary.schema";
 import { ROUTES } from "@/shared/config/routes.config";
-import { buttonStyles } from "@/shared/ui/heritageKit";
+import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
+import { SideDrawer } from "@/shared/ui/SideDrawer";
 import type { z } from "zod";
 import { Button } from "@/shared/ui/button";
 import {
@@ -28,7 +30,7 @@ type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
 function PaidTierDialog({ onClose }: { onClose: () => void }) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg bg-[#FBFAF5] p-7" showCloseButton={false}>
+      <DialogContent className="max-w-lg bg-heritage-surface p-7" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-heritage-primary">
             Cần gói trả phí
@@ -38,14 +40,12 @@ function PaidTierDialog({ onClose }: { onClose: () => void }) {
             nhận.
           </DialogDescription>
         </DialogHeader>
-        <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
-          Kho và nội dung hiện có vẫn giữ nguyên.
-        </p>
+        <Notice tone="warning">Kho và nội dung hiện có vẫn giữ nguyên.</Notice>
         <DialogFooter>
           <button type="button" className={buttonStyles.outline} onClick={onClose}>
             Để sau
           </button>
-          <Link to={ROUTES.BILLING.PLANS} className={buttonStyles.gold}>
+          <Link to={ROUTES.BILLING.PLANS} className={buttonStyles.dark}>
             Xem gói dịch vụ
           </Link>
         </DialogFooter>
@@ -78,17 +78,21 @@ export function OwnerBeneficiaries() {
   if (vault.isError && isOwnerVaultMissing(vault.error)) return <AutoCreateVault />;
   if (vault.isError || list.isError)
     return (
-      <div role="alert" className="space-y-4">
-        <p>Không tải được hồ sơ người nhận.</p>
-        <Button
-          onClick={() => {
-            void vault.refetch();
-            if (vault.data) void list.refetch();
-          }}
-        >
-          Thử lại
-        </Button>
-      </div>
+      <Notice
+        tone="danger"
+        role="alert"
+        title="Không tải được hồ sơ người nhận."
+        action={
+          <Button
+            onClick={() => {
+              void vault.refetch();
+              if (vault.data) void list.refetch();
+            }}
+          >
+            Thử lại
+          </Button>
+        }
+      />
     );
   if (vault.isPending || list.isPending) return <p role="status">Đang tải hồ sơ người nhận…</p>;
   // Gia hạn (GRACE_READ_ONLY): không thêm/sửa được, vẫn xóa được (thiết kế 173). Gói Free cần nâng cấp để thêm.
@@ -112,37 +116,29 @@ export function OwnerBeneficiaries() {
   return (
     <div className="space-y-6">
       {readOnly && (
-        <p role="status" className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <Notice tone="warning" role="status">
           Gói dịch vụ đang trong thời gian gia hạn. Bạn chưa thêm hoặc sửa được người nhận, nhưng
           vẫn xóa được.
-        </p>
+        </Notice>
       )}
       {profileLimitReached && !readOnly && (
-        <p role="status" className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <Notice tone="warning" role="status">
           Kho đã đủ {vault.data.beneficiarySlots} người nhận theo suất hiện có. Mua thêm suất hoặc
           xóa hồ sơ chưa dùng để thêm người mới.{" "}
           <Link className="font-semibold underline" to={ROUTES.BILLING.PLANS}>
             Xem gói dịch vụ
           </Link>
-        </p>
+        </Notice>
       )}
-      <div className="flex justify-end">
-        <button
-          type="button"
-          className={`${buttonStyles.gold} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
-          disabled={readOnly || profileLimitReached}
-          onClick={() => setAdding(true)}
-        >
-          Thêm người nhận
-        </button>
-      </div>
       <section
         aria-label="Danh sách người nhận"
         className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
       >
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-xl font-medium text-heritage-primary">Danh sách người nhận</h2>
-          <span className="text-xs font-semibold text-[#7A5B24]">{list.data.totalCount} người</span>
+          <span className="text-xs font-semibold text-heritage-warning">
+            {list.data.totalCount} người
+          </span>
         </div>
         <p className="mt-1 text-xs text-heritage-muted">
           Đã thêm {list.data.totalCount}/{vault.data.beneficiarySlots} người nhận,{" "}
@@ -181,53 +177,55 @@ export function OwnerBeneficiaries() {
             </table>
           </div>
         )}
-        <nav
-          aria-label="Phân trang người nhận"
-          className="mt-4 flex items-center justify-between gap-3"
-        >
-          <Button
-            variant="outline"
-            disabled={page === 1 || list.isFetching}
-            onClick={() => setParams({ page: String(page - 1) })}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <nav aria-label="Phân trang người nhận" className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Trang trước"
+              disabled={page === 1 || list.isFetching}
+              onClick={() => setParams({ page: String(page - 1) })}
+            >
+              <ChevronLeft className="size-4" aria-hidden="true" />
+            </Button>
+            <span className="min-w-14 text-center text-sm">Trang {page}</span>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Trang sau"
+              disabled={!list.data.hasNextPage || list.isFetching}
+              onClick={() => setParams({ page: String(page + 1) })}
+            >
+              <ChevronRight className="size-4" aria-hidden="true" />
+            </Button>
+          </nav>
+          <button
+            type="button"
+            className={`${buttonStyles.dark} disabled:bg-heritage-neutral-bg disabled:text-heritage-muted disabled:opacity-100`}
+            disabled={readOnly || profileLimitReached}
+            onClick={() => setAdding(true)}
           >
-            Trang trước
-          </Button>
-          <span className="text-sm">Trang {page}</span>
-          <Button
-            variant="outline"
-            disabled={!list.data.hasNextPage || list.isFetching}
-            onClick={() => setParams({ page: String(page + 1) })}
-          >
-            Trang sau
-          </Button>
-        </nav>
+            Thêm người nhận
+          </button>
+        </div>
       </section>
       {adding && freeTier && <PaidTierDialog onClose={() => setAdding(false)} />}
       {adding && !freeTier && (
-        <Dialog open onOpenChange={(open) => !open && setAdding(false)}>
-          <DialogContent
-            className="max-h-[90dvh] max-w-lg overflow-y-auto bg-[#FBFAF5] p-7"
-            showCloseButton={false}
-          >
-            <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-heritage-primary">
-                Thêm người nhận
-              </DialogTitle>
-              <DialogDescription className="text-heritage-muted">
-                Nhập thông tin để đối chiếu khi bàn giao. Tạo hồ sơ không tự gắn người nhận vào gói
-                bàn giao.
-              </DialogDescription>
-            </DialogHeader>
-            <BeneficiaryForm
-              vaultId={vault.data.id}
-              onCancel={() => setAdding(false)}
-              onOpenExisting={(existing) => {
-                setAdding(false);
-                setReopened(existing);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+        <SideDrawer
+          open
+          onOpenChange={(open) => !open && setAdding(false)}
+          title="Thêm người nhận"
+          description="Nhập thông tin để đối chiếu khi bàn giao. Tạo hồ sơ không tự gắn người nhận vào gói bàn giao."
+        >
+          <BeneficiaryForm
+            vaultId={vault.data.id}
+            onCancel={() => setAdding(false)}
+            onOpenExisting={(existing) => {
+              setAdding(false);
+              setReopened(existing);
+            }}
+          />
+        </SideDrawer>
       )}
       {reopened && (
         <EditBeneficiaryDialog

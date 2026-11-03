@@ -1,19 +1,16 @@
-import { ChevronDown, Pencil } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import {
   useOwnerVault,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
 import { AutoCreateVault } from "@/features/vault-management/ui/AutoCreateVault";
-import { EditVaultForm } from "@/features/vault-management/ui/EditVaultForm";
 import { OwnerDeathCasePanel } from "@/features/owner-objection";
 import { Button } from "@/shared/ui/button";
 import { useOverviewResources } from "../model/useOverviewResources";
+import { OwnerIdentityNotice } from "./OwnerIdentityNotice";
 import { OwnerSetupCard } from "./OwnerSetupCard";
 import { OwnerOverviewSummary } from "./OwnerOverviewSummary";
-import { OwnerOverviewPlan } from "./OwnerOverviewPlan";
 import { OwnerOverviewLists } from "./OwnerOverviewLists";
-import { OwnerOverviewDetails } from "./OwnerOverviewDetails";
 import "./owner-overview.css";
 
 /** Không mount các truy vấn con trước khi có phiên và kho được BE xác nhận. */
@@ -45,38 +42,10 @@ function OwnerDashboardContent({ vault }: { vault: VaultResponse }) {
   return (
     <div className="owner-overview-layout">
       <OwnerDeathCasePanel vaultId={vault.id} enabled />
-      <OwnerSetupCard data={data} />
+      <OwnerIdentityNotice data={data} />
       <OwnerOverviewSummary vault={vault} data={data} />
-      <OwnerOverviewPlan data={data} />
+      <OwnerSetupCard data={data} />
       <OwnerOverviewLists data={data} />
-      <OwnerOverviewDetails vault={vault} data={data} />
-      <details className="overview-card overview-vault-details group">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-4 text-heritage-primary focus-visible:outline-2 focus-visible:outline-heritage-gold">
-          <span
-            className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#F1E6CC] text-[#7A5B25]"
-            aria-hidden="true"
-          >
-            <Pencil className="size-4" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-base font-semibold">Thông tin kho</span>
-            <span className="block truncate text-sm font-normal text-heritage-muted">
-              {vault.name}
-              {vault.description ? ` · ${vault.description}` : " · Chưa có mô tả"}
-            </span>
-          </span>
-          <span className="hidden text-sm font-medium text-[#7A5B25] group-open:hidden sm:inline">
-            Chỉnh sửa
-          </span>
-          <ChevronDown
-            className="size-4 shrink-0 text-heritage-muted transition-transform group-open:rotate-180"
-            aria-hidden="true"
-          />
-        </summary>
-        <div className="mt-4 border-t border-heritage-border pt-5">
-          <EditVaultForm vault={vault} />
-        </div>
-      </details>
     </div>
   );
 }

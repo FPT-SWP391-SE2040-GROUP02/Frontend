@@ -62,17 +62,17 @@ export function InvitationPanel() {
       <ul className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5">
         {CHECKLIST.map((text) => (
           <li key={text} className="flex items-center gap-3 text-sm">
-            <Check className="size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+            <Check className="size-4 shrink-0 text-heritage-success" aria-hidden="true" />
             {text}
           </li>
         ))}
       </ul>
       {query.data.responseExpired && (
-        <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
           Đã qua hạn phản hồi ban đầu; máy chủ sẽ kiểm tra điều kiện khi bạn xác nhận.
         </p>
       )}
-      <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+      <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
         Bạn không đọc được nội dung kho khi chưa đủ điều kiện bàn giao.
       </p>
       {authenticated ? (
@@ -108,7 +108,10 @@ export function InvitationPanel() {
         </div>
       )}
       {action.error && (
-        <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+        <p
+          role="alert"
+          className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+        >
           {action.error}
         </p>
       )}

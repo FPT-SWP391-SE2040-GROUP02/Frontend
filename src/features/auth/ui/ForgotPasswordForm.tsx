@@ -67,7 +67,7 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
     return (
       <div className="space-y-4 text-center w-full py-4">
         <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto " />
-        <h3 className="text-base font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]">
+        <h3 className="text-base font-medium text-[var(--heritage-primary,#0b291e)] dark:text-heritage-text">
           Gửi email thành công
         </h3>
         <p className="text-sm text-[#526656] dark:text-[#a0b8a5] leading-relaxed">
@@ -100,7 +100,7 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
       <div className="space-y-1.5 text-left">
         <label
           htmlFor="forgot-email"
-          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
+          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-heritage-text"
         >
           Email đã đăng ký
         </label>
@@ -115,7 +115,7 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
             {...register("email", { onChange: () => setError("") })}
             type="email"
             placeholder="owner@legacyvault.io"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
+            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-surface border-[#d8e3d2] dark:border-heritage-border"
           />
         </div>
         {errors.email && (
@@ -136,7 +136,7 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
       <div className="text-center pt-2">
         <Link
           to={ROUTES.AUTH.LOGIN}
-          className="inline-flex items-center gap-1.5 text-sm text-[#596d5d] hover:text-[var(--heritage-primary,#0b291e)] dark:hover:text-[#f3f7f4] font-semibold"
+          className="inline-flex items-center gap-1.5 text-sm text-[#596d5d] hover:text-[var(--heritage-primary,#0b291e)] dark:hover:text-heritage-text font-semibold"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Quay lại trang Đăng nhập</span>

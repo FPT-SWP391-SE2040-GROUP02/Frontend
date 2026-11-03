@@ -52,7 +52,7 @@ export function DeleteDialog({
   if (blocked && action.error) {
     return (
       <Dialog open onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
+        <DialogContent className="rounded-2xl bg-heritage-surface p-6 sm:max-w-[540px]">
           <DialogHeader>
             <DialogTitle>Chưa xóa được mục này</DialogTitle>
             <DialogDescription>Mục đang được dùng nên kho giữ lại.</DialogDescription>
@@ -78,7 +78,7 @@ export function DeleteDialog({
   }
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
-      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
+      <DialogContent className="rounded-2xl bg-heritage-surface p-6 sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>Xóa “{asset.name}”?</DialogTitle>
           <DialogDescription>
@@ -112,7 +112,7 @@ export function DeleteDialog({
           </button>
           <button
             type="button"
-            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#A32119] px-6 text-sm font-semibold text-white hover:bg-[#8A1B14] disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-heritage-danger px-6 text-sm font-semibold text-white hover:bg-[#8A1B14] disabled:pointer-events-none disabled:opacity-50"
             onClick={remove}
             disabled={action.pending || !understood}
           >

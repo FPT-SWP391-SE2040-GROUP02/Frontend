@@ -85,7 +85,7 @@ export function EkycVerifiedCard({ live }: { live: z.infer<typeof ekycStatusSche
           </div>
         ))}
       </dl>
-      <div className="space-y-3 rounded-xl bg-[#F1E7D0] p-4 text-[#7A5B24]">
+      <div className="space-y-3 rounded-xl bg-heritage-warning-bg p-4 text-heritage-warning">
         <p className="text-sm font-semibold">Bước tiếp theo</p>
         <p className="text-sm">
           Mua gói dịch vụ cần lần xác minh này (còn hiệu lực 90 ngày kể từ lúc hoàn tất).
@@ -93,7 +93,7 @@ export function EkycVerifiedCard({ live }: { live: z.infer<typeof ekycStatusSche
         <div className="flex flex-wrap gap-3">
           <Link
             to={ROUTES.BILLING.PLANS}
-            className="inline-flex min-h-11 items-center rounded-xl bg-[#E0C486] px-6 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-heritage-gold"
+            className="inline-flex min-h-11 items-center rounded-xl bg-heritage-gold-soft px-6 text-sm font-semibold text-heritage-on-gold hover:bg-heritage-gold-soft-hover focus-visible:outline-2 focus-visible:outline-heritage-gold"
           >
             Chọn gói dịch vụ
           </Link>
