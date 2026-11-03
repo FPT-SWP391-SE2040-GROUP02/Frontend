@@ -247,7 +247,7 @@ export function ImageCropModal({
           <Button
             type="button"
             onClick={handleApplyCrop}
-            className="flex items-center gap-1.5 bg-heritage-gold-soft font-semibold text-heritage-on-gold shadow-none hover:bg-heritage-gold-soft-hover"
+            className="flex items-center gap-1.5 bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
           >
             <Check className="size-4" aria-hidden="true" />
             Cắt và sử dụng ảnh này

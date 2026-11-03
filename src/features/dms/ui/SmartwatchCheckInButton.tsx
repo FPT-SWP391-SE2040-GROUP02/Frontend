@@ -37,7 +37,7 @@ function MethodRow({
 }) {
   return (
     <li className="flex items-center gap-4 border-b border-heritage-border py-4 last:border-b-0">
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#E3EFE8] text-heritage-success">
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#E3EFE8] text-[#1F7A55]">
         {icon}
       </span>
       <div className="min-w-0 flex-1">
@@ -50,13 +50,13 @@ function MethodRow({
 }
 
 const IN_USE_CHIP = (
-  <span className="shrink-0 rounded-full bg-[#E3EFE8] px-3 py-1 text-xs font-semibold text-heritage-success">
+  <span className="shrink-0 rounded-full bg-[#E3EFE8] px-3 py-1 text-xs font-semibold text-[#1F7A55]">
     Đang dùng
   </span>
 );
 
 const CONNECTED_CHIP = (
-  <span className="shrink-0 rounded-full bg-[#E3EFE8] px-3 py-1 text-xs font-semibold text-heritage-success">
+  <span className="shrink-0 rounded-full bg-[#E3EFE8] px-3 py-1 text-xs font-semibold text-[#1F7A55]">
     Đã kết nối
   </span>
 );
@@ -206,11 +206,11 @@ export function SmartwatchCheckInButton(_props: {
         </p>
       )}
       <Dialog open={open} onOpenChange={(next) => !next && close()}>
-        <DialogContent className="max-w-lg bg-heritage-surface p-7" showCloseButton={false}>
+        <DialogContent className="max-w-lg bg-[#FBFAF5] p-7" showCloseButton={false}>
           {pairedDevice !== null ? (
             <div className="space-y-4 py-2 text-center">
               <div className="flex justify-center">
-                <span className="flex size-16 items-center justify-center rounded-full bg-[#E3EFE8] text-heritage-success">
+                <span className="flex size-16 items-center justify-center rounded-full bg-[#E3EFE8] text-[#1F7A55]">
                   <CircleCheck className="size-10" aria-hidden="true" />
                 </span>
               </div>
@@ -263,7 +263,7 @@ export function SmartwatchCheckInButton(_props: {
                     <span
                       key={index}
                       aria-hidden="true"
-                      className="flex h-16 w-12 items-center justify-center rounded-xl border-2 border-heritage-primary bg-white font-mono text-3xl font-semibold text-heritage-primary"
+                      className="flex h-16 w-12 items-center justify-center rounded-xl border-2 border-[#0A281E] bg-white font-mono text-3xl font-semibold text-[#0A281E]"
                     >
                       {digit}
                     </span>
@@ -273,7 +273,7 @@ export function SmartwatchCheckInButton(_props: {
               <p role="status" className="text-center text-sm text-heritage-muted">
                 {codeStatus}
               </p>
-              <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
+              <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
                 Chưa có ứng dụng trên đồng hồ? Cài LegacyVault từ cửa hàng ứng dụng của đồng hồ.
               </p>
               {action.error && (

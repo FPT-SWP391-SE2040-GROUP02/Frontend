@@ -14,7 +14,7 @@ export function ReviewFeedback({ record }: { record: DeathCase }) {
     return (
       <section
         aria-labelledby="supplement-request-title"
-        className="space-y-3 rounded-2xl border border-heritage-gold-soft-hover bg-heritage-warning-bg p-6 text-[#5A4318]"
+        className="space-y-3 rounded-2xl border border-[#E6C98B] bg-[#F1E6CC] p-6 text-[#5A4318]"
       >
         <h3 id="supplement-request-title" className="text-lg font-semibold">
           Yêu cầu từ Người xét duyệt (bản {supplement.versionNo})
@@ -24,12 +24,12 @@ export function ReviewFeedback({ record }: { record: DeathCase }) {
           Phần cần bổ sung:{" "}
           {supplement.requestedParts.map((part) => requirementLabels[part] ?? part).join(", ")}
         </p>
-        <ul className="divide-y divide-heritage-gold-soft-hover/70 rounded-xl bg-white/60 px-4">
+        <ul className="divide-y divide-[#E6C98B]/70 rounded-xl bg-white/60 px-4">
           {supplement.requestedParts.map((part) => (
             <li key={part} className="flex items-center justify-between gap-3 py-2.5 text-sm">
               <span className="font-medium">{requirementLabels[part] ?? part}</span>
               <span
-                className={`rounded-full px-3 py-0.5 text-xs font-semibold ${missing.has(part) ? "bg-heritage-neutral-bg text-heritage-neutral" : "bg-heritage-success-bg text-heritage-success"}`}
+                className={`rounded-full px-3 py-0.5 text-xs font-semibold ${missing.has(part) ? "bg-[#ECE8DB] text-[#4D4D4B]" : "bg-[#DDEFE6] text-[#1F7A55]"}`}
               >
                 {missing.has(part) ? "Thiếu" : "Đã có"}
               </span>
@@ -50,7 +50,7 @@ export function ReviewFeedback({ record }: { record: DeathCase }) {
     return (
       <section
         aria-labelledby="reject-reason-title"
-        className="space-y-2 rounded-2xl border border-[#F0C4BF] bg-heritage-danger-bg p-6 text-heritage-danger"
+        className="space-y-2 rounded-2xl border border-[#F0C4BF] bg-[#F8E1DE] p-6 text-[#7A1A14]"
       >
         <h3 id="reject-reason-title" className="text-lg font-semibold">
           Hồ sơ đã bị từ chối

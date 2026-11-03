@@ -86,7 +86,7 @@ export function AvatarEditor() {
           </p>
         )}
         {action.succeeded && !action.error && !problem && (
-          <p role="status" className="mt-2 text-sm text-heritage-success">
+          <p role="status" className="mt-2 text-sm text-[#1F7A55]">
             Đã cập nhật ảnh đại diện.
           </p>
         )}

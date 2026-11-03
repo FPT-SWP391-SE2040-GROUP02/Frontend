@@ -7,9 +7,6 @@ export const ROUTES = {
   HOME: "/",
   RECEIVE: "/receive",
 
-  /** Wizard Chủ kho: thiết lập kế hoạch từng bước. */
-  SETUP: "/setup",
-
   /** Trang thông tin công khai: hỗ trợ và pháp lý (liên kết từ chân trang landing) */
   PUBLIC: {
     FAQ: "/faq",
@@ -41,13 +38,9 @@ export const ROUTES = {
     ASSET_DETAIL: (id: string) => `/dashboard/assets/${id}`,
     /** Chi tiết một gói bàn giao (container): mục, người nhận, đổi tên, xóa. */
     GROUP_DETAIL: (id: string) => `/dashboard/assets/groups/${id}`,
-    /** Gói bàn giao của Chủ kho: danh sách gói, tạo, đổi tên, chọn tài sản và người nhận. */
-    PACKAGES: "/dashboard/packages",
     BENEFICIARIES: "/dashboard/beneficiaries",
     /** Người tin cậy của Chủ kho: Người thực hiện (Executor) và Người xét duyệt. */
     TRUSTED_PEOPLE: "/dashboard/trusted-people",
-    /** Hướng dẫn vai trò Người nhận (người thụ hưởng) và Người thực hiện (người thực thi); nằm dưới tab Người liên quan. */
-    PEOPLE_GUIDE: "/dashboard/beneficiaries/guide",
     AUDIT_LOG: "/dashboard/audit-log",
     USERS: "/dashboard/users",
     SETTINGS: "/dashboard/settings",
@@ -71,8 +64,6 @@ export const ROUTES = {
   NOTARY: {
     /** Tổng quan Người xét duyệt (Verifier); cũng là trang chủ của vai trò này. */
     WORKSPACE: "/notary/workspace",
-    /** Wizard Người xét duyệt. */
-    STEPS: "/notary/steps",
     /** Hàng chờ; ?caseId= mở chi tiết một hồ sơ. */
     QUEUE: "/notary/queue",
     CRITERIA: "/notary/criteria",
@@ -86,8 +77,6 @@ export const ROUTES = {
     /** Tên cũ của cổng Executor; giữ để link/email cũ vẫn dùng được, chuyển về ROOT. */
     CLAIM: "/executor/claim",
     ROOT: "/executor",
-    /** Wizard Người thực hiện. */
-    STEPS: "/executor/steps",
     REPORT: "/executor/report",
     PROGRESS: "/executor/progress",
     PERMISSIONS: "/executor/permissions",
@@ -97,8 +86,6 @@ export const ROUTES = {
   /** Cổng người thụ hưởng / Beneficiary */
   BENEFICIARY: {
     CLAIM: "/claim/beneficiary",
-    /** Wizard Người nhận. */
-    STEPS: "/recipient/steps",
     HANDOVER: "/claim/beneficiary/handover",
     EKYC_CAMERA: "/claim/beneficiary/ekyc/camera",
   },

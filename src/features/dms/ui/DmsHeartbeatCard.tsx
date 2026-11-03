@@ -75,9 +75,9 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
   if (isLoading) {
     return (
       <div className="min-w-0 border-y border-heritage-border py-6 animate-pulse">
-        <div className="h-6 w-48 max-w-full bg-heritage-canvas rounded-full mb-4"></div>
-        <div className="h-12 w-full bg-heritage-canvas rounded-lg mb-6"></div>
-        <div className="h-32 bg-heritage-canvas rounded-lg"></div>
+        <div className="h-6 w-48 max-w-full bg-[#EFECE6] rounded-full mb-4"></div>
+        <div className="h-12 w-full bg-[#EFECE6] rounded-lg mb-6"></div>
+        <div className="h-32 bg-[#EFECE6] rounded-lg"></div>
       </div>
     );
   }
@@ -100,23 +100,23 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
     switch (status) {
       case "ACTIVE":
         return (
-          <Badge className="bg-heritage-primary-light text-heritage-primary border border-[#A2C4AF] px-3 py-1 font-semibold rounded-full flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-heritage-success animate-ping" />
-            <span className="w-2 h-2 rounded-full bg-heritage-success absolute" />
+          <Badge className="bg-[#E5EDE8] text-[#0B291E] border border-[#A2C4AF] px-3 py-1 font-semibold rounded-full flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#059669] animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-[#059669] absolute" />
             <span className="ml-1.5">ĐANG HOẠT ĐỘNG</span>
           </Badge>
         );
       case "WARNING":
         return (
-          <Badge className="bg-heritage-warning-bg text-heritage-warning border border-[#FDE68A] px-3 py-1 font-semibold rounded-full flex items-center gap-1.5">
+          <Badge className="bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] px-3 py-1 font-semibold rounded-full flex items-center gap-1.5">
             <AlertTriangle className="w-3.5 h-3.5" />
             CẢNH BÁO SẮP HẾT HẠN
           </Badge>
         );
       case "GRACE_PERIOD":
         return (
-          <Badge className="bg-heritage-danger-bg text-[#B91C1C] border border-heritage-danger/30 px-3 py-1 font-semibold rounded-full flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-heritage-danger animate-pulse" />
+          <Badge className="bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA] px-3 py-1 font-semibold rounded-full flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#DC2626] animate-pulse" />
             THỜI GIAN ÂN HẠN ({dmsState.config.gracePeriodDays} NGÀY)
           </Badge>
         );
@@ -129,7 +129,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
         );
       case "TRIGGERED":
         return (
-          <Badge className="bg-heritage-danger-bg text-[#991B1B] border border-[#F87171] px-3 py-1 font-semibold rounded-full">
+          <Badge className="bg-[#FEF2F2] text-[#991B1B] border border-[#F87171] px-3 py-1 font-semibold rounded-full">
             ĐÃ KÍCH HOẠT BÀN GIAO
           </Badge>
         );
@@ -155,7 +155,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold text-heritage-text">Cơ Chế Nhịp Sinh Tồn</h2>
             </div>
-            <p className="text-xs sm:text-sm text-heritage-muted">
+            <p className="text-xs sm:text-sm text-[#66786E]">
               Dead Man's Switch (DMS Protocol) • Bàn giao di sản tự động khi mất tín hiệu
             </p>
           </div>
@@ -168,8 +168,8 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
 
       {/* Success Notification Alert */}
       {successMessage && (
-        <div className="mt-6 p-4 rounded-lg bg-heritage-primary-light border border-[#A2C4AF] text-heritage-primary flex items-center gap-3 animate-in fade-in duration-300">
-          <ShieldCheck className="w-5 h-5 text-heritage-success shrink-0" />
+        <div className="mt-6 p-4 rounded-lg bg-[#E5EDE8] border border-[#A2C4AF] text-[#0B291E] flex items-center gap-3 animate-in fade-in duration-300">
+          <ShieldCheck className="w-5 h-5 text-[#059669] shrink-0" />
           <p className="text-sm font-medium">{successMessage}</p>
         </div>
       )}
@@ -177,14 +177,14 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
       {/* Main Countdown & Heartbeat Status Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6">
         {/* Left Col: Big Countdown Display */}
-        <div className="min-w-0 lg:col-span-7 bg-heritage-canvas border border-heritage-border rounded-lg p-4 sm:p-6 flex flex-col justify-between">
+        <div className="min-w-0 lg:col-span-7 bg-[#EFECE6] border border-heritage-border rounded-lg p-4 sm:p-6 flex flex-col justify-between">
           <div>
             <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-              <span className="min-w-0 text-xs font-bold text-heritage-muted uppercase flex items-start gap-2">
-                <Clock className="w-4 h-4 shrink-0 text-heritage-gold" />
+              <span className="min-w-0 text-xs font-bold text-[#66786E] uppercase flex items-start gap-2">
+                <Clock className="w-4 h-4 shrink-0 text-[#B88E4C]" />
                 Thời Gian Đến Hạn Xác Nhận Tiếp Theo
               </span>
-              <span className="text-xs font-semibold text-heritage-primary bg-heritage-surface px-2.5 py-1 rounded-full border border-heritage-border">
+              <span className="text-xs font-semibold text-[#0B291E] bg-[#FAF9F5] px-2.5 py-1 rounded-full border border-[#DCD9D0]">
                 Chu kỳ {dmsState.config.checkIntervalDays} ngày
               </span>
             </div>
@@ -195,45 +195,45 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
                 <span className="text-4xl font-bold text-heritage-primary tracking-normal">
                   {dmsState.daysRemaining}
                 </span>
-                <span className="text-sm sm:text-base font-semibold text-heritage-muted">ngày</span>
+                <span className="text-sm sm:text-base font-semibold text-[#66786E]">ngày</span>
               </div>
-              <div className="text-3xl font-light text-heritage-muted">:</div>
+              <div className="text-3xl font-light text-[#A8A295]">:</div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold text-heritage-text">
                   {dmsState.hoursRemaining}
                 </span>
-                <span className="text-xs sm:text-sm font-medium text-heritage-muted">giờ</span>
+                <span className="text-xs sm:text-sm font-medium text-[#66786E]">giờ</span>
               </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-heritage-border h-2.5 rounded-full overflow-hidden mb-3">
+            <div className="w-full bg-[#DCD9D0] h-2.5 rounded-full overflow-hidden mb-3">
               <div
                 className={`h-full transition-all duration-500 rounded-full ${
                   progressPercent > 50
-                    ? "bg-heritage-success"
+                    ? "bg-[#059669]"
                     : progressPercent > 20
-                      ? "bg-heritage-gold"
-                      : "bg-heritage-danger"
+                      ? "bg-[#B88E4C]"
+                      : "bg-[#DC2626]"
                 }`}
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
 
-            <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 text-xs text-heritage-muted">
+            <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 text-xs text-[#66786E]">
               <span>Ping gần nhất: {formatDate(dmsState.lastPingAt)}</span>
               <span>Hạn chót: {formatDate(dmsState.nextPingDeadline)}</span>
             </div>
           </div>
 
           {/* Big Action Button: I'm Alive */}
-          <div className="mt-6 pt-4 border-t border-heritage-border/60 flex flex-col sm:flex-row gap-3">
+          <div className="mt-6 pt-4 border-t border-[#DCD9D0]/60 flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handlePing}
               disabled={isPinging || dmsState.status === "PAUSED"}
-              className="w-full min-w-0 h-auto min-h-14 whitespace-normal rounded-lg bg-heritage-primary hover:bg-heritage-sidebar/90 px-4 py-3 text-white font-semibold text-sm flex items-center justify-center gap-2"
+              className="w-full min-w-0 h-auto min-h-14 whitespace-normal rounded-lg bg-heritage-primary hover:bg-[#133E2F] px-4 py-3 text-white font-semibold text-sm flex items-center justify-center gap-2"
             >
-              <Zap className="w-5 h-5 shrink-0 text-heritage-gold fill-heritage-gold" />
+              <Zap className="w-5 h-5 shrink-0 text-[#B88E4C] fill-[#B88E4C]" />
               <span className="min-w-0">
                 {isPinging ? "Đang xác nhận nhịp sinh tồn..." : "⚡ I'm Alive (Tôi Vẫn Khỏe Mạnh)"}
               </span>
@@ -242,51 +242,51 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
         </div>
 
         {/* Right Col: ECDSA P-256 Integrity Seal Card */}
-        <div className="min-w-0 lg:col-span-5 bg-heritage-surface border border-heritage-gold-border rounded-lg p-4 sm:p-6 flex flex-col justify-between">
+        <div className="min-w-0 lg:col-span-5 bg-heritage-surface border border-[#E8DCC6] rounded-lg p-4 sm:p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="size-8 shrink-0 rounded-lg bg-heritage-gold-light border border-heritage-gold-border flex items-center justify-center text-heritage-gold">
+              <div className="size-8 shrink-0 rounded-lg bg-[#FBF7EE] border border-[#E8DCC6] flex items-center justify-center text-[#B88E4C]">
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-sm font-bold text-heritage-text">Niêm Phong Mật Mã Học</h3>
-                <span className="text-[11px] font-mono text-heritage-gold uppercase font-semibold">
+                <h3 className="text-sm font-bold text-[#14241C]">Niêm Phong Mật Mã Học</h3>
+                <span className="text-[11px] font-mono text-[#B88E4C] uppercase font-semibold">
                   ECDSA P-256 Cryptographic Seal
                 </span>
               </div>
             </div>
 
-            <p className="text-xs text-heritage-muted mb-3 leading-relaxed">
+            <p className="text-xs text-[#66786E] mb-3 leading-relaxed">
               Mỗi nhịp sinh tồn được ký số mật mã học bất biến bằng khóa riêng và lưu trữ bằng chứng
               chứng thực tại sổ cái pháp lý.
             </p>
 
             {/* Seal Hash Display */}
-            <div className="p-3 bg-heritage-canvas border border-heritage-border rounded-lg flex items-center justify-between gap-2 mb-3">
-              <span className="min-w-0 font-mono text-xs text-heritage-primary truncate select-all">
+            <div className="p-3 bg-[#EFECE6] border border-[#DCD9D0] rounded-lg flex items-center justify-between gap-2 mb-3">
+              <span className="min-w-0 font-mono text-xs text-[#0B291E] truncate select-all">
                 {dmsState.integritySealHash}
               </span>
               <button
                 type="button"
                 onClick={handleCopySeal}
-                className="flex size-11 items-center justify-center hover:bg-heritage-surface rounded-lg text-heritage-muted hover:text-heritage-primary transition-colors shrink-0"
+                className="flex size-11 items-center justify-center hover:bg-heritage-surface rounded-lg text-[#66786E] hover:text-heritage-primary transition-colors shrink-0"
                 aria-label={HEARTBEAT_LABELS.copySeal}
                 title={HEARTBEAT_LABELS.copySeal}
               >
                 {copied ? (
-                  <Check className="w-4 h-4 text-heritage-success" />
+                  <Check className="w-4 h-4 text-[#059669]" />
                 ) : (
                   <Copy className="w-4 h-4" />
                 )}
               </button>
             </div>
 
-            <div className="text-[11px] text-heritage-muted flex flex-wrap items-center justify-between gap-2">
+            <div className="text-[11px] text-[#66786E] flex flex-wrap items-center justify-between gap-2">
               <span>
                 Chuẩn mã hóa: <strong>NIST P-256</strong>
               </span>
-              <span className="text-heritage-success font-medium flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-heritage-success" /> Đã xác thực
+              <span className="text-[#059669] font-medium flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" /> Đã xác thực
               </span>
             </div>
           </div>
@@ -297,9 +297,9 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
               variant="outline"
               size="sm"
               onClick={onOpenConfig}
-              className="h-auto min-h-11 min-w-0 whitespace-normal rounded-lg border-heritage-border text-heritage-text hover:bg-heritage-canvas px-2 py-2 text-xs font-semibold flex items-center justify-center gap-2"
+              className="h-auto min-h-11 min-w-0 whitespace-normal rounded-lg border-heritage-border text-heritage-text hover:bg-[#EFECE6] px-2 py-2 text-xs font-semibold flex items-center justify-center gap-2"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-heritage-gold" />
+              <SlidersHorizontal className="w-3.5 h-3.5 text-[#B88E4C]" />
               Cấu hình
             </Button>
 
@@ -307,9 +307,9 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
               variant="outline"
               size="sm"
               onClick={onOpenHistory}
-              className="h-auto min-h-11 min-w-0 whitespace-normal rounded-lg border-heritage-border text-heritage-text hover:bg-heritage-canvas px-2 py-2 text-xs font-semibold flex items-center justify-center gap-2"
+              className="h-auto min-h-11 min-w-0 whitespace-normal rounded-lg border-heritage-border text-heritage-text hover:bg-[#EFECE6] px-2 py-2 text-xs font-semibold flex items-center justify-center gap-2"
             >
-              <History className="w-3.5 h-3.5 text-heritage-muted" />
+              <History className="w-3.5 h-3.5 text-[#66786E]" />
               Lịch sử ping
             </Button>
 
@@ -320,8 +320,8 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
               disabled={isTogglingPause}
               className={`h-auto min-h-11 min-w-0 whitespace-normal rounded-lg px-2 py-2 text-xs font-semibold flex items-center justify-center gap-2 ${
                 dmsState.status === "PAUSED"
-                  ? "text-heritage-success hover:bg-heritage-primary-light"
-                  : "text-heritage-warning hover:bg-heritage-warning-bg"
+                  ? "text-[#059669] hover:bg-[#E5EDE8]"
+                  : "text-[#B45309] hover:bg-[#FFFBEB]"
               }`}
             >
               {dmsState.status === "PAUSED" ? (

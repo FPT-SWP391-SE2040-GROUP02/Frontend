@@ -40,12 +40,12 @@ export const WillStepper: React.FC<WillStepperProps> = ({
                 type="button"
                 disabled={!isAccessible}
                 onClick={() => isAccessible && onStepClick?.(step.number)}
-                className={`w-full min-h-[56px] p-3.5 rounded-[18px] border text-left transition-all flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-heritage-gold focus-visible:outline-none ${
+                className={`w-full min-h-[56px] p-3.5 rounded-[18px] border text-left transition-all flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-[#B88E4C] focus-visible:outline-none ${
                   isCurrent
-                    ? "bg-heritage-sidebar text-white border-heritage-sidebar shadow-md ring-1 ring-heritage-gold"
+                    ? "bg-[#0B291E] text-white border-[#0B291E] shadow-md ring-1 ring-[#B88E4C]"
                     : isCompleted
-                      ? "bg-heritage-surface text-heritage-text border-[#A2C4AF] hover:border-heritage-primary"
-                      : "bg-heritage-surface/70 text-heritage-muted border-heritage-border opacity-75 cursor-not-allowed"
+                      ? "bg-[#FAF9F5] text-[#14241C] border-[#A2C4AF] hover:border-[#0B291E]"
+                      : "bg-[#FAF9F5]/70 text-[#66786E] border-[#DCD9D0] opacity-75 cursor-not-allowed"
                 }`}
                 aria-current={isCurrent ? "step" : undefined}
               >
@@ -53,10 +53,10 @@ export const WillStepper: React.FC<WillStepperProps> = ({
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${
                     isCurrent
-                      ? "bg-heritage-gold text-heritage-primary"
+                      ? "bg-[#B88E4C] text-[#0B291E]"
                       : isCompleted
-                        ? "bg-heritage-primary-light text-heritage-success"
-                        : "bg-heritage-canvas text-heritage-muted"
+                        ? "bg-[#E5EDE8] text-[#059669]"
+                        : "bg-[#EFECE6] text-[#66786E]"
                   }`}
                 >
                   {isCompleted ? <Check className="w-4 h-4" /> : step.number}
@@ -65,14 +65,14 @@ export const WillStepper: React.FC<WillStepperProps> = ({
                 <div className="overflow-hidden">
                   <span
                     className={`text-[11px] uppercase tracking-wider font-bold block truncate ${
-                      isCurrent ? "text-heritage-gold" : "text-heritage-muted"
+                      isCurrent ? "text-[#B88E4C]" : "text-[#66786E]"
                     }`}
                   >
                     Bước {step.number}
                   </span>
                   <span
                     className={`text-xs font-bold block truncate ${
-                      isCurrent ? "text-white" : "text-heritage-text"
+                      isCurrent ? "text-white" : "text-[#14241C]"
                     }`}
                   >
                     {step.title}

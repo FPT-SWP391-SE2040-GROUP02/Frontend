@@ -46,29 +46,27 @@ export const ClaimStatusCard: React.FC<ClaimStatusCardProps> = ({ claim }) => {
   };
 
   return (
-    <Card className="p-5 bg-heritage-surface border-heritage-border rounded-[20px] shadow-sm space-y-4 hover:border-heritage-gold transition-all">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-heritage-canvas pb-3">
+    <Card className="p-5 bg-[#FAF9F5] border-[#DCD9D0] rounded-[20px] shadow-sm space-y-4 hover:border-[#B88E4C] transition-all">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EFECE6] pb-3">
         <div>
-          <span className="text-[10px] font-bold text-heritage-muted uppercase tracking-wider">
+          <span className="text-[10px] font-bold text-[#66786E] uppercase tracking-wider">
             Hồ Sơ Mở Thừa Kế • #{claim.id}
           </span>
-          <h4 className="text-sm font-bold text-heritage-primary mt-0.5">{claim.vaultTitle}</h4>
+          <h4 className="text-sm font-bold text-[#0B291E] mt-0.5">{claim.vaultTitle}</h4>
         </div>
         {getStatusBadge()}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
         <div>
-          <span className="text-heritage-muted block text-[11px]">Chủ Kho Di Sản:</span>
-          <span className="font-bold text-heritage-text">{claim.ownerFullName}</span>
-          <span className="text-heritage-muted block text-[10px]">
-            CCCD: {claim.ownerNationalId}
-          </span>
+          <span className="text-[#66786E] block text-[11px]">Chủ Kho Di Sản:</span>
+          <span className="font-bold text-[#14241C]">{claim.ownerFullName}</span>
+          <span className="text-[#66786E] block text-[10px]">CCCD: {claim.ownerNationalId}</span>
         </div>
         <div>
-          <span className="text-heritage-muted block text-[11px]">Số Hiệu Chứng Từ:</span>
-          <span className="font-bold text-heritage-text">{claim.deathCertificateNumber}</span>
-          <span className="text-heritage-muted block text-[10px]">
+          <span className="text-[#66786E] block text-[11px]">Số Hiệu Chứng Từ:</span>
+          <span className="font-bold text-[#14241C]">{claim.deathCertificateNumber}</span>
+          <span className="text-[#66786E] block text-[10px]">
             Cấp ngày: {claim.deathCertificateIssueDate}
           </span>
         </div>
@@ -80,11 +78,11 @@ export const ClaimStatusCard: React.FC<ClaimStatusCardProps> = ({ claim }) => {
           className={`p-3 rounded-xl text-xs space-y-1 ${
             claim.claimStatus === "REJECTED"
               ? "bg-red-50 text-red-800 border border-red-200"
-              : "bg-heritage-primary-light text-heritage-primary"
+              : "bg-[#E5EDE8] text-[#0B291E]"
           }`}
         >
           <div className="flex items-center gap-1.5 font-bold">
-            <ShieldCheck className="w-4 h-4 text-heritage-gold" />
+            <ShieldCheck className="w-4 h-4 text-[#B88E4C]" />
             <span>Nhận xét của Công chứng viên ({claim.reviewedByNotaryName || "Notary"}):</span>
           </div>
           <p className="text-[11px] leading-relaxed pl-5">{claim.notaryNotes}</p>
@@ -92,8 +90,8 @@ export const ClaimStatusCard: React.FC<ClaimStatusCardProps> = ({ claim }) => {
       )}
 
       {/* Mã băm toàn vẹn SHA-256 */}
-      <div className="p-2.5 rounded-xl bg-heritage-canvas text-[10px] text-heritage-muted space-y-0.5">
-        <span className="font-bold text-heritage-primary block">Mã băm SHA-256 tệp scan:</span>
+      <div className="p-2.5 rounded-xl bg-[#EFECE6] text-[10px] text-[#66786E] space-y-0.5">
+        <span className="font-bold text-[#0B291E] block">Mã băm SHA-256 tệp scan:</span>
         <p className="font-mono truncate select-all">{claim.deathCertScanHash}</p>
       </div>
     </Card>

@@ -8,11 +8,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 export function RegisterPage() {
   const content = AUTH_LAYOUT_CONTENT.register;
   return (
-    <HeritageAuthLayout
-      activeTab="register"
-      sideTitle={content.sideTitle}
-      sideSubtitle={content.sideDescription}
-    >
+    <HeritageAuthLayout sideTitle={content.sideTitle} sideSubtitle={content.sideDescription}>
       <header className="mb-8 space-y-3">
         <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl">
           {content.title}

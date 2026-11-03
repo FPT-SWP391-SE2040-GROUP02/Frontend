@@ -49,10 +49,10 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
     <div className="space-y-6">
       {/* Tiêu đề & Giải thích */}
       <div>
-        <h2 className="text-xl font-bold text-heritage-text">
+        <h2 className="text-xl font-bold text-[#14241C]">
           Bước 3: Chỉ Định Người Thực Thi & Kích Hoạt Kế Hoạch
         </h2>
-        <p className="text-xs text-heritage-muted mt-1 leading-relaxed">
+        <p className="text-xs text-[#66786E] mt-1 leading-relaxed">
           Chỉ định Người thực thi (Executor) chịu trách nhiệm nộp giấy chứng tử và bắt đầu bàn giao.
           Kiểm tra điều kiện kích hoạt di sản theo chuẩn SRS 3.11.0 (SETUP-01).
         </p>
@@ -61,7 +61,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
       {errorMessage && (
         <div
           role="alert"
-          className="p-3.5 rounded-[14px] bg-heritage-danger-bg border border-heritage-danger/30 flex items-center gap-2 text-xs text-heritage-danger font-medium"
+          className="p-3.5 rounded-[14px] bg-[#FEF2F2] border border-[#FECACA] flex items-center gap-2 text-xs text-[#DC2626] font-medium"
         >
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMessage}</span>
@@ -69,15 +69,15 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
       )}
 
       {/* PHẦN 1: THÔNG TIN NGƯỜI THI HÀNH (EXECUTOR) */}
-      <Card className="p-5 bg-heritage-surface border-heritage-border rounded-[20px] space-y-4">
+      <Card className="p-5 bg-[#FAF9F5] border-[#DCD9D0] rounded-[20px] space-y-4">
         <div className="flex items-center gap-2">
-          <UserCheck className="w-5 h-5 text-heritage-gold" />
-          <h3 className="text-sm font-bold text-heritage-text">1. Người Thực Thi (Executor) *</h3>
+          <UserCheck className="w-5 h-5 text-[#B88E4C]" />
+          <h3 className="text-sm font-bold text-[#14241C]">1. Người Thực Thi (Executor) *</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="text-[10px] font-bold text-heritage-muted uppercase block mb-1">
+            <label className="text-[10px] font-bold text-[#66786E] uppercase block mb-1">
               Họ và tên Người Thực Thi *
             </label>
             <Input
@@ -90,7 +90,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-heritage-muted uppercase block mb-1">
+            <label className="text-[10px] font-bold text-[#66786E] uppercase block mb-1">
               Email Thông Báo Pháp Lý *
             </label>
             <Input
@@ -104,7 +104,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           </div>
 
           <div>
-            <label className="text-[10px] font-bold text-heritage-muted uppercase block mb-1">
+            <label className="text-[10px] font-bold text-[#66786E] uppercase block mb-1">
               Số Điện Thoại Xác Minh
             </label>
             <Input
@@ -118,26 +118,26 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
       </Card>
 
       {/* PHẦN 2: BẢNG KIỂM TRA ĐIỀU KIỆN KÍCH HOẠT (SETUP-01) */}
-      <Card className="p-5 bg-white border-heritage-border rounded-[20px] space-y-3">
+      <Card className="p-5 bg-white border-[#DCD9D0] rounded-[20px] space-y-3">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-heritage-success" />
-          <h3 className="text-sm font-bold text-heritage-text">
+          <ShieldCheck className="w-5 h-5 text-[#059669]" />
+          <h3 className="text-sm font-bold text-[#14241C]">
             2. Điều Kiện Kích Hoạt Kế Hoạch Di Sản (SETUP-01)
           </h3>
         </div>
 
         <div className="space-y-2 text-xs">
-          <div className="flex items-center justify-between p-2.5 rounded-[12px] bg-heritage-surface border border-heritage-neutral-bg">
-            <span className="text-heritage-text">Gói dịch vụ Owner trả phí còn hạn:</span>
-            <span className="font-bold text-heritage-success flex items-center gap-1">
+          <div className="flex items-center justify-between p-2.5 rounded-[12px] bg-[#FAF9F5] border border-[#E8E5DD]">
+            <span className="text-[#14241C]">Gói dịch vụ Owner trả phí còn hạn:</span>
+            <span className="font-bold text-[#059669] flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4" /> {planName}
             </span>
           </div>
 
-          <div className="flex items-center justify-between p-2.5 rounded-[12px] bg-heritage-surface border border-heritage-neutral-bg">
-            <span className="text-heritage-text">Số lượng tài sản đã chỉ định hợp lệ:</span>
+          <div className="flex items-center justify-between p-2.5 rounded-[12px] bg-[#FAF9F5] border border-[#E8E5DD]">
+            <span className="text-[#14241C]">Số lượng tài sản đã chỉ định hợp lệ:</span>
             <span
-              className={`font-bold flex items-center gap-1 ${validAssetsCount > 0 ? "text-heritage-success" : "text-red-500"}`}
+              className={`font-bold flex items-center gap-1 ${validAssetsCount > 0 ? "text-[#059669]" : "text-red-500"}`}
             >
               {validAssetsCount > 0 ? (
                 <CheckCircle2 className="w-4 h-4" />
@@ -148,10 +148,10 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
             </span>
           </div>
 
-          <div className="flex items-center justify-between p-2.5 rounded-[12px] bg-heritage-surface border border-heritage-neutral-bg">
-            <span className="text-heritage-text">Kho bàn giao tự gom đã tạo (manifest):</span>
+          <div className="flex items-center justify-between p-2.5 rounded-[12px] bg-[#FAF9F5] border border-[#E8E5DD]">
+            <span className="text-[#14241C]">Kho bàn giao tự gom đã tạo (manifest):</span>
             <span
-              className={`font-bold flex items-center gap-1 ${validBundlesCount > 0 ? "text-heritage-success" : "text-red-500"}`}
+              className={`font-bold flex items-center gap-1 ${validBundlesCount > 0 ? "text-[#059669]" : "text-red-500"}`}
             >
               {validBundlesCount > 0 ? (
                 <CheckCircle2 className="w-4 h-4" />
@@ -165,13 +165,13 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
       </Card>
 
       {/* PHẦN 3: XÁC NHẬN CHÍNH SÁCH BÀN GIAO */}
-      <Card className="p-4 rounded-[16px] bg-heritage-gold-light border border-heritage-gold-border space-y-2">
+      <Card className="p-4 rounded-[16px] bg-[#FBF7EE] border border-[#E8DCC6] space-y-2">
         <CustomCheckbox
           id="policy-confirm"
           checked={policyConfirmed}
           onChange={(e) => onPolicyConfirmChange(e.target.checked)}
           label={
-            <span className="font-bold text-heritage-primary text-xs">
+            <span className="font-bold text-[#0B291E] text-xs">
               Tôi xác nhận chính sách bàn giao: Kho một người được chọn chuyển 1:1 trước khi bắt
               đầu; Kho đồng sở hữu bắt buộc 100% đồng thuận; Bàn giao chỉ mở sau khi Verifier duyệt
               giấy chứng tử (SRS 3.11.0).
@@ -186,9 +186,9 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           type="button"
           disabled={!isFormValid || isPending}
           onClick={onActivate}
-          className="w-full min-h-[50px] rounded-[20px] bg-heritage-sidebar hover:bg-heritage-sidebar/90 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+          className="w-full min-h-[50px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
         >
-          <Zap className="w-4 h-4 text-heritage-gold" />
+          <Zap className="w-4 h-4 text-[#B88E4C]" />
           <span>
             {isPending ? "Đang Niêm Phong & Kích Hoạt..." : "Xác Nhận & Kích Hoạt Kế Hoạch Di Sản"}
           </span>

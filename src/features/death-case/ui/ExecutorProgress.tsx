@@ -21,15 +21,15 @@ const noticeStatusLabels: Record<string, string> = {
 const stepStyles: Record<StepState, string> = {
   done: "border-[#2E9E6E] bg-[#2E9E6E] text-white",
   current: "border-[#1A4B3B] bg-[#1A4B3B] text-white ring-4 ring-[#BFE6D3]",
-  pending: "border-heritage-border bg-white text-heritage-muted",
-  error: "border-heritage-danger bg-heritage-danger text-white",
+  pending: "border-[#BDB8A6] bg-white text-heritage-muted",
+  error: "border-[#A32119] bg-[#A32119] text-white",
 };
 
 const captionStyles: Record<StepState, string> = {
-  done: "text-heritage-success",
+  done: "text-[#1F7A55]",
   current: "text-[#1A4B3B]",
   pending: "text-heritage-muted",
-  error: "text-heritage-danger",
+  error: "text-[#A32119]",
 };
 
 function describe(record: DeathCase | null | undefined, now: Date): string {

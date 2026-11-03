@@ -5,7 +5,7 @@ import { Initial } from "@/shared/ui/heritageKit";
 import guilloche from "@/shared/assets/auth-guilloche.svg";
 import { ROUTES } from "@/shared/config/routes.config";
 import { OverviewIcon, TrustedIcon } from "@/shared/ui/LegacyVaultArtwork";
-import { WorkspaceShell, WorkspaceTopbar, type BreadcrumbItem } from "@/shared/ui/WorkspaceShell";
+import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
@@ -39,8 +39,6 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
     { id: "overview", label: shell.overview, icon: OverviewIcon, to: root },
     { id: "verify", label: shell.verify, icon: TrustedIcon, to: `${verify}?step=documents` },
   ];
-  const breadcrumb: BreadcrumbItem[] = [{ label: shell.overview, to: root }];
-  if (active !== "overview") breadcrumb.push({ label: shell[active] });
   return (
     <WorkspaceShell
       brand={shell.brand}
@@ -57,7 +55,7 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
               key={id}
               to={to}
               aria-current={active === id ? "page" : undefined}
-              className={`flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-heritage-gold ${active === id ? "border-l-2 border-heritage-gold bg-white/10 font-semibold text-heritage-gold" : "text-white/80 hover:bg-white/10"}`}
+              className={`flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-heritage-gold ${active === id ? "border-l-2 border-heritage-gold bg-heritage-surface/10 font-semibold text-heritage-gold" : "text-heritage-surface/80 hover:bg-heritage-surface/10"}`}
             >
               <Icon className="size-5 shrink-0" aria-hidden="true" />
               {label}
@@ -65,7 +63,6 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
           ))}
         </nav>
       }
-      topbar={<WorkspaceTopbar breadcrumb={breadcrumb} roleLabel={shell.role} />}
       footer={
         <>
           <img

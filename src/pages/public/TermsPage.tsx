@@ -13,7 +13,7 @@ export function TermsPage() {
     >
       <p
         role="note"
-        className="mb-8 rounded-xl border border-heritage-gold/50 bg-[#FAF3E0] p-4 text-sm leading-6 text-[#5C4720]"
+        className="mb-8 rounded-xl border border-[#B68F4C]/50 bg-[#FAF3E0] p-4 text-sm leading-6 text-[#5C4720]"
       >
         {content.draftNotice}
       </p>

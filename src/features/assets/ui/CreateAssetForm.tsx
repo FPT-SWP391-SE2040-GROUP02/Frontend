@@ -25,26 +25,17 @@ const kinds: Array<{ value: Kind; label: string }> = [
   { value: "FILE", label: "Tệp tải lên" },
 ];
 
-/**
- * Nội dung chỉ ở form RAM; không nằm trong MutationCache/QueryCache, tên/ghi chú không chứa bí mật.
- * Gói bàn giao chỉ được chọn từ các gói đã có: sau khi lưu mục, `addToPackage` cập nhật gói đó (không tạo gói mới).
- */
+/** Nội dung chỉ ở form RAM; không nằm trong MutationCache/QueryCache, tên/ghi chú không chứa bí mật. */
 export function CreateAssetForm({
   vaultId,
   remainingBytes,
-  packages = [],
-  addToPackage,
 }: {
   vaultId: string;
   remainingBytes: number;
-  packages?: Array<{ id: string; name: string }>;
-  addToPackage?: (assetId: string, packageId: string) => Promise<unknown>;
 }) {
   const client = useQueryClient();
   const action = usePrivateAction();
   const [kind, setKind] = useState<Kind>("TEXT");
-  const [packageId, setPackageId] = useState("");
-  const [packageNote, setPackageNote] = useState("");
   const [fileError, setFileError] = useState("");
   const [file, setFile] = useState<File | null>(null);
   // Tiến độ pha 1 (gửi byte lên mạng); pha 2 là "máy chủ mã hóa/lưu" khi pending sau khi upload xong.
@@ -106,48 +97,23 @@ export function CreateAssetForm({
             return;
           }
           setUploadPercent(null);
-          setPackageNote("");
-          const chosenPackage = packageId;
           const saved = await action.execute(
-            async () => {
-              let asset;
-              if (kind === "TEXT") {
-                asset = await backendAssetService.createText(vaultId, values);
-              } else {
-                asset = await backendAssetService.upload(
-                  vaultId,
-                  file!,
-                  values.name,
-                  values.description,
-                  (percent) => setUploadPercent(percent),
-                );
-              }
-              // Mục đã lưu; nếu gắn vào gói lỗi thì báo riêng, không làm mất kết quả lưu mục.
-              let attachFailed = false;
-              if (chosenPackage && addToPackage) {
-                try {
-                  await addToPackage(asset.id, chosenPackage);
-                } catch {
-                  attachFailed = true;
-                }
-              }
-              return attachFailed;
-            },
-            (attachFailed) => {
+            () =>
+              kind === "TEXT"
+                ? backendAssetService.createText(vaultId, values)
+                : backendAssetService.upload(
+                    vaultId,
+                    file!,
+                    values.name,
+                    values.description,
+                    (percent) => setUploadPercent(percent),
+                  ),
+            () => {
               void client.invalidateQueries({ queryKey: ["vault-assets", vaultId] });
               void client.invalidateQueries({ queryKey: ["owner-vault"] });
-              void client.invalidateQueries({ queryKey: ["plan-setup", vaultId] });
-              if (attachFailed) {
-                setPackageNote(
-                  "Đã lưu mục nhưng chưa thêm được vào gói bàn giao. Mở gói bàn giao để thêm lại.",
-                );
-              }
             },
           );
-          if (saved) {
-            clear();
-            setPackageId("");
-          }
+          if (saved) clear();
         })}
       >
         <div className="grid grid-cols-2 gap-3" role="group" aria-label="Loại mục">
@@ -163,8 +129,8 @@ export function CreateAssetForm({
               }}
               className={`min-h-11 rounded-xl border px-3 text-sm font-semibold transition-colors ${
                 kind === item.value
-                  ? "border-heritage-gold bg-heritage-warning-bg text-heritage-primary"
-                  : "border-heritage-border bg-white text-heritage-primary hover:bg-heritage-neutral-bg"
+                  ? "border-[#B68F4C] bg-[#F1E6CC] text-[#0A281E]"
+                  : "border-[#BDB8A6] bg-white text-[#0A281E] hover:bg-[#F4F1E6]"
               }`}
             >
               {item.label}
@@ -250,7 +216,7 @@ export function CreateAssetForm({
                 className="h-2 overflow-hidden rounded-full bg-heritage-canvas"
               >
                 <div
-                  className="h-full rounded-full bg-heritage-success"
+                  className="h-full rounded-full bg-[#1F7A55]"
                   style={{
                     width:
                       uploadPercent === null || uploadPercent >= 100 ? "100%" : `${uploadPercent}%`,
@@ -264,25 +230,8 @@ export function CreateAssetForm({
               {errors.content?.message ?? fileError}
             </p>
           )}
-          {addToPackage && (
-            <label className="block text-sm font-medium">
-              Gói bàn giao (không bắt buộc)
-              <select
-                value={packageId}
-                onChange={(e) => setPackageId(e.target.value)}
-                className="mt-2 h-12 w-full rounded-xl border border-heritage-border bg-white px-4 text-sm font-normal"
-              >
-                <option value="">Chưa thêm vào gói nào</option>
-                {packages.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
           <p className="flex items-start gap-2 text-xs leading-5 text-heritage-muted">
-            <Lock className="mt-0.5 size-3.5 shrink-0 text-heritage-success" aria-hidden="true" />
+            <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
             Nội dung được mã hóa AES-256-GCM trên máy chủ.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -300,13 +249,8 @@ export function CreateAssetForm({
           </p>
         )}
         {action.succeeded && (
-          <p role="status" className="text-sm text-heritage-success">
+          <p role="status" className="text-sm text-[#1F7A55]">
             Đã lưu vào kho.
-          </p>
-        )}
-        {packageNote && (
-          <p role="alert" className="text-sm text-destructive">
-            {packageNote}
           </p>
         )}
       </form>

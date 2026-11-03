@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Check, X } from "lucide-react";
+import { ArrowRight, Check, Lock, X } from "lucide-react";
 import { z } from "zod";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { Button } from "@/shared/ui/button";
@@ -41,6 +41,16 @@ const statuses = {
 /** Kế hoạch ở các trạng thái này thì Backend chặn mời, gửi lại và thu hồi Executor (SETUP-21). */
 const LOCKED_PLAN_STATUSES = ["DEATH_CASE_OPEN", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"];
 const RUNNING_PLAN_STATUSES = ["ACTIVE", "CHECKIN_OVERDUE", "AWAITING_CHECK"];
+const PLAN_CHIP_LABELS: Record<string, string> = {
+  DRAFT: "Đang nháp",
+  ACTIVE: "Đang hoạt động",
+  CHECKIN_OVERDUE: "Đang hoạt động",
+  AWAITING_CHECK: "Đang hoạt động",
+  DEATH_CASE_OPEN: "Có hồ sơ báo tử",
+  HANDOVER_IN_PROGRESS: "Đang bàn giao",
+  BLOCKED: "Đang bị chặn",
+  CLOSED: "Đã đóng",
+};
 
 /** Lý do khóa ở đầu câu thông báo chỉ xem (thiết kế 186). */
 const LOCKED_REASONS: Record<string, string> = {
@@ -51,8 +61,7 @@ const LOCKED_REASONS: Record<string, string> = {
 };
 
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
-const GOLD_BUTTON =
-  "bg-heritage-gold-soft font-semibold text-heritage-on-gold shadow-none hover:bg-heritage-gold-soft-hover";
+const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
 const ALLOWED_ACTIONS = ["Báo tin cho hệ thống", "Theo dõi tiến trình bàn giao"];
 const FORBIDDEN_ACTIONS = ["Đọc nội dung kho", "Tự duyệt hồ sơ"];
 
@@ -243,9 +252,7 @@ function InviteDialog({
               </p>
             )}
           </fieldset>
-          <p className="rounded-lg bg-heritage-warning-bg p-3 text-sm text-heritage-warning">
-            {notice}
-          </p>
+          <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">{notice}</p>
           {action.error && (
             <p role="alert" className="text-sm text-destructive">
               {action.error}
@@ -292,7 +299,7 @@ function RevokeDialog({
             {executor.inviteeEmail} sẽ không còn là người thực hiện của kho này.
           </DialogDescription>
         </DialogHeader>
-        <p className="rounded-lg bg-heritage-warning-bg p-3 text-sm text-heritage-warning">
+        <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
           Hồ sơ đang xử lý (nếu có) sẽ được giữ nguyên.
         </p>
         {action.error && (
@@ -397,17 +404,13 @@ function RoleCard(props: RoleCardProps) {
     (holder.status === "ACCEPTED" && holder.acceptedScopeVersion !== scopeVersion);
   // Người thực hiện đã nhận nhiệm vụ khi kế hoạch chạy: Backend yêu cầu mời người thay, không thu hồi trực tiếp.
   const mustReplace = holder.status === "ACCEPTED" && planRunning;
-  let statusChipClass = "bg-heritage-primary/10 text-heritage-primary";
-  if (holder.status === "ACCEPTED") {
-    statusChipClass = "bg-green-100 text-green-800";
-  }
   return (
     <section aria-label={title} className={CARD}>
       <h2 className="text-xl font-medium text-heritage-primary">{title}</h2>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft font-semibold text-heritage-on-gold"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#E0C486] font-semibold text-[#0A281E]"
             aria-hidden="true"
           >
             {holder.inviteeEmail.charAt(0).toUpperCase()}
@@ -417,7 +420,7 @@ function RoleCard(props: RoleCardProps) {
             <p className="text-xs text-heritage-muted">{dateLine}</p>
           </div>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusChipClass}`}>
+        <span className="rounded-full bg-heritage-primary/10 px-3 py-1 text-xs font-semibold text-heritage-primary">
           {statuses[holder.status]}
         </span>
       </div>
@@ -431,7 +434,7 @@ function RoleCard(props: RoleCardProps) {
         {description} {beneficiaryNote}
       </p>
       {pending !== null && (
-        <p className="mt-3 rounded-lg bg-heritage-warning-bg p-3 text-sm text-heritage-warning">
+        <p className="mt-3 rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
           Đã mời người thay: {pending.inviteeEmail} · {statuses[pending.status]}. Người hiện tại vẫn
           giữ vai trò đến khi người mới chấp nhận.
         </p>
@@ -482,11 +485,48 @@ function RoleCard(props: RoleCardProps) {
   );
 }
 
+function RecentActivity({ executors }: { executors: Executor[] }) {
+  const events: { key: string; text: string; at: string }[] = [];
+  for (const executor of executors) {
+    if (executor.acceptedAt !== null) {
+      events.push({
+        key: `${executor.id}-accepted`,
+        text: `${executor.inviteeEmail} chấp nhận lời mời`,
+        at: executor.acceptedAt,
+      });
+    }
+    if (executor.invitationSentAt !== null) {
+      events.push({
+        key: `${executor.id}-sent`,
+        text: `Bạn gửi lời mời cho ${executor.inviteeEmail}`,
+        at: executor.invitationSentAt,
+      });
+    }
+  }
+  events.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+  const rows: ReactNode[] = [];
+  for (const event of events.slice(0, 5)) {
+    rows.push(
+      <li key={event.key} className="border-b border-heritage-border py-3 last:border-b-0">
+        <p className="text-sm font-semibold">{event.text}</p>
+        <p className="text-xs text-heritage-muted">{formatDate(event.at)}</p>
+      </li>,
+    );
+  }
+  return (
+    <section aria-label="Hoạt động gần đây" className={CARD}>
+      <h2 className="text-xl font-medium text-heritage-primary">Hoạt động gần đây</h2>
+      {rows.length === 0 && (
+        <p className="mt-4 text-sm text-heritage-muted">Chưa có hoạt động nào.</p>
+      )}
+      <ul className="mt-2">{rows}</ul>
+    </section>
+  );
+}
+
 /**
  * Màn "Người tin cậy" theo thiết kế: một Người thực hiện do Chủ kho mời; Người xét duyệt do hệ thống phân công.
  * Mọi thao tác (mời, mời thay, gửi lại, thu hồi) do Chủ kho chủ động; kết quả và điều kiện do Backend quyết định.
- * Phần giải thích vai trò nằm ở trang hướng dẫn, link tới đó đặt trong thẻ "Hướng dẫn cho Executor".
- * Cố ý không hiện đoạn phạm vi Executor (`executorScopeText`) và thẻ hoạt động gần đây để màn gọn.
  */
 export function ExecutorsSection({
   vaultId,
@@ -541,8 +581,16 @@ export function ExecutorsSection({
   const planRunning = RUNNING_PLAN_STATUSES.includes(setup.planStatus);
   const primary = currentHolder(setup.executors);
   const replacement = pendingReplacement(setup.executors, primary);
+  let chipLabel = "Đang nháp";
+  if (Object.hasOwn(PLAN_CHIP_LABELS, setup.planStatus)) {
+    chipLabel = PLAN_CHIP_LABELS[setup.planStatus];
+  }
+  let chipClass = "bg-green-100 text-green-800";
   let banner: ReactNode = null;
   if (!manageable) {
+    // Bị khóa: chip "Chỉ xem" thay cho trạng thái kế hoạch, lý do nằm ở thông báo bên dưới.
+    chipLabel = "Chỉ xem";
+    chipClass = "bg-[#ECE8DB] text-[#3D3A2E]";
     let reason = "Kế hoạch đang bị khóa";
     if (Object.hasOwn(LOCKED_REASONS, setup.planStatus)) {
       reason = LOCKED_REASONS[setup.planStatus];
@@ -576,11 +624,13 @@ export function ExecutorsSection({
           </button>
         </div>
       )}
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${chipClass}`}>
+          {chipLabel}
+        </span>
+      </div>
       {banner !== null && (
-        <p
-          role="status"
-          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
-        >
+        <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
           {banner}
         </p>
       )}
@@ -607,10 +657,7 @@ export function ExecutorsSection({
         </p>
       )}
       {resent && !resendAction.pending && !resent.invitationSentAt && (
-        <p
-          role="status"
-          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
-        >
+        <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
           Đã tạo lời mời mới cho {resent.inviteeEmail} nhưng chưa gửi được email. Kiểm tra cấu hình
           gửi thư rồi bấm Gửi lại lời mời.
         </p>
@@ -623,6 +670,33 @@ export function ExecutorsSection({
           </Button>
         </div>
       )}
+      <p className="text-sm leading-6">{setup.executorScopeText}</p>
+      {/* Thiết kế 135: kế hoạch đang chạy thì bỏ thẻ giải thích, Hoạt động gần đây chiếm cả hàng. */}
+      <div
+        className={
+          planRunning
+            ? "grid items-start gap-6"
+            : "grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]"
+        }
+      >
+        {!planRunning && (
+          <section aria-label="Vì sao có người xét duyệt riêng" className={CARD}>
+            <h2 className="text-xl font-medium text-heritage-primary">
+              Vì sao có người xét duyệt riêng?
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-heritage-muted">
+              Người báo tin và người xét duyệt là hai người khác nhau. Người xét duyệt là nhân viên
+              do hệ thống hoặc quản trị viên phân công, bạn không mời và không thấy họ. Mỗi lần bàn
+              giao còn có 72 giờ để bạn lên tiếng và bước xác minh eKYC cho người nhận.
+            </p>
+            <p className="mt-4 flex items-center gap-2 text-xs text-heritage-muted">
+              <Lock className="size-4 shrink-0" aria-hidden="true" />
+              Nội dung kho được mã hóa trên máy chủ. Không ai trong nhóm này đọc được.
+            </p>
+          </section>
+        )}
+        <RecentActivity executors={setup.executors} />
+      </div>
       {dialog !== null && dialog.kind === "invite" && (
         <InviteDialog
           vaultId={vaultId}

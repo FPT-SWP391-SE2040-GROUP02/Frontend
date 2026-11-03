@@ -72,11 +72,11 @@ export const AssetTable: React.FC<AssetTableProps> = ({
   const getAssetIcon = (type: AssetType) => {
     switch (type) {
       case "CRYPTO":
-        return <Bitcoin className="w-4 h-4 text-heritage-gold" />;
+        return <Bitcoin className="w-4 h-4 text-[#B88E4C]" />;
       case "CREDENTIAL":
-        return <KeyRound className="w-4 h-4 text-heritage-primary" />;
+        return <KeyRound className="w-4 h-4 text-[#0B291E]" />;
       case "DOCUMENT":
-        return <FileText className="w-4 h-4 text-heritage-muted" />;
+        return <FileText className="w-4 h-4 text-[#66786E]" />;
       default:
         return <Lock className="w-4 h-4" />;
     }
@@ -85,11 +85,11 @@ export const AssetTable: React.FC<AssetTableProps> = ({
   const getBadgeStyle = (type: AssetType) => {
     switch (type) {
       case "CRYPTO":
-        return "bg-heritage-gold-light text-heritage-gold border-heritage-gold-border";
+        return "bg-[#FBF7EE] text-[#B88E4C] border-[#E8DCC6]";
       case "CREDENTIAL":
-        return "bg-heritage-primary-light text-heritage-primary border-[#A2C4AF]";
+        return "bg-[#E5EDE8] text-[#0B291E] border-[#A2C4AF]";
       case "DOCUMENT":
-        return "bg-heritage-canvas text-heritage-text border-heritage-border";
+        return "bg-[#EFECE6] text-[#14241C] border-[#DCD9D0]";
     }
   };
 
@@ -108,12 +108,12 @@ export const AssetTable: React.FC<AssetTableProps> = ({
       <div
         role="status"
         aria-label="Đang tải danh sách tài sản"
-        className="bg-heritage-surface border border-heritage-border rounded-[24px] p-6 space-y-4"
+        className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-6 space-y-4"
       >
-        <div className="h-10 bg-heritage-canvas rounded-[14px] w-1/3 animate-pulse" />
+        <div className="h-10 bg-[#EFECE6] rounded-[14px] w-1/3 animate-pulse" />
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-heritage-canvas rounded-[16px] animate-pulse" />
+            <div key={i} className="h-16 bg-[#EFECE6] rounded-[16px] animate-pulse" />
           ))}
         </div>
       </div>
@@ -125,22 +125,20 @@ export const AssetTable: React.FC<AssetTableProps> = ({
     return (
       <div
         role="alert"
-        className="bg-heritage-surface border border-heritage-danger/30 rounded-[24px] p-8 text-center space-y-4 shadow-sm"
+        className="bg-[#FAF9F5] border border-[#FECACA] rounded-[24px] p-8 text-center space-y-4 shadow-sm"
       >
-        <div className="w-12 h-12 rounded-[16px] bg-heritage-danger-bg border border-heritage-danger/30 flex items-center justify-center text-heritage-danger mx-auto">
+        <div className="w-12 h-12 rounded-[16px] bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#DC2626] mx-auto">
           <AlertCircle className="w-6 h-6" />
         </div>
         <div>
-          <h3 className="text-base font-bold text-heritage-text">
-            Không thể tải danh sách tài sản số
-          </h3>
-          <p className="text-xs text-heritage-muted mt-1 max-w-sm mx-auto leading-relaxed">
+          <h3 className="text-base font-bold text-[#14241C]">Không thể tải danh sách tài sản số</h3>
+          <p className="text-xs text-[#66786E] mt-1 max-w-sm mx-auto leading-relaxed">
             Đã xảy ra lỗi kết nối với máy chủ mã hóa hoặc chứng thực phiên làm việc.
           </p>
         </div>
         <Button
           onClick={() => refetch()}
-          className="min-h-[44px] rounded-[16px] bg-heritage-sidebar hover:bg-heritage-sidebar/90 text-white text-xs font-semibold px-6 shadow-sm focus-visible:ring-2 focus-visible:ring-heritage-gold"
+          className="min-h-[44px] rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-semibold px-6 shadow-sm focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
         >
           Thử Lại Ngay
         </Button>
@@ -151,22 +149,22 @@ export const AssetTable: React.FC<AssetTableProps> = ({
   // 3. Trạng thái Empty (Khi chưa có tài sản nào)
   if (data.items.length === 0) {
     return (
-      <div className="bg-heritage-surface border border-heritage-border rounded-[24px] p-12 text-center space-y-4 shadow-[0_2px_12px_rgba(11,41,30,0.04)]">
-        <div className="w-16 h-16 rounded-[20px] bg-heritage-primary-light text-heritage-primary flex items-center justify-center mx-auto shadow-sm">
+      <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-12 text-center space-y-4 shadow-[0_2px_12px_rgba(11,41,30,0.04)]">
+        <div className="w-16 h-16 rounded-[20px] bg-[#E5EDE8] text-[#0B291E] flex items-center justify-center mx-auto shadow-sm">
           <Lock className="w-8 h-8" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-heritage-text">Kho Di Sản Chưa Có Tài Sản Nào</h3>
-          <p className="text-xs sm:text-sm text-heritage-muted max-w-md mx-auto mt-1 leading-relaxed">
+          <h3 className="text-lg font-bold text-[#14241C]">Kho Di Sản Chưa Có Tài Sản Nào</h3>
+          <p className="text-xs sm:text-sm text-[#66786E] max-w-md mx-auto mt-1 leading-relaxed">
             Hãy bắt đầu bảo vệ ví tiền mã hóa, tài khoản số hoặc tài liệu mật bằng mã hóa cấp quân
             sự AES-256-GCM.
           </p>
         </div>
         <Button
           onClick={onOpenCreateModal}
-          className="min-h-[44px] rounded-[20px] bg-heritage-sidebar hover:bg-heritage-sidebar/90 text-white font-bold text-xs px-6 py-3 shadow-[0_4px_16px_rgba(11,41,30,0.2)] flex items-center gap-2 mx-auto focus-visible:ring-2 focus-visible:ring-heritage-gold"
+          className="min-h-[44px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs px-6 py-3 shadow-[0_4px_16px_rgba(11,41,30,0.2)] flex items-center gap-2 mx-auto focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
         >
-          <Plus className="w-4 h-4 text-heritage-gold" />
+          <Plus className="w-4 h-4 text-[#B88E4C]" />
           Thêm Tài Sản Đầu Tiên
         </Button>
       </div>
@@ -179,58 +177,58 @@ export const AssetTable: React.FC<AssetTableProps> = ({
       {/* Search Input Bar (Heuristic #7: Flexibility & Efficiency) */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:max-w-xs">
-          <Search className="w-4 h-4 text-heritage-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-[#A8A295] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             type="text"
             placeholder="Tìm kiếm tài sản trong kho..."
             value={internalSearch}
             onChange={(e) => setInternalSearch(e.target.value)}
-            className="h-11 pl-10 pr-9 bg-heritage-surface border-heritage-border focus:border-heritage-gold rounded-[16px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-heritage-gold"
+            className="h-11 pl-10 pr-9 bg-[#FAF9F5] border-[#DCD9D0] focus:border-[#B88E4C] rounded-[16px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             aria-label="Tìm kiếm tài sản trong kho"
           />
           {internalSearch && (
             <button
               onClick={() => setInternalSearch("")}
               aria-label="Xóa nội dung tìm kiếm"
-              className="w-7 h-7 rounded-full flex items-center justify-center text-heritage-muted hover:text-heritage-text absolute right-2 top-1/2 -translate-y-1/2"
+              className="w-7 h-7 rounded-full flex items-center justify-center text-[#66786E] hover:text-[#14241C] absolute right-2 top-1/2 -translate-y-1/2"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        <div className="text-xs text-heritage-muted font-medium self-end sm:self-center">
-          Hiển thị <span className="font-bold text-heritage-primary">{filteredItems.length}</span> /{" "}
+        <div className="text-xs text-[#66786E] font-medium self-end sm:self-center">
+          Hiển thị <span className="font-bold text-[#0B291E]">{filteredItems.length}</span> /{" "}
           {data.items.length} tài sản
         </div>
       </div>
 
       {/* Kết quả tìm kiếm rỗng */}
       {filteredItems.length === 0 ? (
-        <div className="bg-heritage-surface border border-heritage-border rounded-[24px] p-8 text-center space-y-2">
-          <p className="text-sm font-semibold text-heritage-text">
+        <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-8 text-center space-y-2">
+          <p className="text-sm font-semibold text-[#14241C]">
             Không tìm thấy tài sản khớp với "{effectiveSearchTerm}"
           </p>
-          <p className="text-xs text-heritage-muted">
+          <p className="text-xs text-[#66786E]">
             Vui lòng kiểm tra lại từ khóa hoặc xóa bộ lọc tìm kiếm.
           </p>
           <Button
             variant="outline"
             onClick={() => setInternalSearch("")}
-            className="min-h-[44px] rounded-[16px] border-heritage-border text-xs font-semibold mt-2"
+            className="min-h-[44px] rounded-[16px] border-[#DCD9D0] text-xs font-semibold mt-2"
           >
             Xóa Tìm Kiếm
           </Button>
         </div>
       ) : (
-        <div className="bg-heritage-surface border border-heritage-border rounded-[24px] overflow-hidden shadow-[0_4px_20px_rgba(11,41,30,0.04)]">
+        <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] overflow-hidden shadow-[0_4px_20px_rgba(11,41,30,0.04)]">
           <div className="overflow-x-auto">
             <table
               className="w-full text-left border-collapse"
               aria-label="Bảng danh sách tài sản số"
             >
               <thead>
-                <tr className="border-b border-heritage-neutral-bg bg-heritage-canvas/70 text-heritage-muted text-[11px] font-bold uppercase tracking-wider">
+                <tr className="border-b border-[#E8E5DD] bg-[#EFECE6]/70 text-[#66786E] text-[11px] font-bold uppercase tracking-wider">
                   <th scope="col" className="py-4 px-6">
                     Tài Sản Số
                   </th>
@@ -251,7 +249,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-heritage-neutral-bg text-xs font-medium">
+              <tbody className="divide-y divide-[#E8E5DD] text-xs font-medium">
                 {filteredItems.map((asset) => (
                   <tr
                     key={asset.id}
@@ -269,14 +267,14 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                     {/* Title & Description */}
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-[12px] bg-heritage-canvas border border-heritage-border flex items-center justify-center shrink-0 group-hover:border-heritage-gold transition-colors">
+                        <div className="w-10 h-10 rounded-[12px] bg-[#EFECE6] border border-[#DCD9D0] flex items-center justify-center shrink-0 group-hover:border-[#B88E4C] transition-colors">
                           {getAssetIcon(asset.assetType)}
                         </div>
                         <div>
-                          <span className="font-bold text-heritage-text text-sm block group-hover:text-heritage-primary">
+                          <span className="font-bold text-[#14241C] text-sm block group-hover:text-[#0B291E]">
                             {asset.title}
                           </span>
-                          <span className="text-[11px] text-heritage-muted truncate max-w-xs block">
+                          <span className="text-[11px] text-[#66786E] truncate max-w-xs block">
                             {asset.description}
                           </span>
                         </div>
@@ -295,20 +293,18 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                     </td>
 
                     {/* Beneficiaries Count */}
-                    <td className="py-4 px-4 text-heritage-text">
-                      <span className="font-bold text-heritage-primary">
-                        {asset.beneficiaryCount}
-                      </span>{" "}
+                    <td className="py-4 px-4 text-[#14241C]">
+                      <span className="font-bold text-[#0B291E]">{asset.beneficiaryCount}</span>{" "}
                       người
                     </td>
 
                     {/* Shamir Threshold */}
-                    <td className="py-4 px-4 font-mono text-[11px] text-heritage-gold">
+                    <td className="py-4 px-4 font-mono text-[11px] text-[#B88E4C]">
                       {asset.shamirThresholdText}
                     </td>
 
                     {/* Date */}
-                    <td className="py-4 px-4 text-heritage-muted text-[11px]">
+                    <td className="py-4 px-4 text-[#66786E] text-[11px]">
                       {asset.createdAtFormatted}
                     </td>
 
@@ -319,9 +315,9 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                           variant="ghost"
                           onClick={() => onSelectAsset(asset)}
                           aria-label={`Xem chi tiết tài sản ${asset.title}`}
-                          className="min-h-[44px] px-3.5 rounded-[12px] text-xs text-heritage-primary hover:bg-heritage-primary-light flex items-center gap-1.5 font-semibold focus-visible:ring-2 focus-visible:ring-heritage-gold"
+                          className="min-h-[44px] px-3.5 rounded-[12px] text-xs text-[#0B291E] hover:bg-[#E5EDE8] flex items-center gap-1.5 font-semibold focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
                         >
-                          <Eye className="w-4 h-4 text-heritage-gold" />
+                          <Eye className="w-4 h-4 text-[#B88E4C]" />
                           <span>Xem</span>
                         </Button>
 
@@ -330,7 +326,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                           disabled={isDeleting}
                           onClick={() => setAssetToDelete(asset)}
                           aria-label={`Xóa tài sản ${asset.title}`}
-                          className="min-h-[44px] px-3 rounded-[12px] text-xs text-heritage-danger hover:bg-heritage-danger-bg flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-heritage-danger"
+                          className="min-h-[44px] px-3 rounded-[12px] text-xs text-[#DC2626] hover:bg-[#FEF2F2] flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-[#DC2626]"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

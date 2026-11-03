@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
-import { ArrowRight, CheckCircle2, TriangleAlert } from "lucide-react";
+import { CheckCircle2, TriangleAlert } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { ROUTES } from "@/shared/config/routes.config";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { Textarea } from "@/shared/ui/textarea";
@@ -59,13 +57,6 @@ function ExecutorNoteForm({ vault }: { vault: VaultResponse }) {
           <p className="mt-1 text-sm text-heritage-muted">
             Ví dụ: liên hệ ai, giấy tờ để ở đâu, cần báo cho ai trước.
           </p>
-          <Link
-            to={ROUTES.DASHBOARD.PEOPLE_GUIDE}
-            className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-heritage-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-heritage-gold"
-          >
-            Xem hướng dẫn bàn giao
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
         </div>
         <span className="shrink-0 text-xs tabular-nums text-heritage-muted" aria-hidden="true">
           {note.length}/{NOTE_MAX}
@@ -87,13 +78,13 @@ function ExecutorNoteForm({ vault }: { vault: VaultResponse }) {
         disabled={action.pending || closed}
         onChange={(event) => setNote(event.target.value)}
         placeholder="Ví dụ: Gọi cho anh Minh (luật sư gia đình) trước. Giấy tờ để trong tủ sắt ở phòng làm việc."
-        className="mt-4 rounded-xl border-heritage-border bg-white"
+        className="mt-4 rounded-xl border-[#BDB8A6] bg-white"
       />
       <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
         {action.succeeded && !dirty && (
           <p
             role="status"
-            className="mr-auto inline-flex items-center gap-1.5 text-sm font-medium text-heritage-success"
+            className="mr-auto inline-flex items-center gap-1.5 text-sm font-medium text-[#1F7A55]"
           >
             <CheckCircle2 className="size-4" aria-hidden="true" />
             Đã lưu hướng dẫn.

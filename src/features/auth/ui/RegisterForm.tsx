@@ -96,7 +96,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
       <div className="space-y-1 text-left">
         <label
           htmlFor="register-fullName"
-          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-heritage-text"
+          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
         >
           Họ và tên
         </label>
@@ -110,7 +110,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
             disabled={isPending}
             {...register("fullName")}
             placeholder="Nguyễn Văn A"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-surface border-[#d8e3d2] dark:border-heritage-border"
+            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
           />
         </div>
         {errors.fullName && (
@@ -124,7 +124,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
       <div className="space-y-1 text-left">
         <label
           htmlFor="register-email"
-          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-heritage-text"
+          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
         >
           Email
         </label>
@@ -139,7 +139,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
             {...register("email")}
             type="email"
             placeholder="owner@legacyvault.io"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-surface border-[#d8e3d2] dark:border-heritage-border"
+            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
           />
         </div>
         {errors.email && (
@@ -153,7 +153,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
       <div className="space-y-1 text-left">
         <label
           htmlFor="register-password"
-          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-heritage-text"
+          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
         >
           Mật khẩu
         </label>
@@ -172,7 +172,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
             {...passwordField}
             onBlur={handlePasswordBlur}
             type="password"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-surface border-[#d8e3d2] dark:border-heritage-border"
+            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
           />
         </div>
         <p id="register-password-hint" className="text-sm text-heritage-muted">
@@ -189,7 +189,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
       <div className="space-y-1 text-left">
         <label
           htmlFor="register-confirmPassword"
-          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-heritage-text"
+          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
         >
           Xác nhận mật khẩu
         </label>
@@ -204,7 +204,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
             {...register("confirmPassword")}
             type="password"
             placeholder="Nhập lại mật khẩu"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-surface border-[#d8e3d2] dark:border-heritage-border"
+            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
           />
         </div>
         {errors.confirmPassword && (

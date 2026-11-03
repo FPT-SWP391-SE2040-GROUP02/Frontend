@@ -191,7 +191,6 @@ describe("pricing reference policies", () => {
 
   it("explains add-on limits and expiry as reference information only", () => {
     setup();
-    fireEvent.click(screen.getByText("Chính sách chi tiết"));
     const policy = screen.getByRole("region", { name: "Mua thêm suất người nhận" });
     expect(policy).toHaveTextContent("49.000đ/suất/năm");
     expect(policy).toHaveTextContent("Tối đa 20 suất mỗi đơn");

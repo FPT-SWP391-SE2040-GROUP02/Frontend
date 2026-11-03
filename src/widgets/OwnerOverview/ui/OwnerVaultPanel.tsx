@@ -6,7 +6,7 @@ import {
 import { Vault, Layers3, HardDrive, Users } from "lucide-react";
 import { Button, Skeleton } from "@/shared/ui";
 import { OwnerResourcesPanel } from "./OwnerResourcesPanel";
-import { AutoCreateVault } from "@/features/vault-management/ui/AutoCreateVault";
+import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
 import { EditVaultForm } from "@/features/vault-management/ui/EditVaultForm";
 import { VaultServiceInfo } from "@/entities/vault/ui/VaultServiceInfo";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
@@ -80,7 +80,7 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
             Kho di sản giúp bạn sắp xếp tài sản và các gói bàn giao.
           </p>
           <div className="w-full max-w-xl">
-            <AutoCreateVault />
+            <CreateVaultForm />
           </div>
         </div>
       ) : vault.isError ? (

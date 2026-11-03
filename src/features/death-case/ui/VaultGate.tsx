@@ -45,7 +45,7 @@ export function VaultGate({
   return (
     <div className="space-y-6">
       {vaults.length > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-heritage-neutral-bg px-4 py-3 text-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#F4F1E6] px-4 py-3 text-sm">
           <span>
             Đang xem kho của <strong>{selected.ownerFullName}</strong>
           </span>

@@ -27,10 +27,7 @@ export function ExecutorPermissions({
           <ul className="space-y-3 text-sm">
             {allowed.map((item) => (
               <li key={item} className="flex items-start gap-3">
-                <Check
-                  className="mt-0.5 size-4 shrink-0 text-heritage-success"
-                  aria-hidden="true"
-                />
+                <Check className="mt-0.5 size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
                 {item}
               </li>
             ))}
@@ -40,7 +37,7 @@ export function ExecutorPermissions({
           <ul className="space-y-3 text-sm">
             {denied.map((item) => (
               <li key={item} className="flex items-start gap-3">
-                <X className="mt-0.5 size-4 shrink-0 text-heritage-danger" aria-hidden="true" />
+                <X className="mt-0.5 size-4 shrink-0 text-[#A32119]" aria-hidden="true" />
                 {item}
               </li>
             ))}
