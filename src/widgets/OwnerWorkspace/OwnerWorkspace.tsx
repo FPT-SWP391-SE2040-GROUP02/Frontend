@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { ArrowLeftRight, Menu, ScanFace, X } from "lucide-react";
+import { ArrowLeftRight, Mail, Menu, ScanFace, X } from "lucide-react";
 import {
   OverviewIcon,
   VaultIcon,
@@ -20,6 +20,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useExecutorVaults } from "@/features/death-case/model/useExecutorVaults";
+import { useMyInvitations } from "@/features/plan-setup/model/useMyInvitations";
 import { getDisplayedServiceTier } from "@/entities/vault/model/vaultServicePresentation";
 import { VaultServiceBadge } from "@/entities/vault/ui/VaultServiceInfo";
 import {
@@ -64,6 +65,14 @@ function useCanSwitchToExecutor(): boolean {
   return (vaults.data?.length ?? 0) > 0;
 }
 
+/** Số lời mời làm Người thực hiện đang chờ; 0 khi chưa đăng nhập, đang tải hoặc lỗi. */
+function usePendingInvitationCount(): number {
+  const isAuthenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
+  const invitations = useMyInvitations(isAuthenticated && Boolean(accessTokenMemory.get()));
+  if (!invitations.isSuccess) return 0;
+  return invitations.data.pending.length;
+}
+
 export interface OwnerWorkspaceProps {
   title: string;
   /** Nhãn nhỏ phía trên tiêu đề, dùng khi tiêu đề là dữ liệu riêng (ví dụ tên kho). */
@@ -96,6 +105,8 @@ export function OwnerWorkspace({
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const showOwnerService = user?.role === "USER" && Boolean(accessTokenMemory.get());
   const showSwitchRole = useCanSwitchToExecutor();
+  // Lời mời đang chờ hiện ở chân sidebar: người chưa là Executor không có nút chuyển vai để tìm lời mời.
+  const pendingInvitations = usePendingInvitationCount();
   const [navigationOpen, setNavigationOpen] = useState(false);
   return (
     <WorkspaceShell
@@ -146,6 +157,18 @@ export function OwnerWorkspace({
                 )}
               </Link>
             ))}
+            {pendingInvitations > 0 && (
+              <Link
+                to={ROUTES.DASHBOARD.INVITATIONS}
+                // Như nút chuyển vai: từ 768px trở lên nút Lời mời nằm ở chân khung, mục này chỉ cho điện thoại.
+                className="owner-nav-link owner-nav-link--phone-only"
+                onClick={() => setNavigationOpen(false)}
+              >
+                <Mail className="size-[18px] shrink-0" aria-hidden="true" />
+                Lời mời
+                <InvitationCountBadge count={pendingInvitations} />
+              </Link>
+            )}
             {showSwitchRole && (
               <Link
                 to={ROUTES.EXECUTOR.ROOT}
@@ -162,6 +185,17 @@ export function OwnerWorkspace({
       }
       footer={
         <>
+          {pendingInvitations > 0 && (
+            <Link
+              to={ROUTES.DASHBOARD.INVITATIONS}
+              aria-current={path === ROUTES.DASHBOARD.INVITATIONS ? "page" : undefined}
+              className="mb-3 flex min-h-11 items-center gap-2 rounded-lg border border-[#E0C486]/60 bg-white/5 px-3 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+            >
+              <Mail className="size-4 shrink-0" aria-hidden="true" />
+              Lời mời
+              <InvitationCountBadge count={pendingInvitations} />
+            </Link>
+          )}
           {showSwitchRole && (
             <Link
               to={ROUTES.EXECUTOR.ROOT}
@@ -212,5 +246,17 @@ export function OwnerWorkspace({
         kế.
       </footer>
     </WorkspaceShell>
+  );
+}
+
+/** Huy hiệu đếm lời mời đang chờ trên nút/mục Lời mời. */
+export function InvitationCountBadge({ count }: { count: number }) {
+  return (
+    <span
+      aria-label={`${count} lời mời đang chờ`}
+      className="ml-auto rounded-full bg-[#E0C486] px-2 py-0.5 text-xs font-semibold text-[#0A281E]"
+    >
+      {count}
+    </span>
   );
 }

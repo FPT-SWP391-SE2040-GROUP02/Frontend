@@ -40,10 +40,10 @@ function OwnerCatalog() {
       {vault.isError && isOwnerVaultMissing(vault.error) && (
         <p className="text-sm text-heritage-muted">
           Bạn chưa có kho.{" "}
-          <Link className="underline" to={ROUTES.DASHBOARD.ROOT}>
-            Tạo kho
+          <Link className="underline" to={ROUTES.AUTH.VERIFY_EMAIL}>
+            Xác minh email
           </Link>{" "}
-          để xem gói dịch vụ và quyền lợi hiện tại.
+          để mở kho và xem gói dịch vụ, quyền lợi hiện tại.
         </p>
       )}
       {vault.isError && !isOwnerVaultMissing(vault.error) && (

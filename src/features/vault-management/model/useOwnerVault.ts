@@ -10,13 +10,32 @@ import { z } from "zod";
 import { HTTP_STATUS } from "@/shared/constants";
 
 const vaultMissingProblemSchema = z.object({ code: z.literal("VAULT_NOT_FOUND") });
-/** Nhận diện chưa có kho; 404 route sai không được coi là empty. */
-export function isOwnerVaultMissing(error: unknown): boolean {
+const emailNotVerifiedProblemSchema = z.object({ code: z.literal("EMAIL_NOT_VERIFIED") });
+
+/** 404 VAULT_NOT_FOUND của GET /vaults/me; 404 route sai không được coi là chưa có kho. */
+function isVaultNotFound(error: unknown): boolean {
   return (
     isAxiosError<unknown>(error) &&
     error.response?.status === HTTP_STATUS.NOT_FOUND &&
     vaultMissingProblemSchema.safeParse(error.response.data).success
   );
+}
+
+/** 403 EMAIL_NOT_VERIFIED: BE chỉ tạo kho cho tài khoản đã xác minh email (AC-01). */
+export function isOwnerVaultEmailNotVerified(error: unknown): boolean {
+  return (
+    isAxiosError<unknown>(error) &&
+    error.response?.status === HTTP_STATUS.FORBIDDEN &&
+    emailNotVerifiedProblemSchema.safeParse(error.response.data).success
+  );
+}
+
+/**
+ * Chưa có kho để dùng. Kho được tự tạo khi đọc, nên trường hợp này thực tế là
+ * email chưa xác minh (hoặc 404 còn sót nếu BE trả về như vậy).
+ */
+export function isOwnerVaultMissing(error: unknown): boolean {
+  return isVaultNotFound(error) || isOwnerVaultEmailNotVerified(error);
 }
 
 /** Cache riêng theo kho; auth transitions hủy và xóa dữ liệu khi đổi identity. */
@@ -31,11 +50,25 @@ export const ownerVaultKeys = {
   },
   package: (vaultId: string, id: string) => ["owner-vault", vaultId, "container", id] as const,
 };
-/** Chỉ đọc khi caller xác nhận session sẵn sàng. */
+/**
+ * Đọc kho của tài khoản; chưa có kho thì tự tạo (POST /vaults không gửi tên, BE dùng tên mặc định).
+ * Mỗi người chỉ có một kho và POST idempotent, nên gọi trùng từ nhiều màn vẫn ra cùng một kho.
+ * Chỉ chạy khi caller xác nhận session sẵn sàng.
+ */
+async function getOrCreateMyVault(signal: AbortSignal) {
+  try {
+    return await ownerVaultService.getMine(signal);
+  } catch (error) {
+    if (!isVaultNotFound(error)) throw error;
+    return ownerVaultService.createMine();
+  }
+}
+
+/** Kho của tài khoản hiện tại, tự tạo lần đầu; lỗi 403 EMAIL_NOT_VERIFIED được giữ nguyên cho UI. */
 export function useOwnerVault(enabled: boolean) {
   return useQuery({
     queryKey: ownerVaultKeys.mine,
-    queryFn: ({ signal }) => ownerVaultService.getMine(signal),
+    queryFn: ({ signal }) => getOrCreateMyVault(signal),
     enabled,
     retry: false,
   });
@@ -66,15 +99,6 @@ export function useOwnerPackage(vaultId: string, id: string, enabled: boolean) {
     queryFn: ({ signal }) => ownerVaultService.getPackage(vaultId, id, signal),
     enabled: enabled && Boolean(vaultId) && Boolean(id),
     retry: false,
-  });
-}
-/** Tạo kho; không retry mutation. */
-export function useCreateOwnerVault() {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: () => ownerVaultService.createMine(),
-    retry: false,
-    onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
   });
 }
 /** Transport tạo gói; UI submit nghiệp vụ vẫn scaffold. */

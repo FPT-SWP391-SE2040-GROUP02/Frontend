@@ -63,7 +63,7 @@ export function OwnerAssetDetail({ assetId }: { assetId: string }) {
         <p role="status">Vui lòng đăng nhập để xem kho.</p>
       ) : missingVault ? (
         <Notice tone="warning" title="Bạn chưa có kho di sản">
-          Hãy tạo kho trước khi thêm mục.
+          Xác minh email để mở kho trước khi thêm mục.
         </Notice>
       ) : vault.isError ? (
         <div role="alert" className="space-y-3">

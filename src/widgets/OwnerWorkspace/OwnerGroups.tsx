@@ -1,17 +1,33 @@
-import { useSearchParams, Link } from "react-router-dom";
-import type { ReactNode } from "react";
-import { ArrowRight, Check } from "lucide-react";
-import { ROUTES } from "@/shared/config/routes.config";
+import { useState, type ReactNode } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Check } from "lucide-react";
+import type { PackageResponse } from "@/entities/package/model/package.types";
 import { Button } from "@/shared/ui/button";
 import { useOwnerPackages } from "@/features/vault-management/model/useOwnerVault";
+import type {
+  GroupAssetOption,
+  GroupBeneficiaryOption,
+} from "@/features/vault-management/model/groupMembers";
 import { CreateGroupDialog } from "@/features/vault-management/ui/CreateGroupDialog";
+import { GroupCard } from "@/features/vault-management/ui/GroupCard";
+import { RenameGroupDialog } from "@/features/vault-management/ui/RenameGroupDialog";
+import { AddGroupMembersDialog } from "@/features/vault-management/ui/AddGroupMembersDialog";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
+import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
+import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
 
 const PAGE_SIZE = 10;
+/** Một kho có tối đa 50 gói chưa xóa nên một trang 100 dòng đủ để biết tài sản đang ở gói nào. */
+const LOOKUP_PAGE = { pageIndex: 1, pageSize: 100 };
 const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
 
+interface MemberEditing {
+  group: PackageResponse;
+  relation: "assets" | "beneficiaries";
+}
+
 /**
- * Tab "Gói bàn giao" của Kho của tôi: danh sách gói bàn giao và tạo gói bàn giao. Người nhận được gắn theo gói bàn giao.
+ * Tab "Gói bàn giao" của Kho của tôi: thẻ từng gói kèm chip tài sản, người nhận và chỗ bổ sung phần còn thiếu.
  * Nút "Tạo gói bàn giao" ở đầu trang do trang cha điều khiển qua `createOpen`.
  */
 export function OwnerGroups({
@@ -24,14 +40,64 @@ export function OwnerGroups({
   onCreateOpenChange: (open: boolean) => void;
 }) {
   const [params, setParams] = useSearchParams();
+  const [renaming, setRenaming] = useState<PackageResponse | null>(null);
+  const [editing, setEditing] = useState<MemberEditing | null>(null);
   const requested = Number(params.get("page") ?? 1);
   let page = 1;
   if (Number.isSafeInteger(requested) && requested >= 1 && requested <= 1_000_000) {
     page = requested;
   }
   const query = useOwnerPackages(vaultId, true, { pageIndex: page, pageSize: PAGE_SIZE });
+  const allGroups = useOwnerPackages(vaultId, true, LOOKUP_PAGE);
+  const assetQuery = useVaultAssets(vaultId, LOOKUP_PAGE);
+  const beneficiaryQuery = useBeneficiaries(vaultId, LOOKUP_PAGE);
   // Mục chưa thuộc gói bàn giao nào sẽ không nằm trong phạm vi bàn giao; chỉ nhắc khi đã biết chắc.
   const planSetup = usePlanSetup(vaultId);
+
+  // Bảng tài sản -> gói, dựng từ assetIds của các gói (AssetResponse không có trường này).
+  const groupOfAsset = new Map<string, PackageResponse>();
+  if (allGroups.data) {
+    for (const group of allGroups.data.items) {
+      for (const assetId of group.assetIds) {
+        groupOfAsset.set(assetId, group);
+      }
+    }
+  }
+  const assets: GroupAssetOption[] = [];
+  const assetsById = new Map<string, GroupAssetOption>();
+  if (assetQuery.data) {
+    for (const item of assetQuery.data.items) {
+      const owner = groupOfAsset.get(item.id);
+      let containerId: string | null = null;
+      let containerName: string | null = null;
+      if (owner) {
+        containerId = owner.id;
+        containerName = owner.name;
+      }
+      const option: GroupAssetOption = {
+        id: item.id,
+        name: item.name,
+        kind: item.kind,
+        containerId,
+        containerName,
+      };
+      assets.push(option);
+      assetsById.set(option.id, option);
+    }
+  }
+  const beneficiaries: GroupBeneficiaryOption[] = [];
+  const beneficiariesById = new Map<string, GroupBeneficiaryOption>();
+  if (beneficiaryQuery.data) {
+    for (const item of beneficiaryQuery.data.items) {
+      const option: GroupBeneficiaryOption = {
+        id: item.id,
+        fullName: item.fullName,
+        citizenIdLast4: item.citizenIdLast4,
+      };
+      beneficiaries.push(option);
+      beneficiariesById.set(option.id, option);
+    }
+  }
 
   function goTo(value: number): void {
     const next = new URLSearchParams(params);
@@ -75,42 +141,22 @@ export function OwnerGroups({
       </div>
     );
   } else {
-    const rows: ReactNode[] = [];
+    const cards: ReactNode[] = [];
     for (const group of query.data.items) {
-      let statusLabel = "Chưa sẵn sàng";
-      let statusStyle = "bg-amber-100 text-amber-800";
-      if (group.status === "READY") {
-        statusLabel = "Sẵn sàng";
-        statusStyle = "bg-green-100 text-green-800";
-      }
-      rows.push(
-        <li
+      cards.push(
+        <GroupCard
           key={group.id}
-          className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-heritage-border py-4 last:border-b-0"
-        >
-          <div className="min-w-0 flex-1">
-            <p className="break-words font-semibold">{group.name}</p>
-            <p className="text-xs text-heritage-muted">
-              {group.assetIds.length} mục · {group.beneficiaryIds.length} người nhận
-            </p>
-          </div>
-          <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${statusStyle}`}>
-            {statusLabel}
-          </span>
-          <Link
-            to={ROUTES.DASHBOARD.GROUP_DETAIL(group.id)}
-            aria-label={`Mở gói bàn giao ${group.name}`}
-            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-[20px] border border-[#B68F4C] bg-[#E0C486] px-5 text-sm font-semibold text-[#0A281E] transition-colors hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
-          >
-            Mở gói bàn giao
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
-        </li>,
+          group={group}
+          assetsById={assetsById}
+          beneficiariesById={beneficiariesById}
+          onRename={setRenaming}
+          onAddMembers={(target, relation) => setEditing({ group: target, relation })}
+        />,
       );
     }
     body = (
       <>
-        <ul className="mt-2">{rows}</ul>
+        <ul className="mt-4 space-y-4">{cards}</ul>
         {(page > 1 || query.data.hasNextPage) && (
           <nav
             aria-label="Phân trang gói bàn giao"
@@ -155,10 +201,30 @@ export function OwnerGroups({
         className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
       >
         <h2 className="text-xl font-medium text-heritage-primary">Danh sách gói bàn giao</h2>
+        <p className="mt-3 max-w-2xl rounded-xl border border-heritage-border bg-[#FBFAF5] px-4 py-3 text-sm text-[#4D4D4B]">
+          Một gói gom các tài sản có cùng người nhận. Gói chuyển sang <strong>sẵn sàng</strong> khi
+          có ít nhất một tài sản và một người nhận. Kế hoạch bàn giao cần ít nhất một gói sẵn sàng
+          mới kích hoạt được.
+        </p>
         {body}
       </section>
       {createOpen && (
-        <CreateGroupDialog vaultId={vaultId} onClose={() => onCreateOpenChange(false)} />
+        <CreateGroupDialog
+          vaultId={vaultId}
+          assets={assets}
+          beneficiaries={beneficiaries}
+          onClose={() => onCreateOpenChange(false)}
+        />
+      )}
+      {renaming && <RenameGroupDialog group={renaming} onClose={() => setRenaming(null)} />}
+      {editing && (
+        <AddGroupMembersDialog
+          group={editing.group}
+          relation={editing.relation}
+          assets={assets}
+          beneficiaries={beneficiaries}
+          onClose={() => setEditing(null)}
+        />
       )}
     </div>
   );

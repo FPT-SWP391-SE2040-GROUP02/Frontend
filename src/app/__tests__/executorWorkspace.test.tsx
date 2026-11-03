@@ -109,12 +109,13 @@ function setup(path: string) {
 }
 
 describe("Executor workspace shell", () => {
-  it("shows the five menu items, the role switch to the Owner space and the account", async () => {
+  it("shows the six menu items, the role switch to the Owner space and the account", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor");
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người thực hiện" });
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
       "Tổng quan",
+      "Lời mời",
       "Báo tin",
       "Tiến trình",
       "Quyền hạn",
@@ -236,7 +237,9 @@ describe("Executor overview", () => {
     expect(
       screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
     ).not.toBeInTheDocument();
-    expect(get).toHaveBeenCalledTimes(2);
+    // Khung còn gọi GET lời mời cho mục Lời mời; chỉ đếm các lần tải danh sách kho.
+    const vaultLoads = get.mock.calls.filter(([url]) => url === "/executor/vaults");
+    expect(vaultLoads).toHaveLength(2);
   });
 
   it("does not check in when the Executor cancels the confirmation", async () => {
@@ -292,20 +295,24 @@ describe("Executor overview", () => {
     ).toBeInTheDocument();
   });
 
-  it("lets an Executor of several vaults choose one and remembers the choice", async () => {
+  it("lists several vaults with their task, overdue first, and remembers the opened one", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
       vault(),
-      vault({ vaultId: OTHER_VAULT_ID, ownerFullName: "Bà Hạnh" }),
+      vault({ vaultId: OTHER_VAULT_ID, ownerFullName: "Bà Hạnh", checkInOverdue: true }),
     ]);
     setup("/executor");
-    expect(await screen.findByRole("heading", { level: 1, name: "Chọn kho" })).toBeInTheDocument();
-    expect(screen.getByText("Kho của Anh Nam")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Vào kho của Bà Hạnh" }));
-    expect(await screen.findByText("Kho của Bà Hạnh đang an toàn")).toBeInTheDocument();
-    expect(window.sessionStorage.getItem("lv-executor-vault")).toBe(OTHER_VAULT_ID);
-    // Đổi kho quay lại bước chọn.
-    fireEvent.click(screen.getByRole("button", { name: "Đổi kho" }));
-    expect(await screen.findByRole("heading", { level: 1, name: "Chọn kho" })).toBeInTheDocument();
+    expect(await screen.findByText("Bạn là Người thực hiện cho 2 kho.")).toBeInTheDocument();
+    expect(screen.getByText("1 kho đang cần bạn")).toBeInTheDocument();
+    const names = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((heading) => heading.textContent);
+    expect(names.indexOf("Bà Hạnh")).toBeLessThan(names.indexOf("Anh Nam"));
+    expect(screen.getByRole("button", { name: "Liên hệ kiểm tra" })).toBeInTheDocument();
+    expect(screen.getByText("Chưa có việc gì")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Mở kho của Anh Nam" }));
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(window.sessionStorage.getItem("lv-executor-vault")).toBe(VAULT_ID);
   });
 
   it("reports a failed vault list with a retry instead of an empty page", async () => {

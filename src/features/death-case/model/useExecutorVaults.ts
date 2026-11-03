@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { deathCaseService } from "../api/deathCaseService";
 import type { ExecutorVault } from "./deathCase.schema";
 
@@ -49,6 +49,7 @@ function writeStored(vaultId: string | null) {
 export function useSelectedExecutorVault() {
   const query = useExecutorVaults();
   const [params, setParams] = useSearchParams();
+  const navigate = useNavigate();
   const vaults: ExecutorVault[] = query.data ?? [];
   const fromUrl = params.get("vault");
   const stored = readStored();
@@ -71,5 +72,10 @@ export function useSelectedExecutorVault() {
     next.delete("caseId");
     setParams(next);
   };
-  return { query, vaults, selected, select, clear };
+  /** Chọn kho rồi sang một trang khác của không gian Người thực hiện (ví dụ Báo tin, Tiến trình). */
+  const open = (vaultId: string, path: string) => {
+    writeStored(vaultId);
+    navigate(`${path}?vault=${encodeURIComponent(vaultId)}`);
+  };
+  return { query, vaults, selected, select, clear, open };
 }

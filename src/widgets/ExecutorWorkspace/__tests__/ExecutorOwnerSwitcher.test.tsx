@@ -1,11 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ExecutorOwnerSwitcher } from "../ExecutorOwnerSwitcher";
 import * as useExecutorVaultsModule from "@/features/death-case/model/useExecutorVaults";
+import type { ExecutorVault } from "@/features/death-case/model/deathCase.schema";
 
 vi.mock("@/features/death-case/model/useExecutorVaults");
 
-const mockVault1 = {
+const safeVault: ExecutorVault = {
   vaultId: "550e8400-e29b-41d4-a716-446655440001",
   ownerFullName: "Trần Văn A",
   planStatus: "ACTIVE",
@@ -13,7 +15,7 @@ const mockVault1 = {
   openDeathCaseId: null,
 };
 
-const mockVault2 = {
+const overdueVault: ExecutorVault = {
   vaultId: "550e8400-e29b-41d4-a716-446655440002",
   ownerFullName: "Nguyễn Thị Mai",
   planStatus: "ACTIVE",
@@ -21,58 +23,73 @@ const mockVault2 = {
   openDeathCaseId: null,
 };
 
+function mockState(vaults: ExecutorVault[], selected: ExecutorVault | null) {
+  const select = vi.fn();
+  const clear = vi.fn();
+  vi.spyOn(useExecutorVaultsModule, "useSelectedExecutorVault").mockReturnValue({
+    query: {} as never,
+    vaults,
+    selected,
+    select,
+    clear,
+    open: vi.fn(),
+  });
+  return { select, clear };
+}
+
+function renderSwitcher() {
+  return render(
+    <MemoryRouter initialEntries={["/executor/report"]}>
+      <Routes>
+        <Route path="/executor/report" element={<ExecutorOwnerSwitcher />} />
+        <Route path="/executor" element={<p>Danh sách kho</p>} />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
+afterEach(() => {
+  cleanup();
+  vi.restoreAllMocks();
+});
+
 describe("ExecutorOwnerSwitcher", () => {
   it("không hiển thị gì khi chưa có kho nào", () => {
-    vi.spyOn(useExecutorVaultsModule, "useSelectedExecutorVault").mockReturnValue({
-      query: {} as never,
-      vaults: [],
-      selected: null,
-      select: vi.fn(),
-      clear: vi.fn(),
-    });
-
-    const { container } = render(<ExecutorOwnerSwitcher />);
+    mockState([], null);
+    const { container } = renderSwitcher();
     expect(container.firstChild).toBeNull();
   });
 
-  it("hiển thị thẻ tĩnh khi chỉ phụ trách 1 kho", () => {
-    vi.spyOn(useExecutorVaultsModule, "useSelectedExecutorVault").mockReturnValue({
-      query: {} as never,
-      vaults: [mockVault1],
-      selected: mockVault1,
-      select: vi.fn(),
-      clear: vi.fn(),
-    });
-
-    render(<ExecutorOwnerSwitcher />);
-    expect(screen.getByText("Chủ kho phụ trách")).toBeInTheDocument();
+  it("một kho thì là nhãn tĩnh, không có nút đổi kho", () => {
+    mockState([safeVault], safeVault);
+    renderSwitcher();
+    expect(screen.getByText("Đang làm việc với kho của")).toBeInTheDocument();
     expect(screen.getByText("Trần Văn A")).toBeInTheDocument();
     expect(screen.getByText("Kho an toàn")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
-  it("mở danh sách và gọi select khi có nhiều kho", () => {
-    const selectMock = vi.fn();
-    vi.spyOn(useExecutorVaultsModule, "useSelectedExecutorVault").mockReturnValue({
-      query: {} as never,
-      vaults: [mockVault1, mockVault2],
-      selected: mockVault1,
-      select: selectMock,
-      clear: vi.fn(),
-    });
+  it("nhiều kho: đưa kho quá hạn lên trước và gọi select khi chọn", () => {
+    const { select } = mockState([safeVault, overdueVault], safeVault);
+    renderSwitcher();
+    fireEvent.click(screen.getByRole("button", { name: "Đổi kho đang làm việc" }));
+    const menu = screen.getByRole("menu");
+    expect(within(menu).getByText("2 kho bạn phụ trách")).toBeInTheDocument();
+    const items = within(menu).getAllByRole("menuitem");
+    expect(items[0]).toHaveTextContent("Nguyễn Thị Mai");
+    expect(items[0]).toHaveTextContent("Quá hạn điểm danh");
+    expect(items[1]).toHaveAttribute("aria-current", "true");
 
-    render(<ExecutorOwnerSwitcher />);
-    const toggleButton = screen.getByRole("button", { name: "Chọn chủ kho cần làm việc" });
-    expect(toggleButton).toBeInTheDocument();
-    expect(screen.getByText("Trần Văn A")).toBeInTheDocument();
+    fireEvent.click(items[0]);
+    expect(select).toHaveBeenCalledWith(overdueVault.vaultId);
+  });
 
-    // Mở dropdown
-    fireEvent.click(toggleButton);
-    expect(screen.getByRole("menu")).toBeInTheDocument();
-    expect(screen.getByText("Nguyễn Thị Mai")).toBeInTheDocument();
-    expect(screen.getByText("Quá hạn điểm danh")).toBeInTheDocument();
-
-    // Chọn kho thứ hai
-    fireEvent.click(screen.getByText("Nguyễn Thị Mai"));
-    expect(selectMock).toHaveBeenCalledWith(mockVault2.vaultId);
+  it("Xem tất cả kho bỏ lựa chọn và về danh sách kho", async () => {
+    const { clear } = mockState([safeVault, overdueVault], safeVault);
+    renderSwitcher();
+    fireEvent.click(screen.getByRole("button", { name: "Đổi kho đang làm việc" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Xem tất cả kho" }));
+    expect(clear).toHaveBeenCalled();
+    expect(await screen.findByText("Danh sách kho")).toBeInTheDocument();
   });
 });

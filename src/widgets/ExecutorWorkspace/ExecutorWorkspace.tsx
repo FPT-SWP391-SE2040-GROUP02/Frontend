@@ -9,12 +9,16 @@ import {
   Menu,
   Settings,
   ShieldCheck,
+  TrendingUp,
   X,
   type LucideIcon,
 } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { UserAvatar } from "@/entities/user/ui/UserAvatar";
 import { ROUTES } from "@/shared/config/routes.config";
+import { accessTokenMemory } from "@/shared/api/accessToken";
+import { useMyInvitations } from "@/features/plan-setup/model/useMyInvitations";
+import { InvitationCountBadge } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "./executor-workspace.css";
@@ -26,11 +30,15 @@ interface NavItem {
   icon: LucideIcon;
 }
 
-/** Menu Người thực hiện theo bộ thiết kế: Tổng quan, Báo tin, Tiến trình, Quyền hạn, Cài đặt. */
+/**
+ * Menu Người thực hiện: Tổng quan, Lời mời, Báo tin, Tiến trình, Quyền hạn, Cài đặt.
+ * Lời mời nằm ngay dưới Tổng quan và luôn hiện, kể cả khi không còn lời mời nào (xem lịch sử).
+ */
 const executorNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT, icon: Home },
+  { label: "Lời mời", to: ROUTES.EXECUTOR.INVITATIONS, icon: Mail },
   { label: "Báo tin", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
-  { label: "Tiến trình", to: ROUTES.EXECUTOR.PROGRESS, icon: Mail },
+  { label: "Tiến trình", to: ROUTES.EXECUTOR.PROGRESS, icon: TrendingUp },
   { label: "Quyền hạn", to: ROUTES.EXECUTOR.PERMISSIONS, icon: ShieldCheck },
   { label: "Cài đặt", to: ROUTES.EXECUTOR.SETTINGS, icon: Settings },
 ];
@@ -54,6 +62,10 @@ export function ExecutorWorkspace({
   const location = useLocation();
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const [navigationOpen, setNavigationOpen] = useState(false);
+  const isAuthenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
+  const invitations = useMyInvitations(isAuthenticated && Boolean(accessTokenMemory.get()));
+  let pendingInvitations = 0;
+  if (invitations.isSuccess) pendingInvitations = invitations.data.pending.length;
   const path = location.pathname;
   const current = executorNavigation.find(({ to }) =>
     to === ROUTES.EXECUTOR.ROOT ? path === to : path === to || path.startsWith(`${to}/`),
@@ -103,6 +115,9 @@ export function ExecutorWorkspace({
               >
                 <Icon className="size-[18px] shrink-0" aria-hidden="true" />
                 {label}
+                {to === ROUTES.EXECUTOR.INVITATIONS && pendingInvitations > 0 && (
+                  <InvitationCountBadge count={pendingInvitations} />
+                )}
               </Link>
             ))}
           </nav>

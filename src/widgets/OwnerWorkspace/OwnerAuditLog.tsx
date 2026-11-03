@@ -123,7 +123,7 @@ export function OwnerAuditLog() {
         role="status"
         className="rounded-xl border border-heritage-border bg-heritage-surface p-6 text-sm"
       >
-        Kho của bạn chưa sẵn sàng. Tạo kho trước khi xem nhật ký.
+        Kho của bạn chưa sẵn sàng. Xác minh email để mở kho trước khi xem nhật ký.
       </div>
     );
   }

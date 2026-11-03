@@ -1,16 +1,17 @@
 import { useSelector } from "react-redux";
-import { Vault, FolderOpen } from "lucide-react";
+import { Lock, Vault } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { confirmVaultPin } from "@/shared/api/vaultPin";
 import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
+import { useVaultPinStatus, VaultPinSetupNotice } from "@/features/vault-pin";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { Button } from "@/shared/ui/button";
 import {
   useOwnerVault,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
-import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
+import { VaultEmailRequiredNotice } from "@/features/vault-management/ui/VaultEmailRequiredNotice";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
 import { AssetList } from "@/features/assets/ui/AssetList";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
@@ -19,17 +20,47 @@ import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
 import { OwnerGroups } from "./OwnerGroups";
 import { OwnerCheckIn } from "./OwnerCheckIn";
 
-function Empty({ title, description }: { title: string; description: string }) {
-  return (
-    <div
-      role="status"
-      className="rounded-xl border border-dashed border-heritage-border bg-heritage-surface px-6 py-12 text-center"
-    >
-      <FolderOpen className="mx-auto mb-4 size-8 text-heritage-gold" aria-hidden="true" />
-      <h2 className="text-base font-semibold">{title}</h2>
-      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-heritage-muted">{description}</p>
-    </div>
-  );
+/** Kho chưa đặt mã PIN: mời đặt PIN trên đầu màn Tài sản (BE chặn tạo tài sản tới khi có PIN). */
+function VaultPinSetupBanner({ vaultId }: { vaultId: string }) {
+  const pinStatus = useVaultPinStatus(vaultId);
+  if (!pinStatus.isSuccess || pinStatus.data.isSet) return null;
+  return <VaultPinSetupNotice vaultId={vaultId} />;
+}
+
+/**
+ * Form thêm tài sản chỉ mở khi kho đã có PIN. Lỗi tải trạng thái PIN vẫn hiện form: Backend vẫn tự chặn
+ * bằng 409 VAULT_PIN_NOT_SET nên không cần chặn thêm ở đây.
+ */
+function AssetCreatePanel({
+  vaultId,
+  remainingBytes,
+}: {
+  vaultId: string;
+  remainingBytes: number;
+}) {
+  const pinStatus = useVaultPinStatus(vaultId);
+  if (pinStatus.isPending) {
+    return (
+      <p role="status" className="text-sm text-heritage-muted">
+        Đang kiểm tra mã PIN của kho…
+      </p>
+    );
+  }
+  if (pinStatus.isSuccess && !pinStatus.data.isSet) {
+    return (
+      <div
+        role="status"
+        className="rounded-xl border border-dashed border-heritage-border bg-heritage-surface px-6 py-10 text-center"
+      >
+        <Lock className="mx-auto mb-3 size-6 text-heritage-gold" aria-hidden="true" />
+        <p className="text-sm font-semibold">Thêm tài sản đang bị khóa</p>
+        <p className="mx-auto mt-1 max-w-xs text-sm text-heritage-muted">
+          Đặt mã PIN cho kho ở phía trên để bắt đầu thêm tài sản.
+        </p>
+      </div>
+    );
+  }
+  return <CreateAssetForm vaultId={vaultId} remainingBytes={remainingBytes} />;
 }
 
 /** Hiển thị lỗi có đường phục hồi; không chuyển lỗi API thành empty/zero. */
@@ -55,16 +86,8 @@ export function OwnerSection({
 }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const vault = useOwnerVault(authenticated && Boolean(accessTokenMemory.get()));
-  if (vault.isError && isOwnerVaultMissing(vault.error))
-    return (
-      <div className="space-y-6">
-        <Empty
-          title="Bạn chưa có kho di sản"
-          description="Kho giúp bạn sắp xếp tài sản, người nhận và kế hoạch bàn giao."
-        />
-        <CreateVaultForm />
-      </div>
-    );
+  // Kho tự tạo khi đọc; còn "thiếu kho" nghĩa là email chưa xác minh.
+  if (vault.isError && isOwnerVaultMissing(vault.error)) return <VaultEmailRequiredNotice />;
   if (vault.isError)
     return <QueryError retry={() => void vault.refetch()} pending={vault.isFetching} />;
   if (!authenticated) return <p role="status">Vui lòng đăng nhập để xem kho.</p>;
@@ -128,6 +151,7 @@ export function OwnerSection({
             />
           </div>
         </section>
+        <VaultPinSetupBanner vaultId={vault.data.id} />
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <AssetList
             vaultId={vault.data.id}
@@ -135,7 +159,7 @@ export function OwnerSection({
               confirmVaultPin(vault.data.id, (pin) => vaultPinService.verify(vault.data.id, pin))
             }
           />
-          <CreateAssetForm
+          <AssetCreatePanel
             vaultId={vault.data.id}
             remainingBytes={vault.data.storageRemainingBytes}
           />
