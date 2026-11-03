@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Check, Plus } from "lucide-react";
+import { ArrowRight, Check, Plus } from "lucide-react";
 import type { PackageResponse } from "@/entities/package/model/package.types";
 import { ROUTES } from "@/shared/config/routes.config";
 import { ChipOverflow, type ChipOverflowItem } from "@/shared/ui/ChipOverflow";
@@ -160,9 +160,15 @@ export function GroupCard({
             </Chip>
           )}
         </div>
-        <button type="button" className={SMALL_OUTLINE} onClick={() => onRename(group)}>
-          Đổi tên
-        </button>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <button type="button" className={SMALL_OUTLINE} onClick={() => onRename(group)}>
+            Đổi tên
+          </button>
+          <Link to={detailLink} aria-label={`Mở gói bàn giao ${group.name}`} className={SMALL_DARK}>
+            Xem chi tiết
+            <ArrowRight className="ml-1.5 size-3.5" aria-hidden="true" />
+          </Link>
+        </div>
       </div>
 
       {showNotice && (
@@ -197,13 +203,6 @@ export function GroupCard({
             {assetChips.length === 0 && (
               <p className="text-xs text-heritage-muted">Chưa có tài sản</p>
             )}
-            <Link
-              to={detailLink}
-              aria-label={`Mở gói bàn giao ${group.name}`}
-              className={`${LINK_STYLE} inline-block pt-1`}
-            >
-              Mở chi tiết gói {group.name}
-            </Link>
           </div>
           <div className="min-w-0 space-y-2">
             <p className="text-xs font-semibold text-[#4D4D4B]">Người nhận</p>
@@ -236,15 +235,6 @@ export function GroupCard({
             )}
           </div>
         </div>
-      )}
-      {group.assetIds.length === 0 && group.beneficiaryIds.length === 0 && (
-        <Link
-          to={detailLink}
-          aria-label={`Mở gói bàn giao ${group.name}`}
-          className={`${LINK_STYLE} inline-block`}
-        >
-          Mở chi tiết gói {group.name}
-        </Link>
       )}
     </li>
   );

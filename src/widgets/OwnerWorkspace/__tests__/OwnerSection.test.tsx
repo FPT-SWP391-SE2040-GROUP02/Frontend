@@ -12,7 +12,7 @@ import { vaultFixture } from "@/shared/api/__tests__/backend.fixtures";
 import { OwnerSection } from "../OwnerSection";
 
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
-  ownerVaultService: { getMine: vi.fn(), listPackages: vi.fn() },
+  ownerVaultService: { getMine: vi.fn(), createMine: vi.fn(), listPackages: vi.fn() },
 }));
 vi.mock("@/features/assets/api/backendAssetService", () => ({
   backendAssetService: { list: vi.fn() },
@@ -55,21 +55,47 @@ function setup() {
   );
 }
 describe("official workspace data states", () => {
-  it("shows a missing vault and never calls dependent or legacy fixture services", async () => {
+  it("asks to verify email when the vault cannot be auto-created and never calls dependent services", async () => {
     vi.mocked(ownerVaultService.getMine).mockRejectedValue({
       isAxiosError: true,
       response: { status: 404, data: { code: "VAULT_NOT_FOUND" } },
     });
+    vi.mocked(ownerVaultService.createMine).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 403, data: { code: "EMAIL_NOT_VERIFIED" } },
+    });
     setup();
-    expect(await screen.findByText("Bạn chưa có kho di sản")).toBeInTheDocument();
+    expect(await screen.findByText("Xác minh email để mở kho di sản")).toBeInTheDocument();
+    expect(ownerVaultService.createMine).toHaveBeenCalledWith();
     expect(backendAssetService.list).not.toHaveBeenCalled();
     expect(ownerVaultService.listPackages).not.toHaveBeenCalled();
+  });
+  it("auto-creates the vault without a name and goes straight to its content", async () => {
+    vi.mocked(ownerVaultService.getMine).mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 404, data: { code: "VAULT_NOT_FOUND" } },
+    });
+    vi.mocked(ownerVaultService.createMine).mockResolvedValue(vaultFixture);
+    vi.mocked(backendAssetService.list).mockResolvedValue({
+      items: [],
+      pageIndex: 1,
+      pageSize: 10,
+      totalCount: 0,
+      totalPages: 0,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    });
+    setup();
+    expect(await screen.findByText("Chưa có nội dung")).toBeInTheDocument();
+    expect(ownerVaultService.createMine).toHaveBeenCalledTimes(1);
+    expect(ownerVaultService.createMine).toHaveBeenCalledWith();
   });
   it("does not report a backend failure as empty data", async () => {
     vi.mocked(ownerVaultService.getMine).mockRejectedValue(new Error("private exception"));
     setup();
     expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được dữ liệu");
-    expect(screen.queryByText("Bạn chưa có kho di sản")).not.toBeInTheDocument();
+    expect(screen.queryByText("Xác minh email để mở kho di sản")).not.toBeInTheDocument();
+    expect(ownerVaultService.createMine).not.toHaveBeenCalled();
     expect(screen.queryByText("private exception")).not.toBeInTheDocument();
   });
   it("renders confirmed empty metadata only after an existing vault is loaded", async () => {

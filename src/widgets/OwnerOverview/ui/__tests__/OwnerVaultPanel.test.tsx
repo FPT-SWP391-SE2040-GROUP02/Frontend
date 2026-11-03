@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { VaultServiceInfo } from "@/entities/vault/ui/VaultServiceInfo";
@@ -15,7 +16,7 @@ import { AxiosError, AxiosHeaders } from "axios";
 import { HTTP_STATUS } from "@/shared/constants";
 
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
-  ownerVaultService: { getMine: vi.fn(), listPackages: vi.fn() },
+  ownerVaultService: { getMine: vi.fn(), createMine: vi.fn(), listPackages: vi.fn() },
 }));
 vi.mock("../OwnerResourcesPanel", () => ({ OwnerResourcesPanel: () => null }));
 
@@ -34,11 +35,25 @@ afterEach(() => {
   queryClient.clear();
 });
 
+/** Lỗi Axios có ProblemDetails `code`, giống phản hồi lỗi của BE. */
+function problem(status: number, code: string) {
+  const config = { headers: new AxiosHeaders() };
+  return new AxiosError("test-response", undefined, config, undefined, {
+    status,
+    statusText: "Test response",
+    headers: {},
+    config,
+    data: { code },
+  });
+}
+
 /** @param enabled Cờ phiên thử nghiệm. @returns UI panel trong query provider. */
 function setup(enabled = true) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <OwnerVaultPanel enabled={enabled} />
+      <MemoryRouter>
+        <OwnerVaultPanel enabled={enabled} />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }
@@ -71,23 +86,32 @@ describe("OwnerVaultPanel", () => {
     [HTTP_STATUS.NOT_FOUND, "VAULT_NOT_FOUND", true],
     [HTTP_STATUS.NOT_FOUND, "NOT_FOUND", false],
     [HTTP_STATUS.INTERNAL_SERVER_ERROR, "VAULT_NOT_FOUND", false],
-  ])("distinguishes missing vault from HTTP %s / %s", async (status, code, missing) => {
-    const config = { headers: new AxiosHeaders() };
-    const error = new AxiosError("test-response", undefined, config, undefined, {
-      status,
-      statusText: "Test response",
-      headers: {},
-      config,
-      data: { code },
-    });
-    vi.mocked(ownerVaultService.getMine).mockRejectedValue(error);
+  ])("auto-creates the vault only for HTTP %s / %s", async (status, code, missing) => {
+    vi.mocked(ownerVaultService.getMine).mockRejectedValue(problem(status, code));
+    vi.mocked(ownerVaultService.createMine).mockResolvedValue(VAULT_FIXTURE);
+    vi.mocked(ownerVaultService.listPackages).mockResolvedValue(pageFixture([]));
     setup();
     if (missing) {
-      expect(await screen.findByText("Bạn chưa có kho di sản.")).toBeInTheDocument();
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(await screen.findAllByText(VAULT_FIXTURE.name)).not.toHaveLength(0);
+      expect(ownerVaultService.createMine).toHaveBeenCalledTimes(1);
+      expect(ownerVaultService.createMine).toHaveBeenCalledWith();
     } else {
       expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được kho");
+      expect(ownerVaultService.createMine).not.toHaveBeenCalled();
+      expect(ownerVaultService.listPackages).not.toHaveBeenCalled();
     }
+  });
+
+  it("asks to verify email when the backend refuses to create the vault", async () => {
+    vi.mocked(ownerVaultService.getMine).mockRejectedValue(
+      problem(HTTP_STATUS.NOT_FOUND, "VAULT_NOT_FOUND"),
+    );
+    vi.mocked(ownerVaultService.createMine).mockRejectedValue(
+      problem(HTTP_STATUS.FORBIDDEN, "EMAIL_NOT_VERIFIED"),
+    );
+    setup();
+    expect(await screen.findByText("Xác minh email để mở kho di sản")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(ownerVaultService.listPackages).not.toHaveBeenCalled();
   });
 

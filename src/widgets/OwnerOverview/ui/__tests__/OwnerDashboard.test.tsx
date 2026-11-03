@@ -202,10 +202,21 @@ describe("Owner dashboard from server metadata", () => {
     expect(screen.getByText(/Có hồ sơ chứng tử trên kho/)).toBeInTheDocument();
   });
 
-  it("offers creation for a missing vault without querying child resources", async () => {
+  it("auto-creates a missing vault and opens the dashboard without a naming step", async () => {
     vi.mocked(ownerVaultService.getMine).mockRejectedValue(problem("VAULT_NOT_FOUND", 404));
+    const createMine = vi.spyOn(ownerVaultService, "createMine").mockResolvedValue(vault);
     mount();
-    expect(await screen.findByRole("region", { name: "Tạo kho di sản" })).toBeInTheDocument();
+    await screen.findByRole("heading", { name: "Tài sản mới thêm" });
+    expect(createMine).toHaveBeenCalledTimes(1);
+    expect(createMine).toHaveBeenCalledWith();
+    expect(screen.queryByText("Đặt tên kho")).not.toBeInTheDocument();
+  });
+
+  it("asks to verify email when the vault cannot be created yet", async () => {
+    vi.mocked(ownerVaultService.getMine).mockRejectedValue(problem("VAULT_NOT_FOUND", 404));
+    vi.spyOn(ownerVaultService, "createMine").mockRejectedValue(problem("EMAIL_NOT_VERIFIED", 403));
+    mount();
+    expect(await screen.findByText("Xác minh email để mở kho di sản")).toBeInTheDocument();
     expect(backendAssetService.list).not.toHaveBeenCalled();
   });
 

@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { Vault, FolderOpen } from "lucide-react";
+import { Vault } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { confirmVaultPin } from "@/shared/api/vaultPin";
@@ -10,7 +10,7 @@ import {
   useOwnerVault,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
-import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
+import { VaultEmailRequiredNotice } from "@/features/vault-management/ui/VaultEmailRequiredNotice";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
 import { AssetList } from "@/features/assets/ui/AssetList";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
@@ -18,19 +18,6 @@ import { OwnerTrustedPeople } from "./OwnerTrustedPeople";
 import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
 import { OwnerGroups } from "./OwnerGroups";
 import { OwnerCheckIn } from "./OwnerCheckIn";
-
-function Empty({ title, description }: { title: string; description: string }) {
-  return (
-    <div
-      role="status"
-      className="rounded-xl border border-dashed border-heritage-border bg-heritage-surface px-6 py-12 text-center"
-    >
-      <FolderOpen className="mx-auto mb-4 size-8 text-heritage-gold" aria-hidden="true" />
-      <h2 className="text-base font-semibold">{title}</h2>
-      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-heritage-muted">{description}</p>
-    </div>
-  );
-}
 
 /** Hiển thị lỗi có đường phục hồi; không chuyển lỗi API thành empty/zero. */
 function QueryError({ retry, pending }: { retry: () => void; pending: boolean }) {
@@ -55,16 +42,8 @@ export function OwnerSection({
 }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const vault = useOwnerVault(authenticated && Boolean(accessTokenMemory.get()));
-  if (vault.isError && isOwnerVaultMissing(vault.error))
-    return (
-      <div className="space-y-6">
-        <Empty
-          title="Bạn chưa có kho di sản"
-          description="Kho giúp bạn sắp xếp tài sản, người nhận và kế hoạch bàn giao."
-        />
-        <CreateVaultForm />
-      </div>
-    );
+  // Kho tự tạo khi đọc; còn "thiếu kho" nghĩa là email chưa xác minh.
+  if (vault.isError && isOwnerVaultMissing(vault.error)) return <VaultEmailRequiredNotice />;
   if (vault.isError)
     return <QueryError retry={() => void vault.refetch()} pending={vault.isFetching} />;
   if (!authenticated) return <p role="status">Vui lòng đăng nhập để xem kho.</p>;

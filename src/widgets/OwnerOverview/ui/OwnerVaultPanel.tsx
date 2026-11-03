@@ -3,10 +3,10 @@ import {
   useOwnerPackages,
   useOwnerVault,
 } from "@/features/vault-management/model/useOwnerVault";
-import { Vault, Layers3, HardDrive, Users } from "lucide-react";
+import { Layers3, HardDrive, Users } from "lucide-react";
 import { Button, Skeleton } from "@/shared/ui";
 import { OwnerResourcesPanel } from "./OwnerResourcesPanel";
-import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
+import { VaultEmailRequiredNotice } from "@/features/vault-management/ui/VaultEmailRequiredNotice";
 import { EditVaultForm } from "@/features/vault-management/ui/EditVaultForm";
 import { VaultServiceInfo } from "@/entities/vault/ui/VaultServiceInfo";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
@@ -15,9 +15,6 @@ import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 const CONTENT = {
   title: "Kho của bạn",
   waiting: "Dữ liệu kho chưa sẵn sàng. Vui lòng đăng nhập để xem kho của bạn.",
-  missingTitle: "Bạn chưa có kho di sản.",
-  missingDescription:
-    "Kho di sản giúp bạn sắp xếp tài sản và các gói bàn giao. Tính năng tạo kho đang được hoàn thiện.",
   loading: "Đang tải kho và gói bàn giao…",
   vaultError: "Không tải được kho. Kiểm tra phiên đăng nhập hoặc thử lại.",
   packagesError: "Không tải được danh sách gói bàn giao. Vui lòng thử lại.",
@@ -70,19 +67,7 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
           {CONTENT.waiting}
         </p>
       ) : vault.isError && isOwnerVaultMissing(vault.error) ? (
-        <div
-          role="status"
-          className="flex min-h-60 flex-col items-center justify-center space-y-3 rounded-xl border border-dashed border-heritage-border bg-heritage-canvas px-6 py-10 text-center"
-        >
-          <Vault className="mb-2 size-10 text-heritage-gold" aria-hidden="true" />
-          <p className="font-medium">{CONTENT.missingTitle}</p>
-          <p className="text-sm text-heritage-muted">
-            Kho di sản giúp bạn sắp xếp tài sản và các gói bàn giao.
-          </p>
-          <div className="w-full max-w-xl">
-            <CreateVaultForm />
-          </div>
-        </div>
+        <VaultEmailRequiredNotice />
       ) : vault.isError ? (
         <div role="alert" className="space-y-4">
           <p>{CONTENT.vaultError}</p>
