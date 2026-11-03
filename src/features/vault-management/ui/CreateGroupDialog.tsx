@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { Users, FileText } from "lucide-react";
+import { CircleAlert, CircleCheck } from "lucide-react";
+import type { PackageResponse } from "@/entities/package/model/package.types";
 import {
   createPackageSchema,
   type CreatePackageFormInput,
 } from "@/entities/package/model/package.schema";
-import { apiClient } from "@/shared/api";
+import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { Button } from "@/shared/ui/button";
+import { buttonStyles } from "@/shared/ui/heritageKit";
 import {
   Dialog,
   DialogContent,
@@ -19,110 +21,57 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
-import { Textarea } from "@/shared/ui/textarea";
 import { ownerVaultService } from "../api/ownerVaultService";
-import { ownerVaultKeys } from "../model/useOwnerVault";
-
-export interface AvailableAsset {
-  id: string;
-  name: string;
-  kind?: string;
-  detail?: string;
-}
-
-export interface AvailableBeneficiary {
-  id: string;
-  fullName: string;
-  citizenIdLast4?: string;
-  email?: string;
-  relationship?: string;
-}
+import {
+  buildAssetPickerItems,
+  buildBeneficiaryPickerItems,
+  type GroupAssetOption,
+  type GroupBeneficiaryOption,
+} from "../model/groupMembers";
+import { invalidateGroupQueries } from "../model/groupQueries";
+import { MemberPicker } from "./MemberPicker";
 
 export interface CreateGroupDialogProps {
   vaultId: string;
   onClose: () => void;
-  availableAssets?: AvailableAsset[];
-  availableBeneficiaries?: AvailableBeneficiary[];
+  /** Tài sản trong kho, kèm gói đang chứa (nếu có). */
+  assets: GroupAssetOption[];
+  beneficiaries: GroupBeneficiaryOption[];
+  /** Tài sản người dùng đã chọn ở màn Tài sản; được tick sẵn nếu còn chọn được. */
+  preselectedAssetIds?: string[];
 }
 
-/** Tạo Gói bàn giao (container) kèm người nhận và tài sản trong kho của Chủ kho. */
+/** Chỉ giữ những id còn chọn được (tài sản chưa thuộc gói nào). */
+function usablePreselection(assets: GroupAssetOption[], ids: string[]): string[] {
+  const usable: string[] = [];
+  for (const asset of assets) {
+    if (asset.containerId === null && ids.includes(asset.id)) {
+      usable.push(asset.id);
+    }
+  }
+  return usable;
+}
+
+/** Tạo gói bàn giao trong một form: chọn tài sản và người nhận ngay, xong là gói dùng được. */
 export function CreateGroupDialog({
   vaultId,
   onClose,
-  availableAssets = [],
-  availableBeneficiaries = [],
+  assets,
+  beneficiaries,
+  preselectedAssetIds = [],
 }: CreateGroupDialogProps) {
   const client = useQueryClient();
   const action = usePrivateAction();
-  const [fetchedAssets, setFetchedAssets] = useState<AvailableAsset[]>([]);
-  const [fetchedBeneficiaries, setFetchedBeneficiaries] = useState<AvailableBeneficiary[]>([]);
-  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const [initialSelection] = useState<string[]>(() =>
+    usablePreselection(assets, preselectedAssetIds),
+  );
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(initialSelection);
   const [selectedBeneficiaryIds, setSelectedBeneficiaryIds] = useState<string[]>([]);
+  // Gói đã tạo nhưng gắn thành viên lỗi giữa chừng: lần bấm sau chỉ gắn tiếp, không tạo thêm gói trùng.
+  const [createdGroup, setCreatedGroup] = useState<PackageResponse | null>(null);
 
-  useEffect(() => {
-    if (availableAssets.length > 0 || !vaultId) return;
-    let active = true;
-    apiClient
-      .get<{ items: Array<{ id: string; name: string; kind?: string }> }>(
-        `/vaults/${vaultId}/assets`,
-        { params: { pageIndex: 1, pageSize: 100 } },
-      )
-      .then((res) => {
-        if (active && res.data?.items) {
-          setFetchedAssets(res.data.items);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [vaultId, availableAssets.length]);
-
-  useEffect(() => {
-    if (availableBeneficiaries.length > 0 || !vaultId) return;
-    let active = true;
-    apiClient
-      .get<{
-        items: Array<{
-          id: string;
-          fullName: string;
-          citizenIdLast4?: string;
-          email?: string | null;
-        }>;
-      }>(`/vaults/${vaultId}/beneficiaries`, { params: { pageIndex: 1, pageSize: 100 } })
-      .then((res) => {
-        if (active && res.data?.items) {
-          setFetchedBeneficiaries(
-            res.data.items.map((b) => ({
-              id: b.id,
-              fullName: b.fullName,
-              citizenIdLast4: b.citizenIdLast4,
-              email: b.email ?? undefined,
-            })),
-          );
-        }
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [vaultId, availableBeneficiaries.length]);
-
-  const assetList = availableAssets.length > 0 ? availableAssets : fetchedAssets;
-  const beneficiaryList =
-    availableBeneficiaries.length > 0 ? availableBeneficiaries : fetchedBeneficiaries;
-
-  const toggleAsset = (id: string) => {
-    setSelectedAssetIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  };
-
-  const toggleBeneficiary = (id: string) => {
-    setSelectedBeneficiaryIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
-  };
+  const assetPicker = buildAssetPickerItems(assets, null);
+  const beneficiaryItems = buildBeneficiaryPickerItems(beneficiaries, []);
 
   const {
     register,
@@ -132,60 +81,108 @@ export function CreateGroupDialog({
     resolver: zodResolver(createPackageSchema),
     mode: "onBlur",
     reValidateMode: "onBlur",
-    defaultValues: { name: "", description: "" },
+    defaultValues: { name: "" },
   });
 
+  async function createAndAttach(request: CreatePackageFormInput): Promise<PackageResponse> {
+    let group = createdGroup;
+    if (group === null) {
+      group = await ownerVaultService.createPackage(vaultId, request);
+      setCreatedGroup(group);
+    }
+    // Gắn lại thành viên đã có trong gói không gây lỗi nên thử lại sau lỗi giữa chừng vẫn an toàn.
+    for (const assetId of selectedAssetIds) {
+      group = await ownerVaultService.changeMember(vaultId, group.id, "assets", assetId, true);
+    }
+    for (const beneficiaryId of selectedBeneficiaryIds) {
+      group = await ownerVaultService.changeMember(
+        vaultId,
+        group.id,
+        "beneficiaries",
+        beneficiaryId,
+        true,
+      );
+    }
+    return group;
+  }
+
+  function close(): void {
+    if (createdGroup !== null) {
+      // Gói đã được tạo dù gắn chưa xong: làm mới để danh sách hiện gói này.
+      invalidateGroupQueries(client, vaultId);
+    }
+    onClose();
+  }
+
+  const willBeReady = selectedAssetIds.length > 0 && selectedBeneficiaryIds.length > 0;
+  let missingText = "tài sản và người nhận";
+  if (selectedAssetIds.length > 0) {
+    missingText = "người nhận";
+  } else if (selectedBeneficiaryIds.length > 0) {
+    missingText = "tài sản";
+  }
+
+  let assetHint: string | undefined;
+  if (assetPicker.freeCount > 0 && assetPicker.freeCount < assetPicker.items.length) {
+    assetHint = `${assetPicker.freeCount} tài sản chưa thuộc gói nào — xếp lên đầu`;
+  }
+
+  let submitLabel = "Tạo gói";
+  if (createdGroup !== null) {
+    submitLabel = "Gắn tiếp vào gói";
+  }
+  if (action.pending) {
+    submitLabel = "Đang xử lý…";
+  }
+
   return (
-    <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+    <Dialog open onOpenChange={(open) => !open && !action.pending && close()}>
+      <DialogContent className="max-h-[92vh] gap-5 bg-[#FBFAF5] p-6 sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Tạo gói bàn giao</DialogTitle>
+          <DialogTitle className="text-2xl font-semibold text-[#0A281E]">
+            Tạo gói bàn giao
+          </DialogTitle>
           <DialogDescription>
-            Gói bàn giao gom các tài sản và người nhận có chung mục đích chuyển giao. Bạn có thể
-            chọn người nhận và tài sản ngay tại đây.
+            Chọn tài sản và người nhận ngay tại đây. Xong form này là gói dùng được luôn, không phải
+            mở lại để gán thêm.
           </DialogDescription>
         </DialogHeader>
+
+        {initialSelection.length > 0 && (
+          <p
+            role="status"
+            className="flex items-center gap-3 rounded-xl bg-[#DDEFE6] px-4 py-3 text-sm text-[#1F4D3A]"
+          >
+            <CircleCheck className="size-5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+            <span>
+              Mở từ <strong>{initialSelection.length} tài sản</strong> bạn đang chọn ở màn Tài sản,
+              nên chúng đã được tick sẵn bên dưới.
+            </span>
+          </p>
+        )}
+
         <form
           noValidate
           className="space-y-5"
           onSubmit={handleSubmit(async (request) => {
             const saved = await action.execute(
-              async () => {
-                const pkg = await ownerVaultService.createPackage(vaultId, request);
-                for (const assetId of selectedAssetIds) {
-                  await ownerVaultService.changeMember(vaultId, pkg.id, "assets", assetId, true);
-                }
-                for (const beneficiaryId of selectedBeneficiaryIds) {
-                  await ownerVaultService.changeMember(
-                    vaultId,
-                    pkg.id,
-                    "beneficiaries",
-                    beneficiaryId,
-                    true,
-                  );
-                }
-                return pkg;
-              },
-              () => {
-                void client.invalidateQueries({ queryKey: ownerVaultKeys.all });
-                void client.invalidateQueries({ queryKey: ["vault-assets", vaultId] });
-                void client.invalidateQueries({ queryKey: ["vault-beneficiaries", vaultId] });
-                void client.invalidateQueries({ queryKey: ["plan-setup", vaultId] });
-              },
+              () => createAndAttach(request),
+              () => invalidateGroupQueries(client, vaultId),
             );
             if (saved) {
               onClose();
             }
           })}
         >
-          <fieldset disabled={action.pending} className="space-y-4">
-            <label className="block space-y-2 text-sm font-medium text-heritage-primary">
+          <fieldset disabled={action.pending} className="space-y-5">
+            <label className="block space-y-2 text-sm font-semibold text-[#0A281E]">
               Tên gói bàn giao
               <Input
-                placeholder="Ví dụ: Giấy tờ gia đình"
+                placeholder="Ví dụ: Gói cho các con"
+                readOnly={createdGroup !== null}
                 {...register("name")}
                 aria-invalid={Boolean(errors.name)}
-                className="mt-1"
+                className="h-11 bg-white font-normal"
               />
             </label>
             {errors.name && (
@@ -193,153 +190,93 @@ export function CreateGroupDialog({
                 {errors.name.message}
               </p>
             )}
-            <label className="block space-y-2 text-sm font-medium text-heritage-primary">
-              Mô tả (không bắt buộc)
-              <Textarea
-                placeholder="Mô tả ý định hoặc hướng dẫn sơ lược về gói này..."
-                {...register("description")}
-                aria-invalid={Boolean(errors.description)}
-                className="mt-1 min-h-20"
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <MemberPicker
+                title="Tài sản"
+                items={assetPicker.items}
+                selectedIds={selectedAssetIds}
+                onChange={setSelectedAssetIds}
+                searchPlaceholder="Tìm tài sản…"
+                emptyText="Kho chưa có tài sản nào. Bạn có thể thêm tài sản tại mục Mục trong kho sau."
+                allowSelectAll
+                hint={assetHint}
+                disabled={action.pending}
               />
-            </label>
-            {errors.description && (
-              <p role="alert" className="text-sm text-destructive">
-                {errors.description.message}
-              </p>
-            )}
-
-            {/* Chọn người nhận */}
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-sm font-semibold text-heritage-primary">
-                  <Users className="size-4 text-heritage-gold" aria-hidden="true" />
-                  Người nhận bàn giao ({selectedBeneficiaryIds.length})
-                </span>
-                {beneficiaryList.length > 0 && (
-                  <span className="text-xs text-heritage-muted">
-                    Đã chọn {selectedBeneficiaryIds.length} / {beneficiaryList.length} người
-                  </span>
-                )}
-              </div>
-              {beneficiaryList.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-heritage-border bg-heritage-surface/70 p-3 text-xs text-heritage-muted">
-                  Kho chưa có người nhận nào. Bạn có thể thêm người nhận tại mục Người nhận sau.
-                </div>
-              ) : (
-                <div className="max-h-44 space-y-1.5 overflow-y-auto rounded-xl border border-heritage-border bg-white p-2">
-                  {beneficiaryList.map((b) => {
-                    const isSelected = selectedBeneficiaryIds.includes(b.id);
-                    return (
-                      <label
-                        key={b.id}
-                        className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg p-2.5 transition-colors ${
-                          isSelected ? "bg-heritage-gold/15" : "hover:bg-zinc-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleBeneficiary(b.id)}
-                            className="size-4 rounded border-heritage-border text-heritage-primary focus:ring-heritage-gold"
-                          />
-                          <div className="min-w-0 truncate">
-                            <span className="block truncate text-sm font-medium text-heritage-primary">
-                              {b.fullName}
-                            </span>
-                            {b.citizenIdLast4 && (
-                              <span className="block text-xs text-heritage-muted">
-                                CCCD: ****{b.citizenIdLast4}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        {(b.relationship || b.email) && (
-                          <span className="shrink-0 max-w-[150px] truncate rounded-full bg-heritage-primary/10 px-2 py-0.5 text-[11px] font-medium text-heritage-muted">
-                            {b.relationship ?? b.email}
-                          </span>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Chọn tài sản */}
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2 text-sm font-semibold text-heritage-primary">
-                  <FileText className="size-4 text-heritage-gold" aria-hidden="true" />
-                  Tài sản đưa vào gói ({selectedAssetIds.length})
-                </span>
-                {assetList.length > 0 && (
-                  <span className="text-xs text-heritage-muted">
-                    Đã chọn {selectedAssetIds.length} / {assetList.length} mục
-                  </span>
-                )}
-              </div>
-              {assetList.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-heritage-border bg-heritage-surface/70 p-3 text-xs text-heritage-muted">
-                  Kho chưa có tài sản nào. Bạn có thể thêm tài sản tại mục Mục trong kho sau.
-                </div>
-              ) : (
-                <div className="max-h-44 space-y-1.5 overflow-y-auto rounded-xl border border-heritage-border bg-white p-2">
-                  {assetList.map((a) => {
-                    const isSelected = selectedAssetIds.includes(a.id);
-                    return (
-                      <label
-                        key={a.id}
-                        className={`flex cursor-pointer items-center justify-between gap-3 rounded-lg p-2.5 transition-colors ${
-                          isSelected ? "bg-heritage-gold/15" : "hover:bg-zinc-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => toggleAsset(a.id)}
-                            className="size-4 rounded border-heritage-border text-heritage-primary focus:ring-heritage-gold"
-                          />
-                          <span className="truncate text-sm font-medium text-heritage-primary">
-                            {a.name}
-                          </span>
-                        </div>
-                        <span className="shrink-0 rounded-full bg-heritage-primary/10 px-2 py-0.5 text-[11px] font-medium text-heritage-muted">
-                          {a.kind === "FILE" ? "Tệp tải lên" : "Ghi chú bí mật"}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
+              <MemberPicker
+                title="Người nhận"
+                items={beneficiaryItems}
+                selectedIds={selectedBeneficiaryIds}
+                onChange={setSelectedBeneficiaryIds}
+                searchPlaceholder="Tìm người nhận…"
+                emptyText="Kho chưa có người nhận nào."
+                withInitial
+                disabled={action.pending}
+                footer={
+                  <Link
+                    to={ROUTES.DASHBOARD.BENEFICIARIES}
+                    className="text-[#0A281E] hover:underline"
+                  >
+                    + Thêm người nhận mới
+                  </Link>
+                }
+              />
             </div>
           </fieldset>
+
+          {willBeReady && (
+            <p
+              role="status"
+              className="flex items-center gap-3 rounded-xl bg-[#DDEFE6] px-4 py-3 text-sm text-[#1F4D3A]"
+            >
+              <CircleCheck className="size-5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+              <span>
+                Có {selectedAssetIds.length} tài sản và {selectedBeneficiaryIds.length} người nhận,
+                nên gói sẽ ở trạng thái <strong>Sẵn sàng</strong> ngay sau khi tạo.
+              </span>
+            </p>
+          )}
+          {!willBeReady && (
+            <p
+              role="status"
+              className="flex items-center gap-3 rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B25]"
+            >
+              <CircleAlert className="size-5 shrink-0" aria-hidden="true" />
+              <span>
+                Còn thiếu <strong>{missingText}</strong>, nên gói sẽ ở trạng thái Chưa sẵn sàng. Bạn
+                có thể bổ sung sau ở thẻ gói.
+              </span>
+            </p>
+          )}
 
           {action.error && (
             <p role="alert" className="text-sm text-destructive">
               {action.error}
             </p>
           )}
+          {createdGroup !== null && action.error && (
+            <p className="text-sm text-heritage-muted">
+              Gói “{createdGroup.name}” đã được tạo. Bấm “Gắn tiếp vào gói” để thử gắn lại, hoặc
+              đóng và bổ sung sau ở thẻ gói.
+            </p>
+          )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
+          <DialogFooter className="gap-2">
+            <button
               type="button"
-              variant="outline"
-              size="lg"
+              className={`${buttonStyles.outline} rounded-full`}
               disabled={action.pending}
-              onClick={onClose}
+              onClick={close}
             >
               Hủy
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
-              size="lg"
-              className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+              className={`${buttonStyles.dark} rounded-full`}
               disabled={action.pending}
             >
-              {action.pending ? "Đang xử lý..." : "Tạo gói bàn giao"}
-            </Button>
+              {submitLabel}
+            </button>
           </DialogFooter>
         </form>
       </DialogContent>

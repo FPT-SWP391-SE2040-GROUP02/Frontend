@@ -150,16 +150,13 @@ it("rejects an oversized file without sending a request", async () => {
 it("creates a scoped container only after valid submit", async () => {
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(containerFixture);
   const onClose = vi.fn();
-  setup(<CreateGroupDialog vaultId={VAULT_ID} onClose={onClose} />);
-  fireEvent.click(await screen.findByRole("button", { name: "Tạo gói bàn giao" }));
+  setup(<CreateGroupDialog vaultId={VAULT_ID} onClose={onClose} assets={[]} beneficiaries={[]} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Tạo gói" }));
   expect(post).not.toHaveBeenCalled();
   fireEvent.change(screen.getByLabelText("Tên gói bàn giao"), { target: { value: "Hồ sơ" } });
-  fireEvent.click(screen.getByRole("button", { name: "Tạo gói bàn giao" }));
+  fireEvent.click(screen.getByRole("button", { name: "Tạo gói" }));
   await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-  expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/containers`, {
-    name: "Hồ sơ",
-    description: "",
-  });
+  expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/containers`, { name: "Hồ sơ" });
 });
 it("retains edits after a 409 and never overwrites using a fresh etag or retries", async () => {
   const put = vi.spyOn(apiClient, "put").mockRejectedValue({
