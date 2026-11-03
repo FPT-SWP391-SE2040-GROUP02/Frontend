@@ -14,8 +14,8 @@ export const documentStrategy: AssetStrategy = {
   type: "DOCUMENT",
   label: ASSET_TYPE_LABELS.DOCUMENT,
   description: "Hợp đồng bảo hiểm nhân thọ, sổ đỏ số, giấy chứng nhận cổ phần và di chúc đính kèm.",
-  badgeBg: "bg-[#EFECE6]",
-  badgeText: "text-[#14241C]",
+  badgeBg: "bg-heritage-canvas",
+  badgeText: "text-heritage-text",
 
   validate(data: unknown): boolean {
     return documentDataSchema.safeParse(data).success;
@@ -48,13 +48,13 @@ export const documentStrategy: AssetStrategy = {
     return (
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-xs font-bold text-heritage-text mb-1.5">
             Phân Loại Tài Liệu Pháp Lý *
           </label>
           <select
             value={(data.documentCategory as string) || "REAL_ESTATE_CERTIFICATE"}
             onChange={(e) => onChange("documentCategory", e.target.value)}
-            className="w-full h-11 px-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-medium text-[#14241C] outline-none"
+            className="w-full h-11 px-3 bg-heritage-surface border border-heritage-border focus:border-heritage-gold rounded-[12px] text-xs font-medium text-heritage-text outline-none"
           >
             {categories.map((cat) => (
               <option key={cat.value} value={cat.value}>
@@ -65,7 +65,7 @@ export const documentStrategy: AssetStrategy = {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-xs font-bold text-heritage-text mb-1.5">
             Số Hiệu Giấy Tờ / Mã Hợp Đồng *
           </label>
           <Input
@@ -73,12 +73,12 @@ export const documentStrategy: AssetStrategy = {
             placeholder="Ví dụ: GCN-QD-2024-889123 / HDBH-PRU-9901"
             value={(data.identifierNumber as string) || ""}
             onChange={(e) => onChange("identifierNumber", e.target.value)}
-            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-mono"
+            className="h-11 bg-heritage-surface border-heritage-border focus:border-heritage-gold rounded-[12px] text-xs font-mono"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-xs font-bold text-heritage-text mb-1.5">
             Ghi Chú Vị Trí Lưu Trữ Bản Gốc / Hướng Dẫn Pháp Lý
           </label>
           <textarea
@@ -86,7 +86,7 @@ export const documentStrategy: AssetStrategy = {
             placeholder="Vị trí két sắt vật lý tại gia đình, số liên hệ văn phòng công chứng quản lý bản sao y..."
             value={(data.notes as string) || ""}
             onChange={(e) => onChange("notes", e.target.value)}
-            className="w-full p-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-sans outline-none"
+            className="w-full p-3 bg-heritage-surface border border-heritage-border focus:border-heritage-gold rounded-[12px] text-xs font-sans outline-none"
           />
         </div>
       </div>
@@ -107,36 +107,36 @@ export const documentStrategy: AssetStrategy = {
 
     return (
       <div className="space-y-4">
-        <div className="p-5 bg-[#FAF9F5] border border-[#DCD9D0] rounded-[16px] space-y-3">
+        <div className="p-5 bg-heritage-surface border border-heritage-border rounded-[16px] space-y-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[12px] bg-[#EFECE6] border border-[#DCD9D0] flex items-center justify-center text-[#0B291E]">
+            <div className="w-10 h-10 rounded-[12px] bg-heritage-canvas border border-heritage-border flex items-center justify-center text-heritage-primary">
               <FileText className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[11px] font-bold text-[#66786E] uppercase">
+              <span className="text-[11px] font-bold text-heritage-muted uppercase">
                 Số Hiệu Giấy Tờ
               </span>
-              <p className="text-sm font-bold font-mono text-[#0B291E]">
+              <p className="text-sm font-bold font-mono text-heritage-primary">
                 {decoded.identifierNumber || "GCN-QSDD-BT-2024-9912"}
               </p>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-[#E8E5DD]">
-            <span className="text-[11px] font-bold text-[#66786E] uppercase">
+          <div className="pt-2 border-t border-heritage-neutral-bg">
+            <span className="text-[11px] font-bold text-heritage-muted uppercase">
               Chỉ Dẫn Lưu Trữ & Thừa Kế
             </span>
-            <p className="text-xs text-[#14241C] mt-1 leading-relaxed whitespace-pre-line">
+            <p className="text-xs text-heritage-text mt-1 leading-relaxed whitespace-pre-line">
               {decoded.notes ||
                 "Bản gốc lưu tại Két sắt ngân hàng Vietcombank chi nhánh Tân Bình. Hợp đồng ủy quyền công chứng số 102/2025/CC."}
             </p>
           </div>
 
-          <div className="pt-2 flex items-center justify-between text-[11px] text-[#059669] font-medium border-t border-[#E8E5DD]">
+          <div className="pt-2 flex items-center justify-between text-[11px] text-heritage-success font-medium border-t border-heritage-neutral-bg">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-4 h-4" /> Đã băm lưu trữ SHA-256
             </span>
-            <span className="text-[#66786E]">Điều 612 BLDS</span>
+            <span className="text-heritage-muted">Điều 612 BLDS</span>
           </div>
         </div>
       </div>

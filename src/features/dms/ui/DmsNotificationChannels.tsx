@@ -22,13 +22,13 @@ export const DmsNotificationChannels: React.FC<DmsNotificationChannelsProps> = (
   const getChannelIcon = (type: string) => {
     switch (type) {
       case "EMAIL":
-        return <Mail className="w-4 h-4 text-[#0B291E]" />;
+        return <Mail className="w-4 h-4 text-heritage-primary" />;
       case "TELEGRAM":
         return <Send className="w-4 h-4 text-[#0088cc]" />;
       case "SMS":
-        return <MessageSquare className="w-4 h-4 text-[#059669]" />;
+        return <MessageSquare className="w-4 h-4 text-heritage-success" />;
       case "VOICE_CALL":
-        return <PhoneCall className="w-4 h-4 text-[#B88E4C]" />;
+        return <PhoneCall className="w-4 h-4 text-heritage-gold" />;
       default:
         return null;
     }
@@ -68,16 +68,16 @@ export const DmsNotificationChannels: React.FC<DmsNotificationChannelsProps> = (
           key={channel.type}
           className={`p-4 rounded-[16px] border transition-all ${
             channel.enabled
-              ? "bg-[#FAF9F5] border-[#B88E4C]/40 shadow-[0_2px_8px_rgba(184,142,76,0.06)]"
-              : "bg-[#EFECE6]/40 border-[#DCD9D0] opacity-75"
+              ? "bg-heritage-surface border-heritage-gold/40 shadow-[0_2px_8px_rgba(184,142,76,0.06)]"
+              : "bg-heritage-canvas/40 border-heritage-border opacity-75"
           }`}
         >
           <div className="flex items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[10px] bg-[#EFECE6] border border-[#DCD9D0] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-[10px] bg-heritage-canvas border border-heritage-border flex items-center justify-center">
                 {getChannelIcon(channel.type)}
               </div>
-              <span className="text-sm font-semibold text-[#14241C]">
+              <span className="text-sm font-semibold text-heritage-text">
                 {getChannelTitle(channel.type)}
               </span>
             </div>
@@ -90,7 +90,7 @@ export const DmsNotificationChannels: React.FC<DmsNotificationChannelsProps> = (
                 onChange={() => handleToggle(idx)}
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-[#DCD9D0] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-[#DCD9D0] after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0B291E]"></div>
+              <div className="w-11 h-6 bg-heritage-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-heritage-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-heritage-sidebar"></div>
             </label>
           </div>
 
@@ -108,7 +108,7 @@ export const DmsNotificationChannels: React.FC<DmsNotificationChannelsProps> = (
                       ? "@telegram_username hoặc chat_id"
                       : "+84 988 123 456"
                 }
-                className="h-10 text-xs bg-white border-[#D5D0C3] focus:border-[#B88E4C] rounded-[10px]"
+                className="h-10 text-xs bg-white border-heritage-border focus:border-heritage-gold rounded-[10px]"
               />
             </div>
           )}

@@ -56,7 +56,7 @@ export function LivenessPanel({
   if (state.kind === "running" || state.kind === "starting") {
     progressChip = "Đang chạy";
 
-    progressChipStyle = "bg-[#F1E7D0] text-[#7A5B24]";
+    progressChipStyle = "bg-heritage-warning-bg text-heritage-warning";
   } else if (state.kind === "completed" || state.kind === "completing" || state.kind === "result") {
     progressChip = "Hoàn tất";
 

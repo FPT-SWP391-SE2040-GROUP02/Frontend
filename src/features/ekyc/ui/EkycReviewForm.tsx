@@ -77,7 +77,7 @@ export function EkycReviewForm({
   const addressMissing = !defaults.residenceAddress && !suggestedAddress;
 
   let statusChip = "Có thể chỉnh sửa";
-  let statusStyle = "bg-[#F1E7D0] text-[#7A5B24]";
+  let statusStyle = "bg-heritage-warning-bg text-heritage-warning";
   if (confirmed) {
     statusChip = "Đã gửi";
     statusStyle = "bg-green-100 text-green-800";
@@ -282,7 +282,7 @@ export function EkycReviewForm({
               <Button
                 type="submit"
                 size="lg"
-                className="flex-1 justify-between bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+                className="flex-1 justify-between bg-heritage-gold-soft font-semibold text-heritage-on-gold shadow-none hover:bg-heritage-gold-soft-hover"
                 disabled={!document.canMatchFace || !document.verificationId || !backSent}
                 aria-describedby={backSent ? undefined : `${prefix}-back-required`}
               >

@@ -22,3 +22,140 @@
   background-size: 100% 6px;
   background-repeat: no-repeat;
 }
+
+/* ---- Chuyển động của landing ---- */
+
+/* Cuộn tới mục neo thì trượt mềm, chừa chỗ cho thanh đầu trang. */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(#top) {
+    scroll-behavior: smooth;
+  }
+}
+
+html:has(#top) [id] {
+  scroll-margin-top: 1.5rem;
+}
+
+/* Khối hiện dần khi cuộn tới; `Reveal` thêm `is-visible`. */
+.landing-reveal {
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition:
+    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.landing-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero vào cảnh lần lượt: tiêu đề, khẩu hiệu, mô tả, nút. */
+.landing-rise {
+  opacity: 0;
+  animation: landing-rise 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Hoa nền hiện từ mờ và hơi nhỏ, rồi mới xoay chậm. */
+.landing-flower-in {
+  animation: landing-flower-in 1800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes landing-flower-in {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+  to {
+    opacity: 0.5;
+    scale: 1;
+  }
+}
+
+/* Thẻ nổi lên nhẹ khi rê chuột. */
+.landing-lift {
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 300ms ease,
+    border-color 300ms ease;
+}
+
+.landing-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px -14px rgb(10 40 30 / 0.35);
+  border-color: #b68f4c;
+}
+
+/* Nút vàng: ấn xuống một chút khi bấm. */
+.landing-press {
+  transition:
+    background-color 200ms ease,
+    transform 150ms ease,
+    box-shadow 200ms ease;
+}
+
+.landing-press:hover {
+  box-shadow: 0 8px 18px -8px rgb(182 143 76 / 0.7);
+}
+
+.landing-press:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-reveal,
+  .landing-rise,
+  .landing-flower-in {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    transition: none;
+  }
+
+  .landing-flower-in {
+    opacity: 0.5;
+  }
+
+  .landing-lift,
+  .landing-press {
+    transition: none;
+  }
+
+  .landing-lift:hover {
+    transform: none;
+  }
+}
+
+/* Câu trả lời hỏi đáp trượt xuống nhẹ khi mở. */
+.landing-faq[open] .landing-faq-answer {
+  animation: landing-faq-open 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes landing-faq-open {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-faq[open] .landing-faq-answer {
+    animation: none;
+  }
+}

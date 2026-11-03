@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
-import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
+import { PageHeader } from "@/shared/ui/PageHeader";
+import { WorkspaceShell, WorkspaceTopbar } from "@/shared/ui/WorkspaceShell";
 import { ROUTES } from "@/shared/config/routes.config";
 export interface WorkspaceNavigationItem {
   id: string;
@@ -53,12 +54,15 @@ export function WorkspaceFrame({ title, description, children, navigation }: Wor
           )}
         </nav>
       }
+      topbar={
+        <WorkspaceTopbar
+          breadcrumb={[{ label: title }]}
+          roleLabel={user?.role === "ADMIN" ? "Quản trị viên" : "Tài khoản"}
+        />
+      }
       footer={<p className="text-sm">{user?.fullName ?? "Tài khoản"}</p>}
     >
-      <header>
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        <p className="mt-2 text-sm text-heritage-muted">{description}</p>
-      </header>
+      <PageHeader title={title} description={description} />
       {children}
     </WorkspaceShell>
   );

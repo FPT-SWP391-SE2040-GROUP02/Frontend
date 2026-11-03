@@ -1,36 +1,18 @@
 import { useSelector } from "react-redux";
-import { Vault, FolderOpen } from "lucide-react";
+import { Vault } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
-import { confirmVaultPin } from "@/shared/api/vaultPin";
-import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
-import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { Button } from "@/shared/ui/button";
 import {
   useOwnerVault,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
-import { CreateVaultForm } from "@/features/vault-management/ui/CreateVaultForm";
-import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
-import { AssetList } from "@/features/assets/ui/AssetList";
-import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
-import { OwnerTrustedPeople } from "./OwnerTrustedPeople";
-import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
+import { AutoCreateVault } from "@/features/vault-management/ui/AutoCreateVault";
+import { OwnerRelatedPeople } from "./OwnerRelatedPeople";
 import { OwnerGroups } from "./OwnerGroups";
+import { OwnerAssets } from "./OwnerAssets";
+import { OwnerPackages } from "./OwnerPackages";
 import { OwnerCheckIn } from "./OwnerCheckIn";
-
-function Empty({ title, description }: { title: string; description: string }) {
-  return (
-    <div
-      role="status"
-      className="rounded-xl border border-dashed border-heritage-border bg-heritage-surface px-6 py-12 text-center"
-    >
-      <FolderOpen className="mx-auto mb-4 size-8 text-heritage-gold" aria-hidden="true" />
-      <h2 className="text-base font-semibold">{title}</h2>
-      <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-heritage-muted">{description}</p>
-    </div>
-  );
-}
 
 /** Hiển thị lỗi có đường phục hồi; không chuyển lỗi API thành empty/zero. */
 function QueryError({ retry, pending }: { retry: () => void; pending: boolean }) {
@@ -49,22 +31,13 @@ export function OwnerSection({
   section,
   groupCreate,
 }: {
-  section: "assets" | "groups" | "plans" | "check-in" | "trusted";
+  section: "assets" | "packages" | "groups" | "check-in" | "people";
   /** Chỉ dùng cho section "groups": trạng thái hộp thoại "Tạo gói bàn giao" do trang cha điều khiển. */
   groupCreate?: { open: boolean; onOpenChange: (open: boolean) => void };
 }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const vault = useOwnerVault(authenticated && Boolean(accessTokenMemory.get()));
-  if (vault.isError && isOwnerVaultMissing(vault.error))
-    return (
-      <div className="space-y-6">
-        <Empty
-          title="Bạn chưa có kho di sản"
-          description="Kho giúp bạn sắp xếp tài sản, người nhận và kế hoạch bàn giao."
-        />
-        <CreateVaultForm />
-      </div>
-    );
+  if (vault.isError && isOwnerVaultMissing(vault.error)) return <AutoCreateVault />;
   if (vault.isError)
     return <QueryError retry={() => void vault.refetch()} pending={vault.isFetching} />;
   if (!authenticated) return <p role="status">Vui lòng đăng nhập để xem kho.</p>;
@@ -79,7 +52,7 @@ export function OwnerSection({
       </div>
     );
   if (section === "check-in") return <OwnerCheckIn vaultId={vault.data.id} />;
-  if (section === "trusted") return <OwnerTrustedPeople vaultId={vault.data.id} />;
+  if (section === "people") return <OwnerRelatedPeople vaultId={vault.data.id} />;
   if (section === "groups") {
     let open = false;
     let onOpenChange = (value: boolean): void => {
@@ -93,60 +66,6 @@ export function OwnerSection({
       <OwnerGroups vaultId={vault.data.id} createOpen={open} onCreateOpenChange={onOpenChange} />
     );
   }
-  if (section === "assets") {
-    const usedBytes = Math.max(0, vault.data.storageUsedBytes);
-    const quotaBytes = Math.max(1, vault.data.storageQuotaBytes);
-    const usedPercent = Math.min(100, Math.round((usedBytes / quotaBytes) * 100));
-    return (
-      <div className="space-y-6">
-        <section
-          aria-label="Dung lượng kho"
-          className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-            <span className="font-semibold text-heritage-text">Dung lượng sử dụng</span>
-            <span className="text-heritage-muted">
-              Đã dùng{" "}
-              <strong className="font-semibold text-heritage-text">
-                {formatStorageSize(usedBytes)}
-              </strong>{" "}
-              / {formatStorageSize(vault.data.storageQuotaBytes)} (còn{" "}
-              {formatStorageSize(vault.data.storageRemainingBytes)})
-            </span>
-          </div>
-          <div
-            role="progressbar"
-            aria-label="Dung lượng đã dùng"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={usedPercent}
-            className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-[#ECE8DB]"
-          >
-            <div
-              className="h-full rounded-full bg-[#0A281E] transition-all"
-              style={{ width: `${usedPercent}%` }}
-            />
-          </div>
-        </section>
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <AssetList
-            vaultId={vault.data.id}
-            confirmPin={() =>
-              confirmVaultPin(vault.data.id, (pin) => vaultPinService.verify(vault.data.id, pin))
-            }
-          />
-          <CreateAssetForm
-            vaultId={vault.data.id}
-            remainingBytes={vault.data.storageRemainingBytes}
-          />
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="space-y-6">
-      <OwnerHandoverOverview vaultId={vault.data.id} />
-      <PlanSetupPanel vaultId={vault.data.id} />
-    </div>
-  );
+  if (section === "packages") return <OwnerPackages vaultId={vault.data.id} />;
+  return <OwnerAssets vault={vault.data} />;
 }

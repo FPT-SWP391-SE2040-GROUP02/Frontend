@@ -114,27 +114,27 @@ export function LinkGoogleAccountCard({
         <h1
           ref={heading}
           tabIndex={-1}
-          className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]"
+          className="font-serif text-2xl sm:text-3xl font-normal text-heritage-text"
         >
           Email này đã có tài khoản
         </h1>
-        <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
-          Địa chỉ <span className="font-medium text-[#0F1A16]">{email}</span> đã được dùng cho một
-          tài khoản LegacyVault. Nhập mật khẩu để liên kết với Google.
+        <p className="text-xs sm:text-sm text-heritage-muted leading-relaxed">
+          Địa chỉ <span className="font-medium text-heritage-text">{email}</span> đã được dùng cho
+          một tài khoản LegacyVault. Nhập mật khẩu để liên kết với Google.
         </p>
       </div>
 
       {/* Thẻ người dùng Google (User Pill) */}
       {fullName && (
-        <div className="p-3 rounded-2xl bg-white border border-[#E5E5DF] flex items-center gap-3.5 shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-[#EAF2ED] text-[#0A281E] font-bold text-base flex items-center justify-center flex-shrink-0">
+        <div className="p-3 rounded-2xl bg-white border border-heritage-border flex items-center gap-3.5 shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-[#EAF2ED] text-heritage-primary font-bold text-base flex items-center justify-center flex-shrink-0">
             {fullName.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-[#0F1A16] truncate">{fullName}</p>
-            <p className="text-[11px] text-[#6B6B66] truncate">{email}, từ Google</p>
+            <p className="text-xs font-semibold text-heritage-text truncate">{fullName}</p>
+            <p className="text-[11px] text-heritage-muted truncate">{email}, từ Google</p>
           </div>
-          <ShieldCheck className="w-4 h-4 text-[#B88E4C] flex-shrink-0" />
+          <ShieldCheck className="w-4 h-4 text-heritage-gold flex-shrink-0" />
         </div>
       )}
       {isError && (
@@ -145,11 +145,14 @@ export function LinkGoogleAccountCard({
       {/* Form nhập mật khẩu hiện tại */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5 text-left">
-          <label htmlFor="google-link-password" className="text-xs font-semibold text-[#0F1A16]">
+          <label
+            htmlFor="google-link-password"
+            className="text-xs font-semibold text-heritage-text"
+          >
             Mật khẩu hiện có
           </label>
           <div className="relative">
-            <Lock className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Lock className="w-4 h-4 text-heritage-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
               id="google-link-password"
               disabled={isPending || !linkTicket}
@@ -159,7 +162,7 @@ export function LinkGoogleAccountCard({
               {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="Nhập mật khẩu hiện tại của bạn"
-              className={`pl-10 pr-12 h-11 text-xs rounded-xl bg-white border-[#D5D0C3] focus-visible:border-[#0A281E] ${
+              className={`pl-10 pr-12 h-11 text-xs rounded-xl bg-white border-heritage-border focus-visible:border-heritage-primary ${
                 errors.password ? "border-red-500" : ""
               }`}
             />
@@ -169,7 +172,7 @@ export function LinkGoogleAccountCard({
               aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               aria-pressed={showPassword}
               disabled={isPending}
-              className="absolute right-0 top-1/2 -translate-y-1/2 min-h-11 min-w-11 text-xs font-medium text-[#6B6B66] hover:text-[#0A281E] rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A281E]"
+              className="absolute right-0 top-1/2 -translate-y-1/2 min-h-11 min-w-11 text-xs font-medium text-heritage-muted hover:text-heritage-primary rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-heritage-primary"
             >
               {showPassword ? "Ẩn" : "Hiện"}
             </button>
@@ -188,27 +191,27 @@ export function LinkGoogleAccountCard({
         <Button
           type="submit"
           disabled={isPending || !linkTicket}
-          className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50 mt-2"
+          className="w-full h-11 rounded-xl bg-heritage-sidebar hover:bg-heritage-sidebar/90 text-heritage-surface text-xs font-semibold shadow-md transition-all disabled:opacity-50 mt-2"
         >
           {isPending ? "Đang xác nhận..." : "Xác nhận và liên kết"}
         </Button>
       </form>
 
       {/* Nút hủy chuyển về dùng email khác */}
-      <div className="pt-4 border-t border-[#E5E5DF] text-center">
+      <div className="pt-4 border-t border-heritage-border text-center">
         {onCancel ? (
           <button
             type="button"
             disabled={isPending}
             onClick={onCancel}
-            className="min-h-11 text-xs text-[#0A281E] underline"
+            className="min-h-11 text-xs text-heritage-primary underline"
           >
             Quay lại đăng nhập Google
           </button>
         ) : (
           <Link
             to={ROUTES.AUTH.LOGIN}
-            className="text-xs text-[#0A281E] hover:underline font-semibold"
+            className="text-xs text-heritage-primary hover:underline font-semibold"
           >
             Dùng email khác
           </Link>

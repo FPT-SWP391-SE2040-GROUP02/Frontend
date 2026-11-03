@@ -34,14 +34,9 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           tone="danger"
           title={`Hồ sơ báo tin về ${vault.ownerFullName} đã bị từ chối`}
           action={
-            <div className="flex flex-wrap gap-3">
-              <Link className={buttonStyles.outline} to={ROUTES.EXECUTOR.REPORT}>
-                Xem lý do
-              </Link>
-              <button type="button" className={buttonStyles.gold} onClick={rejectedAck.acknowledge}>
-                Tiếp tục
-              </button>
-            </div>
+            <button type="button" className={buttonStyles.gold} onClick={rejectedAck.acknowledge}>
+              Tiếp tục
+            </button>
           }
         >
           Hồ sơ của bạn không được Người xét duyệt chấp thuận. Hồ sơ đã được xử lý và đóng; bạn chỉ
@@ -117,7 +112,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
                 <li key={duty.title} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                   <span
                     aria-hidden="true"
-                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]"
+                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft text-sm font-semibold text-heritage-on-gold"
                   >
                     {index + 1}
                   </span>

@@ -70,6 +70,8 @@ export const auditActionValues = [
   // Admin sửa hoặc khôi phục cấu hình dịch vụ ngoài trên trang Cấu hình dịch vụ
   "SYSTEM_CONFIG_UPDATED",
   "SYSTEM_CONFIG_RESET",
+  // Admin sửa tham số hệ thống (giá, hạn mức, mở bán gói) trên trang Cấu hình hệ thống.
+  "SYSTEM_SETTING_UPDATED",
 ] as const;
 
 /** Wire role người thực hiện; SYSTEM dùng khi job nền. */

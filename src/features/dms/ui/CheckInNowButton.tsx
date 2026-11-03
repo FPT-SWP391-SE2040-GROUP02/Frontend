@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import type { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
@@ -14,12 +15,14 @@ export function CheckInNowButton({
   status,
   label,
   className,
+  variant,
   onCheckedIn,
 }: {
   vaultId: string;
   status: Status;
   label: string;
   className?: string;
+  variant?: ComponentProps<typeof Button>["variant"];
   onCheckedIn?: () => void;
 }) {
   const action = usePrivateAction();
@@ -38,6 +41,7 @@ export function CheckInNowButton({
     <div>
       <Button
         size="lg"
+        variant={variant}
         className={className}
         disabled={action.pending || !canCheckIn}
         onClick={() => void action.execute(() => checkInService.checkIn(), sync)}

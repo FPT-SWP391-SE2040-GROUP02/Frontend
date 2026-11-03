@@ -6,6 +6,7 @@ export function usePlanSetup(vaultId: string) {
   return useQuery({
     queryKey: ["plan-setup", vaultId],
     queryFn: ({ signal }) => planSetupService.get(vaultId, signal),
+    enabled: Boolean(vaultId),
     retry: false,
   });
 }

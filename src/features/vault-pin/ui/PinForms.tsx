@@ -1,5 +1,5 @@
-import { type ComponentProps } from "react";
-import { useForm } from "react-hook-form";
+import { useState, type ComponentProps, type ReactNode } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Input } from "@/shared/ui/input";
@@ -33,7 +33,10 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 function ServerError({ message }: { message: string }) {
   if (!message) return null;
   return (
-    <p role="alert" className="rounded-lg bg-[#F8E1DE] px-3 py-2 text-sm text-[#A32119]">
+    <p
+      role="alert"
+      className="rounded-lg bg-heritage-danger-bg px-3 py-2 text-sm text-heritage-danger"
+    >
       {message}
     </p>
   );
@@ -108,14 +111,103 @@ function FormActions({
   );
 }
 
+interface PinBoxFieldProps extends Omit<
+  ComponentProps<"input">,
+  "type" | "inputMode" | "maxLength" | "autoComplete" | "value"
+> {
+  id: string;
+  label: string;
+  /** Giá trị đang nhập, để vẽ từng ô. */
+  value: string;
+  error?: string;
+}
+
+/**
+ * Ô nhập mã PIN dạng sáu ô vuông. Bên dưới vẫn là MỘT ô nhập thật (trong suốt, phủ lên các ô) nên bàn phím số, dán,
+ * trình đọc màn hình và form hoạt động như ô nhập thường; sáu ô chỉ để vẽ.
+ */
+export function PinBoxField({
+  id,
+  label,
+  value,
+  error,
+  onFocus,
+  onBlur,
+  ...props
+}: PinBoxFieldProps) {
+  const [focused, setFocused] = useState(false);
+  const errorId = `${id}-error`;
+  const boxes: ReactNode[] = [];
+  for (let index = 0; index < PIN_LENGTH; index += 1) {
+    let boxStyle = "border-heritage-border";
+    if (focused && index === Math.min(value.length, PIN_LENGTH - 1)) {
+      boxStyle = "border-heritage-gold ring-2 ring-heritage-gold/40";
+    }
+    let mark = "";
+    if (index < value.length) {
+      mark = "•";
+    }
+    boxes.push(
+      <span
+        key={index}
+        className={`flex h-14 items-center justify-center rounded-xl border bg-white text-2xl ${boxStyle}`}
+      >
+        {mark}
+      </span>,
+    );
+  }
+  return (
+    <div className="space-y-2">
+      <label htmlFor={id} className="sr-only">
+        {label}
+      </label>
+      <div className="relative">
+        <div className="grid grid-cols-6 gap-2" aria-hidden="true">
+          {boxes}
+        </div>
+        <input
+          id={id}
+          type="password"
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={PIN_LENGTH}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+          className="absolute inset-0 size-full cursor-text opacity-0"
+          onFocus={(event) => {
+            setFocused(true);
+            onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            setFocused(false);
+            onBlur?.(event);
+          }}
+          {...props}
+        />
+      </div>
+      <FieldError id={errorId} message={error} />
+    </div>
+  );
+}
+
 interface EnterPinFormProps {
   onSubmit: (pin: string) => void;
   onCancel: () => void;
   onForgot: () => void;
+  /** Chữ trên nút gửi; mặc định "Xác nhận", mở khóa xem tài sản dùng "Mở khóa". */
+  submitLabel?: string;
+  /** Dòng nhắc dưới sáu ô, ví dụ số lần thử còn lại sau khi nhập sai. */
+  notice?: string;
 }
 
 /** Nhập PIN hiện tại. Chưa gọi API: người gọi gửi lại request gốc kèm PIN này. */
-export function EnterPinForm({ onSubmit, onCancel, onForgot }: EnterPinFormProps) {
+export function EnterPinForm({
+  onSubmit,
+  onCancel,
+  onForgot,
+  submitLabel = "Xác nhận",
+  notice,
+}: EnterPinFormProps) {
   const form = useForm<EnterPinFormValues>({
     resolver: zodResolver(enterPinFormSchema),
     mode: "onBlur",
@@ -123,32 +215,37 @@ export function EnterPinForm({ onSubmit, onCancel, onForgot }: EnterPinFormProps
     defaultValues: { pin: "" },
   });
   const errors = form.formState.errors;
+  const pin = useWatch({ control: form.control, name: "pin" });
   return (
     <form
       noValidate
       className="space-y-4"
       onSubmit={form.handleSubmit((values) => onSubmit(values.pin))}
     >
-      <PinField
+      <PinBoxField
         id="vault-pin-enter"
         label="Mã PIN bảo vệ"
+        value={pin ?? ""}
         autoFocus
         error={errors.pin?.message}
         {...form.register("pin")}
       />
-      <button
-        type="button"
-        className="min-h-11 text-sm font-medium underline underline-offset-4"
-        onClick={onForgot}
-      >
-        Quên mã PIN?
-      </button>
+      {notice && <p className="text-sm text-heritage-warning">{notice}</p>}
       <FormActions
-        submitLabel="Xác nhận"
+        submitLabel={submitLabel}
         pendingLabel="Đang xử lý…"
         pending={false}
         onCancel={onCancel}
       />
+      <div className="border-t border-heritage-border pt-3">
+        <button
+          type="button"
+          className="min-h-9 text-sm font-medium underline underline-offset-4"
+          onClick={onForgot}
+        >
+          Quên mã PIN?
+        </button>
+      </div>
     </form>
   );
 }

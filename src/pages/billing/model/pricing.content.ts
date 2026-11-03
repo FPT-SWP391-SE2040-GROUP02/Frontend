@@ -8,11 +8,7 @@ export const PRICING_CATALOG = [
     termPrices: [],
     includedBeneficiarySlots: 0,
     storage: 20,
-    features: [
-      "Lưu trữ nội dung cá nhân",
-      "Chưa thiết lập kế hoạch bàn giao",
-      "Không có người nhận",
-    ],
+    features: ["Lưu trữ nội dung cá nhân", "Chưa có kế hoạch bàn giao"],
   },
   {
     serviceTier: "XS",

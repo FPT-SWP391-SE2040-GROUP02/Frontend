@@ -15,7 +15,10 @@ import {
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { UserAvatar } from "@/entities/user/ui/UserAvatar";
 import { ROUTES } from "@/shared/config/routes.config";
-import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
+import { cn } from "cn";
+import { PageHeader } from "@/shared/ui/PageHeader";
+import { buttonStyles } from "@/shared/ui/heritageKit";
+import { WorkspaceShell, WorkspaceTopbar, type BreadcrumbItem } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "./executor-workspace.css";
 import { ExecutorOwnerSwitcher } from "./ExecutorOwnerSwitcher";
@@ -58,6 +61,9 @@ export function ExecutorWorkspace({
   const current = executorNavigation.find(({ to }) =>
     to === ROUTES.EXECUTOR.ROOT ? path === to : path === to || path.startsWith(`${to}/`),
   );
+  const breadcrumb: BreadcrumbItem[] = [{ label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT }];
+  if (current && current.to !== ROUTES.EXECUTOR.ROOT) breadcrumb.push({ label: current.label });
+  else if (!current) breadcrumb.push({ label: title });
   return (
     <WorkspaceShell
       className="owner-workspace"
@@ -108,38 +114,35 @@ export function ExecutorWorkspace({
           </nav>
         </>
       }
+      topbar={
+        <WorkspaceTopbar
+          breadcrumb={breadcrumb}
+          roleLabel="Người thực hiện"
+          roleAction={
+            <Link to={ROUTES.DASHBOARD.ROOT} className={cn(buttonStyles.outline, "px-4")}>
+              <ArrowLeftRight className="size-4 shrink-0" aria-hidden="true" />
+              Sang vai Chủ kho
+            </Link>
+          }
+        />
+      }
       footer={
         <>
-          <Link
-            to={ROUTES.DASHBOARD.ROOT}
-            className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E0C486] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E8CF9B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
-          >
-            <ArrowLeftRight className="size-4" aria-hidden="true" />
-            Sang vai Chủ kho
-          </Link>
           <div className="flex items-center gap-3">
             <UserAvatar
               user={user}
               fallbackLetter="N"
-              className="size-10 bg-[#E0C486] text-[#0A281E]"
+              className="size-10 bg-heritage-gold-soft text-heritage-on-gold"
             />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
-              <p className="mt-0.5 text-xs text-[#E6C98B]">Người thực hiện</p>
+              <p className="mt-0.5 text-xs text-heritage-gold-soft-hover">Người thực hiện</p>
             </div>
           </div>
         </>
       }
     >
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-3xl font-semibold text-heritage-primary">{title}</h1>
-          {description && (
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-heritage-muted">{description}</p>
-          )}
-        </div>
-        {badge}
-      </header>
+      <PageHeader title={title} description={description} actions={badge} />
       {children}
       <footer className="pt-2 text-xs leading-5 text-heritage-muted">
         LegacyVault hỗ trợ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc hoặc thủ tục thừa

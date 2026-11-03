@@ -1,10 +1,12 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { z } from "zod";
+import { CalendarCheck, CircleCheck } from "lucide-react";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { Button } from "@/shared/ui/button";
+import { Chip, Notice, type Tone } from "@/shared/ui/heritageKit";
+import { dailyCheckInState } from "@/features/dms/model/dailyCheckIn";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { CheckInNowButton } from "@/features/dms/ui/CheckInNowButton";
-import { SmartwatchCheckInButton } from "@/features/dms/ui/SmartwatchCheckInButton";
 import { CheckInSettingsForm } from "@/features/dms/ui/CheckInSettingsForm";
 import type { checkInPeriodSchema, checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
 
@@ -44,28 +46,28 @@ function useServerNow(serverTime: string): number {
 
 function CountdownTile({ value, unit }: { value: number; unit: string }) {
   return (
-    <div className="flex min-w-20 flex-col items-center rounded-xl bg-[#1d4d3c] px-4 py-3 text-white">
-      <span className="font-serif text-3xl text-[#E0C486]">{pad(value)}</span>
-      <span className="text-xs text-white/75">{unit}</span>
+    <div className="flex min-w-24 flex-col items-center rounded-2xl border border-heritage-border bg-heritage-primary-light px-5 py-4">
+      <span className="font-serif text-4xl tabular-nums text-heritage-primary">{pad(value)}</span>
+      <span className="mt-0.5 text-xs text-heritage-muted">{unit}</span>
     </div>
   );
 }
 
-function periodChip(period: Period): { label: string; style: string } {
+function periodChip(period: Period): { label: string; tone: Tone } {
   if (period.checkedInAt !== null) {
-    return { label: "Đã ghi", style: "bg-green-100 text-green-800" };
+    return { label: "Đã ghi", tone: "success" };
   }
   // Kỳ đóng mà không có điểm danh: lịch bị dừng vì kế hoạch về Nháp hoặc không còn chạy.
   if (period.closedAt) {
-    return { label: "Đã dừng", style: "bg-[#ECE8DB] text-[#4D4D4B]" };
+    return { label: "Đã dừng", tone: "neutral" };
   }
   if (period.awaitingCheckAt !== null) {
-    return { label: "Chờ kiểm tra", style: "bg-red-100 text-red-800" };
+    return { label: "Chờ kiểm tra", tone: "danger" };
   }
   if (period.overdueAt !== null) {
-    return { label: "Quá hạn", style: "bg-amber-100 text-amber-800" };
+    return { label: "Quá hạn", tone: "warning" };
   }
-  return { label: "Đang chạy", style: "bg-heritage-primary/10 text-heritage-primary" };
+  return { label: "Đang chạy", tone: "neutral" };
 }
 
 function Countdown({ status }: { status: CheckInStatus }) {
@@ -80,7 +82,7 @@ function Countdown({ status }: { status: CheckInStatus }) {
   const remaining = new Date(status.nextCheckInDueAt).getTime() - now;
   if (remaining < 0) {
     return (
-      <p role="status" className="mt-4 font-semibold text-red-700">
+      <p role="status" className="mt-4 font-semibold text-heritage-danger">
         Đã quá hạn điểm danh. Hãy điểm danh ngay để dừng việc bàn giao.
       </p>
     );
@@ -89,10 +91,13 @@ function Countdown({ status }: { status: CheckInStatus }) {
   const hours = Math.floor((remaining % MS_PER_DAY) / MS_PER_HOUR);
   const minutes = Math.floor((remaining % MS_PER_HOUR) / MS_PER_MINUTE);
   return (
-    <div className="mt-4 flex flex-wrap gap-3" role="timer" aria-label="Thời gian còn lại">
-      <CountdownTile value={days} unit="ngày" />
-      <CountdownTile value={hours} unit="giờ" />
-      <CountdownTile value={minutes} unit="phút" />
+    <div className="mt-5">
+      <p className="text-xs font-medium text-heritage-muted">Còn lại</p>
+      <div className="mt-2 flex flex-wrap gap-3" role="timer" aria-label="Thời gian còn lại">
+        <CountdownTile value={days} unit="ngày" />
+        <CountdownTile value={hours} unit="giờ" />
+        <CountdownTile value={minutes} unit="phút" />
+      </div>
     </div>
   );
 }
@@ -118,9 +123,7 @@ function History({ periods }: { periods: Period[] }) {
           <p className="font-semibold">{when}</p>
           <p className="text-xs text-heritage-muted">{detail}</p>
         </div>
-        <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${chip.style}`}>
-          {chip.label}
-        </span>
+        <Chip tone={chip.tone}>{chip.label}</Chip>
       </li>,
     );
   }
@@ -151,42 +154,73 @@ export function OwnerCheckIn({ vaultId }: { vaultId: string }) {
   }
   if (query.isError) {
     return (
-      <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <p className="text-sm text-red-800">Không tải được dữ liệu. Vui lòng thử lại.</p>
-        <Button
-          variant="outline"
-          disabled={query.isFetching}
-          onClick={() => void query.refetch()}
-          className="mt-4 min-h-11"
-        >
-          Thử lại
-        </Button>
-      </div>
+      <Notice
+        tone="danger"
+        role="alert"
+        title="Không tải được dữ liệu"
+        action={
+          <Button
+            variant="outline"
+            disabled={query.isFetching}
+            onClick={() => void query.refetch()}
+            className="min-h-11"
+          >
+            Thử lại
+          </Button>
+        }
+      >
+        Vui lòng thử lại.
+      </Notice>
     );
   }
   const status = query.data;
+  const daily = dailyCheckInState(status);
+  // Đã điểm danh hôm nay: khung xanh nhạt, nút khóa đọc như "xong rồi"; chưa điểm danh được vì lý do khác thì giữ nền trung tính.
+  let actionPanelClass = "rounded-xl border border-heritage-border bg-heritage-canvas p-5";
+  let actionButtonClass =
+    "w-full disabled:bg-heritage-neutral-bg disabled:text-heritage-muted disabled:opacity-100";
+  let ActionIcon = CalendarCheck;
+  if (daily.checkedInToday || daily.executorCheckedInToday) {
+    actionPanelClass = "rounded-xl border border-heritage-success/30 bg-heritage-success-bg p-5";
+    actionButtonClass =
+      "w-full disabled:bg-heritage-surface disabled:text-heritage-success disabled:opacity-100";
+    ActionIcon = CircleCheck;
+  }
   return (
     <div className="space-y-6">
-      <div className="grid items-start gap-6 lg:grid-cols-2">
+      <div className="grid items-start gap-6">
         <section aria-label="Hạn tiếp theo" className={CARD}>
-          <h2 className="text-xl font-medium text-heritage-primary">
-            Hạn tiếp theo: {formatDate(status.nextCheckInDueAt)}
-          </h2>
-          <Countdown status={status} />
-          <p className="mt-4 text-sm leading-6 text-heritage-muted">
-            Lần gần nhất: {formatDate(status.lastCheckInAt)}. Nếu quá hạn, hệ thống nhắc bạn và
-            người tin cậy trước khi làm gì.
-          </p>
-          <div className="mt-5">
-            <CheckInNowButton
-              vaultId={vaultId}
-              status={status}
-              label="Điểm danh bây giờ"
-              className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
-            />
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-center lg:gap-10">
+            <div>
+              <h2 className="text-2xl font-medium text-heritage-primary">
+                Hạn tiếp theo: {formatDate(status.nextCheckInDueAt)}
+              </h2>
+              <Countdown status={status} />
+              <div className="mt-5 space-y-2 border-t border-heritage-border pt-4 text-sm">
+                <p className="text-heritage-muted">
+                  Lần gần nhất: {formatDate(status.lastCheckInAt)}.
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Chip tone="neutral">Nhắc qua email</Chip>
+                  <span>Gửi trước hạn 7 ngày và 1 ngày</span>
+                </div>
+              </div>
+            </div>
+            <div className={actionPanelClass}>
+              <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-heritage-primary">
+                <ActionIcon className="size-5" aria-hidden="true" />
+                Điểm danh hôm nay
+              </div>
+              <CheckInNowButton
+                vaultId={vaultId}
+                status={status}
+                label="Điểm danh bây giờ"
+                variant="dark"
+                className={actionButtonClass}
+              />
+            </div>
           </div>
         </section>
-        <SmartwatchCheckInButton vaultId={vaultId} status={status} />
       </div>
       <section aria-label="Lịch điểm danh" className={CARD}>
         <h2 className="mb-4 text-xl font-medium text-heritage-primary">Lịch điểm danh</h2>

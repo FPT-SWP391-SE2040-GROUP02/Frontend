@@ -158,6 +158,23 @@ describe("màn Điểm danh định kỳ", () => {
     expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   });
 
+  it("lịch điểm danh chỉ hiện hai ô; bấm một ô mới mở phần chọn của ô đó", async () => {
+    vi.mocked(useCheckIn).mockReturnValue(statusResult() as never);
+    renderCheckIn();
+    const schedule = screen.getByRole("region", { name: "Lịch điểm danh" });
+    expect(within(schedule).getByRole("button", { name: /Chu kỳ.*30 ngày/ })).toBeInTheDocument();
+    expect(
+      within(schedule).getByRole("button", { name: /Thời gian ân hạn.*7 ngày/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("radiogroup")).not.toBeInTheDocument();
+    await userEvent.click(within(schedule).getByRole("button", { name: /Thời gian ân hạn/ }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("radio", { name: "14 ngày" })).toBeInTheDocument();
+    expect(within(dialog).queryByRole("radio", { name: "60 ngày" })).not.toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Hủy" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
   // Tạm tắt cùng nút "Kết nối đồng hồ" (Coming soon); bật lại khi mở lại tính năng ghép đồng hồ.
   it.skip("bấm Kết nối đồng hồ thì xin mã ghép và hiện 6 số kèm thời hạn", async () => {
     vi.mocked(useCheckIn).mockReturnValue(statusResult() as never);

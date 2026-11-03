@@ -117,8 +117,8 @@ describe("Owner dashboard from server metadata", () => {
     ];
     vi.mocked(planSetupService.get).mockResolvedValue(setup);
     mount();
-    const step = await screen.findByText("Người thực hiện chính chấp nhận nhiệm vụ");
-    expect(within(step.closest("li")!).getByRole("link", { name: "Làm ngay" })).toBeInTheDocument();
+    const step = await screen.findByText("Ai sẽ báo tin khi bạn không còn?");
+    expect(within(step.closest("li")!).queryByText("Xong")).not.toBeInTheDocument();
   });
   it("does not request private resources without a ready session", () => {
     mount(false);
@@ -150,7 +150,7 @@ describe("Owner dashboard from server metadata", () => {
     expect(
       screen.queryByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Điểm danh" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Điểm danh" })).not.toBeInTheDocument();
     expect(screen.queryByText("Kho đang an toàn")).not.toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
@@ -164,7 +164,7 @@ describe("Owner dashboard from server metadata", () => {
     );
     expect(backendAssetService.list).toHaveBeenCalledWith(
       VAULT_ID,
-      { pageIndex: 1, pageSize: 5, sortBy: "createdAt", isAscending: false },
+      { pageIndex: 1, pageSize: 3, sortBy: "createdAt", isAscending: false },
       expect.any(AbortSignal),
     );
   });
@@ -202,10 +202,12 @@ describe("Owner dashboard from server metadata", () => {
     expect(screen.getByText(/Có hồ sơ chứng tử trên kho/)).toBeInTheDocument();
   });
 
-  it("offers creation for a missing vault without querying child resources", async () => {
+  it("creates a missing vault automatically without querying child resources", async () => {
     vi.mocked(ownerVaultService.getMine).mockRejectedValue(problem("VAULT_NOT_FOUND", 404));
+    const create = vi.spyOn(ownerVaultService, "createMine").mockReturnValue(new Promise(() => {}));
     mount();
-    expect(await screen.findByRole("region", { name: "Tạo kho di sản" })).toBeInTheDocument();
+    expect(await screen.findByText("Đang chuẩn bị kho…")).toBeInTheDocument();
+    expect(create).toHaveBeenCalledTimes(1);
     expect(backendAssetService.list).not.toHaveBeenCalled();
   });
 
@@ -213,10 +215,11 @@ describe("Owner dashboard from server metadata", () => {
     vi.mocked(ownerVaultService.getMine).mockRejectedValue(problem("NOT_FOUND", 404));
     mount();
     expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được kho");
-    expect(screen.queryByRole("region", { name: "Tạo kho di sản" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Đang chuẩn bị kho…")).not.toBeInTheDocument();
   });
 
   it("waits for check-in confirmation and synchronizes the existing cache", async () => {
+    vi.mocked(ownerVaultService.getMine).mockResolvedValue({ ...vault, planStatus: "ACTIVE" });
     vi.mocked(checkInService.get).mockResolvedValue({
       ...checkInFixture(),
       status: "ACTIVE",

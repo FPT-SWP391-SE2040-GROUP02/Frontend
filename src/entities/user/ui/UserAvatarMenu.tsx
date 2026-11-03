@@ -102,11 +102,11 @@ export function UserAvatarMenu({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="w-56 bg-white dark:bg-[#0c2217] border border-[#dce5d6] dark:border-[#1d402f] shadow-lg rounded-2xl p-1.5"
+        className="w-56 bg-white dark:bg-heritage-surface border border-[#dce5d6] dark:border-[#1d402f] shadow-lg rounded-2xl p-1.5"
         align="end"
       >
         <DropdownMenuLabel className="p-2 space-y-1">
-          <p className="text-xs font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4] truncate">
+          <p className="text-xs font-bold text-[var(--heritage-primary,#0b291e)] dark:text-heritage-text truncate">
             {fullName}
           </p>
           <p className="text-[10px] text-[#637666] dark:text-[#9bb39f] truncate">{email}</p>

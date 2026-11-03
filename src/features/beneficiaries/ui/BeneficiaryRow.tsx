@@ -19,10 +19,10 @@ import { BeneficiaryForm } from "./BeneficiaryForm";
 
 type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
 
-const DIALOG_CLASS = "max-w-lg bg-[#FBFAF5] p-7";
+const DIALOG_CLASS = "max-w-lg bg-heritage-surface p-7";
 const DIALOG_TITLE = "text-xl font-semibold text-heritage-primary";
 const RED_BUTTON =
-  "inline-flex min-h-11 items-center justify-center rounded-xl bg-[#A32119] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#8A1B14] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center rounded-xl bg-heritage-danger px-6 text-sm font-semibold text-white transition-colors hover:bg-[#8A1B14] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50";
 
 /** "1990-05-12" → "12/05/1990". */
 function formatBirthDate(value: string): string {
@@ -105,7 +105,10 @@ function DeleteBeneficiaryDialog({
               </li>
             ))}
           </ul>
-          <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+          <p
+            role="alert"
+            className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+          >
             {record.fullName} đang ở trong {record.containerIds.length} gói bàn giao. Hãy gỡ người
             nhận khỏi các gói trên, rồi xóa lại.
           </p>
@@ -113,7 +116,7 @@ function DeleteBeneficiaryDialog({
             <button type="button" className={buttonStyles.outline} onClick={onClose}>
               Đóng
             </button>
-            <Link to={`${ROUTES.DASHBOARD.ASSETS}?tab=groups`} className={buttonStyles.gold}>
+            <Link to={`${ROUTES.DASHBOARD.ASSETS}?tab=groups`} className={buttonStyles.dark}>
               Mở gói bàn giao
             </Link>
           </DialogFooter>
@@ -142,7 +145,10 @@ function DeleteBeneficiaryDialog({
           Tôi hiểu thao tác này không hoàn tác được.
         </label>
         {action.error && (
-          <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+          <p
+            role="alert"
+            className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+          >
             {action.error}
           </p>
         )}
@@ -211,7 +217,7 @@ export function BeneficiaryRow({
       <td className="py-4 pr-4">
         <div className="flex items-center gap-3">
           <span
-            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#E0C486] font-semibold text-[#0A281E]"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft font-semibold text-heritage-on-gold"
             aria-hidden="true"
           >
             {record.fullName.charAt(0).toUpperCase()}
@@ -233,7 +239,7 @@ export function BeneficiaryRow({
         <div className="flex justify-end gap-2">
           <button
             type="button"
-            className={`${buttonStyles.outline} disabled:border-transparent disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+            className={`${buttonStyles.outline} disabled:border-transparent disabled:bg-heritage-neutral-bg disabled:text-heritage-muted disabled:opacity-100`}
             aria-label={`Sửa hồ sơ ${record.fullName}`}
             disabled={readOnly}
             onClick={() => setEditing(true)}

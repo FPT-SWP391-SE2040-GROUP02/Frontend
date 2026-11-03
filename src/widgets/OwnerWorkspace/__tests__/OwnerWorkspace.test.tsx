@@ -71,17 +71,12 @@ describe("workspace logo navigation", () => {
       preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
     });
     renderWorkspace(store, "/dashboard");
-    // Có hai lối vào: mục trong menu (điện thoại) và nút ở chân khung.
+    // Lối sang vai Người thực hiện nằm ở thanh trên, hiện ở mọi cỡ màn hình; không còn bản sao trong menu hay chân khung.
     const links = await screen.findAllByRole("link", { name: "Sang vai Người thực hiện" });
-    expect(links.length).toBeGreaterThan(0);
-    links.forEach((link) => expect(link).toHaveAttribute("href", "/executor"));
-    // Chỉ một nút hiện ở mỗi cỡ màn hình: mục trong menu chỉ dành cho điện thoại (< 768px), nút ở chân khung từ 768px
-    // trở lên. Trước đây mục trong menu ẩn từ 1024px nên màn 768–1023px thấy hai nút.
-    const inMenu = links.filter((link) => link.className.includes("owner-nav-link"));
-    expect(inMenu).toHaveLength(1);
-    // Dùng class CSS riêng vì `display: flex` của .owner-nav-link nằm ngoài layer nên thắng `md:hidden` của Tailwind.
-    expect(inMenu[0].className).toContain("owner-nav-link--phone-only");
-    expect(inMenu[0].className).not.toContain("md:hidden");
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute("href", "/executor");
+    expect(links[0].closest("header")).not.toBeNull();
+    expect(links[0].className).not.toContain("owner-nav-link");
   });
 
   it("opens the phone navigation and closes it after choosing an Owner page", () => {
@@ -91,15 +86,12 @@ describe("workspace logo navigation", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
-    fireEvent.click(screen.getByRole("link", { name: "Kho của tôi" }));
+    fireEvent.click(screen.getByRole("link", { name: "Tài sản" }));
     expect(screen.getByRole("button", { name: "Menu Chủ kho" })).toHaveAttribute(
       "aria-expanded",
       "false",
     );
-    expect(screen.getByRole("link", { name: "Kho của tôi" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    expect(screen.getByRole("link", { name: "Tài sản" })).toHaveAttribute("aria-current", "page");
   });
 
   it("shows the eyebrow above the title only when one is given", () => {
@@ -113,10 +105,10 @@ describe("workspace logo navigation", () => {
   });
 
   it.each([
-    ["/assets?filter=all#list", "Kho của tôi"],
-    ["/wills/new", "Bàn giao"],
-    ["/dashboard/wills/new", "Bàn giao"],
-    ["/billing/history", "Gói dịch vụ"],
+    ["/assets?filter=all#list", "Tài sản"],
+    ["/dashboard/beneficiaries", "Người liên quan"],
+    ["/dashboard/beneficiaries/guide", "Người liên quan"],
+    ["/billing/history", "Hạng dịch vụ"],
     ["/dashboard/identity", "Xác minh"],
   ])("keeps the correct navigation item active on %s", (path, label) => {
     const store = configureStore({ reducer: { auth: authReducer } });
@@ -156,7 +148,7 @@ describe("workspace logo navigation", () => {
       const get = vi.spyOn(apiClient, "get").mockResolvedValue([]);
       const post = vi.spyOn(apiClient, "post");
       const target =
-        role === "ADMIN" ? "/admin" : role === "VERIFIER" ? "/notary/workspace" : "/dashboard";
+        role === "ADMIN" ? "/admin" : role === "VERIFIER" ? "/notary/steps" : "/dashboard";
       render(
         <Provider store={store}>
           <QueryClientProvider client={client}>

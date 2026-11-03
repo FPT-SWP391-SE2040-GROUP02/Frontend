@@ -61,7 +61,7 @@ export function EkycDropzone({
 
   let border = "border-green-700/40";
   if (dragging) {
-    border = "border-[#B68F4C] bg-[#F1E7D0]/50";
+    border = "border-heritage-gold bg-heritage-warning-bg/50";
   }
   let fileName = "";
   let hint = "Kéo ảnh vào đây hoặc bấm để chọn";
@@ -118,7 +118,7 @@ export function EkycDropzone({
             variant="outline"
             size="lg"
             onClick={() => setCropOpen(true)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border-heritage-gold/80 bg-heritage-surface px-5 text-sm font-semibold text-heritage-primary hover:bg-[#F1E7D0]"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border-heritage-gold/80 bg-heritage-surface px-5 text-sm font-semibold text-heritage-primary hover:bg-heritage-warning-bg"
           >
             <Crop className="size-4 text-heritage-gold" aria-hidden="true" />
             Cắt & xoay thẻ

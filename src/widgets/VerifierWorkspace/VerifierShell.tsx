@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { ROUTES } from "@/shared/config/routes.config";
-import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
+import { PageHeader } from "@/shared/ui/PageHeader";
+import { WorkspaceShell, WorkspaceTopbar, type BreadcrumbItem } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "@/widgets/ExecutorWorkspace/executor-workspace.css";
 
@@ -55,6 +56,9 @@ export function VerifierShell({
   const current = verifierNavigation.find(({ to }) =>
     to === ROUTES.NOTARY.WORKSPACE ? path === to : path === to || path.startsWith(`${to}/`),
   );
+  const breadcrumb: BreadcrumbItem[] = [{ label: "Tổng quan", to: ROUTES.NOTARY.WORKSPACE }];
+  if (current && current.to !== ROUTES.NOTARY.WORKSPACE) breadcrumb.push({ label: current.label });
+  else if (!current) breadcrumb.push({ label: title });
   return (
     <WorkspaceShell
       className="owner-workspace"
@@ -102,30 +106,23 @@ export function VerifierShell({
           </nav>
         </>
       }
+      topbar={<WorkspaceTopbar breadcrumb={breadcrumb} roleLabel="Người xét duyệt" />}
       footer={
         <div className="flex items-center gap-3">
           <span
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#E0C486] font-semibold text-[#0A281E]"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft font-semibold text-heritage-on-gold"
             aria-hidden="true"
           >
             {user?.fullName?.trim().charAt(0).toLocaleUpperCase("vi-VN") || "N"}
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
-            <p className="mt-0.5 text-xs text-[#E6C98B]">Người xét duyệt</p>
+            <p className="mt-0.5 text-xs text-heritage-gold-soft-hover">Người xét duyệt</p>
           </div>
         </div>
       }
     >
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-3xl font-semibold text-heritage-primary">{title}</h1>
-          {description && (
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-heritage-muted">{description}</p>
-          )}
-        </div>
-        {badge}
-      </header>
+      <PageHeader title={title} description={description} actions={badge} />
       {children}
     </WorkspaceShell>
   );

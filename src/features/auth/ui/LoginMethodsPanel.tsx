@@ -122,7 +122,7 @@ export function LoginMethodsPanel() {
                 disabled
                 aria-label="Không thể gỡ liên kết Google"
                 title="Liên kết Google đã được khóa, không thể gỡ."
-                className={`${buttonStyles.outline} inline-flex items-center gap-2 disabled:border-transparent disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+                className={`${buttonStyles.outline} inline-flex items-center gap-2 disabled:border-transparent disabled:bg-heritage-neutral-bg disabled:text-heritage-muted disabled:opacity-100`}
               >
                 <Lock className="size-4" aria-hidden="true" />
                 Đã khóa
@@ -140,7 +140,7 @@ export function LoginMethodsPanel() {
         />
       </ul>
       <p className="mt-4 flex items-start gap-2 text-xs text-heritage-muted">
-        <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+        <Lock className="mt-0.5 size-3.5 shrink-0 text-heritage-success" aria-hidden="true" />
         Bạn đang dùng {methods.length} phương thức. Thêm phương thức cần xác thực lại.
       </p>
       {dialog === "link-google" && (
@@ -184,7 +184,7 @@ function MethodRow({
   return (
     <li className="flex flex-wrap items-center justify-between gap-4 border-b border-heritage-border py-4 last:border-b-0">
       <div className="flex min-w-0 items-center gap-4">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB] text-heritage-primary">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-heritage-neutral-bg text-heritage-primary">
           {icon}
         </span>
         <div className="min-w-0">
@@ -205,7 +205,7 @@ interface DialogProps {
   onDone: () => void;
 }
 
-const DIALOG_CLASS = "max-w-lg bg-[#FBFAF5] p-7";
+const DIALOG_CLASS = "max-w-lg bg-heritage-surface p-7";
 const DIALOG_TITLE = "text-xl font-semibold text-heritage-primary";
 
 function PasswordField({
@@ -246,7 +246,10 @@ function PasswordField({
 /** Lỗi trong hộp thoại: khung hồng, đọc ra ngay (role=alert). */
 function ErrorLine({ message }: { message: string }) {
   return message ? (
-    <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+    <p
+      role="alert"
+      className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+    >
       {message}
     </p>
   ) : null;
@@ -318,7 +321,7 @@ function LinkGoogleDialog({ onClose, onDone }: DialogProps) {
         <ErrorLine message={action.error} />
         {verified ? (
           <>
-            <p role="status" className="text-sm text-[#1F7A55]">
+            <p role="status" className="text-sm text-heritage-success">
               Mật khẩu đúng. Bấm tài khoản Google để liên kết.
             </p>
             <GoogleSignInButton disabled={action.pending} onCredential={submit} />

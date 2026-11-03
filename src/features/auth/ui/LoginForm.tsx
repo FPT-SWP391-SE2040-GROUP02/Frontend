@@ -187,9 +187,9 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
 
       {/* 1b. KHỐI NGỮ CẢNH LỜI MỜI NHẬN DI SẢN (Mockup 4) */}
       {invitationContext && (
-        <div className="p-4 rounded-2xl bg-[#EAF2ED] border border-[#C5DCD0] text-[#0A281E] space-y-2">
+        <div className="p-4 rounded-2xl bg-[#EAF2ED] border border-[#C5DCD0] text-heritage-primary space-y-2">
           <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-[#0A281E] flex-shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-heritage-primary flex-shrink-0 mt-0.5" />
             <div className="text-xs leading-relaxed space-y-1">
               <p className="font-semibold text-sm">Bạn đang mở liên kết lời mời.</p>
               <p className="text-[#3F5B4E]">
@@ -202,10 +202,10 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
 
       {/* 2. KHỐI TIÊU ĐỀ CHÍNH */}
       <div className="space-y-1 text-left">
-        <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]">
+        <h1 className="font-serif text-2xl sm:text-3xl font-normal text-heritage-text">
           {invitationContext ? "Đăng nhập để tiếp tục" : "Đăng nhập"}
         </h1>
-        <p className="text-xs sm:text-sm text-[#6B6B66]">
+        <p className="text-xs sm:text-sm text-heritage-muted">
           {invitationContext
             ? "Tiếp tục để xác minh tư cách người nhận gói di sản."
             : "Chào mừng trở lại. Tiếp tục để quản lý kho của bạn."}
@@ -231,8 +231,8 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
 
       {/* Dải phân cách hoặc dùng email */}
       <div className="relative flex items-center justify-center">
-        <div className="w-full border-t border-[#E5E5DF]"></div>
-        <span className="absolute bg-[#FAFAF6] px-3 text-[11px] text-[#8C8C85]">
+        <div className="w-full border-t border-heritage-border"></div>
+        <span className="absolute bg-heritage-surface px-3 text-[11px] text-heritage-muted">
           hoặc dùng email
         </span>
       </div>
@@ -241,11 +241,11 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Email Field */}
         <div className="space-y-1.5 text-left">
-          <label htmlFor="login-email" className="text-xs font-semibold text-[#0F1A16]">
+          <label htmlFor="login-email" className="text-xs font-semibold text-heritage-text">
             Email
           </label>
           <div className="relative">
-            <Mail className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Mail className="w-4 h-4 text-heritage-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
               id="login-email"
               autoComplete="username"
@@ -255,7 +255,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
               type="email"
               placeholder="nam@example.com"
               disabled={isPending}
-              className={`pl-10 h-11 text-xs rounded-xl bg-white border-[#D5D0C3] focus-visible:border-[#0A281E] ${
+              className={`pl-10 h-11 text-xs rounded-xl bg-white border-heritage-border focus-visible:border-heritage-primary ${
                 errors.email ? "border-red-500" : ""
               }`}
             />
@@ -270,18 +270,18 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
         {/* Password Field */}
         <div className="space-y-1.5 text-left">
           <div className="flex justify-between items-baseline">
-            <label htmlFor="login-password" className="text-xs font-semibold text-[#0F1A16]">
+            <label htmlFor="login-password" className="text-xs font-semibold text-heritage-text">
               Mật khẩu
             </label>
             <Link
               to={ROUTES.AUTH.FORGOT_PASSWORD}
-              className="text-[11px] text-[#B88E4C] hover:underline font-semibold"
+              className="text-[11px] text-heritage-gold hover:underline font-semibold"
             >
               Quên mật khẩu?
             </Link>
           </div>
           <div className="relative">
-            <Lock className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Lock className="w-4 h-4 text-heritage-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
               id="login-password"
               autoComplete="current-password"
@@ -291,7 +291,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
               type={showPassword ? "text" : "password"}
               placeholder="Nhập mật khẩu của bạn"
               disabled={isPending}
-              className={`pl-10 pr-12 h-11 text-xs rounded-xl bg-white border-[#D5D0C3] focus-visible:border-[#0A281E] ${
+              className={`pl-10 pr-12 h-11 text-xs rounded-xl bg-white border-heritage-border focus-visible:border-heritage-primary ${
                 errors.password ? "border-red-400" : ""
               }`}
             />
@@ -301,7 +301,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
               aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               aria-pressed={showPassword}
               disabled={isPending}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[#6B6B66] hover:text-[#0A281E] px-1 py-0.5 rounded focus-visible:outline-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-heritage-muted hover:text-heritage-primary px-1 py-0.5 rounded focus-visible:outline-none"
             >
               {showPassword ? "Ẩn" : "Hiện"}
             </button>
@@ -321,7 +321,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
         <Button
           type="submit"
           disabled={isPending}
-          className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+          className="w-full h-11 rounded-xl bg-heritage-sidebar hover:bg-heritage-sidebar/90 text-heritage-surface text-xs font-semibold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
         >
           {isPending ? (
             <span>Đang xác thực...</span>
@@ -342,20 +342,20 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
           type="button"
           onClick={onPasskeyClick}
           disabled={isPending}
-          className="text-xs text-[#0A281E] hover:underline font-semibold block mx-auto pt-1"
+          className="text-xs text-heritage-primary hover:underline font-semibold block mx-auto pt-1"
         >
           Hoặc đăng nhập nhanh bằng Passkey / FaceID
         </button>
       )}
 
       {/* 8. CHUYỂN HƯỚNG TẠO TÀI KHOẢN MỚI */}
-      <div className="pt-4 border-t border-[#E5E5DF] text-xs text-[#6B6B66]">
+      <div className="pt-4 border-t border-heritage-border text-xs text-heritage-muted">
         {invitationContext ? (
           <p>
             Chưa có tài khoản?{" "}
             <Link
               to={`${ROUTES.AUTH.REGISTER}?invitation=${encodeURIComponent(invitationContext.token)}`}
-              className="text-[#0A281E] font-bold hover:underline"
+              className="text-heritage-primary font-bold hover:underline"
             >
               Tạo tài khoản để nhận
             </Link>
@@ -363,7 +363,10 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
         ) : (
           <p>
             Chưa có tài khoản?{" "}
-            <Link to={ROUTES.AUTH.REGISTER} className="text-[#0A281E] font-bold hover:underline">
+            <Link
+              to={ROUTES.AUTH.REGISTER}
+              className="text-heritage-primary font-bold hover:underline"
+            >
               Tạo kho miễn phí
             </Link>
           </p>
