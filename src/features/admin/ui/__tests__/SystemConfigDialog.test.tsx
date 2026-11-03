@@ -199,4 +199,65 @@ describe("SystemConfigDialog", () => {
     renderDialog("PRIMARY");
     expect(screen.queryByLabelText("Bật dịch vụ dự phòng")).not.toBeInTheDocument();
   });
+
+  describe("eKYC", () => {
+    const ekycSlot = {
+      slot: "PRIMARY" as const,
+      enabled: true,
+      source: "DATABASE" as const,
+      settings: { baseUrl: "http://127.0.0.1:8879", timeoutSeconds: "60" },
+      secrets: [{ name: "apiKey", hasValue: false, last4: null }],
+      version: 3,
+      updatedAt: "2026-11-03T10:00:00+00:00",
+      updatedBy: "Cô Lan",
+    };
+    const ekycEntry: SystemConfigEntry = {
+      serviceKey: "EKYC",
+      supportsFallback: true,
+      slots: [ekycSlot],
+      status: { activeSlot: null, lastOutcome: null, lastAt: null, lastErrorCode: null },
+    };
+
+    function renderEkyc() {
+      accessTokenMemory.set("fixture");
+      const client = new QueryClient();
+      render(
+        <QueryClientProvider client={client}>
+          <SystemConfigDialog
+            service={ekycEntry}
+            slot="PRIMARY"
+            onClose={vi.fn()}
+            onSaved={vi.fn()}
+          />
+        </QueryClientProvider>,
+      );
+    }
+
+    it("hiện địa chỉ đang dùng và chặn lưu khi địa chỉ không hợp lệ", async () => {
+      const put = vi.spyOn(apiClient, "put").mockResolvedValue(ekycSlot);
+      renderEkyc();
+      expect(screen.getByLabelText("Địa chỉ dịch vụ")).toHaveValue("http://127.0.0.1:8879");
+      type("Địa chỉ dịch vụ", "http://user:pass@ekyc.test");
+      type("Lý do thay đổi", "đổi địa chỉ");
+      clickSave();
+      expect(await screen.findByText(/không kèm tên đăng nhập/)).toBeInTheDocument();
+      expect(put).not.toHaveBeenCalled();
+    });
+
+    it("lưu địa chỉ mới, không gửi khóa khi để trống, gửi đúng version", async () => {
+      const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...ekycSlot, version: 4 });
+      renderEkyc();
+      type("Địa chỉ dịch vụ", "https://ekyc.example.test");
+      type("Lý do thay đổi", "đổi địa chỉ");
+      clickSave();
+      await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
+      expect(put.mock.calls[0][0]).toBe("/admin/system-config/EKYC/PRIMARY");
+      expect(put.mock.calls[0][1]).toEqual({
+        settings: { baseUrl: "https://ekyc.example.test", timeoutSeconds: "60" },
+        enabled: true,
+        reason: "đổi địa chỉ",
+        version: 3,
+      });
+    });
+  });
 });

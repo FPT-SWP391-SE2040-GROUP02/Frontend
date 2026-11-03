@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { SystemConfigEntry } from "./systemConfig.schema";
 
 /** Loại ô nhập của một trường cấu hình: chữ, số nguyên, hoặc khóa bí mật (chỉ ghi, không bao giờ hiện lại). */
-export type ConfigFieldKind = "text" | "number" | "secret";
+export type ConfigFieldKind = "text" | "number" | "secret" | "url";
 
 export interface ConfigFieldSpec {
   name: string;
@@ -20,6 +20,8 @@ export interface ServiceContent {
   title: string;
   description: string;
   fields: ConfigFieldSpec[];
+  /** Backend có bộ thử kết nối cho dịch vụ này không; không có thì ẩn nút "Thử kết nối". */
+  canTest: boolean;
 }
 
 /** Nội dung từng dịch vụ đã nối. Dịch vụ Backend trả về mà chưa có ở đây thì trang không hiện thẻ. */
@@ -40,6 +42,35 @@ export const SYSTEM_CONFIG_SERVICES: Record<string, ServiceContent> = {
       { name: "timeoutSeconds", label: "Thời gian chờ (giây)", kind: "number", min: 5, max: 60 },
       { name: "apiKey", label: "Khóa API", kind: "secret" },
     ],
+    canTest: true,
+  },
+  EKYC: {
+    title: "eKYC (xác minh danh tính)",
+    description:
+      "Dịch vụ đọc giấy tờ, chống giả mạo và so khớp khuôn mặt của chủ kho. Khi dịch vụ không trả lời, các bước eKYC tạm báo không khả dụng.",
+    fields: [
+      {
+        name: "baseUrl",
+        label: "Địa chỉ dịch vụ",
+        kind: "url",
+        hint: "Ví dụ http://127.0.0.1:8879. Phải bắt đầu bằng http hoặc https, không kèm tên đăng nhập.",
+      },
+      {
+        name: "timeoutSeconds",
+        label: "Thời gian chờ (giây)",
+        kind: "number",
+        min: 5,
+        max: 300,
+        hint: "Đọc giấy tờ chạy bằng CPU nên có thể chậm; mặc định 60 giây.",
+      },
+      {
+        name: "apiKey",
+        label: "Khóa dùng chung (X-Ekyc-Key)",
+        kind: "secret",
+        hint: "Không bắt buộc. Dịch vụ eKYC phải kiểm tra khóa này nếu mở ra ngoài máy chủ.",
+      },
+    ],
+    canTest: true,
   },
 };
 
@@ -94,9 +125,25 @@ export function buildConfigFormSchema(fields: ConfigFieldSpec[]) {
   return z.object(shape);
 }
 
+/** Địa chỉ http/https hợp lệ, không kèm tên đăng nhập (khớp luật của Backend). */
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    const httpScheme = url.protocol === "http:" || url.protocol === "https:";
+    return httpScheme && url.username === "" && url.password === "" && url.hostname !== "";
+  } catch {
+    return false;
+  }
+}
+
 function fieldSchema(field: ConfigFieldSpec): z.ZodTypeAny {
   if (field.kind === "secret") return z.string().max(512, "Tối đa 512 ký tự.");
   const required = z.string().trim().min(1, "Trường này là bắt buộc.");
+  if (field.kind === "url") {
+    return required
+      .max(2048, "Tối đa 2048 ký tự.")
+      .refine(isHttpUrl, "Phải là địa chỉ http hoặc https hợp lệ, không kèm tên đăng nhập.");
+  }
   if (field.kind === "number") {
     const min = field.min ?? 0;
     const max = field.max ?? Number.MAX_SAFE_INTEGER;

@@ -53,6 +53,12 @@ function splitValues(fields: ConfigFieldSpec[], values: ConfigFormValues) {
   return { settings, secrets };
 }
 
+function inputModeOf(kind: ConfigFieldSpec["kind"]): "numeric" | "url" | undefined {
+  if (kind === "number") return "numeric";
+  if (kind === "url") return "url";
+  return undefined;
+}
+
 function testResultText(result: TestSystemConfigResponse): string {
   if (result.ok) return `Kết nối được (${result.latencyMs} ms).`;
   return `Không kết nối được (mã lỗi ${result.errorCode ?? "không rõ"}).`;
@@ -164,7 +170,7 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
                   id={fieldId}
                   autoComplete={field.kind === "secret" ? "new-password" : "off"}
                   type={field.kind === "secret" ? "password" : "text"}
-                  inputMode={field.kind === "number" ? "numeric" : undefined}
+                  inputMode={inputModeOf(field.kind)}
                   placeholder={field.kind === "secret" ? SECRET_PLACEHOLDER : undefined}
                   aria-invalid={Boolean(error)}
                   className="mt-1"
@@ -229,9 +235,11 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
             <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
               Hủy
             </Button>
-            <Button type="button" variant="outline" onClick={() => void onTest()} disabled={busy}>
-              Thử kết nối bằng giá trị đang nhập
-            </Button>
+            {content.canTest && (
+              <Button type="button" variant="outline" onClick={() => void onTest()} disabled={busy}>
+                Thử kết nối bằng giá trị đang nhập
+              </Button>
+            )}
             <Button type="submit" disabled={busy}>
               {saver.pending ? "Đang lưu…" : "Lưu"}
             </Button>

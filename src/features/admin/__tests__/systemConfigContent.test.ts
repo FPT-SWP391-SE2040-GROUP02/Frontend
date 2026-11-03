@@ -81,6 +81,39 @@ describe("statusChip", () => {
   });
 });
 
+describe("EKYC content", () => {
+  const schema = buildConfigFormSchema(SYSTEM_CONFIG_SERVICES.EKYC.fields);
+  const valid = {
+    baseUrl: "http://127.0.0.1:8879",
+    timeoutSeconds: "60",
+    apiKey: "",
+    reason: "đổi địa chỉ",
+    enabled: true,
+  };
+
+  it("nhận địa chỉ http/https và cho phép để trống khóa", () => {
+    expect(schema.safeParse(valid).success).toBe(true);
+    expect(schema.safeParse({ ...valid, baseUrl: "https://ekyc.example.test/api" }).success).toBe(
+      true,
+    );
+  });
+
+  it.each(["ftp://ekyc.test", "http://user:pass@ekyc.test", "không phải địa chỉ", ""])(
+    "từ chối địa chỉ %j",
+    (baseUrl) => {
+      expect(schema.safeParse({ ...valid, baseUrl }).success).toBe(false);
+    },
+  );
+
+  it.each(["4", "301", "abc"])("từ chối thời gian chờ %j", (timeoutSeconds) => {
+    expect(schema.safeParse({ ...valid, timeoutSeconds }).success).toBe(false);
+  });
+
+  it("có nút thử kết nối", () => {
+    expect(SYSTEM_CONFIG_SERVICES.EKYC.canTest).toBe(true);
+  });
+});
+
 describe("buildConfigFormSchema", () => {
   const schema = buildConfigFormSchema(SYSTEM_CONFIG_SERVICES.GEMINI.fields);
   const valid = {
