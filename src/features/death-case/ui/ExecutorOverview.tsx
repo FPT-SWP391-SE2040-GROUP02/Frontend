@@ -34,14 +34,9 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           tone="danger"
           title={`Hồ sơ báo tin về ${vault.ownerFullName} đã bị từ chối`}
           action={
-            <div className="flex flex-wrap gap-3">
-              <Link className={buttonStyles.outline} to={ROUTES.EXECUTOR.REPORT}>
-                Xem lý do
-              </Link>
-              <button type="button" className={buttonStyles.gold} onClick={rejectedAck.acknowledge}>
-                Tiếp tục
-              </button>
-            </div>
+            <button type="button" className={buttonStyles.gold} onClick={rejectedAck.acknowledge}>
+              Tiếp tục
+            </button>
           }
         >
           Hồ sơ của bạn không được Người xét duyệt chấp thuận. Hồ sơ đã được xử lý và đóng; bạn chỉ

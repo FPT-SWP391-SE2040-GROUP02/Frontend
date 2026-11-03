@@ -21,7 +21,8 @@ export function useBillingPlans(enabled: boolean) {
     queryFn: ({ signal }) => billingService.getPlans(signal),
     enabled,
     retry: false,
-    staleTime: 10 * 60_000,
+    // Admin đổi giá, kỳ bán, hạn mức hoặc tắt gói bất cứ lúc nào: lấy lại mỗi lần mở trang thay vì giữ cache 10 phút.
+    staleTime: 0,
   });
 }
 

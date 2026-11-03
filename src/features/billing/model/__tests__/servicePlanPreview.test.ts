@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { vaultFixture } from "@/shared/api/__tests__/backend.fixtures";
 import {
   buildPlanCatalog,
+  collectTermYears,
   getReferencePlanAction,
   type ReferenceServicePlan,
 } from "../servicePlanPreview";
@@ -80,6 +81,40 @@ describe("hành động trên thẻ gói", () => {
   it("kho đã đóng thì chặn mua", () => {
     expect(getReferencePlanAction(xs, { ...vaultFixture, status: "CLOSED" }, now)).toBe("blocked");
   });
+
+  it("hạng Admin đã tạm ngừng bán: không mua mới, không mua thêm suất, không nâng lên", () => {
+    const xsOff = { ...xs, onSale: false };
+    const xsMaxOff = { ...xsMax, onSale: false };
+    expect(getReferencePlanAction(xsOff, vaultFixture, now)).toBe("offSale");
+    expect(getReferencePlanAction(xsOff, paidVault, now)).toBe("offSale");
+    expect(getReferencePlanAction(xsMaxOff, paidVault, now)).toBe("offSale");
+  });
+
+  it("hạng đã tắt bán thì không gia hạn được, hạng còn bán không bị ảnh hưởng", () => {
+    const expired = { ...paidVault, serviceStatus: "EXPIRED" as const };
+    expect(getReferencePlanAction({ ...xs, onSale: false }, expired, now)).toBe("offSale");
+    expect(getReferencePlanAction({ ...xs, onSale: true }, expired, now)).toBe("renew");
+    expect(getReferencePlanAction({ ...xs, onSale: true }, vaultFixture, now)).toBe("buy");
+  });
+});
+
+describe("gói Admin tạo thêm trên thẻ gói", () => {
+  const gold: ReferenceServicePlan = { ...xsMax, serviceTier: "GOLD", name: "Gold", order: 30 };
+  const catalog = [{ ...xs, order: 10 }, { ...xsMax, order: 20 }, gold];
+
+  it("gói đứng sau gói đang dùng (theo thứ tự) là nâng hạng, kể cả gói do Admin tạo", () => {
+    expect(getReferencePlanAction(gold, paidVault, now, catalog)).toBe("upgrade");
+    const goldVault = { ...paidVault, serviceTier: "GOLD" };
+    expect(getReferencePlanAction(xsMax, goldVault, now, catalog)).toBe("downgrade");
+    expect(getReferencePlanAction(gold, goldVault, now, catalog)).toBe("addon");
+  });
+
+  it("kho Free mua được gói mới; gói mới đang tạm ngừng thì không", () => {
+    expect(getReferencePlanAction(gold, vaultFixture, now, catalog)).toBe("buy");
+    expect(getReferencePlanAction({ ...gold, onSale: false }, vaultFixture, now, catalog)).toBe(
+      "offSale",
+    );
+  });
 });
 
 describe("bảng giá lấy từ Backend", () => {
@@ -110,5 +145,55 @@ describe("bảng giá lấy từ Backend", () => {
       { years: 3, days: 1095, price: 499000 },
     ]);
     expect(catalog[1].features).toEqual(["Tính năng A"]);
+  });
+
+  it("kỳ bán do Admin cấu hình: gom số năm của mọi hạng, tăng dần, không trùng", () => {
+    const withSeven: BillingPlans = {
+      ...plans,
+      tiers: [
+        {
+          ...plans.tiers[0],
+          prices: [
+            { years: 7, amount: 1099000, serviceDays: 2555 },
+            { years: 1, amount: 199000, serviceDays: 365 },
+          ],
+        },
+      ],
+    };
+    expect(collectTermYears(buildPlanCatalog(withSeven, {}, {}, free))).toEqual([1, 7]);
+  });
+
+  it("lấy tên, phụ đề, thứ tự và cờ xóa của gói từ Backend", () => {
+    const withGold: BillingPlans = {
+      ...plans,
+      tiers: [
+        ...plans.tiers,
+        {
+          ...plans.tiers[0],
+          tier: "GOLD",
+          name: "Gold",
+          subtitle: "Cao nhất",
+          order: 30,
+          hidden: true,
+        },
+      ],
+    };
+    const gold = buildPlanCatalog(withGold, {}, {}, free)[2];
+    expect(gold).toMatchObject({
+      serviceTier: "GOLD",
+      name: "Gold",
+      subtitle: "Cao nhất",
+      order: 30,
+      hidden: true,
+    });
+  });
+
+  it("lấy cờ mở bán từ Backend; thiếu cờ thì coi là đang bán", () => {
+    const off: BillingPlans = {
+      ...plans,
+      tiers: [{ ...plans.tiers[0], onSale: false }],
+    };
+    expect(buildPlanCatalog(off, {}, {}, free)[1].onSale).toBe(false);
+    expect(buildPlanCatalog(plans, {}, {}, free)[1].onSale).toBe(true);
   });
 });

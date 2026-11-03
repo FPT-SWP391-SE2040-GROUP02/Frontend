@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -160,31 +160,6 @@ function InviteDialog({
   onClose,
 }: InviteDialogProps) {
   const action = usePrivateAction();
-  const [emailCheck, setEmailCheck] = useState<{
-    checked: boolean;
-    exists: boolean;
-    email: string;
-    loading: boolean;
-  }>({ checked: false, exists: false, email: "", loading: false });
-
-  const checkEmail = useCallback(
-    async (val: string) => {
-      const trimmed = val.trim().toLowerCase();
-      if (!trimmed || !trimmed.includes("@") || !trimmed.includes(".")) {
-        setEmailCheck({ checked: false, exists: false, email: "", loading: false });
-        return;
-      }
-      setEmailCheck((prev) => ({ ...prev, loading: true }));
-      try {
-        const exists = await planSetupService.checkEmail(vaultId, trimmed);
-        setEmailCheck({ checked: true, exists, email: trimmed, loading: false });
-      } catch {
-        setEmailCheck({ checked: false, exists: false, email: "", loading: false });
-      }
-    },
-    [vaultId],
-  );
-
   const ownerEmail = useSelector((state: { auth: AuthState }) => state.auth.user?.email);
 
   const inviteSchema = useMemo(
@@ -267,11 +242,7 @@ function InviteDialog({
               <Input
                 type="email"
                 placeholder="nguoiduocmoi@example.com"
-                {...form.register("email", {
-                  onBlur: (e) => {
-                    void checkEmail(e.target.value as string);
-                  },
-                })}
+                {...form.register("email")}
                 aria-invalid={Boolean(form.formState.errors.email)}
               />
             </label>
@@ -279,21 +250,6 @@ function InviteDialog({
               <p role="alert" className="text-sm text-destructive">
                 {form.formState.errors.email.message}
               </p>
-            )}
-            {emailCheck.loading && (
-              <p className="text-xs text-heritage-muted animate-pulse">
-                Đang kiểm tra tài khoản trên hệ thống...
-              </p>
-            )}
-            {!emailCheck.loading && emailCheck.checked && (
-              <div
-                role="status"
-                className={`rounded-lg border p-3 text-xs font-medium ${emailCheck.exists ? "border-green-200 bg-green-50 text-green-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}
-              >
-                {emailCheck.exists
-                  ? "Người dùng này đã có tài khoản trên hệ thống. Lời mời tham gia kho sẽ được gửi trực tiếp đến tài khoản của họ."
-                  : "Email này chưa đăng ký tài khoản. Hệ thống sẽ gửi email kèm liên kết mời kích hoạt và đăng ký mới."}
-              </div>
             )}
           </fieldset>
           <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">{notice}</p>

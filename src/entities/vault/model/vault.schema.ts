@@ -13,7 +13,8 @@ export const vaultResponseSchema = z.object({
   planStatus: z.string().min(1),
   planConfigVersion: z.number().int().nonnegative(),
   planActivatedAt: z.string().datetime({ offset: true }).nullable(),
-  serviceTier: z.enum(["FREE", "XS", "XS_MAX"]),
+  /** Mã gói: "FREE", "XS", "XS_MAX" hoặc mã gói Admin tạo thêm. */
+  serviceTier: z.string().min(1),
   serviceStatus: z.string().min(1),
   serviceExpiresAt: z.string().datetime({ offset: true }).nullable(),
   storageQuotaBytes: z.number().int().nonnegative(),

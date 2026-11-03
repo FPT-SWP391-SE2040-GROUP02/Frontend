@@ -154,9 +154,6 @@ export function VerifierObjectionBlock({
           Chưa thể xác nhận còn sống: cần selfie đạt hoặc đợi hết hạn 7 ngày của Owner.
         </p>
       )}
-      {objection.selfiePassed && (
-        <p role="status">Selfie đã khớp nên bạn không thể từ chối báo tử (ALIVE-05).</p>
-      )}
       {canConclude && options.length > 0 && (
         <button type="button" className={buttonStyles.dark} onClick={() => setOpen(true)}>
           Kết luận lời báo

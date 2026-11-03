@@ -34,9 +34,10 @@ describe("billingService", () => {
   it("từ chối lựa chọn ngoài hợp đồng trước khi gọi mạng", async () => {
     const post = vi.spyOn(apiClient, "post");
     await expect(billingService.quote({ extraSlots: 21 })).rejects.toThrow();
-    await expect(
-      billingService.quote({ tier: "XS", years: 2 as never, extraSlots: 0 }),
-    ).rejects.toThrow();
+    // Kỳ do Admin cấu hình nên chỉ chặn số năm vô lý: ngoài 1 đến 10 hoặc không nguyên.
+    await expect(billingService.quote({ tier: "XS", years: 0, extraSlots: 0 })).rejects.toThrow();
+    await expect(billingService.quote({ tier: "XS", years: 11, extraSlots: 0 })).rejects.toThrow();
+    await expect(billingService.quote({ tier: "XS", years: 1.5, extraSlots: 0 })).rejects.toThrow();
     expect(post).not.toHaveBeenCalled();
   });
 

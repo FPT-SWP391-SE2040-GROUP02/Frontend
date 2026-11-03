@@ -11,9 +11,13 @@ export type VaultServiceData = Pick<
   | "beneficiarySlots"
 >;
 
-export function getVaultServiceName(tier: VaultResponse["serviceTier"]): string {
-  const names = { FREE: "Free", XS: "Legacy XS", XS_MAX: "Legacy XS Max" };
-  return names[tier];
+/** Tên gói để hiển thị; gói Admin tạo thêm lấy tên từ bảng giá (`customNames`), thiếu thì hiện mã gói. */
+export function getVaultServiceName(
+  tier: VaultResponse["serviceTier"],
+  customNames: Readonly<Record<string, string>> = {},
+): string {
+  const names: Record<string, string> = { FREE: "Free", XS: "Legacy XS", XS_MAX: "Legacy XS Max" };
+  return customNames[tier] ?? names[tier] ?? tier;
 }
 
 /**

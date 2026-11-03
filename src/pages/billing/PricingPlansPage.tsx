@@ -21,6 +21,15 @@ const TIER_FEATURES: Record<string, readonly string[]> = {
   XS_MAX: PRICING_CATALOG[2].features,
 };
 
+/** Gói Admin tạo thêm dùng danh sách tính năng chung của gói trả phí (Backend chưa công bố tính năng riêng). */
+function featuresFor(codes: readonly string[]): Record<string, readonly string[]> {
+  const result: Record<string, readonly string[]> = {};
+  for (const code of codes) {
+    result[code] = TIER_FEATURES[code] ?? PRICING_CATALOG[1].features;
+  }
+  return result;
+}
+
 /** Owner xem bảng giá do Backend công bố (GET /billing/plans); khách chỉ thấy bảng tham khảo. */
 function OwnerCatalog() {
   const vault = useOwnerVault(true);
@@ -64,7 +73,12 @@ function OwnerCatalog() {
       {vault.isSuccess && plans.isPending && <p role="status">Đang tải bảng giá…</p>}
       {vault.isSuccess && plans.data && (
         <ServicePlansPanel
-          catalog={buildPlanCatalog(plans.data, TIER_FEATURES, TIER_NAMES, PRICING_CATALOG[0])}
+          catalog={buildPlanCatalog(
+            plans.data,
+            featuresFor(plans.data.tiers.map((tier) => tier.tier)),
+            TIER_NAMES,
+            PRICING_CATALOG[0],
+          )}
           vault={vault.data}
           access="owner"
           maxExtraSlots={plans.data.extraSlot.maxPerOrder}

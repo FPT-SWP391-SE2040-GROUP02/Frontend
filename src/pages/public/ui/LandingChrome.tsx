@@ -54,7 +54,7 @@ export function LandingHeader({ onLanding }: { onLanding: boolean }) {
       <a
         key={item.href}
         href={anchorHref(item.href, onLanding)}
-        className={`inline-flex min-h-11 shrink-0 items-center text-sm text-[#F3EFE6]/80 hover:text-[#E6C98B] ${FOCUS_RING}`}
+        className={`inline-flex min-h-11 shrink-0 items-center text-sm text-[#F3EFE6]/80 transition-colors duration-200 hover:text-[#E6C98B] ${FOCUS_RING}`}
       >
         {item.label}
       </a>,
@@ -80,7 +80,7 @@ export function LandingHeader({ onLanding }: { onLanding: boolean }) {
       <div className="flex items-center gap-2">
         <Link
           to={loginTarget}
-          className={`inline-flex min-h-11 items-center rounded-md border border-[#E6C98B]/60 px-4 text-sm text-[#E6C98B] hover:bg-[#E6C98B]/10 ${FOCUS_RING}`}
+          className={`inline-flex min-h-11 items-center rounded-md border border-[#E6C98B]/60 px-4 text-sm text-[#E6C98B] transition-colors duration-200 hover:bg-[#E6C98B]/10 ${FOCUS_RING}`}
         >
           {loginLabel}
         </Link>
@@ -88,7 +88,7 @@ export function LandingHeader({ onLanding }: { onLanding: boolean }) {
         {isGuest && (
           <Link
             to={ROUTES.AUTH.REGISTER}
-            className={`inline-flex min-h-11 items-center rounded-md bg-[#B68F4C] px-4 text-sm font-semibold text-[#0A281E] transition-colors hover:bg-[#E6C98B] ${FOCUS_RING}`}
+            className={`inline-flex min-h-11 items-center rounded-md landing-press bg-[#B68F4C] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] ${FOCUS_RING}`}
           >
             {content.register}
           </Link>
