@@ -29,8 +29,10 @@ const progressItemSchema = z.object({
 const progressTurnSchema = z.object({
   turnId: z.string().uuid(),
   containerName: z.string(),
+  /** Mã hồ sơ người nhận trong kho; các lượt cùng mã là cùng một người. Backend cũ chưa gửi thì null. */
+  beneficiaryId: z.string().uuid().nullable().default(null),
   beneficiaryCitizenIdLast4: z.string(),
-  /** Họ tên và số điện thoại người nhận: Backend chỉ gửi khi lượt đã bàn giao (đồng ý và có quyền tải), còn lại null. */
+  /** Họ tên và số điện thoại người nhận: Backend gửi ở lượt còn hiệu lực hoặc đã bàn giao; lượt đã kết thúc là null. */
   beneficiaryFullName: z.string().nullable().default(null),
   beneficiaryPhone: z.string().nullable().default(null),
   status: handoverTurnStatusSchema,
@@ -53,7 +55,7 @@ const progressTurnSchema = z.object({
 /**
  * HandoverProgressResponse của GET /executor/death-cases/{caseId}/handover-progress.
  * Chỉ có tên/loại tài sản và 4 số cuối CCCD người nhận; không có nội dung tài sản.
- * Họ tên và số điện thoại người nhận chỉ có ở lượt đã bàn giao.
+ * Họ tên và số điện thoại người nhận chỉ có ở lượt còn hiệu lực hoặc đã bàn giao.
  * Hồ sơ chưa duyệt: handoverStarted = false, turns rỗng, summary toàn 0.
  */
 export const handoverProgressSchema = z.object({

@@ -56,7 +56,7 @@ describe("VaultPinDialogHost", () => {
     const user = userEvent.setup();
 
     const request = apiClient.delete<unknown, unknown>(deleteUrl);
-    await user.type(await screen.findByLabelText("Mã PIN của kho"), "482913");
+    await user.type(await screen.findByLabelText(/^Mã PIN bảo vệ$/i), "482913");
     await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
     await expect(request).resolves.toEqual({ ok: true });
@@ -70,11 +70,11 @@ describe("VaultPinDialogHost", () => {
     const user = userEvent.setup();
 
     const request = apiClient.delete<unknown, unknown>(deleteUrl);
-    await user.type(await screen.findByLabelText("Mã PIN của kho"), "999000");
+    await user.type(await screen.findByLabelText(/^Mã PIN bảo vệ$/i), "999000");
     await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
     expect(await screen.findByText(/Còn 4 lần thử trước khi kho bị khóa tạm/)).toBeInTheDocument();
-    await user.type(screen.getByLabelText("Mã PIN của kho"), "482913");
+    await user.type(screen.getByLabelText(/^Mã PIN bảo vệ$/i), "482913");
     await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
     await expect(request).resolves.toEqual({ ok: true });
@@ -90,7 +90,7 @@ describe("VaultPinDialogHost", () => {
     const assertion = expect(request).rejects.toMatchObject({
       response: { status: 403, data: { code: "VAULT_PIN_REQUIRED" } },
     });
-    await screen.findByLabelText("Mã PIN của kho");
+    await screen.findByLabelText(/^Mã PIN bảo vệ$/i);
     await user.click(screen.getByRole("button", { name: "Hủy" }));
 
     await assertion;
@@ -104,7 +104,7 @@ describe("VaultPinDialogHost", () => {
 
     const request = apiClient.delete<unknown, unknown>(deleteUrl);
     const assertion = expect(request).rejects.toBeDefined();
-    await user.type(await screen.findByLabelText("Mã PIN của kho"), "4829");
+    await user.type(await screen.findByLabelText(/^Mã PIN bảo vệ$/i), "4829");
     await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
     expect(await screen.findByText("Mã PIN gồm đúng 6 chữ số.")).toBeInTheDocument();

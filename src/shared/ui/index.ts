@@ -27,3 +27,4 @@ export * from "./ChoiceGroup";
 export * from "./SideDrawer";
 export * from "./EmptyState";
 export * from "./DataTable";
+export * from "./switch";

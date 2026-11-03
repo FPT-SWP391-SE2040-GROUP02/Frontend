@@ -33,7 +33,7 @@ function enterMessage(request: VaultPinPromptRequest): string {
   if (request.purpose === "reveal") {
     return "Để xem thông tin tài sản. Mở khóa giữ trong 3 phút.";
   }
-  return "Thao tác này cần mã PIN của kho. Nhập mã PIN để tiếp tục.";
+  return "Thao tác này cần Mã PIN bảo vệ. Nhập mã PIN để tiếp tục.";
 }
 
 /** Dòng nhắc dưới sáu ô sau khi nhập sai; lần hỏi đầu không có. */
@@ -85,7 +85,7 @@ function EnterPinPrompt({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Nhập mã PIN của kho</DialogTitle>
+        <DialogTitle>Nhập Mã PIN bảo vệ</DialogTitle>
         <DialogDescription>{enterMessage(prompt.request)}</DialogDescription>
       </DialogHeader>
       <EnterPinForm
@@ -212,10 +212,10 @@ export function VaultPinDialogHost() {
           {current.kind === "set" && (
             <>
               <DialogHeader>
-                <DialogTitle>Đặt mã PIN cho kho</DialogTitle>
+                <DialogTitle>Đặt Mã PIN bảo vệ</DialogTitle>
                 <DialogDescription>
-                  Kho đã có tài sản nên cần mã PIN 6 chữ số. Mã PIN được hỏi trước khi tải nội dung
-                  tài sản, sửa hoặc xóa tài sản, đổi người nhận hoặc Người thực hiện.
+                  Kho đã có tài sản nên cần Mã PIN bảo vệ gồm 6 chữ số. Mã PIN được hỏi trước khi
+                  tải nội dung tài sản, sửa hoặc xóa tài sản, đổi người nhận hoặc Người thực hiện.
                 </DialogDescription>
               </DialogHeader>
               <SetPinForm

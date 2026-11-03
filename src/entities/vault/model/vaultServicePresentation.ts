@@ -16,6 +16,25 @@ export function getVaultServiceName(tier: VaultResponse["serviceTier"]): string 
   return names[tier];
 }
 
+/**
+ * Tên gói để hiển thị: gói trả phí đã hết hạn (ân hạn chỉ đọc, chờ rà soát, hoặc quá hạn mà job chưa kịp chuyển)
+ * hiện là "Free". Chỉ dùng cho nhãn; logic mua, gia hạn vẫn dựa vào serviceTier thật của kho.
+ */
+export function getDisplayedServiceTier(
+  service: Pick<VaultServiceData, "serviceTier" | "serviceStatus" | "serviceExpiresAt">,
+  now = Date.now(),
+): VaultResponse["serviceTier"] {
+  if (service.serviceTier === "FREE") return "FREE";
+  if (service.serviceStatus === "GRACE_READ_ONLY" || service.serviceStatus === "EXPIRED_REVIEW") {
+    return "FREE";
+  }
+  if (service.serviceStatus === "PAID_ACTIVE") {
+    const expiresAt = Date.parse(service.serviceExpiresAt ?? "");
+    if (Number.isFinite(expiresAt) && expiresAt <= now) return "FREE";
+  }
+  return service.serviceTier;
+}
+
 /** Ngày hết hạn chỉ phục vụ nhãn hiển thị; canActivate vẫn do server quyết định. */
 export function getVaultServiceStatus(service: VaultServiceData, now = Date.now()) {
   if (service.serviceStatus === "FREE") {

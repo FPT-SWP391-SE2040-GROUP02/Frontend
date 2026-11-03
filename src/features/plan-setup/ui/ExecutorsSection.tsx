@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, useCallback, type ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -138,11 +138,44 @@ interface InviteDialogProps {
   replacing: Executor | null;
   existingExecutors: Executor[];
   sync: () => void;
+  onSuccess?: (result: Executor) => void;
   onClose: () => void;
 }
 
-function InviteDialog({ vaultId, replacing, existingExecutors, sync, onClose }: InviteDialogProps) {
+function InviteDialog({
+  vaultId,
+  replacing,
+  existingExecutors,
+  sync,
+  onSuccess,
+  onClose,
+}: InviteDialogProps) {
   const action = usePrivateAction();
+  const [emailCheck, setEmailCheck] = useState<{
+    checked: boolean;
+    exists: boolean;
+    email: string;
+    loading: boolean;
+  }>({ checked: false, exists: false, email: "", loading: false });
+
+  const checkEmail = useCallback(
+    async (val: string) => {
+      const trimmed = val.trim().toLowerCase();
+      if (!trimmed || !trimmed.includes("@") || !trimmed.includes(".")) {
+        setEmailCheck({ checked: false, exists: false, email: "", loading: false });
+        return;
+      }
+      setEmailCheck((prev) => ({ ...prev, loading: true }));
+      try {
+        const exists = await planSetupService.checkEmail(vaultId, trimmed);
+        setEmailCheck({ checked: true, exists, email: trimmed, loading: false });
+      } catch {
+        setEmailCheck({ checked: false, exists: false, email: "", loading: false });
+      }
+    },
+    [vaultId],
+  );
+
   const ownerEmail = useSelector((state: { auth: AuthState }) => state.auth.user?.email);
 
   const inviteSchema = useMemo(
@@ -207,7 +240,13 @@ function InviteDialog({ vaultId, replacing, existingExecutors, sync, onClose }: 
           className="space-y-4"
           noValidate
           onSubmit={form.handleSubmit(async (values) => {
-            const done = await action.execute(() => planSetupService.invite(vaultId, values), sync);
+            const done = await action.execute(
+              () => planSetupService.invite(vaultId, values),
+              (result) => {
+                onSuccess?.(result);
+                sync();
+              },
+            );
             if (done) {
               onClose();
             }
@@ -218,7 +257,12 @@ function InviteDialog({ vaultId, replacing, existingExecutors, sync, onClose }: 
               Email Executor
               <Input
                 type="email"
-                {...form.register("email")}
+                placeholder="nguoiduocmoi@example.com"
+                {...form.register("email", {
+                  onBlur: (e) => {
+                    void checkEmail(e.target.value as string);
+                  },
+                })}
                 aria-invalid={Boolean(form.formState.errors.email)}
               />
             </label>
@@ -226,6 +270,21 @@ function InviteDialog({ vaultId, replacing, existingExecutors, sync, onClose }: 
               <p role="alert" className="text-sm text-destructive">
                 {form.formState.errors.email.message}
               </p>
+            )}
+            {emailCheck.loading && (
+              <p className="text-xs text-heritage-muted animate-pulse">
+                Đang kiểm tra tài khoản trên hệ thống...
+              </p>
+            )}
+            {!emailCheck.loading && emailCheck.checked && (
+              <div
+                role="status"
+                className={`rounded-lg border p-3 text-xs font-medium ${emailCheck.exists ? "border-green-200 bg-green-50 text-green-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}
+              >
+                {emailCheck.exists
+                  ? "Người dùng này đã có tài khoản trên hệ thống. Lời mời tham gia kho sẽ được gửi trực tiếp đến tài khoản của họ."
+                  : "Email này chưa đăng ký tài khoản. Hệ thống sẽ gửi email kèm liên kết mời kích hoạt và đăng ký mới."}
+              </div>
             )}
           </fieldset>
           <p className="rounded-lg bg-heritage-warning-bg p-3 text-sm text-heritage-warning">
@@ -486,6 +545,10 @@ export function ExecutorsSection({
   /** Lời mời vừa gửi lại thành công (BE xác nhận), để báo cho Owner; null khi chưa gửi hoặc đang gửi lần khác. */
   const [resent, setResent] = useState<Executor | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
+  const [invitationNotice, setInvitationNotice] = useState<{
+    email: string;
+    accountExists: boolean;
+  } | null>(null);
 
   function sync(): void {
     void client.invalidateQueries({ queryKey: ["plan-setup", vaultId] });
@@ -537,6 +600,26 @@ export function ExecutorsSection({
 
   return (
     <div className="space-y-6">
+      {invitationNotice && (
+        <div
+          role="status"
+          className={`flex items-start justify-between gap-3 rounded-xl border p-4 text-sm font-medium ${invitationNotice.accountExists ? "border-green-200 bg-green-50 text-green-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}
+        >
+          <p>
+            {invitationNotice.accountExists
+              ? "Người dùng này đã có tài khoản trên hệ thống. Lời mời tham gia kho sẽ được gửi trực tiếp đến tài khoản của họ."
+              : "Email này chưa đăng ký tài khoản. Hệ thống sẽ gửi email kèm liên kết mời kích hoạt và đăng ký mới."}
+          </p>
+          <button
+            type="button"
+            onClick={() => setInvitationNotice(null)}
+            className="text-inherit opacity-70 hover:opacity-100"
+            aria-label="Đóng"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
       {banner !== null && (
         <p
           role="status"
@@ -590,6 +673,12 @@ export function ExecutorsSection({
           replacing={dialog.replacing}
           existingExecutors={setup.executors}
           sync={sync}
+          onSuccess={(result) =>
+            setInvitationNotice({
+              email: result.inviteeEmail,
+              accountExists: Boolean(result.accountExists),
+            })
+          }
           onClose={() => setDialog(null)}
         />
       )}

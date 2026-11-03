@@ -180,7 +180,7 @@ export function OwnerCheckIn({ vaultId }: { vaultId: string }) {
   let actionButtonClass =
     "w-full disabled:bg-heritage-neutral-bg disabled:text-heritage-muted disabled:opacity-100";
   let ActionIcon = CalendarCheck;
-  if (daily.checkedInToday) {
+  if (daily.checkedInToday || daily.executorCheckedInToday) {
     actionPanelClass = "rounded-xl border border-heritage-success/30 bg-heritage-success-bg p-5";
     actionButtonClass =
       "w-full disabled:bg-heritage-surface disabled:text-heritage-success disabled:opacity-100";

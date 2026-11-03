@@ -5,6 +5,8 @@ import {
   AdminIncidents,
   AdminOverview,
   AdminPayments,
+  AdminSettings,
+  AdminSystemConfig,
   AdminUsers,
 } from "@/features/admin";
 import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
@@ -18,11 +20,17 @@ import {
 
 const NAVIGATION: WorkspaceNavigationItem[] = [
   { id: "overview", label: "Tổng quan", to: ROUTES.ADMIN.ROOT },
+  { id: "settings", label: "Cấu hình hệ thống", to: `${ROUTES.ADMIN.ROOT}?view=settings` },
   { id: "incidents", label: "Sự cố", to: `${ROUTES.ADMIN.ROOT}?view=incidents` },
   { id: "holds", label: "Tạm giữ", to: `${ROUTES.ADMIN.ROOT}?view=holds` },
   { id: "payments", label: "Giao dịch thanh toán", to: `${ROUTES.ADMIN.ROOT}?view=payments` },
   { id: "users", label: "Người dùng", to: ROUTES.DASHBOARD.USERS },
   { id: "audit", label: "Nhật ký hoạt động", to: ROUTES.ADMIN.AUDIT_LOG },
+  {
+    id: "system-config",
+    label: "Cấu hình dịch vụ",
+    to: `${ROUTES.ADMIN.ROOT}?view=system-config`,
+  },
   { id: "security", label: "Bảo mật tài khoản", to: `${ROUTES.ADMIN.ROOT}?view=security` },
 ];
 
@@ -43,6 +51,11 @@ const VIEWS = {
   overview: {
     title: "Tổng quan quản trị",
     description: "Số liệu vận hành hệ thống. Quản trị viên không đọc được nội dung kho.",
+  },
+  settings: {
+    title: "Cấu hình tham số hệ thống",
+    description:
+      "Quản lý và điều chỉnh các tham số dịch vụ, giới hạn quota và tính năng hệ thống theo thời gian thực.",
   },
   incidents: {
     title: "Sự cố vận hành",
@@ -65,6 +78,10 @@ const VIEWS = {
     description:
       "Ai đã làm gì và lúc nào trên toàn hệ thống, mới nhất trước, kể cả các hồ sơ bị từ chối.",
   },
+  "system-config": {
+    title: "Cấu hình dịch vụ ngoài",
+    description: "Sửa model, khóa và dịch vụ dự phòng khi một dịch vụ ngoài gặp sự cố.",
+  },
   security: {
     title: "Bảo mật tài khoản",
     description: "Bật hoặc tắt xác thực hai bước cho tài khoản quản trị của bạn.",
@@ -77,12 +94,19 @@ const VIEWS = {
 
 type AdminView = keyof typeof VIEWS;
 
-/** Sự cố, tạm giữ và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
+/** Sự cố, tạm giữ, cấu hình và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
 function viewFor(pathname: string, search: string): AdminView {
   if (pathname === ROUTES.DASHBOARD.USERS) return "users";
   if (pathname === ROUTES.ADMIN.AUDIT_LOG) return "audit";
   const view = new URLSearchParams(search).get("view");
-  if (view === "incidents" || view === "holds" || view === "payments" || view === "security")
+  if (
+    view === "settings" ||
+    view === "incidents" ||
+    view === "holds" ||
+    view === "payments" ||
+    view === "security" ||
+    view === "system-config"
+  )
     return view;
   if (view === "dev-tools" && DEV_TOOLS_ENABLED) return view;
   return "overview";
@@ -101,6 +125,7 @@ export function AdminWorkspacePage() {
       description={VIEWS[view].description}
     >
       {view === "overview" && <AdminOverview />}
+      {view === "settings" && <AdminSettings />}
       {view === "incidents" && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
@@ -108,6 +133,7 @@ export function AdminWorkspacePage() {
       {view === "security" && <AdminTwoFactorSettings />}
       {view === "dev-tools" && <AdminDevTools />}
       {view === "audit" && <AdminAuditLogs />}
+      {view === "system-config" && <AdminSystemConfig />}
     </WorkspaceFrame>
   );
 }

@@ -182,7 +182,6 @@ export const PLAN_TIERS = {
     maxAssets: 3,
     storageLimitMb: 20,
     allowEstatePlan: false,
-    allowPdfExport: false,
     description: "Lưu trữ cá nhân và điểm danh DMS, không thiết lập di sản",
   },
   LEGACY_XS: {
@@ -194,7 +193,6 @@ export const PLAN_TIERS = {
     maxAssets: 20,
     storageLimitMb: 200,
     allowEstatePlan: true,
-    allowPdfExport: false,
     description: "Thiết lập kế hoạch di sản, xác minh chứng tử và bàn giao toàn diện",
   },
   LEGACY_XS_MAX: {
@@ -206,8 +204,7 @@ export const PLAN_TIERS = {
     maxAssets: 50,
     storageLimitMb: 500,
     allowEstatePlan: true,
-    allowPdfExport: true,
-    description: "Đầy đủ quyền năng di sản và quyền xuất PDF Kế hoạch di sản",
+    description: "Đầy đủ quyền năng di sản",
   },
   // Gói Kho cá nhân Người thụ hưởng (Beneficiary)
   RECIPIENT_FREE: {

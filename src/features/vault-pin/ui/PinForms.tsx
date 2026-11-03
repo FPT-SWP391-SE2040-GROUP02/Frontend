@@ -224,7 +224,7 @@ export function EnterPinForm({
     >
       <PinBoxField
         id="vault-pin-enter"
-        label="Mã PIN của kho"
+        label="Mã PIN bảo vệ"
         value={pin ?? ""}
         autoFocus
         error={errors.pin?.message}

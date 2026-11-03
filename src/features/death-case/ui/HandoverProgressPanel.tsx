@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { Lock } from "lucide-react";
+import { Lock, Package, Phone } from "lucide-react";
+import { cn } from "cn";
 import { ZodError } from "zod";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
@@ -12,6 +13,7 @@ import {
   type HandoverProgress,
   type HandoverProgressTurn,
 } from "../model/handoverProgress.schema";
+import { groupTurnsByRecipient, type RecipientGroup } from "../model/recipientGroups";
 import { remainingText } from "../model/remainingText";
 import { handoverProgressKey, useHandoverProgress } from "../model/useHandoverProgress";
 import {
@@ -307,6 +309,107 @@ function TurnDetail({
   );
 }
 
+/** Số thẻ người nhận thấy được trước khi khung danh sách phải cuộn. */
+const VISIBLE_RECIPIENTS = 3;
+
+/** Thanh tiến độ tải của một gói; đủ thì chuyển màu xanh. */
+function DownloadBar({ downloaded, total }: { downloaded: number; total: number }) {
+  const percent = total > 0 ? Math.min(100, Math.round((downloaded / total) * 100)) : 0;
+  const done = total > 0 && downloaded >= total;
+  return (
+    <div className="flex items-center gap-3">
+      <div
+        role="progressbar"
+        aria-label="Tiến độ tải"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={downloaded}
+        className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#ECE8DB]"
+      >
+        <div
+          className={cn("h-full rounded-full", done ? "bg-[#1F7A55]" : "bg-[#C9A55C]")}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <span className="shrink-0 text-xs text-heritage-muted tabular-nums">
+        {downloaded}/{total} tài sản đã tải
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Một người nhận và các gói của họ. Mỗi gói là một lượt riêng (trạng thái, hạn, tiến độ tải riêng),
+ * nên mỗi gói có nút xem chi tiết riêng.
+ */
+function RecipientCard({
+  group,
+  selectedTurnId,
+  onChoose,
+}: {
+  group: RecipientGroup;
+  selectedTurnId: string;
+  onChoose: (turnId: string) => void;
+}) {
+  const displayName = group.fullName ?? "Người nhận";
+  return (
+    <li className="rounded-2xl border border-heritage-border bg-white/50 p-4">
+      <div className="flex items-center gap-3">
+        <Initial name={group.fullName ?? "?"} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold">{displayName}</p>
+          <p className="flex flex-wrap items-center gap-x-3 text-sm text-heritage-muted">
+            <span>CCCD ***{group.citizenIdLast4}</span>
+            {group.phone && (
+              <span className="inline-flex items-center gap-1">
+                <Phone className="size-3.5" aria-hidden="true" />
+                {group.phone}
+              </span>
+            )}
+          </p>
+        </div>
+        <Chip tone="neutral">{group.turns.length} gói</Chip>
+      </div>
+      <ul className="mt-4 space-y-2" aria-label={`Các gói của ${displayName}`}>
+        {group.turns.map((turn) => {
+          const chip = turnChips[turn.status];
+          const isSelected = selectedTurnId === turn.turnId;
+          return (
+            <li
+              key={turn.turnId}
+              className={cn(
+                "space-y-2 rounded-xl border p-3 transition-colors",
+                isSelected
+                  ? "border-[#C9A55C] bg-[#FBF6EA]"
+                  : "border-heritage-border bg-heritage-surface",
+              )}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="flex min-w-0 items-center gap-2 font-medium">
+                  <Package className="size-4 shrink-0 text-heritage-muted" aria-hidden="true" />
+                  <span className="truncate">Gói “{turn.containerName}”</span>
+                </p>
+                <div className="flex items-center gap-2">
+                  <Chip tone={chip.tone}>{chip.label}</Chip>
+                  <button
+                    type="button"
+                    className={cn(buttonStyles.outline, "min-h-9 px-4")}
+                    aria-pressed={isSelected}
+                    onClick={() => onChoose(turn.turnId)}
+                  >
+                    Xem chi tiết
+                  </button>
+                </div>
+              </div>
+              <DownloadBar downloaded={turn.downloadedItems} total={turn.totalItems} />
+            </li>
+          );
+        })}
+      </ul>
+    </li>
+  );
+}
+
 function Tile({ label, value, caption }: { label: string; value: string; caption: string }) {
   return (
     <div className="rounded-2xl border border-heritage-border bg-heritage-surface p-5">
@@ -378,6 +481,7 @@ function ProgressBody({
   onChoose: (turnId: string) => void;
 }) {
   const selected = data.turns.find((turn) => turn.turnId === chosenTurn) ?? data.turns[0];
+  const groups = groupTurnsByRecipient(data.turns);
   const finished = data.turns.filter(isFinished).length;
   const downloading = data.turns.filter(isDownloading).length;
   const activeGrants = data.turns
@@ -387,9 +491,13 @@ function ProgressBody({
   return (
     <>
       <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Tile label="Người nhận" value={String(data.summary.totalTurns)} caption="Tổng số lượt" />
-        <Tile label="Đã tải xong" value={String(finished)} caption="người" />
-        <Tile label="Đang tải" value={String(downloading)} caption="người" />
+        <Tile
+          label="Người nhận"
+          value={String(groups.length)}
+          caption={`Tổng ${data.summary.totalTurns} gói bàn giao`}
+        />
+        <Tile label="Đã tải xong" value={String(finished)} caption="gói" />
+        <Tile label="Đang tải" value={String(downloading)} caption="gói" />
         <Tile
           label="Hạn tải còn"
           value={
@@ -409,42 +517,27 @@ function ProgressBody({
           </li>
         ))}
       </ul>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel title="Theo người nhận">
-          <ul className="divide-y divide-heritage-border">
-            {data.turns.map((turn) => {
-              const chip = turnChips[turn.status];
-              return (
-                <li
-                  key={turn.turnId}
-                  className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0 last:pb-0"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <Initial name={turn.containerName} />
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold">
-                        Gói “{turn.containerName}” · người nhận CCCD ***
-                        {turn.beneficiaryCitizenIdLast4}
-                      </p>
-                      <p className="text-sm text-heritage-muted">
-                        {turn.downloadedItems} / {turn.totalItems} tài sản
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Chip tone={chip.tone}>{chip.label}</Chip>
-                    <button
-                      type="button"
-                      className={buttonStyles.outline}
-                      aria-pressed={selected.turnId === turn.turnId}
-                      onClick={() => onChoose(turn.turnId)}
-                    >
-                      Xem chi tiết
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
+          {groups.length > VISIBLE_RECIPIENTS && (
+            <p className="-mt-2 mb-3 text-sm text-heritage-muted">
+              {groups.length} người nhận, cuộn trong khung để xem thêm.
+            </p>
+          )}
+          {/* Nhiều người nhận thì cuộn trong khung (khoảng 3 thẻ), để phần chi tiết bên cạnh không bị đẩy xa. */}
+          <ul
+            aria-label="Danh sách người nhận"
+            tabIndex={groups.length > VISIBLE_RECIPIENTS ? 0 : undefined}
+            className="max-h-[40rem] space-y-4 overflow-y-auto overscroll-contain pr-1"
+          >
+            {groups.map((group) => (
+              <RecipientCard
+                key={group.key}
+                group={group}
+                selectedTurnId={selected.turnId}
+                onChoose={onChoose}
+              />
+            ))}
           </ul>
         </Panel>
         <TurnDetail

@@ -22,6 +22,7 @@ import { PageHeader } from "@/shared/ui/PageHeader";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useExecutorVaults } from "@/features/death-case/model/useExecutorVaults";
+import { getDisplayedServiceTier } from "@/entities/vault/model/vaultServicePresentation";
 import { VaultServiceBadge } from "@/entities/vault/ui/VaultServiceInfo";
 import {
   isOwnerVaultMissing,
@@ -40,7 +41,7 @@ function OwnerServiceTier() {
     }
     return <p className="text-xs text-white/65">Chưa tải được gói</p>;
   }
-  return <VaultServiceBadge tier={vault.data.serviceTier} sidebar />;
+  return <VaultServiceBadge tier={getDisplayedServiceTier(vault.data)} sidebar />;
 }
 
 interface NavItem {

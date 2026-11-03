@@ -19,6 +19,8 @@ export const checkInStatusSchema = z.object({
   planStatus: z.string().min(1),
   serverTime: timestamp,
   lastCheckInAt: timestamp.nullable(),
+  /** Executor đã điểm danh hộ trong ngày Việt Nam hôm nay: khóa nút của chủ kho. BE cũ không trả nên mặc định false. */
+  checkedInByExecutorToday: z.boolean().default(false),
   nextCheckInDueAt: timestamp.nullable(),
   graceEndsAt: timestamp.nullable(),
   settings: z.object({

@@ -395,6 +395,15 @@ export function GroupDetail({
           >
             Quay lại gói bàn giao
           </Link>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11 rounded-[20px] border-red-300 px-5 text-sm font-semibold text-red-700 hover:bg-red-50"
+            disabled={blocked || isDirty}
+            onClick={() => setDeleting(true)}
+          >
+            Xóa gói
+          </Button>
         </div>
       </div>
       {removed && (

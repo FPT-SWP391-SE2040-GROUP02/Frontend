@@ -16,6 +16,13 @@ export const planSetupService = {
       await apiClient.get<unknown, unknown>(`${vault(id)}/plan-setup`, { signal }),
     );
   },
+  async checkEmail(id: string, email: string, signal?: AbortSignal) {
+    const response = await apiClient.get<unknown, { email: string; exists: boolean }>(
+      `${vault(id)}/check-email`,
+      { params: { email }, signal },
+    );
+    return response.exists;
+  },
   async invite(id: string, request: z.infer<typeof inviteExecutorSchema>) {
     return executorSchema.parse(
       await apiClient.post<unknown, unknown>(
