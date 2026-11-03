@@ -112,7 +112,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
                 <li key={duty.title} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                   <span
                     aria-hidden="true"
-                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft text-sm font-semibold text-heritage-on-gold"
+                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]"
                   >
                     {index + 1}
                   </span>

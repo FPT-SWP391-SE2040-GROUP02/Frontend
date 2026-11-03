@@ -6,7 +6,6 @@ import { Check } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
 import { ROUTES } from "@/shared/config/routes.config";
-import { WIZARD_ENABLED } from "@/shared/config/wizard.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { planSetupService } from "../api/planSetupService";
@@ -27,8 +26,6 @@ function daysLeft(expiresAt: string): number {
 
 /** Token only in fragment/component RAM; inspect never claims, confirmation never defaults true. */
 export function ExecutorInvitationPanel({ token }: { token: string }) {
-  let nextRoute: string = ROUTES.EXECUTOR.ROOT;
-  if (WIZARD_ENABLED.executor) nextRoute = ROUTES.EXECUTOR.STEPS;
   const id = useId();
   const [acknowledge, setAcknowledge] = useState(false);
   const [decision, setDecision] = useState<boolean | null>(null);
@@ -76,8 +73,8 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
           Kho đã được thêm vào tài khoản của bạn.
         </p>
         <Notice tone="success">Bạn có thể xem kho và tiến trình trong trang Tổng quan.</Notice>
-        <Link className={`${buttonStyles.dark} w-full`} to={nextRoute}>
-          Bắt đầu từng bước
+        <Link className={`${buttonStyles.dark} w-full`} to={ROUTES.EXECUTOR.ROOT}>
+          Vào trang Tổng quan
         </Link>
       </div>
     );
@@ -112,7 +109,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         <ul className="space-y-2 text-sm">
           {capabilities.map((item) => (
             <li key={item} className="flex items-center gap-2">
-              <Check className="size-4 shrink-0 text-heritage-success" aria-hidden="true" />
+              <Check className="size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
               {item}
             </li>
           ))}

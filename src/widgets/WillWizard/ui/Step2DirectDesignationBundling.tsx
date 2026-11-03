@@ -79,10 +79,10 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
     <div className="space-y-6">
       {/* Tiêu đề & Giải thích chuẩn SRS 3.11.0 */}
       <div>
-        <h2 className="text-xl font-bold text-heritage-text">
+        <h2 className="text-xl font-bold text-[#14241C]">
           Bước 2: Chỉ Định Người Nhận & Tự Gom Kho Bàn Giao
         </h2>
-        <p className="text-xs text-heritage-muted mt-1 leading-relaxed">
+        <p className="text-xs text-[#66786E] mt-1 leading-relaxed">
           Gán người nhận cho từng tài sản số. Hệ thống sẽ tự động chuẩn hóa và gom các tài sản có
           cùng tập người nhận thành đúng một Kho bàn giao độc lập (SRS 3.11.0). Tuyệt đối không phân
           chia tỷ lệ phần trăm (%).
@@ -92,18 +92,18 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
       {errorMessage && (
         <div
           role="alert"
-          className="p-3.5 rounded-[14px] bg-heritage-danger-bg border border-heritage-danger/30 flex items-center gap-2 text-xs text-heritage-danger font-medium"
+          className="p-3.5 rounded-[14px] bg-[#FEF2F2] border border-[#FECACA] flex items-center gap-2 text-xs text-[#DC2626] font-medium"
         >
           {errorMessage}
         </div>
       )}
 
       {/* PHẦN 1: DANH SÁCH NGƯỜI THỤ HƯỞNG TRONG KẾ HOẠCH */}
-      <Card className="p-5 bg-heritage-surface border-heritage-border rounded-[20px] space-y-4">
+      <Card className="p-5 bg-[#FAF9F5] border-[#DCD9D0] rounded-[20px] space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-heritage-gold" />
-            <h3 className="text-sm font-bold text-heritage-text">
+            <Users className="w-5 h-5 text-[#B88E4C]" />
+            <h3 className="text-sm font-bold text-[#14241C]">
               1. Danh Sách Người Thụ Hưởng ({beneficiaries.length})
             </h3>
           </div>
@@ -111,9 +111,9 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
             type="button"
             variant="outline"
             onClick={onAddBeneficiary}
-            className="rounded-[14px] border-heritage-border hover:bg-heritage-canvas text-xs font-bold gap-1.5 min-h-[38px]"
+            className="rounded-[14px] border-[#DCD9D0] hover:bg-[#EFECE6] text-xs font-bold gap-1.5 min-h-[38px]"
           >
-            <Plus className="w-4 h-4 text-heritage-gold" />
+            <Plus className="w-4 h-4 text-[#B88E4C]" />
             <span>Thêm Người Thụ Hưởng</span>
           </Button>
         </div>
@@ -122,42 +122,42 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
           {beneficiaries.map((b, idx) => (
             <div
               key={b.id}
-              className="p-3.5 bg-white border border-heritage-neutral-bg rounded-[16px] grid grid-cols-1 sm:grid-cols-3 gap-3 items-center"
+              className="p-3.5 bg-white border border-[#E8E5DD] rounded-[16px] grid grid-cols-1 sm:grid-cols-3 gap-3 items-center"
             >
               <div>
-                <label className="text-[10px] font-bold text-heritage-muted uppercase block mb-1">
+                <label className="text-[10px] font-bold text-[#66786E] uppercase block mb-1">
                   Họ và tên #{idx + 1}
                 </label>
                 <Input
                   value={b.name}
                   onChange={(e) => onUpdateBeneficiary(b.id, "name", e.target.value)}
                   placeholder="VD: Nguyễn Văn A"
-                  className="h-9 text-xs bg-heritage-surface"
+                  className="h-9 text-xs bg-[#FAF9F5]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-heritage-muted uppercase block mb-1">
+                <label className="text-[10px] font-bold text-[#66786E] uppercase block mb-1">
                   Email / Số Điện Thoại
                 </label>
                 <Input
                   value={b.contact}
                   onChange={(e) => onUpdateBeneficiary(b.id, "contact", e.target.value)}
                   placeholder="VD: a.nguyen@example.com"
-                  className="h-9 text-xs bg-heritage-surface"
+                  className="h-9 text-xs bg-[#FAF9F5]"
                 />
               </div>
 
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <label className="text-[10px] font-bold text-heritage-muted uppercase block mb-1">
+                  <label className="text-[10px] font-bold text-[#66786E] uppercase block mb-1">
                     Mối Quan Hệ
                   </label>
                   <Input
                     value={b.relationship}
                     onChange={(e) => onUpdateBeneficiary(b.id, "relationship", e.target.value)}
                     placeholder="VD: Con ruột / Vợ chồng"
-                    className="h-9 text-xs bg-heritage-surface"
+                    className="h-9 text-xs bg-[#FAF9F5]"
                   />
                 </div>
                 {beneficiaries.length > 1 && (
@@ -177,10 +177,10 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
       </Card>
 
       {/* PHẦN 2: CHỈ ĐỊNH NGƯỜI NHẬN CHO TỪNG TÀI SẢN */}
-      <Card className="p-5 bg-heritage-surface border-heritage-border rounded-[20px] space-y-4">
+      <Card className="p-5 bg-[#FAF9F5] border-[#DCD9D0] rounded-[20px] space-y-4">
         <div className="flex items-center gap-2">
-          <UserCheck className="w-5 h-5 text-heritage-success" />
-          <h3 className="text-sm font-bold text-heritage-text">
+          <UserCheck className="w-5 h-5 text-[#059669]" />
+          <h3 className="text-sm font-bold text-[#14241C]">
             2. Gán Người Nhận Cho Từng Tài Sản ({selectedAssets.length} tài sản)
           </h3>
         </div>
@@ -192,17 +192,17 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
             return (
               <div
                 key={asset.id}
-                className="p-4 bg-white border border-heritage-neutral-bg rounded-[16px] space-y-3"
+                className="p-4 bg-white border border-[#E8E5DD] rounded-[16px] space-y-3"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-heritage-text">{asset.title}</span>
-                  <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-heritage-primary-light text-heritage-success font-bold">
+                  <span className="text-xs font-bold text-[#14241C]">{asset.title}</span>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#E5EDE8] text-[#059669] font-bold">
                     {asset.assetType}
                   </span>
                 </div>
 
                 <div>
-                  <p className="text-[11px] text-heritage-muted mb-2 font-medium">
+                  <p className="text-[11px] text-[#66786E] mb-2 font-medium">
                     Chọn người nhận bản sao toàn vẹn của tài sản này:
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -215,8 +215,8 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
                           onClick={() => onToggleRecipient(asset.id, b.id)}
                           className={`px-3 py-1.5 rounded-[12px] text-xs font-semibold border transition-all ${
                             isSelected
-                              ? "bg-heritage-sidebar text-white border-heritage-sidebar shadow-sm"
-                              : "bg-heritage-surface text-heritage-text border-heritage-border hover:bg-heritage-canvas"
+                              ? "bg-[#0B291E] text-white border-[#0B291E] shadow-sm"
+                              : "bg-[#FAF9F5] text-[#14241C] border-[#DCD9D0] hover:bg-[#EFECE6]"
                           }`}
                         >
                           {isSelected ? "✓ " : "+ "}
@@ -233,21 +233,21 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
       </Card>
 
       {/* PHẦN 3: KHO BÀN GIAO TỰ GOM THỜI GIAN THỰC (AUTO-BUNDLED VAULTS) */}
-      <Card className="p-5 bg-heritage-gold-light border border-heritage-gold-border rounded-[20px] space-y-4">
+      <Card className="p-5 bg-[#FBF7EE] border border-[#E8DCC6] rounded-[20px] space-y-4">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-heritage-gold" />
+          <Sparkles className="w-5 h-5 text-[#B88E4C]" />
           <div>
-            <h3 className="text-sm font-bold text-heritage-text">
+            <h3 className="text-sm font-bold text-[#14241C]">
               3. Kho Bàn Giao Tự Gom Theo Tập Người Nhận ({bundledVaults.length} kho hiệu lực)
             </h3>
-            <p className="text-[11px] text-heritage-gold-hover">
+            <p className="text-[11px] text-[#A07839]">
               Hệ thống tự động gom tài sản có cùng người nhận thành một gói bàn giao (manifest).
             </p>
           </div>
         </div>
 
         {bundledVaults.length === 0 ? (
-          <div className="p-4 bg-white/70 rounded-[14px] text-center text-xs text-heritage-muted">
+          <div className="p-4 bg-white/70 rounded-[14px] text-center text-xs text-[#66786E]">
             Chưa có tài sản nào được gán người nhận. Vui lòng chọn người nhận ở mục trên.
           </div>
         ) : (
@@ -255,40 +255,38 @@ export const Step2DirectDesignationBundling: React.FC<Step2DirectDesignationBund
             {bundledVaults.map((vault) => (
               <div
                 key={vault.bundleId}
-                className="p-4 bg-white border border-heritage-gold-border rounded-[16px] space-y-2.5 shadow-sm"
+                className="p-4 bg-white border border-[#E8DCC6] rounded-[16px] space-y-2.5 shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Package className="w-4 h-4 text-heritage-gold" />
-                    <span className="text-xs font-bold text-heritage-primary">
+                    <Package className="w-4 h-4 text-[#B88E4C]" />
+                    <span className="text-xs font-bold text-[#0B291E]">
                       {vault.bundleId.toUpperCase()}
                     </span>
                   </div>
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       vault.recipientMode === "SINGLE_RECIPIENT"
-                        ? "bg-heritage-primary-light text-heritage-success"
-                        : "bg-heritage-warning-bg text-heritage-warning"
+                        ? "bg-[#E5EDE8] text-[#059669]"
+                        : "bg-[#FFFBEB] text-[#B45309]"
                     }`}
                   >
                     {vault.recipientMode === "SINGLE_RECIPIENT" ? "Kho 1 Người" : "Kho Đồng Sở Hữu"}
                   </span>
                 </div>
 
-                <div className="text-xs text-heritage-text">
+                <div className="text-xs text-[#14241C]">
                   <span className="font-bold">Người nhận: </span>
-                  <span className="text-heritage-success font-medium">{vault.recipientNames}</span>
+                  <span className="text-[#059669] font-medium">{vault.recipientNames}</span>
                 </div>
 
-                <div className="text-[11px] text-heritage-muted">
+                <div className="text-[11px] text-[#66786E]">
                   <span>Số tài sản trong kho: </span>
-                  <span className="font-bold text-heritage-text">
-                    {vault.assetIds.length} tài sản
-                  </span>
+                  <span className="font-bold text-[#14241C]">{vault.assetIds.length} tài sản</span>
                 </div>
 
-                <div className="p-2 rounded-[10px] bg-heritage-surface border border-heritage-neutral-bg text-[10px] text-heritage-muted flex items-start gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-heritage-gold shrink-0 mt-0.5" />
+                <div className="p-2 rounded-[10px] bg-[#FAF9F5] border border-[#E8E5DD] text-[10px] text-[#66786E] flex items-start gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-[#B88E4C] shrink-0 mt-0.5" />
                   <span>
                     {vault.recipientMode === "SINGLE_RECIPIENT"
                       ? "Được phép chọn chuyển 1:1 nguyên kho cho 1 người khác trước khi bắt đầu bàn giao."

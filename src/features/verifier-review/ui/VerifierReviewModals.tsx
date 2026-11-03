@@ -286,7 +286,7 @@ function ReviewFlagModal({
   const flag = detail.flags.find((f) => f.id === flagId);
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="rounded-2xl bg-heritage-surface p-6 sm:max-w-[540px] max-h-[88vh] overflow-y-auto">
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px] max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Kiểm tra cảnh báo</DialogTitle>
           <DialogDescription>
@@ -390,7 +390,7 @@ function RequestSupplementModal({
   });
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="rounded-2xl bg-heritage-surface p-6 sm:max-w-[620px] max-h-[88vh] overflow-y-auto">
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[620px] max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Yêu cầu bổ sung</DialogTitle>
           <DialogDescription>
@@ -533,7 +533,7 @@ function ApproveModal({
   });
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="rounded-2xl bg-heritage-surface p-6 sm:max-w-[560px] max-h-[88vh] overflow-y-auto">
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[560px] max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Duyệt hồ sơ và mở bàn giao</DialogTitle>
           <DialogDescription>
@@ -655,7 +655,7 @@ function RejectModal({
   });
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="rounded-2xl bg-heritage-surface p-6 sm:max-w-[560px] max-h-[88vh] overflow-y-auto">
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[560px] max-h-[88vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Từ chối hồ sơ</DialogTitle>
           <DialogDescription>
@@ -699,7 +699,7 @@ function RejectModal({
             <button
               type="submit"
               className={
-                "inline-flex min-h-11 items-center justify-center rounded-xl bg-heritage-danger px-6 text-sm font-semibold text-white hover:bg-[#8A1B14] disabled:pointer-events-none disabled:opacity-50"
+                "inline-flex min-h-11 items-center justify-center rounded-xl bg-[#A32119] px-6 text-sm font-semibold text-white hover:bg-[#8A1B14] disabled:pointer-events-none disabled:opacity-50"
               }
               disabled={action.pending || signing.locked || !confirm || !reason.trim() || !password}
             >

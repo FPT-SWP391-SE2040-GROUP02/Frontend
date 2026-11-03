@@ -64,9 +64,9 @@ const grantLabels: Record<string, string> = {
 };
 const kindLabels: Record<string, string> = { FILE: "Tệp", TEXT: "Văn bản" };
 
-const DIALOG_CLASS = "max-w-lg bg-heritage-surface p-7";
+const DIALOG_CLASS = "max-w-lg bg-[#FBFAF5] p-7";
 const RED_BUTTON =
-  "inline-flex min-h-11 items-center justify-center rounded-xl bg-heritage-danger px-6 text-sm font-semibold text-white transition-colors hover:bg-[#8A1B14] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center rounded-xl bg-[#A32119] px-6 text-sm font-semibold text-white transition-colors hover:bg-[#8A1B14] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50";
 
 /** Hộp thoại xác nhận từ chối (thiết kế 102). Backend chưa nhận lý do từ chối nên không có ô lý do. */
 function DeclineDialog({
@@ -158,12 +158,12 @@ function TurnCard({ turn }: { turn: Turn }) {
             </dl>
             {statusHints[turn.status] && <p className="text-sm">{statusHints[turn.status]}</p>}
             {turn.status === "READY_TO_ACCEPT" && turn.decisionDeadline && (
-              <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm font-medium text-heritage-warning">
+              <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm font-medium text-[#7A5B24]">
                 {remainingText(turn.decisionDeadline, turn.serverTime)} để quyết định
               </p>
             )}
             {turn.status === "INVITED" && (
-              <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm font-medium text-heritage-warning">
+              <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm font-medium text-[#7A5B24]">
                 {remainingText(turn.responseDeadline, turn.serverTime)} để phản hồi lời mời
               </p>
             )}
@@ -238,10 +238,7 @@ function TurnCard({ turn }: { turn: Turn }) {
                 Từ chối
               </button>
               <p className="flex items-start gap-2 text-xs text-heritage-muted">
-                <Lock
-                  className="mt-0.5 size-3.5 shrink-0 text-heritage-success"
-                  aria-hidden="true"
-                />
+                <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
                 Từ chối thì phần này sẽ không được bàn giao cho bạn.
               </p>
             </div>
@@ -291,10 +288,7 @@ function TurnCard({ turn }: { turn: Turn }) {
       )}
       {(action.pending || content.pending) && <p role="status">Đang xử lý yêu cầu…</p>}
       {(action.error || content.error) && (
-        <p
-          role="alert"
-          className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
-        >
+        <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
           {action.error || content.error}
         </p>
       )}
@@ -343,10 +337,7 @@ export function HandoverPortal() {
         </button>
       </div>
       {query.isError ? (
-        <p
-          role="alert"
-          className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
-        >
+        <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
           Không tải được các lượt của bạn. Vui lòng thử lại.
         </p>
       ) : query.data.length === 0 ? (

@@ -37,19 +37,19 @@ export function ProblemSection() {
         as="li"
         key={item.title}
         delay={index * 120}
-        className="landing-lift rounded-lg border border-[#E0DACB] bg-heritage-surface p-7"
+        className="landing-lift rounded-lg border border-[#E0DACB] bg-[#FAF9F5] p-7"
       >
-        <span className="inline-flex size-12 items-center justify-center rounded-full bg-heritage-sidebar text-heritage-gold-soft-hover">
+        <span className="inline-flex size-12 items-center justify-center rounded-full bg-[#0A281E] text-[#E6C98B]">
           <Icon className="size-6" aria-hidden="true" />
         </span>
-        <h3 className={`${HEADING} mt-5 text-2xl text-heritage-primary`}>{item.title}</h3>
+        <h3 className={`${HEADING} mt-5 text-2xl text-[#0A281E]`}>{item.title}</h3>
         <p className="mt-3 text-base leading-7 text-[#4E6257]">{item.detail}</p>
       </Reveal>,
     );
     index = index + 1;
   }
   return (
-    <section id="van-de" className={`${SECTION_SPACE} bg-heritage-canvas`}>
+    <section id="van-de" className={`${SECTION_SPACE} bg-[#EFECE6]`}>
       <div className="mx-auto max-w-6xl">
         <SectionHead
           center
@@ -59,7 +59,7 @@ export function ProblemSection() {
         />
         <ul className="mt-16 grid gap-5 md:grid-cols-3">{cards}</ul>
         <Reveal className="mt-14 text-center">
-          <p className={`${HEADING} text-2xl italic text-heritage-warning sm:text-3xl`}>
+          <p className={`${HEADING} text-2xl italic text-[#7A5B24] sm:text-3xl`}>
             {content.problem.closing}
           </p>
         </Reveal>
@@ -71,10 +71,10 @@ export function ProblemSection() {
 /** Mục 2: một câu khẳng định lớn trên nền xanh đậm, như dải nhấn giữa trang. */
 export function StatementSection() {
   return (
-    <section className="flex min-h-[70vh] items-center bg-heritage-text px-4 py-24 sm:px-8">
+    <section className="flex min-h-[70vh] items-center bg-[#14241C] px-4 py-24 sm:px-8">
       <Reveal className="mx-auto max-w-4xl text-center">
         <p
-          className={`${HEADING} text-3xl leading-snug text-heritage-canvas sm:text-5xl sm:leading-tight`}
+          className={`${HEADING} text-3xl leading-snug text-[#F3EFE6] sm:text-5xl sm:leading-tight`}
         >
           {content.statement.text}
         </p>
@@ -89,16 +89,16 @@ export function PrinciplesSection() {
   let index = 0;
   for (const item of content.principles.items) {
     columns.push(
-      <Reveal key={item.title} delay={index * 140} className="border-t-2 border-heritage-gold pt-6">
-        <span className={`${HEADING} text-5xl italic text-heritage-gold`}>{index + 1}</span>
-        <h3 className={`${HEADING} mt-3 text-3xl text-heritage-primary`}>{item.title}</h3>
+      <Reveal key={item.title} delay={index * 140} className="border-t-2 border-[#B68F4C] pt-6">
+        <span className={`${HEADING} text-5xl italic text-[#B68F4C]`}>{index + 1}</span>
+        <h3 className={`${HEADING} mt-3 text-3xl text-[#0A281E]`}>{item.title}</h3>
         <p className="mt-4 text-base leading-7 text-[#4E6257]">{item.detail}</p>
       </Reveal>,
     );
     index = index + 1;
   }
   return (
-    <section className={`${SECTION_SPACE} bg-heritage-canvas`}>
+    <section className={`${SECTION_SPACE} bg-[#EFECE6]`}>
       <div className="mx-auto max-w-6xl">
         <SectionHead eyebrow={content.principles.eyebrow} title={content.principles.title} />
         <div className="mt-16 grid gap-10 md:grid-cols-3">{columns}</div>
@@ -138,11 +138,11 @@ function PillarVisual({
         key={row.title}
         className="flex items-center gap-4 rounded-md border border-[#E0DACB] bg-white px-4 py-3"
       >
-        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-sidebar text-heritage-gold-soft-hover">
+        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#0A281E] text-[#E6C98B]">
           <Icon className="size-5" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-heritage-primary">{row.title}</p>
+          <p className="truncate text-sm font-semibold text-[#0A281E]">{row.title}</p>
           <p className="text-xs text-[#4E6257]">{row.detail}</p>
         </div>
       </li>,
@@ -150,8 +150,8 @@ function PillarVisual({
     index = index + 1;
   }
   return (
-    <div className="rounded-xl border border-[#D8D2C4] bg-heritage-surface p-5 shadow-[0_30px_60px_-30px_rgb(10_40_30/0.35)] sm:p-6">
-      <p className={`${HEADING} mb-4 text-lg text-heritage-primary`}>{title}</p>
+    <div className="rounded-xl border border-[#D8D2C4] bg-[#FAF9F5] p-5 shadow-[0_30px_60px_-30px_rgb(10_40_30/0.35)] sm:p-6">
+      <p className={`${HEADING} mb-4 text-lg text-[#0A281E]`}>{title}</p>
       <ul className="space-y-3">{items}</ul>
     </div>
   );
@@ -162,7 +162,7 @@ function PillarVisual({
  * màn sau trượt chồng lên màn trước; trên điện thoại chúng xếp dọc bình thường.
  */
 export function PillarsSection() {
-  const backgrounds = ["bg-heritage-surface", "bg-heritage-canvas", "bg-[#E6E1D4]"];
+  const backgrounds = ["bg-[#FAF9F5]", "bg-[#F3EFE6]", "bg-[#E6E1D4]"];
   const screens: ReactNode[] = [];
   let index = 0;
   for (const pillar of content.pillars.items) {
@@ -170,7 +170,7 @@ export function PillarsSection() {
     for (const point of pillar.points) {
       points.push(
         <li key={point} className="flex gap-3 text-base leading-7 text-[#2C4136]">
-          <Check className="mt-1 size-5 shrink-0 text-heritage-gold" aria-hidden="true" />
+          <Check className="mt-1 size-5 shrink-0 text-[#B68F4C]" aria-hidden="true" />
           {point}
         </li>,
       );
@@ -182,10 +182,8 @@ export function PillarsSection() {
       >
         <div className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-2 lg:gap-20">
           <Reveal>
-            <p className={`${HEADING} text-lg italic text-heritage-gold`}>{pillar.tag}</p>
-            <h3
-              className={`${HEADING} mt-3 text-4xl leading-tight text-heritage-primary sm:text-5xl`}
-            >
+            <p className={`${HEADING} text-lg italic text-[#B68F4C]`}>{pillar.tag}</p>
+            <h3 className={`${HEADING} mt-3 text-4xl leading-tight text-[#0A281E] sm:text-5xl`}>
               {pillar.title}
             </h3>
             <p className="mt-5 text-lg leading-8 text-[#4E6257]">{pillar.detail}</p>
@@ -201,7 +199,7 @@ export function PillarsSection() {
   }
   return (
     <section id="he-thong">
-      <div className="bg-heritage-canvas px-4 pb-16 pt-24 sm:px-8 sm:pt-32">
+      <div className="bg-[#EFECE6] px-4 pb-16 pt-24 sm:px-8 sm:pt-32">
         <div className="mx-auto max-w-6xl">
           <SectionHead
             eyebrow={content.pillars.eyebrow}
@@ -224,19 +222,17 @@ export function LayersSection() {
       <Reveal as="li" key={layer.title} delay={index * 140} className="relative pt-10">
         <span
           aria-hidden="true"
-          className="absolute left-0 top-0 size-4 rounded-full border-2 border-heritage-gold-soft-hover bg-heritage-sidebar"
+          className="absolute left-0 top-0 size-4 rounded-full border-2 border-[#E6C98B] bg-[#0A281E]"
         />
-        <span className={`${HEADING} text-5xl italic text-heritage-gold`}>{index + 1}</span>
-        <h3 className={`${HEADING} mt-3 text-2xl leading-snug text-heritage-canvas`}>
-          {layer.title}
-        </h3>
-        <p className="mt-3 text-base leading-7 text-heritage-canvas/70">{layer.detail}</p>
+        <span className={`${HEADING} text-5xl italic text-[#B68F4C]`}>{index + 1}</span>
+        <h3 className={`${HEADING} mt-3 text-2xl leading-snug text-[#F3EFE6]`}>{layer.title}</h3>
+        <p className="mt-3 text-base leading-7 text-[#F3EFE6]/70">{layer.detail}</p>
       </Reveal>,
     );
     index = index + 1;
   }
   return (
-    <section id="y-nghia" className={`${SECTION_SPACE} relative bg-heritage-sidebar`}>
+    <section id="y-nghia" className={`${SECTION_SPACE} relative bg-[#0A281E]`}>
       <div className="mx-auto max-w-6xl">
         <SectionHead
           dark
@@ -247,7 +243,7 @@ export function LayersSection() {
         <div className="relative mt-16">
           <span
             aria-hidden="true"
-            className="absolute left-0 right-0 top-2 hidden h-px bg-heritage-gold-soft-hover/40 lg:block"
+            className="absolute left-0 right-0 top-2 hidden h-px bg-[#E6C98B]/40 lg:block"
           />
           <ol className="grid gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">{steps}</ol>
         </div>
@@ -266,19 +262,19 @@ export function HowSection() {
         as="li"
         key={step.title}
         delay={index * 120}
-        className="landing-lift rounded-lg border border-[#E0DACB] bg-heritage-surface p-7"
+        className="landing-lift rounded-lg border border-[#E0DACB] bg-[#FAF9F5] p-7"
       >
-        <span className={`${HEADING} text-4xl italic text-heritage-gold`}>
+        <span className={`${HEADING} text-4xl italic text-[#B68F4C]`}>
           {String(index + 1).padStart(2, "0")}
         </span>
-        <h3 className={`${HEADING} mt-4 text-2xl text-heritage-primary`}>{step.title}</h3>
+        <h3 className={`${HEADING} mt-4 text-2xl text-[#0A281E]`}>{step.title}</h3>
         <p className="mt-3 text-base leading-7 text-[#4E6257]">{step.detail}</p>
       </Reveal>,
     );
     index = index + 1;
   }
   return (
-    <section id="cach-hoat-dong" className={`${SECTION_SPACE} bg-heritage-canvas`}>
+    <section id="cach-hoat-dong" className={`${SECTION_SPACE} bg-[#EFECE6]`}>
       <div className="mx-auto max-w-6xl">
         <SectionHead
           eyebrow={content.how.eyebrow}
@@ -303,11 +299,11 @@ export function TrustSection() {
         as="li"
         key={item.title}
         delay={index * 100}
-        className="rounded-lg border border-heritage-canvas/15 bg-heritage-canvas/5 p-7 transition-colors duration-300 hover:border-heritage-gold"
+        className="rounded-lg border border-[#F3EFE6]/15 bg-[#F3EFE6]/5 p-7 transition-colors duration-300 hover:border-[#B68F4C]"
       >
-        <Icon className="size-8 text-heritage-gold-soft-hover" aria-hidden="true" />
-        <h3 className={`${HEADING} mt-5 text-2xl text-heritage-canvas`}>{item.title}</h3>
-        <p className="mt-3 text-base leading-7 text-heritage-canvas/70">{item.detail}</p>
+        <Icon className="size-8 text-[#E6C98B]" aria-hidden="true" />
+        <h3 className={`${HEADING} mt-5 text-2xl text-[#F3EFE6]`}>{item.title}</h3>
+        <p className="mt-3 text-base leading-7 text-[#F3EFE6]/70">{item.detail}</p>
       </Reveal>,
     );
     index = index + 1;
@@ -317,14 +313,14 @@ export function TrustSection() {
   for (const item of content.honesty) {
     limits.push(
       <Reveal key={item.title} delay={limitIndex * 120}>
-        <h4 className={`${HEADING} text-xl text-heritage-gold-soft-hover`}>{item.title}</h4>
-        <p className="mt-2 text-sm leading-6 text-heritage-canvas/70">{item.detail}</p>
+        <h4 className={`${HEADING} text-xl text-[#E6C98B]`}>{item.title}</h4>
+        <p className="mt-2 text-sm leading-6 text-[#F3EFE6]/70">{item.detail}</p>
       </Reveal>,
     );
     limitIndex = limitIndex + 1;
   }
   return (
-    <section id="bao-mat" className={`${SECTION_SPACE} bg-heritage-text`}>
+    <section id="bao-mat" className={`${SECTION_SPACE} bg-[#14241C]`}>
       <div className="mx-auto max-w-6xl">
         <SectionHead
           dark
@@ -333,11 +329,9 @@ export function TrustSection() {
           description={content.trust.description}
         />
         <ul className="mt-16 grid gap-5 sm:grid-cols-2">{cards}</ul>
-        <div className="mt-20 border-t border-heritage-canvas/15 pt-12">
+        <div className="mt-20 border-t border-[#F3EFE6]/15 pt-12">
           <Reveal>
-            <h3 className={`${HEADING} text-3xl text-heritage-canvas`}>
-              {content.trust.limitsTitle}
-            </h3>
+            <h3 className={`${HEADING} text-3xl text-[#F3EFE6]`}>{content.trust.limitsTitle}</h3>
           </Reveal>
           <div className="mt-8 grid gap-8 md:grid-cols-3">{limits}</div>
         </div>
@@ -355,24 +349,24 @@ export function PricingSection() {
     for (const feature of plan.features) {
       features.push(
         <li key={feature} className="flex gap-3 text-base leading-7 text-[#2C4136]">
-          <Check className="mt-1 size-5 shrink-0 text-heritage-gold" aria-hidden="true" />
+          <Check className="mt-1 size-5 shrink-0 text-[#B68F4C]" aria-hidden="true" />
           {feature}
         </li>,
       );
     }
     let cardBorder = "border-[#D8D2C4]";
     if (plan.name === content.pricing.featuredPlan) {
-      cardBorder = "border-heritage-gold shadow-[0_20px_40px_-24px_rgb(182_143_76/0.7)]";
+      cardBorder = "border-[#B68F4C] shadow-[0_20px_40px_-24px_rgb(182_143_76/0.7)]";
     }
     cards.push(
       <Reveal
         as="li"
         key={plan.name}
         delay={index * 120}
-        className={`landing-lift rounded-lg border bg-heritage-surface p-8 ${cardBorder}`}
+        className={`landing-lift rounded-lg border bg-[#FAF9F5] p-8 ${cardBorder}`}
       >
-        <h3 className={`${HEADING} text-3xl text-heritage-primary`}>{plan.name}</h3>
-        <p className="mt-3 text-lg font-semibold text-heritage-warning">{plan.price}</p>
+        <h3 className={`${HEADING} text-3xl text-[#0A281E]`}>{plan.name}</h3>
+        <p className="mt-3 text-lg font-semibold text-[#7A5B24]">{plan.price}</p>
         <ul className="mt-6 space-y-3">{features}</ul>
       </Reveal>,
     );
@@ -409,12 +403,10 @@ export function FaqSection() {
       rows.push(
         <details key={item.question} className="landing-faq group border-b border-[#D8D2C4]">
           <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-5 text-left [&::-webkit-details-marker]:hidden">
-            <span className={`${HEADING} text-xl text-heritage-primary sm:text-2xl`}>
-              {item.question}
-            </span>
+            <span className={`${HEADING} text-xl text-[#0A281E] sm:text-2xl`}>{item.question}</span>
             <span
               aria-hidden="true"
-              className="text-3xl leading-none text-heritage-gold transition-transform duration-300 group-open:rotate-45"
+              className="text-3xl leading-none text-[#B68F4C] transition-transform duration-300 group-open:rotate-45"
             >
               +
             </span>
@@ -428,14 +420,14 @@ export function FaqSection() {
     }
   }
   return (
-    <section id="hoi-dap" className={`${SECTION_SPACE} bg-heritage-canvas`}>
+    <section id="hoi-dap" className={`${SECTION_SPACE} bg-[#EFECE6]`}>
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_1.6fr] lg:gap-20">
         <div>
           <SectionHead eyebrow={content.faq.eyebrow} title={content.faq.title} />
           <Reveal delay={150} className="mt-8">
             <Link
               to={ROUTES.PUBLIC.FAQ}
-              className="text-base font-semibold text-heritage-warning underline underline-offset-4 hover:text-heritage-primary"
+              className="text-base font-semibold text-[#7A5B24] underline underline-offset-4 hover:text-[#0A281E]"
             >
               {content.faq.all}
             </Link>
@@ -450,12 +442,10 @@ export function FaqSection() {
 /** Mục cuối: lời mời bắt đầu, nền xanh đậm như phần hero. */
 export function FinalCtaSection() {
   return (
-    <section className="flex min-h-[60vh] items-center bg-heritage-sidebar px-4 py-24 text-center sm:px-8">
+    <section className="flex min-h-[60vh] items-center bg-[#0A281E] px-4 py-24 text-center sm:px-8">
       <Reveal className="mx-auto max-w-3xl">
-        <h2 className={`${HEADING} text-4xl text-heritage-canvas sm:text-6xl`}>
-          {content.cta.title}
-        </h2>
-        <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-heritage-canvas/75">
+        <h2 className={`${HEADING} text-4xl text-[#F3EFE6] sm:text-6xl`}>{content.cta.title}</h2>
+        <p className="mx-auto mt-5 max-w-xl text-lg leading-8 text-[#F3EFE6]/75">
           {content.cta.description}
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-3">

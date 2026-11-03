@@ -73,7 +73,7 @@ describe("VaultPinDialogHost", () => {
     await user.type(await screen.findByLabelText(/^Mã PIN bảo vệ$/i), "999000");
     await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
-    expect(await screen.findByText(/Còn 4 lần thử trước khi kho bị khóa tạm/)).toBeInTheDocument();
+    expect(await screen.findByText(/Còn 4 trên 5 lần thử/)).toBeInTheDocument();
     await user.type(screen.getByLabelText(/^Mã PIN bảo vệ$/i), "482913");
     await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 

@@ -50,47 +50,44 @@ export const WillWizard: React.FC = () => {
   const isPending = false;
 
   return (
-    <div className="min-h-screen bg-heritage-canvas text-heritage-text flex flex-col font-sans">
+    <div className="min-h-screen bg-[#EFECE6] text-[#14241C] flex flex-col font-sans">
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-heritage-surface/95 backdrop-blur-md border-b border-heritage-border px-4 sm:px-8 py-3 flex items-center justify-between shadow-sm">
+      <header className="sticky top-0 z-40 bg-[#FAF9F5]/95 backdrop-blur-md border-b border-[#DCD9D0] px-4 sm:px-8 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-6">
           <Link
             to={accountHome}
-            className="flex items-center gap-2.5 rounded-[14px] p-1.5 focus-visible:ring-2 focus-visible:ring-heritage-gold"
+            className="flex items-center gap-2.5 rounded-[14px] p-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             aria-label="LegacyVault Trang Chủ"
           >
-            <div className="w-10 h-10 rounded-[14px] bg-heritage-sidebar flex items-center justify-center text-heritage-gold shadow-sm">
+            <div className="w-10 h-10 rounded-[14px] bg-[#0B291E] flex items-center justify-center text-[#B88E4C] shadow-sm">
               <Shield className="w-5 h-5" />
             </div>
-            <span className="font-bold text-lg text-heritage-primary tracking-tight">
-              Legacy<span className="text-heritage-gold">Vault</span>
+            <span className="font-bold text-lg text-[#0B291E] tracking-tight">
+              Legacy<span className="text-[#B88E4C]">Vault</span>
             </span>
           </Link>
 
           {/* Breadcrumbs */}
           <nav
             aria-label="Breadcrumb"
-            className="hidden md:flex items-center gap-2 text-xs bg-heritage-canvas px-3.5 py-2 rounded-full border border-heritage-border"
+            className="hidden md:flex items-center gap-2 text-xs bg-[#EFECE6] px-3.5 py-2 rounded-full border border-[#DCD9D0]"
           >
-            <Link to={ROUTES.HOME} className="text-heritage-muted hover:text-heritage-primary">
+            <Link to={ROUTES.HOME} className="text-[#66786E] hover:text-[#0B291E]">
               Trang Chủ
             </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-heritage-muted" />
-            <Link
-              to={ROUTES.WILLS.ROOT}
-              className="text-heritage-muted hover:text-heritage-primary"
-            >
+            <ChevronRight className="w-3.5 h-3.5 text-[#A8A295]" />
+            <Link to={ROUTES.WILLS.ROOT} className="text-[#66786E] hover:text-[#0B291E]">
               Kế Hoạch Di Sản
             </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-heritage-muted" />
-            <span className="font-bold text-heritage-primary">Thiết Lập Kế Hoạch</span>
+            <ChevronRight className="w-3.5 h-3.5 text-[#A8A295]" />
+            <span className="font-bold text-[#0B291E]">Thiết Lập Kế Hoạch</span>
           </nav>
         </div>
 
         <div className="flex items-center gap-3">
           <Link
             to={ROUTES.WILLS.ROOT}
-            className="min-h-[44px] text-xs font-semibold text-heritage-muted hover:text-heritage-text px-4 py-2 rounded-[16px] hover:bg-heritage-canvas flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-heritage-gold"
+            className="min-h-[44px] text-xs font-semibold text-[#66786E] hover:text-[#14241C] px-4 py-2 rounded-[16px] hover:bg-[#EFECE6] flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Thoát Wizard</span>
@@ -103,15 +100,15 @@ export const WillWizard: React.FC = () => {
         <p role="status">Tính năng tạo và kích hoạt kế hoạch đang được hoàn thiện.</p>
         {/* Stepper Navigation */}
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-heritage-primary-light border border-[#A2C4AF] text-heritage-primary text-xs font-semibold">
-            <Lock className="w-3.5 h-3.5 text-heritage-primary" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5EDE8] border border-[#A2C4AF] text-[#0B291E] text-xs font-semibold">
+            <Lock className="w-3.5 h-3.5 text-[#0B291E]" />
             <span>Thiết lập kế hoạch di sản số chuẩn hóa theo SRS 3.11.0 (Luồng 1B)</span>
           </div>
           <WillStepper currentStep={currentStep} steps={WIZARD_STEPS} />
         </div>
 
         {/* Step Content Render */}
-        <div className="bg-heritage-surface border border-heritage-border rounded-[24px] p-6 sm:p-8 shadow-[0_4px_24px_rgba(11,41,30,0.05)]">
+        <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-[24px] p-6 sm:p-8 shadow-[0_4px_24px_rgba(11,41,30,0.05)]">
           {currentStep === 1 && (
             <Step1SelectAssets
               title={formValues.title}
@@ -159,13 +156,13 @@ export const WillWizard: React.FC = () => {
           )}
 
           {/* Stepper Navigation Footer (>= 44px Touch Targets) */}
-          <div className="pt-6 mt-8 border-t border-heritage-neutral-bg flex items-center justify-between gap-4">
+          <div className="pt-6 mt-8 border-t border-[#E8E5DD] flex items-center justify-between gap-4">
             <Button
               type="button"
               variant="outline"
               onClick={handlePrevStep}
               disabled={currentStep === 1 || isPending}
-              className={`min-h-[44px] rounded-[16px] border-heritage-border text-xs font-semibold px-5 flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-heritage-gold ${
+              className={`min-h-[44px] rounded-[16px] border-[#DCD9D0] text-xs font-semibold px-5 flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C] ${
                 currentStep === 1 ? "invisible" : ""
               }`}
             >
@@ -178,10 +175,10 @@ export const WillWizard: React.FC = () => {
                 type="button"
                 onClick={handleNextStep}
                 disabled={isPending}
-                className="min-h-[48px] rounded-[18px] bg-heritage-sidebar hover:bg-heritage-sidebar/90 text-white text-xs font-bold px-7 shadow-md flex items-center gap-2 transition-all hover:scale-[1.01] focus-visible:ring-2 focus-visible:ring-heritage-gold"
+                className="min-h-[48px] rounded-[18px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-7 shadow-md flex items-center gap-2 transition-all hover:scale-[1.01] focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
               >
                 <span>Tiếp Tục Bước Tiếp Theo</span>
-                <ArrowRight className="w-4 h-4 text-heritage-gold" />
+                <ArrowRight className="w-4 h-4 text-[#B88E4C]" />
               </Button>
             )}
           </div>
@@ -189,7 +186,7 @@ export const WillWizard: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-heritage-surface border-t border-heritage-border py-6 px-4 text-center text-xs text-heritage-muted mt-auto">
+      <footer className="bg-[#FAF9F5] border-t border-[#DCD9D0] py-6 px-4 text-center text-xs text-[#66786E] mt-auto">
         <p>© 2026 LegacyVault Protocol. Quy Trình Di Chúc Số Đạt Chuẩn FPT SWP391.</p>
       </footer>
     </div>

@@ -16,7 +16,7 @@ import {
 } from "@/shared/api/__tests__/backend.fixtures";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
 import { GroupDetail } from "@/features/vault-management/ui/GroupDetail";
-import { PackageDialog } from "@/widgets/OwnerWorkspace/PackageDialog";
+import { CreateGroupDialog } from "@/features/vault-management/ui/CreateGroupDialog";
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
 import { CheckInNowButton } from "@/features/dms/ui/CheckInNowButton";
 import { CheckInSettingsForm } from "@/features/dms/ui/CheckInSettingsForm";
@@ -148,14 +148,13 @@ it("rejects an oversized file without sending a request", async () => {
   expect(post).not.toHaveBeenCalled();
 });
 it("creates a scoped container only after valid submit", async () => {
-  vi.spyOn(apiClient, "get").mockResolvedValue(pageFixture([]));
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(containerFixture);
   const onClose = vi.fn();
-  setup(<PackageDialog vaultId={VAULT_ID} onClose={onClose} />);
-  fireEvent.click(await screen.findByRole("button", { name: "Tạo gói" }));
+  setup(<CreateGroupDialog vaultId={VAULT_ID} onClose={onClose} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Tạo gói bàn giao" }));
   expect(post).not.toHaveBeenCalled();
   fireEvent.change(screen.getByLabelText("Tên gói bàn giao"), { target: { value: "Hồ sơ" } });
-  fireEvent.click(screen.getByRole("button", { name: "Tạo gói" }));
+  fireEvent.click(screen.getByRole("button", { name: "Tạo gói bàn giao" }));
   await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
   expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/containers`, {
     name: "Hồ sơ",
@@ -263,8 +262,7 @@ it("does not check in a draft plan and saves only the confirmed schedule fields 
   );
   expect(screen.getByRole("button", { name: "Điểm danh bây giờ" })).toBeDisabled();
   expect(post).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("button", { name: /Chu kỳ/ }));
-  fireEvent.click(await screen.findByRole("radio", { name: "60 ngày" }));
+  fireEvent.change(screen.getByLabelText("Chu kỳ"), { target: { value: "60" } });
   fireEvent.click(screen.getByRole("button", { name: "Lưu lịch điểm danh" }));
   await waitFor(() =>
     expect(patch).toHaveBeenCalledWith("/vaults/me/check-in-settings", {

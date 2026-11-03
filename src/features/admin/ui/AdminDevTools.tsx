@@ -77,7 +77,7 @@ export function AdminDevTools() {
     <div className="mt-6 space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <Notice tone="warning">{DEV_TOOLS_NOTICE}</Notice>
-        <span className="rounded-md bg-heritage-warning px-3 py-1 text-xs font-bold tracking-wide text-white">
+        <span className="rounded-md bg-[#7A5B25] px-3 py-1 text-xs font-bold tracking-wide text-white">
           DEVELOPMENT
         </span>
       </div>
@@ -310,9 +310,7 @@ function MilestoneRow({
         <p className="text-sm text-heritage-muted">
           {content.description}{" "}
           {content.code && (
-            <code className="rounded bg-heritage-neutral-bg px-1.5 py-0.5 text-xs">
-              {content.code}
-            </code>
+            <code className="rounded bg-[#ECE8DB] px-1.5 py-0.5 text-xs">{content.code}</code>
           )}
         </p>
         {milestone.state === "NOT_APPLICABLE" && milestone.note && (
@@ -414,7 +412,7 @@ function EkycThresholdPanel({ onDone }: { onDone: (message: string) => void }) {
               step={step}
               value={draft}
               onChange={(event) => setUserDraft(Number.parseFloat(event.target.value))}
-              className="mt-2 w-full accent-heritage-warning"
+              className="mt-2 w-full accent-[#7A5B25]"
             />
           </div>
           {!inSafeRange && (

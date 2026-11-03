@@ -43,10 +43,10 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
     <div className="space-y-6">
       {/* Header Info */}
       <div>
-        <h2 className="text-xl font-bold text-heritage-text">
+        <h2 className="text-xl font-bold text-[#14241C]">
           Bước 1: Khai Báo Ý Chí & Chọn Di Sản Cần Định Đoạt
         </h2>
-        <p className="text-xs text-heritage-muted mt-1 leading-relaxed">
+        <p className="text-xs text-[#66786E] mt-1 leading-relaxed">
           Đặt tên định danh cho bản di chúc và lựa chọn các tài sản số trong két di sản được bảo vệ
           bằng mã hóa AES-256-GCM để đưa vào phương án phân chia thừa kế.
         </p>
@@ -55,7 +55,7 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
       {errorMessage && (
         <div
           role="alert"
-          className="p-3.5 rounded-[14px] bg-heritage-danger-bg border border-heritage-danger/30 flex items-center gap-2 text-xs text-heritage-danger font-medium"
+          className="p-3.5 rounded-[14px] bg-[#FEF2F2] border border-[#FECACA] flex items-center gap-2 text-xs text-[#DC2626] font-medium"
         >
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMessage}</span>
@@ -63,11 +63,11 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
       )}
 
       {/* Form Inputs */}
-      <div className="space-y-4 p-5 sm:p-6 bg-heritage-surface border border-heritage-border rounded-[22px] shadow-sm">
+      <div className="space-y-4 p-5 sm:p-6 bg-[#FAF9F5] border border-[#DCD9D0] rounded-[22px] shadow-sm">
         <div>
           <label
             htmlFor="will-title"
-            className="block text-xs font-bold text-heritage-text uppercase mb-1.5"
+            className="block text-xs font-bold text-[#14241C] uppercase mb-1.5"
           >
             Tiêu Đề Bản Di Chúc Số *
           </label>
@@ -77,7 +77,7 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
             placeholder="Ví dụ: Bản Di Chúc Phân Bổ Di Sản Gia Tộc 2026"
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            className="h-11 bg-white border-heritage-border focus:border-heritage-gold rounded-[14px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-heritage-gold"
+            className="h-11 bg-white border-[#D5D0C3] focus:border-[#B88E4C] rounded-[14px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             required
           />
         </div>
@@ -85,7 +85,7 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
         <div>
           <label
             htmlFor="will-notes"
-            className="block text-xs font-bold text-heritage-text uppercase mb-1.5"
+            className="block text-xs font-bold text-[#14241C] uppercase mb-1.5"
           >
             Lời Dặn Dò / Ý Nguyện Chung (Không bắt buộc)
           </label>
@@ -95,7 +95,7 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
             placeholder="Ghi chú thêm về tâm nguyện, hướng dẫn mở niêm phong hoặc lời gửi gắm đến các con cháu..."
             value={declarationNotes}
             onChange={(e) => onNotesChange(e.target.value)}
-            className="w-full p-3.5 bg-white border border-heritage-border focus:border-heritage-gold rounded-[14px] text-xs font-sans outline-none focus-visible:ring-2 focus-visible:ring-heritage-gold transition-all"
+            className="w-full p-3.5 bg-white border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[14px] text-xs font-sans outline-none focus-visible:ring-2 focus-visible:ring-[#B88E4C] transition-all"
           />
         </div>
       </div>
@@ -104,10 +104,10 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold text-heritage-text uppercase tracking-wider block">
+            <span className="text-xs font-bold text-[#14241C] uppercase tracking-wider block">
               Danh Sách Tài Sản Trong Kho Di Sản ({selectedAssetIds.length} đã chọn)
             </span>
-            <span className="text-[11px] text-heritage-muted">
+            <span className="text-[11px] text-[#66786E]">
               Bấm chọn các tài sản bạn muốn ủy thác cho người thụ hưởng
             </span>
           </div>
@@ -122,7 +122,7 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
                   onSelectAllAssets(assetsData.items.map((a) => a.id));
                 }
               }}
-              className="text-xs font-semibold text-heritage-gold hover:text-heritage-gold-hover px-3 py-1.5 rounded-[12px] hover:bg-heritage-gold-light transition-colors focus-visible:ring-2 focus-visible:ring-heritage-gold"
+              className="text-xs font-semibold text-[#B88E4C] hover:text-[#A07839] px-3 py-1.5 rounded-[12px] hover:bg-[#FBF7EE] transition-colors focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             >
               {selectedAssetIds.length === assetsData.items.length
                 ? "Bỏ chọn tất cả"
@@ -143,15 +143,15 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
             {[1, 2].map((i) => (
               <div
                 key={i}
-                className="h-24 bg-heritage-surface border border-heritage-border rounded-[18px] animate-pulse"
+                className="h-24 bg-[#FAF9F5] border border-[#DCD9D0] rounded-[18px] animate-pulse"
               />
             ))}
           </div>
         ) : !assetsData || assetsData.items.length === 0 ? (
-          <div className="p-8 text-center bg-heritage-surface border border-heritage-border rounded-[20px] space-y-2">
-            <Lock className="w-8 h-8 text-heritage-muted mx-auto" />
-            <p className="text-xs font-bold text-heritage-text">Kho chưa có tài sản nào</p>
-            <p className="text-[11px] text-heritage-muted">
+          <div className="p-8 text-center bg-[#FAF9F5] border border-[#DCD9D0] rounded-[20px] space-y-2">
+            <Lock className="w-8 h-8 text-[#66786E] mx-auto" />
+            <p className="text-xs font-bold text-[#14241C]">Kho chưa có tài sản nào</p>
+            <p className="text-[11px] text-[#66786E]">
               Vui lòng thêm tài sản vào Kho Di Sản trước khi lập di chúc.
             </p>
           </div>
@@ -174,28 +174,26 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
                       onToggleAsset(asset.id);
                     }
                   }}
-                  className={`p-4 rounded-[18px] border transition-all cursor-pointer flex items-start justify-between gap-3 focus-visible:ring-2 focus-visible:ring-heritage-gold focus-visible:outline-none ${
+                  className={`p-4 rounded-[18px] border transition-all cursor-pointer flex items-start justify-between gap-3 focus-visible:ring-2 focus-visible:ring-[#B88E4C] focus-visible:outline-none ${
                     isSelected
-                      ? "bg-heritage-surface border-heritage-primary shadow-sm ring-1 ring-heritage-primary"
-                      : "bg-heritage-surface/70 border-heritage-border hover:border-heritage-gold"
+                      ? "bg-[#FAF9F5] border-[#0B291E] shadow-sm ring-1 ring-[#0B291E]"
+                      : "bg-[#FAF9F5]/70 border-[#DCD9D0] hover:border-[#B88E4C]"
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-[12px] bg-heritage-canvas border border-heritage-border flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-10 h-10 rounded-[12px] bg-[#EFECE6] border border-[#DCD9D0] flex items-center justify-center shrink-0 mt-0.5">
                       {getAssetIcon(asset.assetType)}
                     </div>
                     <div>
-                      <span className="font-bold text-heritage-text text-xs block">
-                        {asset.title}
-                      </span>
-                      <span className="text-[11px] text-heritage-muted line-clamp-1 mt-0.5">
+                      <span className="font-bold text-[#14241C] text-xs block">{asset.title}</span>
+                      <span className="text-[11px] text-[#66786E] line-clamp-1 mt-0.5">
                         {asset.description}
                       </span>
                       <div className="flex items-center gap-2 mt-2">
-                        <Badge className="bg-heritage-primary-light text-heritage-primary border border-[#A2C4AF] px-2 py-0.5 text-[10px] font-semibold rounded-full">
+                        <Badge className="bg-[#E5EDE8] text-[#0B291E] border border-[#A2C4AF] px-2 py-0.5 text-[10px] font-semibold rounded-full">
                           {asset.typeLabel}
                         </Badge>
-                        <span className="text-[10px] font-mono text-heritage-gold">
+                        <span className="text-[10px] font-mono text-[#B88E4C]">
                           {asset.shamirThresholdText}
                         </span>
                       </div>
@@ -205,8 +203,8 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors ${
                       isSelected
-                        ? "bg-heritage-sidebar text-heritage-gold"
-                        : "border border-heritage-border bg-white"
+                        ? "bg-[#0B291E] text-[#B88E4C]"
+                        : "border border-[#DCD9D0] bg-white"
                     }`}
                   >
                     {isSelected && <CheckCircle2 className="w-5 h-5" />}

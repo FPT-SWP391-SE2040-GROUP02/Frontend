@@ -49,10 +49,8 @@ export function VerifierObjectionBlock({
   if (!enabled || query.isPending) return null;
   if (query.isError)
     return (
-      <div role="alert" className="space-y-3 rounded-2xl bg-heritage-danger-bg p-5">
-        <p className="text-sm text-heritage-danger">
-          Không đọc được lời báo còn sống của hồ sơ này.
-        </p>
+      <div role="alert" className="space-y-3 rounded-2xl bg-[#F8E1DE] p-5">
+        <p className="text-sm text-[#7A1A14]">Không đọc được lời báo còn sống của hồ sơ này.</p>
         <button
           type="button"
           className={buttonStyles.outline}
@@ -69,7 +67,7 @@ export function VerifierObjectionBlock({
   return (
     <section
       aria-label="Báo còn sống"
-      className="space-y-3 rounded-2xl border border-heritage-gold-soft-hover bg-heritage-warning-bg p-6 text-sm text-[#5A4318]"
+      className="space-y-3 rounded-2xl border border-[#E6C98B] bg-[#F1E6CC] p-6 text-sm text-[#5A4318]"
     >
       <h3 className="flex items-center gap-2 text-base font-semibold">
         <HeartPulse className="size-5" aria-hidden="true" />
@@ -209,7 +207,7 @@ function ConcludeDialog({
   });
   return (
     <Dialog open onOpenChange={(next) => !next && !action.pending && onClose()}>
-      <DialogContent className="rounded-2xl bg-heritage-surface p-6 sm:max-w-[540px]">
+      <DialogContent className="rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[540px]">
         <DialogHeader>
           <DialogTitle>Kết luận lời báo còn sống</DialogTitle>
           <DialogDescription>
@@ -223,7 +221,7 @@ function ConcludeDialog({
             {options.map((option) => (
               <label
                 key={option}
-                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-heritage-border bg-white px-4 py-3 text-sm font-medium has-[:checked]:border-heritage-primary has-[:checked]:bg-heritage-neutral-bg"
+                className="flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-[#BDB8A6] bg-white px-4 py-3 text-sm font-medium has-[:checked]:border-[#0A281E] has-[:checked]:bg-[#F4F1E6]"
               >
                 {/* Chọn xong thì xóa dòng lỗi cũ ngay; việc kiểm tra vẫn theo quy tắc "validate on blur" của FE. */}
                 <input

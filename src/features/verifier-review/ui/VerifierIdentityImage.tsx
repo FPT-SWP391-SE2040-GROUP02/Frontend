@@ -25,24 +25,21 @@ export function VerifierIdentityImage({
     return (
       <div
         role="status"
-        className="flex h-48 items-center justify-center rounded-xl bg-heritage-neutral-bg text-sm text-heritage-muted"
+        className="flex h-48 items-center justify-center rounded-xl bg-[#ECE8DB] text-sm text-heritage-muted"
       >
         Đang tải ảnh…
       </div>
     );
   if (state.status === "missing")
     return (
-      <p className="flex h-48 items-center justify-center gap-2 rounded-xl bg-heritage-neutral-bg px-4 text-center text-sm text-heritage-muted">
+      <p className="flex h-48 items-center justify-center gap-2 rounded-xl bg-[#ECE8DB] px-4 text-center text-sm text-heritage-muted">
         <ImageOff className="size-4 shrink-0" aria-hidden="true" />
         Không có ảnh.
       </p>
     );
   if (state.status === "error")
     return (
-      <div
-        role="alert"
-        className="space-y-3 rounded-xl bg-heritage-danger-bg p-4 text-sm text-heritage-danger"
-      >
+      <div role="alert" className="space-y-3 rounded-xl bg-[#F8E1DE] p-4 text-sm text-[#7A1A14]">
         <p>Không tải được ảnh.</p>
         <button type="button" className={buttonStyles.outline} onClick={retry}>
           Thử lại

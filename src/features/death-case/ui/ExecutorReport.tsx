@@ -171,7 +171,7 @@ function ReportIntro({
                 <li key={step.title} className="flex gap-3 py-3 first:pt-0 last:pb-0">
                   <span
                     aria-hidden="true"
-                    className="flex size-8 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft text-sm font-semibold text-heritage-on-gold"
+                    className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]"
                   >
                     {index + 2}
                   </span>

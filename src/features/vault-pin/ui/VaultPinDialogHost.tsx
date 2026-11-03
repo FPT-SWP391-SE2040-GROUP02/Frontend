@@ -16,6 +16,7 @@ import {
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { vaultPinService } from "../api/vaultPinService";
 import { vaultPinKeys } from "../model/useVaultPin";
+import { PIN_MAX_ATTEMPTS } from "../model/pinRules";
 import { EnterPinForm, ForgotPinForm, SetPinForm } from "./PinForms";
 
 type Prompt =
@@ -28,24 +29,14 @@ type Prompt =
   | { id: number; kind: "set"; vaultId: string; resolve: (pin: string | null) => void }
   | { id: number; kind: "locked"; lockedUntil?: string };
 
-/** Dòng giải thích dưới tiêu đề: hỏi PIN để làm gì. "3 phút" khớp REVEAL_DURATION_MS của danh sách tài sản. */
 function enterMessage(request: VaultPinPromptRequest): string {
-  if (request.purpose === "reveal") {
-    return "Để xem thông tin tài sản. Mở khóa giữ trong 3 phút.";
+  if (request.reason === "invalid") {
+    const left = request.attemptsRemaining;
+    return left === undefined
+      ? "Mã PIN chưa đúng. Vui lòng nhập lại."
+      : `Mã PIN chưa đúng. Còn ${left} trên ${PIN_MAX_ATTEMPTS} lần thử trước khi bị khóa tạm.`;
   }
   return "Thao tác này cần Mã PIN bảo vệ. Nhập mã PIN để tiếp tục.";
-}
-
-/** Dòng nhắc dưới sáu ô sau khi nhập sai; lần hỏi đầu không có. */
-function enterNotice(request: VaultPinPromptRequest): string | undefined {
-  if (request.reason !== "invalid") {
-    return undefined;
-  }
-  const left = request.attemptsRemaining;
-  if (left === undefined) {
-    return "Mã PIN chưa đúng. Vui lòng nhập lại.";
-  }
-  return `Mã PIN chưa đúng. Còn ${left} lần thử trước khi kho bị khóa tạm.`;
 }
 
 function EnterPinPrompt({
@@ -60,10 +51,6 @@ function EnterPinPrompt({
   onForgotDone: (pin: string) => void;
 }) {
   const [forgot, setForgot] = useState(false);
-  let submitLabel = "Xác nhận";
-  if (prompt.request.purpose === "reveal") {
-    submitLabel = "Mở khóa";
-  }
   if (forgot) {
     return (
       <>
@@ -88,13 +75,7 @@ function EnterPinPrompt({
         <DialogTitle>Nhập Mã PIN bảo vệ</DialogTitle>
         <DialogDescription>{enterMessage(prompt.request)}</DialogDescription>
       </DialogHeader>
-      <EnterPinForm
-        onSubmit={onSubmit}
-        onCancel={onCancel}
-        onForgot={() => setForgot(true)}
-        submitLabel={submitLabel}
-        notice={enterNotice(prompt.request)}
-      />
+      <EnterPinForm onSubmit={onSubmit} onCancel={onCancel} onForgot={() => setForgot(true)} />
     </>
   );
 }
@@ -200,7 +181,7 @@ export function VaultPinDialogHost() {
       }}
     >
       {current && (
-        <DialogContent key={current.id} className="max-w-md" showCloseButton={false}>
+        <DialogContent key={current.id} className="max-w-md">
           {current.kind === "enter" && (
             <EnterPinPrompt
               prompt={current}

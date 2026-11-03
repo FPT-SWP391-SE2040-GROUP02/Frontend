@@ -112,47 +112,45 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
       >
         {uploadMutation.isPending ? (
           <div className="flex flex-col items-center justify-center py-4 space-y-3">
-            <Loader2 className="w-8 h-8 text-heritage-gold animate-spin" />
-            <p className="text-xs font-bold text-heritage-primary">
+            <Loader2 className="w-8 h-8 text-[#B88E4C] animate-spin" />
+            <p className="text-xs font-bold text-[#0B291E]">
               Đang băm SHA-256 & truyền tệp lên Cloudflare R2...
             </p>
-            <p className="text-[10px] text-heritage-muted">Vui lòng không đóng trình duyệt</p>
+            <p className="text-[10px] text-[#66786E]">Vui lòng không đóng trình duyệt</p>
           </div>
         ) : isSuccess ? (
           <div className="flex flex-col items-center justify-center py-2 space-y-2">
-            <div className="w-10 h-10 rounded-full bg-heritage-primary-light flex items-center justify-center text-heritage-success">
+            <div className="w-10 h-10 rounded-full bg-[#E5EDE8] flex items-center justify-center text-[#059669]">
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-bold text-heritage-primary">
-                {uploadMutation.data.fileName}
-              </p>
-              <p className="text-[10px] text-heritage-muted">
+              <p className="text-xs font-bold text-[#0B291E]">{uploadMutation.data.fileName}</p>
+              <p className="text-[10px] text-[#66786E]">
                 {(uploadMutation.data.fileSize / 1024 / 1024).toFixed(2)} MB • Đã niêm phong băm
                 SHA-256
               </p>
             </div>
             {/* Thẻ hiển thị mã băm toàn vẹn */}
-            <div className="w-full max-w-md mt-2 p-2 rounded-xl bg-heritage-surface border border-heritage-border text-left">
-              <span className="text-[10px] font-bold text-heritage-gold block uppercase tracking-wider">
+            <div className="w-full max-w-md mt-2 p-2 rounded-xl bg-[#FAF9F5] border border-[#DCD9D0] text-left">
+              <span className="text-[10px] font-bold text-[#B88E4C] block uppercase tracking-wider">
                 Mã Băm Toàn Vẹn (Integrity Hash):
               </span>
-              <p className="font-mono text-[10px] text-heritage-text truncate select-all">
+              <p className="font-mono text-[10px] text-[#14241C] truncate select-all">
                 {uploadMutation.data.fileHash}
               </p>
             </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-4 space-y-3">
-            <div className="w-12 h-12 rounded-[16px] bg-heritage-primary-light flex items-center justify-center text-heritage-primary">
-              <UploadCloud className="w-6 h-6 text-heritage-primary" />
+            <div className="w-12 h-12 rounded-[16px] bg-[#E5EDE8] flex items-center justify-center text-[#0B291E]">
+              <UploadCloud className="w-6 h-6 text-[#0B291E]" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm font-bold text-heritage-text">
+              <p className="text-xs sm:text-sm font-bold text-[#14241C]">
                 Kéo thả tệp scan hoặc{" "}
-                <span className="text-heritage-gold underline">bấm để chọn file</span>
+                <span className="text-[#B88E4C] underline">bấm để chọn file</span>
               </p>
-              <p className="text-[11px] text-heritage-muted mt-0.5">
+              <p className="text-[11px] text-[#66786E] mt-0.5">
                 Hỗ trợ PDF, PNG, JPG. Chức năng tải lên đang được hoàn thiện.
               </p>
             </div>

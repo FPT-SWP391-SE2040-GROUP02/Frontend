@@ -79,10 +79,7 @@ export function VerifyEmailPage() {
     >
       {verified && token === null ? (
         <section className="w-full space-y-5 text-left" aria-labelledby="verified-email-title">
-          <h1
-            id="verified-email-title"
-            className="font-serif text-2xl font-bold text-heritage-primary"
-          >
+          <h1 id="verified-email-title" className="font-serif text-2xl font-bold text-[#0B291E]">
             {content.title}
           </h1>
           <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
@@ -99,7 +96,7 @@ export function VerifyEmailPage() {
             <div className="pt-2">
               <Link
                 to={finalLoginUrl}
-                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-heritage-sidebar px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#133E2B] focus-visible:outline-2 focus-visible:outline-heritage-gold"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#0B291E] px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#133E2B] focus-visible:outline-2 focus-visible:outline-[#B88E4C]"
               >
                 {content.login}
               </Link>

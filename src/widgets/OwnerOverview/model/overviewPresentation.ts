@@ -54,13 +54,3 @@ export function storagePercent(used: number, quota: number): number {
   if (quota <= 0) return 0;
   return Math.min(100, Math.max(0, (used / quota) * 100));
 }
-
-/** Nhãn trạng thái lời mời Người thực hiện. */
-export const executorLabels: Record<string, string> = {
-  INVITED: "Chờ phản hồi lời mời",
-  ACCEPTED: "Đã chấp nhận nhiệm vụ",
-  DECLINED: "Đã từ chối",
-  EXPIRED: "Lời mời hết hạn",
-  REVOKED: "Đã thu hồi",
-  SUSPENDED: "Cần chấp nhận lại",
-};
