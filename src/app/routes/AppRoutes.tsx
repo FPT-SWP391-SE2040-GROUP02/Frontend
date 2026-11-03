@@ -72,6 +72,16 @@ const ExecutorPermissionsPage = lazy(() =>
     default: module.ExecutorPermissionsPage,
   })),
 );
+const ExecutorInvitationsPage = lazy(() =>
+  import("@/pages/executor/ExecutorInvitationsPage").then((module) => ({
+    default: module.ExecutorInvitationsPage,
+  })),
+);
+const InvitationsPage = lazy(() =>
+  import("@/pages/dashboard/InvitationsPage").then((module) => ({
+    default: module.InvitationsPage,
+  })),
+);
 const ExecutorSettingsPage = lazy(() =>
   import("@/pages/executor/ExecutorSettingsPage").then((module) => ({
     default: module.ExecutorSettingsPage,
@@ -264,6 +274,7 @@ export function AppRoutes() {
           <Route path={ROUTES.BILLING.CHECKOUT} element={<CheckoutPage />} />
           <Route path={ROUTES.BILLING.HISTORY} element={<BillingHistoryPage />} />
           <Route path={ROUTES.DASHBOARD.SETTINGS} element={<AccountSettingsPage />} />
+          <Route path={ROUTES.DASHBOARD.INVITATIONS} element={<InvitationsPage />} />
         </Route>
 
         {/* ========================================================================
@@ -339,6 +350,7 @@ export function AppRoutes() {
           <Route path={ROUTES.EXECUTOR.PROGRESS} element={<ExecutorProgressPage />} />
           <Route path={ROUTES.EXECUTOR.PERMISSIONS} element={<ExecutorPermissionsPage />} />
           <Route path={ROUTES.EXECUTOR.SETTINGS} element={<ExecutorSettingsPage />} />
+          <Route path={ROUTES.EXECUTOR.INVITATIONS} element={<ExecutorInvitationsPage />} />
           {/* Đường dẫn cũ của cổng Executor. */}
           <Route
             path={ROUTES.EXECUTOR.CLAIM}

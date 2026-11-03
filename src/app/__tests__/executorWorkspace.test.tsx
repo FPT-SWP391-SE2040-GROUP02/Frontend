@@ -109,12 +109,13 @@ function setup(path: string) {
 }
 
 describe("Executor workspace shell", () => {
-  it("shows the five menu items, the role switch to the Owner space and the account", async () => {
+  it("shows the six menu items, the role switch to the Owner space and the account", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor");
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người thực hiện" });
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
       "Tổng quan",
+      "Lời mời",
       "Báo tin",
       "Tiến trình",
       "Quyền hạn",
@@ -238,7 +239,9 @@ describe("Executor overview", () => {
     expect(
       screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
     ).not.toBeInTheDocument();
-    expect(get).toHaveBeenCalledTimes(2);
+    // Khung còn gọi GET lời mời cho mục Lời mời; chỉ đếm các lần tải danh sách kho.
+    const vaultLoads = get.mock.calls.filter(([url]) => url === "/executor/vaults");
+    expect(vaultLoads).toHaveLength(2);
   });
 
   it("does not check in when the Executor cancels the confirmation", async () => {

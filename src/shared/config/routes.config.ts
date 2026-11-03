@@ -44,6 +44,8 @@ export const ROUTES = {
     AUDIT_LOG: "/dashboard/audit-log",
     USERS: "/dashboard/users",
     SETTINGS: "/dashboard/settings",
+    /** Lời mời làm Người thực hiện gửi tới tài khoản (xem khi chưa là Executor). */
+    INVITATIONS: "/dashboard/invitations",
   },
 
   /** Nhóm đường dẫn Di Chúc Số & Lập Di Chúc (Will Wizard) */
@@ -81,6 +83,8 @@ export const ROUTES = {
     PROGRESS: "/executor/progress",
     PERMISSIONS: "/executor/permissions",
     SETTINGS: "/executor/settings",
+    /** Lời mời làm Người thực hiện trong không gian Người thực hiện (cùng nội dung với bên Chủ kho). */
+    INVITATIONS: "/executor/invitations",
   },
 
   /** Cổng người thụ hưởng / Beneficiary */

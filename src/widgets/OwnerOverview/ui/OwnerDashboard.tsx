@@ -7,6 +7,8 @@ import {
 import { VaultEmailRequiredNotice } from "@/features/vault-management/ui/VaultEmailRequiredNotice";
 import { EditVaultForm } from "@/features/vault-management/ui/EditVaultForm";
 import { OwnerDeathCasePanel } from "@/features/owner-objection";
+import { MyInvitationsBanner } from "@/features/plan-setup/ui/MyInvitationsBanner";
+import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { useOverviewResources } from "../model/useOverviewResources";
 import { OwnerOverviewSummary } from "./OwnerOverviewSummary";
@@ -43,6 +45,7 @@ function OwnerDashboardContent({ vault }: { vault: VaultResponse }) {
   const data = useOverviewResources(vault.id);
   return (
     <div className="owner-overview-layout">
+      <MyInvitationsBanner invitationsHref={ROUTES.DASHBOARD.INVITATIONS} />
       <OwnerDeathCasePanel vaultId={vault.id} enabled />
       <OwnerOverviewSummary vault={vault} data={data} />
       <OwnerOverviewPlan data={data} />

@@ -8,6 +8,7 @@ import {
   inviteExecutorSchema,
   invitationTokenSchema as tokenSchema,
 } from "../model/planSetup.schema";
+import { myInvitationsSchema } from "../model/myInvitations.schema";
 const vault = (id: string) => `/vaults/${z.string().uuid().parse(id)}`;
 /** Confirmed raw BE contract. No invitation token in cache keys, responses or logs. */
 export const planSetupService = {
@@ -76,6 +77,28 @@ export const planSetupService = {
     return executorSchema.parse(
       await apiClient.post<unknown, unknown>("/executor-invitations/respond", {
         token: tokenSchema.parse(token),
+        accept,
+        acknowledgeScope,
+        scopeVersion,
+      }),
+    );
+  },
+  /** Lời mời gửi tới email đã xác minh của tài khoản đang đăng nhập; không có token trong response. */
+  async mine(signal?: AbortSignal) {
+    return myInvitationsSchema.parse(
+      await apiClient.get<unknown, unknown>("/executor-invitations/mine", { signal }),
+    );
+  },
+  /** Trả lời theo id lời mời (không cần link email); cùng luật và mã lỗi như respond bằng token. */
+  async respondById(
+    invitationId: string,
+    accept: boolean,
+    acknowledgeScope: boolean,
+    scopeVersion: string,
+  ) {
+    const id = z.string().uuid().parse(invitationId);
+    return executorSchema.parse(
+      await apiClient.post<unknown, unknown>(`/executor-invitations/${id}/respond`, {
         accept,
         acknowledgeScope,
         scopeVersion,
