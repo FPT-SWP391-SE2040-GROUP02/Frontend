@@ -81,6 +81,59 @@ describe("statusChip", () => {
   });
 });
 
+describe("SMTP content", () => {
+  const content = SYSTEM_CONFIG_SERVICES.SMTP;
+  const schema = buildConfigFormSchema(content.fields);
+  const valid = {
+    host: "smtp.gmail.com",
+    port: "587",
+    secureSocket: "StartTls",
+    userName: "mailer@example.test",
+    fromAddress: "no-reply@example.test",
+    fromName: "LegacyVault",
+    timeoutSeconds: "20",
+    webhookUrl: "",
+    password: "",
+    reason: "đổi máy chủ thư",
+    enabled: true,
+  };
+
+  it("nhận cấu hình hợp lệ, cho phép để trống tài khoản, người gửi, Webhook và mật khẩu", () => {
+    expect(schema.safeParse(valid).success).toBe(true);
+    expect(
+      schema.safeParse({ ...valid, userName: "", fromAddress: "", fromName: "", password: "" })
+        .success,
+    ).toBe(true);
+  });
+
+  it("nhận địa chỉ Webhook https và từ chối địa chỉ sai", () => {
+    expect(
+      schema.safeParse({ ...valid, webhookUrl: "https://script.google.com/macros/s/x/exec" })
+        .success,
+    ).toBe(true);
+    expect(schema.safeParse({ ...valid, webhookUrl: "ftp://x.test" }).success).toBe(false);
+    expect(schema.safeParse({ ...valid, webhookUrl: "https://u:p@x.test" }).success).toBe(false);
+  });
+
+  it.each(["0", "65536", "abc", ""])("từ chối cổng %j", (port) => {
+    expect(schema.safeParse({ ...valid, port }).success).toBe(false);
+  });
+
+  it.each(["ssl", "starttls", ""])("từ chối kiểu mã hóa %j", (secureSocket) => {
+    expect(schema.safeParse({ ...valid, secureSocket }).success).toBe(false);
+  });
+
+  it.each(["4", "121"])("từ chối thời gian chờ %j", (timeoutSeconds) => {
+    expect(schema.safeParse({ ...valid, timeoutSeconds }).success).toBe(false);
+  });
+
+  it("bắt buộc có máy chủ, có nút thử kết nối và không đòi xác nhận", () => {
+    expect(schema.safeParse({ ...valid, host: "" }).success).toBe(false);
+    expect(content.canTest).toBe(true);
+    expect(content.confirm).toBeUndefined();
+  });
+});
+
 describe("SEPAY content", () => {
   const content = SYSTEM_CONFIG_SERVICES.SEPAY;
   const schema = buildConfigFormSchema(content.fields);

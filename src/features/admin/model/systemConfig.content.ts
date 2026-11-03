@@ -53,6 +53,52 @@ export const SYSTEM_CONFIG_SERVICES: Record<string, ServiceContent> = {
     ],
     canTest: true,
   },
+  SMTP: {
+    title: "Email (gửi thư hệ thống)",
+    description:
+      "Thư xác minh, mời người thực hiện, nhắc điểm danh và thông báo hồ sơ đều đi qua đây. Ô dự phòng thường chỉ cần địa chỉ Webhook (Google Apps Script) để gửi qua cổng 443 khi cổng SMTP bị chặn.",
+    fields: [
+      { name: "host", label: "Máy chủ SMTP", kind: "text", hint: "Ví dụ smtp.gmail.com." },
+      {
+        name: "port",
+        label: "Cổng",
+        kind: "number",
+        min: 1,
+        max: 65535,
+        hint: "587 (StartTLS) hoặc 465 (SSL).",
+      },
+      {
+        name: "secureSocket",
+        label: "Kiểu mã hóa kết nối",
+        kind: "select",
+        options: [
+          { value: "StartTls", label: "StartTLS (thường dùng cổng 587)" },
+          { value: "SslOnConnect", label: "SSL ngay khi kết nối (thường dùng cổng 465)" },
+          { value: "StartTlsWhenAvailable", label: "StartTLS nếu máy chủ hỗ trợ" },
+          { value: "Auto", label: "Tự động" },
+          { value: "None", label: "Không mã hóa" },
+        ],
+      },
+      { name: "userName", label: "Tài khoản đăng nhập", kind: "text", optional: true },
+      { name: "fromAddress", label: "Địa chỉ người gửi", kind: "text", optional: true, max: 256 },
+      { name: "fromName", label: "Tên người gửi", kind: "text", optional: true },
+      { name: "timeoutSeconds", label: "Thời gian chờ (giây)", kind: "number", min: 5, max: 120 },
+      {
+        name: "webhookUrl",
+        label: "Địa chỉ Webhook (không bắt buộc)",
+        kind: "url",
+        optional: true,
+        hint: "Có địa chỉ này thì thư gửi qua Webhook thay vì SMTP.",
+      },
+      {
+        name: "password",
+        label: "Mật khẩu",
+        kind: "secret",
+        hint: "Với Gmail dùng Mật khẩu ứng dụng (16 ký tự), không dùng mật khẩu tài khoản.",
+      },
+    ],
+    canTest: true,
+  },
   SEPAY: {
     title: "SePay (nhận tiền thanh toán)",
     description:
@@ -186,8 +232,20 @@ function fieldSchema(field: ConfigFieldSpec): z.ZodTypeAny {
     return z.string().refine((value) => allowed.includes(value), "Chọn một giá trị hợp lệ.");
   }
   // Ô chữ không bắt buộc (ví dụ tài khoản ngân hàng) được để trống.
-  if (field.kind === "text" && field.optional)
-    return z.string().trim().max(100, "Tối đa 100 ký tự.");
+  if (field.kind === "text" && field.optional) {
+    const limit = field.max ?? 100;
+    return z.string().trim().max(limit, `Tối đa ${limit} ký tự.`);
+  }
+  if (field.kind === "url" && field.optional) {
+    return z
+      .string()
+      .trim()
+      .max(2048, "Tối đa 2048 ký tự.")
+      .refine(
+        (value) => value === "" || isHttpUrl(value),
+        "Phải là địa chỉ http hoặc https hợp lệ, không kèm tên đăng nhập.",
+      );
+  }
   const required = z.string().trim().min(1, "Trường này là bắt buộc.");
   if (field.kind === "url") {
     return required
