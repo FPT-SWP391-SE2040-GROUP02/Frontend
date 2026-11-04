@@ -37,6 +37,11 @@ import {
 import { Switch } from "@/shared/ui/switch";
 import { describePlanKey, describePlanValue } from "../model/planCatalog";
 import { PlanCatalogEditor } from "./PlanCatalogEditor";
+import {
+  DEFAULT_MAX_TOTAL_SLOTS,
+  MAX_SLOT_PRICE_PER_YEAR,
+  MAX_TOTAL_SLOTS_LIMIT,
+} from "../model/planCatalog";
 import { settingsSaveError } from "../model/adminError";
 
 interface SettingMeta {
@@ -990,7 +995,8 @@ export function AdminSettings() {
                 Mỗi gói một cột, mỗi kỳ bán một dòng. Chỉnh giá, hạn mức, bật hoặc tắt bán, thêm
                 hoặc xóa kỳ trực tiếp tại ô. Mọi thay đổi chỉ áp dụng cho đơn mới tạo, không làm sai
                 lệch đơn cũ. Trang Gói dịch vụ của người dùng tự xếp các gói từ rẻ đến đắt theo giá
-                kỳ ngắn nhất, nên bạn đặt giá thế nào cũng được.
+                kỳ ngắn nhất, nên bạn đặt giá thế nào cũng được. Giá mỗi kỳ tối đa 50.000.000đ để
+                tránh gõ thừa số 0 và giữ mỗi đơn trong mức chuyển khoản.
               </p>
             </div>
           </div>
@@ -1019,6 +1025,12 @@ export function AdminSettings() {
                   />
                   <span className="text-xs text-heritage-muted">đ</span>
                 </div>
+                {parseInt(getValue("Plans.Addon.SlotPricePerYear", "49000"), 10) >
+                  MAX_SLOT_PRICE_PER_YEAR && (
+                  <p role="alert" className="text-[11px] text-red-700">
+                    Tối đa {MAX_SLOT_PRICE_PER_YEAR.toLocaleString("vi-VN")}đ mỗi năm
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1.5">
@@ -1053,6 +1065,50 @@ export function AdminSettings() {
                     suất
                   </span>
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-heritage-muted">
+                  Tổng người nhận tối đa / tài khoản
+                </label>
+                <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      stepValue("Plans.Addon.MaxTotalSlots", -5, 1, MAX_TOTAL_SLOTS_LIMIT)
+                    }
+                    className="flex size-9 items-center justify-center text-heritage-muted hover:bg-zinc-100"
+                    aria-label="Giảm tổng người nhận tối đa"
+                  >
+                    <Minus className="size-3.5" />
+                  </button>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={getValue("Plans.Addon.MaxTotalSlots", String(DEFAULT_MAX_TOTAL_SLOTS))}
+                    onChange={(e) =>
+                      setKeyValue("Plans.Addon.MaxTotalSlots", e.target.value.replace(/\D/g, ""))
+                    }
+                    aria-label="Tổng người nhận tối đa mỗi tài khoản"
+                    className="h-9 w-full text-center font-mono text-sm font-semibold focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      stepValue("Plans.Addon.MaxTotalSlots", 5, 1, MAX_TOTAL_SLOTS_LIMIT)
+                    }
+                    className="flex size-9 items-center justify-center text-heritage-muted hover:bg-zinc-100"
+                    aria-label="Tăng tổng người nhận tối đa"
+                  >
+                    <Plus className="size-3.5" />
+                  </button>
+                  <span className="border-l border-zinc-200 px-3 text-xs text-heritage-muted">
+                    người
+                  </span>
+                </div>
+                <p className="text-[11px] text-heritage-muted">
+                  Gồm cả suất kèm gói. Mua nhiều đơn cũng không vượt số này.
+                </p>
               </div>
 
               <div className="space-y-1.5">
