@@ -10,7 +10,7 @@ import {
 import { ROUTES } from "@/shared/config/routes.config";
 import { ROLES } from "@/shared/constants/roles";
 import type { ReactNode } from "react";
-import { useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
 /**
  * Lối vào còn mở cho người chưa đăng nhập khi đang bảo trì: trang đăng nhập quản trị (/login?admin=1)
@@ -22,10 +22,17 @@ function isAdminEntry(pathname: string, search: string): boolean {
   return new URLSearchParams(search).get(MAINTENANCE_ADMIN_LOGIN_PARAM) === "1";
 }
 
+/** Trang đăng nhập và bước xác thực hai bước: Admin đã có phiên thì không cần ở lại các trang này. */
+function isAuthEntry(pathname: string): boolean {
+  return pathname === ROUTES.AUTH.LOGIN || pathname === ROUTES.AUTH.TWO_FACTOR;
+}
+
 /**
  * Chặn giao diện khi Admin bật chế độ bảo trì:
- * - Admin đã đăng nhập: dùng bình thường, kèm dải nhắc chế độ đang bật.
- * - Trang đăng nhập quản trị: hiện form kèm dải giải thích chỉ Admin vào được.
+ * - Admin đã đăng nhập: vào thẳng trang quản trị nếu đang ở trang đăng nhập; các trang khác dùng bình thường,
+ *   kèm dải nhắc chế độ đang bật.
+ * - Trang đăng nhập quản trị: luôn hiện form kèm dải giải thích chỉ Admin vào được, kể cả khi tài khoản thường
+ *   vừa đăng nhập (form tự báo đỏ "không có quyền" và hủy phiên đó).
  * - Mọi trường hợp khác (khách, tài khoản thường kể cả đang có phiên): chỉ hiện màn hình bảo trì.
  * Tự mở lại khi cờ tắt; phiên của tài khoản thường vẫn giữ nếu còn hạn.
  */
@@ -38,6 +45,7 @@ export function MaintenanceGate({ children }: { children: ReactNode }) {
   if (!status.isMaintenance) return <>{children}</>;
 
   if (user?.role === ROLES.ADMIN) {
+    if (isAuthEntry(location.pathname)) return <Navigate to={ROUTES.ADMIN.ROOT} replace />;
     return (
       <>
         <MaintenanceNoticeBar

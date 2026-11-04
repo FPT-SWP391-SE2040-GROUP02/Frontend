@@ -12,7 +12,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { AxiosError, AxiosHeaders } from "axios";
 import { Provider } from "react-redux";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MaintenanceGate } from "../MaintenanceGate";
 
@@ -53,7 +53,10 @@ function setup(path: string, role?: AuthUserDto["role"]) {
       <QueryClientProvider client={client}>
         <MemoryRouter initialEntries={[path]}>
           <MaintenanceGate>
-            <p>Nội dung ứng dụng</p>
+            <Routes>
+              <Route path="/admin" element={<p>Trang quản trị</p>} />
+              <Route path="*" element={<p>Nội dung ứng dụng</p>} />
+            </Routes>
           </MaintenanceGate>
         </MemoryRouter>
       </QueryClientProvider>
@@ -95,11 +98,29 @@ describe("MaintenanceGate", () => {
     getPublicSettings.mockResolvedValue({ "Features.MaintenanceMode": true });
     setup("/admin", AUTH_SYSTEM_ROLES.ADMIN);
     expect(await screen.findByText(/Chế độ bảo trì đang bật/)).toBeInTheDocument();
-    expect(screen.getByText("Nội dung ứng dụng")).toBeInTheDocument();
+    expect(screen.getByText("Trang quản trị")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Mở Cấu hình hệ thống" })).toHaveAttribute(
       "href",
       "/admin?view=settings",
     );
+  });
+
+  it("Admin đã đăng nhập mà mở trang đăng nhập thì vào thẳng trang quản trị", async () => {
+    getPublicSettings.mockResolvedValue({ "Features.MaintenanceMode": true });
+    setup("/login?admin=1", AUTH_SYSTEM_ROLES.ADMIN);
+    expect(await screen.findByText("Trang quản trị")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Chỉ tài khoản Quản trị viên đăng nhập được/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("tài khoản thường vừa đăng nhập ở lối quản trị vẫn thấy form (để form báo không có quyền)", async () => {
+    getPublicSettings.mockResolvedValue({ "Features.MaintenanceMode": true });
+    setup("/login?admin=1", AUTH_SYSTEM_ROLES.USER);
+    expect(
+      await screen.findByText(/Chỉ tài khoản Quản trị viên đăng nhập được/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Nội dung ứng dụng")).toBeInTheDocument();
   });
 
   it("chuyển ngay sang màn hình bảo trì khi API trả 503 MAINTENANCE_MODE", async () => {
