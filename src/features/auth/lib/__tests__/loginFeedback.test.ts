@@ -1,6 +1,10 @@
 import { AxiosError, AxiosHeaders } from "axios";
 import { expect, it } from "vitest";
-import { getLoginErrorMessage } from "../loginFeedback";
+import {
+  getAdminLoginErrorMessage,
+  getLoginErrorMessage,
+  MAINTENANCE_LOGIN_DENIED_MESSAGE,
+} from "../loginFeedback";
 import { getGoogleErrorMessage } from "../googleFeedback";
 import { APP_MESSAGES } from "@/shared/constants";
 
@@ -33,6 +37,20 @@ it("explains maintenance for email and Google login, but keeps other 503 errors 
   expect(getGoogleErrorMessage(failure(503, "MAINTENANCE_MODE"))).toContain("bảo trì");
   expect(getLoginErrorMessage(failure(503, "EKYC_SERVICE_UNAVAILABLE"))).toBe(
     APP_MESSAGES.ERROR.SERVER,
+  );
+});
+
+it("trang đăng nhập quản trị gộp lỗi tài khoản thành 'không có quyền truy cập', trang thường giữ nguyên", () => {
+  for (const [status, code] of [
+    [401, "INVALID_CREDENTIALS"],
+    [403, "ACCOUNT_NOT_ACTIVE"],
+    [503, "MAINTENANCE_MODE"],
+  ] as const) {
+    expect(getAdminLoginErrorMessage(failure(status, code))).toBe(MAINTENANCE_LOGIN_DENIED_MESSAGE);
+  }
+  expect(getAdminLoginErrorMessage(failure(429))).toContain("Bạn đã thử quá nhiều lần");
+  expect(getLoginErrorMessage(failure(401, "INVALID_CREDENTIALS"))).toBe(
+    "Email hoặc mật khẩu chưa đúng.",
   );
 });
 

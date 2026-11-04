@@ -33,7 +33,26 @@ export function getLoginRedirect(value: string | null): string {
 
 /** Báo đỏ khi tài khoản không phải Quản trị viên đăng nhập trong lúc hệ thống bảo trì. */
 export const MAINTENANCE_LOGIN_DENIED_MESSAGE =
-  "Tài khoản này không có quyền truy cập khi hệ thống đang bảo trì. Chỉ Quản trị viên được đăng nhập.";
+  "Tài khoản không có quyền truy cập. Trong thời gian bảo trì, chỉ Quản trị viên được đăng nhập.";
+
+/** Mã lỗi đăng nhập mà trang đăng nhập quản trị gộp chung thành "không có quyền truy cập". */
+const ADMIN_LOGIN_DENIED_CODES = ["INVALID_CREDENTIALS", "ACCOUNT_NOT_ACTIVE"];
+
+/**
+ * @description Lỗi trên trang đăng nhập quản trị lúc bảo trì: tài khoản không vào được (sai thông tin, không phải
+ * Admin, đang bị khóa) đều báo chung "không có quyền truy cập", không phân biệt để người lạ không dò được tài khoản
+ * Admin. Lỗi mạng, quá tải, thử quá nhiều lần vẫn báo như trang đăng nhập thường.
+ * @param error Lỗi mutation chưa xác định.
+ */
+export function getAdminLoginErrorMessage(error: unknown): string {
+  if (isMaintenanceError(error)) return MAINTENANCE_LOGIN_DENIED_MESSAGE;
+  if (isAxiosError(error) && error.response) {
+    const parsed = authProblem.safeParse(error.response.data);
+    if (parsed.success && ADMIN_LOGIN_DENIED_CODES.includes(parsed.data.code))
+      return MAINTENANCE_LOGIN_DENIED_MESSAGE;
+  }
+  return getLoginErrorMessage(error);
+}
 
 /**
  * @description Hiển thị lỗi transport an toàn; không suy diễn lượt thử, lockout hoặc lộ response BE.

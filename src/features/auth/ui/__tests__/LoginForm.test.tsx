@@ -4,7 +4,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
-import { AxiosError } from "axios";
+import { AxiosError, AxiosHeaders } from "axios";
 import authReducer from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { APP_MESSAGES, STATUS } from "@/shared/constants";
@@ -81,7 +81,11 @@ function Destination() {
 }
 
 /** @param query Login URL query. @returns Form rendered with real mutation and store providers. */
-function setup(query = "", invitationContext?: LoginFormProps["invitationContext"]) {
+function setup(
+  query = "",
+  invitationContext?: LoginFormProps["invitationContext"],
+  adminOnly = false,
+) {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   clients.push(client);
   const store = configureStore({ reducer: { auth: authReducer } });
@@ -92,7 +96,7 @@ function setup(query = "", invitationContext?: LoginFormProps["invitationContext
           <Routes>
             <Route
               path={ROUTES.AUTH.LOGIN}
-              element={<LoginForm invitationContext={invitationContext} />}
+              element={<LoginForm invitationContext={invitationContext} adminOnly={adminOnly} />}
             />
             <Route path="*" element={<Destination />} />
           </Routes>
@@ -296,6 +300,57 @@ describe("LoginForm", () => {
     } finally {
       setMaintenanceActive(false);
     }
+  });
+
+  it("lối quản trị lúc bảo trì chỉ có email và mật khẩu, tài khoản thường bị báo không có quyền", async () => {
+    vi.mocked(authService.login).mockResolvedValue(SESSION);
+    vi.mocked(authService.logout).mockResolvedValue(undefined);
+    const { store } = setup("?admin=1", undefined, true);
+    expect(screen.getByRole("heading", { name: "Đăng nhập quản trị" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tiếp tục với Google" })).not.toBeInTheDocument();
+    expect(screen.queryByText("hoặc dùng email")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Quên mật khẩu?" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Tạo kho miễn phí" })).not.toBeInTheDocument();
+
+    fillCredentials();
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("không có quyền truy cập");
+    await waitFor(() => expect(store.getState().auth.isAuthenticated).toBe(false));
+  });
+
+  it("lối quản trị lúc bảo trì: sai thông tin cũng báo 'không có quyền truy cập'", async () => {
+    vi.mocked(authService.login).mockRejectedValue(
+      new AxiosError("bad", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 401,
+        statusText: "",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+        data: { code: "INVALID_CREDENTIALS" },
+      }),
+    );
+    setup("?admin=1", undefined, true);
+    fillCredentials();
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(MAINTENANCE_LOGIN_DENIED_MESSAGE);
+  });
+
+  it("ngoài bảo trì: trang đăng nhập thường vẫn có Google và báo sai thông tin như cũ", async () => {
+    vi.mocked(authService.login).mockRejectedValue(
+      new AxiosError("bad", "ERR_BAD_REQUEST", undefined, undefined, {
+        status: 401,
+        statusText: "",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+        data: { code: "INVALID_CREDENTIALS" },
+      }),
+    );
+    setup();
+    expect(screen.getByRole("button", { name: "Tiếp tục với Google" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Quên mật khẩu?" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Tạo kho miễn phí" })).toBeInTheDocument();
+    fillCredentials();
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Email hoặc mật khẩu chưa đúng.");
   });
 
   it("keeps existing cached data when login fails", async () => {
