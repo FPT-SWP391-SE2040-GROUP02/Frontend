@@ -5,6 +5,9 @@ import {
   describePlanValue,
   generatePlanCode,
   nextPlanOrder,
+  parseFeatureLines,
+  serializeFeatureLines,
+  validateFeatureText,
   parseCustomPlans,
   parsePeriods,
   perYearHint,
@@ -116,5 +119,33 @@ describe("gói Admin tạo thêm", () => {
     expect(describePlanValue("Plans.Catalog", '[{"code":"GOLD","name":"Gold","order":30}]')).toBe(
       "Gold (GOLD)",
     );
+  });
+});
+
+describe("mô tả tính năng của gói", () => {
+  it("đọc JSON thành các dòng, sai dạng hoặc rỗng thì dùng mặc định", () => {
+    expect(parseFeatureLines('["A","B"]', ["X"])).toEqual(["A", "B"]);
+    expect(parseFeatureLines("không phải json", ["X"])).toEqual(["X"]);
+    expect(parseFeatureLines("[]", ["X"])).toEqual(["X"]);
+    expect(parseFeatureLines("[1]", ["X"])).toEqual(["X"]);
+  });
+
+  it("giữ dòng trống khi đang gõ để thêm được dòng mới", () => {
+    expect(serializeFeatureLines("A\n")).toBe('["A",""]');
+    expect(parseFeatureLines(serializeFeatureLines("A\n"), [])).toEqual(["A", ""]);
+  });
+
+  it("tối đa 8 dòng có chữ, mỗi dòng tối đa 120 ký tự", () => {
+    expect(validateFeatureText("a\nb\n\nc")).toBe("");
+    expect(validateFeatureText(Array.from({ length: 9 }, (_, i) => `d${i}`).join("\n"))).not.toBe(
+      "",
+    );
+    expect(validateFeatureText("x".repeat(121))).not.toBe("");
+  });
+
+  it("đặt tên cho khóa mô tả tính năng", () => {
+    expect(describePlanKey("Plans.XsMax.Features")).toBe("Mô tả tính năng gói XS Max");
+    expect(describePlanKey("Plans.Free.Features")).toBe("Mô tả tính năng gói Free");
+    expect(describePlanValue("Plans.Xs.Features", '["A","","B"]')).toBe("A · B");
   });
 });

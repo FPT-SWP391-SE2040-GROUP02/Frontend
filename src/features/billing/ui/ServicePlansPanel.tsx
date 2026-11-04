@@ -33,6 +33,8 @@ interface ServicePlansPanelProps {
   unavailableLabel?: string;
   /** Số suất tối đa mỗi đơn do Backend công bố (GET /billing/plans). */
   maxExtraSlots?: number;
+  /** Giá một suất người nhận thêm cho một năm do Backend công bố. */
+  slotPricePerYear?: number;
 }
 
 /** Dữ liệu kho đổi thì đóng bản xem trước cũ và lấy lại mốc giờ, không đổi cache hay quyền. */
@@ -52,6 +54,7 @@ function ServicePlansContent({
   access,
   unavailableLabel = "Chưa thể chọn mua gói",
   maxExtraSlots = 20,
+  slotPricePerYear,
 }: ServicePlansPanelProps) {
   const [pickedYears, setYears] = useState<ReferencePlanTerm["years"]>(1);
   // Kỳ do Admin cấu hình: kỳ đang chọn không còn bán thì lấy kỳ ngắn nhất còn bán.
@@ -346,6 +349,7 @@ function ServicePlansContent({
           mode={selectedMode}
           years={years}
           maxExtraSlots={maxExtraSlots}
+          slotPricePerYear={slotPricePerYear}
           catalog={paidCatalog}
           defaultExtraSlots={vault.extraBeneficiarySlots}
           lockTier={Boolean(currentPaid)}
@@ -367,31 +371,12 @@ function ServicePlansContent({
           <ChevronDown aria-hidden="true" className="size-4" />
         </summary>
         <div className="service-plan-policy-list">
-          <section>
-            <h3>1 năm = 365 ngày</h3>
-            <p>
-              Mua mới tính từ lúc thanh toán thành công. Gia hạn sớm nối tiếp hạn cũ. Thanh toán
-              không thay cho điểm danh.
-            </p>
-          </section>
           <section aria-labelledby={policyId}>
             <h3 id={policyId}>Mua thêm suất người nhận</h3>
             <p>
-              49.000đ/suất/năm. Tối đa 20 suất mỗi đơn, hết hạn cùng ngày với gói. Mua giữa kỳ tính
-              theo thời gian còn lại, làm tròn lên đến đồng.
-            </p>
-          </section>
-          <section>
-            <h3>Dung lượng</h3>
-            <p>
-              Không giới hạn số tài sản theo hạng. Tổng dung lượng phải nằm trong hạn mức của gói và
-              tuân thủ giới hạn kỹ thuật khi tải lên.
-            </p>
-          </section>
-          <section>
-            <h3>Người nhận di sản</h3>
-            <p>
-              Người nhận di sản không phải trả phí. Một người ở nhiều gói tài sản chỉ tính một suất.
+              {(slotPricePerYear ?? 49000).toLocaleString("vi-VN")}đ/suất/năm. Tối đa{" "}
+              {maxExtraSlots} suất mỗi đơn, hết hạn cùng ngày với gói. Mua giữa kỳ tính theo thời
+              gian còn lại, làm tròn lên đến đồng.
             </p>
           </section>
           <section>
@@ -399,13 +384,6 @@ function ServicePlansContent({
             <p>
               Gói nền mặc định. Chuyển về Free cần đáp ứng điều kiện; không tự động chuyển khi hết
               hạn.
-            </p>
-          </section>
-          <section>
-            <h3>Giá và eKYC</h3>
-            <p>
-              Giá chính thức do hệ thống báo khi bạn chọn mua. Mua gói mới cần Chủ kho đã xác minh
-              eKYC; gia hạn và nâng hạng thì không cần.
             </p>
           </section>
         </div>

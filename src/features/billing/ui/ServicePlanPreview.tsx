@@ -14,6 +14,7 @@ import { billingKeys, useBillingQuote } from "../model/useBilling";
 import {
   collectTermYears,
   referenceMoney,
+  remainingTerm,
   type ReferencePlanTerm,
   type ReferenceServicePlan,
 } from "../model/servicePlanPreview";
@@ -57,6 +58,7 @@ export function PurchasePanel({
   mode,
   years,
   maxExtraSlots,
+  slotPricePerYear,
   catalog = [],
   defaultExtraSlots = 0,
   lockTier = false,
@@ -67,6 +69,8 @@ export function PurchasePanel({
   mode: BillingKind;
   years: ReferencePlanTerm["years"];
   maxExtraSlots: number;
+  /** Giá một suất người nhận thêm cho một năm (GET /billing/plans); dùng để giải thích cách tính. */
+  slotPricePerYear?: number;
   /** Các hạng trả phí để chọn hạng cho kỳ mới khi gia hạn. */
   catalog?: readonly ReferenceServicePlan[];
   /** Số suất thêm đang có của kho, điền sẵn khi gia hạn (người dùng đổi được). */
@@ -142,7 +146,10 @@ export function PurchasePanel({
   if (isAddon) {
     title = "Mua thêm suất";
     periodHeading = "Số suất mua thêm";
-    periodHint = "Suất mới hết hạn cùng ngày với gói; giá tính theo thời gian còn lại.";
+    periodHint =
+      slotPricePerYear === undefined
+        ? "Mỗi suất tính theo năm. Suất mới dùng đến hết hạn của gói, nên giá = giá một suất mỗi năm × số suất × số năm còn lại của gói."
+        : `Mỗi suất là ${referenceMoney.format(slotPricePerYear)} cho 1 năm. Suất mới dùng đến hết hạn của gói, nên tiền = ${referenceMoney.format(slotPricePerYear)} × số suất × số năm còn lại của gói.`;
   }
   if (isRenewal) {
     title = `Gia hạn ${activePlan.name}`;
@@ -205,6 +212,7 @@ export function PurchasePanel({
         periodLabel = `Đến hết ${expiry}`;
       }
     }
+    const term = remainingTerm(data.serviceExpiresAt, data.serverTime);
     body = (
       <>
         <dl className="service-plan-summary">
@@ -220,6 +228,20 @@ export function PurchasePanel({
             <div>
               <dt>Phần chênh nâng lên {plan.name}</dt>
               <dd>{referenceMoney.format(data.tierAmount)}</dd>
+            </div>
+          )}
+          {data.kind === "ADDON" && slotPricePerYear !== undefined && (
+            <div>
+              <dt>Giá một suất</dt>
+              <dd>{referenceMoney.format(slotPricePerYear)} / năm</dd>
+            </div>
+          )}
+          {data.kind === "ADDON" && term && (
+            <div>
+              <dt>Số năm còn lại của gói</dt>
+              <dd>
+                {term.years} năm ({term.days} ngày)
+              </dd>
             </div>
           )}
           {data.kind !== "UPGRADE" && (

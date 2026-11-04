@@ -4,6 +4,7 @@ import {
   buildPlanCatalog,
   collectTermYears,
   getReferencePlanAction,
+  remainingTerm,
   type ReferenceServicePlan,
 } from "../servicePlanPreview";
 import type { BillingPlans } from "../billing.types";
@@ -188,6 +189,20 @@ describe("bảng giá lấy từ Backend", () => {
     });
   });
 
+  it("dùng mô tả tính năng do Admin viết, chưa viết thì dùng mô tả mặc định", () => {
+    const written: BillingPlans = {
+      ...plans,
+      freeFeatures: ["Dùng thử"],
+      tiers: [{ ...plans.tiers[0], features: ["Dòng của admin"] }],
+    };
+    const custom = buildPlanCatalog(written, { XS: ["Mặc định"] }, {}, free);
+    expect(custom[0].features).toEqual(["Dùng thử"]);
+    expect(custom[1].features).toEqual(["Dòng của admin"]);
+    const fallback = buildPlanCatalog(plans, { XS: ["Mặc định"] }, {}, free);
+    expect(fallback[0].features).toEqual(free.features);
+    expect(fallback[1].features).toEqual(["Mặc định"]);
+  });
+
   it("lấy cờ mở bán từ Backend; thiếu cờ thì coi là đang bán", () => {
     const off: BillingPlans = {
       ...plans,
@@ -195,5 +210,23 @@ describe("bảng giá lấy từ Backend", () => {
     };
     expect(buildPlanCatalog(off, {}, {}, free)[1].onSale).toBe(false);
     expect(buildPlanCatalog(plans, {}, {}, free)[1].onSale).toBe(true);
+  });
+});
+
+describe("thời gian còn lại để giải thích giá mua thêm suất", () => {
+  it("đổi hạn dịch vụ thành số ngày và số năm", () => {
+    expect(remainingTerm("2028-11-02T00:00:00Z", "2026-11-04T00:00:00Z")).toEqual({
+      days: 729,
+      years: 2,
+    });
+    expect(remainingTerm("2027-11-04T00:00:00Z", "2026-11-04T00:00:00Z")).toEqual({
+      days: 365,
+      years: 1,
+    });
+  });
+
+  it("thiếu mốc thời gian hoặc đã hết hạn thì không hiện", () => {
+    expect(remainingTerm(null, "2026-11-04T00:00:00Z")).toBeNull();
+    expect(remainingTerm("2026-11-03T00:00:00Z", "2026-11-04T00:00:00Z")).toBeNull();
   });
 });

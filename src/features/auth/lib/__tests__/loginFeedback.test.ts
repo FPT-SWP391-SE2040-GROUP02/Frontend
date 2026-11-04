@@ -28,6 +28,14 @@ it.each([
   expect(message).not.toContain("2");
 });
 
+it("explains maintenance for email and Google login, but keeps other 503 errors generic", () => {
+  expect(getLoginErrorMessage(failure(503, "MAINTENANCE_MODE"))).toContain("bảo trì");
+  expect(getGoogleErrorMessage(failure(503, "MAINTENANCE_MODE"))).toContain("bảo trì");
+  expect(getLoginErrorMessage(failure(503, "EKYC_SERVICE_UNAVAILABLE"))).toBe(
+    APP_MESSAGES.ERROR.SERVER,
+  );
+});
+
 it("does not mistake unknown codes or a 500 response for invalid credentials", () => {
   expect(getLoginErrorMessage(failure(401, "NEW_CODE"))).toBe(APP_MESSAGES.ERROR.DEFAULT);
   expect(getLoginErrorMessage(failure(500, "INVALID_CREDENTIALS"))).toBe(APP_MESSAGES.ERROR.SERVER);

@@ -3,22 +3,30 @@ import { Plus, Trash2, TriangleAlert } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Switch } from "@/shared/ui/switch";
+import { Textarea } from "@/shared/ui/textarea";
 import {
   CATALOG_KEY,
   DEFAULT_PERIODS,
+  FREE_FEATURES_KEY,
+  FREE_FEATURE_DEFAULTS,
+  MAX_PLANS_TOTAL,
   PAID_PLANS,
   PERIODS_KEY,
   customPlanMeta,
+  featuresKey,
   generatePlanCode,
   hiddenKey,
   nextPlanOrder,
   parseCustomPlans,
+  parseFeatureLines,
   parsePeriods,
   perYearHint,
   priceKey,
   saleKey,
   serializeCustomPlans,
+  serializeFeatureLines,
   serializePeriods,
+  validateFeatureText,
   validateNewPeriod,
   validateNewPlanName,
   type PaidPlanCode,
@@ -106,7 +114,16 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
     setConfirmDelete(null);
   }
 
+  // Free luôn có; gói trả phí đã ẩn không tính vào giới hạn.
+  const planCount = visible.length + 1;
+  const atLimit = planCount >= MAX_PLANS_TOTAL;
+  const limitMessage = `Tối đa ${MAX_PLANS_TOTAL} gói (tính cả Free). Xóa bớt một gói trước khi thêm hoặc khôi phục gói khác.`;
+
   function addPlan(): void {
+    if (atLimit) {
+      setPlanError(limitMessage);
+      return;
+    }
     const problem = validateNewPlanName(newPlanName);
     if (problem !== "") {
       setPlanError(problem);
@@ -137,6 +154,10 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
   }
 
   function restorePlan(code: PaidPlanCode): void {
+    if (atLimit) {
+      setPlanError(limitMessage);
+      return;
+    }
     setKeyValue(hiddenKey(code), "false");
     setShowRestore(false);
   }
@@ -197,11 +218,16 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                   onChange={(event) => setNewPlanSubtitle(event.target.value)}
                   className="h-9 w-56"
                 />
-                <Button type="button" size="sm" onClick={addPlan}>
+                <Button type="button" size="sm" disabled={atLimit} onClick={addPlan}>
                   <Plus className="size-4" aria-hidden="true" />
                   Tạo gói
                 </Button>
               </div>
+              {atLimit && planError === "" && (
+                <p role="status" className="text-xs font-medium text-heritage-warning">
+                  {limitMessage}
+                </p>
+              )}
               {planError !== "" && (
                 <p role="alert" className="text-xs font-medium text-red-700">
                   {planError}
@@ -488,6 +514,36 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                   </td>
                 ))}
               </tr>
+
+              <SectionRow span={2 + visible.length}>Mô tả tính năng trên thẻ gói</SectionRow>
+              <tr>
+                <th scope="row" className="p-4 align-top font-medium">
+                  Mỗi dòng một tính năng
+                  <span className="mt-1 block text-xs font-normal text-heritage-muted">
+                    Hiện trên thẻ gói của chủ kho. Tối đa 8 dòng, mỗi dòng 120 ký tự.
+                  </span>
+                </th>
+                <td className="p-4 align-top">
+                  <FeatureBox
+                    label="Mô tả tính năng gói Free"
+                    storageKey={FREE_FEATURES_KEY}
+                    defaults={FREE_FEATURE_DEFAULTS}
+                    getValue={getValue}
+                    setKeyValue={setKeyValue}
+                  />
+                </td>
+                {visible.map((plan) => (
+                  <td key={plan.code} className="p-4 align-top">
+                    <FeatureBox
+                      label={`Mô tả tính năng gói ${plan.name}`}
+                      storageKey={featuresKey(plan.code)}
+                      defaults={plan.featureDefaults}
+                      getValue={getValue}
+                      setKeyValue={setKeyValue}
+                    />
+                  </td>
+                ))}
+              </tr>
             </tbody>
           </table>
         </div>
@@ -531,6 +587,42 @@ function QuotaInput({
         className="h-8 w-full min-w-0 bg-transparent px-2 text-center font-mono text-xs font-semibold focus:outline-none"
       />
       <span className="border-l border-zinc-200 px-2 text-[11px] text-heritage-muted">{unit}</span>
+    </div>
+  );
+}
+
+/** Ô nhập mô tả tính năng của một gói: mỗi dòng một tính năng, lưu vào bản nháp dưới dạng JSON. */
+function FeatureBox({
+  label,
+  storageKey,
+  defaults,
+  getValue,
+  setKeyValue,
+}: {
+  label: string;
+  storageKey: string;
+  defaults: readonly string[];
+  getValue: (key: string, defaultValue?: string) => string;
+  setKeyValue: (key: string, value: string) => void;
+}) {
+  const lines = parseFeatureLines(getValue(storageKey, JSON.stringify(defaults)), defaults);
+  const text = lines.join("\n");
+  const problem = validateFeatureText(text);
+  return (
+    <div className="space-y-1">
+      <Textarea
+        value={text}
+        rows={5}
+        aria-label={label}
+        aria-invalid={problem !== ""}
+        onChange={(event) => setKeyValue(storageKey, serializeFeatureLines(event.target.value))}
+        className="min-w-44 text-sm"
+      />
+      {problem !== "" && (
+        <p role="alert" className="text-[11px] text-red-700">
+          {problem}
+        </p>
+      )}
     </div>
   );
 }

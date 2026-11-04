@@ -1,6 +1,7 @@
 import { AxiosError, isAxiosError } from "axios";
 import { APP_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 import { ROUTES } from "@/shared/config/routes.config";
+import { isMaintenanceError } from "@/shared/api/maintenance";
 import { z } from "zod";
 
 const authProblem = z.object({ code: z.string() });
@@ -41,6 +42,9 @@ export function getLoginErrorMessage(error: unknown): string {
   if (error.code === AxiosError.ECONNABORTED || error.code === AxiosError.ETIMEDOUT)
     return APP_MESSAGES.ERROR.TIMEOUT;
   if (!error.response) return APP_MESSAGES.ERROR.NETWORK;
+  // Đăng nhập Google cũng đi qua nhánh này (googleFeedback chuyển lỗi 5xx về đây).
+  if (isMaintenanceError(error))
+    return "Hệ thống đang bảo trì. Chỉ tài khoản Quản trị viên đăng nhập được lúc này.";
   if (error.response.status >= HTTP_STATUS.INTERNAL_SERVER_ERROR) return APP_MESSAGES.ERROR.SERVER;
   if (error.response.status === HTTP_STATUS.TOO_MANY_REQUESTS || error.response.status === 423)
     return "Bạn đã thử quá nhiều lần. Vui lòng chờ rồi thử lại.";

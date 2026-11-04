@@ -23,6 +23,8 @@ export const billingPlansSchema = z.object({
       order: z.number().int().optional(),
       /** true = Admin đã xóa gói: không vẽ thẻ gói, chỉ dùng để so thứ tự với gói đang dùng. */
       hidden: z.boolean().optional(),
+      /** Các dòng mô tả tính năng do Admin viết; rỗng hoặc thiếu thì dùng mô tả mặc định. */
+      features: z.array(z.string()).optional(),
       storageQuotaBytes: z.number().int().positive(),
       includedBeneficiarySlots: z.number().int().nonnegative(),
       prices: z.array(
@@ -39,6 +41,8 @@ export const billingPlansSchema = z.object({
     maxPerOrder: z.number().int().positive(),
   }),
   notice: z.string(),
+  /** Mô tả tính năng của gói Free do Admin viết; rỗng hoặc thiếu thì dùng mô tả mặc định. */
+  freeFeatures: z.array(z.string()).optional(),
 });
 
 /** Loại đơn do Backend tự xác định từ quyền dịch vụ của kho. */
@@ -120,7 +124,8 @@ export const paymentOrderPageSchema = paginatedListSchema(paymentOrderSummarySch
 export const billingSelectionSchema = z.object({
   tier: billingTierSchema.optional(),
   years: billingYearsSchema.optional(),
-  extraSlots: z.number().int().min(0).max(20),
+  /** Trần thật do Backend quyết theo cấu hình Admin (tối đa 100); ở đây chỉ chặn giá trị vô lý. */
+  extraSlots: z.number().int().min(0).max(100),
   /** true = gia hạn khi kho còn hạn; kho đã hết hạn Backend tự hiểu là gia hạn. */
   renew: z.boolean().optional(),
 });
