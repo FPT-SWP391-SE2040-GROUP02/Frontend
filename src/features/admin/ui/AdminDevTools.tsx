@@ -33,6 +33,7 @@ import { useAdminAction } from "../model/useAdminAction";
 import { devToolsKeys, useDevClock, useDevEkycThreshold, useDevVaults } from "../model/useDevTools";
 import { AdminActionDialog } from "./AdminActionDialog";
 import { AdminErrorMessage } from "./AdminStateMessage";
+import { ExecutorEmailPreviewPanel } from "./ExecutorEmailPreviewPanel";
 
 type PendingDialog =
   | { kind: "travel"; milestone: DevMilestone }
@@ -193,6 +194,8 @@ export function AdminDevTools() {
       </Panel>
 
       <EkycThresholdPanel onDone={(message) => setDone(message)} />
+
+      <ExecutorEmailPreviewPanel />
 
       {dialog?.kind === "travel" && (
         <AdminActionDialog
