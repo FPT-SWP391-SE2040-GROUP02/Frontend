@@ -426,9 +426,24 @@ function Tile({ label, value, caption }: { label: string; value: string; caption
  * Tiến độ bàn giao chỉ đọc cho Executor: từng lượt (một gói cho một người nhận), hạn và
  * tài sản đã tải. Không có thao tác ghi; mọi quyền do Backend kiểm.
  */
-export function HandoverProgressPanel({ caseId }: { caseId: string }) {
+export function HandoverProgressPanel({
+  caseId,
+  chosenTurn: controlledTurn,
+  onChooseTurn,
+}: {
+  caseId: string;
+  /** Lượt đang xem do trang cha giữ, để thanh "Bước hiện tại" theo đúng người nhận đang xem. */
+  chosenTurn?: string | null;
+  onChooseTurn?: (turnId: string) => void;
+}) {
   const query = useHandoverProgress(caseId);
-  const [chosenTurn, setChosenTurn] = useState<string | null>(null);
+  const [ownTurn, setOwnTurn] = useState<string | null>(null);
+  let chosenTurn = ownTurn;
+  let setChosenTurn: (turnId: string) => void = setOwnTurn;
+  if (onChooseTurn) {
+    chosenTurn = controlledTurn ?? null;
+    setChosenTurn = onChooseTurn;
+  }
   return (
     <section aria-labelledby="handover-progress-title" className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
