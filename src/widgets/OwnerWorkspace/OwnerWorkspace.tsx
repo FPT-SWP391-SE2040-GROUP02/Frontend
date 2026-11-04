@@ -236,12 +236,12 @@ export function OwnerWorkspace({
           <h1 className="break-words text-2xl sm:text-3xl font-medium tracking-tight text-heritage-primary">
             {title}
           </h1>
-          <p className="mt-1 text-sm text-heritage-muted">{description}</p>
+          <p className="mt-1 max-w-2xl text-sm text-heritage-muted">{description}</p>
         </div>
         {headerAction && <div className="shrink-0">{headerAction}</div>}
       </header>
       {children}
-      <footer className="border-t border-heritage-border pt-4 text-xs leading-5 text-heritage-muted">
+      <footer className="max-w-prose border-t border-heritage-border pt-4 text-xs leading-5 text-heritage-muted">
         LegacyVault hỗ trợ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc hoặc thủ tục thừa
         kế.
       </footer>
