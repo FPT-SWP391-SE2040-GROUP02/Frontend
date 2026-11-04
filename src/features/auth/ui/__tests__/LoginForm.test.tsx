@@ -15,12 +15,17 @@ import {
   sessionAuthService as authService,
 } from "../../api/authService";
 import type { AuthSessionDto as AuthSession } from "@/entities/user/model/authContract.types";
-import { getLoginRedirect, getLoginErrorMessage } from "../../lib/loginFeedback";
+import {
+  getLoginRedirect,
+  getLoginErrorMessage,
+  MAINTENANCE_LOGIN_DENIED_MESSAGE,
+} from "../../lib/loginFeedback";
+import { setMaintenanceActive } from "@/shared/api/maintenance";
 import { invalidateAuthSession } from "../../model/authTransitions";
 import { LoginForm, type LoginFormProps } from "../LoginForm";
 
 vi.mock("../../api/authService", () => ({
-  sessionAuthService: { login: vi.fn() },
+  sessionAuthService: { login: vi.fn(), logout: vi.fn() },
   authService: { loginWithGoogle: vi.fn(), linkGoogleAccount: vi.fn() },
 }));
 
@@ -273,6 +278,24 @@ describe("LoginForm", () => {
     await waitFor(() => expect(store.getState().auth.isAuthenticated).toBe(true));
     expect(client.getQueryData(previousAccountKey)).toBeUndefined();
     expect(client.getQueryData(["auth", "session"])).toEqual({ user: SESSION.user });
+  });
+
+  it("báo đỏ không có quyền và hủy phiên khi tài khoản thường đăng nhập lúc bảo trì", async () => {
+    vi.mocked(authService.login).mockResolvedValue(SESSION);
+    vi.mocked(authService.logout).mockResolvedValue(undefined);
+    setMaintenanceActive(true);
+    try {
+      const { store } = setup("?admin=1");
+      fillCredentials();
+      fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent(MAINTENANCE_LOGIN_DENIED_MESSAGE);
+      await waitFor(() => expect(authService.logout).toHaveBeenCalled());
+      await waitFor(() => expect(store.getState().auth.isAuthenticated).toBe(false));
+      expect(accessTokenMemory.get()).toBeNull();
+      expect(screen.getByRole("button", { name: "Đăng nhập" })).toBeInTheDocument();
+    } finally {
+      setMaintenanceActive(false);
+    }
   });
 
   it("keeps existing cached data when login fails", async () => {

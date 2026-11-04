@@ -10,11 +10,16 @@ import { getGoogleErrorMessage } from "../lib/googleFeedback";
 import type { BackendUserResponse } from "@/entities/user/model/backendUser.schema";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { getLoginErrorMessage, getLoginRedirect } from "../lib/loginFeedback";
+import {
+  getLoginErrorMessage,
+  getLoginRedirect,
+  MAINTENANCE_LOGIN_DENIED_MESSAGE,
+} from "../lib/loginFeedback";
 import { loginSchema, type LoginInput } from "../model/auth.schema";
 import type { InvitationContext } from "../model/auth.types";
-import { useLogin, useGoogleLogin } from "../model/useAuth";
+import { useLogin, useGoogleLogin, useLogout } from "../model/useAuth";
 import { ROLES } from "@/shared/constants/roles";
+import { isMaintenanceActive } from "@/shared/api/maintenance";
 
 /**
  * @description Thuộc tính cấu hình cho component LoginForm.
@@ -53,7 +58,9 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
   const redirectUrl = getLoginRedirect(searchParams.get("redirect"));
   const { mutate: login, isPending: loginPending, isError, error } = useLogin();
   const google = useGoogleLogin();
-  const isPending = loginPending || google.isPending;
+  const logout = useLogout();
+  const [maintenanceDenied, setMaintenanceDenied] = useState(false);
+  const isPending = loginPending || google.isPending || logout.isPending;
 
   const emailParam = searchParams.get("email") ?? "";
   const isVerifiedBanner = searchParams.get("verified") === "true";
@@ -82,6 +89,14 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
   }, [emailParam, setValue]);
 
   const finishLogin = (user: BackendUserResponse): void => {
+    // Đang bảo trì mà tài khoản không phải Admin: báo đỏ "không có quyền" và hủy phiên vừa mở, không điều hướng.
+    // Backend mới đã tự chặn (503); nhánh này giữ đúng hành vi cả khi Backend chưa cập nhật.
+    if (isMaintenanceActive() && user.role !== ROLES.ADMIN) {
+      setLink(null);
+      setMaintenanceDenied(true);
+      logout.mutate(undefined);
+      return;
+    }
     if (!user.emailVerified) {
       navigate(
         `${ROUTES.AUTH.VERIFY_EMAIL}?${new URLSearchParams({ email: user.email, redirect: redirectUrl })}`,
@@ -121,6 +136,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lỗi mạng/500 không giảm lượt; không tự khóa 15 phút;
     //    không in response nội bộ hoặc suy diễn unlockAt khi server không trả.
     if (isPending || typeof data.email !== "string" || typeof data.password !== "string") return;
+    setMaintenanceDenied(false);
 
     login(
       { email: data.email, password: data.password, rememberMe: data.rememberMe },
@@ -135,6 +151,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
 
   const handleGoogleCredential = async (idToken: string, nonce: string): Promise<void> => {
     if (isPending) return;
+    setMaintenanceDenied(false);
     try {
       const result = await google.mutateAsync({
         idToken,
@@ -212,13 +229,13 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
         </p>
       </div>
 
-      {isError && (
+      {(isError || maintenanceDenied) && (
         <div
           role="alert"
           className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
         >
           <AlertCircle aria-hidden="true" className="mr-2 inline size-4" />
-          {getLoginErrorMessage(error)}
+          {maintenanceDenied ? MAINTENANCE_LOGIN_DENIED_MESSAGE : getLoginErrorMessage(error)}
         </div>
       )}
 
