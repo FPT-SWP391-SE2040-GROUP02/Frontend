@@ -33,7 +33,7 @@ export type QueueCategory = "REVIEW" | "WAIT_OBJECTION" | "OBJECTED" | "SUPPLEME
 
 export const queueCategoryLabels: Record<QueueCategory, { label: string; tone: VerifierTone }> = {
   REVIEW: { label: "Chờ xét duyệt", tone: "neutral" },
-  WAIT_OBJECTION: { label: "Chờ phản đối 72 giờ", tone: "warning" },
+  WAIT_OBJECTION: { label: "Chờ phản đối", tone: "warning" },
   OBJECTED: { label: "Chủ kho phản đối", tone: "danger" },
   SUPPLEMENT: { label: "Chờ bổ sung", tone: "neutral" },
 };
@@ -59,7 +59,7 @@ export function queueCategory(item: QueueCategorySource, now: number): QueueCate
 const HOUR_MS = 3_600_000;
 const DAY_MS = 24 * HOUR_MS;
 
-/** Cột "Thời gian" của hàng chờ: thời gian đã chờ, giờ còn lại của 72 giờ phản đối, hoặc việc cần làm. */
+/** Cột "Thời gian" của hàng chờ: thời gian đã chờ, giờ còn lại của thời gian phản đối, hoặc việc cần làm. */
 export function queueTimeText(
   item: QueueCategorySource & { assignedAt: string },
   category: QueueCategory,
@@ -91,7 +91,7 @@ const conditionReasons: Record<Blocker, string> = {
   NOT_UNDER_REVIEW: "hồ sơ không còn ở bước xét duyệt",
   NEWER_VERSION_PENDING: "đang có bản mới chờ xét",
   OWNER_NOT_NOTIFIED: "chưa báo cho chủ kho",
-  OBJECTION_PERIOD_NOT_OVER: "chưa hết 72 giờ chủ kho được phản đối",
+  OBJECTION_PERIOD_NOT_OVER: "chưa hết thời gian chủ kho được phản đối",
   FLAGS_NOT_REVIEWED: "còn cảnh báo chưa kiểm tra",
   VERIFIER_CONFLICT: "bạn có quan hệ với kho này",
 };
@@ -100,7 +100,7 @@ const conditionTitles: Record<Blocker, string> = {
   NOT_UNDER_REVIEW: "Hồ sơ đang ở bước xét duyệt",
   NEWER_VERSION_PENDING: "Không có bản mới chờ xét",
   OWNER_NOT_NOTIFIED: "Đã báo chủ kho",
-  OBJECTION_PERIOD_NOT_OVER: "Đã hết 72 giờ phản đối",
+  OBJECTION_PERIOD_NOT_OVER: "Đã hết thời gian phản đối",
   FLAGS_NOT_REVIEWED: "Mọi cảnh báo đã được kiểm tra",
   VERIFIER_CONFLICT: "Không có quan hệ với kho này",
 };

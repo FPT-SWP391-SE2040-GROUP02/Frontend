@@ -10,14 +10,14 @@ export interface ProgressStep {
 }
 
 /** 6 bước theo thiết kế "Tiến trình bàn giao". */
-const STEP_LABELS = [
+const stepLabels = (objectionHours: number, grantDays: number) => [
   "Báo tin",
-  "Phản đối 72 giờ",
+  `Phản đối ${objectionHours} giờ`,
   "Xét duyệt",
   "Xác minh eKYC",
   "Đồng ý hoặc từ chối",
-  "Tải nội dung 30 ngày",
-] as const;
+  `Tải nội dung ${grantDays} ngày`,
+];
 
 const CAPTIONS: Record<StepState, string> = {
   done: "Xong",
@@ -74,10 +74,12 @@ export function deriveSteps(
   record: DeathCase | null | undefined,
   progress: HandoverProgress | null | undefined,
   now: Date,
+  objectionHours = 72,
+  grantDays = 30,
 ): ProgressStep[] {
   const current = currentStepIndex(record, progress, now);
   const rejected = record?.status === "REJECTED";
-  return STEP_LABELS.map((label, index) => {
+  return stepLabels(objectionHours, grantDays).map((label, index) => {
     let state: StepState;
     if (rejected) {
       state = index < 2 ? "done" : index === 2 ? "error" : "pending";

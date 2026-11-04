@@ -29,6 +29,7 @@ const filterOptions: ReadonlyArray<{ value: Filter; label: string }> = [
 ];
 
 import { formatDateTime } from "@/shared/lib/dateFormat";
+import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 const filterMeta: Record<Filter, { dotColor: string }> = {
   ALL: { dotColor: "bg-heritage-muted" },
@@ -78,6 +79,7 @@ export function VerifierQueueBoard({
   /** Phân trang đặt cuối bảng. */
   children?: ReactNode;
 }) {
+  const policy = usePolicyWindows();
   const [params, setParams] = useSearchParams();
   const filter = parseFilter(params.get(FILTER_PARAM));
   const search = params.get(SEARCH_PARAM) ?? "";
@@ -111,7 +113,11 @@ export function VerifierQueueBoard({
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard title="Đang chờ bạn" value={counts.ALL} note="hồ sơ cần xem" />
-        <StatCard title="Chờ phản đối" value={counts.WAIT_OBJECTION} note="Chủ kho còn 72 giờ" />
+        <StatCard
+          title="Chờ phản đối"
+          value={counts.WAIT_OBJECTION}
+          note={`Chủ kho còn ${policy.objectionHours} giờ`}
+        />
         <StatCard title="Chủ kho phản đối" value={counts.OBJECTED} note="cần kết luận" />
       </div>
       <Panel

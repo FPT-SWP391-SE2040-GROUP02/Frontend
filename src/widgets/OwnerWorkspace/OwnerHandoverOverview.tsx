@@ -12,6 +12,7 @@ import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { useOwnerDeathCase } from "@/features/owner-objection/model/useOwnerDeathCase";
 import { formatDate } from "@/shared/lib/dateFormat";
 import type { z } from "zod";
+import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 type CheckInStatus = z.infer<typeof checkInStatusSchema>;
 
@@ -21,7 +22,7 @@ const GOLD_BADGE =
   "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]";
 
 /** Năm bước bàn giao theo thiết kế; nội dung cố định theo SRS, không lấy từ máy chủ. */
-const HANDOVER_STEPS = [
+const handoverSteps = (objectionHours: number, grantDays: number) => [
   { title: "Báo tin", detail: "Người thực hiện báo tin.", short: "Báo tin" },
   { title: "Xét duyệt", detail: "Người xét duyệt kiểm tra.", short: "Xét duyệt" },
   {
@@ -30,14 +31,14 @@ const HANDOVER_STEPS = [
     short: "Xác minh người nhận",
   },
   {
-    title: "Phản đối 72 giờ",
-    detail: "Bạn có 72 giờ để dừng lại.",
-    short: "Thời gian phản đối 72 giờ",
+    title: `Phản đối ${objectionHours} giờ`,
+    detail: `Bạn có ${objectionHours} giờ để dừng lại.`,
+    short: `Thời gian phản đối ${objectionHours} giờ`,
   },
   {
-    title: "Tải nội dung 7 ngày",
-    detail: "Người nhận tải về trong 7 ngày.",
-    short: "Tải nội dung 7 ngày",
+    title: `Tải nội dung ${grantDays} ngày`,
+    detail: `Người nhận tải về trong ${grantDays} ngày.`,
+    short: `Tải nội dung ${grantDays} ngày`,
   },
 ];
 
@@ -51,9 +52,10 @@ const executorStatusLabels = {
 };
 
 function ProcessCard() {
+  const policy = usePolicyWindows();
   const rows: ReactNode[] = [];
   let stepNumber = 0;
-  for (const step of HANDOVER_STEPS) {
+  for (const step of handoverSteps(policy.objectionHours, policy.grantDays)) {
     stepNumber = stepNumber + 1;
     rows.push(
       <li
@@ -290,6 +292,7 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
 }
 
 function StatusCard({ vaultId }: { vaultId: string }) {
+  const policy = usePolicyWindows();
   const query = useOwnerDeathCase(vaultId, true);
   let summary: ReactNode;
   if (query.isPending) {
@@ -331,7 +334,7 @@ function StatusCard({ vaultId }: { vaultId: string }) {
   }
   const rows: ReactNode[] = [];
   let stepNumber = 0;
-  for (const step of HANDOVER_STEPS) {
+  for (const step of handoverSteps(policy.objectionHours, policy.grantDays)) {
     stepNumber = stepNumber + 1;
     rows.push(
       <li key={step.title} className="flex items-center gap-3 text-sm">
