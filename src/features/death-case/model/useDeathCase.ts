@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
+import { POLLING_INTERVAL } from "@/shared/config";
 import { deathCaseService } from "../api/deathCaseService";
 import type { ExecutorVault } from "./deathCase.schema";
 
@@ -10,6 +11,8 @@ export function useDeathCase(caseId: string | null | undefined) {
     queryFn: ({ signal }) => deathCaseService.get(caseId!, signal),
     enabled: Boolean(caseId),
     retry: false,
+    refetchInterval: POLLING_INTERVAL.FAST,
+    refetchIntervalInBackground: false,
   });
 }
 

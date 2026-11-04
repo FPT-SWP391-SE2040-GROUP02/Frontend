@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { POLLING_INTERVAL } from "@/shared/config";
 import { getExecutorClaims, submitClaim } from "../api/claimService";
 import type { PaginationParams } from "@/shared/types";
 import type { SubmitClaimRequest } from "@/entities/claim/model/claim.types";
@@ -16,12 +17,14 @@ export const claimKeys = {
 };
 
 /**
- * Hook truy xuất danh sách hồ sơ của Người thực hiện
+ * Hook truy xuất danh sách hồ sơ của Người thực hiện (tự động refetch định kỳ)
  */
 export function useExecutorClaims(params?: PaginationParams) {
   return useQuery({
     queryKey: claimKeys.list(params),
     queryFn: () => getExecutorClaims(params),
+    refetchInterval: POLLING_INTERVAL.NORMAL,
+    refetchIntervalInBackground: false,
   });
 }
 
