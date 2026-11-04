@@ -396,17 +396,6 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     isSecurity: true,
   },
   {
-    key: "Features.EnableRegistration",
-    label: "Cho phép đăng ký tài khoản mới",
-    category: "Security",
-    categoryTitle: "Bảo mật & Tính năng",
-    defaultValue: "true",
-    description: "Bật/tắt khả năng tạo tài khoản mới từ trang đăng ký công khai.",
-    src: "FeatureFlag.Registration",
-    dataType: "BOOLEAN",
-    isSecurity: true,
-  },
-  {
     key: "Features.MaintenanceMode",
     label: "Chế độ bảo trì toàn hệ thống",
     category: "Security",
