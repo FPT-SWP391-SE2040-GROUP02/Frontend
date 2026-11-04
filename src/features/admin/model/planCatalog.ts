@@ -150,12 +150,51 @@ export function nextPlanOrder(customs: readonly CustomPlan[]): number {
 }
 
 /** Kiểm tra tên gói mới; trả lỗi hoặc chuỗi rỗng nếu hợp lệ. */
-export function validateNewPlanName(name: string): string {
+export function validateNewPlanName(name: string, existingNames: readonly string[] = []): string {
   const trimmed = name.trim();
   if (trimmed.length === 0) return "Nhập tên gói.";
   if (trimmed.length > MAX_PLAN_NAME) return `Tên gói tối đa ${MAX_PLAN_NAME} ký tự.`;
+  const wanted = normalizePlanName(trimmed);
+  const taken = [...RESERVED_DISPLAY_NAMES, ...existingNames.map(normalizePlanName)];
+  if (taken.includes(wanted)) {
+    return `Đã có gói tên "${trimmed}" (không phân biệt hoa thường). Hãy đặt tên khác.`;
+  }
   return "";
 }
+
+/** Phụ đề tối đa 60 ký tự (khớp Backend); rỗng được. */
+export const MAX_PLAN_SUBTITLE = 60;
+export function validateNewPlanSubtitle(subtitle: string): string {
+  if (subtitle.trim().length > MAX_PLAN_SUBTITLE) {
+    return `Phụ đề tối đa ${MAX_PLAN_SUBTITLE} ký tự.`;
+  }
+  return "";
+}
+
+/** Tên chuẩn hóa để so trùng: bỏ khoảng trắng thừa, chữ thường (khớp Backend). */
+export function normalizePlanName(name: string): string {
+  return name.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+/** Tên hiển thị của gói gốc; gói Admin tạo không được trùng. */
+const RESERVED_DISPLAY_NAMES: readonly string[] = [
+  "free",
+  "xs",
+  "xs max",
+  "xsmax",
+  "legacy xs",
+  "legacy xs max",
+];
+
+/**
+ * Mức giá tối đa (khớp Backend, BillingPrices). Lý do: chặn gõ thừa số 0 làm báo giá vô lý và giữ tổng đơn trong mức
+ * một lần chuyển khoản (đơn tối đa 500.000.000đ). Gói đắt nhất hiện nay là 1.599.000đ nên còn dư rất xa.
+ */
+export const MAX_TIER_PRICE = 50_000_000;
+export const MAX_SLOT_PRICE_PER_YEAR = 2_000_000;
+/** Tổng người nhận tối đa mỗi tài khoản: mặc định 50, Admin chọn từ 1 đến 1000. */
+export const DEFAULT_MAX_TOTAL_SLOTS = 50;
+export const MAX_TOTAL_SLOTS_LIMIT = 1000;
 
 /** Khóa mô tả tính năng của gói Free và của các gói trả phí. */
 export const FREE_FEATURES_KEY = "Plans.Free.Features";
@@ -257,11 +296,20 @@ function planLabel(segment: string): string {
   return segment;
 }
 
+/** Tên dễ đọc của các khóa mua thêm suất và thanh toán trong danh sách thay đổi. */
+const ADDON_KEY_LABELS: Record<string, string> = {
+  "Plans.Addon.SlotPricePerYear": "Giá một suất thêm / năm",
+  "Plans.Addon.MaxSlotsPerOrder": "Số suất thêm tối đa / đơn",
+  "Plans.Addon.MaxTotalSlots": "Tổng người nhận tối đa mỗi tài khoản",
+  "Plans.Addon.OrderTimeoutMinutes": "Hạn đơn chờ thanh toán SePay (phút)",
+};
+
 /** Tên dễ đọc của một khóa Plans.* trong danh sách thay đổi; null nếu không phải khóa gói. */
 export function describePlanKey(key: string): string | null {
   if (key === PERIODS_KEY) return "Danh sách kỳ bán";
   if (key === CATALOG_KEY) return "Danh sách gói";
   if (key === FREE_FEATURES_KEY) return "Mô tả tính năng gói Free";
+  if (key in ADDON_KEY_LABELS) return ADDON_KEY_LABELS[key];
   const match =
     /^Plans\.([A-Za-z][A-Za-z0-9_]*)\.(?:Price(\d+)Y|(On|Hidden|QuotaMb|Slots|MaxPackages|Features))$/.exec(
       key,

@@ -29,6 +29,9 @@ import {
   validateFeatureText,
   validateNewPeriod,
   validateNewPlanName,
+  validateNewPlanSubtitle,
+  MAX_PLAN_SUBTITLE,
+  MAX_TIER_PRICE,
   type PaidPlanCode,
   type PaidPlanMeta,
   type PlanPeriod,
@@ -124,7 +127,11 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
       setPlanError(limitMessage);
       return;
     }
-    const problem = validateNewPlanName(newPlanName);
+    const problem =
+      validateNewPlanName(
+        newPlanName,
+        allPlans.map((plan) => plan.name),
+      ) || validateNewPlanSubtitle(newPlanSubtitle);
     if (problem !== "") {
       setPlanError(problem);
       return;
@@ -214,7 +221,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                   value={newPlanSubtitle}
                   placeholder="Phụ đề (không bắt buộc)"
                   aria-label="Phụ đề gói mới"
-                  maxLength={60}
+                  maxLength={MAX_PLAN_SUBTITLE}
                   onChange={(event) => setNewPlanSubtitle(event.target.value)}
                   className="h-9 w-56"
                 />
@@ -391,6 +398,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                   {visible.map((plan) => {
                     const value = priceOf(plan, period.years);
                     const missing = period.on && parseMoney(value) <= 0;
+                    const tooHigh = parseMoney(value) > MAX_TIER_PRICE;
                     const hint = perYearHint(
                       parseMoney(priceOf(plan, 1)),
                       parseMoney(value),
@@ -404,19 +412,24 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                             inputMode="numeric"
                             value={value}
                             aria-label={`Giá gói ${plan.name} kỳ ${period.years} năm`}
-                            aria-invalid={missing}
+                            aria-invalid={missing || tooHigh}
                             onChange={(event) =>
                               setKeyValue(
                                 priceKey(plan.code, period.years),
                                 event.target.value.replace(/\D/g, ""),
                               )
                             }
-                            className={`h-9 w-28 font-mono text-sm font-semibold ${missing ? "border-red-400" : ""}`}
+                            className={`h-9 w-28 font-mono text-sm font-semibold ${missing || tooHigh ? "border-red-400" : ""}`}
                           />
                           <span className="text-xs text-heritage-muted">đ</span>
                         </div>
                         {missing && (
                           <span className="mt-1 block text-[11px] text-red-700">Chưa có giá</span>
+                        )}
+                        {tooHigh && (
+                          <span role="alert" className="mt-1 block text-[11px] text-red-700">
+                            Tối đa {money.format(MAX_TIER_PRICE)}đ mỗi kỳ
+                          </span>
                         )}
                         {hint && (
                           <span className="mt-1 block text-[11px] text-green-700">

@@ -57,3 +57,15 @@ export function adminActionError(failure: unknown): string {
   }
   return "";
 }
+
+/**
+ * Câu báo lỗi do Backend viết cho lần lưu cấu hình (400 VALIDATION_ERROR: giá sai thứ tự, kỳ bán không hợp lệ...).
+ * Trả null khi lỗi không phải 400 hoặc không có tiêu đề để UI dùng câu chung.
+ */
+export function settingsSaveError(failure: unknown): string | null {
+  if (!isAxiosError<unknown>(failure) || failure.response?.status !== HTTP_STATUS.BAD_REQUEST) {
+    return null;
+  }
+  const parsed = z.object({ title: z.string().min(1) }).safeParse(failure.response.data);
+  return parsed.success ? parsed.data.title : null;
+}

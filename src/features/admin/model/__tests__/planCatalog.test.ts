@@ -8,6 +8,8 @@ import {
   parseFeatureLines,
   serializeFeatureLines,
   validateFeatureText,
+  validateNewPlanName,
+  validateNewPlanSubtitle,
   parseCustomPlans,
   parsePeriods,
   perYearHint,
@@ -114,7 +116,7 @@ describe("gói Admin tạo thêm", () => {
     expect(describePlanKey("Plans.GOLD.On")).toBe("Mở bán gói GOLD");
     expect(describePlanKey("Plans.GOLD.QuotaMb")).toBe("Dung lượng gói GOLD");
     expect(describePlanKey("Plans.Catalog")).toBe("Danh sách gói");
-    expect(describePlanKey("Plans.Addon.SlotPricePerYear")).toBeNull();
+    expect(describePlanKey("Plans.Addon.SlotPricePerYear")).toBe("Giá một suất thêm / năm");
     expect(describePlanValue("Plans.GOLD.Hidden", "true")).toBe("Đã xóa");
     expect(describePlanValue("Plans.Catalog", '[{"code":"GOLD","name":"Gold","order":30}]')).toBe(
       "Gold (GOLD)",
@@ -147,5 +149,26 @@ describe("mô tả tính năng của gói", () => {
     expect(describePlanKey("Plans.XsMax.Features")).toBe("Mô tả tính năng gói XS Max");
     expect(describePlanKey("Plans.Free.Features")).toBe("Mô tả tính năng gói Free");
     expect(describePlanValue("Plans.Xs.Features", '["A","","B"]')).toBe("A · B");
+  });
+});
+
+describe("kiểm tra tên và phụ đề gói mới", () => {
+  it("chặn tên trùng không phân biệt hoa thường và khoảng trắng thừa", () => {
+    expect(validateNewPlanName("Gold", ["gold"])).toContain("Đã có gói tên");
+    expect(validateNewPlanName("  GOLD   plus ", ["Gold Plus"])).toContain("Đã có gói tên");
+    expect(validateNewPlanName("Gold", ["Silver"])).toBe("");
+  });
+
+  it("chặn trùng tên gói gốc", () => {
+    expect(validateNewPlanName("xs max")).toContain("Đã có gói tên");
+    expect(validateNewPlanName("Legacy XS")).toContain("Đã có gói tên");
+    expect(validateNewPlanName("Free")).toContain("Đã có gói tên");
+  });
+
+  it("tên rỗng hoặc quá 40 ký tự, phụ đề quá 60 ký tự", () => {
+    expect(validateNewPlanName("   ")).toBe("Nhập tên gói.");
+    expect(validateNewPlanName("a".repeat(41))).toContain("tối đa 40");
+    expect(validateNewPlanSubtitle("a".repeat(61))).toContain("tối đa 60");
+    expect(validateNewPlanSubtitle("a".repeat(60))).toBe("");
   });
 });

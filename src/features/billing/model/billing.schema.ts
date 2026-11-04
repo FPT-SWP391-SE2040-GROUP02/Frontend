@@ -39,6 +39,8 @@ export const billingPlansSchema = z.object({
   extraSlot: z.object({
     pricePerYear: money,
     maxPerOrder: z.number().int().positive(),
+    /** Tổng người nhận tối đa mỗi tài khoản (suất kèm gói + suất mua thêm); Backend cũ không gửi thì chỉ giới hạn theo đơn. */
+    maxTotal: z.number().int().positive().optional(),
   }),
   notice: z.string(),
   /** Mô tả tính năng của gói Free do Admin viết; rỗng hoặc thiếu thì dùng mô tả mặc định. */
