@@ -77,7 +77,7 @@ describe("ExecutorOwnerSwitcher", () => {
     expect(within(menu).getByText("2 kho bạn phụ trách")).toBeInTheDocument();
     const items = within(menu).getAllByRole("menuitem");
     expect(items[0]).toHaveTextContent("Nguyễn Thị Mai");
-    expect(items[0]).toHaveTextContent("Quá hạn điểm danh");
+    expect(items[0]).toHaveTextContent("Cần bạn kiểm tra");
     expect(items[1]).toHaveAttribute("aria-current", "true");
 
     fireEvent.click(items[0]);

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -64,6 +65,10 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
   const record = query.data ?? null;
   const approved = record?.status === "APPROVED_FOR_HANDOVER";
   const handover = useHandoverProgress(caseId ?? "", Boolean(caseId) && approved);
+  // Người nhận đang xem ở "Tiến độ bàn giao"; thanh bước theo đúng lượt này (mặc định lượt đầu, giống bảng bên dưới).
+  const [chosenTurn, setChosenTurn] = useState<string | null>(null);
+  const turns = handover.data?.turns ?? [];
+  const selectedTurn = turns.find((turn) => turn.turnId === chosenTurn) ?? turns[0] ?? null;
   const now = new Date();
   if (caseId && query.isPending) return <p role="status">Đang tải hồ sơ…</p>;
   if (caseId && query.isError) {
@@ -76,7 +81,20 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
       </div>
     );
   }
-  const steps = deriveSteps(record, handover.data, now, policy.objectionHours, policy.grantDays);
+  const steps = deriveSteps(
+    record,
+    handover.data,
+    now,
+    policy.objectionHours,
+    policy.grantDays,
+    selectedTurn,
+  );
+  let viewingText: string | null = null;
+  if (approved && selectedTurn) {
+    const name =
+      selectedTurn.beneficiaryFullName ?? `CCCD ***${selectedTurn.beneficiaryCitizenIdLast4}`;
+    viewingText = `Đang xem tiến trình của ${name}, gói “${selectedTurn.containerName}”. Bấm “Xem chi tiết” ở người nhận khác bên dưới để đổi.`;
+  }
   const log = deriveLog(record);
   const info = record ? caseStatusInfo[record.status] : null;
   return (
@@ -108,6 +126,11 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
         <p className="mt-6 text-sm leading-6 text-heritage-muted">
           {describe(record, now, policy.objectionHours)}
         </p>
+        {viewingText && (
+          <p role="status" className="mt-2 text-sm font-medium text-heritage-primary">
+            {viewingText}
+          </p>
+        )}
         {!record && (
           <Link className={`${buttonStyles.gold} mt-4`} to={ROUTES.EXECUTOR.REPORT}>
             Đi tới Báo tin
@@ -152,7 +175,13 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
         </div>
       )}
 
-      {approved && caseId && <HandoverProgressPanel caseId={caseId} />}
+      {approved && caseId && (
+        <HandoverProgressPanel
+          caseId={caseId}
+          chosenTurn={selectedTurn?.turnId ?? null}
+          onChooseTurn={setChosenTurn}
+        />
+      )}
     </div>
   );
 }

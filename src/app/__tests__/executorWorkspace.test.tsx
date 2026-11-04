@@ -12,6 +12,7 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { deriveLog, deriveSteps } from "@/features/death-case/model/progressSteps";
 import type { DeathCase } from "@/features/death-case/model/deathCase.schema";
+import type { HandoverProgressTurn } from "@/features/death-case/model/handoverProgress.schema";
 import { ExecutorOverviewPage } from "@/pages/executor/ExecutorOverviewPage";
 import { ExecutorPermissionsPage } from "@/pages/executor/ExecutorPermissionsPage";
 import { ExecutorReportPage } from "@/pages/executor/ExecutorReportPage";
@@ -645,6 +646,35 @@ describe("progress steps", () => {
       "pending",
       "pending",
     ]);
+  });
+
+  it("hồ sơ đã duyệt: 3 bước cuối theo đúng người nhận đang xem", () => {
+    const approved = record("APPROVED_FOR_HANDOVER");
+    const turnOf = (status: string, downloaded = 0) =>
+      ({
+        turnId: "55555555-5555-4555-8555-555555555555",
+        status,
+        totalItems: 1,
+        downloadedItems: downloaded,
+      }) as unknown as HandoverProgressTurn;
+    // Người nhận A đã đồng ý và tải xong; người nhận B còn chờ phản hồi lời mời.
+    expect(
+      states(deriveSteps(approved, null, now, 72, 30, turnOf("HANDOVER_COMMITTED", 1))),
+    ).toEqual(["done", "done", "done", "done", "done", "done"]);
+    expect(states(deriveSteps(approved, null, now, 72, 30, turnOf("INVITED")))).toEqual([
+      "done",
+      "done",
+      "done",
+      "current",
+      "pending",
+      "pending",
+    ]);
+    expect(states(deriveSteps(approved, null, now, 72, 30, turnOf("READY_TO_ACCEPT")))[4]).toBe(
+      "current",
+    );
+    const declined = deriveSteps(approved, null, now, 72, 30, turnOf("DECLINED"));
+    expect(declined[4]).toMatchObject({ state: "error", caption: "Đã từ chối" });
+    expect(declined[5].state).toBe("pending");
   });
 
   it("derives the log newest first from the timestamps Backend returns", () => {

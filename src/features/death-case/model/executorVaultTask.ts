@@ -31,12 +31,23 @@ export function vaultTask(vault: ExecutorVault): VaultTask {
       task: "theo dõi hồ sơ chứng tử và bổ sung khi Người xét duyệt yêu cầu.",
     };
   }
+  // Đang trong thời gian chờ: Chủ kho còn tự điểm danh được, Người thực hiện chỉ cần để ý.
+  if (vault.planStatus === "CHECKIN_OVERDUE") {
+    return {
+      urgency: "overdue",
+      label: "Trễ điểm danh · đang chờ",
+      tone: "warning",
+      detail: "Chủ kho trễ hạn điểm danh, còn trong thời gian chờ",
+      task: "để ý thêm. Chủ kho còn thời gian tự điểm danh; nếu đã liên lạc được và Chủ kho vẫn ổn, bạn có thể điểm danh hộ.",
+    };
+  }
+  // Hết thời gian chờ (AWAITING_CHECK): hệ thống đã giao việc kiểm tra cho Người thực hiện.
   if (vault.checkInOverdue) {
     return {
       urgency: "overdue",
-      label: "Quá hạn điểm danh",
+      label: "Cần bạn kiểm tra",
       tone: "danger",
-      detail: "Chủ kho đã quá hạn điểm danh",
+      detail: "Chủ kho đã hết thời gian chờ điểm danh",
       task: "liên hệ xem Chủ kho còn ổn không. Nếu không liên lạc được thì mở hồ sơ báo tin. Bạn vẫn không đọc được nội dung kho.",
     };
   }
@@ -49,11 +60,21 @@ export function vaultTask(vault: ExecutorVault): VaultTask {
   };
 }
 
+/** Trong nhóm quá hạn: "Cần bạn kiểm tra" đứng trước "Trễ điểm danh · đang chờ". */
+function overdueRank(vault: ExecutorVault): number {
+  if (vault.planStatus === "CHECKIN_OVERDUE") return 1;
+  return 0;
+}
+
 /** Kho cần xử lý lên trên: quá hạn điểm danh → hồ sơ đang xử lý → an toàn; cùng mức thì giữ thứ tự gốc. */
 export function sortVaultsByUrgency(vaults: ExecutorVault[]): ExecutorVault[] {
   const sorted = [...vaults];
   sorted.sort((left, right) => {
-    return URGENCY_ORDER[vaultTask(left).urgency] - URGENCY_ORDER[vaultTask(right).urgency];
+    const byUrgency =
+      URGENCY_ORDER[vaultTask(left).urgency] - URGENCY_ORDER[vaultTask(right).urgency];
+    if (byUrgency !== 0) return byUrgency;
+    if (vaultTask(left).urgency === "overdue") return overdueRank(left) - overdueRank(right);
+    return 0;
   });
   return sorted;
 }
