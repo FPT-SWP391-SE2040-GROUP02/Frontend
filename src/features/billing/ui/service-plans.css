@@ -6,6 +6,7 @@
   color: var(--text-muted);
   font-size: 13px;
   line-height: 1.7;
+  max-width: 68ch;
 }
 .service-plans .service-plan-current {
   display: flex;
@@ -99,7 +100,7 @@
   color: var(--surface);
 }
 .service-plans .service-plan-terms small {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
 }
 .service-plans .service-plan-grid {
@@ -136,8 +137,8 @@
 .service-plans .service-plan-badge {
   border-radius: 20px;
   background: color-mix(in srgb, var(--gold) 16%, var(--surface));
-  padding: 3px 7px;
-  font-size: 10px;
+  padding: 4px 8px;
+  font-size: 11px;
   font-weight: 600;
 }
 .service-plans .service-plan-badge-muted {
@@ -146,7 +147,7 @@
 .service-plans .service-plan-price {
   margin-top: 20px;
   font-size: clamp(25px, 2.2vw, 34px);
-  line-height: 1.25;
+  line-height: 1.35;
   font-weight: 600;
   letter-spacing: -0.045em;
   font-variant-numeric: tabular-nums;
@@ -228,6 +229,7 @@
   color: var(--text-muted);
   font-size: 11px;
   line-height: 1.65;
+  max-width: 65ch;
 }
 .service-plans .service-plan-preview {
   margin-top: 24px;
@@ -274,6 +276,7 @@
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 3px;
+  max-width: 65ch;
 }
 .service-plans .service-plan-renewal-period .service-plan-terms button {
   min-width: 58px;
@@ -318,6 +321,7 @@
   font-size: 13px;
   line-height: 1.6;
   background: var(--gold-light);
+  max-width: 72ch;
 }
 .service-plans .service-plan-policies {
   margin: 26px 0 18px;
@@ -368,6 +372,7 @@
   font-size: 13px;
   line-height: 1.65;
   color: var(--text-muted);
+  max-width: 65ch;
 }
 @media (prefers-reduced-motion: reduce) {
   .service-plans .service-plan-policies summary svg {
@@ -443,7 +448,7 @@
 .service-plan-slots input {
   width: 5.5rem;
   min-height: 2.75rem;
-  padding: 0 0.75rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--border-ui);
   border-radius: 0.75rem;
   background: transparent;

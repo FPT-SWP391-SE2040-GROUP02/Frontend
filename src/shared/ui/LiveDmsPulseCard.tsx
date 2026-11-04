@@ -52,7 +52,7 @@ export function LiveDmsPulseCard({
             <div className="pulse-dot" />
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-[#059669] font-bold">
+            <div className="text-[11px] uppercase tracking-wider text-[#059669] font-bold">
               Status: {statusText}
             </div>
             <div className="text-sm sm:text-base font-bold text-[var(--primary)] dark:text-[#F3F7F4]">
@@ -80,11 +80,11 @@ export function LiveDmsPulseCard({
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Integrity Seal (ECDSA P-256)</span>
             </span>
-            <span className="text-[9.5px] font-bold bg-white dark:bg-[#0C2217] px-2 py-0.5 rounded-[4px] text-[#7A5B27] dark:text-[#E2C17D] border border-[var(--gold-border)]">
+            <span className="text-[11px] font-bold bg-white dark:bg-[#0C2217] px-2 py-0.5 rounded-[4px] text-[#7A5B27] dark:text-[#E2C17D] border border-[var(--gold-border)]">
               TAMPER-PROOF
             </span>
           </div>
-          <div className="font-mono text-[10px] text-[var(--primary)] dark:text-[#E5EDE8] bg-white dark:bg-[#071710] p-2 rounded-[6px] border border-[#E8DCC6] dark:border-[#3A4D39] break-all select-all">
+          <div className="font-mono text-[11px] text-[var(--primary)] dark:text-[#E5EDE8] bg-white dark:bg-[#071710] p-2 rounded-[6px] border border-[#E8DCC6] dark:border-[#3A4D39] break-all select-all">
             {sealHash}
           </div>
         </div>

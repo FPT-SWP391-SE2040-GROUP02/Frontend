@@ -49,7 +49,7 @@ export const WillDetailModal: React.FC<WillDetailModalProps> = ({ will, onClose 
     <Dialog open={Boolean(will)} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className="w-[95vw] sm:w-[720px] md:w-[820px] max-w-4xl max-h-[90vh] bg-[#FAF9F5] border border-[#DCD9D0] rounded-[28px] p-0 overflow-hidden shadow-[0_24px_64px_rgba(11,41,30,0.2)] flex flex-col"
+        className="w-[95vw] sm:w-[720px] md:w-[820px] max-w-4xl max-h-[90vh] bg-[#FAF9F5] border border-[#DCD9D0] rounded-[28px] p-0 overflow-hidden shadow-[0_16px_32px_rgba(11,41,30,0.16)] flex flex-col"
       >
         {/* Modal Top Header Banner */}
         <div className="bg-[#0B291E] p-6 sm:p-7 text-white relative shrink-0">

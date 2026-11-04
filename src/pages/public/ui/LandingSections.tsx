@@ -134,10 +134,7 @@ function PillarVisual({
   for (const row of rows) {
     const Icon = icons[index];
     items.push(
-      <li
-        key={row.title}
-        className="flex items-center gap-4 rounded-md border border-[#E0DACB] bg-white px-4 py-3"
-      >
+      <li key={row.title} className="flex items-center gap-4 px-4 py-3">
         <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#0A281E] text-[#E6C98B]">
           <Icon className="size-5" aria-hidden="true" />
         </span>
@@ -150,9 +147,11 @@ function PillarVisual({
     index = index + 1;
   }
   return (
-    <div className="rounded-xl border border-[#D8D2C4] bg-[#FAF9F5] p-5 shadow-[0_30px_60px_-30px_rgb(10_40_30/0.35)] sm:p-6">
+    <div className="rounded-xl border border-[#D8D2C4] bg-[#FAF9F5] p-5 shadow-[0_12px_24px_-10px_rgb(10_40_30/0.18)] sm:p-6">
       <p className={`${HEADING} mb-4 text-lg text-[#0A281E]`}>{title}</p>
-      <ul className="space-y-3">{items}</ul>
+      <ul className="divide-y divide-[#E0DACB]/70 overflow-hidden rounded-lg border border-[#E0DACB] bg-white">
+        {items}
+      </ul>
     </div>
   );
 }
@@ -178,7 +177,7 @@ export function PillarsSection() {
     screens.push(
       <article
         key={pillar.tag}
-        className={`${backgrounds[index]} flex items-center px-4 py-20 sm:px-8 lg:sticky lg:top-0 lg:min-h-screen lg:border-t lg:border-[#D8D2C4] lg:shadow-[0_-24px_40px_-30px_rgb(10_40_30/0.4)]`}
+        className={`${backgrounds[index]} flex items-center px-4 py-20 sm:px-8 lg:sticky lg:top-0 lg:min-h-screen lg:border-t lg:border-[#D8D2C4] lg:shadow-[0_-12px_20px_-15px_rgb(10_40_30/0.25)]`}
       >
         <div className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-2 lg:gap-20">
           <Reveal>
@@ -356,7 +355,7 @@ export function PricingSection() {
     }
     let cardBorder = "border-[#D8D2C4]";
     if (plan.name === content.pricing.featuredPlan) {
-      cardBorder = "border-[#B68F4C] shadow-[0_20px_40px_-24px_rgb(182_143_76/0.7)]";
+      cardBorder = "border-[#B68F4C] shadow-[0_10px_20px_-10px_rgb(182_143_76/0.45)]";
     }
     cards.push(
       <Reveal
@@ -406,12 +405,12 @@ export function FaqSection() {
             <span className={`${HEADING} text-xl text-[#0A281E] sm:text-2xl`}>{item.question}</span>
             <span
               aria-hidden="true"
-              className="text-3xl leading-none text-[#B68F4C] transition-transform duration-300 group-open:rotate-45"
+              className="text-3xl leading-[1.3] text-[#B68F4C] transition-transform duration-300 group-open:rotate-45"
             >
               +
             </span>
           </summary>
-          <p className="landing-faq-answer pb-6 pr-10 text-base leading-7 text-[#4E6257]">
+          <p className="landing-faq-answer max-w-prose pb-6 pr-10 text-base leading-7 text-[#4E6257]">
             {item.answer}
           </p>
         </details>,
