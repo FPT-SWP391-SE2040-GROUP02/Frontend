@@ -33,6 +33,8 @@ interface ServicePlansPanelProps {
   unavailableLabel?: string;
   /** Số suất tối đa mỗi đơn do Backend công bố (GET /billing/plans). */
   maxExtraSlots?: number;
+  /** Tổng người nhận tối đa mỗi tài khoản (GET /billing/plans); thiếu thì chỉ giới hạn theo từng đơn. */
+  maxTotalSlots?: number;
   /** Giá một suất người nhận thêm cho một năm do Backend công bố. */
   slotPricePerYear?: number;
 }
@@ -54,6 +56,7 @@ function ServicePlansContent({
   access,
   unavailableLabel = "Chưa thể chọn mua gói",
   maxExtraSlots = 20,
+  maxTotalSlots,
   slotPricePerYear,
 }: ServicePlansPanelProps) {
   const [pickedYears, setYears] = useState<ReferencePlanTerm["years"]>(1);
@@ -349,6 +352,8 @@ function ServicePlansContent({
           mode={selectedMode}
           years={years}
           maxExtraSlots={maxExtraSlots}
+          maxTotalSlots={maxTotalSlots}
+          currentSlots={vault.beneficiarySlots}
           slotPricePerYear={slotPricePerYear}
           catalog={paidCatalog}
           defaultExtraSlots={vault.extraBeneficiarySlots}

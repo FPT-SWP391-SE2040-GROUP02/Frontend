@@ -58,6 +58,8 @@ export function PurchasePanel({
   mode,
   years,
   maxExtraSlots,
+  maxTotalSlots,
+  currentSlots = 0,
   slotPricePerYear,
   catalog = [],
   defaultExtraSlots = 0,
@@ -69,6 +71,10 @@ export function PurchasePanel({
   mode: BillingKind;
   years: ReferencePlanTerm["years"];
   maxExtraSlots: number;
+  /** Tổng người nhận tối đa mỗi tài khoản (suất kèm gói + suất mua thêm); thiếu thì chỉ giới hạn theo từng đơn. */
+  maxTotalSlots?: number;
+  /** Số người nhận kho đang có (khi mua thêm suất); các chế độ khác dùng suất kèm theo gói đang chọn. */
+  currentSlots?: number;
   /** Giá một suất người nhận thêm cho một năm (GET /billing/plans); dùng để giải thích cách tính. */
   slotPricePerYear?: number;
   /** Các hạng trả phí để chọn hạng cho kỳ mới khi gia hạn. */
@@ -93,8 +99,16 @@ export function PurchasePanel({
     minExtraSlots = 1;
     initialSlots = 1;
   }
+  // Số suất còn mua thêm được: không quá mỗi đơn và không quá trần tổng của tài khoản.
+  const slotRoom = (base: number): number =>
+    maxTotalSlots === undefined
+      ? maxExtraSlots
+      : Math.min(maxExtraSlots, Math.max(0, maxTotalSlots - base));
   if (isRenewal) {
-    initialSlots = Math.min(maxExtraSlots, Math.max(0, defaultExtraSlots));
+    initialSlots = Math.min(
+      slotRoom(plan.includedBeneficiarySlots),
+      Math.max(0, defaultExtraSlots),
+    );
   }
   const [extraSlots, setExtraSlots] = useState(initialSlots);
   // Gia hạn được chọn hạng cho kỳ mới (cùng hạng hoặc đổi hạng).
@@ -108,6 +122,7 @@ export function PurchasePanel({
     }
   }
 
+  const slotLimit = slotRoom(isAddon ? currentSlots : activePlan.includedBeneficiarySlots);
   // Mua thêm suất: Backend bỏ qua hạng và số năm, chỉ cần số suất.
   let selection: BillingSelection = {
     tier: plan.serviceTier,
@@ -174,7 +189,7 @@ export function PurchasePanel({
 
   function changeSlots(value: number): void {
     if (!Number.isFinite(value)) return;
-    setExtraSlots(Math.min(maxExtraSlots, Math.max(minExtraSlots, Math.trunc(value))));
+    setExtraSlots(Math.min(slotLimit, Math.max(minExtraSlots, Math.trunc(value))));
   }
 
   function createOrder(): void {
@@ -330,17 +345,25 @@ export function PurchasePanel({
       {!isUpgrade && (
         <label className="service-plan-slots">
           <span>
-            {slotsLabel} (tối đa {maxExtraSlots})
+            {slotsLabel} (tối đa {slotLimit})
           </span>
           <input
             type="number"
             inputMode="numeric"
             min={minExtraSlots}
-            max={maxExtraSlots}
+            max={slotLimit}
+            disabled={isAddon && slotLimit < 1}
             value={extraSlots}
             onChange={(event) => changeSlots(event.target.valueAsNumber)}
           />
         </label>
+      )}
+      {!isUpgrade && maxTotalSlots !== undefined && slotLimit < maxExtraSlots && (
+        <p className="service-plan-fineprint" role="status">
+          {slotLimit < 1
+            ? `Kho đã đạt mức tối đa ${maxTotalSlots} người nhận nên không mua thêm suất được.`
+            : `Mỗi tài khoản tối đa ${maxTotalSlots} người nhận (kể cả suất kèm gói), nên bạn còn mua thêm được tối đa ${slotLimit} suất.`}
+        </p>
       )}
       {body}
       {action.error && (

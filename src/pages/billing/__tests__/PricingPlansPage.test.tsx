@@ -249,6 +249,23 @@ describe("pricing reference policies", () => {
     expect(input).toHaveValue(1);
   });
 
+  it("mua thêm suất: không cho vượt tổng người nhận tối đa mỗi tài khoản và nói rõ còn mua được bao nhiêu", async () => {
+    vi.spyOn(apiClient, "post").mockResolvedValue(addonQuote);
+    setup(true);
+    // Kho đang có 3 người nhận, trần tổng 5: chỉ còn mua thêm được 2 suất dù mỗi đơn cho tới 20.
+    client.setQueryData(billingKeys.plans(), {
+      ...plansFixture,
+      extraSlot: { pricePerYear: 49000, maxPerOrder: 20, maxTotal: 5 },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Mua thêm suất người nhận" }));
+    const input = await screen.findByLabelText(/Suất người nhận mua thêm \(tối đa 2\)/);
+    fireEvent.change(input, { target: { value: "9" } });
+    expect(input).toHaveValue(2);
+    expect(
+      screen.getByText(/Mỗi tài khoản tối đa 5 người nhận.*còn mua thêm được tối đa 2 suất/),
+    ).toBeInTheDocument();
+  });
+
   it("Chủ kho có nút sang Lịch sử thanh toán", () => {
     setup(true);
     expect(screen.getByRole("link", { name: "Lịch sử thanh toán" })).toHaveAttribute(
