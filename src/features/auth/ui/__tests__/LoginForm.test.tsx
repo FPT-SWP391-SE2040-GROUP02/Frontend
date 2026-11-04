@@ -361,6 +361,33 @@ describe("LoginForm", () => {
     });
   });
 
+  it.each([
+    [`${ROUTES.EXECUTOR.ROOT}?vault=abc`, ROUTES.ADMIN.ROOT],
+    [`${ROUTES.DASHBOARD.ROOT}/assets`, ROUTES.ADMIN.ROOT],
+    [ROUTES.ADMIN.AUDIT_LOG, ROUTES.ADMIN.AUDIT_LOG],
+    [ROUTES.DASHBOARD.USERS, ROUTES.DASHBOARD.USERS],
+  ])("Admin có redirect %s thì vào %s", async (redirect, expected) => {
+    vi.mocked(authService.login).mockResolvedValue({
+      ...SESSION,
+      user: { ...SESSION.user, role: ROLES.ADMIN },
+    });
+    setup(`?redirect=${encodeURIComponent(redirect)}`);
+    fillCredentials();
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    expect(await screen.findByText(expected)).toBeInTheDocument();
+  });
+
+  it("Verifier có redirect sang khu Người thực hiện thì vẫn vào trang Verifier", async () => {
+    vi.mocked(authService.login).mockResolvedValue({
+      ...SESSION,
+      user: { ...SESSION.user, role: ROLES.VERIFIER },
+    });
+    setup(`?redirect=${encodeURIComponent(ROUTES.EXECUTOR.ROOT)}`);
+    fillCredentials();
+    fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
+    expect(await screen.findByText(ROUTES.NOTARY.WORKSPACE)).toBeInTheDocument();
+  });
+
   it("provides an accessible password visibility toggle without changing the value", () => {
     setup();
     fillCredentials();
