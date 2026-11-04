@@ -13,27 +13,14 @@ export const MAINTENANCE_SETTINGS_HREF = `${ROUTES.ADMIN.ROOT}?view=settings`;
 export const MAINTENANCE_CONTENT = {
   brand: "LegacyVault",
   statusPill: "Đang bảo trì",
-  eyebrow: "Bảo trì hệ thống",
-  title: "LegacyVault đang được bảo trì",
+  title: "Chúng tôi đang nâng cấp hệ thống",
   description:
-    "Chúng tôi đang nâng cấp hệ thống để phục vụ an toàn và ổn định hơn. Trong thời gian này, bạn tạm thời chưa thể đăng nhập hoặc thao tác với kho.",
-  points: [
-    {
-      title: "Dữ liệu của bạn vẫn an toàn",
-      detail: "Nội dung trong kho luôn được mã hóa và không bị ảnh hưởng bởi việc bảo trì.",
-    },
-    {
-      title: "Tự động mở lại",
-      detail:
-        "Trang này tự kiểm tra trạng thái và đưa bạn trở lại ngay khi hệ thống hoạt động, không cần tải lại trang.",
-    },
-  ],
-  panelTitle: "Trạng thái hệ thống",
-  panelStatus: "Đang bảo trì",
-  lastChecked: "Kiểm tra gần nhất",
-  notChecked: "Chưa có",
-  autoRecheck: (seconds: number) => `Tự kiểm tra lại sau mỗi ${seconds} giây`,
-  recheck: "Kiểm tra ngay",
+    "Dữ liệu của bạn không bị ảnh hưởng. Trang này sẽ tự mở lại ngay khi hệ thống sẵn sàng.",
+  progressLabel: "Đang bảo trì hệ thống",
+  gearLabel: "Bấm để quay bánh răng",
+  lastChecked: "lần gần nhất",
+  autoRecheck: (seconds: number) => `Tự kiểm tra mỗi ${seconds} giây`,
+  recheck: "Kiểm tra lại",
   checking: "Đang kiểm tra…",
   adminPrompt: "Bạn là quản trị viên?",
   adminLogin: "Đăng nhập quản trị",

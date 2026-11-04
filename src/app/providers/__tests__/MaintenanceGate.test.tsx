@@ -61,7 +61,7 @@ function setup(path: string, role?: AuthUserDto["role"]) {
   );
 }
 
-const maintenanceTitle = { name: "LegacyVault đang được bảo trì" };
+const maintenanceTitle = { name: "Chúng tôi đang nâng cấp hệ thống" };
 
 describe("MaintenanceGate", () => {
   it("hiện ứng dụng bình thường khi không bảo trì", async () => {
