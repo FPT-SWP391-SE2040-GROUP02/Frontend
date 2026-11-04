@@ -95,6 +95,47 @@ describe("EkycStatusPanel", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Mở màn này từ một lượt bàn giao");
     expect(screen.queryByRole("button", { name: "Đồng ý và bắt đầu" })).not.toBeInTheDocument();
   });
+  it("shows the verified card for BENEFICIARY_CLAIM without turnId once passed and matched", async () => {
+    vi.mocked(ekycService.getStatus).mockResolvedValue({
+      status: "PASSED",
+      verificationId: "11111111-1111-4111-8111-111111111111",
+      citizenIdLast4: "0696",
+      faceMatchScore: 0.5,
+      matchThreshold: 0.363,
+      spoofCheckPassed: true,
+      createdAt: null,
+      completedAt: null,
+      purpose: "BENEFICIARY_CLAIM",
+      identityMatch: "MATCHED",
+      backSideChecked: true,
+    });
+    setup(true, { purpose: "BENEFICIARY_CLAIM", turnId: null });
+    expect(await screen.findByText("Danh tính đã được xác minh.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Về cổng người nhận" })).toHaveAttribute(
+      "href",
+      "/claim/beneficiary",
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Đồng ý và bắt đầu" })).not.toBeInTheDocument();
+  });
+  it("keeps the turn reminder for BENEFICIARY_CLAIM without turnId when not matched", async () => {
+    vi.mocked(ekycService.getStatus).mockResolvedValue({
+      status: "PASSED",
+      verificationId: "11111111-1111-4111-8111-111111111111",
+      citizenIdLast4: "0696",
+      faceMatchScore: 0.5,
+      matchThreshold: 0.363,
+      spoofCheckPassed: true,
+      createdAt: null,
+      completedAt: null,
+      purpose: "BENEFICIARY_CLAIM",
+      identityMatch: "NEEDS_REVIEW",
+      backSideChecked: true,
+    });
+    setup(true, { purpose: "BENEFICIARY_CLAIM", turnId: null });
+    expect(await screen.findByRole("alert")).toHaveTextContent("Mở màn này từ một lượt bàn giao");
+    expect(screen.queryByRole("link", { name: "Về cổng người nhận" })).not.toBeInTheDocument();
+  });
   it("shows upload form for OWNER_ENROLLMENT without turnId", async () => {
     vi.mocked(ekycService.getStatus).mockResolvedValue({
       status: "NOT_STARTED",

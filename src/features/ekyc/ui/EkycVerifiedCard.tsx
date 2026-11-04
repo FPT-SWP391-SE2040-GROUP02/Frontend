@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { CircleCheck } from "lucide-react";
@@ -36,8 +37,23 @@ function VerifiedBadge() {
   );
 }
 
-/** Màn kết quả khi Chủ kho đã xác minh đạt: tóm tắt từ trạng thái của máy chủ và gợi ý bước tiếp theo. */
-export function EkycVerifiedCard({ live }: { live: z.infer<typeof ekycStatusSchema> }) {
+const OWNER_SUBTITLE = "Bạn chỉ cần xác minh một lần, không phải làm lại.";
+
+/**
+ * Màn kết quả khi xác minh đạt: tóm tắt từ trạng thái của máy chủ và gợi ý bước tiếp theo.
+ * Mặc định là màn của Chủ kho; người nhận truyền `subtitle` và `nextStep` của riêng họ.
+ */
+export function EkycVerifiedCard({
+  live,
+  subtitle = OWNER_SUBTITLE,
+  nextStep,
+}: {
+  live: z.infer<typeof ekycStatusSchema>;
+  /** Dòng phụ dưới tiêu đề. */
+  subtitle?: string;
+  /** Khối "Bước tiếp theo" thay cho khối mua gói của Chủ kho. */
+  nextStep?: ReactNode;
+}) {
   let completedAt = "Không có thông tin";
   if (live.completedAt) {
     completedAt = dateTimeFormatter.format(new Date(live.completedAt));
@@ -57,6 +73,28 @@ export function EkycVerifiedCard({ live }: { live: z.infer<typeof ekycStatusSche
     { label: "Chống giả mạo", value: spoof },
     { label: "Mặt sau giấy tờ", value: backSide },
   ];
+  const ownerNextStep = (
+    <div className="space-y-3 rounded-xl bg-[#F1E7D0] p-4 text-[#7A5B24]">
+      <p className="text-sm font-semibold">Bước tiếp theo</p>
+      <p className="text-sm">
+        Mua gói dịch vụ cần lần xác minh này (còn hiệu lực 90 ngày kể từ lúc hoàn tất).
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <Link
+          to={ROUTES.BILLING.PLANS}
+          className="inline-flex min-h-11 items-center rounded-xl bg-[#E0C486] px-6 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-heritage-gold"
+        >
+          Chọn gói dịch vụ
+        </Link>
+        <Link
+          to={ROUTES.DASHBOARD.ROOT}
+          className={buttonVariants({ variant: "outline", size: "lg" })}
+        >
+          Về Tổng quan
+        </Link>
+      </div>
+    </div>
+  );
   return (
     <section
       aria-label="Kết quả xác minh danh tính"
@@ -68,9 +106,7 @@ export function EkycVerifiedCard({ live }: { live: z.infer<typeof ekycStatusSche
           <p role="status" className="text-xl font-medium text-heritage-primary">
             Danh tính đã được xác minh.
           </p>
-          <p className="text-sm text-heritage-muted">
-            Bạn chỉ cần xác minh một lần, không phải làm lại.
-          </p>
+          <p className="text-sm text-heritage-muted">{subtitle}</p>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
           <CircleCheck className="size-4" aria-hidden="true" />
@@ -85,26 +121,7 @@ export function EkycVerifiedCard({ live }: { live: z.infer<typeof ekycStatusSche
           </div>
         ))}
       </dl>
-      <div className="space-y-3 rounded-xl bg-[#F1E7D0] p-4 text-[#7A5B24]">
-        <p className="text-sm font-semibold">Bước tiếp theo</p>
-        <p className="text-sm">
-          Mua gói dịch vụ cần lần xác minh này (còn hiệu lực 90 ngày kể từ lúc hoàn tất).
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            to={ROUTES.BILLING.PLANS}
-            className="inline-flex min-h-11 items-center rounded-xl bg-[#E0C486] px-6 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-heritage-gold"
-          >
-            Chọn gói dịch vụ
-          </Link>
-          <Link
-            to={ROUTES.DASHBOARD.ROOT}
-            className={buttonVariants({ variant: "outline", size: "lg" })}
-          >
-            Về Tổng quan
-          </Link>
-        </div>
-      </div>
+      {nextStep ?? ownerNextStep}
     </section>
   );
 }
