@@ -1,0 +1,135 @@
+/*
+ * Hoạt ảnh màn hình bảo trì. Chỉ dùng transform và opacity để trình duyệt xử lý trên GPU, không vẽ lại trang
+ * mỗi khung hình. Tắt toàn bộ khi người dùng chọn giảm chuyển động.
+ */
+
+/* Nền: xanh rêu chuyển sang xanh ngọc ở góc trên trái, tối dần về góc dưới phải. Vẽ một lần, không chuyển động. */
+.maintenance-surface {
+  background-color: #0f3326;
+  background-image:
+    radial-gradient(120% 80% at 0% 0%, rgba(38, 122, 96, 0.55) 0%, transparent 55%),
+    radial-gradient(80% 60% at 100% 0%, rgba(224, 196, 134, 0.07) 0%, transparent 60%),
+    linear-gradient(160deg, #14402f 0%, #0c2b21 100%);
+}
+
+/* Hai đốm sáng lớn trôi chậm. Màu là radial-gradient trong suốt dần nên không cần filter blur. */
+.maintenance-aurora {
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform;
+}
+
+.maintenance-aurora-gold {
+  top: -260px;
+  right: -180px;
+  width: 720px;
+  height: 720px;
+  background: radial-gradient(circle, rgba(224, 196, 134, 0.16) 0%, rgba(224, 196, 134, 0) 65%);
+  animation: maintenance-drift 26s ease-in-out infinite alternate;
+}
+
+.maintenance-aurora-teal {
+  bottom: -440px;
+  left: -320px;
+  width: 920px;
+  height: 920px;
+  background: radial-gradient(circle, rgba(58, 168, 172, 0.32) 0%, rgba(58, 168, 172, 0) 65%);
+  animation: maintenance-drift 32s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes maintenance-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(60px, 40px, 0) scale(1.08);
+  }
+}
+
+/* Viền tối quanh mép để nội dung ở giữa nổi lên. */
+.maintenance-vignette {
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(4, 18, 13, 0.55) 100%);
+}
+
+/* Ánh hắt rất nhẹ sau bánh răng, đủ tách khỏi nền mà không chói. */
+.maintenance-gear-glow {
+  background: radial-gradient(circle, rgba(224, 196, 134, 0.09) 0%, rgba(224, 196, 134, 0) 60%);
+}
+
+/* Bóng đổ cố định xuống dưới phải (nguồn sáng trên trái), mờ vừa phải. Chỉ dịch chỗ, không quay. */
+.maintenance-gear-shadow {
+  transform: translate(3%, 5%);
+  opacity: 0.45;
+}
+
+/* Nội dung hiện lần lượt từ dưới lên; độ trễ đặt qua biến --maintenance-delay. */
+.maintenance-rise {
+  animation: maintenance-rise 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--maintenance-delay, 0ms);
+}
+
+@keyframes maintenance-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Bánh răng xoay quanh tâm khối của chính nó; góc quay gán từ requestAnimationFrame (MaintenanceGears). */
+.maintenance-gear-spin,
+.maintenance-guilloche,
+.maintenance-parallax {
+  will-change: transform;
+}
+
+.maintenance-guilloche {
+  animation: maintenance-spin 240s linear infinite;
+}
+
+@keyframes maintenance-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*
+ * Thanh "đang xử lý" không có phần trăm (Backend không có số liệu tiến độ). Lớp sọc rộng hơn khung đúng một
+ * chu kỳ sọc (28px) và trượt bằng translateX nên vòng lặp liền mạch mà không vẽ lại nền.
+ */
+.maintenance-stripes {
+  width: calc(100% + 28px);
+  margin-left: -28px;
+  background-color: #e0c486;
+  background-image: linear-gradient(
+    135deg,
+    #c9a862 25%,
+    transparent 25%,
+    transparent 50%,
+    #c9a862 50%,
+    #c9a862 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 28px 28px;
+  will-change: transform;
+  animation: maintenance-stripes 1.1s linear infinite;
+}
+
+@keyframes maintenance-stripes {
+  to {
+    transform: translateX(28px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maintenance-rise,
+  .maintenance-guilloche,
+  .maintenance-stripes,
+  .maintenance-aurora {
+    animation: none;
+  }
+}
