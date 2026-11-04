@@ -112,9 +112,18 @@ export function buildPlanCatalog(
   free: ReferenceServicePlan,
 ): ReferenceServicePlan[] {
   const freeLines = (plans.freeFeatures ?? []).filter((line) => line.trim() !== "");
-  const catalog: ReferenceServicePlan[] = [
-    freeLines.length > 0 ? { ...free, features: freeLines } : free,
-  ];
+  const freePlan: ReferenceServicePlan = {
+    ...free,
+    ...(freeLines.length > 0 ? { features: freeLines } : {}),
+    // Dung lượng và số suất của Free do Admin cấu hình; chưa có thì giữ số mặc định.
+    ...(plans.free
+      ? {
+          storage: Math.round(plans.free.storageQuotaBytes / BYTES_PER_MB),
+          includedBeneficiarySlots: plans.free.includedBeneficiarySlots,
+        }
+      : {}),
+  };
+  const catalog: ReferenceServicePlan[] = [freePlan];
   for (const tier of plans.tiers) {
     const termPrices: ReferencePlanTerm[] = [];
     for (const price of tier.prices) {
