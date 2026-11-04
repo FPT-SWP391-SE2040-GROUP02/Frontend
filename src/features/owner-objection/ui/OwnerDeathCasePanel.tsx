@@ -204,12 +204,6 @@ function ObjectionState({ vaultId, objection }: { vaultId: string; objection: Ow
           )}
         </div>
       )}
-      {objection.selfiePassed && !confirmedAlive && (
-        <p role="status" className="rounded-lg bg-emerald-50 p-3 text-emerald-800">
-          Ảnh selfie đã khớp mẫu khuôn mặt ({formatDate(objection.selfiePassedAt)}). Đang chờ
-          Verifier kết luận.
-        </p>
-      )}
       {objection.conclusion && (
         <div role="status" className="rounded-lg border border-amber-300 bg-white p-3">
           <p className="font-semibold">{conclusionLabels[objection.conclusion]}</p>
