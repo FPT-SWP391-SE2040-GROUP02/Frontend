@@ -31,6 +31,29 @@ export function getLoginRedirect(value: string | null): string {
   }
 }
 
+/** Báo đỏ khi tài khoản không phải Quản trị viên đăng nhập trong lúc hệ thống bảo trì. */
+export const MAINTENANCE_LOGIN_DENIED_MESSAGE =
+  "Tài khoản không có quyền truy cập. Trong thời gian bảo trì, chỉ Quản trị viên được đăng nhập.";
+
+/** Mã lỗi đăng nhập mà trang đăng nhập quản trị gộp chung thành "không có quyền truy cập". */
+const ADMIN_LOGIN_DENIED_CODES = ["INVALID_CREDENTIALS", "ACCOUNT_NOT_ACTIVE"];
+
+/**
+ * @description Lỗi trên trang đăng nhập quản trị lúc bảo trì: tài khoản không vào được (sai thông tin, không phải
+ * Admin, đang bị khóa) đều báo chung "không có quyền truy cập", không phân biệt để người lạ không dò được tài khoản
+ * Admin. Lỗi mạng, quá tải, thử quá nhiều lần vẫn báo như trang đăng nhập thường.
+ * @param error Lỗi mutation chưa xác định.
+ */
+export function getAdminLoginErrorMessage(error: unknown): string {
+  if (isMaintenanceError(error)) return MAINTENANCE_LOGIN_DENIED_MESSAGE;
+  if (isAxiosError(error) && error.response) {
+    const parsed = authProblem.safeParse(error.response.data);
+    if (parsed.success && ADMIN_LOGIN_DENIED_CODES.includes(parsed.data.code))
+      return MAINTENANCE_LOGIN_DENIED_MESSAGE;
+  }
+  return getLoginErrorMessage(error);
+}
+
 /**
  * @description Hiển thị lỗi transport an toàn; không suy diễn lượt thử, lockout hoặc lộ response BE.
  * @param error Lỗi mutation chưa xác định.
@@ -43,8 +66,7 @@ export function getLoginErrorMessage(error: unknown): string {
     return APP_MESSAGES.ERROR.TIMEOUT;
   if (!error.response) return APP_MESSAGES.ERROR.NETWORK;
   // Đăng nhập Google cũng đi qua nhánh này (googleFeedback chuyển lỗi 5xx về đây).
-  if (isMaintenanceError(error))
-    return "Hệ thống đang bảo trì. Chỉ tài khoản Quản trị viên đăng nhập được lúc này.";
+  if (isMaintenanceError(error)) return MAINTENANCE_LOGIN_DENIED_MESSAGE;
   if (error.response.status >= HTTP_STATUS.INTERNAL_SERVER_ERROR) return APP_MESSAGES.ERROR.SERVER;
   if (error.response.status === HTTP_STATUS.TOO_MANY_REQUESTS || error.response.status === 423)
     return "Bạn đã thử quá nhiều lần. Vui lòng chờ rồi thử lại.";

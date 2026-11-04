@@ -10,11 +10,17 @@ import { getGoogleErrorMessage } from "../lib/googleFeedback";
 import type { BackendUserResponse } from "@/entities/user/model/backendUser.schema";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { getLoginErrorMessage, getLoginRedirect } from "../lib/loginFeedback";
+import {
+  getAdminLoginErrorMessage,
+  getLoginErrorMessage,
+  getLoginRedirect,
+  MAINTENANCE_LOGIN_DENIED_MESSAGE,
+} from "../lib/loginFeedback";
 import { loginSchema, type LoginInput } from "../model/auth.schema";
 import type { InvitationContext } from "../model/auth.types";
-import { useLogin, useGoogleLogin } from "../model/useAuth";
+import { useLogin, useGoogleLogin, useLogout } from "../model/useAuth";
 import { ROLES } from "@/shared/constants/roles";
+import { isMaintenanceActive } from "@/shared/api/maintenance";
 
 /**
  * @description Thuộc tính cấu hình cho component LoginForm.
@@ -26,6 +32,11 @@ export interface LoginFormProps {
   invitationContext?: Pick<InvitationContext, "token">;
   /** Lớp CSS bổ trợ */
   className?: string;
+  /**
+   * Lối đăng nhập quản trị khi hệ thống bảo trì: chỉ email và mật khẩu (ẩn Google, đăng ký, quên mật khẩu);
+   * tài khoản không phải Admin bị báo đỏ "không có quyền truy cập" và hủy phiên.
+   */
+  adminOnly?: boolean;
 }
 
 /**
@@ -37,7 +48,12 @@ export interface LoginFormProps {
  * @param {LoginFormProps} props Thuộc tính component
  * @returns {React.JSX.Element} Form đăng nhập
  */
-export function LoginForm({ onPasskeyClick, invitationContext, className = "" }: LoginFormProps) {
+export function LoginForm({
+  onPasskeyClick,
+  invitationContext,
+  className = "",
+  adminOnly = false,
+}: LoginFormProps) {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const mounted = useRef(false);
   useEffect(() => {
@@ -53,7 +69,9 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
   const redirectUrl = getLoginRedirect(searchParams.get("redirect"));
   const { mutate: login, isPending: loginPending, isError, error } = useLogin();
   const google = useGoogleLogin();
-  const isPending = loginPending || google.isPending;
+  const logout = useLogout();
+  const [maintenanceDenied, setMaintenanceDenied] = useState(false);
+  const isPending = loginPending || google.isPending || logout.isPending;
 
   const emailParam = searchParams.get("email") ?? "";
   const isVerifiedBanner = searchParams.get("verified") === "true";
@@ -82,6 +100,14 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
   }, [emailParam, setValue]);
 
   const finishLogin = (user: BackendUserResponse): void => {
+    // Đang bảo trì mà tài khoản không phải Admin: báo đỏ "không có quyền" và hủy phiên vừa mở, không điều hướng.
+    // Backend mới đã tự chặn (503); nhánh này giữ đúng hành vi cả khi Backend chưa cập nhật.
+    if ((adminOnly || isMaintenanceActive()) && user.role !== ROLES.ADMIN) {
+      setLink(null);
+      setMaintenanceDenied(true);
+      logout.mutate(undefined);
+      return;
+    }
     if (!user.emailVerified) {
       navigate(
         `${ROUTES.AUTH.VERIFY_EMAIL}?${new URLSearchParams({ email: user.email, redirect: redirectUrl })}`,
@@ -121,6 +147,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lỗi mạng/500 không giảm lượt; không tự khóa 15 phút;
     //    không in response nội bộ hoặc suy diễn unlockAt khi server không trả.
     if (isPending || typeof data.email !== "string" || typeof data.password !== "string") return;
+    setMaintenanceDenied(false);
 
     login(
       { email: data.email, password: data.password, rememberMe: data.rememberMe },
@@ -135,6 +162,7 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
 
   const handleGoogleCredential = async (idToken: string, nonce: string): Promise<void> => {
     if (isPending) return;
+    setMaintenanceDenied(false);
     try {
       const result = await google.mutateAsync({
         idToken,
@@ -203,39 +231,54 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
       {/* 2. KHỐI TIÊU ĐỀ CHÍNH */}
       <div className="space-y-1 text-left">
         <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]">
-          {invitationContext ? "Đăng nhập để tiếp tục" : "Đăng nhập"}
+          {adminOnly
+            ? "Đăng nhập quản trị"
+            : invitationContext
+              ? "Đăng nhập để tiếp tục"
+              : "Đăng nhập"}
         </h1>
         <p className="text-xs sm:text-sm text-[#6B6B66]">
-          {invitationContext
-            ? "Tiếp tục để xác minh tư cách người nhận gói di sản."
-            : "Chào mừng trở lại. Tiếp tục để quản lý kho của bạn."}
+          {adminOnly
+            ? "Hệ thống đang bảo trì. Chỉ tài khoản Quản trị viên được đăng nhập."
+            : invitationContext
+              ? "Tiếp tục để xác minh tư cách người nhận gói di sản."
+              : "Chào mừng trở lại. Tiếp tục để quản lý kho của bạn."}
         </p>
       </div>
 
-      {isError && (
+      {(isError || maintenanceDenied) && (
         <div
           role="alert"
           className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
         >
           <AlertCircle aria-hidden="true" className="mr-2 inline size-4" />
-          {getLoginErrorMessage(error)}
+          {maintenanceDenied
+            ? MAINTENANCE_LOGIN_DENIED_MESSAGE
+            : adminOnly
+              ? getAdminLoginErrorMessage(error)
+              : getLoginErrorMessage(error)}
         </div>
       )}
 
-      <GoogleSignInButton disabled={isPending} onCredential={handleGoogleCredential} />
-      {google.isError && (
-        <p role="alert" className="text-sm text-red-700">
-          {getGoogleErrorMessage(google.error)}
-        </p>
-      )}
+      {/* Lối quản trị chỉ có email và mật khẩu: tài khoản Admin tạo trực tiếp trên hệ thống, không qua Google. */}
+      {!adminOnly && (
+        <>
+          <GoogleSignInButton disabled={isPending} onCredential={handleGoogleCredential} />
+          {google.isError && (
+            <p role="alert" className="text-sm text-red-700">
+              {getGoogleErrorMessage(google.error)}
+            </p>
+          )}
 
-      {/* Dải phân cách hoặc dùng email */}
-      <div className="relative flex items-center justify-center">
-        <div className="w-full border-t border-[#E5E5DF]"></div>
-        <span className="absolute bg-[#FAFAF6] px-3 text-[11px] text-[#8C8C85]">
-          hoặc dùng email
-        </span>
-      </div>
+          {/* Dải phân cách hoặc dùng email */}
+          <div className="relative flex items-center justify-center">
+            <div className="w-full border-t border-[#E5E5DF]"></div>
+            <span className="absolute bg-[#FAFAF6] px-3 text-[11px] text-[#8C8C85]">
+              hoặc dùng email
+            </span>
+          </div>
+        </>
+      )}
 
       {/* 6. FORM NHẬP EMAIL VÀ PASSWORD */}
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -273,12 +316,14 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
             <label htmlFor="login-password" className="text-xs font-semibold text-[#0F1A16]">
               Mật khẩu
             </label>
-            <Link
-              to={ROUTES.AUTH.FORGOT_PASSWORD}
-              className="text-[11px] text-[#B88E4C] hover:underline font-semibold"
-            >
-              Quên mật khẩu?
-            </Link>
+            {!adminOnly && (
+              <Link
+                to={ROUTES.AUTH.FORGOT_PASSWORD}
+                className="text-[11px] text-[#B88E4C] hover:underline font-semibold"
+              >
+                Quên mật khẩu?
+              </Link>
+            )}
           </div>
           <div className="relative">
             <Lock className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -348,8 +393,8 @@ export function LoginForm({ onPasskeyClick, invitationContext, className = "" }:
         </button>
       )}
 
-      {/* 8. CHUYỂN HƯỚNG TẠO TÀI KHOẢN MỚI */}
-      <div className="pt-4 border-t border-[#E5E5DF] text-xs text-[#6B6B66]">
+      {/* 8. CHUYỂN HƯỚNG TẠO TÀI KHOẢN MỚI (không có ở lối quản trị: tài khoản Admin chỉ tạo trên hệ thống) */}
+      <div hidden={adminOnly} className="pt-4 border-t border-[#E5E5DF] text-xs text-[#6B6B66]">
         {invitationContext ? (
           <p>
             Chưa có tài khoản?{" "}
