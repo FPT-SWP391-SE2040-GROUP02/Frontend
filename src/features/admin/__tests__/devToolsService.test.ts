@@ -68,6 +68,24 @@ describe("devToolsService", () => {
     });
   });
 
+  it("nhận mốc hết 7 ngày quyết định của người nhận và gửi tua mốc này", async () => {
+    const withRecipient = {
+      ...clockFixture,
+      milestones: [
+        ...clockFixture.milestones,
+        { key: "RECIPIENT_DECISION_ENDED", state: "AVAILABLE", note: "" },
+      ],
+    };
+    vi.spyOn(apiClient, "get").mockResolvedValue(withRecipient);
+    await expect(devToolsService.getClock(VAULT_ID)).resolves.toEqual(withRecipient);
+
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(withRecipient);
+    await devToolsService.timeTravel(VAULT_ID, { milestone: "RECIPIENT_DECISION_ENDED" });
+    expect(post).toHaveBeenCalledWith(`/admin/dev-tools/vaults/${VAULT_ID}/time-travel`, {
+      milestone: "RECIPIENT_DECISION_ENDED",
+    });
+  });
+
   it("về thời gian hiện tại gọi đúng endpoint", async () => {
     const post = vi.spyOn(apiClient, "post").mockResolvedValue(clockFixture);
     await expect(devToolsService.resetClock(VAULT_ID)).resolves.toEqual(clockFixture);
