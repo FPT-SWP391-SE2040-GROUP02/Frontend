@@ -134,10 +134,7 @@ function PillarVisual({
   for (const row of rows) {
     const Icon = icons[index];
     items.push(
-      <li
-        key={row.title}
-        className="flex items-center gap-4 px-4 py-3"
-      >
+      <li key={row.title} className="flex items-center gap-4 px-4 py-3">
         <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#0A281E] text-[#E6C98B]">
           <Icon className="size-5" aria-hidden="true" />
         </span>
@@ -152,7 +149,9 @@ function PillarVisual({
   return (
     <div className="rounded-xl border border-[#D8D2C4] bg-[#FAF9F5] p-5 shadow-[0_12px_24px_-10px_rgb(10_40_30/0.18)] sm:p-6">
       <p className={`${HEADING} mb-4 text-lg text-[#0A281E]`}>{title}</p>
-      <ul className="divide-y divide-[#E0DACB]/70 overflow-hidden rounded-lg border border-[#E0DACB] bg-white">{items}</ul>
+      <ul className="divide-y divide-[#E0DACB]/70 overflow-hidden rounded-lg border border-[#E0DACB] bg-white">
+        {items}
+      </ul>
     </div>
   );
 }
