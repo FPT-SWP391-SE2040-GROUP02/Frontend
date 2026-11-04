@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
-import { FAQ_CONTENT as content } from "./model/publicInfo.content";
+import { useFaqContent } from "./model/usePublicContent";
 import { PublicInfoLayout } from "./PublicInfoLayout";
 
 const FOCUS_RING =
@@ -9,6 +9,7 @@ const FOCUS_RING =
 
 /** Trang Hỏi đáp công khai: nhóm câu hỏi dùng thẻ details gốc nên bàn phím và trình đọc màn hình dùng được. */
 export function FaqPage() {
+  const content = useFaqContent();
   const groups: ReactNode[] = [];
   for (const group of content.groups) {
     const items: ReactNode[] = [];

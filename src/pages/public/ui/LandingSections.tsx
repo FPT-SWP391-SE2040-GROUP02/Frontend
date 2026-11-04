@@ -13,8 +13,7 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
-import { LANDING_CONTENT as content } from "../model/landing.content";
-import { FAQ_CONTENT } from "../model/publicInfo.content";
+import { useFaqContent, useLandingContent } from "../model/usePublicContent";
 import { HEADING } from "./LandingChrome";
 import { GOLD_BUTTON, OUTLINE_BUTTON, SectionHead } from "./landingParts";
 import { Reveal } from "./Reveal";
@@ -27,6 +26,7 @@ const SECTION_SPACE = "px-4 py-24 sm:px-8 sm:py-32";
 
 /** Mục 1: vấn đề, ba loại tài sản thật của kho. */
 export function ProblemSection() {
+  const content = useLandingContent();
   const icons: LucideIcon[] = [Wallet, KeyRound, FileText];
   const cards: ReactNode[] = [];
   let index = 0;
@@ -70,6 +70,7 @@ export function ProblemSection() {
 
 /** Mục 2: một câu khẳng định lớn trên nền xanh đậm, như dải nhấn giữa trang. */
 export function StatementSection() {
+  const content = useLandingContent();
   return (
     <section className="flex min-h-[70vh] items-center bg-[#14241C] px-4 py-24 sm:px-8">
       <Reveal className="mx-auto max-w-4xl text-center">
@@ -85,6 +86,7 @@ export function StatementSection() {
 
 /** Mục 3: ba nguyên tắc, mỗi nguyên tắc một cột với số lớn. */
 export function PrinciplesSection() {
+  const content = useLandingContent();
   const columns: ReactNode[] = [];
   let index = 0;
   for (const item of content.principles.items) {
@@ -161,6 +163,7 @@ function PillarVisual({
  * màn sau trượt chồng lên màn trước; trên điện thoại chúng xếp dọc bình thường.
  */
 export function PillarsSection() {
+  const content = useLandingContent();
   const backgrounds = ["bg-[#FAF9F5]", "bg-[#F3EFE6]", "bg-[#E6E1D4]"];
   const screens: ReactNode[] = [];
   let index = 0;
@@ -214,6 +217,7 @@ export function PillarsSection() {
 
 /** Mục 5: bốn lớp xác nhận, dòng thời gian ngang trên nền xanh đậm. */
 export function LayersSection() {
+  const content = useLandingContent();
   const steps: ReactNode[] = [];
   let index = 0;
   for (const layer of content.meaning.layers) {
@@ -253,6 +257,7 @@ export function LayersSection() {
 
 /** Mục 6: bốn bước thiết lập, thẻ lớn trên nền kem. */
 export function HowSection() {
+  const content = useLandingContent();
   const cards: ReactNode[] = [];
   let index = 0;
   for (const step of content.how.steps) {
@@ -288,6 +293,7 @@ export function HowSection() {
 
 /** Mục 7: bảo mật nói thật, bốn điểm mạnh rồi ba giới hạn. */
 export function TrustSection() {
+  const content = useLandingContent();
   const icons: LucideIcon[] = [Lock, ShieldCheck, UserCheck, Clock];
   const cards: ReactNode[] = [];
   let index = 0;
@@ -341,6 +347,7 @@ export function TrustSection() {
 
 /** Mục 8: gói dịch vụ. */
 export function PricingSection() {
+  const content = useLandingContent();
   const cards: ReactNode[] = [];
   let index = 0;
   for (const plan of content.pricing.plans) {
@@ -392,9 +399,11 @@ export function PricingSection() {
 
 /** Mục 9: hỏi đáp, lấy các câu đầu của trang Hỏi đáp để hai nơi không lệch nhau. */
 export function FaqSection() {
+  const content = useLandingContent();
+  const faq = useFaqContent();
   const rows: ReactNode[] = [];
   let count = 0;
-  for (const group of FAQ_CONTENT.groups) {
+  for (const group of faq.groups) {
     for (const item of group.items) {
       if (count >= content.faq.limit) {
         break;
@@ -440,6 +449,7 @@ export function FaqSection() {
 
 /** Mục cuối: lời mời bắt đầu, nền xanh đậm như phần hero. */
 export function FinalCtaSection() {
+  const content = useLandingContent();
   return (
     <section className="flex min-h-[60vh] items-center bg-[#0A281E] px-4 py-24 text-center sm:px-8">
       <Reveal className="mx-auto max-w-3xl">

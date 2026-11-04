@@ -100,7 +100,8 @@ export const FAQ_CONTENT = {
         },
         {
           question: "Người nhận có bao lâu để tải nội dung?",
-          answer: "Sau khi qua đủ các lớp xác nhận, người nhận có 7 ngày để tải nội dung về.",
+          answer:
+            "Sau khi qua đủ các lớp xác nhận, người nhận có {grantDays} ngày để tải nội dung về.",
         },
       ],
     },
@@ -109,8 +110,7 @@ export const FAQ_CONTENT = {
       items: [
         {
           question: "Các gói có gì khác nhau?",
-          answer:
-            "Free: 0đ, 20 MiB, lưu nội dung cá nhân, chưa thiết lập kế hoạch bàn giao. XS: 199.000đ / 365 ngày, 200 MiB, có kế hoạch bàn giao, điểm danh và quy trình bàn giao. XS Max: 399.000đ / 365 ngày, 500 MiB.",
+          answer: "{plansSummary}",
         },
         {
           question: "Gói hết hạn thì dữ liệu của tôi thế nào?",
@@ -192,7 +192,7 @@ export const TERMS_CONTENT = {
       title: "4. Điểm danh và bàn giao",
       paragraphs: [
         "Bàn giao chỉ diễn ra khi bạn không phản hồi điểm danh và các lớp xác nhận (kiểm tra của Người thực hiện, xét duyệt, xác minh danh tính người nhận) đều đạt.",
-        "Bạn có thể dừng bàn giao bằng cách xác nhận “Tôi còn sống” khi quy trình chưa hoàn tất. Người nhận có 7 ngày để tải nội dung sau khi được bàn giao.",
+        "Bạn có thể dừng bàn giao bằng cách xác nhận “Tôi còn sống” khi quy trình chưa hoàn tất. Người nhận có {grantDays} ngày để tải nội dung sau khi được bàn giao.",
       ],
     },
     {
