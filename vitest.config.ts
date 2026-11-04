@@ -9,6 +9,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/shared/config/test/setup.ts"],
     include: ["src/**/__tests__/**/*.{test,spec}.{ts,tsx}"],
+    // Test giao diện chạy song song nhiều jsdom nên máy chậm (CI) dễ quá 5 giây dù test đúng; nới lên 20 giây.
+    testTimeout: 20000,
+    hookTimeout: 20000,
   },
   resolve: {
     alias: {
