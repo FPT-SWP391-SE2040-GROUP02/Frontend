@@ -324,21 +324,60 @@
   max-width: 72ch;
 }
 .service-plans .service-plan-policies {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
   margin: 26px 0 18px;
+  border: 1px solid var(--border-ui);
+  border-radius: 14px;
+  background: var(--surface);
+  overflow: hidden;
 }
-.service-plans .service-plan-policies h3 {
-  font-size: 11px;
+.service-plans .service-plan-policies summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 5px;
+  cursor: pointer;
+  list-style: none;
 }
-.service-plans .service-plan-policies p {
-  font-size: 11px;
-  line-height: 1.6;
+.service-plans .service-plan-policies summary::-webkit-details-marker {
+  display: none;
+}
+.service-plans .service-plan-policies summary:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: -2px;
+}
+.service-plans .service-plan-policies summary svg {
+  flex: none;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+.service-plans .service-plan-policies[open] summary svg {
+  transform: rotate(180deg);
+}
+.service-plans .service-plan-policy-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 32px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border-ui);
+}
+.service-plans .service-plan-policy-list h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.service-plans .service-plan-policy-list p {
+  font-size: 13px;
+  line-height: 1.65;
   color: var(--text-muted);
   max-width: 65ch;
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-plans .service-plan-policies summary svg {
+    transition: none;
+  }
 }
 @media (max-width: 1100px) {
   .service-plans .service-plan-grid {
@@ -347,7 +386,7 @@
   .service-plans .service-plan-card {
     padding: 20px 16px 16px;
   }
-  .service-plans .service-plan-policies {
+  .service-plans .service-plan-policy-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -391,7 +430,7 @@
   .service-plans .service-plan-summary dd {
     margin-left: auto;
   }
-  .service-plans .service-plan-policies {
+  .service-plans .service-plan-policy-list {
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
   }
