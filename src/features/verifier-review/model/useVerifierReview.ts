@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { HTTP_STATUS } from "@/shared/constants";
+import { POLLING_INTERVAL } from "@/shared/config";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import type { PaginationParams } from "@/shared/types";
 import { verifierReviewService } from "../api/verifierReviewService";
@@ -22,12 +23,14 @@ export const verifierKeys = {
   freshness: (caseId: string) => ["verifier-case-freshness", caseId] as const,
   objection: (caseId: string) => [...verifierKeys.all, "objection", caseId] as const,
 };
-/** Hồ sơ Verifier đang được giao. */
+/** Hồ sơ Verifier đang được giao. Tự động refetch định kỳ để hồ sơ mới hiện ngay. */
 export function useVerifierCases(params?: PaginationParams) {
   return useQuery({
     queryKey: verifierKeys.list(params),
     queryFn: ({ signal }) => verifierReviewService.list(params, signal),
     retry: false,
+    refetchInterval: POLLING_INTERVAL.NORMAL,
+    refetchIntervalInBackground: false,
   });
 }
 /** Chi tiết hồ sơ; cache riêng để invalidation chính xác. */

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { POLLING_INTERVAL } from "@/shared/config";
 import { dmsService } from "../api/dmsService";
 import type { DmsConfigFormInput, PingRequestInput } from "./dms.schema";
 
@@ -29,8 +30,9 @@ export function useDmsStatus(enabled = true) {
     queryKey: dmsKeys.status(),
     enabled,
     queryFn: () => dmsService.getDmsStatus(),
-    staleTime: 1000 * 60, // 1 phút
-    refetchInterval: 1000 * 60 * 5, // Tự động refetch mỗi 5 phút
+    staleTime: 5_000,
+    refetchInterval: POLLING_INTERVAL.FAST,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -86,7 +88,7 @@ export function usePingHistory(enabled = true) {
     queryKey: dmsKeys.history(),
     enabled,
     queryFn: () => dmsService.getPingHistory(),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 15_000,
   });
 }
 

@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { POLLING_INTERVAL } from "@/shared/config";
 import { adminService } from "../api/adminService";
 import type {
   AdminUserRole,
@@ -21,13 +22,15 @@ export const adminKeys = {
     [...adminKeys.all, "payment-transactions", query] as const,
 };
 
-/** Bộ đếm tổng quan; không tự retry để 404/401 hiện ngay. */
+/** Bộ đếm tổng quan; không tự retry để 404/401 hiện ngay; tự động refetch định kỳ. */
 export function useAdminDashboard() {
   return useQuery({
     queryKey: adminKeys.dashboard(),
     queryFn: ({ signal }) => adminService.getDashboard(signal),
-    staleTime: 30_000,
+    staleTime: 15_000,
     retry: false,
+    refetchInterval: POLLING_INTERVAL.NORMAL,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -59,6 +62,8 @@ export function useAdminIncidents(query: IncidentsQuery) {
     queryFn: ({ signal }) => adminService.listIncidents(query, signal),
     placeholderData: keepPreviousData,
     retry: false,
+    refetchInterval: POLLING_INTERVAL.NORMAL,
+    refetchIntervalInBackground: false,
   });
 }
 

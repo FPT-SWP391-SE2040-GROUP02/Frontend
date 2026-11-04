@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { POLLING_INTERVAL } from "@/shared/config";
 import { deathCaseService } from "../api/deathCaseService";
 
 /** Query key nằm dưới ["death-case", caseId] để làm mới hồ sơ thì tiến độ cũng được làm mới. */
@@ -12,5 +13,7 @@ export function useHandoverProgress(caseId: string, enabled = true) {
     queryFn: ({ signal }) => deathCaseService.handoverProgress(caseId, signal),
     retry: false,
     enabled,
+    refetchInterval: POLLING_INTERVAL.FAST,
+    refetchIntervalInBackground: false,
   });
 }
