@@ -180,9 +180,9 @@ export function GroupCard({
         />
       )}
 
-      {/* Gói trống hoàn toàn thì hộp cảnh báo đã đủ, không lặp hai cột rỗng. */}
+      {/* Gói trống hoàn toàn thì hộp cảnh báo đã đủ, không lặp hai cột rỗng. Người nhận luôn ở cột phải, kể cả màn hẹp. */}
       {(group.assetIds.length > 0 || group.beneficiaryIds.length > 0) && (
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,14rem)]">
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,14rem)] gap-4">
           <div className="min-w-0 space-y-2">
             <p className="text-xs font-semibold text-[#4D4D4B]">
               {group.assetIds.length} tài sản trong gói
