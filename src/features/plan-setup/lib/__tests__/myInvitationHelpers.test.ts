@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { endedStatusLabel, parseInvitationToken, remainingTime } from "../myInvitationHelpers";
+import { endedStatusLabel, remainingTime } from "../myInvitationHelpers";
 
-const TOKEN = "a".repeat(64);
 const NOW = Date.parse("2026-11-04T00:00:00Z");
 
 describe("remainingTime", () => {
@@ -22,22 +21,6 @@ describe("remainingTime", () => {
   it("reports an expired invitation", () => {
     expect(remainingTime("2026-11-03T00:00:00Z", NOW).label).toBe("Đã hết hạn");
   });
-});
-
-describe("parseInvitationToken", () => {
-  it.each([
-    [`https://app.example.test/executor-invitation#token=${TOKEN}`],
-    [`https://app.example.test/executor-invitation?token=${TOKEN}&x=1`],
-    [`  ${TOKEN}. `],
-  ])("reads the token from %s", (input) => {
-    expect(parseInvitationToken(input)).toBe(TOKEN);
-  });
-  it.each([[""], ["không phải link"], ["https://app.example.test/executor-invitation#token=ngan"]])(
-    "rejects %s",
-    (input) => {
-      expect(parseInvitationToken(input)).toBeNull();
-    },
-  );
 });
 
 describe("endedStatusLabel", () => {

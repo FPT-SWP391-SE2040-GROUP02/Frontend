@@ -27,34 +27,6 @@ export function remainingTime(expiresAt: string, now: number = Date.now()): Rema
   return { label: `Còn ${days} ngày`, tone: "warning", expiringSoon: false };
 }
 
-const TOKEN_PATTERN = /^[A-Za-z0-9_-]{32,512}$/;
-
-/**
- * Lấy mã lời mời từ link trong email (`.../executor-invitation#token=...` hoặc `?token=...`) hoặc từ mã dán
- * trực tiếp. Không hợp lệ thì trả null. Mã chỉ giữ trong RAM để chuyển sang trang trả lời lời mời.
- */
-export function parseInvitationToken(input: string): string | null {
-  const text = input.trim();
-  if (!text) return null;
-  let candidate = text;
-  const marker = text.search(/[#?&]token=/);
-  if (marker >= 0) {
-    const start = text.indexOf("=", marker) + 1;
-    const rest = text.slice(start);
-    const end = rest.search(/[&#\s]/);
-    candidate = end >= 0 ? rest.slice(0, end) : rest;
-    try {
-      candidate = decodeURIComponent(candidate);
-    } catch {
-      return null;
-    }
-  }
-  // Bỏ dấu câu dính vào cuối khi copy từ email (giống trang nhận lời mời).
-  candidate = candidate.replace(/[.,;:]+$/, "");
-  if (!TOKEN_PATTERN.test(candidate)) return null;
-  return candidate;
-}
-
 const STATUS_LABELS: Record<string, string> = {
   DECLINED: "Đã từ chối",
   EXPIRED: "Đã hết hạn",
