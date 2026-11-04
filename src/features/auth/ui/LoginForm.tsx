@@ -39,6 +39,26 @@ export interface LoginFormProps {
   adminOnly?: boolean;
 }
 
+/** Bỏ query và hash để so đường dẫn. */
+function pathnameOf(url: string): string {
+  return url.split(/[?#]/)[0];
+}
+
+/** Trang thuộc khu Admin (cả /dashboard/users nằm trong khu Admin). */
+function isAdminPath(url: string): boolean {
+  const path = pathnameOf(url);
+  return (
+    path === ROUTES.ADMIN.ROOT ||
+    path.startsWith(`${ROUTES.ADMIN.ROOT}/`) ||
+    path === ROUTES.DASHBOARD.USERS
+  );
+}
+
+/** Trang thuộc khu Verifier. */
+function isVerifierPath(url: string): boolean {
+  return pathnameOf(url).startsWith("/notary/");
+}
+
 /**
  * @description Form Đăng Nhập trang nhã tuân thủ 100% thiết kế Mockup 1, 2, 3 và 4.
  * - Mockup 1: Trạng thái mặc định nhập Email và Mật khẩu, hỗ trợ Google SSO.
@@ -112,16 +132,10 @@ export function LoginForm({
       navigate(
         `${ROUTES.AUTH.VERIFY_EMAIL}?${new URLSearchParams({ email: user.email, redirect: redirectUrl })}`,
       );
-    } else if (
-      user.role === ROLES.ADMIN &&
-      (!searchParams.get("redirect") ||
-        (redirectUrl.startsWith(ROUTES.DASHBOARD.ROOT) && redirectUrl !== ROUTES.DASHBOARD.USERS))
-    ) {
+    } else if (user.role === ROLES.ADMIN && !isAdminPath(redirectUrl)) {
+      // Link đăng nhập có thể còn redirect của phiên trước (ví dụ /executor); Admin chỉ quay lại trang Admin.
       navigate(ROUTES.ADMIN.ROOT);
-    } else if (
-      user.role === ROLES.VERIFIER &&
-      (!searchParams.get("redirect") || redirectUrl.startsWith(ROUTES.DASHBOARD.ROOT))
-    ) {
+    } else if (user.role === ROLES.VERIFIER && !isVerifierPath(redirectUrl)) {
       navigate(ROUTES.NOTARY.WORKSPACE);
     } else if (
       user.role === ROLES.EXECUTOR &&

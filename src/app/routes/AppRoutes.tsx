@@ -344,7 +344,10 @@ export function AppRoutes() {
         {/* ========================================================================
           6. TUYẾN ĐƯỜNG BẢO VỆ — Người Thi Hành Di Chúc (Digital Executor)
          ======================================================================== */}
-        <Route element={<ProtectedRoute />}>
+        {/* Người thực hiện là tài khoản thường được Chủ kho mời; Admin/Verifier mở nhầm thì về trang của họ. */}
+        <Route
+          element={<ProtectedRoute allowedRoles={[ROLES.USER, ROLES.EXECUTOR]} wrongRoleGoesHome />}
+        >
           <Route path={ROUTES.EXECUTOR.ROOT} element={<ExecutorOverviewPage />} />
           <Route path={ROUTES.EXECUTOR.REPORT} element={<ExecutorReportPage />} />
           <Route path={ROUTES.EXECUTOR.PROGRESS} element={<ExecutorProgressPage />} />

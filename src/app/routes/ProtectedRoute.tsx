@@ -1,4 +1,5 @@
 import { useAppSelector } from "@/app/store";
+import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { ROUTES } from "@/shared/config/routes.config";
 import { type Role } from "@/shared/constants/roles";
 import { Fragment, type ReactElement } from "react";
@@ -12,6 +13,8 @@ export interface ProtectedRouteProps {
   allowedRoles?: Role[];
   /** Component tùy chỉnh render thay thế Outlet */
   children?: ReactElement;
+  /** true: sai vai trò thì về trang chính của tài khoản thay vì /403 (ví dụ Admin mở nhầm khu Người thực hiện). */
+  wrongRoleGoesHome?: boolean;
 }
 
 /**
@@ -28,9 +31,14 @@ export interface ProtectedRouteProps {
  * </Route>
  * ```
  */
-export function ProtectedRoute({ allowedRoles = [], children }: ProtectedRouteProps): ReactElement {
+export function ProtectedRoute({
+  allowedRoles = [],
+  children,
+  wrongRoleGoesHome = false,
+}: ProtectedRouteProps): ReactElement {
   const location = useLocation();
   const { isAuthenticated, isHydrating, user } = useAppSelector((state) => state.auth);
+  const accountHome = useAccountHome();
 
   // 1. Trong lúc đang hydrate phiên từ /auth/session -> hiển thị loader trung lập, không đoán role
   if (isHydrating) {
@@ -60,6 +68,7 @@ export function ProtectedRoute({ allowedRoles = [], children }: ProtectedRoutePr
   // Nếu không đủ quyền (ví dụ BENEFICIARY vào trang NOTARY) -> Điều hướng về trang 403 Forbidden:
   const currentUserRole = user.role;
   if (allowedRoles.length > 0 && !allowedRoles.includes(currentUserRole)) {
+    if (wrongRoleGoesHome) return <Navigate to={accountHome} replace />;
     return <Navigate to={ROUTES.ERROR.FORBIDDEN} replace />;
   }
 
