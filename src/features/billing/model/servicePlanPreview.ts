@@ -111,7 +111,10 @@ export function buildPlanCatalog(
   names: Record<string, string>,
   free: ReferenceServicePlan,
 ): ReferenceServicePlan[] {
-  const catalog: ReferenceServicePlan[] = [free];
+  const freeLines = (plans.freeFeatures ?? []).filter((line) => line.trim() !== "");
+  const catalog: ReferenceServicePlan[] = [
+    freeLines.length > 0 ? { ...free, features: freeLines } : free,
+  ];
   for (const tier of plans.tiers) {
     const termPrices: ReferencePlanTerm[] = [];
     for (const price of tier.prices) {
@@ -126,7 +129,9 @@ export function buildPlanCatalog(
       termPrices,
       includedBeneficiarySlots: tier.includedBeneficiarySlots,
       storage: Math.round(tier.storageQuotaBytes / BYTES_PER_MB),
-      features: features[tier.tier] ?? [],
+      // Admin viết mô tả thì dùng, chưa viết thì dùng mô tả mặc định của FE.
+      features:
+        tier.features && tier.features.length > 0 ? tier.features : (features[tier.tier] ?? []),
       onSale: tier.onSale !== false,
     });
   }
@@ -142,6 +147,21 @@ export function collectTermYears(catalog: readonly ReferenceServicePlan[]): numb
     }
   }
   return years.sort((a, b) => a - b);
+}
+
+/**
+ * Thời gian còn lại của gói tính tới hạn dịch vụ, để giải thích giá mua thêm suất (49.000đ mỗi suất mỗi năm).
+ * Chỉ dùng để hiển thị; số tiền do Backend tính. Trả null khi thiếu mốc thời gian hoặc đã hết hạn.
+ */
+export function remainingTerm(
+  expiresAt: string | null,
+  serverTime: string,
+): { days: number; years: number } | null {
+  const end = Date.parse(expiresAt ?? "");
+  const now = Date.parse(serverTime);
+  if (!Number.isFinite(end) || !Number.isFinite(now) || end <= now) return null;
+  const days = Math.ceil((end - now) / DAY_MS);
+  return { days, years: Math.round((days / 365) * 100) / 100 };
 }
 
 export function getRemainingServiceDays(vault: VaultResponse, now: number): number | null {

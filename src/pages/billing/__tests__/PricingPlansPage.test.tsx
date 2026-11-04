@@ -168,7 +168,10 @@ describe("pricing reference policies", () => {
     expect(planCard("Owner Free").getByText("20 MB")).toBeInTheDocument();
     expect(planCard("Legacy XS").getByText("200 MB")).toBeInTheDocument();
     expect(planCard("Legacy XS Max").getByText("500 MB")).toBeInTheDocument();
-    expect(screen.getByText(/Không giới hạn số tài sản theo hạng/)).toBeInTheDocument();
+    // Mục chính sách "Dung lượng" đã bỏ khỏi phần Chính sách chi tiết; chỉ còn mua thêm suất và gói Free.
+    expect(screen.queryByText(/Không giới hạn số tài sản theo hạng/)).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Mua thêm suất người nhận" })).toBeInTheDocument();
+    expect(screen.getByText("Gói Free")).toBeInTheDocument();
   });
 
   it("switches reference prices by term and sends guests to login", () => {
