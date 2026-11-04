@@ -5,6 +5,20 @@ import { HTTP_STATUS } from "@/shared/constants";
 export const MAINTENANCE_ERROR_CODE = "MAINTENANCE_MODE";
 
 const listeners = new Set<() => void>();
+let maintenanceActive = false;
+
+/** Ghi nhận trạng thái bảo trì mới nhất (do cổng bảo trì ở tầng app cập nhật). */
+export function setMaintenanceActive(active: boolean): void {
+  maintenanceActive = active;
+}
+
+/**
+ * Hệ thống có đang bảo trì không, theo lần kiểm tra gần nhất. Cho các feature (ví dụ form đăng nhập) biết mà không
+ * phải import chéo sang feature bảo trì.
+ */
+export function isMaintenanceActive(): boolean {
+  return maintenanceActive;
+}
 
 /**
  * Đăng ký nhận tín hiệu "Backend vừa báo bảo trì". Transport chỉ báo; tầng app quyết định đổi giao diện.

@@ -1,4 +1,4 @@
-import { subscribeMaintenance } from "@/shared/api/maintenance";
+import { setMaintenanceActive, subscribeMaintenance } from "@/shared/api/maintenance";
 import { POLLING_INTERVAL } from "@/shared/config/polling";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -45,13 +45,19 @@ export function useMaintenanceStatus(): MaintenanceStatus {
   useEffect(
     () =>
       subscribeMaintenance(() => {
+        setMaintenanceActive(true);
         queryClient.setQueryData(maintenanceKeys.status(), true);
       }),
     [queryClient],
   );
 
+  const isMaintenance = query.data === true;
+  useEffect(() => {
+    setMaintenanceActive(isMaintenance);
+  }, [isMaintenance]);
+
   return {
-    isMaintenance: query.data === true,
+    isMaintenance,
     isChecking: query.isFetching,
     lastCheckedAt: query.dataUpdatedAt,
     recheck: () => {
