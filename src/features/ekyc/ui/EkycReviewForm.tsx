@@ -16,7 +16,11 @@ import {
   ocrDateForInput,
 } from "../model/ekyc.schema";
 
-/** Bản OCR chỉ ở RAM: sửa → gửi xác nhận → chuyển sang thử thách camera sau phản hồi BE. */
+/**
+ * Bản OCR chỉ ở RAM: xác nhận → chuyển sang thử thách camera sau phản hồi BE.
+ * Số căn cước, họ tên, ngày sinh khóa theo bản máy đọc: Backend luôn đối chiếu bằng bản OCR và không lưu bản tự sửa,
+ * nên cho sửa chỉ gây hiểu lầm. Máy đọc sai thì chụp lại ảnh. Riêng nơi cư trú vẫn sửa được vì Backend lưu ô này.
+ */
 export function EkycReviewForm({
   document,
   purpose,
@@ -76,7 +80,7 @@ export function EkycReviewForm({
 
   const addressMissing = !defaults.residenceAddress && !suggestedAddress;
 
-  let statusChip = "Có thể chỉnh sửa";
+  let statusChip = "Chờ xác nhận";
   let statusStyle = "bg-[#F1E7D0] text-[#7A5B24]";
   if (confirmed) {
     statusChip = "Đã gửi";
@@ -126,8 +130,8 @@ export function EkycReviewForm({
             id={`${prefix}-${name}`}
             type={type}
             {...register(name)}
-            readOnly={confirmed}
-            className={`min-h-11 w-full min-w-0 ${inputPadding}`}
+            readOnly
+            className={`min-h-11 w-full min-w-0 bg-[#F4F1E6] ${inputPadding}`}
             aria-invalid={Boolean(errors[name])}
             aria-describedby={errors[name] ? `${prefix}-${name}-error` : undefined}
             inputMode={inputMode}
@@ -189,7 +193,8 @@ export function EkycReviewForm({
       </div>
 
       <p className="mt-4 text-sm text-heritage-muted">
-        Đối chiếu với thẻ gốc ở bên trái trước khi tiếp tục. Bạn có thể sửa nếu máy đọc sai.
+        Số căn cước, họ tên và ngày sinh lấy đúng theo bản máy đọc, không sửa được. Đối chiếu với
+        thẻ gốc ở bên trái; nếu máy đọc sai, hãy chụp lại mặt trước rõ hơn.
       </p>
 
       <fieldset disabled={disabled || action.pending} className="mt-4 min-w-0 space-y-4">
@@ -209,8 +214,8 @@ export function EkycReviewForm({
             inputMode="numeric"
             placeholder="DD/MM/YYYY"
             {...register("dateOfBirth")}
-            readOnly={confirmed}
-            className="min-h-11 w-full min-w-0"
+            readOnly
+            className="min-h-11 w-full min-w-0 bg-[#F4F1E6]"
             aria-invalid={Boolean(errors.dateOfBirth)}
             aria-describedby={errors.dateOfBirth ? `${prefix}-dateOfBirth-error` : undefined}
           />
@@ -276,7 +281,7 @@ export function EkycReviewForm({
                   setShowId(false);
                 }}
               >
-                Khôi phục thông tin OCR
+                Khôi phục nơi cư trú
               </Button>
 
               <Button
@@ -308,8 +313,8 @@ export function EkycReviewForm({
 
       {(document.identityMatch === "WRONG_PERSON" || document.identityMatch === "NEEDS_REVIEW") && (
         <p role="alert" className="mt-4 text-sm">
-          Kết quả từ ảnh chưa khớp hồ sơ người nhận. Việc sửa thông tin không thay kết quả đối chiếu
-          ảnh; cần chụp lại giấy tờ rõ hơn.
+          Thông tin máy đọc từ ảnh chưa khớp hồ sơ người nhận. Chụp lại giấy tờ rõ hơn, hoặc nhờ Chủ
+          kho kiểm tra họ tên và ngày sinh đã khai.
         </p>
       )}
 
@@ -327,7 +332,7 @@ export function EkycReviewForm({
 
       <p className="mt-4 flex items-start gap-2 text-xs text-heritage-muted">
         <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-        Thông tin được gợi ý từ ảnh. Hãy kiểm tra từng ô trước khi tiếp tục.
+        Thông tin đọc từ ảnh giấy tờ. Hãy kiểm tra từng ô trước khi tiếp tục.
       </p>
     </form>
   );

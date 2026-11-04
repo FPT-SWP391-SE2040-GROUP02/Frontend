@@ -56,12 +56,18 @@ function setup(beneficiary = false) {
   }
   render(<Harness />);
 }
-it("prefills OCR, sends only the edited declaration on explicit confirmation, then locks until edit", async () => {
+it("khóa CCCD, họ tên, ngày sinh theo bản OCR; chỉ nơi cư trú sửa được và gửi khi xác nhận", async () => {
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(status);
   setup();
   expect(screen.getByLabelText("Ngày sinh")).toHaveValue("01/02/2000");
   expect(screen.getByLabelText("Số căn cước")).toHaveAttribute("type", "password");
-  fireEvent.change(screen.getByLabelText("Họ và tên"), { target: { value: "  Tên đã sửa  " } });
+  expect(screen.getByLabelText("Số căn cước")).toHaveAttribute("readonly");
+  expect(screen.getByLabelText("Họ và tên")).toHaveAttribute("readonly");
+  expect(screen.getByLabelText("Ngày sinh")).toHaveAttribute("readonly");
+  expect(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú")).not.toHaveAttribute("readonly");
+  fireEvent.change(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú"), {
+    target: { value: "  Địa chỉ đã sửa  " },
+  });
   expect(post).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
   await screen.findByRole("status");
@@ -69,16 +75,19 @@ it("prefills OCR, sends only the edited declaration on explicit confirmation, th
     verificationId,
     purpose: "OWNER_ENROLLMENT",
     idNumber: document.idNumber,
-    fullName: "Tên đã sửa",
+    fullName: document.fullName,
     dateOfBirth: "2000-02-01",
-    residenceAddress: document.residenceAddress,
+    residenceAddress: "Địa chỉ đã sửa",
   });
-  expect(screen.getByLabelText("Họ và tên")).toHaveAttribute("readonly");
+  expect(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú")).toHaveAttribute("readonly");
   fireEvent.click(screen.getByRole("button", { name: "Chỉnh sửa lại" }));
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
-  expect(screen.getByLabelText("Họ và tên")).not.toHaveAttribute("readonly");
-  fireEvent.click(screen.getByRole("button", { name: "Khôi phục thông tin OCR" }));
-  expect(screen.getByLabelText("Họ và tên")).toHaveValue(document.fullName);
+  expect(screen.getByLabelText("Họ và tên")).toHaveAttribute("readonly");
+  expect(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú")).not.toHaveAttribute("readonly");
+  fireEvent.click(screen.getByRole("button", { name: "Khôi phục nơi cư trú" }));
+  expect(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú")).toHaveValue(
+    document.residenceAddress,
+  );
 });
 it("keeps edits on failure and sends the beneficiary turn context on retry", async () => {
   const post = vi

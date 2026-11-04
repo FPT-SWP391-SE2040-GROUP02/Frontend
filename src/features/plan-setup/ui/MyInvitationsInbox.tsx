@@ -1,25 +1,22 @@
-import { useId, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useId, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, CircleAlert } from "lucide-react";
 import { buttonStyles, Chip, Initial, Notice, Panel } from "@/shared/ui/heritageKit";
-import { Input } from "@/shared/ui/input";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDate } from "@/shared/lib/dateFormat";
-import { ROUTES } from "@/shared/config/routes.config";
 import { planSetupService } from "../api/planSetupService";
 import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
-import { endedStatusLabel, parseInvitationToken, remainingTime } from "../lib/myInvitationHelpers";
+import { endedStatusLabel, remainingTime } from "../lib/myInvitationHelpers";
 
 const CAPABILITIES = ["Báo tin cho hệ thống khi Chủ kho qua đời", "Theo dõi tiến trình bàn giao"];
 
 /**
- * Trang Lời mời: lời mời đang chờ (chấp nhận/từ chối ngay, không cần link email), ô dán link cho lời mời gửi
- * tới email khác, và lời mời đã kết thúc. Quyết định chỉ gửi khi người dùng bấm; Backend kiểm tra email và phạm vi.
- * `showPasteLink`: chỉ bật ở không gian Người thực hiện; bên Chủ kho người mới chỉ cần bấm link trong email.
+ * Trang Lời mời: lời mời đang chờ (chấp nhận/từ chối ngay, không cần link email) và lời mời đã kết thúc.
+ * Quyết định chỉ gửi khi người dùng bấm; Backend kiểm tra email và phạm vi. Không có ô dán link: Backend chỉ cho
+ * trả lời khi email đăng nhập trùng email được mời, mà lời mời đó đã có sẵn trong danh sách.
  */
-export function MyInvitationsInbox({ showPasteLink = false }: { showPasteLink?: boolean }) {
+export function MyInvitationsInbox() {
   const invitations = useMyInvitations();
   const [acceptedOwner, setAcceptedOwner] = useState<string | null>(null);
   let pendingBody;
@@ -92,7 +89,6 @@ export function MyInvitationsInbox({ showPasteLink = false }: { showPasteLink?: 
         </div>
         {pendingBody}
       </Panel>
-      {showPasteLink && <PasteInvitationLink />}
       {invitations.isSuccess && invitations.data.ended.length > 0 && (
         <EndedInvitations items={invitations.data.ended} />
       )}
@@ -214,63 +210,6 @@ function PendingInvitationCard({
         </div>
       </div>
     </article>
-  );
-}
-
-/** Lời mời gửi tới email khác email đăng nhập thì không có trong danh sách: dán link để mở trang trả lời. */
-function PasteInvitationLink() {
-  const inputId = useId();
-  const navigate = useNavigate();
-  const [value, setValue] = useState("");
-  const [error, setError] = useState("");
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const token = parseInvitationToken(value);
-    if (!token) {
-      setError("Link hoặc mã lời mời không hợp lệ. Hãy copy nguyên link trong email.");
-      return;
-    }
-    setError("");
-    setValue("");
-    navigate(`${ROUTES.EXECUTOR.INVITATION}#token=${encodeURIComponent(token)}`);
-  };
-  return (
-    <Panel
-      title="Có link mời trong email mà không thấy ở trên?"
-      labelledBy="paste-invitation-heading"
-    >
-      <p className="mb-4 text-sm text-heritage-muted">
-        Lời mời được gửi tới đúng một địa chỉ email. Nếu email đó khác email bạn đang đăng nhập, dán
-        link vào đây để kiểm tra.
-      </p>
-      <form noValidate onSubmit={submit} className="space-y-2">
-        <label htmlFor={inputId} className="text-sm font-semibold">
-          Link hoặc mã lời mời
-        </label>
-        <div className="flex flex-wrap gap-3">
-          <Input
-            id={inputId}
-            value={value}
-            autoComplete="off"
-            placeholder="Dán link từ email vào đây"
-            aria-invalid={Boolean(error)}
-            className="min-h-11 min-w-0 flex-1"
-            onChange={(event) => setValue(event.target.value)}
-          />
-          <button type="submit" className={buttonStyles.dark}>
-            Kiểm tra lời mời
-          </button>
-        </div>
-        {error && (
-          <p role="alert" className="text-sm text-destructive">
-            {error}
-          </p>
-        )}
-        <p className="text-xs text-heritage-muted">
-          Mã này chỉ dùng một lần và không được lưu lại sau khi bạn trả lời.
-        </p>
-      </form>
-    </Panel>
   );
 }
 

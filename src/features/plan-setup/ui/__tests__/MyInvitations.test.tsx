@@ -16,7 +16,6 @@ vi.mock("../../api/planSetupService", () => ({
 
 const FIRST_ID = "11111111-1111-4111-8111-111111111111";
 const SECOND_ID = "22222222-2222-4222-8222-222222222222";
-const TOKEN = "b".repeat(64);
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function invitation(overrides: Partial<MyInvitation> = {}): MyInvitation {
@@ -134,27 +133,13 @@ describe("MyInvitationsInbox", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được lời mời");
   });
 
-  it("hides the paste-link box unless asked for (Owner space)", async () => {
+  it("không có ô dán link mời", async () => {
     vi.mocked(planSetupService.mine).mockResolvedValue(data());
     renderWithRoutes(<MyInvitationsInbox />);
     expect(
       await screen.findByText("Không có lời mời nào đang chờ bạn trả lời."),
     ).toBeInTheDocument();
     expect(screen.queryByLabelText("Link hoặc mã lời mời")).not.toBeInTheDocument();
-  });
-
-  it("opens the invitation page from a pasted email link and rejects other text", async () => {
-    vi.mocked(planSetupService.mine).mockResolvedValue(data());
-    renderWithRoutes(<MyInvitationsInbox showPasteLink />);
-    const input = await screen.findByLabelText("Link hoặc mã lời mời");
-    await userEvent.type(input, "không phải link");
-    await userEvent.click(screen.getByRole("button", { name: "Kiểm tra lời mời" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("không hợp lệ");
-
-    await userEvent.clear(input);
-    await userEvent.type(input, `https://app.example.test/executor-invitation#token=${TOKEN}`);
-    await userEvent.click(screen.getByRole("button", { name: "Kiểm tra lời mời" }));
-    expect(await screen.findByText("Trang trả lời lời mời")).toBeInTheDocument();
   });
 });
 
