@@ -256,7 +256,7 @@ export const blockerLabels: Record<z.infer<typeof approveBlockerSchema>, string>
   NOT_UNDER_REVIEW: "Hồ sơ không ở trạng thái đang xét.",
   NEWER_VERSION_PENDING: "Đang có bản mới chờ xét; chờ Verifier xét bản mới nhất.",
   OWNER_NOT_NOTIFIED: "Owner chưa được thông báo về hồ sơ này.",
-  OBJECTION_PERIOD_NOT_OVER: "Đang trong thời gian chờ Owner phản đối (72 giờ).",
+  OBJECTION_PERIOD_NOT_OVER: "Đang trong thời gian chờ Owner phản đối.",
   FLAGS_NOT_REVIEWED: "Còn cảnh báo chưa được kiểm tra.",
   VERIFIER_CONFLICT:
     "Bạn có quan hệ với kho này nên chỉ được xem, không được ra quyết định trên hồ sơ.",

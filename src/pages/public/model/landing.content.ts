@@ -116,11 +116,11 @@ export const LANDING_CONTENT = {
         tag: "03 · Bàn giao",
         title: "Chỉ mở khi đủ điều kiện, và bạn vẫn dừng được",
         detail:
-          "Hệ thống nhắc bạn xác nhận định kỳ. Khi không có phản hồi và các lớp xác nhận đều đạt, bạn còn 72 giờ để phản đối trước khi người nhận được mở kho, rồi 7 ngày để họ tải về.",
+          "Hệ thống nhắc bạn xác nhận định kỳ. Khi không có phản hồi và các lớp xác nhận đều đạt, bạn còn {objectionHours} giờ để phản đối trước khi người nhận được mở kho, rồi {grantDays} ngày để họ tải về.",
         points: [
           "Nhắc xác nhận định kỳ, chỉ cần báo mình vẫn ổn",
-          "72 giờ phản đối bằng nút “Tôi còn sống”",
-          "Người nhận có 7 ngày để tải về",
+          "{objectionHours} giờ phản đối bằng nút “Tôi còn sống”",
+          "Người nhận có {grantDays} ngày để tải về",
         ],
         visualTitle: "Từ im lặng đến bàn giao",
         rows: [
@@ -128,8 +128,8 @@ export const LANDING_CONTENT = {
           { title: "Người thực hiện báo tin", detail: "Lớp 1" },
           { title: "Người xét duyệt xác nhận", detail: "Lớp 2" },
           { title: "Người nhận xác minh eKYC", detail: "Lớp 3" },
-          { title: "72 giờ để phản đối", detail: "Lớp 4" },
-          { title: "7 ngày để tải về", detail: "Hoàn tất" },
+          { title: "{objectionHours} giờ để phản đối", detail: "Lớp 4" },
+          { title: "{grantDays} ngày để tải về", detail: "Hoàn tất" },
         ],
       },
     ],
@@ -153,7 +153,7 @@ export const LANDING_CONTENT = {
         detail: "eKYC cơ bản để đúng người mới nhận được kho.",
       },
       {
-        title: "72 giờ để phản đối",
+        title: "{objectionHours} giờ để phản đối",
         detail: "Bạn, hoặc người thân của bạn, vẫn có thể dừng. Chỉ cần bấm “Tôi còn sống”.",
       },
     ],
@@ -178,7 +178,7 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Bàn giao đúng lúc",
-        detail: "Qua đủ các lớp xác nhận, người nhận có 7 ngày để tải về.",
+        detail: "Qua đủ các lớp xác nhận, người nhận có {grantDays} ngày để tải về.",
       },
     ],
   },
@@ -201,7 +201,8 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Luôn dừng được",
-        detail: "Chỉ cần bấm “Tôi còn sống” trong 72 giờ, quá trình bàn giao dừng lại.",
+        detail:
+          "Chỉ cần bấm “Tôi còn sống” trong {objectionHours} giờ, quá trình bàn giao dừng lại.",
       },
     ],
     limitsTitle: "Những giới hạn chúng tôi nói rõ",
@@ -232,7 +233,7 @@ export const LANDING_CONTENT = {
   cta: {
     title: "Bắt đầu lập kho hôm nay.",
     description:
-      "Gói Free cho bạn 20 MiB để làm quen. Nâng cấp khi sẵn sàng thiết lập kế hoạch bàn giao.",
+      "Gói Free cho bạn {freeQuotaMb} MiB để làm quen. Nâng cấp khi sẵn sàng thiết lập kế hoạch bàn giao.",
     primary: "Tạo tài khoản",
     secondary: "Đã có tài khoản? Đăng nhập",
   },
@@ -247,7 +248,7 @@ export const LANDING_CONTENT = {
         name: "Free",
         price: "0đ",
         features: [
-          "Dung lượng 20 MiB",
+          "Dung lượng {freeQuotaMb} MiB",
           "Lưu trữ nội dung cá nhân, chưa thiết lập kế hoạch bàn giao",
         ],
       },

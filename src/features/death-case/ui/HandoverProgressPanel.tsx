@@ -24,6 +24,7 @@ import {
   Panel,
   type Tone,
 } from "@/shared/ui/heritageKit";
+import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 const turnStatusLabels: Record<HandoverProgressTurn["status"], string> = {
   INVITED: "Đã mời, chờ người nhận phản hồi",
@@ -92,6 +93,7 @@ function Deadline({
  * rồi đọc lại tiến độ. Link cũ hết dùng nên cần xác nhận trước khi gửi.
  */
 function ResendInvitation({ caseId, turnId }: { caseId: string; turnId: string }) {
+  const { resendCooldownMinutes } = usePolicyWindows();
   const client = useQueryClient();
   const action = usePrivateAction();
   const [confirming, setConfirming] = useState(false);
@@ -115,7 +117,7 @@ function ResendInvitation({ caseId, turnId }: { caseId: string; turnId: string }
         <div className="space-y-3 rounded-xl border border-heritage-border bg-white/60 p-4 text-sm">
           <p>
             Lời mời cũ sẽ không dùng được nữa. Hạn phản hồi không đặt lại. Chỉ gửi lại được sau tối
-            thiểu 15 phút kể từ lần gửi trước.
+            thiểu {resendCooldownMinutes} phút kể từ lần gửi trước.
           </p>
           <div className="flex flex-wrap gap-2">
             <button

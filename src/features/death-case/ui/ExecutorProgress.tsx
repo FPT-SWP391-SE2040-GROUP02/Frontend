@@ -10,6 +10,7 @@ import { HandoverProgressPanel } from "./HandoverProgressPanel";
 import { ReviewFeedback } from "./ReviewFeedback";
 import { buttonStyles, Chip, formatDateTime, InfoRow, Panel } from "@/shared/ui/heritageKit";
 import { caseStatusInfo } from "./executorLabels";
+import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 const noticeStatusLabels: Record<string, string> = {
   PENDING: "Đang gửi",
@@ -32,7 +33,7 @@ const captionStyles: Record<StepState, string> = {
   error: "text-[#A32119]",
 };
 
-function describe(record: DeathCase | null | undefined, now: Date): string {
+function describe(record: DeathCase | null | undefined, now: Date, objectionHours: number): string {
   if (!record) return "Chưa có hồ sơ báo tin. Tiến trình bắt đầu sau khi bạn gửi hồ sơ.";
   switch (record.status) {
     case "DRAFT":
@@ -50,13 +51,14 @@ function describe(record: DeathCase | null | undefined, now: Date): string {
         ? `Hồ sơ đã gửi lúc ${formatDateTime(record.currentVersion.submittedAt)}. `
         : "";
       const open = record.objectionEndsAt ? new Date(record.objectionEndsAt) > now : false;
-      return `${sent}${open ? "Chủ kho có 72 giờ để phản đối, sau đó hồ sơ sang bước xét duyệt." : "Hồ sơ đang chờ Người xét duyệt."}`;
+      return `${sent}${open ? `Chủ kho có ${objectionHours} giờ để phản đối, sau đó hồ sơ sang bước xét duyệt.` : "Hồ sơ đang chờ Người xét duyệt."}`;
     }
   }
 }
 
 /** Thanh 6 bước, nhật ký và hạn đang chờ; kèm tiến độ bàn giao khi hồ sơ đã gửi. */
 export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
+  const policy = usePolicyWindows();
   const caseId = useActiveCaseId(vault);
   const query = useDeathCase(caseId);
   const record = query.data ?? null;
@@ -74,7 +76,7 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
       </div>
     );
   }
-  const steps = deriveSteps(record, handover.data, now);
+  const steps = deriveSteps(record, handover.data, now, policy.objectionHours, policy.grantDays);
   const log = deriveLog(record);
   const info = record ? caseStatusInfo[record.status] : null;
   return (
@@ -103,7 +105,9 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
             </li>
           ))}
         </ol>
-        <p className="mt-6 text-sm leading-6 text-heritage-muted">{describe(record, now)}</p>
+        <p className="mt-6 text-sm leading-6 text-heritage-muted">
+          {describe(record, now, policy.objectionHours)}
+        </p>
         {!record && (
           <Link className={`${buttonStyles.gold} mt-4`} to={ROUTES.EXECUTOR.REPORT}>
             Đi tới Báo tin

@@ -130,7 +130,7 @@ it("hiện lý do cụ thể khi gửi lại quá sớm và không báo thành c
   await screen.findAllByText(/Gói đang chờ/);
   await user.click(screen.getAllByRole("button", { name: "Gửi lại lời mời" })[0]);
   await user.click(screen.getByRole("button", { name: "Xác nhận gửi lại" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent(/15 phút/);
+  expect(await screen.findByRole("alert")).toHaveTextContent(/ít phút/);
   expect(screen.queryByText(/Đã gửi lại lời mời lúc/)).not.toBeInTheDocument();
 });
 

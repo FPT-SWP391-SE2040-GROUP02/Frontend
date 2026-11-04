@@ -84,7 +84,7 @@ export function VerifierObjectionBlock({
               ? `Đạt lúc ${formatDate(objection.selfiePassedAt)}`
               : objection.selfieWindowOpen
                 ? `Chưa đạt · còn ${objection.selfieAttemptsRemaining} lượt thử`
-                : "Chưa đạt · đã hết hạn 7 ngày"
+                : "Chưa đạt · đã hết hạn gửi selfie"
           }
         />
         <Info label="Hạn bạn kết luận" value={formatDate(objection.verifierDueAt)} />
@@ -151,7 +151,7 @@ export function VerifierObjectionBlock({
         )}
       {!objection.selfiePassed && objection.selfieWindowOpen && (
         <p role="status">
-          Chưa thể xác nhận còn sống: cần selfie đạt hoặc đợi hết hạn 7 ngày của Owner.
+          Chưa thể xác nhận còn sống: cần selfie đạt hoặc đợi Owner hết hạn gửi selfie.
         </p>
       )}
       {canConclude && options.length > 0 && (

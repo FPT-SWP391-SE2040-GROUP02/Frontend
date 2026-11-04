@@ -23,6 +23,7 @@ import {
   type OwnerDeathCase,
   type OwnerObjection,
 } from "../model/ownerObjection.schema";
+import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 /** Trạng thái hồ sơ mà Owner cần được cảnh báo; DRAFT là Executor chưa gửi nên chưa hiện. */
 const ACTIVE_CASE_STATUSES = new Set([
@@ -106,6 +107,7 @@ function CasePanel({ vaultId, record }: { vaultId: string; record: OwnerDeathCas
 }
 
 function ReportDialog({ vaultId, onClose }: { vaultId: string; onClose: () => void }) {
+  const { selfieDays } = usePolicyWindows();
   const client = useQueryClient();
   const action = usePrivateAction();
   const [confirmed, setConfirmed] = useState(false);
@@ -123,8 +125,8 @@ function ReportDialog({ vaultId, onClose }: { vaultId: string; onClose: () => vo
         <DialogHeader>
           <DialogTitle>Xác nhận bạn còn sống</DialogTitle>
           <DialogDescription>
-            Hồ sơ chứng tử, kế hoạch bàn giao và mọi quyền tải sẽ bị chặn ngay. Bạn có 7 ngày để gửi
-            ảnh selfie xác minh; Verifier sẽ kết luận sau đó.
+            Hồ sơ chứng tử, kế hoạch bàn giao và mọi quyền tải sẽ bị chặn ngay. Bạn có {selfieDays}{" "}
+            ngày để gửi ảnh selfie xác minh; Verifier sẽ kết luận sau đó.
           </DialogDescription>
         </DialogHeader>
         <CustomCheckbox
@@ -152,6 +154,7 @@ function ReportDialog({ vaultId, onClose }: { vaultId: string; onClose: () => vo
 }
 
 function ObjectionState({ vaultId, objection }: { vaultId: string; objection: OwnerObjection }) {
+  const policy = usePolicyWindows();
   const rejected = objection.conclusion === "OBJECTION_REJECTED";
   const confirmedAlive = objection.conclusion === "ALIVE_CONFIRMED";
   // Sau khi bị bác, selfie khớp mới là bằng chứng mở lại lời báo (ALIVE-09).
@@ -216,7 +219,7 @@ function ObjectionState({ vaultId, objection }: { vaultId: string; objection: Ow
         <p role="status">
           {objection.selfieAttemptsRemaining === 0
             ? "Bạn đã hết lượt thử selfie trong 24 giờ qua. Hãy thử lại sau."
-            : "Đã hết hạn 7 ngày gửi selfie. Verifier sẽ kết luận dựa trên hồ sơ hiện có."}
+            : `Đã hết hạn ${policy.selfieDays} ngày gửi selfie. Verifier sẽ kết luận dựa trên hồ sơ hiện có.`}
         </p>
       )}
       {canSubmitSelfie && <SelfieForm vaultId={vaultId} reopen={rejected} />}

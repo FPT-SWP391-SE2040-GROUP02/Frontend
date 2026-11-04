@@ -1,6 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
@@ -15,7 +16,11 @@ function renderPage(page: ReactNode) {
   const store = configureStore({ reducer: { auth: authReducer } });
   return render(
     <Provider store={store}>
-      <MemoryRouter>{page}</MemoryRouter>
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      >
+        <MemoryRouter>{page}</MemoryRouter>
+      </QueryClientProvider>
     </Provider>,
   );
 }

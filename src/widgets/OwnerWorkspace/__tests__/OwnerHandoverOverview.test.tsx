@@ -74,7 +74,7 @@ describe("tổng quan bàn giao của Chủ kho", () => {
     renderOverview();
 
     expect(screen.getByRole("heading", { name: "Quy trình bàn giao" })).toBeInTheDocument();
-    expect(screen.getByText("Tải nội dung 7 ngày")).toBeInTheDocument();
+    expect(screen.getByText("Tải nội dung 30 ngày")).toBeInTheDocument();
     expect(screen.getByText("Cần mời")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Mời người thực hiện" })).toHaveAttribute(
       "href",

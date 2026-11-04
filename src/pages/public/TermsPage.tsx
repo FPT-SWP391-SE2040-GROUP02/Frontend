@@ -1,9 +1,11 @@
 import { ROUTES } from "@/shared/config/routes.config";
-import { PUBLIC_INFO_COMMON, TERMS_CONTENT as content } from "./model/publicInfo.content";
+import { PUBLIC_INFO_COMMON } from "./model/publicInfo.content";
+import { useTermsContent } from "./model/usePublicContent";
 import { LegalSections, PublicInfoLayout } from "./PublicInfoLayout";
 
 /** Trang Điều khoản sử dụng công khai (bản nháp chờ rà soát pháp lý). */
 export function TermsPage() {
+  const content = useTermsContent();
   return (
     <PublicInfoLayout
       eyebrow={content.eyebrow}

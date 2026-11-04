@@ -21,6 +21,7 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import { inviteExecutorSchema, type executorSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
 import { usePlanSetup } from "../model/usePlanSetup";
+import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 type Executor = z.infer<typeof executorSchema>;
 type Beneficiary = { id: string; label: string };
@@ -159,6 +160,7 @@ function InviteDialog({
   onSuccess,
   onClose,
 }: InviteDialogProps) {
+  const { executorInviteDays } = usePolicyWindows();
   const action = usePrivateAction();
   const ownerEmail = useSelector((state: { auth: AuthState }) => state.auth.user?.email);
 
@@ -207,11 +209,11 @@ function InviteDialog({
   });
   let title = "Mời người thực hiện";
   let description = "Người được mời sẽ nhận email để chấp nhận nhiệm vụ.";
-  let notice = "Lời mời có hiệu lực 7 ngày.";
+  let notice = `Lời mời có hiệu lực ${executorInviteDays} ngày.`;
   if (replacing !== null) {
     title = `Mời người thay ${replacing.inviteeEmail}`;
     description = `Người mới sẽ là người thực hiện khi chấp nhận lời mời. Đến lúc đó ${replacing.inviteeEmail} tự động thành “Đã thu hồi”. Trong lúc chờ, người cũ vẫn giữ vai trò.`;
-    notice = `Lời mời có hiệu lực 7 ngày. Hết hạn mà chưa chấp nhận thì ${replacing.inviteeEmail} vẫn là người thực hiện.`;
+    notice = `Lời mời có hiệu lực ${executorInviteDays} ngày. Hết hạn mà chưa chấp nhận thì ${replacing.inviteeEmail} vẫn là người thực hiện.`;
   }
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
@@ -535,6 +537,7 @@ export function ExecutorsSection({
   vaultId: string;
   beneficiaries?: Beneficiary[];
 }) {
+  const { objectionHours } = usePolicyWindows();
   const query = usePlanSetup(vaultId);
   const client = useQueryClient();
   const resendAction = usePrivateAction();
@@ -687,7 +690,8 @@ export function ExecutorsSection({
             <p className="mt-3 text-sm leading-6 text-heritage-muted">
               Người báo tin và người xét duyệt là hai người khác nhau. Người xét duyệt là nhân viên
               do hệ thống hoặc quản trị viên phân công, bạn không mời và không thấy họ. Mỗi lần bàn
-              giao còn có 72 giờ để bạn lên tiếng và bước xác minh eKYC cho người nhận.
+              giao còn có {objectionHours} giờ để bạn lên tiếng và bước xác minh eKYC cho người
+              nhận.
             </p>
             <p className="mt-4 flex items-center gap-2 text-xs text-heritage-muted">
               <Lock className="size-4 shrink-0" aria-hidden="true" />

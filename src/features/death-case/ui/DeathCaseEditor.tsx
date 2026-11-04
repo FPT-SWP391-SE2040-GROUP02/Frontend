@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState, type DragEvent } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileText, Lock, Upload } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import {
   Dialog,
   DialogContent,
@@ -22,9 +21,17 @@ import { deathCaseService } from "../api/deathCaseService";
 import { buttonStyles, Chip, formatDateTime, Panel } from "@/shared/ui/heritageKit";
 import { requirementLabels } from "./executorLabels";
 import { DeathCaseWizardSteps } from "./DeathCaseWizardSteps";
+import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
-const MAX_FILES = 10;
-const MAX_BYTES = 20 * 1024 * 1024;
+/** Các phần thông tin nhập tay trong biểu mẫu (mã khớp missingRequirements của Backend). */
+const FIELD_REQUIREMENTS = [
+  ["OWNER_FULL_NAME", "ownerFullName"],
+  ["OWNER_CITIZEN_ID", "ownerCitizenId"],
+  ["DATE_OF_DEATH", "dateOfDeath"],
+  ["CERTIFICATE_NUMBER", "certificateNumber"],
+  ["ISSUED_ON", "issuedOn"],
+  ["ISSUED_BY", "issuedBy"],
+] as const;
 const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 const DRAFT_FORM_ID = "death-case-draft-form";
 
@@ -103,18 +110,20 @@ function CertificateCheckNote({ check }: { check: CertificateFileCheck | undefin
  * DEATH-04, D5: câu giải thích khi bản hiện tại đã gửi. Đang xét hoặc cần bổ sung thì Executor tạo được bản mới
  * (chép từ bản đã gửi); Verifier vẫn xét bản đã gửi cho tới khi bản mới được nộp.
  */
-function reviewText(status: string): string {
+function reviewText(status: string, objectionHours: number): string {
   if (status === "SUPPLEMENT_REQUIRED") {
     return "Người xét duyệt yêu cầu bổ sung. Tạo bản bổ sung để sửa hoặc thêm giấy tờ rồi nộp lại.";
   }
   if (status === "UNDER_REVIEW") {
-    return "Hồ sơ đang được xét. Cần sửa hoặc thêm giấy tờ thì tạo bản bổ sung; Người xét duyệt vẫn xét bản đã gửi cho tới khi bạn nộp bản mới. Đổi họ tên, CCCD hoặc ngày mất của Chủ kho thì Chủ kho được báo lại và 72 giờ phản đối tính lại từ đầu.";
+    return `Hồ sơ đang được xét. Cần sửa hoặc thêm giấy tờ thì tạo bản bổ sung; Người xét duyệt vẫn xét bản đã gửi cho tới khi bạn nộp bản mới. Đổi họ tên, CCCD hoặc ngày mất của Chủ kho thì Chủ kho được báo lại và ${objectionHours} giờ phản đối tính lại từ đầu.`;
   }
   return "Hồ sơ đã đóng nên không sửa hay bổ sung được nữa.";
 }
 
 /** Một snapshot hồ sơ; full CCCD/file chỉ nằm trong local form, không cache. */
 export function DeathCaseEditor({ record }: { record: DeathCase }) {
+  const { objectionHours, deathCaseMaxFiles: MAX_FILES, deathCaseMaxFileMb } = usePolicyWindows();
+  const MAX_BYTES = deathCaseMaxFileMb * 1024 * 1024;
   const [etag, setEtag] = useState(record.etag);
   const [confirmed, setConfirmed] = useState(false);
   /** Đang hỏi lại trước khi tạo bản bổ sung (chặn bấm nhầm: bản nháp mới chặn Verifier duyệt tới khi nộp). */
@@ -157,11 +166,11 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
       issuedBy: version.issuedBy ?? "",
     },
   });
-  const publish = (result: DeathCase, message: string | null = null) => {
+  const publish = (result: DeathCase, message: string | null = null, keepConfirmed = false) => {
     setNotice(message);
     setEtag(result.etag);
     setCertificateChecks(null);
-    setConfirmed(false);
+    if (!keepConfirmed) setConfirmed(false);
     form.reset({
       ownerFullName: result.currentVersion.ownerFullName ?? "",
       ownerCitizenId: "",
@@ -175,21 +184,63 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
     void client.invalidateQueries({ queryKey: executorVaultsKey });
   };
 
-  const missingInfo = record.missingRequirements.filter((item) => item !== "FILES");
+  // Đủ hay thiếu tính theo những gì đang nhập, không bắt lưu nháp trước; thông tin chưa lưu được tự lưu khi tải tệp hoặc gửi.
+  const typed = useWatch({ control: form.control });
+  const dirtyFields = form.formState.dirtyFields;
+  const fieldMissing: string[] = [];
+  for (const [code, name] of FIELD_REQUIREMENTS) {
+    const missing = record.missingRequirements.includes(code);
+    if (!dirtyFields[name]) {
+      // Chưa sửa ô này: tin kết quả của Backend.
+      if (missing) fieldMissing.push(code);
+    } else if (
+      !String(typed[name] ?? "").trim() &&
+      !(name === "ownerCitizenId" && version.ownerCitizenIdLast4)
+    ) {
+      // Đã sửa ô này: tính theo giá trị đang nhập.
+      fieldMissing.push(code);
+    }
+  }
+  const missingInfo = [
+    ...fieldMissing,
+    ...record.missingRequirements.filter(
+      (item) => item !== "FILES" && !FIELD_REQUIREMENTS.some(([code]) => code === item),
+    ),
+  ];
   const missingFiles = record.missingRequirements.includes("FILES");
-  const uploadBlocked =
-    action.pending ||
-    !version.isDraft ||
-    version.files.length >= MAX_FILES ||
-    form.formState.isDirty;
+  const uploadBlocked = action.pending || !version.isDraft || version.files.length >= MAX_FILES;
+
+  /** Lưu thông tin đang nhập thành bản nháp; trả hồ sơ đã lưu, hoặc null khi biểu mẫu sai hay Backend từ chối. */
+  const saveDraft = async (): Promise<DeathCase | null> => {
+    if (!(await form.trigger())) return null;
+    const values = form.getValues();
+    let saved: DeathCase | null = null;
+    const ok = await action.execute(
+      () =>
+        deathCaseService.update(record.id, {
+          ...values,
+          etag,
+          ownerCitizenId: values.ownerCitizenId || undefined,
+          dateOfDeath: values.dateOfDeath || undefined,
+          issuedOn: values.issuedOn || undefined,
+        }),
+      (result) => {
+        saved = result;
+        publish(result, "Đã lưu nháp.", true);
+      },
+    );
+    return ok ? saved : null;
+  };
 
   const upload = async (file: File | null | undefined) => {
     setFileError("");
     if (!file) return;
     if (file.size === 0 || file.size > MAX_BYTES || !ALLOWED_TYPES.includes(file.type)) {
-      setFileError(`Chọn tệp đúng định dạng, không rỗng, tối đa ${formatStorageSize(MAX_BYTES)}.`);
+      setFileError(`Chọn tệp đúng định dạng, không rỗng, tối đa ${deathCaseMaxFileMb} MiB.`);
       return;
     }
+    // Thông tin đã nhập mà chưa lưu thì lưu trước khi tải tệp, người dùng không phải bấm Lưu nháp riêng.
+    if (form.formState.isDirty && !(await saveDraft())) return;
     // Ảnh tạo blob URL để xem trước; PDF giữ icon tĩnh. Thu hồi nếu upload lỗi.
     const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
     setUploading(true);
@@ -221,10 +272,19 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
   const submit = async () => {
     setCertificateChecks(null);
     setSubmitting(true);
+    let submitEtag = record.etag;
+    if (form.formState.isDirty) {
+      const saved = await saveDraft();
+      if (!saved) {
+        setSubmitting(false);
+        return;
+      }
+      submitEtag = saved.etag;
+    }
     await action.execute(
       async () => {
         try {
-          return await deathCaseService.submit(record.id, record.etag);
+          return await deathCaseService.submit(record.id, submitEtag);
         } catch (failure) {
           setCertificateChecks(readCertificateRejection(failure));
           throw failure;
@@ -236,7 +296,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
         } else {
           publish(
             result,
-            "Đã gửi hồ sơ. Chủ kho sẽ được báo qua email và có 72 giờ để phản đối trước khi xét duyệt.",
+            `Đã gửi hồ sơ. Chủ kho sẽ được báo qua email và có ${objectionHours} giờ để phản đối trước khi xét duyệt.`,
           );
         }
       },
@@ -352,8 +412,8 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                     disabled={action.pending}
                     onChange={(event) => setConfirmed(event.target.checked)}
                   />
-                  Tôi xác nhận bản đã lưu là đúng và muốn gửi xét duyệt. Lần gửi đầu sẽ khóa cấu
-                  hình kế hoạch bàn giao và bắt đầu quy trình thông báo Chủ kho.
+                  Tôi xác nhận thông tin đã nhập là đúng và muốn gửi xét duyệt. Lần gửi đầu sẽ khóa
+                  cấu hình kế hoạch bàn giao và bắt đầu quy trình thông báo Chủ kho.
                 </label>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <button
@@ -367,10 +427,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                   <button
                     type="button"
                     disabled={
-                      action.pending ||
-                      !confirmed ||
-                      form.formState.isDirty ||
-                      record.missingRequirements.length > 0
+                      action.pending || !confirmed || missingInfo.length > 0 || missingFiles
                     }
                     className={buttonStyles.gold}
                     onClick={() => void submit()}
@@ -379,7 +436,9 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
                   </button>
                 </div>
                 {form.formState.isDirty && (
-                  <p className="mt-3 text-sm">Lưu nháp trước khi tải tệp hoặc gửi hồ sơ.</p>
+                  <p className="mt-3 text-sm">
+                    Thông tin chưa lưu sẽ được tự lưu khi bạn tải tệp hoặc gửi hồ sơ.
+                  </p>
                 )}
                 <p className="mt-4 flex items-start gap-2 text-xs text-heritage-muted">
                   <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
@@ -389,7 +448,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
             ) : (
               <>
                 <p className="mb-4 text-sm leading-6 text-heritage-muted">
-                  {reviewText(record.status)}
+                  {reviewText(record.status, objectionHours)}
                 </p>
                 {["UNDER_REVIEW", "SUPPLEMENT_REQUIRED"].includes(record.status) && (
                   <button
@@ -522,8 +581,8 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
             Chọn tệp
           </button>
           <p className="mt-3 text-xs text-heritage-muted">
-            PDF, JPG, PNG, WEBP · Tối đa {formatStorageSize(MAX_BYTES)} mỗi tệp · Không tự gửi hồ sơ
-            sau khi tải tệp lên.
+            PDF, JPG, PNG, WEBP · Tối đa {deathCaseMaxFileMb} MiB mỗi tệp · Không tự gửi hồ sơ sau
+            khi tải tệp lên.
           </p>
         </div>
         {fileError && (

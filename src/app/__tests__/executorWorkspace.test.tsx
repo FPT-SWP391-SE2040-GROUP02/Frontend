@@ -489,6 +489,33 @@ describe("Executor report", () => {
     expect(post).not.toHaveBeenCalled();
   });
 
+  it("tự lưu thông tin đang nhập trước khi tải tệp, không bắt bấm Lưu nháp riêng", async () => {
+    const order: string[] = [];
+    const saved = deathCase("DRAFT", { etag: "case-v2", missingRequirements: ["FILES"] });
+    vi.spyOn(apiClient, "put").mockImplementation(() => {
+      order.push("put");
+      return Promise.resolve(saved);
+    });
+    vi.spyOn(apiClient, "post").mockImplementation(() => {
+      order.push("post");
+      return Promise.resolve(saved);
+    });
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
+      if (url === `/executor/death-cases/${CASE_ID}`) return Promise.resolve(deathCase("DRAFT"));
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    const input = await screen.findByLabelText("Chọn trang giấy");
+    fireEvent.change(screen.getByLabelText("Ngày mất"), { target: { value: "2026-11-03" } });
+    // Nhập xong thì danh sách kiểm tra đã coi phần thông tin là đủ, dù chưa lưu.
+    expect(await screen.findByText("Đã nhập đủ")).toBeInTheDocument();
+    fireEvent.change(input, {
+      target: { files: [new File(["%PDF"], "giay-bao-tu.pdf", { type: "application/pdf" })] },
+    });
+    await waitFor(() => expect(order).toEqual(["put", "post"]));
+  });
+
   it("uploads a valid file and shows it in the document list", async () => {
     const withFile = deathCase("DRAFT", {
       missingRequirements: ["DATE_OF_DEATH"],

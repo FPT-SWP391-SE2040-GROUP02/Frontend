@@ -43,6 +43,13 @@ export const billingPlansSchema = z.object({
   notice: z.string(),
   /** Mô tả tính năng của gói Free do Admin viết; rỗng hoặc thiếu thì dùng mô tả mặc định. */
   freeFeatures: z.array(z.string()).optional(),
+  /** Hạn mức gói Free do Admin đặt; Backend cũ không gửi thì dùng số mặc định của FE. */
+  free: z
+    .object({
+      storageQuotaBytes: z.number().int().nonnegative(),
+      includedBeneficiarySlots: z.number().int().nonnegative(),
+    })
+    .optional(),
 });
 
 /** Loại đơn do Backend tự xác định từ quyền dịch vụ của kho. */

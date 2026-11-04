@@ -263,16 +263,17 @@ export function describePlanKey(key: string): string | null {
   if (key === CATALOG_KEY) return "Danh sách gói";
   if (key === FREE_FEATURES_KEY) return "Mô tả tính năng gói Free";
   const match =
-    /^Plans\.([A-Za-z][A-Za-z0-9_]*)\.(?:Price(\d+)Y|(On|Hidden|QuotaMb|Slots|Features))$/.exec(
+    /^Plans\.([A-Za-z][A-Za-z0-9_]*)\.(?:Price(\d+)Y|(On|Hidden|QuotaMb|Slots|MaxPackages|Features))$/.exec(
       key,
     );
-  if (!match || ["Free", "Addon"].includes(match[1])) return null;
+  if (!match || match[1] === "Addon") return null;
   const name = planLabel(match[1]);
   if (match[2]) return `Giá gói ${name} (${match[2]} năm)`;
   if (match[3] === "On") return `Mở bán gói ${name}`;
   if (match[3] === "Hidden") return `Xóa gói ${name}`;
   if (match[3] === "QuotaMb") return `Dung lượng gói ${name}`;
   if (match[3] === "Features") return `Mô tả tính năng gói ${name}`;
+  if (match[3] === "MaxPackages") return `Số gói bàn giao tối đa gói ${name}`;
   return `Suất người nhận gói ${name}`;
 }
 

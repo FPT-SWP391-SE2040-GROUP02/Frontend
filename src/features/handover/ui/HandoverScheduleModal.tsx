@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from "@/shared/ui";
 import { Calendar, ShieldAlert, Zap, AlertCircle } from "lucide-react";
+import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 /**
  * @file HandoverScheduleModal.tsx
@@ -35,6 +36,7 @@ export const HandoverScheduleModal: React.FC<HandoverScheduleModalProps> = ({
   onStartHandover,
   isPending = false,
 }) => {
+  const { responseDays } = usePolicyWindows();
   const [scheduledDate, setScheduledDate] = useState<string>(
     currentScheduledDate || new Date().toISOString().split("T")[0],
   );
@@ -150,7 +152,8 @@ export const HandoverScheduleModal: React.FC<HandoverScheduleModalProps> = ({
               <span>⚡ Bắt Đầu Bàn Giao (Khóa Chuyển Nguyên Tử)</span>
             </Button>
             <p className="text-[10px] text-[#66786E] text-center">
-              (Thao tác này sẽ chốt cứng mọi lựa chọn chuyển 1:1 và bắt đầu cửa sổ 7 ngày phản hồi)
+              (Thao tác này sẽ chốt cứng mọi lựa chọn chuyển 1:1 và bắt đầu cửa sổ {responseDays}{" "}
+              ngày phản hồi)
             </p>
           </div>
         )}
