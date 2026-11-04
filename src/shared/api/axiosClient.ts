@@ -8,6 +8,7 @@ import { ENV } from "@/shared/config/env";
 import { APP_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 import { storage } from "@/shared/utils";
 import { reportSessionFailure } from "./sessionFailure";
+import { reportMaintenance } from "./maintenance";
 import { accessTokenMemory } from "./accessToken";
 import { notifyAssetCreated, resolveVaultPinFailure } from "./vaultPin";
 
@@ -104,6 +105,8 @@ apiClient.interceptors.response.use(
       if (pinRetry.handled) return pinRetry.value;
     }
     if (error.config && isApiRequest(error.config)) reportSessionFailure(error);
+    // 503 MAINTENANCE_MODE: báo để tầng app chuyển sang màn hình bảo trì (MaintenanceGate).
+    if (error.config && isApiRequest(error.config)) reportMaintenance(error);
     if (error.response) {
       const status = error.response.status;
       if (status === HTTP_STATUS.UNAUTHORIZED) {
