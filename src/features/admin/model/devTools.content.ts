@@ -44,6 +44,14 @@ export const DEV_MILESTONES: Record<
     effect: "cho hạn dịch vụ của kho về quá khứ để kho sang ân hạn chỉ đọc",
     done: "Đã tua tới “Hết hạn dịch vụ”. Kho đang ở ân hạn chỉ đọc; chủ kho vẫn gia hạn được.",
   },
+  RECIPIENT_DECISION_ENDED: {
+    title: "Hết 7 ngày quyết định của người nhận",
+    description:
+      "Người nhận đã xác nhận danh tính nhưng chưa đồng ý hoặc từ chối: cho hết hạn quyết định ngay.",
+    code: "DECISION_EXPIRED",
+    effect: "hết 7 ngày quyết định của người nhận đang chờ để lượt nhận chuyển sang hết hạn",
+    done: "Đã tua tới “Hết 7 ngày quyết định của người nhận”. Lượt nhận đang chờ đã hết hạn; kế hoạch đóng nếu mọi lượt đã xong.",
+  },
 };
 
 /** Nhãn trạng thái kế hoạch theo PlanStatus của Backend; giá trị lạ hiện nguyên chuỗi. */
