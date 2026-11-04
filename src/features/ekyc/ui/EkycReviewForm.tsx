@@ -18,8 +18,9 @@ import {
 
 /**
  * Bản OCR chỉ ở RAM: xác nhận → chuyển sang thử thách camera sau phản hồi BE.
- * Số căn cước, họ tên, ngày sinh khóa theo bản máy đọc: Backend luôn đối chiếu bằng bản OCR và không lưu bản tự sửa,
- * nên cho sửa chỉ gây hiểu lầm. Máy đọc sai thì chụp lại ảnh. Riêng nơi cư trú vẫn sửa được vì Backend lưu ô này.
+ * Số căn cước luôn khóa theo bản máy đọc (Backend kiểm tra trùng CCCD trên số đọc từ ảnh).
+ * Owner đăng ký sửa được họ tên, ngày sinh vì Backend lưu bản Owner xác nhận làm danh tính. Người nhận thì khóa cả họ
+ * tên, ngày sinh: Backend đối chiếu bằng bản OCR và không lưu bản tự sửa. Nơi cư trú luôn sửa được.
  */
 export function EkycReviewForm({
   document,
@@ -87,6 +88,22 @@ export function EkycReviewForm({
     statusStyle = "bg-green-100 text-green-800";
   }
 
+  // Owner đăng ký được sửa họ tên, ngày sinh (đã gửi thì khóa); số căn cước và hai ô này của người nhận luôn khóa.
+  const isOwner = purpose === "OWNER_ENROLLMENT";
+  const nameAndBirthLocked = !isOwner || confirmed;
+  const lockedStyle = "bg-[#F4F1E6]";
+  let birthClass = "min-h-11 w-full min-w-0";
+  if (nameAndBirthLocked) birthClass = `${birthClass} ${lockedStyle}`;
+
+  let guidance =
+    "Số căn cước, họ tên và ngày sinh lấy đúng theo bản máy đọc, không sửa được. Đối chiếu với thẻ gốc ở bên trái; nếu máy đọc sai, hãy chụp lại mặt trước rõ hơn.";
+  let restoreLabel = "Khôi phục nơi cư trú";
+  if (isOwner) {
+    guidance =
+      "Đối chiếu với thẻ gốc ở bên trái. Nếu máy đọc sai họ tên hoặc ngày sinh, hãy sửa lại cho đúng như trên thẻ; số căn cước giữ theo bản máy đọc, sai thì chụp lại mặt trước rõ hơn.";
+    restoreLabel = "Khôi phục thông tin máy đọc";
+  }
+
   const textFields = [
     ["idNumber", "Số căn cước"],
     ["fullName", "Họ và tên"],
@@ -99,6 +116,11 @@ export function EkycReviewForm({
     if (name === "idNumber" && !showId) {
       type = "password";
     }
+
+    let fieldLocked = true;
+    if (name === "fullName") fieldLocked = nameAndBirthLocked;
+    let fieldLockStyle = "";
+    if (fieldLocked) fieldLockStyle = lockedStyle;
 
     let inputMode: "numeric" | undefined;
     if (name === "idNumber") {
@@ -130,8 +152,8 @@ export function EkycReviewForm({
             id={`${prefix}-${name}`}
             type={type}
             {...register(name)}
-            readOnly
-            className={`min-h-11 w-full min-w-0 bg-[#F4F1E6] ${inputPadding}`}
+            readOnly={fieldLocked}
+            className={`min-h-11 w-full min-w-0 ${fieldLockStyle} ${inputPadding}`}
             aria-invalid={Boolean(errors[name])}
             aria-describedby={errors[name] ? `${prefix}-${name}-error` : undefined}
             inputMode={inputMode}
@@ -192,10 +214,7 @@ export function EkycReviewForm({
         </span>
       </div>
 
-      <p className="mt-4 text-sm text-heritage-muted">
-        Số căn cước, họ tên và ngày sinh lấy đúng theo bản máy đọc, không sửa được. Đối chiếu với
-        thẻ gốc ở bên trái; nếu máy đọc sai, hãy chụp lại mặt trước rõ hơn.
-      </p>
+      <p className="mt-4 text-sm text-heritage-muted">{guidance}</p>
 
       <fieldset disabled={disabled || action.pending} className="mt-4 min-w-0 space-y-4">
         {fieldRows}
@@ -214,8 +233,8 @@ export function EkycReviewForm({
             inputMode="numeric"
             placeholder="DD/MM/YYYY"
             {...register("dateOfBirth")}
-            readOnly
-            className="min-h-11 w-full min-w-0 bg-[#F4F1E6]"
+            readOnly={nameAndBirthLocked}
+            className={birthClass}
             aria-invalid={Boolean(errors.dateOfBirth)}
             aria-describedby={errors.dateOfBirth ? `${prefix}-dateOfBirth-error` : undefined}
           />
@@ -281,7 +300,7 @@ export function EkycReviewForm({
                   setShowId(false);
                 }}
               >
-                Khôi phục nơi cư trú
+                {restoreLabel}
               </Button>
 
               <Button

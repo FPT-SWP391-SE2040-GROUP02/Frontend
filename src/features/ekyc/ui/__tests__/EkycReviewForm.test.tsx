@@ -56,18 +56,16 @@ function setup(beneficiary = false) {
   }
   render(<Harness />);
 }
-it("khóa CCCD, họ tên, ngày sinh theo bản OCR; chỉ nơi cư trú sửa được và gửi khi xác nhận", async () => {
+it("Owner sửa được họ tên, ngày sinh; số căn cước luôn khóa; gửi bản đã sửa khi xác nhận", async () => {
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(status);
   setup();
   expect(screen.getByLabelText("Ngày sinh")).toHaveValue("01/02/2000");
   expect(screen.getByLabelText("Số căn cước")).toHaveAttribute("type", "password");
   expect(screen.getByLabelText("Số căn cước")).toHaveAttribute("readonly");
-  expect(screen.getByLabelText("Họ và tên")).toHaveAttribute("readonly");
-  expect(screen.getByLabelText("Ngày sinh")).toHaveAttribute("readonly");
-  expect(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú")).not.toHaveAttribute("readonly");
-  fireEvent.change(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú"), {
-    target: { value: "  Địa chỉ đã sửa  " },
-  });
+  expect(screen.getByLabelText("Họ và tên")).not.toHaveAttribute("readonly");
+  expect(screen.getByLabelText("Ngày sinh")).not.toHaveAttribute("readonly");
+  fireEvent.change(screen.getByLabelText("Họ và tên"), { target: { value: "  Tên đã sửa  " } });
+  fireEvent.change(screen.getByLabelText("Ngày sinh"), { target: { value: "03/04/2001" } });
   expect(post).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" }));
   await screen.findByRole("status");
@@ -75,19 +73,24 @@ it("khóa CCCD, họ tên, ngày sinh theo bản OCR; chỉ nơi cư trú sửa 
     verificationId,
     purpose: "OWNER_ENROLLMENT",
     idNumber: document.idNumber,
-    fullName: document.fullName,
-    dateOfBirth: "2000-02-01",
-    residenceAddress: "Địa chỉ đã sửa",
+    fullName: "Tên đã sửa",
+    dateOfBirth: "2001-04-03",
+    residenceAddress: document.residenceAddress,
   });
-  expect(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú")).toHaveAttribute("readonly");
+  expect(screen.getByLabelText("Họ và tên")).toHaveAttribute("readonly");
   fireEvent.click(screen.getByRole("button", { name: "Chỉnh sửa lại" }));
   expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Họ và tên")).not.toHaveAttribute("readonly");
+  fireEvent.click(screen.getByRole("button", { name: "Khôi phục thông tin máy đọc" }));
+  expect(screen.getByLabelText("Họ và tên")).toHaveValue(document.fullName);
+});
+it("người nhận: khóa số căn cước, họ tên, ngày sinh; chỉ nơi cư trú sửa được", () => {
+  setup(true);
+  expect(screen.getByLabelText("Số căn cước")).toHaveAttribute("readonly");
   expect(screen.getByLabelText("Họ và tên")).toHaveAttribute("readonly");
+  expect(screen.getByLabelText("Ngày sinh")).toHaveAttribute("readonly");
   expect(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú")).not.toHaveAttribute("readonly");
-  fireEvent.click(screen.getByRole("button", { name: "Khôi phục nơi cư trú" }));
-  expect(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú")).toHaveValue(
-    document.residenceAddress,
-  );
+  expect(screen.getByRole("button", { name: "Khôi phục nơi cư trú" })).toBeInTheDocument();
 });
 it("keeps edits on failure and sends the beneficiary turn context on retry", async () => {
   const post = vi
