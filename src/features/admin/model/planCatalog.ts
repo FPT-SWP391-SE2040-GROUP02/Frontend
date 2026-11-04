@@ -19,6 +19,8 @@ export interface PaidPlanMeta {
   priceDefaults: Record<number, string>;
   quotaDefault: string;
   slotsDefault: string;
+  /** Mô tả tính năng hiển thị khi Admin chưa viết (trùng mặc định ở trang gói của chủ kho). */
+  featureDefaults: readonly string[];
 }
 
 export const PAID_PLANS: readonly PaidPlanMeta[] = [
@@ -29,6 +31,7 @@ export const PAID_PLANS: readonly PaidPlanMeta[] = [
     priceDefaults: { 1: "199000", 3: "499000", 5: "799000" },
     quotaDefault: "200",
     slotsDefault: "2",
+    featureDefaults: ["Thiết lập kế hoạch bàn giao", "Điểm danh và quy trình bàn giao"],
   },
   {
     code: "XsMax",
@@ -37,6 +40,7 @@ export const PAID_PLANS: readonly PaidPlanMeta[] = [
     priceDefaults: { 1: "399000", 3: "999000", 5: "1599000" },
     quotaDefault: "500",
     slotsDefault: "5",
+    featureDefaults: ["Các tính năng của Legacy XS"],
   },
 ];
 
@@ -53,6 +57,8 @@ const LAST_BUILTIN_ORDER = 20;
 const ORDER_STEP = 10;
 const RESERVED_CODES = ["FREE", "XS", "XS_MAX", "XSMAX", "CUSTOM"];
 export const MAX_PLAN_NAME = 40;
+/** Tối đa bốn gói đang hiện trên bảng giá, tính cả gói Free (khớp giới hạn của Backend). */
+export const MAX_PLANS_TOTAL = 4;
 
 export interface PlanPeriod {
   years: number;
@@ -108,6 +114,7 @@ export function customPlanMeta(plan: CustomPlan): PaidPlanMeta {
     priceDefaults: {},
     quotaDefault: "100",
     slotsDefault: "1",
+    featureDefaults: ["Thiết lập kế hoạch bàn giao", "Điểm danh và quy trình bàn giao"],
   };
 }
 
@@ -147,6 +154,48 @@ export function validateNewPlanName(name: string): string {
   const trimmed = name.trim();
   if (trimmed.length === 0) return "Nhập tên gói.";
   if (trimmed.length > MAX_PLAN_NAME) return `Tên gói tối đa ${MAX_PLAN_NAME} ký tự.`;
+  return "";
+}
+
+/** Khóa mô tả tính năng của gói Free và của các gói trả phí. */
+export const FREE_FEATURES_KEY = "Plans.Free.Features";
+export const featuresKey = (code: PaidPlanCode): string => `Plans.${code}.Features`;
+export const FREE_FEATURE_DEFAULTS: readonly string[] = [
+  "Lưu trữ nội dung cá nhân",
+  "Chưa có kế hoạch bàn giao",
+];
+/** Tối đa tám dòng mô tả mỗi gói, mỗi dòng tối đa 120 ký tự (khớp Backend). */
+export const MAX_FEATURE_LINES = 8;
+export const MAX_FEATURE_LENGTH = 120;
+
+/** Đọc mô tả từ JSON thành các dòng (giữ dòng trống để gõ được dòng mới); sai dạng thì trả mặc định. */
+export function parseFeatureLines(raw: string, defaults: readonly string[]): string[] {
+  try {
+    const value: unknown = JSON.parse(raw);
+    if (!Array.isArray(value) || !value.every((line) => typeof line === "string")) {
+      return [...defaults];
+    }
+    return value.length > 0 ? (value as string[]) : [...defaults];
+  } catch {
+    return [...defaults];
+  }
+}
+
+/** Nội dung ô nhập (mỗi dòng một tính năng) thành JSON lưu trong cài đặt. */
+export function serializeFeatureLines(text: string): string {
+  return JSON.stringify(text.split(/\r?\n/));
+}
+
+/** Kiểm tra mô tả: trả câu lỗi hoặc chuỗi rỗng nếu hợp lệ. */
+export function validateFeatureText(text: string): string {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line !== "");
+  if (lines.length > MAX_FEATURE_LINES) return `Tối đa ${MAX_FEATURE_LINES} dòng.`;
+  if (lines.some((line) => line.length > MAX_FEATURE_LENGTH)) {
+    return `Mỗi dòng tối đa ${MAX_FEATURE_LENGTH} ký tự.`;
+  }
   return "";
 }
 
@@ -212,15 +261,18 @@ function planLabel(segment: string): string {
 export function describePlanKey(key: string): string | null {
   if (key === PERIODS_KEY) return "Danh sách kỳ bán";
   if (key === CATALOG_KEY) return "Danh sách gói";
-  const match = /^Plans\.([A-Za-z][A-Za-z0-9_]*)\.(?:Price(\d+)Y|(On|Hidden|QuotaMb|Slots))$/.exec(
-    key,
-  );
+  if (key === FREE_FEATURES_KEY) return "Mô tả tính năng gói Free";
+  const match =
+    /^Plans\.([A-Za-z][A-Za-z0-9_]*)\.(?:Price(\d+)Y|(On|Hidden|QuotaMb|Slots|Features))$/.exec(
+      key,
+    );
   if (!match || ["Free", "Addon"].includes(match[1])) return null;
   const name = planLabel(match[1]);
   if (match[2]) return `Giá gói ${name} (${match[2]} năm)`;
   if (match[3] === "On") return `Mở bán gói ${name}`;
   if (match[3] === "Hidden") return `Xóa gói ${name}`;
   if (match[3] === "QuotaMb") return `Dung lượng gói ${name}`;
+  if (match[3] === "Features") return `Mô tả tính năng gói ${name}`;
   return `Suất người nhận gói ${name}`;
 }
 
@@ -229,6 +281,11 @@ export function describePlanValue(key: string, value: string): string {
   if (key === PERIODS_KEY) {
     const periods = parsePeriods(value);
     return periods.map((p) => `${p.years} năm${p.on ? "" : " (tạm ngừng)"}`).join(", ");
+  }
+  if (key === FREE_FEATURES_KEY || /^Plans\.[A-Za-z][A-Za-z0-9_]*\.Features$/.test(key)) {
+    return parseFeatureLines(value, [])
+      .filter((line) => line.trim() !== "")
+      .join(" · ");
   }
   if (key === CATALOG_KEY) {
     const plans = parseCustomPlans(value);
