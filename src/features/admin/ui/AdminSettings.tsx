@@ -37,6 +37,7 @@ import {
 import { Switch } from "@/shared/ui/switch";
 import { describePlanKey, describePlanValue } from "../model/planCatalog";
 import { PlanCatalogEditor } from "./PlanCatalogEditor";
+import { settingsSaveError } from "../model/adminError";
 
 interface SettingMeta {
   key: string;
@@ -447,6 +448,8 @@ export function AdminSettings() {
   const [auditReason, setAuditReason] = useState("");
   const [securityAcknowledged, setSecurityAcknowledged] = useState(false);
   const [notice, setNotice] = useState<{ text: string; ok: boolean } | null>(null);
+  /** Lỗi lưu hiện ngay trong hộp xác nhận (thông báo đầu trang bị hộp che mất). */
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const query = useQuery({
     queryKey: ["admin-settings"],
@@ -585,6 +588,7 @@ export function AdminSettings() {
         return Array.from(map.values());
       });
       setDraft({});
+      setSaveError(null);
       setConfirmOpen(false);
       setAuditReason("");
       setSecurityAcknowledged(false);
@@ -595,7 +599,10 @@ export function AdminSettings() {
       setTimeout(() => setNotice(null), 5000);
     },
     onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : "Lỗi khi lưu cấu hình.";
+      const message =
+        settingsSaveError(err) ??
+        "Không lưu được cấu hình. Kiểm tra lại các giá trị đã nhập rồi thử lại.";
+      setSaveError(message);
       setNotice({ text: message, ok: false });
     },
   });
@@ -606,6 +613,7 @@ export function AdminSettings() {
       value: d.value,
       isEnabled: d.isEnabled,
     }));
+    setSaveError(null);
     batchMutation.mutate({ items, reason: auditReason.trim() });
   };
 
@@ -981,7 +989,8 @@ export function AdminSettings() {
               <p className="mt-1 text-xs text-heritage-muted">
                 Mỗi gói một cột, mỗi kỳ bán một dòng. Chỉnh giá, hạn mức, bật hoặc tắt bán, thêm
                 hoặc xóa kỳ trực tiếp tại ô. Mọi thay đổi chỉ áp dụng cho đơn mới tạo, không làm sai
-                lệch đơn cũ.
+                lệch đơn cũ. Trang Gói dịch vụ của người dùng tự xếp các gói từ rẻ đến đắt theo giá
+                kỳ ngắn nhất, nên bạn đặt giá thế nào cũng được.
               </p>
             </div>
           </div>
@@ -1116,7 +1125,10 @@ export function AdminSettings() {
               </Button>
               <Button
                 size="sm"
-                onClick={() => setConfirmOpen(true)}
+                onClick={() => {
+                  setSaveError(null);
+                  setConfirmOpen(true);
+                }}
                 className="min-h-10 bg-[#E0C486] text-xs font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
               >
                 Xem thay đổi và lưu ({diffList.length})
@@ -1245,6 +1257,15 @@ export function AdminSettings() {
                 cảm và chịu trách nhiệm về quyết định áp dụng này.
               </span>
             </label>
+          )}
+
+          {saveError && (
+            <p
+              role="alert"
+              className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-900"
+            >
+              Không lưu được: {saveError}
+            </p>
           )}
 
           <DialogFooter className="gap-2 sm:gap-0">
