@@ -167,7 +167,7 @@ function PaymentResult({ params }: { params: ReturnType<typeof useAdminPaymentPa
         <b>{data.totalCount}</b> dòng
       </p>
       <ListTable
-        columns="150px minmax(160px,1fr) minmax(180px,1.2fr) minmax(160px,1fr)"
+        columns="140px minmax(170px,1fr) minmax(190px,1.2fr) minmax(150px,1fr)"
         headings={["Nhận lúc", "Số tiền · mã đơn", "Trạng thái", "Ngân hàng · tham chiếu"]}
       >
         {data.items.map((transaction) => (
