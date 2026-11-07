@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ChevronRight, Clock, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -80,14 +80,23 @@ function OverdueBadge() {
 
 /** Tên người phụ trách từ danh sách Admin/Verifier đang hoạt động; không có thì hiện mã rút gọn. */
 function useAssigneeLabel(userId: string | null) {
+  return useAssignee(userId).name;
+}
+
+/** Tên và vai trò của người phụ trách; không tìm thấy trong danh sách Admin/Verifier thì hiện mã rút gọn. */
+function useAssignee(userId: string | null): { name: string; role: string | null } {
   const admins = useAdminUserOptions("ADMIN");
   const verifiers = useAdminUserOptions("VERIFIER");
-  if (!userId) return "Chưa có người phụ trách";
-  const person = [...(admins.data?.items ?? []), ...(verifiers.data?.items ?? [])].find(
-    (item) => item.id === userId,
-  );
-  return person ? person.fullName || person.email : `Tài khoản ${userId.slice(0, 8)}`;
+  if (!userId) return { name: "Chưa có người phụ trách", role: null };
+  const admin = admins.data?.items.find((item) => item.id === userId);
+  if (admin) return { name: admin.fullName || admin.email, role: "Quản trị viên" };
+  const verifier = verifiers.data?.items.find((item) => item.id === userId);
+  if (verifier) return { name: verifier.fullName || verifier.email, role: "Người xét duyệt" };
+  return { name: `Tài khoản ${userId.slice(0, 8)}`, role: null };
 }
+
+/** "dd/MM/yyyy HH:mm" rút thành "dd/MM HH:mm" như prototype. */
+const shortDateTime = (iso: string) => formatDateTime(iso).replace(/\/\d{4}/, "");
 
 /** Danh sách và chi tiết sự cố vận hành: bộ lọc và sự cố đang xem nằm trên URL. */
 export function AdminIncidents() {
@@ -224,8 +233,8 @@ function IncidentResult({
         <b>{data.totalCount}</b> sự cố
       </p>
       <ListTable
-        columns="minmax(220px,1.6fr) minmax(130px,.7fr) minmax(150px,.8fr) minmax(150px,.8fr)"
-        headings={["Sự cố", "Trạng thái", "Hạn xử lý", "Người phụ trách"]}
+        columns="minmax(220px,1.7fr) 150px minmax(130px,.9fr) 130px 36px"
+        headings={["Sự cố", "Trạng thái", "Người phụ trách", "Hạn", ""]}
       >
         {data.items.map((item) => (
           <IncidentRow key={item.id} item={item} onOpen={() => params.select(item.id)} />
@@ -252,37 +261,56 @@ function incidentTone(item: IncidentSummary): "bad" | "warn" | "info" | "none" {
 }
 
 function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => void }) {
-  const assignee = useAssigneeLabel(item.assigneeUserId);
+  const assignee = useAssignee(item.assigneeUserId);
+  const resolved = item.status === "RESOLVED";
   return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="block min-h-11 w-full text-left hover:bg-stone-50 focus-visible:bg-stone-50"
-    >
+    <button type="button" onClick={onOpen} className="block min-h-11 w-full text-left">
       <ListTableRow tone={incidentTone(item)}>
-        <span className="flex min-w-0 flex-col gap-1">
-          <span className="font-semibold">{INCIDENT_TYPE_LABELS[item.type]}</span>
-          <span className="break-words text-sm text-heritage-muted">{item.summary}</span>
-        </span>
-        <span className="flex flex-wrap items-start gap-2">
-          <StatusBadge status={item.status} />
-          {item.overdue && item.status !== "RESOLVED" && <OverdueBadge />}
-          {item.status !== "RESOLVED" && item.responsibleRole !== "ADMIN" && (
-            <WaitingBadge role={item.responsibleRole} />
+        <span className="flex min-w-0 flex-col">
+          <b className="block text-sm leading-6 text-heritage-primary">
+            {INCIDENT_TYPE_LABELS[item.type]}{" "}
+            <span className="font-mono text-xs font-medium text-heritage-muted">
+              #{item.id.slice(0, 8).toUpperCase()}
+            </span>
+          </b>
+          <span className="line-clamp-2 text-[13px] text-heritage-muted">{item.summary}</span>
+          {!resolved && item.responsibleRole !== "ADMIN" && (
+            <span className="mt-1 text-xs font-semibold text-amber-800">
+              Đang chờ {RESPONSIBLE_ROLE_LABELS[item.responsibleRole]}
+            </span>
           )}
         </span>
-        <span className="flex flex-col gap-1 text-sm tabular-nums">
-          <b className="font-medium">{formatDateTime(item.dueAt)}</b>
-          <small className="text-heritage-muted">
-            Xem lại: {formatDateTime(item.nextReviewAt)}
+        <span className="flex flex-col items-start gap-1.5">
+          <StatusBadge status={item.status} />
+          {item.overdue && !resolved && (
+            <span className="flex items-center gap-1.5 text-[12.5px] font-semibold text-red-800">
+              <Clock className="size-3.5" aria-hidden="true" />
+              Quá hạn
+            </span>
+          )}
+        </span>
+        <span className="min-w-0">
+          {item.assigneeUserId ? (
+            <>
+              <b className="block text-sm leading-6 text-heritage-primary">{assignee.name}</b>
+              {assignee.role && (
+                <small className="block text-[12.5px] text-heritage-muted">{assignee.role}</small>
+              )}
+            </>
+          ) : (
+            <span className="text-sm font-semibold text-amber-900">Chưa có người phụ trách</span>
+          )}
+        </span>
+        <span className="tabular-nums">
+          <b className="block text-sm leading-6 text-heritage-primary">
+            {shortDateTime(item.dueAt)}
+          </b>
+          <small className="block text-[12.5px] text-heritage-muted">
+            {resolved ? "Đã xử lý" : `Xem lại ${shortDateTime(item.nextReviewAt)}`}
           </small>
         </span>
-        <span className="text-sm">
-          {item.assigneeUserId ? (
-            assignee
-          ) : (
-            <span className="font-semibold text-amber-900">Chưa có người phụ trách</span>
-          )}
+        <span className="hidden self-center text-heritage-muted md:block">
+          <ChevronRight className="size-[18px]" aria-hidden="true" />
         </span>
       </ListTableRow>
     </button>
