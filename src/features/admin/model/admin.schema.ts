@@ -119,6 +119,7 @@ export const INCIDENT_TYPES = [
   "STALE_CASE",
   "SUPPLEMENT_LOOP",
   "PLAN_EXPIRING",
+  "PROXY_LIMIT",
 ] as const;
 /** `IncidentStatus` của Backend. */
 export const INCIDENT_STATUSES = ["OPEN", "IN_PROGRESS", "RESOLVED"] as const;
@@ -161,6 +162,8 @@ export const incidentSummarySchema = z.object({
   targetId: uuid.nullable(),
   summary: z.string(),
   assigneeUserId: uuid.nullable(),
+  /** Ai chịu trách nhiệm xử lý loại sự cố này; Admin chỉ theo dõi khi không phải ADMIN. */
+  responsibleRole: z.enum(["ADMIN", "EXECUTOR", "VERIFIER"]).default("ADMIN"),
   dueAt: dateTime,
   overdue: z.boolean(),
   nextReviewAt: dateTime,

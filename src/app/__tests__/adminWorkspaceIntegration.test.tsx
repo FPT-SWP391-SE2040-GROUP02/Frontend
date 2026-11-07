@@ -210,6 +210,35 @@ it("chi tiết người dùng hiện hồ sơ đang giao, quyết định và ho
   expect(screen.getByRole("button", { name: "Về danh sách" })).toBeInTheDocument();
 });
 
+it("Tổng quan hiện tình trạng dịch vụ ngoài theo lần gọi gần nhất", async () => {
+  const entry = (
+    serviceKey: string,
+    lastOutcome: "SUCCEEDED" | "FAILED" | null,
+    code: string | null,
+  ) => ({
+    serviceKey,
+    supportsFallback: false,
+    slots: [],
+    status: { activeSlot: null, lastOutcome, lastAt: null, lastErrorCode: code },
+  });
+  vi.spyOn(apiClient, "get").mockImplementation(async (url: string) =>
+    url === "/admin/system-config"
+      ? {
+          services: [
+            entry("EKYC", "SUCCEEDED", null),
+            entry("SMTP", "FAILED", "HTTP_503"),
+            entry("R2", null, null),
+          ],
+        }
+      : dashboardFixture,
+  );
+  setup(ROUTES.ADMIN.ROOT);
+  expect(await screen.findByText("Dịch vụ ngoài")).toBeInTheDocument();
+  expect(screen.getByText("Hoạt động")).toBeInTheDocument();
+  expect(screen.getByText("Lỗi HTTP_503")).toBeInTheDocument();
+  expect(screen.getByText("Chưa có lần gọi")).toBeInTheDocument();
+});
+
 it("404 từ BE hiện không có quyền, không hiện số 0 hay nút thử lại", async () => {
   vi.spyOn(apiClient, "get").mockRejectedValue(httpError(404));
   setup(ROUTES.ADMIN.ROOT);

@@ -116,13 +116,14 @@ export const INCIDENT_TYPE_LABELS: Record<IncidentType, string> = {
   CHECK_IN_OVERDUE: "Quá hạn điểm danh",
   NOTIFICATION_FAILED: "Gửi thông báo thất bại",
   OWNER_ALIVE: "Chủ kho báo còn sống",
-  INTEGRATION: "Lỗi tích hợp",
+  INTEGRATION: "Dịch vụ ngoài lỗi",
   MANUAL: "Tạo thủ công",
   PAYMENT: "Giao dịch thanh toán lệch",
   SUSPICIOUS_LOGIN: "Đăng nhập bất thường",
   STALE_CASE: "Hồ sơ quá hạn xét duyệt",
   SUPPLEMENT_LOOP: "Hồ sơ bị yêu cầu bổ sung nhiều lần",
   PLAN_EXPIRING: "Gói sắp hết hạn",
+  PROXY_LIMIT: "Hết lượt điểm danh thay",
 };
 
 export const INCIDENT_STATUS_LABELS: Record<IncidentStatus, string> = {
@@ -222,3 +223,10 @@ export function reviewDateError(value: string, now = new Date()): string {
     return "Hạn xem lại tối đa 7 ngày kể từ bây giờ.";
   return "";
 }
+
+/** Vai trò chịu trách nhiệm xử lý sự cố; hiện ở danh sách và chi tiết dạng "Đang chờ …". */
+export const RESPONSIBLE_ROLE_LABELS = {
+  ADMIN: "Quản trị viên",
+  EXECUTOR: "Người thực thi",
+  VERIFIER: "Người xét duyệt",
+} as const;

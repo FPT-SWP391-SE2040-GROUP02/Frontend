@@ -18,6 +18,8 @@ import {
   planStageLabel,
 } from "../model/admin.content";
 import { useAdminDashboard, useAdminIncidents } from "../model/useAdmin";
+import { useSystemConfig } from "../model/useSystemConfig";
+import { SYSTEM_CONFIG_SERVICES } from "../model/systemConfig.content";
 import { AdminErrorMessage } from "./AdminStateMessage";
 import { ROUTES } from "@/shared/config/routes.config";
 
@@ -26,6 +28,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
   const navigate = useNavigate();
   const query = useAdminDashboard();
   const urgentIncidents = useAdminIncidents({ status: "OPEN", pageIndex: 1, pageSize: 5 });
+  const serviceConfig = useSystemConfig();
 
   if (query.isPending)
     return (
@@ -341,6 +344,50 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
               </ul>
               <p className="mt-3 text-sm text-heritage-muted">
                 Đã đóng {data.closedPlans} kho, không tính ở đây.
+              </p>
+            </section>
+          )}
+          {serviceConfig.isSuccess && serviceConfig.data.services.length > 0 && (
+            <section
+              aria-labelledby="admin-external-services"
+              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+            >
+              <h2 id="admin-external-services" className="text-base font-semibold">
+                Dịch vụ ngoài
+              </h2>
+              <ul className="mt-3 divide-y divide-heritage-border">
+                {serviceConfig.data.services.map((service) => {
+                  const failed = service.status.lastOutcome === "FAILED";
+                  const ok = service.status.lastOutcome === "SUCCEEDED";
+                  return (
+                    <li
+                      key={service.serviceKey}
+                      className="flex items-center justify-between gap-3 py-2 text-sm"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span
+                          aria-hidden="true"
+                          className={`size-2.5 rounded-full ${
+                            failed ? "bg-red-600" : ok ? "bg-emerald-600" : "bg-stone-300"
+                          }`}
+                        />
+                        {SYSTEM_CONFIG_SERVICES[service.serviceKey]?.title ?? service.serviceKey}
+                      </span>
+                      <span
+                        className={failed ? "font-semibold text-red-700" : "text-heritage-muted"}
+                      >
+                        {failed
+                          ? `Lỗi ${service.status.lastErrorCode ?? ""}`.trim()
+                          : ok
+                            ? "Hoạt động"
+                            : "Chưa có lần gọi"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="mt-2 text-xs text-heritage-muted">
+                Theo lần gọi gần nhất từ lúc máy chủ khởi động.
               </p>
             </section>
           )}

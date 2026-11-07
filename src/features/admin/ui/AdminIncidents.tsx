@@ -8,6 +8,7 @@ import {
   INCIDENT_EVENT_LABELS,
   INCIDENT_STATUS_LABELS,
   INCIDENT_TYPE_LABELS,
+  RESPONSIBLE_ROLE_LABELS,
   defaultReviewLocal,
   formatDateTime,
   localDateTimeToIso,
@@ -54,6 +55,15 @@ function StatusBadge({ status }: { status: IncidentStatus }) {
       className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[status]}`}
     >
       {INCIDENT_STATUS_LABELS[status]}
+    </span>
+  );
+}
+
+/** Sự cố do người liên quan xử lý: Admin chỉ theo dõi nên hiện "Đang chờ …". */
+function WaitingBadge({ role }: { role: keyof typeof RESPONSIBLE_ROLE_LABELS }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-stone-300 bg-stone-50 px-2.5 py-0.5 text-xs font-medium text-stone-700">
+      Đang chờ {RESPONSIBLE_ROLE_LABELS[role]}
     </span>
   );
 }
@@ -241,6 +251,9 @@ function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => vo
         <span className="flex flex-wrap items-start gap-2">
           <StatusBadge status={item.status} />
           {item.overdue && item.status !== "RESOLVED" && <OverdueBadge />}
+          {item.status !== "RESOLVED" && item.responsibleRole !== "ADMIN" && (
+            <WaitingBadge role={item.responsibleRole} />
+          )}
         </span>
         <span className="flex flex-col gap-1 text-sm tabular-nums">
           <b className="font-medium">{formatDateTime(item.dueAt)}</b>
@@ -356,6 +369,9 @@ function IncidentDetailBody({
               </h2>
               <StatusBadge status={detail.status} />
               {detail.overdue && open && <OverdueBadge />}
+              {open && detail.responsibleRole !== "ADMIN" && (
+                <WaitingBadge role={detail.responsibleRole} />
+              )}
             </div>
             <p className="break-words text-sm">{detail.summary}</p>
           </section>
