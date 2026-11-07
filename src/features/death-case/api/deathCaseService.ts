@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { executorAssetPageSchema } from "../model/executorAsset.schema";
 import { apiClient } from "@/shared/api/axiosClient";
 import {
   deathCaseSchema,
@@ -103,6 +104,22 @@ export const deathCaseService = {
       await apiClient.post<unknown, unknown>(
         `${path(caseId)}/handover-turns/${id.parse(turnId)}/confirm-identity`,
       ),
+    );
+  },
+  /** Tài sản của kho Executor đang phụ trách (chỉ mô tả). Người không phải Executor hiệu lực nhận 404. */
+  async assets(vaultId: string, signal?: AbortSignal) {
+    return executorAssetPageSchema.parse(
+      await apiClient.get<unknown, unknown>(
+        `/executor/vaults/${z.string().uuid().parse(vaultId)}/assets`,
+        { params: { pageIndex: 1, pageSize: 100 }, signal },
+      ),
+    );
+  },
+  /** Tải nội dung một tài sản; server giải mã và ghi nhật ký người thực hiện là Executor. */
+  async downloadAsset(vaultId: string, assetId: string): Promise<Blob> {
+    return await apiClient.get<Blob, Blob>(
+      `/executor/vaults/${z.string().uuid().parse(vaultId)}/assets/${z.string().uuid().parse(assetId)}/content`,
+      { responseType: "blob" },
     );
   },
 };
