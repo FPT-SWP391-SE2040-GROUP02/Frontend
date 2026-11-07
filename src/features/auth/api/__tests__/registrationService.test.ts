@@ -11,6 +11,7 @@ const request = {
   fullName: "Test User",
   password: "Abcdefg!",
   confirmPassword: "Abcdefg!",
+  phone: "0912345678",
 };
 const user = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -29,7 +30,7 @@ describe("Backend registration and verification contracts", () => {
   it("accepts bodyless registration and sends exactly the C# request fields", async () => {
     vi.mocked(axiosClient.post).mockResolvedValue(undefined);
     await expect(
-      authService.register({ ...request, ...{ role: "ADMIN", phone: "untrusted" } }),
+      authService.register({ ...request, ...{ role: "ADMIN" } }),
     ).resolves.toBeUndefined();
     expect(axiosClient.post).toHaveBeenCalledExactlyOnceWith("/auth/register", request);
   });

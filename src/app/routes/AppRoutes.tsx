@@ -82,6 +82,11 @@ const InvitationsPage = lazy(() =>
     default: module.InvitationsPage,
   })),
 );
+const CompletePhonePage = lazy(() =>
+  import("@/pages/auth/CompletePhonePage").then((module) => ({
+    default: module.CompletePhonePage,
+  })),
+);
 const ExecutorSettingsPage = lazy(() =>
   import("@/pages/executor/ExecutorSettingsPage").then((module) => ({
     default: module.ExecutorSettingsPage,
@@ -306,6 +311,11 @@ export function AppRoutes() {
 
         {/* Mockup 10 — Phiên hết hạn sau 30 phút bất hoạt */}
         <Route path={ROUTES.AUTH.SESSION_EXPIRED} element={<SessionExpiredPage />} />
+
+        {/* Tài khoản chưa có số điện thoại (thường là tạo bằng Google) phải nhập số trước khi vào trang chính */}
+        <Route element={<ProtectedRoute allowMissingPhone />}>
+          <Route path={ROUTES.AUTH.COMPLETE_PHONE} element={<CompletePhonePage />} />
+        </Route>
 
         {/* Tuyến đường đăng ký và quên mật khẩu */}
         <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />

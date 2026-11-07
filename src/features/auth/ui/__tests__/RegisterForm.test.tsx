@@ -39,6 +39,7 @@ function setup() {
   fireEvent.change(screen.getByLabelText("Email"), {
     target: { value: "user+invite@example.test" },
   });
+  fireEvent.change(screen.getByLabelText("Số điện thoại"), { target: { value: "0912 345 678" } });
   fireEvent.change(screen.getByLabelText("Mật khẩu"), { target: { value: "Abcdefg!" } });
   fireEvent.change(screen.getByLabelText("Xác nhận mật khẩu"), { target: { value: "Abcdefg!" } });
   fireEvent.click(screen.getByRole("button", { name: "Tạo tài khoản" }));
@@ -53,6 +54,7 @@ describe("RegisterForm bodyless acceptance", () => {
     expect(authService.register).toHaveBeenCalledExactlyOnceWith({
       email: "user+invite@example.test",
       fullName: "Test User",
+      phone: "0912345678",
       password: "Abcdefg!",
       confirmPassword: "Abcdefg!",
     });
