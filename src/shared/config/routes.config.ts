@@ -87,6 +87,8 @@ export const ROUTES = {
     SETTINGS: "/executor/settings",
     /** Lời mời làm Người thực hiện trong không gian Người thực hiện (cùng nội dung với bên Chủ kho). */
     INVITATIONS: "/executor/invitations",
+    /** Xác minh danh tính (eKYC) của Người thực hiện, cùng luồng với tab xác minh của Chủ kho. */
+    IDENTITY: "/executor/identity",
   },
 
   /** Cổng người thụ hưởng / Beneficiary */
