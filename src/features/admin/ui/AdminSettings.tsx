@@ -36,6 +36,7 @@ import {
 import { Switch } from "@/shared/ui/switch";
 import { describePlanKey, describePlanValue } from "../model/planCatalog";
 import { PlanCatalogEditor } from "./PlanCatalogEditor";
+import { PlanCards } from "./PlanCards";
 import {
   DEFAULT_MAX_TOTAL_SLOTS,
   MAX_SLOT_PRICE_PER_YEAR,
@@ -410,7 +411,8 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
   const queryClient = useQueryClient();
   const activeTab = section;
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
+  // Thẻ chọn nhóm đã bỏ theo prototype (các nhóm là mục gập mở); giữ "Tất cả" để bộ lọc tìm kiếm và Đã sửa hoạt động như cũ.
+  const selectedCategory = "Tất cả";
   const [filterMode, setFilterMode] = useState<"all" | "changed" | "security">("all");
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     CheckIn: true,
@@ -709,27 +711,6 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
             </div>
           </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
-            {["Tất cả", ...Object.keys(groupedSettings)].map((cat) => {
-              const label = cat === "Tất cả" ? "Tất cả nhóm" : groupedSettings[cat]?.title || cat;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                    selectedCategory === cat
-                      ? "bg-[#0A281E] text-white dark:bg-[#E0C486] dark:text-[#0A281E]"
-                      : "border border-heritage-border bg-heritage-surface text-heritage-muted hover:bg-heritage-primary/5"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
           {/* Grouped Settings Accordion */}
           <div className="space-y-4">
             {Object.entries(groupedSettings).map(([catKey, group]) => {
@@ -944,6 +925,11 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
             </div>
           </div>
 
+          <PlanCards getValue={getValue} setKeyValue={setKeyValue} />
+
+          <h2 className="pt-2 text-lg font-bold text-heritage-primary">
+            Chỉnh chi tiết giá, hạn mức và kỳ bán
+          </h2>
           <PlanCatalogEditor getValue={getValue} setKeyValue={setKeyValue} />
 
           {/* Sub-card: Add-on & Order Limits */}
