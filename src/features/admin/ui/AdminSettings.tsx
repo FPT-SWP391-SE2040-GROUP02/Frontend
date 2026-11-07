@@ -150,6 +150,17 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     dataType: "NUMBER",
   },
   {
+    key: "Handover.DownloadCodeRequired",
+    label: "Bắt buộc mã tải qua email",
+    category: "Handover",
+    categoryTitle: "Bàn giao & Lưu trữ",
+    defaultValue: "false",
+    description:
+      "Khi bật, mỗi lần người nhận tải một tệp phải nhập mã 6 số dùng một lần, gửi qua email của họ (hạn 10 phút).",
+    src: "DownloadCodeService.Required",
+    dataType: "BOOLEAN",
+  },
+  {
     key: "Handover.RetentionWindowDays",
     label: "Lưu dữ liệu trước khi xóa",
     category: "Handover",

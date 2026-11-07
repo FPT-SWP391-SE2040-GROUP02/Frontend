@@ -21,6 +21,7 @@ import { useGrantDownload } from "../model/useGrantDownload";
 import { useHandoverAction } from "../model/useHandoverAction";
 import { remainingText } from "../model/handover.format";
 import { currentHandoverStep } from "../model/handoverStep";
+import { DownloadCodeDialog } from "./DownloadCodeDialog";
 import { HandoverStepper } from "./HandoverStepper";
 
 type Turn = z.infer<typeof handoverTurnSchema>;
@@ -116,6 +117,24 @@ function TurnCard({ turn }: { turn: Turn }) {
   const client = useQueryClient();
   const [confirmed, setConfirmed] = useState(false);
   const [declining, setDeclining] = useState(false);
+  // Mục đang chờ nhập mã tải (khi Admin bật "mã tải").
+  const [codeFor, setCodeFor] = useState<Turn["items"][number] | null>(null);
+  const downloadName = (item: Turn["items"][number]) =>
+    (item.fileName ?? `${item.name}.txt`).replace(/[^\p{L}\p{N} ._()-]/gu, "_");
+  const startDownload = async (item: Turn["items"][number]) => {
+    const grantId = turn.grant!.id;
+    let required = false;
+    try {
+      required = await handoverService.downloadCodeRequired();
+    } catch {
+      // Không hỏi được cài đặt thì cứ thử tải; Backend vẫn là nơi quyết định có cần mã hay không.
+    }
+    if (required) {
+      setCodeFor(item);
+      return;
+    }
+    void content.download(() => handoverService.download(grantId, item.id), downloadName(item));
+  };
   const refresh = () => {
     void client.invalidateQueries({ queryKey: ["handover"] });
   };
@@ -270,12 +289,7 @@ function TurnCard({ turn }: { turn: Turn }) {
                     className={buttonStyles.outline}
                     aria-label={`Tải xuống ${item.name}`}
                     disabled={content.pending || action.pending}
-                    onClick={() =>
-                      void content.download(
-                        () => handoverService.download(turn.grant!.id, item.id),
-                        (item.fileName ?? `${item.name}.txt`).replace(/[^\p{L}\p{N} ._()-]/gu, "_"),
-                      )
-                    }
+                    onClick={() => void startDownload(item)}
                   >
                     <Download className="size-4" aria-hidden="true" />
                     Tải xuống
@@ -291,6 +305,20 @@ function TurnCard({ turn }: { turn: Turn }) {
         <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
           {action.error || content.error}
         </p>
+      )}
+      {codeFor && turn.grant && (
+        <DownloadCodeDialog
+          grantId={turn.grant.id}
+          onClose={() => setCodeFor(null)}
+          onSubmit={(code) => {
+            const item = codeFor;
+            setCodeFor(null);
+            void content.download(
+              () => handoverService.download(turn.grant!.id, item.id, code),
+              downloadName(item),
+            );
+          }}
+        />
       )}
       {declining && (
         <DeclineDialog

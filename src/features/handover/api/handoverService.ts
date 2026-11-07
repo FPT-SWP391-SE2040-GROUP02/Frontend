@@ -48,12 +48,35 @@ export const handoverService = {
       }),
     );
   },
+  /** Admin có bật "mã tải" không: bật thì mỗi lần tải phải kèm mã gửi qua email. */
+  async downloadCodeRequired(): Promise<boolean> {
+    const result = z
+      .object({ required: z.boolean() })
+      .parse(await apiClient.get<unknown, unknown>("/handover/download-code"));
+    return result.required;
+  },
+  /** Gửi mã tải 6 số (dùng một lần, hạn 10 phút) qua email của người đang đăng nhập. */
+  async requestDownloadCode(grantId: string): Promise<void> {
+    await apiClient.post<unknown, unknown>(`/handover/grants/${id.parse(grantId)}/download-code`);
+  },
   /** Không cache blob, không dùng public URL để vượt Bearer hoặc integrity check của BE. */
-  async download(grantId: string, itemId: string): Promise<Blob> {
+  async download(grantId: string, itemId: string, code?: string): Promise<Blob> {
     try {
       return await apiClient.get<Blob, Blob>(
         `/handover/grants/${id.parse(grantId)}/assets/${id.parse(itemId)}/content`,
-        { responseType: "blob" },
+        {
+          responseType: "blob",
+          ...(code
+            ? {
+                headers: {
+                  "X-Download-Code": z
+                    .string()
+                    .regex(/^\d{6}$/)
+                    .parse(code),
+                },
+              }
+            : {}),
+        },
       );
     } catch (failure) {
       throw await readBlobProblem(failure);
