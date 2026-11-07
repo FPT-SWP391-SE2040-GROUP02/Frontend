@@ -414,10 +414,8 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
   // Thẻ chọn nhóm đã bỏ theo prototype (các nhóm là mục gập mở); giữ "Tất cả" để bộ lọc tìm kiếm và Đã sửa hoạt động như cũ.
   const selectedCategory = "Tất cả";
   const [filterMode, setFilterMode] = useState<"all" | "changed" | "security">("all");
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    CheckIn: true,
-    Handover: true,
-  });
+  // Theo prototype chỉ nhóm đầu mở sẵn; các nhóm khác gập lại cho trang gọn.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ CheckIn: true });
 
   // Local draft values (key -> { value: string, isEnabled: boolean })
   const [draft, setDraft] = useState<Record<string, { value: string; isEnabled: boolean }>>({});
@@ -927,7 +925,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
 
           <PlanCards getValue={getValue} setKeyValue={setKeyValue} />
 
-          <h2 className="pt-2 text-lg font-bold text-heritage-primary">
+          <h2 id="plan-editor" className="scroll-mt-4 pt-2 text-lg font-bold text-heritage-primary">
             Chỉnh chi tiết giá, hạn mức và kỳ bán
           </h2>
           <PlanCatalogEditor getValue={getValue} setKeyValue={setKeyValue} />

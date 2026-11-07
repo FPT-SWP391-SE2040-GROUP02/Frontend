@@ -1,4 +1,4 @@
-import { Check, Minus } from "lucide-react";
+import { Check, Minus, Pencil } from "lucide-react";
 import { Switch } from "@/shared/ui/switch";
 import {
   CATALOG_KEY,
@@ -54,34 +54,73 @@ export function PlanCards({ getValue, setKeyValue }: PlanCardsProps) {
   const shortest = periods[0]?.years;
   const others = periods.slice(1);
 
+  const allPeriods = parsePeriods(getValue(PERIODS_KEY, serializePeriods(DEFAULT_PERIODS)));
+  const togglePeriod = (years: number) => {
+    const next = allPeriods.map((period) =>
+      period.years === years ? { ...period, on: !period.on } : period,
+    );
+    // Luôn phải còn ít nhất một kỳ đang bán.
+    if (!next.some((period) => period.on)) return;
+    setKeyValue(PERIODS_KEY, serializePeriods(next));
+  };
+  const goToEditor = () =>
+    document.getElementById("plan-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
   return (
-    <section
-      aria-label="Các gói đang cấu hình"
-      className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
-    >
-      <PlanCard
-        name="Free"
-        subtitle={`Mặc định, luôn bật · ${getValue("Plans.Free.Slots", "0")} người nhận`}
-        badge="Mặc định"
-        price="0đ"
-        priceNote="Miễn phí, không cần mua"
-        extraPrices={[]}
-        quota={formatQuota(getValue("Plans.Free.QuotaMb", "20"))}
-        slots={getValue("Plans.Free.Slots", "0")}
-        packages={getValue("Plans.Free.MaxPackages", "")}
-        features={parseFeatureLines(getValue(FREE_FEATURES_KEY, ""), FREE_FEATURE_DEFAULTS)}
-      />
-      {paid.map((plan) => (
-        <PaidPlanCard
-          key={plan.code}
-          plan={plan}
-          getValue={getValue}
-          setKeyValue={setKeyValue}
-          shortest={shortest}
-          others={others.map((period) => period.years)}
+    <div className="space-y-4">
+      <section
+        aria-label="Kỳ bán"
+        className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-heritage-border bg-white px-5 py-3 shadow-sm"
+      >
+        <h3 className="text-base font-bold text-heritage-primary">Kỳ bán</h3>
+        <span className="text-xs text-heritage-muted">Áp dụng cho mọi gói trả phí</span>
+        {allPeriods.map((period) => (
+          <label
+            key={period.years}
+            className="flex items-center gap-2 rounded-xl border border-heritage-border px-3 py-1.5 text-sm font-semibold"
+          >
+            {period.years} năm
+            <Switch
+              checked={period.on}
+              aria-label={`Bán kỳ ${period.years} năm`}
+              onCheckedChange={() => togglePeriod(period.years)}
+            />
+            <span className={`text-xs ${period.on ? "text-emerald-800" : "text-heritage-muted"}`}>
+              {period.on ? "Đang bán" : "Tạm ngừng"}
+            </span>
+          </label>
+        ))}
+      </section>
+      <section
+        aria-label="Các gói đang cấu hình"
+        className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
+      >
+        <PlanCard
+          name="Free"
+          subtitle={`Mặc định, luôn bật · ${getValue("Plans.Free.Slots", "0")} người nhận`}
+          badge="Mặc định"
+          price="0đ"
+          priceNote="Miễn phí, không cần mua"
+          extraPrices={[]}
+          quota={formatQuota(getValue("Plans.Free.QuotaMb", "20"))}
+          slots={getValue("Plans.Free.Slots", "0")}
+          packages={getValue("Plans.Free.MaxPackages", "")}
+          features={parseFeatureLines(getValue(FREE_FEATURES_KEY, ""), FREE_FEATURE_DEFAULTS)}
+          onEdit={goToEditor}
         />
-      ))}
-    </section>
+        {paid.map((plan) => (
+          <PaidPlanCard
+            key={plan.code}
+            plan={plan}
+            getValue={getValue}
+            setKeyValue={setKeyValue}
+            shortest={shortest}
+            others={others.map((period) => period.years)}
+            onEdit={goToEditor}
+          />
+        ))}
+      </section>
+    </div>
   );
 }
 
@@ -91,12 +130,14 @@ function PaidPlanCard({
   setKeyValue,
   shortest,
   others,
+  onEdit,
 }: {
   plan: PaidPlanMeta;
   getValue: PlanCardsProps["getValue"];
   setKeyValue: PlanCardsProps["setKeyValue"];
   shortest: number | undefined;
   others: number[];
+  onEdit: () => void;
 }) {
   const selling = getValue(saleKey(plan.code), "true") !== "false";
   const priceOf = (years: number) =>
@@ -115,6 +156,7 @@ function PaidPlanCard({
       slots={getValue(`Plans.${plan.code}.Slots`, plan.slotsDefault)}
       packages={getValue(`Plans.${plan.code}.MaxPackages`, "50")}
       features={parseFeatureLines(getValue(featuresKey(plan.code), ""), plan.featureDefaults)}
+      onEdit={onEdit}
       toggle={
         <label className="flex items-center gap-2 text-xs font-semibold text-emerald-800">
           <Switch
@@ -140,6 +182,7 @@ function PlanCard({
   slots,
   packages,
   features,
+  onEdit,
   toggle,
 }: {
   name: string;
@@ -152,6 +195,7 @@ function PlanCard({
   slots: string;
   packages: string;
   features: readonly string[];
+  onEdit: () => void;
   toggle?: React.ReactNode;
 }) {
   return (
@@ -205,6 +249,14 @@ function PlanCard({
           ))
         )}
       </ul>
+      <button
+        type="button"
+        onClick={onEdit}
+        className="mt-auto inline-flex min-h-10 items-center justify-center gap-2 self-start rounded-lg border border-heritage-border px-3 text-sm font-semibold hover:bg-[#e5ede8]"
+      >
+        <Pencil className="size-4" aria-hidden="true" />
+        Sửa gói
+      </button>
     </article>
   );
 }
