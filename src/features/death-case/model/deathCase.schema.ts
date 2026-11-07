@@ -5,6 +5,9 @@ export const executorVaultSchema = z.object({
   vaultId: z.string().uuid(),
   ownerFullName: z.string(),
   planStatus: z.string(),
+  /** Số lần Executor đã điểm danh thay liên tiếp và giới hạn Admin đặt. Backend cũ không có hai trường này. */
+  proxyUsed: z.number().int().nonnegative().optional(),
+  proxyLimit: z.number().int().nonnegative().optional(),
   /** Hướng dẫn Chủ kho để lại cho Executor; xem được trước khi hồ sơ được duyệt. Backend cũ không có trường này. */
   executorNote: z.string().nullish(),
   executorNoteUpdatedAt: timestamp.nullish(),

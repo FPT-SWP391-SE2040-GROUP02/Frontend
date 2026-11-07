@@ -18,7 +18,17 @@ import { executorVaultsKey } from "../model/useExecutorVaults";
  * Điểm danh thay mở cả một kỳ mới và hoãn bàn giao, không hoàn tác được, nên phải xác nhận trước khi gửi.
  * Không optimistic: chờ Backend xác nhận rồi tải lại danh sách kho, khi đó kho hết quá hạn và nút tự ẩn.
  */
-export function ProxyCheckIn({ vaultId }: { vaultId: string }) {
+export function ProxyCheckIn({
+  vaultId,
+  proxyUsed = 0,
+  proxyLimit = 0,
+}: {
+  vaultId: string;
+  proxyUsed?: number;
+  proxyLimit?: number;
+}) {
+  // Hết lượt thì Backend từ chối; khóa nút và báo rõ để Executor biết cần báo tin thay vì thử lại.
+  const exhausted = proxyLimit > 0 && proxyUsed >= proxyLimit;
   const [confirming, setConfirming] = useState(false);
   const client = useQueryClient();
   const action = usePrivateAction();
@@ -35,6 +45,7 @@ export function ProxyCheckIn({ vaultId }: { vaultId: string }) {
       <button
         type="button"
         className={buttonStyles.outline}
+        disabled={exhausted}
         onClick={() => {
           action.reset();
           setConfirming(true);
@@ -45,6 +56,15 @@ export function ProxyCheckIn({ vaultId }: { vaultId: string }) {
       <p className="text-xs text-heritage-muted">
         Điểm danh hộ owner cho đến khi có giấy chứng tử.
       </p>
+      {proxyLimit > 0 && (
+        <p
+          className={`text-xs ${exhausted ? "font-semibold text-red-700" : "text-heritage-muted"}`}
+        >
+          Đã điểm danh thay {proxyUsed}/{proxyLimit} lượt liên tiếp.
+          {exhausted &&
+            " Đã hết lượt: hãy báo tin nếu có giấy chứng tử, hoặc liên hệ quản trị viên."}
+        </p>
+      )}
       {confirming && (
         <Dialog open onOpenChange={(open) => !open && !action.pending && setConfirming(false)}>
           <DialogContent className="sm:max-w-lg">

@@ -7,6 +7,8 @@ import { buttonStyles, InfoRow, Notice, Panel } from "@/shared/ui/heritageKit";
 import { useRejectedAck } from "../model/useRejectedAck";
 import { planStatusLabel } from "./executorLabels";
 import { ProxyCheckIn } from "./ProxyCheckIn";
+import { ExecutorAssets } from "./ExecutorAssets";
+import { PlanStepper } from "@/shared/ui/PlanStepper";
 
 const duties = () => [
   { title: "Báo tin", text: "Cho hệ thống biết đã đến lúc bàn giao." },
@@ -29,6 +31,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
     !hasCase && Boolean(vault.lastRejectedDeathCaseId) && !rejectedAck.acknowledged;
   return (
     <div className="space-y-6">
+      <PlanStepper planStatus={vault.planStatus} />
       {showRejected && (
         <Notice
           tone="danger"
@@ -57,7 +60,11 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           còn sống”.
           {!hasCase && (
             <div className="mt-3">
-              <ProxyCheckIn vaultId={vault.vaultId} />
+              <ProxyCheckIn
+                vaultId={vault.vaultId}
+                proxyUsed={vault.proxyUsed}
+                proxyLimit={vault.proxyLimit}
+              />
             </div>
           )}
         </Notice>
@@ -106,6 +113,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
               <p className="text-sm text-heritage-muted">Chủ kho chưa để lại hướng dẫn.</p>
             )}
           </Panel>
+          <ExecutorAssets vaultId={vault.vaultId} />
           <Panel title="Bạn sẽ làm gì?">
             <ol className="divide-y divide-heritage-border">
               {duties().map((duty, index) => (
