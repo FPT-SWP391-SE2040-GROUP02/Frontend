@@ -145,7 +145,7 @@ function IncidentList({ params }: { params: ReturnType<typeof useAdminIncidentPa
         />
       </ListFilterBar>
       <section aria-labelledby="admin-incidents-heading" className="space-y-3">
-        <h2 id="admin-incidents-heading" className="text-lg font-semibold">
+        <h2 id="admin-incidents-heading" className="sr-only">
           Danh sách sự cố
         </h2>
         <IncidentResult params={params} query={query} />
@@ -235,6 +235,13 @@ function IncidentResult({
   );
 }
 
+/** Viền trái của hàng: đỏ khi quá hạn, vàng khi đang mở, xanh dương khi đang xử lý, trơ khi đã xử lý. */
+function incidentTone(item: IncidentSummary): "bad" | "warn" | "info" | "none" {
+  if (item.status === "RESOLVED") return "none";
+  if (item.overdue) return "bad";
+  return item.status === "OPEN" ? "warn" : "info";
+}
+
 function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => void }) {
   const assignee = useAssigneeLabel(item.assigneeUserId);
   return (
@@ -243,7 +250,7 @@ function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => vo
       onClick={onOpen}
       className="block min-h-11 w-full text-left hover:bg-stone-50 focus-visible:bg-stone-50"
     >
-      <ListTableRow>
+      <ListTableRow tone={incidentTone(item)}>
         <span className="flex min-w-0 flex-col gap-1">
           <span className="font-semibold">{INCIDENT_TYPE_LABELS[item.type]}</span>
           <span className="break-words text-sm text-heritage-muted">{item.summary}</span>
