@@ -289,6 +289,56 @@ function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => vo
   );
 }
 
+/** Ô ghi chú ngay trong phần lịch sử (prototype): gõ rồi lưu, không cần mở hộp thoại. */
+function IncidentNoteComposer({ incidentId, onDone }: { incidentId: string; onDone: () => void }) {
+  const [note, setNote] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  const submit = async () => {
+    const text = note.trim();
+    if (!text || pending) return;
+    setPending(true);
+    setError("");
+    try {
+      await adminService.addIncidentNote(incidentId, { note: text });
+      setNote("");
+      onDone();
+    } catch (failure) {
+      setError(adminActionError(failure) ?? "Chưa lưu được ghi chú. Vui lòng thử lại.");
+    } finally {
+      setPending(false);
+    }
+  };
+  return (
+    <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">
+      <label className="sr-only" htmlFor="incident-note-composer">
+        Ghi chú
+      </label>
+      <textarea
+        id="incident-note-composer"
+        rows={2}
+        maxLength={1000}
+        value={note}
+        onChange={(event) => setNote(event.target.value)}
+        placeholder="Viết ghi chú cho sự cố này"
+        className="w-full resize-y rounded-lg border border-heritage-border px-3 py-2 text-sm outline-none focus-visible:border-heritage-gold"
+      />
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      <Button
+        className="min-h-10"
+        disabled={pending || note.trim() === ""}
+        onClick={() => void submit()}
+      >
+        {pending ? "Đang lưu…" : "Lưu ghi chú"}
+      </Button>
+    </div>
+  );
+}
+
 type IncidentDialog = "assign" | "note" | "review" | "resolve" | "reassign" | "executor";
 
 function IncidentDetailView({ incidentId, onBack }: { incidentId: string; onBack: () => void }) {
@@ -462,6 +512,7 @@ function IncidentDetailBody({
             <h3 id="incident-events" className="text-base font-semibold">
               Lịch sử
             </h3>
+            {open && <IncidentNoteComposer incidentId={detail.id} onDone={done} />}
             {detail.events.length === 0 ? (
               <p className="text-sm text-heritage-muted">Chưa có sự kiện nào.</p>
             ) : (
@@ -471,7 +522,7 @@ function IncidentDetailBody({
                   .map((event, index) => (
                     <li
                       key={`${event.at}-${index}`}
-                      className="rounded-lg border border-heritage-border p-3 text-sm"
+                      className="rounded-xl border border-heritage-border border-l-4 border-l-heritage-gold bg-white p-3 text-sm"
                     >
                       <p className="flex flex-wrap items-baseline justify-between gap-2">
                         <span className="font-medium">{INCIDENT_EVENT_LABELS[event.kind]}</span>

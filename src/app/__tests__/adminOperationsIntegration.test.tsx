@@ -587,6 +587,30 @@ describe("Số đếm trên thẻ trạng thái", () => {
   });
 });
 
+describe("Ô ghi chú trong lịch sử sự cố", () => {
+  it("lưu ghi chú ngay trong lịch sử và làm mới chi tiết", async () => {
+    backend((call) => {
+      if (call.method === "post" && call.url === `/admin/incidents/${INCIDENT_ID}/notes`)
+        return incidentDetail();
+      if (call.url === `/admin/incidents/${INCIDENT_ID}`) return incidentDetail();
+      return page([]);
+    });
+    setup(`${incidentsPath}&incident=${INCIDENT_ID}`);
+    const box = await screen.findByLabelText("Ghi chú");
+    const save = screen.getAllByRole("button", { name: "Lưu ghi chú" })[0];
+    expect(save).toBeDisabled();
+    fireEvent.change(box, { target: { value: "Đã gọi cho chủ kho" } });
+    expect(save).toBeEnabled();
+    fireEvent.click(save);
+    await waitFor(() =>
+      expect(callsTo("post", `/admin/incidents/${INCIDENT_ID}/notes`).at(-1)?.body).toMatchObject({
+        note: "Đã gọi cho chủ kho",
+      }),
+    );
+    await waitFor(() => expect(screen.getByLabelText("Ghi chú")).toHaveValue(""));
+  });
+});
+
 describe("Hộp Tạm giữ kho trong chi tiết sự cố", () => {
   it("hiện hold đang hiệu lực của kho và gửi đúng vaultId", async () => {
     backend((call) => {
