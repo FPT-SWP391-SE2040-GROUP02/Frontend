@@ -102,7 +102,7 @@ export function AdminPayments() {
         . Trang này chỉ xem, không sửa giao dịch hay ghi nhận thanh toán.
       </p>
       <section aria-labelledby="admin-payments-heading" className="space-y-3">
-        <h2 id="admin-payments-heading" className="text-lg font-semibold">
+        <h2 id="admin-payments-heading" className="sr-only">
           Danh sách giao dịch
         </h2>
         <PaymentResult params={params} />
@@ -187,9 +187,15 @@ function PaymentResult({ params }: { params: ReturnType<typeof useAdminPaymentPa
   );
 }
 
+/** Viền trái: xanh khi thành công, đỏ khi cần đối chiếu, trơ khi mới nhận. */
+function paymentTone(status: PaymentTransactionStatus): "ok" | "bad" | "none" {
+  if (status === "MATCHED" || status === "RESOLVED") return "ok";
+  return status === "RECONCILIATION_REQUIRED" ? "bad" : "none";
+}
+
 function PaymentRow({ transaction }: { transaction: PaymentTransaction }) {
   return (
-    <ListTableRow>
+    <ListTableRow tone={paymentTone(transaction.status)}>
       <div className="flex flex-col items-start gap-2">
         <b className="font-semibold tabular-nums">{formatDateTime(transaction.receivedAt)}</b>
         {transaction.environment === "Test" && (
