@@ -120,6 +120,10 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         không đọc được nội dung kho.
       </Notice>
       <p className="text-xs leading-6 text-heritage-muted">{query.data.scopeText}</p>
+      <p className="text-xs leading-6 text-heritage-muted">
+        Khi Chủ kho kích hoạt kế hoạch, email và số điện thoại của bạn sẽ được gửi cho người nhận để
+        họ liên hệ.
+      </p>
       {query.data.status === "ACCEPTED" ? (
         <p>Lời mời đã được chấp nhận.</p>
       ) : !authenticated ? (
