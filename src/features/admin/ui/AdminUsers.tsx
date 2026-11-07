@@ -237,8 +237,8 @@ function userTone(status: AdminUserStatus): "none" | "warn" | "bad" {
 function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: string) => void }) {
   return (
     <ListTable
-      columns="minmax(200px,1.4fr) 120px minmax(130px,.8fr) minmax(150px,1fr) minmax(170px,auto)"
-      headings={["Người dùng", "Vai trò", "Trạng thái", "Hoạt động", "Thao tác"]}
+      columns="minmax(200px,1.4fr) 130px 140px minmax(150px,1fr) 90px"
+      headings={["Người dùng", "Vai trò", "Trạng thái", "Hoạt động", ""]}
     >
       {data.items.map((user) => (
         <ListTableRow key={user.id} tone={userTone(user.status)}>
@@ -279,16 +279,19 @@ function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: s
                 : "Chưa đăng nhập"}
             </small>
           </div>
-          <div role="cell" className="flex flex-wrap items-center gap-2">
+          <div role="cell" className="flex flex-col items-stretch gap-2 self-center">
             <Button
               variant="outline"
-              className="min-h-10"
+              className="min-h-[34px] px-3 text-[13px]"
               aria-label={`Xem ${user.fullName || user.email}`}
               onClick={() => onOpen(user.id)}
             >
               Xem
             </Button>
-            <AdminUserActions user={user} />
+            {/* Đổi vai trò và khóa tài khoản chỉ hiện khi rê chuột hoặc dùng bàn phím vào hàng; hàng mặc định gọn như prototype. */}
+            <div className="hidden flex-col gap-2 group-focus-within:flex group-hover:flex">
+              <AdminUserActions user={user} />
+            </div>
           </div>
         </ListTableRow>
       ))}
