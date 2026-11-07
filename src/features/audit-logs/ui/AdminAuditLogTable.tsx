@@ -29,7 +29,7 @@ export function AdminAuditLogTable({ items }: { items: AdminAuditLogEntry[] }) {
       {items.map((entry) => {
         const [date, time] = splitDateTime(formatDateTime(entry.at));
         return (
-          <ListTableRow key={entry.id}>
+          <ListTableRow key={entry.id} tone={entry.outcome === "SUCCEEDED" ? "none" : "bad"}>
             <div className="flex flex-col">
               <b className="font-semibold tabular-nums">{date}</b>
               <small className="tabular-nums text-heritage-muted">{time}</small>
