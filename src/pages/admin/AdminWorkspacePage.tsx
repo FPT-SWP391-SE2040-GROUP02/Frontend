@@ -16,6 +16,7 @@ import {
   AdminHolds,
   AdminIncidents,
   AdminOverview,
+  AdminOverviewToolbar,
   AdminPayments,
   AdminSettings,
   AdminSystemConfig,
@@ -185,6 +186,7 @@ export function AdminWorkspacePage() {
       navigation={navigation}
       title={VIEWS[view].title}
       description={VIEWS[view].description}
+      actions={view === "overview" ? <AdminOverviewToolbar /> : undefined}
     >
       {view === "overview" && (
         <AdminOverview

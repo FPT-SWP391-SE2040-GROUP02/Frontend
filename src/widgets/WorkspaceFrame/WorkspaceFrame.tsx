@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Menu, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
@@ -21,6 +21,8 @@ export interface WorkspaceFrameProps {
   title: string;
   /** Dòng mô tả dưới tiêu đề; để trống thì không hiện. */
   description?: string;
+  /** Nút hoặc thông tin đặt bên phải tiêu đề (ví dụ giờ cập nhật và nút tải lại). */
+  actions?: ReactNode;
   children: ReactNode;
   role?: "owner" | "admin";
   active?: string;
@@ -40,11 +42,13 @@ function initials(fullName: string) {
 export function WorkspaceFrame({
   title,
   description,
+  actions,
   children,
   navigation,
   active,
   role,
 }: WorkspaceFrameProps) {
+  const [moreOpen, setMoreOpen] = useState(false);
   const home = useAccountHome();
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const items = navigation ?? [
@@ -60,7 +64,8 @@ export function WorkspaceFrame({
       logoutHref={ROUTES.AUTH.LOGOUT}
       logoutLabel="Đăng xuất"
       navigation={
-        <nav aria-label="Menu chính" className="space-y-0.5 p-3">
+        // Trên điện thoại menu chuyển xuống thanh tab ở đáy màn hình (xem bên dưới); menu bên trái chỉ cho máy tính.
+        <nav aria-label="Menu chính" className="hidden space-y-0.5 p-3 lg:block">
           {items.map((item, index) => {
             const startsGroup = item.group && item.group !== items[index - 1]?.group;
             const isActive = item.id === active;
@@ -116,13 +121,115 @@ export function WorkspaceFrame({
         </div>
       }
     >
-      <header>
-        <h1 className="text-[26px] font-bold leading-tight text-heritage-primary">{title}</h1>
-        {description && (
-          <p className="mt-1 max-w-[62ch] text-sm text-heritage-muted">{description}</p>
-        )}
+      <header className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
+        <div>
+          <h1 className="text-[26px] font-bold leading-tight text-heritage-primary">{title}</h1>
+          {description && (
+            <p className="mt-1 max-w-[62ch] text-sm text-heritage-muted">{description}</p>
+          )}
+        </div>
+        {actions}
       </header>
       {children}
+      <MobileTabs
+        items={items}
+        active={active}
+        moreOpen={moreOpen}
+        onToggleMore={() => setMoreOpen((open) => !open)}
+        onNavigate={() => setMoreOpen(false)}
+      />
+      {/* Chừa chỗ cho thanh tab đáy trên điện thoại để không che nội dung cuối trang. */}
+      <div className="h-16 lg:hidden" aria-hidden="true" />
     </WorkspaceShell>
+  );
+}
+
+/** Số mục chính hiện thẳng trên thanh tab; các mục còn lại nằm trong "Thêm". */
+const MAIN_TABS = 4;
+
+/** Thanh tab ở đáy màn hình điện thoại theo prototype: bốn mục chính và nút "Thêm" mở các mục còn lại. */
+function MobileTabs({
+  items,
+  active,
+  moreOpen,
+  onToggleMore,
+  onNavigate,
+}: {
+  items: WorkspaceNavigationItem[];
+  active?: string;
+  moreOpen: boolean;
+  onToggleMore: () => void;
+  onNavigate: () => void;
+}) {
+  const linked = items.filter((item) => item.to);
+  const main = linked.slice(0, MAIN_TABS);
+  const rest = linked.slice(MAIN_TABS);
+  const restActive = rest.some((item) => item.id === active);
+  return (
+    <>
+      {moreOpen && rest.length > 0 && (
+        <div className="fixed inset-x-0 bottom-16 z-40 border-t border-heritage-border bg-white p-3 shadow-lg lg:hidden">
+          <ul className="grid gap-1">
+            {rest.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.id}>
+                  <Link
+                    to={item.to!}
+                    onClick={onNavigate}
+                    aria-current={item.id === active ? "page" : undefined}
+                    className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium ${
+                      item.id === active ? "bg-[#e5ede8] text-heritage-primary" : ""
+                    }`}
+                  >
+                    {Icon && <Icon className="size-[18px]" aria-hidden="true" />}
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+      <nav
+        aria-label="Điều hướng nhanh"
+        className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-5 border-t border-heritage-border bg-white lg:hidden"
+      >
+        {main.map((item) => {
+          const Icon = item.icon;
+          const isActive = item.id === active;
+          return (
+            <Link
+              key={item.id}
+              to={item.to!}
+              onClick={onNavigate}
+              aria-current={isActive ? "page" : undefined}
+              className={`relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
+                isActive ? "text-heritage-primary" : "text-heritage-muted"
+              }`}
+            >
+              {Icon && <Icon className="size-5" aria-hidden="true" />}
+              {item.label}
+              {item.badge ? (
+                <span className="absolute right-[24%] top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-red-700 px-1 text-[10px] font-bold text-white">
+                  {item.badge}
+                </span>
+              ) : null}
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          aria-expanded={moreOpen}
+          onClick={onToggleMore}
+          className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
+            restActive || moreOpen ? "text-heritage-primary" : "text-heritage-muted"
+          }`}
+        >
+          <Menu className="size-5" aria-hidden="true" />
+          Thêm
+        </button>
+      </nav>
+    </>
   );
 }

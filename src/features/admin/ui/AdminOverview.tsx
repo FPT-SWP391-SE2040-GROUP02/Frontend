@@ -1,15 +1,7 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import {
-  AlertTriangle,
-  Clock,
-  RefreshCw,
-  ShieldAlert,
-  ArrowRight,
-  UserCheck,
-  Shield,
-} from "lucide-react";
+import { AlertTriangle, Clock, ShieldAlert, ArrowRight, UserCheck, Shield } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
@@ -142,30 +134,6 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
 
   return (
     <div className="mt-6 space-y-8" aria-busy={query.isFetching}>
-      {/* Top Header Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-heritage-muted">
-          Cập nhật lúc <time dateTime={data.serverTime}>{formatDateTime(data.serverTime)}</time>{" "}
-          (giờ máy chủ)
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="min-h-10 text-xs font-semibold"
-          onClick={() => {
-            void query.refetch();
-            void urgentIncidents.refetch();
-          }}
-          disabled={query.isFetching}
-        >
-          <RefreshCw
-            className={`size-3.5 ${query.isFetching ? "animate-spin" : ""}`}
-            aria-hidden="true"
-          />
-          Tải lại số liệu
-        </Button>
-      </div>
-
       {/* Bốn ô số liệu: biểu tượng trong ô màu nhạt, nhãn, số lớn, chú thích; bấm để lọc sự cố tương ứng. */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Tile

@@ -136,10 +136,12 @@ it("Admin xem đủ 8 bộ đếm thật và giờ máy chủ; số cần xử l
     expect(screen.getByText(label)).toBeInTheDocument();
   expect(screen.getAllByText("Cần xử lý")).toHaveLength(2);
   expect(screen.getByText(/giờ máy chủ/)).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Người dùng" })).toHaveAttribute(
-    "href",
-    ROUTES.DASHBOARD.USERS,
-  );
+  // Menu trái (máy tính) và thanh tab đáy (điện thoại) cùng có mục "Người dùng"; kiểm menu trái.
+  expect(
+    within(screen.getByRole("navigation", { name: "Menu chính" })).getByRole("link", {
+      name: "Người dùng",
+    }),
+  ).toHaveAttribute("href", ROUTES.DASHBOARD.USERS);
 });
 
 it("Tổng quan hiện kế hoạch theo giai đoạn, tải việc người xét duyệt và hoạt động gần đây", async () => {
