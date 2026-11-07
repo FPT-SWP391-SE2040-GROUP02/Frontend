@@ -49,6 +49,7 @@ describe("Module 0: Auth Zod Schemas Validation", () => {
     const validRegister = {
       fullName: "Alexander Hayes",
       email: "alexander.h@legacyvault.io",
+      phone: "0912345678",
       password: "SecurePassphrase2026!",
       confirmPassword: "SecurePassphrase2026!",
     };
@@ -60,6 +61,7 @@ describe("Module 0: Auth Zod Schemas Validation", () => {
     const mismatchRegister = {
       fullName: "Alexander Hayes",
       email: "alexander.h@legacyvault.io",
+      phone: "0912345678",
       password: "SecurePassphrase2026!",
       confirmPassword: "DifferentPassword123!",
     };
@@ -83,6 +85,7 @@ describe("Module 0: Auth Zod Schemas Validation", () => {
         registerSchema.safeParse({
           fullName: "Test Owner",
           email: "owner@example.test",
+          phone: "0912345678",
           password,
           confirmPassword: password,
         }).success,
@@ -94,6 +97,7 @@ describe("Module 0: Auth Zod Schemas Validation", () => {
     const payload = {
       fullName: "   ",
       email: "owner@example.test",
+      phone: "0912345678",
       password: "Abcdefg!",
       confirmPassword: "Abcdefg!",
     };

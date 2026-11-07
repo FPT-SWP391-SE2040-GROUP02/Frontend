@@ -8,7 +8,7 @@ import { ROLES, type Role } from "@/shared/constants/roles";
 import { ROUTES } from "@/shared/config/routes.config";
 import { ProtectedRoute } from "../ProtectedRoute";
 
-function renderAs(role: Role, wrongRoleGoesHome: boolean) {
+function renderAs(role: Role, wrongRoleGoesHome: boolean, phone = "0912345678") {
   const auth: AuthState = {
     isAuthenticated: true,
     isHydrating: false,
@@ -16,6 +16,7 @@ function renderAs(role: Role, wrongRoleGoesHome: boolean) {
       id: "u1",
       email: "fixture@example.invalid",
       fullName: "Fixture",
+      phone,
       role,
     } as AuthState["user"],
   };
@@ -33,6 +34,9 @@ function renderAs(role: Role, wrongRoleGoesHome: boolean) {
             }
           >
             <Route path={ROUTES.EXECUTOR.ROOT} element={<p>Khu Người thực hiện</p>} />
+          </Route>
+          <Route element={<ProtectedRoute allowMissingPhone />}>
+            <Route path={ROUTES.AUTH.COMPLETE_PHONE} element={<p>Trang nhập số điện thoại</p>} />
           </Route>
           <Route path={ROUTES.ADMIN.ROOT} element={<p>Trang Admin</p>} />
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<p>Trang Verifier</p>} />
@@ -53,8 +57,19 @@ describe("ProtectedRoute", () => {
     expect(screen.getByText("Khu Người thực hiện")).toBeInTheDocument();
   });
 
+  it("tài khoản thường chưa có số điện thoại phải qua trang nhập số", () => {
+    renderAs(ROLES.USER, true, "");
+    expect(screen.getByText("Trang nhập số điện thoại")).toBeInTheDocument();
+    expect(screen.queryByText("Khu Người thực hiện")).not.toBeInTheDocument();
+  });
+
   it("Admin mở khu Người thực hiện thì về trang Admin", () => {
     renderAs(ROLES.ADMIN, true);
+    expect(screen.getByText("Trang Admin")).toBeInTheDocument();
+  });
+
+  it("Admin chưa có số điện thoại không bị đưa qua trang nhập số", () => {
+    renderAs(ROLES.ADMIN, true, "");
     expect(screen.getByText("Trang Admin")).toBeInTheDocument();
   });
 

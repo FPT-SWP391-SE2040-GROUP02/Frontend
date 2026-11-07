@@ -16,6 +16,8 @@ export interface LoginRequest {
 export interface RegisterRequest {
   fullName: string;
   email: string;
+  /** Số di động Việt Nam đã chuẩn hóa (10 chữ số). */
+  phone: string;
   password: string;
   confirmPassword: string;
 }

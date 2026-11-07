@@ -7,6 +7,7 @@ import {
   ListChecks,
   Mail,
   Menu,
+  ScanFace,
   Settings,
   ShieldCheck,
   TrendingUp,
@@ -31,7 +32,7 @@ interface NavItem {
 }
 
 /**
- * Menu Người thực hiện: Tổng quan, Lời mời, Báo tin, Tiến trình, Quyền hạn, Cài đặt.
+ * Menu Người thực hiện: Tổng quan, Lời mời, Báo tin, Tiến trình, Quyền hạn, Xác minh, Cài đặt.
  * Lời mời nằm ngay dưới Tổng quan và luôn hiện, kể cả khi không còn lời mời nào (xem lịch sử).
  */
 const executorNavigation: NavItem[] = [
@@ -40,6 +41,7 @@ const executorNavigation: NavItem[] = [
   { label: "Báo tin", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
   { label: "Tiến trình", to: ROUTES.EXECUTOR.PROGRESS, icon: TrendingUp },
   { label: "Quyền hạn", to: ROUTES.EXECUTOR.PERMISSIONS, icon: ShieldCheck },
+  { label: "Xác minh", to: ROUTES.EXECUTOR.IDENTITY, icon: ScanFace },
   { label: "Cài đặt", to: ROUTES.EXECUTOR.SETTINGS, icon: Settings },
 ];
 
