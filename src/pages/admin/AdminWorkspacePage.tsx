@@ -3,13 +3,11 @@ import {
   CreditCard,
   History,
   Home,
-  Lock,
   ShieldCheck,
   SlidersHorizontal,
   Tag,
   TriangleAlert,
   Users,
-  Wrench,
 } from "lucide-react";
 import {
   AdminDevTools,
@@ -64,13 +62,6 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
     group: "Hệ thống",
   },
   {
-    id: "holds",
-    label: "Tạm giữ",
-    icon: Lock,
-    to: `${ROUTES.ADMIN.ROOT}?view=holds`,
-    group: "Hệ thống",
-  },
-  {
     id: "audit",
     label: "Nhật ký hoạt động",
     icon: History,
@@ -92,18 +83,9 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
  */
 const DEV_TOOLS_ENABLED = import.meta.env.DEV || ENV.ENABLE_DEVTOOLS;
 
-const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
-  ? [
-      ...NAVIGATION,
-      {
-        id: "dev-tools",
-        label: "Công cụ thử nghiệm",
-        to: `${ROUTES.ADMIN.ROOT}?view=dev-tools`,
-        icon: Wrench,
-        group: "Hệ thống",
-      },
-    ]
-  : NAVIGATION;
+// Menu chỉ có các mục của prototype. Tạm giữ nằm trong chi tiết sự cố; Công cụ thử nghiệm chỉ mở bằng
+// đường dẫn `?view=dev-tools` khi bật DEV_TOOLS_ENABLED.
+const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = NAVIGATION;
 
 const VIEWS = {
   overview: {

@@ -59,6 +59,7 @@ export function WorkspaceFrame({
   const fullName = user?.fullName ?? "Tài khoản";
   return (
     <WorkspaceShell
+      variant={role === "admin" ? "admin" : "default"}
       brand="LegacyVault"
       homeHref={home}
       logoutHref={ROUTES.AUTH.LOGOUT}
