@@ -200,20 +200,44 @@ interface SegmentTabsProps {
   onChange: (value: string) => void;
 }
 
-/** Hàng thẻ chọn nhanh một nhóm (trạng thái, vai trò); mỗi thẻ có thể kèm số lượng. */
+/**
+ * Hàng thẻ chọn nhanh một nhóm (trạng thái, vai trò) kiểu gạch chân của prototype: thẻ đang chọn có gạch vàng dưới
+ * chân và số đếm nền vàng nhạt; mỗi thẻ có thể kèm số lượng.
+ */
 export function ListSegmentTabs({ label, value, options, onChange }: SegmentTabsProps) {
   return (
-    <div role="group" aria-label={label} className="flex flex-wrap gap-2">
-      {options.map((option) => (
-        <ListPill
-          key={option.value}
-          pressed={value === option.value}
-          count={option.count}
-          onClick={() => onChange(option.value)}
-        >
-          {option.label}
-        </ListPill>
-      ))}
+    <div
+      role="group"
+      aria-label={label}
+      className="flex gap-0.5 overflow-x-auto border-b border-heritage-border"
+    >
+      {options.map((option) => {
+        const pressed = value === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={pressed}
+            onClick={() => onChange(option.value)}
+            className={`-mb-px flex items-center gap-2 whitespace-nowrap border-b-[3px] px-3.5 py-2.5 text-sm font-semibold transition-colors ${
+              pressed
+                ? "border-heritage-gold text-heritage-primary"
+                : "border-transparent text-heritage-muted hover:text-heritage-text"
+            }`}
+          >
+            {option.label}
+            {option.count !== undefined && (
+              <span
+                className={`min-w-[22px] rounded-full px-[7px] py-px text-center text-xs tabular-nums ${
+                  pressed ? "bg-[#fbf3e0] text-[#7a5a22]" : "bg-[#e8e5dd] text-heritage-muted"
+                }`}
+              >
+                {option.count}
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -265,7 +289,7 @@ export function ListTableRow({ children, tone }: { children: ReactNode; tone?: R
   return (
     <div
       role="row"
-      className={`grid gap-2 border-t border-[#e8e5dd] px-[18px] py-4 transition-colors first:border-t-0 md:grid-cols-[var(--cols)] md:items-start md:gap-4 ${
+      className={`group grid gap-2 border-t border-[#e8e5dd] px-[18px] py-4 transition-colors first:border-t-0 md:grid-cols-[var(--cols)] md:items-start md:gap-4 ${
         tone ? ROW_TONE_BAR[tone] : "hover:bg-heritage-gold/10"
       }`}
     >
