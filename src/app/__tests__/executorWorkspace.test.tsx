@@ -51,8 +51,6 @@ function deathCase(status: string, extra: Record<string, unknown> = {}) {
     },
     reviewVersionNo: null,
     missingRequirements: ["DATE_OF_DEATH", "FILES"],
-    ownerNotice: null,
-    objectionEndsAt: null,
     createdAt: CREATED_AT,
     updatedAt: null,
     etag: "case-v1",
@@ -609,13 +607,11 @@ describe("Executor progress", () => {
 describe("progress steps", () => {
   const record = (status: string, extra: Record<string, unknown> = {}) =>
     deathCase(status, extra) as unknown as DeathCase;
-  const now = new Date("2026-10-20T08:00:00Z");
   const states = (steps: ReturnType<typeof deriveSteps>) => steps.map((step) => step.state);
 
   it("starts at the first step while the case is a draft", () => {
-    expect(states(deriveSteps(record("DRAFT"), null, now))).toEqual([
+    expect(states(deriveSteps(record("DRAFT"), null))).toEqual([
       "current",
-      "pending",
       "pending",
       "pending",
       "pending",
@@ -623,12 +619,8 @@ describe("progress steps", () => {
     ]);
   });
 
-  it("sits on the 72-hour objection step until the window closes, then on review", () => {
-    const open = record("UNDER_REVIEW", { objectionEndsAt: "2026-10-22T08:00:00Z" });
-    expect(states(deriveSteps(open, null, now))[1]).toBe("current");
-    const closed = record("UNDER_REVIEW", { objectionEndsAt: "2026-10-19T08:00:00Z" });
-    expect(states(deriveSteps(closed, null, now))).toEqual([
-      "done",
+  it("sits on the review step right after submission (no objection window)", () => {
+    expect(states(deriveSteps(record("UNDER_REVIEW"), null))).toEqual([
       "done",
       "current",
       "pending",
@@ -638,8 +630,7 @@ describe("progress steps", () => {
   });
 
   it("marks the review step as an error when the case is rejected", () => {
-    expect(states(deriveSteps(record("REJECTED"), null, now))).toEqual([
-      "done",
+    expect(states(deriveSteps(record("REJECTED"), null))).toEqual([
       "done",
       "error",
       "pending",
@@ -658,30 +649,30 @@ describe("progress steps", () => {
         downloadedItems: downloaded,
       }) as unknown as HandoverProgressTurn;
     // Người nhận A đã đồng ý và tải xong; người nhận B còn chờ phản hồi lời mời.
-    expect(
-      states(deriveSteps(approved, null, now, 72, 30, turnOf("HANDOVER_COMMITTED", 1))),
-    ).toEqual(["done", "done", "done", "done", "done", "done"]);
-    expect(states(deriveSteps(approved, null, now, 72, 30, turnOf("INVITED")))).toEqual([
+    expect(states(deriveSteps(approved, null, 30, turnOf("HANDOVER_COMMITTED", 1)))).toEqual([
       "done",
+      "done",
+      "done",
+      "done",
+      "done",
+    ]);
+    expect(states(deriveSteps(approved, null, 30, turnOf("INVITED")))).toEqual([
       "done",
       "done",
       "current",
       "pending",
       "pending",
     ]);
-    expect(states(deriveSteps(approved, null, now, 72, 30, turnOf("READY_TO_ACCEPT")))[4]).toBe(
-      "current",
-    );
-    const declined = deriveSteps(approved, null, now, 72, 30, turnOf("DECLINED"));
-    expect(declined[4]).toMatchObject({ state: "error", caption: "Đã từ chối" });
-    expect(declined[5].state).toBe("pending");
+    expect(states(deriveSteps(approved, null, 30, turnOf("READY_TO_ACCEPT")))[3]).toBe("current");
+    const declined = deriveSteps(approved, null, 30, turnOf("DECLINED"));
+    expect(declined[3]).toMatchObject({ state: "error", caption: "Đã từ chối" });
+    expect(declined[4].state).toBe("pending");
   });
 
   it("derives the log newest first from the timestamps Backend returns", () => {
     const log = deriveLog(
       record("UNDER_REVIEW", {
         createdAt: "2026-10-18T08:00:00Z",
-        ownerNotice: { status: "DELIVERED", deliveredAt: "2026-10-20T07:00:00Z" },
         currentVersion: {
           ...deathCase("UNDER_REVIEW").currentVersion,
           submittedAt: "2026-10-19T08:00:00Z",
@@ -689,7 +680,6 @@ describe("progress steps", () => {
       }),
     );
     expect(log.map((entry) => entry.text)).toEqual([
-      "Hệ thống đã nhắn cho Chủ kho",
       "Bạn gửi hồ sơ (bản 1)",
       "Bạn mở hồ sơ báo tin",
     ]);

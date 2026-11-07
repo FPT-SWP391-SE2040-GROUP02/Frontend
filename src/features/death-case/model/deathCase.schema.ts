@@ -61,13 +61,6 @@ export const deathCaseSchema = z.object({
     .nullish(),
   /** Có khi REJECTED: lý do Verifier nhập để Executor mở hồ sơ mới. */
   rejectReason: z.string().nullish(),
-  ownerNotice: z
-    .object({
-      status: z.enum(["PENDING", "DELIVERED", "FAILED", "CANCELLED"]),
-      deliveredAt: timestamp.nullable(),
-    })
-    .nullable(),
-  objectionEndsAt: timestamp.nullable(),
   createdAt: timestamp,
   updatedAt: timestamp.nullable(),
   etag: z.string().min(1).max(64),

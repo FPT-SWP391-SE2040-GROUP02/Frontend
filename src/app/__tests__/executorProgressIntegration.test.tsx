@@ -127,8 +127,6 @@ function deathCase(status: string) {
     },
     reviewVersionNo: status === "DRAFT" ? null : 1,
     missingRequirements: [],
-    ownerNotice: status === "DRAFT" ? null : { status: "CANCELLED", deliveredAt: null },
-    objectionEndsAt: null,
     createdAt: CREATED_AT,
     updatedAt: null,
     etag: "case-v1",
@@ -353,22 +351,19 @@ it("does not request progress for a draft case", async () => {
   );
 });
 
-it("shows the 6 steps with the objection window as the current step after submission", async () => {
+it("shows the 5 steps with the review step as the current step after submission", async () => {
   vi.spyOn(apiClient, "get").mockImplementation((url) => {
     if (url === `/executor/death-cases/${CASE_ID}`)
-      return Promise.resolve({
-        ...deathCase("UNDER_REVIEW"),
-        objectionEndsAt: "2999-01-01T00:00:00+00:00",
-      });
+      return Promise.resolve(deathCase("UNDER_REVIEW"));
     if (url === `/executor/death-cases/${CASE_ID}/handover-progress`)
       return Promise.resolve(notStarted);
     return Promise.reject(new Error(`unexpected ${String(url)}`));
   });
   setup(<ExecutorProgress vault={vaultOf()} />, "/executor/progress");
-  const current = await screen.findByText("Phản đối 72 giờ");
+  const current = await screen.findByText("Xét duyệt");
   expect(current.closest("li")).toHaveAttribute("aria-current", "step");
   expect(screen.getByText("Báo tin").closest("li")).not.toHaveAttribute("aria-current");
-  expect(screen.getByText(/Chủ kho có 72 giờ để phản đối/)).toBeInTheDocument();
+  expect(screen.queryByText(/phản đối/i)).not.toBeInTheDocument();
 });
 
 it("counts remaining time from serverTime and marks past deadlines as overdue", () => {
@@ -421,15 +416,6 @@ it("shows the reject reason of a rejected case and no supplement block", async (
   expect(await screen.findByRole("heading", { name: "Hồ sơ đã bị từ chối" })).toBeInTheDocument();
   expect(screen.getByText("Lý do: Giấy chứng tử không khớp CCCD Chủ kho")).toBeInTheDocument();
   expect(screen.queryByText(/Yêu cầu từ Người xét duyệt/)).not.toBeInTheDocument();
-});
-
-it("accepts an owner notice cancelled by a rejection instead of failing to read the case", async () => {
-  const get = vi
-    .spyOn(apiClient, "get")
-    .mockResolvedValue({ ...deathCase("REJECTED"), rejectReason: "fixture" });
-  const record = await deathCaseService.get(CASE_ID);
-  expect(record.ownerNotice?.status).toBe("CANCELLED");
-  expect(get).toHaveBeenCalledTimes(1);
 });
 
 it("opens the last rejected case from the report page and shows its reason", async () => {

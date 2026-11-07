@@ -114,12 +114,12 @@ export const LANDING_CONTENT = {
       },
       {
         tag: "03 · Bàn giao",
-        title: "Chỉ mở khi đủ điều kiện, và bạn vẫn dừng được",
+        title: "Chỉ mở khi đủ điều kiện, có người chịu trách nhiệm",
         detail:
-          "Hệ thống nhắc bạn xác nhận định kỳ. Khi không có phản hồi và các lớp xác nhận đều đạt, bạn còn {objectionHours} giờ để phản đối trước khi người nhận được mở kho, rồi {grantDays} ngày để họ tải về.",
+          "Hệ thống nhắc bạn xác nhận định kỳ. Khi bạn không phản hồi sau các thư nhắc trễ, Người thực thi bạn chọn được báo để liên hệ kiểm tra. Chỉ khi có giấy chứng tử và Người xét duyệt (luật sư) xác nhận, người nhận mới được mở kho, rồi có {grantDays} ngày để tải về.",
         points: [
           "Nhắc xác nhận định kỳ, chỉ cần báo mình vẫn ổn",
-          "{objectionHours} giờ phản đối bằng nút “Tôi còn sống”",
+          "Người thực thi kiểm tra tình hình trước khi nộp giấy chứng tử",
           "Người nhận có {grantDays} ngày để tải về",
         ],
         visualTitle: "Từ im lặng đến bàn giao",
@@ -128,7 +128,6 @@ export const LANDING_CONTENT = {
           { title: "Người thực hiện báo tin", detail: "Lớp 1" },
           { title: "Người xét duyệt xác nhận", detail: "Lớp 2" },
           { title: "Người nhận xác minh eKYC", detail: "Lớp 3" },
-          { title: "{objectionHours} giờ để phản đối", detail: "Lớp 4" },
           { title: "{grantDays} ngày để tải về", detail: "Hoàn tất" },
         ],
       },
@@ -151,10 +150,6 @@ export const LANDING_CONTENT = {
       {
         title: "Người nhận xác minh danh tính",
         detail: "eKYC cơ bản để đúng người mới nhận được kho.",
-      },
-      {
-        title: "{objectionHours} giờ để phản đối",
-        detail: "Bạn, hoặc người thân của bạn, vẫn có thể dừng. Chỉ cần bấm “Tôi còn sống”.",
       },
     ],
   },
@@ -200,9 +195,9 @@ export const LANDING_CONTENT = {
         detail: "Ảnh chỉ dùng để đọc và so khớp, kết quả lưu kèm 4 số cuối số căn cước.",
       },
       {
-        title: "Luôn dừng được",
+        title: "Mọi quyết định đều có lý do",
         detail:
-          "Chỉ cần bấm “Tôi còn sống” trong {objectionHours} giờ, quá trình bàn giao dừng lại.",
+          "Người xét duyệt ghi lý do khi duyệt hoặc yêu cầu bổ sung; mọi thao tác quan trọng đều có nhật ký.",
       },
     ],
     limitsTitle: "Những giới hạn chúng tôi nói rõ",

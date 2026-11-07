@@ -1,3 +1,4 @@
+import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 import { type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,10 +10,8 @@ import { checkInService } from "@/features/dms/api/checkInService";
 import { dailyCheckInState } from "@/features/dms/model/dailyCheckIn";
 import type { checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
-import { useOwnerDeathCase } from "@/features/owner-objection/model/useOwnerDeathCase";
 import { formatDate } from "@/shared/lib/dateFormat";
 import type { z } from "zod";
-import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 type CheckInStatus = z.infer<typeof checkInStatusSchema>;
 
@@ -21,19 +20,14 @@ const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6"
 const GOLD_BADGE =
   "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]";
 
-/** Năm bước bàn giao theo thiết kế; nội dung cố định theo SRS, không lấy từ máy chủ. */
-const handoverSteps = (objectionHours: number, grantDays: number) => [
-  { title: "Báo tin", detail: "Người thực hiện báo tin.", short: "Báo tin" },
+/** Các bước bàn giao theo thiết kế; nội dung cố định theo bản chốt, không lấy từ máy chủ. */
+const handoverSteps = (grantDays: number) => [
+  { title: "Báo tin", detail: "Người thực thi báo tin.", short: "Báo tin" },
   { title: "Xét duyệt", detail: "Người xét duyệt kiểm tra.", short: "Xét duyệt" },
   {
     title: "Xác minh người nhận",
-    detail: "Người nhận xác nhận danh tính.",
+    detail: "Người nhận nộp hồ sơ chấp nhận hoặc từ chối.",
     short: "Xác minh người nhận",
-  },
-  {
-    title: `Phản đối ${objectionHours} giờ`,
-    detail: `Bạn có ${objectionHours} giờ để dừng lại.`,
-    short: `Thời gian phản đối ${objectionHours} giờ`,
   },
   {
     title: `Tải nội dung ${grantDays} ngày`,
@@ -55,7 +49,7 @@ function ProcessCard() {
   const policy = usePolicyWindows();
   const rows: ReactNode[] = [];
   let stepNumber = 0;
-  for (const step of handoverSteps(policy.objectionHours, policy.grantDays)) {
+  for (const step of handoverSteps(policy.grantDays)) {
     stepNumber = stepNumber + 1;
     rows.push(
       <li
@@ -284,57 +278,21 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
           {action.error}
         </p>
       )}
-      <p className="mt-4 text-xs text-white/60">
-        “Tôi còn sống” chỉ hiện khi có yêu cầu bàn giao, để dừng ngay.
-      </p>
     </section>
   );
 }
 
-function StatusCard({ vaultId }: { vaultId: string }) {
+function StatusCard() {
   const policy = usePolicyWindows();
-  const query = useOwnerDeathCase(vaultId, true);
-  let summary: ReactNode;
-  if (query.isPending) {
-    summary = (
-      <p role="status" className="text-sm text-heritage-muted">
-        Đang tải trạng thái bàn giao…
-      </p>
-    );
-  } else if (query.isError) {
-    summary = (
-      <div role="alert" className="space-y-3">
-        <p className="text-sm text-heritage-muted">Không tải được trạng thái bàn giao.</p>
-        <Button variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()}>
-          Thử lại
-        </Button>
-      </div>
-    );
-  } else if (query.data === null) {
-    summary = (
-      <p className="text-sm leading-6 text-heritage-muted">
-        Chưa có yêu cầu bàn giao. Khi bắt đầu, các bước sẽ hiện tại đây.
-      </p>
-    );
-  } else {
-    const deathCase = query.data;
-    summary = (
-      <div className="space-y-1 text-sm leading-6">
-        <p>
-          Đang có yêu cầu bàn giao <span className="font-semibold">{deathCase.caseCode}</span>.
-        </p>
-        <p className="text-heritage-muted">Trạng thái hồ sơ: {deathCase.status}</p>
-        {deathCase.objectionEndsAt !== null && (
-          <p className="text-heritage-muted">
-            Hạn phản đối: {formatDate(deathCase.objectionEndsAt)}
-          </p>
-        )}
-      </div>
-    );
-  }
+  const summary: ReactNode = (
+    <p className="text-sm leading-6 text-heritage-muted">
+      Khi bắt đầu bàn giao, các bước sẽ hiện tại đây. Từ lúc Người thực thi gửi hồ sơ chứng tử, kho
+      và tài khoản của bạn được khóa.
+    </p>
+  );
   const rows: ReactNode[] = [];
   let stepNumber = 0;
-  for (const step of handoverSteps(policy.objectionHours, policy.grantDays)) {
+  for (const step of handoverSteps(policy.grantDays)) {
     stepNumber = stepNumber + 1;
     rows.push(
       <li key={step.title} className="flex items-center gap-3 text-sm">
@@ -370,7 +328,7 @@ export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
       </div>
       <div className="space-y-6">
         <CheckInCard vaultId={vaultId} />
-        <StatusCard vaultId={vaultId} />
+        <StatusCard />
       </div>
     </div>
   );

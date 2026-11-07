@@ -22,8 +22,6 @@ const baseRecord: DeathCase = {
   },
   reviewVersionNo: null,
   missingRequirements: ["FILES"],
-  ownerNotice: null,
-  objectionEndsAt: null,
   createdAt: "2026-10-01T08:00:00Z",
   updatedAt: null,
 };

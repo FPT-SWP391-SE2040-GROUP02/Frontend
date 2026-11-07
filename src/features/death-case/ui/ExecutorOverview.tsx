@@ -7,13 +7,12 @@ import { buttonStyles, InfoRow, Notice, Panel } from "@/shared/ui/heritageKit";
 import { useRejectedAck } from "../model/useRejectedAck";
 import { planStatusLabel } from "./executorLabels";
 import { ProxyCheckIn } from "./ProxyCheckIn";
-import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
-const duties = (objectionHours: number) => [
+const duties = () => [
   { title: "Báo tin", text: "Cho hệ thống biết đã đến lúc bàn giao." },
   {
-    title: "Chờ phản đối và xét duyệt",
-    text: `Chủ kho có ${objectionHours} giờ để phản đối, rồi Người xét duyệt kiểm tra hồ sơ.`,
+    title: "Chờ xét duyệt",
+    text: "Người xét duyệt kiểm tra hồ sơ chứng tử.",
   },
   { title: "Theo dõi", text: "Xem tiến trình đến khi người nhận tải xong." },
 ];
@@ -22,7 +21,6 @@ const limits = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Tự chọn n
 
 /** Tổng quan một kho Executor đang phụ trách (thiết kế "Người thực hiện — Tổng quan"). */
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
-  const { objectionHours } = usePolicyWindows();
   const hasCase = Boolean(vault.openDeathCaseId);
   const rejectedAck = useRejectedAck(vault.lastRejectedDeathCaseId);
   // Báo "bị từ chối" đi TRƯỚC mọi banner khác (kể cả "quá hạn điểm danh", vì từ chối trả kế hoạch về trạng thái
@@ -110,7 +108,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           </Panel>
           <Panel title="Bạn sẽ làm gì?">
             <ol className="divide-y divide-heritage-border">
-              {duties(objectionHours).map((duty, index) => (
+              {duties().map((duty, index) => (
                 <li key={duty.title} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                   <span
                     aria-hidden="true"

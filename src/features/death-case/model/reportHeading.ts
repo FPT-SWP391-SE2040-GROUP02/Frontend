@@ -9,14 +9,11 @@ export interface ReportHeading {
 }
 
 /** Tiêu đề, mô tả và nhãn của trang Báo tin theo trạng thái hồ sơ. */
-export function reportHeading(
-  record: DeathCase | null | undefined,
-  objectionHours = 72,
-): ReportHeading {
+export function reportHeading(record: DeathCase | null | undefined): ReportHeading {
   if (!record) {
     return {
       title: "Báo tin",
-      description: `Khai báo ngắn gọn. Chủ kho có ${objectionHours} giờ để phản đối, rồi hồ sơ sang Người xét duyệt.`,
+      description: "Khai báo ngắn gọn. Sau khi gửi, hồ sơ sang Người xét duyệt.",
       badge: null,
     };
   }

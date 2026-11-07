@@ -6,19 +6,11 @@ import type { DeathCase, ExecutorVault } from "../model/deathCase.schema";
 import { useActiveCaseId, useDeathCase } from "../model/useDeathCase";
 import { useHandoverProgress } from "../model/useHandoverProgress";
 import { deriveLog, deriveSteps, type StepState } from "../model/progressSteps";
-import { remainingText } from "../model/remainingText";
 import { HandoverProgressPanel } from "./HandoverProgressPanel";
 import { ReviewFeedback } from "./ReviewFeedback";
 import { buttonStyles, Chip, formatDateTime, InfoRow, Panel } from "@/shared/ui/heritageKit";
 import { caseStatusInfo } from "./executorLabels";
 import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
-
-const noticeStatusLabels: Record<string, string> = {
-  PENDING: "Đang gửi",
-  DELIVERED: "Đã gửi",
-  FAILED: "Chưa gửi được",
-  CANCELLED: "Đã hủy",
-};
 
 const stepStyles: Record<StepState, string> = {
   done: "border-[#2E9E6E] bg-[#2E9E6E] text-white",
@@ -34,7 +26,7 @@ const captionStyles: Record<StepState, string> = {
   error: "text-[#A32119]",
 };
 
-function describe(record: DeathCase | null | undefined, now: Date, objectionHours: number): string {
+function describe(record: DeathCase | null | undefined): string {
   if (!record) return "Chưa có hồ sơ báo tin. Tiến trình bắt đầu sau khi bạn gửi hồ sơ.";
   switch (record.status) {
     case "DRAFT":
@@ -51,13 +43,12 @@ function describe(record: DeathCase | null | undefined, now: Date, objectionHour
       const sent = record.currentVersion.submittedAt
         ? `Hồ sơ đã gửi lúc ${formatDateTime(record.currentVersion.submittedAt)}. `
         : "";
-      const open = record.objectionEndsAt ? new Date(record.objectionEndsAt) > now : false;
-      return `${sent}${open ? `Chủ kho có ${objectionHours} giờ để phản đối, sau đó hồ sơ sang bước xét duyệt.` : "Hồ sơ đang chờ Người xét duyệt."}`;
+      return `${sent}Hồ sơ đang chờ Người xét duyệt.`;
     }
   }
 }
 
-/** Thanh 6 bước, nhật ký và hạn đang chờ; kèm tiến độ bàn giao khi hồ sơ đã gửi. */
+/** Thanh 5 bước, nhật ký và hạn đang chờ; kèm tiến độ bàn giao khi hồ sơ đã gửi. */
 export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
   const policy = usePolicyWindows();
   const caseId = useActiveCaseId(vault);
@@ -69,7 +60,6 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
   const [chosenTurn, setChosenTurn] = useState<string | null>(null);
   const turns = handover.data?.turns ?? [];
   const selectedTurn = turns.find((turn) => turn.turnId === chosenTurn) ?? turns[0] ?? null;
-  const now = new Date();
   if (caseId && query.isPending) return <p role="status">Đang tải hồ sơ…</p>;
   if (caseId && query.isError) {
     return (
@@ -81,14 +71,7 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
       </div>
     );
   }
-  const steps = deriveSteps(
-    record,
-    handover.data,
-    now,
-    policy.objectionHours,
-    policy.grantDays,
-    selectedTurn,
-  );
+  const steps = deriveSteps(record, handover.data, policy.grantDays, selectedTurn);
   let viewingText: string | null = null;
   if (approved && selectedTurn) {
     const name =
@@ -123,9 +106,7 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
             </li>
           ))}
         </ol>
-        <p className="mt-6 text-sm leading-6 text-heritage-muted">
-          {describe(record, now, policy.objectionHours)}
-        </p>
+        <p className="mt-6 text-sm leading-6 text-heritage-muted">{describe(record)}</p>
         {viewingText && (
           <p role="status" className="mt-2 text-sm font-medium text-heritage-primary">
             {viewingText}
@@ -160,16 +141,6 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
           <Panel title="Đang chờ">
             <dl>
               <InfoRow label="Chủ kho">{vault.ownerFullName}</InfoRow>
-              <InfoRow label="Thông báo">
-                {record.ownerNotice
-                  ? (noticeStatusLabels[record.ownerNotice.status] ?? record.ownerNotice.status)
-                  : "Chưa gửi hồ sơ"}
-              </InfoRow>
-              <InfoRow label="Hạn phản đối">
-                {record.objectionEndsAt
-                  ? `${formatDateTime(record.objectionEndsAt)} (${remainingText(record.objectionEndsAt, now.toISOString())})`
-                  : "Chưa bắt đầu"}
-              </InfoRow>
             </dl>
           </Panel>
         </div>
