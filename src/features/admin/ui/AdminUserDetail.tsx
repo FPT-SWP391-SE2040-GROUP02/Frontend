@@ -59,11 +59,21 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
   return (
     <div className="mt-6 space-y-6">
       {back}
-      <section className="space-y-3 rounded-2xl border border-heritage-border bg-heritage-surface p-5">
+      <section className="space-y-4 rounded-2xl border border-heritage-border bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="break-words text-xl font-semibold">{user.fullName || "Chưa có tên"}</h2>
-            <p className="break-all text-sm text-heritage-muted">{user.email}</p>
+          <div className="flex min-w-0 items-center gap-4">
+            <span
+              aria-hidden="true"
+              className="grid size-[52px] shrink-0 place-items-center rounded-full bg-[#dfe9e3] text-[17px] font-semibold text-heritage-primary"
+            >
+              {(user.fullName.trim() || user.email).charAt(0).toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <h2 className="break-words text-[26px] font-bold leading-tight text-heritage-primary">
+                {user.fullName || "Chưa có tên"}
+              </h2>
+              <p className="break-all text-sm text-heritage-muted">{user.email}</p>
+            </div>
           </div>
           <AdminUserActions user={user} />
         </div>
