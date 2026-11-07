@@ -23,7 +23,7 @@ const OUTCOME_STYLES: Record<AdminAuditLogEntry["outcome"], string> = {
 export function AdminAuditLogTable({ items }: { items: AdminAuditLogEntry[] }) {
   return (
     <ListTable
-      columns="130px minmax(160px,.9fr) minmax(220px,1.4fr) minmax(180px,1fr)"
+      columns="110px minmax(150px,.8fr) minmax(240px,1.5fr) minmax(180px,1fr)"
       headings={["Thời điểm", "Người thực hiện", "Hành động", "Kết quả · lý do"]}
     >
       {items.map((entry) => {
