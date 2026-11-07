@@ -1,5 +1,17 @@
 import { useLocation } from "react-router-dom";
 import {
+  CreditCard,
+  History,
+  Home,
+  Lock,
+  ShieldCheck,
+  SlidersHorizontal,
+  Tag,
+  TriangleAlert,
+  Users,
+  Wrench,
+} from "lucide-react";
+import {
   AdminDevTools,
   AdminHolds,
   AdminIncidents,
@@ -8,6 +20,7 @@ import {
   AdminSettings,
   AdminSystemConfig,
   AdminUsers,
+  useAdminDashboard,
 } from "@/features/admin";
 import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
 import { ACTION_LABELS } from "@/features/audit-logs/model/auditLogLabels";
@@ -21,22 +34,52 @@ import {
 
 /** Thứ tự và nhóm menu theo prototype: bốn trang chính, rồi nhóm "Hệ thống". */
 const NAVIGATION: WorkspaceNavigationItem[] = [
-  { id: "overview", label: "Tổng quan", to: ROUTES.ADMIN.ROOT },
-  { id: "incidents", label: "Sự cố", to: `${ROUTES.ADMIN.ROOT}?view=incidents` },
-  { id: "payments", label: "Giao dịch", to: `${ROUTES.ADMIN.ROOT}?view=payments` },
-  { id: "users", label: "Người dùng", to: ROUTES.DASHBOARD.USERS },
-  { id: "plans", label: "Gói dịch vụ", to: `${ROUTES.ADMIN.ROOT}?view=plans`, group: "Hệ thống" },
+  { id: "overview", label: "Tổng quan", icon: Home, to: ROUTES.ADMIN.ROOT },
+  {
+    id: "incidents",
+    label: "Sự cố",
+    icon: TriangleAlert,
+    to: `${ROUTES.ADMIN.ROOT}?view=incidents`,
+  },
+  {
+    id: "payments",
+    label: "Giao dịch",
+    icon: CreditCard,
+    to: `${ROUTES.ADMIN.ROOT}?view=payments`,
+  },
+  { id: "users", label: "Người dùng", icon: Users, to: ROUTES.DASHBOARD.USERS },
+  {
+    id: "plans",
+    label: "Gói dịch vụ",
+    icon: Tag,
+    to: `${ROUTES.ADMIN.ROOT}?view=plans`,
+    group: "Hệ thống",
+  },
   {
     id: "settings",
     label: "Cấu hình",
+    icon: SlidersHorizontal,
     to: `${ROUTES.ADMIN.ROOT}?view=settings`,
     group: "Hệ thống",
   },
-  { id: "holds", label: "Tạm giữ", to: `${ROUTES.ADMIN.ROOT}?view=holds`, group: "Hệ thống" },
-  { id: "audit", label: "Nhật ký hoạt động", to: ROUTES.ADMIN.AUDIT_LOG, group: "Hệ thống" },
+  {
+    id: "holds",
+    label: "Tạm giữ",
+    icon: Lock,
+    to: `${ROUTES.ADMIN.ROOT}?view=holds`,
+    group: "Hệ thống",
+  },
+  {
+    id: "audit",
+    label: "Nhật ký hoạt động",
+    icon: History,
+    to: ROUTES.ADMIN.AUDIT_LOG,
+    group: "Hệ thống",
+  },
   {
     id: "security",
     label: "Bảo mật tài khoản",
+    icon: ShieldCheck,
     to: `${ROUTES.ADMIN.ROOT}?view=security`,
     group: "Hệ thống",
   },
@@ -55,6 +98,7 @@ const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
         id: "dev-tools",
         label: "Công cụ thử nghiệm",
         to: `${ROUTES.ADMIN.ROOT}?view=dev-tools`,
+        icon: Wrench,
         group: "Hệ thống",
       },
     ]
@@ -62,46 +106,44 @@ const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
 
 const VIEWS = {
   overview: {
-    title: "Tổng quan quản trị",
-    description: "Số liệu vận hành hệ thống. Quản trị viên không đọc được nội dung kho.",
+    title: "Tổng quan",
+    description: "",
   },
   plans: {
     title: "Gói dịch vụ",
-    description: "Giá, hạn mức, kỳ bán và bật tắt bán của từng gói. Chỉ áp dụng cho đơn mới tạo.",
+    description: "",
   },
   settings: {
     title: "Cấu hình",
-    description:
-      "Tham số hệ thống và các dịch vụ ngoài. Mọi thay đổi cần lý do và được ghi vào nhật ký.",
+    description: "",
   },
   incidents: {
-    title: "Sự cố vận hành",
-    description: "Theo dõi, giao người phụ trách và đóng các sự cố của hệ thống.",
+    title: "Sự cố",
+    description: "",
   },
   holds: {
     title: "Tạm giữ",
-    description: "Xem, đặt, rà soát và gỡ tạm giữ trên kho hoặc gói.",
+    description: "",
   },
   payments: {
     title: "Giao dịch",
-    description: "Tiền vào qua SePay và kết quả đối chiếu với đơn. Chỉ xem, không sửa giao dịch.",
+    description: "",
   },
   users: {
     title: "Người dùng",
-    description: "Tìm tài khoản, đổi vai trò hoặc khóa tài khoản kèm lý do.",
+    description: "",
   },
   audit: {
     title: "Nhật ký hoạt động",
-    description:
-      "Ai đã làm gì và lúc nào trên toàn hệ thống, mới nhất trước, kể cả các hồ sơ bị từ chối.",
+    description: "",
   },
   security: {
     title: "Bảo mật tài khoản",
-    description: "Bật hoặc tắt xác thực hai bước cho tài khoản quản trị của bạn.",
+    description: "",
   },
   "dev-tools": {
     title: "Công cụ thử nghiệm",
-    description: "Tua thời gian của một hồ sơ để thử luồng bàn giao mà không phải chờ.",
+    description: "",
   },
 } as const;
 
@@ -131,11 +173,16 @@ function viewFor(pathname: string, search: string): AdminView {
 export function AdminWorkspacePage() {
   const location = useLocation();
   const view = viewFor(location.pathname, location.search);
+  // Số sự cố đang mở hiện làm số đếm ở menu; dùng chung dữ liệu với trang Tổng quan nên không gọi thêm API.
+  const dashboard = useAdminDashboard();
+  const navigation = NAVIGATION_WITH_DEV_TOOLS.map((item) =>
+    item.id === "incidents" ? { ...item, badge: dashboard.data?.openIncidents ?? 0 } : item,
+  );
   return (
     <WorkspaceFrame
       role="admin"
       active={view}
-      navigation={NAVIGATION_WITH_DEV_TOOLS}
+      navigation={navigation}
       title={VIEWS[view].title}
       description={VIEWS[view].description}
     >
