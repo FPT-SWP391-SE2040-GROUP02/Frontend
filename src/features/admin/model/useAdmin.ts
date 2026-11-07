@@ -13,6 +13,7 @@ export const adminKeys = {
   all: ["admin"] as const,
   dashboard: () => [...adminKeys.all, "dashboard"] as const,
   users: (query: AdminUsersQuery) => [...adminKeys.all, "users", query] as const,
+  user: (userId: string) => [...adminKeys.all, "user", userId] as const,
   userOptions: (role: AdminUserRole) => [...adminKeys.all, "user-options", role] as const,
   incidents: (query: IncidentsQuery) => [...adminKeys.all, "incidents", query] as const,
   incident: (incidentId: string) => [...adminKeys.all, "incident", incidentId] as const,
@@ -40,6 +41,15 @@ export function useAdminUsers(query: AdminUsersQuery) {
     queryKey: adminKeys.users(query),
     queryFn: ({ signal }) => adminService.listUsers(query, signal),
     placeholderData: keepPreviousData,
+    retry: false,
+  });
+}
+
+/** Chi tiết một tài khoản; không tự retry để 404 hiện ngay. */
+export function useAdminUser(userId: string) {
+  return useQuery({
+    queryKey: adminKeys.user(userId),
+    queryFn: ({ signal }) => adminService.getUser(userId, signal),
     retry: false,
   });
 }

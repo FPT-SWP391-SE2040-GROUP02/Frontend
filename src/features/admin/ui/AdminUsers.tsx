@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -10,6 +11,7 @@ import { useAdminUsersSearchParams } from "../model/useAdminUsersSearchParams";
 import { AdminUserActions } from "./AdminUserActions";
 import { AdminErrorMessage } from "./AdminStateMessage";
 import { AdminUsersFilters } from "./AdminUsersFilters";
+import { AdminUserDetail } from "./AdminUserDetail";
 
 const STATUS_STYLES: Record<AdminUserStatus, string> = {
   ACTIVE: "bg-emerald-50 text-emerald-800 border-emerald-200",
@@ -18,7 +20,16 @@ const STATUS_STYLES: Record<AdminUserStatus, string> = {
 };
 
 /** Danh sách tài khoản: GET /admin/users, bộ lọc trên URL; đổi vai trò và khóa/mở tài khoản qua hộp thoại có lý do. */
-export function AdminUsers() {
+export function AdminUsers({ actionLabel }: { actionLabel?: (action: string) => string }) {
+  const [urlParams, setUrlParams] = useSearchParams();
+  const selectedUserId = urlParams.get("user");
+  const openUser = (userId: string | null) =>
+    setUrlParams((current) => {
+      const next = new URLSearchParams(current);
+      if (userId) next.set("user", userId);
+      else next.delete("user");
+      return next;
+    });
   const search = useAdminUsersSearchParams();
   const query = useAdminUsers(search.query);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -37,6 +48,15 @@ export function AdminUsers() {
     if (previousPage.current !== search.page) headingRef.current?.focus();
     previousPage.current = search.page;
   }, [search.page]);
+
+  if (selectedUserId)
+    return (
+      <AdminUserDetail
+        userId={selectedUserId}
+        onBack={() => openUser(null)}
+        actionLabel={actionLabel}
+      />
+    );
 
   return (
     <div className="mt-6 space-y-4">
@@ -80,6 +100,7 @@ export function AdminUsers() {
           query={query}
           onPage={search.setPage}
           onClear={search.clearFilters}
+          onOpen={openUser}
         />
       </section>
       {createOpen && (
@@ -99,9 +120,10 @@ interface UsersResultProps {
   query: ReturnType<typeof useAdminUsers>;
   onPage: (page: number) => void;
   onClear: () => void;
+  onOpen: (userId: string) => void;
 }
 
-function UsersResult({ page, hasFilters, query, onPage, onClear }: UsersResultProps) {
+function UsersResult({ page, hasFilters, query, onPage, onClear, onOpen }: UsersResultProps) {
   if (query.isPending)
     return (
       <div
@@ -162,8 +184,8 @@ function UsersResult({ page, hasFilters, query, onPage, onClear }: UsersResultPr
       <p aria-live="polite" className="mb-3 text-sm text-heritage-muted">
         {data.totalCount} tài khoản · Trang {data.pageIndex}/{data.totalPages}
       </p>
-      <UsersTable data={data} />
-      <UsersCards data={data} />
+      <UsersTable data={data} onOpen={onOpen} />
+      <UsersCards data={data} onOpen={onOpen} />
       {data.totalPages > 1 && (
         <nav
           aria-label="Phân trang tài khoản"
@@ -209,7 +231,7 @@ const lastLogin = (user: AdminUser) =>
 
 const initial = (user: AdminUser) => (user.fullName.trim() || user.email).charAt(0).toUpperCase();
 
-function UsersTable({ data }: { data: AdminUsersPage }) {
+function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: string) => void }) {
   return (
     <div className="hidden overflow-x-auto rounded-xl border border-heritage-border bg-heritage-surface md:block">
       <table className="w-full text-left text-sm">
@@ -264,7 +286,17 @@ function UsersTable({ data }: { data: AdminUsersPage }) {
               <td className="px-4 py-3 tabular-nums">{formatDate(user.createdAt)}</td>
               <td className="px-4 py-3 tabular-nums">{lastLogin(user)}</td>
               <td className="px-4 py-3">
-                <AdminUserActions user={user} />
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    variant="outline"
+                    className="min-h-11"
+                    aria-label={`Xem ${user.fullName || user.email}`}
+                    onClick={() => onOpen(user.id)}
+                  >
+                    Xem
+                  </Button>
+                  <AdminUserActions user={user} />
+                </div>
               </td>
             </tr>
           ))}
@@ -274,7 +306,7 @@ function UsersTable({ data }: { data: AdminUsersPage }) {
   );
 }
 
-function UsersCards({ data }: { data: AdminUsersPage }) {
+function UsersCards({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: string) => void }) {
   return (
     <ul className="space-y-3 md:hidden" aria-label="Danh sách tài khoản">
       {data.items.map((user) => (
@@ -305,7 +337,17 @@ function UsersCards({ data }: { data: AdminUsersPage }) {
               <dd>{lastLogin(user)}</dd>
             </div>
           </dl>
-          <AdminUserActions user={user} />
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              className="min-h-11"
+              aria-label={`Xem ${user.fullName || user.email}`}
+              onClick={() => onOpen(user.id)}
+            >
+              Xem
+            </Button>
+            <AdminUserActions user={user} />
+          </div>
         </li>
       ))}
     </ul>

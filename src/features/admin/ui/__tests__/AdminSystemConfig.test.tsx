@@ -5,7 +5,7 @@ import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { AdminSystemConfig } from "../AdminSystemConfig";
 
-const settings = { model: "gemini-flash-lite-latest", timeoutSeconds: "20" };
+const settings = { baseUrl: "http://127.0.0.1:8879", timeoutSeconds: "60" };
 const status = { activeSlot: null, lastOutcome: null, lastAt: null, lastErrorCode: null };
 
 function primarySlot(source: "DATABASE" | "APPSETTINGS" = "DATABASE") {
@@ -35,7 +35,7 @@ function listOf(source: "DATABASE" | "APPSETTINGS" = "DATABASE") {
   return {
     services: [
       {
-        serviceKey: "GEMINI",
+        serviceKey: "EKYC",
         supportsFallback: true,
         slots: [primarySlot(source), fallbackSlot],
         status,
@@ -74,7 +74,7 @@ describe("AdminSystemConfig", () => {
     const retry = await screen.findByRole("button", { name: "Thử lại" });
     get.mockResolvedValue(listOf());
     fireEvent.click(retry);
-    expect(await screen.findByText("Gemini (AI nhận diện giấy chứng tử)")).toBeInTheDocument();
+    expect(await screen.findByText("eKYC (xác minh danh tính)")).toBeInTheDocument();
     expect(get).toHaveBeenCalledTimes(2);
   });
 
@@ -84,22 +84,22 @@ describe("AdminSystemConfig", () => {
     expect(await screen.findByText("Chưa có dịch vụ nào để cấu hình.")).toBeInTheDocument();
   });
 
-  it("hiện thẻ Gemini với nhãn trạng thái, khóa che và người sửa cuối", async () => {
+  it("hiện thẻ eKYC với nhãn trạng thái, khóa che và người sửa cuối", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue(listOf());
     renderPage();
-    expect(await screen.findByText("Gemini (AI nhận diện giấy chứng tử)")).toBeInTheDocument();
+    expect(await screen.findByText("eKYC (xác minh danh tính)")).toBeInTheDocument();
     expect(screen.getByText("Đang dùng cấu hình chính")).toBeInTheDocument();
     expect(screen.getByText("•••• 1a2b")).toBeInTheDocument();
     expect(screen.getByText(/Cô Lan/)).toBeInTheDocument();
-    // Mỗi ô (chính và dự phòng) hiện model của riêng nó.
-    expect(screen.getAllByText("gemini-flash-lite-latest")).toHaveLength(2);
+    // Mỗi ô (chính và dự phòng) hiện địa chỉ của riêng nó.
+    expect(screen.getAllByText("http://127.0.0.1:8879")).toHaveLength(2);
   });
 
   it("nút Sửa mở hộp thoại của đúng ô", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue(listOf());
     renderPage();
     fireEvent.click(await screen.findByRole("button", { name: "Sửa dịch vụ dự phòng" }));
-    expect(await screen.findByText(/Dịch vụ dự phòng · Gemini/)).toBeInTheDocument();
+    expect(await screen.findByText(/Dịch vụ dự phòng · eKYC/)).toBeInTheDocument();
     expect(screen.getByLabelText("Bật dịch vụ dự phòng")).toBeInTheDocument();
   });
 
@@ -123,7 +123,7 @@ describe("AdminSystemConfig", () => {
     fireEvent.change(within(dialog).getByLabelText("Lý do"), { target: { value: "quay về" } });
     fireEvent.click(within(dialog).getByRole("button", { name: "Khôi phục mặc định" }));
     await waitFor(() =>
-      expect(post).toHaveBeenCalledWith("/admin/system-config/GEMINI/PRIMARY/reset", {
+      expect(post).toHaveBeenCalledWith("/admin/system-config/EKYC/PRIMARY/reset", {
         reason: "quay về",
       }),
     );
@@ -171,7 +171,7 @@ describe("AdminSystemConfig", () => {
   it("ẩn nút khôi phục khi ô chính đang dùng cấu hình của máy chủ", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue(listOf("APPSETTINGS"));
     renderPage();
-    expect(await screen.findByText("Gemini (AI nhận diện giấy chứng tử)")).toBeInTheDocument();
+    expect(await screen.findByText("eKYC (xác minh danh tính)")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Khôi phục mặc định" })).not.toBeInTheDocument();
     expect(screen.getByText("Đang dùng cấu hình mặc định của máy chủ")).toBeInTheDocument();
   });

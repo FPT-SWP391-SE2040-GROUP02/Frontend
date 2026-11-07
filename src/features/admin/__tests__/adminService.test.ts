@@ -55,7 +55,14 @@ afterEach(() => vi.restoreAllMocks());
 describe("adminService", () => {
   it("đọc dashboard đúng DTO và từ chối response thiếu field", async () => {
     const get = vi.spyOn(apiClient, "get").mockResolvedValue(dashboardFixture);
-    await expect(adminService.getDashboard()).resolves.toEqual(dashboardFixture);
+    // Ba khối mới là tùy chọn: Backend cũ không trả thì mặc định rỗng.
+    await expect(adminService.getDashboard()).resolves.toEqual({
+      ...dashboardFixture,
+      planStages: [],
+      closedPlans: 0,
+      verifierLoad: [],
+      recentActivity: [],
+    });
     expect(get).toHaveBeenCalledWith("/admin/dashboard", { signal: undefined });
     const missing: Partial<typeof dashboardFixture> = { ...dashboardFixture };
     delete missing.serverTime;
@@ -97,5 +104,25 @@ describe("classifyAdminError", () => {
     expect(classifyAdminError(httpError(503))).toBe("other");
     expect(classifyAdminError(adminUserSchema.safeParse({}).error)).toBe("invalidData");
     expect(classifyAdminError(new Error("network"))).toBe("other");
+  });
+
+  it("giao Người thực thi: gọi đúng đường dẫn, kiểm lý do và mã kho trước khi gửi", async () => {
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue({});
+    const VAULT = "77777777-7777-4777-8777-777777777777";
+    await adminService.assignExecutor(VAULT, {
+      userId: USER_ID,
+      reason: "Người cũ bị khóa tài khoản",
+    });
+    expect(post).toHaveBeenCalledWith(`/admin/vaults/${VAULT}/executor`, {
+      userId: USER_ID,
+      reason: "Người cũ bị khóa tài khoản",
+    });
+    await expect(
+      adminService.assignExecutor(VAULT, { userId: USER_ID, reason: "" }),
+    ).rejects.toThrow();
+    await expect(
+      adminService.assignExecutor("khong-phai-uuid", { userId: USER_ID, reason: "x" }),
+    ).rejects.toThrow();
+    expect(post).toHaveBeenCalledTimes(1);
   });
 });

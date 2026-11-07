@@ -15,13 +15,14 @@ import {
   formatDateTime,
   INCIDENT_TYPE_LABELS,
   INCIDENT_STATUS_LABELS,
+  planStageLabel,
 } from "../model/admin.content";
 import { useAdminDashboard, useAdminIncidents } from "../model/useAdmin";
 import { AdminErrorMessage } from "./AdminStateMessage";
 import { ROUTES } from "@/shared/config/routes.config";
 
 /** Tổng quan quản trị: KPI Tiles tương tác 1 chạm + Hàng đợi việc cần làm (Priority Incident Queue). */
-export function AdminOverview() {
+export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) => string }) {
   const navigate = useNavigate();
   const query = useAdminDashboard();
   const urgentIncidents = useAdminIncidents({ status: "OPEN", pageIndex: 1, pageSize: 5 });
@@ -222,135 +223,225 @@ export function AdminOverview() {
         </button>
       </div>
 
-      {/* PRIORITY INCIDENT QUEUE ("Việc cần làm ngay") */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <h2 className="text-base font-bold text-heritage-primary">Việc cần làm ưu tiên</h2>
-            <p className="text-xs text-heritage-muted">
-              Các sự cố vận hành đang mở có mức độ ưu tiên cao nhất cần giải quyết
-            </p>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <h2 className="text-base font-bold text-heritage-primary">Việc cần làm ưu tiên</h2>
+              <p className="text-xs text-heritage-muted">
+                Các sự cố vận hành đang mở có mức độ ưu tiên cao nhất cần giải quyết
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => goToIncidents({ status: "OPEN" })}
+              className="text-xs font-semibold text-heritage-gold hover:text-amber-800"
+            >
+              Xem tất cả sự cố <ArrowRight className="ml-1 size-3.5" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => goToIncidents({ status: "OPEN" })}
-            className="text-xs font-semibold text-heritage-gold hover:text-amber-800"
-          >
-            Xem tất cả sự cố <ArrowRight className="ml-1 size-3.5" />
-          </Button>
-        </div>
 
-        {urgentIncidents.isPending && <Skeleton className="h-44 w-full rounded-2xl" />}
+          {urgentIncidents.isPending && <Skeleton className="h-44 w-full rounded-2xl" />}
 
-        {urgentIncidents.isSuccess && urgentIncidents.data.items.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-heritage-border bg-heritage-surface p-8 text-center">
-            <Shield className="mx-auto size-8 text-green-600" />
-            <p className="mt-2 text-sm font-semibold text-heritage-text">
-              Không có sự cố nào đang chờ xử lý
-            </p>
-            <p className="text-xs text-heritage-muted">
-              Toàn bộ hệ thống đang vận hành ổn định trong ngưỡng an toàn.
-            </p>
-          </div>
-        )}
+          {urgentIncidents.isSuccess && urgentIncidents.data.items.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-heritage-border bg-heritage-surface p-8 text-center">
+              <Shield className="mx-auto size-8 text-green-600" />
+              <p className="mt-2 text-sm font-semibold text-heritage-text">
+                Không có sự cố nào đang chờ xử lý
+              </p>
+              <p className="text-xs text-heritage-muted">
+                Toàn bộ hệ thống đang vận hành ổn định trong ngưỡng an toàn.
+              </p>
+            </div>
+          )}
 
-        {urgentIncidents.isSuccess && urgentIncidents.data.items.length > 0 && (
-          <div className="overflow-hidden rounded-2xl border border-heritage-border bg-heritage-surface shadow-sm">
-            <div className="divide-y divide-heritage-border/60">
-              {urgentIncidents.data.items.map((incident) => {
-                const isOverdue = incident.overdue;
-                return (
-                  <div
-                    key={incident.id}
-                    className="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-heritage-primary/5 sm:flex-row sm:items-center"
+          {urgentIncidents.isSuccess && urgentIncidents.data.items.length > 0 && (
+            <div className="overflow-hidden rounded-2xl border border-heritage-border bg-heritage-surface shadow-sm">
+              <div className="divide-y divide-heritage-border/60">
+                {urgentIncidents.data.items.map((incident) => {
+                  const isOverdue = incident.overdue;
+                  return (
+                    <div
+                      key={incident.id}
+                      className="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-heritage-primary/5 sm:flex-row sm:items-center"
+                    >
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-heritage-primary">
+                            #{incident.id.slice(0, 8)}
+                          </span>
+                          <span className="rounded-full bg-heritage-primary/10 px-2 py-0.5 text-xs font-semibold text-heritage-primary">
+                            {INCIDENT_TYPE_LABELS[incident.type]}
+                          </span>
+                          {isOverdue && (
+                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
+                              Quá hạn
+                            </span>
+                          )}
+                          <span className="rounded-full border border-heritage-border px-2 py-0.5 text-[11px] text-heritage-muted">
+                            {INCIDENT_STATUS_LABELS[incident.status]}
+                          </span>
+                        </div>
+                        <p className="line-clamp-1 text-xs text-heritage-text">
+                          {incident.summary}
+                        </p>
+                        <p className="text-[11px] text-heritage-muted">
+                          Hạn xử lý: <time>{formatDateTime(incident.dueAt)}</time>
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3 sm:shrink-0">
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            navigate(
+                              `${ROUTES.ADMIN.ROOT}?view=incidents&incidentId=${incident.id}`,
+                            )
+                          }
+                          className="bg-[#E0C486] text-xs font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+                        >
+                          Xử lý sự cố
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </section>
+
+        <aside className="space-y-4" aria-label="Số liệu vận hành">
+          {data.planStages.length > 0 && (
+            <section
+              aria-labelledby="admin-plan-stages"
+              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+            >
+              <h2 id="admin-plan-stages" className="text-base font-semibold">
+                Kế hoạch theo giai đoạn
+              </h2>
+              <ul className="mt-3 space-y-3">
+                {data.planStages.map((stage) => (
+                  <li key={stage.stage} className="space-y-1">
+                    <p className="flex items-center justify-between gap-3 text-sm">
+                      <span>{planStageLabel(stage.stage)}</span>
+                      <b className="tabular-nums">{stage.count}</b>
+                    </p>
+                    <span className="block h-1.5 rounded-full bg-stone-100">
+                      <i
+                        className="block h-full rounded-full bg-heritage-primary"
+                        style={{
+                          width: `${Math.max(4, Math.round((stage.count / Math.max(...data.planStages.map((s) => s.count))) * 100))}%`,
+                        }}
+                      />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-sm text-heritage-muted">
+                Đã đóng {data.closedPlans} kho, không tính ở đây.
+              </p>
+            </section>
+          )}
+          {data.verifierLoad.length > 0 && (
+            <section
+              aria-labelledby="admin-verifier-load"
+              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+            >
+              <h2 id="admin-verifier-load" className="text-base font-semibold">
+                Tải việc người xét duyệt
+              </h2>
+              <ul className="mt-3 divide-y divide-heritage-border">
+                {data.verifierLoad.map((verifier) => (
+                  <li
+                    key={verifier.userId}
+                    className="flex items-center justify-between gap-3 py-2 text-sm"
                   >
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-heritage-primary">
-                          #{incident.id.slice(0, 8)}
-                        </span>
-                        <span className="rounded-full bg-heritage-primary/10 px-2 py-0.5 text-xs font-semibold text-heritage-primary">
-                          {INCIDENT_TYPE_LABELS[incident.type]}
-                        </span>
-                        {isOverdue && (
-                          <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
-                            Quá hạn
+                    <span className="min-w-0 break-words">{verifier.fullName}</span>
+                    <b className="shrink-0 tabular-nums">
+                      {verifier.openCases} hồ sơ
+                      {verifier.overdueCases > 0 && (
+                        <span className="text-red-700"> · {verifier.overdueCases} quá hạn</span>
+                      )}
+                    </b>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {data.recentActivity.length > 0 && (
+            <section
+              aria-labelledby="admin-recent-activity"
+              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+            >
+              <h2 id="admin-recent-activity" className="text-base font-semibold">
+                Hoạt động gần đây
+              </h2>
+              <ul className="mt-3 space-y-2">
+                {data.recentActivity.map((activity, index) => (
+                  <li key={`${activity.at}-${index}`} className="flex gap-3 text-sm">
+                    <time
+                      dateTime={activity.at}
+                      className="shrink-0 tabular-nums text-heritage-muted"
+                    >
+                      {formatDateTime(activity.at).slice(-5)}
+                    </time>
+                    <span className="min-w-0 break-words">
+                      <b>{activity.actorFullName ?? "Hệ thống"}</b>{" "}
+                      {(actionLabel ?? ((action: string) => action))(activity.action)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2"
+                onClick={() => navigate(ROUTES.ADMIN.AUDIT_LOG)}
+              >
+                Xem nhật ký <ArrowRight className="ml-1 size-3.5" aria-hidden="true" />
+              </Button>
+            </section>
+          )}
+          {DASHBOARD_GROUPS.map((group) => (
+            <section
+              key={group.id}
+              aria-labelledby={`admin-group-${group.id}`}
+              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+            >
+              <h2 id={`admin-group-${group.id}`} className="text-base font-semibold">
+                {group.title}
+              </h2>
+              <dl className="mt-3 divide-y divide-heritage-border">
+                {group.counters.map((counter) => {
+                  const value = data[counter.key];
+                  const needsAttention = counter.attention && value > 0;
+                  return (
+                    <div key={counter.key} className="flex items-center justify-between gap-3 py-2">
+                      <dt className="text-sm text-heritage-muted">
+                        {counter.label}
+                        {needsAttention && (
+                          <span className="ml-2 inline-flex items-center gap-1 text-xs font-semibold text-amber-900">
+                            <AlertTriangle className="size-3" aria-hidden="true" />
+                            Cần xử lý
                           </span>
                         )}
-                        <span className="rounded-full border border-heritage-border px-2 py-0.5 text-[11px] text-heritage-muted">
-                          {INCIDENT_STATUS_LABELS[incident.status]}
-                        </span>
-                      </div>
-                      <p className="line-clamp-1 text-xs text-heritage-text">{incident.summary}</p>
-                      <p className="text-[11px] text-heritage-muted">
-                        Hạn xử lý: <time>{formatDateTime(incident.dueAt)}</time>
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 sm:shrink-0">
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          navigate(`${ROUTES.ADMIN.ROOT}?view=incidents&incidentId=${incident.id}`)
-                        }
-                        className="bg-[#E0C486] text-xs font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+                      </dt>
+                      <dd
+                        className={`text-base font-semibold tabular-nums ${
+                          needsAttention ? "text-amber-800" : ""
+                        }`}
                       >
-                        Xử lý sự cố
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* DASHBOARD COUNTERS BY GROUP */}
-      <div className="space-y-6">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-heritage-muted">
-          Thống kê hạ tầng & Nhân sự vận hành
-        </h2>
-        {DASHBOARD_GROUPS.map((group) => (
-          <section key={group.id} aria-labelledby={`admin-group-${group.id}`} className="space-y-3">
-            <h3
-              id={`admin-group-${group.id}`}
-              className="text-xs font-semibold text-heritage-muted"
-            >
-              {group.title}
-            </h3>
-            <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {group.counters.map((counter) => {
-                const value = data[counter.key];
-                const needsAttention = counter.attention && value > 0;
-                return (
-                  <div
-                    key={counter.key}
-                    className={`rounded-2xl border p-4 shadow-sm ${
-                      needsAttention
-                        ? "border-amber-300 bg-amber-50"
-                        : "border-heritage-border bg-heritage-surface"
-                    }`}
-                  >
-                    <dt className="text-xs font-medium text-heritage-muted">{counter.label}</dt>
-                    <dd className="mt-2 flex flex-wrap items-baseline gap-2">
-                      <span className="text-2xl font-bold tabular-nums text-heritage-text">
                         {value}
-                      </span>
-                      {needsAttention && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-900">
-                          <AlertTriangle className="size-3" aria-hidden="true" />
-                          Cần xử lý
-                        </span>
-                      )}
-                    </dd>
-                  </div>
-                );
-              })}
-            </dl>
-          </section>
-        ))}
+                      </dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            </section>
+          ))}
+        </aside>
       </div>
 
       <p className="text-xs text-heritage-muted">

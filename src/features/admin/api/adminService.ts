@@ -3,6 +3,7 @@ import { apiClient } from "@/shared/api";
 import {
   adminDashboardSchema,
   adminUserSchema,
+  adminUserDetailSchema,
   adminUsersPageSchema,
   adminUsersQuerySchema,
   assignIncidentRequestSchema,
@@ -17,6 +18,7 @@ import {
   incidentsQuerySchema,
   paymentTransactionsPageSchema,
   paymentTransactionsQuerySchema,
+  assignExecutorRequestSchema,
   reassignVerifierRequestSchema,
   resolveIncidentRequestSchema,
   reviewIncidentRequestSchema,
@@ -30,6 +32,7 @@ import {
   type IncidentNoteRequest,
   type IncidentsQuery,
   type PaymentTransactionsQuery,
+  type AssignExecutorRequest,
   type ReassignVerifierRequest,
   type ResolveIncidentRequest,
   type ReviewIncidentRequest,
@@ -68,6 +71,12 @@ export const adminService = {
       await apiClient.get<unknown, unknown>("/admin/users", { params, signal }),
     );
   },
+  /** Chi tiết một tài khoản cho Admin (hồ sơ đang giữ, quyết định và hoạt động gần đây). */
+  async getUser(userId: string, signal?: AbortSignal) {
+    return adminUserDetailSchema.parse(
+      await apiClient.get<unknown, unknown>(`/admin/users/${id.parse(userId)}`, { signal }),
+    );
+  },
   /** Đổi vai trò; lý do bắt buộc, không đổi được chính mình hay Admin cuối cùng (BR-74). */
   async changeUserRole(userId: string, request: ChangeUserRoleRequest) {
     return adminUserSchema.parse(
@@ -93,6 +102,13 @@ export const adminService = {
       reassignVerifierRequestSchema.parse(request),
     );
   },
+  /** Giao hoặc đổi Người thực thi của kho; trả lời mời đã gửi (người được giao phải chấp nhận). */
+  async assignExecutor(vaultId: string, request: AssignExecutorRequest) {
+    await apiClient.post<unknown, unknown>(
+      `/admin/vaults/${id.parse(vaultId)}/executor`,
+      assignExecutorRequestSchema.parse(request),
+    );
+  },
 
   async listIncidents(query: IncidentsQuery, signal?: AbortSignal) {
     const parsed = incidentsQuerySchema.parse(query);
@@ -103,6 +119,8 @@ export const adminService = {
     if (parsed.status) params.status = parsed.status;
     if (parsed.type) params.type = parsed.type;
     if (parsed.overdueOnly) params.overdueOnly = true;
+    if (parsed.mine) params.mine = true;
+    if (parsed.search) params.search = parsed.search;
     return incidentsPageSchema.parse(
       await apiClient.get<unknown, unknown>("/admin/incidents", { params, signal }),
     );
@@ -153,6 +171,7 @@ export const adminService = {
       pageSize: parsed.pageSize,
     };
     if (parsed.status) params.status = parsed.status;
+    if (parsed.vaultId) params.vaultId = parsed.vaultId;
     return holdsPageSchema.parse(
       await apiClient.get<unknown, unknown>("/admin/holds", { params, signal }),
     );
@@ -169,6 +188,10 @@ export const adminService = {
       pageSize: parsed.pageSize,
     };
     if (parsed.status) params.status = parsed.status;
+    if (parsed.search) params.search = parsed.search;
+    if (parsed.environment) params.environment = parsed.environment;
+    if (parsed.from) params.from = parsed.from;
+    if (parsed.to) params.to = parsed.to;
     return paymentTransactionsPageSchema.parse(
       await apiClient.get<unknown, unknown>("/admin/payment-transactions", { params, signal }),
     );

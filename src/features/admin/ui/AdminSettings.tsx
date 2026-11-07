@@ -18,7 +18,6 @@ import {
   Users,
   FileText,
   AlertTriangle,
-  CreditCard,
   Lock,
 } from "lucide-react";
 import { adminSettingsService } from "../api/adminSettingsService";
@@ -74,15 +73,42 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     dataType: "NUMBER",
   },
   {
-    key: "CheckIn.DefaultGraceDays",
-    label: "Thời gian chờ mặc định sau hạn",
+    key: "CheckIn.LateReminderGapDays",
+    label: "Khoảng cách giữa hai thư nhắc trễ",
     category: "CheckIn",
     categoryTitle: "Điểm danh định kỳ",
     unit: "ngày",
     step: 1,
-    defaultValue: "7",
-    description: "Hết thời gian chờ ân hạn thì hệ thống giao việc cho Người thực thi.",
-    src: "CheckInRules.DefaultGraceDays",
+    defaultValue: "3",
+    description:
+      "Sau hạn điểm danh, hệ thống gửi thư nhắc chủ kho theo khoảng này (từ 1 đến 30 ngày). Áp dụng từ kỳ điểm danh sau.",
+    src: "CheckInRules.LateReminderGapDays",
+    dataType: "NUMBER",
+  },
+  {
+    key: "CheckIn.MaxLateReminders",
+    label: "Số thư nhắc trễ trước khi báo Người thực thi",
+    category: "CheckIn",
+    categoryTitle: "Điểm danh định kỳ",
+    unit: "thư",
+    step: 1,
+    defaultValue: "3",
+    description:
+      "Gửi đủ số thư này mà chủ kho vẫn chưa điểm danh thì hệ thống báo Người thực thi (từ 1 đến 5 thư). Áp dụng từ kỳ điểm danh sau.",
+    src: "CheckInRules.MaxLateReminders",
+    dataType: "NUMBER",
+  },
+  {
+    key: "CheckIn.ExecutorProxyLimit",
+    label: "Số lần Người thực thi được điểm danh thay liên tiếp",
+    category: "CheckIn",
+    categoryTitle: "Điểm danh định kỳ",
+    unit: "lần",
+    step: 1,
+    defaultValue: "2",
+    description:
+      "Hết lượt thì nút điểm danh thay bị khóa, Người thực thi chỉ còn việc nộp giấy chứng tử. Về 0 khi chủ kho tự điểm danh.",
+    src: "CheckInRules.ExecutorProxyLimit",
     dataType: "NUMBER",
   },
 
@@ -223,68 +249,8 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     src: "DeathCaseRules.ReviewDueHours",
     dataType: "NUMBER",
   },
-  {
-    key: "DeathCase.MaxNoticeAttempts",
-    label: "Số lần thông báo cho Chủ kho",
-    category: "DeathCase",
-    categoryTitle: "Hồ sơ chứng tử",
-    unit: "lần",
-    step: 1,
-    defaultValue: "5",
-    description: "Số lần gửi thông báo trước khi hệ thống đánh dấu lỗi và mở sự cố vận hành.",
-    src: "DeathCaseRules.MaxNoticeAttempts",
-    dataType: "NUMBER",
-  },
-  {
-    key: "DeathCase.ObjectionHours",
-    label: "Thời gian Chủ kho được phản đối",
-    category: "DeathCase",
-    categoryTitle: "Hồ sơ chứng tử",
-    unit: "giờ",
-    step: 6,
-    defaultValue: "72",
-    description: "Khoảng thời gian ân hạn để Chủ kho báo còn sống và ngăn chặn mở di sản.",
-    src: "DeathCaseRules.ObjectionHours",
-    dataType: "NUMBER",
-  },
 
   // 5. Chủ kho báo còn sống (Alive)
-  {
-    key: "Alive.SelfieWindowDays",
-    label: "Hạn Chủ kho hoàn tất selfie",
-    category: "Alive",
-    categoryTitle: "Chủ kho báo còn sống",
-    unit: "ngày",
-    step: 1,
-    defaultValue: "7",
-    description: "Thời hạn tối đa để Chủ kho thực hiện quét khuôn mặt eKYC chứng minh còn sống.",
-    src: "ObjectionRules.SelfieWindow",
-    dataType: "NUMBER",
-  },
-  {
-    key: "Alive.MaxSelfieFailures",
-    label: "Số lần selfie sai tối đa",
-    category: "Alive",
-    categoryTitle: "Chủ kho báo còn sống",
-    unit: "lần",
-    step: 1,
-    defaultValue: "3",
-    description: "Số lần quét khuôn mặt sai tối đa cho phép trong 24 giờ trước khi tạm khóa.",
-    src: "ObjectionRules.MaxSelfieFailures",
-    dataType: "NUMBER",
-  },
-  {
-    key: "Alive.VerifierDecisionHours",
-    label: "Hạn xét duyệt phản đối còn sống",
-    category: "Alive",
-    categoryTitle: "Chủ kho báo còn sống",
-    unit: "giờ",
-    step: 6,
-    defaultValue: "48",
-    description: "Hạn để Người xét duyệt thẩm định yêu cầu phản đối còn sống của Chủ kho.",
-    src: "ObjectionRules.VerifierDecisionWindow",
-    dataType: "NUMBER",
-  },
 
   // 6. Sự cố & Tạm giữ (Incident & Hold)
   {
@@ -425,9 +391,13 @@ const CATEGORY_ICONS: Record<string, typeof Clock> = {
   Security: Lock,
 };
 
-export function AdminSettings() {
+/**
+ * `section` chọn phần hiện ra: "params" là tham số hệ thống, "plans" là bảng gói dịch vụ.
+ * Cả hai dùng chung bộ nháp và thanh lưu nên nằm trong một thành phần.
+ */
+export function AdminSettings({ section }: { section: "params" | "plans" }) {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"params" | "plans">("params");
+  const activeTab = section;
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
   const [filterMode, setFilterMode] = useState<"all" | "changed" | "security">("all");
@@ -656,35 +626,8 @@ export function AdminSettings() {
         </div>
       )}
 
-      {/* Main Tabs Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-heritage-border pb-4">
-        <div className="inline-flex rounded-xl border border-heritage-border bg-heritage-surface p-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab("params")}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-              activeTab === "params"
-                ? "bg-[#0A281E] text-white dark:bg-[#E0C486] dark:text-[#0A281E]"
-                : "text-heritage-muted hover:bg-heritage-primary/5"
-            }`}
-          >
-            <Sliders className="size-4" />
-            Tham số hệ thống
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("plans")}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-              activeTab === "plans"
-                ? "bg-[#0A281E] text-white dark:bg-[#E0C486] dark:text-[#0A281E]"
-                : "text-heritage-muted hover:bg-heritage-primary/5"
-            }`}
-          >
-            <CreditCard className="size-4" />
-            Bảng so sánh gói dịch vụ
-          </button>
-        </div>
-
+      {/* Thanh công cụ: chọn phần nằm ở menu bên trái nên chỉ còn nút tải lại */}
+      <div className="flex flex-wrap items-center justify-end gap-4 border-b border-heritage-border pb-4">
         <div className="flex items-center gap-2">
           <Button
             variant="outline"

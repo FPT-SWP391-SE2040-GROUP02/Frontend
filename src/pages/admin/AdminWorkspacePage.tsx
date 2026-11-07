@@ -10,6 +10,7 @@ import {
   AdminUsers,
 } from "@/features/admin";
 import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
+import { ACTION_LABELS } from "@/features/audit-logs/model/auditLogLabels";
 import { AdminTwoFactorSettings } from "@/features/auth";
 import { ROUTES } from "@/shared/config/routes.config";
 import { ENV } from "@/shared/config/env";
@@ -18,20 +19,27 @@ import {
   type WorkspaceNavigationItem,
 } from "@/widgets/WorkspaceFrame/WorkspaceFrame";
 
+/** Thứ tự và nhóm menu theo prototype: bốn trang chính, rồi nhóm "Hệ thống". */
 const NAVIGATION: WorkspaceNavigationItem[] = [
   { id: "overview", label: "Tổng quan", to: ROUTES.ADMIN.ROOT },
-  { id: "settings", label: "Cấu hình hệ thống", to: `${ROUTES.ADMIN.ROOT}?view=settings` },
   { id: "incidents", label: "Sự cố", to: `${ROUTES.ADMIN.ROOT}?view=incidents` },
-  { id: "holds", label: "Tạm giữ", to: `${ROUTES.ADMIN.ROOT}?view=holds` },
-  { id: "payments", label: "Giao dịch thanh toán", to: `${ROUTES.ADMIN.ROOT}?view=payments` },
+  { id: "payments", label: "Giao dịch", to: `${ROUTES.ADMIN.ROOT}?view=payments` },
   { id: "users", label: "Người dùng", to: ROUTES.DASHBOARD.USERS },
-  { id: "audit", label: "Nhật ký hoạt động", to: ROUTES.ADMIN.AUDIT_LOG },
+  { id: "plans", label: "Gói dịch vụ", to: `${ROUTES.ADMIN.ROOT}?view=plans`, group: "Hệ thống" },
   {
-    id: "system-config",
-    label: "Cấu hình dịch vụ",
-    to: `${ROUTES.ADMIN.ROOT}?view=system-config`,
+    id: "settings",
+    label: "Cấu hình",
+    to: `${ROUTES.ADMIN.ROOT}?view=settings`,
+    group: "Hệ thống",
   },
-  { id: "security", label: "Bảo mật tài khoản", to: `${ROUTES.ADMIN.ROOT}?view=security` },
+  { id: "holds", label: "Tạm giữ", to: `${ROUTES.ADMIN.ROOT}?view=holds`, group: "Hệ thống" },
+  { id: "audit", label: "Nhật ký hoạt động", to: ROUTES.ADMIN.AUDIT_LOG, group: "Hệ thống" },
+  {
+    id: "security",
+    label: "Bảo mật tài khoản",
+    to: `${ROUTES.ADMIN.ROOT}?view=security`,
+    group: "Hệ thống",
+  },
 ];
 
 /**
@@ -43,7 +51,12 @@ const DEV_TOOLS_ENABLED = import.meta.env.DEV || ENV.ENABLE_DEVTOOLS;
 const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
   ? [
       ...NAVIGATION,
-      { id: "dev-tools", label: "Công cụ thử nghiệm", to: `${ROUTES.ADMIN.ROOT}?view=dev-tools` },
+      {
+        id: "dev-tools",
+        label: "Công cụ thử nghiệm",
+        to: `${ROUTES.ADMIN.ROOT}?view=dev-tools`,
+        group: "Hệ thống",
+      },
     ]
   : NAVIGATION;
 
@@ -52,10 +65,14 @@ const VIEWS = {
     title: "Tổng quan quản trị",
     description: "Số liệu vận hành hệ thống. Quản trị viên không đọc được nội dung kho.",
   },
+  plans: {
+    title: "Gói dịch vụ",
+    description: "Giá, hạn mức, kỳ bán và bật tắt bán của từng gói. Chỉ áp dụng cho đơn mới tạo.",
+  },
   settings: {
-    title: "Cấu hình tham số hệ thống",
+    title: "Cấu hình",
     description:
-      "Quản lý và điều chỉnh các tham số dịch vụ, giới hạn quota và tính năng hệ thống theo thời gian thực.",
+      "Tham số hệ thống và các dịch vụ ngoài. Mọi thay đổi cần lý do và được ghi vào nhật ký.",
   },
   incidents: {
     title: "Sự cố vận hành",
@@ -66,7 +83,7 @@ const VIEWS = {
     description: "Xem, đặt, rà soát và gỡ tạm giữ trên kho hoặc gói.",
   },
   payments: {
-    title: "Giao dịch thanh toán",
+    title: "Giao dịch",
     description: "Tiền vào qua SePay và kết quả đối chiếu với đơn. Chỉ xem, không sửa giao dịch.",
   },
   users: {
@@ -77,10 +94,6 @@ const VIEWS = {
     title: "Nhật ký hoạt động",
     description:
       "Ai đã làm gì và lúc nào trên toàn hệ thống, mới nhất trước, kể cả các hồ sơ bị từ chối.",
-  },
-  "system-config": {
-    title: "Cấu hình dịch vụ ngoài",
-    description: "Sửa model, khóa và dịch vụ dự phòng khi một dịch vụ ngoài gặp sự cố.",
   },
   security: {
     title: "Bảo mật tài khoản",
@@ -101,13 +114,15 @@ function viewFor(pathname: string, search: string): AdminView {
   const view = new URLSearchParams(search).get("view");
   if (
     view === "settings" ||
+    view === "plans" ||
     view === "incidents" ||
     view === "holds" ||
     view === "payments" ||
-    view === "security" ||
-    view === "system-config"
+    view === "security"
   )
     return view;
+  // Đường dẫn cũ của trang Cấu hình dịch vụ nay nằm trong trang Cấu hình.
+  if (view === "system-config") return "settings";
   if (view === "dev-tools" && DEV_TOOLS_ENABLED) return view;
   return "overview";
 }
@@ -124,16 +139,30 @@ export function AdminWorkspacePage() {
       title={VIEWS[view].title}
       description={VIEWS[view].description}
     >
-      {view === "overview" && <AdminOverview />}
-      {view === "settings" && <AdminSettings />}
+      {view === "overview" && (
+        <AdminOverview
+          actionLabel={(action) => (ACTION_LABELS as Record<string, string>)[action] ?? action}
+        />
+      )}
+      {view === "settings" && (
+        <>
+          <AdminSettings section="params" />
+          <h2 className="mt-10 text-xl font-semibold">Dịch vụ ngoài</h2>
+          <AdminSystemConfig />
+        </>
+      )}
+      {view === "plans" && <AdminSettings section="plans" />}
       {view === "incidents" && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
-      {view === "users" && <AdminUsers />}
+      {view === "users" && (
+        <AdminUsers
+          actionLabel={(action) => (ACTION_LABELS as Record<string, string>)[action] ?? action}
+        />
+      )}
       {view === "security" && <AdminTwoFactorSettings />}
       {view === "dev-tools" && <AdminDevTools />}
       {view === "audit" && <AdminAuditLogs />}
-      {view === "system-config" && <AdminSystemConfig />}
     </WorkspaceFrame>
   );
 }

@@ -222,7 +222,7 @@ describe("Sự cố", () => {
     setup(incidentsPath);
     expect(await screen.findByText(/Hồ sơ chứng tử chưa có Verifier/)).toBeInTheDocument();
     expect(screen.getAllByText("Chưa có người phụ trách").length).toBeGreaterThan(0);
-    fireEvent.change(screen.getByLabelText("Trạng thái"), { target: { value: "OPEN" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Đang mở/ }));
     await waitFor(() =>
       expect(callsTo("get", "/admin/incidents").at(-1)?.params).toMatchObject({
         status: "OPEN",
@@ -453,7 +453,7 @@ describe("Giao dịch thanh toán (chỉ xem)", () => {
     expect(await screen.findByText("Lý do: Số tiền khác tổng tiền đơn")).toBeInTheDocument();
     expect(screen.getByText(/199\.000 VND/)).toBeInTheDocument();
     expect(screen.getAllByText("Cần đối chiếu").length).toBeGreaterThan(0);
-    expect(screen.getByText("2 giao dịch · Trang 1/1")).toBeInTheDocument();
+    expect(screen.getByText(/dòng/)).toHaveTextContent("2 dòng");
     expect(within(screen.getByRole("note")).getByRole("link", { name: "Sự cố" })).toHaveAttribute(
       "href",
       `${ROUTES.ADMIN.ROOT}?view=incidents&type=PAYMENT`,
@@ -467,15 +467,15 @@ describe("Giao dịch thanh toán (chỉ xem)", () => {
 
   it("lọc theo trạng thái gửi đúng tham số và báo rỗng khi không khớp", async () => {
     backend((call) => {
-      if (call.params?.status === "RESOLVED") return page([]);
+      if (call.params?.status === "SUCCESS") return page([]);
       return page([paymentBody()]);
     });
     setup(paymentsPath);
     expect(await screen.findByText(/199\.000 VND/)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Trạng thái"), { target: { value: "RESOLVED" } });
+    fireEvent.change(screen.getByLabelText("Trạng thái"), { target: { value: "SUCCESS" } });
     expect(await screen.findByText("Không có giao dịch khớp bộ lọc.")).toBeInTheDocument();
     expect(callsTo("get", "/admin/payment-transactions").at(-1)?.params).toEqual({
-      status: "RESOLVED",
+      status: "SUCCESS",
       pageIndex: 1,
       pageSize: 20,
     });
@@ -566,6 +566,30 @@ describe("Tài khoản", () => {
     fireEvent.click(within(dialog).getByRole("checkbox"));
     fireEvent.click(within(dialog).getByRole("button", { name: "Đổi trạng thái" }));
     expect(await within(dialog).findByRole("alert")).toHaveTextContent(text);
+  });
+});
+
+describe("Hộp Tạm giữ kho trong chi tiết sự cố", () => {
+  it("hiện hold đang hiệu lực của kho và gửi đúng vaultId", async () => {
+    backend((call) => {
+      if (call.url === `/admin/incidents/${INCIDENT_ID}`) return incidentDetail();
+      if (call.url === "/admin/holds") return page([holdBody()]);
+      return page([]);
+    });
+    setup(`${incidentsPath}&incident=${INCIDENT_ID}`);
+    expect(await screen.findByText("Tạm giữ kho")).toBeInTheDocument();
+    expect(screen.getByText("Đang hiệu lực")).toBeInTheDocument();
+    expect(screen.getByText("Lần rà soát tiếp theo")).toBeInTheDocument();
+    expect(callsTo("get", "/admin/holds")[0].params).toMatchObject({ vaultId: KHO_ID });
+  });
+
+  it("không hiện hộp khi kho không có hold", async () => {
+    backend((call) =>
+      call.url === `/admin/incidents/${INCIDENT_ID}` ? incidentDetail() : page([]),
+    );
+    setup(`${incidentsPath}&incident=${INCIDENT_ID}`);
+    await screen.findByText("Thông tin");
+    expect(screen.queryByText("Tạm giữ kho")).not.toBeInTheDocument();
   });
 });
 

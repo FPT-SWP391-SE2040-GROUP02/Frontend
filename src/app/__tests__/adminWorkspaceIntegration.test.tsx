@@ -141,6 +141,75 @@ it("Admin xem đủ 8 bộ đếm thật và giờ máy chủ; số cần xử l
   );
 });
 
+it("Tổng quan hiện kế hoạch theo giai đoạn, tải việc người xét duyệt và hoạt động gần đây", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...dashboardFixture,
+    planStages: [
+      { stage: "ACTIVE", count: 128 },
+      { stage: "CHECKIN_OVERDUE", count: 6 },
+    ],
+    closedPlans: 41,
+    verifierLoad: [
+      {
+        userId: "00000000-0000-4000-8000-000000000031",
+        fullName: "Lê Hoàng",
+        openCases: 3,
+        overdueCases: 1,
+      },
+    ],
+    recentActivity: [
+      { at: "2026-10-18T02:40:00+00:00", actorFullName: "Trần An", action: "VAULT_CREATED" },
+      { at: "2026-10-18T02:30:00+00:00", actorFullName: null, action: "ASSET_CREATED" },
+    ],
+  });
+  setup(ROUTES.ADMIN.ROOT);
+  expect(await screen.findByText("Kế hoạch theo giai đoạn")).toBeInTheDocument();
+  expect(screen.getByText("Đang chạy")).toBeInTheDocument();
+  expect(screen.getByText("Quá hạn điểm danh")).toBeInTheDocument();
+  expect(screen.getByText(/Đã đóng 41 kho/)).toBeInTheDocument();
+  expect(screen.getByText("Lê Hoàng")).toBeInTheDocument();
+  expect(screen.getByText(/3 hồ sơ/)).toHaveTextContent("1 quá hạn");
+  expect(screen.getByText("Trần An")).toBeInTheDocument();
+  expect(screen.getByText("Tạo kho", { exact: false })).toBeInTheDocument();
+  expect(screen.getByText("Tải tài sản lên", { exact: false })).toBeInTheDocument();
+});
+
+it("chi tiết người dùng hiện hồ sơ đang giao, quyết định và hoạt động gần đây của người xét duyệt", async () => {
+  const userId = "00000000-0000-4000-8000-000000000044";
+  const get = vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...makeUser(44),
+    id: userId,
+    role: "VERIFIER",
+    assignedCases: [
+      {
+        caseId: "11111111-1111-4111-8111-111111111111",
+        status: "UNDER_REVIEW",
+        dueAt: "2026-10-20T02:00:00+00:00",
+        overdue: true,
+      },
+    ],
+    recentDecisions: [
+      {
+        caseId: "22222222-2222-4222-8222-222222222222",
+        kind: "APPROVED",
+        decidedAt: "2026-10-17T02:00:00+00:00",
+      },
+    ],
+    recentActivity: [
+      { at: "2026-10-17T02:00:00+00:00", action: "VAULT_CREATED", outcome: "DENIED" },
+    ],
+  });
+  setup(`${ROUTES.DASHBOARD.USERS}?user=${userId}`);
+  expect(await screen.findByText("Hồ sơ đang giao")).toBeInTheDocument();
+  expect(get).toHaveBeenCalledWith(`/admin/users/${userId}`, expect.anything());
+  expect(screen.getByText("#11111111")).toBeInTheDocument();
+  expect(screen.getByText(/quá hạn/)).toBeInTheDocument();
+  expect(screen.getByText("Đã duyệt")).toBeInTheDocument();
+  expect(screen.getByText("Tạo kho")).toBeInTheDocument();
+  expect(screen.getByText("Bị từ chối")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Về danh sách" })).toBeInTheDocument();
+});
+
 it("404 từ BE hiện không có quyền, không hiện số 0 hay nút thử lại", async () => {
   vi.spyOn(apiClient, "get").mockRejectedValue(httpError(404));
   setup(ROUTES.ADMIN.ROOT);
@@ -246,7 +315,8 @@ it.each(["?q=an", "?role=ADMIN"])(
     const input = screen.getByLabelText("Tìm theo tên hoặc email");
     fireEvent.change(input, { target: { value: "new" } });
     fireEvent.click(screen.getByRole("button", { name: "Xoá bộ lọc" }));
-    expect(input).toHaveValue("");
+    // Ô tìm kiếm được khởi tạo lại khi xóa bộ lọc nên lấy lại phần tử mới.
+    expect(screen.getByLabelText("Tìm theo tên hoặc email")).toHaveValue("");
     await act(async () => {
       vi.advanceTimersByTime(450);
     });

@@ -85,13 +85,17 @@ interface UserSelectProps {
   onBlur: () => void;
 }
 
-/** Chọn người đang hoạt động theo vai trò (người phụ trách sự cố, người xét duyệt). */
+/** Chọn người đang hoạt động theo vai trò (người phụ trách sự cố, người xét duyệt, Người thực thi). */
 function UserSelect({ roles, id, invalid, value, onChange, onBlur }: UserSelectProps) {
   const verifiers = useAdminUserOptions("VERIFIER", roles.includes("VERIFIER"));
   const admins = useAdminUserOptions("ADMIN", roles.includes("ADMIN"));
+  const executors = useAdminUserOptions("EXECUTOR", roles.includes("EXECUTOR"));
+  const members = useAdminUserOptions("USER", roles.includes("USER"));
   const queries = [
     ...(roles.includes("VERIFIER") ? [verifiers] : []),
     ...(roles.includes("ADMIN") ? [admins] : []),
+    ...(roles.includes("EXECUTOR") ? [executors] : []),
+    ...(roles.includes("USER") ? [members] : []),
   ];
   if (queries.some((query) => query.isPending))
     return (
