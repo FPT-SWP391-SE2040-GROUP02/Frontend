@@ -16,8 +16,8 @@ function formatDeadline(iso: string): string {
 
 /**
  * Dải cảnh báo đầu mọi trang Chủ kho khi quá hạn điểm danh (DMS-04, DMS-05).
- * Đang trong thời gian chờ: đếm ngược tới lúc Người thực hiện được yêu cầu kiểm tra.
- * Hết thời gian chờ: báo Người thực hiện đang được yêu cầu kiểm tra. Cả hai có nút điểm danh ngay.
+ * Đang nhận thư nhắc trễ: đếm ngược tới lúc Người thực thi được báo để kiểm tra (sau thư nhắc trễ cuối).
+ * Đã gửi đủ thư nhắc trễ: báo Người thực thi đang được yêu cầu kiểm tra. Cả hai có nút điểm danh ngay.
  */
 export function CheckInGraceBanner({ vaultId }: { vaultId: string }) {
   const query = useCheckIn(vaultId);
@@ -27,15 +27,15 @@ export function CheckInGraceBanner({ vaultId }: { vaultId: string }) {
 
   let title = "Bạn đã quá hạn điểm danh";
   let message =
-    "Hãy điểm danh để cho biết bạn vẫn ổn. Hết thời gian chờ, Người thực hiện sẽ được yêu cầu liên hệ kiểm tra.";
+    "Hãy điểm danh để cho biết bạn vẫn ổn. Nếu bạn vẫn chưa điểm danh sau các thư nhắc trễ, Người thực thi sẽ được báo để liên hệ kiểm tra.";
   if (status.status === "CHECKIN_OVERDUE" && status.graceEndsAt) {
     const left = formatTimeLeft(status.serverTime, status.graceEndsAt);
-    message = `Còn ${left} (đến ${formatDeadline(status.graceEndsAt)}) trước khi Người thực hiện được yêu cầu liên hệ kiểm tra. Điểm danh ngay để mọi thứ trở lại bình thường.`;
+    message = `Còn ${left} (đến ${formatDeadline(status.graceEndsAt)}) trước khi Người thực thi được báo để liên hệ kiểm tra. Điểm danh ngay để mọi thứ trở lại bình thường.`;
   }
   if (status.status === "AWAITING_CHECK") {
-    title = "Đã hết thời gian chờ điểm danh";
+    title = "Đã gửi đủ thư nhắc trễ điểm danh";
     message =
-      "Người thực hiện đang được yêu cầu liên hệ kiểm tra tình trạng của bạn. Điểm danh ngay để báo bạn vẫn ổn.";
+      "Người thực thi đang được báo để liên hệ kiểm tra tình trạng của bạn. Điểm danh ngay để báo bạn vẫn ổn.";
   }
 
   return (

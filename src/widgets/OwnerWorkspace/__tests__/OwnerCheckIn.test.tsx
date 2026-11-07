@@ -43,9 +43,9 @@ function statusResult(overrides: Record<string, unknown> = {}, history: unknown[
       graceEndsAt: null,
       settings: {
         cycleDays: 30,
-        graceDays: 7,
+        lateReminderGapDays: 3,
+        maxLateReminders: 3,
         pendingCycleDays: null,
-        pendingGraceDays: null,
         etag: "settings-v1",
       },
       history: { items: history, totalCount: history.length, hasNextPage: false },

@@ -25,24 +25,17 @@ export const checkInStatusSchema = z.object({
   graceEndsAt: timestamp.nullable(),
   settings: z.object({
     cycleDays: z.number().int(),
-    graceDays: z.number().int(),
+    /** Khoảng cách giữa hai thư nhắc trễ (ngày), do Admin đặt; chủ kho chỉ xem. */
+    lateReminderGapDays: z.number().int().positive(),
+    /** Số thư nhắc trễ trước khi báo Người thực thi, do Admin đặt; chủ kho chỉ xem. */
+    maxLateReminders: z.number().int().positive(),
     pendingCycleDays: z.number().int().nullable(),
-    pendingGraceDays: z.number().int().nullable(),
     etag: z.string().min(1).max(64),
   }),
   history: paginatedListSchema(checkInPeriodSchema),
 });
-/** PATCH yêu cầu etag và ít nhất một giá trị hợp lệ; không tự thay lịch đang chạy. */
-export const updateCheckInSettingsSchema = z
-  .object({
-    etag: z.string().min(1).max(64),
-    cycleDays: z
-      .union([z.literal(30), z.literal(60), z.literal(90)])
-      .nullable()
-      .optional(),
-    graceDays: z
-      .union([z.literal(7), z.literal(14), z.literal(30)])
-      .nullable()
-      .optional(),
-  })
-  .refine((value) => value.cycleDays != null || value.graceDays != null);
+/** PATCH yêu cầu etag và chu kỳ hợp lệ; không tự thay lịch đang chạy. */
+export const updateCheckInSettingsSchema = z.object({
+  etag: z.string().min(1).max(64),
+  cycleDays: z.union([z.literal(30), z.literal(60), z.literal(90)]),
+});

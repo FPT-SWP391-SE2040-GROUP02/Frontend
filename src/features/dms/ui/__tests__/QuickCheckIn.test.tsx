@@ -17,9 +17,9 @@ it("nút tổng quan khóa theo dữ liệu server và mở lại khi server san
     graceEndsAt: null,
     settings: {
       cycleDays: 30,
-      graceDays: 7,
+      lateReminderGapDays: 3,
+      maxLateReminders: 3,
       pendingCycleDays: null,
-      pendingGraceDays: null,
       etag: "0",
     },
     history: {
@@ -63,9 +63,9 @@ it("hiện Executor đã điểm danh hộ, khóa nút và không ghi ngày", ()
     graceEndsAt: null,
     settings: {
       cycleDays: 60,
-      graceDays: 14,
+      lateReminderGapDays: 3,
+      maxLateReminders: 3,
       pendingCycleDays: null,
-      pendingGraceDays: null,
       etag: "0",
     },
     history: {

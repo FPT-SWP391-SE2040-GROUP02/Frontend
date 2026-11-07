@@ -19,9 +19,9 @@ function statusOf(status: string, graceEndsAt: string | null) {
     graceEndsAt,
     settings: {
       cycleDays: 30,
-      graceDays: 7,
+      lateReminderGapDays: 3,
+      maxLateReminders: 3,
       pendingCycleDays: null,
-      pendingGraceDays: null,
       etag: "0",
     },
     history: {
@@ -47,19 +47,19 @@ function renderWith(data: ReturnType<typeof statusOf>) {
 }
 
 describe("CheckInGraceBanner", () => {
-  it("đang trong thời gian chờ: đếm ngược tới lúc Người thực hiện được yêu cầu kiểm tra", () => {
+  it("đang nhận thư nhắc trễ: đếm ngược tới lúc Người thực thi được báo kiểm tra", () => {
     renderWith(statusOf("CHECKIN_OVERDUE", "2026-12-08T05:00:00Z"));
     expect(screen.getByRole("heading", { name: "Bạn đã quá hạn điểm danh" })).toBeInTheDocument();
     expect(screen.getByText(/Còn 5 ngày 5 giờ/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Điểm danh ngay" })).toBeInTheDocument();
   });
 
-  it("hết thời gian chờ: báo Người thực hiện đang được yêu cầu kiểm tra", () => {
+  it("đã gửi đủ thư nhắc trễ: báo Người thực thi đang được yêu cầu kiểm tra", () => {
     renderWith(statusOf("AWAITING_CHECK", "2026-12-02T00:00:00Z"));
     expect(
-      screen.getByRole("heading", { name: "Đã hết thời gian chờ điểm danh" }),
+      screen.getByRole("heading", { name: "Đã gửi đủ thư nhắc trễ điểm danh" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Người thực hiện đang được yêu cầu/)).toBeInTheDocument();
+    expect(screen.getByText(/Người thực thi đang được báo/)).toBeInTheDocument();
   });
 
   it("điểm danh đúng hạn thì không hiện gì", () => {
