@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -16,12 +18,77 @@ import {
   INCIDENT_TYPE_LABELS,
   INCIDENT_STATUS_LABELS,
   planStageLabel,
+  RESPONSIBLE_ROLE_LABELS,
 } from "../model/admin.content";
 import { useAdminDashboard, useAdminIncidents } from "../model/useAdmin";
 import { useSystemConfig } from "../model/useSystemConfig";
 import { SYSTEM_CONFIG_SERVICES } from "../model/systemConfig.content";
 import { AdminErrorMessage } from "./AdminStateMessage";
 import { ROUTES } from "@/shared/config/routes.config";
+
+/** Màu thanh theo giai đoạn kế hoạch: xanh khi chạy ổn, vàng khi chờ người, xanh dương khi đang xử lý, đỏ khi bị đóng băng. */
+function planStageBarColor(stage: string) {
+  switch (stage) {
+    case "ACTIVE":
+      return "bg-emerald-600";
+    case "CHECKIN_OVERDUE":
+    case "AWAITING_CHECK":
+      return "bg-amber-600";
+    case "DEATH_CASE_OPEN":
+    case "HANDOVER_IN_PROGRESS":
+      return "bg-sky-700";
+    case "BLOCKED":
+      return "bg-red-700";
+    default:
+      return "bg-stone-400";
+  }
+}
+
+const TILE_ICON_TONES = {
+  bad: "bg-red-50 text-red-800",
+  warn: "bg-amber-50 text-amber-800",
+  neutral: "bg-[#e5ede8] text-heritage-primary",
+} as const;
+
+/** Một ô số liệu của Tổng quan: biểu tượng trong ô màu nhạt, nhãn, số lớn và chú thích. */
+function Tile({
+  icon: Icon,
+  label,
+  value,
+  caption,
+  tone,
+  onClick,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: number;
+  caption: ReactNode;
+  tone: keyof typeof TILE_ICON_TONES;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex flex-col gap-3 rounded-2xl border bg-white p-5 text-left shadow-sm transition-colors hover:border-heritage-gold ${
+        tone === "bad" ? "border-red-300" : "border-heritage-border"
+      }`}
+    >
+      <span className={`grid size-9 place-items-center rounded-[10px] ${TILE_ICON_TONES[tone]}`}>
+        <Icon className="size-[18px]" aria-hidden="true" />
+      </span>
+      <span className="text-sm font-semibold text-heritage-muted">{label}</span>
+      <b
+        className={`text-4xl font-bold leading-none tabular-nums ${
+          tone === "bad" ? "text-red-700" : "text-heritage-primary"
+        }`}
+      >
+        {value}
+      </b>
+      <span className="text-xs text-heritage-muted">{caption}</span>
+    </button>
+  );
+}
 
 /** Tổng quan quản trị: KPI Tiles tương tác 1 chạm + Hàng đợi việc cần làm (Priority Incident Queue). */
 export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) => string }) {
@@ -99,147 +166,55 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
         </Button>
       </div>
 
-      {/* 4 ACTIONABLE KPI TILES (One-Click Quick Filters) */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Tile 1: Quá hạn xử lý */}
-        <button
-          type="button"
+      {/* Bốn ô số liệu: biểu tượng trong ô màu nhạt, nhãn, số lớn, chú thích; bấm để lọc sự cố tương ứng. */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Tile
+          icon={Clock}
+          label="Sự cố quá hạn SLA"
+          value={data.overdueIncidents}
+          caption="Sự cố vi phạm SLA giải quyết"
+          tone={data.overdueIncidents > 0 ? "bad" : "neutral"}
           onClick={() => goToIncidents({ overdue: true })}
-          className={`group flex flex-col justify-between rounded-2xl border p-5 text-left transition-all hover:shadow-md ${
-            data.overdueIncidents > 0
-              ? "border-red-300 bg-red-50/70 hover:border-red-400"
-              : "border-heritage-border bg-heritage-surface hover:border-heritage-gold"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-heritage-muted">Sự cố quá hạn SLA</span>
-            <div
-              className={`flex size-8 items-center justify-center rounded-xl ${
-                data.overdueIncidents > 0
-                  ? "bg-red-200 text-red-900"
-                  : "bg-heritage-primary/10 text-heritage-primary"
-              }`}
-            >
-              <Clock className="size-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <b
-              className={`text-3xl font-bold tabular-nums ${
-                data.overdueIncidents > 0 ? "text-red-700" : "text-heritage-primary"
-              }`}
-            >
-              {data.overdueIncidents}
-            </b>
-            <span className="flex items-center gap-1 text-xs font-semibold text-heritage-muted group-hover:text-heritage-primary">
-              Xem sự cố <ArrowRight className="size-3.5" />
-            </span>
-          </div>
-          <p className="mt-1 text-[11px] text-heritage-muted">Sự cố vi phạm SLA giải quyết</p>
-        </button>
-
-        {/* Tile 2: Sự cố đang mở */}
-        <button
-          type="button"
+        />
+        <Tile
+          icon={AlertTriangle}
+          label="Sự cố đang mở"
+          value={data.openIncidents}
+          caption="Cần phân công hoặc đang xử lý"
+          tone="neutral"
           onClick={() => goToIncidents({ status: "OPEN" })}
-          className="group flex flex-col justify-between rounded-2xl border border-heritage-border bg-heritage-surface p-5 text-left transition-all hover:border-heritage-gold hover:shadow-md"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-heritage-muted">Sự cố đang mở</span>
-            <div className="flex size-8 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
-              <AlertTriangle className="size-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <b className="text-3xl font-bold tabular-nums text-heritage-primary">
-              {data.openIncidents}
-            </b>
-            <span className="flex items-center gap-1 text-xs font-semibold text-heritage-muted group-hover:text-heritage-primary">
-              Hàng đợi <ArrowRight className="size-3.5" />
-            </span>
-          </div>
-          <p className="mt-1 text-[11px] text-heritage-muted">Cần phân công hoặc đang xử lý</p>
-        </button>
-
-        {/* Tile 3: Kho đang tạm giữ */}
-        <button
-          type="button"
-          onClick={goToHolds}
-          className="group flex flex-col justify-between rounded-2xl border border-heritage-border bg-heritage-surface p-5 text-left transition-all hover:border-heritage-gold hover:shadow-md"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-heritage-muted">Kho đang tạm giữ</span>
-            <div className="flex size-8 items-center justify-center rounded-xl bg-purple-100 text-purple-800">
-              <ShieldAlert className="size-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <b className="text-3xl font-bold tabular-nums text-heritage-primary">
-              {data.activeHolds}
-            </b>
-            <span className="flex items-center gap-1 text-xs font-semibold text-heritage-muted group-hover:text-heritage-primary">
-              Chi tiết <ArrowRight className="size-3.5" />
-            </span>
-          </div>
-          <p className="mt-1 text-[11px] text-heritage-muted">
-            {data.holdsPastReview > 0
+        />
+        <Tile
+          icon={ShieldAlert}
+          label="Kho đang tạm giữ"
+          value={data.activeHolds}
+          caption={
+            data.holdsPastReview > 0
               ? `${data.holdsPastReview} kho quá hạn rà soát`
-              : "Bảo vệ kho chờ phán quyết"}
-          </p>
-        </button>
-
-        {/* Tile 4: Chưa có người xét duyệt */}
-        <button
-          type="button"
+              : "Bảo vệ kho chờ phán quyết"
+          }
+          tone={data.holdsPastReview > 0 ? "warn" : "neutral"}
+          onClick={goToHolds}
+        />
+        <Tile
+          icon={UserCheck}
+          label="Chờ người xét duyệt"
+          value={data.casesWithoutVerifier}
+          caption="Hồ sơ chứng tử cần chỉ định"
+          tone={data.casesWithoutVerifier > 0 ? "warn" : "neutral"}
           onClick={() => goToIncidents({ type: "NO_VERIFIER" })}
-          className={`group flex flex-col justify-between rounded-2xl border p-5 text-left transition-all hover:shadow-md ${
-            data.casesWithoutVerifier > 0
-              ? "border-amber-300 bg-amber-50/70 hover:border-amber-400"
-              : "border-heritage-border bg-heritage-surface hover:border-heritage-gold"
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-heritage-muted">Chờ người xét duyệt</span>
-            <div
-              className={`flex size-8 items-center justify-center rounded-xl ${
-                data.casesWithoutVerifier > 0
-                  ? "bg-amber-200 text-amber-900"
-                  : "bg-heritage-primary/10 text-heritage-primary"
-              }`}
-            >
-              <UserCheck className="size-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <b
-              className={`text-3xl font-bold tabular-nums ${
-                data.casesWithoutVerifier > 0 ? "text-amber-800" : "text-heritage-primary"
-              }`}
-            >
-              {data.casesWithoutVerifier}
-            </b>
-            <span className="flex items-center gap-1 text-xs font-semibold text-heritage-muted group-hover:text-heritage-primary">
-              Phân công <ArrowRight className="size-3.5" />
-            </span>
-          </div>
-          <p className="mt-1 text-[11px] text-heritage-muted">Hồ sơ chứng tử cần chỉ định</p>
-        </button>
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <h2 className="text-base font-bold text-heritage-primary">Việc cần làm ưu tiên</h2>
-              <p className="text-xs text-heritage-muted">
-                Các sự cố vận hành đang mở có mức độ ưu tiên cao nhất cần giải quyết
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-heritage-primary">Việc cần làm ưu tiên</h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => goToIncidents({ status: "OPEN" })}
-              className="text-xs font-semibold text-heritage-gold hover:text-amber-800"
+              className="text-xs font-semibold text-heritage-muted hover:text-heritage-primary"
             >
               Xem tất cả sự cố <ArrowRight className="ml-1 size-3.5" />
             </Button>
@@ -260,61 +235,44 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           )}
 
           {urgentIncidents.isSuccess && urgentIncidents.data.items.length > 0 && (
-            <div className="overflow-hidden rounded-2xl border border-heritage-border bg-heritage-surface shadow-sm">
-              <div className="divide-y divide-heritage-border/60">
-                {urgentIncidents.data.items.map((incident) => {
-                  const isOverdue = incident.overdue;
-                  return (
-                    <div
-                      key={incident.id}
-                      className="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-heritage-primary/5 sm:flex-row sm:items-center"
-                    >
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-xs font-bold text-heritage-primary">
-                            #{incident.id.slice(0, 8)}
-                          </span>
-                          <span className="rounded-full bg-heritage-primary/10 px-2 py-0.5 text-xs font-semibold text-heritage-primary">
-                            {INCIDENT_TYPE_LABELS[incident.type]}
-                          </span>
-                          {isOverdue && (
-                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-800">
-                              Quá hạn
-                            </span>
-                          )}
-                          <span className="rounded-full border border-heritage-border px-2 py-0.5 text-[11px] text-heritage-muted">
-                            {INCIDENT_STATUS_LABELS[incident.status]}
-                          </span>
-                        </div>
-                        <p className="line-clamp-1 text-xs text-heritage-text">
-                          {incident.summary}
-                        </p>
-                        <p className="text-[11px] text-heritage-muted">
-                          Hạn xử lý: <time>{formatDateTime(incident.dueAt)}</time>
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-3 sm:shrink-0">
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            navigate(
-                              `${ROUTES.ADMIN.ROOT}?view=incidents&incidentId=${incident.id}`,
-                            )
-                          }
-                          className="bg-[#E0C486] text-xs font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
-                        >
-                          Xử lý sự cố
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <ul className="space-y-2.5">
+              {urgentIncidents.data.items.map((incident) => (
+                <li key={incident.id}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate(`${ROUTES.ADMIN.ROOT}?view=incidents&incidentId=${incident.id}`)
+                    }
+                    aria-label={`${INCIDENT_TYPE_LABELS[incident.type]}, mở chi tiết`}
+                    className={`flex min-h-14 w-full items-center gap-3 rounded-xl border border-heritage-border border-l-4 bg-white px-4 py-3 text-left shadow-sm transition-colors hover:border-heritage-gold ${
+                      incident.overdue ? "border-l-red-700" : "border-l-sky-700"
+                    }`}
+                  >
+                    <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                      <b className="font-semibold">{INCIDENT_TYPE_LABELS[incident.type]}</b>
+                      {incident.overdue ? (
+                        <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-800">
+                          Quá hạn
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-900">
+                          {incident.responsibleRole === "ADMIN"
+                            ? "Cần bạn xử lý"
+                            : `Đang chờ ${RESPONSIBLE_ROLE_LABELS[incident.responsibleRole]}`}
+                        </span>
+                      )}
+                      <span className="sr-only">{INCIDENT_STATUS_LABELS[incident.status]}</span>
+                    </span>
+                    <ArrowRight
+                      className="size-4 shrink-0 text-heritage-muted"
+                      aria-hidden="true"
+                    />
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
-
         <aside className="space-y-4" aria-label="Số liệu vận hành">
           {data.planStages.length > 0 && (
             <section
@@ -333,7 +291,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                     </p>
                     <span className="block h-1.5 rounded-full bg-stone-100">
                       <i
-                        className="block h-full rounded-full bg-heritage-primary"
+                        className={`block h-full rounded-full ${planStageBarColor(stage.stage)}`}
                         style={{
                           width: `${Math.max(4, Math.round((stage.count / Math.max(...data.planStages.map((s) => s.count))) * 100))}%`,
                         }}
