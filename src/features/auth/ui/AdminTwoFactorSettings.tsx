@@ -103,13 +103,23 @@ export function AdminTwoFactorSettings() {
   return (
     <section
       aria-labelledby="two-factor-settings-title"
-      className="space-y-4 rounded-xl border border-heritage-border bg-heritage-surface p-5"
+      className="max-w-[720px] space-y-5 rounded-2xl border border-heritage-border bg-white p-6 shadow-sm"
     >
       <div className="flex items-start gap-3">
-        <ShieldCheck className="mt-0.5 size-5 shrink-0 text-heritage-gold" aria-hidden="true" />
+        <ShieldCheck className="mt-1 size-5 shrink-0 text-heritage-gold" aria-hidden="true" />
         <div>
-          <h2 id="two-factor-settings-title" className="text-base font-semibold">
-            Xác thực hai bước (TOTP)
+          <h2
+            id="two-factor-settings-title"
+            className="flex flex-wrap items-center gap-2 text-lg font-bold text-heritage-primary"
+          >
+            Xác thực hai bước
+            <span
+              className={`inline-flex h-6 items-center rounded-xl px-2.5 text-xs font-semibold ${
+                enabled ? "bg-emerald-50 text-emerald-800" : "bg-[#e8e5dd] text-heritage-muted"
+              }`}
+            >
+              {enabled ? "Đang bật" : "Chưa bật"}
+            </span>
           </h2>
           <p className="text-sm text-heritage-muted">
             {enabled
@@ -135,20 +145,22 @@ export function AdminTwoFactorSettings() {
 
       {step.kind === "setup" && (
         <div className="space-y-3">
-          <ol className="list-decimal space-y-1 pl-5 text-sm">
+          <ol className="list-decimal space-y-2 pl-5 text-sm leading-relaxed">
             <li>Mở ứng dụng xác thực (Google Authenticator, Authy…) và thêm tài khoản thủ công.</li>
             <li>Nhập khóa bên dưới (loại: theo thời gian). Khóa chỉ hiện một lần.</li>
             <li>Nhập mã 6 số đang hiện trong ứng dụng để xác nhận.</li>
           </ol>
           <div className="space-y-1">
             <p className="text-xs text-heritage-muted">Khóa nhập thủ công</p>
-            <p className="break-all rounded-lg bg-heritage-canvas p-3 font-mono text-sm tracking-wider">
-              {groupSecret(step.setup.secret)}
-            </p>
-            <Button type="button" variant="outline" onClick={() => void copy(step.setup.secret)}>
-              <KeyRound className="size-4" aria-hidden="true" />
-              {copied ? "Đã sao chép khóa" : "Sao chép khóa"}
-            </Button>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-heritage-border bg-[#faf9f5] p-3">
+              <p className="break-all font-mono text-sm tracking-wider">
+                {groupSecret(step.setup.secret)}
+              </p>
+              <Button type="button" variant="outline" onClick={() => void copy(step.setup.secret)}>
+                <KeyRound className="size-4" aria-hidden="true" />
+                {copied ? "Đã sao chép khóa" : "Sao chép khóa"}
+              </Button>
+            </div>
           </div>
           <label className="block text-sm" htmlFor="two-factor-enable-code">
             Mã 6 số
@@ -195,7 +207,7 @@ export function AdminTwoFactorSettings() {
             {step.recoveryCodes.map((item) => (
               <li
                 key={item}
-                className="rounded-lg bg-heritage-canvas p-2 text-center font-mono text-sm tracking-wider"
+                className="rounded-lg border border-heritage-border bg-[#faf9f5] p-2 text-center font-mono text-sm tracking-wider"
               >
                 {item}
               </li>
