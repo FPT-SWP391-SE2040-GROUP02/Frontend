@@ -62,16 +62,18 @@ function Tile({
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-col gap-3 rounded-2xl border bg-white p-5 text-left shadow-sm transition-colors hover:border-heritage-gold ${
-        tone === "bad" ? "border-red-300" : "border-heritage-border"
+      className={`flex min-h-[132px] flex-col items-start gap-0.5 rounded-[14px] border bg-white px-[18px] py-4 text-left transition-colors hover:border-heritage-gold hover:shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)] ${
+        tone === "bad" ? "border-red-300 shadow-[inset_0_3px_0_#a32119]" : "border-heritage-border"
       }`}
     >
-      <span className={`grid size-9 place-items-center rounded-[10px] ${TILE_ICON_TONES[tone]}`}>
+      <span
+        className={`mb-1.5 grid size-9 place-items-center rounded-[10px] ${TILE_ICON_TONES[tone]}`}
+      >
         <Icon className="size-[18px]" aria-hidden="true" />
       </span>
       <span className="text-sm font-semibold text-heritage-muted">{label}</span>
       <b
-        className={`text-4xl font-bold leading-none tabular-nums ${
+        className={`text-[34px] font-bold leading-[1.15] tabular-nums ${
           tone === "bad" ? "text-red-700" : "text-heritage-primary"
         }`}
       >
@@ -135,7 +137,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
   return (
     <div className="mt-6 space-y-8" aria-busy={query.isFetching}>
       {/* Bốn ô số liệu: biểu tượng trong ô màu nhạt, nhãn, số lớn, chú thích; bấm để lọc sự cố tương ứng. */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Tile
           icon={Clock}
           label="Sự cố quá hạn SLA"
@@ -174,10 +176,10 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div className="grid gap-[22px] lg:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)] lg:items-start">
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-bold text-heritage-primary">Việc cần làm ưu tiên</h2>
+            <h2 className="text-lg font-bold text-heritage-primary">Việc cần làm</h2>
             <Button
               variant="ghost"
               size="sm"
@@ -212,8 +214,10 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                       navigate(`${ROUTES.ADMIN.ROOT}?view=incidents&incidentId=${incident.id}`)
                     }
                     aria-label={`${INCIDENT_TYPE_LABELS[incident.type]}, mở chi tiết`}
-                    className={`flex min-h-14 w-full items-center gap-3 rounded-xl border border-heritage-border border-l-4 bg-white px-4 py-3 text-left shadow-sm transition-colors hover:border-heritage-gold ${
-                      incident.overdue ? "border-l-red-700" : "border-l-sky-700"
+                    className={`flex min-h-14 w-full items-center gap-3.5 rounded-[14px] border border-heritage-border bg-white py-3.5 pl-5 pr-4 text-left transition-colors hover:border-heritage-gold ${
+                      incident.overdue
+                        ? "shadow-[inset_4px_0_0_#a32119]"
+                        : "shadow-[inset_4px_0_0_#2f5d7c]"
                     }`}
                   >
                     <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
@@ -245,9 +249,12 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           {data.planStages.length > 0 && (
             <section
               aria-labelledby="admin-plan-stages"
-              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+              className="rounded-2xl border border-heritage-border bg-[#faf9f5] p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
             >
-              <h2 id="admin-plan-stages" className="text-base font-semibold">
+              <h2
+                id="admin-plan-stages"
+                className="mb-3 text-[15px] font-bold text-heritage-primary"
+              >
                 Kế hoạch theo giai đoạn
               </h2>
               <ul className="mt-3 space-y-3">
@@ -276,9 +283,12 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           {serviceConfig.isSuccess && serviceConfig.data.services.length > 0 && (
             <section
               aria-labelledby="admin-external-services"
-              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+              className="rounded-2xl border border-heritage-border bg-[#faf9f5] p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
             >
-              <h2 id="admin-external-services" className="text-base font-semibold">
+              <h2
+                id="admin-external-services"
+                className="mb-3 text-[15px] font-bold text-heritage-primary"
+              >
                 Dịch vụ ngoài
               </h2>
               <ul className="mt-3 divide-y divide-heritage-border">
@@ -320,9 +330,12 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           {data.verifierLoad.length > 0 && (
             <section
               aria-labelledby="admin-verifier-load"
-              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+              className="rounded-2xl border border-heritage-border bg-[#faf9f5] p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
             >
-              <h2 id="admin-verifier-load" className="text-base font-semibold">
+              <h2
+                id="admin-verifier-load"
+                className="mb-3 text-[15px] font-bold text-heritage-primary"
+              >
                 Tải việc người xét duyệt
               </h2>
               <ul className="mt-3 divide-y divide-heritage-border">
@@ -346,9 +359,12 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           {data.recentActivity.length > 0 && (
             <section
               aria-labelledby="admin-recent-activity"
-              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+              className="rounded-2xl border border-heritage-border bg-[#faf9f5] p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
             >
-              <h2 id="admin-recent-activity" className="text-base font-semibold">
+              <h2
+                id="admin-recent-activity"
+                className="mb-3 text-[15px] font-bold text-heritage-primary"
+              >
                 Hoạt động gần đây
               </h2>
               <ul className="mt-3 space-y-2">
@@ -381,9 +397,12 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
             <section
               key={group.id}
               aria-labelledby={`admin-group-${group.id}`}
-              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
+              className="rounded-2xl border border-heritage-border bg-[#faf9f5] p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
             >
-              <h2 id={`admin-group-${group.id}`} className="text-base font-semibold">
+              <h2
+                id={`admin-group-${group.id}`}
+                className="mb-3 text-[15px] font-bold text-heritage-primary"
+              >
                 {group.title}
               </h2>
               <dl className="mt-3 divide-y divide-heritage-border">
