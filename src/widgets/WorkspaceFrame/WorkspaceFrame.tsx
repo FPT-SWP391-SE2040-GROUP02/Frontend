@@ -10,6 +10,8 @@ export interface WorkspaceNavigationItem {
   label: string;
   to?: string;
   icon?: string;
+  /** Tên nhóm hiện phía trên mục đầu tiên của nhóm (ví dụ "Hệ thống"). */
+  group?: string;
 }
 export interface WorkspaceFrameProps {
   title: string;
@@ -20,7 +22,13 @@ export interface WorkspaceFrameProps {
   navigation?: WorkspaceNavigationItem[];
 }
 /** Khung tài khoản, chỉ hiển thị dữ liệu từ phiên đã xác thực. */
-export function WorkspaceFrame({ title, description, children, navigation }: WorkspaceFrameProps) {
+export function WorkspaceFrame({
+  title,
+  description,
+  children,
+  navigation,
+  active,
+}: WorkspaceFrameProps) {
   const home = useAccountHome();
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const items = navigation ?? [
@@ -36,21 +44,31 @@ export function WorkspaceFrame({ title, description, children, navigation }: Wor
       logoutLabel="Đăng xuất"
       navigation={
         <nav aria-label="Menu chính" className="space-y-1 p-3">
-          {items.map((item) =>
-            item.to ? (
-              <Link
-                key={item.id}
-                to={item.to}
-                className="flex min-h-11 items-center rounded-lg px-3 text-sm hover:bg-white/10"
-              >
-                {item.label}
-              </Link>
-            ) : (
-              <span key={item.id} className="block px-3 py-3 text-sm text-white/60">
-                {item.label}
-              </span>
-            ),
-          )}
+          {items.map((item, index) => {
+            const startsGroup = item.group && item.group !== items[index - 1]?.group;
+            return (
+              <div key={item.id}>
+                {startsGroup && (
+                  <p className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wide text-white/50">
+                    {item.group}
+                  </p>
+                )}
+                {item.to ? (
+                  <Link
+                    to={item.to}
+                    aria-current={item.id === active ? "page" : undefined}
+                    className={`flex min-h-11 items-center rounded-lg px-3 text-sm hover:bg-white/10 ${
+                      item.id === active ? "bg-white/15 font-semibold" : ""
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <span className="block px-3 py-3 text-sm text-white/60">{item.label}</span>
+                )}
+              </div>
+            );
+          })}
         </nav>
       }
       footer={<p className="text-sm">{user?.fullName ?? "Tài khoản"}</p>}
