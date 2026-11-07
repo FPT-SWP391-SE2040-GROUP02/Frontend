@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import type { ReactNode } from "react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -322,11 +323,18 @@ it("đổi tìm kiếm từ URL hủy debounce cũ và đồng bộ ô nhập", 
     onChange,
     onClear: vi.fn(),
   };
-  const view = render(<AdminUsersFilters {...props} />);
+  // Bộ lọc có hook đếm theo vai trò nên cần QueryClientProvider; lỗi gọi đếm không ảnh hưởng ô tìm kiếm.
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrap = (node: ReactNode) => (
+    <QueryClientProvider client={client}>{node}</QueryClientProvider>
+  );
+  const view = render(wrap(<AdminUsersFilters {...props} />));
   fireEvent.change(screen.getByLabelText("Tìm theo tên hoặc email"), {
     target: { value: "pending" },
   });
-  view.rerender(<AdminUsersFilters {...props} filters={{ ...props.filters, search: "back" }} />);
+  view.rerender(
+    wrap(<AdminUsersFilters {...props} filters={{ ...props.filters, search: "back" }} />),
+  );
   expect(screen.getByLabelText("Tìm theo tên hoặc email")).toHaveValue("back");
   await act(async () => {
     vi.advanceTimersByTime(450);

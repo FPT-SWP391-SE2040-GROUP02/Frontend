@@ -25,6 +25,7 @@ import { adminActionError } from "../model/adminError";
 import {
   adminKeys,
   useAdminIncident,
+  useAdminIncidentCounts,
   useAdminIncidents,
   useAdminUserOptions,
 } from "../model/useAdmin";
@@ -100,16 +101,24 @@ export function AdminIncidents() {
 
 function IncidentList({ params }: { params: ReturnType<typeof useAdminIncidentParams> }) {
   const query = useAdminIncidents(params.query);
+  // Số trên các thẻ trạng thái tính theo bộ lọc còn lại (loại, Của tôi, Quá hạn, tìm kiếm), không theo trạng thái đang chọn.
+  const counts = useAdminIncidentCounts({
+    type: params.query.type,
+    overdueOnly: params.query.overdueOnly,
+    mine: params.query.mine,
+    search: params.query.search,
+  });
   return (
     <div className="mt-6 space-y-4">
       <ListSegmentTabs
         label="Trạng thái"
         value={params.filters.status ?? ""}
         options={[
-          { value: "", label: "Tất cả" },
+          { value: "", label: "Tất cả", count: counts.data?.total },
           ...INCIDENT_STATUSES.map((status) => ({
             value: status,
             label: INCIDENT_STATUS_LABELS[status],
+            count: counts.data?.counts[status],
           })),
         ]}
         onChange={(value) => params.setFilters({ status: value || undefined })}
@@ -351,35 +360,51 @@ function IncidentDetailBody({
 
   return (
     <div className="mt-6 space-y-6" aria-busy={refreshing}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {back}
-        <Button
-          variant="outline"
-          className="min-h-11"
-          disabled={refreshing}
-          onClick={() => void client.invalidateQueries({ queryKey: adminKeys.incident(detail.id) })}
-        >
-          <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} aria-hidden="true" />
-          Tải lại
-        </Button>
+      {/* Đầu trang chi tiết theo prototype: tên sự cố lớn kèm nhãn, mã và thời điểm phát sinh, nút ở bên phải. */}
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h2
+            id="incident-title"
+            className="text-[26px] font-bold leading-tight text-heritage-primary"
+          >
+            {INCIDENT_TYPE_LABELS[detail.type]}
+          </h2>
+          <StatusBadge status={detail.status} />
+          {detail.overdue && open && <OverdueBadge />}
+          {open && detail.responsibleRole !== "ADMIN" && (
+            <WaitingBadge role={detail.responsibleRole} />
+          )}
+          <div className="ml-auto flex flex-wrap gap-2">
+            {back}
+            <Button
+              variant="outline"
+              className="min-h-11"
+              disabled={refreshing}
+              onClick={() =>
+                void client.invalidateQueries({ queryKey: adminKeys.incident(detail.id) })
+              }
+            >
+              <RefreshCw
+                className={`size-4 ${refreshing ? "animate-spin" : ""}`}
+                aria-hidden="true"
+              />
+              Tải lại
+            </Button>
+          </div>
+        </div>
+        <p className="text-sm text-heritage-muted">
+          <span className="font-mono">#{detail.id.slice(0, 8).toUpperCase()}</span> · Phát sinh{" "}
+          {formatDateTime(detail.createdAt)}
+        </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <div className="space-y-6">
           <section
-            aria-labelledby="incident-title"
-            className="space-y-3 rounded-xl border border-heritage-border bg-heritage-surface p-4"
+            aria-label="Tóm tắt sự cố"
+            className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5 shadow-sm"
           >
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 id="incident-title" className="text-lg font-semibold">
-                {INCIDENT_TYPE_LABELS[detail.type]}
-              </h2>
-              <StatusBadge status={detail.status} />
-              {detail.overdue && open && <OverdueBadge />}
-              {open && detail.responsibleRole !== "ADMIN" && (
-                <WaitingBadge role={detail.responsibleRole} />
-              )}
-            </div>
+            <h3 className="text-base font-semibold">Tóm tắt</h3>
             <p className="break-words text-sm">{detail.summary}</p>
           </section>
 

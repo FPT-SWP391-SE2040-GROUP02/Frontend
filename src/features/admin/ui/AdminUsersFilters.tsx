@@ -12,6 +12,7 @@ import {
   adminUserStatusSchema,
 } from "../model/admin.schema";
 import { ROLE_LABELS, STATUS_LABELS } from "../model/admin.content";
+import { useAdminUserCounts } from "../model/useAdmin";
 import type { AdminUsersFilters as Filters } from "../model/useAdminUsersSearchParams";
 
 interface AdminUsersFiltersProps {
@@ -30,14 +31,23 @@ export function AdminUsersFilters({
 }: AdminUsersFiltersProps) {
   // Đổi key để ô tìm kiếm bỏ chữ đang gõ dở và hủy lần ghi trễ khi xóa bộ lọc.
   const [resetCount, setResetCount] = useState(0);
+  // Số trên thẻ vai trò tính theo tìm kiếm và trạng thái đang chọn, không theo vai trò.
+  const counts = useAdminUserCounts({
+    search: filters.search || undefined,
+    status: filters.status,
+  });
   return (
     <div className="space-y-4">
       <ListSegmentTabs
         label="Vai trò"
         value={filters.role ?? ""}
         options={[
-          { value: "", label: "Tất cả" },
-          ...ADMIN_USER_ROLES.map((role) => ({ value: role, label: ROLE_LABELS[role] })),
+          { value: "", label: "Tất cả", count: counts.data?.total },
+          ...ADMIN_USER_ROLES.map((role) => ({
+            value: role,
+            label: ROLE_LABELS[role],
+            count: counts.data?.counts[role],
+          })),
         ]}
         onChange={(value) => {
           const parsed = adminUserRoleSchema.safeParse(value);

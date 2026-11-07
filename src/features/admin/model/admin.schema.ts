@@ -218,6 +218,13 @@ export type HoldsPage = z.infer<typeof holdsPageSchema>;
 /** Kích thước trang cố định của danh sách sự cố và hold. */
 export const ADMIN_LIST_PAGE_SIZE = 20;
 
+/** GET /admin/{incidents|users|holds}/counts: số lượng theo nhóm cho các thẻ lọc; nhóm không có dòng nào vẫn là 0. */
+export const countsSchema = z.object({
+  counts: z.record(z.string(), counter),
+  total: counter,
+});
+export type Counts = z.infer<typeof countsSchema>;
+
 /** Query GET /admin/incidents (tên tham số theo AdminController). */
 export const incidentsQuerySchema = z.object({
   status: incidentStatusSchema.optional(),

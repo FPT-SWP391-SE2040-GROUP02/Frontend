@@ -4,6 +4,7 @@ import {
   adminDashboardSchema,
   adminUserSchema,
   adminUserDetailSchema,
+  countsSchema,
   adminUsersPageSchema,
   adminUsersQuerySchema,
   assignIncidentRequestSchema,
@@ -164,6 +165,34 @@ export const adminService = {
     );
   },
 
+  /** Số sự cố theo trạng thái, cùng bộ lọc với danh sách nhưng bỏ qua trạng thái. */
+  async countIncidents(
+    query: Omit<IncidentsQuery, "status" | "pageIndex" | "pageSize">,
+    signal?: AbortSignal,
+  ) {
+    const params: Record<string, string | boolean> = {};
+    if (query.type) params.type = query.type;
+    if (query.overdueOnly) params.overdueOnly = true;
+    if (query.mine) params.mine = true;
+    if (query.search) params.search = query.search;
+    return countsSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/incidents/counts", { params, signal }),
+    );
+  },
+  /** Số tài khoản theo vai trò, cùng tìm kiếm và trạng thái với danh sách nhưng bỏ qua vai trò. */
+  async countUsers(query: { search?: string; status?: string }, signal?: AbortSignal) {
+    const params: Record<string, string> = {};
+    if (query.search) params.search = query.search;
+    if (query.status) params.status = query.status;
+    return countsSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/users/counts", { params, signal }),
+    );
+  },
+  async countHolds(signal?: AbortSignal) {
+    return countsSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/holds/counts", { signal }),
+    );
+  },
   async listHolds(query: HoldsQuery, signal?: AbortSignal) {
     const parsed = holdsQuerySchema.parse(query);
     const params: Record<string, string | number> = {

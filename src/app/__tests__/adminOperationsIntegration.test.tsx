@@ -569,6 +569,24 @@ describe("Tài khoản", () => {
   });
 });
 
+describe("Số đếm trên thẻ trạng thái", () => {
+  it("Sự cố hiện số theo từng trạng thái và gửi bộ lọc còn lại nhưng không gửi trạng thái", async () => {
+    backend((call) =>
+      call.url === "/admin/incidents/counts"
+        ? { counts: { OPEN: 4, IN_PROGRESS: 2, RESOLVED: 3 }, total: 9 }
+        : page([incidentSummary()]),
+    );
+    setup(`${incidentsPath}&status=OPEN&mine=1`);
+    expect(await screen.findByRole("button", { name: /^Tất cả\s*9$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Đang mở\s*4$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Đang xử lý\s*2$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Đã xử lý\s*3$/ })).toBeInTheDocument();
+    const last = callsTo("get", "/admin/incidents/counts").at(-1)?.params;
+    expect(last).toMatchObject({ mine: true });
+    expect(last).not.toHaveProperty("status");
+  });
+});
+
 describe("Hộp Tạm giữ kho trong chi tiết sự cố", () => {
   it("hiện hold đang hiệu lực của kho và gửi đúng vaultId", async () => {
     backend((call) => {

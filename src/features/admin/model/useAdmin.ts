@@ -85,6 +85,39 @@ export function useAdminIncident(incidentId: string) {
   });
 }
 
+/** Số sự cố theo trạng thái cho thẻ lọc; làm mới cùng nhịp với danh sách sự cố. */
+export function useAdminIncidentCounts(
+  query: Omit<IncidentsQuery, "status" | "pageIndex" | "pageSize">,
+) {
+  return useQuery({
+    queryKey: [...adminKeys.all, "incident-counts", query] as const,
+    queryFn: ({ signal }) => adminService.countIncidents(query, signal),
+    placeholderData: keepPreviousData,
+    retry: false,
+    refetchInterval: POLLING_INTERVAL.NORMAL,
+    refetchIntervalInBackground: false,
+  });
+}
+
+/** Số tài khoản theo vai trò cho thẻ lọc. */
+export function useAdminUserCounts(query: { search?: string; status?: string }) {
+  return useQuery({
+    queryKey: [...adminKeys.all, "user-counts", query] as const,
+    queryFn: ({ signal }) => adminService.countUsers(query, signal),
+    placeholderData: keepPreviousData,
+    retry: false,
+  });
+}
+
+/** Số tạm giữ theo trạng thái cho thẻ lọc. */
+export function useAdminHoldCounts() {
+  return useQuery({
+    queryKey: [...adminKeys.all, "hold-counts"] as const,
+    queryFn: ({ signal }) => adminService.countHolds(signal),
+    retry: false,
+  });
+}
+
 export function useAdminHolds(query: HoldsQuery) {
   return useQuery({
     queryKey: adminKeys.holds(query),
