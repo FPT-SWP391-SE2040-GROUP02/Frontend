@@ -29,8 +29,18 @@ import {
 } from "../model/useAdmin";
 import { useAdminIncidentParams } from "../model/useAdminListParams";
 import { AdminActionDialog } from "./AdminActionDialog";
+import {
+  ListFilterBar,
+  ListPill,
+  ListSearchField,
+  ListSegmentTabs,
+  ListSelectField,
+  ListTable,
+  ListTableRow,
+} from "@/shared/ui/listKit";
 import { AdminPagination } from "./AdminPagination";
 import { AdminErrorMessage } from "./AdminStateMessage";
+import { IncidentHoldBox } from "./IncidentHoldBox";
 
 const STATUS_STYLES: Record<IncidentStatus, string> = {
   OPEN: "bg-amber-50 text-amber-900 border-amber-300",
@@ -82,48 +92,48 @@ function IncidentList({ params }: { params: ReturnType<typeof useAdminIncidentPa
   const query = useAdminIncidents(params.query);
   return (
     <div className="mt-6 space-y-4">
-      <fieldset className="grid gap-3 rounded-xl border border-heritage-border p-4 sm:grid-cols-3">
-        <legend className="px-1 text-sm font-semibold">Bộ lọc sự cố</legend>
-        <label className="block text-sm">
-          Trạng thái
-          <select
-            value={params.filters.status ?? ""}
-            onChange={(event) => params.setFilters({ status: event.target.value || undefined })}
-            className="mt-1 min-h-11 w-full rounded-lg border border-heritage-border bg-white px-3 text-sm"
-          >
-            <option value="">Tất cả</option>
-            {INCIDENT_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {INCIDENT_STATUS_LABELS[status]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-sm">
-          Loại sự cố
-          <select
-            value={params.filters.type ?? ""}
-            onChange={(event) => params.setFilters({ type: event.target.value || undefined })}
-            className="mt-1 min-h-11 w-full rounded-lg border border-heritage-border bg-white px-3 text-sm"
-          >
-            <option value="">Tất cả</option>
-            {INCIDENT_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {INCIDENT_TYPE_LABELS[type]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex min-h-11 items-center gap-3 self-end text-sm">
-          <input
-            type="checkbox"
-            className="size-5"
-            checked={params.filters.overdueOnly}
-            onChange={(event) => params.setFilters({ overdueOnly: event.target.checked })}
-          />
-          Chỉ sự cố quá hạn
-        </label>
-      </fieldset>
+      <ListSegmentTabs
+        label="Trạng thái"
+        value={params.filters.status ?? ""}
+        options={[
+          { value: "", label: "Tất cả" },
+          ...INCIDENT_STATUSES.map((status) => ({
+            value: status,
+            label: INCIDENT_STATUS_LABELS[status],
+          })),
+        ]}
+        onChange={(value) => params.setFilters({ status: value || undefined })}
+      />
+      <ListFilterBar onClear={params.hasFilters ? params.clearFilters : undefined}>
+        <ListSearchField
+          label="Tìm sự cố"
+          placeholder="Tìm theo mã sự cố, mã hồ sơ hoặc nội dung"
+          value={params.filters.search}
+          onCommit={(value) => params.setFilters({ search: value })}
+        />
+        <ListPill
+          pressed={params.filters.mine}
+          onClick={() => params.setFilters({ mine: !params.filters.mine })}
+        >
+          Của tôi
+        </ListPill>
+        <ListPill
+          pressed={params.filters.overdueOnly}
+          onClick={() => params.setFilters({ overdueOnly: !params.filters.overdueOnly })}
+        >
+          Quá hạn
+        </ListPill>
+        <ListSelectField
+          label="Loại sự cố"
+          value={params.filters.type ?? ""}
+          allLabel="Mọi loại"
+          options={INCIDENT_TYPES.map((type) => ({
+            value: type,
+            label: INCIDENT_TYPE_LABELS[type],
+          }))}
+          onChange={(value) => params.setFilters({ type: value || undefined })}
+        />
+      </ListFilterBar>
       <section aria-labelledby="admin-incidents-heading" className="space-y-3">
         <h2 id="admin-incidents-heading" className="text-lg font-semibold">
           Danh sách sự cố
@@ -184,11 +194,6 @@ function IncidentResult({
         <p className="text-sm text-heritage-muted">
           {params.hasFilters ? "Không có sự cố khớp bộ lọc." : "Hiện chưa có sự cố nào."}
         </p>
-        {params.hasFilters && (
-          <Button variant="outline" className="min-h-11" onClick={params.clearFilters}>
-            Xóa bộ lọc
-          </Button>
-        )}
       </div>
     );
   return (
@@ -197,13 +202,16 @@ function IncidentResult({
       className={refreshing ? "opacity-60 transition-opacity" : undefined}
     >
       <p aria-live="polite" className="mb-3 text-sm text-heritage-muted">
-        {data.totalCount} sự cố · Trang {data.pageIndex}/{data.totalPages}
+        <b>{data.totalCount}</b> sự cố
       </p>
-      <ul className="space-y-2">
+      <ListTable
+        columns="minmax(220px,1.6fr) minmax(130px,.7fr) minmax(150px,.8fr) minmax(150px,.8fr)"
+        headings={["Sự cố", "Trạng thái", "Hạn xử lý", "Người phụ trách"]}
+      >
         {data.items.map((item) => (
           <IncidentRow key={item.id} item={item} onOpen={() => params.select(item.id)} />
         ))}
-      </ul>
+      </ListTable>
       <AdminPagination
         label="Phân trang sự cố"
         pageIndex={data.pageIndex}
@@ -218,32 +226,41 @@ function IncidentResult({
 }
 
 function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => void }) {
+  const assignee = useAssigneeLabel(item.assigneeUserId);
   return (
-    <li>
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex min-h-11 w-full flex-col gap-2 rounded-xl border border-heritage-border bg-heritage-surface p-4 text-left hover:border-heritage-primary"
-      >
-        <span className="flex flex-wrap items-center gap-2">
-          <span className="font-medium">{INCIDENT_TYPE_LABELS[item.type]}</span>
+    <button
+      type="button"
+      onClick={onOpen}
+      className="block min-h-11 w-full text-left hover:bg-stone-50 focus-visible:bg-stone-50"
+    >
+      <ListTableRow>
+        <span className="flex min-w-0 flex-col gap-1">
+          <span className="font-semibold">{INCIDENT_TYPE_LABELS[item.type]}</span>
+          <span className="break-words text-sm text-heritage-muted">{item.summary}</span>
+        </span>
+        <span className="flex flex-wrap items-start gap-2">
           <StatusBadge status={item.status} />
           {item.overdue && item.status !== "RESOLVED" && <OverdueBadge />}
         </span>
-        <span className="break-words text-sm text-heritage-muted">{item.summary}</span>
-        <span className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-heritage-muted tabular-nums">
-          <span>Hạn xử lý: {formatDateTime(item.dueAt)}</span>
-          <span>Xem lại: {formatDateTime(item.nextReviewAt)}</span>
-          {!item.assigneeUserId && (
+        <span className="flex flex-col gap-1 text-sm tabular-nums">
+          <b className="font-medium">{formatDateTime(item.dueAt)}</b>
+          <small className="text-heritage-muted">
+            Xem lại: {formatDateTime(item.nextReviewAt)}
+          </small>
+        </span>
+        <span className="text-sm">
+          {item.assigneeUserId ? (
+            assignee
+          ) : (
             <span className="font-semibold text-amber-900">Chưa có người phụ trách</span>
           )}
         </span>
-      </button>
-    </li>
+      </ListTableRow>
+    </button>
   );
 }
 
-type IncidentDialog = "assign" | "note" | "review" | "resolve" | "reassign";
+type IncidentDialog = "assign" | "note" | "review" | "resolve" | "reassign" | "executor";
 
 function IncidentDetailView({ incidentId, onBack }: { incidentId: string; onBack: () => void }) {
   const query = useAdminIncident(incidentId);
@@ -306,6 +323,8 @@ function IncidentDetailBody({
     (detail.type === "NO_VERIFIER" || followsCase) &&
     detail.targetType === INCIDENT_TARGET_DEATH_CASE &&
     detail.targetId !== null;
+  // Kho bị kẹt không còn Người thực thi hoạt động: Admin giao người mới; người này phải chấp nhận lời mời.
+  const canAssignExecutor = open && detail.type === "NO_EXECUTOR" && detail.vaultId !== null;
   const close = () => setDialog(null);
   const done = () => void client.invalidateQueries({ queryKey: adminKeys.all });
   const dialogKey = `${detail.id}:${detail.etag}`;
@@ -325,108 +344,133 @@ function IncidentDetailBody({
         </Button>
       </div>
 
-      <section
-        aria-labelledby="incident-title"
-        className="space-y-3 rounded-xl border border-heritage-border bg-heritage-surface p-4"
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 id="incident-title" className="text-lg font-semibold">
-            {INCIDENT_TYPE_LABELS[detail.type]}
-          </h2>
-          <StatusBadge status={detail.status} />
-          {detail.overdue && open && <OverdueBadge />}
-        </div>
-        <p className="break-words text-sm">{detail.summary}</p>
-        <dl className="grid gap-3 text-sm sm:grid-cols-2">
-          <Fact label="Người phụ trách" value={assignee} />
-          <Fact label="Hạn xử lý" value={formatDateTime(detail.dueAt)} />
-          <Fact label="Lần xem lại tiếp theo" value={formatDateTime(detail.nextReviewAt)} />
-          <Fact label="Phát sinh lúc" value={formatDateTime(detail.createdAt)} />
-          <Fact label="Số lần đã nhắc" value={String(detail.remindedCount)} />
-          {detail.escalatedAt && (
-            <Fact label="Đã báo quản trị viên lúc" value={formatDateTime(detail.escalatedAt)} />
-          )}
-          {detail.vaultId && <Fact label="Mã kho" value={detail.vaultId} mono />}
-          {detail.targetId && (
-            <Fact label={`Đối tượng (${detail.targetType})`} value={detail.targetId} mono />
-          )}
-          {detail.resolvedAt && (
-            <Fact label="Xử lý xong lúc" value={formatDateTime(detail.resolvedAt)} />
-          )}
-          {detail.resolutionNote && <Fact label="Kết quả xử lý" value={detail.resolutionNote} />}
-        </dl>
-        <p className="text-xs text-heritage-muted">
-          Chỉ hiện thông tin vận hành. Quản trị viên không đọc được nội dung kho hay giấy tờ.
-        </p>
-      </section>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <div className="space-y-6">
+          <section
+            aria-labelledby="incident-title"
+            className="space-y-3 rounded-xl border border-heritage-border bg-heritage-surface p-4"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 id="incident-title" className="text-lg font-semibold">
+                {INCIDENT_TYPE_LABELS[detail.type]}
+              </h2>
+              <StatusBadge status={detail.status} />
+              {detail.overdue && open && <OverdueBadge />}
+            </div>
+            <p className="break-words text-sm">{detail.summary}</p>
+          </section>
 
-      {open ? (
-        <section aria-label="Thao tác" className="flex flex-wrap gap-3">
-          {!followsCase && (
-            <Button className="min-h-11" onClick={() => setDialog("assign")}>
-              Giao người phụ trách
-            </Button>
-          )}
-          {canReassign && (
-            <Button
-              className="min-h-11"
-              variant={followsCase ? "default" : "outline"}
-              onClick={() => setDialog("reassign")}
-            >
-              Giao người xét duyệt
-            </Button>
-          )}
-          <Button className="min-h-11" variant="outline" onClick={() => setDialog("note")}>
-            Ghi chú
-          </Button>
-          <Button className="min-h-11" variant="outline" onClick={() => setDialog("review")}>
-            Hẹn xem lại
-          </Button>
-          {!followsCase && (
-            <Button className="min-h-11" variant="outline" onClick={() => setDialog("resolve")}>
-              Đóng sự cố
-            </Button>
-          )}
-          {followsCase && (
-            <p role="note" className="basis-full text-sm text-heritage-muted">
-              Sự cố này đi theo hồ sơ: người phụ trách là người xét duyệt đang giữ hồ sơ, và sự cố
-              tự đóng khi người đó kết luận lời báo. Muốn đổi người, dùng Giao người xét duyệt.
+          {open ? (
+            <section aria-label="Thao tác" className="flex flex-wrap gap-3">
+              {canAssignExecutor && (
+                <Button className="min-h-11" onClick={() => setDialog("executor")}>
+                  Giao Người thực thi
+                </Button>
+              )}
+              {!followsCase && (
+                <Button
+                  className="min-h-11"
+                  variant={canAssignExecutor ? "outline" : "default"}
+                  onClick={() => setDialog("assign")}
+                >
+                  Giao người phụ trách
+                </Button>
+              )}
+              {canReassign && (
+                <Button
+                  className="min-h-11"
+                  variant={followsCase ? "default" : "outline"}
+                  onClick={() => setDialog("reassign")}
+                >
+                  Giao người xét duyệt
+                </Button>
+              )}
+              <Button className="min-h-11" variant="outline" onClick={() => setDialog("note")}>
+                Ghi chú
+              </Button>
+              <Button className="min-h-11" variant="outline" onClick={() => setDialog("review")}>
+                Hẹn xem lại
+              </Button>
+              {!followsCase && (
+                <Button className="min-h-11" variant="outline" onClick={() => setDialog("resolve")}>
+                  Đóng sự cố
+                </Button>
+              )}
+              {followsCase && (
+                <p role="note" className="basis-full text-sm text-heritage-muted">
+                  Sự cố này đi theo hồ sơ: người phụ trách là người xét duyệt đang giữ hồ sơ, và sự
+                  cố tự đóng khi người đó kết luận lời báo. Muốn đổi người, dùng Giao người xét
+                  duyệt.
+                </p>
+              )}
+            </section>
+          ) : (
+            <p role="status" className="text-sm text-heritage-muted">
+              Sự cố đã được xử lý nên không còn thao tác.
             </p>
           )}
-        </section>
-      ) : (
-        <p role="status" className="text-sm text-heritage-muted">
-          Sự cố đã được xử lý nên không còn thao tác.
-        </p>
-      )}
 
-      <section aria-labelledby="incident-events" className="space-y-3">
-        <h3 id="incident-events" className="text-base font-semibold">
-          Lịch sử
-        </h3>
-        {detail.events.length === 0 ? (
-          <p className="text-sm text-heritage-muted">Chưa có sự kiện nào.</p>
-        ) : (
-          <ol className="space-y-2">
-            {[...detail.events]
-              .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
-              .map((event, index) => (
-                <li
-                  key={`${event.at}-${index}`}
-                  className="rounded-lg border border-heritage-border p-3 text-sm"
-                >
-                  <p className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="font-medium">{INCIDENT_EVENT_LABELS[event.kind]}</span>
-                    <time dateTime={event.at} className="text-xs text-heritage-muted tabular-nums">
-                      {formatDateTime(event.at)}
-                    </time>
-                  </p>
-                  {event.note && <p className="mt-1 break-words">{event.note}</p>}
-                </li>
-              ))}
-          </ol>
-        )}
-      </section>
+          <section aria-labelledby="incident-events" className="space-y-3">
+            <h3 id="incident-events" className="text-base font-semibold">
+              Lịch sử
+            </h3>
+            {detail.events.length === 0 ? (
+              <p className="text-sm text-heritage-muted">Chưa có sự kiện nào.</p>
+            ) : (
+              <ol className="space-y-2">
+                {[...detail.events]
+                  .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+                  .map((event, index) => (
+                    <li
+                      key={`${event.at}-${index}`}
+                      className="rounded-lg border border-heritage-border p-3 text-sm"
+                    >
+                      <p className="flex flex-wrap items-baseline justify-between gap-2">
+                        <span className="font-medium">{INCIDENT_EVENT_LABELS[event.kind]}</span>
+                        <time
+                          dateTime={event.at}
+                          className="text-xs text-heritage-muted tabular-nums"
+                        >
+                          {formatDateTime(event.at)}
+                        </time>
+                      </p>
+                      {event.note && <p className="mt-1 break-words">{event.note}</p>}
+                    </li>
+                  ))}
+              </ol>
+            )}
+          </section>
+        </div>
+        <div className="space-y-4">
+          <aside className="space-y-3 rounded-xl border border-heritage-border bg-heritage-surface p-4">
+            <h3 className="text-base font-semibold">Thông tin</h3>
+            <dl className="space-y-3 text-sm">
+              <Fact label="Người phụ trách" value={assignee} />
+              <Fact label="Hạn xử lý" value={formatDateTime(detail.dueAt)} />
+              <Fact label="Lần xem lại tiếp theo" value={formatDateTime(detail.nextReviewAt)} />
+              <Fact label="Phát sinh lúc" value={formatDateTime(detail.createdAt)} />
+              <Fact label="Số lần đã nhắc" value={String(detail.remindedCount)} />
+              {detail.escalatedAt && (
+                <Fact label="Đã báo quản trị viên lúc" value={formatDateTime(detail.escalatedAt)} />
+              )}
+              {detail.vaultId && <Fact label="Mã kho" value={detail.vaultId} mono />}
+              {detail.targetId && (
+                <Fact label={`Đối tượng (${detail.targetType})`} value={detail.targetId} mono />
+              )}
+              {detail.resolvedAt && (
+                <Fact label="Xử lý xong lúc" value={formatDateTime(detail.resolvedAt)} />
+              )}
+              {detail.resolutionNote && (
+                <Fact label="Kết quả xử lý" value={detail.resolutionNote} />
+              )}
+            </dl>
+            <p className="text-xs text-heritage-muted">
+              Chỉ hiện thông tin vận hành. Quản trị viên không đọc được nội dung kho hay giấy tờ.
+            </p>
+          </aside>
+          {detail.vaultId && <IncidentHoldBox vaultId={detail.vaultId} />}
+        </div>
+      </div>
 
       {dialog === "assign" && (
         <AdminActionDialog
@@ -449,6 +493,33 @@ function IncidentDetailBody({
               assigneeUserId: values.assigneeUserId,
               reason: values.reason,
               etag: detail.etag,
+            })
+          }
+          onClose={close}
+          onDone={done}
+        />
+      )}
+      {dialog === "executor" && detail.vaultId && (
+        <AdminActionDialog
+          key={dialogKey}
+          title="Giao Người thực thi cho kho"
+          description="Kho không còn Người thực thi hoạt động. Chọn người hiểu luật sẽ nhận kho; người này nhận lời mời qua email và phải chấp nhận mới có hiệu lực. Không giao được cho chủ kho, quản trị viên hay người xét duyệt."
+          submitLabel="Giao Người thực thi"
+          fields={[
+            {
+              name: "userId",
+              label: "Người thực thi mới",
+              kind: "user",
+              roles: ["EXECUTOR", "USER"],
+            },
+            { name: "reason", label: "Lý do", kind: "textarea", maxLength: 500 },
+          ]}
+          defaultValues={{ userId: "", reason: "" }}
+          confirmLabel="Tôi xác nhận việc giao này, có ghi nhật ký."
+          submit={(values) =>
+            adminService.assignExecutor(detail.vaultId as string, {
+              userId: values.userId,
+              reason: values.reason,
             })
           }
           onClose={close}

@@ -26,7 +26,6 @@ const summary = (id: string, status: string, extra: Record<string, unknown> = {}
   submittedAt: CREATED_AT,
   assignedAt: CREATED_AT,
   dueAt: CREATED_AT,
-  objectionEndsAt: null,
   unreviewedFlagCount: 0,
   closedAt: null,
   ...extra,

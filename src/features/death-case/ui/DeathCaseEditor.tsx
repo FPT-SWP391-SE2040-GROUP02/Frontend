@@ -110,19 +110,19 @@ function CertificateCheckNote({ check }: { check: CertificateFileCheck | undefin
  * DEATH-04, D5: câu giải thích khi bản hiện tại đã gửi. Đang xét hoặc cần bổ sung thì Executor tạo được bản mới
  * (chép từ bản đã gửi); Verifier vẫn xét bản đã gửi cho tới khi bản mới được nộp.
  */
-function reviewText(status: string, objectionHours: number): string {
+function reviewText(status: string): string {
   if (status === "SUPPLEMENT_REQUIRED") {
     return "Người xét duyệt yêu cầu bổ sung. Tạo bản bổ sung để sửa hoặc thêm giấy tờ rồi nộp lại.";
   }
   if (status === "UNDER_REVIEW") {
-    return `Hồ sơ đang được xét. Cần sửa hoặc thêm giấy tờ thì tạo bản bổ sung; Người xét duyệt vẫn xét bản đã gửi cho tới khi bạn nộp bản mới. Đổi họ tên, CCCD hoặc ngày mất của Chủ kho thì Chủ kho được báo lại và ${objectionHours} giờ phản đối tính lại từ đầu.`;
+    return "Hồ sơ đang được xét. Cần sửa hoặc thêm giấy tờ thì tạo bản bổ sung; Người xét duyệt vẫn xét bản đã gửi cho tới khi bạn nộp bản mới.";
   }
   return "Hồ sơ đã đóng nên không sửa hay bổ sung được nữa.";
 }
 
 /** Một snapshot hồ sơ; full CCCD/file chỉ nằm trong local form, không cache. */
 export function DeathCaseEditor({ record }: { record: DeathCase }) {
-  const { objectionHours, deathCaseMaxFiles: MAX_FILES, deathCaseMaxFileMb } = usePolicyWindows();
+  const { deathCaseMaxFiles: MAX_FILES, deathCaseMaxFileMb } = usePolicyWindows();
   const MAX_BYTES = deathCaseMaxFileMb * 1024 * 1024;
   const [etag, setEtag] = useState(record.etag);
   const [confirmed, setConfirmed] = useState(false);
@@ -296,7 +296,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
         } else {
           publish(
             result,
-            `Đã gửi hồ sơ. Chủ kho sẽ được báo qua email và có ${objectionHours} giờ để phản đối trước khi xét duyệt.`,
+            "Đã gửi hồ sơ. Hồ sơ sang Người xét duyệt; kho và tài khoản Chủ kho được khóa.",
           );
         }
       },
@@ -448,7 +448,7 @@ export function DeathCaseEditor({ record }: { record: DeathCase }) {
             ) : (
               <>
                 <p className="mb-4 text-sm leading-6 text-heritage-muted">
-                  {reviewText(record.status, objectionHours)}
+                  {reviewText(record.status)}
                 </p>
                 {["UNDER_REVIEW", "SUPPLEMENT_REQUIRED"].includes(record.status) && (
                   <button

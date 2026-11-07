@@ -17,8 +17,6 @@ export const verifierFlagKindSchema = z.enum([
 ]);
 /** Quyết định Verifier đã ra (BE VerifierDecisionResponse.Kind). */
 export const verifierDecisionKindSchema = z.enum(["SUPPLEMENT_REQUESTED", "REJECTED", "APPROVED"]);
-/** Trạng thái thông báo Owner (BE DeathCaseNoticeResponse.Status). */
-export const ownerNoticeStatusSchema = z.enum(["PENDING", "DELIVERED", "FAILED", "CANCELLED"]);
 /** Mã phần cần bổ sung (DEATH-01) mà FE truyền trong RequestSupplement. */
 export const supplementPartSchema = z.enum([
   "OWNER_FULL_NAME",
@@ -44,8 +42,6 @@ export const supplementPartLabels: Record<z.infer<typeof supplementPartSchema>, 
 export const approveBlockerSchema = z.enum([
   "NOT_UNDER_REVIEW",
   "NEWER_VERSION_PENDING",
-  "OWNER_NOT_NOTIFIED",
-  "OBJECTION_PERIOD_NOT_OVER",
   "FLAGS_NOT_REVIEWED",
   "VERIFIER_CONFLICT",
 ]);
@@ -68,7 +64,6 @@ export const verifierCaseSummarySchema = z.object({
   submittedAt: timestamp.nullable(),
   assignedAt: timestamp,
   dueAt: timestamp,
-  objectionEndsAt: timestamp.nullable(),
   unreviewedFlagCount: z.number().int().nonnegative(),
   closedAt: timestamp.nullable(),
   /** Có giá trị = Executor bổ sung quá hạn 7 ngày; null/thiếu = chưa quá hạn hoặc đã gửi lại (BE mục 6.12). */
@@ -114,10 +109,6 @@ export const verifierDecisionSchema = z.object({
   requestedParts: z.array(supplementPartSchema),
   decidedAt: timestamp,
 });
-/** Thông báo Owner. */
-export const ownerNoticeSchema = z
-  .object({ status: ownerNoticeStatusSchema, deliveredAt: timestamp.nullable() })
-  .nullable();
 /** Phân công Verifier. */
 export const verifierAssignmentSchema = z.object({
   assignedAt: timestamp,
@@ -194,8 +185,6 @@ export const verifierCaseDetailSchema = z.object({
   versions: z.array(verifierOlderVersionSchema),
   flags: z.array(verifierFlagSchema),
   decisions: z.array(verifierDecisionSchema),
-  ownerNotice: ownerNoticeSchema,
-  objectionEndsAt: timestamp.nullable(),
   assignment: verifierAssignmentSchema,
   canApprove: z.boolean(),
   approveBlockers: z.array(approveBlockerSchema),
@@ -231,12 +220,6 @@ export const approveCaseRequestSchema = z.object({
   reason: z.string().trim().min(1, "Cần nhập lý do duyệt.").max(1000, "Lý do tối đa 1000 ký tự."),
   password: signingPassword,
 });
-/** Từ chối hồ sơ; cần nhập lại mật khẩu tài khoản để xác nhận (DEATH-03). */
-export const rejectCaseRequestSchema = z.object({
-  etag: z.string().min(1).max(64),
-  reason: z.string().trim().min(1, "Cần nhập lý do từ chối.").max(1000, "Lý do tối đa 1000 ký tự."),
-  password: signingPassword,
-});
 /** Nhãn tiếng Việt cho status hồ sơ. */
 export const caseStatusLabels: Record<z.infer<typeof verifierCaseStatusSchema>, string> = {
   UNDER_REVIEW: "Đang xét",
@@ -255,18 +238,9 @@ export const flagLabels: Record<z.infer<typeof verifierFlagKindSchema>, string> 
 export const blockerLabels: Record<z.infer<typeof approveBlockerSchema>, string> = {
   NOT_UNDER_REVIEW: "Hồ sơ không ở trạng thái đang xét.",
   NEWER_VERSION_PENDING: "Đang có bản mới chờ xét; chờ Verifier xét bản mới nhất.",
-  OWNER_NOT_NOTIFIED: "Owner chưa được thông báo về hồ sơ này.",
-  OBJECTION_PERIOD_NOT_OVER: "Đang trong thời gian chờ Owner phản đối.",
   FLAGS_NOT_REVIEWED: "Còn cảnh báo chưa được kiểm tra.",
   VERIFIER_CONFLICT:
     "Bạn có quan hệ với kho này nên chỉ được xem, không được ra quyết định trên hồ sơ.",
-};
-/** Nhãn cho trạng thái báo Owner; `DELIVERED` được ghép thêm `deliveredAt` ở UI. */
-export const ownerNoticeLabels: Record<z.infer<typeof ownerNoticeStatusSchema>, string> = {
-  PENDING: "Đang chờ gửi",
-  DELIVERED: "Đã gửi",
-  FAILED: "Gửi lỗi",
-  CANCELLED: "Đã hủy",
 };
 /** Nhãn cho decision. */
 export const decisionLabels: Record<z.infer<typeof verifierDecisionKindSchema>, string> = {
@@ -274,66 +248,3 @@ export const decisionLabels: Record<z.infer<typeof verifierDecisionKindSchema>, 
   REJECTED: "Từ chối",
   APPROVED: "Duyệt mở bàn giao",
 };
-
-/** Kết luận của Verifier cho lời báo còn sống (BE ObjectionConclusion). */
-export const objectionConclusionSchema = z.enum([
-  "ALIVE_CONFIRMED",
-  "OBJECTION_REJECTED",
-  "INSUFFICIENT_EVIDENCE",
-]);
-/** Lời báo "Tôi còn sống" nhìn từ Verifier (BE ObjectionResponse). */
-export const verifierObjectionSchema = z.object({
-  id: z.string().uuid(),
-  status: z.enum(["OPEN", "CONCLUDED"]),
-  firstReportedAt: timestamp,
-  lastReportedAt: timestamp,
-  reportCount: z.number().int().nonnegative(),
-  selfieDeadlineAt: timestamp,
-  selfieWindowOpen: z.boolean(),
-  selfiePassed: z.boolean(),
-  selfiePassedAt: timestamp.nullable(),
-  selfieAttemptsRemaining: z.number().int().nonnegative(),
-  /** Có ảnh selfie của lần thử gần nhất (BR-50 sửa); xem qua GET .../objection/selfie-image. */
-  hasSelfieImage: z.boolean(),
-  selfieImageCapturedAt: timestamp.nullable(),
-  /** Ảnh đang lưu có khớp mẫu khuôn mặt không; null khi chưa có ảnh. */
-  selfieImageMatched: z.boolean().nullable(),
-  verifierDueAt: timestamp.nullable(),
-  insufficientEvidenceCount: z.number().int().nonnegative(),
-  conclusion: objectionConclusionSchema.nullable(),
-  conclusionReason: z.string().nullable(),
-  concludedAt: timestamp.nullable(),
-  serverTime: timestamp,
-});
-/** Kết luận lời báo; lý do bắt buộc, tối đa 1000 ký tự (BE ConcludeObjectionRequest). */
-export const concludeObjectionRequestSchema = z.object({
-  conclusion: objectionConclusionSchema,
-  reason: z
-    .string()
-    .trim()
-    .min(1, "Cần nhập lý do kết luận.")
-    .max(1000, "Lý do tối đa 1000 ký tự."),
-});
-export const objectionConclusionLabels: Record<
-  z.infer<typeof objectionConclusionSchema>,
-  string
-> = {
-  ALIVE_CONFIRMED: "Xác nhận Owner còn sống",
-  OBJECTION_REJECTED: "Từ chối báo tử",
-  INSUFFICIENT_EVIDENCE: "Chưa đủ bằng chứng",
-};
-/**
- * Kết luận nào còn mở cho lời báo này, theo luật BE mục 6.14:
- * ALIVE_CONFIRMED cần selfie đạt hoặc đã quá 7 ngày; OBJECTION_REJECTED bị chặn khi selfie đã đạt (ALIVE-05).
- * Nút chỉ phản ánh luật; BE vẫn là nơi quyết định.
- */
-export function allowedObjectionConclusions(
-  objection: z.infer<typeof verifierObjectionSchema>,
-): z.infer<typeof objectionConclusionSchema>[] {
-  if (objection.status !== "OPEN") return [];
-  const options: z.infer<typeof objectionConclusionSchema>[] = [];
-  if (objection.selfiePassed || !objection.selfieWindowOpen) options.push("ALIVE_CONFIRMED");
-  if (!objection.selfiePassed) options.push("OBJECTION_REJECTED");
-  options.push("INSUFFICIENT_EVIDENCE");
-  return options;
-}

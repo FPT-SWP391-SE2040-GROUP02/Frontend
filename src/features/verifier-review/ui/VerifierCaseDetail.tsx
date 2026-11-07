@@ -10,7 +10,6 @@ import {
   FileText,
   RefreshCw,
   TriangleAlert,
-  X,
 } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
@@ -25,14 +24,12 @@ import {
 import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
-import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
 import { VerifierOwnerIdentityPanel } from "./VerifierOwnerIdentityPanel";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
   decisionLabels,
   supplementPartLabels,
-  ownerNoticeLabels,
   type verifierFlagKindSchema,
   type verifierDecisionKindSchema,
 } from "../model/verifierReview.schema";
@@ -85,7 +82,6 @@ const FILE_TYPE_LABELS: Record<string, string> = {
 const CLOSED_CONDITION_TEXT: Record<string, string> = {
   APPROVED_FOR_HANDOVER: "Hồ sơ đã được duyệt, không cần xét thêm.",
   REJECTED: "Hồ sơ đã bị từ chối, không cần xét thêm.",
-  SUSPENDED: "Hồ sơ đang tạm dừng vì chủ kho báo còn sống. Xử lý lời báo trước khi xét tiếp.",
 };
 
 const blobName = (item: { fileName: string }) =>
@@ -163,34 +159,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     .map((part) => supplementPartLabels[part].toLocaleLowerCase("vi-VN"))
     .join(", ");
   const unreviewedFlags = detail.flags.filter((flag) => !flag.reviewedAt).length;
-  const objectionEnded =
-    detail.objectionEndsAt !== null &&
-    new Date(detail.objectionEndsAt).getTime() <= query.dataUpdatedAt;
-  const notice = detail.ownerNotice;
-  const noticeDelivered =
-    notice !== null && notice.status === "DELIVERED" && notice.deliveredAt !== null;
-  let noticeText = "Chưa có";
-  if (notice !== null && noticeDelivered && notice.deliveredAt !== null) {
-    noticeText = `${ownerNoticeLabels.DELIVERED} ${formatCompact(notice.deliveredAt)}`;
-  } else if (notice !== null) {
-    noticeText = ownerNoticeLabels[notice.status];
-  }
-  let objectionText = "Chưa bắt đầu";
-  if (detail.objectionEndsAt !== null) {
-    let remainText = "đã qua";
-    if (!objectionEnded) {
-      const hoursLeft = Math.max(
-        1,
-        Math.ceil((new Date(detail.objectionEndsAt).getTime() - query.dataUpdatedAt) / 3_600_000),
-      );
-      remainText = `còn ${hoursLeft} giờ`;
-    }
-    objectionText = `${formatCompact(detail.objectionEndsAt)} · ${remainText}`;
-  }
-  const timeline = [
-    { label: "Đã báo chủ kho", text: noticeText, done: noticeDelivered },
-    { label: "Hết hạn phản đối", text: objectionText, done: objectionEnded },
-  ];
+  const timeline: { label: string; text: string; done: boolean }[] = [];
   // Khi chờ bổ sung BE chưa tính hạn mới, nên không hiện mốc hạn xét.
   if (detail.status !== "SUPPLEMENT_REQUIRED" && detail.assignment.dueAt) {
     timeline.push({
@@ -199,14 +168,9 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       done: false,
     });
   }
-  const conditions = conditionRows(
-    detail.approveBlockers,
-    detail.objectionEndsAt,
-    unreviewedFlags,
-    query.dataUpdatedAt,
-  );
+  const conditions = conditionRows(detail.approveBlockers, unreviewedFlags);
   const blockedReason = conditions.map((row) => row.reason).join("; ");
-  const openModal = (kind: "approve" | "reject" | "reviewFlag" | "supplement", flagId?: string) => {
+  const openModal = (kind: "approve" | "reviewFlag" | "supplement", flagId?: string) => {
     const next = new URLSearchParams(params);
     next.set("modal", kind);
     if (kind === "reviewFlag" && flagId) next.set("flagId", flagId);
@@ -267,12 +231,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#5A4318]">
         Bạn chỉ xác nhận hồ sơ, không xem nội dung kho. Quyết định của bạn được ghi lại.
       </p>
-      <VerifierObjectionBlock
-        caseId={detail.id}
-        enabled={detail.status === "SUSPENDED"}
-        canConclude={!detail.approveBlockers.includes("VERIFIER_CONFLICT")}
-        ownerIdentity={detail.ownerIdentity}
-      />
       {detail.handover && (
         <Notice tone="success" role="status" title="Hồ sơ đã được chấp thuận">
           Đã mở {detail.handover.turnCount} lượt bàn giao · {detail.handover.invitationsSent} lời
@@ -554,7 +512,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           </Panel>
 
           {/* 2. QUYẾT ĐỊNH: ba ô có icon và mô tả */}
-          {actions.canReject && (
+          {(actions.canOpenApprove || actions.canRequestSupplement) && (
             <Panel title="Quyết định">
               <div className="space-y-3">
                 {actions.canOpenApprove && (
@@ -580,17 +538,10 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                     onClick={() => openModal("supplement")}
                   />
                 )}
-                <DecisionTile
-                  tone="reject"
-                  icon={<X className="size-5" aria-hidden="true" />}
-                  title="Từ chối"
-                  description="Hồ sơ không hợp lệ. Cần nêu lý do."
-                  onClick={() => openModal("reject")}
-                />
               </div>
               <p className="mt-4 text-sm text-heritage-muted">
-                Quyết định được ghi nhật ký và gửi tới người thực hiện. Chấp thuận chưa mở kho;
-                người nhận còn phải xác minh.
+                Quyết định được ghi nhật ký và gửi tới Người thực thi. Chấp thuận chưa mở kho; người
+                nhận còn phải xác minh.
               </p>
             </Panel>
           )}
@@ -651,12 +602,6 @@ const DECISION_TILE_STYLES = {
     icon: "bg-[#ECE8DB] text-[#0A281E]",
     title: "text-[#0A281E]",
     text: "text-heritage-muted",
-  },
-  reject: {
-    tile: "border-[#A32119] bg-white hover:bg-[#FBEFED]",
-    icon: "bg-[#F8E1DE] text-[#A32119]",
-    title: "text-[#A32119]",
-    text: "text-[#A32119]",
   },
 } as const;
 
