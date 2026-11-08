@@ -162,6 +162,9 @@ export const incidentSummarySchema = z.object({
   targetId: uuid.nullable(),
   summary: z.string(),
   assigneeUserId: uuid.nullable(),
+  /** Họ tên và vai trò người phụ trách do Backend trả để hiện thẳng trên danh sách; null khi chưa giao hoặc tài khoản không còn. */
+  assigneeFullName: z.string().nullable().default(null),
+  assigneeRole: z.enum(["USER", "VERIFIER", "ADMIN"]).nullable().default(null),
   /** Ai chịu trách nhiệm xử lý loại sự cố này; Admin chỉ theo dõi khi không phải ADMIN. */
   responsibleRole: z.enum(["ADMIN", "EXECUTOR", "VERIFIER"]).default("ADMIN"),
   dueAt: dateTime,

@@ -9,6 +9,7 @@ import {
   INCIDENT_STATUS_LABELS,
   INCIDENT_TYPE_LABELS,
   RESPONSIBLE_ROLE_LABELS,
+  ROLE_LABELS,
   defaultReviewLocal,
   formatDateTime,
   localDateTimeToIso,
@@ -17,6 +18,7 @@ import {
   INCIDENT_STATUSES,
   INCIDENT_TARGET_DEATH_CASE,
   INCIDENT_TYPES,
+  type AdminUserRole,
   type IncidentDetail,
   type IncidentStatus,
   type IncidentSummary,
@@ -79,15 +81,18 @@ function OverdueBadge() {
 }
 
 /** Tên người phụ trách từ danh sách Admin/Verifier đang hoạt động; không có thì hiện mã rút gọn. */
-function useAssigneeLabel(userId: string | null) {
-  return useAssignee(userId).name;
-}
-
 /** Tên và vai trò của người phụ trách; không tìm thấy trong danh sách Admin/Verifier thì hiện mã rút gọn. */
-function useAssignee(userId: string | null): { name: string; role: string | null } {
+function useAssignee(
+  userId: string | null,
+  known?: { fullName: string | null; role: AdminUserRole | null },
+): { name: string; role: string | null } {
   const admins = useAdminUserOptions("ADMIN");
   const verifiers = useAdminUserOptions("VERIFIER");
   if (!userId) return { name: "Chưa có người phụ trách", role: null };
+  // Backend đã trả họ tên và vai trò thì dùng luôn, không phụ thuộc danh sách Admin/Người xét duyệt đang hoạt động.
+  if (known?.fullName) {
+    return { name: known.fullName, role: known.role ? ROLE_LABELS[known.role] : null };
+  }
   const admin = admins.data?.items.find((item) => item.id === userId);
   if (admin) return { name: admin.fullName || admin.email, role: "Quản trị viên" };
   const verifier = verifiers.data?.items.find((item) => item.id === userId);
@@ -233,8 +238,8 @@ function IncidentResult({
         <b>{data.totalCount}</b> sự cố
       </p>
       <ListTable
-        columns="minmax(220px,1.7fr) 150px minmax(130px,.9fr) 130px 36px"
-        headings={["Sự cố", "Trạng thái", "Người phụ trách", "Hạn", ""]}
+        columns="minmax(220px,1.7fr) 150px minmax(130px,.9fr) 120px 130px 36px"
+        headings={["Sự cố", "Trạng thái", "Người phụ trách", "Vai trò", "Hạn", ""]}
       >
         {data.items.map((item) => (
           <IncidentRow key={item.id} item={item} onOpen={() => params.select(item.id)} />
@@ -261,7 +266,10 @@ function incidentTone(item: IncidentSummary): "bad" | "warn" | "info" | "none" {
 }
 
 function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => void }) {
-  const assignee = useAssignee(item.assigneeUserId);
+  const assignee = useAssignee(item.assigneeUserId, {
+    fullName: item.assigneeFullName,
+    role: item.assigneeRole,
+  });
   const resolved = item.status === "RESOLVED";
   return (
     <button type="button" onClick={onOpen} className="block min-h-11 w-full text-left">
@@ -291,16 +299,14 @@ function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => vo
         </span>
         <span className="min-w-0">
           {item.assigneeUserId ? (
-            <>
-              <b className="block text-sm leading-6 text-heritage-primary">{assignee.name}</b>
-              {assignee.role && (
-                <small className="block text-[12.5px] text-heritage-muted">{assignee.role}</small>
-              )}
-            </>
+            <b className="block break-words text-sm leading-6 text-heritage-primary">
+              {assignee.name}
+            </b>
           ) : (
             <span className="text-sm font-semibold text-amber-900">Chưa có người phụ trách</span>
           )}
         </span>
+        <span className="min-w-0 text-sm text-heritage-muted">{assignee.role ?? "—"}</span>
         <span className="tabular-nums">
           <b className="block text-sm leading-6 text-heritage-primary">
             {shortDateTime(item.dueAt)}
@@ -420,7 +426,10 @@ function IncidentDetailBody({
 }) {
   const client = useQueryClient();
   const [dialog, setDialog] = useState<IncidentDialog | null>(null);
-  const assignee = useAssigneeLabel(detail.assigneeUserId);
+  const assignee = useAssignee(detail.assigneeUserId, {
+    fullName: detail.assigneeFullName,
+    role: detail.assigneeRole,
+  }).name;
   const open = detail.status !== "RESOLVED";
   // Sự cố cũ từ luồng báo còn sống đi theo hồ sơ nên không giao hay đóng tay (BE chặn INCIDENT_FOLLOWS_CASE).
   const followsCase = detail.type === "OWNER_ALIVE";

@@ -231,6 +231,24 @@ describe("Sự cố", () => {
     );
   });
 
+  it("danh sách hiện họ tên người phụ trách và vai trò ở cột riêng, không hiện mã tài khoản", async () => {
+    backend(() =>
+      page([
+        incidentSummary({
+          assigneeUserId: VERIFIER_ID,
+          assigneeFullName: "Trần Thị Xét Duyệt",
+          assigneeRole: "VERIFIER",
+        }),
+      ]),
+    );
+    setup(incidentsPath);
+
+    expect(await screen.findByText("Trần Thị Xét Duyệt")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Vai trò" })).toBeInTheDocument();
+    expect(screen.getAllByText("Người xét duyệt").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/^Tài khoản /)).not.toBeInTheDocument();
+  });
+
   it("hiện sự cố đăng nhập bất thường (tài khoản bị khóa vì sai mật khẩu, không gắn kho)", async () => {
     backend(() =>
       page([
