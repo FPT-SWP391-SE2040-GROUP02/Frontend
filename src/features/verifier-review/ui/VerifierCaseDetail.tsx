@@ -92,6 +92,9 @@ const blobName = (item: { fileName: string }) =>
   item.fileName.replace(/[^\p{L}\p{N} ._()-]/gu, "_");
 
 /** Chi tiết một hồ sơ; mọi action dùng usePrivateAction; download qua blob ephemeral. */
+/** Executor không còn nhập tay các trường này; Người xét duyệt đọc trên giấy chứng tử. */
+const FROM_PAPER = "Chưa khai · đọc trên giấy";
+
 export function VerifierCaseDetail({ caseId }: { caseId: string }) {
   const [params, setParams] = useSearchParams();
   const download = usePrivateAction();
@@ -323,16 +326,22 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               Bản đang xét (v{review.versionNo})
             </h3>
             <dl className="grid gap-4 sm:grid-cols-2">
-              <Field label="Họ tên chủ kho" value={review.ownerFullName ?? "—"} />
+              <Field label="Họ tên chủ kho" value={review.ownerFullName ?? FROM_PAPER} />
               <Field
                 label="CCCD (theo giấy tờ)"
                 value={review.ownerCitizenId ? review.ownerCitizenId : "—"}
                 sensitive={Boolean(review.ownerCitizenId)}
               />
-              <Field label="Ngày mất" value={formatDay(review.dateOfDeath)} />
-              <Field label="Số giấy chứng tử" value={review.certificateNumber ?? "—"} />
-              <Field label="Ngày cấp" value={formatDay(review.issuedOn)} />
-              <Field label="Nơi cấp" value={review.issuedBy ?? "—"} />
+              <Field
+                label="Ngày mất"
+                value={review.dateOfDeath ? formatDay(review.dateOfDeath) : FROM_PAPER}
+              />
+              <Field label="Số giấy chứng tử" value={review.certificateNumber ?? FROM_PAPER} />
+              <Field
+                label="Ngày cấp"
+                value={review.issuedOn ? formatDay(review.issuedOn) : FROM_PAPER}
+              />
+              <Field label="Nơi cấp" value={review.issuedBy ?? FROM_PAPER} />
               <Field
                 label="Gửi lúc"
                 value={review.submittedAt ? formatCompact(review.submittedAt) : "—"}
