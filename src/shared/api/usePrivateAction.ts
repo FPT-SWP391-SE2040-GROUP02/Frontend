@@ -143,6 +143,8 @@ const ekycIdentityMismatchReasons: Record<string, string> = {
 const checkInNotAllowedReasons: Record<string, string> = {
   PLAN_NOT_OVERDUE: "Chủ kho không còn quá hạn điểm danh. Tải lại để xem trạng thái mới nhất.",
   DEATH_CASE_OPEN: "Kho đã có hồ sơ chứng tử đang mở nên không điểm danh thay được nữa.",
+  PROXY_LIMIT_REACHED:
+    "Bạn đã điểm danh thay đủ số lần liên tiếp cho phép. Chỉ còn cách nộp giấy chứng tử, hoặc chờ Chủ kho tự điểm danh.",
 };
 
 const reasonMessages: Record<string, Record<string, string>> = {

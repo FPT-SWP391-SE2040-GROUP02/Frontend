@@ -17,6 +17,7 @@ import { ExecutorOverviewPage } from "@/pages/executor/ExecutorOverviewPage";
 import { ExecutorPermissionsPage } from "@/pages/executor/ExecutorPermissionsPage";
 import { ExecutorReportPage } from "@/pages/executor/ExecutorReportPage";
 import { ExecutorProgressPage } from "@/pages/executor/ExecutorProgressPage";
+import { ExecutorAssetsPage } from "@/pages/executor/ExecutorAssetsPage";
 
 const CASE_ID = "33333333-3333-4333-8333-333333333333";
 const OTHER_VAULT_ID = "44444444-4444-4444-8444-444444444444";
@@ -100,6 +101,7 @@ function setup(path: string) {
             <Route path="/executor" element={<ExecutorOverviewPage />} />
             <Route path="/executor/report" element={<ExecutorReportPage />} />
             <Route path="/executor/progress" element={<ExecutorProgressPage />} />
+            <Route path="/executor/assets" element={<ExecutorAssetsPage />} />
             <Route path="/executor/permissions" element={<ExecutorPermissionsPage />} />
             <Route path="/dashboard" element={<p>Không gian Chủ kho (fixture)</p>} />
           </Routes>
@@ -110,7 +112,7 @@ function setup(path: string) {
 }
 
 describe("Executor workspace shell", () => {
-  it("shows the three main menu items, the account links, the role switch and the account", async () => {
+  it("shows the four main menu items, the account links, the role switch and the account", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor");
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người thực thi" });
@@ -118,6 +120,7 @@ describe("Executor workspace shell", () => {
       "Tổng quan",
       "Báo tin",
       "Bàn giao",
+      "Tài sản",
     ]);
     const account = screen.getByRole("navigation", { name: "Tài khoản" });
     expect(Array.from(account.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
@@ -134,6 +137,66 @@ describe("Executor workspace shell", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Chào Chú Hải" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("Executor assets", () => {
+  it("lists the packages with recipients and assets, without any view or download button", async () => {
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/executor/vaults") return [vault()];
+      if (url === `/executor/vaults/${VAULT_ID}/assets`) {
+        return [
+          {
+            containerId: "66666666-6666-4666-8666-666666666666",
+            containerName: "Gói gia đình",
+            recipients: [{ fullName: "Trần Minh Anh", citizenIdLast4: "0791" }],
+            assets: [
+              {
+                id: "77777777-7777-4777-8777-777777777777",
+                name: "Email gia đình",
+                kind: "TEXT",
+                sizeBytes: 640,
+              },
+              {
+                id: "88888888-8888-4888-8888-888888888888",
+                name: "Sổ tiết kiệm",
+                kind: "FILE",
+                sizeBytes: 2457600,
+              },
+            ],
+          },
+        ];
+      }
+      return [];
+    });
+    setup("/executor/assets");
+
+    expect(await screen.findByText("Gói gia đình")).toBeInTheDocument();
+    expect(screen.getByText(/Giao cho Trần Minh Anh/)).toBeInTheDocument();
+    expect(screen.getByText("Email gia đình")).toBeInTheDocument();
+    expect(screen.getByText(/Tệp · 2.3 MB/)).toBeInTheDocument();
+    expect(screen.getByText("Bạn chỉ thấy danh sách")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Xem|Tải/ })).not.toBeInTheDocument();
+  });
+
+  it("says so when the vault has no package ready", async () => {
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/executor/vaults") return [vault()];
+      return [];
+    });
+    setup("/executor/assets");
+
+    expect(await screen.findByText("Chưa có gói bàn giao")).toBeInTheDocument();
+  });
+
+  it("offers a retry when the list cannot be loaded", async () => {
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/executor/vaults") return [vault()];
+      throw new Error("boom");
+    });
+    setup("/executor/assets");
+
+    expect(await screen.findByRole("button", { name: "Thử lại" })).toBeInTheDocument();
   });
 });
 
@@ -258,9 +321,16 @@ describe("Executor overview", () => {
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent("không hoàn tác được");
     expect(post).not.toHaveBeenCalled();
+    await userEvent.type(within(dialog).getByLabelText("Đã liên lạc với ai"), "Chị Lan (vợ)");
     await userEvent.click(within(dialog).getByRole("button", { name: "Xác nhận điểm danh thay" }));
 
-    expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/check-in`);
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/check-in`, {
+        contactedWho: "Chị Lan (vợ)",
+        contactedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
+        contactMethod: "PHONE",
+      }),
+    );
     expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
@@ -304,15 +374,85 @@ describe("Executor overview", () => {
     setup("/executor");
 
     await userEvent.click(await screen.findByRole("button", { name: "Điểm danh thay chủ kho" }));
-    await userEvent.click(
-      within(await screen.findByRole("dialog")).getByRole("button", {
-        name: "Xác nhận điểm danh thay",
-      }),
-    );
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText("Đã liên lạc với ai"), "Chính Chủ kho");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Xác nhận điểm danh thay" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Kho đã có hồ sơ chứng tử đang mở nên không điểm danh thay được nữa.",
     );
+  });
+
+  it("explains that the consecutive proxy limit was reached", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true }),
+    ]);
+    const headers = new AxiosHeaders();
+    vi.spyOn(apiClient, "post").mockRejectedValue(
+      new AxiosError("fail", "ERR", { headers }, undefined, {
+        status: 409,
+        statusText: "",
+        headers: {},
+        config: { headers },
+        data: { code: "CHECKIN_NOT_ALLOWED", reason: "PROXY_LIMIT_REACHED" },
+      }),
+    );
+    setup("/executor");
+
+    await userEvent.click(await screen.findByRole("button", { name: "Điểm danh thay chủ kho" }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText("Đã liên lạc với ai"), "Chính Chủ kho");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Xác nhận điểm danh thay" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("đủ số lần liên tiếp cho phép");
+  });
+
+  it("asks who was contacted before checking in for the Owner", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true }),
+    ]);
+    const post = vi.spyOn(apiClient, "post");
+    setup("/executor");
+
+    await userEvent.click(await screen.findByRole("button", { name: "Điểm danh thay chủ kho" }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Xác nhận điểm danh thay" }));
+
+    expect(await within(dialog).findByText(/Ghi rõ đã liên lạc với ai/)).toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("shows how many proxy turns are left and locks the button when none remain", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({
+        planStatus: "AWAITING_CHECK",
+        checkInOverdue: true,
+        proxyCheckInLimit: 3,
+        proxyCheckInsUsed: 3,
+        proxyCheckInsLeft: 0,
+      }),
+    ]);
+    setup("/executor");
+
+    expect(await screen.findByText("Còn 0/3 lượt")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Điểm danh thay chủ kho" })).toBeDisabled();
+    expect(screen.getByText(/Hết lượt điểm danh thay liên tiếp/)).toBeInTheDocument();
+  });
+
+  it("shows the turns that remain for the proxy check-in", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({
+        planStatus: "AWAITING_CHECK",
+        checkInOverdue: true,
+        proxyCheckInLimit: 3,
+        proxyCheckInsUsed: 1,
+        proxyCheckInsLeft: 2,
+      }),
+    ]);
+    setup("/executor");
+
+    expect(await screen.findByText("Còn 2/3 lượt")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Điểm danh thay chủ kho" })).toBeEnabled();
   });
 
   it("says there is no duty when the account is not an Executor of any vault", async () => {

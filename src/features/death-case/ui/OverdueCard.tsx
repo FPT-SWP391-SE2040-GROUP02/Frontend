@@ -5,10 +5,30 @@ import { buttonStyles } from "@/shared/ui/heritageKit";
 import type { ExecutorVault } from "../model/deathCase.schema";
 import { ProxyCheckIn } from "./ProxyCheckIn";
 
+/** Các chấm đếm lượt điểm danh thay: đầy là còn lượt, rỗng là đã dùng. */
+function TurnPips({ left, limit }: { left: number; limit: number }) {
+  const pips: number[] = [];
+  for (let index = 0; index < limit; index += 1) {
+    pips.push(index);
+  }
+  return (
+    <p className="flex items-center gap-1.5 text-xs text-heritage-muted">
+      <span role="img" aria-label={`Còn ${left} trên ${limit} lượt`} className="flex gap-1">
+        {pips.map((index) => {
+          let tone = "border-[#BDB8A6]";
+          if (index < left) tone = "border-[#2E9E6E] bg-[#2E9E6E]";
+          return <span key={index} className={`size-2.5 rounded-full border-[1.5px] ${tone}`} />;
+        })}
+      </span>
+      Còn {left}/{limit} lượt
+    </p>
+  );
+}
+
 /**
  * Thẻ "Chủ kho trễ điểm danh" trên Tổng quan: hai việc Người thực thi làm được, mỗi việc một ô.
  * Chưa có hồ sơ chứng tử thì có cả điểm danh thay lẫn báo tin; đã có hồ sơ thì chỉ còn đường vào hồ sơ.
- * Số lượt điểm danh thay còn lại và ngày trễ chưa hiện vì `/executor/vaults` chưa trả các trường này.
+ * Số lượt điểm danh thay còn lại lấy từ `/executor/vaults` (Backend cũ chưa trả thì không hiện chấm đếm).
  */
 export function OverdueCard({ vault, hasCase }: { vault: ExecutorVault; hasCase: boolean }) {
   let reportLabel = "Báo tin";
@@ -38,7 +58,11 @@ export function OverdueCard({ vault, hasCase }: { vault: ExecutorVault; hasCase:
         {!hasCase && (
           <div className="flex flex-col items-start gap-3 rounded-xl border border-heritage-border p-4">
             <p className="font-semibold">Liên lạc được, Chủ kho vẫn ổn</p>
-            <ProxyCheckIn vaultId={vault.vaultId} />
+            {typeof vault.proxyCheckInLimit === "number" &&
+              typeof vault.proxyCheckInsLeft === "number" && (
+                <TurnPips left={vault.proxyCheckInsLeft} limit={vault.proxyCheckInLimit} />
+              )}
+            <ProxyCheckIn vaultId={vault.vaultId} left={vault.proxyCheckInsLeft} />
           </div>
         )}
         <div className="flex flex-col items-start gap-3 rounded-xl border border-heritage-border p-4">

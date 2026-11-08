@@ -1,7 +1,16 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { ArrowLeftRight, Home, ListChecks, Menu, Send, X, type LucideIcon } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Home,
+  ListChecks,
+  Menu,
+  Package,
+  Send,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { UserAvatar } from "@/entities/user/ui/UserAvatar";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -21,13 +30,14 @@ interface NavItem {
 }
 
 /**
- * Menu chính của Người thực thi: Tổng quan, Báo tin, Bàn giao.
+ * Menu chính của Người thực thi: Tổng quan, Báo tin, Bàn giao, Tài sản.
  * Lời mời, Quyền hạn, Cài đặt ít dùng nên nằm ở chân thanh bên, dưới nút đổi vai.
  */
 const executorNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT, icon: Home },
   { label: "Báo tin", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
   { label: "Bàn giao", to: ROUTES.EXECUTOR.PROGRESS, icon: Send },
+  { label: "Tài sản", to: ROUTES.EXECUTOR.ASSETS, icon: Package },
 ];
 
 const accountNavigation: Array<{ label: string; to: string }> = [

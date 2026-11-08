@@ -195,7 +195,9 @@ export function ProcessStepper({
                     </li>
                   ))}
                 </ol>
-                {helpId === "proxy" && canProxy && <ProxyCheckIn vaultId={vault.vaultId} />}
+                {helpId === "proxy" && canProxy && (
+                  <ProxyCheckIn vaultId={vault.vaultId} left={vault.proxyCheckInsLeft} />
+                )}
                 <DialogFooter>
                   <button
                     type="button"

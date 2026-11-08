@@ -67,6 +67,11 @@ const ExecutorProgressPage = lazy(() =>
     default: module.ExecutorProgressPage,
   })),
 );
+const ExecutorAssetsPage = lazy(() =>
+  import("@/pages/executor/ExecutorAssetsPage").then((module) => ({
+    default: module.ExecutorAssetsPage,
+  })),
+);
 const ExecutorPermissionsPage = lazy(() =>
   import("@/pages/executor/ExecutorPermissionsPage").then((module) => ({
     default: module.ExecutorPermissionsPage,
@@ -351,6 +356,7 @@ export function AppRoutes() {
           <Route path={ROUTES.EXECUTOR.ROOT} element={<ExecutorOverviewPage />} />
           <Route path={ROUTES.EXECUTOR.REPORT} element={<ExecutorReportPage />} />
           <Route path={ROUTES.EXECUTOR.PROGRESS} element={<ExecutorProgressPage />} />
+          <Route path={ROUTES.EXECUTOR.ASSETS} element={<ExecutorAssetsPage />} />
           <Route path={ROUTES.EXECUTOR.PERMISSIONS} element={<ExecutorPermissionsPage />} />
           <Route path={ROUTES.EXECUTOR.SETTINGS} element={<ExecutorSettingsPage />} />
           <Route path={ROUTES.EXECUTOR.INVITATIONS} element={<ExecutorInvitationsPage />} />

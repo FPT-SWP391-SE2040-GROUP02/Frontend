@@ -81,6 +81,8 @@ export const ROUTES = {
     ROOT: "/executor",
     REPORT: "/executor/report",
     PROGRESS: "/executor/progress",
+    /** Danh sách tài sản của kho theo từng gói (chỉ danh sách, không có nội dung). */
+    ASSETS: "/executor/assets",
     PERMISSIONS: "/executor/permissions",
     SETTINGS: "/executor/settings",
     /** Lời mời làm Người thực hiện trong không gian Người thực hiện (cùng nội dung với bên Chủ kho). */

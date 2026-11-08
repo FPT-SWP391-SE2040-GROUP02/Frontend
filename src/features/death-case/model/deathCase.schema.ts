@@ -12,7 +12,32 @@ export const executorVaultSchema = z.object({
   openDeathCaseId: z.string().uuid().nullable(),
   /** Hồ sơ bị từ chối gần nhất của kho, để Executor xem lại lý do. Backend cũ không có trường này. */
   lastRejectedDeathCaseId: z.string().uuid().nullish(),
+  /** Số lần điểm danh thay liên tiếp tối đa (Admin đặt) và số lượt còn lại. Backend cũ không có các trường này. */
+  proxyCheckInLimit: z.number().int().nonnegative().nullish(),
+  proxyCheckInsUsed: z.number().int().nonnegative().nullish(),
+  proxyCheckInsLeft: z.number().int().nonnegative().nullish(),
 });
+
+/** Một gói bàn giao nhìn từ Người thực thi: chỉ tên gói, người nhận, tên và loại tài sản; không có nội dung. */
+export const executorPackageSchema = z.object({
+  containerId: z.string().uuid(),
+  containerName: z.string(),
+  recipients: z.array(
+    z.object({
+      fullName: z.string().nullish(),
+      citizenIdLast4: z.string(),
+    }),
+  ),
+  assets: z.array(
+    z.object({
+      id: z.string().uuid(),
+      name: z.string(),
+      kind: z.enum(["FILE", "TEXT"]),
+      sizeBytes: z.number().int().nonnegative(),
+    }),
+  ),
+});
+export type ExecutorPackage = z.infer<typeof executorPackageSchema>;
 /** Hồ sơ chỉ có CCCD che, không có nội dung file hoặc Verifier được giao. */
 export const deathCaseSchema = z.object({
   id: z.string().uuid(),
@@ -89,6 +114,8 @@ export const executorCheckInSchema = z.object({
   checkedInAt: timestamp,
   nextCheckInDueAt: timestamp,
   graceEndsAt: timestamp,
+  proxyCheckInLimit: z.number().int().nonnegative().nullish(),
+  proxyCheckInsLeft: z.number().int().nonnegative().nullish(),
 });
 
 export type ExecutorVault = z.infer<typeof executorVaultSchema>;
