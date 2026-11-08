@@ -26,6 +26,13 @@ const limits = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Tự chọn n
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   const { objectionHours } = usePolicyWindows();
   const hasCase = Boolean(vault.openDeathCaseId);
+  // Chủ kho đã tự điểm danh thì nói rõ bằng màu xanh; chưa có giờ điểm danh thì chỉ báo kho đang an toàn.
+  let safeTitle = `Kho của ${vault.ownerFullName} đang an toàn`;
+  let safeText = "Chỉ báo tin khi chắc chắn đã đến lúc.";
+  if (vault.lastOwnerCheckInAt) {
+    safeTitle = `${vault.ownerFullName} đã điểm danh thành công`;
+    safeText = `Lần gần nhất ${formatDateTime(vault.lastOwnerCheckInAt)}. Kho đang an toàn, chỉ báo tin khi chắc chắn đã đến lúc.`;
+  }
   const record = useDeathCase(vault.openDeathCaseId).data;
   const rejectedAck = useRejectedAck(vault.lastRejectedDeathCaseId);
   // Báo "bị từ chối" đi TRƯỚC mọi banner khác (kể cả "quá hạn điểm danh", vì từ chối trả kế hoạch về trạng thái
@@ -66,14 +73,14 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
       {!vault.checkInOverdue && !hasCase && !showRejected && (
         <Notice
           tone="success"
-          title={`Kho của ${vault.ownerFullName} đang an toàn`}
+          title={safeTitle}
           action={
             <Link className={buttonStyles.gold} to={ROUTES.EXECUTOR.REPORT}>
               Báo tin
             </Link>
           }
         >
-          Chỉ báo tin khi chắc chắn đã đến lúc.
+          {safeText}
         </Notice>
       )}
       <ProcessStepper vault={vault} record={record} />

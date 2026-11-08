@@ -12,6 +12,8 @@ export const executorVaultSchema = z.object({
   openDeathCaseId: z.string().uuid().nullable(),
   /** Hồ sơ bị từ chối gần nhất của kho, để Executor xem lại lý do. Backend cũ không có trường này. */
   lastRejectedDeathCaseId: z.string().uuid().nullish(),
+  /** Lần Chủ kho TỰ điểm danh gần nhất (điểm danh thay không tính); null khi chưa từng. Backend cũ không có trường này. */
+  lastOwnerCheckInAt: timestamp.nullish(),
   /** Số lần điểm danh thay liên tiếp tối đa (Admin đặt) và số lượt còn lại. Backend cũ không có các trường này. */
   proxyCheckInLimit: z.number().int().nonnegative().nullish(),
   proxyCheckInsUsed: z.number().int().nonnegative().nullish(),

@@ -140,6 +140,41 @@ describe("Executor workspace shell", () => {
   });
 });
 
+describe("Executor overview after the Owner checks in", () => {
+  it("shows a green success notice once the Owner has checked in on his own", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({ lastOwnerCheckInAt: "2026-11-07T08:30:00Z" }),
+    ]);
+    setup("/executor");
+
+    expect(await screen.findByText("Anh Nam đã điểm danh thành công")).toBeInTheDocument();
+    expect(screen.getByText(/Lần gần nhất/)).toBeInTheDocument();
+    expect(screen.queryByText("Kho của Anh Nam đang an toàn")).not.toBeInTheDocument();
+  });
+
+  it("keeps the plain safe notice when the Owner has never checked in", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([vault({ lastOwnerCheckInAt: null })]);
+    setup("/executor");
+
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(screen.queryByText(/đã điểm danh thành công/)).not.toBeInTheDocument();
+  });
+
+  it("does not claim a check-in while the Owner is overdue", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({
+        planStatus: "AWAITING_CHECK",
+        checkInOverdue: true,
+        lastOwnerCheckInAt: "2026-09-01T08:30:00Z",
+      }),
+    ]);
+    setup("/executor");
+
+    expect(await screen.findByText("Anh Nam đã quá hạn điểm danh")).toBeInTheDocument();
+    expect(screen.queryByText(/đã điểm danh thành công/)).not.toBeInTheDocument();
+  });
+});
+
 describe("Executor assets", () => {
   it("lists the packages with recipients and assets, without any view or download button", async () => {
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
