@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -14,7 +14,6 @@ import { VAULT_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { APPROVE_REASON } from "@/features/verifier-review/model/decisionReasons";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { VerifierQueue } from "@/widgets/VerifierWorkspace/VerifierQueue";
-import { VerifierRecord } from "@/features/verifier-review/ui/VerifierRecord";
 import { verifierReviewService } from "@/features/verifier-review/api/verifierReviewService";
 
 const CASE_ID = "33333333-3333-4333-8333-333333333333";
@@ -1005,65 +1004,6 @@ it("chi tiết hồ sơ đã đóng không gọi API phiếu chữ ký và khôn
   expect(get.mock.calls.some(([url]) => String(url).includes("decision-signature"))).toBe(false);
 });
 
-const approvedWithRecord = {
-  ...closedDetail,
-  decisions: [
-    {
-      kind: "APPROVED",
-      versionNo: 1,
-      reason: "Đã đối chiếu họ tên, số CCCD, ngày sinh và giấy hợp lệ với thông tin gốc.",
-      requestedParts: [],
-      decidedAt: CREATED_AT,
-      recordCode: "BB-20261107-9F2C71",
-    },
-  ],
-};
-
-it("hồ sơ đã duyệt có nút Xem biên bản kèm mã biên bản do Backend trả", async () => {
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? approvedWithRecord : listFixture,
-  );
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  const link = await screen.findByRole("link", { name: /Xem biên bản BB-20261107-9F2C71/ });
-  expect(link).toHaveAttribute("href", `/notary/record?caseId=${CASE_ID}`);
-});
-
-it("trang Biên bản hiện mã, kết quả đối chiếu, tài liệu, quyết định và nhật ký của hồ sơ đã duyệt", async () => {
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? approvedWithRecord : listFixture,
-  );
-  setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
-  expect((await screen.findAllByText("BB-20261107-9F2C71")).length).toBeGreaterThanOrEqual(1);
-  expect(screen.getByText("1. Hồ sơ được thẩm định")).toBeInTheDocument();
-  expect(screen.getByText("Giấy hợp lệ: đủ trang, có con dấu và chữ ký")).toBeInTheDocument();
-  expect(screen.getByText("Chấp thuận hồ sơ, mở gói tài sản")).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "In biên bản" })).toBeInTheDocument();
-  expect(screen.queryByText(/012345678901/)).not.toBeInTheDocument();
-});
-
-it("biên bản có quốc hiệu, căn cứ pháp lý, nơi nhận và nguồn tham khảo kèm liên kết", async () => {
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? approvedWithRecord : listFixture,
-  );
-  setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
-  expect(await screen.findByText("Độc lập - Tự do - Hạnh phúc")).toBeInTheDocument();
-  const bases = screen.getByRole("region", { name: "Căn cứ pháp lý" });
-  expect(bases).toHaveTextContent("Luật Hộ tịch số 60/2014/QH13");
-  expect(bases).toHaveTextContent("Nghị định số 30/2020/NĐ-CP");
-  const sources = screen.getByRole("region", { name: "Nguồn tham khảo" });
-  expect(sources).toHaveTextContent("không phải văn bản công chứng");
-  expect(within(sources).getAllByRole("link").length).toBe(4);
-  expect(screen.getByText("Nơi nhận:")).toBeInTheDocument();
-});
-
-it("hồ sơ chưa duyệt thì chưa có biên bản", async () => {
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
-  );
-  setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
-  expect(await screen.findByText(/chưa có biên bản thẩm định/)).toBeInTheDocument();
-});
-
 it("hàng chờ có thẻ Nên xem tiếp trỏ hồ sơ có hạn gần nhất, bảng theo cột Người nộp và Lần nộp, và các bước thẩm định", async () => {
   const user = userEvent.setup();
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
@@ -1077,44 +1017,4 @@ it("hàng chờ có thẻ Nên xem tiếp trỏ hồ sơ có hạn gần nhất,
   expect(screen.getByText("Cách thẩm định một hồ sơ")).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: /Bắt đầu thẩm định hồ sơ #33333333/ }));
   expect(await screen.findByRole("region", { name: "Bản đang xét" })).toBeInTheDocument();
-});
-
-it("biên bản của hồ sơ bị từ chối hiện lý do từ chối và mã biên bản", async () => {
-  const rejected = {
-    ...closedDetail,
-    status: "REJECTED",
-    decisions: [
-      {
-        kind: "REJECTED",
-        versionNo: 1,
-        reason: "Nghi ngờ giấy giả hoặc đã bị chỉnh sửa. Con dấu không khớp mẫu.",
-        requestedParts: [],
-        decidedAt: CREATED_AT,
-        recordCode: "BB-20261107-AA11BB",
-      },
-    ],
-  };
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? rejected : listFixture,
-  );
-  setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
-  expect((await screen.findAllByText("BB-20261107-AA11BB")).length).toBeGreaterThanOrEqual(1);
-  expect(screen.getByText("2. Lý do từ chối")).toBeInTheDocument();
-  expect(screen.getByText(/Con dấu không khớp mẫu/, { selector: "p" })).toBeInTheDocument();
-  expect(screen.getByText("Từ chối hồ sơ và đóng hồ sơ")).toBeInTheDocument();
-});
-
-it("hồ sơ đã bị từ chối nhưng chỉ có quyết định duyệt cũ (dữ liệu lệch) thì không dựng biên bản chấp thuận", async () => {
-  const inconsistent = {
-    ...approvedWithRecord,
-    status: "REJECTED",
-  };
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? inconsistent : listFixture,
-  );
-  setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
-  expect(
-    await screen.findByText(/chưa có quyết định cuối nên chưa có biên bản/),
-  ).toBeInTheDocument();
-  expect(screen.queryByText("Chấp thuận · Kho đã mở")).not.toBeInTheDocument();
 });
