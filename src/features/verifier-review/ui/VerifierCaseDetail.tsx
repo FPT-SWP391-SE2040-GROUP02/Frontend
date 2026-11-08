@@ -83,7 +83,7 @@ const FILE_TYPE_LABELS: Record<string, string> = {
 const CLOSED_CONDITION_TEXT: Record<string, string> = {
   APPROVED_FOR_HANDOVER: "Hồ sơ đã được duyệt, không cần xét thêm.",
   REJECTED: "Hồ sơ đã bị từ chối, không cần xét thêm.",
-  SUSPENDED: "Hồ sơ đang tạm dừng vì chủ kho báo còn sống. Xử lý lời báo trước khi xét tiếp.",
+  SUSPENDED: "Hồ sơ đang tạm dừng, chưa xét tiếp được.",
 };
 
 const blobName = (item: { fileName: string }) =>

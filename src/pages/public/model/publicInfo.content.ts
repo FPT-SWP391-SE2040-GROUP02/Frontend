@@ -96,7 +96,7 @@ export const FAQ_CONTENT = {
         {
           question: "Tôi có dừng được bàn giao không?",
           answer:
-            "Có. Chỉ cần bấm “Tôi còn sống” trong khi quy trình chưa hoàn tất, hệ thống dừng bàn giao và mở kỳ điểm danh mới.",
+            "Có, bằng cách điểm danh khi được nhắc. Khi Người thực hiện đã báo tin và nộp hồ sơ, kho khóa ngay và hồ sơ sang Người xét duyệt.",
         },
         {
           question: "Người nhận có bao lâu để tải nội dung?",
@@ -192,7 +192,7 @@ export const TERMS_CONTENT = {
       title: "4. Điểm danh và bàn giao",
       paragraphs: [
         "Bàn giao chỉ diễn ra khi bạn không phản hồi điểm danh và các lớp xác nhận (kiểm tra của Người thực hiện, xét duyệt, xác minh danh tính người nhận) đều đạt.",
-        "Bạn có thể dừng bàn giao bằng cách xác nhận “Tôi còn sống” khi quy trình chưa hoàn tất. Người nhận có {grantDays} ngày để tải nội dung sau khi được bàn giao.",
+        "Bạn dừng bàn giao bằng cách điểm danh khi được nhắc, trước khi có báo tin. Người nhận có {grantDays} ngày để tải nội dung sau khi được bàn giao.",
       ],
     },
     {

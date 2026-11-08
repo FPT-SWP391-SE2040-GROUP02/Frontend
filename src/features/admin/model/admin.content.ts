@@ -83,7 +83,7 @@ export const INCIDENT_TYPE_LABELS: Record<IncidentType, string> = {
   NO_EXECUTOR: "Chưa có người thực hiện",
   CHECK_IN_OVERDUE: "Quá hạn điểm danh",
   NOTIFICATION_FAILED: "Gửi thông báo thất bại",
-  OWNER_ALIVE: "Chủ kho báo còn sống",
+  OWNER_ALIVE: "Báo còn sống (luồng đã gỡ)",
   INTEGRATION: "Lỗi tích hợp",
   MANUAL: "Tạo thủ công",
   PAYMENT: "Giao dịch thanh toán lệch",
@@ -107,7 +107,7 @@ export const INCIDENT_EVENT_LABELS: Record<(typeof INCIDENT_EVENT_KINDS)[number]
 };
 
 export const HOLD_TYPE_LABELS: Record<HoldType, string> = {
-  OWNER_ALIVE: "Chủ kho báo còn sống",
+  OWNER_ALIVE: "Báo còn sống (luồng đã gỡ)",
   DISPUTE: "Tranh chấp",
   ADMIN: "Quản trị viên đặt",
 };

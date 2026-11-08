@@ -298,8 +298,7 @@ function IncidentDetailBody({
   const [dialog, setDialog] = useState<IncidentDialog | null>(null);
   const assignee = useAssigneeLabel(detail.assigneeUserId);
   const open = detail.status !== "RESOLVED";
-  // Sự cố báo còn sống đi theo hồ sơ: người phụ trách luôn là Verifier giữ hồ sơ và tự đóng khi Verifier kết luận,
-  // nên không giao hay đóng tay; đổi người bằng giao lại người xét duyệt của hồ sơ (BE chặn INCIDENT_FOLLOWS_CASE).
+  // Sự cố cũ từ luồng báo còn sống đi theo hồ sơ nên không giao hay đóng tay (BE chặn INCIDENT_FOLLOWS_CASE).
   const followsCase = detail.type === "OWNER_ALIVE";
   const canReassign =
     open &&
@@ -461,7 +460,7 @@ function IncidentDetailBody({
           title="Giao người xét duyệt cho hồ sơ"
           description={
             followsCase
-              ? "Hồ sơ, lời báo còn sống và sự cố cùng chuyển sang người được chọn; người cũ mất quyền xem hồ sơ. Hạn kết luận được tính lại, hạn selfie của chủ kho giữ nguyên."
+              ? "Hồ sơ và sự cố cùng chuyển sang người được chọn; người cũ mất quyền xem hồ sơ."
               : "Chọn người xét duyệt thay thế. Người được chọn không được có xung đột lợi ích với hồ sơ."
           }
           submitLabel="Giao người xét duyệt"

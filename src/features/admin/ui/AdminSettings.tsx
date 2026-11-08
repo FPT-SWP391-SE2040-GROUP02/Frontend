@@ -235,56 +235,6 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     src: "DeathCaseRules.MaxNoticeAttempts",
     dataType: "NUMBER",
   },
-  {
-    key: "DeathCase.ObjectionHours",
-    label: "Thời gian Chủ kho được phản đối",
-    category: "DeathCase",
-    categoryTitle: "Hồ sơ chứng tử",
-    unit: "giờ",
-    step: 6,
-    defaultValue: "72",
-    description: "Khoảng thời gian ân hạn để Chủ kho báo còn sống và ngăn chặn mở di sản.",
-    src: "DeathCaseRules.ObjectionHours",
-    dataType: "NUMBER",
-  },
-
-  // 5. Chủ kho báo còn sống (Alive)
-  {
-    key: "Alive.SelfieWindowDays",
-    label: "Hạn Chủ kho hoàn tất selfie",
-    category: "Alive",
-    categoryTitle: "Chủ kho báo còn sống",
-    unit: "ngày",
-    step: 1,
-    defaultValue: "7",
-    description: "Thời hạn tối đa để Chủ kho thực hiện quét khuôn mặt eKYC chứng minh còn sống.",
-    src: "ObjectionRules.SelfieWindow",
-    dataType: "NUMBER",
-  },
-  {
-    key: "Alive.MaxSelfieFailures",
-    label: "Số lần selfie sai tối đa",
-    category: "Alive",
-    categoryTitle: "Chủ kho báo còn sống",
-    unit: "lần",
-    step: 1,
-    defaultValue: "3",
-    description: "Số lần quét khuôn mặt sai tối đa cho phép trong 24 giờ trước khi tạm khóa.",
-    src: "ObjectionRules.MaxSelfieFailures",
-    dataType: "NUMBER",
-  },
-  {
-    key: "Alive.VerifierDecisionHours",
-    label: "Hạn xét duyệt phản đối còn sống",
-    category: "Alive",
-    categoryTitle: "Chủ kho báo còn sống",
-    unit: "giờ",
-    step: 6,
-    defaultValue: "48",
-    description: "Hạn để Người xét duyệt thẩm định yêu cầu phản đối còn sống của Chủ kho.",
-    src: "ObjectionRules.VerifierDecisionWindow",
-    dataType: "NUMBER",
-  },
 
   // 6. Sự cố & Tạm giữ (Incident & Hold)
   {
@@ -711,7 +661,7 @@ export function AdminSettings() {
               />
               <Input
                 type="search"
-                placeholder="Tìm tham số (ví dụ: phản đối, tải lên, nhắc, hạn...)"
+                placeholder="Tìm tham số (ví dụ: tải lên, nhắc, hạn...)"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="min-h-11 bg-heritage-surface pl-9 text-sm"

@@ -42,7 +42,7 @@ function ReviewOverdueBadge() {
 
 /**
  * Danh sách và chi tiết tạm giữ (hold), chỉ xem: bộ lọc và hold đang xem nằm trên URL.
- * Hold do hệ thống đặt và gỡ (chủ kho báo còn sống); quản trị viên không đặt, hẹn rà soát hay gỡ bằng tay.
+ * Hold do hệ thống đặt và gỡ; quản trị viên không đặt, hẹn rà soát hay gỡ bằng tay.
  */
 export function AdminHolds() {
   const params = useAdminHoldParams();
@@ -266,7 +266,7 @@ function HoldDetailBody({
           role="status"
           className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"
         >
-          Tạm giữ này do chủ kho báo còn sống. Chỉ người xét duyệt kết luận mới gỡ được.
+          Tạm giữ cũ từ luồng báo còn sống đã gỡ. Chỉ hệ thống gỡ được, quản trị viên không thao tác được.
         </p>
       )}
       <p role="note" className="text-sm text-heritage-muted">

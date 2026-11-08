@@ -4,8 +4,6 @@ import { z } from "zod";
 export const DEV_MILESTONE_KEYS = [
   "CHECKIN_OVERDUE",
   "GRACE_ENDED",
-  "OBJECTION_WINDOW_ENDED",
-  "SELFIE_DEADLINE_PASSED",
   "SERVICE_EXPIRED",
   "RECIPIENT_DECISION_ENDED",
 ] as const;

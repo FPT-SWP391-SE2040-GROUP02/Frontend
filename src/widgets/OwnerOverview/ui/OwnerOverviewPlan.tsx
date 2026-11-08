@@ -9,7 +9,6 @@ const handoverSteps = [
   "Báo tin",
   "Xét duyệt hồ sơ",
   "Xác minh người nhận",
-  "Thời gian phản đối",
   "Tải nội dung",
 ];
 

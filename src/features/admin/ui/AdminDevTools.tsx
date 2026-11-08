@@ -44,7 +44,7 @@ type PendingDialog =
 
 /**
  * Công cụ thử nghiệm (chỉ Development): chọn một kho thử rồi tua tới từng mốc của luồng điểm danh,
- * chứng tử và báo còn sống. Mọi thay đổi do Backend quyết định; màn hình chỉ hiện kết quả máy chủ trả về.
+ * chứng tử. Mọi thay đổi do Backend quyết định; màn hình chỉ hiện kết quả máy chủ trả về.
  */
 export function AdminDevTools() {
   const [params, setParams] = useSearchParams();

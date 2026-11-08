@@ -369,7 +369,7 @@ describe("Sự cố", () => {
     expect(screen.queryByRole("button", { name: "Đóng sự cố" })).not.toBeInTheDocument();
     expect(screen.getByText(/Sự cố này đi theo hồ sơ/)).toBeInTheDocument();
     const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent("lời báo còn sống và sự cố cùng chuyển");
+    expect(dialog).toHaveTextContent("Hồ sơ và sự cố cùng chuyển");
     await userEvent.selectOptions(
       await within(dialog).findByLabelText("Người xét duyệt"),
       VERIFIER_ID,
@@ -405,11 +405,11 @@ describe("Sự cố", () => {
 });
 
 describe("Tạm giữ (chỉ xem)", () => {
-  it("hold do chủ kho báo còn sống giải thích vì sao và không có nút thao tác", async () => {
+  it("hold cũ từ luồng báo còn sống giải thích vì sao và không có nút thao tác", async () => {
     backend(() => holdBody({ id: OWNER_ALIVE_HOLD_ID, type: "OWNER_ALIVE" }));
     setup(`${holdsPath}&hold=${OWNER_ALIVE_HOLD_ID}`);
     expect(
-      await screen.findByText(/chỉ người xét duyệt kết luận mới gỡ được/i),
+      await screen.findByText(/chỉ hệ thống gỡ được/i),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Hẹn rà soát" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Gỡ tạm giữ" })).not.toBeInTheDocument();

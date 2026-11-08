@@ -129,7 +129,7 @@ export function VerifierQueueBoard({
               Hiện chưa có hồ sơ nào chờ bạn.
             </p>
             <p className="text-sm text-heritage-muted">
-              Khi người thực hiện gửi hồ sơ báo tin và hết thời gian phản đối, hồ sơ sẽ hiện ở đây.
+              Khi người thực hiện nộp hồ sơ báo tin, hồ sơ sẽ hiện ở đây.
               Bạn sẽ nhận email nhắc.
             </p>
             <Link className={buttonStyles.outline} to={ROUTES.NOTARY.HISTORY}>

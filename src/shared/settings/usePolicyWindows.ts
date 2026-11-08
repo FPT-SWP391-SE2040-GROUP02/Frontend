@@ -7,10 +7,6 @@ import { apiClient } from "@/shared/api/axiosClient";
  * khớp với mặc định của Backend.
  */
 export interface PolicyWindows {
-  /** Giờ Chủ kho được phản đối hồ sơ chứng tử (DeathCase.ObjectionHours). */
-  objectionHours: number;
-  /** Ngày Chủ kho gửi selfie sau khi báo còn sống (Alive.SelfieWindowDays). */
-  selfieDays: number;
   /** Ngày lời mời Người thực thi còn hiệu lực (Executor.InvitationExpiresDays). */
   executorInviteDays: number;
   /** Phút tối thiểu giữa hai lần gửi lại lời mời (Handover.ResendCooldownMinutes). */
@@ -28,8 +24,6 @@ export interface PolicyWindows {
 }
 
 export const DEFAULT_POLICY_WINDOWS: PolicyWindows = {
-  objectionHours: 72,
-  selfieDays: 7,
   executorInviteDays: 7,
   resendCooldownMinutes: 15,
   responseDays: 5,
@@ -40,8 +34,6 @@ export const DEFAULT_POLICY_WINDOWS: PolicyWindows = {
 };
 
 const KEYS: Record<keyof PolicyWindows, string> = {
-  objectionHours: "DeathCase.ObjectionHours",
-  selfieDays: "Alive.SelfieWindowDays",
   executorInviteDays: "Executor.InvitationExpiresDays",
   resendCooldownMinutes: "Handover.ResendCooldownMinutes",
   responseDays: "Handover.ResponseWindowDays",

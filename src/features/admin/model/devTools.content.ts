@@ -24,18 +24,6 @@ export const DEV_MILESTONES: Record<
     effect: "chuyển sang bước kiểm tra và mở sự cố cho Người thực hiện",
     done: "Đã tua tới “Hết thời gian chờ”. Sự cố đã mở cho Người thực hiện. Có thể tua tiếp mốc kế.",
   },
-  OBJECTION_WINDOW_ENDED: {
-    title: "Hết 72 giờ phản đối",
-    description: "Cho Người xét duyệt duyệt được hồ sơ chứng tử ngay.",
-    effect: "hết 72 giờ phản đối để Người xét duyệt duyệt được hồ sơ chứng tử ngay",
-    done: "Đã tua tới “Hết 72 giờ phản đối”. Người xét duyệt có thể duyệt hồ sơ.",
-  },
-  SELFIE_DEADLINE_PASSED: {
-    title: "Hết hạn selfie 7 ngày",
-    description: "Cho Người xét duyệt kết luận “còn sống” khi không có eKYC thật.",
-    effect: "hết hạn gửi selfie 7 ngày để Người xét duyệt kết luận lời báo còn sống",
-    done: "Đã tua tới “Hết hạn selfie 7 ngày”. Người xét duyệt có thể kết luận lời báo còn sống.",
-  },
   SERVICE_EXPIRED: {
     title: "Hết hạn dịch vụ",
     description:
