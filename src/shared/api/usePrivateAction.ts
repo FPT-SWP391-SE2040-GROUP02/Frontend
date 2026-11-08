@@ -247,6 +247,8 @@ const messages: Record<string, string> = {
   VAULT_PIN_LOCKED: "Mã PIN đang bị khóa tạm vì nhập sai nhiều lần. Vui lòng thử lại sau.",
   VAULT_PIN_TOO_WEAK:
     "Mã PIN quá dễ đoán. Không dùng các số giống nhau hoặc dãy số liên tiếp (111111, 123456...).",
+  EXECUTOR_KEY_ALREADY_ISSUED: "Kho đã có mảnh khóa. Tải lại rồi dùng nút Quên khóa để cấp lại.",
+  EXECUTOR_KEY_NOT_ISSUED: "Kho chưa cấp mảnh khóa nên chưa cấp lại được. Tải lại trang.",
   VAULT_PIN_RESET_NEEDS_PASSWORD:
     "Tài khoản của bạn chưa có mật khẩu nên chưa đặt lại mã PIN được. Hãy đặt mật khẩu ở mục Phương thức đăng nhập trước.",
 };

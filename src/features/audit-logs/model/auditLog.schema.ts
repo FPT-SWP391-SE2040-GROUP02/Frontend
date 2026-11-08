@@ -72,6 +72,9 @@ export const auditActionValues = [
   "SYSTEM_CONFIG_RESET",
   // Admin sửa tham số hệ thống (giá, hạn mức, mở bán gói) trên trang Cấu hình hệ thống.
   "SYSTEM_SETTING_UPDATED",
+  // Chủ kho cấp mảnh khóa cho Người thực hiện, hoặc cấp lại khi quên khóa.
+  "EXECUTOR_KEY_ISSUED",
+  "EXECUTOR_KEY_REISSUED",
 ] as const;
 
 /** Wire role người thực hiện; SYSTEM dùng khi job nền. */
