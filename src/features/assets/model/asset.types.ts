@@ -9,8 +9,6 @@ export interface CreateAssetFormValues {
   assetType: AssetType;
   description?: string;
   beneficiaryIds: string[];
-  shamirThreshold: number;
-  shamirTotalShares: number;
   // Dữ liệu đặc thù theo từng Strategy (Crypto / Credential / Document)
   specificData: Record<string, unknown>;
 }

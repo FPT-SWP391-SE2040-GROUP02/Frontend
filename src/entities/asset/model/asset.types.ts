@@ -35,8 +35,6 @@ export interface AssetItemDto {
   description?: string;
   status: AssetStatus;
   beneficiaryCount: number;
-  shamirThreshold: number;
-  shamirTotalShares: number;
   encryptedPayload: EncryptedPayload;
   createdAt: string;
   updatedAt: string;
@@ -55,7 +53,6 @@ export interface AssetViewModel {
   status: AssetStatus;
   statusLabel: string;
   beneficiaryCount: number;
-  shamirThresholdText: string;
   createdAtFormatted: string;
   rawPayload: EncryptedPayload;
   metadata?: Record<string, unknown>;
@@ -70,8 +67,6 @@ export interface CreateAssetRequest {
   description?: string;
   encryptedPayload: EncryptedPayload;
   beneficiaryIds: string[];
-  shamirThreshold: number;
-  shamirTotalShares: number;
 }
 
 /**

@@ -45,6 +45,7 @@ const handoverNotAllowedReasons: Record<string, string> = {
   RESEND_TOO_SOON: "Vừa gửi xong, vui lòng thử lại sau ít phút.",
   NO_EMAIL: "Người nhận chưa có email.",
   INVITATION_SEND_FAILED: "Chưa gửi được thư mời. Chưa có gì thay đổi, vui lòng thử lại sau.",
+  KEY_REQUIRED: "Cần nhập khóa mở gói do Người thực hiện đưa trước khi đồng ý nhận.",
 };
 
 /** Reason-specific messages for EXECUTOR_NOT_ALLOWED */
@@ -233,11 +234,14 @@ const messages: Record<string, string> = {
   VAULT_PIN_ALREADY_SET: "Kho đã có mã PIN. Dùng chức năng đổi mã PIN.",
   VAULT_PIN_REQUIRED: "Thao tác này cần nhập mã PIN của kho.",
   INVALID_VAULT_PIN: "Mã PIN chưa đúng.",
+  HANDOVER_KEY_INVALID: "Khóa mở gói chưa đúng. Kiểm tra lại với Người thực hiện rồi nhập lại.",
+  HANDOVER_KEY_LOCKED:
+    "Đã nhập sai khóa quá nhiều lần. Hãy liên hệ Người thực hiện hoặc quản trị viên.",
   VAULT_PIN_LOCKED: "Mã PIN đang bị khóa tạm vì nhập sai nhiều lần. Vui lòng thử lại sau.",
   VAULT_PIN_TOO_WEAK:
     "Mã PIN quá dễ đoán. Không dùng các số giống nhau hoặc dãy số liên tiếp (111111, 123456...).",
-  EXECUTOR_KEY_ALREADY_ISSUED: "Kho đã có mảnh khóa. Tải lại rồi dùng nút Quên khóa để cấp lại.",
-  EXECUTOR_KEY_NOT_ISSUED: "Kho chưa cấp mảnh khóa nên chưa cấp lại được. Tải lại trang.",
+  EXECUTOR_KEY_ALREADY_ISSUED: "Kho đã có khóa mở gói. Tải lại rồi dùng nút Quên khóa để cấp lại.",
+  EXECUTOR_KEY_NOT_ISSUED: "Kho chưa cấp khóa mở gói nên chưa cấp lại được. Tải lại trang.",
   VAULT_PIN_RESET_NEEDS_PASSWORD:
     "Tài khoản của bạn chưa có mật khẩu nên chưa đặt lại mã PIN được. Hãy đặt mật khẩu ở mục Phương thức đăng nhập trước.",
 };

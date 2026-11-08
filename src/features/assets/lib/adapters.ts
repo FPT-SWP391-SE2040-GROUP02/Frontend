@@ -17,7 +17,5 @@ export function toCreatePayload(form: CreateAssetFormValues): CreateAssetRequest
     description: form.description,
     encryptedPayload,
     beneficiaryIds: form.beneficiaryIds,
-    shamirThreshold: form.shamirThreshold,
-    shamirTotalShares: form.shamirTotalShares,
   };
 }

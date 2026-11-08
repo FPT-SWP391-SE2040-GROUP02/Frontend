@@ -74,8 +74,6 @@ describe("Asset Management Validation Schemas", () => {
         assetType: "CRYPTO",
         description: "Quỹ dự phòng",
         beneficiaryIds: ["ben_01"],
-        shamirThreshold: 2,
-        shamirTotalShares: 3,
         specificData: { walletAddress: "0x...", network: "ETHEREUM" },
       };
       expect(createAssetSchema.safeParse(valid).success).toBe(true);

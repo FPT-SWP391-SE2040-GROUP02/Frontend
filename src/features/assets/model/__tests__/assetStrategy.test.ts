@@ -42,8 +42,6 @@ describe("Strategy Pattern & Adapter Pattern Tests", () => {
         description: "Ví lưu trữ",
         status: "ACTIVE",
         beneficiaryCount: 2,
-        shamirThreshold: 2,
-        shamirTotalShares: 3,
         encryptedPayload: {
           ciphertext: "cipher...",
           iv: "iv...",
@@ -57,7 +55,6 @@ describe("Strategy Pattern & Adapter Pattern Tests", () => {
       const viewModel = toViewModel(dto);
       expect(viewModel.id).toBe("ast_01");
       expect(viewModel.statusLabel).toBe("Đang Bảo Vệ");
-      expect(viewModel.shamirThresholdText).toBe("2/3 Mảnh Shamir");
       expect(viewModel.createdAtFormatted).toBeDefined();
     });
 
@@ -67,8 +64,6 @@ describe("Strategy Pattern & Adapter Pattern Tests", () => {
         assetType: "CREDENTIAL",
         description: "Email công việc",
         beneficiaryIds: ["ben_01"],
-        shamirThreshold: 2,
-        shamirTotalShares: 3,
         specificData: {
           serviceName: "Google",
           username: "test@gmail.com",

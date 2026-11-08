@@ -34,14 +34,14 @@ export function ExecutorKeyCard({ vaultId }: { vaultId: string }) {
   if (query.isPending) {
     return (
       <p role="status" className="text-sm text-heritage-muted">
-        Đang tải mảnh khóa…
+        Đang tải khóa mở gói…
       </p>
     );
   }
   if (query.isError) {
     return (
       <div role="alert" className="space-y-3">
-        <p className="text-sm">Không tải được trạng thái mảnh khóa.</p>
+        <p className="text-sm">Không tải được trạng thái khóa mở gói.</p>
         <button type="button" className={buttonStyles.outline} onClick={() => void query.refetch()}>
           Thử lại
         </button>
@@ -77,7 +77,7 @@ export function ExecutorKeyCard({ vaultId }: { vaultId: string }) {
 
   return (
     <Panel
-      title="Mảnh khóa của Người thực hiện"
+      title="Khóa mở gói của Người thực hiện"
       action={
         <Chip tone={status.hasKey ? "success" : "warning"}>
           {status.hasKey ? `Đã cấp (bản ${status.version})` : "Chưa cấp"}
@@ -85,9 +85,9 @@ export function ExecutorKeyCard({ vaultId }: { vaultId: string }) {
       }
     >
       <p className="text-sm leading-6 text-heritage-muted">
-        Mảnh khóa là một nửa mã mở gói tài sản. Bạn nhận mảnh này và đưa trực tiếp cho Người thực
-        hiện; nửa còn lại nằm trong email gửi người nhận. Hệ thống không lưu mảnh gốc nên không đọc
-        lại được.
+        Khóa mở gói là mã duy nhất để người nhận mở gói tài sản. Bạn nhận khóa này và đưa trực tiếp
+        cho Người thực hiện; Người thực hiện đọc lại cho người nhận khi cần. Hệ thống chỉ lưu dấu
+        kiểm tra nên không đọc lại được khóa gốc.
       </p>
       {status.issuedAt && (
         <p className="mt-2 text-xs text-heritage-muted">
@@ -111,7 +111,7 @@ export function ExecutorKeyCard({ vaultId }: { vaultId: string }) {
           }}
         >
           <KeyRound className="size-4" aria-hidden="true" />
-          {reissue ? "Quên khóa? Cấp lại" : "Tạo mảnh khóa"}
+          {reissue ? "Quên khóa? Cấp lại" : "Tạo khóa mở gói"}
         </button>
       </div>
 
@@ -119,11 +119,11 @@ export function ExecutorKeyCard({ vaultId }: { vaultId: string }) {
         <Dialog open onOpenChange={(open) => !open && !action.pending && close()}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>{reissue ? "Cấp lại mảnh khóa?" : "Tạo mảnh khóa?"}</DialogTitle>
+              <DialogTitle>{reissue ? "Cấp lại khóa mở gói?" : "Tạo mảnh khóa?"}</DialogTitle>
               <DialogDescription>
                 {reissue
-                  ? "Mảnh cũ hết hiệu lực ngay. Người thực hiện phải dùng mảnh mới bạn đưa lần này."
-                  : "Mảnh khóa chỉ hiện một lần. Hãy chuẩn bị đưa trực tiếp cho Người thực hiện."}
+                  ? "Khóa cũ hết hiệu lực ngay. Người thực hiện phải dùng khóa mới bạn đưa lần này."
+                  : "Khóa chỉ hiện một lần. Hãy chuẩn bị đưa trực tiếp cho Người thực hiện."}
               </DialogDescription>
             </DialogHeader>
             {action.error && (
@@ -146,7 +146,7 @@ export function ExecutorKeyCard({ vaultId }: { vaultId: string }) {
                 disabled={action.pending}
                 onClick={run}
               >
-                {action.pending ? "Đang tạo…" : reissue ? "Cấp lại" : "Tạo mảnh khóa"}
+                {action.pending ? "Đang tạo…" : reissue ? "Cấp lại" : "Tạo khóa mở gói"}
               </button>
             </DialogFooter>
           </DialogContent>
@@ -157,23 +157,24 @@ export function ExecutorKeyCard({ vaultId }: { vaultId: string }) {
         <Dialog open onOpenChange={() => undefined}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Mảnh khóa của bạn</DialogTitle>
+              <DialogTitle>Khóa mở gói của bạn</DialogTitle>
               <DialogDescription>
                 Chỉ hiện một lần. Đưa trực tiếp cho Người thực hiện rồi mới đóng.
               </DialogDescription>
             </DialogHeader>
             <p
-              aria-label="Mảnh khóa"
+              aria-label="Khóa mở gói"
               className="break-all rounded-xl bg-[#ECE8DB] p-4 text-center font-mono text-lg font-semibold tracking-wider"
             >
               {shard}
             </p>
             <Notice tone="warning" title="Không gửi qua email hay tin nhắn công khai">
-              Ai có mảnh này và mảnh trong email người nhận thì mở được gói tài sản.
+              Chỉ cần khóa này là người nhận mở được gói tài sản, nên chỉ đưa cho đúng Người thực
+              hiện.
             </Notice>
             <button type="button" className={buttonStyles.outline} onClick={copy}>
               <Copy className="size-4" aria-hidden="true" />
-              {copied ? "Đã chép" : "Chép mảnh khóa"}
+              {copied ? "Đã chép" : "Chép khóa"}
             </button>
             <label className="flex min-h-11 items-start gap-3 text-sm leading-6">
               <input
@@ -182,7 +183,7 @@ export function ExecutorKeyCard({ vaultId }: { vaultId: string }) {
                 checked={handedOver}
                 onChange={(event) => setHandedOver(event.target.checked)}
               />
-              Tôi đã đưa mảnh khóa này cho Người thực hiện.
+              Tôi đã đưa khóa này cho Người thực hiện.
             </label>
             <DialogFooter>
               <button

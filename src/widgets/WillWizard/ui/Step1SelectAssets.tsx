@@ -193,9 +193,6 @@ export const Step1SelectAssets: React.FC<Step1SelectAssetsProps> = ({
                         <Badge className="bg-[#E5EDE8] text-[#0B291E] border border-[#A2C4AF] px-2 py-0.5 text-[10px] font-semibold rounded-full">
                           {asset.typeLabel}
                         </Badge>
-                        <span className="text-[10px] font-mono text-[#B88E4C]">
-                          {asset.shamirThresholdText}
-                        </span>
                       </div>
                     </div>
                   </div>

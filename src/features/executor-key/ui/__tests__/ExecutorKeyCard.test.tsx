@@ -41,26 +41,26 @@ function renderCard() {
 }
 
 describe("ExecutorKeyCard", () => {
-  it("chưa cấp: hiện Tạo mảnh khóa, chỉ gọi BE sau khi xác nhận, mảnh hiện một lần", async () => {
+  it("chưa cấp: hiện Tạo khóa mở gói, chỉ gọi BE sau khi xác nhận, khóa hiện một lần", async () => {
     vi.spyOn(axiosClient, "get").mockResolvedValue(status());
     const post = vi
       .spyOn(axiosClient, "post")
       .mockResolvedValue({ ...status({ hasKey: true, version: 1 }), shard: SHARD });
     renderCard();
 
-    await userEvent.click(await screen.findByRole("button", { name: "Tạo mảnh khóa" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Tạo khóa mở gói" }));
     expect(post).not.toHaveBeenCalled();
     const confirm = await screen.findByRole("dialog");
-    await userEvent.click(within(confirm).getByRole("button", { name: "Tạo mảnh khóa" }));
+    await userEvent.click(within(confirm).getByRole("button", { name: "Tạo khóa mở gói" }));
 
     await waitFor(() => expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executor-key`));
-    expect(await screen.findByLabelText("Mảnh khóa")).toHaveTextContent(SHARD);
+    expect(await screen.findByLabelText("Khóa mở gói")).toHaveTextContent(SHARD);
     const close = screen.getByRole("button", { name: "Đóng" });
     expect(close).toBeDisabled();
-    await userEvent.click(screen.getByRole("checkbox", { name: /đã đưa mảnh khóa/ }));
+    await userEvent.click(screen.getByRole("checkbox", { name: /đã đưa khóa này/ }));
     expect(close).toBeEnabled();
     await userEvent.click(close);
-    await waitFor(() => expect(screen.queryByLabelText("Mảnh khóa")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByLabelText("Khóa mở gói")).not.toBeInTheDocument());
   });
 
   it("đã cấp: nút Quên khóa gọi cấp lại và nói rõ mảnh cũ hết hiệu lực", async () => {
@@ -74,13 +74,13 @@ describe("ExecutorKeyCard", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: "Quên khóa? Cấp lại" }));
     const confirm = await screen.findByRole("dialog");
-    expect(confirm).toHaveTextContent("Mảnh cũ hết hiệu lực ngay");
+    expect(confirm).toHaveTextContent("Khóa cũ hết hiệu lực ngay");
     await userEvent.click(within(confirm).getByRole("button", { name: "Cấp lại" }));
 
     await waitFor(() =>
       expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executor-key/reissue`),
     );
-    expect(await screen.findByLabelText("Mảnh khóa")).toHaveTextContent(SHARD);
+    expect(await screen.findByLabelText("Khóa mở gói")).toHaveTextContent(SHARD);
   });
 
   it("kế hoạch đã khóa: nút bị tắt và có lời giải thích", async () => {

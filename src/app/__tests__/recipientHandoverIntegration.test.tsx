@@ -375,3 +375,47 @@ it("still lets the recipient claim after the initial response deadline (BR-58)",
   ).toBeInTheDocument();
   expect(post).toHaveBeenCalledTimes(1);
 });
+
+it("kho đã cấp khóa mở gói: nút Đồng ý khóa tới khi nhập đúng khóa, sai khóa báo lỗi, đúng thì mở nút", async () => {
+  let verified = false;
+  const posts: string[] = [];
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "post") {
+      posts.push(String(config.url));
+      if (String(config.url).endsWith("/verify-key")) {
+        const body = JSON.parse(String(config.data)) as { key: string };
+        if (body.key !== "ABCD-1234") {
+          throw problem(config as never, 403, {
+            code: "HANDOVER_KEY_INVALID",
+            attemptsRemaining: 4,
+          });
+        }
+        verified = true;
+        return ok(
+          config,
+          turnWithStatus("READY_TO_ACCEPT", { keyRequired: true, keyVerified: true }),
+        );
+      }
+    }
+    return ok(config, [
+      turnWithStatus("READY_TO_ACCEPT", { keyRequired: true, keyVerified: verified }),
+    ]);
+  };
+  setup();
+  fireEvent.click(await screen.findByRole("checkbox"));
+  expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeDisabled();
+
+  const input = screen.getByLabelText("Khóa mở gói do Người thực hiện đưa");
+  fireEvent.change(input, { target: { value: "SAI-SAI" } });
+  fireEvent.click(screen.getByRole("button", { name: "Xác nhận khóa" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Khóa mở gói chưa đúng");
+  expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeDisabled();
+
+  fireEvent.change(screen.getByLabelText("Khóa mở gói do Người thực hiện đưa"), {
+    target: { value: "ABCD-1234" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Xác nhận khóa" }));
+  expect(await screen.findByText("Khóa mở gói đã được xác nhận.")).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeEnabled());
+  expect(posts.some((url) => url.endsWith("/verify-key"))).toBe(true);
+});

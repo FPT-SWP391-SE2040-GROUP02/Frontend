@@ -94,8 +94,6 @@ export const createAssetSchema = z.object({
   beneficiaryIds: z.array(z.string()).min(1, {
     message: "Bắt buộc chỉ định ít nhất 1 người thừa kế thụ hưởng tài sản này",
   }),
-  shamirThreshold: z.number().int().min(1).default(2),
-  shamirTotalShares: z.number().int().min(1).default(3),
   specificData: z.record(z.unknown()),
 });
 
