@@ -8,6 +8,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
 import { useHandoverAction } from "../model/useHandoverAction";
+import { MailCheckPanel } from "./MailCheckPanel";
 
 const CHECKLIST = ["Xác minh danh tính của bạn", "Chờ bàn giao", "Tải nội dung khi bàn giao mở"];
 
@@ -56,6 +57,7 @@ export function InvitationPanel() {
             : "Đăng nhập hoặc tạo tài khoản để nhận lời mời này."}
         </p>
       </div>
+      <MailCheckPanel token={token} />
       <ul className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5">
         {CHECKLIST.map((text) => (
           <li key={text} className="flex items-center gap-3 text-sm">

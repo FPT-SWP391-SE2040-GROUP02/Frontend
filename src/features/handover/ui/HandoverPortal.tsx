@@ -22,6 +22,7 @@ import { useHandoverAction } from "../model/useHandoverAction";
 import { remainingText } from "../model/handover.format";
 import { currentHandoverStep } from "../model/handoverStep";
 import { HandoverStepper } from "./HandoverStepper";
+import { HandoverTerms } from "./HandoverTerms";
 
 type Turn = z.infer<typeof handoverTurnSchema>;
 
@@ -207,7 +208,8 @@ function TurnCard({ turn }: { turn: Turn }) {
         </Panel>
         {turn.status === "READY_TO_ACCEPT" && (
           <Panel title="Phản hồi">
-            <div className="space-y-3">
+            <div className="space-y-4">
+              <HandoverTerms groupName={groupName} />
               {turn.keyRequired && !turn.keyVerified && (
                 <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">
                   <label className="block text-sm font-medium" htmlFor={`key-${turn.id}`}>

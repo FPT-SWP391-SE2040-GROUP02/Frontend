@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api/axiosClient";
-import { invitationSchema, handoverTurnSchema, handoverItemSchema } from "../model/handover.schema";
+import {
+  invitationSchema,
+  handoverTurnSchema,
+  handoverItemSchema,
+  mailCheckSchema,
+} from "../model/handover.schema";
 import { readBlobProblem } from "../model/handover.errors";
 const id = z.string().uuid();
 const token = z.string().min(1).max(512);
@@ -12,6 +17,21 @@ export const handoverService = {
       await apiClient.get<unknown, unknown>(
         `/handover/invitations/${encodeURIComponent(token.parse(value))}`,
         { signal },
+      ),
+    );
+  },
+  /** Công khai: kiểm thư mời bằng mã hồ sơ và 4 số cuối căn cước; hết lượt thử thì 423 HANDOVER_MAIL_CHECK_LOCKED. */
+  async checkMail(value: string, caseCode: string, citizenIdLast4: string) {
+    return mailCheckSchema.parse(
+      await apiClient.post<unknown, unknown>(
+        `/handover/invitations/${encodeURIComponent(token.parse(value))}/check-mail`,
+        {
+          caseCode: z.string().trim().min(1).max(16).parse(caseCode),
+          citizenIdLast4: z
+            .string()
+            .regex(/^\d{4}$/)
+            .parse(citizenIdLast4),
+        },
       ),
     );
   },

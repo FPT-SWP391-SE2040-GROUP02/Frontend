@@ -1,6 +1,14 @@
 import { z } from "zod";
 const timestamp = z.string().datetime({ offset: true });
 export const invitationSchema = z.object({ valid: z.boolean(), responseExpired: z.boolean() });
+/** Kết quả kiểm thư mời bằng mã hồ sơ và 4 số cuối căn cước (POST /handover/invitations/{token}/check-mail). */
+export const mailCheckSchema = z.object({
+  verified: z.boolean(),
+  attemptsLeft: z.number().int().min(0),
+  containerName: z.string().nullish(),
+  ownerFullName: z.string().nullish(),
+});
+export type MailCheck = z.infer<typeof mailCheckSchema>;
 export const handoverItemSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
