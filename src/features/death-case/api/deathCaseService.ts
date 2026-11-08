@@ -12,6 +12,7 @@ import {
   confirmIdentitySchema,
   handoverProgressSchema,
   resendInvitationSchema,
+  sendHandoverKeySchema,
 } from "../model/handoverProgress.schema";
 const id = z.string().uuid();
 const path = (caseId: string) => `/executor/death-cases/${id.parse(caseId)}`;
@@ -122,6 +123,15 @@ export const deathCaseService = {
     return resendInvitationSchema.parse(
       await apiClient.post<unknown, unknown>(
         `${path(caseId)}/handover-turns/${id.parse(turnId)}/resend-invitation`,
+      ),
+    );
+  },
+  /** Gửi khóa mở gói tới email người nhận của lượt; BE kiểm khóa Executor nhập (sai → 403 HANDOVER_KEY_INVALID) và không lưu khóa. */
+  async sendKey(caseId: string, turnId: string, key: string) {
+    return sendHandoverKeySchema.parse(
+      await apiClient.post<unknown, unknown>(
+        `${path(caseId)}/handover-turns/${id.parse(turnId)}/send-key`,
+        { key },
       ),
     );
   },

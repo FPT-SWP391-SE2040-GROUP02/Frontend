@@ -9,6 +9,7 @@ import { HTTP_STATUS } from "@/shared/constants";
 import { deathCaseService } from "../api/deathCaseService";
 import {
   canConfirmIdentity,
+  KEY_MAILABLE_TURN_STATUSES,
   RESENDABLE_TURN_STATUSES,
   type HandoverProgress,
   type HandoverProgressTurn,
@@ -154,6 +155,83 @@ function ResendInvitation({ caseId, turnId }: { caseId: string; turnId: string }
 }
 
 /**
+ * Gửi khóa mở gói cho người nhận qua email. Executor nhập lại khóa mình đang giữ (Backend kiểm rồi gửi, không lưu khóa);
+ * ô nhập được xóa sau khi gửi xong. Không optimistic: chỉ báo thành công sau response của BE.
+ */
+function SendKey({ caseId, turnId }: { caseId: string; turnId: string }) {
+  const action = usePrivateAction();
+  const [opened, setOpened] = useState(false);
+  const [key, setKey] = useState("");
+  const [sentAt, setSentAt] = useState<string | null>(null);
+  const send = () =>
+    void action.execute(
+      () => deathCaseService.sendKey(caseId, turnId, key.trim()),
+      (result) => {
+        setKey("");
+        setOpened(false);
+        setSentAt(result.sentAt);
+      },
+    );
+  return (
+    <div className="space-y-2">
+      {!opened ? (
+        <button type="button" className={buttonStyles.outline} onClick={() => setOpened(true)}>
+          Gửi khóa cho người nhận
+        </button>
+      ) : (
+        <div className="space-y-3 rounded-xl border border-heritage-border bg-white/60 p-4 text-sm">
+          <label className="block space-y-1">
+            <span className="font-medium">Khóa mở gói bạn đang giữ</span>
+            <input
+              type="text"
+              value={key}
+              autoComplete="off"
+              spellCheck={false}
+              maxLength={80}
+              placeholder="XXXX-XXXX-XXXX-…"
+              className="w-full rounded-xl border border-heritage-border bg-white px-3 py-2 font-mono"
+              onChange={(event) => setKey(event.target.value)}
+            />
+          </label>
+          <p className="text-heritage-muted">
+            Khóa được gửi riêng tới email của người nhận, tách khỏi thư mời. Hệ thống không lưu
+            khóa.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={buttonStyles.dark}
+              onClick={send}
+              disabled={action.pending || key.trim().length === 0}
+            >
+              {action.pending ? "Đang gửi…" : "Gửi khóa"}
+            </button>
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              onClick={() => setOpened(false)}
+              disabled={action.pending}
+            >
+              Hủy
+            </button>
+          </div>
+        </div>
+      )}
+      {action.error && (
+        <p role="alert" className="text-sm text-destructive">
+          {action.error}
+        </p>
+      )}
+      {sentAt && !action.error && (
+        <p role="status" className="text-sm">
+          Đã gửi khóa cho người nhận lúc {formatDateTime(sentAt)}.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
  * Executor xác nhận đúng người bằng tay khi người nhận không qua được eKYC (BR-122). Executor tự gặp hoặc liên lạc
  * ngoài hệ thống. Không optimistic: chỉ báo thành công sau response của BE, rồi đọc lại tiến độ.
  */
@@ -262,6 +340,11 @@ function TurnDetail({
       {RESENDABLE_TURN_STATUSES.includes(turn.status) && (
         <div className="mt-4">
           <ResendInvitation caseId={caseId} turnId={turn.turnId} />
+        </div>
+      )}
+      {KEY_MAILABLE_TURN_STATUSES.includes(turn.status) && (
+        <div className="mt-4">
+          <SendKey caseId={caseId} turnId={turn.turnId} />
         </div>
       )}
       {canConfirmIdentity(turn) && (

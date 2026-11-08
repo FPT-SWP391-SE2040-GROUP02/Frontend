@@ -46,6 +46,8 @@ const handoverNotAllowedReasons: Record<string, string> = {
   NO_EMAIL: "Người nhận chưa có email.",
   INVITATION_SEND_FAILED: "Chưa gửi được thư mời. Chưa có gì thay đổi, vui lòng thử lại sau.",
   KEY_REQUIRED: "Cần nhập khóa mở gói do Người thực hiện đưa trước khi đồng ý nhận.",
+  NO_KEY: "Kho này chưa cấp khóa mở gói nên chưa có khóa để gửi.",
+  KEY_SEND_FAILED: "Chưa gửi được khóa. Vui lòng thử lại sau.",
 };
 
 /** Reason-specific messages for EXECUTOR_NOT_ALLOWED */
