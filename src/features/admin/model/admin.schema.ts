@@ -287,5 +287,7 @@ export const createAdminUserRequestSchema = z.object({
   password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128),
   role: z.enum(["VERIFIER", "ADMIN"]),
   phone: z.string().trim().max(32).optional(),
+  practiceCertificateNumber: z.string().trim().max(64).optional(),
+  lawyerCardNumber: z.string().trim().max(64).optional(),
 });
 export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;

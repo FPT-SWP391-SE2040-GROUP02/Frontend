@@ -13,6 +13,10 @@ export interface User {
   fullName: string;
   /** Số điện thoại liên hệ */
   phone?: string;
+  /** Số chứng chỉ hành nghề luật sư (Người xét duyệt) */
+  practiceCertificateNumber?: string;
+  /** Số thẻ luật sư (Người xét duyệt) */
+  lawyerCardNumber?: string;
   /** Đường dẫn ảnh đại diện */
   avatarUrl?: string;
   /** Vai trò của người dùng trong hệ thống (OWNER, EXECUTOR, BENEFICIARY, NOTARY, ADMIN) */

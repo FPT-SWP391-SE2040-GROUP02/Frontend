@@ -14,12 +14,7 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import type { User } from "@/entities/user";
 import { beneficiaryService } from "../api/beneficiaryService";
 import { beneficiaryResponseSchema } from "../model/beneficiary.schema";
-import {
-  CITIZEN_ID_FORMAT_MESSAGE,
-  PHONE_FORMAT_MESSAGE,
-  isValidCitizenIdFormat,
-  isVietnamPhone,
-} from "../model/beneficiaryFormat";
+import { CITIZEN_ID_FORMAT_MESSAGE, isValidCitizenIdFormat } from "../model/beneficiaryFormat";
 
 type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
 
@@ -161,17 +156,6 @@ export function BeneficiaryForm({
               code: z.ZodIssueCode.custom,
               path: ["email"],
               message: "Email người thụ hưởng không được trùng với email của Chủ kho.",
-            });
-          }
-
-          // 4. Số điện thoại Việt Nam nếu có nhập. Khi sửa chỉ kiểm lúc đổi số, để hồ sơ cũ vẫn sửa được.
-          const hasPhone = Boolean(values.phone?.trim());
-          const phoneChanged = !record || (values.phone ?? "") !== (record.phone ?? "");
-          if (hasPhone && values.phone && phoneChanged && !isVietnamPhone(values.phone)) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ["phone"],
-              message: PHONE_FORMAT_MESSAGE,
             });
           }
         }),

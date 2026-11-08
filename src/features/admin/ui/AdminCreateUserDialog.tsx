@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/shared/ui/button";
@@ -22,6 +22,8 @@ const createUserSchema = z.object({
   password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự.").max(128),
   role: z.enum(["VERIFIER", "ADMIN"]),
   phone: z.string().trim().max(32).optional(),
+  practiceCertificateNumber: z.string().trim().max(64).optional(),
+  lawyerCardNumber: z.string().trim().max(64).optional(),
 });
 
 type CreateUserInput = z.infer<typeof createUserSchema>;
@@ -49,9 +51,12 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
       password: "",
       role: "VERIFIER",
       phone: "",
+      practiceCertificateNumber: "",
+      lawyerCardNumber: "",
     },
   });
 
+  const role = useWatch({ control: form.control, name: "role" });
   const onSubmit = (values: CreateUserInput) => {
     void execute(
       () => adminService.createUser(values),
@@ -184,6 +189,39 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
               placeholder="0912345678"
             />
           </div>
+
+          {role === "VERIFIER" && (
+            <>
+              <div>
+                <label
+                  htmlFor="create-user-practice"
+                  className="block text-sm font-medium text-heritage-text"
+                >
+                  Số chứng chỉ hành nghề{" "}
+                  <span className="text-xs text-heritage-muted">(không bắt buộc)</span>
+                </label>
+                <Input
+                  id="create-user-practice"
+                  {...form.register("practiceCertificateNumber")}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="create-user-lawyer-card"
+                  className="block text-sm font-medium text-heritage-text"
+                >
+                  Số thẻ luật sư{" "}
+                  <span className="text-xs text-heritage-muted">(không bắt buộc)</span>
+                </label>
+                <Input
+                  id="create-user-lawyer-card"
+                  {...form.register("lawyerCardNumber")}
+                  className="mt-1"
+                />
+              </div>
+            </>
+          )}
 
           {error && (
             <p role="alert" className="text-sm text-destructive">

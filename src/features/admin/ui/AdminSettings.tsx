@@ -362,6 +362,17 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     dataType: "BOOLEAN",
     isSecurity: true,
   },
+  {
+    key: "Time.DemoSeconds",
+    label: "Chế độ demo: tính thời gian bằng giây",
+    category: "Security",
+    categoryTitle: "Bảo mật & Tính năng",
+    defaultValue: "false",
+    description:
+      "Khi bật, mọi mốc ngày, giờ, phút của nghiệp vụ (điểm danh, ân hạn, hạn xét duyệt, hạn bổ sung, cửa sổ bàn giao) chỉ còn tính bằng giây. Dùng cho buổi demo, tắt khi chạy thật.",
+    src: "TimeUnits.DemoSeconds",
+    dataType: "BOOLEAN",
+  },
 ];
 
 const CATEGORY_ICONS: Record<string, typeof Clock> = {

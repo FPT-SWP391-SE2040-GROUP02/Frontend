@@ -215,7 +215,7 @@ describe("form thêm người nhận", () => {
   });
 });
 
-describe("form thêm người nhận: định dạng CCCD và số điện thoại", () => {
+describe("form thêm người nhận: định dạng CCCD, số điện thoại không bị kiểm", () => {
   function fillValid() {
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "083206000699" } });
     fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Văn An" } });
@@ -234,15 +234,13 @@ describe("form thêm người nhận: định dạng CCCD và số điện tho�
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("số điện thoại không theo định dạng Việt Nam thì báo dưới ô và không gửi", async () => {
-    const post = vi.spyOn(apiClient, "post");
+  it("số điện thoại không bị kiểm định dạng: gõ gì cũng được gửi lên", async () => {
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue({});
     renderForm();
     fillValid();
     fireEvent.change(screen.getByLabelText(/^Số điện thoại/), { target: { value: "1787712815" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
-    const label = (await screen.findByLabelText(/^Số điện thoại/)).closest("label") as HTMLElement;
-    expect(label).toHaveTextContent("Số điện thoại không đúng định dạng Việt Nam");
-    expect(post).not.toHaveBeenCalled();
+    await vi.waitFor(() => expect(post).toHaveBeenCalled());
   });
 
   it("CCCD và số điện thoại đúng định dạng thì gửi lên máy chủ", async () => {
