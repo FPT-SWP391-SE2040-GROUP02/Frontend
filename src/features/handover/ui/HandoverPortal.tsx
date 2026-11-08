@@ -198,6 +198,14 @@ function TurnCard({ turn }: { turn: Turn }) {
                 xét duyệt đối chiếu rồi mới mở bước quyết định cho bạn.
               </p>
             )}
+            {turn.reviewer && (
+              <p className="text-sm" data-testid="reviewer-line">
+                Người xét duyệt hồ sơ: {turn.reviewer.fullName}
+                {turn.reviewer.lawyerCardNumber
+                  ? ` (thẻ luật sư ${turn.reviewer.lawyerCardNumber})`
+                  : ""}
+              </p>
+            )}
             {turn.grant && (
               <p className="text-sm">
                 Quyền xem/tải: {grantLabels[turn.grant.status] ?? turn.grant.status} · đến{" "}
@@ -310,6 +318,32 @@ function TurnCard({ turn }: { turn: Turn }) {
         >
           Hết hạn lúc {formatDateTime(turn.grant.expiresAt)}. Sau đó nội dung không còn tải được.
         </Notice>
+      )}
+      {turn.status === "HANDOVER_COMMITTED" && turn.grant && (
+        <Panel title="Xác nhận đã nhận đủ">
+          {turn.receivedAllAt ? (
+            <p role="status" className="text-sm">
+              Bạn đã xác nhận nhận đủ lúc {formatDateTime(turn.receivedAllAt)}.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm leading-6 text-heritage-muted">
+                Tải xong các mục bên dưới thì bấm xác nhận để Người thực thi biết lượt này đã hoàn
+                tất.
+              </p>
+              <button
+                type="button"
+                className={buttonStyles.dark}
+                disabled={action.pending}
+                onClick={() =>
+                  void action.execute(() => handoverService.confirmReceivedAll(turn.id), refresh)
+                }
+              >
+                Tôi đã nhận đủ
+              </button>
+            </div>
+          )}
+        </Panel>
       )}
       {turn.items.length > 0 && (
         <Panel title="Các mục dành cho bạn">

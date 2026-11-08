@@ -400,6 +400,51 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     src: "TimeUnits.DemoSeconds",
     dataType: "BOOLEAN",
   },
+  {
+    key: "Company.Name",
+    label: "Tên công ty",
+    category: "Company",
+    categoryTitle: "Thông tin công ty",
+    defaultValue: "LegacyVault",
+    description: "Hiện trong thư mời gửi người nhận kèm cảnh báo lừa đảo.",
+    dataType: "STRING",
+  },
+  {
+    key: "Company.Website",
+    label: "Website",
+    category: "Company",
+    categoryTitle: "Thông tin công ty",
+    defaultValue: "legacyvault.vn",
+    description: "Người nhận dùng để tự kiểm tra thư có thật.",
+    dataType: "STRING",
+  },
+  {
+    key: "Company.Email",
+    label: "Email liên hệ",
+    category: "Company",
+    categoryTitle: "Thông tin công ty",
+    defaultValue: "ho-tro@legacyvault.vn",
+    description: "Email công ty hiện trong thư mời.",
+    dataType: "STRING",
+  },
+  {
+    key: "Company.Phone",
+    label: "Số điện thoại",
+    category: "Company",
+    categoryTitle: "Thông tin công ty",
+    defaultValue: "1900 0000",
+    description: "Người nhận gọi số này để xác minh thư mời.",
+    dataType: "STRING",
+  },
+  {
+    key: "Company.Address",
+    label: "Địa chỉ",
+    category: "Company",
+    categoryTitle: "Thông tin công ty",
+    defaultValue: "",
+    description: "Để trống thì không hiện trong thư.",
+    dataType: "STRING",
+  },
 ];
 
 const CATEGORY_ICONS: Record<string, typeof Clock> = {
@@ -837,6 +882,15 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                     {currentVal === "true" ? "Bật" : "Tắt"}
                                   </span>
                                 </div>
+                              ) : item.dataType === "STRING" ? (
+                                <input
+                                  type="text"
+                                  value={currentVal}
+                                  maxLength={200}
+                                  onChange={(e) => setKeyValue(item.key, e.target.value)}
+                                  aria-label={item.label}
+                                  className="h-9 w-64 rounded-lg border border-heritage-border bg-white px-3 text-sm shadow-sm focus:outline-none"
+                                />
                               ) : (
                                 <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
                                   <button

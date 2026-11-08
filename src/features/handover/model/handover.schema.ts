@@ -60,4 +60,11 @@ export const handoverTurnSchema = z.object({
       expiresAt: timestamp,
     })
     .nullable(),
+  /** Người xét duyệt đã duyệt hồ sơ chứng tử của kho; người nhận tự kiểm chứng tên và số thẻ luật sư. */
+  reviewer: z
+    .object({ fullName: z.string(), lawyerCardNumber: z.string().nullable().optional() })
+    .nullable()
+    .default(null),
+  /** Lúc người nhận xác nhận đã nhận đủ tài sản; null khi chưa. */
+  receivedAllAt: timestamp.nullable().default(null),
 });

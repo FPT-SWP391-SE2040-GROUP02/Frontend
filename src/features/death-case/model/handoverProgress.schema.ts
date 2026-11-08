@@ -45,6 +45,8 @@ const progressTurnSchema = z.object({
   claimedAt: timestamp.nullable(),
   decisionDeadline: timestamp.nullable(),
   decidedAt: timestamp.nullable(),
+  /** Người nhận đã bấm "Tôi đã nhận đủ" lúc này; Backend cũ chưa gửi thì null. */
+  receivedAllAt: timestamp.nullable().default(null),
   grantStatus: handoverGrantStatusSchema.nullable(),
   grantExpiresAt: timestamp.nullable(),
   totalItems: z.number().int().nonnegative(),

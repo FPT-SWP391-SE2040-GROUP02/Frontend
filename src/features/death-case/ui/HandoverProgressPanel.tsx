@@ -324,6 +324,12 @@ function TurnDetail({
             <dd className="font-medium">{formatDateTime(turn.decidedAt)}</dd>
           </div>
         )}
+        {turn.receivedAllAt && (
+          <div>
+            <dt className="text-heritage-muted">Người nhận xác nhận đã nhận đủ</dt>
+            <dd className="font-medium">{formatDateTime(turn.receivedAllAt)}</dd>
+          </div>
+        )}
         {turn.beneficiaryFullName && (
           <>
             <div>

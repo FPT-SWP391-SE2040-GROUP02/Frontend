@@ -79,6 +79,12 @@ export const handoverService = {
       await apiClient.post<unknown, unknown>(`${turn(value)}/${decision}`),
     );
   },
+  /** Xác nhận đã nhận đủ tài sản sau khi tải. */
+  async confirmReceivedAll(value: string) {
+    return handoverTurnSchema.parse(
+      await apiClient.post<unknown, unknown>(`${turn(value)}/received-all`),
+    );
+  },
   /** Nhập khóa mở gói do Người thực hiện đưa; sai thì 403 HANDOVER_KEY_INVALID, quá giới hạn thì 423. */
   async verifyKey(value: string, key: string) {
     return handoverTurnSchema.parse(
