@@ -4,13 +4,11 @@ import { paginatedListSchema, paginationRequestSchema } from "@/shared/api/pagin
 import type { PaginationParams } from "@/shared/types";
 import {
   approveCaseRequestSchema,
-  concludeObjectionRequestSchema,
   rejectCaseRequestSchema,
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
   verifierCaseDetailSchema,
   verifierCaseSummarySchema,
-  verifierObjectionSchema,
 } from "../model/verifierReview.schema";
 
 const id = z.string().uuid();
@@ -53,13 +51,6 @@ export const verifierReviewService = {
       { responseType: "blob", signal },
     );
   },
-  /** Ảnh selfie của lần thử gần nhất trong lời báo còn sống (BR-50 sửa); 404 khi chưa có ảnh. */
-  async downloadObjectionSelfieImage(caseId: string, signal?: AbortSignal): Promise<Blob> {
-    return apiClient.get<Blob, Blob>(
-      `/verifier/death-cases/${id.parse(caseId)}/objection/selfie-image`,
-      { responseType: "blob", signal },
-    );
-  },
   /** Xem xét một cờ; etag mới trong response dùng cho thao tác kế tiếp. */
   async reviewFlag(
     caseId: string,
@@ -97,23 +88,6 @@ export const verifierReviewService = {
       await apiClient.post<unknown, unknown>(
         `/verifier/death-cases/${id.parse(caseId)}/reject`,
         rejectCaseRequestSchema.parse(request),
-      ),
-    );
-  },
-  /** Lời báo còn sống của hồ sơ; 404 khi chưa có hoặc hồ sơ không còn giao cho bạn. */
-  async getObjection(caseId: string, signal?: AbortSignal) {
-    return verifierObjectionSchema.parse(
-      await apiClient.get<unknown, unknown>(`/verifier/death-cases/${id.parse(caseId)}/objection`, {
-        signal,
-      }),
-    );
-  },
-  /** Kết luận lời báo còn sống; cần selfie đạt hoặc hết 7 ngày cho ALIVE_CONFIRMED. */
-  async concludeObjection(caseId: string, request: z.infer<typeof concludeObjectionRequestSchema>) {
-    return verifierObjectionSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `/verifier/death-cases/${id.parse(caseId)}/objection/conclude`,
-        concludeObjectionRequestSchema.parse(request),
       ),
     );
   },

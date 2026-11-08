@@ -70,17 +70,8 @@ const vaultNotEditableReasons: Record<string, string> = {
   HOLD_ACTIVE: "Kho đang bị tạm giữ nên chưa thể chỉnh sửa.",
 };
 
-/** Reason-specific messages for DEATH_CASE_NOT_ALLOWED (báo còn sống, mục 6.14) */
+/** Reason-specific messages for DEATH_CASE_NOT_ALLOWED */
 const deathCaseNotAllowedReasons: Record<string, string> = {
-  OBJECTION_ALREADY_REJECTED:
-    "Lời báo trước đã bị bác. Hãy gửi một ảnh selfie mới để mở lại thay vì báo trơn.",
-  OBJECTION_WINDOW_CLOSED: "Đã hết hạn gửi selfie cho lời báo này.",
-  SELFIE_ATTEMPTS_EXCEEDED: "Bạn đã hết lượt thử selfie trong 24 giờ. Hãy thử lại sau.",
-  OBJECTION_NOT_OPEN: "Hồ sơ này chưa có lời báo còn sống đang mở.",
-  ALIVE_EVIDENCE_REQUIRED:
-    "Chưa thể xác nhận còn sống: cần selfie đạt hoặc đã hết hạn chờ bằng chứng.",
-  OWNER_SELFIE_PASSED:
-    "Owner đã có selfie khớp nên không thể từ chối báo tử. Chọn xác nhận còn sống hoặc chưa đủ bằng chứng.",
   // Lý do khi Người xét duyệt chấp thuận, bổ sung, từ chối hoặc xem xét cờ bị Backend từ chối.
   PLAN_STATE_INVALID:
     "Kế hoạch của kho không còn ở trạng thái mở hồ sơ, hoặc kho đã có lượt bàn giao. Tải lại hồ sơ để xem trạng thái mới nhất.",
@@ -89,8 +80,6 @@ const deathCaseNotAllowedReasons: Record<string, string> = {
   NOT_UNDER_REVIEW: "Hồ sơ không còn ở bước xét duyệt. Tải lại để xem trạng thái mới nhất.",
   NEWER_VERSION_PENDING:
     "Người thực hiện đang có bản mới chờ xét nên chưa chấp thuận được bản này.",
-  OWNER_NOT_NOTIFIED: "Chưa báo được cho Chủ kho nên đồng hồ phản đối chưa chạy.",
-  OBJECTION_PERIOD_NOT_OVER: "Chưa hết thời gian để Chủ kho phản đối.",
   FLAGS_NOT_REVIEWED: "Còn cảnh báo của bản đang xét chưa được kiểm tra.",
   VERIFIER_CONFLICT: "Bạn có quan hệ với kho này nên chỉ được xem, không được quyết định.",
   PLAN_NOT_RUNNING: "Kế hoạch chưa chạy hoặc đã sang giai đoạn khác nên chưa thao tác được.",
