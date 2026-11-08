@@ -7,6 +7,7 @@ export const devToolsKeys = {
   vaults: () => [...devToolsKeys.all, "vaults"] as const,
   clock: (vaultId: string) => [...devToolsKeys.all, "clock", vaultId] as const,
   ekycThreshold: () => [...devToolsKeys.all, "ekyc-threshold"] as const,
+  ekycPause: () => [...devToolsKeys.all, "ekyc-pause"] as const,
 };
 
 /** Danh sách kho để chọn; không retry để 404 (không phải Development hoặc không phải Admin) hiện ngay. */
@@ -24,6 +25,15 @@ export function useDevClock(vaultId: string) {
     queryKey: devToolsKeys.clock(vaultId),
     queryFn: ({ signal }) => devToolsService.getClock(vaultId, signal),
     enabled: vaultId.length > 0,
+    retry: false,
+  });
+}
+
+/** eKYC đang tạm ngừng hay không; không retry để 404 (không phải Development/Staging) hiện ngay. */
+export function useDevEkycPause() {
+  return useQuery({
+    queryKey: devToolsKeys.ekycPause(),
+    queryFn: ({ signal }) => devToolsService.getEkycPause(signal),
     retry: false,
   });
 }

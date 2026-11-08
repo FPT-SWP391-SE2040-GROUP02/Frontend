@@ -4,6 +4,7 @@ import {
   devClockSchema,
   devEkycResetRequestSchema,
   devEkycResetSchema,
+  devEkycPauseSchema,
   devEkycThresholdSchema,
   devRewindBeforeEkycSchema,
   devTimeTravelRequestSchema,
@@ -76,6 +77,18 @@ export const devToolsService = {
         "/admin/dev-tools/ekyc-threshold",
         devUpdateEkycThresholdRequestSchema.parse({ threshold }),
       ),
+    );
+  },
+  /** eKYC đang tạm ngừng hay không (chỉ ở bộ nhớ máy chủ). */
+  async getEkycPause(signal?: AbortSignal) {
+    return devEkycPauseSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/dev-tools/ekyc-pause", { signal }),
+    );
+  },
+  /** Bật hoặc tắt tạm ngừng eKYC: bật thì mọi bước eKYC dùng dịch vụ giả và luôn đạt. */
+  async setEkycPause(paused: boolean) {
+    return devEkycPauseSchema.parse(
+      await apiClient.put<unknown, unknown>("/admin/dev-tools/ekyc-pause", { paused }),
     );
   },
 };

@@ -92,3 +92,9 @@ export const devUpdateEkycThresholdRequestSchema = z.object({
   threshold: z.number(),
 });
 export type DevUpdateEkycThresholdRequest = z.infer<typeof devUpdateEkycThresholdRequestSchema>;
+
+/** GET/PUT /admin/dev-tools/ekyc-pause → eKYC có đang tạm ngừng không (DevEkycPauseResponse). */
+export const devEkycPauseSchema = z.object({
+  paused: z.boolean(),
+});
+export type DevEkycPause = z.infer<typeof devEkycPauseSchema>;

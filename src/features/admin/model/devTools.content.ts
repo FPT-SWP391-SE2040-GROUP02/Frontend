@@ -100,6 +100,15 @@ export function ekycResetDone(result: DevEkycReset) {
 export const REWIND_DESCRIPTION =
   "Đưa kho đang chọn về thời điểm ngay trước bước xác minh danh tính và mua gói: xóa eKYC của Chủ kho, trả gói dịch vụ về Free và hủy đơn thanh toán đang chờ. Đơn đã trả, tài sản, người nhận, gói tài sản và Người thực hiện giữ nguyên. Chỉ dùng khi kế hoạch còn Nháp.";
 
+export const EKYC_PAUSE_DESCRIPTION =
+  "Bật khi cần chạy thử cả luồng mà không có giấy tờ thật hay camera: mọi bước eKYC (giấy tờ, thử thách camera, so khớp khuôn mặt) đều tự đạt. Người nhận được đọc ra đúng họ tên và số CCCD chủ kho đã khai; chủ kho nhận một số CCCD thử riêng cho từng tài khoản. Chỉ ở bộ nhớ máy chủ, khởi động lại là về tắt. Nhớ tắt sau khi thử xong.";
+
+export function ekycPauseDone(paused: boolean) {
+  return paused
+    ? "Đã tạm ngừng eKYC: các bước xác minh danh tính sẽ tự đạt cho tới khi bạn tắt."
+    : "Đã bật lại eKYC thật.";
+}
+
 export const EKYC_THRESHOLD_DESCRIPTION =
   "Ngưỡng cao (> 0.45) tăng cường bảo mật chống giả mạo nhưng khắt khe hơn. Ngưỡng thấp (< 0.30) hỗ trợ nhận diện dễ hơn trong điều kiện thiếu sáng hoặc camera độ phân giải thấp.";
 
