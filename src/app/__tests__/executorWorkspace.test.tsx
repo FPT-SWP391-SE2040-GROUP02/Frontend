@@ -110,15 +110,18 @@ function setup(path: string) {
 }
 
 describe("Executor workspace shell", () => {
-  it("shows the six menu items, the role switch to the Owner space and the account", async () => {
+  it("shows the three main menu items, the account links, the role switch and the account", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor");
-    const nav = screen.getByRole("navigation", { name: "Điều hướng Người thực hiện" });
+    const nav = screen.getByRole("navigation", { name: "Điều hướng Người thực thi" });
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
       "Tổng quan",
-      "Lời mời",
       "Báo tin",
-      "Tiến trình",
+      "Bàn giao",
+    ]);
+    const account = screen.getByRole("navigation", { name: "Tài khoản" });
+    expect(Array.from(account.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
+      "Lời mời",
       "Quyền hạn",
       "Cài đặt",
     ]);
@@ -127,7 +130,7 @@ describe("Executor workspace shell", () => {
       "href",
       "/dashboard",
     );
-    expect(screen.getByText("Người thực hiện")).toBeInTheDocument();
+    expect(screen.getByText("Người thực thi")).toBeInTheDocument();
     expect(
       await screen.findByRole("heading", { level: 1, name: "Chào Chú Hải" }),
     ).toBeInTheDocument();
@@ -144,7 +147,7 @@ describe("Executor overview", () => {
     reportLinks.forEach((link) => expect(link).toHaveAttribute("href", "/executor/report"));
     expect(screen.getByText("Bạn không đọc được")).toBeInTheDocument();
     expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
-    expect(screen.getAllByText("Executor").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Người thực thi").length).toBeGreaterThan(0);
   });
 
   it("warns when the Owner is overdue and points to the open case", async () => {
@@ -224,7 +227,7 @@ describe("Executor overview", () => {
     setup("/executor");
     const button = await screen.findByRole("button", { name: "Điểm danh thay chủ kho" });
     expect(
-      screen.getByText("Điểm danh hộ owner cho đến khi có giấy chứng tử."),
+      screen.getByText("Điểm danh hộ Chủ kho cho đến khi có giấy chứng tử."),
     ).toBeInTheDocument();
 
     await userEvent.click(button);
@@ -302,7 +305,7 @@ describe("Executor overview", () => {
       vault({ vaultId: OTHER_VAULT_ID, ownerFullName: "Bà Hạnh", checkInOverdue: true }),
     ]);
     setup("/executor");
-    expect(await screen.findByText("Bạn là Người thực hiện cho 2 kho.")).toBeInTheDocument();
+    expect(await screen.findByText("Bạn là Người thực thi cho 2 kho.")).toBeInTheDocument();
     expect(screen.getByText("1 kho đang cần bạn")).toBeInTheDocument();
     const names = screen
       .getAllByRole("heading", { level: 2 })
@@ -329,7 +332,9 @@ describe("Executor permissions", () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor/permissions");
     expect(await screen.findByText("Anh Nam mời bạn làm Executor")).toBeInTheDocument();
-    expect(screen.getByText("Báo tin khi Chủ kho qua đời")).toBeInTheDocument();
+    expect(screen.getByText("Xem ghi chú của Chủ kho")).toBeInTheDocument();
+    expect(screen.getByText("Điểm danh thay khi Chủ kho trễ điểm danh")).toBeInTheDocument();
+    expect(screen.getByText("Làm người nhận trong kho này")).toBeInTheDocument();
     expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
     expect(screen.getByText("Đã chấp nhận")).toBeInTheDocument();
     expect(screen.getByText(/hãy báo cho Anh Nam/)).toBeInTheDocument();

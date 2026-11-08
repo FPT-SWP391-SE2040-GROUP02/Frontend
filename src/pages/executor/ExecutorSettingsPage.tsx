@@ -1,7 +1,7 @@
 import { AccountSettingsContent } from "@/pages/dashboard/AccountSettingsPage";
 import { ExecutorWorkspace } from "@/widgets/ExecutorWorkspace/ExecutorWorkspace";
 
-/** Cài đặt tài khoản trong không gian Người thực hiện (cùng nội dung với Chủ kho). */
+/** Cài đặt tài khoản trong không gian Người thực thi (cùng nội dung với Chủ kho). */
 export function ExecutorSettingsPage() {
   return (
     <ExecutorWorkspace

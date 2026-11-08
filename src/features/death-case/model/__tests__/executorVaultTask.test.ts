@@ -19,7 +19,7 @@ describe("vaultTask: hai giai đoạn quá hạn điểm danh", () => {
     expect(task.tone).toBe("warning");
   });
 
-  it("hết thời gian chờ: cần Người thực hiện kiểm tra", () => {
+  it("hết thời gian chờ: cần Người thực thi kiểm tra", () => {
     const task = vaultTask(vault("b", "AWAITING_CHECK", true));
     expect(task.label).toBe("Cần bạn kiểm tra");
     expect(task.tone).toBe("danger");

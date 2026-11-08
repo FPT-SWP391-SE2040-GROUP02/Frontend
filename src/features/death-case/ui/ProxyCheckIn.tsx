@@ -43,7 +43,7 @@ export function ProxyCheckIn({ vaultId }: { vaultId: string }) {
         Điểm danh thay chủ kho
       </button>
       <p className="text-xs text-heritage-muted">
-        Điểm danh hộ owner cho đến khi có giấy chứng tử.
+        Điểm danh hộ Chủ kho cho đến khi có giấy chứng tử.
       </p>
       {confirming && (
         <Dialog open onOpenChange={(open) => !open && !action.pending && setConfirming(false)}>
@@ -57,7 +57,8 @@ export function ProxyCheckIn({ vaultId }: { vaultId: string }) {
               </DialogDescription>
             </DialogHeader>
             <p className="text-sm text-heritage-muted">
-              Chủ kho sẽ thấy lần điểm danh này trong nhật ký kho, ghi là do Executor thực hiện.
+              Chủ kho sẽ thấy lần điểm danh này trong nhật ký kho, ghi là do Người thực thi thực
+              hiện.
             </p>
             {action.error && (
               <p role="alert" className="text-sm text-destructive">

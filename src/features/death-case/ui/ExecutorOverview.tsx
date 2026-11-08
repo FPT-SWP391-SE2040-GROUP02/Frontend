@@ -6,7 +6,7 @@ import type { ExecutorVault } from "../model/deathCase.schema";
 import { buttonStyles, InfoRow, Notice, Panel } from "@/shared/ui/heritageKit";
 import { useRejectedAck } from "../model/useRejectedAck";
 import { planStatusLabel } from "./executorLabels";
-import { ProxyCheckIn } from "./ProxyCheckIn";
+import { OverdueCard } from "./OverdueCard";
 import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 const duties = (objectionHours: number) => [
@@ -20,7 +20,7 @@ const duties = (objectionHours: number) => [
 
 const limits = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Tự chọn người nhận"];
 
-/** Tổng quan một kho Executor đang phụ trách (thiết kế "Người thực hiện — Tổng quan"). */
+/** Tổng quan một kho Người thực thi đang phụ trách. */
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   const { objectionHours } = usePolicyWindows();
   const hasCase = Boolean(vault.openDeathCaseId);
@@ -45,25 +45,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           nên báo tin lại khi chắc chắn và có giấy tờ phù hợp.
         </Notice>
       )}
-      {!showRejected && vault.checkInOverdue && (
-        <Notice
-          tone="warning"
-          title={`${vault.ownerFullName} đã quá hạn điểm danh`}
-          action={
-            <Link className={buttonStyles.gold} to={ROUTES.EXECUTOR.REPORT}>
-              {hasCase ? "Xem hồ sơ báo tin" : "Báo tin"}
-            </Link>
-          }
-        >
-          Hãy liên hệ để chắc chắn trước khi báo tin. Nếu Chủ kho còn khỏe, họ có thể dừng bằng “Tôi
-          còn sống”.
-          {!hasCase && (
-            <div className="mt-3">
-              <ProxyCheckIn vaultId={vault.vaultId} />
-            </div>
-          )}
-        </Notice>
-      )}
+      {!showRejected && vault.checkInOverdue && <OverdueCard vault={vault} hasCase={hasCase} />}
       {/* Đã có hồ sơ báo tin thì kế hoạch không còn "quá hạn" (đã khóa), nhưng cũng không phải "an toàn". */}
       {!vault.checkInOverdue && hasCase && (
         <Notice
@@ -131,7 +113,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           <Panel title="Kho được giao cho bạn">
             <dl>
               <InfoRow label="Chủ kho">{vault.ownerFullName}</InfoRow>
-              <InfoRow label="Vai trò">Executor</InfoRow>
+              <InfoRow label="Vai trò">Người thực thi</InfoRow>
               <InfoRow label="Kế hoạch">{planStatusLabel(vault.planStatus)}</InfoRow>
               <InfoRow label="Hồ sơ báo tin">{hasCase ? "Đang mở" : "Chưa có"}</InfoRow>
               <InfoRow label="Nội dung kho">Bạn không đọc được</InfoRow>
