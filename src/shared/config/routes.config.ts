@@ -70,6 +70,8 @@ export const ROUTES = {
     WORKSPACE: "/notary/workspace",
     /** Hàng chờ; ?caseId= mở chi tiết một hồ sơ. */
     QUEUE: "/notary/queue",
+    /** Hồ sơ người nhận chờ duyệt; ?submissionId= mở chi tiết một hồ sơ. */
+    RECIPIENTS: "/notary/recipients",
     CRITERIA: "/notary/criteria",
     HISTORY: "/notary/history",
     SETTINGS: "/notary/settings",

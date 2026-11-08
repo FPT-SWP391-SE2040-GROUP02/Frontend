@@ -161,6 +161,11 @@ const AccountSettingsPage = lazy(() =>
 const CheckoutPage = lazy(() =>
   import("@/pages/billing/CheckoutPage").then((module) => ({ default: module.CheckoutPage })),
 );
+const VerifierRecipientsPage = lazy(() =>
+  import("@/pages/notary/VerifierRecipientsPage").then((module) => ({
+    default: module.VerifierRecipientsPage,
+  })),
+);
 const VerifierQueuePage = lazy(() =>
   import("@/pages/notary/VerifierQueuePage").then((module) => ({
     default: module.VerifierQueuePage,
@@ -386,6 +391,7 @@ export function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={[ROLES.VERIFIER]} />}>
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
           <Route path={ROUTES.NOTARY.QUEUE} element={<VerifierQueuePage />} />
+          <Route path={ROUTES.NOTARY.RECIPIENTS} element={<VerifierRecipientsPage />} />
           <Route path={ROUTES.NOTARY.HISTORY} element={<VerifierHistoryPage />} />
           <Route path={ROUTES.NOTARY.CRITERIA} element={<VerifierCriteriaPage />} />
           <Route path={ROUTES.NOTARY.SETTINGS} element={<VerifierSettingsPage />} />
