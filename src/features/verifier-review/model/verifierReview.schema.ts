@@ -115,6 +115,8 @@ export const verifierDecisionSchema = z.object({
   reason: z.string(),
   requestedParts: z.array(supplementPartSchema),
   decidedAt: timestamp,
+  /** Mã biên bản, chỉ có với quyết định duyệt (BE suy từ ngày duyệt và Id quyết định). */
+  recordCode: z.string().nullish(),
 });
 /** Thông báo Owner. */
 export const ownerNoticeSchema = z

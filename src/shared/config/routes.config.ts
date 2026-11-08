@@ -70,6 +70,8 @@ export const ROUTES = {
     QUEUE: "/notary/queue",
     CRITERIA: "/notary/criteria",
     HISTORY: "/notary/history",
+    /** Biên bản thẩm định của một hồ sơ đã duyệt; ?caseId= chọn hồ sơ. */
+    RECORD: "/notary/record",
     SETTINGS: "/notary/settings",
   },
 

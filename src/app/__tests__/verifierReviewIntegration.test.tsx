@@ -14,6 +14,7 @@ import { VAULT_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { APPROVE_REASON } from "@/features/verifier-review/model/decisionReasons";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { VerifierQueue } from "@/widgets/VerifierWorkspace/VerifierQueue";
+import { VerifierRecord } from "@/features/verifier-review/ui/VerifierRecord";
 import { verifierReviewService } from "@/features/verifier-review/api/verifierReviewService";
 
 const CASE_ID = "33333333-3333-4333-8333-333333333333";
@@ -1186,4 +1187,48 @@ it("chi tiết hồ sơ đã đóng không gọi API phiếu chữ ký và khôn
   expect(screen.queryByText(/ký số|bị sửa sau khi ký/)).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /chữ ký/i })).not.toBeInTheDocument();
   expect(get.mock.calls.some(([url]) => String(url).includes("decision-signature"))).toBe(false);
+});
+
+const approvedWithRecord = {
+  ...closedDetail,
+  decisions: [
+    {
+      kind: "APPROVED",
+      versionNo: 1,
+      reason: "Đã đối chiếu họ tên, số CCCD, ngày sinh và giấy hợp lệ với thông tin gốc.",
+      requestedParts: [],
+      decidedAt: CREATED_AT,
+      recordCode: "BB-20261107-9F2C71",
+    },
+  ],
+};
+
+it("hồ sơ đã duyệt có nút Xem biên bản kèm mã biên bản do Backend trả", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? approvedWithRecord : listFixture,
+  );
+  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
+  const link = await screen.findByRole("link", { name: /Xem biên bản BB-20261107-9F2C71/ });
+  expect(link).toHaveAttribute("href", `/notary/record?caseId=${CASE_ID}`);
+});
+
+it("trang Biên bản hiện mã, kết quả đối chiếu, tài liệu, quyết định và nhật ký của hồ sơ đã duyệt", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? approvedWithRecord : listFixture,
+  );
+  setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
+  expect(await screen.findByText("BB-20261107-9F2C71")).toBeInTheDocument();
+  expect(screen.getByText("1. Hồ sơ được thẩm định")).toBeInTheDocument();
+  expect(screen.getByText("Giấy hợp lệ: đủ trang, có con dấu và chữ ký")).toBeInTheDocument();
+  expect(screen.getByText("Chấp thuận hồ sơ, mở gói tài sản")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "In biên bản" })).toBeInTheDocument();
+  expect(screen.queryByText(/012345678901/)).not.toBeInTheDocument();
+});
+
+it("hồ sơ chưa duyệt thì chưa có biên bản", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+  );
+  setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
+  expect(await screen.findByText(/chưa có biên bản thẩm định/)).toBeInTheDocument();
 });

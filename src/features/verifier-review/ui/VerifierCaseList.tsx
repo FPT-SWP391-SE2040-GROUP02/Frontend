@@ -1,4 +1,5 @@
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { ROUTES } from "@/shared/config/routes.config";
 import { useIsFetching, useQueryClient } from "@tanstack/react-query";
 import { buttonStyles, Chip, formatDate, Panel } from "@/shared/ui/heritageKit";
 import { useVerifierCases, verifierKeys } from "../model/useVerifierReview";
@@ -143,8 +144,11 @@ export function VerifierCaseList({
                   <th scope="col" className="px-4 py-3 font-semibold">
                     Quyết định
                   </th>
-                  <th scope="col" className="py-3 pl-4 font-semibold">
+                  <th scope="col" className="px-4 py-3 font-semibold">
                     Ngày
+                  </th>
+                  <th scope="col" className="py-3 pl-4 text-right font-semibold">
+                    Thao tác
                   </th>
                 </tr>
               </thead>
@@ -166,8 +170,18 @@ export function VerifierCaseList({
                       <td className="px-4 py-4">
                         {decision && <Chip tone={decision.tone}>{decision.label}</Chip>}
                       </td>
-                      <td className="py-4 pl-4 text-heritage-muted">
+                      <td className="px-4 py-4 text-heritage-muted">
                         {item.closedAt ? formatDate(item.closedAt) : "—"}
+                      </td>
+                      <td className="py-4 pl-4 text-right">
+                        {item.status === "APPROVED_FOR_HANDOVER" && (
+                          <Link
+                            to={`${ROUTES.NOTARY.RECORD}?caseId=${item.id}`}
+                            className="font-semibold underline-offset-4 hover:underline"
+                          >
+                            Xem biên bản
+                          </Link>
+                        )}
                       </td>
                     </tr>
                   );

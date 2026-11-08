@@ -1,4 +1,4 @@
-import { Navigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useId, useState, type ReactNode } from "react";
@@ -147,6 +147,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     .map((part) => supplementPartLabels[part].toLocaleLowerCase("vi-VN"))
     .join(", ");
   const unreviewedFlags = detail.flags.filter((flag) => !flag.reviewedAt).length;
+  const recordCode = detail.decisions.find((decision) => decision.recordCode)?.recordCode;
   const timeline: { label: string; text: string; done: boolean }[] = [
     {
       label: "Hồ sơ đã nộp",
@@ -235,6 +236,13 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           Đã mở {detail.handover.turnCount} lượt bàn giao · {detail.handover.invitationsSent} lời
           mời đã gửi · {detail.handover.invitationsFailed} lời mời chưa gửi được.
         </Notice>
+      )}
+      {recordCode && (
+        <p className="text-sm">
+          <Link to={`${ROUTES.NOTARY.RECORD}?caseId=${detail.id}`} className={buttonStyles.outline}>
+            Xem biên bản {recordCode}
+          </Link>
+        </p>
       )}
       {changedElsewhere && (
         <Notice tone="warning" role="alert" title="Hồ sơ vừa thay đổi">

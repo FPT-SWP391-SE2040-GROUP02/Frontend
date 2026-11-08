@@ -6,4 +6,5 @@ export * from "./model/caseCode";
 export * from "./model/verifierPresentation";
 export * from "./ui/VerifierCaseList";
 export * from "./ui/VerifierCaseDetail";
+export * from "./ui/VerifierRecord";
 export * from "./ui/VerifierReviewModals";

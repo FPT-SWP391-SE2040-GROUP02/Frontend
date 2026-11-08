@@ -156,6 +156,11 @@ const VerifierQueuePage = lazy(() =>
     default: module.VerifierQueuePage,
   })),
 );
+const VerifierRecordPage = lazy(() =>
+  import("@/pages/notary/VerifierRecordPage").then((module) => ({
+    default: module.VerifierRecordPage,
+  })),
+);
 const VerifierHistoryPage = lazy(() =>
   import("@/pages/notary/VerifierHistoryPage").then((module) => ({
     default: module.VerifierHistoryPage,
@@ -371,6 +376,7 @@ export function AppRoutes() {
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
           <Route path={ROUTES.NOTARY.QUEUE} element={<VerifierQueuePage />} />
           <Route path={ROUTES.NOTARY.HISTORY} element={<VerifierHistoryPage />} />
+          <Route path={ROUTES.NOTARY.RECORD} element={<VerifierRecordPage />} />
           <Route path={ROUTES.NOTARY.CRITERIA} element={<VerifierCriteriaPage />} />
           <Route path={ROUTES.NOTARY.SETTINGS} element={<VerifierSettingsPage />} />
         </Route>
