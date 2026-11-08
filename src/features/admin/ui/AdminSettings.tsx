@@ -106,7 +106,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     categoryTitle: "Điểm danh định kỳ",
     unit: "lần",
     step: 1,
-    defaultValue: "2",
+    defaultValue: "3",
     description:
       "Hết lượt thì nút điểm danh thay bị khóa, Người thực thi chỉ còn việc nộp giấy chứng tử. Về 0 khi chủ kho tự điểm danh.",
     src: "CheckInRules.ExecutorProxyLimit",
