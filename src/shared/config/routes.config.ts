@@ -27,6 +27,8 @@ export const ROUTES = {
     LOGOUT: "/logout",
     LOGGED_OUT: "/auth/logged-out",
     SESSION_EXPIRED: "/auth/session-expired",
+    /** Bắt buộc nhập số điện thoại khi tài khoản chưa có (thường là tài khoản tạo bằng Google). */
+    COMPLETE_PHONE: "/auth/complete-phone",
   },
 
   /** Nhóm đường dẫn khu vực quản trị / nội bộ (Dashboard) */
@@ -89,6 +91,8 @@ export const ROUTES = {
     SETTINGS: "/executor/settings",
     /** Lời mời làm Người thực hiện trong không gian Người thực hiện (cùng nội dung với bên Chủ kho). */
     INVITATIONS: "/executor/invitations",
+    /** Xác minh danh tính (eKYC) của Người thực hiện, cùng luồng với tab xác minh của Chủ kho. */
+    IDENTITY: "/executor/identity",
   },
 
   /** Cổng người thụ hưởng / Beneficiary */

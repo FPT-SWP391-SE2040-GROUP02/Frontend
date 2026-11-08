@@ -164,6 +164,9 @@ function PendingInvitationCard({
             <li className="text-red-800">
               <strong>Không</strong> đọc được nội dung kho
             </li>
+            <li className="text-heritage-muted">
+              Email và số điện thoại của bạn được gửi cho người nhận khi kế hoạch được kích hoạt
+            </li>
           </ul>
         </div>
         <div className="space-y-3">

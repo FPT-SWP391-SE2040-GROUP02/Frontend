@@ -1,6 +1,7 @@
 import { APP_MESSAGES } from "@/shared/constants";
 import { z } from "zod";
 import { newPasswordSchema } from "./password.schema";
+import { contactPhoneSchema } from "./phone.schema";
 
 /**
  * @description Zod Schema kiểm tra hợp lệ dữ liệu Form Đăng nhập.
@@ -33,6 +34,7 @@ export const registerSchema = z
       .min(1, APP_MESSAGES.VALIDATION.REQUIRED("Email"))
       .email(APP_MESSAGES.VALIDATION.INVALID_EMAIL)
       .max(256, "Email không được vượt quá 256 ký tự."),
+    phone: contactPhoneSchema,
     password: newPasswordSchema.max(128, "Mật khẩu không được vượt quá 128 ký tự."),
     confirmPassword: z.string().min(1, APP_MESSAGES.VALIDATION.REQUIRED("Xác nhận mật khẩu")),
   })

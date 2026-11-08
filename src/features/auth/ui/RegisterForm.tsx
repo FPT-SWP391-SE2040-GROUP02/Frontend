@@ -2,13 +2,14 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, Lock, Mail, User } from "lucide-react";
+import { AlertCircle, Lock, Mail, Phone, User } from "lucide-react";
 import type { FocusEvent } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { getRegisterErrorMessage } from "../lib/registerFeedback";
 import { registerSchema, type RegisterInput } from "../model/auth.schema";
 import { NEW_PASSWORD_HINT } from "../model/password.schema";
+import { PHONE_SHARING_HINT } from "../model/phone.schema";
 import { useRegister } from "../model/useAuth";
 
 /**
@@ -145,6 +146,41 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
         {errors.email && (
           <p id="register-email-error" role="alert" className="text-sm text-destructive">
             {errors.email.message}
+          </p>
+        )}
+      </div>
+
+      {/* Phone */}
+      <div className="space-y-1 text-left">
+        <label
+          htmlFor="register-phone"
+          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
+        >
+          Số điện thoại
+        </label>
+        <div className="relative">
+          <Phone className="w-4 h-4 text-[#728574] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Input
+            id="register-phone"
+            aria-invalid={Boolean(errors.phone)}
+            aria-describedby={
+              errors.phone ? "register-phone-hint register-phone-error" : "register-phone-hint"
+            }
+            autoComplete="tel"
+            inputMode="tel"
+            disabled={isPending}
+            {...register("phone")}
+            type="tel"
+            placeholder="0912 345 678"
+            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
+          />
+        </div>
+        <p id="register-phone-hint" className="text-sm text-heritage-muted">
+          {PHONE_SHARING_HINT}
+        </p>
+        {errors.phone && (
+          <p id="register-phone-error" role="alert" className="text-sm text-destructive">
+            {errors.phone.message}
           </p>
         )}
       </div>

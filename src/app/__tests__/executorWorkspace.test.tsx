@@ -132,6 +132,7 @@ describe("Executor workspace shell", () => {
     ]);
     const account = screen.getByRole("navigation", { name: "Tài khoản" });
     expect(Array.from(account.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
+      "Xác minh",
       "Cài đặt",
     ]);
     expect(screen.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");

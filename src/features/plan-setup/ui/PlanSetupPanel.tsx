@@ -237,6 +237,10 @@ function PlanSetupForm({
           <div className="space-y-2">
             <h3 className="font-semibold text-heritage-primary">Thông tin trước khi kích hoạt</h3>
             <p className="text-sm leading-6 text-heritage-muted">{setup.policyText}</p>
+            <p className="text-sm leading-6 text-heritage-muted">
+              Khi kích hoạt, mỗi người nhận sẽ nhận một email báo họ đã được chọn, kèm email và số
+              điện thoại của bạn và của Người thực thi để họ liên hệ.
+            </p>
             <p className="text-xs text-heritage-muted">Phiên bản: {setup.policyVersion}</p>
           </div>
           <label className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F1E7D0] p-4 text-sm leading-6 text-[#7A5B24]">

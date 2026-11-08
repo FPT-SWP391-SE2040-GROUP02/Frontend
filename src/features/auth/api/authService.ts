@@ -101,7 +101,7 @@ export const sessionAuthService = {
 export const authService = {
   /**
    * @description Đăng ký theo DTO Backend; 202 không body chỉ xác nhận tiếp nhận, chưa cấp phiên.
-   * @param data Bốn trường của RegisterRequest C#; không gửi role/phone từ client.
+   * @param data Năm trường của RegisterRequest C#; không gửi role từ client.
    * @returns Promise hoàn thành khi HTTP thành công; lỗi giữ nguyên để UI xử lý.
    */
   async register(data: RegisterRequest): Promise<void> {
@@ -110,6 +110,7 @@ export const authService = {
       password: data.password,
       confirmPassword: data.confirmPassword,
       fullName: data.fullName,
+      phone: data.phone,
     });
   },
 

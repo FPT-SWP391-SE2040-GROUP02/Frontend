@@ -77,6 +77,16 @@ const InvitationsPage = lazy(() =>
     default: module.InvitationsPage,
   })),
 );
+const ExecutorIdentityPage = lazy(() =>
+  import("@/pages/executor/ExecutorIdentityPage").then((module) => ({
+    default: module.ExecutorIdentityPage,
+  })),
+);
+const CompletePhonePage = lazy(() =>
+  import("@/pages/auth/CompletePhonePage").then((module) => ({
+    default: module.CompletePhonePage,
+  })),
+);
 const ExecutorSettingsPage = lazy(() =>
   import("@/pages/executor/ExecutorSettingsPage").then((module) => ({
     default: module.ExecutorSettingsPage,
@@ -307,6 +317,11 @@ export function AppRoutes() {
         {/* Mockup 10 — Phiên hết hạn sau 30 phút bất hoạt */}
         <Route path={ROUTES.AUTH.SESSION_EXPIRED} element={<SessionExpiredPage />} />
 
+        {/* Tài khoản chưa có số điện thoại (thường là tạo bằng Google) phải nhập số trước khi vào trang chính */}
+        <Route element={<ProtectedRoute allowMissingPhone />}>
+          <Route path={ROUTES.AUTH.COMPLETE_PHONE} element={<CompletePhonePage />} />
+        </Route>
+
         {/* Tuyến đường đăng ký và quên mật khẩu */}
         <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />
         <Route path="/auth/register" element={<Navigate to={ROUTES.AUTH.REGISTER} replace />} />
@@ -362,6 +377,7 @@ export function AppRoutes() {
             path={ROUTES.EXECUTOR.INVITATIONS}
             element={<Navigate to={`${ROUTES.EXECUTOR.SETTINGS}?open=invitations`} replace />}
           />
+          <Route path={ROUTES.EXECUTOR.IDENTITY} element={<ExecutorIdentityPage />} />
           {/* Đường dẫn cũ của cổng Executor. */}
           <Route
             path={ROUTES.EXECUTOR.CLAIM}

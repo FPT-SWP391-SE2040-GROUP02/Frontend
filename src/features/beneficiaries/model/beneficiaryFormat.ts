@@ -17,6 +17,9 @@ const PROVINCE_CODES = new Set([
 export const CITIZEN_ID_FORMAT_MESSAGE =
   "Số CCCD không đúng định dạng: 3 số đầu phải là mã tỉnh, thành phố và số thứ 4 từ 0 đến 3.";
 
+export const PHONE_FORMAT_MESSAGE =
+  "Số điện thoại không đúng định dạng Việt Nam (ví dụ 0912345678 hoặc +84912345678).";
+
 /**
  * CCCD đủ 12 chữ số, 3 số đầu là mã tỉnh đã cấp, số thứ 4 (thế kỷ và giới tính) từ 0 đến 3,
  * tức người sinh từ năm 1900 đến 2099. Nhận chuỗi đã bỏ khoảng trắng.
@@ -30,4 +33,19 @@ export function isValidCitizenIdFormat(citizenId: string): boolean {
   }
   const centuryCode = citizenId.charAt(3);
   return centuryCode >= "0" && centuryCode <= "3";
+}
+
+/**
+ * Số Việt Nam: di động 10 số bắt đầu bằng 03, 05, 07, 08, 09, hoặc cố định 11 số bắt đầu bằng 02.
+ * Có thể viết +84 thay cho số 0 đầu. Được nhập khoảng trắng, dấu chấm, dấu gạch.
+ */
+export function isVietnamPhone(phone: string): boolean {
+  let national = phone.replace(/[\s.-]/g, "");
+  if (national.startsWith("+84")) {
+    national = `0${national.slice(3)}`;
+  }
+  if (/^0[35789]\d{8}$/.test(national)) {
+    return true;
+  }
+  return /^02\d{9}$/.test(national);
 }

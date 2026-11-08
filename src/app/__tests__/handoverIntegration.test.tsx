@@ -25,6 +25,7 @@ const user = {
   id: VAULT_ID,
   email: "fixture@example.test",
   fullName: "Fixture",
+  phone: "0912345678",
   role: "USER" as const,
   status: "ACTIVE" as const,
   emailVerified: true,
