@@ -119,22 +119,11 @@ function httpError(status: number) {
 const usersCalls = (get: { mock: { calls: unknown[][] } }) =>
   get.mock.calls.filter((call) => call[0] === "/admin/users");
 
-it("Admin xem đủ 8 bộ đếm thật và giờ máy chủ; số cần xử lý > 0 được đánh dấu", async () => {
+it("Admin xem tổng quan thật và giờ máy chủ", async () => {
   const get = vi.spyOn(apiClient, "get").mockResolvedValue(dashboardFixture);
   setup(ROUTES.ADMIN.ROOT);
-  expect(await screen.findByText("Quá hạn xử lý")).toBeInTheDocument();
+  expect(await screen.findByText(/giờ máy chủ/)).toBeInTheDocument();
   expect(get).toHaveBeenCalledWith("/admin/dashboard", expect.anything());
-  for (const label of [
-    "Đang mở",
-    "Chưa có người phụ trách",
-    "Đang hiệu lực",
-    "Quá hạn rà soát",
-    "Người xét duyệt hoạt động",
-    "Quản trị viên hoạt động",
-    "Hồ sơ chưa có người xét duyệt",
-  ])
-    expect(screen.getByText(label)).toBeInTheDocument();
-  expect(screen.getAllByText("Cần xử lý")).toHaveLength(2);
   expect(screen.getByText(/giờ máy chủ/)).toBeInTheDocument();
   // Menu trái (máy tính) và thanh tab đáy (điện thoại) cùng có mục "Người dùng"; kiểm menu trái.
   expect(
@@ -259,7 +248,7 @@ it("response dashboard thiếu field bị phát hiện, thử lại được", a
   expect(await screen.findByText("Dữ liệu từ máy chủ không hợp lệ.")).toBeInTheDocument();
   get.mockResolvedValue(dashboardFixture);
   await user.click(screen.getByRole("button", { name: "Thử lại" }));
-  expect(await screen.findByText("Quá hạn xử lý")).toBeInTheDocument();
+  expect(await screen.findByText(/giờ máy chủ/)).toBeInTheDocument();
 });
 
 it("non-Admin bị chặn trước khi gọi API quản trị", async () => {

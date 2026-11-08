@@ -5,7 +5,6 @@ import { AlertTriangle, Clock, ShieldAlert, ArrowRight, UserCheck, Shield } from
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
-  DASHBOARD_GROUPS,
   formatDateTime,
   INCIDENT_TYPE_LABELS,
   INCIDENT_STATUS_LABELS,
@@ -393,46 +392,6 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
               </Button>
             </section>
           )}
-          {DASHBOARD_GROUPS.map((group) => (
-            <section
-              key={group.id}
-              aria-labelledby={`admin-group-${group.id}`}
-              className="rounded-2xl border border-heritage-border bg-[#faf9f5] p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
-            >
-              <h2
-                id={`admin-group-${group.id}`}
-                className="mb-3 text-[15px] font-bold text-heritage-primary"
-              >
-                {group.title}
-              </h2>
-              <dl className="mt-3 divide-y divide-heritage-border">
-                {group.counters.map((counter) => {
-                  const value = data[counter.key];
-                  const needsAttention = counter.attention && value > 0;
-                  return (
-                    <div key={counter.key} className="flex items-center justify-between gap-3 py-2">
-                      <dt className="text-sm text-heritage-muted">
-                        {counter.label}
-                        {needsAttention && (
-                          <span className="ml-2 inline-flex items-center gap-1 text-xs font-semibold text-amber-900">
-                            <AlertTriangle className="size-3" aria-hidden="true" />
-                            Cần xử lý
-                          </span>
-                        )}
-                      </dt>
-                      <dd
-                        className={`text-base font-semibold tabular-nums ${
-                          needsAttention ? "text-amber-800" : ""
-                        }`}
-                      >
-                        {value}
-                      </dd>
-                    </div>
-                  );
-                })}
-              </dl>
-            </section>
-          ))}
         </aside>
       </div>
 

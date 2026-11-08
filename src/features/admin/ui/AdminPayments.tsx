@@ -19,6 +19,7 @@ import { useAdminPaymentParams } from "../model/useAdminListParams";
 import {
   ListDateField,
   ListFilterBar,
+  ListPill,
   ListSearchField,
   ListSelectField,
   ListTable,
@@ -42,6 +43,29 @@ function StatusBadge({ status }: { status: PaymentTransactionStatus }) {
       {PAYMENT_STATUS_LABELS[status]}
     </span>
   );
+}
+
+const pad = (value: number) => String(value).padStart(2, "0");
+const isoDay = (date: Date) =>
+  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+
+type PeriodKey = "day" | "month" | "quarter";
+
+const PERIODS: ReadonlyArray<{ key: PeriodKey; label: string }> = [
+  { key: "day", label: "Hôm nay" },
+  { key: "month", label: "Tháng này" },
+  { key: "quarter", label: "Quý này" },
+];
+
+/** Khoảng ngày (yyyy-MM-dd, gồm cả hai đầu) của ngày, tháng hoặc quý chứa `now`. */
+function periodRange(key: PeriodKey, now: Date): { from: string; to: string } {
+  if (key === "day") return { from: isoDay(now), to: isoDay(now) };
+  const first = key === "month" ? now.getMonth() : Math.floor(now.getMonth() / 3) * 3;
+  const months = key === "month" ? 1 : 3;
+  return {
+    from: isoDay(new Date(now.getFullYear(), first, 1)),
+    to: isoDay(new Date(now.getFullYear(), first + months, 0)),
+  };
 }
 
 /**
@@ -80,6 +104,21 @@ export function AdminPayments() {
           ]}
           onChange={(value) => params.setEnvironment(value || undefined)}
         />
+        {PERIODS.map((period) => {
+          const range = periodRange(period.key, new Date());
+          return (
+            <ListPill
+              key={period.key}
+              pressed={params.filters.from === range.from && params.filters.to === range.to}
+              onClick={() => {
+                params.setFrom(range.from);
+                params.setTo(range.to);
+              }}
+            >
+              {period.label}
+            </ListPill>
+          );
+        })}
         <ListDateField
           label="Từ"
           value={params.filters.from ?? ""}
