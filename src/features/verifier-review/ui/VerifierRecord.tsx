@@ -79,18 +79,20 @@ export function VerifierRecord() {
   }
   const detail = query.data;
   const approval = detail.decisions.find(
-    (decision) => decision.kind === "APPROVED" && decision.recordCode,
+    (decision) =>
+      (decision.kind === "APPROVED" || decision.kind === "REJECTED") && decision.recordCode,
   );
   if (!approval) {
     return (
       <div className="space-y-3">
-        <p role="status">Hồ sơ này chưa được duyệt nên chưa có biên bản thẩm định.</p>
+        <p role="status">Hồ sơ này chưa có quyết định cuối nên chưa có biên bản thẩm định.</p>
         {back}
       </div>
     );
   }
   const review = detail.reviewVersion;
   const identity = detail.ownerIdentity;
+  const rejected = approval.kind === "REJECTED";
   return (
     <article className="space-y-5 rounded-2xl border border-heritage-border bg-white p-6 print:border-0 print:p-0">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
@@ -108,7 +110,11 @@ export function VerifierRecord() {
           Biên bản thẩm định hồ sơ báo tin
         </h2>
         <div className="flex flex-wrap items-center gap-3">
-          <Chip tone="success">Chấp thuận · Kho đã mở</Chip>
+          {rejected ? (
+            <Chip tone="danger">Từ chối · Hồ sơ đã đóng</Chip>
+          ) : (
+            <Chip tone="success">Chấp thuận · Kho đã mở</Chip>
+          )}
           <span className="text-sm text-heritage-muted">Mã biên bản</span>
           <span className="font-mono text-base font-semibold">{approval.recordCode}</span>
         </div>
@@ -131,19 +137,28 @@ export function VerifierRecord() {
         </dl>
       </Section>
 
-      <Section title="2. Kết quả đối chiếu">
-        <p className="text-sm text-heritage-muted">
-          Nút duyệt chỉ mở khi người thẩm định đã tích đủ bốn mục dưới đây.
-        </p>
-        <ul className="space-y-1 text-sm">
-          {REVIEW_CHECKS.map((check) => (
-            <li key={check} className="flex items-center justify-between gap-3 py-1">
-              <span>{check}</span>
-              <Chip tone="success">Đạt</Chip>
-            </li>
-          ))}
-        </ul>
-      </Section>
+      {rejected ? (
+        <Section title="2. Lý do từ chối">
+          <p className="text-sm font-semibold">{approval.reason}</p>
+          <p className="text-sm text-heritage-muted">
+            Hồ sơ đã đóng, kho vẫn khóa. Người nộp phải tạo hồ sơ mới từ đầu.
+          </p>
+        </Section>
+      ) : (
+        <Section title="2. Kết quả đối chiếu">
+          <p className="text-sm text-heritage-muted">
+            Nút duyệt chỉ mở khi người thẩm định đã tích đủ bốn mục dưới đây.
+          </p>
+          <ul className="space-y-1 text-sm">
+            {REVIEW_CHECKS.map((check) => (
+              <li key={check} className="flex items-center justify-between gap-3 py-1">
+                <span>{check}</span>
+                <Chip tone="success">Đạt</Chip>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       <Section title="3. Tài liệu đã thẩm định">
         {review.files.length === 0 ? (
@@ -162,7 +177,10 @@ export function VerifierRecord() {
 
       <Section title="4. Quyết định">
         <dl>
-          <Row label="Quyết định" value="Chấp thuận hồ sơ, mở gói tài sản" />
+          <Row
+            label="Quyết định"
+            value={rejected ? "Từ chối hồ sơ và đóng hồ sơ" : "Chấp thuận hồ sơ, mở gói tài sản"}
+          />
           <Row label="Người thẩm định" value={user?.fullName ?? "—"} />
           <Row label="Thời điểm" value={`${formatDateTime(approval.decidedAt)} (giờ Việt Nam)`} />
         </dl>

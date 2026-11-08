@@ -40,6 +40,23 @@ function parseFilter(value: string | null): Filter {
   return "ALL";
 }
 
+const REVIEW_STEPS = [
+  { title: "Mở hồ sơ", text: "Bên trái là thông tin eKYC gốc, bên phải là giấy chứng tử." },
+  { title: "So 3 thông tin", text: "Họ tên, số CCCD, ngày sinh. Khớp thì tích ô." },
+  { title: "Xem con dấu, chữ ký", text: "Giấy phải rõ, đủ trang, có dấu đỏ và chữ ký." },
+  { title: "Ra quyết định", text: "Duyệt và mở kho, yêu cầu nộp lại, hoặc từ chối." },
+] as const;
+
+const HOUR_MS = 3_600_000;
+
+/** Còn bao lâu tới hạn thẩm định, dạng "16 giờ" hoặc "2 ngày"; quá hạn thì "Quá hạn". */
+function dueLeftText(dueAt: string, now: number): string {
+  const hours = Math.ceil((new Date(dueAt).getTime() - now) / HOUR_MS);
+  if (hours <= 0) return "Quá hạn";
+  if (hours >= 48) return `${Math.ceil(hours / 24)} ngày`;
+  return `${hours} giờ`;
+}
+
 function StatCard({ title, value, note }: { title: string; value: number; note: string }) {
   return (
     <div className="rounded-2xl border border-heritage-border bg-heritage-surface p-5">
@@ -86,6 +103,10 @@ export function VerifierQueueBoard({
     REVIEW: rows.filter((row) => row.category === "REVIEW").length,
     SUPPLEMENT: rows.filter((row) => row.category === "SUPPLEMENT").length,
   };
+  const featured = rows
+    .filter((row) => row.category === "REVIEW")
+    .map((row) => row.item)
+    .sort((a, b) => a.dueAt.localeCompare(b.dueAt))[0];
   const keyword = search.trim().toLowerCase();
   const visible = rows.filter(({ item, category }) => {
     if (filter !== "ALL" && category !== filter) return false;
@@ -108,6 +129,33 @@ export function VerifierQueueBoard({
         <StatCard title="Chờ xét duyệt" value={counts.REVIEW} note="xem được ngay" />
         <StatCard title="Chờ bổ sung" value={counts.SUPPLEMENT} note="Executor đang sửa" />
       </div>
+      {featured && (
+        <section
+          aria-label="Nên xem tiếp"
+          className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#E6C98B] bg-[#F1E6CC] p-5"
+        >
+          <div className="min-w-0 space-y-1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#7A5B25]">
+              Nên xem tiếp
+            </p>
+            <p className="text-lg font-semibold text-heritage-primary">
+              Hồ sơ báo tin #{caseCode(featured.id)}
+            </p>
+            <p className="text-sm text-heritage-muted">
+              Người nộp: {featured.executorFullName ?? "Người thực hiện"} · Hết hạn sau{" "}
+              {dueLeftText(featured.dueAt, now)}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label={`Bắt đầu thẩm định hồ sơ #${caseCode(featured.id)}`}
+            className={buttonStyles.gold}
+            onClick={() => onSelect(featured.id)}
+          >
+            Bắt đầu thẩm định
+          </button>
+        </section>
+      )}
       <Panel
         title="Danh sách hồ sơ"
         labelledBy="verifier-list-open"
@@ -129,8 +177,7 @@ export function VerifierQueueBoard({
               Hiện chưa có hồ sơ nào chờ bạn.
             </p>
             <p className="text-sm text-heritage-muted">
-              Khi người thực hiện nộp hồ sơ báo tin, hồ sơ sẽ hiện ở đây.
-              Bạn sẽ nhận email nhắc.
+              Khi người thực hiện nộp hồ sơ báo tin, hồ sơ sẽ hiện ở đây. Bạn sẽ nhận email nhắc.
             </p>
             <Link className={buttonStyles.outline} to={ROUTES.NOTARY.HISTORY}>
               Xem lịch sử xét duyệt
@@ -192,24 +239,27 @@ export function VerifierQueueBoard({
               </p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] text-left text-sm">
+                <table className="w-full min-w-[860px] text-left text-sm">
                   <caption className="sr-only">Hồ sơ đang được giao</caption>
                   <thead>
                     <tr className="border-b border-heritage-border text-xs text-heritage-muted">
                       <th scope="col" className="py-3 pr-4 font-semibold">
+                        Chủ kho
+                      </th>
+                      <th scope="col" className="px-4 py-3 font-semibold">
                         Mã hồ sơ
                       </th>
                       <th scope="col" className="px-4 py-3 font-semibold">
-                        Chủ kho & Người yêu cầu
+                        Người nộp
                       </th>
                       <th scope="col" className="px-4 py-3 font-semibold">
-                        Nhận lúc
+                        Nộp lúc
                       </th>
                       <th scope="col" className="px-4 py-3 font-semibold">
-                        Trạng thái
+                        Lần nộp
                       </th>
                       <th scope="col" className="px-4 py-3 font-semibold">
-                        Thời gian
+                        Hạn thẩm định
                       </th>
                       <th scope="col" className="py-3 pl-4">
                         <span className="sr-only">Thao tác</span>
@@ -221,22 +271,27 @@ export function VerifierQueueBoard({
                       const status = queueCategoryLabels[category];
                       return (
                         <tr key={item.id}>
-                          <td className="py-4 pr-4 font-mono text-xs">{caseCode(item.id)}</td>
-                          <td className="px-4 py-4">
+                          <td className="py-4 pr-4">
                             <p className="font-semibold">
                               CCCD ****{item.ownerCitizenIdLast4 ?? "—"}
-                            </p>
-                            <p className="text-heritage-muted">
-                              Người yêu cầu: {item.executorFullName ?? "Người thực hiện"}
                             </p>
                             <p className="text-xs text-heritage-muted">
                               Ngày mất: {item.dateOfDeath ?? "—"}
                             </p>
                           </td>
-                          <td className="px-4 py-4">{formatDateTime(item.assignedAt)}</td>
+                          <td className="px-4 py-4 font-mono text-xs">{caseCode(item.id)}</td>
+                          <td className="px-4 py-4">
+                            {item.executorFullName ?? "Người thực hiện"}
+                          </td>
+                          <td className="px-4 py-4">
+                            {formatDateTime(item.submittedAt ?? item.assignedAt)}
+                          </td>
                           <td className="px-4 py-4">
                             <div className="flex flex-wrap items-center gap-2">
-                              <Chip tone={status.tone}>{status.label}</Chip>
+                              <span>{(item.reviewVersionNo ?? 1) > 1 ? "Nộp lại" : "Lần đầu"}</span>
+                              {category === "SUPPLEMENT" && (
+                                <Chip tone={status.tone}>{status.label}</Chip>
+                              )}
                               {item.supplementOverdueAt && (
                                 <Chip tone="warning">Bổ sung quá hạn</Chip>
                               )}
@@ -263,7 +318,7 @@ export function VerifierQueueBoard({
                               className={buttonStyles.outline}
                               onClick={() => onSelect(item.id)}
                             >
-                              Xem hồ sơ
+                              Thẩm định
                             </button>
                           </td>
                         </tr>
@@ -276,6 +331,24 @@ export function VerifierQueueBoard({
             {children}
           </section>
         )}
+      </Panel>
+      <Panel title="Cách thẩm định một hồ sơ">
+        <ol className="grid gap-4 md:grid-cols-4">
+          {REVIEW_STEPS.map((step, index) => (
+            <li key={step.title} className="flex gap-3">
+              <span
+                aria-hidden="true"
+                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]"
+              >
+                {index + 1}
+              </span>
+              <div>
+                <p className="font-semibold">{step.title}</p>
+                <p className="text-sm text-heritage-muted">{step.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
       </Panel>
     </div>
   );

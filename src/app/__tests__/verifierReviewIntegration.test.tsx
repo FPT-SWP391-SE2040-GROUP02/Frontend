@@ -1232,3 +1232,43 @@ it("hồ sơ chưa duyệt thì chưa có biên bản", async () => {
   setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
   expect(await screen.findByText(/chưa có biên bản thẩm định/)).toBeInTheDocument();
 });
+
+it("hàng chờ có thẻ Nên xem tiếp trỏ hồ sơ có hạn gần nhất, bảng theo cột Người nộp và Lần nộp, và các bước thẩm định", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+  );
+  setup(<VerifierQueue />);
+  const featured = await screen.findByRole("region", { name: "Nên xem tiếp" });
+  expect(featured).toHaveTextContent("Hồ sơ báo tin #33333333");
+  expect(screen.getByRole("columnheader", { name: "Người nộp" })).toBeInTheDocument();
+  expect(screen.getByRole("columnheader", { name: "Lần nộp" })).toBeInTheDocument();
+  expect(screen.getByText("Cách thẩm định một hồ sơ")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: /Bắt đầu thẩm định hồ sơ #33333333/ }));
+  expect(await screen.findByRole("region", { name: "Bản đang xét" })).toBeInTheDocument();
+});
+
+it("biên bản của hồ sơ bị từ chối hiện lý do từ chối và mã biên bản", async () => {
+  const rejected = {
+    ...closedDetail,
+    status: "REJECTED",
+    decisions: [
+      {
+        kind: "REJECTED",
+        versionNo: 1,
+        reason: "Nghi ngờ giấy giả hoặc đã bị chỉnh sửa. Con dấu không khớp mẫu.",
+        requestedParts: [],
+        decidedAt: CREATED_AT,
+        recordCode: "BB-20261107-AA11BB",
+      },
+    ],
+  };
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? rejected : listFixture,
+  );
+  setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
+  expect(await screen.findByText("BB-20261107-AA11BB")).toBeInTheDocument();
+  expect(screen.getByText("2. Lý do từ chối")).toBeInTheDocument();
+  expect(screen.getByText(/Con dấu không khớp mẫu/, { selector: "p" })).toBeInTheDocument();
+  expect(screen.getByText("Từ chối hồ sơ và đóng hồ sơ")).toBeInTheDocument();
+});

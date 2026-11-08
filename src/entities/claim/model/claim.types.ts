@@ -11,7 +11,7 @@ export type ClaimDocumentType =
 
 export type ClaimStatus =
   | "DRAFT" // Bản nháp chưa gửi
-  | "CLAIM_PENDING" // Đã nộp, đang chờ công chứng viên thụ lý
+  | "CLAIM_PENDING" // Đã nộp, đang chờ Người xét duyệt thụ lý
   | "APPROVED" // Đã thẩm định & phê duyệt thành công
   | "REJECTED" // Bị từ chối, yêu cầu bổ sung
   | "FROZEN"; // Đóng băng khẩn cấp do tranh chấp/chủ kho hồi sinh

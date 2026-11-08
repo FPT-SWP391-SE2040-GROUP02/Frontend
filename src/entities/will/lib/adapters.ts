@@ -9,7 +9,7 @@ export function toWillViewModel(dto: WillItemDto): WillViewModel {
   const statusLabels: Record<string, string> = {
     DRAFT: "Bản Thảo",
     SEALED: "Đã Niêm Phong Mật Mã",
-    PROBATE_AWAITING: "Chờ Công Chứng Viên",
+    PROBATE_AWAITING: "Chờ Người xét duyệt",
     EXECUTED: "Đã Bàn Giao Thừa Kế",
     REVOKED: "Đã Thu Hồi",
   };

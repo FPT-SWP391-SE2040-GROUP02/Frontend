@@ -386,7 +386,7 @@ export function AppRoutes() {
         </Route>
 
         {/* ========================================================================
-          7. TUYẾN ĐƯỜNG BẢO VỆ — Công Chứng Viên (Legal Verifier / Notary)
+          7. TUYẾN ĐƯỜNG BẢO VỆ — Người xét duyệt (Legal Verifier)
          ======================================================================== */}
         <Route element={<ProtectedRoute allowedRoles={[ROLES.VERIFIER]} />}>
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />

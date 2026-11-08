@@ -11,7 +11,7 @@
 export type WillStatus =
   | "DRAFT" // Đang soạn thảo
   | "SEALED" // Đã niêm phong mật mã học & ký số ECDSA
-  | "PROBATE_AWAITING" // Đang chờ công chứng viên thẩm định pháp lý
+  | "PROBATE_AWAITING" // Đang chờ Người xét duyệt thẩm định pháp lý
   | "EXECUTED" // Đã thi hành bàn giao di sản
   | "REVOKED"; // Đã bị người lập di chúc thu hồi / hủy bỏ
 

@@ -174,7 +174,8 @@ export function VerifierCaseList({
                         {item.closedAt ? formatDate(item.closedAt) : "—"}
                       </td>
                       <td className="py-4 pl-4 text-right">
-                        {item.status === "APPROVED_FOR_HANDOVER" && (
+                        {(item.status === "APPROVED_FOR_HANDOVER" ||
+                          item.status === "REJECTED") && (
                           <Link
                             to={`${ROUTES.NOTARY.RECORD}?caseId=${item.id}`}
                             className="font-semibold underline-offset-4 hover:underline"

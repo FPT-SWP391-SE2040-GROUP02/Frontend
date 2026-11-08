@@ -64,7 +64,7 @@ export const ROUTES = {
     HISTORY: "/billing/history",
   },
 
-  /** Cổng công chứng viên / Legal Verifier */
+  /** Cổng Người xét duyệt / Legal Verifier */
   NOTARY: {
     /** Tổng quan Người xét duyệt (Verifier); cũng là trang chủ của vai trò này. */
     WORKSPACE: "/notary/workspace",

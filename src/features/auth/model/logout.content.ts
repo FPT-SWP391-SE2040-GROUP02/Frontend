@@ -8,7 +8,7 @@ export const LOGOUT_ROLE_LABELS: Record<Role, string> = {
   [ROLES.VERIFIER]: "Người xác minh",
   [ROLES.EXECUTOR]: "Người giám hộ di sản",
   [ROLES.BENEFICIARY]: "Người thụ hưởng",
-  [ROLES.NOTARY]: "Công chứng viên",
+  [ROLES.NOTARY]: "Người xét duyệt",
   [ROLES.STAFF]: "Nhân viên",
   [ROLES.CUSTOMER]: "Khách hàng",
   [ROLES.GUEST]: "Khách",

@@ -35,7 +35,7 @@ interface AdminCreateUserDialogProps {
 }
 
 /**
- * Hộp thoại tạo tài khoản nhân sự mới (Công chứng viên, Quản trị viên). Không tạo tài khoản Người thực hiện:
+ * Hộp thoại tạo tài khoản nhân sự mới (Người xét duyệt, Quản trị viên). Không tạo tài khoản Người thực hiện:
  * Executor là người ngoài do Owner mời theo từng kho (ROLE-02).
  * Tài khoản được kích hoạt ngay lập tức (không cần chờ email verification).
  */
@@ -73,7 +73,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
         <DialogHeader>
           <DialogTitle>Tạo tài khoản hệ thống mới</DialogTitle>
           <DialogDescription>
-            Cấp tài khoản cho Người xét duyệt (Công chứng viên) hoặc Quản trị viên. Tài khoản được
+            Cấp tài khoản cho Người xét duyệt hoặc Quản trị viên. Tài khoản được
             kích hoạt ngay.
           </DialogDescription>
         </DialogHeader>
@@ -136,7 +136,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
               {...form.register("role")}
               className="mt-1 min-h-11 w-full rounded-lg border border-heritage-border bg-white px-3 text-sm"
             >
-              <option value="VERIFIER">Người xét duyệt (Công chứng viên - VERIFIER)</option>
+              <option value="VERIFIER">Người xét duyệt (VERIFIER)</option>
               <option value="ADMIN">Quản trị viên (ADMIN)</option>
             </select>
           </div>

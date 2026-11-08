@@ -72,7 +72,7 @@ export const ClaimStatusCard: React.FC<ClaimStatusCardProps> = ({ claim }) => {
         </div>
       </div>
 
-      {/* Thông tin thẩm định của Công chứng viên */}
+      {/* Thông tin thẩm định của Người xét duyệt */}
       {claim.notaryNotes && (
         <div
           className={`p-3 rounded-xl text-xs space-y-1 ${
@@ -83,7 +83,7 @@ export const ClaimStatusCard: React.FC<ClaimStatusCardProps> = ({ claim }) => {
         >
           <div className="flex items-center gap-1.5 font-bold">
             <ShieldCheck className="w-4 h-4 text-[#B88E4C]" />
-            <span>Nhận xét của Công chứng viên ({claim.reviewedByNotaryName || "Notary"}):</span>
+            <span>Nhận xét của Người xét duyệt ({claim.reviewedByNotaryName || "Notary"}):</span>
           </div>
           <p className="text-[11px] leading-relaxed pl-5">{claim.notaryNotes}</p>
         </div>
