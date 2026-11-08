@@ -62,6 +62,8 @@ describe("auditLogResponseSchema", () => {
     ["SYSTEM_SETTING_UPDATED", "CONFIGURATION"],
     ["EXECUTOR_KEY_ISSUED", "VAULT"],
     ["EXECUTOR_KEY_REISSUED", "VAULT"],
+    ["EXECUTOR_ASSIGNED_BY_ADMIN", "VAULT"],
+    ["DEV_TOGGLE_EKYC_PAUSE", "CONFIGURATION"],
   ])("accepts the updated BE wire event %s and its target", (action, targetType) => {
     expect(auditLogResponseSchema.parse({ ...baseEntry, action, targetType })).toMatchObject({
       action,
