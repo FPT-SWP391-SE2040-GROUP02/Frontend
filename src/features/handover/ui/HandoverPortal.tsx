@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Download, Lock, RefreshCw } from "lucide-react";
-import { Link } from "react-router-dom";
 import type { z } from "zod";
-import { ROUTES } from "@/shared/config/routes.config";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import {
@@ -23,6 +21,7 @@ import { remainingText } from "../model/handover.format";
 import { currentHandoverStep } from "../model/handoverStep";
 import { HandoverStepper } from "./HandoverStepper";
 import { HandoverTerms } from "./HandoverTerms";
+import { RecipientSubmissionPanel } from "./RecipientSubmissionPanel";
 
 type Turn = z.infer<typeof handoverTurnSchema>;
 
@@ -120,6 +119,14 @@ function TurnCard({ turn }: { turn: Turn }) {
   const refresh = () => {
     void client.invalidateQueries({ queryKey: ["handover"] });
   };
+  const approvedChoice = useQuery({
+    queryKey: ["handover", "submission", turn.id],
+    queryFn: ({ signal }) => handoverService.latestSubmission(turn.id, signal),
+    enabled: turn.status === "READY_TO_ACCEPT",
+    retry: false,
+  });
+  // Người nhận đã chọn Chấp nhận hoặc Từ chối trong hồ sơ được duyệt thì chỉ hiện đúng nút đó (không có hồ sơ thì hiện cả hai).
+  const chosenKind = approvedChoice.data?.status === "APPROVED" ? approvedChoice.data.kind : null;
   const step = currentHandoverStep(turn.status);
   const groupName = turn.container?.name ?? "Lượt bàn giao";
   const grantActive = turn.grant?.status === "ACTIVE";
@@ -132,6 +139,11 @@ function TurnCard({ turn }: { turn: Turn }) {
       {step !== null && (
         <Panel title="Tiến trình bàn giao">
           <HandoverStepper current={step} />
+        </Panel>
+      )}
+      {turn.status === "IDENTITY_IN_PROGRESS" && (
+        <Panel title="Hồ sơ người nhận">
+          <RecipientSubmissionPanel turnId={turn.id} groupName={groupName} onChanged={refresh} />
         </Panel>
       )}
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -176,27 +188,14 @@ function TurnCard({ turn }: { turn: Turn }) {
             )}
             {turn.identityConfirmedByExecutor && (
               <p role="status" className="text-sm text-heritage-muted">
-                Danh tính của bạn đã được Executor của kho xác nhận.
+                Danh tính của bạn đã được xác nhận.
               </p>
             )}
             {turn.status === "IDENTITY_IN_PROGRESS" && (
-              <div className="space-y-3">
-                <p className="text-sm leading-6 text-heritage-muted">
-                  Nếu đã hoàn tất mà lượt vẫn chờ, tải lại; hệ thống cần xác nhận danh tính cho lượt
-                  trước khi mở quyết định.
-                </p>
-                <p className="text-sm leading-6 text-heritage-muted">
-                  Nếu không thể xác minh bằng eKYC, hãy liên hệ Executor của kho để được xác nhận
-                  trực tiếp.
-                </p>
-                <Link
-                  to={`${ROUTES.BENEFICIARY.EKYC_CAMERA}?turnId=${turn.id}`}
-                  className={buttonStyles.gold}
-                >
-                  Xác minh danh tính
-                  <ArrowRight className="size-4" aria-hidden="true" />
-                </Link>
-              </div>
+              <p className="text-sm leading-6 text-heritage-muted">
+                Chọn Chấp nhận hoặc Từ chối và nộp hồ sơ ở khung “Hồ sơ người nhận” bên dưới. Người
+                xét duyệt đối chiếu rồi mới mở bước quyết định cho bạn.
+              </p>
             )}
             {turn.grant && (
               <p className="text-sm">
@@ -252,6 +251,16 @@ function TurnCard({ turn }: { turn: Turn }) {
                   Khóa mở gói đã được xác nhận.
                 </p>
               )}
+              {chosenKind && (
+                <p
+                  role="status"
+                  className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]"
+                >
+                  Hồ sơ của bạn đã được duyệt với lựa chọn{" "}
+                  <b>{chosenKind === "ACCEPT" ? "Chấp nhận" : "Từ chối"}</b>. Bấm nút bên dưới để
+                  hoàn tất.
+                </p>
+              )}
               <label className="flex min-h-11 items-center gap-3 text-sm">
                 <input
                   type="checkbox"
@@ -262,25 +271,29 @@ function TurnCard({ turn }: { turn: Turn }) {
                 />
                 Tôi đã đọc nội dung và xác nhận quyết định cho lượt này.
               </label>
-              <button
-                type="button"
-                className={`${buttonStyles.gold} w-full justify-between`}
-                disabled={!confirmed || action.pending || (turn.keyRequired && !turn.keyVerified)}
-                onClick={() =>
-                  void action.execute(() => handoverService.decide(turn.id, "accept"), refresh)
-                }
-              >
-                Đồng ý nhận
-                <ArrowRight className="size-4" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className={`${buttonStyles.outline} w-full justify-start`}
-                disabled={action.pending}
-                onClick={() => setDeclining(true)}
-              >
-                Từ chối
-              </button>
+              {chosenKind !== "DECLINE" && (
+                <button
+                  type="button"
+                  className={`${buttonStyles.gold} w-full justify-between`}
+                  disabled={!confirmed || action.pending || (turn.keyRequired && !turn.keyVerified)}
+                  onClick={() =>
+                    void action.execute(() => handoverService.decide(turn.id, "accept"), refresh)
+                  }
+                >
+                  Đồng ý nhận
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </button>
+              )}
+              {chosenKind !== "ACCEPT" && (
+                <button
+                  type="button"
+                  className={`${buttonStyles.outline} w-full justify-start`}
+                  disabled={action.pending}
+                  onClick={() => setDeclining(true)}
+                >
+                  Từ chối
+                </button>
+              )}
               <p className="flex items-start gap-2 text-xs text-heritage-muted">
                 <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
                 Từ chối thì phần này sẽ không được bàn giao cho bạn.

@@ -9,6 +9,16 @@ export const mailCheckSchema = z.object({
   ownerFullName: z.string().nullish(),
 });
 export type MailCheck = z.infer<typeof mailCheckSchema>;
+/** Hồ sơ người nhận (GET/POST /handover/turns/{id}/submission): trạng thái và lý do cần bổ sung. */
+export const submissionSchema = z.object({
+  id: z.string().uuid(),
+  turnId: z.string().uuid(),
+  kind: z.enum(["ACCEPT", "DECLINE"]),
+  status: z.enum(["SUBMITTED", "SUPPLEMENT_REQUESTED", "APPROVED", "SUPERSEDED"]),
+  supplementReason: z.string().nullish(),
+  createdAt: z.string(),
+});
+export type Submission = z.infer<typeof submissionSchema>;
 export const handoverItemSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
