@@ -137,6 +137,30 @@ describe("Executor workspace shell", () => {
   });
 });
 
+describe("Executor notification bell", () => {
+  it("shows no bell while the vault is safe and has no case", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
+    setup("/executor");
+    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Thông báo/ })).not.toBeInTheDocument();
+  });
+
+  it("counts unread items for an overdue Owner and clears the count once opened", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true }),
+    ]);
+    setup("/executor");
+    const bell = await screen.findByRole("button", { name: "Thông báo, 1 mới" });
+    await userEvent.click(bell);
+    const dialog = await screen.findByRole("dialog");
+    expect(
+      within(dialog).getByText("Anh Nam đã quá hạn điểm danh. Tới lượt bạn."),
+    ).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Đóng" }));
+    expect(await screen.findByRole("button", { name: "Thông báo" })).toBeInTheDocument();
+  });
+});
+
 describe("Executor overview", () => {
   it("explains the vault is safe and links to Báo tin when the Owner is not overdue", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);

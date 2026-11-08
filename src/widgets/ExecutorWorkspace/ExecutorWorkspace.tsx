@@ -11,6 +11,7 @@ import { InvitationCountBadge } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "./executor-workspace.css";
+import { NotificationBell } from "@/features/death-case/ui/NotificationBell";
 import { ExecutorOwnerSwitcher } from "./ExecutorOwnerSwitcher";
 
 interface NavItem {
@@ -159,7 +160,10 @@ export function ExecutorWorkspace({
             <p className="mt-2 max-w-3xl text-sm leading-6 text-heritage-muted">{description}</p>
           )}
         </div>
-        {badge}
+        <div className="flex items-center gap-3">
+          {badge}
+          <NotificationBell />
+        </div>
       </header>
       {children}
       <footer className="pt-2 text-xs leading-5 text-heritage-muted">

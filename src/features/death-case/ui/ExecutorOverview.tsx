@@ -7,6 +7,8 @@ import { buttonStyles, InfoRow, Notice, Panel } from "@/shared/ui/heritageKit";
 import { useRejectedAck } from "../model/useRejectedAck";
 import { planStatusLabel } from "./executorLabels";
 import { OverdueCard } from "./OverdueCard";
+import { ProcessStepper } from "./ProcessStepper";
+import { useDeathCase } from "../model/useDeathCase";
 import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 const duties = (objectionHours: number) => [
@@ -24,6 +26,7 @@ const limits = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Tự chọn n
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   const { objectionHours } = usePolicyWindows();
   const hasCase = Boolean(vault.openDeathCaseId);
+  const record = useDeathCase(vault.openDeathCaseId).data;
   const rejectedAck = useRejectedAck(vault.lastRejectedDeathCaseId);
   // Báo "bị từ chối" đi TRƯỚC mọi banner khác (kể cả "quá hạn điểm danh", vì từ chối trả kế hoạch về trạng thái
   // trước đó nên kho có thể quá hạn ngay); bấm "Tiếp tục" thì mới tới banner theo trạng thái kế hoạch.
@@ -73,6 +76,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           Chỉ báo tin khi chắc chắn đã đến lúc.
         </Notice>
       )}
+      <ProcessStepper vault={vault} record={record} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-6">
           <Panel title={`Hướng dẫn từ ${vault.ownerFullName}`}>
