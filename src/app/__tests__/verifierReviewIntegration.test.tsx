@@ -1033,7 +1033,7 @@ it("trang Biên bản hiện mã, kết quả đối chiếu, tài liệu, quy�
     String(url).endsWith(CASE_ID) ? approvedWithRecord : listFixture,
   );
   setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
-  expect(await screen.findByText("BB-20261107-9F2C71")).toBeInTheDocument();
+  expect((await screen.findAllByText("BB-20261107-9F2C71")).length).toBeGreaterThanOrEqual(1);
   expect(screen.getByText("1. Hồ sơ được thẩm định")).toBeInTheDocument();
   expect(screen.getByText("Giấy hợp lệ: đủ trang, có con dấu và chữ ký")).toBeInTheDocument();
   expect(screen.getByText("Chấp thuận hồ sơ, mở gói tài sản")).toBeInTheDocument();
@@ -1083,7 +1083,7 @@ it("biên bản của hồ sơ bị từ chối hiện lý do từ chối và m�
     String(url).endsWith(CASE_ID) ? rejected : listFixture,
   );
   setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
-  expect(await screen.findByText("BB-20261107-AA11BB")).toBeInTheDocument();
+  expect((await screen.findAllByText("BB-20261107-AA11BB")).length).toBeGreaterThanOrEqual(1);
   expect(screen.getByText("2. Lý do từ chối")).toBeInTheDocument();
   expect(screen.getByText(/Con dấu không khớp mẫu/, { selector: "p" })).toBeInTheDocument();
   expect(screen.getByText("Từ chối hồ sơ và đóng hồ sơ")).toBeInTheDocument();

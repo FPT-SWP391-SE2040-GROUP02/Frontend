@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ChevronLeft, Printer } from "lucide-react";
@@ -5,7 +6,7 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
-import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
+import { buttonStyles } from "@/shared/ui/heritageKit";
 import { caseCode } from "../model/caseCode";
 import { REVIEW_CHECKS } from "../model/reviewChecks";
 import { decisionLabels } from "../model/verifierReview.schema";
@@ -16,6 +17,11 @@ const KIND_LABELS = {
   DEATH_NOTICE: "Giấy báo tử / giấy thay thế",
 } as const;
 
+const SERIF = "[font-family:Georgia,'Times_New_Roman',serif]";
+const TH =
+  "border border-[#D9D3C0] bg-[#F7F4EA] px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[#4B5B53]";
+const TD = "border border-[#D9D3C0] px-3 py-2 align-top";
+
 /** Che giữa số CCCD: giữ 3 số đầu và 3 số cuối. */
 function maskCitizenId(value: string | null): string {
   if (!value) return "—";
@@ -23,27 +29,51 @@ function maskCitizenId(value: string | null): string {
   return `${value.slice(0, 3)}•••${value.slice(-3)}`;
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+const formatBirth = (value: string | null) => {
+  if (!value) return "—";
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+};
+
+/** Mục của văn bản: số thứ tự và tên mục, kẻ chân vàng, không bị ngắt trang giữa chừng khi in. */
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="space-y-3 border-t border-heritage-border pt-5 print:break-inside-avoid">
-      <h3 className="text-lg font-semibold text-heritage-primary">{title}</h3>
+    <section className="space-y-3 print:break-inside-avoid">
+      <h3
+        className={`${SERIF} border-b-2 border-[#B88E4C] pb-1 text-base font-bold uppercase tracking-wide text-[#0A281E]`}
+      >
+        {title}
+      </h3>
       {children}
     </section>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+/** Bảng hai cột nhãn và giá trị, viền mảnh như mẫu văn bản hành chính. */
+function InfoTable({ rows }: { rows: Array<[string, string]> }) {
   return (
-    <div className="grid gap-1 py-1.5 text-sm sm:grid-cols-[200px_minmax(0,1fr)]">
-      <dt className="text-heritage-muted">{label}</dt>
-      <dd className="font-semibold">{value}</dd>
-    </div>
+    <table className="w-full border-collapse text-sm">
+      <tbody>
+        {rows.map(([label, value]) => (
+          <tr key={label}>
+            <th
+              scope="row"
+              className="w-48 border border-[#D9D3C0] bg-[#F7F4EA] px-3 py-2 text-left font-medium text-[#4B5B53]"
+            >
+              {label}
+            </th>
+            <td className="border border-[#D9D3C0] px-3 py-2 font-semibold">{value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
 /**
- * Biên bản thẩm định của một hồ sơ đã được duyệt, dựng hoàn toàn từ dữ liệu Backend (mã biên bản, thời điểm duyệt,
- * nhật ký quyết định). Không chỉnh sửa được; có nút in. Hồ sơ chưa duyệt thì không có biên bản.
+ * Biên bản thẩm định của một hồ sơ đã có quyết định cuối (duyệt hoặc từ chối), dựng hoàn toàn từ dữ liệu Backend
+ * (mã biên bản, thời điểm quyết định, nhật ký). Trình bày như văn bản hành chính: giấy trắng, chữ có chân, bảng viền mảnh,
+ * khung ký. Không chỉnh sửa được; có nút in (trình duyệt cho phép lưu thành PDF).
  */
 export function VerifierRecord() {
   const [params] = useSearchParams();
@@ -80,12 +110,9 @@ export function VerifierRecord() {
   const detail = query.data;
   // Biên bản theo đúng trạng thái hiện tại của hồ sơ: đã duyệt thì lấy quyết định duyệt, bị từ chối thì lấy quyết định từ chối.
   // Dữ liệu lệch (trạng thái một đằng, quyết định một nẻo) thì không dựng biên bản sai.
-  const finalKind =
-    detail.status === "APPROVED_FOR_HANDOVER"
-      ? "APPROVED"
-      : detail.status === "REJECTED"
-        ? "REJECTED"
-        : null;
+  let finalKind: "APPROVED" | "REJECTED" | null = null;
+  if (detail.status === "APPROVED_FOR_HANDOVER") finalKind = "APPROVED";
+  if (detail.status === "REJECTED") finalKind = "REJECTED";
   const approval = detail.decisions.find(
     (decision) => decision.kind === finalKind && decision.recordCode,
   );
@@ -100,125 +127,193 @@ export function VerifierRecord() {
   const review = detail.reviewVersion;
   const identity = detail.ownerIdentity;
   const rejected = approval.kind === "REJECTED";
+  const eKycValues = [
+    identity.fullName ?? "—",
+    maskCitizenId(identity.citizenId),
+    formatBirth(identity.dateOfBirth),
+    "Đủ trang, có con dấu và chữ ký",
+  ];
+  const stampClass = rejected
+    ? "border-[#A32119] text-[#A32119]"
+    : "border-[#1F7A55] text-[#1F7A55]";
   return (
-    <article className="space-y-5 rounded-2xl border border-heritage-border bg-white p-6 print:border-0 print:p-0">
-      <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
+    <div className="rounded-2xl bg-[#F1EEE3] p-3 sm:p-6 print:bg-transparent print:p-0">
+      <div className="mx-auto mb-4 flex max-w-[860px] flex-wrap items-center justify-between gap-3 print:hidden">
         {back}
         <button type="button" className={buttonStyles.dark} onClick={() => window.print()}>
           <Printer className="size-4" aria-hidden="true" />
           In biên bản
         </button>
       </div>
-      <header className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-widest text-heritage-muted">
-          LegacyVault · Hệ thống két sắt di sản số
-        </p>
-        <h2 className="text-2xl font-semibold text-heritage-primary">
-          Biên bản thẩm định hồ sơ báo tin
-        </h2>
-        <div className="flex flex-wrap items-center gap-3">
-          {rejected ? (
-            <Chip tone="danger">Từ chối · Hồ sơ đã đóng</Chip>
-          ) : (
-            <Chip tone="success">Chấp thuận · Kho đã mở</Chip>
-          )}
-          <span className="text-sm text-heritage-muted">Mã biên bản</span>
-          <span className="font-mono text-base font-semibold">{approval.recordCode}</span>
-        </div>
-      </header>
-
-      <Section title="1. Hồ sơ được thẩm định">
-        <dl>
-          <Row label="Mã hồ sơ" value={caseCode(detail.id)} />
-          <Row label="Chủ kho" value={identity.fullName ?? "—"} />
-          <Row label="Số CCCD chủ kho" value={maskCitizenId(identity.citizenId)} />
-          <Row label="Người nộp" value={detail.executor?.fullName ?? "—"} />
-          <Row
-            label="Nộp hồ sơ lúc"
-            value={review.submittedAt ? formatDateTime(review.submittedAt) : "—"}
-          />
-          <Row
-            label="Số lần nộp"
-            value={review.versionNo === 1 ? "1 (lần nộp đầu)" : `${review.versionNo} (bản nộp lại)`}
-          />
-        </dl>
-      </Section>
-
-      {rejected ? (
-        <Section title="2. Lý do từ chối">
-          <p className="text-sm font-semibold">{approval.reason}</p>
-          <p className="text-sm text-heritage-muted">
-            Hồ sơ đã đóng, kho vẫn khóa. Người nộp phải tạo hồ sơ mới từ đầu.
+      <article
+        className={`${SERIF} relative mx-auto max-w-[860px] space-y-7 border border-[#D9D3C0] bg-white px-6 py-10 text-[#14241C] shadow-[0_8px_30px_rgba(10,40,30,0.12)] sm:px-14 print:max-w-none print:border-0 print:p-0 print:shadow-none`}
+      >
+        <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#0A281E] via-[#B88E4C] to-[#0A281E]" />
+        <header className="space-y-4 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#66786E]">
+            LegacyVault · Hệ thống két sắt di sản số
           </p>
-        </Section>
-      ) : (
-        <Section title="2. Kết quả đối chiếu">
-          <p className="text-sm text-heritage-muted">
-            Nút duyệt chỉ mở khi người thẩm định đã tích đủ bốn mục dưới đây.
-          </p>
-          <ul className="space-y-1 text-sm">
-            {REVIEW_CHECKS.map((check) => (
-              <li key={check} className="flex items-center justify-between gap-3 py-1">
-                <span>{check}</span>
-                <Chip tone="success">Đạt</Chip>
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-
-      <Section title="3. Tài liệu đã thẩm định">
-        {review.files.length === 0 ? (
-          <p className="text-sm text-heritage-muted">Không có tệp.</p>
-        ) : (
-          <ul className="space-y-2 text-sm">
-            {review.files.map((file) => (
-              <li key={file.id}>
-                <span className="font-semibold">{KIND_LABELS[file.kind]}</span> · {file.fileName} ·{" "}
-                {formatStorageSize(file.sizeBytes)}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
-
-      <Section title="4. Quyết định">
-        <dl>
-          <Row
-            label="Quyết định"
-            value={rejected ? "Từ chối hồ sơ và đóng hồ sơ" : "Chấp thuận hồ sơ, mở gói tài sản"}
-          />
-          <Row label="Người thẩm định" value={user?.fullName ?? "—"} />
-          <Row label="Thời điểm" value={`${formatDateTime(approval.decidedAt)} (giờ Việt Nam)`} />
-        </dl>
-      </Section>
-
-      <Section title="5. Nhật ký thẩm định">
-        <p className="text-sm text-heritage-muted">
-          Hệ thống tự ghi mỗi quyết định của Người xét duyệt trên hồ sơ này. Không ai sửa hoặc xóa
-          được.
-        </p>
-        <ul className="divide-y divide-heritage-border text-sm">
-          {detail.decisions.map((decision) => (
-            <li
-              key={`${decision.kind}-${decision.versionNo}-${decision.decidedAt}`}
-              className="flex flex-wrap items-center justify-between gap-2 py-2"
+          <h2 className="text-2xl font-bold uppercase tracking-wide text-[#0A281E] sm:text-3xl">
+            Biên bản thẩm định hồ sơ báo tin
+          </h2>
+          <div className="mx-auto h-px w-24 bg-[#B88E4C]" />
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm">
+            <div>
+              <span className="text-[#66786E]">Mã biên bản: </span>
+              <span className="border border-[#0A281E] px-2 py-1 font-mono text-base font-bold tracking-wider">
+                {approval.recordCode}
+              </span>
+            </div>
+            <div
+              className={`rotate-[-3deg] border-2 px-3 py-1 text-xs font-bold uppercase tracking-widest ${stampClass}`}
             >
-              <span>
-                v{decision.versionNo} · {decisionLabels[decision.kind]} · {decision.reason}
-              </span>
-              <span className="text-xs text-heritage-muted">
-                {formatDateTime(decision.decidedAt)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Section>
+              {rejected ? "Từ chối · Hồ sơ đã đóng" : "Chấp thuận · Kho đã mở"}
+            </div>
+          </div>
+        </header>
 
-      <p className="text-xs text-heritage-muted">
-        Biên bản do hệ thống tạo tự động tại thời điểm Người xét duyệt bấm duyệt. Nội dung không
-        chỉnh sửa được.
-      </p>
-    </article>
+        <Section title="1. Hồ sơ được thẩm định">
+          <InfoTable
+            rows={[
+              ["Mã hồ sơ", caseCode(detail.id)],
+              ["Chủ kho", identity.fullName ?? "—"],
+              ["Số CCCD chủ kho", maskCitizenId(identity.citizenId)],
+              ["Người nộp", detail.executor?.fullName ?? "—"],
+              ["Nộp hồ sơ lúc", review.submittedAt ? formatDateTime(review.submittedAt) : "—"],
+              [
+                "Số lần nộp",
+                review.versionNo === 1 ? "1 (lần nộp đầu)" : `${review.versionNo} (bản nộp lại)`,
+              ],
+            ]}
+          />
+        </Section>
+
+        {rejected ? (
+          <Section title="2. Lý do từ chối">
+            <p className="border-l-4 border-[#A32119] bg-[#FBEFED] px-4 py-3 text-sm font-semibold">
+              {approval.reason}
+            </p>
+            <p className="text-sm text-[#4B5B53]">
+              Hồ sơ đã đóng, kho vẫn khóa. Người nộp phải tạo hồ sơ mới từ đầu.
+            </p>
+          </Section>
+        ) : (
+          <Section title="2. Kết quả đối chiếu">
+            <p className="text-sm text-[#4B5B53]">
+              Nút duyệt chỉ mở khi người thẩm định đã tích đủ bốn mục dưới đây.
+            </p>
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className={TH}>Mục kiểm tra</th>
+                  <th className={TH}>Theo eKYC của chủ kho</th>
+                  <th className={`${TH} w-24 text-center`}>Kết quả</th>
+                </tr>
+              </thead>
+              <tbody>
+                {REVIEW_CHECKS.map((check, index) => (
+                  <tr key={check}>
+                    <td className={TD}>{check}</td>
+                    <td className={`${TD} font-semibold`}>{eKycValues[index]}</td>
+                    <td className={`${TD} text-center font-bold text-[#1F7A55]`}>Đạt</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Section>
+        )}
+
+        <Section title="3. Tài liệu đã thẩm định">
+          {review.files.length === 0 ? (
+            <p className="text-sm text-[#4B5B53]">Không có tệp.</p>
+          ) : (
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className={`${TH} w-12 text-center`}>STT</th>
+                  <th className={TH}>Loại giấy</th>
+                  <th className={TH}>Tên tệp</th>
+                  <th className={`${TH} w-28`}>Dung lượng</th>
+                </tr>
+              </thead>
+              <tbody>
+                {review.files.map((file, index) => (
+                  <tr key={file.id}>
+                    <td className={`${TD} text-center`}>{index + 1}</td>
+                    <td className={`${TD} font-semibold`}>{KIND_LABELS[file.kind]}</td>
+                    <td className={`${TD} break-all`}>{file.fileName}</td>
+                    <td className={TD}>{formatStorageSize(file.sizeBytes)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Section>
+
+        <Section title="4. Quyết định">
+          <InfoTable
+            rows={[
+              [
+                "Quyết định",
+                rejected ? "Từ chối hồ sơ và đóng hồ sơ" : "Chấp thuận hồ sơ, mở gói tài sản",
+              ],
+              ["Người thẩm định", user?.fullName ?? "—"],
+              ["Thời điểm", `${formatDateTime(approval.decidedAt)} (giờ Việt Nam)`],
+            ]}
+          />
+        </Section>
+
+        <Section title="5. Nhật ký thẩm định">
+          <p className="text-sm text-[#4B5B53]">
+            Hệ thống tự ghi mỗi quyết định của Người xét duyệt trên hồ sơ này. Không ai sửa hoặc xóa
+            được.
+          </p>
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr>
+                <th className={`${TH} w-40`}>Thời điểm</th>
+                <th className={`${TH} w-44`}>Quyết định</th>
+                <th className={TH}>Lý do</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detail.decisions.map((decision) => (
+                <tr key={`${decision.kind}-${decision.versionNo}-${decision.decidedAt}`}>
+                  <td className={TD}>{formatDateTime(decision.decidedAt)}</td>
+                  <td className={`${TD} font-semibold`}>
+                    v{decision.versionNo} · {decisionLabels[decision.kind]}
+                  </td>
+                  <td className={TD}>{decision.reason}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+
+        <div className="grid gap-8 pt-4 text-center text-sm sm:grid-cols-2 print:break-inside-avoid">
+          <div className="space-y-12">
+            <p className="font-bold uppercase tracking-wide">Người thẩm định</p>
+            <div>
+              <p className="font-semibold">{user?.fullName ?? "—"}</p>
+              <p className="text-xs text-[#66786E]">
+                Đã xác nhận quyết định bằng mật khẩu tài khoản
+              </p>
+            </div>
+          </div>
+          <div className="space-y-12">
+            <p className="font-bold uppercase tracking-wide">Hệ thống LegacyVault</p>
+            <div>
+              <p className="font-mono font-semibold">{approval.recordCode}</p>
+              <p className="text-xs text-[#66786E]">Lập tự động, không chỉnh sửa được</p>
+            </div>
+          </div>
+        </div>
+
+        <p className="border-t border-[#D9D3C0] pt-4 text-center text-xs text-[#66786E]">
+          Biên bản do hệ thống tạo tự động tại thời điểm Người xét duyệt ra quyết định. Mọi thao tác
+          đều có trong nhật ký hệ thống để quản trị viên đối chiếu khi cần.
+        </p>
+      </article>
+    </div>
   );
 }
