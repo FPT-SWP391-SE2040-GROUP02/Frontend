@@ -1088,3 +1088,18 @@ it("biên bản của hồ sơ bị từ chối hiện lý do từ chối và m�
   expect(screen.getByText(/Con dấu không khớp mẫu/, { selector: "p" })).toBeInTheDocument();
   expect(screen.getByText("Từ chối hồ sơ và đóng hồ sơ")).toBeInTheDocument();
 });
+
+it("hồ sơ đã bị từ chối nhưng chỉ có quyết định duyệt cũ (dữ liệu lệch) thì không dựng biên bản chấp thuận", async () => {
+  const inconsistent = {
+    ...approvedWithRecord,
+    status: "REJECTED",
+  };
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? inconsistent : listFixture,
+  );
+  setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
+  expect(
+    await screen.findByText(/chưa có quyết định cuối nên chưa có biên bản/),
+  ).toBeInTheDocument();
+  expect(screen.queryByText("Chấp thuận · Kho đã mở")).not.toBeInTheDocument();
+});

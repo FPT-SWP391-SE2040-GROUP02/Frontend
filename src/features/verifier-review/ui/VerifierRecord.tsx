@@ -78,9 +78,16 @@ export function VerifierRecord() {
     );
   }
   const detail = query.data;
+  // Biên bản theo đúng trạng thái hiện tại của hồ sơ: đã duyệt thì lấy quyết định duyệt, bị từ chối thì lấy quyết định từ chối.
+  // Dữ liệu lệch (trạng thái một đằng, quyết định một nẻo) thì không dựng biên bản sai.
+  const finalKind =
+    detail.status === "APPROVED_FOR_HANDOVER"
+      ? "APPROVED"
+      : detail.status === "REJECTED"
+        ? "REJECTED"
+        : null;
   const approval = detail.decisions.find(
-    (decision) =>
-      (decision.kind === "APPROVED" || decision.kind === "REJECTED") && decision.recordCode,
+    (decision) => decision.kind === finalKind && decision.recordCode,
   );
   if (!approval) {
     return (
