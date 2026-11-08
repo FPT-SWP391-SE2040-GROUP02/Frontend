@@ -460,12 +460,12 @@ it("hides the rejected case button when the vault has none or the Backend predat
   ).not.toBeInTheDocument();
 });
 
-it("lets the Executor download the decline paper PDF only for a declined turn", async () => {
+it("lets the Executor view the decline paper image inline only for a declined turn", async () => {
   const declined = {
     ...started,
     turns: [{ ...started.turns[0], status: "DECLINED", decidedAt: "2026-10-19T10:00:00+00:00" }],
   };
-  const pdf = new Blob(["%PDF-"], { type: "application/pdf" });
+  const pdf = new Blob(["png"], { type: "image/png" });
   const get = vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
     return url.endsWith("/decline-paper") ? pdf : declined;
   });
@@ -473,7 +473,7 @@ it("lets the Executor download the decline paper PDF only for a declined turn", 
   vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
 
-  fireEvent.click(await screen.findByRole("button", { name: "Tải văn bản từ chối (PDF)" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Xem văn bản từ chối" }));
 
   await vi.waitFor(() =>
     expect(get).toHaveBeenCalledWith(
@@ -481,13 +481,18 @@ it("lets the Executor download the decline paper PDF only for a declined turn", 
       expect.objectContaining({ responseType: "blob" }),
     ),
   );
+  // Ảnh hiện ngay trong trang, có phóng to, xoay và tải xuống như trình xem giấy chứng tử.
+  expect(await screen.findByAltText("Văn bản từ chối nhận di sản")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Xoay ảnh" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Tải xuống/ })).toHaveAttribute(
+    "download",
+    "van-ban-tu-choi.png",
+  );
 });
 
 it("does not offer the decline paper for a turn that was not declined", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(started);
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
   await screen.findByText("Theo người nhận");
-  expect(
-    screen.queryByRole("button", { name: "Tải văn bản từ chối (PDF)" }),
-  ).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Xem văn bản từ chối" })).not.toBeInTheDocument();
 });

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { Lock, Package, Phone } from "lucide-react";
+import { Download, Lock, Package, Phone, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { cn } from "cn";
 import { ZodError } from "zod";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
@@ -90,42 +90,112 @@ function Deadline({
 }
 
 /**
- * Gửi lại lời mời cho lượt chưa ai nhận. Không optimistic: chỉ báo thành công sau response của BE,
- * rồi đọc lại tiến độ. Link cũ hết dùng nên cần xác nhận trước khi gửi.
+ * Văn bản từ chối của người nhận, xem ngay trong trang như ảnh giấy chứng tử Người xét duyệt đọc:
+ * có phóng to, thu nhỏ, xoay và tải xuống. Ảnh chỉ là object URL tạm trong RAM, thu hồi khi đóng.
  */
+const PAPER_ZOOM_STEPS = [50, 75, 100, 125, 150, 200];
+
 function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
   const action = usePrivateAction();
-  const save = () =>
+  const [url, setUrl] = useState<string | null>(null);
+  const [zoomIndex, setZoomIndex] = useState(2);
+  const [rotation, setRotation] = useState(0);
+  useEffect(() => {
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [url]);
+  const open = () =>
     void action.execute(
       () => deathCaseService.declinePaper(caseId, turnId),
       (blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "van-ban-tu-choi.pdf";
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        setZoomIndex(2);
+        setRotation(0);
+        setUrl(URL.createObjectURL(blob));
       },
     );
+  if (!url) {
+    return (
+      <div className="space-y-2">
+        <button
+          type="button"
+          className={buttonStyles.outline}
+          onClick={open}
+          disabled={action.pending}
+        >
+          {action.pending ? "Đang tải…" : "Xem văn bản từ chối"}
+        </button>
+        {action.error && (
+          <p role="alert" className="text-sm text-[#A32119]">
+            {action.error}
+          </p>
+        )}
+      </div>
+    );
+  }
+  const zoom = PAPER_ZOOM_STEPS[zoomIndex];
   return (
-    <div className="space-y-2">
-      <button
-        type="button"
-        className={buttonStyles.outline}
-        onClick={save}
-        disabled={action.pending}
-      >
-        {action.pending ? "Đang tải…" : "Tải văn bản từ chối (PDF)"}
-      </button>
-      {action.error && (
-        <p role="alert" className="text-sm text-[#A32119]">
-          {action.error}
-        </p>
-      )}
-    </div>
+    <section aria-label="Văn bản từ chối" className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Điều khiển ảnh">
+        <button
+          type="button"
+          aria-label="Thu nhỏ"
+          className={buttonStyles.outline}
+          disabled={zoomIndex === 0}
+          onClick={() => setZoomIndex(zoomIndex - 1)}
+        >
+          <ZoomOut className="size-4" aria-hidden="true" />
+        </button>
+        <span className="w-12 text-center text-sm tabular-nums">{zoom}%</span>
+        <button
+          type="button"
+          aria-label="Phóng to"
+          className={buttonStyles.outline}
+          disabled={zoomIndex === PAPER_ZOOM_STEPS.length - 1}
+          onClick={() => setZoomIndex(zoomIndex + 1)}
+        >
+          <ZoomIn className="size-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label="Xoay ảnh"
+          className={buttonStyles.outline}
+          onClick={() => setRotation((rotation + 90) % 360)}
+        >
+          <RotateCw className="size-4" aria-hidden="true" />
+        </button>
+        <a
+          href={url}
+          download="van-ban-tu-choi.png"
+          className={`${buttonStyles.outline} inline-flex`}
+        >
+          <Download className="size-4" aria-hidden="true" />
+          Tải xuống
+        </a>
+        <button type="button" className={buttonStyles.outline} onClick={() => setUrl(null)}>
+          Đóng
+        </button>
+      </div>
+      <div className="h-[28rem] overflow-auto rounded-xl border border-heritage-border bg-[#ECE8DB]">
+        <img
+          src={url}
+          alt="Văn bản từ chối nhận di sản"
+          style={{
+            width: `${zoom}%`,
+            transform: `rotate(${rotation}deg)`,
+            transformOrigin: "center center",
+          }}
+          className="mx-auto max-w-none"
+        />
+      </div>
+    </section>
   );
 }
 
+/**
+ * Gửi lại lời mời cho lượt chưa ai nhận. Không optimistic: chỉ báo thành công sau response của BE,
+ * rồi đọc lại tiến độ. Link cũ hết dùng nên cần xác nhận trước khi gửi.
+ */
 function ResendInvitation({ caseId, turnId }: { caseId: string; turnId: string }) {
   const { resendCooldownMinutes } = usePolicyWindows();
   const client = useQueryClient();
