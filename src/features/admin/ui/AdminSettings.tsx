@@ -803,9 +803,6 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                     Bảo mật
                                   </span>
                                 )}
-                                <span className="font-mono text-[11px] text-muted-foreground opacity-80">
-                                  {item.key}
-                                </span>
                               </div>
                               <p className="text-xs text-heritage-muted">{item.description}</p>
                             </div>
@@ -925,10 +922,15 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
 
           <PlanCards getValue={getValue} setKeyValue={setKeyValue} />
 
-          <h2 id="plan-editor" className="scroll-mt-4 pt-2 text-lg font-bold text-heritage-primary">
-            Chỉnh chi tiết giá, hạn mức và kỳ bán
-          </h2>
-          <PlanCatalogEditor getValue={getValue} setKeyValue={setKeyValue} />
+          {/* Sửa từng gói làm ngay trên thẻ; bảng này chỉ để thêm gói hoặc kỳ bán mới, nên thu gọn sẵn. */}
+          <details className="group rounded-2xl border border-heritage-border bg-heritage-surface">
+            <summary className="cursor-pointer list-none px-5 py-4 text-sm font-bold text-heritage-primary">
+              Nâng cao: thêm gói hoặc kỳ bán mới
+            </summary>
+            <div className="border-t border-heritage-border p-4">
+              <PlanCatalogEditor getValue={getValue} setKeyValue={setKeyValue} />
+            </div>
+          </details>
 
           {/* Sub-card: Add-on & Order Limits */}
           <section className="rounded-2xl border border-heritage-border bg-heritage-surface p-5">
