@@ -93,6 +93,39 @@ function Deadline({
  * Gửi lại lời mời cho lượt chưa ai nhận. Không optimistic: chỉ báo thành công sau response của BE,
  * rồi đọc lại tiến độ. Link cũ hết dùng nên cần xác nhận trước khi gửi.
  */
+function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
+  const action = usePrivateAction();
+  const save = () =>
+    void action.execute(
+      () => deathCaseService.declinePaper(caseId, turnId),
+      (blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "van-ban-tu-choi.pdf";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      },
+    );
+  return (
+    <div className="space-y-2">
+      <button
+        type="button"
+        className={buttonStyles.outline}
+        onClick={save}
+        disabled={action.pending}
+      >
+        {action.pending ? "Đang tải…" : "Tải văn bản từ chối (PDF)"}
+      </button>
+      {action.error && (
+        <p role="alert" className="text-sm text-[#A32119]">
+          {action.error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ResendInvitation({ caseId, turnId }: { caseId: string; turnId: string }) {
   const { resendCooldownMinutes } = usePolicyWindows();
   const client = useQueryClient();
@@ -346,6 +379,11 @@ function TurnDetail({
       {RESENDABLE_TURN_STATUSES.includes(turn.status) && (
         <div className="mt-4">
           <ResendInvitation caseId={caseId} turnId={turn.turnId} />
+        </div>
+      )}
+      {turn.status === "DECLINED" && (
+        <div className="mt-4">
+          <DeclinePaper caseId={caseId} turnId={turn.turnId} />
         </div>
       )}
       {KEY_MAILABLE_TURN_STATUSES.includes(turn.status) && (

@@ -459,3 +459,35 @@ it("hides the rejected case button when the vault has none or the Backend predat
     screen.queryByRole("button", { name: "Xem hồ sơ bị từ chối gần nhất" }),
   ).not.toBeInTheDocument();
 });
+
+it("lets the Executor download the decline paper PDF only for a declined turn", async () => {
+  const declined = {
+    ...started,
+    turns: [{ ...started.turns[0], status: "DECLINED", decidedAt: "2026-10-19T10:00:00+00:00" }],
+  };
+  const pdf = new Blob(["%PDF-"], { type: "application/pdf" });
+  const get = vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+    return url.endsWith("/decline-paper") ? pdf : declined;
+  });
+  vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:paper");
+  vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+  setup(<HandoverProgressPanel caseId={CASE_ID} />);
+
+  fireEvent.click(await screen.findByRole("button", { name: "Tải văn bản từ chối (PDF)" }));
+
+  await vi.waitFor(() =>
+    expect(get).toHaveBeenCalledWith(
+      `/executor/death-cases/${CASE_ID}/handover-turns/${TURN_ID}/decline-paper`,
+      expect.objectContaining({ responseType: "blob" }),
+    ),
+  );
+});
+
+it("does not offer the decline paper for a turn that was not declined", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue(started);
+  setup(<HandoverProgressPanel caseId={CASE_ID} />);
+  await screen.findByText("Theo người nhận");
+  expect(
+    screen.queryByRole("button", { name: "Tải văn bản từ chối (PDF)" }),
+  ).not.toBeInTheDocument();
+});
