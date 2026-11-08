@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -1039,6 +1039,21 @@ it("trang Biên bản hiện mã, kết quả đối chiếu, tài liệu, quy�
   expect(screen.getByText("Chấp thuận hồ sơ, mở gói tài sản")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "In biên bản" })).toBeInTheDocument();
   expect(screen.queryByText(/012345678901/)).not.toBeInTheDocument();
+});
+
+it("biên bản có quốc hiệu, căn cứ pháp lý, nơi nhận và nguồn tham khảo kèm liên kết", async () => {
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? approvedWithRecord : listFixture,
+  );
+  setup(<VerifierRecord />, `/notary/workspace?caseId=${CASE_ID}`);
+  expect(await screen.findByText("Độc lập - Tự do - Hạnh phúc")).toBeInTheDocument();
+  const bases = screen.getByRole("region", { name: "Căn cứ pháp lý" });
+  expect(bases).toHaveTextContent("Luật Hộ tịch số 60/2014/QH13");
+  expect(bases).toHaveTextContent("Nghị định số 30/2020/NĐ-CP");
+  const sources = screen.getByRole("region", { name: "Nguồn tham khảo" });
+  expect(sources).toHaveTextContent("không phải văn bản công chứng");
+  expect(within(sources).getAllByRole("link").length).toBe(4);
+  expect(screen.getByText("Nơi nhận:")).toBeInTheDocument();
 });
 
 it("hồ sơ chưa duyệt thì chưa có biên bản", async () => {

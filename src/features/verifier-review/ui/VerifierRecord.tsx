@@ -22,6 +22,53 @@ const TH =
   "border border-[#D9D3C0] bg-[#F7F4EA] px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-[#4B5B53]";
 const TD = "border border-[#D9D3C0] px-3 py-2 align-top";
 
+/**
+ * Văn bản làm căn cứ và nguồn tham khảo của biên bản. Chỉ dùng để tham khảo thể thức và cơ sở nghiệp vụ;
+ * nội dung điều khoản chưa đối chiếu với bản gốc trên Công báo.
+ */
+const LEGAL_BASES = [
+  {
+    id: "ho-tich",
+    name: "Luật Hộ tịch số 60/2014/QH13",
+    note: " (quy định về đăng ký khai tử, Điều 32 đến Điều 34)",
+    usage: "cơ sở của giấy chứng tử, giấy báo tử và giấy tờ thay thế trong hồ sơ",
+    url: "https://hethongphapluat.com/luat-ho-tich-2014/dieu-34",
+  },
+  {
+    id: "gdd-tu",
+    name: "Luật Giao dịch điện tử số 20/2023/QH15",
+    note: " (giá trị của thông điệp dữ liệu, có hiệu lực từ 01/7/2024)",
+    usage: "cơ sở cho việc lập và lưu biên bản dưới dạng thông điệp dữ liệu",
+    url: "https://thuvienphapluat.vn/van-ban/Cong-nghe-thong-tin/Luat-Giao-dich-dien-tu-2023-20-2023-QH15-513347.aspx",
+  },
+  {
+    id: "van-thu",
+    name: "Nghị định số 30/2020/NĐ-CP về công tác văn thư",
+    note: " (thể thức và kỹ thuật trình bày văn bản)",
+    usage: "tham khảo bố cục quốc hiệu, số ký hiệu, ngày tháng, căn cứ, nơi nhận",
+    url: "https://thuvienphapluat.vn/van-ban/bo-may-hanh-chinh/decree-30-2020-nd-cp-records-management-472077.aspx",
+  },
+  {
+    id: "du-lieu-ca-nhan",
+    name: "Nghị định số 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân",
+    note: " (có hiệu lực từ 01/7/2023)",
+    usage: "cơ sở cho việc che bớt số căn cước công dân của chủ kho trên biên bản",
+    url: "https://vanban.vcci.com.vn/nghi-dinh-132023nd-cp-ve-bao-ve-du-lieu-ca-nhan",
+  },
+] as const;
+
+/** Ngày tháng theo thể thức văn bản hành chính: "ngày 07 tháng 11 năm 2026" (giờ Việt Nam). */
+function formatLongDate(value: string): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).formatToParts(new Date(value));
+  const pick = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return `Lập ngày ${pick("day")} tháng ${pick("month")} năm ${pick("year")}`;
+}
+
 /** Che giữa số CCCD: giữ 3 số đầu và 3 số cuối. */
 function maskCitizenId(value: string | null): string {
   if (!value) return "—";
@@ -149,21 +196,30 @@ export function VerifierRecord() {
         className={`${SERIF} relative mx-auto max-w-[860px] space-y-7 border border-[#D9D3C0] bg-white px-6 py-10 text-[#14241C] shadow-[0_8px_30px_rgba(10,40,30,0.12)] sm:px-14 print:max-w-none print:border-0 print:p-0 print:shadow-none`}
       >
         <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-[#0A281E] via-[#B88E4C] to-[#0A281E]" />
-        <header className="space-y-4 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#66786E]">
-            LegacyVault · Hệ thống két sắt di sản số
-          </p>
+        <header className="space-y-5 text-center">
+          <div className="grid gap-4 text-xs sm:grid-cols-2">
+            <div className="space-y-1">
+              <p className="font-bold uppercase">Hệ thống LegacyVault</p>
+              <p className="font-semibold uppercase">Bộ phận Người xét duyệt</p>
+              <div className="mx-auto h-px w-16 bg-[#14241C]" />
+              <p>
+                Số: <span className="font-mono font-bold">{approval.recordCode}</span>
+              </p>
+            </div>
+            <div className="space-y-1">
+              <p className="font-bold uppercase">Cộng hòa xã hội chủ nghĩa Việt Nam</p>
+              <p className="font-bold">Độc lập - Tự do - Hạnh phúc</p>
+              <div className="mx-auto h-px w-32 bg-[#14241C]" />
+              <p className="italic">{formatLongDate(approval.decidedAt)}</p>
+            </div>
+          </div>
           <h2 className="text-2xl font-bold uppercase tracking-wide text-[#0A281E] sm:text-3xl">
             Biên bản thẩm định hồ sơ báo tin
           </h2>
-          <div className="mx-auto h-px w-24 bg-[#B88E4C]" />
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm">
-            <div>
-              <span className="text-[#66786E]">Mã biên bản: </span>
-              <span className="border border-[#0A281E] px-2 py-1 font-mono text-base font-bold tracking-wider">
-                {approval.recordCode}
-              </span>
-            </div>
+          <p className="text-sm italic">
+            V/v {rejected ? "từ chối" : "chấp thuận"} hồ sơ báo tin mã {caseCode(detail.id)}
+          </p>
+          <div className="flex justify-center">
             <div
               className={`rotate-[-3deg] border-2 px-3 py-1 text-xs font-bold uppercase tracking-widest ${stampClass}`}
             >
@@ -171,6 +227,27 @@ export function VerifierRecord() {
             </div>
           </div>
         </header>
+
+        <section aria-label="Căn cứ pháp lý" className="space-y-1 text-sm italic">
+          {LEGAL_BASES.map((basis) => (
+            <p key={basis.id}>
+              - Căn cứ{" "}
+              <a
+                href={basis.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="underline decoration-dotted underline-offset-2"
+              >
+                {basis.name}
+              </a>
+              {basis.note};
+            </p>
+          ))}
+          <p>
+            - Căn cứ hồ sơ báo tin do Người thực hiện nộp và dữ liệu eKYC của chủ kho đã lưu trên hệ
+            thống.
+          </p>
+        </section>
 
         <Section title="1. Hồ sơ được thẩm định">
           <InfoTable
@@ -309,10 +386,41 @@ export function VerifierRecord() {
           </div>
         </div>
 
-        <p className="border-t border-[#D9D3C0] pt-4 text-center text-xs text-[#66786E]">
-          Biên bản do hệ thống tạo tự động tại thời điểm Người xét duyệt ra quyết định. Mọi thao tác
-          đều có trong nhật ký hệ thống để quản trị viên đối chiếu khi cần.
-        </p>
+        <div className="space-y-1 text-xs print:break-inside-avoid">
+          <p className="font-bold italic">Nơi nhận:</p>
+          <p>- Người thực hiện đã nộp hồ sơ;</p>
+          <p>- Lưu: hồ sơ báo tin trên hệ thống LegacyVault.</p>
+        </div>
+
+        <section
+          aria-label="Nguồn tham khảo"
+          className="space-y-2 border-t border-[#D9D3C0] pt-4 text-xs text-[#4B5B53] print:break-inside-avoid"
+        >
+          <h3 className="font-bold uppercase tracking-wide">Nguồn tham khảo</h3>
+          <ol className="list-decimal space-y-1 pl-5">
+            {LEGAL_BASES.map((basis) => (
+              <li key={basis.id}>
+                {basis.name}: {basis.usage}.{" "}
+                <a
+                  href={basis.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="break-all underline"
+                >
+                  {basis.url}
+                </a>
+              </li>
+            ))}
+          </ol>
+          <p>
+            Lưu ý: đây là biên bản điện tử do hệ thống LegacyVault tạo tự động khi Người xét duyệt
+            ra quyết định; không phải văn bản công chứng, chứng thực hay văn bản của cơ quan nhà
+            nước, và không thay thế giấy chứng tử, giấy báo tử hay trích lục khai tử. Đây là đồ án
+            học tập; các văn bản trích dẫn chỉ để tham khảo thể thức, chưa được đối chiếu với bản
+            gốc trên Công báo, người dùng cần kiểm tra hiệu lực hiện hành trước khi dùng vào việc
+            pháp lý.
+          </p>
+        </section>
       </article>
     </div>
   );
