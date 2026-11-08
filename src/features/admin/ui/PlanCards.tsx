@@ -235,7 +235,9 @@ function PlanCard({
               {first ? formatMoney(priceOf(first.years)) : "—"}
             </b>
             {first && (
-              <small className="mt-1 block text-xs text-heritage-muted">cho {first.years} năm</small>
+              <small className="mt-1 block text-xs text-heritage-muted">
+                cho {first.years} năm
+              </small>
             )}
             {onPeriods.length > 1 && (
               <p className="mt-1 flex flex-wrap gap-x-4 text-xs text-heritage-muted">
