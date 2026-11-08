@@ -19,23 +19,18 @@ type Filter = "ALL" | QueueCategory;
 const FILTER_PARAM = "filter";
 const SEARCH_PARAM = "q";
 
-/** Chip lọc theo thiết kế "Hàng chờ": Tất cả, Chờ xét duyệt, Chờ phản đối, Có phản đối, Chờ bổ sung. */
+/** Chip lọc: Tất cả, Chờ xét duyệt, Chờ bổ sung. */
 const filterOptions: ReadonlyArray<{ value: Filter; label: string }> = [
   { value: "ALL", label: "Tất cả" },
   { value: "REVIEW", label: "Chờ xét duyệt" },
-  { value: "WAIT_OBJECTION", label: "Chờ phản đối" },
-  { value: "OBJECTED", label: "Có phản đối" },
   { value: "SUPPLEMENT", label: "Chờ bổ sung" },
 ];
 
 import { formatDateTime } from "@/shared/lib/dateFormat";
-import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 const filterMeta: Record<Filter, { dotColor: string }> = {
   ALL: { dotColor: "bg-heritage-muted" },
   REVIEW: { dotColor: "bg-blue-500" },
-  WAIT_OBJECTION: { dotColor: "bg-amber-500" },
-  OBJECTED: { dotColor: "bg-rose-500" },
   SUPPLEMENT: { dotColor: "bg-orange-500" },
 };
 
@@ -79,19 +74,16 @@ export function VerifierQueueBoard({
   /** Phân trang đặt cuối bảng. */
   children?: ReactNode;
 }) {
-  const policy = usePolicyWindows();
   const [params, setParams] = useSearchParams();
   const filter = parseFilter(params.get(FILTER_PARAM));
   const search = params.get(SEARCH_PARAM) ?? "";
   const rows = useMemo(
-    () => items.map((item) => ({ item, category: queueCategory(item, now) })),
-    [items, now],
+    () => items.map((item) => ({ item, category: queueCategory(item) })),
+    [items],
   );
   const counts = {
     ALL: rows.length,
     REVIEW: rows.filter((row) => row.category === "REVIEW").length,
-    WAIT_OBJECTION: rows.filter((row) => row.category === "WAIT_OBJECTION").length,
-    OBJECTED: rows.filter((row) => row.category === "OBJECTED").length,
     SUPPLEMENT: rows.filter((row) => row.category === "SUPPLEMENT").length,
   };
   const keyword = search.trim().toLowerCase();
@@ -113,12 +105,8 @@ export function VerifierQueueBoard({
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard title="Đang chờ bạn" value={counts.ALL} note="hồ sơ cần xem" />
-        <StatCard
-          title="Chờ phản đối"
-          value={counts.WAIT_OBJECTION}
-          note={`Chủ kho còn ${policy.objectionHours} giờ`}
-        />
-        <StatCard title="Chủ kho phản đối" value={counts.OBJECTED} note="cần kết luận" />
+        <StatCard title="Chờ xét duyệt" value={counts.REVIEW} note="xem được ngay" />
+        <StatCard title="Chờ bổ sung" value={counts.SUPPLEMENT} note="Executor đang sửa" />
       </div>
       <Panel
         title="Danh sách hồ sơ"

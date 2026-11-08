@@ -827,13 +827,11 @@ describe("Executor progress", () => {
 describe("progress steps", () => {
   const record = (status: string, extra: Record<string, unknown> = {}) =>
     deathCase(status, extra) as unknown as DeathCase;
-  const now = new Date("2026-10-20T08:00:00Z");
   const states = (steps: ReturnType<typeof deriveSteps>) => steps.map((step) => step.state);
 
   it("starts at the first step while the case is a draft", () => {
-    expect(states(deriveSteps(record("DRAFT"), null, now))).toEqual([
+    expect(states(deriveSteps(record("DRAFT"), null))).toEqual([
       "current",
-      "pending",
       "pending",
       "pending",
       "pending",
@@ -841,23 +839,20 @@ describe("progress steps", () => {
     ]);
   });
 
-  it("sits on the 72-hour objection step until the window closes, then on review", () => {
-    const open = record("UNDER_REVIEW", { objectionEndsAt: "2026-10-22T08:00:00Z" });
-    expect(states(deriveSteps(open, null, now))[1]).toBe("current");
-    const closed = record("UNDER_REVIEW", { objectionEndsAt: "2026-10-19T08:00:00Z" });
-    expect(states(deriveSteps(closed, null, now))).toEqual([
-      "done",
-      "done",
-      "current",
-      "pending",
-      "pending",
-      "pending",
+  it("có 5 bước, không còn bước phản đối; hồ sơ đã nộp nằm ở bước xét duyệt", () => {
+    const steps = deriveSteps(record("UNDER_REVIEW"), null);
+    expect(steps.map((step) => step.label)).toEqual([
+      "Báo tin",
+      "Xét duyệt",
+      "Xác minh eKYC",
+      "Đồng ý hoặc từ chối",
+      "Tải nội dung 30 ngày",
     ]);
+    expect(states(steps)).toEqual(["done", "current", "pending", "pending", "pending"]);
   });
 
   it("marks the review step as an error when the case is rejected", () => {
-    expect(states(deriveSteps(record("REJECTED"), null, now))).toEqual([
-      "done",
+    expect(states(deriveSteps(record("REJECTED"), null))).toEqual([
       "done",
       "error",
       "pending",
@@ -876,23 +871,24 @@ describe("progress steps", () => {
         downloadedItems: downloaded,
       }) as unknown as HandoverProgressTurn;
     // Người nhận A đã đồng ý và tải xong; người nhận B còn chờ phản hồi lời mời.
-    expect(
-      states(deriveSteps(approved, null, now, 72, 30, turnOf("HANDOVER_COMMITTED", 1))),
-    ).toEqual(["done", "done", "done", "done", "done", "done"]);
-    expect(states(deriveSteps(approved, null, now, 72, 30, turnOf("INVITED")))).toEqual([
+    expect(states(deriveSteps(approved, null, 30, turnOf("HANDOVER_COMMITTED", 1)))).toEqual([
       "done",
+      "done",
+      "done",
+      "done",
+      "done",
+    ]);
+    expect(states(deriveSteps(approved, null, 30, turnOf("INVITED")))).toEqual([
       "done",
       "done",
       "current",
       "pending",
       "pending",
     ]);
-    expect(states(deriveSteps(approved, null, now, 72, 30, turnOf("READY_TO_ACCEPT")))[4]).toBe(
-      "current",
-    );
-    const declined = deriveSteps(approved, null, now, 72, 30, turnOf("DECLINED"));
-    expect(declined[4]).toMatchObject({ state: "error", caption: "Đã từ chối" });
-    expect(declined[5].state).toBe("pending");
+    expect(states(deriveSteps(approved, null, 30, turnOf("READY_TO_ACCEPT")))[3]).toBe("current");
+    const declined = deriveSteps(approved, null, 30, turnOf("DECLINED"));
+    expect(declined[3]).toMatchObject({ state: "error", caption: "Đã từ chối" });
+    expect(declined[4].state).toBe("pending");
   });
 
   it("derives the log newest first from the timestamps Backend returns", () => {

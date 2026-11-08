@@ -53,7 +53,7 @@ const statusHints: Record<string, string> = {
   DECISION_EXPIRED: "Hạn quyết định đã kết thúc nên lượt này không còn nhận được nữa.",
   DECLINED: "Bạn đã từ chối lượt bàn giao này.",
   CANCELLED:
-    "Lượt bàn giao này đã bị hủy vì chủ kho đã được xác nhận còn sống. Nội dung không còn được bàn giao.",
+    "Lượt bàn giao này đã bị hủy nên nội dung không còn được bàn giao.",
   LAPSED: "Lượt bàn giao này đã kết thúc.",
 };
 const grantLabels: Record<string, string> = {

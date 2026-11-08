@@ -330,7 +330,7 @@ it.each([
 it("explains a cancelled turn as a stopped handover, not a system error", async () => {
   apiClient.defaults.adapter = async (config) => ok(config, [turnWithStatus("CANCELLED")]);
   setup();
-  expect(await screen.findByText(/chủ kho đã được xác nhận còn sống/)).toBeInTheDocument();
+  expect(await screen.findByText(/Lượt bàn giao này đã bị hủy/)).toBeInTheDocument();
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 

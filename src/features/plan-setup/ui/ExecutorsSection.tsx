@@ -537,7 +537,6 @@ export function ExecutorsSection({
   vaultId: string;
   beneficiaries?: Beneficiary[];
 }) {
-  const { objectionHours } = usePolicyWindows();
   const query = usePlanSetup(vaultId);
   const client = useQueryClient();
   const resendAction = usePrivateAction();
@@ -690,8 +689,7 @@ export function ExecutorsSection({
             <p className="mt-3 text-sm leading-6 text-heritage-muted">
               Người báo tin và người xét duyệt là hai người khác nhau. Người xét duyệt là nhân viên
               do hệ thống hoặc quản trị viên phân công, bạn không mời và không thấy họ. Mỗi lần bàn
-              giao còn có {objectionHours} giờ để bạn lên tiếng và bước xác minh eKYC cho người
-              nhận.
+              giao có bước xác minh eKYC cho người nhận.
             </p>
             <p className="mt-4 flex items-center gap-2 text-xs text-heritage-muted">
               <Lock className="size-4 shrink-0" aria-hidden="true" />

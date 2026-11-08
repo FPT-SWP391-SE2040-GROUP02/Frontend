@@ -18,10 +18,8 @@ import { useActiveCaseId, useDeathCase } from "../model/useDeathCase";
 import { DeathCaseEditor } from "./DeathCaseEditor";
 import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
 import { ReviewFeedback } from "./ReviewFeedback";
-import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
-const nextSteps = (objectionHours: number) => [
-  { title: `Phản đối ${objectionHours} giờ`, text: "Chủ kho còn cơ hội dừng lại." },
+const nextSteps = () => [
   { title: "Xét duyệt", text: "Người xét duyệt xem hồ sơ." },
   { title: "Xác minh và đồng ý nhận", text: "Người nhận xác minh eKYC rồi đồng ý hoặc từ chối." },
 ];
@@ -145,11 +143,10 @@ function ReportIntro({
   vault: ExecutorVault;
   onViewRejected: () => void;
 }) {
-  const { objectionHours } = usePolicyWindows();
   return (
     <div className="space-y-6">
       <Notice tone="danger" title="Hãy chắc chắn trước khi báo tin">
-        Nếu {vault.ownerFullName} còn khỏe, họ có thể dừng bằng “Tôi còn sống”.
+        Kho và tài khoản của {vault.ownerFullName} bị khóa ngay khi bạn nộp hồ sơ, không hoàn tác được.
       </Notice>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel title="Mở hồ sơ báo tin">
@@ -169,7 +166,7 @@ function ReportIntro({
         <div className="space-y-6">
           <Panel title="Điều gì xảy ra tiếp">
             <ol className="divide-y divide-heritage-border">
-              {nextSteps(objectionHours).map((step, index) => (
+              {nextSteps().map((step, index) => (
                 <li key={step.title} className="flex gap-3 py-3 first:pt-0 last:pb-0">
                   <span
                     aria-hidden="true"

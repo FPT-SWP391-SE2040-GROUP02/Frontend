@@ -9,10 +9,9 @@ export interface ProgressStep {
   caption: string;
 }
 
-/** 6 bước theo thiết kế "Tiến trình bàn giao". */
-const stepLabels = (objectionHours: number, grantDays: number) => [
+/** 5 bước của tiến trình bàn giao (không còn bước phản đối: kho khóa ngay khi nộp hồ sơ). */
+const stepLabels = (grantDays: number) => [
   "Báo tin",
-  `Phản đối ${objectionHours} giờ`,
   "Xét duyệt",
   "Xác minh eKYC",
   "Đồng ý hoặc từ chối",
@@ -27,25 +26,21 @@ const CAPTIONS: Record<StepState, string> = {
 };
 
 /**
- * Chỉ số bước đang diễn ra (0–5), 6 = tất cả xong, -1 = không có bước đang chạy (chưa bắt đầu hoặc bị từ chối).
+ * Chỉ số bước đang diễn ra (0–4), 5 = tất cả xong, -1 = không có bước đang chạy (chưa bắt đầu hoặc bị từ chối).
  * Chỉ dựa vào trạng thái Backend trả về; không tự suy ra thông tin Backend không cung cấp.
  */
 export function currentStepIndex(
   record: DeathCase | null | undefined,
   progress: HandoverProgress | null | undefined,
-  now: Date,
 ): number {
   if (!record) return -1;
   switch (record.status) {
     case "DRAFT":
       return 0;
-    case "UNDER_REVIEW": {
-      const objectionOpen = record.objectionEndsAt ? new Date(record.objectionEndsAt) > now : false;
-      return objectionOpen ? 1 : 2;
-    }
+    case "UNDER_REVIEW":
     case "SUPPLEMENT_REQUIRED":
     case "SUSPENDED":
-      return 2;
+      return 1;
     case "REJECTED":
       return -1;
     case "APPROVED_FOR_HANDOVER": {
@@ -63,9 +58,9 @@ export function currentStepIndex(
             turn.status === "CANCELLED" ||
             turn.status === "LAPSED",
         );
-        return allDone && othersEnded ? 6 : 5;
+        return allDone && othersEnded ? 5 : 4;
       }
-      return turns.some((turn) => turn.status === "READY_TO_ACCEPT") ? 4 : 3;
+      return turns.some((turn) => turn.status === "READY_TO_ACCEPT") ? 3 : 2;
     }
   }
 }
@@ -78,38 +73,36 @@ interface TurnStop {
 
 /**
  * Tiến trình của MỘT người nhận (một lượt bàn giao) cho 3 bước cuối: eKYC → Đồng ý → Tải.
- * Trả chỉ số bước đang diễn ra (3–5), 6 = đã tải hết, hoặc điểm dừng khi lượt kết thúc không thành.
+ * Trả chỉ số bước đang diễn ra (2–4), 5 = đã tải hết, hoặc điểm dừng khi lượt kết thúc không thành.
  */
 export function turnStepIndex(turn: HandoverProgressTurn): number | TurnStop {
   switch (turn.status) {
     case "INVITED":
     case "INITIAL_RESPONSE_EXPIRED":
     case "IDENTITY_IN_PROGRESS":
-      return 3;
+      return 2;
     case "READY_TO_ACCEPT":
-      return 4;
+      return 3;
     case "HANDOVER_COMMITTED":
-      return turn.totalItems > 0 && turn.downloadedItems >= turn.totalItems ? 6 : 5;
+      return turn.totalItems > 0 && turn.downloadedItems >= turn.totalItems ? 5 : 4;
     case "DECLINED":
-      return { index: 4, caption: "Đã từ chối" };
+      return { index: 3, caption: "Đã từ chối" };
     case "DECISION_EXPIRED":
-      return { index: 4, caption: "Hết hạn quyết định" };
+      return { index: 3, caption: "Hết hạn quyết định" };
     case "CANCELLED":
     case "LAPSED":
-      return { index: 3, caption: "Đã hủy" };
+      return { index: 2, caption: "Đã hủy" };
   }
 }
 
 export function deriveSteps(
   record: DeathCase | null | undefined,
   progress: HandoverProgress | null | undefined,
-  now: Date,
-  objectionHours = 72,
   grantDays = 30,
   /** Người nhận đang xem: hồ sơ đã duyệt thì 3 bước cuối theo đúng lượt của người này. */
   turn?: HandoverProgressTurn | null,
 ): ProgressStep[] {
-  let current = currentStepIndex(record, progress, now);
+  let current = currentStepIndex(record, progress);
   let stop: TurnStop | null = null;
   if (record?.status === "APPROVED_FOR_HANDOVER" && turn) {
     const perTurn = turnStepIndex(turn);
@@ -120,11 +113,11 @@ export function deriveSteps(
     }
   }
   const rejected = record?.status === "REJECTED";
-  return stepLabels(objectionHours, grantDays).map((label, index) => {
+  return stepLabels(grantDays).map((label, index) => {
     let state: StepState;
     let caption: string | null = null;
     if (rejected) {
-      state = index < 2 ? "done" : index === 2 ? "error" : "pending";
+      state = index < 1 ? "done" : index === 1 ? "error" : "pending";
     } else if (stop) {
       if (index < stop.index) {
         state = "done";

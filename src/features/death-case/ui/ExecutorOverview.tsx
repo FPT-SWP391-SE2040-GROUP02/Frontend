@@ -9,13 +9,12 @@ import { planStatusLabel } from "./executorLabels";
 import { OverdueCard } from "./OverdueCard";
 import { ProcessStepper } from "./ProcessStepper";
 import { useDeathCase } from "../model/useDeathCase";
-import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
-const duties = (objectionHours: number) => [
+const duties = () => [
   { title: "Báo tin", text: "Cho hệ thống biết đã đến lúc bàn giao." },
   {
-    title: "Chờ phản đối và xét duyệt",
-    text: `Chủ kho có ${objectionHours} giờ để phản đối, rồi Người xét duyệt kiểm tra hồ sơ.`,
+    title: "Chờ xét duyệt",
+    text: "Người xét duyệt kiểm tra hồ sơ.",
   },
   { title: "Theo dõi", text: "Xem tiến trình đến khi người nhận tải xong." },
 ];
@@ -24,7 +23,6 @@ const limits = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Tự chọn n
 
 /** Tổng quan một kho Người thực thi đang phụ trách. */
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
-  const { objectionHours } = usePolicyWindows();
   const hasCase = Boolean(vault.openDeathCaseId);
   // Chủ kho đã tự điểm danh thì nói rõ bằng màu xanh; chưa có giờ điểm danh thì chỉ báo kho đang an toàn.
   let safeTitle = `Kho của ${vault.ownerFullName} đang an toàn`;
@@ -103,7 +101,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           </Panel>
           <Panel title="Bạn sẽ làm gì?">
             <ol className="divide-y divide-heritage-border">
-              {duties(objectionHours).map((duty, index) => (
+              {duties().map((duty, index) => (
                 <li key={duty.title} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                   <span
                     aria-hidden="true"

@@ -353,22 +353,20 @@ it("does not request progress for a draft case", async () => {
   );
 });
 
-it("shows the 6 steps with the objection window as the current step after submission", async () => {
+it("hiện 5 bước, hồ sơ đã nộp nằm ở bước Xét duyệt và không còn bước phản đối", async () => {
   vi.spyOn(apiClient, "get").mockImplementation((url) => {
     if (url === `/executor/death-cases/${CASE_ID}`)
-      return Promise.resolve({
-        ...deathCase("UNDER_REVIEW"),
-        objectionEndsAt: "2999-01-01T00:00:00+00:00",
-      });
+      return Promise.resolve(deathCase("UNDER_REVIEW"));
     if (url === `/executor/death-cases/${CASE_ID}/handover-progress`)
       return Promise.resolve(notStarted);
     return Promise.reject(new Error(`unexpected ${String(url)}`));
   });
   setup(<ExecutorProgress vault={vaultOf()} />, "/executor/progress");
-  const current = await screen.findByText("Phản đối 72 giờ");
+  const current = await screen.findByText("Xét duyệt");
   expect(current.closest("li")).toHaveAttribute("aria-current", "step");
   expect(screen.getByText("Báo tin").closest("li")).not.toHaveAttribute("aria-current");
-  expect(screen.getByText(/Chủ kho có 72 giờ để phản đối/)).toBeInTheDocument();
+  expect(screen.queryByText(/Phản đối/)).not.toBeInTheDocument();
+  expect(screen.getByText(/Hồ sơ đang chờ Người xét duyệt/)).toBeInTheDocument();
 });
 
 it("counts remaining time from serverTime and marks past deadlines as overdue", () => {

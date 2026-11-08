@@ -25,14 +25,12 @@ import {
 import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
-import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
 import { VerifierOwnerIdentityPanel } from "./VerifierOwnerIdentityPanel";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
   decisionLabels,
   supplementPartLabels,
-  ownerNoticeLabels,
   type verifierFlagKindSchema,
   type verifierDecisionKindSchema,
 } from "../model/verifierReview.schema";
@@ -166,33 +164,12 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     .map((part) => supplementPartLabels[part].toLocaleLowerCase("vi-VN"))
     .join(", ");
   const unreviewedFlags = detail.flags.filter((flag) => !flag.reviewedAt).length;
-  const objectionEnded =
-    detail.objectionEndsAt !== null &&
-    new Date(detail.objectionEndsAt).getTime() <= query.dataUpdatedAt;
-  const notice = detail.ownerNotice;
-  const noticeDelivered =
-    notice !== null && notice.status === "DELIVERED" && notice.deliveredAt !== null;
-  let noticeText = "Chưa có";
-  if (notice !== null && noticeDelivered && notice.deliveredAt !== null) {
-    noticeText = `${ownerNoticeLabels.DELIVERED} ${formatCompact(notice.deliveredAt)}`;
-  } else if (notice !== null) {
-    noticeText = ownerNoticeLabels[notice.status];
-  }
-  let objectionText = "Chưa bắt đầu";
-  if (detail.objectionEndsAt !== null) {
-    let remainText = "đã qua";
-    if (!objectionEnded) {
-      const hoursLeft = Math.max(
-        1,
-        Math.ceil((new Date(detail.objectionEndsAt).getTime() - query.dataUpdatedAt) / 3_600_000),
-      );
-      remainText = `còn ${hoursLeft} giờ`;
-    }
-    objectionText = `${formatCompact(detail.objectionEndsAt)} · ${remainText}`;
-  }
-  const timeline = [
-    { label: "Đã báo chủ kho", text: noticeText, done: noticeDelivered },
-    { label: "Hết hạn phản đối", text: objectionText, done: objectionEnded },
+  const timeline: { label: string; text: string; done: boolean }[] = [
+    {
+      label: "Hồ sơ đã nộp",
+      text: review.submittedAt ? formatCompact(review.submittedAt) : "—",
+      done: true,
+    },
   ];
   // Khi chờ bổ sung BE chưa tính hạn mới, nên không hiện mốc hạn xét.
   if (detail.status !== "SUPPLEMENT_REQUIRED" && detail.assignment.dueAt) {
@@ -270,12 +247,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#5A4318]">
         Bạn chỉ xác nhận hồ sơ, không xem nội dung kho. Quyết định của bạn được ghi lại.
       </p>
-      <VerifierObjectionBlock
-        caseId={detail.id}
-        enabled={detail.status === "SUSPENDED"}
-        canConclude={!detail.approveBlockers.includes("VERIFIER_CONFLICT")}
-        ownerIdentity={detail.ownerIdentity}
-      />
       {detail.handover && (
         <Notice tone="success" role="status" title="Hồ sơ đã được chấp thuận">
           Đã mở {detail.handover.turnCount} lượt bàn giao · {detail.handover.invitationsSent} lời

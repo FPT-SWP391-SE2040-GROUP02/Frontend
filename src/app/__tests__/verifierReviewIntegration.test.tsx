@@ -552,15 +552,11 @@ it("VERIFIER_CONFLICT chỉ cho xem: ẩn mọi thao tác ghi, kể cả modal m
   expect(screen.queryByRole("button", { name: /^Từ chối$/ })).not.toBeInTheDocument();
 });
 
-it("hiện mốc thời gian phản đối, báo Owner và hồ sơ trước bị từ chối", async () => {
-  const objectionEndsAt = "2026-10-05T03:00:00+00:00";
-  const deliveredAt = "2026-10-02T08:30:00+00:00";
+it("hiện mốc thời gian hồ sơ đã nộp và hồ sơ trước bị từ chối, không còn mốc phản đối", async () => {
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID)
       ? {
           ...detailFixture,
-          objectionEndsAt,
-          ownerNotice: { status: "DELIVERED", deliveredAt },
           previousCase: {
             id: "77777777-7777-4777-8777-777777777777",
             closedAt: CREATED_AT,
@@ -571,22 +567,20 @@ it("hiện mốc thời gian phản đối, báo Owner và hồ sơ trước b�
   );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
   const timeline = await screen.findByRole("region", { name: "Mốc thời gian" });
-  expect(timeline).toHaveTextContent("Hết hạn phản đối05/10/2026 10:00 · đã qua");
-  expect(timeline).toHaveTextContent("Đã báo chủ khoĐã gửi 02/10/2026 15:30");
+  expect(timeline).toHaveTextContent("Hồ sơ đã nộp");
+  expect(timeline).not.toHaveTextContent("phản đối");
   const previous = screen.getByRole("region", { name: "Hồ sơ trước bị từ chối" });
   expect(previous).toHaveTextContent("Hồ sơ trước của kho này đã bị từ chối");
   expect(previous).toHaveTextContent(formatTimestamp(CREATED_AT));
   expect(previous).toHaveTextContent("Giấy chứng tử không rõ nét");
 });
 
-it("mốc thời gian chưa có hiện Chưa bắt đầu và Chưa có, không có hồ sơ trước", async () => {
+it("hồ sơ không có hồ sơ trước thì không hiện khối từ chối", async () => {
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID) ? { ...detailFixture, ownerNotice: null } : listFixture,
   );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  const timeline = await screen.findByRole("region", { name: "Mốc thời gian" });
-  expect(timeline).toHaveTextContent("Chưa bắt đầu");
-  expect(timeline).toHaveTextContent("Chưa có");
+  await screen.findByRole("region", { name: "Mốc thời gian" });
   expect(screen.queryByText(/đã bị từ chối/)).not.toBeInTheDocument();
 });
 
