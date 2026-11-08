@@ -679,7 +679,7 @@ describe("Executor report", () => {
     uploadedAt: CREATED_AT,
   };
 
-  it("shows the one-page report with two document rows and keeps submit disabled", async () => {
+  it("shows the one-page report with a single certificate row and keeps submit disabled", async () => {
     vi.spyOn(apiClient, "get").mockImplementation((url) => {
       if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
       if (url === `/executor/death-cases/${CASE_ID}`)
@@ -691,7 +691,7 @@ describe("Executor report", () => {
       await screen.findByRole("heading", { level: 1, name: "Soạn hồ sơ báo tin" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Giấy chứng tử / Trích lục khai tử")).toBeInTheDocument();
-    expect(screen.getByText("Giấy báo tử hoặc giấy tờ thay thế")).toBeInTheDocument();
+    expect(screen.queryByText("Giấy báo tử hoặc giấy tờ thay thế")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Ngày mất")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Nộp hồ sơ" })).toBeDisabled();
   });
@@ -740,6 +740,30 @@ describe("Executor report", () => {
     expect(await screen.findByText("giay-chung-tu.pdf")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Thay tệp" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Xóa tệp giay-chung-tu.pdf" })).toBeInTheDocument();
+  });
+
+  it("nút Xem mở lại tệp đã nộp ở tab mới, lấy qua endpoint của Người thực thi", async () => {
+    const withFile = deathCase("DRAFT", {
+      missingRequirements: [],
+      currentVersion: { ...deathCase("DRAFT").currentVersion, files: [certificateFile] },
+    });
+    const blob = new Blob(["%PDF"], { type: "application/pdf" });
+    const get = vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
+      if (String(url).endsWith("/content")) return Promise.resolve(blob);
+      if (url === `/executor/death-cases/${CASE_ID}`) return Promise.resolve(withFile);
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    const create = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:fixture");
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    setup("/executor/report");
+    await userEvent.click(await screen.findByRole("button", { name: "Xem tệp giay-chung-tu.pdf" }));
+    await waitFor(() => expect(open).toHaveBeenCalledWith("blob:fixture", "_blank", "noopener"));
+    expect(create).toHaveBeenCalledWith(blob);
+    expect(get).toHaveBeenCalledWith(
+      `/executor/death-cases/${CASE_ID}/files/${certificateFile.id}/content`,
+      expect.objectContaining({ responseType: "blob" }),
+    );
   });
 
   it("asks for confirmation before submitting and then shows the receipt", async () => {

@@ -80,6 +80,12 @@ export const deathCaseService = {
       }),
     );
   },
+  /** Xem lại tệp mình đã tải lên (bản nháp hay đã gửi); blob chỉ nằm trong RAM, không cache. */
+  async viewFile(caseId: string, fileId: string): Promise<Blob> {
+    return apiClient.get<Blob, Blob>(`${path(caseId)}/files/${id.parse(fileId)}/content`, {
+      responseType: "blob",
+    });
+  },
   async removeFile(caseId: string, fileId: string) {
     return deathCaseSchema.parse(
       await apiClient.delete<unknown, unknown>(`${path(caseId)}/files/${id.parse(fileId)}`),

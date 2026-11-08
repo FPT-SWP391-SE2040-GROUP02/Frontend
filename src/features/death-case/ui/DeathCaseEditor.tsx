@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { FileText, Upload } from "lucide-react";
+import { Eye, FileText, Upload } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import {
   Dialog,
@@ -21,7 +21,7 @@ type FileKind = "DEATH_CERTIFICATE" | "DEATH_NOTICE";
 
 const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 
-/** Hai loại giấy của trang Báo tin; mỗi loại đúng một tệp. */
+/** Giấy của trang Báo tin: chỉ giấy chứng tử, đúng một tệp. */
 const DOCUMENT_ROWS: ReadonlyArray<{
   kind: FileKind;
   title: string;
@@ -33,12 +33,6 @@ const DOCUMENT_ROWS: ReadonlyArray<{
     title: "Giấy chứng tử / Trích lục khai tử",
     hint: "Bản do UBND cấp xã cấp hoặc bản trích lục.",
     required: true,
-  },
-  {
-    kind: "DEATH_NOTICE",
-    title: "Giấy báo tử hoặc giấy tờ thay thế",
-    hint: "Nếu có: giấy báo tử của bệnh viện, quyết định tuyên bố chết...",
-    required: false,
   },
 ];
 
@@ -88,6 +82,45 @@ function VersionTimeline({ record }: { record: DeathCase }) {
   );
 }
 
+/** Mở tệp mình đã nộp ở tab mới; nội dung chỉ là object URL tạm trong RAM, thu hồi sau 1 phút. */
+function ViewFileButton({
+  caseId,
+  file,
+}: {
+  caseId: string;
+  file: { id: string; fileName: string };
+}) {
+  const action = usePrivateAction();
+  return (
+    <>
+      <button
+        type="button"
+        aria-label={`Xem tệp ${file.fileName}`}
+        disabled={action.pending}
+        className={buttonStyles.outline}
+        onClick={() =>
+          void action.execute(
+            () => deathCaseService.viewFile(caseId, file.id),
+            (blob) => {
+              const url = URL.createObjectURL(blob);
+              window.open(url, "_blank", "noopener");
+              setTimeout(() => URL.revokeObjectURL(url), 60_000);
+            },
+          )
+        }
+      >
+        <Eye className="size-4" aria-hidden="true" />
+        Xem
+      </button>
+      {action.error && (
+        <span role="alert" className="block text-xs text-destructive">
+          {action.error}
+        </span>
+      )}
+    </>
+  );
+}
+
 /** Giấy tiếp nhận hồ sơ: hiện sau khi nộp, thay cho biểu mẫu. */
 function Receipt({ record }: { record: DeathCase }) {
   const version = record.currentVersion;
@@ -110,7 +143,8 @@ function Receipt({ record }: { record: DeathCase }) {
               ? "Giấy chứng tử / Trích lục khai tử"
               : "Giấy báo tử"}
             {" · "}
-            <span className="text-heritage-muted">{item.fileName}</span>
+            <span className="text-heritage-muted">{item.fileName}</span>{" "}
+            <ViewFileButton caseId={record.id} file={item} />
           </li>
         ))}
       </ul>
@@ -393,6 +427,7 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
                           <Upload className="size-4" aria-hidden="true" />
                           {file ? "Thay tệp" : "Tải lên"}
                         </button>
+                        {file && <ViewFileButton caseId={record.id} file={file} />}
                         {file && (
                           <button
                             type="button"
