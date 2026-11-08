@@ -1,31 +1,22 @@
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { useId, type ReactNode } from "react";
-import {
-  CheckCircle2,
-  ChevronLeft,
-  Download,
-  Eye,
-  FileText,
-  RefreshCw,
-  TriangleAlert,
-  X,
-} from "lucide-react";
+import { useId, useState, type ReactNode } from "react";
+import { CheckCircle2, ChevronLeft, RefreshCw, TriangleAlert, X } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
 import { ROUTES } from "@/shared/config/routes.config";
-import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { buttonStyles, Chip, Notice, Panel } from "@/shared/ui/heritageKit";
 import {
   useVerifierCase,
   useVerifierCaseFreshness,
   verifierKeys,
 } from "../model/useVerifierReview";
-import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
-import { VerifierOwnerIdentityPanel } from "./VerifierOwnerIdentityPanel";
+import { CertificateViewer } from "./CertificateViewer";
+import { VerifierEkycChecklist } from "./VerifierEkycChecklist";
+import { REVIEW_CHECKS } from "../model/reviewChecks";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
@@ -54,13 +45,6 @@ const formatCompact = (value: string) => {
   return `${pick("day")}/${pick("month")}/${pick("year")} ${pick("hour")}:${pick("minute")}`;
 };
 
-/** Ngày dạng "05/10/2026" từ chuỗi ISO yyyy-mm-dd của BE; thiếu thì hiện "—". */
-const formatDay = (value: string | null) => {
-  if (!value) return "—";
-  const [year, month, day] = value.split("-");
-  return `${day}/${month}/${year}`;
-};
-
 /** Thời điểm theo giờ Việt Nam, không phụ thuộc múi giờ trình duyệt. */
 const formatVietnamTime = (value: string) =>
   new Intl.DateTimeFormat("vi-VN", {
@@ -72,13 +56,6 @@ const formatVietnamTime = (value: string) =>
     timeZone: "Asia/Ho_Chi_Minh",
   }).format(new Date(value));
 
-const FILE_TYPE_LABELS: Record<string, string> = {
-  "application/pdf": "PDF",
-  "image/jpeg": "JPG",
-  "image/png": "PNG",
-  "image/webp": "WEBP",
-};
-
 /** Hồ sơ đã ra khỏi bước xét duyệt thì ô điều kiện chỉ nói trạng thái, không gợi ý bổ sung hay từ chối. */
 const CLOSED_CONDITION_TEXT: Record<string, string> = {
   APPROVED_FOR_HANDOVER: "Hồ sơ đã được duyệt, không cần xét thêm.",
@@ -86,13 +63,7 @@ const CLOSED_CONDITION_TEXT: Record<string, string> = {
   SUSPENDED: "Hồ sơ đang tạm dừng, chưa xét tiếp được.",
 };
 
-const blobName = (item: { fileName: string }) =>
-  item.fileName.replace(/[^\p{L}\p{N} ._()-]/gu, "_");
-
 /** Chi tiết một hồ sơ; mọi action dùng usePrivateAction; download qua blob ephemeral. */
-/** Executor không còn nhập tay các trường này; Người xét duyệt đọc trên giấy chứng tử. */
-const FROM_PAPER = "Chưa khai · đọc trên giấy";
-
 export function VerifierCaseDetail({ caseId }: { caseId: string }) {
   const [params, setParams] = useSearchParams();
   const download = usePrivateAction();
@@ -109,6 +80,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     query.dataUpdatedAt,
   );
   const client = useQueryClient();
+  // Bốn ô kiểm gắn với bản đang xét; sang bản khác (bổ sung) thì tích lại từ đầu.
+  const [ticks, setTicks] = useState<{ key: string; values: boolean[] }>({ key: "", values: [] });
   const backToList = () => {
     const next = new URLSearchParams(params);
     next.delete("caseId");
@@ -154,6 +127,16 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     freshness.data !== detail.etag &&
     freshness.dataUpdatedAt > query.dataUpdatedAt;
   const review = detail.reviewVersion;
+  const tickKey = `${detail.id}:${review.versionNo}`;
+  const checks = REVIEW_CHECKS.map(
+    (_, index) => ticks.key === tickKey && ticks.values[index] === true,
+  );
+  const allChecked = checks.every(Boolean);
+  const toggleCheck = (index: number) => {
+    const next = checks.slice();
+    next[index] = !next[index];
+    setTicks({ key: tickKey, values: next });
+  };
   const status = queueStatus[detail.status];
   const actions = getVerifierActions(detail);
   const latestSupplement = detail.decisions
@@ -289,6 +272,16 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         {/* CỘT TRÁI (3fr): HỒ SƠ & TÀI LIỆU CHỨNG TỪ */}
         <div className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-2">
+            <VerifierEkycChecklist
+              caseId={detail.id}
+              identity={detail.ownerIdentity}
+              checks={checks}
+              onToggle={toggleCheck}
+              disabled={!actions.canOpenApprove}
+            />
+            <CertificateViewer caseId={detail.id} files={review.files} />
+          </div>
           <section
             aria-label="Bản đang xét"
             className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
@@ -297,107 +290,17 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               Bản đang xét (v{review.versionNo})
             </h3>
             <dl className="grid gap-4 sm:grid-cols-2">
-              <Field label="Họ tên chủ kho" value={review.ownerFullName ?? FROM_PAPER} />
-              <Field
-                label="CCCD (theo giấy tờ)"
-                value={review.ownerCitizenId ? review.ownerCitizenId : "—"}
-                sensitive={Boolean(review.ownerCitizenId)}
-              />
-              <Field
-                label="Ngày mất"
-                value={review.dateOfDeath ? formatDay(review.dateOfDeath) : FROM_PAPER}
-              />
-              <Field label="Số giấy chứng tử" value={review.certificateNumber ?? FROM_PAPER} />
-              <Field
-                label="Ngày cấp"
-                value={review.issuedOn ? formatDay(review.issuedOn) : FROM_PAPER}
-              />
-              <Field label="Nơi cấp" value={review.issuedBy ?? FROM_PAPER} />
+              <Field label="Người nộp" value={detail.executor?.fullName ?? "—"} />
               <Field
                 label="Gửi lúc"
                 value={review.submittedAt ? formatCompact(review.submittedAt) : "—"}
               />
             </dl>
-            <div>
-              <h4 className="text-sm font-semibold">Trang giấy tờ</h4>
-              {review.files.length === 0 ? (
-                <p className="text-sm text-heritage-muted">Không có trang giấy nào.</p>
-              ) : (
-                <ul className="mt-2 space-y-3">
-                  {review.files.map((file) => (
-                    <li
-                      key={file.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-heritage-border bg-white p-3"
-                    >
-                      <span className="inline-flex min-w-0 items-center gap-3 text-sm">
-                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB]">
-                          <FileText className="size-5 text-heritage-muted" aria-hidden="true" />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block break-all font-semibold">
-                            Trang {file.position} · {file.fileName}
-                          </span>
-                          <span className="block text-xs text-heritage-muted">
-                            {FILE_TYPE_LABELS[file.contentType] ?? "Tệp"} ·{" "}
-                            {formatStorageSize(file.sizeBytes)}
-                          </span>
-                        </span>
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          aria-label={`Xem trang ${file.position}`}
-                          className={buttonStyles.outline}
-                          disabled={download.pending}
-                          onClick={() =>
-                            void download.execute(
-                              () => verifierReviewService.downloadFile(detail.id, file.id),
-                              (blob) => {
-                                // Mở ở tab mới; blob chỉ nằm trong RAM và bị thu hồi sau 1 phút.
-                                const url = URL.createObjectURL(blob);
-                                window.open(url, "_blank", "noopener");
-                                setTimeout(() => URL.revokeObjectURL(url), 60_000);
-                              },
-                            )
-                          }
-                        >
-                          <Eye className="size-4" aria-hidden="true" />
-                          Xem
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={`Tải xuống trang ${file.position}`}
-                          className={buttonStyles.outline}
-                          disabled={download.pending}
-                          onClick={() =>
-                            void download.execute(
-                              () => verifierReviewService.downloadFile(detail.id, file.id),
-                              (blob) => {
-                                const url = URL.createObjectURL(blob);
-                                const link = document.createElement("a");
-                                link.href = url;
-                                link.download = blobName(file);
-                                link.click();
-                                setTimeout(() => URL.revokeObjectURL(url), 1000);
-                              },
-                            )
-                          }
-                        >
-                          <Download className="size-4" aria-hidden="true" />
-                          Tải xuống
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <p className="text-xs text-heritage-muted">
+              Họ tên, số CCCD và ngày sinh trên giấy do bạn đọc và so với thông tin gốc bên trên,
+              Người thực hiện không phải nhập.
+            </p>
           </section>
-          <VerifierOwnerIdentityPanel
-            caseId={detail.id}
-            review={review}
-            identity={detail.ownerIdentity}
-          />
           <section
             aria-label="Cảnh báo cần kiểm tra"
             className="space-y-3 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
@@ -543,11 +446,13 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                     icon={<CheckCircle2 className="size-5" aria-hidden="true" />}
                     title="Duyệt mở bàn giao"
                     description={
-                      detail.canApprove
-                        ? "Hồ sơ hợp lệ. Người nhận sẽ được mời xác minh."
-                        : `Chưa duyệt được: ${blockedReason}.`
+                      !detail.canApprove
+                        ? `Chưa duyệt được: ${blockedReason}.`
+                        : allChecked
+                          ? "Hồ sơ hợp lệ. Người nhận sẽ được mời xác minh."
+                          : "Tích đủ 4 ô đối chiếu để mở nút duyệt."
                     }
-                    disabled={!detail.canApprove}
+                    disabled={!detail.canApprove || !allChecked}
                     onClick={() => openModal("approve")}
                   />
                 )}

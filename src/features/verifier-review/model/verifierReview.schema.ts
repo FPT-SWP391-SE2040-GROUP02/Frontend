@@ -53,6 +53,8 @@ export const approveBlockerSchema = z.enum([
 export const verifierFileSchema = z.object({
   id: z.string().uuid(),
   position: z.number().int(),
+  /** Loại giấy; hồ sơ cũ và fixture không có trường này coi là giấy chứng tử. */
+  kind: z.enum(["DEATH_CERTIFICATE", "DEATH_NOTICE"]).default("DEATH_CERTIFICATE"),
   fileName: z.string(),
   contentType: z.string(),
   sizeBytes: z.number().int().nonnegative(),
