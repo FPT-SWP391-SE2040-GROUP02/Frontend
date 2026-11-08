@@ -31,7 +31,7 @@ interface NavItem {
 
 /**
  * Menu chính của Người thực thi: Tổng quan, Báo tin, Bàn giao, Tài sản.
- * Lời mời, Quyền hạn, Cài đặt ít dùng nên nằm ở chân thanh bên, dưới nút đổi vai.
+ * Cài đặt (gồm cả Lời mời và Quyền hạn) ít dùng nên nằm ở chân thanh bên, dưới nút đổi vai.
  */
 const executorNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT, icon: Home },
@@ -41,8 +41,6 @@ const executorNavigation: NavItem[] = [
 ];
 
 const accountNavigation: Array<{ label: string; to: string }> = [
-  { label: "Lời mời", to: ROUTES.EXECUTOR.INVITATIONS },
-  { label: "Quyền hạn", to: ROUTES.EXECUTOR.PERMISSIONS },
   { label: "Cài đặt", to: ROUTES.EXECUTOR.SETTINGS },
 ];
 
@@ -136,7 +134,7 @@ export function ExecutorWorkspace({
                 onClick={() => setNavigationOpen(false)}
               >
                 {label}
-                {to === ROUTES.EXECUTOR.INVITATIONS && pendingInvitations > 0 && (
+                {to === ROUTES.EXECUTOR.SETTINGS && pendingInvitations > 0 && (
                   <InvitationCountBadge count={pendingInvitations} />
                 )}
               </Link>

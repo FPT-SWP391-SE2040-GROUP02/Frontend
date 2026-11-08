@@ -14,7 +14,8 @@ import { deriveLog, deriveSteps } from "@/features/death-case/model/progressStep
 import type { DeathCase } from "@/features/death-case/model/deathCase.schema";
 import type { HandoverProgressTurn } from "@/features/death-case/model/handoverProgress.schema";
 import { ExecutorOverviewPage } from "@/pages/executor/ExecutorOverviewPage";
-import { ExecutorPermissionsPage } from "@/pages/executor/ExecutorPermissionsPage";
+import { ExecutorPermissionsSection } from "@/pages/executor/ExecutorPermissionsPage";
+import { ExecutorWorkspace } from "@/widgets/ExecutorWorkspace/ExecutorWorkspace";
 import { ExecutorReportPage } from "@/pages/executor/ExecutorReportPage";
 import { ExecutorProgressPage } from "@/pages/executor/ExecutorProgressPage";
 import { ExecutorAssetsPage } from "@/pages/executor/ExecutorAssetsPage";
@@ -102,7 +103,14 @@ function setup(path: string) {
             <Route path="/executor/report" element={<ExecutorReportPage />} />
             <Route path="/executor/progress" element={<ExecutorProgressPage />} />
             <Route path="/executor/assets" element={<ExecutorAssetsPage />} />
-            <Route path="/executor/permissions" element={<ExecutorPermissionsPage />} />
+            <Route
+              path="/executor/permissions"
+              element={
+                <ExecutorWorkspace title="Quyền hạn của bạn">
+                  <ExecutorPermissionsSection />
+                </ExecutorWorkspace>
+              }
+            />
             <Route path="/dashboard" element={<p>Không gian Chủ kho (fixture)</p>} />
           </Routes>
         </MemoryRouter>
@@ -124,8 +132,6 @@ describe("Executor workspace shell", () => {
     ]);
     const account = screen.getByRole("navigation", { name: "Tài khoản" });
     expect(Array.from(account.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
-      "Lời mời",
-      "Quyền hạn",
       "Cài đặt",
     ]);
     expect(screen.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");

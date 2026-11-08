@@ -17,7 +17,7 @@ function vaultState(vault: ExecutorVault): { label: string; tone: Tone } {
 }
 
 /** Kho mà tài khoản đang là Người thực thi; không có kho nào thì không hiện mục này. */
-function ResponsibleVaults() {
+function ResponsibleVaults({ inExecutorWorkspace }: { inExecutorWorkspace: boolean }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const vaults = useExecutorVaults(authenticated && Boolean(accessTokenMemory.get()));
   if (!vaults.isSuccess || vaults.data.length === 0) return null;
@@ -34,7 +34,7 @@ function ResponsibleVaults() {
                 to={`${ROUTES.EXECUTOR.ROOT}?vault=${encodeURIComponent(vault.vaultId)}`}
                 className="text-sm font-medium text-heritage-primary underline"
               >
-                Mở trong không gian Người thực thi
+                {inExecutorWorkspace ? "Quay về Tổng quan" : "Mở trong không gian Người thực thi"}
               </Link>
             </li>
           );
@@ -50,11 +50,15 @@ function ResponsibleVaults() {
 /**
  * Nội dung trang Lời mời, dùng chung cho không gian Chủ kho và Người thực thi.
  */
-export function InvitationsContent() {
+export function InvitationsContent({
+  inExecutorWorkspace = false,
+}: {
+  inExecutorWorkspace?: boolean;
+}) {
   return (
     <div className="space-y-6">
       <MyInvitationsInbox />
-      <ResponsibleVaults />
+      <ResponsibleVaults inExecutorWorkspace={inExecutorWorkspace} />
     </div>
   );
 }
