@@ -7,7 +7,7 @@ import { buttonStyles, InfoRow, Notice, Panel } from "@/shared/ui/heritageKit";
 import { useRejectedAck } from "../model/useRejectedAck";
 import { planStatusLabel } from "./executorLabels";
 import { OverdueCard } from "./OverdueCard";
-import { ProcessStepper } from "./ProcessStepper";
+import { HandoverProgressBar } from "./HandoverProgressBar";
 import { useDeathCase } from "../model/useDeathCase";
 
 const duties = () => [
@@ -81,7 +81,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           {safeText}
         </Notice>
       )}
-      <ProcessStepper vault={vault} record={record} />
+      <HandoverProgressBar record={record} caseId={vault.openDeathCaseId} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-6">
           <Panel title={`Hướng dẫn từ ${vault.ownerFullName}`}>
