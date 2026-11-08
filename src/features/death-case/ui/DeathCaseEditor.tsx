@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import type { DeathCase } from "../model/deathCase.schema";
-import { type CertificateFileCheck, readCertificateRejection } from "../model/certificateCheck";
 import { executorVaultsKey } from "../model/useExecutorVaults";
 import { deathCaseService } from "../api/deathCaseService";
 import { buttonStyles, Chip, formatDateTime, InfoRow, Panel } from "@/shared/ui/heritageKit";
@@ -89,20 +88,6 @@ function VersionTimeline({ record }: { record: DeathCase }) {
   );
 }
 
-/** Kết quả AI cho một tệp sau lần gửi bị chặn; không có kết quả thì không hiện gì. */
-function CertificateCheckNote({ check }: { check: CertificateFileCheck | undefined }) {
-  if (!check) return null;
-  if (check.status === "NOT_RECOGNIZED")
-    return (
-      <p className="mt-1 text-xs text-destructive">
-        Không phải giấy chứng tử{check.documentType ? ` (AI nhận ra: ${check.documentType})` : ""}
-      </p>
-    );
-  if (check.status === "UNAVAILABLE")
-    return <p className="mt-1 text-xs text-heritage-muted">Chưa kiểm tra được tệp này</p>;
-  return <p className="mt-1 text-xs text-[#2E9E6E]">Là giấy chứng tử</p>;
-}
-
 /** Giấy tiếp nhận hồ sơ: hiện sau khi nộp, thay cho biểu mẫu. */
 function Receipt({ record }: { record: DeathCase }) {
   const version = record.currentVersion;
@@ -158,7 +143,6 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
   const [fileError, setFileError] = useState("");
   const [uploadingKind, setUploadingKind] = useState<FileKind | null>(null);
   const [uploadPercent, setUploadPercent] = useState<number | null>(null);
-  const [checks, setChecks] = useState<CertificateFileCheck[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
   const previewUrlsRef = useRef(previewUrls);
@@ -175,7 +159,6 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
 
   const publish = (result: DeathCase, message: string | null = null) => {
     setNotice(message);
-    setChecks(null);
     client.setQueryData(["death-case", result.id], result);
     void client.invalidateQueries({ queryKey: ["death-case"] });
     void client.invalidateQueries({ queryKey: executorVaultsKey });
@@ -221,18 +204,10 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
       (result) => publish(result, "Đã xóa tệp khỏi bản nháp."),
     );
 
-  /** Nộp hồ sơ: BE cho AI xem giấy chứng tử; bị chặn thì giữ kết quả để hiện cạnh tệp. */
+  /** Nộp hồ sơ; Backend chỉ kiểm có giấy chứng tử, không còn AI đọc giấy. */
   const submit = async () => {
-    setChecks(null);
     const ok = await action.execute(
-      async () => {
-        try {
-          return await deathCaseService.submit(record.id, record.etag);
-        } catch (failure) {
-          setChecks(readCertificateRejection(failure));
-          throw failure;
-        }
-      },
+      () => deathCaseService.submit(record.id, record.etag),
       (result) => {
         setConfirmed(false);
         publish(
@@ -245,7 +220,6 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
     );
     if (ok) setAskingSubmit(false);
   };
-  const checkOf = (fileId: string) => checks?.find((check) => check.fileId === fileId);
 
   if (!version.isDraft) {
     return (
@@ -381,7 +355,6 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
                             <p className="text-xs text-heritage-muted">
                               {formatSize(file.sizeBytes)} · {formatDateTime(file.uploadedAt)}
                             </p>
-                            <CertificateCheckNote check={checkOf(file.id)} />
                           </div>
                         </div>
                       ) : (
@@ -499,7 +472,7 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
             </DialogHeader>
             {action.pending && (
               <p role="status" className="text-sm">
-                Đang kiểm tra giấy chứng tử…
+                Đang nộp hồ sơ…
               </p>
             )}
             {action.error && (

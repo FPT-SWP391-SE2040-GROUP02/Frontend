@@ -113,12 +113,6 @@ const ekycServiceUnavailableReasons: Record<string, string> = {
     "Chủ kho chưa có mẫu khuôn mặt vì chưa hoàn tất xác minh eKYC. Hãy hoàn tất eKYC ở mục Xác minh rồi gửi lại selfie.",
 };
 
-/** Mã trong missingRequirements cần thông báo riêng thay cho thông báo chung của DEATH_CASE_INCOMPLETE. */
-const missingRequirementMessages: Record<string, string> = {
-  DEATH_CERTIFICATE_NOT_RECOGNIZED:
-    "Hệ thống không nhận ra trang nào là giấy chứng tử hoặc trích lục khai tử. Hãy tải lên ảnh chụp rõ giấy chứng tử rồi gửi lại.",
-};
-
 /** Ưu tiên `reason` của BE trước thông báo chung theo `code`. */
 /** Reason-specific messages for EKYC_IDENTITY_MISMATCH */
 const ekycIdentityMismatchReasons: Record<string, string> = {
@@ -284,10 +278,6 @@ export function privateActionError(error: unknown): string {
       const byReason = reasonMessages[code];
       if (byReason && Object.hasOwn(byReason, reason)) return byReason[reason];
     }
-    const missing = parsed.success ? (parsed.data.missingRequirements ?? []) : [];
-    const missingMessage = missing.find((item) => Object.hasOwn(missingRequirementMessages, item));
-    if (code === "DEATH_CASE_INCOMPLETE" && missingMessage)
-      return missingRequirementMessages[missingMessage];
     if (code === "VALIDATION_ERROR") {
       const specific = validationMessages(parsed.success ? parsed.data.errors : undefined);
       if (specific.length > 0) return specific.join(" ");
