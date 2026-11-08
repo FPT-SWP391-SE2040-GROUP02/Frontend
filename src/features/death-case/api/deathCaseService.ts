@@ -60,9 +60,15 @@ export const deathCaseService = {
     );
   },
   /** Multipart tệp kèm tiến độ theo byte đã gửi; không cache nội dung giấy tờ. */
-  async upload(caseId: string, file: File, onUploadProgress?: (percent: number) => void) {
+  async upload(
+    caseId: string,
+    file: File,
+    kind: "DEATH_CERTIFICATE" | "DEATH_NOTICE",
+    onUploadProgress?: (percent: number) => void,
+  ) {
     const body = new FormData();
     body.append("file", file);
+    body.append("kind", kind);
     return deathCaseSchema.parse(
       await apiClient.post<unknown, unknown>(`${path(caseId)}/files`, body, {
         headers: { "Content-Type": undefined },

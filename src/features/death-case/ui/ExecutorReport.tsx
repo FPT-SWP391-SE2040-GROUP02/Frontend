@@ -154,8 +154,8 @@ function ReportIntro({
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel title="Mở hồ sơ báo tin">
           <p className="mb-4 text-sm leading-6 text-heritage-muted">
-            Bạn sẽ nhập họ tên Chủ kho, ngày mất, thông tin giấy chứng tử và tải giấy tờ lên. Hồ sơ
-            được lưu nháp, chỉ gửi đi khi bạn xác nhận.
+            Bạn tải giấy chứng tử (và giấy báo tử nếu có), mỗi mục một tệp. Hồ sơ được lưu nháp, chỉ
+            gửi đi khi bạn xác nhận.
           </p>
           <div className="flex flex-wrap items-start gap-3">
             <OpenCaseButton vault={vault} label="Mở hồ sơ chứng tử" />
@@ -228,7 +228,7 @@ export function ExecutorReport({ vault }: { vault: ExecutorVault }) {
   return (
     <div className="space-y-6">
       <ReviewFeedback record={record} />
-      <DeathCaseEditor record={record} />
+      <DeathCaseEditor record={record} ownerName={vault.ownerFullName} />
       {record.status === "DRAFT" && <CancelDraftPanel vault={vault} record={record} />}
       {record.status === "REJECTED" && !vault.openDeathCaseId && (
         <Panel title="Mở hồ sơ mới">

@@ -345,7 +345,7 @@ it("does not request progress for a draft case", async () => {
     return Promise.reject(new Error(`unexpected ${String(url)}`));
   });
   setup(<ExecutorReport vault={vaultOf()} />, "/executor/report");
-  expect(await screen.findByRole("button", { name: "Lưu nháp" })).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: "Nộp hồ sơ" })).toBeInTheDocument();
   expect(screen.queryByRole("heading", { name: "Tiến độ bàn giao" })).not.toBeInTheDocument();
   expect(get).not.toHaveBeenCalledWith(
     `/executor/death-cases/${CASE_ID}/handover-progress`,

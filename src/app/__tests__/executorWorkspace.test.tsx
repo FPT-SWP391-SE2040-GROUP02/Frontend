@@ -625,7 +625,7 @@ describe("Executor report", () => {
     });
     setup("/executor/report");
     expect(
-      await screen.findByText(/Người xét duyệt vẫn xét bản đã gửi cho tới khi bạn nộp bản mới/),
+      await screen.findByText(/Người xét duyệt vẫn xét bản đã nộp cho tới khi bạn nộp bản mới/),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Máy chủ đã lưu yêu cầu/)).not.toBeInTheDocument();
 
@@ -662,20 +662,31 @@ describe("Executor report", () => {
     expect(screen.queryByRole("button", { name: "Tạo bản bổ sung" })).not.toBeInTheDocument();
   });
 
-  it("shows the draft editor with missing items and keeps submit disabled until confirmed", async () => {
+  const certificateFile = {
+    id: "55555555-5555-4555-8555-555555555555",
+    position: 1,
+    kind: "DEATH_CERTIFICATE" as const,
+    fileName: "giay-chung-tu.pdf",
+    contentType: "application/pdf",
+    sizeBytes: 1200000,
+    uploadedAt: CREATED_AT,
+  };
+
+  it("shows the one-page report with two document rows and keeps submit disabled", async () => {
     vi.spyOn(apiClient, "get").mockImplementation((url) => {
       if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
-      if (url === `/executor/death-cases/${CASE_ID}`) return Promise.resolve(deathCase("DRAFT"));
+      if (url === `/executor/death-cases/${CASE_ID}`)
+        return Promise.resolve(deathCase("DRAFT", { missingRequirements: ["FILES"] }));
       return Promise.reject(new Error(`unexpected ${String(url)}`));
     });
     setup("/executor/report");
     expect(
       await screen.findByRole("heading", { level: 1, name: "Soạn hồ sơ báo tin" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Bản nháp")).toBeInTheDocument();
-    expect(screen.getByText("Còn thiếu: Ngày mất")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Lưu nháp" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Gửi hồ sơ" })).toBeDisabled();
+    expect(screen.getByText("Giấy chứng tử / Trích lục khai tử")).toBeInTheDocument();
+    expect(screen.getByText("Giấy báo tử hoặc giấy tờ thay thế")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Ngày mất")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nộp hồ sơ" })).toBeDisabled();
   });
 
   it("rejects a file of an unsupported type before sending anything", async () => {
@@ -686,59 +697,19 @@ describe("Executor report", () => {
       return Promise.reject(new Error(`unexpected ${String(url)}`));
     });
     setup("/executor/report");
-    const input = await screen.findByLabelText("Chọn trang giấy");
+    const input = await screen.findByLabelText("Chọn tệp: Giấy chứng tử / Trích lục khai tử");
     fireEvent.change(input, {
       target: { files: [new File(["x"], "notes.txt", { type: "text/plain" })] },
     });
-    expect(await screen.findByRole("alert")).toHaveTextContent("Chọn tệp đúng định dạng");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Chọn tệp PDF, JPG, PNG hoặc WEBP");
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("tự lưu thông tin đang nhập trước khi tải tệp, không bắt bấm Lưu nháp riêng", async () => {
-    const order: string[] = [];
-    const saved = deathCase("DRAFT", { etag: "case-v2", missingRequirements: ["FILES"] });
-    vi.spyOn(apiClient, "put").mockImplementation(() => {
-      order.push("put");
-      return Promise.resolve(saved);
-    });
-    vi.spyOn(apiClient, "post").mockImplementation(() => {
-      order.push("post");
-      return Promise.resolve(saved);
-    });
-    vi.spyOn(apiClient, "get").mockImplementation((url) => {
-      if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
-      if (url === `/executor/death-cases/${CASE_ID}`) return Promise.resolve(deathCase("DRAFT"));
-      return Promise.reject(new Error(`unexpected ${String(url)}`));
-    });
-    setup("/executor/report");
-    const input = await screen.findByLabelText("Chọn trang giấy");
-    fireEvent.change(screen.getByLabelText("Ngày mất"), { target: { value: "2026-11-03" } });
-    // Nhập xong thì danh sách kiểm tra đã coi phần thông tin là đủ, dù chưa lưu.
-    expect(await screen.findByText("Đã nhập đủ")).toBeInTheDocument();
-    fireEvent.change(input, {
-      target: { files: [new File(["%PDF"], "giay-bao-tu.pdf", { type: "application/pdf" })] },
-    });
-    await waitFor(() => expect(order).toEqual(["put", "post"]));
-  });
-
-  it("uploads a valid file and shows it in the document list", async () => {
+  it("uploads a certificate with its kind and shows it in the row", async () => {
     const withFile = deathCase("DRAFT", {
-      missingRequirements: ["DATE_OF_DEATH"],
-      currentVersion: {
-        ...deathCase("DRAFT").currentVersion,
-        files: [
-          {
-            id: "55555555-5555-4555-8555-555555555555",
-            position: 1,
-            fileName: "giay-bao-tu.pdf",
-            contentType: "application/pdf",
-            sizeBytes: 1200000,
-            uploadedAt: CREATED_AT,
-          },
-        ],
-      },
+      missingRequirements: [],
+      currentVersion: { ...deathCase("DRAFT").currentVersion, files: [certificateFile] },
     });
-    // Sau khi tải lên, lần đọc lại hồ sơ của Backend đã có tệp.
     let uploaded = false;
     const post = vi.spyOn(apiClient, "post").mockImplementation(() => {
       uploaded = true;
@@ -751,14 +722,57 @@ describe("Executor report", () => {
       return Promise.reject(new Error(`unexpected ${String(url)}`));
     });
     setup("/executor/report");
-    const input = await screen.findByLabelText("Chọn trang giấy");
+    const input = await screen.findByLabelText("Chọn tệp: Giấy chứng tử / Trích lục khai tử");
     fireEvent.change(input, {
-      target: { files: [new File(["%PDF"], "giay-bao-tu.pdf", { type: "application/pdf" })] },
+      target: { files: [new File(["%PDF"], "giay-chung-tu.pdf", { type: "application/pdf" })] },
     });
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
     expect(post.mock.calls[0][0]).toBe(`/executor/death-cases/${CASE_ID}/files`);
-    expect(await screen.findByText(/1\. giay-bao-tu\.pdf/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Xóa tệp giay-bao-tu.pdf" })).toBeInTheDocument();
+    const body = post.mock.calls[0][1] as FormData;
+    expect(body.get("kind")).toBe("DEATH_CERTIFICATE");
+    expect(await screen.findByText("giay-chung-tu.pdf")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Thay tệp" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xóa tệp giay-chung-tu.pdf" })).toBeInTheDocument();
+  });
+
+  it("asks for confirmation before submitting and then shows the receipt", async () => {
+    const draft = deathCase("DRAFT", {
+      missingRequirements: [],
+      currentVersion: { ...deathCase("DRAFT").currentVersion, files: [certificateFile] },
+    });
+    const submitted = deathCase("UNDER_REVIEW", {
+      currentVersion: {
+        ...draft.currentVersion,
+        isDraft: false,
+        submittedAt: CREATED_AT,
+      },
+    });
+    let sent = false;
+    const post = vi.spyOn(apiClient, "post").mockImplementation(() => {
+      sent = true;
+      return Promise.resolve(submitted);
+    });
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") return Promise.resolve([vault({ openDeathCaseId: CASE_ID })]);
+      if (url === `/executor/death-cases/${CASE_ID}`)
+        return Promise.resolve(sent ? submitted : draft);
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    const submitButton = await screen.findByRole("button", { name: "Nộp hồ sơ" });
+    expect(submitButton).toBeDisabled();
+    await userEvent.click(screen.getByRole("checkbox"));
+    expect(submitButton).toBeEnabled();
+    await userEvent.click(submitButton);
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Không hoàn tác được");
+    expect(post).not.toHaveBeenCalled();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Xác nhận nộp" }));
+    expect(await screen.findByText("Giấy tiếp nhận hồ sơ")).toBeInTheDocument();
+    expect(post).toHaveBeenCalledWith(`/executor/death-cases/${CASE_ID}/submit`, {
+      etag: "case-v1",
+      confirm: true,
+    });
   });
 
   it("titles a supplement request and lists the versions already submitted", async () => {
