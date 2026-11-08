@@ -8,6 +8,7 @@ import {
   Tag,
   TriangleAlert,
   Users,
+  Wrench,
 } from "lucide-react";
 import {
   AdminDevTools,
@@ -84,9 +85,20 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
  */
 const DEV_TOOLS_ENABLED = import.meta.env.DEV || ENV.ENABLE_DEVTOOLS;
 
-// Menu chỉ có các mục của prototype. Tạm giữ nằm trong chi tiết sự cố; Công cụ thử nghiệm chỉ mở bằng
-// đường dẫn `?view=dev-tools` khi bật DEV_TOOLS_ENABLED.
-const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = NAVIGATION;
+// Menu có các mục của prototype. Tạm giữ nằm trong chi tiết sự cố. Công cụ thử nghiệm (tua thời gian, tạm ngừng eKYC…)
+// chỉ hiện ở menu khi bật DEV_TOOLS_ENABLED, cuối nhóm "Hệ thống".
+const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
+  ? [
+      ...NAVIGATION,
+      {
+        id: "dev-tools",
+        label: "Công cụ thử nghiệm",
+        icon: Wrench,
+        to: `${ROUTES.ADMIN.ROOT}?view=dev-tools`,
+        group: "Hệ thống",
+      },
+    ]
+  : NAVIGATION;
 
 const VIEWS = {
   overview: {

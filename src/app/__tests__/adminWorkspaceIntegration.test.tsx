@@ -133,6 +133,18 @@ it("Admin xem tổng quan thật và giờ máy chủ", async () => {
   ).toHaveAttribute("href", ROUTES.DASHBOARD.USERS);
 });
 
+it("menu Admin có mục Công cụ thử nghiệm khi bật công cụ thử nghiệm, trỏ tới view=dev-tools", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue(dashboardFixture);
+  setup(ROUTES.ADMIN.ROOT);
+  await screen.findByText(/giờ máy chủ/);
+
+  const menu = within(screen.getByRole("navigation", { name: "Menu chính" }));
+  expect(menu.getByRole("link", { name: "Công cụ thử nghiệm" })).toHaveAttribute(
+    "href",
+    `${ROUTES.ADMIN.ROOT}?view=dev-tools`,
+  );
+});
+
 it("Tổng quan hiện kế hoạch theo giai đoạn, tải việc người xét duyệt và hoạt động gần đây", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue({
     ...dashboardFixture,

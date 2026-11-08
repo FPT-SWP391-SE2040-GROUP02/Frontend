@@ -21,6 +21,7 @@ import { remainingText } from "../model/handover.format";
 import { currentHandoverStep } from "../model/handoverStep";
 import { HandoverStepper } from "./HandoverStepper";
 import { HandoverTerms } from "./HandoverTerms";
+import { RecipientGuide } from "./RecipientGuide";
 import { RecipientSubmissionPanel } from "./RecipientSubmissionPanel";
 
 type Turn = z.infer<typeof handoverTurnSchema>;
@@ -400,7 +401,12 @@ export function HandoverPortal() {
       ) : query.data.length === 0 ? (
         <p role="status">Bạn chưa nhận lời mời bàn giao nào trên tài khoản này.</p>
       ) : (
-        query.data.map((turn) => <TurnCard key={turn.id} turn={turn} />)
+        <>
+          <RecipientGuide />
+          {query.data.map((turn) => (
+            <TurnCard key={turn.id} turn={turn} />
+          ))}
+        </>
       )}
     </div>
   );

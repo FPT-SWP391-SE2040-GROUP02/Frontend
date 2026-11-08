@@ -9,6 +9,7 @@ import { buttonStyles } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
 import { useHandoverAction } from "../model/useHandoverAction";
 import { MailCheckPanel } from "./MailCheckPanel";
+import { RecipientGuide } from "./RecipientGuide";
 
 const CHECKLIST = ["Xác minh danh tính của bạn", "Chờ bàn giao", "Tải nội dung khi bàn giao mở"];
 
@@ -58,6 +59,7 @@ export function InvitationPanel() {
         </p>
       </div>
       <MailCheckPanel token={token} />
+      <RecipientGuide defaultOpen />
       <ul className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5">
         {CHECKLIST.map((text) => (
           <li key={text} className="flex items-center gap-3 text-sm">
