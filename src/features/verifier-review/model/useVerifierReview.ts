@@ -5,7 +5,6 @@ import type { PaginationParams } from "@/shared/types";
 import { verifierReviewService } from "../api/verifierReviewService";
 import type {
   approveCaseRequestSchema,
-  rejectCaseRequestSchema,
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
 } from "./verifierReview.schema";
@@ -112,9 +111,4 @@ export function useApproveCase() {
   const client = useQueryClient();
   return (caseId: string, request: z.infer<typeof approveCaseRequestSchema>) =>
     perform(client, caseId, () => verifierReviewService.approve(caseId, request));
-}
-export function useRejectCase() {
-  const client = useQueryClient();
-  return (caseId: string, request: z.infer<typeof rejectCaseRequestSchema>) =>
-    perform(client, caseId, () => verifierReviewService.reject(caseId, request));
 }

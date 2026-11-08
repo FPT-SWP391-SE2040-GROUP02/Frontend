@@ -78,12 +78,7 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
       </div>
     );
   }
-  const steps = deriveSteps(
-    record,
-    handover.data,
-    policy.grantDays,
-    selectedTurn,
-  );
+  const steps = deriveSteps(record, handover.data, policy.grantDays, selectedTurn);
   let viewingText: string | null = null;
   if (approved && selectedTurn) {
     const name =
@@ -118,9 +113,7 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
             </li>
           ))}
         </ol>
-        <p className="mt-6 text-sm leading-6 text-heritage-muted">
-          {describe(record)}
-        </p>
+        <p className="mt-6 text-sm leading-6 text-heritage-muted">{describe(record)}</p>
         {viewingText && (
           <p role="status" className="mt-2 text-sm font-medium text-heritage-primary">
             {viewingText}

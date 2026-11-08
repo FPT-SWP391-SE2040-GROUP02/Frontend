@@ -18,7 +18,6 @@ import {
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import {
   approveCaseRequestSchema,
-  rejectCaseRequestSchema,
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
   blockerLabels,
@@ -32,7 +31,6 @@ import {
 } from "../model/signingError";
 import {
   useApproveCase,
-  useRejectCase,
   useRequestSupplement,
   useReviewFlag,
   verifierKeys,
@@ -41,7 +39,6 @@ import type { verifierCaseDetailSchema } from "../model/verifierReview.schema";
 import {
   APPROVE_REASON,
   composeReason,
-  REJECT_REASONS,
   RESUBMIT_REASONS,
   type ReasonOption,
 } from "../model/decisionReasons";
@@ -194,17 +191,6 @@ export function VerifierReviewModals({ caseId, detail }: { caseId: string; detai
   if (modal === "approve" && actions.canOpenApprove) {
     return (
       <ApproveModal
-        key={`${caseId}:${detail.etag}:${reason ?? ""}`}
-        caseId={caseId}
-        detail={detail}
-        initialReason={reason ?? ""}
-        onClose={close}
-      />
-    );
-  }
-  if (modal === "reject" && actions.canReject) {
-    return (
-      <RejectModal
         key={`${caseId}:${detail.etag}:${reason ?? ""}`}
         caseId={caseId}
         detail={detail}
@@ -517,123 +503,6 @@ function ApproveModal({
               }
             >
               {action.pending ? "Đang duyệt…" : "Duyệt và mở kho"}
-            </button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function RejectModal({
-  caseId,
-  detail,
-  onClose,
-}: {
-  caseId: string;
-  detail: Detail;
-  initialReason?: string;
-  onClose: () => void;
-}) {
-  const action = usePrivateAction();
-  const reject = useRejectCase();
-  const signing = useSigningFailure();
-  const [choice, setChoice] = useState("");
-  const [note, setNote] = useState("");
-  const form = useForm<{ etag: string; password: string; confirm: boolean }>({
-    resolver: zodResolver(
-      rejectCaseRequestSchema.omit({ reason: true }).extend({ confirm: confirmation }),
-    ),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
-    defaultValues: { etag: detail.etag, password: "", confirm: false },
-  });
-  const confirm = useWatch({ control: form.control, name: "confirm" });
-  const password = useWatch({ control: form.control, name: "password" }) ?? "";
-  const option = REJECT_REASONS.find((item) => item.value === choice);
-  const describedEnough = note.trim().length > 0;
-  const onSubmit = form.handleSubmit((values) => {
-    if (!option || !describedEnough) return;
-    const request = rejectCaseRequestSchema.parse({
-      etag: values.etag,
-      reason: composeReason(option.label, note),
-      password: values.password,
-    });
-    // Mật khẩu chỉ dùng cho đúng một lần gửi; lý do và ô xác nhận giữ nguyên để thử lại.
-    form.setValue("password", "");
-    signing.clear();
-    void action.execute(
-      () => reject(caseId, request),
-      () => onClose(),
-      (error) => signing.capture(error),
-    );
-  });
-  return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[88vh] overflow-y-auto rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[560px]">
-        <DialogHeader>
-          <DialogTitle>Từ chối và hủy hồ sơ</DialogTitle>
-          <DialogDescription>
-            Dùng khi giấy không khớp với chủ kho hoặc không phải giấy chứng tử. Nếu chỉ là file mờ,
-            hãy chọn "Yêu cầu nộp lại".
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-3">
-          <ReasonRadios
-            legend="Lý do từ chối"
-            options={REJECT_REASONS}
-            value={choice}
-            onChange={setChoice}
-          />
-          <label className="block text-sm">
-            <span className="font-medium text-heritage-primary">Mô tả cụ thể *</span>
-            <Textarea
-              value={note}
-              onChange={(event) => setNote(event.target.value)}
-              maxLength={900}
-              className="mt-1 min-h-24 max-h-36"
-            />
-            <span className="text-xs text-heritage-muted">
-              Người nộp và Admin sẽ đọc nội dung này.
-            </span>
-          </label>
-          <p className="text-sm text-heritage-muted">
-            Hồ sơ sẽ bị đóng. Kho vẫn khóa. Muốn tiếp tục, người nộp phải tạo hồ sơ mới từ đầu.
-          </p>
-          <CustomCheckbox
-            className="min-h-11 w-full items-center!"
-            label="Tôi chắc chắn muốn từ chối và đóng hồ sơ này."
-            {...form.register("confirm")}
-          />
-          <SigningPasswordField
-            registration={form.register("password")}
-            error={form.formState.errors.password?.message}
-          />
-          <DecisionError signing={signing.failure} error={action.error} onClose={onClose} />
-          <DialogFooter>
-            <button
-              type="button"
-              className={buttonStyles.outline}
-              onClick={onClose}
-              disabled={action.pending}
-            >
-              Quay lại
-            </button>
-            <button
-              type="submit"
-              className={
-                "inline-flex min-h-11 items-center justify-center rounded-xl bg-[#A32119] px-6 text-sm font-semibold text-white hover:bg-[#8A1B14] disabled:pointer-events-none disabled:opacity-50"
-              }
-              disabled={
-                action.pending ||
-                signing.locked ||
-                !confirm ||
-                !option ||
-                !describedEnough ||
-                !password
-              }
-            >
-              {action.pending ? "Đang từ chối…" : "Từ chối hồ sơ"}
             </button>
           </DialogFooter>
         </form>

@@ -13,6 +13,7 @@ export const adminKeys = {
   all: ["admin"] as const,
   dashboard: () => [...adminKeys.all, "dashboard"] as const,
   users: (query: AdminUsersQuery) => [...adminKeys.all, "users", query] as const,
+  user: (userId: string) => [...adminKeys.all, "user", userId] as const,
   userOptions: (role: AdminUserRole) => [...adminKeys.all, "user-options", role] as const,
   incidents: (query: IncidentsQuery) => [...adminKeys.all, "incidents", query] as const,
   incident: (incidentId: string) => [...adminKeys.all, "incident", incidentId] as const,
@@ -44,6 +45,15 @@ export function useAdminUsers(query: AdminUsersQuery) {
   });
 }
 
+/** Chi tiết một tài khoản; không tự retry để 404 hiện ngay. */
+export function useAdminUser(userId: string) {
+  return useQuery({
+    queryKey: adminKeys.user(userId),
+    queryFn: ({ signal }) => adminService.getUser(userId, signal),
+    retry: false,
+  });
+}
+
 /** Người đang hoạt động theo vai trò, để chọn người phụ trách hoặc người xét duyệt (tối đa 100). */
 export function useAdminUserOptions(role: AdminUserRole, enabled = true) {
   return useQuery({
@@ -71,6 +81,39 @@ export function useAdminIncident(incidentId: string) {
   return useQuery({
     queryKey: adminKeys.incident(incidentId),
     queryFn: ({ signal }) => adminService.getIncident(incidentId, signal),
+    retry: false,
+  });
+}
+
+/** Số sự cố theo trạng thái cho thẻ lọc; làm mới cùng nhịp với danh sách sự cố. */
+export function useAdminIncidentCounts(
+  query: Omit<IncidentsQuery, "status" | "pageIndex" | "pageSize">,
+) {
+  return useQuery({
+    queryKey: [...adminKeys.all, "incident-counts", query] as const,
+    queryFn: ({ signal }) => adminService.countIncidents(query, signal),
+    placeholderData: keepPreviousData,
+    retry: false,
+    refetchInterval: POLLING_INTERVAL.NORMAL,
+    refetchIntervalInBackground: false,
+  });
+}
+
+/** Số tài khoản theo vai trò cho thẻ lọc. */
+export function useAdminUserCounts(query: { search?: string; status?: string }) {
+  return useQuery({
+    queryKey: [...adminKeys.all, "user-counts", query] as const,
+    queryFn: ({ signal }) => adminService.countUsers(query, signal),
+    placeholderData: keepPreviousData,
+    retry: false,
+  });
+}
+
+/** Số tạm giữ theo trạng thái cho thẻ lọc. */
+export function useAdminHoldCounts() {
+  return useQuery({
+    queryKey: [...adminKeys.all, "hold-counts"] as const,
+    queryFn: ({ signal }) => adminService.countHolds(signal),
     retry: false,
   });
 }

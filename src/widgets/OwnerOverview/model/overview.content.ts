@@ -14,8 +14,7 @@ export const OWNER_OVERVIEW = {
   brand: "LegacyVault",
   caption: "Gìn giữ hôm nay. An tâm ngày mai.",
   preview: "Bản xem trước UI · Dữ liệu minh họa",
-  notice:
-    "Các số liệu dưới đây là dữ liệu mẫu. Điểm danh chưa được thực thi trên màn hình này.",
+  notice: "Các số liệu dưới đây là dữ liệu mẫu. Điểm danh chưa được thực thi trên màn hình này.",
   owner: "Anh Nam",
   role: "Chủ kho",
   greeting: "Chào anh Nam,",
@@ -71,8 +70,7 @@ export const OWNER_OVERVIEW = {
   ],
   setupAction: "Xem kế hoạch",
   heartbeatTitle: "Đừng quên giữ liên lạc",
-  heartbeatDescription:
-    "Điểm danh định kỳ giúp hệ thống biết anh vẫn đang sử dụng kho.",
+  heartbeatDescription: "Điểm danh định kỳ giúp hệ thống biết anh vẫn đang sử dụng kho.",
   heartbeatDate: "Kỳ tiếp theo · 28/10/2026",
   heartbeatLast: "Lần gần nhất · 28/09/2026",
   heartbeatAction: "Mở trang điểm danh",

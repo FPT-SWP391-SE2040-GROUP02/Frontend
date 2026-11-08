@@ -4,7 +4,6 @@ import { paginatedListSchema, paginationRequestSchema } from "@/shared/api/pagin
 import type { PaginationParams } from "@/shared/types";
 import {
   approveCaseRequestSchema,
-  rejectCaseRequestSchema,
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
   verifierCaseDetailSchema,
@@ -79,15 +78,6 @@ export const verifierReviewService = {
       await apiClient.post<unknown, unknown>(
         `/verifier/death-cases/${id.parse(caseId)}/approve`,
         approveCaseRequestSchema.parse(request),
-      ),
-    );
-  },
-  /** Từ chối hồ sơ. */
-  async reject(caseId: string, request: z.infer<typeof rejectCaseRequestSchema>) {
-    return verifierCaseDetailSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `/verifier/death-cases/${id.parse(caseId)}/reject`,
-        rejectCaseRequestSchema.parse(request),
       ),
     );
   },

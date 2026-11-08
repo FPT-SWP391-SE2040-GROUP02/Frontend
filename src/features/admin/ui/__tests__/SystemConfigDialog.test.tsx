@@ -8,7 +8,7 @@ import type { ConfigSlotName, SystemConfigEntry } from "../../model/systemConfig
 import { systemConfigKeys } from "../../model/useSystemConfig";
 import { SystemConfigDialog } from "../SystemConfigDialog";
 
-const settings = { model: "gemini-flash-lite-latest", timeoutSeconds: "20" };
+const settings = { baseUrl: "http://127.0.0.1:8879", timeoutSeconds: "60" };
 const primary = {
   slot: "PRIMARY" as const,
   enabled: true,
@@ -30,7 +30,7 @@ const fallback = {
   updatedBy: null,
 };
 const entry: SystemConfigEntry = {
-  serviceKey: "GEMINI",
+  serviceKey: "EKYC",
   supportsFallback: true,
   slots: [primary, fallback],
   status: { activeSlot: null, lastOutcome: null, lastAt: null, lastErrorCode: null },
@@ -66,7 +66,7 @@ function clickSave() {
 describe("SystemConfigDialog", () => {
   it("không bao giờ hiện khóa đã lưu, chỉ hiện 4 ký tự cuối", () => {
     renderDialog();
-    const key = screen.getByLabelText("Khóa API");
+    const key = screen.getByLabelText("Khóa dùng chung (X-Ekyc-Key)");
     expect(key).toHaveValue("");
     expect(key).toHaveAttribute("type", "password");
     expect(screen.getByText("•••• 1a2b")).toBeInTheDocument();
@@ -79,7 +79,7 @@ describe("SystemConfigDialog", () => {
     clickSave();
     await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
     const [url, body] = put.mock.calls[0];
-    expect(url).toBe("/admin/system-config/GEMINI/PRIMARY");
+    expect(url).toBe("/admin/system-config/EKYC/PRIMARY");
     expect(body).toEqual({
       settings,
       enabled: true,
@@ -92,7 +92,7 @@ describe("SystemConfigDialog", () => {
   it("gửi khóa mới khi người dùng nhập khóa", async () => {
     const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...primary, version: 2 });
     renderDialog();
-    type("Khóa API", "sk-new-5678");
+    type("Khóa dùng chung (X-Ekyc-Key)", "sk-new-5678");
     type("Lý do thay đổi", "đổi khóa");
     clickSave();
     await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
@@ -107,15 +107,13 @@ describe("SystemConfigDialog", () => {
     expect(put).not.toHaveBeenCalled();
   });
 
-  it("chặn lưu khi tên model có ký tự không cho phép", async () => {
+  it("chặn lưu khi địa chỉ dịch vụ không hợp lệ", async () => {
     const put = vi.spyOn(apiClient, "put").mockResolvedValue(primary);
     renderDialog();
-    type("Tên model", "a/../b");
+    type("Địa chỉ dịch vụ", "abc");
     type("Lý do thay đổi", "thử");
     clickSave();
-    expect(
-      await screen.findByText(/Chỉ gồm chữ, số, dấu chấm, gạch ngang và gạch dưới/),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(put).not.toHaveBeenCalled();
   });
 
@@ -125,11 +123,11 @@ describe("SystemConfigDialog", () => {
       .mockResolvedValue({ ok: true, errorCode: null, latencyMs: 42 });
     const put = vi.spyOn(apiClient, "put").mockResolvedValue(primary);
     renderDialog();
-    type("Tên model", "gemini-2.5-flash");
+    type("Địa chỉ dịch vụ", "http://127.0.0.1:9000");
     fireEvent.click(screen.getByRole("button", { name: "Thử kết nối bằng giá trị đang nhập" }));
     expect(await screen.findByText(/Kết nối được/)).toBeInTheDocument();
-    expect(post).toHaveBeenCalledWith("/admin/system-config/GEMINI/PRIMARY/test", {
-      settings: { model: "gemini-2.5-flash", timeoutSeconds: "20" },
+    expect(post).toHaveBeenCalledWith("/admin/system-config/EKYC/PRIMARY/test", {
+      settings: { baseUrl: "http://127.0.0.1:9000", timeoutSeconds: "60" },
     });
     expect(put).not.toHaveBeenCalled();
   });
@@ -184,11 +182,11 @@ describe("SystemConfigDialog", () => {
       .mockResolvedValue({ ...fallback, enabled: true, version: 1 });
     renderDialog("FALLBACK");
     fireEvent.click(screen.getByLabelText("Bật dịch vụ dự phòng"));
-    type("Khóa API", "sk-fallback-9999");
+    type("Khóa dùng chung (X-Ekyc-Key)", "sk-fallback-9999");
     type("Lý do thay đổi", "thêm dự phòng");
     clickSave();
     await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
-    expect(put.mock.calls[0][0]).toBe("/admin/system-config/GEMINI/FALLBACK");
+    expect(put.mock.calls[0][0]).toBe("/admin/system-config/EKYC/FALLBACK");
     expect(put.mock.calls[0][1]).toMatchObject({
       enabled: true,
       secrets: { apiKey: "sk-fallback-9999" },

@@ -73,8 +73,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
         <DialogHeader>
           <DialogTitle>Tạo tài khoản hệ thống mới</DialogTitle>
           <DialogDescription>
-            Cấp tài khoản cho Người xét duyệt hoặc Quản trị viên. Tài khoản được
-            kích hoạt ngay.
+            Cấp tài khoản cho Người xét duyệt hoặc Quản trị viên. Tài khoản được kích hoạt ngay.
           </DialogDescription>
         </DialogHeader>
 

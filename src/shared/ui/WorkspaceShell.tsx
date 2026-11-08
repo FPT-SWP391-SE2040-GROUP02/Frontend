@@ -12,6 +12,8 @@ export interface WorkspaceShellProps {
   navigation: ReactNode;
   footer: ReactNode;
   children: ReactNode;
+  /** "admin": cột menu rộng 272px, nội dung tối đa 1180px và đệm trên dưới theo prototype Admin. */
+  variant?: "default" | "admin";
 }
 
 /** Responsive workspace geometry shared across roles, with an always reachable logout action. */
@@ -24,10 +26,12 @@ export function WorkspaceShell({
   navigation,
   footer,
   children,
+  variant = "default",
 }: WorkspaceShellProps) {
+  const admin = variant === "admin";
   return (
     <div
-      className={`min-h-screen bg-heritage-canvas text-heritage-text lg:grid lg:grid-cols-[224px_minmax(0,1fr)] ${className}`}
+      className={`min-h-screen bg-heritage-canvas text-heritage-text lg:grid ${admin ? "lg:grid-cols-[272px_minmax(0,1fr)]" : "lg:grid-cols-[224px_minmax(0,1fr)]"} ${className}`}
     >
       <a
         href="#workspace-content"
@@ -68,9 +72,11 @@ export function WorkspaceShell({
       <main
         id="workspace-content"
         tabIndex={-1}
-        className="min-w-0 px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8"
+        className={`min-w-0 px-4 py-6 focus:outline-none sm:px-6 lg:px-8 ${admin ? "lg:pb-14 lg:pt-7" : "lg:py-8"}`}
       >
-        <div className="mx-auto w-full max-w-7xl space-y-6 [&_h1]:text-2xl [&_h1]:tracking-normal">
+        <div
+          className={`mx-auto w-full space-y-6 [&_h1]:text-2xl [&_h1]:tracking-normal ${admin ? "max-w-[1180px]" : "max-w-7xl"}`}
+        >
           {children}
         </div>
       </main>

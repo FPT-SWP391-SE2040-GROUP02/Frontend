@@ -1,5 +1,4 @@
-import { useId } from "react";
-import { Button, Input } from "@/shared/ui";
+import { ListDateField, ListFilterBar, ListSelectField } from "@/shared/ui/listKit";
 import { auditActionValues } from "../model/auditLog.schema";
 import { ACTION_LABELS } from "../model/auditLogLabels";
 import type { AuditLogFilterState } from "../model/auditLog.types";
@@ -21,99 +20,46 @@ export function AuditLogFilters({
   onApply: (next: Omit<AuditLogFilterState, "pageIndex" | "pageSize">) => void;
   onReset: () => void;
 }) {
-  const actionId = useId();
-  const fromId = useId();
-  const toId = useId();
-  const errorId = useId();
   return (
-    <div
-      role="group"
-      aria-label="Bộ lọc nhật ký"
-      className="grid gap-3 rounded-xl border border-heritage-border bg-heritage-surface p-4 sm:grid-cols-2 lg:grid-cols-4"
-    >
-      <div className="flex flex-col gap-1">
-        <label htmlFor={actionId} className="text-xs font-medium text-heritage-muted">
-          Loại thao tác
-        </label>
-        <select
-          id={actionId}
-          aria-label="Loại thao tác"
-          disabled={pending}
+    <div className="space-y-2">
+      <ListFilterBar onClear={pending ? undefined : onReset} clearLabel="Đặt lại">
+        <ListSelectField
+          label="Loại thao tác"
           value={state.action ?? ""}
-          onChange={(event) => {
-            const raw = event.target.value;
-            const next = raw === "" ? undefined : (raw as (typeof auditActionValues)[number]);
-            onApply({ action: next, fromDate: state.fromDate, toDate: state.toDate });
-          }}
-          className="min-h-11 rounded-lg border border-heritage-border bg-[var(--surface)] px-3 text-xs"
-        >
-          <option value="">Tất cả</option>
-          {auditActionValues.map((action) => (
-            <option key={action} value={action}>
-              {ACTION_LABELS[action]}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor={fromId} className="text-xs font-medium text-heritage-muted">
-          Từ ngày
-        </label>
-        <Input
-          id={fromId}
-          type="date"
-          aria-label="Từ ngày"
-          aria-invalid={Boolean(error)}
-          aria-describedby={error ? errorId : undefined}
-          className="min-h-11"
-          value={state.fromDate ?? ""}
-          max={state.toDate || undefined}
-          disabled={pending}
-          onChange={(event) => {
+          allLabel="Mọi hành động"
+          options={auditActionValues.map((action) => ({
+            value: action,
+            label: ACTION_LABELS[action],
+          }))}
+          onChange={(raw) =>
             onApply({
-              action: state.action,
-              fromDate: event.target.value || undefined,
-              toDate: state.toDate,
-            });
-          }}
-        />
-      </div>
-      <div className="flex flex-col gap-1">
-        <label htmlFor={toId} className="text-xs font-medium text-heritage-muted">
-          Đến hết ngày
-        </label>
-        <Input
-          id={toId}
-          type="date"
-          aria-label="Đến hết ngày"
-          aria-invalid={Boolean(error)}
-          aria-describedby={error ? errorId : undefined}
-          className="min-h-11"
-          value={state.toDate ?? ""}
-          min={state.fromDate || undefined}
-          disabled={pending}
-          onChange={(event) => {
-            onApply({
-              action: state.action,
+              action: raw === "" ? undefined : (raw as (typeof auditActionValues)[number]),
               fromDate: state.fromDate,
-              toDate: event.target.value || undefined,
-            });
-          }}
+              toDate: state.toDate,
+            })
+          }
         />
-      </div>
-      <div className="flex items-end justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onReset}
-          disabled={pending}
-          className="min-h-11"
-        >
-          Đặt lại
-        </Button>
-      </div>
+        <ListDateField
+          label="Từ"
+          ariaLabel="Từ ngày"
+          invalid={Boolean(error)}
+          value={state.fromDate ?? ""}
+          onChange={(value) =>
+            onApply({ action: state.action, fromDate: value || undefined, toDate: state.toDate })
+          }
+        />
+        <ListDateField
+          label="Đến"
+          ariaLabel="Đến hết ngày"
+          invalid={Boolean(error)}
+          value={state.toDate ?? ""}
+          onChange={(value) =>
+            onApply({ action: state.action, fromDate: state.fromDate, toDate: value || undefined })
+          }
+        />
+      </ListFilterBar>
       {error && (
-        <p id={errorId} role="alert" className="text-sm text-red-800 sm:col-span-2 lg:col-span-4">
+        <p role="alert" className="text-sm text-red-800">
           {error}
         </p>
       )}

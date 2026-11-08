@@ -52,9 +52,9 @@ const checkInFixture = () =>
     graceEndsAt: null,
     settings: {
       cycleDays: 60,
-      graceDays: 7,
+      lateReminderGapDays: 3,
+      maxLateReminders: 3,
       pendingCycleDays: null,
-      pendingGraceDays: null,
       etag: "test",
     },
     history: pageFixture([]),

@@ -18,7 +18,6 @@ import {
   Users,
   FileText,
   AlertTriangle,
-  CreditCard,
   Lock,
 } from "lucide-react";
 import { adminSettingsService } from "../api/adminSettingsService";
@@ -37,6 +36,7 @@ import {
 import { Switch } from "@/shared/ui/switch";
 import { describePlanKey, describePlanValue } from "../model/planCatalog";
 import { PlanCatalogEditor } from "./PlanCatalogEditor";
+import { PlanCards } from "./PlanCards";
 import {
   DEFAULT_MAX_TOTAL_SLOTS,
   MAX_SLOT_PRICE_PER_YEAR,
@@ -74,15 +74,42 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     dataType: "NUMBER",
   },
   {
-    key: "CheckIn.DefaultGraceDays",
-    label: "Thời gian chờ mặc định sau hạn",
+    key: "CheckIn.LateReminderGapDays",
+    label: "Khoảng cách giữa hai thư nhắc trễ",
     category: "CheckIn",
     categoryTitle: "Điểm danh định kỳ",
     unit: "ngày",
     step: 1,
-    defaultValue: "7",
-    description: "Hết thời gian chờ ân hạn thì hệ thống giao việc cho Người thực thi.",
-    src: "CheckInRules.DefaultGraceDays",
+    defaultValue: "3",
+    description:
+      "Sau hạn điểm danh, hệ thống gửi thư nhắc chủ kho theo khoảng này (từ 1 đến 30 ngày). Áp dụng từ kỳ điểm danh sau.",
+    src: "CheckInRules.LateReminderGapDays",
+    dataType: "NUMBER",
+  },
+  {
+    key: "CheckIn.MaxLateReminders",
+    label: "Số thư nhắc trễ trước khi báo Người thực thi",
+    category: "CheckIn",
+    categoryTitle: "Điểm danh định kỳ",
+    unit: "thư",
+    step: 1,
+    defaultValue: "3",
+    description:
+      "Gửi đủ số thư này mà chủ kho vẫn chưa điểm danh thì hệ thống báo Người thực thi (từ 1 đến 5 thư). Áp dụng từ kỳ điểm danh sau.",
+    src: "CheckInRules.MaxLateReminders",
+    dataType: "NUMBER",
+  },
+  {
+    key: "CheckIn.ExecutorProxyLimit",
+    label: "Số lần Người thực thi được điểm danh thay liên tiếp",
+    category: "CheckIn",
+    categoryTitle: "Điểm danh định kỳ",
+    unit: "lần",
+    step: 1,
+    defaultValue: "2",
+    description:
+      "Hết lượt thì nút điểm danh thay bị khóa, Người thực thi chỉ còn việc nộp giấy chứng tử. Về 0 khi chủ kho tự điểm danh.",
+    src: "CheckInRules.ExecutorProxyLimit",
     dataType: "NUMBER",
   },
 
@@ -386,16 +413,19 @@ const CATEGORY_ICONS: Record<string, typeof Clock> = {
   Security: Lock,
 };
 
-export function AdminSettings() {
+/**
+ * `section` chọn phần hiện ra: "params" là tham số hệ thống, "plans" là bảng gói dịch vụ.
+ * Cả hai dùng chung bộ nháp và thanh lưu nên nằm trong một thành phần.
+ */
+export function AdminSettings({ section }: { section: "params" | "plans" }) {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"params" | "plans">("params");
+  const activeTab = section;
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("Tất cả");
+  // Thẻ chọn nhóm đã bỏ theo prototype (các nhóm là mục gập mở); giữ "Tất cả" để bộ lọc tìm kiếm và Đã sửa hoạt động như cũ.
+  const selectedCategory = "Tất cả";
   const [filterMode, setFilterMode] = useState<"all" | "changed" | "security">("all");
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    CheckIn: true,
-    Handover: true,
-  });
+  // Theo prototype chỉ nhóm đầu mở sẵn; các nhóm khác gập lại cho trang gọn.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ CheckIn: true });
 
   // Local draft values (key -> { value: string, isEnabled: boolean })
   const [draft, setDraft] = useState<Record<string, { value: string; isEnabled: boolean }>>({});
@@ -617,35 +647,8 @@ export function AdminSettings() {
         </div>
       )}
 
-      {/* Main Tabs Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-heritage-border pb-4">
-        <div className="inline-flex rounded-xl border border-heritage-border bg-heritage-surface p-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab("params")}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-              activeTab === "params"
-                ? "bg-[#0A281E] text-white dark:bg-[#E0C486] dark:text-[#0A281E]"
-                : "text-heritage-muted hover:bg-heritage-primary/5"
-            }`}
-          >
-            <Sliders className="size-4" />
-            Tham số hệ thống
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("plans")}
-            className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-              activeTab === "plans"
-                ? "bg-[#0A281E] text-white dark:bg-[#E0C486] dark:text-[#0A281E]"
-                : "text-heritage-muted hover:bg-heritage-primary/5"
-            }`}
-          >
-            <CreditCard className="size-4" />
-            Bảng so sánh gói dịch vụ
-          </button>
-        </div>
-
+      {/* Thanh công cụ: chọn phần nằm ở menu bên trái nên chỉ còn nút tải lại */}
+      <div className="flex flex-wrap items-center justify-end gap-4 border-b border-heritage-border pb-4">
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -714,27 +717,6 @@ export function AdminSettings() {
                 Bảo mật
               </button>
             </div>
-          </div>
-
-          {/* Category Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1">
-            {["Tất cả", ...Object.keys(groupedSettings)].map((cat) => {
-              const label = cat === "Tất cả" ? "Tất cả nhóm" : groupedSettings[cat]?.title || cat;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
-                    selectedCategory === cat
-                      ? "bg-[#0A281E] text-white dark:bg-[#E0C486] dark:text-[#0A281E]"
-                      : "border border-heritage-border bg-heritage-surface text-heritage-muted hover:bg-heritage-primary/5"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
           </div>
 
           {/* Grouped Settings Accordion */}
@@ -831,9 +813,6 @@ export function AdminSettings() {
                                     Bảo mật
                                   </span>
                                 )}
-                                <span className="font-mono text-[11px] text-muted-foreground opacity-80">
-                                  {item.key}
-                                </span>
                               </div>
                               <p className="text-xs text-heritage-muted">{item.description}</p>
                             </div>
@@ -951,7 +930,17 @@ export function AdminSettings() {
             </div>
           </div>
 
-          <PlanCatalogEditor getValue={getValue} setKeyValue={setKeyValue} />
+          <PlanCards getValue={getValue} setKeyValue={setKeyValue} />
+
+          {/* Sửa từng gói làm ngay trên thẻ; bảng này chỉ để thêm gói hoặc kỳ bán mới, nên thu gọn sẵn. */}
+          <details className="group rounded-2xl border border-heritage-border bg-heritage-surface">
+            <summary className="cursor-pointer list-none px-5 py-4 text-sm font-bold text-heritage-primary">
+              Nâng cao: thêm gói hoặc kỳ bán mới
+            </summary>
+            <div className="border-t border-heritage-border p-4">
+              <PlanCatalogEditor getValue={getValue} setKeyValue={setKeyValue} />
+            </div>
+          </details>
 
           {/* Sub-card: Add-on & Order Limits */}
           <section className="rounded-2xl border border-heritage-border bg-heritage-surface p-5">

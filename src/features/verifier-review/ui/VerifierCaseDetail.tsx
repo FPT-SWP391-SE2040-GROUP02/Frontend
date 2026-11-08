@@ -2,7 +2,7 @@ import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useId, useState, type ReactNode } from "react";
-import { CheckCircle2, ChevronLeft, RefreshCw, TriangleAlert, X } from "lucide-react";
+import { CheckCircle2, ChevronLeft, RefreshCw, TriangleAlert } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -170,7 +170,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     query.dataUpdatedAt,
   );
   const blockedReason = conditions.map((row) => row.reason).join("; ");
-  const openModal = (kind: "approve" | "reject" | "reviewFlag" | "supplement", flagId?: string) => {
+  const openModal = (kind: "approve" | "reviewFlag" | "supplement", flagId?: string) => {
     const next = new URLSearchParams(params);
     next.set("modal", kind);
     if (kind === "reviewFlag" && flagId) next.set("flagId", flagId);
@@ -445,7 +445,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           </Panel>
 
           {/* 2. QUYẾT ĐỊNH: ba ô có icon và mô tả */}
-          {actions.canReject && (
+          {(actions.canOpenApprove || actions.canRequestSupplement) && (
             <Panel title="Quyết định">
               <div className="space-y-3">
                 {actions.canOpenApprove && (
@@ -473,13 +473,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                     onClick={() => openModal("supplement")}
                   />
                 )}
-                <DecisionTile
-                  tone="reject"
-                  icon={<X className="size-5" aria-hidden="true" />}
-                  title="Từ chối"
-                  description="Hồ sơ không hợp lệ. Cần nêu lý do."
-                  onClick={() => openModal("reject")}
-                />
               </div>
               <p className="mt-4 text-sm text-heritage-muted">
                 Quyết định được ghi nhật ký và gửi tới người thực hiện. Chấp thuận chưa mở kho;

@@ -3,18 +3,27 @@ import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { ROUTES } from "@/shared/config/routes.config";
 import {
+  PAYMENT_FILTER_LABELS,
   PAYMENT_STATUS_LABELS,
   formatDateTime,
   formatMoney,
   paymentReasonLabel,
 } from "../model/admin.content";
 import {
-  PAYMENT_TRANSACTION_STATUSES,
+  PAYMENT_FILTER_STATUSES,
   type PaymentTransaction,
   type PaymentTransactionStatus,
 } from "../model/admin.schema";
 import { useAdminPaymentTransactions } from "../model/useAdmin";
 import { useAdminPaymentParams } from "../model/useAdminListParams";
+import {
+  ListDateField,
+  ListFilterBar,
+  ListSearchField,
+  ListSelectField,
+  ListTable,
+  ListTableRow,
+} from "@/shared/ui/listKit";
 import { AdminPagination } from "./AdminPagination";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
@@ -22,7 +31,7 @@ const STATUS_STYLES: Record<PaymentTransactionStatus, string> = {
   RECEIVED: "bg-stone-100 text-stone-700 border-stone-300",
   MATCHED: "bg-emerald-50 text-emerald-800 border-emerald-200",
   RECONCILIATION_REQUIRED: "bg-amber-50 text-amber-900 border-amber-300",
-  RESOLVED: "bg-sky-50 text-sky-800 border-sky-200",
+  RESOLVED: "bg-emerald-50 text-emerald-800 border-emerald-200",
 };
 
 function StatusBadge({ status }: { status: PaymentTransactionStatus }) {
@@ -43,23 +52,45 @@ export function AdminPayments() {
   const params = useAdminPaymentParams();
   return (
     <div className="mt-6 space-y-4">
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="block text-sm">
-          Trạng thái
-          <select
-            value={params.filters.status ?? ""}
-            onChange={(event) => params.setStatus(event.target.value || undefined)}
-            className="mt-1 min-h-11 w-full min-w-48 rounded-lg border border-heritage-border bg-white px-3 text-sm"
-          >
-            <option value="">Tất cả</option>
-            {PAYMENT_TRANSACTION_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {PAYMENT_STATUS_LABELS[status]}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+      <ListFilterBar onClear={params.hasFilters ? params.clearFilters : undefined}>
+        <ListSearchField
+          label="Tìm giao dịch"
+          placeholder="Tìm theo mã đơn hoặc mã tham chiếu"
+          value={params.filters.search}
+          maxLength={60}
+          onCommit={params.setSearch}
+        />
+        <ListSelectField
+          label="Trạng thái"
+          value={params.filters.status ?? ""}
+          allLabel="Mọi trạng thái"
+          options={PAYMENT_FILTER_STATUSES.map((status) => ({
+            value: status,
+            label: PAYMENT_FILTER_LABELS[status],
+          }))}
+          onChange={(value) => params.setStatus(value || undefined)}
+        />
+        <ListSelectField
+          label="Môi trường"
+          value={params.filters.environment ?? ""}
+          allLabel="Mọi môi trường"
+          options={[
+            { value: "Live", label: "Thật" },
+            { value: "Test", label: "Thử nghiệm" },
+          ]}
+          onChange={(value) => params.setEnvironment(value || undefined)}
+        />
+        <ListDateField
+          label="Từ"
+          value={params.filters.from ?? ""}
+          onChange={(value) => params.setFrom(value || undefined)}
+        />
+        <ListDateField
+          label="Đến"
+          value={params.filters.to ?? ""}
+          onChange={(value) => params.setTo(value || undefined)}
+        />
+      </ListFilterBar>
       <p role="note" className="text-sm text-heritage-muted">
         Giao dịch cần đối chiếu đã tự mở sự cố; xử lý ở trang{" "}
         <Link
@@ -71,7 +102,7 @@ export function AdminPayments() {
         . Trang này chỉ xem, không sửa giao dịch hay ghi nhận thanh toán.
       </p>
       <section aria-labelledby="admin-payments-heading" className="space-y-3">
-        <h2 id="admin-payments-heading" className="text-lg font-semibold">
+        <h2 id="admin-payments-heading" className="sr-only">
           Danh sách giao dịch
         </h2>
         <PaymentResult params={params} />
@@ -125,11 +156,6 @@ function PaymentResult({ params }: { params: ReturnType<typeof useAdminPaymentPa
         <p className="text-sm text-heritage-muted">
           {params.hasFilters ? "Không có giao dịch khớp bộ lọc." : "Hiện chưa có giao dịch nào."}
         </p>
-        {params.hasFilters && (
-          <Button variant="outline" className="min-h-11" onClick={params.clearFilters}>
-            Xóa bộ lọc
-          </Button>
-        )}
       </div>
     );
   return (
@@ -138,15 +164,16 @@ function PaymentResult({ params }: { params: ReturnType<typeof useAdminPaymentPa
       className={refreshing ? "opacity-60 transition-opacity" : undefined}
     >
       <p aria-live="polite" className="mb-3 text-sm text-heritage-muted">
-        {data.totalCount} giao dịch · Trang {data.pageIndex}/{data.totalPages}
+        <b>{data.totalCount}</b> dòng
       </p>
-      <ul className="space-y-2">
+      <ListTable
+        columns="140px minmax(170px,1fr) minmax(190px,1.2fr) minmax(150px,1fr)"
+        headings={["Nhận lúc", "Số tiền · mã đơn", "Trạng thái", "Ngân hàng · tham chiếu"]}
+      >
         {data.items.map((transaction) => (
-          <li key={transaction.id}>
-            <PaymentRow transaction={transaction} />
-          </li>
+          <PaymentRow key={transaction.id} transaction={transaction} />
         ))}
-      </ul>
+      </ListTable>
       <AdminPagination
         label="Phân trang giao dịch"
         pageIndex={data.pageIndex}
@@ -160,33 +187,45 @@ function PaymentResult({ params }: { params: ReturnType<typeof useAdminPaymentPa
   );
 }
 
+/** Viền trái: xanh khi thành công, đỏ khi cần đối chiếu, trơ khi mới nhận. */
+function paymentTone(status: PaymentTransactionStatus): "ok" | "bad" | "none" {
+  if (status === "MATCHED" || status === "RESOLVED") return "ok";
+  return status === "RECONCILIATION_REQUIRED" ? "bad" : "none";
+}
+
 function PaymentRow({ transaction }: { transaction: PaymentTransaction }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-heritage-border bg-heritage-surface p-4">
-      <span className="flex flex-wrap items-center gap-2">
-        <span className="font-medium tabular-nums">
-          {formatMoney(transaction.transferAmount, transaction.currency)}
-        </span>
-        <StatusBadge status={transaction.status} />
+    <ListTableRow tone={paymentTone(transaction.status)}>
+      <div className="flex flex-col items-start gap-2">
+        <b className="font-semibold tabular-nums">{formatDateTime(transaction.receivedAt)}</b>
         {transaction.environment === "Test" && (
-          <span className="inline-flex items-center rounded-full border border-stone-300 px-2.5 py-0.5 text-xs text-stone-600">
-            Thử nghiệm
+          <span className="inline-flex items-center rounded-full bg-stone-200 px-3 py-0.5 text-sm font-medium text-stone-700">
+            Test
           </span>
         )}
-      </span>
-      {transaction.reconciliationReason && (
-        <span className="break-words text-sm text-amber-900">
-          Lý do: {paymentReasonLabel(transaction.reconciliationReason)}
-        </span>
-      )}
-      <span className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-heritage-muted tabular-nums">
-        <span>Mã thanh toán: {transaction.paymentCode ?? "Không có"}</span>
-        <span>
-          Mã giao dịch {transaction.provider}: {transaction.providerTransactionId}
-        </span>
-        <span>Tiền vào: {formatDateTime(transaction.transactionAt)}</span>
-        <span>Nhận lúc: {formatDateTime(transaction.receivedAt)}</span>
-      </span>
-    </div>
+      </div>
+      <div className="flex flex-col gap-1">
+        <b className="font-semibold tabular-nums">
+          {formatMoney(transaction.transferAmount, transaction.currency)}
+        </b>
+        <small className="font-mono text-sm text-heritage-muted">
+          {transaction.paymentCode ?? "Không có mã"}
+        </small>
+      </div>
+      <div className="flex flex-col items-start gap-2">
+        <StatusBadge status={transaction.status} />
+        {transaction.reconciliationReason && (
+          <span className="break-words text-sm text-amber-900">
+            Lý do: {paymentReasonLabel(transaction.reconciliationReason)}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-col gap-1">
+        <b className="font-medium">{transaction.gateway ?? transaction.provider}</b>
+        <small className="break-all font-mono text-sm text-heritage-muted">
+          {transaction.referenceCode ?? String(transaction.providerTransactionId)}
+        </small>
+      </div>
+    </ListTableRow>
   );
 }

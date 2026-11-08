@@ -35,24 +35,6 @@ export interface ServiceContent {
 
 /** Nội dung từng dịch vụ đã nối. Dịch vụ Backend trả về mà chưa có ở đây thì trang không hiện thẻ. */
 export const SYSTEM_CONFIG_SERVICES: Record<string, ServiceContent> = {
-  GEMINI: {
-    title: "Gemini (AI nhận diện giấy chứng tử)",
-    description:
-      "Dùng khi người thực hiện gửi hồ sơ chứng tử. Khi Gemini lỗi, hồ sơ vẫn gửi được và người xét duyệt tự xem giấy.",
-    fields: [
-      {
-        name: "model",
-        label: "Tên model",
-        kind: "text",
-        hint: "Ví dụ gemini-flash-lite-latest. Chỉ gồm chữ, số, dấu chấm, gạch ngang và gạch dưới.",
-        pattern: /^[A-Za-z0-9._-]{1,100}$/,
-        patternMessage: "Chỉ gồm chữ, số, dấu chấm, gạch ngang và gạch dưới (tối đa 100 ký tự).",
-      },
-      { name: "timeoutSeconds", label: "Thời gian chờ (giây)", kind: "number", min: 5, max: 60 },
-      { name: "apiKey", label: "Khóa API", kind: "secret" },
-    ],
-    canTest: true,
-  },
   SMTP: {
     title: "Email (gửi thư hệ thống)",
     description:

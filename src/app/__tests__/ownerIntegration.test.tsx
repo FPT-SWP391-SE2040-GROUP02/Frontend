@@ -233,9 +233,9 @@ const checkIn = {
   graceEndsAt: null,
   settings: {
     cycleDays: 30,
-    graceDays: 7,
+    lateReminderGapDays: 3,
+    maxLateReminders: 3,
     pendingCycleDays: null,
-    pendingGraceDays: null,
     etag: "settings-v1",
   },
   history: {
@@ -265,7 +265,6 @@ it("does not check in a draft plan and saves only the confirmed schedule fields 
     expect(patch).toHaveBeenCalledWith("/vaults/me/check-in-settings", {
       etag: "settings-v1",
       cycleDays: 60,
-      graceDays: 7,
     }),
   );
 });

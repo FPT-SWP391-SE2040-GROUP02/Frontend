@@ -153,7 +153,8 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Điểm danh để dừng",
-        detail: "Chỉ cần điểm danh khi được nhắc, hệ thống không bàn giao. Sau khi có báo tin, kho khóa ngay.",
+        detail:
+          "Chỉ cần điểm danh khi được nhắc, hệ thống không bàn giao. Sau khi có báo tin, kho khóa ngay.",
       },
     ],
   },

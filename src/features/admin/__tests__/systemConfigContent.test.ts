@@ -10,7 +10,7 @@ const slot = {
   slot: "PRIMARY" as const,
   enabled: true,
   source: "DATABASE" as const,
-  settings: { model: "gemini-flash-lite-latest", timeoutSeconds: "20" },
+  settings: { baseUrl: "http://127.0.0.1:8879", timeoutSeconds: "60" },
   secrets: [{ name: "apiKey", hasValue: true, last4: "1a2b" }],
   version: 1,
   updatedAt: "2026-11-03T10:00:00+00:00",
@@ -22,7 +22,7 @@ function entry(
   source: "DATABASE" | "APPSETTINGS" = "DATABASE",
 ): SystemConfigEntry {
   return {
-    serviceKey: "GEMINI",
+    serviceKey: "EKYC",
     supportsFallback: true,
     slots: [{ ...slot, source }],
     status: {
@@ -127,7 +127,7 @@ describe("SMTP content", () => {
     userName: "mailer@example.test",
     fromAddress: "no-reply@example.test",
     fromName: "LegacyVault",
-    timeoutSeconds: "20",
+    timeoutSeconds: "60",
     webhookUrl: "",
     password: "",
     reason: "đổi máy chủ thư",
@@ -241,12 +241,12 @@ describe("EKYC content", () => {
 });
 
 describe("buildConfigFormSchema", () => {
-  const schema = buildConfigFormSchema(SYSTEM_CONFIG_SERVICES.GEMINI.fields);
+  const schema = buildConfigFormSchema(SYSTEM_CONFIG_SERVICES.EKYC.fields);
   const valid = {
-    model: "gemini-2.5-flash",
-    timeoutSeconds: "20",
+    baseUrl: "http://127.0.0.1:9000",
+    timeoutSeconds: "60",
     apiKey: "",
-    reason: "đổi model",
+    reason: "đổi địa chỉ dịch vụ",
     enabled: true,
   };
 
@@ -254,15 +254,18 @@ describe("buildConfigFormSchema", () => {
     expect(schema.safeParse(valid).success).toBe(true);
   });
 
-  it.each(["a/b", "m?key=1", "a b", ""])("từ chối model %j", (model) => {
-    expect(schema.safeParse({ ...valid, model }).success).toBe(false);
-  });
+  it.each(["ftp://x", "abc", "", "http://user:pass@127.0.0.1"])(
+    "từ chối địa chỉ dịch vụ %j",
+    (baseUrl) => {
+      expect(schema.safeParse({ ...valid, baseUrl }).success).toBe(false);
+    },
+  );
 
-  it.each(["4", "61", "abc", "", "20.5"])("từ chối thời gian chờ %j", (timeoutSeconds) => {
+  it.each(["4", "301", "abc", "", "20.5"])("từ chối thời gian chờ %j", (timeoutSeconds) => {
     expect(schema.safeParse({ ...valid, timeoutSeconds }).success).toBe(false);
   });
 
-  it.each(["5", "60"])("nhận thời gian chờ %j ở hai đầu khoảng", (timeoutSeconds) => {
+  it.each(["5", "300"])("nhận thời gian chờ %j ở hai đầu khoảng", (timeoutSeconds) => {
     expect(schema.safeParse({ ...valid, timeoutSeconds }).success).toBe(true);
   });
 

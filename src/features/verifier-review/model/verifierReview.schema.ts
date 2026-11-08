@@ -235,12 +235,6 @@ export const approveCaseRequestSchema = z.object({
   reason: z.string().trim().min(1, "Cần nhập lý do duyệt.").max(1000, "Lý do tối đa 1000 ký tự."),
   password: signingPassword,
 });
-/** Từ chối hồ sơ; cần nhập lại mật khẩu tài khoản để xác nhận (DEATH-03). */
-export const rejectCaseRequestSchema = z.object({
-  etag: z.string().min(1).max(64),
-  reason: z.string().trim().min(1, "Cần nhập lý do từ chối.").max(1000, "Lý do tối đa 1000 ký tự."),
-  password: signingPassword,
-});
 /** Nhãn tiếng Việt cho status hồ sơ. */
 export const caseStatusLabels: Record<z.infer<typeof verifierCaseStatusSchema>, string> = {
   UNDER_REVIEW: "Đang xét",

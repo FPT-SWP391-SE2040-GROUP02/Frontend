@@ -146,7 +146,8 @@ function ReportIntro({
   return (
     <div className="space-y-6">
       <Notice tone="danger" title="Hãy chắc chắn trước khi báo tin">
-        Kho và tài khoản của {vault.ownerFullName} bị khóa ngay khi bạn nộp hồ sơ, không hoàn tác được.
+        Kho và tài khoản của {vault.ownerFullName} bị khóa ngay khi bạn nộp hồ sơ, không hoàn tác
+        được.
       </Notice>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel title="Mở hồ sơ báo tin">

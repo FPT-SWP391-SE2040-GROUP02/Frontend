@@ -7,7 +7,7 @@ const primarySlot = {
   slot: "PRIMARY",
   enabled: true,
   source: "APPSETTINGS",
-  settings: { model: "gemini-flash-lite-latest", timeoutSeconds: "20" },
+  settings: { baseUrl: "http://127.0.0.1:8879", timeoutSeconds: "60" },
   secrets: [{ name: "apiKey", hasValue: true, last4: null }],
   version: 0,
   updatedAt: null,
@@ -17,7 +17,7 @@ const fallbackSlot = {
   slot: "FALLBACK",
   enabled: false,
   source: "APPSETTINGS",
-  settings: { model: "gemini-flash-lite-latest", timeoutSeconds: "20" },
+  settings: { baseUrl: "http://127.0.0.1:8879", timeoutSeconds: "60" },
   secrets: [{ name: "apiKey", hasValue: false, last4: null }],
   version: 0,
   updatedAt: null,
@@ -26,10 +26,10 @@ const fallbackSlot = {
 const status = { activeSlot: null, lastOutcome: null, lastAt: null, lastErrorCode: null };
 const listFixture = {
   services: [
-    { serviceKey: "GEMINI", supportsFallback: true, slots: [primarySlot, fallbackSlot], status },
+    { serviceKey: "EKYC", supportsFallback: true, slots: [primarySlot, fallbackSlot], status },
   ],
 };
-const draft = { model: "gemini-2.5-flash", timeoutSeconds: "20" };
+const draft = { baseUrl: "http://127.0.0.1:9000", timeoutSeconds: "60" };
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -40,7 +40,7 @@ describe("systemConfigService", () => {
     expect(get).toHaveBeenCalledWith("/admin/system-config", { signal: undefined });
 
     const missing = {
-      services: [{ serviceKey: "GEMINI", supportsFallback: true, slots: [primarySlot] }],
+      services: [{ serviceKey: "EKYC", supportsFallback: true, slots: [primarySlot] }],
     };
     get.mockResolvedValue(missing);
     await expect(systemConfigService.list()).rejects.toBeInstanceOf(ZodError);
@@ -69,14 +69,14 @@ describe("systemConfigService", () => {
 
   it("lưu: bỏ khóa để trống, cắt lý do và gửi đúng đường dẫn", async () => {
     const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...primarySlot, version: 1 });
-    await systemConfigService.update("GEMINI", "PRIMARY", {
+    await systemConfigService.update("EKYC", "PRIMARY", {
       settings: draft,
       secrets: { apiKey: "" },
       enabled: true,
       reason: "  hết quota khóa cũ  ",
       version: 0,
     });
-    expect(put).toHaveBeenCalledWith("/admin/system-config/GEMINI/PRIMARY", {
+    expect(put).toHaveBeenCalledWith("/admin/system-config/EKYC/PRIMARY", {
       settings: draft,
       enabled: true,
       reason: "hết quota khóa cũ",
@@ -98,7 +98,7 @@ describe("systemConfigService", () => {
 
   it("lưu: gửi khóa khi người dùng nhập khóa mới", async () => {
     const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...primarySlot, version: 1 });
-    await systemConfigService.update("GEMINI", "FALLBACK", {
+    await systemConfigService.update("EKYC", "FALLBACK", {
       settings: draft,
       secrets: { apiKey: " sk-new-1234 " },
       enabled: true,
@@ -106,7 +106,7 @@ describe("systemConfigService", () => {
       version: 0,
     });
     expect(put).toHaveBeenCalledWith(
-      "/admin/system-config/GEMINI/FALLBACK",
+      "/admin/system-config/EKYC/FALLBACK",
       expect.objectContaining({ secrets: { apiKey: "sk-new-1234" } }),
     );
   });
@@ -115,10 +115,10 @@ describe("systemConfigService", () => {
     const put = vi.spyOn(apiClient, "put").mockResolvedValue(primarySlot);
     const base = { settings: draft, enabled: true, version: 0 };
     await expect(
-      systemConfigService.update("GEMINI", "PRIMARY", { ...base, reason: "   " }),
+      systemConfigService.update("EKYC", "PRIMARY", { ...base, reason: "   " }),
     ).rejects.toBeInstanceOf(ZodError);
     await expect(
-      systemConfigService.update("GEMINI", "PRIMARY", { ...base, reason: "x".repeat(501) }),
+      systemConfigService.update("EKYC", "PRIMARY", { ...base, reason: "x".repeat(501) }),
     ).rejects.toBeInstanceOf(ZodError);
     expect(put).not.toHaveBeenCalled();
   });
@@ -126,7 +126,7 @@ describe("systemConfigService", () => {
   it("từ chối mã dịch vụ lạ để không ghép vào đường dẫn", async () => {
     const put = vi.spyOn(apiClient, "put").mockResolvedValue(primarySlot);
     await expect(
-      systemConfigService.update("gemini/../x", "PRIMARY", {
+      systemConfigService.update("ekyc/../x", "PRIMARY", {
         settings: draft,
         enabled: true,
         reason: "thử",
@@ -139,9 +139,9 @@ describe("systemConfigService", () => {
   it("khôi phục: gửi lý do tới đường dẫn reset và trả về không có gì", async () => {
     const post = vi.spyOn(apiClient, "post").mockResolvedValue(undefined);
     await expect(
-      systemConfigService.reset("GEMINI", "PRIMARY", { reason: " về mặc định " }),
+      systemConfigService.reset("EKYC", "PRIMARY", { reason: " về mặc định " }),
     ).resolves.toBeUndefined();
-    expect(post).toHaveBeenCalledWith("/admin/system-config/GEMINI/PRIMARY/reset", {
+    expect(post).toHaveBeenCalledWith("/admin/system-config/EKYC/PRIMARY/reset", {
       reason: "về mặc định",
     });
   });
@@ -151,9 +151,9 @@ describe("systemConfigService", () => {
       .spyOn(apiClient, "post")
       .mockResolvedValue({ ok: false, errorCode: "HTTP_401", latencyMs: 12 });
     await expect(
-      systemConfigService.test("GEMINI", "PRIMARY", { settings: draft, secrets: { apiKey: "" } }),
+      systemConfigService.test("EKYC", "PRIMARY", { settings: draft, secrets: { apiKey: "" } }),
     ).resolves.toEqual({ ok: false, errorCode: "HTTP_401", latencyMs: 12 });
-    expect(post).toHaveBeenCalledWith("/admin/system-config/GEMINI/PRIMARY/test", {
+    expect(post).toHaveBeenCalledWith("/admin/system-config/EKYC/PRIMARY/test", {
       settings: draft,
     });
   });

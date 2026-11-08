@@ -13,7 +13,8 @@ export function reportHeading(record: DeathCase | null | undefined): ReportHeadi
   if (!record) {
     return {
       title: "Báo tin",
-      description: "Tải giấy chứng tử lên và nộp. Kho khóa ngay khi nộp, hồ sơ sang Người xét duyệt.",
+      description:
+        "Tải giấy chứng tử lên và nộp. Kho khóa ngay khi nộp, hồ sơ sang Người xét duyệt.",
       badge: null,
     };
   }

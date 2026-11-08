@@ -11,15 +11,14 @@ import { checkInService } from "../api/checkInService";
 type Status = z.infer<typeof checkInStatusSchema>;
 const formSchema = z.object({
   cycleDays: z.enum(["30", "60", "90"]),
-  graceDays: z.enum(["7", "14", "30"]),
 });
 const CYCLE_OPTIONS = [30, 60, 90];
-const GRACE_OPTIONS = [7, 14, 30];
 const SELECT_CLASS =
   "block min-h-11 w-full rounded-lg border border-heritage-border bg-heritage-surface px-3";
 
 /**
- * Lịch điểm danh: chu kỳ và thời gian ân hạn. Giữ etag đọc ban đầu; 409 phải tải lại, không ghi đè.
+ * Lịch điểm danh: chủ kho chỉ chọn chu kỳ. Số thư nhắc trễ và khoảng cách giữa các thư do Admin đặt nên chỉ hiện để xem.
+ * Giữ etag đọc ban đầu; 409 phải tải lại, không ghi đè.
  * Khi đang có kỳ chạy, lịch mới áp dụng từ kỳ sau và không đổi hạn hiện tại.
  */
 export function CheckInSettingsForm({ vaultId, status }: { vaultId: string; status: Status }) {
@@ -33,8 +32,6 @@ export function CheckInSettingsForm({ vaultId, status }: { vaultId: string; stat
     defaultValues: {
       cycleDays: String(status.settings.pendingCycleDays ?? status.settings.cycleDays) as
         "30" | "60" | "90",
-      graceDays: String(status.settings.pendingGraceDays ?? status.settings.graceDays) as
-        "7" | "14" | "30",
     },
   });
 
@@ -56,7 +53,6 @@ export function CheckInSettingsForm({ vaultId, status }: { vaultId: string; stat
                 updateCheckInSettingsSchema.parse({
                   etag,
                   cycleDays: Number(values.cycleDays),
-                  graceDays: Number(values.graceDays),
                 }),
               ),
             sync,
@@ -74,16 +70,6 @@ export function CheckInSettingsForm({ vaultId, status }: { vaultId: string; stat
               ))}
             </select>
           </label>
-          <label className="block space-y-2 text-sm">
-            Thời gian ân hạn
-            <select {...form.register("graceDays")} className={SELECT_CLASS}>
-              {GRACE_OPTIONS.map((days) => (
-                <option key={days} value={days}>
-                  {days} ngày
-                </option>
-              ))}
-            </select>
-          </label>
           <Button
             type="submit"
             size="lg"
@@ -95,12 +81,14 @@ export function CheckInSettingsForm({ vaultId, status }: { vaultId: string; stat
         <p className="text-xs leading-5 text-heritage-muted">
           Khi đang có kỳ chạy, lịch mới áp dụng từ kỳ sau; không đổi hạn hiện tại.
         </p>
+        <p className="text-xs leading-5 text-heritage-muted">
+          Quá hạn, hệ thống gửi tối đa {status.settings.maxLateReminders} thư nhắc trễ, cách nhau{" "}
+          {status.settings.lateReminderGapDays} ngày. Sau thư cuối mà bạn vẫn chưa điểm danh, Người
+          thực thi sẽ được báo để liên hệ kiểm tra.
+        </p>
       </form>
       {status.settings.pendingCycleDays !== null && (
-        <p className="text-sm">
-          Chu kỳ chờ áp dụng: {status.settings.pendingCycleDays} ngày; ân hạn:{" "}
-          {status.settings.pendingGraceDays ?? status.settings.graceDays} ngày.
-        </p>
+        <p className="text-sm">Chu kỳ chờ áp dụng: {status.settings.pendingCycleDays} ngày.</p>
       )}
       {action.pending && <p role="status">Đang gửi yêu cầu…</p>}
       {action.error && (

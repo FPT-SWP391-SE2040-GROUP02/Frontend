@@ -26,7 +26,9 @@ export const STATUS_LABELS: Record<AdminUserStatus, string> = {
 };
 
 export interface DashboardCounter {
-  key: Exclude<keyof AdminDashboard, "serverTime">;
+  key: {
+    [K in keyof AdminDashboard]: AdminDashboard[K] extends number ? K : never;
+  }[keyof AdminDashboard];
   label: string;
   /** Số > 0 cần Admin chú ý. */
   attention: boolean;
@@ -68,6 +70,36 @@ export const DASHBOARD_GROUPS: DashboardGroup[] = [
   },
 ];
 
+/** Giai đoạn của kế hoạch (PlanStatus dạng API) hiện ở khối "Kế hoạch theo giai đoạn". */
+export const PLAN_STAGE_LABELS: Record<string, string> = {
+  DRAFT: "Đang thiết lập",
+  ACTIVE: "Đang chạy",
+  CHECKIN_OVERDUE: "Quá hạn điểm danh",
+  AWAITING_CHECK: "Chờ Người thực thi",
+  DEATH_CASE_OPEN: "Đang xét hồ sơ",
+  HANDOVER_IN_PROGRESS: "Đang bàn giao",
+  BLOCKED: "Bị đóng băng",
+};
+
+export const planStageLabel = (stage: string) => PLAN_STAGE_LABELS[stage] ?? stage;
+
+/** Trạng thái hồ sơ chứng tử (DeathCaseStatus dạng API) hiện ở chi tiết người dùng. */
+export const CASE_STATUS_LABELS: Record<string, string> = {
+  UNDER_REVIEW: "Đang xét",
+  SUPPLEMENT_REQUIRED: "Cần bổ sung",
+};
+
+export const DECISION_KIND_LABELS: Record<string, string> = {
+  APPROVED: "Đã duyệt",
+  SUPPLEMENT_REQUESTED: "Yêu cầu bổ sung",
+};
+
+export const AUDIT_OUTCOME_LABELS: Record<string, string> = {
+  SUCCEEDED: "Thành công",
+  DENIED: "Bị từ chối",
+  FAILED: "Thất bại",
+};
+
 export const ERROR_MESSAGES: Record<AdminErrorKind, string> = {
   forbidden: "Bạn không có quyền truy cập khu vực quản trị.",
   badRequest: "Bộ lọc không hợp lệ.",
@@ -84,10 +116,14 @@ export const INCIDENT_TYPE_LABELS: Record<IncidentType, string> = {
   CHECK_IN_OVERDUE: "Quá hạn điểm danh",
   NOTIFICATION_FAILED: "Gửi thông báo thất bại",
   OWNER_ALIVE: "Báo còn sống (luồng đã gỡ)",
-  INTEGRATION: "Lỗi tích hợp",
+  INTEGRATION: "Dịch vụ ngoài lỗi",
   MANUAL: "Tạo thủ công",
   PAYMENT: "Giao dịch thanh toán lệch",
   SUSPICIOUS_LOGIN: "Đăng nhập bất thường",
+  STALE_CASE: "Hồ sơ quá hạn xét duyệt",
+  SUPPLEMENT_LOOP: "Hồ sơ bị yêu cầu bổ sung nhiều lần",
+  PLAN_EXPIRING: "Gói sắp hết hạn",
+  PROXY_LIMIT: "Hết lượt điểm danh thay",
 };
 
 export const INCIDENT_STATUS_LABELS: Record<IncidentStatus, string> = {
@@ -127,12 +163,20 @@ export const HOLD_SCOPE_LABELS: Record<string, string> = {
 
 export const holdScopeLabel = (scope: string) => HOLD_SCOPE_LABELS[scope] ?? scope;
 
+/** Đã khớp đơn và đã xử lý đều là giao dịch thành công, nên hiện chung một nhãn. */
 export const PAYMENT_STATUS_LABELS: Record<PaymentTransactionStatus, string> = {
-  RECEIVED: "Đã nhận",
-  MATCHED: "Khớp đơn",
+  RECEIVED: "Đã nhận, chờ xử lý",
+  MATCHED: "Thành công",
   RECONCILIATION_REQUIRED: "Cần đối chiếu",
-  RESOLVED: "Đã xử lý",
+  RESOLVED: "Thành công",
 };
+
+/** Nhãn của giá trị lọc trạng thái giao dịch. */
+export const PAYMENT_FILTER_LABELS = {
+  SUCCESS: "Thành công",
+  RECEIVED: "Đã nhận, chờ xử lý",
+  RECONCILIATION_REQUIRED: "Cần đối chiếu",
+} as const;
 
 /** Lý do lệch theo PaymentReconciliationReasons của Backend. */
 export const PAYMENT_REASON_LABELS: Record<string, string> = {
@@ -179,3 +223,10 @@ export function reviewDateError(value: string, now = new Date()): string {
     return "Hạn xem lại tối đa 7 ngày kể từ bây giờ.";
   return "";
 }
+
+/** Vai trò chịu trách nhiệm xử lý sự cố; hiện ở danh sách và chi tiết dạng "Đang chờ …". */
+export const RESPONSIBLE_ROLE_LABELS = {
+  ADMIN: "Quản trị viên",
+  EXECUTOR: "Người thực thi",
+  VERIFIER: "Người xét duyệt",
+} as const;
