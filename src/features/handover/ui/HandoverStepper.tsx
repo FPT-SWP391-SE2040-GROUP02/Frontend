@@ -4,7 +4,7 @@ const stepLabels = (objectionHours: number, grantDays: number) => [
   "Báo tin",
   `Phản đối ${objectionHours} giờ`,
   "Xét duyệt",
-  "Xác minh eKYC",
+  "Xác minh danh tính",
   "Đồng ý hoặc từ chối",
   `Tải nội dung ${grantDays} ngày`,
 ];
