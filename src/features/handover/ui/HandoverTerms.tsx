@@ -18,7 +18,9 @@ export function HandoverTerms({ groupName }: { groupName: string }) {
           <li>Thực hiện nghĩa vụ tài sản của người mất trong phạm vi di sản nhận được.</li>
           <li>Sau khi đồng ý thì không đổi sang từ chối trong hệ thống.</li>
         </ul>
-        <p className="mt-2 text-xs text-heritage-muted">Bộ luật Dân sự 2015, Điều 614 và 615.</p>
+        <p className="mt-2 text-xs text-heritage-muted">
+          Bộ luật Dân sự 2015, Điều 614, 615 và 621.
+        </p>
       </section>
       <section className="rounded-2xl border border-[#A32119]/30 bg-[#FDF3F1] p-4">
         <h4 className="flex items-center gap-2 font-semibold text-[#A32119]">

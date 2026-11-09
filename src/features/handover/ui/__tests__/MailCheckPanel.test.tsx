@@ -105,7 +105,7 @@ describe("HandoverTerms", () => {
     expect(screen.getByRole("heading", { name: "Chấp nhận" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Từ chối" })).toBeInTheDocument();
     expect(screen.getByText(/coi như biến mất, không giao cho ai/)).toBeInTheDocument();
-    expect(screen.getByText(/Điều 614 và 615/)).toBeInTheDocument();
+    expect(screen.getByText(/Điều 614, 615 và 621/)).toBeInTheDocument();
     expect(screen.getByText(/Điều 620/)).toBeInTheDocument();
     expect(screen.getAllByText(/Gói gia đình/).length).toBeGreaterThanOrEqual(2);
   });

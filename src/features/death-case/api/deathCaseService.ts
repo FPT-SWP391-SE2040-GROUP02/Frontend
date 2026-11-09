@@ -9,7 +9,6 @@ import {
 } from "../model/deathCase.schema";
 import { proxyCheckInRequestSchema, type ProxyCheckInRequest } from "../model/proxyCheckIn.schema";
 import {
-  confirmIdentitySchema,
   handoverProgressSchema,
   resendInvitationSchema,
   sendHandoverKeySchema,
@@ -119,7 +118,7 @@ export const deathCaseService = {
     );
   },
   /** Gửi lại lời mời cho lượt chưa ai nhận; link cũ hết dùng, cách nhau tối thiểu 15 phút (BE mục 6.16). */
-  /** PDF văn bản từ chối của lượt người nhận đã từ chối; Backend kiểm toàn vẹn trước byte đầu tiên. */
+  /** Ảnh văn bản từ chối hoặc biên bản đồng ý của lượt đã có quyết định; Backend kiểm toàn vẹn trước byte đầu tiên. */
   async declinePaper(caseId: string, turnId: string, signal?: AbortSignal): Promise<Blob> {
     return apiClient.get<Blob, Blob>(
       `${path(caseId)}/handover-turns/${id.parse(turnId)}/decline-paper`,
@@ -142,14 +141,6 @@ export const deathCaseService = {
       await apiClient.post<unknown, unknown>(
         `${path(caseId)}/handover-turns/${id.parse(turnId)}/send-key`,
         { key },
-      ),
-    );
-  },
-  /** Xác nhận đúng người bằng tay khi người nhận không qua được eKYC; lượt sang READY_TO_ACCEPT (BR-122). */
-  async confirmIdentity(caseId: string, turnId: string) {
-    return confirmIdentitySchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${path(caseId)}/handover-turns/${id.parse(turnId)}/confirm-identity`,
       ),
     );
   },

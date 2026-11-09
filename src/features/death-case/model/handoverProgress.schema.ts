@@ -42,6 +42,8 @@ const progressTurnSchema = z.object({
   identityConfirmedByExecutor: z.boolean(),
   invitedAt: timestamp,
   responseDeadline: timestamp,
+  /** null: Người thực thi chưa gửi thư mời lần nào (hệ thống không tự gửi). */
+  invitationSentAt: timestamp.nullable().default(null),
   claimedAt: timestamp.nullable(),
   decisionDeadline: timestamp.nullable(),
   decidedAt: timestamp.nullable(),
@@ -83,20 +85,6 @@ export const RESENDABLE_TURN_STATUSES: ReadonlyArray<HandoverProgressTurn["statu
   "INVITED",
   "INITIAL_RESPONSE_EXPIRED",
 ];
-
-/** Lượt đã có người nhận và đang chờ xác minh danh tính: Executor được xác nhận đúng người bằng tay (BR-122). */
-export function canConfirmIdentity(turn: HandoverProgressTurn): boolean {
-  return turn.status === "IDENTITY_IN_PROGRESS" && !turn.claimedByYou;
-}
-
-/** ConfirmHandoverIdentityResponse của POST .../handover-turns/{turnId}/confirm-identity. */
-export const confirmIdentitySchema = z.object({
-  turnId: z.string().uuid(),
-  status: handoverTurnStatusSchema,
-  identityConfirmedAt: timestamp,
-  decisionDeadline: timestamp,
-});
-export type ConfirmIdentityResult = z.infer<typeof confirmIdentitySchema>;
 
 /** Lượt còn đang chờ người nhận hoàn tất: Executor được gửi khóa mở gói cho người nhận qua email. */
 export const KEY_MAILABLE_TURN_STATUSES: ReadonlyArray<HandoverProgressTurn["status"]> = [

@@ -8,7 +8,6 @@ import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
 import { deathCaseService } from "../api/deathCaseService";
 import {
-  canConfirmIdentity,
   KEY_MAILABLE_TURN_STATUSES,
   RESENDABLE_TURN_STATUSES,
   type HandoverProgress,
@@ -95,7 +94,15 @@ function Deadline({
  */
 const PAPER_ZOOM_STEPS = [50, 75, 100, 125, 150, 200];
 
-function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
+function DeclinePaper({
+  caseId,
+  turnId,
+  label = "văn bản từ chối",
+}: {
+  caseId: string;
+  turnId: string;
+  label?: string;
+}) {
   const action = usePrivateAction();
   const [url, setUrl] = useState<string | null>(null);
   const [zoomIndex, setZoomIndex] = useState(2);
@@ -123,7 +130,7 @@ function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
           onClick={open}
           disabled={action.pending}
         >
-          {action.pending ? "Đang tải…" : "Xem văn bản từ chối"}
+          {action.pending ? "Đang tải…" : `Xem ${label}`}
         </button>
         {action.error && (
           <p role="alert" className="text-sm text-[#A32119]">
@@ -135,7 +142,7 @@ function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
   }
   const zoom = PAPER_ZOOM_STEPS[zoomIndex];
   return (
-    <section aria-label="Văn bản từ chối" className="space-y-3">
+    <section aria-label={label[0].toUpperCase() + label.slice(1)} className="space-y-3">
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Điều khiển ảnh">
         <button
           type="button"
@@ -166,7 +173,7 @@ function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
         </button>
         <a
           href={url}
-          download="van-ban-tu-choi.png"
+          download={label === "biên bản đồng ý" ? "bien-ban-dong-y.png" : "van-ban-tu-choi.png"}
           className={`${buttonStyles.outline} inline-flex`}
         >
           <Download className="size-4" aria-hidden="true" />
@@ -179,7 +186,11 @@ function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
       <div className="h-[28rem] overflow-auto rounded-xl border border-heritage-border bg-[#ECE8DB]">
         <img
           src={url}
-          alt="Văn bản từ chối nhận di sản"
+          alt={
+            label === "biên bản đồng ý"
+              ? "Văn bản khai nhận di sản thừa kế"
+              : "Văn bản từ chối nhận di sản"
+          }
           style={{
             width: `${zoom}%`,
             transform: `rotate(${rotation}deg)`,
@@ -196,7 +207,15 @@ function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
  * Gửi lại lời mời cho lượt chưa ai nhận. Không optimistic: chỉ báo thành công sau response của BE,
  * rồi đọc lại tiến độ. Link cũ hết dùng nên cần xác nhận trước khi gửi.
  */
-function ResendInvitation({ caseId, turnId }: { caseId: string; turnId: string }) {
+function ResendInvitation({
+  caseId,
+  turnId,
+  firstSend,
+}: {
+  caseId: string;
+  turnId: string;
+  firstSend: boolean;
+}) {
   const { resendCooldownMinutes } = usePolicyWindows();
   const client = useQueryClient();
   const action = usePrivateAction();
@@ -215,14 +234,21 @@ function ResendInvitation({ caseId, turnId }: { caseId: string; turnId: string }
     <div className="space-y-2">
       {!confirming ? (
         <button type="button" className={buttonStyles.outline} onClick={() => setConfirming(true)}>
-          Gửi lại lời mời
+          {firstSend ? "Gửi thư mời" : "Gửi lại lời mời"}
         </button>
       ) : (
         <div className="space-y-3 rounded-xl border border-heritage-border bg-white/60 p-4 text-sm">
-          <p>
-            Lời mời cũ sẽ không dùng được nữa. Hạn phản hồi không đặt lại. Chỉ gửi lại được sau tối
-            thiểu {resendCooldownMinutes} phút kể từ lần gửi trước.
-          </p>
+          {firstSend ? (
+            <p>
+              Hệ thống không tự gửi thư. Bấm xác nhận để gửi thư mời nhận tài sản tới người nhận;
+              hạn phản hồi tính từ lúc thư được gửi.
+            </p>
+          ) : (
+            <p>
+              Lời mời cũ sẽ không dùng được nữa. Hạn phản hồi không đặt lại. Chỉ gửi lại được sau
+              tối thiểu {resendCooldownMinutes} phút kể từ lần gửi trước.
+            </p>
+          )}
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -230,7 +256,7 @@ function ResendInvitation({ caseId, turnId }: { caseId: string; turnId: string }
               onClick={send}
               disabled={action.pending}
             >
-              {action.pending ? "Đang gửi…" : "Xác nhận gửi lại"}
+              {action.pending ? "Đang gửi…" : firstSend ? "Xác nhận gửi" : "Xác nhận gửi lại"}
             </button>
             <button
               type="button"
@@ -334,60 +360,6 @@ function SendKey({ caseId, turnId }: { caseId: string; turnId: string }) {
   );
 }
 
-/**
- * Executor xác nhận đúng người bằng tay khi người nhận không qua được eKYC (BR-122). Executor tự gặp hoặc liên lạc
- * ngoài hệ thống. Không optimistic: chỉ báo thành công sau response của BE, rồi đọc lại tiến độ.
- */
-function ConfirmIdentity({ caseId, turnId }: { caseId: string; turnId: string }) {
-  const client = useQueryClient();
-  const action = usePrivateAction();
-  const [confirming, setConfirming] = useState(false);
-  const confirm = () =>
-    void action.execute(
-      () => deathCaseService.confirmIdentity(caseId, turnId),
-      () => {
-        setConfirming(false);
-        void client.invalidateQueries({ queryKey: handoverProgressKey(caseId) });
-      },
-    );
-  return (
-    <div className="space-y-2">
-      {!confirming ? (
-        <button type="button" className={buttonStyles.dark} onClick={() => setConfirming(true)}>
-          Xác nhận đúng người
-        </button>
-      ) : (
-        <div className="space-y-3 rounded-xl border border-heritage-border bg-white/60 p-4 text-sm">
-          <p className="font-medium">Tôi đã xác nhận đúng người</p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className={buttonStyles.dark}
-              onClick={confirm}
-              disabled={action.pending}
-            >
-              {action.pending ? "Đang xác nhận…" : "Xác nhận"}
-            </button>
-            <button
-              type="button"
-              className={buttonStyles.outline}
-              onClick={() => setConfirming(false)}
-              disabled={action.pending}
-            >
-              Hủy
-            </button>
-          </div>
-        </div>
-      )}
-      {action.error && (
-        <p role="alert" className="text-sm text-destructive">
-          {action.error}
-        </p>
-      )}
-    </div>
-  );
-}
-
 const isFinished = (turn: HandoverProgressTurn) =>
   turn.status === "HANDOVER_COMMITTED" &&
   turn.totalItems > 0 &&
@@ -448,7 +420,11 @@ function TurnDetail({
       </dl>
       {RESENDABLE_TURN_STATUSES.includes(turn.status) && (
         <div className="mt-4">
-          <ResendInvitation caseId={caseId} turnId={turn.turnId} />
+          <ResendInvitation
+            caseId={caseId}
+            turnId={turn.turnId}
+            firstSend={turn.invitationSentAt === null}
+          />
         </div>
       )}
       {turn.status === "DECLINED" && (
@@ -456,20 +432,15 @@ function TurnDetail({
           <DeclinePaper caseId={caseId} turnId={turn.turnId} />
         </div>
       )}
+      {turn.status === "HANDOVER_COMMITTED" && (
+        <div className="mt-4">
+          <DeclinePaper caseId={caseId} turnId={turn.turnId} label="biên bản đồng ý" />
+        </div>
+      )}
       {KEY_MAILABLE_TURN_STATUSES.includes(turn.status) && (
         <div className="mt-4">
           <SendKey caseId={caseId} turnId={turn.turnId} />
         </div>
-      )}
-      {canConfirmIdentity(turn) && (
-        <div className="mt-4">
-          <ConfirmIdentity caseId={caseId} turnId={turn.turnId} />
-        </div>
-      )}
-      {turn.status === "IDENTITY_IN_PROGRESS" && turn.claimedByYou && (
-        <p className="mt-4 text-sm text-heritage-muted">
-          Lượt này do chính tài khoản của bạn nhận nên bạn không tự xác nhận được.
-        </p>
       )}
       {turn.identityConfirmedByExecutor && (
         <p className="mt-4 text-sm text-heritage-muted">

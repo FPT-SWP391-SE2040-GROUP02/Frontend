@@ -10,23 +10,23 @@ export function RecipientGuide({ defaultOpen = false }: { defaultOpen?: boolean 
   const steps = [
     {
       title: "Nhận lời mời",
-      text: `Bấm “Nhận lời mời” sau khi đăng nhập. Hãy phản hồi trong ${policy.responseDays} ngày kể từ lúc được mời; quá hạn thì nhờ Người thực hiện gửi lại lời mời.`,
+      text: `Bấm “Nhận lời mời” sau khi đăng nhập. Hãy phản hồi trong ${policy.responseDays} ngày kể từ lúc được mời; quá hạn thì nhờ Người thực thi gửi lại lời mời.`,
     },
     {
-      title: "Xác minh danh tính",
-      text: "Chuẩn bị căn cước công dân bản gốc và thiết bị có camera, chỗ đủ sáng. Bạn chụp mặt trước, mặt sau, làm theo hướng dẫn trên camera rồi hệ thống so khuôn mặt. Họ tên và số căn cước phải khớp thông tin Chủ kho đã khai; nếu lệch, Người thực hiện sẽ xem xét giúp bạn.",
-    },
-    {
-      title: "Nhập khóa mở gói (nếu được yêu cầu)",
-      text: "Một số gói cần khóa mở gói. Khóa do Người thực hiện của kho đưa cho bạn, hãy liên hệ trực tiếp để lấy. Nhập sai nhiều lần thì lượt bị khóa và cần Người thực hiện hoặc quản trị viên mở lại.",
+      title: "Nộp văn bản và ảnh căn cước",
+      text: "Chọn Chấp nhận hoặc Từ chối, điền họ tên, số căn cước, ngày sinh và chụp hai mặt căn cước. Người xét duyệt đối chiếu với thông tin Chủ kho đã khai; nếu thiếu, họ sẽ nêu lý do để bạn bổ sung.",
     },
     {
       title: "Đồng ý hoặc từ chối",
-      text: `Sau khi xác minh xong bạn có ${policy.decisionDays} ngày để quyết định. Từ chối thì phần này không được bàn giao cho bạn; quá hạn mà chưa quyết định thì lượt hết hiệu lực.`,
+      text: `Sau khi hồ sơ được duyệt bạn có ${policy.decisionDays} ngày để quyết định. Từ chối thì phần này không được bàn giao cho bạn; quá hạn mà chưa quyết định thì lượt hết hiệu lực.`,
     },
     {
-      title: "Xem và tải nội dung",
-      text: `Đồng ý rồi, bạn xem và tải từng tài sản trong ${policy.grantDays} ngày. Hãy tải về sớm vì sau thời hạn lưu, nội dung được xóa khỏi hệ thống.`,
+      title: "Lấy khóa mở gói",
+      text: "Sau khi đồng ý và được duyệt, hãy liên hệ trực tiếp Người thực thi của kho để lấy khóa mở gói rồi nhập vào hệ thống. Nhập sai nhiều lần thì lượt bị khóa và cần Người thực thi hoặc quản trị viên mở lại.",
+    },
+    {
+      title: "Tải nội dung",
+      text: `Có khóa rồi, bạn xem và tải từng tài sản trong ${policy.grantDays} ngày. Hãy tải về sớm vì sau thời hạn lưu, nội dung được xóa khỏi hệ thống.`,
     },
   ];
   return (

@@ -22,10 +22,10 @@ describe("RecipientGuide", () => {
 
     const titles = [
       "Nhận lời mời",
-      "Xác minh danh tính",
-      "Nhập khóa mở gói (nếu được yêu cầu)",
+      "Nộp văn bản và ảnh căn cước",
       "Đồng ý hoặc từ chối",
-      "Xem và tải nội dung",
+      "Lấy khóa mở gói",
+      "Tải nội dung",
     ];
     const items = screen.getAllByRole("listitem");
     expect(items).toHaveLength(5);
