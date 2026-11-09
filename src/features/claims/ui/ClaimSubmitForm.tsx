@@ -91,7 +91,7 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
         <h3 className="text-lg font-bold text-[#0B291E]">Đã Gửi Hồ Sơ Thành Công</h3>
         <p className="text-xs text-[#66786E] max-w-md mx-auto leading-relaxed">
           Hồ sơ yêu cầu mở thừa kế của bạn đã được tiếp nhận và chuyển đến danh sách thẩm định của
-          Công chứng viên. Bạn sẽ nhận được thông báo ngay khi có kết quả duyệt.
+          Người xét duyệt. Bạn sẽ nhận được thông báo ngay khi có kết quả duyệt.
         </p>
       </Card>
     );

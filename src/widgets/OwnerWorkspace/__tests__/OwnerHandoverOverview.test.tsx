@@ -4,14 +4,10 @@ import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
-import { useOwnerDeathCase } from "@/features/owner-objection/model/useOwnerDeathCase";
 import { OwnerHandoverOverview } from "../OwnerHandoverOverview";
 
 vi.mock("@/features/plan-setup/model/usePlanSetup", () => ({ usePlanSetup: vi.fn() }));
 vi.mock("@/features/dms/model/useCheckIn", () => ({ useCheckIn: vi.fn() }));
-vi.mock("@/features/owner-objection/model/useOwnerDeathCase", () => ({
-  useOwnerDeathCase: vi.fn(),
-}));
 vi.mock("@/features/dms/api/checkInService", () => ({ checkInService: { checkIn: vi.fn() } }));
 
 const VAULT_ID = "22222222-2222-4222-8222-222222222222";
@@ -42,10 +38,6 @@ function checkInResult(planStatus: string) {
   };
 }
 
-function deathCaseResult(data: unknown) {
-  return { isPending: false, isError: false, isFetching: false, data, refetch: vi.fn() };
-}
-
 let client: QueryClient;
 beforeEach(() => {
   vi.resetAllMocks();
@@ -70,7 +62,6 @@ describe("tổng quan bàn giao của Chủ kho", () => {
   it("hiện quy trình 5 bước, cần mời Người thực hiện và chưa có yêu cầu bàn giao", () => {
     vi.mocked(usePlanSetup).mockReturnValue(planSetupResult([]) as never);
     vi.mocked(useCheckIn).mockReturnValue(checkInResult("ACTIVE") as never);
-    vi.mocked(useOwnerDeathCase).mockReturnValue(deathCaseResult(null) as never);
     renderOverview();
 
     expect(screen.getByRole("heading", { name: "Quy trình bàn giao" })).toBeInTheDocument();
@@ -81,8 +72,8 @@ describe("tổng quan bàn giao của Chủ kho", () => {
       "/dashboard/trusted-people",
     );
     expect(screen.getByText("Hệ thống phân công")).toBeInTheDocument();
-    expect(screen.getByText(/Chưa có yêu cầu bàn giao/)).toBeInTheDocument();
-    expect(screen.getByText("Điều 4. Thời gian phản đối 72 giờ")).toBeInTheDocument();
+    expect(screen.getByText(/khóa ngay/)).toBeInTheDocument();
+    expect(screen.queryByText(/phản đối/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Điểm danh" })).toBeEnabled();
   });
 
@@ -94,7 +85,6 @@ describe("tổng quan bàn giao của Chủ kho", () => {
       ]) as never,
     );
     vi.mocked(useCheckIn).mockReturnValue(checkInResult("DRAFT") as never);
-    vi.mocked(useOwnerDeathCase).mockReturnValue(deathCaseResult(null) as never);
     renderOverview();
 
     expect(screen.getByText("hai@example.test")).toBeInTheDocument();
@@ -102,22 +92,5 @@ describe("tổng quan bàn giao của Chủ kho", () => {
     expect(screen.queryByRole("link", { name: "Mời người thực hiện" })).not.toBeInTheDocument();
     expect(screen.queryByText(/dự phòng/)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Điểm danh" })).toBeDisabled();
-  });
-
-  it("hiện mã hồ sơ khi kho đang có yêu cầu bàn giao", () => {
-    vi.mocked(usePlanSetup).mockReturnValue(planSetupResult([]) as never);
-    vi.mocked(useCheckIn).mockReturnValue(checkInResult("ACTIVE") as never);
-    vi.mocked(useOwnerDeathCase).mockReturnValue(
-      deathCaseResult({
-        caseId: "33333333-3333-4333-8333-333333333333",
-        caseCode: "DC-0001",
-        status: "UNDER_REVIEW",
-        objectionEndsAt: null,
-      }) as never,
-    );
-    renderOverview();
-
-    expect(screen.getByText("DC-0001")).toBeInTheDocument();
-    expect(screen.queryByText(/Chưa có yêu cầu bàn giao/)).not.toBeInTheDocument();
   });
 });

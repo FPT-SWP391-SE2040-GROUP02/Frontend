@@ -5,13 +5,7 @@ import type { OverviewResources } from "../model/useOverviewResources";
 import { OverviewQueryState } from "./OverviewQueryState";
 import { ROUTES } from "@/shared/config/routes.config";
 
-const handoverSteps = [
-  "Báo tin",
-  "Xét duyệt hồ sơ",
-  "Xác minh người nhận",
-  "Thời gian phản đối",
-  "Tải nội dung",
-];
+const handoverSteps = ["Báo tin", "Xét duyệt hồ sơ", "Xác minh người nhận", "Tải nội dung"];
 
 export function OwnerOverviewPlan({ data }: { data: OverviewResources }) {
   const setup = data.setup.data;

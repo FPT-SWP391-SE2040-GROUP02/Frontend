@@ -19,6 +19,7 @@ export * from "./auth/SessionExpiredPage";
 export * from "./executor/ExecutorOverviewPage";
 export * from "./executor/ExecutorReportPage";
 export * from "./executor/ExecutorProgressPage";
+export * from "./executor/ExecutorAssetsPage";
 export * from "./executor/ExecutorPermissionsPage";
 export * from "./executor/ExecutorSettingsPage";
 export * from "./notary/NotaryWorkspacePage";

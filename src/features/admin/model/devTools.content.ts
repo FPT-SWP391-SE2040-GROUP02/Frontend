@@ -24,18 +24,6 @@ export const DEV_MILESTONES: Record<
     effect: "chuyển sang bước kiểm tra và mở sự cố cho Người thực hiện",
     done: "Đã tua tới “Hết thời gian chờ”. Sự cố đã mở cho Người thực hiện. Có thể tua tiếp mốc kế.",
   },
-  OBJECTION_WINDOW_ENDED: {
-    title: "Hết 72 giờ phản đối",
-    description: "Cho Người xét duyệt duyệt được hồ sơ chứng tử ngay.",
-    effect: "hết 72 giờ phản đối để Người xét duyệt duyệt được hồ sơ chứng tử ngay",
-    done: "Đã tua tới “Hết 72 giờ phản đối”. Người xét duyệt có thể duyệt hồ sơ.",
-  },
-  SELFIE_DEADLINE_PASSED: {
-    title: "Hết hạn selfie 7 ngày",
-    description: "Cho Người xét duyệt kết luận “còn sống” khi không có eKYC thật.",
-    effect: "hết hạn gửi selfie 7 ngày để Người xét duyệt kết luận lời báo còn sống",
-    done: "Đã tua tới “Hết hạn selfie 7 ngày”. Người xét duyệt có thể kết luận lời báo còn sống.",
-  },
   SERVICE_EXPIRED: {
     title: "Hết hạn dịch vụ",
     description:
@@ -111,6 +99,15 @@ export function ekycResetDone(result: DevEkycReset) {
 
 export const REWIND_DESCRIPTION =
   "Đưa kho đang chọn về thời điểm ngay trước bước xác minh danh tính và mua gói: xóa eKYC của Chủ kho, trả gói dịch vụ về Free và hủy đơn thanh toán đang chờ. Đơn đã trả, tài sản, người nhận, gói tài sản và Người thực hiện giữ nguyên. Chỉ dùng khi kế hoạch còn Nháp.";
+
+export const EKYC_PAUSE_DESCRIPTION =
+  "Bật khi cần chạy thử cả luồng mà không có giấy tờ thật hay camera: mọi bước eKYC (giấy tờ, thử thách camera, so khớp khuôn mặt) đều tự đạt. Người nhận được đọc ra đúng họ tên và số CCCD chủ kho đã khai; chủ kho nhận một số CCCD thử riêng cho từng tài khoản. Chỉ ở bộ nhớ máy chủ, khởi động lại là về tắt. Nhớ tắt sau khi thử xong.";
+
+export function ekycPauseDone(paused: boolean) {
+  return paused
+    ? "Đã tạm ngừng eKYC: các bước xác minh danh tính sẽ tự đạt cho tới khi bạn tắt."
+    : "Đã bật lại eKYC thật.";
+}
 
 export const EKYC_THRESHOLD_DESCRIPTION =
   "Ngưỡng cao (> 0.45) tăng cường bảo mật chống giả mạo nhưng khắt khe hơn. Ngưỡng thấp (< 0.30) hỗ trợ nhận diện dễ hơn trong điều kiện thiếu sáng hoặc camera độ phân giải thấp.";

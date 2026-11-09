@@ -96,6 +96,21 @@ export const confirmIdentitySchema = z.object({
 });
 export type ConfirmIdentityResult = z.infer<typeof confirmIdentitySchema>;
 
+/** Lượt còn đang chờ người nhận hoàn tất: Executor được gửi khóa mở gói cho người nhận qua email. */
+export const KEY_MAILABLE_TURN_STATUSES: ReadonlyArray<HandoverProgressTurn["status"]> = [
+  "INVITED",
+  "INITIAL_RESPONSE_EXPIRED",
+  "IDENTITY_IN_PROGRESS",
+  "READY_TO_ACCEPT",
+];
+
+/** SendHandoverKeyResponse của POST .../handover-turns/{turnId}/send-key. */
+export const sendHandoverKeySchema = z.object({
+  turnId: z.string().uuid(),
+  sentAt: timestamp,
+});
+export type SendHandoverKeyResult = z.infer<typeof sendHandoverKeySchema>;
+
 /** ResendHandoverInvitationResponse của POST .../handover-turns/{turnId}/resend-invitation. */
 export const resendInvitationSchema = z.object({
   turnId: z.string().uuid(),

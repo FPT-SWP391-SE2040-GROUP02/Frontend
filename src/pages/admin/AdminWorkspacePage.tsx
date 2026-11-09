@@ -1,15 +1,28 @@
 import { useLocation } from "react-router-dom";
 import {
+  CreditCard,
+  History,
+  Home,
+  ShieldCheck,
+  SlidersHorizontal,
+  Tag,
+  TriangleAlert,
+  Users,
+} from "lucide-react";
+import {
   AdminDevTools,
   AdminHolds,
   AdminIncidents,
   AdminOverview,
+  AdminOverviewToolbar,
   AdminPayments,
   AdminSettings,
   AdminSystemConfig,
   AdminUsers,
+  useAdminDashboard,
 } from "@/features/admin";
 import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
+import { ACTION_LABELS } from "@/features/audit-logs/model/auditLogLabels";
 import { AdminTwoFactorSettings } from "@/features/auth";
 import { ROUTES } from "@/shared/config/routes.config";
 import { ENV } from "@/shared/config/env";
@@ -18,20 +31,50 @@ import {
   type WorkspaceNavigationItem,
 } from "@/widgets/WorkspaceFrame/WorkspaceFrame";
 
+/** Thứ tự và nhóm menu theo prototype: bốn trang chính, rồi nhóm "Hệ thống". */
 const NAVIGATION: WorkspaceNavigationItem[] = [
-  { id: "overview", label: "Tổng quan", to: ROUTES.ADMIN.ROOT },
-  { id: "settings", label: "Cấu hình hệ thống", to: `${ROUTES.ADMIN.ROOT}?view=settings` },
-  { id: "incidents", label: "Sự cố", to: `${ROUTES.ADMIN.ROOT}?view=incidents` },
-  { id: "holds", label: "Tạm giữ", to: `${ROUTES.ADMIN.ROOT}?view=holds` },
-  { id: "payments", label: "Giao dịch thanh toán", to: `${ROUTES.ADMIN.ROOT}?view=payments` },
-  { id: "users", label: "Người dùng", to: ROUTES.DASHBOARD.USERS },
-  { id: "audit", label: "Nhật ký hoạt động", to: ROUTES.ADMIN.AUDIT_LOG },
+  { id: "overview", label: "Tổng quan", icon: Home, to: ROUTES.ADMIN.ROOT },
   {
-    id: "system-config",
-    label: "Cấu hình dịch vụ",
-    to: `${ROUTES.ADMIN.ROOT}?view=system-config`,
+    id: "incidents",
+    label: "Sự cố",
+    icon: TriangleAlert,
+    to: `${ROUTES.ADMIN.ROOT}?view=incidents`,
   },
-  { id: "security", label: "Bảo mật tài khoản", to: `${ROUTES.ADMIN.ROOT}?view=security` },
+  {
+    id: "payments",
+    label: "Giao dịch",
+    icon: CreditCard,
+    to: `${ROUTES.ADMIN.ROOT}?view=payments`,
+  },
+  { id: "users", label: "Người dùng", icon: Users, to: ROUTES.DASHBOARD.USERS },
+  {
+    id: "plans",
+    label: "Gói dịch vụ",
+    icon: Tag,
+    to: `${ROUTES.ADMIN.ROOT}?view=plans`,
+    group: "Hệ thống",
+  },
+  {
+    id: "settings",
+    label: "Cấu hình",
+    icon: SlidersHorizontal,
+    to: `${ROUTES.ADMIN.ROOT}?view=settings`,
+    group: "Hệ thống",
+  },
+  {
+    id: "audit",
+    label: "Nhật ký hoạt động",
+    icon: History,
+    to: ROUTES.ADMIN.AUDIT_LOG,
+    group: "Hệ thống",
+  },
+  {
+    id: "security",
+    label: "Bảo mật tài khoản",
+    icon: ShieldCheck,
+    to: `${ROUTES.ADMIN.ROOT}?view=security`,
+    group: "Hệ thống",
+  },
 ];
 
 /**
@@ -40,55 +83,50 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
  */
 const DEV_TOOLS_ENABLED = import.meta.env.DEV || ENV.ENABLE_DEVTOOLS;
 
-const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
-  ? [
-      ...NAVIGATION,
-      { id: "dev-tools", label: "Công cụ thử nghiệm", to: `${ROUTES.ADMIN.ROOT}?view=dev-tools` },
-    ]
-  : NAVIGATION;
+// Menu chỉ có các mục của prototype. Tạm giữ nằm trong chi tiết sự cố; Công cụ thử nghiệm chỉ mở bằng
+// đường dẫn `?view=dev-tools` khi bật DEV_TOOLS_ENABLED.
+const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = NAVIGATION;
 
 const VIEWS = {
   overview: {
-    title: "Tổng quan quản trị",
-    description: "Số liệu vận hành hệ thống. Quản trị viên không đọc được nội dung kho.",
+    title: "Tổng quan",
+    description: "",
+  },
+  plans: {
+    title: "Gói dịch vụ",
+    description: "",
   },
   settings: {
-    title: "Cấu hình tham số hệ thống",
-    description:
-      "Quản lý và điều chỉnh các tham số dịch vụ, giới hạn quota và tính năng hệ thống theo thời gian thực.",
+    title: "Cấu hình",
+    description: "",
   },
   incidents: {
-    title: "Sự cố vận hành",
-    description: "Theo dõi, giao người phụ trách và đóng các sự cố của hệ thống.",
+    title: "Sự cố",
+    description: "",
   },
   holds: {
     title: "Tạm giữ",
-    description: "Xem, đặt, rà soát và gỡ tạm giữ trên kho hoặc gói.",
+    description: "",
   },
   payments: {
-    title: "Giao dịch thanh toán",
-    description: "Tiền vào qua SePay và kết quả đối chiếu với đơn. Chỉ xem, không sửa giao dịch.",
+    title: "Giao dịch",
+    description: "",
   },
   users: {
     title: "Người dùng",
-    description: "Tìm tài khoản, đổi vai trò hoặc khóa tài khoản kèm lý do.",
+    description: "",
   },
   audit: {
     title: "Nhật ký hoạt động",
-    description:
-      "Ai đã làm gì và lúc nào trên toàn hệ thống, mới nhất trước, kể cả các hồ sơ bị từ chối.",
-  },
-  "system-config": {
-    title: "Cấu hình dịch vụ ngoài",
-    description: "Sửa model, khóa và dịch vụ dự phòng khi một dịch vụ ngoài gặp sự cố.",
+    description: "",
   },
   security: {
     title: "Bảo mật tài khoản",
-    description: "Bật hoặc tắt xác thực hai bước cho tài khoản quản trị của bạn.",
+    description: "",
   },
   "dev-tools": {
     title: "Công cụ thử nghiệm",
-    description: "Tua thời gian của một hồ sơ để thử luồng bàn giao mà không phải chờ.",
+    description: "",
   },
 } as const;
 
@@ -101,13 +139,15 @@ function viewFor(pathname: string, search: string): AdminView {
   const view = new URLSearchParams(search).get("view");
   if (
     view === "settings" ||
+    view === "plans" ||
     view === "incidents" ||
     view === "holds" ||
     view === "payments" ||
-    view === "security" ||
-    view === "system-config"
+    view === "security"
   )
     return view;
+  // Đường dẫn cũ của trang Cấu hình dịch vụ nay nằm trong trang Cấu hình.
+  if (view === "system-config") return "settings";
   if (view === "dev-tools" && DEV_TOOLS_ENABLED) return view;
   return "overview";
 }
@@ -116,24 +156,44 @@ function viewFor(pathname: string, search: string): AdminView {
 export function AdminWorkspacePage() {
   const location = useLocation();
   const view = viewFor(location.pathname, location.search);
+  // Số sự cố đang mở hiện làm số đếm ở menu; dùng chung dữ liệu với trang Tổng quan nên không gọi thêm API.
+  const dashboard = useAdminDashboard();
+  const navigation = NAVIGATION_WITH_DEV_TOOLS.map((item) =>
+    item.id === "incidents" ? { ...item, badge: dashboard.data?.openIncidents ?? 0 } : item,
+  );
   return (
     <WorkspaceFrame
       role="admin"
       active={view}
-      navigation={NAVIGATION_WITH_DEV_TOOLS}
+      navigation={navigation}
       title={VIEWS[view].title}
       description={VIEWS[view].description}
+      actions={view === "overview" ? <AdminOverviewToolbar /> : undefined}
     >
-      {view === "overview" && <AdminOverview />}
-      {view === "settings" && <AdminSettings />}
+      {view === "overview" && (
+        <AdminOverview
+          actionLabel={(action) => (ACTION_LABELS as Record<string, string>)[action] ?? action}
+        />
+      )}
+      {view === "settings" && (
+        <>
+          <AdminSettings section="params" />
+          <h2 className="mt-10 text-xl font-semibold">Dịch vụ ngoài</h2>
+          <AdminSystemConfig />
+        </>
+      )}
+      {view === "plans" && <AdminSettings section="plans" />}
       {view === "incidents" && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
-      {view === "users" && <AdminUsers />}
+      {view === "users" && (
+        <AdminUsers
+          actionLabel={(action) => (ACTION_LABELS as Record<string, string>)[action] ?? action}
+        />
+      )}
       {view === "security" && <AdminTwoFactorSettings />}
       {view === "dev-tools" && <AdminDevTools />}
       {view === "audit" && <AdminAuditLogs />}
-      {view === "system-config" && <AdminSystemConfig />}
     </WorkspaceFrame>
   );
 }

@@ -11,8 +11,9 @@ import {
 } from "../model/admin.content";
 import { HOLD_STATUSES, type Hold, type HoldStatus } from "../model/admin.schema";
 import { adminActionError } from "../model/adminError";
-import { adminKeys, useAdminHold, useAdminHolds } from "../model/useAdmin";
+import { adminKeys, useAdminHold, useAdminHoldCounts, useAdminHolds } from "../model/useAdmin";
 import { useAdminHoldParams } from "../model/useAdminListParams";
+import { ListSegmentTabs, ListTable, ListTableRow } from "@/shared/ui/listKit";
 import { AdminPagination } from "./AdminPagination";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
@@ -42,33 +43,30 @@ function ReviewOverdueBadge() {
 
 /**
  * Danh sách và chi tiết tạm giữ (hold), chỉ xem: bộ lọc và hold đang xem nằm trên URL.
- * Hold do hệ thống đặt và gỡ (chủ kho báo còn sống); quản trị viên không đặt, hẹn rà soát hay gỡ bằng tay.
+ * Hold do hệ thống đặt và gỡ; quản trị viên không đặt, hẹn rà soát hay gỡ bằng tay.
  */
 export function AdminHolds() {
   const params = useAdminHoldParams();
+  const counts = useAdminHoldCounts();
   if (params.selectedId)
     return <HoldDetailView holdId={params.selectedId} onBack={() => params.select(undefined)} />;
   return (
     <div className="mt-6 space-y-4">
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="block text-sm">
-          Trạng thái
-          <select
-            value={params.filters.status ?? ""}
-            onChange={(event) => params.setStatus(event.target.value || undefined)}
-            className="mt-1 min-h-11 w-full min-w-48 rounded-lg border border-heritage-border bg-white px-3 text-sm"
-          >
-            <option value="">Tất cả</option>
-            {HOLD_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {HOLD_STATUS_LABELS[status]}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+      <ListSegmentTabs
+        label="Trạng thái"
+        value={params.filters.status ?? ""}
+        options={[
+          { value: "", label: "Tất cả", count: counts.data?.total },
+          ...HOLD_STATUSES.map((status) => ({
+            value: status,
+            label: HOLD_STATUS_LABELS[status],
+            count: counts.data?.counts[status],
+          })),
+        ]}
+        onChange={(value) => params.setStatus(value || undefined)}
+      />
       <section aria-labelledby="admin-holds-heading" className="space-y-3">
-        <h2 id="admin-holds-heading" className="text-lg font-semibold">
+        <h2 id="admin-holds-heading" className="sr-only">
           Danh sách tạm giữ
         </h2>
         <HoldResult params={params} />
@@ -135,30 +133,36 @@ function HoldResult({ params }: { params: ReturnType<typeof useAdminHoldParams> 
       className={refreshing ? "opacity-60 transition-opacity" : undefined}
     >
       <p aria-live="polite" className="mb-3 text-sm text-heritage-muted">
-        {data.totalCount} tạm giữ · Trang {data.pageIndex}/{data.totalPages}
+        <b>{data.totalCount}</b> tạm giữ
       </p>
-      <ul className="space-y-2">
+      <ListTable
+        columns="minmax(220px,1.6fr) minmax(130px,.7fr) minmax(150px,.8fr) minmax(150px,.8fr)"
+        headings={["Tạm giữ", "Trạng thái", "Phạm vi", "Rà soát"]}
+      >
         {data.items.map((hold) => (
-          <li key={hold.id}>
-            <button
-              type="button"
-              onClick={() => params.select(hold.id)}
-              className="flex min-h-11 w-full flex-col gap-2 rounded-xl border border-heritage-border bg-heritage-surface p-4 text-left hover:border-heritage-primary"
+          <button
+            key={hold.id}
+            type="button"
+            onClick={() => params.select(hold.id)}
+            className="block min-h-11 w-full text-left"
+          >
+            <ListTableRow
+              tone={hold.status !== "ACTIVE" ? "none" : hold.reviewOverdue ? "bad" : "info"}
             >
-              <span className="flex flex-wrap items-center gap-2">
-                <span className="font-medium">{HOLD_TYPE_LABELS[hold.type]}</span>
+              <span className="flex min-w-0 flex-col gap-1">
+                <b className="font-semibold">{HOLD_TYPE_LABELS[hold.type]}</b>
+                <span className="break-words text-sm text-heritage-muted">{hold.reason}</span>
+              </span>
+              <span className="flex flex-wrap items-start gap-2">
                 <StatusBadge status={hold.status} />
                 {hold.reviewOverdue && hold.status === "ACTIVE" && <ReviewOverdueBadge />}
               </span>
-              <span className="break-words text-sm text-heritage-muted">{hold.reason}</span>
-              <span className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-heritage-muted tabular-nums">
-                <span>Phạm vi: {holdScopeLabel(hold.scope)}</span>
-                <span>Rà soát: {formatDateTime(hold.reviewAt)}</span>
-              </span>
-            </button>
-          </li>
+              <span className="text-sm">{holdScopeLabel(hold.scope)}</span>
+              <span className="text-sm tabular-nums">{formatDateTime(hold.reviewAt)}</span>
+            </ListTableRow>
+          </button>
         ))}
-      </ul>
+      </ListTable>
       <AdminPagination
         label="Phân trang tạm giữ"
         pageIndex={data.pageIndex}
@@ -266,7 +270,8 @@ function HoldDetailBody({
           role="status"
           className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"
         >
-          Tạm giữ này do chủ kho báo còn sống. Chỉ người xét duyệt kết luận mới gỡ được.
+          Tạm giữ cũ từ luồng báo còn sống đã gỡ. Chỉ hệ thống gỡ được, quản trị viên không thao tác
+          được.
         </p>
       )}
       <p role="note" className="text-sm text-heritage-muted">

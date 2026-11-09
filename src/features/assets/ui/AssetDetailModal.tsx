@@ -5,7 +5,6 @@ import {
   Lock,
   Calendar,
   Users,
-  Hash,
   Copy,
   Check,
   X,
@@ -138,20 +137,6 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
                 </span>
                 <span className="font-bold text-[#14241C] text-sm block mt-0.5">
                   {asset.beneficiaryCount} người
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-[12px] bg-white border border-[#DCD9D0] flex items-center justify-center shrink-0">
-                <Hash className="w-4 h-4 text-[#0B291E]" />
-              </div>
-              <div>
-                <span className="text-[10px] text-[#66786E] font-bold uppercase tracking-wider block">
-                  Phân Mảnh Khóa
-                </span>
-                <span className="font-bold font-mono text-[#0B291E] text-xs block mt-0.5">
-                  {asset.shamirThresholdText}
                 </span>
               </div>
             </div>

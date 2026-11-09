@@ -12,11 +12,11 @@ export function currentHandoverStep(status: TurnStatus): number | null {
     case "INVITED":
     case "INITIAL_RESPONSE_EXPIRED":
     case "IDENTITY_IN_PROGRESS":
-      return 4;
+      return 3;
     case "READY_TO_ACCEPT":
-      return 5;
+      return 4;
     case "HANDOVER_COMMITTED":
-      return 6;
+      return 5;
     default:
       return null;
   }

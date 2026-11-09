@@ -15,7 +15,7 @@ export const ROLES = {
   EXECUTOR: "EXECUTOR",
   /** Người thụ hưởng (Beneficiary): eKYC & nhận tài sản thừa kế */
   BENEFICIARY: "BENEFICIARY",
-  /** Công chứng viên / Cơ quan pháp lý (Legal Verifier / Notary): Thẩm định & ký số niêm phong di sản */
+  /** Người xét duyệt (luật sư, Legal Verifier): thẩm định hồ sơ báo tin */
   NOTARY: "NOTARY",
   /** Nhân viên / Quản lý nghiệp vụ (Kế thừa) */
   STAFF: "STAFF",

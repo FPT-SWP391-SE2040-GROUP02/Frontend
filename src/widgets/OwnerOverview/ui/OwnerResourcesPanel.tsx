@@ -94,7 +94,8 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
               Chu kỳ: {checkIn.data.settings.cycleDays} ngày
             </p>
             <p className="text-xs text-heritage-muted">
-              Thời gian chờ: {checkIn.data.settings.graceDays} ngày
+              Thư nhắc trễ: {checkIn.data.settings.maxLateReminders} thư, cách nhau{" "}
+              {checkIn.data.settings.lateReminderGapDays} ngày
             </p>
           </>
         ) : null}

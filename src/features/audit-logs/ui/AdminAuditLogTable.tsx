@@ -1,5 +1,5 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui";
 import { formatDateTime } from "@/shared/lib/dateFormat";
+import { ListTable, ListTableRow } from "@/shared/ui/listKit";
 import type { AdminAuditLogEntry } from "../model/auditLog.schema";
 import {
   ACTION_LABELS,
@@ -11,79 +11,70 @@ import {
 } from "../model/auditLogLabels";
 
 const OUTCOME_STYLES: Record<AdminAuditLogEntry["outcome"], string> = {
-  SUCCEEDED: "bg-green-100 text-green-800",
-  DENIED: "bg-amber-100 text-amber-800",
-  FAILED: "bg-red-100 text-red-800",
+  SUCCEEDED: "bg-emerald-50 text-emerald-800",
+  DENIED: "bg-amber-50 text-amber-900",
+  FAILED: "bg-red-50 text-red-800",
 };
 
 /**
- * @description Bảng chỉ-đọc nhật ký toàn hệ thống cho Admin: người thực hiện (tên, email, vai trò), thao tác,
- * đối tượng, kho, kết quả và lý do. Mã dài chỉ hiện rút gọn, UUID đầy đủ nằm trong tooltip.
+ * @description Danh sách chỉ-đọc nhật ký toàn hệ thống cho Admin, 4 cột: thời điểm, người thực hiện,
+ * hành động kèm đối tượng, kết quả kèm lý do. Mã dài chỉ hiện rút gọn, UUID đầy đủ nằm trong tooltip.
  */
 export function AdminAuditLogTable({ items }: { items: AdminAuditLogEntry[] }) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead scope="col">Thời điểm</TableHead>
-          <TableHead scope="col">Người thực hiện</TableHead>
-          <TableHead scope="col">Thao tác</TableHead>
-          <TableHead scope="col">Đối tượng</TableHead>
-          <TableHead scope="col">Kho</TableHead>
-          <TableHead scope="col">Kết quả</TableHead>
-          <TableHead scope="col">Lý do</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {items.map((entry) => (
-          <TableRow key={entry.id}>
-            <TableCell>{formatDateTime(entry.at)}</TableCell>
-            <TableCell>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">
-                  {entry.actorFullName ?? ACTOR_ROLE_LABELS[entry.actorRole]}
-                </span>
-                {entry.actorEmail && (
-                  <span className="text-xs text-heritage-muted">{entry.actorEmail}</span>
-                )}
-                <span
-                  className="text-xs text-heritage-muted"
-                  title={entry.actorUserId ?? undefined}
-                >
-                  {ACTOR_ROLE_LABELS[entry.actorRole]}
-                  {entry.actorUserId && !entry.actorEmail ? ` · ${shortId(entry.actorUserId)}` : ""}
-                </span>
-              </div>
-            </TableCell>
-            <TableCell className="font-medium" title={entry.action}>
-              {ACTION_LABELS[entry.action]}
-            </TableCell>
-            <TableCell>
-              <div className="flex flex-col">
-                <span className="text-sm">{TARGET_TYPE_LABELS[entry.targetType]}</span>
-                {entry.targetId && (
-                  <span className="text-xs text-heritage-muted" title={entry.targetId}>
-                    {shortId(entry.targetId)}
-                  </span>
-                )}
-              </div>
-            </TableCell>
-            <TableCell title={entry.vaultId ?? undefined}>
-              {entry.vaultId ? shortId(entry.vaultId) : "—"}
-            </TableCell>
-            <TableCell>
+    <ListTable
+      columns="110px minmax(150px,.8fr) minmax(240px,1.5fr) minmax(180px,1fr)"
+      headings={["Thời điểm", "Người thực hiện", "Hành động", "Kết quả · lý do"]}
+    >
+      {items.map((entry) => {
+        const [date, time] = splitDateTime(formatDateTime(entry.at));
+        return (
+          <ListTableRow key={entry.id} tone={entry.outcome === "SUCCEEDED" ? "none" : "bad"}>
+            <div className="flex flex-col">
+              <b className="font-semibold tabular-nums">{date}</b>
+              <small className="tabular-nums text-heritage-muted">{time}</small>
+            </div>
+            <div className="flex flex-col">
+              <b className="font-medium">
+                {entry.actorFullName ?? ACTOR_ROLE_LABELS[entry.actorRole]}
+              </b>
+              {entry.actorEmail && (
+                <small className="break-all text-heritage-muted">{entry.actorEmail}</small>
+              )}
+              <small className="text-heritage-muted" title={entry.actorUserId ?? undefined}>
+                {ACTOR_ROLE_LABELS[entry.actorRole]}
+                {entry.actorUserId && !entry.actorEmail ? ` · ${shortId(entry.actorUserId)}` : ""}
+              </small>
+            </div>
+            <div className="flex flex-col" title={entry.action}>
+              <b className="font-medium">{ACTION_LABELS[entry.action]}</b>
+              <small className="text-heritage-muted" title={entry.targetId ?? undefined}>
+                {TARGET_TYPE_LABELS[entry.targetType]}
+                {entry.targetId ? ` · ${shortId(entry.targetId)}` : ""}
+                {entry.vaultId ? ` · Kho ${shortId(entry.vaultId)}` : ""}
+              </small>
+            </div>
+            <div className="flex flex-col items-start gap-1">
               <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${OUTCOME_STYLES[entry.outcome]}`}
+                className={`rounded-full px-3 py-1 text-sm font-semibold ${OUTCOME_STYLES[entry.outcome]}`}
               >
                 {OUTCOME_LABELS[entry.outcome]}
               </span>
-            </TableCell>
-            <TableCell className="max-w-xs whitespace-normal break-words text-xs text-heritage-muted">
-              {entry.reason ? friendlyReason(entry.reason) : "—"}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+              {entry.reason && (
+                <small className="break-words text-heritage-muted">
+                  {friendlyReason(entry.reason)}
+                </small>
+              )}
+            </div>
+          </ListTableRow>
+        );
+      })}
+    </ListTable>
   );
+}
+
+/** Tách "dd/MM/yyyy HH:mm" thành ngày và giờ để xếp hai dòng. */
+function splitDateTime(value: string): [string, string] {
+  const index = value.lastIndexOf(" ");
+  return index < 0 ? [value, ""] : [value.slice(0, index), value.slice(index + 1)];
 }

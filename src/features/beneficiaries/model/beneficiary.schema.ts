@@ -8,6 +8,8 @@ export const beneficiaryResponseSchema = z.object({
   dateOfBirth: date,
   email: z.string().nullable(),
   phone: z.string().nullable(),
+  /** Lời nhắn Chủ kho để lại cho người nhận, gửi kèm thư mời nhận tài sản. Backend cũ chưa gửi thì null. */
+  message: z.string().nullable().default(null),
   minorAcknowledgedAt: z.string().datetime({ offset: true }).nullable(),
   containerIds: z.array(z.string().uuid()),
   createdAt: z.string().datetime({ offset: true }),
@@ -32,6 +34,7 @@ export const createBeneficiarySchema = z.object({
     .max(254, "Email tối đa 254 ký tự.")
     .email("Email không hợp lệ."),
   phone: z.string().max(20).nullable().optional(),
+  message: z.string().max(300, "Lời nhắn tối đa 300 ký tự.").nullable().optional(),
   citizenId: z.string().regex(/\S/).max(32),
 });
 /** PUT không cho đổi CCCD; null giữ nguyên. */
@@ -40,5 +43,7 @@ export const updateBeneficiarySchema = z.object({
   dateOfBirth: date.nullable().optional(),
   email: z.string().max(254).nullable().optional(),
   phone: z.string().max(20).nullable().optional(),
+  /** null giữ nguyên, chuỗi rỗng xóa lời nhắn. */
+  message: z.string().max(300, "Lời nhắn tối đa 300 ký tự.").nullable().optional(),
   etag: z.string().min(1).max(64),
 });

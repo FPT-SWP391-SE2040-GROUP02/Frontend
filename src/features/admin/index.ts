@@ -1,5 +1,6 @@
 /** Public API của slice Admin: dashboard, sự cố, tạm giữ, tài khoản và cấu hình hệ thống. */
 export { AdminOverview } from "./ui/AdminOverview";
+export { AdminOverviewToolbar } from "./ui/AdminOverviewToolbar";
 export { AdminUsers } from "./ui/AdminUsers";
 export { AdminIncidents } from "./ui/AdminIncidents";
 export { AdminHolds } from "./ui/AdminHolds";

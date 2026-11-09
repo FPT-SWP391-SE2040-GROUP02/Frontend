@@ -72,7 +72,7 @@ export function useSelectedExecutorVault() {
     next.delete("caseId");
     setParams(next);
   };
-  /** Chọn kho rồi sang một trang khác của không gian Người thực hiện (ví dụ Báo tin, Tiến trình). */
+  /** Chọn kho rồi sang một trang khác của không gian Người thực thi (ví dụ Báo tin, Tiến trình). */
   const open = (vaultId: string, path: string) => {
     writeStored(vaultId);
     navigate(`${path}?vault=${encodeURIComponent(vaultId)}`);

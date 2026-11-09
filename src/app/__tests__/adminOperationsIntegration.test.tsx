@@ -222,13 +222,31 @@ describe("Sự cố", () => {
     setup(incidentsPath);
     expect(await screen.findByText(/Hồ sơ chứng tử chưa có Verifier/)).toBeInTheDocument();
     expect(screen.getAllByText("Chưa có người phụ trách").length).toBeGreaterThan(0);
-    fireEvent.change(screen.getByLabelText("Trạng thái"), { target: { value: "OPEN" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Đang mở/ }));
     await waitFor(() =>
       expect(callsTo("get", "/admin/incidents").at(-1)?.params).toMatchObject({
         status: "OPEN",
         pageIndex: 1,
       }),
     );
+  });
+
+  it("danh sách hiện họ tên người phụ trách và vai trò ở cột riêng, không hiện mã tài khoản", async () => {
+    backend(() =>
+      page([
+        incidentSummary({
+          assigneeUserId: VERIFIER_ID,
+          assigneeFullName: "Trần Thị Xét Duyệt",
+          assigneeRole: "VERIFIER",
+        }),
+      ]),
+    );
+    setup(incidentsPath);
+
+    expect(await screen.findByText("Trần Thị Xét Duyệt")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Vai trò" })).toBeInTheDocument();
+    expect(screen.getAllByText("Người xét duyệt").length).toBeGreaterThan(0);
+    expect(screen.queryByText(/^Tài khoản /)).not.toBeInTheDocument();
   });
 
   it("hiện sự cố đăng nhập bất thường (tài khoản bị khóa vì sai mật khẩu, không gắn kho)", async () => {
@@ -369,7 +387,7 @@ describe("Sự cố", () => {
     expect(screen.queryByRole("button", { name: "Đóng sự cố" })).not.toBeInTheDocument();
     expect(screen.getByText(/Sự cố này đi theo hồ sơ/)).toBeInTheDocument();
     const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent("lời báo còn sống và sự cố cùng chuyển");
+    expect(dialog).toHaveTextContent("Hồ sơ và sự cố cùng chuyển");
     await userEvent.selectOptions(
       await within(dialog).findByLabelText("Người xét duyệt"),
       VERIFIER_ID,
@@ -405,12 +423,10 @@ describe("Sự cố", () => {
 });
 
 describe("Tạm giữ (chỉ xem)", () => {
-  it("hold do chủ kho báo còn sống giải thích vì sao và không có nút thao tác", async () => {
+  it("hold cũ từ luồng báo còn sống giải thích vì sao và không có nút thao tác", async () => {
     backend(() => holdBody({ id: OWNER_ALIVE_HOLD_ID, type: "OWNER_ALIVE" }));
     setup(`${holdsPath}&hold=${OWNER_ALIVE_HOLD_ID}`);
-    expect(
-      await screen.findByText(/chỉ người xét duyệt kết luận mới gỡ được/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/chỉ hệ thống gỡ được/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Hẹn rà soát" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Gỡ tạm giữ" })).not.toBeInTheDocument();
   });
@@ -453,7 +469,7 @@ describe("Giao dịch thanh toán (chỉ xem)", () => {
     expect(await screen.findByText("Lý do: Số tiền khác tổng tiền đơn")).toBeInTheDocument();
     expect(screen.getByText(/199\.000 VND/)).toBeInTheDocument();
     expect(screen.getAllByText("Cần đối chiếu").length).toBeGreaterThan(0);
-    expect(screen.getByText("2 giao dịch · Trang 1/1")).toBeInTheDocument();
+    expect(screen.getByText(/dòng/)).toHaveTextContent("2 dòng");
     expect(within(screen.getByRole("note")).getByRole("link", { name: "Sự cố" })).toHaveAttribute(
       "href",
       `${ROUTES.ADMIN.ROOT}?view=incidents&type=PAYMENT`,
@@ -467,15 +483,15 @@ describe("Giao dịch thanh toán (chỉ xem)", () => {
 
   it("lọc theo trạng thái gửi đúng tham số và báo rỗng khi không khớp", async () => {
     backend((call) => {
-      if (call.params?.status === "RESOLVED") return page([]);
+      if (call.params?.status === "SUCCESS") return page([]);
       return page([paymentBody()]);
     });
     setup(paymentsPath);
     expect(await screen.findByText(/199\.000 VND/)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Trạng thái"), { target: { value: "RESOLVED" } });
+    fireEvent.change(screen.getByLabelText("Trạng thái"), { target: { value: "SUCCESS" } });
     expect(await screen.findByText("Không có giao dịch khớp bộ lọc.")).toBeInTheDocument();
     expect(callsTo("get", "/admin/payment-transactions").at(-1)?.params).toEqual({
-      status: "RESOLVED",
+      status: "SUCCESS",
       pageIndex: 1,
       pageSize: 20,
     });
@@ -566,6 +582,72 @@ describe("Tài khoản", () => {
     fireEvent.click(within(dialog).getByRole("checkbox"));
     fireEvent.click(within(dialog).getByRole("button", { name: "Đổi trạng thái" }));
     expect(await within(dialog).findByRole("alert")).toHaveTextContent(text);
+  });
+});
+
+describe("Số đếm trên thẻ trạng thái", () => {
+  it("Sự cố hiện số theo từng trạng thái và gửi bộ lọc còn lại nhưng không gửi trạng thái", async () => {
+    backend((call) =>
+      call.url === "/admin/incidents/counts"
+        ? { counts: { OPEN: 4, IN_PROGRESS: 2, RESOLVED: 3 }, total: 9 }
+        : page([incidentSummary()]),
+    );
+    setup(`${incidentsPath}&status=OPEN&mine=1`);
+    expect(await screen.findByRole("button", { name: /^Tất cả\s*9$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Đang mở\s*4$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Đang xử lý\s*2$/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Đã xử lý\s*3$/ })).toBeInTheDocument();
+    const last = callsTo("get", "/admin/incidents/counts").at(-1)?.params;
+    expect(last).toMatchObject({ mine: true });
+    expect(last).not.toHaveProperty("status");
+  });
+});
+
+describe("Ô ghi chú trong lịch sử sự cố", () => {
+  it("lưu ghi chú ngay trong lịch sử và làm mới chi tiết", async () => {
+    backend((call) => {
+      if (call.method === "post" && call.url === `/admin/incidents/${INCIDENT_ID}/notes`)
+        return incidentDetail();
+      if (call.url === `/admin/incidents/${INCIDENT_ID}`) return incidentDetail();
+      return page([]);
+    });
+    setup(`${incidentsPath}&incident=${INCIDENT_ID}`);
+    const box = await screen.findByLabelText("Ghi chú");
+    const save = screen.getAllByRole("button", { name: "Lưu ghi chú" })[0];
+    expect(save).toBeDisabled();
+    fireEvent.change(box, { target: { value: "Đã gọi cho chủ kho" } });
+    expect(save).toBeEnabled();
+    fireEvent.click(save);
+    await waitFor(() =>
+      expect(callsTo("post", `/admin/incidents/${INCIDENT_ID}/notes`).at(-1)?.body).toMatchObject({
+        note: "Đã gọi cho chủ kho",
+      }),
+    );
+    await waitFor(() => expect(screen.getByLabelText("Ghi chú")).toHaveValue(""));
+  });
+});
+
+describe("Hộp Tạm giữ kho trong chi tiết sự cố", () => {
+  it("hiện hold đang hiệu lực của kho và gửi đúng vaultId", async () => {
+    backend((call) => {
+      if (call.url === `/admin/incidents/${INCIDENT_ID}`) return incidentDetail();
+      if (call.url === "/admin/holds") return page([holdBody()]);
+      return page([]);
+    });
+    setup(`${incidentsPath}&incident=${INCIDENT_ID}`);
+    expect(await screen.findByText("Tạm giữ kho")).toBeInTheDocument();
+    expect(screen.getByText("Đang hiệu lực")).toBeInTheDocument();
+    expect(screen.getByText("Lần rà soát tiếp theo")).toBeInTheDocument();
+    expect(callsTo("get", "/admin/holds")[0].params).toMatchObject({ vaultId: KHO_ID });
+  });
+
+  it("không hiện hộp khi kho không có hold", async () => {
+    backend((call) =>
+      call.url === `/admin/incidents/${INCIDENT_ID}` ? incidentDetail() : page([]),
+    );
+    setup(`${incidentsPath}&incident=${INCIDENT_ID}`);
+    await screen.findByText("Thông tin");
+    expect(screen.queryByText("Tạm giữ kho")).not.toBeInTheDocument();
   });
 });
 

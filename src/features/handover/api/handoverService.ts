@@ -35,6 +35,14 @@ export const handoverService = {
       await apiClient.post<unknown, unknown>(`${turn(value)}/${decision}`),
     );
   },
+  /** Nhập khóa mở gói do Người thực hiện đưa; sai thì 403 HANDOVER_KEY_INVALID, quá giới hạn thì 423. */
+  async verifyKey(value: string, key: string) {
+    return handoverTurnSchema.parse(
+      await apiClient.post<unknown, unknown>(`${turn(value)}/verify-key`, {
+        key: z.string().trim().min(1).max(80).parse(key),
+      }),
+    );
+  },
   /** Chốt danh tính lượt bàn giao; BE chuyển READY_TO_ACCEPT nếu đủ điều kiện. */
   async completeIdentity(value: string) {
     return handoverTurnSchema.parse(

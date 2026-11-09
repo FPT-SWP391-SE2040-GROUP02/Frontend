@@ -24,7 +24,6 @@ export function toViewModel(dto: AssetItemDto): AssetViewModel {
     status: dto.status,
     statusLabel: statusLabels[dto.status] || dto.status,
     beneficiaryCount: dto.beneficiaryCount || 0,
-    shamirThresholdText: `${dto.shamirThreshold || 2}/${dto.shamirTotalShares || 3} Mảnh Shamir`,
     createdAtFormatted: formattedDate,
     rawPayload: dto.encryptedPayload,
     metadata: dto.metadata,

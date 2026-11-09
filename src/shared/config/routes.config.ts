@@ -64,7 +64,7 @@ export const ROUTES = {
     HISTORY: "/billing/history",
   },
 
-  /** Cổng công chứng viên / Legal Verifier */
+  /** Cổng Người xét duyệt / Legal Verifier */
   NOTARY: {
     /** Tổng quan Người xét duyệt (Verifier); cũng là trang chủ của vai trò này. */
     WORKSPACE: "/notary/workspace",
@@ -83,6 +83,8 @@ export const ROUTES = {
     ROOT: "/executor",
     REPORT: "/executor/report",
     PROGRESS: "/executor/progress",
+    /** Danh sách tài sản của kho theo từng gói (chỉ danh sách, không có nội dung). */
+    ASSETS: "/executor/assets",
     PERMISSIONS: "/executor/permissions",
     SETTINGS: "/executor/settings",
     /** Lời mời làm Người thực hiện trong không gian Người thực hiện (cùng nội dung với bên Chủ kho). */

@@ -10,7 +10,6 @@ import { beneficiaryService } from "@/features/beneficiaries/api/beneficiaryServ
 import { checkInService } from "@/features/dms/api/checkInService";
 import { planSetupService } from "@/features/plan-setup/api/planSetupService";
 import { auditLogService } from "@/features/audit-logs/api/auditLogService";
-import { ownerObjectionService } from "@/features/owner-objection/api/ownerObjectionService";
 import { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 import { checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
 import {
@@ -53,9 +52,9 @@ const checkInFixture = () =>
     graceEndsAt: null,
     settings: {
       cycleDays: 60,
-      graceDays: 7,
+      lateReminderGapDays: 3,
+      maxLateReminders: 3,
       pendingCycleDays: null,
-      pendingGraceDays: null,
       etag: "test",
     },
     history: pageFixture([]),
@@ -81,7 +80,6 @@ beforeEach(() => {
   vi.spyOn(checkInService, "get").mockResolvedValue(checkInFixture());
   vi.spyOn(planSetupService, "get").mockResolvedValue(setupFixture());
   vi.spyOn(auditLogService, "list").mockResolvedValue(pageFixture([]));
-  vi.spyOn(ownerObjectionService, "get").mockRejectedValue(problem("DEATH_CASE_NOT_FOUND", 404));
 });
 afterEach(() => {
   cleanup();
@@ -179,27 +177,6 @@ describe("Owner dashboard from server metadata", () => {
     vi.mocked(backendAssetService.list).mockResolvedValue(pageFixture([]));
     fireEvent.click(within(section).getByRole("button", { name: "Thử lại" }));
     expect(await within(section).findByText("Kho chưa có tài sản.")).toBeInTheDocument();
-  });
-
-  it("does not claim no death case when the server cannot check it", async () => {
-    vi.mocked(ownerObjectionService.get).mockRejectedValue(new Error("test unavailable"));
-    mount();
-    expect(await screen.findByText(/Chưa kiểm tra được hồ sơ chứng tử/)).toBeInTheDocument();
-    expect(screen.queryByText("Không có hồ sơ chứng tử đang mở.")).not.toBeInTheDocument();
-  });
-
-  it("preserves the real owner objection warning and action", async () => {
-    vi.mocked(ownerObjectionService.get).mockResolvedValue({
-      caseId: VAULT_ID,
-      caseCode: "TEST-CASE",
-      status: "UNDER_REVIEW",
-      objectionStartsAt: null,
-      objectionEndsAt: null,
-      objection: null,
-    });
-    mount();
-    expect(await screen.findByRole("button", { name: "Tôi còn sống" })).toBeInTheDocument();
-    expect(screen.getByText(/Có hồ sơ chứng tử trên kho/)).toBeInTheDocument();
   });
 
   it("auto-creates a missing vault and opens the dashboard without a naming step", async () => {

@@ -1,26 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { normalizeVietnamPhone, vietnamPhoneSchema } from "../phone.schema";
+import { contactPhoneSchema, normalizeContactPhone } from "../phone.schema";
 
-describe("Số di động Việt Nam", () => {
+describe("Số điện thoại liên hệ: không kiểm định dạng", () => {
   it.each([
     ["0912345678", "0912345678"],
     ["091 234 5678", "0912345678"],
     ["091.234.5678", "0912345678"],
-    ["+84912345678", "0912345678"],
-    ["84912345678", "0912345678"],
-    ["0312345678", "0312345678"],
-  ])("nhận %s và chuẩn hóa thành %s", (input, expected) => {
-    expect(vietnamPhoneSchema.parse(input)).toBe(expected);
+    ["+84912345678", "+84912345678"],
+    ["12345", "12345"],
+    ["1912345678", "1912345678"],
+  ])("nhận %s và chỉ bỏ ký tự phân cách thành %s", (input, expected) => {
+    expect(contactPhoneSchema.parse(input)).toBe(expected);
   });
 
-  it.each(["", "091234567", "09123456789", "0212345678", "0612345678", "+1 415 555 0100"])(
-    "từ chối %s",
-    (input) => {
-      expect(vietnamPhoneSchema.safeParse(input).success).toBe(false);
-    },
-  );
+  it.each(["", "   ", "( - )"])("từ chối số trống %j", (input) => {
+    expect(contactPhoneSchema.safeParse(input).success).toBe(false);
+  });
 
-  it("không đổi đầu số khi số bắt đầu bằng 84 nhưng không đủ độ dài", () => {
-    expect(normalizeVietnamPhone("8412")).toBe("8412");
+  it("từ chối số dài quá 20 ký tự", () => {
+    expect(contactPhoneSchema.safeParse("1".repeat(21)).success).toBe(false);
+  });
+
+  it("normalizeContactPhone chỉ bỏ ký tự phân cách", () => {
+    expect(normalizeContactPhone("(028) 3822-1234")).toBe("02838221234");
   });
 });

@@ -4,7 +4,7 @@ import {
   holdStatusSchema,
   incidentStatusSchema,
   incidentTypeSchema,
-  paymentTransactionStatusSchema,
+  paymentFilterStatusSchema,
   type HoldsQuery,
   type IncidentsQuery,
   type PaymentTransactionsQuery,
@@ -45,12 +45,16 @@ export function useAdminIncidentParams() {
     status: status.success ? status.data : undefined,
     type: type.success ? type.data : undefined,
     overdueOnly: params.get("overdue") === "1" || params.get("overdue") === "true",
+    mine: params.get("mine") === "1",
+    search: (params.get("iq") ?? "").trim().slice(0, 100),
   };
   const page = readPage(params.get("page"));
   const query: IncidentsQuery = {
     status: filters.status,
     type: filters.type,
     overdueOnly: filters.overdueOnly || undefined,
+    mine: filters.mine || undefined,
+    search: filters.search || undefined,
     pageIndex: page,
     pageSize: ADMIN_LIST_PAGE_SIZE,
   };
@@ -60,14 +64,31 @@ export function useAdminIncidentParams() {
     page,
     query,
     selectedId,
-    hasFilters: Boolean(filters.status || filters.type || filters.overdueOnly),
-    setFilters: (patch: { status?: string; type?: string; overdueOnly?: boolean }) =>
+    hasFilters: Boolean(
+      filters.status || filters.type || filters.overdueOnly || filters.mine || filters.search,
+    ),
+    setFilters: (patch: {
+      status?: string;
+      type?: string;
+      overdueOnly?: boolean;
+      mine?: boolean;
+      search?: string;
+    }) =>
       write({
+        ...("mine" in patch ? { mine: patch.mine ? "1" : undefined } : {}),
+        ...("search" in patch ? { iq: patch.search || undefined } : {}),
         ...("status" in patch ? { status: patch.status } : {}),
         ...("type" in patch ? { type: patch.type } : {}),
         ...("overdueOnly" in patch ? { overdue: patch.overdueOnly ? "1" : undefined } : {}),
       }),
-    clearFilters: () => write({ status: undefined, type: undefined, overdue: undefined }),
+    clearFilters: () =>
+      write({
+        status: undefined,
+        type: undefined,
+        overdue: undefined,
+        mine: undefined,
+        iq: undefined,
+      }),
     setPage: (next: number) => write({ page: next > 1 ? String(next) : undefined }, false),
     select: (id: string | undefined) => write({ incident: id }, false),
   };
@@ -97,14 +118,33 @@ export function useAdminHoldParams() {
   };
 }
 
-/** Bộ lọc Giao dịch thanh toán trên URL (`pstatus`, `page`); giá trị ngoài enum bị bỏ qua. */
+const DATE_PARAM = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Bộ lọc Giao dịch thanh toán trên URL (`pstatus`, `pq`, `penv`, `pfrom`, `pto`, `page`);
+ * giá trị ngoài enum hoặc sai định dạng ngày bị bỏ qua.
+ */
 export function useAdminPaymentParams() {
   const { params, write } = useParamWriter();
-  const status = paymentTransactionStatusSchema.safeParse(params.get("pstatus"));
-  const filters = { status: status.success ? status.data : undefined };
+  const status = paymentFilterStatusSchema.safeParse(params.get("pstatus"));
+  const env = params.get("penv");
+  const from = params.get("pfrom");
+  const to = params.get("pto");
+  const filters = {
+    status: status.success ? status.data : undefined,
+    search: (params.get("pq") ?? "").trim().slice(0, 60),
+    environment: (env === "Live" || env === "Test" ? env : undefined) as
+      "Live" | "Test" | undefined,
+    from: from && DATE_PARAM.test(from) ? from : undefined,
+    to: to && DATE_PARAM.test(to) ? to : undefined,
+  };
   const page = readPage(params.get("page"));
   const query: PaymentTransactionsQuery = {
     status: filters.status,
+    search: filters.search || undefined,
+    environment: filters.environment,
+    from: filters.from,
+    to: filters.to,
     pageIndex: page,
     pageSize: ADMIN_LIST_PAGE_SIZE,
   };
@@ -112,9 +152,22 @@ export function useAdminPaymentParams() {
     filters,
     page,
     query,
-    hasFilters: Boolean(filters.status),
+    hasFilters: Boolean(
+      filters.status || filters.search || filters.environment || filters.from || filters.to,
+    ),
     setStatus: (value: string | undefined) => write({ pstatus: value }),
-    clearFilters: () => write({ pstatus: undefined }),
+    setSearch: (value: string) => write({ pq: value || undefined }),
+    setEnvironment: (value: string | undefined) => write({ penv: value }),
+    setFrom: (value: string | undefined) => write({ pfrom: value }),
+    setTo: (value: string | undefined) => write({ pto: value }),
+    clearFilters: () =>
+      write({
+        pstatus: undefined,
+        pq: undefined,
+        penv: undefined,
+        pfrom: undefined,
+        pto: undefined,
+      }),
     setPage: (next: number) => write({ page: next > 1 ? String(next) : undefined }, false),
   };
 }

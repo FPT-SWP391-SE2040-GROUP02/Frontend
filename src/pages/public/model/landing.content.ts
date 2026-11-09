@@ -114,12 +114,12 @@ export const LANDING_CONTENT = {
       },
       {
         tag: "03 · Bàn giao",
-        title: "Chỉ mở khi đủ điều kiện, và bạn vẫn dừng được",
+        title: "Chỉ mở khi đủ điều kiện, và bạn dừng được bằng điểm danh",
         detail:
-          "Hệ thống nhắc bạn xác nhận định kỳ. Khi không có phản hồi và các lớp xác nhận đều đạt, bạn còn {objectionHours} giờ để phản đối trước khi người nhận được mở kho, rồi {grantDays} ngày để họ tải về.",
+          "Hệ thống nhắc bạn xác nhận định kỳ. Chỉ khi bạn không điểm danh và các lớp xác nhận đều đạt, người nhận mới được mở kho, rồi có {grantDays} ngày để tải về.",
         points: [
           "Nhắc xác nhận định kỳ, chỉ cần báo mình vẫn ổn",
-          "{objectionHours} giờ phản đối bằng nút “Tôi còn sống”",
+          "Điểm danh bất cứ lúc nào để dừng mọi thứ trước khi có báo tin",
           "Người nhận có {grantDays} ngày để tải về",
         ],
         visualTitle: "Từ im lặng đến bàn giao",
@@ -128,7 +128,6 @@ export const LANDING_CONTENT = {
           { title: "Người thực hiện báo tin", detail: "Lớp 1" },
           { title: "Người xét duyệt xác nhận", detail: "Lớp 2" },
           { title: "Người nhận xác minh eKYC", detail: "Lớp 3" },
-          { title: "{objectionHours} giờ để phản đối", detail: "Lớp 4" },
           { title: "{grantDays} ngày để tải về", detail: "Hoàn tất" },
         ],
       },
@@ -153,8 +152,9 @@ export const LANDING_CONTENT = {
         detail: "eKYC cơ bản để đúng người mới nhận được kho.",
       },
       {
-        title: "{objectionHours} giờ để phản đối",
-        detail: "Bạn, hoặc người thân của bạn, vẫn có thể dừng. Chỉ cần bấm “Tôi còn sống”.",
+        title: "Điểm danh để dừng",
+        detail:
+          "Chỉ cần điểm danh khi được nhắc, hệ thống không bàn giao. Sau khi có báo tin, kho khóa ngay.",
       },
     ],
   },
@@ -202,7 +202,7 @@ export const LANDING_CONTENT = {
       {
         title: "Luôn dừng được",
         detail:
-          "Chỉ cần bấm “Tôi còn sống” trong {objectionHours} giờ, quá trình bàn giao dừng lại.",
+          "Điểm danh khi được nhắc là đủ để mọi thứ dừng lại, chưa có báo tin nào được gửi đi.",
       },
     ],
     limitsTitle: "Những giới hạn chúng tôi nói rõ",

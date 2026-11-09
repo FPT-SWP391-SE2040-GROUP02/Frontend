@@ -12,10 +12,12 @@ import {
   DEV_TOOLS_FOOTNOTE,
   DEV_TOOLS_NOTICE,
   EKYC_RESET_DESCRIPTION,
+  EKYC_PAUSE_DESCRIPTION,
   EKYC_THRESHOLD_DESCRIPTION,
   RESET_DONE,
   REWIND_DESCRIPTION,
   ekycResetDone,
+  ekycPauseDone,
   ekycThresholdDone,
   planStatusLabel,
   rewindDone,
@@ -25,12 +27,19 @@ import {
   devEkycResetSchema,
   devRewindBeforeEkycSchema,
   type DevClock,
+  type DevEkycPause,
   type DevEkycThreshold,
   type DevMilestone,
 } from "../model/devTools.schema";
 import { adminKeys } from "../model/useAdmin";
 import { useAdminAction } from "../model/useAdminAction";
-import { devToolsKeys, useDevClock, useDevEkycThreshold, useDevVaults } from "../model/useDevTools";
+import {
+  devToolsKeys,
+  useDevClock,
+  useDevEkycPause,
+  useDevEkycThreshold,
+  useDevVaults,
+} from "../model/useDevTools";
 import { AdminActionDialog } from "./AdminActionDialog";
 import { AdminErrorMessage } from "./AdminStateMessage";
 import { ExecutorEmailPreviewPanel } from "./ExecutorEmailPreviewPanel";
@@ -44,7 +53,7 @@ type PendingDialog =
 
 /**
  * Công cụ thử nghiệm (chỉ Development): chọn một kho thử rồi tua tới từng mốc của luồng điểm danh,
- * chứng tử và báo còn sống. Mọi thay đổi do Backend quyết định; màn hình chỉ hiện kết quả máy chủ trả về.
+ * chứng tử. Mọi thay đổi do Backend quyết định; màn hình chỉ hiện kết quả máy chủ trả về.
  */
 export function AdminDevTools() {
   const [params, setParams] = useSearchParams();
@@ -193,6 +202,8 @@ export function AdminDevTools() {
         </button>
       </Panel>
 
+      <EkycPausePanel onDone={(message) => setDone(message)} />
+
       <EkycThresholdPanel onDone={(message) => setDone(message)} />
 
       <ExecutorEmailPreviewPanel />
@@ -332,6 +343,61 @@ function MilestoneRow({
         {passed ? "Đã qua mốc này" : "Tua tới mốc này"}
       </button>
     </li>
+  );
+}
+
+/** Nút tạm ngừng eKYC để chạy thử cả luồng không cần giấy tờ thật; chỉ Backend quyết định, màn hình hiện kết quả trả về. */
+function EkycPausePanel({ onDone }: { onDone: (message: string) => void }) {
+  const pause = useDevEkycPause();
+  const { execute, pending, error } = useAdminAction();
+  const client = useQueryClient();
+  const paused = pause.data?.paused ?? false;
+
+  function toggle() {
+    onDone("");
+    void execute(
+      () => devToolsService.setEkycPause(!paused),
+      (result: DevEkycPause) => {
+        client.setQueryData(devToolsKeys.ekycPause(), result);
+        onDone(ekycPauseDone(result.paused));
+      },
+    );
+  }
+
+  return (
+    <Panel title="Tạm ngừng eKYC để chạy thử" labelledBy="dev-tools-ekyc-pause">
+      {pause.isPending && <Skeleton className="h-24 rounded-xl" />}
+      {pause.isError && (
+        <AdminErrorMessage
+          error={pause.error}
+          onRetry={() => void pause.refetch()}
+          retrying={pause.isFetching}
+        />
+      )}
+      {pause.isSuccess && (
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip tone={paused ? "warning" : "success"}>
+              {paused ? "Đang tạm ngừng: eKYC tự đạt" : "Đang chạy eKYC thật"}
+            </Chip>
+          </div>
+          <p className="text-sm text-heritage-muted">{EKYC_PAUSE_DESCRIPTION}</p>
+          {error && !pending && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          <button
+            type="button"
+            className={paused ? buttonStyles.outline : buttonStyles.gold}
+            disabled={pending}
+            onClick={toggle}
+          >
+            {paused ? "Bật lại eKYC thật" : "Tạm ngừng eKYC"}
+          </button>
+        </div>
+      )}
+    </Panel>
   );
 }
 

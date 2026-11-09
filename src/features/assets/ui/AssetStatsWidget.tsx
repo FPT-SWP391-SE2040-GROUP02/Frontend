@@ -64,7 +64,7 @@ export const AssetStatsWidget: React.FC = () => {
         </div>
       </div>
 
-      {/* Stat 3: Beneficiaries & Shamir */}
+      {/* Stat 3: Beneficiaries */}
       <div className="p-5 bg-[#FAF9F5] border border-[#DCD9D0] rounded-[20px] shadow-[0_2px_8px_rgba(11,41,30,0.04)] flex items-center justify-between">
         <div>
           <span className="text-xs font-bold text-[#66786E] uppercase tracking-wider">

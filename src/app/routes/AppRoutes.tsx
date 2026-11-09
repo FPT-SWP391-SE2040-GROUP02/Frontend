@@ -67,14 +67,9 @@ const ExecutorProgressPage = lazy(() =>
     default: module.ExecutorProgressPage,
   })),
 );
-const ExecutorPermissionsPage = lazy(() =>
-  import("@/pages/executor/ExecutorPermissionsPage").then((module) => ({
-    default: module.ExecutorPermissionsPage,
-  })),
-);
-const ExecutorInvitationsPage = lazy(() =>
-  import("@/pages/executor/ExecutorInvitationsPage").then((module) => ({
-    default: module.ExecutorInvitationsPage,
+const ExecutorAssetsPage = lazy(() =>
+  import("@/pages/executor/ExecutorAssetsPage").then((module) => ({
+    default: module.ExecutorAssetsPage,
   })),
 );
 const InvitationsPage = lazy(() =>
@@ -359,16 +354,24 @@ export function AppRoutes() {
         {/* ========================================================================
           6. TUYẾN ĐƯỜNG BẢO VỆ — Người Thi Hành Di Chúc (Digital Executor)
          ======================================================================== */}
-        {/* Người thực hiện là tài khoản thường được Chủ kho mời; Admin/Verifier mở nhầm thì về trang của họ. */}
+        {/* Người thực thi là tài khoản thường được Chủ kho mời; Admin/Verifier mở nhầm thì về trang của họ. */}
         <Route
           element={<ProtectedRoute allowedRoles={[ROLES.USER, ROLES.EXECUTOR]} wrongRoleGoesHome />}
         >
           <Route path={ROUTES.EXECUTOR.ROOT} element={<ExecutorOverviewPage />} />
           <Route path={ROUTES.EXECUTOR.REPORT} element={<ExecutorReportPage />} />
           <Route path={ROUTES.EXECUTOR.PROGRESS} element={<ExecutorProgressPage />} />
-          <Route path={ROUTES.EXECUTOR.PERMISSIONS} element={<ExecutorPermissionsPage />} />
+          <Route path={ROUTES.EXECUTOR.ASSETS} element={<ExecutorAssetsPage />} />
+          {/* Lời mời và Quyền hạn nay là hai thẻ trong trang Cài đặt; đường cũ chuyển về đó. */}
+          <Route
+            path={ROUTES.EXECUTOR.PERMISSIONS}
+            element={<Navigate to={`${ROUTES.EXECUTOR.SETTINGS}?open=permissions`} replace />}
+          />
           <Route path={ROUTES.EXECUTOR.SETTINGS} element={<ExecutorSettingsPage />} />
-          <Route path={ROUTES.EXECUTOR.INVITATIONS} element={<ExecutorInvitationsPage />} />
+          <Route
+            path={ROUTES.EXECUTOR.INVITATIONS}
+            element={<Navigate to={`${ROUTES.EXECUTOR.SETTINGS}?open=invitations`} replace />}
+          />
           <Route path={ROUTES.EXECUTOR.IDENTITY} element={<ExecutorIdentityPage />} />
           {/* Đường dẫn cũ của cổng Executor. */}
           <Route
@@ -378,7 +381,7 @@ export function AppRoutes() {
         </Route>
 
         {/* ========================================================================
-          7. TUYẾN ĐƯỜNG BẢO VỆ — Công Chứng Viên (Legal Verifier / Notary)
+          7. TUYẾN ĐƯỜNG BẢO VỆ — Người xét duyệt (Legal Verifier)
          ======================================================================== */}
         <Route element={<ProtectedRoute allowedRoles={[ROLES.VERIFIER]} />}>
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />

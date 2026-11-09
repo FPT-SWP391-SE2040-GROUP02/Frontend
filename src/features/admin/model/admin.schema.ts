@@ -31,6 +31,22 @@ export const adminDashboardSchema = z.object({
   activeAdmins: counter,
   casesWithoutVerifier: counter,
   serverTime: dateTime,
+  /** Ba khối mới có thể vắng khi Backend cũ chưa trả; màn vẫn hiện được phần còn lại. */
+  planStages: z.array(z.object({ stage: z.string(), count: counter })).default([]),
+  closedPlans: counter.default(0),
+  verifierLoad: z
+    .array(
+      z.object({
+        userId: z.string().uuid(),
+        fullName: z.string(),
+        openCases: counter,
+        overdueCases: counter,
+      }),
+    )
+    .default([]),
+  recentActivity: z
+    .array(z.object({ at: dateTime, actorFullName: z.string().nullable(), action: z.string() }))
+    .default([]),
 });
 export type AdminDashboard = z.infer<typeof adminDashboardSchema>;
 
@@ -47,6 +63,23 @@ export const adminUserSchema = z.object({
   etag: z.string(),
 });
 export type AdminUser = z.infer<typeof adminUserSchema>;
+
+/** GET /admin/users/{id}: thông tin tài khoản cộng hồ sơ đang giữ, quyết định và hoạt động gần đây (không lý do, không nội dung hồ sơ). */
+export const adminUserDetailSchema = adminUserSchema.extend({
+  assignedCases: z.array(
+    z.object({
+      caseId: z.string().uuid(),
+      status: z.string(),
+      dueAt: dateTime,
+      overdue: z.boolean(),
+    }),
+  ),
+  recentDecisions: z.array(
+    z.object({ caseId: z.string().uuid(), kind: z.string(), decidedAt: dateTime }),
+  ),
+  recentActivity: z.array(z.object({ at: dateTime, action: z.string(), outcome: z.string() })),
+});
+export type AdminUserDetail = z.infer<typeof adminUserDetailSchema>;
 
 export const adminUsersPageSchema = paginatedListSchema(adminUserSchema);
 export type AdminUsersPage = z.infer<typeof adminUsersPageSchema>;
@@ -83,6 +116,10 @@ export const INCIDENT_TYPES = [
   "MANUAL",
   "PAYMENT",
   "SUSPICIOUS_LOGIN",
+  "STALE_CASE",
+  "SUPPLEMENT_LOOP",
+  "PLAN_EXPIRING",
+  "PROXY_LIMIT",
 ] as const;
 /** `IncidentStatus` của Backend. */
 export const INCIDENT_STATUSES = ["OPEN", "IN_PROGRESS", "RESOLVED"] as const;
@@ -125,6 +162,11 @@ export const incidentSummarySchema = z.object({
   targetId: uuid.nullable(),
   summary: z.string(),
   assigneeUserId: uuid.nullable(),
+  /** Họ tên và vai trò người phụ trách do Backend trả để hiện thẳng trên danh sách; null khi chưa giao hoặc tài khoản không còn. */
+  assigneeFullName: z.string().nullable().default(null),
+  assigneeRole: z.enum(["USER", "VERIFIER", "ADMIN"]).nullable().default(null),
+  /** Ai chịu trách nhiệm xử lý loại sự cố này; Admin chỉ theo dõi khi không phải ADMIN. */
+  responsibleRole: z.enum(["ADMIN", "EXECUTOR", "VERIFIER"]).default("ADMIN"),
   dueAt: dateTime,
   overdue: z.boolean(),
   nextReviewAt: dateTime,
@@ -179,11 +221,22 @@ export type HoldsPage = z.infer<typeof holdsPageSchema>;
 /** Kích thước trang cố định của danh sách sự cố và hold. */
 export const ADMIN_LIST_PAGE_SIZE = 20;
 
+/** GET /admin/{incidents|users|holds}/counts: số lượng theo nhóm cho các thẻ lọc; nhóm không có dòng nào vẫn là 0. */
+export const countsSchema = z.object({
+  counts: z.record(z.string(), counter),
+  total: counter,
+});
+export type Counts = z.infer<typeof countsSchema>;
+
 /** Query GET /admin/incidents (tên tham số theo AdminController). */
 export const incidentsQuerySchema = z.object({
   status: incidentStatusSchema.optional(),
   type: incidentTypeSchema.optional(),
   overdueOnly: z.boolean().optional(),
+  /** Chỉ sự cố đang giao cho chính Admin đang đăng nhập. */
+  mine: z.boolean().optional(),
+  /** Tìm theo mã sự cố, mã hồ sơ hoặc nội dung tóm tắt. */
+  search: z.string().trim().max(100).optional(),
   pageIndex: z.number().int().positive(),
   pageSize: z.number().int().min(1).max(100),
 });
@@ -192,6 +245,8 @@ export type IncidentsQuery = z.infer<typeof incidentsQuerySchema>;
 /** Query GET /admin/holds. */
 export const holdsQuerySchema = z.object({
   status: holdStatusSchema.optional(),
+  /** Chỉ hold của một kho (dùng ở chi tiết sự cố). */
+  vaultId: z.string().uuid().optional(),
   pageIndex: z.number().int().positive(),
   pageSize: z.number().int().min(1).max(100),
 });
@@ -206,6 +261,11 @@ export const PAYMENT_TRANSACTION_STATUSES = [
 ] as const;
 export const paymentTransactionStatusSchema = z.enum(PAYMENT_TRANSACTION_STATUSES);
 export type PaymentTransactionStatus = z.infer<typeof paymentTransactionStatusSchema>;
+
+/** Giá trị lọc: "SUCCESS" gộp Đã khớp đơn và Đã xử lý thành một nhóm "Thành công". */
+export const PAYMENT_FILTER_STATUSES = ["SUCCESS", "RECEIVED", "RECONCILIATION_REQUIRED"] as const;
+export const paymentFilterStatusSchema = z.enum(PAYMENT_FILTER_STATUSES);
+export type PaymentFilterStatus = z.infer<typeof paymentFilterStatusSchema>;
 
 /**
  * AdminPaymentTransactionResponse, chỉ đọc (ADMIN-09). BE không trả nội dung chuyển khoản hay số tài khoản (SEC-07).
@@ -236,7 +296,20 @@ export type PaymentTransactionsPage = z.infer<typeof paymentTransactionsPageSche
 
 /** Query GET /admin/payment-transactions. */
 export const paymentTransactionsQuerySchema = z.object({
-  status: paymentTransactionStatusSchema.optional(),
+  status: paymentFilterStatusSchema.optional(),
+  /** Tìm theo mã thanh toán hoặc mã tham chiếu ngân hàng. */
+  search: z.string().trim().max(60).optional(),
+  /** "Live" hoặc "Test". */
+  environment: z.enum(["Live", "Test"]).optional(),
+  /** Ngày yyyy-MM-dd theo giờ Việt Nam, tính cả ngày đầu và ngày cuối. */
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   pageIndex: z.number().int().positive(),
   pageSize: z.number().int().min(1).max(100),
 });
@@ -272,6 +345,8 @@ export const changeUserStatusRequestSchema = z.object({
   reason: reason500,
 });
 export const reassignVerifierRequestSchema = z.object({ verifierUserId: uuid, reason: reason500 });
+/** Admin giao hoặc đổi Người thực thi của một kho; người được giao phải chấp nhận lời mời. */
+export const assignExecutorRequestSchema = z.object({ userId: uuid, reason: reason500 });
 
 export type AssignIncidentRequest = z.infer<typeof assignIncidentRequestSchema>;
 export type IncidentNoteRequest = z.infer<typeof incidentNoteRequestSchema>;
@@ -280,6 +355,7 @@ export type ResolveIncidentRequest = z.infer<typeof resolveIncidentRequestSchema
 export type ChangeUserRoleRequest = z.infer<typeof changeUserRoleRequestSchema>;
 export type ChangeUserStatusRequest = z.infer<typeof changeUserStatusRequestSchema>;
 export type ReassignVerifierRequest = z.infer<typeof reassignVerifierRequestSchema>;
+export type AssignExecutorRequest = z.infer<typeof assignExecutorRequestSchema>;
 
 export const createAdminUserRequestSchema = z.object({
   fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
@@ -287,5 +363,7 @@ export const createAdminUserRequestSchema = z.object({
   password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128),
   role: z.enum(["VERIFIER", "ADMIN"]),
   phone: z.string().trim().max(32).optional(),
+  practiceCertificateNumber: z.string().trim().max(64).optional(),
+  lawyerCardNumber: z.string().trim().max(64).optional(),
 });
 export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;

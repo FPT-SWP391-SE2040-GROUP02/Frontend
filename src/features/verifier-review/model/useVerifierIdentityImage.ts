@@ -3,8 +3,8 @@ import { isAxiosError } from "axios";
 import { HTTP_STATUS } from "@/shared/constants";
 import { verifierReviewService } from "../api/verifierReviewService";
 
-/** Ảnh danh tính Verifier được xem: mặt trước CCCD lúc eKYC, hoặc selfie gần nhất khi Owner báo còn sống. */
-export type VerifierIdentityImageKind = "owner-document" | "objection-selfie";
+/** Ảnh danh tính Verifier được xem: mặt trước CCCD lúc eKYC. */
+export type VerifierIdentityImageKind = "owner-document";
 
 export type VerifierIdentityImageState =
   | { status: "loading" }
@@ -31,11 +31,8 @@ export function useVerifierIdentityImage(
 
   useEffect(() => {
     const controller = new AbortController();
-    const load =
-      kind === "owner-document"
-        ? verifierReviewService.downloadOwnerDocumentImage
-        : verifierReviewService.downloadObjectionSelfieImage;
-    void load(caseId, controller.signal)
+    void verifierReviewService
+      .downloadOwnerDocumentImage(caseId, controller.signal)
       .then((blob) => {
         if (controller.signal.aborted) return;
         if (current.current) URL.revokeObjectURL(current.current);

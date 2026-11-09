@@ -45,6 +45,9 @@ const handoverNotAllowedReasons: Record<string, string> = {
   RESEND_TOO_SOON: "Vừa gửi xong, vui lòng thử lại sau ít phút.",
   NO_EMAIL: "Người nhận chưa có email.",
   INVITATION_SEND_FAILED: "Chưa gửi được thư mời. Chưa có gì thay đổi, vui lòng thử lại sau.",
+  KEY_REQUIRED: "Cần nhập khóa mở gói do Người thực hiện đưa trước khi đồng ý nhận.",
+  NO_KEY: "Kho này chưa cấp khóa mở gói nên chưa có khóa để gửi.",
+  KEY_SEND_FAILED: "Chưa gửi được khóa. Vui lòng thử lại sau.",
 };
 
 /** Reason-specific messages for EXECUTOR_NOT_ALLOWED */
@@ -70,17 +73,8 @@ const vaultNotEditableReasons: Record<string, string> = {
   HOLD_ACTIVE: "Kho đang bị tạm giữ nên chưa thể chỉnh sửa.",
 };
 
-/** Reason-specific messages for DEATH_CASE_NOT_ALLOWED (báo còn sống, mục 6.14) */
+/** Reason-specific messages for DEATH_CASE_NOT_ALLOWED */
 const deathCaseNotAllowedReasons: Record<string, string> = {
-  OBJECTION_ALREADY_REJECTED:
-    "Lời báo trước đã bị bác. Hãy gửi một ảnh selfie mới để mở lại thay vì báo trơn.",
-  OBJECTION_WINDOW_CLOSED: "Đã hết hạn gửi selfie cho lời báo này.",
-  SELFIE_ATTEMPTS_EXCEEDED: "Bạn đã hết lượt thử selfie trong 24 giờ. Hãy thử lại sau.",
-  OBJECTION_NOT_OPEN: "Hồ sơ này chưa có lời báo còn sống đang mở.",
-  ALIVE_EVIDENCE_REQUIRED:
-    "Chưa thể xác nhận còn sống: cần selfie đạt hoặc đã hết hạn chờ bằng chứng.",
-  OWNER_SELFIE_PASSED:
-    "Owner đã có selfie khớp nên không thể từ chối báo tử. Chọn xác nhận còn sống hoặc chưa đủ bằng chứng.",
   // Lý do khi Người xét duyệt chấp thuận, bổ sung, từ chối hoặc xem xét cờ bị Backend từ chối.
   PLAN_STATE_INVALID:
     "Kế hoạch của kho không còn ở trạng thái mở hồ sơ, hoặc kho đã có lượt bàn giao. Tải lại hồ sơ để xem trạng thái mới nhất.",
@@ -89,8 +83,6 @@ const deathCaseNotAllowedReasons: Record<string, string> = {
   NOT_UNDER_REVIEW: "Hồ sơ không còn ở bước xét duyệt. Tải lại để xem trạng thái mới nhất.",
   NEWER_VERSION_PENDING:
     "Người thực hiện đang có bản mới chờ xét nên chưa chấp thuận được bản này.",
-  OWNER_NOT_NOTIFIED: "Chưa báo được cho Chủ kho nên đồng hồ phản đối chưa chạy.",
-  OBJECTION_PERIOD_NOT_OVER: "Chưa hết thời gian để Chủ kho phản đối.",
   FLAGS_NOT_REVIEWED: "Còn cảnh báo của bản đang xét chưa được kiểm tra.",
   VERIFIER_CONFLICT: "Bạn có quan hệ với kho này nên chỉ được xem, không được quyết định.",
   PLAN_NOT_RUNNING: "Kế hoạch chưa chạy hoặc đã sang giai đoạn khác nên chưa thao tác được.",
@@ -123,12 +115,6 @@ const ekycServiceUnavailableReasons: Record<string, string> = {
     "Chủ kho chưa có mẫu khuôn mặt vì chưa hoàn tất xác minh eKYC. Hãy hoàn tất eKYC ở mục Xác minh rồi gửi lại selfie.",
 };
 
-/** Mã trong missingRequirements cần thông báo riêng thay cho thông báo chung của DEATH_CASE_INCOMPLETE. */
-const missingRequirementMessages: Record<string, string> = {
-  DEATH_CERTIFICATE_NOT_RECOGNIZED:
-    "Hệ thống không nhận ra trang nào là giấy chứng tử hoặc trích lục khai tử. Hãy tải lên ảnh chụp rõ giấy chứng tử rồi gửi lại.",
-};
-
 /** Ưu tiên `reason` của BE trước thông báo chung theo `code`. */
 /** Reason-specific messages for EKYC_IDENTITY_MISMATCH */
 const ekycIdentityMismatchReasons: Record<string, string> = {
@@ -143,6 +129,8 @@ const ekycIdentityMismatchReasons: Record<string, string> = {
 const checkInNotAllowedReasons: Record<string, string> = {
   PLAN_NOT_OVERDUE: "Chủ kho không còn quá hạn điểm danh. Tải lại để xem trạng thái mới nhất.",
   DEATH_CASE_OPEN: "Kho đã có hồ sơ chứng tử đang mở nên không điểm danh thay được nữa.",
+  PROXY_LIMIT_REACHED:
+    "Bạn đã điểm danh thay đủ số lần liên tiếp cho phép. Chỉ còn cách nộp giấy chứng tử, hoặc chờ Chủ kho tự điểm danh.",
 };
 
 const reasonMessages: Record<string, Record<string, string>> = {
@@ -242,9 +230,14 @@ const messages: Record<string, string> = {
   VAULT_PIN_ALREADY_SET: "Kho đã có mã PIN. Dùng chức năng đổi mã PIN.",
   VAULT_PIN_REQUIRED: "Thao tác này cần nhập mã PIN của kho.",
   INVALID_VAULT_PIN: "Mã PIN chưa đúng.",
+  HANDOVER_KEY_INVALID: "Khóa mở gói chưa đúng. Kiểm tra lại với Người thực hiện rồi nhập lại.",
+  HANDOVER_KEY_LOCKED:
+    "Đã nhập sai khóa quá nhiều lần. Hãy liên hệ Người thực hiện hoặc quản trị viên.",
   VAULT_PIN_LOCKED: "Mã PIN đang bị khóa tạm vì nhập sai nhiều lần. Vui lòng thử lại sau.",
   VAULT_PIN_TOO_WEAK:
     "Mã PIN quá dễ đoán. Không dùng các số giống nhau hoặc dãy số liên tiếp (111111, 123456...).",
+  EXECUTOR_KEY_ALREADY_ISSUED: "Kho đã có khóa mở gói. Tải lại rồi dùng nút Quên khóa để cấp lại.",
+  EXECUTOR_KEY_NOT_ISSUED: "Kho chưa cấp khóa mở gói nên chưa cấp lại được. Tải lại trang.",
   VAULT_PIN_RESET_NEEDS_PASSWORD:
     "Tài khoản của bạn chưa có mật khẩu nên chưa đặt lại mã PIN được. Hãy đặt mật khẩu ở mục Phương thức đăng nhập trước.",
 };
@@ -287,10 +280,6 @@ export function privateActionError(error: unknown): string {
       const byReason = reasonMessages[code];
       if (byReason && Object.hasOwn(byReason, reason)) return byReason[reason];
     }
-    const missing = parsed.success ? (parsed.data.missingRequirements ?? []) : [];
-    const missingMessage = missing.find((item) => Object.hasOwn(missingRequirementMessages, item));
-    if (code === "DEATH_CASE_INCOMPLETE" && missingMessage)
-      return missingRequirementMessages[missingMessage];
     if (code === "VALIDATION_ERROR") {
       const specific = validationMessages(parsed.success ? parsed.data.errors : undefined);
       if (specific.length > 0) return specific.join(" ");

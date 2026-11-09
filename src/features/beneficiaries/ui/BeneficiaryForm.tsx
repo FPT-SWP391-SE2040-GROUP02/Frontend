@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Input } from "@/shared/ui/input";
+import { Textarea } from "@/shared/ui/textarea";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { AuthState } from "@/entities/user/model/authSlice";
@@ -29,6 +30,7 @@ interface BeneficiaryFormValues {
   dateOfBirth: string;
   email: string;
   phone?: string;
+  message?: string;
 }
 
 const LABEL = "block space-y-1.5 text-sm font-semibold";
@@ -52,6 +54,7 @@ const FIELD_LABELS: Record<string, string> = {
   dateOfBirth: "Ngày sinh",
   email: "Email",
   phone: "Số điện thoại",
+  message: "Lời nhắn",
 };
 
 /**
@@ -113,6 +116,7 @@ export function BeneficiaryForm({
             .max(254, "Email tối đa 254 ký tự.")
             .refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()), "Email không hợp lệ."),
           phone: z.string().max(20, "Số điện thoại tối đa 20 ký tự.").optional().or(z.literal("")),
+          message: z.string().max(300, "Lời nhắn tối đa 300 ký tự.").optional(),
         })
         .superRefine((values, ctx) => {
           // 1. Kiểm tra ngày sinh không ở tương lai
@@ -195,6 +199,7 @@ export function BeneficiaryForm({
       dateOfBirth: record?.dateOfBirth ?? "",
       email: record?.email ?? "",
       phone: record?.phone ?? "",
+      message: record?.message ?? "",
     },
   });
 
@@ -240,6 +245,7 @@ export function BeneficiaryForm({
                     dateOfBirth: values.dateOfBirth,
                     email: values.email.trim(),
                     phone: values.phone?.trim() ? values.phone.replace(/[\s.-]/g, "") : null,
+                    message: values.message?.trim() ?? "",
                     etag: etag!,
                   })
                 : beneficiaryService.create(vaultId, {
@@ -247,6 +253,7 @@ export function BeneficiaryForm({
                     dateOfBirth: values.dateOfBirth,
                     email: values.email.trim(),
                     phone: values.phone?.trim() ? values.phone.replace(/[\s.-]/g, "") : null,
+                    message: values.message?.trim() ? values.message.trim() : null,
                     citizenId: cleanCitizenId,
                   }),
             (result) => {
@@ -267,6 +274,7 @@ export function BeneficiaryForm({
                   dateOfBirth: result.dateOfBirth,
                   email: result.email ?? "",
                   phone: result.phone ?? "",
+                  message: result.message ?? "",
                 });
               }
             },
@@ -290,6 +298,8 @@ export function BeneficiaryForm({
                   setError("email", { type: "server", message: msg });
                 } else if (normalized.includes("phone")) {
                   setError("phone", { type: "server", message: msg });
+                } else if (normalized.includes("message")) {
+                  setError("message", { type: "server", message: msg });
                 } else if (normalized.includes("contact")) {
                   setError("email", { type: "server", message: msg });
                 }
@@ -383,6 +393,23 @@ export function BeneficiaryForm({
               />
               <span className={HINT}>Số Việt Nam, ví dụ 0912345678 hoặc +84912345678.</span>
               <FieldError message={errors.phone?.message} />
+            </label>
+            <label className={`${LABEL} sm:col-span-2`}>
+              Lời nhắn gửi người nhận (không bắt buộc)
+              <Textarea
+                rows={4}
+                maxLength={300}
+                placeholder="Ví dụ: Con ơi, bố để lại phần này để con lo cho cháu. Con đừng buồn nhé."
+                className="min-h-24 bg-white font-normal placeholder:text-heritage-muted"
+                {...register("message", { onChange: () => clearErrors("message") })}
+                aria-invalid={Boolean(errors.message)}
+              />
+              <span className={HINT}>
+                Lời này sẽ được in trong thư gửi người nhận khi đến lúc bàn giao, tối đa 300 chữ.
+                Thư đó chưa qua bước xác minh danh tính, nên đừng ghi mật khẩu, số tài khoản hay nội
+                dung tài sản. Để trống thì thư bỏ phần này.
+              </span>
+              <FieldError message={errors.message?.message} />
             </label>
           </div>
           {existing ? (

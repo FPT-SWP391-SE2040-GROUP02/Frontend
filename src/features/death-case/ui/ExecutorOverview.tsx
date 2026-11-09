@@ -6,24 +6,32 @@ import type { ExecutorVault } from "../model/deathCase.schema";
 import { buttonStyles, InfoRow, Notice, Panel } from "@/shared/ui/heritageKit";
 import { useRejectedAck } from "../model/useRejectedAck";
 import { planStatusLabel } from "./executorLabels";
-import { ProxyCheckIn } from "./ProxyCheckIn";
-import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
+import { OverdueCard } from "./OverdueCard";
+import { HandoverProgressBar } from "./HandoverProgressBar";
+import { useDeathCase } from "../model/useDeathCase";
 
-const duties = (objectionHours: number) => [
+const duties = () => [
   { title: "Báo tin", text: "Cho hệ thống biết đã đến lúc bàn giao." },
   {
-    title: "Chờ phản đối và xét duyệt",
-    text: `Chủ kho có ${objectionHours} giờ để phản đối, rồi Người xét duyệt kiểm tra hồ sơ.`,
+    title: "Chờ xét duyệt",
+    text: "Người xét duyệt kiểm tra hồ sơ.",
   },
   { title: "Theo dõi", text: "Xem tiến trình đến khi người nhận tải xong." },
 ];
 
 const limits = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Tự chọn người nhận"];
 
-/** Tổng quan một kho Executor đang phụ trách (thiết kế "Người thực hiện — Tổng quan"). */
+/** Tổng quan một kho Người thực thi đang phụ trách. */
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
-  const { objectionHours } = usePolicyWindows();
   const hasCase = Boolean(vault.openDeathCaseId);
+  // Chủ kho đã tự điểm danh thì nói rõ bằng màu xanh; chưa có giờ điểm danh thì chỉ báo kho đang an toàn.
+  let safeTitle = `Kho của ${vault.ownerFullName} đang an toàn`;
+  let safeText = "Chỉ báo tin khi chắc chắn đã đến lúc.";
+  if (vault.lastOwnerCheckInAt) {
+    safeTitle = `${vault.ownerFullName} đã điểm danh thành công`;
+    safeText = `Lần gần nhất ${formatDateTime(vault.lastOwnerCheckInAt)}. Kho đang an toàn, chỉ báo tin khi chắc chắn đã đến lúc.`;
+  }
+  const record = useDeathCase(vault.openDeathCaseId).data;
   const rejectedAck = useRejectedAck(vault.lastRejectedDeathCaseId);
   // Báo "bị từ chối" đi TRƯỚC mọi banner khác (kể cả "quá hạn điểm danh", vì từ chối trả kế hoạch về trạng thái
   // trước đó nên kho có thể quá hạn ngay); bấm "Tiếp tục" thì mới tới banner theo trạng thái kế hoạch.
@@ -45,25 +53,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           nên báo tin lại khi chắc chắn và có giấy tờ phù hợp.
         </Notice>
       )}
-      {!showRejected && vault.checkInOverdue && (
-        <Notice
-          tone="warning"
-          title={`${vault.ownerFullName} đã quá hạn điểm danh`}
-          action={
-            <Link className={buttonStyles.gold} to={ROUTES.EXECUTOR.REPORT}>
-              {hasCase ? "Xem hồ sơ báo tin" : "Báo tin"}
-            </Link>
-          }
-        >
-          Hãy liên hệ để chắc chắn trước khi báo tin. Nếu Chủ kho còn khỏe, họ có thể dừng bằng “Tôi
-          còn sống”.
-          {!hasCase && (
-            <div className="mt-3">
-              <ProxyCheckIn vaultId={vault.vaultId} />
-            </div>
-          )}
-        </Notice>
-      )}
+      {!showRejected && vault.checkInOverdue && <OverdueCard vault={vault} hasCase={hasCase} />}
       {/* Đã có hồ sơ báo tin thì kế hoạch không còn "quá hạn" (đã khóa), nhưng cũng không phải "an toàn". */}
       {!vault.checkInOverdue && hasCase && (
         <Notice
@@ -81,16 +71,17 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
       {!vault.checkInOverdue && !hasCase && !showRejected && (
         <Notice
           tone="success"
-          title={`Kho của ${vault.ownerFullName} đang an toàn`}
+          title={safeTitle}
           action={
             <Link className={buttonStyles.gold} to={ROUTES.EXECUTOR.REPORT}>
               Báo tin
             </Link>
           }
         >
-          Chỉ báo tin khi chắc chắn đã đến lúc.
+          {safeText}
         </Notice>
       )}
+      <HandoverProgressBar record={record} caseId={vault.openDeathCaseId} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-6">
           <Panel title={`Hướng dẫn từ ${vault.ownerFullName}`}>
@@ -110,7 +101,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           </Panel>
           <Panel title="Bạn sẽ làm gì?">
             <ol className="divide-y divide-heritage-border">
-              {duties(objectionHours).map((duty, index) => (
+              {duties().map((duty, index) => (
                 <li key={duty.title} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                   <span
                     aria-hidden="true"
@@ -131,7 +122,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           <Panel title="Kho được giao cho bạn">
             <dl>
               <InfoRow label="Chủ kho">{vault.ownerFullName}</InfoRow>
-              <InfoRow label="Vai trò">Executor</InfoRow>
+              <InfoRow label="Vai trò">Người thực thi</InfoRow>
               <InfoRow label="Kế hoạch">{planStatusLabel(vault.planStatus)}</InfoRow>
               <InfoRow label="Hồ sơ báo tin">{hasCase ? "Đang mở" : "Chưa có"}</InfoRow>
               <InfoRow label="Nội dung kho">Bạn không đọc được</InfoRow>

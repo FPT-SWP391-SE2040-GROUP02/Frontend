@@ -6,12 +6,11 @@ export interface VerifierActions {
   canReviewFlag: boolean;
   canRequestSupplement: boolean;
   canOpenApprove: boolean;
-  canReject: boolean;
 }
 
 /**
  * VERIFIER_CONFLICT (ROLE-03) chặn mọi thao tác ghi, không chỉ duyệt: chỉ còn quyền xem.
- * Xem xét cờ, yêu cầu bổ sung, duyệt cần UNDER_REVIEW; từ chối được cả khi SUPPLEMENT_REQUIRED.
+ * Xem xét cờ, yêu cầu bổ sung và duyệt đều cần UNDER_REVIEW. Người xét duyệt không có thao tác từ chối.
  * Nút duyệt vẫn theo canApprove của BE; đây chỉ quyết định có hiện thao tác hay không.
  */
 export function getVerifierActions(
@@ -19,11 +18,9 @@ export function getVerifierActions(
 ): VerifierActions {
   const conflict = detail.approveBlockers.includes("VERIFIER_CONFLICT");
   const underReview = detail.status === "UNDER_REVIEW";
-  const waitingSupplement = detail.status === "SUPPLEMENT_REQUIRED";
   return {
     canReviewFlag: !conflict && underReview,
     canRequestSupplement: !conflict && underReview,
     canOpenApprove: !conflict && underReview,
-    canReject: !conflict && (underReview || waitingSupplement),
   };
 }

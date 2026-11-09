@@ -1,38 +1,27 @@
 import { Navigate, useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { useId, type ReactNode } from "react";
-import {
-  CheckCircle2,
-  ChevronLeft,
-  Download,
-  Eye,
-  FileText,
-  RefreshCw,
-  TriangleAlert,
-  X,
-} from "lucide-react";
+import { useId, useState, type ReactNode } from "react";
+import { CheckCircle2, ChevronLeft, RefreshCw, TriangleAlert } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { HTTP_STATUS } from "@/shared/constants";
 import { ROUTES } from "@/shared/config/routes.config";
-import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { buttonStyles, Chip, Notice, Panel } from "@/shared/ui/heritageKit";
 import {
   useVerifierCase,
   useVerifierCaseFreshness,
   verifierKeys,
 } from "../model/useVerifierReview";
-import { verifierReviewService } from "../api/verifierReviewService";
 import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
-import { VerifierObjectionBlock } from "./VerifierObjectionBlock";
-import { VerifierOwnerIdentityPanel } from "./VerifierOwnerIdentityPanel";
+import { CertificateViewer } from "./CertificateViewer";
+import { VerifierEkycChecklist } from "./VerifierEkycChecklist";
+import { REVIEW_CHECKS } from "../model/reviewChecks";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
   decisionLabels,
   supplementPartLabels,
-  ownerNoticeLabels,
   type verifierFlagKindSchema,
   type verifierDecisionKindSchema,
 } from "../model/verifierReview.schema";
@@ -56,13 +45,6 @@ const formatCompact = (value: string) => {
   return `${pick("day")}/${pick("month")}/${pick("year")} ${pick("hour")}:${pick("minute")}`;
 };
 
-/** Ngày dạng "05/10/2026" từ chuỗi ISO yyyy-mm-dd của BE; thiếu thì hiện "—". */
-const formatDay = (value: string | null) => {
-  if (!value) return "—";
-  const [year, month, day] = value.split("-");
-  return `${day}/${month}/${year}`;
-};
-
 /** Thời điểm theo giờ Việt Nam, không phụ thuộc múi giờ trình duyệt. */
 const formatVietnamTime = (value: string) =>
   new Intl.DateTimeFormat("vi-VN", {
@@ -74,22 +56,12 @@ const formatVietnamTime = (value: string) =>
     timeZone: "Asia/Ho_Chi_Minh",
   }).format(new Date(value));
 
-const FILE_TYPE_LABELS: Record<string, string> = {
-  "application/pdf": "PDF",
-  "image/jpeg": "JPG",
-  "image/png": "PNG",
-  "image/webp": "WEBP",
-};
-
 /** Hồ sơ đã ra khỏi bước xét duyệt thì ô điều kiện chỉ nói trạng thái, không gợi ý bổ sung hay từ chối. */
 const CLOSED_CONDITION_TEXT: Record<string, string> = {
   APPROVED_FOR_HANDOVER: "Hồ sơ đã được duyệt, không cần xét thêm.",
   REJECTED: "Hồ sơ đã bị từ chối, không cần xét thêm.",
-  SUSPENDED: "Hồ sơ đang tạm dừng vì chủ kho báo còn sống. Xử lý lời báo trước khi xét tiếp.",
+  SUSPENDED: "Hồ sơ đang tạm dừng, chưa xét tiếp được.",
 };
-
-const blobName = (item: { fileName: string }) =>
-  item.fileName.replace(/[^\p{L}\p{N} ._()-]/gu, "_");
 
 /** Chi tiết một hồ sơ; mọi action dùng usePrivateAction; download qua blob ephemeral. */
 export function VerifierCaseDetail({ caseId }: { caseId: string }) {
@@ -108,6 +80,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     query.dataUpdatedAt,
   );
   const client = useQueryClient();
+  // Bốn ô kiểm gắn với bản đang xét; sang bản khác (bổ sung) thì tích lại từ đầu.
+  const [ticks, setTicks] = useState<{ key: string; values: boolean[] }>({ key: "", values: [] });
   const backToList = () => {
     const next = new URLSearchParams(params);
     next.delete("caseId");
@@ -153,6 +127,16 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     freshness.data !== detail.etag &&
     freshness.dataUpdatedAt > query.dataUpdatedAt;
   const review = detail.reviewVersion;
+  const tickKey = `${detail.id}:${review.versionNo}`;
+  const checks = REVIEW_CHECKS.map(
+    (_, index) => ticks.key === tickKey && ticks.values[index] === true,
+  );
+  const allChecked = checks.every(Boolean);
+  const toggleCheck = (index: number) => {
+    const next = checks.slice();
+    next[index] = !next[index];
+    setTicks({ key: tickKey, values: next });
+  };
   const status = queueStatus[detail.status];
   const actions = getVerifierActions(detail);
   const latestSupplement = detail.decisions
@@ -163,33 +147,12 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     .map((part) => supplementPartLabels[part].toLocaleLowerCase("vi-VN"))
     .join(", ");
   const unreviewedFlags = detail.flags.filter((flag) => !flag.reviewedAt).length;
-  const objectionEnded =
-    detail.objectionEndsAt !== null &&
-    new Date(detail.objectionEndsAt).getTime() <= query.dataUpdatedAt;
-  const notice = detail.ownerNotice;
-  const noticeDelivered =
-    notice !== null && notice.status === "DELIVERED" && notice.deliveredAt !== null;
-  let noticeText = "Chưa có";
-  if (notice !== null && noticeDelivered && notice.deliveredAt !== null) {
-    noticeText = `${ownerNoticeLabels.DELIVERED} ${formatCompact(notice.deliveredAt)}`;
-  } else if (notice !== null) {
-    noticeText = ownerNoticeLabels[notice.status];
-  }
-  let objectionText = "Chưa bắt đầu";
-  if (detail.objectionEndsAt !== null) {
-    let remainText = "đã qua";
-    if (!objectionEnded) {
-      const hoursLeft = Math.max(
-        1,
-        Math.ceil((new Date(detail.objectionEndsAt).getTime() - query.dataUpdatedAt) / 3_600_000),
-      );
-      remainText = `còn ${hoursLeft} giờ`;
-    }
-    objectionText = `${formatCompact(detail.objectionEndsAt)} · ${remainText}`;
-  }
-  const timeline = [
-    { label: "Đã báo chủ kho", text: noticeText, done: noticeDelivered },
-    { label: "Hết hạn phản đối", text: objectionText, done: objectionEnded },
+  const timeline: { label: string; text: string; done: boolean }[] = [
+    {
+      label: "Hồ sơ đã nộp",
+      text: review.submittedAt ? formatCompact(review.submittedAt) : "—",
+      done: true,
+    },
   ];
   // Khi chờ bổ sung BE chưa tính hạn mới, nên không hiện mốc hạn xét.
   if (detail.status !== "SUPPLEMENT_REQUIRED" && detail.assignment.dueAt) {
@@ -206,7 +169,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     query.dataUpdatedAt,
   );
   const blockedReason = conditions.map((row) => row.reason).join("; ");
-  const openModal = (kind: "approve" | "reject" | "reviewFlag" | "supplement", flagId?: string) => {
+  const openModal = (kind: "approve" | "reviewFlag" | "supplement", flagId?: string) => {
     const next = new URLSearchParams(params);
     next.set("modal", kind);
     if (kind === "reviewFlag" && flagId) next.set("flagId", flagId);
@@ -267,12 +230,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#5A4318]">
         Bạn chỉ xác nhận hồ sơ, không xem nội dung kho. Quyết định của bạn được ghi lại.
       </p>
-      <VerifierObjectionBlock
-        caseId={detail.id}
-        enabled={detail.status === "SUSPENDED"}
-        canConclude={!detail.approveBlockers.includes("VERIFIER_CONFLICT")}
-        ownerIdentity={detail.ownerIdentity}
-      />
       {detail.handover && (
         <Notice tone="success" role="status" title="Hồ sơ đã được chấp thuận">
           Đã mở {detail.handover.turnCount} lượt bàn giao · {detail.handover.invitationsSent} lời
@@ -315,6 +272,16 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         {/* CỘT TRÁI (3fr): HỒ SƠ & TÀI LIỆU CHỨNG TỪ */}
         <div className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-2">
+            <VerifierEkycChecklist
+              caseId={detail.id}
+              identity={detail.ownerIdentity}
+              checks={checks}
+              onToggle={toggleCheck}
+              disabled={!actions.canOpenApprove}
+            />
+            <CertificateViewer caseId={detail.id} files={review.files} />
+          </div>
           <section
             aria-label="Bản đang xét"
             className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
@@ -323,101 +290,17 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               Bản đang xét (v{review.versionNo})
             </h3>
             <dl className="grid gap-4 sm:grid-cols-2">
-              <Field label="Họ tên chủ kho" value={review.ownerFullName ?? "—"} />
-              <Field
-                label="CCCD (theo giấy tờ)"
-                value={review.ownerCitizenId ? review.ownerCitizenId : "—"}
-                sensitive={Boolean(review.ownerCitizenId)}
-              />
-              <Field label="Ngày mất" value={formatDay(review.dateOfDeath)} />
-              <Field label="Số giấy chứng tử" value={review.certificateNumber ?? "—"} />
-              <Field label="Ngày cấp" value={formatDay(review.issuedOn)} />
-              <Field label="Nơi cấp" value={review.issuedBy ?? "—"} />
+              <Field label="Người nộp" value={detail.executor?.fullName ?? "—"} />
               <Field
                 label="Gửi lúc"
                 value={review.submittedAt ? formatCompact(review.submittedAt) : "—"}
               />
             </dl>
-            <div>
-              <h4 className="text-sm font-semibold">Trang giấy tờ</h4>
-              {review.files.length === 0 ? (
-                <p className="text-sm text-heritage-muted">Không có trang giấy nào.</p>
-              ) : (
-                <ul className="mt-2 space-y-3">
-                  {review.files.map((file) => (
-                    <li
-                      key={file.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-heritage-border bg-white p-3"
-                    >
-                      <span className="inline-flex min-w-0 items-center gap-3 text-sm">
-                        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB]">
-                          <FileText className="size-5 text-heritage-muted" aria-hidden="true" />
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block break-all font-semibold">
-                            Trang {file.position} · {file.fileName}
-                          </span>
-                          <span className="block text-xs text-heritage-muted">
-                            {FILE_TYPE_LABELS[file.contentType] ?? "Tệp"} ·{" "}
-                            {formatStorageSize(file.sizeBytes)}
-                          </span>
-                        </span>
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          aria-label={`Xem trang ${file.position}`}
-                          className={buttonStyles.outline}
-                          disabled={download.pending}
-                          onClick={() =>
-                            void download.execute(
-                              () => verifierReviewService.downloadFile(detail.id, file.id),
-                              (blob) => {
-                                // Mở ở tab mới; blob chỉ nằm trong RAM và bị thu hồi sau 1 phút.
-                                const url = URL.createObjectURL(blob);
-                                window.open(url, "_blank", "noopener");
-                                setTimeout(() => URL.revokeObjectURL(url), 60_000);
-                              },
-                            )
-                          }
-                        >
-                          <Eye className="size-4" aria-hidden="true" />
-                          Xem
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={`Tải xuống trang ${file.position}`}
-                          className={buttonStyles.outline}
-                          disabled={download.pending}
-                          onClick={() =>
-                            void download.execute(
-                              () => verifierReviewService.downloadFile(detail.id, file.id),
-                              (blob) => {
-                                const url = URL.createObjectURL(blob);
-                                const link = document.createElement("a");
-                                link.href = url;
-                                link.download = blobName(file);
-                                link.click();
-                                setTimeout(() => URL.revokeObjectURL(url), 1000);
-                              },
-                            )
-                          }
-                        >
-                          <Download className="size-4" aria-hidden="true" />
-                          Tải xuống
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <p className="text-xs text-heritage-muted">
+              Họ tên, số CCCD và ngày sinh trên giấy do bạn đọc và so với thông tin gốc bên trên,
+              Người thực hiện không phải nhập.
+            </p>
           </section>
-          <VerifierOwnerIdentityPanel
-            caseId={detail.id}
-            review={review}
-            identity={detail.ownerIdentity}
-          />
           <section
             aria-label="Cảnh báo cần kiểm tra"
             className="space-y-3 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
@@ -554,7 +437,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           </Panel>
 
           {/* 2. QUYẾT ĐỊNH: ba ô có icon và mô tả */}
-          {actions.canReject && (
+          {(actions.canOpenApprove || actions.canRequestSupplement) && (
             <Panel title="Quyết định">
               <div className="space-y-3">
                 {actions.canOpenApprove && (
@@ -563,11 +446,13 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                     icon={<CheckCircle2 className="size-5" aria-hidden="true" />}
                     title="Duyệt mở bàn giao"
                     description={
-                      detail.canApprove
-                        ? "Hồ sơ hợp lệ. Người nhận sẽ được mời xác minh."
-                        : `Chưa duyệt được: ${blockedReason}.`
+                      !detail.canApprove
+                        ? `Chưa duyệt được: ${blockedReason}.`
+                        : allChecked
+                          ? "Hồ sơ hợp lệ. Người nhận sẽ được mời xác minh."
+                          : "Tích đủ 4 ô đối chiếu để mở nút duyệt."
                     }
-                    disabled={!detail.canApprove}
+                    disabled={!detail.canApprove || !allChecked}
                     onClick={() => openModal("approve")}
                   />
                 )}
@@ -580,13 +465,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                     onClick={() => openModal("supplement")}
                   />
                 )}
-                <DecisionTile
-                  tone="reject"
-                  icon={<X className="size-5" aria-hidden="true" />}
-                  title="Từ chối"
-                  description="Hồ sơ không hợp lệ. Cần nêu lý do."
-                  onClick={() => openModal("reject")}
-                />
               </div>
               <p className="mt-4 text-sm text-heritage-muted">
                 Quyết định được ghi nhật ký và gửi tới người thực hiện. Chấp thuận chưa mở kho;

@@ -35,8 +35,8 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   USER_ROLE_CHANGED: "Đổi vai trò tài khoản",
   USER_STATUS_CHANGED: "Đổi trạng thái tài khoản",
   VERIFIER_REASSIGNED: "Giao lại Verifier",
-  OBJECTION_REPORTED: "Báo còn sống",
-  OBJECTION_CONCLUDED: "Kết luận báo còn sống",
+  OBJECTION_REPORTED: "Báo còn sống (luồng đã gỡ)",
+  OBJECTION_CONCLUDED: "Kết luận báo còn sống (luồng đã gỡ)",
   DEATH_CASE_OPENED: "Mở hồ sơ chứng tử",
   DEATH_CASE_DRAFT_CANCELLED: "Hủy hồ sơ chứng tử nháp",
   DEATH_CASE_SUBMITTED: "Gửi hồ sơ chứng tử",
@@ -64,6 +64,8 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   ADMIN_CREATED_USER: "Tạo tài khoản hệ thống",
   SYSTEM_CONFIG_UPDATED: "Cập nhật cấu hình dịch vụ",
   SYSTEM_CONFIG_RESET: "Khôi phục cấu hình dịch vụ",
+  EXECUTOR_KEY_ISSUED: "Cấp khóa mở gói cho Người thực hiện",
+  EXECUTOR_KEY_REISSUED: "Cấp lại khóa mở gói (quên khóa)",
   SYSTEM_SETTING_UPDATED: "Cập nhật tham số hệ thống",
 };
 
@@ -118,7 +120,7 @@ export function displayName(id: string, names: AuditNameMap): string {
 /** Mã lý do Backend ghi khi hồ sơ chứng tử bị từ chối (lý do tự do của Verifier không vào nhật ký). */
 const REASON_CODE_LABELS: Record<string, string> = {
   VERIFIER_REJECTED: "Người xét duyệt từ chối hồ sơ",
-  ALIVE_CONFIRMED: "Người xét duyệt xác nhận chủ kho còn sống",
+  ALIVE_CONFIRMED: "Xác nhận còn sống (luồng đã gỡ)",
 };
 
 /** Lý do do Backend ghi kèm UUID ("Người nhận 01a1…"); thay bằng tên thật hoặc mã rút gọn cho dễ đọc. */

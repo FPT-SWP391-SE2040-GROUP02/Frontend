@@ -52,8 +52,7 @@ const statusHints: Record<string, string> = {
     "Đã qua hạn phản hồi ban đầu nhưng bạn vẫn có thể nhận lời mời; máy chủ sẽ kiểm tra khi bạn xác nhận.",
   DECISION_EXPIRED: "Hạn quyết định đã kết thúc nên lượt này không còn nhận được nữa.",
   DECLINED: "Bạn đã từ chối lượt bàn giao này.",
-  CANCELLED:
-    "Lượt bàn giao này đã bị hủy vì chủ kho đã được xác nhận còn sống. Nội dung không còn được bàn giao.",
+  CANCELLED: "Lượt bàn giao này đã bị hủy nên nội dung không còn được bàn giao.",
   LAPSED: "Lượt bàn giao này đã kết thúc.",
 };
 const grantLabels: Record<string, string> = {
@@ -116,6 +115,7 @@ function TurnCard({ turn }: { turn: Turn }) {
   const client = useQueryClient();
   const [confirmed, setConfirmed] = useState(false);
   const [declining, setDeclining] = useState(false);
+  const [typedKey, setTypedKey] = useState("");
   const refresh = () => {
     void client.invalidateQueries({ queryKey: ["handover"] });
   };
@@ -208,6 +208,48 @@ function TurnCard({ turn }: { turn: Turn }) {
         {turn.status === "READY_TO_ACCEPT" && (
           <Panel title="Phản hồi">
             <div className="space-y-3">
+              {turn.keyRequired && !turn.keyVerified && (
+                <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">
+                  <label className="block text-sm font-medium" htmlFor={`key-${turn.id}`}>
+                    Khóa mở gói do Người thực hiện đưa
+                  </label>
+                  <input
+                    id={`key-${turn.id}`}
+                    type="text"
+                    autoComplete="off"
+                    spellCheck={false}
+                    value={typedKey}
+                    disabled={action.pending}
+                    onChange={(event) => setTypedKey(event.target.value)}
+                    className="h-11 w-full rounded-xl border border-heritage-border px-3 font-mono text-sm uppercase"
+                  />
+                  <button
+                    type="button"
+                    className={`${buttonStyles.dark} w-full`}
+                    disabled={action.pending || !typedKey.trim()}
+                    onClick={() =>
+                      void action.execute(
+                        () => handoverService.verifyKey(turn.id, typedKey),
+                        () => {
+                          setTypedKey("");
+                          refresh();
+                        },
+                      )
+                    }
+                  >
+                    Xác nhận khóa
+                  </button>
+                  <p className="text-xs text-heritage-muted">
+                    Liên hệ trực tiếp Người thực hiện của kho để lấy khóa. Nhập sai nhiều lần sẽ bị
+                    khóa.
+                  </p>
+                </div>
+              )}
+              {turn.keyRequired && turn.keyVerified && (
+                <p role="status" className="text-sm text-[#1F7A55]">
+                  Khóa mở gói đã được xác nhận.
+                </p>
+              )}
               <label className="flex min-h-11 items-center gap-3 text-sm">
                 <input
                   type="checkbox"
@@ -221,7 +263,7 @@ function TurnCard({ turn }: { turn: Turn }) {
               <button
                 type="button"
                 className={`${buttonStyles.gold} w-full justify-between`}
-                disabled={!confirmed || action.pending}
+                disabled={!confirmed || action.pending || (turn.keyRequired && !turn.keyVerified)}
                 onClick={() =>
                   void action.execute(() => handoverService.decide(turn.id, "accept"), refresh)
                 }

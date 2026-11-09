@@ -239,9 +239,6 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                     Người Thừa Kế
                   </th>
                   <th scope="col" className="py-4 px-4">
-                    Phân Mảnh Khóa
-                  </th>
-                  <th scope="col" className="py-4 px-4">
                     Ngày Niêm Phong
                   </th>
                   <th scope="col" className="py-4 px-6 text-right">
@@ -296,11 +293,6 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                     <td className="py-4 px-4 text-[#14241C]">
                       <span className="font-bold text-[#0B291E]">{asset.beneficiaryCount}</span>{" "}
                       người
-                    </td>
-
-                    {/* Shamir Threshold */}
-                    <td className="py-4 px-4 font-mono text-[11px] text-[#B88E4C]">
-                      {asset.shamirThresholdText}
                     </td>
 
                     {/* Date */}

@@ -6,6 +6,10 @@ export const backendUserResponseSchema = z.object({
   email: z.string().email(),
   fullName: z.string(),
   phone: z.string().nullable(),
+  /** Số chứng chỉ hành nghề luật sư (chỉ VERIFIER, do Admin nhập); thiếu trường thì coi như chưa có. */
+  practiceCertificateNumber: z.string().nullable().optional(),
+  /** Số thẻ luật sư (chỉ VERIFIER, do Admin nhập). */
+  lawyerCardNumber: z.string().nullable().optional(),
   role: z.enum(["USER", "VERIFIER", "ADMIN", "EXECUTOR"]),
   status: z.enum(["ACTIVE", "LOCKED", "DISABLED"]),
   emailVerified: z.boolean(),

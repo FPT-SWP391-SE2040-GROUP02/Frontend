@@ -82,7 +82,7 @@ describe("nhật ký hoạt động của Admin", () => {
 
   it("lý do dạng mã của hồ sơ bị từ chối hiện tiếng Việt, lý do khác giữ nguyên", () => {
     expect(friendlyReason("VERIFIER_REJECTED")).toBe("Người xét duyệt từ chối hồ sơ");
-    expect(friendlyReason("ALIVE_CONFIRMED")).toBe("Người xét duyệt xác nhận chủ kho còn sống");
+    expect(friendlyReason("ALIVE_CONFIRMED")).toBe("Xác nhận còn sống (luồng đã gỡ)");
     expect(friendlyReason("Nhân viên mới")).toBe("Nhân viên mới");
   });
 });

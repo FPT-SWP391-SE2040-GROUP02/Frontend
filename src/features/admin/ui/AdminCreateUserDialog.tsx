@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/shared/ui/button";
@@ -22,6 +22,8 @@ const createUserSchema = z.object({
   password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự.").max(128),
   role: z.enum(["VERIFIER", "ADMIN"]),
   phone: z.string().trim().max(32).optional(),
+  practiceCertificateNumber: z.string().trim().max(64).optional(),
+  lawyerCardNumber: z.string().trim().max(64).optional(),
 });
 
 type CreateUserInput = z.infer<typeof createUserSchema>;
@@ -33,7 +35,7 @@ interface AdminCreateUserDialogProps {
 }
 
 /**
- * Hộp thoại tạo tài khoản nhân sự mới (Công chứng viên, Quản trị viên). Không tạo tài khoản Người thực hiện:
+ * Hộp thoại tạo tài khoản nhân sự mới (Người xét duyệt, Quản trị viên). Không tạo tài khoản Người thực hiện:
  * Executor là người ngoài do Owner mời theo từng kho (ROLE-02).
  * Tài khoản được kích hoạt ngay lập tức (không cần chờ email verification).
  */
@@ -49,9 +51,12 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
       password: "",
       role: "VERIFIER",
       phone: "",
+      practiceCertificateNumber: "",
+      lawyerCardNumber: "",
     },
   });
 
+  const role = useWatch({ control: form.control, name: "role" });
   const onSubmit = (values: CreateUserInput) => {
     void execute(
       () => adminService.createUser(values),
@@ -68,8 +73,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
         <DialogHeader>
           <DialogTitle>Tạo tài khoản hệ thống mới</DialogTitle>
           <DialogDescription>
-            Cấp tài khoản cho Người xét duyệt (Công chứng viên) hoặc Quản trị viên. Tài khoản được
-            kích hoạt ngay.
+            Cấp tài khoản cho Người xét duyệt hoặc Quản trị viên. Tài khoản được kích hoạt ngay.
           </DialogDescription>
         </DialogHeader>
 
@@ -131,7 +135,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
               {...form.register("role")}
               className="mt-1 min-h-11 w-full rounded-lg border border-heritage-border bg-white px-3 text-sm"
             >
-              <option value="VERIFIER">Người xét duyệt (Công chứng viên - VERIFIER)</option>
+              <option value="VERIFIER">Người xét duyệt (VERIFIER)</option>
               <option value="ADMIN">Quản trị viên (ADMIN)</option>
             </select>
           </div>
@@ -184,6 +188,39 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
               placeholder="0912345678"
             />
           </div>
+
+          {role === "VERIFIER" && (
+            <>
+              <div>
+                <label
+                  htmlFor="create-user-practice"
+                  className="block text-sm font-medium text-heritage-text"
+                >
+                  Số chứng chỉ hành nghề{" "}
+                  <span className="text-xs text-heritage-muted">(không bắt buộc)</span>
+                </label>
+                <Input
+                  id="create-user-practice"
+                  {...form.register("practiceCertificateNumber")}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="create-user-lawyer-card"
+                  className="block text-sm font-medium text-heritage-text"
+                >
+                  Số thẻ luật sư{" "}
+                  <span className="text-xs text-heritage-muted">(không bắt buộc)</span>
+                </label>
+                <Input
+                  id="create-user-lawyer-card"
+                  {...form.register("lawyerCardNumber")}
+                  className="mt-1"
+                />
+              </div>
+            </>
+          )}
 
           {error && (
             <p role="alert" className="text-sm text-destructive">

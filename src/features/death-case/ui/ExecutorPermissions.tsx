@@ -3,15 +3,21 @@ import type { ExecutorVault } from "../model/deathCase.schema";
 import { Chip, Panel } from "@/shared/ui/heritageKit";
 
 const allowed = [
-  "Báo tin khi Chủ kho qua đời",
-  "Tải lên giấy tờ chứng minh",
+  "Xem ghi chú của Chủ kho",
+  "Điểm danh thay khi Chủ kho trễ điểm danh",
+  "Nộp giấy chứng tử (báo tin) và bản bổ sung",
   "Theo dõi tiến trình bàn giao",
   "Nhận thông báo cho từng bước",
 ];
 
-const denied = ["Đọc nội dung kho", "Tự mở kho hoặc chọn người nhận", "Bỏ qua bước xét duyệt"];
+const denied = [
+  "Đọc nội dung kho",
+  "Sửa, xóa tài sản hoặc đổi người nhận",
+  "Tự duyệt hồ sơ hoặc bỏ qua bước xét duyệt",
+  "Làm người nhận trong kho này",
+];
 
-/** Quyền hạn của Người thực hiện và các lời mời đã chấp nhận (thiết kế 55). */
+/** Quyền hạn của Người thực thi và các lời mời đã chấp nhận (thiết kế 55). */
 export function ExecutorPermissions({
   vaults,
   selected,

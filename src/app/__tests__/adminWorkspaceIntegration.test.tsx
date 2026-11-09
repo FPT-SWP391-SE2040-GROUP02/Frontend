@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import type { ReactNode } from "react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -118,27 +119,116 @@ function httpError(status: number) {
 const usersCalls = (get: { mock: { calls: unknown[][] } }) =>
   get.mock.calls.filter((call) => call[0] === "/admin/users");
 
-it("Admin xem đủ 8 bộ đếm thật và giờ máy chủ; số cần xử lý > 0 được đánh dấu", async () => {
+it("Admin xem tổng quan thật và giờ máy chủ", async () => {
   const get = vi.spyOn(apiClient, "get").mockResolvedValue(dashboardFixture);
   setup(ROUTES.ADMIN.ROOT);
-  expect(await screen.findByText("Quá hạn xử lý")).toBeInTheDocument();
+  expect(await screen.findByText(/giờ máy chủ/)).toBeInTheDocument();
   expect(get).toHaveBeenCalledWith("/admin/dashboard", expect.anything());
-  for (const label of [
-    "Đang mở",
-    "Chưa có người phụ trách",
-    "Đang hiệu lực",
-    "Quá hạn rà soát",
-    "Người xét duyệt hoạt động",
-    "Quản trị viên hoạt động",
-    "Hồ sơ chưa có người xét duyệt",
-  ])
-    expect(screen.getByText(label)).toBeInTheDocument();
-  expect(screen.getAllByText("Cần xử lý")).toHaveLength(2);
   expect(screen.getByText(/giờ máy chủ/)).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Người dùng" })).toHaveAttribute(
-    "href",
-    ROUTES.DASHBOARD.USERS,
+  // Menu trái (máy tính) và thanh tab đáy (điện thoại) cùng có mục "Người dùng"; kiểm menu trái.
+  expect(
+    within(screen.getByRole("navigation", { name: "Menu chính" })).getByRole("link", {
+      name: "Người dùng",
+    }),
+  ).toHaveAttribute("href", ROUTES.DASHBOARD.USERS);
+});
+
+it("Tổng quan hiện kế hoạch theo giai đoạn, tải việc người xét duyệt và hoạt động gần đây", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...dashboardFixture,
+    planStages: [
+      { stage: "ACTIVE", count: 128 },
+      { stage: "CHECKIN_OVERDUE", count: 6 },
+    ],
+    closedPlans: 41,
+    verifierLoad: [
+      {
+        userId: "00000000-0000-4000-8000-000000000031",
+        fullName: "Lê Hoàng",
+        openCases: 3,
+        overdueCases: 1,
+      },
+    ],
+    recentActivity: [
+      { at: "2026-10-18T02:40:00+00:00", actorFullName: "Trần An", action: "VAULT_CREATED" },
+      { at: "2026-10-18T02:30:00+00:00", actorFullName: null, action: "ASSET_CREATED" },
+    ],
+  });
+  setup(ROUTES.ADMIN.ROOT);
+  expect(await screen.findByText("Kế hoạch theo giai đoạn")).toBeInTheDocument();
+  expect(screen.getByText("Đang chạy")).toBeInTheDocument();
+  expect(screen.getByText("Quá hạn điểm danh")).toBeInTheDocument();
+  expect(screen.getByText(/Đã đóng 41 kho/)).toBeInTheDocument();
+  expect(screen.getByText("Lê Hoàng")).toBeInTheDocument();
+  expect(screen.getByText(/3 hồ sơ/)).toHaveTextContent("1 quá hạn");
+  expect(screen.getByText("Trần An")).toBeInTheDocument();
+  expect(screen.getByText("Tạo kho", { exact: false })).toBeInTheDocument();
+  expect(screen.getByText("Tải tài sản lên", { exact: false })).toBeInTheDocument();
+});
+
+it("chi tiết người dùng hiện hồ sơ đang giao, quyết định và hoạt động gần đây của người xét duyệt", async () => {
+  const userId = "00000000-0000-4000-8000-000000000044";
+  const get = vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...makeUser(44),
+    id: userId,
+    role: "VERIFIER",
+    assignedCases: [
+      {
+        caseId: "11111111-1111-4111-8111-111111111111",
+        status: "UNDER_REVIEW",
+        dueAt: "2026-10-20T02:00:00+00:00",
+        overdue: true,
+      },
+    ],
+    recentDecisions: [
+      {
+        caseId: "22222222-2222-4222-8222-222222222222",
+        kind: "APPROVED",
+        decidedAt: "2026-10-17T02:00:00+00:00",
+      },
+    ],
+    recentActivity: [
+      { at: "2026-10-17T02:00:00+00:00", action: "VAULT_CREATED", outcome: "DENIED" },
+    ],
+  });
+  setup(`${ROUTES.DASHBOARD.USERS}?user=${userId}`);
+  expect(await screen.findByText("Hồ sơ đang giao")).toBeInTheDocument();
+  expect(get).toHaveBeenCalledWith(`/admin/users/${userId}`, expect.anything());
+  expect(screen.getByText("#11111111")).toBeInTheDocument();
+  expect(screen.getByText(/quá hạn/)).toBeInTheDocument();
+  expect(screen.getByText("Đã duyệt")).toBeInTheDocument();
+  expect(screen.getByText("Tạo kho")).toBeInTheDocument();
+  expect(screen.getByText("Bị từ chối")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Về danh sách" })).toBeInTheDocument();
+});
+
+it("Tổng quan hiện tình trạng dịch vụ ngoài theo lần gọi gần nhất", async () => {
+  const entry = (
+    serviceKey: string,
+    lastOutcome: "SUCCEEDED" | "FAILED" | null,
+    code: string | null,
+  ) => ({
+    serviceKey,
+    supportsFallback: false,
+    slots: [],
+    status: { activeSlot: null, lastOutcome, lastAt: null, lastErrorCode: code },
+  });
+  vi.spyOn(apiClient, "get").mockImplementation(async (url: string) =>
+    url === "/admin/system-config"
+      ? {
+          services: [
+            entry("EKYC", "SUCCEEDED", null),
+            entry("SMTP", "FAILED", "HTTP_503"),
+            entry("R2", null, null),
+          ],
+        }
+      : dashboardFixture,
   );
+  setup(ROUTES.ADMIN.ROOT);
+  expect(await screen.findByText("Dịch vụ ngoài")).toBeInTheDocument();
+  expect(screen.getByText("Hoạt động")).toBeInTheDocument();
+  expect(screen.getByText("Lỗi HTTP_503")).toBeInTheDocument();
+  expect(screen.getByText("Chưa có lần gọi")).toBeInTheDocument();
 });
 
 it("404 từ BE hiện không có quyền, không hiện số 0 hay nút thử lại", async () => {
@@ -158,7 +248,7 @@ it("response dashboard thiếu field bị phát hiện, thử lại được", a
   expect(await screen.findByText("Dữ liệu từ máy chủ không hợp lệ.")).toBeInTheDocument();
   get.mockResolvedValue(dashboardFixture);
   await user.click(screen.getByRole("button", { name: "Thử lại" }));
-  expect(await screen.findByText("Quá hạn xử lý")).toBeInTheDocument();
+  expect(await screen.findByText(/giờ máy chủ/)).toBeInTheDocument();
 });
 
 it("non-Admin bị chặn trước khi gọi API quản trị", async () => {
@@ -224,11 +314,18 @@ it("đổi tìm kiếm từ URL hủy debounce cũ và đồng bộ ô nhập", 
     onChange,
     onClear: vi.fn(),
   };
-  const view = render(<AdminUsersFilters {...props} />);
+  // Bộ lọc có hook đếm theo vai trò nên cần QueryClientProvider; lỗi gọi đếm không ảnh hưởng ô tìm kiếm.
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrap = (node: ReactNode) => (
+    <QueryClientProvider client={client}>{node}</QueryClientProvider>
+  );
+  const view = render(wrap(<AdminUsersFilters {...props} />));
   fireEvent.change(screen.getByLabelText("Tìm theo tên hoặc email"), {
     target: { value: "pending" },
   });
-  view.rerender(<AdminUsersFilters {...props} filters={{ ...props.filters, search: "back" }} />);
+  view.rerender(
+    wrap(<AdminUsersFilters {...props} filters={{ ...props.filters, search: "back" }} />),
+  );
   expect(screen.getByLabelText("Tìm theo tên hoặc email")).toHaveValue("back");
   await act(async () => {
     vi.advanceTimersByTime(450);
@@ -246,7 +343,8 @@ it.each(["?q=an", "?role=ADMIN"])(
     const input = screen.getByLabelText("Tìm theo tên hoặc email");
     fireEvent.change(input, { target: { value: "new" } });
     fireEvent.click(screen.getByRole("button", { name: "Xoá bộ lọc" }));
-    expect(input).toHaveValue("");
+    // Ô tìm kiếm được khởi tạo lại khi xóa bộ lọc nên lấy lại phần tử mới.
+    expect(screen.getByLabelText("Tìm theo tên hoặc email")).toHaveValue("");
     await act(async () => {
       vi.advanceTimersByTime(450);
     });

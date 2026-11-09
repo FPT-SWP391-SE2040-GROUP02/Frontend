@@ -143,7 +143,7 @@ export function VerifierCaseList({
                   <th scope="col" className="px-4 py-3 font-semibold">
                     Quyết định
                   </th>
-                  <th scope="col" className="py-3 pl-4 font-semibold">
+                  <th scope="col" className="px-4 py-3 font-semibold">
                     Ngày
                   </th>
                 </tr>
@@ -166,7 +166,7 @@ export function VerifierCaseList({
                       <td className="px-4 py-4">
                         {decision && <Chip tone={decision.tone}>{decision.label}</Chip>}
                       </td>
-                      <td className="py-4 pl-4 text-heritage-muted">
+                      <td className="px-4 py-4 text-heritage-muted">
                         {item.closedAt ? formatDate(item.closedAt) : "—"}
                       </td>
                     </tr>

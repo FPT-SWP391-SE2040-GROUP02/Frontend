@@ -6,7 +6,7 @@ export type ConfigSlotName = z.infer<typeof configSlotNameSchema>;
 
 const dateTime = z.string().datetime({ offset: true });
 
-/** Mã dịch vụ (GEMINI, EKYC, SMTP, SEPAY, R2); kiểm hình dạng để không ghép chuỗi lạ vào đường dẫn. */
+/** Mã dịch vụ (EKYC, SMTP, SEPAY, R2); kiểm hình dạng để không ghép chuỗi lạ vào đường dẫn. */
 export const serviceKeySchema = z.string().regex(/^[A-Z0-9_]{2,32}$/);
 
 /** Khóa bí mật chỉ cho biết đã có giá trị hay chưa; Backend không bao giờ trả giá trị khóa. */

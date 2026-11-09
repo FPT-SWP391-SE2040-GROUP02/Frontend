@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -10,6 +11,8 @@ import { useAdminUsersSearchParams } from "../model/useAdminUsersSearchParams";
 import { AdminUserActions } from "./AdminUserActions";
 import { AdminErrorMessage } from "./AdminStateMessage";
 import { AdminUsersFilters } from "./AdminUsersFilters";
+import { AdminUserDetail } from "./AdminUserDetail";
+import { ListTable, ListTableRow } from "@/shared/ui/listKit";
 
 const STATUS_STYLES: Record<AdminUserStatus, string> = {
   ACTIVE: "bg-emerald-50 text-emerald-800 border-emerald-200",
@@ -18,7 +21,16 @@ const STATUS_STYLES: Record<AdminUserStatus, string> = {
 };
 
 /** Danh sách tài khoản: GET /admin/users, bộ lọc trên URL; đổi vai trò và khóa/mở tài khoản qua hộp thoại có lý do. */
-export function AdminUsers() {
+export function AdminUsers({ actionLabel }: { actionLabel?: (action: string) => string }) {
+  const [urlParams, setUrlParams] = useSearchParams();
+  const selectedUserId = urlParams.get("user");
+  const openUser = (userId: string | null) =>
+    setUrlParams((current) => {
+      const next = new URLSearchParams(current);
+      if (userId) next.set("user", userId);
+      else next.delete("user");
+      return next;
+    });
   const search = useAdminUsersSearchParams();
   const query = useAdminUsers(search.query);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -37,6 +49,15 @@ export function AdminUsers() {
     if (previousPage.current !== search.page) headingRef.current?.focus();
     previousPage.current = search.page;
   }, [search.page]);
+
+  if (selectedUserId)
+    return (
+      <AdminUserDetail
+        userId={selectedUserId}
+        onBack={() => openUser(null)}
+        actionLabel={actionLabel}
+      />
+    );
 
   return (
     <div className="mt-6 space-y-4">
@@ -80,6 +101,7 @@ export function AdminUsers() {
           query={query}
           onPage={search.setPage}
           onClear={search.clearFilters}
+          onOpen={openUser}
         />
       </section>
       {createOpen && (
@@ -99,9 +121,10 @@ interface UsersResultProps {
   query: ReturnType<typeof useAdminUsers>;
   onPage: (page: number) => void;
   onClear: () => void;
+  onOpen: (userId: string) => void;
 }
 
-function UsersResult({ page, hasFilters, query, onPage, onClear }: UsersResultProps) {
+function UsersResult({ page, hasFilters, query, onPage, onClear, onOpen }: UsersResultProps) {
   if (query.isPending)
     return (
       <div
@@ -162,8 +185,7 @@ function UsersResult({ page, hasFilters, query, onPage, onClear }: UsersResultPr
       <p aria-live="polite" className="mb-3 text-sm text-heritage-muted">
         {data.totalCount} tài khoản · Trang {data.pageIndex}/{data.totalPages}
       </p>
-      <UsersTable data={data} />
-      <UsersCards data={data} />
+      <UsersTable data={data} onOpen={onOpen} />
       {data.totalPages > 1 && (
         <nav
           aria-label="Phân trang tài khoản"
@@ -204,110 +226,75 @@ function StatusBadge({ status }: { status: AdminUserStatus }) {
   );
 }
 
-const lastLogin = (user: AdminUser) =>
-  user.lastLoginAt ? formatDateTime(user.lastLoginAt) : "Chưa đăng nhập";
-
 const initial = (user: AdminUser) => (user.fullName.trim() || user.email).charAt(0).toUpperCase();
 
-function UsersTable({ data }: { data: AdminUsersPage }) {
-  return (
-    <div className="hidden overflow-x-auto rounded-xl border border-heritage-border bg-heritage-surface md:block">
-      <table className="w-full text-left text-sm">
-        <caption className="sr-only">Danh sách tài khoản, trang {data.pageIndex}</caption>
-        <thead className="border-b border-heritage-border text-xs uppercase text-heritage-muted">
-          <tr>
-            <th scope="col" className="px-4 py-3 font-semibold">
-              Người dùng
-            </th>
-            <th scope="col" className="px-4 py-3 font-semibold">
-              Vai trò
-            </th>
-            <th scope="col" className="px-4 py-3 font-semibold">
-              Trạng thái
-            </th>
-            <th scope="col" className="px-4 py-3 font-semibold">
-              Email
-            </th>
-            <th scope="col" className="px-4 py-3 font-semibold">
-              Tham gia
-            </th>
-            <th scope="col" className="px-4 py-3 font-semibold">
-              Đăng nhập gần nhất
-            </th>
-            <th scope="col" className="px-4 py-3 font-semibold">
-              Thao tác
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-heritage-border">
-          {data.items.map((user) => (
-            <tr key={user.id}>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <span
-                    aria-hidden="true"
-                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-heritage-primary/10 font-semibold text-heritage-primary"
-                  >
-                    {initial(user)}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="font-medium">{user.fullName || "Chưa có tên"}</p>
-                    <p className="break-all text-xs text-heritage-muted">{user.email}</p>
-                  </div>
-                </div>
-              </td>
-              <td className="px-4 py-3">{ROLE_LABELS[user.role]}</td>
-              <td className="px-4 py-3">
-                <StatusBadge status={user.status} />
-              </td>
-              <td className="px-4 py-3">{user.emailVerified ? "Đã xác minh" : "Chưa xác minh"}</td>
-              <td className="px-4 py-3 tabular-nums">{formatDate(user.createdAt)}</td>
-              <td className="px-4 py-3 tabular-nums">{lastLogin(user)}</td>
-              <td className="px-4 py-3">
-                <AdminUserActions user={user} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+function userTone(status: AdminUserStatus): "none" | "warn" | "bad" {
+  if (status === "ACTIVE") return "none";
+  return status === "LOCKED" ? "warn" : "bad";
 }
 
-function UsersCards({ data }: { data: AdminUsersPage }) {
+/** Danh sách tài khoản theo prototype: ảnh chữ cái, vai trò, trạng thái kèm xác minh email, hoạt động, thao tác. */
+function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: string) => void }) {
   return (
-    <ul className="space-y-3 md:hidden" aria-label="Danh sách tài khoản">
+    <ListTable
+      columns="minmax(200px,1.4fr) 130px 140px minmax(150px,1fr) 90px"
+      headings={["Người dùng", "Vai trò", "Trạng thái", "Hoạt động", ""]}
+    >
       {data.items.map((user) => (
-        <li
-          key={user.id}
-          className="space-y-2 rounded-xl border border-heritage-border bg-heritage-surface p-4"
-        >
-          <div>
-            <p className="font-medium">{user.fullName || "Chưa có tên"}</p>
-            <p className="break-all text-xs text-heritage-muted">{user.email}</p>
+        <ListTableRow key={user.id} tone={userTone(user.status)}>
+          <div role="cell" className="flex min-w-0 items-start gap-3">
+            <span
+              aria-hidden="true"
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-[#dfe9e3] text-[12.5px] font-semibold text-heritage-primary"
+            >
+              {initial(user)}
+            </span>
+            <div className="min-w-0">
+              <b className="block break-words text-sm text-heritage-primary">
+                {user.fullName || "Chưa có tên"}
+              </b>
+              <small className="block break-all text-[12.5px] text-heritage-muted">
+                {user.email}
+              </small>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-full border border-heritage-border px-2.5 py-0.5 font-semibold">
+          <div role="cell">
+            <span className="inline-flex h-6 items-center rounded-xl bg-[#e5ede8] px-2.5 text-xs font-semibold text-heritage-primary">
               {ROLE_LABELS[user.role]}
             </span>
-            <StatusBadge status={user.status} />
-            <span className="text-heritage-muted">
-              {user.emailVerified ? "Email đã xác minh" : "Email chưa xác minh"}
-            </span>
           </div>
-          <dl className="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <dt className="text-heritage-muted">Tham gia</dt>
-              <dd>{formatDate(user.createdAt)}</dd>
+          <div role="cell" className="flex flex-col items-start gap-1.5">
+            <StatusBadge status={user.status} />
+            <small className="text-[12.5px] text-heritage-muted">
+              {user.emailVerified ? "Email đã xác minh" : "Email chưa xác minh"}
+            </small>
+          </div>
+          <div role="cell" className="min-w-0">
+            <b className="block text-sm font-medium tabular-nums">
+              Tham gia {formatDate(user.createdAt)}
+            </b>
+            <small className="block text-[12.5px] text-heritage-muted tabular-nums">
+              {user.lastLoginAt
+                ? `Đăng nhập ${formatDateTime(user.lastLoginAt)}`
+                : "Chưa đăng nhập"}
+            </small>
+          </div>
+          <div role="cell" className="flex flex-col items-stretch gap-2 self-center">
+            <Button
+              variant="outline"
+              className="min-h-[34px] px-3 text-[13px]"
+              aria-label={`Xem ${user.fullName || user.email}`}
+              onClick={() => onOpen(user.id)}
+            >
+              Xem
+            </Button>
+            {/* Đổi vai trò và khóa tài khoản chỉ hiện khi rê chuột hoặc dùng bàn phím vào hàng; hàng mặc định gọn như prototype. */}
+            <div className="hidden flex-col gap-2 group-focus-within:flex group-hover:flex">
+              <AdminUserActions user={user} />
             </div>
-            <div>
-              <dt className="text-heritage-muted">Đăng nhập gần nhất</dt>
-              <dd>{lastLogin(user)}</dd>
-            </div>
-          </dl>
-          <AdminUserActions user={user} />
-        </li>
+          </div>
+        </ListTableRow>
       ))}
-    </ul>
+    </ListTable>
   );
 }

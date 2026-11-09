@@ -31,7 +31,7 @@ function OwnerBadge({ vault }: { vault: ExecutorVault }) {
 }
 
 /**
- * Ô "Đang làm việc với kho của" ở đầu sidebar Người thực hiện. Một kho: nhãn tĩnh, không bấm được.
+ * Ô "Đang làm việc với kho của" ở đầu sidebar Người thực thi. Một kho: nhãn tĩnh, không bấm được.
  * Nhiều kho: bấm để đổi kho (kho cần xử lý lên trên) hoặc "Xem tất cả kho" để về danh sách kho.
  */
 export function ExecutorOwnerSwitcher() {

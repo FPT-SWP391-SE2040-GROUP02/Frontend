@@ -3,7 +3,6 @@ import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import { QuickCheckIn } from "@/features/dms/ui/QuickCheckIn";
-import { useOwnerDeathCase } from "@/features/owner-objection/model/useOwnerDeathCase";
 import { ActivityIcon } from "@/shared/ui/LegacyVaultArtwork";
 import { overviewDate, presentOverviewPlan, storagePercent } from "../model/overviewPresentation";
 import type { OverviewResources } from "../model/useOverviewResources";
@@ -24,7 +23,6 @@ export function OwnerOverviewSummary({
   vault: VaultResponse;
   data: OverviewResources;
 }) {
-  const deathCase = useOwnerDeathCase(vault.id, true);
   const plan = presentOverviewPlan(vault.planStatus);
   return (
     <>
@@ -35,15 +33,6 @@ export function OwnerOverviewSummary({
           </p>
           <h2>{plan.title}</h2>
           <p>{plan.description}</p>
-          <p className="overview-hero-note">
-            {deathCase.isPending
-              ? "Đang kiểm tra hồ sơ chứng tử…"
-              : deathCase.isError
-                ? "Chưa kiểm tra được hồ sơ chứng tử. Xem cảnh báo bên trên."
-                : deathCase.data
-                  ? "Kho có hồ sơ chứng tử được hệ thống ghi nhận."
-                  : "Không có hồ sơ chứng tử đang mở."}
-          </p>
           <Link to={ROUTES.WILLS.ROOT} className="overview-hero-link">
             Xem kế hoạch bàn giao →
           </Link>

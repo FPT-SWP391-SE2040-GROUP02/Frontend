@@ -29,7 +29,7 @@ export function CompletePhonePage() {
           Thêm số điện thoại
         </h1>
         <p className="text-sm leading-7 text-heritage-muted">
-          Tài khoản của bạn chưa có số điện thoại. Vui lòng nhập số di động Việt Nam để tiếp tục.
+          Tài khoản của bạn chưa có số điện thoại. Vui lòng nhập số điện thoại để tiếp tục.
         </p>
       </header>
       <CompletePhoneForm onDone={() => navigate(target, { replace: true })} />

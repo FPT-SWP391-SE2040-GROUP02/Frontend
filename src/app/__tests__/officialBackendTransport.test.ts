@@ -45,6 +45,7 @@ const beneficiary = {
   dateOfBirth: "2000-01-01",
   email: null,
   phone: null,
+  message: null,
   minorAcknowledgedAt: null,
   containerIds: [],
   createdAt: CREATED_AT,
@@ -60,9 +61,9 @@ const checkIn = {
   graceEndsAt: null,
   settings: {
     cycleDays: 30,
-    graceDays: 7,
+    lateReminderGapDays: 3,
+    maxLateReminders: 3,
     pendingCycleDays: null,
-    pendingGraceDays: null,
     etag: "settings-v1",
   },
   history: pageFixture([]),
@@ -319,7 +320,11 @@ describe("official Backend transport through real Axios interceptors", () => {
       expect(JSON.parse(config.data)).toEqual({ etag: "settings-v1", cycleDays: 60 });
     });
     await checkInService.updateSettings({ etag: "settings-v1", cycleDays: 60 });
-    await expect(checkInService.updateSettings({ etag: "settings-v1" })).rejects.toThrow();
+    await expect(
+      checkInService.updateSettings({ etag: "settings-v1" } as unknown as Parameters<
+        typeof checkInService.updateSettings
+      >[0]),
+    ).rejects.toThrow();
   });
   it("blocks malformed scope IDs before HTTP", async () => {
     let calls = 0;

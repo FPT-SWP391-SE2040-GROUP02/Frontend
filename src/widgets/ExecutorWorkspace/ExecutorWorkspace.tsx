@@ -5,12 +5,9 @@ import {
   ArrowLeftRight,
   Home,
   ListChecks,
-  Mail,
   Menu,
-  ScanFace,
-  Settings,
-  ShieldCheck,
-  TrendingUp,
+  Package,
+  Send,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -23,6 +20,7 @@ import { InvitationCountBadge } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "./executor-workspace.css";
+import { NotificationBell } from "@/features/death-case/ui/NotificationBell";
 import { ExecutorOwnerSwitcher } from "./ExecutorOwnerSwitcher";
 
 interface NavItem {
@@ -32,21 +30,23 @@ interface NavItem {
 }
 
 /**
- * Menu Người thực hiện: Tổng quan, Lời mời, Báo tin, Tiến trình, Quyền hạn, Xác minh, Cài đặt.
- * Lời mời nằm ngay dưới Tổng quan và luôn hiện, kể cả khi không còn lời mời nào (xem lịch sử).
+ * Menu chính của Người thực thi: Tổng quan, Báo tin, Bàn giao, Tài sản.
+ * Xác minh (eKYC) và Cài đặt (gồm cả Lời mời và Quyền hạn) ít dùng nên nằm ở chân thanh bên, dưới nút đổi vai.
  */
 const executorNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT, icon: Home },
-  { label: "Lời mời", to: ROUTES.EXECUTOR.INVITATIONS, icon: Mail },
   { label: "Báo tin", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
-  { label: "Tiến trình", to: ROUTES.EXECUTOR.PROGRESS, icon: TrendingUp },
-  { label: "Quyền hạn", to: ROUTES.EXECUTOR.PERMISSIONS, icon: ShieldCheck },
-  { label: "Xác minh", to: ROUTES.EXECUTOR.IDENTITY, icon: ScanFace },
-  { label: "Cài đặt", to: ROUTES.EXECUTOR.SETTINGS, icon: Settings },
+  { label: "Bàn giao", to: ROUTES.EXECUTOR.PROGRESS, icon: Send },
+  { label: "Tài sản", to: ROUTES.EXECUTOR.ASSETS, icon: Package },
+];
+
+const accountNavigation: Array<{ label: string; to: string }> = [
+  { label: "Xác minh", to: ROUTES.EXECUTOR.IDENTITY },
+  { label: "Cài đặt", to: ROUTES.EXECUTOR.SETTINGS },
 ];
 
 /**
- * Khung không gian Người thực hiện (Executor). Dữ liệu tài khoản lấy từ phiên đã xác thực;
+ * Khung không gian Người thực thi (Executor). Dữ liệu tài khoản lấy từ phiên đã xác thực;
  * quyền trên từng kho do Backend kiểm tra, khung này không cấp quyền.
  */
 export function ExecutorWorkspace({
@@ -69,9 +69,10 @@ export function ExecutorWorkspace({
   let pendingInvitations = 0;
   if (invitations.isSuccess) pendingInvitations = invitations.data.pending.length;
   const path = location.pathname;
-  const current = executorNavigation.find(({ to }) =>
-    to === ROUTES.EXECUTOR.ROOT ? path === to : path === to || path.startsWith(`${to}/`),
-  );
+  const isCurrent = (to: string): boolean => {
+    if (to === ROUTES.EXECUTOR.ROOT) return path === to;
+    return path === to || path.startsWith(`${to}/`);
+  };
   return (
     <WorkspaceShell
       className="owner-workspace"
@@ -82,11 +83,11 @@ export function ExecutorWorkspace({
       navigation={
         <>
           <div className="owner-controls executor-controls">
-            <p className="flex-1 self-center text-sm font-semibold">Không gian Người thực hiện</p>
+            <p className="flex-1 self-center text-sm font-semibold">Không gian Người thực thi</p>
             <button
               type="button"
               className="owner-menu-toggle"
-              aria-label="Menu Người thực hiện"
+              aria-label="Menu Người thực thi"
               aria-expanded={navigationOpen}
               aria-controls="executor-navigation"
               onClick={() => setNavigationOpen(!navigationOpen)}
@@ -100,7 +101,7 @@ export function ExecutorWorkspace({
           </div>
           <nav
             id="executor-navigation"
-            aria-label="Điều hướng Người thực hiện"
+            aria-label="Điều hướng Người thực thi"
             className="owner-navigation"
             data-open={navigationOpen}
           >
@@ -111,15 +112,12 @@ export function ExecutorWorkspace({
               <Link
                 key={to}
                 to={to}
-                aria-current={current?.to === to ? "page" : undefined}
+                aria-current={isCurrent(to) ? "page" : undefined}
                 className="owner-nav-link"
                 onClick={() => setNavigationOpen(false)}
               >
                 <Icon className="size-[18px] shrink-0" aria-hidden="true" />
                 {label}
-                {to === ROUTES.EXECUTOR.INVITATIONS && pendingInvitations > 0 && (
-                  <InvitationCountBadge count={pendingInvitations} />
-                )}
               </Link>
             ))}
           </nav>
@@ -127,6 +125,22 @@ export function ExecutorWorkspace({
       }
       footer={
         <>
+          <nav aria-label="Tài khoản" className="mb-3 flex flex-wrap gap-1">
+            {accountNavigation.map(({ to, label }) => (
+              <Link
+                key={to}
+                to={to}
+                aria-current={isCurrent(to) ? "page" : undefined}
+                className="flex min-h-9 items-center gap-1 rounded-lg px-2 text-sm text-[#E9EFE9] hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:font-semibold"
+                onClick={() => setNavigationOpen(false)}
+              >
+                {label}
+                {to === ROUTES.EXECUTOR.SETTINGS && pendingInvitations > 0 && (
+                  <InvitationCountBadge count={pendingInvitations} />
+                )}
+              </Link>
+            ))}
+          </nav>
           <Link
             to={ROUTES.DASHBOARD.ROOT}
             className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E0C486] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E8CF9B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
@@ -142,7 +156,7 @@ export function ExecutorWorkspace({
             />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
-              <p className="mt-0.5 text-xs text-[#E6C98B]">Người thực hiện</p>
+              <p className="mt-0.5 text-xs text-[#E6C98B]">Người thực thi</p>
             </div>
           </div>
         </>
@@ -155,7 +169,10 @@ export function ExecutorWorkspace({
             <p className="mt-2 max-w-3xl text-sm leading-6 text-heritage-muted">{description}</p>
           )}
         </div>
-        {badge}
+        <div className="flex items-center gap-3">
+          {badge}
+          <NotificationBell />
+        </div>
       </header>
       {children}
       <footer className="pt-2 text-xs leading-5 text-heritage-muted">

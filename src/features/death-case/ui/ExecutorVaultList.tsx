@@ -5,7 +5,7 @@ import type { ExecutorVault } from "../model/deathCase.schema";
 import { ownerInitials, sortVaultsByUrgency, vaultTask } from "../model/executorVaultTask";
 
 /**
- * Danh sách kho của Người thực hiện kèm việc cần làm, thay cho trang "Chọn kho" cũ. Kho cần xử lý lên trên;
+ * Danh sách kho của Người thực thi kèm việc cần làm, thay cho trang "Chọn kho" cũ. Kho cần xử lý lên trên;
  * có việc thì nút đậm là việc đó, không có việc thì chỉ còn nút "Mở kho" viền mảnh.
  */
 export function ExecutorVaultList({
@@ -16,7 +16,7 @@ export function ExecutorVaultList({
   vaults: ExecutorVault[];
   /** Mở Tổng quan của kho. */
   onSelect: (vaultId: string) => void;
-  /** Mở một trang khác của không gian Người thực hiện cho kho. */
+  /** Mở một trang khác của không gian Người thực thi cho kho. */
   onOpen: (vaultId: string, path: string) => void;
 }) {
   const sorted = sortVaultsByUrgency(vaults);

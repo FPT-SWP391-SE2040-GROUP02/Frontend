@@ -11,14 +11,14 @@ export interface VaultTask {
   tone: Tone;
   /** Dòng phụ mô tả trạng thái điểm danh/hồ sơ. */
   detail: string;
-  /** Việc Người thực hiện cần làm; null khi kho an toàn, chưa có việc gì. */
+  /** Việc Người thực thi cần làm; null khi kho an toàn, chưa có việc gì. */
   task: string | null;
 }
 
 const URGENCY_ORDER: Record<VaultUrgency, number> = { overdue: 0, "death-case": 1, safe: 2 };
 
 /**
- * Việc cần làm của Người thực hiện với một kho, chỉ suy từ dữ liệu `/executor/vaults` có sẵn.
+ * Việc cần làm của Người thực thi với một kho, chỉ suy từ dữ liệu `/executor/vaults` có sẵn.
  * Có hồ sơ chứng tử đang mở thì hồ sơ là việc chính, kể cả khi kho từng quá hạn điểm danh.
  */
 export function vaultTask(vault: ExecutorVault): VaultTask {
@@ -31,7 +31,7 @@ export function vaultTask(vault: ExecutorVault): VaultTask {
       task: "theo dõi hồ sơ chứng tử và bổ sung khi Người xét duyệt yêu cầu.",
     };
   }
-  // Đang trong thời gian chờ: Chủ kho còn tự điểm danh được, Người thực hiện chỉ cần để ý.
+  // Đang trong thời gian chờ: Chủ kho còn tự điểm danh được, Người thực thi chỉ cần để ý.
   if (vault.planStatus === "CHECKIN_OVERDUE") {
     return {
       urgency: "overdue",
@@ -41,7 +41,7 @@ export function vaultTask(vault: ExecutorVault): VaultTask {
       task: "để ý thêm. Chủ kho còn thời gian tự điểm danh; nếu đã liên lạc được và Chủ kho vẫn ổn, bạn có thể điểm danh hộ.",
     };
   }
-  // Hết thời gian chờ (AWAITING_CHECK): hệ thống đã giao việc kiểm tra cho Người thực hiện.
+  // Hết thời gian chờ (AWAITING_CHECK): hệ thống đã giao việc kiểm tra cho Người thực thi.
   if (vault.checkInOverdue) {
     return {
       urgency: "overdue",
@@ -79,7 +79,7 @@ export function sortVaultsByUrgency(vaults: ExecutorVault[]): ExecutorVault[] {
   return sorted;
 }
 
-/** Số kho đang cần Người thực hiện (quá hạn điểm danh hoặc có hồ sơ đang mở). */
+/** Số kho đang cần Người thực thi (quá hạn điểm danh hoặc có hồ sơ đang mở). */
 export function countVaultsNeedingAttention(vaults: ExecutorVault[]): number {
   let count = 0;
   for (const vault of vaults) {

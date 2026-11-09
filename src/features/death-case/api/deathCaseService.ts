@@ -4,12 +4,15 @@ import {
   deathCaseSchema,
   deathDraftSchema,
   executorCheckInSchema,
+  executorPackageSchema,
   executorVaultSchema,
 } from "../model/deathCase.schema";
+import { proxyCheckInRequestSchema, type ProxyCheckInRequest } from "../model/proxyCheckIn.schema";
 import {
   confirmIdentitySchema,
   handoverProgressSchema,
   resendInvitationSchema,
+  sendHandoverKeySchema,
 } from "../model/handoverProgress.schema";
 const id = z.string().uuid();
 const path = (caseId: string) => `/executor/death-cases/${id.parse(caseId)}`;
@@ -21,10 +24,24 @@ export const deathCaseService = {
       .array(executorVaultSchema)
       .parse(await apiClient.get<unknown, unknown>("/executor/vaults", { signal }));
   },
-  /** Điểm danh thay chủ kho khi chủ kho quá hạn và kho chưa có hồ sơ chứng tử đang mở. */
-  async checkInForOwner(vaultId: string) {
+  /**
+   * Điểm danh thay chủ kho khi chủ kho quá hạn và kho chưa có hồ sơ chứng tử đang mở.
+   * Body khai đã liên lạc với ai, lúc nào, cách nào; hết lượt liên tiếp thì Backend trả 409 PROXY_LIMIT_REACHED.
+   */
+  async checkInForOwner(vaultId: string, request: ProxyCheckInRequest) {
     return executorCheckInSchema.parse(
-      await apiClient.post<unknown, unknown>(`/executor/vaults/${id.parse(vaultId)}/check-in`),
+      await apiClient.post<unknown, unknown>(
+        `/executor/vaults/${id.parse(vaultId)}/check-in`,
+        proxyCheckInRequestSchema.parse(request),
+      ),
+    );
+  },
+  /** Danh sách tài sản của kho theo từng gói: chỉ tên, loại, dung lượng, không có nội dung. */
+  async packages(vaultId: string, signal?: AbortSignal) {
+    return z.array(executorPackageSchema).parse(
+      await apiClient.get<unknown, unknown>(`/executor/vaults/${id.parse(vaultId)}/assets`, {
+        signal,
+      }),
     );
   },
   async open(vaultId: string) {
@@ -44,9 +61,15 @@ export const deathCaseService = {
     );
   },
   /** Multipart tệp kèm tiến độ theo byte đã gửi; không cache nội dung giấy tờ. */
-  async upload(caseId: string, file: File, onUploadProgress?: (percent: number) => void) {
+  async upload(
+    caseId: string,
+    file: File,
+    kind: "DEATH_CERTIFICATE" | "DEATH_NOTICE",
+    onUploadProgress?: (percent: number) => void,
+  ) {
     const body = new FormData();
     body.append("file", file);
+    body.append("kind", kind);
     return deathCaseSchema.parse(
       await apiClient.post<unknown, unknown>(`${path(caseId)}/files`, body, {
         headers: { "Content-Type": undefined },
@@ -57,6 +80,12 @@ export const deathCaseService = {
         },
       }),
     );
+  },
+  /** Xem lại tệp mình đã tải lên (bản nháp hay đã gửi); blob chỉ nằm trong RAM, không cache. */
+  async viewFile(caseId: string, fileId: string): Promise<Blob> {
+    return apiClient.get<Blob, Blob>(`${path(caseId)}/files/${id.parse(fileId)}/content`, {
+      responseType: "blob",
+    });
   },
   async removeFile(caseId: string, fileId: string) {
     return deathCaseSchema.parse(
@@ -94,6 +123,15 @@ export const deathCaseService = {
     return resendInvitationSchema.parse(
       await apiClient.post<unknown, unknown>(
         `${path(caseId)}/handover-turns/${id.parse(turnId)}/resend-invitation`,
+      ),
+    );
+  },
+  /** Gửi khóa mở gói tới email người nhận của lượt; BE kiểm khóa Executor nhập (sai → 403 HANDOVER_KEY_INVALID) và không lưu khóa. */
+  async sendKey(caseId: string, turnId: string, key: string) {
+    return sendHandoverKeySchema.parse(
+      await apiClient.post<unknown, unknown>(
+        `${path(caseId)}/handover-turns/${id.parse(turnId)}/send-key`,
+        { key },
       ),
     );
   },

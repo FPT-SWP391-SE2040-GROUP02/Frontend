@@ -4,8 +4,6 @@ import { z } from "zod";
 export const DEV_MILESTONE_KEYS = [
   "CHECKIN_OVERDUE",
   "GRACE_ENDED",
-  "OBJECTION_WINDOW_ENDED",
-  "SELFIE_DEADLINE_PASSED",
   "SERVICE_EXPIRED",
   "RECIPIENT_DECISION_ENDED",
 ] as const;
@@ -94,3 +92,9 @@ export const devUpdateEkycThresholdRequestSchema = z.object({
   threshold: z.number(),
 });
 export type DevUpdateEkycThresholdRequest = z.infer<typeof devUpdateEkycThresholdRequestSchema>;
+
+/** GET/PUT /admin/dev-tools/ekyc-pause → eKYC có đang tạm ngừng không (DevEkycPauseResponse). */
+export const devEkycPauseSchema = z.object({
+  paused: z.boolean(),
+});
+export type DevEkycPause = z.infer<typeof devEkycPauseSchema>;

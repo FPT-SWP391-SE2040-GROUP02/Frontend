@@ -53,6 +53,8 @@ export const approveBlockerSchema = z.enum([
 export const verifierFileSchema = z.object({
   id: z.string().uuid(),
   position: z.number().int(),
+  /** Loại giấy; hồ sơ cũ và fixture không có trường này coi là giấy chứng tử. */
+  kind: z.enum(["DEATH_CERTIFICATE", "DEATH_NOTICE"]).default("DEATH_CERTIFICATE"),
   fileName: z.string(),
   contentType: z.string(),
   sizeBytes: z.number().int().nonnegative(),
@@ -113,6 +115,8 @@ export const verifierDecisionSchema = z.object({
   reason: z.string(),
   requestedParts: z.array(supplementPartSchema),
   decidedAt: timestamp,
+  /** Mã biên bản, chỉ có với quyết định duyệt (BE suy từ ngày duyệt và Id quyết định). */
+  recordCode: z.string().nullish(),
 });
 /** Thông báo Owner. */
 export const ownerNoticeSchema = z
@@ -231,12 +235,6 @@ export const approveCaseRequestSchema = z.object({
   reason: z.string().trim().min(1, "Cần nhập lý do duyệt.").max(1000, "Lý do tối đa 1000 ký tự."),
   password: signingPassword,
 });
-/** Từ chối hồ sơ; cần nhập lại mật khẩu tài khoản để xác nhận (DEATH-03). */
-export const rejectCaseRequestSchema = z.object({
-  etag: z.string().min(1).max(64),
-  reason: z.string().trim().min(1, "Cần nhập lý do từ chối.").max(1000, "Lý do tối đa 1000 ký tự."),
-  password: signingPassword,
-});
 /** Nhãn tiếng Việt cho status hồ sơ. */
 export const caseStatusLabels: Record<z.infer<typeof verifierCaseStatusSchema>, string> = {
   UNDER_REVIEW: "Đang xét",
@@ -274,66 +272,3 @@ export const decisionLabels: Record<z.infer<typeof verifierDecisionKindSchema>, 
   REJECTED: "Từ chối",
   APPROVED: "Duyệt mở bàn giao",
 };
-
-/** Kết luận của Verifier cho lời báo còn sống (BE ObjectionConclusion). */
-export const objectionConclusionSchema = z.enum([
-  "ALIVE_CONFIRMED",
-  "OBJECTION_REJECTED",
-  "INSUFFICIENT_EVIDENCE",
-]);
-/** Lời báo "Tôi còn sống" nhìn từ Verifier (BE ObjectionResponse). */
-export const verifierObjectionSchema = z.object({
-  id: z.string().uuid(),
-  status: z.enum(["OPEN", "CONCLUDED"]),
-  firstReportedAt: timestamp,
-  lastReportedAt: timestamp,
-  reportCount: z.number().int().nonnegative(),
-  selfieDeadlineAt: timestamp,
-  selfieWindowOpen: z.boolean(),
-  selfiePassed: z.boolean(),
-  selfiePassedAt: timestamp.nullable(),
-  selfieAttemptsRemaining: z.number().int().nonnegative(),
-  /** Có ảnh selfie của lần thử gần nhất (BR-50 sửa); xem qua GET .../objection/selfie-image. */
-  hasSelfieImage: z.boolean(),
-  selfieImageCapturedAt: timestamp.nullable(),
-  /** Ảnh đang lưu có khớp mẫu khuôn mặt không; null khi chưa có ảnh. */
-  selfieImageMatched: z.boolean().nullable(),
-  verifierDueAt: timestamp.nullable(),
-  insufficientEvidenceCount: z.number().int().nonnegative(),
-  conclusion: objectionConclusionSchema.nullable(),
-  conclusionReason: z.string().nullable(),
-  concludedAt: timestamp.nullable(),
-  serverTime: timestamp,
-});
-/** Kết luận lời báo; lý do bắt buộc, tối đa 1000 ký tự (BE ConcludeObjectionRequest). */
-export const concludeObjectionRequestSchema = z.object({
-  conclusion: objectionConclusionSchema,
-  reason: z
-    .string()
-    .trim()
-    .min(1, "Cần nhập lý do kết luận.")
-    .max(1000, "Lý do tối đa 1000 ký tự."),
-});
-export const objectionConclusionLabels: Record<
-  z.infer<typeof objectionConclusionSchema>,
-  string
-> = {
-  ALIVE_CONFIRMED: "Xác nhận Owner còn sống",
-  OBJECTION_REJECTED: "Từ chối báo tử",
-  INSUFFICIENT_EVIDENCE: "Chưa đủ bằng chứng",
-};
-/**
- * Kết luận nào còn mở cho lời báo này, theo luật BE mục 6.14:
- * ALIVE_CONFIRMED cần selfie đạt hoặc đã quá 7 ngày; OBJECTION_REJECTED bị chặn khi selfie đã đạt (ALIVE-05).
- * Nút chỉ phản ánh luật; BE vẫn là nơi quyết định.
- */
-export function allowedObjectionConclusions(
-  objection: z.infer<typeof verifierObjectionSchema>,
-): z.infer<typeof objectionConclusionSchema>[] {
-  if (objection.status !== "OPEN") return [];
-  const options: z.infer<typeof objectionConclusionSchema>[] = [];
-  if (objection.selfiePassed || !objection.selfieWindowOpen) options.push("ALIVE_CONFIRMED");
-  if (!objection.selfiePassed) options.push("OBJECTION_REJECTED");
-  options.push("INSUFFICIENT_EVIDENCE");
-  return options;
-}

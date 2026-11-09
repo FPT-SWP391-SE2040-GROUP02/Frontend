@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ChevronRight, Clock, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -8,6 +8,8 @@ import {
   INCIDENT_EVENT_LABELS,
   INCIDENT_STATUS_LABELS,
   INCIDENT_TYPE_LABELS,
+  RESPONSIBLE_ROLE_LABELS,
+  ROLE_LABELS,
   defaultReviewLocal,
   formatDateTime,
   localDateTimeToIso,
@@ -16,6 +18,7 @@ import {
   INCIDENT_STATUSES,
   INCIDENT_TARGET_DEATH_CASE,
   INCIDENT_TYPES,
+  type AdminUserRole,
   type IncidentDetail,
   type IncidentStatus,
   type IncidentSummary,
@@ -24,13 +27,24 @@ import { adminActionError } from "../model/adminError";
 import {
   adminKeys,
   useAdminIncident,
+  useAdminIncidentCounts,
   useAdminIncidents,
   useAdminUserOptions,
 } from "../model/useAdmin";
 import { useAdminIncidentParams } from "../model/useAdminListParams";
 import { AdminActionDialog } from "./AdminActionDialog";
+import {
+  ListFilterBar,
+  ListPill,
+  ListSearchField,
+  ListSegmentTabs,
+  ListSelectField,
+  ListTable,
+  ListTableRow,
+} from "@/shared/ui/listKit";
 import { AdminPagination } from "./AdminPagination";
 import { AdminErrorMessage } from "./AdminStateMessage";
+import { IncidentHoldBox } from "./IncidentHoldBox";
 
 const STATUS_STYLES: Record<IncidentStatus, string> = {
   OPEN: "bg-amber-50 text-amber-900 border-amber-300",
@@ -48,6 +62,15 @@ function StatusBadge({ status }: { status: IncidentStatus }) {
   );
 }
 
+/** Sự cố do người liên quan xử lý: Admin chỉ theo dõi nên hiện "Đang chờ …". */
+function WaitingBadge({ role }: { role: keyof typeof RESPONSIBLE_ROLE_LABELS }) {
+  return (
+    <span className="inline-flex items-center rounded-full border border-stone-300 bg-stone-50 px-2.5 py-0.5 text-xs font-medium text-stone-700">
+      Đang chờ {RESPONSIBLE_ROLE_LABELS[role]}
+    </span>
+  );
+}
+
 function OverdueBadge() {
   return (
     <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-800">
@@ -58,15 +81,27 @@ function OverdueBadge() {
 }
 
 /** Tên người phụ trách từ danh sách Admin/Verifier đang hoạt động; không có thì hiện mã rút gọn. */
-function useAssigneeLabel(userId: string | null) {
+/** Tên và vai trò của người phụ trách; không tìm thấy trong danh sách Admin/Verifier thì hiện mã rút gọn. */
+function useAssignee(
+  userId: string | null,
+  known?: { fullName: string | null; role: AdminUserRole | null },
+): { name: string; role: string | null } {
   const admins = useAdminUserOptions("ADMIN");
   const verifiers = useAdminUserOptions("VERIFIER");
-  if (!userId) return "Chưa có người phụ trách";
-  const person = [...(admins.data?.items ?? []), ...(verifiers.data?.items ?? [])].find(
-    (item) => item.id === userId,
-  );
-  return person ? person.fullName || person.email : `Tài khoản ${userId.slice(0, 8)}`;
+  if (!userId) return { name: "Chưa có người phụ trách", role: null };
+  // Backend đã trả họ tên và vai trò thì dùng luôn, không phụ thuộc danh sách Admin/Người xét duyệt đang hoạt động.
+  if (known?.fullName) {
+    return { name: known.fullName, role: known.role ? ROLE_LABELS[known.role] : null };
+  }
+  const admin = admins.data?.items.find((item) => item.id === userId);
+  if (admin) return { name: admin.fullName || admin.email, role: "Quản trị viên" };
+  const verifier = verifiers.data?.items.find((item) => item.id === userId);
+  if (verifier) return { name: verifier.fullName || verifier.email, role: "Người xét duyệt" };
+  return { name: `Tài khoản ${userId.slice(0, 8)}`, role: null };
 }
+
+/** "dd/MM/yyyy HH:mm" rút thành "dd/MM HH:mm" như prototype. */
+const shortDateTime = (iso: string) => formatDateTime(iso).replace(/\/\d{4}/, "");
 
 /** Danh sách và chi tiết sự cố vận hành: bộ lọc và sự cố đang xem nằm trên URL. */
 export function AdminIncidents() {
@@ -80,52 +115,60 @@ export function AdminIncidents() {
 
 function IncidentList({ params }: { params: ReturnType<typeof useAdminIncidentParams> }) {
   const query = useAdminIncidents(params.query);
+  // Số trên các thẻ trạng thái tính theo bộ lọc còn lại (loại, Của tôi, Quá hạn, tìm kiếm), không theo trạng thái đang chọn.
+  const counts = useAdminIncidentCounts({
+    type: params.query.type,
+    overdueOnly: params.query.overdueOnly,
+    mine: params.query.mine,
+    search: params.query.search,
+  });
   return (
     <div className="mt-6 space-y-4">
-      <fieldset className="grid gap-3 rounded-xl border border-heritage-border p-4 sm:grid-cols-3">
-        <legend className="px-1 text-sm font-semibold">Bộ lọc sự cố</legend>
-        <label className="block text-sm">
-          Trạng thái
-          <select
-            value={params.filters.status ?? ""}
-            onChange={(event) => params.setFilters({ status: event.target.value || undefined })}
-            className="mt-1 min-h-11 w-full rounded-lg border border-heritage-border bg-white px-3 text-sm"
-          >
-            <option value="">Tất cả</option>
-            {INCIDENT_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {INCIDENT_STATUS_LABELS[status]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-sm">
-          Loại sự cố
-          <select
-            value={params.filters.type ?? ""}
-            onChange={(event) => params.setFilters({ type: event.target.value || undefined })}
-            className="mt-1 min-h-11 w-full rounded-lg border border-heritage-border bg-white px-3 text-sm"
-          >
-            <option value="">Tất cả</option>
-            {INCIDENT_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {INCIDENT_TYPE_LABELS[type]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex min-h-11 items-center gap-3 self-end text-sm">
-          <input
-            type="checkbox"
-            className="size-5"
-            checked={params.filters.overdueOnly}
-            onChange={(event) => params.setFilters({ overdueOnly: event.target.checked })}
-          />
-          Chỉ sự cố quá hạn
-        </label>
-      </fieldset>
+      <ListSegmentTabs
+        label="Trạng thái"
+        value={params.filters.status ?? ""}
+        options={[
+          { value: "", label: "Tất cả", count: counts.data?.total },
+          ...INCIDENT_STATUSES.map((status) => ({
+            value: status,
+            label: INCIDENT_STATUS_LABELS[status],
+            count: counts.data?.counts[status],
+          })),
+        ]}
+        onChange={(value) => params.setFilters({ status: value || undefined })}
+      />
+      <ListFilterBar onClear={params.hasFilters ? params.clearFilters : undefined}>
+        <ListSearchField
+          label="Tìm sự cố"
+          placeholder="Tìm theo mã sự cố, mã hồ sơ hoặc nội dung"
+          value={params.filters.search}
+          onCommit={(value) => params.setFilters({ search: value })}
+        />
+        <ListPill
+          pressed={params.filters.mine}
+          onClick={() => params.setFilters({ mine: !params.filters.mine })}
+        >
+          Của tôi
+        </ListPill>
+        <ListPill
+          pressed={params.filters.overdueOnly}
+          onClick={() => params.setFilters({ overdueOnly: !params.filters.overdueOnly })}
+        >
+          Quá hạn
+        </ListPill>
+        <ListSelectField
+          label="Loại sự cố"
+          value={params.filters.type ?? ""}
+          allLabel="Mọi loại"
+          options={INCIDENT_TYPES.map((type) => ({
+            value: type,
+            label: INCIDENT_TYPE_LABELS[type],
+          }))}
+          onChange={(value) => params.setFilters({ type: value || undefined })}
+        />
+      </ListFilterBar>
       <section aria-labelledby="admin-incidents-heading" className="space-y-3">
-        <h2 id="admin-incidents-heading" className="text-lg font-semibold">
+        <h2 id="admin-incidents-heading" className="sr-only">
           Danh sách sự cố
         </h2>
         <IncidentResult params={params} query={query} />
@@ -184,11 +227,6 @@ function IncidentResult({
         <p className="text-sm text-heritage-muted">
           {params.hasFilters ? "Không có sự cố khớp bộ lọc." : "Hiện chưa có sự cố nào."}
         </p>
-        {params.hasFilters && (
-          <Button variant="outline" className="min-h-11" onClick={params.clearFilters}>
-            Xóa bộ lọc
-          </Button>
-        )}
       </div>
     );
   return (
@@ -197,13 +235,16 @@ function IncidentResult({
       className={refreshing ? "opacity-60 transition-opacity" : undefined}
     >
       <p aria-live="polite" className="mb-3 text-sm text-heritage-muted">
-        {data.totalCount} sự cố · Trang {data.pageIndex}/{data.totalPages}
+        <b>{data.totalCount}</b> sự cố
       </p>
-      <ul className="space-y-2">
+      <ListTable
+        columns="minmax(220px,1.7fr) 150px minmax(130px,.9fr) 120px 130px 36px"
+        headings={["Sự cố", "Trạng thái", "Người phụ trách", "Vai trò", "Hạn", ""]}
+      >
         {data.items.map((item) => (
           <IncidentRow key={item.id} item={item} onOpen={() => params.select(item.id)} />
         ))}
-      </ul>
+      </ListTable>
       <AdminPagination
         label="Phân trang sự cố"
         pageIndex={data.pageIndex}
@@ -217,33 +258,122 @@ function IncidentResult({
   );
 }
 
+/** Viền trái của hàng: đỏ khi quá hạn, vàng khi đang mở, xanh dương khi đang xử lý, trơ khi đã xử lý. */
+function incidentTone(item: IncidentSummary): "bad" | "warn" | "info" | "none" {
+  if (item.status === "RESOLVED") return "none";
+  if (item.overdue) return "bad";
+  return item.status === "OPEN" ? "warn" : "info";
+}
+
 function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => void }) {
+  const assignee = useAssignee(item.assigneeUserId, {
+    fullName: item.assigneeFullName,
+    role: item.assigneeRole,
+  });
+  const resolved = item.status === "RESOLVED";
   return (
-    <li>
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex min-h-11 w-full flex-col gap-2 rounded-xl border border-heritage-border bg-heritage-surface p-4 text-left hover:border-heritage-primary"
-      >
-        <span className="flex flex-wrap items-center gap-2">
-          <span className="font-medium">{INCIDENT_TYPE_LABELS[item.type]}</span>
-          <StatusBadge status={item.status} />
-          {item.overdue && item.status !== "RESOLVED" && <OverdueBadge />}
-        </span>
-        <span className="break-words text-sm text-heritage-muted">{item.summary}</span>
-        <span className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-heritage-muted tabular-nums">
-          <span>Hạn xử lý: {formatDateTime(item.dueAt)}</span>
-          <span>Xem lại: {formatDateTime(item.nextReviewAt)}</span>
-          {!item.assigneeUserId && (
-            <span className="font-semibold text-amber-900">Chưa có người phụ trách</span>
+    <button type="button" onClick={onOpen} className="block min-h-11 w-full text-left">
+      <ListTableRow tone={incidentTone(item)}>
+        <span className="flex min-w-0 flex-col">
+          <b className="block text-sm leading-6 text-heritage-primary">
+            {INCIDENT_TYPE_LABELS[item.type]}{" "}
+            <span className="font-mono text-xs font-medium text-heritage-muted">
+              #{item.id.slice(0, 8).toUpperCase()}
+            </span>
+          </b>
+          <span className="line-clamp-2 text-[13px] text-heritage-muted">{item.summary}</span>
+          {!resolved && item.responsibleRole !== "ADMIN" && (
+            <span className="mt-1 text-xs font-semibold text-amber-800">
+              Đang chờ {RESPONSIBLE_ROLE_LABELS[item.responsibleRole]}
+            </span>
           )}
         </span>
-      </button>
-    </li>
+        <span className="flex flex-col items-start gap-1.5">
+          <StatusBadge status={item.status} />
+          {item.overdue && !resolved && (
+            <span className="flex items-center gap-1.5 text-[12.5px] font-semibold text-red-800">
+              <Clock className="size-3.5" aria-hidden="true" />
+              Quá hạn
+            </span>
+          )}
+        </span>
+        <span className="min-w-0">
+          {item.assigneeUserId ? (
+            <b className="block break-words text-sm leading-6 text-heritage-primary">
+              {assignee.name}
+            </b>
+          ) : (
+            <span className="text-sm font-semibold text-amber-900">Chưa có người phụ trách</span>
+          )}
+        </span>
+        <span className="min-w-0 text-sm text-heritage-muted">{assignee.role ?? "—"}</span>
+        <span className="tabular-nums">
+          <b className="block text-sm leading-6 text-heritage-primary">
+            {shortDateTime(item.dueAt)}
+          </b>
+          <small className="block text-[12.5px] text-heritage-muted">
+            {resolved ? "Đã xử lý" : `Xem lại ${shortDateTime(item.nextReviewAt)}`}
+          </small>
+        </span>
+        <span className="hidden self-center text-heritage-muted md:block">
+          <ChevronRight className="size-[18px]" aria-hidden="true" />
+        </span>
+      </ListTableRow>
+    </button>
   );
 }
 
-type IncidentDialog = "assign" | "note" | "review" | "resolve" | "reassign";
+/** Ô ghi chú ngay trong phần lịch sử (prototype): gõ rồi lưu, không cần mở hộp thoại. */
+function IncidentNoteComposer({ incidentId, onDone }: { incidentId: string; onDone: () => void }) {
+  const [note, setNote] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  const submit = async () => {
+    const text = note.trim();
+    if (!text || pending) return;
+    setPending(true);
+    setError("");
+    try {
+      await adminService.addIncidentNote(incidentId, { note: text });
+      setNote("");
+      onDone();
+    } catch (failure) {
+      setError(adminActionError(failure) ?? "Chưa lưu được ghi chú. Vui lòng thử lại.");
+    } finally {
+      setPending(false);
+    }
+  };
+  return (
+    <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">
+      <label className="sr-only" htmlFor="incident-note-composer">
+        Ghi chú
+      </label>
+      <textarea
+        id="incident-note-composer"
+        rows={2}
+        maxLength={1000}
+        value={note}
+        onChange={(event) => setNote(event.target.value)}
+        placeholder="Viết ghi chú cho sự cố này"
+        className="w-full resize-y rounded-lg border border-heritage-border px-3 py-2 text-sm outline-none focus-visible:border-heritage-gold"
+      />
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      <Button
+        className="min-h-10"
+        disabled={pending || note.trim() === ""}
+        onClick={() => void submit()}
+      >
+        {pending ? "Đang lưu…" : "Lưu ghi chú"}
+      </Button>
+    </div>
+  );
+}
+
+type IncidentDialog = "assign" | "note" | "review" | "resolve" | "reassign" | "executor";
 
 function IncidentDetailView({ incidentId, onBack }: { incidentId: string; onBack: () => void }) {
   const query = useAdminIncident(incidentId);
@@ -296,137 +426,186 @@ function IncidentDetailBody({
 }) {
   const client = useQueryClient();
   const [dialog, setDialog] = useState<IncidentDialog | null>(null);
-  const assignee = useAssigneeLabel(detail.assigneeUserId);
+  const assignee = useAssignee(detail.assigneeUserId, {
+    fullName: detail.assigneeFullName,
+    role: detail.assigneeRole,
+  }).name;
   const open = detail.status !== "RESOLVED";
-  // Sự cố báo còn sống đi theo hồ sơ: người phụ trách luôn là Verifier giữ hồ sơ và tự đóng khi Verifier kết luận,
-  // nên không giao hay đóng tay; đổi người bằng giao lại người xét duyệt của hồ sơ (BE chặn INCIDENT_FOLLOWS_CASE).
+  // Sự cố cũ từ luồng báo còn sống đi theo hồ sơ nên không giao hay đóng tay (BE chặn INCIDENT_FOLLOWS_CASE).
   const followsCase = detail.type === "OWNER_ALIVE";
   const canReassign =
     open &&
     (detail.type === "NO_VERIFIER" || followsCase) &&
     detail.targetType === INCIDENT_TARGET_DEATH_CASE &&
     detail.targetId !== null;
+  // Kho bị kẹt không còn Người thực thi hoạt động: Admin giao người mới; người này phải chấp nhận lời mời.
+  const canAssignExecutor = open && detail.type === "NO_EXECUTOR" && detail.vaultId !== null;
   const close = () => setDialog(null);
   const done = () => void client.invalidateQueries({ queryKey: adminKeys.all });
   const dialogKey = `${detail.id}:${detail.etag}`;
 
   return (
     <div className="mt-6 space-y-6" aria-busy={refreshing}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {back}
-        <Button
-          variant="outline"
-          className="min-h-11"
-          disabled={refreshing}
-          onClick={() => void client.invalidateQueries({ queryKey: adminKeys.incident(detail.id) })}
-        >
-          <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} aria-hidden="true" />
-          Tải lại
-        </Button>
-      </div>
-
-      <section
-        aria-labelledby="incident-title"
-        className="space-y-3 rounded-xl border border-heritage-border bg-heritage-surface p-4"
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 id="incident-title" className="text-lg font-semibold">
+      {/* Đầu trang chi tiết theo prototype: tên sự cố lớn kèm nhãn, mã và thời điểm phát sinh, nút ở bên phải. */}
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h2
+            id="incident-title"
+            className="text-[26px] font-bold leading-tight text-heritage-primary"
+          >
             {INCIDENT_TYPE_LABELS[detail.type]}
           </h2>
           <StatusBadge status={detail.status} />
           {detail.overdue && open && <OverdueBadge />}
-        </div>
-        <p className="break-words text-sm">{detail.summary}</p>
-        <dl className="grid gap-3 text-sm sm:grid-cols-2">
-          <Fact label="Người phụ trách" value={assignee} />
-          <Fact label="Hạn xử lý" value={formatDateTime(detail.dueAt)} />
-          <Fact label="Lần xem lại tiếp theo" value={formatDateTime(detail.nextReviewAt)} />
-          <Fact label="Phát sinh lúc" value={formatDateTime(detail.createdAt)} />
-          <Fact label="Số lần đã nhắc" value={String(detail.remindedCount)} />
-          {detail.escalatedAt && (
-            <Fact label="Đã báo quản trị viên lúc" value={formatDateTime(detail.escalatedAt)} />
+          {open && detail.responsibleRole !== "ADMIN" && (
+            <WaitingBadge role={detail.responsibleRole} />
           )}
-          {detail.vaultId && <Fact label="Mã kho" value={detail.vaultId} mono />}
-          {detail.targetId && (
-            <Fact label={`Đối tượng (${detail.targetType})`} value={detail.targetId} mono />
-          )}
-          {detail.resolvedAt && (
-            <Fact label="Xử lý xong lúc" value={formatDateTime(detail.resolvedAt)} />
-          )}
-          {detail.resolutionNote && <Fact label="Kết quả xử lý" value={detail.resolutionNote} />}
-        </dl>
-        <p className="text-xs text-heritage-muted">
-          Chỉ hiện thông tin vận hành. Quản trị viên không đọc được nội dung kho hay giấy tờ.
-        </p>
-      </section>
-
-      {open ? (
-        <section aria-label="Thao tác" className="flex flex-wrap gap-3">
-          {!followsCase && (
-            <Button className="min-h-11" onClick={() => setDialog("assign")}>
-              Giao người phụ trách
-            </Button>
-          )}
-          {canReassign && (
+          <div className="ml-auto flex flex-wrap gap-2">
+            {back}
             <Button
+              variant="outline"
               className="min-h-11"
-              variant={followsCase ? "default" : "outline"}
-              onClick={() => setDialog("reassign")}
+              disabled={refreshing}
+              onClick={() =>
+                void client.invalidateQueries({ queryKey: adminKeys.incident(detail.id) })
+              }
             >
-              Giao người xét duyệt
+              <RefreshCw
+                className={`size-4 ${refreshing ? "animate-spin" : ""}`}
+                aria-hidden="true"
+              />
+              Tải lại
             </Button>
-          )}
-          <Button className="min-h-11" variant="outline" onClick={() => setDialog("note")}>
-            Ghi chú
-          </Button>
-          <Button className="min-h-11" variant="outline" onClick={() => setDialog("review")}>
-            Hẹn xem lại
-          </Button>
-          {!followsCase && (
-            <Button className="min-h-11" variant="outline" onClick={() => setDialog("resolve")}>
-              Đóng sự cố
-            </Button>
-          )}
-          {followsCase && (
-            <p role="note" className="basis-full text-sm text-heritage-muted">
-              Sự cố này đi theo hồ sơ: người phụ trách là người xét duyệt đang giữ hồ sơ, và sự cố
-              tự đóng khi người đó kết luận lời báo. Muốn đổi người, dùng Giao người xét duyệt.
+          </div>
+        </div>
+        <p className="text-sm text-heritage-muted">
+          <span className="font-mono">#{detail.id.slice(0, 8).toUpperCase()}</span> · Phát sinh{" "}
+          {formatDateTime(detail.createdAt)}
+        </p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <div className="space-y-6">
+          <section
+            aria-label="Tóm tắt sự cố"
+            className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5 shadow-sm"
+          >
+            <h3 className="text-base font-semibold">Tóm tắt</h3>
+            <p className="break-words text-sm">{detail.summary}</p>
+          </section>
+
+          {open ? (
+            <section aria-label="Thao tác" className="flex flex-wrap gap-3">
+              {canAssignExecutor && (
+                <Button className="min-h-11" onClick={() => setDialog("executor")}>
+                  Giao Người thực thi
+                </Button>
+              )}
+              {!followsCase && (
+                <Button
+                  className="min-h-11"
+                  variant={canAssignExecutor ? "outline" : "default"}
+                  onClick={() => setDialog("assign")}
+                >
+                  Giao người phụ trách
+                </Button>
+              )}
+              {canReassign && (
+                <Button
+                  className="min-h-11"
+                  variant={followsCase ? "default" : "outline"}
+                  onClick={() => setDialog("reassign")}
+                >
+                  Giao người xét duyệt
+                </Button>
+              )}
+              <Button className="min-h-11" variant="outline" onClick={() => setDialog("note")}>
+                Ghi chú
+              </Button>
+              <Button className="min-h-11" variant="outline" onClick={() => setDialog("review")}>
+                Hẹn xem lại
+              </Button>
+              {!followsCase && (
+                <Button className="min-h-11" variant="outline" onClick={() => setDialog("resolve")}>
+                  Đóng sự cố
+                </Button>
+              )}
+              {followsCase && (
+                <p role="note" className="basis-full text-sm text-heritage-muted">
+                  Sự cố này đi theo hồ sơ: người phụ trách là người xét duyệt đang giữ hồ sơ, và sự
+                  cố tự đóng khi người đó kết luận lời báo. Muốn đổi người, dùng Giao người xét
+                  duyệt.
+                </p>
+              )}
+            </section>
+          ) : (
+            <p role="status" className="text-sm text-heritage-muted">
+              Sự cố đã được xử lý nên không còn thao tác.
             </p>
           )}
-        </section>
-      ) : (
-        <p role="status" className="text-sm text-heritage-muted">
-          Sự cố đã được xử lý nên không còn thao tác.
-        </p>
-      )}
 
-      <section aria-labelledby="incident-events" className="space-y-3">
-        <h3 id="incident-events" className="text-base font-semibold">
-          Lịch sử
-        </h3>
-        {detail.events.length === 0 ? (
-          <p className="text-sm text-heritage-muted">Chưa có sự kiện nào.</p>
-        ) : (
-          <ol className="space-y-2">
-            {[...detail.events]
-              .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
-              .map((event, index) => (
-                <li
-                  key={`${event.at}-${index}`}
-                  className="rounded-lg border border-heritage-border p-3 text-sm"
-                >
-                  <p className="flex flex-wrap items-baseline justify-between gap-2">
-                    <span className="font-medium">{INCIDENT_EVENT_LABELS[event.kind]}</span>
-                    <time dateTime={event.at} className="text-xs text-heritage-muted tabular-nums">
-                      {formatDateTime(event.at)}
-                    </time>
-                  </p>
-                  {event.note && <p className="mt-1 break-words">{event.note}</p>}
-                </li>
-              ))}
-          </ol>
-        )}
-      </section>
+          <section aria-labelledby="incident-events" className="space-y-3">
+            <h3 id="incident-events" className="text-base font-semibold">
+              Lịch sử
+            </h3>
+            {open && <IncidentNoteComposer incidentId={detail.id} onDone={done} />}
+            {detail.events.length === 0 ? (
+              <p className="text-sm text-heritage-muted">Chưa có sự kiện nào.</p>
+            ) : (
+              <ol className="space-y-2">
+                {[...detail.events]
+                  .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+                  .map((event, index) => (
+                    <li
+                      key={`${event.at}-${index}`}
+                      className="rounded-xl border border-heritage-border border-l-4 border-l-heritage-gold bg-white p-3 text-sm"
+                    >
+                      <p className="flex flex-wrap items-baseline justify-between gap-2">
+                        <span className="font-medium">{INCIDENT_EVENT_LABELS[event.kind]}</span>
+                        <time
+                          dateTime={event.at}
+                          className="text-xs text-heritage-muted tabular-nums"
+                        >
+                          {formatDateTime(event.at)}
+                        </time>
+                      </p>
+                      {event.note && <p className="mt-1 break-words">{event.note}</p>}
+                    </li>
+                  ))}
+              </ol>
+            )}
+          </section>
+        </div>
+        <div className="space-y-4">
+          <aside className="space-y-3 rounded-xl border border-heritage-border bg-heritage-surface p-4">
+            <h3 className="text-base font-semibold">Thông tin</h3>
+            <dl className="space-y-3 text-sm">
+              <Fact label="Người phụ trách" value={assignee} />
+              <Fact label="Hạn xử lý" value={formatDateTime(detail.dueAt)} />
+              <Fact label="Lần xem lại tiếp theo" value={formatDateTime(detail.nextReviewAt)} />
+              <Fact label="Phát sinh lúc" value={formatDateTime(detail.createdAt)} />
+              <Fact label="Số lần đã nhắc" value={String(detail.remindedCount)} />
+              {detail.escalatedAt && (
+                <Fact label="Đã báo quản trị viên lúc" value={formatDateTime(detail.escalatedAt)} />
+              )}
+              {detail.vaultId && <Fact label="Mã kho" value={detail.vaultId} mono />}
+              {detail.targetId && (
+                <Fact label={`Đối tượng (${detail.targetType})`} value={detail.targetId} mono />
+              )}
+              {detail.resolvedAt && (
+                <Fact label="Xử lý xong lúc" value={formatDateTime(detail.resolvedAt)} />
+              )}
+              {detail.resolutionNote && (
+                <Fact label="Kết quả xử lý" value={detail.resolutionNote} />
+              )}
+            </dl>
+            <p className="text-xs text-heritage-muted">
+              Chỉ hiện thông tin vận hành. Quản trị viên không đọc được nội dung kho hay giấy tờ.
+            </p>
+          </aside>
+          {detail.vaultId && <IncidentHoldBox vaultId={detail.vaultId} />}
+        </div>
+      </div>
 
       {dialog === "assign" && (
         <AdminActionDialog
@@ -455,13 +634,40 @@ function IncidentDetailBody({
           onDone={done}
         />
       )}
+      {dialog === "executor" && detail.vaultId && (
+        <AdminActionDialog
+          key={dialogKey}
+          title="Giao Người thực thi cho kho"
+          description="Kho không còn Người thực thi hoạt động. Chọn người hiểu luật sẽ nhận kho; người này nhận lời mời qua email và phải chấp nhận mới có hiệu lực. Không giao được cho chủ kho, quản trị viên hay người xét duyệt."
+          submitLabel="Giao Người thực thi"
+          fields={[
+            {
+              name: "userId",
+              label: "Người thực thi mới",
+              kind: "user",
+              roles: ["EXECUTOR", "USER"],
+            },
+            { name: "reason", label: "Lý do", kind: "textarea", maxLength: 500 },
+          ]}
+          defaultValues={{ userId: "", reason: "" }}
+          confirmLabel="Tôi xác nhận việc giao này, có ghi nhật ký."
+          submit={(values) =>
+            adminService.assignExecutor(detail.vaultId as string, {
+              userId: values.userId,
+              reason: values.reason,
+            })
+          }
+          onClose={close}
+          onDone={done}
+        />
+      )}
       {dialog === "reassign" && detail.targetId && (
         <AdminActionDialog
           key={dialogKey}
           title="Giao người xét duyệt cho hồ sơ"
           description={
             followsCase
-              ? "Hồ sơ, lời báo còn sống và sự cố cùng chuyển sang người được chọn; người cũ mất quyền xem hồ sơ. Hạn kết luận được tính lại, hạn selfie của chủ kho giữ nguyên."
+              ? "Hồ sơ và sự cố cùng chuyển sang người được chọn; người cũ mất quyền xem hồ sơ."
               : "Chọn người xét duyệt thay thế. Người được chọn không được có xung đột lợi ích với hồ sơ."
           }
           submitLabel="Giao người xét duyệt"

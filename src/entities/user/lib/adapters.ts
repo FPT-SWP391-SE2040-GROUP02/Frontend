@@ -12,6 +12,8 @@ export function toAuthUserViewModel(dto: AuthUserDto): User {
     email: dto.email,
     fullName: dto.fullName,
     phone: dto.phone ?? undefined,
+    practiceCertificateNumber: dto.practiceCertificateNumber ?? undefined,
+    lawyerCardNumber: dto.lawyerCardNumber ?? undefined,
     role: dto.role,
     status: dto.status,
     createdAt: dto.createdAt,

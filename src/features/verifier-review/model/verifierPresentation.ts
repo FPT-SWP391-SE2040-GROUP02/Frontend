@@ -28,13 +28,11 @@ export const historyDecision: Partial<Record<Status, { label: string; tone: Veri
   REJECTED: { label: "Từ chối", tone: "neutral" },
 };
 
-/** Nhóm hồ sơ ở hàng chờ theo thiết kế "Hàng chờ": suy từ status và mốc phản đối BE trả về. */
-export type QueueCategory = "REVIEW" | "WAIT_OBJECTION" | "OBJECTED" | "SUPPLEMENT";
+/** Nhóm hồ sơ ở hàng chờ: chờ xét duyệt hoặc chờ Executor bổ sung (không còn bước chờ phản đối). */
+export type QueueCategory = "REVIEW" | "SUPPLEMENT";
 
 export const queueCategoryLabels: Record<QueueCategory, { label: string; tone: VerifierTone }> = {
   REVIEW: { label: "Chờ xét duyệt", tone: "neutral" },
-  WAIT_OBJECTION: { label: "Chờ phản đối", tone: "warning" },
-  OBJECTED: { label: "Chủ kho phản đối", tone: "danger" },
   SUPPLEMENT: { label: "Chờ bổ sung", tone: "neutral" },
 };
 
@@ -43,16 +41,9 @@ interface QueueCategorySource {
   objectionEndsAt: string | null;
 }
 
-/**
- * Chưa có mốc phản đối (Owner chưa được báo) hoặc mốc còn ở tương lai = đang chờ Chủ kho phản đối;
- * SUSPENDED = Chủ kho đã báo còn sống, cần kết luận.
- */
-export function queueCategory(item: QueueCategorySource, now: number): QueueCategory {
-  if (item.status === "SUSPENDED") return "OBJECTED";
+/** Chờ bổ sung khi Executor đang sửa hồ sơ; còn lại là chờ xét duyệt ngay. */
+export function queueCategory(item: QueueCategorySource): QueueCategory {
   if (item.status === "SUPPLEMENT_REQUIRED") return "SUPPLEMENT";
-  if (item.objectionEndsAt === null || new Date(item.objectionEndsAt).getTime() > now) {
-    return "WAIT_OBJECTION";
-  }
   return "REVIEW";
 }
 
@@ -65,12 +56,7 @@ export function queueTimeText(
   category: QueueCategory,
   now: number,
 ): string {
-  if (category === "OBJECTED") return "Cần kết luận";
   if (category === "SUPPLEMENT") return "Đang chờ Executor bổ sung";
-  if (category === "WAIT_OBJECTION") {
-    if (item.objectionEndsAt === null) return "Chưa gửi thông báo";
-    return `Còn ${Math.max(1, Math.ceil((new Date(item.objectionEndsAt).getTime() - now) / HOUR_MS))} giờ`;
-  }
   const days = Math.floor((now - new Date(item.assignedAt).getTime()) / DAY_MS);
   if (days < 1) return "Chờ dưới 1 ngày";
   return `Chờ ${days} ngày`;

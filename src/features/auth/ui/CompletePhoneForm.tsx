@@ -9,9 +9,9 @@ import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { z } from "zod";
 import { getLoginErrorMessage } from "../lib/loginFeedback";
-import { PHONE_SHARING_HINT, vietnamPhoneSchema } from "../model/phone.schema";
+import { PHONE_SHARING_HINT, contactPhoneSchema } from "../model/phone.schema";
 
-const completePhoneSchema = z.object({ phone: vietnamPhoneSchema });
+const completePhoneSchema = z.object({ phone: contactPhoneSchema });
 
 type CompletePhoneInput = z.infer<typeof completePhoneSchema>;
 

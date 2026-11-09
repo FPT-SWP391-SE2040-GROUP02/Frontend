@@ -14,14 +14,9 @@ const clockFixture = {
     { key: "CHECKIN_OVERDUE", state: "AVAILABLE", note: "" },
     { key: "GRACE_ENDED", state: "AVAILABLE", note: "" },
     {
-      key: "OBJECTION_WINDOW_ENDED",
+      key: "SERVICE_EXPIRED",
       state: "NOT_APPLICABLE",
-      note: "Chưa có hồ sơ chứng tử đang mở.",
-    },
-    {
-      key: "SELFIE_DEADLINE_PASSED",
-      state: "NOT_APPLICABLE",
-      note: "Chưa có lời báo còn sống đang mở.",
+      note: "Kho chưa dùng gói trả phí.",
     },
   ],
 };
