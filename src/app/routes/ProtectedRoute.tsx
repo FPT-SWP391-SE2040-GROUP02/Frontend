@@ -1,7 +1,7 @@
 import { useAppSelector } from "@/app/store";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { ROUTES } from "@/shared/config/routes.config";
-import { ROLES, type Role } from "@/shared/constants/roles";
+import type { Role } from "@/shared/constants/roles";
 import { Fragment, type ReactElement } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
@@ -15,8 +15,6 @@ export interface ProtectedRouteProps {
   children?: ReactElement;
   /** true: sai vai trò thì về trang chính của tài khoản thay vì /403 (ví dụ Admin mở nhầm khu Người thực hiện). */
   wrongRoleGoesHome?: boolean;
-  /** true: cho vào dù tài khoản chưa có số điện thoại (chỉ dùng cho chính trang nhập số). */
-  allowMissingPhone?: boolean;
 }
 
 /**
@@ -37,7 +35,6 @@ export function ProtectedRoute({
   allowedRoles = [],
   children,
   wrongRoleGoesHome = false,
-  allowMissingPhone = false,
 }: ProtectedRouteProps): ReactElement {
   const location = useLocation();
   const { isAuthenticated, isHydrating, user } = useAppSelector((state) => state.auth);
@@ -73,17 +70,6 @@ export function ProtectedRoute({
   if (allowedRoles.length > 0 && !allowedRoles.includes(currentUserRole)) {
     if (wrongRoleGoesHome) return <Navigate to={accountHome} replace />;
     return <Navigate to={ROUTES.ERROR.FORBIDDEN} replace />;
-  }
-
-  // 4. Tài khoản người dùng chưa có số điện thoại (tạo bằng Google hoặc tạo trước khi bắt buộc số)
-  // phải nhập số rồi mới vào trang; tài khoản nhân viên (Admin, Verifier) không bị chặn.
-  if (!allowMissingPhone && user.role === ROLES.USER && !user.phone) {
-    return (
-      <Navigate
-        to={`${ROUTES.AUTH.COMPLETE_PHONE}?redirect=${encodeURIComponent(location.pathname + location.search + location.hash)}`}
-        replace
-      />
-    );
   }
 
   // Hủy local form/OCR/file RAM của danh tính cũ cả khi route không đổi.

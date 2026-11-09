@@ -3,7 +3,7 @@ import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 const stepLabels = (grantDays: number) => [
   "Báo tin",
   "Xét duyệt",
-  "Xác minh eKYC",
+  "Xác minh danh tính",
   "Đồng ý hoặc từ chối",
   `Tải nội dung ${grantDays} ngày`,
 ];

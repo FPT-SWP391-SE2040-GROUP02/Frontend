@@ -106,7 +106,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     categoryTitle: "Điểm danh định kỳ",
     unit: "lần",
     step: 1,
-    defaultValue: "2",
+    defaultValue: "3",
     description:
       "Hết lượt thì nút điểm danh thay bị khóa, Người thực thi chỉ còn việc nộp giấy chứng tử. Về 0 khi chủ kho tự điểm danh.",
     src: "CheckInRules.ExecutorProxyLimit",
@@ -399,6 +399,51 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
       "Khi bật, mọi mốc ngày, giờ, phút của nghiệp vụ (điểm danh, ân hạn, hạn xét duyệt, hạn bổ sung, cửa sổ bàn giao) chỉ còn tính bằng giây. Dùng cho buổi demo, tắt khi chạy thật.",
     src: "TimeUnits.DemoSeconds",
     dataType: "BOOLEAN",
+  },
+  {
+    key: "Company.Name",
+    label: "Tên công ty",
+    category: "Company",
+    categoryTitle: "Thông tin công ty",
+    defaultValue: "LegacyVault",
+    description: "Hiện trong thư mời gửi người nhận kèm cảnh báo lừa đảo.",
+    dataType: "STRING",
+  },
+  {
+    key: "Company.Website",
+    label: "Website",
+    category: "Company",
+    categoryTitle: "Thông tin công ty",
+    defaultValue: "legacyvault.vn",
+    description: "Người nhận dùng để tự kiểm tra thư có thật.",
+    dataType: "STRING",
+  },
+  {
+    key: "Company.Email",
+    label: "Email liên hệ",
+    category: "Company",
+    categoryTitle: "Thông tin công ty",
+    defaultValue: "ho-tro@legacyvault.vn",
+    description: "Email công ty hiện trong thư mời.",
+    dataType: "STRING",
+  },
+  {
+    key: "Company.Phone",
+    label: "Số điện thoại",
+    category: "Company",
+    categoryTitle: "Thông tin công ty",
+    defaultValue: "1900 0000",
+    description: "Người nhận gọi số này để xác minh thư mời.",
+    dataType: "STRING",
+  },
+  {
+    key: "Company.Address",
+    label: "Địa chỉ",
+    category: "Company",
+    categoryTitle: "Thông tin công ty",
+    defaultValue: "",
+    description: "Để trống thì không hiện trong thư.",
+    dataType: "STRING",
   },
 ];
 
@@ -837,6 +882,15 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                     {currentVal === "true" ? "Bật" : "Tắt"}
                                   </span>
                                 </div>
+                              ) : item.dataType === "STRING" ? (
+                                <input
+                                  type="text"
+                                  value={currentVal}
+                                  maxLength={200}
+                                  onChange={(e) => setKeyValue(item.key, e.target.value)}
+                                  aria-label={item.label}
+                                  className="h-9 w-64 rounded-lg border border-heritage-border bg-white px-3 text-sm shadow-sm focus:outline-none"
+                                />
                               ) : (
                                 <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
                                   <button

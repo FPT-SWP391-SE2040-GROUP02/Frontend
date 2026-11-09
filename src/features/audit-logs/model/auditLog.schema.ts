@@ -75,6 +75,13 @@ export const auditActionValues = [
   // Chủ kho cấp khóa mở gói cho Người thực hiện, hoặc cấp lại khi quên khóa.
   "EXECUTOR_KEY_ISSUED",
   "EXECUTOR_KEY_REISSUED",
+  // Admin giao hoặc đổi Người thực thi của một kho, kèm lý do.
+  "EXECUTOR_ASSIGNED_BY_ADMIN",
+  // Admin bật hoặc tắt tạm ngừng eKYC bằng công cụ thử nghiệm.
+  "DEV_TOGGLE_EKYC_PAUSE",
+  // Người xét duyệt duyệt hoặc yêu cầu bổ sung hồ sơ người nhận (đối tượng là lượt bàn giao).
+  "HANDOVER_SUBMISSION_APPROVED",
+  "HANDOVER_SUBMISSION_SUPPLEMENT_REQUESTED",
 ] as const;
 
 /** Wire role người thực hiện; SYSTEM dùng khi job nền. */
@@ -101,6 +108,7 @@ export const auditTargetTypeValues = [
   "USER",
   "PAYMENT_ORDER",
   "CONFIGURATION",
+  "HANDOVER_TURN",
 ] as const;
 
 /** Kết quả; hiện tại Backend chỉ ghi SUCCEEDED. */

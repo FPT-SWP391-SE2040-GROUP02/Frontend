@@ -13,6 +13,8 @@ export interface PolicyWindows {
   resendCooldownMinutes: number;
   /** Ngày người nhận phản hồi lời mời (Handover.ResponseWindowDays). */
   responseDays: number;
+  /** Ngày người nhận quyết định đồng ý hay từ chối sau khi xác minh xong (Handover.DecisionWindowDays). */
+  decisionDays: number;
   /** Ngày người nhận được xem/tải sau khi đồng ý (Handover.GrantWindowDays). */
   grantDays: number;
   /** Dung lượng gói Free (MiB) (Plans.Free.QuotaMb). */
@@ -27,6 +29,7 @@ export const DEFAULT_POLICY_WINDOWS: PolicyWindows = {
   executorInviteDays: 7,
   resendCooldownMinutes: 15,
   responseDays: 5,
+  decisionDays: 7,
   grantDays: 30,
   freeQuotaMb: 20,
   deathCaseMaxFiles: 10,
@@ -37,6 +40,7 @@ const KEYS: Record<keyof PolicyWindows, string> = {
   executorInviteDays: "Executor.InvitationExpiresDays",
   resendCooldownMinutes: "Handover.ResendCooldownMinutes",
   responseDays: "Handover.ResponseWindowDays",
+  decisionDays: "Handover.DecisionWindowDays",
   grantDays: "Handover.GrantWindowDays",
   freeQuotaMb: "Plans.Free.QuotaMb",
   deathCaseMaxFiles: "DeathCase.MaxFilesPerVersion",

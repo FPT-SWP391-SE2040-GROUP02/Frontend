@@ -22,3 +22,6 @@ export const AUTH_LAYOUT_CONTENT = {
       "Khôi phục quyền đăng nhập bằng email đã đăng ký. Không chia sẻ mật khẩu hoặc mã xác nhận với người khác.",
   },
 } as const;
+
+/** Dòng phụ dưới tiêu đề đăng nhập và đăng ký khi người dùng đến từ liên kết lời mời nhận bàn giao. */
+export const RECEIVE_INVITATION_SUBTITLE = "Đăng nhập hoặc tạo tài khoản để nhận lời mời này.";

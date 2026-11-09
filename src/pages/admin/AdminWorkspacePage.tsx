@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import {
   CreditCard,
   History,
@@ -8,6 +8,7 @@ import {
   Tag,
   TriangleAlert,
   Users,
+  Wrench,
 } from "lucide-react";
 import {
   AdminDevTools,
@@ -25,6 +26,7 @@ import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
 import { ACTION_LABELS } from "@/features/audit-logs/model/auditLogLabels";
 import { AdminTwoFactorSettings } from "@/features/auth";
 import { ROUTES } from "@/shared/config/routes.config";
+import { ListSegmentTabs } from "@/shared/ui/listKit";
 import { ENV } from "@/shared/config/env";
 import {
   WorkspaceFrame,
@@ -83,9 +85,20 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
  */
 const DEV_TOOLS_ENABLED = import.meta.env.DEV || ENV.ENABLE_DEVTOOLS;
 
-// Menu chỉ có các mục của prototype. Tạm giữ nằm trong chi tiết sự cố; Công cụ thử nghiệm chỉ mở bằng
-// đường dẫn `?view=dev-tools` khi bật DEV_TOOLS_ENABLED.
-const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = NAVIGATION;
+// Menu có các mục của prototype. Tạm giữ nằm trong chi tiết sự cố. Công cụ thử nghiệm (tua thời gian, tạm ngừng eKYC…)
+// chỉ hiện ở menu khi bật DEV_TOOLS_ENABLED, cuối nhóm "Hệ thống".
+const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
+  ? [
+      ...NAVIGATION,
+      {
+        id: "dev-tools",
+        label: "Công cụ thử nghiệm",
+        icon: Wrench,
+        to: `${ROUTES.ADMIN.ROOT}?view=dev-tools`,
+        group: "Hệ thống",
+      },
+    ]
+  : NAVIGATION;
 
 const VIEWS = {
   overview: {
@@ -152,6 +165,47 @@ function viewFor(pathname: string, search: string): AdminView {
   return "overview";
 }
 
+const SETTINGS_TABS = [
+  { value: "params", label: "Thông số hệ thống" },
+  { value: "services", label: "Dịch vụ ngoài" },
+] as const;
+
+/**
+ * Trang Cấu hình chia hai thẻ: thông số hệ thống và dịch vụ ngoài. Thẻ đang chọn nằm trên URL (`tab=services`),
+ * đường dẫn cũ `view=system-config` mở thẳng thẻ dịch vụ ngoài. Cả hai thẻ luôn được dựng sẵn để bản nháp chưa lưu
+ * của thông số không mất khi đổi thẻ; thẻ không chọn chỉ bị ẩn.
+ */
+function SettingsTabs() {
+  const [params, setParams] = useSearchParams();
+  const active =
+    params.get("tab") === "services" || params.get("view") === "system-config"
+      ? "services"
+      : "params";
+  const choose = (value: string) => {
+    const next = new URLSearchParams(params);
+    next.set("view", "settings");
+    if (value === "services") next.set("tab", "services");
+    else next.delete("tab");
+    setParams(next, { replace: true });
+  };
+  return (
+    <div className="space-y-6">
+      <ListSegmentTabs
+        label="Nhóm cấu hình"
+        value={active}
+        options={SETTINGS_TABS.map((tab) => ({ value: tab.value, label: tab.label }))}
+        onChange={choose}
+      />
+      <div hidden={active !== "params"}>
+        <AdminSettings section="params" />
+      </div>
+      <div hidden={active !== "services"}>
+        <AdminSystemConfig />
+      </div>
+    </div>
+  );
+}
+
 /** Khu vực Admin: dashboard, sự cố, tạm giữ và tài khoản; dữ liệu chỉ từ API quản trị thật. */
 export function AdminWorkspacePage() {
   const location = useLocation();
@@ -175,13 +229,7 @@ export function AdminWorkspacePage() {
           actionLabel={(action) => (ACTION_LABELS as Record<string, string>)[action] ?? action}
         />
       )}
-      {view === "settings" && (
-        <>
-          <AdminSettings section="params" />
-          <h2 className="mt-10 text-xl font-semibold">Dịch vụ ngoài</h2>
-          <AdminSystemConfig />
-        </>
-      )}
+      {view === "settings" && <SettingsTabs />}
       {view === "plans" && <AdminSettings section="plans" />}
       {view === "incidents" && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}

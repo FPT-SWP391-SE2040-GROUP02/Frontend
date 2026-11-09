@@ -1,6 +1,24 @@
 import { z } from "zod";
 const timestamp = z.string().datetime({ offset: true });
 export const invitationSchema = z.object({ valid: z.boolean(), responseExpired: z.boolean() });
+/** Kết quả kiểm thư mời bằng mã hồ sơ và 4 số cuối căn cước (POST /handover/invitations/{token}/check-mail). */
+export const mailCheckSchema = z.object({
+  verified: z.boolean(),
+  attemptsLeft: z.number().int().min(0),
+  containerName: z.string().nullish(),
+  ownerFullName: z.string().nullish(),
+});
+export type MailCheck = z.infer<typeof mailCheckSchema>;
+/** Hồ sơ người nhận (GET/POST /handover/turns/{id}/submission): trạng thái và lý do cần bổ sung. */
+export const submissionSchema = z.object({
+  id: z.string().uuid(),
+  turnId: z.string().uuid(),
+  kind: z.enum(["ACCEPT", "DECLINE"]),
+  status: z.enum(["SUBMITTED", "SUPPLEMENT_REQUESTED", "APPROVED", "SUPERSEDED"]),
+  supplementReason: z.string().nullish(),
+  createdAt: z.string(),
+});
+export type Submission = z.infer<typeof submissionSchema>;
 export const handoverItemSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -42,4 +60,11 @@ export const handoverTurnSchema = z.object({
       expiresAt: timestamp,
     })
     .nullable(),
+  /** Người xét duyệt đã duyệt hồ sơ chứng tử của kho; người nhận tự kiểm chứng tên và số thẻ luật sư. */
+  reviewer: z
+    .object({ fullName: z.string(), lawyerCardNumber: z.string().nullable().optional() })
+    .nullable()
+    .default(null),
+  /** Lúc người nhận xác nhận đã nhận đủ tài sản; null khi chưa. */
+  receivedAllAt: timestamp.nullable().default(null),
 });

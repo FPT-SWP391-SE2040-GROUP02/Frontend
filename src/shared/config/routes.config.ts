@@ -28,7 +28,6 @@ export const ROUTES = {
     LOGGED_OUT: "/auth/logged-out",
     SESSION_EXPIRED: "/auth/session-expired",
     /** Bắt buộc nhập số điện thoại khi tài khoản chưa có (thường là tài khoản tạo bằng Google). */
-    COMPLETE_PHONE: "/auth/complete-phone",
   },
 
   /** Nhóm đường dẫn khu vực quản trị / nội bộ (Dashboard) */
@@ -70,6 +69,8 @@ export const ROUTES = {
     WORKSPACE: "/notary/workspace",
     /** Hàng chờ; ?caseId= mở chi tiết một hồ sơ. */
     QUEUE: "/notary/queue",
+    /** Hồ sơ người nhận chờ duyệt; ?submissionId= mở chi tiết một hồ sơ. */
+    RECIPIENTS: "/notary/recipients",
     CRITERIA: "/notary/criteria",
     HISTORY: "/notary/history",
     SETTINGS: "/notary/settings",

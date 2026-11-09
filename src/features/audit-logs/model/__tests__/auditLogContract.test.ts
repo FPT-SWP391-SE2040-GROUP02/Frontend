@@ -54,12 +54,16 @@ describe("auditLogResponseSchema", () => {
     ["DEV_EKYC_RESET", "USER"],
     ["DEV_REWIND_BEFORE_EKYC", "VAULT"],
     ["DEV_UPDATE_EKYC_THRESHOLD", "USER"],
+    ["HANDOVER_SUBMISSION_APPROVED", "HANDOVER_TURN"],
+    ["HANDOVER_SUBMISSION_SUPPLEMENT_REQUESTED", "HANDOVER_TURN"],
     ["ADMIN_CREATED_USER", "USER"],
     ["SYSTEM_CONFIG_UPDATED", "CONFIGURATION"],
     ["SYSTEM_CONFIG_RESET", "CONFIGURATION"],
     ["SYSTEM_SETTING_UPDATED", "CONFIGURATION"],
     ["EXECUTOR_KEY_ISSUED", "VAULT"],
     ["EXECUTOR_KEY_REISSUED", "VAULT"],
+    ["EXECUTOR_ASSIGNED_BY_ADMIN", "VAULT"],
+    ["DEV_TOGGLE_EKYC_PAUSE", "CONFIGURATION"],
   ])("accepts the updated BE wire event %s and its target", (action, targetType) => {
     expect(auditLogResponseSchema.parse({ ...baseEntry, action, targetType })).toMatchObject({
       action,

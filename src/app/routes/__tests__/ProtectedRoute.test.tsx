@@ -35,9 +35,6 @@ function renderAs(role: Role, wrongRoleGoesHome: boolean, phone = "0912345678") 
           >
             <Route path={ROUTES.EXECUTOR.ROOT} element={<p>Khu Người thực hiện</p>} />
           </Route>
-          <Route element={<ProtectedRoute allowMissingPhone />}>
-            <Route path={ROUTES.AUTH.COMPLETE_PHONE} element={<p>Trang nhập số điện thoại</p>} />
-          </Route>
           <Route path={ROUTES.ADMIN.ROOT} element={<p>Trang Admin</p>} />
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<p>Trang Verifier</p>} />
           <Route path={ROUTES.ERROR.FORBIDDEN} element={<p>Trang 403</p>} />
@@ -57,10 +54,9 @@ describe("ProtectedRoute", () => {
     expect(screen.getByText("Khu Người thực hiện")).toBeInTheDocument();
   });
 
-  it("tài khoản thường chưa có số điện thoại phải qua trang nhập số", () => {
+  it("tài khoản thường chưa có số điện thoại vẫn vào thẳng khu Người thực hiện", () => {
     renderAs(ROLES.USER, true, "");
-    expect(screen.getByText("Trang nhập số điện thoại")).toBeInTheDocument();
-    expect(screen.queryByText("Khu Người thực hiện")).not.toBeInTheDocument();
+    expect(screen.getByText("Khu Người thực hiện")).toBeInTheDocument();
   });
 
   it("Admin mở khu Người thực hiện thì về trang Admin", () => {

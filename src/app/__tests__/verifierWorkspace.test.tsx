@@ -87,13 +87,14 @@ function setup(path: string) {
 }
 
 describe("Verifier workspace shell", () => {
-  it("shows the five menu items, the account and no role switch", async () => {
+  it("shows the six menu items, the account and no role switch", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue(list([]));
     setup("/notary/workspace");
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người xét duyệt" });
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
       "Tổng quan",
       "Hàng chờ",
+      "Hồ sơ người nhận",
       "Tiêu chí",
       "Lịch sử",
       "Cài đặt",

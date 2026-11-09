@@ -2,14 +2,18 @@ import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useId } from "react";
 import { useSelector } from "react-redux";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
 import { useHandoverAction } from "../model/useHandoverAction";
+import { MailCheckPanel } from "./MailCheckPanel";
+import { RecipientGuide } from "./RecipientGuide";
 
-const CHECKLIST = ["Xác minh danh tính của bạn", "Chờ bàn giao", "Tải nội dung khi bàn giao mở"];
+const STEPS = ["Xác minh danh tính của bạn", "Chờ bàn giao", "Tải nội dung khi bàn giao mở"];
+
+/** Điều cần chuẩn bị trước khi xác minh; chữ lấy từ màn đồng ý eKYC để người nhận biết trước khi nhận lời mời. */
+const PREPARATION = ["Căn cước còn hạn, bản gốc", "Nơi đủ sáng", "Bỏ khẩu trang, kính tối màu"];
 
 /**
  * Kiểm link công khai; claim chỉ sau khi người đã đăng nhập chủ động bấm. Theo thiết kế 100.
@@ -41,9 +45,23 @@ export function InvitationPanel() {
         <button type="button" className={buttonStyles.dark} onClick={() => void query.refetch()}>
           Thử lại
         </button>
+        <p className="text-sm text-heritage-muted">
+          Nếu bạn sao chép liên kết từ thư, kiểm tra đã chép đủ.
+        </p>
+        <p className="text-sm text-heritage-muted">
+          <Link
+            className="font-semibold text-heritage-primary underline"
+            to={ROUTES.PUBLIC.CONTACT}
+          >
+            Liên hệ hỗ trợ
+          </Link>
+        </p>
       </div>
     );
-  const loginTo = `${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(`${ROUTES.RECEIVE}?token=${encodeURIComponent(token)}`)}`;
+  // Đăng nhập và đăng ký đều mang lời mời theo, để xong việc người dùng quay lại đúng trang này.
+  const receivePath = `${ROUTES.RECEIVE}?token=${encodeURIComponent(token)}`;
+  const loginTo = `${ROUTES.AUTH.LOGIN}?${new URLSearchParams({ redirect: receivePath })}`;
+  const registerTo = `${ROUTES.AUTH.REGISTER}?${new URLSearchParams({ redirect: receivePath })}`;
   return (
     <div className="space-y-6">
       <div className="space-y-3">
@@ -56,17 +74,35 @@ export function InvitationPanel() {
             : "Đăng nhập hoặc tạo tài khoản để nhận lời mời này."}
         </p>
       </div>
+      <MailCheckPanel token={token} />
+      <RecipientGuide defaultOpen />
       <ul className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5">
-        {CHECKLIST.map((text) => (
+        {STEPS.map((text, index) => (
           <li key={text} className="flex items-center gap-3 text-sm">
-            <Check className="size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+            <span
+              aria-hidden="true"
+              className="flex size-6 shrink-0 items-center justify-center rounded-full border border-heritage-border text-xs font-semibold text-heritage-primary"
+            >
+              {index + 1}
+            </span>
             {text}
           </li>
         ))}
       </ul>
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold text-heritage-primary">Chuẩn bị</h3>
+        <ul className="list-disc space-y-1 pl-5 text-sm">
+          {PREPARATION.map((text) => (
+            <li key={text}>{text}</li>
+          ))}
+        </ul>
+        <p className="text-xs text-heritage-muted">
+          Ảnh chỉ dùng để đối chiếu. Không chia sẻ cho chủ kho hay người khác.
+        </p>
+      </div>
       {query.data.responseExpired && (
         <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
-          Đã qua hạn phản hồi ban đầu; máy chủ sẽ kiểm tra điều kiện khi bạn xác nhận.
+          Đã qua hạn phản hồi ban đầu; hệ thống sẽ kiểm tra điều kiện khi bạn xác nhận.
         </p>
       )}
       <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
@@ -76,7 +112,7 @@ export function InvitationPanel() {
         <button
           type="button"
           className={`${buttonStyles.dark} w-full`}
-          disabled={action.pending}
+          disabled={action.pending || action.succeeded}
           onClick={() =>
             void action.execute(
               () => handoverService.claim(token),
@@ -95,10 +131,7 @@ export function InvitationPanel() {
           </Link>
           <p className="text-sm text-heritage-muted">
             Chưa có tài khoản?{" "}
-            <Link
-              className="font-semibold text-heritage-primary underline"
-              to={ROUTES.AUTH.REGISTER}
-            >
+            <Link className="font-semibold text-heritage-primary underline" to={registerTo}>
               Tạo tài khoản
             </Link>
           </p>

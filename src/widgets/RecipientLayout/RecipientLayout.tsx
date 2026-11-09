@@ -1,6 +1,5 @@
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
-import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { Initial } from "@/shared/ui/heritageKit";
 import guilloche from "@/shared/assets/auth-guilloche.svg";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -31,18 +30,18 @@ export interface RecipientLayoutProps {
 
 /** Sidebar dùng chung cho cổng người nhận. */
 export function RecipientLayout({ active, children }: RecipientLayoutProps) {
-  const accountHome = useAccountHome();
   const fullName = useSelector((state: { auth: AuthState }) => state.auth.user?.fullName);
   const root = ROUTES.BENEFICIARY.CLAIM;
-  const verify = ROUTES.BENEFICIARY.EKYC_CAMERA;
+  // Người nhận chỉ nộp hồ sơ ảnh căn cước ngay trong cổng bàn giao, không còn xác minh khuôn mặt bằng camera.
+  const verify = ROUTES.BENEFICIARY.HANDOVER;
   const items = [
     { id: "overview", label: shell.overview, icon: OverviewIcon, to: root },
-    { id: "verify", label: shell.verify, icon: TrustedIcon, to: `${verify}?step=documents` },
+    { id: "verify", label: shell.verify, icon: TrustedIcon, to: verify },
   ];
   return (
     <WorkspaceShell
       brand={shell.brand}
-      homeHref={accountHome}
+      homeHref={root}
       logoutHref={ROUTES.AUTH.LOGOUT}
       logoutLabel={shell.logout}
       navigation={

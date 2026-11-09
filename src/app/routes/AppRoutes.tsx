@@ -82,11 +82,6 @@ const ExecutorIdentityPage = lazy(() =>
     default: module.ExecutorIdentityPage,
   })),
 );
-const CompletePhonePage = lazy(() =>
-  import("@/pages/auth/CompletePhonePage").then((module) => ({
-    default: module.CompletePhonePage,
-  })),
-);
 const ExecutorSettingsPage = lazy(() =>
   import("@/pages/executor/ExecutorSettingsPage").then((module) => ({
     default: module.ExecutorSettingsPage,
@@ -160,6 +155,11 @@ const AccountSettingsPage = lazy(() =>
 );
 const CheckoutPage = lazy(() =>
   import("@/pages/billing/CheckoutPage").then((module) => ({ default: module.CheckoutPage })),
+);
+const VerifierRecipientsPage = lazy(() =>
+  import("@/pages/notary/VerifierRecipientsPage").then((module) => ({
+    default: module.VerifierRecipientsPage,
+  })),
 );
 const VerifierQueuePage = lazy(() =>
   import("@/pages/notary/VerifierQueuePage").then((module) => ({
@@ -312,11 +312,6 @@ export function AppRoutes() {
         {/* Mockup 10 — Phiên hết hạn sau 30 phút bất hoạt */}
         <Route path={ROUTES.AUTH.SESSION_EXPIRED} element={<SessionExpiredPage />} />
 
-        {/* Tài khoản chưa có số điện thoại (thường là tạo bằng Google) phải nhập số trước khi vào trang chính */}
-        <Route element={<ProtectedRoute allowMissingPhone />}>
-          <Route path={ROUTES.AUTH.COMPLETE_PHONE} element={<CompletePhonePage />} />
-        </Route>
-
         {/* Tuyến đường đăng ký và quên mật khẩu */}
         <Route path={ROUTES.AUTH.REGISTER} element={<RegisterPage />} />
         <Route path="/auth/register" element={<Navigate to={ROUTES.AUTH.REGISTER} replace />} />
@@ -386,6 +381,7 @@ export function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={[ROLES.VERIFIER]} />}>
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
           <Route path={ROUTES.NOTARY.QUEUE} element={<VerifierQueuePage />} />
+          <Route path={ROUTES.NOTARY.RECIPIENTS} element={<VerifierRecipientsPage />} />
           <Route path={ROUTES.NOTARY.HISTORY} element={<VerifierHistoryPage />} />
           <Route path={ROUTES.NOTARY.CRITERIA} element={<VerifierCriteriaPage />} />
           <Route path={ROUTES.NOTARY.SETTINGS} element={<VerifierSettingsPage />} />

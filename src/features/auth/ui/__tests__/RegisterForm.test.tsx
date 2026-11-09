@@ -22,14 +22,14 @@ function Destination() {
     </p>
   );
 }
-function setup() {
+function setup(props: { redirect?: string; fromInvitation?: boolean } = {}) {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   clients.push(client);
   render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[ROUTES.AUTH.REGISTER]}>
         <Routes>
-          <Route path={ROUTES.AUTH.REGISTER} element={<RegisterForm />} />
+          <Route path={ROUTES.AUTH.REGISTER} element={<RegisterForm {...props} />} />
           <Route path={ROUTES.AUTH.VERIFY_EMAIL} element={<Destination />} />
         </Routes>
       </MemoryRouter>
@@ -74,5 +74,27 @@ describe("RegisterForm bodyless acceptance", () => {
     expect(screen.getByLabelText("Email")).toBeDisabled();
     fireEvent.click(button);
     await waitFor(() => expect(authService.register).toHaveBeenCalledTimes(1));
+  });
+});
+
+describe("RegisterForm coming from an invitation", () => {
+  it("carries the return path to the verification notice", async () => {
+    vi.mocked(authService.register).mockResolvedValue(undefined);
+    setup({ redirect: "/receive?token=abc", fromInvitation: true });
+    expect(
+      await screen.findByText(
+        `${ROUTES.AUTH.VERIFY_EMAIL}?email=user%2Binvite%40example.test&redirect=%2Freceive%3Ftoken%3Dabc`,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the phone sharing note that only applies to owners and executors", () => {
+    setup({ fromInvitation: true });
+    expect(document.getElementById("register-phone-hint")).toBeNull();
+  });
+
+  it("keeps the phone sharing note for a normal sign-up", () => {
+    setup();
+    expect(document.getElementById("register-phone-hint")).not.toBeNull();
   });
 });

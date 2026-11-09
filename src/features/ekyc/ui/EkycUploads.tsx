@@ -10,6 +10,8 @@ import { ArrowRight, Check, Lock, X, ZoomIn } from "lucide-react";
 
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 
+import { ROUTES } from "@/shared/config/routes.config";
+
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 
 import { Button } from "@/shared/ui/button";
@@ -69,6 +71,8 @@ const PREPARE_CHIPS = ["Căn cước còn hạn, bản gốc", "Nơi đủ sáng
 function ConsentStep({
   purposeLabel,
 
+  laterTo,
+
   pending,
 
   error,
@@ -77,6 +81,9 @@ function ConsentStep({
 }: {
   purposeLabel: string;
 
+  /** Đích của nút Để sau; người nhận về cổng người nhận thay vì Bảng điều khiển Chủ kho. */
+  laterTo: string | null;
+
   pending: boolean;
 
   error: string;
@@ -84,6 +91,8 @@ function ConsentStep({
   onAgree: () => void;
 }) {
   const accountHome = useAccountHome();
+
+  const later = laterTo ?? accountHome;
 
   const [processing, setProcessing] = useState(false);
 
@@ -159,7 +168,7 @@ function ConsentStep({
           </Button>
 
           <Link
-            to={accountHome}
+            to={later}
 
             className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#0A281E] px-6 text-sm font-semibold text-[#0A281E] hover:bg-[#F4F1E6]"
           >
@@ -200,6 +209,14 @@ function ConsentStep({
       </section>
     </div>
   );
+}
+
+/** Người nhận bấm Để sau thì về cổng người nhận; các mục đích khác về trang chủ tài khoản (trả null). */
+function getLaterTarget(purpose: Purpose): string | null {
+  if (purpose === "BENEFICIARY_CLAIM") {
+    return ROUTES.BENEFICIARY.CLAIM;
+  }
+  return null;
 }
 
 const PURPOSE_LABELS: Record<Purpose, string> = {
@@ -899,6 +916,8 @@ export function EkycUploads({
       {step === "consent" && (
         <ConsentStep
           purposeLabel={PURPOSE_LABELS[purpose]}
+
+          laterTo={getLaterTarget(purpose)}
 
           pending={consentAction.pending}
 

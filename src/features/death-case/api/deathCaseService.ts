@@ -119,6 +119,16 @@ export const deathCaseService = {
     );
   },
   /** Gửi lại lời mời cho lượt chưa ai nhận; link cũ hết dùng, cách nhau tối thiểu 15 phút (BE mục 6.16). */
+  /** PDF văn bản từ chối của lượt người nhận đã từ chối; Backend kiểm toàn vẹn trước byte đầu tiên. */
+  async declinePaper(caseId: string, turnId: string, signal?: AbortSignal): Promise<Blob> {
+    return apiClient.get<Blob, Blob>(
+      `${path(caseId)}/handover-turns/${id.parse(turnId)}/decline-paper`,
+      {
+        responseType: "blob",
+        signal,
+      },
+    );
+  },
   async resendInvitation(caseId: string, turnId: string) {
     return resendInvitationSchema.parse(
       await apiClient.post<unknown, unknown>(

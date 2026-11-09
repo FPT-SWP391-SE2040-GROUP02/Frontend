@@ -8,6 +8,7 @@ import {
   Menu,
   Settings,
   ShieldCheck,
+  Users,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -23,10 +24,11 @@ interface NavItem {
   icon: LucideIcon;
 }
 
-/** Menu Người xét duyệt theo bộ thiết kế: Tổng quan, Hàng chờ, Tiêu chí, Lịch sử, Cài đặt. */
+/** Menu Người xét duyệt: Tổng quan, Hàng chờ, Hồ sơ người nhận, Tiêu chí, Lịch sử, Cài đặt. */
 const verifierNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.NOTARY.WORKSPACE, icon: Home },
   { label: "Hàng chờ", to: ROUTES.NOTARY.QUEUE, icon: ListChecks },
+  { label: "Hồ sơ người nhận", to: ROUTES.NOTARY.RECIPIENTS, icon: Users },
   { label: "Tiêu chí", to: ROUTES.NOTARY.CRITERIA, icon: ShieldCheck },
   { label: "Lịch sử", to: ROUTES.NOTARY.HISTORY, icon: Mail },
   { label: "Cài đặt", to: ROUTES.NOTARY.SETTINGS, icon: Settings },

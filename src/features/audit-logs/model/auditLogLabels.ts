@@ -66,6 +66,10 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   SYSTEM_CONFIG_RESET: "Khôi phục cấu hình dịch vụ",
   EXECUTOR_KEY_ISSUED: "Cấp khóa mở gói cho Người thực hiện",
   EXECUTOR_KEY_REISSUED: "Cấp lại khóa mở gói (quên khóa)",
+  EXECUTOR_ASSIGNED_BY_ADMIN: "Admin giao Người thực thi",
+  DEV_TOGGLE_EKYC_PAUSE: "Bật hoặc tắt tạm ngừng eKYC",
+  HANDOVER_SUBMISSION_APPROVED: "Duyệt hồ sơ người nhận",
+  HANDOVER_SUBMISSION_SUPPLEMENT_REQUESTED: "Yêu cầu người nhận bổ sung hồ sơ",
   SYSTEM_SETTING_UPDATED: "Cập nhật tham số hệ thống",
 };
 
@@ -91,6 +95,7 @@ export const TARGET_TYPE_LABELS: Record<(typeof auditTargetTypeValues)[number], 
   USER: "Tài khoản",
   PAYMENT_ORDER: "Đơn thanh toán",
   CONFIGURATION: "Cấu hình hệ thống",
+  HANDOVER_TURN: "Lượt bàn giao",
 };
 
 export const OUTCOME_LABELS: Record<(typeof auditOutcomeValues)[number], string> = {

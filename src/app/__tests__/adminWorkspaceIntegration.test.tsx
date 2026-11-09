@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
@@ -133,6 +133,18 @@ it("Admin xem tổng quan thật và giờ máy chủ", async () => {
   ).toHaveAttribute("href", ROUTES.DASHBOARD.USERS);
 });
 
+it("menu Admin có mục Công cụ thử nghiệm khi bật công cụ thử nghiệm, trỏ tới view=dev-tools", async () => {
+  vi.spyOn(apiClient, "get").mockResolvedValue(dashboardFixture);
+  setup(ROUTES.ADMIN.ROOT);
+  await screen.findByText(/giờ máy chủ/);
+
+  const menu = within(screen.getByRole("navigation", { name: "Menu chính" }));
+  expect(menu.getByRole("link", { name: "Công cụ thử nghiệm" })).toHaveAttribute(
+    "href",
+    `${ROUTES.ADMIN.ROOT}?view=dev-tools`,
+  );
+});
+
 it("Tổng quan hiện kế hoạch theo giai đoạn, tải việc người xét duyệt và hoạt động gần đây", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue({
     ...dashboardFixture,
@@ -229,6 +241,41 @@ it("Tổng quan hiện tình trạng dịch vụ ngoài theo lần gọi gần n
   expect(screen.getByText("Hoạt động")).toBeInTheDocument();
   expect(screen.getByText("Lỗi HTTP_503")).toBeInTheDocument();
   expect(screen.getByText("Chưa có lần gọi")).toBeInTheDocument();
+});
+
+describe("Cấu hình chia hai thẻ", () => {
+  const mockConfigApis = () =>
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/admin/system-config") return { services: [] };
+      if (url.startsWith("/admin/settings")) return [];
+      return dashboardFixture;
+    });
+
+  it("mặc định mở thẻ Thông số hệ thống, bấm Dịch vụ ngoài thì đổi thẻ và ghi lên URL", async () => {
+    const user = userEvent.setup();
+    mockConfigApis();
+    setup(`${ROUTES.ADMIN.ROOT}?view=settings`);
+
+    const params = await screen.findByRole("button", { name: "Thông số hệ thống" });
+    const services = screen.getByRole("button", { name: "Dịch vụ ngoài" });
+    expect(params).toHaveAttribute("aria-pressed", "true");
+    expect(services).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(services);
+
+    expect(services).toHaveAttribute("aria-pressed", "true");
+    expect(params).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("đường dẫn cũ view=system-config mở thẳng thẻ Dịch vụ ngoài", async () => {
+    mockConfigApis();
+    setup(`${ROUTES.ADMIN.ROOT}?view=system-config`);
+
+    expect(await screen.findByRole("button", { name: "Dịch vụ ngoài" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
 });
 
 it("404 từ BE hiện không có quyền, không hiện số 0 hay nút thử lại", async () => {
