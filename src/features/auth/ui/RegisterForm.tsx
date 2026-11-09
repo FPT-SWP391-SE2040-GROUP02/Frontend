@@ -18,6 +18,10 @@ import { useRegister } from "../model/useAuth";
 export interface RegisterFormProps {
   /** Callback khi đăng ký thành công */
   onSuccess?: () => void;
+  /** Đường dẫn nội bộ cần quay lại sau khi xác thực email, ví dụ trang nhận lời mời. */
+  redirect?: string | null;
+  /** true khi người dùng đến từ liên kết lời mời: ẩn ghi chú chia sẻ số điện thoại vì không áp dụng cho người nhận. */
+  fromInvitation?: boolean;
   /** Class CSS tùy chỉnh */
   className?: string;
 }
@@ -33,7 +37,12 @@ export interface RegisterFormProps {
  * <RegisterForm onSuccess={() => navigate(ROUTES.AUTH.LOGIN)} />
  * ```
  */
-export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
+export function RegisterForm({
+  onSuccess,
+  redirect = null,
+  fromInvitation = false,
+  className = "",
+}: RegisterFormProps) {
   const navigate = useNavigate();
   const { mutate: registerUser, isPending, isError, error } = useRegister();
 
@@ -49,6 +58,17 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
   });
 
   const passwordField = register("password");
+
+  // Ghi chú chia sẻ số điện thoại chỉ hiện với Chủ kho và Người thực hiện; người nhận không thấy.
+  let phoneDescribedBy: string | undefined = undefined;
+  if (!fromInvitation) {
+    phoneDescribedBy = "register-phone-hint";
+  }
+  if (errors.phone) {
+    phoneDescribedBy = phoneDescribedBy
+      ? `${phoneDescribedBy} register-phone-error`
+      : "register-phone-error";
+  }
 
   /**
    * @description Kiểm tra mật khẩu khi rời ô và cập nhật lỗi xác nhận đã được chạm.
@@ -77,7 +97,11 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
     registerUser(data, {
       onSuccess: () => {
         onSuccess?.();
-        navigate(`${ROUTES.AUTH.VERIFY_EMAIL}?${new URLSearchParams({ email: data.email })}`);
+        const verifyParams = new URLSearchParams({ email: data.email });
+        if (redirect) {
+          verifyParams.set("redirect", redirect);
+        }
+        navigate(`${ROUTES.AUTH.VERIFY_EMAIL}?${verifyParams}`);
       },
     });
   };
@@ -163,9 +187,7 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
           <Input
             id="register-phone"
             aria-invalid={Boolean(errors.phone)}
-            aria-describedby={
-              errors.phone ? "register-phone-hint register-phone-error" : "register-phone-hint"
-            }
+            aria-describedby={phoneDescribedBy}
             autoComplete="tel"
             inputMode="tel"
             disabled={isPending}
@@ -175,9 +197,11 @@ export function RegisterForm({ onSuccess, className = "" }: RegisterFormProps) {
             className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
           />
         </div>
-        <p id="register-phone-hint" className="text-sm text-heritage-muted">
-          {PHONE_SHARING_HINT}
-        </p>
+        {!fromInvitation && (
+          <p id="register-phone-hint" className="text-sm text-heritage-muted">
+            {PHONE_SHARING_HINT}
+          </p>
+        )}
         {errors.phone && (
           <p id="register-phone-error" role="alert" className="text-sm text-destructive">
             {errors.phone.message}

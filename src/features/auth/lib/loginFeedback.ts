@@ -1,6 +1,7 @@
 import { AxiosError, isAxiosError } from "axios";
 import { APP_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 import { ROUTES } from "@/shared/config/routes.config";
+import { RECEIVE_INVITATION_SUBTITLE } from "../model/authLayout.content";
 import { isMaintenanceError } from "@/shared/api/maintenance";
 import { z } from "zod";
 
@@ -29,6 +30,28 @@ export function getLoginRedirect(value: string | null): string {
   } catch {
     return ROUTES.DASHBOARD.ROOT;
   }
+}
+
+/**
+ * @description Cho biết đường dẫn quay lại là trang nhận lời mời bàn giao, để màn đăng nhập và đăng ký dùng chữ
+ * dành cho người nhận thay cho chữ dành cho Chủ kho.
+ * @param redirect Đường dẫn quay lại đã qua getLoginRedirect.
+ * @returns true khi người dùng đang đi từ liên kết lời mời.
+ */
+export function isReceiveRedirect(redirect: string): boolean {
+  return redirect === ROUTES.RECEIVE || redirect.startsWith(`${ROUTES.RECEIVE}?`);
+}
+
+/**
+ * @description Dòng phụ dưới tiêu đề đăng nhập.
+ * @param fromReceive true khi người dùng đi từ liên kết lời mời nhận bàn giao.
+ * @returns Câu cho người nhận, hoặc câu mặc định cho Chủ kho.
+ */
+export function getLoginSubtitle(fromReceive: boolean): string {
+  if (fromReceive) {
+    return RECEIVE_INVITATION_SUBTITLE;
+  }
+  return "Chào mừng trở lại. Tiếp tục để quản lý kho của bạn.";
 }
 
 /** Báo đỏ khi tài khoản không phải Quản trị viên đăng nhập trong lúc hệ thống bảo trì. */

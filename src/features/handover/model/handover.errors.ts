@@ -9,10 +9,10 @@ const holdActiveMessage =
   "Kho đang bị tạm giữ, tạm thời chưa thực hiện được. Các hạn đang được giữ nguyên.";
 
 const grantReasons: Record<string, string> = {
-  EXPIRED: "Quyền xem/tải đã hết hạn. Tải lại để xem trạng thái mới nhất.",
+  EXPIRED: "Quyền tải nội dung đã hết hạn. Tải lại để xem trạng thái mới nhất.",
   BLOCKED:
-    "Quyền xem/tải đang tạm dừng vì hồ sơ đang được xác minh lại. Bạn chưa thể tải nội dung lúc này.",
-  REVOKED: "Quyền xem/tải đã bị thu hồi nên không còn tải được nội dung.",
+    "Quyền tải nội dung đang tạm dừng vì hồ sơ đang được xác minh lại. Bạn chưa thể tải nội dung lúc này.",
+  REVOKED: "Quyền tải nội dung đã bị thu hồi nên không còn tải được nội dung.",
   PLAN_NOT_ACTIVE: "Kế hoạch bàn giao hiện không còn hiệu lực nên chưa thể tải nội dung.",
   HOLD_ACTIVE: holdActiveMessage,
   CONTENT_DELETED: "Nội dung đã được xóa theo chính sách lưu dữ liệu nên không còn tải được.",

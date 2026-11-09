@@ -48,7 +48,7 @@ function BeneficiaryNextStep({
     content = (
       <>
         <p role="status" className="text-sm">
-          Đã chốt danh tính. Lượt bàn giao sẽ được máy chủ cập nhật trạng thái.
+          Đã chốt danh tính. Lượt bàn giao sẽ được hệ thống cập nhật trạng thái.
         </p>
         <Link to={ROUTES.BENEFICIARY.CLAIM} className={`inline-flex ${GOLD_ACTION}`}>
           Tiếp tục nhận bàn giao
@@ -208,11 +208,7 @@ export function EkycStatusPanel({
           {banner}
         </div>
       )}
-      {needsTurnId && !verifiedWithoutTurn && (
-        <p role="alert" className="text-sm text-destructive">
-          Mở màn này từ một lượt bàn giao cụ thể để gửi ảnh xác minh.
-        </p>
-      )}
+      {needsTurnId && !verifiedWithoutTurn && <BeneficiaryPortalStep />}
       {authenticated && status.isSuccess && !needsTurnId && !locked && (
         <>
           {beneficiaryPassed && (
@@ -246,7 +242,7 @@ export function EkycStatusPanel({
           )}
           {completeResult?.succeeded && !beneficiaryPassed && (
             <p role="status" className="text-sm text-heritage-primary">
-              Đã chốt danh tính. Lượt bàn giao sẽ được máy chủ cập nhật trạng thái.
+              Đã chốt danh tính. Lượt bàn giao sẽ được hệ thống cập nhật trạng thái.
             </p>
           )}
         </>
