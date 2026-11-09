@@ -9,7 +9,6 @@ import {
 } from "../model/deathCase.schema";
 import { proxyCheckInRequestSchema, type ProxyCheckInRequest } from "../model/proxyCheckIn.schema";
 import {
-  confirmIdentitySchema,
   handoverProgressSchema,
   resendInvitationSchema,
   sendHandoverKeySchema,
@@ -142,14 +141,6 @@ export const deathCaseService = {
       await apiClient.post<unknown, unknown>(
         `${path(caseId)}/handover-turns/${id.parse(turnId)}/send-key`,
         { key },
-      ),
-    );
-  },
-  /** Xác nhận đúng người bằng tay khi người nhận không qua được eKYC; lượt sang READY_TO_ACCEPT (BR-122). */
-  async confirmIdentity(caseId: string, turnId: string) {
-    return confirmIdentitySchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${path(caseId)}/handover-turns/${id.parse(turnId)}/confirm-identity`,
       ),
     );
   },

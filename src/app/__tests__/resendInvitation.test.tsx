@@ -22,6 +22,7 @@ const turn = (turnId: string, status: string, containerName: string) => ({
   status,
   invitedAt: "2026-10-19T08:00:00+00:00",
   responseDeadline: "2026-10-22T10:00:00+00:00",
+  invitationSentAt: "2026-10-17T10:00:00+00:00",
   claimedAt: null,
   decisionDeadline: null,
   decidedAt: null,
@@ -145,4 +146,16 @@ it("báo gửi thư lỗi (503) là chưa thay đổi gì thay vì lỗi máy ch
   await user.click(screen.getAllByRole("button", { name: "Gửi lại lời mời" })[0]);
   await user.click(screen.getByRole("button", { name: "Xác nhận gửi lại" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(/Chưa gửi được thư mời/);
+});
+
+it("lượt chưa gửi thư lần nào: nút là Gửi thư mời, có lời giải thích hệ thống không tự gửi", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockResolvedValue({
+    ...progress,
+    turns: [{ ...turn(WAITING_TURN, "INVITED", "Gói chưa gửi"), invitationSentAt: null }],
+  });
+  renderPanel();
+  await user.click(await screen.findByRole("button", { name: "Gửi thư mời" }));
+  expect(screen.getByText(/Hệ thống không tự gửi thư/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Xác nhận gửi" })).toBeInTheDocument();
 });
