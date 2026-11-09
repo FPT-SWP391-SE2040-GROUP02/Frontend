@@ -496,3 +496,25 @@ it("does not offer the decline paper for a turn that was not declined", async ()
   await screen.findByText("Theo người nhận");
   expect(screen.queryByRole("button", { name: "Xem văn bản từ chối" })).not.toBeInTheDocument();
 });
+
+it("lets the Executor view the acceptance paper of a turn the recipient accepted", async () => {
+  const committed = {
+    ...started,
+    turns: [{ ...started.turns[0], status: "HANDOVER_COMMITTED" }],
+  };
+  const png = new Blob(["png"], { type: "image/png" });
+  vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+    return url.endsWith("/decline-paper") ? png : committed;
+  });
+  vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:paper");
+  vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
+  setup(<HandoverProgressPanel caseId={CASE_ID} />);
+
+  fireEvent.click(await screen.findByRole("button", { name: "Xem biên bản đồng ý" }));
+
+  expect(await screen.findByAltText("Văn bản khai nhận di sản thừa kế")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Tải xuống/ })).toHaveAttribute(
+    "download",
+    "bien-ban-dong-y.png",
+  );
+});

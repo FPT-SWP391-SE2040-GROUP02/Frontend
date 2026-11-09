@@ -94,7 +94,15 @@ function Deadline({
  */
 const PAPER_ZOOM_STEPS = [50, 75, 100, 125, 150, 200];
 
-function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
+function DeclinePaper({
+  caseId,
+  turnId,
+  label = "văn bản từ chối",
+}: {
+  caseId: string;
+  turnId: string;
+  label?: string;
+}) {
   const action = usePrivateAction();
   const [url, setUrl] = useState<string | null>(null);
   const [zoomIndex, setZoomIndex] = useState(2);
@@ -122,7 +130,7 @@ function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
           onClick={open}
           disabled={action.pending}
         >
-          {action.pending ? "Đang tải…" : "Xem văn bản từ chối"}
+          {action.pending ? "Đang tải…" : `Xem ${label}`}
         </button>
         {action.error && (
           <p role="alert" className="text-sm text-[#A32119]">
@@ -134,7 +142,7 @@ function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
   }
   const zoom = PAPER_ZOOM_STEPS[zoomIndex];
   return (
-    <section aria-label="Văn bản từ chối" className="space-y-3">
+    <section aria-label={label[0].toUpperCase() + label.slice(1)} className="space-y-3">
       <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Điều khiển ảnh">
         <button
           type="button"
@@ -165,7 +173,7 @@ function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
         </button>
         <a
           href={url}
-          download="van-ban-tu-choi.png"
+          download={label === "biên bản đồng ý" ? "bien-ban-dong-y.png" : "van-ban-tu-choi.png"}
           className={`${buttonStyles.outline} inline-flex`}
         >
           <Download className="size-4" aria-hidden="true" />
@@ -178,7 +186,11 @@ function DeclinePaper({ caseId, turnId }: { caseId: string; turnId: string }) {
       <div className="h-[28rem] overflow-auto rounded-xl border border-heritage-border bg-[#ECE8DB]">
         <img
           src={url}
-          alt="Văn bản từ chối nhận di sản"
+          alt={
+            label === "biên bản đồng ý"
+              ? "Văn bản khai nhận di sản thừa kế"
+              : "Văn bản từ chối nhận di sản"
+          }
           style={{
             width: `${zoom}%`,
             transform: `rotate(${rotation}deg)`,
@@ -418,6 +430,11 @@ function TurnDetail({
       {turn.status === "DECLINED" && (
         <div className="mt-4">
           <DeclinePaper caseId={caseId} turnId={turn.turnId} />
+        </div>
+      )}
+      {turn.status === "HANDOVER_COMMITTED" && (
+        <div className="mt-4">
+          <DeclinePaper caseId={caseId} turnId={turn.turnId} label="biên bản đồng ý" />
         </div>
       )}
       {KEY_MAILABLE_TURN_STATUSES.includes(turn.status) && (

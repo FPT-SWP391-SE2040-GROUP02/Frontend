@@ -376,7 +376,7 @@ it("still lets the recipient claim after the initial response deadline (BR-58)",
   expect(post).toHaveBeenCalledTimes(1);
 });
 
-it("kho đã cấp khóa mở gói: nút Đồng ý khóa tới khi nhập đúng khóa, sai khóa báo lỗi, đúng thì mở nút", async () => {
+it("kho đã cấp khóa mở gói: đồng ý không cần khóa, tải xuống bị khóa tới khi nhập đúng khóa", async () => {
   let verified = false;
   const posts: string[] = [];
   apiClient.defaults.adapter = async (config) => {
@@ -393,29 +393,34 @@ it("kho đã cấp khóa mở gói: nút Đồng ý khóa tới khi nhập đún
         verified = true;
         return ok(
           config,
-          turnWithStatus("READY_TO_ACCEPT", { keyRequired: true, keyVerified: true }),
+          turnWithStatus("HANDOVER_COMMITTED", { keyRequired: true, keyVerified: true }),
         );
       }
     }
     return ok(config, [
-      turnWithStatus("READY_TO_ACCEPT", { keyRequired: true, keyVerified: verified }),
+      turnWithStatus("HANDOVER_COMMITTED", { keyRequired: true, keyVerified: verified }),
     ]);
   };
   setup();
-  fireEvent.click(await screen.findByRole("checkbox"));
-  expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeDisabled();
 
-  const input = screen.getByLabelText("Khóa mở gói do Người thực hiện đưa");
+  const input = await screen.findByLabelText("Khóa mở gói do Người thực thi đưa");
   fireEvent.change(input, { target: { value: "SAI-SAI" } });
   fireEvent.click(screen.getByRole("button", { name: "Xác nhận khóa" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Khóa mở gói chưa đúng");
-  expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeDisabled();
 
-  fireEvent.change(screen.getByLabelText("Khóa mở gói do Người thực hiện đưa"), {
+  fireEvent.change(screen.getByLabelText("Khóa mở gói do Người thực thi đưa"), {
     target: { value: "ABCD-1234" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Xác nhận khóa" }));
   expect(await screen.findByText("Khóa mở gói đã được xác nhận.")).toBeInTheDocument();
-  await waitFor(() => expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeEnabled());
   expect(posts.some((url) => url.endsWith("/verify-key"))).toBe(true);
+});
+
+it("kho đã cấp khóa mở gói: nút Đồng ý nhận không bị khóa trước khi nhập khóa", async () => {
+  apiClient.defaults.adapter = async (config) =>
+    ok(config, [turnWithStatus("READY_TO_ACCEPT", { keyRequired: true, keyVerified: false })]);
+  setup();
+  fireEvent.click(await screen.findByRole("checkbox"));
+  expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeEnabled();
+  expect(screen.queryByLabelText("Khóa mở gói do Người thực thi đưa")).not.toBeInTheDocument();
 });

@@ -256,16 +256,10 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
               danh tính đã được xác minh.
             </p>
           )}
-          {turn.identityConfirmedByExecutor && (
-            <p role="status" className="text-sm text-heritage-muted">
-              Danh tính của bạn đã được Người thực hiện của kho xác nhận.
-            </p>
-          )}
           {turn.status === "IDENTITY_IN_PROGRESS" && (
             <p className="text-sm leading-6 text-heritage-muted">
               Chọn Chấp nhận hoặc Từ chối và nộp hồ sơ ở khung “Hồ sơ người nhận” phía trên. Người
-              xét duyệt đối chiếu ảnh căn cước rồi mới mở bước quyết định cho bạn. Nếu không nộp
-              được, hãy liên hệ Người thực hiện của kho để được xác nhận trực tiếp.
+              xét duyệt đối chiếu ảnh căn cước rồi mới mở bước quyết định cho bạn.
             </p>
           )}
           {turn.reviewer && (
@@ -280,6 +274,57 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
           {needsHelp && <SupportLine />}
         </div>
       </Panel>
+      {turn.status === "HANDOVER_COMMITTED" && turn.keyRequired && (
+        <Panel title="Khóa mở gói">
+          <div className="space-y-3">
+            <p className="text-sm leading-6 text-heritage-muted">
+              Văn bản của bạn đã được duyệt. Nhập khóa mở gói do Người thực thi đưa để tải tài sản.
+            </p>
+            {turn.keyRequired && !turn.keyVerified && (
+              <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">
+                <label className="block text-sm font-medium" htmlFor={`key-${turn.id}`}>
+                  Khóa mở gói do Người thực thi đưa
+                </label>
+                <input
+                  id={`key-${turn.id}`}
+                  type="text"
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={typedKey}
+                  disabled={action.pending}
+                  onChange={(event) => setTypedKey(event.target.value)}
+                  className="h-11 w-full rounded-xl border border-heritage-border px-3 font-mono text-sm uppercase"
+                />
+                <button
+                  type="button"
+                  className={`${buttonStyles.dark} w-full`}
+                  disabled={action.pending || !typedKey.trim()}
+                  onClick={() =>
+                    void action.execute(
+                      () => handoverService.verifyKey(turn.id, typedKey),
+                      () => {
+                        setTypedKey("");
+                        refresh();
+                      },
+                    )
+                  }
+                >
+                  Xác nhận khóa
+                </button>
+                <p className="text-xs text-heritage-muted">
+                  Liên hệ trực tiếp Người thực thi của kho để lấy khóa. Nhập sai nhiều lần sẽ bị
+                  khóa.
+                </p>
+              </div>
+            )}
+            {turn.keyRequired && turn.keyVerified && (
+              <p role="status" className="text-sm text-[#1F7A55]">
+                Khóa mở gói đã được xác nhận.
+              </p>
+            )}
+          </div>
+        </Panel>
+      )}
       {turn.status === "HANDOVER_COMMITTED" && turn.grant && (
         <Panel title="Xác nhận đã nhận đủ">
           {turn.receivedAllAt ? (
@@ -322,7 +367,9 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                     type="button"
                     className={buttonStyles.outline}
                     aria-label={`Tải xuống ${item.name}`}
-                    disabled={content.pending || action.pending}
+                    disabled={
+                      content.pending || action.pending || (turn.keyRequired && !turn.keyVerified)
+                    }
                     onClick={() =>
                       void content.download(
                         () => handoverService.download(turn.grant!.id, item.id),
@@ -343,48 +390,6 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
         <Panel title="Phản hồi">
           <div className="space-y-4">
             <HandoverTerms groupName={groupName} />
-            {turn.keyRequired && !turn.keyVerified && (
-              <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">
-                <label className="block text-sm font-medium" htmlFor={`key-${turn.id}`}>
-                  Khóa mở gói do Người thực hiện đưa
-                </label>
-                <input
-                  id={`key-${turn.id}`}
-                  type="text"
-                  autoComplete="off"
-                  spellCheck={false}
-                  value={typedKey}
-                  disabled={action.pending}
-                  onChange={(event) => setTypedKey(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-heritage-border px-3 font-mono text-sm uppercase"
-                />
-                <button
-                  type="button"
-                  className={`${buttonStyles.dark} w-full`}
-                  disabled={action.pending || !typedKey.trim()}
-                  onClick={() =>
-                    void action.execute(
-                      () => handoverService.verifyKey(turn.id, typedKey),
-                      () => {
-                        setTypedKey("");
-                        refresh();
-                      },
-                    )
-                  }
-                >
-                  Xác nhận khóa
-                </button>
-                <p className="text-xs text-heritage-muted">
-                  Liên hệ trực tiếp Người thực hiện của kho để lấy khóa. Nhập sai nhiều lần sẽ bị
-                  khóa.
-                </p>
-              </div>
-            )}
-            {turn.keyRequired && turn.keyVerified && (
-              <p role="status" className="text-sm text-[#1F7A55]">
-                Khóa mở gói đã được xác nhận.
-              </p>
-            )}
             {chosenKind && (
               <p role="status" className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
                 Hồ sơ của bạn đã được duyệt với lựa chọn{" "}
@@ -406,7 +411,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
               <button
                 type="button"
                 className={`${buttonStyles.gold} w-full justify-between`}
-                disabled={!confirmed || action.pending || (turn.keyRequired && !turn.keyVerified)}
+                disabled={!confirmed || action.pending}
                 onClick={() =>
                   void action.execute(
                     () => handoverService.decide(turn.id, "accept"),
