@@ -13,3 +13,17 @@ export function remainingText(deadline: string, serverTime: string): string {
   if (hours > 0) return `Còn ${hours} giờ ${minutes % 60} phút`;
   return `Còn ${Math.max(minutes, 1)} phút`;
 }
+
+/** Ngày, tháng, năm của một mốc giờ theo múi giờ Việt Nam, dùng cho dòng "Hôm nay, ngày ... tháng ... năm ..." trên văn bản. */
+export function vietnamDayOf(instant: string): { day: string; month: string; year: string } {
+  const date = new Date(instant);
+  if (Number.isNaN(date.getTime())) return { day: "…", month: "…", year: "……" };
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).formatToParts(date);
+  const pick = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return { day: pick("day"), month: pick("month"), year: pick("year") };
+}
