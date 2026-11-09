@@ -225,7 +225,12 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
       )}
       {turn.status === "IDENTITY_IN_PROGRESS" && (
         <Panel title="Hồ sơ người nhận">
-          <RecipientSubmissionPanel turnId={turn.id} groupName={groupName} onChanged={refresh} />
+          <RecipientSubmissionPanel
+            turnId={turn.id}
+            groupName={groupName}
+            serverTime={turn.serverTime}
+            onChanged={refresh}
+          />
         </Panel>
       )}
       <Panel title="Chi tiết lượt nhận">
