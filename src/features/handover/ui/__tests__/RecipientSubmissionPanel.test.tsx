@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
@@ -52,7 +52,12 @@ function renderPanel(onChanged = vi.fn()) {
   render(
     <Provider store={store}>
       <QueryClientProvider client={client}>
-        <RecipientSubmissionPanel turnId={TURN_ID} groupName="Gói gia đình" onChanged={onChanged} />
+        <RecipientSubmissionPanel
+          turnId={TURN_ID}
+          groupName="Gói gia đình"
+          serverTime="2026-11-09T02:00:00Z"
+          onChanged={onChanged}
+        />
       </QueryClientProvider>
     </Provider>,
   );
@@ -108,7 +113,7 @@ describe("submissionFormError", () => {
 });
 
 describe("RecipientSubmissionPanel", () => {
-  it("chưa nộp: hiện điều khoản và hai lựa chọn, chỉ hiện văn bản mẫu sau khi chọn", async () => {
+  it("chưa nộp: hiện điều khoản và hai lựa chọn, văn bản mẫu chỉ bật ra sau khi chọn", async () => {
     const user = userEvent.setup();
     vi.spyOn(apiClient, "get").mockResolvedValue("");
     renderPanel();
@@ -119,7 +124,10 @@ describe("RecipientSubmissionPanel", () => {
 
     await user.click(screen.getByRole("button", { name: "Tôi chấp nhận" }));
 
-    expect(screen.getByRole("article", { name: "Văn bản chấp nhận" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(
+      screen.getByRole("article", { name: "Biên bản đồng ý nhận di sản" }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("Họ tên")).toBeInTheDocument();
   });
 
@@ -130,8 +138,53 @@ describe("RecipientSubmissionPanel", () => {
 
     await user.click(await screen.findByRole("button", { name: "Tôi từ chối" }));
 
-    expect(screen.getByRole("article", { name: "Văn bản từ chối" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("article", { name: "Văn bản từ chối nhận di sản" }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/tự nguyện từ chối và không nhằm trốn tránh/)).toBeInTheDocument();
+  });
+
+  it("văn bản từ chối có ô họ tên, ngày sinh, số căn cước ngay trên văn bản và ngày theo giờ máy chủ", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue("");
+    renderPanel();
+
+    await user.click(await screen.findByRole("button", { name: "Tôi từ chối" }));
+
+    const paper = await screen.findByRole("article", { name: "Văn bản từ chối nhận di sản" });
+    expect(paper).toHaveTextContent("Hôm nay, ngày 09 tháng 11 năm 2026");
+    expect(within(paper).getByLabelText("Họ tên")).toBeInTheDocument();
+    expect(within(paper).getByLabelText("Ngày sinh")).toBeInTheDocument();
+    expect(within(paper).getByLabelText("Số căn cước")).toBeInTheDocument();
+  });
+
+  it("biên bản đồng ý chỉ có ô họ tên trên văn bản, ngày sinh và số căn cước nằm bên dưới", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue("");
+    renderPanel();
+
+    await user.click(await screen.findByRole("button", { name: "Tôi chấp nhận" }));
+
+    const paper = await screen.findByRole("article", { name: "Biên bản đồng ý nhận di sản" });
+    expect(within(paper).getByLabelText("Họ tên")).toBeInTheDocument();
+    expect(within(paper).queryByLabelText("Ngày sinh")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Ngày sinh")).toBeInTheDocument();
+    expect(screen.getByLabelText("Số căn cước")).toBeInTheDocument();
+  });
+
+  it("đóng hộp thoại không mất dữ liệu đã điền, mở lại vẫn còn", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue("");
+    renderPanel();
+
+    await user.click(await screen.findByRole("button", { name: "Tôi chấp nhận" }));
+    await user.type(await screen.findByLabelText("Họ tên"), "Trần Minh Anh");
+    await user.click(screen.getByRole("button", { name: "Đóng" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    await user.click(screen.getByRole("button", { name: "Tôi chấp nhận" }));
+
+    expect(await screen.findByLabelText("Họ tên")).toHaveValue("Trần Minh Anh");
   });
 
   it("điền đủ rồi gửi: POST multipart đúng các trường, rồi báo cổng tải lại", async () => {
