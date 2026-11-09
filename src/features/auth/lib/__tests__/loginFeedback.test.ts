@@ -3,6 +3,8 @@ import { expect, it } from "vitest";
 import {
   getAdminLoginErrorMessage,
   getLoginErrorMessage,
+  getLoginSubtitle,
+  isReceiveRedirect,
   MAINTENANCE_LOGIN_DENIED_MESSAGE,
 } from "../loginFeedback";
 import { getGoogleErrorMessage } from "../googleFeedback";
@@ -60,4 +62,16 @@ it("does not mistake unknown codes or a 500 response for invalid credentials", (
   expect(getGoogleErrorMessage(failure(500, "INVALID_GOOGLE_TOKEN"))).toBe(
     APP_MESSAGES.ERROR.SERVER,
   );
+});
+
+it("recognises the receive page as the return path of an invitation", () => {
+  expect(isReceiveRedirect("/receive?token=abc")).toBe(true);
+  expect(isReceiveRedirect("/receive")).toBe(true);
+  expect(isReceiveRedirect("/dashboard")).toBe(false);
+  expect(isReceiveRedirect("/receive-other")).toBe(false);
+});
+
+it("uses the recipient sentence only when the user comes from an invitation", () => {
+  expect(getLoginSubtitle(true)).toBe("Đăng nhập hoặc tạo tài khoản để nhận lời mời này.");
+  expect(getLoginSubtitle(false)).toContain("quản lý kho của bạn");
 });
