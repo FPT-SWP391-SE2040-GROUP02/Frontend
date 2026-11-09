@@ -92,7 +92,10 @@ describe("EkycStatusPanel", () => {
       backSideChecked: false,
     });
     setup(true, { purpose: "BENEFICIARY_CLAIM", turnId: null });
-    expect(await screen.findByRole("alert")).toHaveTextContent("Mở màn này từ một lượt bàn giao");
+    expect(
+      await screen.findByText(/Mở lượt bàn giao của bạn ở cổng người nhận/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Về cổng người nhận" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Đồng ý và bắt đầu" })).not.toBeInTheDocument();
   });
   it("shows the verified card for BENEFICIARY_CLAIM without turnId once passed and matched", async () => {
@@ -133,8 +136,10 @@ describe("EkycStatusPanel", () => {
       backSideChecked: true,
     });
     setup(true, { purpose: "BENEFICIARY_CLAIM", turnId: null });
-    expect(await screen.findByRole("alert")).toHaveTextContent("Mở màn này từ một lượt bàn giao");
-    expect(screen.queryByRole("link", { name: "Về cổng người nhận" })).not.toBeInTheDocument();
+    expect(
+      await screen.findByText(/Mở lượt bàn giao của bạn ở cổng người nhận/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Đã xác minh")).not.toBeInTheDocument();
   });
   it("shows upload form for OWNER_ENROLLMENT without turnId", async () => {
     vi.mocked(ekycService.getStatus).mockResolvedValue({

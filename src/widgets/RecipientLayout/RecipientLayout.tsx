@@ -1,6 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
-import { useAccountHome } from "@/entities/user/model/useAccountHome";
+import { handoverService } from "@/features/handover/api/handoverService";
 import { Initial } from "@/shared/ui/heritageKit";
 import guilloche from "@/shared/assets/auth-guilloche.svg";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -31,18 +32,31 @@ export interface RecipientLayoutProps {
 
 /** Sidebar dùng chung cho cổng người nhận. */
 export function RecipientLayout({ active, children }: RecipientLayoutProps) {
-  const accountHome = useAccountHome();
   const fullName = useSelector((state: { auth: AuthState }) => state.auth.user?.fullName);
   const root = ROUTES.BENEFICIARY.CLAIM;
   const verify = ROUTES.BENEFICIARY.EKYC_CAMERA;
+  // Cùng khóa với danh sách lượt ở cổng, nên không gọi thêm lần nữa khi đang ở cổng.
+  const turns = useQuery({
+    queryKey: ["handover", "turns"],
+    queryFn: ({ signal }) => handoverService.list(signal),
+    retry: false,
+  });
+  // Đúng một lượt đang chờ xác minh thì mục Xác minh dẫn thẳng vào lượt đó, không qua màn không có lượt.
+  let verifyTo = `${verify}?step=documents`;
+  if (turns.isSuccess) {
+    const waiting = turns.data.filter((turn) => turn.status === "IDENTITY_IN_PROGRESS");
+    if (waiting.length === 1) {
+      verifyTo = `${verify}?turnId=${waiting[0].id}`;
+    }
+  }
   const items = [
     { id: "overview", label: shell.overview, icon: OverviewIcon, to: root },
-    { id: "verify", label: shell.verify, icon: TrustedIcon, to: `${verify}?step=documents` },
+    { id: "verify", label: shell.verify, icon: TrustedIcon, to: verifyTo },
   ];
   return (
     <WorkspaceShell
       brand={shell.brand}
-      homeHref={accountHome}
+      homeHref={root}
       logoutHref={ROUTES.AUTH.LOGOUT}
       logoutLabel={shell.logout}
       navigation={
