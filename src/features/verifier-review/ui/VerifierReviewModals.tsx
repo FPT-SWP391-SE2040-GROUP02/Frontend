@@ -68,6 +68,8 @@ function ReviewError({ error, onClose }: { error: string; onClose: () => void })
 
 /** setTimeout chỉ nhận tối đa 2^31-1 ms; khóa dài nhất 24 giờ nên không vượt, giữ chặn cho chắc. */
 const MAX_TIMER_MS = 2_147_483_647;
+/** setTimeout có thể nổ sớm vài ms so với Date.now(); cộng thêm chút để lần kiểm tra chắc chắn nằm sau lockedUntil. */
+const UNLOCK_MARGIN_MS = 50;
 
 /**
  * Lỗi xác nhận mật khẩu của một lần mở modal Duyệt/Từ chối. Đang khóa (423 có lockedUntil) thì `locked` = true tới đúng
@@ -81,7 +83,7 @@ function useSigningFailure() {
     if (lockedUntil === null) return;
     const timer = setTimeout(
       () => setNow(Date.now()),
-      Math.min(Math.max(lockedUntil - Date.now(), 0), MAX_TIMER_MS),
+      Math.min(Math.max(lockedUntil - Date.now(), 0) + UNLOCK_MARGIN_MS, MAX_TIMER_MS),
     );
     return () => clearTimeout(timer);
   }, [lockedUntil]);
