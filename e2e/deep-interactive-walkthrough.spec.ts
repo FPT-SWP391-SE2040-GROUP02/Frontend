@@ -20,11 +20,12 @@ test.use({
 });
 
 test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Actors", () => {
-
   // =========================================================================
   // GIAI ĐOẠN 1: CHỦ KHO THIẾT LẬP KHO, TÀI SẢN, NGƯỜI THỪA KẾ & DMS
   // =========================================================================
-  test("Giai đoạn 1: Chủ kho thiết lập kho, quản lý tài sản, người nhận và điểm danh DMS", async ({ page }) => {
+  test("Giai đoạn 1: Chủ kho thiết lập kho, quản lý tài sản, người nhận và điểm danh DMS", async ({
+    page,
+  }) => {
     // 1.1 Đăng nhập Chủ kho
     await page.goto("/login");
     await page.waitForLoadState("networkidle");
@@ -55,7 +56,7 @@ test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Ac
     await page.waitForTimeout(1500);
 
     const checkInBtn = page.getByRole("button", { name: /điểm danh ngay/i });
-    if (await checkInBtn.isVisible() && await checkInBtn.isEnabled()) {
+    if ((await checkInBtn.isVisible()) && (await checkInBtn.isEnabled())) {
       await checkInBtn.click();
       await page.waitForTimeout(2000); // Xem trạng thái Cooldown 60s
     }
@@ -65,7 +66,9 @@ test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Ac
   // =========================================================================
   // GIAI ĐOẠN 2: NGƯỜI THỰC THI (EXECUTOR) KIỂM TRA QUẢN LÝ VÀ BÁO TIN TỬ TUẤT
   // =========================================================================
-  test("Giai đoạn 2: Người thực thi xem kho ủy quyền và biểu mẫu báo tin tử tuất", async ({ page }) => {
+  test("Giai đoạn 2: Người thực thi xem kho ủy quyền và biểu mẫu báo tin tử tuất", async ({
+    page,
+  }) => {
     await page.goto("/login");
     await page.waitForLoadState("networkidle");
     await page.locator("#login-email").fill("executor1@legacyvault.vn");
@@ -94,7 +97,9 @@ test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Ac
     // 2.4 Vào màn hình Biên bản bàn giao (/executor/documents)
     await page.goto("/executor/documents");
     await page.waitForLoadState("networkidle");
-    const execDocRow = page.getByRole("button", { name: /Biên bản đồng ý nhận|Văn bản từ chối/i }).first();
+    const execDocRow = page
+      .getByRole("button", { name: /Biên bản đồng ý nhận|Văn bản từ chối/i })
+      .first();
     if (await execDocRow.isVisible()) {
       await execDocRow.click();
       const fullTextBtn = page.getByRole("button", { name: /Xem toàn văn biên bản/i }).first();
@@ -110,7 +115,9 @@ test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Ac
   // =========================================================================
   // GIAI ĐOẠN 3: NGƯỜI XÉT DUYỆT (VERIFIER) THẨM ĐỊNH VÀ KIỂM TRA THỦ CÔNG
   // =========================================================================
-  test("Giai đoạn 3: Người xét duyệt kiểm tra hàng đợi thẩm định và tiêu chí thủ công", async ({ page }) => {
+  test("Giai đoạn 3: Người xét duyệt kiểm tra hàng đợi thẩm định và tiêu chí thủ công", async ({
+    page,
+  }) => {
     await page.goto("/login");
     await page.waitForLoadState("networkidle");
     await page.locator("#login-email").fill("verifier1@legacyvault.vn");
@@ -125,7 +132,9 @@ test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Ac
     // Xem trang Biên bản thẩm định thủ công
     await page.goto("/notary/documents");
     await page.waitForLoadState("networkidle");
-    const verDocRow = page.getByRole("button", { name: /Biên bản đồng ý nhận|Văn bản từ chối/i }).first();
+    const verDocRow = page
+      .getByRole("button", { name: /Biên bản đồng ý nhận|Văn bản từ chối/i })
+      .first();
     if (await verDocRow.isVisible()) {
       await verDocRow.click();
     }
@@ -137,7 +146,9 @@ test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Ac
   // =========================================================================
   // GIAI ĐOẠN 4: NGƯỜI THỪA KẾ (BENEFICIARY) XÁC MINH VÀ TIẾP NHẬN DI SẢN
   // =========================================================================
-  test("Giai đoạn 4: Người thừa kế xác minh thư chống lừa đảo và kiểm tra biên bản số", async ({ page }) => {
+  test("Giai đoạn 4: Người thừa kế xác minh thư chống lừa đảo và kiểm tra biên bản số", async ({
+    page,
+  }) => {
     // 4.1 Kiểm tra trang công khai /receive
     await page.goto("/receive");
     await page.waitForLoadState("networkidle");
@@ -155,7 +166,9 @@ test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Ac
     // 4.3 Xem Cổng nhận di sản
     await page.goto("/claim/beneficiary");
     await page.waitForLoadState("networkidle");
-    const fullTextToggle = page.getByRole("button", { name: /Đọc toàn văn biên bản trước khi ký/i }).first();
+    const fullTextToggle = page
+      .getByRole("button", { name: /Đọc toàn văn biên bản trước khi ký/i })
+      .first();
     if (await fullTextToggle.isVisible()) {
       await fullTextToggle.click();
     }
@@ -165,7 +178,9 @@ test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Ac
     // 4.4 Xem Biên bản di sản của Người nhận
     await page.goto("/beneficiary/documents");
     await page.waitForLoadState("networkidle");
-    const benDocRow = page.getByRole("button", { name: /Biên bản đồng ý nhận|Văn bản từ chối/i }).first();
+    const benDocRow = page
+      .getByRole("button", { name: /Biên bản đồng ý nhận|Văn bản từ chối/i })
+      .first();
     if (await benDocRow.isVisible()) {
       await benDocRow.click();
       const fullTextBtn = page.getByRole("button", { name: /Xem toàn văn biên bản/i }).first();
@@ -181,7 +196,9 @@ test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Ac
   // =========================================================================
   // GIAI ĐOẠN 5: QUẢN TRỊ VIÊN (ADMIN) KIỂM SOÁT HỆ THỐNG VÀ AUDIT LOGS
   // =========================================================================
-  test("Giai đoạn 5: Quản trị viên giám sát người dùng, chính sách và nhật ký kiểm toán", async ({ page }) => {
+  test("Giai đoạn 5: Quản trị viên giám sát người dùng, chính sách và nhật ký kiểm toán", async ({
+    page,
+  }) => {
     await page.goto("/login");
     await page.waitForLoadState("networkidle");
     await page.locator("#login-email").fill("admin1@legacyvault.vn");
