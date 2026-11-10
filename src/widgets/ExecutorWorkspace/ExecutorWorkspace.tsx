@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   ArrowLeftRight,
+  FileText,
   Home,
   ListChecks,
   Menu,
@@ -37,6 +38,7 @@ const executorNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT, icon: Home },
   { label: "Báo tin", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
   { label: "Bàn giao", to: ROUTES.EXECUTOR.PROGRESS, icon: Send },
+  { label: "Biên Bản", to: ROUTES.EXECUTOR.DOCUMENTS, icon: FileText },
   { label: "Tài sản", to: ROUTES.EXECUTOR.ASSETS, icon: Package },
 ];
 

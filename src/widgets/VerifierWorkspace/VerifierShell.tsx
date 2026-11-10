@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
+  FileText,
   Home,
   ListChecks,
   Mail,
@@ -29,6 +30,7 @@ const verifierNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.NOTARY.WORKSPACE, icon: Home },
   { label: "Hàng chờ", to: ROUTES.NOTARY.QUEUE, icon: ListChecks },
   { label: "Hồ sơ người nhận", to: ROUTES.NOTARY.RECIPIENTS, icon: Users },
+  { label: "Biên Bản", to: ROUTES.NOTARY.DOCUMENTS, icon: FileText },
   { label: "Tiêu chí", to: ROUTES.NOTARY.CRITERIA, icon: ShieldCheck },
   { label: "Lịch sử", to: ROUTES.NOTARY.HISTORY, icon: Mail },
   { label: "Cài đặt", to: ROUTES.NOTARY.SETTINGS, icon: Settings },

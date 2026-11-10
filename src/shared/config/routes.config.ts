@@ -71,6 +71,8 @@ export const ROUTES = {
     QUEUE: "/notary/queue",
     /** Hồ sơ người nhận chờ duyệt; ?submissionId= mở chi tiết một hồ sơ. */
     RECIPIENTS: "/notary/recipients",
+    /** Mục Biên Bản: mọi biên bản của các kho tôi đã duyệt chứng tử, lưu không giới hạn. */
+    DOCUMENTS: "/notary/documents",
     CRITERIA: "/notary/criteria",
     HISTORY: "/notary/history",
     SETTINGS: "/notary/settings",
@@ -84,6 +86,8 @@ export const ROUTES = {
     ROOT: "/executor",
     REPORT: "/executor/report",
     PROGRESS: "/executor/progress",
+    /** Mục Biên Bản: điền Phần 1 về Chủ kho, ký và xem lại mọi biên bản của các kho mình làm Người thực thi. */
+    DOCUMENTS: "/executor/documents",
     /** Danh sách tài sản của kho theo từng gói (chỉ danh sách, không có nội dung). */
     ASSETS: "/executor/assets",
     PERMISSIONS: "/executor/permissions",
@@ -98,6 +102,8 @@ export const ROUTES = {
   BENEFICIARY: {
     CLAIM: "/claim/beneficiary",
     HANDOVER: "/claim/beneficiary/handover",
+    /** Mục Biên Bản của người nhận: mọi biên bản, lưu không giới hạn. */
+    DOCUMENTS: "/claim/beneficiary/documents",
     EKYC_CAMERA: "/claim/beneficiary/ekyc/camera",
   },
 

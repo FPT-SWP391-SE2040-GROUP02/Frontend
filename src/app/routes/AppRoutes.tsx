@@ -67,6 +67,11 @@ const ExecutorProgressPage = lazy(() =>
     default: module.ExecutorProgressPage,
   })),
 );
+const ExecutorDocumentsPage = lazy(() =>
+  import("@/pages/executor/ExecutorDocumentsPage").then((module) => ({
+    default: module.ExecutorDocumentsPage,
+  })),
+);
 const ExecutorAssetsPage = lazy(() =>
   import("@/pages/executor/ExecutorAssetsPage").then((module) => ({
     default: module.ExecutorAssetsPage,
@@ -164,6 +169,16 @@ const VerifierRecipientsPage = lazy(() =>
 const VerifierQueuePage = lazy(() =>
   import("@/pages/notary/VerifierQueuePage").then((module) => ({
     default: module.VerifierQueuePage,
+  })),
+);
+const VerifierDocumentsPage = lazy(() =>
+  import("@/pages/notary/VerifierDocumentsPage").then((module) => ({
+    default: module.VerifierDocumentsPage,
+  })),
+);
+const BeneficiaryDocumentsPage = lazy(() =>
+  import("@/pages/beneficiary/BeneficiaryDocumentsPage").then((module) => ({
+    default: module.BeneficiaryDocumentsPage,
   })),
 );
 const VerifierHistoryPage = lazy(() =>
@@ -269,6 +284,7 @@ export function AppRoutes() {
           <Route path={ROUTES.BENEFICIARY.EKYC_CAMERA} element={<CameraCheckPage />} />
           <Route path={ROUTES.BENEFICIARY.CLAIM} element={<BeneficiaryPortalPage />} />
           <Route path={ROUTES.BENEFICIARY.HANDOVER} element={<BeneficiaryPortalPage />} />
+          <Route path={ROUTES.BENEFICIARY.DOCUMENTS} element={<BeneficiaryDocumentsPage />} />
         </Route>
 
         {/* 2. Bảng giá công khai */}
@@ -356,6 +372,7 @@ export function AppRoutes() {
           <Route path={ROUTES.EXECUTOR.ROOT} element={<ExecutorOverviewPage />} />
           <Route path={ROUTES.EXECUTOR.REPORT} element={<ExecutorReportPage />} />
           <Route path={ROUTES.EXECUTOR.PROGRESS} element={<ExecutorProgressPage />} />
+          <Route path={ROUTES.EXECUTOR.DOCUMENTS} element={<ExecutorDocumentsPage />} />
           <Route path={ROUTES.EXECUTOR.ASSETS} element={<ExecutorAssetsPage />} />
           {/* Lời mời và Quyền hạn nay là hai thẻ trong trang Cài đặt; đường cũ chuyển về đó. */}
           <Route
@@ -382,6 +399,7 @@ export function AppRoutes() {
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
           <Route path={ROUTES.NOTARY.QUEUE} element={<VerifierQueuePage />} />
           <Route path={ROUTES.NOTARY.RECIPIENTS} element={<VerifierRecipientsPage />} />
+          <Route path={ROUTES.NOTARY.DOCUMENTS} element={<VerifierDocumentsPage />} />
           <Route path={ROUTES.NOTARY.HISTORY} element={<VerifierHistoryPage />} />
           <Route path={ROUTES.NOTARY.CRITERIA} element={<VerifierCriteriaPage />} />
           <Route path={ROUTES.NOTARY.SETTINGS} element={<VerifierSettingsPage />} />
