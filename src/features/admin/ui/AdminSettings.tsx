@@ -74,6 +74,32 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     dataType: "NUMBER",
   },
   {
+    key: "CheckIn.FirstReminderDaysBeforeDue",
+    label: "Thư nhắc trước hạn thứ nhất",
+    category: "CheckIn",
+    categoryTitle: "Điểm danh định kỳ",
+    unit: "ngày trước hạn",
+    step: 1,
+    defaultValue: "7",
+    description:
+      "Gửi thư nhắc chủ kho trước hạn điểm danh chừng này ngày (tối đa 60). Phải lớn hơn số ngày của thư thứ hai, nếu không hệ thống tự nâng lên thành thư thứ hai cộng 1.",
+    src: "CheckInRules.FirstReminderDaysBeforeDue",
+    dataType: "NUMBER",
+  },
+  {
+    key: "CheckIn.SecondReminderDaysBeforeDue",
+    label: "Thư nhắc trước hạn thứ hai",
+    category: "CheckIn",
+    categoryTitle: "Điểm danh định kỳ",
+    unit: "ngày trước hạn",
+    step: 1,
+    defaultValue: "1",
+    description:
+      "Thư nhắc gần hạn hơn, gửi trước hạn điểm danh chừng này ngày (từ 1 đến 30). Áp dụng ngay cho cả kỳ đang chạy.",
+    src: "CheckInRules.SecondReminderDaysBeforeDue",
+    dataType: "NUMBER",
+  },
+  {
     key: "CheckIn.LateReminderGapDays",
     label: "Khoảng cách giữa hai thư nhắc trễ",
     category: "CheckIn",
