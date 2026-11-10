@@ -36,4 +36,17 @@ describe("register feedback", () => {
       "Địa chỉ email này đã được sử dụng. Vui lòng đăng nhập hoặc sử dụng tính năng Quên mật khẩu.",
     );
   });
+
+  it("displays the phone message when Backend returns PHONE_ALREADY_EXISTS code", () => {
+    const response: AxiosResponse<unknown> = {
+      data: { code: "PHONE_ALREADY_EXISTS", message: "Số điện thoại đã được dùng." },
+      status: HTTP_STATUS.CONFLICT,
+      statusText: "Conflict",
+      headers: {},
+      config: { headers: new AxiosHeaders() },
+    };
+    expect(
+      getRegisterErrorMessage(new AxiosError("failure", undefined, undefined, undefined, response)),
+    ).toBe("Số điện thoại đã được dùng.");
+  });
 });
