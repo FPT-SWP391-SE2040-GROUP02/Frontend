@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { executorKeyService } from "../api/executorKeyService";
 
-/** Cache riêng theo kho; chỉ giữ trạng thái, không bao giờ giữ mảnh gốc. */
+/** Cache riêng theo kho; chỉ giữ trạng thái, không bao giờ giữ mã gốc. */
 export const executorKeyKeys = {
   status: (vaultId: string) => ["executor-key", vaultId, "status"] as const,
 };

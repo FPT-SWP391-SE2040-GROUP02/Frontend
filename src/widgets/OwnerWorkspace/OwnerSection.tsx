@@ -14,7 +14,6 @@ import {
 import { VaultEmailRequiredNotice } from "@/features/vault-management/ui/VaultEmailRequiredNotice";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
 import { AssetList } from "@/features/assets/ui/AssetList";
-import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
 import { OwnerTrustedPeople } from "./OwnerTrustedPeople";
 import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
 import { OwnerGroups } from "./OwnerGroups";
@@ -102,7 +101,8 @@ export function OwnerSection({
       </div>
     );
   if (section === "check-in") return <OwnerCheckIn vaultId={vault.data.id} />;
-  if (section === "trusted") return <OwnerTrustedPeople vaultId={vault.data.id} />;
+  if (section === "trusted")
+    return <OwnerTrustedPeople vaultId={vault.data.id} vaultName={vault.data.name} />;
   if (section === "groups") {
     let open = false;
     let onOpenChange = (value: boolean): void => {
@@ -167,10 +167,5 @@ export function OwnerSection({
       </div>
     );
   }
-  return (
-    <div className="space-y-6">
-      <OwnerHandoverOverview vaultId={vault.data.id} />
-      <PlanSetupPanel vaultId={vault.data.id} />
-    </div>
-  );
+  return <OwnerHandoverOverview vaultId={vault.data.id} vaultName={vault.data.name} />;
 }

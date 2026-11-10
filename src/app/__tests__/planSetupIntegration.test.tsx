@@ -278,7 +278,7 @@ it("recovers a failed readiness request without automatically activating", async
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
   await screen.findByRole("alert");
   fireEvent.click(screen.getByRole("button", { name: "Thử lại" }));
-  await screen.findByText(/Sẵn sàng kích hoạt/);
+  await screen.findByText("Việc cần làm để kích hoạt");
   expect(get).toHaveBeenCalledTimes(2);
   expect(post).not.toHaveBeenCalled();
 });
@@ -301,8 +301,8 @@ it("hiện checklist kích hoạt: mục đạt có dấu tích, mục thiếu k
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
   expect(await screen.findByText("Có ít nhất một gói sẵn sàng bàn giao.")).toBeInTheDocument();
   expect(screen.getByText("Gói dịch vụ trả phí còn hạn.")).toBeInTheDocument();
-  expect(screen.getByText("Cần Executor đã chấp nhận nhiệm vụ.")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Đến Người tin cậy" })).toHaveAttribute(
+  expect(screen.getByText("Cần Người thực thi đã chấp nhận nhiệm vụ.")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Mời Người thực thi" })).toHaveAttribute(
     "href",
     "/dashboard/trusted-people",
   );

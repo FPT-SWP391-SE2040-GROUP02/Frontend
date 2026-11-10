@@ -10,6 +10,7 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
 import { backendAssetService } from "@/features/assets/api/backendAssetService";
 import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
+import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { vaultFixture } from "@/shared/api/__tests__/backend.fixtures";
 import { OwnerSection } from "../OwnerSection";
 
@@ -22,6 +23,7 @@ vi.mock("@/features/vault-pin/api/vaultPinService", () => ({
 vi.mock("@/features/assets/api/backendAssetService", () => ({
   backendAssetService: { list: vi.fn() },
 }));
+vi.mock("@/features/plan-setup/model/usePlanSetup", () => ({ usePlanSetup: vi.fn() }));
 const emptyAssetPage = {
   items: [],
   pageIndex: 1,
@@ -49,7 +51,7 @@ afterEach(() => {
   client.clear();
   accessTokenMemory.clear();
 });
-function setup() {
+function setup(section: "assets" | "plans" = "assets") {
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(
     setCredentials({
@@ -69,7 +71,7 @@ function setup() {
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <OwnerSection section="assets" />
+          <OwnerSection section={section} />
         </MemoryRouter>
       </QueryClientProvider>
     </Provider>,
@@ -177,5 +179,34 @@ describe("official workspace data states", () => {
     expect(screen.queryByText("Bạn chưa đặt mã PIN cho kho")).not.toBeInTheDocument();
     expect(screen.queryByText("Thêm tài sản đang bị khóa")).not.toBeInTheDocument();
     expect(await screen.findByRole("group", { name: "Loại mục" })).toBeInTheDocument();
+  });
+  it("section plans dựng trang Bàn giao: thẻ việc cần làm để kích hoạt, không còn khối kích hoạt riêng phía dưới", async () => {
+    vi.mocked(ownerVaultService.getMine).mockResolvedValue(vaultFixture);
+    vi.mocked(usePlanSetup).mockReturnValue({
+      isPending: false,
+      isError: false,
+      isFetching: false,
+      refetch: vi.fn(),
+      data: {
+        planStatus: "DRAFT",
+        configVersion: 1,
+        canActivate: false,
+        missingRequirements: ["PRIMARY_EXECUTOR_REQUIRED"],
+        policyVersion: "p1",
+        policyText: "Chính sách thử.",
+        executorScopeVersion: "s1",
+        executorScopeText: "Phạm vi thử.",
+        executors: [],
+        containers: [],
+        assetsOutsideContainer: [],
+        warnings: [],
+      },
+    } as never);
+    setup("plans");
+
+    expect(await screen.findByText("Kế hoạch chưa kích hoạt")).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { name: "Việc cần làm để kích hoạt" })).toHaveLength(1);
+    expect(screen.getByRole("heading", { name: "Bàn giao diễn ra thế nào" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Mời Người thực thi" })).toBeInTheDocument();
   });
 });
