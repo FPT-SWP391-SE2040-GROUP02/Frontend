@@ -95,19 +95,19 @@ export const LANDING_CONTENT = {
         ],
       },
       {
-        tag: "02 · Người tin cậy",
+        tag: "02 · Người thực thi",
         title: "Bốn vai, không ai nắm toàn quyền một mình",
         detail:
-          "Người thực hiện báo tin, Người xét duyệt kiểm tra độc lập, Người nhận xác minh danh tính. Hai vai đầu chỉ xác nhận và không đọc được nội dung kho.",
+          "Người thực thi báo tin, Người xét duyệt kiểm tra độc lập, Người nhận xác minh danh tính. Hai vai đầu chỉ xác nhận và không đọc được nội dung kho.",
         points: [
           "Chủ kho là người duy nhất lập và sửa kho",
-          "Người thực hiện và Người xét duyệt không mở được nội dung",
+          "Người thực thi và Người xét duyệt không mở được nội dung",
           "Người nhận chỉ được mở sau khi xác minh eKYC",
         ],
         visualTitle: "Các vai trong kế hoạch",
         rows: [
           { title: "Chủ kho", detail: "Lập kho, chọn người" },
-          { title: "Người thực hiện", detail: "Báo tin khi đến lúc" },
+          { title: "Người thực thi", detail: "Báo tin khi đến lúc" },
           { title: "Người xét duyệt", detail: "Xem lại hồ sơ độc lập" },
           { title: "Người nhận", detail: "Xác minh rồi tải về" },
         ],
@@ -125,7 +125,7 @@ export const LANDING_CONTENT = {
         visualTitle: "Từ im lặng đến bàn giao",
         rows: [
           { title: "Không phản hồi điểm danh", detail: "Bắt đầu" },
-          { title: "Người thực hiện báo tin", detail: "Lớp 1" },
+          { title: "Người thực thi báo tin", detail: "Lớp 1" },
           { title: "Người xét duyệt xác nhận", detail: "Lớp 2" },
           { title: "Người nhận xác minh eKYC", detail: "Lớp 3" },
           { title: "{grantDays} ngày để tải về", detail: "Hoàn tất" },
@@ -140,7 +140,7 @@ export const LANDING_CONTENT = {
       "Biểu tượng của LegacyVault được dệt từ nhiều vòng đường nét chồng lên nhau, như hoa văn trên giấy tờ có giá. Càng nhiều lớp, càng khó đi tắt. Trước khi kho mở ra, mọi bàn giao đều phải đi qua bốn lớp xác nhận.",
     layers: [
       {
-        title: "Người thực hiện báo tin",
+        title: "Người thực thi báo tin",
         detail: "Một người bạn đã chỉ định báo rằng đã đến lúc. Chưa có gì được mở.",
       },
       {
@@ -162,15 +162,16 @@ export const LANDING_CONTENT = {
     eyebrow: "Cách hoạt động",
     title: "Bạn sắp đặt một lần. Phần còn lại, nhẹ nhàng.",
     description:
-      "Nội dung kho được mã hóa AES-256-GCM trên máy chủ. Người thực hiện và Người xét duyệt chỉ giữ vai trò xác nhận, không đọc được nội dung.",
+      "Nội dung kho được mã hóa AES-256-GCM trên máy chủ. Người thực thi và Người xét duyệt chỉ giữ vai trò xác nhận, không đọc được nội dung.",
     steps: [
       {
         title: "Lập kho",
         detail: "Chủ kho ghi lại tài sản số, tài liệu và lời nhắn, rồi chọn người nhận.",
       },
       {
-        title: "Chỉ định người tin cậy",
-        detail: "Chọn Người thực hiện và Người xét duyệt. Họ không đọc được nội dung kho.",
+        title: "Chỉ định Người thực thi",
+        detail:
+          "Mời một Người thực thi; Người xét duyệt do hệ thống phân công. Họ không đọc được nội dung kho.",
       },
       {
         title: "Giữ liên lạc",
@@ -193,7 +194,7 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Người xác nhận không đọc được",
-        detail: "Người thực hiện và Người xét duyệt chỉ có quyền xác nhận, không mở được nội dung.",
+        detail: "Người thực thi và Người xét duyệt chỉ có quyền xác nhận, không mở được nội dung.",
       },
       {
         title: "Ảnh căn cước không lưu",

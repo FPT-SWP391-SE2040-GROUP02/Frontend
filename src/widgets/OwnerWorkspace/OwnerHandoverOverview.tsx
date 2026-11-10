@@ -1,181 +1,34 @@
-import { type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import type { z } from "zod";
 import { Button } from "@/shared/ui/button";
-import { ROUTES } from "@/shared/config/routes.config";
+import { Chip, Notice, Panel } from "@/shared/ui/heritageKit";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { checkInService } from "@/features/dms/api/checkInService";
 import { dailyCheckInState } from "@/features/dms/model/dailyCheckIn";
 import type { checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
+import {
+  ExecutorKeyCard,
+  ExecutorKeyReveal,
+  useExecutorKeyIssue,
+  useExecutorKeyStatus,
+  type ExecutorKeyIssued,
+  type HandoverSlipContext,
+} from "@/features/executor-key";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
+import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
+import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
+import { PlanReviewSummary } from "@/features/plan-setup/ui/PlanReviewSummary";
 import { formatDate } from "@/shared/lib/dateFormat";
-import type { z } from "zod";
-import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
+import { HandoverStepsCard } from "./HandoverStepsCard";
+import { useHandoverSlipContext } from "./useHandoverSlipContext";
 
 type CheckInStatus = z.infer<typeof checkInStatusSchema>;
+type PlanSetup = z.infer<typeof planSetupSchema>;
+type KeyIssuer = ReturnType<typeof useExecutorKeyIssue>;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
-const GOLD_BADGE =
-  "flex size-8 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]";
-
-/** Năm bước bàn giao theo thiết kế; nội dung cố định theo SRS, không lấy từ máy chủ. */
-const handoverSteps = (grantDays: number) => [
-  { title: "Báo tin", detail: "Người thực hiện báo tin.", short: "Báo tin" },
-  { title: "Xét duyệt", detail: "Người xét duyệt kiểm tra.", short: "Xét duyệt" },
-  {
-    title: "Xác minh người nhận",
-    detail: "Người nhận xác nhận danh tính.",
-    short: "Xác minh người nhận",
-  },
-  {
-    title: `Tải nội dung ${grantDays} ngày`,
-    detail: `Người nhận tải về trong ${grantDays} ngày.`,
-    short: `Tải nội dung ${grantDays} ngày`,
-  },
-];
-
-const executorStatusLabels = {
-  INVITED: "Chờ phản hồi",
-  ACCEPTED: "Đã xác nhận lời mời",
-  DECLINED: "Đã từ chối",
-  EXPIRED: "Lời mời hết hạn",
-  REVOKED: "Đã thu hồi",
-  SUSPENDED: "Cần chấp nhận lại",
-};
-
-function ProcessCard() {
-  const policy = usePolicyWindows();
-  const rows: ReactNode[] = [];
-  let stepNumber = 0;
-  for (const step of handoverSteps(policy.grantDays)) {
-    stepNumber = stepNumber + 1;
-    rows.push(
-      <li
-        key={step.title}
-        className="flex items-start gap-4 border-b border-heritage-border py-4 last:border-b-0"
-      >
-        <span className={GOLD_BADGE} aria-hidden="true">
-          {stepNumber}
-        </span>
-        <div>
-          <p className="font-semibold">{step.title}</p>
-          <p className="text-sm text-heritage-muted">{step.detail}</p>
-        </div>
-      </li>,
-    );
-  }
-  return (
-    <section aria-label="Quy trình bàn giao" className={CARD}>
-      <h2 className="text-xl font-medium text-heritage-primary">Quy trình bàn giao</h2>
-      <ol className="mt-3">{rows}</ol>
-    </section>
-  );
-}
-
-interface TrustedPersonProps {
-  role: string;
-  name: string;
-  status: string;
-  needsAction: boolean;
-  children?: ReactNode;
-}
-
-function TrustedPerson({ role, name, status, needsAction, children }: TrustedPersonProps) {
-  let statusColor = "text-green-700";
-  if (needsAction) {
-    statusColor = "text-red-700";
-  }
-  return (
-    <div className="flex min-w-0 flex-col rounded-xl border border-heritage-border bg-heritage-canvas p-4">
-      <p className="text-xs font-semibold text-[#7A5B24]">{role}</p>
-      <p className="mt-3 break-words text-xl font-medium text-heritage-primary">{name}</p>
-      <p className={`mt-2 text-xs font-semibold ${statusColor}`}>{status}</p>
-      {children}
-    </div>
-  );
-}
-
-function TrustedPeopleCard({ vaultId }: { vaultId: string }) {
-  const query = usePlanSetup(vaultId);
-  let content: ReactNode;
-  if (query.isPending) {
-    content = (
-      <p role="status" className="text-sm text-heritage-muted">
-        Đang tải người tin cậy…
-      </p>
-    );
-  } else if (query.isError) {
-    content = (
-      <div role="alert" className="space-y-3">
-        <p className="text-sm text-heritage-muted">Không tải được danh sách người tin cậy.</p>
-        <Button variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()}>
-          Thử lại
-        </Button>
-      </div>
-    );
-  } else {
-    // Lấy lời mời còn hiệu lực gần nhất; lời mời đã thu hồi/từ chối không tính là người hiện tại.
-    let primary = null;
-    for (const executor of query.data.executors) {
-      const isCurrent =
-        executor.status === "INVITED" ||
-        executor.status === "ACCEPTED" ||
-        executor.status === "SUSPENDED";
-      if (!isCurrent) {
-        continue;
-      }
-      if (primary === null) {
-        primary = executor;
-      }
-    }
-    let primaryName = "Chưa mời";
-    let primaryStatus = "Cần mời";
-    let primaryNeedsAction = true;
-    let primaryAction: ReactNode = (
-      <Link
-        to={ROUTES.DASHBOARD.TRUSTED_PEOPLE}
-        className="mt-4 inline-flex min-h-11 items-center justify-center self-start rounded-lg bg-[#E0C486] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-heritage-gold"
-      >
-        Mời người thực hiện
-      </Link>
-    );
-    if (primary !== null) {
-      primaryName = primary.inviteeEmail;
-      primaryStatus = executorStatusLabels[primary.status];
-      primaryNeedsAction = primary.status !== "ACCEPTED";
-      primaryAction = null;
-    }
-    content = (
-      <div className="grid gap-4 sm:grid-cols-2">
-        <TrustedPerson
-          role="Người thực hiện"
-          name={primaryName}
-          status={primaryStatus}
-          needsAction={primaryNeedsAction}
-        >
-          {primaryAction}
-        </TrustedPerson>
-        <TrustedPerson
-          role="Người xét duyệt"
-          name="Hệ thống phân công"
-          status="Phân công khi có yêu cầu bàn giao"
-          needsAction={false}
-        />
-      </div>
-    );
-  }
-  return (
-    <section aria-label="Người tin cậy" className={CARD}>
-      <h2 className="text-xl font-medium text-heritage-primary">Người tin cậy</h2>
-      <div className="mt-4">{content}</div>
-      <p className="mt-4 text-xs text-heritage-muted">
-        Hai người này xác nhận bàn giao, không đọc được nội dung kho.
-      </p>
-    </section>
-  );
-}
 
 function CheckInCard({ vaultId }: { vaultId: string }) {
   const query = useCheckIn(vaultId);
@@ -241,14 +94,15 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
           {action.pending
             ? "Đang gửi…"
             : executorCheckedInToday
-              ? "Executor đã điểm danh hộ"
+              ? "Người thực thi đã điểm danh hộ"
               : checkedInToday
                 ? "Đã điểm danh hôm nay"
                 : "Điểm danh"}
         </Button>
         {executorCheckedInToday && (
           <p role="status" className="mt-3 text-xs text-[#E0C486]">
-            Executor đã điểm danh hộ bạn hôm nay. Mở lại từ 00:00 ngày tiếp theo (giờ Việt Nam).
+            Người thực thi đã điểm danh hộ bạn hôm nay. Mở lại từ 00:00 ngày tiếp theo (giờ Việt
+            Nam).
           </p>
         )}
         {checkedInToday && (
@@ -282,54 +136,241 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
   );
 }
 
-function StatusCard() {
-  const policy = usePolicyWindows();
-  const summary = (
-    <p className="text-sm leading-6 text-heritage-muted">
-      Khi Người thực hiện báo tin, kho và tài khoản của bạn bị khóa ngay và hồ sơ sang Người xét
-      duyệt. Các bước sẽ hiện tại đây.
-    </p>
+/** Dòng đầu trang: nhãn trạng thái kế hoạch và một câu giải thích ngắn. */
+function HandoverHeader({
+  chipText,
+  chipTone,
+  subtitle,
+}: {
+  chipText: string;
+  chipTone: "warning" | "success";
+  subtitle: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <Chip tone={chipTone}>{chipText}</Chip>
+      <p className="text-sm text-heritage-muted">{subtitle}</p>
+    </div>
   );
-  const rows: ReactNode[] = [];
-  let stepNumber = 0;
-  for (const step of handoverSteps(policy.grantDays)) {
-    stepNumber = stepNumber + 1;
-    rows.push(
-      <li key={step.title} className="flex items-center gap-3 text-sm">
-        <span
-          className="flex size-7 shrink-0 items-center justify-center rounded-full border border-dashed border-heritage-border text-xs text-heritage-muted"
-          aria-hidden="true"
-        >
-          {stepNumber}
-        </span>
-        Điều {stepNumber}. {step.short}
-      </li>,
-    );
+}
+
+/** Kế hoạch còn nháp: việc cần làm để kích hoạt ở trái, cách bàn giao diễn ra ở phải. */
+function DraftView({ vaultId, onActivated }: { vaultId: string; onActivated: () => void }) {
+  return (
+    <div className="space-y-6">
+      <HandoverHeader
+        chipText="Kế hoạch chưa kích hoạt"
+        chipTone="warning"
+        subtitle="Hoàn thành các việc dưới đây để kế hoạch bàn giao bắt đầu chạy."
+      />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <PlanSetupPanel vaultId={vaultId} onActivated={onActivated} />
+        <div className="space-y-6">
+          <HandoverStepsCard />
+          <p className="text-sm text-heritage-muted">
+            Điểm danh định kỳ bắt đầu sau khi kích hoạt.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Màn nhận mã ngay sau khi kích hoạt (hoặc sau khi tạo mã ở dải cảnh báo): mã chỉ hiện ở đây, một lần. */
+function KeyReceiptView({
+  issued,
+  slip,
+  onDone,
+}: {
+  issued: ExecutorKeyIssued;
+  slip: HandoverSlipContext;
+  onDone: () => void;
+}) {
+  let issuedAt = issued.issuedAt;
+  if (issued.reissuedAt) {
+    issuedAt = issued.reissuedAt;
   }
   return (
-    <section aria-label="Trạng thái hiện tại" className={CARD}>
-      <h2 className="text-xl font-medium text-heritage-primary">Trạng thái hiện tại</h2>
-      <div className="mt-3">{summary}</div>
-      <ol className="mt-4 space-y-3">{rows}</ol>
+    <section
+      aria-label="Nhận mã mở gói"
+      className="space-y-5 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
+    >
+      <h2 className="text-xl font-medium text-heritage-primary">
+        Kế hoạch đã kích hoạt. Còn một việc: lưu mã mở gói
+      </h2>
+      <ExecutorKeyReveal
+        slip={{
+          ownerName: slip.ownerName,
+          vaultName: slip.vaultName,
+          executorEmail: slip.executorEmail,
+          issuedAt,
+          version: issued.version,
+          shard: issued.shard,
+        }}
+        onDone={onDone}
+      />
     </section>
   );
 }
 
-/**
- * Tổng quan bàn giao theo thiết kế: quy trình, người tin cậy, điểm danh và trạng thái.
- * Chỉ đọc dữ liệu Backend đã có; các thao tác thật (mời Executor, kích hoạt) nằm ở khối bên dưới.
- */
-export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
-  return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-      <div className="space-y-6">
-        <ProcessCard />
-        <TrustedPeopleCard vaultId={vaultId} />
+/** Kế hoạch đã chạy: mã mở gói, gói sẽ bàn giao ở trái; điểm danh và tiến trình bàn giao ở phải. */
+function RunningView({
+  vaultId,
+  setup,
+  slip,
+  issuer,
+  onIssued,
+}: {
+  vaultId: string;
+  setup: PlanSetup;
+  slip: HandoverSlipContext;
+  issuer: KeyIssuer;
+  onIssued: (result: ExecutorKeyIssued) => void;
+}) {
+  const keyStatus = useExecutorKeyStatus(vaultId);
+  let keyMissing = false;
+  if (keyStatus.isSuccess) {
+    keyMissing = !keyStatus.data.hasKey && keyStatus.data.canIssue;
+  }
+  let chipText = `Trạng thái kế hoạch: ${setup.planStatus}`;
+  if (setup.planStatus === "ACTIVE") {
+    chipText = "Kế hoạch đang chạy";
+  }
+  let keyMissingBanner: ReactNode = null;
+  if (keyMissing) {
+    keyMissingBanner = (
+      <div className="space-y-2">
+        <Notice
+          tone="warning"
+          role="alert"
+          title="Kế hoạch đang chạy nhưng chưa có mã mở gói."
+          action={
+            <button
+              type="button"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#0A281E] px-6 text-sm font-semibold text-white hover:bg-[#12392C] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50"
+              disabled={issuer.pending}
+              onClick={() => {
+                issuer.reset();
+                void issuer.run("issue", onIssued);
+              }}
+            >
+              Tạo mã mở gói
+            </button>
+          }
+        >
+          Không có mã thì người nhận không mở được tài sản.
+        </Notice>
+        {issuer.error && (
+          <p role="alert" className="text-sm text-destructive">
+            {issuer.error}
+          </p>
+        )}
       </div>
-      <div className="space-y-6">
-        <CheckInCard vaultId={vaultId} />
-        <StatusCard />
+    );
+  }
+  return (
+    <div className="space-y-6">
+      <HandoverHeader
+        chipText={chipText}
+        chipTone="success"
+        subtitle="Điểm danh đúng hạn để kế hoạch tiếp tục chạy."
+      />
+      {keyMissingBanner}
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="space-y-6">
+          <ExecutorKeyCard
+            vaultId={vaultId}
+            slip={slip}
+            title="Mã mở gói"
+            showIssueButton={!keyMissing}
+          />
+          <Panel title="Gói sẽ bàn giao">
+            <PlanReviewSummary
+              containers={setup.containers}
+              assetsOutsideContainer={setup.assetsOutsideContainer}
+            />
+          </Panel>
+        </div>
+        <div className="space-y-6">
+          <CheckInCard vaultId={vaultId} />
+          <HandoverStepsCard
+            title="Tiến trình bàn giao"
+            subtitle="Chưa có báo tin. Khi Người thực thi báo tin, bước đang diễn ra sẽ được tô đậm tại đây."
+          />
+        </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Trang Bàn giao của Chủ kho. Kế hoạch nháp: việc cần làm để kích hoạt. Ngay sau khi kích hoạt: cấp và hiện mã mở gói
+ * một lần (mã chỉ nằm trong state của component này, không vào cache, storage hay URL). Kế hoạch đã chạy: mã mở gói,
+ * gói sẽ bàn giao, điểm danh và tiến trình bàn giao. Quyền và trạng thái luôn do Backend quyết định.
+ */
+export function OwnerHandoverOverview({
+  vaultId,
+  vaultName,
+}: {
+  vaultId: string;
+  vaultName?: string | null;
+}) {
+  const planQuery = usePlanSetup(vaultId);
+  const issuer = useExecutorKeyIssue(vaultId);
+  const slip = useHandoverSlipContext(vaultId, vaultName);
+  const [issued, setIssued] = useState<ExecutorKeyIssued | null>(null);
+
+  if (issued !== null) {
+    return <KeyReceiptView issued={issued} slip={slip} onDone={() => setIssued(null)} />;
+  }
+  if (issuer.pending) {
+    return (
+      <p
+        role="status"
+        className="rounded-2xl border border-heritage-border bg-heritage-surface p-6 text-sm text-heritage-muted"
+      >
+        Kế hoạch đã kích hoạt. Đang tạo mã mở gói…
+      </p>
+    );
+  }
+  if (planQuery.isPending) {
+    return (
+      <p role="status" className="text-sm text-heritage-muted">
+        Đang tải kế hoạch bàn giao…
+      </p>
+    );
+  }
+  if (planQuery.isError) {
+    return (
+      <div role="alert" className="space-y-3 rounded-2xl border border-red-200 bg-red-50 p-6">
+        <p className="text-sm text-red-800">Không tải được kế hoạch bàn giao.</p>
+        <Button
+          variant="outline"
+          disabled={planQuery.isFetching}
+          onClick={() => void planQuery.refetch()}
+        >
+          Thử lại
+        </Button>
+      </div>
+    );
+  }
+  if (planQuery.data.planStatus === "DRAFT") {
+    return (
+      <DraftView
+        vaultId={vaultId}
+        onActivated={() => {
+          void issuer.issueIfMissing(setIssued);
+        }}
+      />
+    );
+  }
+  return (
+    <RunningView
+      vaultId={vaultId}
+      setup={planQuery.data}
+      slip={slip}
+      issuer={issuer}
+      onIssued={setIssued}
+    />
   );
 }

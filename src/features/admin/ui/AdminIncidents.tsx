@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { AlertTriangle, ArrowLeft, ChevronRight, Clock, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useServerNow } from "@/shared/clock/useServerNow";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { adminService } from "../api/adminService";
@@ -425,6 +426,7 @@ function IncidentDetailBody({
   refreshing: boolean;
 }) {
   const client = useQueryClient();
+  const serverNow = useServerNow();
   const [dialog, setDialog] = useState<IncidentDialog | null>(null);
   const assignee = useAssignee(detail.assigneeUserId, {
     fullName: detail.assigneeFullName,
@@ -710,7 +712,7 @@ function IncidentDetailBody({
             { name: "note", label: "Kết quả xem lại", kind: "textarea", maxLength: 1000 },
             { name: "nextReviewAt", label: "Lần xem lại tiếp theo", kind: "datetime" },
           ]}
-          defaultValues={{ note: "", nextReviewAt: defaultReviewLocal() }}
+          defaultValues={{ note: "", nextReviewAt: defaultReviewLocal(serverNow) }}
           submit={(values) =>
             adminService.reviewIncident(detail.id, {
               note: values.note,

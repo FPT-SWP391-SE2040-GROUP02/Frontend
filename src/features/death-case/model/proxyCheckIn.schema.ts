@@ -11,25 +11,33 @@ export const PROXY_CONTACT_METHODS = [
 /** Cho phép đồng hồ máy lệch nhẹ so với server, khớp dung sai 5 phút của Backend. */
 const FUTURE_TOLERANCE_MS = 5 * 60 * 1000;
 
-/** Form điểm danh thay: ai, lúc nào (ô datetime-local), cách nào. */
-export const proxyCheckInFormSchema = z.object({
-  contactedWho: z
-    .string()
-    .trim()
-    .min(2, "Ghi rõ đã liên lạc với ai (ít nhất 2 ký tự).")
-    .max(200, "Tối đa 200 ký tự."),
-  contactedAt: z
-    .string()
-    .min(1, "Chọn lúc đã liên lạc.")
-    .refine((value) => !Number.isNaN(new Date(value).getTime()), "Lúc liên lạc không hợp lệ.")
-    .refine(
-      (value) => new Date(value).getTime() <= Date.now() + FUTURE_TOLERANCE_MS,
-      "Lúc liên lạc không được ở tương lai.",
-    ),
-  contactMethod: z.enum(["PHONE", "IN_PERSON", "MESSAGE", "EMAIL"], {
-    message: "Chọn cách liên lạc.",
-  }),
-});
+/**
+ * Luật kiểm tra form điểm danh thay. `nowMs` là "bây giờ" của hệ thống (giờ máy cộng độ lệch khi đang giả lập ngày),
+ * vì Backend so giờ liên lạc với giờ của chính nó.
+ */
+export function createProxyCheckInFormSchema(nowMs: () => number) {
+  return z.object({
+    contactedWho: z
+      .string()
+      .trim()
+      .min(2, "Ghi rõ đã liên lạc với ai (ít nhất 2 ký tự).")
+      .max(200, "Tối đa 200 ký tự."),
+    contactedAt: z
+      .string()
+      .min(1, "Chọn lúc đã liên lạc.")
+      .refine((value) => !Number.isNaN(new Date(value).getTime()), "Lúc liên lạc không hợp lệ.")
+      .refine(
+        (value) => new Date(value).getTime() <= nowMs() + FUTURE_TOLERANCE_MS,
+        "Lúc liên lạc không được ở tương lai.",
+      ),
+    contactMethod: z.enum(["PHONE", "IN_PERSON", "MESSAGE", "EMAIL"], {
+      message: "Chọn cách liên lạc.",
+    }),
+  });
+}
+
+/** Form điểm danh thay: ai, lúc nào (ô datetime-local), cách nào; "bây giờ" là giờ máy. */
+export const proxyCheckInFormSchema = createProxyCheckInFormSchema(() => Date.now());
 export type ProxyCheckInFormValues = z.infer<typeof proxyCheckInFormSchema>;
 
 /** Body của POST /executor/vaults/{vaultId}/check-in. */

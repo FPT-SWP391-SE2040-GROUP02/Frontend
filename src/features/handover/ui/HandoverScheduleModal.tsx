@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from "@/shared/ui";
 import { Calendar, ShieldAlert, Zap, AlertCircle } from "lucide-react";
+import { useServerNow } from "@/shared/clock/useServerNow";
 import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 /**
@@ -37,8 +38,10 @@ export const HandoverScheduleModal: React.FC<HandoverScheduleModalProps> = ({
   isPending = false,
 }) => {
   const { responseDays } = usePolicyWindows();
+  // "Hôm nay" theo giờ hệ thống (có thể đang giả lập ngày), không phải giờ máy.
+  const serverNow = useServerNow();
   const [scheduledDate, setScheduledDate] = useState<string>(
-    currentScheduledDate || new Date().toISOString().split("T")[0],
+    currentScheduledDate || serverNow.toISOString().split("T")[0],
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +56,7 @@ export const HandoverScheduleModal: React.FC<HandoverScheduleModalProps> = ({
     onClose();
   };
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = serverNow.toISOString().split("T")[0];
   const canStartHandover = !!currentScheduledDate && currentScheduledDate <= todayStr;
 
   return (

@@ -50,9 +50,7 @@ describe("workspace logo navigation", () => {
     await waitFor(() => expect(apiClient.get).toHaveBeenCalled());
     expect(screen.queryByText("Chuyển vai trò")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Nhiệm vụ Executor" })).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Sang vai Người thực hiện" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Sang vai Người thực thi" })).not.toBeInTheDocument();
   });
 
   it("offers the switch to the Executor space only for accounts with an Executor vault", async () => {
@@ -72,7 +70,7 @@ describe("workspace logo navigation", () => {
     });
     renderWorkspace(store, "/dashboard");
     // Có hai lối vào: mục trong menu (điện thoại) và nút ở chân khung.
-    const links = await screen.findAllByRole("link", { name: "Sang vai Người thực hiện" });
+    const links = await screen.findAllByRole("link", { name: "Sang vai Người thực thi" });
     expect(links.length).toBeGreaterThan(0);
     links.forEach((link) => expect(link).toHaveAttribute("href", "/executor"));
     // Chỉ một nút hiện ở mỗi cỡ màn hình: mục trong menu chỉ dành cho điện thoại (< 768px), nút ở chân khung từ 768px
@@ -100,6 +98,15 @@ describe("workspace logo navigation", () => {
       "aria-current",
       "page",
     );
+  });
+
+  it("menu bên trái có mục Người thực thi trỏ tới trang cũ, không còn chữ Người tin cậy", () => {
+    const store = configureStore({ reducer: { auth: authReducer } });
+    renderWorkspace(store, "/dashboard/trusted-people", "Người thực thi");
+    const link = screen.getByRole("link", { name: "Người thực thi" });
+    expect(link).toHaveAttribute("href", "/dashboard/trusted-people");
+    expect(link).toHaveAttribute("aria-current", "page");
+    expect(screen.queryByText("Người tin cậy")).not.toBeInTheDocument();
   });
 
   it("shows the eyebrow above the title only when one is given", () => {

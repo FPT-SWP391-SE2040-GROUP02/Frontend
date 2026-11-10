@@ -410,3 +410,33 @@ aside::-webkit-scrollbar-thumb:hover,
 .bg-heritage-primary::-webkit-scrollbar-thumb:hover {
   background: rgba(184, 142, 76, 0.6);
 }
+
+/*
+ * Phiếu bàn giao mã mở gói: bản in nằm ngoài #root (portal vào body) nên mặc định ẩn.
+ * Khi in chỉ giữ lại tờ phiếu; ẩn mọi phần tử con khác của body (gồm cả hộp thoại Radix/Base UI
+ * cũng được portal ra body) để PDF chỉ có một tờ phiếu trắng, chữ gần đen.
+ */
+.print-slip {
+  display: none;
+}
+
+@media print {
+  body > *:not(.print-slip) {
+    display: none !important;
+  }
+
+  .print-slip {
+    display: block !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 16mm;
+  }
+
+  .print-slip,
+  .print-slip * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

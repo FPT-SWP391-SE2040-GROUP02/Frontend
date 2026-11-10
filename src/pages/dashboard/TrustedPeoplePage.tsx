@@ -1,12 +1,12 @@
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { OwnerSection } from "@/widgets/OwnerWorkspace/OwnerSection";
 
-/** Người tin cậy của Chủ kho: Người thực hiện (Executor) và Người xét duyệt; chỉ đọc dữ liệu Backend đã xác nhận. */
+/** Trang Người thực thi của Chủ kho (đường dẫn vẫn là trusted-people); chỉ đọc dữ liệu Backend đã xác nhận. */
 export function TrustedPeoplePage() {
   return (
     <OwnerWorkspace
-      title="Người tin cậy"
-      description="Bạn chỉ mời người thực hiện. Người xét duyệt do hệ thống phân công, bạn không chọn."
+      title="Người thực thi"
+      description="Người bạn tin để báo tin khi có biến cố và trao mã mở gói cho người nhận. Họ không đọc được nội dung kho."
     >
       <OwnerSection section="trusted" />
     </OwnerWorkspace>

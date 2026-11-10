@@ -175,7 +175,7 @@ export function OwnerCheckIn({ vaultId }: { vaultId: string }) {
           <Countdown status={status} />
           <p className="mt-4 text-sm leading-6 text-heritage-muted">
             Lần gần nhất: {formatDate(status.lastCheckInAt)}. Nếu quá hạn, hệ thống nhắc bạn và
-            người tin cậy trước khi làm gì.
+            Người thực thi trước khi làm gì.
           </p>
           <div className="mt-5">
             <CheckInNowButton

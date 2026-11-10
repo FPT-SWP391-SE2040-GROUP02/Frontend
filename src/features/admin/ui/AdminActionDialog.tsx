@@ -1,6 +1,7 @@
 import { useId } from "react";
 import { Controller, useForm, useWatch, type FieldErrors, type Resolver } from "react-hook-form";
 import { z } from "zod";
+import { useServerNow } from "@/shared/clock/useServerNow";
 import { Button } from "@/shared/ui/button";
 import { CustomCheckbox } from "@/shared/ui/CustomCheckbox";
 import {
@@ -46,7 +47,7 @@ interface AdminActionDialogProps {
 const UUID = z.string().uuid("Chọn một giá trị hợp lệ.");
 
 /** Dựng luật kiểm tra từ danh sách trường; Backend vẫn là nơi quyết định cuối cùng. */
-function buildSchema(fields: AdminFieldSpec[], needsConfirm: boolean) {
+function buildSchema(fields: AdminFieldSpec[], needsConfirm: boolean, now: Date) {
   const shape: Record<string, z.ZodTypeAny> = {};
   for (const field of fields) {
     if (field.kind === "textarea" || field.kind === "text") {
@@ -58,7 +59,7 @@ function buildSchema(fields: AdminFieldSpec[], needsConfirm: boolean) {
     } else if (field.kind === "datetime") {
       shape[field.name] = z.string().superRefine((value, context) => {
         if (field.optional && !value) return;
-        const message = reviewDateError(value);
+        const message = reviewDateError(value, now);
         if (message) context.addIssue({ code: "custom", message });
       });
     } else if (field.kind === "user") {
@@ -155,7 +156,9 @@ export function AdminActionDialog({
 }: AdminActionDialogProps) {
   const action = useAdminAction();
   const idBase = useId();
-  const schema = buildSchema(fields, Boolean(confirmLabel));
+  // Hạn xem lại phải ở tương lai của hệ thống (có thể đang giả lập ngày), không phải của giờ máy.
+  const serverNow = useServerNow();
+  const schema = buildSchema(fields, Boolean(confirmLabel), serverNow);
   const resolver: Resolver<AdminFormValues> = async (values) => {
     const result = schema.safeParse(values);
     if (result.success) return { values, errors: {} };
