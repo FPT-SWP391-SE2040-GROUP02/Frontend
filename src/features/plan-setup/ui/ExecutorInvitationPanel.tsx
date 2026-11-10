@@ -8,6 +8,7 @@ import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
 import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDateTime } from "@/shared/lib/dateFormat";
+import { useServerNow } from "@/shared/clock/useServerNow";
 import { planSetupService } from "../api/planSetupService";
 import { invitationInspectFailure } from "../lib/invitationInspectError";
 
@@ -20,13 +21,14 @@ const capabilities = [
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Số ngày còn lại của lời mời, làm tròn lên; lời mời đã hết hạn thì 0. */
-function daysLeft(expiresAt: string): number {
-  return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / DAY_MS));
+function daysLeft(expiresAt: string, nowMs: number): number {
+  return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - nowMs) / DAY_MS));
 }
 
 /** Token only in fragment/component RAM; inspect never claims, confirmation never defaults true. */
 export function ExecutorInvitationPanel({ token }: { token: string }) {
   const id = useId();
+  const serverNow = useServerNow();
   const [acknowledge, setAcknowledge] = useState(false);
   const [decision, setDecision] = useState<boolean | null>(null);
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
@@ -95,7 +97,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
       </div>
     );
   }
-  const remaining = daysLeft(query.data.expiresAt);
+  const remaining = daysLeft(query.data.expiresAt, serverNow.getTime());
   return (
     <div className="space-y-5">
       <h1 className="text-3xl font-semibold leading-tight text-heritage-primary">

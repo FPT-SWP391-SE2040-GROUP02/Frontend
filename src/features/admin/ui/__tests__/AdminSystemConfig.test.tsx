@@ -130,7 +130,10 @@ describe("AdminSystemConfig", () => {
     expect(
       await screen.findByText("Đã khôi phục về cấu hình mặc định của máy chủ."),
     ).toBeInTheDocument();
-    await waitFor(() => expect(get).toHaveBeenCalledTimes(2));
+    // Không đếm lời gọi đồng hồ hệ thống (/dev/clock) của hộp thoại: chỉ đếm lần tải và tải lại danh sách cấu hình.
+    await waitFor(() =>
+      expect(get.mock.calls.filter((call) => call[0] !== "/dev/clock")).toHaveLength(2),
+    );
   });
 
   it("hiện SePay với nhãn môi trường tiếng Việt, khóa che và không có ô dự phòng", async () => {

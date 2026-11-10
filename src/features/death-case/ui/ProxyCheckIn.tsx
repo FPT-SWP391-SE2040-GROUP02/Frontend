@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { useServerNow, useServerOffsetMs } from "@/shared/clock/useServerNow";
 import {
   Dialog,
   DialogContent,
@@ -15,9 +16,9 @@ import { buttonStyles } from "@/shared/ui/heritageKit";
 import { Input } from "@/shared/ui/input";
 import { deathCaseService } from "../api/deathCaseService";
 import {
+  createProxyCheckInFormSchema,
   nowForDateTimeInput,
   PROXY_CONTACT_METHODS,
-  proxyCheckInFormSchema,
   toProxyCheckInRequest,
   type ProxyCheckInFormValues,
 } from "../model/proxyCheckIn.schema";
@@ -36,13 +37,18 @@ export function ProxyCheckIn({ vaultId, left }: { vaultId: string; left?: number
   const [confirming, setConfirming] = useState(false);
   const client = useQueryClient();
   const action = usePrivateAction();
+  // "Bây giờ" theo giờ hệ thống (đang giả lập ngày thì khác giờ máy): Backend so giờ liên lạc với giờ của nó.
+  const offsetMs = useServerOffsetMs();
+  const serverNow = useServerNow();
+  const systemNowMs = useCallback(() => Date.now() + offsetMs, [offsetMs]);
+  const formSchema = useMemo(() => createProxyCheckInFormSchema(systemNowMs), [systemNowMs]);
   const form = useForm<ProxyCheckInFormValues>({
-    resolver: zodResolver(proxyCheckInFormSchema),
+    resolver: zodResolver(formSchema),
     mode: "onBlur",
     reValidateMode: "onBlur",
     defaultValues: {
       contactedWho: "",
-      contactedAt: nowForDateTimeInput(),
+      contactedAt: nowForDateTimeInput(serverNow),
       contactMethod: "PHONE",
     },
   });
@@ -53,7 +59,7 @@ export function ProxyCheckIn({ vaultId, left }: { vaultId: string; left?: number
     action.reset();
     form.reset({
       contactedWho: "",
-      contactedAt: nowForDateTimeInput(),
+      contactedAt: nowForDateTimeInput(new Date(Date.now() + offsetMs)),
       contactMethod: "PHONE",
     });
     setConfirming(true);

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useServerOffsetMs } from "@/shared/clock/useServerNow";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import type { VaultResponse } from "../model/vault.types";
 import {
@@ -49,15 +50,21 @@ export function VaultServiceInfo(props: VaultServiceInfoProps) {
 }
 
 function VaultServiceDetails({ service, showQuota = false }: VaultServiceInfoProps) {
-  const [now, setNow] = useState(Date.now);
+  // Hạn dịch vụ do server tính theo giờ hệ thống (có thể đang giả lập), nên so với giờ hệ thống chứ không phải giờ máy.
+  const offsetMs = useServerOffsetMs();
+  const [clientNow, setNow] = useState(Date.now);
+  const now = clientNow + offsetMs;
   const expiryTimestamp = Date.parse(service.serviceExpiresAt ?? "");
   // Cập nhật nhãn khi đến hạn, kể cả khi người dùng giữ trang mở; không tự thay đổi quyền.
   useEffect(() => {
     if (!Number.isFinite(expiryTimestamp) || expiryTimestamp <= now) return;
-    const delay = Math.max(0, Math.min(expiryTimestamp - Date.now() + 1, 2_147_483_647));
+    const delay = Math.max(
+      0,
+      Math.min(expiryTimestamp - (Date.now() + offsetMs) + 1, 2_147_483_647),
+    );
     const timeout = window.setTimeout(() => setNow(Date.now()), delay);
     return () => window.clearTimeout(timeout);
-  }, [expiryTimestamp, now]);
+  }, [expiryTimestamp, now, offsetMs]);
 
   const status = getVaultServiceStatus(service, now);
   const expiry = formatVaultServiceExpiry(service.serviceExpiresAt);

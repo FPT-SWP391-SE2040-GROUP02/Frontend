@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Mail } from "lucide-react";
 import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
+import { useServerNow } from "@/shared/clock/useServerNow";
 import { useMyInvitations } from "../model/useMyInvitations";
 import { remainingTime } from "../lib/myInvitationHelpers";
 
@@ -10,11 +11,12 @@ import { remainingTime } from "../lib/myInvitationHelpers";
  */
 export function MyInvitationsBanner({ invitationsHref }: { invitationsHref: string }) {
   const invitations = useMyInvitations();
+  const serverNow = useServerNow();
   if (!invitations.isSuccess) return null;
   const pending = invitations.data.pending;
   if (pending.length === 0) return null;
   const first = pending[0];
-  const remaining = remainingTime(first.expiresAt);
+  const remaining = remainingTime(first.expiresAt, serverNow.getTime());
   const others = pending.length - 1;
   return (
     <section

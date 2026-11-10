@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { ROUTES } from "@/shared/config/routes.config";
+import { useServerNow } from "@/shared/clock/useServerNow";
 import {
   PAYMENT_FILTER_LABELS,
   PAYMENT_STATUS_LABELS,
@@ -74,6 +75,7 @@ function periodRange(key: PeriodKey, now: Date): { from: string; to: string } {
  */
 export function AdminPayments() {
   const params = useAdminPaymentParams();
+  const serverNow = useServerNow();
   return (
     <div className="mt-6 space-y-4">
       <ListFilterBar onClear={params.hasFilters ? params.clearFilters : undefined}>
@@ -105,7 +107,7 @@ export function AdminPayments() {
           onChange={(value) => params.setEnvironment(value || undefined)}
         />
         {PERIODS.map((period) => {
-          const range = periodRange(period.key, new Date());
+          const range = periodRange(period.key, serverNow);
           return (
             <ListPill
               key={period.key}

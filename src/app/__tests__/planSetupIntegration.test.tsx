@@ -158,6 +158,17 @@ it("keeps inspect separate from acceptance, sends token in body and never caches
   const token = "synthetic-invitation-token-at-least-32-characters";
   const requests: { url?: string; data: unknown }[] = [];
   apiClient.defaults.adapter = async (config) => {
+    if (config.url === "/dev/clock") {
+      // Đồng hồ hệ thống (chế độ demo) chạy song song với lời mời; không thuộc luồng lời mời nên không đếm.
+      const now = new Date().toISOString();
+      return {
+        data: { nowUtc: now, realNowUtc: now, offsetSeconds: 0, isSimulated: false },
+        config,
+        status: 200,
+        statusText: "OK",
+        headers: new AxiosHeaders(),
+      };
+    }
     requests.push({ url: config.url, data: config.data });
     return {
       data: config.url?.endsWith("inspect")

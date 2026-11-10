@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
@@ -185,6 +186,10 @@ describe("OwnerVaultPanel", () => {
   it("uses the current time immediately when a refetch changes the service", () => {
     const clock = vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-10-20T10:00:00Z"));
     try {
+      // VaultServiceInfo đọc độ lệch giờ hệ thống bằng TanStack Query nên cần QueryClientProvider.
+      const withQuery = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
       const view = render(
         <VaultServiceInfo
           service={{
@@ -194,6 +199,7 @@ describe("OwnerVaultPanel", () => {
             serviceExpiresAt: null,
           }}
         />,
+        { wrapper: withQuery },
       );
       clock.mockReturnValue(Date.parse("2026-10-20T11:00:00Z"));
       view.rerender(

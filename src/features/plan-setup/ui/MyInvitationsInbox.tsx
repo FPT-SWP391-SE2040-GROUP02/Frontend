@@ -4,6 +4,7 @@ import { Check, CircleAlert } from "lucide-react";
 import { buttonStyles, Chip, Initial, Notice, Panel } from "@/shared/ui/heritageKit";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDate } from "@/shared/lib/dateFormat";
+import { useServerNow } from "@/shared/clock/useServerNow";
 import { planSetupService } from "../api/planSetupService";
 import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
@@ -109,7 +110,8 @@ function PendingInvitationCard({
   const client = useQueryClient();
   const action = usePrivateAction();
   const [acknowledge, setAcknowledge] = useState(false);
-  const remaining = remainingTime(invitation.expiresAt);
+  const serverNow = useServerNow();
+  const remaining = remainingTime(invitation.expiresAt, serverNow.getTime());
   const respond = (accept: boolean) => {
     void action.execute(
       () => planSetupService.respondById(invitation.id, accept, acknowledge, scopeVersion),
