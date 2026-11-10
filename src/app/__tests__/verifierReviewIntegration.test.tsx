@@ -67,8 +67,6 @@ const detailFixture = {
     },
   ],
   decisions: [],
-  ownerNotice: { status: "DELIVERED", deliveredAt: CREATED_AT },
-  objectionEndsAt: null,
   assignment: { assignedAt: CREATED_AT, dueAt: CREATED_AT },
   canApprove: false,
   approveBlockers: ["FLAGS_NOT_REVIEWED"],
@@ -95,7 +93,6 @@ const summaryFixture = {
   submittedAt: CREATED_AT,
   assignedAt: CREATED_AT,
   dueAt: CREATED_AT,
-  objectionEndsAt: null,
   unreviewedFlagCount: 1,
   closedAt: null,
 };
@@ -207,7 +204,7 @@ it("Tải lại cập nhật quyền duyệt của hồ sơ đang chọn kể c�
       ? {
           ...detailFixture,
           canApprove: eligible,
-          approveBlockers: eligible ? [] : ["OBJECTION_PERIOD_NOT_OVER"],
+          approveBlockers: eligible ? [] : ["FLAGS_NOT_REVIEWED"],
         }
       : listFixture,
   );
@@ -532,7 +529,7 @@ it("hiện mốc thời gian hồ sơ đã nộp và hồ sơ trước bị từ
 
 it("hồ sơ không có hồ sơ trước thì không hiện khối từ chối", async () => {
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? { ...detailFixture, ownerNotice: null } : listFixture,
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
   );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
   await screen.findByRole("region", { name: "Mốc thời gian" });

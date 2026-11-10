@@ -28,7 +28,7 @@ export function DocumentCheckPanel() {
   // 2. [INPUT & OUTPUT]: sessionId + ảnh FRONT/BACK -> DTO chất lượng/OCR/trạng thái BE.
   // 3. [CÁC BƯỚC]: Sau EKYC-01 chốt multipart /ekyc/sessions/{id}/document; model/schema -> service -> hooks; gửi khi xác nhận; UI bốn trạng thái.
   // 4. [HÀM / THƯ VIỆN]: FormData/shared transport, RHF/Zod, TanStack Query.
-  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Sai mặt/ảnh mờ/thiếu OCR/timeout/expired; purpose OWNER_ENROLLMENT/BENEFICIARY_CLAIM/OWNER_ALIVE phải chốt enum; không lưu ảnh vào storage/log.
+  // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Sai mặt/ảnh mờ/thiếu OCR/timeout/expired; purpose OWNER_ENROLLMENT/BENEFICIARY_CLAIM phải chốt enum; không lưu ảnh vào storage/log.
   return (
     <div className="grid items-start gap-6 xl:grid-cols-2">
       <section

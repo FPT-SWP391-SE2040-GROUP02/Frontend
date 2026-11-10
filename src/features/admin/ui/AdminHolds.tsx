@@ -227,7 +227,6 @@ function HoldDetailBody({
 }) {
   const client = useQueryClient();
   const active = hold.status === "ACTIVE";
-  const ownerAlive = hold.type === "OWNER_ALIVE";
   return (
     <div className="mt-6 space-y-6" aria-busy={refreshing}>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -265,15 +264,6 @@ function HoldDetailBody({
         </dl>
       </section>
 
-      {active && ownerAlive && (
-        <p
-          role="status"
-          className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"
-        >
-          Tạm giữ cũ từ luồng báo còn sống đã gỡ. Chỉ hệ thống gỡ được, quản trị viên không thao tác
-          được.
-        </p>
-      )}
       <p role="note" className="text-sm text-heritage-muted">
         Tạm giữ do hệ thống đặt và gỡ. Quản trị viên chỉ xem, không có thao tác trên tạm giữ.
       </p>

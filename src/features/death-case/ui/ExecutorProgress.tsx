@@ -12,13 +12,6 @@ import { buttonStyles, Chip, formatDateTime, InfoRow, Panel } from "@/shared/ui/
 import { caseStatusInfo } from "./executorLabels";
 import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
-const noticeStatusLabels: Record<string, string> = {
-  PENDING: "Đang gửi",
-  DELIVERED: "Đã gửi",
-  FAILED: "Chưa gửi được",
-  CANCELLED: "Đã hủy",
-};
-
 const stepStyles: Record<StepState, string> = {
   done: "border-[#2E9E6E] bg-[#2E9E6E] text-white",
   current: "border-[#1A4B3B] bg-[#1A4B3B] text-white ring-4 ring-[#BFE6D3]",
@@ -148,11 +141,6 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
           <Panel title="Đang chờ">
             <dl>
               <InfoRow label="Chủ kho">{vault.ownerFullName}</InfoRow>
-              <InfoRow label="Thông báo">
-                {record.ownerNotice
-                  ? (noticeStatusLabels[record.ownerNotice.status] ?? record.ownerNotice.status)
-                  : "Chưa gửi hồ sơ"}
-              </InfoRow>
             </dl>
           </Panel>
         </div>

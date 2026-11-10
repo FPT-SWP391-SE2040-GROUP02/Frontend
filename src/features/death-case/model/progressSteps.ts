@@ -151,11 +151,6 @@ export function deriveLog(record: DeathCase | null | undefined): LogEntry[] {
   if (version.submittedAt) {
     entries.push({ at: version.submittedAt, text: `Bạn gửi hồ sơ (bản ${version.versionNo})` });
   }
-  if (record.ownerNotice?.deliveredAt) {
-    entries.push({ at: record.ownerNotice.deliveredAt, text: "Hệ thống đã nhắn cho Chủ kho" });
-  } else if (record.ownerNotice?.status === "FAILED" && record.updatedAt) {
-    entries.push({ at: record.updatedAt, text: "Chưa gửi được thông báo cho Chủ kho" });
-  }
   if (record.supplementRequest) {
     entries.push({
       at: record.supplementRequest.requestedAt,

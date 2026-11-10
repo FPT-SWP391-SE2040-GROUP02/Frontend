@@ -53,8 +53,6 @@ function deathCase(status: string, extra: Record<string, unknown> = {}) {
     },
     reviewVersionNo: null,
     missingRequirements: ["DATE_OF_DEATH", "FILES"],
-    ownerNotice: null,
-    objectionEndsAt: null,
     createdAt: CREATED_AT,
     updatedAt: null,
     etag: "case-v1",
@@ -927,7 +925,6 @@ describe("progress steps", () => {
     const log = deriveLog(
       record("UNDER_REVIEW", {
         createdAt: "2026-10-18T08:00:00Z",
-        ownerNotice: { status: "DELIVERED", deliveredAt: "2026-10-20T07:00:00Z" },
         currentVersion: {
           ...deathCase("UNDER_REVIEW").currentVersion,
           submittedAt: "2026-10-19T08:00:00Z",
@@ -935,7 +932,6 @@ describe("progress steps", () => {
       }),
     );
     expect(log.map((entry) => entry.text)).toEqual([
-      "Hệ thống đã nhắn cho Chủ kho",
       "Bạn gửi hồ sơ (bản 1)",
       "Bạn mở hồ sơ báo tin",
     ]);

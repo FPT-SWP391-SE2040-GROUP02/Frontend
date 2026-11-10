@@ -431,11 +431,9 @@ function IncidentDetailBody({
     role: detail.assigneeRole,
   }).name;
   const open = detail.status !== "RESOLVED";
-  // Sự cố cũ từ luồng báo còn sống đi theo hồ sơ nên không giao hay đóng tay (BE chặn INCIDENT_FOLLOWS_CASE).
-  const followsCase = detail.type === "OWNER_ALIVE";
   const canReassign =
     open &&
-    (detail.type === "NO_VERIFIER" || followsCase) &&
+    detail.type === "NO_VERIFIER" &&
     detail.targetType === INCIDENT_TARGET_DEATH_CASE &&
     detail.targetId !== null;
   // Kho bị kẹt không còn Người thực thi hoạt động: Admin giao người mới; người này phải chấp nhận lời mời.
@@ -501,19 +499,17 @@ function IncidentDetailBody({
                   Giao Người thực thi
                 </Button>
               )}
-              {!followsCase && (
-                <Button
-                  className="min-h-11"
-                  variant={canAssignExecutor ? "outline" : "default"}
-                  onClick={() => setDialog("assign")}
-                >
-                  Giao người phụ trách
-                </Button>
-              )}
+              <Button
+                className="min-h-11"
+                variant={canAssignExecutor ? "outline" : "default"}
+                onClick={() => setDialog("assign")}
+              >
+                Giao người phụ trách
+              </Button>
               {canReassign && (
                 <Button
                   className="min-h-11"
-                  variant={followsCase ? "default" : "outline"}
+                  variant="outline"
                   onClick={() => setDialog("reassign")}
                 >
                   Giao người xét duyệt
@@ -525,18 +521,9 @@ function IncidentDetailBody({
               <Button className="min-h-11" variant="outline" onClick={() => setDialog("review")}>
                 Hẹn xem lại
               </Button>
-              {!followsCase && (
-                <Button className="min-h-11" variant="outline" onClick={() => setDialog("resolve")}>
-                  Đóng sự cố
-                </Button>
-              )}
-              {followsCase && (
-                <p role="note" className="basis-full text-sm text-heritage-muted">
-                  Sự cố này đi theo hồ sơ: người phụ trách là người xét duyệt đang giữ hồ sơ, và sự
-                  cố tự đóng khi người đó kết luận lời báo. Muốn đổi người, dùng Giao người xét
-                  duyệt.
-                </p>
-              )}
+              <Button className="min-h-11" variant="outline" onClick={() => setDialog("resolve")}>
+                Đóng sự cố
+              </Button>
             </section>
           ) : (
             <p role="status" className="text-sm text-heritage-muted">
@@ -665,11 +652,7 @@ function IncidentDetailBody({
         <AdminActionDialog
           key={dialogKey}
           title="Giao người xét duyệt cho hồ sơ"
-          description={
-            followsCase
-              ? "Hồ sơ và sự cố cùng chuyển sang người được chọn; người cũ mất quyền xem hồ sơ."
-              : "Chọn người xét duyệt thay thế. Người được chọn không được có xung đột lợi ích với hồ sơ."
-          }
+          description="Chọn người xét duyệt thay thế. Người được chọn không được có xung đột lợi ích với hồ sơ."
           submitLabel="Giao người xét duyệt"
           fields={[
             { name: "verifierUserId", label: "Người xét duyệt", kind: "user", roles: ["VERIFIER"] },

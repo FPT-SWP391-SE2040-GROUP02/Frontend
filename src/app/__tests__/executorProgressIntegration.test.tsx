@@ -127,8 +127,6 @@ function deathCase(status: string) {
     },
     reviewVersionNo: status === "DRAFT" ? null : 1,
     missingRequirements: [],
-    ownerNotice: status === "DRAFT" ? null : { status: "CANCELLED", deliveredAt: null },
-    objectionEndsAt: null,
     createdAt: CREATED_AT,
     updatedAt: null,
     etag: "case-v1",
@@ -419,15 +417,6 @@ it("shows the reject reason of a rejected case and no supplement block", async (
   expect(await screen.findByRole("heading", { name: "Hồ sơ đã bị từ chối" })).toBeInTheDocument();
   expect(screen.getByText("Lý do: Giấy chứng tử không khớp CCCD Chủ kho")).toBeInTheDocument();
   expect(screen.queryByText(/Yêu cầu từ Người xét duyệt/)).not.toBeInTheDocument();
-});
-
-it("accepts an owner notice cancelled by a rejection instead of failing to read the case", async () => {
-  const get = vi
-    .spyOn(apiClient, "get")
-    .mockResolvedValue({ ...deathCase("REJECTED"), rejectReason: "fixture" });
-  const record = await deathCaseService.get(CASE_ID);
-  expect(record.ownerNotice?.status).toBe("CANCELLED");
-  expect(get).toHaveBeenCalledTimes(1);
 });
 
 it("opens the last rejected case from the report page and shows its reason", async () => {

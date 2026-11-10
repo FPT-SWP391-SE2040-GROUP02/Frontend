@@ -38,7 +38,6 @@ export const queueCategoryLabels: Record<QueueCategory, { label: string; tone: V
 
 interface QueueCategorySource {
   status: Status;
-  objectionEndsAt: string | null;
 }
 
 /** Chờ bổ sung khi Executor đang sửa hồ sơ; còn lại là chờ xét duyệt ngay. */
@@ -50,7 +49,7 @@ export function queueCategory(item: QueueCategorySource): QueueCategory {
 const HOUR_MS = 3_600_000;
 const DAY_MS = 24 * HOUR_MS;
 
-/** Cột "Thời gian" của hàng chờ: thời gian đã chờ, giờ còn lại của thời gian phản đối, hoặc việc cần làm. */
+/** Cột "Thời gian" của hàng chờ: thời gian đã chờ, hoặc việc cần làm. */
 export function queueTimeText(
   item: QueueCategorySource & { assignedAt: string },
   category: QueueCategory,
@@ -76,8 +75,6 @@ export interface ConditionRow {
 const conditionReasons: Record<Blocker, string> = {
   NOT_UNDER_REVIEW: "hồ sơ không còn ở bước xét duyệt",
   NEWER_VERSION_PENDING: "đang có bản mới chờ xét",
-  OWNER_NOT_NOTIFIED: "chưa báo cho chủ kho",
-  OBJECTION_PERIOD_NOT_OVER: "chưa hết thời gian chủ kho được phản đối",
   FLAGS_NOT_REVIEWED: "còn cảnh báo chưa kiểm tra",
   VERIFIER_CONFLICT: "bạn có quan hệ với kho này",
 };
@@ -85,33 +82,15 @@ const conditionReasons: Record<Blocker, string> = {
 const conditionTitles: Record<Blocker, string> = {
   NOT_UNDER_REVIEW: "Hồ sơ đang ở bước xét duyệt",
   NEWER_VERSION_PENDING: "Không có bản mới chờ xét",
-  OWNER_NOT_NOTIFIED: "Đã báo chủ kho",
-  OBJECTION_PERIOD_NOT_OVER: "Đã hết thời gian phản đối",
   FLAGS_NOT_REVIEWED: "Mọi cảnh báo đã được kiểm tra",
   VERIFIER_CONFLICT: "Không có quan hệ với kho này",
 };
 
-/** Giờ và phút còn lại tới mốc, dạng "23 giờ 40 phút"; mốc đã qua thì null. */
-function remainingText(endsAt: string, now: number): string | null {
-  const minutes = Math.ceil((new Date(endsAt).getTime() - now) / 60_000);
-  if (minutes <= 0) return null;
-  return `${Math.floor(minutes / 60)} giờ ${minutes % 60} phút`;
-}
-
 /** Mỗi lý do chặn duyệt thành một dòng điều kiện (tên điều kiện, giải thích, nhãn chip) cho thẻ "Điều kiện để duyệt". */
-export function conditionRows(
-  blockers: Blocker[],
-  objectionEndsAt: string | null,
-  unreviewedFlags: number,
-  now: number,
-): ConditionRow[] {
+export function conditionRows(blockers: Blocker[], unreviewedFlags: number): ConditionRow[] {
   return blockers.map((key) => {
     let detail = blockerLabels[key];
     let chip = "Chặn duyệt";
-    if (key === "OBJECTION_PERIOD_NOT_OVER" && objectionEndsAt) {
-      const left = remainingText(objectionEndsAt, now);
-      if (left) detail = `Còn ${left}. Chưa thể duyệt.`;
-    }
     if (key === "FLAGS_NOT_REVIEWED") {
       detail = `Còn ${unreviewedFlags} cảnh báo chưa kiểm tra.`;
       chip = "Thiếu";

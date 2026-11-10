@@ -24,7 +24,6 @@ import { adminActionError } from "@/features/admin/model/adminError";
 const INCIDENT_ID = "11111111-1111-4111-8111-111111111111";
 const CASE_ID = "22222222-2222-4222-8222-222222222222";
 const HOLD_ID = "33333333-3333-4333-8333-333333333333";
-const OWNER_ALIVE_HOLD_ID = "44444444-4444-4444-8444-444444444444";
 const VERIFIER_ID = "55555555-5555-4555-8555-555555555555";
 const OTHER_USER_ID = "66666666-6666-4666-8666-666666666666";
 const ADMIN_ID = VAULT_ID;
@@ -371,36 +370,6 @@ describe("Sự cố", () => {
     expect(screen.queryByRole("button", { name: "Giao người xét duyệt" })).not.toBeInTheDocument();
   });
 
-  it("sự cố chủ kho báo còn sống chỉ cho giao lại người xét duyệt của hồ sơ, không giao hay đóng tay", async () => {
-    backend((call) => {
-      if (call.url === `/admin/incidents/${INCIDENT_ID}`)
-        return incidentDetail({ type: "OWNER_ALIVE", status: "IN_PROGRESS" });
-      if (call.url === "/admin/users")
-        return call.params?.role === "VERIFIER"
-          ? page([userBody(VERIFIER_ID, "VERIFIER", "Cô Lan")])
-          : page([]);
-      return undefined;
-    });
-    setup(`${incidentsPath}&incident=${INCIDENT_ID}`);
-    fireEvent.click(await screen.findByRole("button", { name: "Giao người xét duyệt" }));
-    expect(screen.queryByRole("button", { name: "Giao người phụ trách" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Đóng sự cố" })).not.toBeInTheDocument();
-    expect(screen.getByText(/Sự cố này đi theo hồ sơ/)).toBeInTheDocument();
-    const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent("Hồ sơ và sự cố cùng chuyển");
-    await userEvent.selectOptions(
-      await within(dialog).findByLabelText("Người xét duyệt"),
-      VERIFIER_ID,
-    );
-    await userEvent.type(within(dialog).getByLabelText("Lý do"), "Người cũ nghỉ phép");
-    fireEvent.click(within(dialog).getByRole("checkbox"));
-    fireEvent.click(within(dialog).getByRole("button", { name: "Giao người xét duyệt" }));
-    await waitFor(() =>
-      expect(callsTo("post", `/admin/death-cases/${CASE_ID}/reassign-verifier`)).toHaveLength(1),
-    );
-    expect(calls.some((call) => call.url.endsWith("/assign"))).toBe(false);
-  });
-
   it("hẹn xem lại gửi thời điểm ISO và đúng etag", async () => {
     backend((call) =>
       call.url === `/admin/incidents/${INCIDENT_ID}` ? incidentDetail() : page([]),
@@ -423,14 +392,6 @@ describe("Sự cố", () => {
 });
 
 describe("Tạm giữ (chỉ xem)", () => {
-  it("hold cũ từ luồng báo còn sống giải thích vì sao và không có nút thao tác", async () => {
-    backend(() => holdBody({ id: OWNER_ALIVE_HOLD_ID, type: "OWNER_ALIVE" }));
-    setup(`${holdsPath}&hold=${OWNER_ALIVE_HOLD_ID}`);
-    expect(await screen.findByText(/chỉ hệ thống gỡ được/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Hẹn rà soát" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Gỡ tạm giữ" })).not.toBeInTheDocument();
-  });
-
   it("chi tiết hold khác cũng chỉ xem, không có nút hẹn rà soát hay gỡ", async () => {
     backend(() => holdBody());
     setup(`${holdsPath}&hold=${HOLD_ID}`);

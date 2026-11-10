@@ -250,18 +250,6 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     src: "DeathCaseRules.ReviewDueHours",
     dataType: "NUMBER",
   },
-  {
-    key: "DeathCase.MaxNoticeAttempts",
-    label: "Số lần thông báo cho Chủ kho",
-    category: "DeathCase",
-    categoryTitle: "Hồ sơ chứng tử",
-    unit: "lần",
-    step: 1,
-    defaultValue: "5",
-    description: "Số lần gửi thông báo trước khi hệ thống đánh dấu lỗi và mở sự cố vận hành.",
-    src: "DeathCaseRules.MaxNoticeAttempts",
-    dataType: "NUMBER",
-  },
 
   // 6. Sự cố & Tạm giữ (Incident & Hold)
   {

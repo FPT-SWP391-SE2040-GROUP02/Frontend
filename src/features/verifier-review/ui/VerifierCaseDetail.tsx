@@ -162,12 +162,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       done: false,
     });
   }
-  const conditions = conditionRows(
-    detail.approveBlockers,
-    detail.objectionEndsAt,
-    unreviewedFlags,
-    query.dataUpdatedAt,
-  );
+  const conditions = conditionRows(detail.approveBlockers, unreviewedFlags);
   const blockedReason = conditions.map((row) => row.reason).join("; ");
   const openModal = (kind: "approve" | "reviewFlag" | "supplement", flagId?: string) => {
     const next = new URLSearchParams(params);

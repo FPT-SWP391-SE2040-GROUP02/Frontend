@@ -378,8 +378,6 @@ it("uses the real death-case routes and parses away any full ID accidentally add
     },
     reviewVersionNo: null,
     missingRequirements: ["FILES"],
-    ownerNotice: null,
-    objectionEndsAt: null,
     createdAt: CREATED_AT,
     updatedAt: null,
     etag: "case-v1",
