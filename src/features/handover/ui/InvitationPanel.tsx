@@ -48,14 +48,6 @@ export function InvitationPanel() {
         <p className="text-sm text-heritage-muted">
           Nếu bạn sao chép liên kết từ thư, kiểm tra đã chép đủ.
         </p>
-        <p className="text-sm text-heritage-muted">
-          <Link
-            className="font-semibold text-heritage-primary underline"
-            to={ROUTES.PUBLIC.CONTACT}
-          >
-            Liên hệ hỗ trợ
-          </Link>
-        </p>
       </div>
     );
   // Đăng nhập và đăng ký đều mang lời mời theo, để xong việc người dùng quay lại đúng trang này.

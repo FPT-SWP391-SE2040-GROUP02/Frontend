@@ -177,21 +177,17 @@ it("confirms an accepted turn once at the top of the card and keeps the countdow
   expect(countdown.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 
-it("tells a recipient with no turn what the page will show and where to ask", async () => {
+it("tells a recipient with no turn how to get the invitation, with no support link", async () => {
   backendReturns([]);
   setup(<HandoverPortal />);
   expect(await screen.findByText(/Mở lại liên kết trong thư mời/)).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Liên hệ hỗ trợ" })).toHaveAttribute("href", "/contact");
+  expect(screen.queryByRole("link", { name: "Liên hệ hỗ trợ" })).not.toBeInTheDocument();
 });
 
-it("offers help under a terminal state and not under a plain decline", async () => {
+it("shows no support link under a terminal state either", async () => {
   backendReturns([turn("CANCELLED")]);
   setup(<HandoverPortal />);
-  expect(await screen.findByRole("link", { name: "Liên hệ hỗ trợ" })).toBeInTheDocument();
-  cleanup();
-  backendReturns([turn("DECLINED")]);
-  setup(<HandoverPortal />);
-  await screen.findByText("Bạn đã từ chối lượt bàn giao này.");
+  await screen.findByText(/Lượt bàn giao này đã bị hủy/);
   expect(screen.queryByRole("link", { name: "Liên hệ hỗ trợ" })).not.toBeInTheDocument();
 });
 
