@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
@@ -45,6 +45,7 @@ beforeEach(() => accessTokenMemory.set("fixture-token"));
 afterEach(() => {
   vi.restoreAllMocks();
   accessTokenMemory.clear();
+  window.sessionStorage.clear();
 });
 
 describe("RecipientDocumentPanel: chọn Chấp nhận hoặc Từ chối", () => {
@@ -290,5 +291,57 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     expect(
       screen.getByRole("button", { name: "Ký và gửi cho Người xét duyệt" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("RecipientDocumentPanel: giữ nháp Phần 2 khi tải lại trang", () => {
+  it("họ tên và ngày sinh đã gõ còn nguyên sau khi tải lại, số căn cước thì không", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue(recipientTurn());
+    renderPanel();
+
+    const name = await screen.findByLabelText("Họ tên");
+    await user.clear(name);
+    await user.type(name, "Trần Minh Anh B");
+    await user.type(screen.getByLabelText(/Ngày sinh/), "1990-01-01");
+    await user.type(screen.getByLabelText(/Số căn cước/), "012345671234");
+    cleanup();
+    renderPanel();
+
+    expect(await screen.findByLabelText("Họ tên")).toHaveValue("Trần Minh Anh B");
+    expect(screen.getByLabelText(/Ngày sinh/)).toHaveValue("1990-01-01");
+    expect(screen.getByLabelText(/Số căn cước/)).toHaveValue("");
+    expect(screen.getByLabelText(/Tôi đã đọc các điều khoản trên/)).not.toBeChecked();
+  });
+
+  it("ký xong thì xóa nháp", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue(recipientTurn());
+    vi.spyOn(apiClient, "post").mockResolvedValue({
+      id: "0199e7a4-1111-7c3e-9a51-3f0f5d2b8a10",
+      turnId: TURN_ID,
+      kind: "ACCEPT",
+      status: "SUBMITTED",
+      supplementReason: null,
+      createdAt: "2026-11-10T04:00:00+00:00",
+    });
+    renderPanel();
+
+    await user.type(await screen.findByLabelText(/Ngày sinh/), "1990-01-01");
+    await user.type(screen.getByLabelText(/Số căn cước/), "012345671234");
+    await user.type(screen.getByLabelText(/^Nơi thường trú/), "34 Trần Hưng Đạo, Hà Nội");
+    await user.upload(
+      screen.getByLabelText("Căn cước mặt trước"),
+      new File(["a"], "truoc.png", { type: "image/png" }),
+    );
+    await user.upload(
+      screen.getByLabelText("Căn cước mặt sau"),
+      new File(["b"], "sau.jpg", { type: "image/jpeg" }),
+    );
+    await user.click(screen.getByLabelText(/Tôi đã đọc các điều khoản trên/));
+    expect(window.sessionStorage.length).toBe(1);
+    await user.click(screen.getByRole("button", { name: "Ký và gửi cho Người xét duyệt" }));
+
+    await waitFor(() => expect(window.sessionStorage.length).toBe(0));
   });
 });
