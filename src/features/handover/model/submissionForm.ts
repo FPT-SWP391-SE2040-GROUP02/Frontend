@@ -6,7 +6,7 @@ export interface SubmissionDraft {
   fullName: string;
   citizenId: string;
   dateOfBirth: string;
-  /** Nơi thường trú ghi trên căn cước; in vào biên bản và Người xét duyệt đối chiếu với ảnh căn cước. */
+  /** Nơi thường trú ghi trên căn cước; tạm thời chỉ lưu xuống, chưa hiển thị hay in lên biên bản. */
   residenceAddress: string;
   front: File | null;
   back: File | null;

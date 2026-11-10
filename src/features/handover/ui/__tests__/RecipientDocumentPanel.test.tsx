@@ -134,7 +134,10 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("Người thực thi ký")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Họ tên")).toHaveValue("Trần Minh Anh");
-    expect(screen.getByText("12 Lê Lợi, Phường Bến Thành, TP. Hồ Chí Minh")).toBeInTheDocument();
+    // Nơi thường trú của Chủ kho tạm thời chỉ lưu xuống, không hiện ở Phần 1; ô của người nhận thì có để khai.
+    expect(
+      screen.queryByText("12 Lê Lợi, Phường Bến Thành, TP. Hồ Chí Minh"),
+    ).not.toBeInTheDocument();
     expect(screen.getByLabelText(/^Nơi thường trú/)).toHaveValue("");
   });
 
@@ -153,7 +156,6 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     renderPanel();
 
     expect(await screen.findAllByText("Chưa có trong hồ sơ chứng tử")).toHaveLength(3);
-    expect(screen.getByText("Chủ kho chưa xác minh danh tính")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ký và gửi cho Người xét duyệt" })).toBeEnabled();
   });
 
@@ -197,7 +199,8 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
       name: "Biên bản đồng ý nhận di sản thừa kế",
     });
     expect(text).toHaveTextContent("Chủ kho Nguyễn Văn A");
-    expect(text).toHaveTextContent("nơi thường trú: 12 Lê Lợi, Phường Bến Thành, TP. Hồ Chí Minh");
+    expect(text).not.toHaveTextContent("nơi thường trú");
+    expect(text).not.toHaveTextContent("12 Lê Lợi");
     expect(text).toHaveTextContent("số 0456/2026");
     expect(text).toHaveTextContent("Người lập văn bản");
     expect(text).toHaveTextContent("Người xét duyệt đã kiểm tra thủ công");
