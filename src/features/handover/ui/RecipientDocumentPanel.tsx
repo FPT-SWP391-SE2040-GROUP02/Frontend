@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CircleCheck, CircleX, TriangleAlert } from "lucide-react";
 import {
@@ -17,6 +17,7 @@ import {
 import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
 import { submissionFormError, type SubmissionDraft } from "../model/submissionForm";
+import { clearPartTwoDraft, readPartTwoDraft, writePartTwoDraft } from "../model/partTwoDraft";
 import { useHandoverAction } from "../model/useHandoverAction";
 import { HandoverTerms } from "./HandoverTerms";
 import { ImagePicker } from "./ImagePicker";
@@ -191,19 +192,26 @@ function RecipientPartForm({
   const action = useHandoverAction();
   const textId = useId();
   const [fullText, setFullText] = useState(false);
-  const [draft, setDraft] = useState<SubmissionDraft>({
-    kind: document.kind,
-    fullName: document.recipient.fullName,
-    citizenId: "",
-    dateOfBirth: "",
-    front: null,
-    back: null,
-    acknowledged: false,
-    voluntaryDecline: false,
+  const [draft, setDraft] = useState<SubmissionDraft>(() => {
+    // Tải lại trang thì lấy lại họ tên và ngày sinh đã gõ; số căn cước, ảnh và ô ký luôn bắt đầu trống.
+    const saved = readPartTwoDraft(turnId);
+    return {
+      kind: document.kind,
+      fullName: saved ? saved.fullName : document.recipient.fullName,
+      citizenId: "",
+      dateOfBirth: saved ? saved.dateOfBirth : "",
+      front: null,
+      back: null,
+      acknowledged: false,
+      voluntaryDecline: false,
+    };
   });
   const [touched, setTouched] = useState(false);
   const set = <K extends keyof SubmissionDraft>(key: K, value: SubmissionDraft[K]) =>
     setDraft((previous) => ({ ...previous, [key]: value }));
+  useEffect(() => {
+    writePartTwoDraft(turnId, { fullName: draft.fullName, dateOfBirth: draft.dateOfBirth });
+  }, [turnId, draft.fullName, draft.dateOfBirth]);
   // Ô tick ký cũng là lời xác nhận tự nguyện từ chối, vì câu ký đã nêu rõ không nhằm trốn tránh nghĩa vụ tài sản.
   const toSend: SubmissionDraft = {
     ...draft,
@@ -214,7 +222,13 @@ function RecipientPartForm({
   const submit = () => {
     setTouched(true);
     if (error) return;
-    void action.execute(() => handoverService.submitSubmission(turnId, toSend), onDone);
+    void action.execute(
+      () => handoverService.submitSubmission(turnId, toSend),
+      () => {
+        clearPartTwoDraft(turnId);
+        onDone();
+      },
+    );
   };
   return (
     <div className="space-y-4">
