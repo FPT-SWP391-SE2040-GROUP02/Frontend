@@ -35,6 +35,15 @@ export const recipientReviewService = {
       await apiClient.post<unknown, unknown>(`${base(value)}/approve`),
     );
   },
+  /**
+   * Luồng Biên Bản: kiểm tra thủ công (tick đủ bốn mục và xác nhận trách nhiệm) rồi gửi. Hoàn tất biên bản và kết thúc lượt:
+   * Chấp nhận thì mở quyền tải tài sản, Từ chối thì ghi nhận từ chối.
+   */
+  async complete(value: string, checks: boolean[], acknowledged: boolean) {
+    return recipientSubmissionDetailSchema.parse(
+      await apiClient.post<unknown, unknown>(`${base(value)}/complete`, { checks, acknowledged }),
+    );
+  },
   async requestSupplement(value: string, reason: string) {
     return recipientSubmissionDetailSchema.parse(
       await apiClient.post<unknown, unknown>(

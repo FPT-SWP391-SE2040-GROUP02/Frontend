@@ -27,6 +27,8 @@ export const recipientSubmissionDetailSchema = recipientSubmissionSummarySchema.
   voluntaryDecline: z.boolean(),
   supplementReason: z.string().nullish(),
   itemCount: z.number().int().min(0),
+  /** Id biên bản mà hồ sơ thuộc về; null với hồ sơ luồng cũ chưa có biên bản. */
+  documentId: z.string().uuid().nullish(),
   canApprove: z.boolean(),
   canRequestSupplement: z.boolean(),
 });
