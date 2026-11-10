@@ -69,7 +69,7 @@ describe("HandoverDocumentList", () => {
     const text = screen.getByRole("article", { name: "Văn bản từ chối nhận di sản thừa kế" });
     expect(text).toHaveTextContent("gửi đến Người thực thi của kho");
     expect(text).toHaveTextContent("Sinh năm: 1990");
-    expect(text).toHaveTextContent("********1234");
+    expect(text).toHaveTextContent("Số Căn cước/CCCD: 079190001234 do Bộ Công an cấp");
   });
 
   it("hồ sơ chứng tử thiếu số giấy và ngày thì in dòng chấm, phần người nhận chưa khai hiện chú thích, chưa ký ghi rõ", async () => {
@@ -91,6 +91,7 @@ describe("HandoverDocumentList", () => {
             recipient: {
               fullName: "",
               birthYear: null,
+              citizenId: "",
               citizenIdLast4: "",
               residenceAddress: "",
               signedAt: null,

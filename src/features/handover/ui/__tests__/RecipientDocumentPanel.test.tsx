@@ -19,6 +19,7 @@ const recipientTurn = (over: Partial<HandoverDocument> = {}) =>
     recipient: {
       fullName: "Trần Minh Anh",
       birthYear: null,
+      citizenId: "",
       citizenIdLast4: "",
       residenceAddress: "",
       signedAt: null,

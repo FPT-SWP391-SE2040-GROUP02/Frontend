@@ -36,6 +36,7 @@ export const handoverDocumentSchema = z.object({
   recipient: z.object({
     fullName: z.string(),
     birthYear: z.number().int().nullable(),
+    citizenId: z.string().default(""),
     citizenIdLast4: z.string(),
     /** Nơi thường trú người nhận khai lúc ký (tạm thời chỉ lưu, chưa hiển thị); rỗng khi chưa ký. */
     residenceAddress: z.string().default(""),
