@@ -7,6 +7,7 @@ import { OverviewIcon, TrustedIcon } from "@/shared/ui/LegacyVaultArtwork";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { FileText } from "lucide-react";
 
 const shell = {
   brand: "LegacyVault",
@@ -15,12 +16,13 @@ const shell = {
   logout: "Đăng xuất",
   overview: "Tổng quan",
   verify: "Xác minh",
+  documents: "Biên Bản",
   content: "Nội dung nhận",
   messages: "Lời nhắn",
 };
 
 /** Các khu vực giao diện của cổng người nhận. */
-export type RecipientSection = "overview" | "verify" | "content" | "messages";
+export type RecipientSection = "overview" | "verify" | "documents" | "content" | "messages";
 
 /** Thuộc tính khung cổng người nhận; không chứa dữ liệu hoặc nghiệp vụ bàn giao. */
 export interface RecipientLayoutProps {
@@ -37,6 +39,7 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
   const items = [
     { id: "overview", label: shell.overview, icon: OverviewIcon, to: root },
     { id: "verify", label: shell.verify, icon: TrustedIcon, to: verify },
+    { id: "documents", label: shell.documents, icon: FileText, to: ROUTES.BENEFICIARY.DOCUMENTS },
   ];
   return (
     <WorkspaceShell

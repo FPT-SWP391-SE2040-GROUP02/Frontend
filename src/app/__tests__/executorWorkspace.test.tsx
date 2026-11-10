@@ -120,7 +120,7 @@ function setup(path: string) {
 }
 
 describe("Executor workspace shell", () => {
-  it("shows the four main menu items, the account links, the role switch and the account", async () => {
+  it("shows the five main menu items, the account links, the role switch and the account", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor");
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người thực thi" });
@@ -128,6 +128,7 @@ describe("Executor workspace shell", () => {
       "Tổng quan",
       "Báo tin",
       "Bàn giao",
+      "Biên Bản",
       "Tài sản",
     ]);
     const account = screen.getByRole("navigation", { name: "Tài khoản" });

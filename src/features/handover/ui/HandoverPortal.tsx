@@ -15,6 +15,11 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { buttonStyles, Chip, Notice, Panel, type Tone } from "@/shared/ui/heritageKit";
+import {
+  DocumentStatusChip,
+  HandoverDocumentDetail,
+  useTurnDocument,
+} from "@/entities/handoverDocument";
 import { handoverService } from "../api/handoverService";
 import type { handoverTurnSchema } from "../model/handover.schema";
 import { useGrantDownload } from "../model/useGrantDownload";
@@ -24,7 +29,7 @@ import { currentHandoverStep } from "../model/handoverStep";
 import { HandoverStepper } from "./HandoverStepper";
 import { HandoverTerms } from "./HandoverTerms";
 import { RecipientGuide } from "./RecipientGuide";
-import { RecipientSubmissionPanel } from "./RecipientSubmissionPanel";
+import { RecipientDocumentPanel } from "./RecipientDocumentPanel";
 
 type Turn = z.infer<typeof handoverTurnSchema>;
 
@@ -170,6 +175,12 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
   });
   // Người nhận đã chọn Chấp nhận hoặc Từ chối trong hồ sơ được duyệt thì chỉ hiện đúng nút đó (không có hồ sơ thì hiện cả hai).
   const chosenKind = approvedChoice.data?.status === "APPROVED" ? approvedChoice.data.kind : null;
+  // Biên bản đã ký của lượt đã kết thúc: hiện cạnh nút tải tài sản (đã nhận) hoặc đứng riêng (đã từ chối).
+  const documentQuery = useTurnDocument(
+    turn.id,
+    turn.status === "HANDOVER_COMMITTED" || turn.status === "DECLINED",
+  );
+  const signedDocument = documentQuery.data ?? null;
   const step = currentHandoverStep(turn.status);
   const hasGroupName = turn.container !== null;
   let groupName = "Lượt bàn giao";
@@ -224,13 +235,8 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
         </Panel>
       )}
       {turn.status === "IDENTITY_IN_PROGRESS" && (
-        <Panel title="Hồ sơ người nhận">
-          <RecipientSubmissionPanel
-            turnId={turn.id}
-            groupName={groupName}
-            serverTime={turn.serverTime}
-            onChanged={refresh}
-          />
+        <Panel title="Biên bản">
+          <RecipientDocumentPanel turnId={turn.id} groupName={groupName} onChanged={refresh} />
         </Panel>
       )}
       <Panel title="Chi tiết lượt nhận">
@@ -263,8 +269,9 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
           )}
           {turn.status === "IDENTITY_IN_PROGRESS" && (
             <p className="text-sm leading-6 text-heritage-muted">
-              Chọn Chấp nhận hoặc Từ chối và nộp hồ sơ ở khung “Hồ sơ người nhận” phía trên. Người
-              xét duyệt đối chiếu ảnh căn cước rồi mới mở bước quyết định cho bạn.
+              Chọn Chấp nhận hoặc Từ chối ở khung “Biên bản” phía trên. Thông tin về Chủ kho đã có
+              sẵn; bạn điền phần của mình và ký, rồi Người xét duyệt kiểm tra. Gửi xong là kết thúc
+              lượt.
             </p>
           )}
           {turn.reviewer && (
@@ -356,40 +363,66 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
           )}
         </Panel>
       )}
-      {turn.items.length > 0 && (
-        <Panel title="Các mục dành cho bạn">
-          <ul className="divide-y divide-heritage-border">
-            {turn.items.map((item) => (
-              <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <span className="min-w-0">
-                  <span className="block break-words text-sm font-semibold">{item.name}</span>
-                  <span className="block text-xs text-heritage-muted">
-                    {kindLabels[item.kind] ?? "Mục"} · {formatStorageSize(item.sizeBytes)}
-                  </span>
-                </span>
-                {turn.grant?.status === "ACTIVE" && (
-                  <button
-                    type="button"
-                    className={buttonStyles.outline}
-                    aria-label={`Tải xuống ${item.name}`}
-                    disabled={
-                      content.pending || action.pending || (turn.keyRequired && !turn.keyVerified)
-                    }
-                    onClick={() =>
-                      void content.download(
-                        () => handoverService.download(turn.grant!.id, item.id),
-                        (item.fileName ?? `${item.name}.txt`).replace(/[^\p{L}\p{N} ._()-]/gu, "_"),
-                      )
-                    }
+      {(turn.items.length > 0 || signedDocument) && (
+        <div
+          className={
+            signedDocument && turn.items.length > 0
+              ? "grid items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"
+              : "space-y-6"
+          }
+        >
+          {turn.items.length > 0 && (
+            <Panel title="Các mục dành cho bạn">
+              <ul className="divide-y divide-heritage-border">
+                {turn.items.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex flex-wrap items-center justify-between gap-3 py-3"
                   >
-                    <Download className="size-4" aria-hidden="true" />
-                    Tải xuống
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </Panel>
+                    <span className="min-w-0">
+                      <span className="block break-words text-sm font-semibold">{item.name}</span>
+                      <span className="block text-xs text-heritage-muted">
+                        {kindLabels[item.kind] ?? "Mục"} · {formatStorageSize(item.sizeBytes)}
+                      </span>
+                    </span>
+                    {turn.grant?.status === "ACTIVE" && (
+                      <button
+                        type="button"
+                        className={buttonStyles.outline}
+                        aria-label={`Tải xuống ${item.name}`}
+                        disabled={
+                          content.pending ||
+                          action.pending ||
+                          (turn.keyRequired && !turn.keyVerified)
+                        }
+                        onClick={() =>
+                          void content.download(
+                            () => handoverService.download(turn.grant!.id, item.id),
+                            (item.fileName ?? `${item.name}.txt`).replace(
+                              /[^\p{L}\p{N} ._()-]/gu,
+                              "_",
+                            ),
+                          )
+                        }
+                      >
+                        <Download className="size-4" aria-hidden="true" />
+                        Tải xuống
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+          {signedDocument && (
+            <Panel title="Biên bản bạn đã ký">
+              <div className="space-y-3">
+                <DocumentStatusChip document={signedDocument} />
+                <HandoverDocumentDetail document={signedDocument} />
+              </div>
+            </Panel>
+          )}
+        </div>
       )}
       {turn.status === "READY_TO_ACCEPT" && (
         <Panel title="Phản hồi">

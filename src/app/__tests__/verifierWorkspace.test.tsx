@@ -87,7 +87,7 @@ function setup(path: string) {
 }
 
 describe("Verifier workspace shell", () => {
-  it("shows the six menu items, the account and no role switch", async () => {
+  it("shows the seven menu items, the account and no role switch", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue(list([]));
     setup("/notary/workspace");
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người xét duyệt" });
@@ -95,6 +95,7 @@ describe("Verifier workspace shell", () => {
       "Tổng quan",
       "Hàng chờ",
       "Hồ sơ người nhận",
+      "Biên Bản",
       "Tiêu chí",
       "Lịch sử",
       "Cài đặt",

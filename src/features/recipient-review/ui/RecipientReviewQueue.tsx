@@ -2,6 +2,13 @@ import { useState, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ChevronRight, ImageOff } from "lucide-react";
+import {
+  DocumentSignatureBox,
+  HandoverDocumentDetail,
+  VERIFIER_CHECKS,
+  VERIFIER_CHECK_COUNT,
+  useVerifierDocuments,
+} from "@/entities/handoverDocument";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import {
@@ -177,6 +184,12 @@ function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void 
   const [supplementing, setSupplementing] = useState(false);
   const [reason, setReason] = useState("");
   const [done, setDone] = useState<string | null>(null);
+  const documents = useVerifierDocuments();
+  const [checks, setChecks] = useState<boolean[]>(() =>
+    new Array<boolean>(VERIFIER_CHECK_COUNT).fill(false),
+  );
+  const [acknowledged, setAcknowledged] = useState(false);
+  const [touched, setTouched] = useState(false);
 
   const back = (
     <button type="button" className={`${buttonStyles.outline} mb-4`} onClick={onBack}>
@@ -197,6 +210,23 @@ function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void 
     );
 
   const detail: RecipientSubmissionDetail = query.data;
+  const document = detail.documentId
+    ? (documents.data?.find((item) => item.id === detail.documentId) ?? null)
+    : null;
+  // Hồ sơ thuộc biên bản thì Người xét duyệt kiểm tra thủ công và chịu trách nhiệm, không còn bị chặn theo kết quả khớp tự động.
+  const forDocument = Boolean(detail.documentId);
+  const allChecked = checks.every(Boolean);
+  let checkError: string | null = null;
+  if (touched && !allChecked) checkError = "Phải tick đủ cả bốn mục kiểm tra thủ công.";
+  else if (touched && !acknowledged) checkError = "Hãy tick ô xác nhận trách nhiệm để gửi.";
+  const complete = () => {
+    setTouched(true);
+    if (!allChecked || !acknowledged) return;
+    void action.execute(
+      () => recipientReviewService.complete(id, checks, acknowledged),
+      () => refresh("Đã kiểm tra và gửi biên bản"),
+    );
+  };
   const refresh = (message: string) => {
     setDone(message);
     void client.invalidateQueries({ queryKey: recipientReviewKeys.all });
@@ -250,11 +280,15 @@ function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void 
             )}
           </dl>
           <p className="mt-4 text-xs text-heritage-muted">
-            Họ tên, ngày sinh và số căn cước đầy đủ không được lưu; hệ thống chỉ giữ kết quả đối
-            chiếu để bảo vệ dữ liệu người nhận.
+            Hệ thống chỉ giữ kết quả đối chiếu và 4 số cuối căn cước, không lưu họ tên, ngày sinh
+            hay số căn cước đầy đủ.
           </p>
         </Panel>
-        <Panel title="Ảnh căn cước hai mặt">
+        <Panel title={`Căn cước của ${document?.recipient.fullName || "người nhận"}`}>
+          <p className="mb-3 text-xs text-heritage-muted">
+            Ảnh người nhận tải lên khi ký, 4 số cuối ••••{detail.citizenIdLast4}. Đối chiếu với tên
+            ở Phần 2 trước khi tick.
+          </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <IdImage id={id} side="front" label="Căn cước mặt trước" />
             <IdImage id={id} side="back" label="Căn cước mặt sau" />
@@ -266,32 +300,61 @@ function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void 
           Đã yêu cầu bổ sung: {detail.supplementReason}
         </p>
       )}
-      <Panel title="Quyết định">
-        <div className="space-y-3">
-          {!detail.allMatch && (
-            <p role="note" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
-              Có trường không khớp. Chỉ có thể yêu cầu người nhận bổ sung.
-            </p>
-          )}
-          {action.error && !action.pending && (
-            <p role="alert" className="text-sm text-[#A32119]">
-              {action.error}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              className={buttonStyles.gold}
-              disabled={!detail.canApprove || action.pending}
-              onClick={() =>
-                void action.execute(
-                  () => recipientReviewService.approve(id),
-                  () => refresh("Đã duyệt hồ sơ người nhận"),
-                )
+      {document && (
+        <Panel title="Biên bản">
+          <HandoverDocumentDetail document={document} />
+        </Panel>
+      )}
+      {forDocument && detail.canApprove ? (
+        <Panel title="Kiểm tra thủ công và gửi">
+          <div className="space-y-4">
+            {!detail.allMatch && (
+              <p role="note" className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+                Đối chiếu tự động có trường lệch. Bạn tự kiểm tra ảnh căn cước và chịu trách nhiệm
+                về việc gửi.
+              </p>
+            )}
+            <DocumentSignatureBox
+              role="verifier"
+              kind={detail.kind}
+              idPrefix="verifier-sign"
+              checked={acknowledged}
+              onCheckedChange={setAcknowledged}
+              error={checkError}
+              pending={action.pending}
+              buttonLabel="Xác nhận đã kiểm tra và gửi"
+              onSubmit={complete}
+              extra={
+                <fieldset className="space-y-2">
+                  <legend className="text-sm font-semibold text-heritage-primary">
+                    Kiểm tra thủ công. Phải tick đủ cả bốn mục
+                  </legend>
+                  {VERIFIER_CHECKS.map((text, index) => (
+                    <label key={text} className="flex items-start gap-3 text-sm">
+                      <input
+                        type="checkbox"
+                        className="mt-0.5 size-5 shrink-0"
+                        checked={checks[index] ?? false}
+                        disabled={action.pending}
+                        onChange={(event) =>
+                          setChecks((previous) =>
+                            previous.map((value, position) =>
+                              position === index ? event.target.checked : value,
+                            ),
+                          )
+                        }
+                      />
+                      <span>{text}</span>
+                    </label>
+                  ))}
+                </fieldset>
               }
-            >
-              Duyệt
-            </button>
+            />
+            {action.error && !action.pending && (
+              <p role="alert" className="text-sm text-[#A32119]">
+                {action.error}
+              </p>
+            )}
             <button
               type="button"
               className={buttonStyles.outline}
@@ -301,8 +364,46 @@ function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void 
               Yêu cầu bổ sung
             </button>
           </div>
-        </div>
-      </Panel>
+        </Panel>
+      ) : (
+        <Panel title="Quyết định">
+          <div className="space-y-3">
+            {!detail.allMatch && (
+              <p role="note" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+                Có trường không khớp. Chỉ có thể yêu cầu người nhận bổ sung.
+              </p>
+            )}
+            {action.error && !action.pending && (
+              <p role="alert" className="text-sm text-[#A32119]">
+                {action.error}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                className={buttonStyles.gold}
+                disabled={!detail.canApprove || action.pending}
+                onClick={() =>
+                  void action.execute(
+                    () => recipientReviewService.approve(id),
+                    () => refresh("Đã duyệt hồ sơ người nhận"),
+                  )
+                }
+              >
+                Duyệt
+              </button>
+              <button
+                type="button"
+                className={buttonStyles.outline}
+                disabled={!detail.canRequestSupplement || action.pending}
+                onClick={() => setSupplementing(true)}
+              >
+                Yêu cầu bổ sung
+              </button>
+            </div>
+          </div>
+        </Panel>
+      )}
       {supplementing && (
         <Dialog open onOpenChange={(open) => !open && setSupplementing(false)}>
           <DialogContent className="sm:max-w-lg">
