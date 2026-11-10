@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { Download, Lock, Package, Phone, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { cn } from "cn";
@@ -9,13 +8,12 @@ import { HTTP_STATUS } from "@/shared/constants";
 import { deathCaseService } from "../api/deathCaseService";
 import {
   KEY_MAILABLE_TURN_STATUSES,
-  RESENDABLE_TURN_STATUSES,
   type HandoverProgress,
   type HandoverProgressTurn,
 } from "../model/handoverProgress.schema";
 import { groupTurnsByRecipient, type RecipientGroup } from "../model/recipientGroups";
 import { remainingText } from "../model/remainingText";
-import { handoverProgressKey, useHandoverProgress } from "../model/useHandoverProgress";
+import { useHandoverProgress } from "../model/useHandoverProgress";
 import {
   buttonStyles,
   Chip,
@@ -24,7 +22,6 @@ import {
   Panel,
   type Tone,
 } from "@/shared/ui/heritageKit";
-import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 const turnStatusLabels: Record<HandoverProgressTurn["status"], string> = {
   INVITED: "Đã mời, chờ người nhận phản hồi",
@@ -204,86 +201,6 @@ function DeclinePaper({
 }
 
 /**
- * Gửi lại lời mời cho lượt chưa ai nhận. Không optimistic: chỉ báo thành công sau response của BE,
- * rồi đọc lại tiến độ. Link cũ hết dùng nên cần xác nhận trước khi gửi.
- */
-function ResendInvitation({
-  caseId,
-  turnId,
-  firstSend,
-}: {
-  caseId: string;
-  turnId: string;
-  firstSend: boolean;
-}) {
-  const { resendCooldownMinutes } = usePolicyWindows();
-  const client = useQueryClient();
-  const action = usePrivateAction();
-  const [confirming, setConfirming] = useState(false);
-  const [sentAt, setSentAt] = useState<string | null>(null);
-  const send = () =>
-    void action.execute(
-      () => deathCaseService.resendInvitation(caseId, turnId),
-      (result) => {
-        setConfirming(false);
-        setSentAt(result.invitationSentAt);
-        void client.invalidateQueries({ queryKey: handoverProgressKey(caseId) });
-      },
-    );
-  return (
-    <div className="space-y-2">
-      {!confirming ? (
-        <button type="button" className={buttonStyles.outline} onClick={() => setConfirming(true)}>
-          {firstSend ? "Gửi thư mời" : "Gửi lại lời mời"}
-        </button>
-      ) : (
-        <div className="space-y-3 rounded-xl border border-heritage-border bg-white/60 p-4 text-sm">
-          {firstSend ? (
-            <p>
-              Hệ thống không tự gửi thư. Bấm xác nhận để gửi thư mời nhận tài sản tới người nhận;
-              hạn phản hồi tính từ lúc thư được gửi.
-            </p>
-          ) : (
-            <p>
-              Lời mời cũ sẽ không dùng được nữa. Hạn phản hồi không đặt lại. Chỉ gửi lại được sau
-              tối thiểu {resendCooldownMinutes} phút kể từ lần gửi trước.
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className={buttonStyles.dark}
-              onClick={send}
-              disabled={action.pending}
-            >
-              {action.pending ? "Đang gửi…" : firstSend ? "Xác nhận gửi" : "Xác nhận gửi lại"}
-            </button>
-            <button
-              type="button"
-              className={buttonStyles.outline}
-              onClick={() => setConfirming(false)}
-              disabled={action.pending}
-            >
-              Hủy
-            </button>
-          </div>
-        </div>
-      )}
-      {action.error && (
-        <p role="alert" className="text-sm text-destructive">
-          {action.error}
-        </p>
-      )}
-      {sentAt && !action.error && (
-        <p role="status" className="text-sm">
-          Đã gửi lại lời mời lúc {formatDateTime(sentAt)}.
-        </p>
-      )}
-    </div>
-  );
-}
-
-/**
  * Gửi khóa mở gói cho người nhận qua email. Executor nhập lại khóa mình đang giữ (Backend kiểm rồi gửi, không lưu khóa);
  * ô nhập được xóa sau khi gửi xong. Không optimistic: chỉ báo thành công sau response của BE.
  */
@@ -418,15 +335,6 @@ function TurnDetail({
           </>
         )}
       </dl>
-      {RESENDABLE_TURN_STATUSES.includes(turn.status) && (
-        <div className="mt-4">
-          <ResendInvitation
-            caseId={caseId}
-            turnId={turn.turnId}
-            firstSend={turn.invitationSentAt === null}
-          />
-        </div>
-      )}
       {turn.status === "DECLINED" && (
         <div className="mt-4">
           <DeclinePaper caseId={caseId} turnId={turn.turnId} />
