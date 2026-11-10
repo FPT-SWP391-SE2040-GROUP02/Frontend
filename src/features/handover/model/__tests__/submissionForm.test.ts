@@ -6,6 +6,7 @@ const valid = (): SubmissionDraft => ({
   fullName: "Trần Minh Anh",
   citizenId: "012345671234",
   dateOfBirth: "1990-01-01",
+  residenceAddress: "34 Trần Hưng Đạo, Hà Nội",
   front: new File(["a"], "truoc.png", { type: "image/png" }),
   back: new File(["b"], "sau.jpg", { type: "image/jpeg" }),
   acknowledged: true,
@@ -17,11 +18,15 @@ describe("submissionFormError", () => {
     expect(submissionFormError(valid())).toBeNull();
   });
 
-  it("báo lỗi theo thứ tự: họ tên, ngày sinh, căn cước, hai ảnh, điều khoản", () => {
+  it("báo lỗi theo thứ tự: họ tên, ngày sinh, căn cước, nơi thường trú, hai ảnh, điều khoản", () => {
     expect(submissionFormError({ ...valid(), fullName: "  " })).toMatch(/họ tên/);
     expect(submissionFormError({ ...valid(), dateOfBirth: "" })).toMatch(/ngày sinh/);
     expect(submissionFormError({ ...valid(), dateOfBirth: "2999-01-01" })).toMatch(/không hợp lệ/);
     expect(submissionFormError({ ...valid(), citizenId: "123" })).toMatch(/12 chữ số/);
+    expect(submissionFormError({ ...valid(), residenceAddress: "   " })).toMatch(/nơi thường trú/);
+    expect(submissionFormError({ ...valid(), residenceAddress: "x".repeat(501) })).toMatch(
+      /tối đa 500 ký tự/,
+    );
     expect(submissionFormError({ ...valid(), front: null })).toMatch(/mặt trước/);
     expect(submissionFormError({ ...valid(), back: null })).toMatch(/mặt sau/);
     expect(submissionFormError({ ...valid(), acknowledged: false })).toMatch(/đã đọc điều khoản/);

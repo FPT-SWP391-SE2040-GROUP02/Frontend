@@ -98,19 +98,28 @@ export function HandoverDocumentText({
             Hôm nay, ngày {day.day} tháng {day.month} năm {day.year}, tại hệ thống LegacyVault.
           </p>
           <p>
-            Tôi là: <Fill value={name} blank={blank} hint="bạn điền sau" />
-            {recipient.birthYear ? `; sinh năm ${recipient.birthYear}` : ""}
-            {recipient.citizenIdLast4 ? `; CMND/CCCD số ********${recipient.citizenIdLast4}` : ""}.
+            Tôi là: <Fill value={name} blank={blank} hint="bạn điền sau" />; sinh năm:{" "}
+            {recipient.birthYear ?? (blank ? <Placeholder>bạn điền sau</Placeholder> : "......")};
+            Số Căn cước/CCCD:{" "}
+            <Fill
+              value={recipient.citizenId || recipient.citizenIdLast4}
+              blank={blank}
+              hint="bạn điền sau"
+              dots="............"
+            />
+            .
           </p>
           <p>Bằng biên bản này, tôi xin khai đúng sự thật rằng:</p>
           <p>
             1. Người để lại di sản: Chủ kho {owner}, chết ngày {death} theo giấy chứng tử{" "}
-            {certificate}, đã được Người xét duyệt trong hệ thống, đăng ký khai tử ngày {issued}.
+            {certificate}, đã được Người xét duyệt thẩm định trên hệ thống, đăng ký khai tử ngày{" "}
+            {issued}.
           </p>
           <p>2. Tôi là người được Chủ kho chỉ định nhận phần di sản nêu tại mục 4.</p>
           <p>
-            3. Tôi không thuộc các trường hợp không được quyền hưởng di sản, và trước khi lập biên
-            bản này tôi chưa lập văn bản từ chối nhận di sản đối với phần này.
+            3. Tôi không thuộc các trường hợp không được quyền hưởng di sản theo Điều 621 Bộ luật
+            Dân sự 2015, và trước khi lập biên bản này tôi chưa lập văn bản từ chối nhận di sản đối
+            với phần này.
           </p>
           <p>4. Di sản khai nhận: {container}.</p>
           <p>
@@ -120,8 +129,8 @@ export function HandoverDocumentText({
           <p>
             6. Nay, bằng biên bản này tôi đồng ý nhận phần di sản nêu tại mục 4. Tôi hiểu rằng người
             thừa kế chỉ phải thực hiện nghĩa vụ tài sản của người chết trong phạm vi di sản được
-            nhận, tự chịu trách nhiệm về việc quản lý, sử dụng tài sản đã nhận và giữ kín khóa mở
-            gói.
+            nhận theo Điều 615 Bộ luật Dân sự 2015, tự chịu trách nhiệm về việc quản lý, sử dụng tài
+            sản đã nhận và bảo mật mã khóa giải mã dữ liệu được bàn giao.
           </p>
           <p>
             7. Tôi đã đọc lại toàn bộ nội dung, hiểu rõ, chấp nhận và nhận thức đầy đủ trách nhiệm
@@ -134,24 +143,23 @@ export function HandoverDocumentText({
             Văn bản từ chối nhận di sản thừa kế
           </h4>
           <p>
-            Hôm nay, ngày {day.day} tháng {day.month} năm {day.year}, tại hệ thống LegacyVault,
-            chúng tôi gồm:
+            Hôm nay, ngày {day.day} tháng {day.month} năm {day.year}, tại hệ thống LegacyVault, tôi
+            là:
           </p>
           <p>
             1. Ông/bà: <Fill value={name} blank={blank} hint="bạn điền sau" /> Sinh năm:{" "}
             {recipient.birthYear ?? (blank ? <Placeholder>bạn điền sau</Placeholder> : "......")};
-            CMND/CCCD số:{" "}
-            {recipient.citizenIdLast4 ? (
-              `********${recipient.citizenIdLast4}`
-            ) : blank ? (
-              <Placeholder>bạn điền sau</Placeholder>
-            ) : (
-              "............"
-            )}{" "}
-            do Công an ............ cấp ngày ............
+            Số Căn cước/CCCD:{" "}
+            <Fill
+              value={recipient.citizenId || recipient.citizenIdLast4}
+              blank={blank}
+              hint="bạn điền sau"
+              dots="............"
+            />{" "}
+            do Bộ Công an cấp.
           </p>
           <p>(Là người được chỉ định nhận của người để lại di sản thừa kế)</p>
-          <p>Chúng tôi là những người thừa kế của ông/bà {owner}</p>
+          <p>Tôi là người thừa kế của ông/bà {owner}</p>
           <p>
             Ông/bà {owner} chết ngày {death} theo giấy chứng tử {certificate}, đăng ký khai tử ngày{" "}
             {issued}.
@@ -160,20 +168,20 @@ export function HandoverDocumentText({
             Di sản mà ông/bà {owner} để lại là: {container}
           </p>
           <p>
-            Nay bằng Văn bản này chúng tôi tự nguyện từ chối nhận kỷ phần thừa kế di sản nêu trên mà
-            chúng tôi được hưởng.
+            Nay bằng Văn bản này tôi tự nguyện từ chối nhận kỷ phần thừa kế di sản nêu trên mà tôi
+            được hưởng.
           </p>
-          <p className="pl-8 font-bold">Chúng tôi xin cam đoan:</p>
+          <p className="pl-8 font-bold">Tôi xin cam đoan:</p>
           <p>
             - Những thông tin về nhân thân, về tài sản đã ghi trong văn bản này là đúng sự thật.
           </p>
           <p>
             - Việc từ chối nhận tài sản thừa kế này không nhằm trốn tránh việc thực hiện nghĩa vụ
-            tài sản của mình đối với người khác.
+            tài sản của mình đối với người khác theo Điều 620 Bộ luật Dân sự 2015.
           </p>
           <p>
-            - Chúng tôi đã đọc nội dung Văn bản này, đã hiểu rõ trách nhiệm pháp lý của mình khi lập
-            và ký vào Văn bản này.
+            - Tôi đã đọc nội dung Văn bản này, đã hiểu rõ trách nhiệm pháp lý của mình khi lập và ký
+            vào Văn bản này.
           </p>
           <p>Văn bản này được gửi đến Người thực thi của kho, là người quản lý di sản, để biết.</p>
         </>

@@ -208,10 +208,7 @@
     grid-template-columns: 240px minmax(0, 1fr);
   }
   .owner-workspace > aside {
-    position: sticky;
-    top: 0;
-    height: 100dvh;
-    overflow-y: auto;
+    min-height: 100%;
     border-bottom: 0;
     scrollbar-width: thin;
     scrollbar-color: rgba(184, 142, 76, 0.25) transparent;

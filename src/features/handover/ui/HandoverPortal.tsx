@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Download, Lock, RefreshCw } from "lucide-react";
-import { Link } from "react-router-dom";
 import type { z } from "zod";
-import { ROUTES } from "@/shared/config/routes.config";
 import { formatDate, formatDateTime } from "@/shared/lib/dateFormat";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import {
@@ -126,26 +124,10 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Dòng Cần trợ giúp kèm liên kết tới trang Liên hệ công khai, đặt dưới các thông báo kết thúc. */
-function SupportLine() {
-  return (
-    <p className="text-sm text-heritage-muted">
-      Cần trợ giúp?{" "}
-      <Link className="font-semibold text-heritage-primary underline" to={ROUTES.PUBLIC.CONTACT}>
-        Liên hệ hỗ trợ
-      </Link>
-    </p>
-  );
-}
-
 /** Hạn phản hồi chỉ còn tác dụng ở giai đoạn phản hồi lời mời và xác minh. */
 const RESPONSE_PHASE = ["INVITED", "INITIAL_RESPONSE_EXPIRED", "IDENTITY_IN_PROGRESS"];
 /** Hạn quyết định chỉ còn tác dụng khi chờ quyết định hoặc khi đã quá hạn quyết định. */
 const DECISION_PHASE = ["READY_TO_ACCEPT", "DECISION_EXPIRED"];
-/** Các trạng thái kết thúc mà người nhận có thể cần hỏi thêm. */
-const NEEDS_HELP_STATUS = ["DECISION_EXPIRED", "CANCELLED", "LAPSED"];
-/** Các trạng thái quyền tải mà người nhận có thể cần hỏi thêm. */
-const NEEDS_HELP_GRANT = ["BLOCKED", "EXPIRED", "REVOKED"];
 /** Ngày kết thúc chỉ có nghĩa khi quyền tải còn hiệu lực hoặc đang tạm dừng. */
 const GRANT_WITH_DATE = ["ACTIVE", "BLOCKED"];
 /** Chữ thông báo thành công ngay sau khi người nhận quyết định. */
@@ -197,10 +179,6 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
   }
   if (justDecided === "decline" && turn.status === "DECLINED") {
     doneShown = "decline";
-  }
-  let needsHelp = NEEDS_HELP_STATUS.includes(turn.status);
-  if (turn.grant && NEEDS_HELP_GRANT.includes(turn.grant.status)) {
-    needsHelp = true;
   }
   let grantLine = "";
   if (turn.grant) {
@@ -282,7 +260,6 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
             </p>
           )}
           {grantLine && <p className="text-sm">{grantLine}</p>}
-          {needsHelp && <SupportLine />}
         </div>
       </Panel>
       {turn.status === "HANDOVER_COMMITTED" && turn.keyRequired && (
@@ -541,7 +518,6 @@ export function HandoverPortal() {
           <p className="text-sm text-heritage-muted">
             Mở lại liên kết trong thư mời để nhận lời mời.
           </p>
-          <SupportLine />
         </div>
       ) : (
         <>

@@ -16,7 +16,11 @@ import {
 } from "@/entities/handoverDocument";
 import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
-import { submissionFormError, type SubmissionDraft } from "../model/submissionForm";
+import {
+  MAX_RESIDENCE_ADDRESS_LENGTH,
+  submissionFormError,
+  type SubmissionDraft,
+} from "../model/submissionForm";
 import { clearPartTwoDraft, readPartTwoDraft, writePartTwoDraft } from "../model/partTwoDraft";
 import { useHandoverAction } from "../model/useHandoverAction";
 import { HandoverTerms } from "./HandoverTerms";
@@ -200,6 +204,7 @@ function RecipientPartForm({
       fullName: saved ? saved.fullName : document.recipient.fullName,
       citizenId: "",
       dateOfBirth: saved ? saved.dateOfBirth : "",
+      residenceAddress: document.recipient.residenceAddress,
       front: null,
       back: null,
       acknowledged: false,
@@ -217,6 +222,20 @@ function RecipientPartForm({
     ...draft,
     kind: document.kind,
     voluntaryDecline: decline && draft.acknowledged,
+  };
+  const parsedBirthYear = draft.dateOfBirth
+    ? Number.parseInt(draft.dateOfBirth.slice(0, 4), 10)
+    : Number.NaN;
+  const previewDocument: HandoverDocument = {
+    ...document,
+    recipient: {
+      ...document.recipient,
+      fullName: draft.fullName.trim(),
+      birthYear: Number.isFinite(parsedBirthYear) ? parsedBirthYear : document.recipient.birthYear,
+      citizenId: draft.citizenId || document.recipient.citizenId,
+      citizenIdLast4:
+        draft.citizenId.length >= 4 ? draft.citizenId.slice(-4) : document.recipient.citizenIdLast4,
+    },
   };
   const error = submissionFormError(toSend);
   const submit = () => {
@@ -292,6 +311,19 @@ function RecipientPartForm({
             <span className="block text-xs font-normal text-heritage-muted">Chỉ lưu 4 số cuối</span>
           </label>
         </div>
+        <label className="block space-y-1 text-sm font-semibold">
+          Nơi thường trú
+          <input
+            className={FIELD}
+            value={draft.residenceAddress}
+            maxLength={MAX_RESIDENCE_ADDRESS_LENGTH}
+            autoComplete="street-address"
+            onChange={(event) => set("residenceAddress", event.target.value)}
+          />
+          <span className="block text-xs font-normal text-heritage-muted">
+            Ghi đúng như trên căn cước
+          </span>
+        </label>
         <div className="grid gap-3 sm:grid-cols-2">
           <ImagePicker
             label="Căn cước mặt trước"
@@ -314,7 +346,7 @@ function RecipientPartForm({
         </SlideToggle>
         <SlidePanel id={textId} open={fullText}>
           <div className="max-h-[50vh] overflow-y-auto pt-1">
-            <HandoverDocumentText document={document} blank />
+            <HandoverDocumentText document={previewDocument} blank />
           </div>
         </SlidePanel>
       </section>

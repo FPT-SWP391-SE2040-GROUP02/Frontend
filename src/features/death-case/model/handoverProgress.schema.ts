@@ -81,11 +81,6 @@ export type HandoverProgress = z.infer<typeof handoverProgressSchema>;
 export type HandoverProgressTurn = z.infer<typeof progressTurnSchema>;
 
 /** Lượt chưa ai nhận: Executor được gửi lại lời mời (BE: INVITED, INITIAL_RESPONSE_EXPIRED). */
-export const RESENDABLE_TURN_STATUSES: ReadonlyArray<HandoverProgressTurn["status"]> = [
-  "INVITED",
-  "INITIAL_RESPONSE_EXPIRED",
-];
-
 /** Lượt còn đang chờ người nhận hoàn tất: Executor được gửi khóa mở gói cho người nhận qua email. */
 export const KEY_MAILABLE_TURN_STATUSES: ReadonlyArray<HandoverProgressTurn["status"]> = [
   "INVITED",
@@ -100,11 +95,3 @@ export const sendHandoverKeySchema = z.object({
   sentAt: timestamp,
 });
 export type SendHandoverKeyResult = z.infer<typeof sendHandoverKeySchema>;
-
-/** ResendHandoverInvitationResponse của POST .../handover-turns/{turnId}/resend-invitation. */
-export const resendInvitationSchema = z.object({
-  turnId: z.string().uuid(),
-  invitationSentAt: timestamp,
-  responseDeadline: timestamp,
-});
-export type ResendInvitationResult = z.infer<typeof resendInvitationSchema>;
