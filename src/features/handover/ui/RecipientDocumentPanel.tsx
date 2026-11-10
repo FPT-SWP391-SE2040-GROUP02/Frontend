@@ -223,6 +223,20 @@ function RecipientPartForm({
     kind: document.kind,
     voluntaryDecline: decline && draft.acknowledged,
   };
+  const parsedBirthYear = draft.dateOfBirth
+    ? Number.parseInt(draft.dateOfBirth.slice(0, 4), 10)
+    : Number.NaN;
+  const previewDocument: HandoverDocument = {
+    ...document,
+    recipient: {
+      ...document.recipient,
+      fullName: draft.fullName.trim(),
+      birthYear: Number.isFinite(parsedBirthYear) ? parsedBirthYear : document.recipient.birthYear,
+      citizenId: draft.citizenId || document.recipient.citizenId,
+      citizenIdLast4:
+        draft.citizenId.length >= 4 ? draft.citizenId.slice(-4) : document.recipient.citizenIdLast4,
+    },
+  };
   const error = submissionFormError(toSend);
   const submit = () => {
     setTouched(true);
@@ -332,7 +346,7 @@ function RecipientPartForm({
         </SlideToggle>
         <SlidePanel id={textId} open={fullText}>
           <div className="max-h-[50vh] overflow-y-auto pt-1">
-            <HandoverDocumentText document={document} blank />
+            <HandoverDocumentText document={previewDocument} blank />
           </div>
         </SlidePanel>
       </section>

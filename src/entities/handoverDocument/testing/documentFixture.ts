@@ -25,6 +25,7 @@ export function documentFixture(over: Partial<HandoverDocument> = {}): HandoverD
     recipient: {
       fullName: "Trần Minh Anh",
       birthYear: 1990,
+      citizenId: "079190001234",
       citizenIdLast4: "1234",
       residenceAddress: "34 Trần Hưng Đạo, Phường Hoàn Kiếm, Hà Nội",
       signedAt: "2026-11-10T04:00:00+00:00",
