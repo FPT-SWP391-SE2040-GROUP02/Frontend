@@ -6,7 +6,7 @@ export const executorKeyStatusSchema = z.object({
   version: z.number().int().nonnegative(),
   issuedAt: z.string().nullable().optional(),
   reissuedAt: z.string().nullable().optional(),
-  /** false khi kế hoạch đã khóa (có báo tin): không cấp mới hay cấp lại được. */
+  /** false khi kế hoạch đã khóa (có báo tin): không tạo mới hay đổi mã được. */
   canIssue: z.boolean(),
 });
 export type ExecutorKeyStatus = z.infer<typeof executorKeyStatusSchema>;

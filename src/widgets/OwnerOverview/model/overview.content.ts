@@ -49,9 +49,9 @@ export const OWNER_OVERVIEW = {
       icon: RecipientsIcon,
     },
     {
-      label: "Người tin cậy",
-      value: "0 / 2",
-      detail: "Hai vai trò chưa hoàn tất lời mời",
+      label: "Người thực thi",
+      value: "0 / 1",
+      detail: "Chưa có người đồng ý lời mời",
       icon: TrustedIcon,
     },
   ],

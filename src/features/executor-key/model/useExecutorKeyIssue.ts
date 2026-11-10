@@ -5,7 +5,7 @@ import type { ExecutorKeyIssued } from "./executorKey.schema";
 import { executorKeyKeys } from "./useExecutorKey";
 
 /**
- * Cấp hoặc cấp lại mã mở gói. Mã gốc chỉ đi qua callback `onIssued`, không nằm trong cache, storage hay state của hook.
+ * Tạo hoặc đổi mã mở gói. Mã gốc chỉ đi qua callback `onIssued`, không nằm trong cache, storage hay state của hook.
  * Việc hỏi PIN do transport lo: người dùng hủy PIN hay Backend báo lỗi thì hook chỉ giữ thông báo lỗi.
  */
 export function useExecutorKeyIssue(vaultId: string) {
@@ -16,7 +16,7 @@ export function useExecutorKeyIssue(vaultId: string) {
     void client.invalidateQueries({ queryKey: executorKeyKeys.status(vaultId) });
   }
 
-  /** Cấp mã lần đầu (mode "issue") hoặc cấp lại (mode "reissue"). */
+  /** Tạo mã lần đầu (mode "issue") hoặc đổi mã mới (mode "reissue"). */
   async function run(
     mode: "issue" | "reissue",
     onIssued: (result: ExecutorKeyIssued) => void,
@@ -38,7 +38,7 @@ export function useExecutorKeyIssue(vaultId: string) {
 
   /**
    * Dùng ngay sau khi kích hoạt kế hoạch: đọc trạng thái, chỉ cấp khi kho chưa có mã và còn cấp được.
-   * Kế hoạch đã chạy dù bước này lỗi; khi đó màn kế hoạch hiện dải "chưa có mã mở gói" để cấp lại.
+   * Kế hoạch đã chạy dù bước này lỗi; khi đó màn kế hoạch hiện dải "chưa có mã mở gói" để tạo mã.
    */
   async function issueIfMissing(onIssued: (result: ExecutorKeyIssued) => void): Promise<boolean> {
     return action.execute(

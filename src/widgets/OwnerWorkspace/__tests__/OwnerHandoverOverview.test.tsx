@@ -343,7 +343,7 @@ describe("trang Bàn giao: kế hoạch còn nháp", () => {
     await userEvent.click(screen.getByRole("checkbox"));
     await userEvent.click(screen.getByRole("button", { name: "Kích hoạt kế hoạch" }));
 
-    expect(await screen.findByText("Đã cấp · Bản 2")).toBeInTheDocument();
+    expect(await screen.findByText("Đã có · Bản 2")).toBeInTheDocument();
     expect(executorKeyService.issue).not.toHaveBeenCalled();
   });
 });
@@ -369,10 +369,9 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     renderOverview();
 
     expect(screen.getByText("Kế hoạch đang chạy")).toBeInTheDocument();
-    expect(await screen.findByText("Đã cấp · Bản 1")).toBeInTheDocument();
+    expect(await screen.findByText("Đã có · Bản 1")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Mã mở gói" })).toBeInTheDocument();
-    expect(screen.getByText("Người giữ: thuc-thi@example.test")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Mất mã? Cấp lại" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Đổi mã mới" })).toBeEnabled();
     expect(screen.getByRole("heading", { name: "Gói sẽ bàn giao" })).toBeInTheDocument();
     expect(screen.getByText(/Tài sản thêm sau/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Điểm danh" })).toBeEnabled();
@@ -381,12 +380,12 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     expect(screen.queryByText(/chưa có mã mở gói/)).not.toBeInTheDocument();
   });
 
-  it("kế hoạch bị khóa: ẩn nút cấp lại và giải thích", async () => {
+  it("kế hoạch bị khóa: ẩn nút đổi mã và giải thích", async () => {
     mockRunning(false);
     renderOverview();
 
-    expect(await screen.findByText("Kế hoạch đang bị khóa nên không cấp lại được.")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Mất mã? Cấp lại" })).not.toBeInTheDocument();
+    expect(await screen.findByText("Kế hoạch đang bị khóa nên không đổi mã được.")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
   });
 
   it("lỗi tải kế hoạch hiện thử lại", () => {

@@ -7,7 +7,7 @@ import { HandoverSlip, type HandoverSlipProps } from "./HandoverSlip";
 
 /**
  * Phần "hiện mã một lần": hướng dẫn, nút tải phiếu (in ra PDF) và chép mã, tờ phiếu, ô tick và nút Hoàn tất.
- * Dùng chung cho màn nhận mã sau khi kích hoạt, cấp lại mã và thẻ ở màn Người tin cậy.
+ * Dùng chung cho màn nhận mã sau khi kích hoạt, đổi mã mới và thẻ ở trang Người thực thi.
  *
  * Mã gốc chỉ nằm trong props và DOM khi component này còn mount; không ghi vào cache, storage hay URL.
  * Bản in được render thêm qua portal vào body (class `print-slip`, chỉ hiện khi in) để PDF chỉ có tờ phiếu.

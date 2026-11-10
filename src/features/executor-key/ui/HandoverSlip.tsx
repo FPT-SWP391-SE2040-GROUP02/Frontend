@@ -78,7 +78,7 @@ export function HandoverSlip({
         <Field label="Chủ kho" value={ownerName} />
         <Field label="Người thực thi giữ phiếu" value={executorEmail} />
         <Field label="Kho" value={vaultName} />
-        <Field label="Cấp lúc" value={formatDateTime(issuedAt)} />
+        <Field label="Tạo lúc" value={formatDateTime(issuedAt)} />
       </dl>
 
       <div className="mt-6 border-2 border-[#111] p-5">
@@ -108,7 +108,7 @@ export function HandoverSlip({
       </ol>
 
       <footer className="mt-6 border-t border-[#999] pt-3 text-xs leading-5 text-[#555]">
-        LegacyVault không lưu mã gốc. Mất phiếu thì báo Chủ kho cấp bản mới; bản cũ hết hiệu lực
+        LegacyVault không lưu mã gốc. Mất phiếu thì báo Chủ kho đổi mã mới; mã cũ hết dùng được
         ngay.
       </footer>
     </section>

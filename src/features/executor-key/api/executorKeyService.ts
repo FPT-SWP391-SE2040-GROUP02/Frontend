@@ -6,7 +6,7 @@ function keyUrl(vaultId: string): string {
 }
 
 /**
- * Mã mở gói Chủ kho giao cho Người thực thi (BE ExecutorKeyController). Cấp mới và cấp lại đòi mã PIN kho:
+ * Mã mở gói Chủ kho giao cho Người thực thi (BE ExecutorKeyController). Tạo mới và đổi mã mới đòi mã PIN kho:
  * transport tự hỏi PIN khi Backend yêu cầu. Mã gốc không cache, chỉ nằm trong kết quả trả về của lần cấp.
  */
 export const executorKeyService = {
@@ -15,11 +15,11 @@ export const executorKeyService = {
       await axiosClient.get<unknown, unknown>(keyUrl(vaultId), { signal }),
     );
   },
-  /** Cấp mã lần đầu; đã cấp thì 409 EXECUTOR_KEY_ALREADY_ISSUED. */
+  /** Tạo mã lần đầu; đã có thì 409 EXECUTOR_KEY_ALREADY_ISSUED. */
   async issue(vaultId: string) {
     return executorKeyIssuedSchema.parse(await axiosClient.post<unknown, unknown>(keyUrl(vaultId)));
   },
-  /** Mất mã: cấp mã mới, mã cũ hết hiệu lực; chưa cấp lần nào thì 409 EXECUTOR_KEY_NOT_ISSUED. */
+  /** Đổi mã mới: tạo mã khác, mã cũ hết dùng được; chưa cấp lần nào thì 409 EXECUTOR_KEY_NOT_ISSUED. */
   async reissue(vaultId: string) {
     return executorKeyIssuedSchema.parse(
       await axiosClient.post<unknown, unknown>(`${keyUrl(vaultId)}/reissue`),

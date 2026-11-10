@@ -54,7 +54,7 @@ describe("ExecutorKeyCard", () => {
       .mockResolvedValue({ ...status({ hasKey: true, version: 1 }), shard: SHARD });
     renderCard();
 
-    expect(await screen.findByRole("heading", { name: "Mã mở gói giao cho Người thực thi" }));
+    expect(await screen.findByRole("heading", { name: "Mã mở gói" }));
     await userEvent.click(await screen.findByRole("button", { name: "Tạo mã mở gói" }));
     expect(post).not.toHaveBeenCalled();
     const confirm = await screen.findByRole("dialog");
@@ -77,7 +77,7 @@ describe("ExecutorKeyCard", () => {
     await waitFor(() => expect(screen.queryByText(SHARD)).not.toBeInTheDocument());
   });
 
-  it("đã cấp: nút Mất mã gọi cấp lại và nói rõ mã cũ hết hiệu lực", async () => {
+  it("đã có mã: nút Đổi mã mới gọi reissue và nói rõ mã cũ hết dùng được", async () => {
     vi.spyOn(axiosClient, "get").mockResolvedValue(
       status({ hasKey: true, version: 1, issuedAt: "2026-11-08T01:00:00Z" }),
     );
@@ -86,11 +86,14 @@ describe("ExecutorKeyCard", () => {
       .mockResolvedValue({ ...status({ hasKey: true, version: 2 }), shard: SHARD });
     renderCard();
 
-    expect(await screen.findByText("Đã cấp · Bản 1")).toBeInTheDocument();
-    await userEvent.click(await screen.findByRole("button", { name: "Mất mã? Cấp lại" }));
+    expect(await screen.findByText("Đã có · Bản 1")).toBeInTheDocument();
+    expect(screen.getByText("Bản đang dùng")).toBeInTheDocument();
+    expect(screen.getByText("Tạo lúc")).toBeInTheDocument();
+    expect(screen.getByText(/Không xem lại được mã cũ/)).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
     const confirm = await screen.findByRole("dialog");
-    expect(confirm).toHaveTextContent("Mã cũ hết hiệu lực ngay");
-    await userEvent.click(within(confirm).getByRole("button", { name: "Cấp lại" }));
+    expect(confirm).toHaveTextContent("Mã cũ hết dùng được ngay");
+    await userEvent.click(within(confirm).getByRole("button", { name: "Đổi mã mới" }));
 
     await waitFor(() =>
       expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executor-key/reissue`),
@@ -100,14 +103,14 @@ describe("ExecutorKeyCard", () => {
     expect(within(slip).getByText(/Bản 2/)).toBeInTheDocument();
   });
 
-  it("kế hoạch đã khóa: ẩn nút cấp lại và có lời giải thích", async () => {
+  it("kế hoạch đã khóa: ẩn nút đổi mã và có lời giải thích", async () => {
     vi.spyOn(axiosClient, "get").mockResolvedValue(
       status({ hasKey: true, version: 1, canIssue: false }),
     );
     renderCard();
 
-    expect(await screen.findByText(/Kế hoạch đang bị khóa nên không cấp lại được/)).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Mất mã? Cấp lại" })).not.toBeInTheDocument();
+    expect(await screen.findByText(/Kế hoạch đang bị khóa nên không đổi mã được/)).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
   });
 
   it("lỗi tải trạng thái hiện thử lại thay vì thẻ rỗng", async () => {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { KeyRound } from "lucide-react";
 import {
   Dialog,
@@ -23,20 +23,32 @@ export interface ExecutorKeyCardProps {
   /** Thông tin in lên phiếu; do widget ghép từ người dùng đang đăng nhập, kho và Người thực thi chính. */
   slip: HandoverSlipContext;
   title?: string;
-  /** false khi nơi dùng đã có nút "Tạo mã mở gói" riêng (dải cảnh báo chưa có mã). */
+  /** false khi nơi dùng đã có nút "Tạo mã mở gói" riêng hoặc chưa được phép tạo (kế hoạch còn nháp). */
   showIssueButton?: boolean;
+  /** Nội dung hộp trắng khi chưa có mã (lý do chưa có, lối đi tiếp). Bỏ trống thì dùng câu mặc định. */
+  emptyState?: ReactNode;
+}
+
+function InfoCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-xl bg-white p-3">
+      <dt className="text-xs text-heritage-muted">{label}</dt>
+      <dd className="mt-1 break-words text-sm font-semibold">{value}</dd>
+    </div>
+  );
 }
 
 /**
  * Thẻ "Mã mở gói" của Chủ kho. Mã là một chuỗi duy nhất cho mọi gói; Chủ kho tải phiếu và gửi riêng cho
- * Người thực thi. Mất mã thì bấm "Mất mã? Cấp lại": bản cũ hết hiệu lực ngay.
+ * Người thực thi. Mất phiếu thì bấm "Đổi mã mới": mã cũ hết dùng được ngay.
  * Mã gốc chỉ hiện một lần trong hộp thoại, không lưu vào cache hay storage.
  */
 export function ExecutorKeyCard({
   vaultId,
   slip,
-  title = "Mã mở gói giao cho Người thực thi",
+  title = "Mã mở gói",
   showIssueButton = true,
+  emptyState,
 }: ExecutorKeyCardProps) {
   const query = useExecutorKeyStatus(vaultId);
   const issuer = useExecutorKeyIssue(vaultId);
@@ -81,12 +93,10 @@ export function ExecutorKeyCard({
     });
   }
 
-  let chipText = "Chưa cấp";
-  if (status.hasKey) {
-    chipText = `Đã cấp · Bản ${status.version}`;
-  }
+  let chipText = "Chưa có";
   let chipTone: "success" | "warning" = "warning";
   if (status.hasKey) {
+    chipText = `Đã có · Bản ${status.version}`;
     chipTone = "success";
   }
   let buttonStyle = buttonStyles.gold;
@@ -96,15 +106,21 @@ export function ExecutorKeyCard({
   let confirmButtonText = "Tạo mã mở gói";
   if (reissue) {
     buttonStyle = buttonStyles.outline;
-    buttonText = "Mất mã? Cấp lại";
-    confirmTitle = "Cấp lại mã mở gói?";
-    confirmText = "Mã cũ hết hiệu lực ngay. Người thực thi phải dùng mã mới bạn gửi lần này.";
-    confirmButtonText = "Cấp lại";
+    buttonText = "Đổi mã mới";
+    confirmTitle = "Đổi mã mới?";
+    confirmText = "Mã cũ hết dùng được ngay. Người thực thi phải dùng mã mới bạn gửi lần này.";
+    confirmButtonText = "Đổi mã mới";
   }
   if (issuer.pending) {
     confirmButtonText = "Đang tạo…";
   }
   const showButton = reissue || showIssueButton;
+
+  // Ngày tạo của bản đang dùng: lần đổi mã gần nhất nếu có, không thì lần tạo đầu.
+  let createdAt = status.issuedAt;
+  if (status.reissuedAt) {
+    createdAt = status.reissuedAt;
+  }
 
   let revealSlipDate: string | null | undefined = null;
   if (issued !== null) {
@@ -114,25 +130,42 @@ export function ExecutorKeyCard({
     }
   }
 
+  let emptyContent: ReactNode = emptyState;
+  if (emptyState === undefined) {
+    emptyContent = <p>Chưa có mã. Mã chỉ hiện một lần lúc tạo, kèm phiếu để tải về.</p>;
+  }
+
   return (
-    <Panel title={title} action={<Chip tone={chipTone}>{chipText}</Chip>}>
-      <p className="text-sm leading-6 text-heritage-muted">
-        Mã mở gói là mã duy nhất để người nhận mở gói tài sản. Bạn tải phiếu và gửi riêng cho Người
-        thực thi; họ trao mã cho người nhận khi hồ sơ được duyệt. Hệ thống chỉ lưu dấu kiểm tra nên
-        không đọc lại được mã gốc.
+    <Panel
+      title={title}
+      action={<Chip tone={chipTone}>{chipText}</Chip>}
+      className="border-[#E0C486]/60 bg-[#FBF3DE]"
+    >
+      <p className="text-sm leading-6">
+        Một mã cho cả kho. Người nhận cần mã này để mở tài sản; bạn trao cho Người thực thi giữ.
       </p>
-      {status.issuedAt && (
-        <p className="mt-2 text-xs text-heritage-muted">
-          Cấp lúc {formatDateTime(status.issuedAt)}
-          {status.reissuedAt ? ` · cấp lại lúc ${formatDateTime(status.reissuedAt)}` : ""}
-        </p>
+
+      {!status.hasKey && (
+        <div className="mt-4 space-y-3 rounded-xl bg-white p-4 text-sm leading-6">
+          {emptyContent}
+        </div>
       )}
-      {status.hasKey && slip.executorEmail && (
-        <p className="mt-1 text-xs text-heritage-muted">Người giữ: {slip.executorEmail}</p>
+
+      {status.hasKey && (
+        <>
+          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+            <InfoCell label="Bản đang dùng" value={`Bản ${status.version}`} />
+            <InfoCell label="Tạo lúc" value={formatDateTime(createdAt)} />
+          </dl>
+          <p className="mt-4 text-sm leading-6 text-heritage-muted">
+            Không xem lại được mã cũ. Lỡ mất phiếu thì đổi mã mới; mã cũ hết dùng được ngay.
+          </p>
+        </>
       )}
+
       {!status.canIssue && (
         <p role="status" className="mt-3 text-sm text-heritage-muted">
-          Kế hoạch đang bị khóa nên không cấp lại được.
+          Kế hoạch đang bị khóa nên không đổi mã được.
         </p>
       )}
       {status.canIssue && showButton && (

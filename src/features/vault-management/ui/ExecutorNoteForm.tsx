@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, TriangleAlert } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDateTime } from "@/shared/lib/dateFormat";
@@ -11,7 +11,7 @@ import { ownerVaultKeys, useOwnerVault } from "../model/useOwnerVault";
 
 const NOTE_MAX = 2000;
 
-/** Ô "Hướng dẫn cho Executor": Executor đã chấp nhận đọc được ngay, trước khi hồ sơ chứng tử được duyệt. */
+/** Ô "Lời dặn cho Người thực thi": đọc được ngay sau khi họ đồng ý, trước khi hồ sơ chứng tử được duyệt. */
 export function ExecutorNoteSection() {
   const query = useOwnerVault(true);
   if (!query.data) {
@@ -49,26 +49,20 @@ function ExecutorNoteForm({ vault }: { vault: VaultResponse }) {
       aria-labelledby="executor-note-title"
       className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
     >
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <h2 id="executor-note-title" className="text-lg font-semibold text-heritage-primary">
-            Hướng dẫn cho Executor
-          </h2>
-          <p className="mt-1 text-sm text-heritage-muted">
-            Ví dụ: liên hệ ai, giấy tờ để ở đâu, cần báo cho ai trước.
-          </p>
-        </div>
+      <div className="flex flex-wrap items-baseline justify-between gap-3">
+        <h2 id="executor-note-title" className="text-lg font-semibold text-heritage-primary">
+          Lời dặn cho Người thực thi
+        </h2>
         <span className="shrink-0 text-xs tabular-nums text-heritage-muted" aria-hidden="true">
           {note.length}/{NOTE_MAX}
         </span>
       </div>
-      <p className="mt-3 flex items-start gap-2 rounded-xl bg-[#FBF1DC] p-3 text-sm text-[#7A4B00]">
-        <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-        Executor đọc được hướng dẫn này ngay khi đã chấp nhận lời mời. Không ghi mật khẩu, số tài
-        khoản hay nội dung tài sản.
+      <p className="mt-2 text-sm leading-6">
+        Người thực thi đọc được ngay sau khi đồng ý. Ghi việc cần làm và người cần báo,{" "}
+        <strong>không ghi mật khẩu, số tài khoản hay nội dung tài sản</strong>.
       </p>
       <label htmlFor="executor-note" className="sr-only">
-        Hướng dẫn cho Executor
+        Lời dặn cho Người thực thi
       </label>
       <Textarea
         id="executor-note"
@@ -87,7 +81,7 @@ function ExecutorNoteForm({ vault }: { vault: VaultResponse }) {
             className="mr-auto inline-flex items-center gap-1.5 text-sm font-medium text-[#1F7A55]"
           >
             <CheckCircle2 className="size-4" aria-hidden="true" />
-            Đã lưu hướng dẫn.
+            Đã lưu lời dặn.
           </p>
         )}
         {!action.succeeded && savedAt && (
@@ -112,7 +106,7 @@ function ExecutorNoteForm({ vault }: { vault: VaultResponse }) {
           disabled={!dirty || action.pending || closed}
           onClick={save}
         >
-          {action.pending ? "Đang lưu…" : "Lưu hướng dẫn"}
+          {action.pending ? "Đang lưu…" : "Lưu lời dặn"}
         </button>
       </div>
       {action.error && (

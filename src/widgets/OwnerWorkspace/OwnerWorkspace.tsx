@@ -49,7 +49,7 @@ const navigation = [
   { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon },
   { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon },
   { label: "Người nhận", to: ROUTES.DASHBOARD.BENEFICIARIES, icon: RecipientsIcon },
-  { label: "Người tin cậy", to: ROUTES.DASHBOARD.TRUSTED_PEOPLE, icon: TrustedIcon },
+  { label: "Người thực thi", to: ROUTES.DASHBOARD.TRUSTED_PEOPLE, icon: TrustedIcon },
   { label: "Xác minh", to: ROUTES.DASHBOARD.IDENTITY, icon: ScanFace },
   { label: "Điểm danh", to: ROUTES.DMS.ROOT, icon: ActivityIcon },
   { label: "Nhật ký hoạt động", to: ROUTES.DASHBOARD.AUDIT_LOG, icon: HistoryIcon },
@@ -58,7 +58,7 @@ const navigation = [
 ];
 
 /**
- * Chỉ tài khoản đang là Executor của ít nhất một kho mới có nút sang vai Người thực hiện;
+ * Chỉ tài khoản đang là Executor của ít nhất một kho mới có nút sang vai Người thực thi;
  * không cấp quyền gì, Backend vẫn kiểm tra từng request.
  */
 function useCanSwitchToExecutor(): boolean {
@@ -67,7 +67,7 @@ function useCanSwitchToExecutor(): boolean {
   return (vaults.data?.length ?? 0) > 0;
 }
 
-/** Số lời mời làm Người thực hiện đang chờ; 0 khi chưa đăng nhập, đang tải hoặc lỗi. */
+/** Số lời mời làm Người thực thi đang chờ; 0 khi chưa đăng nhập, đang tải hoặc lỗi. */
 function usePendingInvitationCount(): number {
   const isAuthenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const invitations = useMyInvitations(isAuthenticated && Boolean(accessTokenMemory.get()));
@@ -181,7 +181,7 @@ export function OwnerWorkspace({
                 onClick={() => setNavigationOpen(false)}
               >
                 <ArrowLeftRight className="size-[18px] shrink-0" aria-hidden="true" />
-                Sang vai Người thực hiện
+                Sang vai Người thực thi
               </Link>
             )}
           </nav>
@@ -206,7 +206,7 @@ export function OwnerWorkspace({
               className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#E0C486] px-3 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
             >
               <ArrowLeftRight className="size-4 shrink-0" aria-hidden="true" />
-              Sang vai Người thực hiện
+              Sang vai Người thực thi
             </Link>
           )}
           <div className="flex items-center gap-3">
