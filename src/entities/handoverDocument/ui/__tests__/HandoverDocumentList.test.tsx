@@ -86,8 +86,15 @@ describe("HandoverDocumentList", () => {
               dateOfDeath: null,
               certificateNumber: "",
               certificateIssuedOn: null,
+              residenceAddress: "",
             },
-            recipient: { fullName: "", birthYear: null, citizenIdLast4: "", signedAt: null },
+            recipient: {
+              fullName: "",
+              birthYear: null,
+              citizenIdLast4: "",
+              residenceAddress: "",
+              signedAt: null,
+            },
             completedAt: null,
           }),
         ]}

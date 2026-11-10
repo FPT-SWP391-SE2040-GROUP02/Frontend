@@ -30,11 +30,15 @@ export const handoverDocumentSchema = z.object({
     dateOfDeath: dateOnly.nullable(),
     certificateNumber: z.string(),
     certificateIssuedOn: dateOnly.nullable(),
+    /** Nơi thường trú theo danh tính eKYC đã xác minh của Chủ kho; rỗng khi không có. */
+    residenceAddress: z.string().default(""),
   }),
   recipient: z.object({
     fullName: z.string(),
     birthYear: z.number().int().nullable(),
     citizenIdLast4: z.string(),
+    /** Nơi thường trú người nhận khai lúc ký (tạm thời chỉ lưu, chưa hiển thị); rỗng khi chưa ký. */
+    residenceAddress: z.string().default(""),
     signedAt: timestamp.nullable(),
   }),
   verifier: z.object({
