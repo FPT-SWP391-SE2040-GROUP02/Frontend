@@ -70,6 +70,10 @@ export function HandoverDocumentText({
   const { owner: deceased, recipient, verifier } = document;
   const day = vietnamDayOf(recipient.signedAt ?? document.createdAt);
   const owner = deceased.fullName || DOTS;
+  const ownerAddress = deceased.residenceAddress || DOTS;
+  const recipientAddress = (
+    <Fill value={recipient.residenceAddress} blank={blank} hint="bạn điền sau" />
+  );
   const death = formatDocumentDate(deceased.dateOfDeath);
   const issued = formatDocumentDate(deceased.certificateIssuedOn);
   const container = document.containerName
@@ -100,12 +104,14 @@ export function HandoverDocumentText({
           <p>
             Tôi là: <Fill value={name} blank={blank} hint="bạn điền sau" />
             {recipient.birthYear ? `; sinh năm ${recipient.birthYear}` : ""}
-            {recipient.citizenIdLast4 ? `; CMND/CCCD số ********${recipient.citizenIdLast4}` : ""}.
+            {recipient.citizenIdLast4 ? `; CMND/CCCD số ********${recipient.citizenIdLast4}` : ""};
+            nơi thường trú: {recipientAddress}.
           </p>
           <p>Bằng biên bản này, tôi xin khai đúng sự thật rằng:</p>
           <p>
-            1. Người để lại di sản: Chủ kho {owner}, chết ngày {death} theo giấy chứng tử{" "}
-            {certificate}, đã được Người xét duyệt trong hệ thống, đăng ký khai tử ngày {issued}.
+            1. Người để lại di sản: Chủ kho {owner}, nơi thường trú: {ownerAddress}, chết ngày{" "}
+            {death} theo giấy chứng tử {certificate}, đã được Người xét duyệt trong hệ thống, đăng
+            ký khai tử ngày {issued}.
           </p>
           <p>2. Tôi là người được Chủ kho chỉ định nhận phần di sản nêu tại mục 4.</p>
           <p>
@@ -150,8 +156,11 @@ export function HandoverDocumentText({
             )}{" "}
             do Công an ............ cấp ngày ............
           </p>
+          <p>Nơi thường trú: {recipientAddress}</p>
           <p>(Là người được chỉ định nhận của người để lại di sản thừa kế)</p>
-          <p>Chúng tôi là những người thừa kế của ông/bà {owner}</p>
+          <p>
+            Chúng tôi là những người thừa kế của ông/bà {owner}, nơi thường trú: {ownerAddress}
+          </p>
           <p>
             Ông/bà {owner} chết ngày {death} theo giấy chứng tử {certificate}, đăng ký khai tử ngày{" "}
             {issued}.

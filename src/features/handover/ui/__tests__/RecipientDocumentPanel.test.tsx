@@ -16,7 +16,13 @@ const TURN_ID = "0199e7a4-0000-7c3e-9a51-3f0f5d2b8a10";
 const recipientTurn = (over: Partial<HandoverDocument> = {}) =>
   documentFixture({
     status: "WAIT_RECIPIENT",
-    recipient: { fullName: "Trần Minh Anh", birthYear: null, citizenIdLast4: "", signedAt: null },
+    recipient: {
+      fullName: "Trần Minh Anh",
+      birthYear: null,
+      citizenIdLast4: "",
+      residenceAddress: "",
+      signedAt: null,
+    },
     verifier: { signedByName: "", checks: [], signedAt: null },
     completedAt: null,
     ...over,
@@ -128,6 +134,8 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("Người thực thi ký")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Họ tên")).toHaveValue("Trần Minh Anh");
+    expect(screen.getByText("12 Lê Lợi, Phường Bến Thành, TP. Hồ Chí Minh")).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Nơi thường trú/)).toHaveValue("");
   });
 
   it("hồ sơ chứng tử thiếu ngày mất và số giấy thì ghi rõ chưa có, vẫn cho điền và ký", async () => {
@@ -138,12 +146,14 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
           dateOfDeath: null,
           certificateNumber: "",
           certificateIssuedOn: null,
+          residenceAddress: "",
         },
       }),
     );
     renderPanel();
 
     expect(await screen.findAllByText("Chưa có trong hồ sơ chứng tử")).toHaveLength(3);
+    expect(screen.getByText("Chủ kho chưa xác minh danh tính")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ký và gửi cho Người xét duyệt" })).toBeEnabled();
   });
 
@@ -187,6 +197,7 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
       name: "Biên bản đồng ý nhận di sản thừa kế",
     });
     expect(text).toHaveTextContent("Chủ kho Nguyễn Văn A");
+    expect(text).toHaveTextContent("nơi thường trú: 12 Lê Lợi, Phường Bến Thành, TP. Hồ Chí Minh");
     expect(text).toHaveTextContent("số 0456/2026");
     expect(text).toHaveTextContent("Người lập văn bản");
     expect(text).toHaveTextContent("Người xét duyệt đã kiểm tra thủ công");
@@ -220,6 +231,7 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
 
     await user.type(await screen.findByLabelText(/Ngày sinh/), "1990-01-01");
     await user.type(screen.getByLabelText(/Số căn cước/), "012345671234");
+    await user.type(screen.getByLabelText(/^Nơi thường trú/), "  34 Trần Hưng Đạo, Hà Nội ");
     await user.upload(
       screen.getByLabelText("Căn cước mặt trước"),
       new File(["a"], "truoc.png", { type: "image/png" }),
@@ -238,6 +250,7 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     expect(body.get("FullName")).toBe("Trần Minh Anh");
     expect(body.get("CitizenId")).toBe("012345671234");
     expect(body.get("DateOfBirth")).toBe("1990-01-01");
+    expect(body.get("ResidenceAddress")).toBe("34 Trần Hưng Đạo, Hà Nội");
     expect(body.get("Acknowledged")).toBe("true");
     expect(body.get("VoluntaryDecline")).toBe("true");
     await waitFor(() => expect(onChanged).toHaveBeenCalled());

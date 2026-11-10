@@ -6,11 +6,16 @@ export interface SubmissionDraft {
   fullName: string;
   citizenId: string;
   dateOfBirth: string;
+  /** Nơi thường trú ghi trên căn cước; in vào biên bản và Người xét duyệt đối chiếu với ảnh căn cước. */
+  residenceAddress: string;
   front: File | null;
   back: File | null;
   acknowledged: boolean;
   voluntaryDecline: boolean;
 }
+
+/** Nơi thường trú tối đa 500 ký tự (khớp HandoverDocumentRules.ResidenceAddressMaxLength của Backend). */
+export const MAX_RESIDENCE_ADDRESS_LENGTH = 500;
 
 /** Ảnh căn cước tối đa 8 MiB mỗi ảnh (khớp EkycRules.MaxImageBytes của Backend). */
 export const MAX_SUBMISSION_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -36,6 +41,9 @@ export function submissionFormError(draft: SubmissionDraft, today = new Date()):
   if (Number.isNaN(birth.getTime()) || birth.getTime() > today.getTime())
     return "Ngày sinh không hợp lệ.";
   if (!/^\d{12}$/.test(draft.citizenId)) return "Số căn cước gồm 12 chữ số.";
+  const address = draft.residenceAddress.trim();
+  if (address.length === 0) return "Vui lòng nhập nơi thường trú.";
+  if (address.length > MAX_RESIDENCE_ADDRESS_LENGTH) return "Nơi thường trú tối đa 500 ký tự.";
   const front = imageError(draft.front, "căn cước mặt trước");
   if (front) return front;
   const back = imageError(draft.back, "căn cước mặt sau");

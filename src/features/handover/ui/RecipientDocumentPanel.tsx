@@ -16,7 +16,11 @@ import {
 } from "@/entities/handoverDocument";
 import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
-import { submissionFormError, type SubmissionDraft } from "../model/submissionForm";
+import {
+  MAX_RESIDENCE_ADDRESS_LENGTH,
+  submissionFormError,
+  type SubmissionDraft,
+} from "../model/submissionForm";
 import { useHandoverAction } from "../model/useHandoverAction";
 import { HandoverTerms } from "./HandoverTerms";
 import { ImagePicker } from "./ImagePicker";
@@ -113,24 +117,25 @@ function dateText(value: string | null): string {
 
 function Part1Summary({ document }: { document: HandoverDocument }) {
   const { owner } = document;
-  const rows: Array<[string, string]> = [
-    ["Họ tên Chủ kho", owner.fullName],
-    ["Gói di sản", `${document.containerName} (gồm ${document.itemCount} mục)`],
-    ["Ngày mất", dateText(owner.dateOfDeath)],
-    ["Số giấy chứng tử", owner.certificateNumber],
-    ["Ngày cấp, đăng ký khai tử", dateText(owner.certificateIssuedOn)],
+  const missing = "Chưa có trong hồ sơ chứng tử";
+  // Nơi thường trú lấy từ danh tính eKYC của Chủ kho, không từ hồ sơ chứng tử, nên khi trống nói đúng nguồn.
+  const rows: Array<[string, string, string]> = [
+    ["Họ tên Chủ kho", owner.fullName, missing],
+    ["Nơi thường trú", owner.residenceAddress, "Chủ kho chưa xác minh danh tính"],
+    ["Gói di sản", `${document.containerName} (gồm ${document.itemCount} mục)`, missing],
+    ["Ngày mất", dateText(owner.dateOfDeath), missing],
+    ["Số giấy chứng tử", owner.certificateNumber, missing],
+    ["Ngày cấp, đăng ký khai tử", dateText(owner.certificateIssuedOn), missing],
   ];
   return (
     <dl className="border-t border-heritage-border">
-      {rows.map(([label, value]) => (
+      {rows.map(([label, value, empty]) => (
         <div
           key={label}
           className="grid gap-1 border-b border-heritage-border py-2 text-sm sm:grid-cols-[minmax(8rem,12rem)_minmax(0,1fr)] sm:gap-4"
         >
           <dt className="text-heritage-muted">{label}</dt>
-          <dd className={value ? "font-semibold" : "text-heritage-muted"}>
-            {value || "Chưa có trong hồ sơ chứng tử"}
-          </dd>
+          <dd className={value ? "font-semibold" : "text-heritage-muted"}>{value || empty}</dd>
         </div>
       ))}
     </dl>
@@ -196,6 +201,7 @@ function RecipientPartForm({
     fullName: document.recipient.fullName,
     citizenId: "",
     dateOfBirth: "",
+    residenceAddress: document.recipient.residenceAddress,
     front: null,
     back: null,
     acknowledged: false,
@@ -278,6 +284,19 @@ function RecipientPartForm({
             <span className="block text-xs font-normal text-heritage-muted">Chỉ lưu 4 số cuối</span>
           </label>
         </div>
+        <label className="block space-y-1 text-sm font-semibold">
+          Nơi thường trú
+          <input
+            className={FIELD}
+            value={draft.residenceAddress}
+            maxLength={MAX_RESIDENCE_ADDRESS_LENGTH}
+            autoComplete="street-address"
+            onChange={(event) => set("residenceAddress", event.target.value)}
+          />
+          <span className="block text-xs font-normal text-heritage-muted">
+            Ghi đúng như trên căn cước; Người xét duyệt sẽ đối chiếu với ảnh căn cước
+          </span>
+        </label>
         <div className="grid gap-3 sm:grid-cols-2">
           <ImagePicker
             label="Căn cước mặt trước"
