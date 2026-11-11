@@ -11,7 +11,7 @@ import { countTurns } from "./executorTurns";
 
 export type CaseStatus = DeathCase["status"];
 
-/** Trạng thái gọn của kho dưới tên Chủ kho (menu trái, trang Lời mời và kho của tôi). */
+/** Trạng thái gọn của kho dưới tên Chủ kho (menu trái, trang Lời mời và các kho bạn đang làm việc). */
 export interface VaultStage {
   label: string;
   tone: Tone;

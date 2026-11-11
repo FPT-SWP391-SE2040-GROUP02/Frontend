@@ -45,11 +45,8 @@ export function ExecutorInvitationsInbox() {
       />
     );
   } else if (invitations.data.pending.length === 0) {
-    pendingBody = (
-      <p role="status" className="text-sm text-heritage-muted">
-        Không có lời mời nào đang chờ bạn trả lời.
-      </p>
-    );
+    // Không có lời mời chờ thì không hiện nhãn hay câu nào cho phần này.
+    pendingBody = null;
   } else {
     const data = invitations.data;
     pendingBody = (
@@ -67,11 +64,23 @@ export function ExecutorInvitationsInbox() {
     );
   }
 
+  const hasPending = invitations.isSuccess && invitations.data.pending.length > 0;
+  const hasEnded = invitations.isSuccess && invitations.data.ended.length > 0;
+  // Không có gì để hiện (không lời mời chờ, không lời mời đã kết thúc, không thông báo vừa chấp nhận): bỏ cả khối.
+  if (invitations.isSuccess && !hasPending && !hasEnded && !acceptedOwner) return null;
   return (
-    <section aria-labelledby="executor-pending-invitations" className="space-y-4">
-      <h2 id="executor-pending-invitations" className="text-lg font-semibold text-heritage-primary">
-        Lời mời đang chờ
-      </h2>
+    <section
+      aria-labelledby={hasPending ? "executor-pending-invitations" : undefined}
+      className="space-y-4"
+    >
+      {hasPending && (
+        <h2
+          id="executor-pending-invitations"
+          className="text-[11px] font-semibold uppercase tracking-widest text-heritage-muted"
+        >
+          Lời mời đang chờ
+        </h2>
+      )}
       {acceptedOwner && (
         <Notice tone="success" role="status" title="Bạn đã là Người thực thi">
           Kho của {acceptedOwner} đã nằm trong danh sách kho bạn đang giữ ở bên dưới.

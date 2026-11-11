@@ -43,8 +43,8 @@ function writeStored(vaultId: string | null) {
 }
 
 /**
- * Kho Executor đang làm việc. Thứ tự: ?vault= trên URL, lựa chọn đã nhớ trong phiên, rồi kho duy nhất.
- * Nhiều kho mà chưa chọn thì selected = null để màn hình hiện bước "Chọn kho".
+ * Kho Executor đang làm việc. Thứ tự: ?vault= trên URL, lựa chọn đã nhớ trong phiên, rồi kho đầu tiên của danh sách.
+ * Chỉ không có kho nào thì selected = null. Đổi kho chỉ làm ở trang "Lời mời và các kho bạn đang làm việc".
  */
 export function useSelectedExecutorVault() {
   const query = useExecutorVaults();
@@ -56,7 +56,7 @@ export function useSelectedExecutorVault() {
   const selected =
     vaults.find((vault) => vault.vaultId === fromUrl) ??
     vaults.find((vault) => vault.vaultId === stored) ??
-    (vaults.length === 1 ? vaults[0] : null);
+    (vaults.length > 0 ? vaults[0] : null);
   const select = (vaultId: string) => {
     writeStored(vaultId);
     const next = new URLSearchParams(params);

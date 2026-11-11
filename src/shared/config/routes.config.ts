@@ -92,7 +92,7 @@ export const ROUTES = {
     ASSETS: "/executor/assets",
     PERMISSIONS: "/executor/permissions",
     SETTINGS: "/executor/settings",
-    /** Trang "Lời mời và kho của tôi" trong không gian Người thực thi: trả lời lời mời và mở các kho đang giữ. */
+    /** Trang "Lời mời và các kho bạn đang làm việc" trong không gian Người thực thi: trả lời lời mời và mở các kho đang giữ. */
     INVITATIONS: "/executor/invitations",
     /** Xác minh danh tính (eKYC) của Người thực hiện, cùng luồng với tab xác minh của Chủ kho. */
     IDENTITY: "/executor/identity",

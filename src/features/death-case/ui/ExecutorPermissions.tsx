@@ -3,7 +3,7 @@ import type { ExecutorVault } from "../model/deathCase.schema";
 import { EXECUTOR_ALLOWED, EXECUTOR_DENIED } from "../model/executorPermissions";
 import { Panel } from "@/shared/ui/heritageKit";
 
-/** Quyền hạn của Người thực thi (thiết kế 55). Lời mời và kho đang giữ nằm ở trang "Lời mời và kho của tôi". */
+/** Quyền hạn của Người thực thi (thiết kế 55). Lời mời và kho đang giữ nằm ở trang "Lời mời và các kho bạn đang làm việc". */
 export function ExecutorPermissions({ selected }: { selected: ExecutorVault | null }) {
   const owner = selected?.ownerFullName ?? "Chủ kho";
   return (

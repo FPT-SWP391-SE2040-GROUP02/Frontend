@@ -40,7 +40,7 @@ function CollapsibleCard({
   );
 }
 
-/** Cài đặt trong không gian Người thực thi: hồ sơ cá nhân, đăng nhập và thẻ Quyền hạn bật ra bật vào. Lời mời nằm ở trang "Lời mời và kho của tôi". */
+/** Cài đặt trong không gian Người thực thi: hồ sơ cá nhân, đăng nhập và thẻ Quyền hạn bật ra bật vào. Lời mời nằm ở trang "Lời mời và các kho bạn đang làm việc". */
 export function ExecutorSettingsPage() {
   const [params] = useSearchParams();
   const open = params.get("open");
