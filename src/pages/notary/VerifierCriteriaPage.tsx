@@ -14,12 +14,12 @@ const rejectWhen = [
   "Chủ kho vẫn còn liên lạc được",
 ];
 
-/** Tiêu chí xét duyệt (nội dung hướng dẫn tĩnh; quyết định cuối cùng do Verifier ra trên hồ sơ). */
+/** Hướng dẫn xét duyệt (nội dung hướng dẫn tĩnh; quyết định cuối cùng do Verifier ra trên hồ sơ). */
 export function VerifierCriteriaPage() {
   return (
     <VerifierShell
-      title="Tiêu chí xét duyệt"
-      description="Xem hồ sơ theo những tiêu chí này trước khi chấp thuận."
+      title="Hướng dẫn xét duyệt"
+      description="Xem hồ sơ theo những hướng dẫn này trước khi chấp thuận."
     >
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <Panel title="Chấp thuận khi">

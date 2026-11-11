@@ -17,6 +17,16 @@ export function useRecipientSubmissions() {
   });
 }
 
+/**
+ * Số hồ sơ người nhận đang chờ bạn duyệt, dùng cho huy hiệu ở menu. Dùng lại đúng query của danh sách nên không gọi API thêm.
+ * Chưa tải xong hoặc lỗi thì trả 0 (huy hiệu ẩn), không đoán số.
+ */
+export function usePendingRecipientCount(): number {
+  const query = useRecipientSubmissions();
+  if (!query.data) return 0;
+  return query.data.length;
+}
+
 export function useRecipientSubmission(id: string | null) {
   return useQuery({
     queryKey: recipientReviewKeys.detail(id ?? ""),

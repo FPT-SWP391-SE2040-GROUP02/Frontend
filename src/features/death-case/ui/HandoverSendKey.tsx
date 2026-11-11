@@ -39,7 +39,7 @@ export function HandoverSendKey({
           autoComplete="off"
           spellCheck={false}
           maxLength={80}
-          placeholder="XXXX-XXXX-XXXX-…"
+          placeholder="XXXX-XXXX-XXXX-XXXX"
           className="w-full rounded-xl border border-heritage-border bg-white px-3 py-2 font-mono"
           onChange={(event) => setKey(event.target.value)}
         />

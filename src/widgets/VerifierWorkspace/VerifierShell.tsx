@@ -2,18 +2,20 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
+  Clock,
   FileText,
   Home,
   ListChecks,
-  Mail,
   Menu,
-  Settings,
   ShieldCheck,
+  User,
   Users,
   X,
   type LucideIcon,
 } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
+import { usePendingRecipientCount } from "@/features/recipient-review";
+import { useWaitingCaseSummaries } from "@/features/verifier-review";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
@@ -23,18 +25,54 @@ interface NavItem {
   label: string;
   to: string;
   icon: LucideIcon;
+  /** Nguồn số việc đang chờ hiện ở huy hiệu; không có thì không có huy hiệu. */
+  badge?: "cases" | "recipients";
 }
 
-/** Menu Người xét duyệt: Tổng quan, Hàng chờ, Hồ sơ người nhận, Tiêu chí, Lịch sử, Cài đặt. */
-const verifierNavigation: NavItem[] = [
-  { label: "Tổng quan", to: ROUTES.NOTARY.WORKSPACE, icon: Home },
-  { label: "Hàng chờ", to: ROUTES.NOTARY.QUEUE, icon: ListChecks },
-  { label: "Hồ sơ người nhận", to: ROUTES.NOTARY.RECIPIENTS, icon: Users },
-  { label: "Biên Bản", to: ROUTES.NOTARY.DOCUMENTS, icon: FileText },
-  { label: "Tiêu chí", to: ROUTES.NOTARY.CRITERIA, icon: ShieldCheck },
-  { label: "Lịch sử", to: ROUTES.NOTARY.HISTORY, icon: Mail },
-  { label: "Cài đặt", to: ROUTES.NOTARY.SETTINGS, icon: Settings },
+interface NavGroup {
+  /** Tiêu đề nhỏ của nhóm; null với mục Tổng quan đứng riêng ở đầu menu. */
+  heading: string | null;
+  items: NavItem[];
+}
+
+/**
+ * Menu Người xét duyệt chia theo việc: Tổng quan, Việc cần làm (có huy hiệu số việc chờ), Đã xử lý, Khác.
+ * Chỉ đổi chữ hiển thị; đường dẫn giữ nguyên.
+ */
+const verifierNavigation: NavGroup[] = [
+  {
+    heading: null,
+    items: [{ label: "Tổng quan", to: ROUTES.NOTARY.WORKSPACE, icon: Home }],
+  },
+  {
+    heading: "Việc cần làm",
+    items: [
+      { label: "Hồ sơ báo tin", to: ROUTES.NOTARY.QUEUE, icon: ListChecks, badge: "cases" },
+      {
+        label: "Hồ sơ người nhận",
+        to: ROUTES.NOTARY.RECIPIENTS,
+        icon: Users,
+        badge: "recipients",
+      },
+    ],
+  },
+  {
+    heading: "Đã xử lý",
+    items: [
+      { label: "Biên bản đã ký", to: ROUTES.NOTARY.DOCUMENTS, icon: FileText },
+      { label: "Lịch sử xét duyệt", to: ROUTES.NOTARY.HISTORY, icon: Clock },
+    ],
+  },
+  {
+    heading: "Khác",
+    items: [
+      { label: "Hướng dẫn xét duyệt", to: ROUTES.NOTARY.CRITERIA, icon: ShieldCheck },
+      { label: "Tài khoản", to: ROUTES.NOTARY.SETTINGS, icon: User },
+    ],
+  },
 ];
+
+const allNavigationItems: NavItem[] = verifierNavigation.flatMap((group) => group.items);
 
 /**
  * Khung không gian Người xét duyệt (Verifier). Vai trò do Backend xác minh từ DB (ROLE-04);
@@ -56,7 +94,9 @@ export function VerifierShell({
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const [navigationOpen, setNavigationOpen] = useState(false);
   const path = location.pathname;
-  const current = verifierNavigation.find(({ to }) =>
+  const waitingCases = useWaitingCaseSummaries().waiting.length;
+  const waitingRecipients = usePendingRecipientCount();
+  const current = allNavigationItems.find(({ to }) =>
     to === ROUTES.NOTARY.WORKSPACE ? path === to : path === to || path.startsWith(`${to}/`),
   );
   return (
@@ -91,17 +131,44 @@ export function VerifierShell({
             className="owner-navigation"
             data-open={navigationOpen}
           >
-            {verifierNavigation.map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                aria-current={current?.to === to ? "page" : undefined}
-                className="owner-nav-link"
-                onClick={() => setNavigationOpen(false)}
+            {verifierNavigation.map((group) => (
+              <div
+                key={group.heading ?? "overview"}
+                role={group.heading ? "group" : undefined}
+                aria-label={group.heading ?? undefined}
+                className="contents md:flex md:flex-col md:gap-1"
               >
-                <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                {label}
-              </Link>
+                {group.heading && (
+                  <p className="hidden px-3 pb-1 pt-4 text-[11px] font-semibold uppercase tracking-widest text-[#E6C98B]/70 md:block">
+                    {group.heading}
+                  </p>
+                )}
+                {group.items.map(({ to, label, icon: Icon, badge }) => {
+                  let count = 0;
+                  if (badge === "cases") count = waitingCases;
+                  if (badge === "recipients") count = waitingRecipients;
+                  return (
+                    <Link
+                      key={to}
+                      to={to}
+                      aria-current={current?.to === to ? "page" : undefined}
+                      className="owner-nav-link"
+                      onClick={() => setNavigationOpen(false)}
+                    >
+                      <Icon className="size-[18px] shrink-0" aria-hidden="true" />
+                      {label}
+                      {count > 0 && (
+                        <span
+                          aria-label={`${count} việc đang chờ bạn duyệt`}
+                          className="ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-[#E0C486] px-2 text-xs font-semibold text-[#0A281E]"
+                        >
+                          {count}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
             ))}
           </nav>
         </>

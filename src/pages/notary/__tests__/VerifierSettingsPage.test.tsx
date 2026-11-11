@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { VerifierSettingsPage } from "../VerifierSettingsPage";
@@ -29,14 +30,18 @@ function renderPage(extra: Record<string, string>) {
   );
   return render(
     <Provider store={store}>
-      <MemoryRouter>
-        <VerifierSettingsPage />
-      </MemoryRouter>
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      >
+        <MemoryRouter>
+          <VerifierSettingsPage />
+        </MemoryRouter>
+      </QueryClientProvider>
     </Provider>,
   );
 }
 
-describe("trang Tài khoản của tôi của Người xét duyệt", () => {
+describe("trang Tài khoản của Người xét duyệt", () => {
   it("chỉ hiện chứng chỉ hành nghề và thẻ luật sư, không hiện email hay số điện thoại", () => {
     renderPage({ practiceCertificateNumber: "CCHN-4521", lawyerCardNumber: "12854/LS" });
 
@@ -46,6 +51,7 @@ describe("trang Tài khoản của tôi của Người xét duyệt", () => {
     expect(section).toHaveTextContent("Thẻ luật sư");
     expect(section).toHaveTextContent("12854/LS");
     expect(section).not.toHaveTextContent("tung@example.test");
+    expect(screen.getByRole("heading", { level: 1, name: "Tài khoản" })).toBeInTheDocument();
     expect(screen.queryByText("Số điện thoại")).not.toBeInTheDocument();
     expect(screen.getByText("Phương thức đăng nhập")).toBeInTheDocument();
   });

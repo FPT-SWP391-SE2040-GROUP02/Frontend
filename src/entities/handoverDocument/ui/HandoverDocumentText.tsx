@@ -90,9 +90,12 @@ function TemplateLine({
 export function HandoverDocumentText({
   document,
   blank = false,
+  wide = false,
 }: {
   document: HandoverDocument;
   blank?: boolean;
+  /** true: rộng hết khung (màn Người xét duyệt), không giới hạn bề ngang như khi người nhận đọc. */
+  wide?: boolean;
 }) {
   const { owner: deceased, recipient, verifier } = document;
   const day = vietnamDayOf(recipient.signedAt ?? document.createdAt);
@@ -137,7 +140,7 @@ export function HandoverDocumentText({
       aria-label={
         accept ? "Biên bản đồng ý nhận di sản thừa kế" : "Văn bản từ chối nhận di sản thừa kế"
       }
-      className="max-w-2xl space-y-2 rounded-xl border border-heritage-border bg-white px-6 py-7 text-[14px] leading-6 text-black sm:px-10 [&_p:not(.text-center)]:text-justify"
+      className={`${wide ? "w-full" : "max-w-2xl"} space-y-2 rounded-xl border border-heritage-border bg-white px-6 py-7 text-[14px] leading-6 text-black sm:px-10 [&_p:not(.text-center)]:text-justify`}
       style={{ fontFamily: '"Times New Roman", Times, serif' }}
     >
       <p className="text-center font-bold uppercase">Cộng hoà xã hội chủ nghĩa Việt Nam</p>
