@@ -37,10 +37,13 @@ const kindLabels = { FILE: "Tệp tải lên", TEXT: "Ghi chú bí mật" } as c
 export function AssetList({
   vaultId,
   confirmPin,
+  lockReason = null,
 }: {
   vaultId: string;
   /** Hỏi và kiểm mã PIN kho; widget nối hộp thoại PIN với API kiểm PIN. */
   confirmPin: () => Promise<VaultPinConfirmation>;
+  /** Lý do kho đang bị khóa; khác null thì nút "Sửa" bị khóa, vẫn xem được. */
+  lockReason?: string | null;
 }) {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
@@ -225,14 +228,27 @@ export function AssetList({
                         {formatDate(item.updatedAt ?? item.createdAt)}
                       </td>
                       <td className="py-4 pl-4 text-right">
+                        {lockReason !== null && (
+                          <span
+                            role="link"
+                            aria-disabled="true"
+                            aria-label={`Sửa ${item.name} (đang khóa)`}
+                            title={lockReason}
+                            className="cursor-not-allowed font-semibold text-[#8A8574]"
+                          >
+                            Sửa
+                          </span>
+                        )}
                         {/* edit=1: trang chi tiết hỏi mã PIN ngay khi mở, đúng PIN mới hiện form sửa. */}
-                        <Link
-                          to={`${ROUTES.DASHBOARD.ASSET_DETAIL(item.id)}?edit=1`}
-                          aria-label={`Sửa ${item.name}`}
-                          className="font-semibold text-[#7A5B25] hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
-                        >
-                          Sửa
-                        </Link>
+                        {lockReason === null && (
+                          <Link
+                            to={`${ROUTES.DASHBOARD.ASSET_DETAIL(item.id)}?edit=1`}
+                            aria-label={`Sửa ${item.name}`}
+                            className="font-semibold text-[#7A5B25] hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
+                          >
+                            Sửa
+                          </Link>
+                        )}
                       </td>
                     </tr>
                   ) : (

@@ -5,6 +5,7 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { confirmVaultPin } from "@/shared/api/vaultPin";
 import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
 import { useVaultPinStatus, VaultPinSetupNotice } from "@/features/vault-pin";
+import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { Button } from "@/shared/ui/button";
 import {
@@ -33,11 +34,26 @@ function VaultPinSetupBanner({ vaultId }: { vaultId: string }) {
 function AssetCreatePanel({
   vaultId,
   remainingBytes,
+  lockReason,
 }: {
   vaultId: string;
   remainingBytes: number;
+  /** Lý do kho đang bị khóa (hồ sơ chứng tử, bàn giao...); khác null thì không cho thêm tài sản. */
+  lockReason: string | null;
 }) {
   const pinStatus = useVaultPinStatus(vaultId);
+  if (lockReason !== null) {
+    return (
+      <div
+        role="status"
+        className="rounded-xl border border-dashed border-heritage-border bg-heritage-surface px-6 py-10 text-center"
+      >
+        <Lock className="mx-auto mb-3 size-6 text-heritage-gold" aria-hidden="true" />
+        <p className="text-sm font-semibold">Thêm tài sản đang bị khóa</p>
+        <p className="mx-auto mt-1 max-w-xs text-sm text-heritage-muted">{lockReason}</p>
+      </div>
+    );
+  }
   if (pinStatus.isPending) {
     return (
       <p role="status" className="text-sm text-heritage-muted">
@@ -113,7 +129,12 @@ export function OwnerSection({
       onOpenChange = groupCreate.onOpenChange;
     }
     return (
-      <OwnerGroups vaultId={vault.data.id} createOpen={open} onCreateOpenChange={onOpenChange} />
+      <OwnerGroups
+        vaultId={vault.data.id}
+        createOpen={open}
+        onCreateOpenChange={onOpenChange}
+        lockReason={getVaultLockReason(vault.data)}
+      />
     );
   }
   if (section === "assets") {
@@ -158,10 +179,12 @@ export function OwnerSection({
             confirmPin={() =>
               confirmVaultPin(vault.data.id, (pin) => vaultPinService.verify(vault.data.id, pin))
             }
+            lockReason={getVaultLockReason(vault.data)}
           />
           <AssetCreatePanel
             vaultId={vault.data.id}
             remainingBytes={vault.data.storageRemainingBytes}
+            lockReason={getVaultLockReason(vault.data)}
           />
         </div>
       </div>

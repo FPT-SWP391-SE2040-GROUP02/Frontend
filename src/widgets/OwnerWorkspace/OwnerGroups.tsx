@@ -34,10 +34,13 @@ export function OwnerGroups({
   vaultId,
   createOpen,
   onCreateOpenChange,
+  lockReason = null,
 }: {
   vaultId: string;
   createOpen: boolean;
   onCreateOpenChange: (open: boolean) => void;
+  /** Lý do kho đang bị khóa; khác null thì không tạo, đổi tên, thêm thành viên cho gói được. */
+  lockReason?: string | null;
 }) {
   const [params, setParams] = useSearchParams();
   const [renaming, setRenaming] = useState<PackageResponse | null>(null);
@@ -134,7 +137,13 @@ export function OwnerGroups({
           Gói bàn giao gom các tài sản và người nhận có chung mục đích chuyển giao di sản.
         </p>
         {page === 1 && (
-          <Button size="lg" className={GOLD_BUTTON} onClick={() => onCreateOpenChange(true)}>
+          <Button
+            size="lg"
+            className={GOLD_BUTTON}
+            disabled={lockReason !== null}
+            title={lockReason ?? undefined}
+            onClick={() => onCreateOpenChange(true)}
+          >
             Tạo gói bàn giao đầu tiên
           </Button>
         )}
@@ -151,6 +160,7 @@ export function OwnerGroups({
           beneficiariesById={beneficiariesById}
           onRename={setRenaming}
           onAddMembers={(target, relation) => setEditing({ group: target, relation })}
+          lockReason={lockReason}
         />,
       );
     }

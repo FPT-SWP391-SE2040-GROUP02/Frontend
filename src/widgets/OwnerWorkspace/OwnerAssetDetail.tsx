@@ -5,6 +5,7 @@ import { isAxiosError } from "axios";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { confirmVaultPin } from "@/shared/api/vaultPin";
+import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles, Chip, Notice } from "@/shared/ui/heritageKit";
@@ -97,6 +98,7 @@ export function OwnerAssetDetail({ assetId }: { assetId: string }) {
           confirmPin={() => confirmVaultPin(vaultId, (pin) => vaultPinService.verify(vaultId, pin))}
           editRequested={editRequested}
           onEditRequestHandled={() => setSearchParams({}, { replace: true })}
+          lockReason={getVaultLockReason(vault.data)}
         />
       )}
     </OwnerWorkspace>

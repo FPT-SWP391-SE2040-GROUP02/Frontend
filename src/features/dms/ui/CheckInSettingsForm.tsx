@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { Button } from "@/shared/ui/button";
 import { checkInStatusSchema, updateCheckInSettingsSchema } from "../model/checkIn.schema";
 import { checkInService } from "../api/checkInService";
@@ -23,6 +24,8 @@ const SELECT_CLASS =
  */
 export function CheckInSettingsForm({ vaultId, status }: { vaultId: string; status: Status }) {
   const [etag] = useState(status.settings.etag);
+  // Kế hoạch đã sang hồ sơ chứng tử/bàn giao: khóa lịch (BE từ chối đổi cấu hình từ trạng thái này).
+  const lockReason = getVaultLockReason({ status: "OPEN", planStatus: status.planStatus });
   const action = usePrivateAction();
   const client = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -59,7 +62,7 @@ export function CheckInSettingsForm({ vaultId, status }: { vaultId: string; stat
           ),
         )}
       >
-        <fieldset disabled={action.pending} className="space-y-4">
+        <fieldset disabled={action.pending || lockReason !== null} className="space-y-4">
           <label className="block space-y-2 text-sm">
             Chu kỳ
             <select {...form.register("cycleDays")} className={SELECT_CLASS}>

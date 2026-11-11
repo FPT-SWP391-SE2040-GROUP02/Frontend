@@ -10,6 +10,7 @@ import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiarie
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
 import { BeneficiaryRow, EditBeneficiaryDialog } from "@/features/beneficiaries/ui/BeneficiaryRow";
 import { beneficiaryResponseSchema } from "@/features/beneficiaries/model/beneficiary.schema";
+import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import type { z } from "zod";
@@ -93,6 +94,9 @@ export function OwnerBeneficiaries() {
   if (vault.isPending || list.isPending) return <p role="status">Đang tải hồ sơ người nhận…</p>;
   // Gia hạn (GRACE_READ_ONLY): không thêm/sửa được, vẫn xóa được (thiết kế 173). Gói Free cần nâng cấp để thêm.
   const readOnly = vault.data.serviceStatus === "GRACE_READ_ONLY";
+  // Kho bị khóa vì hồ sơ chứng tử, bàn giao...: không thêm, sửa, xóa được (khác gia hạn là vẫn cho xóa).
+  const lockReason = getVaultLockReason(vault.data);
+  const locked = lockReason !== null;
   const freeTier = vault.data.serviceTier === "FREE";
   // Số hồ sơ (tính cả hồ sơ chưa ở gói nào) không vượt tổng suất; BE vẫn chặn lại bằng 409 BENEFICIARY_SLOTS_EXCEEDED.
   // Danh sách không lọc nên totalCount là tổng số hồ sơ của kho.
@@ -106,6 +110,7 @@ export function OwnerBeneficiaries() {
         record={record}
         groupNames={groupNames}
         readOnly={readOnly}
+        locked={locked}
       />,
     );
   }
@@ -130,7 +135,8 @@ export function OwnerBeneficiaries() {
         <button
           type="button"
           className={`${buttonStyles.gold} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
-          disabled={readOnly || profileLimitReached}
+          disabled={readOnly || locked || profileLimitReached}
+          title={lockReason ?? undefined}
           onClick={() => setAdding(true)}
         >
           Thêm người nhận

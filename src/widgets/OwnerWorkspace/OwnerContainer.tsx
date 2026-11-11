@@ -1,4 +1,5 @@
 import { useParams, useSearchParams } from "react-router-dom";
+import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { useOwnerVault, useOwnerPackage } from "@/features/vault-management/model/useOwnerVault";
 import { GroupDetail } from "@/features/vault-management/ui/GroupDetail";
 import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
@@ -113,6 +114,7 @@ export function OwnerContainer() {
       )}
       <GroupDetail
         container={container.data}
+        lockReason={getVaultLockReason(vault.data)}
         assets={
           assets.data?.items.map((item) => {
             let detail = "Ghi chú bí mật";

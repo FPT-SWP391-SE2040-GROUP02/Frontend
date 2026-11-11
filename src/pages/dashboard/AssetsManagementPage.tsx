@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import { useVaultPageTitle } from "@/features/vault-management/model/useVaultPageTitle";
+import { useOwnerVaultLock } from "@/features/vault-management/model/useOwnerVaultLock";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { OwnerSection } from "@/widgets/OwnerWorkspace/OwnerSection";
 
@@ -14,6 +15,7 @@ export function AssetsManagementPage() {
   const [params, setParams] = useSearchParams();
   const [creating, setCreating] = useState(false);
   const pageTitle = useVaultPageTitle();
+  const lockReason = useOwnerVaultLock();
   const onGroups = params.get("tab") === GROUPS_TAB;
 
   function selectTab(groups: boolean): void {
@@ -36,6 +38,8 @@ export function AssetsManagementPage() {
       <Button
         size="lg"
         className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+        disabled={lockReason !== null}
+        title={lockReason ?? undefined}
         onClick={() => setCreating(true)}
       >
         Tạo gói bàn giao

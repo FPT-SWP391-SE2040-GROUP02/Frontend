@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
+import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { buttonStyles } from "@/shared/ui/heritageKit";
@@ -28,7 +29,7 @@ function ExecutorNoteForm({ vault }: { vault: VaultResponse }) {
   const [note, setNote] = useState(saved);
   const client = useQueryClient();
   const action = usePrivateAction();
-  const closed = vault.status === "CLOSED";
+  const closed = getVaultLockReason(vault) !== null;
   const dirty = note !== saved;
 
   function save(): void {

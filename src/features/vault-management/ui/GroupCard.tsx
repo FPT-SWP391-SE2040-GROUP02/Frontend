@@ -27,14 +27,19 @@ export interface GroupCardProps {
   beneficiariesById: Map<string, GroupBeneficiaryOption>;
   onRename: (group: PackageResponse) => void;
   onAddMembers: (group: PackageResponse, relation: "assets" | "beneficiaries") => void;
+  /** Lý do kho đang bị khóa (hồ sơ chứng tử, bàn giao...); khác null thì các nút thay đổi bị khóa. */
+  lockReason?: string | null;
 }
 
 function MissingNotice({
+  locked,
   needAssets,
   needPeople,
   onAddAssets,
   onAddPeople,
 }: {
+  /** Kho đang bị khóa: các nút bổ sung bị khóa, vẫn đọc được phần còn thiếu. */
+  locked: boolean;
   needAssets: boolean;
   needPeople: boolean;
   onAddAssets: () => void;
@@ -50,10 +55,10 @@ function MissingNotice({
     );
     actions = (
       <>
-        <button type="button" className={SMALL_OUTLINE} onClick={onAddAssets}>
+        <button type="button" className={SMALL_OUTLINE} disabled={locked} onClick={onAddAssets}>
           Thêm tài sản
         </button>
-        <button type="button" className={SMALL_OUTLINE} onClick={onAddPeople}>
+        <button type="button" className={SMALL_OUTLINE} disabled={locked} onClick={onAddPeople}>
           Chọn người nhận
         </button>
       </>
@@ -65,7 +70,7 @@ function MissingNotice({
       </>
     );
     actions = (
-      <button type="button" className={SMALL_DARK} onClick={onAddPeople}>
+      <button type="button" className={SMALL_DARK} disabled={locked} onClick={onAddPeople}>
         Chọn người nhận
       </button>
     );
@@ -76,7 +81,7 @@ function MissingNotice({
       </>
     );
     actions = (
-      <button type="button" className={SMALL_DARK} onClick={onAddAssets}>
+      <button type="button" className={SMALL_DARK} disabled={locked} onClick={onAddAssets}>
         Thêm tài sản
       </button>
     );
@@ -107,7 +112,9 @@ export function GroupCard({
   beneficiariesById,
   onRename,
   onAddMembers,
+  lockReason = null,
 }: GroupCardProps) {
+  const locked = lockReason !== null;
   const ready = group.status === "READY";
   // Ưu tiên lý do do server trả; nếu thiếu thì suy ra từ số thành viên hiện có.
   let needAssets = group.missingRequirements.includes("NO_ASSET");
@@ -161,7 +168,13 @@ export function GroupCard({
           )}
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <button type="button" className={SMALL_OUTLINE} onClick={() => onRename(group)}>
+          <button
+            type="button"
+            className={SMALL_OUTLINE}
+            disabled={locked}
+            title={lockReason ?? undefined}
+            onClick={() => onRename(group)}
+          >
             Đổi tên
           </button>
           <Link to={detailLink} aria-label={`Mở gói bàn giao ${group.name}`} className={SMALL_DARK}>
@@ -173,6 +186,7 @@ export function GroupCard({
 
       {showNotice && (
         <MissingNotice
+          locked={locked}
           needAssets={needAssets}
           needPeople={needPeople}
           onAddAssets={() => onAddMembers(group, "assets")}
@@ -227,6 +241,8 @@ export function GroupCard({
               <button
                 type="button"
                 className={SMALL_OUTLINE}
+                disabled={locked}
+                title={lockReason ?? undefined}
                 onClick={() => onAddMembers(group, "beneficiaries")}
               >
                 <Plus className="size-3.5" aria-hidden="true" />
