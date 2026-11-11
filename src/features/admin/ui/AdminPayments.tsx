@@ -29,6 +29,7 @@ import {
 } from "@/shared/ui/listKit";
 import { AdminPagination } from "./AdminPagination";
 import { AdminRevenue } from "./AdminRevenue";
+import { periodRange, type RevenuePeriod } from "../model/revenuePeriod";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
 const STATUS_STYLES: Record<PaymentTransactionStatus, string> = {
@@ -48,28 +49,13 @@ function StatusBadge({ status }: { status: PaymentTransactionStatus }) {
   );
 }
 
-const pad = (value: number) => String(value).padStart(2, "0");
-const isoDay = (date: Date) =>
-  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-
-type PeriodKey = "day" | "month" | "quarter";
+type PeriodKey = RevenuePeriod;
 
 const PERIODS: ReadonlyArray<{ key: PeriodKey; label: string }> = [
   { key: "day", label: "Hôm nay" },
   { key: "month", label: "Tháng này" },
   { key: "quarter", label: "Quý này" },
 ];
-
-/** Khoảng ngày (yyyy-MM-dd, gồm cả hai đầu) của ngày, tháng hoặc quý chứa `now`. */
-function periodRange(key: PeriodKey, now: Date): { from: string; to: string } {
-  if (key === "day") return { from: isoDay(now), to: isoDay(now) };
-  const first = key === "month" ? now.getMonth() : Math.floor(now.getMonth() / 3) * 3;
-  const months = key === "month" ? 1 : 3;
-  return {
-    from: isoDay(new Date(now.getFullYear(), first, 1)),
-    to: isoDay(new Date(now.getFullYear(), first + months, 0)),
-  };
-}
 
 /**
  * Giao dịch tiền vào qua SePay, chỉ xem (ADMIN-09): bộ lọc trạng thái và trang nằm trên URL.
@@ -134,7 +120,7 @@ export function AdminPayments() {
           onChange={(value) => params.setTo(value || undefined)}
         />
       </ListFilterBar>
-      <AdminRevenue from={params.filters.from} to={params.filters.to} />
+      <AdminRevenue />
       {ADMIN_INCIDENTS_VISIBLE && (
         <p role="note" className="text-sm text-heritage-muted">
           Giao dịch cần đối chiếu đã tự mở sự cố; xử lý ở trang{" "}

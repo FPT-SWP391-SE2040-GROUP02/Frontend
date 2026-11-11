@@ -1,15 +1,17 @@
 import { useState } from "react";
+import { useServerNow } from "@/shared/clock/useServerNow";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { ListPill, ListTable, ListTableRow } from "@/shared/ui/listKit";
 import { formatMoney } from "../model/admin.content";
-import type { RevenueEnvironment, RevenueGroupBy } from "../model/admin.schema";
+import type { RevenueEnvironment } from "../model/admin.schema";
+import { groupByForPeriod, periodRange, type RevenuePeriod } from "../model/revenuePeriod";
 import { useAdminRevenue } from "../model/useAdmin";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
-const GROUPS: ReadonlyArray<{ key: RevenueGroupBy; label: string }> = [
-  { key: "day", label: "Theo ngày" },
-  { key: "month", label: "Theo tháng" },
-  { key: "quarter", label: "Theo quý" },
+const PERIODS: ReadonlyArray<{ key: RevenuePeriod; label: string; caption: string }> = [
+  { key: "day", label: "Theo ngày", caption: "Hôm nay" },
+  { key: "month", label: "Theo tháng", caption: "Tháng này" },
+  { key: "quarter", label: "Theo quý", caption: "Quý này" },
 ];
 
 const ENVIRONMENTS: ReadonlyArray<{ key: RevenueEnvironment; label: string }> = [
@@ -20,12 +22,24 @@ const ENVIRONMENTS: ReadonlyArray<{ key: RevenueEnvironment; label: string }> = 
 
 /**
  * Doanh thu = tổng tiền giao dịch đã khớp đơn hoặc đã xử lý (giao dịch lệch chờ đối chiếu chưa tính), tính theo giờ Việt Nam.
- * Khoảng ngày lấy từ bộ lọc của trang Giao dịch; cách gom và môi trường chọn riêng ở đây, mặc định chỉ tiền thật.
+ * Mỗi nút chọn một kỳ (hôm nay, tháng này, quý này) nên tổng đổi theo kỳ; bảng bên dưới chia theo ngày hoặc theo tháng.
+ * Môi trường chọn riêng, mặc định chỉ tiền thật.
  */
-export function AdminRevenue({ from, to }: { from?: string; to?: string }) {
-  const [groupBy, setGroupBy] = useState<RevenueGroupBy>("month");
+export function AdminRevenue() {
+  const serverNow = useServerNow();
+  const [period, setPeriod] = useState<RevenuePeriod>("month");
   const [environment, setEnvironment] = useState<RevenueEnvironment>("Live");
-  const query = useAdminRevenue({ groupBy, environment, from, to });
+  const range = periodRange(period, serverNow);
+  const query = useAdminRevenue({
+    groupBy: groupByForPeriod(period),
+    environment,
+    from: range.from,
+    to: range.to,
+  });
+  let caption = "";
+  for (const item of PERIODS) {
+    if (item.key === period) caption = item.caption;
+  }
 
   return (
     <section
@@ -37,13 +51,13 @@ export function AdminRevenue({ from, to }: { from?: string; to?: string }) {
           Doanh thu
         </h2>
         <div className="flex flex-wrap items-center gap-2">
-          {GROUPS.map((group) => (
+          {PERIODS.map((item) => (
             <ListPill
-              key={group.key}
-              pressed={groupBy === group.key}
-              onClick={() => setGroupBy(group.key)}
+              key={item.key}
+              pressed={period === item.key}
+              onClick={() => setPeriod(item.key)}
             >
-              {group.label}
+              {item.label}
             </ListPill>
           ))}
           <span aria-hidden="true" className="mx-1 h-5 w-px bg-heritage-border" />
@@ -58,12 +72,18 @@ export function AdminRevenue({ from, to }: { from?: string; to?: string }) {
           ))}
         </div>
       </div>
-      <RevenueResult query={query} />
+      <RevenueResult query={query} caption={caption} />
     </section>
   );
 }
 
-function RevenueResult({ query }: { query: ReturnType<typeof useAdminRevenue> }) {
+function RevenueResult({
+  query,
+  caption,
+}: {
+  query: ReturnType<typeof useAdminRevenue>;
+  caption: string;
+}) {
   if (query.isPending)
     return (
       <div role="status" aria-busy="true" aria-label="Đang tải doanh thu" className="space-y-2">
@@ -90,7 +110,9 @@ function RevenueResult({ query }: { query: ReturnType<typeof useAdminRevenue> })
         <b className="text-[34px] font-bold leading-[1.15] tabular-nums text-heritage-primary">
           {formatMoney(data.totalAmount, data.currency)}
         </b>
-        <span className="text-sm text-heritage-muted">từ {data.transactionCount} giao dịch</span>
+        <span className="text-sm text-heritage-muted">
+          {caption} · {data.transactionCount} giao dịch
+        </span>
       </p>
       {data.buckets.length === 0 && (
         <p role="status" className="text-sm text-heritage-muted">
@@ -100,7 +122,7 @@ function RevenueResult({ query }: { query: ReturnType<typeof useAdminRevenue> })
       {data.buckets.length > 0 && (
         <ListTable
           columns="minmax(140px,1fr) 140px minmax(160px,1fr)"
-          headings={["Kỳ", "Số giao dịch", "Doanh thu"]}
+          headings={["Ngày hoặc tháng", "Số giao dịch", "Doanh thu"]}
         >
           {data.buckets.map((bucket) => (
             <ListTableRow key={bucket.key} tone="none">

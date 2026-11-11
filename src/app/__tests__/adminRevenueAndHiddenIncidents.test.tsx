@@ -126,49 +126,48 @@ function setup(path: string) {
 }
 
 describe("doanh thu của Admin", () => {
-  it("mặc định hiện tổng tiền thật theo tháng, kèm từng kỳ", async () => {
+  const revenueCall = () => callsTo("/admin/payment-transactions/revenue").at(-1)?.params;
+
+  it("mặc định hiện doanh thu tháng này của tiền thật, chia theo ngày", async () => {
     backend();
     setup(`${ROUTES.ADMIN.ROOT}?view=payments`);
 
     expect(await screen.findByText("10/2026")).toBeInTheDocument();
     expect(screen.getByText("11/2026")).toBeInTheDocument();
-    expect(screen.getByText(/từ 2 giao dịch/)).toBeInTheDocument();
-    expect(callsTo("/admin/payment-transactions/revenue").at(-1)?.params).toMatchObject({
-      groupBy: "month",
-      environment: "Live",
-    });
+    expect(screen.getByText(/Tháng này · 2 giao dịch/)).toBeInTheDocument();
+    const params = revenueCall();
+    expect(params).toMatchObject({ groupBy: "day", environment: "Live" });
+    // Đầu và cuối tháng: ngày bắt đầu là mùng 1, ngày kết thúc cùng tháng.
+    expect(String(params?.from)).toMatch(/^\d{4}-\d{2}-01$/);
+    expect(String(params?.to).slice(0, 7)).toBe(String(params?.from).slice(0, 7));
   });
 
-  it("đổi sang theo quý và gộp cả môi trường thử nghiệm thì gửi đúng tham số", async () => {
+  it("bấm Theo ngày thì chỉ lấy hôm nay, bấm Theo quý thì lấy cả quý và chia theo tháng", async () => {
+    backend();
+    setup(`${ROUTES.ADMIN.ROOT}?view=payments`);
+    await screen.findByText("10/2026");
+    const monthFrom = revenueCall()?.from;
+
+    fireEvent.click(screen.getByRole("button", { name: "Theo ngày" }));
+    await waitFor(() => expect(revenueCall()?.from).toBe(revenueCall()?.to));
+    expect(revenueCall()).toMatchObject({ groupBy: "day" });
+    expect(await screen.findByText(/Hôm nay · 2 giao dịch/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Theo quý" }));
+    await waitFor(() => expect(revenueCall()).toMatchObject({ groupBy: "month" }));
+    const quarter = revenueCall();
+    expect(String(quarter?.from) <= String(monthFrom)).toBe(true);
+    expect(String(quarter?.to) >= String(monthFrom)).toBe(true);
+    expect(String(quarter?.from).slice(5, 7)).toMatch(/^(01|04|07|10)$/);
+  });
+
+  it("chọn Tất cả thì gộp cả môi trường thử nghiệm", async () => {
     backend();
     setup(`${ROUTES.ADMIN.ROOT}?view=payments`);
     await screen.findByText("10/2026");
 
-    fireEvent.click(screen.getByRole("button", { name: "Theo quý" }));
-    await waitFor(() =>
-      expect(callsTo("/admin/payment-transactions/revenue").at(-1)?.params).toMatchObject({
-        groupBy: "quarter",
-      }),
-    );
-
     fireEvent.click(screen.getByRole("button", { name: "Tất cả" }));
-    await waitFor(() =>
-      expect(callsTo("/admin/payment-transactions/revenue").at(-1)?.params).toMatchObject({
-        groupBy: "quarter",
-        environment: "ALL",
-      }),
-    );
-  });
-
-  it("khoảng ngày của bộ lọc trang Giao dịch được dùng cho doanh thu", async () => {
-    backend();
-    setup(`${ROUTES.ADMIN.ROOT}?view=payments&pfrom=2026-11-01&pto=2026-11-30`);
-
-    await screen.findByText("10/2026");
-    expect(callsTo("/admin/payment-transactions/revenue").at(-1)?.params).toMatchObject({
-      from: "2026-11-01",
-      to: "2026-11-30",
-    });
+    await waitFor(() => expect(revenueCall()).toMatchObject({ environment: "ALL" }));
   });
 });
 
