@@ -207,8 +207,14 @@
     display: grid;
     grid-template-columns: 240px minmax(0, 1fr);
   }
+  /* Cột menu đứng yên khi cuộn và cao bằng màn hình (trừ dải giả lập ngày nếu có), nên chân menu luôn thấy được. */
   .owner-workspace > aside {
-    min-height: 100%;
+    position: sticky;
+    top: var(--demo-banner-height, 0px);
+    align-self: start;
+    height: calc(100vh - var(--demo-banner-height, 0px));
+    min-height: 0;
+    overflow-y: auto;
     border-bottom: 0;
     scrollbar-width: thin;
     scrollbar-color: rgba(184, 142, 76, 0.25) transparent;
