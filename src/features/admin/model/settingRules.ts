@@ -44,7 +44,6 @@ interface TextLimit {
 }
 
 const TEXT_LIMITS: Record<string, TextLimit> = {
-  "Handover.DeclineNotice": { maxLength: 400, isEmail: false },
   "Company.Name": { maxLength: 100, isEmail: false },
   "Company.Website": { maxLength: 200, isEmail: false },
   "Company.Email": { maxLength: 200, isEmail: true },

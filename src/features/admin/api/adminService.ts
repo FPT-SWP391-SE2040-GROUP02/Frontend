@@ -20,6 +20,9 @@ import {
   paymentTransactionsPageSchema,
   paymentTransactionsQuerySchema,
   adminRevenueSchema,
+  handoverTemplateSchema,
+  handoverTemplateVersionsSchema,
+  saveHandoverTemplateRequestSchema,
   adminRevenueQuerySchema,
   assignExecutorRequestSchema,
   reassignVerifierRequestSchema,
@@ -35,6 +38,7 @@ import {
   type IncidentNoteRequest,
   type IncidentsQuery,
   type AdminRevenueQuery,
+  type SaveHandoverTemplateRequest,
   type PaymentTransactionsQuery,
   type AssignExecutorRequest,
   type ReassignVerifierRequest,
@@ -226,6 +230,35 @@ export const adminService = {
     if (parsed.to) params.to = parsed.to;
     return paymentTransactionsPageSchema.parse(
       await apiClient.get<unknown, unknown>("/admin/payment-transactions", { params, signal }),
+    );
+  },
+
+  /** Mẫu biên bản đang dùng cho biên bản mới (mẫu gốc khi chưa lưu bản nào). */
+  async getHandoverTemplate(signal?: AbortSignal) {
+    return handoverTemplateSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/handover-templates/current", { signal }),
+    );
+  },
+
+  /** Một phiên bản cũ của mẫu theo số. */
+  async getHandoverTemplateVersion(version: number, signal?: AbortSignal) {
+    return handoverTemplateSchema.parse(
+      await apiClient.get<unknown, unknown>(`/admin/handover-templates/${version}`, { signal }),
+    );
+  },
+
+  /** Lịch sử các lần lưu mẫu, mới nhất trước. */
+  async listHandoverTemplateVersions(signal?: AbortSignal) {
+    return handoverTemplateVersionsSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/handover-templates", { signal }),
+    );
+  },
+
+  /** Lưu thành phiên bản mới; biên bản đã tạo giữ nguyên chữ của phiên bản lúc tạo. */
+  async saveHandoverTemplate(request: SaveHandoverTemplateRequest) {
+    const body = saveHandoverTemplateRequestSchema.parse(request);
+    return handoverTemplateSchema.parse(
+      await apiClient.post<unknown, unknown>("/admin/handover-templates", body),
     );
   },
 

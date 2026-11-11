@@ -4,7 +4,6 @@ import {
   settingErrors,
   settingRelationErrors,
   settingValueError,
-  textMaxLengthOf,
 } from "../settingRules";
 
 describe("settingValueError", () => {
@@ -30,13 +29,6 @@ describe("settingValueError", () => {
       "Phải là số nguyên không âm.",
     );
     expect(settingValueError("CheckIn.MaxLateReminders", "-1")).toBe("Phải là số nguyên không âm.");
-  });
-
-  it("câu báo khi người nhận từ chối: tối đa 400 ký tự, không phải email", () => {
-    expect(settingValueError("Handover.DeclineNotice", "a".repeat(400))).toBe("");
-    expect(settingValueError("Handover.DeclineNotice", "a".repeat(401))).toBe("Tối đa 400 ký tự.");
-    expect(textMaxLengthOf("Handover.DeclineNotice", 200)).toBe(400);
-    expect(textMaxLengthOf("Khong.CoLuat", 200)).toBe(200);
   });
 
   it("số điện thoại công ty: chặn chữ và số quá ngắn hoặc quá dài, cho để trống", () => {

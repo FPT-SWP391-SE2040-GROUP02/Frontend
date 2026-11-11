@@ -10,6 +10,21 @@ export type DocumentKind = z.infer<typeof documentKindSchema>;
 export const documentStatusSchema = z.enum(["WAIT_RECIPIENT", "WAIT_VERIFIER", "COMPLETED"]);
 export type DocumentStatus = z.infer<typeof documentStatusSchema>;
 
+/** Căn lề của một đoạn trong mẫu biên bản. */
+export const templateAlignSchema = z.enum(["left", "center", "justify"]);
+export type TemplateAlign = z.infer<typeof templateAlignSchema>;
+
+/**
+ * Một đoạn của mẫu biên bản: chữ có thể chứa trường dạng {HO_TEN_NGUOI_NHAN} (giao diện và Backend điền từ dữ liệu biên bản),
+ * căn lề và đậm hay không.
+ */
+export const templateParagraphSchema = z.object({
+  text: z.string(),
+  align: templateAlignSchema,
+  bold: z.boolean(),
+});
+export type TemplateParagraph = z.infer<typeof templateParagraphSchema>;
+
 /**
  * Biên bản đồng ý nhận hoặc văn bản từ chối của một lượt bàn giao (GET .../document, .../documents).
  * Chỉ có thông tin cần cho biên bản: không có số căn cước hay ngày sinh đầy đủ.
@@ -25,6 +40,8 @@ export const handoverDocumentSchema = z.object({
   templateVersion: z.string(),
   /** Câu báo về việc xử lý phần tài sản khi có người nhận từ chối (Admin sửa được); Backend cũ không có trường này. */
   declineNotice: z.string().nullish(),
+  /** Các đoạn chữ theo mẫu đã ghi lúc tạo biên bản (đúng loại ACCEPT hoặc DECLINE); Backend cũ không có thì dùng chữ cố định. */
+  templateParagraphs: z.array(templateParagraphSchema).nullish(),
   containerName: z.string(),
   itemCount: z.number().int().min(0),
   owner: z.object({

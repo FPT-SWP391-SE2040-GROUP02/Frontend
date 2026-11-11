@@ -56,8 +56,6 @@ interface SettingMeta {
   description: string;
   src?: string;
   dataType: "NUMBER" | "BOOLEAN" | "STRING";
-  /** Tham số chữ dài: sửa bằng ô nhiều dòng thay vì một dòng. */
-  multiline?: boolean;
   /** Tạm ẩn khỏi trang Cấu hình; Backend vẫn giữ tham số và dùng giá trị đã lưu hoặc mức gốc. */
   hidden?: boolean;
   isSecurity?: boolean;
@@ -145,18 +143,6 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
   },
 
   // 2. Bàn giao & Lưu trữ (Handover & Retention)
-  {
-    key: "Handover.DeclineNotice",
-    label: "Câu báo khi người nhận từ chối",
-    category: "Handover",
-    categoryTitle: "Bàn giao & Lưu trữ",
-    defaultValue:
-      "Nếu một người nhận từ chối nhận, phần tài sản của gói bàn giao đó sẽ bị xóa hoàn toàn khỏi hệ thống và không thể khôi phục.",
-    description:
-      "In ở mục 8 của biên bản đồng ý và hiện cho người nhận trước khi họ chọn nhận hay từ chối: cho biết phần tài sản bị xử lý thế nào khi có người từ chối. Biên bản đã ký giữ nguyên chữ cũ.",
-    dataType: "STRING",
-    multiline: true,
-  },
   {
     key: "Handover.ResponseWindowDays",
     label: "Hạn người nhận phản hồi lời mời",
@@ -953,15 +939,6 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                     {currentVal === "true" ? "Bật" : "Tắt"}
                                   </span>
                                 </div>
-                              ) : item.dataType === "STRING" && item.multiline ? (
-                                <textarea
-                                  value={currentVal}
-                                  rows={4}
-                                  maxLength={textMaxLengthOf(item.key, 200)}
-                                  onChange={(e) => setKeyValue(item.key, e.target.value)}
-                                  aria-label={item.label}
-                                  className="w-80 max-w-full rounded-lg border border-heritage-border bg-white px-3 py-2 text-sm shadow-sm focus:outline-none"
-                                />
                               ) : item.dataType === "STRING" ? (
                                 <input
                                   type="text"

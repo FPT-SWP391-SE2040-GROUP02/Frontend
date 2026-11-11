@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { formatDocumentDate, vietnamDayOf } from "../model/handoverDocument.format";
-import type { HandoverDocument } from "../model/handoverDocument.schema";
+import { buildTemplateValues, splitTemplateText } from "../model/templateFill";
+import type { HandoverDocument, TemplateParagraph } from "../model/handoverDocument.schema";
 
 const DOTS = "..............................";
 
@@ -54,6 +55,35 @@ function formatSigned(instant: string): string {
   return `${time} ${day.day}/${day.month}/${day.year}`;
 }
 
+/** Một đoạn của mẫu: điền trường {…} từ dữ liệu biên bản; trường chưa có giá trị hiện chú thích (blank) hoặc dòng chấm. */
+function TemplateLine({
+  paragraph,
+  values,
+  blank,
+}: {
+  paragraph: TemplateParagraph;
+  values: ReturnType<typeof buildTemplateValues>;
+  blank: boolean;
+}) {
+  let alignClass = "";
+  if (paragraph.align === "center") alignClass = "text-center";
+  if (paragraph.align === "left") alignClass = "text-left";
+  let boldClass = "";
+  if (paragraph.bold) boldClass = "font-bold";
+  return (
+    <p className={`${alignClass} ${boldClass}`.trim()} style={{ whiteSpace: "pre-wrap" }}>
+      {splitTemplateText(paragraph.text).map((part, index) => {
+        if (part.kind === "text") return <span key={index}>{part.value}</span>;
+        if (!Object.hasOwn(values, part.name)) return <span key={index}>{`{${part.name}}`}</span>;
+        const value = values[part.name];
+        if (value) return <span key={index}>{value}</span>;
+        if (blank) return <Placeholder key={index}>bạn điền sau</Placeholder>;
+        return <span key={index}>{DOTS}</span>;
+      })}
+    </p>
+  );
+}
+
 /**
  * Toàn văn biên bản đồng ý nhận hoặc văn bản từ chối, điền từ dữ liệu của biên bản: Phần 1 chép từ hồ sơ chứng tử đã duyệt,
  * Phần 2 do người nhận khai, chữ ký của người nhận và Người xét duyệt.
@@ -79,6 +109,32 @@ export function HandoverDocumentText({
   // Nơi đăng ký khai tử Người thực thi đã chọn; hồ sơ cũ chưa có thì in dòng chấm như ảnh văn bản Backend dựng.
   const place = deceased.deathRegistrationPlace || "UBND …………………";
   const accept = document.kind === "ACCEPT";
+  // Backend mới trả các đoạn của mẫu đã ghi lúc tạo biên bản: dựng theo mẫu đó. Backend cũ thì dùng chữ cố định bên dưới.
+  const template = document.templateParagraphs;
+  if (template && template.length > 0) {
+    const values = buildTemplateValues(document);
+    return (
+      <article
+        aria-label={
+          accept ? "Biên bản đồng ý nhận di sản thừa kế" : "Văn bản từ chối nhận di sản thừa kế"
+        }
+        className="max-w-2xl space-y-2 rounded-xl border border-heritage-border bg-white px-6 py-7 text-[14px] leading-6 text-black sm:px-10 [&_p]:text-justify"
+        style={{ fontFamily: '"Times New Roman", Times, serif' }}
+      >
+        {template.map((paragraph, index) => (
+          <TemplateLine key={index} paragraph={paragraph} values={values} blank={blank} />
+        ))}
+        <div className="grid gap-3 pt-4 sm:grid-cols-2">
+          <Signature title="Người lập văn bản" name={name} signedAt={recipient.signedAt} />
+          <Signature
+            title="Người xét duyệt đã kiểm tra thủ công"
+            name={verifier.signedByName}
+            signedAt={verifier.signedAt}
+          />
+        </div>
+      </article>
+    );
+  }
   return (
     <article
       aria-label={
@@ -112,9 +168,9 @@ export function HandoverDocumentText({
           </p>
           <p>Bằng biên bản này, tôi xin khai đúng sự thật rằng:</p>
           <p>
-            1. Người để lại di sản: Chủ kho {owner}, chết ngày {death} theo giấy chứng tử do{" "}
-            {place} đăng ký khai tử ngày {issued}. Thông tin này đã được Người xét duyệt thẩm định
-            trên hệ thống.
+            1. Người để lại di sản: Chủ kho {owner}, chết ngày {death} theo giấy chứng tử do {place}{" "}
+            đăng ký khai tử ngày {issued}. Thông tin này đã được Người xét duyệt thẩm định trên hệ
+            thống.
           </p>
           <p>2. Tôi là người được Chủ kho chỉ định nhận phần di sản nêu tại mục 4.</p>
           <p>
