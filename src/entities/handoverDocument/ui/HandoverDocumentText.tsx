@@ -65,13 +65,10 @@ function TemplateLine({
   values: ReturnType<typeof buildTemplateValues>;
   blank: boolean;
 }) {
-  let alignClass = "";
-  if (paragraph.align === "center") alignClass = "text-center";
-  if (paragraph.align === "left") alignClass = "text-left";
   let boldClass = "";
   if (paragraph.bold) boldClass = "font-bold";
   return (
-    <p className={`${alignClass} ${boldClass}`.trim()} style={{ whiteSpace: "pre-wrap" }}>
+    <p className={boldClass} style={{ whiteSpace: "pre-wrap", textAlign: paragraph.align }}>
       {splitTemplateText(paragraph.text).map((part, index) => {
         if (part.kind === "text") return <span key={index}>{part.value}</span>;
         if (!Object.hasOwn(values, part.name)) return <span key={index}>{`{${part.name}}`}</span>;
@@ -118,7 +115,7 @@ export function HandoverDocumentText({
         aria-label={
           accept ? "Biên bản đồng ý nhận di sản thừa kế" : "Văn bản từ chối nhận di sản thừa kế"
         }
-        className="max-w-2xl space-y-2 rounded-xl border border-heritage-border bg-white px-6 py-7 text-[14px] leading-6 text-black sm:px-10 [&_p]:text-justify"
+        className="max-w-2xl space-y-2 rounded-xl border border-heritage-border bg-white px-6 py-7 text-[14px] leading-6 text-black sm:px-10 [&_p:not(.text-center)]:text-justify"
         style={{ fontFamily: '"Times New Roman", Times, serif' }}
       >
         {template.map((paragraph, index) => (
@@ -140,7 +137,7 @@ export function HandoverDocumentText({
       aria-label={
         accept ? "Biên bản đồng ý nhận di sản thừa kế" : "Văn bản từ chối nhận di sản thừa kế"
       }
-      className="max-w-2xl space-y-2 rounded-xl border border-heritage-border bg-white px-6 py-7 text-[14px] leading-6 text-black sm:px-10 [&_p]:text-justify"
+      className="max-w-2xl space-y-2 rounded-xl border border-heritage-border bg-white px-6 py-7 text-[14px] leading-6 text-black sm:px-10 [&_p:not(.text-center)]:text-justify"
       style={{ fontFamily: '"Times New Roman", Times, serif' }}
     >
       <p className="text-center font-bold uppercase">Cộng hoà xã hội chủ nghĩa Việt Nam</p>

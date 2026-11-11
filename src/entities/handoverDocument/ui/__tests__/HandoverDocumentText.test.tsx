@@ -133,7 +133,7 @@ describe("biên bản dựng theo mẫu từ Backend", () => {
     render(<HandoverDocumentText document={withTemplate()} />);
 
     const title = screen.getByText("TIÊU ĐỀ MẪU").closest("p");
-    expect(title).toHaveClass("text-center");
+    expect(title).toHaveStyle({ textAlign: "center" });
     expect(title).toHaveClass("font-bold");
   });
 
