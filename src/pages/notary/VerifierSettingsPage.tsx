@@ -15,7 +15,7 @@ export function VerifierSettingsPage() {
   ];
   return (
     <VerifierShell
-      title="Tài khoản của tôi"
+      title="Tài khoản"
       description="Thông tin hành nghề do quản trị viên nhập khi tạo tài khoản. Bạn chỉ xem, không tự sửa được."
     >
       <section

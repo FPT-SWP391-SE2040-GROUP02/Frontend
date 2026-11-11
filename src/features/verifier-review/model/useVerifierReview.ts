@@ -7,8 +7,13 @@ import type {
   approveCaseRequestSchema,
   requestSupplementRequestSchema,
   reviewFlagRequestSchema,
+  verifierCaseSummarySchema,
 } from "./verifierReview.schema";
+import { isOpenCase, queueCategory } from "./verifierPresentation";
 import type { z } from "zod";
+
+/** Trang đầu của danh sách; menu, Tổng quan và danh sách dùng chung khóa này nên chỉ gọi API một lần. */
+export const FIRST_PAGE: PaginationParams = { pageIndex: 1, pageSize: 20 };
 
 export const verifierKeys = {
   all: ["verifier-cases"] as const,
@@ -28,6 +33,21 @@ export function useVerifierCases(params?: PaginationParams) {
     refetchIntervalInBackground: false,
   });
 }
+/**
+ * Số hồ sơ báo tin đang chờ bạn duyệt, dùng cho huy hiệu ở menu và thẻ ở Tổng quan. Dùng lại đúng query trang đầu của danh sách
+ * nên không gọi API thêm; chưa tải xong hoặc lỗi thì trả 0 (huy hiệu ẩn), không đoán số.
+ */
+export function useWaitingCaseSummaries() {
+  const query = useVerifierCases(FIRST_PAGE);
+  const waiting: z.infer<typeof verifierCaseSummarySchema>[] = [];
+  if (query.data) {
+    for (const item of query.data.items) {
+      if (isOpenCase(item.status) && queueCategory(item) === "REVIEW") waiting.push(item);
+    }
+  }
+  return { query, waiting };
+}
+
 /** Chi tiết hồ sơ; cache riêng để invalidation chính xác. */
 export function useVerifierCase(caseId: string | null) {
   return useQuery({

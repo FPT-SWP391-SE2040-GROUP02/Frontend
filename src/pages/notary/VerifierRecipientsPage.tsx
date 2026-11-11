@@ -8,11 +8,11 @@ export function VerifierRecipientsPage() {
   const hasSubmission = Boolean(params.get("submissionId"));
   return (
     <VerifierShell
-      title={hasSubmission ? "Duyệt hồ sơ người nhận" : "Hồ sơ người nhận"}
+      title="Hồ sơ người nhận"
       description={
         hasSubmission
-          ? "Đối chiếu ảnh căn cước với kết quả khớp, rồi duyệt hoặc yêu cầu bổ sung."
-          : "Người nhận nộp căn cước và chọn Chấp nhận hoặc Từ chối cho các kho bạn đã duyệt hồ sơ chứng tử."
+          ? "Xem ảnh căn cước và biên bản, rồi duyệt hoặc yêu cầu người nhận bổ sung."
+          : "Người nhận nộp căn cước và ký biên bản đồng ý hoặc từ chối cho các kho bạn đã duyệt hồ sơ báo tin."
       }
     >
       <RecipientReviewQueue />

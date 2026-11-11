@@ -169,7 +169,7 @@ function setup(children: ReactNode, initialPath = "/notary/workspace") {
 }
 
 async function selectFirstCase(user: ReturnType<typeof userEvent.setup>) {
-  const listItem = await screen.findByRole("button", { name: /Xem hồ sơ #33333333/ });
+  const listItem = await screen.findByRole("button", { name: /(Duyệt|Xem) hồ sơ #33333333/ });
   await user.click(listItem);
   await screen.findByRole("region", { name: "Bản đang xét" });
 }
@@ -260,7 +260,7 @@ it("chi tiết lỗi có thông báo và thử lại thay vì giả chưa chọn
 it("danh sách rỗng không tạo hồ sơ giả", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue({ ...listFixture, items: [], totalCount: 0 });
   setup(<VerifierQueue />);
-  expect(await screen.findByText(/Hiện chưa có hồ sơ nào chờ bạn/)).toBeInTheDocument();
+  expect(await screen.findByText(/Không còn hồ sơ báo tin nào chờ bạn/)).toBeInTheDocument();
 });
 
 it("đọc blocker xung đột quyền theo BE và từ chối response thiếu dữ liệu", async () => {
@@ -549,6 +549,8 @@ it("hồ sơ đã từ chối ghi đang chờ nộp lại ở chi tiết, không
       : { ...listFixture, items: [{ ...summaryFixture, status: "SUPPLEMENT_REQUIRED" }] },
   );
   setup(<VerifierQueue />);
+  // Hồ sơ đang chờ Người thực thi bổ sung nằm ở tab thứ hai.
+  await user.click(await screen.findByRole("tab", { name: /Chờ Người thực thi bổ sung/ }));
   await screen.findByRole("button", { name: /Xem hồ sơ #33333333/ });
   expect(screen.queryByText(/Hạn xét/)).not.toBeInTheDocument();
   await selectFirstCase(user);
@@ -588,7 +590,7 @@ it("danh sách không còn cột Hạn thẩm định và không hiện hạn x�
     String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
   );
   setup(<VerifierQueue />);
-  await screen.findByRole("button", { name: /Xem hồ sơ #33333333/ });
+  await screen.findByRole("button", { name: /(Duyệt|Xem) hồ sơ #33333333/ });
   expect(screen.queryByText(/Hạn xét/)).not.toBeInTheDocument();
   expect(screen.queryByRole("columnheader", { name: "Hạn thẩm định" })).not.toBeInTheDocument();
   expect(screen.queryByText(/Hết hạn sau/)).not.toBeInTheDocument();
@@ -659,7 +661,7 @@ it("GET chi tiết 404 tự chuyển về trang tổng quan, xóa caseId và t�
   const listCalls = () => get.mock.calls.filter(([url]) => !String(url).endsWith(CASE_ID)).length;
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=approve&flagId=${FLAG_ID}`);
   await waitFor(() => expect(screen.getByTestId("search").textContent).toBe(""));
-  expect(await screen.findByRole("region", { name: "Hồ sơ chứng tử" })).toBeInTheDocument();
+  expect(await screen.findByRole("tablist", { name: "Hồ sơ báo tin" })).toBeInTheDocument();
   expect(screen.queryByText("Hồ sơ không còn được giao cho bạn.")).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Thử lại" })).not.toBeInTheDocument();
   await waitFor(() => expect(listCalls()).toBeGreaterThan(0));
@@ -754,7 +756,9 @@ it("mã hồ sơ ở danh sách là 8 ký tự cuối của id, in hoa như emai
       : { ...listFixture, items: [{ ...summaryFixture, id: MIXED_CASE_ID }] },
   );
   setup(<VerifierQueue />);
-  expect(await screen.findByRole("button", { name: /Xem hồ sơ #8C0D1A2F/ })).toBeInTheDocument();
+  expect(
+    await screen.findByRole("button", { name: /(Duyệt|Xem) hồ sơ #8C0D1A2F/ }),
+  ).toBeInTheDocument();
   expect(screen.queryByText(/Hồ sơ #0199E7A4/i)).not.toBeInTheDocument();
 });
 
@@ -769,7 +773,8 @@ it("mã hồ sơ ở tiêu đề chi tiết là 8 ký tự cuối của id, in h
   expect(screen.queryByText(/Hồ sơ #0199E7A4/i)).not.toBeInTheDocument();
 });
 
-it("supplementOverdueAt có giá trị hiện nhãn Nộp lại quá hạn ở danh sách và chi tiết theo giờ Việt Nam", async () => {
+it("supplementOverdueAt có giá trị cũng không hiện chữ quá hạn ở danh sách lẫn chi tiết", async () => {
+  const user = userEvent.setup();
   const overdueAt = "2026-10-10T17:30:00Z";
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID)
@@ -781,24 +786,12 @@ it("supplementOverdueAt có giá trị hiện nhãn Nộp lại quá hạn ở d
           ],
         },
   );
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  await screen.findByRole("region", { name: "Bản đang xét" });
-  expect(screen.getAllByText("Nộp lại quá hạn")).toHaveLength(1);
-  // 17:30 UTC = 00:30 ngày hôm sau theo giờ Việt Nam.
-  expect(
-    screen.getByText(/Executor bổ sung quá hạn từ .*00:30.*giờ Việt\s+Nam/),
-  ).toBeInTheDocument();
-});
-
-it("supplementOverdueAt có giá trị hiện nhãn Nộp lại quá hạn ở danh sách", async () => {
-  const overdueAt = "2026-10-10T17:30:00Z";
-  vi.spyOn(apiClient, "get").mockResolvedValue({
-    ...listFixture,
-    items: [{ ...summaryFixture, status: "SUPPLEMENT_REQUIRED", supplementOverdueAt: overdueAt }],
-  });
   setup(<VerifierQueue />);
+  await user.click(await screen.findByRole("tab", { name: /Chờ Người thực thi bổ sung/ }));
   await screen.findByRole("button", { name: /Xem hồ sơ #33333333/ });
-  expect(screen.getAllByText("Nộp lại quá hạn")).toHaveLength(1);
+  expect(screen.queryByText(/quá hạn/i)).not.toBeInTheDocument();
+  await selectFirstCase(user);
+  expect(screen.queryByText(/quá hạn/i)).not.toBeInTheDocument();
 });
 
 it.each([
@@ -1005,18 +998,43 @@ it("chi tiết hồ sơ đã đóng không gọi API phiếu chữ ký và khôn
   expect(get.mock.calls.some(([url]) => String(url).includes("decision-signature"))).toBe(false);
 });
 
-it("hàng chờ có thẻ Nên xem tiếp trỏ hồ sơ có hạn gần nhất, bảng theo cột Người nộp và Lần nộp, và các bước thẩm định", async () => {
+it("hàng chờ xếp theo thời điểm nộp, dòng đầu tô nổi, không có chữ về hạn, rồi mở hồ sơ", async () => {
   const user = userEvent.setup();
+  const OLDER_ID = "66666666-6666-4666-8666-666666666666";
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+    String(url).endsWith(CASE_ID)
+      ? detailFixture
+      : {
+          ...listFixture,
+          totalCount: 2,
+          items: [
+            // Nộp sau nhưng hạn xét gần hơn: vẫn phải nằm dưới.
+            {
+              ...summaryFixture,
+              submittedAt: "2026-10-05T03:00:00Z",
+              dueAt: "2026-10-06T00:00:00Z",
+            },
+            {
+              ...summaryFixture,
+              id: OLDER_ID,
+              submittedAt: "2026-10-04T03:00:00Z",
+              dueAt: "2026-12-30T00:00:00Z",
+            },
+          ],
+        },
   );
   setup(<VerifierQueue />);
-  const featured = await screen.findByRole("region", { name: "Nên xem tiếp" });
-  expect(featured).toHaveTextContent("Hồ sơ báo tin #33333333");
-  expect(screen.getByRole("columnheader", { name: "Người nộp" })).toBeInTheDocument();
-  expect(screen.getByRole("columnheader", { name: "Lần nộp" })).toBeInTheDocument();
-  expect(screen.getByText("Cách thẩm định một hồ sơ")).toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: /Bắt đầu thẩm định hồ sơ #33333333/ }));
+  const rows = await screen.findAllByRole("listitem");
+  expect(rows).toHaveLength(2);
+  expect(rows[0]).toHaveTextContent("#66666666");
+  expect(rows[0]).toHaveAttribute("data-featured", "true");
+  expect(rows[1]).toHaveTextContent("#33333333");
+  expect(rows[1]).not.toHaveAttribute("data-featured");
+  expect(rows[0]).toHaveTextContent("10:00 04/10/2026");
+  expect(screen.getByText("Hồ sơ nộp trước ở trên, làm từ trên xuống.")).toBeInTheDocument();
+  expect(screen.queryByText(/Nộp sớm nhất/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Quá hạn|Còn \d+ ngày|Hạn/)).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: /Duyệt hồ sơ #33333333/ }));
   expect(await screen.findByRole("region", { name: "Bản đang xét" })).toBeInTheDocument();
 });
 

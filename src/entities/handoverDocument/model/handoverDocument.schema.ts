@@ -71,13 +71,21 @@ export const handoverDocumentSchema = z.object({
   supplementReason: z.string().nullish(),
   /** Chỉ Người xét duyệt thấy: dùng để xem ảnh căn cước và gửi biên bản. */
   submissionId: z.string().uuid().nullish(),
+  /** Chỉ Người xét duyệt thấy: lúc người nhận nộp (hoặc nộp lại) hồ sơ mới nhất. */
+  submittedAt: timestamp.nullish(),
+  /** Chỉ Người xét duyệt thấy: true khi là lần nộp lại sau khi bị yêu cầu bổ sung. */
+  resubmitted: z.boolean().default(false),
+  /** Chỉ Người xét duyệt thấy: lúc bạn duyệt hồ sơ báo tin của kho. */
+  caseApprovedAt: timestamp.nullish(),
+  /** Chỉ Người xét duyệt thấy: tổng số người nhận của kho; 0 khi Backend không trả. */
+  vaultRecipientTotal: z.number().int().min(0).default(0),
   createdAt: timestamp,
   completedAt: timestamp.nullable(),
 });
 export type HandoverDocument = z.infer<typeof handoverDocumentSchema>;
 
 /** Số mục Người xét duyệt phải kiểm tra thủ công và tick đủ (khớp HandoverDocumentRules.VerifierCheckCount của Backend). */
-export const VERIFIER_CHECK_COUNT = 4;
+export const VERIFIER_CHECK_COUNT = 2;
 
 export const DOCUMENT_STATUS_LABELS: Record<DocumentStatus, string> = {
   WAIT_RECIPIENT: "Chờ người nhận",

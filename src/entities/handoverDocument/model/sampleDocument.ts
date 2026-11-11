@@ -39,9 +39,11 @@ export function sampleHandoverDocument(
     },
     verifier: {
       signedByName: "Luật sư Lê Văn Dũng",
-      checks: [true, true, true, true],
+      checks: [true, true],
       signedAt: "2026-11-11T04:00:00Z",
     },
+    resubmitted: false,
+    vaultRecipientTotal: 0,
     createdAt: "2026-11-11T02:00:00Z",
     completedAt: "2026-11-11T04:00:00Z",
   };

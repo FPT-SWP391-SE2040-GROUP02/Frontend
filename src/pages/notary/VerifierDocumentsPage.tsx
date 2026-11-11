@@ -1,12 +1,12 @@
 import { VerifierDocuments } from "@/features/recipient-review/ui/VerifierDocuments";
 import { VerifierShell } from "@/widgets/VerifierWorkspace/VerifierShell";
 
-/** Mục Biên Bản của Người xét duyệt: biên bản chờ kiểm tra và lịch sử mọi biên bản của các kho mình đã duyệt. */
+/** Mục Biên bản đã ký của Người xét duyệt: các biên bản đã hoàn tất, gom theo kho mình đã duyệt hồ sơ báo tin. */
 export function VerifierDocumentsPage() {
   return (
     <VerifierShell
-      title="Biên Bản"
-      description="Biên bản đồng ý nhận và văn bản từ chối của các kho bạn đã duyệt hồ sơ chứng tử."
+      title="Biên bản đã ký"
+      description="Biên bản đồng ý nhận và văn bản từ chối đã hoàn tất, gom theo kho bạn đã duyệt hồ sơ báo tin."
     >
       <VerifierDocuments />
     </VerifierShell>

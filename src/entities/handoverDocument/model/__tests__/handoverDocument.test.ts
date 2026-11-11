@@ -19,7 +19,7 @@ describe("định dạng ngày của biên bản", () => {
 describe("hợp đồng với Backend", () => {
   it("bốn mục kiểm tra thủ công khớp số mục Backend yêu cầu", () => {
     expect(VERIFIER_CHECKS).toHaveLength(VERIFIER_CHECK_COUNT);
-    expect(VERIFIER_CHECK_COUNT).toBe(4);
+    expect(VERIFIER_CHECK_COUNT).toBe(2);
   });
 
   it("nhận ngày dạng yyyy-MM-dd và từ chối ngày sai định dạng", () => {

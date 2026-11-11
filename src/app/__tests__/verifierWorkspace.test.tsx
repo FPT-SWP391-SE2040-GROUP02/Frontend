@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
@@ -16,6 +16,7 @@ import { VerifierQueuePage } from "@/pages/notary/VerifierQueuePage";
 const OPEN_ID = "33333333-3333-4333-8333-333333333333";
 const DONE_ID = "66666666-6666-4666-8666-666666666666";
 const REJECTED_ID = "77777777-7777-4777-8777-777777777777";
+const SUPPLEMENT_ID = "88888888-8888-4888-8888-888888888888";
 
 const summary = (id: string, status: string, extra: Record<string, unknown> = {}) => ({
   id,
@@ -41,6 +42,23 @@ const list = (items: unknown[]) => ({
   hasPreviousPage: false,
   hasNextPage: false,
 });
+
+const submission = (id: string, submittedAt: string = CREATED_AT) => ({
+  id,
+  turnId: "99999999-9999-4999-8999-999999999999",
+  containerName: "Kho Anh Nam",
+  kind: "ACCEPT",
+  allMatch: true,
+  submittedAt,
+});
+
+/** Hồ sơ báo tin trả theo trang, hồ sơ người nhận trả mảng: hai đường dẫn khác nhau nên mock theo đường dẫn. */
+function mockApi(cases: unknown[], recipients: unknown[] = []) {
+  return vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+    if (url.includes("handover-submissions")) return recipients;
+    return list(cases);
+  });
+}
 
 let client: QueryClient;
 beforeEach(() => {
@@ -87,19 +105,22 @@ function setup(path: string) {
 }
 
 describe("Verifier workspace shell", () => {
-  it("shows the seven menu items, the account and no role switch", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(list([]));
+  it("menu chia nhóm Việc cần làm, Đã xử lý, Khác; có tài khoản và không có nút đổi vai", async () => {
+    mockApi([]);
     setup("/notary/workspace");
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người xét duyệt" });
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
       "Tổng quan",
-      "Hàng chờ",
+      "Hồ sơ báo tin",
       "Hồ sơ người nhận",
-      "Biên Bản",
-      "Tiêu chí",
-      "Lịch sử",
-      "Cài đặt",
+      "Biên bản đã ký",
+      "Lịch sử xét duyệt",
+      "Hướng dẫn xét duyệt",
+      "Tài khoản",
     ]);
+    expect(within(nav).getByRole("group", { name: "Việc cần làm" })).toBeInTheDocument();
+    expect(within(nav).getByRole("group", { name: "Đã xử lý" })).toBeInTheDocument();
+    expect(within(nav).getByRole("group", { name: "Khác" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByText("Người xét duyệt")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Sang vai/ })).not.toBeInTheDocument();
@@ -111,55 +132,85 @@ describe("Verifier workspace shell", () => {
       await screen.findByRole("heading", { level: 1, name: "Chào Cô Lan" }),
     ).toBeInTheDocument();
   });
+
+  it("huy hiệu ở menu là số việc đang chờ, hết việc thì ẩn", async () => {
+    mockApi(
+      [summary(OPEN_ID, "UNDER_REVIEW")],
+      [
+        submission("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"),
+        submission("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"),
+      ],
+    );
+    setup("/notary/workspace");
+    const nav = screen.getByRole("navigation", { name: "Điều hướng Người xét duyệt" });
+    expect(await within(nav).findByLabelText("1 việc đang chờ bạn duyệt")).toBeInTheDocument();
+    expect(await within(nav).findByLabelText("2 việc đang chờ bạn duyệt")).toBeInTheDocument();
+  });
 });
 
 describe("Verifier overview", () => {
-  it("counts the cases waiting for the Verifier and links to the first one", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(
-      list([
+  it("hai thẻ việc: số hồ sơ báo tin và hồ sơ người nhận đang chờ, kèm hồ sơ nộp sớm nhất", async () => {
+    mockApi(
+      [
         summary(OPEN_ID, "UNDER_REVIEW"),
         summary(DONE_ID, "APPROVED_FOR_HANDOVER", { closedAt: CREATED_AT }),
-      ]),
+      ],
+      [submission("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")],
     );
     setup("/notary/workspace");
-    expect(await screen.findByText("1 hồ sơ đang chờ bạn")).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "Xem hồ sơ" })[0]).toHaveAttribute(
+    const cases = await screen.findByRole("link", { name: /Hồ sơ báo tin chờ duyệt/ });
+    expect(cases).toHaveAttribute("href", "/notary/queue");
+    await waitFor(() => expect(cases).toHaveTextContent("1"));
+    expect(cases).toHaveTextContent("Cũ nhất: nộp");
+    const recipients = screen.getByRole("link", { name: /Hồ sơ người nhận chờ duyệt/ });
+    expect(recipients).toHaveAttribute("href", "/notary/recipients");
+    await waitFor(() => expect(recipients).toHaveTextContent("Cũ nhất: nộp"));
+    // Danh sách bên dưới chỉ có hồ sơ còn mở và dẫn thẳng tới hồ sơ đó.
+    expect(screen.getByRole("link", { name: "Xem hồ sơ #33333333" })).toHaveAttribute(
       "href",
       `/notary/queue?caseId=${OPEN_ID}`,
     );
-    // Hồ sơ đã có kết quả không nằm trong hàng chờ.
     expect(screen.getAllByText(/Hồ sơ #/)).toHaveLength(1);
     expect(screen.getByText("Hồ sơ báo tin, giấy tờ")).toBeInTheDocument();
     expect(screen.getByText("Nội dung kho")).toBeInTheDocument();
   });
 
-  it("says nothing is waiting when no case needs review", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(list([]));
+  it("không còn việc thì hai thẻ ghi 0 và Không còn việc", async () => {
+    mockApi([]);
     setup("/notary/workspace");
-    expect(await screen.findByText("Không có hồ sơ nào cần bạn xem lúc này")).toBeInTheDocument();
+    await screen.findByText("Chưa có hồ sơ nào đang được giao.");
+    await waitFor(() => expect(screen.getAllByText("Không còn việc")).toHaveLength(2));
+    const cases = screen.getByRole("link", { name: /Hồ sơ báo tin chờ duyệt/ });
+    expect(cases).toHaveTextContent("0");
   });
 
-  it("reports a failed list with a retry instead of an empty queue", async () => {
+  it("lỗi tải thì báo lỗi kèm Thử lại, thẻ không hiện số giả", async () => {
     vi.spyOn(apiClient, "get").mockRejectedValue(new Error("down"));
     setup("/notary/workspace");
-    expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được danh sách hồ sơ");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được một phần số liệu");
     expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
+    expect(screen.getAllByText("Không tải được số liệu")).toHaveLength(2);
   });
 });
 
 describe("Verifier queue and history", () => {
-  it("lists only open cases in the queue", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(
-      list([
-        summary(OPEN_ID, "UNDER_REVIEW", { unreviewedFlagCount: 2 }),
-        summary(DONE_ID, "APPROVED_FOR_HANDOVER", { closedAt: CREATED_AT }),
-      ]),
-    );
+  it("tab Chờ bạn duyệt chỉ có hồ sơ còn mở, nộp trước xếp trên; hồ sơ chờ bổ sung nằm ở tab còn lại", async () => {
+    mockApi([
+      summary(OPEN_ID, "UNDER_REVIEW", { unreviewedFlagCount: 2 }),
+      summary(DONE_ID, "APPROVED_FOR_HANDOVER", { closedAt: CREATED_AT }),
+      summary(SUPPLEMENT_ID, "SUPPLEMENT_REQUIRED"),
+    ]);
     setup("/notary/queue");
-    expect(await screen.findByRole("button", { name: /Xem hồ sơ #33333333/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Xem hồ sơ #66666666/ })).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: "Duyệt hồ sơ #33333333" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /hồ sơ #66666666/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /hồ sơ #88888888/ })).not.toBeInTheDocument();
     expect(screen.getByText("2 cảnh báo chưa kiểm tra")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: "Hàng chờ" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Hồ sơ báo tin" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("tab", { name: /Chờ Người thực thi bổ sung/ }));
+    expect(await screen.findByRole("button", { name: "Xem hồ sơ #88888888" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /hồ sơ #33333333/ })).not.toBeInTheDocument();
   });
 
   it("lists decided cases with the decision in the history table", async () => {

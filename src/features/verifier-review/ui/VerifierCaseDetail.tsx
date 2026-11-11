@@ -46,17 +46,6 @@ const formatCompact = (value: string) => {
   return `${pick("day")}/${pick("month")}/${pick("year")} ${pick("hour")}:${pick("minute")}`;
 };
 
-/** Thời điểm theo giờ Việt Nam, không phụ thuộc múi giờ trình duyệt. */
-const formatVietnamTime = (value: string) =>
-  new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Asia/Ho_Chi_Minh",
-  }).format(new Date(value));
-
 /** Hồ sơ đã ra khỏi bước xét duyệt thì ô điều kiện chỉ nói trạng thái, không gợi ý bổ sung hay từ chối. */
 const CLOSED_CONDITION_TEXT: Record<string, string> = {
   APPROVED_FOR_HANDOVER: "Hồ sơ đã được duyệt, không cần xét thêm.",
@@ -180,7 +169,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               Hồ sơ #{caseCode(detail.id)}
             </h2>
             <Chip tone={status.tone}>{status.label}</Chip>
-            {detail.supplementOverdueAt && <Chip tone="warning">Nộp lại quá hạn</Chip>}
             {detail.closedAt && <Chip tone="neutral">Đóng {formatDate(detail.closedAt)}</Chip>}
           </div>
           <div className="flex items-center gap-3">
@@ -211,12 +199,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           Kho: {detail.vaultId} · Phân công từ {formatDate(detail.assignment.assignedAt)}
           {detail.status === "SUPPLEMENT_REQUIRED" ? " · Đang chờ Người thực thi nộp lại" : ""}
         </p>
-        {detail.supplementOverdueAt && (
-          <p className="text-sm text-[#7A5B25]">
-            Executor bổ sung quá hạn từ {formatVietnamTime(detail.supplementOverdueAt)} (giờ Việt
-            Nam).
-          </p>
-        )}
       </header>
       <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#5A4318]">
         Bạn chỉ xác nhận hồ sơ, không xem nội dung kho. Quyết định của bạn được ghi lại.

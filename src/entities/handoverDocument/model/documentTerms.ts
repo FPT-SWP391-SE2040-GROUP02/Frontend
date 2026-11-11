@@ -48,10 +48,18 @@ export function declarationText(role: SignerRole, kind: DocumentKind): string {
 export const TERMS_DISCLAIMER =
   "LegacyVault chỉ cung cấp công cụ, không tư vấn pháp lý và không chịu trách nhiệm về nội dung khai hay hậu quả pháp lý.";
 
-/** Bốn mục Người xét duyệt tick sau khi kiểm tra thủ công; số mục khớp VERIFIER_CHECK_COUNT. */
+/** Hai mục Người xét duyệt tick sau khi kiểm tra thủ công; số mục khớp VERIFIER_CHECK_COUNT. */
 export const VERIFIER_CHECKS: readonly string[] = [
-  "Họ tên, năm sinh, 4 số cuối căn cước ở Phần 2 khớp ảnh căn cước hai mặt.",
-  "Họ tên người nhận khớp hồ sơ người nhận Chủ kho đã khai.",
-  "Thông tin Chủ kho ở Phần 1 khớp giấy chứng tử tôi đã duyệt.",
-  "Lựa chọn đúng nội dung biên bản và hai bên đã ký.",
+  "Tôi đã nhìn ảnh căn cước: họ tên, năm sinh, số căn cước trên ảnh khớp với bảng trên.",
+  "Biên bản đúng lựa chọn của người nhận, đúng gói, và người nhận đã ký.",
 ];
+
+/** Hai câu tick của Người xét duyệt, câu thứ hai nêu rõ lựa chọn Đồng ý nhận hoặc Từ chối nhận của biên bản này. */
+export function verifierCheckTexts(kind: DocumentKind): string[] {
+  let choice = "Đồng ý nhận";
+  if (kind === "DECLINE") choice = "Từ chối nhận";
+  return [
+    VERIFIER_CHECKS[0] ?? "",
+    `Biên bản đúng lựa chọn ${choice}, đúng gói, và người nhận đã ký.`,
+  ];
+}
