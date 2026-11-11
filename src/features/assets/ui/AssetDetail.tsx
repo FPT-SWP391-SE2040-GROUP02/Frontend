@@ -167,6 +167,7 @@ export function AssetDetail({
   onRevealedChange,
   editRequested = false,
   onEditRequestHandled,
+  lockReason = null,
 }: {
   vaultId: string;
   asset: BackendAsset;
@@ -181,7 +182,10 @@ export function AssetDetail({
   editRequested?: boolean;
   /** Báo đã xử lý `editRequested` để nơi gọi bỏ yêu cầu khỏi URL. */
   onEditRequestHandled?: () => void;
+  /** Lý do kho đang bị khóa; khác null thì không sửa, không xóa được, vẫn xem được sau khi nhập PIN. */
+  lockReason?: string | null;
 }) {
+  const locked = lockReason !== null;
   const [dialog, setDialog] = useState<"delete" | null>(null);
   /** null: chỉ xem. Có giá trị: form sửa đang mở với PIN đã kiểm. */
   const [editing, setEditing] = useState<{ pin?: string } | null>(null);
@@ -200,7 +204,9 @@ export function AssetDetail({
 
   // Hỏi PIN và bỏ ?edit=1 khỏi URL đúng một lần khi vào trang, kể cả khi StrictMode chạy effect hai lần.
   const handleArrival = useEffectEvent(() => {
-    if (!editRequested) {
+    if (!editRequested || locked) {
+      // Kho đang khóa: ?edit=1 chỉ mở xem, không mở form sửa.
+      if (editRequested && onEditRequestHandled) onEditRequestHandled();
       gate.request(onPinCancelled);
       return;
     }
@@ -222,6 +228,7 @@ export function AssetDetail({
   }, [revealed]);
 
   const startEditing = () => {
+    if (locked) return;
     setSaved(false);
     gate.request(undefined, (pin) => setEditing({ pin }));
   };
@@ -269,12 +276,20 @@ export function AssetDetail({
               </p>
             )}
             <div className="mt-5 flex flex-wrap gap-3">
-              <button type="button" className={buttonStyles.gold} onClick={startEditing}>
+              <button
+                type="button"
+                className={`${buttonStyles.gold} disabled:cursor-not-allowed disabled:opacity-50`}
+                disabled={locked}
+                title={lockReason ?? undefined}
+                onClick={startEditing}
+              >
                 Sửa
               </button>
               <button
                 type="button"
-                className={buttonStyles.danger}
+                className={`${buttonStyles.danger} disabled:cursor-not-allowed disabled:opacity-50`}
+                disabled={locked}
+                title={lockReason ?? undefined}
                 onClick={() => setDialog("delete")}
               >
                 Xóa mục

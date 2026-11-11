@@ -28,6 +28,8 @@ import {
   useOwnerVault,
 } from "@/features/vault-management/model/useOwnerVault";
 import { CheckInGraceBanner } from "@/features/dms/ui/CheckInGraceBanner";
+import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
+import { OwnerVaultLockedBanner } from "@/features/vault-management/ui/OwnerVaultLockedBanner";
 import { GRACE_PLAN_STATUSES } from "@/features/dms/model/checkInGrace";
 import "./owner-workspace.css";
 
@@ -108,6 +110,7 @@ export function OwnerWorkspace({
   const showOwnerService = user?.role === "USER" && Boolean(accessTokenMemory.get());
   // Cùng query với ô gói dịch vụ; quá hạn điểm danh thì hiện dải cảnh báo ân hạn đầu mọi trang.
   const vault = useOwnerVault(showOwnerService);
+  const lockReason = getVaultLockReason(vault.data);
   const showSwitchRole = useCanSwitchToExecutor();
   // Lời mời đang chờ hiện ở chân sidebar: người chưa là Executor không có nút chuyển vai để tìm lời mời.
   const pendingInvitations = usePendingInvitationCount();
@@ -247,6 +250,7 @@ export function OwnerWorkspace({
       {vault.data && GRACE_PLAN_STATUSES.includes(vault.data.planStatus) && (
         <CheckInGraceBanner vaultId={vault.data.id} />
       )}
+      {lockReason !== null && <OwnerVaultLockedBanner reason={lockReason} />}
       {children}
       <footer className="max-w-prose border-t border-heritage-border pt-4 text-xs leading-5 text-heritage-muted">
         LegacyVault hỗ trợ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc hoặc thủ tục thừa

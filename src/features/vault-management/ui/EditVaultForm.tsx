@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
@@ -69,7 +70,8 @@ export function EditVaultForm({
   const name = useWatch({ control: form.control, name: "name" });
   const description = useWatch({ control: form.control, name: "description" });
   const { errors, isDirty } = form.formState;
-  const closed = vault.status === "CLOSED";
+  const lockReason = getVaultLockReason(vault);
+  const closed = lockReason !== null;
 
   return (
     <form
@@ -145,8 +147,8 @@ export function EditVaultForm({
               Đã lưu thông tin kho.
             </p>
           )}
-          {closed && (
-            <p className="mr-auto text-sm text-heritage-muted">Kho đã đóng, không sửa được.</p>
+          {lockReason !== null && (
+            <p className="mr-auto text-sm text-heritage-muted">{lockReason}</p>
           )}
           <button
             type="button"

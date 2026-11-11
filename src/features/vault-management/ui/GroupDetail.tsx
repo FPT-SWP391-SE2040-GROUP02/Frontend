@@ -224,10 +224,13 @@ export function GroupDetail({
   container,
   assets,
   beneficiaries,
+  lockReason = null,
 }: {
   container: PackageResponse;
   assets: Option[];
   beneficiaries: Option[];
+  /** Lý do kho đang bị khóa (hồ sơ chứng tử, bàn giao...); khác null thì mọi nút thay đổi gói bị khóa. */
+  lockReason?: string | null;
 }) {
   const [etag, setEtag] = useState(container.etag);
   const [deleting, setDeleting] = useState(false);
@@ -363,7 +366,8 @@ export function GroupDetail({
   }
   // Thông báo "cần gói trả phí" kèm đường nâng cấp thay vì chỉ báo lỗi chung.
   const needsUpgrade = action.error.includes("gói dịch vụ trả phí");
-  const blocked = action.pending || removed;
+  // Kho đang bị khóa (hồ sơ chứng tử, bàn giao...): mọi nút thay đổi gói đều khóa, chỉ còn xem.
+  const blocked = action.pending || removed || lockReason !== null;
 
   return (
     <div className="space-y-6">

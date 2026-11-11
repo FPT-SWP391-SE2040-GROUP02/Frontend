@@ -187,12 +187,15 @@ export function BeneficiaryRow({
   record,
   groupNames = {},
   readOnly = false,
+  locked = false,
 }: {
   vaultId: string;
   record: Beneficiary;
   /** id gói bàn giao → tên gói bàn giao, do widget tra; thiếu thì thông báo chỉ nêu số gói bàn giao. */
   groupNames?: Record<string, string>;
   readOnly?: boolean;
+  /** Kho đang bị khóa (hồ sơ chứng tử, bàn giao...): khóa cả "Sửa" lẫn "Xóa". */
+  locked?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -235,15 +238,16 @@ export function BeneficiaryRow({
             type="button"
             className={`${buttonStyles.outline} disabled:border-transparent disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
             aria-label={`Sửa hồ sơ ${record.fullName}`}
-            disabled={readOnly}
+            disabled={readOnly || locked}
             onClick={() => setEditing(true)}
           >
             Sửa
           </button>
           <button
             type="button"
-            className={buttonStyles.danger}
+            className={`${buttonStyles.danger} disabled:border-transparent disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
             aria-label={`Xóa hồ sơ ${record.fullName}`}
+            disabled={locked}
             onClick={() => setDeleting(true)}
           >
             Xóa

@@ -42,6 +42,7 @@ afterEach(() => {
 function renderRow(
   overrides: Partial<z.infer<typeof beneficiaryResponseSchema>> = {},
   groupNames: Record<string, string> = {},
+  locked = false,
 ) {
   const store = configureStore({ reducer: { auth: authReducer } });
   return render(
@@ -54,6 +55,7 @@ function renderRow(
                 vaultId={VAULT_ID}
                 record={{ ...record, ...overrides }}
                 groupNames={groupNames}
+                locked={locked}
               />
             </tbody>
           </table>
@@ -64,6 +66,18 @@ function renderRow(
 }
 
 describe("hàng người nhận", () => {
+  it("kho bị khóa thì khóa cả Sửa lẫn Xóa", () => {
+    renderRow({}, {}, true);
+    expect(screen.getByRole("button", { name: /Sửa hồ sơ/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Xóa hồ sơ/ })).toBeDisabled();
+  });
+
+  it("kho không bị khóa thì Sửa và Xóa bấm được", () => {
+    renderRow();
+    expect(screen.getByRole("button", { name: /Sửa hồ sơ/ })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /Xóa hồ sơ/ })).toBeEnabled();
+  });
+
   it("hiện tên, 4 số cuối CCCD, liên hệ và số gói bàn giao đang gắn", () => {
     renderRow();
     expect(screen.getByText("Nguyễn Văn An")).toBeInTheDocument();
