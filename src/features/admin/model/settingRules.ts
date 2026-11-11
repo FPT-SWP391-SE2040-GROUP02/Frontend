@@ -40,6 +40,7 @@ export const SETTING_LIMITS: Record<string, IntegerLimit> = {
 interface TextLimit {
   maxLength: number;
   isEmail: boolean;
+  isPhone?: boolean;
 }
 
 const TEXT_LIMITS: Record<string, TextLimit> = {
@@ -47,7 +48,7 @@ const TEXT_LIMITS: Record<string, TextLimit> = {
   "Company.Name": { maxLength: 100, isEmail: false },
   "Company.Website": { maxLength: 200, isEmail: false },
   "Company.Email": { maxLength: 200, isEmail: true },
-  "Company.Phone": { maxLength: 50, isEmail: false },
+  "Company.Phone": { maxLength: 50, isEmail: false, isPhone: true },
   "Company.Address": { maxLength: 300, isEmail: false },
 };
 
@@ -84,6 +85,14 @@ export function limitOf(key: string): IntegerLimit | null {
   return null;
 }
 
+/** Số điện thoại hoặc tổng đài; cùng luật với Backend (SystemSettingRules.IsValidPhone). */
+export function isValidPhone(text: string): boolean {
+  if (!/^[0-9+(]/.test(text)) return false;
+  if (!/^\+?[0-9 .\-()]+$/.test(text)) return false;
+  const digits = text.replace(/\D/g, "").length;
+  return digits >= 8 && digits <= 15;
+}
+
 /** Lỗi của một giá trị đơn lẻ (câu tiếng Việt ngắn) hoặc chuỗi rỗng khi hợp lệ. */
 export function settingValueError(key: string, value: string): string {
   const text = value.trim();
@@ -105,6 +114,9 @@ export function settingValueError(key: string, value: string): string {
     }
     if (textLimit.isEmail && text.length > 0 && (!text.includes("@") || text.includes(" "))) {
       return "Không đúng dạng email.";
+    }
+    if (textLimit.isPhone && text.length > 0 && !isValidPhone(text)) {
+      return "Số điện thoại không hợp lệ: chỉ gồm số, dấu cách, dấu chấm, gạch ngang, ngoặc, có thể bắt đầu bằng + hoặc (, từ 8 đến 15 chữ số.";
     }
   }
   return "";

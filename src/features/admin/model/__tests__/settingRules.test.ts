@@ -39,6 +39,22 @@ describe("settingValueError", () => {
     expect(textMaxLengthOf("Khong.CoLuat", 200)).toBe(200);
   });
 
+  it("số điện thoại công ty: chặn chữ và số quá ngắn hoặc quá dài, cho để trống", () => {
+    for (const ok of [
+      "1900 0000",
+      "0901 234 567",
+      "090.123.4567",
+      "+84 901 234 567",
+      "(028) 3822-1234",
+      "",
+    ]) {
+      expect(settingValueError("Company.Phone", ok)).toBe("");
+    }
+    for (const bad of ["abc", "1234567", "12345678901234567", "0901 abc 567", "0901+234567"]) {
+      expect(settingValueError("Company.Phone", bad)).toMatch(/^Số điện thoại không hợp lệ/);
+    }
+  });
+
   it("chữ của công ty: giới hạn độ dài và dạng email", () => {
     expect(settingValueError("Company.Name", "a".repeat(101))).toBe("Tối đa 100 ký tự.");
     expect(settingValueError("Company.Email", "ho-tro@legacyvault.vn")).toBe("");
