@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell } from "lucide-react";
+import { AlertTriangle, Bell, CheckCircle2, Info, XCircle, type LucideIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,11 @@ import {
 } from "@/shared/ui/dialog";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { buttonStyles } from "@/shared/ui/heritageKit";
-import { deriveNotifications } from "../model/notifications";
+import {
+  deriveNotifications,
+  type ExecutorNotification,
+  type NotificationTone,
+} from "../model/notifications";
 import { useActiveCaseId, useDeathCase } from "../model/useDeathCase";
 import { useSelectedExecutorVault } from "../model/useExecutorVaults";
 
@@ -44,6 +48,61 @@ function writeSeen(vaultId: string, ids: Set<string>) {
   }
 }
 
+const TONE_STYLE: Record<NotificationTone, { icon: LucideIcon; badge: string; card: string }> = {
+  attention: {
+    icon: AlertTriangle,
+    badge: "bg-[#F1E6CC] text-[#7A5B25]",
+    card: "border-[#E3CFA0] bg-[#FBF5E6]",
+  },
+  info: {
+    icon: Info,
+    badge: "bg-[#E6EEF0] text-[#2F5560]",
+    card: "border-heritage-border bg-white",
+  },
+  success: {
+    icon: CheckCircle2,
+    badge: "bg-[#DDF1E7] text-[#1F7A55]",
+    card: "border-heritage-border bg-white",
+  },
+  danger: {
+    icon: XCircle,
+    badge: "bg-[#F8E0DE] text-[#A32119]",
+    card: "border-[#EBC3BF] bg-[#FDF3F2]",
+  },
+};
+
+/** Một thông báo: biểu tượng theo mức chú ý, dòng đầu đậm, lý do bên dưới, giờ ở cuối, nhãn "Mới" nếu chưa đọc. */
+function NotificationRow({ item, fresh }: { item: ExecutorNotification; fresh: boolean }) {
+  const style = TONE_STYLE[item.tone];
+  const Icon = style.icon;
+  return (
+    <li className={`flex gap-3 rounded-xl border p-3.5 ${style.card}`}>
+      <span
+        className={`flex size-9 shrink-0 items-center justify-center rounded-full ${style.badge}`}
+        aria-hidden="true"
+      >
+        <Icon className="size-4" />
+      </span>
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm font-semibold leading-5 text-heritage-primary">{item.title}</p>
+          {fresh && (
+            <span className="shrink-0 rounded-full bg-[#A32119] px-2 py-0.5 text-[11px] font-semibold text-white">
+              Mới
+            </span>
+          )}
+        </div>
+        {item.detail && <p className="text-sm leading-5 text-heritage-primary/80">{item.detail}</p>}
+        {item.at && (
+          <time dateTime={item.at} className="block text-xs text-heritage-muted">
+            {formatDateTime(item.at)}
+          </time>
+        )}
+      </div>
+    </li>
+  );
+}
+
 /**
  * Chuông thông báo ở đầu trang Người thực thi. Chỉ dựng từ dữ liệu Backend đã trả cho kho đang chọn;
  * chưa chọn kho (nhiều kho) hoặc chưa có thông báo nào thì không hiện chuông.
@@ -54,6 +113,8 @@ export function NotificationBell() {
   const record = useDeathCase(caseId).data;
   const [open, setOpen] = useState(false);
   const [, setVersion] = useState(0);
+  /** Các thông báo chưa đọc lúc mở hộp thoại, để đánh nhãn "Mới" dù đã ghi nhận là đã đọc. */
+  const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
   if (!selected) return null;
   const items = deriveNotifications(selected, record);
   if (items.length === 0) return null;
@@ -61,6 +122,7 @@ export function NotificationBell() {
   const unread = items.filter((item) => !seen.has(item.id)).length;
   const label = unread > 0 ? `Thông báo, ${unread} mới` : "Thông báo";
   const openList = () => {
+    setFreshIds(new Set(items.filter((item) => !seen.has(item.id)).map((item) => item.id)));
     writeSeen(selected.vaultId, new Set(items.map((item) => item.id)));
     setVersion((version) => version + 1);
     setOpen(true);
@@ -90,16 +152,9 @@ export function NotificationBell() {
               <DialogTitle>Thông báo</DialogTitle>
               <DialogDescription>Kho của {selected.ownerFullName}</DialogDescription>
             </DialogHeader>
-            <ul className="divide-y divide-heritage-border">
+            <ul className="max-h-[60vh] space-y-2.5 overflow-y-auto pr-1">
               {items.map((item) => (
-                <li key={item.id} className="flex flex-col gap-0.5 py-3 first:pt-0 last:pb-0">
-                  {item.at && (
-                    <time dateTime={item.at} className="text-xs text-heritage-muted">
-                      {formatDateTime(item.at)}
-                    </time>
-                  )}
-                  <span className="text-sm">{item.text}</span>
-                </li>
+                <NotificationRow key={item.id} item={item} fresh={freshIds.has(item.id)} />
               ))}
             </ul>
             <DialogFooter>

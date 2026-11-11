@@ -42,23 +42,19 @@ function renderPage(extra: Record<string, string>) {
 }
 
 describe("trang Tài khoản của Người xét duyệt", () => {
-  it("chỉ hiện chứng chỉ hành nghề và thẻ luật sư, không hiện email hay số điện thoại", () => {
+  it("chỉ hiện tên và vai trò, không hiện chứng chỉ hành nghề, thẻ luật sư, email hay số điện thoại", () => {
     renderPage({ practiceCertificateNumber: "CCHN-4521", lawyerCardNumber: "12854/LS" });
 
-    const section = screen.getByRole("region", { name: "Hồ sơ hành nghề" });
-    expect(section).toHaveTextContent("Chứng chỉ hành nghề");
-    expect(section).toHaveTextContent("CCHN-4521");
-    expect(section).toHaveTextContent("Thẻ luật sư");
-    expect(section).toHaveTextContent("12854/LS");
+    const section = screen.getByRole("region", { name: "Hồ sơ Người xét duyệt" });
+    expect(section).toHaveTextContent("LS. Võ Thanh Tùng");
+    expect(section).toHaveTextContent("Người xét duyệt");
     expect(section).not.toHaveTextContent("tung@example.test");
+    expect(screen.queryByText("Chứng chỉ hành nghề")).not.toBeInTheDocument();
+    expect(screen.queryByText("Thẻ luật sư")).not.toBeInTheDocument();
+    expect(screen.queryByText("CCHN-4521")).not.toBeInTheDocument();
+    expect(screen.queryByText("Quản trị viên chưa nhập")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Tài khoản" })).toBeInTheDocument();
     expect(screen.queryByText("Số điện thoại")).not.toBeInTheDocument();
     expect(screen.getByText("Phương thức đăng nhập")).toBeInTheDocument();
-  });
-
-  it("chưa có dữ liệu thì báo quản trị viên chưa nhập", () => {
-    renderPage({});
-
-    expect(screen.getAllByText("Quản trị viên chưa nhập")).toHaveLength(2);
   });
 });

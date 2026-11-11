@@ -25,7 +25,7 @@ vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
   ownerVaultService: { getMine: vi.fn(), createMine: vi.fn(), updateMine: vi.fn() },
 }));
 vi.mock("@/shared/settings/usePolicyWindows", () => ({
-  usePolicyWindows: () => ({ executorInviteDays: 7, grantDays: 30 }),
+  usePolicyWindows: () => ({ executorInviteMinutes: 10, grantDays: 30 }),
 }));
 
 const VAULT_ID = "22222222-2222-4222-8222-222222222222";
@@ -300,7 +300,7 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Mời Người thực thi" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Mời Người thực thi")).toBeInTheDocument();
-    expect(dialog).toHaveTextContent("Lời mời có hiệu lực 7 ngày.");
+    expect(dialog).toHaveTextContent("Lời mời có hiệu lực 10 phút.");
     await userEvent.type(within(dialog).getByLabelText("Email"), "moi@example.test");
     await userEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   }

@@ -357,9 +357,7 @@ describe("Executor notification bell", () => {
     const bell = await screen.findByRole("button", { name: "Thông báo, 1 mới" });
     await userEvent.click(bell);
     const dialog = await screen.findByRole("dialog");
-    expect(
-      within(dialog).getByText("Anh Nam đã quá hạn điểm danh. Tới lượt bạn."),
-    ).toBeInTheDocument();
+    expect(within(dialog).getByText("Đến lượt bạn xử lý")).toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole("button", { name: "Đóng" }));
     expect(await screen.findByRole("button", { name: "Thông báo" })).toBeInTheDocument();
   });

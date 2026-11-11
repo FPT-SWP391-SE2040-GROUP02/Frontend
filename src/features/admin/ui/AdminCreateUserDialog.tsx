@@ -22,11 +22,12 @@ const createUserSchema = z.object({
   password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự.").max(128),
   role: z.enum(["VERIFIER", "ADMIN"]),
   phone: z.string().trim().max(32).optional(),
-  practiceCertificateNumber: z.string().trim().max(64).optional(),
-  lawyerCardNumber: z.string().trim().max(64).optional(),
 });
 
 type CreateUserInput = z.infer<typeof createUserSchema>;
+
+const CARD_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const CARD_MAX_BYTES = 2 * 1024 * 1024;
 
 interface AdminCreateUserDialogProps {
   open: boolean;
@@ -51,15 +52,50 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
       password: "",
       role: "VERIFIER",
       phone: "",
-      practiceCertificateNumber: "",
-      lawyerCardNumber: "",
     },
   });
 
   const role = useWatch({ control: form.control, name: "role" });
+  const [cardFile, setCardFile] = useState<File | null>(null);
+  const [cardError, setCardError] = useState<string | null>(null);
+  // Tài khoản đã tạo nhưng chưa tải được ảnh thẻ: bấm lại chỉ tải ảnh, không tạo lần hai.
+  const [createdUser, setCreatedUser] = useState<AdminUser | null>(null);
+
+  const onPickCard = (file: File | null) => {
+    setCardFile(file);
+    if (file === null) {
+      setCardError(null);
+      return;
+    }
+    if (!CARD_TYPES.includes(file.type)) {
+      setCardError("Chỉ nhận ảnh JPEG, PNG hoặc WebP.");
+      return;
+    }
+    if (file.size > CARD_MAX_BYTES) {
+      setCardError("Ảnh tối đa 2 MB.");
+      return;
+    }
+    setCardError(null);
+  };
+
   const onSubmit = (values: CreateUserInput) => {
+    const needCard = values.role === "VERIFIER";
+    if (needCard && cardFile === null) {
+      setCardError("Vui lòng tải ảnh thẻ công chứng viên.");
+      return;
+    }
+    if (cardError !== null) {
+      return;
+    }
     void execute(
-      () => adminService.createUser(values),
+      async () => {
+        const user = createdUser ?? (await adminService.createUser(values));
+        setCreatedUser(user);
+        if (needCard && cardFile !== null) {
+          await adminService.uploadNotaryCard(user.id, cardFile);
+        }
+        return user;
+      },
       (result) => {
         onDone(result);
         onClose();
@@ -193,33 +229,36 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
             <>
               <div>
                 <label
-                  htmlFor="create-user-practice"
+                  htmlFor="create-user-notary-card"
                   className="block text-sm font-medium text-heritage-text"
                 >
-                  Số chứng chỉ hành nghề{" "}
-                  <span className="text-xs text-heritage-muted">(không bắt buộc)</span>
+                  Ảnh thẻ công chứng viên <span className="text-destructive">*</span>
                 </label>
-                <Input
-                  id="create-user-practice"
-                  {...form.register("practiceCertificateNumber")}
-                  className="mt-1"
+                <input
+                  id="create-user-notary-card"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(event) => onPickCard(event.target.files?.[0] ?? null)}
+                  aria-invalid={cardError !== null}
+                  disabled={pending}
+                  className="mt-1 block w-full text-sm file:mr-3 file:min-h-9 file:rounded-lg file:border file:border-heritage-border file:bg-white file:px-3 file:text-sm"
                 />
-              </div>
-              <div>
-                <label
-                  htmlFor="create-user-lawyer-card"
-                  className="block text-sm font-medium text-heritage-text"
-                >
-                  Số thẻ luật sư{" "}
-                  <span className="text-xs text-heritage-muted">(không bắt buộc)</span>
-                </label>
-                <Input
-                  id="create-user-lawyer-card"
-                  {...form.register("lawyerCardNumber")}
-                  className="mt-1"
-                />
+                <p className="mt-1 text-xs text-heritage-muted">
+                  JPEG, PNG hoặc WebP, tối đa 2 MB.
+                </p>
+                {cardError && (
+                  <p role="alert" className="mt-1 text-xs text-destructive">
+                    {cardError}
+                  </p>
+                )}
               </div>
             </>
+          )}
+
+          {createdUser && (
+            <p className="text-xs text-heritage-muted">
+              Tài khoản đã được tạo, chỉ còn tải ảnh thẻ. Bấm lại để thử tải ảnh.
+            </p>
           )}
 
           {error && (

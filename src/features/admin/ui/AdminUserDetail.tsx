@@ -1,4 +1,5 @@
-import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, IdCard } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
@@ -11,6 +12,7 @@ import {
   formatDateTime,
 } from "../model/admin.content";
 import { useAdminUser } from "../model/useAdmin";
+import { AdminNotaryCardDialog } from "./AdminNotaryCardDialog";
 import { AdminUserActions } from "./AdminUserActions";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
@@ -24,6 +26,7 @@ interface AdminUserDetailProps {
 /** Chi tiết một tài khoản: thông tin, hồ sơ đang giữ, quyết định và hoạt động gần đây; đổi vai trò, khóa, mở ngay tại đây. */
 export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetailProps) {
   const query = useAdminUser(userId);
+  const [cardOpen, setCardOpen] = useState(false);
   const label = actionLabel ?? ((action: string) => action);
   const back = (
     <Button variant="outline" className="min-h-11" onClick={onBack}>
@@ -75,7 +78,20 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
               <p className="break-all text-sm text-heritage-muted">{user.email}</p>
             </div>
           </div>
-          <AdminUserActions user={user} />
+          <div className="flex flex-wrap items-center gap-2">
+            {isVerifier && (
+              <Button
+                variant="outline"
+                className="min-h-11"
+                aria-label={`Xem thẻ công chứng của ${user.fullName || user.email}`}
+                onClick={() => setCardOpen(true)}
+              >
+                <IdCard className="size-4" aria-hidden="true" />
+                Xem thẻ công chứng
+              </Button>
+            )}
+            <AdminUserActions user={user} />
+          </div>
         </div>
         <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <Fact label="Vai trò" value={ROLE_LABELS[user.role]} />
@@ -88,6 +104,15 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
           />
         </dl>
       </section>
+
+      {isVerifier && (
+        <AdminNotaryCardDialog
+          userId={user.id}
+          name={user.fullName || user.email}
+          open={cardOpen}
+          onClose={() => setCardOpen(false)}
+        />
+      )}
 
       {isVerifier && (
         <section aria-labelledby="user-cases" className="space-y-3">
