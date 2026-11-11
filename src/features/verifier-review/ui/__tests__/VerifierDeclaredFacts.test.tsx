@@ -39,9 +39,7 @@ describe("khung Người thực thi khai", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("05/11/2026")).toBeInTheDocument();
     expect(screen.getByText("07/11/2026")).toBeInTheDocument();
-    expect(
-      screen.getByText("UBND phường Bến Thành, Thành phố Hồ Chí Minh"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("UBND phường Bến Thành, Thành phố Hồ Chí Minh")).toBeInTheDocument();
     expect(screen.getAllByRole("checkbox")).toHaveLength(3);
     expect(
       screen.getByText(
@@ -105,7 +103,8 @@ describe("cảnh báo khi đối chiếu", () => {
         warnings={[
           {
             code: "DEATH_BEFORE_LAST_CHECKIN",
-            message: "Ngày mất trước lần điểm danh cuối (12/10/2026). Kiểm tra kỹ giấy trước khi duyệt.",
+            message:
+              "Ngày mất trước lần điểm danh cuối (12/10/2026). Kiểm tra kỹ giấy trước khi duyệt.",
           },
         ]}
       />,

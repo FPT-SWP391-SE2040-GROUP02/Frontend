@@ -290,9 +290,14 @@ describe("mục Thông tin trên giấy của Người thực thi", () => {
 
   it("đổi tỉnh thì xóa phường đã chọn ở ô và ở Backend", async () => {
     mockCatalog();
-    const put = vi.spyOn(apiClient, "put").mockResolvedValue(
-      caseRecord({ deathRegistrationProvinceCode: "01", deathRegistrationWardCode: null }, "case-v2"),
-    );
+    const put = vi
+      .spyOn(apiClient, "put")
+      .mockResolvedValue(
+        caseRecord(
+          { deathRegistrationProvinceCode: "01", deathRegistrationWardCode: null },
+          "case-v2",
+        ),
+      );
     const user = userEvent.setup();
     renderEditor(
       caseRecord({
@@ -395,9 +400,7 @@ describe("nút Nộp hồ sơ", () => {
 
   it("thiếu đúng nơi đăng ký thì dòng nhắc chỉ nói nơi đăng ký", async () => {
     mockCatalog();
-    renderEditor(
-      caseRecord({ withFile: true, dateOfDeath: "2026-11-05", issuedOn: "2026-11-07" }),
-    );
+    renderEditor(caseRecord({ withFile: true, dateOfDeath: "2026-11-05", issuedOn: "2026-11-07" }));
 
     expect(screen.getByText("Còn thiếu: nơi đăng ký khai tử.")).toBeInTheDocument();
     expect(submitButton()).toBeDisabled();

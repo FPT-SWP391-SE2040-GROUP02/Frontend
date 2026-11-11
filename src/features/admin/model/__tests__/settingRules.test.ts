@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  limitOf,
-  settingErrors,
-  settingRelationErrors,
-  settingValueError,
-} from "../settingRules";
+import { limitOf, settingErrors, settingRelationErrors, settingValueError } from "../settingRules";
 
 describe("settingValueError", () => {
   it("giá trị trong khoảng thì không lỗi", () => {

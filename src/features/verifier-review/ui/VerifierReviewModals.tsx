@@ -361,8 +361,8 @@ function RequestSupplementModal({
         <DialogHeader>
           <DialogTitle>Từ chối hồ sơ</DialogTitle>
           <DialogDescription>
-            Dùng khi Người thực hiện nộp nhầm hoặc ghi sai thông tin. Hồ sơ được trả lại kèm lý do để
-            họ sửa và nộp lại; kho chưa bị đóng.
+            Dùng khi Người thực hiện nộp nhầm hoặc ghi sai thông tin. Hồ sơ được trả lại kèm lý do
+            để họ sửa và nộp lại; kho chưa bị đóng.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

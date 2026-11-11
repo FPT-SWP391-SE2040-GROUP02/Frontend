@@ -203,7 +203,9 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
   };
 
   // Ba thông tin trên giấy: lưu vào bản nháp khi rời ô; bản đã gửi thì không sửa được (xem Receipt).
-  const info = useCertificateInfoForm(record, (result) => publish(result, "Đã lưu thông tin trên giấy."));
+  const info = useCertificateInfoForm(record, (result) =>
+    publish(result, "Đã lưu thông tin trên giấy."),
+  );
   const fileOf = (kind: FileKind) => version.files.find((item) => item.kind === kind);
   const missingCertificate = record.missingRequirements.includes("FILES");
   const busy = action.pending || uploadingKind !== null;
@@ -216,7 +218,8 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
   let submitHint = "";
   if (missingParts.length > 0) submitHint = `Còn thiếu: ${missingParts.join(", ")}.`;
   else if (info.hasLocalErrors) submitHint = "Sửa ô báo đỏ trước khi nộp.";
-  else if (infoUnsaved) submitHint = "Đang lưu hoặc chưa lưu thông tin trên giấy. Bấm “Lưu thông tin” rồi nộp.";
+  else if (infoUnsaved)
+    submitHint = "Đang lưu hoặc chưa lưu thông tin trên giấy. Bấm “Lưu thông tin” rồi nộp.";
 
   const upload = async (kind: FileKind, file: File | null | undefined) => {
     setFileError("");

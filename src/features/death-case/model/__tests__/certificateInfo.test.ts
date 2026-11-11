@@ -29,9 +29,9 @@ describe("luật kiểm 3 thông tin trên giấy (khớp Backend)", () => {
     expect(validateCertificateInfo(early, TODAY, "2026-11-01")).toEqual({
       dateOfDeath: "Ngày mất phải sau ngày Chủ kho kích hoạt kế hoạch (01/11/2026).",
     });
-    expect(validateCertificateInfo(info({ dateOfDeath: "2026-11-01" }), TODAY, "2026-11-01")).toEqual(
-      {},
-    );
+    expect(
+      validateCertificateInfo(info({ dateOfDeath: "2026-11-01" }), TODAY, "2026-11-01"),
+    ).toEqual({});
     expect(validateCertificateInfo(early, TODAY)).toEqual({});
   });
 
@@ -73,9 +73,9 @@ describe("phần còn thiếu", () => {
     expect(missingCertificateInfo(info({ ...base, provinceCode: "79" }))).toEqual([
       "nơi đăng ký khai tử",
     ]);
-    expect(missingCertificateInfo(info({ ...base, provinceCode: "79", wardCode: "26743" }))).toEqual(
-      [],
-    );
+    expect(
+      missingCertificateInfo(info({ ...base, provinceCode: "79", wardCode: "26743" })),
+    ).toEqual([]);
   });
 });
 
@@ -84,7 +84,9 @@ describe("câu nơi đăng ký và câu xem trước", () => {
     expect(buildRegistrationPlace("Thành phố Hồ Chí Minh", "Phường Bến Thành")).toBe(
       "UBND phường Bến Thành, Thành phố Hồ Chí Minh",
     );
-    expect(buildRegistrationPlace("Tỉnh Lạng Sơn", "Xã Bắc Sơn")).toBe("UBND xã Bắc Sơn, Tỉnh Lạng Sơn");
+    expect(buildRegistrationPlace("Tỉnh Lạng Sơn", "Xã Bắc Sơn")).toBe(
+      "UBND xã Bắc Sơn, Tỉnh Lạng Sơn",
+    );
     expect(buildRegistrationPlace("Thành phố Hồ Chí Minh", "")).toBe("");
     expect(buildRegistrationPlace("", "Phường Bến Thành")).toBe("");
   });

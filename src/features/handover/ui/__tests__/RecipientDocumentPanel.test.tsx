@@ -218,7 +218,9 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     expect(text).toHaveTextContent("Chủ kho Nguyễn Văn A");
     expect(text).not.toHaveTextContent("nơi thường trú");
     expect(text).not.toHaveTextContent("12 Lê Lợi");
-    expect(text).toHaveTextContent("do UBND phường Bến Thành, Thành phố Hồ Chí Minh đăng ký khai tử");
+    expect(text).toHaveTextContent(
+      "do UBND phường Bến Thành, Thành phố Hồ Chí Minh đăng ký khai tử",
+    );
     expect(text).not.toHaveTextContent("0456/2026");
     expect(text).toHaveTextContent("Người lập văn bản");
     expect(text).toHaveTextContent("Người xét duyệt đã kiểm tra thủ công");

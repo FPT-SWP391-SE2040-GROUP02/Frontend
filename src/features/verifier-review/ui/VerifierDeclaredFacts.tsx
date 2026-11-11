@@ -1,7 +1,10 @@
 import { TriangleAlert } from "lucide-react";
 import type { z } from "zod";
 import { REVIEW_CHECKS, REVIEW_CHECKS_HINT } from "../model/reviewChecks";
-import type { verifierReviewVersionSchema, verifierWarningSchema } from "../model/verifierReview.schema";
+import type {
+  verifierReviewVersionSchema,
+  verifierWarningSchema,
+} from "../model/verifierReview.schema";
 
 const formatDay = (value: string | null | undefined) => {
   if (!value) return "—";

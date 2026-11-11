@@ -162,7 +162,12 @@ export function SearchableSelect({
               }}
             />
           </div>
-          <ul id={listId} role="listbox" aria-label={searchLabel} className="max-h-64 overflow-y-auto py-1">
+          <ul
+            id={listId}
+            role="listbox"
+            aria-label={searchLabel}
+            className="max-h-64 overflow-y-auto py-1"
+          >
             {visible.map((item, index) => (
               <li
                 key={item.code}
