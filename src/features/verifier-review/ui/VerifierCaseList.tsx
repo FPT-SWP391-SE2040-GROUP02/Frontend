@@ -96,7 +96,6 @@ export function VerifierCaseList({
     return (
       <VerifierQueueBoard
         items={items}
-        now={query.dataUpdatedAt}
         selected={selected}
         refreshing={refreshing}
         onRefresh={refresh}

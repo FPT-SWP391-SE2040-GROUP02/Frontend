@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { documentFixture } from "../../testing/documentFixture";
-import { HandoverDocumentList } from "../HandoverDocumentList";
+import { HandoverDocumentDetail, HandoverDocumentList } from "../HandoverDocumentList";
 
 describe("HandoverDocumentList", () => {
   it("biên bản xong ghi Hoàn tất, biên bản đang làm ghi Chưa xong và có viền đứt xám nhạt", () => {
@@ -52,6 +52,24 @@ describe("HandoverDocumentList", () => {
     expect(text).toHaveTextContent("Gói gia đình (gồm 3 mục)");
     expect(text).toHaveTextContent("Đã ký điện tử");
     expect(text).not.toHaveTextContent("Người thực thi xác nhận");
+  });
+
+  it("bản thu gọn cho Người xét duyệt chỉ có một dòng tóm tắt và nút xem toàn văn", () => {
+    render(
+      <HandoverDocumentDetail
+        compact
+        document={documentFixture({
+          status: "WAIT_VERIFIER",
+          completedAt: null,
+          verifier: { ...documentFixture().verifier, signedAt: null },
+        })}
+      />,
+    );
+
+    expect(screen.getByText(/^Người nhận chọn Chấp nhận · Ký lúc /)).toBeInTheDocument();
+    expect(screen.queryByText(/Thông tin về Chủ kho lấy từ hồ sơ/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Chờ Người xét duyệt/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xem toàn văn biên bản" })).toBeInTheDocument();
   });
 
   it("văn bản từ chối có câu gửi cho Người thực thi và năm sinh cùng 4 số cuối căn cước", async () => {

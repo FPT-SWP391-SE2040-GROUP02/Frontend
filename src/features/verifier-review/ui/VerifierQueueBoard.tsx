@@ -7,7 +7,6 @@ import { caseCode } from "../model/caseCode";
 import {
   queueCategory,
   queueCategoryLabels,
-  queueTimeText,
   type QueueCategory,
 } from "../model/verifierPresentation";
 import type { z } from "zod";
@@ -23,7 +22,7 @@ const SEARCH_PARAM = "q";
 const filterOptions: ReadonlyArray<{ value: Filter; label: string }> = [
   { value: "ALL", label: "Tất cả" },
   { value: "REVIEW", label: "Chờ xét duyệt" },
-  { value: "SUPPLEMENT", label: "Chờ bổ sung" },
+  { value: "SUPPLEMENT", label: "Đã từ chối" },
 ];
 
 import { formatDateTime } from "@/shared/lib/dateFormat";
@@ -47,16 +46,6 @@ const REVIEW_STEPS = [
   { title: "Ra quyết định", text: "Duyệt và mở kho, yêu cầu nộp lại, hoặc từ chối." },
 ] as const;
 
-const HOUR_MS = 3_600_000;
-
-/** Còn bao lâu tới hạn thẩm định, dạng "16 giờ" hoặc "2 ngày"; quá hạn thì "Quá hạn". */
-function dueLeftText(dueAt: string, now: number): string {
-  const hours = Math.ceil((new Date(dueAt).getTime() - now) / HOUR_MS);
-  if (hours <= 0) return "Quá hạn";
-  if (hours >= 48) return `${Math.ceil(hours / 24)} ngày`;
-  return `${hours} giờ`;
-}
-
 function StatCard({ title, value, note }: { title: string; value: number; note: string }) {
   return (
     <div className="rounded-2xl border border-heritage-border bg-heritage-surface p-5">
@@ -74,7 +63,6 @@ function StatCard({ title, value, note }: { title: string; value: number; note: 
  */
 export function VerifierQueueBoard({
   items,
-  now,
   selected,
   refreshing,
   onRefresh,
@@ -82,8 +70,6 @@ export function VerifierQueueBoard({
   children,
 }: {
   items: Summary[];
-  /** Thời điểm tải danh sách (ms); các mốc "còn bao lâu" tính theo đây để render không phụ thuộc đồng hồ. */
-  now: number;
   selected: string | null;
   refreshing: boolean;
   onRefresh: () => void;
@@ -127,7 +113,7 @@ export function VerifierQueueBoard({
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard title="Đang chờ bạn" value={counts.ALL} note="hồ sơ cần xem" />
         <StatCard title="Chờ xét duyệt" value={counts.REVIEW} note="xem được ngay" />
-        <StatCard title="Chờ bổ sung" value={counts.SUPPLEMENT} note="Executor đang sửa" />
+        <StatCard title="Đã từ chối" value={counts.SUPPLEMENT} note="Chờ Người thực thi nộp lại" />
       </div>
       {featured && (
         <section
@@ -142,8 +128,7 @@ export function VerifierQueueBoard({
               Hồ sơ báo tin #{caseCode(featured.id)}
             </p>
             <p className="text-sm text-heritage-muted">
-              Người nộp: {featured.executorFullName ?? "Người thực hiện"} · Hết hạn sau{" "}
-              {dueLeftText(featured.dueAt, now)}
+              Người nộp: {featured.executorFullName ?? "Người thực hiện"}
             </p>
           </div>
           <button
@@ -258,9 +243,6 @@ export function VerifierQueueBoard({
                       <th scope="col" className="px-4 py-3 font-semibold">
                         Lần nộp
                       </th>
-                      <th scope="col" className="px-4 py-3 font-semibold">
-                        Hạn thẩm định
-                      </th>
                       <th scope="col" className="py-3 pl-4">
                         <span className="sr-only">Thao tác</span>
                       </th>
@@ -293,7 +275,7 @@ export function VerifierQueueBoard({
                                 <Chip tone={status.tone}>{status.label}</Chip>
                               )}
                               {item.supplementOverdueAt && (
-                                <Chip tone="warning">Bổ sung quá hạn</Chip>
+                                <Chip tone="warning">Nộp lại quá hạn</Chip>
                               )}
                               {item.unreviewedFlagCount > 0 && (
                                 <Chip tone="warning">
@@ -301,14 +283,6 @@ export function VerifierQueueBoard({
                                 </Chip>
                               )}
                             </div>
-                          </td>
-                          <td className="px-4 py-4">
-                            <p>{queueTimeText(item, category, now)}</p>
-                            {category !== "SUPPLEMENT" && (
-                              <p className="text-xs text-heritage-muted">
-                                Hạn xét: {formatDateTime(item.dueAt)}
-                              </p>
-                            )}
                           </td>
                           <td className="py-4 pl-4 text-right">
                             <button

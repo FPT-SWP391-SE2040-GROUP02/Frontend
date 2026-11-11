@@ -129,7 +129,8 @@ describe("RecipientReviewQueue: chi tiết", () => {
 
     expect(await screen.findByText("Đối chiếu với thông tin Chủ kho đã khai")).toBeInTheDocument();
     expect(screen.getAllByText("Khớp")).toHaveLength(3);
-    expect(screen.getByText(/•••••••• 1234/)).toBeInTheDocument();
+    // Hồ sơ cũ chưa có biên bản nên chưa có số căn cước đầy đủ: chỉ hiện 4 số cuối.
+    expect(screen.getAllByText(/•••••••• 1234/).length).toBeGreaterThan(0);
     expect(await screen.findByAltText("Căn cước mặt trước")).toBeInTheDocument();
     expect(screen.getByAltText("Căn cước mặt sau")).toBeInTheDocument();
   });

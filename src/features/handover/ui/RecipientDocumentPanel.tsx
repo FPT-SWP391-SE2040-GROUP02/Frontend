@@ -297,7 +297,6 @@ function RecipientPartForm({
               value={draft.dateOfBirth}
               onChange={(event) => set("dateOfBirth", event.target.value)}
             />
-            <span className="block text-xs font-normal text-heritage-muted">Chỉ lưu năm sinh</span>
           </label>
           <label className="space-y-1 text-sm font-semibold">
             Số căn cước
@@ -308,7 +307,6 @@ function RecipientPartForm({
               value={draft.citizenId}
               onChange={(event) => set("citizenId", event.target.value.replace(/\D/g, ""))}
             />
-            <span className="block text-xs font-normal text-heritage-muted">Chỉ lưu 4 số cuối</span>
           </label>
         </div>
         <label className="block space-y-1 text-sm font-semibold">

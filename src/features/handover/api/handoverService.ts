@@ -56,8 +56,11 @@ export const handoverService = {
     if (!draft.front || !draft.back) throw new Error("Cần ảnh căn cước hai mặt.");
     form.append("FrontImage", draft.front);
     form.append("BackImage", draft.back);
+    // Bỏ Content-Type mặc định (application/json) để trình duyệt tự đặt multipart kèm boundary; nếu không Backend trả 415.
     return submissionSchema.parse(
-      await apiClient.post<unknown, unknown>(`${turn(value)}/submission`, form),
+      await apiClient.post<unknown, unknown>(`${turn(value)}/submission`, form, {
+        headers: { "Content-Type": undefined },
+      }),
     );
   },
   async claim(value: string) {

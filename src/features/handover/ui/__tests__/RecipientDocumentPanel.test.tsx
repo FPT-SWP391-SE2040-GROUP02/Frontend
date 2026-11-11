@@ -251,8 +251,14 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     await user.click(screen.getByRole("button", { name: "Ký và gửi cho Người xét duyệt" }));
 
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    const [url, body] = post.mock.calls[0] as [string, FormData];
+    const [url, body, config] = post.mock.calls[0] as [
+      string,
+      FormData,
+      { headers?: Record<string, unknown> } | undefined,
+    ];
     expect(url).toBe(`/handover/turns/${TURN_ID}/submission`);
+    // Multipart phải bỏ Content-Type mặc định application/json, nếu không Backend trả 415 Unsupported Media Type.
+    expect(config?.headers).toHaveProperty("Content-Type", undefined);
     expect(body.get("Kind")).toBe("DECLINE");
     expect(body.get("FullName")).toBe("Trần Minh Anh");
     expect(body.get("CitizenId")).toBe("012345671234");

@@ -420,10 +420,10 @@ it("server 409 EDIT_CONFLICT không bị retry tự động, lỗi hiển thị 
   );
   setup(<VerifierQueue />);
   await selectFirstCase(user);
-  await user.click(await screen.findByRole("button", { name: /Yêu cầu bổ sung/ }));
-  await user.click(await screen.findByRole("radio", { name: /Thiếu trang/ }));
-  await user.click(await screen.findByRole("checkbox", { name: /Tôi xác nhận yêu cầu này/ }));
-  await user.click(await screen.findByRole("button", { name: "Gửi yêu cầu" }));
+  await user.click(await screen.findByRole("button", { name: "Từ chối" }));
+  await user.click(await screen.findByRole("radio", { name: /File mờ hoặc thiếu trang/ }));
+  await user.click(await screen.findByRole("checkbox", { name: /Tôi xác nhận từ chối này/ }));
+  await user.click(await screen.findByRole("button", { name: "Gửi từ chối" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   expect(await screen.findByRole("alert")).toHaveTextContent(/xung đột|đã thay đổi/i);
 });
@@ -504,7 +504,7 @@ it("VERIFIER_CONFLICT chỉ cho xem: ẩn mọi thao tác ghi, kể cả modal m
   expect(await screen.findByText(/chỉ được xem, không được ra quyết định/)).toBeInTheDocument();
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Kiểm tra" })).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: /Yêu cầu bổ sung/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Từ chối" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Duyệt mở bàn giao" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /^Từ chối$/ })).not.toBeInTheDocument();
 });
@@ -541,7 +541,7 @@ it("hồ sơ không có hồ sơ trước thì không hiện khối từ chối"
   expect(screen.queryByText(/đã bị từ chối/)).not.toBeInTheDocument();
 });
 
-it("hồ sơ chờ bổ sung ghi đang chờ Executor, không hiện Hạn xét ở danh sách lẫn chi tiết", async () => {
+it("hồ sơ đã từ chối ghi đang chờ nộp lại ở chi tiết, không hiện hạn xét ở danh sách lẫn chi tiết", async () => {
   const user = userEvent.setup();
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID)
@@ -550,10 +550,9 @@ it("hồ sơ chờ bổ sung ghi đang chờ Executor, không hiện Hạn xét 
   );
   setup(<VerifierQueue />);
   await screen.findByRole("button", { name: /Xem hồ sơ #33333333/ });
-  expect(screen.getAllByText("Đang chờ Executor bổ sung")).toHaveLength(1);
   expect(screen.queryByText(/Hạn xét/)).not.toBeInTheDocument();
   await selectFirstCase(user);
-  expect(screen.getAllByText(/Đang chờ Executor bổ sung/).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/Đang chờ Người thực thi nộp lại/).length).toBeGreaterThan(0);
   expect(screen.queryByText(/Hạn xét/)).not.toBeInTheDocument();
 });
 
@@ -584,26 +583,26 @@ it("không có khung người gửi; thời điểm nộp nằm ở bản đang 
   expect(screen.queryByText("Email liên hệ")).not.toBeInTheDocument();
 });
 
-it("hồ sơ đang xét vẫn hiện Hạn xét ở danh sách", async () => {
+it("danh sách không còn cột Hạn thẩm định và không hiện hạn xét", async () => {
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
   );
   setup(<VerifierQueue />);
   await screen.findByRole("button", { name: /Xem hồ sơ #33333333/ });
-  expect(screen.getAllByText(/Hạn xét/)).toHaveLength(1);
-  expect(screen.queryByText(/Đang chờ Executor bổ sung/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Hạn xét/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("columnheader", { name: "Hạn thẩm định" })).not.toBeInTheDocument();
+  expect(screen.queryByText(/Hết hạn sau/)).not.toBeInTheDocument();
 });
 
-it("hồ sơ đang xét vẫn hiện Hạn xét ở chi tiết", async () => {
+it("chi tiết hồ sơ không hiện hạn xét ở dòng phân công lẫn mốc thời gian", async () => {
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
   );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
   await screen.findByRole("region", { name: "Bản đang xét" });
-  // Một lần ở dòng phân công dưới tiêu đề, một lần ở mốc "Hạn xét duyệt".
-  expect(screen.getAllByText(/Hạn xét/)).toHaveLength(2);
-  expect(screen.getByRole("region", { name: "Mốc thời gian" })).toHaveTextContent("Hạn xét duyệt");
-  expect(screen.queryByText(/Đang chờ Executor bổ sung/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Hạn xét/)).not.toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "Mốc thời gian" })).not.toHaveTextContent("Hạn xét");
+  expect(screen.queryByText(/Đang chờ Người thực thi nộp lại/)).not.toBeInTheDocument();
 });
 
 it("Executor đang soạn bản bổ sung thì Verifier thấy lý do chưa duyệt được", async () => {
@@ -718,14 +717,14 @@ it("yêu cầu bổ sung thành công gửi đúng etag, lý do và các phần 
   });
   setup(<VerifierQueue />);
   await selectFirstCase(user);
-  await user.click(screen.getByRole("button", { name: /Yêu cầu bổ sung/ }));
-  await user.click(await screen.findByRole("radio", { name: /Thiếu trang/ }));
-  await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận yêu cầu này/ }));
-  await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
+  await user.click(screen.getByRole("button", { name: "Từ chối" }));
+  await user.click(await screen.findByRole("radio", { name: /File mờ hoặc thiếu trang/ }));
+  await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối này/ }));
+  await user.click(screen.getByRole("button", { name: "Gửi từ chối" }));
   await waitFor(() =>
     expect(post).toHaveBeenCalledWith(`/verifier/death-cases/${CASE_ID}/request-supplement`, {
       etag: "v-1",
-      reason: "Thiếu trang (giấy có 2 trang nhưng chỉ nộp 1)",
+      reason: "File mờ hoặc thiếu trang, không đọc được",
       requestedParts: ["FILES"],
     }),
   );
@@ -744,7 +743,7 @@ it("hộp thoại nộp lại: lời nhắn là textarea giới hạn ký tự, 
   expect(note).toHaveAttribute("maxlength", "900");
   expect(screen.getByRole("radio", { name: /File mờ/ }).closest("label")).toHaveClass("min-h-11");
   expect(
-    screen.getByRole("checkbox", { name: /Tôi xác nhận yêu cầu này/ }).closest("label"),
+    screen.getByRole("checkbox", { name: /Tôi xác nhận từ chối này/ }).closest("label"),
   ).toHaveClass("min-h-11");
 });
 
@@ -770,7 +769,7 @@ it("mã hồ sơ ở tiêu đề chi tiết là 8 ký tự cuối của id, in h
   expect(screen.queryByText(/Hồ sơ #0199E7A4/i)).not.toBeInTheDocument();
 });
 
-it("supplementOverdueAt có giá trị hiện nhãn Bổ sung quá hạn ở danh sách và chi tiết theo giờ Việt Nam", async () => {
+it("supplementOverdueAt có giá trị hiện nhãn Nộp lại quá hạn ở danh sách và chi tiết theo giờ Việt Nam", async () => {
   const overdueAt = "2026-10-10T17:30:00Z";
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID)
@@ -784,14 +783,14 @@ it("supplementOverdueAt có giá trị hiện nhãn Bổ sung quá hạn ở dan
   );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
   await screen.findByRole("region", { name: "Bản đang xét" });
-  expect(screen.getAllByText("Bổ sung quá hạn")).toHaveLength(1);
+  expect(screen.getAllByText("Nộp lại quá hạn")).toHaveLength(1);
   // 17:30 UTC = 00:30 ngày hôm sau theo giờ Việt Nam.
   expect(
     screen.getByText(/Executor bổ sung quá hạn từ .*00:30.*giờ Việt\s+Nam/),
   ).toBeInTheDocument();
 });
 
-it("supplementOverdueAt có giá trị hiện nhãn Bổ sung quá hạn ở danh sách", async () => {
+it("supplementOverdueAt có giá trị hiện nhãn Nộp lại quá hạn ở danh sách", async () => {
   const overdueAt = "2026-10-10T17:30:00Z";
   vi.spyOn(apiClient, "get").mockResolvedValue({
     ...listFixture,
@@ -799,14 +798,14 @@ it("supplementOverdueAt có giá trị hiện nhãn Bổ sung quá hạn ở dan
   });
   setup(<VerifierQueue />);
   await screen.findByRole("button", { name: /Xem hồ sơ #33333333/ });
-  expect(screen.getAllByText("Bổ sung quá hạn")).toHaveLength(1);
+  expect(screen.getAllByText("Nộp lại quá hạn")).toHaveLength(1);
 });
 
 it.each([
   ["null", { supplementOverdueAt: null }],
   ["thiếu trường (BE cũ)", {}],
 ])(
-  "supplementOverdueAt %s không hiện nhãn Bổ sung quá hạn và vẫn parse được",
+  "supplementOverdueAt %s không hiện nhãn Nộp lại quá hạn và vẫn parse được",
   async (_name, extra) => {
     vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
       String(url).endsWith(CASE_ID)
@@ -816,7 +815,7 @@ it.each([
     setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
     await screen.findByRole("region", { name: "Bản đang xét" });
     expect(screen.getByRole("heading", { name: /Hồ sơ #33333333/, level: 2 })).toBeInTheDocument();
-    expect(screen.queryByText(/Bổ sung quá hạn/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Nộp lại quá hạn/)).not.toBeInTheDocument();
     expect(screen.queryByText(/bổ sung quá hạn từ/)).not.toBeInTheDocument();
   },
 );

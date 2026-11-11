@@ -156,14 +156,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       done: true,
     },
   ];
-  // Khi chờ bổ sung BE chưa tính hạn mới, nên không hiện mốc hạn xét.
-  if (detail.status !== "SUPPLEMENT_REQUIRED" && detail.assignment.dueAt) {
-    timeline.push({
-      label: "Hạn xét duyệt",
-      text: formatCompact(detail.assignment.dueAt),
-      done: false,
-    });
-  }
   const conditions = conditionRows(
     detail.approveBlockers,
     detail.objectionEndsAt,
@@ -188,7 +180,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               Hồ sơ #{caseCode(detail.id)}
             </h2>
             <Chip tone={status.tone}>{status.label}</Chip>
-            {detail.supplementOverdueAt && <Chip tone="warning">Bổ sung quá hạn</Chip>}
+            {detail.supplementOverdueAt && <Chip tone="warning">Nộp lại quá hạn</Chip>}
             {detail.closedAt && <Chip tone="neutral">Đóng {formatDate(detail.closedAt)}</Chip>}
           </div>
           <div className="flex items-center gap-3">
@@ -216,11 +208,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           </div>
         </div>
         <p className="text-sm text-heritage-muted">
-          Kho: {detail.vaultId} · Phân công từ {formatDate(detail.assignment.assignedAt)} ·{" "}
-          {/* BE không tính quá hạn khi chờ bổ sung; dueAt được tính lại lúc Executor gửi lại. */}
-          {detail.status === "SUPPLEMENT_REQUIRED"
-            ? "Đang chờ Executor bổ sung"
-            : `Hạn xét ${formatDate(detail.assignment.dueAt)}`}
+          Kho: {detail.vaultId} · Phân công từ {formatDate(detail.assignment.assignedAt)}
+          {detail.status === "SUPPLEMENT_REQUIRED" ? " · Đang chờ Người thực thi nộp lại" : ""}
         </p>
         {detail.supplementOverdueAt && (
           <p className="text-sm text-[#7A5B25]">
@@ -261,11 +250,11 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
         <Notice tone="warning" title="Executor đang soạn bản bổ sung">
           Bạn đang xem bản đã gửi
           {review ? ` số ${review.versionNo}` : ""}. Chưa duyệt được cho tới khi Executor nộp bản
-          mới; bạn vẫn có thể yêu cầu bổ sung hoặc từ chối.
+          mới; bạn vẫn có thể từ chối hồ sơ.
         </Notice>
       )}
       {detail.status === "SUPPLEMENT_REQUIRED" && (
-        <Notice tone="warning" title="Đã gửi yêu cầu bổ sung">
+        <Notice tone="warning" title="Đã từ chối, chờ nộp lại">
           {requestedPartsText && <span className="block">Đã yêu cầu: {requestedPartsText}.</span>}
           Người thực hiện sẽ nộp bản bổ sung. Hồ sơ quay lại hàng chờ khi có bản mới.
         </Notice>
@@ -425,7 +414,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               </p>
             ) : !detail.canApprove && conditions.length > 0 ? (
               <div role="status" className="rounded-xl bg-[#F8E1DE] p-4 text-sm text-[#7A1A14]">
-                <p>Chưa thể duyệt vì: {blockedReason}. Bạn có thể yêu cầu bổ sung hoặc từ chối.</p>
+                <p>Chưa thể duyệt vì: {blockedReason}. Bạn có thể từ chối hồ sơ.</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
                   {conditions.map((row) => (
                     <li key={row.key}>{row.detail}</li>
@@ -466,8 +455,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                   <DecisionTile
                     tone="supplement"
                     icon={<TriangleAlert className="size-5" aria-hidden="true" />}
-                    title="Yêu cầu bổ sung"
-                    description="Gửi lại cho người thực hiện, kèm lý do."
+                    title="Từ chối"
+                    description="Nộp nhầm hoặc ghi sai thông tin: trả lại cho người thực hiện, kèm lý do."
                     onClick={() => openModal("supplement")}
                   />
                 )}

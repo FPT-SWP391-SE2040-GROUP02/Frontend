@@ -45,7 +45,7 @@ describe("khung Người thực thi khai", () => {
     expect(screen.getAllByRole("checkbox")).toHaveLength(3);
     expect(
       screen.getByText(
-        "Đánh dấu đủ 3 dòng khớp với giấy mới duyệt được. Dòng nào lệch thì chọn Yêu cầu bổ sung.",
+        "Đánh dấu đủ 3 dòng khớp với giấy mới duyệt được. Dòng nào lệch thì chọn Từ chối.",
       ),
     ).toBeInTheDocument();
   });

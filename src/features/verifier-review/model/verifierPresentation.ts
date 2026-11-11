@@ -16,7 +16,7 @@ export const isOpenCase = (status: Status) => OPEN_STATUSES.includes(status);
 /** Nhãn ngắn và tông màu của trạng thái hồ sơ ở hàng chờ và tiêu đề trang chi tiết. */
 export const queueStatus: Record<Status, { label: string; tone: VerifierTone }> = {
   UNDER_REVIEW: { label: "Cần xem", tone: "warning" },
-  SUPPLEMENT_REQUIRED: { label: "Chờ bổ sung", tone: "neutral" },
+  SUPPLEMENT_REQUIRED: { label: "Đã từ chối", tone: "neutral" },
   SUSPENDED: { label: "Tạm dừng", tone: "neutral" },
   APPROVED_FOR_HANDOVER: { label: "Đã duyệt", tone: "success" },
   REJECTED: { label: "Từ chối", tone: "danger" },
@@ -33,7 +33,7 @@ export type QueueCategory = "REVIEW" | "SUPPLEMENT";
 
 export const queueCategoryLabels: Record<QueueCategory, { label: string; tone: VerifierTone }> = {
   REVIEW: { label: "Chờ xét duyệt", tone: "neutral" },
-  SUPPLEMENT: { label: "Chờ bổ sung", tone: "neutral" },
+  SUPPLEMENT: { label: "Đã từ chối", tone: "neutral" },
 };
 
 interface QueueCategorySource {

@@ -258,7 +258,7 @@ export const approveCaseRequestSchema = z.object({
 /** Nhãn tiếng Việt cho status hồ sơ. */
 export const caseStatusLabels: Record<z.infer<typeof verifierCaseStatusSchema>, string> = {
   UNDER_REVIEW: "Đang xét",
-  SUPPLEMENT_REQUIRED: "Yêu cầu bổ sung",
+  SUPPLEMENT_REQUIRED: "Đã từ chối, chờ nộp lại",
   APPROVED_FOR_HANDOVER: "Đã duyệt, mở bàn giao",
   REJECTED: "Đã từ chối",
   SUSPENDED: "Tạm dừng",
@@ -288,7 +288,7 @@ export const ownerNoticeLabels: Record<z.infer<typeof ownerNoticeStatusSchema>, 
 };
 /** Nhãn cho decision. */
 export const decisionLabels: Record<z.infer<typeof verifierDecisionKindSchema>, string> = {
-  SUPPLEMENT_REQUESTED: "Yêu cầu bổ sung",
+  SUPPLEMENT_REQUESTED: "Từ chối, chờ nộp lại",
   REJECTED: "Từ chối",
   APPROVED: "Duyệt mở bàn giao",
 };

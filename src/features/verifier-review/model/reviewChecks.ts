@@ -13,4 +13,4 @@ export const REVIEW_CHECK_COUNT = REVIEW_CHECKS.length;
 
 /** Dòng nhắc khi chưa tích đủ. */
 export const REVIEW_CHECKS_HINT =
-  "Đánh dấu đủ 3 dòng khớp với giấy mới duyệt được. Dòng nào lệch thì chọn Yêu cầu bổ sung.";
+  "Đánh dấu đủ 3 dòng khớp với giấy mới duyệt được. Dòng nào lệch thì chọn Từ chối.";

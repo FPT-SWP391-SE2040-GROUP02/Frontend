@@ -39,7 +39,7 @@ import type { verifierCaseDetailSchema } from "../model/verifierReview.schema";
 import {
   APPROVE_REASON,
   composeReason,
-  RESUBMIT_REASONS,
+  REJECT_REASONS,
   type ReasonOption,
 } from "../model/decisionReasons";
 
@@ -337,7 +337,7 @@ function RequestSupplementModal({
   const [choice, setChoice] = useState("");
   const [note, setNote] = useState("");
   const [confirm, setConfirm] = useState(false);
-  const option = RESUBMIT_REASONS.find((item) => item.value === choice);
+  const option = REJECT_REASONS.find((item) => item.value === choice);
   const noteRequired = choice === "OTHER";
   const ready = Boolean(option) && (!noteRequired || note.trim().length > 0) && confirm;
   const submit = () => {
@@ -349,7 +349,7 @@ function RequestSupplementModal({
           requestSupplementRequestSchema.parse({
             etag: detail.etag,
             reason: composeReason(option.label, note),
-            requestedParts: ["FILES"],
+            requestedParts: option.parts,
           }),
         ),
       () => onClose(),
@@ -359,16 +359,16 @@ function RequestSupplementModal({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-h-[88vh] overflow-y-auto rounded-2xl bg-[#FAFAF6] p-6 sm:max-w-[620px]">
         <DialogHeader>
-          <DialogTitle>Yêu cầu nộp lại file</DialogTitle>
+          <DialogTitle>Từ chối hồ sơ</DialogTitle>
           <DialogDescription>
-            Dùng khi đúng là giấy của chủ kho nhưng file chưa đọc được. Người thực hiện chỉ cần tải
-            lại PDF.
+            Dùng khi Người thực hiện nộp nhầm hoặc ghi sai thông tin. Hồ sơ được trả lại kèm lý do để
+            họ sửa và nộp lại; kho chưa bị đóng.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <ReasonRadios
-            legend="File gặp vấn đề gì?"
-            options={RESUBMIT_REASONS}
+            legend="Vì sao từ chối?"
+            options={REJECT_REASONS}
             value={choice}
             onChange={setChoice}
           />
@@ -385,7 +385,7 @@ function RequestSupplementModal({
           </label>
           <CustomCheckbox
             className="min-h-11 w-full items-center!"
-            label="Tôi xác nhận yêu cầu này sẽ được gửi cho Người thực hiện."
+            label="Tôi xác nhận từ chối này sẽ được gửi cho Người thực hiện."
             checked={confirm}
             onChange={(event) => setConfirm(event.target.checked)}
           />
@@ -405,7 +405,7 @@ function RequestSupplementModal({
               disabled={action.pending || !ready}
               onClick={submit}
             >
-              {action.pending ? "Đang gửi…" : "Gửi yêu cầu"}
+              {action.pending ? "Đang gửi…" : "Gửi từ chối"}
             </button>
           </DialogFooter>
         </div>
