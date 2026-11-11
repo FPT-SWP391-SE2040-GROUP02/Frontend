@@ -28,14 +28,14 @@ function renderSettings() {
   );
 }
 
-/** Ô số của thư nhắc trước hạn: mặc định 7 (thứ nhất) và 1 (thứ hai), duy nhất trong nhóm Điểm danh. */
+/** Ô số của thư nhắc trước hạn: mặc định 7 (thứ nhất) và 1 (thứ hai); các ô thứ ba đến thứ năm cũng là 1 nhưng nằm sau. */
 async function firstReminderInput(): Promise<HTMLElement> {
   await screen.findByText("Thư nhắc trước hạn thứ nhất");
   return screen.getByDisplayValue("7");
 }
 
 function secondReminderInput(): HTMLElement {
-  return screen.getByDisplayValue("1");
+  return screen.getAllByDisplayValue("1")[0];
 }
 
 describe("trang Cấu hình: kiểm giá trị trước khi lưu", () => {
