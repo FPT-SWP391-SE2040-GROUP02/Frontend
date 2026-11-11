@@ -457,3 +457,86 @@ export const saveHandoverTemplateRequestSchema = z.object({
   note: z.string().max(300, "Ghi chú tối đa 300 ký tự.").optional(),
 });
 export type SaveHandoverTemplateRequest = z.infer<typeof saveHandoverTemplateRequestSchema>;
+
+/** Một biến chèn vào chữ thư, viết {TEN_BIEN}. */
+const emailTemplateTokenSchema = z.object({ name: z.string(), description: z.string() });
+
+const emailTemplateFieldsSchema = z.object({
+  subject: z.string(),
+  title: z.string(),
+  body: z.string(),
+  buttonText: z.string(),
+  note: z.string(),
+});
+
+const emailTemplateCustomSchema = z.object({
+  subject: z.string().nullable(),
+  title: z.string().nullable(),
+  body: z.string().nullable(),
+  buttonText: z.string().nullable(),
+  note: z.string().nullable(),
+});
+
+/** Một loại thư thông báo: chữ gốc trong mã và chữ Admin đã đặt (null: giữ chữ gốc). */
+export const emailTemplateSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  description: z.string(),
+  canDisable: z.boolean(),
+  editableBody: z.boolean(),
+  enabled: z.boolean(),
+  tokens: z.array(emailTemplateTokenSchema),
+  default: emailTemplateFieldsSchema,
+  custom: emailTemplateCustomSchema,
+  updatedAt: z.string().nullable().default(null),
+  updatedByName: z.string().nullable().default(null),
+});
+export const emailTemplatesSchema = z.array(emailTemplateSchema);
+export type EmailTemplate = z.infer<typeof emailTemplateSchema>;
+
+export const saveEmailTemplateRequestSchema = z.object({
+  enabled: z.boolean(),
+  subject: z.string().nullable(),
+  title: z.string().nullable(),
+  body: z.string().nullable(),
+  buttonText: z.string().nullable(),
+  note: z.string().nullable(),
+});
+export type SaveEmailTemplateRequest = z.infer<typeof saveEmailTemplateRequestSchema>;
+
+/** Một thư bổ sung gửi cho Chủ kho theo ngày tính từ hạn điểm danh (âm: trước hạn, dương: sau hạn). */
+export const extraMailSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  enabled: z.boolean(),
+  daysFromDue: z.number().int(),
+  subject: z.string(),
+  title: z.string(),
+  body: z.string(),
+  buttonText: z.string(),
+  note: z.string(),
+  updatedAt: z.string(),
+  updatedByName: z.string().nullable().default(null),
+});
+export type ExtraMail = z.infer<typeof extraMailSchema>;
+
+export const extraMailListSchema = z.object({
+  items: z.array(extraMailSchema),
+  maxItems: z.number().int(),
+  minDaysFromDue: z.number().int(),
+  maxDaysFromDue: z.number().int(),
+  tokens: z.array(emailTemplateTokenSchema),
+});
+export type ExtraMailList = z.infer<typeof extraMailListSchema>;
+
+export const saveExtraMailRequestSchema = z.object({
+  name: z.string(),
+  enabled: z.boolean(),
+  daysFromDue: z.number().int(),
+  subject: z.string(),
+  title: z.string(),
+  body: z.string(),
+  buttonText: z.string(),
+  note: z.string(),
+});
+export type SaveExtraMailRequest = z.infer<typeof saveExtraMailRequestSchema>;

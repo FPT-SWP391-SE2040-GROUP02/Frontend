@@ -20,8 +20,14 @@ import {
   paymentTransactionsPageSchema,
   paymentTransactionsQuerySchema,
   adminRevenueSchema,
+  emailTemplateSchema,
+  emailTemplatesSchema,
+  extraMailListSchema,
+  extraMailSchema,
   handoverTemplateSchema,
   handoverTemplateVersionsSchema,
+  saveEmailTemplateRequestSchema,
+  saveExtraMailRequestSchema,
   saveHandoverTemplateRequestSchema,
   adminRevenueQuerySchema,
   assignExecutorRequestSchema,
@@ -38,6 +44,8 @@ import {
   type IncidentNoteRequest,
   type IncidentsQuery,
   type AdminRevenueQuery,
+  type SaveEmailTemplateRequest,
+  type SaveExtraMailRequest,
   type SaveHandoverTemplateRequest,
   type PaymentTransactionsQuery,
   type AssignExecutorRequest,
@@ -268,6 +276,56 @@ export const adminService = {
     return handoverTemplateSchema.parse(
       await apiClient.post<unknown, unknown>("/admin/handover-templates", body),
     );
+  },
+
+  /** Mọi loại thư thông báo kèm chữ gốc và chữ Admin đã sửa. */
+  async listEmailTemplates(signal?: AbortSignal) {
+    return emailTemplatesSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/email-templates", { signal }),
+    );
+  },
+
+  /** Lưu chữ cho một loại thư; trường null là dùng lại chữ gốc. */
+  async saveEmailTemplate(key: string, request: SaveEmailTemplateRequest) {
+    const body = saveEmailTemplateRequestSchema.parse(request);
+    return emailTemplateSchema.parse(
+      await apiClient.put<unknown, unknown>(
+        `/admin/email-templates/${encodeURIComponent(key)}`,
+        body,
+      ),
+    );
+  },
+
+  /** Bỏ chữ đã sửa, về chữ gốc và bật lại loại thư. */
+  async resetEmailTemplate(key: string) {
+    return emailTemplateSchema.parse(
+      await apiClient.delete<unknown, unknown>(`/admin/email-templates/${encodeURIComponent(key)}`),
+    );
+  },
+
+  /** Các thư bổ sung gửi cho Chủ kho theo ngày tính từ hạn điểm danh, kèm giới hạn và biến chèn được. */
+  async listExtraMails(signal?: AbortSignal) {
+    return extraMailListSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/extra-mails", { signal }),
+    );
+  },
+
+  async createExtraMail(request: SaveExtraMailRequest) {
+    const body = saveExtraMailRequestSchema.parse(request);
+    return extraMailSchema.parse(
+      await apiClient.post<unknown, unknown>("/admin/extra-mails", body),
+    );
+  },
+
+  async updateExtraMail(id: string, request: SaveExtraMailRequest) {
+    const body = saveExtraMailRequestSchema.parse(request);
+    return extraMailSchema.parse(
+      await apiClient.put<unknown, unknown>(`/admin/extra-mails/${encodeURIComponent(id)}`, body),
+    );
+  },
+
+  async deleteExtraMail(id: string) {
+    await apiClient.delete<unknown, unknown>(`/admin/extra-mails/${encodeURIComponent(id)}`);
   },
 
   /** Doanh thu theo ngày, tháng hoặc quý (tiền thật đã khớp đơn); chỉ đọc. */

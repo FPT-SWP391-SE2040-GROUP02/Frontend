@@ -2,6 +2,7 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import {
   CreditCard,
   FileText,
+  Mail,
   History,
   Home,
   ShieldCheck,
@@ -14,6 +15,7 @@ import {
 import {
   ADMIN_INCIDENTS_VISIBLE,
   AdminDevTools,
+  AdminEmailTemplates,
   AdminHandoverTemplates,
   AdminHolds,
   AdminIncidents,
@@ -65,6 +67,13 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
     label: "Mẫu biên bản",
     icon: FileText,
     to: `${ROUTES.ADMIN.ROOT}?view=templates`,
+    group: "Hệ thống",
+  },
+  {
+    id: "email-templates",
+    label: "Mẫu thư",
+    icon: Mail,
+    to: `${ROUTES.ADMIN.ROOT}?view=email-templates`,
     group: "Hệ thống",
   },
   {
@@ -124,6 +133,11 @@ const VIEWS = {
     title: "Mẫu biên bản",
     description: "Sửa các mục 1 đến 8 của biên bản đồng ý nhận khi luật thay đổi.",
   },
+  "email-templates": {
+    title: "Mẫu thư",
+    description:
+      "Sửa chữ các thư thông báo gửi cho Chủ kho, Người thực thi, người nhận và Người xét duyệt.",
+  },
   settings: {
     title: "Cấu hình",
     description: "",
@@ -169,6 +183,7 @@ function viewFor(pathname: string, search: string): AdminView {
     view === "settings" ||
     view === "plans" ||
     view === "templates" ||
+    view === "email-templates" ||
     (view === "incidents" && ADMIN_INCIDENTS_VISIBLE) ||
     view === "holds" ||
     view === "payments" ||
@@ -256,6 +271,7 @@ export function AdminWorkspacePage() {
       {view === "settings" && <SettingsTabs />}
       {view === "plans" && <AdminSettings section="plans" />}
       {view === "templates" && <AdminHandoverTemplates />}
+      {view === "email-templates" && <AdminEmailTemplates />}
       {view === "incidents" && ADMIN_INCIDENTS_VISIBLE && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
