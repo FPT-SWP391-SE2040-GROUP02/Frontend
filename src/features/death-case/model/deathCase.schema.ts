@@ -9,6 +9,8 @@ export const executorVaultSchema = z.object({
   executorNote: z.string().nullish(),
   executorNoteUpdatedAt: timestamp.nullish(),
   checkInOverdue: z.boolean(),
+  /** Lúc tài khoản chấp nhận lời mời làm Người thực thi của kho; Backend cũ hoặc dữ liệu cũ không có thì null. */
+  acceptedAt: timestamp.nullish(),
   openDeathCaseId: z.string().uuid().nullable(),
   /** Hồ sơ bị từ chối gần nhất của kho, để Executor xem lại lý do. Backend cũ không có trường này. */
   lastRejectedDeathCaseId: z.string().uuid().nullish(),

@@ -14,7 +14,6 @@ import { deathCaseService } from "@/features/death-case/api/deathCaseService";
 import { ExecutorProgress } from "@/features/death-case/ui/ExecutorProgress";
 import { ExecutorReport } from "@/features/death-case/ui/ExecutorReport";
 import { HandoverProgressPanel } from "@/features/death-case/ui/HandoverProgressPanel";
-import { remainingText } from "@/features/death-case/model/remainingText";
 
 const CASE_ID = "33333333-3333-4333-8333-333333333333";
 const OTHER_CASE_ID = "44444444-4444-4444-8444-444444444444";
@@ -185,7 +184,14 @@ function setup(children: ReactNode, path = "/") {
 it("calls the real progress route with an abort signal and drops fields outside the contract", async () => {
   const leaked = {
     ...started,
-    turns: [{ ...started.turns[0], beneficiaryEmail: "a@example.com", citizenId: "012345678901" }],
+    turns: [
+      {
+        ...started.turns[0],
+        beneficiaryEmail: "a@example.com",
+        citizenId: "012345678901",
+        dateOfBirth: "1990-01-01",
+      },
+    ],
   };
   const get = vi.spyOn(apiClient, "get").mockResolvedValue(leaked);
   const controller = new AbortController();
@@ -194,7 +200,9 @@ it("calls the real progress route with an abort signal and drops fields outside 
     signal: controller.signal,
   });
   expect(JSON.stringify(result)).not.toContain("012345678901");
-  expect(JSON.stringify(result)).not.toContain("a@example.com");
+  expect(JSON.stringify(result)).not.toContain("1990-01-01");
+  // Email người nhận nay nằm trong hợp đồng (beneficiaryEmail), giống số điện thoại.
+  expect(result.turns[0].beneficiaryEmail).toBe("a@example.com");
 });
 
 it("rejects a non-UUID case id before sending any request", async () => {
@@ -207,39 +215,33 @@ it("explains that handover has not started instead of showing an empty list", as
   vi.spyOn(apiClient, "get").mockResolvedValue(notStarted);
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
   expect(await screen.findByText(/Bàn giao chưa bắt đầu/)).toBeInTheDocument();
-  expect(screen.queryByText("Theo người nhận")).not.toBeInTheDocument();
+  expect(screen.queryByRole("list", { name: "Danh sách người nhận" })).not.toBeInTheDocument();
 });
 
-it("shows summary, per-turn deadlines counted from serverTime and download state", async () => {
+it("shows four tiles and one row per turn, with detail only after pressing Chi tiết", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(started);
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
-  expect(await screen.findByText("Theo người nhận")).toBeInTheDocument();
-  // Mỗi người nhận một thẻ: chưa có họ tên thì hiện "Người nhận" kèm 4 số cuối CCCD.
+  const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
+  // Chưa có họ tên thì hiện CCCD che; mỗi lượt đúng một dòng kèm tên gói.
+  const rows = within(list).getAllByRole("listitem", { name: /, gói / });
+  expect(rows).toHaveLength(2);
+  expect(screen.getByText("Người nhận CCCD ***8901")).toBeInTheDocument();
   expect(screen.getByText("Gói “Tài liệu gia đình”")).toBeInTheDocument();
-  expect(screen.getByText("CCCD ***8901")).toBeInTheDocument();
+  expect(screen.getByText("Nguyễn Văn An")).toBeInTheDocument();
   expect(screen.getByText("Gói “Tài khoản ngân hàng”")).toBeInTheDocument();
-  expect(screen.getByText("CCCD ***1234")).toBeInTheDocument();
-  // Lượt đầu được chọn sẵn: hạn tính theo serverTime và tài sản chưa tải.
-  expect(screen.getByText("Đã mời, chờ người nhận phản hồi")).toBeInTheDocument();
-  expect(screen.getByText(/còn 2 ngày 2 giờ/)).toBeInTheDocument();
-  expect(screen.getByText("Đã tải 0/1 tài sản")).toBeInTheDocument();
-  expect(screen.queryByText("Số điện thoại liên hệ")).not.toBeInTheDocument();
-  expect(screen.getByText("Giấy tờ nhà (tệp)")).toBeInTheDocument();
-  expect(screen.getAllByText("Chưa tải").length).toBeGreaterThan(0);
-  // Chọn lượt thứ hai để xem chi tiết người nhận đã đồng ý.
-  fireEvent.click(screen.getAllByRole("button", { name: "Xem chi tiết" })[1]);
-  expect(await screen.findByText("Người nhận đã đồng ý nhận")).toBeInTheDocument();
-  // Đã bàn giao: hiện họ tên và số điện thoại người nhận, không còn dòng "Quyền tải".
-  // Họ tên và số điện thoại vừa ở đầu thẻ người nhận vừa ở phần chi tiết.
-  expect(screen.getAllByText("Nguyễn Văn An")).toHaveLength(2);
-  expect(screen.getAllByText("0901234567")).toHaveLength(2);
-  expect(screen.queryByText("Quyền tải")).not.toBeInTheDocument();
-  expect(screen.getByText("Đã tải 1/1 tài sản")).toBeInTheDocument();
-  expect(screen.getByText("Mật khẩu ví (văn bản)")).toBeInTheDocument();
-  expect(screen.getByText(/Tải lần đầu/)).toBeInTheDocument();
+  expect(screen.getByText("trên 2 người nhận")).toBeInTheDocument();
+  // Chi tiết chỉ mở khi bấm.
+  expect(screen.queryByRole("region", { name: "Thông tin liên hệ" })).not.toBeInTheDocument();
+  const second = within(list).getByRole("listitem", { name: /Nguyễn Văn An/ });
+  fireEvent.click(within(second).getByRole("button", { name: "Chi tiết" }));
+  const contact = within(second).getByRole("region", { name: "Thông tin liên hệ" });
+  expect(contact).toHaveTextContent("0901234567");
+  expect(within(second).getByRole("region", { name: "Tài sản" })).toHaveTextContent("1/1 đã tải");
+  expect(within(second).getByText(/Mật khẩu ví · đã tải/)).toBeInTheDocument();
+  expect(within(second).getByRole("button", { name: "Thu gọn" })).toBeInTheDocument();
 });
 
-it("groups packages of the same recipient into one card by beneficiaryId", async () => {
+it("keeps two packages of the same recipient as two separate rows", async () => {
   const BENEFICIARY_ID = "88888888-8888-4888-8888-888888888888";
   const [first, second] = started.turns;
   vi.spyOn(apiClient, "get").mockResolvedValue({
@@ -250,38 +252,20 @@ it("groups packages of the same recipient into one card by beneficiaryId", async
     ],
   });
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
-  const packages = await screen.findByRole("list", { name: "Các gói của Trần Thị Bình" });
-  expect(within(packages).getByText("Gói “Tài liệu gia đình”")).toBeInTheDocument();
-  expect(within(packages).getByText("Gói “Tài khoản ngân hàng”")).toBeInTheDocument();
-  expect(screen.getByText("2 gói")).toBeInTheDocument();
-  // Hai gói vẫn là hai lượt riêng, mỗi gói một nút xem chi tiết.
-  expect(within(packages).getAllByRole("button", { name: "Xem chi tiết" })).toHaveLength(2);
-});
-
-it("keeps a long recipient list scrollable inside its frame", async () => {
-  const [first] = started.turns;
-  const turns = ["1", "2", "3", "4"].map((digit) => ({
-    ...first,
-    turnId: `5555555${digit}-5555-4555-8555-555555555555`,
-    beneficiaryId: `8888888${digit}-8888-4888-8888-888888888888`,
-    beneficiaryFullName: `Người nhận ${digit}`,
-  }));
-  vi.spyOn(apiClient, "get").mockResolvedValue({ ...started, turns });
-  setup(<HandoverProgressPanel caseId={CASE_ID} />);
-  expect(
-    await screen.findByText("4 người nhận, cuộn trong khung để xem thêm."),
-  ).toBeInTheDocument();
-  const list = screen.getByRole("list", { name: "Danh sách người nhận" });
-  expect(list).toHaveClass("overflow-y-auto");
-  // Cuộn được bằng bàn phím khi danh sách dài.
-  expect(list).toHaveAttribute("tabindex", "0");
+  const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
+  expect(within(list).getAllByText("Trần Thị Bình")).toHaveLength(2);
+  expect(within(list).getByText("Gói “Tài liệu gia đình”")).toBeInTheDocument();
+  expect(within(list).getByText("Gói “Tài khoản ngân hàng”")).toBeInTheDocument();
+  expect(within(list).getAllByRole("button", { name: "Chi tiết" })).toHaveLength(2);
 });
 
 it("turns a 404 into a permission message with retry, never into an empty progress", async () => {
   const url = `/executor/death-cases/${CASE_ID}/handover-progress`;
   const get = vi.spyOn(apiClient, "get").mockRejectedValue(notFound(url));
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
-  expect(await screen.findByRole("alert")).toHaveTextContent("không còn là Executor đang hiệu lực");
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "không còn là Người thực thi đang hiệu lực",
+  );
   expect(screen.queryByText(/Bàn giao chưa bắt đầu/)).not.toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
   expect(get).toHaveBeenCalledTimes(1);
@@ -319,7 +303,7 @@ it("keeps the newly selected case when the previous case answers late", async ()
   expect(await screen.findByText(/Bàn giao chưa bắt đầu/)).toBeInTheDocument();
   releaseOld(started);
   await Promise.resolve();
-  expect(screen.queryByText("Theo người nhận")).not.toBeInTheDocument();
+  expect(screen.queryByRole("list", { name: "Danh sách người nhận" })).not.toBeInTheDocument();
 });
 
 it("loads progress on the Progress page for a submitted case", async () => {
@@ -331,8 +315,7 @@ it("loads progress on the Progress page for a submitted case", async () => {
     return Promise.reject(new Error(`unexpected ${String(url)}`));
   });
   setup(<ExecutorProgress vault={vaultOf()} />, "/executor/progress");
-  expect(await screen.findByRole("heading", { name: "Tiến độ bàn giao" })).toBeInTheDocument();
-  expect(await screen.findByText("Theo người nhận")).toBeInTheDocument();
+  expect(await screen.findByRole("list", { name: "Danh sách người nhận" })).toBeInTheDocument();
   expect(get).toHaveBeenCalledWith(
     `/executor/death-cases/${CASE_ID}/handover-progress`,
     expect.objectContaining({ signal: expect.any(AbortSignal) }),
@@ -353,27 +336,23 @@ it("does not request progress for a draft case", async () => {
   );
 });
 
-it("hiện 5 bước, hồ sơ đã nộp nằm ở bước Xét duyệt và không còn bước phản đối", async () => {
-  vi.spyOn(apiClient, "get").mockImplementation((url) => {
+it("hồ sơ đã nộp nhưng chưa duyệt: nói bàn giao chưa bắt đầu và không gọi tiến độ bàn giao", async () => {
+  const get = vi.spyOn(apiClient, "get").mockImplementation((url) => {
     if (url === `/executor/death-cases/${CASE_ID}`)
       return Promise.resolve(deathCase("UNDER_REVIEW"));
-    if (url === `/executor/death-cases/${CASE_ID}/handover-progress`)
-      return Promise.resolve(notStarted);
     return Promise.reject(new Error(`unexpected ${String(url)}`));
   });
   setup(<ExecutorProgress vault={vaultOf()} />, "/executor/progress");
-  const current = await screen.findByText("Xét duyệt");
-  expect(current.closest("li")).toHaveAttribute("aria-current", "step");
-  expect(screen.getByText("Báo tin").closest("li")).not.toHaveAttribute("aria-current");
-  expect(screen.queryByText(/Phản đối/)).not.toBeInTheDocument();
-  expect(screen.getByText(/Hồ sơ đang chờ Người xét duyệt/)).toBeInTheDocument();
-});
-
-it("counts remaining time from serverTime and marks past deadlines as overdue", () => {
-  expect(remainingText("2026-10-20T07:00:00+00:00", SERVER_TIME)).toBe("đã quá hạn");
-  expect(remainingText("2026-10-20T08:30:00+00:00", SERVER_TIME)).toBe("còn dưới 1 giờ");
-  expect(remainingText("2026-10-20T13:00:00+00:00", SERVER_TIME)).toBe("còn 5 giờ");
-  expect(remainingText("2026-10-23T08:00:00+00:00", SERVER_TIME)).toBe("còn 3 ngày");
+  expect(await screen.findByRole("heading", { name: "Bàn giao chưa bắt đầu" })).toBeInTheDocument();
+  expect(screen.getByText(/Hồ sơ đã gửi và đang chờ Người xét duyệt/)).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Đi tới Báo tin" })).toHaveAttribute(
+    "href",
+    "/executor/report",
+  );
+  expect(get).not.toHaveBeenCalledWith(
+    `/executor/death-cases/${CASE_ID}/handover-progress`,
+    expect.anything(),
+  );
 });
 
 function portalWith(record: unknown) {
@@ -473,6 +452,7 @@ it("lets the Executor view the decline paper image inline only for a declined tu
   vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
 
+  fireEvent.click(await screen.findByRole("button", { name: "Chi tiết" }));
   fireEvent.click(await screen.findByRole("button", { name: "Xem văn bản từ chối" }));
 
   await vi.waitFor(() =>
@@ -493,7 +473,10 @@ it("lets the Executor view the decline paper image inline only for a declined tu
 it("does not offer the decline paper for a turn that was not declined", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(started);
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
-  await screen.findByText("Theo người nhận");
+  const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
+  for (const button of within(list).getAllByRole("button", { name: "Chi tiết" })) {
+    fireEvent.click(button);
+  }
   expect(screen.queryByRole("button", { name: "Xem văn bản từ chối" })).not.toBeInTheDocument();
 });
 
@@ -510,6 +493,7 @@ it("lets the Executor view the acceptance paper of a turn the recipient accepted
   vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => undefined);
   setup(<HandoverProgressPanel caseId={CASE_ID} />);
 
+  fireEvent.click(await screen.findByRole("button", { name: "Chi tiết" }));
   fireEvent.click(await screen.findByRole("button", { name: "Xem biên bản đồng ý" }));
 
   expect(await screen.findByAltText("Văn bản khai nhận di sản thừa kế")).toBeInTheDocument();

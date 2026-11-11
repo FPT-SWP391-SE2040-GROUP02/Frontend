@@ -23,7 +23,8 @@ export function ExecutorOverviewPage() {
   if (listing) {
     description = `Bạn là Người thực thi cho ${state.vaults.length} kho.`;
   } else if (state.selected) {
-    description = `${state.selected.ownerFullName} đã tin tưởng giao bạn vai trò Người thực thi.`;
+    title = `Kho của ${state.selected.ownerFullName}`;
+    description = "Bạn là Người thực thi của kho này. Bạn không đọc được nội dung kho.";
   }
 
   let badge = null;

@@ -1,42 +1,101 @@
 import { Link } from "react-router-dom";
-import { Lock } from "lucide-react";
+import { Check, Lock, X } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import type { ExecutorVault } from "../model/deathCase.schema";
-import { buttonStyles, InfoRow, Notice, Panel } from "@/shared/ui/heritageKit";
-import { useRejectedAck } from "../model/useRejectedAck";
-import { planStatusLabel } from "./executorLabels";
-import { OverdueCard } from "./OverdueCard";
-import { HandoverProgressBar } from "./HandoverProgressBar";
+import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
+import { executorTodo, type CaseStatus } from "../model/executorTodo";
+import { EXECUTOR_ALLOWED, EXECUTOR_DENIED } from "../model/executorPermissions";
 import { useDeathCase } from "../model/useDeathCase";
+import { useExecutorPackages } from "../model/useExecutorPackages";
+import { useHandoverProgress } from "../model/useHandoverProgress";
+import { useRejectedAck } from "../model/useRejectedAck";
+import { OverdueCard } from "./OverdueCard";
+import { VaultJourney } from "./VaultJourney";
 
-const duties = () => [
-  { title: "Báo tin", text: "Cho hệ thống biết đã đến lúc bàn giao." },
-  {
-    title: "Chờ xét duyệt",
-    text: "Người xét duyệt kiểm tra hồ sơ.",
-  },
-  { title: "Theo dõi", text: "Xem tiến trình đến khi người nhận tải xong." },
-];
+/** Hai thẻ gọn dưới cùng chỉ lấy vài dòng đầu của danh sách quyền hạn đầy đủ. */
+const SHORT_LIST_SIZE = 3;
 
-const limits = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Tự chọn người nhận"];
+/** Tóm tắt hướng dẫn của Chủ kho và số tài sản giao cho Người thực thi quản lý việc bàn giao. */
+function GuideAndAssetsCard({ vault }: { vault: ExecutorVault }) {
+  const packages = useExecutorPackages(vault.vaultId);
+  let assetCount = 0;
+  let packageCount = 0;
+  if (packages.isSuccess) {
+    packageCount = packages.data.length;
+    for (const item of packages.data) {
+      assetCount += item.assets.length;
+    }
+  }
+  let lead = `${vault.ownerFullName} chưa để lại hướng dẫn bàn giao`;
+  if (vault.executorNote) lead = `${vault.ownerFullName} để lại hướng dẫn bàn giao`;
+  let summary = `${lead}.`;
+  if (packages.isSuccess) {
+    summary = `${lead} và giao bạn ${assetCount} tài sản trong ${packageCount} gói.`;
+  }
+  return (
+    <Panel title="Hướng dẫn và tài sản">
+      <p className="text-sm leading-6">{summary}</p>
+      <Link className={`${buttonStyles.outline} mt-4`} to={ROUTES.EXECUTOR.ASSETS}>
+        Xem tài sản và hướng dẫn
+      </Link>
+    </Panel>
+  );
+}
 
-/** Tổng quan một kho Người thực thi đang phụ trách. */
+function CanAndCannotCard() {
+  return (
+    <Panel title="Bạn làm được / không làm được">
+      <ul className="space-y-2 text-sm">
+        {EXECUTOR_ALLOWED.slice(0, SHORT_LIST_SIZE).map((item) => (
+          <li key={item} className="flex items-start gap-2">
+            <Check className="mt-0.5 size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+            <span>
+              <span className="sr-only">Làm được: </span>
+              {item}
+            </span>
+          </li>
+        ))}
+        {EXECUTOR_DENIED.slice(0, SHORT_LIST_SIZE).map((item) => (
+          <li key={item} className="flex items-start gap-2 text-heritage-muted">
+            <X className="mt-0.5 size-4 shrink-0 text-[#A32119]" aria-hidden="true" />
+            <span>
+              <span className="sr-only">Không làm được: </span>
+              {item}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 flex items-center gap-2 text-xs text-heritage-muted">
+        <Lock className="size-3.5" aria-hidden="true" />
+        Bạn chỉ báo tin và theo dõi, không xem được nội dung kho.
+      </p>
+    </Panel>
+  );
+}
+
+/**
+ * Tổng quan một kho Người thực thi đang phụ trách: việc quan trọng nhất ngay lúc này, kho đang ở đâu (3 bước của cả kho),
+ * rồi hai thẻ gọn. Tiến độ từng người nhận nằm ở trang Bàn giao.
+ */
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   const hasCase = Boolean(vault.openDeathCaseId);
-  // Chủ kho đã tự điểm danh thì nói rõ bằng màu xanh; chưa có giờ điểm danh thì chỉ báo kho đang an toàn.
-  let safeTitle = `Kho của ${vault.ownerFullName} đang an toàn`;
-  let safeText = "Chỉ báo tin khi chắc chắn đã đến lúc.";
-  if (vault.lastOwnerCheckInAt) {
-    safeTitle = `${vault.ownerFullName} đã điểm danh thành công`;
-    safeText = `Lần gần nhất ${formatDateTime(vault.lastOwnerCheckInAt)}. Kho đang an toàn, chỉ báo tin khi chắc chắn đã đến lúc.`;
-  }
-  const record = useDeathCase(vault.openDeathCaseId).data;
+  const record = useDeathCase(vault.openDeathCaseId).data ?? null;
+  const approved = record?.status === "APPROVED_FOR_HANDOVER";
+  const progress =
+    useHandoverProgress(vault.openDeathCaseId ?? "", hasCase && approved).data ?? null;
   const rejectedAck = useRejectedAck(vault.lastRejectedDeathCaseId);
-  // Báo "bị từ chối" đi TRƯỚC mọi banner khác (kể cả "quá hạn điểm danh", vì từ chối trả kế hoạch về trạng thái
-  // trước đó nên kho có thể quá hạn ngay); bấm "Tiếp tục" thì mới tới banner theo trạng thái kế hoạch.
+  // Báo "bị từ chối" đi TRƯỚC mọi việc khác (từ chối trả kế hoạch về trạng thái trước đó nên kho có thể quá hạn ngay);
+  // bấm "Tiếp tục" thì mới tới việc theo trạng thái kế hoạch.
   const showRejected =
     !hasCase && Boolean(vault.lastRejectedDeathCaseId) && !rejectedAck.acknowledged;
+
+  let caseStatus: CaseStatus | null = null;
+  if (record) caseStatus = record.status;
+  const todo = executorTodo({ vault, caseStatus, progress, rejectedPending: showRejected });
+  const showLastCheckIn =
+    !hasCase && !showRejected && !vault.checkInOverdue && Boolean(vault.lastOwnerCheckInAt);
+
   return (
     <div className="space-y-6">
       {showRejected && (
@@ -53,96 +112,38 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           nên báo tin lại khi chắc chắn và có giấy tờ phù hợp.
         </Notice>
       )}
+      <section
+        aria-labelledby="executor-todo-title"
+        className="rounded-2xl border border-[#E0C486] bg-[#FBF3E0] p-5 sm:p-6"
+      >
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#7A5B25]">
+          Việc của bạn bây giờ
+        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h2 id="executor-todo-title" className="text-xl font-semibold text-heritage-primary">
+              {todo.title}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-heritage-text">{todo.text}</p>
+            {showLastCheckIn && vault.lastOwnerCheckInAt && (
+              <p className="mt-2 text-sm text-heritage-muted">
+                {vault.ownerFullName} tự điểm danh lần gần nhất lúc{" "}
+                {formatDateTime(vault.lastOwnerCheckInAt)}.
+              </p>
+            )}
+          </div>
+          {todo.buttonLabel && todo.to && (
+            <Link className={buttonStyles.dark} to={todo.to}>
+              {todo.buttonLabel}
+            </Link>
+          )}
+        </div>
+      </section>
       {!showRejected && vault.checkInOverdue && <OverdueCard vault={vault} hasCase={hasCase} />}
-      {/* Đã có hồ sơ báo tin thì kế hoạch không còn "quá hạn" (đã khóa), nhưng cũng không phải "an toàn". */}
-      {!vault.checkInOverdue && hasCase && (
-        <Notice
-          tone="warning"
-          title={`Hồ sơ báo tin về ${vault.ownerFullName} đang được xử lý`}
-          action={
-            <Link className={buttonStyles.gold} to={ROUTES.EXECUTOR.REPORT}>
-              Xem hồ sơ báo tin
-            </Link>
-          }
-        >
-          Theo dõi tiến trình xét duyệt và bổ sung hồ sơ khi Người xét duyệt yêu cầu.
-        </Notice>
-      )}
-      {!vault.checkInOverdue && !hasCase && !showRejected && (
-        <Notice
-          tone="success"
-          title={safeTitle}
-          action={
-            <Link className={buttonStyles.gold} to={ROUTES.EXECUTOR.REPORT}>
-              Báo tin
-            </Link>
-          }
-        >
-          {safeText}
-        </Notice>
-      )}
-      <HandoverProgressBar record={record} caseId={vault.openDeathCaseId} />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <div className="space-y-6">
-          <Panel title={`Hướng dẫn từ ${vault.ownerFullName}`}>
-            {vault.executorNote && (
-              <>
-                <p className="whitespace-pre-line text-sm leading-relaxed">{vault.executorNote}</p>
-                {vault.executorNoteUpdatedAt && (
-                  <p className="mt-3 text-xs text-heritage-muted">
-                    Cập nhật {formatDateTime(vault.executorNoteUpdatedAt)}
-                  </p>
-                )}
-              </>
-            )}
-            {!vault.executorNote && (
-              <p className="text-sm text-heritage-muted">Chủ kho chưa để lại hướng dẫn.</p>
-            )}
-          </Panel>
-          <Panel title="Bạn sẽ làm gì?">
-            <ol className="divide-y divide-heritage-border">
-              {duties().map((duty, index) => (
-                <li key={duty.title} className="flex gap-4 py-4 first:pt-0 last:pb-0">
-                  <span
-                    aria-hidden="true"
-                    className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]"
-                  >
-                    {index + 1}
-                  </span>
-                  <div>
-                    <p className="font-semibold">{duty.title}</p>
-                    <p className="mt-1 text-sm text-heritage-muted">{duty.text}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </Panel>
-        </div>
-        <div className="space-y-6">
-          <Panel title="Kho được giao cho bạn">
-            <dl>
-              <InfoRow label="Chủ kho">{vault.ownerFullName}</InfoRow>
-              <InfoRow label="Vai trò">Người thực thi</InfoRow>
-              <InfoRow label="Kế hoạch">{planStatusLabel(vault.planStatus)}</InfoRow>
-              <InfoRow label="Hồ sơ báo tin">{hasCase ? "Đang mở" : "Chưa có"}</InfoRow>
-              <InfoRow label="Nội dung kho">Bạn không đọc được</InfoRow>
-            </dl>
-            <p className="mt-3 flex items-center gap-2 text-xs text-heritage-muted">
-              <Lock className="size-3.5" aria-hidden="true" />
-              Bạn chỉ báo tin, không xem được nội dung.
-            </p>
-          </Panel>
-          <Panel title="Bạn không làm được">
-            <ul className="divide-y divide-heritage-border">
-              {limits.map((item) => (
-                <li key={item} className="flex items-center justify-between py-3 text-sm">
-                  <span>{item}</span>
-                  <span className="text-heritage-muted">Không</span>
-                </li>
-              ))}
-            </ul>
-          </Panel>
-        </div>
+      <VaultJourney vault={vault} caseStatus={caseStatus} progress={progress} />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <GuideAndAssetsCard vault={vault} />
+        <CanAndCannotCard />
       </div>
     </div>
   );
