@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CircleCheck, CircleX, TriangleAlert } from "lucide-react";
 import {
@@ -16,7 +16,12 @@ import {
 } from "@/entities/handoverDocument";
 import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
-import { submissionFormError, type SubmissionDraft } from "../model/submissionForm";
+import {
+  MAX_RESIDENCE_ADDRESS_LENGTH,
+  submissionFormError,
+  type SubmissionDraft,
+} from "../model/submissionForm";
+import { clearPartTwoDraft, readPartTwoDraft, writePartTwoDraft } from "../model/partTwoDraft";
 import { useHandoverAction } from "../model/useHandoverAction";
 import { HandoverTerms } from "./HandoverTerms";
 import { ImagePicker } from "./ImagePicker";
@@ -191,30 +196,58 @@ function RecipientPartForm({
   const action = useHandoverAction();
   const textId = useId();
   const [fullText, setFullText] = useState(false);
-  const [draft, setDraft] = useState<SubmissionDraft>({
-    kind: document.kind,
-    fullName: document.recipient.fullName,
-    citizenId: "",
-    dateOfBirth: "",
-    front: null,
-    back: null,
-    acknowledged: false,
-    voluntaryDecline: false,
+  const [draft, setDraft] = useState<SubmissionDraft>(() => {
+    // Tải lại trang thì lấy lại họ tên và ngày sinh đã gõ; số căn cước, ảnh và ô ký luôn bắt đầu trống.
+    const saved = readPartTwoDraft(turnId);
+    return {
+      kind: document.kind,
+      fullName: saved ? saved.fullName : document.recipient.fullName,
+      citizenId: "",
+      dateOfBirth: saved ? saved.dateOfBirth : "",
+      residenceAddress: document.recipient.residenceAddress,
+      front: null,
+      back: null,
+      acknowledged: false,
+      voluntaryDecline: false,
+    };
   });
   const [touched, setTouched] = useState(false);
   const set = <K extends keyof SubmissionDraft>(key: K, value: SubmissionDraft[K]) =>
     setDraft((previous) => ({ ...previous, [key]: value }));
+  useEffect(() => {
+    writePartTwoDraft(turnId, { fullName: draft.fullName, dateOfBirth: draft.dateOfBirth });
+  }, [turnId, draft.fullName, draft.dateOfBirth]);
   // Ô tick ký cũng là lời xác nhận tự nguyện từ chối, vì câu ký đã nêu rõ không nhằm trốn tránh nghĩa vụ tài sản.
   const toSend: SubmissionDraft = {
     ...draft,
     kind: document.kind,
     voluntaryDecline: decline && draft.acknowledged,
   };
+  const parsedBirthYear = draft.dateOfBirth
+    ? Number.parseInt(draft.dateOfBirth.slice(0, 4), 10)
+    : Number.NaN;
+  const previewDocument: HandoverDocument = {
+    ...document,
+    recipient: {
+      ...document.recipient,
+      fullName: draft.fullName.trim(),
+      birthYear: Number.isFinite(parsedBirthYear) ? parsedBirthYear : document.recipient.birthYear,
+      citizenId: draft.citizenId || document.recipient.citizenId,
+      citizenIdLast4:
+        draft.citizenId.length >= 4 ? draft.citizenId.slice(-4) : document.recipient.citizenIdLast4,
+    },
+  };
   const error = submissionFormError(toSend);
   const submit = () => {
     setTouched(true);
     if (error) return;
-    void action.execute(() => handoverService.submitSubmission(turnId, toSend), onDone);
+    void action.execute(
+      () => handoverService.submitSubmission(turnId, toSend),
+      () => {
+        clearPartTwoDraft(turnId);
+        onDone();
+      },
+    );
   };
   return (
     <div className="space-y-4">
@@ -278,6 +311,19 @@ function RecipientPartForm({
             <span className="block text-xs font-normal text-heritage-muted">Chỉ lưu 4 số cuối</span>
           </label>
         </div>
+        <label className="block space-y-1 text-sm font-semibold">
+          Nơi thường trú
+          <input
+            className={FIELD}
+            value={draft.residenceAddress}
+            maxLength={MAX_RESIDENCE_ADDRESS_LENGTH}
+            autoComplete="street-address"
+            onChange={(event) => set("residenceAddress", event.target.value)}
+          />
+          <span className="block text-xs font-normal text-heritage-muted">
+            Ghi đúng như trên căn cước
+          </span>
+        </label>
         <div className="grid gap-3 sm:grid-cols-2">
           <ImagePicker
             label="Căn cước mặt trước"
@@ -300,7 +346,7 @@ function RecipientPartForm({
         </SlideToggle>
         <SlidePanel id={textId} open={fullText}>
           <div className="max-h-[50vh] overflow-y-auto pt-1">
-            <HandoverDocumentText document={document} blank />
+            <HandoverDocumentText document={previewDocument} blank />
           </div>
         </SlidePanel>
       </section>

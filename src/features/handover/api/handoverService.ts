@@ -50,6 +50,7 @@ export const handoverService = {
     form.append("FullName", draft.fullName.trim());
     form.append("CitizenId", draft.citizenId);
     form.append("DateOfBirth", draft.dateOfBirth);
+    form.append("ResidenceAddress", draft.residenceAddress.trim());
     form.append("Acknowledged", String(draft.acknowledged));
     form.append("VoluntaryDecline", String(draft.voluntaryDecline));
     if (!draft.front || !draft.back) throw new Error("Cần ảnh căn cước hai mặt.");

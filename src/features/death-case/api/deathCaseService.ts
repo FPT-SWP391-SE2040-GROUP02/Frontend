@@ -8,11 +8,7 @@ import {
   executorVaultSchema,
 } from "../model/deathCase.schema";
 import { proxyCheckInRequestSchema, type ProxyCheckInRequest } from "../model/proxyCheckIn.schema";
-import {
-  handoverProgressSchema,
-  resendInvitationSchema,
-  sendHandoverKeySchema,
-} from "../model/handoverProgress.schema";
+import { handoverProgressSchema, sendHandoverKeySchema } from "../model/handoverProgress.schema";
 const id = z.string().uuid();
 const path = (caseId: string) => `/executor/death-cases/${id.parse(caseId)}`;
 const versionRequest = z.object({ etag: z.string().min(1).max(64) });
@@ -126,13 +122,6 @@ export const deathCaseService = {
         responseType: "blob",
         signal,
       },
-    );
-  },
-  async resendInvitation(caseId: string, turnId: string) {
-    return resendInvitationSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${path(caseId)}/handover-turns/${id.parse(turnId)}/resend-invitation`,
-      ),
     );
   },
   /** Gửi khóa mở gói tới email người nhận của lượt; BE kiểm khóa Executor nhập (sai → 403 HANDOVER_KEY_INVALID) và không lưu khóa. */

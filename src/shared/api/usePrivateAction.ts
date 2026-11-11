@@ -154,6 +154,7 @@ const reauthCodes = new Set([
 ]);
 
 const messages: Record<string, string> = {
+  PHONE_ALREADY_EXISTS: "Số điện thoại đã được dùng.",
   REAUTHENTICATION_FAILED: "Mật khẩu hiện tại chưa đúng. Bạn nhập lại rồi thử tiếp.",
   INVALID_GOOGLE_TOKEN:
     "Đăng nhập Google chưa hợp lệ hoặc không phải tài khoản Google đã liên kết. Thử lại bằng đúng tài khoản.",

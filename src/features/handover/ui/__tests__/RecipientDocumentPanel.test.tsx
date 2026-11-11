@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
@@ -16,7 +16,14 @@ const TURN_ID = "0199e7a4-0000-7c3e-9a51-3f0f5d2b8a10";
 const recipientTurn = (over: Partial<HandoverDocument> = {}) =>
   documentFixture({
     status: "WAIT_RECIPIENT",
-    recipient: { fullName: "Trần Minh Anh", birthYear: null, citizenIdLast4: "", signedAt: null },
+    recipient: {
+      fullName: "Trần Minh Anh",
+      birthYear: null,
+      citizenId: "",
+      citizenIdLast4: "",
+      residenceAddress: "",
+      signedAt: null,
+    },
     verifier: { signedByName: "", checks: [], signedAt: null },
     completedAt: null,
     ...over,
@@ -39,6 +46,7 @@ beforeEach(() => accessTokenMemory.set("fixture-token"));
 afterEach(() => {
   vi.restoreAllMocks();
   accessTokenMemory.clear();
+  window.sessionStorage.clear();
 });
 
 describe("RecipientDocumentPanel: chọn Chấp nhận hoặc Từ chối", () => {
@@ -128,6 +136,11 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText("Người thực thi ký")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Họ tên")).toHaveValue("Trần Minh Anh");
+    // Nơi thường trú của Chủ kho tạm thời chỉ lưu xuống, không hiện ở Phần 1; ô của người nhận thì có để khai.
+    expect(
+      screen.queryByText("12 Lê Lợi, Phường Bến Thành, TP. Hồ Chí Minh"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/^Nơi thường trú/)).toHaveValue("");
   });
 
   it("hồ sơ chứng tử thiếu ngày mất và số giấy thì ghi rõ chưa có, vẫn cho điền và ký", async () => {
@@ -138,6 +151,7 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
           dateOfDeath: null,
           certificateNumber: "",
           certificateIssuedOn: null,
+          residenceAddress: "",
         },
       }),
     );
@@ -187,6 +201,8 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
       name: "Biên bản đồng ý nhận di sản thừa kế",
     });
     expect(text).toHaveTextContent("Chủ kho Nguyễn Văn A");
+    expect(text).not.toHaveTextContent("nơi thường trú");
+    expect(text).not.toHaveTextContent("12 Lê Lợi");
     expect(text).toHaveTextContent("số 0456/2026");
     expect(text).toHaveTextContent("Người lập văn bản");
     expect(text).toHaveTextContent("Người xét duyệt đã kiểm tra thủ công");
@@ -220,6 +236,7 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
 
     await user.type(await screen.findByLabelText(/Ngày sinh/), "1990-01-01");
     await user.type(screen.getByLabelText(/Số căn cước/), "012345671234");
+    await user.type(screen.getByLabelText(/^Nơi thường trú/), "  34 Trần Hưng Đạo, Hà Nội ");
     await user.upload(
       screen.getByLabelText("Căn cước mặt trước"),
       new File(["a"], "truoc.png", { type: "image/png" }),
@@ -238,6 +255,7 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     expect(body.get("FullName")).toBe("Trần Minh Anh");
     expect(body.get("CitizenId")).toBe("012345671234");
     expect(body.get("DateOfBirth")).toBe("1990-01-01");
+    expect(body.get("ResidenceAddress")).toBe("34 Trần Hưng Đạo, Hà Nội");
     expect(body.get("Acknowledged")).toBe("true");
     expect(body.get("VoluntaryDecline")).toBe("true");
     await waitFor(() => expect(onChanged).toHaveBeenCalled());
@@ -274,5 +292,57 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     expect(
       screen.getByRole("button", { name: "Ký và gửi cho Người xét duyệt" }),
     ).toBeInTheDocument();
+  });
+});
+
+describe("RecipientDocumentPanel: giữ nháp Phần 2 khi tải lại trang", () => {
+  it("họ tên và ngày sinh đã gõ còn nguyên sau khi tải lại, số căn cước thì không", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue(recipientTurn());
+    renderPanel();
+
+    const name = await screen.findByLabelText("Họ tên");
+    await user.clear(name);
+    await user.type(name, "Trần Minh Anh B");
+    await user.type(screen.getByLabelText(/Ngày sinh/), "1990-01-01");
+    await user.type(screen.getByLabelText(/Số căn cước/), "012345671234");
+    cleanup();
+    renderPanel();
+
+    expect(await screen.findByLabelText("Họ tên")).toHaveValue("Trần Minh Anh B");
+    expect(screen.getByLabelText(/Ngày sinh/)).toHaveValue("1990-01-01");
+    expect(screen.getByLabelText(/Số căn cước/)).toHaveValue("");
+    expect(screen.getByLabelText(/Tôi đã đọc các điều khoản trên/)).not.toBeChecked();
+  });
+
+  it("ký xong thì xóa nháp", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue(recipientTurn());
+    vi.spyOn(apiClient, "post").mockResolvedValue({
+      id: "0199e7a4-1111-7c3e-9a51-3f0f5d2b8a10",
+      turnId: TURN_ID,
+      kind: "ACCEPT",
+      status: "SUBMITTED",
+      supplementReason: null,
+      createdAt: "2026-11-10T04:00:00+00:00",
+    });
+    renderPanel();
+
+    await user.type(await screen.findByLabelText(/Ngày sinh/), "1990-01-01");
+    await user.type(screen.getByLabelText(/Số căn cước/), "012345671234");
+    await user.type(screen.getByLabelText(/^Nơi thường trú/), "34 Trần Hưng Đạo, Hà Nội");
+    await user.upload(
+      screen.getByLabelText("Căn cước mặt trước"),
+      new File(["a"], "truoc.png", { type: "image/png" }),
+    );
+    await user.upload(
+      screen.getByLabelText("Căn cước mặt sau"),
+      new File(["b"], "sau.jpg", { type: "image/jpeg" }),
+    );
+    await user.click(screen.getByLabelText(/Tôi đã đọc các điều khoản trên/));
+    expect(window.sessionStorage.length).toBe(1);
+    await user.click(screen.getByRole("button", { name: "Ký và gửi cho Người xét duyệt" }));
+
+    await waitFor(() => expect(window.sessionStorage.length).toBe(0));
   });
 });

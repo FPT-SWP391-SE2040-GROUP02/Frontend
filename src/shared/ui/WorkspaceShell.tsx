@@ -39,7 +39,7 @@ export function WorkspaceShell({
       >
         Đến nội dung chính
       </a>
-      <aside className="flex flex-col border-b border-heritage-border bg-heritage-primary text-heritage-surface lg:sticky lg:top-0 lg:h-dvh lg:overflow-y-auto lg:border-b-0">
+      <aside className="flex flex-col border-b border-heritage-border bg-heritage-primary text-heritage-surface lg:min-h-full lg:border-b-0">
         <div className="flex min-h-20 shrink-0 items-center justify-between gap-2 px-4 lg:px-5">
           <Link
             to={homeHref}
