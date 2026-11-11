@@ -693,7 +693,10 @@ describe("Executor report", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Giấy chứng tử / Trích lục khai tử")).toBeInTheDocument();
     expect(screen.queryByText("Giấy báo tử hoặc giấy tờ thay thế")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Ngày mất")).not.toBeInTheDocument();
+    // Mục "Thông tin trên giấy" (3 ô) nằm trên trang; thiếu tệp và thiếu 3 thông tin thì chưa nộp được.
+    expect(screen.getByLabelText("Ngày mất")).toBeInTheDocument();
+    expect(screen.getByLabelText("Ngày đăng ký khai tử")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tỉnh / thành phố")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Nộp hồ sơ" })).toBeDisabled();
   });
 
@@ -770,7 +773,16 @@ describe("Executor report", () => {
   it("asks for confirmation before submitting and then shows the receipt", async () => {
     const draft = deathCase("DRAFT", {
       missingRequirements: [],
-      currentVersion: { ...deathCase("DRAFT").currentVersion, files: [certificateFile] },
+      currentVersion: {
+        ...deathCase("DRAFT").currentVersion,
+        files: [certificateFile],
+        // Đủ 3 thông tin trên giấy đã lưu thì mới nộp được.
+        dateOfDeath: "2026-01-05",
+        issuedOn: "2026-01-06",
+        deathRegistrationProvinceCode: "79",
+        deathRegistrationWardCode: "26743",
+        deathRegistrationPlace: "UBND phường Bến Thành, Thành phố Hồ Chí Minh",
+      },
     });
     const submitted = deathCase("UNDER_REVIEW", {
       currentVersion: {

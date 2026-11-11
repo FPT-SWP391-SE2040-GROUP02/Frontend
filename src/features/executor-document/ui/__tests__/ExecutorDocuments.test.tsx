@@ -64,7 +64,8 @@ describe("ExecutorDocuments", () => {
 
     const text = screen.getByRole("article", { name: "Biên bản đồng ý nhận di sản thừa kế" });
     expect(text).toHaveTextContent("Chủ kho Nguyễn Văn A");
-    expect(text).toHaveTextContent("số 0456/2026");
+    expect(text).toHaveTextContent("do UBND phường Bến Thành, Thành phố Hồ Chí Minh đăng ký khai tử");
+    expect(text).not.toHaveTextContent("0456/2026");
   });
 
   it("không tải được thì báo lỗi và cho thử lại", async () => {

@@ -28,6 +28,7 @@ export const supplementPartSchema = z.enum([
   "ISSUED_ON",
   "ISSUED_BY",
   "FILES",
+  "DEATH_REGISTRATION_PLACE",
 ]);
 /** Nhãn tiếng Việt cho mã phần cần bổ sung. */
 export const supplementPartLabels: Record<z.infer<typeof supplementPartSchema>, string> = {
@@ -38,6 +39,7 @@ export const supplementPartLabels: Record<z.infer<typeof supplementPartSchema>, 
   ISSUED_ON: "Ngày cấp",
   ISSUED_BY: "Nơi cấp",
   FILES: "Trang giấy tờ",
+  DEATH_REGISTRATION_PLACE: "Nơi đăng ký khai tử",
 };
 
 /** Lý do chặn duyệt (BE VerifierDeathCaseResponse.ApproveBlockers). */
@@ -86,8 +88,14 @@ export const verifierReviewVersionSchema = z.object({
   ownerCitizenIdLast4: z.string().nullable(),
   dateOfDeath: date.nullable(),
   certificateNumber: z.string().nullable(),
+  /** Ngày đăng ký khai tử ghi trên giấy. */
   issuedOn: date.nullable(),
   issuedBy: z.string().nullable(),
+  /** Nơi đăng ký khai tử Người thực thi khai; Backend cũ không có các trường này. */
+  deathRegistrationProvinceCode: z.string().nullish(),
+  deathRegistrationWardCode: z.string().nullish(),
+  /** Câu đã ghép "UBND phường X, Tỉnh Y"; rỗng khi chưa chọn. */
+  deathRegistrationPlace: z.string().default(""),
   submittedAt: timestamp.nullable(),
   files: z.array(verifierFileSchema),
 });
@@ -126,6 +134,14 @@ export const ownerNoticeSchema = z
 export const verifierAssignmentSchema = z.object({
   assignedAt: timestamp,
   dueAt: timestamp,
+});
+/**
+ * Cảnh báo tính lúc đọc cho Người xét duyệt, KHÔNG chặn duyệt (BE mục 6.12): DEATH_BEFORE_LAST_CHECKIN, LATE_REGISTRATION.
+ * message là câu tiếng Việt Backend viết sẵn để hiển thị thẳng.
+ */
+export const verifierWarningSchema = z.object({
+  code: z.string(),
+  message: z.string(),
 });
 /** Hồ sơ trước đó cùng kho bị từ chối. */
 export const verifierPreviousCaseSchema = z
@@ -209,6 +225,10 @@ export const verifierCaseDetailSchema = z.object({
   supplementOverdueAt: timestamp.nullable().optional(),
   ownerIdentity: verifierOwnerIdentitySchema,
   executor: verifierExecutorSchema,
+  /** Cảnh báo không chặn duyệt; Backend cũ không có trường này. */
+  warnings: z.array(verifierWarningSchema).default([]),
+  /** Ngày (giờ Việt Nam) Chủ kho tự điểm danh lần cuối; null khi chưa từng. */
+  lastCheckInOn: date.nullish(),
 });
 /** Review một cờ. */
 export const reviewFlagRequestSchema = z.object({

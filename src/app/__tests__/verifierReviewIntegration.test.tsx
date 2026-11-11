@@ -43,6 +43,9 @@ const detailFixture = {
     certificateNumber: "CT-001",
     issuedOn: "2026-10-02",
     issuedBy: "UBND Q1",
+    deathRegistrationProvinceCode: "79",
+    deathRegistrationWardCode: "26743",
+    deathRegistrationPlace: "UBND phường Bến Thành, Thành phố Hồ Chí Minh",
     submittedAt: CREATED_AT,
     files: [
       {
@@ -171,13 +174,12 @@ async function selectFirstCase(user: ReturnType<typeof userEvent.setup>) {
   await screen.findByRole("region", { name: "Bản đang xét" });
 }
 
-/** Tích đủ bốn ô đối chiếu; thiếu ô nào thì nút Duyệt mở bàn giao vẫn khóa. */
+/** Tích đủ ba dòng Người thực thi khai (ngày mất, ngày đăng ký, nơi đăng ký); thiếu dòng nào thì nút Duyệt mở bàn giao vẫn khóa. */
 async function tickAllChecks(user: ReturnType<typeof userEvent.setup>) {
   for (const name of [
-    /Họ tên khớp với giấy/,
-    /Số CCCD khớp với giấy/,
-    /Ngày sinh khớp với giấy/,
-    /Giấy hợp lệ: đủ trang/,
+    /Ngày mất khớp với giấy/,
+    /Ngày đăng ký khai tử khớp với giấy/,
+    /Nơi đăng ký khai tử khớp với giấy/,
   ]) {
     await user.click(screen.getByRole("checkbox", { name }));
   }
@@ -1017,4 +1019,95 @@ it("hàng chờ có thẻ Nên xem tiếp trỏ hồ sơ có hạn gần nhất,
   expect(screen.getByText("Cách thẩm định một hồ sơ")).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: /Bắt đầu thẩm định hồ sơ #33333333/ }));
   expect(await screen.findByRole("region", { name: "Bản đang xét" })).toBeInTheDocument();
+});
+
+it("Duyệt khóa tới khi đánh dấu đủ 3 dòng khớp với giấy, dù Backend đã cho duyệt", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID)
+      ? { ...detailFixture, canApprove: true, approveBlockers: [] }
+      : listFixture,
+  );
+  setup(<VerifierQueue />);
+  await selectFirstCase(user);
+  const approve = screen.getByRole("button", { name: "Duyệt mở bàn giao" });
+  expect(approve).toBeDisabled();
+  expect(approve).toHaveAccessibleDescription(/Đánh dấu đủ 3 dòng khớp với giấy mới duyệt được/);
+
+  await user.click(screen.getByRole("checkbox", { name: /Ngày mất khớp với giấy/ }));
+  await user.click(screen.getByRole("checkbox", { name: /Ngày đăng ký khai tử khớp với giấy/ }));
+  expect(approve).toBeDisabled();
+  await user.click(screen.getByRole("checkbox", { name: /Nơi đăng ký khai tử khớp với giấy/ }));
+  expect(approve).toBeEnabled();
+
+  // Bỏ một dòng thì khóa lại.
+  await user.click(screen.getByRole("checkbox", { name: /Ngày mất khớp với giấy/ }));
+  expect(approve).toBeDisabled();
+});
+
+it("đủ 3 tick mà Backend còn chặn duyệt thì vẫn khóa và nêu lý do", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+  );
+  setup(<VerifierQueue />);
+  await selectFirstCase(user);
+  await tickAllChecks(user);
+  expect(screen.getByRole("button", { name: "Duyệt mở bàn giao" })).toBeDisabled();
+});
+
+it("hiện 3 dòng khai, khung Chủ kho và cảnh báo nền đỏ nhạt mà không chặn duyệt", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID)
+      ? {
+          ...detailFixture,
+          canApprove: true,
+          approveBlockers: [],
+          lastCheckInOn: "2026-10-12",
+          warnings: [
+            {
+              code: "DEATH_BEFORE_LAST_CHECKIN",
+              message:
+                "Ngày mất trước lần điểm danh cuối (12/10/2026). Kiểm tra kỹ giấy trước khi duyệt.",
+            },
+          ],
+          ownerIdentity: {
+            ...detailFixture.ownerIdentity,
+            verified: true,
+            fullName: "NGUYỄN VĂN A",
+            dateOfBirth: "1950-03-04",
+          },
+        }
+      : listFixture,
+  );
+  setup(<VerifierQueue />);
+  await selectFirstCase(user);
+
+  const owner = screen.getByRole("region", { name: "Chủ kho (từ xác minh danh tính)" });
+  expect(owner).toHaveTextContent("NGUYỄN VĂN A");
+  expect(owner).toHaveTextContent("04/03/1950");
+  expect(owner).toHaveTextContent("12/10/2026");
+  const declared = screen.getByRole("region", { name: "Người thực thi khai" });
+  expect(declared).toHaveTextContent("01/10/2026");
+  expect(declared).toHaveTextContent("02/10/2026");
+  expect(declared).toHaveTextContent("UBND phường Bến Thành, Thành phố Hồ Chí Minh");
+  const warning = screen.getByText(
+    "Ngày mất trước lần điểm danh cuối (12/10/2026). Kiểm tra kỹ giấy trước khi duyệt.",
+  );
+  expect(warning.closest("[role=alert]")).toHaveClass("bg-[#F8E1DE]");
+
+  // Cảnh báo không chặn: tích đủ 3 dòng thì Duyệt mở.
+  await tickAllChecks(user);
+  expect(screen.getByRole("button", { name: "Duyệt mở bàn giao" })).toBeEnabled();
+});
+
+it("hồ sơ không có cảnh báo thì không hiện khung cảnh báo", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
+  );
+  setup(<VerifierQueue />);
+  await selectFirstCase(user);
+  expect(screen.queryByRole("region", { name: "Cảnh báo khi đối chiếu" })).not.toBeInTheDocument();
 });

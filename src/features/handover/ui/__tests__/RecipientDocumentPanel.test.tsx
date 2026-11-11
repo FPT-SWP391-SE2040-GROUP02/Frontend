@@ -129,7 +129,7 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
 
     expect(await screen.findByText("Phần 1 · Thông tin người để lại di sản")).toBeInTheDocument();
     expect(screen.getByText("Nguyễn Văn A")).toBeInTheDocument();
-    expect(screen.getByText("0456/2026")).toBeInTheDocument();
+    expect(screen.getByText("UBND phường Bến Thành, Thành phố Hồ Chí Minh")).toBeInTheDocument();
     expect(screen.getByText("05/11/2026")).toBeInTheDocument();
     expect(
       screen.getByText(/Lấy từ hồ sơ chứng tử mà Người xét duyệt đã duyệt/),
@@ -151,6 +151,7 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
           dateOfDeath: null,
           certificateNumber: "",
           certificateIssuedOn: null,
+          deathRegistrationPlace: "",
           residenceAddress: "",
         },
       }),
@@ -203,7 +204,8 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     expect(text).toHaveTextContent("Chủ kho Nguyễn Văn A");
     expect(text).not.toHaveTextContent("nơi thường trú");
     expect(text).not.toHaveTextContent("12 Lê Lợi");
-    expect(text).toHaveTextContent("số 0456/2026");
+    expect(text).toHaveTextContent("do UBND phường Bến Thành, Thành phố Hồ Chí Minh đăng ký khai tử");
+    expect(text).not.toHaveTextContent("0456/2026");
     expect(text).toHaveTextContent("Người lập văn bản");
     expect(text).toHaveTextContent("Người xét duyệt đã kiểm tra thủ công");
     expect(text).not.toHaveTextContent("Người thực thi xác nhận");

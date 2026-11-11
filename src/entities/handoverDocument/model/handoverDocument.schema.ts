@@ -30,6 +30,8 @@ export const handoverDocumentSchema = z.object({
     dateOfDeath: dateOnly.nullable(),
     certificateNumber: z.string(),
     certificateIssuedOn: dateOnly.nullable(),
+    /** Nơi đăng ký khai tử dạng câu, ví dụ "UBND phường Bến Thành, Thành phố Hồ Chí Minh"; rỗng khi hồ sơ không ghi. */
+    deathRegistrationPlace: z.string().default(""),
     /** Nơi thường trú theo danh tính eKYC đã xác minh của Chủ kho; rỗng khi không có. */
     residenceAddress: z.string().default(""),
   }),

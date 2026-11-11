@@ -20,6 +20,7 @@ export function documentFixture(over: Partial<HandoverDocument> = {}): HandoverD
       dateOfDeath: "2026-11-05",
       certificateNumber: "0456/2026",
       certificateIssuedOn: "2026-11-07",
+      deathRegistrationPlace: "UBND phường Bến Thành, Thành phố Hồ Chí Minh",
       residenceAddress: "12 Lê Lợi, Phường Bến Thành, TP. Hồ Chí Minh",
     },
     recipient: {

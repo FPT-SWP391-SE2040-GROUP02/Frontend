@@ -47,7 +47,8 @@ describe("HandoverDocumentList", () => {
     await user.click(screen.getByRole("button", { name: "Xem toàn văn biên bản" }));
     const text = screen.getByRole("article", { name: "Biên bản đồng ý nhận di sản thừa kế" });
     expect(text).toHaveTextContent("Chủ kho Nguyễn Văn A");
-    expect(text).toHaveTextContent("0456/2026");
+    expect(text).toHaveTextContent("UBND phường Bến Thành, Thành phố Hồ Chí Minh");
+    expect(text).not.toHaveTextContent("0456/2026");
     expect(text).toHaveTextContent("Gói gia đình (gồm 3 mục)");
     expect(text).toHaveTextContent("Đã ký điện tử");
     expect(text).not.toHaveTextContent("Người thực thi xác nhận");
@@ -86,6 +87,7 @@ describe("HandoverDocumentList", () => {
               dateOfDeath: null,
               certificateNumber: "",
               certificateIssuedOn: null,
+              deathRegistrationPlace: "",
               residenceAddress: "",
             },
             recipient: {
@@ -106,7 +108,7 @@ describe("HandoverDocumentList", () => {
     await user.click(screen.getByRole("button", { name: "Xem toàn văn biên bản" }));
 
     const text = screen.getByRole("article", { name: "Biên bản đồng ý nhận di sản thừa kế" });
-    expect(text).toHaveTextContent("số ........");
+    expect(text).toHaveTextContent("do UBND ………………… đăng ký khai tử ngày");
     expect(text).toHaveTextContent("…/…/……");
     expect(text).toHaveTextContent("bạn điền sau");
     expect(text).toHaveTextContent("(chưa ký)");

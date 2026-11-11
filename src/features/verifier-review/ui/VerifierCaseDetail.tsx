@@ -16,7 +16,8 @@ import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
 import { CertificateViewer } from "./CertificateViewer";
 import { VerifierEkycChecklist } from "./VerifierEkycChecklist";
-import { REVIEW_CHECKS } from "../model/reviewChecks";
+import { REVIEW_CHECK_COUNT, REVIEW_CHECKS_HINT } from "../model/reviewChecks";
+import { VerifierDeclaredFacts, VerifierWarnings } from "./VerifierDeclaredFacts";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
@@ -80,7 +81,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     query.dataUpdatedAt,
   );
   const client = useQueryClient();
-  // Bốn ô kiểm gắn với bản đang xét; sang bản khác (bổ sung) thì tích lại từ đầu.
+  // Ba ô đối chiếu gắn với bản đang xét; sang bản khác (bổ sung) thì tích lại từ đầu.
   const [ticks, setTicks] = useState<{ key: string; values: boolean[] }>({ key: "", values: [] });
   const backToList = () => {
     const next = new URLSearchParams(params);
@@ -128,7 +129,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     freshness.dataUpdatedAt > query.dataUpdatedAt;
   const review = detail.reviewVersion;
   const tickKey = `${detail.id}:${review.versionNo}`;
-  const checks = REVIEW_CHECKS.map(
+  const checks = Array.from(
+    { length: REVIEW_CHECK_COUNT },
     (_, index) => ticks.key === tickKey && ticks.values[index] === true,
   );
   const allChecked = checks.every(Boolean);
@@ -276,12 +278,17 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
             <VerifierEkycChecklist
               caseId={detail.id}
               identity={detail.ownerIdentity}
-              checks={checks}
-              onToggle={toggleCheck}
-              disabled={!actions.canOpenApprove}
+              lastCheckInOn={detail.lastCheckInOn}
             />
             <CertificateViewer caseId={detail.id} files={review.files} />
           </div>
+          <VerifierDeclaredFacts
+            review={review}
+            checks={checks}
+            onToggle={toggleCheck}
+            disabled={!actions.canOpenApprove}
+          />
+          <VerifierWarnings warnings={detail.warnings} />
           <section
             aria-label="Bản đang xét"
             className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
@@ -297,8 +304,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               />
             </dl>
             <p className="text-xs text-heritage-muted">
-              Họ tên, số CCCD và ngày sinh trên giấy do bạn đọc và so với thông tin gốc bên trên,
-              Người thực hiện không phải nhập.
+              Họ tên và ngày sinh Chủ kho lấy từ xác minh danh tính. Người thực hiện chỉ khai 3 thông
+              tin trên giấy, bạn đối chiếu chúng với ảnh giấy ở khung trên.
             </p>
           </section>
           <section
@@ -312,9 +319,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               {unreviewedFlags > 0 && <Chip tone="warning">{unreviewedFlags} chưa kiểm tra</Chip>}
             </div>
             <p className="text-sm text-heritage-muted">
-              Hệ thống tự phát hiện những điểm bất thường khi người thực hiện nộp hồ sơ, ví dụ chủ
-              kho vẫn điểm danh sau ngày mất hoặc CCCD không khớp. Bạn cần kiểm tra từng cảnh báo và
-              ghi chú trước khi chấp thuận.
+              Hệ thống tự phát hiện những điểm bất thường khi người thực hiện nộp hồ sơ, ví dụ CCCD
+              không khớp. Bạn cần kiểm tra từng cảnh báo và ghi chú trước khi chấp thuận.
             </p>
             {detail.flags.length === 0 ? (
               <p className="text-sm text-heritage-muted">Không có cảnh báo nào.</p>
@@ -450,7 +456,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                         ? `Chưa duyệt được: ${blockedReason}.`
                         : allChecked
                           ? "Hồ sơ hợp lệ. Người nhận sẽ được mời xác minh."
-                          : "Tích đủ 4 ô đối chiếu để mở nút duyệt."
+                          : REVIEW_CHECKS_HINT
                     }
                     disabled={!detail.canApprove || !allChecked}
                     onClick={() => openModal("approve")}

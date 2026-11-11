@@ -11,6 +11,8 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import type { DeathCase } from "../model/deathCase.schema";
+import { useCertificateInfoForm } from "../model/useCertificateInfoForm";
+import { CertificateInfoPanel, CertificateInfoSummary } from "./CertificateInfoPanel";
 import { executorVaultsKey } from "../model/useExecutorVaults";
 import { deathCaseService } from "../api/deathCaseService";
 import { buttonStyles, Chip, formatDateTime, InfoRow, Panel } from "@/shared/ui/heritageKit";
@@ -135,6 +137,8 @@ function Receipt({ record }: { record: DeathCase }) {
         </InfoRow>
         <InfoRow label="Bản hồ sơ">Bản {version.versionNo}</InfoRow>
       </dl>
+      <p className="mt-4 text-sm font-semibold">Thông tin trên giấy</p>
+      <CertificateInfoSummary record={record} />
       <p className="mt-4 text-sm font-semibold">Giấy đã nộp</p>
       <ul className="mt-2 space-y-1 text-sm">
         {version.files.map((item) => (
@@ -198,9 +202,21 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
     void client.invalidateQueries({ queryKey: executorVaultsKey });
   };
 
+  // Ba thông tin trên giấy: lưu vào bản nháp khi rời ô; bản đã gửi thì không sửa được (xem Receipt).
+  const info = useCertificateInfoForm(record, (result) => publish(result, "Đã lưu thông tin trên giấy."));
   const fileOf = (kind: FileKind) => version.files.find((item) => item.kind === kind);
   const missingCertificate = record.missingRequirements.includes("FILES");
   const busy = action.pending || uploadingKind !== null;
+  // Nộp được khi đủ tệp, đủ 3 thông tin hợp lệ và đã lưu xong (không còn chỗ sửa dở).
+  const missingParts: string[] = [];
+  if (missingCertificate) missingParts.push("giấy chứng tử / trích lục khai tử");
+  missingParts.push(...info.missing);
+  const infoUnsaved = info.dirty || info.saving;
+  const canSubmit = missingParts.length === 0 && !info.hasLocalErrors && !infoUnsaved;
+  let submitHint = "";
+  if (missingParts.length > 0) submitHint = `Còn thiếu: ${missingParts.join(", ")}.`;
+  else if (info.hasLocalErrors) submitHint = "Sửa ô báo đỏ trước khi nộp.";
+  else if (infoUnsaved) submitHint = "Đang lưu hoặc chưa lưu thông tin trên giấy. Bấm “Lưu thông tin” rồi nộp.";
 
   const upload = async (kind: FileKind, file: File | null | undefined) => {
     setFileError("");
@@ -343,8 +359,7 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
           Chủ kho: <span className="font-semibold">{ownerName}</span>
         </p>
         <p className="mt-1 text-sm text-heritage-muted">
-          Mỗi mục chỉ nộp một tệp (PDF, JPG, PNG, WEBP · tối đa {deathCaseMaxFileMb} MiB). Họ tên,
-          số giấy và ngày mất sẽ do Người xét duyệt đọc trên giấy, bạn không phải nhập.
+          Mỗi mục chỉ nộp một tệp (PDF, JPG, PNG, WEBP · tối đa {deathCaseMaxFileMb} MiB).
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -454,6 +469,8 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
         )}
       </Panel>
 
+      <CertificateInfoPanel form={info} record={record} ownerName={ownerName} disabled={busy} />
+
       <Panel title="Cam đoan và nộp hồ sơ">
         <label className="flex min-h-11 items-start gap-3 text-sm leading-6">
           <input
@@ -469,7 +486,7 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
           <button
             type="button"
             className={buttonStyles.gold}
-            disabled={busy || !confirmed || missingCertificate}
+            disabled={busy || !confirmed || !canSubmit}
             onClick={() => {
               action.reset();
               setAskingSubmit(true);
@@ -477,11 +494,7 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
           >
             {supplement ? "Nộp bản bổ sung" : "Nộp hồ sơ"}
           </button>
-          {missingCertificate && (
-            <span className="text-sm text-heritage-muted">
-              Cần tải giấy chứng tử / trích lục khai tử trước.
-            </span>
-          )}
+          {submitHint && <span className="text-sm text-heritage-muted">{submitHint}</span>}
         </div>
         {action.error && !askingSubmit && (
           <p role="alert" className="mt-3 text-sm text-destructive">

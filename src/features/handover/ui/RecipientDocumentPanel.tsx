@@ -122,8 +122,8 @@ function Part1Summary({ document }: { document: HandoverDocument }) {
     ["Họ tên Chủ kho", owner.fullName],
     ["Gói di sản", `${document.containerName} (gồm ${document.itemCount} mục)`],
     ["Ngày mất", dateText(owner.dateOfDeath)],
-    ["Số giấy chứng tử", owner.certificateNumber],
-    ["Ngày cấp, đăng ký khai tử", dateText(owner.certificateIssuedOn)],
+    ["Nơi đăng ký khai tử", owner.deathRegistrationPlace],
+    ["Ngày đăng ký khai tử", dateText(owner.certificateIssuedOn)],
   ];
   return (
     <dl className="border-t border-heritage-border">

@@ -76,7 +76,8 @@ export function HandoverDocumentText({
     ? `${document.containerName} (gồm ${document.itemCount} mục)`
     : DOTS;
   const name = recipient.fullName;
-  const certificate = <>số {deceased.certificateNumber || "........"}</>;
+  // Nơi đăng ký khai tử Người thực thi đã chọn; hồ sơ cũ chưa có thì in dòng chấm như ảnh văn bản Backend dựng.
+  const place = deceased.deathRegistrationPlace || "UBND …………………";
   const accept = document.kind === "ACCEPT";
   return (
     <article
@@ -111,9 +112,9 @@ export function HandoverDocumentText({
           </p>
           <p>Bằng biên bản này, tôi xin khai đúng sự thật rằng:</p>
           <p>
-            1. Người để lại di sản: Chủ kho {owner}, chết ngày {death} theo giấy chứng tử{" "}
-            {certificate}, đã được Người xét duyệt thẩm định trên hệ thống, đăng ký khai tử ngày{" "}
-            {issued}.
+            1. Người để lại di sản: Chủ kho {owner}, chết ngày {death} theo giấy chứng tử do{" "}
+            {place} đăng ký khai tử ngày {issued}. Thông tin này đã được Người xét duyệt thẩm định
+            trên hệ thống.
           </p>
           <p>2. Tôi là người được Chủ kho chỉ định nhận phần di sản nêu tại mục 4.</p>
           <p>
@@ -161,7 +162,7 @@ export function HandoverDocumentText({
           <p>(Là người được chỉ định nhận của người để lại di sản thừa kế)</p>
           <p>Tôi là người thừa kế của ông/bà {owner}</p>
           <p>
-            Ông/bà {owner} chết ngày {death} theo giấy chứng tử {certificate}, đăng ký khai tử ngày{" "}
+            Ông/bà {owner} chết ngày {death} theo giấy chứng tử do {place} đăng ký khai tử ngày{" "}
             {issued}.
           </p>
           <p>
