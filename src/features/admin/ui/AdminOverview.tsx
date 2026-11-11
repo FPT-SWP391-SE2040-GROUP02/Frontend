@@ -1,18 +1,35 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AlertTriangle, Clock, ShieldAlert, ArrowRight, UserCheck, Shield } from "lucide-react";
+import {
+  AlertTriangle,
+  Banknote,
+  Clock,
+  ArrowRight,
+  UserCheck,
+  Users,
+  Shield,
+  ShieldCheck,
+} from "lucide-react";
+import { useServerNow } from "@/shared/clock/useServerNow";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
   ADMIN_INCIDENTS_VISIBLE,
   formatDateTime,
+  formatMoney,
   INCIDENT_TYPE_LABELS,
   INCIDENT_STATUS_LABELS,
   planStageLabel,
   RESPONSIBLE_ROLE_LABELS,
 } from "../model/admin.content";
-import { useAdminDashboard, useAdminIncidents } from "../model/useAdmin";
+import { periodRange } from "../model/revenuePeriod";
+import {
+  useAdminDashboard,
+  useAdminIncidents,
+  useAdminRevenue,
+  useAdminUsers,
+} from "../model/useAdmin";
 import { useSystemConfig } from "../model/useSystemConfig";
 import { SYSTEM_CONFIG_SERVICES } from "../model/systemConfig.content";
 import { AdminErrorMessage } from "./AdminStateMessage";
@@ -53,7 +70,8 @@ function Tile({
 }: {
   icon: LucideIcon;
   label: string;
-  value: number;
+  /** Số, hoặc chuỗi đã định dạng (số tiền, dấu "…" khi đang tải). */
+  value: number | string;
   caption: ReactNode;
   tone: keyof typeof TILE_ICON_TONES;
   /** Không có thì ô chỉ để xem số, không bấm được (ví dụ khi mục Sự cố đang ẩn). */
@@ -75,9 +93,9 @@ function Tile({
       </span>
       <span className="text-sm font-semibold text-heritage-muted">{label}</span>
       <b
-        className={`text-[34px] font-bold leading-[1.15] tabular-nums ${
-          tone === "bad" ? "text-red-700" : "text-heritage-primary"
-        }`}
+        className={`font-bold leading-[1.15] tabular-nums ${
+          typeof value === "number" ? "text-[34px]" : "text-[26px]"
+        } ${tone === "bad" ? "text-red-700" : "text-heritage-primary"}`}
       >
         {value}
       </b>
@@ -96,6 +114,16 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
     ADMIN_INCIDENTS_VISIBLE,
   );
   const serviceConfig = useSystemConfig();
+  // Doanh thu tiền thật của tháng này (theo giờ máy chủ) và tổng số tài khoản; mỗi ô tự báo lỗi, không làm hỏng cả trang.
+  const serverNow = useServerNow();
+  const monthRange = periodRange("month", serverNow);
+  const revenue = useAdminRevenue({
+    groupBy: "month",
+    environment: "Live",
+    from: monthRange.from,
+    to: monthRange.to,
+  });
+  const users = useAdminUsers({ pageIndex: 1, pageSize: 1 });
 
   if (query.isPending)
     return (
@@ -136,15 +164,23 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
     navigate(`${ROUTES.ADMIN.ROOT}?${params.toString()}`);
   };
 
+  const goToPayments = () => {
+    navigate(`${ROUTES.ADMIN.ROOT}?view=payments`);
+  };
+
   // Ô "Chờ người xét duyệt" dẫn sang Sự cố; khi Sự cố đang ẩn thì chỉ hiện số, không bấm được.
   let noVerifierClick: (() => void) | undefined = undefined;
   if (ADMIN_INCIDENTS_VISIBLE) {
     noVerifierClick = () => goToIncidents({ type: "NO_VERIFIER" });
   }
 
-  const goToHolds = () => {
-    navigate(`${ROUTES.ADMIN.ROOT}?view=holds`);
-  };
+  let revenueValue = "…";
+  if (revenue.isSuccess)
+    revenueValue = formatMoney(revenue.data.totalAmount, revenue.data.currency);
+  if (revenue.isError) revenueValue = "—";
+  let usersValue: number | string = "…";
+  if (users.isSuccess) usersValue = users.data.totalCount;
+  if (users.isError) usersValue = "—";
 
   // Có hàng đợi sự cố thì chia hai cột; khi Sự cố đang ẩn chỉ còn cột số liệu vận hành.
   let bodyGridClass =
@@ -177,16 +213,31 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           </>
         )}
         <Tile
-          icon={ShieldAlert}
-          label="Kho đang tạm giữ"
-          value={data.activeHolds}
+          icon={Banknote}
+          label="Doanh thu tháng này"
+          value={revenueValue}
           caption={
-            data.holdsPastReview > 0
-              ? `${data.holdsPastReview} kho quá hạn rà soát`
-              : "Bảo vệ kho chờ phán quyết"
+            revenue.isSuccess
+              ? `${revenue.data.transactionCount} giao dịch tiền thật`
+              : "Tiền thật, tính theo giờ Việt Nam"
           }
-          tone={data.holdsPastReview > 0 ? "warn" : "neutral"}
-          onClick={goToHolds}
+          tone="neutral"
+          onClick={goToPayments}
+        />
+        <Tile
+          icon={Users}
+          label="Tổng tài khoản"
+          value={usersValue}
+          caption="Mọi vai trò"
+          tone="neutral"
+          onClick={() => navigate(ROUTES.DASHBOARD.USERS)}
+        />
+        <Tile
+          icon={ShieldCheck}
+          label="Người xét duyệt đang hoạt động"
+          value={data.activeVerifiers}
+          caption="Tài khoản có thể nhận hồ sơ"
+          tone={data.activeVerifiers === 0 ? "warn" : "neutral"}
         />
         <Tile
           icon={UserCheck}
