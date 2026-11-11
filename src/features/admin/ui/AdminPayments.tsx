@@ -1,7 +1,5 @@
-import { Link } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
-import { ROUTES } from "@/shared/config/routes.config";
 import { useServerNow } from "@/shared/clock/useServerNow";
 import {
   PAYMENT_FILTER_LABELS,
@@ -71,7 +69,7 @@ function periodRange(key: PeriodKey, now: Date): { from: string; to: string } {
 
 /**
  * Giao dịch tiền vào qua SePay, chỉ xem (ADMIN-09): bộ lọc trạng thái và trang nằm trên URL.
- * Giao dịch lệch đã tự mở sự cố loại thanh toán; Admin đối chiếu và đóng ở trang Sự cố, không sửa giao dịch ở đây.
+ * Giao dịch lệch vẫn tự mở sự cố loại thanh toán (trang Sự cố đang tạm ẩn); không sửa giao dịch ở đây.
  */
 export function AdminPayments() {
   const params = useAdminPaymentParams();
@@ -133,14 +131,7 @@ export function AdminPayments() {
         />
       </ListFilterBar>
       <p role="note" className="text-sm text-heritage-muted">
-        Giao dịch cần đối chiếu đã tự mở sự cố; xử lý ở trang{" "}
-        <Link
-          className="font-medium text-heritage-primary underline"
-          to={`${ROUTES.ADMIN.ROOT}?view=incidents&type=PAYMENT`}
-        >
-          Sự cố
-        </Link>
-        . Trang này chỉ xem, không sửa giao dịch hay ghi nhận thanh toán.
+        Trang này chỉ xem, không sửa giao dịch hay ghi nhận thanh toán.
       </p>
       <section aria-labelledby="admin-payments-heading" className="space-y-3">
         <h2 id="admin-payments-heading" className="sr-only">

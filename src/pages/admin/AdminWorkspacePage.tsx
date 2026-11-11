@@ -6,21 +6,18 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Tag,
-  TriangleAlert,
   Users,
   Wrench,
 } from "lucide-react";
 import {
   AdminDevTools,
   AdminHolds,
-  AdminIncidents,
   AdminOverview,
   AdminOverviewToolbar,
   AdminPayments,
   AdminSettings,
   AdminSystemConfig,
   AdminUsers,
-  useAdminDashboard,
 } from "@/features/admin";
 import { DemoClockCard } from "@/features/dev-clock";
 import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
@@ -37,12 +34,6 @@ import {
 /** Thứ tự và nhóm menu theo prototype: bốn trang chính, rồi nhóm "Hệ thống". */
 const NAVIGATION: WorkspaceNavigationItem[] = [
   { id: "overview", label: "Tổng quan", icon: Home, to: ROUTES.ADMIN.ROOT },
-  {
-    id: "incidents",
-    label: "Sự cố",
-    icon: TriangleAlert,
-    to: `${ROUTES.ADMIN.ROOT}?view=incidents`,
-  },
   {
     id: "payments",
     label: "Giao dịch",
@@ -114,10 +105,6 @@ const VIEWS = {
     title: "Cấu hình",
     description: "",
   },
-  incidents: {
-    title: "Sự cố",
-    description: "",
-  },
   holds: {
     title: "Tạm giữ",
     description: "",
@@ -146,7 +133,7 @@ const VIEWS = {
 
 type AdminView = keyof typeof VIEWS;
 
-/** Sự cố, tạm giữ, cấu hình và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
+/** Tạm giữ, cấu hình và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
 function viewFor(pathname: string, search: string): AdminView {
   if (pathname === ROUTES.DASHBOARD.USERS) return "users";
   if (pathname === ROUTES.ADMIN.AUDIT_LOG) return "audit";
@@ -154,7 +141,6 @@ function viewFor(pathname: string, search: string): AdminView {
   if (
     view === "settings" ||
     view === "plans" ||
-    view === "incidents" ||
     view === "holds" ||
     view === "payments" ||
     view === "security"
@@ -207,20 +193,15 @@ function SettingsTabs() {
   );
 }
 
-/** Khu vực Admin: dashboard, sự cố, tạm giữ và tài khoản; dữ liệu chỉ từ API quản trị thật. */
+/** Khu vực Admin: dashboard, tạm giữ và tài khoản; dữ liệu chỉ từ API quản trị thật. */
 export function AdminWorkspacePage() {
   const location = useLocation();
   const view = viewFor(location.pathname, location.search);
-  // Số sự cố đang mở hiện làm số đếm ở menu; dùng chung dữ liệu với trang Tổng quan nên không gọi thêm API.
-  const dashboard = useAdminDashboard();
-  const navigation = NAVIGATION_WITH_DEV_TOOLS.map((item) =>
-    item.id === "incidents" ? { ...item, badge: dashboard.data?.openIncidents ?? 0 } : item,
-  );
   return (
     <WorkspaceFrame
       role="admin"
       active={view}
-      navigation={navigation}
+      navigation={NAVIGATION_WITH_DEV_TOOLS}
       title={VIEWS[view].title}
       description={VIEWS[view].description}
       actions={view === "overview" ? <AdminOverviewToolbar /> : undefined}
@@ -232,7 +213,6 @@ export function AdminWorkspacePage() {
       )}
       {view === "settings" && <SettingsTabs />}
       {view === "plans" && <AdminSettings section="plans" />}
-      {view === "incidents" && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
       {view === "users" && (

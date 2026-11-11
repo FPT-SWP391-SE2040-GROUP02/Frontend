@@ -216,7 +216,9 @@ function setup(path: string) {
 const incidentsPath = `${ROUTES.ADMIN.ROOT}?view=incidents`;
 const holdsPath = `${ROUTES.ADMIN.ROOT}?view=holds`;
 
-describe("Sự cố", () => {
+// Trang Sự cố đang tạm ẩn khỏi giao diện Admin (menu, Tổng quan, liên kết ở trang Giao dịch). Các test dưới đây giữ lại để
+// bật lại dễ dàng: bỏ ".skip" khi hiện lại trang Sự cố.
+describe.skip("Sự cố", () => {
   it("tải danh sách, lọc theo trạng thái và ghi bộ lọc lên API", async () => {
     backend(() => page([incidentSummary()]));
     setup(incidentsPath);
@@ -470,10 +472,8 @@ describe("Giao dịch thanh toán (chỉ xem)", () => {
     expect(screen.getByText(/199\.000 VND/)).toBeInTheDocument();
     expect(screen.getAllByText("Cần đối chiếu").length).toBeGreaterThan(0);
     expect(screen.getByText(/dòng/)).toHaveTextContent("2 dòng");
-    expect(within(screen.getByRole("note")).getByRole("link", { name: "Sự cố" })).toHaveAttribute(
-      "href",
-      `${ROUTES.ADMIN.ROOT}?view=incidents&type=PAYMENT`,
-    );
+    // Trang Sự cố đang tạm ẩn nên ghi chú không còn liên kết sang đó.
+    expect(within(screen.getByRole("note")).queryByRole("link")).not.toBeInTheDocument();
     expect(callsTo("get", "/admin/payment-transactions")[0].params).toEqual({
       pageIndex: 1,
       pageSize: 20,
@@ -585,7 +585,9 @@ describe("Tài khoản", () => {
   });
 });
 
-describe("Số đếm trên thẻ trạng thái", () => {
+// Trang Sự cố đang tạm ẩn khỏi giao diện Admin (menu, Tổng quan, liên kết ở trang Giao dịch). Các test dưới đây giữ lại để
+// bật lại dễ dàng: bỏ ".skip" khi hiện lại trang Sự cố.
+describe.skip("Số đếm trên thẻ trạng thái", () => {
   it("Sự cố hiện số theo từng trạng thái và gửi bộ lọc còn lại nhưng không gửi trạng thái", async () => {
     backend((call) =>
       call.url === "/admin/incidents/counts"
@@ -603,7 +605,9 @@ describe("Số đếm trên thẻ trạng thái", () => {
   });
 });
 
-describe("Ô ghi chú trong lịch sử sự cố", () => {
+// Trang Sự cố đang tạm ẩn khỏi giao diện Admin (menu, Tổng quan, liên kết ở trang Giao dịch). Các test dưới đây giữ lại để
+// bật lại dễ dàng: bỏ ".skip" khi hiện lại trang Sự cố.
+describe.skip("Ô ghi chú trong lịch sử sự cố", () => {
   it("lưu ghi chú ngay trong lịch sử và làm mới chi tiết", async () => {
     backend((call) => {
       if (call.method === "post" && call.url === `/admin/incidents/${INCIDENT_ID}/notes`)
@@ -627,7 +631,9 @@ describe("Ô ghi chú trong lịch sử sự cố", () => {
   });
 });
 
-describe("Hộp Tạm giữ kho trong chi tiết sự cố", () => {
+// Trang Sự cố đang tạm ẩn khỏi giao diện Admin (menu, Tổng quan, liên kết ở trang Giao dịch). Các test dưới đây giữ lại để
+// bật lại dễ dàng: bỏ ".skip" khi hiện lại trang Sự cố.
+describe.skip("Hộp Tạm giữ kho trong chi tiết sự cố", () => {
   it("hiện hold đang hiệu lực của kho và gửi đúng vaultId", async () => {
     backend((call) => {
       if (call.url === `/admin/incidents/${INCIDENT_ID}`) return incidentDetail();
