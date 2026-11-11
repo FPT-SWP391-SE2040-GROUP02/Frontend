@@ -122,7 +122,7 @@ const VIEWS = {
   },
   templates: {
     title: "Mẫu biên bản",
-    description: "Sửa chữ biên bản đồng ý nhận và văn bản từ chối khi luật thay đổi.",
+    description: "Sửa các mục 1 đến 8 của biên bản đồng ý nhận khi luật thay đổi.",
   },
   settings: {
     title: "Cấu hình",

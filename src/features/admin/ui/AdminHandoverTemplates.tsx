@@ -226,7 +226,7 @@ function TemplateEditor({
             setText(event.target.value);
             setMessage("");
           }}
-          spellCheck
+          spellCheck={false}
           rows={22}
           className="min-h-[32rem] w-full resize-y rounded-xl border border-heritage-border bg-white px-8 py-7 text-[14px] leading-7 text-black shadow-sm focus:outline-none"
           style={{ fontFamily: '"Times New Roman", Times, serif', textAlign: "justify" }}
