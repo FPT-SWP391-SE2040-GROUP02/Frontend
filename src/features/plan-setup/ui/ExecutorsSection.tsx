@@ -160,7 +160,7 @@ function InviteDialog({
   onSuccess,
   onClose,
 }: InviteDialogProps) {
-  const { executorInviteDays } = usePolicyWindows();
+  const { executorInviteMinutes } = usePolicyWindows();
   const action = usePrivateAction();
   const ownerEmail = useSelector((state: { auth: AuthState }) => state.auth.user?.email);
 
@@ -210,7 +210,7 @@ function InviteDialog({
   let title = "Mời Người thực thi";
   let description =
     "Người này sẽ báo tin khi có biến cố và trao mã mở gói cho người nhận. Họ không đọc được nội dung kho và không nhận tài sản.";
-  let notice = `Lời mời có hiệu lực ${executorInviteDays} ngày.`;
+  let notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút.`;
   let cancelLabel = "Hủy";
   if (replacing !== null) {
     title = "Mời người thay";
@@ -218,7 +218,7 @@ function InviteDialog({
     if (hasHandoverKey) {
       description = `${description} Mã mở gói hiện tại vẫn nằm trong tay người cũ, nên sau khi người mới đồng ý bạn nên đổi mã mới.`;
     }
-    notice = `Lời mời có hiệu lực ${executorInviteDays} ngày. Hết hạn mà chưa đồng ý thì ${replacing.inviteeEmail} vẫn là Người thực thi.`;
+    notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút. Hết hạn mà chưa đồng ý thì ${replacing.inviteeEmail} vẫn là Người thực thi.`;
     cancelLabel = "Giữ nguyên";
   }
   return (

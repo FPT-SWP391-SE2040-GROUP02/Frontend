@@ -7,13 +7,12 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
 import { useHandoverAction } from "../model/useHandoverAction";
-import { MailCheckPanel } from "./MailCheckPanel";
 import { RecipientGuide } from "./RecipientGuide";
 
 const STEPS = ["Xác minh danh tính của bạn", "Chờ bàn giao", "Tải nội dung khi bàn giao mở"];
 
-/** Điều cần chuẩn bị trước khi xác minh; chữ lấy từ màn đồng ý eKYC để người nhận biết trước khi nhận lời mời. */
-const PREPARATION = ["Căn cước còn hạn, bản gốc", "Nơi đủ sáng", "Bỏ khẩu trang, kính tối màu"];
+/** Điều cần chuẩn bị trước khi xác minh bằng giấy, để người nhận biết trước khi nhận lời mời. */
+const PREPARATION = ["Căn cước còn hạn, bản gốc", "Nơi đủ sáng", "Ảnh chụp rõ hai mặt"];
 
 /**
  * Kiểm link công khai; claim chỉ sau khi người đã đăng nhập chủ động bấm. Theo thiết kế 100.
@@ -66,7 +65,6 @@ export function InvitationPanel() {
             : "Đăng nhập hoặc tạo tài khoản để nhận lời mời này."}
         </p>
       </div>
-      <MailCheckPanel token={token} />
       <RecipientGuide defaultOpen />
       <ul className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5">
         {STEPS.map((text, index) => (

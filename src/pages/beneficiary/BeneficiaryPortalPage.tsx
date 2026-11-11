@@ -1,10 +1,20 @@
 import { useSelector } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
+import { handoverService } from "@/features/handover/api/handoverService";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { RecipientLayout } from "@/widgets/RecipientLayout/RecipientLayout";
 import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
 /** Không giả lập grant, nội dung bàn giao hoặc phiên người nhận. */
 export function BeneficiaryPortalPage() {
-  const fullName = useSelector((state: { auth: AuthState }) => state.auth.user?.fullName);
+  const accountName = useSelector((state: { auth: AuthState }) => state.auth.user?.fullName);
+  /** Cùng khóa với danh sách lượt trong HandoverPortal nên chỉ gọi API một lần. */
+  const turns = useQuery({
+    queryKey: ["handover", "turns"],
+    queryFn: ({ signal }) => handoverService.list(signal),
+  });
+  /** Ưu tiên tên Chủ kho đã chỉ định cho người nhận, không có thì dùng tên tài khoản. */
+  const designatedName = turns.data?.find((turn) => turn.recipientFullName)?.recipientFullName;
+  const fullName = designatedName ?? accountName;
   return (
     <RecipientLayout active="overview">
       <header>

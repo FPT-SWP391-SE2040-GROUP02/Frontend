@@ -140,9 +140,6 @@ const NotFoundPage = lazy(() =>
 const ServerErrorPage = lazy(() =>
   import("@/pages/error/ServerErrorPage").then((module) => ({ default: module.ServerErrorPage })),
 );
-const CameraCheckPage = lazy(() =>
-  import("@/pages/ekyc/CameraCheckPage").then((module) => ({ default: module.CameraCheckPage })),
-);
 const BeneficiaryPortalPage = lazy(() =>
   import("@/pages/beneficiary/BeneficiaryPortalPage").then((module) => ({
     default: module.BeneficiaryPortalPage,
@@ -286,7 +283,6 @@ export function AppRoutes() {
           <Route path="/admin/users" element={<Navigate to={ROUTES.DASHBOARD.USERS} replace />} />
         </Route>
         <Route element={<ProtectedRoute />}>
-          <Route path={ROUTES.BENEFICIARY.EKYC_CAMERA} element={<CameraCheckPage />} />
           <Route path={ROUTES.BENEFICIARY.CLAIM} element={<BeneficiaryPortalPage />} />
           <Route path={ROUTES.BENEFICIARY.HANDOVER} element={<BeneficiaryPortalPage />} />
           <Route path={ROUTES.BENEFICIARY.DOCUMENTS} element={<BeneficiaryDocumentsPage />} />
