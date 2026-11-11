@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
@@ -36,6 +36,8 @@ const defaultContent = {
       align: "justify",
       bold: false,
     },
+    { text: "1. Chủ kho {HO_TEN_CHU_KHO} {CAU_NGUOI_MAT}", align: "justify", bold: false },
+    { text: "2. Di sản: {DI_SAN}.", align: "justify", bold: false },
     { text: "8. Tôi đã được thông báo: {CAU_BAO_TU_CHOI}", align: "justify", bold: false },
   ],
   decline: [
@@ -49,6 +51,8 @@ const tokens = [
   { token: "THANG", label: "Ngày ký (tháng)", example: "11" },
   { token: "HO_TEN_NGUOI_NHAN", label: "Họ tên người nhận", example: "Trần Minh Anh" },
   { token: "HO_TEN_CHU_KHO", label: "Họ tên Chủ kho", example: "Nguyễn Văn A" },
+  { token: "CAU_NGUOI_MAT", label: "Câu về người mất", example: "chết ngày …" },
+  { token: "DI_SAN", label: "Phần di sản", example: "Gói gia đình (gồm 3 mục)" },
   { token: "CAU_BAO_TU_CHOI", label: "Câu báo", example: "…" },
 ];
 const templateBody = (over: Record<string, unknown> = {}) => ({
@@ -169,130 +173,126 @@ function setup() {
   );
 }
 
+const BODY = "Nội dung các mục của biên bản";
+
 describe("trang Mẫu biên bản của Admin", () => {
-  it("hiện mẫu đang dùng, từng đoạn để sửa và bản xem trước đã điền dữ liệu mẫu", async () => {
+  it("hiện các mục 1 đến 8 như một khung chữ liền, câu báo viết ra thành câu thật, và bản xem trước", async () => {
     backend();
     setup();
 
-    expect(await screen.findByText(/Mẫu gốc trong hệ thống/)).toBeInTheDocument();
-    expect(screen.getByLabelText("Đoạn 2")).toHaveValue(
-      "Tôi là {HO_TEN_NGUOI_NHAN}, ngày {NGAY} tháng {THANG}.",
-    );
-    const preview = screen.getByRole("article", { name: "Biên bản đồng ý nhận di sản thừa kế" });
-    expect(preview).toHaveTextContent("Tôi là Trần Minh Anh, ngày 11 tháng 11.");
-    expect(preview).toHaveTextContent(
+    const area = (await screen.findByLabelText(BODY)) as HTMLTextAreaElement;
+    expect(screen.getByText(/Đang dùng chữ gốc của hệ thống/)).toBeInTheDocument();
+    expect(area.value.split("\n")).toEqual([
+      "1. Chủ kho {HO_TEN_CHU_KHO} {CAU_NGUOI_MAT}",
+      "2. Di sản: {DI_SAN}.",
       "8. Tôi đã được thông báo: Nếu từ chối thì tài sản bị xóa hoàn toàn.",
-    );
-    expect(screen.getByRole("button", { name: "Lưu thành phiên bản mới" })).toBeDisabled();
+    ]);
+    const preview = screen.getByRole("article", { name: "Biên bản đồng ý nhận di sản thừa kế" });
+    expect(preview).toHaveTextContent("BIÊN BẢN ĐỒNG Ý");
+    expect(preview).toHaveTextContent("Tôi là Trần Minh Anh, ngày 11 tháng 11.");
+    expect(preview).toHaveTextContent("2. Di sản: Gói gia đình (gồm 3 mục).");
+    expect(screen.getByRole("button", { name: "Lưu" })).toBeDisabled();
     expect(screen.getByRole("link", { name: /Mẫu biên bản/ })).toBeInTheDocument();
+    // Không còn thẻ văn bản từ chối, ô câu báo riêng, lịch sử hay từng đoạn có nút điều khiển
+    expect(screen.queryByRole("button", { name: "Văn bản từ chối nhận" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Lịch sử các lần lưu")).not.toBeInTheDocument();
   });
 
-  it("sửa một đoạn thì xem trước đổi ngay, lưu gửi đúng nội dung rồi báo phiên bản mới", async () => {
+  it("gõ thêm một mục thì xem trước đổi ngay; lưu gửi phần mở đầu và văn bản từ chối nguyên vẹn", async () => {
     backend();
     setup();
-    const field = await screen.findByLabelText("Đoạn 2");
+    const area = await screen.findByLabelText(BODY);
 
-    fireEvent.change(field, { target: { value: "Tôi là {HO_TEN_NGUOI_NHAN}. Điều luật mới." } });
-    fireEvent.change(screen.getByLabelText(/Ghi chú về lần sửa/), {
-      target: { value: "Luật mới 2027" },
+    fireEvent.change(area, {
+      target: {
+        value:
+          "1. Chủ kho {HO_TEN_CHU_KHO} {CAU_NGUOI_MAT}\n\n2. Di sản: {DI_SAN}.\n3. Mục mới do Admin gõ.\n8. Tôi đã được thông báo: Tài sản của người từ chối sẽ bị hủy ngay.",
+      },
     });
     expect(
       screen.getByRole("article", { name: "Biên bản đồng ý nhận di sản thừa kế" }),
-    ).toHaveTextContent("Tôi là Trần Minh Anh. Điều luật mới.");
+    ).toHaveTextContent("3. Mục mới do Admin gõ.");
 
-    fireEvent.click(screen.getByRole("button", { name: "Lưu thành phiên bản mới" }));
+    fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
 
     await waitFor(() => expect(postCalls()).toHaveLength(1));
     const sent = postCalls()[0].body as {
-      accept: Array<{ text: string }>;
-      note: string;
+      accept: Array<{ text: string; align: string }>;
+      decline: unknown;
       declineNotice: string;
     };
-    expect(sent.accept[1].text).toBe("Tôi là {HO_TEN_NGUOI_NHAN}. Điều luật mới.");
-    expect(sent.note).toBe("Luật mới 2027");
-    expect(sent.declineNotice).toBe("Nếu từ chối thì tài sản bị xóa hoàn toàn.");
+    expect(sent.accept.map((paragraph) => paragraph.text)).toEqual([
+      "BIÊN BẢN ĐỒNG Ý",
+      "Tôi là {HO_TEN_NGUOI_NHAN}, ngày {NGAY} tháng {THANG}.",
+      "1. Chủ kho {HO_TEN_CHU_KHO} {CAU_NGUOI_MAT}",
+      "2. Di sản: {DI_SAN}.",
+      "3. Mục mới do Admin gõ.",
+      "8. Tôi đã được thông báo: Tài sản của người từ chối sẽ bị hủy ngay.",
+    ]);
+    expect(sent.decline).toEqual(defaultContent.decline);
+    // Câu báo hiện cho người nhận lấy theo mục 8 vừa sửa
+    expect(sent.declineNotice).toBe("Tài sản của người từ chối sẽ bị hủy ngay.");
     expect(await screen.findByText(/Đã lưu phiên bản 1/)).toBeInTheDocument();
-    expect(await screen.findByText(/Phiên bản 1 đang dùng/)).toBeInTheDocument();
-    expect(await screen.findByText("Luật mới 2027")).toBeInTheDocument();
+    expect(await screen.findByText(/Đang dùng phiên bản 1/)).toBeInTheDocument();
   });
 
-  it("trường lạ hoặc đoạn trống thì báo lỗi và khóa nút Lưu", async () => {
+  it("không sửa mục 8 thì giữ nguyên câu báo cũ", async () => {
     backend();
     setup();
-    const field = await screen.findByLabelText("Đoạn 2");
+    const area = (await screen.findByLabelText(BODY)) as HTMLTextAreaElement;
 
-    fireEvent.change(field, { target: { value: "Có {TRUONG_SAI} ở đây" } });
+    fireEvent.change(area, { target: { value: area.value + "\n9. Mục thêm." } });
+    fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
+
+    await waitFor(() => expect(postCalls()).toHaveLength(1));
+    const sent = postCalls()[0].body as { declineNotice: string };
+    expect(sent.declineNotice).toBe("Nếu từ chối thì tài sản bị xóa hoàn toàn.");
+  });
+
+  it("trường lạ hoặc không còn đoạn nào thì báo lỗi và khóa nút Lưu", async () => {
+    backend();
+    setup();
+    const area = await screen.findByLabelText(BODY);
+
+    fireEvent.change(area, { target: { value: "1. Có {TRUONG_SAI} ở đây" } });
     expect(screen.getByRole("alert")).toHaveTextContent(
       "trường {TRUONG_SAI} không có trong danh sách",
     );
-    expect(screen.getByRole("button", { name: "Lưu thành phiên bản mới" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Lưu" })).toBeDisabled();
 
-    fireEvent.change(field, { target: { value: "   " } });
-    expect(screen.getByRole("alert")).toHaveTextContent("đang trống");
+    fireEvent.change(area, { target: { value: "  \n  " } });
+    expect(screen.getByRole("alert")).toHaveTextContent("Cần có ít nhất một đoạn");
     expect(postCalls()).toHaveLength(0);
   });
 
-  it("bấm một trường thì chèn vào chỗ con trỏ của đoạn đang chọn", async () => {
+  it("bấm một trường thì chèn vào chỗ con trỏ trong khung chữ", async () => {
     backend();
     setup();
-    const field = (await screen.findByLabelText("Đoạn 1")) as HTMLTextAreaElement;
+    const area = (await screen.findByLabelText(BODY)) as HTMLTextAreaElement;
 
-    fireEvent.click(screen.getByRole("button", { name: "{NGAY}" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("Bấm vào đoạn cần chèn trường trước");
-
-    field.focus();
-    field.setSelectionRange(0, 0);
-    fireEvent.focus(field);
+    area.focus();
+    area.setSelectionRange(0, 0);
     fireEvent.click(screen.getByRole("button", { name: "{NGAY}" }));
 
-    expect(screen.getByLabelText("Đoạn 1")).toHaveValue("{NGAY}BIÊN BẢN ĐỒNG Ý");
+    expect(screen.getByLabelText(BODY)).toHaveValue(
+      "{NGAY}1. Chủ kho {HO_TEN_CHU_KHO} {CAU_NGUOI_MAT}\n2. Di sản: {DI_SAN}.\n8. Tôi đã được thông báo: Nếu từ chối thì tài sản bị xóa hoàn toàn.",
+    );
   });
 
-  it("thêm, xóa và đổi chỗ đoạn", async () => {
+  it("khôi phục chữ gốc nạp lại các mục gốc nhưng chưa lưu", async () => {
     backend();
     setup();
-    await screen.findByLabelText("Đoạn 1");
+    const area = await screen.findByLabelText(BODY);
+    fireEvent.change(area, { target: { value: "1. Đã sửa hết." } });
+    expect(screen.getByRole("button", { name: "Lưu" })).toBeEnabled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Thêm đoạn dưới đoạn 1" }));
-    expect(screen.getByLabelText("Đoạn 2")).toHaveValue("");
-    expect(screen.getByRole("alert")).toHaveTextContent("đang trống");
+    fireEvent.click(screen.getByRole("button", { name: "Khôi phục chữ gốc" }));
 
-    fireEvent.click(screen.getByRole("button", { name: "Xóa đoạn 2" }));
-    expect(screen.getByLabelText("Đoạn 2")).toHaveValue(
-      "Tôi là {HO_TEN_NGUOI_NHAN}, ngày {NGAY} tháng {THANG}.",
+    expect(screen.getByLabelText(BODY)).toHaveValue(
+      "1. Chủ kho {HO_TEN_CHU_KHO} {CAU_NGUOI_MAT}\n2. Di sản: {DI_SAN}.\n8. Tôi đã được thông báo: Nếu từ chối thì tài sản bị xóa hoàn toàn.",
     );
-
-    fireEvent.click(screen.getByRole("button", { name: "Đưa đoạn 2 lên" }));
-    expect(screen.getByLabelText("Đoạn 1")).toHaveValue(
-      "Tôi là {HO_TEN_NGUOI_NHAN}, ngày {NGAY} tháng {THANG}.",
-    );
-    expect(screen.getByLabelText("Đoạn 2")).toHaveValue("BIÊN BẢN ĐỒNG Ý");
-  });
-
-  it("chuyển sang văn bản từ chối, nạp bản cũ từ lịch sử và khôi phục mẫu gốc", async () => {
-    backend();
-    versions = [
-      { version: 1, createdAt: "2026-11-10T05:00:00Z", createdByName: "Quản trị", note: "Bản đầu" },
-    ];
-    setup();
-    await screen.findByLabelText("Đoạn 1");
-
-    fireEvent.click(screen.getByRole("button", { name: "Văn bản từ chối nhận" }));
-    expect(screen.getByLabelText("Đoạn 2")).toHaveValue(
-      "Tôi từ chối nhận di sản của {HO_TEN_CHU_KHO}.",
-    );
-    expect(
-      screen.getByRole("article", { name: "Văn bản từ chối nhận di sản thừa kế" }),
-    ).toHaveTextContent("Tôi từ chối nhận di sản của Nguyễn Văn A.");
-
-    fireEvent.click(screen.getByRole("button", { name: "Biên bản đồng ý nhận" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Nạp phiên bản 1 vào trang sửa" }));
-    expect(await screen.findByDisplayValue("BẢN CŨ SỐ MỘT")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Lưu thành phiên bản mới" })).toBeEnabled();
-
-    fireEvent.click(screen.getByRole("button", { name: "Khôi phục mẫu gốc" }));
-    expect(screen.getByLabelText("Đoạn 1")).toHaveValue("BIÊN BẢN ĐỒNG Ý");
-    expect(within(document.body).getByText(/Đã nạp mẫu gốc/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Lưu thành phiên bản mới" })).toBeDisabled();
+    expect(screen.getByText(/Đã nạp chữ của mẫu gốc/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Lưu" })).toBeDisabled();
+    expect(postCalls()).toHaveLength(0);
   });
 });
