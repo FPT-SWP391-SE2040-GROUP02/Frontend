@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { formatDate } from "@/shared/lib/dateFormat";
@@ -12,6 +13,30 @@ export function DemoClockBanner() {
   const status = useDemoClockStatus();
   const role = useSelector((state: { auth: AuthState }) => state.auth.user?.role);
   const reset = useResetDemoClock();
+  const bannerRef = useRef<HTMLDivElement>(null);
+  const isShown = Boolean(status.data && status.data.isSimulated);
+
+  // Báo chiều cao dải này qua biến CSS --demo-banner-height để cột menu đứng yên (WorkspaceShell) chừa chỗ, không bị che.
+  useLayoutEffect(() => {
+    const banner = bannerRef.current;
+    if (!isShown || banner === null) {
+      return;
+    }
+    const root = document.documentElement;
+    const update = () => root.style.setProperty("--demo-banner-height", `${banner.offsetHeight}px`);
+    update();
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(update);
+      observer.observe(banner);
+    }
+    return () => {
+      if (observer !== null) {
+        observer.disconnect();
+      }
+      root.style.removeProperty("--demo-banner-height");
+    };
+  }, [isShown]);
 
   if (!status.data || !status.data.isSimulated) {
     return null;
@@ -23,6 +48,7 @@ export function DemoClockBanner() {
   }
   return (
     <div
+      ref={bannerRef}
       role="status"
       className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-[#F1E6CC] px-4 py-2 text-sm font-semibold text-[#5A4210]"
     >

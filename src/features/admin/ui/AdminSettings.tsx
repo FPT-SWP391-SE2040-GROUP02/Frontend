@@ -365,18 +365,6 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     src: "StorageLimits.MaxUploadBytes",
     dataType: "NUMBER",
   },
-  {
-    key: "Limits.ReservationHoldMinutes",
-    label: "Thời gian giữ chỗ khi tải lên",
-    category: "Limits",
-    categoryTitle: "Giới hạn chống lạm dụng",
-    unit: "phút",
-    step: 5,
-    defaultValue: "15",
-    description: "Thời gian giữ tạm dung lượng lưu trữ trước khi hoàn tất hoặc hủy tải lên.",
-    src: "AssetService.ReservationHold",
-    dataType: "NUMBER",
-  },
 
   // 8. Bảo mật & Tính năng (Security & Features)
   {
