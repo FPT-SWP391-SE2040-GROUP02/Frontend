@@ -43,6 +43,7 @@ import {
   MAX_TOTAL_SLOTS_LIMIT,
 } from "../model/planCatalog";
 import { settingsSaveError } from "../model/adminError";
+import { limitOf, settingErrors } from "../model/settingRules";
 
 interface SettingMeta {
   key: string;
@@ -615,6 +616,30 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
     });
   }, [draft, serverMap]);
 
+  // Kiểm ngay ở máy các giá trị Admin đang sửa (khoảng hợp lý, cặp tham số) để báo lỗi trước khi bấm lưu.
+  const draftErrors = useMemo(() => {
+    const changed: Record<string, string | null> = {};
+    for (const [key, entry] of Object.entries(draft)) {
+      if (entry.isEnabled) {
+        changed[key] = entry.value;
+      } else {
+        changed[key] = null;
+      }
+    }
+    return settingErrors(changed, (key) => {
+      const entry = draft[key];
+      if (entry !== undefined) {
+        return entry.isEnabled ? entry.value : undefined;
+      }
+      const server = serverMap.get(key);
+      if (server !== undefined && server.isEnabled) {
+        return server.value;
+      }
+      return undefined;
+    });
+  }, [draft, serverMap]);
+  const draftErrorCount = Object.keys(draftErrors).length;
+
   const isSensitiveKey = (k: string): boolean => {
     return (
       k.startsWith("Security.") ||
@@ -921,7 +946,14 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                 <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
                                   <button
                                     type="button"
-                                    onClick={() => stepValue(item.key, -(item.step ?? 1), 0)}
+                                    onClick={() =>
+                                      stepValue(
+                                        item.key,
+                                        -(item.step ?? 1),
+                                        limitOf(item.key)?.min ?? 0,
+                                        limitOf(item.key)?.max,
+                                      )
+                                    }
                                     className="flex size-9 items-center justify-center text-heritage-muted transition-colors hover:bg-zinc-100 hover:text-heritage-text"
                                     aria-label={`Giảm ${item.label}`}
                                   >
@@ -938,7 +970,14 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                   />
                                   <button
                                     type="button"
-                                    onClick={() => stepValue(item.key, item.step ?? 1)}
+                                    onClick={() =>
+                                      stepValue(
+                                        item.key,
+                                        item.step ?? 1,
+                                        limitOf(item.key)?.min ?? 0,
+                                        limitOf(item.key)?.max,
+                                      )
+                                    }
                                     className="flex size-9 items-center justify-center text-heritage-muted transition-colors hover:bg-zinc-100 hover:text-heritage-text"
                                     aria-label={`Tăng ${item.label}`}
                                   >
@@ -952,6 +991,14 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                 </div>
                               )}
 
+                              {draftErrors[item.key] !== undefined && (
+                                <p
+                                  role="alert"
+                                  className="max-w-xs text-right text-[11px] font-medium text-red-700"
+                                >
+                                  {draftErrors[item.key]}
+                                </p>
+                              )}
                               <div className="flex items-center gap-2">
                                 {isChanged && (
                                   <span className="text-[11px] font-medium text-amber-700">
@@ -1183,9 +1230,15 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                 <p className="text-sm font-bold text-heritage-primary">
                   {diffList.length} thay đổi cấu hình chưa áp dụng
                 </p>
-                <p className="text-xs text-heritage-muted">
-                  Chỉ áp dụng cho đơn mới và việc mới, không hồi tố đơn đã chốt.
-                </p>
+                {draftErrorCount > 0 ? (
+                  <p role="alert" className="text-xs font-medium text-red-700">
+                    Còn {draftErrorCount} giá trị chưa hợp lệ. Sửa xong mới lưu được.
+                  </p>
+                ) : (
+                  <p className="text-xs text-heritage-muted">
+                    Chỉ áp dụng cho đơn mới và việc mới, không hồi tố đơn đã chốt.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -1200,6 +1253,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
               </Button>
               <Button
                 size="sm"
+                disabled={draftErrorCount > 0}
                 onClick={() => {
                   setSaveError(null);
                   setConfirmOpen(true);
