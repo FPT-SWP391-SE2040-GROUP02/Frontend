@@ -19,6 +19,8 @@ import {
   incidentsQuerySchema,
   paymentTransactionsPageSchema,
   paymentTransactionsQuerySchema,
+  adminRevenueSchema,
+  adminRevenueQuerySchema,
   assignExecutorRequestSchema,
   reassignVerifierRequestSchema,
   resolveIncidentRequestSchema,
@@ -32,6 +34,7 @@ import {
   type HoldsQuery,
   type IncidentNoteRequest,
   type IncidentsQuery,
+  type AdminRevenueQuery,
   type PaymentTransactionsQuery,
   type AssignExecutorRequest,
   type ReassignVerifierRequest,
@@ -223,6 +226,23 @@ export const adminService = {
     if (parsed.to) params.to = parsed.to;
     return paymentTransactionsPageSchema.parse(
       await apiClient.get<unknown, unknown>("/admin/payment-transactions", { params, signal }),
+    );
+  },
+
+  /** Doanh thu theo ngày, tháng hoặc quý (tiền thật đã khớp đơn); chỉ đọc. */
+  async getRevenue(query: AdminRevenueQuery, signal?: AbortSignal) {
+    const parsed = adminRevenueQuerySchema.parse(query);
+    const params: Record<string, string> = {
+      groupBy: parsed.groupBy,
+      environment: parsed.environment,
+    };
+    if (parsed.from) params.from = parsed.from;
+    if (parsed.to) params.to = parsed.to;
+    return adminRevenueSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/payment-transactions/revenue", {
+        params,
+        signal,
+      }),
     );
   },
 };

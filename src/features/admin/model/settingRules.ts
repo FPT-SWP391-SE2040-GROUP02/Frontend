@@ -43,6 +43,7 @@ interface TextLimit {
 }
 
 const TEXT_LIMITS: Record<string, TextLimit> = {
+  "Handover.DeclineNotice": { maxLength: 400, isEmail: false },
   "Company.Name": { maxLength: 100, isEmail: false },
   "Company.Website": { maxLength: 200, isEmail: false },
   "Company.Email": { maxLength: 200, isEmail: true },
@@ -66,6 +67,14 @@ const RELATION_DEFAULTS: Record<string, number> = {
   [EXECUTOR_EXPIRES]: 7,
   [EXECUTOR_REMINDER]: 48,
 };
+
+/** Độ dài tối đa của tham số chữ; khóa không có luật thì dùng fallback. */
+export function textMaxLengthOf(key: string, fallback: number): number {
+  if (Object.hasOwn(TEXT_LIMITS, key)) {
+    return TEXT_LIMITS[key].maxLength;
+  }
+  return fallback;
+}
 
 /** Khoảng cho phép của một tham số số nguyên; khóa không có luật thì null. */
 export function limitOf(key: string): IntegerLimit | null {

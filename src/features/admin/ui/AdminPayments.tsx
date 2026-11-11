@@ -4,6 +4,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { ROUTES } from "@/shared/config/routes.config";
 import { useServerNow } from "@/shared/clock/useServerNow";
 import {
+  ADMIN_INCIDENTS_VISIBLE,
   PAYMENT_FILTER_LABELS,
   PAYMENT_STATUS_LABELS,
   formatDateTime,
@@ -27,6 +28,7 @@ import {
   ListTableRow,
 } from "@/shared/ui/listKit";
 import { AdminPagination } from "./AdminPagination";
+import { AdminRevenue } from "./AdminRevenue";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
 const STATUS_STYLES: Record<PaymentTransactionStatus, string> = {
@@ -132,16 +134,24 @@ export function AdminPayments() {
           onChange={(value) => params.setTo(value || undefined)}
         />
       </ListFilterBar>
-      <p role="note" className="text-sm text-heritage-muted">
-        Giao dịch cần đối chiếu đã tự mở sự cố; xử lý ở trang{" "}
-        <Link
-          className="font-medium text-heritage-primary underline"
-          to={`${ROUTES.ADMIN.ROOT}?view=incidents&type=PAYMENT`}
-        >
-          Sự cố
-        </Link>
-        . Trang này chỉ xem, không sửa giao dịch hay ghi nhận thanh toán.
-      </p>
+      <AdminRevenue from={params.filters.from} to={params.filters.to} />
+      {ADMIN_INCIDENTS_VISIBLE && (
+        <p role="note" className="text-sm text-heritage-muted">
+          Giao dịch cần đối chiếu đã tự mở sự cố; xử lý ở trang{" "}
+          <Link
+            className="font-medium text-heritage-primary underline"
+            to={`${ROUTES.ADMIN.ROOT}?view=incidents&type=PAYMENT`}
+          >
+            Sự cố
+          </Link>
+          . Trang này chỉ xem, không sửa giao dịch hay ghi nhận thanh toán.
+        </p>
+      )}
+      {!ADMIN_INCIDENTS_VISIBLE && (
+        <p role="note" className="text-sm text-heritage-muted">
+          Trang này chỉ xem, không sửa giao dịch hay ghi nhận thanh toán.
+        </p>
+      )}
       <section aria-labelledby="admin-payments-heading" className="space-y-3">
         <h2 id="admin-payments-heading" className="sr-only">
           Danh sách giao dịch

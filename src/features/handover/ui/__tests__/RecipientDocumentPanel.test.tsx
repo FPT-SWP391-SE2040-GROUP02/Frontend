@@ -60,6 +60,20 @@ describe("RecipientDocumentPanel: chọn Chấp nhận hoặc Từ chối", () =
     expect(post).not.toHaveBeenCalled();
   });
 
+  it("biên bản có câu báo của Admin thì hiện lưu ý về việc xóa tài sản trước khi chọn", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue(
+      recipientTurn({
+        declineNotice:
+          "Nếu một người nhận từ chối nhận, phần tài sản của gói bàn giao đó sẽ bị xóa hoàn toàn khỏi hệ thống.",
+      }),
+    );
+    renderPanel();
+
+    const note = await screen.findByRole("note");
+    expect(note).toHaveTextContent("Lưu ý khi từ chối");
+    expect(note).toHaveTextContent("xóa hoàn toàn khỏi hệ thống");
+  });
+
   it("bấm Tôi từ chối: POST kind đúng ngay (Phần 1 chép sẵn, không cần Người thực thi) rồi báo cổng tải lại", async () => {
     const user = userEvent.setup();
     vi.spyOn(apiClient, "get").mockResolvedValue("");

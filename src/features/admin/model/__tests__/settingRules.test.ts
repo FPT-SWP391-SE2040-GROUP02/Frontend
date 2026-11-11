@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { limitOf, settingErrors, settingRelationErrors, settingValueError } from "../settingRules";
+import {
+  limitOf,
+  settingErrors,
+  settingRelationErrors,
+  settingValueError,
+  textMaxLengthOf,
+} from "../settingRules";
 
 describe("settingValueError", () => {
   it("giá trị trong khoảng thì không lỗi", () => {
@@ -24,6 +30,13 @@ describe("settingValueError", () => {
       "Phải là số nguyên không âm.",
     );
     expect(settingValueError("CheckIn.MaxLateReminders", "-1")).toBe("Phải là số nguyên không âm.");
+  });
+
+  it("câu báo khi người nhận từ chối: tối đa 400 ký tự, không phải email", () => {
+    expect(settingValueError("Handover.DeclineNotice", "a".repeat(400))).toBe("");
+    expect(settingValueError("Handover.DeclineNotice", "a".repeat(401))).toBe("Tối đa 400 ký tự.");
+    expect(textMaxLengthOf("Handover.DeclineNotice", 200)).toBe(400);
+    expect(textMaxLengthOf("Khong.CoLuat", 200)).toBe(200);
   });
 
   it("chữ của công ty: giới hạn độ dài và dạng email", () => {

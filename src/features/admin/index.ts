@@ -9,6 +9,7 @@ export { AdminDevTools } from "./ui/AdminDevTools";
 export { ExecutorEmailPreviewPanel } from "./ui/ExecutorEmailPreviewPanel";
 export { AdminSettings } from "./ui/AdminSettings";
 export { AdminSystemConfig } from "./ui/AdminSystemConfig";
+export { ADMIN_INCIDENTS_VISIBLE } from "./model/admin.content";
 export { adminService } from "./api/adminService";
 export { adminSettingsService } from "./api/adminSettingsService";
 export { adminKeys, useAdminDashboard, useAdminUsers } from "./model/useAdmin";

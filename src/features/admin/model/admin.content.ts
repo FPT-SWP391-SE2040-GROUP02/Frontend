@@ -34,6 +34,12 @@ export interface DashboardCounter {
   attention: boolean;
 }
 
+/**
+ * Mục "Sự cố" đang ẩn khỏi giao diện Admin (menu, trang Tổng quan, đường dẫn ?view=incidents).
+ * Chỉ ẩn phía giao diện: Backend vẫn tự mở sự cố và chạy job nhắc. Đổi thành true để hiện lại.
+ */
+export const ADMIN_INCIDENTS_VISIBLE = false;
+
 export interface DashboardGroup {
   id: string;
   title: string;

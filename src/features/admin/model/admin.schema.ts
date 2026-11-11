@@ -315,6 +315,50 @@ export const paymentTransactionsQuerySchema = z.object({
 });
 export type PaymentTransactionsQuery = z.infer<typeof paymentTransactionsQuerySchema>;
 
+/** Cách gom doanh thu theo giờ Việt Nam. */
+export const revenueGroupBySchema = z.enum(["day", "month", "quarter"]);
+export type RevenueGroupBy = z.infer<typeof revenueGroupBySchema>;
+
+/** "Live" là tiền thật (mặc định), "Test" là thử nghiệm, "ALL" là gộp cả hai. */
+export const revenueEnvironmentSchema = z.enum(["Live", "Test", "ALL"]);
+export type RevenueEnvironment = z.infer<typeof revenueEnvironmentSchema>;
+
+/** AdminRevenueResponse: tổng tiền giao dịch đã khớp đơn hoặc đã xử lý, chia theo kỳ. */
+export const adminRevenueSchema = z.object({
+  groupBy: revenueGroupBySchema,
+  environment: revenueEnvironmentSchema,
+  totalAmount: z.number().int(),
+  transactionCount: z.number().int().nonnegative(),
+  currency: z.string().min(1),
+  buckets: z.array(
+    z.object({
+      /** "2026-11-05", "2026-11" hoặc "2026-Q4". */
+      key: z.string().min(1),
+      /** "05/11/2026", "11/2026" hoặc "Quý 4/2026". */
+      label: z.string().min(1),
+      amount: z.number().int(),
+      count: z.number().int().nonnegative(),
+    }),
+  ),
+});
+export type AdminRevenue = z.infer<typeof adminRevenueSchema>;
+
+/** Query GET /admin/payment-transactions/revenue. */
+export const adminRevenueQuerySchema = z.object({
+  groupBy: revenueGroupBySchema,
+  environment: revenueEnvironmentSchema,
+  /** Ngày yyyy-MM-dd theo giờ Việt Nam, tính cả ngày đầu và ngày cuối. */
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+});
+export type AdminRevenueQuery = z.infer<typeof adminRevenueQuerySchema>;
+
 /* Request body: độ dài theo DataAnnotations của Backend. */
 const reason500 = z.string().trim().min(1, "Vui lòng ghi lý do.").max(500, "Tối đa 500 ký tự.");
 const text1000 = (message: string) =>

@@ -11,6 +11,7 @@ import {
   Wrench,
 } from "lucide-react";
 import {
+  ADMIN_INCIDENTS_VISIBLE,
   AdminDevTools,
   AdminHolds,
   AdminIncidents,
@@ -154,7 +155,7 @@ function viewFor(pathname: string, search: string): AdminView {
   if (
     view === "settings" ||
     view === "plans" ||
-    view === "incidents" ||
+    (view === "incidents" && ADMIN_INCIDENTS_VISIBLE) ||
     view === "holds" ||
     view === "payments" ||
     view === "security"
@@ -213,9 +214,17 @@ export function AdminWorkspacePage() {
   const view = viewFor(location.pathname, location.search);
   // Số sự cố đang mở hiện làm số đếm ở menu; dùng chung dữ liệu với trang Tổng quan nên không gọi thêm API.
   const dashboard = useAdminDashboard();
-  const navigation = NAVIGATION_WITH_DEV_TOOLS.map((item) =>
-    item.id === "incidents" ? { ...item, badge: dashboard.data?.openIncidents ?? 0 } : item,
-  );
+  // Sự cố đang ẩn (ADMIN_INCIDENTS_VISIBLE): bỏ mục khỏi menu, không cần số đếm.
+  const navigation: WorkspaceNavigationItem[] = [];
+  for (const item of NAVIGATION_WITH_DEV_TOOLS) {
+    if (item.id === "incidents") {
+      if (ADMIN_INCIDENTS_VISIBLE) {
+        navigation.push({ ...item, badge: dashboard.data?.openIncidents ?? 0 });
+      }
+    } else {
+      navigation.push(item);
+    }
+  }
   return (
     <WorkspaceFrame
       role="admin"
@@ -232,7 +241,7 @@ export function AdminWorkspacePage() {
       )}
       {view === "settings" && <SettingsTabs />}
       {view === "plans" && <AdminSettings section="plans" />}
-      {view === "incidents" && <AdminIncidents />}
+      {view === "incidents" && ADMIN_INCIDENTS_VISIBLE && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
       {view === "users" && (

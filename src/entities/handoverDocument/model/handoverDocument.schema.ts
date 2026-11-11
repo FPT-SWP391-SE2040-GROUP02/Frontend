@@ -23,6 +23,8 @@ export const handoverDocumentSchema = z.object({
   kind: documentKindSchema,
   status: documentStatusSchema,
   templateVersion: z.string(),
+  /** Câu báo về việc xử lý phần tài sản khi có người nhận từ chối (Admin sửa được); Backend cũ không có trường này. */
+  declineNotice: z.string().nullish(),
   containerName: z.string(),
   itemCount: z.number().int().min(0),
   owner: z.object({

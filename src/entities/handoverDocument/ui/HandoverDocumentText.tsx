@@ -137,6 +137,7 @@ export function HandoverDocumentText({
             7. Tôi đã đọc lại toàn bộ nội dung, hiểu rõ, chấp nhận và nhận thức đầy đủ trách nhiệm
             pháp lý của mình khi lập và xác nhận biên bản này.
           </p>
+          {document.declineNotice && <p>8. Tôi đã được thông báo: {document.declineNotice}</p>}
         </>
       ) : (
         <>

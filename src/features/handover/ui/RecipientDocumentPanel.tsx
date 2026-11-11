@@ -268,6 +268,17 @@ function RecipientPartForm({
         canSwitch={!document.supplementReason}
         onSwitched={onDone}
       />
+      {document.declineNotice && (
+        <p
+          role="note"
+          className="flex items-start gap-2 rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]"
+        >
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>
+            <b>Lưu ý khi từ chối:</b> {document.declineNotice}
+          </span>
+        </p>
+      )}
       <section className="space-y-2">
         <h3 className="font-semibold text-heritage-primary">
           Phần 1 · Thông tin người để lại di sản

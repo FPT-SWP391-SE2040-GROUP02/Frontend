@@ -59,3 +59,30 @@ describe("câu về người mất trong biên bản", () => {
     );
   });
 });
+
+describe("câu báo khi người nhận từ chối", () => {
+  const NOTICE =
+    "Nếu một người nhận từ chối nhận, phần tài sản của gói bàn giao đó sẽ bị xóa hoàn toàn khỏi hệ thống và không thể khôi phục.";
+
+  it("biên bản đồng ý in câu báo của Admin ở mục 8", () => {
+    render(
+      <HandoverDocumentText document={documentFixture({ kind: "ACCEPT", declineNotice: NOTICE })} />,
+    );
+
+    const article = screen.getByRole("article", { name: "Biên bản đồng ý nhận di sản thừa kế" });
+    expect(text(article)).toContain(`8. Tôi đã được thông báo: ${NOTICE}`);
+  });
+
+  it("Backend cũ chưa có câu báo thì không in mục 8, văn bản từ chối không có mục này", () => {
+    render(<HandoverDocumentText document={documentFixture({ kind: "ACCEPT" })} />);
+    expect(text(screen.getByRole("article"))).not.toContain("8. Tôi đã được thông báo");
+    cleanup();
+
+    render(
+      <HandoverDocumentText
+        document={documentFixture({ kind: "DECLINE", declineNotice: NOTICE })}
+      />,
+    );
+    expect(text(screen.getByRole("article"))).not.toContain("8. Tôi đã được thông báo");
+  });
+});
