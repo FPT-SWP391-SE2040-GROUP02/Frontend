@@ -11,19 +11,13 @@ import { formatDateTime } from "@/shared/lib/dateFormat";
 import { useServerNow } from "@/shared/clock/useServerNow";
 import { planSetupService } from "../api/planSetupService";
 import { invitationInspectFailure } from "../lib/invitationInspectError";
+import { invitationTimeLeft } from "../lib/invitationTimeLeft";
 
 const capabilities = [
   "Báo tin cho hệ thống",
   "Theo dõi tiến trình bàn giao",
   "Không đọc được nội dung kho",
 ];
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** Số ngày còn lại của lời mời, làm tròn lên; lời mời đã hết hạn thì 0. */
-function daysLeft(expiresAt: string, nowMs: number): number {
-  return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - nowMs) / DAY_MS));
-}
 
 /** Token only in fragment/component RAM; inspect never claims, confirmation never defaults true. */
 export function ExecutorInvitationPanel({ token }: { token: string }) {
@@ -41,7 +35,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
     retry: false,
     gcTime: 0,
   });
-  if (query.isPending) return <p role="status">Đang kiểm tra lời mời Executor…</p>;
+  if (query.isPending) return <p role="status">Đang kiểm tra lời mời Người thực thi…</p>;
   if (query.isError) {
     const failure = invitationInspectFailure(query.error, token);
     return (
@@ -69,7 +63,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
     return (
       <div role="status" className="space-y-5">
         <h1 className="text-3xl font-semibold leading-tight text-heritage-primary">
-          Bạn đã là người thực hiện
+          Bạn đã là Người thực thi
         </h1>
         <p className="text-sm leading-6 text-heritage-muted">
           Kho đã được thêm vào tài khoản của bạn.
@@ -97,17 +91,21 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
       </div>
     );
   }
-  const remaining = daysLeft(query.data.expiresAt, serverNow.getTime());
+  const remaining = invitationTimeLeft(query.data.expiresAt, serverNow.getTime());
+  let validity = "Lời mời đã hết hạn";
+  if (remaining !== null) {
+    validity = `Lời mời còn hiệu lực ${remaining}`;
+  }
   return (
     <div className="space-y-5">
       <h1 className="text-3xl font-semibold leading-tight text-heritage-primary">
-        Bạn được mời làm Người thực hiện
+        Bạn được mời làm Người thực thi
       </h1>
       <p className="text-sm leading-6 text-heritage-muted">
         Xem kỹ trước khi quyết định. Bạn có thể từ chối.
       </p>
       <div className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5">
-        <p className="text-sm font-semibold">Vai trò được mời: Executor.</p>
+        <p className="text-sm font-semibold">Vai trò được mời: Người thực thi.</p>
         <ul className="space-y-2 text-sm">
           {capabilities.map((item) => (
             <li key={item} className="flex items-center gap-2">
@@ -118,8 +116,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         </ul>
       </div>
       <Notice tone="warning">
-        Lời mời còn hiệu lực {remaining} ngày (đến {formatDateTime(query.data.expiresAt)}). Bạn
-        không đọc được nội dung kho.
+        {validity} (đến {formatDateTime(query.data.expiresAt)}). Bạn không đọc được nội dung kho.
       </Notice>
       <p className="text-xs leading-6 text-heritage-muted">{query.data.scopeText}</p>
       <p className="text-xs leading-6 text-heritage-muted">
@@ -158,7 +155,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc phạm vi, hiểu nhiệm vụ và tự nguyện chấp nhận làm Executor.
+            Tôi đã đọc phạm vi, hiểu nhiệm vụ và tự nguyện chấp nhận làm Người thực thi.
           </label>
           <div className="space-y-3">
             {[true, false].map((accept) => (

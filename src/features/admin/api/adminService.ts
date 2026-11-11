@@ -65,6 +65,14 @@ export const adminService = {
       await apiClient.post<unknown, unknown>("/admin/users", payload, { signal }),
     );
   },
+  /** Tải ảnh thẻ công chứng viên của một Người xét duyệt (multipart: file); BE trả 204. */
+  async uploadNotaryCard(userId: string, file: File) {
+    const form = new FormData();
+    form.append("file", file);
+    await apiClient.put<unknown, unknown>(`/admin/users/${id.parse(userId)}/notary-card`, form, {
+      headers: { "Content-Type": undefined },
+    });
+  },
   /** Danh sách tài khoản; bỏ `search` rỗng thay vì gửi `search=`. */
   async listUsers(query: AdminUsersQuery, signal?: AbortSignal) {
     const parsed = adminUsersQuerySchema.parse(query);

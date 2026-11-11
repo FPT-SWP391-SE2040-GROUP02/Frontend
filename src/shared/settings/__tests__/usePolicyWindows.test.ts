@@ -9,7 +9,7 @@ describe("readPolicyWindows", () => {
     });
     expect(windows.grantDays).toBe(10);
     expect(windows.freeQuotaMb).toBe(5);
-    expect(windows.executorInviteDays).toBe(DEFAULT_POLICY_WINDOWS.executorInviteDays);
+    expect(windows.executorInviteMinutes).toBe(DEFAULT_POLICY_WINDOWS.executorInviteMinutes);
   });
 
   it("đọc hạn quyết định của người nhận từ Handover.DecisionWindowDays", () => {

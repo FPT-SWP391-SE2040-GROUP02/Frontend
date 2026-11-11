@@ -196,7 +196,7 @@ it("keeps inspect separate from acceptance, sends token in body and never caches
   expect(requests).toHaveLength(1);
   fireEvent.click(screen.getByRole("checkbox"));
   fireEvent.click(accept);
-  expect(await screen.findByText("Bạn đã là người thực hiện")).toBeInTheDocument();
+  expect(await screen.findByText("Bạn đã là Người thực thi")).toBeInTheDocument();
   expect(requests).toHaveLength(2);
   expect(requests[1].url).toBe("/executor-invitations/respond");
   expect(JSON.parse(String(requests[1].data))).toMatchObject({

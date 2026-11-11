@@ -1,9 +1,4 @@
 /* Bố cục Tổng quan Chủ kho; không thay token hoặc hình thức các workspace khác. */
-.overview-vault-details > summary {
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-}
 .owner-overview-layout {
   display: grid;
   gap: 20px;

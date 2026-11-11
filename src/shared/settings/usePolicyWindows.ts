@@ -7,8 +7,8 @@ import { apiClient } from "@/shared/api/axiosClient";
  * khớp với mặc định của Backend.
  */
 export interface PolicyWindows {
-  /** Ngày lời mời Người thực thi còn hiệu lực (Executor.InvitationExpiresDays). */
-  executorInviteDays: number;
+  /** Phút lời mời Người thực thi còn hiệu lực (Executor.InvitationExpiresMinutes). */
+  executorInviteMinutes: number;
   /** Phút tối thiểu giữa hai lần gửi lại lời mời (Handover.ResendCooldownMinutes). */
   resendCooldownMinutes: number;
   /** Ngày người nhận phản hồi lời mời (Handover.ResponseWindowDays). */
@@ -26,7 +26,7 @@ export interface PolicyWindows {
 }
 
 export const DEFAULT_POLICY_WINDOWS: PolicyWindows = {
-  executorInviteDays: 7,
+  executorInviteMinutes: 10,
   resendCooldownMinutes: 15,
   responseDays: 5,
   decisionDays: 7,
@@ -37,7 +37,7 @@ export const DEFAULT_POLICY_WINDOWS: PolicyWindows = {
 };
 
 const KEYS: Record<keyof PolicyWindows, string> = {
-  executorInviteDays: "Executor.InvitationExpiresDays",
+  executorInviteMinutes: "Executor.InvitationExpiresMinutes",
   resendCooldownMinutes: "Handover.ResendCooldownMinutes",
   responseDays: "Handover.ResponseWindowDays",
   decisionDays: "Handover.DecisionWindowDays",

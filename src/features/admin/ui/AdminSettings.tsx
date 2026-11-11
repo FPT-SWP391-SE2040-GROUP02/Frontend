@@ -206,15 +206,15 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
 
   // 3. Người thực thi (Executor)
   {
-    key: "Executor.InvitationExpiresDays",
+    key: "Executor.InvitationExpiresMinutes",
     label: "Hạn lời mời Người thực thi",
     category: "Executor",
     categoryTitle: "Người thực thi",
-    unit: "ngày",
+    unit: "phút",
     step: 1,
-    defaultValue: "7",
+    defaultValue: "10",
     description: "Thời hạn hiệu lực của lời mời đảm nhận vai trò Người thực thi.",
-    src: "Executors.ExpiresAt (7 ngày)",
+    src: "Executors.ExpiresAt (10 phút)",
     dataType: "NUMBER",
   },
   {

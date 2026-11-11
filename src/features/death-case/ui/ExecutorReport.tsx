@@ -21,7 +21,10 @@ import { ReviewFeedback } from "./ReviewFeedback";
 
 const nextSteps = () => [
   { title: "Xét duyệt", text: "Người xét duyệt xem hồ sơ." },
-  { title: "Xác minh và đồng ý nhận", text: "Người nhận xác minh eKYC rồi đồng ý hoặc từ chối." },
+  {
+    title: "Xác minh và đồng ý nhận",
+    text: "Người nhận nộp giấy xác minh rồi đồng ý hoặc từ chối.",
+  },
 ];
 
 /** Nút mở hồ sơ chứng tử mới cho kho; chỉ gọi Backend khi bấm, không tự tạo hồ sơ. */
