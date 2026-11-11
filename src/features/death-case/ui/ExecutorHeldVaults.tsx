@@ -5,11 +5,11 @@ import { vaultStage } from "../model/executorTodo";
 import { useSelectedExecutorVault } from "../model/useExecutorVaults";
 
 /**
- * "Kho bạn đang giữ": mỗi kho một dòng (chữ cái đầu, "Kho của {Chủ kho}", ngày nhận vai, trạng thái) và nút
- * "Mở kho" để chọn kho rồi về Tổng quan. Dữ liệu từ danh sách kho Backend trả, không tự suy thêm quyền.
+ * "Kho bạn đang giữ": mỗi kho một dòng (chữ cái đầu, "Kho của {Chủ kho}", ngày nhận vai, trạng thái). Kho đang mở
+ * hiện chip "Đang mở"; kho khác có nút "Mở kho" để chọn kho rồi về Tổng quan. Đây là chỗ duy nhất để đổi kho. Dữ liệu từ danh sách kho Backend trả, không tự suy thêm quyền.
  */
 export function ExecutorHeldVaults() {
-  const { query, vaults, open } = useSelectedExecutorVault();
+  const { query, vaults, selected, open } = useSelectedExecutorVault();
   let body;
   if (query.isPending) {
     body = (
@@ -37,6 +37,7 @@ export function ExecutorHeldVaults() {
       <ul className="divide-y divide-heritage-border rounded-2xl border border-heritage-border bg-heritage-surface">
         {vaults.map((vault) => {
           const stage = vaultStage(vault);
+          const isOpen = selected?.vaultId === vault.vaultId;
           return (
             <li key={vault.vaultId} className="flex flex-wrap items-center gap-4 p-4">
               <Initial name={vault.ownerFullName} />
@@ -49,14 +50,18 @@ export function ExecutorHeldVaults() {
                 )}
               </div>
               <Chip tone={stage.tone}>{stage.label}</Chip>
-              <button
-                type="button"
-                className={buttonStyles.outline}
-                aria-label={`Mở kho của ${vault.ownerFullName}`}
-                onClick={() => open(vault.vaultId, ROUTES.EXECUTOR.ROOT)}
-              >
-                Mở kho
-              </button>
+              {isOpen ? (
+                <Chip tone="success">Đang mở</Chip>
+              ) : (
+                <button
+                  type="button"
+                  className={buttonStyles.outline}
+                  aria-label={`Mở kho của ${vault.ownerFullName}`}
+                  onClick={() => open(vault.vaultId, ROUTES.EXECUTOR.ROOT)}
+                >
+                  Mở kho
+                </button>
+              )}
             </li>
           );
         })}

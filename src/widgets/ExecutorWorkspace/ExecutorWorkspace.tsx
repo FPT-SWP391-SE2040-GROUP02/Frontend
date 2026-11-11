@@ -9,6 +9,7 @@ import {
   Mail,
   Menu,
   Package,
+  Settings,
   Send,
   X,
   type LucideIcon,
@@ -23,8 +24,7 @@ import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "./executor-workspace.css";
 import { NotificationBell } from "@/features/death-case/ui/NotificationBell";
-import { useSelectedExecutorVault } from "@/features/death-case/model/useExecutorVaults";
-import { ExecutorVaultMenu } from "./ExecutorVaultMenu";
+import { ExecutorVaultCard } from "./ExecutorVaultCard";
 
 interface NavItem {
   label: string;
@@ -33,8 +33,9 @@ interface NavItem {
 }
 
 /**
- * Menu theo kho đang chọn: Tổng quan, Báo tin, Bàn giao, Tài sản và hướng dẫn, Biên bản.
- * "Lời mời và kho của tôi", Xác minh (eKYC) và Cài đặt nằm ở chân thanh bên, dưới nút đổi vai.
+ * Menu theo kho đang chọn: Tổng quan, Báo tin, Bàn giao, Tài sản và hướng dẫn, Biên bản, Cài đặt.
+ * "Lời mời và các kho bạn đang làm việc" nằm ở chân thanh bên, dưới nút đổi vai. Không còn mục Xác minh trong menu
+ * (trang vẫn còn, chỉ không có liên kết).
  */
 const executorNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT, icon: Home },
@@ -42,11 +43,7 @@ const executorNavigation: NavItem[] = [
   { label: "Bàn giao", to: ROUTES.EXECUTOR.PROGRESS, icon: Send },
   { label: "Tài sản và hướng dẫn", to: ROUTES.EXECUTOR.ASSETS, icon: Package },
   { label: "Biên bản", to: ROUTES.EXECUTOR.DOCUMENTS, icon: FileText },
-];
-
-const accountNavigation: Array<{ label: string; to: string }> = [
-  { label: "Xác minh", to: ROUTES.EXECUTOR.IDENTITY },
-  { label: "Cài đặt", to: ROUTES.EXECUTOR.SETTINGS },
+  { label: "Cài đặt", to: ROUTES.EXECUTOR.SETTINGS, icon: Settings },
 ];
 
 /**
@@ -72,9 +69,6 @@ export function ExecutorWorkspace({
   const invitations = useMyInvitations(isAuthenticated && Boolean(accessTokenMemory.get()));
   let pendingInvitations = 0;
   if (invitations.isSuccess) pendingInvitations = invitations.data.pending.length;
-  const { selected } = useSelectedExecutorVault();
-  let vaultGroupTitle = "Kho đang chọn";
-  if (selected) vaultGroupTitle = `Kho ${selected.ownerFullName}`;
   const path = location.pathname;
   const isCurrent = (to: string): boolean => {
     if (to === ROUTES.EXECUTOR.ROOT) return path === to;
@@ -112,9 +106,9 @@ export function ExecutorWorkspace({
             className="owner-navigation"
             data-open={navigationOpen}
           >
-            <ExecutorVaultMenu />
+            <ExecutorVaultCard />
             <p className="mt-3 truncate px-3 text-[11px] font-semibold uppercase tracking-widest text-white/60">
-              {vaultGroupTitle}
+              Kho này
             </p>
             {executorNavigation.map(({ to, label, icon: Icon }) => (
               <Link
@@ -137,24 +131,13 @@ export function ExecutorWorkspace({
             <Link
               to={ROUTES.EXECUTOR.INVITATIONS}
               aria-current={isCurrent(ROUTES.EXECUTOR.INVITATIONS) ? "page" : undefined}
-              className="flex min-h-9 w-full items-center gap-2 rounded-lg px-2 text-sm text-[#E9EFE9] hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:font-semibold"
+              className="flex min-h-9 w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm leading-snug text-[#E9EFE9] hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:font-semibold"
               onClick={() => setNavigationOpen(false)}
             >
-              <Mail className="size-4 shrink-0" aria-hidden="true" />
-              Lời mời và kho của tôi
+              <Mail className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 flex-1">Lời mời và các kho bạn đang làm việc</span>
               {pendingInvitations > 0 && <InvitationCountBadge count={pendingInvitations} />}
             </Link>
-            {accountNavigation.map(({ to, label }) => (
-              <Link
-                key={to}
-                to={to}
-                aria-current={isCurrent(to) ? "page" : undefined}
-                className="flex min-h-9 items-center gap-1 rounded-lg px-2 text-sm text-[#E9EFE9] hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:font-semibold"
-                onClick={() => setNavigationOpen(false)}
-              >
-                {label}
-              </Link>
-            ))}
           </nav>
           <Link
             to={ROUTES.DASHBOARD.ROOT}

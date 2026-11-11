@@ -120,20 +120,22 @@ describe("Executor workspace shell", () => {
   it("shows the five main menu items, the account links, the role switch and the account", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor");
+    await screen.findByRole("link", { name: "Đổi kho →" });
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người thực thi" });
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
+      "Đổi kho →",
       "Tổng quan",
       "Báo tin",
       "Bàn giao",
       "Tài sản và hướng dẫn",
       "Biên bản",
+      "Cài đặt",
     ]);
     const account = screen.getByRole("navigation", { name: "Tài khoản" });
     expect(Array.from(account.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
-      "Lời mời và kho của tôi",
-      "Xác minh",
-      "Cài đặt",
+      "Lời mời và các kho bạn đang làm việc",
     ]);
+    expect(screen.queryByRole("link", { name: "Xác minh" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Sang vai Chủ kho" })).toHaveAttribute(
       "href",
@@ -148,29 +150,56 @@ describe("Executor workspace shell", () => {
     ).toBeInTheDocument();
   });
 
-  it("lists every vault the account keeps, with a stage line and a gold border on the chosen one", async () => {
+  it("menu trái chỉ có một thẻ kho đang làm việc, không bấm được, và Đổi kho → dẫn tới trang lời mời", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
       vault({ planStatus: "HANDOVER_IN_PROGRESS", openDeathCaseId: CASE_ID }),
       vault({ vaultId: OTHER_VAULT_ID, ownerFullName: "Bà Hạnh", planStatus: "CLOSED" }),
     ]);
-    window.sessionStorage.setItem("lv-executor-vault", VAULT_ID);
     setup("/executor");
-    const group = await screen.findByRole("region", { name: "Kho bạn đang giữ" });
-    const chosen = within(group).getByRole("button", { name: "Kho của Anh Nam" });
-    const other = within(group).getByRole("button", { name: "Kho của Bà Hạnh" });
-    expect(chosen).toHaveTextContent("Đang bàn giao");
-    expect(other).toHaveTextContent("Đã hoàn tất");
-    expect(chosen).toHaveAttribute("aria-pressed", "true");
-    expect(chosen).toHaveClass("border-[#C9A45C]");
-    expect(other).toHaveAttribute("aria-pressed", "false");
-    // Nhóm menu theo kho đang chọn.
-    expect(screen.getByText("Kho Anh Nam")).toBeInTheDocument();
-    // Bấm kho khác để chuyển kho, dùng đúng cơ chế chọn kho sẵn có (nhớ trong phiên).
-    fireEvent.click(other);
-    expect(window.sessionStorage.getItem("lv-executor-vault")).toBe(OTHER_VAULT_ID);
+    const group = await screen.findByRole("region", { name: "Đang làm việc với kho" });
+    const card = await within(group).findByRole("group", { name: "Kho đang làm việc: Anh Nam" });
+    expect(card).toHaveTextContent("Đang bàn giao");
+    // Không còn danh sách kho để bấm chuyển trong menu.
+    expect(screen.queryByRole("button", { name: "Kho của Bà Hạnh" })).not.toBeInTheDocument();
+    expect(within(group).queryByRole("button")).not.toBeInTheDocument();
+    expect(within(group).getByRole("link", { name: "Đổi kho →" })).toHaveAttribute(
+      "href",
+      "/executor/invitations",
+    );
+    // Tiêu đề nhóm menu bên dưới.
+    expect(screen.getByText("Kho này")).toBeInTheDocument();
   });
 
-  it("shows the pending invitation count on Lời mời và kho của tôi and hides it at zero", async () => {
+  it("chưa chọn kho nào thì tự chọn kho đầu tiên; kho đã nhớ trong phiên thì dùng kho đó", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault(),
+      vault({ vaultId: OTHER_VAULT_ID, ownerFullName: "Bà Hạnh" }),
+    ]);
+    setup("/executor");
+    expect(
+      await screen.findByRole("group", { name: "Kho đang làm việc: Anh Nam" }),
+    ).toBeInTheDocument();
+    cleanup();
+    window.sessionStorage.setItem("lv-executor-vault", OTHER_VAULT_ID);
+    setup("/executor");
+    expect(
+      await screen.findByRole("group", { name: "Kho đang làm việc: Bà Hạnh" }),
+    ).toBeInTheDocument();
+  });
+
+  it("không có kho nào: thẻ ghi Chưa giữ kho nào và liên kết thành Xem lời mời →", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    setup("/executor");
+    const group = await screen.findByRole("region", { name: "Đang làm việc với kho" });
+    expect(await within(group).findByText("Chưa giữ kho nào")).toBeInTheDocument();
+    expect(within(group).getByRole("link", { name: "Xem lời mời →" })).toHaveAttribute(
+      "href",
+      "/executor/invitations",
+    );
+    expect(within(group).queryByRole("link", { name: "Đổi kho →" })).not.toBeInTheDocument();
+  });
+
+  it("shows the pending invitation count on Lời mời và các kho bạn đang làm việc and hides it at zero", async () => {
     const mine = (pending: unknown[]) => ({
       scopeVersion: "v1",
       scopeText: "scope",
@@ -193,13 +222,15 @@ describe("Executor workspace shell", () => {
       return [];
     });
     setup("/executor");
-    const link = await screen.findByRole("link", { name: /Lời mời và kho của tôi/ });
+    const link = await screen.findByRole("link", { name: /Lời mời và các kho bạn đang làm việc/ });
     expect(await within(link).findByLabelText("1 lời mời đang chờ")).toBeInTheDocument();
     cleanup();
     client.clear();
     pending = [];
     setup("/executor");
-    const emptyLink = await screen.findByRole("link", { name: /Lời mời và kho của tôi/ });
+    const emptyLink = await screen.findByRole("link", {
+      name: /Lời mời và các kho bạn đang làm việc/,
+    });
     await screen.findByRole("heading", { level: 1, name: "Kho của Anh Nam" });
     expect(within(emptyLink).queryByLabelText(/lời mời đang chờ/)).not.toBeInTheDocument();
   });
@@ -601,26 +632,18 @@ describe("Executor overview", () => {
     ).toBeInTheDocument();
   });
 
-  it("lists several vaults with their task, overdue first, and remembers the opened one", async () => {
+  it("nhiều kho: vào thẳng Tổng quan của kho đầu tiên, không còn bước chọn kho", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
       vault(),
       vault({ vaultId: OTHER_VAULT_ID, ownerFullName: "Bà Hạnh", checkInOverdue: true }),
     ]);
     setup("/executor");
-    expect(await screen.findByText("Bạn là Người thực thi cho 2 kho.")).toBeInTheDocument();
-    expect(screen.getByText("1 kho đang cần bạn")).toBeInTheDocument();
-    const names = screen
-      .getAllByRole("heading", { level: 2 })
-      .map((heading) => heading.textContent);
-    expect(names.indexOf("Bà Hạnh")).toBeLessThan(names.indexOf("Anh Nam"));
-    expect(screen.getByRole("button", { name: "Liên hệ kiểm tra" })).toBeInTheDocument();
-    expect(screen.getByText("Chưa có việc gì")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Mở kho của Anh Nam" }));
     expect(
       await screen.findByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
     ).toBeInTheDocument();
-    expect(window.sessionStorage.getItem("lv-executor-vault")).toBe(VAULT_ID);
+    expect(screen.getByRole("heading", { level: 1, name: "Kho của Anh Nam" })).toBeInTheDocument();
+    expect(screen.queryByText("Bạn là Người thực thi cho 2 kho.")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Mở kho của Anh Nam" })).not.toBeInTheDocument();
   });
 
   it("reports a failed vault list with a retry instead of an empty page", async () => {

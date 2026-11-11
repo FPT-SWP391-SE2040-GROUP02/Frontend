@@ -439,7 +439,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
   });
 });
 
-describe("Lời mời và kho của tôi", () => {
+describe("Lời mời và các kho bạn đang làm việc", () => {
   const invitation = {
     id: "99999999-9999-4999-8999-999999999999",
     ownerName: "Cô Lan",
@@ -519,14 +519,56 @@ describe("Lời mời và kho của tôi", () => {
     expect(screen.getAllByText("Kế hoạch đang chạy").length).toBeGreaterThan(0);
   });
 
-  it("kho đang giữ: dòng, chip trạng thái và nút Mở kho nhớ kho đã chọn", async () => {
+  it("kho đang mở hiện chip Đang mở thay cho nút; kho khác có Mở kho, bấm thì chọn kho (chỗ duy nhất đổi kho)", async () => {
+    const other = vault({
+      vaultId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      ownerFullName: "Bà Hạnh",
+      planStatus: "ACTIVE",
+      openDeathCaseId: null,
+    });
+    mockApi([vault(), other]);
+    render2(<ExecutorInvitationsPage />, "/executor/invitations");
+    expect(await screen.findByText("Kho của Anh Nam", { selector: "p" })).toBeInTheDocument();
+    expect(screen.getAllByText("Bạn nhận vai ngày 01/10/2026", { selector: "p" })).toHaveLength(2);
+    expect(screen.getAllByText("Đang bàn giao").length).toBeGreaterThan(0);
+    // Kho đầu tiên được tự chọn: chip "Đang mở", không có nút Mở kho cho kho này.
+    expect(screen.getByText("Đang mở")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Mở kho của Anh Nam" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Mở kho của Bà Hạnh" }));
+    expect(window.sessionStorage.getItem("lv-executor-vault")).toBe(
+      "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    );
+  });
+
+  it("dòng phụ của trang và thứ tự: lời mời đang chờ ở trên cùng, rồi Kho bạn đang giữ", async () => {
     mockApi([vault()]);
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
-    expect(await screen.findByText("Kho của Anh Nam")).toBeInTheDocument();
-    expect(screen.getByText("Bạn nhận vai ngày 01/10/2026")).toBeInTheDocument();
-    expect(screen.getAllByText("Đang bàn giao").length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole("button", { name: "Mở kho của Anh Nam" }));
-    expect(window.sessionStorage.getItem("lv-executor-vault")).toBe(VAULT_ID);
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Lời mời và các kho bạn đang làm việc",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Chọn kho để làm việc. Lời mời mới nằm ở trên cùng."),
+    ).toBeInTheDocument();
+    const label = await screen.findByRole("heading", { name: "Lời mời đang chờ" });
+    const held = screen.getByRole("heading", { name: "Kho bạn đang giữ" });
+    expect(label.compareDocumentPosition(held) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("không có lời mời đang chờ: không hiện nhãn LỜI MỜI ĐANG CHỜ cũng không có câu trống", async () => {
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/executor/vaults") return [vault()];
+      if (url.includes("executor-invitations")) {
+        return { scopeVersion: "v1", scopeText: "x", pending: [], ended: [] };
+      }
+      return [];
+    });
+    render2(<ExecutorInvitationsPage />, "/executor/invitations");
+    expect(await screen.findByRole("heading", { name: "Kho bạn đang giữ" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Lời mời đang chờ" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Không có lời mời nào đang chờ/)).not.toBeInTheDocument();
   });
 
   it("lời mời đã kết thúc gom thành một dòng nhỏ có nút Xem", async () => {
