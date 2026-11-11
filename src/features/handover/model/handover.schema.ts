@@ -1,6 +1,27 @@
 import { z } from "zod";
 const timestamp = z.string().datetime({ offset: true });
-export const invitationSchema = z.object({ valid: z.boolean(), responseExpired: z.boolean() });
+/**
+ * Kết quả kiểm link mời (công khai). Email được mời luôn đã che bớt (ví dụ m•••••h@example.com), không bao giờ đầy đủ;
+ * accountExists cho trang cửa vào chọn nút Đăng nhập hay Tạo tài khoản.
+ */
+export const invitationSchema = z.object({
+  valid: z.boolean(),
+  responseExpired: z.boolean(),
+  invitedEmailMasked: z.string().nullish(),
+  /** Email người nhận đầy đủ cho người giữ link: đăng ký điền sẵn và khóa đúng email này. */
+  invitedEmail: z.string().nullish(),
+  accountExists: z.boolean().default(false),
+  ownerFullName: z.string().nullish(),
+});
+export type Invitation = z.infer<typeof invitationSchema>;
+/** Lời mời nhận gói đang chờ tài khoản đang đăng nhập (GET /handover/invitations/mine). */
+export const pendingInvitationSchema = z.object({
+  turnId: z.string().uuid(),
+  containerName: z.string(),
+  ownerFullName: z.string(),
+  invitedAt: timestamp,
+});
+export type PendingInvitation = z.infer<typeof pendingInvitationSchema>;
 /** Kết quả kiểm thư mời bằng mã hồ sơ và 4 số cuối căn cước (POST /handover/invitations/{token}/check-mail). */
 export const mailCheckSchema = z.object({
   verified: z.boolean(),

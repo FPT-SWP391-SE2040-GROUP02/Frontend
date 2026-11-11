@@ -6,6 +6,7 @@ import {
   RECEIVE_INVITATION_SUBTITLE,
 } from "@/features/auth/model/authLayout.content";
 import { Link, useSearchParams } from "react-router-dom";
+import { z } from "zod";
 import { ROUTES } from "@/shared/config/routes.config";
 
 /** Trang đăng ký trong khung Auth dùng chung, giữ nguyên form và hợp đồng hiện tại. */
@@ -19,6 +20,19 @@ export function RegisterPage() {
     redirect = getLoginRedirect(rawRedirect);
   }
   const fromReceive = redirect !== null && isReceiveRedirect(redirect);
+  // Chỉ khi đi từ thư mời mới nhận email điền sẵn (tham số email sẵn có của luồng đăng nhập/xác minh) và email che bớt.
+  let lockedEmail: string | null = null;
+  let invitedEmailMasked: string | null = null;
+  if (fromReceive) {
+    const emailParam = z.string().trim().max(254).email().safeParse(params.get("email"));
+    if (emailParam.success) {
+      lockedEmail = emailParam.data;
+    }
+    const maskedParam = z.string().trim().max(254).includes("@").safeParse(params.get("invited"));
+    if (maskedParam.success) {
+      invitedEmailMasked = maskedParam.data;
+    }
+  }
   let description: string = content.description;
   if (fromReceive) {
     description = RECEIVE_INVITATION_SUBTITLE;
@@ -35,7 +49,12 @@ export function RegisterPage() {
         </h1>
         <p className="text-sm leading-7 text-heritage-muted">{description}</p>
       </header>
-      <RegisterForm redirect={redirect} fromInvitation={fromReceive} />
+      <RegisterForm
+        redirect={redirect}
+        fromInvitation={fromReceive}
+        lockedEmail={lockedEmail}
+        invitedEmailMasked={invitedEmailMasked}
+      />
       <p className="mt-6 border-t border-heritage-border pt-5 text-sm text-heritage-muted">
         {content.existing}{" "}
         <Link

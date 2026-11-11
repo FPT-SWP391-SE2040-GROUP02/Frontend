@@ -24,10 +24,12 @@ import { useGrantDownload } from "../model/useGrantDownload";
 import { useHandoverAction } from "../model/useHandoverAction";
 import { remainingText } from "../model/handover.format";
 import { currentHandoverStep } from "../model/handoverStep";
+import { myTurnsKey, usePendingInvitations } from "../model/usePendingInvitations";
 import { HandoverStepper } from "./HandoverStepper";
 import { HandoverTerms } from "./HandoverTerms";
 import { RecipientGuide } from "./RecipientGuide";
 import { RecipientDocumentPanel } from "./RecipientDocumentPanel";
+import { PendingInvitationCards } from "./PendingInvitationCards";
 
 type Turn = z.infer<typeof handoverTurnSchema>;
 
@@ -160,10 +162,14 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
   // Biên bản đã ký của lượt đã kết thúc: hiện cạnh nút tải tài sản (đã nhận) hoặc đứng riêng (đã từ chối).
   const documentQuery = useTurnDocument(
     turn.id,
-    turn.status === "HANDOVER_COMMITTED" || turn.status === "DECLINED",
+    turn.status === "HANDOVER_COMMITTED" ||
+      turn.status === "DECLINED" ||
+      turn.status === "IDENTITY_IN_PROGRESS",
   );
   const signedDocument = documentQuery.data ?? null;
-  const step = currentHandoverStep(turn.status);
+  // Đã ký và gửi cho Người xét duyệt thì tiến trình sang bước 2 (chờ Người xét duyệt duyệt).
+  const signed = signedDocument !== null && signedDocument.status !== "WAIT_RECIPIENT";
+  const step = currentHandoverStep(turn.status, signed);
   const hasGroupName = turn.container !== null;
   let groupName = "Lượt bàn giao";
   if (turn.container) {
@@ -488,13 +494,16 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
 /** Danh sách lượt của principal; không dựng grant hoặc trạng thái từ URL. */
 export function HandoverPortal() {
   const query = useQuery({
-    queryKey: ["handover", "turns"],
+    queryKey: myTurnsKey,
     queryFn: ({ signal }) => handoverService.list(signal),
     retry: false,
   });
+  const invitations = usePendingInvitations();
+  const hasInvitations = invitations.isSuccess && invitations.data.length > 0;
   if (query.isPending) return <p role="status">Đang tải các lượt bàn giao…</p>;
   return (
     <div className="space-y-8">
+      <PendingInvitationCards />
       <div className="flex justify-end">
         <button
           type="button"
@@ -514,12 +523,14 @@ export function HandoverPortal() {
           Không tải được các lượt của bạn. Vui lòng thử lại.
         </p>
       ) : query.data.length === 0 ? (
-        <div className="space-y-2">
-          <p role="status">Bạn chưa nhận lời mời bàn giao nào trên tài khoản này.</p>
-          <p className="text-sm text-heritage-muted">
-            Mở lại liên kết trong thư mời để nhận lời mời.
-          </p>
-        </div>
+        !hasInvitations && (
+          <div className="space-y-2">
+            <p role="status">Hiện chưa có gói nào chờ bạn trên tài khoản này.</p>
+            <p className="text-sm text-heritage-muted">
+              Nếu bạn vừa nhận thư mời, hãy đăng nhập bằng đúng email ghi trong thư.
+            </p>
+          </div>
+        )
       ) : (
         <>
           <RecipientGuide />

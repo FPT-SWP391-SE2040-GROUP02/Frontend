@@ -39,7 +39,15 @@ export function getLoginRedirect(value: string | null): string {
  * @returns true khi người dùng đang đi từ liên kết lời mời.
  */
 export function isReceiveRedirect(redirect: string): boolean {
-  return redirect === ROUTES.RECEIVE || redirect.startsWith(`${ROUTES.RECEIVE}?`);
+  // Link thư mời cũ (/receive) và cổng người nhận (nơi người nhận chọn Đồng ý/Từ chối sau khi đăng nhập).
+  const portal = ROUTES.BENEFICIARY.CLAIM;
+  return (
+    redirect === ROUTES.RECEIVE ||
+    redirect.startsWith(`${ROUTES.RECEIVE}?`) ||
+    redirect === portal ||
+    redirect.startsWith(`${portal}?`) ||
+    redirect.startsWith(`${portal}/`)
+  );
 }
 
 /**

@@ -1,19 +1,11 @@
 import { Check } from "lucide-react";
-import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
-const stepLabels = (grantDays: number) => [
-  "Báo tin",
-  "Xét duyệt",
-  "Xác minh danh tính",
-  "Đồng ý hoặc từ chối",
-  `Tải nội dung ${grantDays} ngày`,
-];
+const stepLabels = ["Đồng ý hoặc từ chối", "Người xét duyệt duyệt", "Nhập mã và mở gói"];
 
-/** Năm bước của quy trình bàn giao theo thiết kế (tiến trình bàn giao): xong, đang ở đây, chờ. */
+/** Ba bước của người nhận: xong, đang ở đây, chờ. Không có bước "Nhận thư mời" (nhận lượt chạy ngầm). */
 export function HandoverStepper({ current }: { current: number }) {
-  const policy = usePolicyWindows();
   return (
-    <ol className="grid grid-cols-3 gap-y-6 sm:grid-cols-5" aria-label="Tiến trình bàn giao">
-      {stepLabels(policy.grantDays).map((label, index) => {
+    <ol className="grid grid-cols-3 gap-y-6" aria-label="Tiến trình bàn giao">
+      {stepLabels.map((label, index) => {
         const number = index + 1;
         const done = number < current;
         const here = number === current;

@@ -16,7 +16,6 @@ import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
-import { InvitationPanel } from "@/features/handover/ui/InvitationPanel";
 import { remainingText } from "@/features/handover/model/handover.format";
 import { handoverService } from "@/features/handover/api/handoverService";
 
@@ -95,6 +94,22 @@ function problem(config: never, status: number, body: object) {
     statusText: "Error",
     headers: new AxiosHeaders(),
   });
+}
+/** Thẻ thư mời trong cổng: Backend trả một lời mời chờ, còn POST nhận lượt do test quy định. */
+const INVITATION = {
+  turnId: CONTAINER_ID,
+  containerName: "Gói thử",
+  ownerFullName: "Chủ kho thử",
+  invitedAt: CREATED_AT,
+};
+function backendInvites(onPost: (config: InternalAxiosRequestConfig) => AxiosResponse) {
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "get") {
+      if (config.url?.endsWith("/invitations/mine")) return ok(config, [INVITATION]);
+      return ok(config, []);
+    }
+    return onPost(config);
+  };
 }
 /** Giả lập Backend: GET danh sách trả lượt; GET nội dung trả lỗi dạng Blob như responseType blob. */
 function backendDownloadFails(status: number, body: object, grantStatus = "ACTIVE") {
@@ -217,17 +232,15 @@ it("shows a network failure of the download instead of staying silent", async ()
 });
 
 it("shows the Backend reason when claiming an invitation is rejected", async () => {
-  apiClient.defaults.adapter = async (config) => {
-    if (config.method === "get") return ok(config, { valid: true, responseExpired: false });
+  backendInvites((config) => {
     throw problem(config as never, 409, {
       code: "HANDOVER_NOT_ALLOWED",
       reason: "OWNER_CANNOT_CLAIM",
     });
-  };
-  setup(<InvitationPanel />, "/receive?token=invitation-fixture");
-  fireEvent.click(await screen.findByRole("button", { name: "Nhận lời mời" }));
+  });
+  setup();
+  fireEvent.click(await screen.findByRole("button", { name: "Đồng ý nhận" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Chủ kho không thể tự nhận");
-  expect(screen.queryByRole("link", { name: "Xem lượt bàn giao của tôi" })).not.toBeInTheDocument();
 });
 
 it("declines only after an explicit confirmation and then shows the server state", async () => {
@@ -294,14 +307,12 @@ it("formats the remaining time from server time", () => {
 });
 
 it("tells the recipient the invitation was already claimed by another account", async () => {
-  apiClient.defaults.adapter = async (config) => {
-    if (config.method === "get") return ok(config, { valid: true, responseExpired: false });
+  backendInvites((config) => {
     throw problem(config as never, 409, { code: "HANDOVER_ALREADY_CLAIMED" });
-  };
-  setup(<InvitationPanel />, "/receive?token=invitation-fixture");
-  fireEvent.click(await screen.findByRole("button", { name: "Nhận lời mời" }));
+  });
+  setup();
+  fireEvent.click(await screen.findByRole("button", { name: "Từ chối nhận" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Lời mời đã được nhận");
-  expect(screen.queryByRole("link", { name: "Xem lượt bàn giao của tôi" })).not.toBeInTheDocument();
 });
 
 it("does not leak or invent turns when the Backend hides a turn that is not the user's", async () => {
@@ -335,14 +346,12 @@ it("explains a cancelled turn as a stopped handover, not a system error", async 
 });
 
 it("explains a claim blocked by an active hold", async () => {
-  apiClient.defaults.adapter = async (config) => {
-    if (config.method === "get") return ok(config, { valid: true, responseExpired: false });
+  backendInvites((config) => {
     throw problem(config as never, 409, { code: "HANDOVER_NOT_ALLOWED", reason: "HOLD_ACTIVE" });
-  };
-  setup(<InvitationPanel />, "/receive?token=invitation-fixture");
-  fireEvent.click(await screen.findByRole("button", { name: "Nhận lời mời" }));
+  });
+  setup();
+  fireEvent.click(await screen.findByRole("button", { name: "Đồng ý nhận" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Các hạn đang được giữ nguyên");
-  expect(screen.queryByRole("link", { name: "Xem lượt bàn giao của tôi" })).not.toBeInTheDocument();
 });
 
 it("explains a decision blocked by an active hold and keeps the turn undecided", async () => {
@@ -360,20 +369,15 @@ it("explains a decision blocked by an active hold and keeps the turn undecided",
 });
 
 it("still lets the recipient claim after the initial response deadline (BR-58)", async () => {
-  apiClient.defaults.adapter = async (config) => {
-    if (config.method === "get") return ok(config, { valid: true, responseExpired: true });
-    return ok(config, turnWithStatus("IDENTITY_IN_PROGRESS"));
-  };
+  // Thẻ thư mời vẫn hiện cho lượt quá hạn phản hồi ban đầu; bấm nút thì BE vẫn nhận lượt.
+  backendInvites((config) => ok(config, turnWithStatus("IDENTITY_IN_PROGRESS")));
   const post = vi.spyOn(apiClient, "post");
-  setup(<InvitationPanel />, "/receive?token=invitation-fixture");
-  expect(await screen.findByText(/Đã qua hạn phản hồi ban đầu/)).toBeInTheDocument();
-  const claim = screen.getByRole("button", { name: "Nhận lời mời" });
+  setup();
+  const claim = await screen.findByRole("button", { name: "Đồng ý nhận" });
   expect(claim).toBeEnabled();
   fireEvent.click(claim);
-  expect(
-    await screen.findByRole("link", { name: "Xem lượt bàn giao của tôi" }),
-  ).toBeInTheDocument();
-  expect(post).toHaveBeenCalledTimes(1);
+  await waitFor(() => expect(post).toHaveBeenCalledWith(`/handover/turns/${CONTAINER_ID}/claim`));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
 it("kho đã cấp khóa mở gói: đồng ý không cần khóa, tải xuống bị khóa tới khi nhập đúng khóa", async () => {

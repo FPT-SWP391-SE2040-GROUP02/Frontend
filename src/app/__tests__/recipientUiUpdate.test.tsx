@@ -5,7 +5,7 @@ import { AxiosHeaders, type AxiosResponse, type InternalAxiosRequestConfig } fro
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { ReactNode } from "react";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { apiClient } from "@/shared/api/axiosClient";
@@ -113,23 +113,38 @@ function backendReturns(turns: unknown[]) {
   };
 }
 
-it("keeps the invitation when the recipient creates an account, and numbers the three steps", async () => {
-  backendReturns([]);
+it("keeps the way to the portal when the recipient creates an account, and lists the three steps", async () => {
+  apiClient.defaults.adapter = async (config) =>
+    ok(config, {
+      valid: true,
+      responseExpired: false,
+      invitedEmailMasked: "r•••••t@example.test",
+      accountExists: false,
+      ownerFullName: "Chủ kho thử",
+    });
   setup(<InvitationPanel />, false, `/receive?token=${TOKEN}`);
-  const create = await screen.findByRole("link", { name: "Tạo tài khoản" });
-  expect(create.getAttribute("href")).toContain("redirect=");
-  expect(decodeURIComponent(create.getAttribute("href") ?? "")).toContain("/receive?token=");
-  expect(screen.getByRole("heading", { name: "Chuẩn bị" })).toBeInTheDocument();
-  expect(screen.getByText("Nơi đủ sáng")).toBeInTheDocument();
+  const create = await screen.findByRole("link", { name: "Tạo tài khoản bằng email này" });
+  expect(decodeURIComponent(create.getAttribute("href") ?? "")).toContain(
+    `redirect=${ROUTES.BENEFICIARY.CLAIM}`,
+  );
+  expect(screen.getByRole("heading", { name: "Bạn sẽ làm gì" })).toBeInTheDocument();
+  expect(screen.getAllByRole("listitem")).toHaveLength(3);
+  expect(screen.queryByRole("button", { name: "Nhận lời mời" })).not.toBeInTheDocument();
 });
 
-it("locks the claim button once the invitation has been claimed", async () => {
+it("sends a signed-in recipient straight to the portal without claiming anything", async () => {
   backendReturns([]);
-  setup(<InvitationPanel />, true, `/receive?token=${TOKEN}`);
-  const claim = await screen.findByRole("button", { name: "Nhận lời mời" });
-  fireEvent.click(claim);
-  await screen.findByRole("link", { name: "Xem lượt bàn giao của tôi" });
-  expect(screen.getByRole("button", { name: "Nhận lời mời" })).toBeDisabled();
+  const post = vi.spyOn(apiClient, "post");
+  setup(
+    <Routes>
+      <Route path={ROUTES.RECEIVE} element={<InvitationPanel />} />
+      <Route path={ROUTES.BENEFICIARY.CLAIM} element={<p>Cổng người nhận</p>} />
+    </Routes>,
+    true,
+    `/receive?token=${TOKEN}`,
+  );
+  expect(await screen.findByText("Cổng người nhận")).toBeInTheDocument();
+  expect(post).not.toHaveBeenCalled();
 });
 
 it("shows only the deadline that still matters and drops the title that sounds like a group", async () => {
@@ -180,7 +195,7 @@ it("confirms an accepted turn once at the top of the card and keeps the countdow
 it("tells a recipient with no turn how to get the invitation, with no support link", async () => {
   backendReturns([]);
   setup(<HandoverPortal />);
-  expect(await screen.findByText(/Mở lại liên kết trong thư mời/)).toBeInTheDocument();
+  expect(await screen.findByText(/đăng nhập bằng đúng email ghi trong thư/)).toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Liên hệ hỗ trợ" })).not.toBeInTheDocument();
 });
 

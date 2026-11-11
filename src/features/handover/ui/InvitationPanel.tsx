@@ -1,31 +1,31 @@
-import { useParams, useSearchParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link, Navigate } from "react-router-dom";
 import { useId } from "react";
 import { useSelector } from "react-redux";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { ROUTES } from "@/shared/config/routes.config";
+import { emailMatchesMask } from "@/shared/lib/invitedEmail";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
-import { useHandoverAction } from "../model/useHandoverAction";
 import { MailCheckPanel } from "./MailCheckPanel";
-import { RecipientGuide } from "./RecipientGuide";
 
-const STEPS = ["Xác minh danh tính của bạn", "Chờ bàn giao", "Tải nội dung khi bàn giao mở"];
-
-/** Điều cần chuẩn bị trước khi xác minh; chữ lấy từ màn đồng ý eKYC để người nhận biết trước khi nhận lời mời. */
-const PREPARATION = ["Căn cước còn hạn, bản gốc", "Nơi đủ sáng", "Bỏ khẩu trang, kính tối màu"];
+export interface InvitationPanelProps {
+  /** Đăng xuất rồi chuyển tới đăng nhập mang redirect về cổng người nhận; do trang truyền vào vì đăng xuất thuộc phân hệ Auth. */
+  onSignOut?: () => void;
+  signingOut?: boolean;
+}
 
 /**
- * Kiểm link công khai; claim chỉ sau khi người đã đăng nhập chủ động bấm. Theo thiết kế 100.
- * Link công khai chỉ cho biết lời mời hợp lệ và còn hạn phản hồi, nên không nêu tên Chủ kho hay số ngày còn lại.
+ * Trang mở từ link trong thư: chỉ là "cửa vào" (đăng nhập hoặc tạo tài khoản), KHÔNG có nút nhận ở đây.
+ * Người đã đăng nhập đúng email được chuyển thẳng tới cổng người nhận, nơi có thẻ thư mời để chọn Đồng ý hoặc Từ chối.
+ * Link công khai chỉ cho biết tên Chủ kho và email được mời đã che bớt; không hiện hạn chót nào.
  */
-export function InvitationPanel() {
+export function InvitationPanel({ onSignOut, signingOut = false }: InvitationPanelProps) {
   const { token: pathToken } = useParams();
   const [params] = useSearchParams();
   const token = pathToken ?? params.get("token") ?? "";
+  const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
-  const client = useQueryClient();
-  const action = useHandoverAction();
   const requestId = useId();
   // Không đưa token vào query key/cache bền vững; route token đổi thì remount tại page.
   const query = useQuery({
@@ -50,95 +50,142 @@ export function InvitationPanel() {
         </p>
       </div>
     );
-  // Đăng nhập và đăng ký đều mang lời mời theo, để xong việc người dùng quay lại đúng trang này.
-  const receivePath = `${ROUTES.RECEIVE}?token=${encodeURIComponent(token)}`;
-  const loginTo = `${ROUTES.AUTH.LOGIN}?${new URLSearchParams({ redirect: receivePath })}`;
-  const registerTo = `${ROUTES.AUTH.REGISTER}?${new URLSearchParams({ redirect: receivePath })}`;
+
+  const invitation = query.data;
+  const maskedEmail = invitation.invitedEmailMasked ?? "";
+  const invitedEmail = invitation.invitedEmail ?? "";
+  const portal = ROUTES.BENEFICIARY.CLAIM;
+
+  if (authenticated) {
+    const accountEmail = user?.email ?? "";
+    // Đăng nhập sai email: báo rõ thay vì đưa vào cổng nơi sẽ không thấy thư mời. Backend vẫn kiểm lại khi nhận.
+    let wrongAccount = false;
+    if (invitedEmail && accountEmail) {
+      wrongAccount = invitedEmail.trim().toLowerCase() !== accountEmail.trim().toLowerCase();
+    } else if (maskedEmail && accountEmail) {
+      wrongAccount = !emailMatchesMask(accountEmail, maskedEmail);
+    }
+    if (wrongAccount) {
+      return (
+        <div className="space-y-5" role="alert">
+          <h2 className="font-serif text-3xl leading-tight text-heritage-primary">
+            Bạn đang đăng nhập bằng tài khoản khác
+          </h2>
+          <p className="text-sm leading-6 text-heritage-muted">
+            Bạn đang dùng <b className="break-all text-heritage-primary">{accountEmail}</b>, còn gói
+            này được gửi tới{" "}
+            <b className="break-all text-heritage-primary">{invitedEmail || maskedEmail}</b>. Hãy
+            đăng nhập bằng đúng email trong thư để mở gói.
+          </p>
+          <button
+            type="button"
+            className={`${buttonStyles.dark} w-full`}
+            disabled={signingOut}
+            onClick={() => onSignOut?.()}
+          >
+            {signingOut ? "Đang đăng xuất…" : "Đăng xuất và đăng nhập đúng email"}
+          </button>
+        </div>
+      );
+    }
+    return <Navigate to={portal} replace />;
+  }
+
+  // Đăng nhập và đăng ký đều mang redirect để xong việc người dùng về thẳng cổng người nhận, không về lại trang này.
+  const loginTo = `${ROUTES.AUTH.LOGIN}?${new URLSearchParams({ redirect: portal })}`;
+  const registerParams = new URLSearchParams({ redirect: portal });
+  if (invitedEmail) {
+    // Email đầy đủ: form đăng ký điền sẵn và khóa.
+    registerParams.set("email", invitedEmail);
+  } else if (maskedEmail) {
+    registerParams.set("invited", maskedEmail);
+  }
+  const registerTo = `${ROUTES.AUTH.REGISTER}?${registerParams}`;
+  const owner = invitation.ownerFullName?.trim() ?? "";
+  let title = "Có người đã để lại cho bạn một gói";
+  if (owner) {
+    title = `${owner} đã để lại cho bạn một gói`;
+  }
+  let firstStep = "Tạo tài khoản bằng email này";
+  if (invitation.accountExists) {
+    firstStep = "Đăng nhập tài khoản của bạn";
+  }
+  const steps = [
+    firstStep,
+    "Chọn đồng ý hoặc từ chối nhận, tải ảnh căn cước, ký biên bản",
+    "Chờ Người xét duyệt, rồi nhập mã mở gói Người thực thi đưa cho bạn",
+  ];
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <h2 className="font-serif text-4xl leading-tight text-heritage-primary">
-          Có người để lại cho bạn
-        </h2>
-        <p className="text-sm text-heritage-muted">
-          {authenticated
-            ? "Xác nhận để hệ thống kiểm tra quyền tiếp nhận lời mời này."
-            : "Đăng nhập hoặc tạo tài khoản để nhận lời mời này."}
+        <h2 className="font-serif text-4xl leading-tight text-heritage-primary">{title}</h2>
+        <p className="text-sm leading-6 text-heritage-muted">
+          Chúng tôi rất tiếc về mất mát của bạn.
+          {(invitedEmail || maskedEmail) && (
+            <>
+              {" "}
+              Gói này được gửi tới <b className="break-all">{invitedEmail || maskedEmail}</b>.
+            </>
+          )}{" "}
+          Bạn có thể mở bất cứ lúc nào bạn sẵn sàng.
         </p>
       </div>
-      <MailCheckPanel token={token} />
-      <RecipientGuide defaultOpen />
-      <ul className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5">
-        {STEPS.map((text, index) => (
-          <li key={text} className="flex items-center gap-3 text-sm">
-            <span
-              aria-hidden="true"
-              className="flex size-6 shrink-0 items-center justify-center rounded-full border border-heritage-border text-xs font-semibold text-heritage-primary"
-            >
-              {index + 1}
-            </span>
-            {text}
-          </li>
-        ))}
-      </ul>
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-heritage-primary">Chuẩn bị</h3>
-        <ul className="list-disc space-y-1 pl-5 text-sm">
-          {PREPARATION.map((text) => (
-            <li key={text}>{text}</li>
+      <section
+        aria-labelledby="invitation-steps-title"
+        className="space-y-3 rounded-2xl border border-heritage-border bg-white p-5"
+      >
+        <h3 id="invitation-steps-title" className="text-sm font-semibold text-heritage-primary">
+          Bạn sẽ làm gì
+        </h3>
+        <ol className="space-y-3">
+          {steps.map((text, index) => (
+            <li key={text} className="flex items-start gap-3 text-sm">
+              <span
+                aria-hidden="true"
+                className="flex size-6 shrink-0 items-center justify-center rounded-full border border-heritage-border text-xs font-semibold text-heritage-primary"
+              >
+                {index + 1}
+              </span>
+              {text}
+            </li>
           ))}
-        </ul>
-        <p className="text-xs text-heritage-muted">
-          Ảnh chỉ dùng để đối chiếu. Không chia sẻ cho chủ kho hay người khác.
-        </p>
-      </div>
-      {query.data.responseExpired && (
-        <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
-          Đã qua hạn phản hồi ban đầu; hệ thống sẽ kiểm tra điều kiện khi bạn xác nhận.
-        </p>
-      )}
-      <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
-        Bạn không đọc được nội dung kho khi chưa đủ điều kiện bàn giao.
-      </p>
-      {authenticated ? (
-        <button
-          type="button"
-          className={`${buttonStyles.dark} w-full`}
-          disabled={action.pending || action.succeeded}
-          onClick={() =>
-            void action.execute(
-              () => handoverService.claim(token),
-              () => {
-                void client.invalidateQueries({ queryKey: ["handover"] });
-              },
-            )
-          }
-        >
-          {action.pending ? "Đang xác nhận…" : "Nhận lời mời"}
-        </button>
-      ) : (
+        </ol>
+      </section>
+      {invitation.accountExists ? (
         <div className="space-y-3 text-center">
           <Link className={`${buttonStyles.dark} w-full`} to={loginTo}>
-            Đăng nhập để tiếp tục
+            Đăng nhập để mở thư mời
+          </Link>
+          <p className="text-sm">
+            <Link
+              className="font-semibold text-heritage-primary underline"
+              to={ROUTES.AUTH.FORGOT_PASSWORD}
+            >
+              Quên mật khẩu?
+            </Link>
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3 text-center">
+          <Link className={`${buttonStyles.dark} w-full`} to={registerTo}>
+            Tạo tài khoản bằng email này
           </Link>
           <p className="text-sm text-heritage-muted">
-            Chưa có tài khoản?{" "}
-            <Link className="font-semibold text-heritage-primary underline" to={registerTo}>
-              Tạo tài khoản
+            Đã có tài khoản?{" "}
+            <Link className="font-semibold text-heritage-primary underline" to={loginTo}>
+              Đăng nhập
             </Link>
           </p>
         </div>
       )}
-      {action.error && (
-        <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
-          {action.error}
-        </p>
-      )}
-      {action.succeeded && (
-        <Link className={`${buttonStyles.gold} w-full`} to={ROUTES.BENEFICIARY.CLAIM}>
-          Xem lượt bàn giao của tôi
-        </Link>
-      )}
+      <details className="group text-sm text-heritage-muted">
+        <summary className="cursor-pointer list-none font-medium text-heritage-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold">
+          Không chắc email này có thật? Kiểm tra thư bằng mã hồ sơ
+        </summary>
+        <div className="mt-3">
+          <MailCheckPanel token={token} />
+        </div>
+      </details>
     </div>
   );
 }
