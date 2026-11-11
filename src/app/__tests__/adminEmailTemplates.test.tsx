@@ -53,7 +53,13 @@ const invitation = {
   key: "HANDOVER_INVITATION",
   label: "Thư mời nhận tài sản",
   canDisable: false,
-  editableBody: false,
+  editableBody: true,
+  requiredBodyTokens: ["HAN_PHAN_HOI"],
+  tokens: [
+    { name: "TEN_NGUOI_NHAN", description: "Họ tên người nhận thư" },
+    { name: "HAN_PHAN_HOI", description: "Hạn phản hồi" },
+  ],
+  default: { ...overdue.default, body: "Bấm trước {HAN_PHAN_HOI}." },
 };
 
 let templates: Record<string, unknown>[];
@@ -229,7 +235,7 @@ describe("trang Mẫu thư của Admin", () => {
     expect(screen.getByRole("button", { name: "Lưu" })).toBeDisabled();
   });
 
-  it("tắt loại thư cho phép tắt; thư mời không có ô tắt và không có ô nội dung", async () => {
+  it("tắt loại thư cho phép tắt; thư mời không có ô tắt nhưng có ô nội dung", async () => {
     backend();
     setup();
     await openOverdue();
@@ -245,7 +251,27 @@ describe("trang Mẫu thư của Admin", () => {
       .closest("li")!;
     expect(within(invitationCard).queryByRole("checkbox")).not.toBeInTheDocument();
     expect(within(invitationCard).getByText(/luôn được gửi/)).toBeInTheDocument();
-    expect(within(invitationCard).queryByLabelText(/Nội dung/)).not.toBeInTheDocument();
+    expect(within(invitationCard).getByLabelText(/Nội dung/)).toBeInTheDocument();
+  });
+
+  it("thư mời: nội dung thiếu biến bắt buộc thì báo và không cho lưu", async () => {
+    backend();
+    setup();
+    fireEvent.click(await screen.findByRole("button", { name: /Thư mời nhận tài sản/ }));
+
+    const card = screen.getByRole("button", { name: /Thư mời nhận tài sản/ }).closest("li")!;
+    expect(within(card).getByText(/Nội dung phải giữ \{HAN_PHAN_HOI\}/)).toBeInTheDocument();
+    fireEvent.change(within(card).getByLabelText(/Nội dung/), {
+      target: { value: "Bấm nút để nhận." },
+    });
+
+    expect(await within(card).findByRole("alert")).toHaveTextContent("{HAN_PHAN_HOI}");
+    expect(within(card).getByRole("button", { name: "Lưu" })).toBeDisabled();
+
+    fireEvent.change(within(card).getByLabelText(/Nội dung/), {
+      target: { value: "Bấm trước {HAN_PHAN_HOI}." },
+    });
+    expect(within(card).getByRole("button", { name: "Lưu" })).toBeEnabled();
   });
 
   it("nút Lấy chữ gốc điền chữ gốc vào ô để sửa tiếp", async () => {

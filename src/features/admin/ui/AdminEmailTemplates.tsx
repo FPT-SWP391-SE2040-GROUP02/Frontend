@@ -63,6 +63,11 @@ function TemplateEditor({ template, onDone }: { template: EmailTemplate; onDone:
     const text = draft[field.name];
     const list: string[] = [];
     if (text.length > field.max) list.push(`${field.label}: tối đa ${field.max} ký tự.`);
+    if (field.name === "body" && text.trim().length > 0) {
+      for (const required of template.requiredBodyTokens) {
+        if (!text.includes(`{${required}}`)) list.push(`Nội dung phải giữ biến {${required}}.`);
+      }
+    }
     const unknown = unknownTokens(text, known);
     if (unknown.length > 0) {
       list.push(`${field.label}: biến lạ ${unknown.map((name) => `{${name}}`).join(", ")}.`);
@@ -128,6 +133,8 @@ function TemplateEditor({ template, onDone }: { template: EmailTemplate; onDone:
           ))}
         </ul>
         <p className="mt-2 text-xs text-heritage-muted">
+          {template.requiredBodyTokens.length > 0 &&
+            `Nội dung phải giữ ${template.requiredBodyTokens.map((name) => `{${name}}`).join(", ")}. `}
           Biến được thay bằng thông tin thật khi gửi. Để trống một ô là dùng chữ gốc của ô đó.
         </p>
       </div>

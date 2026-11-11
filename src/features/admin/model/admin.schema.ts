@@ -484,6 +484,7 @@ export const emailTemplateSchema = z.object({
   description: z.string(),
   canDisable: z.boolean(),
   editableBody: z.boolean(),
+  requiredBodyTokens: z.array(z.string()).default([]),
   enabled: z.boolean(),
   tokens: z.array(emailTemplateTokenSchema),
   default: emailTemplateFieldsSchema,
