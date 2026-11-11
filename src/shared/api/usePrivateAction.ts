@@ -37,6 +37,8 @@ function validationMessages(errors: Record<string, string[]> | undefined): strin
 
 /** Reason-specific messages for HANDOVER_NOT_ALLOWED */
 const handoverNotAllowedReasons: Record<string, string> = {
+  NOTARY_CARD_REQUIRED:
+    "Tài khoản của bạn chưa có ảnh thẻ công chứng viên. Hãy liên hệ quản trị viên để nộp thẻ rồi mới duyệt được.",
   HOLD_ACTIVE: "Kho đang bị tạm giữ, tạm thời chưa thực hiện được. Các hạn đang được giữ nguyên.",
   PLAN_NOT_IN_HANDOVER: "Kế hoạch không còn ở giai đoạn bàn giao.",
   WRONG_STATE:
@@ -75,6 +77,8 @@ const vaultNotEditableReasons: Record<string, string> = {
 
 /** Reason-specific messages for DEATH_CASE_NOT_ALLOWED */
 const deathCaseNotAllowedReasons: Record<string, string> = {
+  NOTARY_CARD_REQUIRED:
+    "Tài khoản của bạn chưa có ảnh thẻ công chứng viên. Hãy liên hệ quản trị viên để nộp thẻ rồi mới duyệt được.",
   // Lý do khi Người xét duyệt chấp thuận, bổ sung, từ chối hoặc xem xét cờ bị Backend từ chối.
   PLAN_STATE_INVALID:
     "Kế hoạch của kho không còn ở trạng thái mở hồ sơ, hoặc kho đã có lượt bàn giao. Tải lại hồ sơ để xem trạng thái mới nhất.",

@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
+import { NotaryCardMissingNotice } from "@/features/notary-card";
 import { usePendingRecipientCount } from "@/features/recipient-review";
 import { useWaitingCaseSummaries } from "@/features/verifier-review";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -197,6 +198,7 @@ export function VerifierShell({
         </div>
         {badge}
       </header>
+      {path !== ROUTES.NOTARY.SETTINGS && <NotaryCardMissingNotice />}
       {children}
     </WorkspaceShell>
   );
