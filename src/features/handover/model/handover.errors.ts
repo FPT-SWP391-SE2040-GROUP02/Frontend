@@ -2,7 +2,29 @@ import { isAxiosError } from "axios";
 import { z } from "zod";
 import { privateActionError } from "@/shared/api/usePrivateAction";
 
-const problem = z.object({ code: z.string().optional(), reason: z.string().optional() });
+const problem = z.object({
+  code: z.string().optional(),
+  reason: z.string().optional(),
+  invitedEmailMasked: z.string().optional(),
+});
+
+/** Mã lỗi BE khi tài khoản đang đăng nhập không đúng email được mời (nhận qua link hoặc trong app). */
+export const EMAIL_MISMATCH_CODE = "HANDOVER_EMAIL_MISMATCH";
+
+/**
+ * Nếu lỗi là sai email được mời thì trả email được mời đã che bớt (chuỗi rỗng khi BE không kèm), ngược lại null.
+ * Không bao giờ có email đầy đủ.
+ */
+export function emailMismatchMasked(failure: unknown): string | null {
+  if (isAxiosError<unknown>(failure) && failure.response) {
+    const parsed = problem.safeParse(failure.response.data);
+    if (parsed.success && parsed.data.code === EMAIL_MISMATCH_CODE) {
+      if (parsed.data.invitedEmailMasked) return parsed.data.invitedEmailMasked;
+      return "";
+    }
+  }
+  return null;
+}
 
 /** Thông báo khi kho có hold đang hiệu lực; BE dừng đếm các hạn trong lúc giữ (TIME-04). */
 const holdActiveMessage =
@@ -75,6 +97,13 @@ const notAllowedReasons: Record<string, string> = {
  * Trả chuỗi rỗng khi không có lý do riêng để caller dùng thông báo chung.
  */
 export function handoverActionError(failure: unknown): string {
+  const masked = emailMismatchMasked(failure);
+  if (masked !== null) {
+    if (masked) {
+      return `Lời mời này gửi tới ${masked}. Hãy đăng nhập bằng đúng email được mời.`;
+    }
+    return "Lời mời này gửi tới một email khác. Hãy đăng nhập bằng đúng email được mời.";
+  }
   if (isAxiosError<unknown>(failure) && failure.response) {
     const parsed = problem.safeParse(failure.response.data);
     if (parsed.success && parsed.data.code === "HANDOVER_NOT_ALLOWED") {

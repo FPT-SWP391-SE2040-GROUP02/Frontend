@@ -9,8 +9,8 @@ export function RecipientGuide({ defaultOpen = false }: { defaultOpen?: boolean 
   const policy = usePolicyWindows();
   const steps = [
     {
-      title: "Nhận lời mời",
-      text: `Bấm “Nhận lời mời” sau khi đăng nhập. Hãy phản hồi trong ${policy.responseDays} ngày kể từ lúc được mời; quá hạn thì nhờ Người thực thi gửi lại lời mời.`,
+      title: "Mở thư mời",
+      text: "Đăng nhập bằng đúng email ghi trong thư. Thư mời hiện ở đầu cổng người nhận: bạn chọn Đồng ý nhận hoặc Từ chối nhận ngay tại đó, không cần bước nào khác để nhận lời mời.",
     },
     {
       title: "Nộp văn bản và ảnh căn cước",

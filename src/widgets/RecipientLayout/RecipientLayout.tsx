@@ -7,7 +7,10 @@ import { OverviewIcon, TrustedIcon } from "@/shared/ui/LegacyVaultArtwork";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { FileText } from "lucide-react";
+import { ArrowLeftRight, FileText } from "lucide-react";
+import { accessTokenMemory } from "@/shared/api/accessToken";
+import { useQuery } from "@tanstack/react-query";
+import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
 
 const shell = {
   brand: "LegacyVault",
@@ -32,7 +35,18 @@ export interface RecipientLayoutProps {
 
 /** Sidebar dùng chung cho cổng người nhận. */
 export function RecipientLayout({ active, children }: RecipientLayoutProps) {
-  const fullName = useSelector((state: { auth: AuthState }) => state.auth.user?.fullName);
+  const user = useSelector((state: { auth: AuthState }) => state.auth.user);
+  const fullName = user?.fullName;
+  // Chỉ tài khoản đã có kho (Chủ kho) mới có nút sang vai Chủ kho; không cấp quyền gì, Backend vẫn kiểm tra từng request.
+  // Chỉ ĐỌC kho (getMine), không dùng hook tự tạo kho: người nhận thuần túy không được vô tình có thêm một kho.
+  const vault = useQuery({
+    queryKey: ["recipient-layout", "owner-vault"],
+    queryFn: ({ signal }) => ownerVaultService.getMine(signal),
+    enabled: user?.role === "USER" && Boolean(accessTokenMemory.get()),
+    retry: false,
+    staleTime: 60_000,
+  });
+  const isOwner = vault.isSuccess;
   const root = ROUTES.BENEFICIARY.CLAIM;
   // Người nhận chỉ nộp hồ sơ ảnh căn cước ngay trong cổng bàn giao, không còn xác minh khuôn mặt bằng camera.
   const verify = ROUTES.BENEFICIARY.HANDOVER;
@@ -67,6 +81,15 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
       }
       footer={
         <>
+          {isOwner && (
+            <Link
+              to={ROUTES.DASHBOARD.ROOT}
+              className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E0C486] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E8CF9B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+            >
+              <ArrowLeftRight className="size-4" aria-hidden="true" />
+              Sang vai Chủ kho
+            </Link>
+          )}
           <img
             src={guilloche}
             alt=""

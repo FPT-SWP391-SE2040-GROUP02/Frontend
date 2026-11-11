@@ -82,6 +82,41 @@ describe("workspace logo navigation", () => {
     expect(inMenu[0].className).not.toContain("md:hidden");
   });
 
+  it("offers the switch to the recipient space with a badge only when the account has an invitation or a turn", async () => {
+    const invitation = {
+      turnId: "11111111-1111-4111-8111-111111111111",
+      containerName: "Gói gia đình",
+      ownerFullName: "Nguyễn Văn A",
+      invitedAt: "2026-11-08T02:00:00Z",
+    };
+    const get = vi.spyOn(apiClient, "get").mockImplementation((url: string) => {
+      if (url.endsWith("/invitations/mine")) return Promise.resolve([invitation]);
+      return Promise.resolve([]);
+    });
+    accessTokenMemory.set("owner-workspace-fixture");
+    const store = configureStore({
+      reducer: { auth: authReducer },
+      preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
+    });
+    renderWorkspace(store, "/dashboard");
+    const links = await screen.findAllByRole("link", { name: /Sang vai Người nhận/ });
+    links.forEach((link) => expect(link).toHaveAttribute("href", "/claim/beneficiary"));
+    expect((await screen.findAllByLabelText("1 lời mời đang chờ")).length).toBeGreaterThan(0);
+    expect(get).toHaveBeenCalledWith("/handover/invitations/mine", expect.anything());
+  });
+
+  it("has no recipient switch when the account has neither invitation nor turn", async () => {
+    const get = vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    accessTokenMemory.set("owner-workspace-fixture");
+    const store = configureStore({
+      reducer: { auth: authReducer },
+      preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
+    });
+    renderWorkspace(store, "/dashboard");
+    await waitFor(() => expect(get).toHaveBeenCalledWith("/handover/turns/me", expect.anything()));
+    expect(screen.queryByRole("link", { name: /Sang vai Người nhận/ })).not.toBeInTheDocument();
+  });
+
   it("opens the phone navigation and closes it after choosing an Owner page", () => {
     const store = configureStore({ reducer: { auth: authReducer } });
     renderWorkspace(store, "/dashboard", "Kho");

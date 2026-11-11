@@ -98,3 +98,61 @@ describe("RegisterForm coming from an invitation", () => {
     expect(document.getElementById("register-phone-hint")).not.toBeNull();
   });
 });
+
+function renderInvitedForm(props: { lockedEmail?: string; invitedEmailMasked?: string }) {
+  const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+  clients.push(client);
+  render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter initialEntries={[ROUTES.AUTH.REGISTER]}>
+        <Routes>
+          <Route
+            path={ROUTES.AUTH.REGISTER}
+            element={<RegisterForm redirect={ROUTES.BENEFICIARY.CLAIM} fromInvitation {...props} />}
+          />
+          <Route path={ROUTES.AUTH.VERIFY_EMAIL} element={<Destination />} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+function fillRest() {
+  fireEvent.change(screen.getByLabelText("Họ và tên"), { target: { value: "Test User" } });
+  fireEvent.change(screen.getByLabelText("Số điện thoại"), { target: { value: "0912 345 678" } });
+  fireEvent.change(screen.getByLabelText("Mật khẩu"), { target: { value: "Abcdefg!" } });
+  fireEvent.change(screen.getByLabelText("Xác nhận mật khẩu"), { target: { value: "Abcdefg!" } });
+}
+
+describe("RegisterForm with the invited email", () => {
+  it("fills the email from the invitation, locks it and explains why", async () => {
+    vi.mocked(authService.register).mockResolvedValue(undefined);
+    renderInvitedForm({ lockedEmail: "nguoi-nhan@example.test" });
+
+    const email = screen.getByLabelText("Email");
+    expect(email).toHaveValue("nguoi-nhan@example.test");
+    expect(email).toHaveAttribute("readonly");
+    expect(screen.getByText("Email đã điền sẵn theo thư mời, không đổi được.")).toBeInTheDocument();
+
+    fillRest();
+    fireEvent.click(screen.getByRole("button", { name: "Tạo tài khoản" }));
+    await waitFor(() => expect(authService.register).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(authService.register).mock.calls[0][0].email).toBe("nguoi-nhan@example.test");
+  });
+
+  it("without the full email, reminds the masked email and blocks a different one", async () => {
+    renderInvitedForm({ invitedEmailMasked: "n••••••••n@example.test" });
+
+    expect(
+      screen.getByText(/Hãy dùng đúng email được mời: n••••••••n@example.test/),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).not.toHaveAttribute("readonly");
+
+    fillRest();
+    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "khac@example.test" } });
+    fireEvent.click(screen.getByRole("button", { name: "Tạo tài khoản" }));
+
+    expect(await screen.findByText("Email này không phải email được mời.")).toBeInTheDocument();
+    expect(authService.register).not.toHaveBeenCalled();
+  });
+});

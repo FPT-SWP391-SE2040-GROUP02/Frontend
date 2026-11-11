@@ -6,6 +6,7 @@ import { AlertCircle, Lock, Mail, Phone, User } from "lucide-react";
 import type { FocusEvent } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { emailMatchesMask } from "@/shared/lib/invitedEmail";
 import { getRegisterErrorMessage } from "../lib/registerFeedback";
 import { registerSchema, type RegisterInput } from "../model/auth.schema";
 import { NEW_PASSWORD_HINT } from "../model/password.schema";
@@ -22,6 +23,13 @@ export interface RegisterFormProps {
   redirect?: string | null;
   /** true khi người dùng đến từ liên kết lời mời: ẩn ghi chú chia sẻ số điện thoại vì không áp dụng cho người nhận. */
   fromInvitation?: boolean;
+  /** Email điền sẵn theo thư mời: ô email bị khóa (chỉ đọc), người dùng không đổi được. */
+  lockedEmail?: string | null;
+  /**
+   * Email được mời đã che bớt (ví dụ m•••••h@example.com) khi chưa có email đầy đủ để điền sẵn: nhắc người dùng dùng
+   * đúng email đó và chặn gửi form nếu email gõ vào không khớp dạng che. Backend vẫn là nơi kiểm cuối cùng.
+   */
+  invitedEmailMasked?: string | null;
   /** Class CSS tùy chỉnh */
   className?: string;
 }
@@ -41,6 +49,8 @@ export function RegisterForm({
   onSuccess,
   redirect = null,
   fromInvitation = false,
+  lockedEmail = null,
+  invitedEmailMasked = null,
   className = "",
 }: RegisterFormProps) {
   const navigate = useNavigate();
@@ -50,11 +60,13 @@ export function RegisterForm({
     register,
     handleSubmit,
     trigger,
+    setError,
     formState: { errors, touchedFields },
   } = useForm<RegisterInput>({
     mode: "onBlur",
     reValidateMode: "onBlur",
     resolver: zodResolver(registerSchema),
+    defaultValues: lockedEmail ? { email: lockedEmail } : undefined,
   });
 
   const passwordField = register("password");
@@ -93,6 +105,11 @@ export function RegisterForm({
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lời mời hết hạn/sai account; không tự cấp role,
     //    không coi đăng ký là đăng nhập hoặc làm lộ nội dung từ marker chưa xác minh.
     if (isPending) return;
+
+    if (!lockedEmail && invitedEmailMasked && !emailMatchesMask(data.email, invitedEmailMasked)) {
+      setError("email", { type: "validate", message: "Email này không phải email được mời." });
+      return;
+    }
 
     registerUser(data, {
       onSuccess: () => {
@@ -161,12 +178,23 @@ export function RegisterForm({
             aria-describedby={errors.email ? "register-email-error" : undefined}
             autoComplete="email"
             disabled={isPending}
+            readOnly={Boolean(lockedEmail)}
             {...register("email")}
             type="email"
             placeholder="owner@legacyvault.io"
             className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
           />
         </div>
+        {lockedEmail && (
+          <p className="text-xs text-heritage-muted">
+            Email đã điền sẵn theo thư mời, không đổi được.
+          </p>
+        )}
+        {!lockedEmail && invitedEmailMasked && (
+          <p className="text-xs text-heritage-muted">
+            Hãy dùng đúng email được mời: {invitedEmailMasked}
+          </p>
+        )}
         {errors.email && (
           <p id="register-email-error" role="alert" className="text-sm text-destructive">
             {errors.email.message}

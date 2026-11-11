@@ -273,11 +273,16 @@ it("does not call face-match before liveness is configured", async () => {
   expect(post.mock.calls.map((c) => c[0])).not.toContain("/ekyc/face-match");
 });
 it("opens the actual /receive?token email URL without auto-claim and keeps redirect local", async () => {
-  const get = vi.spyOn(apiClient, "get").mockResolvedValue({ valid: true, responseExpired: false });
+  const get = vi.spyOn(apiClient, "get").mockResolvedValue({
+    valid: true,
+    responseExpired: false,
+    accountExists: true,
+  });
   const post = vi.spyOn(apiClient, "post");
   setup(<InvitationPanel />, "/receive?token=invitation-fixture", false);
-  const login = await screen.findByRole("link", { name: "Đăng nhập để tiếp tục" });
-  expect(login).toHaveAttribute("href", "/login?redirect=%2Freceive%3Ftoken%3Dinvitation-fixture");
+  // Cửa vào: đăng nhập xong về thẳng cổng người nhận (không về lại trang cửa vào), không có nút nhận.
+  const login = await screen.findByRole("link", { name: "Đăng nhập để mở thư mời" });
+  expect(login).toHaveAttribute("href", "/login?redirect=%2Fclaim%2Fbeneficiary");
   expect(get).toHaveBeenCalledWith(
     "/handover/invitations/invitation-fixture",
     expect.objectContaining({ signal: expect.any(AbortSignal) }),

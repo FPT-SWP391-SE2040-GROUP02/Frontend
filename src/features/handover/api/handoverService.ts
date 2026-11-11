@@ -2,6 +2,7 @@ import { z } from "zod";
 import { apiClient } from "@/shared/api/axiosClient";
 import {
   invitationSchema,
+  pendingInvitationSchema,
   handoverTurnSchema,
   handoverItemSchema,
   mailCheckSchema,
@@ -21,6 +22,19 @@ export const handoverService = {
         { signal },
       ),
     );
+  },
+  /** Lời mời nhận gói đang chờ tài khoản này (đúng email đã xác minh); chưa xác minh email thì BE trả rỗng. */
+  async myInvitations(signal?: AbortSignal) {
+    return z
+      .array(pendingInvitationSchema)
+      .parse(await apiClient.get<unknown, unknown>("/handover/invitations/mine", { signal }));
+  },
+  /**
+   * Nhận lượt ngay trong app khi người nhận bấm "Đồng ý nhận" / "Từ chối nhận" ở thẻ thư mời.
+   * Sai email: 403 HANDOVER_EMAIL_MISMATCH kèm invitedEmailMasked.
+   */
+  async claimTurn(value: string) {
+    return handoverTurnSchema.parse(await apiClient.post<unknown, unknown>(`${turn(value)}/claim`));
   },
   /** Công khai: kiểm thư mời bằng mã hồ sơ và 4 số cuối căn cước; hết lượt thử thì 423 HANDOVER_MAIL_CHECK_LOCKED. */
   async checkMail(value: string, caseCode: string, citizenIdLast4: string) {

@@ -21,6 +21,7 @@ import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useExecutorVaults } from "@/features/death-case/model/useExecutorVaults";
 import { useMyInvitations } from "@/features/plan-setup/model/useMyInvitations";
+import { SwitchToRecipientLink } from "@/features/handover/ui/SwitchToRecipientLink";
 import { getDisplayedServiceTier } from "@/entities/vault/model/vaultServicePresentation";
 import { VaultServiceBadge } from "@/entities/vault/ui/VaultServiceInfo";
 import {
@@ -187,6 +188,10 @@ export function OwnerWorkspace({
                 Sang vai Người thực thi
               </Link>
             )}
+            <SwitchToRecipientLink
+              className="owner-nav-link owner-nav-link--phone-only"
+              onNavigate={() => setNavigationOpen(false)}
+            />
           </nav>
         </>
       }
@@ -212,6 +217,7 @@ export function OwnerWorkspace({
               Sang vai Người thực thi
             </Link>
           )}
+          <SwitchToRecipientLink className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#E0C486] px-3 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold" />
           <div className="flex items-center gap-3">
             <UserAvatar
               user={user}

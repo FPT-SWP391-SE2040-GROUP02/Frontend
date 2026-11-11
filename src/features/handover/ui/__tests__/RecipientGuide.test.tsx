@@ -16,12 +16,12 @@ function renderGuide(defaultOpen: boolean) {
 afterEach(() => vi.restoreAllMocks());
 
 describe("RecipientGuide", () => {
-  it("nêu đủ 5 bước theo đúng thứ tự từ nhận lời mời tới tải nội dung", () => {
+  it("nêu đủ 5 bước theo đúng thứ tự từ mở thư mời tới tải nội dung", () => {
     vi.spyOn(apiClient, "get").mockResolvedValue({});
     renderGuide(true);
 
     const titles = [
-      "Nhận lời mời",
+      "Mở thư mời",
       "Nộp văn bản và ảnh căn cước",
       "Đồng ý hoặc từ chối",
       "Lấy khóa mở gói",
@@ -40,8 +40,7 @@ describe("RecipientGuide", () => {
     });
     renderGuide(true);
 
-    expect(await screen.findByText(/trong 9 ngày kể từ lúc được mời/)).toBeInTheDocument();
-    expect(screen.getByText(/có 3 ngày để quyết định/)).toBeInTheDocument();
+    expect(await screen.findByText(/có 3 ngày để quyết định/)).toBeInTheDocument();
     expect(screen.getByText(/trong 45 ngày/)).toBeInTheDocument();
   });
 

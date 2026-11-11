@@ -19,6 +19,7 @@ import { UserAvatar } from "@/entities/user/ui/UserAvatar";
 import { ROUTES } from "@/shared/config/routes.config";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useMyInvitations } from "@/features/plan-setup/model/useMyInvitations";
+import { SwitchToRecipientLink } from "@/features/handover/ui/SwitchToRecipientLink";
 import { InvitationCountBadge } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
@@ -146,6 +147,7 @@ export function ExecutorWorkspace({
             <ArrowLeftRight className="size-4" aria-hidden="true" />
             Sang vai Chủ kho
           </Link>
+          <SwitchToRecipientLink className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E0C486] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E8CF9B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold" />
           <div className="flex items-center gap-3">
             <UserAvatar
               user={user}
