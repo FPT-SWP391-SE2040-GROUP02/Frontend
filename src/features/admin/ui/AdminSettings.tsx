@@ -428,6 +428,17 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     dataType: "BOOLEAN",
   },
   {
+    key: "Time.AuthFollowsDemoClock",
+    label: "Phiên đăng nhập theo giờ đã tua",
+    category: "Security",
+    categoryTitle: "Bảo mật & Tính năng",
+    defaultValue: "false",
+    description:
+      "Mặc định phiên đăng nhập chạy theo giờ thật nên bấm Tua thời gian không làm ai bị đăng xuất. Bật để phiên cũng theo giờ đã tua (demo việc hết phiên): tua xa thì phải đăng nhập lại. Gạt công tắc khi đang đăng nhập thì cần đăng nhập lại một lần.",
+    src: "AuthClock.FollowsDemoClock",
+    dataType: "BOOLEAN",
+  },
+  {
     key: "Company.Name",
     label: "Tên công ty",
     category: "Company",
