@@ -1,11 +1,13 @@
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { LoginMethodsPanel } from "@/features/auth";
+import { NotaryCardPanel } from "@/features/notary-card";
 import { VerifierShell } from "@/widgets/VerifierWorkspace/VerifierShell";
 
 /**
  * Hồ sơ của Người xét duyệt: chỉ hiện thông tin hành nghề (chứng chỉ hành nghề, thẻ luật sư) do Admin nhập khi tạo tài khoản,
- * người dùng chỉ xem, không tự sửa. Phương thức đăng nhập (mật khẩu) nằm ở khối bảo mật bên dưới.
+ * người dùng chỉ xem, không tự sửa. Ảnh thẻ công chứng viên cũng do Admin nộp, Người xét duyệt chỉ xem; muốn đổi thì liên hệ Admin.
+ * Phương thức đăng nhập (mật khẩu) nằm ở khối bảo mật bên dưới.
  */
 export function VerifierSettingsPage() {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
@@ -35,6 +37,7 @@ export function VerifierSettingsPage() {
           ))}
         </dl>
       </section>
+      <NotaryCardPanel />
       <LoginMethodsPanel />
     </VerifierShell>
   );
