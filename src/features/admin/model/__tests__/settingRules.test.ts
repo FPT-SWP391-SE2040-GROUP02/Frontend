@@ -74,10 +74,34 @@ describe("isDueReminderSlotHidden", () => {
       "CheckIn.FifthReminderDaysBeforeDue",
     ];
 
-    expect(keys.map((k) => isDueReminderSlotHidden(k, "1"))).toEqual([false, true, true, true, true]);
-    expect(keys.map((k) => isDueReminderSlotHidden(k, "3"))).toEqual([false, false, false, true, true]);
-    expect(keys.map((k) => isDueReminderSlotHidden(k, "5"))).toEqual([false, false, false, false, false]);
-    expect(keys.map((k) => isDueReminderSlotHidden(k, undefined))).toEqual([false, false, true, true, true]);
+    expect(keys.map((k) => isDueReminderSlotHidden(k, "1"))).toEqual([
+      false,
+      true,
+      true,
+      true,
+      true,
+    ]);
+    expect(keys.map((k) => isDueReminderSlotHidden(k, "3"))).toEqual([
+      false,
+      false,
+      false,
+      true,
+      true,
+    ]);
+    expect(keys.map((k) => isDueReminderSlotHidden(k, "5"))).toEqual([
+      false,
+      false,
+      false,
+      false,
+      false,
+    ]);
+    expect(keys.map((k) => isDueReminderSlotHidden(k, undefined))).toEqual([
+      false,
+      false,
+      true,
+      true,
+      true,
+    ]);
   });
 
   it("khóa khác không bị ẩn", () => {
