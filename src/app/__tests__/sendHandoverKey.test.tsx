@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { AxiosError, AxiosHeaders } from "axios";
@@ -82,17 +82,21 @@ function renderPanel() {
   );
 }
 
-it("chỉ hiện nút gửi khóa ở lượt chưa kết thúc", async () => {
+it("chỉ hiện nút gửi mã ở lượt chưa kết thúc", async () => {
   const user = userEvent.setup();
   vi.spyOn(apiClient, "get").mockResolvedValue(progress);
   renderPanel();
   await screen.findAllByText(/Gói đang chờ/);
-  expect(screen.getAllByRole("button", { name: "Gửi khóa cho người nhận" })).toHaveLength(1);
-  await user.click(screen.getAllByRole("button", { name: "Xem chi tiết" })[1]);
-  expect(screen.queryByRole("button", { name: "Gửi khóa cho người nhận" })).not.toBeInTheDocument();
+  // Hai dòng nhưng chỉ lượt INVITED được gửi mã; lượt HANDOVER_COMMITTED thì BE từ chối nên FE không hiện nút.
+  expect(screen.getAllByRole("button", { name: "Gửi mã qua email" })).toHaveLength(1);
+  const doneRow = screen.getByRole("listitem", { name: /Gói đã nhận/ });
+  await user.click(within(doneRow).getByRole("button", { name: "Chi tiết" }));
+  expect(
+    within(doneRow).queryByRole("button", { name: "Gửi mã qua email" }),
+  ).not.toBeInTheDocument();
 });
 
-it("nhập khóa rồi mới gọi BE, báo đã gửi và xóa ô nhập", async () => {
+it("nhập mã rồi mới gọi BE, báo đã gửi và xóa ô nhập", async () => {
   const user = userEvent.setup();
   vi.spyOn(apiClient, "get").mockResolvedValue(progress);
   const post = vi.spyOn(apiClient, "post").mockResolvedValue({
@@ -101,29 +105,29 @@ it("nhập khóa rồi mới gọi BE, báo đã gửi và xóa ô nhập", asyn
   });
   renderPanel();
   await screen.findAllByText(/Gói đang chờ/);
-  await user.click(screen.getByRole("button", { name: "Gửi khóa cho người nhận" }));
-  const send = screen.getByRole("button", { name: "Gửi khóa" });
+  await user.click(screen.getByRole("button", { name: "Gửi mã qua email" }));
+  const send = screen.getByRole("button", { name: "Gửi mã" });
   expect(send).toBeDisabled();
-  await user.type(screen.getByLabelText("Khóa mở gói bạn đang giữ"), "ABCD-1234");
+  await user.type(screen.getByLabelText("Mã mở gói bạn đang giữ"), "ABCD-1234");
   await user.click(send);
-  await screen.findByText(/Đã gửi khóa cho người nhận lúc/);
+  await screen.findByText(/Đã gửi mã cho người nhận lúc/);
   expect(post).toHaveBeenCalledTimes(1);
   expect(post).toHaveBeenCalledWith(
     `/executor/death-cases/${CASE_ID}/handover-turns/${WAITING_TURN}/send-key`,
     { key: "ABCD-1234" },
   );
-  expect(screen.queryByLabelText("Khóa mở gói bạn đang giữ")).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Mã mở gói bạn đang giữ")).not.toBeInTheDocument();
 });
 
-it("khóa sai thì hiện lỗi và không báo thành công", async () => {
+it("mã sai thì hiện lỗi và không báo thành công", async () => {
   const user = userEvent.setup();
   vi.spyOn(apiClient, "get").mockResolvedValue(progress);
   vi.spyOn(apiClient, "post").mockRejectedValue(problem(403, { code: "HANDOVER_KEY_INVALID" }));
   renderPanel();
   await screen.findAllByText(/Gói đang chờ/);
-  await user.click(screen.getByRole("button", { name: "Gửi khóa cho người nhận" }));
-  await user.type(screen.getByLabelText("Khóa mở gói bạn đang giữ"), "SAI");
-  await user.click(screen.getByRole("button", { name: "Gửi khóa" }));
+  await user.click(screen.getByRole("button", { name: "Gửi mã qua email" }));
+  await user.type(screen.getByLabelText("Mã mở gói bạn đang giữ"), "SAI");
+  await user.click(screen.getByRole("button", { name: "Gửi mã" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(/Khóa mở gói chưa đúng/);
-  expect(screen.queryByText(/Đã gửi khóa cho người nhận lúc/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Đã gửi mã cho người nhận lúc/)).not.toBeInTheDocument();
 });

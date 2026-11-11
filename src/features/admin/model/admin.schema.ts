@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { templateParagraphSchema } from "@/entities/handoverDocument";
 import { paginatedListSchema } from "@/shared/api/pagination.schema";
 
 /** Vai trò tài khoản theo `UserRole` của Backend (wire viết hoa). */
@@ -315,6 +316,50 @@ export const paymentTransactionsQuerySchema = z.object({
 });
 export type PaymentTransactionsQuery = z.infer<typeof paymentTransactionsQuerySchema>;
 
+/** Cách gom doanh thu theo giờ Việt Nam. */
+export const revenueGroupBySchema = z.enum(["day", "month", "quarter"]);
+export type RevenueGroupBy = z.infer<typeof revenueGroupBySchema>;
+
+/** "Live" là tiền thật (mặc định), "Test" là thử nghiệm, "ALL" là gộp cả hai. */
+export const revenueEnvironmentSchema = z.enum(["Live", "Test", "ALL"]);
+export type RevenueEnvironment = z.infer<typeof revenueEnvironmentSchema>;
+
+/** AdminRevenueResponse: tổng tiền giao dịch đã khớp đơn hoặc đã xử lý, chia theo kỳ. */
+export const adminRevenueSchema = z.object({
+  groupBy: revenueGroupBySchema,
+  environment: revenueEnvironmentSchema,
+  totalAmount: z.number().int(),
+  transactionCount: z.number().int().nonnegative(),
+  currency: z.string().min(1),
+  buckets: z.array(
+    z.object({
+      /** "2026-11-05", "2026-11" hoặc "2026-Q4". */
+      key: z.string().min(1),
+      /** "05/11/2026", "11/2026" hoặc "Quý 4/2026". */
+      label: z.string().min(1),
+      amount: z.number().int(),
+      count: z.number().int().nonnegative(),
+    }),
+  ),
+});
+export type AdminRevenue = z.infer<typeof adminRevenueSchema>;
+
+/** Query GET /admin/payment-transactions/revenue. */
+export const adminRevenueQuerySchema = z.object({
+  groupBy: revenueGroupBySchema,
+  environment: revenueEnvironmentSchema,
+  /** Ngày yyyy-MM-dd theo giờ Việt Nam, tính cả ngày đầu và ngày cuối. */
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+});
+export type AdminRevenueQuery = z.infer<typeof adminRevenueQuerySchema>;
+
 /* Request body: độ dài theo DataAnnotations của Backend. */
 const reason500 = z.string().trim().min(1, "Vui lòng ghi lý do.").max(500, "Tối đa 500 ký tự.");
 const text1000 = (message: string) =>
@@ -367,3 +412,48 @@ export const createAdminUserRequestSchema = z.object({
   lawyerCardNumber: z.string().trim().max(64).optional(),
 });
 export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;
+
+/** Một trường {TÊN} Admin được chèn vào mẫu biên bản, kèm nhãn và ví dụ. */
+export const templateTokenSchema = z.object({
+  token: z.string().min(1),
+  label: z.string(),
+  example: z.string(),
+});
+export type TemplateToken = z.infer<typeof templateTokenSchema>;
+
+const templateContentShape = {
+  accept: z.array(templateParagraphSchema),
+  decline: z.array(templateParagraphSchema),
+  declineNotice: z.string(),
+};
+
+/** AdminHandoverTemplateResponse: bộ mẫu đang dùng (hoặc một phiên bản cũ), danh sách trường và mẫu gốc. */
+export const handoverTemplateSchema = z.object({
+  /** null khi đang dùng mẫu gốc trong mã (chưa có bản nào được lưu). */
+  version: z.number().int().nullable(),
+  isDefault: z.boolean(),
+  ...templateContentShape,
+  note: z.string().nullish(),
+  createdAt: z.string().datetime({ offset: true }).nullish(),
+  createdByName: z.string().nullish(),
+  tokens: z.array(templateTokenSchema),
+  default: z.object(templateContentShape),
+});
+export type HandoverTemplate = z.infer<typeof handoverTemplateSchema>;
+
+/** HandoverTemplateVersionResponse: một dòng lịch sử các lần lưu. */
+export const handoverTemplateVersionSchema = z.object({
+  version: z.number().int(),
+  createdAt: z.string().datetime({ offset: true }),
+  createdByName: z.string().nullish(),
+  note: z.string().nullish(),
+});
+export const handoverTemplateVersionsSchema = z.array(handoverTemplateVersionSchema);
+export type HandoverTemplateVersion = z.infer<typeof handoverTemplateVersionSchema>;
+
+/** Body POST /admin/handover-templates. */
+export const saveHandoverTemplateRequestSchema = z.object({
+  ...templateContentShape,
+  note: z.string().max(300, "Ghi chú tối đa 300 ký tự.").optional(),
+});
+export type SaveHandoverTemplateRequest = z.infer<typeof saveHandoverTemplateRequestSchema>;

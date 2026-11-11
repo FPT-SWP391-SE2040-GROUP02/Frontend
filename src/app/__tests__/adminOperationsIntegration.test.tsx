@@ -21,6 +21,12 @@ import { adminService } from "@/features/admin/api/adminService";
 import { reviewDateError } from "@/features/admin/model/admin.content";
 import { adminActionError } from "@/features/admin/model/adminError";
 
+// Mục Sự cố đang ẩn khỏi giao diện Admin (ADMIN_INCIDENTS_VISIBLE = false); bật lại ở đây để kiểm màn Sự cố còn đúng khi hiện.
+vi.mock("@/features/admin/model/admin.content", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/features/admin/model/admin.content")>();
+  return { ...original, ADMIN_INCIDENTS_VISIBLE: true };
+});
+
 const INCIDENT_ID = "11111111-1111-4111-8111-111111111111";
 const CASE_ID = "22222222-2222-4222-8222-222222222222";
 const HOLD_ID = "33333333-3333-4333-8333-333333333333";

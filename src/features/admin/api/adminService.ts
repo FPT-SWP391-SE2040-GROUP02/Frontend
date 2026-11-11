@@ -19,6 +19,11 @@ import {
   incidentsQuerySchema,
   paymentTransactionsPageSchema,
   paymentTransactionsQuerySchema,
+  adminRevenueSchema,
+  handoverTemplateSchema,
+  handoverTemplateVersionsSchema,
+  saveHandoverTemplateRequestSchema,
+  adminRevenueQuerySchema,
   assignExecutorRequestSchema,
   reassignVerifierRequestSchema,
   resolveIncidentRequestSchema,
@@ -32,6 +37,8 @@ import {
   type HoldsQuery,
   type IncidentNoteRequest,
   type IncidentsQuery,
+  type AdminRevenueQuery,
+  type SaveHandoverTemplateRequest,
   type PaymentTransactionsQuery,
   type AssignExecutorRequest,
   type ReassignVerifierRequest,
@@ -223,6 +230,52 @@ export const adminService = {
     if (parsed.to) params.to = parsed.to;
     return paymentTransactionsPageSchema.parse(
       await apiClient.get<unknown, unknown>("/admin/payment-transactions", { params, signal }),
+    );
+  },
+
+  /** Mẫu biên bản đang dùng cho biên bản mới (mẫu gốc khi chưa lưu bản nào). */
+  async getHandoverTemplate(signal?: AbortSignal) {
+    return handoverTemplateSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/handover-templates/current", { signal }),
+    );
+  },
+
+  /** Một phiên bản cũ của mẫu theo số. */
+  async getHandoverTemplateVersion(version: number, signal?: AbortSignal) {
+    return handoverTemplateSchema.parse(
+      await apiClient.get<unknown, unknown>(`/admin/handover-templates/${version}`, { signal }),
+    );
+  },
+
+  /** Lịch sử các lần lưu mẫu, mới nhất trước. */
+  async listHandoverTemplateVersions(signal?: AbortSignal) {
+    return handoverTemplateVersionsSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/handover-templates", { signal }),
+    );
+  },
+
+  /** Lưu thành phiên bản mới; biên bản đã tạo giữ nguyên chữ của phiên bản lúc tạo. */
+  async saveHandoverTemplate(request: SaveHandoverTemplateRequest) {
+    const body = saveHandoverTemplateRequestSchema.parse(request);
+    return handoverTemplateSchema.parse(
+      await apiClient.post<unknown, unknown>("/admin/handover-templates", body),
+    );
+  },
+
+  /** Doanh thu theo ngày, tháng hoặc quý (tiền thật đã khớp đơn); chỉ đọc. */
+  async getRevenue(query: AdminRevenueQuery, signal?: AbortSignal) {
+    const parsed = adminRevenueQuerySchema.parse(query);
+    const params: Record<string, string> = {
+      groupBy: parsed.groupBy,
+      environment: parsed.environment,
+    };
+    if (parsed.from) params.from = parsed.from;
+    if (parsed.to) params.to = parsed.to;
+    return adminRevenueSchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/payment-transactions/revenue", {
+        params,
+        signal,
+      }),
     );
   },
 };

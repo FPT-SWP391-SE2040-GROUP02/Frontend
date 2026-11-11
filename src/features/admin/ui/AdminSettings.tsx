@@ -43,7 +43,7 @@ import {
   MAX_TOTAL_SLOTS_LIMIT,
 } from "../model/planCatalog";
 import { settingsSaveError } from "../model/adminError";
-import { limitOf, settingErrors } from "../model/settingRules";
+import { limitOf, settingErrors, textMaxLengthOf } from "../model/settingRules";
 
 interface SettingMeta {
   key: string;
@@ -56,6 +56,8 @@ interface SettingMeta {
   description: string;
   src?: string;
   dataType: "NUMBER" | "BOOLEAN" | "STRING";
+  /** Tạm ẩn khỏi trang Cấu hình; Backend vẫn giữ tham số và dùng giá trị đã lưu hoặc mức gốc. */
+  hidden?: boolean;
   isSecurity?: boolean;
 }
 
@@ -443,6 +445,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     defaultValue: "legacyvault.vn",
     description: "Người nhận dùng để tự kiểm tra thư có thật.",
     dataType: "STRING",
+    hidden: true,
   },
   {
     key: "Company.Email",
@@ -452,6 +455,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     defaultValue: "ho-tro@legacyvault.vn",
     description: "Email công ty hiện trong thư mời.",
     dataType: "STRING",
+    hidden: true,
   },
   {
     key: "Company.Phone",
@@ -472,6 +476,9 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     dataType: "STRING",
   },
 ];
+
+/** Các tham số hiện trên trang Cấu hình (bỏ các tham số đang ẩn). */
+const VISIBLE_SETTINGS = SETTING_DEFINITIONS.filter((def) => !def.hidden);
 
 const CATEGORY_ICONS: Record<string, typeof Clock> = {
   CheckIn: Clock,
@@ -700,7 +707,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
   // Group definitions for Tab 1
   const groupedSettings = useMemo(() => {
     const groups: Record<string, { title: string; items: SettingMeta[] }> = {};
-    for (const def of SETTING_DEFINITIONS) {
+    for (const def of VISIBLE_SETTINGS) {
       if (!groups[def.category]) {
         groups[def.category] = { title: def.categoryTitle, items: [] };
       }
@@ -787,7 +794,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                     : "border border-heritage-border bg-heritage-surface text-heritage-muted hover:bg-heritage-primary/5"
                 }`}
               >
-                Tất cả ({SETTING_DEFINITIONS.length})
+                Tất cả ({VISIBLE_SETTINGS.length})
               </button>
               <button
                 type="button"
@@ -936,7 +943,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                 <input
                                   type="text"
                                   value={currentVal}
-                                  maxLength={200}
+                                  maxLength={textMaxLengthOf(item.key, 200)}
                                   onChange={(e) => setKeyValue(item.key, e.target.value)}
                                   aria-label={item.label}
                                   className="h-9 w-64 rounded-lg border border-heritage-border bg-white px-3 text-sm shadow-sm focus:outline-none"

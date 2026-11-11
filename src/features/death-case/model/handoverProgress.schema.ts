@@ -20,6 +20,8 @@ export const handoverGrantStatusSchema = z.enum(["ACTIVE", "BLOCKED", "EXPIRED",
 
 const progressItemSchema = z.object({
   itemId: z.string().uuid(),
+  /** Mã tài sản gốc trong kho, để nối với danh sách tài sản của gói. Backend cũ chưa gửi thì null. */
+  assetId: z.string().uuid().nullable().default(null),
   name: z.string(),
   kind: z.enum(["FILE", "TEXT"]),
   downloaded: z.boolean(),
@@ -28,6 +30,8 @@ const progressItemSchema = z.object({
 
 const progressTurnSchema = z.object({
   turnId: z.string().uuid(),
+  /** Mã gói, để nối lượt với gói trong danh sách tài sản. Backend cũ chưa gửi thì null. */
+  containerId: z.string().uuid().nullable().default(null),
   containerName: z.string(),
   /** Mã hồ sơ người nhận trong kho; các lượt cùng mã là cùng một người. Backend cũ chưa gửi thì null. */
   beneficiaryId: z.string().uuid().nullable().default(null),
@@ -35,6 +39,8 @@ const progressTurnSchema = z.object({
   /** Họ tên và số điện thoại người nhận: Backend gửi ở lượt còn hiệu lực hoặc đã bàn giao; lượt đã kết thúc là null. */
   beneficiaryFullName: z.string().nullable().default(null),
   beneficiaryPhone: z.string().nullable().default(null),
+  /** Email người nhận, cùng điều kiện với số điện thoại. Backend cũ chưa gửi thì null. */
+  beneficiaryEmail: z.string().nullable().default(null),
   status: handoverTurnStatusSchema,
   /** true: lượt do chính tài khoản đang xem nhận; Executor không tự xác nhận được lượt này (BR-122). */
   claimedByYou: z.boolean(),
@@ -42,8 +48,14 @@ const progressTurnSchema = z.object({
   identityConfirmedByExecutor: z.boolean(),
   invitedAt: timestamp,
   responseDeadline: timestamp,
-  /** null: Người thực thi chưa gửi thư mời lần nào (hệ thống không tự gửi). */
+  /** Lúc máy chủ email nhận thư mời; null: hệ thống chưa gửi được lời mời (sẽ tự thử lại). */
   invitationSentAt: timestamp.nullable().default(null),
+  /** Lúc người nhận ký biên bản đồng ý hoặc văn bản từ chối; null khi chưa có biên bản hoặc chưa ký. Backend cũ chưa gửi thì null. */
+  recipientSignedAt: timestamp.nullable().default(null),
+  /** Lúc Người xét duyệt ký biên bản của lượt; null khi chưa. Backend cũ chưa gửi thì null. */
+  documentApprovedAt: timestamp.nullable().default(null),
+  /** Lúc người nhận nhập đúng mã mở gói; null khi chưa nhập hoặc kho không dùng mã. Backend cũ chưa gửi thì null. */
+  keyVerifiedAt: timestamp.nullable().default(null),
   claimedAt: timestamp.nullable(),
   decisionDeadline: timestamp.nullable(),
   decidedAt: timestamp.nullable(),

@@ -6,6 +6,7 @@ import {
   FileText,
   Home,
   ListChecks,
+  Mail,
   Menu,
   Package,
   Send,
@@ -22,7 +23,8 @@ import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "./executor-workspace.css";
 import { NotificationBell } from "@/features/death-case/ui/NotificationBell";
-import { ExecutorOwnerSwitcher } from "./ExecutorOwnerSwitcher";
+import { useSelectedExecutorVault } from "@/features/death-case/model/useExecutorVaults";
+import { ExecutorVaultMenu } from "./ExecutorVaultMenu";
 
 interface NavItem {
   label: string;
@@ -31,15 +33,15 @@ interface NavItem {
 }
 
 /**
- * Menu chính của Người thực thi: Tổng quan, Báo tin, Bàn giao, Tài sản.
- * Xác minh (eKYC) và Cài đặt (gồm cả Lời mời và Quyền hạn) ít dùng nên nằm ở chân thanh bên, dưới nút đổi vai.
+ * Menu theo kho đang chọn: Tổng quan, Báo tin, Bàn giao, Tài sản và hướng dẫn, Biên bản.
+ * "Lời mời và kho của tôi", Xác minh (eKYC) và Cài đặt nằm ở chân thanh bên, dưới nút đổi vai.
  */
 const executorNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT, icon: Home },
   { label: "Báo tin", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
   { label: "Bàn giao", to: ROUTES.EXECUTOR.PROGRESS, icon: Send },
-  { label: "Biên Bản", to: ROUTES.EXECUTOR.DOCUMENTS, icon: FileText },
-  { label: "Tài sản", to: ROUTES.EXECUTOR.ASSETS, icon: Package },
+  { label: "Tài sản và hướng dẫn", to: ROUTES.EXECUTOR.ASSETS, icon: Package },
+  { label: "Biên bản", to: ROUTES.EXECUTOR.DOCUMENTS, icon: FileText },
 ];
 
 const accountNavigation: Array<{ label: string; to: string }> = [
@@ -70,6 +72,9 @@ export function ExecutorWorkspace({
   const invitations = useMyInvitations(isAuthenticated && Boolean(accessTokenMemory.get()));
   let pendingInvitations = 0;
   if (invitations.isSuccess) pendingInvitations = invitations.data.pending.length;
+  const { selected } = useSelectedExecutorVault();
+  let vaultGroupTitle = "Kho đang chọn";
+  if (selected) vaultGroupTitle = `Kho ${selected.ownerFullName}`;
   const path = location.pathname;
   const isCurrent = (to: string): boolean => {
     if (to === ROUTES.EXECUTOR.ROOT) return path === to;
@@ -107,9 +112,10 @@ export function ExecutorWorkspace({
             className="owner-navigation"
             data-open={navigationOpen}
           >
-            <div className="px-2 pt-2">
-              <ExecutorOwnerSwitcher />
-            </div>
+            <ExecutorVaultMenu />
+            <p className="mt-3 truncate px-3 text-[11px] font-semibold uppercase tracking-widest text-white/60">
+              {vaultGroupTitle}
+            </p>
             {executorNavigation.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}
@@ -128,6 +134,16 @@ export function ExecutorWorkspace({
       footer={
         <>
           <nav aria-label="Tài khoản" className="mb-3 flex flex-wrap gap-1">
+            <Link
+              to={ROUTES.EXECUTOR.INVITATIONS}
+              aria-current={isCurrent(ROUTES.EXECUTOR.INVITATIONS) ? "page" : undefined}
+              className="flex min-h-9 w-full items-center gap-2 rounded-lg px-2 text-sm text-[#E9EFE9] hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:font-semibold"
+              onClick={() => setNavigationOpen(false)}
+            >
+              <Mail className="size-4 shrink-0" aria-hidden="true" />
+              Lời mời và kho của tôi
+              {pendingInvitations > 0 && <InvitationCountBadge count={pendingInvitations} />}
+            </Link>
             {accountNavigation.map(({ to, label }) => (
               <Link
                 key={to}
@@ -137,9 +153,6 @@ export function ExecutorWorkspace({
                 onClick={() => setNavigationOpen(false)}
               >
                 {label}
-                {to === ROUTES.EXECUTOR.SETTINGS && pendingInvitations > 0 && (
-                  <InvitationCountBadge count={pendingInvitations} />
-                )}
               </Link>
             ))}
           </nav>

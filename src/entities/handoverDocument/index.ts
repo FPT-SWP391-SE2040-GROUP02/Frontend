@@ -1,5 +1,7 @@
 export * from "./model/handoverDocument.schema";
 export * from "./model/handoverDocument.format";
+export * from "./model/templateFill";
+export * from "./model/sampleDocument";
 export * from "./model/documentTerms";
 export * from "./model/useHandoverDocuments";
 export * from "./api/handoverDocumentService";

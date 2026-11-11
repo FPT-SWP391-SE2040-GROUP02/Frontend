@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { POLLING_INTERVAL } from "@/shared/config";
 import { adminService } from "../api/adminService";
 import type {
+  AdminRevenueQuery,
   AdminUserRole,
   AdminUsersQuery,
   HoldsQuery,
@@ -21,6 +22,9 @@ export const adminKeys = {
   hold: (holdId: string) => [...adminKeys.all, "hold", holdId] as const,
   paymentTransactions: (query: PaymentTransactionsQuery) =>
     [...adminKeys.all, "payment-transactions", query] as const,
+  revenue: (query: AdminRevenueQuery) => [...adminKeys.all, "revenue", query] as const,
+  handoverTemplate: () => [...adminKeys.all, "handover-template"] as const,
+  handoverTemplateVersions: () => [...adminKeys.all, "handover-template-versions"] as const,
 };
 
 /** Bộ đếm tổng quan; không tự retry để 404/401 hiện ngay; tự động refetch định kỳ. */
@@ -66,9 +70,10 @@ export function useAdminUserOptions(role: AdminUserRole, enabled = true) {
   });
 }
 
-export function useAdminIncidents(query: IncidentsQuery) {
+export function useAdminIncidents(query: IncidentsQuery, enabled = true) {
   return useQuery({
     queryKey: adminKeys.incidents(query),
+    enabled,
     queryFn: ({ signal }) => adminService.listIncidents(query, signal),
     placeholderData: keepPreviousData,
     retry: false,
@@ -136,6 +141,32 @@ export function useAdminHold(holdId: string) {
 }
 
 /** Một trang giao dịch tiền vào; giữ trang trước khi đổi bộ lọc để bảng không nháy trắng. */
+/** Mẫu biên bản đang dùng; không tự retry để 404 không quyền hiện ngay. */
+export function useAdminHandoverTemplate() {
+  return useQuery({
+    queryKey: adminKeys.handoverTemplate(),
+    queryFn: ({ signal }) => adminService.getHandoverTemplate(signal),
+    retry: false,
+  });
+}
+
+export function useAdminHandoverTemplateVersions() {
+  return useQuery({
+    queryKey: adminKeys.handoverTemplateVersions(),
+    queryFn: ({ signal }) => adminService.listHandoverTemplateVersions(signal),
+    retry: false,
+  });
+}
+
+export function useAdminRevenue(query: AdminRevenueQuery) {
+  return useQuery({
+    queryKey: adminKeys.revenue(query),
+    queryFn: ({ signal }) => adminService.getRevenue(query, signal),
+    placeholderData: keepPreviousData,
+    retry: false,
+  });
+}
+
 export function useAdminPaymentTransactions(query: PaymentTransactionsQuery) {
   return useQuery({
     queryKey: adminKeys.paymentTransactions(query),

@@ -67,6 +67,11 @@ const ExecutorProgressPage = lazy(() =>
     default: module.ExecutorProgressPage,
   })),
 );
+const ExecutorInvitationsPage = lazy(() =>
+  import("@/pages/executor/ExecutorInvitationsPage").then((module) => ({
+    default: module.ExecutorInvitationsPage,
+  })),
+);
 const ExecutorDocumentsPage = lazy(() =>
   import("@/pages/executor/ExecutorDocumentsPage").then((module) => ({
     default: module.ExecutorDocumentsPage,
@@ -374,16 +379,13 @@ export function AppRoutes() {
           <Route path={ROUTES.EXECUTOR.PROGRESS} element={<ExecutorProgressPage />} />
           <Route path={ROUTES.EXECUTOR.DOCUMENTS} element={<ExecutorDocumentsPage />} />
           <Route path={ROUTES.EXECUTOR.ASSETS} element={<ExecutorAssetsPage />} />
-          {/* Lời mời và Quyền hạn nay là hai thẻ trong trang Cài đặt; đường cũ chuyển về đó. */}
+          {/* Quyền hạn là một thẻ trong trang Cài đặt; đường cũ chuyển về đó. Lời mời có trang riêng. */}
           <Route
             path={ROUTES.EXECUTOR.PERMISSIONS}
             element={<Navigate to={`${ROUTES.EXECUTOR.SETTINGS}?open=permissions`} replace />}
           />
           <Route path={ROUTES.EXECUTOR.SETTINGS} element={<ExecutorSettingsPage />} />
-          <Route
-            path={ROUTES.EXECUTOR.INVITATIONS}
-            element={<Navigate to={`${ROUTES.EXECUTOR.SETTINGS}?open=invitations`} replace />}
-          />
+          <Route path={ROUTES.EXECUTOR.INVITATIONS} element={<ExecutorInvitationsPage />} />
           <Route path={ROUTES.EXECUTOR.IDENTITY} element={<ExecutorIdentityPage />} />
           {/* Đường dẫn cũ của cổng Executor. */}
           <Route

@@ -9,6 +9,8 @@ export const executorVaultSchema = z.object({
   executorNote: z.string().nullish(),
   executorNoteUpdatedAt: timestamp.nullish(),
   checkInOverdue: z.boolean(),
+  /** Lúc tài khoản chấp nhận lời mời làm Người thực thi của kho; Backend cũ hoặc dữ liệu cũ không có thì null. */
+  acceptedAt: timestamp.nullish(),
   openDeathCaseId: z.string().uuid().nullable(),
   /** Hồ sơ bị từ chối gần nhất của kho, để Executor xem lại lý do. Backend cũ không có trường này. */
   lastRejectedDeathCaseId: z.string().uuid().nullish(),
@@ -59,8 +61,15 @@ export const deathCaseSchema = z.object({
     ownerCitizenIdLast4: z.string().nullable(),
     dateOfDeath: date.nullable(),
     certificateNumber: z.string().nullable(),
+    /** Ngày đăng ký khai tử ghi trên giấy chứng tử (cột ngày cấp của Backend). */
     issuedOn: date.nullable(),
     issuedBy: z.string().nullable(),
+    /** Mã tỉnh/thành phố nơi đăng ký khai tử; Backend cũ không có trường này. */
+    deathRegistrationProvinceCode: z.string().nullish(),
+    /** Mã phường/xã nơi đăng ký khai tử, thuộc đúng tỉnh trên; Backend cũ không có trường này. */
+    deathRegistrationWardCode: z.string().nullish(),
+    /** Câu đã ghép "UBND phường X, Tỉnh Y"; rỗng khi chưa chọn. */
+    deathRegistrationPlace: z.string().default(""),
     files: z.array(
       z.object({
         id: z.string().uuid(),
@@ -101,14 +110,21 @@ export const deathCaseSchema = z.object({
   updatedAt: timestamp.nullable(),
   etag: z.string().min(1).max(64),
 });
+/**
+ * Body PUT .../draft. Người thực thi chỉ khai 3 thông tin trên giấy: ngày mất, ngày đăng ký khai tử và nơi đăng ký (tỉnh + phường/xã).
+ * Chuỗi: không gửi = giữ nguyên, "" = xóa. Đổi tỉnh mà không gửi phường thì Backend xóa phường.
+ * Bốn trường cũ (họ tên, CCCD, số giấy, nơi cấp) còn trong API để tương thích nhưng FE không gửi.
+ */
 export const deathDraftSchema = z.object({
   etag: z.string().min(1).max(64),
-  ownerFullName: z.string().max(200),
-  ownerCitizenId: z.string().max(32).nullable().optional(),
   dateOfDeath: date.nullable().optional(),
-  certificateNumber: z.string().max(100),
   issuedOn: date.nullable().optional(),
-  issuedBy: z.string().max(200),
+  deathRegistrationProvinceCode: z.string().max(10).optional(),
+  deathRegistrationWardCode: z.string().max(10).optional(),
+  ownerFullName: z.string().max(200).optional(),
+  ownerCitizenId: z.string().max(32).nullable().optional(),
+  certificateNumber: z.string().max(100).optional(),
+  issuedBy: z.string().max(200).optional(),
 });
 
 /** Kết quả Executor điểm danh thay chủ kho: kế hoạch về ACTIVE và có kỳ điểm danh mới. */

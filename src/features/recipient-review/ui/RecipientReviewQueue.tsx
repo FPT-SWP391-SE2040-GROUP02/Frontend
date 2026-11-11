@@ -128,9 +128,11 @@ function MatchRow({
 }) {
   return (
     <li className="flex items-center justify-between gap-3 py-3 text-sm">
-      <span>
+      <span className="min-w-0">
         {label}
-        {detail && <span className="ml-2 font-mono text-xs text-heritage-muted">{detail}</span>}
+        {detail && (
+          <span className="ml-2 break-words font-mono text-xs text-heritage-primary">{detail}</span>
+        )}
       </span>
       <Chip tone={matches ? "success" : "danger"}>{matches ? "Khớp" : "Không khớp"}</Chip>
     </li>
@@ -215,6 +217,11 @@ function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void 
     : null;
   // Hồ sơ thuộc biên bản thì Người xét duyệt kiểm tra thủ công và chịu trách nhiệm, không còn bị chặn theo kết quả khớp tự động.
   const forDocument = Boolean(detail.documentId);
+  // Số căn cước đầy đủ của người nhận (từ hồ sơ Chủ kho đã khai, có trong biên bản) để Người xét duyệt đối chiếu với ảnh;
+  // chưa có (hồ sơ cũ) thì chỉ hiện 4 số cuối.
+  const fullCitizenId = document?.recipient.citizenId ?? "";
+  const citizenIdText =
+    fullCitizenId.length > 4 ? fullCitizenId : `•••••••• ${detail.citizenIdLast4}`;
   const allChecked = checks.every(Boolean);
   let checkError: string | null = null;
   if (touched && !allChecked) checkError = "Phải tick đủ cả bốn mục kiểm tra thủ công.";
@@ -251,13 +258,23 @@ function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void 
       <div className="grid items-start gap-6 lg:grid-cols-2">
         <Panel title="Đối chiếu với thông tin Chủ kho đã khai">
           <ul className="divide-y divide-heritage-border">
-            <MatchRow label="Họ tên" matches={detail.nameMatches} />
+            <MatchRow
+              label="Họ tên"
+              matches={detail.nameMatches}
+              detail={document?.recipient.fullName || undefined}
+            />
             <MatchRow
               label="Số căn cước"
               matches={detail.citizenIdMatches}
-              detail={`•••••••• ${detail.citizenIdLast4}`}
+              detail={citizenIdText}
             />
-            <MatchRow label="Ngày sinh" matches={detail.dateOfBirthMatches} />
+            <MatchRow
+              label="Ngày sinh"
+              matches={detail.dateOfBirthMatches}
+              detail={
+                document?.recipient.birthYear ? `Năm ${document.recipient.birthYear}` : undefined
+              }
+            />
           </ul>
           <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
             <div>
@@ -268,6 +285,12 @@ function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void 
               <dt className="text-xs text-heritage-muted">Tài sản trong gói</dt>
               <dd className="font-semibold">{detail.itemCount}</dd>
             </div>
+            {document?.recipient.residenceAddress && (
+              <div className="col-span-2">
+                <dt className="text-xs text-heritage-muted">Nơi thường trú người nhận khai</dt>
+                <dd className="font-semibold">{document.recipient.residenceAddress}</dd>
+              </div>
+            )}
             <div>
               <dt className="text-xs text-heritage-muted">Đã đọc điều khoản</dt>
               <dd className="font-semibold">{detail.acknowledged ? "Có" : "Không"}</dd>
@@ -279,14 +302,10 @@ function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void 
               </div>
             )}
           </dl>
-          <p className="mt-4 text-xs text-heritage-muted">
-            Hệ thống chỉ giữ kết quả đối chiếu và 4 số cuối căn cước, không lưu họ tên, ngày sinh
-            hay số căn cước đầy đủ.
-          </p>
         </Panel>
         <Panel title={`Căn cước của ${document?.recipient.fullName || "người nhận"}`}>
           <p className="mb-3 text-xs text-heritage-muted">
-            Ảnh người nhận tải lên khi ký, 4 số cuối ••••{detail.citizenIdLast4}. Đối chiếu với tên
+            Ảnh người nhận tải lên khi ký. Số căn cước cần khớp: {citizenIdText}. Đối chiếu với tên
             ở Phần 2 trước khi tick.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -302,7 +321,7 @@ function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void 
       )}
       {document && (
         <Panel title="Biên bản">
-          <HandoverDocumentDetail document={document} />
+          <HandoverDocumentDetail document={document} compact />
         </Panel>
       )}
       {forDocument && detail.canApprove ? (

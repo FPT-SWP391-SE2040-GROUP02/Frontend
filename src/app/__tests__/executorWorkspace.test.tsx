@@ -10,9 +10,6 @@ import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
-import { deriveLog, deriveSteps } from "@/features/death-case/model/progressSteps";
-import type { DeathCase } from "@/features/death-case/model/deathCase.schema";
-import type { HandoverProgressTurn } from "@/features/death-case/model/handoverProgress.schema";
 import { ExecutorOverviewPage } from "@/pages/executor/ExecutorOverviewPage";
 import { ExecutorPermissionsSection } from "@/pages/executor/ExecutorPermissionsPage";
 import { ExecutorWorkspace } from "@/widgets/ExecutorWorkspace/ExecutorWorkspace";
@@ -128,11 +125,12 @@ describe("Executor workspace shell", () => {
       "Tổng quan",
       "Báo tin",
       "Bàn giao",
-      "Biên Bản",
-      "Tài sản",
+      "Tài sản và hướng dẫn",
+      "Biên bản",
     ]);
     const account = screen.getByRole("navigation", { name: "Tài khoản" });
     expect(Array.from(account.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
+      "Lời mời và kho của tôi",
       "Xác minh",
       "Cài đặt",
     ]);
@@ -143,8 +141,67 @@ describe("Executor workspace shell", () => {
     );
     expect(screen.getByText("Người thực thi")).toBeInTheDocument();
     expect(
-      await screen.findByRole("heading", { level: 1, name: "Chào Chú Hải" }),
+      await screen.findByRole("heading", { level: 1, name: "Kho của Anh Nam" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByText("Bạn là Người thực thi của kho này. Bạn không đọc được nội dung kho."),
+    ).toBeInTheDocument();
+  });
+
+  it("lists every vault the account keeps, with a stage line and a gold border on the chosen one", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      vault({ planStatus: "HANDOVER_IN_PROGRESS", openDeathCaseId: CASE_ID }),
+      vault({ vaultId: OTHER_VAULT_ID, ownerFullName: "Bà Hạnh", planStatus: "CLOSED" }),
+    ]);
+    window.sessionStorage.setItem("lv-executor-vault", VAULT_ID);
+    setup("/executor");
+    const group = await screen.findByRole("region", { name: "Kho bạn đang giữ" });
+    const chosen = within(group).getByRole("button", { name: "Kho của Anh Nam" });
+    const other = within(group).getByRole("button", { name: "Kho của Bà Hạnh" });
+    expect(chosen).toHaveTextContent("Đang bàn giao");
+    expect(other).toHaveTextContent("Đã hoàn tất");
+    expect(chosen).toHaveAttribute("aria-pressed", "true");
+    expect(chosen).toHaveClass("border-[#C9A45C]");
+    expect(other).toHaveAttribute("aria-pressed", "false");
+    // Nhóm menu theo kho đang chọn.
+    expect(screen.getByText("Kho Anh Nam")).toBeInTheDocument();
+    // Bấm kho khác để chuyển kho, dùng đúng cơ chế chọn kho sẵn có (nhớ trong phiên).
+    fireEvent.click(other);
+    expect(window.sessionStorage.getItem("lv-executor-vault")).toBe(OTHER_VAULT_ID);
+  });
+
+  it("shows the pending invitation count on Lời mời và kho của tôi and hides it at zero", async () => {
+    const mine = (pending: unknown[]) => ({
+      scopeVersion: "v1",
+      scopeText: "scope",
+      pending,
+      ended: [],
+    });
+    const invitation = {
+      id: "99999999-9999-4999-8999-999999999999",
+      ownerName: "Cô Lan",
+      inviteeEmail: "hai@example.test",
+      status: "INVITED",
+      invitedAt: "2026-11-01T03:00:00Z",
+      expiresAt: "2026-11-20T03:00:00Z",
+      endedAt: null,
+    };
+    let pending: unknown[] = [invitation];
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/executor/vaults") return [vault()];
+      if (url.includes("executor-invitations")) return mine(pending);
+      return [];
+    });
+    setup("/executor");
+    const link = await screen.findByRole("link", { name: /Lời mời và kho của tôi/ });
+    expect(await within(link).findByLabelText("1 lời mời đang chờ")).toBeInTheDocument();
+    cleanup();
+    client.clear();
+    pending = [];
+    setup("/executor");
+    const emptyLink = await screen.findByRole("link", { name: /Lời mời và kho của tôi/ });
+    await screen.findByRole("heading", { level: 1, name: "Kho của Anh Nam" });
+    expect(within(emptyLink).queryByLabelText(/lời mời đang chờ/)).not.toBeInTheDocument();
   });
 });
 
@@ -155,17 +212,20 @@ describe("Executor overview after the Owner checks in", () => {
     ]);
     setup("/executor");
 
-    expect(await screen.findByText("Anh Nam đã điểm danh thành công")).toBeInTheDocument();
-    expect(screen.getByText(/Lần gần nhất/)).toBeInTheDocument();
-    expect(screen.queryByText("Kho của Anh Nam đang an toàn")).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Anh Nam tự điểm danh lần gần nhất lúc/)).toBeInTheDocument();
   });
 
   it("keeps the plain safe notice when the Owner has never checked in", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault({ lastOwnerCheckInAt: null })]);
     setup("/executor");
 
-    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
-    expect(screen.queryByText(/đã điểm danh thành công/)).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/tự điểm danh lần gần nhất/)).not.toBeInTheDocument();
   });
 
   it("does not claim a check-in while the Owner is overdue", async () => {
@@ -179,7 +239,7 @@ describe("Executor overview after the Owner checks in", () => {
     setup("/executor");
 
     expect(await screen.findByText("Anh Nam đã quá hạn điểm danh")).toBeInTheDocument();
-    expect(screen.queryByText(/đã điểm danh thành công/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/tự điểm danh lần gần nhất/)).not.toBeInTheDocument();
   });
 });
 
@@ -215,10 +275,15 @@ describe("Executor assets", () => {
     setup("/executor/assets");
 
     expect(await screen.findByText("Gói gia đình")).toBeInTheDocument();
-    expect(screen.getByText(/Giao cho Trần Minh Anh/)).toBeInTheDocument();
+    expect(screen.getByText("Người nhận: Trần Minh Anh")).toBeInTheDocument();
     expect(screen.getByText("Email gia đình")).toBeInTheDocument();
-    expect(screen.getByText(/Tệp · 2.3 MB/)).toBeInTheDocument();
-    expect(screen.getByText("Bạn chỉ thấy danh sách")).toBeInTheDocument();
+    expect(screen.getByText("Sổ tiết kiệm")).toBeInTheDocument();
+    expect(screen.getByText("2 tài sản trong 1 gói")).toBeInTheDocument();
+    // Chưa có lượt bàn giao: gói "Chưa bàn giao", từng tài sản "Chưa tải".
+    expect(screen.getByText("Chưa bàn giao")).toBeInTheDocument();
+    expect(screen.getAllByText("Chưa tải")).toHaveLength(2);
+    expect(screen.getByText("Chủ kho chưa để lại hướng dẫn.")).toBeInTheDocument();
+    expect(screen.getByText(/Nội dung chỉ người nhận mở được/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Xem|Tải/ })).not.toBeInTheDocument();
   });
 
@@ -247,7 +312,9 @@ describe("Executor notification bell", () => {
   it("shows no bell while the vault is safe and has no case", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor");
-    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Thông báo/ })).not.toBeInTheDocument();
   });
 
@@ -271,12 +338,26 @@ describe("Executor overview", () => {
   it("explains the vault is safe and links to Báo tin when the Owner is not overdue", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor");
-    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
-    const reportLinks = screen.getAllByRole("link", { name: "Báo tin" });
-    expect(reportLinks).toHaveLength(2); // mục menu và nút trong banner
-    reportLinks.forEach((link) => expect(link).toHaveAttribute("href", "/executor/report"));
-    expect(screen.getByText("Bạn không đọc được")).toBeInTheDocument();
-    expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Việc của bạn bây giờ")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Báo tin" })).toHaveAttribute(
+      "href",
+      "/executor/report",
+    );
+    expect(screen.getByRole("link", { name: "Mở Báo tin" })).toHaveAttribute(
+      "href",
+      "/executor/report",
+    );
+    // Hai thẻ gọn: hướng dẫn và tài sản, bạn làm được / không làm được.
+    expect(screen.getByRole("link", { name: "Xem tài sản và hướng dẫn" })).toHaveAttribute(
+      "href",
+      "/executor/assets",
+    );
+    expect(
+      screen.getByRole("heading", { name: "Bạn làm được / không làm được" }),
+    ).toBeInTheDocument();
     expect(screen.getAllByText("Người thực thi").length).toBeGreaterThan(0);
   });
 
@@ -286,7 +367,7 @@ describe("Executor overview", () => {
     ]);
     setup("/executor");
     expect(await screen.findByText("Anh Nam đã quá hạn điểm danh")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Xem hồ sơ báo tin" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Xem hồ sơ" })).toBeInTheDocument();
     // Đã có hồ sơ chứng tử thì không điểm danh thay nữa.
     expect(
       screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
@@ -298,22 +379,32 @@ describe("Executor overview", () => {
       vault({ planStatus: "DEATH_CASE_OPEN", openDeathCaseId: CASE_ID }),
     ]);
     setup("/executor");
-    expect(await screen.findByText("Hồ sơ báo tin về Anh Nam đang được xử lý")).toBeInTheDocument();
-    expect(screen.queryByText("Kho của Anh Nam đang an toàn")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Xem hồ sơ báo tin" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Hồ sơ báo tin về Anh Nam đang được xử lý" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Xem hồ sơ" })).toBeInTheDocument();
   });
 
   it("says the case was rejected instead of calling the vault safe or still processing", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault({ lastRejectedDeathCaseId: CASE_ID })]);
     setup("/executor");
     expect(await screen.findByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).toBeInTheDocument();
-    expect(screen.queryByText("Kho của Anh Nam đang an toàn")).not.toBeInTheDocument();
-    expect(screen.queryByText("Hồ sơ báo tin về Anh Nam đang được xử lý")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Hồ sơ báo tin về Anh Nam đang được xử lý" }),
+    ).not.toBeInTheDocument();
     // Không còn nút "Xem lý do": banner đỏ chỉ có "Tiếp tục".
     expect(screen.queryByRole("link", { name: "Xem lý do" })).not.toBeInTheDocument();
     // Hồ sơ bị từ chối là đã xử lý xong: bấm Tiếp tục thì banner trở lại màu xanh "an toàn".
     fireEvent.click(screen.getByRole("button", { name: "Tiếp tục" }));
-    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Hồ sơ báo tin về Anh Nam đã bị từ chối")).not.toBeInTheDocument();
   });
 
@@ -336,7 +427,9 @@ describe("Executor overview", () => {
   it("hides the proxy check-in while the Owner is not overdue", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor");
-    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
     ).not.toBeInTheDocument();
@@ -374,7 +467,9 @@ describe("Executor overview", () => {
         contactMethod: "PHONE",
       }),
     );
-    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Điểm danh thay chủ kho" }),
     ).not.toBeInTheDocument();
@@ -522,7 +617,9 @@ describe("Executor overview", () => {
     expect(screen.getByText("Chưa có việc gì")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Mở kho của Anh Nam" }));
-    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).toBeInTheDocument();
     expect(window.sessionStorage.getItem("lv-executor-vault")).toBe(VAULT_ID);
   });
 
@@ -535,15 +632,15 @@ describe("Executor overview", () => {
 });
 
 describe("Executor permissions", () => {
-  it("lists what the Executor can and cannot do and the accepted invitations", async () => {
+  it("lists what the Executor can and cannot do, without the invitations that moved to their own page", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor/permissions");
-    expect(await screen.findByText("Anh Nam mời bạn làm Executor")).toBeInTheDocument();
-    expect(screen.getByText("Xem ghi chú của Chủ kho")).toBeInTheDocument();
+    expect(await screen.findByText("Xem ghi chú của Chủ kho")).toBeInTheDocument();
+    expect(screen.queryByText("Anh Nam mời bạn làm Executor")).not.toBeInTheDocument();
     expect(screen.getByText("Điểm danh thay khi Chủ kho trễ điểm danh")).toBeInTheDocument();
     expect(screen.getByText("Làm người nhận trong kho này")).toBeInTheDocument();
     expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
-    expect(screen.getByText("Đã chấp nhận")).toBeInTheDocument();
+    expect(screen.queryByText("Đã chấp nhận")).not.toBeInTheDocument();
     expect(screen.getByText(/hãy báo cho Anh Nam/)).toBeInTheDocument();
   });
 });
@@ -584,7 +681,9 @@ describe("Executor report", () => {
     await waitFor(() =>
       expect(remove).toHaveBeenCalledWith(`/executor/death-cases/${CASE_ID}/draft`),
     );
-    expect(await screen.findByText("Kho của Anh Nam đang an toàn")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Báo tin khi Chủ kho qua đời" }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -693,7 +792,10 @@ describe("Executor report", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Giấy chứng tử / Trích lục khai tử")).toBeInTheDocument();
     expect(screen.queryByText("Giấy báo tử hoặc giấy tờ thay thế")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Ngày mất")).not.toBeInTheDocument();
+    // Mục "Thông tin trên giấy" (3 ô) nằm trên trang; thiếu tệp và thiếu 3 thông tin thì chưa nộp được.
+    expect(screen.getByLabelText("Ngày mất")).toBeInTheDocument();
+    expect(screen.getByLabelText("Ngày đăng ký khai tử")).toBeInTheDocument();
+    expect(screen.getByLabelText("Tỉnh / thành phố")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Nộp hồ sơ" })).toBeDisabled();
   });
 
@@ -770,7 +872,16 @@ describe("Executor report", () => {
   it("asks for confirmation before submitting and then shows the receipt", async () => {
     const draft = deathCase("DRAFT", {
       missingRequirements: [],
-      currentVersion: { ...deathCase("DRAFT").currentVersion, files: [certificateFile] },
+      currentVersion: {
+        ...deathCase("DRAFT").currentVersion,
+        files: [certificateFile],
+        // Đủ 3 thông tin trên giấy đã lưu thì mới nộp được.
+        dateOfDeath: "2026-01-05",
+        issuedOn: "2026-01-06",
+        deathRegistrationProvinceCode: "79",
+        deathRegistrationWardCode: "26743",
+        deathRegistrationPlace: "UBND phường Bến Thành, Thành phố Hồ Chí Minh",
+      },
     });
     const submitted = deathCase("UNDER_REVIEW", {
       currentVersion: {
@@ -845,99 +956,15 @@ describe("Executor progress", () => {
   it("guides the Executor to Báo tin when no case exists yet", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor/progress");
-    expect(await screen.findByText("Bước hiện tại")).toBeInTheDocument();
     expect(
-      screen.getByText("Chưa có hồ sơ báo tin. Tiến trình bắt đầu sau khi bạn gửi hồ sơ."),
+      await screen.findByRole("heading", { name: "Bàn giao chưa bắt đầu" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Chưa có hồ sơ báo tin\. Bàn giao bắt đầu sau khi/),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Đi tới Báo tin" })).toHaveAttribute(
       "href",
       "/executor/report",
     );
-  });
-});
-
-describe("progress steps", () => {
-  const record = (status: string, extra: Record<string, unknown> = {}) =>
-    deathCase(status, extra) as unknown as DeathCase;
-  const states = (steps: ReturnType<typeof deriveSteps>) => steps.map((step) => step.state);
-
-  it("starts at the first step while the case is a draft", () => {
-    expect(states(deriveSteps(record("DRAFT"), null))).toEqual([
-      "current",
-      "pending",
-      "pending",
-      "pending",
-      "pending",
-    ]);
-  });
-
-  it("có 5 bước, không còn bước phản đối; hồ sơ đã nộp nằm ở bước xét duyệt", () => {
-    const steps = deriveSteps(record("UNDER_REVIEW"), null);
-    expect(steps.map((step) => step.label)).toEqual([
-      "Báo tin",
-      "Xét duyệt",
-      "Xác minh eKYC",
-      "Đồng ý hoặc từ chối",
-      "Tải nội dung 30 ngày",
-    ]);
-    expect(states(steps)).toEqual(["done", "current", "pending", "pending", "pending"]);
-  });
-
-  it("marks the review step as an error when the case is rejected", () => {
-    expect(states(deriveSteps(record("REJECTED"), null))).toEqual([
-      "done",
-      "error",
-      "pending",
-      "pending",
-      "pending",
-    ]);
-  });
-
-  it("hồ sơ đã duyệt: 3 bước cuối theo đúng người nhận đang xem", () => {
-    const approved = record("APPROVED_FOR_HANDOVER");
-    const turnOf = (status: string, downloaded = 0) =>
-      ({
-        turnId: "55555555-5555-4555-8555-555555555555",
-        status,
-        totalItems: 1,
-        downloadedItems: downloaded,
-      }) as unknown as HandoverProgressTurn;
-    // Người nhận A đã đồng ý và tải xong; người nhận B còn chờ phản hồi lời mời.
-    expect(states(deriveSteps(approved, null, 30, turnOf("HANDOVER_COMMITTED", 1)))).toEqual([
-      "done",
-      "done",
-      "done",
-      "done",
-      "done",
-    ]);
-    expect(states(deriveSteps(approved, null, 30, turnOf("INVITED")))).toEqual([
-      "done",
-      "done",
-      "current",
-      "pending",
-      "pending",
-    ]);
-    expect(states(deriveSteps(approved, null, 30, turnOf("READY_TO_ACCEPT")))[3]).toBe("current");
-    const declined = deriveSteps(approved, null, 30, turnOf("DECLINED"));
-    expect(declined[3]).toMatchObject({ state: "error", caption: "Đã từ chối" });
-    expect(declined[4].state).toBe("pending");
-  });
-
-  it("derives the log newest first from the timestamps Backend returns", () => {
-    const log = deriveLog(
-      record("UNDER_REVIEW", {
-        createdAt: "2026-10-18T08:00:00Z",
-        ownerNotice: { status: "DELIVERED", deliveredAt: "2026-10-20T07:00:00Z" },
-        currentVersion: {
-          ...deathCase("UNDER_REVIEW").currentVersion,
-          submittedAt: "2026-10-19T08:00:00Z",
-        },
-      }),
-    );
-    expect(log.map((entry) => entry.text)).toEqual([
-      "Hệ thống đã nhắn cho Chủ kho",
-      "Bạn gửi hồ sơ (bản 1)",
-      "Bạn mở hồ sơ báo tin",
-    ]);
   });
 });

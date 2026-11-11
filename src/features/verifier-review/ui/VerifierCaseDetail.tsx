@@ -16,7 +16,8 @@ import { caseCode } from "../model/caseCode";
 import { conditionRows, queueStatus } from "../model/verifierPresentation";
 import { CertificateViewer } from "./CertificateViewer";
 import { VerifierEkycChecklist } from "./VerifierEkycChecklist";
-import { REVIEW_CHECKS } from "../model/reviewChecks";
+import { REVIEW_CHECK_COUNT, REVIEW_CHECKS_HINT } from "../model/reviewChecks";
+import { VerifierDeclaredFacts, VerifierWarnings } from "./VerifierDeclaredFacts";
 import { getVerifierActions } from "../model/verifierActions";
 import {
   flagLabels,
@@ -80,7 +81,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     query.dataUpdatedAt,
   );
   const client = useQueryClient();
-  // Bốn ô kiểm gắn với bản đang xét; sang bản khác (bổ sung) thì tích lại từ đầu.
+  // Ba ô đối chiếu gắn với bản đang xét; sang bản khác (bổ sung) thì tích lại từ đầu.
   const [ticks, setTicks] = useState<{ key: string; values: boolean[] }>({ key: "", values: [] });
   const backToList = () => {
     const next = new URLSearchParams(params);
@@ -128,7 +129,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
     freshness.dataUpdatedAt > query.dataUpdatedAt;
   const review = detail.reviewVersion;
   const tickKey = `${detail.id}:${review.versionNo}`;
-  const checks = REVIEW_CHECKS.map(
+  const checks = Array.from(
+    { length: REVIEW_CHECK_COUNT },
     (_, index) => ticks.key === tickKey && ticks.values[index] === true,
   );
   const allChecked = checks.every(Boolean);
@@ -154,14 +156,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       done: true,
     },
   ];
-  // Khi chờ bổ sung BE chưa tính hạn mới, nên không hiện mốc hạn xét.
-  if (detail.status !== "SUPPLEMENT_REQUIRED" && detail.assignment.dueAt) {
-    timeline.push({
-      label: "Hạn xét duyệt",
-      text: formatCompact(detail.assignment.dueAt),
-      done: false,
-    });
-  }
   const conditions = conditionRows(
     detail.approveBlockers,
     detail.objectionEndsAt,
@@ -186,7 +180,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               Hồ sơ #{caseCode(detail.id)}
             </h2>
             <Chip tone={status.tone}>{status.label}</Chip>
-            {detail.supplementOverdueAt && <Chip tone="warning">Bổ sung quá hạn</Chip>}
+            {detail.supplementOverdueAt && <Chip tone="warning">Nộp lại quá hạn</Chip>}
             {detail.closedAt && <Chip tone="neutral">Đóng {formatDate(detail.closedAt)}</Chip>}
           </div>
           <div className="flex items-center gap-3">
@@ -214,11 +208,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           </div>
         </div>
         <p className="text-sm text-heritage-muted">
-          Kho: {detail.vaultId} · Phân công từ {formatDate(detail.assignment.assignedAt)} ·{" "}
-          {/* BE không tính quá hạn khi chờ bổ sung; dueAt được tính lại lúc Executor gửi lại. */}
-          {detail.status === "SUPPLEMENT_REQUIRED"
-            ? "Đang chờ Executor bổ sung"
-            : `Hạn xét ${formatDate(detail.assignment.dueAt)}`}
+          Kho: {detail.vaultId} · Phân công từ {formatDate(detail.assignment.assignedAt)}
+          {detail.status === "SUPPLEMENT_REQUIRED" ? " · Đang chờ Người thực thi nộp lại" : ""}
         </p>
         {detail.supplementOverdueAt && (
           <p className="text-sm text-[#7A5B25]">
@@ -259,11 +250,11 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
         <Notice tone="warning" title="Executor đang soạn bản bổ sung">
           Bạn đang xem bản đã gửi
           {review ? ` số ${review.versionNo}` : ""}. Chưa duyệt được cho tới khi Executor nộp bản
-          mới; bạn vẫn có thể yêu cầu bổ sung hoặc từ chối.
+          mới; bạn vẫn có thể từ chối hồ sơ.
         </Notice>
       )}
       {detail.status === "SUPPLEMENT_REQUIRED" && (
-        <Notice tone="warning" title="Đã gửi yêu cầu bổ sung">
+        <Notice tone="warning" title="Đã từ chối, chờ nộp lại">
           {requestedPartsText && <span className="block">Đã yêu cầu: {requestedPartsText}.</span>}
           Người thực hiện sẽ nộp bản bổ sung. Hồ sơ quay lại hàng chờ khi có bản mới.
         </Notice>
@@ -276,12 +267,17 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
             <VerifierEkycChecklist
               caseId={detail.id}
               identity={detail.ownerIdentity}
-              checks={checks}
-              onToggle={toggleCheck}
-              disabled={!actions.canOpenApprove}
+              lastCheckInOn={detail.lastCheckInOn}
             />
             <CertificateViewer caseId={detail.id} files={review.files} />
           </div>
+          <VerifierDeclaredFacts
+            review={review}
+            checks={checks}
+            onToggle={toggleCheck}
+            disabled={!actions.canOpenApprove}
+          />
+          <VerifierWarnings warnings={detail.warnings} />
           <section
             aria-label="Bản đang xét"
             className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
@@ -297,8 +293,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               />
             </dl>
             <p className="text-xs text-heritage-muted">
-              Họ tên, số CCCD và ngày sinh trên giấy do bạn đọc và so với thông tin gốc bên trên,
-              Người thực hiện không phải nhập.
+              Họ tên và ngày sinh Chủ kho lấy từ xác minh danh tính. Người thực hiện chỉ khai 3
+              thông tin trên giấy, bạn đối chiếu chúng với ảnh giấy ở khung trên.
             </p>
           </section>
           <section
@@ -312,9 +308,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               {unreviewedFlags > 0 && <Chip tone="warning">{unreviewedFlags} chưa kiểm tra</Chip>}
             </div>
             <p className="text-sm text-heritage-muted">
-              Hệ thống tự phát hiện những điểm bất thường khi người thực hiện nộp hồ sơ, ví dụ chủ
-              kho vẫn điểm danh sau ngày mất hoặc CCCD không khớp. Bạn cần kiểm tra từng cảnh báo và
-              ghi chú trước khi chấp thuận.
+              Hệ thống tự phát hiện những điểm bất thường khi người thực hiện nộp hồ sơ, ví dụ CCCD
+              không khớp. Bạn cần kiểm tra từng cảnh báo và ghi chú trước khi chấp thuận.
             </p>
             {detail.flags.length === 0 ? (
               <p className="text-sm text-heritage-muted">Không có cảnh báo nào.</p>
@@ -419,7 +414,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               </p>
             ) : !detail.canApprove && conditions.length > 0 ? (
               <div role="status" className="rounded-xl bg-[#F8E1DE] p-4 text-sm text-[#7A1A14]">
-                <p>Chưa thể duyệt vì: {blockedReason}. Bạn có thể yêu cầu bổ sung hoặc từ chối.</p>
+                <p>Chưa thể duyệt vì: {blockedReason}. Bạn có thể từ chối hồ sơ.</p>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
                   {conditions.map((row) => (
                     <li key={row.key}>{row.detail}</li>
@@ -450,7 +445,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                         ? `Chưa duyệt được: ${blockedReason}.`
                         : allChecked
                           ? "Hồ sơ hợp lệ. Người nhận sẽ được mời xác minh."
-                          : "Tích đủ 4 ô đối chiếu để mở nút duyệt."
+                          : REVIEW_CHECKS_HINT
                     }
                     disabled={!detail.canApprove || !allChecked}
                     onClick={() => openModal("approve")}
@@ -460,8 +455,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                   <DecisionTile
                     tone="supplement"
                     icon={<TriangleAlert className="size-5" aria-hidden="true" />}
-                    title="Yêu cầu bổ sung"
-                    description="Gửi lại cho người thực hiện, kèm lý do."
+                    title="Từ chối"
+                    description="Nộp nhầm hoặc ghi sai thông tin: trả lại cho người thực hiện, kèm lý do."
                     onClick={() => openModal("supplement")}
                   />
                 )}

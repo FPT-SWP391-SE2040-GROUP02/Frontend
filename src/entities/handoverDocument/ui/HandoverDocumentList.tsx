@@ -26,29 +26,55 @@ function Step({ time, children }: { time: string | null; children: string }) {
   );
 }
 
-/** Dòng thời gian ký của một biên bản và nút xem toàn văn. Dùng trong danh sách và trong thẻ biên bản đã ký. */
-export function HandoverDocumentDetail({ document }: { document: HandoverDocument }) {
+/** Một dòng tóm tắt cho Người xét duyệt: ai chọn gì, ký lúc nào. */
+function compactSummary(document: HandoverDocument): string {
+  const kind = document.kind === "ACCEPT" ? "Chấp nhận" : "Từ chối";
+  const { recipient, verifier } = document;
+  if (verifier.signedAt) {
+    return `Người nhận chọn ${kind} · Hoàn tất lúc ${formatDateTime(verifier.signedAt)}`;
+  }
+  if (recipient.signedAt) {
+    return `Người nhận chọn ${kind} · Ký lúc ${formatDateTime(recipient.signedAt)}`;
+  }
+  return `Người nhận chọn ${kind} · Chưa ký`;
+}
+
+/**
+ * Dòng thời gian ký của một biên bản và nút xem toàn văn. Dùng trong danh sách và trong thẻ biên bản đã ký.
+ * compact: chỉ một dòng tóm tắt (màn Người xét duyệt), không kể lại từng bước.
+ */
+export function HandoverDocumentDetail({
+  document,
+  compact = false,
+}: {
+  document: HandoverDocument;
+  compact?: boolean;
+}) {
   const [full, setFull] = useState(false);
   const textId = useId();
   const { recipient, verifier } = document;
   const kind = document.kind === "ACCEPT" ? "Chấp nhận" : "Từ chối";
   return (
     <div className="space-y-3">
-      <ul className="space-y-1.5 text-sm">
-        <Step
-          time={document.createdAt}
-        >{`Người nhận chọn ${kind}. Thông tin về Chủ kho lấy từ hồ sơ chứng tử đã duyệt.`}</Step>
-        <Step time={recipient.signedAt}>
-          {recipient.signedAt
-            ? "Người nhận điền thông tin của mình, ký và gửi."
-            : "Chờ người nhận điền thông tin và ký."}
-        </Step>
-        <Step time={verifier.signedAt}>
-          {verifier.signedAt
-            ? `Người xét duyệt ${verifier.signedByName} kiểm tra thủ công và gửi. Hoàn tất.`
-            : "Chờ Người xét duyệt kiểm tra thủ công."}
-        </Step>
-      </ul>
+      {compact ? (
+        <p className="text-sm">{compactSummary(document)}</p>
+      ) : (
+        <ul className="space-y-1.5 text-sm">
+          <Step
+            time={document.createdAt}
+          >{`Người nhận chọn ${kind}. Thông tin về Chủ kho lấy từ hồ sơ chứng tử đã duyệt.`}</Step>
+          <Step time={recipient.signedAt}>
+            {recipient.signedAt
+              ? "Người nhận điền thông tin của mình, ký và gửi."
+              : "Chờ người nhận điền thông tin và ký."}
+          </Step>
+          <Step time={verifier.signedAt}>
+            {verifier.signedAt
+              ? `Người xét duyệt ${verifier.signedByName} kiểm tra thủ công và gửi. Hoàn tất.`
+              : "Chờ Người xét duyệt kiểm tra thủ công."}
+          </Step>
+        </ul>
+      )}
       {document.supplementReason && document.status === "WAIT_RECIPIENT" && (
         <p className="text-sm text-heritage-muted">
           Người xét duyệt đã trả về: {document.supplementReason}

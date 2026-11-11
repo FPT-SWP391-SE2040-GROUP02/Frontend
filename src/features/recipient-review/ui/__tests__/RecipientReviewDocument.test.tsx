@@ -112,7 +112,22 @@ describe("Người xét duyệt kiểm tra thủ công biên bản", () => {
     expect(
       await screen.findByRole("heading", { name: "Căn cước của Trần Minh Anh" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/4 số cuối ••••1234/)).toBeInTheDocument();
+    // Người xét duyệt thấy số căn cước đầy đủ để đối chiếu với ảnh, không bị che.
+    expect(screen.getByText(/Số căn cước cần khớp: 079190001234/)).toBeInTheDocument();
+  });
+
+  it("khung đối chiếu hiện đủ họ tên, số căn cước, năm sinh và nơi thường trú, không che", async () => {
+    backend();
+    renderWith(<RecipientReviewQueue />);
+
+    const panel = (await screen.findByText("Đối chiếu với thông tin Chủ kho đã khai")).closest(
+      "section",
+    );
+    expect(panel).toHaveTextContent("Trần Minh Anh");
+    expect(panel).toHaveTextContent("079190001234");
+    expect(panel).toHaveTextContent("Năm 1990");
+    expect(panel).toHaveTextContent("34 Trần Hưng Đạo, Phường Hoàn Kiếm, Hà Nội");
+    expect(panel).not.toHaveTextContent("••••");
   });
 
   it("chưa tick đủ bốn mục thì báo lỗi và không gửi", async () => {

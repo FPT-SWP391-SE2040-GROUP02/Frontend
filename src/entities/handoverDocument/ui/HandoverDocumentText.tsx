@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { formatDocumentDate, vietnamDayOf } from "../model/handoverDocument.format";
-import type { HandoverDocument } from "../model/handoverDocument.schema";
+import { buildTemplateValues, splitTemplateText } from "../model/templateFill";
+import type { HandoverDocument, TemplateParagraph } from "../model/handoverDocument.schema";
 
 const DOTS = "..............................";
 
@@ -54,6 +55,32 @@ function formatSigned(instant: string): string {
   return `${time} ${day.day}/${day.month}/${day.year}`;
 }
 
+/** Một đoạn của mẫu: điền trường {…} từ dữ liệu biên bản; trường chưa có giá trị hiện chú thích (blank) hoặc dòng chấm. */
+function TemplateLine({
+  paragraph,
+  values,
+  blank,
+}: {
+  paragraph: TemplateParagraph;
+  values: ReturnType<typeof buildTemplateValues>;
+  blank: boolean;
+}) {
+  let boldClass = "";
+  if (paragraph.bold) boldClass = "font-bold";
+  return (
+    <p className={boldClass} style={{ whiteSpace: "pre-wrap", textAlign: paragraph.align }}>
+      {splitTemplateText(paragraph.text).map((part, index) => {
+        if (part.kind === "text") return <span key={index}>{part.value}</span>;
+        if (!Object.hasOwn(values, part.name)) return <span key={index}>{`{${part.name}}`}</span>;
+        const value = values[part.name];
+        if (value) return <span key={index}>{value}</span>;
+        if (blank) return <Placeholder key={index}>bạn điền sau</Placeholder>;
+        return <span key={index}>{DOTS}</span>;
+      })}
+    </p>
+  );
+}
+
 /**
  * Toàn văn biên bản đồng ý nhận hoặc văn bản từ chối, điền từ dữ liệu của biên bản: Phần 1 chép từ hồ sơ chứng tử đã duyệt,
  * Phần 2 do người nhận khai, chữ ký của người nhận và Người xét duyệt.
@@ -76,14 +103,41 @@ export function HandoverDocumentText({
     ? `${document.containerName} (gồm ${document.itemCount} mục)`
     : DOTS;
   const name = recipient.fullName;
-  const certificate = <>số {deceased.certificateNumber || "........"}</>;
+  // Nơi đăng ký khai tử Người thực thi đã chọn; hồ sơ cũ chưa có thì in dòng chấm như ảnh văn bản Backend dựng.
+  const place = deceased.deathRegistrationPlace || "UBND …………………";
   const accept = document.kind === "ACCEPT";
+  // Backend mới trả các đoạn của mẫu đã ghi lúc tạo biên bản: dựng theo mẫu đó. Backend cũ thì dùng chữ cố định bên dưới.
+  const template = document.templateParagraphs;
+  if (template && template.length > 0) {
+    const values = buildTemplateValues(document);
+    return (
+      <article
+        aria-label={
+          accept ? "Biên bản đồng ý nhận di sản thừa kế" : "Văn bản từ chối nhận di sản thừa kế"
+        }
+        className="max-w-2xl space-y-2 rounded-xl border border-heritage-border bg-white px-6 py-7 text-[14px] leading-6 text-black sm:px-10 [&_p:not(.text-center)]:text-justify"
+        style={{ fontFamily: '"Times New Roman", Times, serif' }}
+      >
+        {template.map((paragraph, index) => (
+          <TemplateLine key={index} paragraph={paragraph} values={values} blank={blank} />
+        ))}
+        <div className="grid gap-3 pt-4 sm:grid-cols-2">
+          <Signature title="Người lập văn bản" name={name} signedAt={recipient.signedAt} />
+          <Signature
+            title="Người xét duyệt đã kiểm tra thủ công"
+            name={verifier.signedByName}
+            signedAt={verifier.signedAt}
+          />
+        </div>
+      </article>
+    );
+  }
   return (
     <article
       aria-label={
         accept ? "Biên bản đồng ý nhận di sản thừa kế" : "Văn bản từ chối nhận di sản thừa kế"
       }
-      className="max-w-2xl space-y-2 rounded-xl border border-heritage-border bg-white px-6 py-7 text-[14px] leading-6 text-black sm:px-10 [&_p]:text-justify"
+      className="max-w-2xl space-y-2 rounded-xl border border-heritage-border bg-white px-6 py-7 text-[14px] leading-6 text-black sm:px-10 [&_p:not(.text-center)]:text-justify"
       style={{ fontFamily: '"Times New Roman", Times, serif' }}
     >
       <p className="text-center font-bold uppercase">Cộng hoà xã hội chủ nghĩa Việt Nam</p>
@@ -111,9 +165,9 @@ export function HandoverDocumentText({
           </p>
           <p>Bằng biên bản này, tôi xin khai đúng sự thật rằng:</p>
           <p>
-            1. Người để lại di sản: Chủ kho {owner}, chết ngày {death} theo giấy chứng tử{" "}
-            {certificate}, đã được Người xét duyệt thẩm định trên hệ thống, đăng ký khai tử ngày{" "}
-            {issued}.
+            1. Người để lại di sản: Chủ kho {owner}, chết ngày {death} theo giấy chứng tử do {place}{" "}
+            đăng ký khai tử ngày {issued}. Thông tin này đã được Người xét duyệt thẩm định trên hệ
+            thống.
           </p>
           <p>2. Tôi là người được Chủ kho chỉ định nhận phần di sản nêu tại mục 4.</p>
           <p>
@@ -136,6 +190,7 @@ export function HandoverDocumentText({
             7. Tôi đã đọc lại toàn bộ nội dung, hiểu rõ, chấp nhận và nhận thức đầy đủ trách nhiệm
             pháp lý của mình khi lập và xác nhận biên bản này.
           </p>
+          {document.declineNotice && <p>8. Tôi đã được thông báo: {document.declineNotice}</p>}
         </>
       ) : (
         <>
@@ -161,7 +216,7 @@ export function HandoverDocumentText({
           <p>(Là người được chỉ định nhận của người để lại di sản thừa kế)</p>
           <p>Tôi là người thừa kế của ông/bà {owner}</p>
           <p>
-            Ông/bà {owner} chết ngày {death} theo giấy chứng tử {certificate}, đăng ký khai tử ngày{" "}
+            Ông/bà {owner} chết ngày {death} theo giấy chứng tử do {place} đăng ký khai tử ngày{" "}
             {issued}.
           </p>
           <p>

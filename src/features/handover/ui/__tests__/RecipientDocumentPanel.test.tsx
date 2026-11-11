@@ -60,6 +60,20 @@ describe("RecipientDocumentPanel: chọn Chấp nhận hoặc Từ chối", () =
     expect(post).not.toHaveBeenCalled();
   });
 
+  it("biên bản có câu báo của Admin thì hiện lưu ý về việc xóa tài sản trước khi chọn", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue(
+      recipientTurn({
+        declineNotice:
+          "Nếu một người nhận từ chối nhận, phần tài sản của gói bàn giao đó sẽ bị xóa hoàn toàn khỏi hệ thống.",
+      }),
+    );
+    renderPanel();
+
+    const note = await screen.findByRole("note");
+    expect(note).toHaveTextContent("Lưu ý khi từ chối");
+    expect(note).toHaveTextContent("xóa hoàn toàn khỏi hệ thống");
+  });
+
   it("bấm Tôi từ chối: POST kind đúng ngay (Phần 1 chép sẵn, không cần Người thực thi) rồi báo cổng tải lại", async () => {
     const user = userEvent.setup();
     vi.spyOn(apiClient, "get").mockResolvedValue("");
@@ -129,7 +143,7 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
 
     expect(await screen.findByText("Phần 1 · Thông tin người để lại di sản")).toBeInTheDocument();
     expect(screen.getByText("Nguyễn Văn A")).toBeInTheDocument();
-    expect(screen.getByText("0456/2026")).toBeInTheDocument();
+    expect(screen.getByText("UBND phường Bến Thành, Thành phố Hồ Chí Minh")).toBeInTheDocument();
     expect(screen.getByText("05/11/2026")).toBeInTheDocument();
     expect(
       screen.getByText(/Lấy từ hồ sơ chứng tử mà Người xét duyệt đã duyệt/),
@@ -151,6 +165,7 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
           dateOfDeath: null,
           certificateNumber: "",
           certificateIssuedOn: null,
+          deathRegistrationPlace: "",
           residenceAddress: "",
         },
       }),
@@ -203,7 +218,10 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     expect(text).toHaveTextContent("Chủ kho Nguyễn Văn A");
     expect(text).not.toHaveTextContent("nơi thường trú");
     expect(text).not.toHaveTextContent("12 Lê Lợi");
-    expect(text).toHaveTextContent("số 0456/2026");
+    expect(text).toHaveTextContent(
+      "do UBND phường Bến Thành, Thành phố Hồ Chí Minh đăng ký khai tử",
+    );
+    expect(text).not.toHaveTextContent("0456/2026");
     expect(text).toHaveTextContent("Người lập văn bản");
     expect(text).toHaveTextContent("Người xét duyệt đã kiểm tra thủ công");
     expect(text).not.toHaveTextContent("Người thực thi xác nhận");
@@ -249,8 +267,14 @@ describe("RecipientDocumentPanel: đến lượt người nhận", () => {
     await user.click(screen.getByRole("button", { name: "Ký và gửi cho Người xét duyệt" }));
 
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    const [url, body] = post.mock.calls[0] as [string, FormData];
+    const [url, body, config] = post.mock.calls[0] as [
+      string,
+      FormData,
+      { headers?: Record<string, unknown> } | undefined,
+    ];
     expect(url).toBe(`/handover/turns/${TURN_ID}/submission`);
+    // Multipart phải bỏ Content-Type mặc định application/json, nếu không Backend trả 415 Unsupported Media Type.
+    expect(config?.headers).toHaveProperty("Content-Type", undefined);
     expect(body.get("Kind")).toBe("DECLINE");
     expect(body.get("FullName")).toBe("Trần Minh Anh");
     expect(body.get("CitizenId")).toBe("012345671234");
