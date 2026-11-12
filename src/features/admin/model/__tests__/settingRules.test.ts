@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { limitOf, settingErrors, settingRelationErrors, settingValueError } from "../settingRules";
+import {
+  isDueReminderSlotHidden,
+  limitOf,
+  settingErrors,
+  settingRelationErrors,
+  settingValueError,
+} from "../settingRules";
 
 describe("settingValueError", () => {
   it("giá trị trong khoảng thì không lỗi", () => {
@@ -58,6 +64,51 @@ describe("settingValueError", () => {
   });
 });
 
+describe("isDueReminderSlotHidden", () => {
+  it("chỉ hiện đủ số ô ngày theo số thư nhắc trước hạn", () => {
+    const keys = [
+      "CheckIn.FirstReminderDaysBeforeDue",
+      "CheckIn.SecondReminderDaysBeforeDue",
+      "CheckIn.ThirdReminderDaysBeforeDue",
+      "CheckIn.FourthReminderDaysBeforeDue",
+      "CheckIn.FifthReminderDaysBeforeDue",
+    ];
+
+    expect(keys.map((k) => isDueReminderSlotHidden(k, "1"))).toEqual([
+      false,
+      true,
+      true,
+      true,
+      true,
+    ]);
+    expect(keys.map((k) => isDueReminderSlotHidden(k, "3"))).toEqual([
+      false,
+      false,
+      false,
+      true,
+      true,
+    ]);
+    expect(keys.map((k) => isDueReminderSlotHidden(k, "5"))).toEqual([
+      false,
+      false,
+      false,
+      false,
+      false,
+    ]);
+    expect(keys.map((k) => isDueReminderSlotHidden(k, undefined))).toEqual([
+      false,
+      false,
+      true,
+      true,
+      true,
+    ]);
+  });
+
+  it("khóa khác không bị ẩn", () => {
+    expect(isDueReminderSlotHidden("CheckIn.MaxLateReminders", "1")).toBe(false);
+  });
+});
+
 describe("settingRelationErrors", () => {
   function valuesOf(map: Record<string, string>) {
     return (key: string): string | undefined => map[key];
@@ -84,6 +135,42 @@ describe("settingRelationErrors", () => {
       valuesOf({
         "CheckIn.FirstReminderDaysBeforeDue": "3",
         "CheckIn.SecondReminderDaysBeforeDue": "2",
+      }),
+    );
+
+    expect(errors).toEqual({});
+  });
+
+  it("năm thư nhắc trước hạn phải giảm dần, ô trùng hoặc đảo thứ tự bị báo", () => {
+    const ok = settingRelationErrors(
+      valuesOf({
+        "CheckIn.DueReminderCount": "5",
+        "CheckIn.FirstReminderDaysBeforeDue": "10",
+        "CheckIn.SecondReminderDaysBeforeDue": "7",
+        "CheckIn.ThirdReminderDaysBeforeDue": "5",
+        "CheckIn.FourthReminderDaysBeforeDue": "3",
+        "CheckIn.FifthReminderDaysBeforeDue": "1",
+      }),
+    );
+    const bad = settingRelationErrors(
+      valuesOf({
+        "CheckIn.DueReminderCount": "3",
+        "CheckIn.FirstReminderDaysBeforeDue": "10",
+        "CheckIn.SecondReminderDaysBeforeDue": "2",
+        "CheckIn.ThirdReminderDaysBeforeDue": "4",
+      }),
+    );
+
+    expect(ok).toEqual({});
+    expect(bad["CheckIn.SecondReminderDaysBeforeDue"]).toContain("xa hạn hơn thư thứ ba");
+    expect(bad["CheckIn.ThirdReminderDaysBeforeDue"]).toContain("gần hạn hơn thư thứ hai");
+  });
+
+  it("ô của thư vượt quá số thư đã đặt không bị kiểm", () => {
+    const errors = settingRelationErrors(
+      valuesOf({
+        "CheckIn.DueReminderCount": "2",
+        "CheckIn.ThirdReminderDaysBeforeDue": "9",
       }),
     );
 

@@ -43,7 +43,12 @@ import {
   MAX_TOTAL_SLOTS_LIMIT,
 } from "../model/planCatalog";
 import { settingsSaveError } from "../model/adminError";
-import { limitOf, settingErrors, textMaxLengthOf } from "../model/settingRules";
+import {
+  isDueReminderSlotHidden,
+  limitOf,
+  settingErrors,
+  textMaxLengthOf,
+} from "../model/settingRules";
 
 interface SettingMeta {
   key: string;
@@ -77,6 +82,19 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     dataType: "NUMBER",
   },
   {
+    key: "CheckIn.DueReminderCount",
+    label: "Số thư nhắc trước hạn",
+    category: "CheckIn",
+    categoryTitle: "Điểm danh định kỳ",
+    unit: "thư",
+    step: 1,
+    defaultValue: "2",
+    description:
+      "Số thư nhắc chủ kho trước hạn điểm danh (từ 1 đến 5). Số ngày của từng thư đặt ở các dòng bên dưới, chỉ dùng đủ số thư ở đây. Áp dụng ngay cho cả kỳ đang chạy.",
+    src: "CheckInRules.DueReminderCount",
+    dataType: "NUMBER",
+  },
+  {
     key: "CheckIn.FirstReminderDaysBeforeDue",
     label: "Thư nhắc trước hạn thứ nhất",
     category: "CheckIn",
@@ -85,7 +103,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     step: 1,
     defaultValue: "7",
     description:
-      "Gửi thư nhắc chủ kho trước hạn điểm danh chừng này ngày (tối đa 60). Phải lớn hơn số ngày của thư thứ hai, nếu không hệ thống tự nâng lên thành thư thứ hai cộng 1.",
+      "Thư xa hạn nhất, gửi trước hạn điểm danh chừng này ngày (từ 2 đến 60). Phải lớn hơn số ngày của thư thứ hai, nếu không hệ thống tự nâng lên.",
     src: "CheckInRules.FirstReminderDaysBeforeDue",
     dataType: "NUMBER",
   },
@@ -98,8 +116,47 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     step: 1,
     defaultValue: "1",
     description:
-      "Thư nhắc gần hạn hơn, gửi trước hạn điểm danh chừng này ngày (từ 1 đến 30). Áp dụng ngay cho cả kỳ đang chạy.",
+      "Gửi trước hạn điểm danh chừng này ngày (từ 1 đến 30). Nếu có thư thứ ba trở đi thì phải lớn hơn số ngày của thư thứ ba. Áp dụng ngay cho cả kỳ đang chạy.",
     src: "CheckInRules.SecondReminderDaysBeforeDue",
+    dataType: "NUMBER",
+  },
+  {
+    key: "CheckIn.ThirdReminderDaysBeforeDue",
+    label: "Thư nhắc trước hạn thứ ba",
+    category: "CheckIn",
+    categoryTitle: "Điểm danh định kỳ",
+    unit: "ngày trước hạn",
+    step: 1,
+    defaultValue: "1",
+    description:
+      "Chỉ dùng khi số thư nhắc trước hạn từ 3 trở lên. Từ 1 đến 30 ngày trước hạn, phải nhỏ hơn số ngày của thư thứ hai.",
+    src: "CheckInRules.DueReminderDays",
+    dataType: "NUMBER",
+  },
+  {
+    key: "CheckIn.FourthReminderDaysBeforeDue",
+    label: "Thư nhắc trước hạn thứ tư",
+    category: "CheckIn",
+    categoryTitle: "Điểm danh định kỳ",
+    unit: "ngày trước hạn",
+    step: 1,
+    defaultValue: "1",
+    description:
+      "Chỉ dùng khi số thư nhắc trước hạn từ 4 trở lên. Từ 1 đến 30 ngày trước hạn, phải nhỏ hơn số ngày của thư thứ ba.",
+    src: "CheckInRules.DueReminderDays",
+    dataType: "NUMBER",
+  },
+  {
+    key: "CheckIn.FifthReminderDaysBeforeDue",
+    label: "Thư nhắc trước hạn thứ năm",
+    category: "CheckIn",
+    categoryTitle: "Điểm danh định kỳ",
+    unit: "ngày trước hạn",
+    step: 1,
+    defaultValue: "1",
+    description:
+      "Chỉ dùng khi số thư nhắc trước hạn là 5. Từ 1 đến 30 ngày trước hạn, phải nhỏ hơn số ngày của thư thứ tư.",
+    src: "CheckInRules.DueReminderDays",
     dataType: "NUMBER",
   },
   {
@@ -831,6 +888,13 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
               const items = group.items.filter((item) => {
                 if (filterMode === "changed") {
                   return draft[item.key] !== undefined;
+                }
+                // Ô ngày của thư nhắc trước hạn chỉ hiện đủ theo "Số thư nhắc trước hạn" đang chọn.
+                const countValue = getIsEnabled("CheckIn.DueReminderCount", true)
+                  ? getValue("CheckIn.DueReminderCount", "2")
+                  : "2";
+                if (isDueReminderSlotHidden(item.key, countValue)) {
+                  return false;
                 }
                 if (filterMode === "security") {
                   return item.isSecurity;
