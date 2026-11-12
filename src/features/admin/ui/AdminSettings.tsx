@@ -78,7 +78,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
   },
   {
     key: "CheckIn.FirstReminderDaysBeforeDue",
-    label: "Thư nhắc trước hạn thứ nhất",
+    label: "Nhắc điểm danh lần 1",
     category: "CheckIn",
     categoryTitle: "Điểm danh định kỳ",
     unit: "ngày trước hạn",
@@ -91,7 +91,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
   },
   {
     key: "CheckIn.SecondReminderDaysBeforeDue",
-    label: "Thư nhắc trước hạn thứ hai",
+    label: "Nhắc điểm danh lần 2",
     category: "CheckIn",
     categoryTitle: "Điểm danh định kỳ",
     unit: "ngày trước hạn",
@@ -104,7 +104,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
   },
   {
     key: "CheckIn.LateReminderGapDays",
-    label: "Khoảng cách giữa hai thư nhắc trễ",
+    label: "Nhắc lại khi Chủ kho quên điểm danh",
     category: "CheckIn",
     categoryTitle: "Điểm danh định kỳ",
     unit: "ngày",
@@ -117,7 +117,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
   },
   {
     key: "CheckIn.MaxLateReminders",
-    label: "Số thư nhắc trễ trước khi báo Người thực thi",
+    label: "Số thư nhắc trước khi báo Người thực thi",
     category: "CheckIn",
     categoryTitle: "Điểm danh định kỳ",
     unit: "thư",

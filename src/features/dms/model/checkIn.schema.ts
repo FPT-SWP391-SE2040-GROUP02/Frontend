@@ -25,9 +25,9 @@ export const checkInStatusSchema = z.object({
   graceEndsAt: timestamp.nullable(),
   settings: z.object({
     cycleDays: z.number().int(),
-    /** Khoảng cách giữa hai thư nhắc trễ (ngày), do Admin đặt; chủ kho chỉ xem. */
+    /** Nhắc lại khi Chủ kho quên điểm danh (ngày), do Admin đặt; chủ kho chỉ xem. */
     lateReminderGapDays: z.number().int().positive(),
-    /** Số thư nhắc trễ trước khi báo Người thực thi, do Admin đặt; chủ kho chỉ xem. */
+    /** Số thư nhắc trước khi báo Người thực thi, do Admin đặt; chủ kho chỉ xem. */
     maxLateReminders: z.number().int().positive(),
     pendingCycleDays: z.number().int().nullable(),
     etag: z.string().min(1).max(64),

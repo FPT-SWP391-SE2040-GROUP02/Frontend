@@ -30,7 +30,7 @@ function renderSettings() {
 
 /** Ô số của thư nhắc trước hạn: mặc định 7 (thứ nhất) và 1 (thứ hai), duy nhất trong nhóm Điểm danh. */
 async function firstReminderInput(): Promise<HTMLElement> {
-  await screen.findByText("Thư nhắc trước hạn thứ nhất");
+  await screen.findByText("Nhắc điểm danh lần 1");
   return screen.getByDisplayValue("7");
 }
 
