@@ -640,14 +640,14 @@ function IncidentDetailBody({
         <AdminActionDialog
           key={dialogKey}
           title="Giao Người thực thi cho kho"
-          description="Kho không còn Người thực thi hoạt động. Chọn người hiểu luật sẽ nhận kho; người này nhận lời mời qua email và phải chấp nhận mới có hiệu lực. Không giao được cho chủ kho, quản trị viên hay người xét duyệt."
+          description="Kho không còn Người thực thi hoạt động. Chọn một Người thực thi hệ thống sẽ nhận kho; người này nhận lời mời qua email và phải chấp nhận mới có hiệu lực. Chỉ giao được cho tài khoản có vai trò Người thực thi, không giao được cho chủ kho."
           submitLabel="Giao Người thực thi"
           fields={[
             {
               name: "userId",
               label: "Người thực thi mới",
               kind: "user",
-              roles: ["EXECUTOR", "USER"],
+              roles: ["EXECUTOR"],
             },
             { name: "reason", label: "Lý do", kind: "textarea", maxLength: 500 },
           ]}
