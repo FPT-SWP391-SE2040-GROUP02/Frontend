@@ -193,7 +193,7 @@ function PendingInvitationCard({
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc giấy ủy quyền và đồng ý ký, nhận trách nhiệm này
+            Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản
           </label>
           <div className="flex flex-wrap gap-3">
             <button
@@ -202,7 +202,7 @@ function PendingInvitationCard({
               disabled={action.pending || !acknowledge}
               onClick={() => respond(true)}
             >
-              Ký giấy ủy quyền
+              Ký nhận vai thực hiện di chúc
             </button>
             <button
               type="button"

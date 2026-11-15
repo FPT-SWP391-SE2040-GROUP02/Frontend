@@ -191,7 +191,7 @@ it("keeps inspect separate from acceptance, sends token in body and never caches
     };
   };
   setup(<ExecutorInvitationPanel token={token} />);
-  const accept = await screen.findByRole("button", { name: "Ký giấy ủy quyền" });
+  const accept = await screen.findByRole("button", { name: "Ký nhận vai thực hiện di chúc" });
   expect(accept).toBeDisabled();
   expect(requests).toHaveLength(1);
   fireEvent.click(screen.getByRole("checkbox"));
@@ -227,7 +227,7 @@ it("guest only inspects and receives login redirect, no acceptance controls", as
     "href",
     expect.stringContaining("%23token%3D"),
   );
-  expect(screen.queryByRole("button", { name: "Ký giấy ủy quyền" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Ký nhận vai thực hiện di chúc" })).not.toBeInTheDocument();
   expect(post).toHaveBeenCalledTimes(1);
 });
 

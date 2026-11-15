@@ -1,10 +1,10 @@
 import { Fragment, type ReactNode } from "react";
 
-/** Thông tin in trên giấy ủy quyền quản lý tài sản (kèm mã mở gói). */
+/** Thông tin in trên di chúc (kèm mã mở gói). */
 export interface HandoverSlipProps {
   ownerName: string;
   vaultName: string;
-  /** Email Người thực thi, là Bên nhận ủy quyền. */
+  /** Email Người thực thi, là người quản lý di sản. */
   executorEmail: string;
   issuedAt: string | null | undefined;
   version: number;
@@ -77,9 +77,10 @@ function Party({ heading, name, nameLabel }: { heading: string; name: string; na
 }
 
 /**
- * Giấy ủy quyền quản lý tài sản: Chủ kho (Bên ủy quyền) ủy quyền cho Người thực thi (Bên nhận ủy quyền).
- * Ủy quyền một phần: nội dung chỉ gồm việc giấy tờ (báo tin, nộp giấy chứng tử). Mã mở gói in ở tờ đính kèm
- * riêng (sang trang mới khi in). Nền trắng, chữ gần đen để in rõ; cùng một nội dung cho bản hiện và bản in.
+ * Di chúc: Chủ kho (người lập) chỉ định Người thực thi làm người thực hiện di chúc, có hiệu lực từ khi
+ * Chủ kho qua đời (không dùng "ủy quyền" vì ủy quyền chấm dứt khi người ủy quyền mất). Việc chia di sản
+ * theo kế hoạch trong kho; mã mở gói in ở tờ đính kèm riêng (sang trang mới khi in).
+ * Nền trắng, chữ gần đen để in rõ; cùng một nội dung cho bản hiện và bản in.
  */
 export function HandoverSlip({
   ownerName,
@@ -90,10 +91,7 @@ export function HandoverSlip({
   shard,
 }: HandoverSlipProps) {
   return (
-    <section
-      aria-label="Giấy ủy quyền quản lý tài sản"
-      className="w-full max-w-full bg-white p-6 text-[#111] sm:p-8"
-    >
+    <section aria-label="Di chúc" className="w-full max-w-full bg-white p-6 text-[#111] sm:p-8">
       <header className="text-center">
         <p className="text-sm font-bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
         <p className="text-sm font-semibold">Độc lập – Tự do – Hạnh phúc</p>
@@ -101,58 +99,83 @@ export function HandoverSlip({
       </header>
       <p className="mt-3 text-right text-sm italic">{formatLetterDate(issuedAt)}</p>
 
-      <h3 className="mt-4 text-center text-2xl font-bold">GIẤY ỦY QUYỀN QUẢN LÝ TÀI SẢN</h3>
+      <h3 className="mt-4 text-center text-2xl font-bold">DI CHÚC</h3>
       <p className="mt-1 text-center text-xs text-[#555]">
-        Kho: <strong>{vaultName}</strong>
+        Lập trên hệ thống LegacyVault, kho: <strong>{vaultName}</strong>
       </p>
 
-      <Party heading="1. BÊN ỦY QUYỀN (Chủ kho)" name={ownerName} nameLabel="Ông (bà)" />
-      <p className="mt-3 text-sm font-semibold">Ủy quyền cho:</p>
+      <Party heading="NGƯỜI LẬP DI CHÚC (Chủ kho)" name={ownerName} nameLabel="Ông (bà)" />
+      <p className="mt-3 text-sm leading-6">
+        Tôi đang minh mẫn, sáng suốt, không bị ai ép buộc hay lừa dối, tự nguyện lập di chúc này.
+      </p>
+
+      <p className="mt-3 text-sm leading-6">
+        <strong>Điều 1. Di sản.</strong> Toàn bộ tài sản và thông tin lưu trong kho "{vaultName}"
+        trên hệ thống LegacyVault, gồm các gói đã liệt kê trong kế hoạch bàn giao. Nơi có di sản: hệ
+        thống LegacyVault.
+      </p>
+      <p className="mt-3 text-sm leading-6">
+        <strong>Điều 2. Người hưởng di sản.</strong> Mỗi gói được trao cho người nhận mà tôi đã chỉ
+        định trong kế hoạch bàn giao của kho. Kế hoạch này là phần không tách rời của di chúc.
+      </p>
+
+      <p className="mt-3 text-sm leading-6">
+        <strong>Điều 3. Người thực hiện di chúc (người quản lý di sản).</strong> Tôi chỉ định:
+      </p>
       <Party
-        heading="2. BÊN NHẬN ỦY QUYỀN (Người thực thi)"
+        heading="NGƯỜI THỰC HIỆN DI CHÚC (Người thực thi)"
         name={executorEmail}
         nameLabel="Ông (bà), email tài khoản LegacyVault"
       />
-
-      <h4 className="mt-6 text-sm font-bold">NỘI DUNG ỦY QUYỀN</h4>
-      <p className="mt-2 text-sm leading-6">
-        <strong>1. Nội dung ủy quyền:</strong> Bằng giấy ủy quyền này, Bên ủy quyền đồng ý ủy quyền
-        cho Bên nhận ủy quyền được thay mặt thực hiện các công việc sau đây thuộc thẩm quyền của bên
-        ủy quyền:
-      </p>
-      <ul className="mt-2 list-disc space-y-1 pl-6 text-sm leading-6">
-        <li>Báo tin cho hệ thống khi Bên ủy quyền qua đời.</li>
-        <li>Nộp giấy chứng tử và các giấy tờ liên quan để hệ thống mở hồ sơ.</li>
+      <p className="mt-2 text-sm leading-6">Người này có các việc sau:</p>
+      <ul className="mt-1 list-disc space-y-1 pl-6 text-sm leading-6">
+        <li>Báo tin cho hệ thống và nộp giấy chứng tử cùng các giấy tờ liên quan để mở hồ sơ.</li>
+        <li>Giữ gìn mã mở gói (tờ đính kèm) cho đến khi hồ sơ được duyệt.</li>
+        <li>Trao mã cho người nhận đúng theo Điều 2, sau khi hồ sơ được duyệt.</li>
       </ul>
       <p className="mt-2 text-sm leading-6">
-        Đây là ủy quyền một phần, chỉ gồm việc giấy tờ nêu trên. Bên nhận ủy quyền không được đọc
-        nội dung kho, không tự duyệt hồ sơ và không nhận tài sản trong kho này (trừ khi đồng thời là
-        người nhận được chỉ định). Mã mở gói in ở tờ đính kèm riêng, không thuộc nội dung ủy quyền.
+        Người thực hiện di chúc không được xem nội dung kho, không tự đổi người hưởng hay phần được
+        hưởng, không bán, tặng cho hay định đoạt di sản khi chưa có văn bản đồng ý của những người
+        thừa kế, và không nhận di sản trừ khi được chỉ định ở Điều 2.
       </p>
 
-      <p className="mt-4 text-sm leading-6">
-        <strong>2. Thời hạn ủy quyền:</strong> Giấy ủy quyền này có hiệu lực kể từ ngày ký đến khi
-        Bên nhận ủy quyền thực hiện xong nội dung ủy quyền nêu trên.
+      <p className="mt-3 text-sm leading-6">
+        <strong>Điều 4. Hiệu lực.</strong> Di chúc có hiệu lực từ khi tôi qua đời và hệ thống tiếp
+        nhận hồ sơ. Khi còn sống, tôi có quyền sửa đổi, thay người thực hiện hoặc hủy di chúc bất cứ
+        lúc nào.
+      </p>
+      <p className="mt-3 text-sm leading-6">
+        <strong>Điều 5. Cam đoan.</strong> Tôi đã đọc lại, hiểu và đồng ý toàn bộ nội dung trên.
       </p>
 
       <div className="mt-8 grid grid-cols-2 gap-6 text-center">
         <div>
-          <p className="text-sm font-bold">BÊN ỦY QUYỀN</p>
-          <p className="text-xs">(Ký, ghi rõ họ tên, đóng dấu)</p>
+          <p className="text-sm font-bold">NGƯỜI LẬP DI CHÚC</p>
+          <p className="text-xs">(Ký, ghi rõ họ tên)</p>
           <div className="h-20" />
         </div>
         <div>
-          <p className="text-sm font-bold">BÊN NHẬN ỦY QUYỀN</p>
-          <p className="text-xs">(Ký, ghi rõ họ tên)</p>
+          <p className="text-sm font-bold">NGƯỜI THỰC HIỆN DI CHÚC</p>
+          <p className="text-xs">(Ký xác nhận đồng ý nhận vai trò)</p>
           <div className="h-20" />
         </div>
       </div>
 
+      <div className="mt-4">
+        <p className="text-sm font-bold">NGƯỜI LÀM CHỨNG</p>
+        <p className="text-xs text-[#555]">
+          Hai người, không thuộc diện được hưởng di sản. Tự điền khi in.
+        </p>
+        <BlankLine label="1. Họ tên, CCCD, chữ ký" />
+        <BlankLine label="2. Họ tên, CCCD, chữ ký" />
+      </div>
+      <p className="mt-3 text-xs italic text-[#555]">
+        Bản số phục vụ đồ án, chưa thay thế di chúc có người làm chứng hoặc công chứng.
+      </p>
+
       <div className="mt-10 break-before-page border-t-2 border-dashed border-[#111] pt-6">
         <h4 className="text-base font-bold">TỜ ĐÍNH KÈM: MÃ MỞ GÓI</h4>
-        <p className="mt-1 text-xs text-[#555]">
-          Không thuộc nội dung ủy quyền. Cất ở nơi an toàn, chưa đưa mã cho ai.
-        </p>
+        <p className="mt-1 text-xs text-[#555]">Cất ở nơi an toàn, chưa đưa mã cho ai.</p>
         <div className="mt-4 border-2 border-[#111] p-5">
           <p className="text-sm font-bold">Mã mở gói</p>
           <p className="text-xs text-[#555]">Bản {version} · một mã duy nhất cho mọi gói của kho</p>

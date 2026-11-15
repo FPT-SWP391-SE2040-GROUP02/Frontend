@@ -1,18 +1,18 @@
 import { ChevronDown } from "lucide-react";
 
 interface AuthorizationLetterPreviewProps {
-  /** Tên Chủ kho (Bên ủy quyền); lời mời qua link email chưa biết tên thì để trống. */
+  /** Tên Chủ kho (người để lại di sản); lời mời qua link email chưa biết tên thì để trống. */
   ownerName?: string;
-  /** Email Bên nhận ủy quyền (tài khoản đang được mời). */
+  /** Email Người thực thi (người quản lý di sản, tài khoản đang được mời). */
   executorEmail?: string;
   /** Phạm vi do Backend trả cho phiên bản hiện hành. */
   scopeText: string;
 }
 
-/** Ủy quyền một phần: chỉ việc giấy tờ. Mã mở gói nằm ở tờ đính kèm riêng, không thuộc nội dung ủy quyền. */
+/** Nhiệm vụ chỉ là việc giấy tờ và giữ mã. Mã mở gói nằm ở tờ đính kèm riêng khi bàn giao. */
 const TASKS = [
-  "Báo tin cho hệ thống khi Chủ kho qua đời.",
-  "Nộp giấy chứng tử và các giấy tờ liên quan để hệ thống mở hồ sơ.",
+  "Báo tin cho hệ thống và nộp giấy chứng tử cùng các giấy tờ liên quan để mở hồ sơ.",
+  "Giữ mã mở gói an toàn, chỉ trao cho người nhận sau khi hồ sơ được duyệt.",
 ];
 
 function Party({ heading, name }: { heading: string; name: string }) {
@@ -24,8 +24,9 @@ function Party({ heading, name }: { heading: string; name: string }) {
 }
 
 /**
- * Bản xem trước Giấy ủy quyền quản lý tài sản mà Người thực thi ký bằng nút "Ký giấy ủy quyền".
- * Không có mã mở gói: mã chỉ tạo sau khi Chủ kho kích hoạt kế hoạch, và kế hoạch chỉ kích hoạt được khi giấy đã ký.
+ * Bản xem trước Di chúc mà Người thực thi ký nhận vai bằng nút "Ký nhận vai thực hiện di chúc".
+ * Có hiệu lực từ khi Chủ kho qua đời. Không có mã mở gói: mã chỉ tạo sau khi Chủ kho kích hoạt kế hoạch,
+ * và kế hoạch chỉ kích hoạt được khi văn bản đã ký.
  */
 export function AuthorizationLetterPreview({
   ownerName,
@@ -43,19 +44,23 @@ export function AuthorizationLetterPreview({
   return (
     <details className="group rounded-xl border border-heritage-border bg-white p-4">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold text-heritage-primary">
-        Xem giấy ủy quyền quản lý tài sản
+        Xem di chúc
         <ChevronDown
           className="size-4 transition-transform group-open:rotate-180"
           aria-hidden="true"
         />
       </summary>
-      <div aria-label="Giấy ủy quyền quản lý tài sản" role="group" className="mt-3 text-[#111]">
+      <div aria-label="Di chúc" role="group" className="mt-3 text-[#111]">
         <p className="text-center text-xs font-bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
         <p className="text-center text-xs">Độc lập – Tự do – Hạnh phúc</p>
-        <h4 className="mt-3 text-center text-base font-bold">GIẤY ỦY QUYỀN QUẢN LÝ TÀI SẢN</h4>
-        <Party heading="Bên ủy quyền" name={owner} />
-        <Party heading="Bên nhận ủy quyền" name={executor} />
-        <p className="mt-3 text-sm font-semibold">Nội dung ủy quyền</p>
+        <h4 className="mt-3 text-center text-base font-bold">DI CHÚC</h4>
+        <Party heading="Người lập di chúc" name={owner} />
+        <Party heading="Người thực hiện di chúc" name={executor} />
+        <p className="mt-3 text-sm leading-6">
+          <strong>Hiệu lực:</strong> từ khi Chủ kho qua đời và hệ thống tiếp nhận hồ sơ. Trước đó di
+          chúc chưa phát sinh quyền nào.
+        </p>
+        <p className="mt-3 text-sm font-semibold">Nhiệm vụ</p>
         <ul className="mt-1 list-disc space-y-1 pl-6 text-sm leading-6">
           {TASKS.map((task) => (
             <li key={task}>{task}</li>
@@ -63,8 +68,12 @@ export function AuthorizationLetterPreview({
         </ul>
         <p className="mt-2 text-xs leading-5 text-heritage-muted">{scopeText}</p>
         <p className="mt-2 text-sm leading-6">
-          <strong>Thời hạn:</strong> có hiệu lực kể từ ngày ký đến khi Bên nhận ủy quyền thực hiện
-          xong nội dung ủy quyền.
+          <strong>Giới hạn:</strong> không xem nội dung kho, không tự quyết định hồ sơ, không nhận
+          tài sản trừ khi được chỉ định là người nhận.
+        </p>
+        <p className="mt-2 text-sm leading-6">
+          <strong>Chấm dứt:</strong> khi nhiệm vụ hoàn tất, khi Chủ kho thu hồi hoặc đổi người, hoặc
+          khi bạn từ chối.
         </p>
       </div>
     </details>
