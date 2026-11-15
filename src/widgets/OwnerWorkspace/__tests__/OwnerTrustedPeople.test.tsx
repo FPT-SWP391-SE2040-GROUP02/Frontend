@@ -16,7 +16,12 @@ import { OwnerTrustedPeople } from "../OwnerTrustedPeople";
 
 vi.mock("@/features/plan-setup/model/usePlanSetup", () => ({ usePlanSetup: vi.fn() }));
 vi.mock("@/features/plan-setup/api/planSetupService", () => ({
-  planSetupService: { invite: vi.fn(), resend: vi.fn(), revoke: vi.fn() },
+  planSetupService: {
+    invite: vi.fn(),
+    resend: vi.fn(),
+    revoke: vi.fn(),
+    searchCandidates: vi.fn(),
+  },
 }));
 vi.mock("@/features/executor-key/api/executorKeyService", () => ({
   executorKeyService: { getStatus: vi.fn(), issue: vi.fn(), reissue: vi.fn() },
@@ -301,7 +306,17 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Mời Người thực thi")).toBeInTheDocument();
     expect(dialog).toHaveTextContent("Lời mời có hiệu lực 10 phút.");
-    await userEvent.type(within(dialog).getByLabelText("Email"), "moi@example.test");
+    // Chỉ chọn được người có sẵn: tìm rồi bấm vào kết quả, nút Gửi lời mời khóa tới lúc đó.
+    expect(within(dialog).getByRole("button", { name: "Gửi lời mời" })).toBeDisabled();
+    vi.mocked(planSetupService.searchCandidates).mockResolvedValue([
+      {
+        userId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        fullName: "Người Mới",
+        email: "moi@example.test",
+      },
+    ]);
+    await userEvent.type(within(dialog).getByLabelText("Tìm người trong hệ thống"), "moi");
+    await userEvent.click(await within(dialog).findByRole("button", { name: /Người Mới/ }));
     await userEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   }
 

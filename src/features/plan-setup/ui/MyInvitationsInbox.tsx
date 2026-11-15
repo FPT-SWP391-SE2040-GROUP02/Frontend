@@ -9,6 +9,7 @@ import { planSetupService } from "../api/planSetupService";
 import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
 import { endedStatusLabel, remainingTime } from "../lib/myInvitationHelpers";
+import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 
 const CAPABILITIES = ["Báo tin cho hệ thống khi Chủ kho qua đời", "Theo dõi tiến trình bàn giao"];
 
@@ -60,6 +61,7 @@ export function MyInvitationsInbox() {
             <PendingInvitationCard
               invitation={invitation}
               scopeVersion={data.scopeVersion}
+              scopeText={data.scopeText}
               onAccepted={() => setAcceptedOwner(invitation.ownerName)}
             />
           </li>
@@ -100,10 +102,12 @@ export function MyInvitationsInbox() {
 function PendingInvitationCard({
   invitation,
   scopeVersion,
+  scopeText,
   onAccepted,
 }: {
   invitation: MyInvitation;
   scopeVersion: string;
+  scopeText: string;
   onAccepted: () => void;
 }) {
   const checkboxId = useId();
@@ -172,6 +176,11 @@ function PendingInvitationCard({
           </ul>
         </div>
         <div className="space-y-3">
+          <AuthorizationLetterPreview
+            ownerName={invitation.ownerName}
+            executorEmail={invitation.inviteeEmail}
+            scopeText={scopeText}
+          />
           <label
             htmlFor={checkboxId}
             className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F4F1E6] px-4 py-3 text-sm leading-6"
@@ -184,7 +193,7 @@ function PendingInvitationCard({
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc phạm vi quyền ở trên và đồng ý nhận trách nhiệm này
+            Tôi đã đọc giấy ủy quyền và đồng ý ký, nhận trách nhiệm này
           </label>
           <div className="flex flex-wrap gap-3">
             <button
@@ -193,7 +202,7 @@ function PendingInvitationCard({
               disabled={action.pending || !acknowledge}
               onClick={() => respond(true)}
             >
-              Chấp nhận
+              Ký giấy ủy quyền
             </button>
             <button
               type="button"

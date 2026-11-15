@@ -13,7 +13,7 @@ const SLIP = {
   vaultName: "Kho gia đình",
   executorEmail: "thuc-thi@example.test",
 };
-const SLIP_NAME = "Phiếu bàn giao mã mở gói";
+const SLIP_NAME = "Giấy ủy quyền quản lý tài sản";
 
 let client: QueryClient;
 beforeEach(() => {

@@ -7,6 +7,7 @@ import { formatDate } from "@/shared/lib/dateFormat";
 import { planSetupService } from "../api/planSetupService";
 import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
+import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 
 const ABILITIES = ["Báo tin khi Chủ kho qua đời", "Theo dõi bàn giao cho người nhận"];
 
@@ -56,6 +57,7 @@ export function ExecutorInvitationsInbox() {
             <PendingCard
               invitation={invitation}
               scopeVersion={data.scopeVersion}
+              scopeText={data.scopeText}
               onAccepted={() => setAcceptedOwner(invitation.ownerName)}
             />
           </li>
@@ -97,10 +99,12 @@ export function ExecutorInvitationsInbox() {
 function PendingCard({
   invitation,
   scopeVersion,
+  scopeText,
   onAccepted,
 }: {
   invitation: MyInvitation;
   scopeVersion: string;
+  scopeText: string;
   onAccepted: () => void;
 }) {
   const checkboxId = useId();
@@ -157,6 +161,11 @@ function PendingCard({
           </ul>
         </div>
         <div className="space-y-3">
+          <AuthorizationLetterPreview
+            ownerName={invitation.ownerName}
+            executorEmail={invitation.inviteeEmail}
+            scopeText={scopeText}
+          />
           <label
             htmlFor={checkboxId}
             className="flex min-h-11 items-start gap-3 rounded-xl bg-white/70 px-4 py-3 text-sm leading-6"
@@ -169,7 +178,7 @@ function PendingCard({
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc và đồng ý nhận vai này
+            Tôi đã đọc giấy ủy quyền và đồng ý ký nhận vai này
           </label>
           <div className="flex flex-wrap gap-3">
             <button
@@ -178,7 +187,7 @@ function PendingCard({
               disabled={action.pending || !acknowledge}
               onClick={() => respond(true)}
             >
-              Chấp nhận
+              Ký giấy ủy quyền
             </button>
             <button
               type="button"

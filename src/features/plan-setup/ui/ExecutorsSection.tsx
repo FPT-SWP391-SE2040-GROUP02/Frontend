@@ -18,12 +18,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import { Input } from "@/shared/ui/input";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { inviteExecutorSchema, type executorSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
 import { usePlanSetup } from "../model/usePlanSetup";
+import { ExecutorCandidatePicker, type ExecutorCandidate } from "./ExecutorCandidatePicker";
 import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 type Executor = z.infer<typeof executorSchema>;
@@ -201,6 +201,7 @@ function InviteDialog({
     [ownerEmail, existingExecutors, replacing],
   );
 
+  const [chosen, setChosen] = useState<ExecutorCandidate | null>(null);
   const form = useForm<z.infer<typeof inviteExecutorSchema>>({
     resolver: zodResolver(inviteSchema),
     mode: "onBlur",
@@ -209,7 +210,7 @@ function InviteDialog({
   });
   let title = "Mời Người thực thi";
   let description =
-    "Người này sẽ báo tin khi có biến cố và trao mã mở gói cho người nhận. Họ không đọc được nội dung kho và không nhận tài sản.";
+    "Chọn một người đã có tài khoản LegacyVault. Người này sẽ báo tin khi có biến cố và trao mã mở gói cho người nhận. Họ không đọc được nội dung kho và không nhận tài sản.";
   let notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút.`;
   let cancelLabel = "Hủy";
   if (replacing !== null) {
@@ -245,15 +246,22 @@ function InviteDialog({
           })}
         >
           <fieldset disabled={action.pending} className="space-y-4">
-            <label className="block space-y-2 text-sm">
-              Email
-              <Input
-                type="email"
-                placeholder="nguoiduocmoi@example.com"
-                {...form.register("email")}
-                aria-invalid={Boolean(form.formState.errors.email)}
-              />
-            </label>
+            <ExecutorCandidatePicker
+              vaultId={vaultId}
+              selected={chosen}
+              disabled={action.pending}
+              onSelect={(candidate) => {
+                setChosen(candidate);
+                let email = "";
+                if (candidate !== null) {
+                  email = candidate.email;
+                }
+                form.setValue("email", email, { shouldValidate: candidate !== null });
+                if (candidate === null) {
+                  form.clearErrors("email");
+                }
+              }}
+            />
             {form.formState.errors.email && (
               <p role="alert" className="text-sm text-destructive">
                 {form.formState.errors.email.message}
@@ -276,7 +284,12 @@ function InviteDialog({
             >
               {cancelLabel}
             </Button>
-            <Button size="lg" type="submit" className={GOLD_BUTTON} disabled={action.pending}>
+            <Button
+              size="lg"
+              type="submit"
+              className={GOLD_BUTTON}
+              disabled={action.pending || chosen === null}
+            >
               Gửi lời mời
             </Button>
           </DialogFooter>
@@ -378,8 +391,8 @@ function ChosenCard(props: ChosenCardProps) {
         <div className="mt-4 rounded-xl border-2 border-dashed border-heritage-border p-5">
           <p className="font-semibold">Bạn chưa mời ai</p>
           <p className="mt-2 text-sm leading-6 text-heritage-muted">
-            Chọn người bạn tin, thường là người thân hoặc luật sư gia đình. Họ cần có email và sẽ
-            phải đồng ý trước khi kế hoạch được kích hoạt.
+            Chọn người bạn tin, thường là người thân hoặc luật sư gia đình. Họ cần đã có tài khoản
+            LegacyVault và sẽ phải đồng ý trước khi kế hoạch được kích hoạt.
           </p>
           {manageable && (
             <Button

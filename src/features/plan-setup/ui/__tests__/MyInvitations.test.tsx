@@ -85,7 +85,7 @@ describe("MyInvitationsInbox", () => {
     renderWithRoutes(<MyInvitationsInbox />);
     const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
     expect(within(card).getByText("Còn 5 ngày")).toBeInTheDocument();
-    const accept = within(card).getByRole("button", { name: "Chấp nhận" });
+    const accept = within(card).getByRole("button", { name: "Ký giấy ủy quyền" });
     expect(accept).toBeDisabled();
 
     await userEvent.click(within(card).getByRole("checkbox"));

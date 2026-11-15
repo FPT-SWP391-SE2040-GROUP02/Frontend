@@ -479,9 +479,9 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     );
     // Không hiện hạn của lời mời.
     expect(card).not.toHaveTextContent(/Còn \d|hết hạn|hạn chót/i);
-    const accept = within(card).getByRole("button", { name: "Chấp nhận" });
+    const accept = within(card).getByRole("button", { name: "Ký giấy ủy quyền" });
     expect(accept).toBeDisabled();
-    fireEvent.click(within(card).getByLabelText("Tôi đã đọc và đồng ý nhận vai này"));
+    fireEvent.click(within(card).getByLabelText("Tôi đã đọc giấy ủy quyền và đồng ý ký nhận vai này"));
     expect(accept).toBeEnabled();
   });
 
@@ -510,8 +510,8 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     });
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
-    fireEvent.click(within(card).getByLabelText("Tôi đã đọc và đồng ý nhận vai này"));
-    fireEvent.click(within(card).getByRole("button", { name: "Chấp nhận" }));
+    fireEvent.click(within(card).getByLabelText("Tôi đã đọc giấy ủy quyền và đồng ý ký nhận vai này"));
+    fireEvent.click(within(card).getByRole("button", { name: "Ký giấy ủy quyền" }));
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
     expect(await screen.findByText("Kho của Cô Lan", { selector: "p" })).toBeInTheDocument();
     expect(screen.getByText("Bạn nhận vai ngày 01/10/2026")).toBeInTheDocument();

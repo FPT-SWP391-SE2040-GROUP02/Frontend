@@ -223,7 +223,7 @@ export function ExecutorKeyCard({
         <Dialog open onOpenChange={() => undefined}>
           <DialogContent className="sm:max-w-3xl" showCloseButton={false}>
             <DialogHeader>
-              <DialogTitle>Phiếu bàn giao mã mở gói</DialogTitle>
+              <DialogTitle>Giấy ủy quyền quản lý tài sản</DialogTitle>
               <DialogDescription>
                 Mã chỉ hiện một lần. Tải phiếu hoặc chép mã rồi mới hoàn tất.
               </DialogDescription>

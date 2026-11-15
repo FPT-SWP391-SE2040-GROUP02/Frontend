@@ -12,6 +12,7 @@ import { useServerNow } from "@/shared/clock/useServerNow";
 import { planSetupService } from "../api/planSetupService";
 import { invitationInspectFailure } from "../lib/invitationInspectError";
 import { invitationTimeLeft } from "../lib/invitationTimeLeft";
+import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 
 const capabilities = [
   "Báo tin cho hệ thống",
@@ -118,7 +119,10 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
       <Notice tone="warning">
         {validity} (đến {formatDateTime(query.data.expiresAt)}). Bạn không đọc được nội dung kho.
       </Notice>
-      <p className="text-xs leading-6 text-heritage-muted">{query.data.scopeText}</p>
+      <AuthorizationLetterPreview
+        executorEmail={user?.email}
+        scopeText={query.data.scopeText}
+      />
       <p className="text-xs leading-6 text-heritage-muted">
         Khi Chủ kho kích hoạt kế hoạch, email và số điện thoại của bạn sẽ được gửi cho người nhận để
         họ liên hệ.
@@ -155,7 +159,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc phạm vi, hiểu nhiệm vụ và tự nguyện chấp nhận làm Người thực thi.
+            Tôi đã đọc giấy ủy quyền, hiểu nhiệm vụ và tự nguyện ký làm Người thực thi.
           </label>
           <div className="space-y-3">
             {[true, false].map((accept) => (
@@ -176,7 +180,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
                   )
                 }
               >
-                {accept ? "Chấp nhận lời mời" : "Từ chối"}
+                {accept ? "Ký giấy ủy quyền" : "Từ chối"}
               </button>
             ))}
           </div>

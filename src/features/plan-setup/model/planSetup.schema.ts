@@ -50,6 +50,13 @@ export const executorInfoSchema = z.object({
   scopeVersion: z.string().min(1),
   scopeText: z.string(),
 });
+/** Tài khoản có sẵn mà Chủ kho có thể chọn làm Người thực thi (khớp `ExecutorCandidateResponse` của Backend). */
+export const executorCandidateSchema = z.object({
+  userId: z.string().uuid(),
+  fullName: z.string(),
+  email: z.string(),
+});
+export const executorCandidatesSchema = z.array(executorCandidateSchema);
 export const inviteExecutorSchema = z.object({
   email: z.string().trim().email("Nhập email hợp lệ.").max(254),
   beneficiaryId: z.string().uuid().nullable(),

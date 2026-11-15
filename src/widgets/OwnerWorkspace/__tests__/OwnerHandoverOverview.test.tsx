@@ -29,7 +29,7 @@ vi.mock("@/shared/settings/usePolicyWindows", () => ({
 const VAULT_ID = "22222222-2222-4222-8222-222222222222";
 const CONTAINER_ID = "33333333-3333-4333-8333-333333333333";
 const SHARD = "ABCD-EFGH-JKMN-PQRS-TVWX-YZ01-2345-6789-ABCD-EFGH-JKMN-PQRS-TVWX";
-const SLIP_NAME = "Phiếu bàn giao mã mở gói";
+const SLIP_NAME = "Giấy ủy quyền quản lý tài sản";
 
 function setupData(overrides: Record<string, unknown> = {}) {
   return {
@@ -274,7 +274,7 @@ describe("trang Bàn giao: kế hoạch còn nháp", () => {
     // Tải phiếu: đổi tên tài liệu tạm thời, gọi window.print, trả lại tên sau afterprint.
     await userEvent.click(screen.getByRole("button", { name: "Tải phiếu (PDF)" }));
     expect(print).toHaveBeenCalledTimes(1);
-    expect(document.title).toBe("Phieu-ban-giao-ma-mo-goi-ban-1");
+    expect(document.title).toBe("Giay-uy-quyen-quan-ly-tai-san-ban-1");
     window.dispatchEvent(new Event("afterprint"));
     expect(document.title).toBe(titleBefore);
 

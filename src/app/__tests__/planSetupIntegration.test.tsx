@@ -191,7 +191,7 @@ it("keeps inspect separate from acceptance, sends token in body and never caches
     };
   };
   setup(<ExecutorInvitationPanel token={token} />);
-  const accept = await screen.findByRole("button", { name: "Chấp nhận lời mời" });
+  const accept = await screen.findByRole("button", { name: "Ký giấy ủy quyền" });
   expect(accept).toBeDisabled();
   expect(requests).toHaveLength(1);
   fireEvent.click(screen.getByRole("checkbox"));
@@ -227,7 +227,7 @@ it("guest only inspects and receives login redirect, no acceptance controls", as
     "href",
     expect.stringContaining("%23token%3D"),
   );
-  expect(screen.queryByRole("button", { name: "Chấp nhận lời mời" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Ký giấy ủy quyền" })).not.toBeInTheDocument();
   expect(post).toHaveBeenCalledTimes(1);
 });
 
@@ -340,15 +340,52 @@ const pendingReplacement = {
   inviteeEmail: "moi@example.test",
 };
 
+/** GET kế hoạch trả `data`; GET tìm người có sẵn trả danh sách `email` (mỗi email một tài khoản). */
+function mockGetWithCandidates(data: unknown, emails: string[]): void {
+  const candidates = emails.map((email, index) => ({
+    userId: `cccccccc-cccc-4ccc-8ccc-cccccccccc0${index}`,
+    fullName: `Tài khoản ${index}`,
+    email,
+  }));
+  vi.spyOn(apiClient, "get").mockImplementation((async (url: string) => {
+    if (url.endsWith("/executor-candidates")) {
+      return candidates;
+    }
+    return data;
+  }) as never);
+}
+
+/** Gõ vào ô tìm rồi bấm kết quả có email đó (chờ hết thời gian chờ gõ của ô tìm). */
+async function chooseCandidate(dialog: HTMLElement, email: string): Promise<void> {
+  fireEvent.change(within(dialog).getByLabelText("Tìm người trong hệ thống"), {
+    target: { value: email },
+  });
+  fireEvent.click(await within(dialog).findByRole("button", { name: new RegExp(email) }));
+}
+
+it("Người thực thi: không mời được email ngoài hệ thống, nút Gửi lời mời khóa tới khi chọn người", async () => {
+  mockGetWithCandidates(setupFixture, []);
+  const post = vi.spyOn(apiClient, "post");
+  setup(<ExecutorsSection vaultId={VAULT_ID} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Mời Người thực thi" }));
+  const dialog = await screen.findByRole("dialog");
+  expect(within(dialog).queryByLabelText("Email")).not.toBeInTheDocument();
+  expect(within(dialog).getByRole("button", { name: "Gửi lời mời" })).toBeDisabled();
+  fireEvent.change(within(dialog).getByLabelText("Tìm người trong hệ thống"), {
+    target: { value: "nguoi-la" },
+  });
+  expect(await within(dialog).findByText(/Không có tài khoản phù hợp/)).toBeInTheDocument();
+  expect(within(dialog).getByRole("button", { name: "Gửi lời mời" })).toBeDisabled();
+  expect(post).not.toHaveBeenCalled();
+});
+
 it("Người thực thi: kế hoạch nháp mời được Người thực thi, không gửi vai trò", async () => {
-  vi.spyOn(apiClient, "get").mockResolvedValue(setupFixture);
+  mockGetWithCandidates(setupFixture, ["executor@example.test"]);
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(invitationFixture);
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
   fireEvent.click(await screen.findByRole("button", { name: "Mời Người thực thi" }));
   const dialog = await screen.findByRole("dialog");
-  fireEvent.change(within(dialog).getByLabelText("Email"), {
-    target: { value: "executor@example.test" },
-  });
+  await chooseCandidate(dialog, "executor@example.test");
   fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executors`, {
@@ -462,14 +499,12 @@ it("Người thực thi: kế hoạch có hồ sơ báo tử chỉ xem, không c
 });
 
 it("Người thực thi: rào lỗi ngay trên form nếu Owner tự mời chính mình", async () => {
-  vi.spyOn(apiClient, "get").mockResolvedValue(setupFixture);
+  mockGetWithCandidates(setupFixture, ["fixture@example.test"]);
   const post = vi.spyOn(apiClient, "post");
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
   fireEvent.click(await screen.findByRole("button", { name: "Mời Người thực thi" }));
   const dialog = await screen.findByRole("dialog");
-  fireEvent.change(within(dialog).getByLabelText("Email"), {
-    target: { value: "fixture@example.test" },
-  });
+  await chooseCandidate(dialog, "fixture@example.test");
   fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   expect(
     await within(dialog).findByText("Bạn không thể tự mời chính mình làm Người thực thi."),
@@ -478,17 +513,14 @@ it("Người thực thi: rào lỗi ngay trên form nếu Owner tự mời chín
 });
 
 it("Người thực thi: rào lỗi ngay trên form nếu mời trùng email với Người thực thi hiện có", async () => {
-  vi.spyOn(apiClient, "get").mockResolvedValue({
-    ...setupFixture,
-    executors: [acceptedPrimary, pendingReplacement],
-  });
+  mockGetWithCandidates({ ...setupFixture, executors: [acceptedPrimary, pendingReplacement] }, [
+    "moi@example.test",
+  ]);
   const post = vi.spyOn(apiClient, "post");
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
   fireEvent.click(await screen.findByRole("button", { name: "Thay người khác" }));
   const dialog = await screen.findByRole("dialog");
-  fireEvent.change(within(dialog).getByLabelText("Email"), {
-    target: { value: "moi@example.test" },
-  });
+  await chooseCandidate(dialog, "moi@example.test");
   fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   expect(
     await within(dialog).findByText("Email này đã được mời hoặc đang là Người thực thi."),
