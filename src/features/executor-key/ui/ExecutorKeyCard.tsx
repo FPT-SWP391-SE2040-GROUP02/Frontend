@@ -39,8 +39,8 @@ function InfoCell({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * Thẻ "Mã mở gói" của Chủ kho. Mã là một chuỗi duy nhất cho mọi gói; Chủ kho tải phiếu và gửi riêng cho
- * Người thực thi. Mất phiếu thì bấm "Đổi mã mới": mã cũ hết dùng được ngay.
+ * Thẻ "Mã mở gói" của Chủ kho. Mã là một chuỗi duy nhất cho mọi gói; Backend mã hóa và gửi mã tới tài khoản
+ * Người thực thi trên hệ thống (phiếu tải về chỉ còn là tùy chọn). Bấm "Đổi mã mới" thì mã cũ hết dùng được ngay.
  * Mã gốc chỉ hiện một lần trong hộp thoại, không lưu vào cache hay storage.
  */
 export function ExecutorKeyCard({
@@ -102,13 +102,15 @@ export function ExecutorKeyCard({
   let buttonStyle = buttonStyles.gold;
   let buttonText = "Tạo mã mở gói";
   let confirmTitle = "Tạo mã mở gói?";
-  let confirmText = "Mã chỉ hiện một lần. Hãy chuẩn bị tải phiếu và gửi riêng cho Người thực thi.";
+  let confirmText =
+    "Mã được gửi an toàn tới tài khoản Người thực thi trên hệ thống. Bạn vẫn xem được mã một lần ngay sau khi tạo.";
   let confirmButtonText = "Tạo mã mở gói";
   if (reissue) {
     buttonStyle = buttonStyles.outline;
     buttonText = "Đổi mã mới";
     confirmTitle = "Đổi mã mới?";
-    confirmText = "Mã cũ hết dùng được ngay. Người thực thi phải dùng mã mới bạn gửi lần này.";
+    confirmText =
+      "Mã cũ hết dùng được ngay. Mã mới được gửi tới tài khoản Người thực thi trên hệ thống.";
     confirmButtonText = "Đổi mã mới";
   }
   if (issuer.pending) {
@@ -132,7 +134,9 @@ export function ExecutorKeyCard({
 
   let emptyContent: ReactNode = emptyState;
   if (emptyState === undefined) {
-    emptyContent = <p>Chưa có mã. Mã chỉ hiện một lần lúc tạo, kèm phiếu để tải về.</p>;
+    emptyContent = (
+      <p>Chưa có mã. Khi bạn tạo, mã được gửi tới tài khoản Người thực thi trên hệ thống.</p>
+    );
   }
 
   return (
@@ -142,7 +146,8 @@ export function ExecutorKeyCard({
       className="border-[#E0C486]/60 bg-[#FBF3DE]"
     >
       <p className="text-sm leading-6">
-        Một mã cho cả kho. Người nhận cần mã này để mở tài sản; bạn trao cho Người thực thi giữ.
+        Một mã cho cả kho. Người nhận cần mã này để mở tài sản; hệ thống gửi mã trực tiếp tới tài
+        khoản Người thực thi, bạn không cần in phiếu.
       </p>
 
       {!status.hasKey && (
@@ -158,7 +163,8 @@ export function ExecutorKeyCard({
             <InfoCell label="Tạo lúc" value={formatDateTime(createdAt)} />
           </dl>
           <p className="mt-4 text-sm leading-6 text-heritage-muted">
-            Không xem lại được mã cũ. Lỡ mất phiếu thì đổi mã mới; mã cũ hết dùng được ngay.
+            Mã đã được gửi tới tài khoản Người thực thi trên hệ thống. Bạn không xem lại được mã;
+            cần thì đổi mã mới, mã cũ hết dùng được ngay.
           </p>
         </>
       )}
