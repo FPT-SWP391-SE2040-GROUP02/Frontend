@@ -90,10 +90,10 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
         ) : checkIn.data ? (
           <>
             <p className="text-lg font-semibold">{checkInLabels[checkIn.data.status]}</p>
-            <p className="text-xs text-heritage-muted">
+            <p className="text-sm text-heritage-muted">
               Chu kỳ: {checkIn.data.settings.cycleDays} ngày
             </p>
-            <p className="text-xs text-heritage-muted">
+            <p className="text-sm text-heritage-muted">
               Thư nhắc trễ: {checkIn.data.settings.maxLateReminders} thư, cách nhau{" "}
               {checkIn.data.settings.lateReminderGapDays} ngày
             </p>

@@ -25,7 +25,7 @@ import {
 import { executorVaultsKey } from "../model/useExecutorVaults";
 
 const selectClass =
-  "h-9 w-full min-w-0 rounded-[8px] border border-[#D5D0C3] bg-[var(--surface)] px-3 text-xs text-[var(--text-main)] outline-none focus-visible:border-[var(--gold)] focus-visible:ring-3 focus-visible:ring-[var(--gold)]/20";
+  "h-9 w-full min-w-0 rounded-[8px] border border-[#D5D0C3] bg-[var(--surface)] px-3 text-sm text-[var(--text-main)] outline-none focus-visible:border-[var(--gold)] focus-visible:ring-3 focus-visible:ring-[var(--gold)]/20";
 
 /**
  * Nút điểm danh thay chủ kho. Chỉ đặt khi chủ kho quá hạn và kho chưa có hồ sơ chứng tử đang mở.
@@ -80,11 +80,11 @@ export function ProxyCheckIn({ vaultId, left }: { vaultId: string; left?: number
         Điểm danh thay chủ kho
       </button>
       {outOfTurns ? (
-        <p className="text-xs text-heritage-muted">
+        <p className="text-sm text-heritage-muted">
           Hết lượt điểm danh thay liên tiếp. Chỉ còn cách nộp giấy chứng tử.
         </p>
       ) : (
-        <p className="text-xs text-heritage-muted">
+        <p className="text-sm text-heritage-muted">
           Điểm danh hộ Chủ kho cho đến khi có giấy chứng tử.
         </p>
       )}

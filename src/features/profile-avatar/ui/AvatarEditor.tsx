@@ -79,7 +79,7 @@ export function AvatarEditor() {
           aria-label="Chọn ảnh đại diện"
           onChange={onPick}
         />
-        <p className="mt-2 text-xs text-heritage-muted">JPEG, PNG hoặc WebP, tối đa 2 MB.</p>
+        <p className="mt-2 text-sm text-heritage-muted">JPEG, PNG hoặc WebP, tối đa 2 MB.</p>
         {(problem || action.error) && (
           <p role="alert" className="mt-2 text-sm text-destructive">
             {problem || action.error}

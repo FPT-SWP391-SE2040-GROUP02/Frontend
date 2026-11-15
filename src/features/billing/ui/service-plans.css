@@ -4,7 +4,7 @@
 .service-plans .service-plan-intro {
   margin-bottom: 24px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.875rem;
   line-height: 1.7;
   max-width: 68ch;
 }
@@ -34,7 +34,7 @@
 .service-plans .service-plan-current-title > span,
 .service-plans dt {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 0.875rem;
 }
 .service-plans .service-plan-current-title strong {
   display: block;
@@ -45,7 +45,7 @@
   display: block;
   color: var(--text-muted);
   margin-top: 4px;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 .service-plans .service-plan-current-facts {
   display: flex;
@@ -54,7 +54,7 @@
 }
 .service-plans dd {
   margin-top: 3px;
-  font-size: 13px;
+  font-size: 0.875rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -72,7 +72,7 @@
 }
 .service-plans .service-plan-catalog-heading p {
   margin-top: 3px;
-  font-size: 12px;
+  font-size: 0.875rem;
   color: var(--text-muted);
 }
 .service-plans .service-plan-terms {
@@ -100,7 +100,7 @@
   color: var(--surface);
 }
 .service-plans .service-plan-terms small {
-  font-size: 11px;
+  font-size: 0.875rem;
   font-weight: 400;
 }
 .service-plans .service-plan-grid {
@@ -138,7 +138,7 @@
   border-radius: 20px;
   background: color-mix(in srgb, var(--gold) 16%, var(--surface));
   padding: 4px 8px;
-  font-size: 11px;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 .service-plans .service-plan-badge-muted {
@@ -157,7 +157,7 @@
   min-height: 34px;
   margin-top: 5px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 .service-plans .service-plan-quota {
@@ -180,7 +180,7 @@
   display: flex;
   align-items: start;
   gap: 8px;
-  font-size: 12px;
+  font-size: 0.875rem;
   line-height: 1.6;
 }
 .service-plans .service-plan-features svg {
@@ -227,7 +227,7 @@
 }
 .service-plans .service-plan-fineprint {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 0.875rem;
   line-height: 1.65;
   max-width: 65ch;
 }
@@ -269,11 +269,11 @@
   min-width: 180px;
 }
 .service-plans .service-plan-renewal-period h3 {
-  font-size: 13px;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 .service-plans .service-plan-renewal-period p {
-  font-size: 11px;
+  font-size: 0.875rem;
   color: var(--text-muted);
   margin-top: 3px;
   max-width: 65ch;
@@ -290,7 +290,7 @@
   border-bottom: 1px solid var(--border-ui);
 }
 .service-plans .service-plan-summary dt {
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 .service-plans .service-plan-summary dd {
   text-align: right;
@@ -318,7 +318,7 @@
   margin-top: 14px;
   border: 1px solid var(--gold-border);
   border-radius: 9px;
-  font-size: 13px;
+  font-size: 0.875rem;
   line-height: 1.6;
   background: var(--gold-light);
   max-width: 72ch;
@@ -336,7 +336,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 20px;
-  font-size: 14px;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
   list-style: none;
@@ -364,12 +364,12 @@
   border-top: 1px solid var(--border-ui);
 }
 .service-plans .service-plan-policy-list h3 {
-  font-size: 13px;
+  font-size: 0.875rem;
   font-weight: 600;
   margin-bottom: 6px;
 }
 .service-plans .service-plan-policy-list p {
-  font-size: 13px;
+  font-size: 0.875rem;
   line-height: 1.65;
   color: var(--text-muted);
   max-width: 65ch;

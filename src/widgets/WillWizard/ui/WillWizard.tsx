@@ -70,7 +70,7 @@ export const WillWizard: React.FC = () => {
           {/* Breadcrumbs */}
           <nav
             aria-label="Breadcrumb"
-            className="hidden md:flex items-center gap-2 text-xs bg-[#EFECE6] px-3.5 py-2 rounded-full border border-[#DCD9D0]"
+            className="hidden md:flex items-center gap-2 text-sm bg-[#EFECE6] px-3.5 py-2 rounded-full border border-[#DCD9D0]"
           >
             <Link to={ROUTES.HOME} className="text-[#66786E] hover:text-[#0B291E]">
               Trang Chủ
@@ -87,7 +87,7 @@ export const WillWizard: React.FC = () => {
         <div className="flex items-center gap-3">
           <Link
             to={ROUTES.WILLS.ROOT}
-            className="min-h-[44px] text-xs font-semibold text-[#66786E] hover:text-[#14241C] px-4 py-2 rounded-[16px] hover:bg-[#EFECE6] flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+            className="min-h-[44px] text-sm font-semibold text-[#66786E] hover:text-[#14241C] px-4 py-2 rounded-[16px] hover:bg-[#EFECE6] flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Thoát Wizard</span>
@@ -100,7 +100,7 @@ export const WillWizard: React.FC = () => {
         <p role="status">Tính năng tạo và kích hoạt kế hoạch đang được hoàn thiện.</p>
         {/* Stepper Navigation */}
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5EDE8] border border-[#A2C4AF] text-[#0B291E] text-xs font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E5EDE8] border border-[#A2C4AF] text-[#0B291E] text-sm font-semibold">
             <Lock className="w-3.5 h-3.5 text-[#0B291E]" />
             <span>Thiết lập kế hoạch di sản số chuẩn hóa theo SRS 3.11.0 (Luồng 1B)</span>
           </div>
@@ -162,7 +162,7 @@ export const WillWizard: React.FC = () => {
               variant="outline"
               onClick={handlePrevStep}
               disabled={currentStep === 1 || isPending}
-              className={`min-h-[44px] rounded-[16px] border-[#DCD9D0] text-xs font-semibold px-5 flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C] ${
+              className={`min-h-[44px] rounded-[16px] border-[#DCD9D0] text-sm font-semibold px-5 flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C] ${
                 currentStep === 1 ? "invisible" : ""
               }`}
             >
@@ -175,7 +175,7 @@ export const WillWizard: React.FC = () => {
                 type="button"
                 onClick={handleNextStep}
                 disabled={isPending}
-                className="min-h-[48px] rounded-[18px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-7 shadow-md flex items-center gap-2 transition-all hover:scale-[1.01] focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+                className="min-h-[48px] rounded-[18px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-sm font-bold px-7 shadow-md flex items-center gap-2 transition-all hover:scale-[1.01] focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
               >
                 <span>Tiếp Tục Bước Tiếp Theo</span>
                 <ArrowRight className="w-4 h-4 text-[#B88E4C]" />
@@ -186,7 +186,7 @@ export const WillWizard: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#FAF9F5] border-t border-[#DCD9D0] py-6 px-4 text-center text-xs text-[#66786E] mt-auto">
+      <footer className="bg-[#FAF9F5] border-t border-[#DCD9D0] py-6 px-4 text-center text-sm text-[#66786E] mt-auto">
         <p>© 2026 LegacyVault Protocol. Quy Trình Di Chúc Số Đạt Chuẩn FPT SWP391.</p>
       </footer>
     </div>

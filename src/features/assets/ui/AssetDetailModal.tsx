@@ -76,26 +76,26 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="text-[11px] font-mono tracking-wider uppercase text-[#B88E4C] font-bold">
+                <span className="text-[0.875rem] font-mono tracking-wider uppercase text-[#B88E4C] font-bold">
                   {strategy.label}
                 </span>
                 <span className="text-white/40">•</span>
-                <Badge className="bg-[#133E2F] text-[#059669] border border-[#059669]/40 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                <Badge className="bg-[#133E2F] text-[#059669] border border-[#059669]/40 text-[0.875rem] font-bold px-2 py-0.5 rounded-full">
                   {asset.statusLabel}
                 </Badge>
               </div>
               <DialogTitle className="text-xl sm:text-2xl font-black text-white mt-1.5 tracking-tight break-words">
                 {asset.title}
               </DialogTitle>
-              <div className="flex items-center gap-3 mt-2 text-xs text-white/75 flex-wrap">
-                <span className="font-mono text-[11px] bg-white/10 px-2 py-0.5 rounded-md">
+              <div className="flex items-center gap-3 mt-2 text-sm text-white/75 flex-wrap">
+                <span className="font-mono text-[0.875rem] bg-white/10 px-2 py-0.5 rounded-md">
                   Mã: {asset.id}
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyId}
                   aria-label="Sao chép ID tài sản"
-                  className="hover:text-white transition-colors flex items-center gap-1 text-[11px] text-[#B88E4C]"
+                  className="hover:text-white transition-colors flex items-center gap-1 text-[0.875rem] text-[#B88E4C]"
                 >
                   {copiedId ? (
                     <Check className="w-3.5 h-3.5 text-[#059669]" />
@@ -112,16 +112,16 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
         {/* Modal Scrollable Body */}
         <div className="p-6 sm:p-8 space-y-6 max-h-[calc(85vh-160px)] overflow-y-auto">
           {/* Section 1: Key Metrics Ribbon */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-[#EFECE6] border border-[#DCD9D0] rounded-[20px] text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-[#EFECE6] border border-[#DCD9D0] rounded-[20px] text-sm">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-[12px] bg-white border border-[#DCD9D0] flex items-center justify-center shrink-0">
                 <Calendar className="w-4 h-4 text-[#66786E]" />
               </div>
               <div>
-                <span className="text-[10px] text-[#66786E] font-bold uppercase tracking-wider block">
+                <span className="text-[0.875rem] text-[#66786E] font-bold uppercase tracking-wider block">
                   Niêm Phong
                 </span>
-                <span className="font-semibold text-[#14241C] text-xs block mt-0.5">
+                <span className="font-semibold text-[#14241C] text-sm block mt-0.5">
                   {asset.createdAtFormatted}
                 </span>
               </div>
@@ -132,7 +132,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
                 <Users className="w-4 h-4 text-[#B88E4C]" />
               </div>
               <div>
-                <span className="text-[10px] text-[#66786E] font-bold uppercase tracking-wider block">
+                <span className="text-[0.875rem] text-[#66786E] font-bold uppercase tracking-wider block">
                   Thừa Kế
                 </span>
                 <span className="font-bold text-[#14241C] text-sm block mt-0.5">
@@ -145,10 +145,10 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
           {/* Section 2: Instructions Card */}
           {asset.description && (
             <div className="p-4 sm:p-5 rounded-[20px] bg-white border border-[#DCD9D0] shadow-sm space-y-2">
-              <span className="text-[11px] font-bold text-[#66786E] uppercase tracking-wider block">
+              <span className="text-[0.875rem] font-bold text-[#66786E] uppercase tracking-wider block">
                 Chỉ Dẫn & Ghi Chú Riêng Cho Người Thừa Kế
               </span>
-              <p className="text-xs text-[#14241C] leading-relaxed italic bg-[#FAF9F5] p-3.5 rounded-[14px] border border-[#E8E5DD]">
+              <p className="text-sm text-[#14241C] leading-relaxed italic bg-[#FAF9F5] p-3.5 rounded-[14px] border border-[#E8E5DD]">
                 "{asset.description}"
               </p>
             </div>
@@ -157,11 +157,11 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
           {/* Section 3: Dynamic Decrypted Cryptographic Data Card */}
           <div className="p-5 sm:p-6 rounded-[22px] bg-white border border-[#DCD9D0] shadow-sm space-y-3.5">
             <div className="flex items-center justify-between border-b border-[#E8E5DD] pb-3">
-              <span className="text-xs font-bold text-[#0B291E] uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-sm font-bold text-[#0B291E] uppercase tracking-wider flex items-center gap-1.5">
                 <Lock className="w-4 h-4 text-[#B88E4C]" />
                 Dữ Liệu Mật Mã Học Đã Giải Mã (Client-side Decrypted)
               </span>
-              <Badge className="bg-[#FBF7EE] text-[#B88E4C] border border-[#E8DCC6] text-[10px] font-bold px-2.5 py-0.5">
+              <Badge className="bg-[#FBF7EE] text-[#B88E4C] border border-[#E8DCC6] text-[0.875rem] font-bold px-2.5 py-0.5">
                 AES-256-GCM
               </Badge>
             </div>
@@ -173,7 +173,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
           </div>
 
           {/* Section 4: RAM Security Banner */}
-          <div className="p-4 rounded-[18px] bg-[#E5EDE8] border border-[#A2C4AF] flex items-start gap-3 text-xs text-[#0B291E]">
+          <div className="p-4 rounded-[18px] bg-[#E5EDE8] border border-[#A2C4AF] flex items-start gap-3 text-sm text-[#0B291E]">
             <ShieldCheck className="w-5 h-5 text-[#059669] shrink-0 mt-0.5" />
             <div className="leading-relaxed">
               <strong className="font-bold block">Bảo Mật Zero-Knowledge Client-Side:</strong>
@@ -189,7 +189,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({ asset, onClo
           <Button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-7 shadow-sm focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+            className="min-h-[44px] rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-sm font-bold px-7 shadow-sm focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
           >
             Đóng Cửa Sổ
           </Button>

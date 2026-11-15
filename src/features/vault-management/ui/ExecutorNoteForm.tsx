@@ -54,7 +54,7 @@ function ExecutorNoteForm({ vault }: { vault: VaultResponse }) {
         <h2 id="executor-note-title" className="text-lg font-semibold text-heritage-primary">
           Lời dặn cho Người thực thi
         </h2>
-        <span className="shrink-0 text-xs tabular-nums text-heritage-muted" aria-hidden="true">
+        <span className="shrink-0 text-sm tabular-nums text-heritage-muted" aria-hidden="true">
           {note.length}/{NOTE_MAX}
         </span>
       </div>
@@ -86,7 +86,7 @@ function ExecutorNoteForm({ vault }: { vault: VaultResponse }) {
           </p>
         )}
         {!action.succeeded && savedAt && (
-          <p className="mr-auto text-xs text-heritage-muted">
+          <p className="mr-auto text-sm text-heritage-muted">
             Sửa lần cuối {formatDateTime(savedAt)}
           </p>
         )}

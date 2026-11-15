@@ -144,7 +144,7 @@ interface DateFieldProps {
 export function ListDateField({ label, ariaLabel, invalid, value, onChange }: DateFieldProps) {
   return (
     <label
-      className={`inline-flex h-10 items-center gap-2 pl-3 pr-1 text-[13px] font-medium text-heritage-muted ${FIELD_BASE}`}
+      className={`inline-flex h-10 items-center gap-2 pl-3 pr-1 text-[0.875rem] font-medium text-heritage-muted ${FIELD_BASE}`}
     >
       <span>{label}</span>
       <input
@@ -153,7 +153,7 @@ export function ListDateField({ label, ariaLabel, invalid, value, onChange }: Da
         aria-invalid={invalid || undefined}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-[38px] bg-transparent px-1.5 text-[13px] text-heritage-text outline-none"
+        className="h-[38px] bg-transparent px-1.5 text-[0.875rem] text-heritage-text outline-none"
       />
     </label>
   );
@@ -173,7 +173,7 @@ export function ListPill({ pressed, onClick, children, count }: PillProps) {
       type="button"
       aria-pressed={pressed}
       onClick={onClick}
-      className={`inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-[13px] font-semibold transition-colors ${
+      className={`inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-[0.875rem] font-semibold transition-colors ${
         pressed
           ? "border-heritage-primary bg-heritage-primary text-white"
           : "border-heritage-border bg-white text-heritage-text hover:bg-[#e5ede8]"
@@ -182,7 +182,7 @@ export function ListPill({ pressed, onClick, children, count }: PillProps) {
       {children}
       {count !== undefined && (
         <span
-          className={`min-w-5 rounded-full px-1.5 py-px text-center text-xs tabular-nums ${
+          className={`min-w-5 rounded-full px-1.5 py-px text-center text-sm tabular-nums ${
             pressed ? "bg-white/20" : "bg-[#e8e5dd]"
           }`}
         >
@@ -228,7 +228,7 @@ export function ListSegmentTabs({ label, value, options, onChange }: SegmentTabs
             {option.label}
             {option.count !== undefined && (
               <span
-                className={`min-w-[22px] rounded-full px-[7px] py-px text-center text-xs tabular-nums ${
+                className={`min-w-[22px] rounded-full px-[7px] py-px text-center text-sm tabular-nums ${
                   pressed ? "bg-[#fbf3e0] text-[#7a5a22]" : "bg-[#e8e5dd] text-heritage-muted"
                 }`}
               >
@@ -271,7 +271,7 @@ export function ListTable({
     >
       <div
         role="row"
-        className="hidden h-11 items-center gap-4 border-b border-heritage-border bg-[#e8e5dd] px-[18px] text-xs font-semibold tracking-[0.02em] text-heritage-muted md:grid md:grid-cols-[var(--cols)]"
+        className="hidden h-11 items-center gap-4 border-b border-heritage-border bg-[#e8e5dd] px-[18px] text-sm font-semibold tracking-[0.02em] text-heritage-muted md:grid md:grid-cols-[var(--cols)]"
       >
         {headings.map((heading) => (
           <span role="columnheader" key={heading}>

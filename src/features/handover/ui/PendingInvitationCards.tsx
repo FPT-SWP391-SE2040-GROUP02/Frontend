@@ -110,7 +110,7 @@ export function PendingInvitationCards() {
     <section aria-labelledby="pending-invitations-title" className="space-y-3">
       <h2
         id="pending-invitations-title"
-        className="text-xs font-semibold tracking-widest text-[#7A5B24]"
+        className="text-sm font-semibold tracking-widest text-[#7A5B24]"
       >
         GÓI MỚI CHỜ BẠN XÁC NHẬN
       </h2>

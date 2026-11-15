@@ -111,7 +111,7 @@ export function MemberPicker(props: MemberPickerProps) {
               {item.label}
             </span>
             {item.detail && (
-              <span className="block truncate text-xs text-heritage-muted">{item.detail}</span>
+              <span className="block truncate text-sm text-heritage-muted">{item.detail}</span>
             )}
           </span>
         </label>
@@ -134,7 +134,7 @@ export function MemberPicker(props: MemberPickerProps) {
             type="button"
             disabled={props.disabled}
             onClick={toggleAll}
-            className="text-xs font-semibold text-[#0A281E] underline underline-offset-4 disabled:opacity-50"
+            className="text-sm font-semibold text-[#0A281E] underline underline-offset-4 disabled:opacity-50"
           >
             {selectAllLabel}
           </button>
@@ -142,7 +142,7 @@ export function MemberPicker(props: MemberPickerProps) {
       </div>
       <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-heritage-border bg-white">
         {props.items.length === 0 && (
-          <p className="p-4 text-xs text-heritage-muted">{props.emptyText}</p>
+          <p className="p-4 text-sm text-heritage-muted">{props.emptyText}</p>
         )}
         {props.items.length > 0 && (
           <>
@@ -158,13 +158,13 @@ export function MemberPicker(props: MemberPickerProps) {
               />
             </div>
             {props.hint && (
-              <div className="border-y border-heritage-border bg-[#F4F1E6] px-3 py-1.5 text-xs font-medium text-[#7A5B25]">
+              <div className="border-y border-heritage-border bg-[#F4F1E6] px-3 py-1.5 text-sm font-medium text-[#7A5B25]">
                 {props.hint}
               </div>
             )}
             <ul className="max-h-64 space-y-0.5 overflow-y-auto p-1.5">{rows}</ul>
             {shown.length === 0 && (
-              <p className="px-4 pb-3 text-xs text-heritage-muted">Không tìm thấy mục phù hợp.</p>
+              <p className="px-4 pb-3 text-sm text-heritage-muted">Không tìm thấy mục phù hợp.</p>
             )}
           </>
         )}

@@ -180,6 +180,7 @@ function PendingInvitationCard({
             ownerName={invitation.ownerName}
             executorEmail={invitation.inviteeEmail}
             scopeText={scopeText}
+            clauses={invitation.willClauses}
           />
           <label
             htmlFor={checkboxId}
@@ -213,7 +214,7 @@ function PendingInvitationCard({
               Từ chối
             </button>
           </div>
-          <p className="text-xs text-heritage-muted">
+          <p className="text-sm text-heritage-muted">
             Máy chủ ghi lại lựa chọn và thời điểm bạn bấm.
           </p>
           {action.error && (

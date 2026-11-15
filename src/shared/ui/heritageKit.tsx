@@ -43,7 +43,7 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex w-fit shrink-0 items-center rounded-full px-3 py-1 text-xs font-semibold",
+        "inline-flex w-fit shrink-0 items-center rounded-full px-3 py-1 text-sm font-semibold",
         chipTones[tone],
         className,
       )}

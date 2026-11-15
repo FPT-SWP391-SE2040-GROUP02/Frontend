@@ -274,7 +274,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                 value={review.submittedAt ? formatCompact(review.submittedAt) : "—"}
               />
             </dl>
-            <p className="text-xs text-heritage-muted">
+            <p className="text-sm text-heritage-muted">
               Họ tên và ngày sinh Chủ kho lấy từ xác minh danh tính. Người thực hiện chỉ khai 3
               thông tin trên giấy, bạn đối chiếu chúng với ảnh giấy ở khung trên.
             </p>
@@ -312,7 +312,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                         {flag.reviewNote && (
                           <p className="mt-1 text-sm">Ghi chú: {flag.reviewNote}</p>
                         )}
-                        <p className="mt-1 text-xs text-heritage-muted">
+                        <p className="mt-1 text-sm text-heritage-muted">
                           Tạo {formatDate(flag.createdAt)} ·{" "}
                           {reviewed ? `Đã xét ${formatDate(flag.reviewedAt)}` : "Chưa xét"}
                         </p>
@@ -353,7 +353,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                       v{v.versionNo} · ****{v.ownerCitizenIdLast4 ?? "—"} · {v.dateOfDeath ?? "—"} ·{" "}
                       {formatDate(v.submittedAt)}
                     </span>
-                    <span className="text-xs text-heritage-muted">{v.files.length} trang</span>
+                    <span className="text-sm text-heritage-muted">{v.files.length} trang</span>
                   </li>
                 ))}
               </ul>
@@ -376,7 +376,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                       {decisionLabels[decision.kind as z.infer<typeof verifierDecisionKindSchema>]}{" "}
                       · {decision.reason}
                     </span>
-                    <span className="text-xs text-heritage-muted">
+                    <span className="text-sm text-heritage-muted">
                       {formatDate(decision.decidedAt)}
                     </span>
                   </li>
@@ -397,7 +397,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
             ) : !detail.canApprove && conditions.length > 0 ? (
               <div role="status" className="rounded-xl bg-[#F8E1DE] p-4 text-sm text-[#7A1A14]">
                 <p>Chưa thể duyệt vì: {blockedReason}. Bạn có thể từ chối hồ sơ.</p>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
                   {conditions.map((row) => (
                     <li key={row.key}>{row.detail}</li>
                   ))}
@@ -570,7 +570,7 @@ function DecisionTile({
 function Field({ label, value, sensitive }: { label: string; value: string; sensitive?: boolean }) {
   return (
     <div>
-      <dt className="text-xs text-heritage-muted">{label}</dt>
+      <dt className="text-sm text-heritage-muted">{label}</dt>
       <dd className={`mt-1 break-words text-sm font-semibold ${sensitive ? "font-mono" : ""}`}>
         {value}
       </dd>

@@ -46,7 +46,7 @@ export function VerifierCriteriaPage() {
               </li>
             ))}
           </ul>
-          <p className="mt-5 flex items-start gap-2 text-xs text-heritage-muted">
+          <p className="mt-5 flex items-start gap-2 text-sm text-heritage-muted">
             <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             Từ chối cần ghi rõ lý do. Người thực hiện sẽ được báo.
           </p>

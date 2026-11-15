@@ -180,6 +180,11 @@ describe("trang Bàn giao: kế hoạch còn nháp", () => {
     expect(screen.queryByRole("heading", { name: "Người tin cậy" })).not.toBeInTheDocument();
     expect(screen.queryByText(/Người thực hiện/)).not.toBeInTheDocument();
 
+    // Di chúc hiện sẵn (mở) trước nút kích hoạt: bấm kích hoạt là ký di chúc.
+    expect(screen.getByRole("heading", { name: "Di chúc của bạn" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Di chúc" })).toBeVisible();
+    expect(screen.getByText("(chưa có Người thực thi chấp nhận)")).toBeInTheDocument();
+
     // Chưa đủ điều kiện: nút khóa và có lý do bên cạnh.
     expect(screen.getByRole("button", { name: "Kích hoạt kế hoạch" })).toBeDisabled();
     expect(screen.getByText("Còn điều kiện chưa đạt ở trên.")).toBeInTheDocument();

@@ -82,7 +82,7 @@ function EditForm({
           className="mt-2 h-12 rounded-xl bg-white px-4 text-sm font-normal"
         />
         {errors.name && (
-          <span role="alert" className="text-xs text-destructive">
+          <span role="alert" className="text-sm text-destructive">
             {errors.name.message}
           </span>
         )}
@@ -97,7 +97,7 @@ function EditForm({
           className="mt-2 min-h-24 rounded-xl bg-white px-4 text-sm font-normal"
         />
         {errors.description && (
-          <span role="alert" className="text-xs text-destructive">
+          <span role="alert" className="text-sm text-destructive">
             {errors.description.message}
           </span>
         )}
@@ -138,11 +138,11 @@ function AssetInfo({ asset }: { asset: BackendAsset }) {
   return (
     <dl className="space-y-4 text-sm">
       <div>
-        <dt className="text-xs text-heritage-muted">Tên mục</dt>
+        <dt className="text-sm text-heritage-muted">Tên mục</dt>
         <dd className="mt-1 break-words font-semibold">{asset.name}</dd>
       </div>
       <div>
-        <dt className="text-xs text-heritage-muted">Ghi chú cho người nhận</dt>
+        <dt className="text-sm text-heritage-muted">Ghi chú cho người nhận</dt>
         <dd className="mt-1 whitespace-pre-wrap break-words">{description}</dd>
       </div>
     </dl>
@@ -238,17 +238,17 @@ export function AssetDetail({
       <Panel title="Thông tin">
         <dl className="mb-6 grid grid-cols-3 gap-4 text-sm">
           <div>
-            <dt className="text-xs text-heritage-muted">Loại</dt>
+            <dt className="text-sm text-heritage-muted">Loại</dt>
             <dd className="mt-1 font-semibold">{revealed ? kindLabels[asset.kind] : MASK}</dd>
           </div>
           <div>
-            <dt className="text-xs text-heritage-muted">Cập nhật</dt>
+            <dt className="text-sm text-heritage-muted">Cập nhật</dt>
             <dd className="mt-1 font-semibold">
               {revealed ? formatDate(asset.updatedAt ?? asset.createdAt) : MASK}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-heritage-muted">Dung lượng</dt>
+            <dt className="text-sm text-heritage-muted">Dung lượng</dt>
             <dd className="mt-1 font-semibold">
               {revealed ? formatStorageSize(asset.sizeBytes) : MASK}
             </dd>
@@ -300,11 +300,11 @@ export function AssetDetail({
           <>
             <dl className="space-y-4 text-sm" aria-label="Thông tin đang ẩn">
               <div>
-                <dt className="text-xs text-heritage-muted">Tên mục</dt>
+                <dt className="text-sm text-heritage-muted">Tên mục</dt>
                 <dd className="mt-1 font-semibold">{MASK}</dd>
               </div>
               <div>
-                <dt className="text-xs text-heritage-muted">Ghi chú cho người nhận</dt>
+                <dt className="text-sm text-heritage-muted">Ghi chú cho người nhận</dt>
                 <dd className="mt-1">{MASK}</dd>
               </div>
             </dl>
@@ -357,7 +357,7 @@ export function AssetDetail({
             {download.error}
           </p>
         )}
-        <p className="mt-4 flex items-start gap-2 border-t border-heritage-border pt-4 text-xs text-heritage-muted">
+        <p className="mt-4 flex items-start gap-2 border-t border-heritage-border pt-4 text-sm text-heritage-muted">
           <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           Nội dung không đổi sau khi tạo. Muốn thay, hãy tạo mục mới rồi xóa mục này. Người nhận
           nhận đúng nội dung này khi bàn giao.

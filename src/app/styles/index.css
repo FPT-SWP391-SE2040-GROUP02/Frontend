@@ -110,8 +110,8 @@
 
   /* 3. NEUTRALS */
   --text-main: #14241c;
-  --text-muted: #66786e;
-  --text-subtle: #8e9f96;
+  --text-muted: #44564c;
+  --text-subtle: #5f7168;
   --border-ui: #dcd9d0;
 
   /* 4. SOFT TACTILE DEPTH */
@@ -148,10 +148,34 @@
 }
 
 @layer base {
+  /* Senior-friendly: scale all rem-based sizes up ~12% */
+  html {
+    font-size: 112.5%;
+  }
   * {
     @apply border-border;
   }
+  :focus-visible {
+    outline: 3px solid var(--gold-hover);
+    outline-offset: 2px;
+  }
+  button,
+  [role="button"],
+  a.btn,
+  input:not([type="checkbox"]):not([type="radio"]),
+  select {
+    min-height: 44px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
   body {
+    line-height: 1.6;
     background-color: var(--bg-canvas);
     color: var(--text-main);
     font-family: "Be Vietnam Pro", system-ui, sans-serif;
@@ -169,7 +193,7 @@
   gap: 8px;
   cursor: pointer;
   user-select: none;
-  font-size: 12px;
+  font-size: 0.875rem;
   line-height: 1.4;
 }
 .custom-checkbox input[type="checkbox"] {
@@ -212,7 +236,7 @@
   gap: 8px;
   cursor: pointer;
   user-select: none;
-  font-size: 12px;
+  font-size: 0.875rem;
 }
 .custom-radio input[type="radio"] {
   appearance: none;
@@ -345,7 +369,7 @@
   color: #fff;
   border-radius: 10px;
   padding: 2px 7px;
-  font-size: 10px;
+  font-size: 0.875rem;
 }
 
 /* ==========================================================================

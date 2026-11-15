@@ -37,12 +37,12 @@ import "./owner-workspace.css";
 /** Chỉ mount khi phiên Owner sẵn sàng; dùng chung cache kho với các màn nội dung. */
 function OwnerServiceTier() {
   const vault = useOwnerVault(true);
-  if (vault.isPending) return <p className="text-xs text-white/65">Đang tải gói…</p>;
+  if (vault.isPending) return <p className="text-sm text-white/65">Đang tải gói…</p>;
   if (vault.isError) {
     if (isOwnerVaultMissing(vault.error)) {
-      return <p className="text-xs text-white/65">Chưa có kho</p>;
+      return <p className="text-sm text-white/65">Chưa có kho</p>;
     }
-    return <p className="text-xs text-white/65">Chưa tải được gói</p>;
+    return <p className="text-sm text-white/65">Chưa tải được gói</p>;
   }
   return <VaultServiceBadge tier={getDisplayedServiceTier(vault.data)} sidebar />;
 }
@@ -228,7 +228,7 @@ export function OwnerWorkspace({
               <p className="truncate text-sm font-semibold text-white">
                 {user?.fullName ?? "Tài khoản"}
               </p>
-              <p className="text-xs text-[#E6C98B]">Chủ kho</p>
+              <p className="text-sm text-[#E6C98B]">Chủ kho</p>
               {showOwnerService && (
                 <div className="mt-1">
                   <OwnerServiceTier key={user.id} />
@@ -242,7 +242,7 @@ export function OwnerWorkspace({
       <header className="owner-page-header flex flex-wrap items-center justify-between gap-4">
         <div className="min-w-0">
           {eyebrow && (
-            <p className="text-xs font-semibold uppercase tracking-wider text-heritage-muted">
+            <p className="text-sm font-semibold uppercase tracking-wider text-heritage-muted">
               {eyebrow}
             </p>
           )}
@@ -258,7 +258,7 @@ export function OwnerWorkspace({
       )}
       {lockReason !== null && <OwnerVaultLockedBanner reason={lockReason} />}
       {children}
-      <footer className="max-w-prose border-t border-heritage-border pt-4 text-xs leading-5 text-heritage-muted">
+      <footer className="max-w-prose border-t border-heritage-border pt-4 text-sm leading-5 text-heritage-muted">
         LegacyVault hỗ trợ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc hoặc thủ tục thừa
         kế.
       </footer>
@@ -271,7 +271,7 @@ export function InvitationCountBadge({ count }: { count: number }) {
   return (
     <span
       aria-label={`${count} lời mời đang chờ`}
-      className="ml-auto rounded-full bg-[#E0C486] px-2 py-0.5 text-xs font-semibold text-[#0A281E]"
+      className="ml-auto rounded-full bg-[#E0C486] px-2 py-0.5 text-sm font-semibold text-[#0A281E]"
     >
       {count}
     </span>

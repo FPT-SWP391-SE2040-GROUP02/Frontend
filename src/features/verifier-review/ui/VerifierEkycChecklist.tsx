@@ -54,7 +54,7 @@ export function VerifierEkycChecklist({
       <dl className="divide-y divide-heritage-border">
         {rows.map((row) => (
           <div key={row.label} className="py-3">
-            <dt className="text-xs text-heritage-muted">{row.label}</dt>
+            <dt className="text-sm text-heritage-muted">{row.label}</dt>
             <dd className="break-words text-sm font-semibold">{row.value}</dd>
           </div>
         ))}

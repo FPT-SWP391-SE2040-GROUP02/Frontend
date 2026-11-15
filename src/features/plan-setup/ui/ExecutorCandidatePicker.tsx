@@ -29,7 +29,7 @@ export function ExecutorCandidatePicker({
       <div className="flex items-center justify-between gap-3 rounded-xl border border-heritage-border bg-white p-3">
         <div className="min-w-0">
           <p className="break-words font-semibold">{selected.fullName}</p>
-          <p className="break-all text-xs text-heritage-muted">{selected.email}</p>
+          <p className="break-all text-sm text-heritage-muted">{selected.email}</p>
         </div>
         <Button type="button" variant="outline" disabled={disabled} onClick={() => onSelect(null)}>
           Chọn người khác
@@ -41,13 +41,13 @@ export function ExecutorCandidatePicker({
   let results: ReactNode = null;
   if (text.trim().length < CANDIDATE_MIN_CHARS) {
     results = (
-      <p className="text-xs text-heritage-muted">
+      <p className="text-sm text-heritage-muted">
         Nhập ít nhất {CANDIDATE_MIN_CHARS} ký tự của tên hoặc email.
       </p>
     );
   } else if (enabled && query.isPending) {
     results = (
-      <p role="status" className="text-xs text-heritage-muted">
+      <p role="status" className="text-sm text-heritage-muted">
         Đang tìm…
       </p>
     );
@@ -75,7 +75,7 @@ export function ExecutorCandidatePicker({
             className="flex min-h-11 w-full flex-col items-start rounded-lg px-3 py-2 text-left hover:bg-[#F1E7D0]"
           >
             <span className="font-semibold">{candidate.fullName}</span>
-            <span className="break-all text-xs text-heritage-muted">{candidate.email}</span>
+            <span className="break-all text-sm text-heritage-muted">{candidate.email}</span>
           </button>
         </li>,
       );

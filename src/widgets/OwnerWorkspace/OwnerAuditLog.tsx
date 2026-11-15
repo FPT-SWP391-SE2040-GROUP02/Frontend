@@ -170,7 +170,7 @@ export function OwnerAuditLog() {
         <h2 id="owner-audit-log" className="text-base font-semibold">
           Nhật ký hoạt động của kho
         </h2>
-        <p className="text-xs text-heritage-muted">
+        <p className="text-sm text-heritage-muted">
           Mỗi dòng ghi lại một thao tác đã lưu thành công lên kho của bạn. Dùng bộ lọc để thu hẹp
           theo loại thao tác hoặc khoảng ngày.
         </p>
@@ -228,13 +228,13 @@ export function OwnerAuditLog() {
         >
           <Inbox className="size-8 text-heritage-gold" aria-hidden="true" />
           <p className="text-sm font-medium">Chưa có dòng nhật ký nào khớp bộ lọc.</p>
-          <p className="text-xs text-heritage-muted">
+          <p className="text-sm text-heritage-muted">
             Hãy thử bỏ bộ lọc hoặc chờ thao tác tiếp theo trên kho.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          <p className="text-xs text-heritage-muted" aria-live="polite">
+          <p className="text-sm text-heritage-muted" aria-live="polite">
             {logs.data.totalCount} dòng · trang {logs.data.pageIndex}/
             {Math.max(1, logs.data.totalPages)}
           </p>

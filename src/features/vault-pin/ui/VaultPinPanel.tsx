@@ -65,7 +65,7 @@ export function VaultPinPanel({ vaultId }: { vaultId: string }) {
           </Chip>
           {locked && <Chip tone="danger">Đang khóa đến {formatDateTime(data.lockedUntil)}</Chip>}
           {data.isSet && !locked && data.attemptsRemaining !== null && (
-            <span className="text-xs text-heritage-muted">
+            <span className="text-sm text-heritage-muted">
               Còn {data.attemptsRemaining} lần nhập sai trước khi bị khóa tạm.
             </span>
           )}

@@ -142,7 +142,7 @@ function PillarVisual({
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-[#0A281E]">{row.title}</p>
-          <p className="text-xs text-[#4E6257]">{row.detail}</p>
+          <p className="text-sm text-[#4E6257]">{row.detail}</p>
         </div>
       </li>,
     );

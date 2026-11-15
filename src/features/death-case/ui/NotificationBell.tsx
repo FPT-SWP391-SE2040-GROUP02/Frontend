@@ -87,14 +87,14 @@ function NotificationRow({ item, fresh }: { item: ExecutorNotification; fresh: b
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-semibold leading-5 text-heritage-primary">{item.title}</p>
           {fresh && (
-            <span className="shrink-0 rounded-full bg-[#A32119] px-2 py-0.5 text-[11px] font-semibold text-white">
+            <span className="shrink-0 rounded-full bg-[#A32119] px-2 py-0.5 text-[0.875rem] font-semibold text-white">
               Mới
             </span>
           )}
         </div>
         {item.detail && <p className="text-sm leading-5 text-heritage-primary/80">{item.detail}</p>}
         {item.at && (
-          <time dateTime={item.at} className="block text-xs text-heritage-muted">
+          <time dateTime={item.at} className="block text-sm text-heritage-muted">
             {formatDateTime(item.at)}
           </time>
         )}
@@ -139,7 +139,7 @@ export function NotificationBell() {
         {unread > 0 && (
           <span
             aria-hidden="true"
-            className="absolute -right-0.5 -top-0.5 flex min-w-5 items-center justify-center rounded-full bg-[#A32119] px-1 text-xs font-bold text-white"
+            className="absolute -right-0.5 -top-0.5 flex min-w-5 items-center justify-center rounded-full bg-[#A32119] px-1 text-sm font-bold text-white"
           >
             {unread}
           </span>

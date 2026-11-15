@@ -58,7 +58,7 @@ export function AuditLogTable({
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{ACTOR_ROLE_LABELS[entry.actorRole]}</span>
                   {showActorId && entry.actorUserId && (
-                    <span className="text-xs text-heritage-muted" title={entry.actorUserId}>
+                    <span className="text-sm text-heritage-muted" title={entry.actorUserId}>
                       {shortId(entry.actorUserId)}
                     </span>
                   )}
@@ -73,7 +73,7 @@ export function AuditLogTable({
                     {TARGET_TYPE_LABELS[entry.targetType]}
                   </span>
                   {entry.targetId && !HIDE_CODE_TYPES.includes(entry.targetType) && (
-                    <span className="text-xs text-heritage-muted" title={entry.targetId}>
+                    <span className="text-sm text-heritage-muted" title={entry.targetId}>
                       {displayName(entry.targetId, names)}
                     </span>
                   )}
@@ -82,12 +82,12 @@ export function AuditLogTable({
               <TableCell>{entry.targetVersion ?? "—"}</TableCell>
               <TableCell>
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${OUTCOME_STYLES[entry.outcome]}`}
+                  className={`rounded-full px-3 py-1 text-sm font-semibold ${OUTCOME_STYLES[entry.outcome]}`}
                 >
                   {OUTCOME_LABELS[entry.outcome]}
                 </span>
               </TableCell>
-              <TableCell className="max-w-xs whitespace-normal break-words text-xs text-heritage-muted">
+              <TableCell className="max-w-xs whitespace-normal break-words text-sm text-heritage-muted">
                 {entry.reason ? friendlyReason(entry.reason, names) : "—"}
               </TableCell>
             </TableRow>

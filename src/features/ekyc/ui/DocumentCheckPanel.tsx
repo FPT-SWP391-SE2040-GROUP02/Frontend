@@ -75,7 +75,7 @@ export function DocumentCheckPanel() {
             {content.choose} · {content.sides[side]}
           </p>
           <p className="mt-2 max-w-sm text-sm leading-6 text-heritage-muted">{content.hint}</p>
-          <p className="mt-2 text-xs text-heritage-muted">{content.drop}</p>
+          <p className="mt-2 text-sm text-heritage-muted">{content.drop}</p>
           <label className="relative mt-5 flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-heritage-primary px-5 text-sm text-white focus-within:ring-2 focus-within:ring-heritage-gold focus-within:ring-offset-2">
             <Upload aria-hidden="true" className="size-4" />
             {content.choose}
@@ -93,7 +93,7 @@ export function DocumentCheckPanel() {
               }}
             />
           </label>
-          <p id="document-file-hint" className="mt-3 text-xs text-heritage-muted">
+          <p id="document-file-hint" className="mt-3 text-sm text-heritage-muted">
             {content.formats}
           </p>
         </div>

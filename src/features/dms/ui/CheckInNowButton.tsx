@@ -51,24 +51,24 @@ export function CheckInNowButton({
               : label}
       </Button>
       {executorCheckedInToday && (
-        <p role="status" className="mt-3 text-xs font-medium text-emerald-800">
+        <p role="status" className="mt-3 text-sm font-medium text-emerald-800">
           Executor đã điểm danh hộ bạn hôm nay. Bạn có thể điểm danh lại từ 00:00 ngày tiếp theo
           (giờ Việt Nam).
         </p>
       )}
       {checkedInToday && (
-        <p role="status" className="mt-3 text-xs font-medium text-emerald-800">
+        <p role="status" className="mt-3 text-sm font-medium text-emerald-800">
           Đã ghi nhận điểm danh hôm nay. Bạn có thể điểm danh lại từ 00:00 ngày tiếp theo (giờ Việt
           Nam).
         </p>
       )}
       {!planAllowsCheckIn && (
-        <p className="mt-3 text-xs leading-5 opacity-75">
+        <p className="mt-3 text-sm leading-5 opacity-75">
           Kế hoạch chưa kích hoạt hoặc đang bàn giao nên chưa điểm danh được.
         </p>
       )}
       {action.pending && (
-        <p role="status" className="mt-3 text-xs">
+        <p role="status" className="mt-3 text-sm">
           Đang gửi yêu cầu…
         </p>
       )}

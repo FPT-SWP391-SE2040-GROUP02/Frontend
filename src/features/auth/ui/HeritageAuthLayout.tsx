@@ -44,7 +44,7 @@ export function HeritageAuthLayout({
               {content.brand}
             </span>
             {sideBadge && (
-              <span className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-heritage-gold">
+              <span className="mt-1 text-[0.875rem] font-semibold uppercase tracking-widest text-heritage-gold">
                 {sideBadge}
               </span>
             )}
@@ -58,7 +58,7 @@ export function HeritageAuthLayout({
             {sideSubtitle}
           </p>
         </div>
-        <div className="relative z-10 hidden flex-wrap justify-between gap-3 border-t border-heritage-surface/15 pt-6 text-xs leading-6 text-heritage-surface/70 lg:flex">
+        <div className="relative z-10 hidden flex-wrap justify-between gap-3 border-t border-heritage-surface/15 pt-6 text-sm leading-6 text-heritage-surface/70 lg:flex">
           <span>{content.footer}</span>
           <span>{content.note}</span>
         </div>

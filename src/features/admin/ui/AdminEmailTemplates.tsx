@@ -116,18 +116,18 @@ function TemplateEditor({ template, onDone }: { template: EmailTemplate; onDone:
         </label>
       )}
       {!template.canDisable && (
-        <p className="text-xs text-heritage-muted">Loại thư này luôn được gửi, không tắt được.</p>
+        <p className="text-sm text-heritage-muted">Loại thư này luôn được gửi, không tắt được.</p>
       )}
       <div>
         <p className="text-sm font-medium">Biến có thể chèn</p>
         <ul className="mt-2 flex flex-wrap gap-2">
           {template.tokens.map((token) => (
             <li key={token.name} title={token.description}>
-              <code className="rounded-md bg-[#ECE8DB] px-2 py-1 text-xs">{`{${token.name}}`}</code>
+              <code className="rounded-md bg-[#ECE8DB] px-2 py-1 text-sm">{`{${token.name}}`}</code>
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-xs text-heritage-muted">
+        <p className="mt-2 text-sm text-heritage-muted">
           Biến được thay bằng thông tin thật khi gửi. Để trống một ô là dùng chữ gốc của ô đó.
         </p>
       </div>
@@ -150,7 +150,7 @@ function TemplateEditor({ template, onDone }: { template: EmailTemplate; onDone:
               </label>
               <button
                 type="button"
-                className="text-xs font-medium text-[#7A5B25] underline"
+                className="text-sm font-medium text-[#7A5B25] underline"
                 onClick={() => common.onChange(fallback)}
               >
                 Lấy chữ gốc để sửa
@@ -248,7 +248,7 @@ function TemplateRow({ template }: { template: EmailTemplate }) {
             onDone={() => undefined}
           />
           {template.updatedAt && (
-            <p className="mt-3 text-xs text-heritage-muted">
+            <p className="mt-3 text-sm text-heritage-muted">
               Sửa lần cuối {new Date(template.updatedAt).toLocaleString("vi-VN")}
               {template.updatedByName ? ` bởi ${template.updatedByName}` : ""}.
             </p>

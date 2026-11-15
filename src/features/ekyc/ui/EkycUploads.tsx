@@ -193,7 +193,7 @@ function ConsentStep({
             <li
               key={text}
 
-              className="flex items-center gap-2 rounded-full bg-heritage-canvas px-3 py-1.5 text-xs"
+              className="flex items-center gap-2 rounded-full bg-heritage-canvas px-3 py-1.5 text-sm"
             >
               <Check className="size-3.5 text-[#1F7A55]" aria-hidden="true" />
 
@@ -202,7 +202,7 @@ function ConsentStep({
           ))}
         </ul>
 
-        <p className="flex items-start gap-2 text-xs text-heritage-muted">
+        <p className="flex items-start gap-2 text-sm text-heritage-muted">
           <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
           Ảnh chỉ dùng để đối chiếu. Không chia sẻ cho chủ kho hay người khác.
         </p>
@@ -391,7 +391,7 @@ function ResultStep({
           <button
             type="button"
             onClick={onRestart}
-            className="text-xs font-semibold text-blue-700 hover:underline"
+            className="text-sm font-semibold text-blue-700 hover:underline"
           >
             Đổi thẻ ở Đọc căn cước ↗
           </button>
@@ -401,7 +401,7 @@ function ResultStep({
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-heritage-primary">Căn cước đã đọc</h4>
 
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[0.875rem] font-medium text-blue-700">
               <Lock className="size-3" aria-hidden="true" />
               Ảnh tham chiếu đã khóa
             </span>
@@ -414,17 +414,17 @@ function ResultStep({
                   className="size-full object-contain"
                 />
               ) : (
-                <span className="text-xs text-heritage-muted">Chưa có ảnh</span>
+                <span className="text-sm text-heritage-muted">Chưa có ảnh</span>
               )}
             </div>
 
-            <p className="text-xs text-heritage-muted">Đã khóa mặt trước từ mục Đọc CCCD.</p>
+            <p className="text-sm text-heritage-muted">Đã khóa mặt trước từ mục Đọc CCCD.</p>
           </div>
 
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-heritage-primary">Selfie của bạn</h4>
 
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[0.875rem] font-medium text-blue-700">
               <Check className="size-3" aria-hidden="true" />
               Selfie từ phiên camera đã đạt thử thách.
             </span>
@@ -433,15 +433,15 @@ function ResultStep({
               {selfieUrl ? (
                 <img src={selfieUrl} alt="Selfie của bạn" className="size-full object-cover" />
               ) : (
-                <span className="text-xs text-heritage-muted">Chưa có selfie</span>
+                <span className="text-sm text-heritage-muted">Chưa có selfie</span>
               )}
             </div>
 
-            <p className="text-xs text-heritage-muted">Selfie từ camera</p>
+            <p className="text-sm text-heritage-muted">Selfie từ camera</p>
           </div>
         </div>
 
-        <p className="mt-4 flex items-center gap-2 text-xs text-heritage-muted">
+        <p className="mt-4 flex items-center gap-2 text-sm text-heritage-muted">
           <Lock className="size-3.5 shrink-0" aria-hidden="true" />
           Ảnh được xử lý bảo mật trong RAM và không chia sẻ cho bên thứ ba.
         </p>
@@ -459,7 +459,7 @@ function ResultStep({
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-xl font-medium text-heritage-primary">Kết quả so khớp</h3>
 
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${chipStyle}`}>
+          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${chipStyle}`}>
             {chip}
           </span>
         </div>
@@ -480,7 +480,7 @@ function ResultStep({
         <div className="mt-6 space-y-2 border-t border-heritage-border pt-4">
           <div className="flex items-baseline justify-between">
             <div>
-              <span className="block text-[11px] font-bold uppercase tracking-wider text-heritage-muted">
+              <span className="block text-[0.875rem] font-bold uppercase tracking-wider text-heritage-muted">
                 ĐIỂM COSINE
               </span>
 
@@ -489,7 +489,7 @@ function ResultStep({
               </span>
             </div>
 
-            <span className="text-xs font-medium text-heritage-muted">
+            <span className="text-sm font-medium text-heritage-muted">
               Ngưỡng <strong>{thresholdNum.toFixed(3)}</strong>
             </span>
           </div>
@@ -530,7 +530,7 @@ function ResultStep({
               />
             </div>
 
-            <figcaption className="mt-2 text-xs font-medium text-heritage-muted">
+            <figcaption className="mt-2 text-sm font-medium text-heritage-muted">
               CCCD đã khóa
             </figcaption>
           </figure>
@@ -544,7 +544,7 @@ function ResultStep({
               />
             </div>
 
-            <figcaption className="mt-2 text-xs font-medium text-heritage-muted">Selfie</figcaption>
+            <figcaption className="mt-2 text-sm font-medium text-heritage-muted">Selfie</figcaption>
           </figure>
         </div>
 
@@ -558,7 +558,7 @@ function ResultStep({
           )}
         </ul>
 
-        <div className="mt-6 rounded-2xl border border-green-200/80 bg-green-50/80 p-3.5 text-xs leading-relaxed text-green-900">
+        <div className="mt-6 rounded-2xl border border-green-200/80 bg-green-50/80 p-3.5 text-sm leading-relaxed text-green-900">
           Selfie đạt ngưỡng so khớp với CCCD đã đọc. 0.0 giây. Ảnh tham chiếu được khóa từ mặt trước
           đã đọc. Điểm cosine không phải phần trăm xác suất.
         </div>
@@ -898,7 +898,7 @@ export function EkycUploads({
       <li
         key={text}
 
-        className="flex items-center gap-2 rounded-full border border-heritage-border px-3 py-1 text-xs"
+        className="flex items-center gap-2 rounded-full border border-heritage-border px-3 py-1 text-sm"
       >
         <Check className="size-3.5 text-green-700" aria-hidden="true" />
 
@@ -933,7 +933,7 @@ export function EkycUploads({
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-xl font-medium text-heritage-primary">Giấy tờ của bạn</h3>
 
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${scanChipStyle}`}>
+              <span className={`rounded-full px-3 py-1 text-sm font-semibold ${scanChipStyle}`}>
                 {scanChip}
               </span>
             </div>
@@ -970,7 +970,7 @@ export function EkycUploads({
 
                 onClick={() => setTab("back")}
               >
-                2 Mặt sau <span className="text-xs font-normal">bắt buộc</span>
+                2 Mặt sau <span className="text-sm font-normal">bắt buộc</span>
               </button>
             </div>
 
@@ -1033,7 +1033,7 @@ export function EkycUploads({
                   </Button>
                 </div>
 
-                <p className="text-xs text-heritage-muted">
+                <p className="text-sm text-heritage-muted">
                   Đối chiếu ảnh mặt trước này với biểu mẫu thông tin bên phải. Bấm biểu tượng kính
                   lúp để phóng to.
                 </p>
@@ -1104,7 +1104,7 @@ export function EkycUploads({
                   </p>
                 )}
 
-                <p className="flex items-start gap-2 text-xs text-heritage-muted">
+                <p className="flex items-start gap-2 text-sm text-heritage-muted">
                   <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
                   Mặt trước sau khi đọc được khóa để so khớp selfie. Chọn thẻ khác sẽ xóa thẻ tham
                   chiếu và kết quả cũ.

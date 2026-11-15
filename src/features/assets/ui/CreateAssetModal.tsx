@@ -90,7 +90,7 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
               <DialogTitle className="text-xl font-bold text-[#14241C]">
                 Niêm Phong Tài Sản Số Mới
               </DialogTitle>
-              <DialogDescription className="text-xs text-[#66786E]">
+              <DialogDescription className="text-sm text-[#66786E]">
                 {APP_MESSAGES.UI.PREVIEW}
               </DialogDescription>
             </div>
@@ -119,7 +119,7 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
 
           {/* Section 1: Asset Type Tabs (Strategy Selection) */}
           <div>
-            <label className="block text-xs font-bold text-[#14241C] uppercase mb-2">
+            <label className="block text-sm font-bold text-[#14241C] uppercase mb-2">
               1. Chọn Loại Tài Sản Số (Strategy Pattern)
             </label>
             <div className="grid grid-cols-3 gap-2.5">
@@ -128,7 +128,7 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
                   key={strat.type}
                   type="button"
                   onClick={() => handleTypeChange(strat.type)}
-                  className={`min-h-[56px] p-3 rounded-[16px] text-xs font-bold border transition-all flex flex-col items-center gap-2 focus-visible:ring-2 focus-visible:ring-[#B88E4C] focus-visible:outline-none ${
+                  className={`min-h-[56px] p-3 rounded-[16px] text-sm font-bold border transition-all flex flex-col items-center gap-2 focus-visible:ring-2 focus-visible:ring-[#B88E4C] focus-visible:outline-none ${
                     selectedType === strat.type
                       ? "bg-[#0B291E] text-white border-[#0B291E] shadow-sm"
                       : "bg-[#EFECE6] text-[#14241C] border-[#DCD9D0] hover:bg-[#FAF9F5]"
@@ -144,13 +144,13 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-[#66786E] mt-2 italic">{activeStrategy.description}</p>
+            <p className="text-[0.875rem] text-[#66786E] mt-2 italic">{activeStrategy.description}</p>
           </div>
 
           {/* Section 2: General Info */}
           <div className="space-y-4 pt-2 border-t border-[#E8E5DD]">
             <div>
-              <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+              <label className="block text-sm font-bold text-[#14241C] mb-1.5">
                 Tên Định Danh Tài Sản *
               </label>
               <Input
@@ -159,12 +159,12 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
                 {...register("title")}
                 aria-invalid={Boolean(errors.title)}
                 aria-describedby="asset-title-error"
-                className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[14px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+                className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[14px] text-sm font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+              <label className="block text-sm font-bold text-[#14241C] mb-1.5">
                 Mô Tả / Chỉ Dẫn Cho Người Thừa Kế
               </label>
               <Textarea
@@ -173,7 +173,7 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
                 {...register("description")}
                 aria-invalid={Boolean(errors.description)}
                 aria-describedby="asset-description-error"
-                className="w-full p-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[14px] text-xs font-sans outline-none focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+                className="w-full p-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[14px] text-sm font-sans outline-none focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
               />
             </div>
           </div>
@@ -183,7 +183,7 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
             className="pt-2 border-t border-[#E8E5DD]"
             onBlur={() => void trigger("specificData")}
           >
-            <label className="block text-xs font-bold text-[#14241C] uppercase mb-3">
+            <label className="block text-sm font-bold text-[#14241C] uppercase mb-3">
               2. Dữ Liệu Bảo Mật Riêng Biệt ({activeStrategy.label})
             </label>
             {activeStrategy.renderFormFields({
@@ -193,15 +193,15 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
           </div>
 
           {/* Section 4: Envelope Encryption & Handover Notice */}
-          <div className="p-4 rounded-[16px] bg-[#FBF7EE] border border-[#E8DCC6] flex items-center justify-between text-xs text-[#78350F]">
+          <div className="p-4 rounded-[16px] bg-[#FBF7EE] border border-[#E8DCC6] flex items-center justify-between text-sm text-[#78350F]">
             <div>
               <span className="font-bold block">Chính sách bàn giao tài sản (SRS 3.11.0)</span>
-              <span className="text-[11px] text-[#A07839]">
+              <span className="text-[0.875rem] text-[#A07839]">
                 Tài sản sẽ được tự động gom vào kho bàn giao tương ứng với tập người nhận sau khi
                 thiết lập di sản.
               </span>
             </div>
-            <span className="font-mono text-xs font-bold px-2.5 py-1 bg-[#FAF9F5] border border-[#E8DCC6] rounded-[8px] text-[#B88E4C]">
+            <span className="font-mono text-sm font-bold px-2.5 py-1 bg-[#FAF9F5] border border-[#E8DCC6] rounded-[8px] text-[#B88E4C]">
               AES-256-GCM
             </span>
           </div>
@@ -211,14 +211,14 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
               type="button"
               variant="outline"
               onClick={handleClose}
-              className="w-full sm:w-auto min-h-[44px] rounded-[16px] border-[#DCD9D0] text-[#14241C] hover:bg-[#EFECE6] text-xs font-semibold px-5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+              className="w-full sm:w-auto min-h-[44px] rounded-[16px] border-[#DCD9D0] text-[#14241C] hover:bg-[#EFECE6] text-sm font-semibold px-5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             >
               Hủy bỏ
             </Button>
             <Button
               type="submit"
 
-              className="w-full sm:w-auto min-h-[44px] rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-6 shadow-sm flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+              className="w-full sm:w-auto min-h-[44px] rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-sm font-bold px-6 shadow-sm flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             >
               <Plus className="w-4 h-4 text-[#B88E4C]" />
               Kiểm tra dữ liệu

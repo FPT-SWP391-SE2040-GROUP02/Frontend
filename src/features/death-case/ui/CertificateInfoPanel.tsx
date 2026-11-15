@@ -30,7 +30,7 @@ function Field({
       </label>
       {children}
       {hint && !error && (
-        <p id={`${id}-hint`} className="text-xs text-heritage-muted">
+        <p id={`${id}-hint`} className="text-sm text-heritage-muted">
           {hint}
         </p>
       )}
@@ -172,7 +172,7 @@ export function CertificateInfoPanel({
       </fieldset>
 
       <div className="mt-5 rounded-xl border border-heritage-border bg-white px-4 py-3">
-        <p className="text-xs text-heritage-muted">
+        <p className="text-sm text-heritage-muted">
           Câu này sẽ được in vào biên bản của người nhận:
         </p>
         <p data-testid="certificate-preview" className="mt-2 text-sm leading-7">

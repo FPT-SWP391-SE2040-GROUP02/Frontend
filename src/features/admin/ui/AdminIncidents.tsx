@@ -56,7 +56,7 @@ const STATUS_STYLES: Record<IncidentStatus, string> = {
 function StatusBadge({ status }: { status: IncidentStatus }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[status]}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-sm font-semibold ${STATUS_STYLES[status]}`}
     >
       {INCIDENT_STATUS_LABELS[status]}
     </span>
@@ -66,7 +66,7 @@ function StatusBadge({ status }: { status: IncidentStatus }) {
 /** Sự cố do người liên quan xử lý: Admin chỉ theo dõi nên hiện "Đang chờ …". */
 function WaitingBadge({ role }: { role: keyof typeof RESPONSIBLE_ROLE_LABELS }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-stone-300 bg-stone-50 px-2.5 py-0.5 text-xs font-medium text-stone-700">
+    <span className="inline-flex items-center rounded-full border border-stone-300 bg-stone-50 px-2.5 py-0.5 text-sm font-medium text-stone-700">
       Đang chờ {RESPONSIBLE_ROLE_LABELS[role]}
     </span>
   );
@@ -74,7 +74,7 @@ function WaitingBadge({ role }: { role: keyof typeof RESPONSIBLE_ROLE_LABELS }) 
 
 function OverdueBadge() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-800">
+    <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-sm font-semibold text-red-800">
       <AlertTriangle className="size-3.5" aria-hidden="true" />
       Quá hạn
     </span>
@@ -278,13 +278,13 @@ function IncidentRow({ item, onOpen }: { item: IncidentSummary; onOpen: () => vo
         <span className="flex min-w-0 flex-col">
           <b className="block text-sm leading-6 text-heritage-primary">
             {INCIDENT_TYPE_LABELS[item.type]}{" "}
-            <span className="font-mono text-xs font-medium text-heritage-muted">
+            <span className="font-mono text-sm font-medium text-heritage-muted">
               #{item.id.slice(0, 8).toUpperCase()}
             </span>
           </b>
-          <span className="line-clamp-2 text-[13px] text-heritage-muted">{item.summary}</span>
+          <span className="line-clamp-2 text-[0.875rem] text-heritage-muted">{item.summary}</span>
           {!resolved && item.responsibleRole !== "ADMIN" && (
-            <span className="mt-1 text-xs font-semibold text-amber-800">
+            <span className="mt-1 text-sm font-semibold text-amber-800">
               Đang chờ {RESPONSIBLE_ROLE_LABELS[item.responsibleRole]}
             </span>
           )}
@@ -566,7 +566,7 @@ function IncidentDetailBody({
                         <span className="font-medium">{INCIDENT_EVENT_LABELS[event.kind]}</span>
                         <time
                           dateTime={event.at}
-                          className="text-xs text-heritage-muted tabular-nums"
+                          className="text-sm text-heritage-muted tabular-nums"
                         >
                           {formatDateTime(event.at)}
                         </time>
@@ -601,7 +601,7 @@ function IncidentDetailBody({
                 <Fact label="Kết quả xử lý" value={detail.resolutionNote} />
               )}
             </dl>
-            <p className="text-xs text-heritage-muted">
+            <p className="text-sm text-heritage-muted">
               Chỉ hiện thông tin vận hành. Quản trị viên không đọc được nội dung kho hay giấy tờ.
             </p>
           </aside>
@@ -747,8 +747,8 @@ function IncidentDetailBody({
 function Fact({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-heritage-muted">{label}</dt>
-      <dd className={`break-words ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
+      <dt className="text-sm text-heritage-muted">{label}</dt>
+      <dd className={`break-words ${mono ? "font-mono text-sm" : ""}`}>{value}</dd>
     </div>
   );
 }

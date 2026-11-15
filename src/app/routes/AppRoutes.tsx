@@ -248,7 +248,7 @@ function PageLoading() {
       className="flex h-screen w-full flex-col items-center justify-center gap-3 bg-[var(--surface,#FAF9F5)]"
     >
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary,#0B291E)] border-t-transparent" />
-      <p className="text-xs font-medium text-[var(--text-muted,#66786E)]">Đang tải trang…</p>
+      <p className="text-sm font-medium text-[var(--text-muted,#66786E)]">Đang tải trang…</p>
     </div>
   );
 }

@@ -78,7 +78,7 @@ export function ExecutorInvitationsInbox() {
       {hasPending && (
         <h2
           id="executor-pending-invitations"
-          className="text-[11px] font-semibold uppercase tracking-widest text-heritage-muted"
+          className="text-[0.875rem] font-semibold uppercase tracking-widest text-heritage-muted"
         >
           Lời mời đang chờ
         </h2>
@@ -165,6 +165,7 @@ function PendingCard({
             ownerName={invitation.ownerName}
             executorEmail={invitation.inviteeEmail}
             scopeText={scopeText}
+            clauses={invitation.willClauses}
           />
           <label
             htmlFor={checkboxId}

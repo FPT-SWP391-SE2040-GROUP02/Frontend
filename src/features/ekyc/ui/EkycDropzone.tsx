@@ -135,7 +135,7 @@ export function EkycDropzone({
         className="sr-only"
         onChange={(event) => onFile(event.target.files?.[0] ?? null)}
       />
-      <p className="text-xs text-heritage-muted">JPG, PNG · Tối đa 8 MiB</p>
+      <p className="text-sm text-heritage-muted">JPG, PNG · Tối đa 8 MiB</p>
 
       {file && (
         <ImageCropModal open={cropOpen} onOpenChange={setCropOpen} file={file} onCrop={onFile} />

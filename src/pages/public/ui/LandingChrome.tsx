@@ -132,8 +132,8 @@ function FooterTextColumn({ title, items }: { title: string; items: readonly Foo
   }
   return (
     <div>
-      <h3 className="text-xs font-semibold">{title}</h3>
-      <ul className="mt-4 space-y-3 text-xs text-[#F3EFE6]/70">{rows}</ul>
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <ul className="mt-4 space-y-3 text-sm text-[#F3EFE6]/70">{rows}</ul>
     </div>
   );
 }
@@ -165,27 +165,27 @@ export function LandingFooter({ onLanding }: { onLanding: boolean }) {
             </p>
           </div>
           <div>
-            <h3 className="text-xs text-[#E6C98B]">{content.footer.commitmentTitle}</h3>
+            <h3 className="text-sm text-[#E6C98B]">{content.footer.commitmentTitle}</h3>
             <FooterBullets items={content.footer.commitments} />
           </div>
         </div>
         <div className="grid gap-8 border-t border-[#F3EFE6]/15 pt-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <h3 className="text-xs font-semibold">{content.footer.productTitle}</h3>
-            <ul className="mt-4 space-y-3 text-xs text-[#F3EFE6]/70">{productLinks}</ul>
+            <h3 className="text-sm font-semibold">{content.footer.productTitle}</h3>
+            <ul className="mt-4 space-y-3 text-sm text-[#F3EFE6]/70">{productLinks}</ul>
           </div>
           <FooterTextColumn
             title={content.footer.supportTitle}
             items={content.footer.supportItems}
           />
           <FooterTextColumn title={content.footer.legalTitle} items={content.footer.legalItems} />
-          <p className="text-xs leading-5 text-[#F3EFE6]/60 lg:text-right">
+          <p className="text-sm leading-5 text-[#F3EFE6]/60 lg:text-right">
             {content.footer.sampleNote}
             <br />
             {content.footer.address}
           </p>
         </div>
-        <p className="text-xs text-[#F3EFE6]/60">
+        <p className="text-sm text-[#F3EFE6]/60">
           © {new Date().getFullYear()} {content.brand}. {content.footer.legal}
         </p>
       </div>

@@ -139,7 +139,7 @@ export function LoginMethodsPanel() {
           }
         />
       </ul>
-      <p className="mt-4 flex items-start gap-2 text-xs text-heritage-muted">
+      <p className="mt-4 flex items-start gap-2 text-sm text-heritage-muted">
         <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
         Bạn đang dùng {methods.length} phương thức. Thêm phương thức cần xác thực lại.
       </p>

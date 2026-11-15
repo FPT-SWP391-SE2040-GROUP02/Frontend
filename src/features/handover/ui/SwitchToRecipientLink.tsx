@@ -23,7 +23,7 @@ export function SwitchToRecipientLink({
       {access.invitationCount > 0 && (
         <span
           aria-label={`${access.invitationCount} lời mời đang chờ`}
-          className="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-[#A32119] px-1.5 text-xs font-bold text-white"
+          className="ml-1 inline-flex min-w-5 items-center justify-center rounded-full bg-[#A32119] px-1.5 text-sm font-bold text-white"
         >
           {access.invitationCount}
         </span>

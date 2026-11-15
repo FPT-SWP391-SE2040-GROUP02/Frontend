@@ -115,7 +115,7 @@ function ViewFileButton({
         Xem
       </button>
       {action.error && (
-        <span role="alert" className="block text-xs text-destructive">
+        <span role="alert" className="block text-sm text-destructive">
           {action.error}
         </span>
       )}
@@ -366,7 +366,7 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
         </p>
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="text-xs text-heritage-muted">
+            <thead className="text-sm text-heritage-muted">
               <tr>
                 <th className="w-8 py-2">#</th>
                 <th className="py-2">Giấy tờ</th>
@@ -383,7 +383,7 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
                     <td className="py-3">{index + 1}</td>
                     <td className="py-3 pr-3">
                       <p className="font-semibold">{row.title}</p>
-                      <p className="text-xs text-heritage-muted">{row.hint}</p>
+                      <p className="text-sm text-heritage-muted">{row.hint}</p>
                       <Chip tone={row.required ? "warning" : "neutral"}>
                         {row.required ? "Bắt buộc" : "Nếu có"}
                       </Chip>
@@ -404,7 +404,7 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
                           )}
                           <div className="min-w-0">
                             <p className="truncate font-semibold">{file.fileName}</p>
-                            <p className="text-xs text-heritage-muted">
+                            <p className="text-sm text-heritage-muted">
                               {formatSize(file.sizeBytes)} · {formatDateTime(file.uploadedAt)}
                             </p>
                           </div>
@@ -413,7 +413,7 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
                         <span className="text-heritage-muted">Chưa có tệp</span>
                       )}
                       {rowUploading && (
-                        <p role="status" className="mt-2 text-xs text-heritage-muted">
+                        <p role="status" className="mt-2 text-sm text-heritage-muted">
                           {uploadPercent !== null && uploadPercent < 100
                             ? `Đang tải lên… ${uploadPercent}%`
                             : "Đang mã hóa và lưu…"}

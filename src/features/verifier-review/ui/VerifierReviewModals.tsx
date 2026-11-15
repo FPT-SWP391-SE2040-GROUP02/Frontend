@@ -124,11 +124,11 @@ function SigningPasswordField({
         className="min-h-11 w-full rounded-xl border border-heritage-border bg-heritage-surface px-3 py-2 text-sm text-heritage-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-primary aria-invalid:border-destructive"
         {...registration}
       />
-      <p id={hintId} className="text-xs text-heritage-muted">
+      <p id={hintId} className="text-sm text-heritage-muted">
         Nhập mật khẩu tài khoản để xác nhận quyết định. Nhập sai 5 lần sẽ tạm khóa chức năng
         duyệt/từ chối.
       </p>
-      {error && <span className="text-xs text-destructive">{error}</span>}
+      {error && <span className="text-sm text-destructive">{error}</span>}
     </div>
   );
 }
@@ -252,7 +252,7 @@ function ReviewFlagModal({
               className="mt-1 min-h-24 max-h-36"
             />
             {form.formState.errors.note && (
-              <span className="text-xs text-destructive">{form.formState.errors.note.message}</span>
+              <span className="text-sm text-destructive">{form.formState.errors.note.message}</span>
             )}
           </label>
           <CustomCheckbox
@@ -299,7 +299,7 @@ function ReasonRadios({
   const name = useId();
   return (
     <fieldset className="space-y-2 text-sm">
-      <legend className="text-xs font-semibold uppercase tracking-wider text-heritage-muted">
+      <legend className="text-sm font-semibold uppercase tracking-wider text-heritage-muted">
         {legend} <span aria-hidden="true">*</span>
       </legend>
       {options.map((option) => (

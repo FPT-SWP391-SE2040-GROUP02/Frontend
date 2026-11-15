@@ -130,7 +130,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
               placeholder="Nguyễn Văn A"
             />
             {form.formState.errors.fullName && (
-              <p role="alert" className="mt-1 text-xs text-destructive">
+              <p role="alert" className="mt-1 text-sm text-destructive">
                 {form.formState.errors.fullName.message}
               </p>
             )}
@@ -153,7 +153,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
               placeholder="verifier@legacyvault.vn"
             />
             {form.formState.errors.email && (
-              <p role="alert" className="mt-1 text-xs text-destructive">
+              <p role="alert" className="mt-1 text-sm text-destructive">
                 {form.formState.errors.email.message}
               </p>
             )}
@@ -187,7 +187,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="text-xs text-heritage-gold hover:underline"
+                className="text-sm text-heritage-gold hover:underline"
               >
                 {showPassword ? "Ẩn" : "Hiện"}
               </button>
@@ -202,7 +202,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
               placeholder="Tối thiểu 8 ký tự"
             />
             {form.formState.errors.password && (
-              <p role="alert" className="mt-1 text-xs text-destructive">
+              <p role="alert" className="mt-1 text-sm text-destructive">
                 {form.formState.errors.password.message}
               </p>
             )}
@@ -213,7 +213,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
               htmlFor="create-user-phone"
               className="block text-sm font-medium text-heritage-text"
             >
-              Số điện thoại <span className="text-xs text-heritage-muted">(không bắt buộc)</span>
+              Số điện thoại <span className="text-sm text-heritage-muted">(không bắt buộc)</span>
             </label>
             <Input
               id="create-user-phone"
@@ -243,11 +243,11 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                   disabled={pending}
                   className="mt-1 block w-full text-sm file:mr-3 file:min-h-9 file:rounded-lg file:border file:border-heritage-border file:bg-white file:px-3 file:text-sm"
                 />
-                <p className="mt-1 text-xs text-heritage-muted">
+                <p className="mt-1 text-sm text-heritage-muted">
                   JPEG, PNG hoặc WebP, tối đa 2 MB.
                 </p>
                 {cardError && (
-                  <p role="alert" className="mt-1 text-xs text-destructive">
+                  <p role="alert" className="mt-1 text-sm text-destructive">
                     {cardError}
                   </p>
                 )}
@@ -256,7 +256,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
           )}
 
           {createdUser && (
-            <p className="text-xs text-heritage-muted">
+            <p className="text-sm text-heritage-muted">
               Tài khoản đã được tạo, chỉ còn tải ảnh thẻ. Bấm lại để thử tải ảnh.
             </p>
           )}

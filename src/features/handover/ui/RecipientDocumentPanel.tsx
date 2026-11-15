@@ -329,7 +329,7 @@ function RecipientPartForm({
             autoComplete="street-address"
             onChange={(event) => set("residenceAddress", event.target.value)}
           />
-          <span className="block text-xs font-normal text-heritage-muted">
+          <span className="block text-sm font-normal text-heritage-muted">
             Ghi đúng như trên căn cước
           </span>
         </label>
@@ -345,7 +345,7 @@ function RecipientPartForm({
             onPick={(file) => set("back", file)}
           />
         </div>
-        <p className="text-xs text-heritage-muted">
+        <p className="text-sm text-heritage-muted">
           Ảnh căn cước chỉ để đối chiếu, xóa ngay khi biên bản hoàn tất.
         </p>
       </section>

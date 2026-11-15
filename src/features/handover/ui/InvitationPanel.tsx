@@ -142,7 +142,7 @@ export function InvitationPanel({ onSignOut, signingOut = false }: InvitationPan
             <li key={text} className="flex items-start gap-3 text-sm">
               <span
                 aria-hidden="true"
-                className="flex size-6 shrink-0 items-center justify-center rounded-full border border-heritage-border text-xs font-semibold text-heritage-primary"
+                className="flex size-6 shrink-0 items-center justify-center rounded-full border border-heritage-border text-sm font-semibold text-heritage-primary"
               >
                 {index + 1}
               </span>

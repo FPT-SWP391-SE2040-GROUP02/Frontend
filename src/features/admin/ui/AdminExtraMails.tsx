@@ -171,7 +171,7 @@ function ExtraMailEditor({
             <option value="after">sau hạn điểm danh (quá hạn)</option>
           </select>
         </div>
-        <p className="text-xs text-heritage-muted">
+        <p className="text-sm text-heritage-muted">
           Nhập 0 ngày để gửi đúng lúc đến hạn. Thư gửi một lần cho mỗi kỳ điểm danh và chỉ gửi khi
           Chủ kho chưa điểm danh. Sau khi hết thời gian chờ, hệ thống chuyển sang nhờ Người thực thi
           nên thư bổ sung dừng.
@@ -182,7 +182,7 @@ function ExtraMailEditor({
         <ul className="mt-2 flex flex-wrap gap-2">
           {list.tokens.map((token) => (
             <li key={token.name} title={token.description}>
-              <code className="rounded-md bg-[#ECE8DB] px-2 py-1 text-xs">{`{${token.name}}`}</code>
+              <code className="rounded-md bg-[#ECE8DB] px-2 py-1 text-sm">{`{${token.name}}`}</code>
             </li>
           ))}
         </ul>

@@ -46,7 +46,7 @@ function CountdownTile({ value, unit }: { value: number; unit: string }) {
   return (
     <div className="flex min-w-20 flex-col items-center rounded-xl bg-[#1d4d3c] px-4 py-3 text-white">
       <span className="font-serif text-3xl text-[#E0C486]">{pad(value)}</span>
-      <span className="text-xs text-white/75">{unit}</span>
+      <span className="text-sm text-white/75">{unit}</span>
     </div>
   );
 }
@@ -116,9 +116,9 @@ function History({ periods }: { periods: Period[] }) {
       >
         <div>
           <p className="font-semibold">{when}</p>
-          <p className="text-xs text-heritage-muted">{detail}</p>
+          <p className="text-sm text-heritage-muted">{detail}</p>
         </div>
-        <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${chip.style}`}>
+        <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-semibold ${chip.style}`}>
           {chip.label}
         </span>
       </li>,

@@ -42,7 +42,7 @@ function MethodRow({
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">{title}</p>
-        <p className="text-xs text-heritage-muted">{description}</p>
+        <p className="text-sm text-heritage-muted">{description}</p>
       </div>
       {aside}
     </li>
@@ -50,13 +50,13 @@ function MethodRow({
 }
 
 const IN_USE_CHIP = (
-  <span className="shrink-0 rounded-full bg-[#E3EFE8] px-3 py-1 text-xs font-semibold text-[#1F7A55]">
+  <span className="shrink-0 rounded-full bg-[#E3EFE8] px-3 py-1 text-sm font-semibold text-[#1F7A55]">
     Đang dùng
   </span>
 );
 
 const CONNECTED_CHIP = (
-  <span className="shrink-0 rounded-full bg-[#E3EFE8] px-3 py-1 text-xs font-semibold text-[#1F7A55]">
+  <span className="shrink-0 rounded-full bg-[#E3EFE8] px-3 py-1 text-sm font-semibold text-[#1F7A55]">
     Đã kết nối
   </span>
 );
@@ -181,7 +181,7 @@ export function SmartwatchCheckInButton(_props: {
                 {CONNECTED_CHIP}
                 <button
                   type="button"
-                  className="text-xs text-heritage-muted underline hover:text-heritage-primary"
+                  className="text-sm text-heritage-muted underline hover:text-heritage-primary"
                   onClick={requestCode}
                 >
                   Đổi

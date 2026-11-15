@@ -32,7 +32,7 @@ export interface ExecutorKeyCardProps {
 function InfoCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-xl bg-white p-3">
-      <dt className="text-xs text-heritage-muted">{label}</dt>
+      <dt className="text-sm text-heritage-muted">{label}</dt>
       <dd className="mt-1 break-words text-sm font-semibold">{value}</dd>
     </div>
   );
@@ -233,6 +233,7 @@ export function ExecutorKeyCard({
                 ownerName: slip.ownerName,
                 vaultName: slip.vaultName,
                 executorEmail: slip.executorEmail,
+                willClauses: slip.willClauses,
                 issuedAt: revealSlipDate,
                 version: issued.version,
                 shard: issued.shard,

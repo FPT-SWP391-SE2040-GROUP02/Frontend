@@ -19,6 +19,7 @@ import {
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
+import { WillClausesSection } from "@/features/vault-management/ui/WillClausesEditor";
 import { PlanReviewSummary } from "@/features/plan-setup/ui/PlanReviewSummary";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { HandoverStepsCard } from "./HandoverStepsCard";
@@ -100,18 +101,18 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
                 : "Điểm danh"}
         </Button>
         {executorCheckedInToday && (
-          <p role="status" className="mt-3 text-xs text-[#E0C486]">
+          <p role="status" className="mt-3 text-sm text-[#E0C486]">
             Người thực thi đã điểm danh hộ bạn hôm nay. Mở lại từ 00:00 ngày tiếp theo (giờ Việt
             Nam).
           </p>
         )}
         {checkedInToday && (
-          <p role="status" className="mt-3 text-xs text-[#E0C486]">
+          <p role="status" className="mt-3 text-sm text-[#E0C486]">
             Đã điểm danh hôm nay. Mở lại từ 00:00 ngày tiếp theo (giờ Việt Nam).
           </p>
         )}
         {!planAllowsCheckIn && (
-          <p className="mt-3 text-xs text-white/70">
+          <p className="mt-3 text-sm text-white/70">
             Kế hoạch chưa kích hoạt nên chưa điểm danh được.
           </p>
         )}
@@ -123,7 +124,7 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
       <h2 className="text-2xl font-medium">Điểm danh định kỳ</h2>
       {body}
       {action.pending && (
-        <p role="status" className="mt-3 text-xs text-white/70">
+        <p role="status" className="mt-3 text-sm text-white/70">
           Đang gửi yêu cầu…
         </p>
       )}
@@ -164,7 +165,10 @@ function DraftView({ vaultId, onActivated }: { vaultId: string; onActivated: () 
         subtitle="Hoàn thành các việc dưới đây để kế hoạch bàn giao bắt đầu chạy."
       />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <PlanSetupPanel vaultId={vaultId} onActivated={onActivated} />
+        <div className="space-y-6">
+          <WillClausesSection />
+          <PlanSetupPanel vaultId={vaultId} onActivated={onActivated} />
+        </div>
         <div className="space-y-6">
           <HandoverStepsCard />
           <p className="text-sm text-heritage-muted">

@@ -185,7 +185,7 @@ export function ImageCropModal({
                 }}
                 className="relative rounded-xl border-2 border-dashed border-heritage-gold shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]"
               >
-                <span className="absolute -top-7 left-1/2 -translate-x-1/2 rounded-full bg-heritage-gold/90 px-3 py-0.5 text-[11px] font-semibold text-black">
+                <span className="absolute -top-7 left-1/2 -translate-x-1/2 rounded-full bg-heritage-gold/90 px-3 py-0.5 text-[0.875rem] font-semibold text-black">
                   Khung căn cước chuẩn
                 </span>
               </div>
@@ -220,7 +220,7 @@ export function ImageCropModal({
               </Button>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-heritage-muted">
+            <div className="flex items-center gap-2 text-sm text-heritage-muted">
               <ZoomOut className="size-3.5" aria-hidden="true" />
               <input
                 type="range"

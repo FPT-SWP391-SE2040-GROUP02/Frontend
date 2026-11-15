@@ -162,7 +162,7 @@ export function EkycReviewForm({
           {name === "idNumber" && (
             <button
               type="button"
-              className="absolute inset-y-0 right-2 my-auto flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-heritage-primary hover:bg-heritage-primary/10 focus-visible:outline-2 focus-visible:outline-heritage-gold"
+              className="absolute inset-y-0 right-2 my-auto flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-heritage-primary hover:bg-heritage-primary/10 focus-visible:outline-2 focus-visible:outline-heritage-gold"
               aria-pressed={showId}
               aria-label={toggleLabel}
               onClick={() => setShowId(!showId)}
@@ -209,7 +209,7 @@ export function EkycReviewForm({
     >
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-xl font-medium text-heritage-primary">Thông tin nhận diện</h3>
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyle}`}>
+        <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusStyle}`}>
           {statusChip}
         </span>
       </div>
@@ -224,7 +224,7 @@ export function EkycReviewForm({
             <label htmlFor={`${prefix}-dateOfBirth`} className="text-sm font-semibold">
               Ngày sinh
             </label>
-            <span className="text-xs text-heritage-muted">Định dạng DD/MM/YYYY</span>
+            <span className="text-sm text-heritage-muted">Định dạng DD/MM/YYYY</span>
           </div>
 
           <Input
@@ -349,7 +349,7 @@ export function EkycReviewForm({
         </p>
       )}
 
-      <p className="mt-4 flex items-start gap-2 text-xs text-heritage-muted">
+      <p className="mt-4 flex items-start gap-2 text-sm text-heritage-muted">
         <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
         Thông tin đọc từ ảnh giấy tờ. Hãy kiểm tra từng ô trước khi tiếp tục.
       </p>

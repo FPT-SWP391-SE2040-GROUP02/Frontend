@@ -92,7 +92,7 @@ export function OtpVerificationModal({ isOpen, onClose, email = "" }: OtpVerific
           <DialogTitle className="text-xl font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]">
             {content.title}
           </DialogTitle>
-          <DialogDescription className="text-xs text-[#5b6f5f] dark:text-[#9bb39f]">
+          <DialogDescription className="text-sm text-[#5b6f5f] dark:text-[#9bb39f]">
             {content.description}
             {email && (
               <span>
@@ -129,20 +129,20 @@ export function OtpVerificationModal({ isOpen, onClose, email = "" }: OtpVerific
               <p
                 id="verification-otp-error"
                 role="alert"
-                className="text-xs text-red-500 font-medium"
+                className="text-sm text-red-500 font-medium"
               >
                 {errorMsg}
               </p>
             )}
 
             {isFormatValid && (
-              <p role="status" className="text-xs text-emerald-700">
+              <p role="status" className="text-sm text-emerald-700">
                 {content.valid}
               </p>
             )}
           </div>
 
-          <div className="flex items-center justify-between text-xs text-[#586c5c] dark:text-[#a0b8a4]">
+          <div className="flex items-center justify-between text-sm text-[#586c5c] dark:text-[#a0b8a4]">
             <span>{content.resendHint}</span>
             <button
               type="button"
@@ -158,13 +158,13 @@ export function OtpVerificationModal({ isOpen, onClose, email = "" }: OtpVerific
               variant="outline"
               type="button"
               onClick={handleClose}
-              className="h-10 px-4 rounded-xl text-xs"
+              className="h-10 px-4 rounded-xl text-sm"
             >
               {content.cancel}
             </Button>
             <Button
               type="submit"
-              className="gap-2 bg-[var(--heritage-primary,#0b291e)] hover:bg-[#143e2d] text-white text-xs h-10 px-5 rounded-xl font-bold"
+              className="gap-2 bg-[var(--heritage-primary,#0b291e)] hover:bg-[#143e2d] text-white text-sm h-10 px-5 rounded-xl font-bold"
             >
               {content.submit}
             </Button>

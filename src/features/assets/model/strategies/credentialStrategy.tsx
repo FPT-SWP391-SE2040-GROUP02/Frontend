@@ -40,7 +40,7 @@ export const credentialStrategy: AssetStrategy = {
     return (
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-sm font-bold text-[#14241C] mb-1.5">
             Tên Dịch Vụ / Nền Tảng *
           </label>
           <Input
@@ -48,12 +48,12 @@ export const credentialStrategy: AssetStrategy = {
             placeholder="Ví dụ: Google Workspace, AWS Root, Binance..."
             value={(data.serviceName as string) || ""}
             onChange={(e) => onChange("serviceName", e.target.value)}
-            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs"
+            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-sm font-bold text-[#14241C] mb-1.5">
             Đường Dẫn Đăng Nhập (URL)
           </label>
           <Input
@@ -61,12 +61,12 @@ export const credentialStrategy: AssetStrategy = {
             placeholder="https://accounts.google.com"
             value={(data.serviceUrl as string) || ""}
             onChange={(e) => onChange("serviceUrl", e.target.value)}
-            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs"
+            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-sm"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-sm font-bold text-[#14241C] mb-1.5">
             Tên Đăng Nhập / Email Quản Trị *
           </label>
           <Input
@@ -74,12 +74,12 @@ export const credentialStrategy: AssetStrategy = {
             placeholder="admin@mycompany.com"
             value={(data.username as string) || ""}
             onChange={(e) => onChange("username", e.target.value)}
-            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-medium"
+            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-sm font-medium"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-sm font-bold text-[#14241C] mb-1.5">
             Mật Khẩu Đăng Nhập *
           </label>
           <Input
@@ -87,12 +87,12 @@ export const credentialStrategy: AssetStrategy = {
             placeholder="••••••••••••"
             value={(data.password as string) || ""}
             onChange={(e) => onChange("password", e.target.value)}
-            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-mono"
+            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-sm font-mono"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-sm font-bold text-[#14241C] mb-1.5">
             Mã Khôi Phục 2FA / Khóa Bí Mật TOTP
           </label>
           <textarea
@@ -100,7 +100,7 @@ export const credentialStrategy: AssetStrategy = {
             placeholder="Nhập danh sách mã dự phòng 2FA (backup codes) hoặc Secret Key để tạo mã OTP"
             value={(data.twoFactorBackupCodes as string) || ""}
             onChange={(e) => onChange("twoFactorBackupCodes", e.target.value)}
-            className="w-full p-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-mono outline-none"
+            className="w-full p-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-sm font-mono outline-none"
           />
         </div>
       </div>
@@ -123,7 +123,7 @@ export const credentialStrategy: AssetStrategy = {
       <div className="space-y-4">
         <div className="p-4 bg-[#FAF9F5] border border-[#DCD9D0] rounded-[16px] space-y-3">
           <div>
-            <span className="text-[11px] font-bold text-[#66786E] uppercase">Dịch Vụ</span>
+            <span className="text-[0.875rem] font-bold text-[#66786E] uppercase">Dịch Vụ</span>
             <p className="text-sm font-bold text-[#0B291E] mt-0.5">
               {decoded.serviceName || "Google Workspace Admin"}
             </p>
@@ -131,8 +131,8 @@ export const credentialStrategy: AssetStrategy = {
 
           {decoded.serviceUrl && (
             <div>
-              <span className="text-[11px] font-bold text-[#66786E] uppercase">Website</span>
-              <p className="text-xs text-[#0B291E] hover:underline mt-0.5">
+              <span className="text-[0.875rem] font-bold text-[#66786E] uppercase">Website</span>
+              <p className="text-sm text-[#0B291E] hover:underline mt-0.5">
                 <a href={decoded.serviceUrl} target="_blank" rel="noreferrer">
                   {decoded.serviceUrl}
                 </a>
@@ -141,8 +141,8 @@ export const credentialStrategy: AssetStrategy = {
           )}
 
           <div>
-            <span className="text-[11px] font-bold text-[#66786E] uppercase">Tài Khoản</span>
-            <p className="text-xs font-medium text-[#14241C] mt-0.5">
+            <span className="text-[0.875rem] font-bold text-[#66786E] uppercase">Tài Khoản</span>
+            <p className="text-sm font-medium text-[#14241C] mt-0.5">
               {decoded.username || "founder@legacyvault.vn"}
             </p>
           </div>

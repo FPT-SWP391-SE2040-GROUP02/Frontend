@@ -47,7 +47,7 @@ export function VaultJourney({
             </span>
             <span className="min-w-0">
               <span className="block text-sm font-semibold">{step.label}</span>
-              <span className={`block text-xs font-medium ${captionStyles[step.state]}`}>
+              <span className={`block text-sm font-medium ${captionStyles[step.state]}`}>
                 {step.caption}
               </span>
             </span>

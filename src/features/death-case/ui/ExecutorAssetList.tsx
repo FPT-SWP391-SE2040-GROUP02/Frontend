@@ -37,7 +37,7 @@ function GuideBox({ vault }: { vault: ExecutorVault }) {
         <>
           <p className="mt-3 whitespace-pre-line text-sm leading-relaxed">{vault.executorNote}</p>
           {vault.executorNoteUpdatedAt && (
-            <p className="mt-3 text-xs text-heritage-muted">
+            <p className="mt-3 text-sm text-heritage-muted">
               Cập nhật {formatDate(vault.executorNoteUpdatedAt)}
             </p>
           )}
@@ -147,13 +147,13 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
                   <li key={asset.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                     <span
                       aria-hidden="true"
-                      className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-heritage-gold-border bg-heritage-gold-light text-[11px] font-bold text-heritage-gold"
+                      className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-heritage-gold-border bg-heritage-gold-light text-[0.875rem] font-bold text-heritage-gold"
                     >
                       {assetBadge(asset.name, asset.kind)}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="break-words font-medium">{asset.name}</p>
-                      <p className="text-xs text-heritage-muted">
+                      <p className="text-sm text-heritage-muted">
                         {asset.kind === "TEXT" ? "Nội dung chữ" : "Tệp"}
                       </p>
                     </div>
@@ -170,7 +170,7 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
           </Panel>
         );
       })}
-      <p className="flex items-start gap-2 text-xs leading-5 text-heritage-muted">
+      <p className="flex items-start gap-2 text-sm leading-5 text-heritage-muted">
         <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
         Người thực thi chỉ thấy tên tài sản, loại và trạng thái tải. Nội dung chỉ người nhận mở được
         sau khi nhập mã mở gói.

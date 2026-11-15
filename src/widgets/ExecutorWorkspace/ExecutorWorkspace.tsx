@@ -108,7 +108,7 @@ export function ExecutorWorkspace({
             data-open={navigationOpen}
           >
             <ExecutorVaultCard />
-            <p className="mt-3 truncate px-3 text-[11px] font-semibold uppercase tracking-widest text-white/60">
+            <p className="mt-3 truncate px-3 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
               Kho này
             </p>
             {executorNavigation.map(({ to, label, icon: Icon }) => (
@@ -156,7 +156,7 @@ export function ExecutorWorkspace({
             />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
-              <p className="mt-0.5 text-xs text-[#E6C98B]">Người thực thi</p>
+              <p className="mt-0.5 text-sm text-[#E6C98B]">Người thực thi</p>
             </div>
           </div>
         </>
@@ -175,7 +175,7 @@ export function ExecutorWorkspace({
         </div>
       </header>
       {children}
-      <footer className="pt-2 text-xs leading-5 text-heritage-muted">
+      <footer className="pt-2 text-sm leading-5 text-heritage-muted">
         LegacyVault hỗ trợ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc hoặc thủ tục thừa
         kế.
       </footer>

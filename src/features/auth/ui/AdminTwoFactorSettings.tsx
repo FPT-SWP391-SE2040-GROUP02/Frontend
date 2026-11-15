@@ -114,7 +114,7 @@ export function AdminTwoFactorSettings() {
           >
             Xác thực hai bước
             <span
-              className={`inline-flex h-6 items-center rounded-xl px-2.5 text-xs font-semibold ${
+              className={`inline-flex h-6 items-center rounded-xl px-2.5 text-sm font-semibold ${
                 enabled ? "bg-emerald-50 text-emerald-800" : "bg-[#e8e5dd] text-heritage-muted"
               }`}
             >
@@ -151,7 +151,7 @@ export function AdminTwoFactorSettings() {
             <li>Nhập mã 6 số đang hiện trong ứng dụng để xác nhận.</li>
           </ol>
           <div className="space-y-1">
-            <p className="text-xs text-heritage-muted">Khóa nhập thủ công</p>
+            <p className="text-sm text-heritage-muted">Khóa nhập thủ công</p>
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-heritage-border bg-[#faf9f5] p-3">
               <p className="break-all font-mono text-sm tracking-wider">
                 {groupSecret(step.setup.secret)}

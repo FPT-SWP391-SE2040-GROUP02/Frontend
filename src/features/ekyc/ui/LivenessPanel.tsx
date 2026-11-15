@@ -110,7 +110,7 @@ export function LivenessPanel({
           className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm ${rowStyle}`}
         >
           <span
-            className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${badgeStyle}`}
+            className={`flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${badgeStyle}`}
 
             aria-hidden="true"
           >
@@ -129,7 +129,7 @@ export function LivenessPanel({
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-xl font-medium text-heritage-primary">Camera trực tiếp</h3>
 
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${cameraChipStyle}`}>
+          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${cameraChipStyle}`}>
             {cameraChip}
           </span>
         </div>
@@ -181,7 +181,7 @@ export function LivenessPanel({
             />
           </svg>
 
-          <span className="absolute left-4 top-4 text-xs font-semibold text-white/90">
+          <span className="absolute left-4 top-4 text-sm font-semibold text-white/90">
             {overlayLabel}
           </span>
         </div>
@@ -219,7 +219,7 @@ export function LivenessPanel({
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-xl font-medium text-heritage-primary">Tiến trình thử thách</h3>
 
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${progressChipStyle}`}>
+          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${progressChipStyle}`}>
             {progressChip}
           </span>
         </div>

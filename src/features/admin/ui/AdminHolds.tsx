@@ -25,7 +25,7 @@ const STATUS_STYLES: Record<HoldStatus, string> = {
 function StatusBadge({ status }: { status: HoldStatus }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[status]}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-sm font-semibold ${STATUS_STYLES[status]}`}
     >
       {HOLD_STATUS_LABELS[status]}
     </span>
@@ -34,7 +34,7 @@ function StatusBadge({ status }: { status: HoldStatus }) {
 
 function ReviewOverdueBadge() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-800">
+    <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-sm font-semibold text-red-800">
       <AlertTriangle className="size-3.5" aria-hidden="true" />
       Quá hạn rà soát
     </span>
@@ -284,8 +284,8 @@ function HoldDetailBody({
 function Fact({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs text-heritage-muted">{label}</dt>
-      <dd className={`break-words ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
+      <dt className="text-sm text-heritage-muted">{label}</dt>
+      <dd className={`break-words ${mono ? "font-mono text-sm" : ""}`}>{value}</dd>
     </div>
   );
 }

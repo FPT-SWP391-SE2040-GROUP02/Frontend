@@ -78,7 +78,7 @@ function CopyField({
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl bg-heritage-canvas px-4 py-3">
       <div className="min-w-0">
-        <p className="text-xs text-heritage-muted">{label}</p>
+        <p className="text-sm text-heritage-muted">{label}</p>
         <p className={`break-all ${valueStyle}`}>{value}</p>
       </div>
       <Button
@@ -151,22 +151,22 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
             <p className="mt-1 text-sm text-heritage-muted">{intro}</p>
           </div>
           <div className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-[#7A5B24]">
-            <p className="text-xs">Số tiền cần chuyển</p>
+            <p className="text-sm">Số tiền cần chuyển</p>
             <p className="text-3xl font-semibold">{referenceMoney.format(order.totalAmount)}</p>
           </div>
           <CopyField label="Nội dung chuyển khoản" value={order.transferContent} strong />
           <CopyField label="Số tài khoản" value={order.bank.accountNumber} />
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-xl bg-heritage-canvas px-4 py-3">
-              <p className="text-xs text-heritage-muted">Ngân hàng</p>
+              <p className="text-sm text-heritage-muted">Ngân hàng</p>
               <p className="text-sm font-medium">{order.bank.bankCode}</p>
             </div>
             <div className="rounded-xl bg-heritage-canvas px-4 py-3">
-              <p className="text-xs text-heritage-muted">Chủ tài khoản</p>
+              <p className="text-sm text-heritage-muted">Chủ tài khoản</p>
               <p className="text-sm font-medium">{order.bank.accountName}</p>
             </div>
           </div>
-          <p className="text-xs text-heritage-muted">
+          <p className="text-sm text-heritage-muted">
             Nội dung chuyển khoản phải đúng mã trên để hệ thống tự nhận tiền. {order.notice}
           </p>
         </section>
@@ -309,7 +309,7 @@ function FinishedOrder({ order }: { order: PaymentOrder }) {
         <dl className="grid gap-3 sm:grid-cols-2">
           {rows.map((row) => (
             <div key={row.label} className="rounded-xl bg-heritage-canvas px-4 py-3">
-              <dt className="text-xs text-heritage-muted">{row.label}</dt>
+              <dt className="text-sm text-heritage-muted">{row.label}</dt>
               <dd className="text-sm font-medium">{row.value}</dd>
             </div>
           ))}

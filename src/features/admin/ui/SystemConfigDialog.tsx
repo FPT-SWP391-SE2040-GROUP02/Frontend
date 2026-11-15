@@ -222,7 +222,7 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
                   />
                 )}
                 {field.kind === "secret" && (
-                  <p className="mt-1 text-xs text-heritage-muted">
+                  <p className="mt-1 text-sm text-heritage-muted">
                     {secretStatus?.hasValue
                       ? secretStatus.last4
                         ? `•••• ${secretStatus.last4}`
@@ -230,9 +230,9 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
                       : "Chưa có khóa."}
                   </p>
                 )}
-                {field.hint && <p className="mt-1 text-xs text-heritage-muted">{field.hint}</p>}
+                {field.hint && <p className="mt-1 text-sm text-heritage-muted">{field.hint}</p>}
                 {error && (
-                  <p role="alert" className="mt-1 text-xs text-destructive">
+                  <p role="alert" className="mt-1 text-sm text-destructive">
                     {String(error)}
                   </p>
                 )}
@@ -250,7 +250,7 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
                 className="mt-1"
                 {...form.register("confirmText")}
               />
-              <p className="mt-1 text-xs text-heritage-muted">
+              <p className="mt-1 text-sm text-heritage-muted">
                 Thay đổi này ảnh hưởng tới tiền hoặc dữ liệu thật nên cần xác nhận thêm.
               </p>
             </div>
@@ -267,7 +267,7 @@ export function SystemConfigDialog({ service, slot, onClose, onSaved }: SystemCo
               {...form.register("reason")}
             />
             {form.formState.errors.reason && (
-              <p role="alert" className="mt-1 text-xs text-destructive">
+              <p role="alert" className="mt-1 text-sm text-destructive">
                 {String(form.formState.errors.reason.message)}
               </p>
             )}

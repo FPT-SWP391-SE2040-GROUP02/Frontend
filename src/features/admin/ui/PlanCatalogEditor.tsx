@@ -231,16 +231,16 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                 </Button>
               </div>
               {atLimit && planError === "" && (
-                <p role="status" className="text-xs font-medium text-heritage-warning">
+                <p role="status" className="text-sm font-medium text-heritage-warning">
                   {limitMessage}
                 </p>
               )}
               {planError !== "" && (
-                <p role="alert" className="text-xs font-medium text-red-700">
+                <p role="alert" className="text-sm font-medium text-red-700">
                   {planError}
                 </p>
               )}
-              <p className="text-xs text-heritage-muted">
+              <p className="text-sm text-heritage-muted">
                 Gói mới đứng sau các gói hiện có (là gói cao hơn khi nâng hạng) và bắt đầu ở trạng
                 thái tạm ngừng. Điền giá các kỳ, rồi bật Mở bán và lưu.
               </p>
@@ -276,7 +276,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
             <TriangleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
             <div>
               <p className="font-semibold">Xóa gói {deleting.name}?</p>
-              <p className="mt-1 text-xs">
+              <p className="mt-1 text-sm">
                 Gói bị ẩn khỏi trang mua và không ai tạo thêm đơn mới. Người đang dùng vẫn dùng đến
                 hết kỳ. Đơn và lịch sử cũ giữ nguyên. Thay đổi chỉ áp dụng sau khi bạn lưu.
               </p>
@@ -314,14 +314,14 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                 </th>
                 <th scope="col" className="p-4">
                   <b className="text-base text-heritage-primary">Free</b>
-                  <span className="block text-xs text-heritage-muted">Mặc định, luôn mở</span>
+                  <span className="block text-sm text-heritage-muted">Mặc định, luôn mở</span>
                 </th>
                 {visible.map((plan) => (
                   <th key={plan.code} scope="col" className="p-4">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <b className="text-base text-heritage-primary">{plan.name}</b>
-                        <span className="block text-xs font-normal text-heritage-muted">
+                        <span className="block text-sm font-normal text-heritage-muted">
                           {plan.subtitle}
                         </span>
                       </div>
@@ -344,7 +344,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                 <th scope="row" className="p-4 font-medium">
                   Mở bán gói
                 </th>
-                <td className="p-4 text-xs font-semibold text-heritage-muted">Luôn mở</td>
+                <td className="p-4 text-sm font-semibold text-heritage-muted">Luôn mở</td>
                 {visible.map((plan) => {
                   const on = getValue(saleKey(plan.code), "true") === "true";
                   return (
@@ -358,7 +358,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                           aria-label={`Mở bán gói ${plan.name}`}
                         />
                         <span
-                          className={`text-xs font-semibold ${on ? "text-green-800" : "text-zinc-500"}`}
+                          className={`text-sm font-semibold ${on ? "text-green-800" : "text-zinc-500"}`}
                         >
                           {on ? "Đang bán" : "Tạm ngừng"}
                         </span>
@@ -380,21 +380,21 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                         aria-label={`Bán kỳ ${period.years} năm`}
                       />
                       <span
-                        className={`text-xs font-semibold ${period.on ? "text-green-800" : "text-zinc-500"}`}
+                        className={`text-sm font-semibold ${period.on ? "text-green-800" : "text-zinc-500"}`}
                       >
                         {period.on ? "Đang bán" : "Tạm ngừng"}
                       </span>
                       <button
                         type="button"
                         onClick={() => removePeriod(period.years)}
-                        className="text-xs font-semibold text-heritage-muted underline underline-offset-4 hover:text-red-700"
+                        className="text-sm font-semibold text-heritage-muted underline underline-offset-4 hover:text-red-700"
                         aria-label={`Xóa kỳ ${period.years} năm`}
                       >
                         Xóa
                       </button>
                     </div>
                   </th>
-                  <td className="p-4 text-xs font-semibold text-heritage-muted">0 VND</td>
+                  <td className="p-4 text-sm font-semibold text-heritage-muted">0 VND</td>
                   {visible.map((plan) => {
                     const value = priceOf(plan, period.years);
                     const missing = period.on && parseMoney(value) <= 0;
@@ -421,18 +421,18 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                             }
                             className={`h-9 w-28 font-mono text-sm font-semibold ${missing || tooHigh ? "border-red-400" : ""}`}
                           />
-                          <span className="text-xs text-heritage-muted">đ</span>
+                          <span className="text-sm text-heritage-muted">đ</span>
                         </div>
                         {missing && (
-                          <span className="mt-1 block text-[11px] text-red-700">Chưa có giá</span>
+                          <span className="mt-1 block text-[0.875rem] text-red-700">Chưa có giá</span>
                         )}
                         {tooHigh && (
-                          <span role="alert" className="mt-1 block text-[11px] text-red-700">
+                          <span role="alert" className="mt-1 block text-[0.875rem] text-red-700">
                             Tối đa {money.format(MAX_TIER_PRICE)}đ mỗi kỳ
                           </span>
                         )}
                         {hint && (
-                          <span className="mt-1 block text-[11px] text-green-700">
+                          <span className="mt-1 block text-[0.875rem] text-green-700">
                             ≈ {money.format(hint.perYear)}đ/năm
                             {hint.savePercent > 0 ? ` · rẻ hơn ${hint.savePercent}%` : ""}
                           </span>
@@ -468,7 +468,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                       Thêm kỳ bán
                     </Button>
                     {periodError !== "" && (
-                      <span role="alert" className="text-xs font-medium text-red-700">
+                      <span role="alert" className="text-sm font-medium text-red-700">
                         {periodError}
                       </span>
                     )}
@@ -551,7 +551,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
               <tr>
                 <th scope="row" className="p-4 align-top font-medium">
                   Mỗi dòng một tính năng
-                  <span className="mt-1 block text-xs font-normal text-heritage-muted">
+                  <span className="mt-1 block text-sm font-normal text-heritage-muted">
                     Hiện trên thẻ gói của chủ kho. Tối đa 8 dòng, mỗi dòng 120 ký tự.
                   </span>
                 </th>
@@ -589,7 +589,7 @@ function SectionRow({ span, children }: { span: number; children: string }) {
     <tr className="bg-zinc-50/50">
       <td
         colSpan={span}
-        className="px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-heritage-muted"
+        className="px-4 py-2 text-[0.875rem] font-bold uppercase tracking-wider text-heritage-muted"
       >
         {children}
       </td>
@@ -616,9 +616,9 @@ function QuotaInput({
         value={value}
         aria-label={label}
         onChange={(event) => onChange(event.target.value.replace(/\D/g, ""))}
-        className="h-8 w-full min-w-0 bg-transparent px-2 text-center font-mono text-xs font-semibold focus:outline-none"
+        className="h-8 w-full min-w-0 bg-transparent px-2 text-center font-mono text-sm font-semibold focus:outline-none"
       />
-      <span className="border-l border-zinc-200 px-2 text-[11px] text-heritage-muted">{unit}</span>
+      <span className="border-l border-zinc-200 px-2 text-[0.875rem] text-heritage-muted">{unit}</span>
     </div>
   );
 }
@@ -651,7 +651,7 @@ function FeatureBox({
         className="min-w-44 text-sm"
       />
       {problem !== "" && (
-        <p role="alert" className="text-[11px] text-red-700">
+        <p role="alert" className="text-[0.875rem] text-red-700">
           {problem}
         </p>
       )}

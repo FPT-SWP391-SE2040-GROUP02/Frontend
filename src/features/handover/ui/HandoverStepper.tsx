@@ -26,9 +26,9 @@ export function HandoverStepper({ current }: { current: number }) {
             >
               {done ? <Check className="size-5" aria-hidden="true" /> : number}
             </span>
-            <span className="text-xs font-semibold text-heritage-primary">{label}</span>
+            <span className="text-sm font-semibold text-heritage-primary">{label}</span>
             <span
-              className={`text-xs ${done || here ? "font-semibold text-[#1F7A55]" : "text-heritage-muted"}`}
+              className={`text-sm ${done || here ? "font-semibold text-[#1F7A55]" : "text-heritage-muted"}`}
             >
               {caption}
             </span>

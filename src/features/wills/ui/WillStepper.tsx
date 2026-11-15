@@ -51,7 +51,7 @@ export const WillStepper: React.FC<WillStepperProps> = ({
               >
                 {/* Step indicator circle */}
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${
                     isCurrent
                       ? "bg-[#B88E4C] text-[#0B291E]"
                       : isCompleted
@@ -64,14 +64,14 @@ export const WillStepper: React.FC<WillStepperProps> = ({
 
                 <div className="overflow-hidden">
                   <span
-                    className={`text-[11px] uppercase tracking-wider font-bold block truncate ${
+                    className={`text-[0.875rem] uppercase tracking-wider font-bold block truncate ${
                       isCurrent ? "text-[#B88E4C]" : "text-[#66786E]"
                     }`}
                   >
                     Bước {step.number}
                   </span>
                   <span
-                    className={`text-xs font-bold block truncate ${
+                    className={`text-sm font-bold block truncate ${
                       isCurrent ? "text-white" : "text-[#14241C]"
                     }`}
                   >

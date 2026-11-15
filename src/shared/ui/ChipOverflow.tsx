@@ -30,8 +30,8 @@ const SEARCH_THRESHOLD = 8;
 
 function ItemChip({ item, withInitial }: { item: ChipOverflowItem; withInitial: boolean }) {
   return (
-    <span className="inline-flex max-w-[12rem] min-w-0 shrink items-center gap-1.5 rounded-full bg-[#ECE8DB] py-1 pr-3 pl-1.5 text-xs font-medium text-[#0A281E]">
-      {withInitial && <Initial name={item.label} className="size-5 text-[10px]" />}
+    <span className="inline-flex max-w-[12rem] min-w-0 shrink items-center gap-1.5 rounded-full bg-[#ECE8DB] py-1 pr-3 pl-1.5 text-sm font-medium text-[#0A281E]">
+      {withInitial && <Initial name={item.label} className="size-5 text-[0.875rem]" />}
       {!withInitial && <span className="w-1" aria-hidden="true" />}
       <span className="truncate">{item.label}</span>
     </span>
@@ -71,10 +71,10 @@ export function ChipOverflow({
   for (const item of filtered) {
     rows.push(
       <li key={item.id} className="flex items-center gap-3 px-4 py-2.5">
-        {withInitial && <Initial name={item.label} className="size-7 text-xs" />}
+        {withInitial && <Initial name={item.label} className="size-7 text-sm" />}
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-[#0A281E]">{item.label}</p>
-          {item.detail && <p className="text-xs text-heritage-muted">{item.detail}</p>}
+          {item.detail && <p className="text-sm text-heritage-muted">{item.detail}</p>}
         </div>
       </li>,
     );
@@ -102,7 +102,7 @@ export function ChipOverflow({
           <Popover.Trigger
             aria-label={`Xem thêm ${hiddenCount} mục: ${popupTitle}`}
             className={cn(
-              "inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold",
+              "inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold",
               open && "border-[#0A281E] bg-[#0A281E] text-white",
               !open && "border-[#BDB8A6] bg-white text-[#0A281E] hover:bg-[#F4F1E6]",
             )}
@@ -138,12 +138,12 @@ export function ChipOverflow({
                 )}
                 <ul className="max-h-60 overflow-y-auto py-1">{rows}</ul>
                 {rows.length === 0 && (
-                  <p className="px-4 pb-3 text-xs text-heritage-muted">
+                  <p className="px-4 pb-3 text-sm text-heritage-muted">
                     Không tìm thấy mục phù hợp.
                   </p>
                 )}
                 {footer && (
-                  <div className="border-t border-heritage-border px-4 py-2.5 text-xs font-semibold">
+                  <div className="border-t border-heritage-border px-4 py-2.5 text-sm font-semibold">
                     {footer}
                   </div>
                 )}

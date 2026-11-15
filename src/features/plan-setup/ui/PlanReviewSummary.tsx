@@ -177,7 +177,7 @@ export function PlanReviewSummary({
         />
       )}
       {showActivationNote && (
-        <p className="text-xs leading-5 text-heritage-muted">
+        <p className="text-sm leading-5 text-heritage-muted">
           Bạn vẫn kích hoạt được khi còn gói chưa đủ hoặc tài sản lẻ; chúng chỉ không nằm trong kế
           hoạch bàn giao.
         </p>

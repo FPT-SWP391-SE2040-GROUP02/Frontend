@@ -70,7 +70,7 @@ export function ErrorScreen({
         aria-hidden="true"
         className="pointer-events-none absolute -bottom-40 -right-40 size-[480px] opacity-10"
       />
-      <footer className="relative z-10 px-6 py-6 text-center text-xs leading-6 text-heritage-muted">
+      <footer className="relative z-10 px-6 py-6 text-center text-sm leading-6 text-heritage-muted">
         {content.note}
       </footer>
     </div>

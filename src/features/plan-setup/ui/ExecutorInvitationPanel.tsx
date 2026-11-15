@@ -120,7 +120,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         {validity} (đến {formatDateTime(query.data.expiresAt)}). Bạn không đọc được nội dung kho.
       </Notice>
       <AuthorizationLetterPreview executorEmail={user?.email} scopeText={query.data.scopeText} />
-      <p className="text-xs leading-6 text-heritage-muted">
+      <p className="text-sm leading-6 text-heritage-muted">
         Khi Chủ kho kích hoạt kế hoạch, email và số điện thoại của bạn sẽ được gửi cho người nhận để
         họ liên hệ.
       </p>
@@ -136,7 +136,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
       ) : (
         <>
           {user?.email && (
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-heritage-border bg-heritage-surface px-4 py-3 text-xs text-heritage-muted">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-heritage-border bg-heritage-surface px-4 py-3 text-sm text-heritage-muted">
               <span>
                 Đang đăng nhập: <strong className="text-heritage-primary">{user.email}</strong>
               </span>
@@ -186,7 +186,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
       {action.error && (
         <div role="alert" className="space-y-2 rounded-xl border border-red-200 bg-red-50 p-4">
           <p className="text-sm font-medium text-destructive">{action.error}</p>
-          <p className="text-xs text-red-700">
+          <p className="text-sm text-red-700">
             Nếu đây không phải tài khoản được mời, hãy{" "}
             <Link
               to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(`${ROUTES.EXECUTOR.INVITATION}#token=${encodeURIComponent(token)}`)}`}

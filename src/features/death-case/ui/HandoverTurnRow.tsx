@@ -63,7 +63,7 @@ function StepTimes({ columns }: { columns: TurnSegment[] }) {
   return (
     <ol
       aria-label="Giờ từng bước"
-      className="grid gap-1.5 text-xs"
+      className="grid gap-1.5 text-sm"
       style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}
     >
       {columns.map((column) => (
@@ -122,7 +122,7 @@ function DetailBoxes({
     paper = <p className="text-sm">Chưa có</p>;
   }
   const boxClass = "min-w-0 rounded-xl border border-heritage-border bg-white/60 p-3 text-sm";
-  const titleClass = "mb-2 text-xs font-semibold text-heritage-muted";
+  const titleClass = "mb-2 text-sm font-semibold text-heritage-muted";
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       <section aria-label="Thông tin liên hệ" className={boxClass}>
@@ -140,7 +140,7 @@ function DetailBoxes({
         <h4 className={titleClass}>Tài sản</h4>
         <p className="font-medium">{assetText}</p>
         {!declined && turn.items.length > 0 && (
-          <ul className="mt-2 space-y-1 text-xs text-heritage-muted">
+          <ul className="mt-2 space-y-1 text-sm text-heritage-muted">
             {turn.items.map((item) => {
               let downloadText = "chưa tải";
               if (item.downloaded && item.firstDownloadedAt) {
@@ -154,7 +154,7 @@ function DetailBoxes({
             })}
           </ul>
         )}
-        <p className="mt-2 flex items-start gap-1.5 text-xs text-heritage-muted">
+        <p className="mt-2 flex items-start gap-1.5 text-sm text-heritage-muted">
           <Lock className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
           Chỉ thấy tên và trạng thái tải, không có nội dung.
         </p>

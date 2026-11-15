@@ -148,9 +148,9 @@ export function OwnerBeneficiaries() {
       >
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-xl font-medium text-heritage-primary">Danh sách người nhận</h2>
-          <span className="text-xs font-semibold text-[#7A5B24]">{list.data.totalCount} người</span>
+          <span className="text-sm font-semibold text-[#7A5B24]">{list.data.totalCount} người</span>
         </div>
-        <p className="mt-1 text-xs text-heritage-muted">
+        <p className="mt-1 text-sm text-heritage-muted">
           Đã thêm {list.data.totalCount}/{vault.data.beneficiarySlots} người nhận,{" "}
           {vault.data.usedBeneficiarySlots} người đang ở gói bàn giao. Tạo hồ sơ không tự gắn người
           nhận vào gói bàn giao.
@@ -165,7 +165,7 @@ export function OwnerBeneficiaries() {
             <table className="w-full min-w-[640px] text-left text-sm">
               <caption className="sr-only">Danh sách người nhận</caption>
               <thead>
-                <tr className="border-b border-heritage-border text-xs text-heritage-muted">
+                <tr className="border-b border-heritage-border text-sm text-heritage-muted">
                   <th scope="col" className="py-3 pr-4 font-semibold">
                     Họ tên
                   </th>
