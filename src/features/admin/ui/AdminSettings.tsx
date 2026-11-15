@@ -814,7 +814,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
             size="sm"
             onClick={() => void query.refetch()}
             disabled={query.isFetching}
-            className="min-h-10 gap-2 text-xs font-semibold"
+            className="min-h-10 gap-2 text-sm font-semibold"
           >
             <RefreshCw className={`size-3.5 ${query.isFetching ? "animate-spin" : ""}`} />
             Tải lại
@@ -845,7 +845,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
               <button
                 type="button"
                 onClick={() => setFilterMode("all")}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
                   filterMode === "all"
                     ? "bg-[#0A281E] text-white dark:bg-[#E0C486] dark:text-[#0A281E]"
                     : "border border-heritage-border bg-heritage-surface text-heritage-muted hover:bg-heritage-primary/5"
@@ -856,7 +856,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
               <button
                 type="button"
                 onClick={() => setFilterMode("changed")}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
                   filterMode === "changed"
                     ? "bg-amber-600 text-white"
                     : "border border-heritage-border bg-heritage-surface text-heritage-muted hover:bg-heritage-primary/5"
@@ -867,7 +867,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
               <button
                 type="button"
                 onClick={() => setFilterMode("security")}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                className={`rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
                   filterMode === "security"
                     ? "bg-red-700 text-white"
                     : "border border-heritage-border bg-heritage-surface text-heritage-muted hover:bg-heritage-primary/5"
@@ -934,7 +934,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                         <h2 className="text-base font-semibold text-heritage-primary">
                           {group.title}
                         </h2>
-                        <p className="text-xs text-heritage-muted">
+                        <p className="text-sm text-heritage-muted">
                           {items.length} tham số cấu hình
                         </p>
                       </div>
@@ -942,7 +942,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
 
                     <div className="flex items-center gap-2">
                       {changedInGroup > 0 && (
-                        <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                        <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-sm font-semibold text-amber-800">
                           {changedInGroup} đã sửa
                         </span>
                       )}
@@ -975,12 +975,12 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                   {item.label}
                                 </span>
                                 {item.isSecurity && (
-                                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-red-800">
+                                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-[0.875rem] font-bold uppercase tracking-wider text-red-800">
                                     Bảo mật
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-heritage-muted">{item.description}</p>
+                              <p className="text-sm text-heritage-muted">{item.description}</p>
                             </div>
 
                             <div className="flex flex-col items-end gap-1.5 sm:shrink-0">
@@ -994,7 +994,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                     aria-label={item.label}
                                   />
                                   <span
-                                    className={`text-xs font-semibold ${
+                                    className={`text-sm font-semibold ${
                                       currentVal === "true"
                                         ? "text-green-700 dark:text-green-400"
                                         : "text-zinc-500"
@@ -1054,7 +1054,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                     <Plus className="size-3.5" />
                                   </button>
                                   {item.unit && (
-                                    <span className="border-l border-zinc-200 px-3 text-xs font-medium text-heritage-muted">
+                                    <span className="border-l border-zinc-200 px-3 text-sm font-medium text-heritage-muted">
                                       {item.unit}
                                     </span>
                                   )}
@@ -1064,21 +1064,21 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                               {draftErrors[item.key] !== undefined && (
                                 <p
                                   role="alert"
-                                  className="max-w-xs text-right text-[11px] font-medium text-red-700"
+                                  className="max-w-xs text-right text-[0.875rem] font-medium text-red-700"
                                 >
                                   {draftErrors[item.key]}
                                 </p>
                               )}
                               <div className="flex items-center gap-2">
                                 {isChanged && (
-                                  <span className="text-[11px] font-medium text-amber-700">
+                                  <span className="text-[0.875rem] font-medium text-amber-700">
                                     Cũ: {serverVal} {item.unit}
                                   </span>
                                 )}
                                 <button
                                   type="button"
                                   onClick={() => toggleKeyEnabled(item.key)}
-                                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold transition-colors ${
+                                  className={`rounded-full px-2 py-0.5 text-[0.875rem] font-semibold transition-colors ${
                                     isEnabled
                                       ? "bg-green-100 text-green-800"
                                       : "bg-zinc-200 text-zinc-600"
@@ -1090,7 +1090,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                                   <button
                                     type="button"
                                     onClick={() => resetToDefault(item.key, item.defaultValue)}
-                                    className="text-[11px] font-semibold text-heritage-gold underline hover:text-amber-800"
+                                    className="text-[0.875rem] font-semibold text-heritage-gold underline hover:text-amber-800"
                                   >
                                     Về mặc định ({item.defaultValue})
                                   </button>
@@ -1114,10 +1114,10 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-heritage-border bg-heritage-surface p-4">
             <div>
-              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+              <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
                 Chính sách CS-2026.11 đang áp dụng
               </span>
-              <p className="mt-1 text-xs text-heritage-muted">
+              <p className="mt-1 text-sm text-heritage-muted">
                 Mỗi gói một cột, mỗi kỳ bán một dòng. Chỉnh giá, hạn mức, bật hoặc tắt bán, thêm
                 hoặc xóa kỳ trực tiếp tại ô. Mọi thay đổi chỉ áp dụng cho đơn mới tạo, không làm sai
                 lệch đơn cũ. Trang Gói dịch vụ của người dùng tự xếp các gói từ rẻ đến đắt theo giá
@@ -1146,7 +1146,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
             </h3>
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-heritage-muted">
+                <label className="text-sm font-semibold text-heritage-muted">
                   Giá một suất thêm / năm
                 </label>
                 <div className="flex items-center gap-1">
@@ -1159,18 +1159,18 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                     }
                     className="h-9 font-mono text-sm font-semibold"
                   />
-                  <span className="text-xs text-heritage-muted">đ</span>
+                  <span className="text-sm text-heritage-muted">đ</span>
                 </div>
                 {parseInt(getValue("Plans.Addon.SlotPricePerYear", "49000"), 10) >
                   MAX_SLOT_PRICE_PER_YEAR && (
-                  <p role="alert" className="text-[11px] text-red-700">
+                  <p role="alert" className="text-[0.875rem] text-red-700">
                     Tối đa {MAX_SLOT_PRICE_PER_YEAR.toLocaleString("vi-VN")}đ mỗi năm
                   </p>
                 )}
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-heritage-muted">
+                <label className="text-sm font-semibold text-heritage-muted">
                   Số suất thêm tối đa / đơn
                 </label>
                 <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
@@ -1197,14 +1197,14 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                   >
                     <Plus className="size-3.5" />
                   </button>
-                  <span className="border-l border-zinc-200 px-3 text-xs text-heritage-muted">
+                  <span className="border-l border-zinc-200 px-3 text-sm text-heritage-muted">
                     suất
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-heritage-muted">
+                <label className="text-sm font-semibold text-heritage-muted">
                   Tổng người nhận tối đa / tài khoản
                 </label>
                 <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
@@ -1238,17 +1238,17 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                   >
                     <Plus className="size-3.5" />
                   </button>
-                  <span className="border-l border-zinc-200 px-3 text-xs text-heritage-muted">
+                  <span className="border-l border-zinc-200 px-3 text-sm text-heritage-muted">
                     người
                   </span>
                 </div>
-                <p className="text-[11px] text-heritage-muted">
+                <p className="text-[0.875rem] text-heritage-muted">
                   Gồm cả suất kèm gói. Mua nhiều đơn cũng không vượt số này.
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-heritage-muted">
+                <label className="text-sm font-semibold text-heritage-muted">
                   Hạn đơn chờ thanh toán SePay
                 </label>
                 <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
@@ -1278,7 +1278,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                   >
                     <Plus className="size-3.5" />
                   </button>
-                  <span className="border-l border-zinc-200 px-3 text-xs text-heritage-muted">
+                  <span className="border-l border-zinc-200 px-3 text-sm text-heritage-muted">
                     phút
                   </span>
                 </div>
@@ -1301,11 +1301,11 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                   {diffList.length} thay đổi cấu hình chưa áp dụng
                 </p>
                 {draftErrorCount > 0 ? (
-                  <p role="alert" className="text-xs font-medium text-red-700">
+                  <p role="alert" className="text-sm font-medium text-red-700">
                     Còn {draftErrorCount} giá trị chưa hợp lệ. Sửa xong mới lưu được.
                   </p>
                 ) : (
-                  <p className="text-xs text-heritage-muted">
+                  <p className="text-sm text-heritage-muted">
                     Chỉ áp dụng cho đơn mới và việc mới, không hồi tố đơn đã chốt.
                   </p>
                 )}
@@ -1317,7 +1317,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                 variant="outline"
                 size="sm"
                 onClick={discardDraft}
-                className="min-h-10 text-xs font-semibold"
+                className="min-h-10 text-sm font-semibold"
               >
                 Hủy thay đổi
               </Button>
@@ -1328,7 +1328,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                   setSaveError(null);
                   setConfirmOpen(true);
                 }}
-                className="min-h-10 bg-[#E0C486] text-xs font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+                className="min-h-10 bg-[#E0C486] text-sm font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
               >
                 Xem thay đổi và lưu ({diffList.length})
               </Button>
@@ -1348,7 +1348,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
           </DialogHeader>
 
           {hasSensitiveChanges && (
-            <div className="flex items-start gap-3 rounded-xl border border-red-300 bg-red-50 p-3.5 text-xs font-medium text-red-950 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
+            <div className="flex items-start gap-3 rounded-xl border border-red-300 bg-red-50 p-3.5 text-sm font-medium text-red-950 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
               <ShieldAlert className="mt-0.5 size-5 shrink-0 text-red-600 dark:text-red-400" />
               <div className="space-y-1">
                 <p className="font-bold text-sm text-red-900 dark:text-red-100">
@@ -1365,7 +1365,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
           )}
 
           <div className="max-h-72 overflow-y-auto rounded-xl border border-heritage-border bg-white">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-sm">
               <thead className="sticky top-0 border-b border-heritage-border bg-zinc-50 font-semibold text-heritage-muted">
                 <tr>
                   <th className="p-3">Tham số</th>
@@ -1382,12 +1382,14 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                         <div className="flex items-center gap-1.5">
                           <b className="text-heritage-primary">{d.label}</b>
                           {sensitive && (
-                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-red-800 dark:bg-red-900/50 dark:text-red-200">
+                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[0.875rem] font-bold uppercase tracking-wider text-red-800 dark:bg-red-900/50 dark:text-red-200">
                               Nhạy cảm
                             </span>
                           )}
                         </div>
-                        <span className="font-mono text-[10px] text-muted-foreground">{d.key}</span>
+                        <span className="font-mono text-[0.875rem] text-muted-foreground">
+                          {d.key}
+                        </span>
                       </td>
                       <td className="p-3 font-mono">
                         {d.oldValue === "true" ? (
@@ -1431,7 +1433,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-xs font-semibold text-heritage-text">
+            <label className="block text-sm font-semibold text-heritage-text">
               Lý do thay đổi (bắt buộc lưu vào Nhật ký kiểm toán Audit Log)
             </label>
             <Textarea
@@ -1439,12 +1441,12 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
               placeholder="Ví dụ: Điều chỉnh hạn mức chu kỳ điểm danh và cập nhật bảng giá XS Max theo chính sách mới..."
               value={auditReason}
               onChange={(e) => setAuditReason(e.target.value)}
-              className="text-xs"
+              className="text-sm"
             />
           </div>
 
           {hasSensitiveChanges && (
-            <label className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50/50 p-3 text-xs font-semibold text-red-950 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-200 cursor-pointer">
+            <label className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50/50 p-3 text-sm font-semibold text-red-950 dark:border-red-900/30 dark:bg-red-950/20 dark:text-red-200 cursor-pointer">
               <input
                 type="checkbox"
                 checked={securityAcknowledged}
@@ -1461,7 +1463,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
           {saveError && (
             <p
               role="alert"
-              className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs font-semibold text-red-900"
+              className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-900"
             >
               Không lưu được: {saveError}
             </p>

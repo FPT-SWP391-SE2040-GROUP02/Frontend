@@ -78,7 +78,7 @@ export function OrderHistory() {
     <section aria-label="Hóa đơn" className={`${CARD} space-y-4`}>
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-xl font-medium text-heritage-primary">Hóa đơn</h2>
-        <span className="text-xs font-semibold text-[#7A5B24]">{data.totalCount} đơn</span>
+        <span className="text-sm font-semibold text-[#7A5B24]">{data.totalCount} đơn</span>
       </div>
       <Table>
         <TableHeader>
@@ -96,13 +96,13 @@ export function OrderHistory() {
         <TableBody>
           {data.items.map((order) => (
             <TableRow key={order.id}>
-              <TableCell className="font-mono text-xs">{order.paymentCode}</TableCell>
+              <TableCell className="font-mono text-sm">{order.paymentCode}</TableCell>
               <TableCell>{dateFormatter.format(new Date(order.createdAt))}</TableCell>
               <TableCell className="whitespace-normal">{describeOrder(order)}</TableCell>
               <TableCell>{referenceMoney.format(order.totalAmount)}</TableCell>
               <TableCell>
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_STYLES[order.status]}`}
+                  className={`rounded-full px-3 py-1 text-sm font-semibold ${STATUS_STYLES[order.status]}`}
                 >
                   {STATUS_LABELS[order.status]}
                 </span>
@@ -144,7 +144,7 @@ export function OrderHistory() {
           </Button>
         </nav>
       )}
-      <p className="flex items-center gap-2 text-xs text-heritage-muted">
+      <p className="flex items-center gap-2 text-sm text-heritage-muted">
         <Lock className="size-3.5" aria-hidden="true" />
         Thanh toán qua mã QR chuyển khoản. LegacyVault không lưu số thẻ.
       </p>

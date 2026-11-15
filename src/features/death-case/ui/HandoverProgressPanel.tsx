@@ -33,9 +33,9 @@ function Tile({
   if (emphasis) tone = "border-[#E0C486] bg-[#FBF3E0]";
   return (
     <div className={`rounded-2xl border p-5 ${tone}`}>
-      <dt className="text-xs text-heritage-muted">{label}</dt>
+      <dt className="text-sm text-heritage-muted">{label}</dt>
       <dd className="mt-2 text-3xl font-semibold tabular-nums text-heritage-primary">{value}</dd>
-      {caption && <p className="mt-2 text-xs text-heritage-muted">{caption}</p>}
+      {caption && <p className="mt-2 text-sm text-heritage-muted">{caption}</p>}
     </div>
   );
 }
@@ -74,7 +74,7 @@ function ProgressBody({
           />
         ))}
       </ul>
-      <p className="text-xs leading-5 text-heritage-muted">
+      <p className="text-sm leading-5 text-heritage-muted">
         Thanh bước: Mời → Đồng ý / từ chối → Người xét duyệt duyệt biên bản → Nhập mã mở gói → Tải
         xong.
       </p>

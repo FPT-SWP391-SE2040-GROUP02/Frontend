@@ -50,7 +50,7 @@ export function ExecutorVaultCard() {
           <span className="block truncate text-sm font-semibold text-white">
             {selected.ownerFullName}
           </span>
-          <span className={`block truncate text-xs ${STAGE_COLOR[stage.tone]}`}>{stage.label}</span>
+          <span className={`block truncate text-sm ${STAGE_COLOR[stage.tone]}`}>{stage.label}</span>
         </span>
       </div>
     );
@@ -69,14 +69,14 @@ export function ExecutorVaultCard() {
     <section aria-labelledby="executor-current-vault-heading" className="px-2 pt-2">
       <h2
         id="executor-current-vault-heading"
-        className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-widest text-white/60"
+        className="mb-2 px-1 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60"
       >
         Đang làm việc với kho
       </h2>
       {card}
       <Link
         to={ROUTES.EXECUTOR.INVITATIONS}
-        className="mt-2 inline-block px-1 text-xs font-semibold text-[#E6C98B] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+        className="mt-2 inline-block px-1 text-sm font-semibold text-[#E6C98B] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
       >
         {linkText}
       </Link>

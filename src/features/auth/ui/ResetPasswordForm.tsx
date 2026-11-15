@@ -156,7 +156,7 @@ export function ResetPasswordForm({
           </div>
         );
       })}
-      <p id="reset-password-hint" className="text-xs text-heritage-muted">
+      <p id="reset-password-hint" className="text-sm text-heritage-muted">
         {content.hint}
       </p>
       <Button

@@ -41,9 +41,9 @@ function FieldHeader({
         <label htmlFor={htmlFor} className="text-sm font-semibold text-heritage-primary">
           {label}
         </label>
-        <p className="mt-0.5 text-xs text-heritage-muted">{hint}</p>
+        <p className="mt-0.5 text-sm text-heritage-muted">{hint}</p>
       </div>
-      <span className="shrink-0 text-xs tabular-nums text-heritage-muted" aria-hidden="true">
+      <span className="shrink-0 text-sm tabular-nums text-heritage-muted" aria-hidden="true">
         {length}/{max}
       </span>
     </div>

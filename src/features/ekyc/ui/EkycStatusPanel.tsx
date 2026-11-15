@@ -247,7 +247,7 @@ export function EkycStatusPanel({
           )}
         </>
       )}
-      <div className="flex flex-wrap justify-between gap-2 text-xs text-heritage-muted">
+      <div className="flex flex-wrap justify-between gap-2 text-sm text-heritage-muted">
         <p>Xác minh cơ bản, không có giá trị pháp lý. LegacyVault không thay thế di chúc.</p>
         <p>Chưa xác thực giấy tờ thật/giả hoặc bảo đảm chống deepfake.</p>
       </div>

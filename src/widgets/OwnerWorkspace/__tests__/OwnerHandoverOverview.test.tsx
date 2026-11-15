@@ -29,7 +29,7 @@ vi.mock("@/shared/settings/usePolicyWindows", () => ({
 const VAULT_ID = "22222222-2222-4222-8222-222222222222";
 const CONTAINER_ID = "33333333-3333-4333-8333-333333333333";
 const SHARD = "ABCD-EFGH-JKMN-PQRS-TVWX-YZ01-2345-6789-ABCD-EFGH-JKMN-PQRS-TVWX";
-const SLIP_NAME = "Phiếu bàn giao mã mở gói";
+const SLIP_NAME = "Di chúc";
 
 function setupData(overrides: Record<string, unknown> = {}) {
   return {
@@ -180,6 +180,11 @@ describe("trang Bàn giao: kế hoạch còn nháp", () => {
     expect(screen.queryByRole("heading", { name: "Người tin cậy" })).not.toBeInTheDocument();
     expect(screen.queryByText(/Người thực hiện/)).not.toBeInTheDocument();
 
+    // Di chúc hiện sẵn (mở) trước nút kích hoạt: bấm kích hoạt là ký di chúc.
+    expect(screen.getByRole("heading", { name: "Di chúc của bạn" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Di chúc" })).toBeVisible();
+    expect(screen.getByText("(chưa có Người thực thi chấp nhận)")).toBeInTheDocument();
+
     // Chưa đủ điều kiện: nút khóa và có lý do bên cạnh.
     expect(screen.getByRole("button", { name: "Kích hoạt kế hoạch" })).toBeDisabled();
     expect(screen.getByText("Còn điều kiện chưa đạt ở trên.")).toBeInTheDocument();
@@ -274,7 +279,7 @@ describe("trang Bàn giao: kế hoạch còn nháp", () => {
     // Tải phiếu: đổi tên tài liệu tạm thời, gọi window.print, trả lại tên sau afterprint.
     await userEvent.click(screen.getByRole("button", { name: "Tải phiếu (PDF)" }));
     expect(print).toHaveBeenCalledTimes(1);
-    expect(document.title).toBe("Phieu-ban-giao-ma-mo-goi-ban-1");
+    expect(document.title).toBe("Di-chuc-ban-1");
     window.dispatchEvent(new Event("afterprint"));
     expect(document.title).toBe(titleBefore);
 

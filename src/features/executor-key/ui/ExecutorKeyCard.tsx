@@ -32,7 +32,7 @@ export interface ExecutorKeyCardProps {
 function InfoCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-xl bg-white p-3">
-      <dt className="text-xs text-heritage-muted">{label}</dt>
+      <dt className="text-sm text-heritage-muted">{label}</dt>
       <dd className="mt-1 break-words text-sm font-semibold">{value}</dd>
     </div>
   );
@@ -229,7 +229,7 @@ export function ExecutorKeyCard({
         <Dialog open onOpenChange={() => undefined}>
           <DialogContent className="sm:max-w-3xl" showCloseButton={false}>
             <DialogHeader>
-              <DialogTitle>Phiếu bàn giao mã mở gói</DialogTitle>
+              <DialogTitle>Di chúc</DialogTitle>
               <DialogDescription>
                 Mã chỉ hiện một lần. Tải phiếu hoặc chép mã rồi mới hoàn tất.
               </DialogDescription>
@@ -239,6 +239,7 @@ export function ExecutorKeyCard({
                 ownerName: slip.ownerName,
                 vaultName: slip.vaultName,
                 executorEmail: slip.executorEmail,
+                willClauses: slip.willClauses,
                 issuedAt: revealSlipDate,
                 version: issued.version,
                 shard: issued.shard,

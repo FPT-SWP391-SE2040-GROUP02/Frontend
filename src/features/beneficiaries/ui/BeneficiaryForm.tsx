@@ -34,7 +34,7 @@ interface BeneficiaryFormValues {
 }
 
 const LABEL = "block space-y-1.5 text-sm font-semibold";
-const HINT = "block text-xs font-normal text-heritage-muted";
+const HINT = "block text-sm font-normal text-heritage-muted";
 const FIELD = "min-h-11 bg-white font-normal placeholder:text-heritage-muted";
 
 function FieldError({ message }: { message?: string }) {
@@ -448,7 +448,7 @@ export function BeneficiaryForm({
         >
           <p className="font-semibold">{action.error}</p>
           {errorFieldNames.length > 0 && (
-            <p className="text-xs text-[#7A1913]">
+            <p className="text-sm text-[#7A1913]">
               Vui lòng kiểm tra và chỉnh sửa lại các ô có thông báo lỗi màu đỏ ở trên:{" "}
               <span className="font-semibold">{errorFieldNames.join(", ")}</span>.
             </p>

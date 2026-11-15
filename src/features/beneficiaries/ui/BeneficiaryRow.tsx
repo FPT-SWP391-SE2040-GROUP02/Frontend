@@ -221,13 +221,13 @@ export function BeneficiaryRow({
           </span>
           <span className="min-w-0">
             <span className="block break-words font-semibold">{record.fullName}</span>
-            <span className="block text-xs text-heritage-muted">
+            <span className="block text-sm text-heritage-muted">
               Sinh {formatBirthDate(record.dateOfBirth)}
             </span>
           </span>
         </div>
       </td>
-      <td className="px-4 py-4 font-mono text-xs text-heritage-muted">
+      <td className="px-4 py-4 font-mono text-sm text-heritage-muted">
         •••• {record.citizenIdLast4}
       </td>
       <td className="break-words px-4 py-4 text-heritage-muted">{contact}</td>

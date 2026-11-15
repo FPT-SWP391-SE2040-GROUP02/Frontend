@@ -186,12 +186,12 @@ export function RegisterForm({
           />
         </div>
         {lockedEmail && (
-          <p className="text-xs text-heritage-muted">
+          <p className="text-sm text-heritage-muted">
             Email đã điền sẵn theo thư mời, không đổi được.
           </p>
         )}
         {!lockedEmail && invitedEmailMasked && (
-          <p className="text-xs text-heritage-muted">
+          <p className="text-sm text-heritage-muted">
             Hãy dùng đúng email được mời: {invitedEmailMasked}
           </p>
         )}

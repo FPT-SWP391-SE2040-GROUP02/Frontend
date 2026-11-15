@@ -50,13 +50,13 @@ export const cryptoStrategy: AssetStrategy = {
     return (
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-sm font-bold text-[#14241C] mb-1.5">
             Mạng Lưới Blockchain *
           </label>
           <select
             value={(data.network as string) || "ETHEREUM"}
             onChange={(e) => onChange("network", e.target.value)}
-            className="w-full h-11 px-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-medium text-[#14241C] outline-none"
+            className="w-full h-11 px-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-sm font-medium text-[#14241C] outline-none"
           >
             {networks.map((net) => (
               <option key={net.value} value={net.value}>
@@ -67,7 +67,7 @@ export const cryptoStrategy: AssetStrategy = {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-sm font-bold text-[#14241C] mb-1.5">
             Địa Chỉ Ví Công Khai (Public Wallet Address) *
           </label>
           <Input
@@ -75,12 +75,12 @@ export const cryptoStrategy: AssetStrategy = {
             placeholder="0x71C... hoặc bc1q..."
             value={(data.walletAddress as string) || ""}
             onChange={(e) => onChange("walletAddress", e.target.value)}
-            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-mono"
+            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-sm font-mono"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-sm font-bold text-[#14241C] mb-1.5">
             12 Từ Khôi Phục (Seed Phrase / Mnemonic)
           </label>
           <textarea
@@ -88,15 +88,15 @@ export const cryptoStrategy: AssetStrategy = {
             placeholder="Nhập 12 từ bí mật cách nhau bằng khoảng trắng (ví dụ: apple banana cat dog elephant...)"
             value={(data.seedPhrase as string) || ""}
             onChange={(e) => onChange("seedPhrase", e.target.value)}
-            className="w-full p-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-mono outline-none"
+            className="w-full p-3 bg-[#FAF9F5] border border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-sm font-mono outline-none"
           />
-          <p className="text-[11px] text-[#66786E] mt-1">
+          <p className="text-[0.875rem] text-[#66786E] mt-1">
             Hệ thống mã hóa đầu cuối tại máy khách (Zero-Knowledge) trước khi truyền tải.
           </p>
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-[#14241C] mb-1.5">
+          <label className="block text-sm font-bold text-[#14241C] mb-1.5">
             Khóa Riêng Tư (Private Key thô - Tùy chọn)
           </label>
           <Input
@@ -104,7 +104,7 @@ export const cryptoStrategy: AssetStrategy = {
             placeholder="0x..."
             value={(data.privateKey as string) || ""}
             onChange={(e) => onChange("privateKey", e.target.value)}
-            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-xs font-mono"
+            className="h-11 bg-[#FAF9F5] border-[#D5D0C3] focus:border-[#B88E4C] rounded-[12px] text-sm font-mono"
           />
         </div>
       </div>
@@ -130,15 +130,15 @@ export const cryptoStrategy: AssetStrategy = {
     return (
       <div className="space-y-4">
         <div className="p-4 bg-[#FAF9F5] border border-[#DCD9D0] rounded-[16px]">
-          <span className="text-[11px] font-bold text-[#66786E] uppercase">Mạng Lưới</span>
+          <span className="text-[0.875rem] font-bold text-[#66786E] uppercase">Mạng Lưới</span>
           <p className="text-sm font-bold text-[#0B291E] mt-0.5">
             {decoded.network || "ETHEREUM (ERC-20)"}
           </p>
 
-          <span className="text-[11px] font-bold text-[#66786E] uppercase block mt-3">
+          <span className="text-[0.875rem] font-bold text-[#66786E] uppercase block mt-3">
             Địa Chỉ Ví
           </span>
-          <p className="text-xs font-mono text-[#14241C] break-all select-all mt-0.5">
+          <p className="text-sm font-mono text-[#14241C] break-all select-all mt-0.5">
             {decoded.walletAddress || "0x71C865768268571a82fD859345D181d1392b7D3"}
           </p>
         </div>

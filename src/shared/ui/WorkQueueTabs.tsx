@@ -64,7 +64,7 @@ export function WorkQueueTabs({
             >
               <span>{tab.label}</span>
               <span
-                className={`rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${
+                className={`rounded-full px-2 py-0.5 text-sm font-semibold tabular-nums ${
                   selected ? "bg-white/20 text-white" : "bg-heritage-border/50 text-heritage-muted"
                 }`}
               >

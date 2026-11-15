@@ -39,7 +39,9 @@ export const SeedPhraseGrid: React.FC<SeedPhraseGridProps> = ({
           </div>
           <div>
             <h4 className="text-sm font-bold text-[#14241C]">{title}</h4>
-            <span className="text-[11px] text-[#66786E]">Chuẩn phân mảnh mật mã học BIP-39</span>
+            <span className="text-[0.875rem] text-[#66786E]">
+              Chuẩn phân mảnh mật mã học BIP-39
+            </span>
           </div>
         </div>
 
@@ -49,7 +51,7 @@ export const SeedPhraseGrid: React.FC<SeedPhraseGridProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => setIsVisible(!isVisible)}
-            className="h-8 px-2.5 rounded-[10px] text-xs text-[#66786E] hover:text-[#0B291E] hover:bg-[#EFECE6] flex items-center gap-1"
+            className="h-8 px-2.5 rounded-[10px] text-sm text-[#66786E] hover:text-[#0B291E] hover:bg-[#EFECE6] flex items-center gap-1"
           >
             {isVisible ? (
               <>
@@ -69,7 +71,7 @@ export const SeedPhraseGrid: React.FC<SeedPhraseGridProps> = ({
             variant="outline"
             size="sm"
             onClick={handleCopy}
-            className="h-8 px-3 rounded-[10px] text-xs border-[#DCD9D0] text-[#0B291E] hover:bg-[#EFECE6] flex items-center gap-1 font-semibold"
+            className="h-8 px-3 rounded-[10px] text-sm border-[#DCD9D0] text-[#0B291E] hover:bg-[#EFECE6] flex items-center gap-1 font-semibold"
           >
             {copied ? (
               <>
@@ -93,17 +95,17 @@ export const SeedPhraseGrid: React.FC<SeedPhraseGridProps> = ({
             key={index}
             className="flex items-center gap-2 p-2.5 bg-[#EFECE6] border border-[#DCD9D0] rounded-[12px] transition-all hover:border-[#B88E4C]"
           >
-            <span className="w-6 h-6 rounded-full bg-[#FAF9F5] text-[11px] font-bold text-[#A8A295] flex items-center justify-center shrink-0 border border-[#DCD9D0]">
+            <span className="w-6 h-6 rounded-full bg-[#FAF9F5] text-[0.875rem] font-bold text-[#A8A295] flex items-center justify-center shrink-0 border border-[#DCD9D0]">
               {index + 1}
             </span>
-            <span className="font-mono text-xs font-semibold text-[#0B291E] truncate select-all">
+            <span className="font-mono text-sm font-semibold text-[#0B291E] truncate select-all">
               {isVisible ? word : "••••••"}
             </span>
           </div>
         ))}
       </div>
 
-      <p className="text-[11px] text-[#66786E] text-center italic">
+      <p className="text-[0.875rem] text-[#66786E] text-center italic">
         Thứ tự các từ từ 1 đến 12 là chìa khóa duy nhất để tái tạo ví và phân quyền thừa kế.
       </p>
     </div>

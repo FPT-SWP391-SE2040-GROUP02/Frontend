@@ -110,7 +110,7 @@ export function EkycOcrProgress({ uploadPercent }: { uploadPercent: number | nul
 
   return (
     <div>
-      <div className="flex items-center justify-between text-xs text-heritage-muted">
+      <div className="flex items-center justify-between text-sm text-heritage-muted">
         <p role="status">{label}</p>
 
         <span aria-hidden="true">{uploading ? "1/2 Tải ảnh" : "2/2 Quét"}</span>

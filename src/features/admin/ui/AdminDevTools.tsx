@@ -87,7 +87,7 @@ export function AdminDevTools() {
     <div className="mt-6 space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <Notice tone="warning">{DEV_TOOLS_NOTICE}</Notice>
-        <span className="rounded-md bg-[#7A5B25] px-3 py-1 text-xs font-bold tracking-wide text-white">
+        <span className="rounded-md bg-[#7A5B25] px-3 py-1 text-sm font-bold tracking-wide text-white">
           DEVELOPMENT
         </span>
       </div>
@@ -180,7 +180,7 @@ export function AdminDevTools() {
             Đưa kho về trước eKYC và mua gói
           </button>
           {selected !== undefined && selected.planStatus !== "DRAFT" && (
-            <p className="mt-2 text-xs text-heritage-muted">
+            <p className="mt-2 text-sm text-heritage-muted">
               Kế hoạch đã kích hoạt nên không thể đưa kho về thời điểm này.
             </p>
           )}
@@ -324,11 +324,11 @@ function MilestoneRow({
         <p className="text-sm text-heritage-muted">
           {content.description}{" "}
           {content.code && (
-            <code className="rounded bg-[#ECE8DB] px-1.5 py-0.5 text-xs">{content.code}</code>
+            <code className="rounded bg-[#ECE8DB] px-1.5 py-0.5 text-sm">{content.code}</code>
           )}
         </p>
         {milestone.state === "NOT_APPLICABLE" && milestone.note && (
-          <p className="mt-1 text-xs text-heritage-muted">{milestone.note}</p>
+          <p className="mt-1 text-sm text-heritage-muted">{milestone.note}</p>
         )}
       </div>
       <Chip tone={passed ? "success" : "neutral"}>
@@ -445,7 +445,7 @@ function EkycThresholdPanel({ onDone }: { onDone: (message: string) => void }) {
               {threshold.data.currentThreshold.toFixed(3)}
               {threshold.data.currentThreshold === defaultValue ? " (Chuẩn khuyến nghị)" : ""}
             </Chip>
-            <p className="text-xs text-heritage-muted">
+            <p className="text-sm text-heritage-muted">
               Dải an toàn {min.toFixed(2)} – {max.toFixed(2)} · mặc định {defaultValue.toFixed(3)}
             </p>
           </div>

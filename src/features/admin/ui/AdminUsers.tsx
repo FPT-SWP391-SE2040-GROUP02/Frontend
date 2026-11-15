@@ -219,7 +219,7 @@ function UsersResult({ page, hasFilters, query, onPage, onClear, onOpen }: Users
 function StatusBadge({ status }: { status: AdminUserStatus }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[status]}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-sm font-semibold ${STATUS_STYLES[status]}`}
     >
       {STATUS_LABELS[status]}
     </span>
@@ -259,7 +259,7 @@ function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: s
             </div>
           </div>
           <div role="cell">
-            <span className="inline-flex h-6 items-center rounded-xl bg-[#e5ede8] px-2.5 text-xs font-semibold text-heritage-primary">
+            <span className="inline-flex h-6 items-center rounded-xl bg-[#e5ede8] px-2.5 text-sm font-semibold text-heritage-primary">
               {ROLE_LABELS[user.role]}
             </span>
           </div>
@@ -282,7 +282,7 @@ function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: s
           <div role="cell" className="flex flex-col items-stretch gap-2 self-center">
             <Button
               variant="outline"
-              className="min-h-[34px] px-3 text-[13px]"
+              className="min-h-[34px] px-3 text-[0.875rem]"
               aria-label={`Xem ${user.fullName || user.email}`}
               onClick={() => onOpen(user.id)}
             >

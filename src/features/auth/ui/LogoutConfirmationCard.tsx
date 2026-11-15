@@ -55,7 +55,7 @@ export function LogoutConfirmationCard({ onClose, className = "" }: LogoutConfir
         <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]">
           Đăng xuất khỏi LegacyVault?
         </h1>
-        <p className="text-xs sm:text-sm text-[#6B6B66]">
+        <p className="text-sm sm:text-sm text-[#6B6B66]">
           Bạn có chắc chắn muốn kết thúc phiên làm việc hiện tại trên thiết bị này?
         </p>
       </div>
@@ -67,8 +67,8 @@ export function LogoutConfirmationCard({ onClose, className = "" }: LogoutConfir
             {displayName.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-[#0F1A16] truncate">{displayName}</p>
-            <p className="text-[11px] text-[#6B6B66] truncate">
+            <p className="text-sm font-semibold text-[#0F1A16] truncate">{displayName}</p>
+            <p className="text-[0.875rem] text-[#6B6B66] truncate">
               {LOGOUT_ROLE_LABELS[user.role]} · {user.email}
             </p>
           </div>
@@ -84,7 +84,7 @@ export function LogoutConfirmationCard({ onClose, className = "" }: LogoutConfir
       <div className="p-4 rounded-2xl bg-[#F0F5F2] border border-[#CCDCD2] text-[#0A281E] space-y-1">
         <div className="flex items-start gap-2.5">
           <Info className="w-4 h-4 text-[#0A281E] flex-shrink-0 mt-0.5" />
-          <div className="text-xs leading-relaxed">
+          <div className="text-sm leading-relaxed">
             <p className="font-semibold text-[#0A281E]">{LOGOUT_CONTENT.dmsReminder}</p>
             <p className="text-[#3F5B4E] mt-0.5">{LOGOUT_CONTENT.dmsGuidance}</p>
           </div>
@@ -99,9 +99,9 @@ export function LogoutConfirmationCard({ onClose, className = "" }: LogoutConfir
           onChange={(e) => setRevokeAll(e.target.checked)}
           className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#0A281E] focus:ring-[#0A281E]"
         />
-        <div className="text-xs">
+        <div className="text-sm">
           <p className="font-semibold text-[#0F1A16]">Đăng xuất khỏi mọi thiết bị</p>
-          <p className="text-[11px] text-[#6B6B66] mt-0.5">
+          <p className="text-[0.875rem] text-[#6B6B66] mt-0.5">
             Dùng khi bạn nghi ngờ có người khác đang đăng nhập trái phép vào tài khoản của bạn.
           </p>
         </div>
@@ -118,7 +118,7 @@ export function LogoutConfirmationCard({ onClose, className = "" }: LogoutConfir
           type="button"
           onClick={handleLogout}
           disabled={isPending}
-          className="w-full h-11 rounded-xl bg-[#9B1C1C] hover:bg-[#801717] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all flex items-center justify-center gap-2"
+          className="w-full h-11 rounded-xl bg-[#9B1C1C] hover:bg-[#801717] text-[#FAFAF6] text-sm font-semibold shadow-md transition-all flex items-center justify-center gap-2"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>{isPending ? "Đang xử lý..." : "Đăng xuất"}</span>
@@ -132,7 +132,7 @@ export function LogoutConfirmationCard({ onClose, className = "" }: LogoutConfir
             if (onClose) onClose();
             else navigate(-1);
           }}
-          className="w-full h-11 rounded-xl border-[#D5D0C3] hover:bg-white text-[#0F1A16] text-xs font-medium"
+          className="w-full h-11 rounded-xl border-[#D5D0C3] hover:bg-white text-[#0F1A16] text-sm font-medium"
         >
           Ở lại
         </Button>

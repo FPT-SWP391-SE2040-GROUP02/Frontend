@@ -20,7 +20,7 @@ export function MaintenanceNoticeBar({
   return (
     <div
       role="status"
-      className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-[#12392C] px-4 py-2.5 text-center text-[13px] text-[#EFECE3]"
+      className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-[#12392C] px-4 py-2.5 text-center text-[0.875rem] text-[#EFECE3]"
     >
       <span className="inline-flex items-center gap-2.5">
         <span className="size-2 flex-none rounded-full bg-[#E0C486]" aria-hidden="true" />

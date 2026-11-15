@@ -33,7 +33,7 @@ export function SessionExpiredCard({ idleMinutes = 30, className = "" }: Session
         <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]">
           Phiên đã hết hạn.
         </h1>
-        <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
+        <p className="text-sm sm:text-sm text-[#6B6B66] leading-relaxed">
           Bạn đã không hoạt động trong{" "}
           <span className="font-semibold text-[#0F1A16]">{idleMinutes} phút</span> nên chúng tôi
           đăng xuất bạn để bảo vệ kho di sản.
@@ -41,7 +41,7 @@ export function SessionExpiredCard({ idleMinutes = 30, className = "" }: Session
       </div>
 
       {/* Cảnh báo về dữ liệu dở dang */}
-      <div className="p-3.5 rounded-xl bg-[#FEF3C7] border border-[#FCD34D] flex items-start gap-2.5 text-xs text-[#92400E]">
+      <div className="p-3.5 rounded-xl bg-[#FEF3C7] border border-[#FCD34D] flex items-start gap-2.5 text-sm text-[#92400E]">
         <AlertTriangle className="w-4 h-4 text-[#D97706] flex-shrink-0 mt-0.5" />
         <span>
           <span className="font-semibold">Thao tác đang dở có thể chưa được lưu.</span> Vui lòng
@@ -50,7 +50,7 @@ export function SessionExpiredCard({ idleMinutes = 30, className = "" }: Session
       </div>
 
       {/* Thông tin bảo mật */}
-      <div className="text-[11px] text-[#8C8C85] leading-relaxed p-3 rounded-xl bg-[#FAF9F5] border border-[#E5E5DF]">
+      <div className="text-[0.875rem] text-[#8C8C85] leading-relaxed p-3 rounded-xl bg-[#FAF9F5] border border-[#E5E5DF]">
         Vì an toàn, chúng tôi tự động đóng phiên sau{" "}
         <span className="font-medium text-[#4A4A40]">{idleMinutes} phút không hoạt động</span>.
         Phiên người dùng tự kết thúc để bảo vệ tài khoản kể cả khi trình duyệt mở.
@@ -59,7 +59,7 @@ export function SessionExpiredCard({ idleMinutes = 30, className = "" }: Session
       {/* Nút đăng nhập lại */}
       <Link
         to={ROUTES.AUTH.LOGIN}
-        className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A281E]"
+        className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-sm font-semibold flex items-center justify-center gap-2 transition-colors shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A281E]"
       >
         <LogIn className="w-3.5 h-3.5" />
         <span>Đăng nhập lại</span>

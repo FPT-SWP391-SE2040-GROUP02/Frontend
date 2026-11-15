@@ -22,10 +22,10 @@ export function CameraCheckPanel() {
           <h2 id="camera-title" className="text-xl font-semibold">
             {content.camera}
           </h2>
-          <span className="rounded-full bg-heritage-canvas px-3 py-1 text-xs">{content.off}</span>
+          <span className="rounded-full bg-heritage-canvas px-3 py-1 text-sm">{content.off}</span>
         </div>
         <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl bg-heritage-primary text-heritage-surface">
-          <span className="absolute left-5 top-5 text-xs font-medium">{content.cameraOff}</span>
+          <span className="absolute left-5 top-5 text-sm font-medium">{content.cameraOff}</span>
           <div
             aria-hidden="true"
             className="absolute inset-x-[28%] inset-y-[15%] rounded-[50%] border-2 border-dashed border-heritage-gold/80"
@@ -74,7 +74,7 @@ export function CameraCheckPanel() {
         <details className="mt-6 border-t border-heritage-border pt-2">
           <summary className="flex min-h-12 cursor-pointer flex-wrap items-center gap-2 rounded-lg text-sm font-semibold focus-visible:outline-2 focus-visible:outline-heritage-gold">
             {content.advanced}
-            <span className="rounded-full bg-heritage-canvas px-2 py-1 text-xs font-normal">
+            <span className="rounded-full bg-heritage-canvas px-2 py-1 text-sm font-normal">
               {content.advancedTag}
             </span>
           </summary>
@@ -93,7 +93,7 @@ export function CameraCheckPanel() {
           <h2 id="challenge-title" className="text-xl font-semibold">
             {content.challengesTitle}
           </h2>
-          <span className="shrink-0 rounded-full bg-heritage-canvas px-3 py-1 text-xs">
+          <span className="shrink-0 rounded-full bg-heritage-canvas px-3 py-1 text-sm">
             {content.notStarted}
           </span>
         </div>

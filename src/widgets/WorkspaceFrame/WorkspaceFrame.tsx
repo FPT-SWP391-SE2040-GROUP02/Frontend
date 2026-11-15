@@ -74,7 +74,7 @@ export function WorkspaceFrame({
             return (
               <div key={item.id}>
                 {startsGroup && (
-                  <p className="px-3 pb-1.5 pt-5 text-[11px] font-semibold uppercase tracking-[0.09em] text-[#9bb2a5]">
+                  <p className="px-3 pb-1.5 pt-5 text-[0.875rem] font-semibold uppercase tracking-[0.09em] text-[#9bb2a5]">
                     {item.group}
                   </p>
                 )}
@@ -116,7 +116,7 @@ export function WorkspaceFrame({
             {initials(fullName)}
           </span>
           <span className="min-w-0">
-            <b className="block truncate text-[13px] font-semibold">{fullName}</b>
+            <b className="block truncate text-[0.875rem] font-semibold">{fullName}</b>
             {role && <small className="text-[11.5px] text-[#e0c486]">{ROLE_LABELS[role]}</small>}
           </span>
         </div>
@@ -205,14 +205,14 @@ function MobileTabs({
               to={item.to!}
               onClick={onNavigate}
               aria-current={isActive ? "page" : undefined}
-              className={`relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
+              className={`relative flex flex-col items-center justify-center gap-0.5 text-[0.875rem] font-medium ${
                 isActive ? "text-heritage-primary" : "text-heritage-muted"
               }`}
             >
               {Icon && <Icon className="size-5" aria-hidden="true" />}
               {item.label}
               {item.badge ? (
-                <span className="absolute right-[24%] top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-red-700 px-1 text-[10px] font-bold text-white">
+                <span className="absolute right-[24%] top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-red-700 px-1 text-[0.875rem] font-bold text-white">
                   {item.badge}
                 </span>
               ) : null}
@@ -223,7 +223,7 @@ function MobileTabs({
           type="button"
           aria-expanded={moreOpen}
           onClick={onToggleMore}
-          className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium ${
+          className={`flex flex-col items-center justify-center gap-0.5 text-[0.875rem] font-medium ${
             restActive || moreOpen ? "text-heritage-primary" : "text-heritage-muted"
           }`}
         >

@@ -4,7 +4,7 @@
  */
 export function printHandoverSlip(version: number): void {
   const previousTitle = document.title;
-  document.title = `Phieu-ban-giao-ma-mo-goi-ban-${version}`;
+  document.title = `Di-chuc-ban-${version}`;
   function restoreTitle(): void {
     document.title = previousTitle;
     window.removeEventListener("afterprint", restoreTitle);

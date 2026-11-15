@@ -52,7 +52,7 @@ export function VerifierDeclaredFacts({
               }`}
             >
               <div className="min-w-0">
-                <p className="text-xs text-heritage-muted">{row.label}</p>
+                <p className="text-sm text-heritage-muted">{row.label}</p>
                 <p className="break-words text-sm font-semibold">{row.value}</p>
               </div>
               <label className="flex min-h-11 shrink-0 items-center gap-2 text-sm">
@@ -74,7 +74,7 @@ export function VerifierDeclaredFacts({
           );
         })}
       </ul>
-      <p className="text-xs text-heritage-muted">{REVIEW_CHECKS_HINT}</p>
+      <p className="text-sm text-heritage-muted">{REVIEW_CHECKS_HINT}</p>
     </section>
   );
 }

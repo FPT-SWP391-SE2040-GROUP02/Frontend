@@ -26,7 +26,7 @@ export function AdminUserActions({ user }: { user: AdminUser }) {
   const client = useQueryClient();
   const [dialog, setDialog] = useState<UserDialog | null>(null);
   if (user.id === currentUserId)
-    return <span className="text-xs text-heritage-muted">Tài khoản của bạn</span>;
+    return <span className="text-sm text-heritage-muted">Tài khoản của bạn</span>;
   const close = () => setDialog(null);
   const done = () => void client.invalidateQueries({ queryKey: adminKeys.all });
   const label = user.fullName || user.email;

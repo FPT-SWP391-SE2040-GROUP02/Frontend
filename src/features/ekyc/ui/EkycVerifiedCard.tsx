@@ -108,7 +108,7 @@ export function EkycVerifiedCard({
           </p>
           <p className="text-sm text-heritage-muted">{subtitle}</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
           <CircleCheck className="size-4" aria-hidden="true" />
           Đã xác minh
         </span>
@@ -116,7 +116,7 @@ export function EkycVerifiedCard({
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {facts.map((fact) => (
           <div key={fact.label} className="rounded-xl bg-heritage-canvas px-4 py-3">
-            <dt className="text-xs text-heritage-muted">{fact.label}</dt>
+            <dt className="text-sm text-heritage-muted">{fact.label}</dt>
             <dd className="text-sm font-medium">{fact.value}</dd>
           </div>
         ))}

@@ -90,7 +90,7 @@ export function VerifyEmailPage() {
             <p className="text-sm text-emerald-900 leading-relaxed">
               {content.verifiedDescription}
             </p>
-            <p className="text-xs text-emerald-700 font-medium">
+            <p className="text-sm text-emerald-700 font-medium">
               Đang tự động chuyển sang trang đăng nhập...
             </p>
             <div className="pt-2">

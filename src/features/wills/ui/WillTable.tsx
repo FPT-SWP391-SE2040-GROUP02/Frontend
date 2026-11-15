@@ -61,13 +61,13 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
         <AlertCircle className="w-10 h-10 text-[#DC2626] mx-auto" />
         <div>
           <h3 className="text-base font-bold text-[#14241C]">Không thể nạp danh sách di chúc số</h3>
-          <p className="text-xs text-[#66786E] mt-1">
+          <p className="text-sm text-[#66786E] mt-1">
             Đã xảy ra lỗi kết nối với máy chủ quản lý di chúc.
           </p>
         </div>
         <Button
           onClick={() => refetch()}
-          className="min-h-[44px] rounded-[16px] bg-[#0B291E] text-white text-xs font-semibold px-6 shadow-sm focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+          className="min-h-[44px] rounded-[16px] bg-[#0B291E] text-white text-sm font-semibold px-6 shadow-sm focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
         >
           Thử Lại Ngay
         </Button>
@@ -84,14 +84,14 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
         </div>
         <div>
           <h3 className="text-lg font-bold text-[#14241C]">Chưa Có Bản Di Chúc Số Nào</h3>
-          <p className="text-xs sm:text-sm text-[#66786E] max-w-md mx-auto mt-1 leading-relaxed">
+          <p className="text-sm sm:text-sm text-[#66786E] max-w-md mx-auto mt-1 leading-relaxed">
             Hãy bắt đầu khởi tạo bản di chúc số đầu tiên để định đoạt tài sản và bảo vệ quyền lợi
             hợp pháp của con cháu theo Bộ Luật Dân Sự 2015.
           </p>
         </div>
         <Button
           onClick={onOpenCreateWizard}
-          className="min-h-[44px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs px-6 py-3 shadow-[0_4px_16px_rgba(11,41,30,0.2)] flex items-center gap-2 mx-auto focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+          className="min-h-[44px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-sm px-6 py-3 shadow-[0_4px_16px_rgba(11,41,30,0.2)] flex items-center gap-2 mx-auto focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
         >
           <Plus className="w-4 h-4 text-[#B88E4C]" />
           Lập Bản Di Chúc Đầu Tiên
@@ -112,7 +112,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
             placeholder="Tìm kiếm theo tiêu đề di chúc..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="h-11 pl-10 pr-9 bg-[#FAF9F5] border-[#DCD9D0] focus:border-[#B88E4C] rounded-[16px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+            className="h-11 pl-10 pr-9 bg-[#FAF9F5] border-[#DCD9D0] focus:border-[#B88E4C] rounded-[16px] text-sm font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             aria-label="Tìm kiếm di chúc"
           />
           {searchTerm && (
@@ -126,7 +126,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
           )}
         </div>
 
-        <div className="text-xs text-[#66786E] font-medium">
+        <div className="text-sm text-[#66786E] font-medium">
           Hiển thị <span className="font-bold text-[#0B291E]">{filteredItems.length}</span> /{" "}
           {data.items.length} bản di chúc
         </div>
@@ -138,7 +138,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
           <Button
             variant="outline"
             onClick={() => setSearchTerm("")}
-            className="min-h-[44px] rounded-[16px] text-xs font-semibold mt-2"
+            className="min-h-[44px] rounded-[16px] text-sm font-semibold mt-2"
           >
             Xóa Tìm Kiếm
           </Button>
@@ -148,7 +148,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse" aria-label="Danh sách di chúc số">
               <thead>
-                <tr className="border-b border-[#E8E5DD] bg-[#EFECE6]/70 text-[#66786E] text-[11px] font-bold uppercase tracking-wider">
+                <tr className="border-b border-[#E8E5DD] bg-[#EFECE6]/70 text-[#66786E] text-[0.875rem] font-bold uppercase tracking-wider">
                   <th scope="col" className="py-4 px-6">
                     Bản Di Chúc Số
                   </th>
@@ -169,7 +169,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E8E5DD] text-xs font-medium">
+              <tbody className="divide-y divide-[#E8E5DD] text-sm font-medium">
                 {filteredItems.map((will) => (
                   <tr
                     key={will.id}
@@ -194,7 +194,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                           <span className="font-bold text-[#14241C] text-sm block group-hover:text-[#0B291E]">
                             {will.title}
                           </span>
-                          <span className="text-[11px] text-[#66786E] truncate max-w-xs block">
+                          <span className="text-[0.875rem] text-[#66786E] truncate max-w-xs block">
                             {will.declarationNotes}
                           </span>
                         </div>
@@ -204,7 +204,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                     {/* Status */}
                     <td className="py-4 px-4">
                       <Badge
-                        className={`px-3 py-1 text-[11px] font-semibold rounded-full border ${
+                        className={`px-3 py-1 text-[0.875rem] font-semibold rounded-full border ${
                           will.status === "SEALED"
                             ? "bg-[#E5EDE8] text-[#0B291E] border-[#A2C4AF]"
                             : will.status === "REVOKED"
@@ -232,12 +232,12 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                       {will.hasAffidavit ? (
                         <div className="flex items-center gap-1.5 text-[#059669]">
                           <ShieldCheck className="w-4 h-4 shrink-0" />
-                          <span className="font-mono text-[10px]">
+                          <span className="font-mono text-[0.875rem]">
                             SHA: {will.affidavitHashShort}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-[#66786E] text-[11px]">Chưa có</span>
+                        <span className="text-[#66786E] text-[0.875rem]">Chưa có</span>
                       )}
                     </td>
 
@@ -248,7 +248,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                           variant="ghost"
                           onClick={() => onSelectWill(will)}
                           aria-label={`Xem chi tiết di chúc ${will.title}`}
-                          className="min-h-[44px] px-3.5 rounded-[12px] text-xs text-[#0B291E] hover:bg-[#E5EDE8] flex items-center gap-1.5 font-semibold focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+                          className="min-h-[44px] px-3.5 rounded-[12px] text-sm text-[#0B291E] hover:bg-[#E5EDE8] flex items-center gap-1.5 font-semibold focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
                         >
                           <Eye className="w-4 h-4 text-[#B88E4C]" />
                           <span>Xem</span>
@@ -268,7 +268,7 @@ export const WillTable: React.FC<WillTableProps> = ({ onSelectWill, onOpenCreate
                               }
                             }}
                             aria-label={`Thu hồi di chúc ${will.title}`}
-                            className="min-h-[44px] px-3 rounded-[12px] text-xs text-[#DC2626] hover:bg-[#FEF2F2] flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-[#DC2626]"
+                            className="min-h-[44px] px-3 rounded-[12px] text-sm text-[#DC2626] hover:bg-[#FEF2F2] flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-[#DC2626]"
                           >
                             <RotateCcw className="w-4 h-4" />
                             <span>Thu Hồi</span>

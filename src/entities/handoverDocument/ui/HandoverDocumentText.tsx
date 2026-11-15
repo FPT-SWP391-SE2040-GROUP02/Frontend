@@ -35,10 +35,14 @@ function Signature({
   signedAt: string | null;
 }) {
   return (
-    <div className="space-y-1 text-center text-[13px]">
+    <div className="space-y-1 text-center text-[0.875rem]">
       <p className="font-bold">{title}</p>
       <p>{name || "…"}</p>
-      <p className={signedAt ? "text-[12px] text-[#1f5d44]" : "text-[12px] italic text-[#8a6a2c]"}>
+      <p
+        className={
+          signedAt ? "text-[0.875rem] text-[#1f5d44]" : "text-[0.875rem] italic text-[#8a6a2c]"
+        }
+      >
         {signedAt ? `Đã ký điện tử ${formatSigned(signedAt)}` : "(chưa ký)"}
       </p>
     </div>

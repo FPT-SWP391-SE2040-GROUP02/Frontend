@@ -20,7 +20,7 @@ export function DocumentStatusChip({ document }: { document: HandoverDocument })
 function Step({ time, children }: { time: string | null; children: string }) {
   return (
     <li className="grid gap-1 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-3">
-      <time className="text-xs text-heritage-muted">{time ? formatDateTime(time) : "—"}</time>
+      <time className="text-sm text-heritage-muted">{time ? formatDateTime(time) : "—"}</time>
       <span>{children}</span>
     </li>
   );
@@ -157,7 +157,7 @@ export function HandoverDocumentList({
                   {DOCUMENT_KIND_LABELS[document.kind]}
                   {document.containerName ? ` · ${document.containerName}` : ""}
                 </span>
-                <span className="block text-xs text-heritage-muted">
+                <span className="block text-sm text-heritage-muted">
                   {subtitle(document, viewer)}
                 </span>
               </span>

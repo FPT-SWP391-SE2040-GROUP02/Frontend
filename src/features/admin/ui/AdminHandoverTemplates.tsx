@@ -212,7 +212,7 @@ function TemplateEditor({
               type="button"
               title={`${token.label}. Ví dụ: ${token.example}`}
               onClick={() => insertToken(token.token)}
-              className="rounded-full border border-heritage-border bg-white px-3 py-1 font-mono text-xs text-heritage-primary hover:bg-heritage-primary/5"
+              className="rounded-full border border-heritage-border bg-white px-3 py-1 font-mono text-sm text-heritage-primary hover:bg-heritage-primary/5"
             >
               {`{${token.token}}`}
             </button>
@@ -271,7 +271,7 @@ function TemplateEditor({
 
       <aside aria-label="Xem trước" className="space-y-2 xl:sticky xl:top-4">
         <h2 className="text-base font-bold text-heritage-primary">Xem trước</h2>
-        <p className="text-xs text-heritage-muted">
+        <p className="text-sm text-heritage-muted">
           Dữ liệu mẫu (tên, ngày, số căn cước giả). Biên bản thật điền từ dữ liệu của lượt bàn giao.
         </p>
         <HandoverDocumentText document={previewDocument} />

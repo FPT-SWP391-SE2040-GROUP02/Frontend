@@ -117,7 +117,7 @@ export function VerifyEmailNotice({
           Hãy xác minh email của bạn
         </h1>
         {emailResult.success ? (
-          <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
+          <p className="text-sm sm:text-sm text-[#6B6B66] leading-relaxed">
             Kiểm tra hộp thư của{" "}
             <span className="font-semibold text-[#0F1A16]">{maskEmail(emailResult.data)}</span> để
             tìm liên kết xác minh nếu bạn đã yêu cầu gửi email.
@@ -147,7 +147,7 @@ export function VerifyEmailNotice({
           type="button"
           onClick={handleResend}
           disabled={!isEmailValid || cooldown > 0 || isPending}
-          className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-sm font-semibold shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isPending ? "animate-spin" : ""}`} />
           {cooldown > 0 ? (
@@ -159,13 +159,13 @@ export function VerifyEmailNotice({
           )}
         </Button>
 
-        <p className="text-[11px] text-[#8C8C85] text-center">
+        <p className="text-[0.875rem] text-[#8C8C85] text-center">
           Chưa thấy email? Hãy kiểm tra thư rác hoặc hộp thư quảng cáo.
         </p>
       </div>
 
       {/* Điều hướng thay đổi email hoặc chuyển tài khoản */}
-      <div className="pt-6 border-t border-[#E5E5DF] flex items-center justify-between text-xs">
+      <div className="pt-6 border-t border-[#E5E5DF] flex items-center justify-between text-sm">
         <Link to={ROUTES.AUTH.REGISTER} className="text-[#6B6B66] hover:text-[#0A281E] font-medium">
           Đổi email
         </Link>

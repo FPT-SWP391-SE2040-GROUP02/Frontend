@@ -103,7 +103,7 @@ export function ExecutorEmailPreviewPanel() {
             <button
               type="button"
               onClick={() => setViewport("desktop")}
-              className={`rounded-md p-1.5 text-xs transition ${
+              className={`rounded-md p-1.5 text-sm transition ${
                 viewport === "desktop"
                   ? "bg-[#1A4B3B] text-white"
                   : "text-heritage-muted hover:text-black"
@@ -116,7 +116,7 @@ export function ExecutorEmailPreviewPanel() {
             <button
               type="button"
               onClick={() => setViewport("mobile")}
-              className={`rounded-md p-1.5 text-xs transition ${
+              className={`rounded-md p-1.5 text-sm transition ${
                 viewport === "mobile"
                   ? "bg-[#1A4B3B] text-white"
                   : "text-heritage-muted hover:text-black"
@@ -131,7 +131,7 @@ export function ExecutorEmailPreviewPanel() {
           <button
             type="button"
             onClick={handleCopyHtml}
-            className={`${buttonStyles.outline} !min-h-9 !px-3 text-xs`}
+            className={`${buttonStyles.outline} !min-h-9 !px-3 text-sm`}
           >
             {copied ? (
               <>
@@ -154,7 +154,7 @@ export function ExecutorEmailPreviewPanel() {
           <button
             type="button"
             onClick={() => setTemplateKind("overdue")}
-            className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
+            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
               templateKind === "overdue"
                 ? "bg-[#1A4B3B] text-white shadow-sm"
                 : "border border-heritage-border bg-white text-[#2B332F] hover:bg-[#F4F1E6]"
@@ -165,7 +165,7 @@ export function ExecutorEmailPreviewPanel() {
           <button
             type="button"
             onClick={() => setTemplateKind("supplement")}
-            className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${
+            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
               templateKind === "supplement"
                 ? "bg-[#1A4B3B] text-white shadow-sm"
                 : "border border-heritage-border bg-white text-[#2B332F] hover:bg-[#F4F1E6]"
@@ -194,7 +194,7 @@ export function ExecutorEmailPreviewPanel() {
 
             {/* Nội dung thư */}
             <div className="p-6 sm:p-8">
-              <p className="mb-1 text-xs font-bold tracking-wider text-[#7A5B25] uppercase">
+              <p className="mb-1 text-sm font-bold tracking-wider text-[#7A5B25] uppercase">
                 {t.kicker}
               </p>
               <h2 className="mb-4 text-lg font-bold leading-snug text-[#1A4B3B] sm:text-xl">
@@ -225,7 +225,7 @@ export function ExecutorEmailPreviewPanel() {
               </div>
 
               {/* Khung link dự phòng */}
-              <div className="mb-6 rounded-xl border border-[#D9D4C4] bg-[#FAFAF6] p-3 text-xs text-[#4D4D4B]">
+              <div className="mb-6 rounded-xl border border-[#D9D4C4] bg-[#FAFAF6] p-3 text-sm text-[#4D4D4B]">
                 <p className="mb-1">
                   Nếu nút không bấm được, sao chép liên kết này vào trình duyệt:
                 </p>
@@ -233,7 +233,7 @@ export function ExecutorEmailPreviewPanel() {
               </div>
 
               {/* Ghi chú chân thư */}
-              <p className="border-t border-[#E4E0D2] pt-4 text-xs leading-relaxed text-[#4D4D4B]">
+              <p className="border-t border-[#E4E0D2] pt-4 text-sm leading-relaxed text-[#4D4D4B]">
                 {t.note}
               </p>
             </div>

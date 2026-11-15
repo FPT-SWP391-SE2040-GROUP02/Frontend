@@ -81,10 +81,10 @@ export function CheckInSettingsForm({ vaultId, status }: { vaultId: string; stat
             Lưu lịch điểm danh
           </Button>
         </fieldset>
-        <p className="text-xs leading-5 text-heritage-muted">
+        <p className="text-sm leading-5 text-heritage-muted">
           Khi đang có kỳ chạy, lịch mới áp dụng từ kỳ sau; không đổi hạn hiện tại.
         </p>
-        <p className="text-xs leading-5 text-heritage-muted">
+        <p className="text-sm leading-5 text-heritage-muted">
           Quá hạn, hệ thống gửi tối đa {status.settings.maxLateReminders} thư nhắc trễ, cách nhau{" "}
           {status.settings.lateReminderGapDays} ngày. Sau thư cuối mà bạn vẫn chưa điểm danh, Người
           thực thi sẽ được báo để liên hệ kiểm tra.

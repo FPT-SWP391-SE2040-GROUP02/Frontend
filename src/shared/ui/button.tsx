@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-[20px] border border-transparent bg-clip-padding text-xs font-[550] whitespace-nowrap transition-all outline-none select-none cursor-pointer focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-[20px] border border-transparent bg-clip-padding text-sm font-[550] whitespace-nowrap transition-all outline-none select-none cursor-pointer focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -20,9 +20,9 @@ const buttonVariants = cva(
         link: "text-[var(--gold)] underline-offset-4 hover:underline font-semibold",
       },
       size: {
-        default: "h-9 gap-1.5 px-4 text-xs",
+        default: "h-9 gap-1.5 px-4 text-sm",
         xs: "h-6 gap-1 rounded-[14px] px-2 text-[10.5px]",
-        sm: "h-7 gap-1 rounded-[16px] px-3 text-[11px]",
+        sm: "h-7 gap-1 rounded-[16px] px-3 text-[0.875rem]",
         lg: "h-11 gap-2 rounded-[20px] px-6 text-sm",
         icon: "size-9 rounded-full",
         "icon-sm": "size-7 rounded-full",

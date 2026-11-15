@@ -108,7 +108,7 @@ export const DmsNotificationChannels: React.FC<DmsNotificationChannelsProps> = (
                       ? "@telegram_username hoặc chat_id"
                       : "+84 988 123 456"
                 }
-                className="h-10 text-xs bg-white border-[#D5D0C3] focus:border-[#B88E4C] rounded-[10px]"
+                className="h-10 text-sm bg-white border-[#D5D0C3] focus:border-[#B88E4C] rounded-[10px]"
               />
             </div>
           )}

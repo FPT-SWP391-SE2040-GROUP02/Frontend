@@ -43,6 +43,8 @@ export const planSetupSchema = z.object({
   assetsOutsideContainer: z.array(assetOutsideContainerSchema),
   /** Cảnh báo không chặn activate; chỉ đọc, không disable nút. */
   warnings: z.array(z.string()),
+  /** Điều khoản Chủ kho thêm vào di chúc; Backend cũ không có trường này. */
+  willClauses: z.array(z.string()).default([]),
 });
 export const executorInfoSchema = z.object({
   expiresAt: date,

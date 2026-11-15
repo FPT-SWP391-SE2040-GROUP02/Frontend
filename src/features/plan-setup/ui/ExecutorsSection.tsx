@@ -134,7 +134,7 @@ function ActionList({
   }
   return (
     <div>
-      <p className={`text-xs font-semibold ${titleColor}`}>{title}</p>
+      <p className={`text-sm font-semibold ${titleColor}`}>{title}</p>
       <ul className="mt-2 space-y-2">{rows}</ul>
     </div>
   );
@@ -395,7 +395,7 @@ function ChosenCard(props: ChosenCardProps) {
   const header = (
     <div className="flex flex-wrap items-baseline justify-between gap-2">
       <h2 className="text-xl font-medium text-heritage-primary">Người bạn chọn</h2>
-      <p className="text-xs text-heritage-muted">Mỗi kho một người · bắt buộc để kích hoạt</p>
+      <p className="text-sm text-heritage-muted">Mỗi kho một người · bắt buộc để kích hoạt</p>
     </div>
   );
 
@@ -480,12 +480,12 @@ function ChosenCard(props: ChosenCardProps) {
             </span>
             <div className="min-w-0">
               <p className="break-all font-semibold">{holder.inviteeEmail}</p>
-              <p className="text-xs text-heritage-muted">Người thực thi của kho</p>
+              <p className="text-sm text-heritage-muted">Người thực thi của kho</p>
             </div>
           </div>
           <Chip tone={statusTones[holder.status]}>{statusLabels[holder.status]}</Chip>
         </div>
-        {dateLine !== "" && <p className="mt-3 text-xs text-heritage-muted">{dateLine}</p>}
+        {dateLine !== "" && <p className="mt-3 text-sm text-heritage-muted">{dateLine}</p>}
 
         <p className="mt-3 text-sm leading-6">{statusText}</p>
         {holder.isBeneficiary && (
@@ -596,7 +596,7 @@ function RecentActivity({ executors }: { executors: Executor[] }) {
     rows.push(
       <li key={event.key} className="border-b border-heritage-border py-3 last:border-b-0">
         <p className="text-sm font-semibold">{event.text}</p>
-        <p className="text-xs text-heritage-muted">{formatDate(event.at)}</p>
+        <p className="text-sm text-heritage-muted">{formatDate(event.at)}</p>
       </li>,
     );
   }

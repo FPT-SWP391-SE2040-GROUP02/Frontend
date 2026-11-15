@@ -42,14 +42,14 @@ export function AccountSettingsContent({ showVaultPin = true }: { showVaultPin?:
             ],
           ].map(([label, value]) => (
             <div key={label}>
-              <dt className="text-xs text-heritage-muted">{label}</dt>
+              <dt className="text-sm text-heritage-muted">{label}</dt>
               <dd className="mt-2 break-words text-sm font-medium">
                 {value || "Chưa có thông tin"}
               </dd>
             </div>
           ))}
         </dl>
-        <p className="mt-6 border-t border-heritage-border pt-4 text-xs text-heritage-muted">
+        <p className="mt-6 border-t border-heritage-border pt-4 text-sm text-heritage-muted">
           Chỉnh sửa hồ sơ đang được hoàn thiện.
         </p>
       </section>

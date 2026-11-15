@@ -12,7 +12,7 @@ function TurnPips({ left, limit }: { left: number; limit: number }) {
     pips.push(index);
   }
   return (
-    <p className="flex items-center gap-1.5 text-xs text-heritage-muted">
+    <p className="flex items-center gap-1.5 text-sm text-heritage-muted">
       <span role="img" aria-label={`Còn ${left} trên ${limit} lượt`} className="flex gap-1">
         {pips.map((index) => {
           let tone = "border-[#BDB8A6]";

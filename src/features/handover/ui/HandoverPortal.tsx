@@ -306,7 +306,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                 >
                   Xác nhận khóa
                 </button>
-                <p className="text-xs text-heritage-muted">
+                <p className="text-sm text-heritage-muted">
                   Liên hệ trực tiếp Người thực thi của kho để lấy khóa. Nhập sai nhiều lần sẽ bị
                   khóa.
                 </p>
@@ -364,7 +364,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                   >
                     <span className="min-w-0">
                       <span className="block break-words text-sm font-semibold">{item.name}</span>
-                      <span className="block text-xs text-heritage-muted">
+                      <span className="block text-sm text-heritage-muted">
                         {kindLabels[item.kind] ?? "Mục"} · {formatStorageSize(item.sizeBytes)}
                       </span>
                     </span>
@@ -457,7 +457,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                 Từ chối
               </button>
             )}
-            <p className="flex items-start gap-2 text-xs text-heritage-muted">
+            <p className="flex items-start gap-2 text-sm text-heritage-muted">
               <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
               Từ chối thì phần này sẽ không được bàn giao cho bạn.
             </p>

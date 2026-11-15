@@ -21,6 +21,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 function invitation(overrides: Partial<MyInvitation> = {}): MyInvitation {
   return {
     id: FIRST_ID,
+    willClauses: [],
     ownerName: "Chủ kho thử nghiệm",
     inviteeEmail: "nguoi-duoc-moi@example.test",
     status: "INVITED",
@@ -85,7 +86,7 @@ describe("MyInvitationsInbox", () => {
     renderWithRoutes(<MyInvitationsInbox />);
     const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
     expect(within(card).getByText("Còn 5 ngày")).toBeInTheDocument();
-    const accept = within(card).getByRole("button", { name: "Chấp nhận" });
+    const accept = within(card).getByRole("button", { name: "Ký nhận vai thực hiện di chúc" });
     expect(accept).toBeDisabled();
 
     await userEvent.click(within(card).getByRole("checkbox"));

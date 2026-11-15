@@ -46,7 +46,7 @@ export function ProtectedRoute({
       <div className="flex h-screen w-full items-center justify-center bg-[var(--surface,#FAF9F5)] dark:bg-[#06140E]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary,#0B291E)] border-t-transparent" />
-          <p className="text-xs font-medium text-[var(--text-muted,#66786E)]">
+          <p className="text-sm font-medium text-[var(--text-muted,#66786E)]">
             Đang đồng bộ phiên bảo mật...
           </p>
         </div>

@@ -151,7 +151,7 @@ export function AdminNotaryCardDialog({ userId, name, open, onClose }: AdminNota
               <span className="block font-semibold text-heritage-primary">
                 {missing ? "Chọn ảnh thẻ để nộp" : "Chọn ảnh mới để nộp lại"}
               </span>
-              <span id="admin-notary-card-hint" className="block text-xs text-heritage-muted">
+              <span id="admin-notary-card-hint" className="block text-sm text-heritage-muted">
                 {file ? `Đã chọn: ${file.name}` : "JPEG, PNG hoặc WebP, tối đa 2 MB."}
               </span>
             </span>
@@ -168,17 +168,17 @@ export function AdminNotaryCardDialog({ userId, name, open, onClose }: AdminNota
             />
           </label>
           {fileError && (
-            <p role="alert" className="text-xs text-destructive">
+            <p role="alert" className="text-sm text-destructive">
               {fileError}
             </p>
           )}
           {error && (
-            <p role="alert" className="text-xs text-destructive">
+            <p role="alert" className="text-sm text-destructive">
               {error}
             </p>
           )}
           {succeeded && (
-            <p role="status" className="text-xs font-medium text-[#1F7A55]">
+            <p role="status" className="text-sm font-medium text-[#1F7A55]">
               Đã nộp ảnh thẻ.
             </p>
           )}

@@ -25,7 +25,7 @@ export function VaultServiceBadge({
   }
   return (
     <span
-      className={`inline-flex max-w-full items-center rounded-full border px-2.5 py-1 text-xs font-semibold leading-5 ${colors}`}
+      className={`inline-flex max-w-full items-center rounded-full border px-2.5 py-1 text-sm font-semibold leading-5 ${colors}`}
     >
       {getVaultServiceName(tier)}
     </span>
@@ -90,13 +90,13 @@ function VaultServiceDetails({ service, showQuota = false }: VaultServiceInfoPro
       {showQuota && (
         <dl className="grid gap-4 border-t border-heritage-border pt-4 sm:grid-cols-2">
           <div>
-            <dt className="text-xs text-heritage-muted">Dung lượng</dt>
+            <dt className="text-sm text-heritage-muted">Dung lượng</dt>
             <dd className="mt-1 text-xl font-semibold text-heritage-primary">
               {formatStorageMegabytes(service.storageQuotaBytes)}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-heritage-muted">Suất người nhận</dt>
+            <dt className="text-sm text-heritage-muted">Suất người nhận</dt>
             <dd className="mt-1 text-xl font-semibold text-heritage-primary">
               {service.beneficiarySlots}
             </dd>

@@ -187,7 +187,7 @@ export function AssetList({
             <table className="w-full min-w-[560px] text-left text-sm">
               <caption className="sr-only">Các mục trong kho</caption>
               <thead>
-                <tr className="border-b border-heritage-border text-xs text-heritage-muted">
+                <tr className="border-b border-heritage-border text-sm text-heritage-muted">
                   <th scope="col" className="py-3 pr-4 font-semibold">
                     Tên mục
                   </th>

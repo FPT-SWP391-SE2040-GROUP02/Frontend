@@ -189,7 +189,7 @@ export function CreateAssetForm({
                 />
               </label>
               {file && (
-                <p className="break-all text-xs text-heritage-muted">
+                <p className="break-all text-sm text-heritage-muted">
                   Đã chọn: <span className="font-medium text-heritage-text">{file.name}</span> ·{" "}
                   {file.size} bytes
                 </p>
@@ -197,13 +197,13 @@ export function CreateAssetForm({
             </div>
           )}
           {kind === "FILE" && (
-            <p className="text-xs text-heritage-muted">
+            <p className="text-sm text-heritage-muted">
               Tệp tối đa {formatStorageSize(MAX_ASSET_FILE_BYTES)}.
             </p>
           )}
           {kind === "FILE" && action.pending && (
             <div className="space-y-1">
-              <p role="status" className="text-xs font-medium">
+              <p role="status" className="text-sm font-medium">
                 {uploadPercent !== null && uploadPercent < 100
                   ? `Đang tải tệp lên… ${uploadPercent}%`
                   : "Đã gửi tệp, đang mã hóa và lưu trên máy chủ…"}
@@ -230,7 +230,7 @@ export function CreateAssetForm({
               {errors.content?.message ?? fileError}
             </p>
           )}
-          <p className="flex items-start gap-2 text-xs leading-5 text-heritage-muted">
+          <p className="flex items-start gap-2 text-sm leading-5 text-heritage-muted">
             <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
             Nội dung được mã hóa AES-256-GCM trên máy chủ.
           </p>

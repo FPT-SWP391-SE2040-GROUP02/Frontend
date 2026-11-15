@@ -100,7 +100,7 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
             {fullName && <Initial name={fullName} className="size-10" />}
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{fullName ?? shell.role}</p>
-              <p className="mt-0.5 text-xs text-heritage-gold">{shell.role}</p>
+              <p className="mt-0.5 text-sm text-heritage-gold">{shell.role}</p>
             </div>
           </div>
         </>

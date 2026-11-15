@@ -134,13 +134,13 @@ export function AdminAuditLogs() {
         >
           <Inbox className="size-8 text-heritage-gold" aria-hidden="true" />
           <p className="text-sm font-medium">Chưa có dòng nhật ký nào khớp bộ lọc.</p>
-          <p className="text-xs text-heritage-muted">
+          <p className="text-sm text-heritage-muted">
             Hãy thử bỏ bộ lọc hoặc chờ thao tác tiếp theo.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          <p className="text-xs text-heritage-muted" aria-live="polite">
+          <p className="text-sm text-heritage-muted" aria-live="polite">
             {logs.data.totalCount} dòng · trang {logs.data.pageIndex}/
             {Math.max(1, logs.data.totalPages)}
           </p>

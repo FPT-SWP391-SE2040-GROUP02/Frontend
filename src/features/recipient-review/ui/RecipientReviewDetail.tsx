@@ -60,7 +60,7 @@ export function MatchRow({
       <span className="min-w-0">
         {label}
         {detail && (
-          <span className="ml-2 break-words font-mono text-xs text-heritage-primary">{detail}</span>
+          <span className="ml-2 break-words font-mono text-sm text-heritage-primary">{detail}</span>
         )}
       </span>
       <Chip tone={matches ? "success" : "danger"}>{matches ? "Khớp" : "Không khớp"}</Chip>
@@ -214,7 +214,7 @@ function MatchTable({
       <table className="w-full min-w-[480px] text-left text-sm">
         <caption className="sr-only">Đối chiếu thông tin người nhận</caption>
         <thead>
-          <tr className="border-b border-heritage-border text-xs text-heritage-muted">
+          <tr className="border-b border-heritage-border text-sm text-heritage-muted">
             <th scope="col" className="py-2 pr-3 font-semibold">
               Thông tin
             </th>
@@ -572,7 +572,7 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
                   </button>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="text-xs text-heritage-muted" aria-live="polite">
+                  <span className="text-sm text-heritage-muted" aria-live="polite">
                     Đã kiểm {checkedCount}/{VERIFIER_CHECK_COUNT}
                   </span>
                   <button
@@ -611,20 +611,20 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
               </ul>
               <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <dt className="text-xs text-heritage-muted">Lựa chọn</dt>
+                  <dt className="text-sm text-heritage-muted">Lựa chọn</dt>
                   <dd className="font-semibold">{SUBMISSION_KIND_LABELS[detail.kind]}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-heritage-muted">Tài sản trong gói</dt>
+                  <dt className="text-sm text-heritage-muted">Tài sản trong gói</dt>
                   <dd className="font-semibold">{detail.itemCount}</dd>
                 </div>
                 <div>
-                  <dt className="text-xs text-heritage-muted">Đã đọc điều khoản</dt>
+                  <dt className="text-sm text-heritage-muted">Đã đọc điều khoản</dt>
                   <dd className="font-semibold">{detail.acknowledged ? "Có" : "Không"}</dd>
                 </div>
                 {detail.kind === "DECLINE" && (
                   <div>
-                    <dt className="text-xs text-heritage-muted">Tự nguyện từ chối</dt>
+                    <dt className="text-sm text-heritage-muted">Tự nguyện từ chối</dt>
                     <dd className="font-semibold">{detail.voluntaryDecline ? "Có" : "Không"}</dd>
                   </div>
                 )}

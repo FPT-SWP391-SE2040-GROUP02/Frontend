@@ -107,7 +107,7 @@ export function SystemConfigCard({ service, onEdit, onReset }: SystemConfigCardP
           );
         })}
       </div>
-      <p className="mt-4 text-xs text-heritage-muted">{lastCallText(service.status)}</p>
+      <p className="mt-4 text-sm text-heritage-muted">{lastCallText(service.status)}</p>
     </Panel>
   );
 }

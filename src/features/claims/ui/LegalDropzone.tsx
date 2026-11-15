@@ -113,10 +113,10 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
         {uploadMutation.isPending ? (
           <div className="flex flex-col items-center justify-center py-4 space-y-3">
             <Loader2 className="w-8 h-8 text-[#B88E4C] animate-spin" />
-            <p className="text-xs font-bold text-[#0B291E]">
+            <p className="text-sm font-bold text-[#0B291E]">
               Đang băm SHA-256 & truyền tệp lên Cloudflare R2...
             </p>
-            <p className="text-[10px] text-[#66786E]">Vui lòng không đóng trình duyệt</p>
+            <p className="text-[0.875rem] text-[#66786E]">Vui lòng không đóng trình duyệt</p>
           </div>
         ) : isSuccess ? (
           <div className="flex flex-col items-center justify-center py-2 space-y-2">
@@ -124,18 +124,18 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-bold text-[#0B291E]">{uploadMutation.data.fileName}</p>
-              <p className="text-[10px] text-[#66786E]">
+              <p className="text-sm font-bold text-[#0B291E]">{uploadMutation.data.fileName}</p>
+              <p className="text-[0.875rem] text-[#66786E]">
                 {(uploadMutation.data.fileSize / 1024 / 1024).toFixed(2)} MB • Đã niêm phong băm
                 SHA-256
               </p>
             </div>
             {/* Thẻ hiển thị mã băm toàn vẹn */}
             <div className="w-full max-w-md mt-2 p-2 rounded-xl bg-[#FAF9F5] border border-[#DCD9D0] text-left">
-              <span className="text-[10px] font-bold text-[#B88E4C] block uppercase tracking-wider">
+              <span className="text-[0.875rem] font-bold text-[#B88E4C] block uppercase tracking-wider">
                 Mã Băm Toàn Vẹn (Integrity Hash):
               </span>
-              <p className="font-mono text-[10px] text-[#14241C] truncate select-all">
+              <p className="font-mono text-[0.875rem] text-[#14241C] truncate select-all">
                 {uploadMutation.data.fileHash}
               </p>
             </div>
@@ -146,11 +146,11 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
               <UploadCloud className="w-6 h-6 text-[#0B291E]" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm font-bold text-[#14241C]">
+              <p className="text-sm sm:text-sm font-bold text-[#14241C]">
                 Kéo thả tệp scan hoặc{" "}
                 <span className="text-[#B88E4C] underline">bấm để chọn file</span>
               </p>
-              <p className="text-[11px] text-[#66786E] mt-0.5">
+              <p className="text-[0.875rem] text-[#66786E] mt-0.5">
                 Hỗ trợ PDF, PNG, JPG. Chức năng tải lên đang được hoàn thiện.
               </p>
             </div>
@@ -159,7 +159,7 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
       </FileDropzone>
 
       {uploadMutation.error && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{uploadMutation.error.message}</span>
         </div>

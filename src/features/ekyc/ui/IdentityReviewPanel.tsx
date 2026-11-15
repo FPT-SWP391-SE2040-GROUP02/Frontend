@@ -100,14 +100,14 @@ export function IdentityReviewPanel({ result, portal }: IdentityReviewPanelProps
               <IdCard aria-hidden="true" className="size-12 text-heritage-gold" />
               <p className="mt-4 text-sm text-heritage-muted">{content.referenceHint}</p>
             </div>
-            <p className="mt-3 text-xs leading-6 text-heritage-muted">{content.referenceDetail}</p>
+            <p className="mt-3 text-sm leading-6 text-heritage-muted">{content.referenceDetail}</p>
           </div>
           <div className="min-w-0">
             <h3 className="mb-3 font-semibold">{content.selfie}</h3>
             <div className="flex aspect-[4/3] flex-col items-center justify-center rounded-xl border border-dashed border-heritage-border p-5 text-center">
               <UserRound aria-hidden="true" className="size-10 text-heritage-gold" />
               <p className="mt-3 text-sm font-medium">{content.chooseSelfie}</p>
-              <p className="mt-1 text-xs text-heritage-muted">{content.selfieHint}</p>
+              <p className="mt-1 text-sm text-heritage-muted">{content.selfieHint}</p>
               <label className="relative mt-4 flex min-h-11 cursor-pointer items-center rounded-xl bg-heritage-primary px-5 text-sm text-white focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-heritage-gold">
                 {content.select}
                 <input
@@ -127,23 +127,23 @@ export function IdentityReviewPanel({ result, portal }: IdentityReviewPanelProps
                   }}
                 />
               </label>
-              <p className="mt-3 text-xs text-heritage-muted">
+              <p className="mt-3 text-sm text-heritage-muted">
                 {CAMERA_CHECK_CONTENT.documents.formats}
               </p>
             </div>
             {selfieName && (
-              <p role="status" className="mt-3 break-all text-xs leading-6">
+              <p role="status" className="mt-3 break-all text-sm leading-6">
                 {selfieName}
               </p>
             )}
             {fileError && (
-              <p role="alert" className="mt-3 text-xs text-red-700">
+              <p role="alert" className="mt-3 text-sm text-red-700">
                 {fileError}
               </p>
             )}
             <Link
               to="?step=camera"
-              className="mt-3 flex min-h-11 items-center justify-center rounded-xl border border-heritage-border px-3 text-center text-xs"
+              className="mt-3 flex min-h-11 items-center justify-center rounded-xl border border-heritage-border px-3 text-center text-sm"
             >
               {content.cameraSelfie}
             </Link>
@@ -153,20 +153,20 @@ export function IdentityReviewPanel({ result, portal }: IdentityReviewPanelProps
           <summary className="min-h-11 cursor-pointer py-3 font-medium">
             {content.threshold}
           </summary>
-          <p className="pb-4 text-xs leading-6 text-heritage-muted">{content.thresholdHint}</p>
+          <p className="pb-4 text-sm leading-6 text-heritage-muted">{content.thresholdHint}</p>
         </details>
-        <p className="mt-3 text-xs leading-6 text-heritage-muted">{content.uploadedHint}</p>
+        <p className="mt-3 text-sm leading-6 text-heritage-muted">{content.uploadedHint}</p>
         <Button size="lg" disabled className="mt-4 min-h-12 w-full justify-between">
           {content.compare}
           <ArrowRight aria-hidden="true" />
         </Button>
-        <p className="mt-4 text-xs leading-6 text-heritage-muted">{content.note}</p>
+        <p className="mt-4 text-sm leading-6 text-heritage-muted">{content.note}</p>
       </section>
       <div>
         <section className="rounded-2xl border border-heritage-border bg-heritage-surface p-5 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-xl font-semibold">{content.matchResult}</h2>
-            <span className="rounded-full bg-heritage-canvas px-3 py-1 text-xs text-heritage-muted">
+            <span className="rounded-full bg-heritage-canvas px-3 py-1 text-sm text-heritage-muted">
               {content.notRun}
             </span>
           </div>
@@ -190,7 +190,7 @@ export function IdentityReviewPanel({ result, portal }: IdentityReviewPanelProps
             ))}
           </ul>
         </section>
-        <p className="mt-5 text-xs leading-6 text-heritage-muted">
+        <p className="mt-5 text-sm leading-6 text-heritage-muted">
           {CAMERA_CHECK_CONTENT.disclaimer}
         </p>
       </div>

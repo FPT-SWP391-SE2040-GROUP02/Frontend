@@ -139,7 +139,7 @@ export function CertificateViewer({ caseId, files }: { caseId: string; files: Ve
           ))}
         </div>
       )}
-      <p className="text-xs text-heritage-muted">
+      <p className="text-sm text-heritage-muted">
         {KIND_LABELS[file.kind]} · {file.fileName} · {formatStorageSize(file.sizeBytes)}
       </p>
       {pending && (
@@ -189,7 +189,7 @@ export function CertificateViewer({ caseId, files }: { caseId: string; files: Ve
           Tải xuống
         </a>
       )}
-      <p className="text-xs text-heritage-muted">
+      <p className="text-sm text-heritage-muted">
         Mẹo: xem rõ số định danh, con dấu đỏ và chữ ký. Ảnh nghiêng thì bấm xoay.
       </p>
     </section>

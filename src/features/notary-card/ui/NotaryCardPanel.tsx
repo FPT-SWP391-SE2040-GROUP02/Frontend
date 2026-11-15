@@ -74,7 +74,7 @@ export function NotaryCardPanel() {
               <IdCard className="size-10 text-heritage-muted" aria-hidden="true" />
             )}
           </div>
-          <figcaption className="mt-2 text-xs text-heritage-muted">{caption}</figcaption>
+          <figcaption className="mt-2 text-sm text-heritage-muted">{caption}</figcaption>
         </figure>
       )}
     </Panel>

@@ -53,7 +53,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
         <h2 className="text-xl font-bold text-[#14241C]">
           Bước 3: Chỉ Định Người Thực Thi & Kích Hoạt Kế Hoạch
         </h2>
-        <p className="text-xs text-[#66786E] mt-1 leading-relaxed">
+        <p className="text-sm text-[#66786E] mt-1 leading-relaxed">
           Chỉ định Người thực thi (Executor) chịu trách nhiệm nộp giấy chứng tử và bắt đầu bàn giao.
           Kiểm tra điều kiện kích hoạt di sản theo chuẩn SRS 3.11.0 (SETUP-01).
         </p>
@@ -62,7 +62,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
       {errorMessage && (
         <div
           role="alert"
-          className="p-3.5 rounded-[14px] bg-[#FEF2F2] border border-[#FECACA] flex items-center gap-2 text-xs text-[#DC2626] font-medium"
+          className="p-3.5 rounded-[14px] bg-[#FEF2F2] border border-[#FECACA] flex items-center gap-2 text-sm text-[#DC2626] font-medium"
         >
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMessage}</span>
@@ -76,7 +76,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           <h3 className="text-sm font-bold text-[#14241C]">1. Người Thực Thi (Executor) *</h3>
         </div>
 
-        <p className="text-xs leading-relaxed text-[#66786E]">
+        <p className="text-sm leading-relaxed text-[#66786E]">
           Chọn một Người thực thi hệ thống đã được thẩm định trong danh bạ. Hệ thống hiện không nhận
           email của người ngoài.
         </p>
@@ -99,7 +99,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           </h3>
         </div>
 
-        <div className="space-y-2 text-xs">
+        <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between p-2.5 rounded-[12px] bg-[#FAF9F5] border border-[#E8E5DD]">
             <span className="text-[#14241C]">Gói dịch vụ Owner trả phí còn hạn:</span>
             <span className="font-bold text-[#059669] flex items-center gap-1">
@@ -144,7 +144,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           checked={policyConfirmed}
           onChange={(e) => onPolicyConfirmChange(e.target.checked)}
           label={
-            <span className="font-bold text-[#0B291E] text-xs">
+            <span className="font-bold text-[#0B291E] text-sm">
               Tôi xác nhận chính sách bàn giao: Kho một người được chọn chuyển 1:1 trước khi bắt
               đầu; Kho đồng sở hữu bắt buộc 100% đồng thuận; Bàn giao chỉ mở sau khi Verifier duyệt
               giấy chứng tử (SRS 3.11.0).
@@ -159,7 +159,7 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           type="button"
           disabled={!isFormValid || isPending}
           onClick={onActivate}
-          className="w-full min-h-[50px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+          className="w-full min-h-[50px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
         >
           <Zap className="w-4 h-4 text-[#B88E4C]" />
           <span>

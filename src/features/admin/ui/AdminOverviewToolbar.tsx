@@ -11,7 +11,7 @@ export function AdminOverviewToolbar() {
   return (
     <div className="flex flex-wrap items-center gap-3">
       {query.data && (
-        <p className="text-xs text-heritage-muted">
+        <p className="text-sm text-heritage-muted">
           Cập nhật lúc{" "}
           <time dateTime={query.data.serverTime}>{formatDateTime(query.data.serverTime)}</time> (giờ
           máy chủ)
@@ -20,7 +20,7 @@ export function AdminOverviewToolbar() {
       <Button
         variant="outline"
         size="sm"
-        className="min-h-10 text-xs font-semibold"
+        className="min-h-10 text-sm font-semibold"
         disabled={query.isFetching}
         onClick={() => void client.invalidateQueries({ queryKey: adminKeys.all })}
       >

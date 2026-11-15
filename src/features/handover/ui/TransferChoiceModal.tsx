@@ -69,19 +69,19 @@ export const TransferChoiceModal: React.FC<TransferChoiceModalProps> = ({
           <DialogTitle className="text-base font-bold text-center text-[#0B291E]">
             Chuyển Quyền 1:1 Nguyên Kho Bàn Giao
           </DialogTitle>
-          <DialogDescription className="text-xs text-center text-[#66786E]">
+          <DialogDescription className="text-sm text-center text-[#66786E]">
             Kho: <span className="font-semibold text-[#14241C]">{vaultTitle}</span>
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           {/* Hộp giải thích chính sách REDIST */}
-          <div className="p-3.5 rounded-[14px] bg-[#FBF7EE] border border-[#E8DCC6] space-y-1.5 text-xs text-[#78350F]">
+          <div className="p-3.5 rounded-[14px] bg-[#FBF7EE] border border-[#E8DCC6] space-y-1.5 text-sm text-[#78350F]">
             <span className="font-bold flex items-center gap-1.5 text-[#0B291E]">
               <ShieldCheck className="w-4 h-4 text-[#B88E4C]" />
               Chính sách chuyển quyền (SRS 3.11.0 - REDIST):
             </span>
-            <ul className="list-disc pl-4 text-[11px] text-[#A07839] space-y-1">
+            <ul className="list-disc pl-4 text-[0.875rem] text-[#A07839] space-y-1">
               <li>Chuyển toàn bộ tài sản trong kho, không chia nhỏ hay cắt % di sản.</li>
               <li>
                 Chỉ có hiệu lực dự kiến; bạn có thể đổi đích hoặc hủy chuyển cho đến khi Người thực
@@ -92,7 +92,7 @@ export const TransferChoiceModal: React.FC<TransferChoiceModalProps> = ({
           </div>
 
           {error && (
-            <div className="p-2.5 rounded-[12px] bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#DC2626] font-medium flex items-center gap-2">
+            <div className="p-2.5 rounded-[12px] bg-[#FEF2F2] border border-[#FECACA] text-sm text-[#DC2626] font-medium flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -100,7 +100,7 @@ export const TransferChoiceModal: React.FC<TransferChoiceModalProps> = ({
 
           {/* Chọn Người Thụ Hưởng Đích */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[#14241C]">
+            <label className="text-sm font-bold text-[#14241C]">
               Chọn Người Nhận Đích Trong Danh Sách Snapshot *
             </label>
             <select
@@ -109,7 +109,7 @@ export const TransferChoiceModal: React.FC<TransferChoiceModalProps> = ({
                 setSelectedTargetId(e.target.value);
                 setError(null);
               }}
-              className="w-full px-3.5 py-2.5 rounded-[14px] bg-white border border-[#DCD9D0] text-xs font-medium text-[#14241C] focus:outline-none focus:ring-2 focus:ring-[#B88E4C]"
+              className="w-full px-3.5 py-2.5 rounded-[14px] bg-white border border-[#DCD9D0] text-sm font-medium text-[#14241C] focus:outline-none focus:ring-2 focus:ring-[#B88E4C]"
             >
               <option value="">-- Chọn Người Nhận Hợp Lệ --</option>
               {candidates.map((cand) => (
@@ -125,13 +125,13 @@ export const TransferChoiceModal: React.FC<TransferChoiceModalProps> = ({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="rounded-[16px] text-xs font-bold"
+              className="rounded-[16px] text-sm font-bold"
             >
               Hủy bỏ
             </Button>
             <Button
               type="submit"
-              className="rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-bold px-5"
+              className="rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-sm font-bold px-5"
             >
               Xác Nhận Chuyển 1:1
             </Button>

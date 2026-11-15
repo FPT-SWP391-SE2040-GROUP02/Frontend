@@ -45,7 +45,7 @@ function StepTimeline({ steps }: { steps: DemoClockStep[] }) {
         <span className="mt-1.5 size-2.5 shrink-0 rounded-full bg-[#E0C486]" aria-hidden="true" />
         <div className="min-w-0">
           <p className="text-sm font-semibold">{stepKindLabel(step.kind)}</p>
-          <p className="text-xs text-heritage-muted">
+          <p className="text-sm text-heritage-muted">
             {formatDateTime(step.at)} · {stepDetail(step)}
           </p>
         </div>
@@ -145,11 +145,11 @@ export function DemoClockCard() {
       <div className="space-y-5">
         <dl className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl bg-heritage-canvas p-4">
-            <dt className="text-xs text-heritage-muted">Hôm nay theo hệ thống</dt>
+            <dt className="text-sm text-heritage-muted">Hôm nay theo hệ thống</dt>
             <dd className="mt-1 text-lg font-semibold">{formatDateTime(clock.nowUtc)}</dd>
           </div>
           <div className="rounded-xl bg-heritage-canvas p-4">
-            <dt className="text-xs text-heritage-muted">Ngày thật</dt>
+            <dt className="text-sm text-heritage-muted">Ngày thật</dt>
             <dd className="mt-1 text-lg font-semibold">{formatDate(clock.realNowUtc)}</dd>
           </div>
         </dl>
@@ -193,7 +193,7 @@ export function DemoClockCard() {
               {shownError}
             </p>
           )}
-          <p className="text-xs text-heritage-muted">
+          <p className="text-sm text-heritage-muted">
             Chỉ tua tới, không tua lùi. Hệ thống đặt giờ là 9:00 sáng của ngày chọn và chạy các việc
             nền ở từng mốc để gửi đủ email nhắc. Muốn làm lại từ đầu thì đặt lại dữ liệu trong cơ sở
             dữ liệu.

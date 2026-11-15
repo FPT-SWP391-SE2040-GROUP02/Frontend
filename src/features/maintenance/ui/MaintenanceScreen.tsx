@@ -92,7 +92,7 @@ export function MaintenanceScreen({ status }: MaintenanceScreenProps) {
             >
               {status.isChecking ? content.checking : content.recheck}
             </button>
-            <p className="m-0 text-[13px] text-[#9DB0A5]" aria-live="polite">
+            <p className="m-0 text-[0.875rem] text-[#9DB0A5]" aria-live="polite">
               {content.autoRecheck(MAINTENANCE_RECHECK_MS / 1000)}
               {lastChecked && ` · ${content.lastChecked} ${lastChecked}`}
             </p>
@@ -100,7 +100,7 @@ export function MaintenanceScreen({ status }: MaintenanceScreenProps) {
         </section>
       </main>
 
-      <footer className="relative z-10 flex flex-wrap items-center justify-between gap-3 text-[13px] text-[#9DB0A5]">
+      <footer className="relative z-10 flex flex-wrap items-center justify-between gap-3 text-[0.875rem] text-[#9DB0A5]">
         <span>{content.note}</span>
         <span>
           {content.adminPrompt}{" "}

@@ -68,7 +68,7 @@ export const DmsPingHistoryModal: React.FC<DmsPingHistoryModalProps> = ({ isOpen
               <DialogTitle className="text-xl font-bold text-[#14241C]">
                 Nhật Ký Nhịp Sinh Tồn (Audit Trail)
               </DialogTitle>
-              <DialogDescription className="text-xs text-[#66786E]">
+              <DialogDescription className="text-sm text-[#66786E]">
                 Lịch sử minh bạch các lần xác nhận sự hiện diện của chủ tài khoản
               </DialogDescription>
             </div>
@@ -90,7 +90,7 @@ export const DmsPingHistoryModal: React.FC<DmsPingHistoryModalProps> = ({ isOpen
           ) : !history || history.length === 0 ? (
             <div className="text-center py-10 bg-[#EFECE6]/50 rounded-[16px]">
               <ShieldCheck className="w-10 h-10 text-[#66786E] mx-auto mb-2 opacity-50" />
-              <p className="text-xs text-[#66786E]">Chưa có lịch sử xác nhận nhịp sinh tồn</p>
+              <p className="text-sm text-[#66786E]">Chưa có lịch sử xác nhận nhịp sinh tồn</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -105,22 +105,22 @@ export const DmsPingHistoryModal: React.FC<DmsPingHistoryModalProps> = ({ isOpen
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#14241C]">
+                        <span className="text-sm font-bold text-[#14241C]">
                           {getSourceLabel(item.source)}
                         </span>
-                        <Badge className="bg-[#E5EDE8] text-[#0B291E] border border-[#A2C4AF] text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold">
+                        <Badge className="bg-[#E5EDE8] text-[#0B291E] border border-[#A2C4AF] text-[0.875rem] px-2 py-0.5 rounded-full flex items-center gap-1 font-semibold">
                           <CheckCircle className="w-2.5 h-2.5 text-[#059669]" />
                           Thành công
                         </Badge>
                       </div>
-                      <div className="text-[11px] text-[#66786E] mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                      <div className="text-[0.875rem] text-[#66786E] mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
                         <span>Thời gian: {formatDateTime(item.pingedAt)}</span>
                         {item.ipAddress && <span>IP: {item.ipAddress}</span>}
                       </div>
                     </div>
                   </div>
 
-                  <span className="text-[10px] font-mono text-[#B88E4C] bg-[#FBF7EE] border border-[#E8DCC6] px-2.5 py-1 rounded-[8px] self-start sm:self-center">
+                  <span className="text-[0.875rem] font-mono text-[#B88E4C] bg-[#FBF7EE] border border-[#E8DCC6] px-2.5 py-1 rounded-[8px] self-start sm:self-center">
                     ECDSA-OK
                   </span>
                 </div>
@@ -134,7 +134,7 @@ export const DmsPingHistoryModal: React.FC<DmsPingHistoryModalProps> = ({ isOpen
             type="button"
             variant="outline"
             onClick={onClose}
-            className="rounded-[16px] border-[#DCD9D0] text-[#14241C] hover:bg-[#EFECE6] text-xs font-semibold px-6"
+            className="rounded-[16px] border-[#DCD9D0] text-[#14241C] hover:bg-[#EFECE6] text-sm font-semibold px-6"
           >
             Đóng
           </Button>

@@ -155,7 +155,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold text-heritage-text">Cơ Chế Nhịp Sinh Tồn</h2>
             </div>
-            <p className="text-xs sm:text-sm text-[#66786E]">
+            <p className="text-sm sm:text-sm text-[#66786E]">
               Dead Man's Switch (DMS Protocol) • Bàn giao di sản tự động khi mất tín hiệu
             </p>
           </div>
@@ -180,11 +180,11 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
         <div className="min-w-0 lg:col-span-7 bg-[#EFECE6] border border-heritage-border rounded-lg p-4 sm:p-6 flex flex-col justify-between">
           <div>
             <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-              <span className="min-w-0 text-xs font-bold text-[#66786E] uppercase flex items-start gap-2">
+              <span className="min-w-0 text-sm font-bold text-[#66786E] uppercase flex items-start gap-2">
                 <Clock className="w-4 h-4 shrink-0 text-[#B88E4C]" />
                 Thời Gian Đến Hạn Xác Nhận Tiếp Theo
               </span>
-              <span className="text-xs font-semibold text-[#0B291E] bg-[#FAF9F5] px-2.5 py-1 rounded-full border border-[#DCD9D0]">
+              <span className="text-sm font-semibold text-[#0B291E] bg-[#FAF9F5] px-2.5 py-1 rounded-full border border-[#DCD9D0]">
                 Chu kỳ {dmsState.config.checkIntervalDays} ngày
               </span>
             </div>
@@ -202,7 +202,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
                 <span className="text-3xl font-bold text-heritage-text">
                   {dmsState.hoursRemaining}
                 </span>
-                <span className="text-xs sm:text-sm font-medium text-[#66786E]">giờ</span>
+                <span className="text-sm sm:text-sm font-medium text-[#66786E]">giờ</span>
               </div>
             </div>
 
@@ -220,7 +220,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
               />
             </div>
 
-            <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 text-xs text-[#66786E]">
+            <div className="flex flex-wrap justify-between gap-x-4 gap-y-2 text-sm text-[#66786E]">
               <span>Ping gần nhất: {formatDate(dmsState.lastPingAt)}</span>
               <span>Hạn chót: {formatDate(dmsState.nextPingDeadline)}</span>
             </div>
@@ -250,20 +250,20 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
               </div>
               <div className="min-w-0">
                 <h3 className="text-sm font-bold text-[#14241C]">Niêm Phong Mật Mã Học</h3>
-                <span className="text-[11px] font-mono text-[#B88E4C] uppercase font-semibold">
+                <span className="text-[0.875rem] font-mono text-[#B88E4C] uppercase font-semibold">
                   ECDSA P-256 Cryptographic Seal
                 </span>
               </div>
             </div>
 
-            <p className="text-xs text-[#66786E] mb-3 leading-relaxed">
+            <p className="text-sm text-[#66786E] mb-3 leading-relaxed">
               Mỗi nhịp sinh tồn được ký số mật mã học bất biến bằng khóa riêng và lưu trữ bằng chứng
               chứng thực tại sổ cái pháp lý.
             </p>
 
             {/* Seal Hash Display */}
             <div className="p-3 bg-[#EFECE6] border border-[#DCD9D0] rounded-lg flex items-center justify-between gap-2 mb-3">
-              <span className="min-w-0 font-mono text-xs text-[#0B291E] truncate select-all">
+              <span className="min-w-0 font-mono text-sm text-[#0B291E] truncate select-all">
                 {dmsState.integritySealHash}
               </span>
               <button
@@ -281,7 +281,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
               </button>
             </div>
 
-            <div className="text-[11px] text-[#66786E] flex flex-wrap items-center justify-between gap-2">
+            <div className="text-[0.875rem] text-[#66786E] flex flex-wrap items-center justify-between gap-2">
               <span>
                 Chuẩn mã hóa: <strong>NIST P-256</strong>
               </span>
@@ -297,7 +297,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
               variant="outline"
               size="sm"
               onClick={onOpenConfig}
-              className="h-auto min-h-11 min-w-0 whitespace-normal rounded-lg border-heritage-border text-heritage-text hover:bg-[#EFECE6] px-2 py-2 text-xs font-semibold flex items-center justify-center gap-2"
+              className="h-auto min-h-11 min-w-0 whitespace-normal rounded-lg border-heritage-border text-heritage-text hover:bg-[#EFECE6] px-2 py-2 text-sm font-semibold flex items-center justify-center gap-2"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-[#B88E4C]" />
               Cấu hình
@@ -307,7 +307,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
               variant="outline"
               size="sm"
               onClick={onOpenHistory}
-              className="h-auto min-h-11 min-w-0 whitespace-normal rounded-lg border-heritage-border text-heritage-text hover:bg-[#EFECE6] px-2 py-2 text-xs font-semibold flex items-center justify-center gap-2"
+              className="h-auto min-h-11 min-w-0 whitespace-normal rounded-lg border-heritage-border text-heritage-text hover:bg-[#EFECE6] px-2 py-2 text-sm font-semibold flex items-center justify-center gap-2"
             >
               <History className="w-3.5 h-3.5 text-[#66786E]" />
               Lịch sử ping
@@ -318,7 +318,7 @@ export const DmsHeartbeatCard: React.FC<DmsHeartbeatCardProps> = ({
               size="sm"
               onClick={handleTogglePause}
               disabled={isTogglingPause}
-              className={`h-auto min-h-11 min-w-0 whitespace-normal rounded-lg px-2 py-2 text-xs font-semibold flex items-center justify-center gap-2 ${
+              className={`h-auto min-h-11 min-w-0 whitespace-normal rounded-lg px-2 py-2 text-sm font-semibold flex items-center justify-center gap-2 ${
                 dmsState.status === "PAUSED"
                   ? "text-[#059669] hover:bg-[#E5EDE8]"
                   : "text-[#B45309] hover:bg-[#FFFBEB]"

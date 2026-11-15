@@ -118,7 +118,7 @@ export function LinkGoogleAccountCard({
         >
           Email này đã có tài khoản
         </h1>
-        <p className="text-xs sm:text-sm text-[#6B6B66] leading-relaxed">
+        <p className="text-sm sm:text-sm text-[#6B6B66] leading-relaxed">
           Địa chỉ <span className="font-medium text-[#0F1A16]">{email}</span> đã được dùng cho một
           tài khoản LegacyVault. Nhập mật khẩu để liên kết với Google.
         </p>
@@ -131,8 +131,8 @@ export function LinkGoogleAccountCard({
             {fullName.charAt(0)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-[#0F1A16] truncate">{fullName}</p>
-            <p className="text-[11px] text-[#6B6B66] truncate">{email}, từ Google</p>
+            <p className="text-sm font-semibold text-[#0F1A16] truncate">{fullName}</p>
+            <p className="text-[0.875rem] text-[#6B6B66] truncate">{email}, từ Google</p>
           </div>
           <ShieldCheck className="w-4 h-4 text-[#B88E4C] flex-shrink-0" />
         </div>
@@ -145,7 +145,7 @@ export function LinkGoogleAccountCard({
       {/* Form nhập mật khẩu hiện tại */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5 text-left">
-          <label htmlFor="google-link-password" className="text-xs font-semibold text-[#0F1A16]">
+          <label htmlFor="google-link-password" className="text-sm font-semibold text-[#0F1A16]">
             Mật khẩu hiện có
           </label>
           <div className="relative">
@@ -159,7 +159,7 @@ export function LinkGoogleAccountCard({
               {...register("password")}
               type={showPassword ? "text" : "password"}
               placeholder="Nhập mật khẩu hiện tại của bạn"
-              className={`pl-10 pr-12 h-11 text-xs rounded-xl bg-white border-[#D5D0C3] focus-visible:border-[#0A281E] ${
+              className={`pl-10 pr-12 h-11 text-sm rounded-xl bg-white border-[#D5D0C3] focus-visible:border-[#0A281E] ${
                 errors.password ? "border-red-500" : ""
               }`}
             />
@@ -169,7 +169,7 @@ export function LinkGoogleAccountCard({
               aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               aria-pressed={showPassword}
               disabled={isPending}
-              className="absolute right-0 top-1/2 -translate-y-1/2 min-h-11 min-w-11 text-xs font-medium text-[#6B6B66] hover:text-[#0A281E] rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A281E]"
+              className="absolute right-0 top-1/2 -translate-y-1/2 min-h-11 min-w-11 text-sm font-medium text-[#6B6B66] hover:text-[#0A281E] rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A281E]"
             >
               {showPassword ? "Ẩn" : "Hiện"}
             </button>
@@ -178,7 +178,7 @@ export function LinkGoogleAccountCard({
             <p
               id="google-link-password-error"
               role="alert"
-              className="text-[11px] text-red-600 font-medium"
+              className="text-[0.875rem] text-red-600 font-medium"
             >
               {errors.password.message}
             </p>
@@ -188,7 +188,7 @@ export function LinkGoogleAccountCard({
         <Button
           type="submit"
           disabled={isPending || !linkTicket}
-          className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-xs font-semibold shadow-md transition-all disabled:opacity-50 mt-2"
+          className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-sm font-semibold shadow-md transition-all disabled:opacity-50 mt-2"
         >
           {isPending ? "Đang xác nhận..." : "Xác nhận và liên kết"}
         </Button>
@@ -201,14 +201,14 @@ export function LinkGoogleAccountCard({
             type="button"
             disabled={isPending}
             onClick={onCancel}
-            className="min-h-11 text-xs text-[#0A281E] underline"
+            className="min-h-11 text-sm text-[#0A281E] underline"
           >
             Quay lại đăng nhập Google
           </button>
         ) : (
           <Link
             to={ROUTES.AUTH.LOGIN}
-            className="text-xs text-[#0A281E] hover:underline font-semibold"
+            className="text-sm text-[#0A281E] hover:underline font-semibold"
           >
             Dùng email khác
           </Link>

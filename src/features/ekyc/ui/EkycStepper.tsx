@@ -52,7 +52,7 @@ export function EkycStepper({ current }: { current: 1 | 2 | 3 | 4 }) {
           <div className={`flex-1 ${rightLine}`} />
         </div>
         <p className="mt-3 text-sm font-semibold">{step.title}</p>
-        <p className="text-xs text-heritage-muted">{step.hint}</p>
+        <p className="text-sm text-heritage-muted">{step.hint}</p>
       </li>,
     );
   }

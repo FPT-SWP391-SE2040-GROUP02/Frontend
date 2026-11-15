@@ -281,9 +281,9 @@ export function AdminActionDialog({
                     )}
                   />
                 )}
-                {field.hint && <p className="mt-1 text-xs text-heritage-muted">{field.hint}</p>}
+                {field.hint && <p className="mt-1 text-sm text-heritage-muted">{field.hint}</p>}
                 {error && (
-                  <p role="alert" className="mt-1 text-xs text-destructive">
+                  <p role="alert" className="mt-1 text-sm text-destructive">
                     {String(error)}
                   </p>
                 )}

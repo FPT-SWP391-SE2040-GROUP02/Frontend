@@ -93,7 +93,7 @@ function MemberCard(props: MemberCardProps) {
               {item.label}
             </p>
             {item.detail && (
-              <span className="mt-1 inline-block rounded-full bg-heritage-primary/10 px-2.5 py-0.5 text-xs font-medium text-heritage-muted">
+              <span className="mt-1 inline-block rounded-full bg-heritage-primary/10 px-2.5 py-0.5 text-sm font-medium text-heritage-muted">
                 {item.detail}
               </span>
             )}
@@ -121,7 +121,7 @@ function MemberCard(props: MemberCardProps) {
         >
           <div className="min-w-0">
             <p className="break-words font-semibold text-heritage-primary">{item.label}</p>
-            {item.detail && <p className="text-xs text-heritage-muted">{item.detail}</p>}
+            {item.detail && <p className="text-sm text-heritage-muted">{item.detail}</p>}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Chip tone="success">Đã gán</Chip>
@@ -146,7 +146,7 @@ function MemberCard(props: MemberCardProps) {
         >
           <div className="min-w-0">
             <p className="break-words font-semibold text-heritage-primary">{item.label}</p>
-            {item.detail && <p className="text-xs text-heritage-muted">{item.detail}</p>}
+            {item.detail && <p className="text-sm text-heritage-muted">{item.detail}</p>}
           </div>
           <button
             type="button"
@@ -211,7 +211,7 @@ function MemberCard(props: MemberCardProps) {
           </Button>
         </form>
       )}
-      <div className="mt-4 text-xs text-heritage-muted">{props.note}</div>
+      <div className="mt-4 text-sm text-heritage-muted">{props.note}</div>
     </section>
   );
 }
@@ -389,7 +389,7 @@ export function GroupDetail({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyle}`}>
+          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusStyle}`}>
             {statusLabel}
           </span>
           <Link

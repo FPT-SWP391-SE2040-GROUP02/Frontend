@@ -132,13 +132,13 @@ export const AssetTable: React.FC<AssetTableProps> = ({
         </div>
         <div>
           <h3 className="text-base font-bold text-[#14241C]">Không thể tải danh sách tài sản số</h3>
-          <p className="text-xs text-[#66786E] mt-1 max-w-sm mx-auto leading-relaxed">
+          <p className="text-sm text-[#66786E] mt-1 max-w-sm mx-auto leading-relaxed">
             Đã xảy ra lỗi kết nối với máy chủ mã hóa hoặc chứng thực phiên làm việc.
           </p>
         </div>
         <Button
           onClick={() => refetch()}
-          className="min-h-[44px] rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-xs font-semibold px-6 shadow-sm focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+          className="min-h-[44px] rounded-[16px] bg-[#0B291E] hover:bg-[#133E2F] text-white text-sm font-semibold px-6 shadow-sm focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
         >
           Thử Lại Ngay
         </Button>
@@ -155,14 +155,14 @@ export const AssetTable: React.FC<AssetTableProps> = ({
         </div>
         <div>
           <h3 className="text-lg font-bold text-[#14241C]">Kho Di Sản Chưa Có Tài Sản Nào</h3>
-          <p className="text-xs sm:text-sm text-[#66786E] max-w-md mx-auto mt-1 leading-relaxed">
+          <p className="text-sm sm:text-sm text-[#66786E] max-w-md mx-auto mt-1 leading-relaxed">
             Hãy bắt đầu bảo vệ ví tiền mã hóa, tài khoản số hoặc tài liệu mật bằng mã hóa cấp quân
             sự AES-256-GCM.
           </p>
         </div>
         <Button
           onClick={onOpenCreateModal}
-          className="min-h-[44px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-xs px-6 py-3 shadow-[0_4px_16px_rgba(11,41,30,0.2)] flex items-center gap-2 mx-auto focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+          className="min-h-[44px] rounded-[20px] bg-[#0B291E] hover:bg-[#133E2F] text-white font-bold text-sm px-6 py-3 shadow-[0_4px_16px_rgba(11,41,30,0.2)] flex items-center gap-2 mx-auto focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
         >
           <Plus className="w-4 h-4 text-[#B88E4C]" />
           Thêm Tài Sản Đầu Tiên
@@ -183,7 +183,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
             placeholder="Tìm kiếm tài sản trong kho..."
             value={internalSearch}
             onChange={(e) => setInternalSearch(e.target.value)}
-            className="h-11 pl-10 pr-9 bg-[#FAF9F5] border-[#DCD9D0] focus:border-[#B88E4C] rounded-[16px] text-xs font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+            className="h-11 pl-10 pr-9 bg-[#FAF9F5] border-[#DCD9D0] focus:border-[#B88E4C] rounded-[16px] text-sm font-medium focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
             aria-label="Tìm kiếm tài sản trong kho"
           />
           {internalSearch && (
@@ -197,7 +197,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
           )}
         </div>
 
-        <div className="text-xs text-[#66786E] font-medium self-end sm:self-center">
+        <div className="text-sm text-[#66786E] font-medium self-end sm:self-center">
           Hiển thị <span className="font-bold text-[#0B291E]">{filteredItems.length}</span> /{" "}
           {data.items.length} tài sản
         </div>
@@ -209,13 +209,13 @@ export const AssetTable: React.FC<AssetTableProps> = ({
           <p className="text-sm font-semibold text-[#14241C]">
             Không tìm thấy tài sản khớp với "{effectiveSearchTerm}"
           </p>
-          <p className="text-xs text-[#66786E]">
+          <p className="text-sm text-[#66786E]">
             Vui lòng kiểm tra lại từ khóa hoặc xóa bộ lọc tìm kiếm.
           </p>
           <Button
             variant="outline"
             onClick={() => setInternalSearch("")}
-            className="min-h-[44px] rounded-[16px] border-[#DCD9D0] text-xs font-semibold mt-2"
+            className="min-h-[44px] rounded-[16px] border-[#DCD9D0] text-sm font-semibold mt-2"
           >
             Xóa Tìm Kiếm
           </Button>
@@ -228,7 +228,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
               aria-label="Bảng danh sách tài sản số"
             >
               <thead>
-                <tr className="border-b border-[#E8E5DD] bg-[#EFECE6]/70 text-[#66786E] text-[11px] font-bold uppercase tracking-wider">
+                <tr className="border-b border-[#E8E5DD] bg-[#EFECE6]/70 text-[#66786E] text-[0.875rem] font-bold uppercase tracking-wider">
                   <th scope="col" className="py-4 px-6">
                     Tài Sản Số
                   </th>
@@ -246,7 +246,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E8E5DD] text-xs font-medium">
+              <tbody className="divide-y divide-[#E8E5DD] text-sm font-medium">
                 {filteredItems.map((asset) => (
                   <tr
                     key={asset.id}
@@ -271,7 +271,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                           <span className="font-bold text-[#14241C] text-sm block group-hover:text-[#0B291E]">
                             {asset.title}
                           </span>
-                          <span className="text-[11px] text-[#66786E] truncate max-w-xs block">
+                          <span className="text-[0.875rem] text-[#66786E] truncate max-w-xs block">
                             {asset.description}
                           </span>
                         </div>
@@ -281,7 +281,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                     {/* Category Badge */}
                     <td className="py-4 px-4">
                       <Badge
-                        className={`px-2.5 py-1 text-[11px] font-semibold rounded-full border ${getBadgeStyle(
+                        className={`px-2.5 py-1 text-[0.875rem] font-semibold rounded-full border ${getBadgeStyle(
                           asset.assetType,
                         )}`}
                       >
@@ -296,7 +296,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                     </td>
 
                     {/* Date */}
-                    <td className="py-4 px-4 text-[#66786E] text-[11px]">
+                    <td className="py-4 px-4 text-[#66786E] text-[0.875rem]">
                       {asset.createdAtFormatted}
                     </td>
 
@@ -307,7 +307,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                           variant="ghost"
                           onClick={() => onSelectAsset(asset)}
                           aria-label={`Xem chi tiết tài sản ${asset.title}`}
-                          className="min-h-[44px] px-3.5 rounded-[12px] text-xs text-[#0B291E] hover:bg-[#E5EDE8] flex items-center gap-1.5 font-semibold focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
+                          className="min-h-[44px] px-3.5 rounded-[12px] text-sm text-[#0B291E] hover:bg-[#E5EDE8] flex items-center gap-1.5 font-semibold focus-visible:ring-2 focus-visible:ring-[#B88E4C]"
                         >
                           <Eye className="w-4 h-4 text-[#B88E4C]" />
                           <span>Xem</span>
@@ -318,7 +318,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
                           disabled={isDeleting}
                           onClick={() => setAssetToDelete(asset)}
                           aria-label={`Xóa tài sản ${asset.title}`}
-                          className="min-h-[44px] px-3 rounded-[12px] text-xs text-[#DC2626] hover:bg-[#FEF2F2] flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-[#DC2626]"
+                          className="min-h-[44px] px-3 rounded-[12px] text-sm text-[#DC2626] hover:bg-[#FEF2F2] flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-[#DC2626]"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

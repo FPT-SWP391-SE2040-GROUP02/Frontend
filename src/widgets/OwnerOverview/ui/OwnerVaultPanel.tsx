@@ -48,7 +48,7 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
     >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-heritage-border pb-5">
         <div>
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-heritage-muted">
+          <p className="mb-1 text-[0.875rem] font-semibold uppercase tracking-widest text-heritage-muted">
             Tổng quan lưu trữ
           </p>
           <h2 id="owner-server-vault" className="text-lg font-semibold">
@@ -56,7 +56,7 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
           </h2>
         </div>
         {enabled && vault.isSuccess && (
-          <span className="max-w-full break-words rounded-full border border-heritage-border bg-heritage-canvas px-3 py-1.5 text-xs font-medium">
+          <span className="max-w-full break-words rounded-full border border-heritage-border bg-heritage-canvas px-3 py-1.5 text-sm font-medium">
             {vault.data.name}
           </span>
         )}
@@ -137,7 +137,7 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
                 <li key={item.id} className="min-w-0 rounded-xl border border-heritage-border p-4">
                   <div className="mb-4 flex items-center justify-between gap-2">
                     <Layers3 className="size-5 text-heritage-gold" aria-hidden="true" />
-                    <span className="rounded-full bg-heritage-primary/5 px-2.5 py-1 text-[11px] font-medium text-heritage-primary">
+                    <span className="rounded-full bg-heritage-primary/5 px-2.5 py-1 text-[0.875rem] font-medium text-heritage-primary">
                       {item.status === "READY"
                         ? "Sẵn sàng"
                         : item.status === "DRAFT"
@@ -147,7 +147,7 @@ export function OwnerVaultPanel({ enabled }: OwnerVaultPanelProps) {
                   </div>
                   <p className="break-words text-sm font-semibold">{item.name}</p>
                   {item.description && (
-                    <p className="mt-2 break-words text-xs leading-5 text-heritage-muted">
+                    <p className="mt-2 break-words text-sm leading-5 text-heritage-muted">
                       {item.description}
                     </p>
                   )}

@@ -99,7 +99,7 @@ function Tile({
       >
         {value}
       </b>
-      <span className="text-xs text-heritage-muted">{caption}</span>
+      <span className="text-sm text-heritage-muted">{caption}</span>
     </button>
   );
 }
@@ -258,7 +258,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                 variant="ghost"
                 size="sm"
                 onClick={() => goToIncidents({ status: "OPEN" })}
-                className="text-xs font-semibold text-heritage-muted hover:text-heritage-primary"
+                className="text-sm font-semibold text-heritage-muted hover:text-heritage-primary"
               >
                 Xem tất cả sự cố <ArrowRight className="ml-1 size-3.5" />
               </Button>
@@ -272,7 +272,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                 <p className="mt-2 text-sm font-semibold text-heritage-text">
                   Không có sự cố nào đang chờ xử lý
                 </p>
-                <p className="text-xs text-heritage-muted">
+                <p className="text-sm text-heritage-muted">
                   Toàn bộ hệ thống đang vận hành ổn định trong ngưỡng an toàn.
                 </p>
               </div>
@@ -297,11 +297,11 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                       <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
                         <b className="font-semibold">{INCIDENT_TYPE_LABELS[incident.type]}</b>
                         {incident.overdue ? (
-                          <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-800">
+                          <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-sm font-semibold text-red-800">
                             Quá hạn
                           </span>
                         ) : (
-                          <span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-sky-900">
+                          <span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-sm font-semibold text-sky-900">
                             {incident.responsibleRole === "ADMIN"
                               ? "Cần bạn xử lý"
                               : `Đang chờ ${RESPONSIBLE_ROLE_LABELS[incident.responsibleRole]}`}
@@ -397,7 +397,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                   );
                 })}
               </ul>
-              <p className="mt-2 text-xs text-heritage-muted">
+              <p className="mt-2 text-sm text-heritage-muted">
                 Theo lần gọi gần nhất từ lúc máy chủ khởi động.
               </p>
             </section>
@@ -471,7 +471,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
         </aside>
       </div>
 
-      <p className="text-xs text-heritage-muted">
+      <p className="text-sm text-heritage-muted">
         Zero-Knowledge: Quản trị viên chỉ quản lý hạ tầng và giám sát vận hành, tuyệt đối không giải
         mã và không đọc nội dung kho của người dùng.
       </p>

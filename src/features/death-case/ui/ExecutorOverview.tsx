@@ -66,7 +66,7 @@ function CanAndCannotCard() {
           </li>
         ))}
       </ul>
-      <p className="mt-3 flex items-center gap-2 text-xs text-heritage-muted">
+      <p className="mt-3 flex items-center gap-2 text-sm text-heritage-muted">
         <Lock className="size-3.5" aria-hidden="true" />
         Bạn chỉ báo tin và theo dõi, không xem được nội dung kho.
       </p>
@@ -116,7 +116,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
         aria-labelledby="executor-todo-title"
         className="rounded-2xl border border-[#E0C486] bg-[#FBF3E0] p-5 sm:p-6"
       >
-        <p className="text-xs font-semibold uppercase tracking-widest text-[#7A5B25]">
+        <p className="text-sm font-semibold uppercase tracking-widest text-[#7A5B25]">
           Việc của bạn bây giờ
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-4">

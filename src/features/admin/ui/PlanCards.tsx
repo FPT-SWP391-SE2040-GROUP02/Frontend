@@ -123,7 +123,7 @@ export function PlanCards({ getValue, setKeyValue }: PlanCardsProps) {
         className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-heritage-border bg-white px-5 py-3 shadow-sm"
       >
         <h3 className="text-base font-bold text-heritage-primary">Kỳ bán</h3>
-        <span className="text-xs text-heritage-muted">Áp dụng cho mọi gói trả phí</span>
+        <span className="text-sm text-heritage-muted">Áp dụng cho mọi gói trả phí</span>
         {allPeriods.map((period) => (
           <label
             key={period.years}
@@ -135,7 +135,7 @@ export function PlanCards({ getValue, setKeyValue }: PlanCardsProps) {
               aria-label={`Bán kỳ ${period.years} năm`}
               onCheckedChange={() => togglePeriod(period.years)}
             />
-            <span className={`text-xs ${period.on ? "text-emerald-800" : "text-heritage-muted"}`}>
+            <span className={`text-sm ${period.on ? "text-emerald-800" : "text-heritage-muted"}`}>
               {period.on ? "Đang bán" : "Tạm ngừng"}
             </span>
           </label>
@@ -198,7 +198,7 @@ function PlanCard({
         <h3 className="flex flex-wrap items-center gap-2 text-lg font-bold text-heritage-primary">
           {model.name}
           {model.free && (
-            <span className="rounded-xl bg-[#e5ede8] px-2 py-0.5 text-xs font-semibold">
+            <span className="rounded-xl bg-[#e5ede8] px-2 py-0.5 text-sm font-semibold">
               Mặc định
             </span>
           )}
@@ -206,7 +206,7 @@ function PlanCard({
         <p className="text-[12.5px] text-heritage-muted">{model.subtitle}</p>
       </div>
       {model.saleKey && (
-        <label className="flex items-center gap-2 text-xs font-semibold text-emerald-800">
+        <label className="flex items-center gap-2 text-sm font-semibold text-emerald-800">
           <Switch
             checked={selling}
             aria-label={`Bán gói ${model.name}`}
@@ -225,7 +225,7 @@ function PlanCard({
         {model.free ? (
           <div>
             <b className="text-[28px] font-bold leading-none text-heritage-primary">0đ</b>
-            <small className="mt-1 block text-xs text-heritage-muted">
+            <small className="mt-1 block text-sm text-heritage-muted">
               Miễn phí, không cần mua
             </small>
           </div>
@@ -235,12 +235,12 @@ function PlanCard({
               {first ? formatMoney(priceOf(first.years)) : "—"}
             </b>
             {first && (
-              <small className="mt-1 block text-xs text-heritage-muted">
+              <small className="mt-1 block text-sm text-heritage-muted">
                 cho {first.years} năm
               </small>
             )}
             {onPeriods.length > 1 && (
-              <p className="mt-1 flex flex-wrap gap-x-4 text-xs text-heritage-muted">
+              <p className="mt-1 flex flex-wrap gap-x-4 text-sm text-heritage-muted">
                 {onPeriods.slice(1).map((period) => (
                   <span key={period.years}>
                     {period.years} năm{" "}
@@ -253,7 +253,7 @@ function PlanCard({
             )}
           </div>
         )}
-        <dl className="grid grid-cols-3 gap-2 border-t border-heritage-border pt-3 text-xs">
+        <dl className="grid grid-cols-3 gap-2 border-t border-heritage-border pt-3 text-sm">
           <Fact
             label="Dung lượng"
             value={formatQuota(getValue(model.quotaKey, model.quotaDefault))}
@@ -318,7 +318,7 @@ function PlanCard({
       {model.free ? (
         <div>
           <b className="text-[28px] font-bold leading-none text-heritage-primary">0đ</b>
-          <small className="mt-1 block text-xs text-heritage-muted">Miễn phí, không cần mua</small>
+          <small className="mt-1 block text-sm text-heritage-muted">Miễn phí, không cần mua</small>
         </div>
       ) : (
         <div className="space-y-3">
@@ -471,12 +471,12 @@ function PriceField({
         </span>
       </div>
       {tooBig && (
-        <small role="alert" className="mt-1 block text-xs text-red-800">
+        <small role="alert" className="mt-1 block text-sm text-red-800">
           Giá mỗi kỳ tối đa {money.format(MAX_TIER_PRICE)}đ.
         </small>
       )}
       {hint && !tooBig && (
-        <small className="mt-1 block text-xs text-heritage-muted">
+        <small className="mt-1 block text-sm text-heritage-muted">
           ≈ {money.format(hint.perYear)}đ/năm · rẻ hơn {hint.savePercent}%
         </small>
       )}
@@ -603,7 +603,7 @@ function FeatureEditor({
         </button>
       )}
       {tooLong && (
-        <small role="alert" className="block text-xs text-red-800">
+        <small role="alert" className="block text-sm text-red-800">
           Mỗi dòng tối đa {MAX_FEATURE_LENGTH} ký tự.
         </small>
       )}

@@ -23,7 +23,7 @@ export function IncidentHoldBox({ vaultId }: { vaultId: string }) {
           Tạm giữ kho
         </h3>
         <span
-          className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+          className={`inline-flex rounded-full border px-2.5 py-0.5 text-sm font-semibold ${
             active
               ? "border-purple-200 bg-purple-50 text-purple-900"
               : "border-stone-300 bg-stone-100 text-stone-700"
@@ -32,7 +32,7 @@ export function IncidentHoldBox({ vaultId }: { vaultId: string }) {
           {HOLD_STATUS_LABELS[hold.status]}
         </span>
         {active && hold.reviewOverdue && (
-          <span className="text-xs font-semibold text-red-700">Quá hạn rà soát</span>
+          <span className="text-sm font-semibold text-red-700">Quá hạn rà soát</span>
         )}
       </div>
       <p className="text-sm">

@@ -68,7 +68,7 @@ export function PinField({ id, label, hint, error, ...props }: PinFieldProps) {
         className={FIELD}
         {...props}
       />
-      {hint && !error && <span className="block text-xs text-heritage-muted">{hint}</span>}
+      {hint && !error && <span className="block text-sm text-heritage-muted">{hint}</span>}
       <FieldError id={errorId} message={error} />
     </div>
   );

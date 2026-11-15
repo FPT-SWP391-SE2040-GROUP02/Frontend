@@ -73,7 +73,7 @@ export function OwnerContainer() {
           className="grid gap-3 sm:grid-cols-2"
         >
           {showAssetNav && (
-            <div className="flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-3 text-sm">
               <Button
                 variant="outline"
                 disabled={assetPage === 1 || assets.isFetching}
@@ -92,7 +92,7 @@ export function OwnerContainer() {
             </div>
           )}
           {showBeneficiaryNav && (
-            <div className="flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-3 text-sm">
               <Button
                 variant="outline"
                 disabled={beneficiaryPage === 1 || beneficiaries.isFetching}

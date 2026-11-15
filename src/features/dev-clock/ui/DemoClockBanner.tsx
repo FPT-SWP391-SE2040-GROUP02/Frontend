@@ -58,13 +58,13 @@ export function DemoClockBanner() {
           type="button"
           disabled={reset.isPending}
           onClick={() => reset.mutate()}
-          className="min-h-8 rounded-lg border border-[#7A5B25] px-3 text-xs font-semibold text-[#5A4210] hover:bg-[#E8D9B0] disabled:opacity-60"
+          className="min-h-8 rounded-lg border border-[#7A5B25] px-3 text-sm font-semibold text-[#5A4210] hover:bg-[#E8D9B0] disabled:opacity-60"
         >
           {resetLabel}
         </button>
       )}
       {reset.isError && (
-        <span role="alert" className="text-xs font-normal">
+        <span role="alert" className="text-sm font-normal">
           Chưa về được ngày thật. Đăng nhập lại bằng tài khoản Admin rồi thử lại.
         </span>
       )}

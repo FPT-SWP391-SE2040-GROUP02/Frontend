@@ -29,7 +29,7 @@ export function ReviewFeedback({ record }: { record: DeathCase }) {
             <li key={part} className="flex items-center justify-between gap-3 py-2.5 text-sm">
               <span className="font-medium">{requirementLabels[part] ?? part}</span>
               <span
-                className={`rounded-full px-3 py-0.5 text-xs font-semibold ${missing.has(part) ? "bg-[#ECE8DB] text-[#4D4D4B]" : "bg-[#DDEFE6] text-[#1F7A55]"}`}
+                className={`rounded-full px-3 py-0.5 text-sm font-semibold ${missing.has(part) ? "bg-[#ECE8DB] text-[#4D4D4B]" : "bg-[#DDEFE6] text-[#1F7A55]"}`}
               >
                 {missing.has(part) ? "Thiếu" : "Đã có"}
               </span>
