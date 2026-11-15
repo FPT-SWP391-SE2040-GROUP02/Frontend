@@ -89,7 +89,9 @@ describe("ExecutorKeyCard", () => {
     expect(await screen.findByText("Đã có · Bản 1")).toBeInTheDocument();
     expect(screen.getByText("Bản đang dùng")).toBeInTheDocument();
     expect(screen.getByText("Tạo lúc")).toBeInTheDocument();
-    expect(screen.getByText(/Không xem lại được mã cũ/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Mã đã được gửi tới tài khoản Người thực thi trên hệ thống/),
+    ).toBeInTheDocument();
     await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
     const confirm = await screen.findByRole("dialog");
     expect(confirm).toHaveTextContent("Mã cũ hết dùng được ngay");

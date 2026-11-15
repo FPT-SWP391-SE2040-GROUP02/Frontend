@@ -4,6 +4,7 @@ import { useSelectedExecutorVault } from "@/features/death-case/model/useExecuto
 import { ExecutorOverview } from "@/features/death-case/ui/ExecutorOverview";
 import { VaultGate } from "@/features/death-case/ui/VaultGate";
 import { ExecutorWorkspace } from "@/widgets/ExecutorWorkspace/ExecutorWorkspace";
+import { ExecutorReceivedKeyCard } from "@/entities/executor";
 
 /**
  * Tổng quan Người thực thi của kho đang chọn. Kho đầu tiên được tự chọn khi chưa chọn kho nào;
@@ -24,7 +25,14 @@ export function ExecutorOverviewPage() {
 
   return (
     <ExecutorWorkspace title={title} description={description}>
-      <VaultGate state={state}>{(vault) => <ExecutorOverview vault={vault} />}</VaultGate>
+      <VaultGate state={state}>
+        {(vault) => (
+          <div className="space-y-6">
+            <ExecutorOverview vault={vault} />
+            <ExecutorReceivedKeyCard key={vault.vaultId} vaultId={vault.vaultId} />
+          </div>
+        )}
+      </VaultGate>
     </ExecutorWorkspace>
   );
 }

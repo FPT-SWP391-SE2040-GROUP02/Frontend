@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, ChevronDown, X } from "lucide-react";
@@ -18,9 +18,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
-import { Input } from "@/shared/ui/input";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import type { AuthState } from "@/entities/user/model/authSlice";
+import { SystemExecutorDirectory, type SystemExecutor } from "@/entities/executor";
 import { inviteExecutorSchema, type executorSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
 import { usePlanSetup } from "../model/usePlanSetup";
@@ -207,9 +207,32 @@ function InviteDialog({
     reValidateMode: "onBlur",
     defaultValues: { email: "", beneficiaryId: null },
   });
+  const selectedEmail = useWatch({ control: form.control, name: "email" });
+
+  /** Lý do không chọn được một người trong danh bạ; cùng luật với phần kiểm của form và của Backend. */
+  function disabledReason(executor: SystemExecutor): string | null {
+    const email = executor.email.trim().toLowerCase();
+    if (ownerEmail && email === ownerEmail.trim().toLowerCase()) {
+      return "Đây là tài khoản của bạn.";
+    }
+    if (replacing && email === replacing.inviteeEmail.trim().toLowerCase()) {
+      return "Người này đang là Người thực thi hiện tại.";
+    }
+    const taken = existingExecutors.some(
+      (e) =>
+        e.inviteeEmail.trim().toLowerCase() === email &&
+        (e.status === "INVITED" || e.status === "ACCEPTED" || e.status === "SUSPENDED") &&
+        (!replacing || e.id !== replacing.id),
+    );
+    if (taken) {
+      return "Người này đã được mời hoặc đang là Người thực thi.";
+    }
+    return null;
+  }
+
   let title = "Mời Người thực thi";
   let description =
-    "Người này sẽ báo tin khi có biến cố và trao mã mở gói cho người nhận. Họ không đọc được nội dung kho và không nhận tài sản.";
+    "Chọn một Người thực thi hệ thống đã được thẩm định. Người này sẽ báo tin khi có biến cố và trao mã mở gói cho người nhận. Họ không đọc được nội dung kho và không nhận tài sản.";
   let notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút.`;
   let cancelLabel = "Hủy";
   if (replacing !== null) {
@@ -223,7 +246,7 @@ function InviteDialog({
   }
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -245,15 +268,15 @@ function InviteDialog({
           })}
         >
           <fieldset disabled={action.pending} className="space-y-4">
-            <label className="block space-y-2 text-sm">
-              Email
-              <Input
-                type="email"
-                placeholder="nguoiduocmoi@example.com"
-                {...form.register("email")}
-                aria-invalid={Boolean(form.formState.errors.email)}
-              />
-            </label>
+            <legend className="text-sm font-semibold">Danh bạ Người thực thi hệ thống</legend>
+            <input type="hidden" {...form.register("email")} />
+            <SystemExecutorDirectory
+              selectedEmail={selectedEmail === "" ? null : selectedEmail}
+              getDisabledReason={disabledReason}
+              onSelect={(executor) =>
+                form.setValue("email", executor.email, { shouldValidate: true, shouldDirty: true })
+              }
+            />
             {form.formState.errors.email && (
               <p role="alert" className="text-sm text-destructive">
                 {form.formState.errors.email.message}
@@ -276,7 +299,12 @@ function InviteDialog({
             >
               {cancelLabel}
             </Button>
-            <Button size="lg" type="submit" className={GOLD_BUTTON} disabled={action.pending}>
+            <Button
+              size="lg"
+              type="submit"
+              className={GOLD_BUTTON}
+              disabled={action.pending || selectedEmail === ""}
+            >
               Gửi lời mời
             </Button>
           </DialogFooter>
@@ -378,8 +406,8 @@ function ChosenCard(props: ChosenCardProps) {
         <div className="mt-4 rounded-xl border-2 border-dashed border-heritage-border p-5">
           <p className="font-semibold">Bạn chưa mời ai</p>
           <p className="mt-2 text-sm leading-6 text-heritage-muted">
-            Chọn người bạn tin, thường là người thân hoặc luật sư gia đình. Họ cần có email và sẽ
-            phải đồng ý trước khi kế hoạch được kích hoạt.
+            Chọn một Người thực thi hệ thống trong danh bạ: luật sư, chuyên viên đã được thẩm định
+            pháp lý. Họ sẽ phải đồng ý trước khi kế hoạch được kích hoạt.
           </p>
           {manageable && (
             <Button
@@ -427,9 +455,10 @@ function ChosenCard(props: ChosenCardProps) {
   } else if (holder.status === "SUSPENDED") {
     statusText = "Người này cần đồng ý lại. Bấm Gửi lại lời mời để họ xác nhận.";
   } else if (planRunning) {
-    statusText = "Người này đang giữ phiếu mã mở gói.";
+    statusText = "Mã mở gói bạn tạo được gửi tới tài khoản của người này trên hệ thống.";
   } else {
-    statusText = "Người này sẽ giữ phiếu mã mở gói sau khi bạn kích hoạt kế hoạch.";
+    statusText =
+      "Người này sẽ nhận mã mở gói trên hệ thống sau khi bạn kích hoạt kế hoạch và tạo mã.";
   }
 
   const forbidden: string[] = ["Đọc nội dung kho", "Tự duyệt hồ sơ"];
