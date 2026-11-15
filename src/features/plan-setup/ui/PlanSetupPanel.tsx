@@ -10,6 +10,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import type { planSetupSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
 import { usePlanSetup } from "../model/usePlanSetup";
+import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 import { PlanReviewSummary } from "./PlanReviewSummary";
 
 type PlanSetup = z.infer<typeof planSetupSchema>;
@@ -252,6 +253,13 @@ function PlanSetupForm({
     warnings.push(<li key={w}>{text}</li>);
   }
   const lockReason = activationLockReason(setup.canActivate, acknowledge);
+  // Người thực thi chính đã ký nhận vai: tên in trong di chúc mà Chủ kho sẽ ký khi kích hoạt.
+  let acceptedExecutorEmail = "(chưa có Người thực thi chấp nhận)";
+  for (const executor of setup.executors) {
+    if (executor.status === "ACCEPTED") {
+      acceptedExecutorEmail = executor.inviteeEmail;
+    }
+  }
 
   function activate(): void {
     void action.execute(
@@ -323,6 +331,19 @@ function PlanSetupForm({
           showActivationNote
         />
       </div>
+      <div className="space-y-3">
+        <h3 className="font-semibold text-heritage-primary">Di chúc của bạn</h3>
+        <p className="text-sm leading-6 text-heritage-muted">
+          Bấm "Kích hoạt kế hoạch" nghĩa là bạn lập và ký di chúc dưới đây. Di chúc có hiệu lực từ
+          khi bạn qua đời; khi còn sống, bạn vẫn sửa, đổi người thực hiện hoặc thu hồi được.
+        </p>
+        <AuthorizationLetterPreview
+          executorEmail={acceptedExecutorEmail}
+          scopeText={setup.executorScopeText}
+          clauses={setup.willClauses}
+          defaultOpen
+        />
+      </div>
       <div className="space-y-4 rounded-xl bg-heritage-canvas p-5">
         <div className="space-y-2">
           <h3 className="font-semibold text-heritage-primary">Thông tin trước khi kích hoạt</h3>
@@ -341,8 +362,8 @@ function PlanSetupForm({
             disabled={action.pending}
             onChange={(event) => setAcknowledge(event.target.checked)}
           />
-          Tôi đã đọc cảnh báo về điểm danh, hạn phản hồi, tải và lưu/xóa dữ liệu; tôi chủ động kích
-          hoạt kế hoạch này.
+          Tôi đã đọc di chúc và cảnh báo về điểm danh, hạn phản hồi, tải và lưu/xóa dữ liệu; tôi chủ
+          động kích hoạt kế hoạch này và ký di chúc.
         </label>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Button

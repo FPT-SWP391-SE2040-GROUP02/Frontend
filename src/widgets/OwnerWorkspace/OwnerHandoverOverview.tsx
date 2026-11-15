@@ -19,6 +19,7 @@ import {
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
+import { WillClausesSection } from "@/features/vault-management/ui/WillClausesEditor";
 import { PlanReviewSummary } from "@/features/plan-setup/ui/PlanReviewSummary";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { HandoverStepsCard } from "./HandoverStepsCard";
@@ -164,7 +165,10 @@ function DraftView({ vaultId, onActivated }: { vaultId: string; onActivated: () 
         subtitle="Hoàn thành các việc dưới đây để kế hoạch bàn giao bắt đầu chạy."
       />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <PlanSetupPanel vaultId={vaultId} onActivated={onActivated} />
+        <div className="space-y-6">
+          <WillClausesSection />
+          <PlanSetupPanel vaultId={vaultId} onActivated={onActivated} />
+        </div>
         <div className="space-y-6">
           <HandoverStepsCard />
           <p className="text-sm text-heritage-muted">

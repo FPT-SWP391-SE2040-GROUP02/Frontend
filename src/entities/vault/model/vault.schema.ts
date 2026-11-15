@@ -8,6 +8,8 @@ export const vaultResponseSchema = z.object({
   /** Hướng dẫn Chủ kho để lại cho Executor. Backend cũ không có trường này. */
   executorNote: z.string().nullish(),
   executorNoteUpdatedAt: z.string().datetime({ offset: true }).nullish(),
+  /** Điều khoản Chủ kho thêm vào di chúc, theo thứ tự. Backend cũ không có trường này. */
+  willClauses: z.array(z.string()).default([]),
   status: z.enum(["OPEN", "CLOSED"]),
   closedAt: z.string().datetime({ offset: true }).nullable(),
   planStatus: z.string().min(1),

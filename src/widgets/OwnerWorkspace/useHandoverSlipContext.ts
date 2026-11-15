@@ -26,12 +26,14 @@ export function useHandoverSlipContext(
     displayVaultName = vaultName;
   }
   let executorEmail = NO_EXECUTOR;
+  let willClauses: string[] = [];
   if (plan.data) {
+    willClauses = plan.data.willClauses;
     for (const executor of plan.data.executors) {
       if (executor.status === "ACCEPTED" && executorEmail === NO_EXECUTOR) {
         executorEmail = executor.inviteeEmail;
       }
     }
   }
-  return { ownerName, vaultName: displayVaultName, executorEmail };
+  return { ownerName, vaultName: displayVaultName, executorEmail, willClauses };
 }

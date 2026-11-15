@@ -233,6 +233,7 @@ export function ExecutorKeyCard({
                 ownerName: slip.ownerName,
                 vaultName: slip.vaultName,
                 executorEmail: slip.executorEmail,
+                willClauses: slip.willClauses,
                 issuedAt: revealSlipDate,
                 version: issued.version,
                 shard: issued.shard,
