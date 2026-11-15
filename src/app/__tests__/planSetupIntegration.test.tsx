@@ -257,7 +257,9 @@ it("guest only inspects and receives login redirect, no acceptance controls", as
     "href",
     expect.stringContaining("%23token%3D"),
   );
-  expect(screen.queryByRole("button", { name: "Ký nhận vai thực hiện di chúc" })).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Ký nhận vai thực hiện di chúc" }),
+  ).not.toBeInTheDocument();
   expect(post).toHaveBeenCalledTimes(1);
 });
 

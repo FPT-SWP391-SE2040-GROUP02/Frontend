@@ -481,7 +481,9 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     expect(card).not.toHaveTextContent(/Còn \d|hết hạn|hạn chót/i);
     const accept = within(card).getByRole("button", { name: "Ký nhận vai thực hiện di chúc" });
     expect(accept).toBeDisabled();
-    fireEvent.click(within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản"));
+    fireEvent.click(
+      within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản"),
+    );
     expect(accept).toBeEnabled();
   });
 
@@ -510,7 +512,9 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     });
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
-    fireEvent.click(within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản"));
+    fireEvent.click(
+      within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản"),
+    );
     fireEvent.click(within(card).getByRole("button", { name: "Ký nhận vai thực hiện di chúc" }));
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
     expect(await screen.findByText("Kho của Cô Lan", { selector: "p" })).toBeInTheDocument();

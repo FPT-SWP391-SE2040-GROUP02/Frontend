@@ -61,7 +61,9 @@ export const ClaimStatusCard: React.FC<ClaimStatusCardProps> = ({ claim }) => {
         <div>
           <span className="text-[#66786E] block text-[0.875rem]">Chủ Kho Di Sản:</span>
           <span className="font-bold text-[#14241C]">{claim.ownerFullName}</span>
-          <span className="text-[#66786E] block text-[0.875rem]">CCCD: {claim.ownerNationalId}</span>
+          <span className="text-[#66786E] block text-[0.875rem]">
+            CCCD: {claim.ownerNationalId}
+          </span>
         </div>
         <div>
           <span className="text-[#66786E] block text-[0.875rem]">Số Hiệu Chứng Từ:</span>

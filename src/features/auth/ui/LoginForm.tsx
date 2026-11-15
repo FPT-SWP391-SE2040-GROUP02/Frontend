@@ -323,7 +323,11 @@ export function LoginForm({
             />
           </div>
           {errors.email && (
-            <p id="login-email-error" role="alert" className="text-[0.875rem] text-red-600 font-medium">
+            <p
+              id="login-email-error"
+              role="alert"
+              className="text-[0.875rem] text-red-600 font-medium"
+            >
               {errors.email.message}
             </p>
           )}

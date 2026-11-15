@@ -144,7 +144,9 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
                 </button>
               ))}
             </div>
-            <p className="text-[0.875rem] text-[#66786E] mt-2 italic">{activeStrategy.description}</p>
+            <p className="text-[0.875rem] text-[#66786E] mt-2 italic">
+              {activeStrategy.description}
+            </p>
           </div>
 
           {/* Section 2: General Info */}

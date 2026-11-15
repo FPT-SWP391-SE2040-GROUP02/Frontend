@@ -151,7 +151,9 @@ export const ClaimSubmitForm: React.FC<ClaimSubmitFormProps> = ({
           </label>
           <Input type="date" {...register("deathCertificateIssueDate")} className="bg-[#FAF9F5]" />
           {errors.deathCertificateIssueDate && (
-            <p className="text-[0.875rem] text-red-600">{errors.deathCertificateIssueDate.message}</p>
+            <p className="text-[0.875rem] text-red-600">
+              {errors.deathCertificateIssueDate.message}
+            </p>
           )}
         </div>
 

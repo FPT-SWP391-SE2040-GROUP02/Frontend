@@ -424,7 +424,9 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                           <span className="text-sm text-heritage-muted">đ</span>
                         </div>
                         {missing && (
-                          <span className="mt-1 block text-[0.875rem] text-red-700">Chưa có giá</span>
+                          <span className="mt-1 block text-[0.875rem] text-red-700">
+                            Chưa có giá
+                          </span>
                         )}
                         {tooHigh && (
                           <span role="alert" className="mt-1 block text-[0.875rem] text-red-700">
@@ -618,7 +620,9 @@ function QuotaInput({
         onChange={(event) => onChange(event.target.value.replace(/\D/g, ""))}
         className="h-8 w-full min-w-0 bg-transparent px-2 text-center font-mono text-sm font-semibold focus:outline-none"
       />
-      <span className="border-l border-zinc-200 px-2 text-[0.875rem] text-heritage-muted">{unit}</span>
+      <span className="border-l border-zinc-200 px-2 text-[0.875rem] text-heritage-muted">
+        {unit}
+      </span>
     </div>
   );
 }

@@ -39,7 +39,9 @@ export const SeedPhraseGrid: React.FC<SeedPhraseGridProps> = ({
           </div>
           <div>
             <h4 className="text-sm font-bold text-[#14241C]">{title}</h4>
-            <span className="text-[0.875rem] text-[#66786E]">Chuẩn phân mảnh mật mã học BIP-39</span>
+            <span className="text-[0.875rem] text-[#66786E]">
+              Chuẩn phân mảnh mật mã học BIP-39
+            </span>
           </div>
         </div>
 

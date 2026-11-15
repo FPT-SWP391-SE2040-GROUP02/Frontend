@@ -54,7 +54,9 @@ export function ComplianceCallout({
       <p className="text-[0.875rem] text-[#78350F] leading-relaxed mb-2.5">{description}</p>
 
       <CustomCheckbox
-        label={<span className="text-[#92400E] text-[0.875rem] font-semibold">{disclaimerText}</span>}
+        label={
+          <span className="text-[#92400E] text-[0.875rem] font-semibold">{disclaimerText}</span>
+        }
         checked={agreed}
         onChange={handleToggle}
       />

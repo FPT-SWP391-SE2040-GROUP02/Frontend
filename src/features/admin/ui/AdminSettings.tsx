@@ -1387,7 +1387,9 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                             </span>
                           )}
                         </div>
-                        <span className="font-mono text-[0.875rem] text-muted-foreground">{d.key}</span>
+                        <span className="font-mono text-[0.875rem] text-muted-foreground">
+                          {d.key}
+                        </span>
                       </td>
                       <td className="p-3 font-mono">
                         {d.oldValue === "true" ? (
