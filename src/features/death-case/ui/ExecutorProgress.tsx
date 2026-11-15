@@ -45,7 +45,7 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
   }
   const record = query.data ?? null;
   if (caseId && record && record.status === "APPROVED_FOR_HANDOVER") {
-    return <HandoverProgressPanel caseId={caseId} />;
+    return <HandoverProgressPanel caseId={caseId} vaultId={vault.vaultId} />;
   }
   return (
     <Panel title="Bàn giao chưa bắt đầu">

@@ -174,10 +174,12 @@ function DetailBoxes({
  */
 export function HandoverTurnRow({
   caseId,
+  vaultId,
   turn,
   progress,
 }: {
   caseId: string;
+  vaultId?: string;
   turn: HandoverProgressTurn;
   progress: TurnProgress;
 }) {
@@ -241,6 +243,7 @@ export function HandoverTurnRow({
         <div className="mt-4">
           <HandoverSendKey
             caseId={caseId}
+            vaultId={vaultId}
             turnId={turn.turnId}
             onSent={(sentAt) => {
               setKeySentAt(sentAt);

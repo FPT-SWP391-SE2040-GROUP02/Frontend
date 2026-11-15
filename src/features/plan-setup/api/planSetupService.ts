@@ -5,7 +5,6 @@ import {
   executorSchema,
   planSetupSchema,
   executorInfoSchema,
-  executorCandidatesSchema,
   inviteExecutorSchema,
   invitationTokenSchema as tokenSchema,
 } from "../model/planSetup.schema";
@@ -24,15 +23,6 @@ export const planSetupService = {
       { params: { email }, signal },
     );
     return response.exists;
-  },
-  /** Tìm tài khoản có sẵn theo tên hoặc email (từ 2 ký tự); Backend trả tối đa 8 người. */
-  async searchCandidates(id: string, query: string, signal?: AbortSignal) {
-    return executorCandidatesSchema.parse(
-      await apiClient.get<unknown, unknown>(`${vault(id)}/executor-candidates`, {
-        params: { q: query },
-        signal,
-      }),
-    );
   },
   async invite(id: string, request: z.infer<typeof inviteExecutorSchema>) {
     return executorSchema.parse(

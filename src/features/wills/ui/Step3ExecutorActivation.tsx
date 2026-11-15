@@ -1,5 +1,6 @@
 import React from "react";
-import { Button, Input, Card, CustomCheckbox } from "@/shared/ui";
+import { Button, Card, CustomCheckbox } from "@/shared/ui";
+import { SystemExecutorDirectory } from "@/entities/executor";
 import { UserCheck, ShieldCheck, AlertCircle, CheckCircle2, Zap } from "lucide-react";
 
 /**
@@ -75,46 +76,18 @@ export const Step3ExecutorActivation: React.FC<Step3ExecutorActivationProps> = (
           <h3 className="text-sm font-bold text-[#14241C]">1. Người Thực Thi (Executor) *</h3>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div>
-            <label className="text-[0.875rem] font-bold text-[#66786E] uppercase block mb-1">
-              Họ và tên Người Thực Thi *
-            </label>
-            <Input
-              value={executor.name}
-              onChange={(e) => onUpdateExecutor("name", e.target.value)}
-              placeholder="VD: Trần Đình Trọng"
-              className="h-10 text-sm bg-white"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="text-[0.875rem] font-bold text-[#66786E] uppercase block mb-1">
-              Email Thông Báo Pháp Lý *
-            </label>
-            <Input
-              type="email"
-              value={executor.email}
-              onChange={(e) => onUpdateExecutor("email", e.target.value)}
-              placeholder="VD: trong.tran@lawfirm.vn"
-              className="h-10 text-sm bg-white"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="text-[0.875rem] font-bold text-[#66786E] uppercase block mb-1">
-              Số Điện Thoại Xác Minh
-            </label>
-            <Input
-              value={executor.phone}
-              onChange={(e) => onUpdateExecutor("phone", e.target.value)}
-              placeholder="VD: 0912345678"
-              className="h-10 text-sm bg-white"
-            />
-          </div>
-        </div>
+        <p className="text-sm leading-relaxed text-[#66786E]">
+          Chọn một Người thực thi hệ thống đã được thẩm định trong danh bạ. Hệ thống hiện không nhận
+          email của người ngoài.
+        </p>
+        <SystemExecutorDirectory
+          selectedEmail={executor.email === "" ? null : executor.email}
+          onSelect={(chosen) => {
+            onUpdateExecutor("name", chosen.fullName);
+            onUpdateExecutor("email", chosen.email);
+            onUpdateExecutor("phone", chosen.phoneMasked ?? "");
+          }}
+        />
       </Card>
 
       {/* PHẦN 2: BẢNG KIỂM TRA ĐIỀU KIỆN KÍCH HOẠT (SETUP-01) */}
