@@ -50,6 +50,8 @@ const handoverNotAllowedReasons: Record<string, string> = {
   KEY_REQUIRED: "Cần nhập khóa mở gói do Người thực hiện đưa trước khi đồng ý nhận.",
   NO_KEY: "Kho này chưa cấp khóa mở gói nên chưa có khóa để gửi.",
   KEY_SEND_FAILED: "Chưa gửi được khóa. Vui lòng thử lại sau.",
+  HANDOVER_NOT_STARTED: "Mã mở gói sẽ hiện khi hồ sơ được duyệt và bàn giao bắt đầu.",
+  STAFF_CANNOT_CLAIM: "Tài khoản nhân sự không thể nhận tài sản bàn giao.",
 };
 
 /** Reason-specific messages for EXECUTOR_NOT_ALLOWED */
@@ -241,7 +243,6 @@ const messages: Record<string, string> = {
   VAULT_PIN_LOCKED: "Mã PIN đang bị khóa tạm vì nhập sai nhiều lần. Vui lòng thử lại sau.",
   VAULT_PIN_TOO_WEAK:
     "Mã PIN quá dễ đoán. Không dùng các số giống nhau hoặc dãy số liên tiếp (111111, 123456...).",
-  EXECUTOR_KEY_ALREADY_ISSUED: "Kho đã có khóa mở gói. Tải lại rồi dùng nút Quên khóa để cấp lại.",
   EXECUTOR_KEY_NOT_ISSUED: "Kho chưa cấp khóa mở gói nên chưa cấp lại được. Tải lại trang.",
   VAULT_PIN_RESET_NEEDS_PASSWORD:
     "Tài khoản của bạn chưa có mật khẩu nên chưa đặt lại mã PIN được. Hãy đặt mật khẩu ở mục Phương thức đăng nhập trước.",

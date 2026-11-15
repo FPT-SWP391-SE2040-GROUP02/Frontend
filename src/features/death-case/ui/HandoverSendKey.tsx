@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles } from "@/shared/ui/heritageKit";
-import { systemExecutorsService } from "@/entities/executor";
+import {
+  HANDOVER_NOT_STARTED_MESSAGE,
+  isHandoverNotStarted,
+  systemExecutorsService,
+} from "@/entities/executor";
 import { deathCaseService } from "../api/deathCaseService";
 
 /**
@@ -27,6 +31,7 @@ export function HandoverSendKey({
   const action = usePrivateAction();
   const fill = usePrivateAction();
   const [key, setKey] = useState("");
+  const [notStarted, setNotStarted] = useState(false);
   const busy = action.pending || fill.pending;
   const send = () =>
     void action.execute(
@@ -36,11 +41,14 @@ export function HandoverSendKey({
         onSent(result.sentAt);
       },
     );
-  const fillFromSystem = (id: string) =>
+  const fillFromSystem = (id: string) => {
+    setNotStarted(false);
     void fill.execute(
       () => systemExecutorsService.getHandoverKey(id),
       (received) => setKey(received.shard),
+      (error) => setNotStarted(isHandoverNotStarted(error)),
     );
+  };
   return (
     <div className="space-y-3 rounded-xl border border-heritage-border bg-white/60 p-4 text-sm">
       <label className="block space-y-1">
@@ -66,7 +74,12 @@ export function HandoverSendKey({
           {fill.pending ? "Đang lấy mã…" : "Dùng mã đã nhận trên hệ thống"}
         </button>
       )}
-      {fill.error && (
+      {notStarted && (
+        <p role="status" className="text-heritage-muted">
+          {HANDOVER_NOT_STARTED_MESSAGE}
+        </p>
+      )}
+      {fill.error && !notStarted && (
         <p role="alert" className="text-sm text-destructive">
           {fill.error}
         </p>

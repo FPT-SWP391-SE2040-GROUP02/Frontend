@@ -144,8 +144,6 @@ interface InviteDialogProps {
   vaultId: string;
   replacing: Executor | null;
   existingExecutors: Executor[];
-  /** Kho đã có mã mở gói: khi thay người, nhắc Chủ kho đổi mã mới sau khi người mới đồng ý. */
-  hasHandoverKey: boolean;
   sync: () => void;
   onSuccess?: (result: Executor) => void;
   onClose: () => void;
@@ -155,7 +153,6 @@ function InviteDialog({
   vaultId,
   replacing,
   existingExecutors,
-  hasHandoverKey,
   sync,
   onSuccess,
   onClose,
@@ -205,7 +202,7 @@ function InviteDialog({
     resolver: zodResolver(inviteSchema),
     mode: "onBlur",
     reValidateMode: "onBlur",
-    defaultValues: { email: "", beneficiaryId: null },
+    defaultValues: { email: "" },
   });
   const selectedEmail = useWatch({ control: form.control, name: "email" });
 
@@ -238,9 +235,7 @@ function InviteDialog({
   if (replacing !== null) {
     title = "Mời người thay";
     description = `Người mới sẽ là Người thực thi khi đồng ý lời mời; lúc đó ${replacing.inviteeEmail} tự động thành “Đã thu hồi”. Trong lúc chờ, người cũ vẫn giữ quyền.`;
-    if (hasHandoverKey) {
-      description = `${description} Mã mở gói hiện tại vẫn nằm trong tay người cũ, nên sau khi người mới đồng ý bạn nên đổi mã mới.`;
-    }
+    description = `${description} Khi người mới đồng ý, hệ thống tự đổi mã mở gói để người cũ không còn dùng được mã cũ.`;
     notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút. Hết hạn mà chưa đồng ý thì ${replacing.inviteeEmail} vẫn là Người thực thi.`;
     cancelLabel = "Giữ nguyên";
   }
@@ -455,10 +450,11 @@ function ChosenCard(props: ChosenCardProps) {
   } else if (holder.status === "SUSPENDED") {
     statusText = "Người này cần đồng ý lại. Bấm Gửi lại lời mời để họ xác nhận.";
   } else if (planRunning) {
-    statusText = "Mã mở gói bạn tạo được gửi tới tài khoản của người này trên hệ thống.";
+    statusText =
+      "Hệ thống tự giữ mã mở gói và chỉ gửi cho người này khi hồ sơ được duyệt và bàn giao bắt đầu.";
   } else {
     statusText =
-      "Người này sẽ nhận mã mở gói trên hệ thống sau khi bạn kích hoạt kế hoạch và tạo mã.";
+      "Hệ thống tạo mã mở gói khi bạn ký và kích hoạt kế hoạch, rồi chỉ gửi cho người này khi hồ sơ được duyệt.";
   }
 
   const forbidden: string[] = ["Đọc nội dung kho", "Tự duyệt hồ sơ"];
@@ -676,20 +672,13 @@ export interface ExecutorsSectionProps {
   keySlot?: ReactNode;
   /** Thẻ "Lời dặn cho Người thực thi" đặt dưới thẻ "Người bạn chọn" ở cột trái. */
   noteSlot?: ReactNode;
-  /** Kho đã có mã mở gói (dùng để nhắc đổi mã khi thay người). */
-  hasHandoverKey?: boolean;
 }
 
 /**
  * Trang "Người thực thi": mỗi kho một người do Chủ kho mời; Người xét duyệt do hệ thống phân công.
  * Mọi thao tác (mời, thay người, gửi lại, thu hồi) do Chủ kho chủ động; kết quả và điều kiện do Backend quyết định.
  */
-export function ExecutorsSection({
-  vaultId,
-  keySlot,
-  noteSlot,
-  hasHandoverKey = false,
-}: ExecutorsSectionProps) {
+export function ExecutorsSection({ vaultId, keySlot, noteSlot }: ExecutorsSectionProps) {
   const query = usePlanSetup(vaultId);
   const client = useQueryClient();
   const resendAction = usePrivateAction();
@@ -809,7 +798,6 @@ export function ExecutorsSection({
           vaultId={vaultId}
           replacing={dialog.replacing}
           existingExecutors={setup.executors}
-          hasHandoverKey={hasHandoverKey}
           sync={sync}
           onSuccess={(result) =>
             setInvitationNotice({

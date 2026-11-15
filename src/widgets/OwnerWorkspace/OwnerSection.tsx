@@ -117,8 +117,7 @@ export function OwnerSection({
       </div>
     );
   if (section === "check-in") return <OwnerCheckIn vaultId={vault.data.id} />;
-  if (section === "trusted")
-    return <OwnerTrustedPeople vaultId={vault.data.id} vaultName={vault.data.name} />;
+  if (section === "trusted") return <OwnerTrustedPeople vaultId={vault.data.id} />;
   if (section === "groups") {
     let open = false;
     let onOpenChange = (value: boolean): void => {
@@ -190,5 +189,5 @@ export function OwnerSection({
       </div>
     );
   }
-  return <OwnerHandoverOverview vaultId={vault.data.id} vaultName={vault.data.name} />;
+  return <OwnerHandoverOverview vaultId={vault.data.id} />;
 }

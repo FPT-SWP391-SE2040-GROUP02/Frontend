@@ -5,31 +5,58 @@ import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AxiosError, AxiosHeaders } from "axios";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import { apiClient } from "@/shared/api/axiosClient";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
-import { planSetupService } from "@/features/plan-setup/api/planSetupService";
 import { executorKeyService } from "@/features/executor-key/api/executorKeyService";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { OwnerHandoverOverview } from "../OwnerHandoverOverview";
 
 vi.mock("@/features/plan-setup/model/usePlanSetup", () => ({ usePlanSetup: vi.fn() }));
-vi.mock("@/features/plan-setup/api/planSetupService", () => ({
-  planSetupService: { activate: vi.fn() },
-}));
-vi.mock("@/features/executor-key/api/executorKeyService", () => ({
-  executorKeyService: { getStatus: vi.fn(), issue: vi.fn(), reissue: vi.fn() },
-}));
+// getStatus giả; các hàm còn lại giữ nguyên.
+vi.mock("@/features/executor-key/api/executorKeyService", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/features/executor-key/api/executorKeyService")>();
+  return { executorKeyService: { ...actual.executorKeyService, getStatus: vi.fn() } };
+});
 vi.mock("@/features/dms/model/useCheckIn", () => ({ useCheckIn: vi.fn() }));
 vi.mock("@/features/dms/api/checkInService", () => ({ checkInService: { checkIn: vi.fn() } }));
-vi.mock("@/shared/settings/usePolicyWindows", () => ({
-  usePolicyWindows: () => ({ grantDays: 30 }),
-}));
+vi.mock("@/shared/settings/usePolicyWindows", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/shared/settings/usePolicyWindows")>();
+  return {
+    ...actual,
+    usePolicyWindows: () => ({ ...actual.DEFAULT_POLICY_WINDOWS, grantDays: 30 }),
+  };
+});
 
 const VAULT_ID = "22222222-2222-4222-8222-222222222222";
-const CONTAINER_ID = "33333333-3333-4333-8333-333333333333";
-const SHARD = "ABCD-EFGH-JKMN-PQRS-TVWX-YZ01-2345-6789-ABCD-EFGH-JKMN-PQRS-TVWX";
-const SLIP_NAME = "Di chúc";
+const HOUSE_ID = "33333333-3333-4333-8333-333333333333";
+const LETTER_ID = "44444444-4444-4444-8444-444444444444";
+const BANK_ID = "55555555-5555-4555-8555-555555555555";
+const EXECUTOR_ID = "66666666-6666-4666-8666-666666666666";
+const SECRET_MESSAGE = "NOI-DUNG-LOI-NHAN-BI-MAT";
+// 02:42 UTC = 09:42 giờ Việt Nam.
+const ACTIVATED_AT = "2026-11-15T02:42:00Z";
+const ACCEPTED_AT = "2026-11-14T07:20:00Z";
+const PIN = "482913";
+
+function executor(overrides: Record<string, unknown> = {}) {
+  return {
+    id: EXECUTOR_ID,
+    status: "ACCEPTED",
+    inviteeEmail: "executor@example.test",
+    fullName: "Lê Thị Mẫu",
+    isBeneficiary: false,
+    expiresAt: "2026-11-20T00:00:00Z",
+    acceptedAt: ACCEPTED_AT,
+    invitationSentAt: "2026-11-13T00:00:00Z",
+    acceptedScopeVersion: "scope-test",
+    etag: '"1"',
+    ...overrides,
+  };
+}
 
 function setupData(overrides: Record<string, unknown> = {}) {
   return {
@@ -41,19 +68,46 @@ function setupData(overrides: Record<string, unknown> = {}) {
     policyText: "Nội dung chính sách thử.",
     executorScopeVersion: "scope-test",
     executorScopeText: "Phạm vi thử.",
-    executors: [{ id: "e1", status: "ACCEPTED", inviteeEmail: "thuc-thi@example.test" }],
+    ownerFullName: "Trần Văn An",
+    ownerEmail: "an.tran@example.test",
+    activatedAt: null,
+    executors: [executor()],
     containers: [
       {
-        id: CONTAINER_ID,
-        name: "Gói gia đình",
+        id: HOUSE_ID,
+        name: "Giấy tờ nhà đất",
+        status: "READY",
+        assetCount: 4,
+        designationCount: 1,
+        missingRequirements: [],
+      },
+      {
+        id: BANK_ID,
+        name: "Tài khoản ngân hàng",
         status: "READY",
         assetCount: 3,
-        designationCount: 2,
+        designationCount: 1,
         missingRequirements: [],
       },
     ],
     assetsOutsideContainer: [],
     warnings: [],
+    willClauses: [],
+    recipients: [
+      {
+        beneficiaryId: "77777777-7777-4777-8777-777777777777",
+        fullName: "Trần Thị Bình",
+        hasMessage: true,
+        message: SECRET_MESSAGE,
+        containers: [{ id: HOUSE_ID, name: "Giấy tờ nhà đất", assetCount: 4, status: "READY" }],
+      },
+      {
+        beneficiaryId: "88888888-8888-4888-8888-888888888888",
+        fullName: "Trần Minh Cường",
+        hasMessage: false,
+        containers: [{ id: BANK_ID, name: "Tài khoản ngân hàng", assetCount: 3, status: "READY" }],
+      },
+    ],
     ...overrides,
   };
 }
@@ -68,7 +122,7 @@ function planSetupResult(data: Record<string, unknown>) {
   };
 }
 
-function checkInResult(planStatus: string) {
+function checkInResult() {
   return {
     isPending: false,
     isError: false,
@@ -76,10 +130,10 @@ function checkInResult(planStatus: string) {
     refetch: vi.fn(),
     data: {
       status: "ACTIVE",
-      planStatus,
-      serverTime: "2026-10-08T00:00:00Z",
-      lastCheckInAt: "2026-10-02T00:00:00Z",
-      nextCheckInDueAt: "2026-11-01T00:00:00Z",
+      planStatus: "ACTIVE",
+      serverTime: "2026-11-16T00:00:00Z",
+      lastCheckInAt: "2026-11-15T00:00:00Z",
+      nextCheckInDueAt: "2026-12-15T00:00:00Z",
     },
   };
 }
@@ -95,12 +149,23 @@ function keyStatus(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function pinProblem(code: string, extra: Record<string, unknown> = {}, httpStatus = 403) {
+  return new AxiosError("pin", AxiosError.ERR_BAD_REQUEST, undefined, undefined, {
+    status: httpStatus,
+    statusText: "error",
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+    data: { code, ...extra },
+  });
+}
+
 let client: QueryClient;
 beforeEach(() => {
   vi.resetAllMocks();
   accessTokenMemory.set("test-token");
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  vi.mocked(useCheckIn).mockReturnValue(checkInResult("ACTIVE") as never);
+  vi.mocked(useCheckIn).mockReturnValue(checkInResult() as never);
+  vi.mocked(executorKeyService.getStatus).mockResolvedValue(keyStatus());
 });
 afterEach(() => {
   cleanup();
@@ -109,6 +174,10 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+function showPlan(overrides: Record<string, unknown> = {}) {
+  vi.mocked(usePlanSetup).mockReturnValue(planSetupResult(setupData(overrides)) as never);
+}
+
 function renderOverview() {
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(
@@ -116,7 +185,7 @@ function renderOverview() {
       user: {
         id: "11111111-1111-4111-8111-111111111111",
         email: "chu-kho@example.test",
-        fullName: "Nguyễn Văn A",
+        fullName: "Tên đăng nhập khác",
         role: "USER",
         status: "ACTIVE",
         createdAt: "2026-10-15T00:00:00Z",
@@ -129,268 +198,441 @@ function renderOverview() {
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <OwnerHandoverOverview vaultId={VAULT_ID} vaultName="Kho gia đình" />
+          <OwnerHandoverOverview vaultId={VAULT_ID} />
         </MemoryRouter>
       </QueryClientProvider>
     </Provider>,
   );
 }
 
-describe("trang Bàn giao: kế hoạch còn nháp", () => {
-  it("chưa mời Người thực thi: dòng điều kiện có nút Mời Người thực thi, không có điểm danh, chỉ một danh sách 4 bước", () => {
-    vi.mocked(usePlanSetup).mockReturnValue(
-      planSetupResult(
-        setupData({
-          canActivate: false,
-          missingRequirements: ["PRIMARY_EXECUTOR_REQUIRED"],
-          executors: [],
-        }),
-      ) as never,
-    );
+function paper() {
+  return screen.getByRole("article", { name: "Di chúc" });
+}
+
+describe("trang Bàn giao: kế hoạch còn nháp, di chúc sinh từ dữ liệu kế hoạch", () => {
+  it("đủ nội dung: quốc hiệu, tiêu đề, câu mở đầu, Điều 1 đến Điều 6 và câu lưu ý", () => {
+    showPlan();
     renderOverview();
 
     expect(screen.getByText("Kế hoạch chưa kích hoạt")).toBeInTheDocument();
+    const doc = within(paper());
+    expect(doc.getByText("CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM")).toBeInTheDocument();
+    expect(doc.getByText("Độc lập – Tự do – Hạnh phúc")).toBeInTheDocument();
+    expect(doc.getByRole("heading", { name: "DI CHÚC" })).toBeInTheDocument();
+    expect(doc.getByText("Ngày lập: điền tự động khi bạn ký")).toBeInTheDocument();
+    // Tên và email lấy từ kế hoạch, không phải từ tài khoản đăng nhập.
+    // Tên in ở câu mở đầu và ở ô chữ ký của Chủ kho.
+    expect(doc.getAllByText("Trần Văn An")).toHaveLength(2);
+    expect(doc.getByText("an.tran@example.test")).toBeInTheDocument();
+    expect(paper()).toHaveTextContent("đã xác minh danh tính");
+    expect(paper()).toHaveTextContent(
+      "trạng thái tinh thần hoàn toàn minh mẫn, sáng suốt, không bị bất kỳ sự lừa dối, đe dọa hoặc cưỡng ép nào",
+    );
+    for (const heading of [
+      "Điều 1. Người thực thi",
+      "Điều 2. Người nhận và phần được nhận",
+      "Điều 3. Điều kiện bàn giao",
+      "Điều 4. Thời hạn",
+      "Điều 5. Lưu và xóa dữ liệu",
+      "Điều 6. Hiệu lực, sửa đổi và thu hồi",
+    ]) {
+      expect(doc.getByRole("heading", { name: heading })).toBeInTheDocument();
+    }
+    expect(doc.getByText("Mỗi 30 ngày")).toBeInTheDocument();
+    expect(doc.getByText("Trong 30 ngày kể từ lúc đồng ý")).toBeInTheDocument();
     expect(
-      screen.getByText("Hoàn thành các việc dưới đây để kế hoạch bàn giao bắt đầu chạy."),
+      doc.getByText(
+        "Bản di chúc số phục vụ việc bàn giao dữ liệu trên LegacyVault, chưa thay thế di chúc có người làm chứng hoặc công chứng.",
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Việc cần làm để kích hoạt" })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Tài sản thật như nhà đất, tiền gửi vẫn chia theo di chúc có người làm chứng/,
+      ),
+    ).toBeInTheDocument();
+    // Cột phải: không còn ghi chú nhận mã sau khi kích hoạt.
+    expect(screen.queryByText(/bạn nhận ngay sau khi kích hoạt/)).not.toBeInTheDocument();
+  });
+
+  it("Điều 1 có Người thực thi đã ký nhận vai: tên, email và ngày nhận vai", () => {
+    showPlan();
+    renderOverview();
+
+    const doc = within(paper());
+    expect(doc.getByText("Lê Thị Mẫu", { selector: "dd" })).toBeInTheDocument();
+    expect(
+      doc.getByText("executor@example.test (Người thực thi của LegacyVault)"),
+    ).toBeInTheDocument();
+    expect(doc.getByText("Đã ký nhận vai ngày 14/11/2026")).toBeInTheDocument();
+    expect(doc.queryByRole("link", { name: "Chọn Người thực thi" })).not.toBeInTheDocument();
+  });
+
+  it("chưa có Người thực thi: chỗ trống có nút dẫn tới trang Người thực thi và ô chữ ký ghi rõ", () => {
+    showPlan({
+      canActivate: false,
+      missingRequirements: ["PRIMARY_EXECUTOR_REQUIRED"],
+      executors: [],
+    });
+    renderOverview();
+
+    const doc = within(paper());
+    expect(doc.getByText(/Chưa chọn Người thực thi/)).toBeInTheDocument();
+    expect(doc.getByRole("link", { name: "Chọn Người thực thi" })).toHaveAttribute(
+      "href",
+      "/dashboard/trusted-people",
+    );
+    expect(doc.getByText("Chưa có Người thực thi")).toBeInTheDocument();
+    expect(doc.getByText("Người thực thi ký khi nhận lời mời")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Mời Người thực thi" })).toHaveAttribute(
       "href",
       "/dashboard/trusted-people",
     );
-    expect(
-      screen.getByText(/Mã mở gói: bạn nhận ngay sau khi kích hoạt, kèm phiếu/),
-    ).toBeInTheDocument();
-
-    // CheckInCard không render trước kích hoạt, chỉ có một dòng chữ.
-    expect(screen.queryByRole("button", { name: "Điểm danh" })).not.toBeInTheDocument();
-    expect(useCheckIn).not.toHaveBeenCalled();
-    expect(screen.getByText("Điểm danh định kỳ bắt đầu sau khi kích hoạt.")).toBeInTheDocument();
-
-    // Chỉ một danh sách 4 bước, không còn thẻ Quy trình / Trạng thái / Người tin cậy.
-    expect(screen.getByRole("heading", { name: "Bàn giao diễn ra thế nào" })).toBeInTheDocument();
-    expect(screen.getAllByText("Báo tin")).toHaveLength(1);
-    expect(screen.getAllByText("Xét duyệt")).toHaveLength(1);
-    expect(screen.getByText("Người nhận xác nhận")).toBeInTheDocument();
-    expect(screen.getByText("Nhập mã và tải")).toBeInTheDocument();
-    expect(screen.getByText(/tải trong 30 ngày/)).toBeInTheDocument();
-    expect(screen.queryByText("Xác minh người nhận")).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Quy trình bàn giao" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Trạng thái hiện tại" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Người tin cậy" })).not.toBeInTheDocument();
-    expect(screen.queryByText(/Người thực hiện/)).not.toBeInTheDocument();
-
-    // Di chúc hiện sẵn (mở) trước nút kích hoạt: bấm kích hoạt là ký di chúc.
-    expect(screen.getByRole("heading", { name: "Di chúc của bạn" })).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: "Di chúc" })).toBeVisible();
-    expect(screen.getByText("(chưa có Người thực thi chấp nhận)")).toBeInTheDocument();
-
-    // Chưa đủ điều kiện: nút khóa và có lý do bên cạnh.
-    expect(screen.getByRole("button", { name: "Kích hoạt kế hoạch" })).toBeDisabled();
-    expect(screen.getByText("Còn điều kiện chưa đạt ở trên.")).toBeInTheDocument();
+    expect(screen.getByText(/Di chúc dưới đây tự điền từ kho của bạn/)).toBeInTheDocument();
   });
 
-  it("đã mời nhưng chưa chấp nhận: hiện dòng chờ, không còn nút mời", () => {
-    vi.mocked(usePlanSetup).mockReturnValue(
-      planSetupResult(
-        setupData({
-          canActivate: false,
-          missingRequirements: ["PRIMARY_EXECUTOR_REQUIRED"],
-          executors: [{ id: "e1", status: "INVITED", inviteeEmail: "hai@example.test" }],
-        }),
-      ) as never,
+  it("Điều 2 liệt kê người nhận theo từng người, hiện đã/chưa viết lời nhắn và không bao giờ hiện nội dung lời nhắn", () => {
+    showPlan();
+    renderOverview();
+
+    const doc = within(paper());
+    expect(doc.getByText("Trần Thị Bình")).toBeInTheDocument();
+    expect(doc.getByText("Giấy tờ nhà đất · 4 tài sản")).toBeInTheDocument();
+    expect(doc.getByText("Đã viết, gửi kèm thư mời khi bàn giao")).toBeInTheDocument();
+    expect(doc.getByText("Trần Minh Cường")).toBeInTheDocument();
+    expect(doc.getByText("Tài khoản ngân hàng · 3 tài sản")).toBeInTheDocument();
+    // Chỉ một người chưa viết: một dòng "Chưa viết" kèm đường dẫn tới nơi viết.
+    expect(doc.getAllByText(/^Chưa viết/)).toHaveLength(1);
+    expect(doc.getByRole("link", { name: "Viết lời nhắn" })).toHaveAttribute(
+      "href",
+      "/dashboard/beneficiaries",
+    );
+    expect(document.body.textContent ?? "").not.toContain(SECRET_MESSAGE);
+  });
+
+  it("gói chưa có người nhận hiện chỗ trống, tài sản ngoài gói có câu nhắc", () => {
+    showPlan({
+      canActivate: false,
+      missingRequirements: [],
+      containers: [
+        {
+          id: HOUSE_ID,
+          name: "Giấy tờ nhà đất",
+          status: "READY",
+          assetCount: 4,
+          designationCount: 1,
+          missingRequirements: [],
+        },
+        {
+          id: LETTER_ID,
+          name: "Thư gửi các con",
+          status: "DRAFT",
+          assetCount: 2,
+          designationCount: 0,
+          missingRequirements: ["NO_DESIGNATION"],
+        },
+      ],
+      assetsOutsideContainer: [
+        { id: BANK_ID, name: "Sổ đỏ", kind: "FILE" },
+        { id: EXECUTOR_ID, name: "Ghi chú", kind: "TEXT" },
+      ],
+    });
+    renderOverview();
+
+    const doc = within(paper());
+    expect(
+      doc.getByText(/Gói "Thư gửi các con" \(2 tài sản\) chưa có người nhận/),
+    ).toBeInTheDocument();
+    expect(doc.getByRole("link", { name: "Chọn người nhận" })).toHaveAttribute(
+      "href",
+      `/dashboard/assets/groups/${LETTER_ID}`,
+    );
+    expect(
+      doc.getByText(/Còn 2 tài sản chưa nằm trong gói nào nên sẽ không được bàn giao/),
+    ).toBeInTheDocument();
+  });
+
+  it("điều khoản bổ sung của Chủ kho in sau Điều 6, và vẫn còn lối sửa điều khoản", () => {
+    showPlan({ willClauses: ["Tặng cuốn album cho em gái."] });
+    renderOverview();
+
+    const doc = within(paper());
+    const articleSix = doc.getByRole("heading", { name: "Điều 6. Hiệu lực, sửa đổi và thu hồi" });
+    const extra = doc.getByRole("heading", { name: "Điều khoản bổ sung" });
+    expect(
+      articleSix.compareDocumentPosition(extra) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(doc.getByText(/1\/ Tặng cuốn album cho em gái\./)).toBeInTheDocument();
+  });
+
+  it("câu trả lời cũ của Backend (không có recipients): Điều 2 dùng câu chung, không vỡ", () => {
+    showPlan({ recipients: undefined, ownerFullName: undefined, ownerEmail: undefined });
+    renderOverview();
+
+    const doc = within(paper());
+    expect(doc.getByText(/những người nhận mà tôi đã chỉ định cho từng gói/)).toBeInTheDocument();
+    // Không có tên Chủ kho từ Backend thì dùng tài khoản đăng nhập.
+    expect(doc.getAllByText("Tên đăng nhập khác")).toHaveLength(2);
+  });
+});
+
+describe("hai ô chữ ký", () => {
+  it("không ai ký: Chủ kho Chưa ký, Người thực thi Chưa có Người thực thi", () => {
+    showPlan({ canActivate: false, executors: [] });
+    renderOverview();
+
+    const doc = within(paper());
+    expect(doc.getByText("NGƯỜI LẬP DI CHÚC")).toBeInTheDocument();
+    expect(doc.getByText("(Ký bằng mã PIN của kho)")).toBeInTheDocument();
+    expect(doc.getByText("NGƯỜI THỰC THI DI CHÚC")).toBeInTheDocument();
+    expect(doc.getByText("(Ký xác nhận đồng ý nhận vai trò)")).toBeInTheDocument();
+    expect(doc.getByText("Chưa ký")).toBeInTheDocument();
+    expect(doc.getByText("Chưa có Người thực thi")).toBeInTheDocument();
+    expect(doc.queryByText("ĐÃ KÝ ĐIỆN TỬ")).not.toBeInTheDocument();
+  });
+
+  it("Người thực thi đã ký, Chủ kho chưa: một dấu ĐÃ KÝ ĐIỆN TỬ kèm tên và giờ", () => {
+    showPlan();
+    renderOverview();
+
+    const doc = within(paper());
+    expect(doc.getAllByText("ĐÃ KÝ ĐIỆN TỬ")).toHaveLength(1);
+    expect(doc.getByText("Lúc 14:20 ngày 14/11/2026")).toBeInTheDocument();
+    expect(doc.getByText("Chưa ký")).toBeInTheDocument();
+    expect(doc.getByText("Ký ở khung bên phải sau khi điền đủ")).toBeInTheDocument();
+  });
+
+  it("đã mời nhưng chưa ký nhận vai: ô Người thực thi Chưa ký, Điều 1 còn chỗ trống", () => {
+    showPlan({
+      canActivate: false,
+      missingRequirements: ["PRIMARY_EXECUTOR_REQUIRED"],
+      executors: [executor({ status: "INVITED", acceptedAt: null })],
+    });
+    renderOverview();
+
+    const doc = within(paper());
+    expect(doc.getAllByText("Chưa ký")).toHaveLength(2);
+    expect(doc.getByText(/chờ người này ký nhận vai/)).toBeInTheDocument();
+    expect(doc.queryByText("ĐÃ KÝ ĐIỆN TỬ")).not.toBeInTheDocument();
+  });
+
+  it("cả hai đã ký (kế hoạch đang chạy): hai dấu, ngày lập và giờ ký của Chủ kho", () => {
+    showPlan({ planStatus: "ACTIVE", canActivate: false, activatedAt: ACTIVATED_AT });
+    renderOverview();
+
+    const doc = within(paper());
+    expect(doc.getAllByText("ĐÃ KÝ ĐIỆN TỬ")).toHaveLength(2);
+    expect(doc.getByText("Lập ngày 15 tháng 11 năm 2026")).toBeInTheDocument();
+    expect(doc.getByText("Lúc 09:42 ngày 15/11/2026")).toBeInTheDocument();
+    expect(doc.queryByText("Chưa ký")).not.toBeInTheDocument();
+  });
+
+  it("kế hoạch không còn DRAFT nhưng thiếu activatedAt thì chưa tính là Chủ kho đã ký", () => {
+    showPlan({ planStatus: "ACTIVE", canActivate: false, activatedAt: null });
+    renderOverview();
+
+    const doc = within(paper());
+    expect(doc.getAllByText("ĐÃ KÝ ĐIỆN TỬ")).toHaveLength(1);
+    expect(doc.getByText("Chưa ký")).toBeInTheDocument();
+  });
+});
+
+describe("ô Ký di chúc và kích hoạt", () => {
+  const SUCCESS_BODY = {
+    ...setupData({ planStatus: "ACTIVE", canActivate: false, activatedAt: ACTIVATED_AT }),
+    recipients: undefined,
+  };
+
+  async function tickAndType(pin: string) {
+    await userEvent.click(
+      screen.getByRole("checkbox", {
+        name: "Tôi đã đọc toàn bộ di chúc, tự nguyện lập, ký di chúc này và chủ động kích hoạt kế hoạch.",
+      }),
+    );
+    await userEvent.type(screen.getByLabelText("Nhập mã PIN của kho (6 số)"), pin);
+  }
+
+  it("nút Ký và kích hoạt khóa theo từng bước và nói lý do", async () => {
+    showPlan();
+    renderOverview();
+
+    const button = screen.getByRole("button", { name: "Ký và kích hoạt" });
+    expect(button).toBeDisabled();
+    expect(screen.getByText("Cần tick ô xác nhận phía trên.")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("checkbox"));
+    expect(screen.getByText("Nhập đủ 6 số của mã PIN.")).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("Nhập mã PIN của kho (6 số)"), "48291");
+    expect(button).toBeDisabled();
+    await userEvent.type(screen.getByLabelText("Nhập mã PIN của kho (6 số)"), "3");
+    expect(button).toBeEnabled();
+  });
+
+  it("chưa đủ điều kiện: ô PIN và nút ký khóa, lý do nói còn điều kiện chưa đạt", () => {
+    showPlan({
+      canActivate: false,
+      missingRequirements: ["PRIMARY_EXECUTOR_REQUIRED"],
+      executors: [],
+    });
+    renderOverview();
+
+    expect(screen.getByRole("button", { name: "Ký và kích hoạt" })).toBeDisabled();
+    expect(screen.getByLabelText("Nhập mã PIN của kho (6 số)")).toBeDisabled();
+    expect(screen.getByText("Còn điều kiện chưa đạt trong di chúc.")).toBeInTheDocument();
+    expect(screen.getByText("Còn 1 điều kiện chưa đạt")).toBeInTheDocument();
+  });
+
+  it("gửi mã PIN ở header X-Vault-Pin (không trong body) và không để PIN lại trên màn hình", async () => {
+    showPlan();
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(SUCCESS_BODY as never);
+    renderOverview();
+
+    await tickAndType(PIN);
+    await userEvent.click(screen.getByRole("button", { name: "Ký và kích hoạt" }));
+
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    const [url, body, config] = post.mock.calls[0];
+    expect(url).toBe(`/vaults/${VAULT_ID}/activate`);
+    expect(body).toEqual({
+      configVersion: 3,
+      policyVersion: "setup-test",
+      acknowledgePolicy: true,
+    });
+    expect(JSON.stringify(body)).not.toContain(PIN);
+    expect(config).toMatchObject({
+      headers: { "X-Vault-Pin": PIN },
+      skipVaultPinPrompt: true,
+    });
+  });
+
+  it("sai PIN: hiện số lần còn lại ngay dưới ô PIN, xóa ô nhập, không hiện hộp thoại PIN chung", async () => {
+    showPlan();
+    vi.spyOn(apiClient, "post").mockRejectedValue(
+      pinProblem("INVALID_VAULT_PIN", { attemptsRemaining: 4 }),
     );
     renderOverview();
 
-    expect(screen.getByText("Đã mời hai@example.test, đang chờ chấp nhận")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Mời Người thực thi" })).not.toBeInTheDocument();
+    await tickAndType("111222");
+    await userEvent.click(screen.getByRole("button", { name: "Ký và kích hoạt" }));
+
+    expect(await screen.findByText("Mã PIN không đúng. Còn 4 lần thử.")).toBeVisible();
+    const input = screen.getByLabelText("Nhập mã PIN của kho (6 số)");
+    expect(input).toHaveValue("");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    // Gõ lại thì thông báo lỗi PIN mất đi.
+    await userEvent.type(input, "9");
+    expect(screen.queryByText("Mã PIN không đúng. Còn 4 lần thử.")).not.toBeInTheDocument();
   });
 
-  it("hiện soát lại trước khi kích hoạt và cảnh báo thiếu Người thực thi dự phòng", () => {
-    vi.mocked(usePlanSetup).mockReturnValue(
-      planSetupResult(
-        setupData({
-          warnings: ["NO_BACKUP_EXECUTOR"],
-          assetsOutsideContainer: [{ id: CONTAINER_ID, name: "Sổ đỏ", kind: "FILE" }],
-        }),
-      ) as never,
-    );
+  it("PIN bị khóa: hiện thông báo khóa và khóa ô PIN cùng nút ký", async () => {
+    showPlan();
+    vi.spyOn(apiClient, "post").mockRejectedValue(pinProblem("VAULT_PIN_LOCKED", {}, 423));
     renderOverview();
 
-    expect(
-      screen.getByRole("heading", { name: "Soát lại trước khi kích hoạt" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Gói gia đình")).toBeInTheDocument();
-    expect(screen.getByText(/Sổ đỏ/)).toBeInTheDocument();
+    await tickAndType(PIN);
+    await userEvent.click(screen.getByRole("button", { name: "Ký và kích hoạt" }));
+
+    expect(await screen.findByText(/Mã PIN đang bị khóa tạm vì nhập sai nhiều lần/)).toBeVisible();
+    expect(screen.getByLabelText("Nhập mã PIN của kho (6 số)")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Ký và kích hoạt" })).toBeDisabled();
+  });
+
+  it("đang gửi: nút đổi thành Đang kiểm tra… và có dòng chờ xác nhận", async () => {
+    showPlan();
+    vi.spyOn(apiClient, "post").mockReturnValue(new Promise(() => undefined) as never);
+    renderOverview();
+
+    await tickAndType(PIN);
+    await userEvent.click(screen.getByRole("button", { name: "Ký và kích hoạt" }));
+
+    expect(await screen.findByRole("button", { name: "Đang kiểm tra…" })).toBeDisabled();
+    expect(screen.getByText("Chờ hệ thống xác nhận mã PIN.")).toBeInTheDocument();
+  });
+
+  it("hiện cảnh báo thiếu Người thực thi dự phòng", () => {
+    showPlan({ warnings: ["NO_BACKUP_EXECUTOR"] });
+    renderOverview();
+
     expect(
       screen.getByText("Chưa có Người thực thi dự phòng. Bạn vẫn kích hoạt được."),
     ).toBeInTheDocument();
   });
 
-  it("kích hoạt xong rồi cấp mã thành công: hiện phiếu có mã, Hoàn tất khóa đến khi tick, tải phiếu gọi window.print", async () => {
-    vi.mocked(usePlanSetup).mockReturnValue(planSetupResult(setupData()) as never);
-    vi.mocked(planSetupService.activate).mockResolvedValue(
-      setupData({ planStatus: "ACTIVE", canActivate: false }) as never,
-    );
-    vi.mocked(executorKeyService.getStatus).mockResolvedValue(keyStatus());
-    vi.mocked(executorKeyService.issue).mockResolvedValue({
-      ...keyStatus({ hasKey: true, version: 1, issuedAt: "2026-11-09T01:00:00Z" }),
-      shard: SHARD,
+  it("đã mời nhưng chưa chấp nhận: dòng chờ ở danh sách điều kiện, không còn nút mời", () => {
+    showPlan({
+      canActivate: false,
+      missingRequirements: ["PRIMARY_EXECUTOR_REQUIRED"],
+      executors: [
+        executor({ status: "INVITED", acceptedAt: null, inviteeEmail: "hai@example.test" }),
+      ],
     });
-    const print = vi.spyOn(window, "print").mockImplementation(() => undefined);
-    const titleBefore = document.title;
     renderOverview();
 
-    await userEvent.click(screen.getByRole("checkbox"));
-    await userEvent.click(screen.getByRole("button", { name: "Kích hoạt kế hoạch" }));
-
-    expect(
-      await screen.findByRole("heading", {
-        name: "Kế hoạch đã kích hoạt. Còn một việc: lưu mã mở gói",
-      }),
-    ).toBeInTheDocument();
-    expect(planSetupService.activate).toHaveBeenCalledWith(VAULT_ID, {
-      configVersion: 3,
-      policyVersion: "setup-test",
-      acknowledgePolicy: true,
-    });
-    expect(executorKeyService.issue).toHaveBeenCalledWith(VAULT_ID);
-
-    const slip = screen.getByRole("region", { name: SLIP_NAME });
-    expect(within(slip).getByText(SHARD)).toBeInTheDocument();
-    expect(within(slip).getByText("Nguyễn Văn A")).toBeInTheDocument();
-    expect(within(slip).getByText("thuc-thi@example.test")).toBeInTheDocument();
-    expect(within(slip).getByText("Kho gia đình")).toBeInTheDocument();
-    expect(within(slip).getByText(/Bản 1 · một mã duy nhất/)).toBeInTheDocument();
-    expect(screen.getByText(/Phiếu chỉ hiện lần này/)).toBeInTheDocument();
-
-    // Mã không rò vào Web Storage.
-    for (const storage of [window.localStorage, window.sessionStorage]) {
-      for (let index = 0; index < storage.length; index = index + 1) {
-        const key = storage.key(index);
-        expect(key).not.toBeNull();
-        if (key !== null) {
-          expect(key).not.toContain(SHARD);
-          expect(storage.getItem(key) ?? "").not.toContain(SHARD);
-        }
-      }
-    }
-
-    // Tải phiếu: đổi tên tài liệu tạm thời, gọi window.print, trả lại tên sau afterprint.
-    await userEvent.click(screen.getByRole("button", { name: "Tải phiếu (PDF)" }));
-    expect(print).toHaveBeenCalledTimes(1);
-    expect(document.title).toBe("Di-chuc-ban-1");
-    window.dispatchEvent(new Event("afterprint"));
-    expect(document.title).toBe(titleBefore);
-
-    // Hoàn tất khóa đến khi tick; xong thì xóa mã khỏi màn hình.
-    const done = screen.getByRole("button", { name: "Hoàn tất" });
-    expect(done).toBeDisabled();
-    await userEvent.click(
-      screen.getByRole("checkbox", { name: "Tôi đã tải phiếu hoặc chép mã ra nơi an toàn" }),
-    );
-    expect(done).toBeEnabled();
-    await userEvent.click(done);
-    await waitFor(() => expect(screen.queryByText(SHARD)).not.toBeInTheDocument());
-  });
-
-  it("cấp mã lỗi sau khi kích hoạt: kế hoạch vẫn chạy, hiện dải chưa có mã mở gói và nút Tạo mã mở gói", async () => {
-    vi.mocked(usePlanSetup).mockReturnValue(planSetupResult(setupData()) as never);
-    vi.mocked(planSetupService.activate).mockImplementation(async () => {
-      // Backend đã kích hoạt: các lần đọc kế hoạch sau đó thấy ACTIVE.
-      vi.mocked(usePlanSetup).mockReturnValue(
-        planSetupResult(setupData({ planStatus: "ACTIVE", canActivate: false })) as never,
-      );
-      return setupData({ planStatus: "ACTIVE", canActivate: false }) as never;
-    });
-    vi.mocked(executorKeyService.getStatus).mockResolvedValue(keyStatus());
-    vi.mocked(executorKeyService.issue).mockRejectedValueOnce(new Error("huy-pin"));
-    renderOverview();
-
-    await userEvent.click(screen.getByRole("checkbox"));
-    await userEvent.click(screen.getByRole("button", { name: "Kích hoạt kế hoạch" }));
-
-    expect(await screen.findByText(/Kế hoạch đang chạy nhưng chưa có mã mở gói/)).toBeVisible();
-    expect(screen.getByText(/Không có mã thì người nhận không mở được tài sản/)).toBeVisible();
-    expect(screen.getByText("Kế hoạch đang chạy")).toBeInTheDocument();
-    expect(screen.queryByText(SHARD)).not.toBeInTheDocument();
-
-    // Bấm Tạo mã mở gói gọi lại issue và hiện phiếu.
-    vi.mocked(executorKeyService.issue).mockResolvedValueOnce({
-      ...keyStatus({ hasKey: true, version: 1, issuedAt: "2026-11-09T01:00:00Z" }),
-      shard: SHARD,
-    });
-    await userEvent.click(screen.getByRole("button", { name: "Tạo mã mở gói" }));
-    expect(
-      await screen.findByRole("heading", {
-        name: "Kế hoạch đã kích hoạt. Còn một việc: lưu mã mở gói",
-      }),
-    ).toBeInTheDocument();
-    expect(executorKeyService.issue).toHaveBeenCalledTimes(2);
-    expect(
-      within(screen.getByRole("region", { name: SLIP_NAME })).getByText(SHARD),
-    ).toBeInTheDocument();
-  });
-
-  it("kho đã có mã khi kích hoạt xong: không gọi issue, về thẳng trạng thái đang chạy", async () => {
-    vi.mocked(usePlanSetup).mockReturnValue(planSetupResult(setupData()) as never);
-    vi.mocked(planSetupService.activate).mockImplementation(async () => {
-      vi.mocked(usePlanSetup).mockReturnValue(
-        planSetupResult(setupData({ planStatus: "ACTIVE", canActivate: false })) as never,
-      );
-      return setupData({ planStatus: "ACTIVE", canActivate: false }) as never;
-    });
-    vi.mocked(executorKeyService.getStatus).mockResolvedValue(
-      keyStatus({ hasKey: true, version: 2, issuedAt: "2026-11-09T01:00:00Z" }),
-    );
-    renderOverview();
-
-    await userEvent.click(screen.getByRole("checkbox"));
-    await userEvent.click(screen.getByRole("button", { name: "Kích hoạt kế hoạch" }));
-
-    expect(await screen.findByText("Đã có · Bản 2")).toBeInTheDocument();
-    expect(executorKeyService.issue).not.toHaveBeenCalled();
+    expect(screen.getByText("Đã mời hai@example.test, đang chờ chấp nhận")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Mời Người thực thi" })).not.toBeInTheDocument();
   });
 });
 
 describe("trang Bàn giao: kế hoạch đã chạy", () => {
-  function mockRunning(canIssue: boolean) {
-    vi.mocked(usePlanSetup).mockReturnValue(
-      planSetupResult(
-        setupData({
-          planStatus: "ACTIVE",
-          canActivate: false,
-          assetsOutsideContainer: [{ id: CONTAINER_ID, name: "Tài sản thêm sau", kind: "TEXT" }],
-        }),
-      ) as never,
-    );
+  function showRunning(key: Record<string, unknown> = {}) {
+    showPlan({
+      planStatus: "ACTIVE",
+      canActivate: false,
+      activatedAt: ACTIVATED_AT,
+      assetsOutsideContainer: [{ id: BANK_ID, name: "Tài sản thêm sau", kind: "TEXT" }],
+    });
     vi.mocked(executorKeyService.getStatus).mockResolvedValue(
-      keyStatus({ hasKey: true, version: 1, issuedAt: "2026-11-09T01:00:00Z", canIssue }),
+      keyStatus({ hasKey: true, version: 1, issuedAt: "2026-11-15T02:42:00Z", ...key }),
     );
   }
 
-  it("hiện thẻ Mã mở gói, gói sẽ bàn giao, điểm danh và tiến trình bàn giao", async () => {
-    mockRunning(true);
+  it("di chúc đủ hai chữ ký cùng thẻ điểm danh, Kế hoạch đang áp dụng, Mã mở gói và tiến trình", async () => {
+    showRunning();
     renderOverview();
 
     expect(screen.getByText("Kế hoạch đang chạy")).toBeInTheDocument();
+    expect(within(paper()).getAllByText("ĐÃ KÝ ĐIỆN TỬ")).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Điểm danh" })).toBeEnabled();
+    const active = screen.getByRole("region", { name: "Kế hoạch đang áp dụng" });
+    expect(within(active).getByText("Kích hoạt lúc")).toBeInTheDocument();
+    expect(within(active).getByText("09:42 15/11/2026")).toBeInTheDocument();
     expect(await screen.findByText("Đã có · Bản 1")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Mã mở gói" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Đổi mã mới" })).toBeEnabled();
-    expect(screen.getByRole("heading", { name: "Gói sẽ bàn giao" })).toBeInTheDocument();
-    expect(screen.getByText(/Tài sản thêm sau/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Điểm danh" })).toBeEnabled();
     expect(screen.getByRole("heading", { name: "Tiến trình bàn giao" })).toBeInTheDocument();
-    expect(screen.getByText(/Chưa có báo tin\./)).toBeInTheDocument();
+    // Không còn ô ký ở trạng thái đã chạy.
+    expect(screen.queryByRole("button", { name: "Ký và kích hoạt" })).not.toBeInTheDocument();
+  });
+
+  it("không còn màn nhận mã, dải chưa có mã hay phiếu: Chủ kho không giữ mã", async () => {
+    showRunning({ hasKey: false, version: 0, issuedAt: null });
+    renderOverview();
+
+    expect(await screen.findByText("Chưa tạo")).toBeInTheDocument();
     expect(screen.queryByText(/chưa có mã mở gói/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tạo mã mở gói" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Tải phiếu/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/lưu mã mở gói/)).not.toBeInTheDocument();
   });
 
   it("kế hoạch bị khóa: ẩn nút đổi mã và giải thích", async () => {
-    mockRunning(false);
+    showRunning({ canIssue: false });
     renderOverview();
 
     expect(await screen.findByText("Kế hoạch đang bị khóa nên không đổi mã được.")).toBeVisible();
     expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
+  });
+
+  it("In di chúc gọi window.print, đặt tên tệp rồi trả tên cũ sau khi in", async () => {
+    showRunning();
+    const print = vi.spyOn(window, "print").mockImplementation(() => undefined);
+    const titleBefore = document.title;
+    renderOverview();
+
+    await userEvent.click(screen.getByRole("button", { name: "In di chúc" }));
+    expect(print).toHaveBeenCalledTimes(1);
+    expect(document.title).toBe("Di-chuc");
+    window.dispatchEvent(new Event("afterprint"));
+    expect(document.title).toBe(titleBefore);
   });
 
   it("lỗi tải kế hoạch hiện thử lại", () => {
