@@ -1,26 +1,33 @@
 import { useState } from "react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles } from "@/shared/ui/heritageKit";
+import { systemExecutorsService } from "@/entities/executor";
 import { deathCaseService } from "../api/deathCaseService";
 
 /**
- * Gửi mã mở gói cho người nhận qua email. Người thực thi nhập lại mã mình đang giữ (Backend kiểm rồi gửi, không lưu mã);
- * ô nhập được xóa sau khi gửi xong. Không optimistic: chỉ báo thành công sau response của BE.
+ * Gửi mã mở gói cho người nhận qua email. Người thực thi bấm "Dùng mã đã nhận trên hệ thống" để điền mã Chủ kho
+ * đã gửi (hoặc tự nhập mã đang giữ); Backend kiểm rồi gửi. Mã chỉ nằm trong ô nhập, được xóa sau khi gửi xong.
+ * Không optimistic: chỉ báo thành công sau response của BE.
  */
 export function HandoverSendKey({
   caseId,
   turnId,
+  vaultId,
   onSent,
   onCancel,
 }: {
   caseId: string;
   turnId: string;
+  /** Kho của hồ sơ; có thì cho lấy mã đã nhận trên hệ thống thay vì gõ tay. */
+  vaultId?: string;
   /** Gọi sau khi Backend xác nhận đã gửi; sentAt là giờ máy chủ. */
   onSent: (sentAt: string) => void;
   onCancel: () => void;
 }) {
   const action = usePrivateAction();
+  const fill = usePrivateAction();
   const [key, setKey] = useState("");
+  const busy = action.pending || fill.pending;
   const send = () =>
     void action.execute(
       () => deathCaseService.sendKey(caseId, turnId, key.trim()),
@@ -28,6 +35,11 @@ export function HandoverSendKey({
         setKey("");
         onSent(result.sentAt);
       },
+    );
+  const fillFromSystem = (id: string) =>
+    void fill.execute(
+      () => systemExecutorsService.getHandoverKey(id),
+      (received) => setKey(received.shard),
     );
   return (
     <div className="space-y-3 rounded-xl border border-heritage-border bg-white/60 p-4 text-sm">
@@ -44,24 +56,34 @@ export function HandoverSendKey({
           onChange={(event) => setKey(event.target.value)}
         />
       </label>
+      {vaultId && (
+        <button
+          type="button"
+          className={buttonStyles.outline}
+          disabled={busy}
+          onClick={() => fillFromSystem(vaultId)}
+        >
+          {fill.pending ? "Đang lấy mã…" : "Dùng mã đã nhận trên hệ thống"}
+        </button>
+      )}
+      {fill.error && (
+        <p role="alert" className="text-sm text-destructive">
+          {fill.error}
+        </p>
+      )}
       <p className="text-heritage-muted">
-        Mã được gửi riêng tới email của người nhận, tách khỏi thư mời. Hệ thống không lưu mã.
+        Mã được gửi riêng tới email của người nhận, tách khỏi thư mời.
       </p>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           className={buttonStyles.dark}
           onClick={send}
-          disabled={action.pending || key.trim().length === 0}
+          disabled={busy || key.trim().length === 0}
         >
           {action.pending ? "Đang gửi…" : "Gửi mã"}
         </button>
-        <button
-          type="button"
-          className={buttonStyles.outline}
-          onClick={onCancel}
-          disabled={action.pending}
-        >
+        <button type="button" className={buttonStyles.outline} onClick={onCancel} disabled={busy}>
           Hủy
         </button>
       </div>

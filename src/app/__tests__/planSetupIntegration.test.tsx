@@ -51,6 +51,36 @@ const invitationFixture = {
   acceptedScopeVersion: null,
   etag: '"0"',
 };
+const directoryFixture = [
+  ["executor@example.test", "Luật sư Một"],
+  ["fixture@example.test", "Chủ kho"],
+  ["moi@example.test", "Luật sư Mới"],
+].map(([email, fullName], index) => ({
+  id: `00000000-0000-4000-8000-00000000000${index + 1}`,
+  fullName,
+  email,
+  phoneMasked: null,
+  executorRoleTitle: "Luật sư thi hành di chúc",
+  legalVerification: {
+    status: "VERIFIED",
+    lawyerCardNumber: "LS-1",
+    practiceCertificateNumber: null,
+    organization: null,
+    verifiedAt: null,
+  },
+  assignedVaultsCount: 0,
+  isAvailable: true,
+}));
+
+/** GET /system-executors trả danh bạ, mọi GET khác trả dữ liệu kế hoạch. */
+function mockGetWith(setup: unknown) {
+  return vi
+    .spyOn(apiClient, "get")
+    .mockImplementation(async (url: string) =>
+      url === "/system-executors" ? directoryFixture : setup,
+    );
+}
+
 beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   accessTokenMemory.set("setup-fixture");
@@ -340,52 +370,15 @@ const pendingReplacement = {
   inviteeEmail: "moi@example.test",
 };
 
-/** GET kế hoạch trả `data`; GET tìm người có sẵn trả danh sách `email` (mỗi email một tài khoản). */
-function mockGetWithCandidates(data: unknown, emails: string[]): void {
-  const candidates = emails.map((email, index) => ({
-    userId: `cccccccc-cccc-4ccc-8ccc-cccccccccc0${index}`,
-    fullName: `Tài khoản ${index}`,
-    email,
-  }));
-  vi.spyOn(apiClient, "get").mockImplementation((async (url: string) => {
-    if (url.endsWith("/executor-candidates")) {
-      return candidates;
-    }
-    return data;
-  }) as never);
-}
-
-/** Gõ vào ô tìm rồi bấm kết quả có email đó (chờ hết thời gian chờ gõ của ô tìm). */
-async function chooseCandidate(dialog: HTMLElement, email: string): Promise<void> {
-  fireEvent.change(within(dialog).getByLabelText("Tìm người trong hệ thống"), {
-    target: { value: email },
-  });
-  fireEvent.click(await within(dialog).findByRole("button", { name: new RegExp(email) }));
-}
-
-it("Người thực thi: không mời được email ngoài hệ thống, nút Gửi lời mời khóa tới khi chọn người", async () => {
-  mockGetWithCandidates(setupFixture, []);
-  const post = vi.spyOn(apiClient, "post");
-  setup(<ExecutorsSection vaultId={VAULT_ID} />);
-  fireEvent.click(await screen.findByRole("button", { name: "Mời Người thực thi" }));
-  const dialog = await screen.findByRole("dialog");
-  expect(within(dialog).queryByLabelText("Email")).not.toBeInTheDocument();
-  expect(within(dialog).getByRole("button", { name: "Gửi lời mời" })).toBeDisabled();
-  fireEvent.change(within(dialog).getByLabelText("Tìm người trong hệ thống"), {
-    target: { value: "nguoi-la" },
-  });
-  expect(await within(dialog).findByText(/Không có tài khoản phù hợp/)).toBeInTheDocument();
-  expect(within(dialog).getByRole("button", { name: "Gửi lời mời" })).toBeDisabled();
-  expect(post).not.toHaveBeenCalled();
-});
-
 it("Người thực thi: kế hoạch nháp mời được Người thực thi, không gửi vai trò", async () => {
-  mockGetWithCandidates(setupFixture, ["executor@example.test"]);
+  mockGetWith(setupFixture);
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(invitationFixture);
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
   fireEvent.click(await screen.findByRole("button", { name: "Mời Người thực thi" }));
   const dialog = await screen.findByRole("dialog");
-  await chooseCandidate(dialog, "executor@example.test");
+  fireEvent.click(
+    await within(dialog).findByRole("button", { name: "Chọn người này: Luật sư Một" }),
+  );
   fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executors`, {
@@ -499,31 +492,30 @@ it("Người thực thi: kế hoạch có hồ sơ báo tử chỉ xem, không c
 });
 
 it("Người thực thi: rào lỗi ngay trên form nếu Owner tự mời chính mình", async () => {
-  mockGetWithCandidates(setupFixture, ["fixture@example.test"]);
+  mockGetWith(setupFixture);
   const post = vi.spyOn(apiClient, "post");
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
   fireEvent.click(await screen.findByRole("button", { name: "Mời Người thực thi" }));
   const dialog = await screen.findByRole("dialog");
-  await chooseCandidate(dialog, "fixture@example.test");
-  fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   expect(
-    await within(dialog).findByText("Bạn không thể tự mời chính mình làm Người thực thi."),
-  ).toBeInTheDocument();
+    await within(dialog).findByRole("button", { name: "Chọn người này: Chủ kho" }),
+  ).toBeDisabled();
+  expect(within(dialog).getByText("Đây là tài khoản của bạn.")).toBeInTheDocument();
   expect(post).not.toHaveBeenCalled();
 });
 
 it("Người thực thi: rào lỗi ngay trên form nếu mời trùng email với Người thực thi hiện có", async () => {
-  mockGetWithCandidates({ ...setupFixture, executors: [acceptedPrimary, pendingReplacement] }, [
-    "moi@example.test",
-  ]);
+  mockGetWith({ ...setupFixture, executors: [acceptedPrimary, pendingReplacement] });
   const post = vi.spyOn(apiClient, "post");
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
   fireEvent.click(await screen.findByRole("button", { name: "Thay người khác" }));
   const dialog = await screen.findByRole("dialog");
-  await chooseCandidate(dialog, "moi@example.test");
-  fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
+  // Người đã được mời không chọn được: nút bị khóa kèm lý do, không có request nào gửi đi.
   expect(
-    await within(dialog).findByText("Email này đã được mời hoặc đang là Người thực thi."),
+    await within(dialog).findByRole("button", { name: "Chọn người này: Luật sư Mới" }),
+  ).toBeDisabled();
+  expect(
+    within(dialog).getByText("Người này đã được mời hoặc đang là Người thực thi."),
   ).toBeInTheDocument();
   expect(post).not.toHaveBeenCalled();
 });

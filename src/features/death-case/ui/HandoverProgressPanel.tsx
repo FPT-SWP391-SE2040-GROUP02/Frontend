@@ -40,7 +40,15 @@ function Tile({
   );
 }
 
-function ProgressBody({ caseId, data }: { caseId: string; data: HandoverProgress }) {
+function ProgressBody({
+  caseId,
+  vaultId,
+  data,
+}: {
+  caseId: string;
+  vaultId?: string;
+  data: HandoverProgress;
+}) {
   const counts = countTurns(data.turns);
   const rows = sortTurnRows(data.turns);
   return (
@@ -60,6 +68,7 @@ function ProgressBody({ caseId, data }: { caseId: string; data: HandoverProgress
           <HandoverTurnRow
             key={row.turn.turnId}
             caseId={caseId}
+            vaultId={vaultId}
             turn={row.turn}
             progress={row.progress}
           />
@@ -77,7 +86,14 @@ function ProgressBody({ caseId, data }: { caseId: string; data: HandoverProgress
  * Trang Bàn giao của Người thực thi: bốn ô số rồi mỗi người nhận một dòng. Chỉ đọc (trừ gửi mã mở gói qua email
  * do Backend kiểm); không có hạn chót. Quyền và trạng thái do Backend quyết định.
  */
-export function HandoverProgressPanel({ caseId }: { caseId: string }) {
+export function HandoverProgressPanel({
+  caseId,
+  vaultId,
+}: {
+  caseId: string;
+  /** Kho của hồ sơ; có thì ô gửi mã cho phép lấy mã đã nhận trên hệ thống. */
+  vaultId?: string;
+}) {
   const query = useHandoverProgress(caseId);
   let body;
   if (query.isPending) {
@@ -100,7 +116,7 @@ export function HandoverProgressPanel({ caseId }: { caseId: string }) {
   } else if (query.data.turns.length === 0) {
     body = <p role="status">Hồ sơ đã duyệt nhưng chưa có người nhận nào để bàn giao.</p>;
   } else {
-    body = <ProgressBody caseId={caseId} data={query.data} />;
+    body = <ProgressBody caseId={caseId} vaultId={vaultId} data={query.data} />;
   }
   return (
     <section aria-labelledby="handover-progress-title" className="space-y-5">
