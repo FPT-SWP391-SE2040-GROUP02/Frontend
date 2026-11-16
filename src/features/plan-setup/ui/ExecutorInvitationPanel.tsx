@@ -12,7 +12,9 @@ import { useServerNow } from "@/shared/clock/useServerNow";
 import { planSetupService } from "../api/planSetupService";
 import { invitationInspectFailure } from "../lib/invitationInspectError";
 import { invitationTimeLeft } from "../lib/invitationTimeLeft";
+import { executorSigningPasswordError } from "../lib/executorSigningError";
 import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
+import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
 const capabilities = [
   "Báo tin cho hệ thống",
@@ -26,6 +28,8 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
   const serverNow = useServerNow();
   const [acknowledge, setAcknowledge] = useState(false);
   const [decision, setDecision] = useState<boolean | null>(null);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const client = useQueryClient();
@@ -36,6 +40,28 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
     retry: false,
     gcTime: 0,
   });
+  // Mật khẩu chỉ gửi khi chấp nhận và được xóa khỏi ô sau mỗi lần thử.
+  const respond = (accept: boolean, scopeVersion: string) => {
+    let signingPassword: string | undefined;
+    if (accept) {
+      signingPassword = password;
+    }
+    setPassword("");
+    setPasswordError(null);
+    void action.execute(
+      () => planSetupService.respond(token, accept, acknowledge, scopeVersion, signingPassword),
+      () => {
+        setDecision(accept);
+        void client.invalidateQueries({ queryKey: ["executor"] });
+        void client.invalidateQueries({ queryKey: ["executor-vaults"] });
+      },
+      (error, fieldErrors) => {
+        if (accept) {
+          setPasswordError(executorSigningPasswordError(error, fieldErrors));
+        }
+      },
+    );
+  };
   if (query.isPending) return <p role="status">Đang kiểm tra lời mời Người thực thi…</p>;
   if (query.isError) {
     const failure = invitationInspectFailure(query.error, token);
@@ -158,32 +184,28 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
             />
             Tôi đã đọc di chúc, hiểu nhiệm vụ và tự nguyện nhận vai Người thực thi.
           </label>
+          <ExecutorSigningPasswordField
+            value={password}
+            onChange={setPassword}
+            disabled={action.pending}
+            error={passwordError}
+          />
           <div className="space-y-3">
             {[true, false].map((accept) => (
               <button
                 key={String(accept)}
                 type="button"
                 className={`${accept ? buttonStyles.dark : buttonStyles.outline} w-full`}
-                disabled={action.pending || (accept && !acknowledge)}
-                onClick={() =>
-                  void action.execute(
-                    () =>
-                      planSetupService.respond(token, accept, acknowledge, query.data.scopeVersion),
-                    () => {
-                      setDecision(accept);
-                      void client.invalidateQueries({ queryKey: ["executor"] });
-                      void client.invalidateQueries({ queryKey: ["executor-vaults"] });
-                    },
-                  )
-                }
+                disabled={action.pending || (accept && (!acknowledge || password.length === 0))}
+                onClick={() => respond(accept, query.data.scopeVersion)}
               >
-                {accept ? "Ký nhận vai thực hiện di chúc" : "Từ chối"}
+                {accept ? "Ký nhận vai" : "Từ chối"}
               </button>
             ))}
           </div>
         </>
       )}
-      {action.error && (
+      {action.error && passwordError === null && (
         <div role="alert" className="space-y-2 rounded-xl border border-red-200 bg-red-50 p-4">
           <p className="text-sm font-medium text-destructive">{action.error}</p>
           <p className="text-sm text-red-700">

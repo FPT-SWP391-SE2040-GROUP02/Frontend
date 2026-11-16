@@ -236,6 +236,11 @@ describe("trang Bàn giao: kế hoạch còn nháp, di chúc sinh từ dữ li�
     ]) {
       expect(doc.getByRole("heading", { name: heading })).toBeInTheDocument();
     }
+    expect(
+      doc.getByText(
+        "Tôi được sửa tài sản và người nhận mà không cần Người thực thi ký lại; chỉ khi phạm vi nhiệm vụ của Người thực thi thay đổi thì Người thực thi phải ký lại.",
+      ),
+    ).toBeInTheDocument();
     expect(doc.getByText("Mỗi 30 ngày")).toBeInTheDocument();
     expect(doc.getByText("Trong 30 ngày kể từ lúc đồng ý")).toBeInTheDocument();
     expect(
@@ -369,7 +374,11 @@ describe("hai ô chữ ký", () => {
     expect(doc.getByText("NGƯỜI LẬP DI CHÚC")).toBeInTheDocument();
     expect(doc.getByText("(Ký bằng mã PIN của kho)")).toBeInTheDocument();
     expect(doc.getByText("NGƯỜI THỰC THI DI CHÚC")).toBeInTheDocument();
-    expect(doc.getByText("(Ký xác nhận đồng ý nhận vai trò)")).toBeInTheDocument();
+    expect(
+      doc.getByText(
+        "(Ký nhận vai trò và phạm vi nhiệm vụ bằng mật khẩu tài khoản. Không xác nhận phần tài sản và người nhận.)",
+      ),
+    ).toBeInTheDocument();
     expect(doc.getByText("Chưa ký")).toBeInTheDocument();
     expect(doc.getByText("Chưa có Người thực thi")).toBeInTheDocument();
     expect(doc.queryByText("ĐÃ KÝ ĐIỆN TỬ")).not.toBeInTheDocument();
@@ -381,7 +390,9 @@ describe("hai ô chữ ký", () => {
 
     const doc = within(paper());
     expect(doc.getAllByText("ĐÃ KÝ ĐIỆN TỬ")).toHaveLength(1);
-    expect(doc.getByText("Lúc 14:20 ngày 14/11/2026")).toBeInTheDocument();
+    expect(
+      doc.getByText("Ký bằng mật khẩu tài khoản lúc 14:20 ngày 14/11/2026"),
+    ).toBeInTheDocument();
     expect(doc.getByText("Chưa ký")).toBeInTheDocument();
     expect(doc.getByText("Ký ở khung bên phải sau khi điền đủ")).toBeInTheDocument();
   });

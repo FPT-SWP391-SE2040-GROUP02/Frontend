@@ -2,9 +2,11 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { AxiosError, AxiosHeaders } from "axios";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import { formatDateTime } from "@/shared/lib/dateFormat";
 import { planSetupService } from "../../api/planSetupService";
 import type { MyInvitation, MyInvitations } from "../../model/myInvitations.schema";
 import { MyInvitationsInbox } from "../MyInvitationsInbox";
@@ -41,6 +43,19 @@ function data(overrides: Partial<MyInvitations> = {}): MyInvitations {
     ...overrides,
   };
 }
+
+function httpError(status: number, body: unknown): AxiosError {
+  return new AxiosError("failed", undefined, undefined, undefined, {
+    status,
+    statusText: "",
+    config: { headers: new AxiosHeaders() },
+    headers: {},
+    data: body,
+  });
+}
+
+const PASSWORD_LABEL = "Mật khẩu tài khoản";
+const SIGN_BUTTON = "Ký nhận vai";
 
 let client: QueryClient;
 beforeEach(() => {
@@ -84,13 +99,28 @@ describe("MyInvitationsInbox", () => {
     renderWithRoutes(<MyInvitationsInbox />);
     const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
     expect(within(card).getByText("Còn 5 ngày")).toBeInTheDocument();
-    const accept = within(card).getByRole("button", { name: "Ký nhận vai thực hiện di chúc" });
+    const accept = within(card).getByRole("button", { name: SIGN_BUTTON });
     expect(accept).toBeDisabled();
 
     await userEvent.click(within(card).getByRole("checkbox"));
+    // Đã tick phạm vi nhưng chưa có mật khẩu thì vẫn khóa.
+    expect(accept).toBeDisabled();
+    const passwordInput = within(card).getByLabelText(PASSWORD_LABEL);
+    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(passwordInput).toHaveAttribute("autocomplete", "current-password");
+    await userEvent.type(passwordInput, "mat-khau-thu");
+    expect(accept).toBeEnabled();
     await userEvent.click(accept);
 
-    expect(planSetupService.respondById).toHaveBeenCalledWith(FIRST_ID, true, true, "scope-test");
+    expect(planSetupService.respondById).toHaveBeenCalledWith(
+      FIRST_ID,
+      true,
+      true,
+      "scope-test",
+      "mat-khau-thu",
+    );
+    // Ô mật khẩu được xóa sau lần thử.
+    expect(passwordInput).toHaveValue("");
     expect(await screen.findByText("Bạn đã là Người thực hiện")).toBeInTheDocument();
   });
 
@@ -99,7 +129,63 @@ describe("MyInvitationsInbox", () => {
     renderWithRoutes(<MyInvitationsInbox />);
     const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
     await userEvent.click(within(card).getByRole("button", { name: "Từ chối" }));
-    expect(planSetupService.respondById).toHaveBeenCalledWith(FIRST_ID, false, false, "scope-test");
+    expect(planSetupService.respondById).toHaveBeenCalledWith(
+      FIRST_ID,
+      false,
+      false,
+      "scope-test",
+      undefined,
+    );
+  });
+
+  async function acceptWithError(error: AxiosError, password: string) {
+    vi.mocked(planSetupService.mine).mockResolvedValue(data({ pending: [invitation()] }));
+    vi.mocked(planSetupService.respondById).mockRejectedValue(error);
+    renderWithRoutes(<MyInvitationsInbox />);
+    const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
+    await userEvent.click(within(card).getByRole("checkbox"));
+    const passwordInput = within(card).getByLabelText(PASSWORD_LABEL);
+    await userEvent.type(passwordInput, password);
+    await userEvent.click(within(card).getByRole("button", { name: SIGN_BUTTON }));
+    return { card, passwordInput };
+  }
+
+  it("shows the remaining attempts under the password field when the password is wrong", async () => {
+    const { card, passwordInput } = await acceptWithError(
+      httpError(403, { code: "SIGNING_PASSWORD_INVALID", attemptsRemaining: 2 }),
+      "sai-mat-khau",
+    );
+    expect(
+      await within(card).findByText("Mật khẩu chưa đúng. Còn 2 lần thử trước khi bị tạm khóa."),
+    ).toBeInTheDocument();
+    expect(passwordInput).toHaveValue("");
+    expect(within(card).queryByText("Bạn không có quyền thực hiện thao tác này.")).toBeNull();
+  });
+
+  it("shows the unlock time when signing is locked", async () => {
+    const lockedUntil = "2026-11-20T10:15:00+00:00";
+    const { card } = await acceptWithError(
+      httpError(423, { code: "SIGNING_LOCKED", lockedUntil }),
+      "mat-khau",
+    );
+    expect(
+      await within(card).findByText(
+        `Chức năng ký nhận vai đang tạm khóa đến ${formatDateTime(lockedUntil)}.`,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a blank-password message when the server rejects the password field", async () => {
+    const { card } = await acceptWithError(
+      httpError(400, {
+        code: "VALIDATION_ERROR",
+        errors: { Password: ["The Password field is required."] },
+      }),
+      "x",
+    );
+    expect(
+      await within(card).findByText("Vui lòng nhập mật khẩu tài khoản để ký nhận vai."),
+    ).toBeInTheDocument();
   });
 
   it("warns when an invitation expires within a day", async () => {

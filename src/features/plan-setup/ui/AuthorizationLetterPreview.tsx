@@ -14,8 +14,7 @@ interface AuthorizationLetterPreviewProps {
 
 /**
  * Bản xem trước Di chúc cho Người thực thi đọc trước khi ký (WillDocument, chế độ chỉ đọc). Người thực thi chưa có
- * danh sách người nhận nên Điều 2 dùng câu chung. Người thực thi ký nhận vai bằng nút "Ký nhận vai thực hiện di
- * chúc"; Chủ kho ký bằng cách kích hoạt kế hoạch.
+ * danh sách người nhận nên Điều 2 dùng câu chung. Người thực thi ký nhận vai bằng nút "Ký nhận vai" kèm mật khẩu tài khoản; Chủ kho ký bằng cách kích hoạt kế hoạch.
  */
 export function AuthorizationLetterPreview({
   ownerName,
@@ -50,6 +49,10 @@ export function AuthorizationLetterPreview({
           viewer="reader"
         />
         <p className="mt-3 text-sm leading-5 text-heritage-muted">{scopeText}</p>
+        <p className="mt-2 text-sm leading-5 text-heritage-muted">
+          Bạn ký nhận vai trò và phạm vi nhiệm vụ của Người thực thi bằng mật khẩu tài khoản. Bạn
+          không xác nhận phần tài sản và người nhận.
+        </p>
       </div>
     </details>
   );

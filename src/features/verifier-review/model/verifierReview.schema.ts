@@ -183,15 +183,6 @@ export const verifierExecutorSchema = z
   .nullable()
   .optional();
 
-/**
- * Phần body lỗi xác nhận mật khẩu FE cần đọc (DEATH-03): 403 SIGNING_PASSWORD_INVALID (+attemptsRemaining, không có khi tài khoản chưa có
- * mật khẩu), 423 SIGNING_LOCKED (+lockedUntil). `lockedUntil` để chuỗi, UI tự kiểm ngày hợp lệ.
- */
-export const signingProblemSchema = z.object({
-  code: z.string().optional(),
-  attemptsRemaining: z.number().int().nonnegative().optional(),
-  lockedUntil: z.string().optional(),
-});
 /** Mật khẩu tài khoản để xác nhận quyết định (DEATH-03); chỉ nằm trong state form của modal, không lưu, không log. */
 const signingPassword = z
   .string()

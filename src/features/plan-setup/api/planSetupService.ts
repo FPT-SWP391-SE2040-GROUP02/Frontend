@@ -81,14 +81,25 @@ export const planSetupService = {
       ),
     );
   },
-  async respond(token: string, accept: boolean, acknowledgeScope: boolean, scopeVersion: string) {
+  /** `password` chỉ gửi khi chấp nhận (ký nhận vai bằng mật khẩu tài khoản); từ chối không gửi. */
+  async respond(
+    token: string,
+    accept: boolean,
+    acknowledgeScope: boolean,
+    scopeVersion: string,
+    password?: string,
+  ) {
+    const body: Record<string, unknown> = {
+      token: tokenSchema.parse(token),
+      accept,
+      acknowledgeScope,
+      scopeVersion,
+    };
+    if (accept && password !== undefined) {
+      body.password = password;
+    }
     return executorSchema.parse(
-      await apiClient.post<unknown, unknown>("/executor-invitations/respond", {
-        token: tokenSchema.parse(token),
-        accept,
-        acknowledgeScope,
-        scopeVersion,
-      }),
+      await apiClient.post<unknown, unknown>("/executor-invitations/respond", body),
     );
   },
   /** Lời mời gửi tới email đã xác minh của tài khoản đang đăng nhập; không có token trong response. */
@@ -103,14 +114,15 @@ export const planSetupService = {
     accept: boolean,
     acknowledgeScope: boolean,
     scopeVersion: string,
+    password?: string,
   ) {
     const id = z.string().uuid().parse(invitationId);
+    const body: Record<string, unknown> = { accept, acknowledgeScope, scopeVersion };
+    if (accept && password !== undefined) {
+      body.password = password;
+    }
     return executorSchema.parse(
-      await apiClient.post<unknown, unknown>(`/executor-invitations/${id}/respond`, {
-        accept,
-        acknowledgeScope,
-        scopeVersion,
-      }),
+      await apiClient.post<unknown, unknown>(`/executor-invitations/${id}/respond`, body),
     );
   },
 };

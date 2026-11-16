@@ -359,7 +359,7 @@ function SignatureBlock({
     );
     if (executorWhen !== null) {
       executorStamp = <Stamp signed waitText="" />;
-      executorNote = `Lúc ${executorWhen}`;
+      executorNote = `Ký bằng mật khẩu tài khoản lúc ${executorWhen}`;
     } else {
       executorStamp = <Stamp signed={false} waitText="Chưa ký" />;
     }
@@ -380,8 +380,9 @@ function SignatureBlock({
       </div>
       <div>
         <h4 className="text-sm font-bold tracking-[0.04em]">NGƯỜI THỰC THI DI CHÚC</h4>
-        <p className="mb-3.5 mt-0.5 text-[13px] italic text-heritage-muted">
-          (Ký xác nhận đồng ý nhận vai trò)
+        <p className="mx-auto mb-3.5 mt-0.5 max-w-[32ch] text-[13px] italic text-heritage-muted">
+          (Ký nhận vai trò và phạm vi nhiệm vụ bằng mật khẩu tài khoản. Không xác nhận phần tài sản
+          và người nhận.)
         </p>
         {executorStamp}
         {executorName}
@@ -509,6 +510,10 @@ export function WillDocument({
           Mỗi lần sửa gói, người nhận hoặc Người thực thi cần nhập mã PIN, và di chúc này luôn hiển
           thị nội dung đang áp dụng. Nếu tôi gỡ hết gói sẵn sàng, kế hoạch tự dừng: điểm danh tạm
           ngưng, Người thực thi bị tạm ngưng, và tôi phải ký kích hoạt lại.
+        </p>
+        <p className={`${BODY} mt-2`}>
+          Tôi được sửa tài sản và người nhận mà không cần Người thực thi ký lại; chỉ khi phạm vi
+          nhiệm vụ của Người thực thi thay đổi thì Người thực thi phải ký lại.
         </p>
       </section>
 

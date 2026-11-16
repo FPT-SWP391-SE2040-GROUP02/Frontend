@@ -478,11 +478,16 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     );
     // Không hiện hạn của lời mời.
     expect(card).not.toHaveTextContent(/Còn \d|Lời mời hết hạn|Hết hạn|hạn chót/);
-    const accept = within(card).getByRole("button", { name: "Ký nhận vai thực hiện di chúc" });
+    const accept = within(card).getByRole("button", { name: "Ký nhận vai" });
     expect(accept).toBeDisabled();
     fireEvent.click(
       within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản"),
     );
+    // Đã tick phạm vi nhưng chưa nhập mật khẩu thì vẫn khóa.
+    expect(accept).toBeDisabled();
+    fireEvent.change(within(card).getByLabelText("Mật khẩu tài khoản"), {
+      target: { value: "mat-khau-thu" },
+    });
     expect(accept).toBeEnabled();
   });
 
@@ -513,7 +518,10 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     fireEvent.click(
       within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản"),
     );
-    fireEvent.click(within(card).getByRole("button", { name: "Ký nhận vai thực hiện di chúc" }));
+    fireEvent.change(within(card).getByLabelText("Mật khẩu tài khoản"), {
+      target: { value: "mat-khau-thu" },
+    });
+    fireEvent.click(within(card).getByRole("button", { name: "Ký nhận vai" }));
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
     expect(await screen.findByText("Kho của Cô Lan", { selector: "p" })).toBeInTheDocument();
     expect(screen.getByText("Bạn nhận vai ngày 01/10/2026")).toBeInTheDocument();
