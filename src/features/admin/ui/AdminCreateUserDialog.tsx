@@ -176,15 +176,18 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {steps.length > 1 && (
-            <ol aria-label="Các bước tạo tài khoản" className="flex items-center gap-2 text-xs">
+            <ol
+              aria-label="Các bước tạo tài khoản"
+              className="flex flex-wrap items-center gap-2 text-xs"
+            >
               {steps.map((key, index) => (
                 <li
                   key={key}
                   aria-current={index === stepIndex ? "step" : undefined}
                   className={
                     index === stepIndex
-                      ? "rounded-full bg-heritage-primary px-3 py-1 font-semibold text-white"
-                      : "rounded-full bg-[#ECE8DB] px-3 py-1 text-heritage-muted"
+                      ? "whitespace-nowrap rounded-full bg-heritage-primary px-3 py-1 font-semibold text-white"
+                      : "whitespace-nowrap rounded-full bg-[#ECE8DB] px-3 py-1 text-heritage-muted"
                   }
                 >
                   {index + 1}. {STEP_LABELS[key]}
