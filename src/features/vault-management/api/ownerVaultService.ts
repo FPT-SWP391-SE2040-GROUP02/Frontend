@@ -22,8 +22,6 @@ const createVaultSchema = z.object({
 const updateVaultSchema = createVaultSchema.extend({
   etag: z.string().min(1).max(64),
   executorNote: z.string().max(2000).optional(),
-  /** Cả danh sách thay toàn bộ; bỏ trường = giữ nguyên. Khớp giới hạn của Backend (10 điều, 500 ký tự). */
-  willClauses: z.array(z.string().min(1).max(500)).max(10).optional(),
 });
 const containers = (vaultId: string) => `/vaults/${idSchema.parse(vaultId)}/containers`;
 const container = (vaultId: string, id: string) => `${containers(vaultId)}/${idSchema.parse(id)}`;

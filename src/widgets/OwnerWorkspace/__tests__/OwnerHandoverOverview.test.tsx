@@ -92,7 +92,6 @@ function setupData(overrides: Record<string, unknown> = {}) {
     ],
     assetsOutsideContainer: [],
     warnings: [],
-    willClauses: [],
     recipients: [
       {
         beneficiaryId: "77777777-7777-4777-8777-777777777777",
@@ -349,19 +348,6 @@ describe("trang Bàn giao: kế hoạch còn nháp, di chúc sinh từ dữ li�
     expect(
       doc.getByText(/Còn 2 tài sản chưa nằm trong gói nào nên sẽ không được bàn giao/),
     ).toBeInTheDocument();
-  });
-
-  it("điều khoản bổ sung của Chủ kho in sau Điều 6, và vẫn còn lối sửa điều khoản", () => {
-    showPlan({ willClauses: ["Tặng cuốn album cho em gái."] });
-    renderOverview();
-
-    const doc = within(paper());
-    const articleSix = doc.getByRole("heading", { name: "Điều 6. Hiệu lực, sửa đổi và thu hồi" });
-    const extra = doc.getByRole("heading", { name: "Điều khoản bổ sung" });
-    expect(
-      articleSix.compareDocumentPosition(extra) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-    expect(doc.getByText(/1\/ Tặng cuốn album cho em gái\./)).toBeInTheDocument();
   });
 
   it("câu trả lời cũ của Backend (không có recipients): Điều 2 dùng câu chung, không vỡ", () => {

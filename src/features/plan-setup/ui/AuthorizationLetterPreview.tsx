@@ -10,8 +10,6 @@ interface AuthorizationLetterPreviewProps {
   scopeText: string;
   /** Mở sẵn khi người đọc phải xem trước khi quyết định (Chủ kho trước khi kích hoạt). */
   defaultOpen?: boolean;
-  /** Điều khoản Chủ kho thêm vào di chúc. */
-  clauses?: string[];
 }
 
 /**
@@ -24,7 +22,6 @@ export function AuthorizationLetterPreview({
   executorEmail,
   scopeText,
   defaultOpen = false,
-  clauses = [],
 }: AuthorizationLetterPreviewProps) {
   let owner = "Chủ kho";
   if (ownerName) {
@@ -50,7 +47,6 @@ export function AuthorizationLetterPreview({
         <WillDocument
           ownerName={owner}
           executor={{ email: executor, fullName: null, signedAt: null }}
-          clauses={clauses}
           viewer="reader"
         />
         <p className="mt-3 text-sm leading-5 text-heritage-muted">{scopeText}</p>

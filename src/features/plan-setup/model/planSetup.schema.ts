@@ -61,7 +61,6 @@ export const planSetupSchema = z.object({
   /** Cảnh báo không chặn activate; chỉ đọc, không disable nút. */
   warnings: z.array(z.string()),
   /** Điều khoản Chủ kho thêm vào di chúc; Backend cũ không có trường này. */
-  willClauses: z.array(z.string()).default([]),
   /** Họ tên và email Chủ kho in trong di chúc. Backend cũ không có hai trường này. */
   ownerFullName: z.string().optional(),
   ownerEmail: z.string().optional(),

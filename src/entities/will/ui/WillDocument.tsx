@@ -32,8 +32,6 @@ export interface WillDocumentProps {
   unassignedPackages?: WillPackageView[];
   /** Số tài sản chưa nằm trong gói nào (sẽ không được bàn giao). */
   assetsOutsideCount?: number;
-  /** Điều khoản Chủ kho tự thêm, in thành "Điều khoản bổ sung" sau Điều 6. */
-  clauses?: string[];
   /** Các hạn in ở Điều 4. */
   policy?: Partial<WillPolicyView>;
   /**
@@ -394,7 +392,7 @@ function SignatureBlock({
 }
 
 /**
- * Di chúc số của một kho, sinh từ dữ liệu kế hoạch bàn giao: quốc hiệu, Điều 1 đến Điều 6, điều khoản bổ sung, hai
+ * Di chúc số của một kho, sinh từ dữ liệu kế hoạch bàn giao: quốc hiệu, Điều 1 đến Điều 6, hai
  * ô chữ ký và câu lưu ý. Chỉ có tên và số đếm, không có nội dung tài sản hay lời nhắn của người nhận.
  *
  * Dùng chung cho trang Bàn giao của Chủ kho (viewer "owner", chỗ trống có nút dẫn tới nơi điền), bản Người thực thi xem
@@ -409,7 +407,6 @@ export function WillDocument({
   recipients,
   unassignedPackages = [],
   assetsOutsideCount = 0,
-  clauses = [],
   policy,
   viewer = "reader",
 }: WillDocumentProps) {
@@ -431,15 +428,6 @@ export function WillDocument({
       <>
         , chủ tài khoản <strong>{ownerEmail}</strong> trên LegacyVault, đã xác minh danh tính
       </>
-    );
-  }
-
-  const clauseNodes: ReactNode[] = [];
-  for (let index = 0; index < clauses.length; index = index + 1) {
-    clauseNodes.push(
-      <p key={`${index}:${clauses[index]}`} className="break-words">
-        {index + 1}/ {clauses[index]}
-      </p>,
     );
   }
 
@@ -523,13 +511,6 @@ export function WillDocument({
           ngưng, Người thực thi bị tạm ngưng, và tôi phải ký kích hoạt lại.
         </p>
       </section>
-
-      {clauseNodes.length > 0 && (
-        <section id="dieu-bo-sung" className={SECTION}>
-          <h3 className={HEADING}>Điều khoản bổ sung</h3>
-          <div className={`${BODY} space-y-1.5`}>{clauseNodes}</div>
-        </section>
-      )}
 
       <SignatureBlock
         ownerName={ownerName}

@@ -42,7 +42,6 @@ export function PlanWillDocument({
       recipients={pickWillRecipients(setup)}
       unassignedPackages={pickUnassignedPackages(setup.containers)}
       assetsOutsideCount={setup.assetsOutsideContainer.length}
-      clauses={setup.willClauses}
       policy={{
         responseDays: policy.responseDays,
         decisionDays: policy.decisionDays,

@@ -21,7 +21,6 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 function invitation(overrides: Partial<MyInvitation> = {}): MyInvitation {
   return {
     id: FIRST_ID,
-    willClauses: [],
     ownerName: "Chủ kho thử nghiệm",
     inviteeEmail: "nguoi-duoc-moi@example.test",
     status: "INVITED",

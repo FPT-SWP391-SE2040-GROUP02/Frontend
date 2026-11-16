@@ -18,7 +18,6 @@ import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
 import { PlanWillDocument } from "@/features/plan-setup/ui/PlanWillDocument";
-import { WillClausesSection } from "@/features/vault-management/ui/WillClausesEditor";
 import { formatDate, formatTimeThenDate } from "@/shared/lib/dateFormat";
 import { HandoverStepsCard } from "./HandoverStepsCard";
 
@@ -211,7 +210,6 @@ function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
       <div className="grid max-w-[1180px] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-6">
           <WillPaper setup={setup} />
-          <WillClausesSection />
         </div>
         <div className="min-w-0 space-y-5">
           <PlanSetupPanel vaultId={vaultId} />
