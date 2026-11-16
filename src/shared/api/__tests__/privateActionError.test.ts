@@ -22,6 +22,8 @@ describe("official BE business errors", () => {
     [404, "CONTAINER_NOT_FOUND", "Không tìm thấy gói"],
     [404, "BENEFICIARY_NOT_FOUND", "Không tìm thấy hồ sơ"],
     [409, "EDIT_CONFLICT", "Dữ liệu đã thay đổi"],
+    [409, "EMAIL_ALREADY_EXISTS", "email này đã được sử dụng"],
+    [409, "PHONE_ALREADY_EXISTS", "Số điện thoại đã được dùng"],
     [409, "DEATH_CASE_INCOMPLETE", "Hồ sơ chưa đủ"],
     [409, "DEATH_CASE_NOT_ALLOWED", "không cho phép"],
     [409, "DEATH_CASE_FILE_LIMIT_EXCEEDED", "giới hạn số trang"],
