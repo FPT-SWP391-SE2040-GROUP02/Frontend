@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ENV } from "@/shared/config/env";
 import { demoClockService } from "./demoClockService";
 
 export const demoClockKeys = {
@@ -13,7 +12,7 @@ export const demoClockKeys = {
  * Bản production không gọi API dev và không hiện gì. Đọc lúc gọi (không chốt khi nạp module) để test đổi được.
  */
 export function isDemoClockEnabled(): boolean {
-  return import.meta.env.DEV || ENV.ENABLE_DEVTOOLS;
+  return import.meta.env.DEV || import.meta.env.VITE_ENABLE_DEVTOOLS === "true";
 }
 
 /**

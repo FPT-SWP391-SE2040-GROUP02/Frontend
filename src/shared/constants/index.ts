@@ -50,6 +50,9 @@ export const STATUS = {
 /** Kiểu dữ liệu của trạng thái nghiệp vụ */
 export type Status = (typeof STATUS)[keyof typeof STATUS];
 
+/** Địa chỉ liên hệ quản trị viên / hỗ trợ; một nguồn duy nhất cho mọi câu "hãy liên hệ quản trị". */
+export const SUPPORT_EMAIL = "legacyvault8386@gmail.com";
+
 /**
  * @description Tập hợp thông điệp hệ thống dùng chung cho Thông báo (Toast), Alert, Error Boundary và Form Validation.
  * Đảm bảo tính nhất quán của văn bản và tránh hardcode magic strings trong UI components.
@@ -71,7 +74,7 @@ export const APP_MESSAGES = {
     UNAUTHORIZED: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!",
     FORBIDDEN: "Bạn không có quyền thực hiện thao tác này.",
     NOT_FOUND: "Không tìm thấy dữ liệu yêu cầu.",
-    SERVER: "Máy chủ đang gặp sự cố. Vui lòng liên hệ quản trị viên.",
+    SERVER: `Máy chủ đang gặp sự cố. Vui lòng thử lại sau hoặc liên hệ quản trị viên qua ${SUPPORT_EMAIL}.`,
     TIMEOUT: "Yêu cầu đã quá thời gian phản hồi (Timeout).",
     LOAD_FAILED: "Không thể tải dữ liệu.",
   },

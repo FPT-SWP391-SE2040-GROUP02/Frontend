@@ -237,7 +237,7 @@ function userTone(status: AdminUserStatus): "none" | "warn" | "bad" {
 function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: string) => void }) {
   return (
     <ListTable
-      columns="minmax(200px,1.4fr) 130px 140px minmax(150px,1fr) 90px"
+      columns="minmax(200px,1.4fr) 130px 140px minmax(150px,1fr) 150px"
       headings={["Người dùng", "Vai trò", "Trạng thái", "Hoạt động", ""]}
     >
       {data.items.map((user) => (
@@ -268,6 +268,11 @@ function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: s
             <small className="text-[12.5px] text-heritage-muted">
               {user.emailVerified ? "Email đã xác minh" : "Email chưa xác minh"}
             </small>
+            {user.emailUndeliverable && (
+              <small className="text-[12.5px] font-medium text-destructive">
+                Email không nhận được thư
+              </small>
+            )}
           </div>
           <div role="cell" className="min-w-0">
             <b className="block text-sm font-medium tabular-nums">
@@ -289,7 +294,7 @@ function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: s
               Xem
             </Button>
             {/* Đổi vai trò và khóa tài khoản chỉ hiện khi rê chuột hoặc dùng bàn phím vào hàng; hàng mặc định gọn như prototype. */}
-            <div className="hidden flex-col gap-2 group-focus-within:flex group-hover:flex">
+            <div className="hidden flex-col gap-2 group-focus-within:flex group-hover:flex [&_button]:w-full [&_button]:whitespace-nowrap [&>div]:flex-col">
               <AdminUserActions user={user} />
             </div>
           </div>

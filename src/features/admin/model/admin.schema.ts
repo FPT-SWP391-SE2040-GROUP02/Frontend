@@ -8,7 +8,7 @@ export const ADMIN_USER_ROLES = ["USER", "VERIFIER", "ADMIN", "EXECUTOR"] as con
  * Vai trò Admin được cấp khi đổi vai trò. Không có EXECUTOR: người thực hiện là người ngoài do Owner mời theo
  * từng kho (ROLE-02), BE trả 400 nếu gửi EXECUTOR. ADMIN_USER_ROLES vẫn giữ để đọc và lọc tài khoản cũ.
  */
-export const ASSIGNABLE_USER_ROLES = ["USER", "VERIFIER", "ADMIN"] as const;
+export const ASSIGNABLE_USER_ROLES = ["USER", "VERIFIER", "EXECUTOR", "ADMIN"] as const;
 export const assignableUserRoleSchema = z.enum(ASSIGNABLE_USER_ROLES);
 /** Trạng thái tài khoản theo `UserStatus` của Backend (wire viết hoa). */
 export const ADMIN_USER_STATUSES = ["ACTIVE", "LOCKED", "DISABLED"] as const;
@@ -56,6 +56,7 @@ export const adminUserSchema = z.object({
   role: adminUserRoleSchema,
   status: adminUserStatusSchema,
   emailVerified: z.boolean(),
+  emailUndeliverable: z.boolean().optional(),
   createdAt: dateTime,
   lastLoginAt: dateTime.nullable(),
   etag: z.string(),
@@ -287,11 +288,15 @@ export type AssignExecutorRequest = z.infer<typeof assignExecutorRequestSchema>;
 export const createAdminUserRequestSchema = z.object({
   fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
   email: z.string().trim().email("Địa chỉ email không hợp lệ.").max(256),
-  password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128),
-  role: z.enum(["VERIFIER", "ADMIN"]),
+  /** Bắt buộc với ADMIN; bỏ trống với VERIFIER/EXECUTOR thì Backend gửi thư mời đặt mật khẩu. */
+  password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128).optional(),
+  role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),
   phone: z.string().trim().max(32).optional(),
   practiceCertificateNumber: z.string().trim().max(64).optional(),
   lawyerCardNumber: z.string().trim().max(64).optional(),
+  /** Chỉ dùng cho EXECUTOR: vai trò chuyên môn và tổ chức hành nghề hiện trong danh bạ của Chủ kho. */
+  executorRoleTitle: z.string().trim().max(200).optional(),
+  legalOrganization: z.string().trim().max(200).optional(),
 });
 export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;
 

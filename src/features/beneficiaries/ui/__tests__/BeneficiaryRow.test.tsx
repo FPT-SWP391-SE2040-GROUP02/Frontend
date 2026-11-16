@@ -66,6 +66,14 @@ function renderRow(
 }
 
 describe("hàng người nhận", () => {
+  it("email bị báo không giao được thì hiện cảnh báo, ngược lại không hiện", () => {
+    renderRow({ emailUndeliverable: true });
+    expect(screen.getByRole("alert")).toHaveTextContent("Không gửi được thư tới email này");
+    cleanup();
+    renderRow({});
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("kho bị khóa thì khóa cả Sửa lẫn Xóa", () => {
     renderRow({}, {}, true);
     expect(screen.getByRole("button", { name: /Sửa hồ sơ/ })).toBeDisabled();

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { useForm, useWatch } from "react-hook-form";
@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, ChevronDown, X } from "lucide-react";
 import { z } from "zod";
+import { SUPPORT_EMAIL } from "@/shared/constants";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
@@ -161,52 +162,15 @@ function InviteDialog({
   const action = usePrivateAction();
   const ownerEmail = useSelector((state: { auth: AuthState }) => state.auth.user?.email);
 
-  const inviteSchema = useMemo(
-    () =>
-      inviteExecutorSchema.superRefine((data, ctx) => {
-        const email = data.email.trim().toLowerCase();
-        if (ownerEmail && email === ownerEmail.trim().toLowerCase()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["email"],
-            message: "Bạn không thể tự mời chính mình làm Người thực thi.",
-          });
-          return;
-        }
-        if (replacing && email === replacing.inviteeEmail.trim().toLowerCase()) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["email"],
-            message: "Người thay thế phải có email khác với Người thực thi hiện tại.",
-          });
-          return;
-        }
-        const duplicate = existingExecutors.find(
-          (e) =>
-            e.inviteeEmail.trim().toLowerCase() === email &&
-            (e.status === "INVITED" || e.status === "ACCEPTED" || e.status === "SUSPENDED") &&
-            (!replacing || e.id !== replacing.id),
-        );
-        if (duplicate) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["email"],
-            message: "Email này đã được mời hoặc đang là Người thực thi.",
-          });
-        }
-      }),
-    [ownerEmail, existingExecutors, replacing],
-  );
-
   const form = useForm<z.infer<typeof inviteExecutorSchema>>({
-    resolver: zodResolver(inviteSchema),
+    resolver: zodResolver(inviteExecutorSchema),
     mode: "onBlur",
     reValidateMode: "onBlur",
     defaultValues: { email: "" },
   });
   const selectedEmail = useWatch({ control: form.control, name: "email" });
 
-  /** Lý do không chọn được một người trong danh bạ; cùng luật với phần kiểm của form và của Backend. */
+  /** Lý do không chọn được một người trong danh bạ (Backend vẫn là nơi quyết định cuối cùng). */
   function disabledReason(executor: SystemExecutor): string | null {
     const email = executor.email.trim().toLowerCase();
     if (ownerEmail && email === ownerEmail.trim().toLowerCase()) {
@@ -284,7 +248,7 @@ function InviteDialog({
               {action.error}
             </p>
           )}
-          <DialogFooter>
+          <DialogFooter className="sticky -bottom-4 -mx-4 -mb-4 border-t border-heritage-border bg-popover px-4 py-3">
             <Button
               size="lg"
               type="button"
@@ -481,6 +445,12 @@ function ChosenCard(props: ChosenCardProps) {
         {dateLine !== "" && <p className="mt-3 text-sm text-heritage-muted">{dateLine}</p>}
 
         <p className="mt-3 text-sm leading-6">{statusText}</p>
+        {holder.emailUndeliverable && (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            Máy chủ thư báo không gửi được thư tới email này. Có thể email không tồn tại, hãy liên
+            hệ ban quản trị qua {SUPPORT_EMAIL} để kiểm tra lại.
+          </p>
+        )}
         {holder.status === "INVITED" && !holder.invitationSentAt && (
           <p role="status" className="mt-3 text-sm text-amber-800">
             Chưa xác nhận gửi được email mời tới người này, nên họ có thể chưa nhận được thư. Hãy
