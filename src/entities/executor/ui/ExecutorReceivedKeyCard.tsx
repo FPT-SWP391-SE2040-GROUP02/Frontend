@@ -3,21 +3,32 @@ import { Copy, Eye, EyeOff, KeyRound } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { buttonStyles, Chip, Panel } from "@/shared/ui/heritageKit";
-import { systemExecutorsService } from "../api/systemExecutorsService";
+import {
+  HANDOVER_NOT_STARTED_MESSAGE,
+  isHandoverNotStarted,
+  systemExecutorsService,
+} from "../api/systemExecutorsService";
 import type { ExecutorHandoverKey } from "../model/systemExecutor.schema";
 
 /**
- * Thẻ "Mã mở gói bàn giao" ở cổng Người thực thi: Chủ kho tạo mã thì mã được gửi tới đây trên hệ thống.
+ * Thẻ "Mã mở gói bàn giao" ở cổng Người thực thi: hệ thống giữ mã và chỉ cho xem khi hồ sơ được duyệt và bàn giao
+ * bắt đầu; trước đó trả 409 HANDOVER_NOT_STARTED và thẻ hiện câu chờ thay vì lỗi.
  * Mã chỉ tải về khi bấm "Xem mã", chỉ nằm trong state của thẻ (không vào cache hay storage) và mất khi ẩn hoặc rời trang.
  */
 export function ExecutorReceivedKeyCard({ vaultId }: { vaultId: string }) {
   const action = usePrivateAction();
   const [key, setKey] = useState<ExecutorHandoverKey | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [notStarted, setNotStarted] = useState(false);
 
   function reveal(): void {
     setCopyState("idle");
-    void action.execute(() => systemExecutorsService.getHandoverKey(vaultId), setKey);
+    setNotStarted(false);
+    void action.execute(
+      () => systemExecutorsService.getHandoverKey(vaultId),
+      setKey,
+      (error) => setNotStarted(isHandoverNotStarted(error)),
+    );
   }
 
   function hide(): void {
@@ -42,8 +53,8 @@ export function ExecutorReceivedKeyCard({ vaultId }: { vaultId: string }) {
   return (
     <Panel title="Mã mở gói bàn giao" action={chip} className="border-[#E0C486]/60 bg-[#FBF3DE]">
       <p className="text-sm leading-6">
-        Chủ kho gửi mã này cho bạn ngay trên hệ thống. Khi bàn giao, bạn gửi mã cho người nhận để họ
-        mở gói. Không chia sẻ mã cho ai khác.
+        Hệ thống giữ mã và cho bạn xem khi hồ sơ được duyệt và bàn giao bắt đầu. Khi đó bạn gửi mã
+        cho người nhận để họ mở gói. Không chia sẻ mã cho ai khác.
       </p>
 
       {key === null && (
@@ -59,7 +70,12 @@ export function ExecutorReceivedKeyCard({ vaultId }: { vaultId: string }) {
           </button>
         </div>
       )}
-      {action.error && key === null && (
+      {notStarted && key === null && (
+        <p role="status" className="mt-3 text-sm text-heritage-muted">
+          {HANDOVER_NOT_STARTED_MESSAGE}
+        </p>
+      )}
+      {action.error && !notStarted && key === null && (
         <p role="alert" className="mt-3 text-sm text-destructive">
           {action.error}
         </p>

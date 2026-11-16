@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { HandoverProgressPanel } from "@/features/death-case/ui/HandoverProgressPanel";
+import { ExecutorReceivedKeyCard } from "@/entities/executor";
 
 const CASE_ID = "33333333-3333-4333-8333-333333333333";
 const WAITING_TURN = "55555555-5555-4555-8555-555555555555";
@@ -74,10 +75,19 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function renderPanel() {
+const VAULT_ID = "22222222-2222-4222-8222-222222222222";
+const NOT_STARTED_MESSAGE = "Mã mở gói sẽ hiện khi hồ sơ được duyệt và bàn giao bắt đầu.";
+const notStartedProblem = () =>
+  problem(409, {
+    code: "HANDOVER_NOT_ALLOWED",
+    reason: "HANDOVER_NOT_STARTED",
+    message: "Mã mở gói chỉ xem được sau khi hồ sơ được duyệt và bàn giao đã bắt đầu.",
+  });
+
+function renderPanel(vaultId?: string) {
   return render(
     <QueryClientProvider client={client}>
-      <HandoverProgressPanel caseId={CASE_ID} />
+      <HandoverProgressPanel caseId={CASE_ID} vaultId={vaultId} />
     </QueryClientProvider>,
   );
 }
@@ -130,4 +140,52 @@ it("mã sai thì hiện lỗi và không báo thành công", async () => {
   await user.click(screen.getByRole("button", { name: "Gửi mã" }));
   expect(await screen.findByRole("alert")).toHaveTextContent(/Khóa mở gói chưa đúng/);
   expect(screen.queryByText(/Đã gửi mã cho người nhận lúc/)).not.toBeInTheDocument();
+});
+
+it("Dùng mã đã nhận trên hệ thống: 409 HANDOVER_NOT_STARTED hiện câu chờ, không phải lỗi", async () => {
+  const user = userEvent.setup();
+  const get = vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+    if (url === `/executor/vaults/${VAULT_ID}/handover-key`) throw notStartedProblem();
+    return progress;
+  });
+  renderPanel(VAULT_ID);
+  await screen.findAllByText(/Gói đang chờ/);
+  await user.click(screen.getByRole("button", { name: "Gửi mã qua email" }));
+  await user.click(screen.getByRole("button", { name: "Dùng mã đã nhận trên hệ thống" }));
+
+  expect(await screen.findByText(NOT_STARTED_MESSAGE)).toBeInTheDocument();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Mã mở gói bạn đang giữ")).toHaveValue("");
+  expect(get).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/handover-key`, expect.anything());
+});
+
+it("Dùng mã đã nhận trên hệ thống: lỗi khác 409 HANDOVER_NOT_STARTED vẫn hiện như lỗi", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+    if (url === `/executor/vaults/${VAULT_ID}/handover-key`) throw problem(404, {});
+    return progress;
+  });
+  renderPanel(VAULT_ID);
+  await screen.findAllByText(/Gói đang chờ/);
+  await user.click(screen.getByRole("button", { name: "Gửi mã qua email" }));
+  await user.click(screen.getByRole("button", { name: "Dùng mã đã nhận trên hệ thống" }));
+
+  expect(await screen.findByRole("alert")).toBeInTheDocument();
+  expect(screen.queryByText(NOT_STARTED_MESSAGE)).not.toBeInTheDocument();
+});
+
+it("thẻ Mã mở gói của Người thực thi: 409 HANDOVER_NOT_STARTED hiện câu chờ, không dẫn tới phiếu của Chủ kho", async () => {
+  const user = userEvent.setup();
+  vi.spyOn(apiClient, "get").mockRejectedValue(notStartedProblem());
+  render(
+    <QueryClientProvider client={client}>
+      <ExecutorReceivedKeyCard vaultId={VAULT_ID} />
+    </QueryClientProvider>,
+  );
+  expect(screen.queryByText(/phiếu/i)).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Xem mã" }));
+
+  expect(await screen.findAllByText(NOT_STARTED_MESSAGE)).not.toHaveLength(0);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Xem mã" })).toBeEnabled();
 });

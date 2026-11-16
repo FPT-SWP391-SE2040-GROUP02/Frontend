@@ -71,7 +71,6 @@ const detailFixture = {
   ],
   decisions: [],
   ownerNotice: { status: "DELIVERED", deliveredAt: CREATED_AT },
-  objectionEndsAt: null,
   assignment: { assignedAt: CREATED_AT, dueAt: CREATED_AT },
   canApprove: false,
   approveBlockers: ["FLAGS_NOT_REVIEWED"],
@@ -98,7 +97,6 @@ const summaryFixture = {
   submittedAt: CREATED_AT,
   assignedAt: CREATED_AT,
   dueAt: CREATED_AT,
-  objectionEndsAt: null,
   unreviewedFlagCount: 1,
   closedAt: null,
 };
@@ -209,7 +207,7 @@ it("Tải lại cập nhật quyền duyệt của hồ sơ đang chọn kể c�
       ? {
           ...detailFixture,
           canApprove: eligible,
-          approveBlockers: eligible ? [] : ["OBJECTION_PERIOD_NOT_OVER"],
+          approveBlockers: eligible ? [] : ["FLAGS_NOT_REVIEWED"],
         }
       : listFixture,
   );
@@ -509,7 +507,7 @@ it("VERIFIER_CONFLICT chỉ cho xem: ẩn mọi thao tác ghi, kể cả modal m
   expect(screen.queryByRole("button", { name: /^Từ chối$/ })).not.toBeInTheDocument();
 });
 
-it("hiện mốc thời gian hồ sơ đã nộp và hồ sơ trước bị từ chối, không còn mốc phản đối", async () => {
+it("hiện mốc thời gian hồ sơ đã nộp và hồ sơ trước bị từ chối", async () => {
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
     String(url).endsWith(CASE_ID)
       ? {
@@ -525,7 +523,6 @@ it("hiện mốc thời gian hồ sơ đã nộp và hồ sơ trước bị từ
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
   const timeline = await screen.findByRole("region", { name: "Mốc thời gian" });
   expect(timeline).toHaveTextContent("Hồ sơ đã nộp");
-  expect(timeline).not.toHaveTextContent("phản đối");
   const previous = screen.getByRole("region", { name: "Hồ sơ trước bị từ chối" });
   expect(previous).toHaveTextContent("Hồ sơ trước của kho này đã bị từ chối");
   expect(previous).toHaveTextContent(formatTimestamp(CREATED_AT));

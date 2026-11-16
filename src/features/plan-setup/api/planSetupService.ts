@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { apiClient } from "@/shared/api";
+import { apiClient, VAULT_PIN_HEADER } from "@/shared/api";
 
 import {
   executorSchema,
@@ -49,9 +49,14 @@ export const planSetupService = {
       ),
     );
   },
+  /**
+   * Ký di chúc và kích hoạt kế hoạch. Chủ kho ký bằng mã PIN của kho (header X-Vault-Pin). Form có ô PIN riêng nên
+   * lỗi PIN trả về form, không mở hộp thoại PIN chung. PIN chỉ đi qua header, không vào body, log hay storage.
+   */
   async activate(
     id: string,
     request: { configVersion: number; policyVersion: string; acknowledgePolicy: boolean },
+    pin: string,
   ) {
     const body = z
       .object({
@@ -61,7 +66,10 @@ export const planSetupService = {
       })
       .parse(request);
     return planSetupSchema.parse(
-      await apiClient.post<unknown, unknown>(`${vault(id)}/activate`, body),
+      await apiClient.post<unknown, unknown>(`${vault(id)}/activate`, body, {
+        headers: { [VAULT_PIN_HEADER]: pin },
+        skipVaultPinPrompt: true,
+      }),
     );
   },
   async inspect(token: string, signal?: AbortSignal) {

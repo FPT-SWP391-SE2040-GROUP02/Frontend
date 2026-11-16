@@ -44,7 +44,6 @@ const invitationFixture = {
   id: CONTAINER_ID,
   status: "INVITED",
   inviteeEmail: "executor@example.test",
-  isBeneficiary: false,
   expiresAt: CREATED_AT,
   acceptedAt: null,
   invitationSentAt: null,
@@ -92,6 +91,14 @@ afterEach(() => {
   apiClient.defaults.adapter = originalAdapter;
   vi.restoreAllMocks();
 });
+const PIN = "482913";
+const PIN_LABEL = "Nhập mã PIN của kho (6 số)";
+/** Tick ô xác nhận và nhập đủ PIN để nút Ký và kích hoạt mở khóa. */
+function agreeAndEnterPin(pin = PIN): void {
+  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.change(screen.getByLabelText(PIN_LABEL), { target: { value: pin } });
+}
+
 function setup(children: ReactNode, authenticated = true) {
   const store = configureStore({ reducer: { auth: authReducer } });
   if (authenticated)
@@ -119,23 +126,29 @@ function setup(children: ReactNode, authenticated = true) {
   return store;
 }
 
-it("requires explicit Owner acknowledgement and sends current config/policy only once", async () => {
+it("requires explicit Owner acknowledgement and PIN, sends current config/policy once with X-Vault-Pin", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(setupFixture);
   const post = vi
     .spyOn(apiClient, "post")
     .mockResolvedValue({ ...setupFixture, planStatus: "ACTIVE", canActivate: false });
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
-  const activate = await screen.findByRole("button", { name: "Kích hoạt kế hoạch" });
+  const activate = await screen.findByRole("button", { name: "Ký và kích hoạt" });
   expect(activate).toBeDisabled();
   expect(post).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("checkbox"));
+  expect(activate).toBeDisabled();
+  fireEvent.change(screen.getByLabelText(PIN_LABEL), { target: { value: PIN } });
   fireEvent.click(activate);
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-  expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/activate`, {
-    configVersion: 7,
-    policyVersion: "setup-2026-10-15",
-    acknowledgePolicy: true,
-  });
+  expect(post).toHaveBeenCalledWith(
+    `/vaults/${VAULT_ID}/activate`,
+    {
+      configVersion: 7,
+      policyVersion: "setup-2026-10-15",
+      acknowledgePolicy: true,
+    },
+    expect.objectContaining({ headers: { "X-Vault-Pin": PIN } }),
+  );
 });
 
 it("missing eKYC and Executor keep activation disabled even after acknowledgement", async () => {
@@ -153,7 +166,8 @@ it("missing eKYC and Executor keep activation disabled even after acknowledgemen
     await screen.findByText("Chủ kho cần hoàn tất xác minh danh tính eKYC."),
   ).toBeInTheDocument();
   fireEvent.click(screen.getByRole("checkbox"));
-  expect(screen.getByRole("button", { name: "Kích hoạt kế hoạch" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Ký và kích hoạt" })).toBeDisabled();
+  expect(screen.getByLabelText(PIN_LABEL)).toBeDisabled();
   expect(post).not.toHaveBeenCalled();
 });
 
@@ -169,10 +183,10 @@ it("retains server failure and does not retry activation or show success", async
     }),
   );
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
-  const activate = await screen.findByRole("button", { name: "Kích hoạt kế hoạch" });
-  fireEvent.click(screen.getByRole("checkbox"));
+  const activate = await screen.findByRole("button", { name: "Ký và kích hoạt" });
+  agreeAndEnterPin();
   fireEvent.click(activate);
-  expect(await screen.findByRole("alert")).toHaveTextContent("Kế hoạch chưa đủ điều kiện");
+  expect(await screen.findByText(/Kế hoạch chưa đủ điều kiện/)).toBeInTheDocument();
   expect(post).toHaveBeenCalledTimes(1);
 });
 
@@ -293,10 +307,10 @@ it("rejects a malformed readiness response rather than pretending activation is 
 it("lets Owner activate when the server says canActivate and shows no backup warning", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(setupFixture);
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
-  expect(await screen.findByRole("button", { name: "Kích hoạt kế hoạch" })).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: "Ký và kích hoạt" })).toBeInTheDocument();
   expect(screen.queryByText(/dự phòng/)).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole("checkbox"));
-  expect(screen.getByRole("button", { name: "Kích hoạt kế hoạch" })).toBeEnabled();
+  agreeAndEnterPin();
+  expect(screen.getByRole("button", { name: "Ký và kích hoạt" })).toBeEnabled();
 });
 
 it("sends Owner eKYC to the Owner dashboard", async () => {
@@ -321,9 +335,35 @@ it("recovers a failed readiness request without automatically activating", async
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
   await screen.findByRole("alert");
   fireEvent.click(screen.getByRole("button", { name: "Thử lại" }));
-  await screen.findByText("Việc cần làm để kích hoạt");
+  await screen.findByRole("region", { name: "Việc cần làm để kích hoạt" });
   expect(get).toHaveBeenCalledTimes(2);
   expect(post).not.toHaveBeenCalled();
+});
+
+it("tolerates an older backend without the will fields and parses the new ones", () => {
+  const older = planSetupSchema.safeParse(setupFixture);
+  expect(older.success).toBe(true);
+  const newer = planSetupSchema.safeParse({
+    ...setupFixture,
+    ownerFullName: "Trần Văn An",
+    ownerEmail: "an@example.test",
+    activatedAt: "2026-11-15T02:42:00Z",
+    executors: [{ ...invitationFixture, fullName: "Lê Thị Mẫu" }],
+    recipients: [
+      {
+        beneficiaryId: VAULT_ID,
+        fullName: "Trần Thị Bình",
+        hasMessage: true,
+        containers: [{ id: CONTAINER_ID, name: "Gói gia đình", assetCount: 5, status: "READY" }],
+      },
+    ],
+  });
+  expect(newer.success).toBe(true);
+  if (older.success && newer.success) {
+    expect(older.data.recipients).toBeUndefined();
+    expect(newer.data.recipients?.[0].hasMessage).toBe(true);
+    expect(newer.data.executors[0].fullName).toBe("Lê Thị Mẫu");
+  }
 });
 
 it.each(["containers", "assetsOutsideContainer", "warnings"])(
@@ -351,12 +391,11 @@ it("hiện checklist kích hoạt: mục đạt có dấu tích, mục thiếu k
   );
   expect(screen.getByRole("link", { name: "Đi xác minh danh tính" })).toBeInTheDocument();
   expect(screen.queryByText("Đã xác minh danh tính eKYC.")).not.toBeInTheDocument();
-  // Hai điều kiện thiếu trong bốn điều kiện: đạt 2/4, thanh tiến độ 50%.
-  expect(screen.getByText("Đã đạt 2/4 điều kiện")).toBeInTheDocument();
-  expect(screen.getByRole("progressbar", { name: "Tiến độ điều kiện kích hoạt" })).toHaveAttribute(
-    "aria-valuenow",
-    "50",
-  );
+  // Hai điều kiện thiếu trong bốn điều kiện: đạt 2/4.
+  expect(screen.getByText("Còn 2 điều kiện chưa đạt")).toBeInTheDocument();
+  const bar = screen.getByRole("progressbar", { name: "Tiến độ điền di chúc" });
+  expect(bar).toHaveAttribute("aria-valuenow", "2");
+  expect(bar).toHaveAttribute("aria-valuemax", "4");
 });
 
 const acceptedPrimary = {
@@ -383,10 +422,12 @@ it("Người thực thi: kế hoạch nháp mời được Người thực thi, 
   );
   fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+  // Người thực thi không còn kiêm người nhận: payload chỉ có email.
   expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executors`, {
     email: "executor@example.test",
-    beneficiaryId: null,
   });
+  const sent = post.mock.calls[0][1] as Record<string, unknown>;
+  expect(Object.keys(sent)).toEqual(["email"]);
 });
 
 it("Người thực thi: kế hoạch đang chạy không cho thu hồi trực tiếp, chỉ Thay người khác", async () => {

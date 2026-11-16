@@ -6,7 +6,9 @@ import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
+import { AxiosError, AxiosHeaders } from "axios";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import { axiosClient } from "@/shared/api/axiosClient";
 import { ROUTES } from "@/shared/config/routes.config";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { planSetupService } from "@/features/plan-setup/api/planSetupService";
@@ -22,9 +24,12 @@ vi.mock("@/features/plan-setup/api/planSetupService", () => ({
 vi.mock("@/entities/executor/api/systemExecutorsService", () => ({
   systemExecutorsService: { list: vi.fn(), getHandoverKey: vi.fn() },
 }));
-vi.mock("@/features/executor-key/api/executorKeyService", () => ({
-  executorKeyService: { getStatus: vi.fn(), issue: vi.fn(), reissue: vi.fn() },
-}));
+// getStatus giả; reissue dùng bản thật để kiểm header PIN gửi đi qua axiosClient.
+vi.mock("@/features/executor-key/api/executorKeyService", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/features/executor-key/api/executorKeyService")>();
+  return { executorKeyService: { ...actual.executorKeyService, getStatus: vi.fn() } };
+});
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
   ownerVaultService: { getMine: vi.fn(), createMine: vi.fn(), updateMine: vi.fn() },
 }));
@@ -42,7 +47,6 @@ function executor(overrides: Record<string, unknown> = {}) {
     id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     status: "INVITED",
     inviteeEmail: "thuc-thi@example.test",
-    isBeneficiary: false,
     expiresAt: EXPIRES_AT,
     acceptedAt: null,
     invitationSentAt: SENT_AT,
@@ -150,7 +154,7 @@ function renderPage() {
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <OwnerTrustedPeople vaultId={VAULT_ID} vaultName="Kho gia đình" />
+          <OwnerTrustedPeople vaultId={VAULT_ID} />
         </MemoryRouter>
       </QueryClientProvider>
     </Provider>,
@@ -189,7 +193,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     expect(screen.getByText(/Mời ngày .* · Đồng ý ngày /)).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Người này sẽ nhận mã mở gói trên hệ thống sau khi bạn kích hoạt kế hoạch và tạo mã.",
+        "Hệ thống tạo mã mở gói khi bạn ký và kích hoạt kế hoạch, rồi chỉ gửi cho người này khi hồ sơ được duyệt.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Thay người khác" })).toBeInTheDocument();
@@ -208,7 +212,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     expect(screen.queryByText(/Mời ngày/)).not.toBeInTheDocument();
   });
 
-  it("ACCEPTED và kế hoạch đang chạy: không có Thu hồi, có Thay người khác, người cũ đang giữ phiếu", async () => {
+  it("ACCEPTED và kế hoạch đang chạy: không có Thu hồi, có Thay người khác, hệ thống giữ mã", async () => {
     showPlan(
       {
         planStatus: "ACTIVE",
@@ -221,12 +225,14 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     expect(await screen.findByRole("button", { name: "Thay người khác" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Thu hồi lời mời" })).not.toBeInTheDocument();
     expect(
-      screen.getByText("Mã mở gói bạn tạo được gửi tới tài khoản của người này trên hệ thống."),
+      screen.getByText(
+        "Hệ thống tự giữ mã mở gói và chỉ gửi cho người này khi hồ sơ được duyệt và bàn giao bắt đầu.",
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText(/không thu hồi trực tiếp/)).toBeInTheDocument();
   });
 
-  it("thay người khi kho đã có mã: hộp thoại nhắc đổi mã mới sau khi người mới đồng ý", async () => {
+  it("thay người khi kho đã có mã: hộp thoại nói hệ thống tự đổi mã khi người mới đồng ý", async () => {
     showPlan(
       {
         planStatus: "ACTIVE",
@@ -240,7 +246,8 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Thay người khác" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Mời người thay")).toBeInTheDocument();
-    expect(dialog).toHaveTextContent("Mã mở gói hiện tại vẫn nằm trong tay người cũ");
+    expect(dialog).toHaveTextContent("hệ thống tự đổi mã mở gói");
+    expect(dialog).not.toHaveTextContent("bạn nên đổi mã mới");
     expect(within(dialog).getByRole("button", { name: "Giữ nguyên" })).toBeInTheDocument();
   });
 
@@ -267,16 +274,6 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     renderPage();
 
     expect(await screen.findByText(/Chưa xác nhận gửi được email/)).toBeInTheDocument();
-  });
-
-  it("người này cũng là người nhận: hiện dòng riêng và bỏ dòng Nhận tài sản ở mục Không được làm", async () => {
-    showPlan({ executors: [executor({ isBeneficiary: true })] });
-    renderPage();
-
-    expect(
-      await screen.findByText("Người này cũng là người nhận trong kho này."),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Nhận tài sản trong kho này")).not.toBeInTheDocument();
   });
 
   it("mục Người thực thi được làm gì? có hai nhóm Được làm và Không được làm", async () => {
@@ -342,8 +339,9 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
     );
     expect(planSetupService.invite).toHaveBeenCalledWith(VAULT_ID, {
       email: "moi@example.test",
-      beneficiaryId: null,
     });
+    const sentPayload = vi.mocked(planSetupService.invite).mock.calls[0][1];
+    expect(Object.keys(sentPayload)).toEqual(["email"]);
   });
 
   it("người được mời chưa có tài khoản", async () => {
@@ -387,45 +385,22 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
 });
 
 describe("trang Người thực thi: thẻ Mã mở gói", () => {
-  it("kế hoạch nháp, chưa ai đồng ý: không có nút Tạo mã mở gói, có link Đến trang Bàn giao", async () => {
+  const NOTE =
+    "Hệ thống tự giữ mã và chỉ gửi cho người nhận sau khi hồ sơ được duyệt. Bạn không cần lưu hay in mã.";
+
+  it("chưa có mã (kế hoạch nháp): nói mã tạo khi ký, không có nút tạo mã hay nút đổi mã", async () => {
     showPlan({ executors: [executor()] });
     renderPage();
 
-    expect(await screen.findByText("Chưa có")).toBeInTheDocument();
-    expect(
-      screen.getByText("Mã được tạo khi bạn kích hoạt kế hoạch, sau khi Người thực thi đã đồng ý."),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Đến trang Bàn giao" })).toHaveAttribute(
-      "href",
-      ROUTES.WILLS.ROOT,
-    );
+    expect(await screen.findByText("Chưa tạo")).toBeInTheDocument();
+    expect(screen.getByText(NOTE)).toBeInTheDocument();
+    expect(screen.getByText("Mã được tạo khi bạn ký và kích hoạt kế hoạch.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Tạo mã mở gói" })).not.toBeInTheDocument();
-  });
-
-  it("kế hoạch nháp, Người thực thi đã đồng ý: báo đủ điều kiện", async () => {
-    showPlan({ executors: [executor({ status: "ACCEPTED", acceptedAt: ACCEPTED_AT })] });
-    renderPage();
-
-    expect(
-      await screen.findByText(
-        "Đủ điều kiện. Mã được tạo khi bạn kích hoạt kế hoạch ở trang Bàn giao, kèm phiếu để trao.",
-      ),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Tạo mã mở gói" })).not.toBeInTheDocument();
-  });
-
-  it("kế hoạch đã chạy mà chưa có mã: có nút Tạo mã mở gói", async () => {
-    showPlan({
-      planStatus: "ACTIVE",
-      executors: [executor({ status: "ACCEPTED", acceptedAt: ACCEPTED_AT })],
-    });
-    renderPage();
-
-    expect(await screen.findByRole("button", { name: "Tạo mã mở gói" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Đến trang Bàn giao" })).not.toBeInTheDocument();
   });
 
-  it("đã có mã: chip Đã có, hai ô thông tin và nút Đổi mã mới", async () => {
+  it("đã có mã: chỉ thấy số bản, không có mã, phiếu hay nút tải phiếu; có nút Đổi mã mới", async () => {
     showPlan(
       {
         planStatus: "ACTIVE",
@@ -438,7 +413,70 @@ describe("trang Người thực thi: thẻ Mã mở gói", () => {
     expect(await screen.findByText("Đã có · Bản 2")).toBeInTheDocument();
     expect(screen.getByText("Bản đang dùng")).toBeInTheDocument();
     expect(screen.getByText("Tạo lúc")).toBeInTheDocument();
+    expect(screen.getByText(NOTE)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Đổi mã mới" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Tải phiếu/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tạo mã mở gói" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}/)).not.toBeInTheDocument();
+  });
+
+  it("Đổi mã mới: xác nhận kèm PIN, gửi PIN ở header, chỉ báo số bản mới", async () => {
+    showPlan(
+      {
+        planStatus: "ACTIVE",
+        executors: [executor({ status: "ACCEPTED", acceptedAt: ACCEPTED_AT })],
+      },
+      { hasKey: true, version: 1, issuedAt: "2026-11-04T01:00:00Z" },
+    );
+    const post = vi
+      .spyOn(axiosClient, "post")
+      .mockResolvedValue(
+        keyStatus({ hasKey: true, version: 2, issuedAt: "2026-11-04T01:00:00Z" }) as never,
+      );
+    renderPage();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Mã cũ hết dùng được ngay");
+    const confirm = within(dialog).getByRole("button", { name: "Đổi mã mới" });
+    expect(confirm).toBeDisabled();
+    await userEvent.type(within(dialog).getByLabelText(/Nhập mã PIN của kho/), "482913");
+    expect(confirm).toBeEnabled();
+    await userEvent.click(confirm);
+
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    expect(post.mock.calls[0][0]).toBe(`/vaults/${VAULT_ID}/executor-key/reissue`);
+    expect(post.mock.calls[0][2]).toMatchObject({ headers: { "X-Vault-Pin": "482913" } });
+    expect(await screen.findByText("Đã đổi mã. Bản đang dùng là Bản 2.")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(document.body.textContent ?? "").not.toContain("482913");
+  });
+
+  it("Đổi mã mới: sai PIN hiện số lần còn lại ngay trong hộp thoại", async () => {
+    showPlan(
+      {
+        planStatus: "ACTIVE",
+        executors: [executor({ status: "ACCEPTED", acceptedAt: ACCEPTED_AT })],
+      },
+      { hasKey: true, version: 1, issuedAt: "2026-11-04T01:00:00Z" },
+    );
+    vi.spyOn(axiosClient, "post").mockRejectedValue(
+      new AxiosError("sai pin", AxiosError.ERR_BAD_REQUEST, undefined, undefined, {
+        status: 403,
+        statusText: "Forbidden",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+        data: { code: "INVALID_VAULT_PIN", attemptsRemaining: 3 },
+      }),
+    );
+    renderPage();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText(/Nhập mã PIN của kho/), "111222");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Đổi mã mới" }));
+
+    expect(await within(dialog).findByText("Mã PIN không đúng. Còn 3 lần thử.")).toBeVisible();
   });
 });
 

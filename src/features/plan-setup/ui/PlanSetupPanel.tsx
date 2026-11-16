@@ -1,17 +1,17 @@
 import { useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, CircleAlert, Clock, KeyRound, X } from "lucide-react";
+import { Check, CircleAlert, Clock, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { Button } from "@/shared/ui/button";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { readVaultPinFailure, type VaultPinFailure } from "@/shared/api/vaultPin";
+import { PIN_DIGITS, PinCodeInput } from "@/shared/ui/pin-input";
 import { StatusBanner } from "@/shared/ui/status-banner";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { planSetupSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
 import { usePlanSetup } from "../model/usePlanSetup";
-import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
-import { PlanReviewSummary } from "./PlanReviewSummary";
 
 type PlanSetup = z.infer<typeof planSetupSchema>;
 
@@ -177,17 +177,11 @@ function ChecklistRow({
 }
 
 /**
- * Thẻ "Việc cần làm để kích hoạt" của Chủ kho. Không tự mời Người thực thi hay tự kích hoạt; mọi xác nhận mặc định chưa tick.
- * `onActivated` chạy ngay khi Backend xác nhận kích hoạt, trước khi làm mới dữ liệu kế hoạch; nơi dùng nhận việc cấp
- * mã mở gói (thuộc tính năng khác nên không gọi ở đây). Kế hoạch đã rời trạng thái nháp thì thẻ này không hiện.
+ * Cột phải của trang Bàn giao khi kế hoạch còn nháp: thẻ tiến độ (điều kiện kích hoạt, giữ logic và nhãn của
+ * missingRequirements) và thẻ "Ký di chúc và kích hoạt". Không tự mời Người thực thi hay tự kích hoạt; mọi xác nhận
+ * mặc định chưa tick. Kế hoạch đã rời trạng thái nháp thì không hiện gì.
  */
-export function PlanSetupPanel({
-  vaultId,
-  onActivated,
-}: {
-  vaultId: string;
-  onActivated?: () => void;
-}) {
+export function PlanSetupPanel({ vaultId }: { vaultId: string }) {
   const query = usePlanSetup(vaultId);
   if (query.isPending) return <p role="status">Đang kiểm tra điều kiện kích hoạt…</p>;
   if (query.isError)
@@ -205,43 +199,49 @@ export function PlanSetupPanel({
       key={`${vaultId}:${query.data.configVersion}:${query.data.policyVersion}:${query.data.planStatus}`}
       vaultId={vaultId}
       setup={query.data}
-      onActivated={onActivated}
     />
   );
 }
 
-/** Lý do ngắn bên cạnh nút kích hoạt khi nút đang khóa; rỗng khi nút bấm được. */
-function activationLockReason(canActivate: boolean, acknowledge: boolean): string {
+/** Lý do ngắn dưới nút ký khi nút đang khóa; rỗng khi nút bấm được. */
+function signLockReason(canActivate: boolean, acknowledge: boolean, pinComplete: boolean): string {
   if (!canActivate) {
-    return "Còn điều kiện chưa đạt ở trên.";
+    return "Còn điều kiện chưa đạt trong di chúc.";
   }
   if (!acknowledge) {
     return "Cần tick ô xác nhận phía trên.";
   }
+  if (!pinComplete) {
+    return "Nhập đủ 6 số của mã PIN.";
+  }
   return "";
 }
 
-function PlanSetupForm({
-  vaultId,
-  setup,
-  onActivated,
-}: {
-  vaultId: string;
-  setup: PlanSetup;
-  onActivated?: () => void;
-}) {
+function PlanSetupForm({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   const client = useQueryClient();
   const action = usePrivateAction();
   const [acknowledge, setAcknowledge] = useState(false);
-  const sync = () => {
+  const [pin, setPin] = useState("");
+  const [pinFailure, setPinFailure] = useState<VaultPinFailure | null>(null);
+  function sync(): void {
     void client.invalidateQueries({ queryKey: ["plan-setup", vaultId] });
     void client.invalidateQueries({ queryKey: ["owner-vault"] });
     void client.invalidateQueries({ queryKey: ["vault-check-in", vaultId] });
-  };
+    // Kích hoạt xong server tự tạo mã mở gói: trạng thái mã cũ (chưa có) không còn đúng.
+    void client.invalidateQueries({ queryKey: ["executor-key", vaultId] });
+  }
   const progress = countProgress(setup.missingRequirements);
   let progressPercent = 0;
   if (progress.total > 0) {
     progressPercent = Math.round((progress.done / progress.total) * 100);
+  }
+  const remaining = progress.total - progress.done;
+  let progressTitle = "Di chúc đã đủ nội dung";
+  if (!setup.canActivate) {
+    progressTitle = `Còn ${remaining} điều kiện chưa đạt`;
+    if (remaining === 0) {
+      progressTitle = "Còn điều kiện cần kiểm tra";
+    }
   }
   const needsUpgrade = action.error.includes("gói dịch vụ trả phí");
   const warnings: ReactNode[] = [];
@@ -252,159 +252,187 @@ function PlanSetupForm({
     }
     warnings.push(<li key={w}>{text}</li>);
   }
-  const lockReason = activationLockReason(setup.canActivate, acknowledge);
-  // Người thực thi chính đã ký nhận vai: tên in trong di chúc mà Chủ kho sẽ ký khi kích hoạt.
-  let acceptedExecutorEmail = "(chưa có Người thực thi chấp nhận)";
-  for (const executor of setup.executors) {
-    if (executor.status === "ACCEPTED") {
-      acceptedExecutorEmail = executor.inviteeEmail;
-    }
+  const pinComplete = pin.length === PIN_DIGITS;
+  const lockedOut = pinFailure !== null && pinFailure.code === "VAULT_PIN_LOCKED";
+  const lockReason = signLockReason(setup.canActivate, acknowledge, pinComplete);
+  let canSign = false;
+  if (setup.canActivate && acknowledge && pinComplete && !lockedOut && !action.pending) {
+    canSign = true;
+  }
+  let reasonText = lockReason;
+  if (action.pending) {
+    reasonText = "Chờ hệ thống xác nhận mã PIN.";
+  }
+  let buttonText = "Ký và kích hoạt";
+  if (action.pending) {
+    buttonText = "Đang kiểm tra…";
+  }
+  // Lỗi PIN hiện ngay dưới ô PIN; các lỗi khác (kế hoạch đổi, hết hạn gói...) hiện ở khung lỗi phía dưới.
+  let pinErrorText = "";
+  if (pinFailure !== null) {
+    pinErrorText = pinFailure.message;
+  }
+  let generalError = "";
+  if (pinFailure === null) {
+    generalError = action.error;
   }
 
   function activate(): void {
+    if (!canSign) {
+      return;
+    }
+    setPinFailure(null);
     void action.execute(
       () =>
-        planSetupService.activate(vaultId, {
-          configVersion: setup.configVersion,
-          policyVersion: setup.policyVersion,
-          acknowledgePolicy: acknowledge,
-        }),
-      () => {
-        if (onActivated) {
-          onActivated();
-        }
-        sync();
+        planSetupService.activate(
+          vaultId,
+          {
+            configVersion: setup.configVersion,
+            policyVersion: setup.policyVersion,
+            acknowledgePolicy: acknowledge,
+          },
+          pin,
+        ),
+      sync,
+      (error) => {
+        // Sai PIN thì xóa ô nhập để gõ lại; PIN không được nằm lại trong ô sau khi gửi.
+        setPin("");
+        setPinFailure(readVaultPinFailure(error));
       },
     );
   }
 
   return (
-    <section
-      className="space-y-6 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
-      aria-label="Việc cần làm để kích hoạt"
-    >
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <h2 className="text-xl font-medium text-heritage-primary">Việc cần làm để kích hoạt</h2>
-          <span className="rounded-full bg-[#F1E7D0] px-3 py-1 text-sm font-semibold text-[#7A5B24]">
-            Đã đạt {progress.done}/{progress.total} điều kiện
-          </span>
-        </div>
+    <>
+      <section
+        className="rounded-2xl border border-heritage-border bg-heritage-surface p-[22px] shadow-sm"
+        aria-label="Việc cần làm để kích hoạt"
+      >
+        <h2 className="text-[17px] font-semibold leading-[1.3] text-heritage-primary">
+          {progressTitle}
+        </h2>
         <div
-          className="h-2 overflow-hidden rounded-full bg-heritage-canvas"
+          className="mt-3.5 h-2 overflow-hidden rounded-full bg-heritage-canvas shadow-[inset_2px_2px_5px_rgba(0,0,0,.06),inset_-2px_-2px_5px_rgba(255,255,255,.8)]"
           role="progressbar"
-          aria-label="Tiến độ điều kiện kích hoạt"
+          aria-label="Tiến độ điền di chúc"
           aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={progressPercent}
+          aria-valuemax={progress.total}
+          aria-valuenow={progress.done}
         >
           <div
-            className="h-full rounded-full bg-[#B68F4C]"
+            className="h-full rounded-full bg-heritage-primary transition-[width] duration-500"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
-        <ActivationChecklist missing={setup.missingRequirements} executors={setup.executors} />
-        <div className="flex items-start gap-3 rounded-xl border border-heritage-border bg-heritage-canvas px-4 py-3 text-sm leading-6 text-heritage-muted">
-          <KeyRound className="mt-0.5 size-5 shrink-0 text-heritage-gold" aria-hidden="true" />
-          <p>Mã mở gói: bạn nhận ngay sau khi kích hoạt, kèm phiếu để trao cho Người thực thi.</p>
+        <div className="mt-4">
+          <ActivationChecklist missing={setup.missingRequirements} executors={setup.executors} />
         </div>
-        {setup.canActivate && (
-          <StatusBanner tone="success">
-            <p>Đủ điều kiện hiện tại. Đọc cảnh báo trước khi kích hoạt.</p>
-          </StatusBanner>
-        )}
-      </div>
-      {warnings.length > 0 && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          <CircleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-          <div className="space-y-1">
-            <h3 className="font-semibold">Cảnh báo</h3>
-            <ul className="list-disc space-y-1 pl-5">{warnings}</ul>
+        {warnings.length > 0 && (
+          <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <CircleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+            <div className="space-y-1">
+              <h3 className="font-semibold">Cảnh báo</h3>
+              <ul className="list-disc space-y-1 pl-5">{warnings}</ul>
+            </div>
           </div>
-        </div>
-      )}
-      <div className="space-y-3">
-        <h3 className="font-semibold text-heritage-primary">Soát lại trước khi kích hoạt</h3>
-        <PlanReviewSummary
-          containers={setup.containers}
-          assetsOutsideContainer={setup.assetsOutsideContainer}
-          showActivationNote
-        />
-      </div>
-      <div className="space-y-3">
-        <h3 className="font-semibold text-heritage-primary">Di chúc của bạn</h3>
-        <p className="text-sm leading-6 text-heritage-muted">
-          Bấm "Kích hoạt kế hoạch" nghĩa là bạn lập và ký di chúc dưới đây. Di chúc có hiệu lực từ
-          khi bạn qua đời; khi còn sống, bạn vẫn sửa, đổi người thực hiện hoặc thu hồi được.
+        )}
+      </section>
+
+      <form
+        className="rounded-2xl border border-heritage-border bg-heritage-surface p-[22px] shadow-sm"
+        aria-label="Ký di chúc và kích hoạt"
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          activate();
+        }}
+      >
+        <h2 className="text-[17px] font-semibold leading-[1.3] text-heritage-primary">
+          Ký di chúc và kích hoạt
+        </h2>
+        <p className="mt-1.5 text-sm text-heritage-muted">
+          Ký xong, kế hoạch bắt đầu chạy và lịch điểm danh được tính từ hôm nay. Mỗi người nhận sẽ
+          nhận một email báo họ đã được chọn.
         </p>
-        <AuthorizationLetterPreview
-          executorEmail={acceptedExecutorEmail}
-          scopeText={setup.executorScopeText}
-          clauses={setup.willClauses}
-          defaultOpen
-        />
-      </div>
-      <div className="space-y-4 rounded-xl bg-heritage-canvas p-5">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-heritage-primary">Thông tin trước khi kích hoạt</h3>
-          <p className="text-sm leading-6 text-heritage-muted">{setup.policyText}</p>
-          <p className="text-sm leading-6 text-heritage-muted">
-            Khi kích hoạt, mỗi người nhận sẽ nhận một email báo họ đã được chọn, kèm email và số
-            điện thoại của bạn và của Người thực thi để họ liên hệ.
-          </p>
-          <p className="text-sm text-heritage-muted">Phiên bản: {setup.policyVersion}</p>
-        </div>
-        <label className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F1E7D0] p-4 text-sm leading-6 text-[#7A5B24]">
+        <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm leading-6">
           <input
             type="checkbox"
-            className="mt-1 size-5"
+            className="mt-0.5 size-5 shrink-0 accent-[#0b291e]"
             checked={acknowledge}
             disabled={action.pending}
             onChange={(event) => setAcknowledge(event.target.checked)}
           />
-          Tôi đã đọc di chúc và cảnh báo về điểm danh, hạn phản hồi, tải và lưu/xóa dữ liệu; tôi chủ
-          động kích hoạt kế hoạch này và ký di chúc.
+          <span>
+            Tôi đã đọc toàn bộ di chúc, tự nguyện lập, ký di chúc này và chủ động kích hoạt kế
+            hoạch.
+          </span>
         </label>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <Button
-            size="lg"
-            className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B] disabled:opacity-60"
-            disabled={!setup.canActivate || !acknowledge || action.pending}
-            aria-describedby={lockReason === "" ? undefined : "activation-lock-reason"}
-            onClick={activate}
+        <label htmlFor="sign-pin" className="mt-3 block text-[13px] font-semibold">
+          Nhập mã PIN của kho (6 số)
+        </label>
+        <PinCodeInput
+          id="sign-pin"
+          value={pin}
+          placeholder="••••••"
+          disabled={action.pending || lockedOut || !setup.canActivate}
+          aria-invalid={pinErrorText !== "" ? true : undefined}
+          aria-describedby="sign-pin-error"
+          onValueChange={(digits) => {
+            setPin(digits);
+            setPinFailure(null);
+            action.reset();
+          }}
+        />
+        <p className="mt-2 text-[13px] text-heritage-muted">
+          Cùng mã PIN bạn dùng khi sửa tài sản.{" "}
+          <Link
+            className="font-semibold text-heritage-gold-hover underline underline-offset-4"
+            to={ROUTES.DASHBOARD.SETTINGS}
           >
-            Kích hoạt kế hoạch
-          </Button>
-          {lockReason !== "" && (
-            <p id="activation-lock-reason" className="text-sm text-heritage-muted">
-              {lockReason}
-            </p>
-          )}
-        </div>
-      </div>
-      {action.pending && (
-        <p
-          role="status"
-          className="rounded-xl border border-heritage-border bg-heritage-surface px-4 py-3 text-sm text-heritage-muted"
-        >
-          Đang gửi yêu cầu…
+            Quên mã PIN?
+          </Link>
         </p>
-      )}
-      {action.error && (
-        <StatusBanner tone="error">
-          <p>{action.error}</p>
-          <div className="flex flex-wrap gap-3">
-            <Button variant="outline" onClick={sync}>
-              Tải lại điều kiện
-            </Button>
-            {needsUpgrade && (
-              <Link className={ROW_LINK} to={ROUTES.BILLING.PLANS}>
-                Xem gói dịch vụ
-              </Link>
-            )}
+        <p
+          id="sign-pin-error"
+          role="alert"
+          className="mb-3 mt-1.5 min-h-0 text-sm font-medium text-[#a32119]"
+        >
+          {pinErrorText}
+        </p>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full rounded-[20px] bg-heritage-gold font-semibold text-white shadow-none hover:bg-heritage-gold-hover disabled:opacity-50"
+          disabled={!canSign}
+          aria-describedby="sign-reason"
+        >
+          {buttonText}
+        </Button>
+        <p
+          id="sign-reason"
+          role="status"
+          className="mt-2.5 min-h-5 text-[13px] text-heritage-muted"
+        >
+          {reasonText}
+        </p>
+        {generalError !== "" && (
+          <div className="mt-3">
+            <StatusBanner tone="error">
+              <p>{generalError}</p>
+              <div className="flex flex-wrap gap-3">
+                <Button variant="outline" onClick={sync}>
+                  Tải lại điều kiện
+                </Button>
+                {needsUpgrade && (
+                  <Link className={ROW_LINK} to={ROUTES.BILLING.PLANS}>
+                    Xem gói dịch vụ
+                  </Link>
+                )}
+              </div>
+            </StatusBanner>
           </div>
-        </StatusBanner>
-      )}
-    </section>
+        )}
+      </form>
+    </>
   );
 }

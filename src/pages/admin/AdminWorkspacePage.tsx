@@ -8,24 +8,20 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Tag,
-  TriangleAlert,
   Users,
   Wrench,
 } from "lucide-react";
 import {
-  ADMIN_INCIDENTS_VISIBLE,
   AdminDevTools,
   AdminEmailTemplates,
   AdminHandoverTemplates,
   AdminHolds,
-  AdminIncidents,
   AdminOverview,
   AdminOverviewToolbar,
   AdminPayments,
   AdminSettings,
   AdminSystemConfig,
   AdminUsers,
-  useAdminDashboard,
 } from "@/features/admin";
 import { DemoClockCard } from "@/features/dev-clock";
 import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
@@ -42,12 +38,6 @@ import {
 /** Thứ tự và nhóm menu theo prototype: bốn trang chính, rồi nhóm "Hệ thống". */
 const NAVIGATION: WorkspaceNavigationItem[] = [
   { id: "overview", label: "Tổng quan", icon: Home, to: ROUTES.ADMIN.ROOT },
-  {
-    id: "incidents",
-    label: "Sự cố",
-    icon: TriangleAlert,
-    to: `${ROUTES.ADMIN.ROOT}?view=incidents`,
-  },
   {
     id: "payments",
     label: "Giao dịch",
@@ -105,7 +95,7 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
  */
 const DEV_TOOLS_ENABLED = import.meta.env.DEV || ENV.ENABLE_DEVTOOLS;
 
-// Menu có các mục của prototype. Tạm giữ nằm trong chi tiết sự cố. Công cụ thử nghiệm (tua thời gian, tạm ngừng eKYC…)
+// Menu có các mục của prototype. Công cụ thử nghiệm (tua thời gian, tạm ngừng eKYC…)
 // chỉ hiện ở menu khi bật DEV_TOOLS_ENABLED, cuối nhóm "Hệ thống".
 const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
   ? [
@@ -142,10 +132,6 @@ const VIEWS = {
     title: "Cấu hình",
     description: "",
   },
-  incidents: {
-    title: "Sự cố",
-    description: "",
-  },
   holds: {
     title: "Tạm giữ",
     description: "",
@@ -174,7 +160,7 @@ const VIEWS = {
 
 type AdminView = keyof typeof VIEWS;
 
-/** Sự cố, tạm giữ, cấu hình và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
+/** Tạm giữ, cấu hình và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
 function viewFor(pathname: string, search: string): AdminView {
   if (pathname === ROUTES.DASHBOARD.USERS) return "users";
   if (pathname === ROUTES.ADMIN.AUDIT_LOG) return "audit";
@@ -184,7 +170,6 @@ function viewFor(pathname: string, search: string): AdminView {
     view === "plans" ||
     view === "templates" ||
     view === "email-templates" ||
-    (view === "incidents" && ADMIN_INCIDENTS_VISIBLE) ||
     view === "holds" ||
     view === "payments" ||
     view === "security"
@@ -237,28 +222,15 @@ function SettingsTabs() {
   );
 }
 
-/** Khu vực Admin: dashboard, sự cố, tạm giữ và tài khoản; dữ liệu chỉ từ API quản trị thật. */
+/** Khu vực Admin: dashboard, tạm giữ và tài khoản; dữ liệu chỉ từ API quản trị thật. */
 export function AdminWorkspacePage() {
   const location = useLocation();
   const view = viewFor(location.pathname, location.search);
-  // Số sự cố đang mở hiện làm số đếm ở menu; dùng chung dữ liệu với trang Tổng quan nên không gọi thêm API.
-  const dashboard = useAdminDashboard();
-  // Sự cố đang ẩn (ADMIN_INCIDENTS_VISIBLE): bỏ mục khỏi menu, không cần số đếm.
-  const navigation: WorkspaceNavigationItem[] = [];
-  for (const item of NAVIGATION_WITH_DEV_TOOLS) {
-    if (item.id === "incidents") {
-      if (ADMIN_INCIDENTS_VISIBLE) {
-        navigation.push({ ...item, badge: dashboard.data?.openIncidents ?? 0 });
-      }
-    } else {
-      navigation.push(item);
-    }
-  }
   return (
     <WorkspaceFrame
       role="admin"
       active={view}
-      navigation={navigation}
+      navigation={NAVIGATION_WITH_DEV_TOOLS}
       title={VIEWS[view].title}
       description={VIEWS[view].description}
       actions={view === "overview" ? <AdminOverviewToolbar /> : undefined}
@@ -272,7 +244,6 @@ export function AdminWorkspacePage() {
       {view === "plans" && <AdminSettings section="plans" />}
       {view === "templates" && <AdminHandoverTemplates />}
       {view === "email-templates" && <AdminEmailTemplates />}
-      {view === "incidents" && ADMIN_INCIDENTS_VISIBLE && <AdminIncidents />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
       {view === "users" && (

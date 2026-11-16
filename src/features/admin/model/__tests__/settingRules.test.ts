@@ -177,14 +177,6 @@ describe("settingRelationErrors", () => {
     expect(errors).toEqual({});
   });
 
-  it("giờ báo sự cố lên Admin phải sau giờ nhắc người phụ trách", () => {
-    const errors = settingRelationErrors(
-      valuesOf({ "Incident.ReminderAfterHours": "72", "Incident.EscalateAfterHours": "48" }),
-    );
-
-    expect(Object.keys(errors)).toEqual(["Incident.EscalateAfterHours"]);
-  });
-
   it("giờ nhắc lời mời Người thực thi phải sớm hơn hạn lời mời", () => {
     const errors = settingRelationErrors(
       valuesOf({ "Executor.InvitationExpiresDays": "1", "Executor.ReminderAfterHours": "30" }),

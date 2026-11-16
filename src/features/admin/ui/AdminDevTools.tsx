@@ -75,7 +75,7 @@ export function AdminDevTools() {
   function publish(result: unknown, message: string) {
     const parsed = devClockSchema.safeParse(result);
     if (parsed.success) client.setQueryData(devToolsKeys.clock(parsed.data.vaultId), parsed.data);
-    // Tua đổi trạng thái kế hoạch và có thể mở sự cố: làm mới danh sách kho và dữ liệu quản trị.
+    // Tua đổi trạng thái kế hoạch làm mới danh sách kho và dữ liệu quản trị.
     void client.invalidateQueries({ queryKey: adminKeys.all });
     setDone(message);
   }
@@ -224,7 +224,7 @@ export function AdminDevTools() {
       {dialog?.kind === "reset" && (
         <AdminActionDialog
           title="Về thời gian hiện tại?"
-          description={`Đồng hồ của ${vaultLabel} sẽ trở về thời gian thực. Trạng thái đã phát sinh khi tua, như sự cố đã mở, được giữ nguyên. Chỉ dùng trên môi trường Development.`}
+          description={`Đồng hồ của ${vaultLabel} sẽ trở về thời gian thực. Trạng thái đã phát sinh khi tua, được giữ nguyên. Chỉ dùng trên môi trường Development.`}
           submitLabel="Về thời gian hiện tại"
           fields={[]}
           defaultValues={{}}
