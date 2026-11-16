@@ -30,9 +30,6 @@ export const SETTING_LIMITS: Record<string, IntegerLimit> = {
   "DeathCase.MaxFilesPerVersion": { min: 1, max: 50 },
   "DeathCase.MaxFileSizeMb": { min: 1, max: 200 },
   "DeathCase.ReviewDueHours": { min: 1, max: 720 },
-  "Incident.ReminderAfterHours": { min: 1, max: 720 },
-  "Incident.EscalateAfterHours": { min: 1, max: 720 },
-  "Incident.MaxReviewIntervalDays": { min: 1, max: 60 },
   "Limits.MaxUploadsPerHour": { min: 1, max: 10000 },
   "Limits.MaxAssetsPerVault": { min: 1, max: 100000 },
   "Limits.MaxUploadBytesMb": { min: 1, max: 2048 },
@@ -67,8 +64,6 @@ const DUE_REMINDER_KEYS = [
   "CheckIn.FifthReminderDaysBeforeDue",
 ];
 const DUE_REMINDER_ORDINALS = ["nhất", "hai", "ba", "tư", "năm"];
-const INCIDENT_REMINDER = "Incident.ReminderAfterHours";
-const INCIDENT_ESCALATE = "Incident.EscalateAfterHours";
 const EXECUTOR_EXPIRES = "Executor.InvitationExpiresDays";
 const EXECUTOR_REMINDER = "Executor.ReminderAfterHours";
 
@@ -80,8 +75,6 @@ const RELATION_DEFAULTS: Record<string, number> = {
   "CheckIn.ThirdReminderDaysBeforeDue": 1,
   "CheckIn.FourthReminderDaysBeforeDue": 1,
   "CheckIn.FifthReminderDaysBeforeDue": 1,
-  [INCIDENT_REMINDER]: 48,
-  [INCIDENT_ESCALATE]: 72,
   [EXECUTOR_EXPIRES]: 7,
   [EXECUTOR_REMINDER]: 48,
 };
@@ -179,11 +172,6 @@ export function settingRelationErrors(
       errors[DUE_REMINDER_KEYS[i + 1]] =
         `Phải gần hạn hơn thư thứ ${DUE_REMINDER_ORDINALS[i]} (số ngày nhỏ hơn).`;
     }
-  }
-  const reminder = numberOf(valueOf, INCIDENT_REMINDER);
-  const escalate = numberOf(valueOf, INCIDENT_ESCALATE);
-  if (escalate <= reminder) {
-    errors[INCIDENT_ESCALATE] = "Phải sau giờ nhắc người phụ trách.";
   }
   const expiresDays = numberOf(valueOf, EXECUTOR_EXPIRES);
   const remindHours = numberOf(valueOf, EXECUTOR_REMINDER);

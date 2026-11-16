@@ -1,35 +1,13 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import {
-  AlertTriangle,
-  Banknote,
-  Clock,
-  ArrowRight,
-  UserCheck,
-  Users,
-  Shield,
-  ShieldCheck,
-} from "lucide-react";
+import { Banknote, ArrowRight, UserCheck, Users, ShieldCheck } from "lucide-react";
 import { useServerNow } from "@/shared/clock/useServerNow";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
-import {
-  ADMIN_INCIDENTS_VISIBLE,
-  formatDateTime,
-  formatMoney,
-  INCIDENT_TYPE_LABELS,
-  INCIDENT_STATUS_LABELS,
-  planStageLabel,
-  RESPONSIBLE_ROLE_LABELS,
-} from "../model/admin.content";
+import { formatDateTime, formatMoney, planStageLabel } from "../model/admin.content";
 import { periodRange } from "../model/revenuePeriod";
-import {
-  useAdminDashboard,
-  useAdminIncidents,
-  useAdminRevenue,
-  useAdminUsers,
-} from "../model/useAdmin";
+import { useAdminDashboard, useAdminRevenue, useAdminUsers } from "../model/useAdmin";
 import { useSystemConfig } from "../model/useSystemConfig";
 import { SYSTEM_CONFIG_SERVICES } from "../model/systemConfig.content";
 import { AdminErrorMessage } from "./AdminStateMessage";
@@ -74,7 +52,7 @@ function Tile({
   value: number | string;
   caption: ReactNode;
   tone: keyof typeof TILE_ICON_TONES;
-  /** Không có thì ô chỉ để xem số, không bấm được (ví dụ khi mục Sự cố đang ẩn). */
+  /** Không có thì ô chỉ để xem số, không bấm được. */
   onClick?: () => void;
 }) {
   return (
@@ -104,15 +82,10 @@ function Tile({
   );
 }
 
-/** Tổng quan quản trị: KPI Tiles tương tác 1 chạm + Hàng đợi việc cần làm (Priority Incident Queue). */
+/** Tổng quan quản trị: KPI Tiles tương tác 1 chạm + các khối số liệu vận hành. */
 export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) => string }) {
   const navigate = useNavigate();
   const query = useAdminDashboard();
-  // Sự cố đang ẩn thì không gọi API sự cố.
-  const urgentIncidents = useAdminIncidents(
-    { status: "OPEN", pageIndex: 1, pageSize: 5 },
-    ADMIN_INCIDENTS_VISIBLE,
-  );
   const serviceConfig = useSystemConfig();
   // Doanh thu tiền thật của tháng này (theo giờ máy chủ) và tổng số tài khoản; mỗi ô tự báo lỗi, không làm hỏng cả trang.
   const serverNow = useServerNow();
@@ -155,24 +128,9 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
 
   const data = query.data;
 
-  const goToIncidents = (filters?: { overdue?: boolean; status?: string; type?: string }) => {
-    const params = new URLSearchParams();
-    params.set("view", "incidents");
-    if (filters?.status) params.set("status", filters.status);
-    if (filters?.overdue) params.set("overdue", "true");
-    if (filters?.type) params.set("type", filters.type);
-    navigate(`${ROUTES.ADMIN.ROOT}?${params.toString()}`);
-  };
-
   const goToPayments = () => {
     navigate(`${ROUTES.ADMIN.ROOT}?view=payments`);
   };
-
-  // Ô "Chờ người xét duyệt" dẫn sang Sự cố; khi Sự cố đang ẩn thì chỉ hiện số, không bấm được.
-  let noVerifierClick: (() => void) | undefined = undefined;
-  if (ADMIN_INCIDENTS_VISIBLE) {
-    noVerifierClick = () => goToIncidents({ type: "NO_VERIFIER" });
-  }
 
   let revenueValue = "…";
   if (revenue.isSuccess)
@@ -182,36 +140,10 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
   if (users.isSuccess) usersValue = users.data.totalCount;
   if (users.isError) usersValue = "—";
 
-  // Có hàng đợi sự cố thì chia hai cột; khi Sự cố đang ẩn chỉ còn cột số liệu vận hành.
-  let bodyGridClass =
-    "grid gap-[22px] lg:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)] lg:items-start";
-  if (!ADMIN_INCIDENTS_VISIBLE) {
-    bodyGridClass = "grid gap-[22px] lg:grid-cols-2 lg:items-start";
-  }
   return (
     <div className="mt-6 space-y-8" aria-busy={query.isFetching}>
-      {/* Bốn ô số liệu: biểu tượng trong ô màu nhạt, nhãn, số lớn, chú thích; bấm để lọc sự cố tương ứng. */}
+      {/* Bốn ô số liệu: biểu tượng trong ô màu nhạt, nhãn, số lớn, chú thích; một số ô bấm để đi tới trang liên quan. */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {ADMIN_INCIDENTS_VISIBLE && (
-          <>
-            <Tile
-              icon={Clock}
-              label="Sự cố quá hạn SLA"
-              value={data.overdueIncidents}
-              caption="Sự cố vi phạm SLA giải quyết"
-              tone={data.overdueIncidents > 0 ? "bad" : "neutral"}
-              onClick={() => goToIncidents({ overdue: true })}
-            />
-            <Tile
-              icon={AlertTriangle}
-              label="Sự cố đang mở"
-              value={data.openIncidents}
-              caption="Cần phân công hoặc đang xử lý"
-              tone="neutral"
-              onClick={() => goToIncidents({ status: "OPEN" })}
-            />
-          </>
-        )}
         <Tile
           icon={Banknote}
           label="Doanh thu tháng này"
@@ -245,81 +177,10 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           value={data.casesWithoutVerifier}
           caption="Hồ sơ chứng tử cần chỉ định"
           tone={data.casesWithoutVerifier > 0 ? "warn" : "neutral"}
-          onClick={noVerifierClick}
         />
       </div>
 
-      <div className={bodyGridClass}>
-        {ADMIN_INCIDENTS_VISIBLE && (
-          <section className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-bold text-heritage-primary">Việc cần làm</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => goToIncidents({ status: "OPEN" })}
-                className="text-sm font-semibold text-heritage-muted hover:text-heritage-primary"
-              >
-                Xem tất cả sự cố <ArrowRight className="ml-1 size-3.5" />
-              </Button>
-            </div>
-
-            {urgentIncidents.isPending && <Skeleton className="h-44 w-full rounded-2xl" />}
-
-            {urgentIncidents.isSuccess && urgentIncidents.data.items.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-heritage-border bg-heritage-surface p-8 text-center">
-                <Shield className="mx-auto size-8 text-green-600" />
-                <p className="mt-2 text-sm font-semibold text-heritage-text">
-                  Không có sự cố nào đang chờ xử lý
-                </p>
-                <p className="text-sm text-heritage-muted">
-                  Toàn bộ hệ thống đang vận hành ổn định trong ngưỡng an toàn.
-                </p>
-              </div>
-            )}
-
-            {urgentIncidents.isSuccess && urgentIncidents.data.items.length > 0 && (
-              <ul className="space-y-2.5">
-                {urgentIncidents.data.items.map((incident) => (
-                  <li key={incident.id}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate(`${ROUTES.ADMIN.ROOT}?view=incidents&incidentId=${incident.id}`)
-                      }
-                      aria-label={`${INCIDENT_TYPE_LABELS[incident.type]}, mở chi tiết`}
-                      className={`flex min-h-14 w-full items-center gap-3.5 rounded-[14px] border border-heritage-border bg-white py-3.5 pl-5 pr-4 text-left transition-colors hover:border-heritage-gold ${
-                        incident.overdue
-                          ? "shadow-[inset_4px_0_0_#a32119]"
-                          : "shadow-[inset_4px_0_0_#2f5d7c]"
-                      }`}
-                    >
-                      <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
-                        <b className="font-semibold">{INCIDENT_TYPE_LABELS[incident.type]}</b>
-                        {incident.overdue ? (
-                          <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-sm font-semibold text-red-800">
-                            Quá hạn
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-sm font-semibold text-sky-900">
-                            {incident.responsibleRole === "ADMIN"
-                              ? "Cần bạn xử lý"
-                              : `Đang chờ ${RESPONSIBLE_ROLE_LABELS[incident.responsibleRole]}`}
-                          </span>
-                        )}
-                        <span className="sr-only">{INCIDENT_STATUS_LABELS[incident.status]}</span>
-                      </span>
-                      <ArrowRight
-                        className="size-4 shrink-0 text-heritage-muted"
-                        aria-hidden="true"
-                      />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        )}
+      <div className="grid gap-[22px] lg:grid-cols-2 lg:items-start">
         <aside className="space-y-4" aria-label="Số liệu vận hành">
           {data.planStages.length > 0 && (
             <section

@@ -127,7 +127,6 @@ function deathCase(status: string) {
     reviewVersionNo: status === "DRAFT" ? null : 1,
     missingRequirements: [],
     ownerNotice: status === "DRAFT" ? null : { status: "CANCELLED", deliveredAt: null },
-    objectionEndsAt: null,
     createdAt: CREATED_AT,
     updatedAt: null,
     etag: "case-v1",

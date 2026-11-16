@@ -2,11 +2,8 @@ import { useSearchParams } from "react-router-dom";
 import {
   ADMIN_LIST_PAGE_SIZE,
   holdStatusSchema,
-  incidentStatusSchema,
-  incidentTypeSchema,
   paymentFilterStatusSchema,
   type HoldsQuery,
-  type IncidentsQuery,
   type PaymentTransactionsQuery,
 } from "./admin.schema";
 
@@ -31,67 +28,6 @@ function useParamWriter() {
       return next;
     });
   return { params, write };
-}
-
-/**
- * Bộ lọc Sự cố nằm trên URL (`status`, `type`, `overdue`, `page`) cùng `incident` là sự cố đang xem.
- * Giá trị ngoài enum bị bỏ qua thay vì gửi lên Backend.
- */
-export function useAdminIncidentParams() {
-  const { params, write } = useParamWriter();
-  const status = incidentStatusSchema.safeParse(params.get("status"));
-  const type = incidentTypeSchema.safeParse(params.get("type"));
-  const filters = {
-    status: status.success ? status.data : undefined,
-    type: type.success ? type.data : undefined,
-    overdueOnly: params.get("overdue") === "1" || params.get("overdue") === "true",
-    mine: params.get("mine") === "1",
-    search: (params.get("iq") ?? "").trim().slice(0, 100),
-  };
-  const page = readPage(params.get("page"));
-  const query: IncidentsQuery = {
-    status: filters.status,
-    type: filters.type,
-    overdueOnly: filters.overdueOnly || undefined,
-    mine: filters.mine || undefined,
-    search: filters.search || undefined,
-    pageIndex: page,
-    pageSize: ADMIN_LIST_PAGE_SIZE,
-  };
-  const selectedId = params.get("incident") || params.get("incidentId");
-  return {
-    filters,
-    page,
-    query,
-    selectedId,
-    hasFilters: Boolean(
-      filters.status || filters.type || filters.overdueOnly || filters.mine || filters.search,
-    ),
-    setFilters: (patch: {
-      status?: string;
-      type?: string;
-      overdueOnly?: boolean;
-      mine?: boolean;
-      search?: string;
-    }) =>
-      write({
-        ...("mine" in patch ? { mine: patch.mine ? "1" : undefined } : {}),
-        ...("search" in patch ? { iq: patch.search || undefined } : {}),
-        ...("status" in patch ? { status: patch.status } : {}),
-        ...("type" in patch ? { type: patch.type } : {}),
-        ...("overdueOnly" in patch ? { overdue: patch.overdueOnly ? "1" : undefined } : {}),
-      }),
-    clearFilters: () =>
-      write({
-        status: undefined,
-        type: undefined,
-        overdue: undefined,
-        mine: undefined,
-        iq: undefined,
-      }),
-    setPage: (next: number) => write({ page: next > 1 ? String(next) : undefined }, false),
-    select: (id: string | undefined) => write({ incident: id }, false),
-  };
 }
 
 /** Bộ lọc Tạm giữ trên URL (`hstatus`, `page`) cùng `hold` là hold đang xem. */

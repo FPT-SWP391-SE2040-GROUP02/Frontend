@@ -7,16 +7,11 @@ import {
   countsSchema,
   adminUsersPageSchema,
   adminUsersQuerySchema,
-  assignIncidentRequestSchema,
   changeUserRoleRequestSchema,
   changeUserStatusRequestSchema,
   holdSchema,
   holdsPageSchema,
   holdsQuerySchema,
-  incidentDetailSchema,
-  incidentNoteRequestSchema,
-  incidentsPageSchema,
-  incidentsQuerySchema,
   paymentTransactionsPageSchema,
   paymentTransactionsQuerySchema,
   adminRevenueSchema,
@@ -32,17 +27,12 @@ import {
   adminRevenueQuerySchema,
   assignExecutorRequestSchema,
   reassignVerifierRequestSchema,
-  resolveIncidentRequestSchema,
-  reviewIncidentRequestSchema,
   type AdminUsersQuery,
   type CreateAdminUserRequest,
   createAdminUserRequestSchema,
-  type AssignIncidentRequest,
   type ChangeUserRoleRequest,
   type ChangeUserStatusRequest,
   type HoldsQuery,
-  type IncidentNoteRequest,
-  type IncidentsQuery,
   type AdminRevenueQuery,
   type SaveEmailTemplateRequest,
   type SaveExtraMailRequest,
@@ -50,12 +40,9 @@ import {
   type PaymentTransactionsQuery,
   type AssignExecutorRequest,
   type ReassignVerifierRequest,
-  type ResolveIncidentRequest,
-  type ReviewIncidentRequest,
 } from "../model/admin.schema";
 
 const id = z.string().uuid();
-const incident = (incidentId: string) => `/admin/incidents/${id.parse(incidentId)}`;
 const hold = (holdId: string) => `/admin/holds/${id.parse(holdId)}`;
 
 /** Transport Admin theo AdminController; không Admin → BE trả 404 (SEC-04). */
@@ -134,74 +121,6 @@ export const adminService = {
     );
   },
 
-  async listIncidents(query: IncidentsQuery, signal?: AbortSignal) {
-    const parsed = incidentsQuerySchema.parse(query);
-    const params: Record<string, string | number | boolean> = {
-      pageIndex: parsed.pageIndex,
-      pageSize: parsed.pageSize,
-    };
-    if (parsed.status) params.status = parsed.status;
-    if (parsed.type) params.type = parsed.type;
-    if (parsed.overdueOnly) params.overdueOnly = true;
-    if (parsed.mine) params.mine = true;
-    if (parsed.search) params.search = parsed.search;
-    return incidentsPageSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/incidents", { params, signal }),
-    );
-  },
-  async getIncident(incidentId: string, signal?: AbortSignal) {
-    return incidentDetailSchema.parse(
-      await apiClient.get<unknown, unknown>(incident(incidentId), { signal }),
-    );
-  },
-  async assignIncident(incidentId: string, request: AssignIncidentRequest) {
-    return incidentDetailSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${incident(incidentId)}/assign`,
-        assignIncidentRequestSchema.parse(request),
-      ),
-    );
-  },
-  async addIncidentNote(incidentId: string, request: IncidentNoteRequest) {
-    return incidentDetailSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${incident(incidentId)}/notes`,
-        incidentNoteRequestSchema.parse(request),
-      ),
-    );
-  },
-  /** Ghi kết quả xem lại và hẹn lần xem lại tiếp theo (tối đa 7 ngày, BR-72). */
-  async reviewIncident(incidentId: string, request: ReviewIncidentRequest) {
-    return incidentDetailSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${incident(incidentId)}/review`,
-        reviewIncidentRequestSchema.parse(request),
-      ),
-    );
-  },
-  async resolveIncident(incidentId: string, request: ResolveIncidentRequest) {
-    return incidentDetailSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${incident(incidentId)}/resolve`,
-        resolveIncidentRequestSchema.parse(request),
-      ),
-    );
-  },
-
-  /** Số sự cố theo trạng thái, cùng bộ lọc với danh sách nhưng bỏ qua trạng thái. */
-  async countIncidents(
-    query: Omit<IncidentsQuery, "status" | "pageIndex" | "pageSize">,
-    signal?: AbortSignal,
-  ) {
-    const params: Record<string, string | boolean> = {};
-    if (query.type) params.type = query.type;
-    if (query.overdueOnly) params.overdueOnly = true;
-    if (query.mine) params.mine = true;
-    if (query.search) params.search = query.search;
-    return countsSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/incidents/counts", { params, signal }),
-    );
-  },
   /** Số tài khoản theo vai trò, cùng tìm kiếm và trạng thái với danh sách nhưng bỏ qua vai trò. */
   async countUsers(query: { search?: string; status?: string }, signal?: AbortSignal) {
     const params: Record<string, string> = {};

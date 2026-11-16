@@ -10,21 +10,18 @@ interface AuthorizationLetterPreviewProps {
   scopeText: string;
   /** Mở sẵn khi người đọc phải xem trước khi quyết định (Chủ kho trước khi kích hoạt). */
   defaultOpen?: boolean;
-  /** Điều khoản Chủ kho thêm vào di chúc. */
-  clauses?: string[];
 }
 
 /**
- * Bản xem trước Di chúc, cùng nội dung với bản in (WillDocument). Người thực thi ký nhận vai bằng nút
- * "Ký nhận vai thực hiện di chúc"; Chủ kho ký bằng cách kích hoạt kế hoạch. Không có mã mở gói: mã chỉ tạo
- * sau khi Chủ kho kích hoạt kế hoạch, và kế hoạch chỉ kích hoạt được khi Người thực thi đã ký.
+ * Bản xem trước Di chúc cho Người thực thi đọc trước khi ký (WillDocument, chế độ chỉ đọc). Người thực thi chưa có
+ * danh sách người nhận nên Điều 2 dùng câu chung. Người thực thi ký nhận vai bằng nút "Ký nhận vai thực hiện di
+ * chúc"; Chủ kho ký bằng cách kích hoạt kế hoạch.
  */
 export function AuthorizationLetterPreview({
   ownerName,
   executorEmail,
   scopeText,
   defaultOpen = false,
-  clauses = [],
 }: AuthorizationLetterPreviewProps) {
   let owner = "Chủ kho";
   if (ownerName) {
@@ -47,7 +44,11 @@ export function AuthorizationLetterPreview({
         />
       </summary>
       <div aria-label="Di chúc" role="group" className="mt-3">
-        <WillDocument ownerName={owner} executorEmail={executor} clauses={clauses} />
+        <WillDocument
+          ownerName={owner}
+          executor={{ email: executor, fullName: null, signedAt: null }}
+          viewer="reader"
+        />
         <p className="mt-3 text-sm leading-5 text-heritage-muted">{scopeText}</p>
       </div>
     </details>

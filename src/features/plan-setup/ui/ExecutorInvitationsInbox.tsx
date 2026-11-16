@@ -165,7 +165,6 @@ function PendingCard({
             ownerName={invitation.ownerName}
             executorEmail={invitation.inviteeEmail}
             scopeText={scopeText}
-            clauses={invitation.willClauses}
           />
           <label
             htmlFor={checkboxId}

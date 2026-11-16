@@ -46,8 +46,6 @@ export const supplementPartLabels: Record<z.infer<typeof supplementPartSchema>, 
 export const approveBlockerSchema = z.enum([
   "NOT_UNDER_REVIEW",
   "NEWER_VERSION_PENDING",
-  "OWNER_NOT_NOTIFIED",
-  "OBJECTION_PERIOD_NOT_OVER",
   "FLAGS_NOT_REVIEWED",
   "VERIFIER_CONFLICT",
 ]);
@@ -72,7 +70,6 @@ export const verifierCaseSummarySchema = z.object({
   submittedAt: timestamp.nullable(),
   assignedAt: timestamp,
   dueAt: timestamp,
-  objectionEndsAt: timestamp.nullable(),
   unreviewedFlagCount: z.number().int().nonnegative(),
   closedAt: timestamp.nullable(),
   /** Có giá trị = Executor bổ sung quá hạn 7 ngày; null/thiếu = chưa quá hạn hoặc đã gửi lại (BE mục 6.12). */
@@ -215,7 +212,6 @@ export const verifierCaseDetailSchema = z.object({
   flags: z.array(verifierFlagSchema),
   decisions: z.array(verifierDecisionSchema),
   ownerNotice: ownerNoticeSchema,
-  objectionEndsAt: timestamp.nullable(),
   assignment: verifierAssignmentSchema,
   canApprove: z.boolean(),
   approveBlockers: z.array(approveBlockerSchema),
@@ -273,8 +269,6 @@ export const flagLabels: Record<z.infer<typeof verifierFlagKindSchema>, string> 
 export const blockerLabels: Record<z.infer<typeof approveBlockerSchema>, string> = {
   NOT_UNDER_REVIEW: "Hồ sơ không ở trạng thái đang xét.",
   NEWER_VERSION_PENDING: "Đang có bản mới chờ xét; chờ Verifier xét bản mới nhất.",
-  OWNER_NOT_NOTIFIED: "Owner chưa được thông báo về hồ sơ này.",
-  OBJECTION_PERIOD_NOT_OVER: "Đang trong thời gian chờ Owner phản đối.",
   FLAGS_NOT_REVIEWED: "Còn cảnh báo chưa được kiểm tra.",
   VERIFIER_CONFLICT:
     "Bạn có quan hệ với kho này nên chỉ được xem, không được ra quyết định trên hồ sơ.",

@@ -105,7 +105,6 @@ export const deathCaseSchema = z.object({
       deliveredAt: timestamp.nullable(),
     })
     .nullable(),
-  objectionEndsAt: timestamp.nullable(),
   createdAt: timestamp,
   updatedAt: timestamp.nullable(),
   etag: z.string().min(1).max(64),

@@ -25,14 +25,10 @@ const ACTION_REASONS: Record<string, string> = {
   LAST_ADMIN: "Hệ thống phải còn ít nhất một quản trị viên đang hoạt động.",
   CASE_NOT_PENDING:
     "Hồ sơ này không còn ở giai đoạn chờ xét nên không giao lại người xét duyệt được.",
-  INCIDENT_FOLLOWS_CASE:
-    "Sự cố này đi theo hồ sơ chứng tử. Hãy dùng Giao người xét duyệt để chuyển cả hồ sơ.",
 };
 
 /** Câu báo theo mã lỗi riêng của khu vực quản trị. */
 const ACTION_CODES: Record<string, string> = {
-  INCIDENT_NOT_FOUND: "Không tìm thấy sự cố. Tải lại danh sách trước khi tiếp tục.",
-  INCIDENT_NOT_OPEN: "Sự cố đã được xử lý nên không thể thao tác thêm.",
   HOLD_NOT_FOUND: "Không tìm thấy tạm giữ. Tải lại danh sách trước khi tiếp tục.",
   USER_NOT_FOUND: "Không tìm thấy tài khoản. Tải lại danh sách trước khi tiếp tục.",
   EDIT_CONFLICT: "Dữ liệu vừa bị thay đổi ở nơi khác. Tải lại để xem bản mới nhất rồi thử lại.",

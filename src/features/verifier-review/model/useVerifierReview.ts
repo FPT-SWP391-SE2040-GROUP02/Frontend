@@ -60,7 +60,7 @@ export function useVerifierCase(caseId: string | null) {
     refetchOnWindowFocus: false,
   });
 }
-/** Chu kỳ dò hồ sơ có đổi ở nơi khác (Executor tạo hoặc nộp bản bổ sung, Owner phản đối, job giao lại). */
+/** Chu kỳ dò hồ sơ có đổi ở nơi khác (Executor tạo hoặc nộp bản bổ sung, job giao lại). */
 export const FRESHNESS_INTERVAL_MS = 30_000;
 
 /**

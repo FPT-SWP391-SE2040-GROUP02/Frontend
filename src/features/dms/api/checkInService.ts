@@ -24,33 +24,6 @@ export const checkInService = {
   async checkIn() {
     return checkInStatusSchema.parse(await apiClient.post<unknown, unknown>("/check-ins"));
   },
-  /** POST điểm danh sinh trắc học qua Smartwatch (Galaxy Watch). */
-  async checkInViaSmartwatch(request: { heartRate: number; isOnWrist: boolean }) {
-    return checkInStatusSchema.parse(
-      await apiClient.post<unknown, unknown>("/check-ins/smartwatch", request),
-    );
-  },
-  /** POST sinh mã PIN 6 số để ghép nối với đồng hồ bất kỳ. */
-  async getSmartwatchPairingCode() {
-    return apiClient.post<unknown, { code: string; expiresInSeconds: number }>(
-      "/smartwatch/pairing-code",
-    );
-  },
-  /** GET kiểm tra trạng thái ghép nối của mã PIN 6 số. */
-  async getSmartwatchPairingStatus(code: string, signal?: AbortSignal) {
-    return apiClient.get<
-      unknown,
-      {
-        paired: boolean;
-        status: "pending" | "paired" | "expired";
-        deviceName?: string;
-        pairedAt?: string;
-      }
-    >("/smartwatch/pairing-status", {
-      params: { code },
-      signal,
-    });
-  },
   /** PATCH giữ etag; 409 yêu cầu tải lại, không optimistic. */
   async updateSettings(request: z.infer<typeof updateCheckInSettingsSchema>) {
     return checkInStatusSchema.parse(

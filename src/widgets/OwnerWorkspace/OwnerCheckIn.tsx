@@ -4,7 +4,7 @@ import { formatDate } from "@/shared/lib/dateFormat";
 import { Button } from "@/shared/ui/button";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { CheckInNowButton } from "@/features/dms/ui/CheckInNowButton";
-import { SmartwatchCheckInButton } from "@/features/dms/ui/SmartwatchCheckInButton";
+import { CheckInMethodsCard } from "@/features/dms/ui/CheckInMethodsCard";
 import { CheckInSettingsForm } from "@/features/dms/ui/CheckInSettingsForm";
 import type { checkInPeriodSchema, checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
 
@@ -136,7 +136,7 @@ function History({ periods }: { periods: Period[] }) {
 }
 
 /**
- * Màn "Điểm danh định kỳ" theo thiết kế: đếm ngược tới hạn, nút điểm danh, cách điểm danh (kèm ghép đồng hồ),
+ * Màn "Điểm danh định kỳ" theo thiết kế: đếm ngược tới hạn, nút điểm danh, cách điểm danh,
  * lịch (chu kỳ/ân hạn) và lịch sử các kỳ.
  * Thời gian và quyền điểm danh do máy chủ quyết định; không có cài đặt nhắc email/SMS vì Backend chưa hỗ trợ.
  */
@@ -186,7 +186,7 @@ export function OwnerCheckIn({ vaultId }: { vaultId: string }) {
             />
           </div>
         </section>
-        <SmartwatchCheckInButton vaultId={vaultId} status={status} />
+        <CheckInMethodsCard />
       </div>
       <section aria-label="Lịch điểm danh" className={CARD}>
         <h2 className="mb-4 text-xl font-medium text-heritage-primary">Lịch điểm danh</h2>

@@ -1,5 +1,16 @@
 import { isAxiosError, type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { z } from "zod";
+import { formatDateTime } from "@/shared/lib/dateFormat";
+
+declare module "axios" {
+  interface AxiosRequestConfig {
+    /**
+     * true khi form đã có ô nhập PIN riêng và tự hiện lỗi PIN (sai, thiếu, bị khóa): transport không mở hộp thoại
+     * PIN chung cho các lỗi đó. Kho chưa đặt PIN (VAULT_PIN_NOT_SET) vẫn đi qua hộp thoại đặt PIN.
+     */
+    skipVaultPinPrompt?: boolean;
+  }
+}
 
 /** Header BE đọc mã PIN kho (docs/api-contract.md mục 6.20). Không bao giờ ghi vào log hay storage. */
 export const VAULT_PIN_HEADER = "X-Vault-Pin";
@@ -98,6 +109,9 @@ export async function resolveVaultPinFailure(
 
   const parsed = pinProblemSchema.safeParse(error.response.data);
   if (!parsed.success) return { handled: false };
+  if (config.skipVaultPinPrompt === true && parsed.data.code !== "VAULT_PIN_NOT_SET") {
+    return { handled: false };
+  }
 
   const pin = await askForPin(active, vaultId, parsed.data);
   if (pin === null) return { handled: false };
@@ -146,4 +160,43 @@ export function notifyAssetCreated(config: InternalAxiosRequestConfig, status: n
   } catch {
     // Mời đặt PIN là phụ; lần tạo tài sản kế tiếp Backend vẫn chặn nếu chưa có PIN.
   }
+}
+
+/** Lỗi PIN của Backend đã đổi thành câu tiếng Việt, để form có ô PIN riêng hiện ngay dưới ô nhập. */
+export interface VaultPinFailure {
+  code: "VAULT_PIN_REQUIRED" | "INVALID_VAULT_PIN" | "VAULT_PIN_LOCKED";
+  message: string;
+  /** Còn mấy lần thử trước khi khóa; chỉ có khi Backend gửi kèm. */
+  attemptsRemaining?: number;
+  /** Chỉ có khi PIN đang bị khóa. */
+  lockedUntil?: string;
+}
+
+/**
+ * Đọc lỗi PIN (thiếu, sai, bị khóa) từ response của Backend. Trả null khi lỗi không phải lỗi PIN,
+ * để nơi gọi dùng thông báo lỗi chung. Không bao giờ nhắc lại giá trị PIN.
+ */
+export function readVaultPinFailure(error: unknown): VaultPinFailure | null {
+  if (!isAxiosError(error)) return null;
+  const parsed = pinProblemSchema.safeParse(error.response?.data);
+  if (!parsed.success) return null;
+  const { code, attemptsRemaining, lockedUntil } = parsed.data;
+  if (code === "INVALID_VAULT_PIN") {
+    let message = "Mã PIN chưa đúng. Vui lòng nhập lại.";
+    if (attemptsRemaining !== undefined) {
+      message = `Mã PIN không đúng. Còn ${attemptsRemaining} lần thử.`;
+    }
+    return { code, message, attemptsRemaining };
+  }
+  if (code === "VAULT_PIN_REQUIRED") {
+    return { code, message: "Thao tác này cần nhập mã PIN của kho." };
+  }
+  if (code === "VAULT_PIN_LOCKED") {
+    let message = "Mã PIN đang bị khóa tạm vì nhập sai nhiều lần. Vui lòng thử lại sau.";
+    if (lockedUntil !== undefined) {
+      message = `Mã PIN đang bị khóa tạm vì nhập sai nhiều lần. Thử lại sau ${formatDateTime(lockedUntil)}.`;
+    }
+    return { code, message, lockedUntil };
+  }
+  return null;
 }

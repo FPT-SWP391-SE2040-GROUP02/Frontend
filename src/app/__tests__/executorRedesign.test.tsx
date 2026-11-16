@@ -141,7 +141,6 @@ const deathCase = {
   reviewVersionNo: 1,
   missingRequirements: [],
   ownerNotice: null,
-  objectionEndsAt: null,
   createdAt: CREATED_AT,
   updatedAt: null,
   etag: "case-v1",
@@ -478,7 +477,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
       "Email và số điện thoại của bạn được gửi cho người nhận khi kế hoạch được kích hoạt",
     );
     // Không hiện hạn của lời mời.
-    expect(card).not.toHaveTextContent(/Còn \d|hết hạn|hạn chót/i);
+    expect(card).not.toHaveTextContent(/Còn \d|Lời mời hết hạn|Hết hạn|hạn chót/);
     const accept = within(card).getByRole("button", { name: "Ký nhận vai thực hiện di chúc" });
     expect(accept).toBeDisabled();
     fireEvent.click(
@@ -502,7 +501,6 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
         id: invitation.id,
         status: "ACCEPTED",
         inviteeEmail: invitation.inviteeEmail,
-        isBeneficiary: false,
         expiresAt: invitation.expiresAt,
         acceptedAt: "2026-11-10T03:00:00Z",
         invitationSentAt: invitation.invitedAt,

@@ -51,7 +51,6 @@ function deathCase(status: string, extra: Record<string, unknown> = {}) {
     reviewVersionNo: null,
     missingRequirements: ["DATE_OF_DEATH", "FILES"],
     ownerNotice: null,
-    objectionEndsAt: null,
     createdAt: CREATED_AT,
     updatedAt: null,
     etag: "case-v1",

@@ -6,14 +6,30 @@ export const executorSchema = z.object({
   id: z.string().uuid(),
   status: z.enum(["INVITED", "ACCEPTED", "DECLINED", "EXPIRED", "REVOKED", "SUSPENDED"]),
   inviteeEmail: z.string(),
-  isBeneficiary: z.boolean(),
   expiresAt: date,
   acceptedAt: date.nullable(),
   invitationSentAt: date.nullable(),
   acceptedScopeVersion: z.string().nullable(),
   etag: z.string().min(1),
   accountExists: z.boolean().optional(),
+  /** Họ tên trong tài khoản đã liên kết; null khi chưa có tài khoản. Backend cũ không có trường này. */
+  fullName: z.string().nullable().optional(),
 });
+/** Gói của một người nhận trong di chúc. Không có nội dung tài sản. */
+const recipientContainerSchema = z.object({
+  id: z.string().min(1),
+  name: z.string(),
+  assetCount: z.number().int().nonnegative(),
+  status: z.enum(["READY", "DRAFT"]),
+});
+/** Người nhận theo từng người. `hasMessage` chỉ cho biết đã viết lời nhắn hay chưa, không có nội dung. */
+const recipientSchema = z.object({
+  beneficiaryId: z.string().min(1),
+  fullName: z.string(),
+  hasMessage: z.boolean(),
+  containers: z.array(recipientContainerSchema),
+});
+export type PlanRecipient = z.infer<typeof recipientSchema>;
 const containerSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -44,7 +60,13 @@ export const planSetupSchema = z.object({
   /** Cảnh báo không chặn activate; chỉ đọc, không disable nút. */
   warnings: z.array(z.string()),
   /** Điều khoản Chủ kho thêm vào di chúc; Backend cũ không có trường này. */
-  willClauses: z.array(z.string()).default([]),
+  /** Họ tên và email Chủ kho in trong di chúc. Backend cũ không có hai trường này. */
+  ownerFullName: z.string().optional(),
+  ownerEmail: z.string().optional(),
+  /** Lúc Chủ kho ký (kích hoạt). Chỉ tính là đã ký khi kế hoạch không còn DRAFT và trường này có giá trị. */
+  activatedAt: date.nullable().optional(),
+  /** Người nhận theo từng người; thiếu nghĩa là Backend cũ chưa trả, giao diện dùng câu chung. */
+  recipients: z.array(recipientSchema).optional(),
 });
 export const executorInfoSchema = z.object({
   expiresAt: date,
@@ -54,5 +76,4 @@ export const executorInfoSchema = z.object({
 });
 export const inviteExecutorSchema = z.object({
   email: z.string().trim().email("Nhập email hợp lệ.").max(254),
-  beneficiaryId: z.string().uuid().nullable(),
 });
