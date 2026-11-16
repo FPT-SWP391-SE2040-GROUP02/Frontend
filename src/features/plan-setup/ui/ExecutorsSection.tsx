@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, ChevronDown, X } from "lucide-react";
 import { z } from "zod";
+import { SUPPORT_EMAIL } from "@/shared/constants";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
@@ -453,6 +454,12 @@ function ChosenCard(props: ChosenCardProps) {
         <p className="mt-3 text-sm leading-6">{statusText}</p>
         {holder.isBeneficiary && (
           <p className="mt-2 text-sm leading-6">Người này cũng là người nhận trong kho này.</p>
+        )}
+        {holder.emailUndeliverable && (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            Máy chủ thư báo không gửi được thư tới email này. Có thể email không tồn tại, hãy liên
+            hệ ban quản trị qua {SUPPORT_EMAIL} để kiểm tra lại.
+          </p>
         )}
         {holder.status === "INVITED" && !holder.invitationSentAt && (
           <p role="status" className="mt-3 text-sm text-amber-800">

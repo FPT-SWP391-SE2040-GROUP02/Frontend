@@ -268,6 +268,11 @@ function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: s
             <small className="text-[12.5px] text-heritage-muted">
               {user.emailVerified ? "Email đã xác minh" : "Email chưa xác minh"}
             </small>
+            {user.emailUndeliverable && (
+              <small className="text-[12.5px] font-medium text-destructive">
+                Email không nhận được thư
+              </small>
+            )}
           </div>
           <div role="cell" className="min-w-0">
             <b className="block text-sm font-medium tabular-nums">

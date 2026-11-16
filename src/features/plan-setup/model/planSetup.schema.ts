@@ -13,6 +13,7 @@ export const executorSchema = z.object({
   acceptedScopeVersion: z.string().nullable(),
   etag: z.string().min(1),
   accountExists: z.boolean().optional(),
+  emailUndeliverable: z.boolean().optional(),
 });
 const containerSchema = z.object({
   id: z.string().uuid(),
