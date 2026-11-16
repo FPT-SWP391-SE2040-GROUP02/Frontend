@@ -1,33 +1,28 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import type { z } from "zod";
+import type { AuthState } from "@/entities/user/model/authSlice";
+import { PrintWillButton } from "@/entities/will/ui/PrintWillButton";
 import { Button } from "@/shared/ui/button";
-import { Chip, Notice, Panel } from "@/shared/ui/heritageKit";
+import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
+import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { checkInService } from "@/features/dms/api/checkInService";
 import { dailyCheckInState } from "@/features/dms/model/dailyCheckIn";
 import type { checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
-import {
-  ExecutorKeyCard,
-  ExecutorKeyReveal,
-  useExecutorKeyIssue,
-  useExecutorKeyStatus,
-  type ExecutorKeyIssued,
-  type HandoverSlipContext,
-} from "@/features/executor-key";
+import { ExecutorKeyCard } from "@/features/executor-key";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
-import { WillClausesSection } from "@/features/vault-management/ui/WillClausesEditor";
-import { PlanReviewSummary } from "@/features/plan-setup/ui/PlanReviewSummary";
-import { formatDate } from "@/shared/lib/dateFormat";
+import { PlanWillDocument } from "@/features/plan-setup/ui/PlanWillDocument";
+import { formatDate, formatTimeThenDate } from "@/shared/lib/dateFormat";
 import { HandoverStepsCard } from "./HandoverStepsCard";
-import { useHandoverSlipContext } from "./useHandoverSlipContext";
 
 type CheckInStatus = z.infer<typeof checkInStatusSchema>;
 type PlanSetup = z.infer<typeof planSetupSchema>;
-type KeyIssuer = ReturnType<typeof useExecutorKeyIssue>;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -137,7 +132,10 @@ function CheckInCard({ vaultId }: { vaultId: string }) {
   );
 }
 
-/** Dòng đầu trang: nhãn trạng thái kế hoạch và một câu giải thích ngắn. */
+/**
+ * Dòng đầu trang: nhãn trạng thái kế hoạch và một câu giải thích ngắn. Tiêu đề "Bàn giao" đã có ở khung trang
+ * nên ở đây không lặp lại.
+ */
 function HandoverHeader({
   chipText,
   chipTone,
@@ -148,28 +146,74 @@ function HandoverHeader({
   subtitle: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2">
       <Chip tone={chipTone}>{chipText}</Chip>
-      <p className="text-sm text-heritage-muted">{subtitle}</p>
+      <p className="max-w-[62ch] text-heritage-muted">{subtitle}</p>
     </div>
   );
 }
 
-/** Kế hoạch còn nháp: việc cần làm để kích hoạt ở trái, cách bàn giao diễn ra ở phải. */
-function DraftView({ vaultId, onActivated }: { vaultId: string; onActivated: () => void }) {
+/** Ghi chú pháp lý: di chúc số chỉ áp dụng cho dữ liệu trong LegacyVault. */
+function LegacyDisclaimer() {
   return (
-    <div className="space-y-6">
+    <div className="rounded-xl border border-[#fde68a] bg-[#fffbeb] px-4 py-3.5 text-sm leading-[1.55] text-[#78490b]">
+      <strong className="font-semibold">
+        Di chúc số chỉ áp dụng cho dữ liệu trong LegacyVault.
+      </strong>{" "}
+      Tài sản thật như nhà đất, tiền gửi vẫn chia theo di chúc có người làm chứng, công chứng hoặc
+      theo pháp luật.
+    </div>
+  );
+}
+
+/** Tờ di chúc: sinh từ dữ liệu kế hoạch, cùng nội dung ở trạng thái nháp và đã ký; kèm nút in (không có mã mở gói). */
+function WillPaper({ setup }: { setup: PlanSetup }) {
+  const user = useSelector((state: { auth: AuthState }) => state.auth.user);
+  let ownerFallback = { fullName: "", email: "" };
+  if (user) {
+    ownerFallback = { fullName: user.fullName, email: user.email };
+  }
+  return (
+    <div className="space-y-4">
+      <article
+        aria-label="Di chúc"
+        className="min-w-0 rounded-2xl border border-heritage-border bg-heritage-surface p-6 shadow-sm sm:p-10 lg:p-14"
+      >
+        <PlanWillDocument setup={setup} ownerFallback={ownerFallback} viewer="owner" />
+      </article>
+      <div className="flex justify-end">
+        <PrintWillButton
+          content={<PlanWillDocument setup={setup} ownerFallback={ownerFallback} viewer="reader" />}
+        />
+      </div>
+    </div>
+  );
+}
+
+/** Câu dẫn đầu trang nháp: nói còn thiếu gì hoặc đã đủ để ký. */
+function draftSubtitle(setup: PlanSetup): string {
+  if (setup.canActivate) {
+    return "Di chúc đã đủ nội dung và Người thực thi đã ký nhận vai. Đọc lại một lượt rồi ký bằng mã PIN để kế hoạch bàn giao bắt đầu chạy.";
+  }
+  return "Di chúc dưới đây tự điền từ kho của bạn. Còn chỗ chưa điền; điền xong bạn mới ký được.";
+}
+
+/** Kế hoạch còn nháp: di chúc ở trái, điều kiện và ô ký ở phải. */
+function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
+  return (
+    <div className="space-y-7">
       <HandoverHeader
         chipText="Kế hoạch chưa kích hoạt"
         chipTone="warning"
-        subtitle="Hoàn thành các việc dưới đây để kế hoạch bàn giao bắt đầu chạy."
+        subtitle={draftSubtitle(setup)}
       />
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <div className="space-y-6">
-          <WillClausesSection />
-          <PlanSetupPanel vaultId={vaultId} onActivated={onActivated} />
+      <div className="grid max-w-[1180px] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-6">
+          <WillPaper setup={setup} />
         </div>
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-5">
+          <PlanSetupPanel vaultId={vaultId} />
+          <LegacyDisclaimer />
           <HandoverStepsCard />
           <p className="text-sm text-heritage-muted">
             Điểm danh định kỳ bắt đầu sau khi kích hoạt.
@@ -180,127 +224,63 @@ function DraftView({ vaultId, onActivated }: { vaultId: string; onActivated: () 
   );
 }
 
-/** Màn nhận mã ngay sau khi kích hoạt (hoặc sau khi tạo mã ở dải cảnh báo): mã chỉ hiện ở đây, một lần. */
-function KeyReceiptView({
-  issued,
-  slip,
-  onDone,
-}: {
-  issued: ExecutorKeyIssued;
-  slip: HandoverSlipContext;
-  onDone: () => void;
-}) {
-  let issuedAt = issued.issuedAt;
-  if (issued.reissuedAt) {
-    issuedAt = issued.reissuedAt;
+/** Thẻ "Kế hoạch đang áp dụng": lúc Chủ kho ký kích hoạt và lối sửa gói, người nhận. */
+function ActivePlanCard({ activatedAt }: { activatedAt: string | null | undefined }) {
+  let activatedText = "Chưa có";
+  if (activatedAt) {
+    activatedText = formatTimeThenDate(activatedAt);
   }
   return (
     <section
-      aria-label="Nhận mã mở gói"
-      className="space-y-5 rounded-2xl border border-heritage-border bg-heritage-surface p-6"
+      aria-label="Kế hoạch đang áp dụng"
+      className="rounded-2xl border border-heritage-border bg-heritage-surface p-[22px] shadow-sm"
     >
-      <h2 className="text-xl font-medium text-heritage-primary">
-        Kế hoạch đã kích hoạt. Còn một việc: lưu mã mở gói
+      <h2 className="text-[17px] font-semibold leading-[1.3] text-heritage-primary">
+        Kế hoạch đang áp dụng
       </h2>
-      <ExecutorKeyReveal
-        slip={{
-          ownerName: slip.ownerName,
-          vaultName: slip.vaultName,
-          executorEmail: slip.executorEmail,
-          issuedAt,
-          version: issued.version,
-          shard: issued.shard,
-        }}
-        onDone={onDone}
-      />
+      <dl className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-1 text-sm">
+        <dt className="text-heritage-muted">Kích hoạt lúc</dt>
+        <dd className="font-semibold">{activatedText}</dd>
+      </dl>
+      <p className="mt-3 text-sm text-heritage-muted">
+        Mỗi lần sửa gói, người nhận hoặc Người thực thi cần mã PIN. Di chúc bên trái luôn hiện nội
+        dung đang áp dụng.
+      </p>
+      <div className="mt-3.5 flex flex-wrap gap-2.5">
+        <Link className={buttonStyles.outline} to={ROUTES.DASHBOARD.ASSETS}>
+          Sửa gói và người nhận
+        </Link>
+      </div>
     </section>
   );
 }
 
-/** Kế hoạch đã chạy: mã mở gói, gói sẽ bàn giao ở trái; điểm danh và tiến trình bàn giao ở phải. */
-function RunningView({
-  vaultId,
-  setup,
-  slip,
-  issuer,
-  onIssued,
-}: {
-  vaultId: string;
-  setup: PlanSetup;
-  slip: HandoverSlipContext;
-  issuer: KeyIssuer;
-  onIssued: (result: ExecutorKeyIssued) => void;
-}) {
-  const keyStatus = useExecutorKeyStatus(vaultId);
-  let keyMissing = false;
-  if (keyStatus.isSuccess) {
-    keyMissing = !keyStatus.data.hasKey && keyStatus.data.canIssue;
-  }
+/** Kế hoạch đã chạy: di chúc đủ chữ ký ở trái; điểm danh, kế hoạch đang áp dụng, mã mở gói và tiến trình ở phải. */
+function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   let chipText = `Trạng thái kế hoạch: ${setup.planStatus}`;
   if (setup.planStatus === "ACTIVE") {
     chipText = "Kế hoạch đang chạy";
   }
-  let keyMissingBanner: ReactNode = null;
-  if (keyMissing) {
-    keyMissingBanner = (
-      <div className="space-y-2">
-        <Notice
-          tone="warning"
-          role="alert"
-          title="Kế hoạch đang chạy nhưng chưa có mã mở gói."
-          action={
-            <button
-              type="button"
-              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#0A281E] px-6 text-sm font-semibold text-white hover:bg-[#12392C] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50"
-              disabled={issuer.pending}
-              onClick={() => {
-                issuer.reset();
-                void issuer.run("issue", onIssued);
-              }}
-            >
-              Tạo mã mở gói
-            </button>
-          }
-        >
-          Không có mã thì người nhận không mở được tài sản.
-        </Notice>
-        {issuer.error && (
-          <p role="alert" className="text-sm text-destructive">
-            {issuer.error}
-          </p>
-        )}
-      </div>
-    );
-  }
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <HandoverHeader
         chipText={chipText}
         chipTone="success"
-        subtitle="Điểm danh đúng hạn để kế hoạch tiếp tục chạy."
+        subtitle="Di chúc đã có đủ chữ ký. Điểm danh đúng hạn để kế hoạch tiếp tục chạy."
       />
-      {keyMissingBanner}
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <div className="space-y-6">
-          <ExecutorKeyCard
-            vaultId={vaultId}
-            slip={slip}
-            title="Mã mở gói"
-            showIssueButton={!keyMissing}
-          />
-          <Panel title="Gói sẽ bàn giao">
-            <PlanReviewSummary
-              containers={setup.containers}
-              assetsOutsideContainer={setup.assetsOutsideContainer}
-            />
-          </Panel>
+      <div className="grid max-w-[1180px] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0">
+          <WillPaper setup={setup} />
         </div>
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-5">
           <CheckInCard vaultId={vaultId} />
+          <ActivePlanCard activatedAt={setup.activatedAt} />
+          <ExecutorKeyCard vaultId={vaultId} />
           <HandoverStepsCard
             title="Tiến trình bàn giao"
             subtitle="Chưa có báo tin. Khi Người thực thi báo tin, bước đang diễn ra sẽ được tô đậm tại đây."
           />
+          <LegacyDisclaimer />
         </div>
       </div>
     </div>
@@ -308,35 +288,13 @@ function RunningView({
 }
 
 /**
- * Trang Bàn giao của Chủ kho. Kế hoạch nháp: việc cần làm để kích hoạt. Ngay sau khi kích hoạt: cấp và hiện mã mở gói
- * một lần (mã chỉ nằm trong state của component này, không vào cache, storage hay URL). Kế hoạch đã chạy: mã mở gói,
- * gói sẽ bàn giao, điểm danh và tiến trình bàn giao. Quyền và trạng thái luôn do Backend quyết định.
+ * Trang Bàn giao của Chủ kho. Cột trái luôn là di chúc sinh từ kế hoạch (cả ở trạng thái nháp lẫn đã ký). Kế hoạch
+ * nháp: điều kiện và ô ký bằng PIN ở cột phải. Kế hoạch đã chạy: điểm danh, kế hoạch đang áp dụng, mã mở gói (hệ thống tự
+ * giữ, Chủ kho chỉ đổi mã mới) và tiến trình bàn giao. Quyền và trạng thái luôn do Backend quyết định.
  */
-export function OwnerHandoverOverview({
-  vaultId,
-  vaultName,
-}: {
-  vaultId: string;
-  vaultName?: string | null;
-}) {
+export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
   const planQuery = usePlanSetup(vaultId);
-  const issuer = useExecutorKeyIssue(vaultId);
-  const slip = useHandoverSlipContext(vaultId, vaultName);
-  const [issued, setIssued] = useState<ExecutorKeyIssued | null>(null);
 
-  if (issued !== null) {
-    return <KeyReceiptView issued={issued} slip={slip} onDone={() => setIssued(null)} />;
-  }
-  if (issuer.pending) {
-    return (
-      <p
-        role="status"
-        className="rounded-2xl border border-heritage-border bg-heritage-surface p-6 text-sm text-heritage-muted"
-      >
-        Kế hoạch đã kích hoạt. Đang tạo mã mở gói…
-      </p>
-    );
-  }
   if (planQuery.isPending) {
     return (
       <p role="status" className="text-sm text-heritage-muted">
@@ -359,22 +317,7 @@ export function OwnerHandoverOverview({
     );
   }
   if (planQuery.data.planStatus === "DRAFT") {
-    return (
-      <DraftView
-        vaultId={vaultId}
-        onActivated={() => {
-          void issuer.issueIfMissing(setIssued);
-        }}
-      />
-    );
+    return <DraftView vaultId={vaultId} setup={planQuery.data} />;
   }
-  return (
-    <RunningView
-      vaultId={vaultId}
-      setup={planQuery.data}
-      slip={slip}
-      issuer={issuer}
-      onIssued={setIssued}
-    />
-  );
+  return <RunningView vaultId={vaultId} setup={planQuery.data} />;
 }

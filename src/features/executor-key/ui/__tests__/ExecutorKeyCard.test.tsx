@@ -2,18 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { AxiosError, AxiosHeaders } from "axios";
 import { axiosClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { ExecutorKeyCard } from "../ExecutorKeyCard";
 
 const VAULT_ID = "22222222-2222-4222-8222-222222222222";
-const SHARD = "ABCD-EFGH-JKMN-PQRS-TVWX-YZ01-2345-6789-ABCD-EFGH-JKMN-PQRS-TVWX";
-const SLIP = {
-  ownerName: "Nguyễn Văn A",
-  vaultName: "Kho gia đình",
-  executorEmail: "thuc-thi@example.test",
-};
-const SLIP_NAME = "Di chúc";
+const PIN = "482913";
 
 let client: QueryClient;
 beforeEach(() => {
@@ -41,68 +36,104 @@ function status(overrides: Record<string, unknown> = {}) {
 function renderCard() {
   return render(
     <QueryClientProvider client={client}>
-      <ExecutorKeyCard vaultId={VAULT_ID} slip={SLIP} />
+      <ExecutorKeyCard vaultId={VAULT_ID} />
     </QueryClientProvider>,
   );
 }
 
-describe("ExecutorKeyCard", () => {
-  it("chưa cấp: hiện Tạo mã mở gói, chỉ gọi BE sau khi xác nhận, phiếu hiện một lần", async () => {
-    vi.spyOn(axiosClient, "get").mockResolvedValue(status());
-    const post = vi
-      .spyOn(axiosClient, "post")
-      .mockResolvedValue({ ...status({ hasKey: true, version: 1 }), shard: SHARD });
+function pinProblem(code: string, extra: Record<string, unknown> = {}, httpStatus = 403) {
+  return new AxiosError("pin", AxiosError.ERR_BAD_REQUEST, undefined, undefined, {
+    status: httpStatus,
+    statusText: "error",
+    headers: {},
+    config: { headers: new AxiosHeaders() },
+    data: { code, ...extra },
+  });
+}
+
+describe("ExecutorKeyCard (Chủ kho)", () => {
+  it("hệ thống tự giữ mã: chỉ có số bản, không hiện mã, không có phiếu hay nút tạo mã", async () => {
+    vi.spyOn(axiosClient, "get").mockResolvedValue(
+      status({ hasKey: true, version: 1, issuedAt: "2026-11-08T01:00:00Z" }),
+    );
     renderCard();
 
-    expect(await screen.findByRole("heading", { name: "Mã mở gói" }));
-    await userEvent.click(await screen.findByRole("button", { name: "Tạo mã mở gói" }));
-    expect(post).not.toHaveBeenCalled();
-    const confirm = await screen.findByRole("dialog");
-    await userEvent.click(within(confirm).getByRole("button", { name: "Tạo mã mở gói" }));
-
-    await waitFor(() => expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executor-key`));
-    const slip = await screen.findByRole("region", { name: SLIP_NAME });
-    expect(within(slip).getByText(SHARD)).toBeInTheDocument();
-    expect(within(slip).getByText("Nguyễn Văn A")).toBeInTheDocument();
-    expect(within(slip).getByText("thuc-thi@example.test")).toBeInTheDocument();
-    expect(within(slip).getByText("Kho gia đình")).toBeInTheDocument();
-
-    const done = screen.getByRole("button", { name: "Hoàn tất" });
-    expect(done).toBeDisabled();
-    await userEvent.click(
-      screen.getByRole("checkbox", { name: /đã tải phiếu hoặc chép mã ra nơi an toàn/ }),
-    );
-    expect(done).toBeEnabled();
-    await userEvent.click(done);
-    await waitFor(() => expect(screen.queryByText(SHARD)).not.toBeInTheDocument());
+    expect(await screen.findByText("Đã có · Bản 1")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Hệ thống tự giữ mã và chỉ gửi cho người nhận sau khi hồ sơ được duyệt. Bạn không cần lưu hay in mã.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Bản đang dùng")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Tạo mã mở gói/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /phiếu/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Di chúc" })).not.toBeInTheDocument();
   });
 
-  it("đã có mã: nút Đổi mã mới gọi reissue và nói rõ mã cũ hết dùng được", async () => {
+  it("chưa có mã: nói mã được tạo khi ký kích hoạt, không có nút nào", async () => {
+    vi.spyOn(axiosClient, "get").mockResolvedValue(status());
+    renderCard();
+
+    expect(await screen.findByText("Chưa tạo")).toBeInTheDocument();
+    expect(screen.getByText("Mã được tạo khi bạn ký và kích hoạt kế hoạch.")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("Đổi mã mới gửi mã PIN ở header X-Vault-Pin, không bật hộp thoại PIN chung, chỉ báo số bản mới", async () => {
     vi.spyOn(axiosClient, "get").mockResolvedValue(
       status({ hasKey: true, version: 1, issuedAt: "2026-11-08T01:00:00Z" }),
     );
     const post = vi
       .spyOn(axiosClient, "post")
-      .mockResolvedValue({ ...status({ hasKey: true, version: 2 }), shard: SHARD });
+      .mockResolvedValue(status({ hasKey: true, version: 2, issuedAt: "2026-11-08T01:00:00Z" }));
     renderCard();
 
-    expect(await screen.findByText("Đã có · Bản 1")).toBeInTheDocument();
-    expect(screen.getByText("Bản đang dùng")).toBeInTheDocument();
-    expect(screen.getByText("Tạo lúc")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Mã đã được gửi tới tài khoản Người thực thi trên hệ thống/),
-    ).toBeInTheDocument();
     await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
-    const confirm = await screen.findByRole("dialog");
-    expect(confirm).toHaveTextContent("Mã cũ hết dùng được ngay");
-    await userEvent.click(within(confirm).getByRole("button", { name: "Đổi mã mới" }));
+    expect(post).not.toHaveBeenCalled();
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Mã cũ hết dùng được ngay");
+    await userEvent.type(within(dialog).getByLabelText(/Nhập mã PIN của kho/), PIN);
+    await userEvent.click(within(dialog).getByRole("button", { name: "Đổi mã mới" }));
 
-    await waitFor(() =>
-      expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executor-key/reissue`),
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    expect(post.mock.calls[0][0]).toBe(`/vaults/${VAULT_ID}/executor-key/reissue`);
+    expect(post.mock.calls[0][2]).toMatchObject({
+      headers: { "X-Vault-Pin": PIN },
+      skipVaultPinPrompt: true,
+    });
+    expect(await screen.findByText("Đã đổi mã. Bản đang dùng là Bản 2.")).toBeInTheDocument();
+    expect(document.body.textContent ?? "").not.toContain(PIN);
+  });
+
+  it("sai PIN: hiện số lần còn lại, xóa ô PIN, không đóng hộp thoại", async () => {
+    vi.spyOn(axiosClient, "get").mockResolvedValue(status({ hasKey: true, version: 1 }));
+    vi.spyOn(axiosClient, "post").mockRejectedValue(
+      pinProblem("INVALID_VAULT_PIN", { attemptsRemaining: 2 }),
     );
-    const slip = await screen.findByRole("region", { name: SLIP_NAME });
-    expect(within(slip).getByText(SHARD)).toBeInTheDocument();
-    expect(within(slip).getByText(/Bản 2/)).toBeInTheDocument();
+    renderCard();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
+    const dialog = await screen.findByRole("dialog");
+    const input = within(dialog).getByLabelText(/Nhập mã PIN của kho/);
+    await userEvent.type(input, PIN);
+    await userEvent.click(within(dialog).getByRole("button", { name: "Đổi mã mới" }));
+
+    expect(await within(dialog).findByText("Mã PIN không đúng. Còn 2 lần thử.")).toBeVisible();
+    expect(input).toHaveValue("");
+  });
+
+  it("PIN bị khóa: hiện thông báo khóa và khóa ô nhập", async () => {
+    vi.spyOn(axiosClient, "get").mockResolvedValue(status({ hasKey: true, version: 1 }));
+    vi.spyOn(axiosClient, "post").mockRejectedValue(pinProblem("VAULT_PIN_LOCKED", {}, 423));
+    renderCard();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText(/Nhập mã PIN của kho/), PIN);
+    await userEvent.click(within(dialog).getByRole("button", { name: "Đổi mã mới" }));
+
+    expect(await within(dialog).findByText(/Mã PIN đang bị khóa tạm/)).toBeVisible();
+    expect(within(dialog).getByLabelText(/Nhập mã PIN của kho/)).toBeDisabled();
   });
 
   it("kế hoạch đã khóa: ẩn nút đổi mã và có lời giải thích", async () => {

@@ -6,7 +6,6 @@ export const vaultFixture = {
   id: VAULT_ID,
   name: "Kho thử nghiệm",
   description: null,
-  willClauses: [] as string[],
   status: "OPEN",
   closedAt: null,
   planStatus: "DRAFT",

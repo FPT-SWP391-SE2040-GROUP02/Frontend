@@ -12,7 +12,6 @@ export const myInvitationSchema = z.object({
   expiresAt: date,
   endedAt: date.nullable(),
   /** Điều khoản Chủ kho thêm vào di chúc để người được mời đọc trước khi ký. */
-  willClauses: z.array(z.string()).default([]),
 });
 
 export const myInvitationsSchema = z.object({

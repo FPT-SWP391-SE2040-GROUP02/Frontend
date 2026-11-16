@@ -16,11 +16,9 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { CREATED_AT, VAULT_ID } from "@/shared/api/__tests__/backend.fixtures";
 import { ROUTES } from "@/shared/config/routes.config";
 import { AdminWorkspacePage } from "@/pages/admin/AdminWorkspacePage";
-import { ADMIN_INCIDENTS_VISIBLE } from "@/features/admin/model/admin.content";
 
 /**
- * Hai việc của Admin: thống kê doanh thu theo ngày, tháng, quý trên trang Giao dịch (chỉ tiền thật đã khớp đơn mặc định),
- * và mục Sự cố đang ẩn khỏi menu, trang Tổng quan và đường dẫn ?view=incidents.
+ * Thống kê doanh thu của Admin theo ngày, tháng, quý trên trang Giao dịch (chỉ tiền thật đã khớp đơn mặc định).
  */
 
 interface Call {
@@ -168,29 +166,5 @@ describe("doanh thu của Admin", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Tất cả" }));
     await waitFor(() => expect(revenueCall()).toMatchObject({ environment: "ALL" }));
-  });
-});
-
-describe("mục Sự cố đang ẩn", () => {
-  it("cờ ẩn đang bật mặc định", () => {
-    expect(ADMIN_INCIDENTS_VISIBLE).toBe(false);
-  });
-
-  it("menu không có Sự cố và không gọi API sự cố ở trang Tổng quan", async () => {
-    backend();
-    setup(ROUTES.ADMIN.ROOT);
-
-    await screen.findAllByRole("link", { name: /Giao dịch/ });
-    expect(screen.queryByRole("link", { name: /^Sự cố/ })).not.toBeInTheDocument();
-    expect(callsTo("/admin/incidents")).toHaveLength(0);
-  });
-
-  it("mở thẳng ?view=incidents thì không hiện màn Sự cố và không gọi danh sách sự cố", async () => {
-    backend();
-    setup(`${ROUTES.ADMIN.ROOT}?view=incidents`);
-
-    await screen.findAllByRole("link", { name: /Giao dịch/ });
-    expect(screen.queryByRole("heading", { name: "Sự cố" })).not.toBeInTheDocument();
-    expect(callsTo("/admin/incidents")).toHaveLength(0);
   });
 });

@@ -6,7 +6,6 @@ import type {
   AdminUserRole,
   AdminUsersQuery,
   HoldsQuery,
-  IncidentsQuery,
   PaymentTransactionsQuery,
 } from "./admin.schema";
 
@@ -16,8 +15,6 @@ export const adminKeys = {
   users: (query: AdminUsersQuery) => [...adminKeys.all, "users", query] as const,
   user: (userId: string) => [...adminKeys.all, "user", userId] as const,
   userOptions: (role: AdminUserRole) => [...adminKeys.all, "user-options", role] as const,
-  incidents: (query: IncidentsQuery) => [...adminKeys.all, "incidents", query] as const,
-  incident: (incidentId: string) => [...adminKeys.all, "incident", incidentId] as const,
   holds: (query: HoldsQuery) => [...adminKeys.all, "holds", query] as const,
   hold: (holdId: string) => [...adminKeys.all, "hold", holdId] as const,
   paymentTransactions: (query: PaymentTransactionsQuery) =>
@@ -69,40 +66,6 @@ export function useAdminUserOptions(role: AdminUserRole, enabled = true) {
     enabled,
     staleTime: 60_000,
     retry: false,
-  });
-}
-
-export function useAdminIncidents(query: IncidentsQuery, enabled = true) {
-  return useQuery({
-    queryKey: adminKeys.incidents(query),
-    enabled,
-    queryFn: ({ signal }) => adminService.listIncidents(query, signal),
-    placeholderData: keepPreviousData,
-    retry: false,
-    refetchInterval: POLLING_INTERVAL.NORMAL,
-    refetchIntervalInBackground: false,
-  });
-}
-
-export function useAdminIncident(incidentId: string) {
-  return useQuery({
-    queryKey: adminKeys.incident(incidentId),
-    queryFn: ({ signal }) => adminService.getIncident(incidentId, signal),
-    retry: false,
-  });
-}
-
-/** Số sự cố theo trạng thái cho thẻ lọc; làm mới cùng nhịp với danh sách sự cố. */
-export function useAdminIncidentCounts(
-  query: Omit<IncidentsQuery, "status" | "pageIndex" | "pageSize">,
-) {
-  return useQuery({
-    queryKey: [...adminKeys.all, "incident-counts", query] as const,
-    queryFn: ({ signal }) => adminService.countIncidents(query, signal),
-    placeholderData: keepPreviousData,
-    retry: false,
-    refetchInterval: POLLING_INTERVAL.NORMAL,
-    refetchIntervalInBackground: false,
   });
 }
 

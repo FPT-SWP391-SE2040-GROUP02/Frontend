@@ -13,4 +13,3 @@ export * from "./ui/DmsConfigModal";
 export * from "./ui/DmsNotificationChannels";
 export * from "./ui/DmsPingHistoryModal";
 export * from "./ui/CheckInNowButton";
-export * from "./ui/SmartwatchCheckInButton";

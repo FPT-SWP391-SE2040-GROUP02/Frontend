@@ -1,5 +1,8 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { KeyRound } from "lucide-react";
+import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { readVaultPinFailure, type VaultPinFailure } from "@/shared/api/vaultPin";
 import {
   Dialog,
   DialogContent,
@@ -8,25 +11,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog";
+import { PIN_DIGITS, PinCodeInput } from "@/shared/ui/pin-input";
 import { buttonStyles, Chip, Panel } from "@/shared/ui/heritageKit";
 import { formatDateTime } from "@/shared/lib/dateFormat";
-import type { ExecutorKeyIssued } from "../model/executorKey.schema";
-import { useExecutorKeyStatus } from "../model/useExecutorKey";
-import { useExecutorKeyIssue } from "../model/useExecutorKeyIssue";
-import type { HandoverSlipContext } from "./HandoverSlip";
-import { ExecutorKeyReveal } from "./ExecutorKeyReveal";
-
-type Step = "closed" | "confirm" | "reveal";
+import { executorKeyService } from "../api/executorKeyService";
+import { executorKeyKeys, useExecutorKeyStatus } from "../model/useExecutorKey";
 
 export interface ExecutorKeyCardProps {
   vaultId: string;
-  /** Thông tin in lên phiếu; do widget ghép từ người dùng đang đăng nhập, kho và Người thực thi chính. */
-  slip: HandoverSlipContext;
   title?: string;
-  /** false khi nơi dùng đã có nút "Tạo mã mở gói" riêng hoặc chưa được phép tạo (kế hoạch còn nháp). */
-  showIssueButton?: boolean;
-  /** Nội dung hộp trắng khi chưa có mã (lý do chưa có, lối đi tiếp). Bỏ trống thì dùng câu mặc định. */
-  emptyState?: ReactNode;
 }
 
 function InfoCell({ label, value }: { label: string; value: string }) {
@@ -39,21 +32,114 @@ function InfoCell({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * Thẻ "Mã mở gói" của Chủ kho. Mã là một chuỗi duy nhất cho mọi gói; Backend mã hóa và gửi mã tới tài khoản
- * Người thực thi trên hệ thống (phiếu tải về chỉ còn là tùy chọn). Bấm "Đổi mã mới" thì mã cũ hết dùng được ngay.
- * Mã gốc chỉ hiện một lần trong hộp thoại, không lưu vào cache hay storage.
+ * Hộp thoại đổi mã mới: xác nhận kèm mã PIN của kho (gửi qua header X-Vault-Pin). Mã mới do server tạo và giữ;
+ * response chỉ có số bản nên hộp thoại không bao giờ hiện hay giữ mã.
  */
-export function ExecutorKeyCard({
+function ReissueDialog({
   vaultId,
-  slip,
-  title = "Mã mở gói",
-  showIssueButton = true,
-  emptyState,
-}: ExecutorKeyCardProps) {
+  onClose,
+  onDone,
+}: {
+  vaultId: string;
+  onClose: () => void;
+  onDone: (version: number) => void;
+}) {
+  const client = useQueryClient();
+  const action = usePrivateAction();
+  const [pin, setPin] = useState("");
+  const [pinFailure, setPinFailure] = useState<VaultPinFailure | null>(null);
+  const locked = pinFailure !== null && pinFailure.code === "VAULT_PIN_LOCKED";
+  const pinComplete = pin.length === PIN_DIGITS;
+
+  function submit(): void {
+    setPinFailure(null);
+    void action.execute(
+      () => executorKeyService.reissue(vaultId, pin),
+      (status) => {
+        void client.invalidateQueries({ queryKey: executorKeyKeys.status(vaultId) });
+        onDone(status.version);
+      },
+      (error) => {
+        setPin("");
+        setPinFailure(readVaultPinFailure(error));
+        void client.invalidateQueries({ queryKey: executorKeyKeys.status(vaultId) });
+      },
+    );
+  }
+
+  let errorText = action.error;
+  if (pinFailure !== null) {
+    errorText = pinFailure.message;
+  }
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Đổi mã mới?</DialogTitle>
+          <DialogDescription>
+            Mã cũ hết dùng được ngay. Hệ thống tạo mã mới và tự giữ; bạn không cần lưu hay in mã.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (pinComplete && !locked && !action.pending) {
+              submit();
+            }
+          }}
+        >
+          <label htmlFor="reissue-pin" className="block text-sm font-semibold">
+            Nhập mã PIN của kho (6 số)
+          </label>
+          <PinCodeInput
+            id="reissue-pin"
+            value={pin}
+            placeholder="••••••"
+            disabled={action.pending || locked}
+            aria-invalid={errorText !== "" ? true : undefined}
+            aria-describedby="reissue-pin-error"
+            onValueChange={(digits) => {
+              setPin(digits);
+              setPinFailure(null);
+              action.reset();
+            }}
+          />
+          <p id="reissue-pin-error" role="alert" className="mt-2 min-h-5 text-sm text-destructive">
+            {errorText}
+          </p>
+          <DialogFooter className="mt-3">
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              disabled={action.pending}
+              onClick={onClose}
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              className={buttonStyles.gold}
+              disabled={!pinComplete || locked || action.pending}
+            >
+              {action.pending ? "Đang đổi mã…" : "Đổi mã mới"}
+            </button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Thẻ "Mã mở gói" của Chủ kho. Hệ thống tự tạo và giữ mã, chỉ gửi cho người nhận sau khi hồ sơ được duyệt, nên
+ * thẻ không hiện mã, không có phiếu in. Chủ kho chỉ thấy bản đang dùng và đổi mã mới được (đòi mã PIN).
+ */
+export function ExecutorKeyCard({ vaultId, title = "Mã mở gói" }: ExecutorKeyCardProps) {
   const query = useExecutorKeyStatus(vaultId);
-  const issuer = useExecutorKeyIssue(vaultId);
-  const [step, setStep] = useState<Step>("closed");
-  const [issued, setIssued] = useState<ExecutorKeyIssued | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [changedVersion, setChangedVersion] = useState<number | null>(null);
 
   if (query.isPending) {
     return (
@@ -74,67 +160,16 @@ export function ExecutorKeyCard({
   }
 
   const status = query.data;
-  const reissue = status.hasKey;
-
-  function close(): void {
-    setStep("closed");
-    setIssued(null);
-    issuer.reset();
-  }
-
-  function runIssue(): void {
-    let mode: "issue" | "reissue" = "issue";
-    if (reissue) {
-      mode = "reissue";
-    }
-    void issuer.run(mode, (result) => {
-      setIssued(result);
-      setStep("reveal");
-    });
-  }
-
-  let chipText = "Chưa có";
+  let chipText = "Chưa tạo";
   let chipTone: "success" | "warning" = "warning";
   if (status.hasKey) {
     chipText = `Đã có · Bản ${status.version}`;
     chipTone = "success";
   }
-  let buttonStyle = buttonStyles.gold;
-  let buttonText = "Tạo mã mở gói";
-  let confirmTitle = "Tạo mã mở gói?";
-  let confirmText =
-    "Mã được gửi an toàn tới tài khoản Người thực thi trên hệ thống. Bạn vẫn xem được mã một lần ngay sau khi tạo.";
-  let confirmButtonText = "Tạo mã mở gói";
-  if (reissue) {
-    buttonStyle = buttonStyles.outline;
-    buttonText = "Đổi mã mới";
-    confirmTitle = "Đổi mã mới?";
-    confirmText =
-      "Mã cũ hết dùng được ngay. Mã mới được gửi tới tài khoản Người thực thi trên hệ thống.";
-    confirmButtonText = "Đổi mã mới";
-  }
-  if (issuer.pending) {
-    confirmButtonText = "Đang tạo…";
-  }
-  const showButton = reissue || showIssueButton;
-
   // Ngày tạo của bản đang dùng: lần đổi mã gần nhất nếu có, không thì lần tạo đầu.
   let createdAt = status.issuedAt;
   if (status.reissuedAt) {
     createdAt = status.reissuedAt;
-  }
-
-  let revealSlipDate: string | null | undefined = null;
-  if (issued !== null) {
-    revealSlipDate = issued.issuedAt;
-    if (issued.reissuedAt) {
-      revealSlipDate = issued.reissuedAt;
-    }
-  }
-
-  let emptyContent: ReactNode = emptyState;
-  if (emptyState === undefined) {
-    emptyContent = <p>Chưa có mã. Bấm "Tạo mã mở gói" để gửi mã cho Người thực thi.</p>;
   }
 
   return (
@@ -144,108 +179,59 @@ export function ExecutorKeyCard({
       className="border-[#E0C486]/60 bg-[#FBF3DE]"
     >
       <p className="text-sm leading-6">
-        Một mã cho cả kho. Người nhận cần mã này để mở tài sản; hệ thống gửi mã trực tiếp tới tài
-        khoản Người thực thi, bạn không cần in phiếu.
+        Hệ thống tự giữ mã và chỉ gửi cho người nhận sau khi hồ sơ được duyệt. Bạn không cần lưu hay
+        in mã.
       </p>
 
       {!status.hasKey && (
-        <div className="mt-4 space-y-3 rounded-xl bg-white p-4 text-sm leading-6">
-          {emptyContent}
-        </div>
+        <p className="mt-3 text-sm leading-6 text-heritage-muted">
+          Mã được tạo khi bạn ký và kích hoạt kế hoạch.
+        </p>
       )}
 
       {status.hasKey && (
-        <>
-          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-            <InfoCell label="Bản đang dùng" value={`Bản ${status.version}`} />
-            <InfoCell label="Tạo lúc" value={formatDateTime(createdAt)} />
-          </dl>
-          <p className="mt-4 text-sm leading-6 text-heritage-muted">
-            Mã đã được gửi tới tài khoản Người thực thi trên hệ thống. Bạn không xem lại được mã;
-            cần thì đổi mã mới, mã cũ hết dùng được ngay.
-          </p>
-        </>
+        <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+          <InfoCell label="Bản đang dùng" value={`Bản ${status.version}`} />
+          <InfoCell label="Tạo lúc" value={formatDateTime(createdAt)} />
+        </dl>
       )}
 
-      {!status.canIssue && (
+      {changedVersion !== null && (
+        <p role="status" className="mt-3 text-sm font-medium text-[#1F7A55]">
+          Đã đổi mã. Bản đang dùng là Bản {changedVersion}.
+        </p>
+      )}
+
+      {status.hasKey && !status.canIssue && (
         <p role="status" className="mt-3 text-sm text-heritage-muted">
           Kế hoạch đang bị khóa nên không đổi mã được.
         </p>
       )}
-      {status.canIssue && showButton && (
+      {status.hasKey && status.canIssue && (
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            className={buttonStyle}
-            disabled={issuer.pending}
+            className={buttonStyles.outline}
             onClick={() => {
-              issuer.reset();
-              setStep("confirm");
+              setChangedVersion(null);
+              setDialogOpen(true);
             }}
           >
             <KeyRound className="size-4" aria-hidden="true" />
-            {buttonText}
+            Đổi mã mới
           </button>
         </div>
       )}
 
-      {step === "confirm" && (
-        <Dialog open onOpenChange={(open) => !open && !issuer.pending && close()}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>{confirmTitle}</DialogTitle>
-              <DialogDescription>{confirmText}</DialogDescription>
-            </DialogHeader>
-            {issuer.error && (
-              <p role="alert" className="text-sm text-destructive">
-                {issuer.error}
-              </p>
-            )}
-            <DialogFooter>
-              <button
-                type="button"
-                className={buttonStyles.outline}
-                disabled={issuer.pending}
-                onClick={close}
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                className={buttonStyles.gold}
-                disabled={issuer.pending}
-                onClick={runIssue}
-              >
-                {confirmButtonText}
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-
-      {step === "reveal" && issued !== null && (
-        <Dialog open onOpenChange={() => undefined}>
-          <DialogContent className="sm:max-w-3xl" showCloseButton={false}>
-            <DialogHeader>
-              <DialogTitle>Di chúc</DialogTitle>
-              <DialogDescription>
-                Mã chỉ hiện một lần. Tải phiếu hoặc chép mã rồi mới hoàn tất.
-              </DialogDescription>
-            </DialogHeader>
-            <ExecutorKeyReveal
-              slip={{
-                ownerName: slip.ownerName,
-                vaultName: slip.vaultName,
-                executorEmail: slip.executorEmail,
-                willClauses: slip.willClauses,
-                issuedAt: revealSlipDate,
-                version: issued.version,
-                shard: issued.shard,
-              }}
-              onDone={close}
-            />
-          </DialogContent>
-        </Dialog>
+      {dialogOpen && (
+        <ReissueDialog
+          vaultId={vaultId}
+          onClose={() => setDialogOpen(false)}
+          onDone={(version) => {
+            setChangedVersion(version);
+            setDialogOpen(false);
+          }}
+        />
       )}
     </Panel>
   );

@@ -8,9 +8,6 @@ import { classifyAdminError } from "../model/adminError";
 
 const USER_ID = "66666666-6666-4666-8666-666666666666";
 export const dashboardFixture = {
-  openIncidents: 4,
-  overdueIncidents: 1,
-  unassignedIncidents: 0,
   activeHolds: 2,
   holdsPastReview: 0,
   activeVerifiers: 3,

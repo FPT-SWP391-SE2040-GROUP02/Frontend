@@ -7,7 +7,8 @@ import type { SystemExecutor } from "../../model/systemExecutor.schema";
 import { ExecutorReceivedKeyCard } from "../ExecutorReceivedKeyCard";
 import { SystemExecutorCard } from "../SystemExecutorCard";
 
-vi.mock("../../api/systemExecutorsService", () => ({
+vi.mock("../../api/systemExecutorsService", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../api/systemExecutorsService")>()),
   systemExecutorsService: { list: vi.fn(), getHandoverKey: vi.fn() },
 }));
 
