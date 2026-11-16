@@ -19,10 +19,10 @@ export const DEV_MILESTONES: Record<
   },
   GRACE_ENDED: {
     title: "Hết thời gian chờ",
-    description: "Đưa sang bước kiểm tra và mở sự cố cho Người thực hiện.",
+    description: "Đưa sang bước kiểm tra của Người thực hiện.",
     code: "AWAITING_CHECK",
-    effect: "chuyển sang bước kiểm tra và mở sự cố cho Người thực hiện",
-    done: "Đã tua tới “Hết thời gian chờ”. Sự cố đã mở cho Người thực hiện. Có thể tua tiếp mốc kế.",
+    effect: "chuyển sang bước kiểm tra của Người thực hiện",
+    done: "Đã tua tới “Hết thời gian chờ”. Người thực hiện đã được báo kiểm tra. Có thể tua tiếp mốc kế.",
   },
   SERVICE_EXPIRED: {
     title: "Hết hạn dịch vụ",

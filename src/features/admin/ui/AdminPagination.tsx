@@ -10,7 +10,7 @@ interface AdminPaginationProps {
   onPage: (page: number) => void;
 }
 
-/** Phân trang dùng chung cho danh sách sự cố và tạm giữ; chỉ hiện khi có nhiều hơn một trang. */
+/** Phân trang dùng chung cho danh sách tạm giữ; chỉ hiện khi có nhiều hơn một trang. */
 export function AdminPagination({
   label,
   pageIndex,

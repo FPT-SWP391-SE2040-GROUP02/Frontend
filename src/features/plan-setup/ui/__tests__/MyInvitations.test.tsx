@@ -75,7 +75,6 @@ describe("MyInvitationsInbox", () => {
       id: FIRST_ID,
       status: "ACCEPTED",
       inviteeEmail: "nguoi-duoc-moi@example.test",
-      isBeneficiary: false,
       expiresAt: "2026-11-09T00:00:00Z",
       acceptedAt: "2026-11-04T00:00:00Z",
       invitationSentAt: null,

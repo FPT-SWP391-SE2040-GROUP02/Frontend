@@ -44,7 +44,6 @@ const invitationFixture = {
   id: CONTAINER_ID,
   status: "INVITED",
   inviteeEmail: "executor@example.test",
-  isBeneficiary: false,
   expiresAt: CREATED_AT,
   acceptedAt: null,
   invitationSentAt: null,

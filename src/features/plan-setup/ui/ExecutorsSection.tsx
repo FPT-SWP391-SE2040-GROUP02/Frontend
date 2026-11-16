@@ -457,10 +457,7 @@ function ChosenCard(props: ChosenCardProps) {
       "Hệ thống tạo mã mở gói khi bạn ký và kích hoạt kế hoạch, rồi chỉ gửi cho người này khi hồ sơ được duyệt.";
   }
 
-  const forbidden: string[] = ["Đọc nội dung kho", "Tự duyệt hồ sơ"];
-  if (!holder.isBeneficiary) {
-    forbidden.push("Nhận tài sản trong kho này");
-  }
+  const forbidden: string[] = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Nhận tài sản trong kho này"];
 
   return (
     <section aria-label="Người bạn chọn" className={CARD}>
@@ -484,9 +481,6 @@ function ChosenCard(props: ChosenCardProps) {
         {dateLine !== "" && <p className="mt-3 text-sm text-heritage-muted">{dateLine}</p>}
 
         <p className="mt-3 text-sm leading-6">{statusText}</p>
-        {holder.isBeneficiary && (
-          <p className="mt-2 text-sm leading-6">Người này cũng là người nhận trong kho này.</p>
-        )}
         {holder.status === "INVITED" && !holder.invitationSentAt && (
           <p role="status" className="mt-3 text-sm text-amber-800">
             Chưa xác nhận gửi được email mời tới người này, nên họ có thể chưa nhận được thư. Hãy

@@ -18,9 +18,6 @@ import { AdminWorkspacePage } from "@/pages/admin/AdminWorkspacePage";
 import { AdminUsersFilters } from "@/features/admin/ui/AdminUsersFilters";
 
 const dashboardFixture = {
-  openIncidents: 4,
-  overdueIncidents: 1,
-  unassignedIncidents: 0,
   activeHolds: 2,
   holdsPastReview: 0,
   activeVerifiers: 3,

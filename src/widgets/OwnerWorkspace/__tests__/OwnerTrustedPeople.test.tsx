@@ -47,7 +47,6 @@ function executor(overrides: Record<string, unknown> = {}) {
     id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     status: "INVITED",
     inviteeEmail: "thuc-thi@example.test",
-    isBeneficiary: false,
     expiresAt: EXPIRES_AT,
     acceptedAt: null,
     invitationSentAt: SENT_AT,
@@ -275,16 +274,6 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     renderPage();
 
     expect(await screen.findByText(/Chưa xác nhận gửi được email/)).toBeInTheDocument();
-  });
-
-  it("người này cũng là người nhận: hiện dòng riêng và bỏ dòng Nhận tài sản ở mục Không được làm", async () => {
-    showPlan({ executors: [executor({ isBeneficiary: true })] });
-    renderPage();
-
-    expect(
-      await screen.findByText("Người này cũng là người nhận trong kho này."),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Nhận tài sản trong kho này")).not.toBeInTheDocument();
   });
 
   it("mục Người thực thi được làm gì? có hai nhóm Được làm và Không được làm", async () => {

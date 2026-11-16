@@ -77,7 +77,6 @@ function caseRecord(over: VersionOverrides = {}, etag = "case-v1"): DeathCase {
     reviewVersionNo: null,
     missingRequirements: hasFile ? [] : ["FILES"],
     ownerNotice: null,
-    objectionEndsAt: null,
     createdAt: CREATED_AT,
     updatedAt: null,
     etag,

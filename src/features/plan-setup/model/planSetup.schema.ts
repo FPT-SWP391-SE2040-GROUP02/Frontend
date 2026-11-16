@@ -6,7 +6,6 @@ export const executorSchema = z.object({
   id: z.string().uuid(),
   status: z.enum(["INVITED", "ACCEPTED", "DECLINED", "EXPIRED", "REVOKED", "SUSPENDED"]),
   inviteeEmail: z.string(),
-  isBeneficiary: z.boolean(),
   expiresAt: date,
   acceptedAt: date.nullable(),
   invitationSentAt: date.nullable(),

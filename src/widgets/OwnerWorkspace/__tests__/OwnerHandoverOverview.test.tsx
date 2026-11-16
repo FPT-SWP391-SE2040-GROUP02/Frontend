@@ -48,7 +48,6 @@ function executor(overrides: Record<string, unknown> = {}) {
     status: "ACCEPTED",
     inviteeEmail: "executor@example.test",
     fullName: "Lê Thị Mẫu",
-    isBeneficiary: false,
     expiresAt: "2026-11-20T00:00:00Z",
     acceptedAt: ACCEPTED_AT,
     invitationSentAt: "2026-11-13T00:00:00Z",

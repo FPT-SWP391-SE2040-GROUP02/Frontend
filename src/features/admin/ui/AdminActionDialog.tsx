@@ -1,7 +1,6 @@
 import { useId } from "react";
 import { Controller, useForm, useWatch, type FieldErrors, type Resolver } from "react-hook-form";
 import { z } from "zod";
-import { useServerNow } from "@/shared/clock/useServerNow";
 import { Button } from "@/shared/ui/button";
 import { CustomCheckbox } from "@/shared/ui/CustomCheckbox";
 import {
@@ -15,7 +14,7 @@ import {
 import { Input } from "@/shared/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
-import { ROLE_LABELS, reviewDateError } from "../model/admin.content";
+import { ROLE_LABELS } from "../model/admin.content";
 import type { AdminUserRole } from "../model/admin.schema";
 import { useAdminAction } from "../model/useAdminAction";
 import { useAdminUserOptions } from "../model/useAdmin";
@@ -23,7 +22,6 @@ import { useAdminUserOptions } from "../model/useAdmin";
 export type AdminFieldSpec = { name: string; label: string; optional?: boolean; hint?: string } & (
   | { kind: "textarea"; maxLength: number }
   | { kind: "text"; maxLength?: number }
-  | { kind: "datetime" }
   | { kind: "select"; options: { value: string; label: string }[] }
   | { kind: "user"; roles: AdminUserRole[] }
 );
@@ -47,7 +45,7 @@ interface AdminActionDialogProps {
 const UUID = z.string().uuid("Chọn một giá trị hợp lệ.");
 
 /** Dựng luật kiểm tra từ danh sách trường; Backend vẫn là nơi quyết định cuối cùng. */
-function buildSchema(fields: AdminFieldSpec[], needsConfirm: boolean, now: Date) {
+function buildSchema(fields: AdminFieldSpec[], needsConfirm: boolean) {
   const shape: Record<string, z.ZodTypeAny> = {};
   for (const field of fields) {
     if (field.kind === "textarea" || field.kind === "text") {
@@ -56,12 +54,6 @@ function buildSchema(fields: AdminFieldSpec[], needsConfirm: boolean, now: Date)
         ? base.max(field.maxLength, `Tối đa ${field.maxLength} ký tự.`)
         : base;
       shape[field.name] = field.optional ? bounded : bounded.min(1, "Trường này là bắt buộc.");
-    } else if (field.kind === "datetime") {
-      shape[field.name] = z.string().superRefine((value, context) => {
-        if (field.optional && !value) return;
-        const message = reviewDateError(value, now);
-        if (message) context.addIssue({ code: "custom", message });
-      });
     } else if (field.kind === "user") {
       shape[field.name] = UUID;
     } else {
@@ -86,7 +78,7 @@ interface UserSelectProps {
   onBlur: () => void;
 }
 
-/** Chọn người đang hoạt động theo vai trò (người phụ trách sự cố, người xét duyệt, Người thực thi). */
+/** Chọn người đang hoạt động theo vai trò (người xét duyệt, Người thực thi). */
 function UserSelect({ roles, id, invalid, value, onChange, onBlur }: UserSelectProps) {
   const verifiers = useAdminUserOptions("VERIFIER", roles.includes("VERIFIER"));
   const admins = useAdminUserOptions("ADMIN", roles.includes("ADMIN"));
@@ -156,9 +148,7 @@ export function AdminActionDialog({
 }: AdminActionDialogProps) {
   const action = useAdminAction();
   const idBase = useId();
-  // Hạn xem lại phải ở tương lai của hệ thống (có thể đang giả lập ngày), không phải của giờ máy.
-  const serverNow = useServerNow();
-  const schema = buildSchema(fields, Boolean(confirmLabel), serverNow);
+  const schema = buildSchema(fields, Boolean(confirmLabel));
   const resolver: Resolver<AdminFormValues> = async (values) => {
     const result = schema.safeParse(values);
     if (result.success) return { values, errors: {} };
@@ -222,15 +212,6 @@ export function AdminActionDialog({
                     autoComplete="off"
                     {...form.register(field.name)}
                     maxLength={field.maxLength}
-                    aria-invalid={Boolean(error)}
-                    className="mt-1"
-                  />
-                )}
-                {field.kind === "datetime" && (
-                  <Input
-                    id={fieldId}
-                    type="datetime-local"
-                    {...form.register(field.name)}
                     aria-invalid={Boolean(error)}
                     className="mt-1"
                   />

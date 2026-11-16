@@ -12,7 +12,7 @@ export interface WorkspaceNavigationItem {
   to?: string;
   /** Biểu tượng đứng trước tên mục. */
   icon?: LucideIcon;
-  /** Số đếm nổi bật bên phải (ví dụ số sự cố cần xử lý); 0 hoặc không có thì không hiện. */
+  /** Số đếm nổi bật bên phải (ví dụ số mục cần xử lý); 0 hoặc không có thì không hiện. */
   badge?: number;
   /** Tên nhóm hiện phía trên mục đầu tiên của nhóm (ví dụ "Hệ thống"). */
   group?: string;

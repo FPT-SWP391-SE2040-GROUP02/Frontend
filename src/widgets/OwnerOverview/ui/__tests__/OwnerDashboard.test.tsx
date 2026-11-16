@@ -105,7 +105,6 @@ describe("Owner dashboard from server metadata", () => {
         id: VAULT_ID,
         status: "ACCEPTED",
         inviteeEmail: "executor@example.test",
-        isBeneficiary: false,
         expiresAt: CREATED_AT,
         acceptedAt: CREATED_AT,
         invitationSentAt: CREATED_AT,
