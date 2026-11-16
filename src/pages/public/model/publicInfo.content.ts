@@ -1,3 +1,4 @@
+import { SUPPORT_EMAIL } from "@/shared/constants";
 /**
  * Nội dung các trang công khai ngoài landing: Hỏi đáp, Liên hệ, Điều khoản, Quyền riêng tư.
  * Số liệu (gói, dung lượng, thời hạn) chép từ landing và biểu phí SRS §8.1; mô tả eKYC khớp luồng Backend
@@ -23,8 +24,8 @@ export interface FaqGroup {
 
 /** Giá trị cần nhóm cung cấp; còn ở dạng giữ chỗ nên hiển thị đúng như vậy thay vì bịa số liệu. */
 export const CONTACT_PLACEHOLDERS = {
-  supportEmail: "legacyvault8386@gmail.com",
-  privacyEmail: "legacyvault8386@gmail.com",
+  supportEmail: SUPPORT_EMAIL,
+  privacyEmail: SUPPORT_EMAIL,
   company: "LegacyVault – Nhóm 02, SWP391",
   address:
     "Lô E2a-7, Đường D1, Khu Công nghệ cao, Phường Tăng Nhơn Phú, TP. Hồ Chí Minh (thuộc TP. Thủ Đức cũ)",

@@ -16,15 +16,43 @@ import { adminService } from "../api/adminService";
 import type { AdminUser } from "../model/admin.schema";
 import { useAdminAction } from "../model/useAdminAction";
 
-const createUserSchema = z.object({
-  fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
-  email: z.string().trim().email("Địa chỉ email không hợp lệ.").max(256),
-  password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự.").max(128),
-  role: z.enum(["VERIFIER", "ADMIN"]),
-  phone: z.string().trim().max(32).optional(),
-});
+const createUserSchema = z
+  .object({
+    fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
+    email: z.string().trim().email("Địa chỉ email không hợp lệ.").max(256),
+    password: z.string().max(128).optional(),
+    role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),
+    phone: z.string().trim().max(32).optional(),
+    lawyerCardNumber: z.string().trim().max(64).optional(),
+    practiceCertificateNumber: z.string().trim().max(64).optional(),
+    executorRoleTitle: z.string().trim().max(200).optional(),
+    legalOrganization: z.string().trim().max(200).optional(),
+  })
+  .superRefine((data, ctx) => {
+    // Quản trị viên bắt buộc mật khẩu khởi tạo; Người xét duyệt / Người thực thi nhận thư mời đặt mật khẩu qua email.
+    if (data.role === "ADMIN" && (data.password ?? "").length < 8) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["password"],
+        message: "Mật khẩu phải có ít nhất 8 ký tự.",
+      });
+    }
+  });
 
 type CreateUserInput = z.infer<typeof createUserSchema>;
+
+type StepKey = "account" | "profile" | "card";
+const STEPS_BY_ROLE: Record<"VERIFIER" | "EXECUTOR" | "ADMIN", StepKey[]> = {
+  ADMIN: ["account"],
+  VERIFIER: ["account", "profile", "card"],
+  EXECUTOR: ["account", "profile", "card"],
+};
+const STEP_LABELS: Record<StepKey, string> = {
+  account: "Tài khoản",
+  profile: "Hồ sơ pháp lý",
+  card: "Ảnh thẻ",
+};
+const ACCOUNT_FIELDS = ["fullName", "email", "password", "phone", "role"] as const;
 
 const CARD_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const CARD_MAX_BYTES = 2 * 1024 * 1024;
@@ -36,8 +64,8 @@ interface AdminCreateUserDialogProps {
 }
 
 /**
- * Hộp thoại tạo tài khoản nhân sự mới (Người xét duyệt, Quản trị viên). Không tạo tài khoản Người thực hiện:
- * Executor là người ngoài do Owner mời theo từng kho (ROLE-02).
+ * Hộp thoại tạo tài khoản nhân sự mới (Người xét duyệt, Người thực thi hệ thống, Quản trị viên).
+ * Người thực thi kèm hồ sơ pháp lý để hiện trong danh bạ cho Chủ kho chọn.
  * Tài khoản được kích hoạt ngay lập tức (không cần chờ email verification).
  */
 export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUserDialogProps) {
@@ -52,10 +80,19 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
       password: "",
       role: "VERIFIER",
       phone: "",
+      lawyerCardNumber: "",
+      practiceCertificateNumber: "",
+      executorRoleTitle: "",
+      legalOrganization: "",
     },
   });
 
   const role = useWatch({ control: form.control, name: "role" });
+  // Form dài nên tách bước theo vai trò: Admin 1 bước, Người xét duyệt 2 (thêm ảnh thẻ), Người thực thi 3 (thêm hồ sơ, ảnh thẻ).
+  const [stepIndex, setStepIndex] = useState(0);
+  const steps = STEPS_BY_ROLE[role];
+  const stepKey = steps[Math.min(stepIndex, steps.length - 1)];
+  const isLastStep = stepIndex >= steps.length - 1;
   const [cardFile, setCardFile] = useState<File | null>(null);
   const [cardError, setCardError] = useState<string | null>(null);
   // Tài khoản đã tạo nhưng chưa tải được ảnh thẻ: bấm lại chỉ tải ảnh, không tạo lần hai.
@@ -78,10 +115,27 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
     setCardError(null);
   };
 
+  const goNext = async () => {
+    // Chỉ kiểm các ô của bước đang xem để người dùng không bị báo lỗi ở bước chưa tới.
+    if (stepKey === "account" && !(await form.trigger([...ACCOUNT_FIELDS]))) {
+      return;
+    }
+    setStepIndex((index) => Math.min(index + 1, steps.length - 1));
+  };
+
   const onSubmit = (values: CreateUserInput) => {
-    const needCard = values.role === "VERIFIER";
+    if (!isLastStep) {
+      void goNext();
+      return;
+    }
+    // Ảnh thẻ là bằng chứng xác minh: Người xét duyệt (thẻ công chứng viên) và Người thực thi (thẻ luật sư) đều bắt buộc.
+    const needCard = values.role === "VERIFIER" || values.role === "EXECUTOR";
     if (needCard && cardFile === null) {
-      setCardError("Vui lòng tải ảnh thẻ công chứng viên.");
+      setCardError(
+        values.role === "EXECUTOR"
+          ? "Vui lòng tải ảnh thẻ luật sư hoặc chứng chỉ hành nghề."
+          : "Vui lòng tải ảnh thẻ công chứng viên.",
+      );
       return;
     }
     if (cardError !== null) {
@@ -89,7 +143,13 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
     }
     void execute(
       async () => {
-        const user = createdUser ?? (await adminService.createUser(values));
+        const user =
+          createdUser ??
+          (await adminService.createUser({
+            ...values,
+            // Không gửi mật khẩu cho vai trò nhận thư mời; Backend gửi link đặt mật khẩu tới email.
+            password: values.role === "ADMIN" ? values.password : undefined,
+          }));
         setCreatedUser(user);
         if (needCard && cardFile !== null) {
           await adminService.uploadNotaryCard(user.id, cardFile);
@@ -109,130 +169,215 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
         <DialogHeader>
           <DialogTitle>Tạo tài khoản hệ thống mới</DialogTitle>
           <DialogDescription>
-            Cấp tài khoản cho Người xét duyệt hoặc Quản trị viên. Tài khoản được kích hoạt ngay.
+            Cấp tài khoản cho Người xét duyệt, Người thực thi hệ thống hoặc Quản trị viên. Tài khoản
+            được kích hoạt ngay.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label
-              htmlFor="create-user-fullname"
-              className="block text-sm font-medium text-heritage-text"
-            >
-              Họ và tên <span className="text-destructive">*</span>
-            </label>
-            <Input
-              id="create-user-fullname"
-              autoComplete="name"
-              {...form.register("fullName")}
-              aria-invalid={Boolean(form.formState.errors.fullName)}
-              className="mt-1"
-              placeholder="Nguyễn Văn A"
-            />
-            {form.formState.errors.fullName && (
-              <p role="alert" className="mt-1 text-sm text-destructive">
-                {form.formState.errors.fullName.message}
+          {steps.length > 1 && (
+            <ol aria-label="Các bước tạo tài khoản" className="flex items-center gap-2 text-xs">
+              {steps.map((key, index) => (
+                <li
+                  key={key}
+                  aria-current={index === stepIndex ? "step" : undefined}
+                  className={
+                    index === stepIndex
+                      ? "rounded-full bg-heritage-primary px-3 py-1 font-semibold text-white"
+                      : "rounded-full bg-[#ECE8DB] px-3 py-1 text-heritage-muted"
+                  }
+                >
+                  {index + 1}. {STEP_LABELS[key]}
+                </li>
+              ))}
+            </ol>
+          )}
+          {stepKey === "account" && (
+            <>
+              <div>
+                <label
+                  htmlFor="create-user-fullname"
+                  className="block text-sm font-medium text-heritage-text"
+                >
+                  Họ và tên <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  id="create-user-fullname"
+                  autoComplete="name"
+                  {...form.register("fullName")}
+                  aria-invalid={Boolean(form.formState.errors.fullName)}
+                  className="mt-1"
+                  placeholder="Nguyễn Văn A"
+                />
+                {form.formState.errors.fullName && (
+                  <p role="alert" className="mt-1 text-sm text-destructive">
+                    {form.formState.errors.fullName.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="create-user-email"
+                  className="block text-sm font-medium text-heritage-text"
+                >
+                  Email đăng nhập <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  id="create-user-email"
+                  type="email"
+                  autoComplete="email"
+                  {...form.register("email")}
+                  aria-invalid={Boolean(form.formState.errors.email)}
+                  className="mt-1"
+                  placeholder="verifier@legacyvault.vn"
+                />
+                {form.formState.errors.email && (
+                  <p role="alert" className="mt-1 text-sm text-destructive">
+                    {form.formState.errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="create-user-role"
+                  className="block text-sm font-medium text-heritage-text"
+                >
+                  Vai trò hệ thống <span className="text-destructive">*</span>
+                </label>
+                <select
+                  id="create-user-role"
+                  {...form.register("role")}
+                  className="mt-1 min-h-11 w-full rounded-lg border border-heritage-border bg-white px-3 text-sm"
+                >
+                  <option value="VERIFIER">Người xét duyệt (VERIFIER)</option>
+                  <option value="EXECUTOR">Người thực thi hệ thống (EXECUTOR)</option>
+                  <option value="ADMIN">Quản trị viên (ADMIN)</option>
+                </select>
+              </div>
+
+              {role !== "ADMIN" && (
+                <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
+                  Hệ thống gửi thư mời đặt mật khẩu tới email này. Tài khoản chỉ dùng được sau khi
+                  người nhận mở link, nên email phải đúng và nhận được thư.
+                </p>
+              )}
+
+              {role === "ADMIN" && (
+                <div>
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="create-user-password"
+                      className="block text-sm font-medium text-heritage-text"
+                    >
+                      Mật khẩu khởi tạo <span className="text-destructive">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="text-sm text-heritage-gold hover:underline"
+                    >
+                      {showPassword ? "Ẩn" : "Hiện"}
+                    </button>
+                  </div>
+                  <Input
+                    id="create-user-password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    {...form.register("password")}
+                    aria-invalid={Boolean(form.formState.errors.password)}
+                    className="mt-1"
+                    placeholder="Tối thiểu 8 ký tự"
+                  />
+                  {form.formState.errors.password && (
+                    <p role="alert" className="mt-1 text-sm text-destructive">
+                      {form.formState.errors.password.message}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div>
+                <label
+                  htmlFor="create-user-phone"
+                  className="block text-sm font-medium text-heritage-text"
+                >
+                  Số điện thoại{" "}
+                  <span className="text-sm text-heritage-muted">(không bắt buộc)</span>
+                </label>
+                <Input
+                  id="create-user-phone"
+                  type="tel"
+                  autoComplete="tel"
+                  {...form.register("phone")}
+                  className="mt-1"
+                  placeholder="0912345678"
+                />
+              </div>
+            </>
+          )}
+
+          {stepKey === "profile" && (
+            <>
+              <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
+                {role === "EXECUTOR"
+                  ? "Thông tin này hiện trong danh bạ cho Chủ kho chọn. Người thực thi chỉ được tính là đã xác minh khi có ảnh thẻ ở bước sau."
+                  : "Số thẻ không bắt buộc. Ảnh thẻ công chứng viên ở bước sau mới là bằng chứng xác minh."}
               </p>
-            )}
-          </div>
+              {(
+                [
+                  ["executorRoleTitle", "Vai trò chuyên môn", "Luật sư thi hành di chúc"],
+                  [
+                    "legalOrganization",
+                    "Đoàn luật sư / tổ chức hành nghề",
+                    "Đoàn Luật sư TP. Hồ Chí Minh",
+                  ],
+                  ["lawyerCardNumber", "Số thẻ luật sư", "LS-HCM-12345"],
+                  ["practiceCertificateNumber", "Số chứng chỉ hành nghề", "CCHN-2026-001"],
+                ] as const
+              )
+                .filter(
+                  ([name]) =>
+                    role === "EXECUTOR" ||
+                    name === "lawyerCardNumber" ||
+                    name === "practiceCertificateNumber",
+                )
+                .map(([name, label, placeholder]) => (
+                  <div key={name}>
+                    <label
+                      htmlFor={`create-user-${name}`}
+                      className="block text-sm font-medium text-heritage-text"
+                    >
+                      {label}
+                    </label>
+                    <Input
+                      id={`create-user-${name}`}
+                      {...form.register(name)}
+                      className="mt-1"
+                      placeholder={placeholder}
+                    />
+                    {form.formState.errors[name] && (
+                      <p role="alert" className="mt-1 text-sm text-destructive">
+                        {form.formState.errors[name]?.message}
+                      </p>
+                    )}
+                  </div>
+                ))}
+            </>
+          )}
 
-          <div>
-            <label
-              htmlFor="create-user-email"
-              className="block text-sm font-medium text-heritage-text"
-            >
-              Email đăng nhập <span className="text-destructive">*</span>
-            </label>
-            <Input
-              id="create-user-email"
-              type="email"
-              autoComplete="email"
-              {...form.register("email")}
-              aria-invalid={Boolean(form.formState.errors.email)}
-              className="mt-1"
-              placeholder="verifier@legacyvault.vn"
-            />
-            {form.formState.errors.email && (
-              <p role="alert" className="mt-1 text-sm text-destructive">
-                {form.formState.errors.email.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="create-user-role"
-              className="block text-sm font-medium text-heritage-text"
-            >
-              Vai trò hệ thống <span className="text-destructive">*</span>
-            </label>
-            <select
-              id="create-user-role"
-              {...form.register("role")}
-              className="mt-1 min-h-11 w-full rounded-lg border border-heritage-border bg-white px-3 text-sm"
-            >
-              <option value="VERIFIER">Người xét duyệt (VERIFIER)</option>
-              <option value="ADMIN">Quản trị viên (ADMIN)</option>
-            </select>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between">
-              <label
-                htmlFor="create-user-password"
-                className="block text-sm font-medium text-heritage-text"
-              >
-                Mật khẩu khởi tạo <span className="text-destructive">*</span>
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="text-sm text-heritage-gold hover:underline"
-              >
-                {showPassword ? "Ẩn" : "Hiện"}
-              </button>
-            </div>
-            <Input
-              id="create-user-password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              {...form.register("password")}
-              aria-invalid={Boolean(form.formState.errors.password)}
-              className="mt-1"
-              placeholder="Tối thiểu 8 ký tự"
-            />
-            {form.formState.errors.password && (
-              <p role="alert" className="mt-1 text-sm text-destructive">
-                {form.formState.errors.password.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label
-              htmlFor="create-user-phone"
-              className="block text-sm font-medium text-heritage-text"
-            >
-              Số điện thoại <span className="text-sm text-heritage-muted">(không bắt buộc)</span>
-            </label>
-            <Input
-              id="create-user-phone"
-              type="tel"
-              autoComplete="tel"
-              {...form.register("phone")}
-              className="mt-1"
-              placeholder="0912345678"
-            />
-          </div>
-
-          {role === "VERIFIER" && (
+          {stepKey === "card" && (
             <>
               <div>
                 <label
                   htmlFor="create-user-notary-card"
                   className="block text-sm font-medium text-heritage-text"
                 >
-                  Ảnh thẻ công chứng viên <span className="text-destructive">*</span>
+                  {role === "EXECUTOR"
+                    ? "Ảnh thẻ luật sư / chứng chỉ hành nghề"
+                    : "Ảnh thẻ công chứng viên"}{" "}
+                  <span className="text-destructive">*</span>
                 </label>
                 <input
                   id="create-user-notary-card"
@@ -245,6 +390,8 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                 />
                 <p className="mt-1 text-sm text-heritage-muted">
                   JPEG, PNG hoặc WebP, tối đa 2 MB.
+                  {role === "EXECUTOR" &&
+                    " Có ảnh thì Người thực thi mới được tính là đã xác minh pháp lý; Chủ kho chỉ thấy huy hiệu, không thấy ảnh."}
                 </p>
                 {cardError && (
                   <p role="alert" className="mt-1 text-sm text-destructive">
@@ -268,12 +415,29 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
           )}
 
           <DialogFooter className="mt-6 flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
-              Hủy
-            </Button>
-            <Button type="submit" disabled={pending}>
-              {pending ? "Đang tạo..." : "Tạo tài khoản"}
-            </Button>
+            {stepIndex > 0 && !createdUser ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStepIndex((index) => Math.max(index - 1, 0))}
+                disabled={pending}
+              >
+                Quay lại
+              </Button>
+            ) : (
+              <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
+                Hủy
+              </Button>
+            )}
+            {isLastStep ? (
+              <Button type="submit" disabled={pending}>
+                {pending ? "Đang tạo..." : "Tạo tài khoản"}
+              </Button>
+            ) : (
+              <Button type="button" onClick={() => void goNext()} disabled={pending}>
+                Tiếp tục
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>

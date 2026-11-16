@@ -134,9 +134,7 @@ export function ExecutorKeyCard({
 
   let emptyContent: ReactNode = emptyState;
   if (emptyState === undefined) {
-    emptyContent = (
-      <p>Chưa có mã. Khi bạn tạo, mã được gửi tới tài khoản Người thực thi trên hệ thống.</p>
-    );
+    emptyContent = <p>Chưa có mã. Bấm "Tạo mã mở gói" để gửi mã cho Người thực thi.</p>;
   }
 
   return (

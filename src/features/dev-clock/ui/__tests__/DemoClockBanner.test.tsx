@@ -126,6 +126,7 @@ describe("DemoClockBanner", () => {
 
   it("bản production (cờ dev tắt): không gọi API dev, không hiện dải báo", async () => {
     vi.stubEnv("DEV", false);
+    vi.stubEnv("VITE_ENABLE_DEVTOOLS", "false");
     const get = vi.spyOn(apiClient, "get").mockResolvedValue(status(true));
     renderBanner("ADMIN");
 
