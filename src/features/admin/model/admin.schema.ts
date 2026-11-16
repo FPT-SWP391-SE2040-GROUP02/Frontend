@@ -56,6 +56,7 @@ export const adminUserSchema = z.object({
   role: adminUserRoleSchema,
   status: adminUserStatusSchema,
   emailVerified: z.boolean(),
+  emailUndeliverable: z.boolean().optional(),
   createdAt: dateTime,
   lastLoginAt: dateTime.nullable(),
   etag: z.string(),

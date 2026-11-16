@@ -230,7 +230,14 @@ export function BeneficiaryRow({
       <td className="px-4 py-4 font-mono text-sm text-heritage-muted">
         •••• {record.citizenIdLast4}
       </td>
-      <td className="break-words px-4 py-4 text-heritage-muted">{contact}</td>
+      <td className="break-words px-4 py-4 text-heritage-muted">
+        {contact}
+        {record.emailUndeliverable && (
+          <span role="alert" className="mt-1 block text-sm text-destructive">
+            Không gửi được thư tới email này. Bấm Sửa để nhập lại email đúng.
+          </span>
+        )}
+      </td>
       <td className="px-4 py-4 text-heritage-muted">{groupLabel}</td>
       <td className="py-4 pl-4">
         <div className="flex justify-end gap-2">

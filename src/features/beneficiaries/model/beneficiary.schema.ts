@@ -17,6 +17,7 @@ export const beneficiaryResponseSchema = z.object({
   etag: z.string().min(1).max(64),
 
   isExisting: z.boolean().optional(),
+  emailUndeliverable: z.boolean().optional(),
 });
 const fullNameRule = z
   .string()

@@ -12,6 +12,7 @@ export const executorSchema = z.object({
   acceptedScopeVersion: z.string().nullable(),
   etag: z.string().min(1),
   accountExists: z.boolean().optional(),
+  emailUndeliverable: z.boolean().optional(),
   /** Họ tên trong tài khoản đã liên kết; null khi chưa có tài khoản. Backend cũ không có trường này. */
   fullName: z.string().nullable().optional(),
 });
