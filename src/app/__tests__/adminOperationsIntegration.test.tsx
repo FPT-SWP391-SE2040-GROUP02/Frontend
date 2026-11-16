@@ -303,7 +303,7 @@ describe("Tài khoản", () => {
     });
   });
 
-  it("không cho tạo hay đổi sang vai trò EXECUTOR (Executor do Owner mời theo từng kho)", async () => {
+  it("tạo và đổi sang vai trò EXECUTOR được (Người thực thi hệ thống cho danh bạ của Chủ kho)", async () => {
     usersBackend();
     setup(ROUTES.DASHBOARD.USERS);
     fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
@@ -311,7 +311,7 @@ describe("Tài khoản", () => {
     const createOptions = within(within(createDialog).getByLabelText(/Vai trò hệ thống/))
       .getAllByRole("option")
       .map((option) => option.getAttribute("value"));
-    expect(createOptions).toEqual(["VERIFIER", "ADMIN"]);
+    expect(createOptions).toEqual(["VERIFIER", "EXECUTOR", "ADMIN"]);
     fireEvent.click(within(createDialog).getByRole("button", { name: "Hủy" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 
@@ -319,7 +319,65 @@ describe("Tài khoản", () => {
     const roleDialog = await screen.findByRole("dialog");
     await userEvent.click(within(roleDialog).getByLabelText("Vai trò mới"));
     const roleOptions = (await screen.findAllByRole("option")).map((option) => option.textContent);
-    expect(roleOptions).toEqual(["Người dùng", "Người xét duyệt", "Quản trị viên"]);
+    expect(roleOptions).toEqual([
+      "Người dùng",
+      "Người xét duyệt",
+      "Người thực thi",
+      "Quản trị viên",
+    ]);
+  });
+
+  it("tạo Người thực thi: 3 bước, bắt buộc ảnh thẻ ở bước cuối, không gọi Backend khi thiếu", async () => {
+    usersBackend();
+    const post = vi.spyOn(apiClient, "post");
+    setup(ROUTES.DASHBOARD.USERS);
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText(/Họ và tên/), "Luật sư Thử");
+    await userEvent.type(within(dialog).getByLabelText(/Email đăng nhập/), "ls.thu@example.test");
+    await userEvent.selectOptions(within(dialog).getByLabelText(/Vai trò hệ thống/), "EXECUTOR");
+    // Người thực thi nhận thư mời đặt mật khẩu nên không có ô mật khẩu khởi tạo.
+    expect(within(dialog).queryByLabelText(/Mật khẩu khởi tạo/)).not.toBeInTheDocument();
+    expect(within(dialog).getAllByRole("listitem")).toHaveLength(3);
+
+    // Bước 1 → 2 (hồ sơ pháp lý) → 3 (ảnh thẻ); chỉ bước cuối mới có nút tạo.
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
+    expect(await within(dialog).findByLabelText(/Vai trò chuyên môn/)).toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: "Tạo tài khoản" })).not.toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
+    await userEvent.click(await within(dialog).findByRole("button", { name: "Tạo tài khoản" }));
+
+    expect(await within(dialog).findByText(/Vui lòng tải ảnh thẻ luật sư/)).toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("tạo tài khoản: Người xét duyệt 3 bước, Quản trị viên 1 bước và vẫn nhập mật khẩu", async () => {
+    usersBackend();
+    setup(ROUTES.DASHBOARD.USERS);
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
+    const dialog = await screen.findByRole("dialog");
+    const role = within(dialog).getByLabelText(/Vai trò hệ thống/);
+
+    await userEvent.selectOptions(role, "VERIFIER");
+    expect(within(dialog).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(dialog).queryByLabelText(/Mật khẩu khởi tạo/)).not.toBeInTheDocument();
+
+    await userEvent.selectOptions(role, "ADMIN");
+    expect(within(dialog).queryByRole("listitem")).not.toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/Mật khẩu khởi tạo/)).toBeInTheDocument();
+  });
+
+  it("tạo tài khoản: bước 1 báo lỗi ô thiếu và chưa cho sang bước sau", async () => {
+    usersBackend();
+    setup(ROUTES.DASHBOARD.USERS);
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.selectOptions(within(dialog).getByLabelText(/Vai trò hệ thống/), "EXECUTOR");
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
+
+    expect(await within(dialog).findByText("Vui lòng nhập họ và tên.")).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText(/Vai trò chuyên môn/)).not.toBeInTheDocument();
   });
 
   it.each([

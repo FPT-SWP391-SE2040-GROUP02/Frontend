@@ -78,6 +78,7 @@ describe("useServerNow", () => {
 
   it("cờ dev tắt (bản production): không gọi API dev và dùng giờ trình duyệt", async () => {
     vi.stubEnv("DEV", false);
+    vi.stubEnv("VITE_ENABLE_DEVTOOLS", "false");
     const get = vi.spyOn(apiClient, "get").mockResolvedValue(status(3600));
 
     const { result } = renderHook(() => useServerOffsetMs(), { wrapper });

@@ -29,7 +29,7 @@ export function SystemExecutorCard({
 }: SystemExecutorCardProps) {
   const legal = executor.legalVerification;
   const verified = legal.status === "VERIFIED";
-  const blocked = disabledReason !== null || !executor.isAvailable;
+  const blocked = disabledReason !== null || !verified || !executor.isAvailable;
 
   let buttonText = "Chọn người này";
   let buttonStyle = buttonStyles.outline;
@@ -39,7 +39,9 @@ export function SystemExecutorCard({
   }
 
   let reason = disabledReason;
-  if (reason === null && !executor.isAvailable) {
+  if (reason === null && !verified) {
+    reason = "Chưa có hồ sơ pháp lý nên chưa thể chọn.";
+  } else if (reason === null && !executor.isAvailable) {
     reason = "Người này hiện chưa nhận thêm kho.";
   }
 
@@ -82,7 +84,7 @@ export function SystemExecutorCard({
       )}
 
       {hasLegalDetails && (
-        <dl className="mt-3 grid gap-3 rounded-xl bg-[#FBF7EE] p-3 sm:grid-cols-2">
+        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 rounded-xl bg-[#FBF7EE] p-3">
           {legal.lawyerCardNumber && (
             <LegalRow label="Số thẻ luật sư" value={legal.lawyerCardNumber} />
           )}

@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import { Search } from "lucide-react";
+import { SUPPORT_EMAIL } from "@/shared/constants";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import type { SystemExecutor } from "../model/systemExecutor.schema";
 import { useSystemExecutors } from "../model/useSystemExecutors";
@@ -69,7 +70,14 @@ export function SystemExecutorDirectory({
     return (
       <p className="rounded-xl border border-dashed border-heritage-border p-4 text-sm leading-6 text-heritage-muted">
         Hiện chưa có Người thực thi hệ thống nào sẵn sàng. Vui lòng liên hệ ban quản trị để được hỗ
-        trợ phân công.
+        trợ phân công qua{" "}
+        <a
+          href={`mailto:${SUPPORT_EMAIL}`}
+          className="font-semibold text-heritage-primary underline underline-offset-4"
+        >
+          {SUPPORT_EMAIL}
+        </a>
+        .
       </p>
     );
   }

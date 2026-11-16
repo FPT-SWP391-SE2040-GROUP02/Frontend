@@ -59,6 +59,8 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
     );
   const user = query.data;
   const isVerifier = user.role === "VERIFIER";
+  // Người thực thi hệ thống cũng xác minh bằng ảnh thẻ (luật sư / chứng chỉ hành nghề).
+  const hasCard = isVerifier || user.role === "EXECUTOR";
   return (
     <div className="mt-6 space-y-6">
       {back}
@@ -79,7 +81,7 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {isVerifier && (
+            {hasCard && (
               <Button
                 variant="outline"
                 className="min-h-11"
@@ -87,7 +89,7 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
                 onClick={() => setCardOpen(true)}
               >
                 <IdCard className="size-4" aria-hidden="true" />
-                Xem thẻ công chứng
+                {isVerifier ? "Xem thẻ công chứng" : "Xem thẻ xác minh"}
               </Button>
             )}
             <AdminUserActions user={user} />
@@ -105,7 +107,7 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
         </dl>
       </section>
 
-      {isVerifier && (
+      {hasCard && (
         <AdminNotaryCardDialog
           userId={user.id}
           name={user.fullName || user.email}
