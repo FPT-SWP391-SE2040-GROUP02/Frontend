@@ -235,10 +235,15 @@ it("keeps inspect separate from acceptance, sends token in body and never caches
     };
   };
   setup(<ExecutorInvitationPanel token={token} />);
-  const accept = await screen.findByRole("button", { name: "Ký nhận vai thực hiện di chúc" });
+  const accept = await screen.findByRole("button", { name: "Ký nhận vai" });
   expect(accept).toBeDisabled();
   expect(requests).toHaveLength(1);
   fireEvent.click(screen.getByRole("checkbox"));
+  expect(accept).toBeDisabled();
+  fireEvent.change(screen.getByLabelText("Mật khẩu tài khoản"), {
+    target: { value: "mat-khau-thu" },
+  });
+  expect(accept).toBeEnabled();
   fireEvent.click(accept);
   expect(await screen.findByText("Bạn đã là Người thực thi")).toBeInTheDocument();
   expect(requests).toHaveLength(2);
@@ -247,6 +252,7 @@ it("keeps inspect separate from acceptance, sends token in body and never caches
     token,
     accept: true,
     acknowledgeScope: true,
+    password: "mat-khau-thu",
   });
   expect(
     JSON.stringify(
@@ -271,9 +277,7 @@ it("guest only inspects and receives login redirect, no acceptance controls", as
     "href",
     expect.stringContaining("%23token%3D"),
   );
-  expect(
-    screen.queryByRole("button", { name: "Ký nhận vai thực hiện di chúc" }),
-  ).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Ký nhận vai" })).not.toBeInTheDocument();
   expect(post).toHaveBeenCalledTimes(1);
 });
 

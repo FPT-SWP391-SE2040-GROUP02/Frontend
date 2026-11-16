@@ -9,7 +9,9 @@ import { planSetupService } from "../api/planSetupService";
 import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
 import { endedStatusLabel, remainingTime } from "../lib/myInvitationHelpers";
+import { executorSigningPasswordError } from "../lib/executorSigningError";
 import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
+import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
 const CAPABILITIES = ["Báo tin cho hệ thống khi Chủ kho qua đời", "Theo dõi tiến trình bàn giao"];
 
@@ -114,17 +116,38 @@ function PendingInvitationCard({
   const client = useQueryClient();
   const action = usePrivateAction();
   const [acknowledge, setAcknowledge] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const serverNow = useServerNow();
   const remaining = remainingTime(invitation.expiresAt, serverNow.getTime());
   const respond = (accept: boolean) => {
+    // Mật khẩu chỉ gửi khi chấp nhận và được xóa khỏi ô sau mỗi lần thử.
+    let signingPassword: string | undefined;
+    if (accept) {
+      signingPassword = password;
+    }
+    setPassword("");
+    setPasswordError(null);
     void action.execute(
-      () => planSetupService.respondById(invitation.id, accept, acknowledge, scopeVersion),
+      () =>
+        planSetupService.respondById(
+          invitation.id,
+          accept,
+          acknowledge,
+          scopeVersion,
+          signingPassword,
+        ),
       () => {
         if (accept) onAccepted();
         // Chấp nhận thì kho mới vào danh sách Executor và nút chuyển vai hiện ra.
         void client.invalidateQueries({ queryKey: myInvitationsKey });
         void client.invalidateQueries({ queryKey: ["executor-vaults"] });
         void client.invalidateQueries({ queryKey: ["executor"] });
+      },
+      (error, fieldErrors) => {
+        if (accept) {
+          setPasswordError(executorSigningPasswordError(error, fieldErrors));
+        }
       },
     );
   };
@@ -195,14 +218,20 @@ function PendingInvitationCard({
             />
             Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản
           </label>
+          <ExecutorSigningPasswordField
+            value={password}
+            onChange={setPassword}
+            disabled={action.pending}
+            error={passwordError}
+          />
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
               className={buttonStyles.dark}
-              disabled={action.pending || !acknowledge}
+              disabled={action.pending || !acknowledge || password.length === 0}
               onClick={() => respond(true)}
             >
-              Ký nhận vai thực hiện di chúc
+              Ký nhận vai
             </button>
             <button
               type="button"
@@ -216,7 +245,7 @@ function PendingInvitationCard({
           <p className="text-sm text-heritage-muted">
             Máy chủ ghi lại lựa chọn và thời điểm bạn bấm.
           </p>
-          {action.error && (
+          {action.error && passwordError === null && (
             <p role="alert" className="text-sm text-destructive">
               {action.error}
             </p>
