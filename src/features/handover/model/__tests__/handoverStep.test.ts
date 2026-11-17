@@ -16,6 +16,11 @@ describe("currentHandoverStep (3 bước của người nhận)", () => {
     expect(currentHandoverStep("HANDOVER_COMMITTED")).toBe(3);
   });
 
+  it("bấm Tôi đã nhận đủ thì cả 3 bước xong", () => {
+    expect(currentHandoverStep("HANDOVER_COMMITTED", false, true)).toBe(4);
+    expect(currentHandoverStep("HANDOVER_COMMITTED", false, false)).toBe(3);
+  });
+
   it("lượt đã kết thúc không thành công không có bước hiện tại", () => {
     expect(currentHandoverStep("DECLINED")).toBeNull();
     expect(currentHandoverStep("CANCELLED")).toBeNull();
