@@ -90,9 +90,14 @@ export const planSetupService = {
    * Danh tính đầy đủ (CCCD, ngày sinh, thường trú) để in trong di chúc; chỉ Chủ kho. Dữ liệu nhạy cảm: không log,
    * không lưu storage, không giữ trong cache (xem useWillIdentity).
    */
-  async getWillIdentity(id: string, signal?: AbortSignal) {
+  async getWillIdentity(id: string, signal?: AbortSignal, pin?: string) {
+    // Backend đòi PIN kho. Không để interceptor tự hỏi: useWillIdentity hỏi một lần rồi dùng lại PIN đó cho ô ký.
     return willIdentitySchema.parse(
-      await apiClient.get<unknown, unknown>(`${vault(id)}/will/identity`, { signal }),
+      await apiClient.get<unknown, unknown>(`${vault(id)}/will/identity`, {
+        signal,
+        headers: pin ? { [VAULT_PIN_HEADER]: pin } : undefined,
+        skipVaultPinPrompt: true,
+      }),
     );
   },
   async inspect(token: string, signal?: AbortSignal) {
