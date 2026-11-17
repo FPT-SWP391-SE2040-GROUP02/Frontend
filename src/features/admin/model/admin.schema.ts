@@ -305,6 +305,12 @@ export const createAdminUserRequestSchema = z.object({
 });
 export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;
 
+/** Số điện thoại đã chuẩn hóa còn dùng được cho tài khoản mới không (GET /admin/users/phone-available). */
+export const phoneAvailabilitySchema = z.object({ available: z.boolean() });
+
+/** Email đã chuẩn hóa còn dùng được cho tài khoản mới không (GET /admin/users/email-available). */
+export const emailAvailabilitySchema = z.object({ available: z.boolean() });
+
 /** Một trường {TÊN} Admin được chèn vào mẫu biên bản, kèm nhãn và ví dụ. */
 export const templateTokenSchema = z.object({
   token: z.string().min(1),

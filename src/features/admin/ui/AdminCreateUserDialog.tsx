@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import { z } from "zod";
 import { Button } from "@/shared/ui/button";
 import {
@@ -15,6 +16,32 @@ import { Input } from "@/shared/ui/input";
 import { adminService } from "../api/adminService";
 import type { AdminUser } from "../model/admin.schema";
 import { useAdminAction } from "../model/useAdminAction";
+
+const PHONE_MAX_LENGTH = 20;
+const EMAIL_TAKEN_MESSAGE = "Email này đã được dùng bởi một tài khoản khác.";
+const PHONE_TAKEN_MESSAGE = "Số điện thoại này đã được dùng bởi một tài khoản khác.";
+
+/** Bỏ khoảng trắng, dấu chấm, gạch nối, ngoặc giống Backend trước khi đếm độ dài và so trùng. */
+const stripPhoneSeparators = (value: string) => value.replace(/[\s.\-()]/g, "");
+
+/** Backend trả 409 PHONE_ALREADY_EXISTS khi số đã thuộc tài khoản khác (kể cả khi hai lần tạo đụng nhau). */
+const isPhoneTaken = (failure: unknown) =>
+  isAxiosError<{ code?: string }>(failure) &&
+  failure.response?.data?.code === "PHONE_ALREADY_EXISTS";
+
+/** Backend trả 409 EMAIL_ALREADY_EXISTS khi email đã thuộc tài khoản khác (kể cả khi hai lần tạo đụng nhau). */
+const isEmailTaken = (failure: unknown) =>
+  isAxiosError<{ code?: string }>(failure) &&
+  failure.response?.data?.code === "EMAIL_ALREADY_EXISTS";
+
+/** Không kiểm được (mất mạng, lỗi máy chủ) thì coi như dùng được: Backend vẫn từ chối bản trùng lúc tạo. */
+async function availableOrUnknown(check: () => Promise<boolean>): Promise<boolean> {
+  try {
+    return await check();
+  } catch {
+    return true;
+  }
+}
 
 const createUserSchema = z
   .object({
@@ -40,6 +67,21 @@ const createUserSchema = z
         code: z.ZodIssueCode.custom,
         path: ["password"],
         message: "Mật khẩu phải có ít nhất 8 ký tự.",
+      });
+    }
+    if (stripPhoneSeparators(data.phone ?? "").length > PHONE_MAX_LENGTH) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phone"],
+        message: `Số điện thoại tối đa ${PHONE_MAX_LENGTH} ký tự.`,
+      });
+    }
+    // Thư gửi người nhận ghi số của Người thực thi để họ gọi hỏi, nên vai trò này bắt buộc có số.
+    if (data.role === "EXECUTOR" && (data.phone ?? "").length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phone"],
+        message: "Vui lòng nhập số điện thoại của Người thực thi.",
       });
     }
   });
@@ -102,6 +144,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
   const [cardError, setCardError] = useState<string | null>(null);
   // Tài khoản đã tạo nhưng chưa tải được ảnh thẻ: bấm lại chỉ tải ảnh, không tạo lần hai.
   const [createdUser, setCreatedUser] = useState<AdminUser | null>(null);
+  const [checkingAccount, setCheckingAccount] = useState(false);
 
   const onPickCard = (file: File | null) => {
     setCardFile(file);
@@ -122,8 +165,33 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
 
   const goNext = async () => {
     // Chỉ kiểm các ô của bước đang xem để người dùng không bị báo lỗi ở bước chưa tới.
-    if (stepKey === "account" && !(await form.trigger([...ACCOUNT_FIELDS]))) {
-      return;
+    if (stepKey === "account") {
+      if (!(await form.trigger([...ACCOUNT_FIELDS]))) {
+        return;
+      }
+      // Báo email và số điện thoại trùng ngay ở bước này thay vì đợi đến lúc bấm tạo ở bước cuối.
+      const email = form.getValues("email").trim();
+      const phone = (form.getValues("phone") ?? "").trim();
+      setCheckingAccount(true);
+      try {
+        const [emailFree, phoneFree] = await Promise.all([
+          availableOrUnknown(() => adminService.isEmailAvailable(email)),
+          phone.length > 0
+            ? availableOrUnknown(() => adminService.isPhoneAvailable(phone))
+            : Promise.resolve(true),
+        ]);
+        if (!emailFree) {
+          form.setError("email", { type: "validate", message: EMAIL_TAKEN_MESSAGE });
+        }
+        if (!phoneFree) {
+          form.setError("phone", { type: "validate", message: PHONE_TAKEN_MESSAGE });
+        }
+        if (!emailFree || !phoneFree) {
+          return;
+        }
+      } finally {
+        setCheckingAccount(false);
+      }
     }
     setStepIndex((index) => Math.min(index + 1, steps.length - 1));
   };
@@ -148,13 +216,27 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
     }
     void execute(
       async () => {
-        const user =
-          createdUser ??
-          (await adminService.createUser({
-            ...values,
-            // Không gửi mật khẩu cho vai trò nhận thư mời; Backend gửi link đặt mật khẩu tới email.
-            password: values.role === "ADMIN" ? values.password : undefined,
-          }));
+        let user = createdUser;
+        if (user === null) {
+          try {
+            user = await adminService.createUser({
+              ...values,
+              // Không gửi mật khẩu cho vai trò nhận thư mời; Backend gửi link đặt mật khẩu tới email.
+              password: values.role === "ADMIN" ? values.password : undefined,
+            });
+          } catch (failure) {
+            // Email hoặc số vừa bị người khác dùng: đưa về bước đầu và gắn lỗi vào đúng ô.
+            if (isEmailTaken(failure)) {
+              form.setError("email", { type: "validate", message: EMAIL_TAKEN_MESSAGE });
+              setStepIndex(0);
+            }
+            if (isPhoneTaken(failure)) {
+              form.setError("phone", { type: "validate", message: PHONE_TAKEN_MESSAGE });
+              setStepIndex(0);
+            }
+            throw failure;
+          }
+        }
         setCreatedUser(user);
         if (needCard && cardFile !== null) {
           await adminService.uploadNotaryCard(user.id, cardFile);
@@ -311,17 +393,27 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                   htmlFor="create-user-phone"
                   className="block text-sm font-medium text-heritage-text"
                 >
-                  Số điện thoại{" "}
-                  <span className="text-sm text-heritage-muted">(không bắt buộc)</span>
+                  Số điện thoại {role === "EXECUTOR" && <span className="text-destructive">*</span>}
                 </label>
                 <Input
                   id="create-user-phone"
                   type="tel"
                   autoComplete="tel"
                   {...form.register("phone")}
+                  aria-invalid={Boolean(form.formState.errors.phone)}
                   className="mt-1"
                   placeholder="0912345678"
                 />
+                {role === "EXECUTOR" && (
+                  <p className="mt-1 text-sm text-heritage-muted">
+                    Số này được ghi trong thư gửi người nhận để họ gọi hỏi khi cần.
+                  </p>
+                )}
+                {form.formState.errors.phone && (
+                  <p role="alert" className="mt-1 text-sm text-destructive">
+                    {form.formState.errors.phone.message}
+                  </p>
+                )}
               </div>
             </>
           )}
@@ -442,8 +534,12 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                 {pending ? "Đang tạo..." : "Tạo tài khoản"}
               </Button>
             ) : (
-              <Button type="button" onClick={() => void goNext()} disabled={pending}>
-                Tiếp tục
+              <Button
+                type="button"
+                onClick={() => void goNext()}
+                disabled={pending || checkingAccount}
+              >
+                {checkingAccount ? "Đang kiểm tra..." : "Tiếp tục"}
               </Button>
             )}
           </DialogFooter>

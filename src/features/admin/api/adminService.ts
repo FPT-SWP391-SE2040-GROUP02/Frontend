@@ -3,6 +3,8 @@ import { apiClient } from "@/shared/api";
 import {
   adminDashboardSchema,
   adminUserSchema,
+  phoneAvailabilitySchema,
+  emailAvailabilitySchema,
   adminUserDetailSchema,
   countsSchema,
   adminUsersPageSchema,
@@ -59,6 +61,26 @@ export const adminService = {
     return adminUserSchema.parse(
       await apiClient.post<unknown, unknown>("/admin/users", payload, { signal }),
     );
+  },
+  /** Email đã có tài khoản dùng chưa; false nghĩa là trùng. Backend cắt khoảng trắng, đổi chữ thường giống lúc tạo. */
+  async isEmailAvailable(email: string, signal?: AbortSignal) {
+    const result = emailAvailabilitySchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/users/email-available", {
+        params: { email },
+        signal,
+      }),
+    );
+    return result.available;
+  },
+  /** Số điện thoại đã có tài khoản dùng chưa; false nghĩa là trùng. Backend chuẩn hóa số giống lúc tạo. */
+  async isPhoneAvailable(phone: string, signal?: AbortSignal) {
+    const result = phoneAvailabilitySchema.parse(
+      await apiClient.get<unknown, unknown>("/admin/users/phone-available", {
+        params: { phone },
+        signal,
+      }),
+    );
+    return result.available;
   },
   /** Tải ảnh thẻ công chứng viên của một Người xét duyệt (multipart: file); BE trả 204. */
   async uploadNotaryCard(userId: string, file: File) {

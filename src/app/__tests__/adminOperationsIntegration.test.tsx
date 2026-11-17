@@ -330,6 +330,8 @@ describe("Tài khoản", () => {
     // Người thực thi nhận thư mời đặt mật khẩu nên không có ô mật khẩu khởi tạo.
     expect(within(dialog).queryByLabelText(/Mật khẩu khởi tạo/)).not.toBeInTheDocument();
     expect(within(dialog).getAllByRole("listitem")).toHaveLength(3);
+    // Người thực thi bắt buộc có số điện thoại (thư gửi người nhận ghi số này).
+    await userEvent.type(within(dialog).getByLabelText(/Số điện thoại/), "0912345678");
 
     // Bước 1 → 2 (hồ sơ pháp lý) → 3 (ảnh thẻ); chỉ bước cuối mới có nút tạo.
     await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
@@ -356,6 +358,48 @@ describe("Tài khoản", () => {
     await userEvent.selectOptions(role, "ADMIN");
     expect(within(dialog).queryByRole("listitem")).not.toBeInTheDocument();
     expect(within(dialog).getByLabelText(/Mật khẩu khởi tạo/)).toBeInTheDocument();
+  });
+
+  it("tạo Người thực thi: thiếu số điện thoại thì báo lỗi ở bước 1", async () => {
+    usersBackend();
+    setup(ROUTES.DASHBOARD.USERS);
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText(/Họ và tên/), "Luật sư Thử");
+    await userEvent.type(within(dialog).getByLabelText(/Email đăng nhập/), "ls.thu@example.test");
+    await userEvent.selectOptions(within(dialog).getByLabelText(/Vai trò hệ thống/), "EXECUTOR");
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
+
+    expect(
+      await within(dialog).findByText("Vui lòng nhập số điện thoại của Người thực thi."),
+    ).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText(/Vai trò chuyên môn/)).not.toBeInTheDocument();
+  });
+
+  it("tạo tài khoản: email và số điện thoại đã có người dùng thì báo ngay ở bước 1", async () => {
+    usersBackend((call) =>
+      call.method === "get" && String(call.url).includes("-available")
+        ? { available: false }
+        : undefined,
+    );
+    setup(ROUTES.DASHBOARD.USERS);
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText(/Họ và tên/), "Người Xét Duyệt");
+    await userEvent.type(within(dialog).getByLabelText(/Email đăng nhập/), "da.co@example.test");
+    await userEvent.type(within(dialog).getByLabelText(/Số điện thoại/), "0912345678");
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
+
+    expect(
+      await within(dialog).findByText("Email này đã được dùng bởi một tài khoản khác."),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Số điện thoại này đã được dùng bởi một tài khoản khác."),
+    ).toBeInTheDocument();
+    // Vẫn ở bước 1: chưa sang bước hồ sơ pháp lý.
+    expect(within(dialog).queryByLabelText(/Số thẻ luật sư/)).not.toBeInTheDocument();
   });
 
   it("tạo tài khoản: bước 1 báo lỗi ô thiếu và chưa cho sang bước sau", async () => {
