@@ -139,7 +139,6 @@ const vaultOf = (overrides: Record<string, unknown> = {}) => ({
   planStatus: "ACTIVE",
   checkInOverdue: false,
   openDeathCaseId: CASE_ID,
-  lastRejectedDeathCaseId: null,
   ...overrides,
 });
 
@@ -374,7 +373,6 @@ it("shows the Verifier supplement request with readable parts and its deadline",
       dueAt: "2026-10-26T08:00:00+00:00",
       overdue: true,
     },
-    rejectReason: null,
   });
   setup(<ExecutorReport vault={vaultOf()} />, "/executor/report");
   expect(
@@ -385,57 +383,6 @@ it("shows the Verifier supplement request with readable parts and its deadline",
     screen.getByText("Phần cần bổ sung: Trang giấy chứng tử, Ngày cấp, UNKNOWN_PART"),
   ).toBeInTheDocument();
   expect(screen.getByText(/\(đã quá hạn\)/)).toBeInTheDocument();
-});
-
-it("shows the reject reason of a rejected case and no supplement block", async () => {
-  portalWith({
-    ...deathCase("REJECTED"),
-    supplementRequest: null,
-    rejectReason: "Giấy chứng tử không khớp CCCD Chủ kho",
-  });
-  setup(<ExecutorReport vault={vaultOf()} />, "/executor/report");
-  expect(await screen.findByRole("heading", { name: "Hồ sơ đã bị từ chối" })).toBeInTheDocument();
-  expect(screen.getByText("Lý do: Giấy chứng tử không khớp CCCD Chủ kho")).toBeInTheDocument();
-  expect(screen.queryByText(/Yêu cầu từ Người xét duyệt/)).not.toBeInTheDocument();
-});
-
-it("accepts an owner notice cancelled by a rejection instead of failing to read the case", async () => {
-  const get = vi
-    .spyOn(apiClient, "get")
-    .mockResolvedValue({ ...deathCase("REJECTED"), rejectReason: "fixture" });
-  const record = await deathCaseService.get(CASE_ID);
-  expect(record.ownerNotice?.status).toBe("CANCELLED");
-  expect(get).toHaveBeenCalledTimes(1);
-});
-
-it("opens the last rejected case from the report page and shows its reason", async () => {
-  vi.spyOn(apiClient, "get").mockImplementation((url) => {
-    if (url === `/executor/death-cases/${CASE_ID}`)
-      return Promise.resolve({ ...deathCase("REJECTED"), rejectReason: "Giấy không hợp lệ" });
-    return Promise.reject(new Error(`unexpected ${String(url)}`));
-  });
-  setup(
-    <ExecutorReport vault={vaultOf({ openDeathCaseId: null, lastRejectedDeathCaseId: CASE_ID })} />,
-    "/executor/report",
-  );
-  expect(await screen.findByRole("button", { name: "Mở hồ sơ chứng tử" })).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Xem hồ sơ bị từ chối gần nhất" }));
-  expect(await screen.findByRole("heading", { name: "Hồ sơ đã bị từ chối" })).toBeInTheDocument();
-  expect(screen.getByText("Lý do: Giấy không hợp lệ")).toBeInTheDocument();
-});
-
-it("hides the rejected case button when the vault has none or the Backend predates the field", async () => {
-  vi.spyOn(apiClient, "get").mockRejectedValue(new Error("unexpected request"));
-  setup(
-    <ExecutorReport
-      vault={vaultOf({ openDeathCaseId: null, lastRejectedDeathCaseId: undefined })}
-    />,
-    "/executor/report",
-  );
-  expect(await screen.findByRole("button", { name: "Mở hồ sơ chứng tử" })).toBeInTheDocument();
-  expect(
-    screen.queryByRole("button", { name: "Xem hồ sơ bị từ chối gần nhất" }),
-  ).not.toBeInTheDocument();
 });
 
 it("lets the Executor view the decline paper image inline only for a declined turn", async () => {

@@ -12,8 +12,6 @@ export const executorVaultSchema = z.object({
   /** Lúc tài khoản chấp nhận lời mời làm Người thực thi của kho; Backend cũ hoặc dữ liệu cũ không có thì null. */
   acceptedAt: timestamp.nullish(),
   openDeathCaseId: z.string().uuid().nullable(),
-  /** Hồ sơ bị từ chối gần nhất của kho, để Executor xem lại lý do. Backend cũ không có trường này. */
-  lastRejectedDeathCaseId: z.string().uuid().nullish(),
   /** Lần Chủ kho TỰ điểm danh gần nhất (điểm danh thay không tính); null khi chưa từng. Backend cũ không có trường này. */
   lastOwnerCheckInAt: timestamp.nullish(),
   /** Số lần điểm danh thay liên tiếp tối đa (Admin đặt) và số lượt còn lại. Backend cũ không có các trường này. */
@@ -51,7 +49,6 @@ export const deathCaseSchema = z.object({
     "UNDER_REVIEW",
     "SUPPLEMENT_REQUIRED",
     "APPROVED_FOR_HANDOVER",
-    "REJECTED",
     "SUSPENDED",
   ]),
   currentVersion: z.object({
@@ -97,8 +94,6 @@ export const deathCaseSchema = z.object({
       overdue: z.boolean().optional(),
     })
     .nullish(),
-  /** Có khi REJECTED: lý do Verifier nhập để Executor mở hồ sơ mới. */
-  rejectReason: z.string().nullish(),
   /** BE đã bỏ thông báo Owner (migration RemoveUnusedFeatures); giữ optional để đọc được cả hai phiên bản. */
   ownerNotice: z
     .object({

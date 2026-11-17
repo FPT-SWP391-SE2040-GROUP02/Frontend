@@ -20,7 +20,6 @@ export const DEMO_STEP_KINDS = [
   "EXECUTOR_INVITATION",
   "SERVICE_EXPIRY",
   "HANDOVER_DEADLINE",
-  "INCIDENT",
   "TARGET_DAY",
 ] as const;
 export type DemoStepKind = (typeof DEMO_STEP_KINDS)[number];

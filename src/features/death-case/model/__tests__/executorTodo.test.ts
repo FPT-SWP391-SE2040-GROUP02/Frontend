@@ -70,7 +70,6 @@ const input = (overrides: Partial<Parameters<typeof executorTodo>[0]> = {}) => (
   vault: vault(),
   caseStatus: null,
   progress: null,
-  rejectedPending: false,
   ...overrides,
 });
 
@@ -116,12 +115,6 @@ describe("executorTodo: Việc của bạn bây giờ", () => {
     );
     expect(todo.buttonLabel).toBeNull();
     expect(todo.to).toBeNull();
-  });
-
-  it("hồ sơ bị từ chối chưa xem: ưu tiên xem lý do", () => {
-    expect(executorTodo(input({ rejectedPending: true })).title).toBe(
-      "Xem lý do hồ sơ báo tin bị từ chối",
-    );
   });
 
   it("hồ sơ nháp và hồ sơ cần bổ sung", () => {
@@ -209,9 +202,8 @@ describe("vaultJourney: chỉ 3 bước của cả kho", () => {
     expect(steps[1].caption).toBe("Đang chờ duyệt");
   });
 
-  it("hồ sơ cần bổ sung hoặc bị từ chối: quay về bước Báo tin", () => {
+  it("hồ sơ cần bổ sung: quay về bước Báo tin", () => {
     expect(vaultJourney(vault(), "SUPPLEMENT_REQUIRED", null)[0].state).toBe("current");
-    expect(vaultJourney(vault(), "REJECTED", null)[0].caption).toBe("Hồ sơ bị từ chối");
   });
 
   it("đang bàn giao: dòng phụ x/y người đã nhận xong", () => {

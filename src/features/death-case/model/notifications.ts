@@ -96,15 +96,6 @@ export function deriveNotifications(
         tone: "success",
       });
     }
-    if (record.status === "REJECTED" && record.updatedAt) {
-      events.push({
-        id: `rejected:${record.id}`,
-        at: record.updatedAt,
-        text: "Hồ sơ không được chấp thuận.",
-        title: "Hồ sơ không được chấp thuận",
-        tone: "danger",
-      });
-    }
   }
   events.sort((a, b) => new Date(b.at ?? 0).getTime() - new Date(a.at ?? 0).getTime());
   return current.concat(events);

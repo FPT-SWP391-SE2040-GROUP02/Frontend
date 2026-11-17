@@ -46,10 +46,9 @@ const formatCompact = (value: string) => {
   return `${pick("day")}/${pick("month")}/${pick("year")} ${pick("hour")}:${pick("minute")}`;
 };
 
-/** Hồ sơ đã ra khỏi bước xét duyệt thì ô điều kiện chỉ nói trạng thái, không gợi ý bổ sung hay từ chối. */
+/** Hồ sơ đã ra khỏi bước xét duyệt thì ô điều kiện chỉ nói trạng thái, không gợi ý bổ sung hay duyệt. */
 const CLOSED_CONDITION_TEXT: Record<string, string> = {
   APPROVED_FOR_HANDOVER: "Hồ sơ đã được duyệt, không cần xét thêm.",
-  REJECTED: "Hồ sơ đã bị từ chối, không cần xét thêm.",
   SUSPENDED: "Hồ sơ đang tạm dừng, chưa xét tiếp được.",
 };
 
@@ -468,18 +467,6 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               ))}
             </ol>
           </section>
-
-          {/* 4. HỒ SƠ TRƯỚC BỊ TỪ CHỐI (NẾU CÓ) */}
-          {detail.previousCase && (
-            <section
-              aria-label="Hồ sơ trước bị từ chối"
-              className="space-y-2 rounded-2xl border border-[#E6C98B] bg-[#F1E6CC] p-6 text-sm text-[#5A4318]"
-            >
-              <h3 className="text-lg font-semibold">Hồ sơ trước của kho này đã bị từ chối</h3>
-              <p>Đóng lúc: {formatDate(detail.previousCase.closedAt)}</p>
-              <p className="break-words">Lý do: {detail.previousCase.rejectReason ?? "—"}</p>
-            </section>
-          )}
         </div>
       </div>
       {download.error && (

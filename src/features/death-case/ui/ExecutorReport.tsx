@@ -148,13 +148,7 @@ function CancelDraftPanel({ vault, record }: { vault: ExecutorVault; record: Dea
 }
 
 /** Chưa có hồ sơ: lời nhắc chắc chắn trước khi báo tin và nút mở hồ sơ (thiết kế "Báo tin"). */
-function ReportIntro({
-  vault,
-  onViewRejected,
-}: {
-  vault: ExecutorVault;
-  onViewRejected: () => void;
-}) {
+function ReportIntro({ vault }: { vault: ExecutorVault }) {
   return (
     <div className="space-y-6">
       <Notice tone="danger" title="Hãy chắc chắn trước khi báo tin">
@@ -169,14 +163,7 @@ function ReportIntro({
               Bạn tải giấy chứng tử (và giấy báo tử nếu có), mỗi mục một tệp. Hồ sơ được lưu nháp,
               chỉ gửi đi khi bạn xác nhận.
             </p>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              {vault.lastRejectedDeathCaseId ? (
-                <button type="button" className={buttonStyles.outline} onClick={onViewRejected}>
-                  Xem hồ sơ bị từ chối gần nhất
-                </button>
-              ) : (
-                <span aria-hidden="true" />
-              )}
+            <div className="flex flex-wrap items-start justify-end gap-3">
               <OpenCaseButton vault={vault} label="Mở hồ sơ chứng tử" />
             </div>
           </Panel>
@@ -213,20 +200,10 @@ function ReportIntro({
 
 /** Nội dung trang Báo tin của một kho: mở hồ sơ, soạn nháp, nộp bản bổ sung. */
 export function ExecutorReport({ vault }: { vault: ExecutorVault }) {
-  const [params, setParams] = useSearchParams();
   const caseId = useActiveCaseId(vault);
   const query = useDeathCase(caseId);
   if (!caseId) {
-    return (
-      <ReportIntro
-        vault={vault}
-        onViewRejected={() => {
-          const next = new URLSearchParams(params);
-          next.set("caseId", vault.lastRejectedDeathCaseId!);
-          setParams(next);
-        }}
-      />
-    );
+    return <ReportIntro vault={vault} />;
   }
   if (query.isPending) return <p role="status">Đang tải hồ sơ…</p>;
   if (query.isError) {
@@ -245,14 +222,6 @@ export function ExecutorReport({ vault }: { vault: ExecutorVault }) {
       <ReviewFeedback record={record} />
       <DeathCaseEditor record={record} ownerName={vault.ownerFullName} />
       {record.status === "DRAFT" && <CancelDraftPanel vault={vault} record={record} />}
-      {record.status === "REJECTED" && !vault.openDeathCaseId && (
-        <Panel title="Mở hồ sơ mới">
-          <p className="mb-4 text-sm leading-6 text-heritage-muted">
-            Hồ sơ này đã đóng. Nếu có giấy tờ đúng, bạn có thể mở một hồ sơ mới.
-          </p>
-          <OpenCaseButton vault={vault} label="Mở hồ sơ chứng tử" />
-        </Panel>
-      )}
     </div>
   );
 }

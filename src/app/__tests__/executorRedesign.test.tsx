@@ -115,7 +115,6 @@ const vault = (overrides: Record<string, unknown> = {}) => ({
   planStatus: "HANDOVER_IN_PROGRESS",
   checkInOverdue: false,
   openDeathCaseId: CASE_ID,
-  lastRejectedDeathCaseId: null,
   executorNote: "Gọi cô Lan trước.\nSau đó gửi mã.",
   executorNoteUpdatedAt: "2026-11-05T03:00:00Z",
   acceptedAt: "2026-10-01T03:00:00Z",

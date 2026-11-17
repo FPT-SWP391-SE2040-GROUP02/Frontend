@@ -15,7 +15,6 @@ import { VerifierQueuePage } from "@/pages/notary/VerifierQueuePage";
 
 const OPEN_ID = "33333333-3333-4333-8333-333333333333";
 const DONE_ID = "66666666-6666-4666-8666-666666666666";
-const REJECTED_ID = "77777777-7777-4777-8777-777777777777";
 const SUPPLEMENT_ID = "88888888-8888-4888-8888-888888888888";
 
 const summary = (id: string, status: string, extra: Record<string, unknown> = {}) => ({
@@ -217,15 +216,13 @@ describe("Verifier queue and history", () => {
       list([
         summary(OPEN_ID, "UNDER_REVIEW"),
         summary(DONE_ID, "APPROVED_FOR_HANDOVER", { closedAt: CREATED_AT }),
-        summary(REJECTED_ID, "REJECTED", { closedAt: CREATED_AT }),
       ]),
     );
     setup("/notary/history");
     const table = await screen.findByRole("table");
     const rows = within(table).getAllByRole("row");
-    expect(rows).toHaveLength(3);
+    expect(rows).toHaveLength(2);
     expect(within(rows[1]).getByText("Chấp thuận")).toBeInTheDocument();
-    expect(within(rows[2]).getByText("Từ chối")).toBeInTheDocument();
     expect(screen.queryByText(/#33333333/)).not.toBeInTheDocument();
   });
 

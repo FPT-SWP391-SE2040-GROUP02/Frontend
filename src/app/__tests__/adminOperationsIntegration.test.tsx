@@ -20,7 +20,6 @@ import { AdminWorkspacePage } from "@/pages/admin/AdminWorkspacePage";
 import { adminActionError } from "@/features/admin/model/adminError";
 
 const HOLD_ID = "33333333-3333-4333-8333-333333333333";
-const OWNER_ALIVE_HOLD_ID = "44444444-4444-4444-8444-444444444444";
 const OTHER_USER_ID = "66666666-6666-4666-8666-666666666666";
 const ADMIN_ID = VAULT_ID;
 const KHO_ID = "77777777-7777-4777-8777-777777777777";
@@ -185,15 +184,7 @@ function setup(path: string) {
 const holdsPath = `${ROUTES.ADMIN.ROOT}?view=holds`;
 
 describe("Tạm giữ (chỉ xem)", () => {
-  it("hold cũ từ luồng báo còn sống giải thích vì sao và không có nút thao tác", async () => {
-    backend(() => holdBody({ id: OWNER_ALIVE_HOLD_ID, type: "OWNER_ALIVE" }));
-    setup(`${holdsPath}&hold=${OWNER_ALIVE_HOLD_ID}`);
-    expect(await screen.findByText(/chỉ hệ thống gỡ được/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Hẹn rà soát" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Gỡ tạm giữ" })).not.toBeInTheDocument();
-  });
-
-  it("chi tiết hold khác cũng chỉ xem, không có nút hẹn rà soát hay gỡ", async () => {
+  it("chi tiết hold chỉ xem, không có nút hẹn rà soát hay gỡ", async () => {
     backend(() => holdBody());
     setup(`${holdsPath}&hold=${HOLD_ID}`);
     expect(await screen.findByText("Phạm vi")).toBeInTheDocument();

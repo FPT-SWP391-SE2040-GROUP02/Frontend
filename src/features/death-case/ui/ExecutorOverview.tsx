@@ -3,13 +3,12 @@ import { Check, Lock, X } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import type { ExecutorVault } from "../model/deathCase.schema";
-import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
+import { buttonStyles, Panel } from "@/shared/ui/heritageKit";
 import { executorTodo, type CaseStatus } from "../model/executorTodo";
 import { EXECUTOR_ALLOWED, EXECUTOR_DENIED } from "../model/executorPermissions";
 import { useDeathCase } from "../model/useDeathCase";
 import { useExecutorPackages } from "../model/useExecutorPackages";
 import { useHandoverProgress } from "../model/useHandoverProgress";
-import { useRejectedAck } from "../model/useRejectedAck";
 import { OverdueCard } from "./OverdueCard";
 import { VaultJourney } from "./VaultJourney";
 
@@ -84,34 +83,14 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   const approved = record?.status === "APPROVED_FOR_HANDOVER";
   const progress =
     useHandoverProgress(vault.openDeathCaseId ?? "", hasCase && approved).data ?? null;
-  const rejectedAck = useRejectedAck(vault.lastRejectedDeathCaseId);
-  // Báo "bị từ chối" đi TRƯỚC mọi việc khác (từ chối trả kế hoạch về trạng thái trước đó nên kho có thể quá hạn ngay);
-  // bấm "Tiếp tục" thì mới tới việc theo trạng thái kế hoạch.
-  const showRejected =
-    !hasCase && Boolean(vault.lastRejectedDeathCaseId) && !rejectedAck.acknowledged;
 
   let caseStatus: CaseStatus | null = null;
   if (record) caseStatus = record.status;
-  const todo = executorTodo({ vault, caseStatus, progress, rejectedPending: showRejected });
-  const showLastCheckIn =
-    !hasCase && !showRejected && !vault.checkInOverdue && Boolean(vault.lastOwnerCheckInAt);
+  const todo = executorTodo({ vault, caseStatus, progress });
+  const showLastCheckIn = !hasCase && !vault.checkInOverdue && Boolean(vault.lastOwnerCheckInAt);
 
   return (
     <div className="space-y-6">
-      {showRejected && (
-        <Notice
-          tone="danger"
-          title={`Hồ sơ báo tin về ${vault.ownerFullName} đã bị từ chối`}
-          action={
-            <button type="button" className={buttonStyles.gold} onClick={rejectedAck.acknowledge}>
-              Tiếp tục
-            </button>
-          }
-        >
-          Hồ sơ của bạn không được Người xét duyệt chấp thuận. Hồ sơ đã được xử lý và đóng; bạn chỉ
-          nên báo tin lại khi chắc chắn và có giấy tờ phù hợp.
-        </Notice>
-      )}
       <section
         aria-labelledby="executor-todo-title"
         className="rounded-2xl border border-[#E0C486] bg-[#FBF3E0] p-5 sm:p-6"
@@ -139,7 +118,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           )}
         </div>
       </section>
-      {!showRejected && vault.checkInOverdue && <OverdueCard vault={vault} hasCase={hasCase} />}
+      {vault.checkInOverdue && <OverdueCard vault={vault} hasCase={hasCase} />}
       <VaultJourney vault={vault} caseStatus={caseStatus} progress={progress} />
       <div className="grid gap-6 lg:grid-cols-2">
         <GuideAndAssetsCard vault={vault} />

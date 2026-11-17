@@ -7,7 +7,6 @@ const KIND_LABELS: Record<string, string> = {
   EXECUTOR_INVITATION: "Lời mời Người thực thi (nhắc hoặc hết hạn)",
   SERVICE_EXPIRY: "Hết hạn gói dịch vụ",
   HANDOVER_DEADLINE: "Hạn của người nhận (phản hồi, quyết định hoặc tải)",
-  INCIDENT: "Nhắc hoặc báo lên về sự cố",
   TARGET_DAY: "Tới ngày đã chọn",
 };
 

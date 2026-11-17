@@ -3,12 +3,11 @@ import { formatDateTime } from "@/shared/ui/heritageKit";
 import { requirementLabels } from "./executorLabels";
 
 /**
- * Phản hồi của Verifier mà Executor được thấy: yêu cầu bổ sung hoặc lý do từ chối.
+ * Phản hồi của Verifier mà Executor được thấy: yêu cầu bổ sung.
  * Không hiển thị gì về Verifier vì Backend không trả thông tin này.
  */
 export function ReviewFeedback({ record }: { record: DeathCase }) {
   const supplement = record.status === "SUPPLEMENT_REQUIRED" ? record.supplementRequest : null;
-  const rejectReason = record.status === "REJECTED" ? record.rejectReason : null;
   if (supplement) {
     const missing = new Set(record.missingRequirements);
     return (
@@ -42,22 +41,6 @@ export function ReviewFeedback({ record }: { record: DeathCase }) {
             ? `, hạn ${formatDateTime(supplement.dueAt)}${supplement.overdue ? " (đã quá hạn)" : ""}`
             : ""}
           . Tạo bản bổ sung, sửa các phần trên rồi gửi lại.
-        </p>
-      </section>
-    );
-  }
-  if (rejectReason) {
-    return (
-      <section
-        aria-labelledby="reject-reason-title"
-        className="space-y-2 rounded-2xl border border-[#F0C4BF] bg-[#F8E1DE] p-6 text-[#7A1A14]"
-      >
-        <h3 id="reject-reason-title" className="text-lg font-semibold">
-          Hồ sơ đã bị từ chối
-        </h3>
-        <p className="text-sm">Lý do: {rejectReason}</p>
-        <p className="text-sm">
-          Hồ sơ này đã đóng. Nếu có giấy tờ đúng, mở hồ sơ mới từ trang Báo tin.
         </p>
       </section>
     );

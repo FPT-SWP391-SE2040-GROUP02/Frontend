@@ -6,7 +6,6 @@ export const verifierCaseStatusSchema = z.enum([
   "UNDER_REVIEW",
   "SUPPLEMENT_REQUIRED",
   "APPROVED_FOR_HANDOVER",
-  "REJECTED",
   "SUSPENDED",
 ]);
 /** Cảnh báo hệ thống phát hiện trên bản Executor gửi (BE VerifierFlagResponse.Kind). */
@@ -16,7 +15,7 @@ export const verifierFlagKindSchema = z.enum([
   "CERTIFICATE_UNVERIFIED",
 ]);
 /** Quyết định Verifier đã ra (BE VerifierDecisionResponse.Kind). */
-export const verifierDecisionKindSchema = z.enum(["SUPPLEMENT_REQUESTED", "REJECTED", "APPROVED"]);
+export const verifierDecisionKindSchema = z.enum(["SUPPLEMENT_REQUESTED", "APPROVED"]);
 /** Trạng thái thông báo Owner (BE DeathCaseNoticeResponse.Status). */
 export const ownerNoticeStatusSchema = z.enum(["PENDING", "DELIVERED", "FAILED", "CANCELLED"]);
 /** Mã phần cần bổ sung (DEATH-01) mà FE truyền trong RequestSupplement. */
@@ -140,14 +139,6 @@ export const verifierWarningSchema = z.object({
   code: z.string(),
   message: z.string(),
 });
-/** Hồ sơ trước đó cùng kho bị từ chối. */
-export const verifierPreviousCaseSchema = z
-  .object({
-    id: z.string().uuid(),
-    closedAt: timestamp.nullable(),
-    rejectReason: z.string().nullable(),
-  })
-  .nullable();
 /** Kết quả mở bàn giao khi duyệt lần đầu (chỉ có ở response duyệt). */
 export const verifierHandoverSchema = z
   .object({
@@ -207,7 +198,6 @@ export const verifierCaseDetailSchema = z.object({
   assignment: verifierAssignmentSchema,
   canApprove: z.boolean(),
   approveBlockers: z.array(approveBlockerSchema),
-  previousCase: verifierPreviousCaseSchema,
   handover: verifierHandoverSchema,
   /** Có giá trị = Executor bổ sung quá hạn 7 ngày; null/thiếu = chưa quá hạn hoặc đã gửi lại (BE mục 6.12). */
   supplementOverdueAt: timestamp.nullable().optional(),
@@ -248,7 +238,6 @@ export const caseStatusLabels: Record<z.infer<typeof verifierCaseStatusSchema>, 
   UNDER_REVIEW: "Đang xét",
   SUPPLEMENT_REQUIRED: "Đã từ chối, chờ nộp lại",
   APPROVED_FOR_HANDOVER: "Đã duyệt, mở bàn giao",
-  REJECTED: "Đã từ chối",
   SUSPENDED: "Tạm dừng",
 };
 /** Nhãn cho cờ. */
@@ -275,6 +264,5 @@ export const ownerNoticeLabels: Record<z.infer<typeof ownerNoticeStatusSchema>, 
 /** Nhãn cho decision. */
 export const decisionLabels: Record<z.infer<typeof verifierDecisionKindSchema>, string> = {
   SUPPLEMENT_REQUESTED: "Từ chối, chờ nộp lại",
-  REJECTED: "Từ chối",
   APPROVED: "Duyệt mở bàn giao",
 };

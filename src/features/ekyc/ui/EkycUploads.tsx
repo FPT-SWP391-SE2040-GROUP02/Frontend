@@ -223,8 +223,6 @@ const PURPOSE_LABELS: Record<Purpose, string> = {
   OWNER_ENROLLMENT: "xác minh Chủ kho",
 
   BENEFICIARY_CLAIM: "xác minh Người nhận để nhận bàn giao",
-
-  OWNER_ALIVE: "xác nhận bạn còn sống",
 };
 
 function validateImage(file: File | null): string {

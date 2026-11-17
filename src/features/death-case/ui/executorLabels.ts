@@ -24,7 +24,6 @@ export const caseStatusInfo: Record<string, { label: string; tone: Tone }> = {
   UNDER_REVIEW: { label: "Đang xét duyệt", tone: "warning" },
   SUPPLEMENT_REQUIRED: { label: "Cần bổ sung", tone: "warning" },
   APPROVED_FOR_HANDOVER: { label: "Đã duyệt", tone: "success" },
-  REJECTED: { label: "Bị từ chối", tone: "danger" },
   SUSPENDED: { label: "Tạm dừng", tone: "neutral" },
 };
 

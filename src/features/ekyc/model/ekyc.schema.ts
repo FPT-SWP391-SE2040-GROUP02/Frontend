@@ -1,7 +1,7 @@
 import { z } from "zod";
 const timestamp = z.string().datetime({ offset: true });
 /** Mục đích eKYC do BE cấp; schema chấp nhận đủ, FE chỉ nối OWNER_ENROLLMENT và BENEFICIARY_CLAIM. */
-export const ekycPurposeSchema = z.enum(["OWNER_ENROLLMENT", "BENEFICIARY_CLAIM", "OWNER_ALIVE"]);
+export const ekycPurposeSchema = z.enum(["OWNER_ENROLLMENT", "BENEFICIARY_CLAIM"]);
 /** Mức khớp danh tính; FE không tự quyết PASSED hoặc MATCHED từ score. */
 export const identityMatchSchema = z.enum([
   "NOT_CHECKED",

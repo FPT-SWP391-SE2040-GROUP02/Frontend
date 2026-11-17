@@ -50,7 +50,7 @@ export function readSigningFailure(error: unknown): SigningFailure | null {
 
 /**
  * Câu báo tiếng Việt cho lỗi xác nhận mật khẩu; giờ khóa theo múi giờ của trình duyệt (formatDateTime).
- * `lockedSubject` là chức năng đang bị khóa, ví dụ "duyệt/từ chối" hoặc "ký nhận vai".
+ * `lockedSubject` là chức năng đang bị khóa, ví dụ "duyệt" hoặc "ký nhận vai".
  */
 export function signingFailureText(failure: SigningFailure, lockedSubject: string): string {
   if (failure.kind === "invalidPassword") {

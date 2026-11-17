@@ -16,8 +16,6 @@ function notStartedText(record: DeathCase | null): string {
       return "Người xét duyệt cần bổ sung thông tin. Vào mục Báo tin để nộp bản bổ sung.";
     case "SUSPENDED":
       return "Hồ sơ đang tạm dừng. Hệ thống sẽ xử lý tiếp khi đủ điều kiện.";
-    case "REJECTED":
-      return "Hồ sơ bị từ chối. Xem lý do ở mục Báo tin.";
     case "UNDER_REVIEW":
       return "Hồ sơ đã gửi và đang chờ Người xét duyệt. Bàn giao bắt đầu sau khi hồ sơ được duyệt.";
     case "APPROVED_FOR_HANDOVER":

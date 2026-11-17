@@ -125,8 +125,7 @@ function SigningPasswordField({
         {...registration}
       />
       <p id={hintId} className="text-sm text-heritage-muted">
-        Nhập mật khẩu tài khoản để xác nhận quyết định. Nhập sai 5 lần sẽ tạm khóa chức năng
-        duyệt/từ chối.
+        Nhập mật khẩu tài khoản để xác nhận quyết định. Nhập sai 5 lần sẽ tạm khóa chức năng duyệt.
       </p>
       {error && <span className="text-sm text-destructive">{error}</span>}
     </div>

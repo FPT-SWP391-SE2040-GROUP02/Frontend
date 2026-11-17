@@ -12,7 +12,6 @@ import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { APPROVE_REASON } from "@/features/verifier-review/model/decisionReasons";
-import { formatDateTime } from "@/shared/lib/dateFormat";
 import { VerifierQueue } from "@/widgets/VerifierWorkspace/VerifierQueue";
 import { verifierReviewService } from "@/features/verifier-review/api/verifierReviewService";
 
@@ -74,7 +73,6 @@ const detailFixture = {
   assignment: { assignedAt: CREATED_AT, dueAt: CREATED_AT },
   canApprove: false,
   approveBlockers: ["FLAGS_NOT_REVIEWED"],
-  previousCase: null,
   handover: null,
   ownerIdentity: {
     verified: false,
@@ -125,8 +123,6 @@ afterEach(() => {
 function LocationProbe() {
   return <span data-testid="search">{useLocation().search}</span>;
 }
-
-const formatTimestamp = (value: string) => formatDateTime(value);
 
 function setup(children: ReactNode, initialPath = "/notary/workspace") {
   const store = configureStore({ reducer: { auth: authReducer } });
@@ -507,35 +503,13 @@ it("VERIFIER_CONFLICT chỉ cho xem: ẩn mọi thao tác ghi, kể cả modal m
   expect(screen.queryByRole("button", { name: /^Từ chối$/ })).not.toBeInTheDocument();
 });
 
-it("hiện mốc thời gian hồ sơ đã nộp và hồ sơ trước bị từ chối", async () => {
+it("hiện mốc thời gian hồ sơ đã nộp", async () => {
   vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID)
-      ? {
-          ...detailFixture,
-          previousCase: {
-            id: "77777777-7777-4777-8777-777777777777",
-            closedAt: CREATED_AT,
-            rejectReason: "Giấy chứng tử không rõ nét",
-          },
-        }
-      : listFixture,
+    String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
   );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
   const timeline = await screen.findByRole("region", { name: "Mốc thời gian" });
   expect(timeline).toHaveTextContent("Hồ sơ đã nộp");
-  const previous = screen.getByRole("region", { name: "Hồ sơ trước bị từ chối" });
-  expect(previous).toHaveTextContent("Hồ sơ trước của kho này đã bị từ chối");
-  expect(previous).toHaveTextContent(formatTimestamp(CREATED_AT));
-  expect(previous).toHaveTextContent("Giấy chứng tử không rõ nét");
-});
-
-it("hồ sơ không có hồ sơ trước thì không hiện khối từ chối", async () => {
-  vi.spyOn(apiClient, "get").mockImplementation(async (url) =>
-    String(url).endsWith(CASE_ID) ? { ...detailFixture, ownerNotice: null } : listFixture,
-  );
-  setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}`);
-  await screen.findByRole("region", { name: "Mốc thời gian" });
-  expect(screen.queryByText(/đã bị từ chối/)).not.toBeInTheDocument();
 });
 
 it("hồ sơ đã từ chối ghi đang chờ nộp lại ở chi tiết, không hiện hạn xét ở danh sách lẫn chi tiết", async () => {
@@ -850,7 +824,7 @@ it("ô mật khẩu xác nhận là password với autocomplete current-password
   expect(input).toHaveAttribute("type", "password");
   expect(input).toHaveAttribute("autocomplete", "current-password");
   expect(input).toHaveAccessibleDescription(
-    "Nhập mật khẩu tài khoản để xác nhận quyết định. Nhập sai 5 lần sẽ tạm khóa chức năng duyệt/từ chối.",
+    "Nhập mật khẩu tài khoản để xác nhận quyết định. Nhập sai 5 lần sẽ tạm khóa chức năng duyệt.",
   );
 });
 
@@ -918,7 +892,7 @@ it("hết lockedUntil thì nút gửi được mở lại", async () => {
   });
   await fillApprove(user);
   await user.click(screen.getByRole("button", { name: /^Duyệt và mở kho$/ }));
-  await screen.findByText(/Chức năng duyệt\/từ chối đang tạm khóa/);
+  await screen.findByText(/Chức năng duyệt đang tạm khóa/);
   await user.type(screen.getByLabelText("Mật khẩu xác nhận"), SIGNING_PASSWORD);
   expect(screen.getByRole("button", { name: /^Duyệt và mở kho$/ })).toBeDisabled();
   await waitFor(

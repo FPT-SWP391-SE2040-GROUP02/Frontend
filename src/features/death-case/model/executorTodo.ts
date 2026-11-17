@@ -42,8 +42,6 @@ export interface ExecutorTodoInput {
   caseStatus: CaseStatus | null;
   /** Tiến độ bàn giao; null khi chưa tải xong hoặc hồ sơ chưa được duyệt. */
   progress: HandoverProgress | null;
-  /** Kho có hồ sơ bị từ chối mà Người thực thi chưa bấm "Tiếp tục". */
-  rejectedPending: boolean;
 }
 
 export interface ExecutorTodo {
@@ -113,20 +111,12 @@ function handoverTodo(progress: HandoverProgress | null): ExecutorTodo {
 
 /**
  * Việc quan trọng nhất của Người thực thi với một kho. Thứ tự ưu tiên:
- * hồ sơ bị từ chối chưa xem → kho chưa có hồ sơ (báo tin / kiểm tra Chủ kho) → theo trạng thái hồ sơ →
+ * kho chưa có hồ sơ (báo tin / kiểm tra Chủ kho) → theo trạng thái hồ sơ →
  * khi đang bàn giao: đưa mã mở gói → lời mời chưa gửi được → chờ → hoàn tất.
  * Người thực thi không gửi lời mời được (hệ thống tự gửi), nên lời mời chưa gửi chỉ là thông tin, không phải nút.
  */
 export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
-  const { vault, caseStatus, progress, rejectedPending } = input;
-  if (rejectedPending) {
-    return {
-      title: "Xem lý do hồ sơ báo tin bị từ chối",
-      text: "Người xét duyệt không chấp thuận hồ sơ. Chỉ báo tin lại khi chắc chắn và có giấy tờ phù hợp.",
-      buttonLabel: "Xem hồ sơ",
-      to: ROUTES.EXECUTOR.REPORT,
-    };
-  }
+  const { vault, caseStatus, progress } = input;
   if (caseStatus === null) {
     // Kho có hồ sơ mở nhưng chưa đọc được trạng thái (đang tải): không được nói "chưa báo tin".
     if (vault.openDeathCaseId) {
@@ -200,14 +190,6 @@ export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
       to: ROUTES.EXECUTOR.REPORT,
     };
   }
-  if (caseStatus === "REJECTED") {
-    return {
-      title: "Hồ sơ báo tin bị từ chối",
-      text: "Xem lý do ở mục Báo tin. Chỉ báo tin lại khi chắc chắn và có giấy tờ phù hợp.",
-      buttonLabel: "Xem lý do",
-      to: ROUTES.EXECUTOR.REPORT,
-    };
-  }
   return handoverTodo(progress);
 }
 
@@ -236,7 +218,6 @@ export function vaultJourney(
   let reportCaption = "Chưa báo tin";
   if (submitted) reportCaption = "Đã gửi hồ sơ";
   if (caseStatus === "SUPPLEMENT_REQUIRED") reportCaption = "Cần bổ sung hồ sơ";
-  if (caseStatus === "REJECTED") reportCaption = "Hồ sơ bị từ chối";
 
   let reviewCaption = "Chưa tới";
   if (approved) reviewCaption = "Đã duyệt";

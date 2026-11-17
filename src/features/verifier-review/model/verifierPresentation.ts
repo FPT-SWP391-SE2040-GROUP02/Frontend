@@ -19,13 +19,11 @@ export const queueStatus: Record<Status, { label: string; tone: VerifierTone }> 
   SUPPLEMENT_REQUIRED: { label: "Đã từ chối", tone: "neutral" },
   SUSPENDED: { label: "Tạm dừng", tone: "neutral" },
   APPROVED_FOR_HANDOVER: { label: "Đã duyệt", tone: "success" },
-  REJECTED: { label: "Từ chối", tone: "danger" },
 };
 
-/** Quyết định cuối ở lịch sử: hồ sơ đã mở bàn giao là chấp thuận, bị đóng vì từ chối là từ chối. */
+/** Quyết định cuối ở lịch sử: hồ sơ đã mở bàn giao là chấp thuận. */
 export const historyDecision: Partial<Record<Status, { label: string; tone: VerifierTone }>> = {
   APPROVED_FOR_HANDOVER: { label: "Chấp thuận", tone: "success" },
-  REJECTED: { label: "Từ chối", tone: "neutral" },
 };
 
 /** Nhóm hồ sơ ở hàng chờ: chờ xét duyệt hoặc chờ Executor bổ sung (không có bước chờ nào khác). */
