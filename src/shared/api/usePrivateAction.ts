@@ -85,8 +85,7 @@ const deathCaseNotAllowedReasons: Record<string, string> = {
   HOLD_ACTIVE: "Kho đang bị tạm giữ nên chưa chấp thuận được. Chờ gỡ tạm giữ rồi thử lại.",
   CASE_CLOSED: "Hồ sơ đã được chấp thuận, từ chối hoặc tạm dừng nên không thao tác thêm được.",
   NOT_UNDER_REVIEW: "Hồ sơ không còn ở bước xét duyệt. Tải lại để xem trạng thái mới nhất.",
-  NEWER_VERSION_PENDING:
-    "Người thực thi đang có bản mới chờ xét nên chưa chấp thuận được bản này.",
+  NEWER_VERSION_PENDING: "Người thực thi đang có bản mới chờ xét nên chưa chấp thuận được bản này.",
   FLAGS_NOT_REVIEWED: "Còn cảnh báo của bản đang xét chưa được kiểm tra.",
   VERIFIER_CONFLICT: "Bạn có quan hệ với kho này nên chỉ được xem, không được quyết định.",
   PLAN_NOT_RUNNING: "Kế hoạch chưa chạy hoặc đã sang giai đoạn khác nên chưa thao tác được.",

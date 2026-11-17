@@ -19,6 +19,5 @@ export const LOGOUT_CONTENT = {
   accountUnavailable: "Chưa có thông tin tài khoản để hiển thị.",
   unnamedAccount: "Tài khoản của bạn",
   dmsReminder: "Đăng xuất không thay thế điểm danh.",
-  dmsGuidance:
-    "Nếu bạn là Chủ kho, hãy kiểm tra hạn điểm danh ở mục Điểm danh.",
+  dmsGuidance: "Nếu bạn là Chủ kho, hãy kiểm tra hạn điểm danh ở mục Điểm danh.",
 } as const;

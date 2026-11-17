@@ -261,8 +261,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               />
             </dl>
             <p className="text-sm text-heritage-muted">
-              Họ tên và ngày sinh Chủ kho lấy từ xác minh danh tính. Người thực thi chỉ khai 3
-              thông tin trên giấy, bạn đối chiếu chúng với ảnh giấy ở khung trên.
+              Họ tên và ngày sinh Chủ kho lấy từ xác minh danh tính. Người thực thi chỉ khai 3 thông
+              tin trên giấy, bạn đối chiếu chúng với ảnh giấy ở khung trên.
             </p>
           </section>
           <section
@@ -441,8 +441,8 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                 )}
               </div>
               <p className="mt-4 text-sm text-heritage-muted">
-                Quyết định được ghi nhật ký và gửi tới người thực thi. Chấp thuận chưa mở kho;
-                người nhận còn phải xác minh.
+                Quyết định được ghi nhật ký và gửi tới người thực thi. Chấp thuận chưa mở kho; người
+                nhận còn phải xác minh.
               </p>
             </Panel>
           )}

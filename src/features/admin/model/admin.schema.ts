@@ -287,7 +287,12 @@ export type AssignExecutorRequest = z.infer<typeof assignExecutorRequestSchema>;
 
 export const createAdminUserRequestSchema = z.object({
   fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
-  email: z.string().trim().min(1, "Vui lòng nhập email.").email("Địa chỉ email không hợp lệ.").max(256),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Vui lòng nhập email.")
+    .email("Địa chỉ email không hợp lệ.")
+    .max(256),
   /** Bắt buộc với ADMIN; bỏ trống với VERIFIER/EXECUTOR thì Backend gửi thư mời đặt mật khẩu. */
   password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128).optional(),
   role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),

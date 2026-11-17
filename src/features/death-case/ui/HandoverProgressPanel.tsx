@@ -75,8 +75,8 @@ function ProgressBody({
         ))}
       </ul>
       <p className="text-sm leading-5 text-heritage-muted">
-        Thanh bước: Mời → Đồng ý / từ chối → Người xét duyệt kiểm tra biên bản → Nhập mã mở gói → Tải
-        xong.
+        Thanh bước: Mời → Đồng ý / từ chối → Người xét duyệt kiểm tra biên bản → Nhập mã mở gói →
+        Tải xong.
       </p>
     </>
   );

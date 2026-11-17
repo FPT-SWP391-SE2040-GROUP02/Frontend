@@ -225,7 +225,10 @@ export function CreateAssetForm({
               </div>
             </div>
           )}
-          <p role={errors.content || fileError ? "alert" : undefined} className="min-h-5 text-sm text-destructive">
+          <p
+            role={errors.content || fileError ? "alert" : undefined}
+            className="min-h-5 text-sm text-destructive"
+          >
             {errors.content?.message ?? fileError}
           </p>
           <p className="flex items-start gap-2 text-sm leading-5 text-heritage-muted">
