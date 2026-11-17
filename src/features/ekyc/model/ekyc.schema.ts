@@ -1,15 +1,11 @@
 import { z } from "zod";
 const timestamp = z.string().datetime({ offset: true });
-/** Mục đích eKYC do BE cấp; schema chấp nhận đủ, FE chỉ nối OWNER_ENROLLMENT và BENEFICIARY_CLAIM. */
-export const ekycPurposeSchema = z.enum(["OWNER_ENROLLMENT", "BENEFICIARY_CLAIM", "OWNER_ALIVE"]);
-/** Mức khớp danh tính; FE không tự quyết PASSED hoặc MATCHED từ score. */
-export const identityMatchSchema = z.enum([
-  "NOT_CHECKED",
-  "MATCHED",
-  "NEEDS_REVIEW",
-  "WRONG_PERSON",
-]);
-/** Raw trạng thái eKYC; score là cosine, không phải phần trăm. */
+/**
+ * Mục đích eKYC: FE chỉ còn eKYC của Chủ kho. Backend vẫn nhận trường `purpose` trong request đồng ý và xác nhận bản
+ * khai nên giá trị này được gửi cố định.
+ */
+const ekycPurposeSchema = z.literal("OWNER_ENROLLMENT");
+/** Raw trạng thái eKYC; score là cosine, không phải phần trăm. FE không tự quyết PASSED từ score. */
 export const ekycStatusSchema = z.object({
   status: z.enum(["NOT_STARTED", "PENDING", "PASSED", "FAILED"]),
   verificationId: z.string().uuid().nullable(),
@@ -19,8 +15,6 @@ export const ekycStatusSchema = z.object({
   spoofCheckPassed: z.boolean().nullable(),
   createdAt: timestamp.nullable(),
   completedAt: timestamp.nullable(),
-  purpose: ekycPurposeSchema.nullable(),
-  identityMatch: identityMatchSchema,
   backSideChecked: z.boolean(),
   referenceCrop: z.string().nullable().optional(),
   selfieCrop: z.string().nullable().optional(),
@@ -43,7 +37,6 @@ export const ekycDocumentSchema = z.object({
   fullName: z.string(),
   dateOfBirth: z.string(),
   residenceAddress: z.string(),
-  identityMatch: identityMatchSchema,
   canMatchFace: z.boolean(),
   expiresAt: timestamp.nullable(),
   warnings: z.array(z.string()),
@@ -113,7 +106,7 @@ export const ekycReviewSchema = z.object({
     .min(1, "Nhập địa chỉ cư trú.")
     .max(1000, "Địa chỉ tối đa 1000 ký tự."),
 });
-/** Ngữ cảnh lượt do BE cấp, kèm bản tự khai sau OCR đã chuyển sang ISO YYYY-MM-DD. */
+/** Mã lượt do BE cấp, kèm bản tự khai sau OCR đã chuyển sang ISO YYYY-MM-DD. */
 export const ekycDocumentConfirmationSchema = z.object({
   idNumber: z
     .string()
@@ -129,8 +122,7 @@ export const ekycDocumentConfirmationSchema = z.object({
     ),
   residenceAddress: z.string().trim().min(1).max(1000),
   verificationId: z.string().uuid(),
-  purpose: ekycPurposeSchema,
-  handoverTurnId: z.string().uuid().optional(),
+  purpose: ekycPurposeSchema.default("OWNER_ENROLLMENT"),
 });
 
 /** Chỉ chuyển định dạng OCR đã biết sang DD/MM/YYYY; dữ liệu khác để trống cho người dùng nhập lại. */

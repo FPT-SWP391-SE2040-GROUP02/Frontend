@@ -36,8 +36,6 @@ const pending: Status = {
   spoofCheckPassed: null,
   createdAt: "2026-11-01T08:00:00Z",
   completedAt: null,
-  purpose: "OWNER_ENROLLMENT",
-  identityMatch: "NOT_CHECKED",
   backSideChecked: true,
 };
 
@@ -61,7 +59,7 @@ function setup() {
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <EkycStatusPanel purpose="OWNER_ENROLLMENT" turnId={null} />
+          <EkycStatusPanel />
         </MemoryRouter>
       </QueryClientProvider>
     </Provider>,

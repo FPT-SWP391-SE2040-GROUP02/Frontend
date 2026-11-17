@@ -41,8 +41,6 @@ function statusFixture(overrides: Record<string, unknown> = {}) {
     spoofCheckPassed: true,
     createdAt: null,
     completedAt: null,
-    purpose: "OWNER_ENROLLMENT",
-    identityMatch: "NOT_CHECKED",
     backSideChecked: true,
     ...overrides,
   };
@@ -54,7 +52,6 @@ const document = {
   fullName: "NGUYEN VAN A",
   dateOfBirth: "11/11/2000",
   residenceAddress: "12 Đường Thử",
-  identityMatch: "NOT_CHECKED" as const,
   canMatchFace: true,
   expiresAt: null,
   warnings: [],
@@ -104,11 +101,7 @@ function setup() {
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <EkycUploads
-            purpose="OWNER_ENROLLMENT"
-            canComplete={false}
-            onComplete={() => undefined}
-          />
+          <EkycUploads />
         </MemoryRouter>
       </QueryClientProvider>
     </Provider>,
@@ -177,22 +170,8 @@ describe("luồng eKYC theo thiết kế", () => {
     expect(await screen.findByRole("button", { name: "Đồng ý và bắt đầu" })).toBeInTheDocument();
   });
 
-  it("sai người thì nói rõ không hoàn tất được lượt này", async () => {
-    finalStatus = statusFixture({
-      status: "FAILED",
-      identityMatch: "WRONG_PERSON",
-      purpose: "BENEFICIARY_CLAIM",
-    });
-    await reachLiveness();
-    fireEvent.click(screen.getByRole("button", { name: "Hoàn tất thử thách" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Khuôn mặt không khớp với giấy tờ. Không thể hoàn tất lượt này.",
-    );
-    expect(screen.getByText("Khớp hồ sơ người nhận được chỉ định")).toBeInTheDocument();
-  });
-
-  it("cần kiểm tra thêm thì không báo đạt", async () => {
-    finalStatus = statusFixture({ identityMatch: "NEEDS_REVIEW" });
+  it("chưa chốt được kết quả thì báo cần kiểm tra thêm, không báo đạt", async () => {
+    finalStatus = statusFixture({ status: "PENDING" });
     await reachLiveness();
     fireEvent.click(screen.getByRole("button", { name: "Hoàn tất thử thách" }));
     expect(await screen.findByText("Cần kiểm tra thêm")).toBeInTheDocument();

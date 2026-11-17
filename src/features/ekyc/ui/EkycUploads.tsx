@@ -10,15 +10,13 @@ import { ArrowRight, Check, Lock, X, ZoomIn } from "lucide-react";
 
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 
-import { ROUTES } from "@/shared/config/routes.config";
-
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 
 import { Button } from "@/shared/ui/button";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
 
-import { ekycDocumentSchema, ekycPurposeSchema, ekycStatusSchema } from "../model/ekyc.schema";
+import { ekycDocumentSchema, ekycStatusSchema } from "../model/ekyc.schema";
 
 import { ekycService } from "../api/ekycService";
 import { MatchRing } from "./MatchRing";
@@ -33,8 +31,6 @@ import { EkycOcrProgress } from "./EkycOcrProgress";
 import { EkycDropzone } from "./EkycDropzone";
 
 import { useImagePreview } from "./useImagePreview";
-
-type Purpose = z.infer<typeof ekycPurposeSchema>;
 
 type Document = z.infer<typeof ekycDocumentSchema>;
 
@@ -55,7 +51,7 @@ const CONSENT_PROMISES = [
 
   "So khớp khuôn mặt với ảnh trên căn cước",
 
-  "Chỉ dùng để xác minh bạn là người nhận được chỉ định",
+  "Chỉ dùng để xác minh danh tính Chủ kho của bạn",
 ];
 
 const PREPARE_CHIPS = ["Căn cước còn hạn, bản gốc", "Nơi đủ sáng", "Bỏ khẩu trang, kính tối màu"];
@@ -69,21 +65,12 @@ const PREPARE_CHIPS = ["Căn cước còn hạn, bản gốc", "Nơi đủ sáng
  */
 
 function ConsentStep({
-  purposeLabel,
-
-  laterTo,
-
   pending,
 
   error,
 
   onAgree,
 }: {
-  purposeLabel: string;
-
-  /** Đích của nút Để sau; người nhận về cổng người nhận thay vì Bảng điều khiển Chủ kho. */
-  laterTo: string | null;
-
   pending: boolean;
 
   error: string;
@@ -91,8 +78,6 @@ function ConsentStep({
   onAgree: () => void;
 }) {
   const accountHome = useAccountHome();
-
-  const later = laterTo ?? accountHome;
 
   const [processing, setProcessing] = useState(false);
 
@@ -118,7 +103,7 @@ function ConsentStep({
         </ul>
 
         <p className="border-b border-heritage-border pb-4 text-sm text-heritage-muted">
-          Mục đích: {purposeLabel}. Đây là xác minh cơ bản, không có giá trị pháp lý. Ảnh được mã
+          Mục đích: xác minh Chủ kho. Đây là xác minh cơ bản, không có giá trị pháp lý. Ảnh được mã
           hóa và xóa theo chính sách lưu giữ. Phiên đồng ý có hiệu lực trong 30 phút.
         </p>
 
@@ -168,7 +153,7 @@ function ConsentStep({
           </Button>
 
           <Link
-            to={later}
+            to={accountHome}
 
             className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#0A281E] px-6 text-sm font-semibold text-[#0A281E] hover:bg-[#F4F1E6]"
           >
@@ -210,22 +195,6 @@ function ConsentStep({
     </div>
   );
 }
-
-/** Người nhận bấm Để sau thì về cổng người nhận; các mục đích khác về trang chủ tài khoản (trả null). */
-function getLaterTarget(purpose: Purpose): string | null {
-  if (purpose === "BENEFICIARY_CLAIM") {
-    return ROUTES.BENEFICIARY.CLAIM;
-  }
-  return null;
-}
-
-const PURPOSE_LABELS: Record<Purpose, string> = {
-  OWNER_ENROLLMENT: "xác minh Chủ kho",
-
-  BENEFICIARY_CLAIM: "xác minh Người nhận để nhận bàn giao",
-
-  OWNER_ALIVE: "xác nhận bạn còn sống",
-};
 
 function validateImage(file: File | null): string {
   if (!file) return "Chọn ảnh JPEG/PNG không rỗng, tối đa 8 MiB.";
@@ -298,13 +267,9 @@ function ResultStep({
 
   onRestart: () => void;
 }) {
-  const wrongPerson = status.identityMatch === "WRONG_PERSON";
+  const failed = status.status === "FAILED";
 
-  const needsReview = status.identityMatch === "NEEDS_REVIEW";
-
-  const failed = status.status === "FAILED" || wrongPerson;
-
-  const passed = !failed && !needsReview && status.status === "PASSED";
+  const passed = status.status === "PASSED";
 
   let tone: "idle" | "pass" | "fail" = "idle";
   if (passed) {
@@ -355,28 +320,14 @@ function ResultStep({
     }
   }
 
-  let profile: "pass" | "fail" | "unknown" = "unknown";
-
-  if (status.identityMatch === "MATCHED") {
-    profile = "pass";
-  } else if (wrongPerson) {
-    profile = "fail";
-  }
-
   let message: ReactNode;
 
   if (failed) {
-    let text = "Lần xác minh chưa đạt yêu cầu.";
-
-    if (wrongPerson) {
-      text = "Khuôn mặt không khớp với giấy tờ. Không thể hoàn tất lượt này.";
-    }
-
-    message = <p role="alert">{text}</p>;
-  } else if (needsReview) {
-    message = <p role="alert">Cần kiểm tra thêm trước khi hoàn tất danh tính.</p>;
-  } else {
+    message = <p role="alert">Lần xác minh chưa đạt yêu cầu.</p>;
+  } else if (passed) {
     message = <p role="status">Đã hoàn tất bước xác minh.</p>;
+  } else {
+    message = <p role="alert">Cần kiểm tra thêm trước khi hoàn tất danh tính.</p>;
   }
 
   const scoreNum = status.faceMatchScore;
@@ -552,10 +503,6 @@ function ResultStep({
           <CheckRow state={spoof} text="Qua kiểm tra chống giả mạo" />
 
           <CheckRow state={score} text={scoreText} />
-
-          {status.identityMatch !== "NOT_CHECKED" && (
-            <CheckRow state={profile} text="Khớp hồ sơ người nhận được chỉ định" />
-          )}
         </ul>
 
         <div className="mt-6 rounded-2xl border border-green-200/80 bg-green-50/80 p-3.5 text-sm leading-relaxed text-green-900">
@@ -570,36 +517,8 @@ function ResultStep({
 /** Quy trình consent → giấy tờ (mặt trước, mặt sau bắt buộc) → thử thách camera → kết quả; ảnh/OCR chỉ trong RAM. */
 
 export function EkycUploads({
-  purpose,
-
-  turnId,
-
-  canComplete,
-
-  onComplete,
-
-  onVerificationBound,
-
   onVerified,
 }: {
-  purpose: Purpose;
-
-  /** Chỉ áp dụng cho BENEFICIARY_CLAIM; các purpose khác bỏ qua. */
-
-  turnId?: string | null;
-
-  /** Server PASSED + MATCHED + purpose đúng; quyết định do page. */
-
-  canComplete: boolean;
-
-  /** Bước chốt danh tính do page xử lý để tránh phụ thuộc chéo feature. */
-
-  onComplete: () => void;
-
-  /** Báo verificationId mới từ /ekyc/document để page bind với context turn. */
-
-  onVerificationBound?: (verificationId: string | null) => void;
-
   /** Báo widget bao ngoài kết quả máy chủ vừa chốt (đạt hay chưa đạt). */
 
   onVerified?: (result: Status) => void;
@@ -710,8 +629,6 @@ export function EkycUploads({
     setFrontError("");
 
     setBackError("");
-
-    onVerificationBound?.(null);
   }
 
   /** Sang thử thách camera sau khi bản khai đã được xác nhận và đã gửi mặt sau (Backend chặn EKYC_BACK_REQUIRED). */
@@ -734,7 +651,7 @@ export function EkycUploads({
 
   async function handleConsent() {
     await consentAction.execute(
-      () => ekycService.submitConsent(purpose),
+      () => ekycService.submitConsent(),
 
       () => {
         setStep("front");
@@ -758,7 +675,7 @@ export function EkycUploads({
     setFrontPercent(null);
 
     await frontAction.execute(
-      () => ekycService.submitDocument(file!, purpose, turnId, (p) => setFrontPercent(p)),
+      () => ekycService.submitDocument(file!, (p) => setFrontPercent(p)),
 
       (result) => {
         setOcr(result);
@@ -778,8 +695,6 @@ export function EkycUploads({
         setBackSent(false);
 
         setBackAddress("");
-
-        onVerificationBound?.(result.canMatchFace ? result.verificationId : null);
 
         void client.invalidateQueries({ queryKey: ["ekyc"] });
       },
@@ -808,7 +723,7 @@ export function EkycUploads({
     setBackPercent(null);
 
     await backAction.execute(
-      () => ekycService.submitDocumentBack(file!, purpose, turnId, (p) => setBackPercent(p)),
+      () => ekycService.submitDocumentBack(file!, (p) => setBackPercent(p)),
 
       (result) => {
         setStatus(result);
@@ -835,7 +750,7 @@ export function EkycUploads({
   } else if (step === "done") {
     stepNumber = 3;
 
-    if (status?.status === "PASSED" && status.identityMatch !== "WRONG_PERSON") {
+    if (status?.status === "PASSED") {
       stepNumber = 4;
     }
   }
@@ -915,10 +830,6 @@ export function EkycUploads({
 
       {step === "consent" && (
         <ConsentStep
-          purposeLabel={PURPOSE_LABELS[purpose]}
-
-          laterTo={getLaterTarget(purpose)}
-
           pending={consentAction.pending}
 
           error={consentAction.error}
@@ -1025,8 +936,6 @@ export function EkycUploads({
                       setBackAddress("");
 
                       setSentBack(null);
-
-                      onVerificationBound?.(null);
                     }}
                   >
                     Chọn ảnh khác
@@ -1259,10 +1168,6 @@ export function EkycUploads({
 
               document={ocr}
 
-              purpose={purpose}
-
-              turnId={turnId}
-
               confirmed={confirmed}
 
               disabled={backAction.pending}
@@ -1332,16 +1237,6 @@ export function EkycUploads({
 
           onRestart={resetAll}
         />
-      )}
-
-      {canComplete && (
-        <div className={`${CARD} space-y-3 text-sm`}>
-          <p>Đủ điều kiện hoàn tất danh tính cho lượt bàn giao.</p>
-
-          <Button type="button" size="lg" className={GOLD_BUTTON} onClick={onComplete}>
-            Hoàn tất danh tính lượt nhận
-          </Button>
-        </div>
       )}
 
       <Button type="button" variant="outline" size="lg" onClick={resetAll} disabled={resetDisabled}>

@@ -23,7 +23,7 @@ const shell = {
 };
 
 /** Các khu vực giao diện của cổng người nhận. */
-export type RecipientSection = "overview" | "verify" | "content" | "messages";
+export type RecipientSection = "overview" | "content" | "messages";
 
 /** Thuộc tính khung cổng người nhận; không chứa dữ liệu hoặc nghiệp vụ bàn giao. */
 export interface RecipientLayoutProps {

@@ -102,7 +102,6 @@ export const ROUTES = {
     HANDOVER: "/claim/beneficiary/handover",
     /** Cũ: mục Biên bản riêng; nay gộp vào Tổng quan nên đường dẫn này chuyển về Tổng quan. */
     DOCUMENTS: "/claim/beneficiary/documents",
-    EKYC_CAMERA: "/claim/beneficiary/ekyc/camera",
   },
 
   /** Quản trị hệ thống & Sổ cái kiểm toán WORM */

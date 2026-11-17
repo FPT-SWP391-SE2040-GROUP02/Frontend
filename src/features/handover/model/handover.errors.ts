@@ -85,15 +85,10 @@ const notAllowedReasons: Record<string, string> = {
   PLAN_NOT_READY: "Kế hoạch chưa sẵn sàng để bàn giao.",
   NOTHING_TO_HAND_OVER: "Gói này hiện không còn tài sản để bàn giao.",
   HOLD_ACTIVE: holdActiveMessage,
-  IDENTITY_NOT_VERIFIED: "Bạn chưa xác minh danh tính cho lượt này.",
-  IDENTITY_NOT_FINISHED: "Bước so khớp khuôn mặt chưa hoàn tất.",
-  IDENTITY_FAILED: "Xác minh danh tính chưa đạt.",
-  IDENTITY_NEEDS_REVIEW: "Xác minh danh tính đang chờ xem xét thêm.",
-  IDENTITY_WRONG_PERSON: "Danh tính xác minh không khớp với người được chỉ định cho lượt này.",
 };
 
 /**
- * Lý do cụ thể của HANDOVER_NOT_ALLOWED (claim, identity, accept, decline).
+ * Lý do cụ thể của HANDOVER_NOT_ALLOWED (claim, accept, decline).
  * Trả chuỗi rỗng khi không có lý do riêng để caller dùng thông báo chung.
  */
 export function handoverActionError(failure: unknown): string {
