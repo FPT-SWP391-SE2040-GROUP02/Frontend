@@ -69,16 +69,20 @@ function readErrorCode(error: unknown): string {
 export function WillSignFooter({
   vaultId,
   setup,
+  initialPin = "",
   onNotice,
 }: {
   vaultId: string;
   setup: PlanSetup;
+  /** PIN đã xác nhận khi mở khung xem trước, điền sẵn để khỏi nhập lại; người dùng vẫn sửa hoặc xóa được. */
+  initialPin?: string;
   onNotice: (notice: WillSignNotice | null) => void;
 }) {
   const client = useQueryClient();
   const action = usePrivateAction();
   const [acknowledge, setAcknowledge] = useState(false);
-  const [pin, setPin] = useState("");
+  const [typedPin, setPin] = useState<string | null>(null);
+  const pin = typedPin ?? initialPin;
   const [pinFailure, setPinFailure] = useState<VaultPinFailure | null>(null);
   // Lỗi đã báo qua onNotice thì không lặp lại ở khung lỗi của chân khung.
   const [errorReported, setErrorReported] = useState(false);
