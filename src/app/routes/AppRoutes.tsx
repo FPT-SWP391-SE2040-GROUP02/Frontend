@@ -173,6 +173,11 @@ const VerifierDocumentsPage = lazy(() =>
     default: module.VerifierDocumentsPage,
   })),
 );
+const BeneficiaryDocumentsPage = lazy(() =>
+  import("@/pages/beneficiary/BeneficiaryDocumentsPage").then((module) => ({
+    default: module.BeneficiaryDocumentsPage,
+  })),
+);
 const VerifierHistoryPage = lazy(() =>
   import("@/pages/notary/VerifierHistoryPage").then((module) => ({
     default: module.VerifierHistoryPage,
@@ -271,10 +276,7 @@ export function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route path={ROUTES.BENEFICIARY.CLAIM} element={<BeneficiaryPortalPage />} />
           <Route path={ROUTES.BENEFICIARY.HANDOVER} element={<BeneficiaryPortalPage />} />
-          <Route
-            path={ROUTES.BENEFICIARY.DOCUMENTS}
-            element={<Navigate to={ROUTES.BENEFICIARY.CLAIM} replace />}
-          />
+          <Route path={ROUTES.BENEFICIARY.DOCUMENTS} element={<BeneficiaryDocumentsPage />} />
         </Route>
 
         {/* 2. Bảng giá công khai */}

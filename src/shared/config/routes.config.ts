@@ -100,7 +100,7 @@ export const ROUTES = {
   BENEFICIARY: {
     CLAIM: "/claim/beneficiary",
     HANDOVER: "/claim/beneficiary/handover",
-    /** Cũ: mục Biên bản riêng; nay gộp vào Tổng quan nên đường dẫn này chuyển về Tổng quan. */
+    /** Mục Biên Bản của người nhận: mọi biên bản, lưu không giới hạn. */
     DOCUMENTS: "/claim/beneficiary/documents",
   },
 
