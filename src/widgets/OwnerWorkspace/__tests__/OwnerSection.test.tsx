@@ -180,7 +180,7 @@ describe("official workspace data states", () => {
     expect(screen.queryByText("Thêm tài sản đang bị khóa")).not.toBeInTheDocument();
     expect(await screen.findByRole("group", { name: "Loại mục" })).toBeInTheDocument();
   });
-  it("section plans dựng trang Bàn giao: thẻ việc ở trái, tiến độ và nút xem trước ở phải, di chúc nằm trong khung trượt", async () => {
+  it("section plans dựng trang Bàn giao: thẻ việc ở trái, tiến độ và nút xem trước ở phải, di chúc nằm trong khung xem trước giữa màn hình", async () => {
     vi.mocked(ownerVaultService.getMine).mockResolvedValue(vaultFixture);
     vi.mocked(usePlanSetup).mockReturnValue({
       isPending: false,
