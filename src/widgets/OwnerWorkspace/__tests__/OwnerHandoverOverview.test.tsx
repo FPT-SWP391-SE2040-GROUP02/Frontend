@@ -41,6 +41,44 @@ const SECRET_MESSAGE = "NOI-DUNG-LOI-NHAN-BI-MAT";
 const ACTIVATED_AT = "2026-11-15T02:42:00Z";
 const ACCEPTED_AT = "2026-11-14T07:20:00Z";
 const PIN = "482913";
+const RESIGN_OPEN = "Xem trước và ký phiên bản mới";
+
+/** Danh tính đầy đủ Backend trả cho GET will/identity (dữ liệu giả, không phải người thật). */
+function identityBody(overrides: Record<string, unknown> = {}) {
+  return {
+    owner: {
+      fullName: "Trần Văn An",
+      dateOfBirth: "1975-03-12",
+      citizenId: "079203001234",
+      residenceAddress: "12 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh",
+    },
+    recipients: [
+      {
+        beneficiaryId: "77777777-7777-4777-8777-777777777777",
+        fullName: "Trần Thị Bình",
+        dateOfBirth: "1990-05-20",
+        citizenId: "012345678901",
+      },
+      {
+        beneficiaryId: "88888888-8888-4888-8888-888888888888",
+        fullName: "Trần Minh Cường",
+        dateOfBirth: "1992-11-02",
+        citizenId: "098765432109",
+      },
+    ],
+    ...overrides,
+  };
+}
+
+/** Giả apiClient.get: đường dẫn will/identity do `handler` trả, đường khác trả danh sách rỗng. */
+function mockIdentityGet(handler: () => Promise<unknown>) {
+  return vi.spyOn(apiClient, "get").mockImplementation(((url: string) => {
+    if (url.endsWith("/will/identity")) {
+      return handler();
+    }
+    return Promise.resolve([]);
+  }) as never);
+}
 
 function executor(overrides: Record<string, unknown> = {}) {
   return {
@@ -164,6 +202,7 @@ beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   vi.mocked(useCheckIn).mockReturnValue(checkInResult() as never);
   vi.mocked(executorKeyService.getStatus).mockResolvedValue(keyStatus());
+  mockIdentityGet(() => Promise.resolve(identityBody()));
 });
 afterEach(() => {
   cleanup();
@@ -192,7 +231,7 @@ function renderOverview() {
       },
     }),
   );
-  return render(
+  const result = render(
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter>
@@ -201,6 +240,7 @@ function renderOverview() {
       </QueryClientProvider>
     </Provider>,
   );
+  return { ...result, store };
 }
 
 /** Nút ở cột phải mở khung xem trước; chữ nút đổi theo trạng thái. */
@@ -431,6 +471,8 @@ describe("khung xem trước di chúc", () => {
 
   it("câu trả lời cũ của Backend (không có recipients): mục II dùng câu chung, tên lấy từ tài khoản đăng nhập", async () => {
     showPlan({ recipients: undefined, ownerFullName: undefined, ownerEmail: undefined });
+    // Chưa có danh tính eKYC thì họ tên lấy từ tài khoản đăng nhập.
+    mockIdentityGet(() => Promise.resolve(identityBody({ owner: null })));
     renderOverview();
     await openDrawer();
 
@@ -646,7 +688,9 @@ describe("nút Xuất file PDF", () => {
     renderOverview();
     await openDrawer();
 
-    expect(screen.getByText("Đã đủ 2 chữ ký")).toBeInTheDocument();
+    // Nút mở khóa khi danh tính đã tải xong.
+    expect(await screen.findByText("Đã đủ 2 chữ ký")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeEnabled();
     await userEvent.click(screen.getByRole("button", { name: "Xuất file PDF" }));
     expect(print).toHaveBeenCalledTimes(1);
     expect(document.title).toBe("Di-chuc");
@@ -850,5 +894,463 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Không tải được kế hoạch bàn giao");
     expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
+  });
+});
+
+describe("tờ di chúc dùng danh tính đầy đủ", () => {
+  const RUNNING = { planStatus: "ACTIVE", canActivate: false, activatedAt: ACTIVATED_AT };
+
+  it("chỉ tải danh tính khi khung mở; tờ ghi ngày sinh, CCCD đủ 12 số, thường trú, và bỏ khỏi cache khi đóng", async () => {
+    showPlan();
+    const get = mockIdentityGet(() => Promise.resolve(identityBody()));
+    renderOverview();
+    expect(get).not.toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
+
+    await openDrawer();
+    const doc = within(paper());
+    expect(await doc.findByText("079203001234")).toBeInTheDocument();
+    expect(get).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
+    // Mục I.
+    expect(doc.getByText("Ngày sinh")).toBeInTheDocument();
+    expect(doc.getByText("12/03/1975")).toBeInTheDocument();
+    expect(doc.getByText("Nơi thường trú")).toBeInTheDocument();
+    expect(doc.getByText("12 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh")).toBeInTheDocument();
+    expect(doc.getByText("an.tran@example.test")).toBeInTheDocument();
+    // Bảng người nhận ghép theo beneficiaryId.
+    const rows = doc.getAllByRole("row");
+    expect(within(rows[1]).getByText("Sinh 20/05/1990 · CCCD 012345678901")).toBeInTheDocument();
+    expect(within(rows[2]).getByText("Sinh 02/11/1992 · CCCD 098765432109")).toBeInTheDocument();
+    expect(screen.queryByText(/Đang tải thông tin danh tính/)).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Đóng" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await waitFor(() => expect(client.getQueryData(["will-identity", VAULT_ID])).toBeUndefined());
+  });
+
+  it("đang tải: các dòng ghi Đang tải…, có dòng báo, nút Xuất file PDF khóa dù đã đủ chữ ký", async () => {
+    showPlan(RUNNING);
+    mockIdentityGet(() => new Promise(() => undefined));
+    renderOverview();
+    await openDrawer();
+
+    const doc = within(paper());
+    // Ngày sinh, CCCD, thường trú của Chủ kho và dòng của hai người nhận.
+    expect(doc.getAllByText("Đang tải…")).toHaveLength(5);
+    expect(screen.getByText(/Đang tải thông tin danh tính \(ngày sinh/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeDisabled();
+    expect(screen.getByText("Đang tải thông tin danh tính…")).toBeInTheDocument();
+    // Phần còn lại của tờ vẫn hiện.
+    expect(doc.getByText("Giấy tờ nhà đất")).toBeInTheDocument();
+  });
+
+  it("tải lỗi: tờ vẫn hiện phần còn lại, có nút Thử lại, nút xuất khóa; thử lại thành công thì mở khóa", async () => {
+    showPlan(RUNNING);
+    let calls = 0;
+    mockIdentityGet(() => {
+      calls = calls + 1;
+      if (calls === 1) {
+        return Promise.reject(new Error("mạng lỗi"));
+      }
+      return Promise.resolve(identityBody());
+    });
+    renderOverview();
+    const dialog = await openDrawer();
+
+    const alert = await within(dialog).findByRole("alert");
+    expect(alert).toHaveTextContent("Chưa tải được thông tin danh tính");
+    expect(paper()).toHaveTextContent("Giấy tờ nhà đất");
+    expect(paper()).not.toHaveTextContent("CCCD");
+    expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeDisabled();
+    expect(screen.getByText("Cần tải được thông tin danh tính")).toBeInTheDocument();
+
+    await userEvent.click(within(alert).getByRole("button", { name: "Thử lại" }));
+    expect(await within(paper()).findByText("079203001234")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeEnabled();
+    expect(screen.getByText("Đã đủ 2 chữ ký")).toBeInTheDocument();
+  });
+
+  it("Chủ kho chưa có danh tính eKYC: ghi rõ chưa có CCCD và thường trú, dùng họ tên từ kế hoạch, không bịa", async () => {
+    showPlan(RUNNING);
+    mockIdentityGet(() => Promise.resolve(identityBody({ owner: null })));
+    renderOverview();
+    await openDrawer();
+
+    const doc = within(paper());
+    expect(
+      await doc.findByText(/Chưa có thông tin CCCD và nơi thường trú của Người lập/),
+    ).toBeInTheDocument();
+    expect(doc.getAllByText("Trần Văn An")).toHaveLength(2);
+    expect(doc.queryByText("Số CCCD")).not.toBeInTheDocument();
+    expect(doc.queryByText("Nơi thường trú")).not.toBeInTheDocument();
+    // Người nhận vẫn có CCCD.
+    expect(doc.getByText("Sinh 20/05/1990 · CCCD 012345678901")).toBeInTheDocument();
+  });
+
+  it("danh tính Chủ kho lấy họ tên trên giấy tờ; người nhận không có trong danh tính ghi chưa có thông tin", async () => {
+    showPlan(RUNNING);
+    mockIdentityGet(() =>
+      Promise.resolve(
+        identityBody({
+          owner: {
+            fullName: "TRẦN VĂN AN",
+            dateOfBirth: "1975-03-12",
+            citizenId: "079203001234",
+            residenceAddress: "12 Nguyễn Huệ",
+          },
+          recipients: [],
+        }),
+      ),
+    );
+    renderOverview();
+    await openDrawer();
+
+    const doc = within(paper());
+    expect(await doc.findByText("079203001234")).toBeInTheDocument();
+    expect(doc.getAllByText("TRẦN VĂN AN")).toHaveLength(2);
+    expect(doc.getAllByText("Chưa có thông tin ngày sinh và CCCD")).toHaveLength(2);
+  });
+
+  it("dòng Phiên bản N · ký lúc: có khi kế hoạch đang chạy và có willVersion; giờ ký của Chủ kho theo bản ký gần nhất", async () => {
+    showPlan({ ...RUNNING, willVersion: 2, willSignedAt: "2026-11-16T03:05:00Z" });
+    renderOverview();
+    await openDrawer();
+
+    const doc = within(paper());
+    expect(doc.getByText("Phiên bản 2 · ký lúc 10:05 ngày 16/11/2026")).toBeInTheDocument();
+    expect(doc.getByText("Đã ký điện tử · 10:05 ngày 16/11/2026")).toBeInTheDocument();
+    expect(doc.getByText("Đã ký điện tử · 14:20 ngày 14/11/2026")).toBeInTheDocument();
+  });
+
+  it("không có willVersion hoặc kế hoạch còn nháp thì không in dòng phiên bản", async () => {
+    showPlan({ ...RUNNING });
+    renderOverview();
+    await openDrawer();
+    expect(paper()).not.toHaveTextContent("Phiên bản");
+    cleanup();
+
+    showPlan({ willVersion: 1, willSignedAt: ACTIVATED_AT });
+    renderOverview();
+    await openDrawer();
+    expect(paper()).not.toHaveTextContent("Phiên bản");
+  });
+});
+
+describe("thanh nhắc có thay đổi chưa ký lại", () => {
+  const RUNNING = {
+    planStatus: "ACTIVE",
+    canActivate: false,
+    activatedAt: ACTIVATED_AT,
+    willVersion: 1,
+    willSignedAt: ACTIVATED_AT,
+  };
+  const BANNER = "Có thay đổi chưa ký lại";
+
+  function counts(overrides: Record<string, number> = {}) {
+    return {
+      removedContainers: 0,
+      addedContainers: 0,
+      removedAssets: 0,
+      addedAssets: 0,
+      removedRecipients: 0,
+      addedRecipients: 0,
+      changedRecipientCount: 0,
+      ...overrides,
+    };
+  }
+
+  it("hiện chữ đúng theo từng số đếm, tách chưa có hiệu lực và đã có hiệu lực, nêu hệ quả", () => {
+    showPlan({
+      ...RUNNING,
+      hasUnsignedChanges: true,
+      unsignedChanges: counts({
+        removedContainers: 1,
+        removedAssets: 3,
+        removedRecipients: 2,
+        addedContainers: 1,
+        addedAssets: 2,
+        addedRecipients: 1,
+        changedRecipientCount: 4,
+      }),
+    });
+    renderOverview();
+
+    const banner = screen.getByRole("region", { name: BANNER });
+    expect(within(banner).getByRole("heading", { name: BANNER })).toBeInTheDocument();
+    expect(within(banner).getByText("Chưa có hiệu lực (chờ bạn ký lại)")).toBeInTheDocument();
+    expect(within(banner).getByText("Thêm 1 gói mới")).toBeInTheDocument();
+    expect(within(banner).getByText("Thêm 2 tài sản vào gói")).toBeInTheDocument();
+    expect(within(banner).getByText("Thêm 1 người nhận mới")).toBeInTheDocument();
+    expect(within(banner).getByText("Đổi người nhận ở 4 gói")).toBeInTheDocument();
+    expect(within(banner).getByText("Đã có hiệu lực ngay")).toBeInTheDocument();
+    expect(within(banner).getByText("Đã xóa 1 gói")).toBeInTheDocument();
+    expect(within(banner).getByText("Đã xóa 3 tài sản khỏi gói")).toBeInTheDocument();
+    expect(within(banner).getByText("Đã xóa 2 người nhận")).toBeInTheDocument();
+    expect(banner).toHaveTextContent(
+      "Phần đã xóa có hiệu lực ngay, phần còn lại vẫn được bàn giao",
+    );
+    expect(banner).toHaveTextContent("sẽ KHÔNG được bàn giao cho tới khi bạn ký lại");
+    expect(banner).toHaveTextContent("Người thực thi không phải ký lại");
+  });
+
+  it("số đếm bằng 0 không có dòng; chỉ xóa thì không có nhóm chưa có hiệu lực", () => {
+    showPlan({
+      ...RUNNING,
+      hasUnsignedChanges: true,
+      unsignedChanges: counts({ removedContainers: 1 }),
+    });
+    renderOverview();
+
+    const banner = screen.getByRole("region", { name: BANNER });
+    expect(within(banner).getByText("Đã xóa 1 gói")).toBeInTheDocument();
+    expect(banner).not.toHaveTextContent(/Đã xóa 0|Thêm 0|Đổi người nhận ở 0/);
+    expect(banner).not.toHaveTextContent("Chưa có hiệu lực");
+    expect(banner).not.toHaveTextContent("sẽ KHÔNG được bàn giao");
+    expect(banner).toHaveTextContent("Ký lại để bản ký khớp với cấu hình hiện tại");
+  });
+
+  it("chỉ thêm người nhận mới: một dòng chưa có hiệu lực, không có nhóm đã có hiệu lực", () => {
+    showPlan({
+      ...RUNNING,
+      hasUnsignedChanges: true,
+      unsignedChanges: counts({ addedRecipients: 1 }),
+    });
+    renderOverview();
+
+    const banner = screen.getByRole("region", { name: BANNER });
+    expect(within(banner).getByText("Thêm 1 người nhận mới")).toBeInTheDocument();
+    expect(banner).not.toHaveTextContent("Đã có hiệu lực ngay");
+  });
+
+  it("Backend báo có thay đổi nhưng không có số đếm: vẫn hiện thanh nhắc và nút ký", () => {
+    showPlan({ ...RUNNING, hasUnsignedChanges: true, unsignedChanges: null });
+    renderOverview();
+
+    const banner = screen.getByRole("region", { name: BANNER });
+    expect(within(banner).getByRole("button", { name: RESIGN_OPEN })).toBeInTheDocument();
+  });
+
+  it("ẩn khi không có thay đổi chưa ký, khi thiếu trường (Backend cũ) và khi kế hoạch còn nháp", () => {
+    showPlan({ ...RUNNING, hasUnsignedChanges: false, unsignedChanges: null });
+    const first = renderOverview();
+    expect(screen.queryByRole("region", { name: BANNER })).not.toBeInTheDocument();
+    first.unmount();
+
+    showPlan({ planStatus: "ACTIVE", canActivate: false, activatedAt: ACTIVATED_AT });
+    const second = renderOverview();
+    expect(screen.queryByRole("region", { name: BANNER })).not.toBeInTheDocument();
+    second.unmount();
+
+    showPlan({ hasUnsignedChanges: true, unsignedChanges: counts({ addedContainers: 1 }) });
+    renderOverview();
+    expect(screen.queryByRole("region", { name: BANNER })).not.toBeInTheDocument();
+  });
+
+  it("nút Xem trước và ký phiên bản mới mở khung có tên Ký phiên bản mới của di chúc", async () => {
+    showPlan({
+      ...RUNNING,
+      hasUnsignedChanges: true,
+      unsignedChanges: counts({ addedContainers: 1 }),
+    });
+    renderOverview();
+
+    await userEvent.click(screen.getByRole("button", { name: RESIGN_OPEN }));
+    expect(
+      await screen.findByRole("dialog", { name: "Ký phiên bản mới của di chúc" }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("ký phiên bản mới trong khung", () => {
+  const RUNNING_UNSIGNED = {
+    planStatus: "ACTIVE",
+    canActivate: false,
+    activatedAt: ACTIVATED_AT,
+    willVersion: 1,
+    willSignedAt: ACTIVATED_AT,
+    hasUnsignedChanges: true,
+    unsignedChanges: {
+      removedContainers: 0,
+      addedContainers: 1,
+      removedAssets: 0,
+      addedAssets: 0,
+      removedRecipients: 0,
+      addedRecipients: 0,
+      changedRecipientCount: 0,
+    },
+  };
+  const RESIGN_TICK =
+    "Tôi đã đọc toàn bộ di chúc phiên bản mới, tự nguyện ký lại và đồng ý với các thay đổi đã nêu.";
+  const SIGN_BUTTON = "Ký phiên bản mới";
+  const SIGNED_BODY = {
+    ...setupData({
+      planStatus: "ACTIVE",
+      canActivate: false,
+      activatedAt: ACTIVATED_AT,
+      willVersion: 2,
+      willSignedAt: "2026-11-17T03:00:00Z",
+      hasUnsignedChanges: false,
+      unsignedChanges: null,
+    }),
+    recipients: undefined,
+  };
+
+  async function openResignDrawer(): Promise<HTMLElement> {
+    await userEvent.click(screen.getByRole("button", { name: RESIGN_OPEN }));
+    return screen.findByRole("dialog");
+  }
+
+  async function tickAndType(pin: string) {
+    await userEvent.click(screen.getByRole("checkbox", { name: RESIGN_TICK }));
+    await userEvent.type(screen.getByLabelText(PIN_LABEL), pin);
+  }
+
+  it("kế hoạch đang chạy có thay đổi chưa ký: có chân ký, nút khóa theo từng bước, nút xuất khóa", async () => {
+    showPlan(RUNNING_UNSIGNED);
+    renderOverview();
+    await openResignDrawer();
+
+    const button = screen.getByRole("button", { name: SIGN_BUTTON });
+    expect(button).toBeDisabled();
+    expect(screen.getByText("Cần tick ô xác nhận phía trên.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("checkbox", { name: RESIGN_TICK }));
+    expect(screen.getByText("Nhập đủ 6 số của mã PIN.")).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText(PIN_LABEL), PIN);
+    expect(button).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Ký và kích hoạt" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeDisabled();
+    expect(screen.getByText("Ký phiên bản mới trước khi xuất")).toBeInTheDocument();
+  });
+
+  it("không có thay đổi chưa ký: khung chỉ để xem và xuất, không có tick, PIN và nút ký", async () => {
+    showPlan({ ...RUNNING_UNSIGNED, hasUnsignedChanges: false, unsignedChanges: null });
+    renderOverview();
+    await userEvent.click(screen.getByRole("button", { name: "Xem di chúc đã ký" }));
+    expect(await screen.findByRole("dialog", { name: "Di chúc đã ký" })).toBeInTheDocument();
+
+    expect(screen.queryByRole("button", { name: SIGN_BUTTON })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(PIN_LABEL)).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+  });
+
+  it("ký thành công: gọi will/sign với configVersion và PIN ở header, cập nhật cache, báo phiên bản mới", async () => {
+    showPlan(RUNNING_UNSIGNED);
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(SIGNED_BODY as never);
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+    renderOverview();
+    await openResignDrawer();
+
+    await tickAndType(PIN);
+    await userEvent.click(screen.getByRole("button", { name: SIGN_BUTTON }));
+
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    const [url, body, config] = post.mock.calls[0];
+    expect(url).toBe(`/vaults/${VAULT_ID}/will/sign`);
+    expect(body).toEqual({ configVersion: 3 });
+    expect(JSON.stringify(body)).not.toContain(PIN);
+    expect(config).toMatchObject({ headers: { "X-Vault-Pin": PIN }, skipVaultPinPrompt: true });
+
+    expect(await screen.findByText(/Đã ký phiên bản 2 của di chúc/)).toBeVisible();
+    expect(screen.getByLabelText(PIN_LABEL)).toHaveValue("");
+    const cached = client.getQueryData<{ willVersion: number }>(["plan-setup", VAULT_ID]);
+    expect(cached?.willVersion).toBe(2);
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["plan-setup", VAULT_ID] });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["will-identity", VAULT_ID] });
+  });
+
+  it("sau khi ký xong và kế hoạch làm mới: thanh nhắc biến mất, tờ hiện Phiên bản N+1, thông báo còn", async () => {
+    showPlan(RUNNING_UNSIGNED);
+    vi.spyOn(apiClient, "post").mockResolvedValue(SIGNED_BODY as never);
+    const view = renderOverview();
+    await openResignDrawer();
+    await tickAndType(PIN);
+    await userEvent.click(screen.getByRole("button", { name: SIGN_BUTTON }));
+    await screen.findByText(/Đã ký phiên bản 2 của di chúc/);
+
+    // Backend trả kế hoạch mới sau khi làm mới.
+    showPlan(SIGNED_BODY);
+    view.rerender(
+      <Provider store={view.store}>
+        <QueryClientProvider client={client}>
+          <MemoryRouter>
+            <OwnerHandoverOverview vaultId={VAULT_ID} />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </Provider>,
+    );
+
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: SIGN_BUTTON })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText(/Đã ký phiên bản 2 của di chúc/)).toBeVisible();
+    expect(
+      within(paper()).getByText("Phiên bản 2 · ký lúc 10:00 ngày 17/11/2026"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeEnabled();
+  });
+
+  it("EDIT_CONFLICT: báo cấu hình đã đổi và đang tải lại, làm mới kế hoạch, không lặp lỗi chung", async () => {
+    showPlan(RUNNING_UNSIGNED);
+    vi.spyOn(apiClient, "post").mockRejectedValue(pinProblem("EDIT_CONFLICT", {}, 409));
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+    renderOverview();
+    await openResignDrawer();
+
+    await tickAndType(PIN);
+    await userEvent.click(screen.getByRole("button", { name: SIGN_BUTTON }));
+
+    expect(
+      await screen.findByText(
+        "Cấu hình đã thay đổi, đang tải lại. Hãy xem lại di chúc rồi ký lại.",
+      ),
+    ).toBeVisible();
+    expect(screen.queryByText(/Dữ liệu đã thay đổi\. Tải lại/)).not.toBeInTheDocument();
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["plan-setup", VAULT_ID] });
+  });
+
+  it("WILL_SIGN_NOT_ALLOWED: báo rõ kế hoạch không cho ký lại và làm mới", async () => {
+    showPlan(RUNNING_UNSIGNED);
+    vi.spyOn(apiClient, "post").mockRejectedValue(pinProblem("WILL_SIGN_NOT_ALLOWED", {}, 409));
+    const invalidate = vi.spyOn(client, "invalidateQueries");
+    renderOverview();
+    await openResignDrawer();
+
+    await tickAndType(PIN);
+    await userEvent.click(screen.getByRole("button", { name: SIGN_BUTTON }));
+
+    expect(await screen.findByText(/không ở trạng thái cho phép ký lại di chúc/)).toBeVisible();
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["plan-setup", VAULT_ID] });
+  });
+
+  it("sai PIN: số lần còn lại ngay dưới ô PIN, xóa ô nhập, không có hộp thoại PIN chung", async () => {
+    showPlan(RUNNING_UNSIGNED);
+    vi.spyOn(apiClient, "post").mockRejectedValue(
+      pinProblem("INVALID_VAULT_PIN", { attemptsRemaining: 2 }),
+    );
+    renderOverview();
+    await openResignDrawer();
+
+    await tickAndType("111222");
+    await userEvent.click(screen.getByRole("button", { name: SIGN_BUTTON }));
+
+    expect(await screen.findByText("Mã PIN không đúng. Còn 2 lần thử.")).toBeVisible();
+    const input = screen.getByLabelText(PIN_LABEL);
+    expect(input).toHaveValue("");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getAllByRole("dialog")).toHaveLength(1);
+  });
+
+  it("PIN bị khóa: khóa ô PIN và nút ký", async () => {
+    showPlan(RUNNING_UNSIGNED);
+    vi.spyOn(apiClient, "post").mockRejectedValue(pinProblem("VAULT_PIN_LOCKED", {}, 423));
+    renderOverview();
+    await openResignDrawer();
+
+    await tickAndType(PIN);
+    await userEvent.click(screen.getByRole("button", { name: SIGN_BUTTON }));
+
+    expect(await screen.findByText(/Mã PIN đang bị khóa tạm vì nhập sai nhiều lần/)).toBeVisible();
+    expect(screen.getByLabelText(PIN_LABEL)).toBeDisabled();
+    expect(screen.getByRole("button", { name: SIGN_BUTTON })).toBeDisabled();
   });
 });

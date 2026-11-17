@@ -72,3 +72,15 @@ export function formatTimeOnDate(value: string | null | undefined): string | nul
   }
   return `${parts.hour}:${parts.minute} ngày ${twoDigits(parts.day)}/${twoDigits(parts.month)}/${parts.year}`;
 }
+
+/** Ngày dạng "yyyy-MM-dd" (như Backend trả cho ngày sinh) đổi sang "dd/mm/yyyy"; sai dạng trả null. */
+export function formatIsoDate(value: string | null | undefined): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (match === null) {
+    return null;
+  }
+  return `${match[3]}/${match[2]}/${match[1]}`;
+}

@@ -1,11 +1,14 @@
 import type { ReactNode } from "react";
 import { Check } from "lucide-react";
-import { formatLongDate, formatTimeOnDate } from "../lib/willDates";
+import { formatIsoDate, formatLongDate, formatTimeOnDate } from "../lib/willDates";
 import type {
   WillExecutorView,
   WillGapTarget,
+  WillIdentityStatus,
+  WillOwnerIdentityView,
   WillPackageView,
   WillRecipientView,
+  WillVersionView,
 } from "../model/willDocument.types";
 
 export interface WillDocumentProps {
@@ -33,6 +36,15 @@ export interface WillDocumentProps {
   viewer?: "owner" | "reader";
   /** Chủ kho bấm vào một chỗ trống: nơi gọi đóng khung xem trước rồi đưa tới thẻ cần điền. */
   onGapClick?: (target: WillGapTarget) => void;
+  /**
+   * Tình trạng tải danh tính đầy đủ (ngày sinh, CCCD, thường trú). Mặc định "none": không hiện các dòng này
+   * (Người thực thi xem lời mời không có dữ liệu này). "loading" hiện "Đang tải…", "error" ẩn các dòng.
+   */
+  identityStatus?: WillIdentityStatus;
+  /** Danh tính Chủ kho khi `identityStatus` = "ready"; null nghĩa là chưa có danh tính eKYC gắn với kho. */
+  ownerIdentity?: WillOwnerIdentityView | null;
+  /** Phiên bản đã ký gần nhất; bỏ trống thì không in dòng phiên bản. */
+  version?: WillVersionView | null;
 }
 
 const SECTION = "mt-7";
@@ -44,7 +56,7 @@ interface PackageRow {
   id: string;
   name: string;
   assetCount: number;
-  recipientNames: string[];
+  recipients: WillRecipientView[];
 }
 
 /** Đổi dữ liệu "người nhận → các gói" thành "gói → các người nhận"; gói chưa có người nhận xếp sau cùng. */
@@ -66,15 +78,15 @@ function buildPackageRows(
           id: item.id,
           name: item.name,
           assetCount: item.assetCount,
-          recipientNames: [recipient.fullName],
+          recipients: [recipient],
         });
       } else {
-        found.recipientNames.push(recipient.fullName);
+        found.recipients.push(recipient);
       }
     }
   }
   for (const item of unassignedPackages) {
-    rows.push({ id: item.id, name: item.name, assetCount: item.assetCount, recipientNames: [] });
+    rows.push({ id: item.id, name: item.name, assetCount: item.assetCount, recipients: [] });
   }
   return rows;
 }
@@ -129,9 +141,43 @@ function executorDisplayName(executor: WillExecutorView): string {
   return executor.email;
 }
 
-/** Mục I: Người lập di chúc. */
-function OwnerSectionBlock({ ownerName, ownerEmail }: { ownerName: string; ownerEmail?: string }) {
+/** Mục I: Người lập di chúc. Thêm ngày sinh, CCCD và thường trú khi đã tải danh tính đầy đủ. */
+function OwnerSectionBlock({
+  ownerName,
+  ownerEmail,
+  identityStatus,
+  ownerIdentity,
+}: {
+  ownerName: string;
+  ownerEmail?: string;
+  identityStatus: WillIdentityStatus;
+  ownerIdentity: WillOwnerIdentityView | null;
+}) {
   const rows: Array<[string, string]> = [["Họ và tên", ownerName]];
+  let missingNote: ReactNode = null;
+  if (identityStatus === "loading") {
+    rows.push(["Ngày sinh", "Đang tải…"]);
+    rows.push(["Số CCCD", "Đang tải…"]);
+    rows.push(["Nơi thường trú", "Đang tải…"]);
+  }
+  if (identityStatus === "ready") {
+    if (ownerIdentity === null) {
+      // Không bịa: chưa có eKYC thì không có CCCD hay thường trú để in.
+      missingNote = (
+        <p className="mb-2 text-sm font-semibold text-[#a32119]">
+          Chưa có thông tin CCCD và nơi thường trú của Người lập di chúc (chưa có danh tính eKYC).
+        </p>
+      );
+    } else {
+      let birthText = formatIsoDate(ownerIdentity.dateOfBirth);
+      if (birthText === null) {
+        birthText = ownerIdentity.dateOfBirth;
+      }
+      rows.push(["Ngày sinh", birthText]);
+      rows.push(["Số CCCD", ownerIdentity.citizenId]);
+      rows.push(["Nơi thường trú", ownerIdentity.residenceAddress]);
+    }
+  }
   if (ownerEmail) {
     rows.push(["Tài khoản LegacyVault", ownerEmail]);
   }
@@ -139,12 +185,38 @@ function OwnerSectionBlock({ ownerName, ownerEmail }: { ownerName: string; owner
     <section id="muc-1" className={SECTION}>
       <h3 className={HEADING}>I. Người lập di chúc</h3>
       <InfoRows rows={rows} />
+      {missingNote}
       <p className={`${BODY} mt-2`}>
         Nay trong trạng thái tinh thần hoàn toàn minh mẫn, sáng suốt, không bị bất kỳ sự lừa dối, đe
         dọa hoặc cưỡng ép nào, tôi lập di chúc này để định đoạt các gói tài sản số trong kho của tôi
         tại LegacyVault sau khi tôi qua đời như sau:
       </p>
     </section>
+  );
+}
+
+/** Dòng "Sinh dd/mm/yyyy · CCCD số" dưới tên một người nhận; rỗng khi không dùng danh tính hoặc tải lỗi. */
+function RecipientIdentityLine({
+  recipient,
+  identityStatus,
+}: {
+  recipient: WillRecipientView;
+  identityStatus: WillIdentityStatus;
+}) {
+  if (identityStatus === "loading") {
+    return <small className="block text-heritage-muted">Đang tải…</small>;
+  }
+  if (identityStatus !== "ready") {
+    return null;
+  }
+  const birthText = formatIsoDate(recipient.dateOfBirth);
+  if (birthText === null || !recipient.citizenId) {
+    return <small className="block text-heritage-muted">Chưa có thông tin ngày sinh và CCCD</small>;
+  }
+  return (
+    <small className="block text-heritage-muted">
+      Sinh {birthText} · CCCD {recipient.citizenId}
+    </small>
   );
 }
 
@@ -155,12 +227,14 @@ function AssetsSectionBlock({
   assetsOutsideCount,
   clickable,
   onGapClick,
+  identityStatus,
 }: {
   recipients: WillRecipientView[] | undefined;
   unassignedPackages: WillPackageView[];
   assetsOutsideCount: number;
   clickable: boolean;
   onGapClick: ((target: WillGapTarget) => void) | undefined;
+  identityStatus: WillIdentityStatus;
 }) {
   const heading = <h3 className={HEADING}>II. Tài sản và định đoạt tài sản</h3>;
   if (recipients === undefined) {
@@ -195,7 +269,7 @@ function AssetsSectionBlock({
   for (const row of packageRows) {
     order = order + 1;
     let recipientCell: ReactNode;
-    if (row.recipientNames.length === 0) {
+    if (row.recipients.length === 0) {
       recipientCell = (
         <Gap
           text="Chưa có người nhận"
@@ -205,7 +279,16 @@ function AssetsSectionBlock({
         />
       );
     } else {
-      recipientCell = <span className="font-semibold">{row.recipientNames.join(", ")}</span>;
+      const people: ReactNode[] = [];
+      for (const person of row.recipients) {
+        people.push(
+          <div key={person.id} className="mb-1.5 last:mb-0">
+            <span className="font-semibold">{person.fullName}</span>
+            <RecipientIdentityLine recipient={person} identityStatus={identityStatus} />
+          </div>,
+        );
+      }
+      recipientCell = <div>{people}</div>;
     }
     rowNodes.push(
       <tr key={row.id}>
@@ -411,6 +494,9 @@ export function WillDocument({
   assetsOutsideCount = 0,
   viewer = "reader",
   onGapClick,
+  identityStatus = "none",
+  ownerIdentity = null,
+  version = null,
 }: WillDocumentProps) {
   const clickable = viewer === "owner";
 
@@ -421,6 +507,16 @@ export function WillDocument({
   }
   if (signedDate !== null) {
     dateText = signedDate;
+  }
+
+  let versionLine: ReactNode = null;
+  if (version !== null) {
+    let versionText = `Phiên bản ${version.number}`;
+    const versionWhen = formatTimeOnDate(version.signedAt);
+    if (versionWhen !== null) {
+      versionText = `Phiên bản ${version.number} · ký lúc ${versionWhen}`;
+    }
+    versionLine = <p className="mt-1 text-center text-sm text-heritage-muted">{versionText}</p>;
   }
 
   return (
@@ -435,14 +531,21 @@ export function WillDocument({
         DI CHÚC
       </h2>
       <p className="mt-3 text-center leading-7">Hôm nay, ngày {dateText}, tại LegacyVault.</p>
+      {versionLine}
 
-      <OwnerSectionBlock ownerName={ownerName} ownerEmail={ownerEmail} />
+      <OwnerSectionBlock
+        ownerName={ownerName}
+        ownerEmail={ownerEmail}
+        identityStatus={identityStatus}
+        ownerIdentity={ownerIdentity}
+      />
       <AssetsSectionBlock
         recipients={recipients}
         unassignedPackages={unassignedPackages}
         assetsOutsideCount={assetsOutsideCount}
         clickable={clickable}
         onGapClick={onGapClick}
+        identityStatus={identityStatus}
       />
       <ExecutorSectionBlock executor={executor} clickable={clickable} onGapClick={onGapClick} />
 

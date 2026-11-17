@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { WillGapTarget } from "@/entities/will/model/willDocument.types";
 import { Button } from "@/shared/ui/button";
+import { needsResign } from "../lib/willView";
 import { usePlanSetup } from "../model/usePlanSetup";
 import { HandoverProgressCard } from "./HandoverProgressCard";
 import { handoverTaskElementId, type HandoverTaskId } from "../lib/handoverTasks";
 import { HandoverTaskCards } from "./HandoverTaskCards";
+import { UnsignedChangesBanner } from "./UnsignedChangesBanner";
 import { WillPreviewDrawer } from "./WillPreviewDrawer";
 
 /** Thẻ nháy sáng bao lâu (ms) sau khi Chủ kho bấm chỗ trống trong di chúc. */
@@ -113,6 +115,12 @@ export function PlanSetupPanel({
 
   return (
     <>
+      {needsResign(setup) && (
+        <UnsignedChangesBanner
+          changes={setup.unsignedChanges}
+          onOpenPreview={() => handleOpenChange(true)}
+        />
+      )}
       <div className="grid max-w-[1180px] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-5">
           <HandoverTaskCards

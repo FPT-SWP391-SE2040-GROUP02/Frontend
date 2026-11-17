@@ -9,6 +9,7 @@ import {
   invitationTokenSchema as tokenSchema,
 } from "../model/planSetup.schema";
 import { myInvitationsSchema } from "../model/myInvitations.schema";
+import { willIdentitySchema } from "../model/willIdentity.schema";
 const vault = (id: string) => `/vaults/${z.string().uuid().parse(id)}`;
 /** Confirmed raw BE contract. No invitation token in cache keys, responses or logs. */
 export const planSetupService = {
@@ -70,6 +71,28 @@ export const planSetupService = {
         headers: { [VAULT_PIN_HEADER]: pin },
         skipVaultPinPrompt: true,
       }),
+    );
+  },
+  /**
+   * Chủ kho ký lại di chúc khi kế hoạch đang chạy và có thay đổi chưa ký. `configVersion` là bản cấu hình đang xem
+   * (cũ hơn thì Backend trả 409 EDIT_CONFLICT). PIN chỉ đi qua header, như `activate`.
+   */
+  async signWill(id: string, configVersion: number, pin: string) {
+    const body = z.object({ configVersion: z.number().int().positive() }).parse({ configVersion });
+    return planSetupSchema.parse(
+      await apiClient.post<unknown, unknown>(`${vault(id)}/will/sign`, body, {
+        headers: { [VAULT_PIN_HEADER]: pin },
+        skipVaultPinPrompt: true,
+      }),
+    );
+  },
+  /**
+   * Danh tính đầy đủ (CCCD, ngày sinh, thường trú) để in trong di chúc; chỉ Chủ kho. Dữ liệu nhạy cảm: không log,
+   * không lưu storage, không giữ trong cache (xem useWillIdentity).
+   */
+  async getWillIdentity(id: string, signal?: AbortSignal) {
+    return willIdentitySchema.parse(
+      await apiClient.get<unknown, unknown>(`${vault(id)}/will/identity`, { signal }),
     );
   },
   async inspect(token: string, signal?: AbortSignal) {

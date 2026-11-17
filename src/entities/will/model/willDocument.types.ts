@@ -19,6 +19,30 @@ export interface WillRecipientView {
   id: string;
   fullName: string;
   packages: WillPackageView[];
+  /** Ngày sinh "yyyy-MM-dd" của người nhận; chỉ có khi nơi xem đã tải danh tính đầy đủ. */
+  dateOfBirth?: string | null;
+  /** Số CCCD đầy đủ của người nhận; chỉ in trong di chúc, không ghi log hay lưu trữ. */
+  citizenId?: string | null;
+}
+
+/** Danh tính đầy đủ của Chủ kho in ở mục I. */
+export interface WillOwnerIdentityView {
+  /** Ngày sinh "yyyy-MM-dd". */
+  dateOfBirth: string;
+  citizenId: string;
+  residenceAddress: string;
+}
+
+/**
+ * Tình trạng tải danh tính đầy đủ: "none" là nơi xem không dùng danh tính (Người thực thi xem lời mời), "loading" và
+ * "error" là chưa có dữ liệu, "ready" là đã có (Chủ kho có thể chưa có danh tính eKYC: `ownerIdentity` = null).
+ */
+export type WillIdentityStatus = "none" | "loading" | "error" | "ready";
+
+/** Phiên bản di chúc đã ký gần nhất, in ở đầu tờ. */
+export interface WillVersionView {
+  number: number;
+  signedAt: string | null;
 }
 
 /** Chỗ trống trong di chúc mà Chủ kho có thể bấm để được đưa tới nơi điền. */
