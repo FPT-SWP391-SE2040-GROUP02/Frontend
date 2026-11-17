@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/shared/ui/tooltip";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { queryClient } from "./queryClient";
 import { store } from "@/app/store";
-import { DemoClockBanner } from "@/features/dev-clock";
 import { VaultPinDialogHost } from "@/features/vault-pin";
 import { AuthBootstrap } from "./AuthBootstrap";
 
@@ -21,7 +20,6 @@ export function AppProviders({ children }: AppProvidersProps) {
         <QueryClientProvider client={queryClient}>
           <AuthBootstrap>
             {/* Dải "đang giả lập ngày" chỉ hiện khi bật cờ dev và Backend đang giả lập. */}
-            <DemoClockBanner />
             <TooltipProvider>{children}</TooltipProvider>
             <VaultPinDialogHost />
           </AuthBootstrap>
