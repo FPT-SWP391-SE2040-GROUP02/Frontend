@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Circle } from "lucide-react";
 import { ConfirmedIcon, TrustedIcon } from "@/shared/ui/LegacyVaultArtwork";
@@ -5,9 +6,7 @@ import type { OverviewResources } from "../model/useOverviewResources";
 import { OverviewQueryState } from "./OverviewQueryState";
 import { ROUTES } from "@/shared/config/routes.config";
 
-const handoverSteps = ["Báo tin", "Xét duyệt hồ sơ", "Xác minh người nhận", "Tải nội dung"];
-
-export function OwnerOverviewPlan({ data }: { data: OverviewResources }) {
+export function OwnerOverviewPlan({ data, aside }: { data: OverviewResources; aside?: ReactNode }) {
   const setup = data.setup.data;
   const steps = setup
     ? [
@@ -81,52 +80,31 @@ export function OwnerOverviewPlan({ data }: { data: OverviewResources }) {
                   ))}
                 </ul>
                 <p className="overview-muted">
-                  {setup.canActivate
-                    ? "Máy chủ xác nhận đủ điều kiện hiện tại. Đọc và xác nhận chính sách tại trang kế hoạch để kích hoạt."
-                    : "Kiểm tra điều kiện đầy đủ tại trang kế hoạch trước khi kích hoạt."}
+                  {setup.canActivate ? "Đủ điều kiện kích hoạt." : "Chưa đủ điều kiện kích hoạt."}
                 </p>
                 <Link className="overview-text-link" to={ROUTES.WILLS.ROOT}>
-                  Xem điều kiện và thiết lập kế hoạch →
+                  Thiết lập kế hoạch →
                 </Link>
               </>
             )}
           </OverviewQueryState>
         </section>
-        <section className="overview-card" aria-labelledby="overview-handover-title">
-          <h2 id="overview-handover-title">Quy trình bàn giao</h2>
-          <p className="overview-muted">
-            Các bước tham khảo của quy trình. Trạng thái thực tế của kho hiển thị ở đầu trang và
-            trong thông báo hồ sơ.
-          </p>
-          <ol className="overview-handover-steps">
-            {handoverSteps.map((step, index) => (
-              <li key={step}>
-                <span aria-hidden="true">{index + 1}</span>
-                {step}
-              </li>
-            ))}
-          </ol>
-          <p className="overview-muted">
-            Thời hạn và quyền thao tác áp dụng theo hồ sơ được hệ thống xác nhận.
-          </p>
+      </div>
+      <div className="overview-panel-row">
+        {aside}
+        <section className="overview-identity" aria-label="Xác minh danh tính Chủ kho">
+          <TrustedIcon className="size-6 text-heritage-gold shrink-0" aria-hidden="true" />
+          <div>
+            <h2>Xác minh danh tính</h2>
+            <OverviewQueryState query={data.setup}>
+              <p>{verified ? "Đã xác minh." : "Chưa xác minh."}</p>
+            </OverviewQueryState>
+          </div>
+          <Link className="overview-outline-action" to={ROUTES.DASHBOARD.IDENTITY}>
+            {verified ? "Xem xác minh" : "Xác minh ngay"}
+          </Link>
         </section>
       </div>
-      <section className="overview-identity" aria-label="Xác minh danh tính Chủ kho">
-        <TrustedIcon className="size-6 text-heritage-gold shrink-0" aria-hidden="true" />
-        <div>
-          <h2>Xác minh danh tính</h2>
-          <OverviewQueryState query={data.setup}>
-            <p>
-              {verified
-                ? "Chủ kho đã đáp ứng điều kiện xác minh danh tính."
-                : "Hoàn tất xác minh danh tính để chuẩn bị kích hoạt kế hoạch bàn giao."}
-            </p>
-          </OverviewQueryState>
-        </div>
-        <Link className="overview-outline-action" to={ROUTES.DASHBOARD.IDENTITY}>
-          {verified ? "Xem xác minh" : "Xác minh ngay"}
-        </Link>
-      </section>
     </>
   );
 }

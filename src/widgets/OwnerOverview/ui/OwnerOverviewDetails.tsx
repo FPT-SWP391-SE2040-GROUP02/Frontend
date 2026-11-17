@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { VaultServiceInfo } from "@/entities/vault/ui/VaultServiceInfo";
 import { ROUTES } from "@/shared/config/routes.config";
-import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import { StarIcon } from "@/shared/ui/LegacyVaultArtwork";
 import type { OverviewResources } from "../model/useOverviewResources";
 import { overviewDate } from "../model/overviewPresentation";
@@ -53,6 +52,40 @@ const activityLabels: Record<string, string> = {
   SERVICE_GRACE_STARTED: "Hết hạn dịch vụ, chuyển sang chỉ đọc",
 };
 
+/** Người thực thi nằm cùng nhóm chuẩn bị kế hoạch nên là một thành phần riêng để đặt cạnh khối xác minh. */
+export function OwnerOverviewExecutors({ data }: { data: OverviewResources }) {
+  const setup = data.setup.data;
+  const executors = setup?.executors.filter((item) => item.status !== "REVOKED") ?? [];
+  return (
+    <section className="overview-card" aria-labelledby="overview-executors-title">
+      <h2 id="overview-executors-title">Người thực thi</h2>
+      <OverviewQueryState query={data.setup}>
+        <div className="overview-executors">
+          {executors.length ? (
+            executors.map((person) => (
+              <div key={person.id}>
+                <h3>Người thực thi</h3>
+                <p className="overview-person-email">{person.inviteeEmail}</p>
+                <p className="overview-muted">
+                  {person.status === "ACCEPTED" &&
+                  person.acceptedScopeVersion !== setup?.executorScopeVersion
+                    ? "Cần chấp nhận phạm vi nhiệm vụ mới"
+                    : executorLabels[person.status]}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="overview-muted">Chưa chỉ định người thực thi.</p>
+          )}
+        </div>
+      </OverviewQueryState>
+      <Link className="overview-text-link" to={ROUTES.WILLS.ROOT}>
+        Quản lý trong kế hoạch →
+      </Link>
+    </section>
+  );
+}
+
 export function OwnerOverviewDetails({
   vault,
   data,
@@ -60,50 +93,8 @@ export function OwnerOverviewDetails({
   vault: VaultResponse;
   data: OverviewResources;
 }) {
-  const setup = data.setup.data;
-  const executors = setup?.executors.filter((item) => item.status !== "REVOKED") ?? [];
   return (
     <div className="overview-bottom-columns">
-      <section className="overview-card" aria-labelledby="overview-executors-title">
-        <h2 id="overview-executors-title">Người thực thi</h2>
-        <OverviewQueryState query={data.setup}>
-          <div className="overview-executors">
-            {executors.length ? (
-              executors.map((person) => (
-                <div key={person.id}>
-                  <h3>Người thực thi</h3>
-                  <p className="overview-person-email">{person.inviteeEmail}</p>
-                  <p className="overview-muted">
-                    {person.status === "ACCEPTED" &&
-                    person.acceptedScopeVersion !== setup?.executorScopeVersion
-                      ? "Cần chấp nhận phạm vi nhiệm vụ mới"
-                      : executorLabels[person.status]}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p className="overview-muted">Chưa chỉ định người thực thi.</p>
-            )}
-          </div>
-        </OverviewQueryState>
-        <Link className="overview-text-link" to={ROUTES.WILLS.ROOT}>
-          Quản lý trong kế hoạch →
-        </Link>
-      </section>
-      <section className="overview-card" aria-labelledby="overview-service-title">
-        <h2 id="overview-service-title">Gói dịch vụ</h2>
-        <VaultServiceInfo service={vault} />
-        <p className="overview-service-storage">
-          {formatStorageMegabytes(vault.storageUsedBytes)} /{" "}
-          {formatStorageMegabytes(vault.storageQuotaBytes)}
-        </p>
-        <p className="overview-muted">
-          {vault.usedBeneficiarySlots} / {vault.beneficiarySlots} suất người nhận đã dùng
-        </p>
-        <Link className="overview-outline-action" to={ROUTES.BILLING.PLANS}>
-          Xem các gói dịch vụ
-        </Link>
-      </section>
       <section className="overview-card" aria-labelledby="overview-audit-title">
         <h2 id="overview-audit-title">Hoạt động gần đây</h2>
         <OverviewQueryState query={data.audit}>
@@ -135,6 +126,13 @@ export function OwnerOverviewDetails({
         </OverviewQueryState>
         <Link className="overview-text-link" to={ROUTES.DASHBOARD.AUDIT_LOG}>
           Xem nhật ký →
+        </Link>
+      </section>
+      <section className="overview-card" aria-labelledby="overview-service-title">
+        <h2 id="overview-service-title">Gói dịch vụ</h2>
+        <VaultServiceInfo service={vault} />
+        <Link className="overview-outline-action" to={ROUTES.BILLING.PLANS}>
+          Xem các gói dịch vụ
         </Link>
       </section>
     </div>

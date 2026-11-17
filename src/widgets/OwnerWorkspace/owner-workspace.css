@@ -339,3 +339,33 @@
     transition: none;
   }
 }
+
+/* Chuyển trang: nội dung hiện dần và trượt lên nhẹ. Chỉ dùng opacity và transform nên chạy trên GPU, không làm chậm trang thật. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes owner-page-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 6px, 0);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .owner-workspace > main > div {
+    animation: owner-page-in 0.24s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+/* Mục menu: chuyển màu mượt và lún nhẹ khi nhấn (chỉ khi không chọn giảm chuyển động). */
+@media (prefers-reduced-motion: no-preference) {
+  .owner-nav-link {
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.15s ease;
+  }
+  .owner-nav-link:active {
+    transform: scale(0.98);
+  }
+}

@@ -283,27 +283,6 @@
   border-style: solid;
   color: var(--primary);
 }
-.overview-handover-steps {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-}
-.overview-handover-steps > li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.875rem;
-}
-.overview-handover-steps > li > span {
-  display: grid;
-  place-items: center;
-  height: 27px;
-  width: 27px;
-  border: 1px dashed var(--border-ui);
-  border-radius: 50%;
-  font-size: 0.875rem;
-  color: var(--text-muted);
-}
 .overview-identity {
   display: flex;
   align-items: center;
@@ -415,10 +394,6 @@
   font-weight: 500;
   overflow-wrap: anywhere;
 }
-.overview-service-storage {
-  font-size: 0.9375rem;
-  font-weight: 600;
-}
 .overview-activity > li {
   display: flex;
   gap: 10px;
@@ -455,9 +430,6 @@
   }
 }
 @media (max-width: 1100px) {
-  .overview-handover-steps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 @media (max-width: 760px) {
   .overview-metrics {
@@ -468,9 +440,6 @@
   }
   .overview-stat + .overview-stat {
     border-top: 1px solid var(--border-ui);
-  }
-  .overview-handover-steps {
-    grid-template-columns: minmax(0, 1fr);
   }
   .overview-hero,
   .overview-two-columns,
@@ -549,5 +518,505 @@
   .overview-primary-action:active,
   .overview-outline-action:active {
     transform: translateY(1px);
+  }
+}
+
+/* Hoàn thiện giao diện: chiều sâu nhẹ, nhịp điệu khoảng cách và điểm nhấn thương hiệu. Chỉ dùng token sẵn có. */
+.overview-card,
+.overview-metrics {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--text-main) 7%, transparent),
+    0 10px 24px -18px color-mix(in srgb, var(--text-main) 22%, transparent);
+}
+.overview-tier::before {
+  padding-left: 10px;
+  border-left: 3px solid var(--gold);
+  line-height: 1;
+}
+.overview-hero {
+  position: relative;
+  overflow: hidden;
+  align-items: center;
+  padding: 32px;
+}
+.overview-hero > * {
+  position: relative;
+}
+.overview-hero h2 {
+  letter-spacing: -0.01em;
+}
+.overview-hero-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Thẻ điểm danh: tiêu đề, nhịp tim, trạng thái, hai ô ngày, nút */
+.overview-check-in {
+  padding: 20px;
+  border-radius: 14px;
+}
+.overview-check-in h3 {
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.overview-check-in.is-live .overview-check-in > p:first-of-type {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.overview-check-in dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.overview-check-in dl > div {
+  display: block;
+  margin-top: 0;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--surface) 14%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 4%, transparent);
+}
+.overview-check-in dt {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+.overview-check-in dd {
+  margin-top: 2px;
+}
+
+/* Số liệu và danh sách điều kiện */
+.overview-stat h2 {
+  font-size: 0.8125rem;
+}
+.overview-stat-value {
+  font-size: 30px;
+}
+.overview-checklist > li {
+  padding: 14px 0;
+}
+.overview-checklist > li > a {
+  padding: 9px 18px;
+  border: 1px solid var(--border-ui);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--primary);
+}
+.overview-checklist > li > a:hover {
+  border-color: var(--gold);
+}
+.overview-checklist > li:has(> a) > a {
+  border-color: var(--gold);
+  background: var(--gold);
+}
+.overview-checklist > li:has(> a) > a:hover {
+  background: var(--gold-hover);
+  color: var(--surface);
+}
+.overview-checklist > li:has(> a) ~ li > a {
+  border-color: var(--border-ui);
+  background: var(--surface);
+}
+.overview-checklist > li:has(> a) ~ li > a:hover {
+  border-color: var(--gold);
+  background: var(--surface);
+  color: var(--primary);
+}
+.overview-text-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (max-width: 760px) {
+  .overview-hero {
+    padding: 22px 20px;
+  }
+}
+
+/* Hoạt ảnh gọn: các ô và thẻ hiện nối tiếp, nhịp tim chạy trên thẻ điểm danh, dấu thương hiệu hiện dần. */
+@media (prefers-reduced-motion: no-preference) {
+  .overview-metrics > .overview-stat,
+  .overview-content-columns > *,
+  .overview-bottom-columns > * {
+    animation: overview-rise 0.45s ease-out both;
+  }
+  .overview-metrics > .overview-stat:nth-child(1) {
+    animation-delay: 0.14s;
+  }
+  .overview-metrics > .overview-stat:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .overview-metrics > .overview-stat:nth-child(3) {
+    animation-delay: 0.26s;
+  }
+  .overview-metrics > .overview-stat:nth-child(4) {
+    animation-delay: 0.32s;
+  }
+  .overview-content-columns > :nth-child(1),
+  .overview-bottom-columns > :nth-child(1) {
+    animation-delay: 0.24s;
+  }
+  .overview-content-columns > :nth-child(2),
+  .overview-bottom-columns > :nth-child(2) {
+    animation-delay: 0.3s;
+  }
+  .overview-bottom-columns > :nth-child(3) {
+    animation-delay: 0.36s;
+  }
+  .overview-check-in.is-live .overview-check-in.is-live .overview-checklist > li > a {
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.15s ease;
+  }
+  .overview-checklist > li > a:active {
+    transform: translateY(1px);
+  }
+}
+
+/* Nhịp tim kiểu màn hình theo dõi: nền trong suốt, chỉ đường biểu đồ có ánh neon (ba nét chồng nhau, không dùng bộ lọc nên chạy mượt).
+   Khi kế hoạch đang chạy, vệt quét chạy từng nhịp từ trái sang; đầu quét có chấm sáng. */
+.overview-monitor {
+  position: relative;
+  overflow: hidden;
+  /* Tối góc: đường biểu đồ và lớp phủ mờ dần về bốn phía, nền vẫn trong suốt. */
+  -webkit-mask-image: radial-gradient(ellipse at center, black 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse at center, black 55%, transparent 100%);
+}
+.overview-heartbeat {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.overview-heartbeat path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke: var(--gold);
+  opacity: 0.5;
+}
+.overview-heartbeat-glow {
+  stroke-width: 5;
+}
+.overview-heartbeat-halo {
+  stroke-width: 2.6;
+}
+.overview-heartbeat-line {
+  stroke: color-mix(in srgb, var(--gold) 55%, white);
+  stroke-width: 1.2;
+}
+.overview-check-in.is-live .overview-heartbeat-glow {
+  opacity: 0.2;
+}
+.overview-check-in.is-live .overview-heartbeat-halo {
+  opacity: 0.45;
+}
+.overview-check-in.is-live .overview-heartbeat-line {
+  opacity: 1;
+}
+.overview-heartbeat-dot {
+  fill: color-mix(in srgb, var(--gold) 40%, white);
+  opacity: 0;
+}
+/* Hiệu ứng retro: vạch quét ngang và hạt nhiễu phủ lên đường biểu đồ. */
+.overview-monitor::before,
+.overview-monitor::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.overview-monitor::before {
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.22) 0 1px, transparent 1px 3px);
+}
+.overview-monitor::after {
+  inset: -20%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  mix-blend-mode: overlay;
+  opacity: 0.1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes overview-ecg-sweep {
+    from {
+      stroke-dashoffset: 55;
+    }
+    to {
+      stroke-dashoffset: -100;
+    }
+  }
+  @keyframes overview-ecg-dot {
+    0% {
+      offset-distance: 0%;
+      opacity: 1;
+    }
+    64.5% {
+      offset-distance: 100%;
+      opacity: 1;
+    }
+    64.6%,
+    100% {
+      offset-distance: 100%;
+      opacity: 0;
+    }
+  }
+  .overview-check-in.is-live .overview-heartbeat path {
+    stroke-dasharray: 55 145;
+    animation: overview-ecg-sweep 1.4s linear infinite;
+  }
+  .overview-check-in.is-live .overview-heartbeat-dot {
+    animation: overview-ecg-dot 1.4s linear infinite;
+  }
+  @keyframes overview-noise {
+    0% {
+      transform: translate(0, 0);
+    }
+    25% {
+      transform: translate(-6%, 4%);
+    }
+    50% {
+      transform: translate(5%, -5%);
+    }
+    75% {
+      transform: translate(-4%, -3%);
+    }
+    100% {
+      transform: translate(0, 0);
+    }
+  }
+  @keyframes overview-flicker {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    7% {
+      opacity: 0.93;
+    }
+    9% {
+      opacity: 1;
+    }
+    61% {
+      opacity: 0.9;
+    }
+    63% {
+      opacity: 1;
+    }
+  }
+  .overview-check-in.is-live .overview-monitor {
+    animation: overview-flicker 4.2s steps(1, end) infinite;
+  }
+  .overview-check-in.is-live .overview-monitor::after {
+    animation: overview-noise 0.5s steps(1, end) infinite;
+  }
+}
+
+/* Căn thẳng hàng theo trật tự: các con số cùng một hàng, liên kết cuối thẻ cùng một đường. */
+.overview-stat {
+  display: grid;
+  align-content: start;
+}
+.overview-storage-value {
+  margin: 8px 0 4px;
+  line-height: 1.3;
+}
+.overview-storage-value strong {
+  font-size: 30px;
+}
+.overview-content-columns .overview-card,
+.overview-bottom-columns .overview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.overview-content-columns .overview-card > *,
+.overview-bottom-columns .overview-card > * {
+  margin-top: 0;
+}
+.overview-content-columns .overview-card > :last-child,
+.overview-bottom-columns .overview-card > :last-child {
+  margin-top: auto;
+}
+
+/* Bố cục đều: lưới ba cột thống nhất (2 : 1 ở khối trạng thái và hai hàng chi tiết);
+   các thẻ rời gộp thành bảng có đường kẻ ngăn để bớt cảm giác chồng thẻ. */
+.overview-hero {
+  grid-template-columns: minmax(0, 2fr) minmax(270px, 1fr);
+  gap: 24px;
+}
+.overview-panel,
+.overview-content-columns,
+.overview-bottom-columns {
+  overflow: hidden;
+  border: 1px solid var(--border-ui);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--text-main) 7%, transparent),
+    0 10px 24px -18px color-mix(in srgb, var(--text-main) 22%, transparent);
+}
+.overview-content-columns,
+.overview-bottom-columns {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  align-items: stretch;
+}
+.overview-content-columns > :first-child,
+.overview-bottom-columns > :first-child {
+  grid-column: span 2;
+}
+.overview-panel .overview-card,
+.overview-content-columns .overview-card,
+.overview-bottom-columns .overview-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.overview-content-columns > .overview-card + .overview-card,
+.overview-bottom-columns > .overview-card + .overview-card {
+  border-left: 1px solid var(--border-ui);
+}
+.overview-panel .overview-two-columns {
+  gap: 0;
+}
+
+/* Trang trí lại khối trạng thái, nhóm chuẩn bị hai cột. */
+.overview-hero::before,
+.overview-hero::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+.overview-hero::before {
+  inset: 0;
+  background: radial-gradient(
+      color-mix(in srgb, var(--surface) 12%, transparent) 1px,
+      transparent 1.4px
+    )
+    0 0 / 20px 20px;
+  -webkit-mask-image: linear-gradient(90deg, black, transparent 65%);
+  mask-image: linear-gradient(90deg, black, transparent 65%);
+}
+.overview-hero::after {
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold), transparent 60%);
+}
+.overview-hero-link {
+  margin-top: 18px;
+  padding: 0 18px;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  border-radius: 10px;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+.overview-hero-link:hover {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  text-decoration: none;
+}
+.overview-check-in:not(.is-live) .overview-heartbeat-glow,
+.overview-check-in:not(.is-live) .overview-heartbeat-halo,
+.overview-check-in:not(.is-live) .overview-monitor::before,
+.overview-check-in:not(.is-live) .overview-monitor::after {
+  display: none;
+}
+.overview-panel-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  border-top: 1px solid var(--border-ui);
+}
+.overview-panel-row > * + * {
+  border-left: 1px solid var(--border-ui);
+}
+.overview-panel-row .overview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.overview-panel-row .overview-card > * {
+  margin-top: 0;
+}
+.overview-panel-row .overview-card > :last-child {
+  margin-top: auto;
+}
+.overview-panel .overview-panel-row .overview-identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  align-items: start;
+  gap: 18px 14px;
+  padding: 24px;
+  border: 0;
+  border-radius: 0;
+}
+.overview-panel-row .overview-identity > a {
+  grid-column: 1 / -1;
+  justify-self: start;
+  align-self: end;
+}
+@media (max-width: 1100px) {
+  .overview-content-columns,
+  .overview-bottom-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .overview-content-columns > :first-child,
+  .overview-bottom-columns > :first-child {
+    grid-column: auto;
+  }
+  .overview-content-columns > .overview-card + .overview-card,
+  .overview-bottom-columns > .overview-card + .overview-card {
+    border-top: 1px solid var(--border-ui);
+    border-left: 0;
+  }
+  .overview-panel-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .overview-panel-row > * + * {
+    border-top: 1px solid var(--border-ui);
+    border-left: 0;
+  }
+}
+
+/* Phản hồi tối thiểu cho mọi thao tác trong Tổng quan: đổi màu khi rê, lún nhẹ khi nhấn, vòng lấy nét rõ khi dùng bàn phím. */
+.overview-text-link,
+.overview-outline-action,
+.overview-primary-action,
+.overview-hero-link,
+.overview-checklist > li > a {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+.overview-text-link:active,
+.overview-outline-action:active,
+.overview-primary-action:active,
+.overview-hero-link:active,
+.overview-checklist > li > a:active {
+  transform: scale(0.97);
+}
+.overview-text-link:focus-visible,
+.overview-outline-action:focus-visible,
+.overview-primary-action:focus-visible,
+.overview-hero-link:focus-visible,
+.overview-checklist > li > a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .overview-asset-table tbody tr,
+  .overview-people > li,
+  .overview-activity > li {
+    transition: background-color 0.2s ease;
+  }
+  .overview-asset-table tbody tr:hover,
+  .overview-people > li:hover,
+  .overview-activity > li:hover {
+    background-color: var(--gold-light);
   }
 }

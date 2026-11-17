@@ -12,7 +12,7 @@ import { useOverviewResources } from "../model/useOverviewResources";
 import { OwnerOverviewSummary } from "./OwnerOverviewSummary";
 import { OwnerOverviewPlan } from "./OwnerOverviewPlan";
 import { OwnerOverviewLists } from "./OwnerOverviewLists";
-import { OwnerOverviewDetails } from "./OwnerOverviewDetails";
+import { OwnerOverviewDetails, OwnerOverviewExecutors } from "./OwnerOverviewDetails";
 import "./owner-overview.css";
 
 /** Không mount các truy vấn con trước khi có phiên và kho được BE xác nhận. */
@@ -49,7 +49,9 @@ function OwnerDashboardContent({ vault }: { vault: VaultResponse }) {
         <OwnerOverviewSummary vault={vault} data={data} />
       </section>
       <section className="overview-tier" aria-label="Chuẩn bị kế hoạch">
-        <OwnerOverviewPlan data={data} />
+        <div className="overview-panel">
+          <OwnerOverviewPlan data={data} aside={<OwnerOverviewExecutors data={data} />} />
+        </div>
       </section>
       <section className="overview-tier" aria-label="Chi tiết gần đây">
         <OwnerOverviewLists data={data} />
