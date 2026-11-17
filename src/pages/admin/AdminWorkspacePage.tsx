@@ -101,7 +101,6 @@ const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
     ]
   : NAVIGATION;
 
-// Trang "Mẫu thư" (AdminEmailTemplates) đang được ẩn khỏi menu và đường dẫn; code vẫn còn ở features/admin.
 const VIEWS = {
   overview: {
     title: "Tổng quan",

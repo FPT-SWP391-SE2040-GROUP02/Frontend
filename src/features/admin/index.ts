@@ -4,7 +4,6 @@ export { AdminOverviewToolbar } from "./ui/AdminOverviewToolbar";
 export { AdminUsers } from "./ui/AdminUsers";
 export { AdminHolds } from "./ui/AdminHolds";
 export { AdminPayments } from "./ui/AdminPayments";
-export { AdminEmailTemplates } from "./ui/AdminEmailTemplates";
 export { AdminHandoverTemplates } from "./ui/AdminHandoverTemplates";
 export { AdminDevTools } from "./ui/AdminDevTools";
 export { ExecutorEmailPreviewPanel } from "./ui/ExecutorEmailPreviewPanel";
