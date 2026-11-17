@@ -50,7 +50,6 @@ export function OwnerOverviewLists({ data }: { data: OverviewResources }) {
             <div className="overview-empty">
               <FileText size={28} aria-hidden="true" />
               <p>Kho chưa có tài sản.</p>
-              <p className="overview-muted">Bắt đầu bằng một tệp hoặc nội dung bạn muốn lưu giữ.</p>
             </div>
           )}
         </OverviewQueryState>
