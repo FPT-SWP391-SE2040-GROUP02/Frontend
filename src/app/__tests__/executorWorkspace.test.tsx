@@ -136,10 +136,8 @@ describe("Executor workspace shell", () => {
     ]);
     expect(screen.queryByRole("link", { name: "Xác minh" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Sang vai Chủ kho" })).toHaveAttribute(
-      "href",
-      "/dashboard",
-    );
+    // Người thực thi là nhân sự của công ty: không có nút chuyển sang vai Chủ kho hay Người nhận.
+    expect(screen.queryByRole("link", { name: /Sang vai/ })).not.toBeInTheDocument();
     expect(screen.getByText("Người thực thi")).toBeInTheDocument();
     expect(
       await screen.findByRole("heading", { level: 1, name: "Kho của Anh Nam" }),

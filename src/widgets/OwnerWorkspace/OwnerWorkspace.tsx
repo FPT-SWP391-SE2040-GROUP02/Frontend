@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { ArrowLeftRight, Mail, Menu, ScanFace, X } from "lucide-react";
+import { Mail, Menu, ScanFace, X } from "lucide-react";
 import {
   OverviewIcon,
   VaultIcon,
@@ -19,7 +19,6 @@ import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import { accessTokenMemory } from "@/shared/api/accessToken";
-import { useExecutorVaults } from "@/features/death-case/model/useExecutorVaults";
 import { useMyInvitations } from "@/features/plan-setup/model/useMyInvitations";
 import { SwitchToRecipientLink } from "@/features/handover/ui/SwitchToRecipientLink";
 import { getDisplayedServiceTier } from "@/entities/vault/model/vaultServicePresentation";
@@ -59,16 +58,6 @@ const navigation = [
   { label: "Gói dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon },
   { label: "Cài đặt", to: ROUTES.DASHBOARD.SETTINGS, icon: SettingsIcon },
 ];
-
-/**
- * Chỉ tài khoản đang là Executor của ít nhất một kho mới có nút sang vai Người thực thi;
- * không cấp quyền gì, Backend vẫn kiểm tra từng request.
- */
-function useCanSwitchToExecutor(): boolean {
-  const isAuthenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
-  const vaults = useExecutorVaults(isAuthenticated && Boolean(accessTokenMemory.get()));
-  return (vaults.data?.length ?? 0) > 0;
-}
 
 /** Số lời mời làm Người thực thi đang chờ; 0 khi chưa đăng nhập, đang tải hoặc lỗi. */
 function usePendingInvitationCount(): number {
@@ -112,8 +101,7 @@ export function OwnerWorkspace({
   // Cùng query với ô gói dịch vụ; quá hạn điểm danh thì hiện dải cảnh báo ân hạn đầu mọi trang.
   const vault = useOwnerVault(showOwnerService);
   const lockReason = getVaultLockReason(vault.data);
-  const showSwitchRole = useCanSwitchToExecutor();
-  // Lời mời đang chờ hiện ở chân sidebar: người chưa là Executor không có nút chuyển vai để tìm lời mời.
+  // Lời mời đang chờ hiện ở chân sidebar. Chủ kho không có nút sang vai Người thực thi: Executor là nhân sự của công ty.
   const pendingInvitations = usePendingInvitationCount();
   const [navigationOpen, setNavigationOpen] = useState(false);
   return (
@@ -177,17 +165,6 @@ export function OwnerWorkspace({
                 <InvitationCountBadge count={pendingInvitations} />
               </Link>
             )}
-            {showSwitchRole && (
-              <Link
-                to={ROUTES.EXECUTOR.ROOT}
-                // Từ 768px trở lên chân khung đã có nút chuyển vai (xem owner-workspace.css), nên mục này chỉ cho điện thoại.
-                className="owner-nav-link owner-nav-link--phone-only"
-                onClick={() => setNavigationOpen(false)}
-              >
-                <ArrowLeftRight className="size-[18px] shrink-0" aria-hidden="true" />
-                Sang vai Người thực thi
-              </Link>
-            )}
             <SwitchToRecipientLink
               className="owner-nav-link owner-nav-link--phone-only"
               onNavigate={() => setNavigationOpen(false)}
@@ -206,15 +183,6 @@ export function OwnerWorkspace({
               <Mail className="size-4 shrink-0" aria-hidden="true" />
               Lời mời
               <InvitationCountBadge count={pendingInvitations} />
-            </Link>
-          )}
-          {showSwitchRole && (
-            <Link
-              to={ROUTES.EXECUTOR.ROOT}
-              className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#E0C486] px-3 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
-            >
-              <ArrowLeftRight className="size-4 shrink-0" aria-hidden="true" />
-              Sang vai Người thực thi
             </Link>
           )}
           <SwitchToRecipientLink className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#E0C486] px-3 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold" />

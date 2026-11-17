@@ -76,7 +76,7 @@ export function MyInvitationsInbox() {
     <div className="space-y-6">
       {acceptedOwner && (
         <Notice tone="success" role="status" title="Bạn đã là Người thực thi">
-          Cho kho của {acceptedOwner}. Nút Sang vai Người thực thi đã hiện ở thanh bên.
+          Cho kho của {acceptedOwner}. Kho này đã có trong danh sách kho bạn đang làm việc.
         </Notice>
       )}
       <Panel title="Đang chờ bạn trả lời" labelledBy="pending-invitations-heading">
