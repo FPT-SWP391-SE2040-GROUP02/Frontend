@@ -33,8 +33,6 @@ const status = {
   spoofCheckPassed: null,
   createdAt: null,
   completedAt: null,
-  purpose: "OWNER_ENROLLMENT" as const,
-  identityMatch: "NOT_CHECKED" as const,
   backSideChecked: true,
 };
 const front = (residenceAddress: string) => ({
@@ -43,7 +41,6 @@ const front = (residenceAddress: string) => ({
   fullName: "NGUYEN VAN A",
   dateOfBirth: "11/11/2000",
   residenceAddress,
-  identityMatch: "NOT_CHECKED" as const,
   canMatchFace: true,
   expiresAt: null,
   warnings: [],
@@ -88,11 +85,7 @@ function setup() {
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <EkycUploads
-            purpose="OWNER_ENROLLMENT"
-            canComplete={false}
-            onComplete={() => undefined}
-          />
+          <EkycUploads />
         </MemoryRouter>
       </QueryClientProvider>
     </Provider>,

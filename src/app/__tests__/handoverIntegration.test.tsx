@@ -4,7 +4,7 @@ import { AxiosError, AxiosHeaders } from "axios";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
-import { MemoryRouter, Route, Routes, useNavigate } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import type { ReactNode } from "react";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { apiClient } from "@/shared/api/axiosClient";
@@ -16,8 +16,6 @@ import { InvitationPanel } from "@/features/handover/ui/InvitationPanel";
 import { deathCaseService } from "@/features/death-case/api/deathCaseService";
 import { ProtectedRoute } from "@/app/routes/ProtectedRoute";
 import { ExecutorOverviewPage } from "@/pages/executor/ExecutorOverviewPage";
-import { CameraCheckPage } from "@/pages/ekyc/CameraCheckPage";
-import { ROUTES } from "@/shared/config/routes.config";
 
 const originalAdapter = apiClient.defaults.adapter;
 let client: QueryClient;
@@ -71,7 +69,6 @@ it("does not submit selfie before the OCR confirmation and keeps OCR out of the 
         fullName: "Fixture",
         dateOfBirth: "2000-01-01",
         residenceAddress: "fixture",
-        identityMatch: "NOT_CHECKED",
         canMatchFace: true,
         expiresAt: CREATED_AT,
         warnings: [],
@@ -86,15 +83,11 @@ it("does not submit selfie before the OCR confirmation and keeps OCR out of the 
         spoofCheckPassed: null,
         createdAt: null,
         completedAt: null,
-        purpose: "OWNER_ENROLLMENT",
-        identityMatch: "NOT_CHECKED",
         backSideChecked: true,
       };
     return {};
   });
-  setup(
-    <EkycUploads purpose="OWNER_ENROLLMENT" canComplete={false} onComplete={() => undefined} />,
-  );
+  setup(<EkycUploads />);
   // Bước consent
   for (const box of screen.getAllByRole("checkbox")) fireEvent.click(box);
   fireEvent.click(screen.getByRole("button", { name: "Đồng ý và bắt đầu" }));
@@ -133,124 +126,6 @@ it("does not submit selfie before the OCR confirmation and keeps OCR out of the 
   ).not.toContain("012345678901");
   expect(client.getMutationCache().getAll()).toHaveLength(0);
 });
-it("only allows Beneficiary identity-complete when PASSED + MATCHED + bound verificationId", async () => {
-  // Mock toàn bộ flow liveness: start → frame → complete đều trả response đã pass.
-  const post = vi.spyOn(apiClient, "post").mockImplementation(async (url, _body) => {
-    if (url === "/ekyc/consent")
-      return {
-        purpose: "BENEFICIARY_CLAIM",
-        noticeVersion: "2026-10-v1",
-        consentedAt: CREATED_AT,
-        expiresAt: CREATED_AT,
-      };
-    if (url === "/ekyc/document")
-      return {
-        verificationId: CONTAINER_ID,
-        idNumber: "012345678901",
-        fullName: "Fixture",
-        dateOfBirth: "2000-01-01",
-        residenceAddress: "fixture",
-        identityMatch: "NOT_CHECKED",
-        canMatchFace: true,
-        expiresAt: CREATED_AT,
-        warnings: [],
-      };
-    if (url === "/ekyc/document-back" || url === "/ekyc/document/confirm")
-      return {
-        status: "PENDING",
-        verificationId: CONTAINER_ID,
-        citizenIdLast4: "8901",
-        faceMatchScore: null,
-        matchThreshold: 0.363,
-        spoofCheckPassed: null,
-        createdAt: null,
-        completedAt: null,
-        purpose: "BENEFICIARY_CLAIM",
-        identityMatch: "NOT_CHECKED",
-        backSideChecked: true,
-      };
-    if (url === "/ekyc/liveness/start" || url === "/ekyc/liveness/frame")
-      return {
-        actions: [{ key: "blink", label: "Chớp mắt" }],
-        completed: ["blink"],
-        currentIndex: 1,
-        prompt: "Xong.",
-        calibrated: true,
-        challengeCompleted: true,
-        padPassed: true,
-        passed: true,
-        failedReason: "",
-        frameHint: "",
-        expiresInSeconds: url === "/ekyc/liveness/start" ? 90 : null,
-      };
-    if (url === "/ekyc/liveness/complete")
-      return {
-        status: "PASSED",
-        verificationId: CONTAINER_ID,
-        citizenIdLast4: "8901",
-        faceMatchScore: 0.42,
-        matchThreshold: 0.363,
-        spoofCheckPassed: true,
-        createdAt: null,
-        completedAt: null,
-        purpose: "BENEFICIARY_CLAIM",
-        identityMatch: "MATCHED",
-        backSideChecked: true,
-      };
-    if (typeof url === "string" && url.startsWith("/handover/turns/"))
-      return { id: CONTAINER_ID, status: "READY_TO_ACCEPT" };
-    return {};
-  });
-  const get = vi.spyOn(apiClient, "get").mockImplementation(async (url) => {
-    if (url === "/ekyc/me")
-      return {
-        status: "PASSED",
-        verificationId: CONTAINER_ID,
-        citizenIdLast4: "8901",
-        faceMatchScore: 0.42,
-        matchThreshold: 0.363,
-        spoofCheckPassed: true,
-        createdAt: null,
-        completedAt: null,
-        purpose: "BENEFICIARY_CLAIM",
-        identityMatch: "MATCHED",
-        backSideChecked: true,
-      };
-    return {};
-  });
-  setup(
-    <Routes>
-      <Route path={ROUTES.BENEFICIARY.EKYC_CAMERA} element={<CameraCheckPage />} />
-    </Routes>,
-    `${ROUTES.BENEFICIARY.EKYC_CAMERA}?turnId=${CONTAINER_ID}`,
-  );
-  // Bấm consent
-  for (const box of await screen.findAllByRole("checkbox")) fireEvent.click(box);
-  fireEvent.click(await screen.findByRole("button", { name: "Đồng ý và bắt đầu" }));
-  // Front + back
-  fireEvent.change(await screen.findByLabelText("Ảnh mặt trước giấy tờ"), {
-    target: { files: [new File(["fixture"], "id.png", { type: "image/png" })] },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Đọc thông tin" }));
-  // Mặt sau bắt buộc trước khi sang bước camera.
-  fireEvent.change(await screen.findByLabelText("Ảnh mặt sau giấy tờ"), {
-    target: { files: [new File(["fixture"], "back.png", { type: "image/png" })] },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Đọc mặt sau" }));
-  await screen.findByText(/Đã nhận ảnh mặt sau/);
-  fireEvent.click(await screen.findByRole("button", { name: "Tiếp tục so khớp mặt" }));
-  // Xác nhận bản khai → bước liveness
-  const startLiveness = await screen.findByRole("button", {
-    name: "Bắt đầu thử thách camera",
-  });
-  fireEvent.click(startLiveness);
-  // Không có camera trong jsdom; start sẽ fail, hiển thị error và nút thử lại.
-  // Quan trọng: flow không gọi /ekyc/face-match.
-  const calls = post.mock.calls.map((c) => c[0]);
-  expect(calls).not.toContain("/ekyc/face-match");
-  // mock có tham số body để TS dùng hết tham chiếu; ta không sử dụng trong regression này.
-  void get;
-});
 it("does not call face-match before liveness is configured", async () => {
   const post = vi.spyOn(apiClient, "post").mockImplementation(async (url) => {
     if (typeof url === "string" && url.startsWith("/ekyc/face-match")) {
@@ -258,14 +133,7 @@ it("does not call face-match before liveness is configured", async () => {
     }
     return {};
   });
-  setup(
-    <EkycUploads
-      purpose="BENEFICIARY_CLAIM"
-      turnId={null}
-      canComplete={false}
-      onComplete={() => undefined}
-    />,
-  );
+  setup(<EkycUploads />);
   // consent bị pending vì post trả rỗng; đây chỉ là regression: face-match không bao giờ gọi.
   for (const box of screen.getAllByRole("checkbox")) fireEvent.click(box);
   fireEvent.click(screen.getByRole("button", { name: "Đồng ý và bắt đầu" }));
@@ -401,44 +269,4 @@ it("uses the real death-case routes and parses away any full ID accidentally add
     expect.objectContaining({ etag: "case-v1" }),
   );
   expect(JSON.stringify(result)).not.toContain("012345678901");
-});
-
-it("never uses a cached passing verification to complete a different turn", async () => {
-  const oldStatus = {
-    status: "PASSED",
-    verificationId: VAULT_ID,
-    citizenIdLast4: "8901",
-    faceMatchScore: 0.42,
-    matchThreshold: 0.363,
-    spoofCheckPassed: true,
-    createdAt: null,
-    completedAt: null,
-    purpose: "BENEFICIARY_CLAIM",
-    identityMatch: "MATCHED",
-    backSideChecked: true,
-  };
-  vi.spyOn(apiClient, "get").mockResolvedValue(oldStatus);
-  const post = vi.spyOn(apiClient, "post");
-  function SwitchTurn() {
-    const navigate = useNavigate();
-    return (
-      <>
-        <CameraCheckPage />
-        <button onClick={() => navigate(ROUTES.BENEFICIARY.EKYC_CAMERA + "?turnId=" + VAULT_ID)}>
-          Đổi lượt
-        </button>
-      </>
-    );
-  }
-  setup(<SwitchTurn />, ROUTES.BENEFICIARY.EKYC_CAMERA + "?turnId=" + CONTAINER_ID);
-  await screen.findByRole("button", { name: "Đồng ý và bắt đầu" });
-  expect(
-    screen.queryByRole("button", { name: "Hoàn tất danh tính lượt nhận" }),
-  ).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Đổi lượt" }));
-  await screen.findByRole("button", { name: "Đồng ý và bắt đầu" });
-  expect(
-    screen.queryByRole("button", { name: "Hoàn tất danh tính lượt nhận" }),
-  ).not.toBeInTheDocument();
-  expect(post).not.toHaveBeenCalled();
 });

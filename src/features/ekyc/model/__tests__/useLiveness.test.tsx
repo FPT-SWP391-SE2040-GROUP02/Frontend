@@ -196,8 +196,6 @@ describe("useLiveness", () => {
       spoofCheckPassed: true,
       createdAt: null,
       completedAt: null,
-      purpose: "BENEFICIARY_CLAIM",
-      identityMatch: "MATCHED",
       backSideChecked: true,
     });
     // Stub captureFrame indirectly: video.readyState mocked ở stubMediaDevices; canvas cần toBlob.

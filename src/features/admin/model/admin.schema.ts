@@ -104,8 +104,8 @@ export type AdminUsersQuery = z.infer<typeof adminUsersQuerySchema>;
  * Theo AdminController và OperationsResponses/OperationsRequests của Backend.
  * ------------------------------------------------------------------------- */
 
-/** `HoldType` của Backend. OWNER_ALIVE chỉ gỡ được khi Verifier kết luận (BR-71). */
-export const HOLD_TYPES = ["OWNER_ALIVE", "DISPUTE", "ADMIN"] as const;
+/** `HoldType` của Backend. */
+export const HOLD_TYPES = ["DISPUTE", "ADMIN"] as const;
 /** `HoldStatus` của Backend. */
 export const HOLD_STATUSES = ["ACTIVE", "RELEASED"] as const;
 /** Phạm vi Admin được đặt hold (HoldService chỉ nhận VAULT hoặc CONTAINER). */

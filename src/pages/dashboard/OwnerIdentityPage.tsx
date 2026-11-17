@@ -5,7 +5,7 @@ import { EkycStatusPanel } from "@/features/ekyc/ui/EkycStatusPanel";
 import { ROUTES } from "@/shared/config/routes.config";
 import { useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
 
-/** Luồng Chủ kho riêng; không dùng trang xác minh Người nhận hoặc suy diễn quyền từ URL. */
+/** eKYC của Chủ kho; không suy diễn quyền từ URL. */
 export function OwnerIdentityPage() {
   const client = useQueryClient();
   const vault = useOwnerVault(true);
@@ -22,8 +22,6 @@ export function OwnerIdentityPage() {
         ← Trở về Tổng quan
       </Link>
       <EkycStatusPanel
-        purpose="OWNER_ENROLLMENT"
-        turnId={null}
         ownerPlanPurchased={purchased}
         onVerified={() => {
           void client.invalidateQueries({ queryKey: ["plan-setup"] });

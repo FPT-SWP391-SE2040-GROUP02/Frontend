@@ -98,11 +98,11 @@ export const LANDING_CONTENT = {
         tag: "02 · Người thực thi",
         title: "Bốn vai, không ai nắm toàn quyền một mình",
         detail:
-          "Người thực thi báo tin, Người xét duyệt kiểm tra độc lập, Người nhận xác minh danh tính. Hai vai đầu chỉ xác nhận và không đọc được nội dung kho.",
+          "Người thực thi báo tin, Người xét duyệt kiểm tra độc lập, Người nhận được xác minh danh tính. Hai vai đầu chỉ xác nhận và không đọc được nội dung kho.",
         points: [
           "Chủ kho là người duy nhất lập và sửa kho",
           "Người thực thi và Người xét duyệt không mở được nội dung",
-          "Người nhận chỉ được mở sau khi xác minh eKYC",
+          "Người nhận chỉ được mở sau khi được xác minh danh tính",
         ],
         visualTitle: "Các vai trong kế hoạch",
         rows: [
@@ -127,7 +127,7 @@ export const LANDING_CONTENT = {
           { title: "Không phản hồi điểm danh", detail: "Bắt đầu" },
           { title: "Người thực thi báo tin", detail: "Lớp 1" },
           { title: "Người xét duyệt xác nhận", detail: "Lớp 2" },
-          { title: "Người nhận xác minh eKYC", detail: "Lớp 3" },
+          { title: "Người nhận được xác minh danh tính", detail: "Lớp 3" },
           { title: "{grantDays} ngày để tải về", detail: "Hoàn tất" },
         ],
       },
@@ -149,7 +149,7 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Người nhận xác minh danh tính",
-        detail: "eKYC cơ bản để đúng người mới nhận được kho.",
+        detail: "Người xét duyệt kiểm tra hồ sơ để đúng người mới nhận được kho.",
       },
       {
         title: "Điểm danh để dừng",
@@ -216,8 +216,7 @@ export const LANDING_CONTENT = {
     },
     {
       title: "Xác minh ở mức cơ bản",
-      detail:
-        "eKYC giúp nhận diện người nhận, nhưng chưa có giá trị pháp lý như thủ tục công chứng.",
+      detail: "eKYC giúp nhận diện Chủ kho, nhưng chưa có giá trị pháp lý như thủ tục công chứng.",
     },
     {
       title: "Không thay thế di chúc",

@@ -42,8 +42,6 @@ const statusOk = {
   spoofCheckPassed: true,
   createdAt: null,
   completedAt: null,
-  purpose: "BENEFICIARY_CLAIM" as const,
-  identityMatch: "MATCHED" as const,
   backSideChecked: true,
 };
 
