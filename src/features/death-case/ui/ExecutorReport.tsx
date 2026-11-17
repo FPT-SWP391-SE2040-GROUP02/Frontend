@@ -161,6 +161,12 @@ function ReportIntro({
         Kho và tài khoản của {vault.ownerFullName} bị khóa ngay khi bạn nộp hồ sơ, không hoàn tác
         được.
       </Notice>
+      {vault.planStatus === "ACTIVE" && (
+        <Notice tone="warning" title="Chủ kho vẫn đang điểm danh bình thường">
+          Kế hoạch của {vault.ownerFullName} chưa quá hạn điểm danh. Chỉ mở hồ sơ khi bạn đã có giấy
+          chứng tử. Nếu chỉ chưa liên lạc được, hãy chờ tới khi kế hoạch quá hạn rồi điểm danh thay.
+        </Notice>
+      )}
       {/* Lưới 12 cột: việc chính (mở hồ sơ) 7 cột trái, nút hành động chính ở cuối-phải của thẻ (chữ Z); "điều gì xảy ra tiếp" 5 cột phải. */}
       <div className="grid gap-6 xl:grid-cols-12 xl:items-start">
         <div className="min-w-0 xl:col-span-7">
