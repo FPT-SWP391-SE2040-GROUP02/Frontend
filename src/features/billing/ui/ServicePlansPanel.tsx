@@ -2,7 +2,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, ChevronDown, Minus, ShieldCheck } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
-import { useServerOffsetMs } from "@/shared/clock/useServerNow";
 import {
   formatVaultServiceExpiry,
   getDisplayedServiceTier,
@@ -66,9 +65,8 @@ function ServicePlansContent({
   const years = termOptions.includes(pickedYears) ? pickedYears : (termOptions[0] ?? pickedYears);
   const [selectedTier, setSelectedTier] = useState<VaultResponse["serviceTier"] | null>(null);
   // So hạn dịch vụ với giờ hệ thống (có thể đang giả lập), không phải giờ máy.
-  const offsetMs = useServerOffsetMs();
   const [clientNow, setNow] = useState(Date.now);
-  const now = clientNow + offsetMs;
+  const now = clientNow;
   // true = người dùng mở bước gia hạn từ nút ở phần Gói hiện tại (hạng mặc định là hạng hiện tại).
   const [renewing, setRenewing] = useState(false);
   const opener = useRef<HTMLButtonElement | null>(null);

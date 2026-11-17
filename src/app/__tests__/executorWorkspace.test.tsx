@@ -677,6 +677,29 @@ describe("Executor report", () => {
     expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/death-case`);
   });
 
+  it("warns the Executor that the Owner is still checking in while the plan is ACTIVE", async () => {
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") return Promise.resolve([vault({ planStatus: "ACTIVE" })]);
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    expect(await screen.findByText("Chủ kho vẫn đang điểm danh bình thường")).toBeInTheDocument();
+    // Cảnh báo không khóa nút: Backend vẫn cho mở hồ sơ khi kế hoạch đang chạy (BR-43).
+    expect(screen.getByRole("button", { name: "Mở hồ sơ chứng tử" })).toBeEnabled();
+  });
+
+  it("does not show the still-checking-in warning once the plan is overdue", async () => {
+    vi.spyOn(apiClient, "get").mockImplementation((url) => {
+      if (url === "/executor/vaults") {
+        return Promise.resolve([vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true })]);
+      }
+      return Promise.reject(new Error(`unexpected ${String(url)}`));
+    });
+    setup("/executor/report");
+    expect(await screen.findByText("Hãy chắc chắn trước khi báo tin")).toBeInTheDocument();
+    expect(screen.queryByText("Chủ kho vẫn đang điểm danh bình thường")).not.toBeInTheDocument();
+  });
+
   it("cancels a draft only after confirming, then goes back to the overview", async () => {
     let open = true;
     const remove = vi.spyOn(apiClient, "delete").mockImplementation(() => {

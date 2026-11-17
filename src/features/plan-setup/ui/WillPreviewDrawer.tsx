@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { X } from "lucide-react";
 import type { z } from "zod";
@@ -98,7 +98,16 @@ function WillDrawerBody({
   onGapClick: (target: WillGapTarget) => void;
 }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
-  const identityQuery = useWillIdentity(vaultId, open);
+  // PIN đã nhập khi mở khung: dùng lại để tải lại danh tính và điền sẵn ô ký; mất khi khung đóng.
+  const pinRef = useRef("");
+  const [verifiedPin, setVerifiedPin] = useState("");
+  const identityQuery = useWillIdentity(vaultId, open, {
+    getPin: () => pinRef.current,
+    remember: (pin) => {
+      pinRef.current = pin;
+      setVerifiedPin(pin);
+    },
+  });
   const [notice, setNotice] = useState<WillSignNotice | null>(null);
 
   let ownerFallback = { fullName: "", email: "" };
@@ -192,6 +201,7 @@ function WillDrawerBody({
           key={`${vaultId}:${setup.configVersion}:${setup.policyVersion}:${setup.planStatus}`}
           vaultId={vaultId}
           setup={setup}
+          initialPin={verifiedPin}
           onNotice={setNotice}
         />
       )}

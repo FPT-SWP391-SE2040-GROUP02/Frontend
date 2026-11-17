@@ -40,8 +40,8 @@ export function WorkspaceShell({
         Đến nội dung chính
       </a>
       {/* Từ lg cột menu đứng yên khi cuộn và cao bằng màn hình, để chân menu (chuyển vai, tài khoản, đăng xuất) luôn thấy
-          được. Chừa chỗ cho dải "Đang giả lập ngày" (biến --demo-banner-height do DemoClockBanner đặt). */}
-      <aside className="flex flex-col border-b border-heritage-border bg-heritage-primary text-heritage-surface lg:sticky lg:top-[var(--demo-banner-height,0px)] lg:h-[calc(100vh_-_var(--demo-banner-height,0px))] lg:self-start lg:overflow-y-auto lg:border-b-0">
+          được. */}
+      <aside className="flex flex-col border-b border-heritage-border bg-heritage-primary text-heritage-surface lg:sticky lg:top-0 lg:h-screen lg:self-start lg:overflow-y-auto lg:border-b-0">
         <div className="flex min-h-20 shrink-0 items-center justify-between gap-2 px-4 lg:px-5">
           <Link
             to={homeHref}
