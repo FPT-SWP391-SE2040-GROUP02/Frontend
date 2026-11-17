@@ -16,6 +16,7 @@ import { CertificateInfoPanel, CertificateInfoSummary } from "./CertificateInfoP
 import { executorVaultsKey } from "../model/useExecutorVaults";
 import { deathCaseService } from "../api/deathCaseService";
 import { buttonStyles, Chip, formatDateTime, InfoRow, Panel } from "@/shared/ui/heritageKit";
+import { caseCode } from "@/shared/lib/caseCode";
 import { caseStatusInfo } from "./executorLabels";
 import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
@@ -44,8 +45,8 @@ const formatSize = (bytes: number) =>
     : `${Math.max(1, Math.round(bytes / 1024)).toLocaleString("vi-VN")} KB`;
 
 /** Mã hồ sơ ngắn hiển thị cho người nộp, lấy từ năm tạo và đầu mã hồ sơ. */
-function caseCode(record: DeathCase): string {
-  return `HS-${record.createdAt.slice(0, 4)}-${record.id.slice(0, 4).toUpperCase()}`;
+function displayCaseCode(record: DeathCase): string {
+  return `#${caseCode(record.id)}`;
 }
 
 /** Danh sách các phiên bản (bản 1 gửi lần đầu, bản 2 trở đi là bổ sung). */
@@ -130,7 +131,7 @@ function Receipt({ record }: { record: DeathCase }) {
   return (
     <Panel title="Giấy tiếp nhận hồ sơ" action={<Chip tone="success">Đã nộp</Chip>}>
       <dl className="divide-y divide-heritage-border">
-        <InfoRow label="Mã hồ sơ">{caseCode(record)}</InfoRow>
+        <InfoRow label="Mã hồ sơ">{displayCaseCode(record)}</InfoRow>
         <InfoRow label="Trạng thái">{status ? status.label : record.status}</InfoRow>
         <InfoRow label="Ngày nộp">
           {version.submittedAt ? formatDateTime(version.submittedAt) : "—"}
@@ -276,240 +277,257 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
 
   if (!version.isDraft) {
     return (
-      <div className="space-y-6">
-        <Receipt record={record} />
-        <Panel title="Sau khi nộp">
-          <p className="mb-4 text-sm leading-6 text-heritage-muted">{reviewText(record.status)}</p>
-          {["UNDER_REVIEW", "SUPPLEMENT_REQUIRED"].includes(record.status) && (
-            <button
-              type="button"
-              className={buttonStyles.outline}
-              disabled={action.pending}
-              onClick={() => {
-                action.reset();
-                setAskingVersion(true);
-              }}
-            >
-              Tạo bản bổ sung
-            </button>
-          )}
-          {notice && !action.error && (
-            <p role="status" className="mt-3 text-sm">
-              {notice}
+      <div className="grid gap-6 xl:grid-cols-12 xl:items-start">
+        <div className="min-w-0 xl:col-span-8">
+          <Receipt record={record} />
+        </div>
+        <div className="min-w-0 space-y-6 xl:col-span-4">
+          <Panel title="Sau khi nộp">
+            <p className="mb-4 text-sm leading-6 text-heritage-muted">
+              {reviewText(record.status)}
             </p>
-          )}
-          {askingVersion && (
-            <Dialog
-              open
-              onOpenChange={(open) => !open && !action.pending && setAskingVersion(false)}
-            >
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Tạo bản bổ sung?</DialogTitle>
-                  <DialogDescription>
-                    Bản bổ sung chép sẵn giấy tờ của bản đã nộp để bạn thay hoặc thêm. Trong lúc bạn
-                    soạn, Người xét duyệt chưa duyệt được hồ sơ cho tới khi bạn nộp bản mới. Bản đã
-                    nộp giữ nguyên.
-                  </DialogDescription>
-                </DialogHeader>
-                {action.error && (
-                  <p role="alert" className="text-sm text-destructive">
-                    {action.error}
-                  </p>
-                )}
-                <DialogFooter>
-                  <button
-                    type="button"
-                    className={buttonStyles.outline}
-                    disabled={action.pending}
-                    onClick={() => setAskingVersion(false)}
-                  >
-                    Hủy
-                  </button>
-                  <button
-                    type="button"
-                    className={buttonStyles.gold}
-                    disabled={action.pending}
-                    onClick={() =>
-                      void action.execute(
-                        () => deathCaseService.newVersion(record.id, record.etag),
-                        (result) => {
-                          setAskingVersion(false);
-                          publish(
-                            result,
-                            `Đã tạo bản bổ sung số ${result.currentVersion.versionNo}. Thay giấy tờ cần thiết rồi bấm “Nộp bản bổ sung”.`,
-                          );
-                        },
-                      )
-                    }
-                  >
-                    Tạo bản bổ sung
-                  </button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
-        </Panel>
-        {supplement && <VersionTimeline record={record} />}
+            {["UNDER_REVIEW", "SUPPLEMENT_REQUIRED"].includes(record.status) && (
+              <button
+                type="button"
+                className={buttonStyles.outline}
+                disabled={action.pending}
+                onClick={() => {
+                  action.reset();
+                  setAskingVersion(true);
+                }}
+              >
+                Tạo bản bổ sung
+              </button>
+            )}
+            {notice && !action.error && (
+              <p role="status" className="mt-3 text-sm">
+                {notice}
+              </p>
+            )}
+            {askingVersion && (
+              <Dialog
+                open
+                onOpenChange={(open) => !open && !action.pending && setAskingVersion(false)}
+              >
+                <DialogContent className="sm:max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>Tạo bản bổ sung?</DialogTitle>
+                    <DialogDescription>
+                      Bản bổ sung chép sẵn giấy tờ của bản đã nộp để bạn thay hoặc thêm. Trong lúc
+                      bạn soạn, Người xét duyệt chưa duyệt được hồ sơ cho tới khi bạn nộp bản mới.
+                      Bản đã nộp giữ nguyên.
+                    </DialogDescription>
+                  </DialogHeader>
+                  {action.error && (
+                    <p role="alert" className="text-sm text-destructive">
+                      {action.error}
+                    </p>
+                  )}
+                  <DialogFooter>
+                    <button
+                      type="button"
+                      className={buttonStyles.outline}
+                      disabled={action.pending}
+                      onClick={() => setAskingVersion(false)}
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      type="button"
+                      className={buttonStyles.gold}
+                      disabled={action.pending}
+                      onClick={() =>
+                        void action.execute(
+                          () => deathCaseService.newVersion(record.id, record.etag),
+                          (result) => {
+                            setAskingVersion(false);
+                            publish(
+                              result,
+                              `Đã tạo bản bổ sung số ${result.currentVersion.versionNo}. Thay giấy tờ cần thiết rồi bấm “Nộp bản bổ sung”.`,
+                            );
+                          },
+                        )
+                      }
+                    >
+                      Tạo bản bổ sung
+                    </button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+          </Panel>
+          {supplement && <VersionTimeline record={record} />}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Panel title={supplement ? "Bản bổ sung" : "Soạn hồ sơ báo tin"}>
-        <p className="text-sm">
-          Chủ kho: <span className="font-semibold">{ownerName}</span>
-        </p>
-        <p className="mt-1 text-sm text-heritage-muted">
-          Mỗi mục chỉ nộp một tệp (PDF, JPG, PNG, WEBP · tối đa {deathCaseMaxFileMb} MiB).
-        </p>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="text-sm text-heritage-muted">
-              <tr>
-                <th className="w-8 py-2">#</th>
-                <th className="py-2">Giấy tờ</th>
-                <th className="py-2">Tệp</th>
-                <th className="py-2 text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-heritage-border">
-              {DOCUMENT_ROWS.map((row, index) => {
-                const file = fileOf(row.kind);
-                const rowUploading = uploadingKind === row.kind;
-                return (
-                  <tr key={row.kind} className="align-top">
-                    <td className="py-3">{index + 1}</td>
-                    <td className="py-3 pr-3">
-                      <p className="font-semibold">{row.title}</p>
-                      <p className="text-sm text-heritage-muted">{row.hint}</p>
-                      <Chip tone={row.required ? "warning" : "neutral"}>
-                        {row.required ? "Bắt buộc" : "Nếu có"}
-                      </Chip>
-                    </td>
-                    <td className="py-3 pr-3">
-                      {file ? (
-                        <div className="flex min-w-0 items-center gap-3">
-                          {previewUrls[file.id] ? (
-                            <img
-                              src={previewUrls[file.id]}
-                              alt={`Xem trước ${file.fileName}`}
-                              className="size-11 shrink-0 rounded-xl object-cover"
-                            />
-                          ) : (
-                            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB]">
-                              <FileText className="size-5 text-heritage-muted" aria-hidden="true" />
-                            </span>
-                          )}
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold">{file.fileName}</p>
-                            <p className="text-sm text-heritage-muted">
-                              {formatSize(file.sizeBytes)} · {formatDateTime(file.uploadedAt)}
-                            </p>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-heritage-muted">Chưa có tệp</span>
-                      )}
-                      {rowUploading && (
-                        <p role="status" className="mt-2 text-sm text-heritage-muted">
-                          {uploadPercent !== null && uploadPercent < 100
-                            ? `Đang tải lên… ${uploadPercent}%`
-                            : "Đang mã hóa và lưu…"}
-                        </p>
-                      )}
-                    </td>
-                    <td className="py-3 text-right">
-                      <input
-                        ref={(element) => {
-                          inputs.current[row.kind] = element;
-                        }}
-                        type="file"
-                        hidden
-                        aria-label={`Chọn tệp: ${row.title}`}
-                        accept={ALLOWED_TYPES.join(",")}
-                        onChange={(event) => {
-                          const picked = event.target.files?.[0];
-                          event.target.value = "";
-                          void upload(row.kind, picked);
-                        }}
-                      />
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <button
-                          type="button"
-                          disabled={busy}
-                          className={file ? buttonStyles.outline : buttonStyles.dark}
-                          onClick={() => inputs.current[row.kind]?.click()}
-                        >
-                          <Upload className="size-4" aria-hidden="true" />
-                          {file ? "Thay tệp" : "Tải lên"}
-                        </button>
-                        {file && <ViewFileButton caseId={record.id} file={file} />}
-                        {file && (
-                          <button
-                            type="button"
-                            aria-label={`Xóa tệp ${file.fileName}`}
-                            disabled={busy}
-                            className={buttonStyles.danger}
-                            onClick={() => removeFile(file.id)}
-                          >
-                            Xóa
-                          </button>
-                        )}
-                      </div>
-                    </td>
+      {/* Lưới 12 cột theo luồng chữ Z: giấy tờ + thông tin trên giấy (việc phải làm) ở 7 cột trái, cam đoan và nút Nộp ở cột
+          phải 5 cột (cuối luồng đọc, dính trên màn hình rộng). Dưới xl xếp một cột theo đúng thứ tự đó. */}
+      <div className="grid gap-6 xl:grid-cols-12 xl:items-start">
+        <div className="min-w-0 space-y-6 xl:col-span-7">
+          <Panel title={supplement ? "Bản bổ sung" : "Soạn hồ sơ báo tin"}>
+            <p className="text-sm">
+              Chủ kho: <span className="font-semibold">{ownerName}</span>
+            </p>
+            <p className="mt-1 text-sm text-heritage-muted">
+              Mỗi mục chỉ nộp một tệp (PDF, JPG, PNG, WEBP · tối đa {deathCaseMaxFileMb} MiB).
+            </p>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="text-sm text-heritage-muted">
+                  <tr>
+                    <th className="w-8 py-2">#</th>
+                    <th className="py-2">Giấy tờ</th>
+                    <th className="py-2">Tệp</th>
+                    <th className="py-2 text-right">Thao tác</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        {fileError && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            {fileError}
-          </p>
-        )}
-      </Panel>
+                </thead>
+                <tbody className="divide-y divide-heritage-border">
+                  {DOCUMENT_ROWS.map((row, index) => {
+                    const file = fileOf(row.kind);
+                    const rowUploading = uploadingKind === row.kind;
+                    return (
+                      <tr key={row.kind} className="align-top">
+                        <td className="py-3">{index + 1}</td>
+                        <td className="py-3 pr-3">
+                          <p className="font-semibold">{row.title}</p>
+                          <p className="text-sm text-heritage-muted">{row.hint}</p>
+                          <Chip tone={row.required ? "warning" : "neutral"}>
+                            {row.required ? "Bắt buộc" : "Nếu có"}
+                          </Chip>
+                        </td>
+                        <td className="py-3 pr-3">
+                          {file ? (
+                            <div className="flex min-w-0 items-center gap-3">
+                              {previewUrls[file.id] ? (
+                                <img
+                                  src={previewUrls[file.id]}
+                                  alt={`Xem trước ${file.fileName}`}
+                                  className="size-11 shrink-0 rounded-xl object-cover"
+                                />
+                              ) : (
+                                <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB]">
+                                  <FileText
+                                    className="size-5 text-heritage-muted"
+                                    aria-hidden="true"
+                                  />
+                                </span>
+                              )}
+                              <div className="min-w-0">
+                                <p className="truncate font-semibold">{file.fileName}</p>
+                                <p className="text-sm text-heritage-muted">
+                                  {formatSize(file.sizeBytes)} · {formatDateTime(file.uploadedAt)}
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-heritage-muted">Chưa có tệp</span>
+                          )}
+                          {rowUploading && (
+                            <p role="status" className="mt-2 text-sm text-heritage-muted">
+                              {uploadPercent !== null && uploadPercent < 100
+                                ? `Đang tải lên… ${uploadPercent}%`
+                                : "Đang mã hóa và lưu…"}
+                            </p>
+                          )}
+                        </td>
+                        <td className="py-3 text-right">
+                          <input
+                            ref={(element) => {
+                              inputs.current[row.kind] = element;
+                            }}
+                            type="file"
+                            hidden
+                            aria-label={`Chọn tệp: ${row.title}`}
+                            accept={ALLOWED_TYPES.join(",")}
+                            onChange={(event) => {
+                              const picked = event.target.files?.[0];
+                              event.target.value = "";
+                              void upload(row.kind, picked);
+                            }}
+                          />
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <button
+                              type="button"
+                              disabled={busy}
+                              className={file ? buttonStyles.outline : buttonStyles.dark}
+                              onClick={() => inputs.current[row.kind]?.click()}
+                            >
+                              <Upload className="size-4" aria-hidden="true" />
+                              {file ? "Thay tệp" : "Tải lên"}
+                            </button>
+                            {file && <ViewFileButton caseId={record.id} file={file} />}
+                            {file && (
+                              <button
+                                type="button"
+                                aria-label={`Xóa tệp ${file.fileName}`}
+                                disabled={busy}
+                                className={buttonStyles.danger}
+                                onClick={() => removeFile(file.id)}
+                              >
+                                Xóa
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {fileError && (
+              <p role="alert" className="mt-3 text-sm text-destructive">
+                {fileError}
+              </p>
+            )}
+          </Panel>
 
-      <CertificateInfoPanel form={info} record={record} ownerName={ownerName} disabled={busy} />
-
-      <Panel title="Cam đoan và nộp hồ sơ">
-        <label className="flex min-h-11 items-start gap-3 text-sm leading-6">
-          <input
-            type="checkbox"
-            className="mt-1 size-5"
-            checked={confirmed}
-            disabled={busy}
-            onChange={(event) => setConfirmed(event.target.checked)}
-          />
-          Tôi cam đoan giấy tờ là thật, đúng người đã mất và tôi chịu trách nhiệm về hồ sơ này.
-        </label>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            className={buttonStyles.gold}
-            disabled={busy || !confirmed || !canSubmit}
-            onClick={() => {
-              action.reset();
-              setAskingSubmit(true);
-            }}
-          >
-            {supplement ? "Nộp bản bổ sung" : "Nộp hồ sơ"}
-          </button>
-          {submitHint && <span className="text-sm text-heritage-muted">{submitHint}</span>}
+          <CertificateInfoPanel form={info} record={record} ownerName={ownerName} disabled={busy} />
         </div>
-        {action.error && !askingSubmit && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            {action.error}
-          </p>
-        )}
-        {notice && !action.error && (
-          <p role="status" className="mt-3 text-sm">
-            {notice}
-          </p>
-        )}
-      </Panel>
+
+        <div className="min-w-0 xl:sticky xl:top-6 xl:col-span-5">
+          <Panel title="Cam đoan và nộp hồ sơ">
+            <label className="flex min-h-11 items-start gap-3 text-sm leading-6">
+              <input
+                type="checkbox"
+                className="mt-1 size-5"
+                checked={confirmed}
+                disabled={busy}
+                onChange={(event) => setConfirmed(event.target.checked)}
+              />
+              Tôi cam đoan giấy tờ là thật, đúng người đã mất và tôi chịu trách nhiệm về hồ sơ này.
+            </label>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                className={buttonStyles.gold}
+                disabled={busy || !confirmed || !canSubmit}
+                onClick={() => {
+                  action.reset();
+                  setAskingSubmit(true);
+                }}
+              >
+                {supplement ? "Nộp bản bổ sung" : "Nộp hồ sơ"}
+              </button>
+              {submitHint && <span className="text-sm text-heritage-muted">{submitHint}</span>}
+            </div>
+            {action.error && !askingSubmit && (
+              <p role="alert" className="mt-3 text-sm text-destructive">
+                {action.error}
+              </p>
+            )}
+            {notice && !action.error && (
+              <p role="status" className="mt-3 text-sm">
+                {notice}
+              </p>
+            )}
+          </Panel>
+        </div>
+      </div>
 
       {askingSubmit && (
         <Dialog open onOpenChange={(open) => !open && !action.pending && setAskingSubmit(false)}>

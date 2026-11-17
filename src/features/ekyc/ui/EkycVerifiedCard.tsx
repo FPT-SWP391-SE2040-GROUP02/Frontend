@@ -47,12 +47,15 @@ export function EkycVerifiedCard({
   live,
   subtitle = OWNER_SUBTITLE,
   nextStep,
+  hidePurchaseStep,
 }: {
   live: z.infer<typeof ekycStatusSchema>;
   /** Dòng phụ dưới tiêu đề. */
   subtitle?: string;
   /** Khối "Bước tiếp theo" thay cho khối mua gói của Chủ kho. */
   nextStep?: ReactNode;
+  /** Chủ kho đã có gói trả phí còn hiệu lực thì không nhắc mua gói nữa. */
+  hidePurchaseStep?: boolean;
 }) {
   let completedAt = "Không có thông tin";
   if (live.completedAt) {
@@ -121,7 +124,7 @@ export function EkycVerifiedCard({
           </div>
         ))}
       </dl>
-      {nextStep ?? ownerNextStep}
+      {nextStep ?? (hidePurchaseStep ? null : ownerNextStep)}
     </section>
   );
 }

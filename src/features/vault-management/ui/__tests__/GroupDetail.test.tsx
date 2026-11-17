@@ -128,7 +128,7 @@ describe("chi tiết gói bàn giao", () => {
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent("Gỡ người nhận khỏi gói bàn giao?");
     expect(dialog).toHaveTextContent("đưa kế hoạch về Nháp");
-    expect(dialog).toHaveTextContent("Người thực hiện phải chấp nhận lại lời mời");
+    expect(dialog).toHaveTextContent("Người thực thi phải chấp nhận lại lời mời");
     expect(dialog).toHaveTextContent("không nộp được hồ sơ chứng tử");
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục, đưa kế hoạch về Nháp" }));

@@ -361,7 +361,7 @@ function RequestSupplementModal({
         <DialogHeader>
           <DialogTitle>Từ chối hồ sơ</DialogTitle>
           <DialogDescription>
-            Dùng khi Người thực hiện nộp nhầm hoặc ghi sai thông tin. Hồ sơ được trả lại kèm lý do
+            Dùng khi Người thực thi nộp nhầm hoặc ghi sai thông tin. Hồ sơ được trả lại kèm lý do
             để họ sửa và nộp lại; kho chưa bị đóng.
           </DialogDescription>
         </DialogHeader>
@@ -374,7 +374,7 @@ function RequestSupplementModal({
           />
           <label className="block text-sm">
             <span className="font-medium text-heritage-primary">
-              Lời nhắn cho Người thực hiện {noteRequired ? "*" : "(không bắt buộc)"}
+              Lời nhắn cho Người thực thi {noteRequired ? "*" : "(không bắt buộc)"}
             </span>
             <Textarea
               value={note}
@@ -385,7 +385,7 @@ function RequestSupplementModal({
           </label>
           <CustomCheckbox
             className="min-h-11 w-full items-center!"
-            label="Tôi xác nhận từ chối này sẽ được gửi cho Người thực hiện."
+            label="Tôi xác nhận từ chối này sẽ được gửi cho Người thực thi."
             checked={confirm}
             onChange={(event) => setConfirm(event.target.checked)}
           />
@@ -459,7 +459,7 @@ function ApproveModal({
         <DialogHeader>
           <DialogTitle>Duyệt và mở kho ngay?</DialogTitle>
           <DialogDescription>
-            Bạn đã tích đủ 4 mục đối chiếu. Ngay khi bấm, hệ thống sẽ ghi tên bạn vào nhật ký, mở
+            Bạn đã tích đủ các mục đối chiếu. Ngay khi bấm, hệ thống sẽ ghi tên bạn vào nhật ký, mở
             gói tài sản và gửi lời mời cho người nhận. Việc này không hoàn tác được.
           </DialogDescription>
         </DialogHeader>

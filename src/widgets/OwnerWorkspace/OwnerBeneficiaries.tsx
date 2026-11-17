@@ -131,24 +131,27 @@ export function OwnerBeneficiaries() {
           </Link>
         </p>
       )}
-      <div className="flex justify-end">
-        <button
-          type="button"
-          className={`${buttonStyles.gold} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
-          disabled={readOnly || locked || profileLimitReached}
-          title={lockReason ?? undefined}
-          onClick={() => setAdding(true)}
-        >
-          Thêm người nhận
-        </button>
-      </div>
       <section
         aria-label="Danh sách người nhận"
         className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
       >
-        <div className="flex items-baseline justify-between gap-3">
+        {/* Tiêu đề bên trái, số lượng và nút hành động chính bên phải cùng một hàng (mắt đọc từ trái sang phải rồi gặp nút). */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-medium text-heritage-primary">Danh sách người nhận</h2>
-          <span className="text-sm font-semibold text-[#7A5B24]">{list.data.totalCount} người</span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-semibold text-[#7A5B24]">
+              {list.data.totalCount} người
+            </span>
+            <button
+              type="button"
+              className={`${buttonStyles.gold} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+              disabled={readOnly || locked || profileLimitReached}
+              title={lockReason ?? undefined}
+              onClick={() => setAdding(true)}
+            >
+              Thêm người nhận
+            </button>
+          </div>
         </div>
         <p className="mt-1 text-sm text-heritage-muted">
           Đã thêm {list.data.totalCount}/{vault.data.beneficiarySlots} người nhận,{" "}
@@ -166,7 +169,7 @@ export function OwnerBeneficiaries() {
               <caption className="sr-only">Danh sách người nhận</caption>
               <thead>
                 <tr className="border-b border-heritage-border text-sm text-heritage-muted">
-                  <th scope="col" className="py-3 pr-4 font-semibold">
+                  <th scope="col" className="min-w-[180px] py-3 pr-4 font-semibold">
                     Họ tên
                   </th>
                   <th scope="col" className="px-4 py-3 font-semibold">

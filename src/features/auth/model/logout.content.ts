@@ -20,5 +20,5 @@ export const LOGOUT_CONTENT = {
   unnamedAccount: "Tài khoản của bạn",
   dmsReminder: "Đăng xuất không thay thế điểm danh.",
   dmsGuidance:
-    "Nếu bạn đang sử dụng DMS, hãy kiểm tra kỳ điểm danh trong trang Điểm danh sinh tồn.",
+    "Nếu bạn là Chủ kho, hãy kiểm tra hạn điểm danh ở mục Điểm danh.",
 } as const;

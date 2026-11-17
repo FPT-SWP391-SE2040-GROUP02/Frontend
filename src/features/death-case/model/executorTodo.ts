@@ -30,6 +30,9 @@ export function vaultStage(vault: ExecutorVault): VaultStage {
   if (vault.planStatus === "CHECKIN_OVERDUE" || vault.checkInOverdue) {
     return { label: "Chủ kho trễ điểm danh", tone: "warning" };
   }
+  // Chỉ ACTIVE mới là "đang chạy"; Chủ kho chưa kích hoạt (DRAFT) hoặc kho đang bị tạm giữ thì chưa báo tin được.
+  if (vault.planStatus === "DRAFT") return { label: "Kế hoạch chưa kích hoạt", tone: "neutral" };
+  if (vault.planStatus === "BLOCKED") return { label: "Đang tạm giữ", tone: "warning" };
   return { label: "Kế hoạch đang chạy", tone: "success" };
 }
 
@@ -183,7 +186,7 @@ export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
   }
   if (caseStatus === "UNDER_REVIEW") {
     return {
-      title: "Chờ Người xét duyệt duyệt hồ sơ",
+      title: "Chờ Người xét duyệt xem hồ sơ",
       text: "Hồ sơ đã gửi. Bạn chưa cần làm gì, khi có kết quả hệ thống sẽ báo.",
       buttonLabel: "Xem hồ sơ",
       to: ROUTES.EXECUTOR.REPORT,
@@ -219,7 +222,7 @@ export interface JourneyStep {
 
 /**
  * "Kho đang ở đâu": chỉ 3 bước của cả kho, không theo từng người nhận:
- * Báo tin → Người xét duyệt duyệt → Bàn giao cho người nhận (dòng phụ "x/y người đã nhận xong").
+ * Báo tin → Xét duyệt → Bàn giao cho người nhận (dòng phụ "x/y người đã nhận xong").
  */
 export function vaultJourney(
   vault: ExecutorVault,
@@ -265,7 +268,7 @@ export function vaultJourney(
 
   return [
     { label: "Báo tin", state: reportState, caption: reportCaption },
-    { label: "Người xét duyệt duyệt", state: reviewState, caption: reviewCaption },
+    { label: "Xét duyệt", state: reviewState, caption: reviewCaption },
     { label: "Bàn giao cho người nhận", state: handoverState, caption: handoverCaption },
   ];
 }

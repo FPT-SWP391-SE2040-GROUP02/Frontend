@@ -43,7 +43,7 @@ export interface TurnProgress {
 export const STEP_LABELS: Record<TurnStepKey, string> = {
   invited: "Đã mời",
   agreed: "Đồng ý nhận",
-  approved: "Người xét duyệt duyệt",
+  approved: "Xét duyệt",
   key: "Nhập mã mở gói",
   received: "Tải xong",
 };
@@ -179,10 +179,10 @@ function stoppedProgress(turn: HandoverProgressTurn): TurnProgress {
 /**
  * Bước hiện tại, 5 đoạn và giờ từng bước của một lượt.
  *
- * Năm bước: Đã mời → Đồng ý nhận → Người xét duyệt duyệt biên bản → Nhập mã mở gói → Tải xong.
+ * Năm bước: Đã mời → Đồng ý nhận → Người xét duyệt kiểm tra biên bản → Nhập mã mở gói → Tải xong.
  * - Đã mời: xong khi máy chủ email nhận thư mời (invitationSentAt) hoặc khi lượt đã đi xa hơn.
  * - Đồng ý nhận: xong khi người nhận ký biên bản (recipientSignedAt) hoặc lượt đã được duyệt.
- * - Người xét duyệt duyệt: xong khi Người xét duyệt ký (documentApprovedAt) hoặc lượt đã HANDOVER_COMMITTED.
+ * - Xét duyệt: xong khi Người xét duyệt ký (documentApprovedAt) hoặc lượt đã HANDOVER_COMMITTED.
  * - Nhập mã mở gói: xong khi keyVerifiedAt có giờ. Kho không dùng mã thì không có giờ này, nên đã tải được tài sản
  *   (hoặc người nhận đã xác nhận nhận đủ) cũng coi là qua bước, giờ hiện "—".
  * - Tải xong: xong khi tải đủ tài sản hoặc người nhận đã xác nhận nhận đủ (receivedAllAt).
@@ -280,7 +280,7 @@ export function deriveTurnProgress(turn: HandoverProgressTurn): TurnProgress {
     }
   } else if (firstOpen === 2) {
     chip = "Chờ duyệt biên bản";
-    headline = "Chờ Người xét duyệt duyệt biên bản";
+    headline = "Chờ Người xét duyệt kiểm tra biên bản";
     detail = `người nhận đã ký ${formatStepTime(turn.recipientSignedAt)}`;
   } else if (firstOpen === 3) {
     group = "action";

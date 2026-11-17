@@ -19,7 +19,7 @@ const shell = {
   logout: "Đăng xuất",
   overview: "Tổng quan",
   verify: "Xác minh",
-  documents: "Biên Bản",
+  documents: "Biên bản",
   content: "Nội dung nhận",
   messages: "Lời nhắn",
 };

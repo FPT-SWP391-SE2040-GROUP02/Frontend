@@ -19,7 +19,7 @@ import { useAdminAction } from "../model/useAdminAction";
 const createUserSchema = z
   .object({
     fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
-    email: z.string().trim().email("Địa chỉ email không hợp lệ.").max(256),
+    email: z.string().trim().min(1, "Vui lòng nhập email.").email("Địa chỉ email không hợp lệ.").max(256),
     password: z.string().max(128).optional(),
     role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),
     phone: z.string().trim().max(32).optional(),

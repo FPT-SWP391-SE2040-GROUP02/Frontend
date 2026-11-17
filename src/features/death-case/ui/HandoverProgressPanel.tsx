@@ -75,7 +75,7 @@ function ProgressBody({
         ))}
       </ul>
       <p className="text-sm leading-5 text-heritage-muted">
-        Thanh bước: Mời → Đồng ý / từ chối → Người xét duyệt duyệt biên bản → Nhập mã mở gói → Tải
+        Thanh bước: Mời → Đồng ý / từ chối → Người xét duyệt kiểm tra biên bản → Nhập mã mở gói → Tải
         xong.
       </p>
     </>
@@ -110,7 +110,7 @@ export function HandoverProgressPanel({
   } else if (!query.data.handoverStarted) {
     body = (
       <p role="status">
-        Bàn giao chưa bắt đầu. Bàn giao chỉ mở sau khi Người xét duyệt duyệt hồ sơ báo tin.
+        Bàn giao chưa bắt đầu. Bàn giao chỉ mở sau khi Người xét duyệt chấp thuận hồ sơ báo tin.
       </p>
     );
   } else if (query.data.turns.length === 0) {

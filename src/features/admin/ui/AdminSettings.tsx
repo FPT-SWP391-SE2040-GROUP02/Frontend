@@ -90,7 +90,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     step: 1,
     defaultValue: "2",
     description:
-      "Số thư nhắc chủ kho trước hạn điểm danh (từ 1 đến 5). Số ngày của từng thư đặt ở các dòng bên dưới, chỉ dùng đủ số thư ở đây. Áp dụng ngay cho cả kỳ đang chạy.",
+      "Số thư nhắc chủ kho trước hạn điểm danh (từ 1 đến 5). Số ngày của từng thư đặt ở các dòng bên dưới, chỉ các dòng đầu, theo đúng số thư ở đây, được dùng. Áp dụng ngay cho cả kỳ đang chạy.",
     src: "CheckInRules.DueReminderCount",
     dataType: "NUMBER",
   },
@@ -103,7 +103,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     step: 1,
     defaultValue: "7",
     description:
-      "Thư xa hạn nhất, gửi trước hạn điểm danh chừng này ngày (từ 2 đến 60). Phải lớn hơn số ngày của thư thứ hai, nếu không hệ thống tự nâng lên.",
+      "Thư xa hạn nhất, gửi trước hạn điểm danh chừng này ngày (từ 2 đến 60). Phải lớn hơn số ngày của thư thứ hai, nếu không hệ thống sẽ tự tăng số ngày cho hợp lệ.",
     src: "CheckInRules.FirstReminderDaysBeforeDue",
     dataType: "NUMBER",
   },
@@ -1076,7 +1076,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-heritage-border bg-heritage-surface p-4">
             <div>
               <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
-                Chính sách CS-2026.11 đang áp dụng
+                Bảng giá phiên bản 2026.11 đang áp dụng
               </span>
               <p className="mt-1 text-sm text-heritage-muted">
                 Mỗi gói một cột, mỗi kỳ bán một dòng. Chỉnh giá, hạn mức, bật hoặc tắt bán, thêm

@@ -3,6 +3,28 @@ import { auditActionValues } from "../model/auditLog.schema";
 import { ACTION_LABELS } from "../model/auditLogLabels";
 import type { AuditLogFilterState } from "../model/auditLog.types";
 
+/** Hành động đã gỡ hoặc đổi tên: còn trong dữ liệu cũ nên vẫn hiện ở bảng, nhưng không đưa vào bộ lọc. */
+const REMOVED_ACTIONS: ReadonlySet<string> = new Set([
+  "INCIDENT_ASSIGNED",
+  "INCIDENT_RESOLVED",
+  "OBJECTION_REPORTED",
+  "OBJECTION_CONCLUDED",
+  "CONTAINER_ARCHIVED", // đã đổi tên thành CONTAINER_REMOVED, chỉ còn trong nhật ký cũ
+]);
+
+/** Mỗi nhãn một lần (CONTAINER_ARCHIVED và CONTAINER_REMOVED cùng nhãn), bỏ hành động của tính năng đã gỡ. */
+const ACTION_OPTIONS = (() => {
+  const seen = new Set<string>();
+  const options: { value: (typeof auditActionValues)[number]; label: string }[] = [];
+  for (const action of auditActionValues) {
+    const label = ACTION_LABELS[action];
+    if (REMOVED_ACTIONS.has(action) || seen.has(label)) continue;
+    seen.add(label);
+    options.push({ value: action, label });
+  }
+  return options;
+})();
+
 /**
  * @description Bộ lọc URL-driven. Mỗi thay đổi action/from/to cập nhật URL ngay (URL là nguồn chính)
  * và `onApply` đặt lại page=1. Bỏ nút Áp dụng riêng để khỏi gửi lặp.
@@ -27,10 +49,7 @@ export function AuditLogFilters({
           label="Loại thao tác"
           value={state.action ?? ""}
           allLabel="Mọi hành động"
-          options={auditActionValues.map((action) => ({
-            value: action,
-            label: ACTION_LABELS[action],
-          }))}
+          options={ACTION_OPTIONS}
           onChange={(raw) =>
             onApply({
               action: raw === "" ? undefined : (raw as (typeof auditActionValues)[number]),

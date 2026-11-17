@@ -114,7 +114,7 @@ describe("Owner dashboard from server metadata", () => {
     ];
     vi.mocked(planSetupService.get).mockResolvedValue(setup);
     mount();
-    const step = await screen.findByText("Người thực hiện chính chấp nhận nhiệm vụ");
+    const step = await screen.findByText("Người thực thi chính chấp nhận nhiệm vụ");
     expect(within(step.closest("li")!).getByRole("link", { name: "Làm ngay" })).toBeInTheDocument();
   });
   it("does not request private resources without a ready session", () => {

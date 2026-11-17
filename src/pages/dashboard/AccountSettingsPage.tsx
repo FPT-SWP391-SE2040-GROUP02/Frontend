@@ -16,8 +16,8 @@ function VaultPinSection() {
 }
 
 /**
- * Nội dung cài đặt dùng chung cho mọi không gian (Chủ kho, Người thực hiện).
- * `showVaultPin=false` ẩn mục mã PIN kho (Người thực hiện không sở hữu kho nên không cần).
+ * Nội dung cài đặt dùng chung cho mọi không gian (Chủ kho, Người thực thi).
+ * `showVaultPin=false` ẩn mục mã PIN kho (Người thực thi không sở hữu kho nên không cần).
  */
 export function AccountSettingsContent({ showVaultPin = true }: { showVaultPin?: boolean }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);

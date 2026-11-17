@@ -6,13 +6,12 @@ import { Check } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
 import { ROUTES } from "@/shared/config/routes.config";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { useServerNow } from "@/shared/clock/useServerNow";
 import { planSetupService } from "../api/planSetupService";
 import { invitationInspectFailure } from "../lib/invitationInspectError";
 import { invitationTimeLeft } from "../lib/invitationTimeLeft";
-import { executorSigningPasswordError } from "../lib/executorSigningError";
+import { useExecutorSigning } from "../model/useExecutorSigning";
 import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
@@ -28,40 +27,27 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
   const serverNow = useServerNow();
   const [acknowledge, setAcknowledge] = useState(false);
   const [decision, setDecision] = useState<boolean | null>(null);
-  const [password, setPassword] = useState("");
-  const [passwordError, setPasswordError] = useState<string | null>(null);
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const client = useQueryClient();
-  const action = usePrivateAction();
+  const { action, password, setPassword, passwordError, respond: sign } = useExecutorSigning();
   const query = useQuery({
     queryKey: ["executor-invitation", id],
     queryFn: ({ signal }) => planSetupService.inspect(token, signal),
     retry: false,
     gcTime: 0,
   });
-  // Mật khẩu chỉ gửi khi chấp nhận và được xóa khỏi ô sau mỗi lần thử.
-  const respond = (accept: boolean, scopeVersion: string) => {
-    let signingPassword: string | undefined;
-    if (accept) {
-      signingPassword = password;
-    }
-    setPassword("");
-    setPasswordError(null);
-    void action.execute(
-      () => planSetupService.respond(token, accept, acknowledge, scopeVersion, signingPassword),
+  const respond = (accept: boolean, scopeVersion: string) =>
+    sign(
+      accept,
+      (signingPassword) =>
+        planSetupService.respond(token, accept, acknowledge, scopeVersion, signingPassword),
       () => {
         setDecision(accept);
         void client.invalidateQueries({ queryKey: ["executor"] });
         void client.invalidateQueries({ queryKey: ["executor-vaults"] });
       },
-      (error, fieldErrors) => {
-        if (accept) {
-          setPasswordError(executorSigningPasswordError(error, fieldErrors));
-        }
-      },
     );
-  };
   if (query.isPending) return <p role="status">Đang kiểm tra lời mời Người thực thi…</p>;
   if (query.isError) {
     const failure = invitationInspectFailure(query.error, token);

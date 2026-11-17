@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { EkycStatusPanel } from "@/features/ekyc/ui/EkycStatusPanel";
 import { ExecutorWorkspace } from "@/widgets/ExecutorWorkspace/ExecutorWorkspace";
 
-/** Xác minh danh tính của Người thực hiện: dùng lại đúng luồng eKYC ở tab Xác minh của Chủ kho. */
+/** Xác minh danh tính của Người thực thi: dùng lại đúng luồng eKYC ở tab Xác minh của Chủ kho. */
 export function ExecutorIdentityPage() {
   const client = useQueryClient();
   return (

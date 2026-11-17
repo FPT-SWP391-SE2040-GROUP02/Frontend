@@ -45,7 +45,7 @@ export const ROUTES = {
     AUDIT_LOG: "/dashboard/audit-log",
     USERS: "/dashboard/users",
     SETTINGS: "/dashboard/settings",
-    /** Lời mời làm Người thực hiện gửi tới tài khoản (xem khi chưa là Executor). */
+    /** Lời mời làm Người thực thi gửi tới tài khoản (xem khi chưa là Executor). */
     INVITATIONS: "/dashboard/invitations",
   },
 
@@ -94,7 +94,7 @@ export const ROUTES = {
     SETTINGS: "/executor/settings",
     /** Trang "Lời mời và các kho bạn đang làm việc" trong không gian Người thực thi: trả lời lời mời và mở các kho đang giữ. */
     INVITATIONS: "/executor/invitations",
-    /** Xác minh danh tính (eKYC) của Người thực hiện, cùng luồng với tab xác minh của Chủ kho. */
+    /** Xác minh danh tính (eKYC) của Người thực thi, cùng luồng với tab xác minh của Chủ kho. */
     IDENTITY: "/executor/identity",
   },
 

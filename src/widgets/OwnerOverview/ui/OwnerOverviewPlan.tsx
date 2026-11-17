@@ -27,7 +27,7 @@ export function OwnerOverviewPlan({ data }: { data: OverviewResources }) {
           to: ROUTES.DASHBOARD.IDENTITY,
         },
         {
-          label: "Người thực hiện chính chấp nhận nhiệm vụ",
+          label: "Người thực thi chính chấp nhận nhiệm vụ",
           done: !setup.missingRequirements.includes("PRIMARY_EXECUTOR_REQUIRED"),
           to: ROUTES.WILLS.ROOT,
         },

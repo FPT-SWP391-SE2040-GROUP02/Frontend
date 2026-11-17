@@ -47,6 +47,7 @@ export function CreateAssetForm({
     handleSubmit,
     reset,
     setError,
+    clearErrors,
     formState: { errors },
   } = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -148,11 +149,10 @@ export function CreateAssetForm({
               className="mt-2 h-12 rounded-xl bg-white px-4 text-sm font-normal"
             />
           </label>
-          {errors.name && (
-            <p role="alert" className="text-sm text-destructive">
-              {errors.name.message}
-            </p>
-          )}
+          {/* Giữ chỗ cho dòng lỗi: nếu dòng lỗi hiện/mất làm nút Lưu dịch chỗ giữa lúc nhấn chuột thì lần bấm bị trượt. */}
+          <p role={errors.name ? "alert" : undefined} className="min-h-5 text-sm text-destructive">
+            {errors.name?.message}
+          </p>
           <label className="block text-sm font-medium">
             Ghi chú cho người nhận
             <Textarea
@@ -172,7 +172,7 @@ export function CreateAssetForm({
               Nội dung bí mật
               <Textarea
                 autoComplete="off"
-                {...register("content")}
+                {...register("content", { onChange: () => clearErrors("content") })}
                 aria-invalid={Boolean(errors.content)}
                 className="mt-2 min-h-32 rounded-xl bg-white px-4 text-sm font-normal"
               />
@@ -225,11 +225,9 @@ export function CreateAssetForm({
               </div>
             </div>
           )}
-          {(errors.content || fileError) && (
-            <p role="alert" className="text-sm text-destructive">
-              {errors.content?.message ?? fileError}
-            </p>
-          )}
+          <p role={errors.content || fileError ? "alert" : undefined} className="min-h-5 text-sm text-destructive">
+            {errors.content?.message ?? fileError}
+          </p>
           <p className="flex items-start gap-2 text-sm leading-5 text-heritage-muted">
             <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
             Nội dung được mã hóa AES-256-GCM trên máy chủ.

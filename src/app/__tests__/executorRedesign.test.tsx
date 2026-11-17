@@ -267,7 +267,7 @@ describe("Bàn giao: bảng người nhận", () => {
 
     const review = row(list, /Đỗ Thị Dung/);
     expect(segmentStates(review)).toEqual(["done", "done", "current", "pending", "pending"]);
-    expect(review).toHaveTextContent("Chờ Người xét duyệt duyệt biên bản");
+    expect(review).toHaveTextContent("Chờ Người xét duyệt kiểm tra biên bản");
 
     const unsent = row(list, /Vũ Văn Em/);
     expect(segmentStates(unsent)).toEqual(["current", "pending", "pending", "pending", "pending"]);
@@ -302,7 +302,7 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(columns.map((column) => column.textContent)).toEqual([
       "Đã mời13:14 23/12",
       "Đồng ý nhận14:00 23/12",
-      "Người xét duyệt duyệt15:00 23/12",
+      "Xét duyệt15:00 23/12",
       "Nhập mã mở gói16:00 23/12",
       "Tải xong16:52 23/12",
     ]);
@@ -334,7 +334,7 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(columns.map((column) => column.textContent)).toEqual([
       "Đã mời13:14 23/12",
       "Đồng ý nhậnđang chờ",
-      "Người xét duyệt duyệt—",
+      "Xét duyệt—",
       "Nhập mã mở gói—",
       "Tải xong—",
     ]);
@@ -369,7 +369,7 @@ describe("Bàn giao: bảng người nhận", () => {
     }
     expect(
       screen.getByText(
-        /Thanh bước: Mời → Đồng ý \/ từ chối → Người xét duyệt duyệt biên bản → Nhập mã mở gói → Tải xong\./,
+        /Thanh bước: Mời → Đồng ý \/ từ chối → Người xét duyệt kiểm tra biên bản → Nhập mã mở gói → Tải xong\./,
       ),
     ).toBeInTheDocument();
     const text = document.body.textContent ?? "";
@@ -481,7 +481,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     const accept = within(card).getByRole("button", { name: "Ký nhận vai" });
     expect(accept).toBeDisabled();
     fireEvent.click(
-      within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản"),
+      within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai Người thực thi"),
     );
     // Đã tick phạm vi nhưng chưa nhập mật khẩu thì vẫn khóa.
     expect(accept).toBeDisabled();
@@ -516,7 +516,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
     fireEvent.click(
-      within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản"),
+      within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai Người thực thi"),
     );
     fireEvent.change(within(card).getByLabelText("Mật khẩu tài khoản"), {
       target: { value: "mat-khau-thu" },

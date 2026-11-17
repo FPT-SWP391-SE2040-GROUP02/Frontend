@@ -30,7 +30,7 @@ export function ExecutorSigningPasswordField({
         id={inputId}
         type="password"
         autoComplete="current-password"
-        maxLength={256}
+        maxLength={128}
         className="min-h-11 w-full rounded-xl border border-heritage-border bg-white px-4 text-sm"
         value={value}
         disabled={disabled}

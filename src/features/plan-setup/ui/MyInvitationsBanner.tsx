@@ -6,7 +6,7 @@ import { useMyInvitations } from "../model/useMyInvitations";
 import { remainingTime } from "../lib/myInvitationHelpers";
 
 /**
- * Dải mỏng trên Tổng quan Chủ kho khi có lời mời làm Người thực hiện đang chờ. Người chưa là Executor không có
+ * Dải mỏng trên Tổng quan Chủ kho khi có lời mời làm Người thực thi đang chờ. Người chưa là Executor không có
  * nút chuyển vai, nên lời mời phải hiện ở đây. Không có lời mời (hoặc lỗi tải) thì không hiện gì.
  */
 export function MyInvitationsBanner({ invitationsHref }: { invitationsHref: string }) {
@@ -20,13 +20,13 @@ export function MyInvitationsBanner({ invitationsHref }: { invitationsHref: stri
   const others = pending.length - 1;
   return (
     <section
-      aria-label="Lời mời làm Người thực hiện"
+      aria-label="Lời mời làm Người thực thi"
       className="flex flex-wrap items-center gap-4 rounded-2xl border border-[#E0C486] bg-[#F1E6CC] px-5 py-4"
     >
       <Mail className="size-5 shrink-0 text-[#7A5B25]" aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <p className="font-semibold text-heritage-primary">
-          {first.ownerName} mời bạn làm Người thực hiện
+          {first.ownerName} mời bạn làm Người thực thi
         </p>
         <p className="text-sm text-heritage-muted">
           Báo tin khi Chủ kho qua đời. Không đọc được nội dung kho.

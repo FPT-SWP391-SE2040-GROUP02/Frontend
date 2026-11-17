@@ -13,7 +13,7 @@ export interface ProtectedRouteProps {
   allowedRoles?: Role[];
   /** Component tùy chỉnh render thay thế Outlet */
   children?: ReactElement;
-  /** true: sai vai trò thì về trang chính của tài khoản thay vì /403 (ví dụ Admin mở nhầm khu Người thực hiện). */
+  /** true: sai vai trò thì về trang chính của tài khoản thay vì /403 (ví dụ Admin mở nhầm khu Người thực thi). */
   wrongRoleGoesHome?: boolean;
 }
 

@@ -4,7 +4,7 @@ import { VerifierShell } from "@/widgets/VerifierWorkspace/VerifierShell";
 
 const approveWhen = [
   { title: "Giấy tờ rõ ràng", text: "Đúng tên Chủ kho, không bị che hay chỉnh sửa." },
-  { title: "Người thực hiện đúng", text: "Họ tên trùng với người Chủ kho đã mời." },
+  { title: "Người thực thi đúng", text: "Họ tên trùng với người Chủ kho đã mời." },
   { title: "Ngày xảy ra hợp lý", text: "Không ở tương lai và khớp với giấy tờ." },
 ];
 
@@ -48,7 +48,7 @@ export function VerifierCriteriaPage() {
           </ul>
           <p className="mt-5 flex items-start gap-2 text-sm text-heritage-muted">
             <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-            Từ chối cần ghi rõ lý do. Người thực hiện sẽ được báo.
+            Từ chối cần ghi rõ lý do. Người thực thi sẽ được báo.
           </p>
         </Panel>
       </div>

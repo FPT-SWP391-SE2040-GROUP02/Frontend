@@ -17,7 +17,7 @@ const captionStyles: Record<JourneyState, string> = {
 };
 
 /**
- * "Kho đang ở đâu": chỉ 3 bước của cả kho (Báo tin, Người xét duyệt duyệt, Bàn giao cho người nhận).
+ * "Kho đang ở đâu": chỉ 3 bước của cả kho (Báo tin, Xét duyệt, Bàn giao cho người nhận).
  * Tiến độ từng người nhận nằm ở trang Bàn giao, không lặp lại ở đây.
  */
 export function VaultJourney({
