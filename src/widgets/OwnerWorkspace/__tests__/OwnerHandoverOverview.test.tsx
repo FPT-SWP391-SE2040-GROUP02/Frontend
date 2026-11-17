@@ -1059,7 +1059,7 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
     };
   }
 
-  it("hiện chữ đúng theo từng số đếm, tách chưa có hiệu lực và đã có hiệu lực, nêu hệ quả", () => {
+  it("hiện một thông điệp chung, liệt kê từng thay đổi và khối Trong lúc chờ ký lại", () => {
     showPlan({
       ...RUNNING,
       hasUnsignedChanges: true,
@@ -1077,23 +1077,28 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
 
     const banner = screen.getByRole("region", { name: BANNER });
     expect(within(banner).getByRole("heading", { name: BANNER })).toBeInTheDocument();
-    expect(within(banner).getByText("Chưa có hiệu lực (chờ bạn ký lại)")).toBeInTheDocument();
+    expect(banner).toHaveTextContent(
+      "Hãy ký phiên bản mới để bản di chúc khớp với cấu hình hiện tại.",
+    );
     expect(within(banner).getByText("Thêm 1 gói mới")).toBeInTheDocument();
     expect(within(banner).getByText("Thêm 2 tài sản vào gói")).toBeInTheDocument();
     expect(within(banner).getByText("Thêm 1 người nhận mới")).toBeInTheDocument();
     expect(within(banner).getByText("Đổi người nhận ở 4 gói")).toBeInTheDocument();
-    expect(within(banner).getByText("Đã có hiệu lực ngay")).toBeInTheDocument();
     expect(within(banner).getByText("Đã xóa 1 gói")).toBeInTheDocument();
     expect(within(banner).getByText("Đã xóa 3 tài sản khỏi gói")).toBeInTheDocument();
     expect(within(banner).getByText("Đã xóa 2 người nhận")).toBeInTheDocument();
-    expect(banner).toHaveTextContent(
-      "Phần đã xóa có hiệu lực ngay, phần còn lại vẫn được bàn giao",
-    );
-    expect(banner).toHaveTextContent("sẽ KHÔNG được bàn giao cho tới khi bạn ký lại");
+    expect(within(banner).getByText("Trong lúc chờ ký lại")).toBeInTheDocument();
+    expect(within(banner).getByText("Phần đã xóa không còn được bàn giao.")).toBeInTheDocument();
+    expect(
+      within(banner).getByText("Phần thêm hoặc đổi người nhận chưa được bàn giao."),
+    ).toBeInTheDocument();
     expect(banner).toHaveTextContent("Người thực thi không phải ký lại");
+    // Không còn cách chia cũ khiến xóa nghe như không cần ký.
+    expect(banner).not.toHaveTextContent("Chưa có hiệu lực");
+    expect(banner).not.toHaveTextContent("Đã có hiệu lực");
   });
 
-  it("số đếm bằng 0 không có dòng; chỉ xóa thì không có nhóm chưa có hiệu lực", () => {
+  it("chỉ xóa: khối chờ ký lại chỉ có dòng đã xóa không còn được bàn giao", () => {
     showPlan({
       ...RUNNING,
       hasUnsignedChanges: true,
@@ -1104,12 +1109,14 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
     const banner = screen.getByRole("region", { name: BANNER });
     expect(within(banner).getByText("Đã xóa 1 gói")).toBeInTheDocument();
     expect(banner).not.toHaveTextContent(/Đã xóa 0|Thêm 0|Đổi người nhận ở 0/);
+    expect(within(banner).getByText("Trong lúc chờ ký lại")).toBeInTheDocument();
+    expect(within(banner).getByText("Phần đã xóa không còn được bàn giao.")).toBeInTheDocument();
+    expect(banner).not.toHaveTextContent("chưa được bàn giao");
     expect(banner).not.toHaveTextContent("Chưa có hiệu lực");
-    expect(banner).not.toHaveTextContent("sẽ KHÔNG được bàn giao");
-    expect(banner).toHaveTextContent("Ký lại để bản ký khớp với cấu hình hiện tại");
+    expect(banner).toHaveTextContent("Hãy ký phiên bản mới");
   });
 
-  it("chỉ thêm người nhận mới: một dòng chưa có hiệu lực, không có nhóm đã có hiệu lực", () => {
+  it("chỉ thêm người nhận mới: có dòng chưa được bàn giao, không có dòng đã xóa", () => {
     showPlan({
       ...RUNNING,
       hasUnsignedChanges: true,
@@ -1119,7 +1126,10 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
 
     const banner = screen.getByRole("region", { name: BANNER });
     expect(within(banner).getByText("Thêm 1 người nhận mới")).toBeInTheDocument();
-    expect(banner).not.toHaveTextContent("Đã có hiệu lực ngay");
+    expect(
+      within(banner).getByText("Phần thêm hoặc đổi người nhận chưa được bàn giao."),
+    ).toBeInTheDocument();
+    expect(banner).not.toHaveTextContent("Phần đã xóa không còn được bàn giao");
   });
 
   it("Backend báo có thay đổi nhưng không có số đếm: vẫn hiện thanh nhắc và nút ký", () => {

@@ -48,6 +48,16 @@ function needsPlanConfirmation(error: unknown): boolean {
   return error.response.data?.code === "PLAN_DEACTIVATION_CONFIRMATION_REQUIRED";
 }
 
+/**
+ * Gói đã xóa không còn được bàn giao, nhưng bản di chúc đã ký vẫn phải ký lại để khớp. Màn này không có sẵn trạng thái
+ * kế hoạch (plan-setup thuộc feature khác) nên câu về ký lại viết dạng có điều kiện.
+ */
+const RESIGN_AFTER_DELETE =
+  "Gói này sẽ không còn được bàn giao, kể cả khi bạn chưa ký lại. Nếu kế hoạch đã ký, hãy vào trang Bàn giao để ký lại di chúc.";
+/** Thay đổi người nhận hoặc tài sản trong gói cũng cần ký lại; viết dạng có điều kiện vì cùng lý do trên. */
+const RESIGN_AFTER_CHANGE =
+  "Nếu kế hoạch đã ký: thay đổi này cần được ký lại trong trang Bàn giao. Phần thêm hoặc đổi người nhận chỉ được bàn giao sau khi ký lại.";
+
 const missingLabels: Record<string, string> = {
   NO_ASSET: "chưa có mục nào",
   NO_DESIGNATION: "chưa có người nhận",
@@ -438,6 +448,7 @@ export function GroupDetail({
                 Gỡ người nhận không xóa mục khỏi kho. Người nhận gắn theo gói bàn giao, không gắn
                 từng mục.
               </p>
+              <p className="mt-2">{RESIGN_AFTER_CHANGE}</p>
               {personOptions.available.length === 0 && (
                 <p className="mt-2">
                   Chưa còn hồ sơ nào để gán.{" "}
@@ -462,7 +473,7 @@ export function GroupDetail({
           selectLabel="Chọn mục"
           emptyText="Gói bàn giao chưa có mục nào."
           disabled={blocked || isDirty}
-          note={null}
+          note={<p>{RESIGN_AFTER_CHANGE}</p>}
           onRemove={removeMember}
           onAdd={addMember}
         />
@@ -539,7 +550,7 @@ export function GroupDetail({
         <h2 className="text-xl font-medium text-heritage-primary">Xóa gói bàn giao</h2>
         <p className="mt-2 text-sm text-heritage-muted">
           Các mục vẫn ở lại kho nhưng gói bàn giao không còn người nhận. Không khôi phục được gói đã
-          xóa.
+          xóa. {RESIGN_AFTER_DELETE}
         </p>
         <Button
           type="button"
@@ -592,7 +603,7 @@ export function GroupDetail({
               <DialogTitle>Xóa gói bàn giao “{container.name}”?</DialogTitle>
               <DialogDescription>
                 Các mục trong gói bàn giao vẫn ở lại kho nhưng sẽ không còn người nhận. Không thể
-                dùng lại gói đã xóa; muốn trao lại thì tạo gói bàn giao mới.
+                dùng lại gói đã xóa; muốn trao lại thì tạo gói bàn giao mới. {RESIGN_AFTER_DELETE}
               </DialogDescription>
             </DialogHeader>
             {action.error && (
