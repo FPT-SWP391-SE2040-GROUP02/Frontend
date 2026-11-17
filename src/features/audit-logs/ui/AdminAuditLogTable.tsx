@@ -17,14 +17,14 @@ const OUTCOME_STYLES: Record<AdminAuditLogEntry["outcome"], string> = {
 };
 
 /**
- * @description Danh sách chỉ-đọc nhật ký toàn hệ thống cho Admin, 4 cột: thời điểm, người thực hiện,
+ * @description Danh sách chỉ-đọc nhật ký toàn hệ thống cho Admin, 4 cột: thời điểm, người thực thi,
  * hành động kèm đối tượng, kết quả kèm lý do. Mã dài chỉ hiện rút gọn, UUID đầy đủ nằm trong tooltip.
  */
 export function AdminAuditLogTable({ items }: { items: AdminAuditLogEntry[] }) {
   return (
     <ListTable
-      columns="110px minmax(150px,.8fr) minmax(240px,1.5fr) minmax(180px,1fr)"
-      headings={["Thời điểm", "Người thực hiện", "Hành động", "Kết quả · lý do"]}
+      columns="110px minmax(220px,1.2fr) minmax(220px,1.3fr) minmax(160px,.9fr)"
+      headings={["Thời điểm", "Tài khoản thao tác", "Hành động", "Kết quả · lý do"]}
     >
       {items.map((entry) => {
         const [date, time] = splitDateTime(formatDateTime(entry.at));

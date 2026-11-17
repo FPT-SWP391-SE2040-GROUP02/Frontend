@@ -70,7 +70,7 @@ export const handoverTurnSchema = z.object({
   decisionDeadline: timestamp.nullable(),
   identityBypassed: z.boolean(),
   identityConfirmedByExecutor: z.boolean(),
-  /** Kho đã cấp khóa mở gói: người nhận phải nhập khóa do Người thực hiện đưa trước khi đồng ý. */
+  /** Kho đã cấp khóa mở gói: người nhận phải nhập khóa do Người thực thi đưa trước khi đồng ý. */
   keyRequired: z.boolean().default(false),
   /** Đã nhập đúng khóa (hoặc không cần khóa). */
   keyVerified: z.boolean().default(true),

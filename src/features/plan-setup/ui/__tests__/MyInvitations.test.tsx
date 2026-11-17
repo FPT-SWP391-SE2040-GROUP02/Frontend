@@ -121,7 +121,7 @@ describe("MyInvitationsInbox", () => {
     );
     // Ô mật khẩu được xóa sau lần thử.
     expect(passwordInput).toHaveValue("");
-    expect(await screen.findByText("Bạn đã là Người thực hiện")).toBeInTheDocument();
+    expect(await screen.findByText("Bạn đã là Người thực thi")).toBeInTheDocument();
   });
 
   it("declines without asking for the scope acknowledgement", async () => {
@@ -242,7 +242,7 @@ describe("MyInvitationsBanner", () => {
     );
     renderWithRoutes(<MyInvitationsBanner invitationsHref="/invitations" />);
     expect(
-      await screen.findByText("Chủ kho thử nghiệm mời bạn làm Người thực hiện"),
+      await screen.findByText("Chủ kho thử nghiệm mời bạn làm Người thực thi"),
     ).toBeInTheDocument();
     expect(screen.getByText(/Còn 1 lời mời nữa/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("link", { name: "Xem lời mời" }));

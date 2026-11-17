@@ -19,7 +19,7 @@ export function ExecutorDocuments() {
     );
   }
   return (
-    <Panel title="Biên Bản">
+    <Panel title="Danh sách biên bản">
       <div className="space-y-4">
         <p className="text-sm text-heritage-muted">
           Biên bản của người nhận trong các kho bạn làm Người thực thi. Thông tin về Chủ kho lấy từ

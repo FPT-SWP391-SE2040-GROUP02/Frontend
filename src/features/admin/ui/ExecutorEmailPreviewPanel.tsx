@@ -23,11 +23,11 @@ const TEMPLATES: Record<TemplateKind, TemplateContent> = {
     title: "Chủ kho quá hạn điểm danh — Cần bạn kiểm tra",
     recipient: "Nguyễn Văn Thực Hiện",
     leadParagraphs: [
-      "Chủ một kho mà bạn là người thực hiện đã quá hạn điểm danh và hết thời gian chờ.",
-      "Vui lòng liên hệ kiểm tra tình trạng của chủ kho. Nếu chủ kho vẫn ổn, bạn có thể điểm danh thay; nếu chủ kho đã mất, hãy mở hồ sơ báo tin trên trang người thực hiện.",
+      "Chủ một kho mà bạn là người thực thi đã quá hạn điểm danh và hết thời gian chờ.",
+      "Vui lòng liên hệ kiểm tra tình trạng của chủ kho. Nếu chủ kho vẫn ổn, bạn có thể điểm danh thay; nếu chủ kho đã mất, hãy mở hồ sơ báo tin trên trang người thực thi.",
       "Lưu ý quan trọng: Thông báo này không tự động mở kho và không bắt đầu bàn giao di sản.",
     ],
-    actionBtn: "Mở trang người thực hiện",
+    actionBtn: "Mở trang người thực thi",
     actionUrl: "https://legacyvault.vn/executor?vault=11112222-3333-4444-5555-666677778888",
     note: "Lưu ý: Để bảo vệ quyền riêng tư, email này không chứa thông tin tài sản hay CCCD của chủ kho.",
   },
@@ -37,7 +37,7 @@ const TEMPLATES: Record<TemplateKind, TemplateContent> = {
     title: "Hồ sơ chứng tử cần bổ sung",
     recipient: "Trần Thi Hành",
     leadParagraphs: [
-      "Verifier yêu cầu bổ sung hồ sơ chứng tử mã 0000ABCD.",
+      "Người xét duyệt yêu cầu bổ sung hồ sơ chứng tử mã 0000ABCD.",
       "Vui lòng đăng nhập, xem phần cần bổ sung và nộp bản mới trước 17:00 ngày 10/11/2026 (giờ Việt Nam).",
       "Sau thời hạn trên, nếu không có tài liệu bổ sung hợp lệ, hồ sơ có thể bị hủy hoặc từ chối.",
     ],

@@ -16,7 +16,7 @@ export function termsBullets(role: SignerRole, kind: DocumentKind): string[] {
   if (role === "recipient" && kind === "DECLINE") {
     return [
       "Bạn có quyền từ chối, trừ khi nhằm trốn tránh nghĩa vụ tài sản với người khác (Điều 620 BLDS 2015).",
-      "Văn bản từ chối gửi cho người quản lý di sản, ở đây là Người thực thi của kho.",
+      "Văn bản từ chối gửi cho Người thực thi của kho.",
       "Từ chối xong không rút lại được; tài sản của gói không giao cho ai.",
     ];
   }

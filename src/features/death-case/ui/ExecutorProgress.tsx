@@ -8,7 +8,7 @@ import { HandoverProgressPanel } from "./HandoverProgressPanel";
 /** Vì sao bàn giao chưa bắt đầu, theo trạng thái hồ sơ báo tin. */
 function notStartedText(record: DeathCase | null): string {
   if (!record)
-    return "Chưa có hồ sơ báo tin. Bàn giao bắt đầu sau khi bạn gửi hồ sơ và Người xét duyệt duyệt.";
+    return "Chưa có hồ sơ báo tin. Bàn giao bắt đầu sau khi bạn gửi hồ sơ và Người xét duyệt chấp thuận.";
   switch (record.status) {
     case "DRAFT":
       return "Hồ sơ đang ở dạng nháp. Hãy hoàn tất và gửi ở mục Báo tin.";

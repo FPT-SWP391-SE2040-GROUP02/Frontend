@@ -70,7 +70,7 @@ export const FAQ_CONTENT = {
             "Nội dung được mã hóa AES-256-GCM phía máy chủ. Đây không phải mã hóa đầu cuối: chúng tôi nói rõ để bạn cân nhắc nội dung nào nên cất.",
         },
         {
-          question: "Người thực hiện và người xét duyệt có đọc được nội dung kho không?",
+          question: "Người thực thi và người xét duyệt có đọc được nội dung kho không?",
           answer:
             "Không. Họ chỉ tham gia các bước xác nhận và xét duyệt, không có quyền đọc nội dung bên trong kho.",
         },
@@ -92,12 +92,12 @@ export const FAQ_CONTENT = {
         {
           question: "Điểm danh định kỳ hoạt động ra sao?",
           answer:
-            "Bạn chọn chu kỳ 30, 60 hoặc 90 ngày và thời gian chờ 7, 14 hoặc 30 ngày. Quá hạn mà chưa điểm danh, hệ thống vào thời gian chờ, sau đó nhờ Người thực hiện kiểm tra. Thay đổi cấu hình áp dụng từ kỳ sau.",
+            "Bạn chọn chu kỳ 30, 60 hoặc 90 ngày và thời gian chờ 7, 14 hoặc 30 ngày. Quá hạn mà chưa điểm danh, hệ thống vào thời gian chờ, sau đó nhờ Người thực thi kiểm tra. Thay đổi cấu hình áp dụng từ kỳ sau.",
         },
         {
           question: "Tôi có dừng được bàn giao không?",
           answer:
-            "Có, bằng cách điểm danh khi được nhắc. Khi Người thực hiện đã báo tin và nộp hồ sơ, kho khóa ngay và hồ sơ sang Người xét duyệt.",
+            "Có, bằng cách điểm danh khi được nhắc. Khi Người thực thi đã báo tin và nộp hồ sơ, kho khóa ngay và hồ sơ sang Người xét duyệt.",
         },
         {
           question: "Người nhận có bao lâu để tải nội dung?",
@@ -192,7 +192,7 @@ export const TERMS_CONTENT = {
     {
       title: "4. Điểm danh và bàn giao",
       paragraphs: [
-        "Bàn giao chỉ diễn ra khi bạn không phản hồi điểm danh và các lớp xác nhận (kiểm tra của Người thực hiện, xét duyệt, xác minh danh tính người nhận) đều đạt.",
+        "Bàn giao chỉ diễn ra khi bạn không phản hồi điểm danh và các lớp xác nhận (kiểm tra của Người thực thi, xét duyệt, xác minh danh tính người nhận) đều đạt.",
         "Bạn dừng bàn giao bằng cách điểm danh khi được nhắc, trước khi có báo tin. Người nhận có {grantDays} ngày để tải nội dung sau khi được bàn giao.",
       ],
     },
@@ -240,7 +240,7 @@ export const PRIVACY_CONTENT = {
       bullets: [
         "Thông tin tài khoản: họ tên, email, thông tin đăng nhập (mật khẩu được băm, không lưu dạng thô).",
         "Nội dung bạn lưu trong kho, được mã hóa AES-256-GCM phía máy chủ.",
-        "Thông tin kế hoạch bàn giao: người nhận, Người thực hiện, Người xét duyệt do bạn chỉ định.",
+        "Thông tin kế hoạch bàn giao: người nhận, Người thực thi, Người xét duyệt do bạn chỉ định.",
         "Nhật ký hoạt động phục vụ bảo mật và đối soát.",
         "Dữ liệu thanh toán do cổng thanh toán xử lý; chúng tôi không lưu số thẻ.",
       ],
@@ -266,7 +266,7 @@ export const PRIVACY_CONTENT = {
       title: "4. Chia sẻ dữ liệu",
       paragraphs: [
         "Chúng tôi không bán dữ liệu cá nhân. Dữ liệu chỉ được chia sẻ với nhà cung cấp dịch vụ cần thiết (gửi email, thanh toán, hạ tầng) theo hợp đồng bảo mật, hoặc khi pháp luật yêu cầu.",
-        "Người nhận chỉ truy cập nội dung được chỉ định cho họ sau khi bàn giao hoàn tất. Người thực hiện và Người xét duyệt không đọc được nội dung kho.",
+        "Người nhận chỉ truy cập nội dung được chỉ định cho họ sau khi bàn giao hoàn tất. Người thực thi và Người xét duyệt không đọc được nội dung kho.",
       ],
     },
     {

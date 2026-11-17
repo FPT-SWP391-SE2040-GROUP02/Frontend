@@ -5,7 +5,7 @@ import { paginatedListSchema } from "@/shared/api/pagination.schema";
 /** Vai trò tài khoản theo `UserRole` của Backend (wire viết hoa). */
 export const ADMIN_USER_ROLES = ["USER", "VERIFIER", "ADMIN", "EXECUTOR"] as const;
 /**
- * Vai trò Admin được cấp khi đổi vai trò. Không có EXECUTOR: người thực hiện là người ngoài do Owner mời theo
+ * Vai trò Admin được cấp khi đổi vai trò. Không có EXECUTOR: người thực thi là người ngoài do Owner mời theo
  * từng kho (ROLE-02), BE trả 400 nếu gửi EXECUTOR. ADMIN_USER_ROLES vẫn giữ để đọc và lọc tài khoản cũ.
  */
 export const ASSIGNABLE_USER_ROLES = ["USER", "VERIFIER", "EXECUTOR", "ADMIN"] as const;
@@ -287,7 +287,12 @@ export type AssignExecutorRequest = z.infer<typeof assignExecutorRequestSchema>;
 
 export const createAdminUserRequestSchema = z.object({
   fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
-  email: z.string().trim().email("Địa chỉ email không hợp lệ.").max(256),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Vui lòng nhập email.")
+    .email("Địa chỉ email không hợp lệ.")
+    .max(256),
   /** Bắt buộc với ADMIN; bỏ trống với VERIFIER/EXECUTOR thì Backend gửi thư mời đặt mật khẩu. */
   password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128).optional(),
   role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),

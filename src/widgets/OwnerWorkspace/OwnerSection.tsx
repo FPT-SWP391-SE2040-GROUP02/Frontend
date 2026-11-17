@@ -6,7 +6,7 @@ import { confirmVaultPin } from "@/shared/api/vaultPin";
 import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
 import { useVaultPinStatus, VaultPinSetupNotice } from "@/features/vault-pin";
 import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
-import { formatStorageSize } from "@/shared/lib/formatStorageSize";
+import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import { Button } from "@/shared/ui/button";
 import {
   useOwnerVault,
@@ -151,10 +151,10 @@ export function OwnerSection({
             <span className="text-heritage-muted">
               Đã dùng{" "}
               <strong className="font-semibold text-heritage-text">
-                {formatStorageSize(usedBytes)}
+                {formatStorageMegabytes(usedBytes)}
               </strong>{" "}
-              / {formatStorageSize(vault.data.storageQuotaBytes)} (còn{" "}
-              {formatStorageSize(vault.data.storageRemainingBytes)})
+              / {formatStorageMegabytes(vault.data.storageQuotaBytes)} (còn{" "}
+              {formatStorageMegabytes(vault.data.storageRemainingBytes)})
             </span>
           </div>
           <div
@@ -172,19 +172,24 @@ export function OwnerSection({
           </div>
         </section>
         <VaultPinSetupBanner vaultId={vault.data.id} />
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <AssetList
-            vaultId={vault.data.id}
-            confirmPin={() =>
-              confirmVaultPin(vault.data.id, (pin) => vaultPinService.verify(vault.data.id, pin))
-            }
-            lockReason={getVaultLockReason(vault.data)}
-          />
-          <AssetCreatePanel
-            vaultId={vault.data.id}
-            remainingBytes={vault.data.storageRemainingBytes}
-            lockReason={getVaultLockReason(vault.data)}
-          />
+        {/* Lưới 12 cột: danh sách (nội dung chính, đọc trước) chiếm 8 cột, form thêm mục 4 cột; dưới xl xếp dọc để bảng đủ rộng. */}
+        <div className="grid items-start gap-6 xl:grid-cols-12">
+          <div className="min-w-0 xl:col-span-8">
+            <AssetList
+              vaultId={vault.data.id}
+              confirmPin={() =>
+                confirmVaultPin(vault.data.id, (pin) => vaultPinService.verify(vault.data.id, pin))
+              }
+              lockReason={getVaultLockReason(vault.data)}
+            />
+          </div>
+          <div className="min-w-0 xl:col-span-4">
+            <AssetCreatePanel
+              vaultId={vault.data.id}
+              remainingBytes={vault.data.storageRemainingBytes}
+              lockReason={getVaultLockReason(vault.data)}
+            />
+          </div>
         </div>
       </div>
     );

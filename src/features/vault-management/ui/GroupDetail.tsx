@@ -630,7 +630,7 @@ export function GroupDetail({
               <DialogTitle>{impact.title}</DialogTitle>
               <DialogDescription>
                 Đây là gói bàn giao Sẵn sàng cuối cùng. Thao tác này sẽ đưa kế hoạch về Nháp, ngừng
-                theo dõi điểm danh, và Người thực hiện phải chấp nhận lại lời mời. Họ không nộp được
+                theo dõi điểm danh, và Người thực thi phải chấp nhận lại lời mời. Họ không nộp được
                 hồ sơ chứng tử cho tới khi bạn kích hoạt lại kế hoạch.
               </DialogDescription>
             </DialogHeader>

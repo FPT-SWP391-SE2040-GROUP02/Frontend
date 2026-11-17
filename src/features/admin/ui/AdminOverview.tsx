@@ -181,7 +181,10 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
       </div>
 
       <div className="grid gap-[22px] lg:grid-cols-2 lg:items-start">
-        <aside className="space-y-4" aria-label="Số liệu vận hành">
+        <aside
+          className="grid gap-4 lg:col-span-2 lg:grid-cols-2 lg:items-start"
+          aria-label="Số liệu vận hành"
+        >
           {data.planStages.length > 0 && (
             <section
               aria-labelledby="admin-plan-stages"
@@ -212,7 +215,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                 ))}
               </ul>
               <p className="mt-3 text-sm text-heritage-muted">
-                Đã đóng {data.closedPlans} kho, không tính ở đây.
+                Chưa tính {data.closedPlans} kho đã đóng.
               </p>
             </section>
           )}
@@ -310,7 +313,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                       dateTime={activity.at}
                       className="shrink-0 tabular-nums text-heritage-muted"
                     >
-                      {formatDateTime(activity.at).slice(-5)}
+                      {formatDateTime(activity.at).slice(0, 5)}
                     </time>
                     <span className="min-w-0 break-words">
                       <b>{activity.actorFullName ?? "Hệ thống"}</b>{" "}

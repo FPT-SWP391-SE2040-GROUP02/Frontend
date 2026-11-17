@@ -106,7 +106,7 @@ export const adminService = {
       ),
     );
   },
-  /** Giao lại Verifier cho hồ sơ chứng tử chưa được xét; BE trả 204 (BR-73). */
+  /** Giao lại Người xét duyệt cho hồ sơ chứng tử chưa được xét; BE trả 204 (BR-73). */
   async reassignVerifier(caseId: string, request: ReassignVerifierRequest) {
     await apiClient.post<unknown, unknown>(
       `/admin/death-cases/${id.parse(caseId)}/reassign-verifier`,

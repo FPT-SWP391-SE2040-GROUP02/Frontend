@@ -2,12 +2,11 @@ import { useId, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import { buttonStyles, Chip, Initial, Notice } from "@/shared/ui/heritageKit";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { planSetupService } from "../api/planSetupService";
 import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
-import { executorSigningPasswordError } from "../lib/executorSigningError";
+import { useExecutorSigning } from "../model/useExecutorSigning";
 import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
@@ -111,20 +110,12 @@ function PendingCard({
 }) {
   const checkboxId = useId();
   const client = useQueryClient();
-  const action = usePrivateAction();
   const [acknowledge, setAcknowledge] = useState(false);
-  const [password, setPassword] = useState("");
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const respond = (accept: boolean) => {
-    // Mật khẩu chỉ gửi khi chấp nhận và được xóa khỏi ô sau mỗi lần thử.
-    let signingPassword: string | undefined;
-    if (accept) {
-      signingPassword = password;
-    }
-    setPassword("");
-    setPasswordError(null);
-    void action.execute(
-      () =>
+  const { action, password, setPassword, passwordError, respond: sign } = useExecutorSigning();
+  const respond = (accept: boolean) =>
+    sign(
+      accept,
+      (signingPassword) =>
         planSetupService.respondById(
           invitation.id,
           accept,
@@ -139,13 +130,7 @@ function PendingCard({
         void client.invalidateQueries({ queryKey: ["executor-vaults"] });
         void client.invalidateQueries({ queryKey: ["executor"] });
       },
-      (error, fieldErrors) => {
-        if (accept) {
-          setPasswordError(executorSigningPasswordError(error, fieldErrors));
-        }
-      },
     );
-  };
   return (
     <article
       aria-label={`Lời mời của ${invitation.ownerName}`}
@@ -201,7 +186,7 @@ function PendingCard({
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản
+            Tôi đã đọc di chúc và đồng ý nhận vai Người thực thi
           </label>
           <ExecutorSigningPasswordField
             value={password}

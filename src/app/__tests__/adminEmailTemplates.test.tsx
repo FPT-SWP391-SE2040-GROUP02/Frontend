@@ -41,7 +41,7 @@ const overdue = {
     subject: "LegacyVault: chủ kho quá hạn điểm danh",
     title: "Chủ kho quá hạn điểm danh",
     body: "Chủ một kho đã quá hạn.",
-    buttonText: "Mở trang người thực hiện",
+    buttonText: "Mở trang người thực thi",
     note: "Email không chứa tài sản.",
   },
   custom: emptyCustom,
@@ -257,7 +257,7 @@ describe("trang Mẫu thư của Admin", () => {
     const row = input.closest("div")!;
     fireEvent.click(within(row).getByRole("button", { name: "Lấy chữ gốc để sửa" }));
 
-    expect(input.value).toBe("Mở trang người thực hiện");
+    expect(input.value).toBe("Mở trang người thực thi");
   });
 
   describe("thư bổ sung", () => {

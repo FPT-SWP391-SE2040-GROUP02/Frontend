@@ -455,7 +455,7 @@ describe("LoginForm", () => {
     expect(await screen.findByText(expected)).toBeInTheDocument();
   });
 
-  it("Verifier có redirect sang khu Người thực hiện thì vẫn vào trang Verifier", async () => {
+  it("Verifier có redirect sang khu Người thực thi thì vẫn vào trang Verifier", async () => {
     vi.mocked(authService.login).mockResolvedValue({
       ...SESSION,
       user: { ...SESSION.user, role: ROLES.VERIFIER },
