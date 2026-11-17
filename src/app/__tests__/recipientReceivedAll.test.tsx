@@ -35,7 +35,16 @@ function turn(extra: object = {}) {
     identityBypassed: false,
     identityConfirmedByExecutor: true,
     container: { name: "Gói thử" },
-    items: [],
+    items: [
+      {
+        id: "0198a000-0000-7000-8000-0000000000a1",
+        name: "Mục A",
+        kind: "TEXT",
+        fileName: null,
+        contentType: "text/plain",
+        sizeBytes: 11,
+      },
+    ],
     grant: {
       id: "0198a000-0000-7000-8000-000000000001",
       status: "ACTIVE",
@@ -101,4 +110,8 @@ it("hiện Người xét duyệt kèm số thẻ luật sư và nút Tôi đã n
   await waitFor(() => expect(posts).toHaveLength(1));
   expect(posts[0]).toContain(`/handover/turns/${CONTAINER_ID}/received-all`);
   expect(await screen.findByText(/Bạn đã xác nhận nhận đủ lúc/)).toBeInTheDocument();
+  // Nhận đủ rồi: nút tải khóa lại và cả 3 bước của tiến trình đều "Xong".
+  expect(screen.getByRole("button", { name: "Tải xuống Mục A" })).toBeDisabled();
+  expect(screen.getAllByText("Xong")).toHaveLength(3);
+  expect(screen.queryByText("Đang ở đây")).not.toBeInTheDocument();
 });

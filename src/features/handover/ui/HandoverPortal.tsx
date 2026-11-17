@@ -181,7 +181,7 @@ function TurnCard({
   const signedDocument = documentQuery.data ?? null;
   // Đã ký và gửi cho Người xét duyệt thì tiến trình sang bước 2 (chờ Xét duyệt).
   const signed = signedDocument !== null && signedDocument.status !== "WAIT_RECIPIENT";
-  const step = currentHandoverStep(turn.status, signed);
+  const step = currentHandoverStep(turn.status, signed, Boolean(turn.receivedAllAt));
   const hasGroupName = turn.container !== null;
   let groupName = "Lượt bàn giao";
   if (turn.container) {
@@ -234,7 +234,6 @@ function TurnCard({
       )}
       <div className="grid gap-4 xl:grid-cols-2 xl:items-start">
         <div className="min-w-0 space-y-4">
-          {documents}
           {turn.status === "IDENTITY_IN_PROGRESS" && (
             <Panel title="Biên bản">
               <RecipientDocumentPanel turnId={turn.id} groupName={groupName} onChanged={refresh} />
@@ -376,9 +375,12 @@ function TurnCard({
           </Panel>
         </div>
         <div className="min-w-0 space-y-4">
+          {/* Thẻ tóm tắt Biên bản ở cột phải, trên cùng, trước Các mục dành cho bạn. */}
+          {documents}
           {turn.items.length > 0 && (
             <Panel title="Các mục dành cho bạn">
-              <ul className="divide-y divide-heritage-border">
+              {/* Nhiều mục thì danh sách cuộn trong khung, không kéo dài cả trang. */}
+              <ul className="max-h-80 divide-y divide-heritage-border overflow-y-auto pr-1">
                 {turn.items.map((item) => (
                   <li
                     key={item.id}
@@ -398,7 +400,8 @@ function TurnCard({
                         disabled={
                           content.pending ||
                           action.pending ||
-                          (turn.keyRequired && !turn.keyVerified)
+                          (turn.keyRequired && !turn.keyVerified) ||
+                          Boolean(turn.receivedAllAt)
                         }
                         onClick={() =>
                           void content.download(

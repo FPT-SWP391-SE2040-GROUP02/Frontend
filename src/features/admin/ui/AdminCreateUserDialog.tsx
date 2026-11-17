@@ -18,7 +18,12 @@ import { useAdminAction } from "../model/useAdminAction";
 
 const createUserSchema = z
   .object({
-    fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
+    fullName: z
+      .string()
+      .trim()
+      .min(1, "Vui lòng nhập họ và tên.")
+      .max(200)
+      .regex(/^[\p{L}\s]+$/u, "Họ và tên chỉ được chứa chữ cái và khoảng trắng."),
     email: z
       .string()
       .trim()
@@ -28,10 +33,6 @@ const createUserSchema = z
     password: z.string().max(128).optional(),
     role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),
     phone: z.string().trim().max(32).optional(),
-    lawyerCardNumber: z.string().trim().max(64).optional(),
-    practiceCertificateNumber: z.string().trim().max(64).optional(),
-    executorRoleTitle: z.string().trim().max(200).optional(),
-    legalOrganization: z.string().trim().max(200).optional(),
   })
   .superRefine((data, ctx) => {
     // Quản trị viên bắt buộc mật khẩu khởi tạo; Người xét duyệt / Người thực thi nhận thư mời đặt mật khẩu qua email.
@@ -46,15 +47,14 @@ const createUserSchema = z
 
 type CreateUserInput = z.infer<typeof createUserSchema>;
 
-type StepKey = "account" | "profile" | "card";
+type StepKey = "account" | "card";
 const STEPS_BY_ROLE: Record<"VERIFIER" | "EXECUTOR" | "ADMIN", StepKey[]> = {
   ADMIN: ["account"],
-  VERIFIER: ["account", "profile", "card"],
-  EXECUTOR: ["account", "profile", "card"],
+  VERIFIER: ["account", "card"],
+  EXECUTOR: ["account", "card"],
 };
 const STEP_LABELS: Record<StepKey, string> = {
   account: "Tài khoản",
-  profile: "Hồ sơ pháp lý",
   card: "Ảnh thẻ",
 };
 const ACCOUNT_FIELDS = ["fullName", "email", "password", "phone", "role"] as const;
@@ -70,7 +70,7 @@ interface AdminCreateUserDialogProps {
 
 /**
  * Hộp thoại tạo tài khoản nhân sự mới (Người xét duyệt, Người thực thi hệ thống, Quản trị viên).
- * Người thực thi kèm hồ sơ pháp lý để hiện trong danh bạ cho Chủ kho chọn.
+ * Người xét duyệt và Người thực thi chỉ bắt buộc ảnh thẻ (bằng chứng xác minh), không nhập số thẻ hay chứng chỉ.
  * Tài khoản được kích hoạt ngay lập tức (không cần chờ email verification).
  */
 export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUserDialogProps) {
@@ -85,15 +85,11 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
       password: "",
       role: "VERIFIER",
       phone: "",
-      lawyerCardNumber: "",
-      practiceCertificateNumber: "",
-      executorRoleTitle: "",
-      legalOrganization: "",
     },
   });
 
   const role = useWatch({ control: form.control, name: "role" });
-  // Form dài nên tách bước theo vai trò: Admin 1 bước, Người xét duyệt 2 (thêm ảnh thẻ), Người thực thi 3 (thêm hồ sơ, ảnh thẻ).
+  // Form dài nên tách bước theo vai trò: Admin 1 bước, Người xét duyệt và Người thực thi 2 bước (thêm ảnh thẻ).
   const [stepIndex, setStepIndex] = useState(0);
   const steps = STEPS_BY_ROLE[role];
   const stepKey = steps[Math.min(stepIndex, steps.length - 1)];
@@ -265,13 +261,6 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                 </select>
               </div>
 
-              {role !== "ADMIN" && (
-                <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
-                  Hệ thống gửi thư mời đặt mật khẩu tới email này. Tài khoản chỉ dùng được sau khi
-                  người nhận mở link, nên email phải đúng và nhận được thư.
-                </p>
-              )}
-
               {role === "ADMIN" && (
                 <div>
                   <div className="flex items-center justify-between">
@@ -326,55 +315,6 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
             </>
           )}
 
-          {stepKey === "profile" && (
-            <>
-              <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
-                {role === "EXECUTOR"
-                  ? "Thông tin này hiện trong danh bạ cho Chủ kho chọn. Người thực thi chỉ được tính là đã xác minh khi có ảnh thẻ ở bước sau."
-                  : "Số thẻ không bắt buộc. Ảnh thẻ công chứng viên ở bước sau mới là bằng chứng xác minh."}
-              </p>
-              {(
-                [
-                  ["executorRoleTitle", "Vai trò chuyên môn", "Luật sư thi hành di chúc"],
-                  [
-                    "legalOrganization",
-                    "Đoàn luật sư / tổ chức hành nghề",
-                    "Đoàn Luật sư TP. Hồ Chí Minh",
-                  ],
-                  ["lawyerCardNumber", "Số thẻ luật sư", "LS-HCM-12345"],
-                  ["practiceCertificateNumber", "Số chứng chỉ hành nghề", "CCHN-2026-001"],
-                ] as const
-              )
-                .filter(
-                  ([name]) =>
-                    role === "EXECUTOR" ||
-                    name === "lawyerCardNumber" ||
-                    name === "practiceCertificateNumber",
-                )
-                .map(([name, label, placeholder]) => (
-                  <div key={name}>
-                    <label
-                      htmlFor={`create-user-${name}`}
-                      className="block text-sm font-medium text-heritage-text"
-                    >
-                      {label}
-                    </label>
-                    <Input
-                      id={`create-user-${name}`}
-                      {...form.register(name)}
-                      className="mt-1"
-                      placeholder={placeholder}
-                    />
-                    {form.formState.errors[name] && (
-                      <p role="alert" className="mt-1 text-sm text-destructive">
-                        {form.formState.errors[name]?.message}
-                      </p>
-                    )}
-                  </div>
-                ))}
-            </>
-          )}
-
           {stepKey === "card" && (
             <>
               <div>
@@ -397,7 +337,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                   className="mt-1 block w-full text-sm file:mr-3 file:min-h-9 file:rounded-lg file:border file:border-heritage-border file:bg-white file:px-3 file:text-sm"
                 />
                 <p className="mt-1 text-sm text-heritage-muted">
-                  JPEG, PNG hoặc WebP, tối đa 2 MB.
+                  {cardFile ? `Đã chọn: ${cardFile.name}. ` : ""}JPEG, PNG hoặc WebP, tối đa 2 MB.
                   {role === "EXECUTOR" &&
                     " Có ảnh thì Người thực thi mới được tính là đã xác minh pháp lý; Chủ kho chỉ thấy huy hiệu, không thấy ảnh."}
                 </p>
@@ -425,6 +365,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
           <DialogFooter className="mt-6 flex justify-end gap-3">
             {stepIndex > 0 && !createdUser ? (
               <Button
+                key="back"
                 type="button"
                 variant="outline"
                 onClick={() => setStepIndex((index) => Math.max(index - 1, 0))}
@@ -433,16 +374,24 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                 Quay lại
               </Button>
             ) : (
-              <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
+              <Button
+                key="cancel"
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={pending}
+              >
                 Hủy
               </Button>
             )}
+            {/* key riêng cho từng nút: React không dùng lại cùng một nút DOM khi đổi giữa "Tiếp tục" (type=button) và
+                "Tạo tài khoản" (type=submit), nếu không cú bấm Tiếp tục đổi nút thành submit và gửi form ngay. */}
             {isLastStep ? (
-              <Button type="submit" disabled={pending}>
+              <Button key="submit" type="submit" disabled={pending}>
                 {pending ? "Đang tạo..." : "Tạo tài khoản"}
               </Button>
             ) : (
-              <Button type="button" onClick={() => void goNext()} disabled={pending}>
+              <Button key="next" type="button" onClick={() => void goNext()} disabled={pending}>
                 Tiếp tục
               </Button>
             )}
