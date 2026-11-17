@@ -206,16 +206,13 @@ it("shows no support link under a terminal state either", async () => {
   expect(screen.queryByRole("link", { name: "Liên hệ hỗ trợ" })).not.toBeInTheDocument();
 });
 
-it("sends the Xác minh menu to the handover portal where the ID photo dossier is submitted", async () => {
+it("has no Xác minh item in the recipient menu", async () => {
   backendReturns([turn("IDENTITY_IN_PROGRESS")]);
   setup(
     <RecipientLayout active="overview">
       <p>nội dung</p>
     </RecipientLayout>,
   );
-  await waitFor(() =>
-    expect(screen.getByRole("link", { name: "Xác minh" }).getAttribute("href")).toBe(
-      ROUTES.BENEFICIARY.HANDOVER,
-    ),
-  );
+  await screen.findByText("nội dung");
+  expect(screen.queryByRole("link", { name: "Xác minh" })).not.toBeInTheDocument();
 });
