@@ -318,7 +318,7 @@ describe("Tài khoản", () => {
     ]);
   });
 
-  it("tạo Người thực thi: 3 bước, bắt buộc ảnh thẻ ở bước cuối, không gọi Backend khi thiếu", async () => {
+  it("tạo Người thực thi: 2 bước, bắt buộc ảnh thẻ ở bước cuối, không gọi Backend khi thiếu", async () => {
     usersBackend();
     const post = vi.spyOn(apiClient, "post");
     setup(ROUTES.DASHBOARD.USERS);
@@ -329,20 +329,24 @@ describe("Tài khoản", () => {
     await userEvent.selectOptions(within(dialog).getByLabelText(/Vai trò hệ thống/), "EXECUTOR");
     // Người thực thi nhận thư mời đặt mật khẩu nên không có ô mật khẩu khởi tạo.
     expect(within(dialog).queryByLabelText(/Mật khẩu khởi tạo/)).not.toBeInTheDocument();
-    expect(within(dialog).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(dialog).getAllByRole("listitem")).toHaveLength(2);
 
-    // Bước 1 → 2 (hồ sơ pháp lý) → 3 (ảnh thẻ); chỉ bước cuối mới có nút tạo.
-    await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
-    expect(await within(dialog).findByLabelText(/Vai trò chuyên môn/)).toBeInTheDocument();
+    // Bước 1 → 2 (ảnh thẻ); chỉ bước cuối mới có nút tạo, không còn ô số thẻ hay chứng chỉ.
     expect(within(dialog).queryByRole("button", { name: "Tạo tài khoản" })).not.toBeInTheDocument();
     await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
+    // Bấm Tiếp tục chỉ sang bước ảnh thẻ, không tự gửi form: chưa có lỗi thiếu ảnh và chưa gọi Backend.
+    expect(await within(dialog).findByLabelText(/Ảnh thẻ luật sư/)).toBeInTheDocument();
+    expect(within(dialog).queryByText(/Vui lòng tải ảnh thẻ luật sư/)).not.toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+    expect(within(dialog).queryByLabelText(/Số thẻ luật sư/)).not.toBeInTheDocument();
+    expect(within(dialog).queryByLabelText(/Số chứng chỉ hành nghề/)).not.toBeInTheDocument();
     await userEvent.click(await within(dialog).findByRole("button", { name: "Tạo tài khoản" }));
 
     expect(await within(dialog).findByText(/Vui lòng tải ảnh thẻ luật sư/)).toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("tạo tài khoản: Người xét duyệt 3 bước, Quản trị viên 1 bước và vẫn nhập mật khẩu", async () => {
+  it("tạo tài khoản: Người xét duyệt 2 bước, Quản trị viên 1 bước và vẫn nhập mật khẩu", async () => {
     usersBackend();
     setup(ROUTES.DASHBOARD.USERS);
     fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
@@ -350,12 +354,52 @@ describe("Tài khoản", () => {
     const role = within(dialog).getByLabelText(/Vai trò hệ thống/);
 
     await userEvent.selectOptions(role, "VERIFIER");
-    expect(within(dialog).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(dialog).getAllByRole("listitem")).toHaveLength(2);
     expect(within(dialog).queryByLabelText(/Mật khẩu khởi tạo/)).not.toBeInTheDocument();
 
     await userEvent.selectOptions(role, "ADMIN");
     expect(within(dialog).queryByRole("listitem")).not.toBeInTheDocument();
     expect(within(dialog).getByLabelText(/Mật khẩu khởi tạo/)).toBeInTheDocument();
+  });
+
+  it("tạo tài khoản: họ tên chứa số bị chặn ở bước 1", async () => {
+    usersBackend();
+    setup(ROUTES.DASHBOARD.USERS);
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText(/Họ và tên/), "3213213");
+    await userEvent.type(within(dialog).getByLabelText(/Email đăng nhập/), "a@example.test");
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
+
+    expect(
+      await within(dialog).findByText("Họ và tên chỉ được chứa chữ cái và khoảng trắng."),
+    ).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText(/Ảnh thẻ/)).not.toBeInTheDocument();
+  });
+
+  it("tạo tài khoản: Quay lại rồi Tiếp tục vẫn về bước ảnh thẻ, không tự tạo tài khoản; họ tên không nhận số", async () => {
+    usersBackend();
+    const post = vi.spyOn(apiClient, "post");
+    const put = vi.spyOn(apiClient, "put");
+    setup(ROUTES.DASHBOARD.USERS);
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText(/Họ và tên/), "3213213");
+    await userEvent.type(within(dialog).getByLabelText(/Email đăng nhập/), "ls.thu@example.test");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
+    expect(await within(dialog).findByText(/Họ và tên chỉ được chứa chữ cái/)).toBeInTheDocument();
+
+    await userEvent.clear(within(dialog).getByLabelText(/Họ và tên/));
+    await userEvent.type(within(dialog).getByLabelText(/Họ và tên/), "Luật Sư Thử");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
+    expect(await within(dialog).findByLabelText(/Ảnh thẻ/)).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Quay lại" }));
+    await userEvent.click(await within(dialog).findByRole("button", { name: "Tiếp tục" }));
+
+    expect(await within(dialog).findByLabelText(/Ảnh thẻ/)).toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+    expect(put).not.toHaveBeenCalled();
   });
 
   it("tạo tài khoản: bước 1 báo lỗi ô thiếu và chưa cho sang bước sau", async () => {
@@ -368,7 +412,7 @@ describe("Tài khoản", () => {
     await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
 
     expect(await within(dialog).findByText("Vui lòng nhập họ và tên.")).toBeInTheDocument();
-    expect(within(dialog).queryByLabelText(/Vai trò chuyên môn/)).not.toBeInTheDocument();
+    expect(within(dialog).queryByLabelText(/Ảnh thẻ luật sư/)).not.toBeInTheDocument();
   });
 
   it.each([
