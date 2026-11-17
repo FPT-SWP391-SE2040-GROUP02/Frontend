@@ -64,15 +64,6 @@ export function formatLongDate(value: string | null | undefined): string | null 
   return `${parts.day} tháng ${parts.month} năm ${parts.year}`;
 }
 
-/** "14/11/2026". */
-export function formatShortDate(value: string | null | undefined): string | null {
-  const parts = readParts(value);
-  if (parts === null) {
-    return null;
-  }
-  return `${twoDigits(parts.day)}/${twoDigits(parts.month)}/${parts.year}`;
-}
-
 /** "09:42 ngày 15/11/2026". */
 export function formatTimeOnDate(value: string | null | undefined): string | null {
   const parts = readParts(value);

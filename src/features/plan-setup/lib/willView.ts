@@ -43,7 +43,6 @@ export function pickWillRecipients(setup: PlanSetup): WillRecipientView[] | unde
     result.push({
       id: recipient.beneficiaryId,
       fullName: recipient.fullName,
-      hasMessage: recipient.hasMessage,
       packages,
     });
   }

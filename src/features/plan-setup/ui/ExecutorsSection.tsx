@@ -25,6 +25,7 @@ import { SystemExecutorDirectory, type SystemExecutor } from "@/entities/executo
 import { inviteExecutorSchema, type executorSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
 import { usePlanSetup } from "../model/usePlanSetup";
+import { currentHolder } from "../lib/executorHolder";
 import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 
 type Executor = z.infer<typeof executorSchema>;
@@ -77,28 +78,6 @@ const ALLOWED_ACTIONS = [
   "Trao mã mở gói cho người nhận",
 ];
 
-function isLive(executor: Executor): boolean {
-  return (
-    executor.status === "INVITED" ||
-    executor.status === "ACCEPTED" ||
-    executor.status === "SUSPENDED"
-  );
-}
-
-/** Người đang giữ vai: ưu tiên người đã đồng ý (người thay đang chờ không thay họ cho tới khi đồng ý). */
-function currentHolder(executors: Executor[]): Executor | null {
-  let holder: Executor | null = null;
-  for (const executor of executors) {
-    if (!isLive(executor)) {
-      continue;
-    }
-    if (holder === null || executor.status === "ACCEPTED") {
-      holder = executor;
-    }
-  }
-  return holder;
-}
-
 /** Lời mời thay đang chờ phản hồi (khác người đang giữ vai). */
 function pendingReplacement(executors: Executor[], holder: Executor | null): Executor | null {
   for (const executor of executors) {
@@ -141,7 +120,7 @@ function ActionList({
   );
 }
 
-interface InviteDialogProps {
+export interface InviteDialogProps {
   vaultId: string;
   replacing: Executor | null;
   existingExecutors: Executor[];
@@ -150,7 +129,8 @@ interface InviteDialogProps {
   onClose: () => void;
 }
 
-function InviteDialog({
+/** Hộp thoại chọn và mời Người thực thi; dùng chung cho trang Người thực thi và thẻ việc ở trang Bàn giao. */
+export function InviteDialog({
   vaultId,
   replacing,
   existingExecutors,
@@ -273,7 +253,8 @@ function InviteDialog({
   );
 }
 
-function RevokeDialog({
+/** Hộp thoại thu hồi lời mời; dùng chung cho trang Người thực thi và thẻ việc ở trang Bàn giao. */
+export function RevokeDialog({
   vaultId,
   executor,
   sync,

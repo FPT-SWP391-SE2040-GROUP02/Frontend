@@ -18,15 +18,8 @@ export interface WillPackageView {
 export interface WillRecipientView {
   id: string;
   fullName: string;
-  /** Chỉ cho biết đã viết lời nhắn chưa. Nội dung lời nhắn không bao giờ đưa vào di chúc. */
-  hasMessage: boolean;
   packages: WillPackageView[];
 }
 
-/** Các hạn (ngày) in ở Điều 4; mặc định lấy từ cấu hình hệ thống khi nơi dùng không truyền. */
-export interface WillPolicyView {
-  checkInDays: number;
-  responseDays: number;
-  decisionDays: number;
-  grantDays: number;
-}
+/** Chỗ trống trong di chúc mà Chủ kho có thể bấm để được đưa tới nơi điền. */
+export type WillGapTarget = "executor" | "packages";

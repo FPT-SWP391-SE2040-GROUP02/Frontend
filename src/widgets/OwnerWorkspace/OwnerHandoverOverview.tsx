@@ -1,10 +1,7 @@
 import type { ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import type { z } from "zod";
-import type { AuthState } from "@/entities/user/model/authSlice";
-import { PrintWillButton } from "@/entities/will/ui/PrintWillButton";
 import { Button } from "@/shared/ui/button";
 import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -17,7 +14,6 @@ import { ExecutorKeyCard } from "@/features/executor-key";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
-import { PlanWillDocument } from "@/features/plan-setup/ui/PlanWillDocument";
 import { formatDate, formatTimeThenDate } from "@/shared/lib/dateFormat";
 import { HandoverStepsCard } from "./HandoverStepsCard";
 
@@ -166,39 +162,15 @@ function LegacyDisclaimer() {
   );
 }
 
-/** Tờ di chúc: sinh từ dữ liệu kế hoạch, cùng nội dung ở trạng thái nháp và đã ký; kèm nút in (không có mã mở gói). */
-function WillPaper({ setup }: { setup: PlanSetup }) {
-  const user = useSelector((state: { auth: AuthState }) => state.auth.user);
-  let ownerFallback = { fullName: "", email: "" };
-  if (user) {
-    ownerFallback = { fullName: user.fullName, email: user.email };
-  }
-  return (
-    <div className="space-y-4">
-      <article
-        aria-label="Di chúc"
-        className="min-w-0 rounded-2xl border border-heritage-border bg-heritage-surface p-6 shadow-sm sm:p-10 lg:p-14"
-      >
-        <PlanWillDocument setup={setup} ownerFallback={ownerFallback} viewer="owner" />
-      </article>
-      <div className="flex justify-end">
-        <PrintWillButton
-          content={<PlanWillDocument setup={setup} ownerFallback={ownerFallback} viewer="reader" />}
-        />
-      </div>
-    </div>
-  );
-}
-
 /** Câu dẫn đầu trang nháp: nói còn thiếu gì hoặc đã đủ để ký. */
 function draftSubtitle(setup: PlanSetup): string {
   if (setup.canActivate) {
-    return "Di chúc đã đủ nội dung và Người thực thi đã ký nhận vai. Đọc lại một lượt rồi ký bằng mã PIN để kế hoạch bàn giao bắt đầu chạy.";
+    return "Mọi việc đã xong. Bấm Xem trước và ký, đọc lại di chúc một lượt rồi ký bằng mã PIN để kế hoạch bàn giao bắt đầu chạy.";
   }
-  return "Di chúc dưới đây tự điền từ kho của bạn. Còn chỗ chưa điền; điền xong bạn mới ký được.";
+  return "Hoàn tất các việc bên dưới, rồi bấm Xem trước di chúc. Di chúc tự điền từ kho của bạn; đọc xong bạn mới ký.";
 }
 
-/** Kế hoạch còn nháp: di chúc ở trái, điều kiện và ô ký ở phải. */
+/** Kế hoạch còn nháp: thẻ việc ở trái; tiến độ và nút xem trước di chúc ở phải. */
 function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   return (
     <div className="space-y-7">
@@ -207,19 +179,18 @@ function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
         chipTone="warning"
         subtitle={draftSubtitle(setup)}
       />
-      <div className="grid max-w-[1180px] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0 space-y-6">
-          <WillPaper setup={setup} />
-        </div>
-        <div className="min-w-0 space-y-5">
-          <PlanSetupPanel vaultId={vaultId} />
-          <LegacyDisclaimer />
-          <HandoverStepsCard />
-          <p className="text-sm text-heritage-muted">
-            Điểm danh định kỳ bắt đầu sau khi kích hoạt.
-          </p>
-        </div>
-      </div>
+      <PlanSetupPanel
+        vaultId={vaultId}
+        belowCards={
+          <>
+            <HandoverStepsCard />
+            <p className="text-sm text-heritage-muted">
+              Điểm danh định kỳ bắt đầu sau khi kích hoạt.
+            </p>
+          </>
+        }
+        sideNote={<LegacyDisclaimer />}
+      />
     </div>
   );
 }
@@ -255,7 +226,10 @@ function ActivePlanCard({ activatedAt }: { activatedAt: string | null | undefine
   );
 }
 
-/** Kế hoạch đã chạy: di chúc đủ chữ ký ở trái; điểm danh, kế hoạch đang áp dụng, mã mở gói và tiến trình ở phải. */
+/**
+ * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là điểm danh, kế hoạch đang áp dụng, mã mở gói và tiến trình.
+ * Bên phải: nút "Xem di chúc đã ký" mở khung di chúc đủ chữ ký.
+ */
 function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   let chipText = `Trạng thái kế hoạch: ${setup.planStatus}`;
   if (setup.planStatus === "ACTIVE") {
@@ -268,29 +242,30 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
         chipTone="success"
         subtitle="Di chúc đã có đủ chữ ký. Điểm danh đúng hạn để kế hoạch tiếp tục chạy."
       />
-      <div className="grid max-w-[1180px] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0">
-          <WillPaper setup={setup} />
-        </div>
-        <div className="min-w-0 space-y-5">
-          <CheckInCard vaultId={vaultId} />
-          <ActivePlanCard activatedAt={setup.activatedAt} />
-          <ExecutorKeyCard vaultId={vaultId} />
-          <HandoverStepsCard
-            title="Tiến trình bàn giao"
-            subtitle="Chưa có báo tin. Khi Người thực thi báo tin, bước đang diễn ra sẽ được tô đậm tại đây."
-          />
-          <LegacyDisclaimer />
-        </div>
-      </div>
+      <PlanSetupPanel
+        vaultId={vaultId}
+        belowCards={
+          <>
+            <CheckInCard vaultId={vaultId} />
+            <ActivePlanCard activatedAt={setup.activatedAt} />
+            <ExecutorKeyCard vaultId={vaultId} />
+            <HandoverStepsCard
+              title="Tiến trình bàn giao"
+              subtitle="Chưa có báo tin. Khi Người thực thi báo tin, bước đang diễn ra sẽ được tô đậm tại đây."
+            />
+          </>
+        }
+        sideNote={<LegacyDisclaimer />}
+      />
     </div>
   );
 }
 
 /**
- * Trang Bàn giao của Chủ kho. Cột trái luôn là di chúc sinh từ kế hoạch (cả ở trạng thái nháp lẫn đã ký). Kế hoạch
- * nháp: điều kiện và ô ký bằng PIN ở cột phải. Kế hoạch đã chạy: điểm danh, kế hoạch đang áp dụng, mã mở gói (hệ thống tự
- * giữ, Chủ kho chỉ đổi mã mới) và tiến trình bàn giao. Quyền và trạng thái luôn do Backend quyết định.
+ * Trang Bàn giao của Chủ kho. Cột trái là các thẻ việc, cột phải là tiến độ và nút xem trước di chúc; di chúc (sinh từ
+ * kế hoạch, cả bản nháp lẫn đã ký) trượt ra từ bên phải, ký bằng PIN ở chân khung. Kế hoạch đã chạy thêm điểm danh, kế
+ * hoạch đang áp dụng, mã mở gói (hệ thống tự giữ, Chủ kho chỉ đổi mã mới) và tiến trình bàn giao. Quyền và trạng thái
+ * luôn do Backend quyết định.
  */
 export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
   const planQuery = usePlanSetup(vaultId);
