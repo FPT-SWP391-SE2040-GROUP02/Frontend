@@ -94,8 +94,6 @@ export const ROUTES = {
     SETTINGS: "/executor/settings",
     /** Trang "Lời mời và các kho bạn đang làm việc" trong không gian Người thực thi: trả lời lời mời và mở các kho đang giữ. */
     INVITATIONS: "/executor/invitations",
-    /** Xác minh danh tính (eKYC) của Người thực thi, cùng luồng với tab xác minh của Chủ kho. */
-    IDENTITY: "/executor/identity",
   },
 
   /** Cổng người thụ hưởng / Beneficiary */
