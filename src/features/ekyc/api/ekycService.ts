@@ -141,15 +141,11 @@ export const ekycService = {
   async submitDocumentBack(file: File, onUploadProgress?: (percent: number) => void) {
     const optimizedFile = await optimizeImageForUpload(file);
     return ekycBackSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        "/ekyc/document-back",
-        imageForm(optimizedFile),
-        {
-          headers: { "Content-Type": undefined },
-          timeout: OCR_TIMEOUT_MS,
-          onUploadProgress: progressHandler(onUploadProgress),
-        },
-      ),
+      await apiClient.post<unknown, unknown>("/ekyc/document-back", imageForm(optimizedFile), {
+        headers: { "Content-Type": undefined },
+        timeout: OCR_TIMEOUT_MS,
+        onUploadProgress: progressHandler(onUploadProgress),
+      }),
     );
   },
   /**

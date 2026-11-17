@@ -216,8 +216,7 @@ export const LANDING_CONTENT = {
     },
     {
       title: "Xác minh ở mức cơ bản",
-      detail:
-        "eKYC giúp nhận diện Chủ kho, nhưng chưa có giá trị pháp lý như thủ tục công chứng.",
+      detail: "eKYC giúp nhận diện Chủ kho, nhưng chưa có giá trị pháp lý như thủ tục công chứng.",
     },
     {
       title: "Không thay thế di chúc",
