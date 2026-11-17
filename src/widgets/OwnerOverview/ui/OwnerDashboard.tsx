@@ -45,10 +45,16 @@ function OwnerDashboardContent({ vault }: { vault: VaultResponse }) {
     <div className="owner-overview-layout">
       <MyInvitationsBanner invitationsHref={ROUTES.DASHBOARD.INVITATIONS} />
       <RecipientInvitationBanner />
-      <OwnerOverviewSummary vault={vault} data={data} />
-      <OwnerOverviewPlan data={data} />
-      <OwnerOverviewLists data={data} />
-      <OwnerOverviewDetails vault={vault} data={data} />
+      <section className="overview-tier" aria-label="Trạng thái chung">
+        <OwnerOverviewSummary vault={vault} data={data} />
+      </section>
+      <section className="overview-tier" aria-label="Chuẩn bị kế hoạch">
+        <OwnerOverviewPlan data={data} />
+      </section>
+      <section className="overview-tier" aria-label="Chi tiết gần đây">
+        <OwnerOverviewLists data={data} />
+        <OwnerOverviewDetails vault={vault} data={data} />
+      </section>
     </div>
   );
 }

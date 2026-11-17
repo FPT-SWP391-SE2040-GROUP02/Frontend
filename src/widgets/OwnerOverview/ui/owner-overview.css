@@ -1,7 +1,7 @@
-/* Bố cục Tổng quan Chủ kho; không thay token hoặc hình thức các workspace khác. */
+/* Bố cục Tổng quan Chủ kho theo ba tầng; chỉ đổi bố cục và giao diện, không đổi token, nội dung hay chức năng. */
 .owner-overview-layout {
   display: grid;
-  gap: 20px;
+  gap: 32px;
   min-width: 0;
 }
 .owner-overview-layout h2 {
@@ -174,14 +174,18 @@
 .overview-metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border-ui);
+  border-radius: 14px;
+  background: var(--surface);
 }
 .overview-stat {
   min-width: 0;
-  border: 1px solid var(--border-ui);
-  border-radius: 14px;
-  padding: 20px;
-  background: var(--surface);
+  padding: 18px 24px;
+  border-left: 1px solid var(--border-ui);
+}
+.overview-stat:first-child {
+  border-left: 0;
 }
 .overview-stat h2 {
   display: flex;
@@ -192,8 +196,8 @@
   color: var(--text-muted);
 }
 .overview-stat-value {
-  margin: 12px 0 5px;
-  font-size: 30px;
+  margin: 8px 0 4px;
+  font-size: 28px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.3;
@@ -228,7 +232,7 @@
 }
 .overview-two-columns {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   align-items: start;
 }
@@ -281,7 +285,8 @@
 }
 .overview-handover-steps {
   display: grid;
-  gap: 18px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
 }
 .overview-handover-steps > li {
   display: flex;
@@ -436,6 +441,12 @@
   .overview-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  .overview-stat:nth-child(3) {
+    border-left: 0;
+  }
+  .overview-stat:nth-child(n + 3) {
+    border-top: 1px solid var(--border-ui);
+  }
   .overview-bottom-columns {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -443,7 +454,24 @@
     gap: 24px;
   }
 }
+@media (max-width: 1100px) {
+  .overview-handover-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 @media (max-width: 760px) {
+  .overview-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .overview-stat {
+    border-left: 0;
+  }
+  .overview-stat + .overview-stat {
+    border-top: 1px solid var(--border-ui);
+  }
+  .overview-handover-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .overview-hero,
   .overview-two-columns,
   .overview-content-columns,
@@ -463,16 +491,63 @@
   }
 }
 @media (max-width: 420px) {
-  .overview-metrics {
-    gap: 10px;
-  }
   .overview-stat {
-    padding: 14px;
+    padding: 14px 18px;
   }
   .overview-stat h2 {
     font-size: 0.875rem;
   }
   .overview-storage-value strong {
     font-size: 22px;
+  }
+}
+
+/* Nhãn nhỏ phía trên mỗi tầng, lấy từ aria-label của khối. */
+.overview-tier {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.overview-tier::before {
+  content: attr(aria-label);
+  content: attr(aria-label) / "";
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Chuyển động tiết chế: chỉ khi người dùng không chọn giảm chuyển động. Thanh và dấu tiến trình giữ nguyên như bản gốc. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes overview-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .owner-overview-layout > .overview-tier {
+    animation: overview-rise 0.4s ease-out both;
+  }
+  .owner-overview-layout > .overview-tier + .overview-tier {
+    animation-delay: 0.08s;
+  }
+  .owner-overview-layout > .overview-tier + .overview-tier + .overview-tier {
+    animation-delay: 0.16s;
+  }
+  .overview-primary-action,
+  .overview-outline-action {
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.15s ease;
+  }
+  .overview-primary-action:active,
+  .overview-outline-action:active {
+    transform: translateY(1px);
   }
 }
