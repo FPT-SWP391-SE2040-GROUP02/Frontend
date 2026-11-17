@@ -180,7 +180,7 @@ describe("official workspace data states", () => {
     expect(screen.queryByText("Thêm tài sản đang bị khóa")).not.toBeInTheDocument();
     expect(await screen.findByRole("group", { name: "Loại mục" })).toBeInTheDocument();
   });
-  it("section plans dựng trang Bàn giao: di chúc ở trái, điều kiện và ô ký ở phải, không còn khối kích hoạt riêng phía dưới", async () => {
+  it("section plans dựng trang Bàn giao: thẻ việc ở trái, tiến độ và nút xem trước ở phải, di chúc nằm trong khung trượt", async () => {
     vi.mocked(ownerVaultService.getMine).mockResolvedValue(vaultFixture);
     vi.mocked(usePlanSetup).mockReturnValue({
       isPending: false,
@@ -205,10 +205,16 @@ describe("official workspace data states", () => {
     setup("plans");
 
     expect(await screen.findByText("Kế hoạch chưa kích hoạt")).toBeInTheDocument();
-    expect(screen.getByRole("article", { name: "Di chúc" })).toBeInTheDocument();
-    expect(screen.getAllByRole("region", { name: "Việc cần làm để kích hoạt" })).toHaveLength(1);
-    expect(screen.getAllByRole("heading", { name: "Ký di chúc và kích hoạt" })).toHaveLength(1);
+    // Chưa mở khung xem trước thì chưa có tờ di chúc và ô ký trên trang.
+    expect(screen.queryByRole("article", { name: "Di chúc" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Ký di chúc và kích hoạt" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByRole("region", { name: "Tiến độ bàn giao" })).toHaveLength(1);
     expect(screen.getByRole("heading", { name: "Bàn giao diễn ra thế nào" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Mời Người thực thi" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Xem trước di chúc" }));
+    expect(await screen.findByRole("article", { name: "Di chúc" })).toBeInTheDocument();
+    expect(screen.getAllByRole("form", { name: "Ký di chúc và kích hoạt" })).toHaveLength(1);
   });
 });

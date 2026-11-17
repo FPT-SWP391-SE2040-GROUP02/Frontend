@@ -64,15 +64,6 @@ export function formatLongDate(value: string | null | undefined): string | null 
   return `${parts.day} tháng ${parts.month} năm ${parts.year}`;
 }
 
-/** "14/11/2026". */
-export function formatShortDate(value: string | null | undefined): string | null {
-  const parts = readParts(value);
-  if (parts === null) {
-    return null;
-  }
-  return `${twoDigits(parts.day)}/${twoDigits(parts.month)}/${parts.year}`;
-}
-
 /** "09:42 ngày 15/11/2026". */
 export function formatTimeOnDate(value: string | null | undefined): string | null {
   const parts = readParts(value);
@@ -80,4 +71,16 @@ export function formatTimeOnDate(value: string | null | undefined): string | nul
     return null;
   }
   return `${parts.hour}:${parts.minute} ngày ${twoDigits(parts.day)}/${twoDigits(parts.month)}/${parts.year}`;
+}
+
+/** Ngày dạng "yyyy-MM-dd" (như Backend trả cho ngày sinh) đổi sang "dd/mm/yyyy"; sai dạng trả null. */
+export function formatIsoDate(value: string | null | undefined): string | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (match === null) {
+    return null;
+  }
+  return `${match[3]}/${match[2]}/${match[1]}`;
 }

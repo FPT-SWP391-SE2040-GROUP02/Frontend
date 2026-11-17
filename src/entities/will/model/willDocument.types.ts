@@ -18,15 +18,32 @@ export interface WillPackageView {
 export interface WillRecipientView {
   id: string;
   fullName: string;
-  /** Chỉ cho biết đã viết lời nhắn chưa. Nội dung lời nhắn không bao giờ đưa vào di chúc. */
-  hasMessage: boolean;
   packages: WillPackageView[];
+  /** Ngày sinh "yyyy-MM-dd" của người nhận; chỉ có khi nơi xem đã tải danh tính đầy đủ. */
+  dateOfBirth?: string | null;
+  /** Số CCCD đầy đủ của người nhận; chỉ in trong di chúc, không ghi log hay lưu trữ. */
+  citizenId?: string | null;
 }
 
-/** Các hạn (ngày) in ở Điều 4; mặc định lấy từ cấu hình hệ thống khi nơi dùng không truyền. */
-export interface WillPolicyView {
-  checkInDays: number;
-  responseDays: number;
-  decisionDays: number;
-  grantDays: number;
+/** Danh tính đầy đủ của Chủ kho in ở mục I. */
+export interface WillOwnerIdentityView {
+  /** Ngày sinh "yyyy-MM-dd". */
+  dateOfBirth: string;
+  citizenId: string;
+  residenceAddress: string;
 }
+
+/**
+ * Tình trạng tải danh tính đầy đủ: "none" là nơi xem không dùng danh tính (Người thực thi xem lời mời), "loading" và
+ * "error" là chưa có dữ liệu, "ready" là đã có (Chủ kho có thể chưa có danh tính eKYC: `ownerIdentity` = null).
+ */
+export type WillIdentityStatus = "none" | "loading" | "error" | "ready";
+
+/** Phiên bản di chúc đã ký gần nhất, in ở đầu tờ. */
+export interface WillVersionView {
+  number: number;
+  signedAt: string | null;
+}
+
+/** Chỗ trống trong di chúc mà Chủ kho có thể bấm để được đưa tới nơi điền. */
+export type WillGapTarget = "executor" | "packages";

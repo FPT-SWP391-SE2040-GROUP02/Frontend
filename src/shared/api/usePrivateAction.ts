@@ -176,6 +176,8 @@ const messages: Record<string, string> = {
   EXECUTOR_INVITATION_CONFLICT: "Lời mời hoặc phân công đã tồn tại/thay đổi. Tải lại để kiểm tra.",
   EXECUTOR_NOT_ALLOWED: "Trạng thái hoặc tài khoản hiện không cho phép thao tác Executor này.",
   PLAN_ACTIVATION_NOT_ALLOWED: "Trạng thái kế hoạch hiện không cho phép kích hoạt lại.",
+  WILL_SIGN_NOT_ALLOWED:
+    "Kế hoạch hiện không ở trạng thái cho phép ký lại di chúc. Tải lại để xem trạng thái mới nhất.",
   PLAN_ACTIVATION_REQUIREMENTS_NOT_MET:
     "Kế hoạch chưa đủ điều kiện. Tải lại checklist để kiểm tra trước khi kích hoạt.",
   POLICY_ACKNOWLEDGEMENT_REQUIRED: "Cần đọc và xác nhận nội dung hiện hành trước khi tiếp tục.",

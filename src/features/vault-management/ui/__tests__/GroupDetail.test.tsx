@@ -176,6 +176,34 @@ describe("chi tiết gói bàn giao", () => {
     expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
   });
 
+  it("hộp thoại xóa nói gói không còn được bàn giao và nhắc ký lại di chúc", async () => {
+    renderGroup();
+
+    fireEvent.click(screen.getByRole("button", { name: "Xóa gói bàn giao" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent(
+      "Gói này sẽ không còn được bàn giao, kể cả khi bạn chưa ký lại.",
+    );
+    expect(dialog).toHaveTextContent(
+      "Nếu kế hoạch đã ký, hãy vào trang Bàn giao để ký lại di chúc.",
+    );
+    expect(dialog).toHaveTextContent("Các mục trong gói bàn giao vẫn ở lại kho");
+  });
+
+  it("khối Xóa gói bàn giao và các khối gắn người nhận, mục đều nhắc ký lại", () => {
+    renderGroup();
+
+    const deleteBlock = screen.getByRole("region", { name: "Xóa gói bàn giao" });
+    expect(deleteBlock).toHaveTextContent("Gói này sẽ không còn được bàn giao");
+    for (const name of ["Người nhận của gói bàn giao", "Mục trong gói bàn giao"]) {
+      expect(
+        within(screen.getByRole("region", { name })).getByText(
+          /cần được ký lại trong trang Bàn giao/,
+        ),
+      ).toHaveTextContent("Phần thêm hoặc đổi người nhận chỉ được bàn giao sau khi ký lại.");
+    }
+  });
+
   it("xóa gói Sẵn sàng cuối cùng thì hỏi đưa kế hoạch về Nháp rồi xóa kèm xác nhận", async () => {
     const remove = vi
       .spyOn(apiClient, "delete")

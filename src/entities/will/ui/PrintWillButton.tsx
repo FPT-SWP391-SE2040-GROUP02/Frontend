@@ -5,15 +5,33 @@ import { buttonStyles } from "@/shared/ui/heritageKit";
 import { printWill } from "../lib/printWill";
 
 /**
- * Nút "In di chúc". Bản in được render thêm qua portal vào body (class `print-slip`, chỉ hiện khi in) để PDF chỉ có
- * tờ di chúc, nền trắng chữ gần đen. Di chúc không có mã mở gói: hệ thống giữ mã, Chủ kho không cần in.
+ * Nút in di chúc (mặc định chữ "In di chúc"). Bản in được render thêm qua portal vào body (class `print-slip`, chỉ hiện
+ * khi in) để PDF chỉ có tờ di chúc, nền trắng chữ gần đen. Di chúc không có mã mở gói: hệ thống giữ mã, Chủ kho không
+ * cần in. `disabled` khóa nút (ví dụ chưa đủ hai chữ ký); nơi gọi tự giải thích lý do khóa.
  */
-export function PrintWillButton({ content }: { content: ReactNode }) {
+export function PrintWillButton({
+  content,
+  label = "In di chúc",
+  disabled = false,
+  describedBy,
+}: {
+  content: ReactNode;
+  label?: string;
+  disabled?: boolean;
+  /** id của dòng giải thích lý do khóa, nếu có. */
+  describedBy?: string;
+}) {
   return (
     <>
-      <button type="button" className={buttonStyles.outline} onClick={printWill}>
+      <button
+        type="button"
+        className={buttonStyles.outline}
+        disabled={disabled}
+        aria-describedby={describedBy}
+        onClick={printWill}
+      >
         <Printer className="size-4" aria-hidden="true" />
-        In di chúc
+        {label}
       </button>
       {createPortal(
         <div className="print-slip" aria-hidden="true">

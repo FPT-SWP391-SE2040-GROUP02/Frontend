@@ -132,6 +132,7 @@ it("requires explicit Owner acknowledgement and PIN, sends current config/policy
     .spyOn(apiClient, "post")
     .mockResolvedValue({ ...setupFixture, planStatus: "ACTIVE", canActivate: false });
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
+  await openPreview();
   const activate = await screen.findByRole("button", { name: "Ký và kích hoạt" });
   expect(activate).toBeDisabled();
   expect(post).not.toHaveBeenCalled();
@@ -165,6 +166,7 @@ it("missing eKYC and Executor keep activation disabled even after acknowledgemen
   expect(
     await screen.findByText("Chủ kho cần hoàn tất xác minh danh tính eKYC."),
   ).toBeInTheDocument();
+  await openPreview();
   fireEvent.click(screen.getByRole("checkbox"));
   expect(screen.getByRole("button", { name: "Ký và kích hoạt" })).toBeDisabled();
   expect(screen.getByLabelText(PIN_LABEL)).toBeDisabled();
@@ -183,6 +185,7 @@ it("retains server failure and does not retry activation or show success", async
     }),
   );
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
+  await openPreview();
   const activate = await screen.findByRole("button", { name: "Ký và kích hoạt" });
   agreeAndEnterPin();
   fireEvent.click(activate);
@@ -297,6 +300,11 @@ it("shows the real reason and no retry when the invitation is no longer valid", 
   expect(screen.getByRole("link", { name: "Về trang chủ" })).toBeInTheDocument();
 });
 
+/** Mở khung xem trước di chúc (nút ở cột phải đổi chữ theo trạng thái) rồi chờ khung hiện. */
+async function openPreview(): Promise<void> {
+  fireEvent.click(await screen.findByRole("button", { name: /^Xem trước/ }));
+  await screen.findByRole("dialog", { name: "Xem trước di chúc" });
+}
 it("offers retry when the invitation check fails because of the network", async () => {
   vi.spyOn(apiClient, "post").mockRejectedValue(new AxiosError("net"));
   setup(<ExecutorInvitationPanel token={"x".repeat(40)} />, false);
@@ -311,6 +319,7 @@ it("rejects a malformed readiness response rather than pretending activation is 
 it("lets Owner activate when the server says canActivate and shows no backup warning", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(setupFixture);
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
+  await openPreview();
   expect(await screen.findByRole("button", { name: "Ký và kích hoạt" })).toBeInTheDocument();
   expect(screen.queryByText(/dự phòng/)).not.toBeInTheDocument();
   agreeAndEnterPin();
@@ -339,7 +348,7 @@ it("recovers a failed readiness request without automatically activating", async
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
   await screen.findByRole("alert");
   fireEvent.click(screen.getByRole("button", { name: "Thử lại" }));
-  await screen.findByRole("region", { name: "Việc cần làm để kích hoạt" });
+  await screen.findByRole("region", { name: "Tiến độ bàn giao" });
   expect(get).toHaveBeenCalledTimes(2);
   expect(post).not.toHaveBeenCalled();
 });
@@ -379,24 +388,24 @@ it.each(["containers", "assetsOutsideContainer", "warnings"])(
   },
 );
 
-it("hiện checklist kích hoạt: mục đạt có dấu tích, mục thiếu kèm lối đi tiếp", async () => {
+it("hiện thẻ việc: việc đạt có dấu xong, việc thiếu kèm nút đi tiếp, tiến độ 2/4", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue({
     ...setupFixture,
     canActivate: false,
     missingRequirements: ["OWNER_EKYC_REQUIRED", "PRIMARY_EXECUTOR_REQUIRED"],
   });
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
-  expect(await screen.findByText("Có ít nhất một gói sẵn sàng bàn giao.")).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: /Gói tài sản và người nhận/ })).toBeVisible();
+  expect(screen.getByText(/^1 gói · 5 tài sản/)).toBeInTheDocument();
   expect(screen.getByText("Gói dịch vụ trả phí còn hạn.")).toBeInTheDocument();
-  expect(screen.getByText("Cần Người thực thi đã chấp nhận nhiệm vụ.")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Mời Người thực thi" })).toHaveAttribute(
-    "href",
-    "/dashboard/trusted-people",
-  );
+  expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Đi xác minh danh tính" })).toBeInTheDocument();
-  expect(screen.queryByText("Đã xác minh danh tính eKYC.")).not.toBeInTheDocument();
-  // Hai điều kiện thiếu trong bốn điều kiện: đạt 2/4.
-  expect(screen.getByText("Còn 2 điều kiện chưa đạt")).toBeInTheDocument();
+  expect(screen.queryByText(/Đã xác minh\. Tên trên di chúc/)).not.toBeInTheDocument();
+  // Hai điều kiện thiếu trong bốn điều kiện: đạt 2/4, danh sách điều kiện chưa đạt ở cột phải.
+  const progress = screen.getByRole("region", { name: "Tiến độ bàn giao" });
+  expect(within(progress).getByText("Còn 2 điều kiện chưa đạt")).toBeInTheDocument();
+  expect(within(progress).getByText("Chưa xác minh danh tính (eKYC)")).toBeInTheDocument();
+  expect(within(progress).getByText("Chưa chọn Người thực thi")).toBeInTheDocument();
   const bar = screen.getByRole("progressbar", { name: "Tiến độ điền di chúc" });
   expect(bar).toHaveAttribute("aria-valuenow", "2");
   expect(bar).toHaveAttribute("aria-valuemax", "4");

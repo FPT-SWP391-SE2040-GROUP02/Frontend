@@ -44,6 +44,20 @@ const assetOutsideContainerSchema = z.object({
   name: z.string(),
   kind: z.enum(["FILE", "TEXT"]),
 });
+/**
+ * Số thay đổi so với bản di chúc ký gần nhất (chỉ số đếm, không có tên). Xóa có hiệu lực ngay; thêm gói, thêm tài sản,
+ * thêm hoặc đổi người nhận chưa được bàn giao cho tới khi Chủ kho ký lại.
+ */
+export const unsignedChangesSchema = z.object({
+  removedContainers: z.number().int().nonnegative().default(0),
+  addedContainers: z.number().int().nonnegative().default(0),
+  removedAssets: z.number().int().nonnegative().default(0),
+  addedAssets: z.number().int().nonnegative().default(0),
+  removedRecipients: z.number().int().nonnegative().default(0),
+  addedRecipients: z.number().int().nonnegative().default(0),
+  changedRecipientCount: z.number().int().nonnegative().default(0),
+});
+export type UnsignedChanges = z.infer<typeof unsignedChangesSchema>;
 export const planSetupSchema = z.object({
   planStatus: z.string(),
   configVersion: z.number().int().positive(),
@@ -68,6 +82,13 @@ export const planSetupSchema = z.object({
   activatedAt: date.nullable().optional(),
   /** Người nhận theo từng người; thiếu nghĩa là Backend cũ chưa trả, giao diện dùng câu chung. */
   recipients: z.array(recipientSchema).optional(),
+  /** Số phiên bản di chúc đã ký gần nhất; null hoặc thiếu khi chưa có phiên bản. Backend cũ không có trường này. */
+  willVersion: z.number().int().nullable().optional(),
+  /** Lúc ký phiên bản gần nhất. */
+  willSignedAt: date.nullable().optional(),
+  /** Kế hoạch đang chạy mà cấu hình khác bản ký gần nhất. */
+  hasUnsignedChanges: z.boolean().optional(),
+  unsignedChanges: unsignedChangesSchema.nullable().optional(),
 });
 export const executorInfoSchema = z.object({
   expiresAt: date,
