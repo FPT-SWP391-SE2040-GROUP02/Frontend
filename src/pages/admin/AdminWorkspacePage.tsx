@@ -2,7 +2,6 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import {
   CreditCard,
   FileText,
-  Mail,
   History,
   Home,
   ShieldCheck,
@@ -13,7 +12,6 @@ import {
 } from "lucide-react";
 import {
   AdminDevTools,
-  AdminEmailTemplates,
   AdminHandoverTemplates,
   AdminHolds,
   AdminOverview,
@@ -23,7 +21,6 @@ import {
   AdminSystemConfig,
   AdminUsers,
 } from "@/features/admin";
-import { DemoClockCard } from "@/features/dev-clock";
 import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
 import { ACTION_LABELS } from "@/features/audit-logs/model/auditLogLabels";
 import { AdminTwoFactorSettings } from "@/features/auth";
@@ -57,13 +54,6 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
     label: "Mẫu biên bản",
     icon: FileText,
     to: `${ROUTES.ADMIN.ROOT}?view=templates`,
-    group: "Hệ thống",
-  },
-  {
-    id: "email-templates",
-    label: "Mẫu thư",
-    icon: Mail,
-    to: `${ROUTES.ADMIN.ROOT}?view=email-templates`,
     group: "Hệ thống",
   },
   {
@@ -110,6 +100,7 @@ const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
     ]
   : NAVIGATION;
 
+// Trang "Mẫu thư" (AdminEmailTemplates) đang được ẩn khỏi menu và đường dẫn; code vẫn còn ở features/admin.
 const VIEWS = {
   overview: {
     title: "Tổng quan",
@@ -122,11 +113,6 @@ const VIEWS = {
   templates: {
     title: "Mẫu biên bản",
     description: "Sửa các mục 1 đến 8 của biên bản đồng ý nhận khi luật thay đổi.",
-  },
-  "email-templates": {
-    title: "Mẫu thư",
-    description:
-      "Sửa chữ các thư thông báo gửi cho Chủ kho, Người thực thi, người nhận và Người xét duyệt.",
   },
   settings: {
     title: "Cấu hình",
@@ -169,7 +155,6 @@ function viewFor(pathname: string, search: string): AdminView {
     view === "settings" ||
     view === "plans" ||
     view === "templates" ||
-    view === "email-templates" ||
     view === "holds" ||
     view === "payments" ||
     view === "security"
@@ -243,7 +228,6 @@ export function AdminWorkspacePage() {
       {view === "settings" && <SettingsTabs />}
       {view === "plans" && <AdminSettings section="plans" />}
       {view === "templates" && <AdminHandoverTemplates />}
-      {view === "email-templates" && <AdminEmailTemplates />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
       {view === "users" && (
@@ -252,14 +236,7 @@ export function AdminWorkspacePage() {
         />
       )}
       {view === "security" && <AdminTwoFactorSettings />}
-      {view === "dev-tools" && (
-        <>
-          <div className="mt-6">
-            <DemoClockCard />
-          </div>
-          <AdminDevTools />
-        </>
-      )}
+      {view === "dev-tools" && <AdminDevTools />}
       {view === "audit" && <AdminAuditLogs />}
     </WorkspaceFrame>
   );

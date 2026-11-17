@@ -7,14 +7,12 @@ import { EkycReviewForm } from "../EkycReviewForm";
 import { ekycReviewSchema, ocrDateForInput } from "../../model/ekyc.schema";
 
 const verificationId = "11111111-1111-4111-8111-111111111111";
-const turnId = "22222222-2222-4222-8222-222222222222";
 const document = {
   verificationId,
   idNumber: "012345678901",
   fullName: "Tên OCR",
   dateOfBirth: "01/02/2000",
   residenceAddress: "Địa chỉ OCR",
-  identityMatch: "NOT_CHECKED" as const,
   canMatchFace: true,
   expiresAt: null,
   warnings: [],
@@ -28,8 +26,6 @@ const status = {
   spoofCheckPassed: null,
   createdAt: null,
   completedAt: null,
-  purpose: "OWNER_ENROLLMENT",
-  identityMatch: "NOT_CHECKED",
   backSideChecked: false,
 };
 beforeEach(() => accessTokenMemory.set("test-only-ocr"));
@@ -38,14 +34,12 @@ afterEach(() => {
   accessTokenMemory.clear();
   vi.restoreAllMocks();
 });
-function setup(beneficiary = false) {
+function setup() {
   function Harness() {
     const [confirmed, setConfirmed] = useState(false);
     return (
       <EkycReviewForm
         document={document}
-        purpose={beneficiary ? "BENEFICIARY_CLAIM" : "OWNER_ENROLLMENT"}
-        turnId={turnId}
         confirmed={confirmed}
         disabled={false}
         backSent
@@ -84,20 +78,12 @@ it("Owner sửa được họ tên, ngày sinh; số căn cước luôn khóa; g
   fireEvent.click(screen.getByRole("button", { name: "Khôi phục thông tin máy đọc" }));
   expect(screen.getByLabelText("Họ và tên")).toHaveValue(document.fullName);
 });
-it("người nhận: khóa số căn cước, họ tên, ngày sinh; chỉ nơi cư trú sửa được", () => {
-  setup(true);
-  expect(screen.getByLabelText("Số căn cước")).toHaveAttribute("readonly");
-  expect(screen.getByLabelText("Họ và tên")).toHaveAttribute("readonly");
-  expect(screen.getByLabelText("Ngày sinh")).toHaveAttribute("readonly");
-  expect(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú")).not.toHaveAttribute("readonly");
-  expect(screen.getByRole("button", { name: "Khôi phục nơi cư trú" })).toBeInTheDocument();
-});
-it("keeps edits on failure and sends the beneficiary turn context on retry", async () => {
+it("keeps edits on failure and resubmits the edited address on retry", async () => {
   const post = vi
     .spyOn(apiClient, "post")
     .mockRejectedValueOnce(new Error("test failure"))
-    .mockResolvedValue({ ...status, purpose: "BENEFICIARY_CLAIM" });
-  setup(true);
+    .mockResolvedValue(status);
+  setup();
   fireEvent.change(screen.getByLabelText("Nơi cư trú / địa chỉ thường trú"), {
     target: { value: "Địa chỉ đã sửa" },
   });
@@ -109,11 +95,7 @@ it("keeps edits on failure and sends the beneficiary turn context on retry", asy
   await screen.findByRole("status");
   expect(post).toHaveBeenLastCalledWith(
     "/ekyc/document/confirm",
-    expect.objectContaining({
-      handoverTurnId: turnId,
-      purpose: "BENEFICIARY_CLAIM",
-      residenceAddress: "Địa chỉ đã sửa",
-    }),
+    expect.objectContaining({ purpose: "OWNER_ENROLLMENT", residenceAddress: "Địa chỉ đã sửa" }),
   );
 });
 it("rejects invalid input without posting and guards duplicate submits while pending", async () => {
@@ -175,7 +157,6 @@ it("không còn ô Có giá trị đến / Date of expiry vì máy đọc không
   render(
     <EkycReviewForm
       document={document}
-      purpose="OWNER_ENROLLMENT"
       confirmed={false}
       disabled={false}
       backSent

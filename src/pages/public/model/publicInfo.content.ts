@@ -82,7 +82,7 @@ export const FAQ_CONTENT = {
         {
           question: "eKYC trong LegacyVault có giá trị pháp lý không?",
           answer:
-            "Không. Đây là xác minh cơ bản để nhận diện người nhận, chưa có giá trị pháp lý như thủ tục công chứng, và chưa xác thực giấy tờ thật hay giả.",
+            "Không. Đây là xác minh cơ bản để nhận diện Chủ kho, chưa có giá trị pháp lý như thủ tục công chứng, và chưa xác thực giấy tờ thật hay giả.",
         },
       ],
     },

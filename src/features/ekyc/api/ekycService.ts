@@ -8,7 +8,6 @@ import {
   ekycDocumentConfirmationSchema,
   ekycLivenessCompleteSchema,
   ekycLivenessResponseSchema,
-  ekycPurposeSchema,
   ekycStatusSchema,
 } from "../model/ekyc.schema";
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -71,7 +70,7 @@ async function optimizeImageForUpload(file: File): Promise<File> {
   });
 }
 
-function imageForm(file: File, handoverTurnId?: string) {
+function imageForm(file: File) {
   if (
     !["image/jpeg", "image/png"].includes(file.type) ||
     file.size === 0 ||
@@ -80,14 +79,7 @@ function imageForm(file: File, handoverTurnId?: string) {
     throw new Error("Chọn ảnh JPEG hoặc PNG có dung lượng tối đa 8 MiB.");
   const form = new FormData();
   form.append("file", file);
-  if (handoverTurnId) form.append("handoverTurnId", handoverTurnId);
   return form;
-}
-/** Tùy chọn cho document/back: chỉ BENEFICIARY_CLAIM mới gửi kèm handoverTurnId. */
-function turnIdFor(purpose: string, handoverTurnId?: string | null): string | undefined {
-  if (purpose !== "BENEFICIARY_CLAIM") return undefined;
-  if (!handoverTurnId) throw new Error("Thiếu mã lượt bàn giao cho BENEFICIARY_CLAIM.");
-  return handoverTurnId;
 }
 /** Đổi sự kiện byte của axios thành phần trăm tròn; bỏ sự kiện thiếu tổng (multipart thường có). */
 function progressHandler(
@@ -99,7 +91,7 @@ function progressHandler(
     }
   };
 }
-/** Transport eKYC; không retry gửi ảnh, không tự quyết PASSED/MATCHED. */
+/** Transport eKYC của Chủ kho; không retry gửi ảnh, không tự quyết PASSED. */
 export const ekycService = {
   /** Xác nhận bản tự khai sau khi người dùng sửa; không nâng kết quả đối chiếu ảnh. */
   async confirmDocument(request: z.input<typeof ekycDocumentConfirmationSchema>) {
@@ -115,28 +107,24 @@ export const ekycService = {
     return ekycStatusSchema.parse(await apiClient.get<unknown, unknown>("/ekyc/me", { signal }));
   },
   /** POST đồng ý thu thập; chỉ gọi sau khi user chủ động bấm đồng ý, không tự chạy khi mount. */
-  async submitConsent(purpose: string) {
-    const parsed = ekycPurposeSchema.parse(purpose);
+  async submitConsent() {
     return ekycConsentResponseSchema.parse(
       await apiClient.post<unknown, unknown>(
         "/ekyc/consent",
-        ekycConsentRequestSchema.parse({ purpose: parsed, noticeVersion: "2026-10-v1" }),
+        ekycConsentRequestSchema.parse({
+          purpose: "OWNER_ENROLLMENT",
+          noticeVersion: "2026-10-v1",
+        }),
       ),
     );
   },
   /** POST ảnh mặt trước; OCR chỉ giữ RAM; progress theo byte đã gửi. */
-  async submitDocument(
-    file: File,
-    purpose: string,
-    handoverTurnId?: string | null,
-    onUploadProgress?: (percent: number) => void,
-  ) {
-    const parsed = ekycPurposeSchema.parse(purpose);
+  async submitDocument(file: File, onUploadProgress?: (percent: number) => void) {
     const optimizedFile = await optimizeImageForUpload(file);
     return ekycDocumentSchema.parse(
       await apiClient.post<unknown, unknown>(
         "/ekyc/document",
-        imageForm(optimizedFile, turnIdFor(parsed, handoverTurnId)),
+        imageForm(optimizedFile),
         // Đọc OCR có thể lâu (lần đầu nạp mô hình); BE chờ dịch vụ eKYC tối đa 120 giây (Ekyc:TimeoutSeconds).
         {
           headers: { "Content-Type": undefined },
@@ -147,27 +135,17 @@ export const ekycService = {
     );
   },
   /**
-   * POST ảnh mặt sau; response là EkycBackResponse (trạng thái lượt + nơi cư trú đọc từ mặt sau), không cần gửi
-   * lại turnId. Có thể gửi trước bước xác nhận bản khai: BE chỉ cần đã đọc mặt trước.
+   * POST ảnh mặt sau; response là EkycBackResponse (trạng thái lượt + nơi cư trú đọc từ mặt sau). Có thể gửi
+   * trước bước xác nhận bản khai: BE chỉ cần đã đọc mặt trước.
    */
-  async submitDocumentBack(
-    file: File,
-    purpose: string,
-    handoverTurnId?: string | null,
-    onUploadProgress?: (percent: number) => void,
-  ) {
-    const parsed = ekycPurposeSchema.parse(purpose);
+  async submitDocumentBack(file: File, onUploadProgress?: (percent: number) => void) {
     const optimizedFile = await optimizeImageForUpload(file);
     return ekycBackSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        "/ekyc/document-back",
-        imageForm(optimizedFile, turnIdFor(parsed, handoverTurnId)),
-        {
-          headers: { "Content-Type": undefined },
-          timeout: OCR_TIMEOUT_MS,
-          onUploadProgress: progressHandler(onUploadProgress),
-        },
-      ),
+      await apiClient.post<unknown, unknown>("/ekyc/document-back", imageForm(optimizedFile), {
+        headers: { "Content-Type": undefined },
+        timeout: OCR_TIMEOUT_MS,
+        onUploadProgress: progressHandler(onUploadProgress),
+      }),
     );
   },
   /**

@@ -10,7 +10,6 @@ import { Textarea } from "@/shared/ui/textarea";
 import { ekycService } from "../api/ekycService";
 import {
   ekycDocumentSchema,
-  ekycPurposeSchema,
   ekycReviewSchema,
   formatToIsoDate,
   ocrDateForInput,
@@ -19,13 +18,11 @@ import {
 /**
  * Bản OCR chỉ ở RAM: xác nhận → chuyển sang thử thách camera sau phản hồi BE.
  * Số căn cước luôn khóa theo bản máy đọc (Backend kiểm tra trùng CCCD trên số đọc từ ảnh).
- * Owner đăng ký sửa được họ tên, ngày sinh vì Backend lưu bản Owner xác nhận làm danh tính. Người nhận thì khóa cả họ
- * tên, ngày sinh: Backend đối chiếu bằng bản OCR và không lưu bản tự sửa. Nơi cư trú luôn sửa được.
+ * Chủ kho sửa được họ tên, ngày sinh vì Backend lưu bản Chủ kho xác nhận làm danh tính (đã gửi thì khóa).
+ * Nơi cư trú luôn sửa được.
  */
 export function EkycReviewForm({
   document,
-  purpose,
-  turnId,
   confirmed,
   disabled,
   suggestedAddress = "",
@@ -34,8 +31,6 @@ export function EkycReviewForm({
   onEdit,
 }: {
   document: z.infer<typeof ekycDocumentSchema>;
-  purpose: z.infer<typeof ekycPurposeSchema>;
-  turnId?: string | null;
   confirmed: boolean;
   disabled: boolean;
   /** Nơi cư trú đọc từ mặt sau; chỉ điền khi ô địa chỉ đang trống, người dùng vẫn đối chiếu và sửa được. */
@@ -88,21 +83,15 @@ export function EkycReviewForm({
     statusStyle = "bg-green-100 text-green-800";
   }
 
-  // Owner đăng ký được sửa họ tên, ngày sinh (đã gửi thì khóa); số căn cước và hai ô này của người nhận luôn khóa.
-  const isOwner = purpose === "OWNER_ENROLLMENT";
-  const nameAndBirthLocked = !isOwner || confirmed;
+  // Chủ kho sửa được họ tên, ngày sinh cho đến khi đã gửi; số căn cước luôn khóa theo bản máy đọc.
+  const nameAndBirthLocked = confirmed;
   const lockedStyle = "bg-[#F4F1E6]";
   let birthClass = "min-h-11 w-full min-w-0";
   if (nameAndBirthLocked) birthClass = `${birthClass} ${lockedStyle}`;
 
-  let guidance =
-    "Số căn cước, họ tên và ngày sinh lấy đúng theo bản máy đọc, không sửa được. Đối chiếu với thẻ gốc ở bên trái; nếu máy đọc sai, hãy chụp lại mặt trước rõ hơn.";
-  let restoreLabel = "Khôi phục nơi cư trú";
-  if (isOwner) {
-    guidance =
-      "Đối chiếu với thẻ gốc ở bên trái. Nếu máy đọc sai họ tên hoặc ngày sinh, hãy sửa lại cho đúng như trên thẻ; số căn cước giữ theo bản máy đọc, sai thì chụp lại mặt trước rõ hơn.";
-    restoreLabel = "Khôi phục thông tin máy đọc";
-  }
+  const guidance =
+    "Đối chiếu với thẻ gốc ở bên trái. Nếu máy đọc sai họ tên hoặc ngày sinh, hãy sửa lại cho đúng như trên thẻ; số căn cước giữ theo bản máy đọc, sai thì chụp lại mặt trước rõ hơn.";
+  const restoreLabel = "Khôi phục thông tin máy đọc";
 
   const textFields = [
     ["idNumber", "Số căn cước"],
@@ -197,8 +186,6 @@ export function EkycReviewForm({
               ...values,
               dateOfBirth: formatToIsoDate(values.dateOfBirth),
               verificationId: document.verificationId!,
-              purpose,
-              ...(purpose === "BENEFICIARY_CLAIM" && turnId ? { handoverTurnId: turnId } : {}),
             }),
           () => {
             setShowId(false);
@@ -327,13 +314,6 @@ export function EkycReviewForm({
       {!document.canMatchFace && (
         <p role="alert" className="mt-4 text-sm">
           Ảnh chưa có khuôn mặt rõ. Bắt đầu lại với ảnh giấy tờ rõ hơn.
-        </p>
-      )}
-
-      {(document.identityMatch === "WRONG_PERSON" || document.identityMatch === "NEEDS_REVIEW") && (
-        <p role="alert" className="mt-4 text-sm">
-          Thông tin máy đọc từ ảnh chưa khớp hồ sơ người nhận. Chụp lại giấy tờ rõ hơn, hoặc nhờ Chủ
-          kho kiểm tra họ tên và ngày sinh đã khai.
         </p>
       )}
 

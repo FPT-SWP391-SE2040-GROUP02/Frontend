@@ -87,11 +87,6 @@ const InvitationsPage = lazy(() =>
     default: module.InvitationsPage,
   })),
 );
-const ExecutorIdentityPage = lazy(() =>
-  import("@/pages/executor/ExecutorIdentityPage").then((module) => ({
-    default: module.ExecutorIdentityPage,
-  })),
-);
 const ExecutorSettingsPage = lazy(() =>
   import("@/pages/executor/ExecutorSettingsPage").then((module) => ({
     default: module.ExecutorSettingsPage,
@@ -376,7 +371,6 @@ export function AppRoutes() {
           />
           <Route path={ROUTES.EXECUTOR.SETTINGS} element={<ExecutorSettingsPage />} />
           <Route path={ROUTES.EXECUTOR.INVITATIONS} element={<ExecutorInvitationsPage />} />
-          <Route path={ROUTES.EXECUTOR.IDENTITY} element={<ExecutorIdentityPage />} />
           {/* Đường dẫn cũ của cổng Executor. */}
           <Route
             path={ROUTES.EXECUTOR.CLAIM}

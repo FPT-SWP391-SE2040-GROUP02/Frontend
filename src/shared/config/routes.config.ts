@@ -94,8 +94,6 @@ export const ROUTES = {
     SETTINGS: "/executor/settings",
     /** Trang "Lời mời và các kho bạn đang làm việc" trong không gian Người thực thi: trả lời lời mời và mở các kho đang giữ. */
     INVITATIONS: "/executor/invitations",
-    /** Xác minh danh tính (eKYC) của Người thực thi, cùng luồng với tab xác minh của Chủ kho. */
-    IDENTITY: "/executor/identity",
   },
 
   /** Cổng người thụ hưởng / Beneficiary */
@@ -104,7 +102,6 @@ export const ROUTES = {
     HANDOVER: "/claim/beneficiary/handover",
     /** Cũ: mục Biên bản riêng; nay gộp vào Tổng quan nên đường dẫn này chuyển về Tổng quan. */
     DOCUMENTS: "/claim/beneficiary/documents",
-    EKYC_CAMERA: "/claim/beneficiary/ekyc/camera",
   },
 
   /** Quản trị hệ thống & Sổ cái kiểm toán WORM */

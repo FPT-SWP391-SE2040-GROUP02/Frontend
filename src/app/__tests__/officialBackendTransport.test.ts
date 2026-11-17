@@ -80,8 +80,6 @@ describe("official Backend transport through real Axios interceptors", () => {
       spoofCheckPassed: null,
       createdAt: null,
       completedAt: null,
-      purpose: null,
-      identityMatch: "NOT_CHECKED",
       backSideChecked: false,
     };
     respond(status, (config) => expect(config.url).toBe("/ekyc/me"));
@@ -94,7 +92,6 @@ describe("official Backend transport through real Axios interceptors", () => {
       fullName: "",
       dateOfBirth: "",
       residenceAddress: "",
-      identityMatch: "NOT_CHECKED",
       canMatchFace: false,
       expiresAt: null,
       warnings: ["No face found"],
@@ -108,7 +105,6 @@ describe("official Backend transport through real Axios interceptors", () => {
       (
         await ekycService.submitDocument(
           new File(["public-test-fixture"], "test.png", { type: "image/png" }),
-          "OWNER_ENROLLMENT",
         )
       ).canMatchFace,
     ).toBe(false);
@@ -122,10 +118,7 @@ describe("official Backend transport through real Axios interceptors", () => {
       ekycService.sendLivenessFrame(new File(["test"], "test.txt", { type: "text/plain" })),
     ).rejects.toThrow();
     await expect(
-      ekycService.submitDocument(
-        new File([], "test.png", { type: "image/png" }),
-        "OWNER_ENROLLMENT",
-      ),
+      ekycService.submitDocument(new File([], "test.png", { type: "image/png" })),
     ).rejects.toThrow();
     expect(calls).toBe(0);
   });
@@ -169,8 +162,6 @@ describe("official Backend transport through real Axios interceptors", () => {
         spoofCheckPassed: true,
         createdAt: null,
         completedAt: null,
-        purpose: "OWNER_ENROLLMENT",
-        identityMatch: "MATCHED",
         backSideChecked: true,
       },
       (config) => expect(config.url).toBe("/ekyc/liveness/complete"),

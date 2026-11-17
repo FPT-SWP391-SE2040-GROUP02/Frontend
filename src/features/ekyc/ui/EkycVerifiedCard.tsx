@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { CircleCheck } from "lucide-react";
@@ -37,23 +36,12 @@ function VerifiedBadge() {
   );
 }
 
-const OWNER_SUBTITLE = "Bạn chỉ cần xác minh một lần, không phải làm lại.";
-
-/**
- * Màn kết quả khi xác minh đạt: tóm tắt từ trạng thái của máy chủ và gợi ý bước tiếp theo.
- * Mặc định là màn của Chủ kho; người nhận truyền `subtitle` và `nextStep` của riêng họ.
- */
+/** Màn kết quả của Chủ kho khi xác minh đạt: tóm tắt từ trạng thái của máy chủ và gợi ý bước tiếp theo. */
 export function EkycVerifiedCard({
   live,
-  subtitle = OWNER_SUBTITLE,
-  nextStep,
   hidePurchaseStep,
 }: {
   live: z.infer<typeof ekycStatusSchema>;
-  /** Dòng phụ dưới tiêu đề. */
-  subtitle?: string;
-  /** Khối "Bước tiếp theo" thay cho khối mua gói của Chủ kho. */
-  nextStep?: ReactNode;
   /** Chủ kho đã có gói trả phí còn hiệu lực thì không nhắc mua gói nữa. */
   hidePurchaseStep?: boolean;
 }) {
@@ -109,7 +97,9 @@ export function EkycVerifiedCard({
           <p role="status" className="text-xl font-medium text-heritage-primary">
             Danh tính đã được xác minh.
           </p>
-          <p className="text-sm text-heritage-muted">{subtitle}</p>
+          <p className="text-sm text-heritage-muted">
+            Bạn chỉ cần xác minh một lần, không phải làm lại.
+          </p>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
           <CircleCheck className="size-4" aria-hidden="true" />
@@ -124,7 +114,7 @@ export function EkycVerifiedCard({
           </div>
         ))}
       </dl>
-      {nextStep ?? (hidePurchaseStep ? null : ownerNextStep)}
+      {!hidePurchaseStep && ownerNextStep}
     </section>
   );
 }

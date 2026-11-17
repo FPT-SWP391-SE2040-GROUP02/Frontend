@@ -99,7 +99,6 @@ export const ERROR_MESSAGES: Record<AdminErrorKind, string> = {
 export { formatDate, formatDateTime } from "@/shared/lib/dateFormat";
 
 export const HOLD_TYPE_LABELS: Record<HoldType, string> = {
-  OWNER_ALIVE: "Báo còn sống (luồng đã gỡ)",
   DISPUTE: "Tranh chấp",
   ADMIN: "Quản trị viên đặt",
 };
