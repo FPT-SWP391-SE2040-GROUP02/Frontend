@@ -111,6 +111,7 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
         <AdminNotaryCardDialog
           userId={user.id}
           name={user.fullName || user.email}
+          isExecutor={user.role === "EXECUTOR"}
           open={cardOpen}
           onClose={() => setCardOpen(false)}
         />
