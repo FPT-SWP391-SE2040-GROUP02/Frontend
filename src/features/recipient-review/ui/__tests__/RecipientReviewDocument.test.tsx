@@ -139,7 +139,7 @@ describe("Màn duyệt hồ sơ người nhận (có biên bản)", () => {
     expect(note).not.toHaveTextContent("duyệt ngày");
   });
 
-  it("bảng đối chiếu 3 cột chỉ hiện 4 số cuối căn cước, hai ảnh to, biên bản mở sẵn rộng hết khung", async () => {
+  it("bảng đối chiếu 3 cột hiện đủ số căn cước khi khớp, hai ảnh to, biên bản mở sẵn rộng hết khung", async () => {
     backend();
     renderWith(<RecipientReviewQueue />);
 
@@ -151,10 +151,9 @@ describe("Màn duyệt hồ sơ người nhận (có biên bản)", () => {
       within(table).getByRole("columnheader", { name: "Chủ kho đã khai" }),
     ).toBeInTheDocument();
     expect(within(table).getAllByText("Khớp")).toHaveLength(3);
-    expect(within(table).getByText("Trần Minh Anh")).toBeInTheDocument();
-    expect(within(table).getByText("1990")).toBeInTheDocument();
-    expect(table).not.toHaveTextContent("079190001234");
-    expect(table).toHaveTextContent("•••• 1234");
+    expect(within(table).getAllByText("Trần Minh Anh")).toHaveLength(2);
+    expect(within(table).getAllByText("20/05/1990")).toHaveLength(2);
+    expect(within(table).getAllByText("079190001234")).toHaveLength(2);
     expect(await screen.findByAltText("Căn cước mặt trước")).toBeInTheDocument();
     expect(screen.getByAltText("Căn cước mặt sau")).toBeInTheDocument();
     // Biên bản hiện sẵn (không nằm trong nút xổ), rộng hết khung.

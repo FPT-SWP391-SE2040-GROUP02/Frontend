@@ -59,6 +59,14 @@ export const handoverDocumentSchema = z.object({
     birthYear: z.number().int().nullable(),
     citizenId: z.string().default(""),
     citizenIdLast4: z.string(),
+    /** Số căn cước đầy đủ người nhận đã gõ lúc ký; chỉ Người xét duyệt thấy, Backend cũ không có thì bỏ trống. */
+    claimedCitizenId: z.string().nullish(),
+    /** Ngày sinh đầy đủ người nhận đã gõ lúc ký (yyyy-MM-dd); chỉ Người xét duyệt thấy. */
+    claimedDateOfBirth: dateOnly.nullish(),
+    /** Họ tên Chủ kho đã khai cho người nhận; chỉ Người xét duyệt thấy, Backend cũ không có thì bỏ trống. */
+    declaredFullName: z.string().nullish(),
+    /** Ngày sinh Chủ kho đã khai cho người nhận (yyyy-MM-dd); chỉ Người xét duyệt thấy. */
+    declaredDateOfBirth: dateOnly.nullish(),
     /** Nơi thường trú người nhận khai lúc ký (tạm thời chỉ lưu, chưa hiển thị); rỗng khi chưa ký. */
     residenceAddress: z.string().default(""),
     signedAt: timestamp.nullable(),

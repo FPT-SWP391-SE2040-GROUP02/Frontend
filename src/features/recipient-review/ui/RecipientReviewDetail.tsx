@@ -169,7 +169,10 @@ function lastFour(value: string): string {
   return value.slice(value.length - 4);
 }
 
-/** Bảng đối chiếu 3 cột: người nhận khai, Chủ kho đã khai và kết quả khớp. Số căn cước chỉ hiện 4 số cuối. */
+/**
+ * Bảng đối chiếu 3 cột: người nhận khai, Chủ kho đã khai và kết quả khớp. Cột Chủ kho đã khai hiện đủ họ tên, ngày sinh
+ * và số căn cước; cột người nhận khai hiện đủ họ tên, ngày sinh và số căn cước người nhận đã gõ lúc ký.
+ */
 function MatchTable({
   detail,
   document,
@@ -181,25 +184,43 @@ function MatchTable({
   let declaredYear = "";
   let declaredId = `•••• ${detail.citizenIdLast4}`;
   let ownerDeclaredId = "—";
+  let ownerDeclaredName = "—";
+  let ownerDeclaredBirth = "—";
   if (document) {
+    if (document.recipient.declaredFullName)
+      ownerDeclaredName = document.recipient.declaredFullName;
+    if (document.recipient.declaredDateOfBirth) {
+      ownerDeclaredBirth = formatDocumentDate(document.recipient.declaredDateOfBirth);
+    }
     declaredName = document.recipient.fullName;
     if (document.recipient.birthYear) declaredYear = String(document.recipient.birthYear);
     if (document.recipient.citizenId.length > 4) {
-      ownerDeclaredId = `•••• ${lastFour(document.recipient.citizenId)}`;
+      ownerDeclaredId = document.recipient.citizenId;
     }
     declaredId = `•••• ${lastFour(document.recipient.citizenIdLast4)}`;
+    // Số căn cước và ngày sinh đầy đủ người nhận đã gõ; hồ sơ cũ không có thì dùng giá trị Chủ kho khai khi đã khớp.
+    if (document.recipient.claimedCitizenId) {
+      declaredId = document.recipient.claimedCitizenId;
+    } else if (detail.citizenIdMatches && ownerDeclaredId !== "—") {
+      declaredId = ownerDeclaredId;
+    }
+    if (document.recipient.claimedDateOfBirth) {
+      declaredYear = formatDocumentDate(document.recipient.claimedDateOfBirth);
+    } else if (detail.dateOfBirthMatches && ownerDeclaredBirth !== "—") {
+      declaredYear = ownerDeclaredBirth;
+    }
   }
   const rows: Array<{ label: string; claimed: string; declared: string; matches: boolean }> = [
     {
       label: "Họ tên",
       claimed: declaredName || "—",
-      declared: "Hệ thống đã đối chiếu",
+      declared: ownerDeclaredName,
       matches: detail.nameMatches,
     },
     {
       label: "Năm sinh",
       claimed: declaredYear || "—",
-      declared: "Hệ thống đã đối chiếu",
+      declared: ownerDeclaredBirth,
       matches: detail.dateOfBirthMatches,
     },
     {
@@ -236,7 +257,7 @@ function MatchTable({
                 {row.label}
               </th>
               <td className="px-3 py-3">{row.claimed}</td>
-              <td className="px-3 py-3 text-heritage-muted">{row.declared}</td>
+              <td className="px-3 py-3 font-medium">{row.declared}</td>
               <td className="py-3 pl-3">
                 <Chip tone={row.matches ? "success" : "danger"}>
                   {row.matches ? "Khớp" : "Không khớp"}
