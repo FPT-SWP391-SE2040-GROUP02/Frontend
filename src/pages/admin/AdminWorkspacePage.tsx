@@ -21,7 +21,6 @@ import {
   AdminSystemConfig,
   AdminUsers,
 } from "@/features/admin";
-import { DemoClockCard } from "@/features/dev-clock";
 import { AdminAuditLogs } from "@/features/audit-logs/ui/AdminAuditLogs";
 import { ACTION_LABELS } from "@/features/audit-logs/model/auditLogLabels";
 import { AdminTwoFactorSettings } from "@/features/auth";
@@ -237,14 +236,7 @@ export function AdminWorkspacePage() {
         />
       )}
       {view === "security" && <AdminTwoFactorSettings />}
-      {view === "dev-tools" && (
-        <>
-          <div className="mt-6">
-            <DemoClockCard />
-          </div>
-          <AdminDevTools />
-        </>
-      )}
+      {view === "dev-tools" && <AdminDevTools />}
       {view === "audit" && <AdminAuditLogs />}
     </WorkspaceFrame>
   );

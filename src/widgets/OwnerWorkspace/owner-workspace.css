@@ -210,9 +210,9 @@
   /* Cột menu đứng yên khi cuộn và cao bằng màn hình (trừ dải giả lập ngày nếu có), nên chân menu luôn thấy được. */
   .owner-workspace > aside {
     position: sticky;
-    top: var(--demo-banner-height, 0px);
+    top: 0;
     align-self: start;
-    height: calc(100vh - var(--demo-banner-height, 0px));
+    height: 100vh;
     min-height: 0;
     overflow-y: auto;
     border-bottom: 0;

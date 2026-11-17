@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { History, Rewind, ScanFace } from "lucide-react";
+import { Check, History, Mail, Rewind, ScanFace } from "lucide-react";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { buttonStyles, Chip, Notice, Panel } from "@/shared/ui/heritageKit";
 import { devToolsService } from "../api/devToolsService";
 import {
   CHECK_IN_STATE_LABELS,
   CLOCK_STATE_LABELS,
-  DEV_MILESTONES,
+  DEV_MILESTONE_GROUP_TITLES,
   DEV_TOOLS_FOOTNOTE,
   DEV_TOOLS_NOTICE,
   EKYC_RESET_DESCRIPTION,
@@ -18,9 +18,11 @@ import {
   REWIND_DESCRIPTION,
   ekycResetDone,
   ekycPauseDone,
+  devMilestoneContent,
   ekycThresholdDone,
   planStatusLabel,
   rewindDone,
+  type DevMilestoneContent,
 } from "../model/devTools.content";
 import {
   devClockSchema,
@@ -45,15 +47,15 @@ import { AdminErrorMessage } from "./AdminStateMessage";
 import { ExecutorEmailPreviewPanel } from "./ExecutorEmailPreviewPanel";
 
 type PendingDialog =
-  | { kind: "travel"; milestone: DevMilestone }
+  | { kind: "travel"; milestone: DevMilestone; content: DevMilestoneContent }
   | { kind: "reset" }
   | { kind: "ekyc" }
   | { kind: "rewind" }
   | null;
 
 /**
- * Công cụ thử nghiệm (chỉ Development): chọn một kho thử rồi tua tới từng mốc của luồng điểm danh,
- * chứng tử. Mọi thay đổi do Backend quyết định; màn hình chỉ hiện kết quả máy chủ trả về.
+ * Công cụ thử nghiệm (chỉ Development): chọn một kho thử rồi chuyển lần lượt từng trạng thái của luồng điểm danh
+ * (thư nhắc trước hạn, quá hạn, thư nhắc trễ, hết thời gian chờ), dịch vụ và người nhận. Mọi thay đổi do Backend quyết định; màn hình chỉ hiện kết quả máy chủ trả về.
  */
 export function AdminDevTools() {
   const [params, setParams] = useSearchParams();
@@ -98,7 +100,7 @@ export function AdminDevTools() {
         </Notice>
       )}
 
-      <Panel title="Hồ sơ cần tua" labelledBy="dev-tools-vault">
+      <Panel title="Kho cần chuyển trạng thái" labelledBy="dev-tools-vault">
         {vaults.isPending && <Skeleton className="h-11 rounded-xl" />}
         {vaults.isError && (
           <AdminErrorMessage
@@ -115,7 +117,7 @@ export function AdminDevTools() {
         {vaults.isSuccess && vaults.data.length > 0 && (
           <div className="space-y-4">
             <label className="block text-sm font-semibold" htmlFor="dev-tools-vault-select">
-              Chọn hồ sơ thử
+              Chọn kho thử
             </label>
             <select
               id="dev-tools-vault-select"
@@ -138,7 +140,7 @@ export function AdminDevTools() {
       </Panel>
 
       {vaultId && (
-        <Panel title="Các mốc có thể tua" labelledBy="dev-tools-milestones">
+        <Panel title="Chuyển trạng thái" labelledBy="dev-tools-milestones">
           {clock.isPending && <Skeleton className="h-40 rounded-xl" />}
           {clock.isError && (
             <AdminErrorMessage
@@ -148,17 +150,11 @@ export function AdminDevTools() {
             />
           )}
           {clock.isSuccess && (
-            <ol className="divide-y divide-heritage-border">
-              {clock.data.milestones.map((milestone, index) => (
-                <MilestoneRow
-                  key={milestone.key}
-                  index={index + 1}
-                  milestone={milestone}
-                  busy={clock.isFetching}
-                  onTravel={() => setDialog({ kind: "travel", milestone })}
-                />
-              ))}
-            </ol>
+            <MilestoneSteps
+              clock={clock.data}
+              busy={clock.isFetching}
+              onTravel={(milestone, content) => setDialog({ kind: "travel", milestone, content })}
+            />
           )}
           <p className="mt-4 text-sm text-heritage-muted">{DEV_TOOLS_FOOTNOTE}</p>
         </Panel>
@@ -210,21 +206,21 @@ export function AdminDevTools() {
 
       {dialog?.kind === "travel" && (
         <AdminActionDialog
-          title={`Tua tới “${DEV_MILESTONES[dialog.milestone.key].title}”?`}
-          description={`${vaultLabel} sẽ ${DEV_MILESTONES[dialog.milestone.key].effect}. Thao tác thay đổi dữ liệu của hồ sơ thử và không hoàn tác được. Chỉ dùng trên môi trường Development.`}
-          submitLabel="Tua tới mốc này"
+          title={`Chuyển sang “${dialog.content.title}”?`}
+          description={`${vaultLabel} sẽ ${dialog.content.effect}. Thao tác thay đổi dữ liệu của kho thử, có thể gửi email thật và không hoàn tác được. Chỉ dùng trên môi trường Development.`}
+          submitLabel="Chuyển trạng thái"
           fields={[]}
           defaultValues={{}}
           confirmLabel="Tôi hiểu đây là dữ liệu thử."
           submit={() => devToolsService.timeTravel(vaultId, { milestone: dialog.milestone.key })}
           onClose={() => setDialog(null)}
-          onDone={(result) => publish(result, DEV_MILESTONES[dialog.milestone.key].done)}
+          onDone={(result) => publish(result, dialog.content.done)}
         />
       )}
       {dialog?.kind === "reset" && (
         <AdminActionDialog
           title="Về thời gian hiện tại?"
-          description={`Đồng hồ của ${vaultLabel} sẽ trở về thời gian thực. Trạng thái đã phát sinh khi tua, được giữ nguyên. Chỉ dùng trên môi trường Development.`}
+          description={`Đồng hồ của ${vaultLabel} sẽ trở về thời gian thực. Trạng thái đã chuyển được giữ nguyên. Chỉ dùng trên môi trường Development.`}
           submitLabel="Về thời gian hiện tại"
           fields={[]}
           defaultValues={{}}
@@ -284,6 +280,8 @@ function ClockSummary({ data, onReset }: { data: DevClock; onReset: () => void }
         <Chip tone={shifted ? "neutral" : "success"}>
           Đồng hồ: {CLOCK_STATE_LABELS[data.clockState]}
         </Chip>
+        <ReminderCount data={data} mail="DUE" label="Nhắc trước hạn" />
+        <ReminderCount data={data} mail="LATE" label="Nhắc trễ" />
       </div>
       <button type="button" className={buttonStyles.outline} disabled={!shifted} onClick={onReset}>
         <History className="size-4" aria-hidden="true" />
@@ -293,54 +291,165 @@ function ClockSummary({ data, onReset }: { data: DevClock; onReset: () => void }
   );
 }
 
+/** Ô đếm thư nhắc đã gửi trên tổng số thư của kỳ (đếm theo mốc đã qua); không có mốc loại này thì không hiện. */
+function ReminderCount({
+  data,
+  mail,
+  label,
+}: {
+  data: DevClock;
+  mail: "DUE" | "LATE";
+  label: string;
+}) {
+  let total = 0;
+  let sent = 0;
+  for (const milestone of data.milestones) {
+    if (devMilestoneContent(milestone, data).mail !== mail) {
+      continue;
+    }
+    total = total + 1;
+    if (milestone.state === "PASSED") {
+      sent = sent + 1;
+    }
+  }
+  if (total === 0) {
+    return null;
+  }
+  return (
+    <Chip tone="neutral">
+      {label}: {sent}/{total}
+    </Chip>
+  );
+}
+
+/** Bước kế tiếp: bước đầu tiên còn chuyển được; không còn bước nào thì chuỗi rỗng. */
+function nextKey(milestones: DevMilestone[]): string {
+  for (const milestone of milestones) {
+    if (milestone.state === "AVAILABLE") {
+      return milestone.key;
+    }
+  }
+  return "";
+}
+
+/** Danh sách bước chia theo nhóm; chỉ bước kế tiếp bấm được để demo đi đúng thứ tự. */
+function MilestoneSteps({
+  clock,
+  busy,
+  onTravel,
+}: {
+  clock: DevClock;
+  busy: boolean;
+  onTravel: (milestone: DevMilestone, content: DevMilestoneContent) => void;
+}) {
+  const next = nextKey(clock.milestones);
+  const items: ReactNode[] = [];
+  let lastGroup = "";
+  for (let index = 0; index < clock.milestones.length; index = index + 1) {
+    const milestone = clock.milestones[index];
+    const content = devMilestoneContent(milestone, clock);
+    if (content.group !== lastGroup) {
+      lastGroup = content.group;
+      items.push(
+        <li key={`group-${content.group}`} className="pt-4 pb-1 first:pt-0">
+          <h3 className="text-sm font-semibold text-heritage-muted">
+            {DEV_MILESTONE_GROUP_TITLES[content.group]}
+          </h3>
+        </li>,
+      );
+    }
+    items.push(
+      <MilestoneRow
+        key={milestone.key}
+        index={index + 1}
+        milestone={milestone}
+        content={content}
+        isNext={milestone.key === next}
+        busy={busy}
+        onTravel={() => onTravel(milestone, content)}
+      />,
+    );
+  }
+  return <ol aria-label="Các bước chuyển trạng thái">{items}</ol>;
+}
+
 function MilestoneRow({
   index,
   milestone,
+  content,
+  isNext,
   busy,
   onTravel,
 }: {
   index: number;
   milestone: DevMilestone;
+  content: DevMilestoneContent;
+  isNext: boolean;
   busy: boolean;
   onTravel: () => void;
 }) {
-  const content = DEV_MILESTONES[milestone.key];
   const passed = milestone.state === "PASSED";
-  const available = milestone.state === "AVAILABLE";
+  let chipLabel = "Chưa tới";
+  let chipTone: "success" | "warning" | "neutral" = "neutral";
+  if (passed) {
+    chipLabel = "Đã qua";
+    chipTone = "success";
+  } else if (isNext) {
+    chipLabel = "Bước kế tiếp";
+    chipTone = "warning";
+  } else if (milestone.state === "NOT_APPLICABLE") {
+    chipLabel = "Chưa áp dụng";
+  }
+  let buttonLabel = "Chuyển sang trạng thái này";
+  if (passed) {
+    buttonLabel = "Đã qua bước này";
+  }
+  let buttonStyle = buttonStyles.outline;
+  if (isNext) {
+    buttonStyle = buttonStyles.gold;
+  }
+  let rowStyle = "flex flex-wrap items-center gap-4 border-b border-heritage-border py-4";
+  let current: "step" | undefined = undefined;
+  if (isNext) {
+    rowStyle =
+      "-mx-3 my-1 flex flex-wrap items-center gap-4 rounded-xl border-2 border-[#E0C486] px-3 py-4";
+    current = "step";
+  }
+  if (content.indented) {
+    rowStyle = rowStyle + " sm:pl-10";
+  }
+  let numberStyle = "border-heritage-border text-heritage-text";
+  if (passed) {
+    numberStyle = "border-[#1F5A45] bg-[#1F5A45] text-white";
+  }
+  let marker: ReactNode = index;
+  if (passed) {
+    marker = <Check className="size-4" aria-hidden="true" />;
+  }
   return (
-    <li className="flex flex-wrap items-center gap-4 py-4">
+    <li className={rowStyle} aria-current={current}>
       <span
         aria-hidden="true"
-        className={`flex size-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold ${
-          passed
-            ? "border-[#1F5A45] bg-[#1F5A45] text-white"
-            : "border-heritage-border text-heritage-text"
-        }`}
+        className={`flex size-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold ${numberStyle}`}
       >
-        {index}
+        {marker}
       </span>
       <div className="min-w-0 flex-1">
         <p className="font-semibold text-heritage-text">{content.title}</p>
-        <p className="text-sm text-heritage-muted">
-          {content.description}{" "}
-          {content.code && (
-            <code className="rounded bg-[#ECE8DB] px-1.5 py-0.5 text-sm">{content.code}</code>
-          )}
-        </p>
+        <p className="text-sm text-heritage-muted">{content.description}</p>
         {milestone.state === "NOT_APPLICABLE" && milestone.note && (
           <p className="mt-1 text-sm text-heritage-muted">{milestone.note}</p>
         )}
       </div>
-      <Chip tone={passed ? "success" : "neutral"}>
-        {passed ? "Đã tua" : available ? "Chưa tua" : "Chưa áp dụng"}
-      </Chip>
-      <button
-        type="button"
-        className={passed ? buttonStyles.outline : buttonStyles.gold}
-        disabled={!available || busy}
-        onClick={onTravel}
-      >
-        {passed ? "Đã qua mốc này" : "Tua tới mốc này"}
+      {content.mailLabel !== "" && (
+        <Chip tone="neutral">
+          <Mail className="size-3.5" aria-hidden="true" />
+          {content.mailLabel}
+        </Chip>
+      )}
+      <Chip tone={chipTone}>{chipLabel}</Chip>
+      <button type="button" className={buttonStyle} disabled={!isNext || busy} onClick={onTravel}>
+        {buttonLabel}
       </button>
     </li>
   );
