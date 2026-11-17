@@ -6,7 +6,7 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import type { WillGapTarget, WillIdentityStatus } from "@/entities/will/model/willDocument.types";
 import { PrintWillButton } from "@/entities/will/ui/PrintWillButton";
 import { Button } from "@/shared/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/shared/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
 import { StatusBanner } from "@/shared/ui/status-banner";
 import { needsResign, pickOwnerSignedAt, pickWillExecutor } from "../lib/willView";
 import type { planSetupSchema } from "../model/planSetup.schema";
@@ -81,7 +81,7 @@ function IdentityNotice({ status, onRetry }: { status: WillIdentityStatus; onRet
 }
 
 /**
- * Toàn bộ nội dung khung. Tách riêng để dữ liệu danh tính (CCCD đầy đủ) chỉ tồn tại khi khung đang mở: Sheet gỡ nội
+ * Toàn bộ nội dung khung. Tách riêng để dữ liệu danh tính (CCCD đầy đủ) chỉ tồn tại khi khung đang mở: Dialog gỡ nội
  * dung khi đóng nên truy vấn (gcTime 0) và thông báo ký bị xóa theo.
  */
 function WillDrawerBody({
@@ -162,10 +162,10 @@ function WillDrawerBody({
     <>
       <div className="flex shrink-0 flex-wrap items-start justify-between gap-x-3 gap-y-2 border-b border-heritage-border px-5 py-3.5">
         <div className="min-w-0">
-          <SheetTitle className="text-[17px] font-semibold">{drawerTitle(setup)}</SheetTitle>
-          <SheetDescription className="sr-only">
+          <DialogTitle className="text-lg font-semibold">{drawerTitle(setup)}</DialogTitle>
+          <DialogDescription className="sr-only">
             Tờ di chúc điền sẵn từ kế hoạch bàn giao của kho.
-          </SheetDescription>
+          </DialogDescription>
         </div>
         <div className="ml-auto flex items-start gap-3">
           <div className="text-right">
@@ -189,7 +189,7 @@ function WillDrawerBody({
           </button>
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-8">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-12">
         <IdentityNotice status={identityStatus} onRetry={() => void identityQuery.refetch()} />
         <article aria-label="Di chúc" className="min-w-0">
           {renderDocument("owner", onGapClick)}
@@ -210,7 +210,7 @@ function WillDrawerBody({
 }
 
 /**
- * Khung xem trước di chúc trượt ra từ bên phải (Base UI Dialog: giữ focus trong khung, Esc đóng, có aria-label).
+ * Khung xem trước di chúc hiện giữa màn hình, phóng to gần hết chiều cao (Base UI Dialog: giữ focus trong khung, Esc đóng, có aria-label).
  * Chân khung là phần ký bằng mã PIN: "Ký và kích hoạt" khi kế hoạch còn nháp, "Ký phiên bản mới" khi kế hoạch đang chạy
  * mà có thay đổi chưa ký; kế hoạch đang chạy không có thay đổi thì khung chỉ để xem và xuất. Danh tính đầy đủ (CCCD, ngày
  * sinh, thường trú) tải khi khung mở; chưa có thì nút xuất khóa. Chỗ trống đỏ trong di chúc gọi `onGapClick` để nơi dùng
@@ -234,9 +234,8 @@ export function WillPreviewDrawer({
   onGapClick: (target: WillGapTarget) => void;
 }) {
   return (
-    <Sheet open={open} onOpenChange={onOpenChange} onOpenChangeComplete={onOpenChangeComplete}>
-      <SheetContent
-        side="right"
+    <Dialog open={open} onOpenChange={onOpenChange} onOpenChangeComplete={onOpenChangeComplete}>
+      <DialogContent
         showCloseButton={false}
         aria-label={drawerTitle(setup)}
         finalFocus={(): HTMLElement | boolean => {
@@ -246,7 +245,7 @@ export function WillPreviewDrawer({
           }
           return true;
         }}
-        className="gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[640px] motion-reduce:transition-none"
+        className="flex h-[calc(100vh-2rem)] w-full max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[960px] motion-reduce:animate-none"
       >
         <WillDrawerBody
           open={open}
@@ -255,7 +254,7 @@ export function WillPreviewDrawer({
           setup={setup}
           onGapClick={onGapClick}
         />
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
