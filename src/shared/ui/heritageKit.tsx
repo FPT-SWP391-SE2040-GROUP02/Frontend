@@ -139,7 +139,7 @@ export function Initial({ name, className }: { name: string; className?: string 
 /** Một dòng "nhãn - giá trị" trong thẻ thông tin. */
 export function InfoRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[110px_minmax(0,1fr)] items-baseline gap-3 py-1.5 text-sm">
+    <div className="grid grid-cols-[170px_minmax(0,1fr)] items-baseline gap-3 py-1.5 text-sm">
       <dt className="text-heritage-muted">{label}</dt>
       <dd className="font-semibold">{children}</dd>
     </div>

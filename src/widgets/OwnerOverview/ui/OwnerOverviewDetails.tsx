@@ -65,13 +65,13 @@ export function OwnerOverviewDetails({
   return (
     <div className="overview-bottom-columns">
       <section className="overview-card" aria-labelledby="overview-executors-title">
-        <h2 id="overview-executors-title">Người thực hiện</h2>
+        <h2 id="overview-executors-title">Người thực thi</h2>
         <OverviewQueryState query={data.setup}>
           <div className="overview-executors">
             {executors.length ? (
               executors.map((person) => (
                 <div key={person.id}>
-                  <h3>Người thực hiện</h3>
+                  <h3>Người thực thi</h3>
                   <p className="overview-person-email">{person.inviteeEmail}</p>
                   <p className="overview-muted">
                     {person.status === "ACCEPTED" &&
@@ -82,7 +82,7 @@ export function OwnerOverviewDetails({
                 </div>
               ))
             ) : (
-              <p className="overview-muted">Chưa chỉ định người thực hiện.</p>
+              <p className="overview-muted">Chưa chỉ định người thực thi.</p>
             )}
           </div>
         </OverviewQueryState>

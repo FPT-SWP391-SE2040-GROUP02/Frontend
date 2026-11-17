@@ -245,7 +245,7 @@ export function HandoverDocumentText({
             - Tôi đã đọc nội dung Văn bản này, đã hiểu rõ trách nhiệm pháp lý của mình khi lập và ký
             vào Văn bản này.
           </p>
-          <p>Văn bản này được gửi đến Người thực thi của kho, là người quản lý di sản, để biết.</p>
+          <p>Văn bản này được gửi đến Người thực thi của kho, để biết.</p>
         </>
       )}
       <div className="grid gap-3 pt-4 sm:grid-cols-2">

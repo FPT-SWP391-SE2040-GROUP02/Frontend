@@ -18,7 +18,7 @@ const planLabels: Record<string, { title: string; description: string }> = {
   DEATH_CASE_OPEN: {
     title: "Kho có hồ sơ chứng tử đang xử lý",
     description:
-      "Người thực hiện đã báo tin, kho và tài khoản đang bị khóa trong lúc Người xét duyệt kiểm tra hồ sơ.",
+      "Người thực thi đã báo tin, kho và tài khoản đang bị khóa trong lúc Người xét duyệt kiểm tra hồ sơ.",
   },
   HANDOVER_IN_PROGRESS: {
     title: "Kế hoạch đang trong quá trình bàn giao",

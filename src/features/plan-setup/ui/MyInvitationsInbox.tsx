@@ -2,14 +2,13 @@ import { useId, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, CircleAlert } from "lucide-react";
 import { buttonStyles, Chip, Initial, Notice, Panel } from "@/shared/ui/heritageKit";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { useServerNow } from "@/shared/clock/useServerNow";
 import { planSetupService } from "../api/planSetupService";
 import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
 import { endedStatusLabel, remainingTime } from "../lib/myInvitationHelpers";
-import { executorSigningPasswordError } from "../lib/executorSigningError";
+import { useExecutorSigning } from "../model/useExecutorSigning";
 import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
@@ -76,14 +75,14 @@ export function MyInvitationsInbox() {
   return (
     <div className="space-y-6">
       {acceptedOwner && (
-        <Notice tone="success" role="status" title="Bạn đã là Người thực hiện">
-          Cho kho của {acceptedOwner}. Nút Sang vai Người thực hiện đã hiện ở thanh bên.
+        <Notice tone="success" role="status" title="Bạn đã là Người thực thi">
+          Cho kho của {acceptedOwner}. Nút Sang vai Người thực thi đã hiện ở thanh bên.
         </Notice>
       )}
       <Panel title="Đang chờ bạn trả lời" labelledBy="pending-invitations-heading">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-sm text-heritage-muted">
-            Người thực hiện báo tin khi Chủ kho qua đời.{" "}
+            Người thực thi báo tin khi Chủ kho qua đời.{" "}
             <strong className="text-heritage-primary">Không ai mở được kho</strong>, kể cả bạn.
           </p>
           {pendingCount > 0 && (
@@ -114,22 +113,14 @@ function PendingInvitationCard({
 }) {
   const checkboxId = useId();
   const client = useQueryClient();
-  const action = usePrivateAction();
   const [acknowledge, setAcknowledge] = useState(false);
-  const [password, setPassword] = useState("");
-  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const { action, password, setPassword, passwordError, respond: sign } = useExecutorSigning();
   const serverNow = useServerNow();
   const remaining = remainingTime(invitation.expiresAt, serverNow.getTime());
-  const respond = (accept: boolean) => {
-    // Mật khẩu chỉ gửi khi chấp nhận và được xóa khỏi ô sau mỗi lần thử.
-    let signingPassword: string | undefined;
-    if (accept) {
-      signingPassword = password;
-    }
-    setPassword("");
-    setPasswordError(null);
-    void action.execute(
-      () =>
+  const respond = (accept: boolean) =>
+    sign(
+      accept,
+      (signingPassword) =>
         planSetupService.respondById(
           invitation.id,
           accept,
@@ -144,13 +135,7 @@ function PendingInvitationCard({
         void client.invalidateQueries({ queryKey: ["executor-vaults"] });
         void client.invalidateQueries({ queryKey: ["executor"] });
       },
-      (error, fieldErrors) => {
-        if (accept) {
-          setPasswordError(executorSigningPasswordError(error, fieldErrors));
-        }
-      },
     );
-  };
   return (
     <article
       aria-label={`Lời mời của ${invitation.ownerName}`}
@@ -216,7 +201,7 @@ function PendingInvitationCard({
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc di chúc và đồng ý nhận vai người quản lý di sản
+            Tôi đã đọc di chúc và đồng ý nhận vai Người thực thi
           </label>
           <ExecutorSigningPasswordField
             value={password}

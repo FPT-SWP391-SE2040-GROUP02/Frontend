@@ -72,19 +72,21 @@ export const auditActionValues = [
   "SYSTEM_CONFIG_RESET",
   // Admin sửa tham số hệ thống (giá, hạn mức, mở bán gói) trên trang Cấu hình hệ thống.
   "SYSTEM_SETTING_UPDATED",
-  // Chủ kho cấp khóa mở gói cho Người thực hiện, hoặc cấp lại khi quên khóa.
+  // Chủ kho cấp khóa mở gói cho Người thực thi, hoặc cấp lại khi quên khóa.
   "EXECUTOR_KEY_ISSUED",
   "EXECUTOR_KEY_REISSUED",
   // Admin giao hoặc đổi Người thực thi của một kho, kèm lý do.
   "EXECUTOR_ASSIGNED_BY_ADMIN",
   // Admin bật hoặc tắt tạm ngừng eKYC bằng công cụ thử nghiệm.
   "DEV_TOGGLE_EKYC_PAUSE",
-  // Người xét duyệt duyệt hoặc yêu cầu bổ sung hồ sơ người nhận (đối tượng là lượt bàn giao).
+  // Xét duyệt hoặc yêu cầu bổ sung hồ sơ người nhận (đối tượng là lượt bàn giao).
   "HANDOVER_SUBMISSION_APPROVED",
   "HANDOVER_SUBMISSION_SUPPLEMENT_REQUESTED",
+  "PLAN_ACTIVATED",
+  "EXECUTOR_ACCEPTED",
 ] as const;
 
-/** Wire role người thực hiện; SYSTEM dùng khi job nền. */
+/** Wire role người thực thi; SYSTEM dùng khi job nền. */
 export const auditActorRoleValues = [
   "OWNER",
   "EXECUTOR",
@@ -136,7 +138,7 @@ export const auditLogResponseSchema = z.object({
 
 /**
  * @description Raw DTO `AdminAuditLogResponse` (GET /admin/audit-logs): `AuditLogResponse` kèm kho liên quan
- * và tên, email người thực hiện (null khi job nền thực hiện hoặc tài khoản không còn).
+ * và tên, email người thực thi (null khi job nền thực hiện hoặc tài khoản không còn).
  */
 export const adminAuditLogResponseSchema = auditLogResponseSchema.extend({
   vaultId: uuid.nullable(),

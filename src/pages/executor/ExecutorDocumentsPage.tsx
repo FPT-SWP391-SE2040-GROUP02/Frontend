@@ -5,7 +5,7 @@ import { ExecutorWorkspace } from "@/widgets/ExecutorWorkspace/ExecutorWorkspace
 export function ExecutorDocumentsPage() {
   return (
     <ExecutorWorkspace
-      title="Biên Bản"
+      title="Biên bản"
       description="Điền thông tin về Chủ kho cho biên bản của người nhận, ký, và xem lại mọi biên bản của kho."
     >
       <ExecutorDocuments />

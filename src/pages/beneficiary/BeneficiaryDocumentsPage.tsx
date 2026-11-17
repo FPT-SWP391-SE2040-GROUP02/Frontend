@@ -6,7 +6,7 @@ export function BeneficiaryDocumentsPage() {
   return (
     <RecipientLayout active="documents">
       <header>
-        <h1 className="text-3xl font-semibold text-heritage-primary">Biên Bản</h1>
+        <h1 className="text-3xl font-semibold text-heritage-primary">Biên bản</h1>
         <p className="mt-2 text-sm text-heritage-muted">
           Mọi biên bản của bạn được lưu không giới hạn thời gian để xem lại bất cứ lúc nào.
         </p>

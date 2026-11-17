@@ -99,6 +99,7 @@ export function EkycStatusPanel({
   completeResult,
   onVerificationBound,
   onVerified,
+  ownerPlanPurchased,
 }: {
   purpose: Purpose;
   turnId?: string | null;
@@ -111,6 +112,8 @@ export function EkycStatusPanel({
   /** Báo verificationId mới từ document response; page dùng để so khớp với status khi bật complete. */
   onVerificationBound?: (verificationId: string | null) => void;
   onVerified?: () => void;
+  /** Chủ kho đã có gói trả phí: màn kết quả không nhắc mua gói nữa (page truyền vào để tránh phụ thuộc chéo feature). */
+  ownerPlanPurchased?: boolean;
 }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const userId = useSelector((state: { auth: AuthState }) => state.auth.user?.id);
@@ -162,7 +165,7 @@ export function EkycStatusPanel({
   let banner: ReactNode = null;
   if (locked && live) {
     // Đã xác minh đạt: hiện màn kết quả đầy đủ thay cho dòng trạng thái.
-    banner = <EkycVerifiedCard live={live} />;
+    banner = <EkycVerifiedCard live={live} hidePurchaseStep={ownerPlanPurchased} />;
   } else if (verifiedWithoutTurn && live) {
     banner = (
       <EkycVerifiedCard

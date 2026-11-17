@@ -81,6 +81,8 @@ describe("vaultStage", () => {
       vaultStage(vault({ openDeathCaseId: "22222222-2222-4222-8222-222222222222" })).label,
     ).toBe("Đang báo tin");
     expect(vaultStage(vault({ planStatus: "HANDOVER_IN_PROGRESS" })).label).toBe("Đang bàn giao");
+    expect(vaultStage(vault({ planStatus: "DRAFT" })).label).toBe("Kế hoạch chưa kích hoạt");
+    expect(vaultStage(vault({ planStatus: "BLOCKED" })).label).toBe("Đang tạm giữ");
     expect(vaultStage(vault({ planStatus: "CLOSED" })).label).toBe("Đã hoàn tất");
   });
 
@@ -131,7 +133,7 @@ describe("executorTodo: Việc của bạn bây giờ", () => {
 
   it("hồ sơ đang chờ duyệt hoặc tạm dừng: chưa cần làm gì", () => {
     expect(executorTodo(input({ caseStatus: "UNDER_REVIEW" })).title).toBe(
-      "Chờ Người xét duyệt duyệt hồ sơ",
+      "Chờ Người xét duyệt xem hồ sơ",
     );
     expect(executorTodo(input({ caseStatus: "SUSPENDED" })).title).toBe(
       "Hồ sơ báo tin đang tạm dừng",
@@ -195,7 +197,7 @@ describe("vaultJourney: chỉ 3 bước của cả kho", () => {
     const steps = vaultJourney(vault(), null, null);
     expect(steps.map((step) => step.label)).toEqual([
       "Báo tin",
-      "Người xét duyệt duyệt",
+      "Xét duyệt",
       "Bàn giao cho người nhận",
     ]);
     expect(steps.map((step) => step.state)).toEqual(["current", "pending", "pending"]);

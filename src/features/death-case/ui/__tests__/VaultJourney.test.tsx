@@ -39,7 +39,7 @@ describe("VaultJourney", () => {
     expect(screen.getByRole("heading", { name: "Kho đang ở đâu" })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
     expect(screen.getByText("Báo tin")).toBeInTheDocument();
-    expect(screen.getByText("Người xét duyệt duyệt")).toBeInTheDocument();
+    expect(screen.getByText("Xét duyệt")).toBeInTheDocument();
     expect(screen.getByText("Bàn giao cho người nhận")).toBeInTheDocument();
     expect(screen.queryByText(/eKYC/i)).not.toBeInTheDocument();
   });

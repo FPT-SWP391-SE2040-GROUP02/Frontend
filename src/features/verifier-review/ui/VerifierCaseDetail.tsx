@@ -191,7 +191,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           </div>
         </div>
         <p className="text-sm text-heritage-muted">
-          Kho: {detail.vaultId} · Phân công từ {formatDate(detail.assignment.assignedAt)}
+          Phân công từ {formatDate(detail.assignment.assignedAt)}
           {detail.status === "SUPPLEMENT_REQUIRED" ? " · Đang chờ Người thực thi nộp lại" : ""}
         </p>
       </header>
@@ -233,27 +233,16 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
       {detail.status === "SUPPLEMENT_REQUIRED" && (
         <Notice tone="warning" title="Đã từ chối, chờ nộp lại">
           {requestedPartsText && <span className="block">Đã yêu cầu: {requestedPartsText}.</span>}
-          Người thực hiện sẽ nộp bản bổ sung. Hồ sơ quay lại hàng chờ khi có bản mới.
+          Người thực thi sẽ nộp bản bổ sung. Hồ sơ quay lại hàng chờ khi có bản mới.
         </Notice>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        {/* CỘT TRÁI (3fr): HỒ SƠ & TÀI LIỆU CHỨNG TỪ */}
-        <div className="space-y-6">
-          <div className="grid gap-6 xl:grid-cols-2">
-            <VerifierEkycChecklist
-              caseId={detail.id}
-              identity={detail.ownerIdentity}
-              lastCheckInOn={detail.lastCheckInOn}
-            />
-            <CertificateViewer caseId={detail.id} files={review.files} />
-          </div>
-          <VerifierDeclaredFacts
-            review={review}
-            checks={checks}
-            onToggle={toggleCheck}
-            disabled={!actions.canOpenApprove}
-          />
+      {/* Lưới 12 cột theo luồng mắt chữ Z: giấy chứng tử (bằng chứng cần xem) ở trên-trái chiếm 7 cột; cột phải 5 cột đi từ
+          danh tính Chủ kho → đối chiếu 3 thông tin → quyết định (nút hành động ở dưới-phải). Dưới xl xếp một cột theo đúng thứ tự đó. */}
+      <div className="grid gap-6 xl:grid-cols-12 xl:items-start">
+        {/* CỘT TRÁI (7/12): TÀI LIỆU CHỨNG TỪ & THÔNG TIN KÈM THEO */}
+        <div className="min-w-0 space-y-6 xl:col-span-7">
+          <CertificateViewer caseId={detail.id} files={review.files} />
           <VerifierWarnings warnings={detail.warnings} />
           <section
             aria-label="Bản đang xét"
@@ -263,15 +252,17 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               Bản đang xét (v{review.versionNo})
             </h3>
             <dl className="grid gap-4 sm:grid-cols-2">
-              <Field label="Người nộp" value={detail.executor?.fullName ?? "—"} />
+              {detail.executor?.fullName && (
+                <Field label="Người nộp" value={detail.executor.fullName} />
+              )}
               <Field
                 label="Gửi lúc"
                 value={review.submittedAt ? formatCompact(review.submittedAt) : "—"}
               />
             </dl>
             <p className="text-sm text-heritage-muted">
-              Họ tên và ngày sinh Chủ kho lấy từ xác minh danh tính. Người thực hiện chỉ khai 3
-              thông tin trên giấy, bạn đối chiếu chúng với ảnh giấy ở khung trên.
+              Họ tên và ngày sinh Chủ kho lấy từ xác minh danh tính. Người thực thi chỉ khai 3 thông
+              tin trên giấy, bạn đối chiếu chúng với ảnh giấy ở khung trên.
             </p>
           </section>
           <section
@@ -285,7 +276,7 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
               {unreviewedFlags > 0 && <Chip tone="warning">{unreviewedFlags} chưa kiểm tra</Chip>}
             </div>
             <p className="text-sm text-heritage-muted">
-              Hệ thống tự phát hiện những điểm bất thường khi người thực hiện nộp hồ sơ, ví dụ CCCD
+              Hệ thống tự phát hiện những điểm bất thường khi người thực thi nộp hồ sơ, ví dụ CCCD
               không khớp. Bạn cần kiểm tra từng cảnh báo và ghi chú trước khi chấp thuận.
             </p>
             {detail.flags.length === 0 ? (
@@ -381,8 +372,19 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
           )}
         </div>
 
-        {/* CỘT PHẢI (2fr): ĐIỀU KIỆN → QUYẾT ĐỊNH → MỐC THỜI GIAN, theo thiết kế 184/185 */}
-        <div className="space-y-6">
+        {/* CỘT PHẢI (5/12): DANH TÍNH → ĐỐI CHIẾU → ĐIỀU KIỆN → QUYẾT ĐỊNH → MỐC THỜI GIAN */}
+        <div className="min-w-0 space-y-6 xl:col-span-5">
+          <VerifierEkycChecklist
+            caseId={detail.id}
+            identity={detail.ownerIdentity}
+            lastCheckInOn={detail.lastCheckInOn}
+          />
+          <VerifierDeclaredFacts
+            review={review}
+            checks={checks}
+            onToggle={toggleCheck}
+            disabled={!actions.canOpenApprove}
+          />
           {/* 1. ĐIỀU KIỆN ĐỂ DUYỆT */}
           <Panel title="Điều kiện để duyệt">
             {CLOSED_CONDITION_TEXT[detail.status] ? (
@@ -433,14 +435,14 @@ export function VerifierCaseDetail({ caseId }: { caseId: string }) {
                     tone="supplement"
                     icon={<TriangleAlert className="size-5" aria-hidden="true" />}
                     title="Từ chối"
-                    description="Nộp nhầm hoặc ghi sai thông tin: trả lại cho người thực hiện, kèm lý do."
+                    description="Nộp nhầm hoặc ghi sai thông tin: trả lại cho người thực thi, kèm lý do."
                     onClick={() => openModal("supplement")}
                   />
                 )}
               </div>
               <p className="mt-4 text-sm text-heritage-muted">
-                Quyết định được ghi nhật ký và gửi tới người thực hiện. Chấp thuận chưa mở kho;
-                người nhận còn phải xác minh.
+                Quyết định được ghi nhật ký và gửi tới người thực thi. Chấp thuận chưa mở kho; người
+                nhận còn phải xác minh.
               </p>
             </Panel>
           )}

@@ -32,12 +32,14 @@ function OpenCaseButton({ vault, label }: { vault: ExecutorVault; label: string 
   const [, setParams] = useSearchParams();
   const client = useQueryClient();
   const action = usePrivateAction();
+  // Backend chỉ cho mở hồ sơ khi kế hoạch đang chạy; báo trước thay vì để người dùng bấm rồi nhận lỗi chung.
+  const notRunning = vault.planStatus === "DRAFT" || vault.planStatus === "BLOCKED";
   return (
     <div className="space-y-2">
       <button
         type="button"
         className={buttonStyles.gold}
-        disabled={action.pending}
+        disabled={action.pending || notRunning}
         onClick={() =>
           void action.execute(
             () => deathCaseService.open(vault.vaultId),
@@ -54,6 +56,13 @@ function OpenCaseButton({ vault, label }: { vault: ExecutorVault; label: string 
       >
         {label}
       </button>
+      {notRunning && (
+        <p className="text-sm text-heritage-muted">
+          {vault.planStatus === "DRAFT"
+            ? "Chủ kho chưa kích hoạt kế hoạch nên chưa báo tin được."
+            : "Kho đang bị tạm giữ nên chưa báo tin được."}
+        </p>
+      )}
       {action.error && (
         <p role="alert" className="text-sm text-destructive">
           {action.error}
@@ -152,22 +161,27 @@ function ReportIntro({
         Kho và tài khoản của {vault.ownerFullName} bị khóa ngay khi bạn nộp hồ sơ, không hoàn tác
         được.
       </Notice>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <Panel title="Mở hồ sơ báo tin">
-          <p className="mb-4 text-sm leading-6 text-heritage-muted">
-            Bạn tải giấy chứng tử (và giấy báo tử nếu có), mỗi mục một tệp. Hồ sơ được lưu nháp, chỉ
-            gửi đi khi bạn xác nhận.
-          </p>
-          <div className="flex flex-wrap items-start gap-3">
-            <OpenCaseButton vault={vault} label="Mở hồ sơ chứng tử" />
-            {vault.lastRejectedDeathCaseId && (
-              <button type="button" className={buttonStyles.outline} onClick={onViewRejected}>
-                Xem hồ sơ bị từ chối gần nhất
-              </button>
-            )}
-          </div>
-        </Panel>
-        <div className="space-y-6">
+      {/* Lưới 12 cột: việc chính (mở hồ sơ) 7 cột trái, nút hành động chính ở cuối-phải của thẻ (chữ Z); "điều gì xảy ra tiếp" 5 cột phải. */}
+      <div className="grid gap-6 xl:grid-cols-12 xl:items-start">
+        <div className="min-w-0 xl:col-span-7">
+          <Panel title="Mở hồ sơ báo tin">
+            <p className="mb-6 text-sm leading-6 text-heritage-muted">
+              Bạn tải giấy chứng tử (và giấy báo tử nếu có), mỗi mục một tệp. Hồ sơ được lưu nháp,
+              chỉ gửi đi khi bạn xác nhận.
+            </p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              {vault.lastRejectedDeathCaseId ? (
+                <button type="button" className={buttonStyles.outline} onClick={onViewRejected}>
+                  Xem hồ sơ bị từ chối gần nhất
+                </button>
+              ) : (
+                <span aria-hidden="true" />
+              )}
+              <OpenCaseButton vault={vault} label="Mở hồ sơ chứng tử" />
+            </div>
+          </Panel>
+        </div>
+        <div className="min-w-0 space-y-6 xl:col-span-5">
           <Panel title="Điều gì xảy ra tiếp">
             <ol className="divide-y divide-heritage-border">
               {nextSteps().map((step, index) => (
@@ -176,7 +190,7 @@ function ReportIntro({
                     aria-hidden="true"
                     className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]"
                   >
-                    {index + 2}
+                    {index + 1}
                   </span>
                   <div>
                     <p className="font-semibold">{step.title}</p>

@@ -3,7 +3,7 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Lock, Mail, Phone, User } from "lucide-react";
-import type { FocusEvent } from "react";
+import { useState, type FocusEvent } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { emailMatchesMask } from "@/shared/lib/invitedEmail";
@@ -69,9 +69,10 @@ export function RegisterForm({
     defaultValues: lockedEmail ? { email: lockedEmail } : undefined,
   });
 
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const passwordField = register("password");
 
-  // Ghi chú chia sẻ số điện thoại chỉ hiện với Chủ kho và Người thực hiện; người nhận không thấy.
+  // Ghi chú chia sẻ số điện thoại chỉ hiện với Chủ kho và Người thực thi; người nhận không thấy.
   let phoneDescribedBy: string | undefined = undefined;
   if (!fromInvitation) {
     phoneDescribedBy = "register-phone-hint";
@@ -259,9 +260,20 @@ export function RegisterForm({
             disabled={isPending}
             {...passwordField}
             onBlur={handlePasswordBlur}
-            type="password"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
+            type={showPassword ? "text" : "password"}
+            placeholder="Nhập mật khẩu"
+            className="pl-9 pr-12 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            aria-pressed={showPassword}
+            disabled={isPending}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-[#6B6B66] hover:text-[#0A281E] px-1 py-0.5 rounded focus-visible:outline-none"
+          >
+            {showPassword ? "Ẩn" : "Hiện"}
+          </button>
         </div>
         <p id="register-password-hint" className="text-sm text-heritage-muted">
           {NEW_PASSWORD_HINT}
@@ -290,7 +302,7 @@ export function RegisterForm({
             autoComplete="new-password"
             disabled={isPending}
             {...register("confirmPassword")}
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Nhập lại mật khẩu"
             className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
           />

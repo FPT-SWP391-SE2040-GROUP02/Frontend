@@ -46,7 +46,7 @@ const handoverNotAllowedReasons: Record<string, string> = {
   RESEND_TOO_SOON: "Vừa gửi xong, vui lòng thử lại sau ít phút.",
   NO_EMAIL: "Người nhận chưa có email.",
   INVITATION_SEND_FAILED: "Chưa gửi được thư mời. Chưa có gì thay đổi, vui lòng thử lại sau.",
-  KEY_REQUIRED: "Cần nhập khóa mở gói do Người thực hiện đưa trước khi đồng ý nhận.",
+  KEY_REQUIRED: "Cần nhập khóa mở gói do Người thực thi đưa trước khi đồng ý nhận.",
   NO_KEY: "Kho này chưa cấp khóa mở gói nên chưa có khóa để gửi.",
   KEY_SEND_FAILED: "Chưa gửi được khóa. Vui lòng thử lại sau.",
   HANDOVER_NOT_STARTED: "Mã mở gói sẽ hiện khi hồ sơ được duyệt và bàn giao bắt đầu.",
@@ -56,13 +56,13 @@ const handoverNotAllowedReasons: Record<string, string> = {
 /** Reason-specific messages for EXECUTOR_NOT_ALLOWED */
 const executorNotAllowedReasons: Record<string, string> = {
   OWNER_CANNOT_ACCEPT:
-    "Bạn đang đăng nhập bằng tài khoản Chủ kho. Chủ kho không thể tự nhận làm Người thực hiện cho kho của chính mình. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
+    "Bạn đang đăng nhập bằng tài khoản Chủ kho. Chủ kho không thể tự nhận làm Người thực thi cho kho của chính mình. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
   INVITEE_EMAIL_MISMATCH:
     "Lời mời này gửi tới một email khác. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
   REPLACEMENT_REQUIRED:
-    "Người thực hiện đã nhận nhiệm vụ nên không thu hồi trực tiếp. Hãy mời người thay; người cũ tự thôi khi người mới chấp nhận.",
+    "Người thực thi đã nhận nhiệm vụ nên không thu hồi trực tiếp. Hãy mời người thay; người cũ tự thôi khi người mới chấp nhận.",
   PLAN_NOT_DRAFT: "Kế hoạch của kho không ở trạng thái cho phép phản hồi lời mời Executor lúc này.",
-  INDEPENDENT_EXECUTOR_REQUIRED: "Bạn đã đảm nhiệm một vai trò Người thực hiện khác trong kho này.",
+  INDEPENDENT_EXECUTOR_REQUIRED: "Bạn đã đảm nhiệm một vai trò Người thực thi khác trong kho này.",
 };
 
 /** Reason-specific messages for ASSET_IN_USE */
@@ -85,8 +85,7 @@ const deathCaseNotAllowedReasons: Record<string, string> = {
   HOLD_ACTIVE: "Kho đang bị tạm giữ nên chưa chấp thuận được. Chờ gỡ tạm giữ rồi thử lại.",
   CASE_CLOSED: "Hồ sơ đã được chấp thuận, từ chối hoặc tạm dừng nên không thao tác thêm được.",
   NOT_UNDER_REVIEW: "Hồ sơ không còn ở bước xét duyệt. Tải lại để xem trạng thái mới nhất.",
-  NEWER_VERSION_PENDING:
-    "Người thực hiện đang có bản mới chờ xét nên chưa chấp thuận được bản này.",
+  NEWER_VERSION_PENDING: "Người thực thi đang có bản mới chờ xét nên chưa chấp thuận được bản này.",
   FLAGS_NOT_REVIEWED: "Còn cảnh báo của bản đang xét chưa được kiểm tra.",
   VERIFIER_CONFLICT: "Bạn có quan hệ với kho này nên chỉ được xem, không được quyết định.",
   PLAN_NOT_RUNNING: "Kế hoạch chưa chạy hoặc đã sang giai đoạn khác nên chưa thao tác được.",
@@ -235,9 +234,9 @@ const messages: Record<string, string> = {
   VAULT_PIN_ALREADY_SET: "Kho đã có mã PIN. Dùng chức năng đổi mã PIN.",
   VAULT_PIN_REQUIRED: "Thao tác này cần nhập mã PIN của kho.",
   INVALID_VAULT_PIN: "Mã PIN chưa đúng.",
-  HANDOVER_KEY_INVALID: "Khóa mở gói chưa đúng. Kiểm tra lại với Người thực hiện rồi nhập lại.",
+  HANDOVER_KEY_INVALID: "Khóa mở gói chưa đúng. Kiểm tra lại với Người thực thi rồi nhập lại.",
   HANDOVER_KEY_LOCKED:
-    "Đã nhập sai khóa quá nhiều lần. Hãy liên hệ Người thực hiện hoặc quản trị viên.",
+    "Đã nhập sai khóa quá nhiều lần. Hãy liên hệ Người thực thi hoặc quản trị viên.",
   VAULT_PIN_LOCKED: "Mã PIN đang bị khóa tạm vì nhập sai nhiều lần. Vui lòng thử lại sau.",
   VAULT_PIN_TOO_WEAK:
     "Mã PIN quá dễ đoán. Không dùng các số giống nhau hoặc dãy số liên tiếp (111111, 123456...).",

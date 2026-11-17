@@ -171,7 +171,7 @@ export const verifierOwnerIdentitySchema = z.object({
   hasDocumentImage: z.boolean(),
   documentImageCapturedAt: timestamp.nullable(),
 });
-/** Thông tin Người thực hiện (Executor) gửi yêu cầu hồ sơ này. */
+/** Thông tin Người thực thi (Executor) gửi yêu cầu hồ sơ này. */
 export const verifierExecutorSchema = z
   .object({
     id: z.string().uuid(),
@@ -202,7 +202,8 @@ export const verifierCaseDetailSchema = z.object({
   versions: z.array(verifierOlderVersionSchema),
   flags: z.array(verifierFlagSchema),
   decisions: z.array(verifierDecisionSchema),
-  ownerNotice: ownerNoticeSchema,
+  /** BE đã bỏ thông báo Owner (migration RemoveUnusedFeatures); giữ optional để đọc được cả hai phiên bản. */
+  ownerNotice: ownerNoticeSchema.optional(),
   assignment: verifierAssignmentSchema,
   canApprove: z.boolean(),
   approveBlockers: z.array(approveBlockerSchema),
@@ -259,7 +260,7 @@ export const flagLabels: Record<z.infer<typeof verifierFlagKindSchema>, string> 
 /** Nhãn cho blocker. */
 export const blockerLabels: Record<z.infer<typeof approveBlockerSchema>, string> = {
   NOT_UNDER_REVIEW: "Hồ sơ không ở trạng thái đang xét.",
-  NEWER_VERSION_PENDING: "Đang có bản mới chờ xét; chờ Verifier xét bản mới nhất.",
+  NEWER_VERSION_PENDING: "Đang có bản mới chờ xét; chờ Người xét duyệt xét bản mới nhất.",
   FLAGS_NOT_REVIEWED: "Còn cảnh báo chưa được kiểm tra.",
   VERIFIER_CONFLICT:
     "Bạn có quan hệ với kho này nên chỉ được xem, không được ra quyết định trên hồ sơ.",

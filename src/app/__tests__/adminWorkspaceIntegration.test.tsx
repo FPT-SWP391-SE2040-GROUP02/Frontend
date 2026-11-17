@@ -167,7 +167,7 @@ it("Tổng quan hiện kế hoạch theo giai đoạn, tải việc người xé
   expect(await screen.findByText("Kế hoạch theo giai đoạn")).toBeInTheDocument();
   expect(screen.getByText("Đang chạy")).toBeInTheDocument();
   expect(screen.getByText("Quá hạn điểm danh")).toBeInTheDocument();
-  expect(screen.getByText(/Đã đóng 41 kho/)).toBeInTheDocument();
+  expect(screen.getByText(/Chưa tính 41 kho đã đóng/)).toBeInTheDocument();
   expect(screen.getByText("Lê Hoàng")).toBeInTheDocument();
   expect(screen.getByText(/3 hồ sơ/)).toHaveTextContent("1 quá hạn");
   expect(screen.getByText("Trần An")).toBeInTheDocument();

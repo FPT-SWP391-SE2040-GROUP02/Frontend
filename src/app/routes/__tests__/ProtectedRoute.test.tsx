@@ -33,7 +33,7 @@ function renderAs(role: Role, wrongRoleGoesHome: boolean, phone = "0912345678") 
               />
             }
           >
-            <Route path={ROUTES.EXECUTOR.ROOT} element={<p>Khu Người thực hiện</p>} />
+            <Route path={ROUTES.EXECUTOR.ROOT} element={<p>Khu Người thực thi</p>} />
           </Route>
           <Route path={ROUTES.ADMIN.ROOT} element={<p>Trang Admin</p>} />
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<p>Trang Verifier</p>} />
@@ -49,17 +49,17 @@ afterEach(() => {
 });
 
 describe("ProtectedRoute", () => {
-  it("tài khoản thường vào được khu Người thực hiện", () => {
+  it("tài khoản thường vào được khu Người thực thi", () => {
     renderAs(ROLES.USER, true);
-    expect(screen.getByText("Khu Người thực hiện")).toBeInTheDocument();
+    expect(screen.getByText("Khu Người thực thi")).toBeInTheDocument();
   });
 
-  it("tài khoản thường chưa có số điện thoại vẫn vào thẳng khu Người thực hiện", () => {
+  it("tài khoản thường chưa có số điện thoại vẫn vào thẳng khu Người thực thi", () => {
     renderAs(ROLES.USER, true, "");
-    expect(screen.getByText("Khu Người thực hiện")).toBeInTheDocument();
+    expect(screen.getByText("Khu Người thực thi")).toBeInTheDocument();
   });
 
-  it("Admin mở khu Người thực hiện thì về trang Admin", () => {
+  it("Admin mở khu Người thực thi thì về trang Admin", () => {
     renderAs(ROLES.ADMIN, true);
     expect(screen.getByText("Trang Admin")).toBeInTheDocument();
   });
@@ -69,7 +69,7 @@ describe("ProtectedRoute", () => {
     expect(screen.getByText("Trang Admin")).toBeInTheDocument();
   });
 
-  it("Verifier mở khu Người thực hiện thì về trang Verifier", () => {
+  it("Verifier mở khu Người thực thi thì về trang Verifier", () => {
     renderAs(ROLES.VERIFIER, true);
     expect(screen.getByText("Trang Verifier")).toBeInTheDocument();
   });

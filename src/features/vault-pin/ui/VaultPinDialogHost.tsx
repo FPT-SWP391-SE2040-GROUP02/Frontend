@@ -196,7 +196,7 @@ export function VaultPinDialogHost() {
                 <DialogTitle>Đặt Mã PIN bảo vệ</DialogTitle>
                 <DialogDescription>
                   Kho đã có tài sản nên cần Mã PIN bảo vệ gồm 6 chữ số. Mã PIN được hỏi trước khi
-                  tải nội dung tài sản, sửa hoặc xóa tài sản, đổi người nhận hoặc Người thực hiện.
+                  tải nội dung tài sản, sửa hoặc xóa tài sản, đổi người nhận hoặc Người thực thi.
                 </DialogDescription>
               </DialogHeader>
               <SetPinForm

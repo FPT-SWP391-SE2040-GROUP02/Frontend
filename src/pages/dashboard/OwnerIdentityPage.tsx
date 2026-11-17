@@ -3,10 +3,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { EkycStatusPanel } from "@/features/ekyc/ui/EkycStatusPanel";
 import { ROUTES } from "@/shared/config/routes.config";
+import { useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
 
 /** Luồng Chủ kho riêng; không dùng trang xác minh Người nhận hoặc suy diễn quyền từ URL. */
 export function OwnerIdentityPage() {
   const client = useQueryClient();
+  const vault = useOwnerVault(true);
+  const purchased = vault.isSuccess && vault.data.serviceTier !== "FREE";
   return (
     <OwnerWorkspace
       title="Xác minh danh tính"
@@ -21,6 +24,7 @@ export function OwnerIdentityPage() {
       <EkycStatusPanel
         purpose="OWNER_ENROLLMENT"
         turnId={null}
+        ownerPlanPurchased={purchased}
         onVerified={() => {
           void client.invalidateQueries({ queryKey: ["plan-setup"] });
           void client.invalidateQueries({ queryKey: ["owner-vault"] });

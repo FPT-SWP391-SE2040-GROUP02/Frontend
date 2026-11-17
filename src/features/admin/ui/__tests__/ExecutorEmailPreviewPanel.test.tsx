@@ -9,7 +9,7 @@ describe("ExecutorEmailPreviewPanel", () => {
     expect(screen.getByText("Mẫu Email thông báo Executor")).toBeInTheDocument();
     expect(screen.getByText("Chủ kho quá hạn điểm danh — Cần bạn kiểm tra")).toBeInTheDocument();
     expect(screen.getByText(/Nguyễn Văn Thực Hiện/)).toBeInTheDocument();
-    expect(screen.getByText("Mở trang người thực hiện")).toBeInTheDocument();
+    expect(screen.getByText("Mở trang người thực thi")).toBeInTheDocument();
   });
 
   it("switches to death case supplement template when clicked", () => {

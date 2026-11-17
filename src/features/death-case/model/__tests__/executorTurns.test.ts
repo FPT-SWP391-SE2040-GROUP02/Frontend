@@ -97,12 +97,12 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
     expect(progress.headline).toBe("Chờ người nhận đồng ý");
   });
 
-  it("người nhận đã ký: chờ Người xét duyệt duyệt biên bản", () => {
+  it("người nhận đã ký: chờ Người xét duyệt kiểm tra biên bản", () => {
     const progress = deriveTurnProgress(
       turn({ status: "IDENTITY_IN_PROGRESS", invitationSentAt: SENT, recipientSignedAt: SIGNED }),
     );
     expect(states(progress)).toEqual(["done", "done", "current", "pending", "pending"]);
-    expect(progress.headline).toBe("Chờ Người xét duyệt duyệt biên bản");
+    expect(progress.headline).toBe("Chờ Người xét duyệt kiểm tra biên bản");
     expect(progress.detail).toBe("người nhận đã ký 14:00 23/12");
     expect(progress.group).toBe("waiting");
   });

@@ -39,7 +39,7 @@ export function AuditLogTable({
       <TableHeader>
         <TableRow>
           <TableHead scope="col">Thời điểm</TableHead>
-          <TableHead scope="col">Người thực hiện</TableHead>
+          <TableHead scope="col">Tài khoản thao tác</TableHead>
           <TableHead scope="col">Thao tác</TableHead>
           <TableHead scope="col">Đối tượng</TableHead>
           <TableHead scope="col">Phiên bản</TableHead>

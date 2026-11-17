@@ -19,10 +19,10 @@ export const DEV_MILESTONES: Record<
   },
   GRACE_ENDED: {
     title: "Hết thời gian chờ",
-    description: "Đưa sang bước kiểm tra của Người thực hiện.",
+    description: "Đưa sang bước kiểm tra của Người thực thi.",
     code: "AWAITING_CHECK",
-    effect: "chuyển sang bước kiểm tra của Người thực hiện",
-    done: "Đã tua tới “Hết thời gian chờ”. Người thực hiện đã được báo kiểm tra. Có thể tua tiếp mốc kế.",
+    effect: "chuyển sang bước kiểm tra của Người thực thi",
+    done: "Đã tua tới “Hết thời gian chờ”. Người thực thi đã được báo kiểm tra. Có thể tua tiếp mốc kế.",
   },
   SERVICE_EXPIRED: {
     title: "Hết hạn dịch vụ",
@@ -79,7 +79,7 @@ export const RESET_DONE =
   "Đồng hồ của hồ sơ đã về thời gian hiện tại. Trạng thái đã phát sinh được giữ nguyên.";
 
 export const EKYC_RESET_DESCRIPTION =
-  "Đưa một tài khoản về lúc vừa đăng ký và đăng nhập được: xóa toàn bộ eKYC và xóa hẳn kho của tài khoản cùng mọi thứ trong kho (tài sản, gói, người nhận, Người thực hiện, kế hoạch, điểm danh, hồ sơ chứng tử, bàn giao, thanh toán, tệp mã hóa). Email, mật khẩu, vai trò và vai Người thực hiện ở kho người khác giữ nguyên.";
+  "Đưa một tài khoản về lúc vừa đăng ký và đăng nhập được: xóa toàn bộ eKYC và xóa hẳn kho của tài khoản cùng mọi thứ trong kho (tài sản, gói, người nhận, Người thực thi, kế hoạch, điểm danh, hồ sơ chứng tử, bàn giao, thanh toán, tệp mã hóa). Email, mật khẩu, vai trò và vai Người thực thi ở kho người khác giữ nguyên.";
 
 /** Thông báo sau khi đặt lại; chỉ dùng số lượng máy chủ trả về. */
 export function ekycResetDone(result: DevEkycReset) {
@@ -98,7 +98,7 @@ export function ekycResetDone(result: DevEkycReset) {
 }
 
 export const REWIND_DESCRIPTION =
-  "Đưa kho đang chọn về thời điểm ngay trước bước xác minh danh tính và mua gói: xóa eKYC của Chủ kho, trả gói dịch vụ về Free và hủy đơn thanh toán đang chờ. Đơn đã trả, tài sản, người nhận, gói tài sản và Người thực hiện giữ nguyên. Chỉ dùng khi kế hoạch còn Nháp.";
+  "Đưa kho đang chọn về thời điểm ngay trước bước xác minh danh tính và mua gói: xóa eKYC của Chủ kho, trả gói dịch vụ về Free và hủy đơn thanh toán đang chờ. Đơn đã trả, tài sản, người nhận, gói tài sản và Người thực thi giữ nguyên. Chỉ dùng khi kế hoạch còn Nháp.";
 
 export const EKYC_PAUSE_DESCRIPTION =
   "Bật khi cần chạy thử cả luồng mà không có giấy tờ thật hay camera: mọi bước eKYC (giấy tờ, thử thách camera, so khớp khuôn mặt) đều tự đạt. Người nhận được đọc ra đúng họ tên và số CCCD chủ kho đã khai; chủ kho nhận một số CCCD thử riêng cho từng tài khoản. Chỉ ở bộ nhớ máy chủ, khởi động lại là về tắt. Nhớ tắt sau khi thử xong.";

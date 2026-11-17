@@ -32,7 +32,7 @@ const page = {
 afterEach(() => vi.restoreAllMocks());
 
 describe("nhật ký hoạt động của Admin", () => {
-  it("schema nhận dòng có người thực hiện, null cho job nền và loại đối tượng CONFIGURATION", () => {
+  it("schema nhận dòng có người thực thi, null cho job nền và loại đối tượng CONFIGURATION", () => {
     expect(adminAuditLogPageSchema.safeParse(page).success).toBe(true);
     const system = {
       ...entry,

@@ -35,7 +35,7 @@ export function reportHeading(record: DeathCase | null | undefined): ReportHeadi
   }
   return {
     title: "Hồ sơ báo tin",
-    description: "Theo dõi hồ sơ đã gửi. Tiến trình xử lý nằm ở mục Tiến trình.",
+    description: "Theo dõi hồ sơ đã gửi. Tiến trình xử lý nằm ở mục Bàn giao.",
     badge,
   };
 }

@@ -65,7 +65,7 @@ export const OWNER_OVERVIEW = {
     { title: "Tạo tài khoản", complete: true },
     { title: "Thêm tài sản đầu tiên", complete: true },
     { title: "Chỉ định người nhận", complete: true },
-    { title: "Hoàn tất lời mời Người thực hiện", complete: false },
+    { title: "Hoàn tất lời mời Người thực thi", complete: false },
     { title: "Chỉ định Người xét duyệt", complete: false },
   ],
   setupAction: "Xem kế hoạch",
@@ -96,7 +96,7 @@ export const OWNER_OVERVIEW = {
   activityTitle: "Hoạt động gần đây",
   activity: [
     { title: "Cập nhật Giấy tờ gia đình", time: "Hôm nay" },
-    { title: "Đã gửi lời mời Người thực hiện", time: "Hôm qua" },
+    { title: "Đã gửi lời mời Người thực thi", time: "Hôm qua" },
     { title: "Thêm Kỷ niệm gia đình vào kho", time: "3 ngày trước" },
   ],
   footer:

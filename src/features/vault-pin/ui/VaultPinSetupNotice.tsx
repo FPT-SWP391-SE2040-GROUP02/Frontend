@@ -51,7 +51,7 @@ export function VaultPinSetupNotice({ vaultId }: { vaultId: string }) {
             <DialogTitle>Đặt Mã PIN bảo vệ</DialogTitle>
             <DialogDescription>
               Mã PIN gồm 6 chữ số, được hỏi trước khi tải nội dung tài sản, sửa hoặc xóa tài sản,
-              đổi người nhận hoặc Người thực hiện.
+              đổi người nhận hoặc Người thực thi.
             </DialogDescription>
           </DialogHeader>
           <SetPinForm

@@ -737,7 +737,7 @@ it("hộp thoại nộp lại: lời nhắn là textarea giới hạn ký tự, 
     String(url).endsWith(CASE_ID) ? detailFixture : listFixture,
   );
   setup(<VerifierQueue />, `/notary/workspace?caseId=${CASE_ID}&modal=supplement`);
-  const note = await screen.findByLabelText(/Lời nhắn cho Người thực hiện/);
+  const note = await screen.findByLabelText(/Lời nhắn cho Người thực thi/);
   expect(note.tagName).toBe("TEXTAREA");
   expect(note).toHaveAttribute("maxlength", "900");
   expect(screen.getByRole("radio", { name: /File mờ/ }).closest("label")).toHaveClass("min-h-11");
