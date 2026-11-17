@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Download, Lock, RefreshCw } from "lucide-react";
+import { ArrowRight, Download, FileText, Lock, RefreshCw, Save } from "lucide-react";
 import type { z } from "zod";
 import { formatDate, formatDateTime } from "@/shared/lib/dateFormat";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
+import { printHtml } from "@/shared/lib/printDocument";
 import {
   Dialog,
   DialogContent,
@@ -14,9 +15,12 @@ import {
 } from "@/shared/ui/dialog";
 import { buttonStyles, Chip, Notice, Panel, type Tone } from "@/shared/ui/heritageKit";
 import {
+  DOCUMENT_KIND_LABELS,
   DocumentStatusChip,
-  HandoverDocumentDetail,
+  HandoverDocumentText,
+  useMyDocuments,
   useTurnDocument,
+  type HandoverDocument,
 } from "@/entities/handoverDocument";
 import { handoverService } from "../api/handoverService";
 import type { handoverTurnSchema } from "../model/handover.schema";
@@ -140,7 +144,15 @@ const doneLabels = { accept: "Đã tiếp nhận", decline: "Đã từ chối" }
  * Một lượt bàn giao: thông báo hạn tải và xác nhận ở đầu thẻ, tiến trình sáu bước, chi tiết lượt, nội dung được tải,
  * rồi khung phản hồi. Khi người nhận có nhiều lượt chưa mở tên gói, thẻ ghi thêm ngày mời để phân biệt.
  */
-function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: boolean }) {
+function TurnCard({
+  turn,
+  showInvitedDate,
+  documents,
+}: {
+  turn: Turn;
+  showInvitedDate: boolean;
+  documents?: ReactNode;
+}) {
   const action = useHandoverAction();
   const content = useGrantDownload();
   const client = useQueryClient();
@@ -195,7 +207,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
     }
   }
   return (
-    <article className="space-y-6">
+    <article className="space-y-4">
       {doneShown && (
         <Notice tone="success" role="status" title="Thành công">
           {doneLabels[doneShown]}
@@ -215,13 +227,14 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
       </header>
       {/* Lưới 12 cột theo luồng chữ Z: trạng thái và thông tin (đọc trước) ở 7 cột trái; việc cần làm (phản hồi, nhập khóa,
           xác nhận) ở 5 cột phải. Dưới xl xếp một cột: thông tin rồi tới việc cần làm. */}
-      <div className="grid gap-6 xl:grid-cols-12 xl:items-start">
-        <div className="min-w-0 space-y-6 xl:col-span-7">
-          {step !== null && (
-            <Panel title="Tiến trình bàn giao">
-              <HandoverStepper current={step} />
-            </Panel>
-          )}
+      {step !== null && (
+        <Panel title="Tiến trình bàn giao" className="p-5">
+          <HandoverStepper current={step} />
+        </Panel>
+      )}
+      <div className="grid gap-4 xl:grid-cols-2 xl:items-start">
+        <div className="min-w-0 space-y-4">
+          {documents}
           {turn.status === "IDENTITY_IN_PROGRESS" && (
             <Panel title="Biên bản">
               <RecipientDocumentPanel turnId={turn.id} groupName={groupName} onChanged={refresh} />
@@ -275,72 +288,137 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
               )}
               {grantLine && <p className="text-sm">{grantLine}</p>}
             </div>
-          </Panel>
-          {(turn.items.length > 0 || signedDocument) && (
-            <div
-              className={
-                signedDocument && turn.items.length > 0
-                  ? "grid items-start gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]"
-                  : "space-y-6"
-              }
-            >
-              {turn.items.length > 0 && (
-                <Panel title="Các mục dành cho bạn">
-                  <ul className="divide-y divide-heritage-border">
-                    {turn.items.map((item) => (
-                      <li
-                        key={item.id}
-                        className="flex flex-wrap items-center justify-between gap-3 py-3"
+            {turn.status === "HANDOVER_COMMITTED" && turn.keyRequired && (
+              <section className="mt-4 space-y-3 border-t border-heritage-border pt-4">
+                <h3 className="text-base font-semibold text-heritage-primary">Khóa mở gói</h3>
+                <div className="space-y-3">
+                  <p className="text-sm leading-6 text-heritage-muted">
+                    Văn bản của bạn đã được duyệt. Nhập khóa mở gói do Người thực thi đưa để tải tài
+                    sản.
+                  </p>
+                  {turn.keyRequired && !turn.keyVerified && (
+                    <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">
+                      <label className="block text-sm font-medium" htmlFor={`key-${turn.id}`}>
+                        Khóa mở gói do Người thực thi đưa
+                      </label>
+                      <input
+                        id={`key-${turn.id}`}
+                        type="text"
+                        autoComplete="off"
+                        spellCheck={false}
+                        value={typedKey}
+                        disabled={action.pending}
+                        onChange={(event) => setTypedKey(event.target.value)}
+                        className="h-11 w-full rounded-xl border border-heritage-border px-3 font-mono text-sm uppercase"
+                      />
+                      <button
+                        type="button"
+                        className={`${buttonStyles.dark} w-full`}
+                        disabled={action.pending || !typedKey.trim()}
+                        onClick={() =>
+                          void action.execute(
+                            () => handoverService.verifyKey(turn.id, typedKey),
+                            () => {
+                              setTypedKey("");
+                              refresh();
+                            },
+                          )
+                        }
                       >
-                        <span className="min-w-0">
-                          <span className="block break-words text-sm font-semibold">
-                            {item.name}
-                          </span>
-                          <span className="block text-sm text-heritage-muted">
-                            {kindLabels[item.kind] ?? "Mục"} · {formatStorageSize(item.sizeBytes)}
-                          </span>
-                        </span>
-                        {turn.grant?.status === "ACTIVE" && (
-                          <button
-                            type="button"
-                            className={buttonStyles.outline}
-                            aria-label={`Tải xuống ${item.name}`}
-                            disabled={
-                              content.pending ||
-                              action.pending ||
-                              (turn.keyRequired && !turn.keyVerified)
-                            }
-                            onClick={() =>
-                              void content.download(
-                                () => handoverService.download(turn.grant!.id, item.id),
-                                (item.fileName ?? `${item.name}.txt`).replace(
-                                  /[^\p{L}\p{N} ._()-]/gu,
-                                  "_",
-                                ),
-                              )
-                            }
-                          >
-                            <Download className="size-4" aria-hidden="true" />
-                            Tải xuống
-                          </button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </Panel>
-              )}
-              {signedDocument && (
-                <Panel title="Biên bản bạn đã ký">
+                        Xác nhận khóa
+                      </button>
+                      <p className="text-sm text-heritage-muted">
+                        Liên hệ trực tiếp Người thực thi của kho để lấy khóa. Nhập sai nhiều lần sẽ
+                        bị khóa.
+                      </p>
+                    </div>
+                  )}
+                  {turn.keyRequired && turn.keyVerified && (
+                    <p role="status" className="text-sm text-[#1F7A55]">
+                      Khóa mở gói đã được xác nhận.
+                    </p>
+                  )}
+                </div>
+              </section>
+            )}
+            {turn.status === "HANDOVER_COMMITTED" && turn.grant && (
+              <section className="mt-4 space-y-3 border-t border-heritage-border pt-4">
+                <h3 className="text-base font-semibold text-heritage-primary">
+                  Xác nhận đã nhận đủ
+                </h3>
+                {turn.receivedAllAt ? (
+                  <p role="status" className="text-sm">
+                    Bạn đã xác nhận nhận đủ lúc {formatDateTime(turn.receivedAllAt)}.
+                  </p>
+                ) : (
                   <div className="space-y-3">
-                    <DocumentStatusChip document={signedDocument} />
-                    <HandoverDocumentDetail document={signedDocument} />
+                    <p className="text-sm leading-6 text-heritage-muted">
+                      Tải xong các mục ở khung “Các mục dành cho bạn” thì bấm xác nhận để Người thực
+                      thi biết lượt này đã hoàn tất.
+                    </p>
+                    <button
+                      type="button"
+                      className={buttonStyles.dark}
+                      disabled={action.pending}
+                      onClick={() =>
+                        void action.execute(
+                          () => handoverService.confirmReceivedAll(turn.id),
+                          refresh,
+                        )
+                      }
+                    >
+                      Tôi đã nhận đủ
+                    </button>
                   </div>
-                </Panel>
-              )}
-            </div>
-          )}
+                )}
+              </section>
+            )}
+          </Panel>
         </div>
-        <div className="min-w-0 space-y-6 xl:col-span-5">
+        <div className="min-w-0 space-y-4">
+          {turn.items.length > 0 && (
+            <Panel title="Các mục dành cho bạn">
+              <ul className="divide-y divide-heritage-border">
+                {turn.items.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex flex-wrap items-center justify-between gap-3 py-3"
+                  >
+                    <span className="min-w-0">
+                      <span className="block break-words text-sm font-semibold">{item.name}</span>
+                      <span className="block text-sm text-heritage-muted">
+                        {kindLabels[item.kind] ?? "Mục"} · {formatStorageSize(item.sizeBytes)}
+                      </span>
+                    </span>
+                    {turn.grant?.status === "ACTIVE" && (
+                      <button
+                        type="button"
+                        className={buttonStyles.outline}
+                        aria-label={`Tải xuống ${item.name}`}
+                        disabled={
+                          content.pending ||
+                          action.pending ||
+                          (turn.keyRequired && !turn.keyVerified)
+                        }
+                        onClick={() =>
+                          void content.download(
+                            () => handoverService.download(turn.grant!.id, item.id),
+                            (item.fileName ?? `${item.name}.txt`).replace(
+                              /[^\p{L}\p{N} ._()-]/gu,
+                              "_",
+                            ),
+                          )
+                        }
+                      >
+                        <Download className="size-4" aria-hidden="true" />
+                        Tải xuống
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
           {turn.status === "READY_TO_ACCEPT" && (
             <Panel title="Phản hồi">
               <div className="space-y-4">
@@ -401,87 +479,6 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
               </div>
             </Panel>
           )}
-          {turn.status === "HANDOVER_COMMITTED" && turn.keyRequired && (
-            <Panel title="Khóa mở gói">
-              <div className="space-y-3">
-                <p className="text-sm leading-6 text-heritage-muted">
-                  Văn bản của bạn đã được duyệt. Nhập khóa mở gói do Người thực thi đưa để tải tài
-                  sản.
-                </p>
-                {turn.keyRequired && !turn.keyVerified && (
-                  <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">
-                    <label className="block text-sm font-medium" htmlFor={`key-${turn.id}`}>
-                      Khóa mở gói do Người thực thi đưa
-                    </label>
-                    <input
-                      id={`key-${turn.id}`}
-                      type="text"
-                      autoComplete="off"
-                      spellCheck={false}
-                      value={typedKey}
-                      disabled={action.pending}
-                      onChange={(event) => setTypedKey(event.target.value)}
-                      className="h-11 w-full rounded-xl border border-heritage-border px-3 font-mono text-sm uppercase"
-                    />
-                    <button
-                      type="button"
-                      className={`${buttonStyles.dark} w-full`}
-                      disabled={action.pending || !typedKey.trim()}
-                      onClick={() =>
-                        void action.execute(
-                          () => handoverService.verifyKey(turn.id, typedKey),
-                          () => {
-                            setTypedKey("");
-                            refresh();
-                          },
-                        )
-                      }
-                    >
-                      Xác nhận khóa
-                    </button>
-                    <p className="text-sm text-heritage-muted">
-                      Liên hệ trực tiếp Người thực thi của kho để lấy khóa. Nhập sai nhiều lần sẽ bị
-                      khóa.
-                    </p>
-                  </div>
-                )}
-                {turn.keyRequired && turn.keyVerified && (
-                  <p role="status" className="text-sm text-[#1F7A55]">
-                    Khóa mở gói đã được xác nhận.
-                  </p>
-                )}
-              </div>
-            </Panel>
-          )}
-          {turn.status === "HANDOVER_COMMITTED" && turn.grant && (
-            <Panel title="Xác nhận đã nhận đủ">
-              {turn.receivedAllAt ? (
-                <p role="status" className="text-sm">
-                  Bạn đã xác nhận nhận đủ lúc {formatDateTime(turn.receivedAllAt)}.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm leading-6 text-heritage-muted">
-                    Tải xong các mục ở khung “Các mục dành cho bạn” thì bấm xác nhận để Người thực
-                    thi biết lượt này đã hoàn tất.
-                  </p>
-                  <button
-                    type="button"
-                    className={buttonStyles.dark}
-                    disabled={action.pending}
-                    onClick={() =>
-                      void action.execute(
-                        () => handoverService.confirmReceivedAll(turn.id),
-                        refresh,
-                      )
-                    }
-                  >
-                    Tôi đã nhận đủ
-                  </button>
-                </div>
-              )}
-            </Panel>
-          )}
           {(action.pending || content.pending) && <p role="status">Đang xử lý yêu cầu…</p>}
           {(action.error || content.error) && (
             <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
@@ -511,6 +508,144 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
   );
 }
 
+/**
+ * Nút lưu biên bản (cả biên bản Đồng ý lẫn Từ chối): dựng toàn văn ngoài màn hình rồi mở hộp thoại in của trình duyệt,
+ * người dùng chọn "Lưu thành PDF" để giữ bản của mình. Biên bản chưa xong thì in bản còn chỗ trống.
+ */
+function SaveDocumentButton({
+  document: doc,
+  label = "Lưu biên bản",
+}: {
+  document: HandoverDocument;
+  label?: string;
+}) {
+  const [printing, setPrinting] = useState(false);
+  const textRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!printing) {
+      return;
+    }
+    const handle = window.requestAnimationFrame(() => {
+      if (textRef.current) {
+        printHtml(textRef.current.innerHTML, `Bien-ban-${doc.code}`);
+      }
+      setPrinting(false);
+    });
+    return () => window.cancelAnimationFrame(handle);
+  }, [printing, doc.code]);
+  return (
+    <>
+      <button type="button" className={buttonStyles.outline} onClick={() => setPrinting(true)}>
+        <Save className="size-4" aria-hidden="true" />
+        {label}
+      </button>
+      {printing && (
+        <div ref={textRef} aria-hidden="true" className="fixed top-0 -left-[9999px] w-[210mm]">
+          <HandoverDocumentText document={doc} blank={doc.status !== "COMPLETED"} />
+        </div>
+      )}
+    </>
+  );
+}
+
+/**
+ * Thẻ gọn "Biên bản" trong Tổng quan: chỉ cho biết có bao nhiêu biên bản, cái mới nhất đã xong chưa. Bấm nút để mở
+ * cửa sổ liệt kê mọi biên bản (mới nhất trước, lưu không giới hạn) và xem toàn văn, nên trang Tổng quan luôn gọn.
+ */
+function DocumentsCard() {
+  const [open, setOpen] = useState(false);
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const query = useMyDocuments();
+  const documentsList = query.data ?? [];
+  // Mở là hiện luôn trang biên bản mới nhất; có nhiều biên bản thì chọn xem cái khác ở hàng nút phía trên.
+  const shown = documentsList.find((item) => item.id === pickedId) ?? documentsList[0];
+  let summary = "Đang tải các biên bản…";
+  if (query.isError) {
+    summary = "Không tải được các biên bản của bạn.";
+  }
+  if (query.isSuccess) {
+    const count = query.data.length;
+    const latest = query.data[0];
+    if (count === 0) {
+      summary = "Chưa có biên bản nào. Biên bản xuất hiện khi bạn chọn Chấp nhận hoặc Từ chối.";
+    } else if (latest.status === "COMPLETED") {
+      summary = `${count} biên bản · mới nhất đã hoàn tất lúc ${formatDateTime(latest.completedAt ?? latest.createdAt)}`;
+    } else {
+      summary = `${count} biên bản · mới nhất chưa xong`;
+    }
+  }
+  return (
+    <>
+      <Panel
+        title={<span className="text-xl">Biên bản</span>}
+        className="relative border-2 border-heritage-gold bg-heritage-gold-light p-5 transition-shadow hover:shadow-md"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Nút phủ kín cả thẻ (after:inset-0): bấm đâu trên thẻ cũng mở popup biên bản; nút Xuất PDF nổi lên trên (z-10). */}
+          <button
+            type="button"
+            disabled={!query.isSuccess}
+            onClick={() => setOpen(true)}
+            className="min-w-0 flex-1 cursor-pointer text-left after:absolute after:inset-0 after:rounded-2xl after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-heritage-gold disabled:cursor-default"
+          >
+            <span className="block text-base font-medium text-heritage-primary">{summary}</span>
+            {query.isSuccess && query.data.length > 0 && (
+              <span className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-heritage-gold-hover">
+                <FileText className="size-4" aria-hidden="true" />
+                Bấm vào đây để xem toàn văn
+              </span>
+            )}
+          </button>
+          {query.isSuccess && query.data.length > 0 && (
+            <div className="relative z-10">
+              <SaveDocumentButton document={query.data[0]} label="Xuất PDF" />
+            </div>
+          )}
+        </div>
+      </Panel>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-3xl bg-[#FBFAF5] p-7">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-heritage-primary">
+              Biên bản của bạn
+            </DialogTitle>
+            <DialogDescription className="text-heritage-muted">
+              Lưu không giới hạn thời gian. Bấm Xuất PDF rồi chọn Lưu thành PDF để giữ bản của bạn.
+            </DialogDescription>
+          </DialogHeader>
+          {shown && (
+            <div className="space-y-3">
+              {documentsList.length > 1 && (
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Chọn biên bản">
+                  {documentsList.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      aria-pressed={item.id === shown.id}
+                      className={item.id === shown.id ? buttonStyles.dark : buttonStyles.outline}
+                      onClick={() => setPickedId(item.id)}
+                    >
+                      {DOCUMENT_KIND_LABELS[item.kind]}
+                      {item.containerName ? ` · ${item.containerName}` : ""}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <DocumentStatusChip document={shown} />
+                <SaveDocumentButton document={shown} label="Xuất PDF" />
+              </div>
+              <div className="max-h-[calc(100vh-17rem)] overflow-y-auto rounded-xl border border-heritage-border bg-white p-4">
+                <HandoverDocumentText document={shown} wide blank={shown.status !== "COMPLETED"} />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 /** Danh sách lượt của principal; không dựng grant hoặc trạng thái từ URL. */
 export function HandoverPortal() {
   const query = useQuery({
@@ -522,7 +657,7 @@ export function HandoverPortal() {
   const hasInvitations = invitations.isSuccess && invitations.data.length > 0;
   if (query.isPending) return <p role="status">Đang tải các lượt bàn giao…</p>;
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <PendingInvitationCards />
       {/* Hàng đầu: hướng dẫn nhận tài sản bên trái, nút tải lại bên phải (một hàng thay vì hai hàng lệch nhau). */}
       <div className="flex flex-wrap items-start gap-3">
@@ -560,8 +695,14 @@ export function HandoverPortal() {
       ) : (
         <>
           {query.data.map((turn) => (
-            <TurnCard key={turn.id} turn={turn} showInvitedDate={query.data.length > 1} />
+            <TurnCard
+              key={turn.id}
+              turn={turn}
+              showInvitedDate={query.data.length > 1}
+              documents={query.data.length === 1 ? <DocumentsCard /> : undefined}
+            />
           ))}
+          {query.data.length > 1 && <DocumentsCard />}
         </>
       )}
     </div>

@@ -12,6 +12,9 @@ import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
+import { printHtml } from "@/shared/lib/printDocument";
+
+vi.mock("@/shared/lib/printDocument", () => ({ printHtml: vi.fn() }));
 
 const originalAdapter = apiClient.defaults.adapter;
 const ITEM_ID = "0198a000-0000-7000-8000-000000000002";
@@ -90,23 +93,25 @@ function setup() {
 function backend(turns: unknown[], documentBody: unknown) {
   apiClient.defaults.adapter = async (config) => {
     if (config.url?.endsWith("/document")) return ok(config, documentBody);
+    // Danh sách mọi biên bản (khung Biên bản gộp trong Tổng quan).
+    if (config.url?.endsWith("/handover/documents")) {
+      return ok(config, documentBody === "" ? [] : [documentBody]);
+    }
     return ok(config, turns);
   };
 }
 
-it("đã nhận: nút tải tài sản và biên bản đã ký hiện cạnh nhau", async () => {
+it("đã nhận: nút tải tài sản và khung Biên bản nằm chung một trang, cùng một hàng", async () => {
   backend([committed], documentFixture({ turnId: CONTAINER_ID }));
   setup();
 
   const assets = await screen.findByRole("heading", { name: "Các mục dành cho bạn" });
-  expect(await screen.findByRole("heading", { name: "Biên bản bạn đã ký" })).toBeInTheDocument();
+  const documents = await screen.findByRole("heading", { name: "Biên bản" });
   expect(screen.getByRole("button", { name: "Tải xuống Sổ đỏ" })).toBeInTheDocument();
-  expect(screen.getByText("Hoàn tất")).toBeInTheDocument();
+  expect(await screen.findByText(/1 biên bản · mới nhất đã hoàn tất/)).toBeInTheDocument();
   const grid = assets.closest("div.grid");
   expect(grid).not.toBeNull();
-  expect(
-    within(grid as HTMLElement).getByRole("heading", { name: "Biên bản bạn đã ký" }),
-  ).toBeInTheDocument();
+  expect(within(grid as HTMLElement).getByRole("heading", { name: "Biên bản" })).toBe(documents);
 });
 
 it("đã nhận: xem toàn văn biên bản đã ký ngay trong cổng", async () => {
@@ -114,9 +119,13 @@ it("đã nhận: xem toàn văn biên bản đã ký ngay trong cổng", async (
   backend([committed], documentFixture({ turnId: CONTAINER_ID }));
   setup();
 
-  await userEvt.click(await screen.findByRole("button", { name: "Xem toàn văn biên bản" }));
+  // Bấm vào thẻ Biên bản là popup hiện luôn trang biên bản, không còn bước mở thêm.
+  await userEvt.click(await screen.findByRole("button", { name: /biên bản · mới nhất/ }));
+  expect(await screen.findByRole("dialog")).toBeInTheDocument();
 
-  const text = screen.getByRole("article", { name: "Biên bản đồng ý nhận di sản thừa kế" });
+  const text = await screen.findByRole("article", {
+    name: "Biên bản đồng ý nhận di sản thừa kế",
+  });
   expect(text).toHaveTextContent("Luật sư Dũng");
   expect(text).toHaveTextContent("Trần Minh Anh");
   expect(text).toHaveTextContent("Chủ kho Nguyễn Văn A");
@@ -127,7 +136,8 @@ it("đã từ chối: có văn bản từ chối đã ký, không có nút tải
   backend([turn("DECLINED")], documentFixture({ turnId: CONTAINER_ID, kind: "DECLINE" }));
   setup();
 
-  expect(await screen.findByRole("heading", { name: "Biên bản bạn đã ký" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "Biên bản" })).toBeInTheDocument();
+  expect(await screen.findByText(/1 biên bản · mới nhất đã hoàn tất/)).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /Tải xuống/ })).not.toBeInTheDocument();
 });
 
@@ -136,14 +146,37 @@ it("đã nhận nhưng biên bản chưa có (lượt cũ): cổng vẫn hiện 
   setup();
 
   expect(await screen.findByRole("button", { name: "Tải xuống Sổ đỏ" })).toBeInTheDocument();
-  expect(screen.queryByRole("heading", { name: "Biên bản bạn đã ký" })).not.toBeInTheDocument();
+  expect(await screen.findByText(/Chưa có biên bản nào/)).toBeInTheDocument();
 });
 
 it("đang ở bước biên bản: khung tên Biên bản, chưa chọn thì hiện hai lựa chọn", async () => {
   backend([turn("IDENTITY_IN_PROGRESS")], "");
   setup();
 
-  expect(await screen.findByRole("heading", { name: "Biên bản" })).toBeInTheDocument();
+  expect(await screen.findAllByRole("heading", { name: "Biên bản" })).not.toHaveLength(0);
   expect(await screen.findByRole("button", { name: "Tôi chấp nhận" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Tôi từ chối" })).toBeInTheDocument();
+});
+
+it("thẻ Biên bản có nút Xuất PDF cho cả biên bản Đồng ý lẫn Từ chối", async () => {
+  const userEvt = userEvent.setup();
+  backend([committed], documentFixture({ turnId: CONTAINER_ID }));
+  setup();
+  await userEvt.click(await screen.findByRole("button", { name: "Xuất PDF" }));
+  await vi.waitFor(() => expect(printHtml).toHaveBeenCalledTimes(1));
+  expect(vi.mocked(printHtml).mock.calls[0][0]).toContain("Trần Minh Anh");
+
+  cleanup();
+  vi.mocked(printHtml).mockClear();
+  backend([turn("DECLINED")], documentFixture({ turnId: CONTAINER_ID, kind: "DECLINE" }));
+  setup();
+  await userEvt.click(await screen.findByRole("button", { name: "Xuất PDF" }));
+  await vi.waitFor(() => expect(printHtml).toHaveBeenCalledTimes(1));
+});
+
+it("chưa có biên bản nào thì không có nút Xuất PDF", async () => {
+  backend([committed], "");
+  setup();
+  await screen.findByText(/Chưa có biên bản nào/);
+  expect(screen.queryByRole("button", { name: "Xuất PDF" })).not.toBeInTheDocument();
 });

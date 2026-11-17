@@ -3,11 +3,11 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import { Initial } from "@/shared/ui/heritageKit";
 import guilloche from "@/shared/assets/auth-guilloche.svg";
 import { ROUTES } from "@/shared/config/routes.config";
-import { OverviewIcon, TrustedIcon } from "@/shared/ui/LegacyVaultArtwork";
+import { OverviewIcon } from "@/shared/ui/LegacyVaultArtwork";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeftRight, FileText } from "lucide-react";
+import { ArrowLeftRight } from "lucide-react";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useQuery } from "@tanstack/react-query";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
@@ -18,14 +18,12 @@ const shell = {
   role: "Người nhận",
   logout: "Đăng xuất",
   overview: "Tổng quan",
-  verify: "Xác minh",
-  documents: "Biên bản",
   content: "Nội dung nhận",
   messages: "Lời nhắn",
 };
 
 /** Các khu vực giao diện của cổng người nhận. */
-export type RecipientSection = "overview" | "verify" | "documents" | "content" | "messages";
+export type RecipientSection = "overview" | "verify" | "content" | "messages";
 
 /** Thuộc tính khung cổng người nhận; không chứa dữ liệu hoặc nghiệp vụ bàn giao. */
 export interface RecipientLayoutProps {
@@ -48,13 +46,7 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
   });
   const isOwner = vault.isSuccess;
   const root = ROUTES.BENEFICIARY.CLAIM;
-  // Người nhận chỉ nộp hồ sơ ảnh căn cước ngay trong cổng bàn giao, không còn xác minh khuôn mặt bằng camera.
-  const verify = ROUTES.BENEFICIARY.HANDOVER;
-  const items = [
-    { id: "overview", label: shell.overview, icon: OverviewIcon, to: root },
-    { id: "verify", label: shell.verify, icon: TrustedIcon, to: verify },
-    { id: "documents", label: shell.documents, icon: FileText, to: ROUTES.BENEFICIARY.DOCUMENTS },
-  ];
+  const items = [{ id: "overview", label: shell.overview, icon: OverviewIcon, to: root }];
   return (
     <WorkspaceShell
       brand={shell.brand}

@@ -183,7 +183,8 @@ async function openOverdue() {
   return header;
 }
 
-describe("trang Mẫu thư của Admin", () => {
+// Trang Mẫu thư đang ẩn khỏi menu Admin nên bỏ qua các test này; bật lại cùng lúc với trang.
+describe.skip("trang Mẫu thư của Admin", () => {
   it("có mục Mẫu thư trong menu và liệt kê các loại thư với nhãn chữ gốc", async () => {
     backend();
     setup();

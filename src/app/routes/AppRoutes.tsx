@@ -87,11 +87,6 @@ const InvitationsPage = lazy(() =>
     default: module.InvitationsPage,
   })),
 );
-const ExecutorIdentityPage = lazy(() =>
-  import("@/pages/executor/ExecutorIdentityPage").then((module) => ({
-    default: module.ExecutorIdentityPage,
-  })),
-);
 const ExecutorSettingsPage = lazy(() =>
   import("@/pages/executor/ExecutorSettingsPage").then((module) => ({
     default: module.ExecutorSettingsPage,
@@ -176,11 +171,6 @@ const VerifierQueuePage = lazy(() =>
 const VerifierDocumentsPage = lazy(() =>
   import("@/pages/notary/VerifierDocumentsPage").then((module) => ({
     default: module.VerifierDocumentsPage,
-  })),
-);
-const BeneficiaryDocumentsPage = lazy(() =>
-  import("@/pages/beneficiary/BeneficiaryDocumentsPage").then((module) => ({
-    default: module.BeneficiaryDocumentsPage,
   })),
 );
 const VerifierHistoryPage = lazy(() =>
@@ -281,7 +271,10 @@ export function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route path={ROUTES.BENEFICIARY.CLAIM} element={<BeneficiaryPortalPage />} />
           <Route path={ROUTES.BENEFICIARY.HANDOVER} element={<BeneficiaryPortalPage />} />
-          <Route path={ROUTES.BENEFICIARY.DOCUMENTS} element={<BeneficiaryDocumentsPage />} />
+          <Route
+            path={ROUTES.BENEFICIARY.DOCUMENTS}
+            element={<Navigate to={ROUTES.BENEFICIARY.CLAIM} replace />}
+          />
         </Route>
 
         {/* 2. Bảng giá công khai */}
@@ -378,7 +371,6 @@ export function AppRoutes() {
           />
           <Route path={ROUTES.EXECUTOR.SETTINGS} element={<ExecutorSettingsPage />} />
           <Route path={ROUTES.EXECUTOR.INVITATIONS} element={<ExecutorInvitationsPage />} />
-          <Route path={ROUTES.EXECUTOR.IDENTITY} element={<ExecutorIdentityPage />} />
           {/* Đường dẫn cũ của cổng Executor. */}
           <Route
             path={ROUTES.EXECUTOR.CLAIM}

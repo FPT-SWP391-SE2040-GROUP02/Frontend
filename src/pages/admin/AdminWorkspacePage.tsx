@@ -2,7 +2,6 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import {
   CreditCard,
   FileText,
-  Mail,
   History,
   Home,
   ShieldCheck,
@@ -13,7 +12,6 @@ import {
 } from "lucide-react";
 import {
   AdminDevTools,
-  AdminEmailTemplates,
   AdminHandoverTemplates,
   AdminHolds,
   AdminOverview,
@@ -60,13 +58,6 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
     group: "Hệ thống",
   },
   {
-    id: "email-templates",
-    label: "Mẫu thư",
-    icon: Mail,
-    to: `${ROUTES.ADMIN.ROOT}?view=email-templates`,
-    group: "Hệ thống",
-  },
-  {
     id: "settings",
     label: "Cấu hình",
     icon: SlidersHorizontal,
@@ -110,6 +101,7 @@ const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
     ]
   : NAVIGATION;
 
+// Trang "Mẫu thư" (AdminEmailTemplates) đang được ẩn khỏi menu và đường dẫn; code vẫn còn ở features/admin.
 const VIEWS = {
   overview: {
     title: "Tổng quan",
@@ -122,11 +114,6 @@ const VIEWS = {
   templates: {
     title: "Mẫu biên bản",
     description: "Sửa các mục 1 đến 8 của biên bản đồng ý nhận khi luật thay đổi.",
-  },
-  "email-templates": {
-    title: "Mẫu thư",
-    description:
-      "Sửa chữ các thư thông báo gửi cho Chủ kho, Người thực thi, người nhận và Người xét duyệt.",
   },
   settings: {
     title: "Cấu hình",
@@ -169,7 +156,6 @@ function viewFor(pathname: string, search: string): AdminView {
     view === "settings" ||
     view === "plans" ||
     view === "templates" ||
-    view === "email-templates" ||
     view === "holds" ||
     view === "payments" ||
     view === "security"
@@ -243,7 +229,6 @@ export function AdminWorkspacePage() {
       {view === "settings" && <SettingsTabs />}
       {view === "plans" && <AdminSettings section="plans" />}
       {view === "templates" && <AdminHandoverTemplates />}
-      {view === "email-templates" && <AdminEmailTemplates />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
       {view === "users" && (
