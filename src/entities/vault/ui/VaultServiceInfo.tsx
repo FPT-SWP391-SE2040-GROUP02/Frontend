@@ -56,10 +56,7 @@ function VaultServiceDetails({ service, showQuota = false }: VaultServiceInfoPro
   // Cập nhật nhãn khi đến hạn, kể cả khi người dùng giữ trang mở; không tự thay đổi quyền.
   useEffect(() => {
     if (!Number.isFinite(expiryTimestamp) || expiryTimestamp <= now) return;
-    const delay = Math.max(
-      0,
-      Math.min(expiryTimestamp - Date.now() + 1, 2_147_483_647),
-    );
+    const delay = Math.max(0, Math.min(expiryTimestamp - Date.now() + 1, 2_147_483_647));
     const timeout = window.setTimeout(() => setNow(Date.now()), delay);
     return () => window.clearTimeout(timeout);
   }, [expiryTimestamp, now]);
