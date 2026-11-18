@@ -907,6 +907,10 @@ describe("tờ di chúc dùng danh tính đầy đủ", () => {
     expect(get).not.toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
 
     await openDrawer();
+    // Chưa gõ PIN ở ô ký thì chưa gọi API danh tính và không hiện hộp thoại PIN riêng.
+    expect(get).not.toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
+    expect(screen.getByText(/Nhập mã PIN của kho ở cuối khung/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText(PIN_LABEL), "123456");
     const doc = within(paper());
     expect(await doc.findByText("079203001234")).toBeInTheDocument();
     expect(get).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());

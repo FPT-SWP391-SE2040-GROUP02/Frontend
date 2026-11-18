@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { X } from "lucide-react";
 import type { z } from "zod";
@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/
 import { StatusBanner } from "@/shared/ui/status-banner";
 import { needsResign, pickOwnerSignedAt, pickWillExecutor } from "../lib/willView";
 import type { planSetupSchema } from "../model/planSetup.schema";
+import { readVaultPinFailure } from "@/shared/api/vaultPin";
+import { PIN_DIGITS } from "@/shared/ui/pin-input";
 import { useWillIdentity } from "../model/useWillIdentity";
 import { PlanWillDocument } from "./PlanWillDocument";
 import { WillSignFooter, type WillSignNotice } from "./WillSignFooter";
@@ -56,7 +58,22 @@ function exportHint(
 }
 
 /** Dòng báo tình trạng tải danh tính phía trên tờ di chúc; không hiện khi đã tải xong. */
-function IdentityNotice({ status, onRetry }: { status: WillIdentityStatus; onRetry: () => void }) {
+function IdentityNotice({
+  status,
+  waitingForPin,
+  onRetry,
+}: {
+  status: WillIdentityStatus;
+  waitingForPin: boolean;
+  onRetry: () => void;
+}) {
+  if (status === "none" && waitingForPin) {
+    return (
+      <p role="status" className="mb-4 text-[13px] text-heritage-muted">
+        Nhập mã PIN của kho ở cuối khung để hiện ngày sinh, CCCD và nơi thường trú trong di chúc.
+      </p>
+    );
+  }
   if (status === "loading") {
     return (
       <p role="status" className="mb-4 text-[13px] text-heritage-muted">
@@ -98,16 +115,34 @@ function WillDrawerBody({
   onGapClick: (target: WillGapTarget) => void;
 }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
-  // PIN đã nhập khi mở khung: dùng lại để tải lại danh tính và điền sẵn ô ký; mất khi khung đóng.
+  const isDraft = setup.planStatus === "DRAFT";
+  const resignNeeded = needsResign(setup);
+  // Còn chân khung ký (nháp hoặc cần ký lại): PIN gõ ở ô ký cũng dùng để tải danh tính đầy đủ, không hỏi PIN lần hai.
+  // Khung chỉ để xem (đã ký, không có thay đổi) thì không có ô ký nên hỏi PIN bằng hộp thoại chung khi mở.
+  const hasSignFooter = isDraft || resignNeeded;
   const pinRef = useRef("");
-  const [verifiedPin, setVerifiedPin] = useState("");
-  const identityQuery = useWillIdentity(vaultId, open, {
-    getPin: () => pinRef.current,
-    remember: (pin) => {
-      pinRef.current = pin;
-      setVerifiedPin(pin);
+  const [typedPin, setTypedPin] = useState("");
+  const identityQuery = useWillIdentity(
+    vaultId,
+    open && !hasSignFooter,
+    {
+      getPin: () => pinRef.current,
+      remember: (pin) => {
+        pinRef.current = pin;
+      },
     },
-  });
+    hasSignFooter,
+  );
+  const refetchIdentity = identityQuery.refetch;
+  useEffect(() => {
+    if (open && hasSignFooter && typedPin.length === PIN_DIGITS) {
+      void refetchIdentity();
+    }
+  }, [open, hasSignFooter, typedPin, refetchIdentity]);
+  let typedPinFailure = null;
+  if (hasSignFooter && identityQuery.isError && !identityQuery.isFetching) {
+    typedPinFailure = readVaultPinFailure(identityQuery.error);
+  }
   const [notice, setNotice] = useState<WillSignNotice | null>(null);
 
   let ownerFallback = { fullName: "", email: "" };
@@ -117,6 +152,9 @@ function WillDrawerBody({
   let identityStatus: WillIdentityStatus = "loading";
   if (identityQuery.data !== undefined) {
     identityStatus = "ready";
+  } else if (hasSignFooter && (typedPin.length < PIN_DIGITS || typedPinFailure !== null)) {
+    // Chưa gõ đủ PIN ở ô ký hoặc PIN sai: chưa có danh tính, không phải đang tải hay lỗi mạng.
+    identityStatus = "none";
   } else if (identityQuery.isError && !identityQuery.isFetching) {
     identityStatus = "error";
   }
@@ -127,8 +165,6 @@ function WillDrawerBody({
   if (executor !== null && executor.signedAt) {
     executorSigned = true;
   }
-  const isDraft = setup.planStatus === "DRAFT";
-  const resignNeeded = needsResign(setup);
   const canExport = ownerSigned && executorSigned && !resignNeeded && identityStatus === "ready";
 
   function renderDocument(
@@ -190,7 +226,11 @@ function WillDrawerBody({
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-12">
-        <IdentityNotice status={identityStatus} onRetry={() => void identityQuery.refetch()} />
+        <IdentityNotice
+          status={identityStatus}
+          waitingForPin={hasSignFooter}
+          onRetry={() => void identityQuery.refetch()}
+        />
         <article aria-label="Di chúc" className="min-w-0">
           {renderDocument("owner", onGapClick)}
         </article>
@@ -201,7 +241,11 @@ function WillDrawerBody({
           key={`${vaultId}:${setup.configVersion}:${setup.policyVersion}:${setup.planStatus}`}
           vaultId={vaultId}
           setup={setup}
-          initialPin={verifiedPin}
+          onPinChange={(pin) => {
+            pinRef.current = pin;
+            setTypedPin(pin);
+          }}
+          externalPinFailure={typedPinFailure}
           onNotice={setNotice}
         />
       )}
