@@ -15,6 +15,7 @@ import { AddGroupMembersDialog } from "@/features/vault-management/ui/AddGroupMe
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
+import { ResignNotice } from "./ResignNotice";
 
 const PAGE_SIZE = 10;
 /** Một kho có tối đa 50 gói chưa xóa nên một trang 100 dòng đủ để biết tài sản đang ở gói nào. */
@@ -200,6 +201,7 @@ export function OwnerGroups({
 
   return (
     <div className="space-y-6">
+      <ResignNotice vaultId={vaultId} />
       {outsideCount > 0 && (
         <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
           Có {outsideCount} mục chưa thuộc gói bàn giao nào. Những mục này chưa được giao cho ai và

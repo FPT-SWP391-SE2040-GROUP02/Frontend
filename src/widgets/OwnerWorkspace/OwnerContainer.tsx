@@ -5,6 +5,7 @@ import { GroupDetail } from "@/features/vault-management/ui/GroupDetail";
 import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
 import { Button } from "@/shared/ui/button";
+import { ResignNotice } from "./ResignNotice";
 /** Lắp ghép các feature, không import chéo giữa services của feature. */
 export function OwnerContainer() {
   const { id = "" } = useParams();
@@ -48,6 +49,7 @@ export function OwnerContainer() {
   const showBeneficiaryNav = beneficiaryPage > 1 || Boolean(beneficiaries.data?.hasNextPage);
   return (
     <div className="space-y-4">
+      <ResignNotice vaultId={vault.data.id} />
       {(assets.isError || beneficiaries.isError) && (
         <div role="alert" className="space-y-3">
           <p>Chưa tải được một số lựa chọn mục/người nhận.</p>
