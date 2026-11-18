@@ -520,7 +520,8 @@ export function WillDocument({
   }
 
   return (
-    <div className="text-heritage-text">
+    // Văn bản pháp lý dùng Times New Roman như biên bản bàn giao; áp cho cả khung xem trước và bản in.
+    <div className="text-heritage-text" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
       <header className="text-center text-sm leading-6">
         <p className="font-bold tracking-[0.02em]">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
         <p className="inline-block border-b border-heritage-text pb-1 font-semibold">

@@ -36,5 +36,6 @@ export const requirementLabels: Record<string, string> = {
   CERTIFICATE_NUMBER: "Số giấy chứng tử",
   ISSUED_ON: "Ngày cấp",
   ISSUED_BY: "Nơi cấp",
+  DEATH_REGISTRATION_PLACE: "Nơi đăng ký khai tử",
   FILES: "Trang giấy chứng tử",
 };
