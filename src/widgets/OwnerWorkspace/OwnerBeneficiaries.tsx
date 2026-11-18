@@ -11,10 +11,7 @@ import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiarie
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
 import { BeneficiaryRow, EditBeneficiaryDialog } from "@/features/beneficiaries/ui/BeneficiaryRow";
 import { beneficiaryResponseSchema } from "@/features/beneficiaries/model/beneficiary.schema";
-import {
-  useWillIdentity,
-  willIdentityQueryKey,
-} from "@/features/plan-setup/model/useWillIdentity";
+import { useWillIdentity, willIdentityQueryKey } from "@/features/plan-setup/model/useWillIdentity";
 import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles } from "@/shared/ui/heritageKit";
