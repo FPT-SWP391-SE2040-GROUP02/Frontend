@@ -20,7 +20,6 @@ const record: z.infer<typeof beneficiaryResponseSchema> = {
   email: "an@example.test",
   phone: null,
   message: null,
-  minorAcknowledgedAt: null,
   containerIds: [VAULT_ID, CONTAINER_ID],
   createdAt: CREATED_AT,
   updatedAt: null,
