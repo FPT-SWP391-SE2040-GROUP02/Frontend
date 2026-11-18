@@ -20,8 +20,10 @@ const CARD_MAX_BYTES = 2 * 1024 * 1024;
 
 interface AdminNotaryCardDialogProps {
   userId: string;
-  /** Tên hiển thị của Người xét duyệt, dùng trong tiêu đề. */
+  /** Tên hiển thị của Người xét duyệt hoặc Người thực thi, dùng trong tiêu đề. */
   name: string;
+  /** Người thực thi hệ thống dùng thẻ luật sư / chứng chỉ hành nghề; Người xét duyệt dùng thẻ công chứng viên. */
+  isExecutor: boolean;
   open: boolean;
   onClose: () => void;
 }
@@ -35,7 +37,15 @@ function downloadCard(userId: string, signal?: AbortSignal): Promise<Blob> {
 }
 
 /** Hộp thoại xem và nộp (hoặc nộp lại) ảnh thẻ công chứng viên của Người xét duyệt; ảnh chỉ tải khi mở hộp thoại. */
-export function AdminNotaryCardDialog({ userId, name, open, onClose }: AdminNotaryCardDialogProps) {
+export function AdminNotaryCardDialog({
+  userId,
+  name,
+  isExecutor,
+  open,
+  onClose,
+}: AdminNotaryCardDialogProps) {
+  const cardLabel = isExecutor ? "Thẻ luật sư / chứng chỉ hành nghề" : "Thẻ công chứng viên";
+  const holderLabel = isExecutor ? "Người thực thi này" : "Người xét duyệt này";
   const query = useQuery({
     queryKey: ["admin", "notary-card", userId],
     queryFn: ({ signal }) => downloadCard(userId, signal),
@@ -70,7 +80,7 @@ export function AdminNotaryCardDialog({ userId, name, open, onClose }: AdminNota
 
   const onSubmit = () => {
     if (file === null) {
-      setFileError("Vui lòng chọn ảnh thẻ công chứng viên.");
+      setFileError("Vui lòng chọn ảnh thẻ.");
       return;
     }
     if (fileError !== null) return;
@@ -111,7 +121,7 @@ export function AdminNotaryCardDialog({ userId, name, open, onClose }: AdminNota
   if (missing) {
     content = (
       <p role="status" className="text-sm text-heritage-muted">
-        Người xét duyệt này chưa có ảnh thẻ công chứng viên.
+        {holderLabel} chưa có ảnh {cardLabel.toLowerCase()}.
       </p>
     );
   } else if (query.isError) {
@@ -127,7 +137,7 @@ export function AdminNotaryCardDialog({ userId, name, open, onClose }: AdminNota
     content = (
       <img
         src={url}
-        alt={`Ảnh thẻ công chứng viên của ${name}`}
+        alt={`Ảnh ${cardLabel.toLowerCase()} của ${name}`}
         className="max-h-[70vh] w-full rounded-xl border border-heritage-border object-contain"
       />
     );
@@ -137,7 +147,7 @@ export function AdminNotaryCardDialog({ userId, name, open, onClose }: AdminNota
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Thẻ công chứng viên</DialogTitle>
+          <DialogTitle>{cardLabel}</DialogTitle>
           <DialogDescription>{name}</DialogDescription>
         </DialogHeader>
         {content}
