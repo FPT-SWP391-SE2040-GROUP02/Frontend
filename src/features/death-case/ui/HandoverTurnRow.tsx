@@ -3,10 +3,7 @@ import { Lock } from "lucide-react";
 import { cn } from "cn";
 import { buttonStyles, formatDateTime, Initial } from "@/shared/ui/heritageKit";
 import type { TurnProgress, TurnSegment, SegmentState, TurnTone } from "../model/executorTurns";
-import {
-  KEY_MAILABLE_TURN_STATUSES,
-  type HandoverProgressTurn,
-} from "../model/handoverProgress.schema";
+import { canMailHandoverKey, type HandoverProgressTurn } from "../model/handoverProgress.schema";
 import { HandoverPaper } from "./HandoverPaper";
 import { HandoverSendKey } from "./HandoverSendKey";
 
@@ -187,7 +184,7 @@ export function HandoverTurnRow({
   const [expanded, setExpanded] = useState(false);
   const [keyFormOpen, setKeyFormOpen] = useState(false);
   const [keySentAt, setKeySentAt] = useState<string | null>(null);
-  const canMailKey = KEY_MAILABLE_TURN_STATUSES.includes(turn.status);
+  const canMailKey = canMailHandoverKey(turn);
   const name = recipientName(turn);
   const highlighted = progress.needsAction;
   return (

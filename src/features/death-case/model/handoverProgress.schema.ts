@@ -92,14 +92,13 @@ export const handoverProgressSchema = z.object({
 export type HandoverProgress = z.infer<typeof handoverProgressSchema>;
 export type HandoverProgressTurn = z.infer<typeof progressTurnSchema>;
 
-/** Lượt chưa ai nhận: Executor được gửi lại lời mời (BE: INVITED, INITIAL_RESPONSE_EXPIRED). */
-/** Lượt còn đang chờ người nhận hoàn tất: Executor được gửi khóa mở gói cho người nhận qua email. */
-export const KEY_MAILABLE_TURN_STATUSES: ReadonlyArray<HandoverProgressTurn["status"]> = [
-  "INVITED",
-  "INITIAL_RESPONSE_EXPIRED",
-  "IDENTITY_IN_PROGRESS",
-  "READY_TO_ACCEPT",
-];
+/**
+ * Executor chỉ gửi được mã mở gói khi người nhận đã đồng ý và biên bản đã được Người xét duyệt duyệt (HANDOVER_COMMITTED)
+ * mà người nhận chưa nhập mã. Trước đó người nhận chưa xác minh xong nên chưa được có mã; nhập mã rồi thì không cần gửi nữa.
+ */
+export function canMailHandoverKey(turn: HandoverProgressTurn): boolean {
+  return turn.status === "HANDOVER_COMMITTED" && turn.keyVerifiedAt === null;
+}
 
 /** SendHandoverKeyResponse của POST .../handover-turns/{turnId}/send-key. */
 export const sendHandoverKeySchema = z.object({

@@ -220,7 +220,8 @@ export function DeathCaseEditor({ record, ownerName }: { record: DeathCase; owne
   if (missingParts.length > 0) submitHint = `Còn thiếu: ${missingParts.join(", ")}.`;
   else if (info.hasLocalErrors) submitHint = "Sửa ô báo đỏ trước khi nộp.";
   else if (infoUnsaved)
-    submitHint = "Đang lưu hoặc chưa lưu thông tin trên giấy. Bấm “Lưu thông tin” rồi nộp.";
+    submitHint =
+      "Thông tin trên giấy đang lưu hoặc chưa lưu. Bấm ra ngoài ô vừa sửa, đợi lưu xong rồi nộp.";
 
   const upload = async (kind: FileKind, file: File | null | undefined) => {
     setFileError("");
