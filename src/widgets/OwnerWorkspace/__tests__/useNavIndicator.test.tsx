@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { StrictMode, useRef } from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import { useNavIndicator } from "../useNavIndicator";
@@ -94,6 +94,18 @@ describe("useNavIndicator", () => {
     first.unmount();
     const { container } = render(<Menu active="b" />);
     expect(indicatorOf(container).style.transform).toBe("translateY(46px)");
+  });
+
+  it("React StrictMode chạy lại hiệu ứng lúc dev vẫn cho vị trí cuối đúng", () => {
+    const first = render(<Menu active="a" />);
+    first.unmount();
+    const { container } = render(
+      <StrictMode>
+        <Menu active="c" />
+      </StrictMode>,
+    );
+    expect(indicatorOf(container).style.transform).toBe("translateY(92px)");
+    expect(indicatorOf(container).style.transition).toBe("");
   });
 
   it("không có mục nào đang chọn thì ẩn vạch", () => {

@@ -29,6 +29,11 @@ function place(nav: HTMLElement, indicator: HTMLElement, slideFromLast: boolean)
   const top = active.offsetTop;
   indicator.style.visibility = "visible";
   indicator.style.height = `${active.offsetHeight}px`;
+  if (indicator.style.transform === `translateY(${top}px)`) {
+    // Đã ở đúng chỗ (ví dụ React StrictMode chạy lại hiệu ứng lúc dev): không nhảy lại, kẻo cắt chuyển động đang chạy.
+    lastTop = top;
+    return;
+  }
   if (slideFromLast && lastTop !== null && lastTop !== top) {
     // Đặt vạch ở chỗ cũ ngay (không chuyển động) rồi đổi sang chỗ mới có chuyển động.
     setTransform(indicator, lastTop, false);
