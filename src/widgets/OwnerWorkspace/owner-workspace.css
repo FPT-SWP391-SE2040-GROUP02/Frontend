@@ -357,6 +357,47 @@
   }
 }
 
+/*
+ * Vạch nền mục menu đang chọn (menu Chủ kho, từ 768px): một khối đứng sau các mục, trượt theo transform khi đổi trang
+ * (xem useNavIndicator). Mục đang chọn chỉ còn đổi màu chữ; nền, viền và vạch vàng do khối này mang. Menu điện thoại
+ * giữ kiểu cũ (khối ẩn, mục tự mang nền).
+ */
+.owner-navigation--slide {
+  position: relative;
+}
+.owner-nav-indicator {
+  display: none;
+}
+@media (min-width: 768px) {
+  .owner-nav-indicator {
+    position: absolute;
+    top: 0;
+    left: 16px;
+    right: 16px;
+    z-index: 0;
+    display: block;
+    border: 1px solid #b88e4c40;
+    border-radius: 10px;
+    background: #265a47;
+    box-shadow: inset 3px 0 0 #b68f4c;
+    pointer-events: none;
+  }
+  .owner-navigation--slide > .owner-nav-link {
+    position: relative;
+    z-index: 1;
+  }
+  .owner-navigation--slide > .owner-nav-link[aria-current="page"] {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .owner-nav-indicator {
+    transition: transform 0.22s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+}
+
 /* Mục menu: chuyển màu mượt và lún nhẹ khi nhấn (chỉ khi không chọn giảm chuyển động). */
 @media (prefers-reduced-motion: no-preference) {
   .owner-nav-link {

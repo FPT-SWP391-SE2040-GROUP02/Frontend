@@ -1,17 +1,10 @@
-import { ExecutorKeyCard } from "@/features/executor-key";
 import { ExecutorsSection } from "@/features/plan-setup/ui/ExecutorsSection";
 import { ExecutorNoteSection } from "@/features/vault-management/ui/ExecutorNoteForm";
 
 /**
- * Trang Người thực thi: một Người thực thi do Chủ kho mời, thẻ mã mở gói (hệ thống tự giữ, Chủ kho chỉ đổi mã
- * mới) và lời dặn để lại. Widget ghép các feature với nhau vì feature không được import lẫn nhau.
+ * Trang Người thực thi: một Người thực thi do Chủ kho mời và lời dặn để lại. Mã mở gói do hệ thống tự giữ và gửi
+ * nên không hiện ở đây. Widget ghép các feature với nhau vì feature không được import lẫn nhau.
  */
 export function OwnerTrustedPeople({ vaultId }: { vaultId: string }) {
-  return (
-    <ExecutorsSection
-      vaultId={vaultId}
-      keySlot={<ExecutorKeyCard vaultId={vaultId} />}
-      noteSlot={<ExecutorNoteSection />}
-    />
-  );
+  return <ExecutorsSection vaultId={vaultId} noteSlot={<ExecutorNoteSection />} />;
 }
