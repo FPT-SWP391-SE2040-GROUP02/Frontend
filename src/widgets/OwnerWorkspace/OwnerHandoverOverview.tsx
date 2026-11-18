@@ -10,7 +10,6 @@ import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { checkInService } from "@/features/dms/api/checkInService";
 import { dailyCheckInState } from "@/features/dms/model/dailyCheckIn";
 import type { checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
-import { ExecutorKeyCard } from "@/features/executor-key";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
@@ -248,7 +247,6 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
           <>
             <CheckInCard vaultId={vaultId} />
             <ActivePlanCard activatedAt={setup.activatedAt} />
-            <ExecutorKeyCard vaultId={vaultId} />
             <HandoverStepsCard
               title="Tiến trình bàn giao"
               subtitle="Chưa có báo tin. Khi Người thực thi báo tin, bước đang diễn ra sẽ được tô đậm tại đây."
