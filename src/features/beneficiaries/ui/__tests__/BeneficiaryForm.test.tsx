@@ -175,6 +175,27 @@ describe("form thêm người nhận", () => {
     expect(post).not.toHaveBeenCalled();
   });
 
+  it("chặn người nhận chưa đủ 18 tuổi ngay trên form", async () => {
+    const post = vi.spyOn(apiClient, "post");
+    renderForm();
+    const underAge = new Date();
+    underAge.setFullYear(underAge.getFullYear() - 10);
+    const dd = String(underAge.getDate()).padStart(2, "0");
+    const mm = String(underAge.getMonth() + 1).padStart(2, "0");
+    fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "087206004150" } });
+    fireEvent.change(screen.getByLabelText(/^Họ và tên/), {
+      target: { value: "Nguyễn Thanh Duy" },
+    });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), {
+      target: { value: `${dd}/${mm}/${underAge.getFullYear()}` },
+    });
+    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "duy@example.com" } });
+    fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    const dobLabel = (await screen.findByLabelText(/^Ngày sinh/)).closest("label") as HTMLElement;
+    expect(dobLabel).toHaveTextContent("Người nhận phải đủ 18 tuổi.");
+    expect(post).not.toHaveBeenCalled();
+  });
+
   it("ánh xạ lỗi validation từ máy chủ lên đúng ô input và hiển thị danh sách trường lỗi ở banner", async () => {
     vi.spyOn(apiClient, "post").mockRejectedValue(
       new AxiosError("Bad Request", undefined, undefined, undefined, {

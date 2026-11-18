@@ -18,9 +18,11 @@ import { beneficiaryService } from "../api/beneficiaryService";
 import { beneficiaryResponseSchema } from "../model/beneficiary.schema";
 import {
   CITIZEN_ID_FORMAT_MESSAGE,
+  MIN_AGE_MESSAGE,
   PHONE_FORMAT_MESSAGE,
   isValidCitizenIdFormat,
   isVietnamPhone,
+  latestAdultBirthDate,
 } from "../model/beneficiaryFormat";
 
 type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
@@ -131,7 +133,21 @@ export function BeneficiaryForm({
             });
           }
 
-          // 2. Kiểm tra CCCD khi thêm mới (không áp dụng khi sửa vì CCCD cố định)
+          // 2. Phải đủ 18 tuổi. Khi sửa chỉ kiểm nếu ngày sinh được đổi, giống backend.
+          if (
+            values.dateOfBirth &&
+            values.dateOfBirth <= todayStr &&
+            values.dateOfBirth !== record?.dateOfBirth &&
+            values.dateOfBirth > latestAdultBirthDate()
+          ) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["dateOfBirth"],
+              message: MIN_AGE_MESSAGE,
+            });
+          }
+
+          // 3. Kiểm tra CCCD khi thêm mới (không áp dụng khi sửa vì CCCD cố định)
           if (!record) {
             const rawCitizenId = values.citizenId.replace(/\s/g, "");
             if (!rawCitizenId) {
@@ -345,9 +361,7 @@ export function BeneficiaryForm({
                   />
                 )}
               />
-              <span className={HINT}>
-                Nhập theo ngày/tháng/năm. Không được là ngày trong tương lai.
-              </span>
+              <span className={HINT}>Nhập theo ngày/tháng/năm. Người nhận phải đủ 18 tuổi.</span>
               <FieldError message={errors.dateOfBirth?.message} />
             </label>
             {record ? (
