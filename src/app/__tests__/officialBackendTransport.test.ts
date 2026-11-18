@@ -46,7 +46,6 @@ const beneficiary = {
   email: null,
   phone: null,
   message: null,
-  minorAcknowledgedAt: null,
   containerIds: [],
   createdAt: CREATED_AT,
   updatedAt: null,

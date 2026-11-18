@@ -201,7 +201,6 @@ describe("OwnerAuditLog transport", () => {
       dateOfBirth: "1990-05-20",
       email: "quan@example.test",
       phone: null,
-      minorAcknowledgedAt: null,
       containerIds: [],
       createdAt: "2026-10-14T00:00:00Z",
       updatedAt: null,

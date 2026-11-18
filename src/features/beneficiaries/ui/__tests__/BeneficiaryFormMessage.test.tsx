@@ -18,7 +18,6 @@ const saved = {
   email: "an@example.com",
   phone: null,
   message: "Con ơi, bố để lại phần này cho con.",
-  minorAcknowledgedAt: null,
   containerIds: [],
   createdAt: "2026-11-08T08:00:00+00:00",
   updatedAt: null,
@@ -59,7 +58,7 @@ it("tạo người nhận gửi kèm lời nhắn đã cắt khoảng trắng", 
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(saved);
   renderForm();
   await user.type(screen.getByLabelText(/Họ và tên/), "Nguyễn Văn An");
-  await user.type(screen.getByLabelText(/Ngày sinh/), "20/05/1990");
+  await user.type(screen.getByLabelText(/Ngày sinh/), "1990-05-20");
   await user.type(screen.getByLabelText(/Số CCCD/), "012345678901");
   await user.type(screen.getByLabelText(/^Email/), "an@example.com");
   await user.type(
@@ -78,7 +77,7 @@ it("không viết lời nhắn thì gửi null", async () => {
   const post = vi.spyOn(apiClient, "post").mockResolvedValue({ ...saved, message: null });
   renderForm();
   await user.type(screen.getByLabelText(/Họ và tên/), "Nguyễn Văn An");
-  await user.type(screen.getByLabelText(/Ngày sinh/), "20/05/1990");
+  await user.type(screen.getByLabelText(/Ngày sinh/), "1990-05-20");
   await user.type(screen.getByLabelText(/Số CCCD/), "012345678901");
   await user.type(screen.getByLabelText(/^Email/), "an@example.com");
   await user.click(screen.getByRole("button", { name: "Thêm người nhận" }));

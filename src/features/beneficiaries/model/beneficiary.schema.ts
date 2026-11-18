@@ -10,7 +10,6 @@ export const beneficiaryResponseSchema = z.object({
   phone: z.string().nullable(),
   /** Lời nhắn Chủ kho để lại cho người nhận, gửi kèm thư mời nhận tài sản. Backend cũ chưa gửi thì null. */
   message: z.string().nullable().default(null),
-  minorAcknowledgedAt: z.string().datetime({ offset: true }).nullable(),
   containerIds: z.array(z.string().uuid()),
   createdAt: z.string().datetime({ offset: true }),
   updatedAt: z.string().datetime({ offset: true }).nullable(),
