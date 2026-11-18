@@ -1,13 +1,12 @@
 import { z } from "zod";
 import { useContext, useEffect, useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { ReactReduxContext } from "react-redux";
 import { Link } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { DateInput } from "@/shared/ui/date-input";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { buttonStyles } from "@/shared/ui/heritageKit";
@@ -112,9 +111,7 @@ export function BeneficiaryForm({
             .min(2, "Họ và tên phải có ít nhất 2 ký tự.")
             .max(200, "Họ tên tối đa 200 ký tự.")
             .regex(/^[\p{L}\s]+$/u, "Họ và tên chỉ được chứa chữ cái và khoảng trắng."),
-          dateOfBirth: z
-            .string()
-            .regex(/^\d{4}-\d{2}-\d{2}$/, "Vui lòng nhập ngày sinh đúng dạng ngày/tháng/năm."),
+          dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Vui lòng chọn ngày sinh."),
           email: z
             .string()
             .min(1, "Vui lòng nhập email.")
@@ -203,7 +200,6 @@ export function BeneficiaryForm({
 
   const {
     register,
-    control,
     handleSubmit,
     reset,
     setError,
@@ -343,25 +339,13 @@ export function BeneficiaryForm({
             </label>
             <label className={LABEL}>
               Ngày sinh *
-              <Controller
-                name="dateOfBirth"
-                control={control}
-                render={({ field }) => (
-                  <DateInput
-                    className={FIELD}
-                    name={field.name}
-                    ref={field.ref}
-                    value={field.value}
-                    onBlur={field.onBlur}
-                    onChange={(iso) => {
-                      field.onChange(iso);
-                      clearErrors("dateOfBirth");
-                    }}
-                    aria-invalid={Boolean(errors.dateOfBirth)}
-                  />
-                )}
+              <Input
+                type="date"
+                className={FIELD}
+                {...register("dateOfBirth", { onChange: () => clearErrors("dateOfBirth") })}
+                aria-invalid={Boolean(errors.dateOfBirth)}
               />
-              <span className={HINT}>Nhập theo ngày/tháng/năm. Người nhận phải đủ 18 tuổi.</span>
+              <span className={HINT}>Người nhận phải đủ 18 tuổi.</span>
               <FieldError message={errors.dateOfBirth?.message} />
             </label>
             {record ? (
