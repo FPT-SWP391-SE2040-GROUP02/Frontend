@@ -42,6 +42,7 @@ function renderRow(
   overrides: Partial<z.infer<typeof beneficiaryResponseSchema>> = {},
   groupNames: Record<string, string> = {},
   locked = false,
+  fullCitizenId?: string,
 ) {
   const store = configureStore({ reducer: { auth: authReducer } });
   return render(
@@ -55,6 +56,7 @@ function renderRow(
                 record={{ ...record, ...overrides }}
                 groupNames={groupNames}
                 locked={locked}
+                fullCitizenId={fullCitizenId}
               />
             </tbody>
           </table>
@@ -187,5 +189,14 @@ describe("hàng người nhận", () => {
     fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("alert")).toHaveTextContent("đang ở trong 2 gói bàn giao.");
+  });
+
+  it("chỉ hiện 4 số cuối khi chưa bấm Hiện, hiện đủ khi có CCCD đầy đủ", () => {
+    renderRow();
+    expect(screen.getByText("•••• 8901")).toBeTruthy();
+    cleanup();
+    renderRow({}, {}, false, "079090123456");
+    expect(screen.getByText("079090123456")).toBeTruthy();
+    expect(screen.queryByText("•••• 8901")).toBeNull();
   });
 });

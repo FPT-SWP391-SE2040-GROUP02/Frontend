@@ -84,6 +84,8 @@ export const auditActionValues = [
   "HANDOVER_SUBMISSION_SUPPLEMENT_REQUESTED",
   "PLAN_ACTIVATED",
   "EXECUTOR_ACCEPTED",
+  "WILL_RESIGNED",
+  "WILL_IDENTITY_VIEWED",
 ] as const;
 
 /** Wire role người thực thi; SYSTEM dùng khi job nền. */

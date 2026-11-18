@@ -188,9 +188,12 @@ export function BeneficiaryRow({
   groupNames = {},
   readOnly = false,
   locked = false,
+  fullCitizenId,
 }: {
   vaultId: string;
   record: Beneficiary;
+  /** CCCD đầy đủ sau khi Chủ kho bấm "Hiện" (xác nhận PIN); không có thì chỉ hiện 4 số cuối. Do widget truyền vào. */
+  fullCitizenId?: string;
   /** id gói bàn giao → tên gói bàn giao, do widget tra; thiếu thì thông báo chỉ nêu số gói bàn giao. */
   groupNames?: Record<string, string>;
   readOnly?: boolean;
@@ -228,7 +231,7 @@ export function BeneficiaryRow({
         </div>
       </td>
       <td className="px-4 py-4 font-mono text-sm text-heritage-muted">
-        •••• {record.citizenIdLast4}
+        {fullCitizenId ?? `•••• ${record.citizenIdLast4}`}
       </td>
       <td className="break-words px-4 py-4 text-heritage-muted">
         {contact}
