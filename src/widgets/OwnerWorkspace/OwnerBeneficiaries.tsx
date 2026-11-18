@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   useOwnerPackages,
@@ -10,6 +11,7 @@ import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiarie
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
 import { BeneficiaryRow, EditBeneficiaryDialog } from "@/features/beneficiaries/ui/BeneficiaryRow";
 import { beneficiaryResponseSchema } from "@/features/beneficiaries/model/beneficiary.schema";
+import { useWillIdentity, willIdentityQueryKey } from "@/features/plan-setup/model/useWillIdentity";
 import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles } from "@/shared/ui/heritageKit";
@@ -55,7 +57,10 @@ function PaidTierDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** Trang quản lý hồ sơ chỉ cache DTO đã che CCCD. */
+/** Tự ẩn lại CCCD đầy đủ sau khoảng này để số không nằm lâu trên màn hình. */
+const REVEAL_SECONDS = 60;
+
+/** Trang quản lý hồ sơ chỉ cache DTO đã che CCCD; CCCD đầy đủ chỉ hiện khi bấm "Hiện" và nhập PIN. */
 export function OwnerBeneficiaries() {
   const [params, setParams] = useSearchParams();
   const [adding, setAdding] = useState(false);
@@ -63,7 +68,30 @@ export function OwnerBeneficiaries() {
   const requested = Number(params.get("page") ?? 1);
   const page =
     Number.isSafeInteger(requested) && requested > 0 && requested <= 1_000_000 ? requested : 1;
+  const [revealed, setRevealed] = useState(false);
+  const pinRef = useRef("");
+  const client = useQueryClient();
   const vault = useOwnerVault(true);
+  const identity = useWillIdentity(vault.data?.id ?? "", revealed && Boolean(vault.data), {
+    getPin: () => pinRef.current,
+    remember: (pin) => {
+      pinRef.current = pin;
+    },
+  });
+  const hide = () => {
+    setRevealed(false);
+    pinRef.current = "";
+    if (vault.data) {
+      client.removeQueries({ queryKey: willIdentityQueryKey(vault.data.id) });
+    }
+  };
+  const shown = revealed && identity.isSuccess;
+  useEffect(() => {
+    if (!revealed) return undefined;
+    const timer = window.setTimeout(hide, REVEAL_SECONDS * 1000);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed]);
   const list = useBeneficiaries(vault.data?.id ?? "", { pageIndex: page, pageSize: 10 });
   // Tên gói bàn giao để báo rõ người nhận đang nằm trong gói bàn giao nào khi chặn xóa hồ sơ.
   const groups = useOwnerPackages(vault.data?.id ?? "", Boolean(vault.data), {
@@ -101,6 +129,12 @@ export function OwnerBeneficiaries() {
   // Số hồ sơ (tính cả hồ sơ chưa ở gói nào) không vượt tổng suất; BE vẫn chặn lại bằng 409 BENEFICIARY_SLOTS_EXCEEDED.
   // Danh sách không lọc nên totalCount là tổng số hồ sơ của kho.
   const profileLimitReached = !freeTier && list.data.totalCount >= vault.data.beneficiarySlots;
+  const fullIds: Record<string, string> = {};
+  if (shown && identity.data) {
+    for (const recipient of identity.data.recipients) {
+      fullIds[recipient.beneficiaryId] = recipient.citizenId;
+    }
+  }
   const rows: ReactNode[] = [];
   for (const record of list.data.items) {
     rows.push(
@@ -111,6 +145,7 @@ export function OwnerBeneficiaries() {
         groupNames={groupNames}
         readOnly={readOnly}
         locked={locked}
+        fullCitizenId={Object.hasOwn(fullIds, record.id) ? fullIds[record.id] : undefined}
       />,
     );
   }
@@ -142,6 +177,22 @@ export function OwnerBeneficiaries() {
             <span className="text-sm font-semibold text-[#7A5B24]">
               {list.data.totalCount} người
             </span>
+            {list.data.items.length > 0 && (
+              <button
+                type="button"
+                className={buttonStyles.outline}
+                disabled={revealed && identity.isPending}
+                onClick={() => {
+                  if (shown) {
+                    hide();
+                  } else {
+                    setRevealed(true);
+                  }
+                }}
+              >
+                {shown ? "Ẩn CCCD" : "Hiện CCCD"}
+              </button>
+            )}
             <button
               type="button"
               className={`${buttonStyles.gold} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
@@ -158,6 +209,11 @@ export function OwnerBeneficiaries() {
           {vault.data.usedBeneficiarySlots} người đang ở gói bàn giao. Tạo hồ sơ không tự gắn người
           nhận vào gói bàn giao.
         </p>
+        {revealed && identity.isError && (
+          <p role="alert" className="mt-2 text-sm text-destructive">
+            Chưa xem được CCCD đầy đủ (cần nhập đúng mã PIN của kho).
+          </p>
+        )}
         {rows.length === 0 && (
           <p role="status" className="mt-4 text-sm text-heritage-muted">
             Chưa có hồ sơ trên trang này.
