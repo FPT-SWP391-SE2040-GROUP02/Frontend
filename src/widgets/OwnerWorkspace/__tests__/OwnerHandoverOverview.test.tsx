@@ -846,7 +846,7 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     );
   }
 
-  it("thẻ việc chỉ tóm tắt (không nút), kèm điểm danh, Kế hoạch đang áp dụng, Mã mở gói và tiến trình", async () => {
+  it("thẻ việc chỉ tóm tắt (không nút), kèm điểm danh, Kế hoạch đang áp dụng và tiến trình, không có thẻ Mã mở gói", async () => {
     showRunning();
     renderOverview();
 
@@ -857,29 +857,11 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     const active = screen.getByRole("region", { name: "Kế hoạch đang áp dụng" });
     expect(within(active).getByText("Kích hoạt lúc")).toBeInTheDocument();
     expect(within(active).getByText("09:42 15/11/2026")).toBeInTheDocument();
-    expect(await screen.findByText("Đã có · Bản 1")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Mã mở gói" })).toBeInTheDocument();
+    // Chủ kho không giữ hay đổi mã mở gói: hệ thống tự cấp, trang này không có thẻ Mã mở gói.
+    expect(screen.queryByRole("heading", { name: "Mã mở gói" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Tiến trình bàn giao" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Xem di chúc đã ký" })).toBeInTheDocument();
-  });
-
-  it("không còn màn nhận mã, dải chưa có mã hay phiếu: Chủ kho không giữ mã", async () => {
-    showRunning({ hasKey: false, version: 0, issuedAt: null });
-    renderOverview();
-
-    expect(await screen.findByText("Chưa tạo")).toBeInTheDocument();
-    expect(screen.queryByText(/chưa có mã mở gói/)).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Tạo mã mở gói" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Tải phiếu/ })).not.toBeInTheDocument();
-    expect(screen.queryByText(/lưu mã mở gói/)).not.toBeInTheDocument();
-  });
-
-  it("kế hoạch bị khóa: ẩn nút đổi mã và giải thích", async () => {
-    showRunning({ canIssue: false });
-    renderOverview();
-
-    expect(await screen.findByText("Kế hoạch đang bị khóa nên không đổi mã được.")).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
   });
 
   it("lỗi tải kế hoạch hiện thử lại", () => {
@@ -907,6 +889,10 @@ describe("tờ di chúc dùng danh tính đầy đủ", () => {
     expect(get).not.toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
 
     await openDrawer();
+    // Chưa gõ PIN ở ô ký thì chưa gọi API danh tính và không hiện hộp thoại PIN riêng.
+    expect(get).not.toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
+    expect(screen.getByText(/Nhập mã PIN của kho ở cuối khung/)).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText(PIN_LABEL), "123456");
     const doc = within(paper());
     expect(await doc.findByText("079203001234")).toBeInTheDocument();
     expect(get).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());

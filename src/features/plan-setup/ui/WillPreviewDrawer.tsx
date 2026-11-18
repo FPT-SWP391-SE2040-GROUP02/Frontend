@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { X } from "lucide-react";
 import type { z } from "zod";
@@ -6,10 +6,12 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import type { WillGapTarget, WillIdentityStatus } from "@/entities/will/model/willDocument.types";
 import { PrintWillButton } from "@/entities/will/ui/PrintWillButton";
 import { Button } from "@/shared/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/shared/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
 import { StatusBanner } from "@/shared/ui/status-banner";
 import { needsResign, pickOwnerSignedAt, pickWillExecutor } from "../lib/willView";
 import type { planSetupSchema } from "../model/planSetup.schema";
+import { readVaultPinFailure } from "@/shared/api/vaultPin";
+import { PIN_DIGITS } from "@/shared/ui/pin-input";
 import { useWillIdentity } from "../model/useWillIdentity";
 import { PlanWillDocument } from "./PlanWillDocument";
 import { WillSignFooter, type WillSignNotice } from "./WillSignFooter";
@@ -56,7 +58,22 @@ function exportHint(
 }
 
 /** Dòng báo tình trạng tải danh tính phía trên tờ di chúc; không hiện khi đã tải xong. */
-function IdentityNotice({ status, onRetry }: { status: WillIdentityStatus; onRetry: () => void }) {
+function IdentityNotice({
+  status,
+  waitingForPin,
+  onRetry,
+}: {
+  status: WillIdentityStatus;
+  waitingForPin: boolean;
+  onRetry: () => void;
+}) {
+  if (status === "none" && waitingForPin) {
+    return (
+      <p role="status" className="mb-4 text-[13px] text-heritage-muted">
+        Nhập mã PIN của kho ở cuối khung để hiện ngày sinh, CCCD và nơi thường trú trong di chúc.
+      </p>
+    );
+  }
   if (status === "loading") {
     return (
       <p role="status" className="mb-4 text-[13px] text-heritage-muted">
@@ -81,7 +98,7 @@ function IdentityNotice({ status, onRetry }: { status: WillIdentityStatus; onRet
 }
 
 /**
- * Toàn bộ nội dung khung. Tách riêng để dữ liệu danh tính (CCCD đầy đủ) chỉ tồn tại khi khung đang mở: Sheet gỡ nội
+ * Toàn bộ nội dung khung. Tách riêng để dữ liệu danh tính (CCCD đầy đủ) chỉ tồn tại khi khung đang mở: Dialog gỡ nội
  * dung khi đóng nên truy vấn (gcTime 0) và thông báo ký bị xóa theo.
  */
 function WillDrawerBody({
@@ -98,16 +115,34 @@ function WillDrawerBody({
   onGapClick: (target: WillGapTarget) => void;
 }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
-  // PIN đã nhập khi mở khung: dùng lại để tải lại danh tính và điền sẵn ô ký; mất khi khung đóng.
+  const isDraft = setup.planStatus === "DRAFT";
+  const resignNeeded = needsResign(setup);
+  // Còn chân khung ký (nháp hoặc cần ký lại): PIN gõ ở ô ký cũng dùng để tải danh tính đầy đủ, không hỏi PIN lần hai.
+  // Khung chỉ để xem (đã ký, không có thay đổi) thì không có ô ký nên hỏi PIN bằng hộp thoại chung khi mở.
+  const hasSignFooter = isDraft || resignNeeded;
   const pinRef = useRef("");
-  const [verifiedPin, setVerifiedPin] = useState("");
-  const identityQuery = useWillIdentity(vaultId, open, {
-    getPin: () => pinRef.current,
-    remember: (pin) => {
-      pinRef.current = pin;
-      setVerifiedPin(pin);
+  const [typedPin, setTypedPin] = useState("");
+  const identityQuery = useWillIdentity(
+    vaultId,
+    open && !hasSignFooter,
+    {
+      getPin: () => pinRef.current,
+      remember: (pin) => {
+        pinRef.current = pin;
+      },
     },
-  });
+    hasSignFooter,
+  );
+  const refetchIdentity = identityQuery.refetch;
+  useEffect(() => {
+    if (open && hasSignFooter && typedPin.length === PIN_DIGITS) {
+      void refetchIdentity();
+    }
+  }, [open, hasSignFooter, typedPin, refetchIdentity]);
+  let typedPinFailure = null;
+  if (hasSignFooter && identityQuery.isError && !identityQuery.isFetching) {
+    typedPinFailure = readVaultPinFailure(identityQuery.error);
+  }
   const [notice, setNotice] = useState<WillSignNotice | null>(null);
 
   let ownerFallback = { fullName: "", email: "" };
@@ -117,6 +152,9 @@ function WillDrawerBody({
   let identityStatus: WillIdentityStatus = "loading";
   if (identityQuery.data !== undefined) {
     identityStatus = "ready";
+  } else if (hasSignFooter && (typedPin.length < PIN_DIGITS || typedPinFailure !== null)) {
+    // Chưa gõ đủ PIN ở ô ký hoặc PIN sai: chưa có danh tính, không phải đang tải hay lỗi mạng.
+    identityStatus = "none";
   } else if (identityQuery.isError && !identityQuery.isFetching) {
     identityStatus = "error";
   }
@@ -127,8 +165,6 @@ function WillDrawerBody({
   if (executor !== null && executor.signedAt) {
     executorSigned = true;
   }
-  const isDraft = setup.planStatus === "DRAFT";
-  const resignNeeded = needsResign(setup);
   const canExport = ownerSigned && executorSigned && !resignNeeded && identityStatus === "ready";
 
   function renderDocument(
@@ -162,10 +198,10 @@ function WillDrawerBody({
     <>
       <div className="flex shrink-0 flex-wrap items-start justify-between gap-x-3 gap-y-2 border-b border-heritage-border px-5 py-3.5">
         <div className="min-w-0">
-          <SheetTitle className="text-[17px] font-semibold">{drawerTitle(setup)}</SheetTitle>
-          <SheetDescription className="sr-only">
+          <DialogTitle className="text-lg font-semibold">{drawerTitle(setup)}</DialogTitle>
+          <DialogDescription className="sr-only">
             Tờ di chúc điền sẵn từ kế hoạch bàn giao của kho.
-          </SheetDescription>
+          </DialogDescription>
         </div>
         <div className="ml-auto flex items-start gap-3">
           <div className="text-right">
@@ -189,8 +225,12 @@ function WillDrawerBody({
           </button>
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-8">
-        <IdentityNotice status={identityStatus} onRetry={() => void identityQuery.refetch()} />
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-12">
+        <IdentityNotice
+          status={identityStatus}
+          waitingForPin={hasSignFooter}
+          onRetry={() => void identityQuery.refetch()}
+        />
         <article aria-label="Di chúc" className="min-w-0">
           {renderDocument("owner", onGapClick)}
         </article>
@@ -201,7 +241,11 @@ function WillDrawerBody({
           key={`${vaultId}:${setup.configVersion}:${setup.policyVersion}:${setup.planStatus}`}
           vaultId={vaultId}
           setup={setup}
-          initialPin={verifiedPin}
+          onPinChange={(pin) => {
+            pinRef.current = pin;
+            setTypedPin(pin);
+          }}
+          externalPinFailure={typedPinFailure}
           onNotice={setNotice}
         />
       )}
@@ -210,7 +254,7 @@ function WillDrawerBody({
 }
 
 /**
- * Khung xem trước di chúc trượt ra từ bên phải (Base UI Dialog: giữ focus trong khung, Esc đóng, có aria-label).
+ * Khung xem trước di chúc hiện giữa màn hình, phóng to gần hết chiều cao (Base UI Dialog: giữ focus trong khung, Esc đóng, có aria-label).
  * Chân khung là phần ký bằng mã PIN: "Ký và kích hoạt" khi kế hoạch còn nháp, "Ký phiên bản mới" khi kế hoạch đang chạy
  * mà có thay đổi chưa ký; kế hoạch đang chạy không có thay đổi thì khung chỉ để xem và xuất. Danh tính đầy đủ (CCCD, ngày
  * sinh, thường trú) tải khi khung mở; chưa có thì nút xuất khóa. Chỗ trống đỏ trong di chúc gọi `onGapClick` để nơi dùng
@@ -234,9 +278,8 @@ export function WillPreviewDrawer({
   onGapClick: (target: WillGapTarget) => void;
 }) {
   return (
-    <Sheet open={open} onOpenChange={onOpenChange} onOpenChangeComplete={onOpenChangeComplete}>
-      <SheetContent
-        side="right"
+    <Dialog open={open} onOpenChange={onOpenChange} onOpenChangeComplete={onOpenChangeComplete}>
+      <DialogContent
         showCloseButton={false}
         aria-label={drawerTitle(setup)}
         finalFocus={(): HTMLElement | boolean => {
@@ -246,7 +289,7 @@ export function WillPreviewDrawer({
           }
           return true;
         }}
-        className="gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[640px] motion-reduce:transition-none"
+        className="flex h-[calc(100vh-2rem)] w-full max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[960px] motion-reduce:animate-none"
       >
         <WillDrawerBody
           open={open}
@@ -255,7 +298,7 @@ export function WillPreviewDrawer({
           setup={setup}
           onGapClick={onGapClick}
         />
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
