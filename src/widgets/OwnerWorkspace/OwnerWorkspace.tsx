@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ArrowLeftRight, Mail, Menu, ScanFace, X } from "lucide-react";
@@ -31,6 +31,7 @@ import { CheckInGraceBanner } from "@/features/dms/ui/CheckInGraceBanner";
 import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { OwnerVaultLockedBanner } from "@/features/vault-management/ui/OwnerVaultLockedBanner";
 import { GRACE_PLAN_STATUSES } from "@/features/dms/model/checkInGrace";
+import { useNavIndicator } from "./useNavIndicator";
 import "./owner-workspace.css";
 
 /** Chỉ mount khi phiên Owner sẵn sàng; dùng chung cache kho với các màn nội dung. */
@@ -114,6 +115,9 @@ export function OwnerWorkspace({
   // Lời mời đang chờ hiện ở chân sidebar: người chưa là Executor không có nút chuyển vai để tìm lời mời.
   const pendingInvitations = usePendingInvitationCount();
   const [navigationOpen, setNavigationOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+  useNavIndicator(navRef, indicatorRef, current?.to);
   return (
     <WorkspaceShell
       className="owner-workspace"
@@ -140,11 +144,13 @@ export function OwnerWorkspace({
             </button>
           </div>
           <nav
+            ref={navRef}
             id="owner-navigation"
             aria-label="Điều hướng Chủ kho"
-            className="owner-navigation"
+            className="owner-navigation owner-navigation--slide"
             data-open={navigationOpen}
           >
+            <span ref={indicatorRef} className="owner-nav-indicator" aria-hidden="true" />
             {navigation.map(({ to, label, icon: Icon }) => (
               <Link
                 key={to}

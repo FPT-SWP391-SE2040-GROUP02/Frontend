@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/shared/ui/button";
+import { SlidingTabs } from "@/shared/ui/SlidingTabs";
 import { useVaultPageTitle } from "@/features/vault-management/model/useVaultPageTitle";
 import { useOwnerVaultLock } from "@/features/vault-management/model/useOwnerVaultLock";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { OwnerSection } from "@/widgets/OwnerWorkspace/OwnerSection";
 
 const GROUPS_TAB = "groups";
-const TAB_BASE =
-  "inline-flex min-h-9 items-center rounded-lg px-4 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-heritage-gold";
+const ITEMS_TAB = "items";
+const TABS = [
+  { key: ITEMS_TAB, label: "Mục trong kho" },
+  { key: GROUPS_TAB, label: "Gói bàn giao" },
+];
 
 /** Kho của tôi: tab "Mục trong kho" và tab "Gói bàn giao"; tab nằm trên URL (?tab=groups). */
 export function AssetsManagementPage() {
@@ -26,11 +30,9 @@ export function AssetsManagementPage() {
     setParams(next);
   }
 
-  let itemsTabStyle = `${TAB_BASE} bg-heritage-primary text-white`;
-  let groupsTabStyle = `${TAB_BASE} text-heritage-muted hover:bg-heritage-primary/5`;
+  let activeTab = ITEMS_TAB;
   if (onGroups) {
-    itemsTabStyle = `${TAB_BASE} text-heritage-muted hover:bg-heritage-primary/5`;
-    groupsTabStyle = `${TAB_BASE} bg-heritage-primary text-white`;
+    activeTab = GROUPS_TAB;
   }
   let headerAction = null;
   if (onGroups) {
@@ -53,30 +55,12 @@ export function AssetsManagementPage() {
       description="Mọi thứ bạn muốn để lại, được giữ kín. Người nhận được gắn theo gói bàn giao, không gắn từng mục."
       headerAction={headerAction}
     >
-      <div
-        role="tablist"
-        aria-label="Kho của tôi"
-        className="inline-flex gap-1 rounded-xl border border-heritage-border bg-heritage-surface p-1"
-      >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={!onGroups}
-          className={itemsTabStyle}
-          onClick={() => selectTab(false)}
-        >
-          Mục trong kho
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={onGroups}
-          className={groupsTabStyle}
-          onClick={() => selectTab(true)}
-        >
-          Gói bàn giao
-        </button>
-      </div>
+      <SlidingTabs
+        label="Kho của tôi"
+        tabs={TABS}
+        value={activeTab}
+        onChange={(key) => selectTab(key === GROUPS_TAB)}
+      />
       <div role="tabpanel">
         {onGroups && (
           <OwnerSection

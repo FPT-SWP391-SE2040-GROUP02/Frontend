@@ -613,9 +613,7 @@ function InvitationNotice({
 
 export interface ExecutorsSectionProps {
   vaultId: string;
-  /** Thẻ "Mã mở gói" đặt đầu cột phải; widget ghép vì feature này không được import feature khác. */
-  keySlot?: ReactNode;
-  /** Thẻ "Lời dặn cho Người thực thi" đặt dưới thẻ "Người bạn chọn" ở cột trái. */
+  /** Thẻ "Lời dặn cho Người thực thi" đặt dưới thẻ "Người bạn chọn", ở cột trái. */
   noteSlot?: ReactNode;
 }
 
@@ -623,7 +621,7 @@ export interface ExecutorsSectionProps {
  * Trang "Người thực thi": mỗi kho một người do Chủ kho mời; Người xét duyệt do hệ thống phân công.
  * Mọi thao tác (mời, thay người, gửi lại, thu hồi) do Chủ kho chủ động; kết quả và điều kiện do Backend quyết định.
  */
-export function ExecutorsSection({ vaultId, keySlot, noteSlot }: ExecutorsSectionProps) {
+export function ExecutorsSection({ vaultId, noteSlot }: ExecutorsSectionProps) {
   const query = usePlanSetup(vaultId);
   const client = useQueryClient();
   const resendAction = usePrivateAction();
@@ -716,23 +714,21 @@ export function ExecutorsSection({ vaultId, keySlot, noteSlot }: ExecutorsSectio
         </div>
       )}
 
+      <ChosenCard
+        holder={primary}
+        pending={replacement}
+        manageable={manageable}
+        planRunning={planRunning}
+        scopeVersion={setup.executorScopeVersion}
+        busy={busy}
+        onInvite={(replacing) => setDialog({ kind: "invite", replacing })}
+        onRevoke={(executor) => setDialog({ kind: "revoke", executor })}
+        onResend={resend}
+      />
+
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="min-w-0 space-y-6">{noteSlot}</div>
         <div className="min-w-0 space-y-6">
-          <ChosenCard
-            holder={primary}
-            pending={replacement}
-            manageable={manageable}
-            planRunning={planRunning}
-            scopeVersion={setup.executorScopeVersion}
-            busy={busy}
-            onInvite={(replacing) => setDialog({ kind: "invite", replacing })}
-            onRevoke={(executor) => setDialog({ kind: "revoke", executor })}
-            onResend={resend}
-          />
-          {noteSlot}
-        </div>
-        <div className="min-w-0 space-y-6">
-          {keySlot}
           <ReviewerCard />
           <RecentActivity executors={setup.executors} />
         </div>

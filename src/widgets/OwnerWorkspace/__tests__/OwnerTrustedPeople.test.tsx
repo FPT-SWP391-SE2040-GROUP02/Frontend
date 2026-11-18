@@ -6,9 +6,7 @@ import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
-import { AxiosError, AxiosHeaders } from "axios";
 import { accessTokenMemory } from "@/shared/api/accessToken";
-import { axiosClient } from "@/shared/api/axiosClient";
 import { ROUTES } from "@/shared/config/routes.config";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { planSetupService } from "@/features/plan-setup/api/planSetupService";
@@ -24,12 +22,10 @@ vi.mock("@/features/plan-setup/api/planSetupService", () => ({
 vi.mock("@/entities/executor/api/systemExecutorsService", () => ({
   systemExecutorsService: { list: vi.fn(), getHandoverKey: vi.fn() },
 }));
-// getStatus giả; reissue dùng bản thật để kiểm header PIN gửi đi qua axiosClient.
-vi.mock("@/features/executor-key/api/executorKeyService", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@/features/executor-key/api/executorKeyService")>();
-  return { executorKeyService: { ...actual.executorKeyService, getStatus: vi.fn() } };
-});
+// Trang này không còn thẻ Mã mở gói; giữ hàm giả để kiểm không có yêu cầu tải trạng thái mã nào.
+vi.mock("@/features/executor-key/api/executorKeyService", () => ({
+  executorKeyService: { getStatus: vi.fn(), reissue: vi.fn() },
+}));
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
   ownerVaultService: { getMine: vi.fn(), createMine: vi.fn(), updateMine: vi.fn() },
 }));
@@ -242,7 +238,6 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     );
     renderPage();
 
-    await screen.findByText("Đã có · Bản 1");
     await userEvent.click(await screen.findByRole("button", { name: "Thay người khác" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Mời người thay")).toBeInTheDocument();
@@ -300,7 +295,6 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     renderPage();
 
     expect(await screen.findByText(/Bạn chỉ xem được/)).toBeInTheDocument();
-    expect(await screen.findByText("Kế hoạch đang bị khóa nên không đổi mã được.")).toBeVisible();
     for (const name of [
       "Mời Người thực thi",
       "Thay người khác",
@@ -384,23 +378,8 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
   });
 });
 
-describe("trang Người thực thi: thẻ Mã mở gói", () => {
-  const NOTE =
-    "Hệ thống tự giữ mã và chỉ gửi cho người nhận sau khi hồ sơ được duyệt. Bạn không cần lưu hay in mã.";
-
-  it("chưa có mã (kế hoạch nháp): nói mã tạo khi ký, không có nút tạo mã hay nút đổi mã", async () => {
-    showPlan({ executors: [executor()] });
-    renderPage();
-
-    expect(await screen.findByText("Chưa tạo")).toBeInTheDocument();
-    expect(screen.getByText(NOTE)).toBeInTheDocument();
-    expect(screen.getByText("Mã được tạo khi bạn ký và kích hoạt kế hoạch.")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Tạo mã mở gói" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Đến trang Bàn giao" })).not.toBeInTheDocument();
-  });
-
-  it("đã có mã: chỉ thấy số bản, không có mã, phiếu hay nút tải phiếu; có nút Đổi mã mới", async () => {
+describe("trang Người thực thi: không có thẻ Mã mở gói", () => {
+  it("Chủ kho không thao tác mã mở gói ở đây: không có thẻ, không có nút Đổi mã mới, không tải trạng thái mã", async () => {
     showPlan(
       {
         planStatus: "ACTIVE",
@@ -410,73 +389,28 @@ describe("trang Người thực thi: thẻ Mã mở gói", () => {
     );
     renderPage();
 
-    expect(await screen.findByText("Đã có · Bản 2")).toBeInTheDocument();
-    expect(screen.getByText("Bản đang dùng")).toBeInTheDocument();
-    expect(screen.getByText("Tạo lúc")).toBeInTheDocument();
-    expect(screen.getByText(NOTE)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Đổi mã mới" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Tải phiếu/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Tạo mã mở gói" })).not.toBeInTheDocument();
-    expect(screen.queryByText(/[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}/)).not.toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Người bạn chọn" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Mã mở gói" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Bản đang dùng/)).not.toBeInTheDocument();
+    expect(executorKeyService.getStatus).not.toHaveBeenCalled();
   });
 
-  it("Đổi mã mới: xác nhận kèm PIN, gửi PIN ở header, chỉ báo số bản mới", async () => {
-    showPlan(
-      {
-        planStatus: "ACTIVE",
-        executors: [executor({ status: "ACCEPTED", acceptedAt: ACCEPTED_AT })],
-      },
-      { hasKey: true, version: 1, issuedAt: "2026-11-04T01:00:00Z" },
-    );
-    const post = vi
-      .spyOn(axiosClient, "post")
-      .mockResolvedValue(
-        keyStatus({ hasKey: true, version: 2, issuedAt: "2026-11-04T01:00:00Z" }) as never,
-      );
+  it("thẻ Người bạn chọn nằm riêng một hàng, Lời dặn bên trái, Người xét duyệt và Hoạt động bên phải", async () => {
+    showPlan({});
     renderPage();
 
-    await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
-    const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent("Mã cũ hết dùng được ngay");
-    const confirm = within(dialog).getByRole("button", { name: "Đổi mã mới" });
-    expect(confirm).toBeDisabled();
-    await userEvent.type(within(dialog).getByLabelText(/Nhập mã PIN của kho/), "482913");
-    expect(confirm).toBeEnabled();
-    await userEvent.click(confirm);
-
-    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(post.mock.calls[0][0]).toBe(`/vaults/${VAULT_ID}/executor-key/reissue`);
-    expect(post.mock.calls[0][2]).toMatchObject({ headers: { "X-Vault-Pin": "482913" } });
-    expect(await screen.findByText("Đã đổi mã. Bản đang dùng là Bản 2.")).toBeInTheDocument();
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(document.body.textContent ?? "").not.toContain("482913");
-  });
-
-  it("Đổi mã mới: sai PIN hiện số lần còn lại ngay trong hộp thoại", async () => {
-    showPlan(
-      {
-        planStatus: "ACTIVE",
-        executors: [executor({ status: "ACCEPTED", acceptedAt: ACCEPTED_AT })],
-      },
-      { hasKey: true, version: 1, issuedAt: "2026-11-04T01:00:00Z" },
-    );
-    vi.spyOn(axiosClient, "post").mockRejectedValue(
-      new AxiosError("sai pin", AxiosError.ERR_BAD_REQUEST, undefined, undefined, {
-        status: 403,
-        statusText: "Forbidden",
-        headers: {},
-        config: { headers: new AxiosHeaders() },
-        data: { code: "INVALID_VAULT_PIN", attemptsRemaining: 3 },
-      }),
-    );
-    renderPage();
-
-    await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
-    const dialog = await screen.findByRole("dialog");
-    await userEvent.type(within(dialog).getByLabelText(/Nhập mã PIN của kho/), "111222");
-    await userEvent.click(within(dialog).getByRole("button", { name: "Đổi mã mới" }));
-
-    expect(await within(dialog).findByText("Mã PIN không đúng. Còn 3 lần thử.")).toBeVisible();
+    const chosen = await screen.findByRole("region", { name: "Người bạn chọn" });
+    const note = await screen.findByRole("heading", { name: "Lời dặn cho Người thực thi" });
+    const reviewer = screen.getByRole("region", { name: "Người xét duyệt" });
+    const activity = screen.getByRole("region", { name: "Hoạt động gần đây" });
+    // Thẻ chọn người đứng trước và không nằm trong cùng cột với các thẻ bên dưới.
+    expect(chosen.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(chosen.contains(note)).toBe(false);
+    expect(chosen.contains(reviewer)).toBe(false);
+    expect(
+      reviewer.compareDocumentPosition(activity) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 });
 
@@ -543,7 +477,7 @@ describe("trang Người thực thi: các thẻ còn lại", () => {
     );
     renderPage();
 
-    await screen.findByText("Đã có · Bản 1");
+    await screen.findByRole("heading", { name: "Người bạn chọn" });
     for (const old of [
       /Người tin cậy/,
       /Người thực hiện/,
