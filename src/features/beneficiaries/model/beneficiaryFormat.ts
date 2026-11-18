@@ -17,6 +17,23 @@ const PROVINCE_CODES = new Set([
 export const CITIZEN_ID_FORMAT_MESSAGE =
   "Số CCCD không đúng định dạng: 3 số đầu phải là mã tỉnh, thành phố và số thứ 4 từ 0 đến 3.";
 
+/** Tuổi tối thiểu của người nhận; BE kiểm lại theo cùng luật (đủ 18 tuổi tính đến hôm nay). */
+export const MIN_RECIPIENT_AGE = 18;
+
+export const MIN_AGE_MESSAGE = "Người nhận phải đủ 18 tuổi.";
+
+/**
+ * Ngày sinh muộn nhất (dạng yyyy-MM-dd) để người nhận đủ 18 tuổi vào ngày `now`.
+ * Sinh ngày 29/2 mà năm đích không nhuận thì lấy 28/2, giống AddYears ở backend.
+ */
+export function latestAdultBirthDate(now: Date = new Date()): string {
+  const year = now.getFullYear() - MIN_RECIPIENT_AGE;
+  const month = now.getMonth();
+  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+  const day = Math.min(now.getDate(), lastDayOfMonth);
+  return `${String(year).padStart(4, "0")}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
 export const PHONE_FORMAT_MESSAGE =
   "Số điện thoại không đúng định dạng Việt Nam (ví dụ 0912345678 hoặc +84912345678).";
 

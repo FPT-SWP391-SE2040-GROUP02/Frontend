@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isValidCitizenIdFormat, isVietnamPhone } from "../beneficiaryFormat";
+import { isValidCitizenIdFormat, isVietnamPhone, latestAdultBirthDate } from "../beneficiaryFormat";
 
 describe("định dạng CCCD", () => {
   it.each(["001090000001", "079200012345", "083206000699", "096399999999"])("nhận %s", (id) => {
@@ -34,5 +34,20 @@ describe("định dạng số điện thoại Việt Nam", () => {
     ["+1 202 555 0100", "số nước ngoài"],
   ])("chặn %s (%s)", (phone) => {
     expect(isVietnamPhone(phone)).toBe(false);
+  });
+});
+
+describe("ngày sinh muộn nhất để đủ 18 tuổi", () => {
+  it("lấy cùng ngày tháng của 18 năm trước", () => {
+    expect(latestAdultBirthDate(new Date(2026, 10, 18))).toBe("2008-11-18");
+  });
+
+  it("sinh 29/2 mà năm đích không nhuận thì lấy 28/2", () => {
+    expect(latestAdultBirthDate(new Date(2028, 1, 29))).toBe("2010-02-28");
+  });
+
+  it("năm đích nhuận vẫn giữ 29/2", () => {
+    expect(latestAdultBirthDate(new Date(2026, 1, 28))).toBe("2008-02-28");
+    expect(latestAdultBirthDate(new Date(2044, 1, 29))).toBe("2026-02-28");
   });
 });
