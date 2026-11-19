@@ -75,6 +75,15 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   EXECUTOR_ACCEPTED: "Người thực thi nhận vai",
   WILL_RESIGNED: "Ký lại di chúc",
   WILL_IDENTITY_VIEWED: "Xem CCCD đầy đủ của người nhận",
+  LOGIN_SUCCEEDED: "Đăng nhập thành công",
+  LOGIN_FAILED: "Đăng nhập sai mật khẩu",
+  LOGIN_LOCKED: "Tài khoản bị khóa tạm do đăng nhập sai",
+  TWO_FACTOR_ENABLED: "Bật xác thực hai bước",
+  TWO_FACTOR_DISABLED: "Tắt xác thực hai bước",
+  PASSWORD_RESET_COMPLETED: "Đặt lại mật khẩu",
+  PASSWORD_CHANGED: "Đổi mật khẩu",
+  EKYC_PASSED: "Xác minh eKYC đạt",
+  EKYC_FAILED: "Xác minh eKYC không đạt",
 };
 
 export const ACTOR_ROLE_LABELS: Record<(typeof auditActorRoleValues)[number], string> = {

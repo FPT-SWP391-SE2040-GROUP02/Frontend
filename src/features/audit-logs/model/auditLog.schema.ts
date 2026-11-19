@@ -86,6 +86,16 @@ export const auditActionValues = [
   "EXECUTOR_ACCEPTED",
   "WILL_RESIGNED",
   "WILL_IDENTITY_VIEWED",
+  // Sự kiện xác thực và eKYC (không gắn kho; chỉ Admin xem).
+  "LOGIN_SUCCEEDED",
+  "LOGIN_FAILED",
+  "LOGIN_LOCKED",
+  "TWO_FACTOR_ENABLED",
+  "TWO_FACTOR_DISABLED",
+  "PASSWORD_RESET_COMPLETED",
+  "PASSWORD_CHANGED",
+  "EKYC_PASSED",
+  "EKYC_FAILED",
 ] as const;
 
 /** Wire role người thực thi; SYSTEM dùng khi job nền. */
