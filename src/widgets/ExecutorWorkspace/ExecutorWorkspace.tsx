@@ -2,7 +2,6 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
-  ArrowLeftRight,
   FileText,
   Home,
   ListChecks,
@@ -19,7 +18,6 @@ import { UserAvatar } from "@/entities/user/ui/UserAvatar";
 import { ROUTES } from "@/shared/config/routes.config";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useMyInvitations } from "@/features/plan-setup/model/useMyInvitations";
-import { SwitchToRecipientLink } from "@/features/handover/ui/SwitchToRecipientLink";
 import { InvitationCountBadge } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
@@ -140,14 +138,7 @@ export function ExecutorWorkspace({
               {pendingInvitations > 0 && <InvitationCountBadge count={pendingInvitations} />}
             </Link>
           </nav>
-          <Link
-            to={ROUTES.DASHBOARD.ROOT}
-            className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E0C486] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E8CF9B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
-          >
-            <ArrowLeftRight className="size-4" aria-hidden="true" />
-            Sang vai Chủ kho
-          </Link>
-          <SwitchToRecipientLink className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E0C486] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E8CF9B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold" />
+          {/* Người thực thi là nhân sự của hệ thống: không có nút chuyển sang vai Chủ kho hay Người nhận. */}
           <div className="flex items-center gap-3">
             <UserAvatar
               user={user}
