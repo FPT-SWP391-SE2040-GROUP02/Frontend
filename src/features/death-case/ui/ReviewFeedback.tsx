@@ -28,11 +28,12 @@ export function ReviewFeedback({ record }: { record: DeathCase }) {
           {supplement.requestedParts.map((part) => (
             <li key={part} className="flex items-center justify-between gap-3 py-2.5 text-sm">
               <span className="font-medium">{requirementLabels[part] ?? part}</span>
-              <span
-                className={`rounded-full px-3 py-0.5 text-sm font-semibold ${missing.has(part) ? "bg-[#ECE8DB] text-[#4D4D4B]" : "bg-[#DDEFE6] text-[#1F7A55]"}`}
-              >
-                {missing.has(part) ? "Thiếu" : "Đã có"}
-              </span>
+              {/* Phần bị yêu cầu sửa không được gắn "Đã có": có dữ liệu không có nghĩa là đã sửa đúng. */}
+              {missing.has(part) ? (
+                <span className="rounded-full bg-[#ECE8DB] px-3 py-0.5 text-sm font-semibold text-[#4D4D4B]">
+                  Thiếu
+                </span>
+              ) : null}
             </li>
           ))}
         </ul>

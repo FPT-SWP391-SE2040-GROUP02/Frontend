@@ -242,6 +242,10 @@ export function HandoverDocumentText({
             tài sản của mình đối với người khác theo Điều 620 Bộ luật Dân sự 2015.
           </p>
           <p>
+            - Tôi hiểu và đồng ý rằng khi tôi từ chối nhận, phần tài sản điện tử của gói bàn giao
+            nêu trên sẽ bị xóa hoàn toàn khỏi hệ thống và không thể khôi phục.
+          </p>
+          <p>
             - Tôi đã đọc nội dung Văn bản này, đã hiểu rõ trách nhiệm pháp lý của mình khi lập và ký
             vào Văn bản này.
           </p>

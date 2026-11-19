@@ -1,6 +1,6 @@
 import { useId, type ReactNode } from "react";
 import { useProvinces, useWards } from "@/entities/administrativeUnit";
-import { buttonStyles, InfoRow, Panel } from "@/shared/ui/heritageKit";
+import { InfoRow, Panel } from "@/shared/ui/heritageKit";
 import { Input } from "@/shared/ui/input";
 import type { DeathCase } from "../model/deathCase.schema";
 import { buildRegistrationPlace, formatIsoDate, previewSentence } from "../model/certificateInfo";
@@ -90,7 +90,7 @@ export function CertificateInfoPanel({
   let statusText = "";
   if (form.saving) statusText = "Đang lưu…";
   else if (form.dirty && form.missing.length === 0 && !form.hasLocalErrors) {
-    statusText = "Có thay đổi chưa lưu.";
+    statusText = "Chưa lưu: bấm ra ngoài ô vừa sửa để lưu.";
   }
 
   return (
@@ -191,21 +191,12 @@ export function CertificateInfoPanel({
         </p>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          className={buttonStyles.outline}
-          disabled={locked || !form.dirty || form.hasLocalErrors || form.missing.length > 0}
-          onClick={() => void form.save()}
-        >
-          Lưu thông tin
-        </button>
-        {statusText && (
-          <span role="status" className="text-sm text-heritage-muted">
-            {statusText}
-          </span>
-        )}
-      </div>
+      {/* Không có nút lưu: ngày lưu khi rời ô, tỉnh/phường lưu ngay khi chọn. */}
+      {statusText && (
+        <p role="status" className="mt-4 text-sm text-heritage-muted">
+          {statusText}
+        </p>
+      )}
       {form.saveError && Object.keys(errors).length === 0 && (
         <p role="alert" className="mt-3 text-sm text-destructive">
           {form.saveError}

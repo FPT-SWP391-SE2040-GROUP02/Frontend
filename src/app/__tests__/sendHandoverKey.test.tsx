@@ -11,8 +11,14 @@ import { ExecutorReceivedKeyCard } from "@/entities/executor";
 const CASE_ID = "33333333-3333-4333-8333-333333333333";
 const WAITING_TURN = "55555555-5555-4555-8555-555555555555";
 const DONE_TURN = "77777777-7777-4777-8777-777777777777";
+const KEYED_TURN = "88888888-8888-4888-8888-888888888888";
 
-const turn = (turnId: string, status: string, containerName: string) => ({
+const turn = (
+  turnId: string,
+  status: string,
+  containerName: string,
+  keyVerifiedAt: string | null = null,
+) => ({
   turnId,
   containerName,
   beneficiaryCitizenIdLast4: "8901",
@@ -21,6 +27,7 @@ const turn = (turnId: string, status: string, containerName: string) => ({
   status,
   invitedAt: "2026-10-19T08:00:00+00:00",
   responseDeadline: "2026-10-22T10:00:00+00:00",
+  keyVerifiedAt,
   claimedAt: null,
   decisionDeadline: null,
   decidedAt: null,
@@ -36,16 +43,17 @@ const progress = {
   handoverStarted: true,
   serverTime: "2026-10-20T08:00:00+00:00",
   summary: {
-    totalTurns: 2,
+    totalTurns: 3,
     waitingResponse: 1,
     inVerification: 0,
-    accepted: 1,
+    accepted: 2,
     declined: 0,
     ended: 0,
   },
   turns: [
     turn(WAITING_TURN, "INVITED", "Gói đang chờ"),
     turn(DONE_TURN, "HANDOVER_COMMITTED", "Gói đã nhận"),
+    turn(KEYED_TURN, "HANDOVER_COMMITTED", "Gói đã nhập mã", "2026-10-20T07:00:00+00:00"),
   ],
 };
 
@@ -92,25 +100,29 @@ function renderPanel(vaultId?: string) {
   );
 }
 
-it("chỉ hiện nút gửi mã ở lượt chưa kết thúc", async () => {
-  const user = userEvent.setup();
+it("chỉ hiện nút gửi mã ở lượt biên bản đã duyệt mà người nhận chưa nhập mã", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(progress);
   renderPanel();
   await screen.findAllByText(/Gói đang chờ/);
-  // Hai dòng nhưng chỉ lượt INVITED được gửi mã; lượt HANDOVER_COMMITTED thì BE từ chối nên FE không hiện nút.
+  // Ba dòng nhưng chỉ lượt HANDOVER_COMMITTED chưa nhập mã được gửi mã.
   expect(screen.getAllByRole("button", { name: "Gửi mã qua email" })).toHaveLength(1);
-  const doneRow = screen.getByRole("listitem", { name: /Gói đã nhận/ });
-  await user.click(within(doneRow).getByRole("button", { name: "Chi tiết" }));
+  const waitingRow = screen.getByRole("listitem", { name: /Gói đang chờ/ });
   expect(
-    within(doneRow).queryByRole("button", { name: "Gửi mã qua email" }),
+    within(waitingRow).queryByRole("button", { name: "Gửi mã qua email" }),
   ).not.toBeInTheDocument();
+  const keyedRow = screen.getByRole("listitem", { name: /Gói đã nhập mã/ });
+  expect(
+    within(keyedRow).queryByRole("button", { name: "Gửi mã qua email" }),
+  ).not.toBeInTheDocument();
+  const doneRow = screen.getByRole("listitem", { name: /Gói đã nhận/ });
+  expect(within(doneRow).getByRole("button", { name: "Gửi mã qua email" })).toBeInTheDocument();
 });
 
 it("nhập mã rồi mới gọi BE, báo đã gửi và xóa ô nhập", async () => {
   const user = userEvent.setup();
   vi.spyOn(apiClient, "get").mockResolvedValue(progress);
   const post = vi.spyOn(apiClient, "post").mockResolvedValue({
-    turnId: WAITING_TURN,
+    turnId: DONE_TURN,
     sentAt: "2026-10-20T08:01:00+00:00",
   });
   renderPanel();
@@ -123,7 +135,7 @@ it("nhập mã rồi mới gọi BE, báo đã gửi và xóa ô nhập", async 
   await screen.findByText(/Đã gửi mã cho người nhận lúc/);
   expect(post).toHaveBeenCalledTimes(1);
   expect(post).toHaveBeenCalledWith(
-    `/executor/death-cases/${CASE_ID}/handover-turns/${WAITING_TURN}/send-key`,
+    `/executor/death-cases/${CASE_ID}/handover-turns/${DONE_TURN}/send-key`,
     { key: "ABCD-1234" },
   );
   expect(screen.queryByLabelText("Mã mở gói bạn đang giữ")).not.toBeInTheDocument();

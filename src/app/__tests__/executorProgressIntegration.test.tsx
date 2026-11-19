@@ -385,6 +385,8 @@ it("shows the Verifier supplement request with readable parts and its deadline",
     screen.getByText("Phần cần bổ sung: Trang giấy chứng tử, Ngày cấp, UNKNOWN_PART"),
   ).toBeInTheDocument();
   expect(screen.getByText(/\(đã quá hạn\)/)).toBeInTheDocument();
+  // Phần bị yêu cầu sửa không gắn nhãn "Đã có".
+  expect(screen.queryByText("Đã có")).not.toBeInTheDocument();
 });
 
 it("shows the reject reason of a rejected case and no supplement block", async () => {
