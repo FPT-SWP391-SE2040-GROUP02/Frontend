@@ -1,6 +1,7 @@
 import { APP_MESSAGES } from "@/shared/constants";
 import {
   googleLoginRequestSchema,
+  googleNonceResponseSchema,
   googleLinkRequestSchema,
   googleLoginResponseSchema,
 } from "../model/googleAuth.schema";
@@ -158,6 +159,12 @@ export const authService = {
       config,
     );
     return loginOutcomeSchema.parse(body);
+  },
+
+  /** Nonce dùng một lần do Backend phát cho nút Google; nonce FE tự sinh bị Backend từ chối. */
+  async getGoogleNonce(): Promise<string> {
+    const body = await axiosClient.get<unknown, unknown>("/auth/google/nonce");
+    return googleNonceResponseSchema.parse(body).nonce;
   },
 
   /** Google ID token được Backend xác minh; không nhận email/profile thay cho token. */

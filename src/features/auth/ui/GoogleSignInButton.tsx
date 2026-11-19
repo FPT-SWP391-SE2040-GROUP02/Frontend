@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { ENV } from "@/shared/config/env";
+import { authService } from "../api/authService";
 import { captureAuthContext } from "../model/authTransitions";
 import { googleLoginRequestSchema } from "../model/googleAuth.schema";
 
@@ -40,7 +41,8 @@ export function GoogleSignInButton({
     const current = captureAuthContext();
     let script: HTMLScriptElement | undefined;
     const parent = container.current;
-    const nonce = crypto.randomUUID();
+    // Nonce một lần do Backend phát; chỉ có sau khi tải xong, trước khi khởi tạo nút Google.
+    let nonce = "";
     const fail = () => {
       failed = true;
       if (active) setStatus("error");
@@ -88,15 +90,25 @@ export function GoogleSignInButton({
         fail();
       }
     };
-    if ("google" in window) initialize();
-    else {
-      script = document.createElement("script");
-      script.src = "https://accounts.google.com/gsi/client";
-      script.async = true;
-      script.onload = initialize;
-      script.onerror = fail;
-      document.head.append(script);
-    }
+    const start = () => {
+      if ("google" in window) initialize();
+      else {
+        script = document.createElement("script");
+        script.src = "https://accounts.google.com/gsi/client";
+        script.async = true;
+        script.onload = initialize;
+        script.onerror = fail;
+        document.head.append(script);
+      }
+    };
+    authService
+      .getGoogleNonce()
+      .then((value) => {
+        if (!active || failed) return;
+        nonce = value;
+        start();
+      })
+      .catch(fail);
     return () => {
       active = false;
       window.clearTimeout(timeout);
