@@ -8,6 +8,7 @@ import { ENV } from "@/shared/config/env";
 import { APP_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 import { storage } from "@/shared/utils";
 import { reportSessionFailure } from "./sessionFailure";
+import { resolveSessionExpiry } from "./sessionRefresh";
 import { reportMaintenance } from "./maintenance";
 import { accessTokenMemory } from "./accessToken";
 import { notifyAssetCreated, resolveVaultPinFailure } from "./vaultPin";
@@ -104,14 +105,21 @@ apiClient.interceptors.response.use(
       const pinRetry = await resolveVaultPinFailure(error, (config) => apiClient.request(config));
       if (pinRetry.handled) return pinRetry.value;
     }
-    if (error.config && isApiRequest(error.config)) reportSessionFailure(error);
+    // Access token hết hạn: làm mới một lần rồi gửi lại. Chỉ khi không khôi phục được mới đóng phiên.
+    let keepSession = false;
+    if (error.config && isApiRequest(error.config)) {
+      const refreshed = await resolveSessionExpiry(error, (config) => apiClient.request(config));
+      if (refreshed.handled) return refreshed.value;
+      keepSession = refreshed.transient;
+    }
+    if (error.config && isApiRequest(error.config) && !keepSession) reportSessionFailure(error);
     // 503 MAINTENANCE_MODE: báo để tầng app chuyển sang màn hình bảo trì (MaintenanceGate).
     if (error.config && isApiRequest(error.config)) reportMaintenance(error);
     if (error.response) {
       const status = error.response.status;
       if (status === HTTP_STATUS.UNAUTHORIZED) {
-        // AuthBootstrap sở hữu restore và coordinator; SESSION_EXPIRED được báo qua
-        // reportSessionFailure. Transport giữ lỗi 401, không tự refresh hoặc retry request.
+        // AuthBootstrap sở hữu restore và coordinator (đăng ký hàm làm mới ở sessionRefresh.ts); SESSION_EXPIRED
+        // được báo qua reportSessionFailure khi không làm mới được. Lỗi 401 vẫn đi tiếp tới caller.
         console.warn(`[API ${HTTP_STATUS.UNAUTHORIZED}]`, APP_MESSAGES.ERROR.UNAUTHORIZED);
       } else if (status === HTTP_STATUS.FORBIDDEN) {
         console.warn(`[API ${HTTP_STATUS.FORBIDDEN}]`, APP_MESSAGES.ERROR.FORBIDDEN);

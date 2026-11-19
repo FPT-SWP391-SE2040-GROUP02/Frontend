@@ -12,6 +12,7 @@ import {
 import { authKeys } from "@/features/auth/model/useAuth";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { subscribeSessionFailure } from "@/shared/api/sessionFailure";
+import { registerSessionRefresher } from "@/shared/api/sessionRefresh";
 import { APP_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 import { Button } from "@/shared/ui/button";
 import { isCancelledError, useQueryClient } from "@tanstack/react-query";
@@ -55,6 +56,27 @@ export function AuthBootstrap({ children }: { children: ReactNode }) {
       unsubscribe();
     };
   }, [dispatch, queryClient]);
+
+  useEffect(() => {
+    // Access token hết hạn giữa phiên: transport gọi hàm này một lần rồi gửi lại request. Cùng khóa liên tab với
+    // hydrate; thiếu khóa thì không xoay cookie dùng chung (giống nhánh tải trang) nên coi như không khôi phục được.
+    return registerSessionRefresher(async () => {
+      if (!canRestoreSession()) return "expired";
+      try {
+        await runAuthTransition(
+          () => sessionAuthService.refresh(),
+          (result) => {
+            accessTokenMemory.set(result.accessToken);
+          },
+        );
+        return "ok";
+      } catch (error: unknown) {
+        const unauthorized =
+          isAxiosError(error) && error.response?.status === HTTP_STATUS.UNAUTHORIZED;
+        return unauthorized ? "expired" : "unavailable";
+      }
+    });
+  }, []);
 
   useEffect(() => {
     // Không xoay shared cookie tự động khi thiếu cross-tab lock. Manual login vẫn dùng được.
