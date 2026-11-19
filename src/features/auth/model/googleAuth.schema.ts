@@ -12,6 +12,8 @@ export const googleLoginRequestSchema = z.object({
   rememberMe: z.boolean(),
   returnUrl: z.string().max(2048).optional(),
 });
+/** Nonce một lần Backend phát cho nút Google. */
+export const googleNonceResponseSchema = z.object({ nonce: z.string().min(16).max(256) });
 /** Vé liên kết phải do Backend cấp; email không thay cho vé. */
 export const googleLinkRequestSchema = z.object({
   linkTicket: z
