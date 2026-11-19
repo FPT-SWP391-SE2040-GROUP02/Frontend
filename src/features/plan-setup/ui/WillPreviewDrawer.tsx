@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { X } from "lucide-react";
 import type { z } from "zod";
@@ -61,17 +61,30 @@ function exportHint(
 function IdentityNotice({
   status,
   waitingForPin,
+  canReveal,
+  onReveal,
   onRetry,
 }: {
   status: WillIdentityStatus;
   waitingForPin: boolean;
+  canReveal: boolean;
+  onReveal: () => void;
   onRetry: () => void;
 }) {
   if (status === "none" && waitingForPin) {
     return (
-      <p role="status" className="mb-4 text-[13px] text-heritage-muted">
-        Nhập mã PIN của kho ở cuối khung để hiện ngày sinh, CCCD và nơi thường trú trong di chúc.
-      </p>
+      <div
+        role="status"
+        className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-heritage-muted"
+      >
+        <p>
+          Nhập mã PIN của kho ở cuối khung rồi bấm nút để hiện ngày sinh, CCCD và nơi thường trú
+          trong di chúc.
+        </p>
+        <Button variant="outline" disabled={!canReveal} onClick={onReveal}>
+          Hiện thông tin đầy đủ
+        </Button>
+      </div>
     );
   }
   if (status === "loading") {
@@ -133,14 +146,22 @@ function WillDrawerBody({
     },
     hasSignFooter,
   );
+  // PIN đã gửi đi ở lần bấm gần nhất: chỉ hiện lỗi PIN khi PIN đang gõ vẫn là PIN đó, và không gửi lại đúng PIN sai.
+  const [submittedPin, setSubmittedPin] = useState("");
   const refetchIdentity = identityQuery.refetch;
-  useEffect(() => {
-    if (open && hasSignFooter && typedPin.length === PIN_DIGITS) {
-      void refetchIdentity();
-    }
-  }, [open, hasSignFooter, typedPin, refetchIdentity]);
+  const canReveal =
+    typedPin.length === PIN_DIGITS && typedPin !== submittedPin && !identityQuery.isFetching;
+  function revealIdentity(): void {
+    setSubmittedPin(typedPin);
+    void refetchIdentity();
+  }
   let typedPinFailure = null;
-  if (hasSignFooter && identityQuery.isError && !identityQuery.isFetching) {
+  if (
+    hasSignFooter &&
+    identityQuery.isError &&
+    !identityQuery.isFetching &&
+    typedPin === submittedPin
+  ) {
     typedPinFailure = readVaultPinFailure(identityQuery.error);
   }
   const [notice, setNotice] = useState<WillSignNotice | null>(null);
@@ -152,8 +173,11 @@ function WillDrawerBody({
   let identityStatus: WillIdentityStatus = "loading";
   if (identityQuery.data !== undefined) {
     identityStatus = "ready";
-  } else if (hasSignFooter && (typedPin.length < PIN_DIGITS || typedPinFailure !== null)) {
-    // Chưa gõ đủ PIN ở ô ký hoặc PIN sai: chưa có danh tính, không phải đang tải hay lỗi mạng.
+  } else if (
+    hasSignFooter &&
+    (typedPin.length < PIN_DIGITS || typedPin !== submittedPin || typedPinFailure !== null)
+  ) {
+    // Chưa gõ đủ PIN, chưa bấm nút với PIN này, hoặc PIN sai: chưa có danh tính, không phải đang tải hay lỗi mạng.
     identityStatus = "none";
   } else if (identityQuery.isError && !identityQuery.isFetching) {
     identityStatus = "error";
@@ -229,6 +253,8 @@ function WillDrawerBody({
         <IdentityNotice
           status={identityStatus}
           waitingForPin={hasSignFooter}
+          canReveal={canReveal}
+          onReveal={revealIdentity}
           onRetry={() => void identityQuery.refetch()}
         />
         <article aria-label="Di chúc" className="min-w-0">
