@@ -893,6 +893,9 @@ describe("tờ di chúc dùng danh tính đầy đủ", () => {
     expect(get).not.toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
     expect(screen.getByText(/Nhập mã PIN của kho ở cuối khung/)).toBeInTheDocument();
     await userEvent.type(screen.getByLabelText(PIN_LABEL), "123456");
+    // Gõ đủ PIN vẫn chưa gọi API: chỉ gọi khi người dùng bấm nút.
+    expect(get).not.toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
+    await userEvent.click(screen.getByRole("button", { name: "Hiện thông tin đầy đủ" }));
     const doc = within(paper());
     expect(await doc.findByText("079203001234")).toBeInTheDocument();
     expect(get).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
@@ -911,6 +914,29 @@ describe("tờ di chúc dùng danh tính đầy đủ", () => {
     await userEvent.click(screen.getByRole("button", { name: "Đóng" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     await waitFor(() => expect(client.getQueryData(["will-identity", VAULT_ID])).toBeUndefined());
+  });
+
+  it("PIN sai: báo lỗi ở ô ký; sửa PIN thì lỗi mất, nút bấm được lại và không gửi lại đúng PIN sai", async () => {
+    showPlan();
+    const get = mockIdentityGet(() =>
+      Promise.reject(pinProblem("INVALID_VAULT_PIN", { attemptsRemaining: 2 })),
+    );
+    renderOverview();
+    await openDrawer();
+    const input = screen.getByLabelText(PIN_LABEL);
+    const reveal = () => screen.getByRole("button", { name: "Hiện thông tin đầy đủ" });
+
+    await userEvent.type(input, "123456");
+    await userEvent.click(reveal());
+    await waitFor(() => expect(input).toHaveAttribute("aria-invalid", "true"));
+    expect(reveal()).toBeDisabled();
+
+    await userEvent.type(input, "{Backspace}");
+    await waitFor(() => expect(input).not.toHaveAttribute("aria-invalid", "true"));
+    await userEvent.type(input, "7");
+    expect(reveal()).toBeEnabled();
+    const identityCalls = get.mock.calls.filter(([url]) => String(url).endsWith("/will/identity"));
+    expect(identityCalls).toHaveLength(1);
   });
 
   it("đang tải: các dòng ghi Đang tải…, có dòng báo, nút Xuất file PDF khóa dù đã đủ chữ ký", async () => {
@@ -1260,6 +1286,8 @@ describe("ký phiên bản mới trong khung", () => {
     const view = renderOverview();
     await openResignDrawer();
     await tickAndType(PIN);
+    await userEvent.click(screen.getByRole("button", { name: "Hiện thông tin đầy đủ" }));
+    await within(paper()).findByText("079203001234");
     await userEvent.click(screen.getByRole("button", { name: SIGN_BUTTON }));
     await screen.findByText(/Đã ký phiên bản 2 của di chúc/);
 
