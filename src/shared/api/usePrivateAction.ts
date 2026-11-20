@@ -128,16 +128,7 @@ const ekycIdentityMismatchReasons: Record<string, string> = {
   WRONG_PERSON: "Giấy tờ không khớp với danh tính đã gắn cho tài khoản này.",
 };
 
-/** Reason-specific messages for CHECKIN_NOT_ALLOWED (Executor điểm danh thay chủ kho) */
-const checkInNotAllowedReasons: Record<string, string> = {
-  PLAN_NOT_OVERDUE: "Chủ kho không còn quá hạn điểm danh. Tải lại để xem trạng thái mới nhất.",
-  DEATH_CASE_OPEN: "Kho đã có hồ sơ chứng tử đang mở nên không điểm danh thay được nữa.",
-  PROXY_LIMIT_REACHED:
-    "Bạn đã điểm danh thay đủ số lần liên tiếp cho phép. Chỉ còn cách nộp giấy chứng tử, hoặc chờ Chủ kho tự điểm danh.",
-};
-
 const reasonMessages: Record<string, Record<string, string>> = {
-  CHECKIN_NOT_ALLOWED: checkInNotAllowedReasons,
   HANDOVER_NOT_ALLOWED: handoverNotAllowedReasons,
   EXECUTOR_NOT_ALLOWED: executorNotAllowedReasons,
   ASSET_IN_USE: assetInUseReasons,
@@ -202,7 +193,6 @@ const messages: Record<string, string> = {
     "Số CCCD này đã tồn tại trong danh sách người nhận của kho (với thông tin khác). Vui lòng kiểm tra lại.",
   BENEFICIARY_IN_USE: "Người nhận đang được gắn vào gói. Hãy gỡ khỏi các gói trước.",
   BENEFICIARY_SLOTS_EXCEEDED: "Kho không còn suất người nhận.",
-  CHECKIN_NOT_ALLOWED: "Kế hoạch hiện không cho phép điểm danh.",
   EKYC_IMAGE_REJECTED:
     "Ảnh chưa đáp ứng yêu cầu xác minh. Hãy chọn ảnh rõ, đúng mặt giấy tờ hoặc selfie rồi thử lại.",
   EKYC_DOCUMENT_EXPIRED: "Bước giấy tờ đã hết hạn hoặc đã được dùng. Bắt đầu lại với ảnh giấy tờ.",

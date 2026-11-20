@@ -6,7 +6,6 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { buttonStyles, Chip, Notice, Panel } from "@/shared/ui/heritageKit";
 import { devToolsService } from "../api/devToolsService";
 import {
-  CHECK_IN_STATE_LABELS,
   CLOCK_STATE_LABELS,
   DEV_MILESTONE_GROUP_TITLES,
   DEV_TOOLS_FOOTNOTE,
@@ -274,51 +273,15 @@ function ClockSummary({ data, onReset }: { data: DevClock; onReset: () => void }
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
         <Chip tone="success">Kế hoạch: {planStatusLabel(data.planStatus)}</Chip>
-        <Chip tone={data.checkInState === "OVERDUE" ? "warning" : "neutral"}>
-          Điểm danh: {CHECK_IN_STATE_LABELS[data.checkInState]}
-        </Chip>
         <Chip tone={shifted ? "neutral" : "success"}>
           Đồng hồ: {CLOCK_STATE_LABELS[data.clockState]}
         </Chip>
-        <ReminderCount data={data} mail="DUE" label="Nhắc trước hạn" />
-        <ReminderCount data={data} mail="LATE" label="Nhắc trễ" />
       </div>
       <button type="button" className={buttonStyles.outline} disabled={!shifted} onClick={onReset}>
         <History className="size-4" aria-hidden="true" />
         Về thời gian hiện tại
       </button>
     </div>
-  );
-}
-
-/** Ô đếm thư nhắc đã gửi trên tổng số thư của kỳ (đếm theo mốc đã qua); không có mốc loại này thì không hiện. */
-function ReminderCount({
-  data,
-  mail,
-  label,
-}: {
-  data: DevClock;
-  mail: "DUE" | "LATE";
-  label: string;
-}) {
-  let total = 0;
-  let sent = 0;
-  for (const milestone of data.milestones) {
-    if (devMilestoneContent(milestone, data).mail !== mail) {
-      continue;
-    }
-    total = total + 1;
-    if (milestone.state === "PASSED") {
-      sent = sent + 1;
-    }
-  }
-  if (total === 0) {
-    return null;
-  }
-  return (
-    <Chip tone="neutral">
-      {label}: {sent}/{total}
-    </Chip>
   );
 }
 
@@ -347,7 +310,7 @@ function MilestoneSteps({
   let lastGroup = "";
   for (let index = 0; index < clock.milestones.length; index = index + 1) {
     const milestone = clock.milestones[index];
-    const content = devMilestoneContent(milestone, clock);
+    const content = devMilestoneContent(milestone);
     if (content.group !== lastGroup) {
       lastGroup = content.group;
       items.push(

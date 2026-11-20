@@ -3,26 +3,14 @@ import { describe, expect, it, vi } from "vitest";
 import { ExecutorEmailPreviewPanel } from "../ExecutorEmailPreviewPanel";
 
 describe("ExecutorEmailPreviewPanel", () => {
-  it("renders email preview panel with default overdue template", () => {
+  it("renders the death case supplement template by default", () => {
     render(<ExecutorEmailPreviewPanel />);
 
     expect(screen.getByText("Mẫu Email thông báo Executor")).toBeInTheDocument();
-    expect(screen.getByText("Chủ kho quá hạn điểm danh — Cần bạn kiểm tra")).toBeInTheDocument();
-    expect(screen.getByText(/Nguyễn Văn Thực Hiện/)).toBeInTheDocument();
-    expect(screen.getByText("Mở trang người thực thi")).toBeInTheDocument();
-  });
-
-  it("switches to death case supplement template when clicked", () => {
-    render(<ExecutorEmailPreviewPanel />);
-
-    const supplementTab = screen.getByRole("button", {
-      name: /2\. Hồ sơ chứng tử cần bổ sung/i,
-    });
-    fireEvent.click(supplementTab);
-
-    expect(screen.getByText("Hồ sơ chứng tử cần bổ sung")).toBeInTheDocument();
+    expect(screen.getByText("Hồ sơ chứng tử cần bổ sung", { selector: "h2" })).toBeInTheDocument();
     expect(screen.getByText(/Trần Thi Hành/)).toBeInTheDocument();
     expect(screen.getByText("Mở trang Executor")).toBeInTheDocument();
+    expect(screen.queryByText(/quá hạn điểm danh/i)).not.toBeInTheDocument();
   });
 
   it("switches viewport when clicking mobile and desktop buttons", () => {

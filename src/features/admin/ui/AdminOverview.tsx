@@ -18,9 +18,6 @@ function planStageBarColor(stage: string) {
   switch (stage) {
     case "ACTIVE":
       return "bg-emerald-600";
-    case "CHECKIN_OVERDUE":
-    case "AWAITING_CHECK":
-      return "bg-amber-600";
     case "DEATH_CASE_OPEN":
     case "HANDOVER_IN_PROGRESS":
       return "bg-sky-700";

@@ -49,9 +49,6 @@ const BillingHistoryPage = lazy(() =>
     default: module.BillingHistoryPage,
   })),
 );
-const DmsStatusPage = lazy(() =>
-  import("@/pages/dms/DmsStatusPage").then((module) => ({ default: module.DmsStatusPage })),
-);
 const ExecutorOverviewPage = lazy(() =>
   import("@/pages/executor/ExecutorOverviewPage").then((module) => ({
     default: module.ExecutorOverviewPage,
@@ -217,9 +214,6 @@ const WillManagementPage = lazy(() =>
     default: module.WillManagementPage,
   })),
 );
-const WillWizardPage = lazy(() =>
-  import("@/pages/dashboard/WillWizardPage").then((module) => ({ default: module.WillWizardPage })),
-);
 const OwnerOverviewPage = lazy(() =>
   import("@/pages/dashboard/OwnerOverviewPage").then((module) => ({
     default: module.OwnerOverviewPage,
@@ -264,7 +258,6 @@ export function AppRoutes() {
           <Route path={ROUTES.ADMIN.ROOT} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.DASHBOARD.USERS} element={<AdminWorkspacePage />} />
-          <Route path="/admin/holds" element={<Navigate to="/admin?view=holds" replace />} />
           <Route path="/admin/security" element={<Navigate to="/admin?view=security" replace />} />
           <Route path="/admin/users" element={<Navigate to={ROUTES.DASHBOARD.USERS} replace />} />
         </Route>
@@ -344,12 +337,9 @@ export function AppRoutes() {
           <Route path="/assets" element={<AssetsManagementPage />} />
           <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
           <Route path="/wills" element={<WillManagementPage />} />
-          <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
+          <Route path={ROUTES.WILLS.NEW} element={<Navigate to={ROUTES.WILLS.ROOT} replace />} />
           <Route path="/dashboard/wills/:id" element={<ContainerDetailPage />} />
-          <Route path="/wills/new" element={<WillWizardPage />} />
-          <Route path={ROUTES.DMS.ROOT} element={<DmsStatusPage />} />
-          <Route path={ROUTES.DMS.CONFIG} element={<DmsStatusPage />} />
-          <Route path={ROUTES.DMS.HISTORY} element={<DmsStatusPage />} />
+          <Route path="/wills/new" element={<Navigate to={ROUTES.WILLS.ROOT} replace />} />
         </Route>
 
         {/* ========================================================================

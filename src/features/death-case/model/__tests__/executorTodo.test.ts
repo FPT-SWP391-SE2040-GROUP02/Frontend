@@ -8,7 +8,6 @@ function vault(overrides: Partial<ExecutorVault> = {}): ExecutorVault {
     vaultId: "11111111-1111-4111-8111-111111111111",
     ownerFullName: "Anh Nam",
     planStatus: "ACTIVE",
-    checkInOverdue: false,
     openDeathCaseId: null,
     ...overrides,
   };
@@ -85,15 +84,6 @@ describe("vaultStage", () => {
     expect(vaultStage(vault({ planStatus: "BLOCKED" })).label).toBe("Đang tạm giữ");
     expect(vaultStage(vault({ planStatus: "CLOSED" })).label).toBe("Đã hoàn tất");
   });
-
-  it("Chủ kho trễ điểm danh không bị gọi là kế hoạch đang chạy", () => {
-    expect(vaultStage(vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true })).label).toBe(
-      "Cần bạn kiểm tra",
-    );
-    expect(vaultStage(vault({ planStatus: "CHECKIN_OVERDUE", checkInOverdue: true })).label).toBe(
-      "Chủ kho trễ điểm danh",
-    );
-  });
 });
 
 describe("executorTodo: Việc của bạn bây giờ", () => {
@@ -101,21 +91,6 @@ describe("executorTodo: Việc của bạn bây giờ", () => {
     const todo = executorTodo(input());
     expect(todo.title).toBe("Báo tin khi Chủ kho qua đời");
     expect(todo.to).toBe("/executor/report");
-  });
-
-  it("hết thời gian chờ điểm danh: kiểm tra Chủ kho", () => {
-    const todo = executorTodo(
-      input({ vault: vault({ planStatus: "AWAITING_CHECK", checkInOverdue: true }) }),
-    );
-    expect(todo.title).toBe("Kiểm tra xem Chủ kho còn ổn không");
-  });
-
-  it("trễ điểm danh nhưng còn thời gian chờ: chỉ để ý, không có nút", () => {
-    const todo = executorTodo(
-      input({ vault: vault({ planStatus: "CHECKIN_OVERDUE", checkInOverdue: true }) }),
-    );
-    expect(todo.buttonLabel).toBeNull();
-    expect(todo.to).toBeNull();
   });
 
   it("hồ sơ bị từ chối chưa xem: ưu tiên xem lý do", () => {

@@ -13,7 +13,6 @@ import {
 import {
   AdminDevTools,
   AdminHandoverTemplates,
-  AdminHolds,
   AdminOverview,
   AdminOverviewToolbar,
   AdminPayments,
@@ -118,10 +117,6 @@ const VIEWS = {
     title: "Cấu hình",
     description: "",
   },
-  holds: {
-    title: "Tạm giữ",
-    description: "",
-  },
   payments: {
     title: "Giao dịch",
     description: "",
@@ -146,7 +141,7 @@ const VIEWS = {
 
 type AdminView = keyof typeof VIEWS;
 
-/** Tạm giữ, cấu hình và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
+/** Cấu hình và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
 function viewFor(pathname: string, search: string): AdminView {
   if (pathname === ROUTES.DASHBOARD.USERS) return "users";
   if (pathname === ROUTES.ADMIN.AUDIT_LOG) return "audit";
@@ -155,7 +150,6 @@ function viewFor(pathname: string, search: string): AdminView {
     view === "settings" ||
     view === "plans" ||
     view === "templates" ||
-    view === "holds" ||
     view === "payments" ||
     view === "security"
   )
@@ -228,7 +222,6 @@ export function AdminWorkspacePage() {
       {view === "settings" && <SettingsTabs />}
       {view === "plans" && <AdminSettings section="plans" />}
       {view === "templates" && <AdminHandoverTemplates />}
-      {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
       {view === "users" && (
         <AdminUsers

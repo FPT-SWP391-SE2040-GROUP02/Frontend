@@ -5,15 +5,7 @@ const planLabels: Record<string, { title: string; description: string }> = {
   },
   ACTIVE: {
     title: "Kế hoạch đang hoạt động",
-    description: "Tiếp tục sắp xếp kho và điểm danh theo lịch của bạn.",
-  },
-  CHECKIN_OVERDUE: {
-    title: "Bạn đã quá hạn điểm danh",
-    description: "Kiểm tra kỳ điểm danh và xác nhận hoạt động của bạn.",
-  },
-  AWAITING_CHECK: {
-    title: "Kế hoạch đang chờ kiểm tra",
-    description: "Theo dõi thông báo và trạng thái được cập nhật từ hệ thống.",
+    description: "Tiếp tục sắp xếp kho và cập nhật kế hoạch của bạn.",
   },
   DEATH_CASE_OPEN: {
     title: "Kho có hồ sơ chứng tử đang xử lý",

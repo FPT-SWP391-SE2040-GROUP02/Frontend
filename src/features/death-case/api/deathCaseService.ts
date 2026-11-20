@@ -3,11 +3,9 @@ import { apiClient } from "@/shared/api/axiosClient";
 import {
   deathCaseSchema,
   deathDraftSchema,
-  executorCheckInSchema,
   executorPackageSchema,
   executorVaultSchema,
 } from "../model/deathCase.schema";
-import { proxyCheckInRequestSchema, type ProxyCheckInRequest } from "../model/proxyCheckIn.schema";
 import { handoverProgressSchema, sendHandoverKeySchema } from "../model/handoverProgress.schema";
 const id = z.string().uuid();
 const path = (caseId: string) => `/executor/death-cases/${id.parse(caseId)}`;
@@ -18,18 +16,6 @@ export const deathCaseService = {
     return z
       .array(executorVaultSchema)
       .parse(await apiClient.get<unknown, unknown>("/executor/vaults", { signal }));
-  },
-  /**
-   * Điểm danh thay chủ kho khi chủ kho quá hạn và kho chưa có hồ sơ chứng tử đang mở.
-   * Body khai đã liên lạc với ai, lúc nào, cách nào; hết lượt liên tiếp thì Backend trả 409 PROXY_LIMIT_REACHED.
-   */
-  async checkInForOwner(vaultId: string, request: ProxyCheckInRequest) {
-    return executorCheckInSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `/executor/vaults/${id.parse(vaultId)}/check-in`,
-        proxyCheckInRequestSchema.parse(request),
-      ),
-    );
   },
   /** Danh sách tài sản của kho theo từng gói: chỉ tên, loại, dung lượng, không có nội dung. */
   async packages(vaultId: string, signal?: AbortSignal) {

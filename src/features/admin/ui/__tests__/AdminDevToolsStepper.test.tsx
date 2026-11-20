@@ -16,24 +16,10 @@ beforeEach(() => {
   vi.spyOn(devToolsService, "getClock").mockResolvedValue({
     vaultId: VAULT_ID,
     planStatus: "ACTIVE",
-    checkInState: "ON_TIME",
     clockState: "SHIFTED",
-    maxLateReminders: 3,
-    lateReminderGapDays: 1,
     milestones: [
-      { key: "DUE_REMINDER_1", state: "PASSED", note: "", daysBeforeDue: 7 },
-      { key: "DUE_REMINDER_2", state: "AVAILABLE", note: "", daysBeforeDue: 1 },
-      { key: "CHECKIN_OVERDUE", state: "AVAILABLE", note: "", daysBeforeDue: null },
-      { key: "LATE_REMINDER_2", state: "AVAILABLE", note: "", daysBeforeDue: null },
-      { key: "LATE_REMINDER_3", state: "AVAILABLE", note: "", daysBeforeDue: null },
-      { key: "GRACE_ENDED", state: "AVAILABLE", note: "", daysBeforeDue: null },
-      { key: "SERVICE_EXPIRED", state: "AVAILABLE", note: "", daysBeforeDue: null },
-      {
-        key: "RECIPIENT_DECISION_ENDED",
-        state: "NOT_APPLICABLE",
-        note: "Chưa có người nhận.",
-        daysBeforeDue: null,
-      },
+      { key: "SERVICE_EXPIRED", state: "PASSED", note: "" },
+      { key: "RECIPIENT_DECISION_ENDED", state: "AVAILABLE", note: "" },
     ],
   });
 });
@@ -54,34 +40,24 @@ function renderTools() {
 }
 
 describe("Công cụ thử nghiệm: chuyển trạng thái theo từng bước", () => {
-  it("chia nhóm, hiện thư nhắc trước hạn và nhắc trễ, chỉ bước kế tiếp bấm được", async () => {
+  it("chia nhóm Dịch vụ và Bàn giao, chỉ bước kế tiếp bấm được", async () => {
     renderTools();
 
     const list = await screen.findByRole("list", { name: "Các bước chuyển trạng thái" });
-    expect(within(list).getByRole("heading", { name: "Trước hạn điểm danh" })).toBeInTheDocument();
-    expect(within(list).getByRole("heading", { name: "Quá hạn điểm danh" })).toBeInTheDocument();
-    expect(within(list).getByRole("heading", { name: "Sau thời gian chờ" })).toBeInTheDocument();
-
-    expect(within(list).getByText("Còn 7 ngày tới hạn")).toBeInTheDocument();
-    // Tên bước và chip thư cùng chữ "Nhắc trễ lần 3".
-    expect(within(list).getAllByText("Nhắc trễ lần 3")).toHaveLength(2);
-    expect(
-      within(list).getByText(
-        "Thư nhắc cuối cùng trước khi hết thời gian chờ. Gửi sau thư trước 1 ngày.",
-      ),
-    ).toBeInTheDocument();
+    expect(within(list).getByRole("heading", { name: "Dịch vụ" })).toBeInTheDocument();
+    expect(within(list).getByRole("heading", { name: "Bàn giao" })).toBeInTheDocument();
+    expect(within(list).queryByText(/điểm danh/i)).not.toBeInTheDocument();
 
     const next = within(list)
       .getAllByRole("listitem")
       .find((item) => item.getAttribute("aria-current") === "step");
     expect(next).toBeDefined();
-    expect(within(next as HTMLElement).getByText("Còn 1 ngày tới hạn")).toBeInTheDocument();
+    expect(
+      within(next as HTMLElement).getByText("Hết 7 ngày quyết định của người nhận"),
+    ).toBeInTheDocument();
 
     const buttons = within(list).getAllByRole("button", { name: "Chuyển sang trạng thái này" });
     const enabled = buttons.filter((button) => !button.hasAttribute("disabled"));
     expect(enabled).toHaveLength(1);
-
-    expect(screen.getByText("Nhắc trước hạn: 1/2")).toBeInTheDocument();
-    expect(screen.getByText("Nhắc trễ: 0/3")).toBeInTheDocument();
   });
 });

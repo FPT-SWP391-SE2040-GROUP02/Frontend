@@ -56,7 +56,7 @@ const statusTones: Record<Executor["status"], ChipTone> = {
 
 /** Kế hoạch ở các trạng thái này thì Backend chặn mời, gửi lại và thu hồi Người thực thi (SETUP-21). */
 const LOCKED_PLAN_STATUSES = ["DEATH_CASE_OPEN", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"];
-const RUNNING_PLAN_STATUSES = ["ACTIVE", "CHECKIN_OVERDUE", "AWAITING_CHECK"];
+const RUNNING_PLAN_STATUSES = ["ACTIVE"];
 
 /** Lý do khóa ở đầu câu thông báo chỉ xem (thiết kế 186). */
 const LOCKED_REASONS: Record<string, string> = {

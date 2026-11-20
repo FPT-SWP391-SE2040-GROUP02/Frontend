@@ -110,13 +110,6 @@ export const ROUTES = {
     AUDIT_LOG: "/admin/audit-logs",
   },
 
-  /** Dead Man's Switch (Nhịp sinh tồn & kích hoạt bàn giao di sản) */
-  DMS: {
-    ROOT: "/dms",
-    CONFIG: "/dms/config",
-    HISTORY: "/dms/history",
-  },
-
   /** Nhóm trang lỗi hệ thống */
   ERROR: {
     FORBIDDEN: "/403",

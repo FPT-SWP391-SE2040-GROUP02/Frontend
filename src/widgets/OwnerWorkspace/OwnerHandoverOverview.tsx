@@ -1,131 +1,15 @@
-import type { ReactNode } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { Button } from "@/shared/ui/button";
 import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
 import { ROUTES } from "@/shared/config/routes.config";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { useCheckIn } from "@/features/dms/model/useCheckIn";
-import { checkInService } from "@/features/dms/api/checkInService";
-import { dailyCheckInState } from "@/features/dms/model/dailyCheckIn";
-import type { checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
-import { formatDate, formatTimeThenDate } from "@/shared/lib/dateFormat";
+import { formatTimeThenDate } from "@/shared/lib/dateFormat";
 import { HandoverStepsCard } from "./HandoverStepsCard";
 
-type CheckInStatus = z.infer<typeof checkInStatusSchema>;
 type PlanSetup = z.infer<typeof planSetupSchema>;
-
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
-
-function CheckInCard({ vaultId }: { vaultId: string }) {
-  const query = useCheckIn(vaultId);
-  const action = usePrivateAction();
-  const client = useQueryClient();
-
-  function syncAfterCheckIn(result: CheckInStatus): void {
-    client.setQueryData(["vault-check-in", vaultId], result);
-    void client.invalidateQueries({ queryKey: ["vault-check-in", vaultId] });
-    void client.invalidateQueries({ queryKey: ["owner-vault"] });
-  }
-
-  let body: ReactNode;
-  if (query.isPending) {
-    body = (
-      <p role="status" className="mt-4 text-sm text-white/75">
-        Đang tải trạng thái điểm danh…
-      </p>
-    );
-  } else if (query.isError) {
-    body = (
-      <div role="alert" className="mt-4 space-y-3">
-        <p className="text-sm text-white/80">Không tải được trạng thái điểm danh.</p>
-        <Button
-          variant="outline"
-          className="border-white/40 bg-transparent text-white hover:bg-white/10"
-          disabled={query.isFetching}
-          onClick={() => void query.refetch()}
-        >
-          Thử lại
-        </Button>
-      </div>
-    );
-  } else {
-    const data = query.data;
-    let remaining = "";
-    if (data.nextCheckInDueAt !== null) {
-      const daysLeft = Math.ceil(
-        (new Date(data.nextCheckInDueAt).getTime() - new Date(data.serverTime).getTime()) /
-          MS_PER_DAY,
-      );
-      if (daysLeft >= 0) {
-        remaining = ` (còn ${daysLeft} ngày)`;
-      } else {
-        remaining = " (đã quá hạn)";
-      }
-    }
-    const { canCheckIn, checkedInToday, executorCheckedInToday, planAllowsCheckIn } =
-      dailyCheckInState(data);
-
-    body = (
-      <>
-        <p className="mt-4 text-sm">Lần gần nhất: {formatDate(data.lastCheckInAt)}</p>
-        <p className="mt-1 text-sm">
-          Hạn tiếp theo: <span className="font-semibold">{formatDate(data.nextCheckInDueAt)}</span>
-          {remaining}
-        </p>
-        <Button
-          className="mt-5 min-h-11 bg-[#E0C486] px-6 font-semibold text-[#0A281E] hover:bg-[#E6C98B]"
-          disabled={!canCheckIn || action.pending}
-          onClick={() => void action.execute(() => checkInService.checkIn(), syncAfterCheckIn)}
-        >
-          {action.pending
-            ? "Đang gửi…"
-            : executorCheckedInToday
-              ? "Người thực thi đã điểm danh hộ"
-              : checkedInToday
-                ? "Đã điểm danh hôm nay"
-                : "Điểm danh"}
-        </Button>
-        {executorCheckedInToday && (
-          <p role="status" className="mt-3 text-sm text-[#E0C486]">
-            Người thực thi đã điểm danh hộ bạn hôm nay. Mở lại từ 00:00 ngày tiếp theo (giờ Việt
-            Nam).
-          </p>
-        )}
-        {checkedInToday && (
-          <p role="status" className="mt-3 text-sm text-[#E0C486]">
-            Đã điểm danh hôm nay. Mở lại từ 00:00 ngày tiếp theo (giờ Việt Nam).
-          </p>
-        )}
-        {!planAllowsCheckIn && (
-          <p className="mt-3 text-sm text-white/70">
-            Kế hoạch chưa kích hoạt nên chưa điểm danh được.
-          </p>
-        )}
-      </>
-    );
-  }
-  return (
-    <section aria-label="Điểm danh định kỳ" className="rounded-2xl bg-[#1d4d3c] p-6 text-white">
-      <h2 className="text-2xl font-medium">Điểm danh định kỳ</h2>
-      {body}
-      {action.pending && (
-        <p role="status" className="mt-3 text-sm text-white/70">
-          Đang gửi yêu cầu…
-        </p>
-      )}
-      {action.error && (
-        <p role="alert" className="mt-3 text-sm text-red-200">
-          {action.error}
-        </p>
-      )}
-    </section>
-  );
-}
 
 /**
  * Dòng đầu trang: nhãn trạng thái kế hoạch và một câu giải thích ngắn. Tiêu đề "Bàn giao" đã có ở khung trang
@@ -180,14 +64,7 @@ function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
       />
       <PlanSetupPanel
         vaultId={vaultId}
-        belowCards={
-          <>
-            <HandoverStepsCard />
-            <p className="text-sm text-heritage-muted">
-              Điểm danh định kỳ bắt đầu sau khi kích hoạt.
-            </p>
-          </>
-        }
+        belowCards={<HandoverStepsCard />}
         sideNote={<LegacyDisclaimer />}
       />
     </div>
@@ -226,7 +103,7 @@ function ActivePlanCard({ activatedAt }: { activatedAt: string | null | undefine
 }
 
 /**
- * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là điểm danh, kế hoạch đang áp dụng, mã mở gói và tiến trình.
+ * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là kế hoạch đang áp dụng và tiến trình.
  * Bên phải: nút "Xem di chúc đã ký" mở khung di chúc đủ chữ ký.
  */
 function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
@@ -239,13 +116,12 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
       <HandoverHeader
         chipText={chipText}
         chipTone="success"
-        subtitle="Di chúc đã có đủ chữ ký. Điểm danh đúng hạn để kế hoạch tiếp tục chạy."
+        subtitle="Di chúc đã có đủ chữ ký. Kế hoạch đang được áp dụng."
       />
       <PlanSetupPanel
         vaultId={vaultId}
         belowCards={
           <>
-            <CheckInCard vaultId={vaultId} />
             <ActivePlanCard activatedAt={setup.activatedAt} />
             <HandoverStepsCard
               title="Tiến trình bàn giao"
@@ -261,8 +137,8 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
 
 /**
  * Trang Bàn giao của Chủ kho. Cột trái là các thẻ việc, cột phải là tiến độ và nút xem trước di chúc; di chúc (sinh từ
- * kế hoạch, cả bản nháp lẫn đã ký) trượt ra từ bên phải, ký bằng PIN ở chân khung. Kế hoạch đã chạy thêm điểm danh, kế
- * hoạch đang áp dụng, mã mở gói (hệ thống tự giữ, Chủ kho chỉ đổi mã mới) và tiến trình bàn giao. Quyền và trạng thái
+ * kế hoạch, cả bản nháp lẫn đã ký) trượt ra từ bên phải, ký bằng PIN ở chân khung. Kế hoạch đã chạy thêm kế hoạch đang
+ * áp dụng và tiến trình bàn giao. Quyền và trạng thái
  * luôn do Backend quyết định.
  */
 export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {

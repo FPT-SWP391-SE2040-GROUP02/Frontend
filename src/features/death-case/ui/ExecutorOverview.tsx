@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Check, Lock, X } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
-import { formatDateTime } from "@/shared/lib/dateFormat";
 import type { ExecutorVault } from "../model/deathCase.schema";
 import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
 import { executorTodo, type CaseStatus } from "../model/executorTodo";
@@ -10,7 +9,6 @@ import { useDeathCase } from "../model/useDeathCase";
 import { useExecutorPackages } from "../model/useExecutorPackages";
 import { useHandoverProgress } from "../model/useHandoverProgress";
 import { useRejectedAck } from "../model/useRejectedAck";
-import { OverdueCard } from "./OverdueCard";
 import { VaultJourney } from "./VaultJourney";
 
 /** Hai thẻ gọn dưới cùng chỉ lấy vài dòng đầu của danh sách quyền hạn đầy đủ. */
@@ -93,8 +91,6 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   let caseStatus: CaseStatus | null = null;
   if (record) caseStatus = record.status;
   const todo = executorTodo({ vault, caseStatus, progress, rejectedPending: showRejected });
-  const showLastCheckIn =
-    !hasCase && !showRejected && !vault.checkInOverdue && Boolean(vault.lastOwnerCheckInAt);
 
   return (
     <div className="space-y-6">
@@ -125,12 +121,6 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
               {todo.title}
             </h2>
             <p className="mt-2 text-sm leading-6 text-heritage-text">{todo.text}</p>
-            {showLastCheckIn && vault.lastOwnerCheckInAt && (
-              <p className="mt-2 text-sm text-heritage-muted">
-                {vault.ownerFullName} tự điểm danh lần gần nhất lúc{" "}
-                {formatDateTime(vault.lastOwnerCheckInAt)}.
-              </p>
-            )}
           </div>
           {todo.buttonLabel && todo.to && (
             <Link className={buttonStyles.dark} to={todo.to}>
@@ -139,7 +129,6 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           )}
         </div>
       </section>
-      {!showRejected && vault.checkInOverdue && <OverdueCard vault={vault} hasCase={hasCase} />}
       <VaultJourney vault={vault} caseStatus={caseStatus} progress={progress} />
       <div className="grid gap-6 lg:grid-cols-2">
         <GuideAndAssetsCard vault={vault} />

@@ -26,10 +26,6 @@ export function vaultStage(vault: ExecutorVault): VaultStage {
   if (vault.openDeathCaseId || vault.planStatus === "DEATH_CASE_OPEN") {
     return { label: "Đang báo tin", tone: "warning" };
   }
-  if (vault.planStatus === "AWAITING_CHECK") return { label: "Cần bạn kiểm tra", tone: "danger" };
-  if (vault.planStatus === "CHECKIN_OVERDUE" || vault.checkInOverdue) {
-    return { label: "Chủ kho trễ điểm danh", tone: "warning" };
-  }
   // Chỉ ACTIVE mới là "đang chạy"; Chủ kho chưa kích hoạt (DRAFT) hoặc kho đang bị tạm giữ thì chưa báo tin được.
   if (vault.planStatus === "DRAFT") return { label: "Kế hoạch chưa kích hoạt", tone: "neutral" };
   if (vault.planStatus === "BLOCKED") return { label: "Đang tạm giữ", tone: "warning" };
@@ -143,22 +139,6 @@ export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
         text: "Kho này đã bàn giao xong. Bạn không còn việc gì cần làm.",
         buttonLabel: "Xem bàn giao",
         to: ROUTES.EXECUTOR.PROGRESS,
-      };
-    }
-    if (vault.planStatus === "AWAITING_CHECK") {
-      return {
-        title: "Kiểm tra xem Chủ kho còn ổn không",
-        text: "Chủ kho đã hết thời gian chờ điểm danh. Hãy liên hệ; nếu không liên lạc được thì mở hồ sơ báo tin.",
-        buttonLabel: "Mở Báo tin",
-        to: ROUTES.EXECUTOR.REPORT,
-      };
-    }
-    if (vault.planStatus === "CHECKIN_OVERDUE" || vault.checkInOverdue) {
-      return {
-        title: "Để ý thêm, Chủ kho trễ điểm danh",
-        text: "Chủ kho còn thời gian tự điểm danh. Nếu bạn đã liên lạc được và Chủ kho vẫn ổn, bạn có thể điểm danh hộ.",
-        buttonLabel: null,
-        to: null,
       };
     }
     return {

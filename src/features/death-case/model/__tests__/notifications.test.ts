@@ -6,7 +6,6 @@ const baseVault: ExecutorVault = {
   vaultId: "11111111-1111-4111-8111-111111111111",
   ownerFullName: "Anh Nam",
   planStatus: "ACTIVE",
-  checkInOverdue: false,
   openDeathCaseId: null,
 };
 
@@ -25,21 +24,6 @@ function record(extra: Partial<DeathCase>): DeathCase {
 describe("deriveNotifications", () => {
   it("kho an toàn, không có hồ sơ thì không có thông báo", () => {
     expect(deriveNotifications(baseVault, null)).toEqual([]);
-  });
-
-  it("Chủ kho quá hạn thì báo tới lượt Người thực thi, đứng trên cùng", () => {
-    const items = deriveNotifications(
-      { ...baseVault, planStatus: "AWAITING_CHECK", checkInOverdue: true },
-      null,
-    );
-    expect(items).toHaveLength(1);
-    expect(items[0].at).toBeNull();
-    expect(items[0].text).toContain("Tới lượt bạn");
-  });
-
-  it("đang trong thời gian chờ thì báo nhẹ hơn", () => {
-    const items = deriveNotifications({ ...baseVault, planStatus: "CHECKIN_OVERDUE" }, null);
-    expect(items[0].text).toContain("thời gian chờ");
   });
 
   it("sự kiện của hồ sơ xếp mới nhất trước và lấy đúng lý do bổ sung", () => {

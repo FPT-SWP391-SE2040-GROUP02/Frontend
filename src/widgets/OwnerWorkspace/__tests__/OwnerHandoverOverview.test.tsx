@@ -11,7 +11,6 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { apiClient } from "@/shared/api/axiosClient";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { executorKeyService } from "@/features/executor-key/api/executorKeyService";
-import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { OwnerHandoverOverview } from "../OwnerHandoverOverview";
 
 vi.mock("@/features/plan-setup/model/usePlanSetup", () => ({ usePlanSetup: vi.fn() }));
@@ -21,8 +20,6 @@ vi.mock("@/features/executor-key/api/executorKeyService", async (importOriginal)
     await importOriginal<typeof import("@/features/executor-key/api/executorKeyService")>();
   return { executorKeyService: { ...actual.executorKeyService, getStatus: vi.fn() } };
 });
-vi.mock("@/features/dms/model/useCheckIn", () => ({ useCheckIn: vi.fn() }));
-vi.mock("@/features/dms/api/checkInService", () => ({ checkInService: { checkIn: vi.fn() } }));
 vi.mock("@/shared/settings/usePolicyWindows", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/shared/settings/usePolicyWindows")>();
   return {
@@ -158,22 +155,6 @@ function planSetupResult(data: Record<string, unknown>) {
   };
 }
 
-function checkInResult() {
-  return {
-    isPending: false,
-    isError: false,
-    isFetching: false,
-    refetch: vi.fn(),
-    data: {
-      status: "ACTIVE",
-      planStatus: "ACTIVE",
-      serverTime: "2026-11-16T00:00:00Z",
-      lastCheckInAt: "2026-11-15T00:00:00Z",
-      nextCheckInDueAt: "2026-12-15T00:00:00Z",
-    },
-  };
-}
-
 function keyStatus(overrides: Record<string, unknown> = {}) {
   return {
     hasKey: false,
@@ -200,7 +181,6 @@ beforeEach(() => {
   vi.resetAllMocks();
   accessTokenMemory.set("test-token");
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  vi.mocked(useCheckIn).mockReturnValue(checkInResult() as never);
   vi.mocked(executorKeyService.getStatus).mockResolvedValue(keyStatus());
   mockIdentityGet(() => Promise.resolve(identityBody()));
 });
@@ -846,14 +826,14 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     );
   }
 
-  it("thẻ việc chỉ tóm tắt (không nút), kèm điểm danh, Kế hoạch đang áp dụng và tiến trình, không có thẻ Mã mở gói", async () => {
+  it("thẻ việc chỉ tóm tắt (không nút), không có điểm danh, kèm Kế hoạch đang áp dụng và tiến trình, không có thẻ Mã mở gói", async () => {
     showRunning();
     renderOverview();
 
     expect(screen.getByText("Kế hoạch đang chạy", { selector: "span" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Đổi người" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Đi xác minh danh tính" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Điểm danh" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Điểm danh" })).not.toBeInTheDocument();
     const active = screen.getByRole("region", { name: "Kế hoạch đang áp dụng" });
     expect(within(active).getByText("Kích hoạt lúc")).toBeInTheDocument();
     expect(within(active).getByText("09:42 15/11/2026")).toBeInTheDocument();

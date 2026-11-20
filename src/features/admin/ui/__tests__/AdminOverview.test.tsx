@@ -7,8 +7,6 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { AdminOverview } from "../AdminOverview";
 
 const dashboard = {
-  activeHolds: 2,
-  holdsPastReview: 1,
   activeVerifiers: 3,
   activeAdmins: 1,
   casesWithoutVerifier: 0,

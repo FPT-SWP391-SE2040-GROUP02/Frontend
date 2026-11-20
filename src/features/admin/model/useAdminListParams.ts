@@ -1,9 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import {
   ADMIN_LIST_PAGE_SIZE,
-  holdStatusSchema,
   paymentFilterStatusSchema,
-  type HoldsQuery,
   type PaymentTransactionsQuery,
 } from "./admin.schema";
 
@@ -28,30 +26,6 @@ function useParamWriter() {
       return next;
     });
   return { params, write };
-}
-
-/** Bộ lọc Tạm giữ trên URL (`hstatus`, `page`) cùng `hold` là hold đang xem. */
-export function useAdminHoldParams() {
-  const { params, write } = useParamWriter();
-  const status = holdStatusSchema.safeParse(params.get("hstatus"));
-  const filters = { status: status.success ? status.data : undefined };
-  const page = readPage(params.get("page"));
-  const query: HoldsQuery = {
-    status: filters.status,
-    pageIndex: page,
-    pageSize: ADMIN_LIST_PAGE_SIZE,
-  };
-  return {
-    filters,
-    page,
-    query,
-    selectedId: params.get("hold"),
-    hasFilters: Boolean(filters.status),
-    setStatus: (value: string | undefined) => write({ hstatus: value }),
-    clearFilters: () => write({ hstatus: undefined }),
-    setPage: (next: number) => write({ page: next > 1 ? String(next) : undefined }, false),
-    select: (id: string | undefined) => write({ hold: id }, false),
-  };
 }
 
 const DATE_PARAM = /^\d{4}-\d{2}-\d{2}$/;

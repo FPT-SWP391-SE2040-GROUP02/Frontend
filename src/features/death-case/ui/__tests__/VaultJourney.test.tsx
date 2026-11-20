@@ -8,7 +8,6 @@ const vault: ExecutorVault = {
   vaultId: "11111111-1111-4111-8111-111111111111",
   ownerFullName: "Anh Nam",
   planStatus: "HANDOVER_IN_PROGRESS",
-  checkInOverdue: false,
   openDeathCaseId: "33333333-3333-4333-8333-333333333333",
 };
 

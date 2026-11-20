@@ -9,20 +9,14 @@ import {
   adminUsersQuerySchema,
   changeUserRoleRequestSchema,
   changeUserStatusRequestSchema,
-  holdSchema,
-  holdsPageSchema,
-  holdsQuerySchema,
   paymentTransactionsPageSchema,
   paymentTransactionsQuerySchema,
   adminRevenueSchema,
   emailTemplateSchema,
   emailTemplatesSchema,
-  extraMailListSchema,
-  extraMailSchema,
   handoverTemplateSchema,
   handoverTemplateVersionsSchema,
   saveEmailTemplateRequestSchema,
-  saveExtraMailRequestSchema,
   saveHandoverTemplateRequestSchema,
   adminRevenueQuerySchema,
   assignExecutorRequestSchema,
@@ -32,10 +26,8 @@ import {
   createAdminUserRequestSchema,
   type ChangeUserRoleRequest,
   type ChangeUserStatusRequest,
-  type HoldsQuery,
   type AdminRevenueQuery,
   type SaveEmailTemplateRequest,
-  type SaveExtraMailRequest,
   type SaveHandoverTemplateRequest,
   type PaymentTransactionsQuery,
   type AssignExecutorRequest,
@@ -43,7 +35,6 @@ import {
 } from "../model/admin.schema";
 
 const id = z.string().uuid();
-const hold = (holdId: string) => `/admin/holds/${id.parse(holdId)}`;
 
 /** Transport Admin theo AdminController; không Admin → BE trả 404 (SEC-04). */
 export const adminService = {
@@ -130,27 +121,6 @@ export const adminService = {
       await apiClient.get<unknown, unknown>("/admin/users/counts", { params, signal }),
     );
   },
-  async countHolds(signal?: AbortSignal) {
-    return countsSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/holds/counts", { signal }),
-    );
-  },
-  async listHolds(query: HoldsQuery, signal?: AbortSignal) {
-    const parsed = holdsQuerySchema.parse(query);
-    const params: Record<string, string | number> = {
-      pageIndex: parsed.pageIndex,
-      pageSize: parsed.pageSize,
-    };
-    if (parsed.status) params.status = parsed.status;
-    if (parsed.vaultId) params.vaultId = parsed.vaultId;
-    return holdsPageSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/holds", { params, signal }),
-    );
-  },
-  async getHold(holdId: string, signal?: AbortSignal) {
-    return holdSchema.parse(await apiClient.get<unknown, unknown>(hold(holdId), { signal }));
-  },
-
   /** Giao dịch tiền vào, mới nhất trước; chỉ đọc (AdminPaymentsController). */
   async listPaymentTransactions(query: PaymentTransactionsQuery, signal?: AbortSignal) {
     const parsed = paymentTransactionsQuerySchema.parse(query);
@@ -220,31 +190,6 @@ export const adminService = {
     return emailTemplateSchema.parse(
       await apiClient.delete<unknown, unknown>(`/admin/email-templates/${encodeURIComponent(key)}`),
     );
-  },
-
-  /** Các thư bổ sung gửi cho Chủ kho theo ngày tính từ hạn điểm danh, kèm giới hạn và biến chèn được. */
-  async listExtraMails(signal?: AbortSignal) {
-    return extraMailListSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/extra-mails", { signal }),
-    );
-  },
-
-  async createExtraMail(request: SaveExtraMailRequest) {
-    const body = saveExtraMailRequestSchema.parse(request);
-    return extraMailSchema.parse(
-      await apiClient.post<unknown, unknown>("/admin/extra-mails", body),
-    );
-  },
-
-  async updateExtraMail(id: string, request: SaveExtraMailRequest) {
-    const body = saveExtraMailRequestSchema.parse(request);
-    return extraMailSchema.parse(
-      await apiClient.put<unknown, unknown>(`/admin/extra-mails/${encodeURIComponent(id)}`, body),
-    );
-  },
-
-  async deleteExtraMail(id: string) {
-    await apiClient.delete<unknown, unknown>(`/admin/extra-mails/${encodeURIComponent(id)}`);
   },
 
   /** Doanh thu theo ngày, tháng hoặc quý (tiền thật đã khớp đơn); chỉ đọc. */

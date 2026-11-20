@@ -2,35 +2,31 @@ import { describe, expect, it } from "vitest";
 import type { ExecutorVault } from "../deathCase.schema";
 import { sortVaultsByUrgency, vaultTask } from "../executorVaultTask";
 
-function vault(id: string, planStatus: string, checkInOverdue: boolean): ExecutorVault {
+function vault(
+  id: string,
+  planStatus: string,
+  openDeathCaseId: string | null = null,
+): ExecutorVault {
   return {
     vaultId: id,
     ownerFullName: `Chủ kho ${id}`,
     planStatus,
-    checkInOverdue,
-    openDeathCaseId: null,
+    openDeathCaseId,
   };
 }
 
-describe("vaultTask: hai giai đoạn quá hạn điểm danh", () => {
-  it("đang trong thời gian chờ: nhãn nhẹ, chỉ cần để ý", () => {
-    const task = vaultTask(vault("a", "CHECKIN_OVERDUE", true));
-    expect(task.label).toBe("Trễ điểm danh · đang chờ");
-    expect(task.tone).toBe("warning");
+describe("vaultTask", () => {
+  it("kế hoạch đang chạy, chưa có hồ sơ: kho an toàn", () => {
+    const task = vaultTask(vault("a", "ACTIVE"));
+    expect(task.urgency).toBe("safe");
+    expect(task.tone).toBe("success");
   });
 
-  it("hết thời gian chờ: cần Người thực thi kiểm tra", () => {
-    const task = vaultTask(vault("b", "AWAITING_CHECK", true));
-    expect(task.label).toBe("Cần bạn kiểm tra");
-    expect(task.tone).toBe("danger");
-  });
-
-  it("kho cần kiểm tra đứng trước kho đang chờ, kho an toàn đứng cuối", () => {
+  it("kho có hồ sơ đang mở đứng trước kho an toàn", () => {
     const sorted = sortVaultsByUrgency([
-      vault("safe", "ACTIVE", false),
-      vault("late", "CHECKIN_OVERDUE", true),
-      vault("check", "AWAITING_CHECK", true),
+      vault("safe", "ACTIVE"),
+      vault("case", "DEATH_CASE_OPEN", "11111111-1111-4111-8111-111111111111"),
     ]);
-    expect(sorted.map((item) => item.vaultId)).toEqual(["check", "late", "safe"]);
+    expect(sorted.map((item) => item.vaultId)).toEqual(["case", "safe"]);
   });
 });

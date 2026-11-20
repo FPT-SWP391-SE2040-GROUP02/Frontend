@@ -27,10 +27,8 @@ import {
   isOwnerVaultMissing,
   useOwnerVault,
 } from "@/features/vault-management/model/useOwnerVault";
-import { CheckInGraceBanner } from "@/features/dms/ui/CheckInGraceBanner";
 import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { OwnerVaultLockedBanner } from "@/features/vault-management/ui/OwnerVaultLockedBanner";
-import { GRACE_PLAN_STATUSES } from "@/features/dms/model/checkInGrace";
 import { useNavIndicator } from "./useNavIndicator";
 import "./owner-workspace.css";
 
@@ -257,9 +255,6 @@ export function OwnerWorkspace({
         </div>
         {headerAction && <div className="shrink-0">{headerAction}</div>}
       </header>
-      {vault.data && GRACE_PLAN_STATUSES.includes(vault.data.planStatus) && (
-        <CheckInGraceBanner vaultId={vault.data.id} />
-      )}
       {lockReason !== null && <OwnerVaultLockedBanner reason={lockReason} />}
       {children}
       <footer className="max-w-prose border-t border-heritage-border pt-4 text-sm leading-5 text-heritage-muted">

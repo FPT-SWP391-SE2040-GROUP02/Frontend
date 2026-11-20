@@ -8,11 +8,8 @@ const VAULT_ID = "77777777-7777-4777-8777-777777777777";
 const clockFixture = {
   vaultId: VAULT_ID,
   planStatus: "ACTIVE",
-  checkInState: "ON_TIME",
   clockState: "REAL_TIME",
   milestones: [
-    { key: "CHECKIN_OVERDUE", state: "AVAILABLE", note: "" },
-    { key: "GRACE_ENDED", state: "AVAILABLE", note: "" },
     {
       key: "SERVICE_EXPIRED",
       state: "NOT_APPLICABLE",
@@ -53,13 +50,13 @@ describe("devToolsService", () => {
   });
 
   it("gửi mốc cần tua và đọc trạng thái mới", async () => {
-    const shifted = { ...clockFixture, clockState: "SHIFTED", checkInState: "OVERDUE" };
+    const shifted = { ...clockFixture, clockState: "SHIFTED" };
     const post = vi.spyOn(apiClient, "post").mockResolvedValue(shifted);
     await expect(
-      devToolsService.timeTravel(VAULT_ID, { milestone: "CHECKIN_OVERDUE" }),
+      devToolsService.timeTravel(VAULT_ID, { milestone: "SERVICE_EXPIRED" }),
     ).resolves.toEqual(shifted);
     expect(post).toHaveBeenCalledWith(`/admin/dev-tools/vaults/${VAULT_ID}/time-travel`, {
-      milestone: "CHECKIN_OVERDUE",
+      milestone: "SERVICE_EXPIRED",
     });
   });
 

@@ -11,7 +11,6 @@ const handoverVault: ExecutorVault = {
   vaultId: "550e8400-e29b-41d4-a716-446655440002",
   ownerFullName: "Nguyễn Thị Mai",
   planStatus: "HANDOVER_IN_PROGRESS",
-  checkInOverdue: false,
   openDeathCaseId: "550e8400-e29b-41d4-a716-446655440009",
 };
 

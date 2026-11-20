@@ -8,18 +8,11 @@ export const executorVaultSchema = z.object({
   /** Hướng dẫn Chủ kho để lại cho Executor; xem được trước khi hồ sơ được duyệt. Backend cũ không có trường này. */
   executorNote: z.string().nullish(),
   executorNoteUpdatedAt: timestamp.nullish(),
-  checkInOverdue: z.boolean(),
   /** Lúc tài khoản chấp nhận lời mời làm Người thực thi của kho; Backend cũ hoặc dữ liệu cũ không có thì null. */
   acceptedAt: timestamp.nullish(),
   openDeathCaseId: z.string().uuid().nullable(),
   /** Hồ sơ bị từ chối gần nhất của kho, để Executor xem lại lý do. Backend cũ không có trường này. */
   lastRejectedDeathCaseId: z.string().uuid().nullish(),
-  /** Lần Chủ kho TỰ điểm danh gần nhất (điểm danh thay không tính); null khi chưa từng. Backend cũ không có trường này. */
-  lastOwnerCheckInAt: timestamp.nullish(),
-  /** Số lần điểm danh thay liên tiếp tối đa (Admin đặt) và số lượt còn lại. Backend cũ không có các trường này. */
-  proxyCheckInLimit: z.number().int().nonnegative().nullish(),
-  proxyCheckInsUsed: z.number().int().nonnegative().nullish(),
-  proxyCheckInsLeft: z.number().int().nonnegative().nullish(),
 });
 
 /** Một gói bàn giao nhìn từ Người thực thi: chỉ tên gói, người nhận, tên và loại tài sản; không có nội dung. */
@@ -125,17 +118,6 @@ export const deathDraftSchema = z.object({
   ownerCitizenId: z.string().max(32).nullable().optional(),
   certificateNumber: z.string().max(100).optional(),
   issuedBy: z.string().max(200).optional(),
-});
-
-/** Kết quả Executor điểm danh thay chủ kho: kế hoạch về ACTIVE và có kỳ điểm danh mới. */
-export const executorCheckInSchema = z.object({
-  vaultId: z.string().uuid(),
-  planStatus: z.string(),
-  checkedInAt: timestamp,
-  nextCheckInDueAt: timestamp,
-  graceEndsAt: timestamp,
-  proxyCheckInLimit: z.number().int().nonnegative().nullish(),
-  proxyCheckInsLeft: z.number().int().nonnegative().nullish(),
 });
 
 export type ExecutorVault = z.infer<typeof executorVaultSchema>;

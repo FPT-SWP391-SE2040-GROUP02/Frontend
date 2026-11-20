@@ -27,26 +27,6 @@ export function deriveNotifications(
 ): ExecutorNotification[] {
   const current: ExecutorNotification[] = [];
   const events: ExecutorNotification[] = [];
-  const hasCase = Boolean(vault.openDeathCaseId);
-  if (vault.checkInOverdue && !hasCase) {
-    current.push({
-      id: `overdue:${vault.planStatus}`,
-      at: null,
-      text: `${vault.ownerFullName} đã quá hạn điểm danh. Tới lượt bạn.`,
-      title: "Đến lượt bạn xử lý",
-      detail: `${vault.ownerFullName} đã quá hạn điểm danh.`,
-      tone: "attention",
-    });
-  } else if (vault.planStatus === "CHECKIN_OVERDUE" && !hasCase) {
-    current.push({
-      id: "waiting",
-      at: null,
-      text: `${vault.ownerFullName} trễ điểm danh, đang trong thời gian chờ.`,
-      title: "Chủ kho trễ điểm danh",
-      detail: `${vault.ownerFullName} đang trong thời gian chờ.`,
-      tone: "info",
-    });
-  }
   if (vault.executorNoteUpdatedAt) {
     events.push({
       id: `note:${vault.executorNoteUpdatedAt}`,

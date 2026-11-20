@@ -5,7 +5,6 @@ import type {
   AdminRevenueQuery,
   AdminUserRole,
   AdminUsersQuery,
-  HoldsQuery,
   PaymentTransactionsQuery,
 } from "./admin.schema";
 
@@ -15,13 +14,10 @@ export const adminKeys = {
   users: (query: AdminUsersQuery) => [...adminKeys.all, "users", query] as const,
   user: (userId: string) => [...adminKeys.all, "user", userId] as const,
   userOptions: (role: AdminUserRole) => [...adminKeys.all, "user-options", role] as const,
-  holds: (query: HoldsQuery) => [...adminKeys.all, "holds", query] as const,
-  hold: (holdId: string) => [...adminKeys.all, "hold", holdId] as const,
   paymentTransactions: (query: PaymentTransactionsQuery) =>
     [...adminKeys.all, "payment-transactions", query] as const,
   revenue: (query: AdminRevenueQuery) => [...adminKeys.all, "revenue", query] as const,
   handoverTemplate: () => [...adminKeys.all, "handover-template"] as const,
-  extraMails: () => [...adminKeys.all, "extra-mails"] as const,
   emailTemplates: () => [...adminKeys.all, "email-templates"] as const,
   handoverTemplateVersions: () => [...adminKeys.all, "handover-template-versions"] as const,
 };
@@ -79,42 +75,7 @@ export function useAdminUserCounts(query: { search?: string; status?: string }) 
   });
 }
 
-/** Số tạm giữ theo trạng thái cho thẻ lọc. */
-export function useAdminHoldCounts() {
-  return useQuery({
-    queryKey: [...adminKeys.all, "hold-counts"] as const,
-    queryFn: ({ signal }) => adminService.countHolds(signal),
-    retry: false,
-  });
-}
-
-export function useAdminHolds(query: HoldsQuery) {
-  return useQuery({
-    queryKey: adminKeys.holds(query),
-    queryFn: ({ signal }) => adminService.listHolds(query, signal),
-    placeholderData: keepPreviousData,
-    retry: false,
-  });
-}
-
-export function useAdminHold(holdId: string) {
-  return useQuery({
-    queryKey: adminKeys.hold(holdId),
-    queryFn: ({ signal }) => adminService.getHold(holdId, signal),
-    retry: false,
-  });
-}
-
 /** Một trang giao dịch tiền vào; giữ trang trước khi đổi bộ lọc để bảng không nháy trắng. */
-/** Các thư bổ sung của Admin; không tự retry để 404 không quyền hiện ngay. */
-export function useAdminExtraMails() {
-  return useQuery({
-    queryKey: adminKeys.extraMails(),
-    queryFn: ({ signal }) => adminService.listExtraMails(signal),
-    retry: false,
-  });
-}
-
 /** Các loại thư thông báo; không tự retry để 404 không quyền hiện ngay. */
 export function useAdminEmailTemplates() {
   return useQuery({

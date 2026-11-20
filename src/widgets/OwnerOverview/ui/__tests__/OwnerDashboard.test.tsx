@@ -7,11 +7,9 @@ import { OwnerDashboard } from "../OwnerDashboard";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
 import { backendAssetService } from "@/features/assets/api/backendAssetService";
 import { beneficiaryService } from "@/features/beneficiaries/api/beneficiaryService";
-import { checkInService } from "@/features/dms/api/checkInService";
 import { planSetupService } from "@/features/plan-setup/api/planSetupService";
 import { auditLogService } from "@/features/audit-logs/api/auditLogService";
 import { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
-import { checkInStatusSchema } from "@/features/dms/model/checkIn.schema";
 import {
   vaultFixture,
   pageFixture,
@@ -42,24 +40,6 @@ const setupFixture = () =>
     assetsOutsideContainer: [],
     warnings: [],
   });
-const checkInFixture = () =>
-  checkInStatusSchema.parse({
-    status: "NOT_STARTED",
-    planStatus: "DRAFT",
-    serverTime: CREATED_AT,
-    lastCheckInAt: null,
-    nextCheckInDueAt: null,
-    graceEndsAt: null,
-    settings: {
-      cycleDays: 60,
-      lateReminderGapDays: 3,
-      maxLateReminders: 3,
-      pendingCycleDays: null,
-      etag: "test",
-    },
-    history: pageFixture([]),
-  });
-
 function problem(code: string, status: number) {
   const config = { headers: new AxiosHeaders() };
   return new AxiosError("Test response", undefined, config, undefined, {
@@ -77,7 +57,6 @@ beforeEach(() => {
   vi.spyOn(ownerVaultService, "getMine").mockResolvedValue(vault);
   vi.spyOn(backendAssetService, "list").mockResolvedValue(pageFixture([]));
   vi.spyOn(beneficiaryService, "list").mockResolvedValue(pageFixture([]));
-  vi.spyOn(checkInService, "get").mockResolvedValue(checkInFixture());
   vi.spyOn(planSetupService, "get").mockResolvedValue(setupFixture());
   vi.spyOn(auditLogService, "list").mockResolvedValue(pageFixture([]));
 });
@@ -147,7 +126,6 @@ describe("Owner dashboard from server metadata", () => {
     expect(
       screen.queryByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Điểm danh" })).toBeDisabled();
     expect(screen.queryByText("Kho đang an toàn")).not.toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
@@ -201,38 +179,5 @@ describe("Owner dashboard from server metadata", () => {
     mount();
     expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được kho");
     expect(screen.queryByRole("region", { name: "Tạo kho di sản" })).not.toBeInTheDocument();
-  });
-
-  it("waits for check-in confirmation and synchronizes the existing cache", async () => {
-    vi.mocked(checkInService.get).mockResolvedValue({
-      ...checkInFixture(),
-      status: "ACTIVE",
-      planStatus: "ACTIVE",
-    });
-    let finish: (value: ReturnType<typeof checkInFixture>) => void = () => {};
-    const submit = vi.spyOn(checkInService, "checkIn").mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          finish = resolve;
-        }),
-    );
-    mount();
-    const button = await screen.findByRole("button", { name: "Điểm danh" });
-    expect(submit).not.toHaveBeenCalled();
-    fireEvent.click(button);
-    expect(screen.getByRole("button", { name: "Đang gửi yêu cầu…" })).toBeDisabled();
-    expect(screen.queryByRole("button", { name: "Đã điểm danh hôm nay" })).not.toBeInTheDocument();
-    const checkedIn: ReturnType<typeof checkInFixture> = {
-      ...checkInFixture(),
-      status: "ACTIVE",
-      planStatus: "ACTIVE",
-      lastCheckInAt: CREATED_AT,
-      serverTime: CREATED_AT,
-    };
-    vi.mocked(checkInService.get).mockResolvedValue(checkedIn);
-    finish(checkedIn);
-    expect(await screen.findByRole("button", { name: "Đã điểm danh hôm nay" })).toBeDisabled();
-    expect(submit).toHaveBeenCalledTimes(1);
-    await vi.waitFor(() => expect(auditLogService.list).toHaveBeenCalledTimes(2));
   });
 });

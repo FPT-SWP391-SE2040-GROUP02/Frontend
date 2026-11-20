@@ -19,10 +19,8 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { AdminWorkspacePage } from "@/pages/admin/AdminWorkspacePage";
 import { adminActionError } from "@/features/admin/model/adminError";
 
-const HOLD_ID = "33333333-3333-4333-8333-333333333333";
 const OTHER_USER_ID = "66666666-6666-4666-8666-666666666666";
 const ADMIN_ID = VAULT_ID;
-const KHO_ID = "77777777-7777-4777-8777-777777777777";
 
 const page = <T,>(items: T[]) => ({
   items,
@@ -34,23 +32,6 @@ const page = <T,>(items: T[]) => ({
   hasNextPage: false,
 });
 
-const holdBody = (over: Record<string, unknown> = {}) => ({
-  id: HOLD_ID,
-  vaultId: KHO_ID,
-  scope: "VAULT",
-  targetId: null,
-  type: "ADMIN",
-  status: "ACTIVE",
-  reason: "Tranh chấp quyền thừa kế",
-  responsibleUserId: ADMIN_ID,
-  reviewAt: "2026-10-22T00:00:00Z",
-  reviewOverdue: false,
-  createdAt: "2026-10-19T00:00:00Z",
-  releasedAt: null,
-  releaseReason: null,
-  etag: "hold-1",
-  ...over,
-});
 const paymentBody = (over: Record<string, unknown> = {}) => ({
   id: "88888888-8888-4888-8888-888888888888",
   provider: "SePay",
@@ -180,27 +161,6 @@ function setup(path: string) {
     </Provider>,
   );
 }
-
-const holdsPath = `${ROUTES.ADMIN.ROOT}?view=holds`;
-
-describe("Tạm giữ (chỉ xem)", () => {
-  it("chi tiết hold chỉ xem, không có nút hẹn rà soát hay gỡ", async () => {
-    backend(() => holdBody());
-    setup(`${holdsPath}&hold=${HOLD_ID}`);
-    expect(await screen.findByText("Phạm vi")).toBeInTheDocument();
-    expect(screen.getByText(/Quản trị viên chỉ xem/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Hẹn rà soát" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Gỡ tạm giữ" })).not.toBeInTheDocument();
-    expect(calls.filter((call) => call.method === "post")).toHaveLength(0);
-  });
-
-  it("danh sách tạm giữ không có nút đặt tạm giữ", async () => {
-    backend(() => page([holdBody()]));
-    setup(holdsPath);
-    expect(await screen.findByText("Tranh chấp quyền thừa kế")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Đặt tạm giữ" })).not.toBeInTheDocument();
-  });
-});
 
 describe("Giao dịch thanh toán (chỉ xem)", () => {
   const paymentsPath = `${ROUTES.ADMIN.ROOT}?view=payments`;
