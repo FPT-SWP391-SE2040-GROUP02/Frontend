@@ -20,8 +20,11 @@ export function AdminErrorMessage({
   const kind = classifyAdminError(error);
   const canRetry = kind === "other" || kind === "invalidData";
   return (
-    <div role="alert" className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-4">
-      <p className="text-sm text-red-800">{ERROR_MESSAGES[kind]}</p>
+    <div
+      role="alert"
+      className="space-y-3 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4"
+    >
+      <p className="text-sm text-heritage-danger">{ERROR_MESSAGES[kind]}</p>
       {canRetry && (
         <Button className="min-h-11" onClick={onRetry} disabled={retrying}>
           Thử lại

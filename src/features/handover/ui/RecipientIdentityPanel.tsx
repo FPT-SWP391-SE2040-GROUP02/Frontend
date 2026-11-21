@@ -12,7 +12,7 @@ import { useHandoverAction } from "../model/useHandoverAction";
 import { ImagePicker } from "./ImagePicker";
 
 const FIELD =
-  "h-11 w-full rounded-xl border border-[#E0C486] bg-[#FFF6D8] px-3 text-sm font-semibold text-heritage-primary outline-none focus-visible:ring-2 focus-visible:ring-heritage-gold/40";
+  "h-11 w-full rounded-xl border border-heritage-gold-soft bg-heritage-warning-bg px-3 text-sm font-semibold text-heritage-primary outline-none focus-visible:ring-2 focus-visible:ring-heritage-gold/40";
 
 function emptyDraft(): SubmissionDraft {
   return {
@@ -104,7 +104,7 @@ function IdentityForm({ turnId, onDone }: { turnId: string; onDone: () => void }
       <label className="flex cursor-pointer items-start gap-3 text-sm">
         <input
           type="checkbox"
-          className="mt-1 size-5 cursor-pointer accent-[#0A281E]"
+          className="mt-1 size-5 cursor-pointer accent-heritage-primary"
           checked={draft.acknowledged}
           onChange={(event) => set("acknowledged", event.target.checked)}
         />
@@ -117,7 +117,7 @@ function IdentityForm({ turnId, onDone }: { turnId: string; onDone: () => void }
       )}
       <button
         type="button"
-        className={buttonStyles.gold}
+        className={buttonStyles.dark}
         disabled={action.pending}
         onClick={submit}
       >
@@ -152,7 +152,7 @@ export function RecipientIdentityPanel({
   if (query.isError) {
     return (
       <div role="alert" className="space-y-3">
-        <p className="text-sm text-[#A32119]">Không tải được hồ sơ danh tính của bạn.</p>
+        <p className="text-sm text-heritage-danger">Không tải được hồ sơ danh tính của bạn.</p>
         <button type="button" className={buttonStyles.outline} onClick={() => void query.refetch()}>
           Thử lại
         </button>
@@ -182,7 +182,7 @@ export function RecipientIdentityPanel({
       {latest && latest.status === "SUPPLEMENT_REQUESTED" && (
         <div
           role="alert"
-          className="flex items-start gap-2 rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]"
+          className="flex items-start gap-2 rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
         >
           <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>

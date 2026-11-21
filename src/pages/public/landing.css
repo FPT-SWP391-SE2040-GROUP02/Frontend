@@ -95,7 +95,7 @@ html:has(#top) [id] {
 .landing-lift:hover {
   transform: translateY(-4px);
   box-shadow: 0 14px 28px -14px rgb(10 40 30 / 0.35);
-  border-color: #b68f4c;
+  border-color: var(--gold);
 }
 
 /* Nút vàng: ấn xuống một chút khi bấm. */

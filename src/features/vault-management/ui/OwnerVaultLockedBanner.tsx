@@ -9,14 +9,14 @@ export function OwnerVaultLockedBanner({ reason }: { reason: string }) {
     <section
       role="status"
       aria-labelledby="vault-locked-title"
-      className="flex items-start gap-3 rounded-2xl border border-[#E0C486] bg-[#FBF3DF] px-5 py-4"
+      className="flex items-start gap-3 rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg px-5 py-4"
     >
-      <LockKeyhole className="mt-0.5 size-5 shrink-0 text-[#7A5B25]" aria-hidden="true" />
+      <LockKeyhole className="mt-0.5 size-5 shrink-0 text-heritage-warning" aria-hidden="true" />
       <div className="min-w-0 space-y-1">
-        <h2 id="vault-locked-title" className="text-sm font-semibold text-[#5C4318]">
+        <h2 id="vault-locked-title" className="text-sm font-semibold text-heritage-warning">
           Kho đang bị khóa
         </h2>
-        <p className="max-w-2xl text-sm leading-6 text-[#5C4318]">
+        <p className="max-w-2xl text-sm leading-6 text-heritage-warning">
           {reason} Bạn vẫn xem được dữ liệu, nhưng các nút thêm, sửa, xóa đã bị khóa.
         </p>
       </div>

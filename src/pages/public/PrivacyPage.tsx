@@ -13,12 +13,12 @@ export function PrivacyPage() {
     >
       <p
         role="note"
-        className="mb-8 rounded-xl border border-[#B68F4C]/50 bg-[#FAF3E0] p-4 text-sm leading-6 text-[#5C4720]"
+        className="mb-8 rounded-xl border border-heritage-gold/50 bg-heritage-warning-bg p-4 text-sm leading-6 text-heritage-warning"
       >
         {content.draftNotice}
       </p>
       <LegalSections sections={content.sections} />
-      <p className="mt-10 text-sm text-[#4E6257]">
+      <p className="mt-10 text-sm text-heritage-muted">
         {PUBLIC_INFO_COMMON.updatedPrefix} {PUBLIC_INFO_COMMON.updatedAt}
       </p>
     </PublicInfoLayout>

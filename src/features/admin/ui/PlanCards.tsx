@@ -135,7 +135,9 @@ export function PlanCards({ getValue, setKeyValue }: PlanCardsProps) {
               aria-label={`Bán kỳ ${period.years} năm`}
               onCheckedChange={() => togglePeriod(period.years)}
             />
-            <span className={`text-sm ${period.on ? "text-emerald-800" : "text-heritage-muted"}`}>
+            <span
+              className={`text-sm ${period.on ? "text-heritage-success" : "text-heritage-muted"}`}
+            >
               {period.on ? "Đang bán" : "Tạm ngừng"}
             </span>
           </label>
@@ -198,7 +200,7 @@ function PlanCard({
         <h3 className="flex flex-wrap items-center gap-2 text-lg font-bold text-heritage-primary">
           {model.name}
           {model.free && (
-            <span className="rounded-xl bg-[#e5ede8] px-2 py-0.5 text-sm font-semibold">
+            <span className="rounded-xl bg-heritage-primary-light px-2 py-0.5 text-sm font-semibold">
               Mặc định
             </span>
           )}
@@ -206,7 +208,7 @@ function PlanCard({
         <p className="text-[12.5px] text-heritage-muted">{model.subtitle}</p>
       </div>
       {model.saleKey && (
-        <label className="flex items-center gap-2 text-sm font-semibold text-emerald-800">
+        <label className="flex items-center gap-2 text-sm font-semibold text-heritage-success">
           <Switch
             checked={selling}
             aria-label={`Bán gói ${model.name}`}
@@ -279,7 +281,10 @@ function PlanCard({
                 {model.free && index > 0 ? (
                   <Minus className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 ) : (
-                  <Check className="mt-0.5 size-4 shrink-0 text-emerald-700" aria-hidden="true" />
+                  <Check
+                    className="mt-0.5 size-4 shrink-0 text-heritage-success"
+                    aria-hidden="true"
+                  />
                 )}
                 {feature}
               </li>
@@ -291,7 +296,7 @@ function PlanCard({
             type="button"
             onClick={() => setEditing(true)}
             aria-expanded={false}
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-heritage-border px-3 text-sm font-semibold hover:bg-[#e5ede8]"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-heritage-border px-3 text-sm font-semibold hover:bg-heritage-primary-light"
           >
             <Pencil className="size-4" aria-hidden="true" />
             Sửa gói
@@ -382,7 +387,7 @@ function PlanCard({
           type="button"
           onClick={() => setEditing(false)}
           aria-expanded
-          className="inline-flex min-h-10 items-center rounded-lg bg-heritage-primary px-5 text-sm font-semibold text-white hover:bg-[#133e2f]"
+          className="inline-flex min-h-10 items-center rounded-lg bg-heritage-primary px-5 text-sm font-semibold text-white hover:bg-heritage-primary-hover"
         >
           Xong
         </button>
@@ -414,7 +419,11 @@ function DeleteLink({
   if (confirming) {
     return (
       <span className="flex items-center gap-3 text-sm">
-        <button type="button" onClick={onConfirm} className="font-semibold text-red-800 underline">
+        <button
+          type="button"
+          onClick={onConfirm}
+          className="font-semibold text-heritage-danger underline"
+        >
           Xác nhận xóa
         </button>
         <button type="button" onClick={onCancel} className="text-heritage-muted underline">
@@ -427,7 +436,7 @@ function DeleteLink({
     <button
       type="button"
       onClick={onAsk}
-      className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-800 underline"
+      className="inline-flex items-center gap-1.5 text-sm font-semibold text-heritage-danger underline"
     >
       <Trash2 className="size-4" aria-hidden="true" />
       Xóa gói
@@ -471,7 +480,7 @@ function PriceField({
         </span>
       </div>
       {tooBig && (
-        <small role="alert" className="mt-1 block text-sm text-red-800">
+        <small role="alert" className="mt-1 block text-sm text-heritage-danger">
           Giá mỗi kỳ tối đa {money.format(MAX_TIER_PRICE)}đ.
         </small>
       )}
@@ -514,7 +523,7 @@ function Stepper({
           type="button"
           aria-label={`Giảm ${label}`}
           onClick={() => set(current - step)}
-          className="grid w-10 place-items-center border-r border-heritage-border text-lg font-bold hover:bg-[#e5ede8]"
+          className="grid w-10 place-items-center border-r border-heritage-border text-lg font-bold hover:bg-heritage-primary-light"
         >
           −
         </button>
@@ -529,7 +538,7 @@ function Stepper({
           type="button"
           aria-label={`Tăng ${label}`}
           onClick={() => set(current + step)}
-          className="grid w-10 place-items-center border-l border-heritage-border text-lg font-bold hover:bg-[#e5ede8]"
+          className="grid w-10 place-items-center border-l border-heritage-border text-lg font-bold hover:bg-heritage-primary-light"
         >
           +
         </button>
@@ -569,7 +578,7 @@ function FeatureEditor({
             {free && index > 0 ? (
               <Minus className="size-4 shrink-0 text-heritage-muted" aria-hidden="true" />
             ) : (
-              <Check className="size-4 shrink-0 text-emerald-700" aria-hidden="true" />
+              <Check className="size-4 shrink-0 text-heritage-success" aria-hidden="true" />
             )}
             <input
               value={line}
@@ -585,7 +594,7 @@ function FeatureEditor({
               type="button"
               aria-label={`Xóa dòng ${index + 1}`}
               onClick={() => onChange(lines.filter((_, i) => i !== index))}
-              className="grid size-7 shrink-0 place-items-center rounded-md text-heritage-muted hover:bg-[#e8e5dd]"
+              className="grid size-7 shrink-0 place-items-center rounded-md text-heritage-muted hover:bg-heritage-sunken"
             >
               <X className="size-4" aria-hidden="true" />
             </button>
@@ -596,14 +605,14 @@ function FeatureEditor({
         <button
           type="button"
           onClick={() => onChange([...lines, ""])}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#7a5a22] underline"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-heritage-warning underline"
         >
           <Plus className="size-4" aria-hidden="true" />
           Thêm dòng
         </button>
       )}
       {tooLong && (
-        <small role="alert" className="block text-sm text-red-800">
+        <small role="alert" className="block text-sm text-heritage-danger">
           Mỗi dòng tối đa {MAX_FEATURE_LENGTH} ký tự.
         </small>
       )}

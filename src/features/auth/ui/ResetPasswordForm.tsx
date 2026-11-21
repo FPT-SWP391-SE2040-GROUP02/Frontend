@@ -149,7 +149,11 @@ export function ResetPasswordForm({
               </Button>
             </div>
             {errors[field] && (
-              <p id={`reset-${field}-error`} role="alert" className="mt-2 text-sm text-red-700">
+              <p
+                id={`reset-${field}-error`}
+                role="alert"
+                className="mt-2 text-sm text-heritage-danger"
+              >
                 {errors[field]?.message}
               </p>
             )}

@@ -34,10 +34,10 @@ export function ImagePicker({
   const activePreview = file ? previewUrl : null;
 
   return (
-    <label className="flex cursor-pointer flex-col gap-2.5 rounded-xl border border-dashed border-heritage-border bg-white p-4 text-sm hover:bg-[#F7F4EA]">
+    <label className="flex cursor-pointer flex-col gap-2.5 rounded-xl border border-dashed border-heritage-border bg-white p-4 text-sm hover:bg-heritage-sunken">
       <span className="font-semibold text-heritage-primary">{label}</span>
       {activePreview && (
-        <div className="overflow-hidden rounded-lg border border-heritage-border bg-[#F9F7F1] p-1.5">
+        <div className="overflow-hidden rounded-lg border border-heritage-border bg-heritage-canvas p-1.5">
           <img
             src={activePreview}
             alt={`Ảnh đối chiếu ${label}`}

@@ -115,7 +115,7 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
             {detail.canApprove && (
               <button
                 type="button"
-                className={buttonStyles.gold}
+                className={buttonStyles.dark}
                 disabled={busy}
                 onClick={() =>
                   void approve.execute(() => recipientReviewService.approve(detail.id), done)

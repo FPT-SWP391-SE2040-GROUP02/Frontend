@@ -17,10 +17,10 @@ export function MatchRing({
   let text = "text-heritage-muted";
   if (tone === "pass") {
     stroke = "#2f9e75";
-    text = "text-green-700";
+    text = "text-heritage-success";
   } else if (tone === "fail") {
     stroke = "#a31d17";
-    text = "text-red-800";
+    text = "text-heritage-danger";
   }
   let label = "—";
   if (score !== null) {

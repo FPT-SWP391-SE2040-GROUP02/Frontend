@@ -41,7 +41,7 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
       <p role="status" className="text-sm leading-6">
         {notStartedText(record ? record.status : null)}
       </p>
-      <Link className={`${buttonStyles.gold} mt-4`} to={ROUTES.EXECUTOR.REPORT}>
+      <Link className={`${buttonStyles.dark} mt-4`} to={ROUTES.EXECUTOR.REPORT}>
         Đi tới Biên bản bàn giao
       </Link>
     </Panel>

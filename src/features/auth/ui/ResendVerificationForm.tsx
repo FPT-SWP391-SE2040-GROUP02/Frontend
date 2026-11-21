@@ -62,17 +62,17 @@ export function ResendVerificationForm({ className = "" }: { className?: string 
         aria-describedby={errors.email ? "recovery-email-error" : undefined}
       />
       {errors.email && (
-        <p id="recovery-email-error" role="alert" className="text-sm text-red-700">
+        <p id="recovery-email-error" role="alert" className="text-sm text-heritage-danger">
           {errors.email.message}
         </p>
       )}
       {mutation.isError && (
-        <p role="alert" className="text-sm text-red-700">
+        <p role="alert" className="text-sm text-heritage-danger">
           {getRegisterErrorMessage(mutation.error)}
         </p>
       )}
       {mutation.isSuccess && (
-        <p role="status" className="text-sm text-emerald-700">
+        <p role="status" className="text-sm text-heritage-success">
           {content.resendAccepted}
         </p>
       )}

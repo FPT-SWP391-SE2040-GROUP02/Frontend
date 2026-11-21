@@ -147,12 +147,12 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
               </dl>
               {statusHints[turn.status] && <p className="text-sm">{statusHints[turn.status]}</p>}
               {turn.status === "INVITED" && (
-                <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm font-medium text-[#7A5B24]">
+                <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm font-medium text-heritage-warning">
                   {remainingText(turn.responseDeadline, turn.serverTime)} để phản hồi lời mời
                 </p>
               )}
               {turn.identityBypassed && (
-                <p role="status" className="text-sm text-amber-800">
+                <p role="status" className="text-sm text-heritage-warning">
                   Môi trường Development đang bỏ qua bước xác minh danh tính. Đây không phải bằng
                   chứng danh tính đã được xác minh.
                 </p>
@@ -219,7 +219,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                     </div>
                   )}
                   {turn.keyRequired && turn.keyVerified && (
-                    <p role="status" className="text-sm text-[#1F7A55]">
+                    <p role="status" className="text-sm text-heritage-success">
                       Khóa mở gói đã được xác nhận.
                     </p>
                   )}
@@ -308,7 +308,10 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
           )}
           {(action.pending || content.pending) && <p role="status">Đang xử lý yêu cầu…</p>}
           {(action.error || content.error) && (
-            <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+            <p
+              role="alert"
+              className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+            >
               {action.error || content.error}
             </p>
           )}
@@ -352,7 +355,10 @@ export function HandoverPortal() {
         </button>
       </div>
       {query.isError ? (
-        <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+        <p
+          role="alert"
+          className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+        >
           Không tải được các lượt của bạn. Vui lòng thử lại.
         </p>
       ) : query.data.length === 0 ? (

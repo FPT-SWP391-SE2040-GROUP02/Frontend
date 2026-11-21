@@ -30,7 +30,7 @@ const SEARCH_THRESHOLD = 8;
 
 function ItemChip({ item, withInitial }: { item: ChipOverflowItem; withInitial: boolean }) {
   return (
-    <span className="inline-flex max-w-[12rem] min-w-0 shrink items-center gap-1.5 rounded-full bg-[#ECE8DB] py-1 pr-3 pl-1.5 text-sm font-medium text-[#0A281E]">
+    <span className="inline-flex max-w-[12rem] min-w-0 shrink items-center gap-1.5 rounded-full bg-heritage-sunken py-1 pr-3 pl-1.5 text-sm font-medium text-heritage-primary">
       {withInitial && <Initial name={item.label} className="size-5 text-[0.875rem]" />}
       {!withInitial && <span className="w-1" aria-hidden="true" />}
       <span className="truncate">{item.label}</span>
@@ -73,7 +73,7 @@ export function ChipOverflow({
       <li key={item.id} className="flex items-center gap-3 px-4 py-2.5">
         {withInitial && <Initial name={item.label} className="size-7 text-sm" />}
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-[#0A281E]">{item.label}</p>
+          <p className="truncate text-sm font-medium text-heritage-primary">{item.label}</p>
           {item.detail && <p className="text-sm text-heritage-muted">{item.detail}</p>}
         </div>
       </li>,
@@ -103,8 +103,9 @@ export function ChipOverflow({
             aria-label={`Xem thêm ${hiddenCount} mục: ${popupTitle}`}
             className={cn(
               "inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold",
-              open && "border-[#0A281E] bg-[#0A281E] text-white",
-              !open && "border-[#BDB8A6] bg-white text-[#0A281E] hover:bg-[#F4F1E6]",
+              open && "border-heritage-primary bg-heritage-primary text-white",
+              !open &&
+                "border-heritage-border-strong bg-white text-heritage-primary hover:bg-heritage-sunken",
             )}
           >
             +{hiddenCount}
@@ -112,14 +113,14 @@ export function ChipOverflow({
           </Popover.Trigger>
           <Popover.Portal>
             <Popover.Positioner side="bottom" align="start" sideOffset={6} className="z-50">
-              <Popover.Popup className="w-72 overflow-hidden rounded-xl border border-heritage-border bg-[#FBFAF5] shadow-lg outline-none">
+              <Popover.Popup className="w-72 overflow-hidden rounded-xl border border-heritage-border bg-heritage-surface shadow-lg outline-none">
                 <div className="flex items-center justify-between gap-2 border-b border-heritage-border px-4 py-3">
-                  <Popover.Title className="text-sm font-semibold text-[#0A281E]">
+                  <Popover.Title className="text-sm font-semibold text-heritage-primary">
                     {popupTitle}
                   </Popover.Title>
                   <Popover.Close
                     aria-label="Đóng"
-                    className="flex size-6 items-center justify-center rounded-full bg-[#ECE8DB] text-[#0A281E] hover:bg-[#E0DCCD]"
+                    className="flex size-6 items-center justify-center rounded-full bg-heritage-sunken text-heritage-primary hover:bg-heritage-border"
                   >
                     <XIcon className="size-3.5" aria-hidden="true" />
                   </Popover.Close>

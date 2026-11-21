@@ -90,39 +90,41 @@ export function UserAvatarMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         type="button"
-        className={`relative rounded-full focus:outline-none focus:ring-2 focus:ring-[var(--heritage-gold,#b88e4c)] focus:ring-offset-2 ${className}`}
+        className={`relative rounded-full focus:outline-none focus:ring-2 focus:ring-heritage-gold focus:ring-offset-2 ${className}`}
         aria-label="Menu tài khoản"
       >
-        <Avatar className="h-9 w-9 border-2 border-[#d2decb] dark:border-[#1e4631] bg-gradient-to-br from-[#d8bf7d] to-[#af8946] text-[#103329] font-bold text-sm shadow-xs">
+        <Avatar className="h-9 w-9 border-2 border-heritage-primary-light dark:border-heritage-primary-hover bg-gradient-to-br from-heritage-gold-soft to-heritage-gold text-heritage-primary-hover font-bold text-sm shadow-xs">
           {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
-          <AvatarFallback className="bg-transparent text-[#103329] font-bold">
+          <AvatarFallback className="bg-transparent text-heritage-primary-hover font-bold">
             {initials || "LV"}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="w-56 bg-white dark:bg-[#0c2217] border border-[#dce5d6] dark:border-[#1d402f] shadow-lg rounded-2xl p-1.5"
+        className="w-56 bg-white dark:bg-heritage-primary-hover border border-heritage-primary-light dark:border-heritage-primary-hover shadow-lg rounded-2xl p-1.5"
         align="end"
       >
         <DropdownMenuLabel className="p-2 space-y-1">
-          <p className="text-sm font-bold text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4] truncate">
+          <p className="text-sm font-bold text-heritage-primary dark:text-heritage-primary-light truncate">
             {fullName}
           </p>
-          <p className="text-[0.875rem] text-[#637666] dark:text-[#9bb39f] truncate">{email}</p>
+          <p className="text-[0.875rem] text-heritage-subtle dark:text-heritage-subtle truncate">
+            {email}
+          </p>
           <div className="pt-1">
-            <span className="inline-flex items-center gap-1 text-[0.875rem] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              <ShieldCheck className="w-3 h-3 text-emerald-600" />
+            <span className="inline-flex items-center gap-1 text-[0.875rem] font-bold px-2 py-0.5 rounded-full bg-heritage-success-bg dark:bg-heritage-success text-heritage-success dark:text-heritage-success-border border border-heritage-success-border dark:border-heritage-success">
+              <ShieldCheck className="w-3 h-3 text-heritage-success" />
               <span>{getRoleBadgeLabel(role)}</span>
             </span>
           </div>
         </DropdownMenuLabel>
 
-        <DropdownMenuSeparator className="bg-[#edf3ea] dark:bg-[#183626]" />
+        <DropdownMenuSeparator className="bg-heritage-primary-light dark:bg-heritage-primary-hover" />
 
         <DropdownMenuItem
           onClick={handleLogoutClick}
-          className="p-2 text-sm font-semibold text-red-600 dark:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer flex items-center gap-2"
+          className="p-2 text-sm font-semibold text-heritage-danger dark:text-heritage-danger rounded-xl hover:bg-heritage-danger-bg dark:hover:bg-heritage-danger/40 cursor-pointer flex items-center gap-2"
         >
           <LogOut className="w-4 h-4" />
           <span>Đăng xuất an toàn</span>

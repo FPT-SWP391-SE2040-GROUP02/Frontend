@@ -18,8 +18,8 @@ import { AdminPagination } from "./AdminPagination";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
 const STATUS_STYLES: Record<HoldStatus, string> = {
-  ACTIVE: "bg-amber-50 text-amber-900 border-amber-300",
-  RELEASED: "bg-stone-100 text-stone-700 border-stone-300",
+  ACTIVE: "bg-heritage-warning-bg text-heritage-warning border-heritage-warning-border",
+  RELEASED: "bg-heritage-sunken text-heritage-muted border-heritage-border-strong",
 };
 
 function StatusBadge({ status }: { status: HoldStatus }) {
@@ -34,7 +34,7 @@ function StatusBadge({ status }: { status: HoldStatus }) {
 
 function ReviewOverdueBadge() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-sm font-semibold text-red-800">
+    <span className="inline-flex items-center gap-1 rounded-full border border-heritage-danger-border bg-heritage-danger-bg px-2.5 py-0.5 text-sm font-semibold text-heritage-danger">
       <AlertTriangle className="size-3.5" aria-hidden="true" />
       Quá hạn rà soát
     </span>
@@ -199,7 +199,7 @@ function HoldDetailView({ holdId, onBack }: { holdId: string; onBack: () => void
         {specific ? (
           <p
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+            className="rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4 text-sm text-heritage-danger"
           >
             {specific}
           </p>

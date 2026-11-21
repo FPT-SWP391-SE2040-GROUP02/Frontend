@@ -120,7 +120,7 @@ function ReissueDialog({
             </button>
             <button
               type="submit"
-              className={buttonStyles.gold}
+              className={buttonStyles.dark}
               disabled={!pinComplete || locked || action.pending}
             >
               {action.pending ? "Đang đổi mã…" : "Đổi mã mới"}
@@ -176,7 +176,7 @@ export function ExecutorKeyCard({ vaultId, title = "Mã mở gói" }: ExecutorKe
     <Panel
       title={title}
       action={<Chip tone={chipTone}>{chipText}</Chip>}
-      className="border-[#E0C486]/60 bg-[#FBF3DE]"
+      className="border-heritage-gold-soft/60 bg-heritage-warning-bg"
     >
       <p className="text-sm leading-6">
         Hệ thống tự giữ mã và chỉ gửi cho người nhận sau khi hồ sơ được duyệt. Bạn không cần lưu hay
@@ -197,7 +197,7 @@ export function ExecutorKeyCard({ vaultId, title = "Mã mở gói" }: ExecutorKe
       )}
 
       {changedVersion !== null && (
-        <p role="status" className="mt-3 text-sm font-medium text-[#1F7A55]">
+        <p role="status" className="mt-3 text-sm font-medium text-heritage-success">
           Đã đổi mã. Bản đang dùng là Bản {changedVersion}.
         </p>
       )}

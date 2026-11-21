@@ -138,7 +138,7 @@ export function VerifierShell({
                 className="contents md:flex md:flex-col md:gap-1"
               >
                 {group.heading && (
-                  <p className="hidden px-3 pb-1 pt-4 text-[0.875rem] font-semibold uppercase tracking-widest text-[#E6C98B]/70 md:block">
+                  <p className="hidden px-3 pb-1 pt-4 text-[0.875rem] font-semibold uppercase tracking-widest text-heritage-gold-soft/70 md:block">
                     {group.heading}
                   </p>
                 )}
@@ -159,7 +159,7 @@ export function VerifierShell({
                       {count > 0 && (
                         <span
                           aria-label={`${count} việc đang chờ bạn duyệt`}
-                          className="ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-[#E0C486] px-2 text-sm font-semibold text-[#0A281E]"
+                          className="ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-heritage-gold-soft px-2 text-sm font-semibold text-heritage-primary"
                         >
                           {count}
                         </span>
@@ -175,14 +175,14 @@ export function VerifierShell({
       footer={
         <div className="flex items-center gap-3">
           <span
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#E0C486] font-semibold text-[#0A281E]"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft font-semibold text-heritage-primary"
             aria-hidden="true"
           >
             {user?.fullName?.trim().charAt(0).toLocaleUpperCase("vi-VN") || "N"}
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
-            <p className="mt-0.5 text-sm text-[#E6C98B]">Người xét duyệt</p>
+            <p className="mt-0.5 text-sm text-heritage-gold-soft">Người xét duyệt</p>
           </div>
         </div>
       }

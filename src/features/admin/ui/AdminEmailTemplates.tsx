@@ -122,7 +122,7 @@ function TemplateEditor({ template, onDone }: { template: EmailTemplate; onDone:
         <ul className="mt-2 flex flex-wrap gap-2">
           {template.tokens.map((token) => (
             <li key={token.name} title={token.description}>
-              <code className="rounded-md bg-[#ECE8DB] px-2 py-1 text-sm">{`{${token.name}}`}</code>
+              <code className="rounded-md bg-heritage-sunken px-2 py-1 text-sm">{`{${token.name}}`}</code>
             </li>
           ))}
         </ul>
@@ -149,7 +149,7 @@ function TemplateEditor({ template, onDone }: { template: EmailTemplate; onDone:
               </label>
               <button
                 type="button"
-                className="text-sm font-medium text-[#7A5B25] underline"
+                className="text-sm font-medium text-heritage-warning underline"
                 onClick={() => common.onChange(fallback)}
               >
                 Lấy chữ gốc để sửa
@@ -177,14 +177,14 @@ function TemplateEditor({ template, onDone }: { template: EmailTemplate; onDone:
         );
       })}
       {problems.length > 0 && (
-        <ul role="alert" className="list-disc space-y-1 pl-5 text-sm text-[#A32119]">
+        <ul role="alert" className="list-disc space-y-1 pl-5 text-sm text-heritage-danger">
           {problems.map((problem) => (
             <li key={problem}>{problem}</li>
           ))}
         </ul>
       )}
       {action.error && (
-        <p role="alert" className="text-sm text-[#A32119]">
+        <p role="alert" className="text-sm text-heritage-danger">
           {action.error}
         </p>
       )}

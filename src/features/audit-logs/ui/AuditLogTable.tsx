@@ -17,9 +17,9 @@ import { formatDateTime } from "@/shared/lib/dateFormat";
 const HIDE_CODE_TYPES: readonly AuditLogEntry["targetType"][] = ["CHECK_IN", "PAYMENT_ORDER"];
 
 const OUTCOME_STYLES: Record<AuditLogEntry["outcome"], string> = {
-  SUCCEEDED: "bg-green-100 text-green-800",
-  DENIED: "bg-amber-100 text-amber-800",
-  FAILED: "bg-red-100 text-red-800",
+  SUCCEEDED: "bg-heritage-success-bg text-heritage-success",
+  DENIED: "bg-heritage-warning-bg text-heritage-warning",
+  FAILED: "bg-heritage-danger-bg text-heritage-danger",
 };
 
 /**

@@ -76,7 +76,7 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
           {isOwner && (
             <Link
               to={ROUTES.DASHBOARD.ROOT}
-              className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#E0C486] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E8CF9B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+              className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-heritage-gold-soft px-4 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
             >
               <ArrowLeftRight className="size-4" aria-hidden="true" />
               Sang vai Chủ kho

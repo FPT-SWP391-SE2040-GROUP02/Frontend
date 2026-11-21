@@ -85,8 +85,11 @@ export function AdminTwoFactorSettings() {
   if (status.isPending) return <p role="status">Đang tải trạng thái xác thực hai bước…</p>;
   if (status.isError)
     return (
-      <div role="alert" className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-4">
-        <p className="text-sm text-red-800">Không đọc được trạng thái xác thực hai bước.</p>
+      <div
+        role="alert"
+        className="space-y-3 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4"
+      >
+        <p className="text-sm text-heritage-danger">Không đọc được trạng thái xác thực hai bước.</p>
         <Button variant="outline" onClick={() => void status.refetch()}>
           Thử lại
         </Button>
@@ -115,7 +118,9 @@ export function AdminTwoFactorSettings() {
             Xác thực hai bước
             <span
               className={`inline-flex h-6 items-center rounded-xl px-2.5 text-sm font-semibold ${
-                enabled ? "bg-emerald-50 text-emerald-800" : "bg-[#e8e5dd] text-heritage-muted"
+                enabled
+                  ? "bg-heritage-success-bg text-heritage-success"
+                  : "bg-heritage-sunken text-heritage-muted"
               }`}
             >
               {enabled ? "Đang bật" : "Chưa bật"}
@@ -152,7 +157,7 @@ export function AdminTwoFactorSettings() {
           </ol>
           <div className="space-y-1">
             <p className="text-sm text-heritage-muted">Khóa nhập thủ công</p>
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-heritage-border bg-[#faf9f5] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-heritage-border bg-heritage-surface p-3">
               <p className="break-all font-mono text-sm tracking-wider">
                 {groupSecret(step.setup.secret)}
               </p>
@@ -194,7 +199,7 @@ export function AdminTwoFactorSettings() {
         <div className="space-y-3">
           <div
             role="alert"
-            className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+            className="flex items-start gap-2 rounded-lg border border-heritage-warning-border bg-heritage-warning-bg p-3 text-sm text-heritage-warning"
           >
             <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <p>
@@ -207,7 +212,7 @@ export function AdminTwoFactorSettings() {
             {step.recoveryCodes.map((item) => (
               <li
                 key={item}
-                className="rounded-lg border border-heritage-border bg-[#faf9f5] p-2 text-center font-mono text-sm tracking-wider"
+                className="rounded-lg border border-heritage-border bg-heritage-surface p-2 text-center font-mono text-sm tracking-wider"
               >
                 {item}
               </li>

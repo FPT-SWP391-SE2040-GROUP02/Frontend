@@ -73,13 +73,13 @@ function ExecutorNoteForm({ vault }: { vault: VaultResponse }) {
         disabled={action.pending || closed}
         onChange={(event) => setNote(event.target.value)}
         placeholder="Ví dụ: Gọi cho anh Minh (luật sư gia đình) trước. Giấy tờ để trong tủ sắt ở phòng làm việc."
-        className="mt-4 rounded-xl border-[#BDB8A6] bg-white"
+        className="mt-4 rounded-xl border-heritage-border-strong bg-white"
       />
       <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
         {action.succeeded && !dirty && (
           <p
             role="status"
-            className="mr-auto inline-flex items-center gap-1.5 text-sm font-medium text-[#1F7A55]"
+            className="mr-auto inline-flex items-center gap-1.5 text-sm font-medium text-heritage-success"
           >
             <CheckCircle2 className="size-4" aria-hidden="true" />
             Đã lưu lời dặn.

@@ -30,7 +30,7 @@ function Tile({
   emphasis?: boolean;
 }) {
   let tone = "border-heritage-border bg-heritage-surface";
-  if (emphasis) tone = "border-[#E0C486] bg-[#FBF3E0]";
+  if (emphasis) tone = "border-heritage-gold-soft bg-heritage-warning-bg";
   return (
     <div className={`rounded-2xl border p-5 ${tone}`}>
       <dt className="text-sm text-heritage-muted">{label}</dt>

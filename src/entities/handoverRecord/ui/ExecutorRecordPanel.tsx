@@ -43,7 +43,7 @@ function OpenHandover({ vaultId }: { vaultId: string }) {
         <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
-            className="mt-1 size-5 cursor-pointer accent-[#0A281E]"
+            className="mt-1 size-5 cursor-pointer accent-heritage-primary"
             checked={confirmed}
             onChange={(event) => setConfirmed(event.target.checked)}
           />
@@ -51,7 +51,7 @@ function OpenHandover({ vaultId }: { vaultId: string }) {
         </label>
         <button
           type="button"
-          className={buttonStyles.gold}
+          className={buttonStyles.dark}
           disabled={!confirmed || action.pending}
           onClick={() =>
             void action.execute(
@@ -103,7 +103,7 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
           record.canSign ? (
             <button
               type="button"
-              className={buttonStyles.gold}
+              className={buttonStyles.dark}
               disabled={sign.pending}
               onClick={() =>
                 void sign.execute(

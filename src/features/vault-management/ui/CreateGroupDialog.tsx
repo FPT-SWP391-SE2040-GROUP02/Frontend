@@ -137,9 +137,9 @@ export function CreateGroupDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && close()}>
-      <DialogContent className="max-h-[92vh] gap-5 bg-[#FBFAF5] p-6 sm:max-w-3xl">
+      <DialogContent className="max-h-[92vh] gap-5 bg-heritage-surface p-6 sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-[#0A281E]">
+          <DialogTitle className="text-2xl font-semibold text-heritage-primary">
             Tạo gói bàn giao
           </DialogTitle>
           <DialogDescription>
@@ -151,9 +151,9 @@ export function CreateGroupDialog({
         {initialSelection.length > 0 && (
           <p
             role="status"
-            className="flex items-center gap-3 rounded-xl bg-[#DDEFE6] px-4 py-3 text-sm text-[#1F4D3A]"
+            className="flex items-center gap-3 rounded-xl bg-heritage-success-bg px-4 py-3 text-sm text-heritage-primary-hover"
           >
-            <CircleCheck className="size-5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+            <CircleCheck className="size-5 shrink-0 text-heritage-success" aria-hidden="true" />
             <span>
               Mở từ <strong>{initialSelection.length} tài sản</strong> bạn đang chọn ở màn Tài sản,
               nên chúng đã được tick sẵn bên dưới.
@@ -175,7 +175,7 @@ export function CreateGroupDialog({
           })}
         >
           <fieldset disabled={action.pending} className="space-y-5">
-            <label className="block space-y-2 text-sm font-semibold text-[#0A281E]">
+            <label className="block space-y-2 text-sm font-semibold text-heritage-primary">
               Tên gói bàn giao
               <Input
                 placeholder="Ví dụ: Gói cho các con"
@@ -215,7 +215,7 @@ export function CreateGroupDialog({
                 footer={
                   <Link
                     to={ROUTES.DASHBOARD.BENEFICIARIES}
-                    className="text-[#0A281E] hover:underline"
+                    className="text-heritage-primary hover:underline"
                   >
                     + Thêm người nhận mới
                   </Link>
@@ -227,9 +227,9 @@ export function CreateGroupDialog({
           {willBeReady && (
             <p
               role="status"
-              className="flex items-center gap-3 rounded-xl bg-[#DDEFE6] px-4 py-3 text-sm text-[#1F4D3A]"
+              className="flex items-center gap-3 rounded-xl bg-heritage-success-bg px-4 py-3 text-sm text-heritage-primary-hover"
             >
-              <CircleCheck className="size-5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+              <CircleCheck className="size-5 shrink-0 text-heritage-success" aria-hidden="true" />
               <span>
                 Có {selectedAssetIds.length} tài sản và {selectedBeneficiaryIds.length} người nhận,
                 nên gói sẽ ở trạng thái <strong>Sẵn sàng</strong> ngay sau khi tạo.
@@ -239,7 +239,7 @@ export function CreateGroupDialog({
           {!willBeReady && (
             <p
               role="status"
-              className="flex items-center gap-3 rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B25]"
+              className="flex items-center gap-3 rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
             >
               <CircleAlert className="size-5 shrink-0" aria-hidden="true" />
               <span>
