@@ -11,8 +11,8 @@ export function VerifierQueuePage() {
       title="Biên bản bàn giao"
       description={
         hasRecord
-          ? "Làm đúng thứ tự: lập biên bản, kiểm danh tính người nhận, rồi ba bên ký."
-          : "Các kho Người thực thi đã mở bàn giao và được giao cho bạn lập biên bản."
+          ? "Làm đúng thứ tự: xét giấy tờ và lập biên bản, kiểm danh tính người nhận, rồi ba bên ký."
+          : "Các kho có người nhận gửi yêu cầu nhận tài sản và được giao cho bạn xét giấy tờ, lập biên bản."
       }
     >
       <VerifierQueue />

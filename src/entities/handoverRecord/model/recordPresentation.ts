@@ -1,5 +1,10 @@
 import type { Tone } from "@/shared/ui/heritageKit";
-import type { HandoverRecord, RecordRecipient, RecordStatus } from "./handoverRecord.schema";
+import type {
+  ClaimStatus,
+  HandoverRecord,
+  RecordRecipient,
+  RecordStatus,
+} from "./handoverRecord.schema";
 
 /** Nhãn và màu của từng bước biên bản. */
 export const recordStatusLabel: Record<RecordStatus, { label: string; tone: Tone }> = {
@@ -7,7 +12,22 @@ export const recordStatusLabel: Record<RecordStatus, { label: string; tone: Tone
   IDENTITY_CHECK: { label: "Đang kiểm danh tính", tone: "warning" },
   SIGNING: { label: "Đang ký", tone: "warning" },
   COMPLETED: { label: "Đã đủ chữ ký", tone: "success" },
+  CANCELLED: { label: "Chủ kho đã hủy", tone: "neutral" },
 };
+
+/** Nhãn và màu của kết quả xét giấy tờ. */
+export const claimStatusLabel: Record<ClaimStatus, { label: string; tone: Tone }> = {
+  SUBMITTED: { label: "Chờ luật sư xét", tone: "warning" },
+  SUPPLEMENT_REQUESTED: { label: "Cần bổ sung giấy tờ", tone: "warning" },
+  ACCEPTED: { label: "Đã chấp nhận", tone: "success" },
+  REJECTED: { label: "Bị từ chối", tone: "danger" },
+};
+
+/** Dung lượng tệp dạng dễ đọc: 12 KB, 3,4 MB. */
+export function fileSizeText(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1).replace(".", ",")} MB`;
+}
 
 /** Ba bước luật sư đi đúng thứ tự: bước trước chưa xong thì chưa mở bước sau. */
 export const recordSteps = [
@@ -27,6 +47,8 @@ export function currentStepIndex(status: RecordStatus): number {
       return 2;
     case "COMPLETED":
       return 3;
+    case "CANCELLED":
+      return 0;
   }
 }
 

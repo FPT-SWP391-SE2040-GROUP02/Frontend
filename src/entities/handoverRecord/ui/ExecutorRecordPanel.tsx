@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
@@ -12,7 +11,7 @@ import { RecordStepper } from "./RecordStepper";
 function waitingText(record: HandoverRecord): string {
   switch (record.status) {
     case "DRAFTING":
-      return "Luật sư đang lập biên bản: ai nhận tài sản nào. Bạn chưa phải làm gì.";
+      return "Người nhận đã gửi yêu cầu kèm giấy tờ. Luật sư đang xét giấy tờ và lập biên bản: ai nhận tài sản nào. Bạn chưa phải làm gì.";
     case "IDENTITY_CHECK":
       return "Biên bản đã chốt. Người nhận đã nhận thư mời và đang nộp căn cước để luật sư kiểm.";
     case "SIGNING":
@@ -21,61 +20,30 @@ function waitingText(record: HandoverRecord): string {
       return "Bạn đã ký. Đang chờ luật sư và người nhận ký.";
     case "COMPLETED":
       return "Biên bản đã đủ chữ ký. Vào mục Bàn giao để gửi mã nhận cho từng người.";
+    case "CANCELLED":
+      return "Chủ kho đã hủy yêu cầu nhận tài sản. Kho đã mở khóa.";
   }
 }
 
-/** Chưa mở bàn giao: Người thực thi xác nhận rồi bấm mở. Không cần nộp giấy tờ nào. */
-function OpenHandover({ vaultId }: { vaultId: string }) {
-  const client = useQueryClient();
-  const action = usePrivateAction();
-  const [confirmed, setConfirmed] = useState(false);
+/** Chưa có yêu cầu nhận tài sản: Người thực thi chưa phải làm gì; người nhận là người gửi yêu cầu kèm giấy tờ. */
+function WaitingForRequest() {
   return (
-    <Panel title="Mở bàn giao" labelledBy="open-handover">
-      <div className="space-y-4 text-sm leading-6">
+    <Panel title="Chưa có yêu cầu nhận tài sản" labelledBy="waiting-request">
+      <div className="space-y-3 text-sm leading-6">
         <p>
-          Khi Chủ kho đã qua đời, bạn mở bàn giao trên hệ thống. Hệ thống phân công một luật sư lập
-          biên bản bàn giao. Kho bị khóa, không ai sửa được tài sản nữa.
+          Khi có việc xảy ra với Chủ kho, người nhận sẽ gửi yêu cầu nhận tài sản kèm giấy tờ. Hệ
+          thống khóa kho, báo cho bạn và phân công một luật sư xét giấy tờ, lập biên bản bàn giao.
         </p>
         <p className="text-heritage-muted">
-          Bạn chỉ giữ hộ và giao tài sản theo biên bản luật sư lập. Bạn không tự chia, bán hay cho
-          tài sản.
+          Bạn chỉ giữ mã mở gói và giao tài sản theo biên bản luật sư lập. Bạn không tự chia, bán
+          hay cho tài sản.
         </p>
-        <label className="flex cursor-pointer items-start gap-3">
-          <input
-            type="checkbox"
-            className="mt-1 size-5 cursor-pointer accent-[#0A281E]"
-            checked={confirmed}
-            onChange={(event) => setConfirmed(event.target.checked)}
-          />
-          <span>Tôi xác nhận Chủ kho đã qua đời và cần bắt đầu bàn giao.</span>
-        </label>
-        <button
-          type="button"
-          className={buttonStyles.gold}
-          disabled={!confirmed || action.pending}
-          onClick={() =>
-            void action.execute(
-              () => handoverRecordService.open(vaultId),
-              (record) => {
-                client.setQueryData(handoverRecordKeys.executor(vaultId), record);
-                void client.invalidateQueries({ queryKey: ["executor-vaults"] });
-              },
-            )
-          }
-        >
-          {action.pending ? "Đang mở…" : "Mở bàn giao"}
-        </button>
-        {action.error && (
-          <p role="alert" className="text-destructive">
-            {action.error}
-          </p>
-        )}
       </div>
     </Panel>
   );
 }
 
-/** Mục Biên bản bàn giao của Người thực thi: mở bàn giao, theo dõi ba bước và ký khi tới lượt. */
+/** Mục Biên bản bàn giao của Người thực thi: theo dõi ba bước và ký khi tới lượt. */
 export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
   const client = useQueryClient();
   const sign = usePrivateAction();
@@ -92,7 +60,7 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
     );
   }
   const record = query.data;
-  if (!record) return <OpenHandover vaultId={vaultId} />;
+  if (!record) return <WaitingForRequest />;
   return (
     <div className="space-y-6">
       <RecordStepper status={record.status} />

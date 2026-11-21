@@ -60,7 +60,7 @@ const RUNNING_PLAN_STATUSES = ["ACTIVE"];
 
 /** Lý do khóa ở đầu câu thông báo chỉ xem (thiết kế 186). */
 const LOCKED_REASONS: Record<string, string> = {
-  HANDOVER_REQUESTED: "Người thực thi đã mở bàn giao",
+  HANDOVER_REQUESTED: "Có người nhận gửi yêu cầu nhận tài sản",
   HANDOVER_IN_PROGRESS: "Kế hoạch đang bàn giao",
   BLOCKED: "Kế hoạch đang bị chặn",
   CLOSED: "Kế hoạch đã đóng",
@@ -73,7 +73,7 @@ const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6"
 const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
 const DANGER_BUTTON = "border-red-300 text-red-700 hover:bg-red-50";
 const ALLOWED_ACTIONS = [
-  "Mở bàn giao khi bạn qua đời (không cần giấy tờ)",
+  "Giữ mã mở gói cho tới khi bàn giao",
   "Ký biên bản bàn giao do luật sư lập",
   "Trao mã mở gói cho người nhận",
 ];
@@ -175,7 +175,7 @@ export function InviteDialog({
 
   let title = "Mời Người thực thi";
   let description =
-    "Chọn một Người thực thi hệ thống đã được thẩm định. Khi cần, người này mở bàn giao, ký biên bản bàn giao do luật sư lập và gửi mã nhận cho người nhận. Họ không đọc được nội dung kho và không nhận tài sản.";
+    "Chọn một Người thực thi hệ thống đã được thẩm định. Khi cần, người này ký biên bản bàn giao do luật sư lập và gửi mã nhận cho người nhận. Họ không đọc được nội dung kho và không nhận tài sản.";
   let notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút.`;
   let cancelLabel = "Hủy";
   if (replacing !== null) {
@@ -521,8 +521,8 @@ function ReviewerCard() {
     <section aria-label="Người xét duyệt" className={CARD}>
       <h2 className="text-xl font-medium text-heritage-primary">Người xét duyệt</h2>
       <p className="mt-3 text-sm leading-6 text-heritage-muted">
-        Hệ thống tự phân công luật sư khi Người thực thi mở bàn giao, bạn không cần chọn. Luật sư
-        lập biên bản; Người thực thi chỉ giữ hộ và giao theo biên bản.
+        Hệ thống tự phân công luật sư khi người nhận gửi yêu cầu nhận tài sản, bạn không cần chọn.
+        Luật sư lập biên bản; Người thực thi chỉ giữ hộ và giao theo biên bản.
       </p>
     </section>
   );

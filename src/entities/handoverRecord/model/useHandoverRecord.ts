@@ -33,7 +33,7 @@ export function useVerifierRecord(recordId: string | null) {
   });
 }
 
-/** Biên bản của kho Người thực thi đang chọn; null khi chưa mở bàn giao. */
+/** Biên bản của kho Người thực thi đang chọn; null khi chưa có yêu cầu nhận tài sản. */
 export function useExecutorRecord(vaultId: string) {
   return useQuery({
     queryKey: handoverRecordKeys.executor(vaultId),

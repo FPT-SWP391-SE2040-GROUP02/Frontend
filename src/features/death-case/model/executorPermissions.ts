@@ -1,7 +1,7 @@
 /** Việc Người thực thi làm được và không làm được; dùng cho thẻ gọn ở Tổng quan và trang Quyền hạn. */
 export const EXECUTOR_ALLOWED: string[] = [
   "Xem ghi chú của Chủ kho",
-  "Mở bàn giao khi Chủ kho qua đời (không cần nộp giấy tờ)",
+  "Nhận thông báo khi người nhận gửi yêu cầu nhận tài sản",
   "Ký biên bản bàn giao luật sư đã lập",
   "Gửi mã nhận cho người nhận khi biên bản đủ chữ ký",
   "Theo dõi tiến trình bàn giao",

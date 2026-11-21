@@ -11,7 +11,7 @@ import { endedStatusLabel, remainingTime } from "../lib/myInvitationHelpers";
 import { useExecutorSigning } from "../model/useExecutorSigning";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
-const CAPABILITIES = ["Mở bàn giao khi Chủ kho qua đời", "Ký biên bản và gửi mã nhận"];
+const CAPABILITIES = ["Giữ mã mở gói cho tới khi bàn giao", "Ký biên bản và gửi mã nhận"];
 
 /**
  * Trang Lời mời: lời mời đang chờ (chấp nhận/từ chối ngay, không cần link email) và lời mời đã kết thúc.
@@ -81,7 +81,7 @@ export function MyInvitationsInbox() {
       <Panel title="Đang chờ bạn trả lời" labelledBy="pending-invitations-heading">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-sm text-heritage-muted">
-            Người thực thi mở bàn giao khi Chủ kho qua đời.{" "}
+            Người thực thi giữ mã mở gói và gửi mã nhận khi biên bản đủ chữ ký.{" "}
             <strong className="text-heritage-primary">Không ai mở được kho</strong>, kể cả bạn.
           </p>
           {pendingCount > 0 && (

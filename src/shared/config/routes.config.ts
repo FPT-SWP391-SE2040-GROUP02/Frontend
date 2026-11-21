@@ -6,6 +6,8 @@ export const ROUTES = {
   /** Trang chủ công khai */
   HOME: "/",
   RECEIVE: "/receive",
+  /** Link riêng trong thư báo kích hoạt: người nhận gửi yêu cầu nhận tài sản kèm giấy tờ. */
+  REQUEST: "/request",
 
   /** Trang thông tin công khai: hỗ trợ và pháp lý (liên kết từ chân trang landing) */
   PUBLIC: {

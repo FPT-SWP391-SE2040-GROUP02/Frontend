@@ -276,7 +276,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     renderPage();
 
     expect(await screen.findByText("Người thực thi được làm gì?")).toBeInTheDocument();
-    expect(screen.getByText("Mở bàn giao khi bạn qua đời (không cần giấy tờ)")).toBeInTheDocument();
+    expect(screen.getByText("Giữ mã mở gói cho tới khi bàn giao")).toBeInTheDocument();
     expect(screen.getByText("Ký biên bản bàn giao do luật sư lập")).toBeInTheDocument();
     expect(screen.getByText("Trao mã mở gói cho người nhận")).toBeInTheDocument();
     expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
@@ -444,7 +444,7 @@ describe("trang Người thực thi: các thẻ còn lại", () => {
 
     expect(await screen.findByRole("heading", { name: "Người xét duyệt" })).toBeInTheDocument();
     expect(
-      screen.getByText(/Hệ thống tự phân công luật sư khi Người thực thi mở bàn giao/),
+      screen.getByText(/Hệ thống tự phân công luật sư khi người nhận gửi yêu cầu nhận tài sản/),
     ).toBeInTheDocument();
     expect(screen.queryByText(/eKYC/)).not.toBeInTheDocument();
   });

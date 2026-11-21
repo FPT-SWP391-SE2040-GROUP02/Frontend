@@ -9,7 +9,7 @@ import { countTurns } from "./executorTurns";
  * Hàm thuần, chỉ dựa vào dữ liệu Backend trả; không có hạn chót.
  */
 
-/** Bước của biên bản bàn giao (DRAFTING, IDENTITY_CHECK, SIGNING, COMPLETED); rỗng khi chưa mở bàn giao. */
+/** Bước của biên bản bàn giao (DRAFTING, IDENTITY_CHECK, SIGNING, COMPLETED); rỗng khi chưa có yêu cầu nhận tài sản. */
 export type RecordStatus = string;
 
 /** Trạng thái gọn của kho dưới tên Chủ kho (menu trái, trang Lời mời và các kho bạn đang làm việc). */
@@ -18,7 +18,7 @@ export interface VaultStage {
   tone: Tone;
 }
 
-/** Kho đang ở giai đoạn nào: chưa mở bàn giao, luật sư đang lập biên bản, đang ký, đang giao hay đã xong. */
+/** Kho đang ở giai đoạn nào: chưa có yêu cầu nhận, luật sư đang lập biên bản, đang ký, đang giao hay đã xong. */
 export function vaultStage(vault: ExecutorVault): VaultStage {
   if (vault.planStatus === "CLOSED") return { label: "Đã hoàn tất", tone: "success" };
   const status = vault.handoverRecordStatus;
@@ -28,12 +28,12 @@ export function vaultStage(vault: ExecutorVault): VaultStage {
   if (status === "DRAFTING") return { label: "Luật sư đang lập biên bản", tone: "warning" };
   if (vault.planStatus === "DRAFT") return { label: "Kế hoạch chưa kích hoạt", tone: "neutral" };
   if (vault.planStatus === "BLOCKED") return { label: "Đang tạm giữ", tone: "warning" };
-  return { label: "Chưa mở bàn giao", tone: "success" };
+  return { label: "Chưa có yêu cầu nhận", tone: "success" };
 }
 
 export interface ExecutorTodoInput {
   vault: ExecutorVault;
-  /** Bước của biên bản; rỗng khi chưa mở bàn giao. */
+  /** Bước của biên bản; rỗng khi chưa có yêu cầu nhận tài sản. */
   recordStatus: RecordStatus;
   /** Biên bản đang chờ chữ ký của bạn. */
   canSign: boolean;
@@ -86,7 +86,7 @@ function handoverTodo(progress: HandoverProgress | null): ExecutorTodo {
 }
 
 /**
- * Việc quan trọng nhất của Người thực thi với một kho. Thứ tự: chưa mở bàn giao → luật sư đang lập biên bản →
+ * Việc quan trọng nhất của Người thực thi với một kho. Thứ tự: chưa có yêu cầu nhận → luật sư đang lập biên bản →
  * danh tính người nhận → đến lượt bạn ký → gửi mã nhận → hoàn tất.
  */
 export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
@@ -101,8 +101,8 @@ export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
   }
   if (!recordStatus) {
     return {
-      title: "Mở bàn giao khi Chủ kho qua đời",
-      text: "Chưa có việc gì cần làm lúc này. Chỉ mở bàn giao khi chắc chắn đã đến lúc; không cần nộp giấy tờ.",
+      title: "Chưa có yêu cầu nhận tài sản",
+      text: "Chưa có việc gì cần làm lúc này. Khi người nhận gửi yêu cầu kèm giấy tờ, hệ thống báo cho bạn.",
       buttonLabel: "Mở Biên bản bàn giao",
       to: ROUTES.EXECUTOR.REPORT,
     };
@@ -153,7 +153,7 @@ export interface JourneyStep {
 
 /**
  * "Kho đang ở đâu": 3 bước của cả kho, không theo từng người nhận:
- * Mở bàn giao → Biên bản (lập, kiểm danh tính, ký ba bên) → Bàn giao cho người nhận.
+ * Yêu cầu nhận → Biên bản (xét giấy tờ, lập, kiểm danh tính, ký ba bên) → Bàn giao cho người nhận.
  */
 export function vaultJourney(
   vault: ExecutorVault,
@@ -188,7 +188,7 @@ export function vaultJourney(
 
   return [
     {
-      label: "Mở bàn giao",
+      label: "Yêu cầu nhận",
       state: opened ? "done" : "current",
       caption: opened ? "Đã mở" : "Chưa mở",
     },

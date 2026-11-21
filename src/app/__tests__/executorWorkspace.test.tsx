@@ -69,7 +69,7 @@ function record(status: string, extra: Record<string, unknown> = {}) {
   };
 }
 
-/** GET giả: danh sách kho, biên bản của kho (chưa mở bàn giao thì Backend trả 204, body rỗng). */
+/** GET giả: danh sách kho, biên bản của kho (chưa có yêu cầu nhận thì Backend trả 204, body rỗng). */
 function mockGets(vaults: unknown[], recordBody: unknown = "") {
   return vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
     if (url === "/executor/vaults") return vaults;
@@ -322,11 +322,11 @@ describe("Executor assets", () => {
 });
 
 describe("Executor overview", () => {
-  it("chưa mở bàn giao: việc của bạn là mở bàn giao khi Chủ kho qua đời, không có chuông", async () => {
+  it("chưa có yêu cầu nhận: chưa có việc, không có chuông", async () => {
     mockGets([vault()]);
     setup("/executor");
     expect(
-      await screen.findByRole("heading", { name: "Mở bàn giao khi Chủ kho qua đời" }),
+      await screen.findByRole("heading", { name: "Chưa có yêu cầu nhận tài sản" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Mở Biên bản bàn giao" })).toHaveAttribute(
       "href",
@@ -372,7 +372,7 @@ describe("Executor permissions", () => {
     setup("/executor/permissions");
     expect(await screen.findByText("Xem ghi chú của Chủ kho")).toBeInTheDocument();
     expect(
-      screen.getByText("Mở bàn giao khi Chủ kho qua đời (không cần nộp giấy tờ)"),
+      screen.getByText("Nhận thông báo khi người nhận gửi yêu cầu nhận tài sản"),
     ).toBeInTheDocument();
     expect(screen.getByText("Tự chia, bán, cho tài sản hoặc đổi người nhận")).toBeInTheDocument();
     expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
@@ -380,16 +380,20 @@ describe("Executor permissions", () => {
 });
 
 describe("Executor handover record", () => {
-  it("chỉ mở bàn giao sau khi tick xác nhận, rồi hiện biên bản luật sư đang lập", async () => {
+  it("chưa có yêu cầu nhận: không có nút mở bàn giao, chỉ giải thích người nhận sẽ gửi yêu cầu", async () => {
     mockGets([vault()]);
-    const post = vi.spyOn(apiClient, "post").mockResolvedValue(record("DRAFTING"));
     setup("/executor/report");
-    const open = await screen.findByRole("button", { name: "Mở bàn giao" });
-    expect(open).toBeDisabled();
-    await userEvent.click(screen.getByRole("checkbox", { name: /Chủ kho đã qua đời/ }));
-    await userEvent.click(open);
-    expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/handover-record`);
-    expect(await screen.findByText(/Luật sư đang lập biên bản/)).toBeInTheDocument();
+    expect(await screen.findByText("Chưa có yêu cầu nhận tài sản")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Mở bàn giao" })).not.toBeInTheDocument();
+  });
+
+  it("có yêu cầu nhận thì thấy biên bản luật sư đang lập", async () => {
+    mockGets(
+      [vault({ handoverRecordId: RECORD_ID, handoverRecordStatus: "DRAFTING" })],
+      record("DRAFTING"),
+    );
+    setup("/executor/report");
+    expect(await screen.findByText(/Luật sư đang xét giấy tờ và lập biên bản/)).toBeInTheDocument();
     expect(screen.getByText("Trần Minh Anh")).toBeInTheDocument();
   });
 
@@ -412,7 +416,7 @@ describe("Executor handover record", () => {
 });
 
 describe("Executor progress", () => {
-  it("chưa mở bàn giao thì dẫn về mục Biên bản bàn giao", async () => {
+  it("chưa có yêu cầu nhận thì dẫn về mục Biên bản bàn giao", async () => {
     mockGets([vault()]);
     setup("/executor/progress");
     expect(await screen.findByRole("link", { name: "Đi tới Biên bản bàn giao" })).toHaveAttribute(

@@ -62,6 +62,22 @@ function record(extra: Record<string, unknown> = {}) {
       { beneficiaryId: BINH, fullName: "Lê Bình", citizenIdLast4: "0002" },
     ],
     ownerSplit: [],
+    // An đã gửi yêu cầu kèm giấy tờ và được luật sư chấp nhận, nên chốt được biên bản.
+    claims: [
+      {
+        id: "ffffffff-ffff-4fff-8fff-ffffffffffff",
+        beneficiaryId: AN,
+        fullName: "Trần An",
+        citizenIdLast4: "0001",
+        status: "ACCEPTED",
+        note: "",
+        reviewReason: null,
+        createdAt: AT,
+        reviewedAt: AT,
+        files: [],
+      },
+    ],
+    evidenceFiles: [],
     ...extra,
   };
 }
@@ -288,5 +304,151 @@ describe("Người nhận ký biên bản", () => {
       await screen.findByText("Luật sư đang sửa biên bản. Bạn chờ bản mới rồi ký."),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
+  const CLAIM = "abababab-abab-4bab-8bab-abababababab";
+  const DOC = "cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd";
+  const submitted = (extra: Record<string, unknown> = {}) =>
+    record({
+      claims: [
+        {
+          id: CLAIM,
+          beneficiaryId: BINH,
+          fullName: "Lê Bình",
+          citizenIdLast4: "0002",
+          status: "SUBMITTED",
+          note: "Tôi là con",
+          reviewReason: null,
+          createdAt: AT,
+          reviewedAt: null,
+          files: [
+            {
+              id: DOC,
+              fileName: "khai-sinh.pdf",
+              contentType: "application/pdf",
+              sizeBytes: 4096,
+              createdAt: AT,
+            },
+          ],
+        },
+      ],
+      ...extra,
+    });
+
+  it("còn yêu cầu chưa xét thì chưa chốt được; bổ sung hay từ chối phải ghi lý do", async () => {
+    const user = userEvent.setup();
+    const { post } = backend(
+      submitted(),
+      submitted({
+        claims: [
+          {
+            ...submitted().claims[0],
+            status: "REJECTED",
+            reviewReason: "Giấy tờ không hợp lệ",
+          },
+        ],
+      }),
+    );
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    const card = await screen.findByRole("article", { name: "Yêu cầu của Lê Bình" });
+    expect(card).toHaveTextContent("Chờ luật sư xét");
+    expect(card).toHaveTextContent("“Tôi là con”");
+    expect(within(card).getByRole("button", { name: "Tải về khai-sinh.pdf" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
+    expect(screen.getByText(/Còn yêu cầu nhận chưa xét xong/)).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: "Từ chối" })).toBeDisabled();
+    expect(within(card).getByRole("button", { name: "Yêu cầu bổ sung" })).toBeDisabled();
+
+    await user.type(within(card).getByLabelText(/Lý do/), "Giấy tờ không hợp lệ");
+    await user.click(within(card).getByRole("button", { name: "Từ chối" }));
+    expect(post).toHaveBeenCalledWith(
+      `/verifier/handover-records/${RECORD_ID}/claims/${CLAIM}/review`,
+      {
+        decision: "REJECT",
+        reason: "Giấy tờ không hợp lệ",
+      },
+    );
+    // Người bị từ chối không được ghi tài sản.
+    expect(await screen.findByLabelText("Lê Bình nhận Sổ đỏ")).toBeDisabled();
+  });
+
+  it("chấp nhận không cần lý do", async () => {
+    const user = userEvent.setup();
+    const { post } = backend(submitted(), record());
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    const card = await screen.findByRole("article", { name: "Yêu cầu của Lê Bình" });
+    await user.click(within(card).getByRole("button", { name: "Chấp nhận" }));
+    expect(post).toHaveBeenCalledWith(
+      `/verifier/handover-records/${RECORD_ID}/claims/${CLAIM}/review`,
+      {
+        decision: "ACCEPT",
+        reason: undefined,
+      },
+    );
+  });
+
+  it("đính kèm và gỡ tệp căn cứ", async () => {
+    const user = userEvent.setup();
+    const withEvidence = record({
+      evidenceFiles: [
+        {
+          id: DOC,
+          fileName: "di-chuc.pdf",
+          contentType: "application/pdf",
+          sizeBytes: 2048,
+          createdAt: AT,
+        },
+      ],
+    });
+    const { post } = backend(record(), withEvidence);
+    const del = vi.spyOn(apiClient, "delete").mockResolvedValue(record());
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    expect(await screen.findByText("Chưa đính kèm tệp căn cứ nào.")).toBeInTheDocument();
+    await user.upload(
+      screen.getByLabelText(/Đính kèm tệp/),
+      new File(["%PDF-1.4"], "di-chuc.pdf", { type: "application/pdf" }),
+    );
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
+    expect(post.mock.calls[0][0]).toBe(`/verifier/handover-records/${RECORD_ID}/evidence`);
+    await user.click(await screen.findByRole("button", { name: "Gỡ di-chuc.pdf" }));
+    expect(del).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/evidence/${DOC}`);
+  });
+
+  it("thêm người nhận mới phải đủ thông tin hợp lệ", async () => {
+    const user = userEvent.setup();
+    const { post } = backend(record(), record());
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await user.click(await screen.findByRole("button", { name: "Thêm người nhận" }));
+    await user.click(screen.getByRole("button", { name: "Lưu người nhận" }));
+    expect(screen.getByText("Số căn cước gồm 12 chữ số.")).toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
+
+    await user.type(screen.getByLabelText("Họ tên"), "Lê Văn Mới");
+    await user.type(screen.getByLabelText("Số căn cước (12 số)"), "001090000099");
+    await user.type(screen.getByLabelText("Ngày sinh"), "1990-01-01");
+    await user.type(screen.getByLabelText("Email (nhận thư mời)"), "moi@example.com");
+    await user.click(screen.getByRole("button", { name: "Lưu người nhận" }));
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/recipients`, {
+        fullName: "Lê Văn Mới",
+        citizenId: "001090000099",
+        dateOfBirth: "1990-01-01",
+        email: "moi@example.com",
+      }),
+    );
+  });
+
+  it("Chủ kho đã hủy thì chỉ còn thông báo, không còn bước lập", async () => {
+    backend(record({ status: "CANCELLED" }));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    expect(await screen.findByText("Chủ kho đã hủy yêu cầu nhận tài sản")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Chốt biên bản" })).not.toBeInTheDocument();
   });
 });

@@ -13,7 +13,7 @@ import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 function vaultState(vault: ExecutorVault): { label: string; tone: Tone } {
   if (vault.planStatus === "CLOSED") return { label: "Đã hoàn tất", tone: "success" };
   if (vault.handoverRecordStatus) return { label: "Đang bàn giao", tone: "warning" };
-  return { label: "Chưa mở bàn giao", tone: "success" };
+  return { label: "Chưa có yêu cầu nhận", tone: "success" };
 }
 
 /** Kho mà tài khoản đang là Người thực thi; không có kho nào thì không hiện mục này. */

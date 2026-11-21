@@ -98,7 +98,7 @@ export const LANDING_CONTENT = {
         tag: "02 · Người thực thi",
         title: "Bốn vai, không ai nắm toàn quyền một mình",
         detail:
-          "Người thực thi mở bàn giao và giữ hộ, luật sư lập biên bản bàn giao, Người nhận được xác minh danh tính. Hai vai đầu không đọc được nội dung kho.",
+          "Người nhận gửi yêu cầu kèm giấy tờ, luật sư xét và lập biên bản bàn giao, Người thực thi giữ mã, Người nhận được xác minh danh tính. Hai vai đầu không đọc được nội dung kho.",
         points: [
           "Chủ kho là người duy nhất lập và sửa kho",
           "Người thực thi và luật sư không mở được nội dung",
@@ -107,7 +107,7 @@ export const LANDING_CONTENT = {
         visualTitle: "Các vai trong kế hoạch",
         rows: [
           { title: "Chủ kho", detail: "Lập kho, chọn người" },
-          { title: "Người thực thi", detail: "Mở bàn giao, giữ hộ, gửi mã" },
+          { title: "Người thực thi", detail: "Giữ mã, ký biên bản, gửi mã" },
           { title: "Luật sư", detail: "Lập biên bản bàn giao" },
           { title: "Người nhận", detail: "Xác minh rồi tải về" },
         ],
@@ -122,9 +122,9 @@ export const LANDING_CONTENT = {
           "Luật sư, Người thực thi và người nhận cùng ký",
           "Người nhận có {grantDays} ngày để tải về",
         ],
-        visualTitle: "Từ mở bàn giao đến nhận tài sản",
+        visualTitle: "Từ yêu cầu nhận đến nhận tài sản",
         rows: [
-          { title: "Người thực thi mở bàn giao", detail: "Bắt đầu" },
+          { title: "Người nhận gửi yêu cầu", detail: "Bắt đầu" },
           { title: "Luật sư lập biên bản", detail: "Bước 1" },
           { title: "Người nhận được xác minh danh tính", detail: "Bước 2" },
           { title: "Ba bên ký biên bản", detail: "Bước 3" },
@@ -140,8 +140,9 @@ export const LANDING_CONTENT = {
       "Biểu tượng của LegacyVault được dệt từ nhiều vòng đường nét chồng lên nhau, như hoa văn trên giấy tờ có giá. Càng nhiều lớp, càng khó đi tắt. Trước khi kho mở ra, mọi bàn giao đều phải đi qua bốn lớp xác nhận.",
     layers: [
       {
-        title: "Người thực thi mở bàn giao",
-        detail: "Người bạn đề cử mở bàn giao khi đến lúc. Chưa có gì được mở.",
+        title: "Người nhận gửi yêu cầu",
+        detail:
+          "Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ. Bạn còn sống thì hủy được.",
       },
       {
         title: "Luật sư lập biên bản",
@@ -171,7 +172,7 @@ export const LANDING_CONTENT = {
       {
         title: "Chỉ định Người thực thi",
         detail:
-          "Đề cử một Người thực thi; luật sư do hệ thống phân công khi mở bàn giao. Họ không đọc được nội dung kho.",
+          "Đề cử một Người thực thi; luật sư do hệ thống phân công khi có yêu cầu nhận. Họ không đọc được nội dung kho.",
       },
       {
         title: "Lập file phân chia",

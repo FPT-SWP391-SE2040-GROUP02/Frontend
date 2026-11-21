@@ -3,7 +3,7 @@ import { ExecutorRecordPanel } from "@/entities/handoverRecord";
 import { VaultGate } from "@/features/death-case/ui/VaultGate";
 import { ExecutorWorkspace } from "@/widgets/ExecutorWorkspace/ExecutorWorkspace";
 
-/** Biên bản bàn giao: mở bàn giao khi Chủ kho qua đời, theo dõi ba bước và ký khi tới lượt. */
+/** Biên bản bàn giao: theo dõi ba bước và ký khi tới lượt. */
 export function ExecutorReportPage() {
   const state = useSelectedExecutorVault();
   return (

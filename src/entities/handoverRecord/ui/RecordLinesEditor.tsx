@@ -31,6 +31,16 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   const [selected, setSelected] = useState<Set<string>>(saved);
   const dirty = selected.size !== saved.size || [...selected].some((key) => !saved.has(key));
   const busy = save.pending || split.pending || finalize.pending;
+  // Người bị từ chối giấy tờ không được ghi vào biên bản; còn yêu cầu chưa xét thì chưa chốt được.
+  const rejected = new Set(
+    record.claims
+      .filter((claim) => claim.status === "REJECTED")
+      .map((claim) => claim.beneficiaryId),
+  );
+  const claimsPending = record.claims.some(
+    (claim) => claim.status === "SUBMITTED" || claim.status === "SUPPLEMENT_REQUESTED",
+  );
+  const noAccepted = !record.claims.some((claim) => claim.status === "ACCEPTED");
 
   const apply = (next: HandoverRecord) => {
     client.setQueryData(handoverRecordKeys.verifier(next.id), next);
@@ -126,7 +136,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
                           className="size-5 cursor-pointer accent-[#0A281E]"
                           aria-label={`${person.fullName} nhận ${asset.name}`}
                           checked={selected.has(key)}
-                          disabled={busy}
+                          disabled={busy || rejected.has(person.beneficiaryId)}
                           onChange={() => toggle(key)}
                         />
                       </td>
@@ -152,7 +162,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           <button
             type="button"
             className={buttonStyles.gold}
-            disabled={busy || dirty || saved.size === 0}
+            disabled={busy || dirty || saved.size === 0 || claimsPending || noAccepted}
             onClick={() =>
               void finalize.execute(() => handoverRecordService.finalize(record.id), apply)
             }
@@ -160,6 +170,16 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
             {finalize.pending ? "Đang chốt…" : "Chốt biên bản"}
           </button>
         </div>
+        {claimsPending && (
+          <p role="status" className="text-sm text-heritage-muted">
+            Còn yêu cầu nhận chưa xét xong. Xét giấy tờ của mọi người nhận rồi mới chốt được.
+          </p>
+        )}
+        {!claimsPending && noAccepted && (
+          <p role="status" className="text-sm text-heritage-muted">
+            Chưa có yêu cầu nhận nào được chấp nhận nên chưa chốt được.
+          </p>
+        )}
         {dirty && (
           <p role="status" className="text-sm text-heritage-muted">
             Có thay đổi chưa lưu. Lưu biên bản rồi mới chốt được.

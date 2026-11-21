@@ -39,6 +39,11 @@ const InvitationPage = lazy(() =>
     default: module.InvitationPage,
   })),
 );
+const RequestPage = lazy(() =>
+  import("@/pages/beneficiary/RequestPage").then((module) => ({
+    default: module.RequestPage,
+  })),
+);
 const ExecutorInvitationPage = lazy(() =>
   import("@/pages/claims/ExecutorInvitationPage").then((module) => ({
     default: module.ExecutorInvitationPage,
@@ -246,6 +251,7 @@ export function AppRoutes() {
         <Route path={ROUTES.PUBLIC.PRIVACY} element={<PrivacyPage />} />
         <Route path="/invitations/:token" element={<InvitationPage />} />
         <Route path={ROUTES.RECEIVE} element={<InvitationPage />} />
+        <Route path={ROUTES.REQUEST} element={<RequestPage />} />
         <Route path={ROUTES.EXECUTOR.INVITATION} element={<ExecutorInvitationPage />} />
         <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
           <Route path={ROUTES.ADMIN.ROOT} element={<AdminWorkspacePage />} />

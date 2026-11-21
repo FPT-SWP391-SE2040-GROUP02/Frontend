@@ -129,7 +129,7 @@ describe("chi tiết gói bàn giao", () => {
     expect(dialog).toHaveTextContent("Gỡ người nhận khỏi gói bàn giao?");
     expect(dialog).toHaveTextContent("đưa kế hoạch về Nháp");
     expect(dialog).toHaveTextContent("Người thực thi phải chấp nhận lại lời mời");
-    expect(dialog).toHaveTextContent("không mở bàn giao được");
+    expect(dialog).toHaveTextContent("không gửi yêu cầu nhận được");
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục, đưa kế hoạch về Nháp" }));
     await waitFor(() => expect(remove).toHaveBeenCalledTimes(2));

@@ -23,7 +23,7 @@ function record(overrides: Partial<RecordMoments> = {}): RecordMoments {
 }
 
 describe("deriveNotifications", () => {
-  it("chưa mở bàn giao và không có hướng dẫn thì không có thông báo", () => {
+  it("chưa có yêu cầu nhận và không có hướng dẫn thì không có thông báo", () => {
     expect(deriveNotifications(vault, null)).toEqual([]);
   });
 
@@ -48,7 +48,7 @@ describe("deriveNotifications", () => {
     expect(items.map((item) => item.title)).toEqual([
       "Biên bản đã đủ chữ ký",
       "Luật sư đã chốt biên bản",
-      "Bạn đã mở bàn giao",
+      "Có yêu cầu nhận tài sản",
     ]);
   });
 
