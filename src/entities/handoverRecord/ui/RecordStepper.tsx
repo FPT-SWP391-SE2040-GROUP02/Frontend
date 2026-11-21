@@ -18,14 +18,16 @@ export function RecordStepper({ status }: { status: RecordStatus }) {
             className={cn(
               "flex items-start gap-3 rounded-2xl border p-4",
               active
-                ? "border-heritage-gold bg-[#F4F1E6]"
+                ? "border-heritage-gold bg-heritage-sunken"
                 : "border-heritage-border bg-heritage-surface",
             )}
           >
             <span
               className={cn(
                 "flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
-                done ? "bg-[#DDEFE6] text-[#1F7A55]" : "bg-[#ECE8DB] text-[#4D4D4B]",
+                done
+                  ? "bg-heritage-success-bg text-heritage-success"
+                  : "bg-heritage-sunken text-heritage-muted",
               )}
             >
               {done ? <Check aria-hidden className="size-4" /> : index + 1}

@@ -15,9 +15,9 @@ import { AdminUserDetail } from "./AdminUserDetail";
 import { ListTable, ListTableRow } from "@/shared/ui/listKit";
 
 const STATUS_STYLES: Record<AdminUserStatus, string> = {
-  ACTIVE: "bg-emerald-50 text-emerald-800 border-emerald-200",
-  LOCKED: "bg-amber-50 text-amber-900 border-amber-300",
-  DISABLED: "bg-stone-100 text-stone-700 border-stone-300",
+  ACTIVE: "bg-heritage-success-bg text-heritage-success border-heritage-success-border",
+  LOCKED: "bg-heritage-warning-bg text-heritage-warning border-heritage-warning-border",
+  DISABLED: "bg-heritage-sunken text-heritage-muted border-heritage-border-strong",
 };
 
 /** Danh sách tài khoản: GET /admin/users, bộ lọc trên URL; đổi vai trò và khóa/mở tài khoản qua hộp thoại có lý do. */
@@ -90,7 +90,7 @@ export function AdminUsers({ actionLabel }: { actionLabel?: (action: string) => 
         {createdFeedback && (
           <div
             role="status"
-            className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+            className="rounded-lg border border-heritage-success-border bg-heritage-success-bg px-4 py-3 text-sm text-heritage-success"
           >
             {createdFeedback}
           </div>
@@ -245,7 +245,7 @@ function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: s
           <div role="cell" className="flex min-w-0 items-start gap-3">
             <span
               aria-hidden="true"
-              className="grid size-9 shrink-0 place-items-center rounded-full bg-[#dfe9e3] text-[12.5px] font-semibold text-heritage-primary"
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-heritage-primary-light text-[12.5px] font-semibold text-heritage-primary"
             >
               {initial(user)}
             </span>
@@ -259,7 +259,7 @@ function UsersTable({ data, onOpen }: { data: AdminUsersPage; onOpen: (userId: s
             </div>
           </div>
           <div role="cell">
-            <span className="inline-flex h-6 items-center rounded-xl bg-[#e5ede8] px-2.5 text-sm font-semibold text-heritage-primary">
+            <span className="inline-flex h-6 items-center rounded-xl bg-heritage-primary-light px-2.5 text-sm font-semibold text-heritage-primary">
               {ROLE_LABELS[user.role]}
             </span>
           </div>

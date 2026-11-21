@@ -36,10 +36,10 @@ export function HandoverStepsCard({
   for (const step of handoverSteps(policy.grantDays)) {
     stepNumber = stepNumber + 1;
     const isActive = activeStep === stepNumber;
-    let badgeStyle = "bg-[#E0C486] text-[#0A281E]";
+    let badgeStyle = "bg-heritage-gold-soft text-heritage-primary";
     let rowStyle = "";
     if (isActive) {
-      badgeStyle = "bg-[#0A281E] text-white";
+      badgeStyle = "bg-heritage-primary text-white";
       rowStyle = "rounded-xl bg-heritage-canvas px-3";
     }
     let current: "step" | undefined;

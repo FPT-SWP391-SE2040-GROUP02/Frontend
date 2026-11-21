@@ -73,7 +73,7 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              className={buttonStyles.gold}
+              className={buttonStyles.dark}
               disabled={action.pending || claim.status === "ACCEPTED"}
               onClick={() => review("ACCEPT")}
             >

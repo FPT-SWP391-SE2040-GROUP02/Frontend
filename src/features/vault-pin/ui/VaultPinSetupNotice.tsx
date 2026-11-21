@@ -23,11 +23,11 @@ export function VaultPinSetupNotice({ vaultId }: { vaultId: string }) {
   return (
     <section
       aria-labelledby="vault-pin-setup-title"
-      className="space-y-4 rounded-2xl border border-[#E6D3A3] bg-[#F7EFD9] px-6 py-5"
+      className="space-y-4 rounded-2xl border border-heritage-warning-border bg-heritage-warning-bg px-6 py-5"
     >
       <div className="flex items-start gap-4">
         <span
-          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#EBDDB6] text-[#7A5B25]"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-warning-border text-heritage-warning"
           aria-hidden="true"
         >
           <Lock className="size-4" />

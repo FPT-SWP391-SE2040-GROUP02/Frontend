@@ -62,7 +62,7 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
           {record.status === "SIGNING" && (
             <button
               type="button"
-              className={buttonStyles.gold}
+              className={buttonStyles.dark}
               disabled={busy || !record.canSign}
               onClick={() =>
                 void sign.execute(() => handoverRecordService.signAsVerifier(record.id), apply)

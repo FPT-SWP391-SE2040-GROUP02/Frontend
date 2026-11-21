@@ -138,11 +138,11 @@ function PendingInvitationCard({
   return (
     <article
       aria-label={`Lời mời của ${invitation.ownerName}`}
-      className={`space-y-4 rounded-2xl border bg-white p-5 ${remaining.expiringSoon ? "border-red-200" : "border-heritage-border"}`}
+      className={`space-y-4 rounded-2xl border bg-white p-5 ${remaining.expiringSoon ? "border-heritage-danger-border" : "border-heritage-border"}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <Initial name={invitation.ownerName} className="bg-[#E3ECE6]" />
+          <Initial name={invitation.ownerName} className="bg-heritage-primary-light" />
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold text-heritage-primary">
               {invitation.ownerName}
@@ -157,7 +157,7 @@ function PendingInvitationCard({
       {remaining.expiringSoon && (
         <p
           role="alert"
-          className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="flex items-center gap-2 rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
         >
           <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
           Lời mời này sắp hết hạn. Hết hạn thì bạn không trả lời được nữa, Chủ kho phải gửi lại lời
@@ -170,11 +170,11 @@ function PendingInvitationCard({
           <ul className="mt-2 space-y-2 text-sm">
             {CAPABILITIES.map((item) => (
               <li key={item} className="flex items-center gap-2">
-                <Check className="size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+                <Check className="size-4 shrink-0 text-heritage-success" aria-hidden="true" />
                 {item}
               </li>
             ))}
-            <li className="text-red-800">
+            <li className="text-heritage-danger">
               <strong>Không</strong> đọc được nội dung kho
             </li>
             <li className="text-heritage-muted">
@@ -188,7 +188,7 @@ function PendingInvitationCard({
           </p>
           <label
             htmlFor={checkboxId}
-            className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F4F1E6] px-4 py-3 text-sm leading-6"
+            className="flex min-h-11 items-start gap-3 rounded-xl bg-heritage-sunken px-4 py-3 text-sm leading-6"
           >
             <input
               id={checkboxId}

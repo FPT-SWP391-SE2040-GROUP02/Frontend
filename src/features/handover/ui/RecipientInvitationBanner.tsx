@@ -16,9 +16,9 @@ export function RecipientInvitationBanner() {
   return (
     <section
       aria-label="Gói được để lại cho bạn"
-      className="flex flex-wrap items-center gap-4 rounded-2xl border border-[#E0C486] bg-[#FBF3DC] px-5 py-4"
+      className="flex flex-wrap items-center gap-4 rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg px-5 py-4"
     >
-      <Gift className="size-5 shrink-0 text-[#7A5B25]" aria-hidden="true" />
+      <Gift className="size-5 shrink-0 text-heritage-warning" aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <p className="font-semibold text-heritage-primary">
           {first.ownerFullName} đã để lại cho bạn một gói

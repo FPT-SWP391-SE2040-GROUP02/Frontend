@@ -62,7 +62,7 @@ export function NotaryCardPanel() {
 
       {hasCard && (
         <figure className="max-w-xl min-w-0">
-          <div className="flex aspect-[1.6/1] w-full items-center justify-center overflow-hidden rounded-2xl border border-heritage-border bg-[#F4F1E6]">
+          <div className="flex aspect-[1.6/1] w-full items-center justify-center overflow-hidden rounded-2xl border border-heritage-border bg-heritage-sunken">
             {image.url ? (
               <img
                 src={image.url}

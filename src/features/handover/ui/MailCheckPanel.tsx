@@ -49,7 +49,7 @@ export function MailCheckPanel({ token }: { token: string }) {
       <header className="flex items-start gap-3">
         <span
           aria-hidden="true"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#F1E6CC] text-[#7A5B24]"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-warning-bg text-heritage-warning"
         >
           <MailCheck className="size-5" />
         </span>
@@ -91,7 +91,7 @@ export function MailCheckPanel({ token }: { token: string }) {
         <button
           type="submit"
           disabled={!ready || pending}
-          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-heritage-primary px-5 text-sm font-semibold text-white hover:bg-[#133e2f] disabled:pointer-events-none disabled:opacity-50"
+          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-heritage-primary px-5 text-sm font-semibold text-white hover:bg-heritage-primary-hover disabled:pointer-events-none disabled:opacity-50"
         >
           {pending ? "Đang kiểm tra…" : "Kiểm tra"}
         </button>
@@ -100,7 +100,7 @@ export function MailCheckPanel({ token }: { token: string }) {
         {outcome.kind === "ok" && (
           <p
             role="status"
-            className="flex items-start gap-2 rounded-xl bg-[#E4F3EB] px-4 py-3 text-sm text-[#1F7A55]"
+            className="flex items-start gap-2 rounded-xl bg-heritage-success-bg px-4 py-3 text-sm text-heritage-success"
           >
             <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>
@@ -113,20 +113,26 @@ export function MailCheckPanel({ token }: { token: string }) {
         {outcome.kind === "bad" && (
           <p
             role="alert"
-            className="flex items-start gap-2 rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]"
+            className="flex items-start gap-2 rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
           >
             <ShieldAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>Không khớp. Còn {outcome.attemptsLeft} lần thử.</span>
           </p>
         )}
         {outcome.kind === "locked" && (
-          <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+          <p
+            role="alert"
+            className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+          >
             Bạn đã thử quá số lần cho phép. Hãy gọi số điện thoại công ty ghi trong thư để xác minh,
             đừng bấm vào liên kết nếu còn nghi ngờ.
           </p>
         )}
         {outcome.kind === "error" && (
-          <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+          <p
+            role="alert"
+            className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+          >
             Không kiểm tra được lúc này. Kiểm tra liên kết hoặc thử lại sau.
           </p>
         )}

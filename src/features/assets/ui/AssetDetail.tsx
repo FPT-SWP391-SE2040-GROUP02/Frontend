@@ -110,7 +110,7 @@ function EditForm({
       <div className="flex flex-wrap gap-3 pt-1">
         <button
           type="submit"
-          className={buttonStyles.gold}
+          className={buttonStyles.dark}
           disabled={!isDirty || action.pending}
           aria-busy={action.pending}
         >
@@ -271,14 +271,14 @@ export function AssetDetail({
           <>
             <AssetInfo asset={asset} />
             {saved && (
-              <p role="status" className="mt-4 text-sm text-[#1F7A55]">
+              <p role="status" className="mt-4 text-sm text-heritage-success">
                 Đã lưu thay đổi.
               </p>
             )}
             <div className="mt-5 flex flex-wrap gap-3">
               <button
                 type="button"
-                className={`${buttonStyles.gold} disabled:cursor-not-allowed disabled:opacity-50`}
+                className={`${buttonStyles.dark} disabled:cursor-not-allowed disabled:opacity-50`}
                 disabled={locked}
                 title={lockReason ?? undefined}
                 onClick={startEditing}

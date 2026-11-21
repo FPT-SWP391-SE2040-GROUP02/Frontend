@@ -43,12 +43,10 @@ export function ProtectedRoute({
   // 1. Trong lúc đang hydrate phiên từ /auth/session -> hiển thị loader trung lập, không đoán role
   if (isHydrating) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-[var(--surface,#FAF9F5)] dark:bg-[#06140E]">
+      <div className="flex h-screen w-full items-center justify-center bg-heritage-surface dark:bg-heritage-primary">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary,#0B291E)] border-t-transparent" />
-          <p className="text-sm font-medium text-[var(--text-muted,#66786E)]">
-            Đang đồng bộ phiên bảo mật...
-          </p>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-heritage-primary border-t-transparent" />
+          <p className="text-sm font-medium text-heritage-muted">Đang đồng bộ phiên bảo mật...</p>
         </div>
       </div>
     );

@@ -95,7 +95,7 @@ export function AddRecipientPanel({ record }: { record: HandoverRecord }) {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              className={buttonStyles.gold}
+              className={buttonStyles.dark}
               disabled={action.pending}
               onClick={submit}
             >

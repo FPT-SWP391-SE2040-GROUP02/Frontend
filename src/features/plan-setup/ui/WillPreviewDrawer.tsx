@@ -98,7 +98,7 @@ function IdentityNotice({
     return (
       <div
         role="alert"
-        className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-medium text-[#a32119]"
+        className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-medium text-heritage-danger"
       >
         <p>Chưa tải được thông tin danh tính nên chưa xuất được file PDF.</p>
         <Button variant="outline" onClick={onRetry}>

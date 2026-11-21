@@ -21,9 +21,9 @@ export function MyInvitationsBanner({ invitationsHref }: { invitationsHref: stri
   return (
     <section
       aria-label="Lời mời làm Người thực thi"
-      className="flex flex-wrap items-center gap-4 rounded-2xl border border-[#E0C486] bg-[#F1E6CC] px-5 py-4"
+      className="flex flex-wrap items-center gap-4 rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg px-5 py-4"
     >
-      <Mail className="size-5 shrink-0 text-[#7A5B25]" aria-hidden="true" />
+      <Mail className="size-5 shrink-0 text-heritage-warning" aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <p className="font-semibold text-heritage-primary">
           {first.ownerName} mời bạn làm Người thực thi

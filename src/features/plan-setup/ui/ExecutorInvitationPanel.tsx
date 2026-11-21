@@ -121,7 +121,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         <ul className="space-y-2 text-sm">
           {capabilities.map((item) => (
             <li key={item} className="flex items-center gap-2">
-              <Check className="size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+              <Check className="size-4 shrink-0 text-heritage-success" aria-hidden="true" />
               {item}
             </li>
           ))}
@@ -195,13 +195,16 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         </>
       )}
       {action.error && passwordError === null && (
-        <div role="alert" className="space-y-2 rounded-xl border border-red-200 bg-red-50 p-4">
+        <div
+          role="alert"
+          className="space-y-2 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4"
+        >
           <p className="text-sm font-medium text-destructive">{action.error}</p>
-          <p className="text-sm text-red-700">
+          <p className="text-sm text-heritage-danger">
             Nếu đây không phải tài khoản được mời, hãy{" "}
             <Link
               to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(`${ROUTES.EXECUTOR.INVITATION}#token=${encodeURIComponent(token)}`)}`}
-              className="font-semibold underline hover:text-red-900"
+              className="font-semibold underline hover:text-heritage-danger"
             >
               đăng xuất và đăng nhập bằng email người được mời
             </Link>

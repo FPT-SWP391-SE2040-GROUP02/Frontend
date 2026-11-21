@@ -20,15 +20,15 @@ export function MaintenanceNoticeBar({
   return (
     <div
       role="status"
-      className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-[#12392C] px-4 py-2.5 text-center text-[0.875rem] text-[#EFECE3]"
+      className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-heritage-primary-hover px-4 py-2.5 text-center text-[0.875rem] text-heritage-canvas"
     >
       <span className="inline-flex items-center gap-2.5">
-        <span className="size-2 flex-none rounded-full bg-[#E0C486]" aria-hidden="true" />
+        <span className="size-2 flex-none rounded-full bg-heritage-gold-soft" aria-hidden="true" />
         {message}
       </span>
       <Link
         to={actionHref}
-        className="font-semibold text-[#E0C486] underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E0C486]"
+        className="font-semibold text-heritage-gold-soft underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold-soft"
       >
         {actionLabel}
       </Link>

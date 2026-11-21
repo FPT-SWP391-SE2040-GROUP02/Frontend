@@ -58,7 +58,7 @@ export function SystemExecutorCard({
     <li
       className={cn(
         "rounded-2xl border bg-white p-5",
-        selected ? "border-[#C9A55C] bg-[#FDF9EE]" : "border-heritage-border",
+        selected ? "border-heritage-gold bg-heritage-gold-light" : "border-heritage-border",
         blocked && "opacity-70",
       )}
     >
@@ -84,7 +84,7 @@ export function SystemExecutorCard({
       )}
 
       {hasLegalDetails && (
-        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 rounded-xl bg-[#FBF7EE] p-3">
+        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 rounded-xl bg-heritage-gold-light p-3">
           {legal.lawyerCardNumber && (
             <LegalRow label="Số thẻ luật sư" value={legal.lawyerCardNumber} />
           )}

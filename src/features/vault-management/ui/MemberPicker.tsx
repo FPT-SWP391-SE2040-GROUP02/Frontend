@@ -93,8 +93,8 @@ export function MemberPicker(props: MemberPickerProps) {
         <label
           className={cn(
             "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
-            checked && "bg-[#DDEFE6]",
-            !checked && !item.disabled && "cursor-pointer hover:bg-[#F4F1E6]",
+            checked && "bg-heritage-success-bg",
+            !checked && !item.disabled && "cursor-pointer hover:bg-heritage-sunken",
             item.disabled && "cursor-not-allowed opacity-60",
           )}
         >
@@ -103,11 +103,11 @@ export function MemberPicker(props: MemberPickerProps) {
             checked={checked}
             disabled={props.disabled || item.disabled}
             onChange={() => toggle(item.id)}
-            className="size-4 shrink-0 accent-[#0A281E]"
+            className="size-4 shrink-0 accent-heritage-primary"
           />
           {props.withInitial && <Initial name={item.label} className="size-8 text-sm" />}
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold text-[#0A281E]">
+            <span className="block truncate text-sm font-semibold text-heritage-primary">
               {item.label}
             </span>
             {item.detail && (
@@ -122,7 +122,7 @@ export function MemberPicker(props: MemberPickerProps) {
   return (
     <div className="flex min-w-0 flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-[#0A281E]">
+        <p className="text-sm font-semibold text-heritage-primary">
           {props.title}
           <span className="font-normal text-heritage-muted">
             {" "}
@@ -134,7 +134,7 @@ export function MemberPicker(props: MemberPickerProps) {
             type="button"
             disabled={props.disabled}
             onClick={toggleAll}
-            className="text-sm font-semibold text-[#0A281E] underline underline-offset-4 disabled:opacity-50"
+            className="text-sm font-semibold text-heritage-primary underline underline-offset-4 disabled:opacity-50"
           >
             {selectAllLabel}
           </button>
@@ -158,7 +158,7 @@ export function MemberPicker(props: MemberPickerProps) {
               />
             </div>
             {props.hint && (
-              <div className="border-y border-heritage-border bg-[#F4F1E6] px-3 py-1.5 text-sm font-medium text-[#7A5B25]">
+              <div className="border-y border-heritage-border bg-heritage-sunken px-3 py-1.5 text-sm font-medium text-heritage-warning">
                 {props.hint}
               </div>
             )}

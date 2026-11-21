@@ -50,7 +50,7 @@ function SupplementForm({ claim }: { claim: MyClaim }) {
       </label>
       <button
         type="button"
-        className={buttonStyles.gold}
+        className={buttonStyles.dark}
         disabled={action.pending}
         onClick={() => {
           setTouched(true);

@@ -59,9 +59,9 @@ export function EkycDropzone({
     }
   }
 
-  let border = "border-green-700/40";
+  let border = "border-heritage-success/40";
   if (dragging) {
-    border = "border-[#B68F4C] bg-[#F1E7D0]/50";
+    border = "border-heritage-gold bg-heritage-warning-bg/50";
   }
   let fileName = "";
   let hint = "Kéo ảnh vào đây hoặc bấm để chọn";
@@ -106,7 +106,7 @@ export function EkycDropzone({
       <div className="flex flex-wrap items-center justify-center gap-3">
         <label
           htmlFor={inputId}
-          className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-[#1d4d3c] px-6 text-sm font-semibold text-white focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-heritage-gold ${labelState}`}
+          className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-heritage-primary-hover px-6 text-sm font-semibold text-white focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-heritage-gold ${labelState}`}
         >
           <Upload className="size-4" aria-hidden="true" />
           {pickLabel}
@@ -118,7 +118,7 @@ export function EkycDropzone({
             variant="outline"
             size="lg"
             onClick={() => setCropOpen(true)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border-heritage-gold/80 bg-heritage-surface px-5 text-sm font-semibold text-heritage-primary hover:bg-[#F1E7D0]"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border-heritage-gold/80 bg-heritage-surface px-5 text-sm font-semibold text-heritage-primary hover:bg-heritage-warning-bg"
           >
             <Crop className="size-4 text-heritage-gold" aria-hidden="true" />
             Cắt & xoay thẻ

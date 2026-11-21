@@ -33,7 +33,10 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 function ServerError({ message }: { message: string }) {
   if (!message) return null;
   return (
-    <p role="alert" className="rounded-lg bg-[#F8E1DE] px-3 py-2 text-sm text-[#A32119]">
+    <p
+      role="alert"
+      className="rounded-lg bg-heritage-danger-bg px-3 py-2 text-sm text-heritage-danger"
+    >
       {message}
     </p>
   );

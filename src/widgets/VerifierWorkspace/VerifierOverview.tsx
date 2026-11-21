@@ -45,7 +45,7 @@ function WorkCard({
   return (
     <Link
       to={to}
-      className="block rounded-2xl border border-heritage-border bg-heritage-surface p-6 shadow-sm transition-colors hover:bg-[#F7F4EA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+      className="block rounded-2xl border border-heritage-border bg-heritage-surface p-6 shadow-sm transition-colors hover:bg-heritage-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
     >
       <p className="text-sm font-semibold">{title}</p>
       <p className="mt-3 text-5xl font-semibold tabular-nums text-heritage-primary">
@@ -97,8 +97,8 @@ export function VerifierOverview() {
         />
       </div>
       {(records.isError || recipients.isError) && (
-        <div role="alert" className="space-y-3 rounded-2xl bg-[#F8E1DE] p-5">
-          <p className="text-sm text-[#7A1A14]">Không tải được một phần số liệu.</p>
+        <div role="alert" className="space-y-3 rounded-2xl bg-heritage-danger-bg p-5">
+          <p className="text-sm text-heritage-danger">Không tải được một phần số liệu.</p>
           <button
             type="button"
             className={buttonStyles.outline}

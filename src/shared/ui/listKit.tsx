@@ -6,7 +6,7 @@ const SEARCH_DEBOUNCE_MS = 400;
 
 /** Khung ô nhập chung theo prototype: cao 42px, bo 12px, viền mảnh, nền trắng. */
 const FIELD_BASE =
-  "rounded-xl border border-heritage-border bg-white text-sm outline-none focus-visible:border-heritage-gold focus-visible:ring-2 focus-visible:ring-heritage-gold/30";
+  "rounded-xl border border-heritage-border-strong bg-heritage-surface text-sm outline-none focus-visible:border-heritage-gold focus-visible:ring-2 focus-visible:ring-heritage-gold/30";
 
 /** Thanh công cụ lọc của các trang danh sách Admin: một hàng gọn, tự xuống dòng trên màn hẹp. */
 export function ListFilterBar({
@@ -91,7 +91,7 @@ export function ListSearchField({
           window.clearTimeout(timer.current);
           timer.current = window.setTimeout(() => commit(next), SEARCH_DEBOUNCE_MS);
         }}
-        className={`h-[42px] w-full pl-9 pr-3 ${FIELD_BASE}`}
+        className={`h-11 w-full pl-9 pr-3 ${FIELD_BASE}`}
       />
     </form>
   );
@@ -108,12 +108,12 @@ interface SelectFieldProps {
 /** Ô chọn một giá trị; mục đầu là "Mọi …" (không lọc). */
 export function ListSelectField({ label, value, allLabel, options, onChange }: SelectFieldProps) {
   return (
-    <label className="relative inline-flex">
+    <label className="relative inline-flex max-w-full">
       <span className="sr-only">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`h-10 min-w-44 appearance-none pl-3.5 pr-9 font-medium ${FIELD_BASE}`}
+        className={`h-11 min-w-44 max-w-full appearance-none truncate pl-3.5 pr-9 font-medium ${FIELD_BASE}`}
       >
         <option value="">{allLabel}</option>
         {options.map((option) => (
@@ -176,14 +176,14 @@ export function ListPill({ pressed, onClick, children, count }: PillProps) {
       className={`inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-[0.875rem] font-semibold transition-colors ${
         pressed
           ? "border-heritage-primary bg-heritage-primary text-white"
-          : "border-heritage-border bg-white text-heritage-text hover:bg-[#e5ede8]"
+          : "border-heritage-border bg-white text-heritage-text hover:bg-heritage-primary-light"
       }`}
     >
       {children}
       {count !== undefined && (
         <span
           className={`min-w-5 rounded-full px-1.5 py-px text-center text-sm tabular-nums ${
-            pressed ? "bg-white/20" : "bg-[#e8e5dd]"
+            pressed ? "bg-white/20" : "bg-heritage-sunken"
           }`}
         >
           {count}
@@ -229,7 +229,9 @@ export function ListSegmentTabs({ label, value, options, onChange }: SegmentTabs
             {option.count !== undefined && (
               <span
                 className={`min-w-[22px] rounded-full px-[7px] py-px text-center text-sm tabular-nums ${
-                  pressed ? "bg-[#fbf3e0] text-[#7a5a22]" : "bg-[#e8e5dd] text-heritage-muted"
+                  pressed
+                    ? "bg-heritage-warning-bg text-heritage-warning"
+                    : "bg-heritage-sunken text-heritage-muted"
                 }`}
               >
                 {option.count}
@@ -246,11 +248,11 @@ export function ListSegmentTabs({ label, value, options, onChange }: SegmentTabs
 export type RowTone = "bad" | "warn" | "info" | "ok" | "none";
 
 const ROW_TONE_BAR: Record<RowTone, string> = {
-  bad: "shadow-[inset_4px_0_0_#a32119] bg-[#a32119]/5 hover:bg-[#a32119]/10",
-  warn: "shadow-[inset_4px_0_0_#8a5a0b] bg-[#8a5a0b]/5 hover:bg-[#8a5a0b]/10",
-  info: "shadow-[inset_4px_0_0_#2f5d7c] bg-[#2f5d7c]/5 hover:bg-[#2f5d7c]/10",
-  ok: "shadow-[inset_4px_0_0_#1f7a55] bg-[#1f7a55]/5 hover:bg-[#1f7a55]/10",
-  none: "shadow-[inset_4px_0_0_#dcd9d0] hover:bg-heritage-gold/10",
+  bad: "shadow-[inset_4px_0_0_var(--danger)] bg-heritage-danger/5 hover:bg-heritage-danger/10",
+  warn: "shadow-[inset_4px_0_0_var(--gold-hover)] bg-heritage-gold-hover/5 hover:bg-heritage-gold-hover/10",
+  info: "shadow-[inset_4px_0_0_var(--text-muted)] bg-heritage-muted/5 hover:bg-heritage-muted/10",
+  ok: "shadow-[inset_4px_0_0_var(--success)] bg-heritage-success/5 hover:bg-heritage-success/10",
+  none: "shadow-[inset_4px_0_0_var(--border-ui)] hover:bg-heritage-gold/10",
 };
 
 /** Bảng danh sách: khung bo 16px, hàng tiêu đề cao 44px nền nhạt, các hàng ngăn bằng đường mảnh. */
@@ -271,7 +273,7 @@ export function ListTable({
     >
       <div
         role="row"
-        className="hidden h-11 items-center gap-4 border-b border-heritage-border bg-[#e8e5dd] px-[18px] text-sm font-semibold tracking-[0.02em] text-heritage-muted md:grid md:grid-cols-[var(--cols)]"
+        className="hidden h-11 items-center gap-4 border-b border-heritage-border bg-heritage-sunken px-[18px] text-sm font-semibold tracking-[0.02em] text-heritage-muted md:grid md:grid-cols-[var(--cols)]"
       >
         {headings.map((heading) => (
           <span role="columnheader" key={heading}>
@@ -289,7 +291,7 @@ export function ListTableRow({ children, tone }: { children: ReactNode; tone?: R
   return (
     <div
       role="row"
-      className={`group grid gap-2 border-t border-[#e8e5dd] px-[18px] py-4 transition-colors first:border-t-0 md:grid-cols-[var(--cols)] md:items-start md:gap-4 ${
+      className={`group grid gap-2 border-t border-heritage-sunken px-[18px] py-4 transition-colors first:border-t-0 md:grid-cols-[var(--cols)] md:items-start md:gap-4 ${
         tone ? ROW_TONE_BAR[tone] : "hover:bg-heritage-gold/10"
       }`}
     >

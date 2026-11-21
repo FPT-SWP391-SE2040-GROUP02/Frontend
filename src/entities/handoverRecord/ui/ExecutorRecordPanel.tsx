@@ -71,7 +71,7 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
           record.canSign ? (
             <button
               type="button"
-              className={buttonStyles.gold}
+              className={buttonStyles.dark}
               disabled={sign.pending}
               onClick={() =>
                 void sign.execute(

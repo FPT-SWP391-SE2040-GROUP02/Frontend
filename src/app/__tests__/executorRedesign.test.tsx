@@ -285,7 +285,7 @@ describe("Bàn giao: bảng người nhận", () => {
     const highlighted = list.querySelectorAll("[data-needs-action='true']");
     expect(highlighted).toHaveLength(1);
     expect(highlighted[0]).toHaveAttribute("aria-label", "Phạm Văn Cường, gói Gói 4");
-    expect(highlighted[0]).toHaveClass("border-l-[#C9A55C]");
+    expect(highlighted[0]).toHaveClass("border-l-heritage-gold");
   });
 
   it("Chi tiết mở hàng 5 cột có giờ và ba ô; Thu gọn đóng lại", async () => {

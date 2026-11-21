@@ -42,7 +42,8 @@ type Tab = "front" | "back";
 
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
 
-const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
+const PRIMARY_BUTTON =
+  "bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover";
 
 const CONSENT_PROMISES = [
   "Chụp hoặc tải ảnh căn cước, mặt trước và mặt sau",
@@ -95,7 +96,7 @@ function ConsentStep({
         <ul className="space-y-2 text-sm">
           {CONSENT_PROMISES.map((text) => (
             <li key={text} className="flex items-start gap-2">
-              <Check className="mt-0.5 size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+              <Check className="mt-0.5 size-4 shrink-0 text-heritage-success" aria-hidden="true" />
 
               {text}
             </li>
@@ -143,7 +144,7 @@ function ConsentStep({
 
             size="lg"
 
-            className={`${GOLD_BUTTON} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+            className={`${PRIMARY_BUTTON} disabled:bg-heritage-sunken disabled:text-heritage-subtle disabled:opacity-100`}
 
             disabled={!ready || pending}
 
@@ -155,14 +156,17 @@ function ConsentStep({
           <Link
             to={accountHome}
 
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#0A281E] px-6 text-sm font-semibold text-[#0A281E] hover:bg-[#F4F1E6]"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-heritage-primary px-6 text-sm font-semibold text-heritage-primary hover:bg-heritage-sunken"
           >
             Để sau
           </Link>
         </div>
 
         {error && (
-          <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+          <p
+            role="alert"
+            className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+          >
             {error}
           </p>
         )}
@@ -180,7 +184,7 @@ function ConsentStep({
 
               className="flex items-center gap-2 rounded-full bg-heritage-canvas px-3 py-1.5 text-sm"
             >
-              <Check className="size-3.5 text-[#1F7A55]" aria-hidden="true" />
+              <Check className="size-3.5 text-heritage-success" aria-hidden="true" />
 
               {text}
             </li>
@@ -188,7 +192,7 @@ function ConsentStep({
         </ul>
 
         <p className="flex items-start gap-2 text-sm text-heritage-muted">
-          <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+          <Lock className="mt-0.5 size-3.5 shrink-0 text-heritage-success" aria-hidden="true" />
           Ảnh chỉ dùng để đối chiếu. Không chia sẻ cho chủ kho hay người khác.
         </p>
       </section>
@@ -223,13 +227,13 @@ function CheckRow({ state, text }: { state: "pass" | "fail" | "unknown"; text: s
 
   if (state === "pass") {
     mark = (
-      <span className="flex size-5 items-center justify-center rounded-full bg-green-600 text-white">
+      <span className="flex size-5 items-center justify-center rounded-full bg-heritage-success text-white">
         <Check className="size-3.5" aria-hidden="true" />
       </span>
     );
   } else if (state === "fail") {
     mark = (
-      <span className="flex size-5 items-center justify-center rounded-full bg-red-800 text-white">
+      <span className="flex size-5 items-center justify-center rounded-full bg-heritage-danger text-white">
         <X className="size-3.5" aria-hidden="true" />
       </span>
     );
@@ -280,14 +284,14 @@ function ResultStep({
 
   let chip = "Cần kiểm tra";
 
-  let chipStyle = "bg-[#F1E7D0] text-[#7A5B24]";
+  let chipStyle = "bg-heritage-warning-bg text-heritage-warning";
 
   let heading = "Cần kiểm tra thêm";
 
   if (passed) {
     chip = "Đạt ngưỡng thử";
 
-    chipStyle = "bg-green-100 text-green-800";
+    chipStyle = "bg-heritage-success-bg text-heritage-success";
 
     heading = "Khuôn mặt khớp với căn cước";
   } else if (failed) {
@@ -342,7 +346,7 @@ function ResultStep({
           <button
             type="button"
             onClick={onRestart}
-            className="text-sm font-semibold text-blue-700 hover:underline"
+            className="text-sm font-semibold text-heritage-primary hover:underline"
           >
             Đổi thẻ ở Đọc căn cước ↗
           </button>
@@ -352,7 +356,7 @@ function ResultStep({
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-heritage-primary">Căn cước đã đọc</h4>
 
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[0.875rem] font-medium text-blue-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-heritage-primary-light px-2.5 py-1 text-[0.875rem] font-medium text-heritage-primary">
               <Lock className="size-3" aria-hidden="true" />
               Ảnh tham chiếu đã khóa
             </span>
@@ -375,7 +379,7 @@ function ResultStep({
           <div className="space-y-2">
             <h4 className="text-sm font-semibold text-heritage-primary">Selfie của bạn</h4>
 
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[0.875rem] font-medium text-blue-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-heritage-primary-light px-2.5 py-1 text-[0.875rem] font-medium text-heritage-primary">
               <Check className="size-3" aria-hidden="true" />
               Selfie từ phiên camera đã đạt thử thách.
             </span>
@@ -400,7 +404,7 @@ function ResultStep({
         <div className="mt-4 text-sm">{message}</div>
 
         {!passed && (
-          <Button type="button" size="lg" className={`mt-4 ${GOLD_BUTTON}`} onClick={onRestart}>
+          <Button type="button" size="lg" className={`mt-4 ${PRIMARY_BUTTON}`} onClick={onRestart}>
             Đọc lại căn cước
           </Button>
         )}
@@ -458,7 +462,7 @@ function ResultStep({
           >
             <div
               className={`h-full transition-all duration-500 ${
-                passed ? "bg-[#4F46E5]" : "bg-amber-500"
+                passed ? "bg-heritage-muted" : "bg-heritage-warning"
               }`}
               style={{
                 width:
@@ -505,7 +509,7 @@ function ResultStep({
           <CheckRow state={score} text={scoreText} />
         </ul>
 
-        <div className="mt-6 rounded-2xl border border-green-200/80 bg-green-50/80 p-3.5 text-sm leading-relaxed text-green-900">
+        <div className="mt-6 rounded-2xl border border-heritage-success-border/80 bg-heritage-success-bg/80 p-3.5 text-sm leading-relaxed text-heritage-success">
           Selfie đạt ngưỡng so khớp với CCCD đã đọc. 0.0 giây. Ảnh tham chiếu được khóa từ mặt trước
           đã đọc. Điểm cosine không phải phần trăm xác suất.
         </div>
@@ -791,7 +795,7 @@ export function EkycUploads({
   if (ocr) {
     scanChip = "Đã quét";
 
-    scanChipStyle = "bg-green-100 text-green-800";
+    scanChipStyle = "bg-heritage-success-bg text-heritage-success";
   }
 
   let frontTabStyle = "text-heritage-muted";
@@ -799,9 +803,9 @@ export function EkycUploads({
   let backTabStyle = "text-heritage-muted";
 
   if (tab === "front") {
-    frontTabStyle = "bg-[#1d4d3c] text-white";
+    frontTabStyle = "bg-heritage-primary-hover text-white";
   } else {
-    backTabStyle = "bg-[#1d4d3c] text-white";
+    backTabStyle = "bg-heritage-primary-hover text-white";
   }
 
   const guidance = ["Đủ 4 góc thẻ", "Không chói sáng", "Chữ rõ nét"];
@@ -815,7 +819,7 @@ export function EkycUploads({
 
         className="flex items-center gap-2 rounded-full border border-heritage-border px-3 py-1 text-sm"
       >
-        <Check className="size-3.5 text-green-700" aria-hidden="true" />
+        <Check className="size-3.5 text-heritage-success" aria-hidden="true" />
 
         {text}
       </li>,
@@ -910,7 +914,7 @@ export function EkycUploads({
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <p className="flex items-center gap-1.5 font-medium text-green-700">
+                  <p className="flex items-center gap-1.5 font-medium text-heritage-success">
                     <Check className="size-4" aria-hidden="true" />
                     Đã đọc thông tin mặt trước
                   </p>
@@ -1046,7 +1050,7 @@ export function EkycUploads({
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <p className="flex items-center gap-1.5 font-medium text-green-700">
+                  <p className="flex items-center gap-1.5 font-medium text-heritage-success">
                     <Check className="size-4" aria-hidden="true" />
                     Đã đọc thông tin mặt sau
                   </p>
@@ -1141,7 +1145,10 @@ export function EkycUploads({
                 )}
 
                 {backSent && !confirmed && (
-                  <p role="status" className="rounded-xl bg-green-50 p-3 text-sm text-green-800">
+                  <p
+                    role="status"
+                    className="rounded-xl bg-heritage-success-bg p-3 text-sm text-heritage-success"
+                  >
                     Đã nhận ảnh mặt sau. Kiểm tra thông tin ở bên phải rồi bấm Tiếp tục so khớp mặt.
                   </p>
                 )}

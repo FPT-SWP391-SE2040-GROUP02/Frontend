@@ -233,7 +233,7 @@ export function WillSignFooter({
       <label className="flex cursor-pointer items-start gap-2.5 text-sm leading-6">
         <input
           type="checkbox"
-          className="mt-0.5 size-5 shrink-0 accent-[#0b291e]"
+          className="mt-0.5 size-5 shrink-0 accent-heritage-primary"
           checked={acknowledge}
           disabled={action.pending || !eligible}
           onChange={(event) => setAcknowledge(event.target.checked)}
@@ -271,14 +271,14 @@ export function WillSignFooter({
       <p
         id="sign-pin-error"
         role="alert"
-        className="mb-3 mt-1.5 min-h-0 text-sm font-medium text-[#a32119]"
+        className="mb-3 mt-1.5 min-h-0 text-sm font-medium text-heritage-danger"
       >
         {pinErrorText}
       </p>
       <Button
         type="submit"
         size="lg"
-        className="w-full rounded-[20px] bg-heritage-gold font-semibold text-white shadow-none hover:bg-heritage-gold-hover disabled:opacity-50"
+        className="w-full rounded-xl bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover disabled:opacity-50"
         disabled={!canSign}
         aria-describedby="sign-reason"
       >

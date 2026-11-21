@@ -15,8 +15,8 @@ export function RecipientReviewList({ onOpen }: { onOpen: (submissionId: string)
     );
   if (query.isError)
     return (
-      <div role="alert" className="space-y-3 rounded-2xl bg-[#F8E1DE] p-5">
-        <p className="text-sm text-[#7A1A14]">Không tải được hồ sơ danh tính.</p>
+      <div role="alert" className="space-y-3 rounded-2xl bg-heritage-danger-bg p-5">
+        <p className="text-sm text-heritage-danger">Không tải được hồ sơ danh tính.</p>
         <button
           type="button"
           className={buttonStyles.outline}

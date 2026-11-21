@@ -88,7 +88,7 @@ export function SystemConfigCard({ service, onEdit, onReset }: SystemConfigCardP
               <div className="flex flex-wrap gap-3">
                 <button
                   type="button"
-                  className={primary ? buttonStyles.gold : buttonStyles.outline}
+                  className={primary ? buttonStyles.dark : buttonStyles.outline}
                   onClick={() => onEdit(slot.slot)}
                 >
                   {primary ? "Sửa cấu hình chính" : "Sửa dịch vụ dự phòng"}

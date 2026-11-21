@@ -46,7 +46,7 @@ export function LivenessPanel({
   if (cameraOn) {
     cameraChip = "Đang bật";
 
-    cameraChipStyle = "bg-green-100 text-green-800";
+    cameraChipStyle = "bg-heritage-success-bg text-heritage-success";
   }
 
   let progressChip = "Chưa chạy";
@@ -60,7 +60,7 @@ export function LivenessPanel({
   } else if (state.kind === "completed" || state.kind === "completing" || state.kind === "result") {
     progressChip = "Hoàn tất";
 
-    progressChipStyle = "bg-green-100 text-green-800";
+    progressChipStyle = "bg-heritage-success-bg text-heritage-success";
   }
 
   let startLabel = "Bắt đầu thử thách camera";
@@ -94,11 +94,11 @@ export function LivenessPanel({
       let textStyle = "";
 
       if (done) {
-        rowStyle = "bg-green-50";
+        rowStyle = "bg-heritage-success-bg";
 
         badge = <Check className="size-4" aria-hidden="true" />;
 
-        badgeStyle = "bg-green-600 text-white";
+        badgeStyle = "bg-heritage-success text-white";
 
         textStyle = "line-through text-heritage-muted";
       }

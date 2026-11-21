@@ -30,9 +30,9 @@ export function ResignNotice({ vaultId }: { vaultId: string }) {
     <section
       role="status"
       aria-label="Có thay đổi chưa ký lại"
-      className="flex max-w-[1180px] items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950"
+      className="flex max-w-[1180px] items-start gap-3 rounded-xl border border-heritage-warning-border bg-heritage-warning-bg px-4 py-3 text-sm leading-6 text-heritage-warning"
     >
-      <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-700" aria-hidden="true" />
+      <TriangleAlert className="mt-0.5 size-5 shrink-0 text-heritage-warning" aria-hidden="true" />
       <div className="min-w-0 flex-1 space-y-1">
         <p className="font-semibold">Có thay đổi chưa ký lại</p>
         {summary.lines.length > 0 && <p>{summary.lines.join(" · ")}</p>}

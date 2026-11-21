@@ -107,14 +107,14 @@ function Gap({
   onGapClick: ((target: WillGapTarget) => void) | undefined;
 }) {
   if (!clickable || onGapClick === undefined) {
-    return <span className="font-semibold text-[#a32119]">{text}</span>;
+    return <span className="font-semibold text-heritage-danger">{text}</span>;
   }
   return (
     <button
       type="button"
       data-will-gap={target}
       onClick={() => onGapClick(target)}
-      className="inline-flex min-h-8 cursor-pointer items-center rounded-md border border-dashed border-[#a32119] bg-[#fdeceb] px-2.5 py-0.5 text-left text-sm font-semibold text-[#a32119] hover:bg-[#f9d9d6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+      className="inline-flex min-h-8 cursor-pointer items-center rounded-md border border-dashed border-heritage-danger bg-heritage-danger-bg px-2.5 py-0.5 text-left text-sm font-semibold text-heritage-danger hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
     >
       {text} — bấm để điền
     </button>
@@ -164,7 +164,7 @@ function OwnerSectionBlock({
     if (ownerIdentity === null) {
       // Không bịa: chưa có eKYC thì không có CCCD hay thường trú để in.
       missingNote = (
-        <p className="mb-2 text-sm font-semibold text-[#a32119]">
+        <p className="mb-2 text-sm font-semibold text-heritage-danger">
           Chưa có thông tin CCCD và nơi thường trú của Chủ kho (chưa có danh tính eKYC).
         </p>
       );
@@ -409,8 +409,8 @@ function SignatureBox({
   let statusStyle = "text-heritage-muted";
   let mark: ReactNode = null;
   if (signed) {
-    boxStyle = "border-solid border-[#1f7a55] bg-[#e3efe8]";
-    statusStyle = "text-[#1f7a55] font-semibold";
+    boxStyle = "border-solid border-heritage-success bg-heritage-success-bg";
+    statusStyle = "text-heritage-success font-semibold";
     mark = <Check className="mr-1 inline size-4 align-text-bottom" aria-hidden="true" />;
   }
   return (

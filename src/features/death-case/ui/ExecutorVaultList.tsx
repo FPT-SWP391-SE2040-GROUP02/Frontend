@@ -34,7 +34,7 @@ export function ExecutorVaultList({
               <div className="flex flex-wrap items-center gap-4">
                 <span
                   aria-hidden="true"
-                  className={`flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${urgent ? "bg-[#0A281E] text-white" : "bg-[#E3ECE6] text-[#0A281E]"}`}
+                  className={`flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${urgent ? "bg-heritage-primary text-white" : "bg-heritage-primary-light text-heritage-primary"}`}
                 >
                   {ownerInitials(vault.ownerFullName)}
                 </span>

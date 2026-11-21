@@ -8,23 +8,23 @@ import { HandoverSendKey } from "./HandoverSendKey";
 
 /** Đoạn thanh: xanh đậm (xong), vàng (đang chờ), xám nhạt (chưa tới), xám đậm (dừng). */
 const SEGMENT_COLORS: Record<SegmentState, string> = {
-  done: "bg-[#1F5D46]",
-  current: "bg-[#E0C486]",
-  pending: "bg-[#E5E1D3]",
-  stopped: "bg-[#8E8B80]",
+  done: "bg-heritage-primary-hover",
+  current: "bg-heritage-gold-soft",
+  pending: "bg-heritage-border",
+  stopped: "bg-heritage-subtle",
 };
 
 const STEP_TEXT_COLORS: Record<SegmentState, string> = {
-  done: "text-[#1F7A55]",
-  current: "text-[#7A5B25]",
+  done: "text-heritage-success",
+  current: "text-heritage-warning",
   pending: "text-heritage-muted",
-  stopped: "text-[#4D4D4B]",
+  stopped: "text-heritage-muted",
 };
 
 const HEADLINE_COLORS: Record<TurnTone, string> = {
-  success: "text-[#1F7A55]",
-  warning: "text-[#7A5B25]",
-  neutral: "text-[#4D4D4B]",
+  success: "text-heritage-success",
+  warning: "text-heritage-warning",
+  neutral: "text-heritage-muted",
 };
 
 const STATE_WORDS: Record<SegmentState, string> = {
@@ -167,7 +167,7 @@ export function HandoverTurnRow({
       className={cn(
         "rounded-2xl border bg-heritage-surface p-4",
         highlighted
-          ? "border-[#E0C486] border-l-4 border-l-[#C9A55C] bg-[#FDF9EE]"
+          ? "border-heritage-gold-soft border-l-4 border-l-heritage-gold bg-heritage-gold-light"
           : "border-heritage-border",
       )}
     >

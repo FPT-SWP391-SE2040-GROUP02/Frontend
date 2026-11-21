@@ -12,9 +12,9 @@ export function HandoverStepper({ current }: { current: number }) {
         let caption = "Chờ";
         if (done) caption = "Xong";
         if (here) caption = "Đang ở đây";
-        let circle = "border border-[#BDB8A6] bg-white text-heritage-muted";
-        if (done) circle = "bg-[#2E9E6E] text-white";
-        if (here) circle = "bg-[#0A281E] text-white ring-4 ring-[#BFE3D2]";
+        let circle = "border border-heritage-border-strong bg-white text-heritage-muted";
+        if (done) circle = "bg-heritage-success text-white";
+        if (here) circle = "bg-heritage-primary text-white ring-4 ring-heritage-success-border";
         return (
           <li
             key={label}
@@ -28,7 +28,7 @@ export function HandoverStepper({ current }: { current: number }) {
             </span>
             <span className="text-sm font-semibold text-heritage-primary">{label}</span>
             <span
-              className={`text-sm ${done || here ? "font-semibold text-[#1F7A55]" : "text-heritage-muted"}`}
+              className={`text-sm ${done || here ? "font-semibold text-heritage-success" : "text-heritage-muted"}`}
             >
               {caption}
             </span>

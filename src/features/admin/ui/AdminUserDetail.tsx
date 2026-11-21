@@ -69,7 +69,7 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
           <div className="flex min-w-0 items-center gap-4">
             <span
               aria-hidden="true"
-              className="grid size-[52px] shrink-0 place-items-center rounded-full bg-[#dfe9e3] text-[17px] font-semibold text-heritage-primary"
+              className="grid size-[52px] shrink-0 place-items-center rounded-full bg-heritage-primary-light text-[17px] font-semibold text-heritage-primary"
             >
               {(user.fullName.trim() || user.email).charAt(0).toUpperCase()}
             </span>
@@ -133,7 +133,7 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
                 >
                   <span className="font-mono">#{item.caseId.slice(0, 8)}</span>
                   <span>{CASE_STATUS_LABELS[item.status] ?? item.status}</span>
-                  <span className={item.overdue ? "font-semibold text-red-700" : ""}>
+                  <span className={item.overdue ? "font-semibold text-heritage-danger" : ""}>
                     Hạn xét: {formatDateTime(item.dueAt)}
                     {item.overdue && " · quá hạn"}
                   </span>
@@ -184,7 +184,11 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
                 className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm"
               >
                 <span>{label(item.action)}</span>
-                <span className={item.outcome === "SUCCEEDED" ? "" : "font-semibold text-red-700"}>
+                <span
+                  className={
+                    item.outcome === "SUCCEEDED" ? "" : "font-semibold text-heritage-danger"
+                  }
+                >
                   {AUDIT_OUTCOME_LABELS[item.outcome] ?? item.outcome}
                 </span>
                 <time dateTime={item.at} className="tabular-nums text-heritage-muted">

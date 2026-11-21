@@ -46,7 +46,7 @@ function CanAndCannotCard() {
       <ul className="space-y-2 text-sm">
         {EXECUTOR_ALLOWED.slice(0, SHORT_LIST_SIZE).map((item) => (
           <li key={item} className="flex items-start gap-2">
-            <Check className="mt-0.5 size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+            <Check className="mt-0.5 size-4 shrink-0 text-heritage-success" aria-hidden="true" />
             <span>
               <span className="sr-only">Làm được: </span>
               {item}
@@ -55,7 +55,7 @@ function CanAndCannotCard() {
         ))}
         {EXECUTOR_DENIED.slice(0, SHORT_LIST_SIZE).map((item) => (
           <li key={item} className="flex items-start gap-2 text-heritage-muted">
-            <X className="mt-0.5 size-4 shrink-0 text-[#A32119]" aria-hidden="true" />
+            <X className="mt-0.5 size-4 shrink-0 text-heritage-danger" aria-hidden="true" />
             <span>
               <span className="sr-only">Không làm được: </span>
               {item}
@@ -91,9 +91,9 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
     <div className="space-y-6">
       <section
         aria-labelledby="executor-todo-title"
-        className="rounded-2xl border border-[#E0C486] bg-[#FBF3E0] p-5 sm:p-6"
+        className="rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg p-5 sm:p-6"
       >
-        <p className="text-sm font-semibold uppercase tracking-widest text-[#7A5B25]">
+        <p className="text-sm font-semibold uppercase tracking-widest text-heritage-warning">
           Việc của bạn bây giờ
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-4">

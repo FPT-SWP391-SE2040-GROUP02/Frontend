@@ -20,7 +20,8 @@ import { ResignNotice } from "./ResignNotice";
 const PAGE_SIZE = 10;
 /** Một kho có tối đa 50 gói chưa xóa nên một trang 100 dòng đủ để biết tài sản đang ở gói nào. */
 const LOOKUP_PAGE = { pageIndex: 1, pageSize: 100 };
-const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
+const PRIMARY_BUTTON =
+  "bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover";
 
 interface MemberEditing {
   group: PackageResponse;
@@ -132,7 +133,7 @@ export function OwnerGroups({
     }
     body = (
       <div className="mt-6 space-y-3">
-        <Check className="size-5 text-green-700" aria-hidden="true" />
+        <Check className="size-5 text-heritage-success" aria-hidden="true" />
         <p className="font-semibold">{emptyTitle}</p>
         <p className="text-sm text-heritage-muted">
           Gói bàn giao gom các tài sản và người nhận có chung mục đích chuyển giao di sản.
@@ -140,7 +141,7 @@ export function OwnerGroups({
         {page === 1 && (
           <Button
             size="lg"
-            className={GOLD_BUTTON}
+            className={PRIMARY_BUTTON}
             disabled={lockReason !== null}
             title={lockReason ?? undefined}
             onClick={() => onCreateOpenChange(true)}
@@ -203,7 +204,10 @@ export function OwnerGroups({
     <div className="space-y-6">
       <ResignNotice vaultId={vaultId} />
       {outsideCount > 0 && (
-        <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
+        <p
+          role="status"
+          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
+        >
           Có {outsideCount} mục chưa thuộc gói bàn giao nào. Những mục này chưa được giao cho ai và
           sẽ không nằm trong phạm vi bàn giao.
         </p>
@@ -213,7 +217,7 @@ export function OwnerGroups({
         className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
       >
         <h2 className="text-xl font-medium text-heritage-primary">Danh sách gói bàn giao</h2>
-        <p className="mt-3 max-w-2xl rounded-xl border border-heritage-border bg-[#FBFAF5] px-4 py-3 text-sm text-[#4D4D4B]">
+        <p className="mt-3 max-w-2xl rounded-xl border border-heritage-border bg-heritage-surface px-4 py-3 text-sm text-heritage-muted">
           Một gói gom các tài sản có cùng người nhận. Gói chuyển sang <strong>sẵn sàng</strong> khi
           có ít nhất một tài sản và một người nhận. Kế hoạch bàn giao cần ít nhất một gói sẵn sàng
           mới kích hoạt được.

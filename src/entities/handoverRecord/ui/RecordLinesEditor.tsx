@@ -133,7 +133,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
                       <td key={key} className="px-4 py-3">
                         <input
                           type="checkbox"
-                          className="size-5 cursor-pointer accent-[#0A281E]"
+                          className="size-5 cursor-pointer accent-heritage-primary"
                           aria-label={`${person.fullName} nhận ${asset.name}`}
                           checked={selected.has(key)}
                           disabled={busy || rejected.has(person.beneficiaryId)}
@@ -161,7 +161,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           </button>
           <button
             type="button"
-            className={buttonStyles.gold}
+            className={buttonStyles.dark}
             disabled={busy || dirty || saved.size === 0 || claimsPending || noAccepted}
             onClick={() =>
               void finalize.execute(() => handoverRecordService.finalize(record.id), apply)

@@ -227,10 +227,10 @@ function PageLoading() {
     <div
       role="status"
       aria-label="Đang tải trang"
-      className="flex h-screen w-full flex-col items-center justify-center gap-3 bg-[var(--surface,#FAF9F5)]"
+      className="flex h-screen w-full flex-col items-center justify-center gap-3 bg-heritage-surface"
     >
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary,#0B291E)] border-t-transparent" />
-      <p className="text-sm font-medium text-[var(--text-muted,#66786E)]">Đang tải trang…</p>
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-heritage-primary border-t-transparent" />
+      <p className="text-sm font-medium text-heritage-muted">Đang tải trang…</p>
     </div>
   );
 }

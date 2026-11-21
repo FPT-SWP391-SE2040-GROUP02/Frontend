@@ -51,7 +51,11 @@ export function ExecutorReceivedKeyCard({ vaultId }: { vaultId: string }) {
   }
 
   return (
-    <Panel title="Mã mở gói bàn giao" action={chip} className="border-[#E0C486]/60 bg-[#FBF3DE]">
+    <Panel
+      title="Mã mở gói bàn giao"
+      action={chip}
+      className="border-heritage-gold-soft/60 bg-heritage-warning-bg"
+    >
       <p className="text-sm leading-6">
         Hệ thống giữ mã và cho bạn xem khi hồ sơ được duyệt và bàn giao bắt đầu. Khi đó bạn gửi mã
         cho người nhận để họ mở gói. Không chia sẻ mã cho ai khác.
@@ -61,7 +65,7 @@ export function ExecutorReceivedKeyCard({ vaultId }: { vaultId: string }) {
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            className={buttonStyles.gold}
+            className={buttonStyles.dark}
             disabled={action.pending}
             onClick={reveal}
           >
@@ -113,7 +117,7 @@ export function ExecutorReceivedKeyCard({ vaultId }: { vaultId: string }) {
             </button>
           </div>
           {copyState === "copied" && (
-            <p role="status" className="text-sm text-[#1F7A55]">
+            <p role="status" className="text-sm text-heritage-success">
               Đã sao chép mã.
             </p>
           )}

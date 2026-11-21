@@ -172,7 +172,7 @@ export function RequestPanel() {
           onChange={(event) => setNote(event.target.value)}
         />
       </label>
-      <button type="button" className={buttonStyles.gold} disabled={submit.pending} onClick={send}>
+      <button type="button" className={buttonStyles.dark} disabled={submit.pending} onClick={send}>
         {submit.pending ? "Đang gửi…" : "Gửi yêu cầu"}
       </button>
       {submit.error && (

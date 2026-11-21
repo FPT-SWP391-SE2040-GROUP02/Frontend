@@ -30,10 +30,11 @@ import { periodRange, type RevenuePeriod } from "../model/revenuePeriod";
 import { AdminErrorMessage } from "./AdminStateMessage";
 
 const STATUS_STYLES: Record<PaymentTransactionStatus, string> = {
-  RECEIVED: "bg-stone-100 text-stone-700 border-stone-300",
-  MATCHED: "bg-emerald-50 text-emerald-800 border-emerald-200",
-  RECONCILIATION_REQUIRED: "bg-amber-50 text-amber-900 border-amber-300",
-  RESOLVED: "bg-emerald-50 text-emerald-800 border-emerald-200",
+  RECEIVED: "bg-heritage-sunken text-heritage-muted border-heritage-border-strong",
+  MATCHED: "bg-heritage-success-bg text-heritage-success border-heritage-success-border",
+  RECONCILIATION_REQUIRED:
+    "bg-heritage-warning-bg text-heritage-warning border-heritage-warning-border",
+  RESOLVED: "bg-heritage-success-bg text-heritage-success border-heritage-success-border",
 };
 
 function StatusBadge({ status }: { status: PaymentTransactionStatus }) {
@@ -219,7 +220,7 @@ function PaymentRow({ transaction }: { transaction: PaymentTransaction }) {
       <div className="flex flex-col items-start gap-2">
         <b className="font-semibold tabular-nums">{formatDateTime(transaction.receivedAt)}</b>
         {transaction.environment === "Test" && (
-          <span className="inline-flex items-center rounded-full bg-stone-200 px-3 py-0.5 text-sm font-medium text-stone-700">
+          <span className="inline-flex items-center rounded-full bg-heritage-border px-3 py-0.5 text-sm font-medium text-heritage-muted">
             Test
           </span>
         )}
@@ -235,7 +236,7 @@ function PaymentRow({ transaction }: { transaction: PaymentTransaction }) {
       <div className="flex flex-col items-start gap-2">
         <StatusBadge status={transaction.status} />
         {transaction.reconciliationReason && (
-          <span className="break-words text-sm text-amber-900">
+          <span className="break-words text-sm text-heritage-warning">
             Lý do: {paymentReasonLabel(transaction.reconciliationReason)}
           </span>
         )}
