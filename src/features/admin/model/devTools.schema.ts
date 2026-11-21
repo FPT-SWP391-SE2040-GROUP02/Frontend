@@ -1,30 +1,5 @@
 import { z } from "zod";
 
-/**
- * Tên mốc chuyển trạng thái (DevToolsRules của Backend), Backend trả đúng thứ tự hiển thị:
- * DUE_REMINDER_n (thư nhắc trước hạn thứ n), CHECKIN_OVERDUE (quá hạn, thư nhắc trễ lần 1),
- * LATE_REMINDER_n (thư nhắc trễ lần n, từ 2), GRACE_ENDED, SERVICE_EXPIRED, RECIPIENT_DECISION_ENDED.
- */
-export const devMilestoneKeySchema = z
-  .string()
-  .regex(
-    /^(DUE_REMINDER_[1-5]|LATE_REMINDER_[2-5]|CHECKIN_OVERDUE|GRACE_ENDED|SERVICE_EXPIRED|RECIPIENT_DECISION_ENDED)$/,
-    "Mốc không hợp lệ.",
-  );
-export type DevMilestoneKey = z.infer<typeof devMilestoneKeySchema>;
-
-/** AVAILABLE: chuyển được · PASSED: đã qua mốc · NOT_APPLICABLE: trạng thái hiện tại không có mốc này. */
-export const devMilestoneStateSchema = z.enum(["AVAILABLE", "PASSED", "NOT_APPLICABLE"]);
-
-export const devMilestoneSchema = z.object({
-  key: devMilestoneKeySchema,
-  state: devMilestoneStateSchema,
-  note: z.string(),
-  /** Thư nhắc trước hạn gửi trước hạn bao nhiêu ngày; mốc khác là null. */
-  daysBeforeDue: z.number().int().positive().nullable().optional(),
-});
-export type DevMilestone = z.infer<typeof devMilestoneSchema>;
-
 /** GET /admin/dev-tools/vaults → DevVaultOptionResponse[] (raw, không envelope). */
 export const devVaultOptionSchema = z.object({
   vaultId: z.string().uuid(),
@@ -34,23 +9,6 @@ export const devVaultOptionSchema = z.object({
 });
 export type DevVaultOption = z.infer<typeof devVaultOptionSchema>;
 export const devVaultOptionsSchema = z.array(devVaultOptionSchema);
-
-/** DevClockResponse: trạng thái kế hoạch, điểm danh, đồng hồ và các mốc tua. */
-export const devClockSchema = z.object({
-  vaultId: z.string().uuid(),
-  planStatus: z.string(),
-  checkInState: z.enum(["ON_TIME", "OVERDUE", "NOT_RUNNING"]),
-  clockState: z.enum(["REAL_TIME", "SHIFTED"]),
-  /** Số thư nhắc trễ tối đa và số ngày giữa hai thư của kỳ đang mở; không có kỳ thì null. */
-  maxLateReminders: z.number().int().positive().nullable().optional(),
-  lateReminderGapDays: z.number().int().positive().nullable().optional(),
-  milestones: z.array(devMilestoneSchema),
-});
-export type DevClock = z.infer<typeof devClockSchema>;
-
-/** POST /admin/dev-tools/vaults/{vaultId}/time-travel. */
-export const devTimeTravelRequestSchema = z.object({ milestone: devMilestoneKeySchema });
-export type DevTimeTravelRequest = z.infer<typeof devTimeTravelRequestSchema>;
 
 /** POST /admin/dev-tools/users/ekyc-reset: email tài khoản cần làm lại eKYC từ đầu. */
 export const devEkycResetRequestSchema = z.object({

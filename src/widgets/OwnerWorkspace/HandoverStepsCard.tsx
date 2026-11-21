@@ -4,7 +4,7 @@ import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 /** Bốn bước bàn giao; nội dung cố định theo SRS, chỉ số ngày tải lấy từ tham số Admin cấu hình. */
 function handoverSteps(grantDays: number): Array<{ title: string; detail: string }> {
   return [
-    { title: "Báo tin", detail: "Người thực thi nộp giấy chứng tử." },
+    { title: "Mở bàn giao", detail: "Người thực thi mở bàn giao." },
     { title: "Xét duyệt", detail: "Người xét duyệt kiểm tra hồ sơ." },
     {
       title: "Người nhận xác nhận",
@@ -23,7 +23,7 @@ function handoverSteps(grantDays: number): Array<{ title: string; detail: string
  */
 export function HandoverStepsCard({
   title = "Bàn giao diễn ra thế nào",
-  subtitle = "Chỉ bắt đầu khi Người thực thi báo tin. Trước đó bạn luôn có quyền dừng lại.",
+  subtitle = "Chỉ bắt đầu khi Người thực thi mở bàn giao. Trước đó bạn vẫn sửa kế hoạch được.",
   activeStep,
 }: {
   title?: string;

@@ -95,7 +95,7 @@ const notStartedProblem = () =>
 function renderPanel(vaultId?: string) {
   return render(
     <QueryClientProvider client={client}>
-      <HandoverProgressPanel caseId={CASE_ID} vaultId={vaultId} />
+      <HandoverProgressPanel recordId={CASE_ID} vaultId={vaultId} />
     </QueryClientProvider>,
   );
 }
@@ -135,7 +135,7 @@ it("nhập mã rồi mới gọi BE, báo đã gửi và xóa ô nhập", async 
   await screen.findByText(/Đã gửi mã cho người nhận lúc/);
   expect(post).toHaveBeenCalledTimes(1);
   expect(post).toHaveBeenCalledWith(
-    `/executor/death-cases/${CASE_ID}/handover-turns/${DONE_TURN}/send-key`,
+    `/executor/handover-records/${CASE_ID}/handover-turns/${DONE_TURN}/send-key`,
     { key: "ABCD-1234" },
   );
   expect(screen.queryByLabelText("Mã mở gói bạn đang giữ")).not.toBeInTheDocument();

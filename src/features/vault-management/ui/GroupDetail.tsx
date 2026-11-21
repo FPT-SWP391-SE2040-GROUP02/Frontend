@@ -49,11 +49,11 @@ function needsPlanConfirmation(error: unknown): boolean {
 }
 
 /**
- * Gói đã xóa không còn được bàn giao, nhưng bản di chúc đã ký vẫn phải ký lại để khớp. Màn này không có sẵn trạng thái
+ * Gói đã xóa không còn được bàn giao, nhưng bản file phân chia đã ký vẫn phải ký lại để khớp. Màn này không có sẵn trạng thái
  * kế hoạch (plan-setup thuộc feature khác) nên câu về ký lại viết dạng có điều kiện.
  */
 const RESIGN_AFTER_DELETE =
-  "Gói này sẽ không còn được bàn giao, kể cả khi bạn chưa ký lại. Nếu kế hoạch đã ký, hãy vào trang Bàn giao để ký lại di chúc.";
+  "Gói này sẽ không còn được bàn giao, kể cả khi bạn chưa ký lại. Nếu kế hoạch đã ký, hãy vào trang Bàn giao để ký lại file phân chia.";
 /** Thay đổi người nhận hoặc tài sản trong gói cũng cần ký lại; viết dạng có điều kiện vì cùng lý do trên. */
 const RESIGN_AFTER_CHANGE =
   "Nếu kế hoạch đã ký: thay đổi này cần được ký lại trong trang Bàn giao. Phần thêm hoặc đổi người nhận chỉ được bàn giao sau khi ký lại.";
@@ -640,9 +640,9 @@ export function GroupDetail({
             <DialogHeader>
               <DialogTitle>{impact.title}</DialogTitle>
               <DialogDescription>
-                Đây là gói bàn giao Sẵn sàng cuối cùng. Thao tác này sẽ đưa kế hoạch về Nháp, ngừng
-                theo dõi điểm danh, và Người thực thi phải chấp nhận lại lời mời. Họ không nộp được
-                hồ sơ chứng tử cho tới khi bạn kích hoạt lại kế hoạch.
+                Đây là gói bàn giao Sẵn sàng cuối cùng. Thao tác này sẽ đưa kế hoạch về Nháp và
+                Người thực thi phải chấp nhận lại lời mời. Họ không mở bàn giao được cho tới khi bạn
+                kích hoạt lại kế hoạch.
               </DialogDescription>
             </DialogHeader>
             {action.error && (

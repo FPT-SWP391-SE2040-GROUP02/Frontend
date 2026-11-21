@@ -8,8 +8,8 @@ import type { planSetupSchema } from "../model/planSetup.schema";
 type PlanSetup = z.infer<typeof planSetupSchema>;
 
 /**
- * Cột phải của trang Bàn giao: tiến độ, các điều kiện chưa đạt và nút mở khung xem trước di chúc. Chữ nút đổi theo
- * trạng thái: "Xem trước di chúc" (còn thiếu), "Xem trước và ký" (đủ điều kiện), "Xem di chúc đã ký" (đã kích hoạt).
+ * Cột phải của trang Bàn giao: tiến độ, các điều kiện chưa đạt và nút mở khung xem trước file phân chia. Chữ nút đổi theo
+ * trạng thái: "Xem trước file phân chia" (còn thiếu), "Xem trước và ký" (đủ điều kiện), "Xem file phân chia đã ký" (đã kích hoạt).
  */
 export function HandoverProgressCard({
   setup,
@@ -27,9 +27,9 @@ export function HandoverProgressCard({
     percent = Math.round((progress.done / progress.total) * 100);
   }
   let title = "Kế hoạch đang chạy";
-  let buttonText = "Xem di chúc đã ký";
+  let buttonText = "Xem file phân chia đã ký";
   let hint =
-    "Di chúc có hiệu lực từ lúc bạn ký. Bạn vẫn có thể sửa hoặc thu hồi trước khi qua đời.";
+    "File phân chia có hiệu lực từ lúc bạn ký. Bạn vẫn có thể sửa hoặc thu hồi trước khi qua đời.";
   if (isDraft) {
     if (setup.canActivate) {
       title = "Đã đủ điều kiện để ký";
@@ -40,7 +40,7 @@ export function HandoverProgressCard({
       if (remaining === 0) {
         title = "Còn điều kiện cần kiểm tra";
       }
-      buttonText = "Xem trước di chúc";
+      buttonText = "Xem trước file phân chia";
       hint = "Bạn có thể xem trước bất cứ lúc nào; chỗ chưa điền sẽ được đánh dấu đỏ.";
     }
   }
@@ -65,7 +65,7 @@ export function HandoverProgressCard({
       <div
         className="mt-3.5 h-2 overflow-hidden rounded-full bg-heritage-canvas shadow-[inset_2px_2px_5px_rgba(0,0,0,.06),inset_-2px_-2px_5px_rgba(255,255,255,.8)]"
         role="progressbar"
-        aria-label="Tiến độ điền di chúc"
+        aria-label="Tiến độ điền file phân chia"
         aria-valuemin={0}
         aria-valuemax={progress.total}
         aria-valuenow={progress.done}

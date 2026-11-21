@@ -48,16 +48,16 @@ export function ExecutorVaultList({
                   <p className="mt-1 text-sm text-heritage-muted">{task.detail}</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  {task.urgency === "overdue" && (
+                  {task.urgency === "sign" && (
                     <button
                       type="button"
                       className={buttonStyles.dark}
                       onClick={() => onOpen(vault.vaultId, ROUTES.EXECUTOR.REPORT)}
                     >
-                      Liên hệ kiểm tra
+                      Xem biên bản
                     </button>
                   )}
-                  {task.urgency === "death-case" && (
+                  {task.urgency === "handover" && (
                     <button
                       type="button"
                       className={buttonStyles.dark}
@@ -89,8 +89,9 @@ export function ExecutorVaultList({
       <p className="flex items-center gap-2 text-sm text-heritage-muted">
         <Lock className="size-4 shrink-0" aria-hidden="true" />
         <span>
-          Mỗi kho có hồ sơ và tiến trình riêng. Quyền của bạn chỉ gồm báo tin và theo dõi tiến trình
-          — <strong className="text-heritage-primary">không đọc được nội dung kho nào</strong>.
+          Mỗi kho có hồ sơ và tiến trình riêng. Quyền của bạn chỉ gồm mở bàn giao, ký biên bản, gửi
+          mã nhận và theo dõi tiến trình —{" "}
+          <strong className="text-heritage-primary">không đọc được nội dung kho nào</strong>.
         </span>
       </p>
     </div>

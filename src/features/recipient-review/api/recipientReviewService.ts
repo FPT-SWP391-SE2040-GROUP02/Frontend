@@ -11,7 +11,7 @@ const base = (value: string) => `/verifier/handover-submissions/${id.parse(value
 
 /** Transport duyệt hồ sơ người nhận theo controller thật; không tự quyết duyệt hay từ chối ở máy. */
 export const recipientReviewService = {
-  /** Hồ sơ đang chờ tôi duyệt (chỉ kho mà tôi đã duyệt hồ sơ chứng tử), cũ nhất trước. */
+  /** Hồ sơ danh tính đang chờ tôi kiểm (chỉ biên bản được giao cho tôi, đang ở bước kiểm danh tính), cũ nhất trước. */
   async list(signal?: AbortSignal) {
     return z
       .array(recipientSubmissionSummarySchema)
@@ -29,19 +29,10 @@ export const recipientReviewService = {
       signal,
     });
   },
-  /** Duyệt: chỉ khi cả ba trường khớp; lượt sang bước quyết định. */
+  /** Xác nhận danh tính: chỉ khi cả ba trường khớp; đủ người thì biên bản sang bước ký. */
   async approve(value: string) {
     return recipientSubmissionDetailSchema.parse(
       await apiClient.post<unknown, unknown>(`${base(value)}/approve`),
-    );
-  },
-  /**
-   * Luồng Biên Bản: kiểm tra thủ công (tick đủ bốn mục và xác nhận trách nhiệm) rồi gửi. Hoàn tất biên bản và kết thúc lượt:
-   * Chấp nhận thì mở quyền tải tài sản, Từ chối thì ghi nhận từ chối.
-   */
-  async complete(value: string, checks: boolean[], acknowledged: boolean) {
-    return recipientSubmissionDetailSchema.parse(
-      await apiClient.post<unknown, unknown>(`${base(value)}/complete`, { checks, acknowledged }),
     );
   },
   async requestSupplement(value: string, reason: string) {

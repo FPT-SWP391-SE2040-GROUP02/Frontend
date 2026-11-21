@@ -98,36 +98,36 @@ export const LANDING_CONTENT = {
         tag: "02 · Người thực thi",
         title: "Bốn vai, không ai nắm toàn quyền một mình",
         detail:
-          "Người thực thi báo tin, Người xét duyệt kiểm tra độc lập, Người nhận được xác minh danh tính. Hai vai đầu chỉ xác nhận và không đọc được nội dung kho.",
+          "Người thực thi mở bàn giao và giữ hộ, luật sư lập biên bản bàn giao, Người nhận được xác minh danh tính. Hai vai đầu không đọc được nội dung kho.",
         points: [
           "Chủ kho là người duy nhất lập và sửa kho",
-          "Người thực thi và Người xét duyệt không mở được nội dung",
+          "Người thực thi và luật sư không mở được nội dung",
           "Người nhận chỉ được mở sau khi được xác minh danh tính",
         ],
         visualTitle: "Các vai trong kế hoạch",
         rows: [
           { title: "Chủ kho", detail: "Lập kho, chọn người" },
-          { title: "Người thực thi", detail: "Báo tin khi đến lúc" },
-          { title: "Người xét duyệt", detail: "Xem lại hồ sơ độc lập" },
+          { title: "Người thực thi", detail: "Mở bàn giao, giữ hộ, gửi mã" },
+          { title: "Luật sư", detail: "Lập biên bản bàn giao" },
           { title: "Người nhận", detail: "Xác minh rồi tải về" },
         ],
       },
       {
         tag: "03 · Bàn giao",
-        title: "Chỉ mở khi đủ điều kiện, và bạn dừng được bằng điểm danh",
+        title: "Chỉ giao theo biên bản đủ chữ ký ba bên",
         detail:
-          "Hệ thống nhắc bạn xác nhận định kỳ. Chỉ khi bạn không điểm danh và các lớp xác nhận đều đạt, người nhận mới được mở kho, rồi có {grantDays} ngày để tải về.",
+          "Hệ thống chỉ quản lý tài sản, không làm pháp lý. Luật sư lập biên bản bàn giao, kiểm danh tính người nhận; đủ chữ ký ba bên thì người nhận mới mở được kho, rồi có {grantDays} ngày để tải về.",
         points: [
-          "Nhắc xác nhận định kỳ, chỉ cần báo mình vẫn ổn",
-          "Điểm danh bất cứ lúc nào để dừng mọi thứ trước khi có báo tin",
+          "Biên bản bàn giao là căn cứ duy nhất để giao tài sản",
+          "Luật sư, Người thực thi và người nhận cùng ký",
           "Người nhận có {grantDays} ngày để tải về",
         ],
-        visualTitle: "Từ im lặng đến bàn giao",
+        visualTitle: "Từ mở bàn giao đến nhận tài sản",
         rows: [
-          { title: "Không phản hồi điểm danh", detail: "Bắt đầu" },
-          { title: "Người thực thi báo tin", detail: "Lớp 1" },
-          { title: "Người xét duyệt xác nhận", detail: "Lớp 2" },
-          { title: "Người nhận được xác minh danh tính", detail: "Lớp 3" },
+          { title: "Người thực thi mở bàn giao", detail: "Bắt đầu" },
+          { title: "Luật sư lập biên bản", detail: "Bước 1" },
+          { title: "Người nhận được xác minh danh tính", detail: "Bước 2" },
+          { title: "Ba bên ký biên bản", detail: "Bước 3" },
           { title: "{grantDays} ngày để tải về", detail: "Hoàn tất" },
         ],
       },
@@ -140,21 +140,21 @@ export const LANDING_CONTENT = {
       "Biểu tượng của LegacyVault được dệt từ nhiều vòng đường nét chồng lên nhau, như hoa văn trên giấy tờ có giá. Càng nhiều lớp, càng khó đi tắt. Trước khi kho mở ra, mọi bàn giao đều phải đi qua bốn lớp xác nhận.",
     layers: [
       {
-        title: "Người thực thi báo tin",
-        detail: "Một người bạn đã chỉ định báo rằng đã đến lúc. Chưa có gì được mở.",
+        title: "Người thực thi mở bàn giao",
+        detail: "Người bạn đề cử mở bàn giao khi đến lúc. Chưa có gì được mở.",
       },
       {
-        title: "Người xét duyệt xác nhận",
-        detail: "Một người độc lập xem lại hồ sơ rồi mới cho đi tiếp.",
+        title: "Luật sư lập biên bản",
+        detail: "Một luật sư độc lập ghi ai nhận tài sản nào, theo kết quả đã xử lý ở ngoài.",
       },
       {
         title: "Người nhận xác minh danh tính",
-        detail: "Người xét duyệt kiểm tra hồ sơ để đúng người mới nhận được kho.",
+        detail: "Luật sư đối chiếu căn cước để đúng người mới nhận được kho.",
       },
       {
-        title: "Điểm danh để dừng",
+        title: "Ba bên ký",
         detail:
-          "Chỉ cần điểm danh khi được nhắc, hệ thống không bàn giao. Sau khi có báo tin, kho khóa ngay.",
+          "Luật sư, Người thực thi và người nhận cùng ký biên bản. Đủ chữ ký mới giao tài sản.",
       },
     ],
   },
@@ -162,7 +162,7 @@ export const LANDING_CONTENT = {
     eyebrow: "Cách hoạt động",
     title: "Bạn sắp đặt một lần. Phần còn lại, nhẹ nhàng.",
     description:
-      "Nội dung kho được mã hóa AES-256-GCM trên máy chủ. Người thực thi và Người xét duyệt chỉ giữ vai trò xác nhận, không đọc được nội dung.",
+      "Nội dung kho được mã hóa AES-256-GCM trên máy chủ. Người thực thi và luật sư không đọc được nội dung.",
     steps: [
       {
         title: "Lập kho",
@@ -171,15 +171,15 @@ export const LANDING_CONTENT = {
       {
         title: "Chỉ định Người thực thi",
         detail:
-          "Mời một Người thực thi; Người xét duyệt do hệ thống phân công. Họ không đọc được nội dung kho.",
+          "Đề cử một Người thực thi; luật sư do hệ thống phân công khi mở bàn giao. Họ không đọc được nội dung kho.",
       },
       {
-        title: "Giữ liên lạc",
-        detail: "Hệ thống nhắc định kỳ. Bạn chỉ cần xác nhận mình vẫn ổn.",
+        title: "Lập file phân chia",
+        detail: "Ghi mong muốn của bạn: ai nhận gói nào. Luật sư dùng làm bản đầu của biên bản.",
       },
       {
         title: "Bàn giao đúng lúc",
-        detail: "Qua đủ các lớp xác nhận, người nhận có {grantDays} ngày để tải về.",
+        detail: "Biên bản đủ chữ ký ba bên, người nhận có {grantDays} ngày để tải về.",
       },
     ],
   },
@@ -194,16 +194,16 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Người xác nhận không đọc được",
-        detail: "Người thực thi và Người xét duyệt chỉ có quyền xác nhận, không mở được nội dung.",
+        detail: "Người thực thi và luật sư không mở được nội dung kho.",
       },
       {
         title: "Ảnh căn cước không lưu",
         detail: "Ảnh chỉ dùng để đọc và so khớp, kết quả lưu kèm 4 số cuối số căn cước.",
       },
       {
-        title: "Luôn dừng được",
+        title: "Không làm thay pháp lý",
         detail:
-          "Điểm danh khi được nhắc là đủ để mọi thứ dừng lại, chưa có báo tin nào được gửi đi.",
+          "Hệ thống chỉ giữ và giao tài sản theo biên bản. Di chúc và thủ tục thừa kế làm ở ngoài.",
       },
     ],
     limitsTitle: "Những giới hạn chúng tôi nói rõ",
@@ -257,7 +257,7 @@ export const LANDING_CONTENT = {
         price: "199.000đ / 365 ngày",
         features: [
           "Dung lượng 200 MiB",
-          "Thiết lập kế hoạch bàn giao, điểm danh và quy trình bàn giao",
+          "Thiết lập kế hoạch bàn giao, biên bản và quy trình bàn giao",
         ],
       },
       {

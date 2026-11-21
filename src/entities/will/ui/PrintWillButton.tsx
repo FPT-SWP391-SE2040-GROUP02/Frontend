@@ -5,13 +5,13 @@ import { buttonStyles } from "@/shared/ui/heritageKit";
 import { printWill } from "../lib/printWill";
 
 /**
- * Nút in di chúc (mặc định chữ "In di chúc"). Bản in được render thêm qua portal vào body (class `print-slip`, chỉ hiện
- * khi in) để PDF chỉ có tờ di chúc, nền trắng chữ gần đen. Di chúc không có mã mở gói: hệ thống giữ mã, Chủ kho không
+ * Nút in file phân chia (mặc định chữ "In file phân chia"). Bản in được render thêm qua portal vào body (class `print-slip`, chỉ hiện
+ * khi in) để PDF chỉ có tờ file phân chia, nền trắng chữ gần đen. File phân chia không có mã mở gói: hệ thống giữ mã, Chủ kho không
  * cần in. `disabled` khóa nút (ví dụ chưa đủ hai chữ ký); nơi gọi tự giải thích lý do khóa.
  */
 export function PrintWillButton({
   content,
-  label = "In di chúc",
+  label = "In file phân chia",
   disabled = false,
   describedBy,
 }: {

@@ -37,7 +37,7 @@ function validationMessages(errors: Record<string, string[]> | undefined): strin
 
 /** Reason-specific messages for HANDOVER_NOT_ALLOWED */
 const handoverNotAllowedReasons: Record<string, string> = {
-  NOTARY_CARD_REQUIRED: `Tài khoản của bạn chưa có ảnh thẻ công chứng viên. Hãy liên hệ quản trị viên qua ${SUPPORT_EMAIL} để nộp thẻ rồi mới duyệt được.`,
+  NOTARY_CARD_REQUIRED: `Tài khoản của bạn chưa có ảnh thẻ luật sư. Hãy liên hệ quản trị viên qua ${SUPPORT_EMAIL} để nộp thẻ rồi mới duyệt được.`,
   HOLD_ACTIVE: "Kho đang bị tạm giữ, tạm thời chưa thực hiện được. Các hạn đang được giữ nguyên.",
   PLAN_NOT_IN_HANDOVER: "Kế hoạch không còn ở giai đoạn bàn giao.",
   WRONG_STATE:
@@ -49,7 +49,15 @@ const handoverNotAllowedReasons: Record<string, string> = {
   KEY_REQUIRED: "Cần nhập khóa mở gói do Người thực thi đưa trước khi đồng ý nhận.",
   NO_KEY: "Kho này chưa cấp khóa mở gói nên chưa có khóa để gửi.",
   KEY_SEND_FAILED: "Chưa gửi được khóa. Vui lòng thử lại sau.",
-  HANDOVER_NOT_STARTED: "Mã mở gói sẽ hiện khi hồ sơ được duyệt và bàn giao bắt đầu.",
+  HANDOVER_NOT_STARTED: "Chỉ xem được sau khi luật sư chốt biên bản bàn giao.",
+  PLAN_NOT_ACTIVE: "Kho chưa kích hoạt nên chưa mở bàn giao được.",
+  NO_VERIFIER: "Hiện chưa có luật sư nào nhận được hồ sơ này. Vui lòng thử lại sau.",
+  NO_OWNER_SPLIT: "Chủ kho chưa lập file phân chia. Hãy tự chọn người nhận cho từng tài sản.",
+  RECORD_INVALID: "Biên bản chưa hợp lệ. Kiểm tra lại người nhận và tài sản trước khi chốt.",
+  NOT_IDENTITY_STEP: "Biên bản chưa ở bước kiểm danh tính. Hãy chốt biên bản trước.",
+  NOT_SIGNING_STEP:
+    "Chưa tới bước ký: biên bản phải được chốt và mọi người nhận phải được xác nhận danh tính.",
+  RECORD_COMPLETED: "Biên bản đã đủ chữ ký ba bên.",
   STAFF_CANNOT_CLAIM: "Tài khoản nhân sự không thể nhận tài sản bàn giao.",
 };
 
@@ -74,23 +82,6 @@ const assetInUseReasons: Record<string, string> = {
 /** Reason-specific messages for VAULT_NOT_EDITABLE */
 const vaultNotEditableReasons: Record<string, string> = {
   HOLD_ACTIVE: "Kho đang bị tạm giữ nên chưa thể chỉnh sửa.",
-};
-
-/** Reason-specific messages for DEATH_CASE_NOT_ALLOWED */
-const deathCaseNotAllowedReasons: Record<string, string> = {
-  NOTARY_CARD_REQUIRED: `Tài khoản của bạn chưa có ảnh thẻ công chứng viên. Hãy liên hệ quản trị viên qua ${SUPPORT_EMAIL} để nộp thẻ rồi mới duyệt được.`,
-  // Lý do khi Người xét duyệt chấp thuận, bổ sung, từ chối hoặc xem xét cờ bị Backend từ chối.
-  PLAN_STATE_INVALID:
-    "Kế hoạch của kho không còn ở trạng thái mở hồ sơ, hoặc kho đã có lượt bàn giao. Tải lại hồ sơ để xem trạng thái mới nhất.",
-  HOLD_ACTIVE: "Kho đang bị tạm giữ nên chưa chấp thuận được. Chờ gỡ tạm giữ rồi thử lại.",
-  CASE_CLOSED: "Hồ sơ đã được chấp thuận, từ chối hoặc tạm dừng nên không thao tác thêm được.",
-  NOT_UNDER_REVIEW: "Hồ sơ không còn ở bước xét duyệt. Tải lại để xem trạng thái mới nhất.",
-  NEWER_VERSION_PENDING: "Người thực thi đang có bản mới chờ xét nên chưa chấp thuận được bản này.",
-  FLAGS_NOT_REVIEWED: "Còn cảnh báo của bản đang xét chưa được kiểm tra.",
-  VERIFIER_CONFLICT: "Bạn có quan hệ với kho này nên chỉ được xem, không được quyết định.",
-  PLAN_NOT_RUNNING: "Kế hoạch chưa chạy hoặc đã sang giai đoạn khác nên chưa thao tác được.",
-  VERSION_LOCKED: "Bản hồ sơ này đã được gửi nên không sửa được nữa.",
-  CASE_NOT_REVISABLE: "Hồ sơ chưa ở trạng thái cần bổ sung nên chưa tạo bản mới được.",
 };
 
 /** Reason-specific messages for PAYMENT_NOT_ALLOWED (báo giá/tạo đơn, mục 6.18) */
@@ -128,21 +119,11 @@ const ekycIdentityMismatchReasons: Record<string, string> = {
   WRONG_PERSON: "Giấy tờ không khớp với danh tính đã gắn cho tài khoản này.",
 };
 
-/** Reason-specific messages for CHECKIN_NOT_ALLOWED (Executor điểm danh thay chủ kho) */
-const checkInNotAllowedReasons: Record<string, string> = {
-  PLAN_NOT_OVERDUE: "Chủ kho không còn quá hạn điểm danh. Tải lại để xem trạng thái mới nhất.",
-  DEATH_CASE_OPEN: "Kho đã có hồ sơ chứng tử đang mở nên không điểm danh thay được nữa.",
-  PROXY_LIMIT_REACHED:
-    "Bạn đã điểm danh thay đủ số lần liên tiếp cho phép. Chỉ còn cách nộp giấy chứng tử, hoặc chờ Chủ kho tự điểm danh.",
-};
-
 const reasonMessages: Record<string, Record<string, string>> = {
-  CHECKIN_NOT_ALLOWED: checkInNotAllowedReasons,
   HANDOVER_NOT_ALLOWED: handoverNotAllowedReasons,
   EXECUTOR_NOT_ALLOWED: executorNotAllowedReasons,
   ASSET_IN_USE: assetInUseReasons,
   VAULT_NOT_EDITABLE: vaultNotEditableReasons,
-  DEATH_CASE_NOT_ALLOWED: deathCaseNotAllowedReasons,
   PAYMENT_NOT_ALLOWED: paymentNotAllowedReasons,
   PAYMENT_ORDER_NOT_PAYABLE: paymentOrderNotPayableReasons,
   EKYC_SERVICE_UNAVAILABLE: ekycServiceUnavailableReasons,
@@ -177,7 +158,7 @@ const messages: Record<string, string> = {
   EXECUTOR_NOT_ALLOWED: "Trạng thái hoặc tài khoản hiện không cho phép thao tác Executor này.",
   PLAN_ACTIVATION_NOT_ALLOWED: "Trạng thái kế hoạch hiện không cho phép kích hoạt lại.",
   WILL_SIGN_NOT_ALLOWED:
-    "Kế hoạch hiện không ở trạng thái cho phép ký lại di chúc. Tải lại để xem trạng thái mới nhất.",
+    "Kế hoạch hiện không ở trạng thái cho phép ký lại file phân chia. Tải lại để xem trạng thái mới nhất.",
   PLAN_ACTIVATION_REQUIREMENTS_NOT_MET:
     "Kế hoạch chưa đủ điều kiện. Tải lại checklist để kiểm tra trước khi kích hoạt.",
   POLICY_ACKNOWLEDGEMENT_REQUIRED: "Cần đọc và xác nhận nội dung hiện hành trước khi tiếp tục.",
@@ -202,7 +183,6 @@ const messages: Record<string, string> = {
     "Số CCCD này đã tồn tại trong danh sách người nhận của kho (với thông tin khác). Vui lòng kiểm tra lại.",
   BENEFICIARY_IN_USE: "Người nhận đang được gắn vào gói. Hãy gỡ khỏi các gói trước.",
   BENEFICIARY_SLOTS_EXCEEDED: "Kho không còn suất người nhận.",
-  CHECKIN_NOT_ALLOWED: "Kế hoạch hiện không cho phép điểm danh.",
   EKYC_IMAGE_REJECTED:
     "Ảnh chưa đáp ứng yêu cầu xác minh. Hãy chọn ảnh rõ, đúng mặt giấy tờ hoặc selfie rồi thử lại.",
   EKYC_DOCUMENT_EXPIRED: "Bước giấy tờ đã hết hạn hoặc đã được dùng. Bắt đầu lại với ảnh giấy tờ.",
@@ -213,11 +193,6 @@ const messages: Record<string, string> = {
     "Mặt trước và mặt sau không khớp. Kiểm tra ảnh và gửi lại cùng một giấy tờ.",
   EKYC_IDENTITY_MISMATCH: "Giấy tờ không khớp hoặc số CCCD này đã được sử dụng trong hệ thống.",
   EKYC_SERVICE_UNAVAILABLE: "Dịch vụ xác minh hiện chưa sẵn sàng. Vui lòng thử lại sau.",
-  DEATH_CASE_NOT_FOUND: "Không tìm thấy hồ sơ chứng tử trong phạm vi truy cập của bạn.",
-  DEATH_CASE_NOT_ALLOWED:
-    "Trạng thái hồ sơ hoặc kế hoạch hiện không cho phép thao tác này. Tải lại để kiểm tra.",
-  DEATH_CASE_INCOMPLETE: "Hồ sơ chưa đủ thông tin hoặc trang giấy tờ. Bổ sung trước khi gửi.",
-  DEATH_CASE_FILE_LIMIT_EXCEEDED: "Hồ sơ đã đạt giới hạn số trang giấy tờ.",
   HANDOVER_INVITATION_INVALID: "Lời mời không hợp lệ hoặc không còn sử dụng được.",
   HANDOVER_NOT_FOUND: "Không tìm thấy lượt bàn giao trong phạm vi truy cập của bạn.",
   HANDOVER_NOT_ALLOWED:

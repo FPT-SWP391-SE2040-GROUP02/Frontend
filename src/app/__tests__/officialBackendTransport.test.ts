@@ -4,7 +4,6 @@ import { apiClient } from "@/shared/api";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
 import { backendAssetService } from "@/features/assets/api/backendAssetService";
 import { beneficiaryService } from "@/features/beneficiaries/api/beneficiaryService";
-import { checkInService } from "@/features/dms/api/checkInService";
 import { ekycService } from "@/features/ekyc/api/ekycService";
 import { updatePackageSchema, createPackageSchema } from "@/entities/package/model/package.schema";
 import {
@@ -51,23 +50,6 @@ const beneficiary = {
   updatedAt: null,
   etag: "beneficiary-v1",
 };
-const checkIn = {
-  status: "NOT_STARTED",
-  planStatus: "DRAFT",
-  serverTime: CREATED_AT,
-  lastCheckInAt: null,
-  nextCheckInDueAt: null,
-  graceEndsAt: null,
-  settings: {
-    cycleDays: 30,
-    lateReminderGapDays: 3,
-    maxLateReminders: 3,
-    pendingCycleDays: null,
-    etag: "settings-v1",
-  },
-  history: pageFixture([]),
-};
-
 describe("official Backend transport through real Axios interceptors", () => {
   it("reads raw eKYC status from the merged Backend", async () => {
     const status = {
@@ -295,26 +277,6 @@ describe("official Backend transport through real Axios interceptors", () => {
   it("accepts empty 204 deletion", async () => {
     respond(undefined);
     await expect(beneficiaryService.remove(VAULT_ID, CONTAINER_ID)).resolves.toBeUndefined();
-  });
-  it("reads check-in with GET and embedded history", async () => {
-    respond(checkIn, (config) => {
-      expect(config.method).toBe("get");
-      expect(config.url).toBe("/check-ins/me");
-    });
-    expect((await checkInService.get()).status).toBe("NOT_STARTED");
-  });
-  it("PATCHes etag settings and rejects missing changes or invalid cycle", async () => {
-    respond(checkIn, (config) => {
-      expect(config.method).toBe("patch");
-      expect(config.url).toBe("/vaults/me/check-in-settings");
-      expect(JSON.parse(config.data)).toEqual({ etag: "settings-v1", cycleDays: 60 });
-    });
-    await checkInService.updateSettings({ etag: "settings-v1", cycleDays: 60 });
-    await expect(
-      checkInService.updateSettings({ etag: "settings-v1" } as unknown as Parameters<
-        typeof checkInService.updateSettings
-      >[0]),
-    ).rejects.toThrow();
   });
   it("blocks malformed scope IDs before HTTP", async () => {
     let calls = 0;

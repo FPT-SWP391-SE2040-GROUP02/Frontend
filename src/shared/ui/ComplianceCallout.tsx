@@ -30,8 +30,8 @@ export interface ComplianceCalloutProps {
  * ```
  */
 export function ComplianceCallout({
-  title = "⚖️ Cảnh báo pháp lý: Thừa kế không phụ thuộc nội dung di chúc (Điều 644 BLDS 2015)",
-  description = "Kế hoạch phân bổ của bạn chưa chỉ định con chưa thành niên hoặc cha mẹ già. Họ có quyền hưởng ít nhất 2/3 một suất thừa kế theo luật định dù di chúc không chia tài sản.",
+  title = "⚖️ Cảnh báo pháp lý: Thừa kế không phụ thuộc nội dung file phân chia (Điều 644 BLDS 2015)",
+  description = "Kế hoạch phân bổ của bạn chưa chỉ định con chưa thành niên hoặc cha mẹ già. Họ có quyền hưởng ít nhất 2/3 một suất thừa kế theo luật định dù file phân chia không chia tài sản.",
   disclaimerText = "Tôi cam đoan tự chịu trách nhiệm về các phát sinh tranh chấp dân sự đối với phần tài sản này",
   onAgreedChange,
   className = "",

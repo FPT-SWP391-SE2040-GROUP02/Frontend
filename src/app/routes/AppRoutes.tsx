@@ -49,9 +49,6 @@ const BillingHistoryPage = lazy(() =>
     default: module.BillingHistoryPage,
   })),
 );
-const DmsStatusPage = lazy(() =>
-  import("@/pages/dms/DmsStatusPage").then((module) => ({ default: module.DmsStatusPage })),
-);
 const ExecutorOverviewPage = lazy(() =>
   import("@/pages/executor/ExecutorOverviewPage").then((module) => ({
     default: module.ExecutorOverviewPage,
@@ -70,11 +67,6 @@ const ExecutorProgressPage = lazy(() =>
 const ExecutorInvitationsPage = lazy(() =>
   import("@/pages/executor/ExecutorInvitationsPage").then((module) => ({
     default: module.ExecutorInvitationsPage,
-  })),
-);
-const ExecutorDocumentsPage = lazy(() =>
-  import("@/pages/executor/ExecutorDocumentsPage").then((module) => ({
-    default: module.ExecutorDocumentsPage,
   })),
 );
 const ExecutorAssetsPage = lazy(() =>
@@ -166,11 +158,6 @@ const VerifierRecipientsPage = lazy(() =>
 const VerifierQueuePage = lazy(() =>
   import("@/pages/notary/VerifierQueuePage").then((module) => ({
     default: module.VerifierQueuePage,
-  })),
-);
-const VerifierDocumentsPage = lazy(() =>
-  import("@/pages/notary/VerifierDocumentsPage").then((module) => ({
-    default: module.VerifierDocumentsPage,
   })),
 );
 const VerifierHistoryPage = lazy(() =>
@@ -347,9 +334,16 @@ export function AppRoutes() {
           <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
           <Route path="/dashboard/wills/:id" element={<ContainerDetailPage />} />
           <Route path="/wills/new" element={<WillWizardPage />} />
-          <Route path={ROUTES.DMS.ROOT} element={<DmsStatusPage />} />
-          <Route path={ROUTES.DMS.CONFIG} element={<DmsStatusPage />} />
-          <Route path={ROUTES.DMS.HISTORY} element={<DmsStatusPage />} />
+          {/* Đã bỏ điểm danh: đường dẫn cũ về trang tổng quan của Chủ kho. */}
+          <Route path={ROUTES.DMS.ROOT} element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />} />
+          <Route
+            path={ROUTES.DMS.CONFIG}
+            element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />}
+          />
+          <Route
+            path={ROUTES.DMS.HISTORY}
+            element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />}
+          />
         </Route>
 
         {/* ========================================================================
@@ -362,7 +356,10 @@ export function AppRoutes() {
           <Route path={ROUTES.EXECUTOR.ROOT} element={<ExecutorOverviewPage />} />
           <Route path={ROUTES.EXECUTOR.REPORT} element={<ExecutorReportPage />} />
           <Route path={ROUTES.EXECUTOR.PROGRESS} element={<ExecutorProgressPage />} />
-          <Route path={ROUTES.EXECUTOR.DOCUMENTS} element={<ExecutorDocumentsPage />} />
+          <Route
+            path={ROUTES.EXECUTOR.DOCUMENTS}
+            element={<Navigate to={ROUTES.EXECUTOR.REPORT} replace />}
+          />
           <Route path={ROUTES.EXECUTOR.ASSETS} element={<ExecutorAssetsPage />} />
           {/* Quyền hạn là một thẻ trong trang Cài đặt; đường cũ chuyển về đó. Lời mời có trang riêng. */}
           <Route
@@ -385,7 +382,10 @@ export function AppRoutes() {
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
           <Route path={ROUTES.NOTARY.QUEUE} element={<VerifierQueuePage />} />
           <Route path={ROUTES.NOTARY.RECIPIENTS} element={<VerifierRecipientsPage />} />
-          <Route path={ROUTES.NOTARY.DOCUMENTS} element={<VerifierDocumentsPage />} />
+          <Route
+            path={ROUTES.NOTARY.DOCUMENTS}
+            element={<Navigate to={ROUTES.NOTARY.HISTORY} replace />}
+          />
           <Route path={ROUTES.NOTARY.HISTORY} element={<VerifierHistoryPage />} />
           <Route path={ROUTES.NOTARY.CRITERIA} element={<VerifierCriteriaPage />} />
           <Route path={ROUTES.NOTARY.SETTINGS} element={<VerifierSettingsPage />} />

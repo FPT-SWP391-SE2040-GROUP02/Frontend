@@ -11,8 +11,8 @@ const handoverVault: ExecutorVault = {
   vaultId: "550e8400-e29b-41d4-a716-446655440002",
   ownerFullName: "Nguyễn Thị Mai",
   planStatus: "HANDOVER_IN_PROGRESS",
-  checkInOverdue: false,
-  openDeathCaseId: "550e8400-e29b-41d4-a716-446655440009",
+  handoverRecordId: "550e8400-e29b-41d4-a716-446655440009",
+  handoverRecordStatus: "SIGNING",
 };
 
 function mockState(selected: ExecutorVault | null, pending = false) {
@@ -52,7 +52,7 @@ describe("ExecutorVaultCard", () => {
     const card = screen.getByRole("group", { name: "Kho đang làm việc: Nguyễn Thị Mai" });
     expect(card).toHaveTextContent("N");
     expect(card).toHaveTextContent("Nguyễn Thị Mai");
-    expect(card).toHaveTextContent("Đang bàn giao");
+    expect(card).toHaveTextContent("Đang ký biên bản");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
     fireEvent.click(card);
     expect(select).not.toHaveBeenCalled();

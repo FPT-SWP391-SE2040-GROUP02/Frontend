@@ -1,5 +1,5 @@
 import { ROUTES } from "@/shared/config/routes.config";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { AxiosHeaders, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -90,24 +90,37 @@ function setup(children: ReactNode, authenticated = true, path = "/") {
     </Provider>,
   );
 }
+/** Biên bản đang ở bước ký mà người nhận đọc kèm lượt chờ ký. */
+const SIGNING_RECORD = {
+  id: "0198a000-0000-7000-8000-000000000003",
+  vaultId: VAULT_ID,
+  vaultName: "Kho thử",
+  ownerName: "Chủ kho thử",
+  status: "SIGNING",
+  revisionNo: 1,
+  requestedAt: CREATED_AT,
+  finalizedAt: CREATED_AT,
+  completedAt: null,
+  verifierName: "Luật sư thử",
+  executorName: "Người thực thi thử",
+  verifierSignedAt: null,
+  executorSignedAt: null,
+  recipients: [],
+  canSign: true,
+  availableAssets: [],
+  availableRecipients: [],
+  ownerSplit: [],
+};
 function backendReturns(turns: unknown[]) {
   apiClient.defaults.adapter = async (config) => {
+    if (config.url?.endsWith("/record")) {
+      return ok(config, SIGNING_RECORD);
+    }
     if (config.url?.includes("/handover/invitations/") && config.method === "get") {
       return ok(config, { valid: true, responseExpired: false });
     }
     if (config.url?.endsWith("/claim")) {
       return ok(config, turn("IDENTITY_IN_PROGRESS"));
-    }
-    if (config.url?.endsWith("/accept")) {
-      turns.splice(
-        0,
-        turns.length,
-        turn("HANDOVER_COMMITTED", {
-          ...withContent,
-          grant: { id: GRANT_ID, status: "ACTIVE", expiresAt: "2026-12-05T02:00:00Z" },
-        }),
-      );
-      return ok(config, turns[0]);
     }
     return ok(config, turns);
   };
@@ -156,39 +169,25 @@ it("shows only the deadline that still matters and drops the title that sounds l
   expect(screen.queryByText(/Nhóm “Lượt bàn giao”/)).not.toBeInTheDocument();
 });
 
-it("drops the response deadline once the turn is waiting for the decision", async () => {
-  backendReturns([
-    turn("READY_TO_ACCEPT", { ...withContent, decisionDeadline: "2026-11-12T02:00:00Z" }),
-  ]);
+it("drops the response deadline once the turn is waiting for signatures, with no decision deadline", async () => {
+  backendReturns([turn("READY_TO_ACCEPT", withContent)]);
   setup(<HandoverPortal />);
-  expect(await screen.findByText("Hạn quyết định")).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "Gói gia đình" })).toBeInTheDocument();
   expect(screen.queryByText("Hạn phản hồi")).not.toBeInTheDocument();
+  expect(screen.queryByText("Hạn quyết định")).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /Đồng ý nhận/ })).not.toBeInTheDocument();
 });
 
-it("lists the content before the response panel so the recipient reviews first, then decides", async () => {
+it("keeps the download countdown above the title once the record is fully signed", async () => {
   backendReturns([
-    turn("READY_TO_ACCEPT", { ...withContent, decisionDeadline: "2026-11-12T02:00:00Z" }),
+    turn("HANDOVER_COMMITTED", {
+      ...withContent,
+      grant: { id: GRANT_ID, status: "ACTIVE", expiresAt: "2026-12-05T02:00:00Z" },
+    }),
   ]);
   setup(<HandoverPortal />);
-  const items = await screen.findByRole("heading", { name: "Các mục dành cho bạn" });
-  const response = screen.getByRole("heading", { name: "Phản hồi" });
-  expect(items.compareDocumentPosition(response) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-});
-
-it("confirms an accepted turn once at the top of the card and keeps the countdown above the title", async () => {
-  const turns = [
-    turn("READY_TO_ACCEPT", { ...withContent, decisionDeadline: "2026-11-12T02:00:00Z" }),
-  ];
-  backendReturns(turns);
-  setup(<HandoverPortal />);
-  fireEvent.click(await screen.findByRole("checkbox"));
-  fireEvent.click(screen.getByRole("button", { name: /Đồng ý nhận/ }));
-  await waitFor(() => expect(screen.getByText("Thành công")).toBeInTheDocument());
-  const article = screen.getByRole("article");
-  const first = within(article).getByText("Thành công");
+  const title = await screen.findByRole("heading", { name: "Gói gia đình" });
   const countdown = screen.getByText(/để tải nội dung/);
-  const title = screen.getByRole("heading", { name: "Gói gia đình" });
-  expect(first.compareDocumentPosition(countdown) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(countdown.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 
@@ -202,7 +201,7 @@ it("tells a recipient with no turn how to get the invitation, with no support li
 it("shows no support link under a terminal state either", async () => {
   backendReturns([turn("CANCELLED")]);
   setup(<HandoverPortal />);
-  await screen.findByText(/Lượt bàn giao này đã bị hủy/);
+  await screen.findByText(/Lượt này đã bị hủy vì luật sư đã sửa biên bản/);
   expect(screen.queryByRole("link", { name: "Liên hệ hỗ trợ" })).not.toBeInTheDocument();
 });
 

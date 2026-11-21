@@ -1,36 +1,48 @@
 import { describe, expect, it } from "vitest";
 import type { ExecutorVault } from "../deathCase.schema";
-import { sortVaultsByUrgency, vaultTask } from "../executorVaultTask";
+import { countVaultsNeedingAttention, sortVaultsByUrgency, vaultTask } from "../executorVaultTask";
 
-function vault(id: string, planStatus: string, checkInOverdue: boolean): ExecutorVault {
+function vault(overrides: Partial<ExecutorVault> = {}): ExecutorVault {
   return {
-    vaultId: id,
-    ownerFullName: `Chủ kho ${id}`,
-    planStatus,
-    checkInOverdue,
-    openDeathCaseId: null,
+    vaultId: "11111111-1111-4111-8111-111111111111",
+    ownerFullName: "Anh Nam",
+    planStatus: "ACTIVE",
+    handoverRecordStatus: "",
+    ...overrides,
   };
 }
 
-describe("vaultTask: hai giai đoạn quá hạn điểm danh", () => {
-  it("đang trong thời gian chờ: nhãn nhẹ, chỉ cần để ý", () => {
-    const task = vaultTask(vault("a", "CHECKIN_OVERDUE", true));
-    expect(task.label).toBe("Trễ điểm danh · đang chờ");
-    expect(task.tone).toBe("warning");
+describe("vaultTask", () => {
+  it("chưa mở bàn giao: chưa cần làm gì", () => {
+    const task = vaultTask(vault());
+    expect(task.urgency).toBe("safe");
+    expect(task.label).toBe("Chưa mở bàn giao");
+    expect(task.task).toBeNull();
   });
 
-  it("hết thời gian chờ: cần Người thực thi kiểm tra", () => {
-    const task = vaultTask(vault("b", "AWAITING_CHECK", true));
-    expect(task.label).toBe("Cần bạn kiểm tra");
-    expect(task.tone).toBe("danger");
+  it("đang ký hoặc đã đủ chữ ký: cần Người thực thi", () => {
+    expect(vaultTask(vault({ handoverRecordStatus: "SIGNING" })).urgency).toBe("sign");
+    expect(
+      vaultTask(vault({ planStatus: "HANDOVER_IN_PROGRESS", handoverRecordStatus: "COMPLETED" }))
+        .label,
+    ).toBe("Gửi mã nhận");
   });
 
-  it("kho cần kiểm tra đứng trước kho đang chờ, kho an toàn đứng cuối", () => {
-    const sorted = sortVaultsByUrgency([
-      vault("safe", "ACTIVE", false),
-      vault("late", "CHECKIN_OVERDUE", true),
-      vault("check", "AWAITING_CHECK", true),
+  it("kho cần ký đứng trước kho đang lập biên bản, kho chưa mở bàn giao đứng cuối", () => {
+    const safe = vault({ vaultId: "a1111111-1111-4111-8111-111111111111" });
+    const drafting = vault({
+      vaultId: "b1111111-1111-4111-8111-111111111111",
+      handoverRecordStatus: "DRAFTING",
+    });
+    const signing = vault({
+      vaultId: "c1111111-1111-4111-8111-111111111111",
+      handoverRecordStatus: "SIGNING",
+    });
+    expect(sortVaultsByUrgency([safe, drafting, signing]).map((item) => item.vaultId)).toEqual([
+      signing.vaultId,
+      drafting.vaultId,
+      safe.vaultId,
     ]);
-    expect(sorted.map((item) => item.vaultId)).toEqual(["check", "late", "safe"]);
+    expect(countVaultsNeedingAttention([safe, drafting, signing])).toBe(2);
   });
 });

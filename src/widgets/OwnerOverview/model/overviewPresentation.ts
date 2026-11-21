@@ -5,24 +5,16 @@ const planLabels: Record<string, { title: string; description: string }> = {
   },
   ACTIVE: {
     title: "Kế hoạch đang hoạt động",
-    description: "Tiếp tục sắp xếp kho và điểm danh theo lịch của bạn.",
+    description: "Tiếp tục sắp xếp kho. Khi cần, Người thực thi sẽ mở bàn giao.",
   },
-  CHECKIN_OVERDUE: {
-    title: "Bạn đã quá hạn điểm danh",
-    description: "Kiểm tra kỳ điểm danh và xác nhận hoạt động của bạn.",
-  },
-  AWAITING_CHECK: {
-    title: "Kế hoạch đang chờ kiểm tra",
-    description: "Theo dõi thông báo và trạng thái được cập nhật từ hệ thống.",
-  },
-  DEATH_CASE_OPEN: {
-    title: "Kho có hồ sơ chứng tử đang xử lý",
+  HANDOVER_REQUESTED: {
+    title: "Kho đã mở bàn giao",
     description:
-      "Người thực thi đã báo tin, kho và tài khoản đang bị khóa trong lúc Người xét duyệt kiểm tra hồ sơ.",
+      "Người thực thi đã mở bàn giao, kho đang bị khóa trong lúc luật sư lập biên bản bàn giao.",
   },
   HANDOVER_IN_PROGRESS: {
     title: "Kế hoạch đang trong quá trình bàn giao",
-    description: "Theo dõi hồ sơ và các thông báo liên quan đến kho của bạn.",
+    description: "Luật sư đã chốt biên bản. Người nhận đang xác minh, ký và nhận tài sản.",
   },
   CLOSED: {
     title: "Kế hoạch đã đóng",

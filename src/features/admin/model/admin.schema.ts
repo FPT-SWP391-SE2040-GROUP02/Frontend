@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { templateParagraphSchema } from "@/entities/handoverDocument";
 import { paginatedListSchema } from "@/shared/api/pagination.schema";
 
 /** Vai trò tài khoản theo `UserRole` của Backend (wire viết hoa). */
@@ -305,51 +304,6 @@ export const createAdminUserRequestSchema = z.object({
 });
 export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;
 
-/** Một trường {TÊN} Admin được chèn vào mẫu biên bản, kèm nhãn và ví dụ. */
-export const templateTokenSchema = z.object({
-  token: z.string().min(1),
-  label: z.string(),
-  example: z.string(),
-});
-export type TemplateToken = z.infer<typeof templateTokenSchema>;
-
-const templateContentShape = {
-  accept: z.array(templateParagraphSchema),
-  decline: z.array(templateParagraphSchema),
-  declineNotice: z.string(),
-};
-
-/** AdminHandoverTemplateResponse: bộ mẫu đang dùng (hoặc một phiên bản cũ), danh sách trường và mẫu gốc. */
-export const handoverTemplateSchema = z.object({
-  /** null khi đang dùng mẫu gốc trong mã (chưa có bản nào được lưu). */
-  version: z.number().int().nullable(),
-  isDefault: z.boolean(),
-  ...templateContentShape,
-  note: z.string().nullish(),
-  createdAt: z.string().datetime({ offset: true }).nullish(),
-  createdByName: z.string().nullish(),
-  tokens: z.array(templateTokenSchema),
-  default: z.object(templateContentShape),
-});
-export type HandoverTemplate = z.infer<typeof handoverTemplateSchema>;
-
-/** HandoverTemplateVersionResponse: một dòng lịch sử các lần lưu. */
-export const handoverTemplateVersionSchema = z.object({
-  version: z.number().int(),
-  createdAt: z.string().datetime({ offset: true }),
-  createdByName: z.string().nullish(),
-  note: z.string().nullish(),
-});
-export const handoverTemplateVersionsSchema = z.array(handoverTemplateVersionSchema);
-export type HandoverTemplateVersion = z.infer<typeof handoverTemplateVersionSchema>;
-
-/** Body POST /admin/handover-templates. */
-export const saveHandoverTemplateRequestSchema = z.object({
-  ...templateContentShape,
-  note: z.string().max(300, "Ghi chú tối đa 300 ký tự.").optional(),
-});
-export type SaveHandoverTemplateRequest = z.infer<typeof saveHandoverTemplateRequestSchema>;
-
 /** Một biến chèn vào chữ thư, viết {TEN_BIEN}. */
 const emailTemplateTokenSchema = z.object({ name: z.string(), description: z.string() });
 
@@ -395,40 +349,3 @@ export const saveEmailTemplateRequestSchema = z.object({
   note: z.string().nullable(),
 });
 export type SaveEmailTemplateRequest = z.infer<typeof saveEmailTemplateRequestSchema>;
-
-/** Một thư bổ sung gửi cho Chủ kho theo ngày tính từ hạn điểm danh (âm: trước hạn, dương: sau hạn). */
-export const extraMailSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  enabled: z.boolean(),
-  daysFromDue: z.number().int(),
-  subject: z.string(),
-  title: z.string(),
-  body: z.string(),
-  buttonText: z.string(),
-  note: z.string(),
-  updatedAt: z.string(),
-  updatedByName: z.string().nullable().default(null),
-});
-export type ExtraMail = z.infer<typeof extraMailSchema>;
-
-export const extraMailListSchema = z.object({
-  items: z.array(extraMailSchema),
-  maxItems: z.number().int(),
-  minDaysFromDue: z.number().int(),
-  maxDaysFromDue: z.number().int(),
-  tokens: z.array(emailTemplateTokenSchema),
-});
-export type ExtraMailList = z.infer<typeof extraMailListSchema>;
-
-export const saveExtraMailRequestSchema = z.object({
-  name: z.string(),
-  enabled: z.boolean(),
-  daysFromDue: z.number().int(),
-  subject: z.string(),
-  title: z.string(),
-  body: z.string(),
-  buttonText: z.string(),
-  note: z.string(),
-});
-export type SaveExtraMailRequest = z.infer<typeof saveExtraMailRequestSchema>;

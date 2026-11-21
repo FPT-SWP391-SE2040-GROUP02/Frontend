@@ -85,11 +85,11 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
               <Button
                 variant="outline"
                 className="min-h-11"
-                aria-label={`Xem thẻ công chứng của ${user.fullName || user.email}`}
+                aria-label={`Xem thẻ luật sư của ${user.fullName || user.email}`}
                 onClick={() => setCardOpen(true)}
               >
                 <IdCard className="size-4" aria-hidden="true" />
-                {isVerifier ? "Xem thẻ công chứng" : "Xem thẻ xác minh"}
+                {isVerifier ? "Xem thẻ luật sư" : "Xem thẻ xác minh"}
               </Button>
             )}
             <AdminUserActions user={user} />

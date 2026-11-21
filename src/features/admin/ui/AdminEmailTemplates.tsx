@@ -8,7 +8,6 @@ import type { EmailTemplate } from "../model/admin.schema";
 import { useAdminAction } from "../model/useAdminAction";
 import { adminKeys, useAdminEmailTemplates } from "../model/useAdmin";
 import { AdminErrorMessage } from "./AdminStateMessage";
-import { AdminExtraMails } from "./AdminExtraMails";
 
 type FieldName = "subject" | "title" | "body" | "buttonText" | "note";
 
@@ -284,7 +283,6 @@ export function AdminEmailTemplates() {
           ))}
         </ul>
       </Panel>
-      <AdminExtraMails />
     </div>
   );
 }

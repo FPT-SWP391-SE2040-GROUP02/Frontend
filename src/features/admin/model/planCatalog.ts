@@ -31,7 +31,7 @@ export const PAID_PLANS: readonly PaidPlanMeta[] = [
     priceDefaults: { 1: "199000", 3: "499000", 5: "799000" },
     quotaDefault: "200",
     slotsDefault: "2",
-    featureDefaults: ["Thiết lập kế hoạch bàn giao", "Điểm danh và quy trình bàn giao"],
+    featureDefaults: ["Thiết lập kế hoạch bàn giao", "Biên bản và quy trình bàn giao"],
   },
   {
     code: "XsMax",
@@ -114,7 +114,7 @@ export function customPlanMeta(plan: CustomPlan): PaidPlanMeta {
     priceDefaults: {},
     quotaDefault: "100",
     slotsDefault: "1",
-    featureDefaults: ["Thiết lập kế hoạch bàn giao", "Điểm danh và quy trình bàn giao"],
+    featureDefaults: ["Thiết lập kế hoạch bàn giao", "Biên bản và quy trình bàn giao"],
   };
 }
 

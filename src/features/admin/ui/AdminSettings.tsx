@@ -16,7 +16,6 @@ import {
   Clock,
   Archive,
   Users,
-  FileText,
   AlertTriangle,
   Lock,
 } from "lucide-react";
@@ -43,12 +42,7 @@ import {
   MAX_TOTAL_SLOTS_LIMIT,
 } from "../model/planCatalog";
 import { settingsSaveError } from "../model/adminError";
-import {
-  isDueReminderSlotHidden,
-  limitOf,
-  settingErrors,
-  textMaxLengthOf,
-} from "../model/settingRules";
+import { limitOf, settingErrors, textMaxLengthOf } from "../model/settingRules";
 
 interface SettingMeta {
   key: string;
@@ -68,136 +62,6 @@ interface SettingMeta {
 
 const SETTING_DEFINITIONS: SettingMeta[] = [
   // 1. Điểm danh (Check-in)
-  {
-    key: "CheckIn.DefaultCycleDays",
-    label: "Chu kỳ điểm danh mặc định",
-    category: "CheckIn",
-    categoryTitle: "Điểm danh định kỳ",
-    unit: "ngày",
-    step: 1,
-    defaultValue: "30",
-    description:
-      "Chu kỳ điểm danh mặc định của chủ kho. Chủ kho vẫn chọn được 30, 60 hoặc 90 ngày.",
-    src: "CheckInRules.DefaultCycleDays",
-    dataType: "NUMBER",
-  },
-  {
-    key: "CheckIn.DueReminderCount",
-    label: "Số thư nhắc trước hạn",
-    category: "CheckIn",
-    categoryTitle: "Điểm danh định kỳ",
-    unit: "thư",
-    step: 1,
-    defaultValue: "2",
-    description:
-      "Số thư nhắc chủ kho trước hạn điểm danh (từ 1 đến 5). Số ngày của từng thư đặt ở các dòng bên dưới, chỉ các dòng đầu, theo đúng số thư ở đây, được dùng. Áp dụng ngay cho cả kỳ đang chạy.",
-    src: "CheckInRules.DueReminderCount",
-    dataType: "NUMBER",
-  },
-  {
-    key: "CheckIn.FirstReminderDaysBeforeDue",
-    label: "Thư nhắc trước hạn thứ nhất",
-    category: "CheckIn",
-    categoryTitle: "Điểm danh định kỳ",
-    unit: "ngày trước hạn",
-    step: 1,
-    defaultValue: "7",
-    description:
-      "Thư xa hạn nhất, gửi trước hạn điểm danh chừng này ngày (từ 2 đến 60). Phải lớn hơn số ngày của thư thứ hai, nếu không hệ thống sẽ tự tăng số ngày cho hợp lệ.",
-    src: "CheckInRules.FirstReminderDaysBeforeDue",
-    dataType: "NUMBER",
-  },
-  {
-    key: "CheckIn.SecondReminderDaysBeforeDue",
-    label: "Thư nhắc trước hạn thứ hai",
-    category: "CheckIn",
-    categoryTitle: "Điểm danh định kỳ",
-    unit: "ngày trước hạn",
-    step: 1,
-    defaultValue: "1",
-    description:
-      "Gửi trước hạn điểm danh chừng này ngày (từ 1 đến 30). Nếu có thư thứ ba trở đi thì phải lớn hơn số ngày của thư thứ ba. Áp dụng ngay cho cả kỳ đang chạy.",
-    src: "CheckInRules.SecondReminderDaysBeforeDue",
-    dataType: "NUMBER",
-  },
-  {
-    key: "CheckIn.ThirdReminderDaysBeforeDue",
-    label: "Thư nhắc trước hạn thứ ba",
-    category: "CheckIn",
-    categoryTitle: "Điểm danh định kỳ",
-    unit: "ngày trước hạn",
-    step: 1,
-    defaultValue: "1",
-    description:
-      "Chỉ dùng khi số thư nhắc trước hạn từ 3 trở lên. Từ 1 đến 30 ngày trước hạn, phải nhỏ hơn số ngày của thư thứ hai.",
-    src: "CheckInRules.DueReminderDays",
-    dataType: "NUMBER",
-  },
-  {
-    key: "CheckIn.FourthReminderDaysBeforeDue",
-    label: "Thư nhắc trước hạn thứ tư",
-    category: "CheckIn",
-    categoryTitle: "Điểm danh định kỳ",
-    unit: "ngày trước hạn",
-    step: 1,
-    defaultValue: "1",
-    description:
-      "Chỉ dùng khi số thư nhắc trước hạn từ 4 trở lên. Từ 1 đến 30 ngày trước hạn, phải nhỏ hơn số ngày của thư thứ ba.",
-    src: "CheckInRules.DueReminderDays",
-    dataType: "NUMBER",
-  },
-  {
-    key: "CheckIn.FifthReminderDaysBeforeDue",
-    label: "Thư nhắc trước hạn thứ năm",
-    category: "CheckIn",
-    categoryTitle: "Điểm danh định kỳ",
-    unit: "ngày trước hạn",
-    step: 1,
-    defaultValue: "1",
-    description:
-      "Chỉ dùng khi số thư nhắc trước hạn là 5. Từ 1 đến 30 ngày trước hạn, phải nhỏ hơn số ngày của thư thứ tư.",
-    src: "CheckInRules.DueReminderDays",
-    dataType: "NUMBER",
-  },
-  {
-    key: "CheckIn.LateReminderGapDays",
-    label: "Khoảng cách giữa hai thư nhắc trễ",
-    category: "CheckIn",
-    categoryTitle: "Điểm danh định kỳ",
-    unit: "ngày",
-    step: 1,
-    defaultValue: "3",
-    description:
-      "Sau hạn điểm danh, hệ thống gửi thư nhắc chủ kho theo khoảng này (từ 1 đến 30 ngày). Áp dụng từ kỳ điểm danh sau.",
-    src: "CheckInRules.LateReminderGapDays",
-    dataType: "NUMBER",
-  },
-  {
-    key: "CheckIn.MaxLateReminders",
-    label: "Số thư nhắc trễ trước khi báo Người thực thi",
-    category: "CheckIn",
-    categoryTitle: "Điểm danh định kỳ",
-    unit: "thư",
-    step: 1,
-    defaultValue: "3",
-    description:
-      "Gửi đủ số thư này mà chủ kho vẫn chưa điểm danh thì hệ thống báo Người thực thi (từ 1 đến 5 thư). Áp dụng từ kỳ điểm danh sau.",
-    src: "CheckInRules.MaxLateReminders",
-    dataType: "NUMBER",
-  },
-  {
-    key: "CheckIn.ExecutorProxyLimit",
-    label: "Số lần Người thực thi được điểm danh thay liên tiếp",
-    category: "CheckIn",
-    categoryTitle: "Điểm danh định kỳ",
-    unit: "lần",
-    step: 1,
-    defaultValue: "3",
-    description:
-      "Hết lượt thì nút điểm danh thay bị khóa, Người thực thi chỉ còn việc nộp giấy chứng tử. Về 0 khi chủ kho tự điểm danh.",
-    src: "CheckInRules.ExecutorProxyLimit",
-    dataType: "NUMBER",
-  },
 
   // 2. Bàn giao & Lưu trữ (Handover & Retention)
   {
@@ -210,18 +74,6 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     defaultValue: "5",
     description: "Thời hạn tối đa để người nhận phản hồi lời mời tiếp nhận di sản.",
     src: "HandoverRules.ResponseWindow",
-    dataType: "NUMBER",
-  },
-  {
-    key: "Handover.DecisionWindowDays",
-    label: "Hạn người nhận quyết định",
-    category: "Handover",
-    categoryTitle: "Bàn giao & Lưu trữ",
-    unit: "ngày",
-    step: 1,
-    defaultValue: "7",
-    description: "Thời hạn người nhận quyết định đồng ý nhận hoặc từ chối gói bàn giao.",
-    src: "HandoverRules.DecisionWindow",
     dataType: "NUMBER",
   },
   {
@@ -284,68 +136,6 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     defaultValue: "48",
     description: "Gửi email nhắc nhở người được mời nếu chưa phản hồi sau khoảng thời gian này.",
     src: "ExecutorInvitationJob.ReminderAfter",
-    dataType: "NUMBER",
-  },
-
-  // 4. Hồ sơ chứng tử (DeathCase)
-  {
-    key: "DeathCase.SupplementDueDays",
-    label: "Hạn Người thực thi bổ sung hồ sơ",
-    category: "DeathCase",
-    categoryTitle: "Hồ sơ chứng tử",
-    unit: "ngày",
-    step: 1,
-    defaultValue: "7",
-    description: "Hạn để Người thực thi nộp giấy tờ bổ sung khi Người xét duyệt yêu cầu.",
-    src: "DeathCaseReviewRules.SupplementDueDays",
-    dataType: "NUMBER",
-  },
-  {
-    key: "DeathCase.MaxFilesPerVersion",
-    label: "Số tệp tối đa mỗi bản hồ sơ",
-    category: "DeathCase",
-    categoryTitle: "Hồ sơ chứng tử",
-    unit: "tệp",
-    step: 1,
-    defaultValue: "10",
-    description: "Số lượng tệp bằng chứng giấy chứng tử tối đa được đính kèm.",
-    src: "DeathCaseRules.MaxFilesPerVersion",
-    dataType: "NUMBER",
-  },
-  {
-    key: "DeathCase.MaxFileSizeMb",
-    label: "Dung lượng tối đa mỗi tệp",
-    category: "DeathCase",
-    categoryTitle: "Hồ sơ chứng tử",
-    unit: "MiB",
-    step: 5,
-    defaultValue: "20",
-    description: "Kích thước tệp chứng từ tối đa cho mỗi lần tải lên.",
-    src: "DeathCaseRules.MaxFileBytes",
-    dataType: "NUMBER",
-  },
-  {
-    key: "DeathCase.ReviewDueHours",
-    label: "Hạn Người xét duyệt thẩm định",
-    category: "DeathCase",
-    categoryTitle: "Hồ sơ chứng tử",
-    unit: "giờ",
-    step: 6,
-    defaultValue: "48",
-    description: "Thời hạn SLA tối đa để Người xét duyệt phải ra quyết định về hồ sơ.",
-    src: "DeathCaseRules.ReviewDueHours",
-    dataType: "NUMBER",
-  },
-  {
-    key: "DeathCase.MaxNoticeAttempts",
-    label: "Số lần thông báo cho Chủ kho",
-    category: "DeathCase",
-    categoryTitle: "Hồ sơ chứng tử",
-    unit: "lần",
-    step: 1,
-    defaultValue: "5",
-    description: "Số lần gửi thông báo trước khi hệ thống đánh dấu lỗi.",
-    src: "DeathCaseRules.MaxNoticeAttempts",
     dataType: "NUMBER",
   },
 
@@ -432,7 +222,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     categoryTitle: "Bảo mật & Tính năng",
     defaultValue: "false",
     description:
-      "Khi bật, mọi mốc ngày, giờ, phút của nghiệp vụ (điểm danh, ân hạn, hạn xét duyệt, hạn bổ sung, cửa sổ bàn giao) chỉ còn tính bằng giây. Dùng cho buổi demo, tắt khi chạy thật.",
+      "Khi bật, mọi mốc ngày, giờ, phút của nghiệp vụ (ân hạn, hạn phản hồi lời mời, cửa sổ bàn giao) chỉ còn tính bằng giây. Dùng cho buổi demo, tắt khi chạy thật.",
     src: "TimeUnits.DemoSeconds",
     dataType: "BOOLEAN",
   },
@@ -489,10 +279,8 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
 const VISIBLE_SETTINGS = SETTING_DEFINITIONS.filter((def) => !def.hidden);
 
 const CATEGORY_ICONS: Record<string, typeof Clock> = {
-  CheckIn: Clock,
   Handover: Archive,
   Executor: Users,
-  DeathCase: FileText,
   Alive: Shield,
   Limits: Sliders,
   Security: Lock,
@@ -510,7 +298,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
   const selectedCategory = "Tất cả";
   const [filterMode, setFilterMode] = useState<"all" | "changed" | "security">("all");
   // Theo prototype chỉ nhóm đầu mở sẵn; các nhóm khác gập lại cho trang gọn.
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ CheckIn: true });
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ Handover: true });
 
   // Local draft values (key -> { value: string, isEnabled: boolean })
   const [draft, setDraft] = useState<Record<string, { value: string; isEnabled: boolean }>>({});
@@ -838,13 +626,6 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
               const items = group.items.filter((item) => {
                 if (filterMode === "changed") {
                   return draft[item.key] !== undefined;
-                }
-                // Ô ngày của thư nhắc trước hạn chỉ hiện đủ theo "Số thư nhắc trước hạn" đang chọn.
-                const countValue = getIsEnabled("CheckIn.DueReminderCount", true)
-                  ? getValue("CheckIn.DueReminderCount", "2")
-                  : "2";
-                if (isDueReminderSlotHidden(item.key, countValue)) {
-                  return false;
                 }
                 if (filterMode === "security") {
                   return item.isSecurity;
@@ -1388,7 +1169,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
             </label>
             <Textarea
               rows={2}
-              placeholder="Ví dụ: Điều chỉnh hạn mức chu kỳ điểm danh và cập nhật bảng giá XS Max theo chính sách mới..."
+              placeholder="Ví dụ: Điều chỉnh thời hạn tải tài sản và cập nhật bảng giá XS Max theo chính sách mới..."
               value={auditReason}
               onChange={(e) => setAuditReason(e.target.value)}
               className="text-sm"

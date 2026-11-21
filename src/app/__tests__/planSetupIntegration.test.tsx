@@ -59,7 +59,7 @@ const directoryFixture = [
   fullName,
   email,
   phoneMasked: null,
-  executorRoleTitle: "Luật sư thi hành di chúc",
+  executorRoleTitle: "Người thực thi",
   legalVerification: {
     status: "VERIFIED",
     lawyerCardNumber: "LS-1",
@@ -300,10 +300,10 @@ it("shows the real reason and no retry when the invitation is no longer valid", 
   expect(screen.getByRole("link", { name: "Về trang chủ" })).toBeInTheDocument();
 });
 
-/** Mở khung xem trước di chúc (nút ở cột phải đổi chữ theo trạng thái) rồi chờ khung hiện. */
+/** Mở khung xem trước file phân chia (nút ở cột phải đổi chữ theo trạng thái) rồi chờ khung hiện. */
 async function openPreview(): Promise<void> {
   fireEvent.click(await screen.findByRole("button", { name: /^Xem trước/ }));
-  await screen.findByRole("dialog", { name: "Xem trước di chúc" });
+  await screen.findByRole("dialog", { name: "Xem trước file phân chia" });
 }
 it("offers retry when the invitation check fails because of the network", async () => {
   vi.spyOn(apiClient, "post").mockRejectedValue(new AxiosError("net"));
@@ -400,13 +400,13 @@ it("hiện thẻ việc: việc đạt có dấu xong, việc thiếu kèm nút 
   expect(screen.getByText("Gói dịch vụ trả phí còn hạn.")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Đi xác minh danh tính" })).toBeInTheDocument();
-  expect(screen.queryByText(/Đã xác minh\. Tên trên di chúc/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Đã xác minh\. Tên trên file phân chia/)).not.toBeInTheDocument();
   // Hai điều kiện thiếu trong bốn điều kiện: đạt 2/4, danh sách điều kiện chưa đạt ở cột phải.
   const progress = screen.getByRole("region", { name: "Tiến độ bàn giao" });
   expect(within(progress).getByText("Còn 2 điều kiện chưa đạt")).toBeInTheDocument();
   expect(within(progress).getByText("Chưa xác minh danh tính (eKYC)")).toBeInTheDocument();
   expect(within(progress).getByText("Chưa chọn Người thực thi")).toBeInTheDocument();
-  const bar = screen.getByRole("progressbar", { name: "Tiến độ điền di chúc" });
+  const bar = screen.getByRole("progressbar", { name: "Tiến độ điền file phân chia" });
   expect(bar).toHaveAttribute("aria-valuenow", "2");
   expect(bar).toHaveAttribute("aria-valuemax", "4");
 });
@@ -433,6 +433,7 @@ it("Người thực thi: kế hoạch nháp mời được Người thực thi, 
   fireEvent.click(
     await within(dialog).findByRole("button", { name: "Chọn người này: Luật sư Một" }),
   );
+  fireEvent.click(within(dialog).getByRole("checkbox", { name: /chỉ là đề cử/ }));
   fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   // Người thực thi không còn kiêm người nhận: payload chỉ có email.
@@ -535,7 +536,7 @@ it("Người thực thi: giữ nguyên lỗi của Backend khi thu hồi bị ch
 it("Người thực thi: kế hoạch có hồ sơ báo tử chỉ xem, không có nút thao tác", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue({
     ...setupFixture,
-    planStatus: "DEATH_CASE_OPEN",
+    planStatus: "HANDOVER_REQUESTED",
     executors: [acceptedPrimary],
   });
   setup(<ExecutorsSection vaultId={VAULT_ID} />);

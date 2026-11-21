@@ -1,35 +1,26 @@
 import { describe, expect, it } from "vitest";
-import {
-  isDueReminderSlotHidden,
-  limitOf,
-  settingErrors,
-  settingRelationErrors,
-  settingValueError,
-} from "../settingRules";
+import { limitOf, settingErrors, settingRelationErrors, settingValueError } from "../settingRules";
 
 describe("settingValueError", () => {
   it("giá trị trong khoảng thì không lỗi", () => {
-    expect(settingValueError("CheckIn.MaxLateReminders", "3")).toBe("");
-    expect(settingValueError("CheckIn.MaxLateReminders", " 5 ")).toBe("");
-    expect(settingValueError("CheckIn.FirstReminderDaysBeforeDue", "60")).toBe("");
+    expect(settingValueError("Executor.InvitationExpiresDays", "7")).toBe("");
+    expect(settingValueError("Executor.InvitationExpiresDays", " 60 ")).toBe("");
+    expect(settingValueError("Handover.GrantWindowDays", "365")).toBe("");
   });
 
   it("ngoài khoảng thì nói rõ khoảng hợp lệ", () => {
-    expect(settingValueError("CheckIn.MaxLateReminders", "0")).toBe("Phải từ 1 đến 5.");
-    expect(settingValueError("CheckIn.MaxLateReminders", "6")).toBe("Phải từ 1 đến 5.");
-    expect(settingValueError("CheckIn.FirstReminderDaysBeforeDue", "61")).toBe("Phải từ 2 đến 60.");
+    expect(settingValueError("Executor.InvitationExpiresDays", "0")).toBe("Phải từ 1 đến 60.");
+    expect(settingValueError("Executor.InvitationExpiresDays", "61")).toBe("Phải từ 1 đến 60.");
+    expect(settingValueError("Handover.GrantWindowDays", "366")).toBe("Phải từ 1 đến 365.");
     expect(settingValueError("Security.PinLockoutMinutes", "99999")).toBe("Phải từ 1 đến 1440.");
   });
 
   it("không phải số nguyên không âm thì báo lỗi", () => {
-    expect(settingValueError("CheckIn.MaxLateReminders", "")).toBe("Phải là số nguyên không âm.");
-    expect(settingValueError("CheckIn.MaxLateReminders", "abc")).toBe(
-      "Phải là số nguyên không âm.",
-    );
-    expect(settingValueError("CheckIn.MaxLateReminders", "2.5")).toBe(
-      "Phải là số nguyên không âm.",
-    );
-    expect(settingValueError("CheckIn.MaxLateReminders", "-1")).toBe("Phải là số nguyên không âm.");
+    for (const bad of ["", "abc", "2.5", "-1"]) {
+      expect(settingValueError("Executor.InvitationExpiresDays", bad)).toBe(
+        "Phải là số nguyên không âm.",
+      );
+    }
   });
 
   it("số điện thoại công ty: chặn chữ và số quá ngắn hoặc quá dài, cho để trống", () => {
@@ -56,56 +47,12 @@ describe("settingValueError", () => {
     expect(settingValueError("Company.Email", "co khoang@x.vn")).toBe("Không đúng dạng email.");
   });
 
-  it("khóa không có luật (Plans.*, khóa lạ) thì bỏ qua", () => {
+  it("khóa không có luật (Plans.*, khóa lạ, khóa điểm danh đã bỏ) thì bỏ qua", () => {
     expect(settingValueError("Plans.Xs.Price1Y", "abc")).toBe("");
     expect(settingValueError("Khoa.La", "bat-ky")).toBe("");
     expect(limitOf("Khoa.La")).toBeNull();
-    expect(limitOf("CheckIn.MaxLateReminders")).toEqual({ min: 1, max: 5 });
-  });
-});
-
-describe("isDueReminderSlotHidden", () => {
-  it("chỉ hiện đủ số ô ngày theo số thư nhắc trước hạn", () => {
-    const keys = [
-      "CheckIn.FirstReminderDaysBeforeDue",
-      "CheckIn.SecondReminderDaysBeforeDue",
-      "CheckIn.ThirdReminderDaysBeforeDue",
-      "CheckIn.FourthReminderDaysBeforeDue",
-      "CheckIn.FifthReminderDaysBeforeDue",
-    ];
-
-    expect(keys.map((k) => isDueReminderSlotHidden(k, "1"))).toEqual([
-      false,
-      true,
-      true,
-      true,
-      true,
-    ]);
-    expect(keys.map((k) => isDueReminderSlotHidden(k, "3"))).toEqual([
-      false,
-      false,
-      false,
-      true,
-      true,
-    ]);
-    expect(keys.map((k) => isDueReminderSlotHidden(k, "5"))).toEqual([
-      false,
-      false,
-      false,
-      false,
-      false,
-    ]);
-    expect(keys.map((k) => isDueReminderSlotHidden(k, undefined))).toEqual([
-      false,
-      false,
-      true,
-      true,
-      true,
-    ]);
-  });
-
-  it("khóa khác không bị ẩn", () => {
-    expect(isDueReminderSlotHidden("CheckIn.MaxLateReminders", "1")).toBe(false);
+    expect(limitOf("CheckIn.MaxLateReminders")).toBeNull();
+    expect(limitOf("Executor.InvitationExpiresDays")).toEqual({ min: 1, max: 60 });
   });
 });
 
@@ -116,65 +63,6 @@ describe("settingRelationErrors", () => {
 
   it("mặc định hợp lệ", () => {
     expect(settingRelationErrors(valuesOf({}))).toEqual({});
-  });
-
-  it("thư nhắc thứ nhất phải xa hạn hơn thư thứ hai, báo lỗi cho cả hai ô", () => {
-    const errors = settingRelationErrors(
-      valuesOf({
-        "CheckIn.FirstReminderDaysBeforeDue": "3",
-        "CheckIn.SecondReminderDaysBeforeDue": "3",
-      }),
-    );
-
-    expect(errors["CheckIn.FirstReminderDaysBeforeDue"]).toContain("xa hạn hơn");
-    expect(errors["CheckIn.SecondReminderDaysBeforeDue"]).toContain("gần hạn hơn");
-  });
-
-  it("hai ngày khác nhau và đúng thứ tự thì hợp lệ", () => {
-    const errors = settingRelationErrors(
-      valuesOf({
-        "CheckIn.FirstReminderDaysBeforeDue": "3",
-        "CheckIn.SecondReminderDaysBeforeDue": "2",
-      }),
-    );
-
-    expect(errors).toEqual({});
-  });
-
-  it("năm thư nhắc trước hạn phải giảm dần, ô trùng hoặc đảo thứ tự bị báo", () => {
-    const ok = settingRelationErrors(
-      valuesOf({
-        "CheckIn.DueReminderCount": "5",
-        "CheckIn.FirstReminderDaysBeforeDue": "10",
-        "CheckIn.SecondReminderDaysBeforeDue": "7",
-        "CheckIn.ThirdReminderDaysBeforeDue": "5",
-        "CheckIn.FourthReminderDaysBeforeDue": "3",
-        "CheckIn.FifthReminderDaysBeforeDue": "1",
-      }),
-    );
-    const bad = settingRelationErrors(
-      valuesOf({
-        "CheckIn.DueReminderCount": "3",
-        "CheckIn.FirstReminderDaysBeforeDue": "10",
-        "CheckIn.SecondReminderDaysBeforeDue": "2",
-        "CheckIn.ThirdReminderDaysBeforeDue": "4",
-      }),
-    );
-
-    expect(ok).toEqual({});
-    expect(bad["CheckIn.SecondReminderDaysBeforeDue"]).toContain("xa hạn hơn thư thứ ba");
-    expect(bad["CheckIn.ThirdReminderDaysBeforeDue"]).toContain("gần hạn hơn thư thứ hai");
-  });
-
-  it("ô của thư vượt quá số thư đã đặt không bị kiểm", () => {
-    const errors = settingRelationErrors(
-      valuesOf({
-        "CheckIn.DueReminderCount": "2",
-        "CheckIn.ThirdReminderDaysBeforeDue": "9",
-      }),
-    );
-
-    expect(errors).toEqual({});
   });
 
   it("giờ nhắc lời mời Người thực thi phải sớm hơn hạn lời mời", () => {
@@ -189,9 +77,9 @@ describe("settingRelationErrors", () => {
 describe("settingErrors", () => {
   it("chỉ kiểm cặp khi Admin vừa sửa một khóa của cặp đó", () => {
     // Dữ liệu trên máy chủ đang lệch cặp nhưng Admin chỉ sửa một khóa không liên quan: không chặn.
-    const errors = settingErrors({ "CheckIn.MaxLateReminders": "4" }, (key) => {
-      if (key === "CheckIn.FirstReminderDaysBeforeDue") return "1";
-      if (key === "CheckIn.SecondReminderDaysBeforeDue") return "1";
+    const errors = settingErrors({ "Handover.GrantWindowDays": "40" }, (key) => {
+      if (key === "Executor.InvitationExpiresDays") return "1";
+      if (key === "Executor.ReminderAfterHours") return "30";
       return undefined;
     });
 
@@ -199,22 +87,22 @@ describe("settingErrors", () => {
   });
 
   it("sửa một khóa của cặp làm cặp lệch thì báo lỗi", () => {
-    const errors = settingErrors({ "CheckIn.FirstReminderDaysBeforeDue": "1" }, (key) => {
-      if (key === "CheckIn.FirstReminderDaysBeforeDue") return "1";
+    const errors = settingErrors({ "Executor.InvitationExpiresDays": "1" }, (key) => {
+      if (key === "Executor.InvitationExpiresDays") return "1";
       return undefined;
     });
 
-    expect(errors["CheckIn.FirstReminderDaysBeforeDue"]).toBeDefined();
+    expect(errors["Executor.ReminderAfterHours"]).toBeDefined();
   });
 
   it("lỗi riêng của giá trị được ưu tiên hơn lỗi theo cặp", () => {
-    const errors = settingErrors({ "CheckIn.FirstReminderDaysBeforeDue": "abc" }, () => undefined);
+    const errors = settingErrors({ "Executor.ReminderAfterHours": "abc" }, () => undefined);
 
-    expect(errors["CheckIn.FirstReminderDaysBeforeDue"]).toBe("Phải là số nguyên không âm.");
+    expect(errors["Executor.ReminderAfterHours"]).toBe("Phải là số nguyên không âm.");
   });
 
   it("tham số bị tắt không bị kiểm giá trị nhưng vẫn tính lại cặp theo mức gốc", () => {
-    const errors = settingErrors({ "CheckIn.SecondReminderDaysBeforeDue": null }, () => undefined);
+    const errors = settingErrors({ "Executor.ReminderAfterHours": null }, () => undefined);
 
     expect(errors).toEqual({});
   });

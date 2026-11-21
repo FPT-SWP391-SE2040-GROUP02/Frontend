@@ -1,7 +1,7 @@
 import { useVaultPageTitle } from "@/features/vault-management/model/useVaultPageTitle";
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { OwnerContainer } from "@/widgets/OwnerWorkspace/OwnerContainer";
-/** Chỉnh sửa container Backend, không dựng bản di chúc hoặc tự kích hoạt kho. */
+/** Chỉnh sửa container Backend, không dựng bản file phân chia hoặc tự kích hoạt kho. */
 export function ContainerDetailPage() {
   const pageTitle = useVaultPageTitle();
   return (

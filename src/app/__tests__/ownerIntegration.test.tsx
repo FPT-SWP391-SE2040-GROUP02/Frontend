@@ -18,8 +18,6 @@ import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
 import { GroupDetail } from "@/features/vault-management/ui/GroupDetail";
 import { CreateGroupDialog } from "@/features/vault-management/ui/CreateGroupDialog";
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
-import { CheckInNowButton } from "@/features/dms/ui/CheckInNowButton";
-import { CheckInSettingsForm } from "@/features/dms/ui/CheckInSettingsForm";
 import { ownerVaultKeys } from "@/features/vault-management/model/useOwnerVault";
 import { OwnerContainer } from "@/widgets/OwnerWorkspace/OwnerContainer";
 
@@ -222,49 +220,4 @@ it("requires contact information before submitting a beneficiary", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Vui lòng nhập email.");
   expect(post).not.toHaveBeenCalled();
-});
-const checkIn = {
-  status: "NOT_STARTED" as const,
-  planStatus: "DRAFT",
-  serverTime: CREATED_AT,
-  lastCheckInAt: null,
-  checkedInByExecutorToday: false,
-  nextCheckInDueAt: null,
-  graceEndsAt: null,
-  settings: {
-    cycleDays: 30,
-    lateReminderGapDays: 3,
-    maxLateReminders: 3,
-    pendingCycleDays: null,
-    etag: "settings-v1",
-  },
-  history: {
-    items: [],
-    totalCount: 0,
-    pageIndex: 1,
-    pageSize: 10,
-    totalPages: 0,
-    hasNextPage: false,
-    hasPreviousPage: false,
-  },
-};
-it("does not check in a draft plan and saves only the confirmed schedule fields with etag", async () => {
-  const post = vi.spyOn(apiClient, "post");
-  const patch = vi.spyOn(apiClient, "patch").mockResolvedValue(checkIn);
-  setup(
-    <>
-      <CheckInNowButton vaultId={VAULT_ID} status={checkIn} label="Điểm danh bây giờ" />
-      <CheckInSettingsForm vaultId={VAULT_ID} status={checkIn} />
-    </>,
-  );
-  expect(screen.getByRole("button", { name: "Điểm danh bây giờ" })).toBeDisabled();
-  expect(post).not.toHaveBeenCalled();
-  fireEvent.change(screen.getByLabelText("Chu kỳ"), { target: { value: "60" } });
-  fireEvent.click(screen.getByRole("button", { name: "Lưu lịch điểm danh" }));
-  await waitFor(() =>
-    expect(patch).toHaveBeenCalledWith("/vaults/me/check-in-settings", {
-      etag: "settings-v1",
-      cycleDays: 60,
-    }),
-  );
 });

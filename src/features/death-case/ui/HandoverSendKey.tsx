@@ -14,13 +14,13 @@ import { deathCaseService } from "../api/deathCaseService";
  * Không optimistic: chỉ báo thành công sau response của BE.
  */
 export function HandoverSendKey({
-  caseId,
+  recordId,
   turnId,
   vaultId,
   onSent,
   onCancel,
 }: {
-  caseId: string;
+  recordId: string;
   turnId: string;
   /** Kho của hồ sơ; có thì cho lấy mã đã nhận trên hệ thống thay vì gõ tay. */
   vaultId?: string;
@@ -35,7 +35,7 @@ export function HandoverSendKey({
   const busy = action.pending || fill.pending;
   const send = () =>
     void action.execute(
-      () => deathCaseService.sendKey(caseId, turnId, key.trim()),
+      () => deathCaseService.sendKey(recordId, turnId, key.trim()),
       (result) => {
         setKey("");
         onSent(result.sentAt);

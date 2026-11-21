@@ -18,6 +18,6 @@ export const LOGOUT_ROLE_LABELS: Record<Role, string> = {
 export const LOGOUT_CONTENT = {
   accountUnavailable: "Chưa có thông tin tài khoản để hiển thị.",
   unnamedAccount: "Tài khoản của bạn",
-  dmsReminder: "Đăng xuất không thay thế điểm danh.",
-  dmsGuidance: "Nếu bạn là Chủ kho, hãy kiểm tra hạn điểm danh ở mục Điểm danh.",
+  dmsReminder: "Đăng xuất không ảnh hưởng tới kế hoạch bàn giao.",
+  dmsGuidance: "Kho và tài sản của bạn vẫn được giữ an toàn.",
 } as const;

@@ -18,10 +18,8 @@ function planStageBarColor(stage: string) {
   switch (stage) {
     case "ACTIVE":
       return "bg-emerald-600";
-    case "CHECKIN_OVERDUE":
-    case "AWAITING_CHECK":
+    case "HANDOVER_REQUESTED":
       return "bg-amber-600";
-    case "DEATH_CASE_OPEN":
     case "HANDOVER_IN_PROGRESS":
       return "bg-sky-700";
     case "BLOCKED":
@@ -175,7 +173,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           icon={UserCheck}
           label="Chờ người xét duyệt"
           value={data.casesWithoutVerifier}
-          caption="Hồ sơ chứng tử cần chỉ định"
+          caption="Biên bản cần giao lại luật sư"
           tone={data.casesWithoutVerifier > 0 ? "warn" : "neutral"}
         />
       </div>
