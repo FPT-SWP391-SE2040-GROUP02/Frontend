@@ -92,12 +92,6 @@ export const handoverService = {
   async get(value: string, signal?: AbortSignal) {
     return handoverTurnSchema.parse(await apiClient.get<unknown, unknown>(turn(value), { signal }));
   },
-  async decide(value: string, decision: "accept" | "decline") {
-    return handoverTurnSchema.parse(
-      await apiClient.post<unknown, unknown>(`${turn(value)}/${decision}`),
-    );
-  },
-  /** Xác nhận đã nhận đủ tài sản sau khi tải. */
   async confirmReceivedAll(value: string) {
     return handoverTurnSchema.parse(
       await apiClient.post<unknown, unknown>(`${turn(value)}/received-all`),

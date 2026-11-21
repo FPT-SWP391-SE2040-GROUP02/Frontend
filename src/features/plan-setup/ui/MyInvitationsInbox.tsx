@@ -9,10 +9,9 @@ import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
 import { endedStatusLabel, remainingTime } from "../lib/myInvitationHelpers";
 import { useExecutorSigning } from "../model/useExecutorSigning";
-import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
-const CAPABILITIES = ["Báo tin cho hệ thống khi Chủ kho qua đời", "Theo dõi tiến trình bàn giao"];
+const CAPABILITIES = ["Mở bàn giao khi Chủ kho qua đời", "Ký biên bản và gửi mã nhận"];
 
 /**
  * Trang Lời mời: lời mời đang chờ (chấp nhận/từ chối ngay, không cần link email) và lời mời đã kết thúc.
@@ -82,7 +81,7 @@ export function MyInvitationsInbox() {
       <Panel title="Đang chờ bạn trả lời" labelledBy="pending-invitations-heading">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-sm text-heritage-muted">
-            Người thực thi báo tin khi Chủ kho qua đời.{" "}
+            Người thực thi mở bàn giao khi Chủ kho qua đời.{" "}
             <strong className="text-heritage-primary">Không ai mở được kho</strong>, kể cả bạn.
           </p>
           {pendingCount > 0 && (
@@ -184,11 +183,9 @@ function PendingInvitationCard({
           </ul>
         </div>
         <div className="space-y-3">
-          <AuthorizationLetterPreview
-            ownerName={invitation.ownerName}
-            executorEmail={invitation.inviteeEmail}
-            scopeText={scopeText}
-          />
+          <p className="whitespace-pre-line rounded-xl border border-heritage-border bg-white/70 px-4 py-3 text-sm leading-6">
+            {scopeText}
+          </p>
           <label
             htmlFor={checkboxId}
             className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F4F1E6] px-4 py-3 text-sm leading-6"
@@ -201,7 +198,7 @@ function PendingInvitationCard({
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc di chúc và đồng ý nhận vai Người thực thi
+            Tôi đã đọc phạm vi công việc và đồng ý nhận vai Người thực thi
           </label>
           <ExecutorSigningPasswordField
             value={password}

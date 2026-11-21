@@ -7,10 +7,9 @@ import { planSetupService } from "../api/planSetupService";
 import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
 import { useExecutorSigning } from "../model/useExecutorSigning";
-import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
-const ABILITIES = ["Báo tin khi Chủ kho qua đời", "Theo dõi bàn giao cho người nhận"];
+const ABILITIES = ["Mở bàn giao khi Chủ kho qua đời", "Ký biên bản và gửi mã nhận cho người nhận"];
 
 /**
  * Lời mời làm Người thực thi trong không gian Người thực thi. Dùng cùng API và cùng luật xác nhận với
@@ -169,11 +168,9 @@ function PendingCard({
           </ul>
         </div>
         <div className="space-y-3">
-          <AuthorizationLetterPreview
-            ownerName={invitation.ownerName}
-            executorEmail={invitation.inviteeEmail}
-            scopeText={scopeText}
-          />
+          <p className="whitespace-pre-line rounded-xl border border-heritage-border bg-white/70 px-4 py-3 text-sm leading-6">
+            {scopeText}
+          </p>
           <label
             htmlFor={checkboxId}
             className="flex min-h-11 items-start gap-3 rounded-xl bg-white/70 px-4 py-3 text-sm leading-6"
@@ -186,7 +183,7 @@ function PendingCard({
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc di chúc và đồng ý nhận vai Người thực thi
+            Tôi đã đọc phạm vi công việc và đồng ý nhận vai Người thực thi
           </label>
           <ExecutorSigningPasswordField
             value={password}

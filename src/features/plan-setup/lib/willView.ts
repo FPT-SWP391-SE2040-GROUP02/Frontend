@@ -12,8 +12,8 @@ import type { WillIdentity } from "../model/willIdentity.schema";
 type PlanSetup = z.infer<typeof planSetupSchema>;
 
 /**
- * Người thực thi in trong di chúc: ưu tiên người đã ký nhận vai (ACCEPTED), nếu chưa có thì người đang được mời
- * hoặc đang tạm ngưng (di chúc hiện chỗ trống "chờ ký"). Người đã từ chối, hết hạn hoặc bị thu hồi không in.
+ * Người thực thi in trong file phân chia: ưu tiên người đã ký nhận vai (ACCEPTED), nếu chưa có thì người đang được mời
+ * hoặc đang tạm ngưng (file phân chia hiện chỗ trống "chờ ký"). Người đã từ chối, hết hạn hoặc bị thu hồi không in.
  */
 export function pickWillExecutor(executors: PlanSetup["executors"]): WillExecutorView | null {
   let pending: WillExecutorView | null = null;

@@ -15,7 +15,7 @@ import {
   type ExecutorNotification,
   type NotificationTone,
 } from "../model/notifications";
-import { useActiveCaseId, useDeathCase } from "../model/useDeathCase";
+import { useExecutorRecord } from "@/entities/handoverRecord";
 import { useSelectedExecutorVault } from "../model/useExecutorVaults";
 
 const KEY_PREFIX = "lv-executor-bell:";
@@ -109,8 +109,7 @@ function NotificationRow({ item, fresh }: { item: ExecutorNotification; fresh: b
  */
 export function NotificationBell() {
   const { selected } = useSelectedExecutorVault();
-  const caseId = useActiveCaseId(selected);
-  const record = useDeathCase(caseId).data;
+  const record = useExecutorRecord(selected ? selected.vaultId : "").data;
   const [open, setOpen] = useState(false);
   const [, setVersion] = useState(0);
   /** Các thông báo chưa đọc lúc mở hộp thoại, để đánh nhãn "Mới" dù đã ghi nhận là đã đọc. */

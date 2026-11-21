@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { AxiosError, AxiosHeaders } from "axios";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiClient } from "@/shared/api/axiosClient";
-import { HandoverTerms } from "../HandoverTerms";
 import { MailCheckPanel } from "../MailCheckPanel";
 
 function httpError(status: number) {
@@ -95,18 +94,5 @@ describe("MailCheckPanel", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/Không kiểm tra được lúc này/);
     expect(screen.queryByText(/Thư là thật/)).not.toBeInTheDocument();
-  });
-});
-
-describe("HandoverTerms", () => {
-  it("nói rõ hậu quả của từng lựa chọn, kèm căn cứ pháp luật", () => {
-    render(<HandoverTerms groupName="Gói gia đình" />);
-
-    expect(screen.getByRole("heading", { name: "Chấp nhận" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Từ chối" })).toBeInTheDocument();
-    expect(screen.getByText(/coi như biến mất, không giao cho ai/)).toBeInTheDocument();
-    expect(screen.getByText(/Điều 614, 615 và 621/)).toBeInTheDocument();
-    expect(screen.getByText(/Điều 620/)).toBeInTheDocument();
-    expect(screen.getAllByText(/Gói gia đình/).length).toBeGreaterThanOrEqual(2);
   });
 });

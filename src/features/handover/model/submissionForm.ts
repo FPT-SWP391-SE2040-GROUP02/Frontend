@@ -48,7 +48,7 @@ export function submissionFormError(draft: SubmissionDraft, today = new Date()):
   if (front) return front;
   const back = imageError(draft.back, "căn cước mặt sau");
   if (back) return back;
-  if (!draft.acknowledged) return "Vui lòng xác nhận đã đọc điều khoản của lựa chọn này.";
+  if (!draft.acknowledged) return "Vui lòng cam đoan thông tin đã khai là đúng.";
   if (draft.kind === "DECLINE" && !draft.voluntaryDecline)
     return "Vui lòng xác nhận tự nguyện từ chối, không nhằm trốn tránh nghĩa vụ tài sản.";
   return null;

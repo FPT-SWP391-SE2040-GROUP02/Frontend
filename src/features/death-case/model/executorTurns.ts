@@ -13,7 +13,7 @@ export type SegmentState = "done" | "current" | "pending" | "stopped";
 
 export type TurnTone = "success" | "warning" | "neutral";
 
-export type TurnStepKey = "invited" | "agreed" | "approved" | "key" | "received";
+export type TurnStepKey = "invited" | "identity" | "signed" | "key" | "received";
 
 export interface TurnSegment {
   key: TurnStepKey;
@@ -42,13 +42,13 @@ export interface TurnProgress {
 
 export const STEP_LABELS: Record<TurnStepKey, string> = {
   invited: "Đã mời",
-  agreed: "Đồng ý nhận",
-  approved: "Xét duyệt",
+  identity: "Kiểm danh tính",
+  signed: "Ký biên bản",
   key: "Nhập mã mở gói",
   received: "Tải xong",
 };
 
-const STEP_ORDER: TurnStepKey[] = ["invited", "agreed", "approved", "key", "received"];
+const STEP_ORDER: TurnStepKey[] = ["invited", "identity", "signed", "key", "received"];
 
 const GROUP_ORDER: Record<TurnGroup, number> = {
   action: 0,
@@ -141,22 +141,21 @@ function stoppedProgress(turn: HandoverProgressTurn): TurnProgress {
   ]);
   // Đoạn thứ hai là nơi lượt dừng: xám đậm; các đoạn sau vẫn xám nhạt.
   segments[1] = { ...segments[1], state: "stopped", timeText: "—" };
-  let stopTime: string | null = turn.decidedAt ?? turn.documentApprovedAt ?? turn.recipientSignedAt;
+  // Lượt từ chối chỉ còn ở dữ liệu cũ; luồng biên bản không có bước từ chối.
+  let stopTime: string | null = turn.decidedAt;
   let stopLabel = "Từ chối nhận";
   let chip = "Từ chối nhận";
   let headline = "Đã từ chối nhận";
   let detail = "người nhận từ chối nhận tài sản";
   let group: TurnGroup = "declined";
-  if (turn.status === "DECLINED") {
-    if (turn.documentApprovedAt) detail = "văn bản từ chối đã duyệt";
-  } else {
+  if (turn.status !== "DECLINED") {
     group = "ended";
     stopLabel = "Đã kết thúc";
     chip = "Đã kết thúc";
     headline = "Lượt đã kết thúc";
     stopTime = null;
     if (turn.status === "DECISION_EXPIRED") detail = "người nhận không hoàn tất việc nhận";
-    if (turn.status === "CANCELLED") detail = "lượt đã bị hủy";
+    if (turn.status === "CANCELLED") detail = "luật sư sửa biên bản và bỏ người này ra";
     if (turn.status === "LAPSED") detail = "dữ liệu của lượt đã được dọn";
   }
   const stopped: TurnSegment = {
@@ -179,10 +178,10 @@ function stoppedProgress(turn: HandoverProgressTurn): TurnProgress {
 /**
  * Bước hiện tại, 5 đoạn và giờ từng bước của một lượt.
  *
- * Năm bước: Đã mời → Đồng ý nhận → Người xét duyệt kiểm tra biên bản → Nhập mã mở gói → Tải xong.
+ * Năm bước: Đã mời → Kiểm danh tính → Ký biên bản → Nhập mã mở gói → Tải xong.
  * - Đã mời: xong khi máy chủ email nhận thư mời (invitationSentAt) hoặc khi lượt đã đi xa hơn.
- * - Đồng ý nhận: xong khi người nhận ký biên bản (recipientSignedAt) hoặc lượt đã được duyệt.
- * - Xét duyệt: xong khi Người xét duyệt ký (documentApprovedAt) hoặc lượt đã HANDOVER_COMMITTED.
+ * - Kiểm danh tính: xong khi luật sư xác nhận danh tính (identityConfirmedAt) hoặc lượt đã chờ ký trở đi.
+ * - Ký biên bản: xong khi biên bản đủ chữ ký ba bên (documentApprovedAt) hoặc lượt đã HANDOVER_COMMITTED.
  * - Nhập mã mở gói: xong khi keyVerifiedAt có giờ. Kho không dùng mã thì không có giờ này, nên đã tải được tài sản
  *   (hoặc người nhận đã xác nhận nhận đủ) cũng coi là qua bước, giờ hiện "—".
  * - Tải xong: xong khi tải đủ tài sản hoặc người nhận đã xác nhận nhận đủ (receivedAllAt).
@@ -208,18 +207,18 @@ export function deriveTurnProgress(turn: HandoverProgressTurn): TurnProgress {
     invitedDone = turn.invitedAt;
   }
 
-  let agreedDone: string | null | false = false;
-  if (turn.recipientSignedAt) {
-    agreedDone = turn.recipientSignedAt;
-  } else if (committed) {
-    agreedDone = turn.decidedAt;
+  let identityDone: string | null | false = false;
+  if (turn.identityConfirmedAt) {
+    identityDone = turn.identityConfirmedAt;
+  } else if (committed || turn.status === "READY_TO_ACCEPT") {
+    identityDone = null;
   }
 
-  let approvedDone: string | null | false = false;
+  let signedDone: string | null | false = false;
   if (turn.documentApprovedAt) {
-    approvedDone = turn.documentApprovedAt;
+    signedDone = turn.documentApprovedAt;
   } else if (committed) {
-    approvedDone = turn.decidedAt;
+    signedDone = turn.decidedAt;
   }
 
   const receivedAt = turn.receivedAllAt ?? lastDownloadAt(turn);
@@ -238,8 +237,8 @@ export function deriveTurnProgress(turn: HandoverProgressTurn): TurnProgress {
 
   const doneAt: Array<string | null | false> = [
     invitedDone,
-    agreedDone,
-    approvedDone,
+    identityDone,
+    signedDone,
     keyDone,
     receivedValue,
   ];
@@ -275,13 +274,17 @@ export function deriveTurnProgress(turn: HandoverProgressTurn): TurnProgress {
       headline = "Chờ người nhận trả lời";
       detail = `đã mời ${formatStepTime(turn.invitationSentAt ?? turn.invitedAt)}`;
     } else {
-      headline = "Chờ người nhận đồng ý";
-      detail = "người nhận đang làm biên bản";
+      chip = "Đang kiểm danh tính";
+      headline = "Chờ luật sư kiểm danh tính";
+      detail = "người nhận nộp căn cước cho luật sư";
     }
   } else if (firstOpen === 2) {
-    chip = "Chờ duyệt biên bản";
-    headline = "Chờ Người xét duyệt kiểm tra biên bản";
-    detail = `người nhận đã ký ${formatStepTime(turn.recipientSignedAt)}`;
+    chip = "Chờ ký biên bản";
+    headline = "Chờ ba bên ký biên bản";
+    detail = "chưa đủ chữ ký";
+    if (turn.recipientSignedAt) {
+      detail = `người nhận đã ký ${formatStepTime(turn.recipientSignedAt)}`;
+    }
   } else if (firstOpen === 3) {
     group = "action";
     needsAction = true;

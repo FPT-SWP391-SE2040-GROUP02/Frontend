@@ -11,9 +11,9 @@ import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 
 /** Trạng thái kho nhìn từ phía Người thực thi; cùng cách gọi với bộ chọn kho của không gian Người thực thi. */
 function vaultState(vault: ExecutorVault): { label: string; tone: Tone } {
-  if (vault.openDeathCaseId) return { label: "Hồ sơ đang xử lý", tone: "warning" };
-  if (vault.checkInOverdue) return { label: "Quá hạn điểm danh", tone: "danger" };
-  return { label: "Đang chạy bình thường", tone: "success" };
+  if (vault.planStatus === "CLOSED") return { label: "Đã hoàn tất", tone: "success" };
+  if (vault.handoverRecordStatus) return { label: "Đang bàn giao", tone: "warning" };
+  return { label: "Chưa mở bàn giao", tone: "success" };
 }
 
 /** Kho mà tài khoản đang là Người thực thi; không có kho nào thì không hiện mục này. */

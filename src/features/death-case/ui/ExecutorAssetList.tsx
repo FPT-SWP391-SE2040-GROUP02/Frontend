@@ -13,7 +13,7 @@ import {
   type AssetDownloadState,
 } from "../model/executorAssets";
 import type { HandoverProgressTurn } from "../model/handoverProgress.schema";
-import { useDeathCase } from "../model/useDeathCase";
+import { useExecutorRecord } from "@/entities/handoverRecord";
 import { useExecutorPackages } from "../model/useExecutorPackages";
 import { useHandoverProgress } from "../model/useHandoverProgress";
 
@@ -57,11 +57,10 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
   const searchId = useId();
   const [search, setSearch] = useState("");
   const packages = useExecutorPackages(vault.vaultId);
-  const record = useDeathCase(vault.openDeathCaseId).data;
-  const approved = record?.status === "APPROVED_FOR_HANDOVER";
+  const record = useExecutorRecord(vault.vaultId).data ?? null;
   const progress = useHandoverProgress(
-    vault.openDeathCaseId ?? "",
-    Boolean(vault.openDeathCaseId) && approved,
+    record ? record.id : "",
+    record !== null && record.status === "COMPLETED",
   );
 
   if (packages.isPending) return <p role="status">Đang tải danh sách tài sản…</p>;

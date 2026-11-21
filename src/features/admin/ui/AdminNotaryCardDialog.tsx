@@ -22,7 +22,7 @@ interface AdminNotaryCardDialogProps {
   userId: string;
   /** Tên hiển thị của Người xét duyệt hoặc Người thực thi, dùng trong tiêu đề. */
   name: string;
-  /** Người thực thi hệ thống dùng thẻ luật sư / chứng chỉ hành nghề; Người xét duyệt dùng thẻ công chứng viên. */
+  /** Người thực thi hệ thống dùng thẻ luật sư / chứng chỉ hành nghề; Người xét duyệt dùng thẻ luật sư. */
   isExecutor: boolean;
   open: boolean;
   onClose: () => void;
@@ -36,7 +36,7 @@ function downloadCard(userId: string, signal?: AbortSignal): Promise<Blob> {
   });
 }
 
-/** Hộp thoại xem và nộp (hoặc nộp lại) ảnh thẻ công chứng viên của Người xét duyệt; ảnh chỉ tải khi mở hộp thoại. */
+/** Hộp thoại xem và nộp (hoặc nộp lại) ảnh thẻ luật sư của Người xét duyệt; ảnh chỉ tải khi mở hộp thoại. */
 export function AdminNotaryCardDialog({
   userId,
   name,
@@ -44,7 +44,7 @@ export function AdminNotaryCardDialog({
   open,
   onClose,
 }: AdminNotaryCardDialogProps) {
-  const cardLabel = isExecutor ? "Thẻ luật sư / chứng chỉ hành nghề" : "Thẻ công chứng viên";
+  const cardLabel = isExecutor ? "Thẻ luật sư / chứng chỉ hành nghề" : "Thẻ luật sư";
   const holderLabel = isExecutor ? "Người thực thi này" : "Người xét duyệt này";
   const query = useQuery({
     queryKey: ["admin", "notary-card", userId],

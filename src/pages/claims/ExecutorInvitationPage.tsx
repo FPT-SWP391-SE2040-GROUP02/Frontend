@@ -16,7 +16,7 @@ export function ExecutorInvitationPage() {
   return (
     <HeritageAuthLayout
       sideTitle="Một việc nhỏ, một trách nhiệm lớn."
-      sideSubtitle="Người thực thi báo tin khi Chủ kho qua đời và theo dõi tiến trình bàn giao."
+      sideSubtitle="Người thực thi mở bàn giao khi Chủ kho qua đời, ký biên bản và gửi mã nhận cho người nhận."
       sideBadge="LỜI MỜI NGƯỜI THỰC HIỆN"
     >
       <ExecutorInvitationPanel key={`${token}:${userId ?? "guest"}`} token={token} />

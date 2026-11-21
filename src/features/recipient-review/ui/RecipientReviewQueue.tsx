@@ -3,8 +3,8 @@ import { RecipientReviewDetail } from "./RecipientReviewDetail";
 import { RecipientReviewList } from "./RecipientReviewList";
 
 /**
- * Mục Hồ sơ người nhận của Người xét duyệt: danh sách hai tab, hoặc màn duyệt một hồ sơ khi có ?submissionId=.
- * Chỉ hiện hồ sơ của kho mà mình đã duyệt hồ sơ chứng tử; Backend quyết định, màn hình không tự lọc.
+ * Mục Danh tính người nhận của luật sư: danh sách hồ sơ chờ kiểm, hoặc màn kiểm một hồ sơ khi có ?submissionId=.
+ * Chỉ hiện hồ sơ của biên bản được giao cho mình; Backend quyết định, màn hình không tự lọc.
  */
 export function RecipientReviewQueue() {
   const [params, setParams] = useSearchParams();

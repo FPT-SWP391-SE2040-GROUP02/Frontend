@@ -27,8 +27,6 @@ export const recipientSubmissionDetailSchema = recipientSubmissionSummarySchema.
   voluntaryDecline: z.boolean(),
   supplementReason: z.string().nullish(),
   itemCount: z.number().int().min(0),
-  /** Id biên bản mà hồ sơ thuộc về; null với hồ sơ luồng cũ chưa có biên bản. */
-  documentId: z.string().uuid().nullish(),
   canApprove: z.boolean(),
   canRequestSupplement: z.boolean(),
 });
@@ -40,9 +38,9 @@ export const supplementRequestSchema = z.object({
 });
 
 export const SUBMISSION_STATUS_LABELS: Record<RecipientSubmissionDetail["status"], string> = {
-  SUBMITTED: "Chờ duyệt",
-  SUPPLEMENT_REQUESTED: "Đã yêu cầu bổ sung",
-  APPROVED: "Đã duyệt",
+  SUBMITTED: "Chờ kiểm",
+  SUPPLEMENT_REQUESTED: "Đã yêu cầu làm lại",
+  APPROVED: "Đã xác nhận",
   SUPERSEDED: "Đã được nộp lại",
 };
 

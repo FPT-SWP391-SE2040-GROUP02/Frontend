@@ -2,7 +2,6 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
-  FileText,
   Home,
   ListChecks,
   Mail,
@@ -38,10 +37,9 @@ interface NavItem {
  */
 const executorNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT, icon: Home },
-  { label: "Báo tin", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
+  { label: "Biên bản bàn giao", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
   { label: "Bàn giao", to: ROUTES.EXECUTOR.PROGRESS, icon: Send },
   { label: "Tài sản và hướng dẫn", to: ROUTES.EXECUTOR.ASSETS, icon: Package },
-  { label: "Biên bản", to: ROUTES.EXECUTOR.DOCUMENTS, icon: FileText },
   { label: "Cài đặt", to: ROUTES.EXECUTOR.SETTINGS, icon: Settings },
 ];
 

@@ -9,27 +9,12 @@ interface IntegerLimit {
 }
 
 export const SETTING_LIMITS: Record<string, IntegerLimit> = {
-  "CheckIn.DefaultCycleDays": { min: 7, max: 365 },
-  "CheckIn.FirstReminderDaysBeforeDue": { min: 2, max: 60 },
-  "CheckIn.SecondReminderDaysBeforeDue": { min: 1, max: 30 },
-  "CheckIn.ThirdReminderDaysBeforeDue": { min: 1, max: 30 },
-  "CheckIn.FourthReminderDaysBeforeDue": { min: 1, max: 30 },
-  "CheckIn.FifthReminderDaysBeforeDue": { min: 1, max: 30 },
-  "CheckIn.DueReminderCount": { min: 1, max: 5 },
-  "CheckIn.LateReminderGapDays": { min: 1, max: 30 },
-  "CheckIn.MaxLateReminders": { min: 1, max: 5 },
-  "CheckIn.ExecutorProxyLimit": { min: 1, max: 20 },
   "Handover.ResponseWindowDays": { min: 1, max: 60 },
-  "Handover.DecisionWindowDays": { min: 1, max: 60 },
   "Handover.GrantWindowDays": { min: 1, max: 365 },
   "Handover.RetentionWindowDays": { min: 1, max: 730 },
   "Handover.ResendCooldownMinutes": { min: 1, max: 1440 },
   "Executor.InvitationExpiresDays": { min: 1, max: 60 },
   "Executor.ReminderAfterHours": { min: 1, max: 1440 },
-  "DeathCase.SupplementDueDays": { min: 1, max: 60 },
-  "DeathCase.MaxFilesPerVersion": { min: 1, max: 50 },
-  "DeathCase.MaxFileSizeMb": { min: 1, max: 200 },
-  "DeathCase.ReviewDueHours": { min: 1, max: 720 },
   "Limits.MaxUploadsPerHour": { min: 1, max: 10000 },
   "Limits.MaxAssetsPerVault": { min: 1, max: 100000 },
   "Limits.MaxUploadBytesMb": { min: 1, max: 2048 },
@@ -52,29 +37,11 @@ const TEXT_LIMITS: Record<string, TextLimit> = {
   "Company.Address": { maxLength: 300, isEmail: false },
 };
 
-const FIRST_REMINDER = "CheckIn.FirstReminderDaysBeforeDue";
-const SECOND_REMINDER = "CheckIn.SecondReminderDaysBeforeDue";
-const DUE_REMINDER_COUNT = "CheckIn.DueReminderCount";
-/** Khóa số ngày của năm thư nhắc trước hạn, từ thư xa hạn nhất đến gần hạn nhất. */
-const DUE_REMINDER_KEYS = [
-  FIRST_REMINDER,
-  SECOND_REMINDER,
-  "CheckIn.ThirdReminderDaysBeforeDue",
-  "CheckIn.FourthReminderDaysBeforeDue",
-  "CheckIn.FifthReminderDaysBeforeDue",
-];
-const DUE_REMINDER_ORDINALS = ["nhất", "hai", "ba", "tư", "năm"];
 const EXECUTOR_EXPIRES = "Executor.InvitationExpiresDays";
 const EXECUTOR_REMINDER = "Executor.ReminderAfterHours";
 
 /** Giá trị mặc định của các khóa nằm trong cặp phải đi cùng nhau, dùng khi chưa có giá trị. */
 const RELATION_DEFAULTS: Record<string, number> = {
-  [FIRST_REMINDER]: 7,
-  [SECOND_REMINDER]: 1,
-  [DUE_REMINDER_COUNT]: 2,
-  "CheckIn.ThirdReminderDaysBeforeDue": 1,
-  "CheckIn.FourthReminderDaysBeforeDue": 1,
-  "CheckIn.FifthReminderDaysBeforeDue": 1,
   [EXECUTOR_EXPIRES]: 7,
   [EXECUTOR_REMINDER]: 48,
 };
@@ -85,20 +52,6 @@ export function textMaxLengthOf(key: string, fallback: number): number {
     return TEXT_LIMITS[key].maxLength;
   }
   return fallback;
-}
-
-/**
- * Ô ngày của thư nhắc trước hạn vượt quá số thư đang đặt thì ẩn đi (thư thứ ba chỉ hiện khi số thư từ 3 trở lên...).
- * Thư thứ nhất luôn hiện (số thư tối thiểu là 1); giá trị số thư không đọc được thì coi như mặc định.
- */
-export function isDueReminderSlotHidden(key: string, countValue: string | undefined): boolean {
-  const position = DUE_REMINDER_KEYS.indexOf(key) + 1;
-  if (position === 0) {
-    return false;
-  }
-  const text = (countValue ?? "").trim();
-  const count = /^\d+$/.test(text) ? Number(text) : RELATION_DEFAULTS[DUE_REMINDER_COUNT];
-  return position > count;
 }
 
 /** Khoảng cho phép của một tham số số nguyên; khóa không có luật thì null. */
@@ -162,17 +115,6 @@ export function settingRelationErrors(
   valueOf: (key: string) => string | undefined,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
-  const count = numberOf(valueOf, DUE_REMINDER_COUNT);
-  for (let i = 0; i + 1 < count && i + 1 < DUE_REMINDER_KEYS.length; i++) {
-    const farther = numberOf(valueOf, DUE_REMINDER_KEYS[i]);
-    const nearer = numberOf(valueOf, DUE_REMINDER_KEYS[i + 1]);
-    if (farther <= nearer) {
-      errors[DUE_REMINDER_KEYS[i]] =
-        `Phải xa hạn hơn thư thứ ${DUE_REMINDER_ORDINALS[i + 1]} (số ngày lớn hơn).`;
-      errors[DUE_REMINDER_KEYS[i + 1]] =
-        `Phải gần hạn hơn thư thứ ${DUE_REMINDER_ORDINALS[i]} (số ngày nhỏ hơn).`;
-    }
-  }
   const expiresDays = numberOf(valueOf, EXECUTOR_EXPIRES);
   const remindHours = numberOf(valueOf, EXECUTOR_REMINDER);
   if (remindHours >= expiresDays * 24) {

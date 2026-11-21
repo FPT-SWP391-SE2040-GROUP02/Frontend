@@ -1,152 +1,10 @@
-import type { DevClock, DevEkycReset, DevMilestone, DevRewindBeforeEkyc } from "./devTools.schema";
-
-/** Nhóm của một mốc trên màn hình: trước hạn, quá hạn (còn thời gian chờ), sau thời gian chờ. */
-export type DevMilestoneGroup = "BEFORE_DUE" | "OVERDUE" | "AFTER_GRACE";
-
-export const DEV_MILESTONE_GROUP_TITLES: Record<DevMilestoneGroup, string> = {
-  BEFORE_DUE: "Trước hạn điểm danh",
-  OVERDUE: "Quá hạn điểm danh",
-  AFTER_GRACE: "Sau thời gian chờ",
-};
-
-/** Loại thư mốc này gửi: thư nhắc trước hạn, thư nhắc trễ hoặc không phải thư nhắc. */
-export type DevMilestoneMail = "DUE" | "LATE" | "NONE";
-
-export type DevMilestoneContent = {
-  group: DevMilestoneGroup;
-  /** Thụt vào dưới mốc đầu nhóm (thư nhắc lặp lại cùng giai đoạn). */
-  indented: boolean;
-  mail: DevMilestoneMail;
-  title: string;
-  description: string;
-  /** Nhãn thư được gửi, hiện trên chip; rỗng khi mốc không gửi thư. */
-  mailLabel: string;
-  /** Đoạn nối sau "<kho> sẽ ..." trong hộp xác nhận. */
-  effect: string;
-  done: string;
-};
-
-function numberAfter(key: string, prefix: string): number {
-  if (!key.startsWith(prefix)) {
-    return 0;
-  }
-  return Number(key.slice(prefix.length));
-}
-
-function doneMessage(title: string, extra: string): string {
-  return `Đã chuyển sang “${title}”. ${extra}`;
-}
-
-/**
- * Nội dung một mốc trên màn hình Chuyển trạng thái. Thư nhắc trước hạn lấy số ngày Backend trả; thư nhắc trễ lấy
- * số ngày giữa hai thư của kỳ đang mở.
- */
-export function devMilestoneContent(milestone: DevMilestone, clock: DevClock): DevMilestoneContent {
-  const key = milestone.key;
-  const dueNumber = numberAfter(key, "DUE_REMINDER_");
-  if (dueNumber > 0) {
-    let days = "vài";
-    if (milestone.daysBeforeDue !== null && milestone.daysBeforeDue !== undefined) {
-      days = String(milestone.daysBeforeDue);
-    }
-    const title = `Còn ${days} ngày tới hạn`;
-    return {
-      group: "BEFORE_DUE",
-      indented: true,
-      mail: "DUE",
-      title,
-      description: `Gửi thư nhắc Chủ kho còn ${days} ngày nữa là tới hạn điểm danh.`,
-      mailLabel: `Nhắc trước hạn ${days} ngày`,
-      effect: `tới lúc còn ${days} ngày là hạn điểm danh và gửi thư nhắc trước hạn cho Chủ kho`,
-      done: doneMessage(title, "Đã gửi thư nhắc trước hạn cho Chủ kho."),
-    };
-  }
-  const lateNumber = numberAfter(key, "LATE_REMINDER_");
-  if (lateNumber > 0) {
-    const title = `Nhắc trễ lần ${lateNumber}`;
-    let gap = "";
-    if (clock.lateReminderGapDays !== null && clock.lateReminderGapDays !== undefined) {
-      gap = ` Gửi sau thư trước ${clock.lateReminderGapDays} ngày.`;
-    }
-    let description = `Chủ kho vẫn chưa điểm danh.${gap}`;
-    if (clock.maxLateReminders === lateNumber) {
-      description = `Thư nhắc cuối cùng trước khi hết thời gian chờ.${gap}`;
-    }
-    return {
-      group: "OVERDUE",
-      indented: true,
-      mail: "LATE",
-      title,
-      description,
-      mailLabel: `Nhắc trễ lần ${lateNumber}`,
-      effect: `tới lúc gửi thư nhắc trễ lần ${lateNumber} cho Chủ kho, vẫn còn thời gian chờ`,
-      done: doneMessage(title, "Đã gửi thư nhắc trễ cho Chủ kho. Có thể chuyển tiếp bước kế."),
-    };
-  }
-  if (key === "CHECKIN_OVERDUE") {
-    return {
-      group: "OVERDUE",
-      indented: false,
-      mail: "LATE",
-      title: "Quá hạn điểm danh",
-      description: "Tới hạn mà chưa điểm danh. Gửi thư nhắc trễ lần 1, vẫn còn thời gian chờ.",
-      mailLabel: "Nhắc trễ lần 1",
-      effect:
-        "chuyển kỳ điểm danh hiện tại sang quá hạn và gửi thư nhắc trễ lần 1, vẫn còn thời gian chờ",
-      done: doneMessage(
-        "Quá hạn điểm danh",
-        "Chủ kho thấy trạng thái quá hạn và nhận thư nhắc trễ lần 1. Có thể chuyển tiếp bước kế.",
-      ),
-    };
-  }
-  if (key === "GRACE_ENDED") {
-    return {
-      group: "AFTER_GRACE",
-      indented: false,
-      mail: "NONE",
-      title: "Hết thời gian chờ",
-      description: "Ngừng nhắc Chủ kho, báo Người thực thi vào kiểm tra.",
-      mailLabel: "Báo Người thực thi",
-      effect: "hết thời gian chờ và báo Người thực thi vào kiểm tra",
-      done: doneMessage("Hết thời gian chờ", "Người thực thi đã được báo kiểm tra."),
-    };
-  }
-  if (key === "SERVICE_EXPIRED") {
-    return {
-      group: "AFTER_GRACE",
-      indented: false,
-      mail: "NONE",
-      title: "Hết hạn dịch vụ",
-      description:
-        "Kho đang trả phí sang ân hạn chỉ đọc: chặn thêm mới, vẫn xem, tải và gia hạn được.",
-      mailLabel: "",
-      effect: "cho hạn dịch vụ của kho về quá khứ để kho sang ân hạn chỉ đọc",
-      done: doneMessage("Hết hạn dịch vụ", "Kho đang ở ân hạn chỉ đọc; chủ kho vẫn gia hạn được."),
-    };
-  }
-  return {
-    group: "AFTER_GRACE",
-    indented: false,
-    mail: "NONE",
-    title: "Hết 7 ngày quyết định của người nhận",
-    description:
-      "Người nhận đã xác nhận danh tính nhưng chưa đồng ý hoặc từ chối: cho hết hạn quyết định ngay.",
-    mailLabel: "",
-    effect: "hết 7 ngày quyết định của người nhận đang chờ để lượt nhận chuyển sang hết hạn",
-    done: doneMessage(
-      "Hết 7 ngày quyết định của người nhận",
-      "Lượt nhận đang chờ đã hết hạn; kế hoạch đóng nếu mọi lượt đã xong.",
-    ),
-  };
-}
+import type { DevEkycReset, DevRewindBeforeEkyc } from "./devTools.schema";
 
 /** Nhãn trạng thái kế hoạch theo PlanStatus của Backend; giá trị lạ hiện nguyên chuỗi. */
 const PLAN_STATUS_LABELS: Record<string, string> = {
   DRAFT: "Nháp",
   ACTIVE: "Đang hoạt động",
-  CHECKIN_OVERDUE: "Quá hạn điểm danh",
-  AWAITING_CHECK: "Chờ kiểm tra",
-  DEATH_CASE_OPEN: "Đang xử lý chứng tử",
+  HANDOVER_REQUESTED: "Đang lập biên bản",
   HANDOVER_IN_PROGRESS: "Đang bàn giao",
   BLOCKED: "Bị chặn",
   CLOSED: "Đã đóng",
@@ -156,28 +14,11 @@ export function planStatusLabel(status: string) {
   return Object.hasOwn(PLAN_STATUS_LABELS, status) ? PLAN_STATUS_LABELS[status] : status;
 }
 
-export const CHECK_IN_STATE_LABELS: Record<DevClock["checkInState"], string> = {
-  ON_TIME: "Đúng hạn",
-  OVERDUE: "Quá hạn",
-  NOT_RUNNING: "Không chạy",
-};
-
-export const CLOCK_STATE_LABELS: Record<DevClock["clockState"], string> = {
-  REAL_TIME: "Thời gian thực",
-  SHIFTED: "Đã chuyển",
-};
-
 export const DEV_TOOLS_NOTICE =
   "Trang này chỉ có ở môi trường Development và chỉ quản trị viên dùng được. Bản chạy thật không có. Mọi thao tác được ghi vào nhật ký hoạt động.";
 
-export const DEV_TOOLS_FOOTNOTE =
-  "Chuyển lần lượt từ trên xuống; bước viền vàng là bước kế tiếp. Mỗi bước có biểu tượng thư sẽ gửi thư thật tới email của Chủ kho hoặc Người thực thi. “Về thời gian hiện tại” đưa đồng hồ của kho về thời gian thực; trạng thái đã chuyển được giữ nguyên.";
-
-export const RESET_DONE =
-  "Đồng hồ của kho đã về thời gian hiện tại. Trạng thái đã chuyển được giữ nguyên.";
-
 export const EKYC_RESET_DESCRIPTION =
-  "Đưa một tài khoản về lúc vừa đăng ký và đăng nhập được: xóa toàn bộ eKYC và xóa hẳn kho của tài khoản cùng mọi thứ trong kho (tài sản, gói, người nhận, Người thực thi, kế hoạch, điểm danh, hồ sơ chứng tử, bàn giao, thanh toán, tệp mã hóa). Email, mật khẩu, vai trò và vai Người thực thi ở kho người khác giữ nguyên.";
+  "Đưa một tài khoản về lúc vừa đăng ký và đăng nhập được: xóa toàn bộ eKYC và xóa hẳn kho của tài khoản cùng mọi thứ trong kho (tài sản, gói, người nhận, Người thực thi, kế hoạch, biên bản bàn giao, bàn giao, thanh toán, tệp mã hóa). Email, mật khẩu, vai trò và vai Người thực thi ở kho người khác giữ nguyên.";
 
 /** Thông báo sau khi đặt lại; chỉ dùng số lượng máy chủ trả về. */
 export function ekycResetDone(result: DevEkycReset) {

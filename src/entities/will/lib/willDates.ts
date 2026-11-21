@@ -1,5 +1,5 @@
 /**
- * Ngày giờ in trong di chúc, luôn theo giờ Việt Nam để Chủ kho, Người thực thi và bản in cùng đọc ra một giờ.
+ * Ngày giờ in trong file phân chia, luôn theo giờ Việt Nam để Chủ kho, Người thực thi và bản in cùng đọc ra một giờ.
  * Giá trị thiếu hoặc sai dạng trả null để nơi gọi tự chọn câu thay thế.
  */
 const ZONE = "Asia/Ho_Chi_Minh";

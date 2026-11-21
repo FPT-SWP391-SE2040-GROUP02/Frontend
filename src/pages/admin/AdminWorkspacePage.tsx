@@ -1,7 +1,6 @@
 import { useLocation, useSearchParams } from "react-router-dom";
 import {
   CreditCard,
-  FileText,
   History,
   Home,
   ShieldCheck,
@@ -12,7 +11,6 @@ import {
 } from "lucide-react";
 import {
   AdminDevTools,
-  AdminHandoverTemplates,
   AdminHolds,
   AdminOverview,
   AdminOverviewToolbar,
@@ -47,13 +45,6 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
     label: "Gói dịch vụ",
     icon: Tag,
     to: `${ROUTES.ADMIN.ROOT}?view=plans`,
-    group: "Hệ thống",
-  },
-  {
-    id: "templates",
-    label: "Mẫu biên bản",
-    icon: FileText,
-    to: `${ROUTES.ADMIN.ROOT}?view=templates`,
     group: "Hệ thống",
   },
   {
@@ -110,10 +101,6 @@ const VIEWS = {
     title: "Gói dịch vụ",
     description: "",
   },
-  templates: {
-    title: "Mẫu biên bản",
-    description: "Sửa các mục 1 đến 8 của biên bản đồng ý nhận khi luật thay đổi.",
-  },
   settings: {
     title: "Cấu hình",
     description: "",
@@ -154,7 +141,6 @@ function viewFor(pathname: string, search: string): AdminView {
   if (
     view === "settings" ||
     view === "plans" ||
-    view === "templates" ||
     view === "holds" ||
     view === "payments" ||
     view === "security"
@@ -227,7 +213,6 @@ export function AdminWorkspacePage() {
       )}
       {view === "settings" && <SettingsTabs />}
       {view === "plans" && <AdminSettings section="plans" />}
-      {view === "templates" && <AdminHandoverTemplates />}
       {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
       {view === "users" && (

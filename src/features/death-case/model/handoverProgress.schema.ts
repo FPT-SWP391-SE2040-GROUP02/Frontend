@@ -51,6 +51,7 @@ const progressTurnSchema = z.object({
   /** Lúc máy chủ email nhận thư mời; null: hệ thống chưa gửi được lời mời (sẽ tự thử lại). */
   invitationSentAt: timestamp.nullable().default(null),
   /** Lúc người nhận ký biên bản đồng ý hoặc văn bản từ chối; null khi chưa có biên bản hoặc chưa ký. Backend cũ chưa gửi thì null. */
+  identityConfirmedAt: timestamp.nullable().default(null),
   recipientSignedAt: timestamp.nullable().default(null),
   /** Lúc Người xét duyệt ký biên bản của lượt; null khi chưa. Backend cũ chưa gửi thì null. */
   documentApprovedAt: timestamp.nullable().default(null),
@@ -69,7 +70,7 @@ const progressTurnSchema = z.object({
 });
 
 /**
- * HandoverProgressResponse của GET /executor/death-cases/{caseId}/handover-progress.
+ * HandoverProgressResponse của GET /executor/handover-records/{recordId}/handover-progress.
  * Chỉ có tên/loại tài sản và 4 số cuối CCCD người nhận; không có nội dung tài sản.
  * Họ tên và số điện thoại người nhận chỉ có ở lượt còn hiệu lực hoặc đã bàn giao.
  * Hồ sơ chưa duyệt: handoverStarted = false, turns rỗng, summary toàn 0.

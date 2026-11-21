@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   Clock,
-  FileText,
   Home,
   ListChecks,
   Menu,
@@ -16,7 +15,7 @@ import {
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { NotaryCardMissingNotice } from "@/features/notary-card";
 import { usePendingRecipientCount } from "@/features/recipient-review";
-import { useWaitingCaseSummaries } from "@/features/verifier-review";
+import { useVerifierRecords } from "@/entities/handoverRecord";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
@@ -48,9 +47,9 @@ const verifierNavigation: NavGroup[] = [
   {
     heading: "Việc cần làm",
     items: [
-      { label: "Hồ sơ báo tin", to: ROUTES.NOTARY.QUEUE, icon: ListChecks, badge: "cases" },
+      { label: "Biên bản bàn giao", to: ROUTES.NOTARY.QUEUE, icon: ListChecks, badge: "cases" },
       {
-        label: "Hồ sơ người nhận",
+        label: "Danh tính người nhận",
         to: ROUTES.NOTARY.RECIPIENTS,
         icon: Users,
         badge: "recipients",
@@ -59,15 +58,12 @@ const verifierNavigation: NavGroup[] = [
   },
   {
     heading: "Đã xử lý",
-    items: [
-      { label: "Biên bản đã ký", to: ROUTES.NOTARY.DOCUMENTS, icon: FileText },
-      { label: "Lịch sử xét duyệt", to: ROUTES.NOTARY.HISTORY, icon: Clock },
-    ],
+    items: [{ label: "Biên bản đã hoàn tất", to: ROUTES.NOTARY.HISTORY, icon: Clock }],
   },
   {
     heading: "Khác",
     items: [
-      { label: "Hướng dẫn xét duyệt", to: ROUTES.NOTARY.CRITERIA, icon: ShieldCheck },
+      { label: "Hướng dẫn", to: ROUTES.NOTARY.CRITERIA, icon: ShieldCheck },
       { label: "Tài khoản", to: ROUTES.NOTARY.SETTINGS, icon: User },
     ],
   },
@@ -95,7 +91,9 @@ export function VerifierShell({
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const [navigationOpen, setNavigationOpen] = useState(false);
   const path = location.pathname;
-  const waitingCases = useWaitingCaseSummaries().waiting.length;
+  const waitingCases = (useVerifierRecords().data ?? []).filter(
+    (item) => item.status === "DRAFTING" || item.status === "SIGNING",
+  ).length;
   const waitingRecipients = usePendingRecipientCount();
   const current = allNavigationItems.find(({ to }) =>
     to === ROUTES.NOTARY.WORKSPACE ? path === to : path === to || path.startsWith(`${to}/`),

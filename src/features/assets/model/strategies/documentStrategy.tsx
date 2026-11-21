@@ -13,7 +13,8 @@ import { Input } from "@/shared/ui";
 export const documentStrategy: AssetStrategy = {
   type: "DOCUMENT",
   label: ASSET_TYPE_LABELS.DOCUMENT,
-  description: "Hợp đồng bảo hiểm nhân thọ, sổ đỏ số, giấy chứng nhận cổ phần và di chúc đính kèm.",
+  description:
+    "Hợp đồng bảo hiểm nhân thọ, sổ đỏ số, giấy chứng nhận cổ phần và file phân chia đính kèm.",
   badgeBg: "bg-[#EFECE6]",
   badgeText: "text-[#14241C]",
 

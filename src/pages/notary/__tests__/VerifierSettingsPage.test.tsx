@@ -42,7 +42,7 @@ function renderPage(extra: Record<string, string>) {
 }
 
 describe("trang Tài khoản của Người xét duyệt", () => {
-  it("chỉ hiện tên và vai trò, không hiện chứng chỉ hành nghề, thẻ luật sư, email hay số điện thoại", () => {
+  it("chỉ hiện tên và vai trò, không hiện chứng chỉ hành nghề, số thẻ luật sư, email hay số điện thoại", () => {
     renderPage({ practiceCertificateNumber: "CCHN-4521", lawyerCardNumber: "12854/LS" });
 
     const section = screen.getByRole("region", { name: "Hồ sơ Người xét duyệt" });
@@ -50,7 +50,7 @@ describe("trang Tài khoản của Người xét duyệt", () => {
     expect(section).toHaveTextContent("Người xét duyệt");
     expect(section).not.toHaveTextContent("tung@example.test");
     expect(screen.queryByText("Chứng chỉ hành nghề")).not.toBeInTheDocument();
-    expect(screen.queryByText("Thẻ luật sư")).not.toBeInTheDocument();
+    expect(screen.queryByText("12854/LS")).not.toBeInTheDocument();
     expect(screen.queryByText("CCHN-4521")).not.toBeInTheDocument();
     expect(screen.queryByText("Quản trị viên chưa nhập")).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1, name: "Tài khoản" })).toBeInTheDocument();

@@ -185,7 +185,7 @@ export const PLAN_TIERS = {
     maxAssets: 3,
     storageLimitMb: 20,
     allowEstatePlan: false,
-    description: "Lưu trữ cá nhân và điểm danh DMS, không thiết lập di sản",
+    description: "Lưu trữ cá nhân, không thiết lập bàn giao",
   },
   LEGACY_XS: {
     id: "plan_legacy_xs",
@@ -196,7 +196,7 @@ export const PLAN_TIERS = {
     maxAssets: 20,
     storageLimitMb: 200,
     allowEstatePlan: true,
-    description: "Thiết lập kế hoạch di sản, xác minh chứng tử và bàn giao toàn diện",
+    description: "Thiết lập kế hoạch bàn giao, biên bản bàn giao và giao tài sản",
   },
   LEGACY_XS_MAX: {
     id: "plan_legacy_xs_max",

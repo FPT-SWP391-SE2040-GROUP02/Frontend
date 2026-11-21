@@ -2,8 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useQueryClient } from "@tanstack/react-query";
 import type { AuthState } from "@/entities/user/model/authSlice";
-import { handoverDocumentKeys, handoverDocumentService } from "@/entities/handoverDocument";
-import type { DocumentKind } from "@/entities/handoverDocument";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles, Initial } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
@@ -12,33 +10,19 @@ import { useHandoverAction } from "../model/useHandoverAction";
 import { usePendingInvitations } from "../model/usePendingInvitations";
 
 /**
- * Một thư mời: chọn Đồng ý nhận hoặc Từ chối nhận. Không có bước "nhận lượt" riêng: bấm nút nào thì gọi API nhận lượt
- * ở phía sau, rồi chuyển sang màn tải ảnh căn cước và ký biên bản với đúng lựa chọn đã chọn sẵn. Chỉ mở trang thì
- * không nhận gì. Lỗi (ví dụ sai email) hiện ngay trên thẻ và không điều hướng.
+ * Một thư mời: bấm Bắt đầu thì gọi API nhận lượt rồi chuyển sang màn nộp căn cước. Chỉ mở trang thì không nhận gì.
+ * Lỗi (ví dụ sai email) hiện ngay trên thẻ và không điều hướng.
  */
 function InvitationCard({ invitation, email }: { invitation: PendingInvitation; email: string }) {
   const action = useHandoverAction();
   const client = useQueryClient();
   const navigate = useNavigate();
 
-  const choose = (kind: DocumentKind) => {
+  const start = () => {
     void action.execute(
-      async () => {
-        const claimed = await handoverService.claimTurn(invitation.turnId);
-        // Lượt đang ở bước biên bản thì tạo sẵn biên bản theo lựa chọn; lỗi ở đây không chặn việc chuyển màn,
-        // vì màn biên bản vẫn cho chọn lại.
-        if (claimed.status === "IDENTITY_IN_PROGRESS") {
-          try {
-            await handoverDocumentService.create(invitation.turnId, kind);
-          } catch {
-            // Người nhận chọn lại ở màn biên bản.
-          }
-        }
-        return claimed;
-      },
+      () => handoverService.claimTurn(invitation.turnId),
       () => {
         void client.invalidateQueries({ queryKey: ["handover"] });
-        void client.invalidateQueries({ queryKey: handoverDocumentKeys.all });
         navigate(ROUTES.BENEFICIARY.HANDOVER);
       },
     );
@@ -50,7 +34,7 @@ function InvitationCard({ invitation, email }: { invitation: PendingInvitation; 
   }
   return (
     <article
-      aria-label={`Thư mời nhận gói ${invitation.containerName}`}
+      aria-label={`Thư mời nhận tài sản từ ${invitation.ownerFullName}`}
       className="space-y-4 rounded-2xl border border-[#E0C486] bg-[#FBF3DC] p-5"
     >
       <header className="flex items-center gap-4">
@@ -63,30 +47,15 @@ function InvitationCard({ invitation, email }: { invitation: PendingInvitation; 
         </div>
       </header>
       <p className="text-sm leading-6">
-        Bạn muốn nhận gói này không? Bấm nút nào, bạn sẽ được chuyển sang tải ảnh căn cước và ký
-        biên bản theo lựa chọn đó. Người xét duyệt sẽ kiểm tra trước khi mở gói.
+        Bạn có tên trong biên bản bàn giao do luật sư lập. Bấm Bắt đầu để nộp căn cước cho luật sư
+        kiểm, rồi ký biên bản và nhận tài sản.
       </p>
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          className={buttonStyles.dark}
-          disabled={action.pending}
-          onClick={() => choose("ACCEPT")}
-        >
-          Đồng ý nhận
-        </button>
-        <button
-          type="button"
-          className={buttonStyles.outline}
-          disabled={action.pending}
-          onClick={() => choose("DECLINE")}
-        >
-          Từ chối nhận
-        </button>
-      </div>
+      <button type="button" className={buttonStyles.dark} disabled={action.pending} onClick={start}>
+        Bắt đầu
+      </button>
       {action.pending && (
         <p role="status" className="text-sm text-heritage-muted">
-          Đang mở bước tải ảnh căn cước và ký biên bản…
+          Đang mở bước nộp căn cước…
         </p>
       )}
       {action.error && !action.pending && (

@@ -29,7 +29,7 @@ function executor(status: "VERIFIED" | "UNVERIFIED"): SystemExecutor {
     fullName: "Luật sư Thử",
     email: "thu@example.test",
     phoneMasked: null,
-    executorRoleTitle: "Luật sư thi hành di chúc",
+    executorRoleTitle: "Người thực thi",
     legalVerification: {
       status,
       lawyerCardNumber: null,

@@ -62,9 +62,7 @@ export const DASHBOARD_GROUPS: DashboardGroup[] = [
 export const PLAN_STAGE_LABELS: Record<string, string> = {
   DRAFT: "Đang thiết lập",
   ACTIVE: "Đang chạy",
-  CHECKIN_OVERDUE: "Quá hạn điểm danh",
-  AWAITING_CHECK: "Chờ Người thực thi",
-  DEATH_CASE_OPEN: "Đang xét hồ sơ",
+  HANDOVER_REQUESTED: "Đang lập biên bản",
   HANDOVER_IN_PROGRESS: "Đang bàn giao",
   BLOCKED: "Bị đóng băng",
 };

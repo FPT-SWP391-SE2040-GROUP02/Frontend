@@ -12,7 +12,7 @@ export const notaryCardStatusSchema = z.object({
 export type NotaryCardStatus = z.infer<typeof notaryCardStatusSchema>;
 
 /**
- * Ảnh thẻ công chứng viên của Người xét duyệt đang đăng nhập, chỉ xem (Admin là người nộp). Ảnh lưu mã hóa ở Backend, không có link công khai:
+ * Ảnh thẻ luật sư của Người xét duyệt đang đăng nhập, chỉ xem (Admin là người nộp). Ảnh lưu mã hóa ở Backend, không có link công khai:
  * mọi lần đọc đều đi kèm Bearer và trả blob tạm, caller tự thu hồi object URL.
  */
 export const notaryCardService = {

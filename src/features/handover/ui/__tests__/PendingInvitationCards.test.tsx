@@ -82,11 +82,8 @@ function rejection(status: number, body: object) {
   });
 }
 
-/** Biên bản trả về sau khi tạo; chỉ cần đủ để schema nhận. */
-const createdDocument = { id: TURN_ID };
-
 describe("PendingInvitationCards (thẻ thư mời trong cổng người nhận)", () => {
-  it("hiện thẻ vàng với tên gói, người gửi, email và hai nút; chỉ mở trang thì KHÔNG gọi API nhận", async () => {
+  it("hiện thẻ vàng với tên gói, người gửi, email và nút Bắt đầu; chỉ mở trang thì KHÔNG gọi API nhận", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([invitation]);
     const post = vi.spyOn(apiClient, "post");
     setup();
@@ -96,9 +93,11 @@ describe("PendingInvitationCards (thẻ thư mời trong cổng người nhận)
     expect(
       screen.getByText("Từ Nguyễn Văn A · gửi tới nguoi-nhan@example.com"),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Bạn muốn nhận gói này không\?/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Từ chối nhận" })).toBeInTheDocument();
+    expect(
+      screen.getByText(/Bạn có tên trong biên bản bàn giao do luật sư lập/),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Bắt đầu" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Từ chối/ })).not.toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
 
@@ -110,47 +109,27 @@ describe("PendingInvitationCards (thẻ thư mời trong cổng người nhận)
     expect(screen.queryByText("GÓI MỚI CHỜ BẠN XÁC NHẬN")).toBeNull();
   });
 
-  it("Đồng ý nhận: gọi API nhận lượt, tạo biên bản ACCEPT rồi chuyển sang màn nộp hồ sơ", async () => {
+  it("Bắt đầu: chỉ gọi API nhận lượt rồi chuyển sang màn nộp căn cước", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([invitation]);
-    const post = vi.spyOn(apiClient, "post").mockImplementation((url: string) => {
-      if (url.endsWith("/claim")) return Promise.resolve(claimedTurn);
-      return Promise.resolve(createdDocument);
-    });
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(claimedTurn);
     setup();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Đồng ý nhận" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Bắt đầu" }));
 
     expect(await screen.findByText("Màn nộp hồ sơ")).toBeInTheDocument();
+    expect(post).toHaveBeenCalledTimes(1);
     expect(post.mock.calls[0][0]).toBe(`/handover/turns/${TURN_ID}/claim`);
-    expect(post.mock.calls[1][0]).toBe(`/handover/turns/${TURN_ID}/document`);
-    expect(post.mock.calls[1][1]).toEqual({ kind: "ACCEPT" });
   });
 
-  it("Từ chối nhận: chọn sẵn DECLINE ở màn nộp hồ sơ", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue([invitation]);
-    const post = vi.spyOn(apiClient, "post").mockImplementation((url: string) => {
-      if (url.endsWith("/claim")) return Promise.resolve(claimedTurn);
-      return Promise.resolve(createdDocument);
-    });
-    setup();
-
-    fireEvent.click(await screen.findByRole("button", { name: "Từ chối nhận" }));
-
-    expect(await screen.findByText("Màn nộp hồ sơ")).toBeInTheDocument();
-    expect(post.mock.calls[1][1]).toEqual({ kind: "DECLINE" });
-  });
-
-  it("trong lúc chờ hiện dòng đang mở bước tải ảnh căn cước và ký biên bản", async () => {
+  it("trong lúc chờ hiện dòng đang mở bước nộp căn cước và khóa nút", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([invitation]);
     vi.spyOn(apiClient, "post").mockImplementation(() => new Promise(() => {}));
     setup();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Đồng ý nhận" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Bắt đầu" }));
 
-    expect(
-      await screen.findByText("Đang mở bước tải ảnh căn cước và ký biên bản…"),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Từ chối nhận" })).toBeDisabled();
+    expect(await screen.findByText("Đang mở bước nộp căn cước…")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Bắt đầu" })).toBeDisabled();
   });
 
   it("nhận lượt lỗi (sai email) thì báo ngay trên thẻ, không chuyển màn", async () => {
@@ -163,12 +142,12 @@ describe("PendingInvitationCards (thẻ thư mời trong cổng người nhận)
     );
     setup();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Đồng ý nhận" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Bắt đầu" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "Lời mời này gửi tới n••••••••n@example.com",
     );
     expect(screen.queryByText("Màn nộp hồ sơ")).toBeNull();
-    expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Bắt đầu" })).toBeEnabled();
   });
 });

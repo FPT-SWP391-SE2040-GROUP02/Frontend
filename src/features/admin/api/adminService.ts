@@ -17,13 +17,7 @@ import {
   adminRevenueSchema,
   emailTemplateSchema,
   emailTemplatesSchema,
-  extraMailListSchema,
-  extraMailSchema,
-  handoverTemplateSchema,
-  handoverTemplateVersionsSchema,
   saveEmailTemplateRequestSchema,
-  saveExtraMailRequestSchema,
-  saveHandoverTemplateRequestSchema,
   adminRevenueQuerySchema,
   assignExecutorRequestSchema,
   reassignVerifierRequestSchema,
@@ -35,8 +29,6 @@ import {
   type HoldsQuery,
   type AdminRevenueQuery,
   type SaveEmailTemplateRequest,
-  type SaveExtraMailRequest,
-  type SaveHandoverTemplateRequest,
   type PaymentTransactionsQuery,
   type AssignExecutorRequest,
   type ReassignVerifierRequest,
@@ -60,7 +52,7 @@ export const adminService = {
       await apiClient.post<unknown, unknown>("/admin/users", payload, { signal }),
     );
   },
-  /** Tải ảnh thẻ công chứng viên của một Người xét duyệt (multipart: file); BE trả 204. */
+  /** Tải ảnh thẻ luật sư của một Người xét duyệt (multipart: file); BE trả 204. */
   async uploadNotaryCard(userId: string, file: File) {
     const form = new FormData();
     form.append("file", file);
@@ -109,7 +101,7 @@ export const adminService = {
   /** Giao lại Người xét duyệt cho hồ sơ chứng tử chưa được xét; BE trả 204 (BR-73). */
   async reassignVerifier(caseId: string, request: ReassignVerifierRequest) {
     await apiClient.post<unknown, unknown>(
-      `/admin/death-cases/${id.parse(caseId)}/reassign-verifier`,
+      `/admin/handover-records/${id.parse(caseId)}/reassign-verifier`,
       reassignVerifierRequestSchema.parse(request),
     );
   },
@@ -168,35 +160,6 @@ export const adminService = {
     );
   },
 
-  /** Mẫu biên bản đang dùng cho biên bản mới (mẫu gốc khi chưa lưu bản nào). */
-  async getHandoverTemplate(signal?: AbortSignal) {
-    return handoverTemplateSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/handover-templates/current", { signal }),
-    );
-  },
-
-  /** Một phiên bản cũ của mẫu theo số. */
-  async getHandoverTemplateVersion(version: number, signal?: AbortSignal) {
-    return handoverTemplateSchema.parse(
-      await apiClient.get<unknown, unknown>(`/admin/handover-templates/${version}`, { signal }),
-    );
-  },
-
-  /** Lịch sử các lần lưu mẫu, mới nhất trước. */
-  async listHandoverTemplateVersions(signal?: AbortSignal) {
-    return handoverTemplateVersionsSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/handover-templates", { signal }),
-    );
-  },
-
-  /** Lưu thành phiên bản mới; biên bản đã tạo giữ nguyên chữ của phiên bản lúc tạo. */
-  async saveHandoverTemplate(request: SaveHandoverTemplateRequest) {
-    const body = saveHandoverTemplateRequestSchema.parse(request);
-    return handoverTemplateSchema.parse(
-      await apiClient.post<unknown, unknown>("/admin/handover-templates", body),
-    );
-  },
-
   /** Mọi loại thư thông báo kèm chữ gốc và chữ Admin đã sửa. */
   async listEmailTemplates(signal?: AbortSignal) {
     return emailTemplatesSchema.parse(
@@ -220,31 +183,6 @@ export const adminService = {
     return emailTemplateSchema.parse(
       await apiClient.delete<unknown, unknown>(`/admin/email-templates/${encodeURIComponent(key)}`),
     );
-  },
-
-  /** Các thư bổ sung gửi cho Chủ kho theo ngày tính từ hạn điểm danh, kèm giới hạn và biến chèn được. */
-  async listExtraMails(signal?: AbortSignal) {
-    return extraMailListSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/extra-mails", { signal }),
-    );
-  },
-
-  async createExtraMail(request: SaveExtraMailRequest) {
-    const body = saveExtraMailRequestSchema.parse(request);
-    return extraMailSchema.parse(
-      await apiClient.post<unknown, unknown>("/admin/extra-mails", body),
-    );
-  },
-
-  async updateExtraMail(id: string, request: SaveExtraMailRequest) {
-    const body = saveExtraMailRequestSchema.parse(request);
-    return extraMailSchema.parse(
-      await apiClient.put<unknown, unknown>(`/admin/extra-mails/${encodeURIComponent(id)}`, body),
-    );
-  },
-
-  async deleteExtraMail(id: string) {
-    await apiClient.delete<unknown, unknown>(`/admin/extra-mails/${encodeURIComponent(id)}`);
   },
 
   /** Doanh thu theo ngày, tháng hoặc quý (tiền thật đã khớp đơn); chỉ đọc. */

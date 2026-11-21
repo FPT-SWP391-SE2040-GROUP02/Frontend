@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { Panel } from "@/shared/ui/heritageKit";
 import type { ExecutorVault } from "../model/deathCase.schema";
-import { vaultJourney, type CaseStatus, type JourneyState } from "../model/executorTodo";
+import { vaultJourney, type RecordStatus, type JourneyState } from "../model/executorTodo";
 import type { HandoverProgress } from "../model/handoverProgress.schema";
 
 const circleStyles: Record<JourneyState, string> = {
@@ -22,14 +22,14 @@ const captionStyles: Record<JourneyState, string> = {
  */
 export function VaultJourney({
   vault,
-  caseStatus,
+  recordStatus,
   progress,
 }: {
   vault: ExecutorVault;
-  caseStatus: CaseStatus | null;
+  recordStatus: RecordStatus;
   progress: HandoverProgress | null;
 }) {
-  const steps = vaultJourney(vault, caseStatus, progress);
+  const steps = vaultJourney(vault, recordStatus, progress);
   return (
     <Panel title="Kho đang ở đâu">
       <ol className="grid gap-5 sm:grid-cols-3">

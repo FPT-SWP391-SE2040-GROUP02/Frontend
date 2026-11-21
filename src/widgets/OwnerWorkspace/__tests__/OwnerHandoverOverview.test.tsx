@@ -11,7 +11,6 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { apiClient } from "@/shared/api/axiosClient";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { executorKeyService } from "@/features/executor-key/api/executorKeyService";
-import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { OwnerHandoverOverview } from "../OwnerHandoverOverview";
 
 vi.mock("@/features/plan-setup/model/usePlanSetup", () => ({ usePlanSetup: vi.fn() }));
@@ -21,8 +20,6 @@ vi.mock("@/features/executor-key/api/executorKeyService", async (importOriginal)
     await importOriginal<typeof import("@/features/executor-key/api/executorKeyService")>();
   return { executorKeyService: { ...actual.executorKeyService, getStatus: vi.fn() } };
 });
-vi.mock("@/features/dms/model/useCheckIn", () => ({ useCheckIn: vi.fn() }));
-vi.mock("@/features/dms/api/checkInService", () => ({ checkInService: { checkIn: vi.fn() } }));
 vi.mock("@/shared/settings/usePolicyWindows", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/shared/settings/usePolicyWindows")>();
   return {
@@ -158,22 +155,6 @@ function planSetupResult(data: Record<string, unknown>) {
   };
 }
 
-function checkInResult() {
-  return {
-    isPending: false,
-    isError: false,
-    isFetching: false,
-    refetch: vi.fn(),
-    data: {
-      status: "ACTIVE",
-      planStatus: "ACTIVE",
-      serverTime: "2026-11-16T00:00:00Z",
-      lastCheckInAt: "2026-11-15T00:00:00Z",
-      nextCheckInDueAt: "2026-12-15T00:00:00Z",
-    },
-  };
-}
-
 function keyStatus(overrides: Record<string, unknown> = {}) {
   return {
     hasKey: false,
@@ -200,7 +181,6 @@ beforeEach(() => {
   vi.resetAllMocks();
   accessTokenMemory.set("test-token");
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  vi.mocked(useCheckIn).mockReturnValue(checkInResult() as never);
   vi.mocked(executorKeyService.getStatus).mockResolvedValue(keyStatus());
   mockIdentityGet(() => Promise.resolve(identityBody()));
 });
@@ -245,17 +225,17 @@ function renderOverview() {
 
 /** Nút ở cột phải mở khung xem trước; chữ nút đổi theo trạng thái. */
 async function openDrawer(): Promise<HTMLElement> {
-  await userEvent.click(screen.getByRole("button", { name: /^Xem (trước|di chúc đã ký)/ }));
+  await userEvent.click(screen.getByRole("button", { name: /^Xem (trước|file phân chia đã ký)/ }));
   return screen.findByRole("dialog");
 }
 
-/** Tờ di chúc trong khung xem trước (phải mở khung trước). */
+/** Tờ file phân chia trong khung xem trước (phải mở khung trước). */
 function paper() {
-  return screen.getByRole("article", { name: "Di chúc" });
+  return screen.getByRole("article", { name: "File phân chia" });
 }
 
 const TICK_LABEL =
-  "Tôi đã đọc toàn bộ di chúc, tự nguyện lập, ký di chúc này và chủ động kích hoạt kế hoạch.";
+  "Tôi đã đọc toàn bộ file phân chia, tự nguyện lập, ký file phân chia này và chủ động kích hoạt kế hoạch.";
 const PIN_LABEL = "Nhập mã PIN của kho (6 số)";
 
 describe("trang Bàn giao: thẻ việc và tiến độ", () => {
@@ -275,17 +255,16 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
     const progress = screen.getByRole("region", { name: "Tiến độ bàn giao" });
     expect(within(progress).getByText("Đã đủ điều kiện để ký")).toBeInTheDocument();
     expect(within(progress).getByRole("button", { name: "Xem trước và ký" })).toBeInTheDocument();
-    expect(screen.getByRole("progressbar", { name: "Tiến độ điền di chúc" })).toHaveAttribute(
-      "aria-valuenow",
-      "4",
-    );
+    expect(
+      screen.getByRole("progressbar", { name: "Tiến độ điền file phân chia" }),
+    ).toHaveAttribute("aria-valuenow", "4");
     expect(screen.getByText(/^2 gói · 7 tài sản · 2 người nhận/)).toBeInTheDocument();
     expect(
-      screen.getByText(/Tài sản thật như nhà đất, tiền gửi vẫn chia theo di chúc/),
+      screen.getByText(/Tài sản thật như nhà đất, tiền gửi do gia đình và luật sư xử lý/),
     ).toBeVisible();
-    // Chưa mở khung thì chưa có tờ di chúc trên trang.
+    // Chưa mở khung thì chưa có tờ file phân chia trên trang.
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.queryByRole("article", { name: "Di chúc" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: "File phân chia" })).not.toBeInTheDocument();
   });
 
   it("chưa chọn Người thực thi: thẻ có nút Chọn, mở hộp thoại mời; tiến độ nêu điều kiện thiếu", async () => {
@@ -300,7 +279,9 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
     const progress = screen.getByRole("region", { name: "Tiến độ bàn giao" });
     expect(within(progress).getByText("Còn 1 điều kiện chưa đạt")).toBeInTheDocument();
     expect(within(progress).getByText("Chưa chọn Người thực thi")).toBeInTheDocument();
-    expect(within(progress).getByRole("button", { name: "Xem trước di chúc" })).toBeInTheDocument();
+    expect(
+      within(progress).getByRole("button", { name: "Xem trước file phân chia" }),
+    ).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Chọn Người thực thi" }));
     expect(await screen.findByRole("dialog", { name: "Mời Người thực thi" })).toBeInTheDocument();
   });
@@ -399,14 +380,14 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
   });
 });
 
-describe("khung xem trước di chúc", () => {
+describe("khung xem trước file phân chia", () => {
   it("mở bằng nút, có tên dialog; đóng bằng nút Đóng và bằng phím Esc", async () => {
     showPlan();
     renderOverview();
 
     const dialog = await openDrawer();
-    expect(dialog).toHaveAccessibleName("Xem trước di chúc");
-    expect(within(paper()).getByRole("heading", { name: "DI CHÚC" })).toBeInTheDocument();
+    expect(dialog).toHaveAccessibleName("Xem trước file phân chia");
+    expect(within(paper()).getByRole("heading", { name: "FILE PHÂN CHIA" })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Đóng" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -416,7 +397,7 @@ describe("khung xem trước di chúc", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 
-  it("tờ di chúc điền đủ: quốc hiệu, mục I đến IV, bảng gói và người nhận, không ghi tên tài sản", async () => {
+  it("tờ file phân chia điền đủ: quốc hiệu, mục I đến IV, bảng gói và người nhận, không ghi tên tài sản", async () => {
     showPlan();
     renderOverview();
     await openDrawer();
@@ -428,7 +409,7 @@ describe("khung xem trước di chúc", () => {
       doc.getByText("Hôm nay, ngày … tháng … năm … (điền tự động khi bạn ký), tại LegacyVault."),
     ).toBeInTheDocument();
     for (const heading of [
-      "I. Người lập di chúc",
+      "I. Chủ kho",
       "II. Tài sản và định đoạt tài sản",
       "III. Người thực thi",
       "IV. Hiệu lực, sửa đổi và thu hồi",
@@ -457,9 +438,9 @@ describe("khung xem trước di chúc", () => {
     expect(document.body.textContent ?? "").not.toContain(SECRET_MESSAGE);
     // Mục III và IV.
     expect(paper()).toHaveTextContent("Lê Thị Mẫu, email executor@example.test");
-    expect(paper()).toHaveTextContent("không được xem nội dung kho, không tự đổi người nhận");
-    expect(paper()).toHaveTextContent("Quá hạn điểm danh chỉ tạo bước kiểm tra, không tự bàn giao");
-    expect(paper()).toHaveTextContent("thu hồi di chúc này bất cứ lúc nào");
+    expect(paper()).toHaveTextContent("không được xem nội dung kho, không tự chia, bán hay cho");
+    expect(paper()).toHaveTextContent("chỉ làm theo biên bản bàn giao do luật sư lập");
+    expect(paper()).toHaveTextContent("thu hồi file phân chia này bất cứ lúc nào");
     // Chân tờ.
     expect(paper()).toHaveTextContent(
       "Chữ ký điện tử được xác thực qua tài khoản LegacyVault; chi tiết trong nhật ký ký.",
@@ -482,7 +463,7 @@ describe("khung xem trước di chúc", () => {
   });
 });
 
-describe("chỗ trống đỏ trong di chúc", () => {
+describe("chỗ trống đỏ trong file phân chia", () => {
   const scrollIntoView = vi.fn();
   beforeEach(() => {
     scrollIntoView.mockReset();
@@ -587,7 +568,7 @@ describe("hai ô chữ ký", () => {
     await openDrawer();
 
     const doc = within(paper());
-    expect(doc.getByText("Người lập di chúc", { selector: "p" })).toBeInTheDocument();
+    expect(doc.getByText("Chủ kho", { selector: "p" })).toBeInTheDocument();
     expect(doc.getByText("Người thực thi", { selector: "p" })).toBeInTheDocument();
     expect(doc.getByText("Chờ Chủ kho ký")).toBeInTheDocument();
     expect(doc.getByText("Chờ Người thực thi nhận vai")).toBeInTheDocument();
@@ -744,7 +725,7 @@ describe("chân khung: ký và kích hoạt", () => {
     expect(screen.getByRole("checkbox")).toBeDisabled();
     expect(
       screen.getByText(
-        "Chưa thể ký: còn 1 điều kiện chưa đạt. Bấm vào chỗ đỏ trong di chúc để điền.",
+        "Chưa thể ký: còn 1 điều kiện chưa đạt. Bấm vào chỗ đỏ trong file phân chia để điền.",
       ),
     ).toBeInTheDocument();
   });
@@ -824,8 +805,8 @@ describe("chân khung: ký và kích hoạt", () => {
   it("kế hoạch đã kích hoạt: khung chỉ xem, không còn tick, PIN và nút ký", async () => {
     showPlan({ planStatus: "ACTIVE", canActivate: false, activatedAt: ACTIVATED_AT });
     renderOverview();
-    await userEvent.click(screen.getByRole("button", { name: "Xem di chúc đã ký" }));
-    expect(await screen.findByRole("dialog", { name: "Di chúc đã ký" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Xem file phân chia đã ký" }));
+    expect(await screen.findByRole("dialog", { name: "File phân chia đã ký" })).toBeInTheDocument();
 
     expect(screen.queryByRole("button", { name: "Ký và kích hoạt" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText(PIN_LABEL)).not.toBeInTheDocument();
@@ -846,14 +827,13 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     );
   }
 
-  it("thẻ việc chỉ tóm tắt (không nút), kèm điểm danh, Kế hoạch đang áp dụng và tiến trình, không có thẻ Mã mở gói", async () => {
+  it("thẻ việc chỉ tóm tắt (không nút), kèm Kế hoạch đang áp dụng và tiến trình, không có thẻ Mã mở gói", async () => {
     showRunning();
     renderOverview();
 
     expect(screen.getByText("Kế hoạch đang chạy", { selector: "span" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Đổi người" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Đi xác minh danh tính" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Điểm danh" })).toBeEnabled();
     const active = screen.getByRole("region", { name: "Kế hoạch đang áp dụng" });
     expect(within(active).getByText("Kích hoạt lúc")).toBeInTheDocument();
     expect(within(active).getByText("09:42 15/11/2026")).toBeInTheDocument();
@@ -861,7 +841,7 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     expect(screen.queryByRole("heading", { name: "Mã mở gói" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Tiến trình bàn giao" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Xem di chúc đã ký" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xem file phân chia đã ký" })).toBeInTheDocument();
   });
 
   it("lỗi tải kế hoạch hiện thử lại", () => {
@@ -879,7 +859,7 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
   });
 });
 
-describe("tờ di chúc dùng danh tính đầy đủ", () => {
+describe("tờ file phân chia dùng danh tính đầy đủ", () => {
   const RUNNING = { planStatus: "ACTIVE", canActivate: false, activatedAt: ACTIVATED_AT };
 
   it("chỉ tải danh tính khi khung mở; tờ ghi ngày sinh, CCCD đủ 12 số, thường trú, và bỏ khỏi cache khi đóng", async () => {
@@ -990,7 +970,7 @@ describe("tờ di chúc dùng danh tính đầy đủ", () => {
 
     const doc = within(paper());
     expect(
-      await doc.findByText(/Chưa có thông tin CCCD và nơi thường trú của Người lập/),
+      await doc.findByText(/Chưa có thông tin CCCD và nơi thường trú của Chủ kho/),
     ).toBeInTheDocument();
     expect(doc.getAllByText("Trần Văn An")).toHaveLength(2);
     expect(doc.queryByText("Số CCCD")).not.toBeInTheDocument();
@@ -1090,7 +1070,7 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
     const banner = screen.getByRole("region", { name: BANNER });
     expect(within(banner).getByRole("heading", { name: BANNER })).toBeInTheDocument();
     expect(banner).toHaveTextContent(
-      "Hãy ký phiên bản mới để bản di chúc khớp với cấu hình hiện tại.",
+      "Hãy ký phiên bản mới để bản file phân chia khớp với cấu hình hiện tại.",
     );
     expect(within(banner).getByText("Thêm 1 gói mới")).toBeInTheDocument();
     expect(within(banner).getByText("Thêm 2 tài sản vào gói")).toBeInTheDocument();
@@ -1168,7 +1148,7 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
     expect(screen.queryByRole("region", { name: BANNER })).not.toBeInTheDocument();
   });
 
-  it("nút Xem trước và ký phiên bản mới mở khung có tên Ký phiên bản mới của di chúc", async () => {
+  it("nút Xem trước và ký phiên bản mới mở khung có tên Ký phiên bản mới của file phân chia", async () => {
     showPlan({
       ...RUNNING,
       hasUnsignedChanges: true,
@@ -1178,7 +1158,7 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
 
     await userEvent.click(screen.getByRole("button", { name: RESIGN_OPEN }));
     expect(
-      await screen.findByRole("dialog", { name: "Ký phiên bản mới của di chúc" }),
+      await screen.findByRole("dialog", { name: "Ký phiên bản mới của file phân chia" }),
     ).toBeInTheDocument();
   });
 });
@@ -1202,7 +1182,7 @@ describe("ký phiên bản mới trong khung", () => {
     },
   };
   const RESIGN_TICK =
-    "Tôi đã đọc toàn bộ di chúc phiên bản mới, tự nguyện ký lại và đồng ý với các thay đổi đã nêu.";
+    "Tôi đã đọc toàn bộ file phân chia phiên bản mới, tự nguyện ký lại và đồng ý với các thay đổi đã nêu.";
   const SIGN_BUTTON = "Ký phiên bản mới";
   const SIGNED_BODY = {
     ...setupData({
@@ -1247,8 +1227,8 @@ describe("ký phiên bản mới trong khung", () => {
   it("không có thay đổi chưa ký: khung chỉ để xem và xuất, không có tick, PIN và nút ký", async () => {
     showPlan({ ...RUNNING_UNSIGNED, hasUnsignedChanges: false, unsignedChanges: null });
     renderOverview();
-    await userEvent.click(screen.getByRole("button", { name: "Xem di chúc đã ký" }));
-    expect(await screen.findByRole("dialog", { name: "Di chúc đã ký" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Xem file phân chia đã ký" }));
+    expect(await screen.findByRole("dialog", { name: "File phân chia đã ký" })).toBeInTheDocument();
 
     expect(screen.queryByRole("button", { name: SIGN_BUTTON })).not.toBeInTheDocument();
     expect(screen.queryByLabelText(PIN_LABEL)).not.toBeInTheDocument();
@@ -1272,7 +1252,7 @@ describe("ký phiên bản mới trong khung", () => {
     expect(JSON.stringify(body)).not.toContain(PIN);
     expect(config).toMatchObject({ headers: { "X-Vault-Pin": PIN }, skipVaultPinPrompt: true });
 
-    expect(await screen.findByText(/Đã ký phiên bản 2 của di chúc/)).toBeVisible();
+    expect(await screen.findByText(/Đã ký phiên bản 2 của file phân chia/)).toBeVisible();
     expect(screen.getByLabelText(PIN_LABEL)).toHaveValue("");
     const cached = client.getQueryData<{ willVersion: number }>(["plan-setup", VAULT_ID]);
     expect(cached?.willVersion).toBe(2);
@@ -1289,7 +1269,7 @@ describe("ký phiên bản mới trong khung", () => {
     await userEvent.click(screen.getByRole("button", { name: "Hiện thông tin đầy đủ" }));
     await within(paper()).findByText("079203001234");
     await userEvent.click(screen.getByRole("button", { name: SIGN_BUTTON }));
-    await screen.findByText(/Đã ký phiên bản 2 của di chúc/);
+    await screen.findByText(/Đã ký phiên bản 2 của file phân chia/);
 
     // Backend trả kế hoạch mới sau khi làm mới.
     showPlan(SIGNED_BODY);
@@ -1306,7 +1286,7 @@ describe("ký phiên bản mới trong khung", () => {
     await waitFor(() =>
       expect(screen.queryByRole("button", { name: SIGN_BUTTON })).not.toBeInTheDocument(),
     );
-    expect(screen.getByText(/Đã ký phiên bản 2 của di chúc/)).toBeVisible();
+    expect(screen.getByText(/Đã ký phiên bản 2 của file phân chia/)).toBeVisible();
     expect(
       within(paper()).getByText("Phiên bản 2 · ký lúc 10:00 ngày 17/11/2026"),
     ).toBeInTheDocument();
@@ -1325,7 +1305,7 @@ describe("ký phiên bản mới trong khung", () => {
 
     expect(
       await screen.findByText(
-        "Cấu hình đã thay đổi, đang tải lại. Hãy xem lại di chúc rồi ký lại.",
+        "Cấu hình đã thay đổi, đang tải lại. Hãy xem lại file phân chia rồi ký lại.",
       ),
     ).toBeVisible();
     expect(screen.queryByText(/Dữ liệu đã thay đổi\. Tải lại/)).not.toBeInTheDocument();
@@ -1342,7 +1322,9 @@ describe("ký phiên bản mới trong khung", () => {
     await tickAndType(PIN);
     await userEvent.click(screen.getByRole("button", { name: SIGN_BUTTON }));
 
-    expect(await screen.findByText(/không ở trạng thái cho phép ký lại di chúc/)).toBeVisible();
+    expect(
+      await screen.findByText(/không ở trạng thái cho phép ký lại file phân chia/),
+    ).toBeVisible();
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["plan-setup", VAULT_ID] });
   });
 

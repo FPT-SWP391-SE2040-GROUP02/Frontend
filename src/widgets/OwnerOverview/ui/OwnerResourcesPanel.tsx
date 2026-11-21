@@ -1,14 +1,12 @@
 import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
-import { useCheckIn } from "@/features/dms/model/useCheckIn";
 import { Button } from "@/shared/ui";
-import { FileText, Users, Activity } from "lucide-react";
+import { FileText, Users } from "lucide-react";
 
 /** Các khối đọc Backend; lỗi riêng từng module, không fallback dữ liệu mẫu. */
 export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
   const assets = useVaultAssets(vaultId);
   const beneficiaries = useBeneficiaries(vaultId);
-  const checkIn = useCheckIn(vaultId);
   const sections = [
     {
       title: "Tài sản trong kho",
@@ -25,13 +23,6 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
       items: beneficiaries.data?.items.map((item) => ({ id: item.id, label: item.fullName })) ?? [],
     },
   ];
-  const checkInLabels: Record<string, string> = {
-    NOT_STARTED: "Chưa bắt đầu",
-    ACTIVE: "Đang trong kỳ điểm danh",
-    CHECKIN_OVERDUE: "Đã quá hạn điểm danh",
-    AWAITING_CHECK: "Đang chờ kiểm tra",
-    PAUSED: "Đang tạm dừng",
-  };
   return (
     <div className="grid gap-4 xl:grid-cols-3">
       {sections.map(({ title, icon: Icon, query, value, items }) => (
@@ -69,37 +60,6 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
           )}
         </section>
       ))}
-      <section aria-label="Điểm danh" className="owner-resource-card">
-        <h3 className="flex items-center gap-2 text-sm font-semibold">
-          <Activity className="size-4 text-heritage-gold" aria-hidden="true" />
-          Điểm danh
-        </h3>
-        {checkIn.isPending ? (
-          <p role="status">Đang tải…</p>
-        ) : checkIn.isError ? (
-          <div role="alert">
-            <p>Không tải được trạng thái điểm danh.</p>
-            <Button
-              className="mt-2 min-h-11"
-              disabled={checkIn.isFetching}
-              onClick={() => void checkIn.refetch()}
-            >
-              Thử lại
-            </Button>
-          </div>
-        ) : checkIn.data ? (
-          <>
-            <p className="text-lg font-semibold">{checkInLabels[checkIn.data.status]}</p>
-            <p className="text-sm text-heritage-muted">
-              Chu kỳ: {checkIn.data.settings.cycleDays} ngày
-            </p>
-            <p className="text-sm text-heritage-muted">
-              Thư nhắc trễ: {checkIn.data.settings.maxLateReminders} thư, cách nhau{" "}
-              {checkIn.data.settings.lateReminderGapDays} ngày
-            </p>
-          </>
-        ) : null}
-      </section>
     </div>
   );
 }

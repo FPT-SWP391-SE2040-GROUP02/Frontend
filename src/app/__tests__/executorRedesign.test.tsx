@@ -55,6 +55,7 @@ const turns = [
   turn(1, "Nguyễn Văn An", {
     status: "HANDOVER_COMMITTED",
     invitationSentAt: SENT,
+    identityConfirmedAt: SIGNED,
     recipientSignedAt: SIGNED,
     documentApprovedAt: APPROVED,
     decidedAt: APPROVED,
@@ -84,11 +85,10 @@ const turns = [
     documentApprovedAt: APPROVED,
     decidedAt: APPROVED,
   }),
-  // 5: chờ Người xét duyệt
+  // 5: chờ luật sư kiểm danh tính
   turn(5, "Đỗ Thị Dung", {
     status: "IDENTITY_IN_PROGRESS",
     invitationSentAt: SENT,
-    recipientSignedAt: SIGNED,
   }),
   // 6: chưa gửi được lời mời
   turn(6, "Vũ Văn Em", { invitationSentAt: null }),
@@ -113,37 +113,34 @@ const vault = (overrides: Record<string, unknown> = {}) => ({
   vaultId: VAULT_ID,
   ownerFullName: "Anh Nam",
   planStatus: "HANDOVER_IN_PROGRESS",
-  checkInOverdue: false,
-  openDeathCaseId: CASE_ID,
-  lastRejectedDeathCaseId: null,
+  handoverRecordId: CASE_ID,
+  handoverRecordStatus: "COMPLETED",
   executorNote: "Gọi cô Lan trước.\nSau đó gửi mã.",
   executorNoteUpdatedAt: "2026-11-05T03:00:00Z",
   acceptedAt: "2026-10-01T03:00:00Z",
   ...overrides,
 });
 
-const deathCase = {
+/** Biên bản đã đủ chữ ký ba bên của kho (GET /executor/vaults/{vaultId}/handover-record). */
+const record = {
   id: CASE_ID,
   vaultId: VAULT_ID,
-  status: "APPROVED_FOR_HANDOVER",
-  currentVersion: {
-    versionNo: 1,
-    isDraft: false,
-    ownerFullName: "Anh Nam",
-    ownerCitizenIdLast4: "0001",
-    dateOfDeath: null,
-    certificateNumber: null,
-    issuedOn: null,
-    issuedBy: null,
-    files: [],
-    submittedAt: CREATED_AT,
-  },
-  reviewVersionNo: 1,
-  missingRequirements: [],
-  ownerNotice: null,
-  createdAt: CREATED_AT,
-  updatedAt: null,
-  etag: "case-v1",
+  vaultName: "Kho gia đình",
+  ownerName: "Anh Nam",
+  status: "COMPLETED",
+  revisionNo: 1,
+  requestedAt: CREATED_AT,
+  finalizedAt: CREATED_AT,
+  completedAt: APPROVED,
+  verifierName: "Luật sư Dũng",
+  executorName: "Chú Hải",
+  verifierSignedAt: APPROVED,
+  executorSignedAt: APPROVED,
+  recipients: [],
+  canSign: false,
+  availableAssets: [],
+  availableRecipients: [],
+  ownerSplit: [],
 };
 
 const packages = [
@@ -218,7 +215,7 @@ describe("Bàn giao: bảng người nhận", () => {
   });
 
   it("bốn ô số đúng: đã nhận xong, cần bạn làm, đang chờ người nhận, từ chối nhận", async () => {
-    render2(<HandoverProgressPanel caseId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} />);
     await screen.findByRole("list", { name: "Danh sách người nhận" });
     const tile = (label: string) =>
       screen.getByText(label, { selector: "dt" }).closest("div") as HTMLElement;
@@ -233,7 +230,7 @@ describe("Bàn giao: bảng người nhận", () => {
   });
 
   it("xếp dòng: cần bạn làm, đang chờ, đã nhận xong, từ chối", async () => {
-    render2(<HandoverProgressPanel caseId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const names = within(list)
       .getAllByRole("listitem", { name: /, gói / })
@@ -249,7 +246,7 @@ describe("Bàn giao: bảng người nhận", () => {
   });
 
   it("mỗi trạng thái ra đúng bước hiện tại, màu đoạn và chữ", async () => {
-    render2(<HandoverProgressPanel caseId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const segmentStates = (item: HTMLElement) =>
       Array.from(item.querySelectorAll("ol[aria-label='Các bước của người nhận'] > li")).map(
@@ -266,8 +263,8 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(replying).toHaveTextContent("Chờ người nhận trả lời · đã mời 13:14 23/12");
 
     const review = row(list, /Đỗ Thị Dung/);
-    expect(segmentStates(review)).toEqual(["done", "done", "current", "pending", "pending"]);
-    expect(review).toHaveTextContent("Chờ Người xét duyệt kiểm tra biên bản");
+    expect(segmentStates(review)).toEqual(["done", "current", "pending", "pending", "pending"]);
+    expect(review).toHaveTextContent("Chờ luật sư kiểm danh tính");
 
     const unsent = row(list, /Vũ Văn Em/);
     expect(segmentStates(unsent)).toEqual(["current", "pending", "pending", "pending", "pending"]);
@@ -283,7 +280,7 @@ describe("Bàn giao: bảng người nhận", () => {
   });
 
   it("chỉ dòng cần bạn làm được tô nổi", async () => {
-    render2(<HandoverProgressPanel caseId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const highlighted = list.querySelectorAll("[data-needs-action='true']");
     expect(highlighted).toHaveLength(1);
@@ -292,7 +289,7 @@ describe("Bàn giao: bảng người nhận", () => {
   });
 
   it("Chi tiết mở hàng 5 cột có giờ và ba ô; Thu gọn đóng lại", async () => {
-    render2(<HandoverProgressPanel caseId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const finished = row(list, /Nguyễn Văn An/);
     fireEvent.click(within(finished).getByRole("button", { name: "Chi tiết" }));
@@ -301,8 +298,8 @@ describe("Bàn giao: bảng người nhận", () => {
     const columns = within(times).getAllByRole("listitem");
     expect(columns.map((column) => column.textContent)).toEqual([
       "Đã mời13:14 23/12",
-      "Đồng ý nhận14:00 23/12",
-      "Xét duyệt15:00 23/12",
+      "Kiểm danh tính14:00 23/12",
+      "Ký biên bản15:00 23/12",
       "Nhập mã mở gói16:00 23/12",
       "Tải xong16:52 23/12",
     ]);
@@ -315,16 +312,16 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(within(finished).getByRole("region", { name: "Tài sản" })).toHaveTextContent(
       "3/3 đã tải",
     );
-    expect(
-      within(finished).getByRole("button", { name: "Xem biên bản đồng ý" }),
-    ).toBeInTheDocument();
+    expect(within(finished).getByRole("region", { name: "Biên bản" })).toHaveTextContent(
+      "Người nhận đã ký lúc",
+    );
 
     fireEvent.click(within(finished).getByRole("button", { name: "Thu gọn" }));
     expect(within(finished).queryByRole("list", { name: "Giờ từng bước" })).not.toBeInTheDocument();
   });
 
-  it("đang chờ: giờ bước chờ là 'đang chờ', bước chưa tới là gạch ngang, biên bản là 'Chưa có'", async () => {
-    render2(<HandoverProgressPanel caseId={CASE_ID} />);
+  it("đang chờ: giờ bước chờ là 'đang chờ', bước chưa tới là gạch ngang, biên bản là 'Chưa ký'", async () => {
+    render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const replying = row(list, /Lê Thị Bình/);
     fireEvent.click(within(replying).getByRole("button", { name: "Chi tiết" }));
@@ -333,16 +330,16 @@ describe("Bàn giao: bảng người nhận", () => {
     ).getAllByRole("listitem");
     expect(columns.map((column) => column.textContent)).toEqual([
       "Đã mời13:14 23/12",
-      "Đồng ý nhậnđang chờ",
-      "Xét duyệt—",
+      "Kiểm danh tínhđang chờ",
+      "Ký biên bản—",
       "Nhập mã mở gói—",
       "Tải xong—",
     ]);
-    expect(within(replying).getByRole("region", { name: "Biên bản" })).toHaveTextContent("Chưa có");
+    expect(within(replying).getByRole("region", { name: "Biên bản" })).toHaveTextContent("Chưa ký");
   });
 
-  it("người từ chối: chi tiết chỉ 2 cột, tài sản 'Không bàn giao', có nút xem văn bản từ chối", async () => {
-    render2(<HandoverProgressPanel caseId={CASE_ID} />);
+  it("người từ chối (dữ liệu cũ): chi tiết chỉ 2 cột, tài sản 'Không bàn giao'", async () => {
+    render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const declined = row(list, /CCCD \*\*\*0002/);
     fireEvent.click(within(declined).getByRole("button", { name: "Chi tiết" }));
@@ -356,20 +353,17 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(within(declined).getByRole("region", { name: "Tài sản" })).toHaveTextContent(
       "Không bàn giao",
     );
-    expect(
-      within(declined).getByRole("button", { name: "Xem văn bản từ chối" }),
-    ).toBeInTheDocument();
   });
 
   it("có chú thích cuối bảng và không còn chữ eKYC hay hạn chót", async () => {
-    render2(<HandoverProgressPanel caseId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     for (const button of within(list).getAllByRole("button", { name: "Chi tiết" })) {
       fireEvent.click(button);
     }
     expect(
       screen.getByText(
-        /Thanh bước: Mời → Đồng ý \/ từ chối → Người xét duyệt kiểm tra biên bản → Nhập mã mở gói → Tải xong\./,
+        /Thanh bước: Mời → Luật sư kiểm danh tính → Ba bên ký biên bản → Nhập mã mở gói → Tải xong\./,
       ),
     ).toBeInTheDocument();
     const text = document.body.textContent ?? "";
@@ -382,8 +376,8 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
   function mockApi() {
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
       if (url === "/executor/vaults") return [vault()];
-      if (url === `/executor/death-cases/${CASE_ID}`) return deathCase;
-      if (url === `/executor/death-cases/${CASE_ID}/handover-progress`) return progress;
+      if (url === `/executor/vaults/${VAULT_ID}/handover-record`) return record;
+      if (url === `/executor/handover-records/${CASE_ID}/handover-progress`) return progress;
       if (url === `/executor/vaults/${VAULT_ID}/assets`) return packages;
       return [];
     });
@@ -393,7 +387,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
     mockApi();
     render2(<ExecutorOverviewPage />, "/executor");
     expect(
-      await screen.findByRole("heading", { name: "Đưa mã mở gói cho 1 người nhận đã đồng ý" }),
+      await screen.findByRole("heading", { name: "Gửi mã nhận cho 1 người nhận" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Việc của bạn bây giờ")).toBeInTheDocument();
     expect(await screen.findByText("1/6 người đã nhận xong")).toBeInTheDocument();
@@ -481,7 +475,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     const accept = within(card).getByRole("button", { name: "Ký nhận vai" });
     expect(accept).toBeDisabled();
     fireEvent.click(
-      within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai Người thực thi"),
+      within(card).getByLabelText("Tôi đã đọc phạm vi công việc và đồng ý nhận vai Người thực thi"),
     );
     // Đã tick phạm vi nhưng chưa nhập mật khẩu thì vẫn khóa.
     expect(accept).toBeDisabled();
@@ -501,7 +495,14 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
       return [];
     });
     const post = vi.spyOn(apiClient, "post").mockImplementation(async () => {
-      held = [vault({ ownerFullName: "Cô Lan", planStatus: "ACTIVE", openDeathCaseId: null })];
+      held = [
+        vault({
+          ownerFullName: "Cô Lan",
+          planStatus: "ACTIVE",
+          handoverRecordId: null,
+          handoverRecordStatus: "",
+        }),
+      ];
       return {
         id: invitation.id,
         status: "ACCEPTED",
@@ -516,7 +517,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
     fireEvent.click(
-      within(card).getByLabelText("Tôi đã đọc di chúc và đồng ý nhận vai Người thực thi"),
+      within(card).getByLabelText("Tôi đã đọc phạm vi công việc và đồng ý nhận vai Người thực thi"),
     );
     fireEvent.change(within(card).getByLabelText("Mật khẩu tài khoản"), {
       target: { value: "mat-khau-thu" },
@@ -526,7 +527,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     expect(await screen.findByText("Kho của Cô Lan", { selector: "p" })).toBeInTheDocument();
     expect(screen.getByText("Bạn nhận vai ngày 01/10/2026")).toBeInTheDocument();
     // Chip trạng thái ở dòng kho và ở menu trái.
-    expect(screen.getAllByText("Kế hoạch đang chạy").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Chưa mở bàn giao").length).toBeGreaterThan(0);
   });
 
   it("kho đang mở hiện chip Đang mở thay cho nút; kho khác có Mở kho, bấm thì chọn kho (chỗ duy nhất đổi kho)", async () => {
@@ -534,13 +535,14 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
       vaultId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
       ownerFullName: "Bà Hạnh",
       planStatus: "ACTIVE",
-      openDeathCaseId: null,
+      handoverRecordId: null,
+      handoverRecordStatus: "",
     });
     mockApi([vault(), other]);
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     expect(await screen.findByText("Kho của Anh Nam", { selector: "p" })).toBeInTheDocument();
     expect(screen.getAllByText("Bạn nhận vai ngày 01/10/2026", { selector: "p" })).toHaveLength(2);
-    expect(screen.getAllByText("Đang bàn giao").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Đang giao tài sản").length).toBeGreaterThan(0);
     // Kho đầu tiên được tự chọn: chip "Đang mở", không có nút Mở kho cho kho này.
     expect(screen.getByText("Đang mở")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Mở kho của Anh Nam" })).not.toBeInTheDocument();

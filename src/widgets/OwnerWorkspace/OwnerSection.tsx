@@ -18,7 +18,6 @@ import { AssetList } from "@/features/assets/ui/AssetList";
 import { OwnerTrustedPeople } from "./OwnerTrustedPeople";
 import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
 import { OwnerGroups } from "./OwnerGroups";
-import { OwnerCheckIn } from "./OwnerCheckIn";
 
 /** Kho chưa đặt mã PIN: mời đặt PIN trên đầu màn Tài sản (BE chặn tạo tài sản tới khi có PIN). */
 function VaultPinSetupBanner({ vaultId }: { vaultId: string }) {
@@ -95,7 +94,7 @@ export function OwnerSection({
   section,
   groupCreate,
 }: {
-  section: "assets" | "groups" | "plans" | "check-in" | "trusted";
+  section: "assets" | "groups" | "plans" | "trusted";
   /** Chỉ dùng cho section "groups": trạng thái hộp thoại "Tạo gói bàn giao" do trang cha điều khiển. */
   groupCreate?: { open: boolean; onOpenChange: (open: boolean) => void };
 }) {
@@ -116,7 +115,6 @@ export function OwnerSection({
         Đang tải kho của bạn…
       </div>
     );
-  if (section === "check-in") return <OwnerCheckIn vaultId={vault.data.id} />;
   if (section === "trusted") return <OwnerTrustedPeople vaultId={vault.data.id} />;
   if (section === "groups") {
     let open = false;

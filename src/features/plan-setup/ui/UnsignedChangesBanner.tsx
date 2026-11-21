@@ -5,7 +5,7 @@ import { describeUnsignedChanges } from "../lib/unsignedChanges";
 import type { UnsignedChanges } from "../model/planSetup.schema";
 
 /**
- * Thanh nhắc ở đầu màn Bàn giao khi kế hoạch đang chạy mà cấu hình khác bản di chúc ký gần nhất. Mọi thay đổi (xóa
+ * Thanh nhắc ở đầu màn Bàn giao khi kế hoạch đang chạy mà cấu hình khác bản file phân chia ký gần nhất. Mọi thay đổi (xóa
  * lẫn thêm) đều cần Chủ kho ký lại để bản ký khớp tờ hiện tại. Trong lúc chờ: phần đã xóa không còn được bàn giao;
  * phần thêm hoặc đổi người nhận chưa được bàn giao cho tới khi ký lại. Người thực thi không phải ký lại.
  * Chỉ hiện số đếm (Backend không trả tên).
@@ -36,7 +36,7 @@ export function UnsignedChangesBanner({
       <div className="min-w-0 flex-1 space-y-3">
         <h2 className="text-[17px] font-semibold leading-[1.3]">Có thay đổi chưa ký lại</h2>
         <p className="text-sm leading-6">
-          Hãy ký phiên bản mới để bản di chúc khớp với cấu hình hiện tại.
+          Hãy ký phiên bản mới để bản file phân chia khớp với cấu hình hiện tại.
         </p>
         {items.length > 0 && (
           <ul className="list-disc space-y-0.5 pl-5 text-sm leading-6">{items}</ul>

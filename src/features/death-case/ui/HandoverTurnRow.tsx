@@ -4,7 +4,6 @@ import { cn } from "cn";
 import { buttonStyles, formatDateTime, Initial } from "@/shared/ui/heritageKit";
 import type { TurnProgress, TurnSegment, SegmentState, TurnTone } from "../model/executorTurns";
 import { canMailHandoverKey, type HandoverProgressTurn } from "../model/handoverProgress.schema";
-import { HandoverPaper } from "./HandoverPaper";
 import { HandoverSendKey } from "./HandoverSendKey";
 
 /** Đoạn thanh: xanh đậm (xong), vàng (đang chờ), xám nhạt (chưa tới), xám đậm (dừng). */
@@ -81,42 +80,16 @@ function recipientName(turn: HandoverProgressTurn): string {
 }
 
 /** Ba ô nhỏ viền mảnh: Thông tin liên hệ, Tài sản, Biên bản. */
-function DetailBoxes({
-  caseId,
-  turn,
-  progress,
-}: {
-  caseId: string;
-  turn: HandoverProgressTurn;
-  progress: TurnProgress;
-}) {
-  const [paperOpen, setPaperOpen] = useState(false);
+function DetailBoxes({ turn, progress }: { turn: HandoverProgressTurn; progress: TurnProgress }) {
   const declined = progress.group === "declined" || progress.group === "ended";
   let assetText = `${turn.downloadedItems}/${turn.totalItems} đã tải`;
   if (declined) assetText = "Không bàn giao";
-  let paper;
-  if (turn.status === "HANDOVER_COMMITTED") {
+  // Chữ ký của người nhận trên biên bản bàn giao chung (luật sư lập, ba bên ký).
+  let paper = <p className="text-sm">Chưa ký</p>;
+  if (turn.recipientSignedAt) {
     paper = (
-      <HandoverPaper
-        caseId={caseId}
-        turnId={turn.turnId}
-        label="biên bản đồng ý"
-        buttonLabel="Xem biên bản đồng ý"
-        onOpenChange={setPaperOpen}
-      />
+      <p className="text-sm">{`Người nhận đã ký lúc ${formatDateTime(turn.recipientSignedAt)}`}</p>
     );
-  } else if (turn.status === "DECLINED") {
-    paper = (
-      <HandoverPaper
-        caseId={caseId}
-        turnId={turn.turnId}
-        label="văn bản từ chối"
-        buttonLabel="Xem văn bản từ chối"
-        onOpenChange={setPaperOpen}
-      />
-    );
-  } else {
-    paper = <p className="text-sm">Chưa có</p>;
   }
   const boxClass = "min-w-0 rounded-xl border border-heritage-border bg-white/60 p-3 text-sm";
   const titleClass = "mb-2 text-sm font-semibold text-heritage-muted";
@@ -156,7 +129,7 @@ function DetailBoxes({
           Chỉ thấy tên và trạng thái tải, không có nội dung.
         </p>
       </section>
-      <section aria-label="Biên bản" className={cn(boxClass, paperOpen && "sm:col-span-3")}>
+      <section aria-label="Biên bản" className={boxClass}>
         <h4 className={titleClass}>Biên bản</h4>
         {paper}
       </section>
@@ -170,12 +143,12 @@ function DetailBoxes({
  * Dòng có việc Người thực thi cần làm được tô nổi (nền vàng rất nhạt, vạch vàng đậm bên trái).
  */
 export function HandoverTurnRow({
-  caseId,
+  recordId,
   vaultId,
   turn,
   progress,
 }: {
-  caseId: string;
+  recordId: string;
   vaultId?: string;
   turn: HandoverProgressTurn;
   progress: TurnProgress;
@@ -239,7 +212,7 @@ export function HandoverTurnRow({
       {keyFormOpen && (
         <div className="mt-4">
           <HandoverSendKey
-            caseId={caseId}
+            recordId={recordId}
             vaultId={vaultId}
             turnId={turn.turnId}
             onSent={(sentAt) => {
@@ -262,7 +235,7 @@ export function HandoverTurnRow({
             <StepTimes columns={progress.detailColumns} />
             <div className="hidden lg:block" aria-hidden="true" />
           </div>
-          <DetailBoxes caseId={caseId} turn={turn} progress={progress} />
+          <DetailBoxes turn={turn} progress={progress} />
         </div>
       )}
     </li>

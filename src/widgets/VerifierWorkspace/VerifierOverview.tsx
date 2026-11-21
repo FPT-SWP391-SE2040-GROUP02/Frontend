@@ -1,19 +1,13 @@
 import { Link } from "react-router-dom";
 import { useRecipientSubmissions } from "@/features/recipient-review";
-import {
-  caseCode,
-  isOpenCase,
-  queueStatus,
-  useVerifierCases,
-  useWaitingCaseSummaries,
-  FIRST_PAGE,
-} from "@/features/verifier-review";
+import { recordStatusLabel, useVerifierRecords } from "@/entities/handoverRecord";
+import { caseCode } from "@/shared/lib/caseCode";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatTimeThenDate } from "@/shared/lib/dateFormat";
 import { buttonStyles, Chip, Panel } from "@/shared/ui/heritageKit";
 
 const visible = [
-  { label: "Hồ sơ báo tin, giấy tờ", value: "Có" },
+  { label: "Tên tài sản, người nhận, ảnh căn cước người nhận", value: "Có" },
   { label: "Nội dung kho", value: "Không" },
 ];
 
@@ -62,16 +56,16 @@ function WorkCard({
   );
 }
 
-/** Tổng quan Người xét duyệt: hai thẻ việc đang chờ (hồ sơ báo tin, hồ sơ người nhận) và phạm vi được xem. Không có hạn chót nào. */
+/** Tổng quan luật sư: hai thẻ việc đang chờ (biên bản cần lập hoặc ký, danh tính người nhận) và phạm vi được xem. */
 export function VerifierOverview() {
-  const cases = useWaitingCaseSummaries();
+  const records = useVerifierRecords();
   const recipients = useRecipientSubmissions();
-  const openList = useVerifierCases(FIRST_PAGE);
-  const open = (openList.data?.items ?? []).filter((item) => isOpenCase(item.status));
+  const open = (records.data ?? []).filter((item) => item.status !== "COMPLETED");
+  const waiting = open.filter((item) => item.status === "DRAFTING" || item.status === "SIGNING");
 
   const caseMoments: string[] = [];
-  for (const item of cases.waiting) {
-    caseMoments.push(item.submittedAt ?? item.assignedAt);
+  for (const item of waiting) {
+    caseMoments.push(item.requestedAt);
   }
   const recipientMoments: string[] = [];
   let recipientCount = 0;
@@ -87,65 +81,64 @@ export function VerifierOverview() {
       <div className="grid gap-4 md:grid-cols-2">
         <WorkCard
           to={ROUTES.NOTARY.QUEUE}
-          title="Hồ sơ báo tin chờ duyệt"
-          count={cases.waiting.length}
+          title="Biên bản cần lập hoặc ký"
+          count={waiting.length}
           oldest={oldestMoment(caseMoments)}
-          pending={cases.query.isPending}
-          failed={cases.query.isError}
+          pending={records.isPending}
+          failed={records.isError}
         />
         <WorkCard
           to={ROUTES.NOTARY.RECIPIENTS}
-          title="Hồ sơ người nhận chờ duyệt"
+          title="Danh tính người nhận chờ kiểm"
           count={recipientCount}
           oldest={oldestMoment(recipientMoments)}
           pending={recipients.isPending}
           failed={recipients.isError}
         />
       </div>
-      {(cases.query.isError || recipients.isError) && (
+      {(records.isError || recipients.isError) && (
         <div role="alert" className="space-y-3 rounded-2xl bg-[#F8E1DE] p-5">
           <p className="text-sm text-[#7A1A14]">Không tải được một phần số liệu.</p>
           <button
             type="button"
             className={buttonStyles.outline}
             onClick={() => {
-              void cases.query.refetch();
+              void records.refetch();
               void recipients.refetch();
             }}
-            disabled={cases.query.isFetching || recipients.isFetching}
+            disabled={records.isFetching || recipients.isFetching}
           >
             Thử lại
           </button>
         </div>
       )}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        <Panel title="Hồ sơ báo tin đang mở">
+        <Panel title="Biên bản đang mở">
           {open.length === 0 ? (
-            <p className="text-sm text-heritage-muted">Chưa có hồ sơ nào đang được giao.</p>
+            <p className="text-sm text-heritage-muted">Chưa có biên bản nào đang được giao.</p>
           ) : (
             <ul className="divide-y divide-heritage-border">
               {open.slice(0, 5).map((item) => {
-                const status = queueStatus[item.status];
+                const status = recordStatusLabel[item.status];
                 return (
                   <li
                     key={item.id}
                     className="flex flex-wrap items-center justify-between gap-3 py-4 first:pt-0 last:pb-0"
                   >
                     <div className="min-w-0">
-                      <p className="font-semibold">Hồ sơ #{caseCode(item.id)}</p>
+                      <p className="font-semibold">Biên bản #{caseCode(item.id)}</p>
                       <p className="text-sm text-heritage-muted">
-                        Chủ kho: ****{item.ownerCitizenIdLast4 ?? "—"} · nộp{" "}
-                        {formatTimeThenDate(item.submittedAt ?? item.assignedAt)}
+                        Chủ kho: {item.ownerName || "—"} · mở {formatTimeThenDate(item.requestedAt)}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
                       <Chip tone={status.tone}>{status.label}</Chip>
                       <Link
                         className={buttonStyles.outline}
-                        to={`${ROUTES.NOTARY.QUEUE}?caseId=${item.id}`}
-                        aria-label={`Xem hồ sơ #${caseCode(item.id)}`}
+                        to={`${ROUTES.NOTARY.QUEUE}?recordId=${item.id}`}
+                        aria-label={`Xem biên bản #${caseCode(item.id)}`}
                       >
-                        Xem hồ sơ
+                        Xem biên bản
                       </Link>
                     </div>
                   </li>

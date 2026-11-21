@@ -29,7 +29,7 @@ describe("submissionFormError", () => {
     );
     expect(submissionFormError({ ...valid(), front: null })).toMatch(/mặt trước/);
     expect(submissionFormError({ ...valid(), back: null })).toMatch(/mặt sau/);
-    expect(submissionFormError({ ...valid(), acknowledged: false })).toMatch(/đã đọc điều khoản/);
+    expect(submissionFormError({ ...valid(), acknowledged: false })).toMatch(/cam đoan thông tin/);
   });
 
   it("ảnh không đúng định dạng hoặc quá 8 MiB bị từ chối", () => {

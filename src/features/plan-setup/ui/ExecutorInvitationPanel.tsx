@@ -12,11 +12,10 @@ import { planSetupService } from "../api/planSetupService";
 import { invitationInspectFailure } from "../lib/invitationInspectError";
 import { invitationTimeLeft } from "../lib/invitationTimeLeft";
 import { useExecutorSigning } from "../model/useExecutorSigning";
-import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
 const capabilities = [
-  "Báo tin cho hệ thống",
+  "Mở bàn giao khi Chủ kho qua đời",
   "Theo dõi tiến trình bàn giao",
   "Không đọc được nội dung kho",
 ];
@@ -127,11 +126,15 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
             </li>
           ))}
         </ul>
+        {query.data.scopeText && (
+          <p className="whitespace-pre-line border-t border-heritage-border pt-3 text-sm leading-6">
+            {query.data.scopeText}
+          </p>
+        )}
       </div>
       <Notice tone="warning">
         {validity} (đến {formatDateTime(query.data.expiresAt)}). Bạn không đọc được nội dung kho.
       </Notice>
-      <AuthorizationLetterPreview executorEmail={user?.email} scopeText={query.data.scopeText} />
       <p className="text-sm leading-6 text-heritage-muted">
         Khi Chủ kho kích hoạt kế hoạch, email và số điện thoại của bạn sẽ được gửi cho người nhận để
         họ liên hệ.
@@ -168,7 +171,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc di chúc, hiểu nhiệm vụ và tự nguyện nhận vai Người thực thi.
+            Tôi đã đọc phạm vi công việc, hiểu nhiệm vụ và tự nguyện nhận vai Người thực thi.
           </label>
           <ExecutorSigningPasswordField
             value={password}

@@ -2,84 +2,71 @@ import type { Tone } from "@/shared/ui/heritageKit";
 import type { ExecutorVault } from "./deathCase.schema";
 
 /** Mức cần làm của một kho, nhỏ hơn là cần xử lý trước. */
-export type VaultUrgency = "overdue" | "death-case" | "safe";
+export type VaultUrgency = "sign" | "handover" | "safe";
 
 export interface VaultTask {
   urgency: VaultUrgency;
   /** Nhãn trạng thái ngắn trên chip. */
   label: string;
   tone: Tone;
-  /** Dòng phụ mô tả trạng thái điểm danh/hồ sơ. */
+  /** Dòng phụ mô tả tình trạng bàn giao. */
   detail: string;
-  /** Việc Người thực thi cần làm; null khi kho an toàn, chưa có việc gì. */
+  /** Việc Người thực thi cần làm; null khi chưa có việc gì. */
   task: string | null;
 }
 
-const URGENCY_ORDER: Record<VaultUrgency, number> = { overdue: 0, "death-case": 1, safe: 2 };
+const URGENCY_ORDER: Record<VaultUrgency, number> = { sign: 0, handover: 1, safe: 2 };
 
-/**
- * Việc cần làm của Người thực thi với một kho, chỉ suy từ dữ liệu `/executor/vaults` có sẵn.
- * Có hồ sơ chứng tử đang mở thì hồ sơ là việc chính, kể cả khi kho từng quá hạn điểm danh.
- */
+/** Việc cần làm của Người thực thi với một kho, chỉ suy từ dữ liệu `/executor/vaults` có sẵn. */
 export function vaultTask(vault: ExecutorVault): VaultTask {
-  if (vault.openDeathCaseId) {
+  const status = vault.handoverRecordStatus;
+  if (status === "SIGNING") {
     return {
-      urgency: "death-case",
-      label: "Hồ sơ đang xử lý",
+      urgency: "sign",
+      label: "Đang ký biên bản",
       tone: "warning",
-      detail: "Đang có hồ sơ chứng tử chờ xét duyệt",
-      task: "theo dõi hồ sơ chứng tử và bổ sung khi Người xét duyệt yêu cầu.",
+      detail: "Biên bản bàn giao đang chờ chữ ký",
+      task: "đọc lại biên bản và ký nếu bạn chưa ký.",
     };
   }
-  // Đang trong thời gian chờ: Chủ kho còn tự điểm danh được, Người thực thi chỉ cần để ý.
-  if (vault.planStatus === "CHECKIN_OVERDUE") {
+  if (status === "COMPLETED" && vault.planStatus !== "CLOSED") {
     return {
-      urgency: "overdue",
-      label: "Trễ điểm danh · đang chờ",
+      urgency: "sign",
+      label: "Gửi mã nhận",
       tone: "warning",
-      detail: "Chủ kho trễ hạn điểm danh, còn trong thời gian chờ",
-      task: "để ý thêm. Chủ kho còn thời gian tự điểm danh; nếu đã liên lạc được và Chủ kho vẫn ổn, bạn có thể điểm danh hộ.",
+      detail: "Biên bản đã đủ chữ ký",
+      task: "gửi mã nhận cho từng người nhận ở mục Bàn giao.",
     };
   }
-  // Hết thời gian chờ (AWAITING_CHECK): hệ thống đã giao việc kiểm tra cho Người thực thi.
-  if (vault.checkInOverdue) {
+  if (status === "DRAFTING" || status === "IDENTITY_CHECK") {
     return {
-      urgency: "overdue",
-      label: "Cần bạn kiểm tra",
-      tone: "danger",
-      detail: "Chủ kho đã hết thời gian chờ điểm danh",
-      task: "liên hệ xem Chủ kho còn ổn không. Nếu không liên lạc được thì mở hồ sơ báo tin. Bạn vẫn không đọc được nội dung kho.",
+      urgency: "handover",
+      label: "Đang lập biên bản",
+      tone: "warning",
+      detail: "Luật sư đang lập biên bản hoặc kiểm danh tính người nhận",
+      task: null,
     };
   }
   return {
     urgency: "safe",
-    label: "Kho an toàn",
+    label: vault.planStatus === "CLOSED" ? "Đã hoàn tất" : "Chưa mở bàn giao",
     tone: "success",
-    detail: "Chủ kho điểm danh đúng hạn",
+    detail: vault.planStatus === "CLOSED" ? "Bàn giao đã xong" : "Chưa cần làm gì",
     task: null,
   };
 }
 
-/** Trong nhóm quá hạn: "Cần bạn kiểm tra" đứng trước "Trễ điểm danh · đang chờ". */
-function overdueRank(vault: ExecutorVault): number {
-  if (vault.planStatus === "CHECKIN_OVERDUE") return 1;
-  return 0;
-}
-
-/** Kho cần xử lý lên trên: quá hạn điểm danh → hồ sơ đang xử lý → an toàn; cùng mức thì giữ thứ tự gốc. */
+/** Kho cần xử lý lên trên: cần ký hoặc gửi mã → đang lập biên bản → còn lại; cùng mức thì giữ thứ tự gốc. */
 export function sortVaultsByUrgency(vaults: ExecutorVault[]): ExecutorVault[] {
   const sorted = [...vaults];
-  sorted.sort((left, right) => {
-    const byUrgency =
-      URGENCY_ORDER[vaultTask(left).urgency] - URGENCY_ORDER[vaultTask(right).urgency];
-    if (byUrgency !== 0) return byUrgency;
-    if (vaultTask(left).urgency === "overdue") return overdueRank(left) - overdueRank(right);
-    return 0;
-  });
+  sorted.sort(
+    (left, right) =>
+      URGENCY_ORDER[vaultTask(left).urgency] - URGENCY_ORDER[vaultTask(right).urgency],
+  );
   return sorted;
 }
 
-/** Số kho đang cần Người thực thi (quá hạn điểm danh hoặc có hồ sơ đang mở). */
+/** Số kho đang cần Người thực thi để ý (đang bàn giao). */
 export function countVaultsNeedingAttention(vaults: ExecutorVault[]): number {
   let count = 0;
   for (const vault of vaults) {
