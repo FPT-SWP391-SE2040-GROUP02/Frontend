@@ -133,7 +133,7 @@ function PendingCard({
   return (
     <article
       aria-label={`Lời mời của ${invitation.ownerName}`}
-      className="space-y-4 rounded-2xl border border-[#E0C486] bg-[#FBF3E0] p-5"
+      className="space-y-4 rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
@@ -149,17 +149,17 @@ function PendingCard({
         </div>
         <Chip tone="warning">Chờ bạn trả lời</Chip>
       </div>
-      <div className="grid gap-5 border-t border-[#E0C486] pt-4 md:grid-cols-2">
+      <div className="grid gap-5 border-t border-heritage-gold-soft pt-4 md:grid-cols-2">
         <div className="text-sm">
           <p className="font-semibold">Quyền hạn của Người thực thi</p>
           <ul className="mt-2 space-y-2">
             {ABILITIES.map((item) => (
               <li key={item} className="flex items-center gap-2">
-                <Check className="size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+                <Check className="size-4 shrink-0 text-heritage-success" aria-hidden="true" />
                 {item}
               </li>
             ))}
-            <li className="text-[#A32119]">
+            <li className="text-heritage-danger">
               <strong>Không</strong> đọc được nội dung kho
             </li>
             <li className="text-heritage-muted">

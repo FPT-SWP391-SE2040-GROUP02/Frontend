@@ -102,7 +102,7 @@ export function EditVaultForm({
             id="vault-name"
             maxLength={NAME_MAX}
             placeholder="Ví dụ: Kho của gia đình"
-            className="h-11 rounded-xl border-[#BDB8A6] bg-white"
+            className="h-11 rounded-xl border-heritage-border-strong bg-white"
             {...form.register("name")}
             aria-invalid={Boolean(errors.name)}
             aria-describedby={errors.name ? "vault-name-error" : undefined}
@@ -126,7 +126,7 @@ export function EditVaultForm({
             rows={4}
             maxLength={DESCRIPTION_MAX}
             placeholder="Ví dụ: Giấy tờ nhà đất, tài khoản ngân hàng và lời nhắn cho các con."
-            className="rounded-xl border-[#BDB8A6] bg-white"
+            className="rounded-xl border-heritage-border-strong bg-white"
             {...form.register("description")}
             aria-invalid={Boolean(errors.description)}
             aria-describedby={errors.description ? "vault-description-error" : undefined}
@@ -141,7 +141,7 @@ export function EditVaultForm({
           {action.succeeded && !isDirty && (
             <p
               role="status"
-              className="mr-auto inline-flex items-center gap-1.5 text-sm font-medium text-[#1F7A55]"
+              className="mr-auto inline-flex items-center gap-1.5 text-sm font-medium text-heritage-success"
             >
               <CheckCircle2 className="size-4" aria-hidden="true" />
               Đã lưu thông tin kho.

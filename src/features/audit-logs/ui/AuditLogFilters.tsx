@@ -78,7 +78,7 @@ export function AuditLogFilters({
         />
       </ListFilterBar>
       {error && (
-        <p role="alert" className="text-sm text-red-800">
+        <p role="alert" className="text-sm text-heritage-danger">
           {error}
         </p>
       )}

@@ -31,7 +31,7 @@ type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
 function PaidTierDialog({ onClose }: { onClose: () => void }) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg bg-[#FBFAF5] p-7" showCloseButton={false}>
+      <DialogContent className="max-w-lg bg-heritage-surface p-7" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-heritage-primary">
             Cần gói trả phí
@@ -41,14 +41,14 @@ function PaidTierDialog({ onClose }: { onClose: () => void }) {
             nhận.
           </DialogDescription>
         </DialogHeader>
-        <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
           Kho và nội dung hiện có vẫn giữ nguyên.
         </p>
         <DialogFooter>
           <button type="button" className={buttonStyles.outline} onClick={onClose}>
             Để sau
           </button>
-          <Link to={ROUTES.BILLING.PLANS} className={buttonStyles.gold}>
+          <Link to={ROUTES.BILLING.PLANS} className={buttonStyles.dark}>
             Xem gói dịch vụ
           </Link>
         </DialogFooter>
@@ -152,13 +152,19 @@ export function OwnerBeneficiaries() {
   return (
     <div className="space-y-6">
       {readOnly && (
-        <p role="status" className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <p
+          role="status"
+          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
+        >
           Gói dịch vụ đang trong thời gian gia hạn. Bạn chưa thêm hoặc sửa được người nhận, nhưng
           vẫn xóa được.
         </p>
       )}
       {profileLimitReached && !readOnly && (
-        <p role="status" className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <p
+          role="status"
+          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
+        >
           Kho đã đủ {vault.data.beneficiarySlots} người nhận theo suất hiện có. Mua thêm suất hoặc
           xóa hồ sơ chưa dùng để thêm người mới.{" "}
           <Link className="font-semibold underline" to={ROUTES.BILLING.PLANS}>
@@ -174,7 +180,7 @@ export function OwnerBeneficiaries() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-medium text-heritage-primary">Danh sách người nhận</h2>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-semibold text-[#7A5B24]">
+            <span className="text-sm font-semibold text-heritage-warning">
               {list.data.totalCount} người
             </span>
             {list.data.items.length > 0 && (
@@ -195,7 +201,7 @@ export function OwnerBeneficiaries() {
             )}
             <button
               type="button"
-              className={`${buttonStyles.gold} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+              className={`${buttonStyles.dark} disabled:bg-heritage-sunken disabled:text-heritage-subtle disabled:opacity-100`}
               disabled={readOnly || locked || profileLimitReached}
               title={lockReason ?? undefined}
               onClick={() => setAdding(true)}
@@ -271,7 +277,7 @@ export function OwnerBeneficiaries() {
       {adding && !freeTier && (
         <Dialog open onOpenChange={(open) => !open && setAdding(false)}>
           <DialogContent
-            className="max-h-[90dvh] max-w-lg overflow-y-auto bg-[#FBFAF5] p-7"
+            className="max-h-[90dvh] max-w-lg overflow-y-auto bg-heritage-surface p-7"
             showCloseButton={false}
           >
             <DialogHeader>

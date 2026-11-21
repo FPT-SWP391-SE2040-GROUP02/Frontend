@@ -6,28 +6,28 @@ import { cn } from "cn";
 export type Tone = "success" | "warning" | "neutral" | "danger";
 
 const buttonBase =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition-colors duration-200 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold-hover disabled:pointer-events-none disabled:opacity-50";
 
 /** Kiểu nút theo thiết kế (nền vàng chữ xanh đen, nền xanh đậm, viền, đỏ). Dùng cho cả <button> và <Link>. */
 export const buttonStyles = {
-  gold: `${buttonBase} bg-[#E0C486] text-[#0A281E] hover:bg-[#E8CF9B]`,
-  dark: `${buttonBase} bg-[#0A281E] text-white hover:bg-[#12392C]`,
-  outline: `${buttonBase} border border-[#BDB8A6] bg-transparent text-[#0A281E] hover:bg-[#F4F1E6]`,
-  danger: `${buttonBase} border border-[#A32119] bg-transparent text-[#A32119] hover:bg-[#F8E1DE]`,
+  gold: `${buttonBase} bg-heritage-gold-soft text-heritage-primary hover:brightness-105`,
+  dark: `${buttonBase} bg-heritage-primary text-white hover:bg-heritage-primary-hover`,
+  outline: `${buttonBase} border border-heritage-border-strong bg-transparent text-heritage-primary hover:bg-heritage-sunken`,
+  danger: `${buttonBase} border border-heritage-danger bg-transparent text-heritage-danger hover:bg-heritage-danger-bg`,
 };
 
 const chipTones: Record<Tone, string> = {
-  success: "bg-[#DDEFE6] text-[#1F7A55]",
-  warning: "bg-[#F1E6CC] text-[#7A5B25]",
-  neutral: "bg-[#ECE8DB] text-[#4D4D4B]",
-  danger: "bg-[#F8E1DE] text-[#A32119]",
+  success: "bg-heritage-success-bg text-heritage-success",
+  warning: "bg-heritage-warning-bg text-heritage-warning",
+  neutral: "bg-heritage-sunken text-heritage-muted",
+  danger: "bg-heritage-danger-bg text-heritage-danger",
 };
 
 const noticeTones: Record<Tone, string> = {
-  success: "bg-[#DDEFE6] text-[#1F7A55]",
-  warning: "bg-[#F1E6CC] text-[#7A5B25]",
-  neutral: "bg-[#ECE8DB] text-heritage-muted",
-  danger: "bg-[#F8E1DE] text-[#A32119]",
+  success: "bg-heritage-success-bg text-heritage-success",
+  warning: "bg-heritage-warning-bg text-heritage-warning",
+  neutral: "bg-heritage-sunken text-heritage-muted",
+  danger: "bg-heritage-danger-bg text-heritage-danger",
 };
 
 /** Nhãn trạng thái dạng viên thuốc. */
@@ -71,7 +71,7 @@ export function Panel({
     <section
       aria-labelledby={title && labelledBy ? labelledBy : undefined}
       className={cn(
-        "rounded-2xl border border-heritage-border bg-heritage-surface p-6 min-w-0 max-w-full",
+        "min-w-0 max-w-full rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-card sm:p-6",
         className,
       )}
     >
@@ -108,7 +108,7 @@ export function Notice({
     <div
       role={role}
       className={cn(
-        "flex flex-wrap items-center justify-between gap-4 rounded-2xl px-6 py-5",
+        "flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-current/15 px-5 py-4 sm:px-6 sm:py-5",
         noticeTones[tone],
       )}
     >
@@ -127,7 +127,7 @@ export function Initial({ name, className }: { name: string; className?: string 
     <span
       aria-hidden="true"
       className={cn(
-        "flex size-11 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-base font-semibold text-[#0A281E]",
+        "flex size-11 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft text-base font-semibold text-heritage-primary",
         className,
       )}
     >
@@ -139,7 +139,7 @@ export function Initial({ name, className }: { name: string; className?: string 
 /** Một dòng "nhãn - giá trị" trong thẻ thông tin. */
 export function InfoRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[170px_minmax(0,1fr)] items-baseline gap-3 py-1.5 text-sm">
+    <div className="grid gap-1 py-1.5 text-sm sm:grid-cols-[170px_minmax(0,1fr)] sm:items-baseline sm:gap-3">
       <dt className="text-heritage-muted">{label}</dt>
       <dd className="font-semibold">{children}</dd>
     </div>

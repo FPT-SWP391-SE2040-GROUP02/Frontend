@@ -38,8 +38,11 @@ export function LoginMethodsPanel() {
   if (query.isPending) return <p role="status">Đang tải phương thức đăng nhập…</p>;
   if (query.isError)
     return (
-      <div role="alert" className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-4">
-        <p className="text-sm text-red-800">Không đọc được phương thức đăng nhập.</p>
+      <div
+        role="alert"
+        className="space-y-3 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4"
+      >
+        <p className="text-sm text-heritage-danger">Không đọc được phương thức đăng nhập.</p>
         <Button variant="outline" onClick={() => void query.refetch()} disabled={query.isFetching}>
           Thử lại
         </Button>
@@ -92,7 +95,7 @@ export function LoginMethodsPanel() {
             ) : (
               <button
                 type="button"
-                className={buttonStyles.gold}
+                className={buttonStyles.dark}
                 onClick={() => setDialog("set-password")}
               >
                 Thêm mật khẩu
@@ -122,7 +125,7 @@ export function LoginMethodsPanel() {
                 disabled
                 aria-label="Không thể gỡ liên kết Google"
                 title="Liên kết Google đã được khóa, không thể gỡ."
-                className={`${buttonStyles.outline} inline-flex items-center gap-2 disabled:border-transparent disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+                className={`${buttonStyles.outline} inline-flex items-center gap-2 disabled:border-transparent disabled:bg-heritage-sunken disabled:text-heritage-subtle disabled:opacity-100`}
               >
                 <Lock className="size-4" aria-hidden="true" />
                 Đã khóa
@@ -130,7 +133,7 @@ export function LoginMethodsPanel() {
             ) : (
               <button
                 type="button"
-                className={buttonStyles.gold}
+                className={buttonStyles.dark}
                 onClick={() => setDialog("link-google")}
               >
                 Liên kết Google
@@ -140,7 +143,7 @@ export function LoginMethodsPanel() {
         />
       </ul>
       <p className="mt-4 flex items-start gap-2 text-sm text-heritage-muted">
-        <Lock className="mt-0.5 size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+        <Lock className="mt-0.5 size-3.5 shrink-0 text-heritage-success" aria-hidden="true" />
         Bạn đang dùng {methods.length} phương thức. Thêm phương thức cần xác thực lại.
       </p>
       {dialog === "link-google" && (
@@ -161,7 +164,7 @@ function GoogleMark() {
   return (
     <span
       aria-hidden="true"
-      className="flex size-7 items-center justify-center rounded-full bg-white text-sm font-bold text-[#3C4043]"
+      className="flex size-7 items-center justify-center rounded-full bg-white text-sm font-bold text-heritage-muted"
     >
       G
     </span>
@@ -184,7 +187,7 @@ function MethodRow({
   return (
     <li className="flex flex-wrap items-center justify-between gap-4 border-b border-heritage-border py-4 last:border-b-0">
       <div className="flex min-w-0 items-center gap-4">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#ECE8DB] text-heritage-primary">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-heritage-sunken text-heritage-primary">
           {icon}
         </span>
         <div className="min-w-0">
@@ -205,7 +208,7 @@ interface DialogProps {
   onDone: () => void;
 }
 
-const DIALOG_CLASS = "max-w-lg bg-[#FBFAF5] p-7";
+const DIALOG_CLASS = "max-w-lg bg-heritage-surface p-7";
 const DIALOG_TITLE = "text-xl font-semibold text-heritage-primary";
 
 function PasswordField({
@@ -246,7 +249,10 @@ function PasswordField({
 /** Lỗi trong hộp thoại: khung hồng, đọc ra ngay (role=alert). */
 function ErrorLine({ message }: { message: string }) {
   return message ? (
-    <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+    <p
+      role="alert"
+      className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+    >
       {message}
     </p>
   ) : null;
@@ -308,7 +314,7 @@ function LinkGoogleDialog({ onClose, onDone }: DialogProps) {
           {!verified && (
             <button
               type="submit"
-              className={buttonStyles.gold}
+              className={buttonStyles.dark}
               disabled={action.pending || currentPassword.length === 0}
             >
               {action.pending ? "Đang kiểm tra…" : "Xác nhận mật khẩu"}
@@ -318,7 +324,7 @@ function LinkGoogleDialog({ onClose, onDone }: DialogProps) {
         <ErrorLine message={action.error} />
         {verified ? (
           <>
-            <p role="status" className="text-sm text-[#1F7A55]">
+            <p role="status" className="text-sm text-heritage-success">
               Mật khẩu đúng. Bấm tài khoản Google để liên kết.
             </p>
             <GoogleSignInButton disabled={action.pending} onCredential={submit} />
@@ -416,7 +422,7 @@ function ChangePasswordDialog({ onClose, onDone }: DialogProps) {
             <CancelButton onClick={onClose} disabled={action.pending} />
             <button
               type="submit"
-              className={buttonStyles.gold}
+              className={buttonStyles.dark}
               disabled={action.pending || !currentPassword || !newPassword || sameAsCurrent}
             >
               {action.pending ? "Đang đổi…" : "Đổi mật khẩu"}

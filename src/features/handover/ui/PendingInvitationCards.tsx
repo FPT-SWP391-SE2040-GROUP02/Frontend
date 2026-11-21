@@ -35,7 +35,7 @@ function InvitationCard({ invitation, email }: { invitation: PendingInvitation; 
   return (
     <article
       aria-label={`Thư mời nhận tài sản từ ${invitation.ownerFullName}`}
-      className="space-y-4 rounded-2xl border border-[#E0C486] bg-[#FBF3DC] p-5"
+      className="space-y-4 rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg p-5"
     >
       <header className="flex items-center gap-4">
         <Initial name={invitation.ownerFullName || "?"} className="size-12 shrink-0" />
@@ -59,7 +59,10 @@ function InvitationCard({ invitation, email }: { invitation: PendingInvitation; 
         </p>
       )}
       {action.error && !action.pending && (
-        <p role="alert" className="rounded-xl bg-[#F8E1DE] px-4 py-3 text-sm text-[#A32119]">
+        <p
+          role="alert"
+          className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+        >
           {action.error}
         </p>
       )}
@@ -79,7 +82,7 @@ export function PendingInvitationCards() {
     <section aria-labelledby="pending-invitations-title" className="space-y-3">
       <h2
         id="pending-invitations-title"
-        className="text-sm font-semibold tracking-widest text-[#7A5B24]"
+        className="text-sm font-semibold tracking-widest text-heritage-warning"
       >
         GÓI MỚI CHỜ BẠN XÁC NHẬN
       </h2>

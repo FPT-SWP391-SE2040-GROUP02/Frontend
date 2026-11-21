@@ -236,7 +236,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                 </p>
               )}
               {planError !== "" && (
-                <p role="alert" className="text-sm font-medium text-red-700">
+                <p role="alert" className="text-sm font-medium text-heritage-danger">
                   {planError}
                 </p>
               )}
@@ -270,7 +270,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
       {deleting && (
         <div
           role="alert"
-          className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-900"
+          className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4 text-sm text-heritage-danger"
         >
           <div className="flex items-start gap-3">
             <TriangleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
@@ -295,7 +295,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
               type="button"
               variant="outline"
               size="sm"
-              className="border-red-300 text-red-700 hover:bg-red-100"
+              className="border-heritage-danger-border text-heritage-danger hover:bg-heritage-danger-bg"
               onClick={() => removePlan(deleting.code)}
             >
               Xóa gói
@@ -329,7 +329,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                         type="button"
                         aria-label={`Xóa gói ${plan.name}`}
                         onClick={() => setConfirmDelete(plan.code)}
-                        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-heritage-muted hover:bg-red-50 hover:text-red-700"
+                        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-heritage-muted hover:bg-heritage-danger-bg hover:text-heritage-danger"
                       >
                         <Trash2 className="size-4" aria-hidden="true" />
                       </button>
@@ -358,7 +358,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                           aria-label={`Mở bán gói ${plan.name}`}
                         />
                         <span
-                          className={`text-sm font-semibold ${on ? "text-green-800" : "text-zinc-500"}`}
+                          className={`text-sm font-semibold ${on ? "text-heritage-success" : "text-heritage-subtle"}`}
                         >
                           {on ? "Đang bán" : "Tạm ngừng"}
                         </span>
@@ -380,14 +380,14 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                         aria-label={`Bán kỳ ${period.years} năm`}
                       />
                       <span
-                        className={`text-sm font-semibold ${period.on ? "text-green-800" : "text-zinc-500"}`}
+                        className={`text-sm font-semibold ${period.on ? "text-heritage-success" : "text-heritage-subtle"}`}
                       >
                         {period.on ? "Đang bán" : "Tạm ngừng"}
                       </span>
                       <button
                         type="button"
                         onClick={() => removePeriod(period.years)}
-                        className="text-sm font-semibold text-heritage-muted underline underline-offset-4 hover:text-red-700"
+                        className="text-sm font-semibold text-heritage-muted underline underline-offset-4 hover:text-heritage-danger"
                         aria-label={`Xóa kỳ ${period.years} năm`}
                       >
                         Xóa
@@ -419,22 +419,25 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                                 event.target.value.replace(/\D/g, ""),
                               )
                             }
-                            className={`h-9 w-28 font-mono text-sm font-semibold ${missing || tooHigh ? "border-red-400" : ""}`}
+                            className={`h-9 w-28 font-mono text-sm font-semibold ${missing || tooHigh ? "border-heritage-danger" : ""}`}
                           />
                           <span className="text-sm text-heritage-muted">đ</span>
                         </div>
                         {missing && (
-                          <span className="mt-1 block text-[0.875rem] text-red-700">
+                          <span className="mt-1 block text-[0.875rem] text-heritage-danger">
                             Chưa có giá
                           </span>
                         )}
                         {tooHigh && (
-                          <span role="alert" className="mt-1 block text-[0.875rem] text-red-700">
+                          <span
+                            role="alert"
+                            className="mt-1 block text-[0.875rem] text-heritage-danger"
+                          >
                             Tối đa {money.format(MAX_TIER_PRICE)}đ mỗi kỳ
                           </span>
                         )}
                         {hint && (
-                          <span className="mt-1 block text-[0.875rem] text-green-700">
+                          <span className="mt-1 block text-[0.875rem] text-heritage-success">
                             ≈ {money.format(hint.perYear)}đ/năm
                             {hint.savePercent > 0 ? ` · rẻ hơn ${hint.savePercent}%` : ""}
                           </span>
@@ -470,7 +473,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                       Thêm kỳ bán
                     </Button>
                     {periodError !== "" && (
-                      <span role="alert" className="text-sm font-medium text-red-700">
+                      <span role="alert" className="text-sm font-medium text-heritage-danger">
                         {periodError}
                       </span>
                     )}
@@ -588,7 +591,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
 
 function SectionRow({ span, children }: { span: number; children: string }) {
   return (
-    <tr className="bg-zinc-50/50">
+    <tr className="bg-heritage-sunken/50">
       <td
         colSpan={span}
         className="px-4 py-2 text-[0.875rem] font-bold uppercase tracking-wider text-heritage-muted"
@@ -620,7 +623,7 @@ function QuotaInput({
         onChange={(event) => onChange(event.target.value.replace(/\D/g, ""))}
         className="h-8 w-full min-w-0 bg-transparent px-2 text-center font-mono text-sm font-semibold focus:outline-none"
       />
-      <span className="border-l border-zinc-200 px-2 text-[0.875rem] text-heritage-muted">
+      <span className="border-l border-heritage-border px-2 text-[0.875rem] text-heritage-muted">
         {unit}
       </span>
     </div>
@@ -655,7 +658,7 @@ function FeatureBox({
         className="min-w-44 text-sm"
       />
       {problem !== "" && (
-        <p role="alert" className="text-[0.875rem] text-red-700">
+        <p role="alert" className="text-[0.875rem] text-heritage-danger">
           {problem}
         </p>
       )}

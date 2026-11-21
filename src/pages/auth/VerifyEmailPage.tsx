@@ -79,24 +79,27 @@ export function VerifyEmailPage() {
     >
       {verified && token === null ? (
         <section className="w-full space-y-5 text-left" aria-labelledby="verified-email-title">
-          <h1 id="verified-email-title" className="font-serif text-2xl font-bold text-[#0B291E]">
+          <h1
+            id="verified-email-title"
+            className="font-serif text-2xl font-bold text-heritage-primary"
+          >
             {content.title}
           </h1>
-          <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
-            <div className="flex items-center gap-2 text-emerald-800 font-semibold text-base">
-              <CheckCircle2 className="size-5 text-emerald-600" aria-hidden="true" />
+          <div className="space-y-3 rounded-xl border border-heritage-success-border bg-heritage-success-bg p-5">
+            <div className="flex items-center gap-2 text-heritage-success font-semibold text-base">
+              <CheckCircle2 className="size-5 text-heritage-success" aria-hidden="true" />
               <p role="status">{content.verified}</p>
             </div>
-            <p className="text-sm text-emerald-900 leading-relaxed">
+            <p className="text-sm text-heritage-success leading-relaxed">
               {content.verifiedDescription}
             </p>
-            <p className="text-sm text-emerald-700 font-medium">
+            <p className="text-sm text-heritage-success font-medium">
               Đang tự động chuyển sang trang đăng nhập...
             </p>
             <div className="pt-2">
               <Link
                 to={finalLoginUrl}
-                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#0B291E] px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#133E2B] focus-visible:outline-2 focus-visible:outline-[#B88E4C]"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-heritage-primary px-6 text-sm font-semibold text-white shadow-sm hover:bg-heritage-primary-hover focus-visible:outline-2 focus-visible:outline-heritage-gold"
               >
                 {content.login}
               </Link>

@@ -154,7 +154,7 @@ export function AdminNotaryCardDialog({
         <div className="space-y-2 border-t border-heritage-border pt-4">
           <label
             htmlFor="admin-notary-card-file"
-            className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-[#BDB8A6] bg-white px-4 py-3 text-sm transition-colors hover:border-heritage-gold hover:bg-[#FBF8EE] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-heritage-gold"
+            className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-dashed border-heritage-border-strong bg-white px-4 py-3 text-sm transition-colors hover:border-heritage-gold hover:bg-heritage-gold-light has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-heritage-gold"
           >
             <ImageUp className="size-5 shrink-0 text-heritage-muted" aria-hidden="true" />
             <span className="min-w-0">
@@ -188,7 +188,7 @@ export function AdminNotaryCardDialog({
             </p>
           )}
           {succeeded && (
-            <p role="status" className="text-sm font-medium text-[#1F7A55]">
+            <p role="status" className="text-sm font-medium text-heritage-success">
               Đã nộp ảnh thẻ.
             </p>
           )}

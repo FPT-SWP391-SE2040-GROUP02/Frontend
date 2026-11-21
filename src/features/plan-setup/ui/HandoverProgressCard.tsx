@@ -76,10 +76,12 @@ export function HandoverProgressCard({
         />
       </div>
       {missingItems.length > 0 && (
-        <ul className="mt-3.5 list-disc space-y-1 pl-5 text-sm text-[#a32119]">{missingItems}</ul>
+        <ul className="mt-3.5 list-disc space-y-1 pl-5 text-sm text-heritage-danger">
+          {missingItems}
+        </ul>
       )}
       {warnings.length > 0 && (
-        <div className="mt-3.5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="mt-3.5 flex items-start gap-3 rounded-xl border border-heritage-warning-border bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
           <CircleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
           <div className="space-y-1">
             <h3 className="font-semibold">Cảnh báo</h3>
@@ -87,7 +89,7 @@ export function HandoverProgressCard({
           </div>
         </div>
       )}
-      <button type="button" className={`${buttonStyles.gold} mt-4 w-full`} onClick={onOpenPreview}>
+      <button type="button" className={`${buttonStyles.dark} mt-4 w-full`} onClick={onOpenPreview}>
         {buttonText}
       </button>
       <p className="mt-2.5 text-[13px] text-heritage-muted">{hint}</p>

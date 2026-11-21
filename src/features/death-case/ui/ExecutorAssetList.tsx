@@ -28,7 +28,7 @@ function GuideBox({ vault }: { vault: ExecutorVault }) {
   return (
     <section
       aria-labelledby="executor-guide-title"
-      className="rounded-2xl border border-[#E0C486] bg-[#FBF3E0] p-5"
+      className="rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg p-5"
     >
       <h2 id="executor-guide-title" className="text-base font-semibold text-heritage-primary">
         Hướng dẫn bàn giao từ Chủ kho

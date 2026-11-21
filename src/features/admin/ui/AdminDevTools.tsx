@@ -64,7 +64,7 @@ export function AdminDevTools() {
     <div className="mt-6 space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <Notice tone="warning">{DEV_TOOLS_NOTICE}</Notice>
-        <span className="rounded-md bg-[#7A5B25] px-3 py-1 text-sm font-bold tracking-wide text-white">
+        <span className="rounded-md bg-heritage-warning px-3 py-1 text-sm font-bold tracking-wide text-white">
           DEVELOPMENT
         </span>
       </div>
@@ -236,7 +236,7 @@ function EkycPausePanel({ onDone }: { onDone: (message: string) => void }) {
           )}
           <button
             type="button"
-            className={paused ? buttonStyles.outline : buttonStyles.gold}
+            className={paused ? buttonStyles.outline : buttonStyles.dark}
             disabled={pending}
             onClick={toggle}
           >
@@ -328,7 +328,7 @@ function EkycThresholdPanel({ onDone }: { onDone: (message: string) => void }) {
               step={step}
               value={draft}
               onChange={(event) => setUserDraft(Number.parseFloat(event.target.value))}
-              className="mt-2 w-full accent-[#7A5B25]"
+              className="mt-2 w-full accent-heritage-warning"
             />
           </div>
           {!inSafeRange && (
@@ -345,7 +345,7 @@ function EkycThresholdPanel({ onDone }: { onDone: (message: string) => void }) {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
-              className={buttonStyles.gold}
+              className={buttonStyles.dark}
               disabled={pending || !inSafeRange}
               onClick={() => apply(draft)}
             >

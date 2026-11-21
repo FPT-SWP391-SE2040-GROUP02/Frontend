@@ -84,7 +84,9 @@ export function AssetList({
       action={
         <div className="flex items-center gap-3">
           {data && (
-            <span className="text-sm font-semibold text-[#7A5B25]">{data.totalCount} mục</span>
+            <span className="text-sm font-semibold text-heritage-warning">
+              {data.totalCount} mục
+            </span>
           )}
           <button
             type="button"
@@ -93,7 +95,7 @@ export function AssetList({
             title={revealed ? "Ẩn thông tin" : "Hiện thông tin (cần mã PIN)"}
             disabled={gate.pending}
             onClick={revealed ? hide : () => gate.request()}
-            className="inline-flex size-10 items-center justify-center rounded-full border border-[#BDB8A6] text-[#0A281E] transition-colors hover:bg-[#F4F1E6] disabled:opacity-50"
+            className="inline-flex size-10 items-center justify-center rounded-full border border-heritage-border-strong text-heritage-primary transition-colors hover:bg-heritage-sunken disabled:opacity-50"
           >
             {revealed ? (
               <EyeOff className="size-4" aria-hidden="true" />
@@ -119,8 +121,8 @@ export function AssetList({
             onClick={() => setKind(tab.value)}
             className={`min-h-10 rounded-full border px-4 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               activeKind === tab.value
-                ? "border-[#0A281E] bg-[#0A281E] text-white"
-                : "border-[#BDB8A6] bg-transparent text-[#0A281E] hover:bg-[#F4F1E6]"
+                ? "border-heritage-primary bg-heritage-primary text-white"
+                : "border-heritage-border-strong bg-transparent text-heritage-primary hover:bg-heritage-sunken"
             }`}
           >
             {tab.label}
@@ -143,7 +145,7 @@ export function AssetList({
             setSearch(event.target.value);
             if (page !== 1) setPage(1);
           }}
-          className="h-12 w-full rounded-xl border border-[#BDB8A6] bg-white pl-11 pr-4 text-sm disabled:cursor-not-allowed disabled:bg-[#F4F1E6]"
+          className="h-12 w-full rounded-xl border border-heritage-border-strong bg-white pl-11 pr-4 text-sm disabled:cursor-not-allowed disabled:bg-heritage-sunken"
         />
       </label>
       <div className="mt-4">
@@ -152,8 +154,10 @@ export function AssetList({
             Đang tải danh sách…
           </p>
         ) : query.isError ? (
-          <div role="alert" className="space-y-3 rounded-xl bg-[#F8E1DE] p-5">
-            <p className="text-sm text-[#7A1A14]">Không tải được dữ liệu. Vui lòng thử lại.</p>
+          <div role="alert" className="space-y-3 rounded-xl bg-heritage-danger-bg p-5">
+            <p className="text-sm text-heritage-danger">
+              Không tải được dữ liệu. Vui lòng thử lại.
+            </p>
             <button
               type="button"
               className={buttonStyles.outline}
@@ -214,7 +218,10 @@ export function AssetList({
                           to={ROUTES.DASHBOARD.ASSET_DETAIL(item.id)}
                           className="inline-flex items-center gap-2 font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
                         >
-                          <Lock className="size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+                          <Lock
+                            className="size-3.5 shrink-0 text-heritage-success"
+                            aria-hidden="true"
+                          />
                           <span className="break-words">{item.name}</span>
                         </Link>
                       </td>
@@ -234,7 +241,7 @@ export function AssetList({
                             aria-disabled="true"
                             aria-label={`Sửa ${item.name} (đang khóa)`}
                             title={lockReason}
-                            className="cursor-not-allowed font-semibold text-[#8A8574]"
+                            className="cursor-not-allowed font-semibold text-heritage-subtle"
                           >
                             Sửa
                           </span>
@@ -244,7 +251,7 @@ export function AssetList({
                           <Link
                             to={`${ROUTES.DASHBOARD.ASSET_DETAIL(item.id)}?edit=1`}
                             aria-label={`Sửa ${item.name}`}
-                            className="font-semibold text-[#7A5B25] hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
+                            className="font-semibold text-heritage-warning hover:underline focus-visible:outline-2 focus-visible:outline-heritage-gold"
                           >
                             Sửa
                           </Link>
@@ -256,7 +263,10 @@ export function AssetList({
                     <tr key={item.id} aria-label="Mục đang ẩn">
                       <td className="py-4 pr-4 font-semibold">
                         <span className="inline-flex items-center gap-2">
-                          <Lock className="size-3.5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+                          <Lock
+                            className="size-3.5 shrink-0 text-heritage-success"
+                            aria-hidden="true"
+                          />
                           {MASK}
                         </span>
                       </td>

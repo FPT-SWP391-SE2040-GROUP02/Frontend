@@ -30,9 +30,9 @@ export function UnsignedChangesBanner({
   return (
     <section
       aria-label="Có thay đổi chưa ký lại"
-      className="mb-6 flex max-w-[1180px] items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950 sm:p-5"
+      className="mb-6 flex max-w-[1180px] items-start gap-3 rounded-2xl border border-heritage-warning-border bg-heritage-warning-bg p-4 text-heritage-warning sm:p-5"
     >
-      <TriangleAlert className="mt-0.5 size-6 shrink-0 text-amber-700" aria-hidden="true" />
+      <TriangleAlert className="mt-0.5 size-6 shrink-0 text-heritage-warning" aria-hidden="true" />
       <div className="min-w-0 flex-1 space-y-3">
         <h2 className="text-[17px] font-semibold leading-[1.3]">Có thay đổi chưa ký lại</h2>
         <p className="text-sm leading-6">
@@ -55,7 +55,7 @@ export function UnsignedChangesBanner({
         <p className="text-sm leading-6">Người thực thi không phải ký lại.</p>
         <button
           type="button"
-          className={`${buttonStyles.gold} w-full sm:w-auto`}
+          className={`${buttonStyles.dark} w-full sm:w-auto`}
           onClick={onOpenPreview}
         >
           Xem trước và ký phiên bản mới

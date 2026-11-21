@@ -74,7 +74,7 @@ export function WorkspaceFrame({
             return (
               <div key={item.id}>
                 {startsGroup && (
-                  <p className="px-3 pb-1.5 pt-5 text-[0.875rem] font-semibold uppercase tracking-[0.09em] text-[#9bb2a5]">
+                  <p className="px-3 pb-1.5 pt-5 text-[0.875rem] font-semibold uppercase tracking-[0.09em] text-heritage-subtle">
                     {item.group}
                   </p>
                 )}
@@ -83,18 +83,20 @@ export function WorkspaceFrame({
                     to={item.to}
                     aria-current={isActive ? "page" : undefined}
                     className={`flex min-h-11 items-center gap-3 rounded-[10px] px-3 py-2 text-sm font-medium hover:bg-white/[0.06] ${
-                      isActive ? "bg-[rgba(224,196,134,0.16)] text-white" : "text-[#e8efe9]"
+                      isActive
+                        ? "bg-[rgba(224,196,134,0.16)] text-white"
+                        : "text-heritage-primary-light"
                     }`}
                   >
                     {Icon && (
                       <Icon
-                        className={`size-[18px] shrink-0 ${isActive ? "text-[#e0c486]" : ""}`}
+                        className={`size-[18px] shrink-0 ${isActive ? "text-heritage-gold-soft" : ""}`}
                         aria-hidden="true"
                       />
                     )}
                     {item.label}
                     {item.badge ? (
-                      <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-[#e0c486] px-1.5 text-[11.5px] font-bold tabular-nums text-[#0a281e]">
+                      <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-heritage-gold-soft px-1.5 text-[11.5px] font-bold tabular-nums text-heritage-primary">
                         {item.badge}
                       </span>
                     ) : null}
@@ -111,13 +113,15 @@ export function WorkspaceFrame({
         <div className="flex items-center gap-2.5">
           <span
             aria-hidden="true"
-            className="grid size-9 shrink-0 place-items-center rounded-full bg-[#e8dcc6] text-[12.5px] font-semibold text-[#0a281e]"
+            className="grid size-9 shrink-0 place-items-center rounded-full bg-heritage-gold-border text-[12.5px] font-semibold text-heritage-primary"
           >
             {initials(fullName)}
           </span>
           <span className="min-w-0">
             <b className="block truncate text-[0.875rem] font-semibold">{fullName}</b>
-            {role && <small className="text-[11.5px] text-[#e0c486]">{ROLE_LABELS[role]}</small>}
+            {role && (
+              <small className="text-[11.5px] text-heritage-gold-soft">{ROLE_LABELS[role]}</small>
+            )}
           </span>
         </div>
       }
@@ -180,7 +184,7 @@ function MobileTabs({
                     onClick={onNavigate}
                     aria-current={item.id === active ? "page" : undefined}
                     className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium ${
-                      item.id === active ? "bg-[#e5ede8] text-heritage-primary" : ""
+                      item.id === active ? "bg-heritage-primary-light text-heritage-primary" : ""
                     }`}
                   >
                     {Icon && <Icon className="size-[18px]" aria-hidden="true" />}
@@ -194,7 +198,7 @@ function MobileTabs({
       )}
       <nav
         aria-label="Điều hướng nhanh"
-        className="fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-5 border-t border-heritage-border bg-white lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 !mb-0 grid min-h-16 grid-cols-5 border-t border-heritage-border bg-heritage-surface pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_12px_rgba(11,41,30,0.06)] lg:hidden"
       >
         {main.map((item) => {
           const Icon = item.icon;
@@ -205,14 +209,14 @@ function MobileTabs({
               to={item.to!}
               onClick={onNavigate}
               aria-current={isActive ? "page" : undefined}
-              className={`relative flex flex-col items-center justify-center gap-0.5 text-[0.875rem] font-medium ${
+              className={`relative flex min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 text-center text-xs leading-tight font-medium ${
                 isActive ? "text-heritage-primary" : "text-heritage-muted"
               }`}
             >
               {Icon && <Icon className="size-5" aria-hidden="true" />}
               {item.label}
               {item.badge ? (
-                <span className="absolute right-[24%] top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-red-700 px-1 text-[0.875rem] font-bold text-white">
+                <span className="absolute right-[24%] top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-heritage-danger px-1 text-[0.875rem] font-bold text-white">
                   {item.badge}
                 </span>
               ) : null}
@@ -223,7 +227,7 @@ function MobileTabs({
           type="button"
           aria-expanded={moreOpen}
           onClick={onToggleMore}
-          className={`flex flex-col items-center justify-center gap-0.5 text-[0.875rem] font-medium ${
+          className={`flex min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 text-center text-xs leading-tight font-medium ${
             restActive || moreOpen ? "text-heritage-primary" : "text-heritage-muted"
           }`}
         >

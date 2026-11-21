@@ -129,7 +129,7 @@ export function RegisterForm({
       {isError && (
         <div
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          className="rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4 text-sm text-heritage-danger"
         >
           <AlertCircle aria-hidden="true" className="mr-2 inline size-4" />
           {getRegisterErrorMessage(error)}
@@ -139,12 +139,12 @@ export function RegisterForm({
       <div className="space-y-1 text-left">
         <label
           htmlFor="register-fullName"
-          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
+          className="text-sm font-medium text-heritage-primary dark:text-heritage-primary-light"
         >
           Họ và tên
         </label>
         <div className="relative">
-          <User className="w-4 h-4 text-[#728574] absolute left-3 top-1/2 -translate-y-1/2" />
+          <User className="w-4 h-4 text-heritage-subtle absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             id="register-fullName"
             aria-invalid={Boolean(errors.fullName)}
@@ -153,7 +153,7 @@ export function RegisterForm({
             disabled={isPending}
             {...register("fullName")}
             placeholder="Nguyễn Văn A"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
+            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-primary-hover border-heritage-primary-light dark:border-heritage-primary-hover"
           />
         </div>
         {errors.fullName && (
@@ -167,12 +167,12 @@ export function RegisterForm({
       <div className="space-y-1 text-left">
         <label
           htmlFor="register-email"
-          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
+          className="text-sm font-medium text-heritage-primary dark:text-heritage-primary-light"
         >
           Email
         </label>
         <div className="relative">
-          <Mail className="w-4 h-4 text-[#728574] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Mail className="w-4 h-4 text-heritage-subtle absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             id="register-email"
             aria-invalid={Boolean(errors.email)}
@@ -183,7 +183,7 @@ export function RegisterForm({
             {...register("email")}
             type="email"
             placeholder="owner@legacyvault.io"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
+            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-primary-hover border-heritage-primary-light dark:border-heritage-primary-hover"
           />
         </div>
         {lockedEmail && (
@@ -207,12 +207,12 @@ export function RegisterForm({
       <div className="space-y-1 text-left">
         <label
           htmlFor="register-phone"
-          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
+          className="text-sm font-medium text-heritage-primary dark:text-heritage-primary-light"
         >
           Số điện thoại
         </label>
         <div className="relative">
-          <Phone className="w-4 h-4 text-[#728574] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Phone className="w-4 h-4 text-heritage-subtle absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             id="register-phone"
             aria-invalid={Boolean(errors.phone)}
@@ -223,7 +223,7 @@ export function RegisterForm({
             {...register("phone")}
             type="tel"
             placeholder="0912 345 678"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
+            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-primary-hover border-heritage-primary-light dark:border-heritage-primary-hover"
           />
         </div>
         {!fromInvitation && (
@@ -242,12 +242,12 @@ export function RegisterForm({
       <div className="space-y-1 text-left">
         <label
           htmlFor="register-password"
-          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
+          className="text-sm font-medium text-heritage-primary dark:text-heritage-primary-light"
         >
           Mật khẩu
         </label>
         <div className="relative">
-          <Lock className="w-4 h-4 text-[#728574] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Lock className="w-4 h-4 text-heritage-subtle absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             id="register-password"
             aria-invalid={Boolean(errors.password)}
@@ -262,7 +262,7 @@ export function RegisterForm({
             onBlur={handlePasswordBlur}
             type={showPassword ? "text" : "password"}
             placeholder="Nhập mật khẩu"
-            className="pl-9 pr-12 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
+            className="pl-9 pr-12 h-12 text-sm rounded-xl bg-white dark:bg-heritage-primary-hover border-heritage-primary-light dark:border-heritage-primary-hover"
           />
           <button
             type="button"
@@ -270,7 +270,7 @@ export function RegisterForm({
             aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
             aria-pressed={showPassword}
             disabled={isPending}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-[#6B6B66] hover:text-[#0A281E] px-1 py-0.5 rounded focus-visible:outline-none"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-heritage-muted hover:text-heritage-primary px-1 py-0.5 rounded focus-visible:outline-none"
           >
             {showPassword ? "Ẩn" : "Hiện"}
           </button>
@@ -289,12 +289,12 @@ export function RegisterForm({
       <div className="space-y-1 text-left">
         <label
           htmlFor="register-confirmPassword"
-          className="text-sm font-medium text-[var(--heritage-primary,#0b291e)] dark:text-[#f3f7f4]"
+          className="text-sm font-medium text-heritage-primary dark:text-heritage-primary-light"
         >
           Xác nhận mật khẩu
         </label>
         <div className="relative">
-          <Lock className="w-4 h-4 text-[#728574] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Lock className="w-4 h-4 text-heritage-subtle absolute left-3 top-1/2 -translate-y-1/2" />
           <Input
             id="register-confirmPassword"
             aria-invalid={Boolean(errors.confirmPassword)}
@@ -304,7 +304,7 @@ export function RegisterForm({
             {...register("confirmPassword")}
             type={showPassword ? "text" : "password"}
             placeholder="Nhập lại mật khẩu"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-[#0c2217] border-[#d8e3d2] dark:border-[#1e422f]"
+            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-primary-hover border-heritage-primary-light dark:border-heritage-primary-hover"
           />
         </div>
         {errors.confirmPassword && (
@@ -318,7 +318,7 @@ export function RegisterForm({
       <Button
         type="submit"
         disabled={isPending}
-        className="w-full h-12 bg-[var(--heritage-primary,#0b291e)] hover:bg-[#143e2d] text-white font-medium text-sm rounded-xl shadow-xs mt-2"
+        className="w-full h-12 bg-heritage-primary hover:bg-heritage-primary-hover text-white font-medium text-sm rounded-xl shadow-xs mt-2"
       >
         {isPending ? "Đang khởi tạo tài khoản..." : "Tạo tài khoản"}
       </Button>

@@ -35,7 +35,7 @@ function HandoverHeader({
 /** Ghi chú pháp lý: file phân chia số chỉ áp dụng cho dữ liệu trong LegacyVault. */
 function LegacyDisclaimer() {
   return (
-    <div className="rounded-xl border border-[#fde68a] bg-[#fffbeb] px-4 py-3.5 text-sm leading-[1.55] text-[#78490b]">
+    <div className="rounded-xl border border-heritage-warning-border bg-heritage-warning-bg px-4 py-3.5 text-sm leading-[1.55] text-heritage-warning">
       <strong className="font-semibold">
         File phân chia số chỉ áp dụng cho dữ liệu trong LegacyVault.
       </strong>{" "}
@@ -159,8 +159,11 @@ export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
   }
   if (planQuery.isError) {
     return (
-      <div role="alert" className="space-y-3 rounded-2xl border border-red-200 bg-red-50 p-6">
-        <p className="text-sm text-red-800">Không tải được kế hoạch bàn giao.</p>
+      <div
+        role="alert"
+        className="space-y-3 rounded-2xl border border-heritage-danger-border bg-heritage-danger-bg p-6"
+      >
+        <p className="text-sm text-heritage-danger">Không tải được kế hoạch bàn giao.</p>
         <Button
           variant="outline"
           disabled={planQuery.isFetching}

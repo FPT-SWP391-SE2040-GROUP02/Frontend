@@ -219,13 +219,13 @@ export function LoginForm({
       {isVerifiedBanner && (
         <div
           role="status"
-          className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 space-y-1 text-left"
+          className="p-4 rounded-2xl bg-heritage-success-bg border border-heritage-success-border text-heritage-success space-y-1 text-left"
         >
-          <div className="flex items-center gap-2 font-semibold text-sm text-emerald-900">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+          <div className="flex items-center gap-2 font-semibold text-sm text-heritage-success">
+            <CheckCircle2 className="w-5 h-5 text-heritage-success flex-shrink-0" />
             <span>Xác minh email thành công!</span>
           </div>
-          <p className="text-sm text-emerald-800 leading-relaxed pl-7">
+          <p className="text-sm text-heritage-success leading-relaxed pl-7">
             Địa chỉ email của bạn đã được kích hoạt. Vui lòng nhập mật khẩu để đăng nhập vào tài
             khoản.
           </p>
@@ -234,12 +234,12 @@ export function LoginForm({
 
       {/* 1b. KHỐI NGỮ CẢNH LỜI MỜI NHẬN DI SẢN (Mockup 4) */}
       {invitationContext && (
-        <div className="p-4 rounded-2xl bg-[#EAF2ED] border border-[#C5DCD0] text-[#0A281E] space-y-2">
+        <div className="p-4 rounded-2xl bg-heritage-primary-light border border-heritage-primary-light text-heritage-primary space-y-2">
           <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-[#0A281E] flex-shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-heritage-primary flex-shrink-0 mt-0.5" />
             <div className="text-sm leading-relaxed space-y-1">
               <p className="font-semibold text-sm">Bạn đang mở liên kết lời mời.</p>
-              <p className="text-[#3F5B4E]">
+              <p className="text-heritage-muted">
                 Đăng nhập để tiếp tục. Thông tin và hiệu lực lời mời cần được hệ thống xác minh.
               </p>
             </div>
@@ -249,14 +249,14 @@ export function LoginForm({
 
       {/* 2. KHỐI TIÊU ĐỀ CHÍNH */}
       <div className="space-y-1 text-left">
-        <h1 className="font-serif text-2xl sm:text-3xl font-normal text-[#0F1A16]">
+        <h1 className="font-serif text-2xl sm:text-3xl font-normal text-heritage-text">
           {adminOnly
             ? "Đăng nhập quản trị"
             : invitationContext
               ? "Đăng nhập để tiếp tục"
               : "Đăng nhập"}
         </h1>
-        <p className="text-sm sm:text-sm text-[#6B6B66]">
+        <p className="text-sm sm:text-sm text-heritage-muted">
           {adminOnly
             ? "Hệ thống đang bảo trì. Chỉ tài khoản Quản trị viên được đăng nhập."
             : invitationContext
@@ -268,7 +268,7 @@ export function LoginForm({
       {(isError || maintenanceDenied) && (
         <div
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          className="rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4 text-sm text-heritage-danger"
         >
           <AlertCircle aria-hidden="true" className="mr-2 inline size-4" />
           {maintenanceDenied
@@ -284,15 +284,15 @@ export function LoginForm({
         <>
           <GoogleSignInButton disabled={isPending} onCredential={handleGoogleCredential} />
           {google.isError && (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="text-sm text-heritage-danger">
               {getGoogleErrorMessage(google.error)}
             </p>
           )}
 
           {/* Dải phân cách hoặc dùng email */}
           <div className="relative flex items-center justify-center">
-            <div className="w-full border-t border-[#E5E5DF]"></div>
-            <span className="absolute bg-[#FAFAF6] px-3 text-[0.875rem] text-[#8C8C85]">
+            <div className="w-full border-t border-heritage-sunken"></div>
+            <span className="absolute bg-heritage-surface px-3 text-[0.875rem] text-heritage-subtle">
               hoặc dùng email
             </span>
           </div>
@@ -303,11 +303,11 @@ export function LoginForm({
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {/* Email Field */}
         <div className="space-y-1.5 text-left">
-          <label htmlFor="login-email" className="text-sm font-semibold text-[#0F1A16]">
+          <label htmlFor="login-email" className="text-sm font-semibold text-heritage-text">
             Email
           </label>
           <div className="relative">
-            <Mail className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Mail className="w-4 h-4 text-heritage-subtle absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
               id="login-email"
               autoComplete="username"
@@ -317,8 +317,8 @@ export function LoginForm({
               type="email"
               placeholder="nam@example.com"
               disabled={isPending}
-              className={`pl-10 h-11 text-sm rounded-xl bg-white border-[#D5D0C3] focus-visible:border-[#0A281E] ${
-                errors.email ? "border-red-500" : ""
+              className={`pl-10 h-11 text-sm rounded-xl bg-white border-heritage-border-strong focus-visible:border-heritage-primary ${
+                errors.email ? "border-heritage-danger" : ""
               }`}
             />
           </div>
@@ -326,7 +326,7 @@ export function LoginForm({
             <p
               id="login-email-error"
               role="alert"
-              className="text-[0.875rem] text-red-600 font-medium"
+              className="text-[0.875rem] text-heritage-danger font-medium"
             >
               {errors.email.message}
             </p>
@@ -336,20 +336,20 @@ export function LoginForm({
         {/* Password Field */}
         <div className="space-y-1.5 text-left">
           <div className="flex justify-between items-baseline">
-            <label htmlFor="login-password" className="text-sm font-semibold text-[#0F1A16]">
+            <label htmlFor="login-password" className="text-sm font-semibold text-heritage-text">
               Mật khẩu
             </label>
             {!adminOnly && (
               <Link
                 to={ROUTES.AUTH.FORGOT_PASSWORD}
-                className="text-[0.875rem] text-[#B88E4C] hover:underline font-semibold"
+                className="text-[0.875rem] text-heritage-gold hover:underline font-semibold"
               >
                 Quên mật khẩu?
               </Link>
             )}
           </div>
           <div className="relative">
-            <Lock className="w-4 h-4 text-[#8C8C85] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Lock className="w-4 h-4 text-heritage-subtle absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
               id="login-password"
               autoComplete="current-password"
@@ -359,8 +359,8 @@ export function LoginForm({
               type={showPassword ? "text" : "password"}
               placeholder="Nhập mật khẩu của bạn"
               disabled={isPending}
-              className={`pl-10 pr-12 h-11 text-sm rounded-xl bg-white border-[#D5D0C3] focus-visible:border-[#0A281E] ${
-                errors.password ? "border-red-400" : ""
+              className={`pl-10 pr-12 h-11 text-sm rounded-xl bg-white border-heritage-border-strong focus-visible:border-heritage-primary ${
+                errors.password ? "border-heritage-danger" : ""
               }`}
             />
             <button
@@ -369,7 +369,7 @@ export function LoginForm({
               aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               aria-pressed={showPassword}
               disabled={isPending}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-[#6B6B66] hover:text-[#0A281E] px-1 py-0.5 rounded focus-visible:outline-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-heritage-muted hover:text-heritage-primary px-1 py-0.5 rounded focus-visible:outline-none"
             >
               {showPassword ? "Ẩn" : "Hiện"}
             </button>
@@ -378,7 +378,7 @@ export function LoginForm({
             <p
               id="login-password-error"
               role="alert"
-              className="text-[0.875rem] text-red-600 font-medium"
+              className="text-[0.875rem] text-heritage-danger font-medium"
             >
               {errors.password.message}
             </p>
@@ -389,7 +389,7 @@ export function LoginForm({
         <Button
           type="submit"
           disabled={isPending}
-          className="w-full h-11 rounded-xl bg-[#0A281E] hover:bg-[#133E2F] text-[#FAFAF6] text-sm font-semibold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+          className="w-full h-11 rounded-xl bg-heritage-primary hover:bg-heritage-primary-hover text-heritage-surface text-sm font-semibold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
         >
           {isPending ? (
             <span>Đang xác thực...</span>
@@ -410,20 +410,23 @@ export function LoginForm({
           type="button"
           onClick={onPasskeyClick}
           disabled={isPending}
-          className="text-sm text-[#0A281E] hover:underline font-semibold block mx-auto pt-1"
+          className="text-sm text-heritage-primary hover:underline font-semibold block mx-auto pt-1"
         >
           Hoặc đăng nhập nhanh bằng Passkey / FaceID
         </button>
       )}
 
       {/* 8. CHUYỂN HƯỚNG TẠO TÀI KHOẢN MỚI (không có ở lối quản trị: tài khoản Admin chỉ tạo trên hệ thống) */}
-      <div hidden={adminOnly} className="pt-4 border-t border-[#E5E5DF] text-sm text-[#6B6B66]">
+      <div
+        hidden={adminOnly}
+        className="pt-4 border-t border-heritage-sunken text-sm text-heritage-muted"
+      >
         {invitationContext ? (
           <p>
             Chưa có tài khoản?{" "}
             <Link
               to={`${ROUTES.AUTH.REGISTER}?invitation=${encodeURIComponent(invitationContext.token)}`}
-              className="text-[#0A281E] font-bold hover:underline"
+              className="text-heritage-primary font-bold hover:underline"
             >
               Tạo tài khoản để nhận
             </Link>
@@ -433,7 +436,7 @@ export function LoginForm({
             Chưa có tài khoản?{" "}
             <Link
               to={fromReceive ? registerFromReceive : ROUTES.AUTH.REGISTER}
-              className="text-[#0A281E] font-bold hover:underline"
+              className="text-heritage-primary font-bold hover:underline"
             >
               {fromReceive ? "Tạo tài khoản" : "Tạo kho miễn phí"}
             </Link>

@@ -91,7 +91,7 @@ export function AddGroupMembersDialog({
   let footer = null;
   if (relation === "beneficiaries") {
     footer = (
-      <Link to={ROUTES.DASHBOARD.BENEFICIARIES} className="text-[#0A281E] hover:underline">
+      <Link to={ROUTES.DASHBOARD.BENEFICIARIES} className="text-heritage-primary hover:underline">
         + Thêm người nhận mới
       </Link>
     );
@@ -104,9 +104,9 @@ export function AddGroupMembersDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
-      <DialogContent className="bg-[#FBFAF5] p-6 sm:max-w-md">
+      <DialogContent className="bg-heritage-surface p-6 sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-[#0A281E]">{title}</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-heritage-primary">{title}</DialogTitle>
           <DialogDescription>Gói “{group.name}”.</DialogDescription>
         </DialogHeader>
         <MemberPicker

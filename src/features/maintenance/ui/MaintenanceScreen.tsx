@@ -31,11 +31,11 @@ export function MaintenanceScreen({ status }: MaintenanceScreenProps) {
     : null;
 
   return (
-    <div className="maintenance-surface relative flex min-h-screen flex-col overflow-hidden px-[clamp(24px,5vw,72px)] py-8 font-sans text-[#EFECE3]">
+    <div className="maintenance-surface relative flex min-h-screen flex-col overflow-hidden px-[clamp(24px,5vw,72px)] py-8 font-sans text-heritage-canvas">
       <MaintenanceBackdrop />
 
       <header className="relative z-10 flex items-center gap-3">
-        <LegacyVaultMark className="size-10 text-[#EFECE3]" />
+        <LegacyVaultMark className="size-10 text-heritage-canvas" />
         <span className="text-[22px] font-semibold">{content.brand}</span>
       </header>
 
@@ -49,12 +49,12 @@ export function MaintenanceScreen({ status }: MaintenanceScreenProps) {
           className="flex w-full max-w-[500px] flex-col gap-4"
         >
           <span
-            className="maintenance-rise inline-flex items-center gap-2 self-start rounded-full border border-[#E0C486] px-3.5 py-1.5 text-sm font-semibold text-[#E0C486]"
+            className="maintenance-rise inline-flex items-center gap-2 self-start rounded-full border border-heritage-gold-soft px-3.5 py-1.5 text-sm font-semibold text-heritage-gold-soft"
             style={rise(80)}
           >
             <span className="relative flex size-2" aria-hidden="true">
-              <span className="absolute inline-flex size-full rounded-full bg-[#E0C486] opacity-75 motion-safe:animate-ping" />
-              <span className="relative inline-flex size-2 rounded-full bg-[#E0C486]" />
+              <span className="absolute inline-flex size-full rounded-full bg-heritage-gold-soft opacity-75 motion-safe:animate-ping" />
+              <span className="relative inline-flex size-2 rounded-full bg-heritage-gold-soft" />
             </span>
             {content.statusPill}
           </span>
@@ -67,14 +67,17 @@ export function MaintenanceScreen({ status }: MaintenanceScreenProps) {
             {content.title}
           </h1>
 
-          <p className="maintenance-rise m-0 text-[17px] text-[#C5D1CA]" style={rise(240)}>
+          <p
+            className="maintenance-rise m-0 text-[17px] text-heritage-primary-light"
+            style={rise(240)}
+          >
             {content.description}
           </p>
 
           <div
             role="progressbar"
             aria-label={content.progressLabel}
-            className="maintenance-rise h-2.5 overflow-hidden rounded-full bg-[#2F5E4D]"
+            className="maintenance-rise h-2.5 overflow-hidden rounded-full bg-heritage-primary-hover"
             style={rise(320)}
           >
             <div className="maintenance-stripes h-full" />
@@ -88,11 +91,11 @@ export function MaintenanceScreen({ status }: MaintenanceScreenProps) {
               type="button"
               onClick={status.recheck}
               disabled={status.isChecking}
-              className="inline-flex min-h-[50px] min-w-[168px] cursor-pointer items-center justify-center rounded-[10px] bg-[#E0C486] px-7 text-base font-bold text-[#0A281E] transition-colors hover:bg-[#EAD3A0] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#B68F4C] disabled:cursor-wait disabled:opacity-80"
+              className="inline-flex min-h-[50px] min-w-[168px] cursor-pointer items-center justify-center rounded-[10px] bg-heritage-gold-soft px-7 text-base font-bold text-heritage-primary transition-colors hover:brightness-95 focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-heritage-gold disabled:cursor-wait disabled:opacity-80"
             >
               {status.isChecking ? content.checking : content.recheck}
             </button>
-            <p className="m-0 text-[0.875rem] text-[#9DB0A5]" aria-live="polite">
+            <p className="m-0 text-[0.875rem] text-heritage-subtle" aria-live="polite">
               {content.autoRecheck(MAINTENANCE_RECHECK_MS / 1000)}
               {lastChecked && ` · ${content.lastChecked} ${lastChecked}`}
             </p>
@@ -100,13 +103,13 @@ export function MaintenanceScreen({ status }: MaintenanceScreenProps) {
         </section>
       </main>
 
-      <footer className="relative z-10 flex flex-wrap items-center justify-between gap-3 text-[0.875rem] text-[#9DB0A5]">
+      <footer className="relative z-10 flex flex-wrap items-center justify-between gap-3 text-[0.875rem] text-heritage-subtle">
         <span>{content.note}</span>
         <span>
           {content.adminPrompt}{" "}
           <Link
             to={MAINTENANCE_ADMIN_LOGIN_HREF}
-            className="font-semibold text-[#E0C486] underline-offset-4 hover:underline focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#B68F4C]"
+            className="font-semibold text-heritage-gold-soft underline-offset-4 hover:underline focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-heritage-gold"
           >
             {content.adminLogin}
           </Link>

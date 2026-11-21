@@ -77,15 +77,15 @@ export function EkycReviewForm({
   const addressMissing = !defaults.residenceAddress && !suggestedAddress;
 
   let statusChip = "Chờ xác nhận";
-  let statusStyle = "bg-[#F1E7D0] text-[#7A5B24]";
+  let statusStyle = "bg-heritage-warning-bg text-heritage-warning";
   if (confirmed) {
     statusChip = "Đã gửi";
-    statusStyle = "bg-green-100 text-green-800";
+    statusStyle = "bg-heritage-success-bg text-heritage-success";
   }
 
   // Chủ kho sửa được họ tên, ngày sinh cho đến khi đã gửi; số căn cước luôn khóa theo bản máy đọc.
   const nameAndBirthLocked = confirmed;
-  const lockedStyle = "bg-[#F4F1E6]";
+  const lockedStyle = "bg-heritage-sunken";
   let birthClass = "min-h-11 w-full min-w-0";
   if (nameAndBirthLocked) birthClass = `${birthClass} ${lockedStyle}`;
 
@@ -293,7 +293,7 @@ export function EkycReviewForm({
               <Button
                 type="submit"
                 size="lg"
-                className="flex-1 justify-between bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+                className="flex-1 justify-between bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover"
                 disabled={!document.canMatchFace || !document.verificationId || !backSent}
                 aria-describedby={backSent ? undefined : `${prefix}-back-required`}
               >

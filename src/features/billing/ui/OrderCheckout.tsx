@@ -122,7 +122,7 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
   }
   let timerStyle = "text-heritage-primary";
   if (left <= 60) {
-    timerStyle = "text-red-700";
+    timerStyle = "text-heritage-danger";
   }
 
   return (
@@ -150,7 +150,7 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
             <h2 className="text-xl font-medium text-heritage-primary">Thông tin chuyển khoản</h2>
             <p className="mt-1 text-sm text-heritage-muted">{intro}</p>
           </div>
-          <div className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-[#7A5B24]">
+          <div className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-heritage-warning">
             <p className="text-sm">Số tiền cần chuyển</p>
             <p className="text-3xl font-semibold">{referenceMoney.format(order.totalAmount)}</p>
           </div>
@@ -189,7 +189,7 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
           <Button
             type="button"
             size="lg"
-            className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+            className="bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover"
             disabled={devPay.pending || cancel.pending}
             onClick={() =>
               void devPay.execute(
@@ -212,7 +212,7 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
             type="button"
             variant="outline"
             size="lg"
-            className="border-red-300 text-red-700 hover:bg-red-50"
+            className="border-heritage-danger-border text-heritage-danger hover:bg-heritage-danger-bg"
             disabled={devPay.pending || cancel.pending}
             onClick={() => setConfirmingCancel(true)}
           >
@@ -225,7 +225,7 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
             <Button
               type="button"
               size="lg"
-              className="bg-red-700 text-white hover:bg-red-800"
+              className="bg-heritage-danger text-white hover:brightness-95"
               disabled={cancel.pending}
               onClick={() =>
                 void cancel.execute(() => billingService.cancelOrder(order.id), publish)

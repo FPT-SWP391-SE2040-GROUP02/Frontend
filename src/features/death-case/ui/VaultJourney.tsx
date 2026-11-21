@@ -5,14 +5,14 @@ import { vaultJourney, type RecordStatus, type JourneyState } from "../model/exe
 import type { HandoverProgress } from "../model/handoverProgress.schema";
 
 const circleStyles: Record<JourneyState, string> = {
-  done: "border-[#1F7A55] bg-[#1F7A55] text-white",
-  current: "border-[#C9A55C] bg-[#E0C486] text-[#0A281E]",
-  pending: "border-[#BDB8A6] bg-white text-heritage-muted",
+  done: "border-heritage-success bg-heritage-success text-white",
+  current: "border-heritage-gold bg-heritage-gold-soft text-heritage-primary",
+  pending: "border-heritage-border-strong bg-white text-heritage-muted",
 };
 
 const captionStyles: Record<JourneyState, string> = {
-  done: "text-[#1F7A55]",
-  current: "text-[#7A5B25]",
+  done: "text-heritage-success",
+  current: "text-heritage-warning",
   pending: "text-heritage-muted",
 };
 

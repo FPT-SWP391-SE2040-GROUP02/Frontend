@@ -40,10 +40,11 @@ export function PublicInfoLayout({
   const tabs: ReactNode[] = [];
   for (const link of INFO_LINKS) {
     let current: "page" | undefined;
-    let style = "border-[#E6C98B]/30 text-[#F3EFE6]/80 hover:border-[#E6C98B] hover:text-[#E6C98B]";
+    let style =
+      "border-heritage-gold-soft/30 text-heritage-sunken/80 hover:border-heritage-gold-soft hover:text-heritage-gold-soft";
     if (link.to === currentPath) {
       current = "page";
-      style = "border-[#E6C98B] bg-[#E6C98B]/10 text-[#E6C98B]";
+      style = "border-heritage-gold-soft bg-heritage-gold-soft/10 text-heritage-gold-soft";
     }
     tabs.push(
       <Link
@@ -58,15 +59,17 @@ export function PublicInfoLayout({
   }
 
   return (
-    <div id="top" className="min-h-screen bg-[#EFECE6] font-sans text-[#14241C]">
-      <section className="relative overflow-hidden bg-[#0A281E] text-[#F3EFE6]">
+    <div id="top" className="min-h-screen bg-heritage-canvas font-sans text-heritage-text">
+      <section className="relative overflow-hidden bg-heritage-primary text-heritage-sunken">
         <AnimatedGuilloche className="pointer-events-none absolute -right-24 top-4 size-80 opacity-40 sm:size-[26rem]" />
         <div className="relative">
           <LandingHeader onLanding={false} />
           <div className="mx-auto max-w-6xl px-4 pb-14 pt-8 sm:px-8">
-            <p className={`${HEADING} text-base italic text-[#E6C98B]`}>{eyebrow}</p>
+            <p className={`${HEADING} text-base italic text-heritage-gold-soft`}>{eyebrow}</p>
             <h1 className={`${HEADING} mt-2 text-4xl leading-tight sm:text-6xl`}>{title}</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-[#F3EFE6]/80">{description}</p>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-heritage-sunken/80">
+              {description}
+            </p>
             <nav aria-label={common.navLabel} className="mt-8 flex flex-wrap gap-3">
               {tabs}
             </nav>
@@ -94,7 +97,7 @@ export function LegalSections({ sections }: { sections: readonly LegalSection[] 
     const paragraphs: ReactNode[] = [];
     for (const paragraph of section.paragraphs) {
       paragraphs.push(
-        <p key={paragraph} className="mt-3 text-base leading-7 text-[#33463C]">
+        <p key={paragraph} className="mt-3 text-base leading-7 text-heritage-text">
           {paragraph}
         </p>,
       );
@@ -106,7 +109,9 @@ export function LegalSections({ sections }: { sections: readonly LegalSection[] 
         rows.push(<li key={bullet}>{bullet}</li>);
       }
       bullets = (
-        <ul className="mt-3 list-disc space-y-2 pl-6 text-base leading-7 text-[#33463C]">{rows}</ul>
+        <ul className="mt-3 list-disc space-y-2 pl-6 text-base leading-7 text-heritage-text">
+          {rows}
+        </ul>
       );
     }
     blocks.push(
@@ -115,7 +120,7 @@ export function LegalSections({ sections }: { sections: readonly LegalSection[] 
         aria-labelledby={`legal-${section.title}`}
         className="mt-10 first:mt-0"
       >
-        <h2 id={`legal-${section.title}`} className={`${HEADING} text-2xl text-[#0A281E]`}>
+        <h2 id={`legal-${section.title}`} className={`${HEADING} text-2xl text-heritage-primary`}>
           {section.title}
         </h2>
         {paragraphs}

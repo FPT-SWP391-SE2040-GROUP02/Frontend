@@ -80,8 +80,11 @@ function AssetCreatePanel({
 /** Hiển thị lỗi có đường phục hồi; không chuyển lỗi API thành empty/zero. */
 function QueryError({ retry, pending }: { retry: () => void; pending: boolean }) {
   return (
-    <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-6">
-      <p className="text-sm text-red-800">Không tải được dữ liệu. Vui lòng thử lại.</p>
+    <div
+      role="alert"
+      className="rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-6"
+    >
+      <p className="text-sm text-heritage-danger">Không tải được dữ liệu. Vui lòng thử lại.</p>
       <Button variant="outline" disabled={pending} onClick={retry} className="mt-4 min-h-11">
         Thử lại
       </Button>
@@ -161,10 +164,10 @@ export function OwnerSection({
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={usedPercent}
-            className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-[#ECE8DB]"
+            className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-heritage-sunken"
           >
             <div
-              className="h-full rounded-full bg-[#0A281E] transition-all"
+              className="h-full rounded-full bg-heritage-primary transition-all"
               style={{ width: `${usedPercent}%` }}
             />
           </div>

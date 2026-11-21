@@ -203,7 +203,7 @@ export function OwnerWorkspace({
             <Link
               to={ROUTES.DASHBOARD.INVITATIONS}
               aria-current={path === ROUTES.DASHBOARD.INVITATIONS ? "page" : undefined}
-              className="mb-3 flex min-h-11 items-center gap-2 rounded-lg border border-[#E0C486]/60 bg-white/5 px-3 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+              className="mb-3 flex min-h-11 items-center gap-2 rounded-lg border border-heritage-gold-soft/60 bg-white/5 px-3 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
             >
               <Mail className="size-4 shrink-0" aria-hidden="true" />
               Lời mời
@@ -213,24 +213,24 @@ export function OwnerWorkspace({
           {showSwitchRole && (
             <Link
               to={ROUTES.EXECUTOR.ROOT}
-              className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#E0C486] px-3 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+              className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-heritage-gold-soft px-3 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
             >
               <ArrowLeftRight className="size-4 shrink-0" aria-hidden="true" />
               Sang vai Người thực thi
             </Link>
           )}
-          <SwitchToRecipientLink className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#E0C486] px-3 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold" />
+          <SwitchToRecipientLink className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-heritage-gold-soft px-3 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold" />
           <div className="flex items-center gap-3">
             <UserAvatar
               user={user}
               fallbackLetter="T"
-              className="size-10 bg-[#E0C486] text-[#0A281E]"
+              className="size-10 bg-heritage-gold-soft text-heritage-primary"
             />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-white">
                 {user?.fullName ?? "Tài khoản"}
               </p>
-              <p className="text-sm text-[#E6C98B]">Chủ kho</p>
+              <p className="text-sm text-heritage-gold-soft">Chủ kho</p>
               {showOwnerService && (
                 <div className="mt-1">
                   <OwnerServiceTier key={user.id} />
@@ -270,7 +270,7 @@ export function InvitationCountBadge({ count }: { count: number }) {
   return (
     <span
       aria-label={`${count} lời mời đang chờ`}
-      className="ml-auto rounded-full bg-[#E0C486] px-2 py-0.5 text-sm font-semibold text-[#0A281E]"
+      className="ml-auto rounded-full bg-heritage-gold-soft px-2 py-0.5 text-sm font-semibold text-heritage-primary"
     >
       {count}
     </span>
