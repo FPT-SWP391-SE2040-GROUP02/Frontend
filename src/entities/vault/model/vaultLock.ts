@@ -2,11 +2,11 @@ import { VAULT_PLAN_STATUS } from "./vault.types";
 
 /**
  * Lý do kho đang bị khóa với Chủ kho, theo trạng thái kế hoạch. Khớp VaultRules.GetNotEditableReason của Backend:
- * từ lúc Người thực thi mở bàn giao thì mọi thao tác thay đổi kho đều bị từ chối.
+ * từ lúc người nhận gửi yêu cầu nhận tài sản thì mọi thao tác thay đổi kho đều bị từ chối.
  */
 const LOCK_REASONS: Record<string, string> = {
   [VAULT_PLAN_STATUS.HANDOVER_REQUESTED]:
-    "Người thực thi đã mở bàn giao nên kho đang bị khóa trong lúc luật sư lập biên bản bàn giao.",
+    "Có người nhận gửi yêu cầu nhận tài sản nên kho đang bị khóa trong lúc luật sư xét giấy tờ và lập biên bản.",
   [VAULT_PLAN_STATUS.HANDOVER_IN_PROGRESS]: "Kế hoạch đang bàn giao nên kho không thay đổi được.",
   [VAULT_PLAN_STATUS.BLOCKED]: "Kế hoạch đang bị chặn nên kho không thay đổi được.",
   [VAULT_PLAN_STATUS.CLOSED]: "Kế hoạch đã đóng nên kho không thay đổi được.",

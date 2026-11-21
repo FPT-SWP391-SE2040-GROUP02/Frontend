@@ -527,7 +527,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     expect(await screen.findByText("Kho của Cô Lan", { selector: "p" })).toBeInTheDocument();
     expect(screen.getByText("Bạn nhận vai ngày 01/10/2026")).toBeInTheDocument();
     // Chip trạng thái ở dòng kho và ở menu trái.
-    expect(screen.getAllByText("Chưa mở bàn giao").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Chưa có yêu cầu nhận").length).toBeGreaterThan(0);
   });
 
   it("kho đang mở hiện chip Đang mở thay cho nút; kho khác có Mở kho, bấm thì chọn kho (chỗ duy nhất đổi kho)", async () => {

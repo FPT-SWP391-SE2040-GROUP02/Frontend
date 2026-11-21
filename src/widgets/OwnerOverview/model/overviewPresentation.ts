@@ -5,12 +5,12 @@ const planLabels: Record<string, { title: string; description: string }> = {
   },
   ACTIVE: {
     title: "Kế hoạch đang hoạt động",
-    description: "Tiếp tục sắp xếp kho. Khi cần, Người thực thi sẽ mở bàn giao.",
+    description: "Tiếp tục sắp xếp kho. Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ.",
   },
   HANDOVER_REQUESTED: {
-    title: "Kho đã mở bàn giao",
+    title: "Có yêu cầu nhận tài sản",
     description:
-      "Người thực thi đã mở bàn giao, kho đang bị khóa trong lúc luật sư lập biên bản bàn giao.",
+      "Có người nhận gửi yêu cầu nhận tài sản, kho đang bị khóa trong lúc luật sư xét giấy tờ và lập biên bản.",
   },
   HANDOVER_IN_PROGRESS: {
     title: "Kế hoạch đang trong quá trình bàn giao",

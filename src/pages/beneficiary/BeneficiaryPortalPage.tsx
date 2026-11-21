@@ -4,6 +4,7 @@ import { handoverService } from "@/features/handover/api/handoverService";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { RecipientLayout } from "@/widgets/RecipientLayout/RecipientLayout";
 import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
+import { MyClaimsPanel } from "@/features/handover-request";
 /** Không giả lập grant, nội dung bàn giao hoặc phiên người nhận. */
 export function BeneficiaryPortalPage() {
   const accountName = useSelector((state: { auth: AuthState }) => state.auth.user?.fullName);
@@ -25,6 +26,7 @@ export function BeneficiaryPortalPage() {
           Theo dõi các bước và nội dung bạn được phép tiếp nhận.
         </p>
       </header>
+      <MyClaimsPanel />
       <HandoverPortal />
     </RecipientLayout>
   );

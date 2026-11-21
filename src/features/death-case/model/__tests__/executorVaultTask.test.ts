@@ -13,10 +13,10 @@ function vault(overrides: Partial<ExecutorVault> = {}): ExecutorVault {
 }
 
 describe("vaultTask", () => {
-  it("chưa mở bàn giao: chưa cần làm gì", () => {
+  it("chưa có yêu cầu nhận: chưa cần làm gì", () => {
     const task = vaultTask(vault());
     expect(task.urgency).toBe("safe");
-    expect(task.label).toBe("Chưa mở bàn giao");
+    expect(task.label).toBe("Chưa có yêu cầu nhận");
     expect(task.task).toBeNull();
   });
 
@@ -28,7 +28,7 @@ describe("vaultTask", () => {
     ).toBe("Gửi mã nhận");
   });
 
-  it("kho cần ký đứng trước kho đang lập biên bản, kho chưa mở bàn giao đứng cuối", () => {
+  it("kho cần ký đứng trước kho đang lập biên bản, kho chưa có yêu cầu nhận đứng cuối", () => {
     const safe = vault({ vaultId: "a1111111-1111-4111-8111-111111111111" });
     const drafting = vault({
       vaultId: "b1111111-1111-4111-8111-111111111111",

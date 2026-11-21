@@ -6,7 +6,7 @@ import type { Tone } from "@/shared/ui/heritageKit";
 const planStatusLabels: Record<string, string> = {
   DRAFT: "Đang thiết lập",
   ACTIVE: "Đang hoạt động",
-  HANDOVER_REQUESTED: "Đã mở bàn giao",
+  HANDOVER_REQUESTED: "Có yêu cầu nhận",
   HANDOVER_IN_PROGRESS: "Đang bàn giao",
   CLOSED: "Đã hoàn tất",
   BLOCKED: "Đang tạm giữ",

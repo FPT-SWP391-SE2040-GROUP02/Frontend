@@ -62,8 +62,8 @@ export function deriveNotifications(
     events.push({
       id: `opened:${record.id}`,
       at: record.requestedAt,
-      text: "Bạn đã mở bàn giao.",
-      title: "Bạn đã mở bàn giao",
+      text: "Người nhận đã gửi yêu cầu nhận tài sản. Luật sư đang xét giấy tờ.",
+      title: "Có yêu cầu nhận tài sản",
       tone: "info",
     });
     if (record.finalizedAt) {

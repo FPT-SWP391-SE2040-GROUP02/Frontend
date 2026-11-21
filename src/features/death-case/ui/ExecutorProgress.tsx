@@ -9,7 +9,7 @@ import { HandoverProgressPanel } from "./HandoverProgressPanel";
 function notStartedText(status: string | null): string {
   if (status === "DRAFTING")
     return "Luật sư đang lập biên bản. Danh sách người nhận hiện ở đây sau khi biên bản được chốt.";
-  return "Chưa mở bàn giao. Vào mục Biên bản bàn giao để mở khi Chủ kho đã qua đời.";
+  return "Chưa có yêu cầu nhận tài sản. Khi người nhận gửi yêu cầu và biên bản đủ chữ ký, tiến độ hiện ở đây.";
 }
 
 /**

@@ -651,8 +651,8 @@ export function GroupDetail({
               <DialogTitle>{impact.title}</DialogTitle>
               <DialogDescription>
                 Đây là gói bàn giao Sẵn sàng cuối cùng. Thao tác này sẽ đưa kế hoạch về Nháp và
-                Người thực thi phải chấp nhận lại lời mời. Họ không mở bàn giao được cho tới khi bạn
-                kích hoạt lại kế hoạch.
+                Người thực thi phải chấp nhận lại lời mời. Người nhận không gửi yêu cầu nhận được
+                cho tới khi bạn kích hoạt lại kế hoạch.
               </DialogDescription>
             </DialogHeader>
             {action.error && (

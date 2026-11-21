@@ -15,7 +15,7 @@ import { useExecutorSigning } from "../model/useExecutorSigning";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
 const capabilities = [
-  "Mở bàn giao khi Chủ kho qua đời",
+  "Nhận thông báo khi người nhận gửi yêu cầu nhận tài sản",
   "Theo dõi tiến trình bàn giao",
   "Không đọc được nội dung kho",
 ];

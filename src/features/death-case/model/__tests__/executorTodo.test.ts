@@ -75,7 +75,7 @@ const input = (overrides: Partial<Parameters<typeof executorTodo>[0]> = {}) => (
 
 describe("vaultStage", () => {
   it("theo bước của biên bản bàn giao", () => {
-    expect(vaultStage(vault()).label).toBe("Chưa mở bàn giao");
+    expect(vaultStage(vault()).label).toBe("Chưa có yêu cầu nhận");
     expect(vaultStage(vault({ handoverRecordStatus: "DRAFTING" })).label).toBe(
       "Luật sư đang lập biên bản",
     );
@@ -88,9 +88,9 @@ describe("vaultStage", () => {
 });
 
 describe("executorTodo", () => {
-  it("chưa mở bàn giao: dẫn tới mục Biên bản bàn giao", () => {
+  it("chưa có yêu cầu nhận: dẫn tới mục Biên bản bàn giao", () => {
     const todo = executorTodo(input());
-    expect(todo.title).toBe("Mở bàn giao khi Chủ kho qua đời");
+    expect(todo.title).toBe("Chưa có yêu cầu nhận tài sản");
     expect(todo.to).toBe("/executor/report");
   });
 
@@ -134,10 +134,10 @@ describe("executorTodo", () => {
 });
 
 describe("vaultJourney", () => {
-  it("ba bước: mở bàn giao, biên bản, bàn giao cho người nhận", () => {
+  it("ba bước: yêu cầu nhận, biên bản, bàn giao cho người nhận", () => {
     const steps = vaultJourney(vault(), "", null);
     expect(steps.map((step) => step.label)).toEqual([
-      "Mở bàn giao",
+      "Yêu cầu nhận",
       "Biên bản bàn giao",
       "Bàn giao cho người nhận",
     ]);

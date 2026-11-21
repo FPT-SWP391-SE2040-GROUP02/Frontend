@@ -50,7 +50,7 @@ const handoverNotAllowedReasons: Record<string, string> = {
   NO_KEY: "Kho này chưa cấp khóa mở gói nên chưa có khóa để gửi.",
   KEY_SEND_FAILED: "Chưa gửi được khóa. Vui lòng thử lại sau.",
   HANDOVER_NOT_STARTED: "Chỉ xem được sau khi luật sư chốt biên bản bàn giao.",
-  PLAN_NOT_ACTIVE: "Kho chưa kích hoạt nên chưa mở bàn giao được.",
+  PLAN_NOT_ACTIVE: "Kho chưa kích hoạt kế hoạch bàn giao nên chưa nhận yêu cầu.",
   NO_VERIFIER: "Hiện chưa có luật sư nào nhận được hồ sơ này. Vui lòng thử lại sau.",
   NO_OWNER_SPLIT: "Chủ kho chưa lập file phân chia. Hãy tự chọn người nhận cho từng tài sản.",
   RECORD_INVALID: "Biên bản chưa hợp lệ. Kiểm tra lại người nhận và tài sản trước khi chốt.",

@@ -7,6 +7,7 @@ import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
 import { formatTimeThenDate } from "@/shared/lib/dateFormat";
+import { OwnerRequestNotice } from "@/features/handover-request";
 import { HandoverStepsCard } from "./HandoverStepsCard";
 
 type PlanSetup = z.infer<typeof planSetupSchema>;
@@ -67,7 +68,7 @@ function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
           <>
             <HandoverStepsCard />
             <p className="text-sm text-heritage-muted">
-              Người thực thi chỉ mở bàn giao được sau khi kích hoạt.
+              Người nhận chỉ gửi yêu cầu nhận được sau khi kích hoạt.
             </p>
           </>
         }
@@ -119,10 +120,11 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
   }
   return (
     <div className="space-y-7">
+      <OwnerRequestNotice vaultId={vaultId} />
       <HandoverHeader
         chipText={chipText}
         chipTone="success"
-        subtitle="File phân chia đã ký. Khi cần bàn giao, Người thực thi sẽ mở bàn giao và luật sư lập biên bản."
+        subtitle="File phân chia đã ký. Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ và luật sư lập biên bản."
       />
       <PlanSetupPanel
         vaultId={vaultId}
@@ -131,7 +133,7 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
             <ActivePlanCard activatedAt={setup.activatedAt} />
             <HandoverStepsCard
               title="Tiến trình bàn giao"
-              subtitle="Chưa mở bàn giao. Khi Người thực thi mở bàn giao, bước đang diễn ra sẽ được tô đậm tại đây."
+              subtitle="Chưa có yêu cầu nhận tài sản. Khi người nhận gửi yêu cầu, bước đang diễn ra sẽ được tô đậm tại đây."
             />
           </>
         }

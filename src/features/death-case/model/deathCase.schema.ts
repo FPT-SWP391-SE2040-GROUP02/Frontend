@@ -9,9 +9,9 @@ export const executorVaultSchema = z.object({
   executorNoteUpdatedAt: timestamp.nullish(),
   /** Lúc tài khoản chấp nhận lời mời làm Người thực thi của kho; dữ liệu cũ không có thì null. */
   acceptedAt: timestamp.nullish(),
-  /** Biên bản bàn giao của kho; null khi chưa mở bàn giao. */
+  /** Biên bản bàn giao của kho; null khi chưa có yêu cầu nhận tài sản. */
   handoverRecordId: z.string().uuid().nullish(),
-  /** DRAFTING, IDENTITY_CHECK, SIGNING, COMPLETED; rỗng khi chưa mở bàn giao. */
+  /** DRAFTING, IDENTITY_CHECK, SIGNING, COMPLETED; rỗng khi chưa có yêu cầu nhận tài sản. */
   handoverRecordStatus: z.string().optional().default(""),
 });
 

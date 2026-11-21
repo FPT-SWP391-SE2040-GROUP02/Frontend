@@ -6,6 +6,9 @@ import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
 import { handoverRecordService } from "../api/handoverRecordService";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
 import { handoverRecordKeys, useVerifierRecord } from "../model/useHandoverRecord";
+import { AddRecipientPanel } from "./AddRecipientPanel";
+import { ClaimsReviewPanel } from "./ClaimsReviewPanel";
+import { EvidencePanel } from "./EvidencePanel";
 import { RecordDocument } from "./RecordDocument";
 import { RecordLinesEditor } from "./RecordLinesEditor";
 import { RecordStepper } from "./RecordStepper";
@@ -129,9 +132,17 @@ export function VerifierRecordDetail({
         Về danh sách
       </button>
       <RecordStepper status={record.status} />
+      {record.status === "CANCELLED" && (
+        <Notice tone="neutral" title="Chủ kho đã hủy yêu cầu nhận tài sản">
+          Biên bản này không còn hiệu lực. Kho đã mở khóa cho Chủ kho.
+        </Notice>
+      )}
+      {record.status === "DRAFTING" && <ClaimsReviewPanel record={record} />}
       {record.status === "DRAFTING" && (
         <RecordLinesEditor key={`${record.id}-${record.revisionNo}`} record={record} />
       )}
+      {record.status === "DRAFTING" && <AddRecipientPanel record={record} />}
+      {record.status !== "CANCELLED" && <EvidencePanel record={record} />}
       {(record.status === "IDENTITY_CHECK" || record.status === "SIGNING") && (
         <FinalizedActions record={record} />
       )}

@@ -49,7 +49,7 @@ export function vaultTask(vault: ExecutorVault): VaultTask {
   }
   return {
     urgency: "safe",
-    label: vault.planStatus === "CLOSED" ? "Đã hoàn tất" : "Chưa mở bàn giao",
+    label: vault.planStatus === "CLOSED" ? "Đã hoàn tất" : "Chưa có yêu cầu nhận",
     tone: "success",
     detail: vault.planStatus === "CLOSED" ? "Bàn giao đã xong" : "Chưa cần làm gì",
     task: null,
