@@ -48,11 +48,12 @@ export function packageStatus(turns: HandoverProgressTurn[]): PackageStatus {
   return { label: "Đã nhận xong", tone: "success" };
 }
 
-export type AssetDownloadState = "downloaded" | "not-downloaded" | "not-handed-over";
+export type AssetDownloadState = "downloaded" | "partial" | "not-downloaded" | "not-handed-over";
 
 /**
  * Tài sản đã tải chưa, nhìn qua các lượt của gói: mọi lượt đã từ chối hoặc kết thúc → "Không bàn giao";
- * mọi lượt còn lại đều đã tải tài sản đó → "Đã tải"; ngược lại (kể cả chưa có lượt) → "Chưa tải".
+ * mọi lượt còn lại đều đã tải tài sản đó → "Đã tải"; mới một số người tải → "Tải một phần";
+ * chưa ai tải (kể cả chưa có lượt) → "Chưa tải".
  */
 export function assetDownloadState(
   assetId: string,
@@ -73,6 +74,7 @@ export function assetDownloadState(
   }
   if (turns.length > 0 && activeTurns === 0) return "not-handed-over";
   if (activeTurns > 0 && downloadedTurns === activeTurns) return "downloaded";
+  if (downloadedTurns > 0) return "partial";
   return "not-downloaded";
 }
 

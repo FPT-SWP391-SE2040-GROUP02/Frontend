@@ -115,3 +115,18 @@ it("hiện Người xét duyệt kèm số thẻ luật sư và nút Tôi đã n
   expect(screen.getAllByText("Xong")).toHaveLength(3);
   expect(screen.queryByText("Đang ở đây")).not.toBeInTheDocument();
 });
+
+it("chưa tải hết các mục thì khóa nút Tôi đã nhận đủ và báo còn mấy mục", async () => {
+  apiClient.defaults.adapter = async (config) =>
+    ok(
+      config,
+      config.url?.endsWith("/handover/turns/me")
+        ? [turn({ items: [{ ...turn().items[0], downloaded: false }] })]
+        : turn(),
+    );
+  setup();
+
+  const button = await screen.findByRole("button", { name: "Tôi đã nhận đủ" });
+  expect(button).toBeDisabled();
+  expect(screen.getByText(/Còn 1 mục chưa tải/)).toBeInTheDocument();
+});
