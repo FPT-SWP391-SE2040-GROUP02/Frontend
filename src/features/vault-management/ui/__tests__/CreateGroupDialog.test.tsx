@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { apiClient } from "@/shared/api";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import type { VaultPinConfirmation } from "@/shared/api/vaultPin";
 import { VAULT_ID, CONTAINER_ID, containerFixture } from "@/shared/api/__tests__/backend.fixtures";
 import type { GroupAssetOption, GroupBeneficiaryOption } from "../../model/groupMembers";
 import { CreateGroupDialog } from "../CreateGroupDialog";
@@ -32,7 +33,11 @@ const beneficiaries: GroupBeneficiaryOption[] = [
   { id: PERSON, fullName: "Nguyễn Minh Anh", citizenId: "4821" },
 ];
 
-function renderDialog(onClose = vi.fn(), preselectedAssetIds: string[] = []) {
+function renderDialog(
+  onClose = vi.fn(),
+  preselectedAssetIds: string[] = [],
+  confirmPin?: () => Promise<VaultPinConfirmation>,
+) {
   render(
     <QueryClientProvider client={new QueryClient()}>
       <MemoryRouter>
@@ -42,6 +47,7 @@ function renderDialog(onClose = vi.fn(), preselectedAssetIds: string[] = []) {
           assets={assets}
           beneficiaries={beneficiaries}
           preselectedAssetIds={preselectedAssetIds}
+          confirmPin={confirmPin}
         />
       </MemoryRouter>
     </QueryClientProvider>,
@@ -113,6 +119,37 @@ describe("Dialog tạo gói bàn giao hai cột", () => {
       `/vaults/${VAULT_ID}/containers/${CONTAINER_ID}/beneficiaries`,
       { beneficiaryId: PERSON },
     );
+  });
+
+  it("hỏi PIN đúng một lần rồi gửi kèm PIN ở cả tạo gói lẫn từng lần gắn", async () => {
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(containerFixture);
+    const confirmPin = vi.fn(async (): Promise<VaultPinConfirmation> => ({
+      confirmed: true,
+      pin: "1234",
+    }));
+    const onClose = vi.fn();
+    renderDialog(onClose, [], confirmPin);
+    fireEvent.change(screen.getByLabelText("Tên gói bàn giao"), { target: { value: "Gói A" } });
+    fireEvent.click(screen.getByRole("checkbox", { name: /Hợp đồng bảo hiểm/ }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /Nguyễn Minh Anh/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Tạo gói" }));
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    expect(confirmPin).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenCalledTimes(3);
+    for (const call of post.mock.calls) {
+      expect(call[2]).toEqual({ headers: { "X-Vault-Pin": "1234" } });
+    }
+  });
+
+  it("hủy hộp thoại PIN thì không tạo gói", async () => {
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(containerFixture);
+    const onClose = vi.fn();
+    renderDialog(onClose, [], async () => ({ confirmed: false }));
+    fireEvent.change(screen.getByLabelText("Tên gói bàn giao"), { target: { value: "Gói A" } });
+    fireEvent.click(screen.getByRole("button", { name: "Tạo gói" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Tạo gói" })).toBeEnabled());
+    expect(post).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it("gắn lỗi giữa chừng thì lần bấm sau không tạo thêm gói trùng", async () => {

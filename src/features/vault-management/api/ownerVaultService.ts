@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api";
+import { VAULT_PIN_HEADER } from "@/shared/api/vaultPin";
 import { paginatedListSchema, paginationRequestSchema } from "@/shared/api/pagination.schema";
 import type { PaginationParams } from "@/shared/types";
 import { vaultResponseSchema } from "@/entities/vault/model/vault.schema";
@@ -14,6 +15,14 @@ import type {
 } from "@/entities/package/model/package.types";
 
 const idSchema = z.string().uuid();
+
+/** POST kèm PIN đã nhập sẵn; không có PIN thì để transport tự hỏi khi Backend đòi. */
+function postWithPin(url: string, body: unknown, pin?: string): Promise<unknown> {
+  if (pin === undefined) {
+    return apiClient.post<unknown, unknown>(url, body);
+  }
+  return apiClient.post<unknown, unknown>(url, body, { headers: { [VAULT_PIN_HEADER]: pin } });
+}
 const packageListSchema = paginatedListSchema(packageResponseSchema);
 const createVaultSchema = z.object({
   name: z.string().max(200).nullable().optional(),
@@ -70,13 +79,13 @@ export const ownerVaultService = {
       await apiClient.get<unknown, unknown>(container(vaultId, id), { signal }),
     );
   },
-  /** Tạo gói rỗng, trạng thái do server quyết định. */
-  async createPackage(vaultId: string, request: CreatePackageRequest) {
+  /**
+   * Tạo gói rỗng, trạng thái do server quyết định. `pin` là mã PIN đã nhập sẵn (RAM): có thì gửi kèm để Backend
+   * không đòi lại, dùng khi một form làm nhiều thao tác liên tiếp.
+   */
+  async createPackage(vaultId: string, request: CreatePackageRequest, pin?: string) {
     return packageResponseSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        containers(vaultId),
-        createPackageSchema.parse(request),
-      ),
+      await postWithPin(containers(vaultId), createPackageSchema.parse(request), pin),
     );
   },
   /** PUT với etag, không retry ghi đè khi 409. */
@@ -104,16 +113,19 @@ export const ownerVaultService = {
     memberId: string,
     attach: boolean,
     confirmPlanDeactivation = false,
+    pin?: string,
   ) {
     const base = `${container(vaultId, containerId)}/${relation}`;
     const member = idSchema.parse(memberId);
     const result = attach
-      ? await apiClient.post<unknown, unknown>(
+      ? await postWithPin(
           base,
           relation === "assets" ? { assetId: member } : { beneficiaryId: member },
+          pin,
         )
       : await apiClient.delete<unknown, unknown>(`${base}/${member}`, {
           params: { confirmPlanDeactivation },
+          ...(pin === undefined ? {} : { headers: { [VAULT_PIN_HEADER]: pin } }),
         });
     return packageResponseSchema.parse(result);
   },

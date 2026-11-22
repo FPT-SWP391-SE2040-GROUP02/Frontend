@@ -10,6 +10,7 @@ import {
   type CreatePackageFormInput,
 } from "@/entities/package/model/package.schema";
 import { ROUTES } from "@/shared/config/routes.config";
+import type { VaultPinConfirmation } from "@/shared/api/vaultPin";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import {
@@ -39,6 +40,11 @@ export interface CreateGroupDialogProps {
   beneficiaries: GroupBeneficiaryOption[];
   /** Tài sản người dùng đã chọn ở màn Tài sản; được tick sẵn nếu còn chọn được. */
   preselectedAssetIds?: string[];
+  /**
+   * Hỏi mã PIN của kho một lần (widget truyền vào). Có thì tạo gói và gắn thành viên dùng chung PIN đó,
+   * người dùng không bị hỏi lại ở từng bước.
+   */
+  confirmPin?: () => Promise<VaultPinConfirmation>;
 }
 
 /** Chỉ giữ những id còn chọn được (tài sản chưa thuộc gói nào). */
@@ -59,6 +65,7 @@ export function CreateGroupDialog({
   assets,
   beneficiaries,
   preselectedAssetIds = [],
+  confirmPin,
 }: CreateGroupDialogProps) {
   const client = useQueryClient();
   const action = usePrivateAction();
@@ -84,15 +91,31 @@ export function CreateGroupDialog({
     defaultValues: { name: "" },
   });
 
-  async function createAndAttach(request: CreatePackageFormInput): Promise<PackageResponse> {
+  async function createAndAttach(request: CreatePackageFormInput): Promise<PackageResponse | null> {
+    let pin: string | undefined;
+    if (confirmPin) {
+      const confirmation = await confirmPin();
+      if (!confirmation.confirmed) {
+        return null;
+      }
+      pin = confirmation.pin;
+    }
     let group = createdGroup;
     if (group === null) {
-      group = await ownerVaultService.createPackage(vaultId, request);
+      group = await ownerVaultService.createPackage(vaultId, request, pin);
       setCreatedGroup(group);
     }
     // Gắn lại thành viên đã có trong gói không gây lỗi nên thử lại sau lỗi giữa chừng vẫn an toàn.
     for (const assetId of selectedAssetIds) {
-      group = await ownerVaultService.changeMember(vaultId, group.id, "assets", assetId, true);
+      group = await ownerVaultService.changeMember(
+        vaultId,
+        group.id,
+        "assets",
+        assetId,
+        true,
+        false,
+        pin,
+      );
     }
     for (const beneficiaryId of selectedBeneficiaryIds) {
       group = await ownerVaultService.changeMember(
@@ -101,6 +124,8 @@ export function CreateGroupDialog({
         "beneficiaries",
         beneficiaryId,
         true,
+        false,
+        pin,
       );
     }
     return group;
@@ -165,11 +190,16 @@ export function CreateGroupDialog({
           noValidate
           className="space-y-5"
           onSubmit={handleSubmit(async (request) => {
+            const outcome: { group: PackageResponse | null } = { group: null };
             const saved = await action.execute(
-              () => createAndAttach(request),
+              async () => {
+                outcome.group = await createAndAttach(request);
+                return outcome.group;
+              },
               () => invalidateGroupQueries(client, vaultId),
             );
-            if (saved) {
+            // Hủy hộp thoại PIN thì chưa làm gì: giữ nguyên form để bấm lại.
+            if (saved && outcome.group !== null) {
               onClose();
             }
           })}

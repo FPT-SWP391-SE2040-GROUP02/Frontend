@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { PackageResponse } from "@/entities/package/model/package.types";
 import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import type { VaultPinConfirmation } from "@/shared/api/vaultPin";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import {
   Dialog,
@@ -29,6 +30,8 @@ export interface AddGroupMembersDialogProps {
   relation: "assets" | "beneficiaries";
   assets: GroupAssetOption[];
   beneficiaries: GroupBeneficiaryOption[];
+  /** Hỏi mã PIN của kho một lần để gắn nhiều thành viên liên tiếp mà không bị hỏi lại. */
+  confirmPin?: () => Promise<VaultPinConfirmation>;
   onClose: () => void;
 }
 
@@ -38,6 +41,7 @@ export function AddGroupMembersDialog({
   relation,
   assets,
   beneficiaries,
+  confirmPin,
   onClose,
 }: AddGroupMembersDialogProps) {
   const client = useQueryClient();
@@ -64,7 +68,15 @@ export function AddGroupMembersDialog({
     items = buildBeneficiaryPickerItems(beneficiaries, group.beneficiaryIds);
   }
 
-  async function attachAll(): Promise<PackageResponse> {
+  async function attachAll(): Promise<PackageResponse | null> {
+    let pin: string | undefined;
+    if (confirmPin) {
+      const confirmation = await confirmPin();
+      if (!confirmation.confirmed) {
+        return null;
+      }
+      pin = confirmation.pin;
+    }
     let latest = group;
     for (const memberId of selectedIds) {
       // Gắn lại thành viên đã có trong gói không gây lỗi nên thử lại sau lỗi giữa chừng vẫn an toàn.
@@ -74,16 +86,26 @@ export function AddGroupMembersDialog({
         relation,
         memberId,
         true,
+        false,
+        pin,
       );
     }
     return latest;
   }
 
   async function submit(): Promise<void> {
-    const saved = await action.execute(attachAll, () => {
-      invalidateGroupQueries(client, group.vaultId);
-    });
-    if (saved) {
+    const outcome: { group: PackageResponse | null } = { group: null };
+    const saved = await action.execute(
+      async () => {
+        outcome.group = await attachAll();
+        return outcome.group;
+      },
+      () => {
+        invalidateGroupQueries(client, group.vaultId);
+      },
+    );
+    // Hủy hộp thoại PIN thì chưa làm gì: giữ nguyên form để bấm lại.
+    if (saved && outcome.group !== null) {
       onClose();
     }
   }
