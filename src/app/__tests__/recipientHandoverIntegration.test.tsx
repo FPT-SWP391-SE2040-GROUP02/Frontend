@@ -192,17 +192,17 @@ it("explains why GRANT_NOT_ACTIVE rejected the download using the BE reason", as
   expect(createUrl).not.toHaveBeenCalled();
 });
 
-it.each([
-  ["HOLD_ACTIVE", "Kho đang bị tạm giữ"],
-  ["CONTENT_DELETED", "chính sách lưu dữ liệu"],
-])("explains a download denied with GRANT_NOT_ACTIVE reason %s", async (reason, text) => {
-  backendDownloadFails(403, { code: "GRANT_NOT_ACTIVE", reason });
-  const createUrl = vi.spyOn(URL, "createObjectURL");
-  setup();
-  fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
-  expect(await screen.findByRole("alert")).toHaveTextContent(text);
-  expect(createUrl).not.toHaveBeenCalled();
-});
+it.each([["CONTENT_DELETED", "chính sách lưu dữ liệu"]])(
+  "explains a download denied with GRANT_NOT_ACTIVE reason %s",
+  async (reason, text) => {
+    backendDownloadFails(403, { code: "GRANT_NOT_ACTIVE", reason });
+    const createUrl = vi.spyOn(URL, "createObjectURL");
+    setup();
+    fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(text);
+    expect(createUrl).not.toHaveBeenCalled();
+  },
+);
 
 it("saves the file only after the Backend returns the content and then releases the object URL", async () => {
   apiClient.defaults.adapter = async (config) => {
@@ -314,15 +314,6 @@ it("explains a cancelled turn as a stopped handover, not a system error", async 
     await screen.findByText(/Lượt này đã bị hủy vì luật sư đã sửa biên bản/),
   ).toBeInTheDocument();
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-});
-
-it("explains a claim blocked by an active hold", async () => {
-  backendInvites((config) => {
-    throw problem(config as never, 409, { code: "HANDOVER_NOT_ALLOWED", reason: "HOLD_ACTIVE" });
-  });
-  setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Bắt đầu" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Các hạn đang được giữ nguyên");
 });
 
 it("still lets the recipient claim after the initial response deadline (BR-58)", async () => {

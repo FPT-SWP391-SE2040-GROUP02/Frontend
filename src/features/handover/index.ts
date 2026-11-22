@@ -7,4 +7,3 @@ export * from "./model/handover.types";
 export * from "./model/handover.schema";
 
 export { HandoverVaultCard } from "./ui/HandoverVaultCard";
-export { HandoverScheduleModal } from "./ui/HandoverScheduleModal";

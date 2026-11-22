@@ -110,7 +110,7 @@ function ActivePlanCard({ activatedAt }: { activatedAt: string | null | undefine
 }
 
 /**
- * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là điểm danh, kế hoạch đang áp dụng, mã mở gói và tiến trình.
+ * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là kế hoạch đang áp dụng, mã mở gói và tiến trình.
  * Bên phải: nút "Xem biên bản phân chia đã ký" mở khung biên bản phân chia đủ chữ ký.
  */
 function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {

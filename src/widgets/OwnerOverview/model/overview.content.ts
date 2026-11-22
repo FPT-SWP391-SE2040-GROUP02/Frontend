@@ -7,7 +7,7 @@ import {
   RecipientsIcon,
   TrustedIcon,
 } from "@/shared/ui/LegacyVaultArtwork";
-import { Activity, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 
 /** Nội dung và dữ liệu giả để duyệt UI; không phải DTO hoặc trạng thái từ backend. */
 export const OWNER_OVERVIEW = {
@@ -25,7 +25,6 @@ export const OWNER_OVERVIEW = {
     { label: "Tổng quan", to: ROUTES.DASHBOARD.ROOT, icon: OverviewIcon, active: true },
     { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon, active: false },
     { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon, active: false },
-    { label: "Điểm danh", to: ROUTES.DMS.ROOT, icon: Activity, active: false },
     { label: "Gói dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon, active: false },
   ],
   logout: "Đăng xuất",
@@ -73,7 +72,6 @@ export const OWNER_OVERVIEW = {
   heartbeatDescription: "Điểm danh định kỳ giúp hệ thống biết anh vẫn đang sử dụng kho.",
   heartbeatDate: "Kỳ tiếp theo · 28/10/2026",
   heartbeatLast: "Lần gần nhất · 28/09/2026",
-  heartbeatAction: "Mở trang điểm danh",
   assetsTitle: "Tài sản gần đây",
   assetsDescription: "Những mục anh vừa sắp xếp hoặc cập nhật.",
   assetsAction: "Xem toàn bộ kho",

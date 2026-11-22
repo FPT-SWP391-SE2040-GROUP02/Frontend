@@ -26,17 +26,12 @@ export function emailMismatchMasked(failure: unknown): string | null {
   return null;
 }
 
-/** Thông báo khi kho có hold đang hiệu lực; BE dừng đếm các hạn trong lúc giữ (TIME-04). */
-const holdActiveMessage =
-  "Kho đang bị tạm giữ, tạm thời chưa thực hiện được. Các hạn đang được giữ nguyên.";
-
 const grantReasons: Record<string, string> = {
   EXPIRED: "Quyền tải nội dung đã hết hạn. Tải lại để xem trạng thái mới nhất.",
   BLOCKED:
     "Quyền tải nội dung đang tạm dừng vì hồ sơ đang được xác minh lại. Bạn chưa thể tải nội dung lúc này.",
   REVOKED: "Quyền tải nội dung đã bị thu hồi nên không còn tải được nội dung.",
   PLAN_NOT_ACTIVE: "Kế hoạch bàn giao hiện không còn hiệu lực nên chưa thể tải nội dung.",
-  HOLD_ACTIVE: holdActiveMessage,
   CONTENT_DELETED: "Nội dung đã được xóa theo chính sách lưu dữ liệu nên không còn tải được.",
 };
 
@@ -84,7 +79,6 @@ const notAllowedReasons: Record<string, string> = {
     "Lượt bàn giao đang ở trạng thái không cho phép thao tác này. Tải lại để xem trạng thái mới nhất.",
   PLAN_NOT_READY: "Kế hoạch chưa sẵn sàng để bàn giao.",
   NOTHING_TO_HAND_OVER: "Gói này hiện không còn tài sản để bàn giao.",
-  HOLD_ACTIVE: holdActiveMessage,
 };
 
 /**

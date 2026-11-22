@@ -38,7 +38,6 @@ function validationMessages(errors: Record<string, string[]> | undefined): strin
 /** Reason-specific messages for HANDOVER_NOT_ALLOWED */
 const handoverNotAllowedReasons: Record<string, string> = {
   NOTARY_CARD_REQUIRED: `Tài khoản của bạn chưa có ảnh thẻ luật sư. Hãy liên hệ quản trị viên qua ${SUPPORT_EMAIL} để nộp thẻ rồi mới duyệt được.`,
-  HOLD_ACTIVE: "Kho đang bị tạm giữ, tạm thời chưa thực hiện được. Các hạn đang được giữ nguyên.",
   PLAN_NOT_IN_HANDOVER: "Kế hoạch không còn ở giai đoạn bàn giao.",
   WRONG_STATE:
     "Lượt này không còn ở bước phù hợp để thực hiện thao tác này (đã có người nhận, đã chuyển bước hoặc đã kết thúc).",
@@ -80,9 +79,7 @@ const assetInUseReasons: Record<string, string> = {
 };
 
 /** Reason-specific messages for VAULT_NOT_EDITABLE */
-const vaultNotEditableReasons: Record<string, string> = {
-  HOLD_ACTIVE: "Kho đang bị tạm giữ nên chưa thể chỉnh sửa.",
-};
+const vaultNotEditableReasons: Record<string, string> = {};
 
 /** Reason-specific messages for PAYMENT_NOT_ALLOWED (báo giá/tạo đơn, mục 6.18) */
 const paymentNotAllowedReasons: Record<string, string> = {

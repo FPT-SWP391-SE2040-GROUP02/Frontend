@@ -22,8 +22,6 @@ const dateTime = z.string().datetime({ offset: true });
 
 /** GET /admin/dashboard → AdminDashboardResponse (raw, không envelope). */
 export const adminDashboardSchema = z.object({
-  activeHolds: counter,
-  holdsPastReview: counter,
   activeVerifiers: counter,
   activeAdmins: counter,
   casesWithoutVerifier: counter,
@@ -99,63 +97,21 @@ export const adminUsersQuerySchema = z.object({
 export type AdminUsersQuery = z.infer<typeof adminUsersQuerySchema>;
 
 /* ---------------------------------------------------------------------------
- * Vận hành: tạm giữ (hold), đổi vai trò/trạng thái, giao lại Verifier.
+ * Vận hành: đổi vai trò/trạng thái, giao lại Verifier.
  * Theo AdminController và OperationsResponses/OperationsRequests của Backend.
  * ------------------------------------------------------------------------- */
 
-/** `HoldType` của Backend. */
-export const HOLD_TYPES = ["DISPUTE", "ADMIN"] as const;
-/** `HoldStatus` của Backend. */
-export const HOLD_STATUSES = ["ACTIVE", "RELEASED"] as const;
-/** Phạm vi Admin được đặt hold (HoldService chỉ nhận VAULT hoặc CONTAINER). */
-export const holdTypeSchema = z.enum(HOLD_TYPES);
-export const holdStatusSchema = z.enum(HOLD_STATUSES);
-export type HoldType = z.infer<typeof holdTypeSchema>;
-export type HoldStatus = z.infer<typeof holdStatusSchema>;
-
 const uuid = z.string().uuid();
 
-/** HoldResponse. `scope` giữ chuỗi vì BE còn có phạm vi chưa mở cho Admin (DESIGNATION, CLAIM, GRANT). */
-export const holdSchema = z.object({
-  id: uuid,
-  vaultId: uuid,
-  scope: z.string(),
-  targetId: uuid.nullable(),
-  type: holdTypeSchema,
-  status: holdStatusSchema,
-  reason: z.string(),
-  responsibleUserId: uuid.nullable(),
-  reviewAt: dateTime,
-  reviewOverdue: z.boolean(),
-  createdAt: dateTime,
-  releasedAt: dateTime.nullable(),
-  releaseReason: z.string().nullable(),
-  etag: z.string().min(1),
-});
-export type Hold = z.infer<typeof holdSchema>;
-
-export const holdsPageSchema = paginatedListSchema(holdSchema);
-export type HoldsPage = z.infer<typeof holdsPageSchema>;
-
-/** Kích thước trang cố định của danh sách hold. */
+/** Kích thước trang cố định của danh sách Admin. */
 export const ADMIN_LIST_PAGE_SIZE = 20;
 
-/** GET /admin/{users|holds}/counts: số lượng theo nhóm cho các thẻ lọc; nhóm không có dòng nào vẫn là 0. */
+/** GET /admin/users/counts: số lượng theo nhóm cho các thẻ lọc; nhóm không có dòng nào vẫn là 0. */
 export const countsSchema = z.object({
   counts: z.record(z.string(), counter),
   total: counter,
 });
 export type Counts = z.infer<typeof countsSchema>;
-
-/** Query GET /admin/holds. */
-export const holdsQuerySchema = z.object({
-  status: holdStatusSchema.optional(),
-  /** Chỉ hold của một kho. */
-  vaultId: z.string().uuid().optional(),
-  pageIndex: z.number().int().positive(),
-  pageSize: z.number().int().min(1).max(100),
-});
-export type HoldsQuery = z.infer<typeof holdsQuerySchema>;
 
 /** Trạng thái giao dịch tiền vào theo AdminPaymentsController (api-contract 6.18). */
 export const PAYMENT_TRANSACTION_STATUSES = [
@@ -303,49 +259,3 @@ export const createAdminUserRequestSchema = z.object({
   legalOrganization: z.string().trim().max(200).optional(),
 });
 export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;
-
-/** Một biến chèn vào chữ thư, viết {TEN_BIEN}. */
-const emailTemplateTokenSchema = z.object({ name: z.string(), description: z.string() });
-
-const emailTemplateFieldsSchema = z.object({
-  subject: z.string(),
-  title: z.string(),
-  body: z.string(),
-  buttonText: z.string(),
-  note: z.string(),
-});
-
-const emailTemplateCustomSchema = z.object({
-  subject: z.string().nullable(),
-  title: z.string().nullable(),
-  body: z.string().nullable(),
-  buttonText: z.string().nullable(),
-  note: z.string().nullable(),
-});
-
-/** Một loại thư thông báo: chữ gốc trong mã và chữ Admin đã đặt (null: giữ chữ gốc). */
-export const emailTemplateSchema = z.object({
-  key: z.string(),
-  label: z.string(),
-  description: z.string(),
-  canDisable: z.boolean(),
-  editableBody: z.boolean(),
-  enabled: z.boolean(),
-  tokens: z.array(emailTemplateTokenSchema),
-  default: emailTemplateFieldsSchema,
-  custom: emailTemplateCustomSchema,
-  updatedAt: z.string().nullable().default(null),
-  updatedByName: z.string().nullable().default(null),
-});
-export const emailTemplatesSchema = z.array(emailTemplateSchema);
-export type EmailTemplate = z.infer<typeof emailTemplateSchema>;
-
-export const saveEmailTemplateRequestSchema = z.object({
-  enabled: z.boolean(),
-  subject: z.string().nullable(),
-  title: z.string().nullable(),
-  body: z.string().nullable(),
-  buttonText: z.string().nullable(),
-  note: z.string().nullable(),
-});
-export type SaveEmailTemplateRequest = z.infer<typeof saveEmailTemplateRequestSchema>;

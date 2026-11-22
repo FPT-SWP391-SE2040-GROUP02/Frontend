@@ -24,7 +24,7 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
     },
   ];
   return (
-    <div className="grid gap-4 xl:grid-cols-3">
+    <div className="grid gap-4 xl:grid-cols-2">
       {sections.map(({ title, icon: Icon, query, value, items }) => (
         <section key={title} aria-label={title} className="owner-resource-card">
           <h3 className="flex items-center gap-2 text-sm font-semibold">

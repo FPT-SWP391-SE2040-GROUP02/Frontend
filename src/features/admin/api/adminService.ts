@@ -9,15 +9,9 @@ import {
   adminUsersQuerySchema,
   changeUserRoleRequestSchema,
   changeUserStatusRequestSchema,
-  holdSchema,
-  holdsPageSchema,
-  holdsQuerySchema,
   paymentTransactionsPageSchema,
   paymentTransactionsQuerySchema,
   adminRevenueSchema,
-  emailTemplateSchema,
-  emailTemplatesSchema,
-  saveEmailTemplateRequestSchema,
   adminRevenueQuerySchema,
   assignExecutorRequestSchema,
   reassignVerifierRequestSchema,
@@ -26,16 +20,13 @@ import {
   createAdminUserRequestSchema,
   type ChangeUserRoleRequest,
   type ChangeUserStatusRequest,
-  type HoldsQuery,
   type AdminRevenueQuery,
-  type SaveEmailTemplateRequest,
   type PaymentTransactionsQuery,
   type AssignExecutorRequest,
   type ReassignVerifierRequest,
 } from "../model/admin.schema";
 
 const id = z.string().uuid();
-const hold = (holdId: string) => `/admin/holds/${id.parse(holdId)}`;
 
 /** Transport Admin theo AdminController; không Admin → BE trả 404 (SEC-04). */
 export const adminService = {
@@ -122,27 +113,6 @@ export const adminService = {
       await apiClient.get<unknown, unknown>("/admin/users/counts", { params, signal }),
     );
   },
-  async countHolds(signal?: AbortSignal) {
-    return countsSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/holds/counts", { signal }),
-    );
-  },
-  async listHolds(query: HoldsQuery, signal?: AbortSignal) {
-    const parsed = holdsQuerySchema.parse(query);
-    const params: Record<string, string | number> = {
-      pageIndex: parsed.pageIndex,
-      pageSize: parsed.pageSize,
-    };
-    if (parsed.status) params.status = parsed.status;
-    if (parsed.vaultId) params.vaultId = parsed.vaultId;
-    return holdsPageSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/holds", { params, signal }),
-    );
-  },
-  async getHold(holdId: string, signal?: AbortSignal) {
-    return holdSchema.parse(await apiClient.get<unknown, unknown>(hold(holdId), { signal }));
-  },
-
   /** Giao dịch tiền vào, mới nhất trước; chỉ đọc (AdminPaymentsController). */
   async listPaymentTransactions(query: PaymentTransactionsQuery, signal?: AbortSignal) {
     const parsed = paymentTransactionsQuerySchema.parse(query);
@@ -157,31 +127,6 @@ export const adminService = {
     if (parsed.to) params.to = parsed.to;
     return paymentTransactionsPageSchema.parse(
       await apiClient.get<unknown, unknown>("/admin/payment-transactions", { params, signal }),
-    );
-  },
-
-  /** Mọi loại thư thông báo kèm chữ gốc và chữ Admin đã sửa. */
-  async listEmailTemplates(signal?: AbortSignal) {
-    return emailTemplatesSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/email-templates", { signal }),
-    );
-  },
-
-  /** Lưu chữ cho một loại thư; trường null là dùng lại chữ gốc. */
-  async saveEmailTemplate(key: string, request: SaveEmailTemplateRequest) {
-    const body = saveEmailTemplateRequestSchema.parse(request);
-    return emailTemplateSchema.parse(
-      await apiClient.put<unknown, unknown>(
-        `/admin/email-templates/${encodeURIComponent(key)}`,
-        body,
-      ),
-    );
-  },
-
-  /** Bỏ chữ đã sửa, về chữ gốc và bật lại loại thư. */
-  async resetEmailTemplate(key: string) {
-    return emailTemplateSchema.parse(
-      await apiClient.delete<unknown, unknown>(`/admin/email-templates/${encodeURIComponent(key)}`),
     );
   },
 

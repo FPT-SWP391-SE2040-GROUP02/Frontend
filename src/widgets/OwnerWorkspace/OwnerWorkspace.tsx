@@ -106,7 +106,7 @@ export function OwnerWorkspace({
   );
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const showOwnerService = user?.role === "USER" && Boolean(accessTokenMemory.get());
-  // Cùng query với ô gói dịch vụ; quá hạn điểm danh thì hiện dải cảnh báo ân hạn đầu mọi trang.
+  // Cùng query với ô gói dịch vụ; kho bị khóa thì hiện dải cảnh báo đầu mọi trang.
   const vault = useOwnerVault(showOwnerService);
   const lockReason = getVaultLockReason(vault.data);
   const showSwitchRole = useCanSwitchToExecutor();

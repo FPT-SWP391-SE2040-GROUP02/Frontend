@@ -161,17 +161,6 @@ export const TRANSFER_STATUS = {
 export type TransferStatus = (typeof TRANSFER_STATUS)[keyof typeof TRANSFER_STATUS];
 
 /**
- * @description Trạng thái điểm danh định kỳ DMS (SRS 3.11.0 - Luồng 2A & 2B)
- */
-export const DMS_STATUS = {
-  ACTIVE: "ACTIVE",
-  CHECKIN_PENDING: "CHECKIN_PENDING",
-  CHECKIN_SUSPENDED: "CHECKIN_SUSPENDED", // Tạm treo 90 ngày
-  FROZEN_INACTIVITY: "FROZEN_INACTIVITY", // Đóng băng do bất hoạt sau 90 ngày
-} as const;
-export type DmsStatus = (typeof DMS_STATUS)[keyof typeof DMS_STATUS];
-
-/**
  * @description Biểu phí và gói dịch vụ chuẩn SRS 3.11.0 (Luồng 1A & 4G)
  */
 export const PLAN_TIERS = {

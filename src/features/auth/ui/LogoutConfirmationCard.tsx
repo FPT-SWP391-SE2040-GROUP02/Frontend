@@ -21,7 +21,6 @@ export interface LogoutConfirmationCardProps {
 
 /**
  * @description Thẻ xác nhận đăng xuất tài khoản kèm cảnh báo DMS (Mockup 8 - XacNhanDangXuat.dc.html).
- * ĐẢM BẢO NGHIỆP VỤ CỐT LÕI: Nhắc nhở người dùng "Đăng xuất không thay thế điểm danh sinh tồn (DMS Heartbeat)".
  *
  * @param {LogoutConfirmationCardProps} props Thuộc tính component
  * @returns {React.JSX.Element} Thẻ xác nhận đăng xuất

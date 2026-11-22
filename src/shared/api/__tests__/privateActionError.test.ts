@@ -47,11 +47,9 @@ describe("official BE business errors", () => {
   it.each([
     ["EXECUTOR_NOT_ALLOWED", "OWNER_CANNOT_ACCEPT", "chủ kho"],
     ["EXECUTOR_NOT_ALLOWED", "INVITEE_EMAIL_MISMATCH", "email khác"],
-    ["HANDOVER_NOT_ALLOWED", "HOLD_ACTIVE", "tạm giữ"],
     ["HANDOVER_NOT_ALLOWED", "RESEND_TOO_SOON", "ít phút"],
     ["ASSET_IN_USE", "IN_CONTAINER", "gỡ khỏi gói"],
     ["ASSET_IN_USE", "PINNED_IN_HANDOVER", "ghim"],
-    ["VAULT_NOT_EDITABLE", "HOLD_ACTIVE", "tạm giữ"],
     ["EKYC_IDENTITY_MISMATCH", "CITIZEN_ID_ALREADY_USED", "tài khoản khác"],
     ["EKYC_IDENTITY_MISMATCH", "BENEFICIARY_CONFLICT", "người nhận"],
     ["EKYC_IDENTITY_MISMATCH", "WRONG_PERSON", "danh tính đã gắn"],

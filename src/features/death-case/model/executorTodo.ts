@@ -27,7 +27,7 @@ export function vaultStage(vault: ExecutorVault): VaultStage {
   if (status === "IDENTITY_CHECK") return { label: "Đang kiểm danh tính", tone: "warning" };
   if (status === "DRAFTING") return { label: "Luật sư đang lập biên bản", tone: "warning" };
   if (vault.planStatus === "DRAFT") return { label: "Kế hoạch chưa kích hoạt", tone: "neutral" };
-  if (vault.planStatus === "BLOCKED") return { label: "Đang tạm giữ", tone: "warning" };
+  if (vault.planStatus === "BLOCKED") return { label: "Đang bị chặn", tone: "warning" };
   return { label: "Chưa có yêu cầu nhận", tone: "success" };
 }
 

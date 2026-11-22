@@ -3,8 +3,6 @@ import type {
   AdminDashboard,
   AdminUserRole,
   AdminUserStatus,
-  HoldStatus,
-  HoldType,
   PaymentTransactionStatus,
 } from "./admin.schema";
 import type { AdminErrorKind } from "./adminError";
@@ -39,14 +37,6 @@ export interface DashboardGroup {
 
 /** Nhóm bộ đếm theo AdminDashboardResponse; không có số liệu ngoài DTO. */
 export const DASHBOARD_GROUPS: DashboardGroup[] = [
-  {
-    id: "holds",
-    title: "Tạm giữ",
-    counters: [
-      { key: "activeHolds", label: "Đang hiệu lực", attention: false },
-      { key: "holdsPastReview", label: "Quá hạn rà soát", attention: true },
-    ],
-  },
   {
     id: "staff",
     title: "Nhân sự và hồ sơ",
@@ -95,26 +85,6 @@ export const ERROR_MESSAGES: Record<AdminErrorKind, string> = {
 };
 
 export { formatDate, formatDateTime } from "@/shared/lib/dateFormat";
-
-export const HOLD_TYPE_LABELS: Record<HoldType, string> = {
-  DISPUTE: "Tranh chấp",
-  ADMIN: "Quản trị viên đặt",
-};
-
-export const HOLD_STATUS_LABELS: Record<HoldStatus, string> = {
-  ACTIVE: "Đang hiệu lực",
-  RELEASED: "Đã gỡ",
-};
-
-export const HOLD_SCOPE_LABELS: Record<string, string> = {
-  VAULT: "Cả kho",
-  CONTAINER: "Một gói",
-  DESIGNATION: "Một chỉ định",
-  CLAIM: "Một lượt nhận",
-  GRANT: "Một quyền tải",
-};
-
-export const holdScopeLabel = (scope: string) => HOLD_SCOPE_LABELS[scope] ?? scope;
 
 /** Đã khớp đơn và đã xử lý đều là giao dịch thành công, nên hiện chung một nhãn. */
 export const PAYMENT_STATUS_LABELS: Record<PaymentTransactionStatus, string> = {

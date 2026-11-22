@@ -61,9 +61,7 @@ interface SettingMeta {
 }
 
 const SETTING_DEFINITIONS: SettingMeta[] = [
-  // 1. Điểm danh (Check-in)
-
-  // 2. Bàn giao & Lưu trữ (Handover & Retention)
+  // 1. Bàn giao & Lưu trữ (Handover & Retention)
   {
     key: "Handover.ResponseWindowDays",
     label: "Hạn người nhận phản hồi lời mời",

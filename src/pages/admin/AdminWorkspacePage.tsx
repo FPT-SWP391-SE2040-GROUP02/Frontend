@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import {
   AdminDevTools,
-  AdminHolds,
   AdminOverview,
   AdminOverviewToolbar,
   AdminPayments,
@@ -91,7 +90,6 @@ const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
     ]
   : NAVIGATION;
 
-// Trang "Mẫu thư" (AdminEmailTemplates) đang được ẩn khỏi menu và đường dẫn; code vẫn còn ở features/admin.
 const VIEWS = {
   overview: {
     title: "Tổng quan",
@@ -103,10 +101,6 @@ const VIEWS = {
   },
   settings: {
     title: "Cấu hình",
-    description: "",
-  },
-  holds: {
-    title: "Tạm giữ",
     description: "",
   },
   payments: {
@@ -133,18 +127,12 @@ const VIEWS = {
 
 type AdminView = keyof typeof VIEWS;
 
-/** Tạm giữ, cấu hình và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
+/** Cấu hình, gói dịch vụ và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
 function viewFor(pathname: string, search: string): AdminView {
   if (pathname === ROUTES.DASHBOARD.USERS) return "users";
   if (pathname === ROUTES.ADMIN.AUDIT_LOG) return "audit";
   const view = new URLSearchParams(search).get("view");
-  if (
-    view === "settings" ||
-    view === "plans" ||
-    view === "holds" ||
-    view === "payments" ||
-    view === "security"
-  )
+  if (view === "settings" || view === "plans" || view === "payments" || view === "security")
     return view;
   // Đường dẫn cũ của trang Cấu hình dịch vụ nay nằm trong trang Cấu hình.
   if (view === "system-config") return "settings";
@@ -193,7 +181,7 @@ function SettingsTabs() {
   );
 }
 
-/** Khu vực Admin: dashboard, tạm giữ và tài khoản; dữ liệu chỉ từ API quản trị thật. */
+/** Khu vực Admin: dashboard và tài khoản; dữ liệu chỉ từ API quản trị thật. */
 export function AdminWorkspacePage() {
   const location = useLocation();
   const view = viewFor(location.pathname, location.search);
@@ -213,7 +201,6 @@ export function AdminWorkspacePage() {
       )}
       {view === "settings" && <SettingsTabs />}
       {view === "plans" && <AdminSettings section="plans" />}
-      {view === "holds" && <AdminHolds />}
       {view === "payments" && <AdminPayments />}
       {view === "users" && (
         <AdminUsers
