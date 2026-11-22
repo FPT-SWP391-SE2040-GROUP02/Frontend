@@ -124,6 +124,24 @@ export type RecordFile = z.infer<typeof recordFileSchema>;
 export type RecordClaim = z.infer<typeof recordClaimSchema>;
 export type ClaimStatus = z.infer<typeof claimStatusSchema>;
 
+/** Tuổi tối thiểu của người nhận; Backend kiểm lại theo cùng luật (đủ 18 tuổi tính đến hôm nay). */
+const MIN_RECIPIENT_AGE = 18;
+
+function isoDate(year: number, month: number, day: number): string {
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function todayText(now: Date = new Date()): string {
+  return isoDate(now.getFullYear(), now.getMonth() + 1, now.getDate());
+}
+
+/** Ngày sinh muộn nhất để đủ 18 tuổi hôm nay; sinh 29/2 mà năm đích không nhuận thì tính 28/2 (giống AddYears ở Backend). */
+function latestAdultBirthDate(now: Date = new Date()): string {
+  const year = now.getFullYear() - MIN_RECIPIENT_AGE;
+  const lastDayOfMonth = new Date(year, now.getMonth() + 1, 0).getDate();
+  return isoDate(year, now.getMonth() + 1, Math.min(now.getDate(), lastDayOfMonth));
+}
+
 /** Thông tin luật sư nhập khi thêm người nhận mới vào kho. */
 export const newRecipientSchema = z.object({
   fullName: z.string().trim().min(1, "Vui lòng nhập họ tên.").max(200, "Họ tên tối đa 200 ký tự."),
@@ -131,7 +149,11 @@ export const newRecipientSchema = z.object({
     .string()
     .trim()
     .regex(/^\d{12}$/, "Số căn cước gồm 12 chữ số."),
-  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Vui lòng chọn ngày sinh."),
+  dateOfBirth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Vui lòng chọn ngày sinh.")
+    .refine((value) => value <= todayText(), "Ngày sinh không được ở tương lai.")
+    .refine((value) => value <= latestAdultBirthDate(), "Người nhận phải đủ 18 tuổi."),
   email: z.string().trim().email("Email không hợp lệ.").max(256),
   phone: z.string().trim().max(32).optional(),
 });
