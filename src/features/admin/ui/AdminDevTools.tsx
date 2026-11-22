@@ -33,7 +33,6 @@ import {
 } from "../model/useDevTools";
 import { AdminActionDialog } from "./AdminActionDialog";
 import { AdminErrorMessage } from "./AdminStateMessage";
-import { ExecutorEmailPreviewPanel } from "./ExecutorEmailPreviewPanel";
 
 type PendingDialog = { kind: "ekyc" } | { kind: "rewind" } | null;
 
@@ -152,8 +151,6 @@ export function AdminDevTools() {
       <EkycPausePanel onDone={(message) => setDone(message)} />
 
       <EkycThresholdPanel onDone={(message) => setDone(message)} />
-
-      <ExecutorEmailPreviewPanel />
 
       {dialog?.kind === "rewind" && (
         <AdminActionDialog
