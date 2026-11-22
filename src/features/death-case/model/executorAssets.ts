@@ -94,9 +94,7 @@ export function assetBadge(name: string, kind: "FILE" | "TEXT"): string {
 
 /** Tên người nhận của gói để hiện và để tìm: họ tên nếu có, không thì số CCCD. */
 export function recipientLabels(item: ExecutorPackage): string[] {
-  return item.recipients.map(
-    (recipient) => recipient.fullName ?? `CCCD ${recipient.citizenId}`,
-  );
+  return item.recipients.map((recipient) => recipient.fullName ?? `CCCD ${recipient.citizenId}`);
 }
 
 function normalize(text: string): string {

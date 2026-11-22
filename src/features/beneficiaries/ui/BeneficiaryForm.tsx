@@ -224,8 +224,7 @@ export function BeneficiaryForm({
     void client.invalidateQueries({ queryKey: ["owner-vault"] });
   };
 
-  let note =
-    "Email là bắt buộc để gửi thông báo nhận bàn giao.";
+  let note = "Email là bắt buộc để gửi thông báo nhận bàn giao.";
   if (record && record.containerIds.length > 0) {
     note = `Người này đang thuộc ${record.containerIds.length} gói bàn giao. Sửa thông tin sẽ cập nhật cấu hình kế hoạch bàn giao.`;
   } else if (record) {

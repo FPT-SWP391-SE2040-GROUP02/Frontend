@@ -225,7 +225,9 @@ function renderOverview() {
 
 /** Nút ở cột phải mở khung xem trước; chữ nút đổi theo trạng thái. */
 async function openDrawer(): Promise<HTMLElement> {
-  await userEvent.click(screen.getByRole("button", { name: /^Xem (trước|biên bản phân chia đã ký)/ }));
+  await userEvent.click(
+    screen.getByRole("button", { name: /^Xem (trước|biên bản phân chia đã ký)/ }),
+  );
   return screen.findByRole("dialog");
 }
 
@@ -387,7 +389,9 @@ describe("khung xem trước biên bản phân chia", () => {
 
     const dialog = await openDrawer();
     expect(dialog).toHaveAccessibleName("Xem trước biên bản phân chia");
-    expect(within(paper()).getByRole("heading", { name: "BIÊN BẢN PHÂN CHIA" })).toBeInTheDocument();
+    expect(
+      within(paper()).getByRole("heading", { name: "BIÊN BẢN PHÂN CHIA" }),
+    ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Đóng" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -806,7 +810,9 @@ describe("chân khung: ký và kích hoạt", () => {
     showPlan({ planStatus: "ACTIVE", canActivate: false, activatedAt: ACTIVATED_AT });
     renderOverview();
     await userEvent.click(screen.getByRole("button", { name: "Xem biên bản phân chia đã ký" }));
-    expect(await screen.findByRole("dialog", { name: "Biên bản phân chia đã ký" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("dialog", { name: "Biên bản phân chia đã ký" }),
+    ).toBeInTheDocument();
 
     expect(screen.queryByRole("button", { name: "Ký và kích hoạt" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText(PIN_LABEL)).not.toBeInTheDocument();
@@ -841,7 +847,9 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     expect(screen.queryByRole("heading", { name: "Mã mở gói" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Tiến trình bàn giao" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Xem biên bản phân chia đã ký" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Xem biên bản phân chia đã ký" }),
+    ).toBeInTheDocument();
   });
 
   it("lỗi tải kế hoạch hiện thử lại", () => {
@@ -1228,7 +1236,9 @@ describe("ký phiên bản mới trong khung", () => {
     showPlan({ ...RUNNING_UNSIGNED, hasUnsignedChanges: false, unsignedChanges: null });
     renderOverview();
     await userEvent.click(screen.getByRole("button", { name: "Xem biên bản phân chia đã ký" }));
-    expect(await screen.findByRole("dialog", { name: "Biên bản phân chia đã ký" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("dialog", { name: "Biên bản phân chia đã ký" }),
+    ).toBeInTheDocument();
 
     expect(screen.queryByRole("button", { name: SIGN_BUTTON })).not.toBeInTheDocument();
     expect(screen.queryByLabelText(PIN_LABEL)).not.toBeInTheDocument();

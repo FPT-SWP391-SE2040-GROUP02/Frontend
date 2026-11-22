@@ -188,8 +188,8 @@ function OwnerSectionBlock({
       {missingNote}
       <p className={`${BODY} mt-2`}>
         Nay trong trạng thái tinh thần hoàn toàn minh mẫn, sáng suốt, không bị bất kỳ sự lừa dối, đe
-        dọa hoặc cưỡng ép nào, tôi lập biên bản phân chia này để định đoạt các gói tài sản số trong kho
-        của tôi tại LegacyVault sau khi tôi qua đời như sau:
+        dọa hoặc cưỡng ép nào, tôi lập biên bản phân chia này để định đoạt các gói tài sản số trong
+        kho của tôi tại LegacyVault sau khi tôi qua đời như sau:
       </p>
     </section>
   );
@@ -243,8 +243,8 @@ function AssetsSectionBlock({
         {heading}
         <p className={BODY}>
           Các gói tài sản trong kho được để lại cho những người nhận mà tôi đã chỉ định cho từng gói
-          trong kế hoạch bàn giao. Biên bản phân chia chỉ ghi tên gói, không ghi tên hay nội dung tài
-          sản.
+          trong kế hoạch bàn giao. Biên bản phân chia chỉ ghi tên gói, không ghi tên hay nội dung
+          tài sản.
         </p>
       </section>
     );

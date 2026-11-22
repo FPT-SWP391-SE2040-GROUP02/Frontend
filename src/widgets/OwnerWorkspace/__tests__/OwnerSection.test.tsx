@@ -215,6 +215,8 @@ describe("official workspace data states", () => {
     expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Xem trước biên bản phân chia" }));
     expect(await screen.findByRole("article", { name: "Biên bản phân chia" })).toBeInTheDocument();
-    expect(screen.getAllByRole("form", { name: "Ký biên bản phân chia và kích hoạt" })).toHaveLength(1);
+    expect(
+      screen.getAllByRole("form", { name: "Ký biên bản phân chia và kích hoạt" }),
+    ).toHaveLength(1);
   });
 });

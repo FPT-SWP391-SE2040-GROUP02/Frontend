@@ -130,8 +130,8 @@ function DeleteBeneficiaryDialog({
         <DialogHeader>
           <DialogTitle className={DIALOG_TITLE}>Xóa “{record.fullName}”?</DialogTitle>
           <DialogDescription className="text-heritage-muted">
-            Hồ sơ người nhận (CCCD {record.citizenId}) sẽ bị xóa khỏi kho. Người này chưa thuộc
-            gói bàn giao nào.
+            Hồ sơ người nhận (CCCD {record.citizenId}) sẽ bị xóa khỏi kho. Người này chưa thuộc gói
+            bàn giao nào.
           </DialogDescription>
         </DialogHeader>
         <label className="flex min-h-11 items-center gap-3 text-sm">
@@ -233,9 +233,7 @@ export function BeneficiaryRow({
           </span>
         </div>
       </td>
-      <td className="px-4 py-4 font-mono text-sm text-heritage-muted">
-        {record.citizenId}
-      </td>
+      <td className="px-4 py-4 font-mono text-sm text-heritage-muted">{record.citizenId}</td>
       <td className="break-words px-4 py-4 text-heritage-muted">
         {contact}
         {record.emailUndeliverable && (

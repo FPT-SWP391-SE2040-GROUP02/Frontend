@@ -188,5 +188,4 @@ describe("hàng người nhận", () => {
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("alert")).toHaveTextContent("đang ở trong 2 gói bàn giao.");
   });
-
 });

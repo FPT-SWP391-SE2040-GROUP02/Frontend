@@ -226,8 +226,8 @@ export function WillSignFooter({
     >
       {isResign && (
         <p className="mb-3 text-[13px] leading-5 text-heritage-muted">
-          Ký lại để bản biên bản phân chia khớp với cấu hình hiện tại và phần thêm hoặc đổi người nhận
-          được bàn giao. Phần đã xóa không còn được bàn giao. Người thực thi không phải ký lại.
+          Ký lại để bản biên bản phân chia khớp với cấu hình hiện tại và phần thêm hoặc đổi người
+          nhận được bàn giao. Phần đã xóa không còn được bàn giao. Người thực thi không phải ký lại.
         </p>
       )}
       <label className="flex cursor-pointer items-start gap-2.5 text-sm leading-6">
