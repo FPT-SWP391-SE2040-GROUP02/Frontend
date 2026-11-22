@@ -67,7 +67,7 @@ describe("ExecutorKeyCard (Chủ kho)", () => {
     expect(screen.getByText("Bản đang dùng")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Tạo mã mở gói/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /phiếu/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "File phân chia" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Biên bản phân chia" })).not.toBeInTheDocument();
   });
 
   it("chưa có mã: nói mã được tạo khi ký kích hoạt, không có nút nào", async () => {

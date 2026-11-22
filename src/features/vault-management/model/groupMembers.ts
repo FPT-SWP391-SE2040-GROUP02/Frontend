@@ -8,11 +8,11 @@ export interface GroupAssetOption {
   containerName: string | null;
 }
 
-/** Hồ sơ người nhận trong kho; chỉ giữ 4 số cuối CCCD. */
+/** Hồ sơ người nhận trong kho; kèm số CCCD. */
 export interface GroupBeneficiaryOption {
   id: string;
   fullName: string;
-  citizenIdLast4: string;
+  citizenId: string;
 }
 
 /** Nhãn loại tài sản hiển thị cho người dùng. */
@@ -23,9 +23,9 @@ export function assetKindLabel(kind: string): string {
   return "Ghi chú bí mật";
 }
 
-/** CCCD che, chỉ lộ 4 số cuối. */
-export function maskedCitizenId(last4: string): string {
-  return `CCCD ****${last4}`;
+/** Dòng phụ "CCCD <số>". */
+export function maskedCitizenId(citizenId: string): string {
+  return `CCCD ${citizenId}`;
 }
 
 /** Một dòng trong cột chọn của dialog gói bàn giao. */
@@ -78,7 +78,7 @@ export function buildBeneficiaryPickerItems(
       items.push({
         id: person.id,
         label: person.fullName,
-        detail: maskedCitizenId(person.citizenIdLast4),
+        detail: maskedCitizenId(person.citizenId),
       });
     }
   }

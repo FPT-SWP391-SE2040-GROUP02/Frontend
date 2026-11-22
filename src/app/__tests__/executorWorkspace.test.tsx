@@ -48,7 +48,7 @@ function record(status: string, extra: Record<string, unknown> = {}) {
       {
         beneficiaryId: "66666666-6666-4666-8666-666666666666",
         fullName: "Trần Minh Anh",
-        citizenIdLast4: "0791",
+        citizenId: "0791",
         assets: [
           { assetId: "77777777-7777-4777-8777-777777777777", name: "Email gia đình", kind: "TEXT" },
         ],
@@ -265,7 +265,7 @@ describe("Executor assets", () => {
           {
             containerId: "66666666-6666-4666-8666-666666666666",
             containerName: "Gói gia đình",
-            recipients: [{ fullName: "Trần Minh Anh", citizenIdLast4: "0791" }],
+            recipients: [{ fullName: "Trần Minh Anh", citizenId: "0791" }],
             assets: [
               {
                 id: "77777777-7777-4777-8777-777777777777",

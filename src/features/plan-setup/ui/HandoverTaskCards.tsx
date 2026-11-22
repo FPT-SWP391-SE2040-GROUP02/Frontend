@@ -377,7 +377,7 @@ export function HandoverTaskCards({
 
   let ekycDescription = "Chủ kho cần hoàn tất xác minh danh tính eKYC.";
   if (ekycDone) {
-    ekycDescription = "Đã xác minh. Tên trên file phân chia lấy từ hồ sơ này.";
+    ekycDescription = "Đã xác minh. Tên trên biên bản phân chia lấy từ hồ sơ này.";
   }
   let planDescription = "Cần gói trả phí còn hạn.";
   if (planDone) {

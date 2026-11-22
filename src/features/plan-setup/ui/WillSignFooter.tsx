@@ -32,7 +32,7 @@ function signLockReason(
 ): string {
   if (!canActivate) {
     if (missingCount > 0) {
-      return `Chưa thể ký: còn ${missingCount} điều kiện chưa đạt. Bấm vào chỗ đỏ trong file phân chia để điền.`;
+      return `Chưa thể ký: còn ${missingCount} điều kiện chưa đạt. Bấm vào chỗ đỏ trong biên bản phân chia để điền.`;
     }
     return "Chưa thể ký: còn điều kiện cần kiểm tra. Tải lại điều kiện hoặc thử lại sau.";
   }
@@ -60,7 +60,7 @@ function readErrorCode(error: unknown): string {
 }
 
 /**
- * Chân khung xem trước file phân chia: tick đã đọc, nhập mã PIN kho và nút ký. Hai chế độ theo trạng thái kế hoạch:
+ * Chân khung xem trước biên bản phân chia: tick đã đọc, nhập mã PIN kho và nút ký. Hai chế độ theo trạng thái kế hoạch:
  * - Còn nháp: "Ký và kích hoạt" (gửi bản cấu hình và chính sách hiện hành).
  * - Đang chạy mà có thay đổi chưa ký: "Ký phiên bản mới" (gửi bản cấu hình đang xem; Người thực thi không phải ký lại).
  * PIN đi ở header X-Vault-Pin (không trong body). Không tự ký: mọi xác nhận mặc định chưa tick, quyền và điều kiện do
@@ -129,12 +129,12 @@ export function WillSignFooter({
     buttonText = "Đang kiểm tra…";
   }
   let tickText =
-    "Tôi đã đọc toàn bộ file phân chia, tự nguyện lập, ký file phân chia này và chủ động kích hoạt kế hoạch.";
-  let formLabel = "Ký file phân chia và kích hoạt";
+    "Tôi đã đọc toàn bộ biên bản phân chia, tự nguyện lập, ký biên bản phân chia này và chủ động kích hoạt kế hoạch.";
+  let formLabel = "Ký biên bản phân chia và kích hoạt";
   if (isResign) {
     tickText =
-      "Tôi đã đọc toàn bộ file phân chia phiên bản mới, tự nguyện ký lại và đồng ý với các thay đổi đã nêu.";
-    formLabel = "Ký phiên bản mới của file phân chia";
+      "Tôi đã đọc toàn bộ biên bản phân chia phiên bản mới, tự nguyện ký lại và đồng ý với các thay đổi đã nêu.";
+    formLabel = "Ký phiên bản mới của biên bản phân chia";
   }
   // Lỗi PIN hiện ngay dưới ô PIN; các lỗi khác (kế hoạch đổi, hết hạn gói...) hiện ở khung lỗi phía dưới.
   let pinErrorText = "";
@@ -156,9 +156,9 @@ export function WillSignFooter({
     setAcknowledge(false);
     client.setQueryData(["plan-setup", vaultId], result);
     sync();
-    let text = "Đã ký phiên bản mới của file phân chia. Từ nay bàn giao theo bản ký này.";
+    let text = "Đã ký phiên bản mới của biên bản phân chia. Từ nay bàn giao theo bản ký này.";
     if (result.willVersion !== undefined && result.willVersion !== null) {
-      text = `Đã ký phiên bản ${result.willVersion} của file phân chia. Từ nay bàn giao theo bản ký này.`;
+      text = `Đã ký phiên bản ${result.willVersion} của biên bản phân chia. Từ nay bàn giao theo bản ký này.`;
     }
     onNotice({ tone: "success", text });
   }
@@ -172,7 +172,7 @@ export function WillSignFooter({
       setErrorReported(true);
       onNotice({
         tone: "error",
-        text: "Cấu hình đã thay đổi, đang tải lại. Hãy xem lại file phân chia rồi ký lại.",
+        text: "Cấu hình đã thay đổi, đang tải lại. Hãy xem lại biên bản phân chia rồi ký lại.",
       });
       sync();
     }
@@ -226,7 +226,7 @@ export function WillSignFooter({
     >
       {isResign && (
         <p className="mb-3 text-[13px] leading-5 text-heritage-muted">
-          Ký lại để bản file phân chia khớp với cấu hình hiện tại và phần thêm hoặc đổi người nhận
+          Ký lại để bản biên bản phân chia khớp với cấu hình hiện tại và phần thêm hoặc đổi người nhận
           được bàn giao. Phần đã xóa không còn được bàn giao. Người thực thi không phải ký lại.
         </p>
       )}

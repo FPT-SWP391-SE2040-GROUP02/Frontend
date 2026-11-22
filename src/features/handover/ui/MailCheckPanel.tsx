@@ -12,22 +12,22 @@ type Outcome =
   | { kind: "error" };
 
 /**
- * Kiểm tra thư mời có thật không, không cần đăng nhập (theo prototype): nhập mã hồ sơ ghi trong thư và 4 số cuối căn cước.
+ * Kiểm tra thư mời có thật không, không cần đăng nhập (theo prototype): nhập mã hồ sơ ghi trong thư và số căn cước.
  * Có giới hạn số lần thử do Backend quyết định; màn hình chỉ hiện kết quả máy chủ trả về.
  */
 export function MailCheckPanel({ token }: { token: string }) {
   const [code, setCode] = useState("");
-  const [last4, setLast4] = useState("");
+  const [citizenId, setCitizenId] = useState("");
   const [pending, setPending] = useState(false);
   const [outcome, setOutcome] = useState<Outcome>({ kind: "none" });
-  const ready = code.trim().length > 0 && /^\d{4}$/.test(last4);
+  const ready = code.trim().length > 0 && /^\d{12}$/.test(citizenId);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!ready || pending) return;
     setPending(true);
     try {
-      const result = await handoverService.checkMail(token, code.trim(), last4);
+      const result = await handoverService.checkMail(token, code.trim(), citizenId);
       setOutcome(
         result.verified
           ? { kind: "ok", result }
@@ -58,7 +58,7 @@ export function MailCheckPanel({ token }: { token: string }) {
             Kiểm tra thư này có thật không
           </h3>
           <p className="mt-1 text-sm leading-6 text-heritage-muted">
-            Nhập mã hồ sơ ghi trong thư và 4 số cuối căn cước của bạn. Có giới hạn số lần thử.
+            Nhập mã hồ sơ ghi trong thư và số căn cước (12 số) của bạn. Có giới hạn số lần thử.
           </p>
         </div>
       </header>
@@ -77,12 +77,12 @@ export function MailCheckPanel({ token }: { token: string }) {
             />
           </label>
           <label className="block text-sm">
-            <span className="font-medium text-heritage-primary">4 số cuối căn cước</span>
+            <span className="font-medium text-heritage-primary">Số căn cước</span>
             <input
-              value={last4}
-              onChange={(event) => setLast4(event.target.value.replace(/\D/g, "").slice(0, 4))}
+              value={citizenId}
+              onChange={(event) => setCitizenId(event.target.value.replace(/\D/g, "").slice(0, 12))}
               inputMode="numeric"
-              maxLength={4}
+              maxLength={12}
               autoComplete="off"
               className="mt-1 h-11 w-full rounded-xl border border-heritage-border bg-white px-3 font-mono text-sm tracking-widest outline-none focus-visible:border-heritage-gold focus-visible:ring-2 focus-visible:ring-heritage-gold/30"
             />

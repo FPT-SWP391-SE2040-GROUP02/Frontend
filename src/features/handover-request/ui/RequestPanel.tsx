@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Info } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -11,6 +12,16 @@ import { handoverRequestService } from "../api/handoverRequestService";
 import { filesError } from "../model/handoverRequest.schema";
 import { handoverRequestKeys } from "../model/useHandoverRequest";
 import { DocumentPicker } from "./DocumentPicker";
+
+/** Độ dài tối đa của lời nhắn cho luật sư. */
+const NOTE_MAX_LENGTH = 1000;
+
+/** Ba bước người nhận đọc trước khi gửi yêu cầu. */
+const REQUEST_STEPS = [
+  "Đính kèm giấy tờ luật sư cần (ví dụ di chúc, văn bản phân chia, bản án).",
+  "Hệ thống khóa kho và báo cho Chủ kho, Người thực thi. Chủ kho còn sống thì hủy được.",
+  "Luật sư xét giấy tờ: chấp nhận, yêu cầu bổ sung hoặc từ chối có lý do.",
+];
 
 /**
  * Trang mở từ link riêng trong thư báo kích hoạt: người nhận gửi yêu cầu nhận tài sản kèm giấy tờ cho luật sư xét.
@@ -147,42 +158,67 @@ export function RequestPanel() {
     );
   };
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {heading}
-      <ol className="list-decimal space-y-1 pl-5 text-sm leading-6">
-        <li>Đính kèm giấy tờ luật sư cần (ví dụ di chúc, văn bản phân chia, bản án).</li>
-        <li>
-          Hệ thống khóa kho và báo cho Chủ kho, Người thực thi. Chủ kho còn sống thì hủy được.
-        </li>
-        <li>Luật sư xét giấy tờ: chấp nhận, yêu cầu bổ sung hoặc từ chối có lý do.</li>
+      <ol className="space-y-3 rounded-2xl border border-heritage-border bg-heritage-sunken p-4 text-sm leading-6">
+        {REQUEST_STEPS.map((step, index) => (
+          <li key={step} className="flex gap-3">
+            <span
+              aria-hidden="true"
+              className="flex size-6 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft text-xs font-semibold text-heritage-primary"
+            >
+              {index + 1}
+            </span>
+            <span>{step}</span>
+          </li>
+        ))}
       </ol>
-      <DocumentPicker files={files} onChange={setFiles} disabled={submit.pending} />
-      {touched && fileError && (
-        <p role="alert" className="text-sm text-destructive">
-          {fileError}
-        </p>
-      )}
-      <label className="block space-y-1 text-sm font-semibold">
-        Lời nhắn cho luật sư (không bắt buộc)
+      <div className="space-y-2">
+        <DocumentPicker files={files} onChange={setFiles} disabled={submit.pending} />
+        {touched && fileError && (
+          <p role="alert" className="text-sm text-destructive">
+            {fileError}
+          </p>
+        )}
+      </div>
+      <label className="block space-y-2 text-sm font-semibold text-heritage-primary">
+        <span className="block">
+          Lời nhắn cho luật sư{" "}
+          <span className="font-normal text-heritage-muted">(không bắt buộc)</span>
+        </span>
         <textarea
-          className="min-h-24 w-full rounded-xl border border-heritage-border bg-white p-3 font-normal"
-          maxLength={1000}
+          className="min-h-28 w-full rounded-xl border border-heritage-border bg-white p-3 font-normal text-heritage-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold-hover"
+          maxLength={NOTE_MAX_LENGTH}
           value={note}
           disabled={submit.pending}
+          placeholder="Ví dụ: Tôi gửi kèm di chúc và văn bản phân chia, bản sao có chứng thực."
           onChange={(event) => setNote(event.target.value)}
         />
+        <span className="block text-right text-xs font-normal text-heritage-muted">
+          {note.length}/{NOTE_MAX_LENGTH}
+        </span>
       </label>
-      <button type="button" className={buttonStyles.dark} disabled={submit.pending} onClick={send}>
-        {submit.pending ? "Đang gửi…" : "Gửi yêu cầu"}
-      </button>
-      {submit.error && (
-        <p role="alert" className="text-sm text-destructive">
-          {submit.error}
+      <div className="space-y-3">
+        <button
+          type="button"
+          className={`${buttonStyles.dark} w-full`}
+          disabled={submit.pending}
+          onClick={send}
+        >
+          {submit.pending ? "Đang gửi…" : "Gửi yêu cầu"}
+        </button>
+        {submit.error && (
+          <p role="alert" className="text-sm text-destructive">
+            {submit.error}
+          </p>
+        )}
+        <p className="flex gap-2 text-xs leading-5 text-heritage-muted">
+          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>
+            Hệ thống chỉ lưu tệp, không kiểm từng ô giấy tờ. Luật sư xác minh ở ngoài hệ thống.
+          </span>
         </p>
-      )}
-      <p className="text-sm text-heritage-muted">
-        Hệ thống chỉ lưu tệp, không kiểm từng ô giấy tờ. Luật sư xác minh ở ngoài hệ thống.
-      </p>
+      </div>
     </div>
   );
 }

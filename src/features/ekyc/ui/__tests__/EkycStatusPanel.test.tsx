@@ -35,7 +35,7 @@ function setup(authenticated: boolean, ownerPlanPurchased?: boolean) {
 const notStarted = {
   status: "NOT_STARTED" as const,
   verificationId: null,
-  citizenIdLast4: "",
+  citizenId: "",
   faceMatchScore: null,
   matchThreshold: 0.363,
   spoofCheckPassed: null,
@@ -46,7 +46,7 @@ const notStarted = {
 const passed = {
   status: "PASSED" as const,
   verificationId: "11111111-1111-4111-8111-111111111111",
-  citizenIdLast4: "5608",
+  citizenId: "5608",
   faceMatchScore: 0.52,
   matchThreshold: 0.363,
   spoofCheckPassed: true,
@@ -92,7 +92,7 @@ describe("EkycStatusPanel", () => {
     setup(true);
     expect(await screen.findByText("Danh tính đã được xác minh.")).toBeInTheDocument();
     const result = screen.getByRole("region", { name: "Kết quả xác minh danh tính" });
-    expect(result).toHaveTextContent("•••• 5608");
+    expect(result).toHaveTextContent("5608");
     expect(result).toHaveTextContent("Qua kiểm tra chống giả mạo");
     expect(result).toHaveTextContent("Đã đọc");
     expect(result).toHaveTextContent("90 ngày");

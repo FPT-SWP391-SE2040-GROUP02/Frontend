@@ -29,7 +29,7 @@ const assets: GroupAssetOption[] = [
   },
 ];
 const beneficiaries: GroupBeneficiaryOption[] = [
-  { id: PERSON, fullName: "Nguyễn Minh Anh", citizenIdLast4: "4821" },
+  { id: PERSON, fullName: "Nguyễn Minh Anh", citizenId: "4821" },
 ];
 
 function renderDialog(onClose = vi.fn(), preselectedAssetIds: string[] = []) {
@@ -65,7 +65,7 @@ describe("Dialog tạo gói bàn giao hai cột", () => {
     expect(free).toBeEnabled();
     expect(taken).toBeDisabled();
     expect(screen.getByText("Đang ở Gói cho vợ")).toBeInTheDocument();
-    expect(screen.getByText("CCCD ****4821")).toBeInTheDocument();
+    expect(screen.getByText("CCCD 4821")).toBeInTheDocument();
     // Tài sản chưa thuộc gói nằm trước tài sản đang ở gói khác.
     expect(free.compareDocumentPosition(taken) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

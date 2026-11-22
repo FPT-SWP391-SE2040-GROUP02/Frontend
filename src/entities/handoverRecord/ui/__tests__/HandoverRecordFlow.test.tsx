@@ -25,7 +25,7 @@ function recipient(beneficiaryId: string, fullName: string, assets: unknown[], e
   return {
     beneficiaryId,
     fullName,
-    citizenIdLast4: "0001",
+    citizenId: "0001",
     assets,
     turnId: null,
     turnStatus: "",
@@ -58,8 +58,8 @@ function record(extra: Record<string, unknown> = {}) {
     canSign: false,
     availableAssets: [houseAsset, savingsAsset],
     availableRecipients: [
-      { beneficiaryId: AN, fullName: "Trần An", citizenIdLast4: "0001" },
-      { beneficiaryId: BINH, fullName: "Lê Bình", citizenIdLast4: "0002" },
+      { beneficiaryId: AN, fullName: "Trần An", citizenId: "0001" },
+      { beneficiaryId: BINH, fullName: "Lê Bình", citizenId: "0002" },
     ],
     ownerSplit: [],
     // An đã gửi yêu cầu kèm giấy tờ và được luật sư chấp nhận, nên chốt được biên bản.
@@ -68,7 +68,7 @@ function record(extra: Record<string, unknown> = {}) {
         id: "ffffffff-ffff-4fff-8fff-ffffffffffff",
         beneficiaryId: AN,
         fullName: "Trần An",
-        citizenIdLast4: "0001",
+        citizenId: "0001",
         status: "ACCEPTED",
         note: "",
         reviewReason: null,
@@ -154,7 +154,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     );
   });
 
-  it("có file phân chia của Chủ kho thì lấy làm bản đầu được", async () => {
+  it("có biên bản phân chia của Chủ kho thì lấy làm bản đầu được", async () => {
     const user = userEvent.setup();
     const { post } = backend(
       record({
@@ -167,7 +167,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
 
     expect(await screen.findByText("Gói nhà: 1 tài sản cho 1 người nhận")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
-    await user.click(screen.getByRole("button", { name: "Lấy file phân chia làm bản đầu" }));
+    await user.click(screen.getByRole("button", { name: "Lấy biên bản phân chia làm bản đầu" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/use-owner-split`);
     expect(await screen.findByLabelText("Trần An nhận Sổ đỏ")).toBeChecked();
   });
@@ -317,7 +317,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
           id: CLAIM,
           beneficiaryId: BINH,
           fullName: "Lê Bình",
-          citizenIdLast4: "0002",
+          citizenId: "0002",
           status: "SUBMITTED",
           note: "Tôi là con",
           reviewReason: null,

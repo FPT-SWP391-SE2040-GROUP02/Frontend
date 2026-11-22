@@ -27,7 +27,7 @@ const VERIFICATION_ID = "11111111-1111-4111-8111-111111111111";
 const status = {
   status: "PENDING" as const,
   verificationId: VERIFICATION_ID,
-  citizenIdLast4: "5608",
+  citizenId: "5608",
   faceMatchScore: null,
   matchThreshold: 0.363,
   spoofCheckPassed: null,

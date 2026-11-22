@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Chip, formatDateTime, InfoRow, Panel } from "@/shared/ui/heritageKit";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
 import { identityText, recordStatusLabel, signatureCount } from "../model/recordPresentation";
+import { RecordPreviewButton } from "./RecordPreviewButton";
 
 function SignedCell({ at }: { at: string | null }) {
   if (at) return <Chip tone="success">{`Đã ký ${formatDateTime(at)}`}</Chip>;
@@ -28,7 +29,12 @@ export function RecordDocument({
     <Panel
       title={title}
       labelledBy={`record-${record.id}`}
-      action={<Chip tone={status.tone}>{status.label}</Chip>}
+      action={
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <RecordPreviewButton record={record} />
+          <Chip tone={status.tone}>{status.label}</Chip>
+        </div>
+      }
     >
       <div className="space-y-5">
         <div className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
@@ -76,7 +82,7 @@ export function RecordDocument({
                     <tr key={recipient.beneficiaryId} className="align-top">
                       <td className="py-4 pr-4">
                         <span className="block font-semibold">{recipient.fullName || "—"}</span>
-                        <span className="text-heritage-muted">{`CCCD ****${recipient.citizenIdLast4}`}</span>
+                        <span className="text-heritage-muted">{`CCCD ${recipient.citizenId}`}</span>
                       </td>
                       <td className="px-4 py-4">
                         <ul className="list-disc space-y-1 pl-4">
@@ -113,9 +119,9 @@ export function RecordDocument({
           </div>
         </div>
         <p className="text-sm leading-6 text-heritage-muted">
-          LegacyVault chỉ giữ và giao tài sản theo biên bản này. Việc pháp lý (file phân chia, chia
-          theo luật) do luật sư xử lý ở ngoài hệ thống. Ký là bấm xác nhận; hệ thống lưu người ký và
-          thời điểm.
+          LegacyVault chỉ giữ và giao tài sản theo biên bản này. Việc pháp lý (biên bản phân chia,
+          chia theo luật) do luật sư xử lý ở ngoài hệ thống. Ký là bấm xác nhận; hệ thống lưu người
+          ký và thời điểm.
         </p>
       </div>
     </Panel>

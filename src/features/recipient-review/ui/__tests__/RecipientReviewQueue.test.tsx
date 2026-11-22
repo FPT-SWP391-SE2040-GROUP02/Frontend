@@ -32,7 +32,7 @@ const detail = (over: Record<string, unknown> = {}) => ({
   nameMatches: true,
   citizenIdMatches: true,
   dateOfBirthMatches: true,
-  citizenIdLast4: "1234",
+  citizenId: "1234",
   acknowledged: true,
   voluntaryDecline: false,
   supplementReason: null,
@@ -135,7 +135,7 @@ describe("RecipientReviewQueue: danh sách hồ sơ danh tính", () => {
     await user.click(await screen.findByRole("button", { name: "Kiểm danh tính" }));
 
     expect(await screen.findByRole("button", { name: "Về danh sách" })).toBeInTheDocument();
-    expect(screen.getByText("****1234")).toBeInTheDocument();
+    expect(screen.getByText("1234")).toBeInTheDocument();
   });
 });
 
@@ -153,13 +153,13 @@ describe("RecipientReviewQueue: kiểm một hồ sơ", () => {
     );
   });
 
-  it("có trường lệch thì không có nút xác nhận, chỉ cho yêu cầu làm lại kèm lý do", async () => {
+  it("có trường lệch thì luật sư vẫn tự quyết: còn nút xác nhận và yêu cầu làm lại kèm lý do", async () => {
     const user = userEvent.setup();
     backend({
       detail: detail({
         allMatch: false,
         citizenIdMatches: false,
-        canApprove: false,
+        canApprove: true,
         canRequestSupplement: true,
       }),
     });
@@ -170,7 +170,7 @@ describe("RecipientReviewQueue: kiểm một hồ sơ", () => {
 
     expect(await screen.findByText("Không khớp")).toBeInTheDocument();
     expect(screen.getByText("Có trường không khớp")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Xác nhận đúng người" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xác nhận đúng người" })).toBeEnabled();
     const again = screen.getByRole("button", { name: "Yêu cầu làm lại" });
     expect(again).toBeDisabled();
     await user.type(screen.getByLabelText("Lý do yêu cầu làm lại"), "Ảnh mờ");

@@ -14,7 +14,7 @@ export const documentStrategy: AssetStrategy = {
   type: "DOCUMENT",
   label: ASSET_TYPE_LABELS.DOCUMENT,
   description:
-    "Hợp đồng bảo hiểm nhân thọ, sổ đỏ số, giấy chứng nhận cổ phần và file phân chia đính kèm.",
+    "Hợp đồng bảo hiểm nhân thọ, sổ đỏ số, giấy chứng nhận cổ phần và biên bản phân chia đính kèm.",
   badgeBg: "bg-heritage-canvas",
   badgeText: "text-heritage-text",
 

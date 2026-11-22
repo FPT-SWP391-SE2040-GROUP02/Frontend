@@ -14,7 +14,7 @@ import { BeneficiaryRow } from "../BeneficiaryRow";
 
 const record: z.infer<typeof beneficiaryResponseSchema> = {
   id: CONTAINER_ID,
-  citizenIdLast4: "8901",
+  citizenId: "012345678901",
   fullName: "Nguyễn Văn An",
   dateOfBirth: "1990-05-20",
   email: "an@example.test",
@@ -42,7 +42,6 @@ function renderRow(
   overrides: Partial<z.infer<typeof beneficiaryResponseSchema>> = {},
   groupNames: Record<string, string> = {},
   locked = false,
-  fullCitizenId?: string,
 ) {
   const store = configureStore({ reducer: { auth: authReducer } });
   return render(
@@ -56,7 +55,6 @@ function renderRow(
                 record={{ ...record, ...overrides }}
                 groupNames={groupNames}
                 locked={locked}
-                fullCitizenId={fullCitizenId}
               />
             </tbody>
           </table>
@@ -87,11 +85,11 @@ describe("hàng người nhận", () => {
     expect(screen.getByRole("button", { name: /Xóa hồ sơ/ })).toBeEnabled();
   });
 
-  it("hiện tên, 4 số cuối CCCD, liên hệ và số gói bàn giao đang gắn", () => {
+  it("hiện tên, số CCCD đầy đủ, liên hệ và số gói bàn giao đang gắn", () => {
     renderRow();
     expect(screen.getByText("Nguyễn Văn An")).toBeInTheDocument();
     expect(screen.getByText("Sinh 20/05/1990")).toBeInTheDocument();
-    expect(screen.getByText(/•••• 8901/)).toBeInTheDocument();
+    expect(screen.getByText("012345678901")).toBeInTheDocument();
     expect(screen.getByText("an@example.test")).toBeInTheDocument();
     expect(screen.getByText("2 gói bàn giao")).toBeInTheDocument();
   });
@@ -110,7 +108,7 @@ describe("hàng người nhận", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sửa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).queryByLabelText("Số CCCD")).not.toBeInTheDocument();
-    expect(within(dialog).getByText("•••••••• 8901")).toBeInTheDocument();
+    expect(within(dialog).getByText("012345678901")).toBeInTheDocument();
     fireEvent.change(within(dialog).getByLabelText(/^Họ và tên/), {
       target: { value: "Nguyễn Văn Bình" },
     });
@@ -191,12 +189,4 @@ describe("hàng người nhận", () => {
     expect(within(dialog).getByRole("alert")).toHaveTextContent("đang ở trong 2 gói bàn giao.");
   });
 
-  it("chỉ hiện 4 số cuối khi chưa bấm Hiện, hiện đủ khi có CCCD đầy đủ", () => {
-    renderRow();
-    expect(screen.getByText("•••• 8901")).toBeTruthy();
-    cleanup();
-    renderRow({}, {}, false, "079090123456");
-    expect(screen.getByText("079090123456")).toBeTruthy();
-    expect(screen.queryByText("•••• 8901")).toBeNull();
-  });
 });

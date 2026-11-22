@@ -29,7 +29,7 @@ function turn(index: number, name: string | null, overrides: Record<string, unkn
     // Chỉ lượt 1 thuộc gói có trong danh sách tài sản của test.
     containerId: index === 1 ? CONTAINER_ID : `bbbbbbb${index}-bbbb-4bbb-8bbb-bbbbbbbbbbbb`,
     containerName: `Gói ${index}`,
-    beneficiaryCitizenIdLast4: `000${index}`,
+    beneficiaryCitizenId: `000${index}`,
     beneficiaryFullName: name,
     beneficiaryPhone: name ? "0901234567" : null,
     beneficiaryEmail: name ? "an@example.test" : null,
@@ -147,7 +147,7 @@ const packages = [
   {
     containerId: CONTAINER_ID,
     containerName: "Gói 1",
-    recipients: [{ fullName: "Nguyễn Văn An", citizenIdLast4: "0001" }],
+    recipients: [{ fullName: "Nguyễn Văn An", citizenId: "0001" }],
     assets: [
       { id: ASSET_ID, name: "Sổ tiết kiệm.pdf", kind: "FILE", sizeBytes: 100 },
       {
@@ -241,7 +241,7 @@ describe("Bàn giao: bảng người nhận", () => {
       "Đỗ Thị Dung, gói Gói 5",
       "Vũ Văn Em, gói Gói 6",
       "Nguyễn Văn An, gói Gói 1",
-      "Người nhận CCCD ***0002, gói Gói 2",
+      "Người nhận CCCD 0002, gói Gói 2",
     ]);
   });
 
@@ -274,7 +274,7 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(segmentStates(finished)).toEqual(["done", "done", "done", "done", "done"]);
     expect(finished).toHaveTextContent("Đã nhận xong · tải 3/3 tài sản 16:52 23/12");
 
-    const declined = row(list, /CCCD \*\*\*0002/);
+    const declined = row(list, /CCCD 0002/);
     expect(segmentStates(declined)).toEqual(["done", "stopped", "pending", "pending", "pending"]);
     expect(declined).toHaveTextContent("Đã từ chối nhận");
   });
@@ -341,7 +341,7 @@ describe("Bàn giao: bảng người nhận", () => {
   it("người từ chối (dữ liệu cũ): chi tiết chỉ 2 cột, tài sản 'Không bàn giao'", async () => {
     render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
-    const declined = row(list, /CCCD \*\*\*0002/);
+    const declined = row(list, /CCCD 0002/);
     fireEvent.click(within(declined).getByRole("button", { name: "Chi tiết" }));
     const columns = within(
       within(declined).getByRole("list", { name: "Giờ từng bước" }),

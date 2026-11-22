@@ -180,7 +180,7 @@ describe("official workspace data states", () => {
     expect(screen.queryByText("Thêm tài sản đang bị khóa")).not.toBeInTheDocument();
     expect(await screen.findByRole("group", { name: "Loại mục" })).toBeInTheDocument();
   });
-  it("section plans dựng trang Bàn giao: thẻ việc ở trái, tiến độ và nút xem trước ở phải, file phân chia nằm trong khung xem trước giữa màn hình", async () => {
+  it("section plans dựng trang Bàn giao: thẻ việc ở trái, tiến độ và nút xem trước ở phải, biên bản phân chia nằm trong khung xem trước giữa màn hình", async () => {
     vi.mocked(ownerVaultService.getMine).mockResolvedValue(vaultFixture);
     vi.mocked(usePlanSetup).mockReturnValue({
       isPending: false,
@@ -205,16 +205,16 @@ describe("official workspace data states", () => {
     setup("plans");
 
     expect(await screen.findByText("Kế hoạch chưa kích hoạt")).toBeInTheDocument();
-    // Chưa mở khung xem trước thì chưa có tờ file phân chia và ô ký trên trang.
-    expect(screen.queryByRole("article", { name: "File phân chia" })).not.toBeInTheDocument();
+    // Chưa mở khung xem trước thì chưa có tờ biên bản phân chia và ô ký trên trang.
+    expect(screen.queryByRole("article", { name: "Biên bản phân chia" })).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { name: "Ký file phân chia và kích hoạt" }),
+      screen.queryByRole("heading", { name: "Ký biên bản phân chia và kích hoạt" }),
     ).not.toBeInTheDocument();
     expect(screen.getAllByRole("region", { name: "Tiến độ bàn giao" })).toHaveLength(1);
     expect(screen.getByRole("heading", { name: "Bàn giao diễn ra thế nào" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Xem trước file phân chia" }));
-    expect(await screen.findByRole("article", { name: "File phân chia" })).toBeInTheDocument();
-    expect(screen.getAllByRole("form", { name: "Ký file phân chia và kích hoạt" })).toHaveLength(1);
+    await userEvent.click(screen.getByRole("button", { name: "Xem trước biên bản phân chia" }));
+    expect(await screen.findByRole("article", { name: "Biên bản phân chia" })).toBeInTheDocument();
+    expect(screen.getAllByRole("form", { name: "Ký biên bản phân chia và kích hoạt" })).toHaveLength(1);
   });
 });

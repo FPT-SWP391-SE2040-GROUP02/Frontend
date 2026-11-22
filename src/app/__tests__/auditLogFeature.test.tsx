@@ -196,7 +196,7 @@ describe("OwnerAuditLog transport", () => {
     const personId = "01a15ccf-7c06-797e-b417-086d7d963788";
     const person = {
       id: personId,
-      citizenIdLast4: "0696",
+      citizenId: "0696",
       fullName: "Trịnh Lê Thiên Quan",
       dateOfBirth: "1990-05-20",
       email: "quan@example.test",

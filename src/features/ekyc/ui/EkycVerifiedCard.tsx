@@ -58,7 +58,7 @@ export function EkycVerifiedCard({
     backSide = "Đã đọc";
   }
   const facts = [
-    { label: "Số căn cước", value: `•••• ${live.citizenIdLast4}` },
+    { label: "Số căn cước", value: live.citizenId },
     { label: "Hoàn tất lúc", value: completedAt },
     { label: "Khuôn mặt", value: "Khớp với giấy tờ" },
     { label: "Chống giả mạo", value: spoof },

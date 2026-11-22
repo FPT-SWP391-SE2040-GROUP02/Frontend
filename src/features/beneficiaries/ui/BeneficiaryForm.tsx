@@ -225,7 +225,7 @@ export function BeneficiaryForm({
   };
 
   let note =
-    "Email là bắt buộc để gửi thông báo nhận bàn giao. Số CCCD được mã hóa; hệ thống chỉ hiện 4 số cuối.";
+    "Email là bắt buộc để gửi thông báo nhận bàn giao.";
   if (record && record.containerIds.length > 0) {
     note = `Người này đang thuộc ${record.containerIds.length} gói bàn giao. Sửa thông tin sẽ cập nhật cấu hình kế hoạch bàn giao.`;
   } else if (record) {
@@ -353,7 +353,7 @@ export function BeneficiaryForm({
                 <span>Số CCCD</span>
                 <p className="flex min-h-11 items-center gap-2 rounded-lg border border-heritage-border bg-heritage-sunken px-3 font-mono text-sm font-normal text-heritage-muted">
                   <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
-                  <span>•••••••• {record.citizenIdLast4}</span>
+                  <span>{record.citizenId}</span>
                 </p>
                 <span className={HINT}>Không đổi được sau khi lưu.</span>
               </div>

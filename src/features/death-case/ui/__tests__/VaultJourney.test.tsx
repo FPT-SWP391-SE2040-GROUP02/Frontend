@@ -16,7 +16,7 @@ const SENT = "2026-12-23T06:14:00+00:00";
 const turn = (index: number, overrides: Record<string, unknown>) => ({
   turnId: `5555555${index}-5555-4555-8555-555555555555`,
   containerName: `Gói ${index}`,
-  beneficiaryCitizenIdLast4: "1234",
+  beneficiaryCitizenId: "1234",
   status: "INVITED",
   claimedByYou: false,
   identityConfirmedByExecutor: false,

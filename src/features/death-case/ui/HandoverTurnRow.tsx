@@ -76,7 +76,7 @@ function StepTimes({ columns }: { columns: TurnSegment[] }) {
 
 function recipientName(turn: HandoverProgressTurn): string {
   if (turn.beneficiaryFullName) return turn.beneficiaryFullName;
-  return `Người nhận CCCD ***${turn.beneficiaryCitizenIdLast4}`;
+  return `Người nhận CCCD ${turn.beneficiaryCitizenId}`;
 }
 
 /** Ba ô nhỏ viền mảnh: Thông tin liên hệ, Tài sản, Biên bản. */

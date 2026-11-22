@@ -21,7 +21,7 @@ const turn = (
 ) => ({
   turnId,
   containerName,
-  beneficiaryCitizenIdLast4: "8901",
+  beneficiaryCitizenId: "8901",
   claimedByYou: false,
   identityConfirmedByExecutor: false,
   status,

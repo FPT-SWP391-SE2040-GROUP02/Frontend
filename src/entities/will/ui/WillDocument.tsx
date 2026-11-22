@@ -188,7 +188,7 @@ function OwnerSectionBlock({
       {missingNote}
       <p className={`${BODY} mt-2`}>
         Nay trong trạng thái tinh thần hoàn toàn minh mẫn, sáng suốt, không bị bất kỳ sự lừa dối, đe
-        dọa hoặc cưỡng ép nào, tôi lập file phân chia này để định đoạt các gói tài sản số trong kho
+        dọa hoặc cưỡng ép nào, tôi lập biên bản phân chia này để định đoạt các gói tài sản số trong kho
         của tôi tại LegacyVault sau khi tôi qua đời như sau:
       </p>
     </section>
@@ -243,7 +243,7 @@ function AssetsSectionBlock({
         {heading}
         <p className={BODY}>
           Các gói tài sản trong kho được để lại cho những người nhận mà tôi đã chỉ định cho từng gói
-          trong kế hoạch bàn giao. File phân chia chỉ ghi tên gói, không ghi tên hay nội dung tài
+          trong kế hoạch bàn giao. Biên bản phân chia chỉ ghi tên gói, không ghi tên hay nội dung tài
           sản.
         </p>
       </section>
@@ -478,7 +478,7 @@ function SignatureBlock({
 }
 
 /**
- * File phân chia số của một kho, sinh từ dữ liệu kế hoạch bàn giao: quốc hiệu, tiêu đề, bốn mục I đến IV, hai ô chữ ký
+ * Biên bản phân chia số của một kho, sinh từ dữ liệu kế hoạch bàn giao: quốc hiệu, tiêu đề, bốn mục I đến IV, hai ô chữ ký
  * ngang hàng và câu lưu ý. Chỉ có tên và số đếm, không có tên hay nội dung tài sản, không có lời nhắn.
  *
  * Dùng chung cho khung xem trước của Chủ kho (viewer "owner", chỗ trống đỏ bấm được), bản Người thực thi xem khi nhận
@@ -530,7 +530,7 @@ export function WillDocument({
         </p>
       </header>
       <h2 className="mt-6 text-center text-[26px] font-bold leading-[1.3] tracking-[0.08em] text-heritage-primary">
-        FILE PHÂN CHIA
+        BIÊN BẢN PHÂN CHIA
       </h2>
       <p className="mt-3 text-center leading-7">Hôm nay, ngày {dateText}, tại LegacyVault.</p>
       {versionLine}
@@ -554,9 +554,9 @@ export function WillDocument({
       <section id="muc-4" className={SECTION}>
         <h3 className={HEADING}>IV. Hiệu lực, sửa đổi và thu hồi</h3>
         <p className={BODY}>
-          File phân chia này chỉ ghi lại mong muốn của tôi, không phải giấy tờ pháp lý. Việc bàn
+          Biên bản phân chia này chỉ ghi lại mong muốn của tôi, không phải giấy tờ pháp lý. Việc bàn
           giao chỉ làm theo biên bản bàn giao do luật sư lập và ba bên ký. Khi còn sống, tôi có
-          quyền sửa đổi, đổi Người thực thi hoặc thu hồi file phân chia này bất cứ lúc nào.
+          quyền sửa đổi, đổi Người thực thi hoặc thu hồi biên bản phân chia này bất cứ lúc nào.
         </p>
       </section>
 

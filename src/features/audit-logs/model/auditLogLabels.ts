@@ -73,7 +73,7 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   SYSTEM_SETTING_UPDATED: "Cập nhật tham số hệ thống",
   PLAN_ACTIVATED: "Kích hoạt kế hoạch bàn giao",
   EXECUTOR_ACCEPTED: "Người thực thi nhận vai",
-  WILL_RESIGNED: "Ký lại file phân chia",
+  WILL_RESIGNED: "Ký lại biên bản phân chia",
   WILL_IDENTITY_VIEWED: "Xem CCCD đầy đủ của người nhận",
   LOGIN_SUCCEEDED: "Đăng nhập thành công",
   LOGIN_FAILED: "Đăng nhập sai mật khẩu",

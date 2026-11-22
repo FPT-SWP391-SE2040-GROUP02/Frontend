@@ -36,7 +36,7 @@ const passing = {
 const statusOk = {
   status: "PASSED" as const,
   verificationId: "11111111-1111-1111-1111-111111111111",
-  citizenIdLast4: "8901",
+  citizenId: "8901",
   faceMatchScore: 0.42,
   matchThreshold: 0.363,
   spoofCheckPassed: true,

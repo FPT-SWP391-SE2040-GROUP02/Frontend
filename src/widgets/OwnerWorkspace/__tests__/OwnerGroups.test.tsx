@@ -42,9 +42,9 @@ const ASSETS = [
   { id: "a4", name: "Lời nhắn cho các con", kind: "TEXT" },
 ];
 const PEOPLE = [
-  { id: "p1", fullName: "Nguyễn Thị Lan", citizenIdLast4: "7756" },
-  { id: "p2", fullName: "Nguyễn Minh Anh", citizenIdLast4: "4821" },
-  { id: "p3", fullName: "Nguyễn Hoàng Nam", citizenIdLast4: "1093" },
+  { id: "p1", fullName: "Nguyễn Thị Lan", citizenId: "7756" },
+  { id: "p2", fullName: "Nguyễn Minh Anh", citizenId: "4821" },
+  { id: "p3", fullName: "Nguyễn Hoàng Nam", citizenId: "1093" },
 ];
 
 beforeEach(() => {
@@ -127,7 +127,7 @@ describe("tab Gói bàn giao trong Kho của tôi", () => {
     expect(screen.getByText("Chưa có ai")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Chọn người nhận" }));
     expect(screen.getByRole("dialog")).toHaveTextContent("Nguyễn Minh Anh");
-    expect(screen.getByRole("dialog")).toHaveTextContent("CCCD ****4821");
+    expect(screen.getByRole("dialog")).toHaveTextContent("CCCD 4821");
   });
 
   it("gói trống thì cần cả tài sản và người nhận", () => {
