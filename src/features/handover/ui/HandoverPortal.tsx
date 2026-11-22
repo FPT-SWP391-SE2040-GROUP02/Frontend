@@ -137,6 +137,55 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
           {(turn.status === "READY_TO_ACCEPT" || turn.status === "HANDOVER_COMMITTED") && (
             <RecipientRecordPanel turnId={turn.id} onChanged={refresh} />
           )}
+        </div>
+        <div className="min-w-0 space-y-4">
+          {turn.items.length > 0 && (
+            <Panel title="Các mục dành cho bạn">
+              {/* Nhiều mục thì danh sách cuộn trong khung, không kéo dài cả trang. */}
+              <ul className="max-h-80 divide-y divide-heritage-border overflow-y-auto pr-1">
+                {turn.items.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex flex-wrap items-center justify-between gap-3 py-3"
+                  >
+                    <span className="min-w-0">
+                      <span className="block break-words text-sm font-semibold">{item.name}</span>
+                      <span className="block text-sm text-heritage-muted">
+                        {kindLabels[item.kind] ?? "Mục"} · {formatStorageSize(item.sizeBytes)}
+                      </span>
+                    </span>
+                    {turn.grant?.status === "ACTIVE" && (
+                      <button
+                        type="button"
+                        className={buttonStyles.outline}
+                        aria-label={`Tải xuống ${item.name}`}
+                        disabled={
+                          content.pending ||
+                          action.pending ||
+                          (turn.keyRequired && !turn.keyVerified) ||
+                          Boolean(turn.receivedAllAt)
+                        }
+                        onClick={() =>
+                          void content.download(
+                            () => handoverService.download(turn.grant!.id, item.id),
+                            (item.fileName ?? `${item.name}.txt`).replace(
+                              /[^\p{L}\p{N} ._()-]/gu,
+                              "_",
+                            ),
+                            refresh,
+                          )
+                        }
+                      >
+                        <Download className="size-4" aria-hidden="true" />
+                        Tải xuống
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+          {/* Chi tiết lượt nhận nằm cột phải, ngay dưới Các mục dành cho bạn. */}
           <Panel title="Chi tiết lượt nhận">
             <div className="space-y-4">
               <dl className="border-t border-heritage-border">
@@ -241,10 +290,16 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                       Tải xong các mục ở khung “Các mục dành cho bạn” thì bấm xác nhận để Người thực
                       thi biết lượt này đã hoàn tất.
                     </p>
+                    {turn.items.some((item) => !item.downloaded) && (
+                      <p role="status" className="text-sm font-medium text-[#7A5B24]">
+                        Còn {turn.items.filter((item) => !item.downloaded).length} mục chưa tải. Tải
+                        hết rồi mới xác nhận được.
+                      </p>
+                    )}
                     <button
                       type="button"
                       className={buttonStyles.dark}
-                      disabled={action.pending}
+                      disabled={action.pending || turn.items.some((item) => !item.downloaded)}
                       onClick={() =>
                         void action.execute(
                           () => handoverService.confirmReceivedAll(turn.id),
@@ -259,53 +314,6 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
               </section>
             )}
           </Panel>
-        </div>
-        <div className="min-w-0 space-y-4">
-          {turn.items.length > 0 && (
-            <Panel title="Các mục dành cho bạn">
-              {/* Nhiều mục thì danh sách cuộn trong khung, không kéo dài cả trang. */}
-              <ul className="max-h-80 divide-y divide-heritage-border overflow-y-auto pr-1">
-                {turn.items.map((item) => (
-                  <li
-                    key={item.id}
-                    className="flex flex-wrap items-center justify-between gap-3 py-3"
-                  >
-                    <span className="min-w-0">
-                      <span className="block break-words text-sm font-semibold">{item.name}</span>
-                      <span className="block text-sm text-heritage-muted">
-                        {kindLabels[item.kind] ?? "Mục"} · {formatStorageSize(item.sizeBytes)}
-                      </span>
-                    </span>
-                    {turn.grant?.status === "ACTIVE" && (
-                      <button
-                        type="button"
-                        className={buttonStyles.outline}
-                        aria-label={`Tải xuống ${item.name}`}
-                        disabled={
-                          content.pending ||
-                          action.pending ||
-                          (turn.keyRequired && !turn.keyVerified) ||
-                          Boolean(turn.receivedAllAt)
-                        }
-                        onClick={() =>
-                          void content.download(
-                            () => handoverService.download(turn.grant!.id, item.id),
-                            (item.fileName ?? `${item.name}.txt`).replace(
-                              /[^\p{L}\p{N} ._()-]/gu,
-                              "_",
-                            ),
-                          )
-                        }
-                      >
-                        <Download className="size-4" aria-hidden="true" />
-                        Tải xuống
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </Panel>
-          )}
           {(action.pending || content.pending) && <p role="status">Đang xử lý yêu cầu…</p>}
           {(action.error || content.error) && (
             <p

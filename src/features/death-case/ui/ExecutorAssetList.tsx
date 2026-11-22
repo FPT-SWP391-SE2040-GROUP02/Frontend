@@ -17,8 +17,12 @@ import { useExecutorRecord } from "@/entities/handoverRecord";
 import { useExecutorPackages } from "../model/useExecutorPackages";
 import { useHandoverProgress } from "../model/useHandoverProgress";
 
-const DOWNLOAD_CHIPS: Record<AssetDownloadState, { label: string; tone: "success" | "neutral" }> = {
+const DOWNLOAD_CHIPS: Record<
+  AssetDownloadState,
+  { label: string; tone: "success" | "neutral" | "warning" }
+> = {
   downloaded: { label: "Đã tải", tone: "success" },
+  partial: { label: "Tải một phần", tone: "warning" },
   "not-downloaded": { label: "Chưa tải", tone: "neutral" },
   "not-handed-over": { label: "Không bàn giao", tone: "neutral" },
 };

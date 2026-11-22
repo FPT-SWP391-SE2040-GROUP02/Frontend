@@ -26,7 +26,12 @@ export function useGrantDownload() {
       mounted.current = false;
     };
   }, []);
-  async function download(fetchContent: () => Promise<Blob>, fileName: string) {
+  /** `onSaved` chạy sau khi đã lưu file (ví dụ để làm mới trạng thái "đã tải" của từng mục). */
+  async function download(
+    fetchContent: () => Promise<Blob>,
+    fileName: string,
+    onSaved?: () => void,
+  ) {
     if (busy.current) return;
     const startedBy = currentUser.current;
     if (!accessTokenMemory.get() || startedBy === null) {
@@ -47,6 +52,7 @@ export function useGrantDownload() {
       link.download = fileName;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      onSaved?.();
     } catch (failure) {
       if (sameSession()) setError(downloadErrorMessage(failure));
     } finally {

@@ -105,6 +105,11 @@ describe("assetDownloadState", () => {
     expect(assetDownloadState(ASSET_A, [t])).toBe("downloaded");
     expect(assetDownloadState(ASSET_B, [t])).toBe("not-downloaded");
   });
+  it("mới một người nhận tải thì báo tải một phần", () => {
+    const done = turn({ ...committed, items: [item(ASSET_A, true)] });
+    const waiting = turn({ ...committed, items: [item(ASSET_A, false)] });
+    expect(assetDownloadState(ASSET_A, [done, waiting])).toBe("partial");
+  });
   it("người nhận từ chối thì không bàn giao", () => {
     expect(assetDownloadState(ASSET_A, [turn({ status: "DECLINED" })])).toBe("not-handed-over");
   });

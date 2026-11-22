@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Check } from "lucide-react";
 import type { PackageResponse } from "@/entities/package/model/package.types";
 import { Button } from "@/shared/ui/button";
+import { confirmVaultPin } from "@/shared/api/vaultPin";
 import { useOwnerPackages } from "@/features/vault-management/model/useOwnerVault";
 import type {
   GroupAssetOption,
@@ -12,6 +13,7 @@ import { CreateGroupDialog } from "@/features/vault-management/ui/CreateGroupDia
 import { GroupCard } from "@/features/vault-management/ui/GroupCard";
 import { RenameGroupDialog } from "@/features/vault-management/ui/RenameGroupDialog";
 import { AddGroupMembersDialog } from "@/features/vault-management/ui/AddGroupMembersDialog";
+import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
@@ -227,6 +229,7 @@ export function OwnerGroups({
       {createOpen && (
         <CreateGroupDialog
           vaultId={vaultId}
+          confirmPin={() => confirmVaultPin(vaultId, (pin) => vaultPinService.verify(vaultId, pin))}
           assets={assets}
           beneficiaries={beneficiaries}
           onClose={() => onCreateOpenChange(false)}
@@ -239,6 +242,7 @@ export function OwnerGroups({
           relation={editing.relation}
           assets={assets}
           beneficiaries={beneficiaries}
+          confirmPin={() => confirmVaultPin(vaultId, (pin) => vaultPinService.verify(vaultId, pin))}
           onClose={() => setEditing(null)}
         />
       )}
