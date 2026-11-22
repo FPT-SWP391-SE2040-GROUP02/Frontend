@@ -1,60 +1,65 @@
 import { describe, expect, it } from "vitest";
-import type { DeathCase, ExecutorVault } from "../deathCase.schema";
-import { deriveNotifications } from "../notifications";
+import type { ExecutorVault } from "../deathCase.schema";
+import { deriveNotifications, type RecordMoments } from "../notifications";
 
-const baseVault: ExecutorVault = {
+const vault: ExecutorVault = {
   vaultId: "11111111-1111-4111-8111-111111111111",
   ownerFullName: "Anh Nam",
   planStatus: "ACTIVE",
-  openDeathCaseId: null,
+  handoverRecordStatus: "",
 };
 
-function record(extra: Partial<DeathCase>): DeathCase {
+function record(overrides: Partial<RecordMoments> = {}): RecordMoments {
   return {
     id: "33333333-3333-4333-8333-333333333333",
-    status: "UNDER_REVIEW",
-    currentVersion: { versionNo: 1, submittedAt: "2026-11-01T09:00:00Z" },
-    supplementRequest: null,
-    createdAt: "2026-10-31T09:00:00Z",
-    updatedAt: null,
-    ...extra,
-  } as DeathCase;
+    status: "DRAFTING",
+    revisionNo: 1,
+    requestedAt: "2026-11-01T03:00:00Z",
+    finalizedAt: null,
+    completedAt: null,
+    canSign: false,
+    ...overrides,
+  };
 }
 
 describe("deriveNotifications", () => {
-  it("kho an toàn, không có hồ sơ thì không có thông báo", () => {
-    expect(deriveNotifications(baseVault, null)).toEqual([]);
+  it("chưa có yêu cầu nhận và không có hướng dẫn thì không có thông báo", () => {
+    expect(deriveNotifications(vault, null)).toEqual([]);
   });
 
-  it("sự kiện của hồ sơ xếp mới nhất trước và lấy đúng lý do bổ sung", () => {
+  it("biên bản chờ bạn ký thì báo đứng trên cùng", () => {
     const items = deriveNotifications(
-      { ...baseVault, planStatus: "DEATH_CASE_OPEN", openDeathCaseId: "x" },
+      vault,
+      record({ status: "SIGNING", canSign: true, finalizedAt: "2026-11-02T03:00:00Z" }),
+    );
+    expect(items[0].title).toBe("Đến lượt bạn ký biên bản");
+    expect(items[0].tone).toBe("attention");
+  });
+
+  it("các mốc của biên bản xếp mới nhất trước", () => {
+    const items = deriveNotifications(
+      vault,
       record({
-        status: "SUPPLEMENT_REQUIRED",
-        supplementRequest: {
-          versionNo: 1,
-          reason: "Ảnh trang 2 bị mờ",
-          requestedParts: [],
-          requestedAt: "2026-11-02T09:00:00Z",
-        },
+        status: "COMPLETED",
+        finalizedAt: "2026-11-02T03:00:00Z",
+        completedAt: "2026-11-03T03:00:00Z",
       }),
     );
-    expect(items.map((item) => item.text)).toEqual([
-      "Người xét duyệt yêu cầu bổ sung: Ảnh trang 2 bị mờ",
-      "Bạn đã gửi hồ sơ (bản 1).",
-      "Bạn mở hồ sơ báo tin.",
+    expect(items.map((item) => item.title)).toEqual([
+      "Biên bản đã đủ chữ ký",
+      "Luật sư đã chốt biên bản",
+      "Có yêu cầu nhận tài sản",
     ]);
   });
 
-  it("id đổi theo sự kiện để thông báo mới hiện lại là chưa đọc", () => {
-    const first = deriveNotifications(baseVault, record({}));
+  it("chốt lại bản mới thì id đổi để thông báo hiện lại là chưa đọc", () => {
+    const first = deriveNotifications(vault, record({ finalizedAt: "2026-11-02T03:00:00Z" }));
     const second = deriveNotifications(
-      baseVault,
-      record({
-        currentVersion: { versionNo: 2, submittedAt: "2026-11-03T09:00:00Z" } as never,
-      }),
+      vault,
+      record({ revisionNo: 2, finalizedAt: "2026-11-04T03:00:00Z" }),
     );
-    const firstIds = new Set(first.map((item) => item.id));
-    expect(second.some((item) => !firstIds.has(item.id))).toBe(true);
+    expect(first.find((item) => item.id.startsWith("finalized"))!.id).not.toBe(
+      second.find((item) => item.id.startsWith("finalized"))!.id,
+    );
   });
 });

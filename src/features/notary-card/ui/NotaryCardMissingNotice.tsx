@@ -6,8 +6,8 @@ export function NotaryCardMissingNotice() {
   const status = useNotaryCardStatus();
   if (!status.data || status.data.hasCard) return null;
   return (
-    <Notice tone="warning" role="status" title="Tài khoản của bạn chưa có ảnh thẻ công chứng viên">
-      Chưa có ảnh thẻ thì bạn chưa duyệt được hồ sơ và chưa gửi được biên bản. Hãy liên hệ quản trị
+    <Notice tone="warning" role="status" title="Tài khoản của bạn chưa có ảnh thẻ luật sư">
+      Ảnh thẻ giúp Người thực thi và người nhận biết biên bản do luật sư lập. Hãy liên hệ quản trị
       viên để nộp thẻ.
     </Notice>
   );

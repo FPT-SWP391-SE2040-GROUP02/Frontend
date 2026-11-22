@@ -66,7 +66,7 @@ export function isCurrentPaidService(vault: VaultResponse, now: number): boolean
 export function canPreviewBilling(vault: VaultResponse): boolean {
   return (
     vault.status !== "CLOSED" &&
-    !["DEATH_CASE_OPEN", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"].includes(vault.planStatus)
+    !["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"].includes(vault.planStatus)
   );
 }
 

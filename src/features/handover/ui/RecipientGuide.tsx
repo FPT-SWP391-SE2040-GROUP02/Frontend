@@ -46,7 +46,7 @@ export function RecipientGuide({ defaultOpen = false }: { defaultOpen?: boolean 
           <li key={step.title} className="flex gap-3">
             <span
               aria-hidden="true"
-              className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-semibold text-[#0A281E]"
+              className="flex size-8 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft text-sm font-semibold text-heritage-primary"
             >
               {index + 1}
             </span>

@@ -37,8 +37,10 @@ interface Option {
 type Relation = "assets" | "beneficiaries";
 
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
-const DANGER_BUTTON = "border-red-300 text-red-700 hover:bg-red-50";
-const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
+const DANGER_BUTTON =
+  "border-heritage-danger-border text-heritage-danger hover:bg-heritage-danger-bg";
+const PRIMARY_BUTTON =
+  "bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover";
 /**
  * SETUP-16: BE báo thao tác gỡ/xóa sẽ làm mất gói Sẵn sàng cuối cùng của kế hoạch đang chạy (kế hoạch về Nháp) và
  * chưa gỡ gì. Chỉ lúc này FE mới hỏi Owner, đồng ý thì gửi lại kèm confirmPlanDeactivation.
@@ -49,11 +51,11 @@ function needsPlanConfirmation(error: unknown): boolean {
 }
 
 /**
- * Gói đã xóa không còn được bàn giao, nhưng bản di chúc đã ký vẫn phải ký lại để khớp. Màn này không có sẵn trạng thái
+ * Gói đã xóa không còn được bàn giao, nhưng bản biên bản phân chia đã ký vẫn phải ký lại để khớp. Màn này không có sẵn trạng thái
  * kế hoạch (plan-setup thuộc feature khác) nên câu về ký lại viết dạng có điều kiện.
  */
 const RESIGN_AFTER_DELETE =
-  "Gói này sẽ không còn được bàn giao, kể cả khi bạn chưa ký lại. Nếu kế hoạch đã ký, hãy vào trang Bàn giao để ký lại di chúc.";
+  "Gói này sẽ không còn được bàn giao, kể cả khi bạn chưa ký lại. Nếu kế hoạch đã ký, hãy vào trang Bàn giao để ký lại biên bản phân chia.";
 /** Thay đổi người nhận hoặc tài sản trong gói cũng cần ký lại; viết dạng có điều kiện vì cùng lý do trên. */
 const RESIGN_AFTER_CHANGE =
   "Nếu kế hoạch đã ký: thay đổi này cần được ký lại trong trang Bàn giao. Phần thêm hoặc đổi người nhận chỉ được bàn giao sau khi ký lại.";
@@ -93,7 +95,7 @@ function MemberCard(props: MemberCardProps) {
       >
         <div className="flex min-w-0 items-center gap-3">
           <span
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#F1E7D0] text-[#7A5B24]"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-warning-bg text-heritage-warning"
             aria-hidden="true"
           >
             {props.icon}
@@ -177,7 +179,7 @@ function MemberCard(props: MemberCardProps) {
           <p className="mt-4 text-sm text-heritage-muted">{props.emptyText}</p>
         )}
         <ul className="mt-2">{people}</ul>
-        <div className="mt-4 rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <div className="mt-4 rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
           {props.note}
         </div>
       </section>
@@ -352,10 +354,10 @@ export function GroupDetail({
   const personOptions = pick(beneficiaries, container.beneficiaryIds);
 
   let statusLabel = "Chưa sẵn sàng";
-  let statusStyle = "bg-amber-100 text-amber-800";
+  let statusStyle = "bg-heritage-warning-bg text-heritage-warning";
   if (container.status === "READY") {
     statusLabel = "Sẵn sàng";
-    statusStyle = "bg-green-100 text-green-800";
+    statusStyle = "bg-heritage-success-bg text-heritage-success";
   } else if (removed) {
     statusLabel = "Đã xóa";
     statusStyle = "bg-heritage-primary/10 text-heritage-muted";
@@ -411,7 +413,7 @@ export function GroupDetail({
           <Button
             type="button"
             variant="outline"
-            className="min-h-11 rounded-[20px] border-red-300 px-5 text-sm font-semibold text-red-700 hover:bg-red-50"
+            className="min-h-11 rounded-[20px] border-heritage-danger-border px-5 text-sm font-semibold text-heritage-danger hover:bg-heritage-danger-bg"
             disabled={blocked || isDirty}
             onClick={() => setDeleting(true)}
           >
@@ -420,7 +422,10 @@ export function GroupDetail({
         </div>
       </div>
       {removed && (
-        <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
+        <p
+          role="status"
+          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
+        >
           Gói bàn giao này đã bị xóa nên không chỉnh sửa được.
         </p>
       )}
@@ -525,7 +530,12 @@ export function GroupDetail({
             </p>
           )}
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" size="lg" className={GOLD_BUTTON} disabled={blocked || !isDirty}>
+            <Button
+              type="submit"
+              size="lg"
+              className={PRIMARY_BUTTON}
+              disabled={blocked || !isDirty}
+            >
               Lưu
             </Button>
             <Button
@@ -545,7 +555,7 @@ export function GroupDetail({
       </section>
       <section
         aria-label="Xóa gói bàn giao"
-        className="rounded-2xl border border-red-200 bg-heritage-surface p-6"
+        className="rounded-2xl border border-heritage-danger-border bg-heritage-surface p-6"
       >
         <h2 className="text-xl font-medium text-heritage-primary">Xóa gói bàn giao</h2>
         <p className="mt-2 text-sm text-heritage-muted">
@@ -574,7 +584,7 @@ export function GroupDetail({
       {action.error && (
         <div
           role="alert"
-          className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+          className="flex items-start gap-3 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg px-4 py-3 text-sm font-medium text-heritage-danger"
         >
           <CircleAlert className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
           <div className="space-y-2">
@@ -590,7 +600,7 @@ export function GroupDetail({
       {action.succeeded && (
         <p
           role="status"
-          className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800"
+          className="flex items-center gap-3 rounded-xl border border-heritage-success-border bg-heritage-success-bg px-4 py-3 text-sm font-semibold text-heritage-success"
         >
           <CircleCheck className="size-5 shrink-0" aria-hidden="true" />
           Đã lưu thay đổi.
@@ -640,9 +650,9 @@ export function GroupDetail({
             <DialogHeader>
               <DialogTitle>{impact.title}</DialogTitle>
               <DialogDescription>
-                Đây là gói bàn giao Sẵn sàng cuối cùng. Thao tác này sẽ đưa kế hoạch về Nháp, ngừng
-                theo dõi điểm danh, và Người thực thi phải chấp nhận lại lời mời. Họ không nộp được
-                hồ sơ chứng tử cho tới khi bạn kích hoạt lại kế hoạch.
+                Đây là gói bàn giao Sẵn sàng cuối cùng. Thao tác này sẽ đưa kế hoạch về Nháp và
+                Người thực thi phải chấp nhận lại lời mời. Người nhận không gửi yêu cầu nhận được
+                cho tới khi bạn kích hoạt lại kế hoạch.
               </DialogDescription>
             </DialogHeader>
             {action.error && (

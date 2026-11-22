@@ -39,6 +39,11 @@ const InvitationPage = lazy(() =>
     default: module.InvitationPage,
   })),
 );
+const RequestPage = lazy(() =>
+  import("@/pages/beneficiary/RequestPage").then((module) => ({
+    default: module.RequestPage,
+  })),
+);
 const ExecutorInvitationPage = lazy(() =>
   import("@/pages/claims/ExecutorInvitationPage").then((module) => ({
     default: module.ExecutorInvitationPage,
@@ -67,11 +72,6 @@ const ExecutorProgressPage = lazy(() =>
 const ExecutorInvitationsPage = lazy(() =>
   import("@/pages/executor/ExecutorInvitationsPage").then((module) => ({
     default: module.ExecutorInvitationsPage,
-  })),
-);
-const ExecutorDocumentsPage = lazy(() =>
-  import("@/pages/executor/ExecutorDocumentsPage").then((module) => ({
-    default: module.ExecutorDocumentsPage,
   })),
 );
 const ExecutorAssetsPage = lazy(() =>
@@ -165,11 +165,6 @@ const VerifierQueuePage = lazy(() =>
     default: module.VerifierQueuePage,
   })),
 );
-const VerifierDocumentsPage = lazy(() =>
-  import("@/pages/notary/VerifierDocumentsPage").then((module) => ({
-    default: module.VerifierDocumentsPage,
-  })),
-);
 const VerifierHistoryPage = lazy(() =>
   import("@/pages/notary/VerifierHistoryPage").then((module) => ({
     default: module.VerifierHistoryPage,
@@ -214,6 +209,9 @@ const WillManagementPage = lazy(() =>
     default: module.WillManagementPage,
   })),
 );
+const WillWizardPage = lazy(() =>
+  import("@/pages/dashboard/WillWizardPage").then((module) => ({ default: module.WillWizardPage })),
+);
 const OwnerOverviewPage = lazy(() =>
   import("@/pages/dashboard/OwnerOverviewPage").then((module) => ({
     default: module.OwnerOverviewPage,
@@ -229,10 +227,10 @@ function PageLoading() {
     <div
       role="status"
       aria-label="Đang tải trang"
-      className="flex h-screen w-full flex-col items-center justify-center gap-3 bg-[var(--surface,#FAF9F5)]"
+      className="flex h-screen w-full flex-col items-center justify-center gap-3 bg-heritage-surface"
     >
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--primary,#0B291E)] border-t-transparent" />
-      <p className="text-sm font-medium text-[var(--text-muted,#66786E)]">Đang tải trang…</p>
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-heritage-primary border-t-transparent" />
+      <p className="text-sm font-medium text-heritage-muted">Đang tải trang…</p>
     </div>
   );
 }
@@ -253,11 +251,13 @@ export function AppRoutes() {
         <Route path={ROUTES.PUBLIC.PRIVACY} element={<PrivacyPage />} />
         <Route path="/invitations/:token" element={<InvitationPage />} />
         <Route path={ROUTES.RECEIVE} element={<InvitationPage />} />
+        <Route path={ROUTES.REQUEST} element={<RequestPage />} />
         <Route path={ROUTES.EXECUTOR.INVITATION} element={<ExecutorInvitationPage />} />
         <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
           <Route path={ROUTES.ADMIN.ROOT} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.ADMIN.AUDIT_LOG} element={<AdminWorkspacePage />} />
           <Route path={ROUTES.DASHBOARD.USERS} element={<AdminWorkspacePage />} />
+          <Route path="/admin/holds" element={<Navigate to="/admin" replace />} />
           <Route path="/admin/security" element={<Navigate to="/admin?view=security" replace />} />
           <Route path="/admin/users" element={<Navigate to={ROUTES.DASHBOARD.USERS} replace />} />
         </Route>
@@ -337,9 +337,19 @@ export function AppRoutes() {
           <Route path="/assets" element={<AssetsManagementPage />} />
           <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
           <Route path="/wills" element={<WillManagementPage />} />
-          <Route path={ROUTES.WILLS.NEW} element={<Navigate to={ROUTES.WILLS.ROOT} replace />} />
+          <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
           <Route path="/dashboard/wills/:id" element={<ContainerDetailPage />} />
-          <Route path="/wills/new" element={<Navigate to={ROUTES.WILLS.ROOT} replace />} />
+          <Route path="/wills/new" element={<WillWizardPage />} />
+          {/* Đã bỏ điểm danh: đường dẫn cũ về trang tổng quan của Chủ kho. */}
+          <Route path={ROUTES.DMS.ROOT} element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />} />
+          <Route
+            path={ROUTES.DMS.CONFIG}
+            element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />}
+          />
+          <Route
+            path={ROUTES.DMS.HISTORY}
+            element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />}
+          />
         </Route>
 
         {/* ========================================================================
@@ -352,7 +362,10 @@ export function AppRoutes() {
           <Route path={ROUTES.EXECUTOR.ROOT} element={<ExecutorOverviewPage />} />
           <Route path={ROUTES.EXECUTOR.REPORT} element={<ExecutorReportPage />} />
           <Route path={ROUTES.EXECUTOR.PROGRESS} element={<ExecutorProgressPage />} />
-          <Route path={ROUTES.EXECUTOR.DOCUMENTS} element={<ExecutorDocumentsPage />} />
+          <Route
+            path={ROUTES.EXECUTOR.DOCUMENTS}
+            element={<Navigate to={ROUTES.EXECUTOR.REPORT} replace />}
+          />
           <Route path={ROUTES.EXECUTOR.ASSETS} element={<ExecutorAssetsPage />} />
           {/* Quyền hạn là một thẻ trong trang Cài đặt; đường cũ chuyển về đó. Lời mời có trang riêng. */}
           <Route
@@ -375,7 +388,10 @@ export function AppRoutes() {
           <Route path={ROUTES.NOTARY.WORKSPACE} element={<NotaryWorkspacePage />} />
           <Route path={ROUTES.NOTARY.QUEUE} element={<VerifierQueuePage />} />
           <Route path={ROUTES.NOTARY.RECIPIENTS} element={<VerifierRecipientsPage />} />
-          <Route path={ROUTES.NOTARY.DOCUMENTS} element={<VerifierDocumentsPage />} />
+          <Route
+            path={ROUTES.NOTARY.DOCUMENTS}
+            element={<Navigate to={ROUTES.NOTARY.HISTORY} replace />}
+          />
           <Route path={ROUTES.NOTARY.HISTORY} element={<VerifierHistoryPage />} />
           <Route path={ROUTES.NOTARY.CRITERIA} element={<VerifierCriteriaPage />} />
           <Route path={ROUTES.NOTARY.SETTINGS} element={<VerifierSettingsPage />} />

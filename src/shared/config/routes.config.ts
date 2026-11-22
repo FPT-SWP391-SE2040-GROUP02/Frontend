@@ -6,6 +6,8 @@ export const ROUTES = {
   /** Trang chủ công khai */
   HOME: "/",
   RECEIVE: "/receive",
+  /** Link riêng trong thư báo kích hoạt: người nhận gửi yêu cầu nhận tài sản kèm giấy tờ. */
+  REQUEST: "/request",
 
   /** Trang thông tin công khai: hỗ trợ và pháp lý (liên kết từ chân trang landing) */
   PUBLIC: {
@@ -108,6 +110,13 @@ export const ROUTES = {
   ADMIN: {
     ROOT: "/admin",
     AUDIT_LOG: "/admin/audit-logs",
+  },
+
+  /** Dead Man's Switch (Nhịp sinh tồn & kích hoạt bàn giao di sản) */
+  DMS: {
+    ROOT: "/dms",
+    CONFIG: "/dms/config",
+    HISTORY: "/dms/history",
   },
 
   /** Nhóm trang lỗi hệ thống */

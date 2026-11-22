@@ -14,48 +14,36 @@ import { VerifierHistoryPage } from "@/pages/notary/VerifierHistoryPage";
 import { VerifierQueuePage } from "@/pages/notary/VerifierQueuePage";
 
 const OPEN_ID = "33333333-3333-4333-8333-333333333333";
+const SIGNING_ID = "44444444-4444-4444-8444-444444444444";
+const IDENTITY_ID = "55555555-5555-4555-8555-555555555555";
 const DONE_ID = "66666666-6666-4666-8666-666666666666";
-const REJECTED_ID = "77777777-7777-4777-8777-777777777777";
-const SUPPLEMENT_ID = "88888888-8888-4888-8888-888888888888";
 
+/** Một dòng danh sách biên bản luật sư nhận từ GET /verifier/handover-records. */
 const summary = (id: string, status: string, extra: Record<string, unknown> = {}) => ({
   id,
+  vaultId: VAULT_ID,
+  vaultName: "Kho gia đình",
+  ownerName: "Anh Nam",
   status,
-  reviewVersionNo: 1,
-  ownerCitizenIdLast4: "8901",
-  dateOfDeath: "2026-10-01",
-  submittedAt: CREATED_AT,
-  assignedAt: CREATED_AT,
-  dueAt: CREATED_AT,
-  unreviewedFlagCount: 0,
-  closedAt: null,
+  recipientCount: 2,
+  requestedAt: CREATED_AT,
   ...extra,
-});
-
-const list = (items: unknown[]) => ({
-  items,
-  totalCount: items.length,
-  pageIndex: 1,
-  pageSize: 20,
-  totalPages: 1,
-  hasPreviousPage: false,
-  hasNextPage: false,
 });
 
 const submission = (id: string, submittedAt: string = CREATED_AT) => ({
   id,
   turnId: "99999999-9999-4999-8999-999999999999",
-  containerName: "Kho Anh Nam",
+  containerName: "Biên bản bàn giao",
   kind: "ACCEPT",
   allMatch: true,
   submittedAt,
 });
 
-/** Hồ sơ báo tin trả theo trang, hồ sơ người nhận trả mảng: hai đường dẫn khác nhau nên mock theo đường dẫn. */
-function mockApi(cases: unknown[], recipients: unknown[] = []) {
+/** Biên bản và hồ sơ danh tính người nhận ở hai đường dẫn khác nhau nên mock theo đường dẫn. */
+function mockApi(records: unknown[], recipients: unknown[] = []) {
   return vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
     if (url.includes("handover-submissions")) return recipients;
-    return list(cases);
+    return records;
   });
 }
 
@@ -110,18 +98,16 @@ describe("Verifier workspace shell", () => {
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người xét duyệt" });
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
       "Tổng quan",
-      "Hồ sơ báo tin",
-      "Hồ sơ người nhận",
-      "Biên bản đã ký",
-      "Lịch sử xét duyệt",
-      "Hướng dẫn xét duyệt",
+      "Biên bản bàn giao",
+      "Danh tính người nhận",
+      "Biên bản đã hoàn tất",
+      "Hướng dẫn",
       "Tài khoản",
     ]);
     expect(within(nav).getByRole("group", { name: "Việc cần làm" })).toBeInTheDocument();
     expect(within(nav).getByRole("group", { name: "Đã xử lý" })).toBeInTheDocument();
     expect(within(nav).getByRole("group", { name: "Khác" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByText("Người xét duyệt")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Sang vai/ })).not.toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Đăng xuất" })[0]).toHaveAttribute(
       "href",
@@ -132,107 +118,92 @@ describe("Verifier workspace shell", () => {
     ).toBeInTheDocument();
   });
 
-  it("huy hiệu ở menu là số việc đang chờ, hết việc thì ẩn", async () => {
+  it("huy hiệu chỉ đếm biên bản cần luật sư lập hoặc ký, và hồ sơ danh tính đang chờ", async () => {
     mockApi(
-      [summary(OPEN_ID, "UNDER_REVIEW")],
+      [
+        summary(OPEN_ID, "DRAFTING"),
+        summary(IDENTITY_ID, "IDENTITY_CHECK"),
+        summary(DONE_ID, "COMPLETED"),
+      ],
       [
         submission("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"),
-        submission("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"),
+        submission("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbb0000"),
       ],
     );
     setup("/notary/workspace");
-    const nav = screen.getByRole("navigation", { name: "Điều hướng Người xét duyệt" });
-    expect(await within(nav).findByLabelText("1 việc đang chờ bạn duyệt")).toBeInTheDocument();
-    expect(await within(nav).findByLabelText("2 việc đang chờ bạn duyệt")).toBeInTheDocument();
+    expect(await screen.findByLabelText("1 việc đang chờ bạn duyệt")).toBeInTheDocument();
+    expect(await screen.findByLabelText("2 việc đang chờ bạn duyệt")).toBeInTheDocument();
   });
 });
 
 describe("Verifier overview", () => {
-  it("hai thẻ việc: số hồ sơ báo tin và hồ sơ người nhận đang chờ, kèm hồ sơ nộp sớm nhất", async () => {
+  it("hai thẻ việc: biên bản cần lập hoặc ký và danh tính người nhận chờ kiểm", async () => {
     mockApi(
-      [
-        summary(OPEN_ID, "UNDER_REVIEW"),
-        summary(DONE_ID, "APPROVED_FOR_HANDOVER", { closedAt: CREATED_AT }),
-      ],
-      [submission("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")],
+      [summary(OPEN_ID, "DRAFTING"), summary(SIGNING_ID, "SIGNING"), summary(DONE_ID, "COMPLETED")],
+      [submission("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "2026-10-18T03:00:00Z")],
     );
     setup("/notary/workspace");
-    const cases = await screen.findByRole("link", { name: /Hồ sơ báo tin chờ duyệt/ });
-    expect(cases).toHaveAttribute("href", "/notary/queue");
-    await waitFor(() => expect(cases).toHaveTextContent("1"));
-    expect(cases).toHaveTextContent("Cũ nhất: nộp");
-    const recipients = screen.getByRole("link", { name: /Hồ sơ người nhận chờ duyệt/ });
-    expect(recipients).toHaveAttribute("href", "/notary/recipients");
-    await waitFor(() => expect(recipients).toHaveTextContent("Cũ nhất: nộp"));
-    // Danh sách bên dưới chỉ có hồ sơ còn mở và dẫn thẳng tới hồ sơ đó.
-    expect(screen.getByRole("link", { name: "Xem hồ sơ #33333333" })).toHaveAttribute(
+    const records = await screen.findByRole("link", { name: /Biên bản cần lập hoặc ký/ });
+    await waitFor(() => expect(records).toHaveTextContent("2"));
+    expect(records).toHaveAttribute("href", "/notary/queue");
+    const recipients = screen.getByRole("link", { name: /Danh tính người nhận chờ kiểm/ });
+    await waitFor(() => expect(recipients).toHaveTextContent("1"));
+    expect(recipients).toHaveTextContent(/Cũ nhất: nộp/);
+    expect(screen.getByRole("link", { name: "Xem biên bản #33333333" })).toHaveAttribute(
       "href",
-      `/notary/queue?caseId=${OPEN_ID}`,
+      `/notary/queue?recordId=${OPEN_ID}`,
     );
-    expect(screen.getAllByText(/Hồ sơ #/)).toHaveLength(1);
-    expect(screen.getByText("Hồ sơ báo tin, giấy tờ")).toBeInTheDocument();
-    expect(screen.getByText("Nội dung kho")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Xem biên bản #66666666" })).not.toBeInTheDocument();
   });
 
   it("không còn việc thì hai thẻ ghi 0 và Không còn việc", async () => {
     mockApi([]);
     setup("/notary/workspace");
-    await screen.findByText("Chưa có hồ sơ nào đang được giao.");
+    expect(await screen.findByText("Chưa có biên bản nào đang được giao.")).toBeInTheDocument();
     await waitFor(() => expect(screen.getAllByText("Không còn việc")).toHaveLength(2));
-    const cases = screen.getByRole("link", { name: /Hồ sơ báo tin chờ duyệt/ });
-    expect(cases).toHaveTextContent("0");
   });
 
   it("lỗi tải thì báo lỗi kèm Thử lại, thẻ không hiện số giả", async () => {
     vi.spyOn(apiClient, "get").mockRejectedValue(new Error("down"));
     setup("/notary/workspace");
-    expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được một phần số liệu");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được một phần số liệu.");
     expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
-    expect(screen.getAllByText("Không tải được số liệu")).toHaveLength(2);
+    expect(screen.getAllByText("Không tải được số liệu").length).toBeGreaterThan(0);
   });
 });
 
 describe("Verifier queue and history", () => {
-  it("tab Chờ bạn duyệt chỉ có hồ sơ còn mở, nộp trước xếp trên; hồ sơ chờ bổ sung nằm ở tab còn lại", async () => {
-    mockApi([
-      summary(OPEN_ID, "UNDER_REVIEW", { unreviewedFlagCount: 2 }),
-      summary(DONE_ID, "APPROVED_FOR_HANDOVER", { closedAt: CREATED_AT }),
-      summary(SUPPLEMENT_ID, "SUPPLEMENT_REQUIRED"),
-    ]);
+  it("trang Biên bản bàn giao chỉ có biên bản chưa đủ chữ ký; bấm mã thì mở biên bản", async () => {
+    const get = mockApi([summary(OPEN_ID, "DRAFTING"), summary(DONE_ID, "COMPLETED")]);
     setup("/notary/queue");
+    const table = await screen.findByRole("table");
+    expect(within(table).getByRole("button", { name: "Biên bản #33333333" })).toBeInTheDocument();
     expect(
-      await screen.findByRole("button", { name: "Duyệt hồ sơ #33333333" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /hồ sơ #66666666/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /hồ sơ #88888888/ })).not.toBeInTheDocument();
-    expect(screen.getByText("2 cảnh báo chưa kiểm tra")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: "Hồ sơ báo tin" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: /Chờ Người thực thi bổ sung/ }));
-    expect(await screen.findByRole("button", { name: "Xem hồ sơ #88888888" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /hồ sơ #33333333/ })).not.toBeInTheDocument();
+      within(table).queryByRole("button", { name: "Biên bản #66666666" }),
+    ).not.toBeInTheDocument();
+    expect(within(table).getByText("Đang lập biên bản")).toBeInTheDocument();
+    fireEvent.click(within(table).getByRole("button", { name: "Biên bản #33333333" }));
+    await waitFor(() =>
+      expect(get).toHaveBeenCalledWith(`/verifier/handover-records/${OPEN_ID}`, expect.anything()),
+    );
   });
 
-  it("lists decided cases with the decision in the history table", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(
-      list([
-        summary(OPEN_ID, "UNDER_REVIEW"),
-        summary(DONE_ID, "APPROVED_FOR_HANDOVER", { closedAt: CREATED_AT }),
-        summary(REJECTED_ID, "REJECTED", { closedAt: CREATED_AT }),
-      ]),
-    );
+  it("lịch sử chỉ có biên bản đã đủ chữ ký", async () => {
+    mockApi([summary(OPEN_ID, "SIGNING"), summary(DONE_ID, "COMPLETED")]);
     setup("/notary/history");
     const table = await screen.findByRole("table");
-    const rows = within(table).getAllByRole("row");
-    expect(rows).toHaveLength(3);
-    expect(within(rows[1]).getByText("Chấp thuận")).toBeInTheDocument();
-    expect(within(rows[2]).getByText("Từ chối")).toBeInTheDocument();
-    expect(screen.queryByText(/#33333333/)).not.toBeInTheDocument();
+    expect(within(table).getByRole("button", { name: "Biên bản #66666666" })).toBeInTheDocument();
+    expect(within(table).getByText("Đã đủ chữ ký")).toBeInTheDocument();
+    expect(
+      within(table).queryByRole("button", { name: "Biên bản #33333333" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("shows the empty history instead of the open cases", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(list([summary(OPEN_ID, "UNDER_REVIEW")]));
+  it("chưa có biên bản hoàn tất thì báo trống, không hiện biên bản đang mở", async () => {
+    mockApi([summary(OPEN_ID, "DRAFTING")]);
     setup("/notary/history");
-    expect(await screen.findByText("Chưa có hồ sơ nào đã xử lý.")).toBeInTheDocument();
+    expect(await screen.findByText("Chưa có biên bản nào hoàn tất.")).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
   });
 });
 

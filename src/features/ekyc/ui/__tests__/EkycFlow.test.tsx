@@ -35,7 +35,7 @@ function statusFixture(overrides: Record<string, unknown> = {}) {
   return {
     status: "PASSED",
     verificationId: VERIFICATION_ID,
-    citizenIdLast4: "5608",
+    citizenId: "5608",
     faceMatchScore: 0.52,
     matchThreshold: 0.363,
     spoofCheckPassed: true,

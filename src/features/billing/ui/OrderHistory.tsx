@@ -26,8 +26,8 @@ const STATUS_LABELS: Record<PaymentOrderStatus, string> = {
 };
 
 const STATUS_STYLES: Record<PaymentOrderStatus, string> = {
-  PAID: "bg-green-100 text-green-800",
-  PENDING: "bg-[#F1E7D0] text-[#7A5B24]",
+  PAID: "bg-heritage-success-bg text-heritage-success",
+  PENDING: "bg-heritage-warning-bg text-heritage-warning",
   EXPIRED: "bg-heritage-canvas text-heritage-muted",
   CANCELLED: "bg-heritage-canvas text-heritage-muted",
 };
@@ -58,7 +58,7 @@ export function OrderHistory() {
       <section aria-label="Hóa đơn" className={`${CARD} space-y-4`}>
         <h2 className="text-xl font-medium text-heritage-primary">Hóa đơn</h2>
         <p className="flex items-center gap-3">
-          <CircleCheck className="size-5 text-green-700" aria-hidden="true" />
+          <CircleCheck className="size-5 text-heritage-success" aria-hidden="true" />
           Bạn chưa có đơn thanh toán nào.
         </p>
         <p className="text-sm text-heritage-muted">
@@ -66,7 +66,7 @@ export function OrderHistory() {
         </p>
         <Link
           to={ROUTES.BILLING.PLANS}
-          className="inline-flex min-h-11 items-center rounded-xl bg-[#E0C486] px-6 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] focus-visible:outline-2 focus-visible:outline-heritage-gold"
+          className="inline-flex min-h-11 items-center rounded-xl bg-heritage-primary px-6 text-sm font-semibold text-white hover:bg-heritage-primary-hover focus-visible:outline-2 focus-visible:outline-heritage-gold"
         >
           Xem các gói
         </Link>
@@ -78,7 +78,7 @@ export function OrderHistory() {
     <section aria-label="Hóa đơn" className={`${CARD} space-y-4`}>
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="text-xl font-medium text-heritage-primary">Hóa đơn</h2>
-        <span className="text-sm font-semibold text-[#7A5B24]">{data.totalCount} đơn</span>
+        <span className="text-sm font-semibold text-heritage-warning">{data.totalCount} đơn</span>
       </div>
       <Table>
         <TableHeader>

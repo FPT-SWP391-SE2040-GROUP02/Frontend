@@ -10,16 +10,11 @@ interface IntegerLimit {
 
 export const SETTING_LIMITS: Record<string, IntegerLimit> = {
   "Handover.ResponseWindowDays": { min: 1, max: 60 },
-  "Handover.DecisionWindowDays": { min: 1, max: 60 },
   "Handover.GrantWindowDays": { min: 1, max: 365 },
   "Handover.RetentionWindowDays": { min: 1, max: 730 },
   "Handover.ResendCooldownMinutes": { min: 1, max: 1440 },
   "Executor.InvitationExpiresDays": { min: 1, max: 60 },
   "Executor.ReminderAfterHours": { min: 1, max: 1440 },
-  "DeathCase.SupplementDueDays": { min: 1, max: 60 },
-  "DeathCase.MaxFilesPerVersion": { min: 1, max: 50 },
-  "DeathCase.MaxFileSizeMb": { min: 1, max: 200 },
-  "DeathCase.ReviewDueHours": { min: 1, max: 720 },
   "Limits.MaxUploadsPerHour": { min: 1, max: 10000 },
   "Limits.MaxAssetsPerVault": { min: 1, max: 100000 },
   "Limits.MaxUploadBytesMb": { min: 1, max: 2048 },

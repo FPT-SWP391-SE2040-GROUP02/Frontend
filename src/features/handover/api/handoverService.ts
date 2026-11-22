@@ -36,17 +36,17 @@ export const handoverService = {
   async claimTurn(value: string) {
     return handoverTurnSchema.parse(await apiClient.post<unknown, unknown>(`${turn(value)}/claim`));
   },
-  /** Công khai: kiểm thư mời bằng mã hồ sơ và 4 số cuối căn cước; hết lượt thử thì 423 HANDOVER_MAIL_CHECK_LOCKED. */
-  async checkMail(value: string, caseCode: string, citizenIdLast4: string) {
+  /** Công khai: kiểm thư mời bằng mã hồ sơ và số căn cước; hết lượt thử thì 423 HANDOVER_MAIL_CHECK_LOCKED. */
+  async checkMail(value: string, caseCode: string, citizenId: string) {
     return mailCheckSchema.parse(
       await apiClient.post<unknown, unknown>(
         `/handover/invitations/${encodeURIComponent(token.parse(value))}/check-mail`,
         {
           caseCode: z.string().trim().min(1).max(16).parse(caseCode),
-          citizenIdLast4: z
+          citizenId: z
             .string()
-            .regex(/^\d{4}$/)
-            .parse(citizenIdLast4),
+            .regex(/^\d{12}$/)
+            .parse(citizenId),
         },
       ),
     );
@@ -92,12 +92,6 @@ export const handoverService = {
   async get(value: string, signal?: AbortSignal) {
     return handoverTurnSchema.parse(await apiClient.get<unknown, unknown>(turn(value), { signal }));
   },
-  async decide(value: string, decision: "accept" | "decline") {
-    return handoverTurnSchema.parse(
-      await apiClient.post<unknown, unknown>(`${turn(value)}/${decision}`),
-    );
-  },
-  /** Xác nhận đã nhận đủ tài sản sau khi tải. */
   async confirmReceivedAll(value: string) {
     return handoverTurnSchema.parse(
       await apiClient.post<unknown, unknown>(`${turn(value)}/received-all`),

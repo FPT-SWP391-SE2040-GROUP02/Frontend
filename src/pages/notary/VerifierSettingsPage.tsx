@@ -5,7 +5,7 @@ import { NotaryCardPanel } from "@/features/notary-card";
 import { VerifierShell } from "@/widgets/VerifierWorkspace/VerifierShell";
 
 /**
- * Tài khoản của Người xét duyệt: tên và vai trò, ảnh thẻ công chứng viên (Admin nộp, Người xét duyệt chỉ xem;
+ * Tài khoản của Người xét duyệt: tên và vai trò, ảnh thẻ luật sư (Admin nộp, Người xét duyệt chỉ xem;
  * muốn đổi thì liên hệ Admin) và phương thức đăng nhập (mật khẩu) ở khối bảo mật bên dưới.
  */
 export function VerifierSettingsPage() {
@@ -13,7 +13,7 @@ export function VerifierSettingsPage() {
   return (
     <VerifierShell
       title="Tài khoản"
-      description="Ảnh thẻ công chứng viên do quản trị viên nộp, bạn chỉ xem. Muốn đổi thì liên hệ quản trị viên."
+      description="Ảnh thẻ luật sư do quản trị viên nộp, bạn chỉ xem. Muốn đổi thì liên hệ quản trị viên."
     >
       <section
         aria-label="Hồ sơ Người xét duyệt"

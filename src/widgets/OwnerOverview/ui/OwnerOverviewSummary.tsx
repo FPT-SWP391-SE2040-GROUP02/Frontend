@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
+import { ActivityIcon } from "@/shared/ui/LegacyVaultArtwork";
 import { presentOverviewPlan, storagePercent } from "../model/overviewPresentation";
 import type { OverviewResources } from "../model/useOverviewResources";
 import { OverviewQueryState } from "./OverviewQueryState";
@@ -16,7 +17,7 @@ export function OwnerOverviewSummary({
   const plan = presentOverviewPlan(vault.planStatus);
   return (
     <>
-      <section className="overview-hero" aria-label="Trạng thái kho">
+      <section className="overview-hero" aria-label="Trạng thái kho và bàn giao">
         <div className="overview-hero-message">
           <p className="overview-eyebrow">
             <span className="overview-status-dot" /> Trạng thái kế hoạch
@@ -28,6 +29,17 @@ export function OwnerOverviewSummary({
           <Link to={ROUTES.WILLS.ROOT} className="overview-hero-link">
             Xem kế hoạch bàn giao →
           </Link>
+        </div>
+        <div className="overview-check-in">
+          <h3>
+            <ActivityIcon className="size-4 shrink-0 text-heritage-gold" aria-hidden="true" /> Khi
+            cần bàn giao
+          </h3>
+          <p>
+            Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ. Luật sư xét và lập biên bản bàn
+            giao, kiểm danh tính người nhận, rồi ba bên ký. Hệ thống chỉ giao tài sản theo biên bản
+            đó.
+          </p>
         </div>
       </section>
       <section aria-label="Thống kê kho" className="overview-metrics">

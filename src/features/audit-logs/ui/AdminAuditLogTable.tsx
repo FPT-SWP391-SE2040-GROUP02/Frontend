@@ -11,9 +11,9 @@ import {
 } from "../model/auditLogLabels";
 
 const OUTCOME_STYLES: Record<AdminAuditLogEntry["outcome"], string> = {
-  SUCCEEDED: "bg-emerald-50 text-emerald-800",
-  DENIED: "bg-amber-50 text-amber-900",
-  FAILED: "bg-red-50 text-red-800",
+  SUCCEEDED: "bg-heritage-success-bg text-heritage-success",
+  DENIED: "bg-heritage-warning-bg text-heritage-warning",
+  FAILED: "bg-heritage-danger-bg text-heritage-danger",
 };
 
 /**

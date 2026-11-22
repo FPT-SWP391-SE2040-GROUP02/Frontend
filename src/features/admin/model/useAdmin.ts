@@ -17,9 +17,6 @@ export const adminKeys = {
   paymentTransactions: (query: PaymentTransactionsQuery) =>
     [...adminKeys.all, "payment-transactions", query] as const,
   revenue: (query: AdminRevenueQuery) => [...adminKeys.all, "revenue", query] as const,
-  handoverTemplate: () => [...adminKeys.all, "handover-template"] as const,
-  emailTemplates: () => [...adminKeys.all, "email-templates"] as const,
-  handoverTemplateVersions: () => [...adminKeys.all, "handover-template-versions"] as const,
 };
 
 /** Bộ đếm tổng quan; không tự retry để 404/401 hiện ngay; tự động refetch định kỳ. */
@@ -76,32 +73,6 @@ export function useAdminUserCounts(query: { search?: string; status?: string }) 
 }
 
 /** Một trang giao dịch tiền vào; giữ trang trước khi đổi bộ lọc để bảng không nháy trắng. */
-/** Các loại thư thông báo; không tự retry để 404 không quyền hiện ngay. */
-export function useAdminEmailTemplates() {
-  return useQuery({
-    queryKey: adminKeys.emailTemplates(),
-    queryFn: ({ signal }) => adminService.listEmailTemplates(signal),
-    retry: false,
-  });
-}
-
-/** Mẫu biên bản đang dùng; không tự retry để 404 không quyền hiện ngay. */
-export function useAdminHandoverTemplate() {
-  return useQuery({
-    queryKey: adminKeys.handoverTemplate(),
-    queryFn: ({ signal }) => adminService.getHandoverTemplate(signal),
-    retry: false,
-  });
-}
-
-export function useAdminHandoverTemplateVersions() {
-  return useQuery({
-    queryKey: adminKeys.handoverTemplateVersions(),
-    queryFn: ({ signal }) => adminService.listHandoverTemplateVersions(signal),
-    retry: false,
-  });
-}
-
 export function useAdminRevenue(query: AdminRevenueQuery) {
   return useQuery({
     queryKey: adminKeys.revenue(query),

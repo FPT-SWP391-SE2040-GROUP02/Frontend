@@ -165,7 +165,10 @@ export function AuthBootstrap({ children }: { children: ReactNode }) {
   return (
     <>
       {failed && (
-        <div role="alert" className="flex items-center gap-3 bg-red-50 p-3 text-sm text-red-700">
+        <div
+          role="alert"
+          className="flex items-center gap-3 bg-heritage-danger-bg p-3 text-sm text-heritage-danger"
+        >
           <span>Không thể khôi phục phiên. Bạn có thể thử lại hoặc đăng nhập.</span>
           <Button
             variant="outline"

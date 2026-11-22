@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
   AxiosError,
@@ -56,6 +56,32 @@ function committedTurn(grantStatus: string) {
     ],
     grant: { id: GRANT_ID, status: grantStatus, expiresAt: "2026-12-30T00:00:00Z" },
   };
+}
+/** Biên bản bàn giao đã đủ chữ ký ba bên mà màn người nhận đọc kèm lượt. */
+const COMPLETED_RECORD = {
+  id: "0198a000-0000-7000-8000-000000000003",
+  vaultId: VAULT_ID,
+  vaultName: "Kho thử",
+  ownerName: "Chủ kho thử",
+  status: "COMPLETED",
+  revisionNo: 1,
+  requestedAt: CREATED_AT,
+  finalizedAt: CREATED_AT,
+  completedAt: CREATED_AT,
+  verifierName: "Luật sư thử",
+  executorName: "Người thực thi thử",
+  verifierSignedAt: CREATED_AT,
+  executorSignedAt: CREATED_AT,
+  recipients: [],
+  canSign: false,
+  availableAssets: [],
+  availableRecipients: [],
+  ownerSplit: [],
+};
+/** GET danh sách lượt trả turns; GET biên bản của lượt trả biên bản đã đủ chữ ký. */
+function listOrRecord(config: InternalAxiosRequestConfig, turns: unknown[]): AxiosResponse {
+  if (config.url?.endsWith("/record")) return ok(config, COMPLETED_RECORD);
+  return ok(config, turns);
 }
 function turnWithStatus(status: string, extra: object = {}) {
   return { ...committedTurn("ACTIVE"), status, items: [], grant: null, ...extra };
@@ -123,7 +149,7 @@ function backendDownloadFails(status: number, body: object, grantStatus = "ACTIV
         headers: new AxiosHeaders(),
       });
     }
-    return ok(config, [committedTurn(grantStatus)]);
+    return listOrRecord(config, [committedTurn(grantStatus)]);
   };
 }
 /** Tải nội dung treo cho tới khi test gọi release, để đổi phiên/tài khoản giữa chừng. */
@@ -136,7 +162,7 @@ function backendDownloadHangs() {
       });
       return ok(config, data);
     }
-    return ok(config, [committedTurn("ACTIVE")]);
+    return listOrRecord(config, [committedTurn("ACTIVE")]);
   };
   return control;
 }
@@ -166,24 +192,23 @@ it("explains why GRANT_NOT_ACTIVE rejected the download using the BE reason", as
   expect(createUrl).not.toHaveBeenCalled();
 });
 
-it.each([
-  ["HOLD_ACTIVE", "Kho đang bị tạm giữ"],
-  ["CONTENT_DELETED", "chính sách lưu dữ liệu"],
-])("explains a download denied with GRANT_NOT_ACTIVE reason %s", async (reason, text) => {
-  backendDownloadFails(403, { code: "GRANT_NOT_ACTIVE", reason });
-  const createUrl = vi.spyOn(URL, "createObjectURL");
-  setup();
-  fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
-  expect(await screen.findByRole("alert")).toHaveTextContent(text);
-  expect(createUrl).not.toHaveBeenCalled();
-});
+it.each([["CONTENT_DELETED", "chính sách lưu dữ liệu"]])(
+  "explains a download denied with GRANT_NOT_ACTIVE reason %s",
+  async (reason, text) => {
+    backendDownloadFails(403, { code: "GRANT_NOT_ACTIVE", reason });
+    const createUrl = vi.spyOn(URL, "createObjectURL");
+    setup();
+    fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(text);
+    expect(createUrl).not.toHaveBeenCalled();
+  },
+);
 
 it("saves the file only after the Backend returns the content and then releases the object URL", async () => {
-  apiClient.defaults.adapter = async (config) =>
-    ok(
-      config,
-      config.url?.endsWith("/content") ? new Blob(["noi dung"]) : [committedTurn("ACTIVE")],
-    );
+  apiClient.defaults.adapter = async (config) => {
+    if (config.url?.endsWith("/content")) return ok(config, new Blob(["noi dung"]));
+    return listOrRecord(config, [committedTurn("ACTIVE")]);
+  };
   const createUrl = vi.fn(() => "blob:fixture");
   const revokeUrl = vi.fn();
   Object.assign(URL, { createObjectURL: createUrl, revokeObjectURL: revokeUrl });
@@ -224,7 +249,7 @@ it("shows a network failure of the download instead of staying silent", async ()
     if (config.url?.endsWith("/content")) {
       throw new AxiosError("Network Error", "ERR_NETWORK", config);
     }
-    return ok(config, [committedTurn("ACTIVE")]);
+    return listOrRecord(config, [committedTurn("ACTIVE")]);
   };
   setup();
   fireEvent.click(await screen.findByRole("button", { name: /^Tải xuống/ }));
@@ -239,64 +264,8 @@ it("shows the Backend reason when claiming an invitation is rejected", async () 
     });
   });
   setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Đồng ý nhận" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Bắt đầu" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Chủ kho không thể tự nhận");
-});
-
-it("declines only after an explicit confirmation and then shows the server state", async () => {
-  let declined = false;
-  apiClient.defaults.adapter = async (config) => {
-    if (config.method === "post") {
-      declined = true;
-      return ok(config, turnWithStatus("DECLINED"));
-    }
-    return ok(config, [turnWithStatus(declined ? "DECLINED" : "READY_TO_ACCEPT")]);
-  };
-  const post = vi.spyOn(apiClient, "post");
-  setup();
-  const decline = await screen.findByRole("button", { name: "Từ chối" });
-  fireEvent.click(decline);
-  const dialog = await screen.findByRole("dialog");
-  expect(dialog).toHaveTextContent("Từ chối nhận?");
-  expect(post).not.toHaveBeenCalled();
-  fireEvent.click(within(dialog).getByRole("button", { name: "Giữ lại" }));
-  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-  expect(post).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("button", { name: "Từ chối" }));
-  fireEvent.click(
-    within(await screen.findByRole("dialog")).getByRole("button", { name: "Từ chối nhận" }),
-  );
-  expect(await screen.findByText("Bạn đã từ chối lượt bàn giao này.")).toBeInTheDocument();
-  expect(post).toHaveBeenCalledWith(`/handover/turns/${CONTAINER_ID}/decline`);
-  expect(screen.queryByRole("button", { name: "Đồng ý nhận" })).not.toBeInTheDocument();
-});
-
-it("explains a rejected decision with the Backend reason and keeps the turn undecided", async () => {
-  apiClient.defaults.adapter = async (config) => {
-    if (config.method === "post") {
-      throw problem(config as never, 409, { code: "HANDOVER_NOT_ALLOWED", reason: "WRONG_STATE" });
-    }
-    return ok(config, [turnWithStatus("READY_TO_ACCEPT")]);
-  };
-  setup();
-  fireEvent.click(await screen.findByRole("checkbox"));
-  fireEvent.click(screen.getByRole("button", { name: "Đồng ý nhận" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("không cho phép thao tác này");
-  expect(screen.queryByText(/Quyền xem/)).not.toBeInTheDocument();
-});
-
-it("describes terminal states and counts down from the server time, not the local clock", async () => {
-  apiClient.defaults.adapter = async (config) =>
-    ok(config, [
-      turnWithStatus("READY_TO_ACCEPT", {
-        serverTime: "2026-10-18T00:00:00Z",
-        decisionDeadline: "2026-10-20T03:00:00Z",
-      }),
-      turnWithStatus("DECISION_EXPIRED"),
-    ]);
-  setup();
-  expect(await screen.findByText("Còn 2 ngày 3 giờ để quyết định")).toBeInTheDocument();
-  expect(screen.getByText(/Hạn quyết định đã kết thúc nên lượt này/)).toBeInTheDocument();
 });
 
 it("formats the remaining time from server time", () => {
@@ -311,7 +280,7 @@ it("tells the recipient the invitation was already claimed by another account", 
     throw problem(config as never, 409, { code: "HANDOVER_ALREADY_CLAIMED" });
   });
   setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Từ chối nhận" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Bắt đầu" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Lời mời đã được nhận");
 });
 
@@ -321,7 +290,7 @@ it("does not leak or invent turns when the Backend hides a turn that is not the 
   };
   setup();
   expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được các lượt của bạn");
-  expect(screen.queryByRole("button", { name: "Đồng ý nhận" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Bắt đầu" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /^Tải xuống/ })).not.toBeInTheDocument();
   await expect(handoverService.get(CONTAINER_ID)).rejects.toMatchObject({
     response: { status: 404 },
@@ -332,7 +301,7 @@ it.each([
   ["BLOCKED", "Đang tạm dừng trong lúc hồ sơ được xác minh lại, chưa thể tải"],
   ["REVOKED", "Đã bị thu hồi, không còn tải được"],
 ])("shows a %s grant without any download button", async (grantStatus, label) => {
-  apiClient.defaults.adapter = async (config) => ok(config, [committedTurn(grantStatus)]);
+  apiClient.defaults.adapter = async (config) => listOrRecord(config, [committedTurn(grantStatus)]);
   setup();
   expect(await screen.findByText(new RegExp(label))).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /^Tải xuống/ })).not.toBeInTheDocument();
@@ -341,31 +310,10 @@ it.each([
 it("explains a cancelled turn as a stopped handover, not a system error", async () => {
   apiClient.defaults.adapter = async (config) => ok(config, [turnWithStatus("CANCELLED")]);
   setup();
-  expect(await screen.findByText(/Lượt bàn giao này đã bị hủy/)).toBeInTheDocument();
+  expect(
+    await screen.findByText(/Lượt này đã bị hủy vì luật sư đã sửa biên bản/),
+  ).toBeInTheDocument();
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-});
-
-it("explains a claim blocked by an active hold", async () => {
-  backendInvites((config) => {
-    throw problem(config as never, 409, { code: "HANDOVER_NOT_ALLOWED", reason: "HOLD_ACTIVE" });
-  });
-  setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Đồng ý nhận" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Các hạn đang được giữ nguyên");
-});
-
-it("explains a decision blocked by an active hold and keeps the turn undecided", async () => {
-  apiClient.defaults.adapter = async (config) => {
-    if (config.method === "post") {
-      throw problem(config as never, 409, { code: "HANDOVER_NOT_ALLOWED", reason: "HOLD_ACTIVE" });
-    }
-    return ok(config, [turnWithStatus("READY_TO_ACCEPT")]);
-  };
-  setup();
-  fireEvent.click(await screen.findByRole("checkbox"));
-  fireEvent.click(screen.getByRole("button", { name: "Đồng ý nhận" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Kho đang bị tạm giữ");
-  expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeInTheDocument();
 });
 
 it("still lets the recipient claim after the initial response deadline (BR-58)", async () => {
@@ -373,14 +321,14 @@ it("still lets the recipient claim after the initial response deadline (BR-58)",
   backendInvites((config) => ok(config, turnWithStatus("IDENTITY_IN_PROGRESS")));
   const post = vi.spyOn(apiClient, "post");
   setup();
-  const claim = await screen.findByRole("button", { name: "Đồng ý nhận" });
+  const claim = await screen.findByRole("button", { name: "Bắt đầu" });
   expect(claim).toBeEnabled();
   fireEvent.click(claim);
   await waitFor(() => expect(post).toHaveBeenCalledWith(`/handover/turns/${CONTAINER_ID}/claim`));
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
-it("kho đã cấp khóa mở gói: đồng ý không cần khóa, tải xuống bị khóa tới khi nhập đúng khóa", async () => {
+it("biên bản đủ chữ ký và kho có khóa mở gói: nhập đúng mã nhận mới được xác nhận", async () => {
   let verified = false;
   const posts: string[] = [];
   apiClient.defaults.adapter = async (config) => {
@@ -401,7 +349,7 @@ it("kho đã cấp khóa mở gói: đồng ý không cần khóa, tải xuống
         );
       }
     }
-    return ok(config, [
+    return listOrRecord(config, [
       turnWithStatus("HANDOVER_COMMITTED", { keyRequired: true, keyVerified: verified }),
     ]);
   };
@@ -418,13 +366,4 @@ it("kho đã cấp khóa mở gói: đồng ý không cần khóa, tải xuống
   fireEvent.click(screen.getByRole("button", { name: "Xác nhận khóa" }));
   expect(await screen.findByText("Khóa mở gói đã được xác nhận.")).toBeInTheDocument();
   expect(posts.some((url) => url.endsWith("/verify-key"))).toBe(true);
-});
-
-it("kho đã cấp khóa mở gói: nút Đồng ý nhận không bị khóa trước khi nhập khóa", async () => {
-  apiClient.defaults.adapter = async (config) =>
-    ok(config, [turnWithStatus("READY_TO_ACCEPT", { keyRequired: true, keyVerified: false })]);
-  setup();
-  fireEvent.click(await screen.findByRole("checkbox"));
-  expect(screen.getByRole("button", { name: "Đồng ý nhận" })).toBeEnabled();
-  expect(screen.queryByLabelText("Khóa mở gói do Người thực thi đưa")).not.toBeInTheDocument();
 });

@@ -26,8 +26,8 @@ export function VerifierCriteriaPage() {
           <ul className="divide-y divide-heritage-border">
             {approveWhen.map((item) => (
               <li key={item.title} className="flex gap-4 py-4 first:pt-0 last:pb-0">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#DDEFE6]">
-                  <Check className="size-4 text-[#1F7A55]" aria-hidden="true" />
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-heritage-success-bg">
+                  <Check className="size-4 text-heritage-success" aria-hidden="true" />
                 </span>
                 <div>
                   <p className="font-semibold">{item.title}</p>
@@ -41,7 +41,7 @@ export function VerifierCriteriaPage() {
           <ul className="space-y-3 text-sm">
             {rejectWhen.map((item) => (
               <li key={item} className="flex items-start gap-3">
-                <X className="mt-0.5 size-4 shrink-0 text-[#A32119]" aria-hidden="true" />
+                <X className="mt-0.5 size-4 shrink-0 text-heritage-danger" aria-hidden="true" />
                 {item}
               </li>
             ))}

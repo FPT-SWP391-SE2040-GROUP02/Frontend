@@ -126,12 +126,12 @@ export function EkycOcrProgress({ uploadPercent }: { uploadPercent: number | nul
         className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-heritage-canvas"
       >
         <div
-          className="h-full bg-[#1d4d3c] transition-[width] duration-150"
+          className="h-full bg-heritage-primary-hover transition-[width] duration-150"
           style={{ width: `${uploadWidth}%` }}
         />
 
         <div
-          className="h-full bg-[#B08A3E] transition-[width] duration-150"
+          className="h-full bg-heritage-gold transition-[width] duration-150"
           style={{ width: `${scanWidth}%` }}
         />
       </div>

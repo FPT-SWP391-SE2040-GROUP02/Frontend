@@ -41,9 +41,11 @@ export function RenameGroupDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
-      <DialogContent className="bg-[#FBFAF5] p-6 sm:max-w-md">
+      <DialogContent className="bg-heritage-surface p-6 sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-[#0A281E]">Đổi tên gói</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-heritage-primary">
+            Đổi tên gói
+          </DialogTitle>
         </DialogHeader>
         <form
           noValidate
@@ -62,7 +64,7 @@ export function RenameGroupDialog({
             }
           })}
         >
-          <label className="block space-y-2 text-sm font-semibold text-[#0A281E]">
+          <label className="block space-y-2 text-sm font-semibold text-heritage-primary">
             Tên gói bàn giao
             <Input
               disabled={action.pending}

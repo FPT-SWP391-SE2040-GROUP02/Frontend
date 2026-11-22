@@ -12,11 +12,10 @@ import { planSetupService } from "../api/planSetupService";
 import { invitationInspectFailure } from "../lib/invitationInspectError";
 import { invitationTimeLeft } from "../lib/invitationTimeLeft";
 import { useExecutorSigning } from "../model/useExecutorSigning";
-import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
 const capabilities = [
-  "Báo tin cho hệ thống",
+  "Nhận thông báo khi người nhận gửi yêu cầu nhận tài sản",
   "Theo dõi tiến trình bàn giao",
   "Không đọc được nội dung kho",
 ];
@@ -122,16 +121,20 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         <ul className="space-y-2 text-sm">
           {capabilities.map((item) => (
             <li key={item} className="flex items-center gap-2">
-              <Check className="size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+              <Check className="size-4 shrink-0 text-heritage-success" aria-hidden="true" />
               {item}
             </li>
           ))}
         </ul>
+        {query.data.scopeText && (
+          <p className="whitespace-pre-line border-t border-heritage-border pt-3 text-sm leading-6">
+            {query.data.scopeText}
+          </p>
+        )}
       </div>
       <Notice tone="warning">
         {validity} (đến {formatDateTime(query.data.expiresAt)}). Bạn không đọc được nội dung kho.
       </Notice>
-      <AuthorizationLetterPreview executorEmail={user?.email} scopeText={query.data.scopeText} />
       <p className="text-sm leading-6 text-heritage-muted">
         Khi Chủ kho kích hoạt kế hoạch, email và số điện thoại của bạn sẽ được gửi cho người nhận để
         họ liên hệ.
@@ -168,7 +171,7 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc di chúc, hiểu nhiệm vụ và tự nguyện nhận vai Người thực thi.
+            Tôi đã đọc phạm vi công việc, hiểu nhiệm vụ và tự nguyện nhận vai Người thực thi.
           </label>
           <ExecutorSigningPasswordField
             value={password}
@@ -192,13 +195,16 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         </>
       )}
       {action.error && passwordError === null && (
-        <div role="alert" className="space-y-2 rounded-xl border border-red-200 bg-red-50 p-4">
+        <div
+          role="alert"
+          className="space-y-2 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4"
+        >
           <p className="text-sm font-medium text-destructive">{action.error}</p>
-          <p className="text-sm text-red-700">
+          <p className="text-sm text-heritage-danger">
             Nếu đây không phải tài khoản được mời, hãy{" "}
             <Link
               to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(`${ROUTES.EXECUTOR.INVITATION}#token=${encodeURIComponent(token)}`)}`}
-              className="font-semibold underline hover:text-red-900"
+              className="font-semibold underline hover:text-heritage-danger"
             >
               đăng xuất và đăng nhập bằng email người được mời
             </Link>

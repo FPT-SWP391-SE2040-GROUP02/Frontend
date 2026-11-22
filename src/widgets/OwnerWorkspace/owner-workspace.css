@@ -3,8 +3,8 @@
   background: color-mix(in srgb, var(--surface) 65%, var(--bg-canvas));
 }
 .owner-workspace > aside {
-  background: #0b291e;
-  color: #faf9f5;
+  background: var(--primary);
+  color: var(--surface);
 }
 .owner-workspace > main {
   padding: 24px 20px;
@@ -40,10 +40,10 @@
   justify-content: center;
   border: 1px solid #ffffff26;
   border-radius: 12px;
-  color: #faf9f5;
+  color: var(--surface);
 }
 .owner-menu-toggle:focus-visible {
-  outline: 2px solid #e2c17d;
+  outline: 2px solid var(--gold-soft);
   outline-offset: 3px;
 }
 .owner-role-icon {
@@ -53,7 +53,7 @@
   height: 40px;
   border-radius: 10px;
   background: #b88e4c20;
-  color: #e2c17d;
+  color: var(--gold-soft);
 }
 .owner-menu-caption {
   display: none;
@@ -89,13 +89,13 @@
 }
 .owner-nav-link[aria-current="page"] {
   border-color: #b88e4c40;
-  background: #265a47;
-  color: #e6c98b;
+  background: var(--primary-hover);
+  color: var(--gold-soft);
   font-weight: 600;
-  box-shadow: inset 3px 0 0 #b68f4c;
+  box-shadow: inset 3px 0 0 var(--gold);
 }
 .owner-nav-link:focus-visible {
-  outline: 2px solid #e2c17d;
+  outline: 2px solid var(--gold-soft);
   outline-offset: 3px;
 }
 .owner-page-header {
@@ -378,8 +378,8 @@
     display: block;
     border: 1px solid #b88e4c40;
     border-radius: 10px;
-    background: #265a47;
-    box-shadow: inset 3px 0 0 #b68f4c;
+    background: var(--primary-hover);
+    box-shadow: inset 3px 0 0 var(--gold);
     pointer-events: none;
   }
   .owner-navigation--slide > .owner-nav-link {

@@ -50,8 +50,10 @@
   --font-heading: "Be Vietnam Pro", system-ui, sans-serif;
   --font-sans: "Be Vietnam Pro", system-ui, sans-serif;
 
+  /* Bảng màu Heritage: mọi trang chỉ dùng các token này, không viết mã màu trực tiếp. */
   --color-heritage-canvas: var(--bg-canvas);
   --color-heritage-surface: var(--surface);
+  --color-heritage-sunken: var(--surface-sunken);
   --color-heritage-primary: var(--primary);
   --color-heritage-primary-hover: var(--primary-hover);
   --color-heritage-primary-light: var(--primary-light);
@@ -59,12 +61,25 @@
 
   --color-heritage-gold: var(--gold);
   --color-heritage-gold-hover: var(--gold-hover);
+  --color-heritage-gold-soft: var(--gold-soft);
   --color-heritage-gold-light: var(--gold-light);
   --color-heritage-gold-border: var(--gold-border);
 
   --color-heritage-text: var(--text-main);
   --color-heritage-muted: var(--text-muted);
+  --color-heritage-subtle: var(--text-subtle);
   --color-heritage-border: var(--border-ui);
+  --color-heritage-border-strong: var(--border-strong);
+
+  --color-heritage-success: var(--success);
+  --color-heritage-success-bg: var(--success-bg);
+  --color-heritage-success-border: var(--success-border);
+  --color-heritage-warning: var(--warning);
+  --color-heritage-warning-bg: var(--warning-bg);
+  --color-heritage-warning-border: var(--warning-border);
+  --color-heritage-danger: var(--danger);
+  --color-heritage-danger-bg: var(--danger-bg);
+  --color-heritage-danger-border: var(--danger-border);
 
   --color-background: var(--bg-canvas);
   --color-foreground: var(--text-main);
@@ -73,49 +88,68 @@
   --color-popover: var(--surface);
   --color-popover-foreground: var(--text-main);
   --color-primary: var(--primary);
-  --color-primary-foreground: #ffffff;
+  --color-primary-foreground: var(--on-primary);
   --color-secondary: var(--primary-light);
   --color-secondary-foreground: var(--primary);
-  --color-muted: var(--primary-light);
+  --color-muted: var(--surface-sunken);
   --color-muted-foreground: var(--text-muted);
   --color-accent: var(--gold-light);
   --color-accent-foreground: var(--gold-hover);
-  --color-destructive: #d9534f;
+  --color-destructive: var(--danger);
   --color-border: var(--border-ui);
-  --color-input: #d5d0c3;
+  --color-input: var(--border-strong);
   --color-ring: var(--gold);
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-2xl: 20px;
   --radius-3xl: 24px;
+
+  --shadow-card: var(--shadow-raised);
 }
 
 :root {
-  /* 1. PRIMARY: Heritage Forest */
-  --bg-canvas: #efece6;
-  --surface: #faf9f5;
-  --primary: #0b291e;
-  --primary-hover: #133e2f;
-  --primary-light: #e5ede8;
-  --primary-surface: #10382b;
+  /* Nền và bề mặt: kem sáng, thẻ trắng để chữ nổi rõ. */
+  --bg-canvas: #f6f4ef;
+  --surface: #ffffff;
+  --surface-sunken: #f3f0e8;
 
-  /* 2. ACCENT: Champagne Gold */
+  /* Chính: xanh rừng (nút, menu, tiêu đề). */
+  --primary: #0b291e;
+  --primary-hover: #163f30;
+  --primary-light: #e7efea;
+  --primary-surface: #10382b;
+  --on-primary: #ffffff;
+
+  /* Nhấn: vàng (viền, biểu tượng, vòng focus). Chữ vàng trên nền sáng dùng --gold-hover. */
   --gold: #b88e4c;
-  --gold-hover: #a07839;
+  --gold-hover: #8f6a2f;
+  --gold-soft: #e0c486;
   --gold-light: #fbf7ee;
   --gold-border: #e8dcc6;
 
-  /* 3. NEUTRALS */
+  /* Chữ và viền. */
   --text-main: #14241c;
-  --text-muted: #44564c;
+  --text-muted: #4e6257;
   --text-subtle: #5f7168;
-  --border-ui: #dcd9d0;
+  --border-ui: #e3dfd5;
+  --border-strong: #cfc9bb;
 
-  /* 4. SOFT TACTILE DEPTH */
-  --shadow-raised: 0 4px 12px rgba(11, 41, 30, 0.05), 0 1px 3px rgba(11, 41, 30, 0.03);
+  /* Trạng thái. */
+  --success: #1f7a55;
+  --success-bg: #e3f1ea;
+  --success-border: #bfdccb;
+  --warning: #7a5b25;
+  --warning-bg: #f6edd8;
+  --warning-border: #e8d6ac;
+  --danger: #a32119;
+  --danger-bg: #fbe9e7;
+  --danger-border: #f0c4be;
+
+  /* Bóng mảnh, chỉ để tách lớp. */
+  --shadow-raised: 0 1px 2px rgba(11, 41, 30, 0.04), 0 2px 8px rgba(11, 41, 30, 0.04);
   --shadow-inset:
     inset 2px 2px 5px rgba(0, 0, 0, 0.06), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
   --shadow-pressed:
@@ -127,20 +161,34 @@
 .dark {
   --bg-canvas: #071710;
   --surface: #0c2217;
+  --surface-sunken: #0a1d14;
   --primary: #f3f7f4;
   --primary-hover: #e5ede8;
   --primary-light: #163828;
   --primary-surface: #112d20;
+  --on-primary: #0b291e;
 
   --gold: #e2c17d;
   --gold-hover: #f6d483;
+  --gold-soft: #e2c17d;
   --gold-light: #182c1f;
   --gold-border: #3a4d39;
 
   --text-main: #f3f7f4;
   --text-muted: #9bb3a0;
-  --text-subtle: #6d8572;
+  --text-subtle: #8aa391;
   --border-ui: #1e432f;
+  --border-strong: #2c5a41;
+
+  --success: #6fcf9f;
+  --success-bg: #12301f;
+  --success-border: #1f4d33;
+  --warning: #e8c77d;
+  --warning-bg: #2d2513;
+  --warning-border: #4d3f1f;
+  --danger: #f09a90;
+  --danger-bg: #331512;
+  --danger-border: #5a2520;
 
   --shadow-raised: 0 4px 14px rgba(0, 0, 0, 0.35);
   --shadow-inset: inset 2px 2px 5px rgba(0, 0, 0, 0.3);
@@ -201,9 +249,9 @@
   -webkit-appearance: none;
   width: 17px;
   height: 17px;
-  border: 1.5px solid #a8a295;
+  border: 1.5px solid var(--border-strong);
   border-radius: 4px;
-  background-color: #ffffff;
+  background-color: var(--surface);
   display: grid;
   place-content: center;
   cursor: pointer;
@@ -243,9 +291,9 @@
   -webkit-appearance: none;
   width: 17px;
   height: 17px;
-  border: 1.5px solid #a8a295;
+  border: 1.5px solid var(--border-strong);
   border-radius: 50%;
-  background-color: #ffffff;
+  background-color: var(--surface);
   display: grid;
   place-content: center;
   cursor: pointer;
@@ -272,7 +320,7 @@
 /* Button variants */
 .btn-primary-heritage {
   background-color: var(--primary);
-  color: #ffffff;
+  color: var(--on-primary);
   padding: 8.5px 18px;
   border-radius: 20px;
   font-size: 12.5px;
@@ -292,7 +340,7 @@
   background-color: var(--primary-surface);
   color: #e2ece6;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
-  border: 1px solid #1a4d3b;
+  border: 1px solid var(--primary-hover);
 }
 
 /* Live Pulse Animation */
@@ -300,7 +348,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #059669;
+  background: var(--success);
   box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7);
   animation: pulseAnimation 1.6s infinite;
 }
@@ -321,9 +369,9 @@
 
 /* Compliance Callout */
 .compliance-callout {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-left: 4px solid #d97706;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-left: 4px solid var(--gold);
   border-radius: 8px;
   padding: 14px 16px;
 }
@@ -338,7 +386,7 @@
 
 /* Dropzone Box */
 .dropzone-box {
-  border: 2px dashed #c5beaf;
+  border: 2px dashed var(--border-strong);
   background: var(--surface);
   border-radius: 12px;
   padding: 24px;
@@ -357,11 +405,11 @@
 .tag-new {
   background: var(--primary-light);
   color: var(--primary);
-  border: 1px solid #c9d9ce;
+  border: 1px solid var(--primary-light);
 }
 .tag-beta {
   background: var(--gold-light);
-  color: #7d5d28;
+  color: var(--warning);
   border: 1px solid var(--gold-border);
 }
 .tag-count {

@@ -17,21 +17,22 @@ import { ROUTES } from "@/shared/config/routes.config";
 function planStageBarColor(stage: string) {
   switch (stage) {
     case "ACTIVE":
-      return "bg-emerald-600";
-    case "DEATH_CASE_OPEN":
+      return "bg-heritage-success";
+    case "HANDOVER_REQUESTED":
+      return "bg-heritage-warning";
     case "HANDOVER_IN_PROGRESS":
-      return "bg-sky-700";
+      return "bg-heritage-primary";
     case "BLOCKED":
-      return "bg-red-700";
+      return "bg-heritage-danger";
     default:
-      return "bg-stone-400";
+      return "bg-heritage-subtle";
   }
 }
 
 const TILE_ICON_TONES = {
-  bad: "bg-red-50 text-red-800",
-  warn: "bg-amber-50 text-amber-800",
-  neutral: "bg-[#e5ede8] text-heritage-primary",
+  bad: "bg-heritage-danger-bg text-heritage-danger",
+  warn: "bg-heritage-warning-bg text-heritage-warning",
+  neutral: "bg-heritage-primary-light text-heritage-primary",
 } as const;
 
 /** Một ô số liệu của Tổng quan: biểu tượng trong ô màu nhạt, nhãn, số lớn và chú thích. */
@@ -58,7 +59,9 @@ function Tile({
       disabled={onClick === undefined}
       onClick={onClick}
       className={`flex min-h-[132px] flex-col items-start gap-0.5 rounded-[14px] border bg-white px-[18px] py-4 text-left transition-colors enabled:hover:border-heritage-gold enabled:hover:shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)] disabled:cursor-default ${
-        tone === "bad" ? "border-red-300 shadow-[inset_0_3px_0_#a32119]" : "border-heritage-border"
+        tone === "bad"
+          ? "border-heritage-danger-border shadow-[inset_0_3px_0_var(--danger)]"
+          : "border-heritage-border"
       }`}
     >
       <span
@@ -70,7 +73,7 @@ function Tile({
       <b
         className={`font-bold leading-[1.15] tabular-nums ${
           typeof value === "number" ? "text-[34px]" : "text-[26px]"
-        } ${tone === "bad" ? "text-red-700" : "text-heritage-primary"}`}
+        } ${tone === "bad" ? "text-heritage-danger" : "text-heritage-primary"}`}
       >
         {value}
       </b>
@@ -172,7 +175,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           icon={UserCheck}
           label="Chờ người xét duyệt"
           value={data.casesWithoutVerifier}
-          caption="Hồ sơ chứng tử cần chỉ định"
+          caption="Biên bản cần giao lại luật sư"
           tone={data.casesWithoutVerifier > 0 ? "warn" : "neutral"}
         />
       </div>
@@ -185,7 +188,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           {data.planStages.length > 0 && (
             <section
               aria-labelledby="admin-plan-stages"
-              className="rounded-2xl border border-heritage-border bg-[#faf9f5] p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
+              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
             >
               <h2
                 id="admin-plan-stages"
@@ -200,7 +203,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                       <span>{planStageLabel(stage.stage)}</span>
                       <b className="tabular-nums">{stage.count}</b>
                     </p>
-                    <span className="block h-1.5 rounded-full bg-stone-100">
+                    <span className="block h-1.5 rounded-full bg-heritage-sunken">
                       <i
                         className={`block h-full rounded-full ${planStageBarColor(stage.stage)}`}
                         style={{
@@ -219,7 +222,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           {serviceConfig.isSuccess && serviceConfig.data.services.length > 0 && (
             <section
               aria-labelledby="admin-external-services"
-              className="rounded-2xl border border-heritage-border bg-[#faf9f5] p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
+              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
             >
               <h2
                 id="admin-external-services"
@@ -240,13 +243,19 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                         <span
                           aria-hidden="true"
                           className={`size-2.5 rounded-full ${
-                            failed ? "bg-red-600" : ok ? "bg-emerald-600" : "bg-stone-300"
+                            failed
+                              ? "bg-heritage-danger"
+                              : ok
+                                ? "bg-heritage-success"
+                                : "bg-heritage-border-strong"
                           }`}
                         />
                         {SYSTEM_CONFIG_SERVICES[service.serviceKey]?.title ?? service.serviceKey}
                       </span>
                       <span
-                        className={failed ? "font-semibold text-red-700" : "text-heritage-muted"}
+                        className={
+                          failed ? "font-semibold text-heritage-danger" : "text-heritage-muted"
+                        }
                       >
                         {failed
                           ? `Lỗi ${service.status.lastErrorCode ?? ""}`.trim()
@@ -266,7 +275,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           {data.verifierLoad.length > 0 && (
             <section
               aria-labelledby="admin-verifier-load"
-              className="rounded-2xl border border-heritage-border bg-[#faf9f5] p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
+              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
             >
               <h2
                 id="admin-verifier-load"
@@ -284,7 +293,10 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                     <b className="shrink-0 tabular-nums">
                       {verifier.openCases} hồ sơ
                       {verifier.overdueCases > 0 && (
-                        <span className="text-red-700"> · {verifier.overdueCases} quá hạn</span>
+                        <span className="text-heritage-danger">
+                          {" "}
+                          · {verifier.overdueCases} quá hạn
+                        </span>
                       )}
                     </b>
                   </li>
@@ -295,7 +307,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
           {data.recentActivity.length > 0 && (
             <section
               aria-labelledby="admin-recent-activity"
-              className="rounded-2xl border border-heritage-border bg-[#faf9f5] p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
+              className="rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-[0_1px_2px_rgba(11,41,30,.06),0_6px_18px_rgba(11,41,30,.05)]"
             >
               <h2
                 id="admin-recent-activity"

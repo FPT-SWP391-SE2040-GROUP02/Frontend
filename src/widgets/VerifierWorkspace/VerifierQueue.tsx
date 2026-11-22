@@ -1,40 +1,19 @@
 import { useSearchParams } from "react-router-dom";
-import {
-  VerifierCaseDetail,
-  VerifierCaseList,
-  VerifierReviewModals,
-  useVerifierCase,
-} from "@/features/verifier-review";
+import { VerifierRecordDetail, VerifierRecordList } from "@/entities/handoverRecord";
 
 /**
- * Nội dung trang Hàng chờ: chưa chọn hồ sơ thì hiện danh sách, chọn rồi (?caseId=) thì hiện chi tiết
- * và các hộp thoại ra quyết định. Vai trò Verifier do Backend xác minh từ DB (ROLE-04).
+ * Nội dung trang Biên bản bàn giao của luật sư: chưa chọn biên bản thì hiện danh sách, chọn rồi (?recordId=)
+ * thì hiện ba bước của biên bản. Vai trò luật sư do Backend xác minh từ DB.
  */
-export function VerifierQueue() {
+export function VerifierQueue({ scope = "open" }: { scope?: "open" | "closed" }) {
   const [params, setParams] = useSearchParams();
-  const caseId = params.get("caseId");
-  const detailQuery = useVerifierCase(caseId);
-  if (!caseId) {
-    return (
-      <VerifierCaseList
-        scope="open"
-        onSelect={(id) => {
-          const next = new URLSearchParams(params);
-          next.set("caseId", id);
-          next.delete("modal");
-          next.delete("flagId");
-          next.delete("reason");
-          setParams(next);
-        }}
-      />
-    );
-  }
-  return (
-    <>
-      <VerifierCaseDetail key={caseId} caseId={caseId} />
-      {detailQuery.data && !detailQuery.isError && (
-        <VerifierReviewModals caseId={caseId} detail={detailQuery.data} />
-      )}
-    </>
-  );
+  const recordId = params.get("recordId");
+  const select = (id: string | null) => {
+    const next = new URLSearchParams(params);
+    if (id) next.set("recordId", id);
+    else next.delete("recordId");
+    setParams(next);
+  };
+  if (!recordId) return <VerifierRecordList scope={scope} onSelect={select} />;
+  return <VerifierRecordDetail key={recordId} recordId={recordId} onBack={() => select(null)} />;
 }

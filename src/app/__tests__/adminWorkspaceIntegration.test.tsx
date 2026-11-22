@@ -145,7 +145,7 @@ it("Tổng quan hiện kế hoạch theo giai đoạn, tải việc người xé
     ...dashboardFixture,
     planStages: [
       { stage: "ACTIVE", count: 128 },
-      { stage: "HANDOVER_IN_PROGRESS", count: 6 },
+      { stage: "HANDOVER_REQUESTED", count: 6 },
     ],
     closedPlans: 41,
     verifierLoad: [
@@ -164,7 +164,7 @@ it("Tổng quan hiện kế hoạch theo giai đoạn, tải việc người xé
   setup(ROUTES.ADMIN.ROOT);
   expect(await screen.findByText("Kế hoạch theo giai đoạn")).toBeInTheDocument();
   expect(screen.getByText("Đang chạy")).toBeInTheDocument();
-  expect(screen.getByText("Đang bàn giao")).toBeInTheDocument();
+  expect(screen.getByText("Đang lập biên bản")).toBeInTheDocument();
   expect(screen.getByText(/Chưa tính 41 kho đã đóng/)).toBeInTheDocument();
   expect(screen.getByText("Lê Hoàng")).toBeInTheDocument();
   expect(screen.getByText(/3 hồ sơ/)).toHaveTextContent("1 quá hạn");

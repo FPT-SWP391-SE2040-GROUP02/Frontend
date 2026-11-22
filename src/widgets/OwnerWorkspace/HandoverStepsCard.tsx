@@ -4,7 +4,7 @@ import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 /** Bốn bước bàn giao; nội dung cố định theo SRS, chỉ số ngày tải lấy từ tham số Admin cấu hình. */
 function handoverSteps(grantDays: number): Array<{ title: string; detail: string }> {
   return [
-    { title: "Báo tin", detail: "Người thực thi nộp giấy chứng tử." },
+    { title: "Yêu cầu nhận", detail: "Người nhận gửi yêu cầu kèm giấy tờ." },
     { title: "Xét duyệt", detail: "Người xét duyệt kiểm tra hồ sơ." },
     {
       title: "Người nhận xác nhận",
@@ -23,7 +23,7 @@ function handoverSteps(grantDays: number): Array<{ title: string; detail: string
  */
 export function HandoverStepsCard({
   title = "Bàn giao diễn ra thế nào",
-  subtitle = "Chỉ bắt đầu khi Người thực thi báo tin. Trước đó bạn luôn có quyền dừng lại.",
+  subtitle = "Chỉ bắt đầu khi người nhận gửi yêu cầu nhận tài sản. Trước đó bạn vẫn sửa kế hoạch được.",
   activeStep,
 }: {
   title?: string;
@@ -36,10 +36,10 @@ export function HandoverStepsCard({
   for (const step of handoverSteps(policy.grantDays)) {
     stepNumber = stepNumber + 1;
     const isActive = activeStep === stepNumber;
-    let badgeStyle = "bg-[#E0C486] text-[#0A281E]";
+    let badgeStyle = "bg-heritage-gold-soft text-heritage-primary";
     let rowStyle = "";
     if (isActive) {
-      badgeStyle = "bg-[#0A281E] text-white";
+      badgeStyle = "bg-heritage-primary text-white";
       rowStyle = "rounded-xl bg-heritage-canvas px-3";
     }
     let current: "step" | undefined;

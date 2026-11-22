@@ -1,6 +1,6 @@
 import { ROUTES } from "@/shared/config/routes.config";
 import type { Tone } from "@/shared/ui/heritageKit";
-import type { DeathCase, ExecutorVault } from "./deathCase.schema";
+import type { ExecutorVault } from "./deathCase.schema";
 import type { HandoverProgress } from "./handoverProgress.schema";
 import { countTurns } from "./executorTurns";
 
@@ -9,7 +9,8 @@ import { countTurns } from "./executorTurns";
  * Hàm thuần, chỉ dựa vào dữ liệu Backend trả; không có hạn chót.
  */
 
-export type CaseStatus = DeathCase["status"];
+/** Bước của biên bản bàn giao (DRAFTING, IDENTITY_CHECK, SIGNING, COMPLETED); rỗng khi chưa có yêu cầu nhận tài sản. */
+export type RecordStatus = string;
 
 /** Trạng thái gọn của kho dưới tên Chủ kho (menu trái, trang Lời mời và các kho bạn đang làm việc). */
 export interface VaultStage {
@@ -17,29 +18,27 @@ export interface VaultStage {
   tone: Tone;
 }
 
-/** Kho đang ở giai đoạn nào: kế hoạch đang chạy, đang báo tin, đang bàn giao hay đã hoàn tất. */
+/** Kho đang ở giai đoạn nào: chưa có yêu cầu nhận, luật sư đang lập biên bản, đang ký, đang giao hay đã xong. */
 export function vaultStage(vault: ExecutorVault): VaultStage {
   if (vault.planStatus === "CLOSED") return { label: "Đã hoàn tất", tone: "success" };
-  if (vault.planStatus === "HANDOVER_IN_PROGRESS") {
-    return { label: "Đang bàn giao", tone: "warning" };
-  }
-  if (vault.openDeathCaseId || vault.planStatus === "DEATH_CASE_OPEN") {
-    return { label: "Đang báo tin", tone: "warning" };
-  }
-  // Chỉ ACTIVE mới là "đang chạy"; Chủ kho chưa kích hoạt (DRAFT) hoặc kho đang bị tạm giữ thì chưa báo tin được.
+  const status = vault.handoverRecordStatus;
+  if (status === "COMPLETED") return { label: "Đang giao tài sản", tone: "warning" };
+  if (status === "SIGNING") return { label: "Đang ký biên bản", tone: "warning" };
+  if (status === "IDENTITY_CHECK") return { label: "Đang kiểm danh tính", tone: "warning" };
+  if (status === "DRAFTING") return { label: "Luật sư đang lập biên bản", tone: "warning" };
   if (vault.planStatus === "DRAFT") return { label: "Kế hoạch chưa kích hoạt", tone: "neutral" };
-  if (vault.planStatus === "BLOCKED") return { label: "Đang tạm giữ", tone: "warning" };
-  return { label: "Kế hoạch đang chạy", tone: "success" };
+  if (vault.planStatus === "BLOCKED") return { label: "Đang bị chặn", tone: "warning" };
+  return { label: "Chưa có yêu cầu nhận", tone: "success" };
 }
 
 export interface ExecutorTodoInput {
   vault: ExecutorVault;
-  /** Trạng thái hồ sơ báo tin đang xem; null khi kho chưa có hồ sơ. */
-  caseStatus: CaseStatus | null;
-  /** Tiến độ bàn giao; null khi chưa tải xong hoặc hồ sơ chưa được duyệt. */
+  /** Bước của biên bản; rỗng khi chưa có yêu cầu nhận tài sản. */
+  recordStatus: RecordStatus;
+  /** Biên bản đang chờ chữ ký của bạn. */
+  canSign: boolean;
+  /** Tiến độ bàn giao; null khi chưa tải xong hoặc biên bản chưa chốt. */
   progress: HandoverProgress | null;
-  /** Kho có hồ sơ bị từ chối mà Người thực thi chưa bấm "Tiếp tục". */
-  rejectedPending: boolean;
 }
 
 export interface ExecutorTodo {
@@ -53,18 +52,10 @@ export interface ExecutorTodo {
 }
 
 function handoverTodo(progress: HandoverProgress | null): ExecutorTodo {
-  if (!progress) {
+  if (!progress || !progress.handoverStarted || progress.turns.length === 0) {
     return {
       title: "Theo dõi bàn giao",
-      text: "Hồ sơ đã được duyệt. Xem từng người nhận đang ở bước nào.",
-      buttonLabel: "Mở Bàn giao",
-      to: ROUTES.EXECUTOR.PROGRESS,
-    };
-  }
-  if (!progress.handoverStarted || progress.turns.length === 0) {
-    return {
-      title: "Bàn giao đang được chuẩn bị",
-      text: "Hồ sơ đã được duyệt. Danh sách người nhận sẽ hiện ở mục Bàn giao.",
+      text: "Biên bản đã đủ chữ ký. Xem từng người nhận đang ở bước nào.",
       buttonLabel: "Mở Bàn giao",
       to: ROUTES.EXECUTOR.PROGRESS,
     };
@@ -72,119 +63,79 @@ function handoverTodo(progress: HandoverProgress | null): ExecutorTodo {
   const counts = countTurns(progress.turns);
   if (counts.action > 0) {
     return {
-      title: `Đưa mã mở gói cho ${counts.action} người nhận đã đồng ý`,
-      text: "Người xét duyệt đã duyệt biên bản. Người nhận cần mã mở gói do bạn giữ mới tải được tài sản.",
+      title: `Gửi mã nhận cho ${counts.action} người nhận`,
+      text: "Biên bản đã đủ chữ ký ba bên. Người nhận cần mã nhận do bạn giữ mới mở được tài sản.",
       buttonLabel: "Xem người cần mã",
-      to: ROUTES.EXECUTOR.PROGRESS,
-    };
-  }
-  let notInvited = 0;
-  for (const turn of progress.turns) {
-    const waitingReply = turn.status === "INVITED" || turn.status === "INITIAL_RESPONSE_EXPIRED";
-    if (waitingReply && !turn.invitationSentAt) notInvited += 1;
-  }
-  if (notInvited > 0) {
-    return {
-      title: `Có ${notInvited} người nhận chưa nhận được lời mời`,
-      text: "Hệ thống chưa gửi được thư mời và sẽ tự thử lại. Bạn có thể liên hệ người nhận qua thông tin ở mục Bàn giao.",
-      buttonLabel: "Xem người nhận",
       to: ROUTES.EXECUTOR.PROGRESS,
     };
   }
   if (counts.waiting === 0) {
     return {
       title: "Bàn giao đã hoàn tất",
-      text: "Mọi người nhận đã xong hoặc đã từ chối. Bạn không còn việc gì cần làm.",
+      text: "Mọi người nhận đã nhận xong. Bạn không còn việc gì cần làm.",
       buttonLabel: "Xem bàn giao",
       to: ROUTES.EXECUTOR.PROGRESS,
     };
   }
   return {
     title: "Chưa có việc cần bạn làm",
-    text: `Đang chờ ${counts.waiting} người nhận. Khi có người cần mã mở gói, việc sẽ hiện ở đây.`,
+    text: `Đang chờ ${counts.waiting} người nhận nhập mã và tải tài sản.`,
     buttonLabel: "Xem bàn giao",
     to: ROUTES.EXECUTOR.PROGRESS,
   };
 }
 
 /**
- * Việc quan trọng nhất của Người thực thi với một kho. Thứ tự ưu tiên:
- * hồ sơ bị từ chối chưa xem → kho chưa có hồ sơ (báo tin / kiểm tra Chủ kho) → theo trạng thái hồ sơ →
- * khi đang bàn giao: đưa mã mở gói → lời mời chưa gửi được → chờ → hoàn tất.
- * Người thực thi không gửi lời mời được (hệ thống tự gửi), nên lời mời chưa gửi chỉ là thông tin, không phải nút.
+ * Việc quan trọng nhất của Người thực thi với một kho. Thứ tự: chưa có yêu cầu nhận → luật sư đang lập biên bản →
+ * danh tính người nhận → đến lượt bạn ký → gửi mã nhận → hoàn tất.
  */
 export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
-  const { vault, caseStatus, progress, rejectedPending } = input;
-  if (rejectedPending) {
+  const { vault, recordStatus, canSign, progress } = input;
+  if (vault.planStatus === "CLOSED") {
     return {
-      title: "Xem lý do hồ sơ báo tin bị từ chối",
-      text: "Người xét duyệt không chấp thuận hồ sơ. Chỉ báo tin lại khi chắc chắn và có giấy tờ phù hợp.",
-      buttonLabel: "Xem hồ sơ",
+      title: "Bàn giao đã hoàn tất",
+      text: "Kho này đã bàn giao xong. Bạn không còn việc gì cần làm.",
+      buttonLabel: "Xem bàn giao",
+      to: ROUTES.EXECUTOR.PROGRESS,
+    };
+  }
+  if (!recordStatus) {
+    return {
+      title: "Chưa có yêu cầu nhận tài sản",
+      text: "Chưa có việc gì cần làm lúc này. Khi người nhận gửi yêu cầu kèm giấy tờ, hệ thống báo cho bạn.",
+      buttonLabel: "Mở Biên bản bàn giao",
       to: ROUTES.EXECUTOR.REPORT,
     };
   }
-  if (caseStatus === null) {
-    // Kho có hồ sơ mở nhưng chưa đọc được trạng thái (đang tải): không được nói "chưa báo tin".
-    if (vault.openDeathCaseId) {
+  if (recordStatus === "DRAFTING") {
+    return {
+      title: "Luật sư đang lập biên bản",
+      text: "Luật sư đang ghi ai nhận tài sản nào. Bạn chưa cần làm gì.",
+      buttonLabel: "Xem biên bản",
+      to: ROUTES.EXECUTOR.REPORT,
+    };
+  }
+  if (recordStatus === "IDENTITY_CHECK") {
+    return {
+      title: "Người nhận đang xác minh danh tính",
+      text: "Biên bản đã chốt. Người nhận nộp căn cước để luật sư kiểm. Bạn có thể nhắc họ ở mục Bàn giao.",
+      buttonLabel: "Xem người nhận",
+      to: ROUTES.EXECUTOR.PROGRESS,
+    };
+  }
+  if (recordStatus === "SIGNING") {
+    if (canSign) {
       return {
-        title: `Hồ sơ báo tin về ${vault.ownerFullName} đang được xử lý`,
-        text: "Theo dõi tiến trình xét duyệt và bổ sung hồ sơ khi Người xét duyệt yêu cầu.",
-        buttonLabel: "Xem hồ sơ",
+        title: "Ký biên bản bàn giao",
+        text: "Mọi người nhận đã được xác nhận danh tính. Đọc lại biên bản rồi ký.",
+        buttonLabel: "Ký biên bản",
         to: ROUTES.EXECUTOR.REPORT,
       };
     }
-    if (vault.planStatus === "CLOSED") {
-      return {
-        title: "Bàn giao đã hoàn tất",
-        text: "Kho này đã bàn giao xong. Bạn không còn việc gì cần làm.",
-        buttonLabel: "Xem bàn giao",
-        to: ROUTES.EXECUTOR.PROGRESS,
-      };
-    }
     return {
-      title: "Báo tin khi Chủ kho qua đời",
-      text: "Chưa có việc gì cần làm lúc này. Chỉ báo tin khi chắc chắn đã đến lúc.",
-      buttonLabel: "Mở Báo tin",
-      to: ROUTES.EXECUTOR.REPORT,
-    };
-  }
-  if (caseStatus === "DRAFT") {
-    return {
-      title: "Hoàn tất hồ sơ báo tin",
-      text: "Hồ sơ đang là bản nháp. Điền thông tin, tải giấy chứng tử rồi gửi cho Người xét duyệt.",
-      buttonLabel: "Mở Báo tin",
-      to: ROUTES.EXECUTOR.REPORT,
-    };
-  }
-  if (caseStatus === "SUPPLEMENT_REQUIRED") {
-    return {
-      title: "Bổ sung hồ sơ báo tin",
-      text: "Người xét duyệt cần thêm thông tin. Xem phần cần bổ sung rồi gửi lại hồ sơ.",
-      buttonLabel: "Mở Báo tin",
-      to: ROUTES.EXECUTOR.REPORT,
-    };
-  }
-  if (caseStatus === "UNDER_REVIEW") {
-    return {
-      title: "Chờ Người xét duyệt xem hồ sơ",
-      text: "Hồ sơ đã gửi. Bạn chưa cần làm gì, khi có kết quả hệ thống sẽ báo.",
-      buttonLabel: "Xem hồ sơ",
-      to: ROUTES.EXECUTOR.REPORT,
-    };
-  }
-  if (caseStatus === "SUSPENDED") {
-    return {
-      title: "Hồ sơ báo tin đang tạm dừng",
-      text: "Hệ thống sẽ xử lý tiếp khi đủ điều kiện. Bạn chưa cần làm gì.",
-      buttonLabel: "Xem hồ sơ",
-      to: ROUTES.EXECUTOR.REPORT,
-    };
-  }
-  if (caseStatus === "REJECTED") {
-    return {
-      title: "Hồ sơ báo tin bị từ chối",
-      text: "Xem lý do ở mục Báo tin. Chỉ báo tin lại khi chắc chắn và có giấy tờ phù hợp.",
-      buttonLabel: "Xem lý do",
+      title: "Chờ các bên còn lại ký",
+      text: "Bạn đã ký. Khi luật sư và người nhận ký xong, bạn gửi mã nhận cho từng người.",
+      buttonLabel: "Xem biên bản",
       to: ROUTES.EXECUTOR.REPORT,
     };
   }
@@ -201,54 +152,47 @@ export interface JourneyStep {
 }
 
 /**
- * "Kho đang ở đâu": chỉ 3 bước của cả kho, không theo từng người nhận:
- * Báo tin → Xét duyệt → Bàn giao cho người nhận (dòng phụ "x/y người đã nhận xong").
+ * "Kho đang ở đâu": 3 bước của cả kho, không theo từng người nhận:
+ * Yêu cầu nhận → Biên bản (xét giấy tờ, lập, kiểm danh tính, ký ba bên) → Bàn giao cho người nhận.
  */
 export function vaultJourney(
   vault: ExecutorVault,
-  caseStatus: CaseStatus | null,
+  recordStatus: RecordStatus,
   progress: HandoverProgress | null,
 ): JourneyStep[] {
   const closed = vault.planStatus === "CLOSED";
-  const approved = caseStatus === "APPROVED_FOR_HANDOVER" || closed;
-  const submitted = approved || caseStatus === "UNDER_REVIEW" || caseStatus === "SUSPENDED";
+  const opened = Boolean(recordStatus) || closed;
+  const completed = recordStatus === "COMPLETED" || closed;
 
-  let reportCaption = "Chưa báo tin";
-  if (submitted) reportCaption = "Đã gửi hồ sơ";
-  if (caseStatus === "SUPPLEMENT_REQUIRED") reportCaption = "Cần bổ sung hồ sơ";
-  if (caseStatus === "REJECTED") reportCaption = "Hồ sơ bị từ chối";
-
-  let reviewCaption = "Chưa tới";
-  if (approved) reviewCaption = "Đã duyệt";
-  if (caseStatus === "UNDER_REVIEW") reviewCaption = "Đang chờ duyệt";
-  if (caseStatus === "SUSPENDED") reviewCaption = "Hồ sơ tạm dừng";
+  let recordCaption = "Chưa tới";
+  if (recordStatus === "DRAFTING") recordCaption = "Luật sư đang lập";
+  if (recordStatus === "IDENTITY_CHECK") recordCaption = "Đang kiểm danh tính";
+  if (recordStatus === "SIGNING") recordCaption = "Đang ký ba bên";
+  if (completed) recordCaption = "Đã đủ chữ ký";
 
   let handoverCaption = "Chưa bắt đầu";
   let handoverDone = closed;
-  if (progress && progress.handoverStarted && progress.turns.length > 0) {
+  if (completed && progress && progress.handoverStarted && progress.turns.length > 0) {
     const counts = countTurns(progress.turns);
     handoverCaption = `${counts.done}/${counts.total} người đã nhận xong`;
     if (counts.action === 0 && counts.waiting === 0) handoverDone = true;
   }
   if (closed && handoverCaption === "Chưa bắt đầu") handoverCaption = "Đã hoàn tất";
 
-  const reportState: JourneyState = submitted ? "done" : "current";
-  let reviewState: JourneyState = "pending";
-  if (approved) {
-    reviewState = "done";
-  } else if (submitted) {
-    reviewState = "current";
-  }
+  let recordState: JourneyState = "pending";
+  if (completed) recordState = "done";
+  else if (opened) recordState = "current";
   let handoverState: JourneyState = "pending";
-  if (handoverDone) {
-    handoverState = "done";
-  } else if (approved) {
-    handoverState = "current";
-  }
+  if (handoverDone) handoverState = "done";
+  else if (completed) handoverState = "current";
 
   return [
-    { label: "Báo tin", state: reportState, caption: reportCaption },
-    { label: "Xét duyệt", state: reviewState, caption: reviewCaption },
+    {
+      label: "Yêu cầu nhận",
+      state: opened ? "done" : "current",
+      caption: opened ? "Đã mở" : "Chưa mở",
+    },
+    { label: "Biên bản bàn giao", state: recordState, caption: recordCaption },
     { label: "Bàn giao cho người nhận", state: handoverState, caption: handoverCaption },
   ];
 }

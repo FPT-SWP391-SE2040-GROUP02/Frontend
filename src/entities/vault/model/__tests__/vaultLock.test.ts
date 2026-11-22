@@ -7,14 +7,11 @@ describe("getVaultLockReason", () => {
     expect(getVaultLockReason(null)).toBeNull();
   });
 
-  it.each(["DRAFT", "ACTIVE", "CHECKIN_OVERDUE", "AWAITING_CHECK"])(
-    "không khóa khi kế hoạch %s",
-    (planStatus) => {
-      expect(getVaultLockReason({ status: "OPEN", planStatus })).toBeNull();
-    },
-  );
+  it.each(["DRAFT", "ACTIVE"])("không khóa khi kế hoạch %s", (planStatus) => {
+    expect(getVaultLockReason({ status: "OPEN", planStatus })).toBeNull();
+  });
 
-  it.each(["DEATH_CASE_OPEN", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"])(
+  it.each(["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"])(
     "khóa khi kế hoạch %s và có lý do để hiện",
     (planStatus) => {
       const reason = getVaultLockReason({ status: "OPEN", planStatus });

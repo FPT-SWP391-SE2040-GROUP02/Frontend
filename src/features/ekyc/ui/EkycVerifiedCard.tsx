@@ -58,7 +58,7 @@ export function EkycVerifiedCard({
     backSide = "Đã đọc";
   }
   const facts = [
-    { label: "Số căn cước", value: `•••• ${live.citizenIdLast4}` },
+    { label: "Số căn cước", value: live.citizenId },
     { label: "Hoàn tất lúc", value: completedAt },
     { label: "Khuôn mặt", value: "Khớp với giấy tờ" },
     { label: "Chống giả mạo", value: spoof },
@@ -89,7 +89,7 @@ export function EkycVerifiedCard({
   return (
     <section
       aria-label="Kết quả xác minh danh tính"
-      className="space-y-6 rounded-2xl border border-green-200 bg-heritage-surface p-6"
+      className="space-y-6 rounded-2xl border border-heritage-success-border bg-heritage-surface p-6"
     >
       <div className="flex flex-wrap items-center gap-4">
         <VerifiedBadge />
@@ -101,7 +101,7 @@ export function EkycVerifiedCard({
             Bạn chỉ cần xác minh một lần, không phải làm lại.
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-heritage-success-bg px-3 py-1 text-sm font-semibold text-heritage-success">
           <CircleCheck className="size-4" aria-hidden="true" />
           Đã xác minh
         </span>

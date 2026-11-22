@@ -16,7 +16,7 @@ import { InviteDialog, RevokeDialog } from "./ExecutorsSection";
 type PlanSetup = z.infer<typeof planSetupSchema>;
 type Executor = z.infer<typeof executorSchema>;
 
-const PRIMARY_LINK = buttonStyles.gold;
+const PRIMARY_LINK = buttonStyles.dark;
 const SECONDARY_LINK = buttonStyles.outline;
 
 /** Thẻ một việc: dấu tích (xong) hoặc số thứ tự (chưa xong), tiêu đề, mô tả và nút thao tác. */
@@ -37,7 +37,7 @@ function TaskCard({
 }) {
   let mark: ReactNode = (
     <span
-      className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#fdeceb] font-bold text-[#a32119]"
+      className="flex size-9 shrink-0 items-center justify-center rounded-full bg-heritage-danger-bg font-bold text-heritage-danger"
       aria-hidden="true"
     >
       {order}
@@ -47,7 +47,7 @@ function TaskCard({
   if (done) {
     mark = (
       <span
-        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#e3efe8] text-[#1f7a55]"
+        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-heritage-success-bg text-heritage-success"
         aria-hidden="true"
       >
         <Check className="size-5" />
@@ -203,7 +203,7 @@ function ExecutorTask({
   let undeliverable: ReactNode = null;
   if (holder !== null && holder.emailUndeliverable) {
     undeliverable = (
-      <p role="alert" className="mt-2 text-sm text-[#a32119]">
+      <p role="alert" className="mt-2 text-sm text-heritage-danger">
         Máy chủ thư báo không gửi được thư tới email này. Có thể email không tồn tại.
       </p>
     );
@@ -219,7 +219,7 @@ function ExecutorTask({
   let noticeText: ReactNode = null;
   if (notice !== "" && !resendAction.pending) {
     noticeText = (
-      <p role="status" className="mt-2 text-sm text-[#1f7a55]">
+      <p role="status" className="mt-2 text-sm text-heritage-success">
         {notice}
       </p>
     );
@@ -227,7 +227,7 @@ function ExecutorTask({
   let errorText: ReactNode = null;
   if (resendAction.error !== "") {
     errorText = (
-      <p role="alert" className="mt-2 text-sm text-[#a32119]">
+      <p role="alert" className="mt-2 text-sm text-heritage-danger">
         {resendAction.error}
       </p>
     );
@@ -377,7 +377,7 @@ export function HandoverTaskCards({
 
   let ekycDescription = "Chủ kho cần hoàn tất xác minh danh tính eKYC.";
   if (ekycDone) {
-    ekycDescription = "Đã xác minh. Tên trên di chúc lấy từ hồ sơ này.";
+    ekycDescription = "Đã xác minh. Tên trên biên bản phân chia lấy từ hồ sơ này.";
   }
   let planDescription = "Cần gói trả phí còn hạn.";
   if (planDone) {

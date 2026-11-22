@@ -12,12 +12,6 @@ import {
   paymentTransactionsPageSchema,
   paymentTransactionsQuerySchema,
   adminRevenueSchema,
-  emailTemplateSchema,
-  emailTemplatesSchema,
-  handoverTemplateSchema,
-  handoverTemplateVersionsSchema,
-  saveEmailTemplateRequestSchema,
-  saveHandoverTemplateRequestSchema,
   adminRevenueQuerySchema,
   assignExecutorRequestSchema,
   reassignVerifierRequestSchema,
@@ -27,8 +21,6 @@ import {
   type ChangeUserRoleRequest,
   type ChangeUserStatusRequest,
   type AdminRevenueQuery,
-  type SaveEmailTemplateRequest,
-  type SaveHandoverTemplateRequest,
   type PaymentTransactionsQuery,
   type AssignExecutorRequest,
   type ReassignVerifierRequest,
@@ -51,7 +43,7 @@ export const adminService = {
       await apiClient.post<unknown, unknown>("/admin/users", payload, { signal }),
     );
   },
-  /** Tải ảnh thẻ công chứng viên của một Người xét duyệt (multipart: file); BE trả 204. */
+  /** Tải ảnh thẻ luật sư của một Người xét duyệt (multipart: file); BE trả 204. */
   async uploadNotaryCard(userId: string, file: File) {
     const form = new FormData();
     form.append("file", file);
@@ -100,7 +92,7 @@ export const adminService = {
   /** Giao lại Người xét duyệt cho hồ sơ chứng tử chưa được xét; BE trả 204 (BR-73). */
   async reassignVerifier(caseId: string, request: ReassignVerifierRequest) {
     await apiClient.post<unknown, unknown>(
-      `/admin/death-cases/${id.parse(caseId)}/reassign-verifier`,
+      `/admin/handover-records/${id.parse(caseId)}/reassign-verifier`,
       reassignVerifierRequestSchema.parse(request),
     );
   },
@@ -135,60 +127,6 @@ export const adminService = {
     if (parsed.to) params.to = parsed.to;
     return paymentTransactionsPageSchema.parse(
       await apiClient.get<unknown, unknown>("/admin/payment-transactions", { params, signal }),
-    );
-  },
-
-  /** Mẫu biên bản đang dùng cho biên bản mới (mẫu gốc khi chưa lưu bản nào). */
-  async getHandoverTemplate(signal?: AbortSignal) {
-    return handoverTemplateSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/handover-templates/current", { signal }),
-    );
-  },
-
-  /** Một phiên bản cũ của mẫu theo số. */
-  async getHandoverTemplateVersion(version: number, signal?: AbortSignal) {
-    return handoverTemplateSchema.parse(
-      await apiClient.get<unknown, unknown>(`/admin/handover-templates/${version}`, { signal }),
-    );
-  },
-
-  /** Lịch sử các lần lưu mẫu, mới nhất trước. */
-  async listHandoverTemplateVersions(signal?: AbortSignal) {
-    return handoverTemplateVersionsSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/handover-templates", { signal }),
-    );
-  },
-
-  /** Lưu thành phiên bản mới; biên bản đã tạo giữ nguyên chữ của phiên bản lúc tạo. */
-  async saveHandoverTemplate(request: SaveHandoverTemplateRequest) {
-    const body = saveHandoverTemplateRequestSchema.parse(request);
-    return handoverTemplateSchema.parse(
-      await apiClient.post<unknown, unknown>("/admin/handover-templates", body),
-    );
-  },
-
-  /** Mọi loại thư thông báo kèm chữ gốc và chữ Admin đã sửa. */
-  async listEmailTemplates(signal?: AbortSignal) {
-    return emailTemplatesSchema.parse(
-      await apiClient.get<unknown, unknown>("/admin/email-templates", { signal }),
-    );
-  },
-
-  /** Lưu chữ cho một loại thư; trường null là dùng lại chữ gốc. */
-  async saveEmailTemplate(key: string, request: SaveEmailTemplateRequest) {
-    const body = saveEmailTemplateRequestSchema.parse(request);
-    return emailTemplateSchema.parse(
-      await apiClient.put<unknown, unknown>(
-        `/admin/email-templates/${encodeURIComponent(key)}`,
-        body,
-      ),
-    );
-  },
-
-  /** Bỏ chữ đã sửa, về chữ gốc và bật lại loại thư. */
-  async resetEmailTemplate(key: string) {
-    return emailTemplateSchema.parse(
-      await apiClient.delete<unknown, unknown>(`/admin/email-templates/${encodeURIComponent(key)}`),
     );
   },
 

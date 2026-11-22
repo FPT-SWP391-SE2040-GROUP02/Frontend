@@ -4,7 +4,7 @@ import { Chip, Notice, Panel, formatDateTime } from "@/shared/ui/heritageKit";
 import { useNotaryCardImage, useNotaryCardStatus } from "../model/useNotaryCard";
 
 /**
- * Mục Thẻ công chứng viên ở trang Cài đặt của Người xét duyệt: chỉ xem ảnh thẻ do quản trị viên nộp.
+ * Mục Thẻ luật sư ở trang Cài đặt của Người xét duyệt: chỉ xem ảnh thẻ do quản trị viên nộp.
  * Muốn nộp hoặc đổi ảnh thì liên hệ quản trị viên. Chưa có thẻ thì Backend chặn duyệt hồ sơ và gửi biên bản
  * (reason NOTARY_CARD_REQUIRED).
  */
@@ -33,11 +33,10 @@ export function NotaryCardPanel() {
   else if (image.url) caption = "Ảnh thẻ do quản trị viên nộp";
 
   return (
-    <Panel title="Thẻ công chứng viên" labelledBy="notary-card-title" action={chip}>
+    <Panel title="Thẻ luật sư" labelledBy="notary-card-title" action={chip}>
       <p className="-mt-2 mb-5 max-w-2xl text-sm leading-6 text-heritage-muted">
-        Ảnh thẻ dùng để xác nhận bạn là công chứng viên khi duyệt hồ sơ chứng tử và ký biên bản bàn
-        giao. Ảnh do quản trị viên nộp và lưu mã hóa; bạn chỉ xem. Muốn nộp hoặc đổi ảnh, hãy liên
-        hệ quản trị viên.
+        Ảnh thẻ dùng để xác nhận bạn là luật sư khi lập và ký biên bản bàn giao. Ảnh do quản trị
+        viên nộp và lưu mã hóa; bạn chỉ xem. Muốn nộp hoặc đổi ảnh, hãy liên hệ quản trị viên.
       </p>
 
       {status.isError && (
@@ -56,18 +55,18 @@ export function NotaryCardPanel() {
 
       {status.data && !hasCard && (
         <Notice tone="warning" role="status" title="Tài khoản của bạn chưa có ảnh thẻ">
-          Chưa có ảnh thẻ thì bạn chưa duyệt được hồ sơ và chưa gửi được biên bản. Hãy liên hệ quản
+          Ảnh thẻ giúp Người thực thi và người nhận biết biên bản do luật sư lập. Hãy liên hệ quản
           trị viên để nộp thẻ.
         </Notice>
       )}
 
       {hasCard && (
         <figure className="max-w-xl min-w-0">
-          <div className="flex aspect-[1.6/1] w-full items-center justify-center overflow-hidden rounded-2xl border border-heritage-border bg-[#F4F1E6]">
+          <div className="flex aspect-[1.6/1] w-full items-center justify-center overflow-hidden rounded-2xl border border-heritage-border bg-heritage-sunken">
             {image.url ? (
               <img
                 src={image.url}
-                alt="Ảnh thẻ công chứng viên của bạn"
+                alt="Ảnh thẻ luật sư của bạn"
                 className="size-full object-contain"
               />
             ) : (

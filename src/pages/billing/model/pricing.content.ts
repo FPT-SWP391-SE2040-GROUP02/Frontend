@@ -24,7 +24,7 @@ export const PRICING_CATALOG = [
     ],
     includedBeneficiarySlots: 2,
     storage: 200,
-    features: ["Thiết lập kế hoạch bàn giao", "Điểm danh và quy trình bàn giao"],
+    features: ["Thiết lập kế hoạch bàn giao", "Biên bản và quy trình bàn giao"],
   },
   {
     serviceTier: "XS_MAX",

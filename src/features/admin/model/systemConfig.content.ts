@@ -38,7 +38,7 @@ export const SYSTEM_CONFIG_SERVICES: Record<string, ServiceContent> = {
   SMTP: {
     title: "Email (gửi thư hệ thống)",
     description:
-      "Thư xác minh, mời người thực thi, nhắc điểm danh và thông báo hồ sơ đều đi qua đây. Ô dự phòng thường chỉ cần địa chỉ Webhook (Google Apps Script) để gửi qua cổng 443 khi cổng SMTP bị chặn.",
+      "Thư xác minh, mời người thực thi, mời người nhận và gửi mã nhận đều đi qua đây. Ô dự phòng thường chỉ cần địa chỉ Webhook (Google Apps Script) để gửi qua cổng 443 khi cổng SMTP bị chặn.",
     fields: [
       { name: "host", label: "Máy chủ SMTP", kind: "text", hint: "Ví dụ smtp.gmail.com." },
       {

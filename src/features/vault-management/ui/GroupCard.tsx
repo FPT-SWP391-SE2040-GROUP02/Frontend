@@ -13,11 +13,11 @@ import {
 } from "../model/groupMembers";
 
 const SMALL_OUTLINE =
-  "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-[#BDB8A6] bg-white px-4 text-sm font-semibold text-[#0A281E] transition-colors hover:bg-[#F4F1E6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:opacity-50";
+  "inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-heritage-border-strong bg-white px-4 text-sm font-semibold text-heritage-primary transition-colors hover:bg-heritage-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:opacity-50";
 const SMALL_DARK =
-  "inline-flex min-h-9 items-center justify-center rounded-full bg-[#0A281E] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#12392C] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:opacity-50";
+  "inline-flex min-h-9 items-center justify-center rounded-full bg-heritage-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-heritage-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:opacity-50";
 const LINK_STYLE =
-  "text-sm font-semibold text-[#0A281E] underline decoration-[#B68F4C] underline-offset-4 hover:decoration-2";
+  "text-sm font-semibold text-heritage-primary underline decoration-heritage-gold underline-offset-4 hover:decoration-2";
 
 export interface GroupCardProps {
   group: PackageResponse;
@@ -89,12 +89,12 @@ function MissingNotice({
   return (
     <div
       role="status"
-      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#EADFC4] bg-[#F7F1E1] px-4 py-3"
+      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-heritage-gold-border bg-heritage-gold-light px-4 py-3"
     >
-      <p className="flex min-w-0 items-center gap-3 text-sm text-[#4D4D4B]">
+      <p className="flex min-w-0 items-center gap-3 text-sm text-heritage-muted">
         <span
           aria-hidden="true"
-          className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-bold text-[#0A281E]"
+          className="flex size-6 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft text-sm font-bold text-heritage-primary"
         >
           !
         </span>
@@ -140,7 +140,7 @@ export function GroupCard({
       peopleChips.push({
         id,
         label: person.fullName,
-        detail: maskedCitizenId(person.citizenIdLast4),
+        detail: maskedCitizenId(person.citizenId),
       });
     } else {
       peopleChips.push({ id, label: "Người nhận chưa tải được tên" });
@@ -151,10 +151,10 @@ export function GroupCard({
   const showNotice = !ready && (needAssets || needPeople);
 
   return (
-    <li className="space-y-4 rounded-2xl border border-heritage-border bg-[#FBFAF5] p-5 shadow-[0_1px_2px_rgba(10,40,30,0.04)]">
+    <li className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-[0_1px_2px_rgba(10,40,30,0.04)]">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
-          <h3 className="break-words text-lg font-semibold text-[#0A281E]">{group.name}</h3>
+          <h3 className="break-words text-lg font-semibold text-heritage-primary">{group.name}</h3>
           {ready && (
             <Chip tone="success" className="gap-1">
               <Check className="size-3.5" aria-hidden="true" />
@@ -162,7 +162,7 @@ export function GroupCard({
             </Chip>
           )}
           {!ready && (
-            <Chip tone="warning" className="border border-[#E6D4A8]">
+            <Chip tone="warning" className="border border-heritage-warning-border">
               Chưa sẵn sàng
             </Chip>
           )}
@@ -198,7 +198,7 @@ export function GroupCard({
       {(group.assetIds.length > 0 || group.beneficiaryIds.length > 0) && (
         <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,14rem)] gap-4">
           <div className="min-w-0 space-y-2">
-            <p className="text-sm font-semibold text-[#4D4D4B]">
+            <p className="text-sm font-semibold text-heritage-muted">
               {group.assetIds.length} tài sản trong gói
             </p>
             {assetChips.length > 0 && (
@@ -219,7 +219,7 @@ export function GroupCard({
             )}
           </div>
           <div className="min-w-0 space-y-2">
-            <p className="text-sm font-semibold text-[#4D4D4B]">Người nhận</p>
+            <p className="text-sm font-semibold text-heritage-muted">Người nhận</p>
             {peopleChips.length > 0 && (
               <ChipOverflow
                 items={peopleChips}
@@ -235,7 +235,7 @@ export function GroupCard({
               />
             )}
             {peopleChips.length === 0 && (
-              <p className="text-sm font-medium text-[#7A5B25]">Chưa có ai</p>
+              <p className="text-sm font-medium text-heritage-warning">Chưa có ai</p>
             )}
             {peopleChips.length > 0 && (
               <button

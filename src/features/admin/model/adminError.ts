@@ -29,7 +29,6 @@ const ACTION_REASONS: Record<string, string> = {
 
 /** Câu báo theo mã lỗi riêng của khu vực quản trị. */
 const ACTION_CODES: Record<string, string> = {
-  HOLD_NOT_FOUND: "Không tìm thấy tạm giữ. Tải lại danh sách trước khi tiếp tục.",
   USER_NOT_FOUND: "Không tìm thấy tài khoản. Tải lại danh sách trước khi tiếp tục.",
   EDIT_CONFLICT: "Dữ liệu vừa bị thay đổi ở nơi khác. Tải lại để xem bản mới nhất rồi thử lại.",
   DEV_TOOL_NOT_ALLOWED:

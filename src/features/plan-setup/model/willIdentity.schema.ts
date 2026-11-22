@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Danh tính đầy đủ của Chủ kho (đã giải mã) để in trong di chúc. */
+/** Danh tính đầy đủ của Chủ kho (đã giải mã) để in trong biên bản phân chia. */
 const willOwnerIdentitySchema = z.object({
   fullName: z.string(),
   /** "yyyy-MM-dd". */

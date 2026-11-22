@@ -72,7 +72,6 @@ export const OWNER_OVERVIEW = {
   heartbeatDescription: "Điểm danh định kỳ giúp hệ thống biết anh vẫn đang sử dụng kho.",
   heartbeatDate: "Kỳ tiếp theo · 28/10/2026",
   heartbeatLast: "Lần gần nhất · 28/09/2026",
-  heartbeatAction: "Mở trang điểm danh",
   assetsTitle: "Tài sản gần đây",
   assetsDescription: "Những mục anh vừa sắp xếp hoặc cập nhật.",
   assetsAction: "Xem toàn bộ kho",

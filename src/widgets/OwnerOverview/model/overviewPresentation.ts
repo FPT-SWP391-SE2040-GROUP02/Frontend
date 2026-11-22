@@ -5,16 +5,16 @@ const planLabels: Record<string, { title: string; description: string }> = {
   },
   ACTIVE: {
     title: "Kế hoạch đang hoạt động",
-    description: "Tiếp tục sắp xếp kho và cập nhật kế hoạch của bạn.",
+    description: "Tiếp tục sắp xếp kho. Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ.",
   },
-  DEATH_CASE_OPEN: {
-    title: "Kho có hồ sơ chứng tử đang xử lý",
+  HANDOVER_REQUESTED: {
+    title: "Có yêu cầu nhận tài sản",
     description:
-      "Người thực thi đã báo tin, kho và tài khoản đang bị khóa trong lúc Người xét duyệt kiểm tra hồ sơ.",
+      "Có người nhận gửi yêu cầu nhận tài sản, kho đang bị khóa trong lúc luật sư xét giấy tờ và lập biên bản.",
   },
   HANDOVER_IN_PROGRESS: {
     title: "Kế hoạch đang trong quá trình bàn giao",
-    description: "Theo dõi hồ sơ và các thông báo liên quan đến kho của bạn.",
+    description: "Luật sư đã chốt biên bản. Người nhận đang xác minh, ký và nhận tài sản.",
   },
   CLOSED: {
     title: "Kế hoạch đã đóng",

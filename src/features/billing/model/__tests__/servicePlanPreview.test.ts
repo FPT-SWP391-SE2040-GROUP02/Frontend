@@ -72,7 +72,7 @@ describe("hành động trên thẻ gói", () => {
     },
   );
 
-  it.each(["DEATH_CASE_OPEN", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"])(
+  it.each(["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"])(
     "kế hoạch %s thì chặn mua",
     (planStatus) => {
       expect(getReferencePlanAction(xs, { ...vaultFixture, planStatus }, now)).toBe("blocked");

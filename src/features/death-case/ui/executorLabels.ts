@@ -1,15 +1,15 @@
 import type { Tone } from "@/shared/ui/heritageKit";
 
-/** Nhãn tiếng Việt cho dữ liệu Executor/hồ sơ chứng tử trả về từ Backend. */
+/** Nhãn tiếng Việt cho dữ liệu Người thực thi trả về từ Backend. */
 
 /** Tên trạng thái kế hoạch (PlanStatus của Backend, dạng UPPER_SNAKE_CASE) bằng tiếng Việt. */
 const planStatusLabels: Record<string, string> = {
   DRAFT: "Đang thiết lập",
   ACTIVE: "Đang hoạt động",
-  DEATH_CASE_OPEN: "Đã có hồ sơ báo tin",
+  HANDOVER_REQUESTED: "Có yêu cầu nhận",
   HANDOVER_IN_PROGRESS: "Đang bàn giao",
   CLOSED: "Đã hoàn tất",
-  BLOCKED: "Đang tạm giữ",
+  BLOCKED: "Đang bị chặn",
 };
 
 export function planStatusLabel(status: string): string {

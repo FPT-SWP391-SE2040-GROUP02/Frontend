@@ -1,4 +1,4 @@
-/** Bốn việc của trang Bàn giao; di chúc bấm vào chỗ trống sẽ đưa người dùng về đúng thẻ. */
+/** Bốn việc của trang Bàn giao; biên bản phân chia bấm vào chỗ trống sẽ đưa người dùng về đúng thẻ. */
 export type HandoverTaskId = "ekyc" | "executor" | "packages" | "plan";
 
 /** id của thẻ việc trong DOM, để cuộn tới và nháy sáng sau khi đóng khung xem trước. */

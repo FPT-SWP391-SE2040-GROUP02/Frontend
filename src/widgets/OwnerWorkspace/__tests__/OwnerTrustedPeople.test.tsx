@@ -102,7 +102,7 @@ beforeEach(() => {
       fullName: "Luật sư Thử",
       email: "moi@example.test",
       phoneMasked: null,
-      executorRoleTitle: "Luật sư thi hành di chúc",
+      executorRoleTitle: "Người thực thi",
       legalVerification: {
         status: "VERIFIED",
         lawyerCardNumber: "LS-1",
@@ -276,8 +276,8 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     renderPage();
 
     expect(await screen.findByText("Người thực thi được làm gì?")).toBeInTheDocument();
-    expect(screen.getByText("Điểm danh thay khi bạn quá hạn")).toBeInTheDocument();
-    expect(screen.getByText("Báo tin và nộp giấy chứng tử")).toBeInTheDocument();
+    expect(screen.getByText("Giữ mã mở gói cho tới khi bàn giao")).toBeInTheDocument();
+    expect(screen.getByText("Ký biên bản bàn giao do luật sư lập")).toBeInTheDocument();
     expect(screen.getByText("Trao mã mở gói cho người nhận")).toBeInTheDocument();
     expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
     expect(screen.getByText("Tự duyệt hồ sơ")).toBeInTheDocument();
@@ -287,7 +287,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
   it("kế hoạch bị khóa: chỉ xem, không có nút nào và có lý do", async () => {
     showPlan(
       {
-        planStatus: "DEATH_CASE_OPEN",
+        planStatus: "HANDOVER_REQUESTED",
         executors: [executor({ status: "ACCEPTED", acceptedAt: ACCEPTED_AT })],
       },
       { hasKey: true, version: 1, issuedAt: "2026-11-04T01:00:00Z", canIssue: false },
@@ -321,6 +321,7 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
     await userEvent.click(
       await within(dialog).findByRole("button", { name: "Chọn người này: Luật sư Thử" }),
     );
+    await userEvent.click(within(dialog).getByRole("checkbox", { name: /chỉ là đề cử/ }));
     await userEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   }
 
@@ -442,7 +443,9 @@ describe("trang Người thực thi: các thẻ còn lại", () => {
     renderPage();
 
     expect(await screen.findByRole("heading", { name: "Người xét duyệt" })).toBeInTheDocument();
-    expect(screen.getByText(/Hệ thống tự phân công khi có báo tin/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Hệ thống tự phân công luật sư khi người nhận gửi yêu cầu nhận tài sản/),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/eKYC/)).not.toBeInTheDocument();
   });
 

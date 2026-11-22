@@ -399,7 +399,6 @@ describe("Tài khoản", () => {
 
 describe("Hợp đồng dịch vụ và thông báo lỗi", () => {
   it.each([
-    [{ code: "HOLD_NOT_FOUND" }, "Không tìm thấy tạm giữ"],
     [{ code: "USER_NOT_FOUND" }, "Không tìm thấy tài khoản"],
     [{ code: "EDIT_CONFLICT" }, "vừa bị thay đổi"],
     [

@@ -13,12 +13,16 @@ import {
   type AssetDownloadState,
 } from "../model/executorAssets";
 import type { HandoverProgressTurn } from "../model/handoverProgress.schema";
-import { useDeathCase } from "../model/useDeathCase";
+import { useExecutorRecord } from "@/entities/handoverRecord";
 import { useExecutorPackages } from "../model/useExecutorPackages";
 import { useHandoverProgress } from "../model/useHandoverProgress";
 
-const DOWNLOAD_CHIPS: Record<AssetDownloadState, { label: string; tone: "success" | "neutral" }> = {
+const DOWNLOAD_CHIPS: Record<
+  AssetDownloadState,
+  { label: string; tone: "success" | "neutral" | "warning" }
+> = {
   downloaded: { label: "Đã tải", tone: "success" },
+  partial: { label: "Tải một phần", tone: "warning" },
   "not-downloaded": { label: "Chưa tải", tone: "neutral" },
   "not-handed-over": { label: "Không bàn giao", tone: "neutral" },
 };
@@ -28,7 +32,7 @@ function GuideBox({ vault }: { vault: ExecutorVault }) {
   return (
     <section
       aria-labelledby="executor-guide-title"
-      className="rounded-2xl border border-[#E0C486] bg-[#FBF3E0] p-5"
+      className="rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg p-5"
     >
       <h2 id="executor-guide-title" className="text-base font-semibold text-heritage-primary">
         Hướng dẫn bàn giao từ Chủ kho
@@ -57,11 +61,10 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
   const searchId = useId();
   const [search, setSearch] = useState("");
   const packages = useExecutorPackages(vault.vaultId);
-  const record = useDeathCase(vault.openDeathCaseId).data;
-  const approved = record?.status === "APPROVED_FOR_HANDOVER";
+  const record = useExecutorRecord(vault.vaultId).data ?? null;
   const progress = useHandoverProgress(
-    vault.openDeathCaseId ?? "",
-    Boolean(vault.openDeathCaseId) && approved,
+    record ? record.id : "",
+    record !== null && record.status === "COMPLETED",
   );
 
   if (packages.isPending) return <p role="status">Đang tải danh sách tài sản…</p>;

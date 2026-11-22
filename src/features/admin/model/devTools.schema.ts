@@ -1,21 +1,5 @@
 import { z } from "zod";
 
-/** Tên mốc chuyển trạng thái (DevToolsRules của Backend), Backend trả đúng thứ tự hiển thị. */
-export const devMilestoneKeySchema = z.enum(["SERVICE_EXPIRED", "RECIPIENT_DECISION_ENDED"], {
-  message: "Mốc không hợp lệ.",
-});
-export type DevMilestoneKey = z.infer<typeof devMilestoneKeySchema>;
-
-/** AVAILABLE: chuyển được · PASSED: đã qua mốc · NOT_APPLICABLE: trạng thái hiện tại không có mốc này. */
-export const devMilestoneStateSchema = z.enum(["AVAILABLE", "PASSED", "NOT_APPLICABLE"]);
-
-export const devMilestoneSchema = z.object({
-  key: devMilestoneKeySchema,
-  state: devMilestoneStateSchema,
-  note: z.string(),
-});
-export type DevMilestone = z.infer<typeof devMilestoneSchema>;
-
 /** GET /admin/dev-tools/vaults → DevVaultOptionResponse[] (raw, không envelope). */
 export const devVaultOptionSchema = z.object({
   vaultId: z.string().uuid(),
@@ -25,19 +9,6 @@ export const devVaultOptionSchema = z.object({
 });
 export type DevVaultOption = z.infer<typeof devVaultOptionSchema>;
 export const devVaultOptionsSchema = z.array(devVaultOptionSchema);
-
-/** DevClockResponse: trạng thái kế hoạch, đồng hồ và các mốc tua. */
-export const devClockSchema = z.object({
-  vaultId: z.string().uuid(),
-  planStatus: z.string(),
-  clockState: z.enum(["REAL_TIME", "SHIFTED"]),
-  milestones: z.array(devMilestoneSchema),
-});
-export type DevClock = z.infer<typeof devClockSchema>;
-
-/** POST /admin/dev-tools/vaults/{vaultId}/time-travel. */
-export const devTimeTravelRequestSchema = z.object({ milestone: devMilestoneKeySchema });
-export type DevTimeTravelRequest = z.infer<typeof devTimeTravelRequestSchema>;
 
 /** POST /admin/dev-tools/users/ekyc-reset: email tài khoản cần làm lại eKYC từ đầu. */
 export const devEkycResetRequestSchema = z.object({

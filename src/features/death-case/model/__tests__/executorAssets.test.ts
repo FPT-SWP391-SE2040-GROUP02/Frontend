@@ -17,7 +17,7 @@ const SENT = "2026-12-23T06:14:00+00:00";
 const pkg: ExecutorPackage = {
   containerId: CONTAINER,
   containerName: "Gói gia đình",
-  recipients: [{ fullName: "Trần Minh Anh", citizenIdLast4: "0791" }],
+  recipients: [{ fullName: "Trần Minh Anh", citizenId: "0791" }],
   assets: [
     { id: ASSET_A, name: "Sổ tiết kiệm.pdf", kind: "FILE", sizeBytes: 100 },
     { id: ASSET_B, name: "Mật khẩu ví", kind: "TEXT", sizeBytes: 10 },
@@ -42,7 +42,7 @@ function turn(overrides: Record<string, unknown>): HandoverProgressTurn {
         turnId: "55555555-5555-4555-8555-555555555555",
         containerId: CONTAINER,
         containerName: "Gói gia đình",
-        beneficiaryCitizenIdLast4: "0791",
+        beneficiaryCitizenId: "0791",
         status: "INVITED",
         claimedByYou: false,
         identityConfirmedByExecutor: false,
@@ -104,6 +104,11 @@ describe("assetDownloadState", () => {
     const t = turn({ ...committed, items: [item(ASSET_A, true), item(ASSET_B, false)] });
     expect(assetDownloadState(ASSET_A, [t])).toBe("downloaded");
     expect(assetDownloadState(ASSET_B, [t])).toBe("not-downloaded");
+  });
+  it("mới một người nhận tải thì báo tải một phần", () => {
+    const done = turn({ ...committed, items: [item(ASSET_A, true)] });
+    const waiting = turn({ ...committed, items: [item(ASSET_A, false)] });
+    expect(assetDownloadState(ASSET_A, [done, waiting])).toBe("partial");
   });
   it("người nhận từ chối thì không bàn giao", () => {
     expect(assetDownloadState(ASSET_A, [turn({ status: "DECLINED" })])).toBe("not-handed-over");

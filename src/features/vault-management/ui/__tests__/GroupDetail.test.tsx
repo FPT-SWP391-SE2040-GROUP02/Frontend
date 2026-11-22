@@ -129,7 +129,7 @@ describe("chi tiết gói bàn giao", () => {
     expect(dialog).toHaveTextContent("Gỡ người nhận khỏi gói bàn giao?");
     expect(dialog).toHaveTextContent("đưa kế hoạch về Nháp");
     expect(dialog).toHaveTextContent("Người thực thi phải chấp nhận lại lời mời");
-    expect(dialog).toHaveTextContent("không nộp được hồ sơ chứng tử");
+    expect(dialog).toHaveTextContent("không gửi yêu cầu nhận được");
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục, đưa kế hoạch về Nháp" }));
     await waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
@@ -176,7 +176,7 @@ describe("chi tiết gói bàn giao", () => {
     expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
   });
 
-  it("hộp thoại xóa nói gói không còn được bàn giao và nhắc ký lại di chúc", async () => {
+  it("hộp thoại xóa nói gói không còn được bàn giao và nhắc ký lại biên bản phân chia", async () => {
     renderGroup();
 
     fireEvent.click(screen.getByRole("button", { name: "Xóa gói bàn giao" }));
@@ -185,7 +185,7 @@ describe("chi tiết gói bàn giao", () => {
       "Gói này sẽ không còn được bàn giao, kể cả khi bạn chưa ký lại.",
     );
     expect(dialog).toHaveTextContent(
-      "Nếu kế hoạch đã ký, hãy vào trang Bàn giao để ký lại di chúc.",
+      "Nếu kế hoạch đã ký, hãy vào trang Bàn giao để ký lại biên bản phân chia.",
     );
     expect(dialog).toHaveTextContent("Các mục trong gói bàn giao vẫn ở lại kho");
   });

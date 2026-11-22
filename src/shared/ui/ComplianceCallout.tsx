@@ -30,8 +30,8 @@ export interface ComplianceCalloutProps {
  * ```
  */
 export function ComplianceCallout({
-  title = "⚖️ Cảnh báo pháp lý: Thừa kế không phụ thuộc nội dung di chúc (Điều 644 BLDS 2015)",
-  description = "Kế hoạch phân bổ của bạn chưa chỉ định con chưa thành niên hoặc cha mẹ già. Họ có quyền hưởng ít nhất 2/3 một suất thừa kế theo luật định dù di chúc không chia tài sản.",
+  title = "⚖️ Cảnh báo pháp lý: Thừa kế không phụ thuộc nội dung biên bản phân chia (Điều 644 BLDS 2015)",
+  description = "Kế hoạch phân bổ của bạn chưa chỉ định con chưa thành niên hoặc cha mẹ già. Họ có quyền hưởng ít nhất 2/3 một suất thừa kế theo luật định dù biên bản phân chia không chia tài sản.",
   disclaimerText = "Tôi cam đoan tự chịu trách nhiệm về các phát sinh tranh chấp dân sự đối với phần tài sản này",
   onAgreedChange,
   className = "",
@@ -46,16 +46,18 @@ export function ComplianceCallout({
 
   return (
     <div className={`compliance-callout ${className}`}>
-      <div className="text-[0.875rem] font-bold text-[#92400E] flex items-center gap-1.5 mb-1">
-        <Scale className="w-4 h-4 text-[#D97706] shrink-0" />
+      <div className="text-[0.875rem] font-bold text-heritage-warning flex items-center gap-1.5 mb-1">
+        <Scale className="w-4 h-4 text-heritage-warning shrink-0" />
         <span>{title}</span>
       </div>
 
-      <p className="text-[0.875rem] text-[#78350F] leading-relaxed mb-2.5">{description}</p>
+      <p className="text-[0.875rem] text-heritage-warning leading-relaxed mb-2.5">{description}</p>
 
       <CustomCheckbox
         label={
-          <span className="text-[#92400E] text-[0.875rem] font-semibold">{disclaimerText}</span>
+          <span className="text-heritage-warning text-[0.875rem] font-semibold">
+            {disclaimerText}
+          </span>
         }
         checked={agreed}
         onChange={handleToggle}

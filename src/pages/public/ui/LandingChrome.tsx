@@ -12,7 +12,7 @@ import "../landing.css";
  * chân trang. Màu cố định theo bản thiết kế (nền xanh đậm / kem) nên không đổi theo chế độ tối.
  */
 export const FOCUS_RING =
-  "focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#E6C98B]";
+  "focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-heritage-gold-soft";
 export const HEADING = "font-serif font-normal tracking-normal";
 
 /**
@@ -54,7 +54,7 @@ export function LandingHeader({ onLanding }: { onLanding: boolean }) {
       <a
         key={item.href}
         href={anchorHref(item.href, onLanding)}
-        className={`inline-flex min-h-11 shrink-0 items-center text-sm text-[#F3EFE6]/80 transition-colors duration-200 hover:text-[#E6C98B] ${FOCUS_RING}`}
+        className={`inline-flex min-h-11 shrink-0 items-center text-sm text-heritage-sunken/80 transition-colors duration-200 hover:text-heritage-gold-soft ${FOCUS_RING}`}
       >
         {item.label}
       </a>,
@@ -80,7 +80,7 @@ export function LandingHeader({ onLanding }: { onLanding: boolean }) {
       <div className="flex items-center gap-2">
         <Link
           to={loginTarget}
-          className={`inline-flex min-h-11 items-center rounded-md border border-[#E6C98B]/60 px-4 text-sm text-[#E6C98B] transition-colors duration-200 hover:bg-[#E6C98B]/10 ${FOCUS_RING}`}
+          className={`inline-flex min-h-11 items-center rounded-md border border-heritage-gold-soft/60 px-4 text-sm text-heritage-gold-soft transition-colors duration-200 hover:bg-heritage-gold-soft/10 ${FOCUS_RING}`}
         >
           {loginLabel}
         </Link>
@@ -88,7 +88,7 @@ export function LandingHeader({ onLanding }: { onLanding: boolean }) {
         {isGuest && (
           <Link
             to={ROUTES.AUTH.REGISTER}
-            className={`inline-flex min-h-11 items-center rounded-md landing-press bg-[#B68F4C] px-4 text-sm font-semibold text-[#0A281E] hover:bg-[#E6C98B] ${FOCUS_RING}`}
+            className={`inline-flex min-h-11 items-center rounded-md landing-press bg-heritage-gold px-4 text-sm font-semibold text-heritage-primary hover:bg-heritage-gold-soft ${FOCUS_RING}`}
           >
             {content.register}
           </Link>
@@ -102,8 +102,8 @@ function FooterBullets({ items }: { items: readonly string[] }) {
   const rows: ReactNode[] = [];
   for (const item of items) {
     rows.push(
-      <li key={item} className="flex items-start gap-2 font-serif text-lg text-[#F3EFE6]">
-        <span className="text-[#E6C98B]" aria-hidden="true">
+      <li key={item} className="flex items-start gap-2 font-serif text-lg text-heritage-sunken">
+        <span className="text-heritage-gold-soft" aria-hidden="true">
           •
         </span>
         {item}
@@ -124,7 +124,7 @@ function FooterTextColumn({ title, items }: { title: string; items: readonly Foo
   for (const item of items) {
     rows.push(
       <li key={item.to}>
-        <Link to={item.to} className={`hover:text-[#E6C98B] ${FOCUS_RING}`}>
+        <Link to={item.to} className={`hover:text-heritage-gold-soft ${FOCUS_RING}`}>
           {item.label}
         </Link>
       </li>,
@@ -133,7 +133,7 @@ function FooterTextColumn({ title, items }: { title: string; items: readonly Foo
   return (
     <div>
       <h3 className="text-sm font-semibold">{title}</h3>
-      <ul className="mt-4 space-y-3 text-sm text-[#F3EFE6]/70">{rows}</ul>
+      <ul className="mt-4 space-y-3 text-sm text-heritage-sunken/70">{rows}</ul>
     </div>
   );
 }
@@ -144,7 +144,10 @@ export function LandingFooter({ onLanding }: { onLanding: boolean }) {
   for (const link of content.footer.productLinks) {
     productLinks.push(
       <li key={link.href}>
-        <a href={anchorHref(link.href, onLanding)} className={`hover:text-[#E6C98B] ${FOCUS_RING}`}>
+        <a
+          href={anchorHref(link.href, onLanding)}
+          className={`hover:text-heritage-gold-soft ${FOCUS_RING}`}
+        >
           {link.label}
         </a>
       </li>,
@@ -152,7 +155,7 @@ export function LandingFooter({ onLanding }: { onLanding: boolean }) {
   }
 
   return (
-    <footer className="landing-footer bg-[#0A281E] px-4 pb-10 pt-14 text-[#F3EFE6] sm:px-8">
+    <footer className="landing-footer bg-heritage-primary px-4 pb-10 pt-14 text-heritage-sunken sm:px-8">
       <div className="mx-auto max-w-6xl space-y-10">
         <div className="grid gap-8 lg:grid-cols-2">
           <div>
@@ -160,32 +163,32 @@ export function LandingFooter({ onLanding }: { onLanding: boolean }) {
               <LegacyVaultMark className="size-10 shrink-0" />
               {content.brand}
             </p>
-            <p className={`${HEADING} mt-3 text-base italic text-[#E6C98B]`}>
+            <p className={`${HEADING} mt-3 text-base italic text-heritage-gold-soft`}>
               {content.footer.tagline}
             </p>
           </div>
           <div>
-            <h3 className="text-sm text-[#E6C98B]">{content.footer.commitmentTitle}</h3>
+            <h3 className="text-sm text-heritage-gold-soft">{content.footer.commitmentTitle}</h3>
             <FooterBullets items={content.footer.commitments} />
           </div>
         </div>
-        <div className="grid gap-8 border-t border-[#F3EFE6]/15 pt-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 border-t border-heritage-sunken/15 pt-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className="text-sm font-semibold">{content.footer.productTitle}</h3>
-            <ul className="mt-4 space-y-3 text-sm text-[#F3EFE6]/70">{productLinks}</ul>
+            <ul className="mt-4 space-y-3 text-sm text-heritage-sunken/70">{productLinks}</ul>
           </div>
           <FooterTextColumn
             title={content.footer.supportTitle}
             items={content.footer.supportItems}
           />
           <FooterTextColumn title={content.footer.legalTitle} items={content.footer.legalItems} />
-          <p className="text-sm leading-5 text-[#F3EFE6]/60 lg:text-right">
+          <p className="text-sm leading-5 text-heritage-sunken/60 lg:text-right">
             {content.footer.sampleNote}
             <br />
             {content.footer.address}
           </p>
         </div>
-        <p className="text-sm text-[#F3EFE6]/60">
+        <p className="text-sm text-heritage-sunken/60">
           © {new Date().getFullYear()} {content.brand}. {content.footer.legal}
         </p>
       </div>

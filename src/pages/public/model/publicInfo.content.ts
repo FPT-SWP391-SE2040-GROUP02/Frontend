@@ -2,7 +2,7 @@ import { SUPPORT_EMAIL } from "@/shared/constants";
 /**
  * Nội dung các trang công khai ngoài landing: Hỏi đáp, Liên hệ, Điều khoản, Quyền riêng tư.
  * Số liệu (gói, dung lượng, thời hạn) chép từ landing và biểu phí SRS §8.1; mô tả eKYC khớp luồng Backend
- * (ảnh chỉ xử lý trong bộ nhớ, lượt xác minh lưu 4 số cuối CCCD). Văn bản pháp lý là BẢN NHÁP chưa qua
+ * (ảnh chỉ xử lý trong bộ nhớ, lượt xác minh lưu số CCCD). Văn bản pháp lý là BẢN NHÁP chưa qua
  * tư vấn pháp lý: các mục "[...]" cần nhóm điền giá trị thật trước khi công bố.
  */
 
@@ -77,7 +77,7 @@ export const FAQ_CONTENT = {
         {
           question: "Ảnh căn cước và khuôn mặt của tôi có được lưu không?",
           answer:
-            "Ảnh chụp chỉ được xử lý để đọc thông tin và so khớp, không lưu thành ảnh trong hệ thống. Kết quả xác minh được lưu kèm 4 số cuối số căn cước. Với chủ kho, thông tin danh tính và mẫu khuôn mặt được lưu ở dạng mã hóa để đối chiếu các lần sau.",
+            "Ảnh chụp chỉ được xử lý để đọc thông tin và so khớp, không lưu thành ảnh trong hệ thống. Kết quả xác minh được lưu kèm số căn cước. Với chủ kho, thông tin danh tính và mẫu khuôn mặt được lưu ở dạng mã hóa để đối chiếu các lần sau.",
         },
         {
           question: "eKYC trong LegacyVault có giá trị pháp lý không?",
@@ -87,17 +87,17 @@ export const FAQ_CONTENT = {
       ],
     },
     {
-      title: "Điểm danh và bàn giao",
+      title: "Biên bản và bàn giao",
       items: [
         {
-          question: "Điểm danh định kỳ hoạt động ra sao?",
+          question: "Bàn giao bắt đầu thế nào?",
           answer:
-            "Bạn chọn chu kỳ 30, 60 hoặc 90 ngày và thời gian chờ 7, 14 hoặc 30 ngày. Quá hạn mà chưa điểm danh, hệ thống vào thời gian chờ, sau đó nhờ Người thực thi kiểm tra. Thay đổi cấu hình áp dụng từ kỳ sau.",
+            "Khi có việc xảy ra, người nhận mở link riêng trong thư, gửi yêu cầu nhận tài sản kèm giấy tờ. Hệ thống khóa kho, báo Chủ kho (còn sống thì hủy được) và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ, lập biên bản bàn giao (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký. Đủ chữ ký mới giao tài sản.",
         },
         {
-          question: "Tôi có dừng được bàn giao không?",
+          question: "LegacyVault có làm thủ tục thừa kế không?",
           answer:
-            "Có, bằng cách điểm danh khi được nhắc. Khi Người thực thi đã báo tin và nộp hồ sơ, kho khóa ngay và hồ sơ sang Người xét duyệt.",
+            "Không. Hệ thống chỉ quản lý và giao tài sản theo biên bản bàn giao do luật sư lập. Di chúc và thủ tục thừa kế làm ở ngoài hệ thống. Người thực thi bạn chọn chỉ là đề cử, chỉ giữ hộ và giao theo biên bản.",
         },
         {
           question: "Người nhận có bao lâu để tải nội dung?",
@@ -190,10 +190,10 @@ export const TERMS_CONTENT = {
       ],
     },
     {
-      title: "4. Điểm danh và bàn giao",
+      title: "4. Biên bản và bàn giao",
       paragraphs: [
-        "Bàn giao chỉ diễn ra khi bạn không phản hồi điểm danh và các lớp xác nhận (kiểm tra của Người thực thi, xét duyệt, xác minh danh tính người nhận) đều đạt.",
-        "Bạn dừng bàn giao bằng cách điểm danh khi được nhắc, trước khi có báo tin. Người nhận có {grantDays} ngày để tải nội dung sau khi được bàn giao.",
+        "LegacyVault chỉ quản lý tài sản, không làm pháp lý. Bàn giao chỉ diễn ra theo biên bản bàn giao do luật sư lập, sau khi luật sư xác nhận danh tính từng người nhận và luật sư, Người thực thi, người nhận cùng ký.",
+        "Người thực thi chỉ giữ hộ và giao tài sản theo biên bản, không được chia, bán hay cho tài sản. Người nhận có {grantDays} ngày để tải nội dung sau khi biên bản đủ chữ ký.",
       ],
     },
     {
@@ -249,7 +249,7 @@ export const PRIVACY_CONTENT = {
       title: "2. Dữ liệu eKYC",
       paragraphs: [
         "Chỉ xác minh sau khi bạn đồng ý rõ ràng. Ảnh giấy tờ và ảnh khuôn mặt chỉ dùng để đọc thông tin và so khớp trong phiên xác minh, không được lưu thành ảnh.",
-        "Hệ thống lưu kết quả xác minh kèm 4 số cuối số căn cước. Với chủ kho đã xác minh, danh tính và mẫu khuôn mặt được lưu ở dạng mã hóa để đối chiếu các lần sau. Thời gian lưu cụ thể: [THỜI HẠN LƯU TRỮ: bổ sung].",
+        "Hệ thống lưu kết quả xác minh kèm số căn cước. Với chủ kho đã xác minh, danh tính và mẫu khuôn mặt được lưu ở dạng mã hóa để đối chiếu các lần sau. Thời gian lưu cụ thể: [THỜI HẠN LƯU TRỮ: bổ sung].",
       ],
     },
     {
@@ -257,7 +257,7 @@ export const PRIVACY_CONTENT = {
       paragraphs: [],
       bullets: [
         "Cung cấp và bảo vệ tài khoản, kho và kế hoạch bàn giao.",
-        "Gửi email xác minh, nhắc điểm danh và thông báo bàn giao.",
+        "Gửi email xác minh, thư mời người nhận và mã nhận.",
         "Xác minh người nhận trước khi bàn giao.",
         "Phát hiện gian lận, sự cố bảo mật và tuân thủ nghĩa vụ pháp lý.",
       ],

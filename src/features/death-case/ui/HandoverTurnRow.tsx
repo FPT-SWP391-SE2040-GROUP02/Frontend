@@ -4,28 +4,27 @@ import { cn } from "cn";
 import { buttonStyles, formatDateTime, Initial } from "@/shared/ui/heritageKit";
 import type { TurnProgress, TurnSegment, SegmentState, TurnTone } from "../model/executorTurns";
 import { canMailHandoverKey, type HandoverProgressTurn } from "../model/handoverProgress.schema";
-import { HandoverPaper } from "./HandoverPaper";
 import { HandoverSendKey } from "./HandoverSendKey";
 
 /** Đoạn thanh: xanh đậm (xong), vàng (đang chờ), xám nhạt (chưa tới), xám đậm (dừng). */
 const SEGMENT_COLORS: Record<SegmentState, string> = {
-  done: "bg-[#1F5D46]",
-  current: "bg-[#E0C486]",
-  pending: "bg-[#E5E1D3]",
-  stopped: "bg-[#8E8B80]",
+  done: "bg-heritage-primary-hover",
+  current: "bg-heritage-gold-soft",
+  pending: "bg-heritage-border",
+  stopped: "bg-heritage-subtle",
 };
 
 const STEP_TEXT_COLORS: Record<SegmentState, string> = {
-  done: "text-[#1F7A55]",
-  current: "text-[#7A5B25]",
+  done: "text-heritage-success",
+  current: "text-heritage-warning",
   pending: "text-heritage-muted",
-  stopped: "text-[#4D4D4B]",
+  stopped: "text-heritage-muted",
 };
 
 const HEADLINE_COLORS: Record<TurnTone, string> = {
-  success: "text-[#1F7A55]",
-  warning: "text-[#7A5B25]",
-  neutral: "text-[#4D4D4B]",
+  success: "text-heritage-success",
+  warning: "text-heritage-warning",
+  neutral: "text-heritage-muted",
 };
 
 const STATE_WORDS: Record<SegmentState, string> = {
@@ -77,46 +76,20 @@ function StepTimes({ columns }: { columns: TurnSegment[] }) {
 
 function recipientName(turn: HandoverProgressTurn): string {
   if (turn.beneficiaryFullName) return turn.beneficiaryFullName;
-  return `Người nhận CCCD ***${turn.beneficiaryCitizenIdLast4}`;
+  return `Người nhận CCCD ${turn.beneficiaryCitizenId}`;
 }
 
 /** Ba ô nhỏ viền mảnh: Thông tin liên hệ, Tài sản, Biên bản. */
-function DetailBoxes({
-  caseId,
-  turn,
-  progress,
-}: {
-  caseId: string;
-  turn: HandoverProgressTurn;
-  progress: TurnProgress;
-}) {
-  const [paperOpen, setPaperOpen] = useState(false);
+function DetailBoxes({ turn, progress }: { turn: HandoverProgressTurn; progress: TurnProgress }) {
   const declined = progress.group === "declined" || progress.group === "ended";
   let assetText = `${turn.downloadedItems}/${turn.totalItems} đã tải`;
   if (declined) assetText = "Không bàn giao";
-  let paper;
-  if (turn.status === "HANDOVER_COMMITTED") {
+  // Chữ ký của người nhận trên biên bản bàn giao chung (luật sư lập, ba bên ký).
+  let paper = <p className="text-sm">Chưa ký</p>;
+  if (turn.recipientSignedAt) {
     paper = (
-      <HandoverPaper
-        caseId={caseId}
-        turnId={turn.turnId}
-        label="biên bản đồng ý"
-        buttonLabel="Xem biên bản đồng ý"
-        onOpenChange={setPaperOpen}
-      />
+      <p className="text-sm">{`Người nhận đã ký lúc ${formatDateTime(turn.recipientSignedAt)}`}</p>
     );
-  } else if (turn.status === "DECLINED") {
-    paper = (
-      <HandoverPaper
-        caseId={caseId}
-        turnId={turn.turnId}
-        label="văn bản từ chối"
-        buttonLabel="Xem văn bản từ chối"
-        onOpenChange={setPaperOpen}
-      />
-    );
-  } else {
-    paper = <p className="text-sm">Chưa có</p>;
   }
   const boxClass = "min-w-0 rounded-xl border border-heritage-border bg-white/60 p-3 text-sm";
   const titleClass = "mb-2 text-sm font-semibold text-heritage-muted";
@@ -156,7 +129,7 @@ function DetailBoxes({
           Chỉ thấy tên và trạng thái tải, không có nội dung.
         </p>
       </section>
-      <section aria-label="Biên bản" className={cn(boxClass, paperOpen && "sm:col-span-3")}>
+      <section aria-label="Biên bản" className={boxClass}>
         <h4 className={titleClass}>Biên bản</h4>
         {paper}
       </section>
@@ -170,12 +143,12 @@ function DetailBoxes({
  * Dòng có việc Người thực thi cần làm được tô nổi (nền vàng rất nhạt, vạch vàng đậm bên trái).
  */
 export function HandoverTurnRow({
-  caseId,
+  recordId,
   vaultId,
   turn,
   progress,
 }: {
-  caseId: string;
+  recordId: string;
   vaultId?: string;
   turn: HandoverProgressTurn;
   progress: TurnProgress;
@@ -194,7 +167,7 @@ export function HandoverTurnRow({
       className={cn(
         "rounded-2xl border bg-heritage-surface p-4",
         highlighted
-          ? "border-[#E0C486] border-l-4 border-l-[#C9A55C] bg-[#FDF9EE]"
+          ? "border-heritage-gold-soft border-l-4 border-l-heritage-gold bg-heritage-gold-light"
           : "border-heritage-border",
       )}
     >
@@ -239,7 +212,7 @@ export function HandoverTurnRow({
       {keyFormOpen && (
         <div className="mt-4">
           <HandoverSendKey
-            caseId={caseId}
+            recordId={recordId}
             vaultId={vaultId}
             turnId={turn.turnId}
             onSent={(sentAt) => {
@@ -262,7 +235,7 @@ export function HandoverTurnRow({
             <StepTimes columns={progress.detailColumns} />
             <div className="hidden lg:block" aria-hidden="true" />
           </div>
-          <DetailBoxes caseId={caseId} turn={turn} progress={progress} />
+          <DetailBoxes turn={turn} progress={progress} />
         </div>
       )}
     </li>

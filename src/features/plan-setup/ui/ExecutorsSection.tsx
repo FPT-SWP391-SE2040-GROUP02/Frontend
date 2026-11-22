@@ -55,12 +55,12 @@ const statusTones: Record<Executor["status"], ChipTone> = {
 };
 
 /** Kế hoạch ở các trạng thái này thì Backend chặn mời, gửi lại và thu hồi Người thực thi (SETUP-21). */
-const LOCKED_PLAN_STATUSES = ["DEATH_CASE_OPEN", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"];
+const LOCKED_PLAN_STATUSES = ["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"];
 const RUNNING_PLAN_STATUSES = ["ACTIVE"];
 
 /** Lý do khóa ở đầu câu thông báo chỉ xem (thiết kế 186). */
 const LOCKED_REASONS: Record<string, string> = {
-  DEATH_CASE_OPEN: "Kế hoạch đang có hồ sơ báo tử",
+  HANDOVER_REQUESTED: "Có người nhận gửi yêu cầu nhận tài sản",
   HANDOVER_IN_PROGRESS: "Kế hoạch đang bàn giao",
   BLOCKED: "Kế hoạch đang bị chặn",
   CLOSED: "Kế hoạch đã đóng",
@@ -70,11 +70,13 @@ const LOCKED_REASONS: Record<string, string> = {
 const NOTICE_HIDE_MS = 8000;
 
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
-const GOLD_BUTTON = "bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]";
-const DANGER_BUTTON = "border-red-300 text-red-700 hover:bg-red-50";
+const PRIMARY_BUTTON =
+  "bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover";
+const DANGER_BUTTON =
+  "border-heritage-danger-border text-heritage-danger hover:bg-heritage-danger-bg";
 const ALLOWED_ACTIONS = [
-  "Điểm danh thay khi bạn quá hạn",
-  "Báo tin và nộp giấy chứng tử",
+  "Giữ mã mở gói cho tới khi bàn giao",
+  "Ký biên bản bàn giao do luật sư lập",
   "Trao mã mở gói cho người nhận",
 ];
 
@@ -97,11 +99,13 @@ function ActionList({
   items: string[];
   allowed: boolean;
 }) {
-  let titleColor = "text-red-700";
-  let mark: ReactNode = <X className="mt-0.5 size-4 shrink-0 text-red-700" aria-hidden="true" />;
+  let titleColor = "text-heritage-danger";
+  let mark: ReactNode = (
+    <X className="mt-0.5 size-4 shrink-0 text-heritage-danger" aria-hidden="true" />
+  );
   if (allowed) {
-    titleColor = "text-green-700";
-    mark = <Check className="mt-0.5 size-4 shrink-0 text-green-700" aria-hidden="true" />;
+    titleColor = "text-heritage-success";
+    mark = <Check className="mt-0.5 size-4 shrink-0 text-heritage-success" aria-hidden="true" />;
   }
   const rows: ReactNode[] = [];
   for (const item of items) {
@@ -149,6 +153,8 @@ export function InviteDialog({
     defaultValues: { email: "" },
   });
   const selectedEmail = useWatch({ control: form.control, name: "email" });
+  // Điều khoản đề cử: Chủ kho phải đồng ý trước khi gửi lời mời (chỉ ghi nhận mong muốn, không tạo quyền pháp lý).
+  const [nominationAccepted, setNominationAccepted] = useState(false);
 
   /** Lý do không chọn được một người trong danh bạ (Backend vẫn là nơi quyết định cuối cùng). */
   function disabledReason(executor: SystemExecutor): string | null {
@@ -173,7 +179,7 @@ export function InviteDialog({
 
   let title = "Mời Người thực thi";
   let description =
-    "Chọn một Người thực thi hệ thống đã được thẩm định. Người này sẽ báo tin khi có biến cố và trao mã mở gói cho người nhận. Họ không đọc được nội dung kho và không nhận tài sản.";
+    "Chọn một Người thực thi hệ thống đã được thẩm định. Khi cần, người này ký biên bản bàn giao do luật sư lập và gửi mã nhận cho người nhận. Họ không đọc được nội dung kho và không nhận tài sản.";
   let notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút.`;
   let cancelLabel = "Hủy";
   if (replacing !== null) {
@@ -222,7 +228,22 @@ export function InviteDialog({
               </p>
             )}
           </fieldset>
-          <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">{notice}</p>
+          <p className="rounded-lg bg-heritage-warning-bg p-3 text-sm text-heritage-warning">
+            {notice}
+          </p>
+          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+            <input
+              type="checkbox"
+              className="mt-1 size-5 cursor-pointer accent-heritage-primary"
+              checked={nominationAccepted}
+              disabled={action.pending}
+              onChange={(event) => setNominationAccepted(event.target.checked)}
+            />
+            <span>
+              Tôi hiểu đây chỉ là đề cử. Người thực thi chỉ giữ hộ và giao tài sản theo biên bản bàn
+              giao do luật sư lập, không có quyền chia, bán hay cho tài sản.
+            </span>
+          </label>
           {action.error && (
             <p role="alert" className="text-sm text-destructive">
               {action.error}
@@ -241,8 +262,8 @@ export function InviteDialog({
             <Button
               size="lg"
               type="submit"
-              className={GOLD_BUTTON}
-              disabled={action.pending || selectedEmail === ""}
+              className={PRIMARY_BUTTON}
+              disabled={action.pending || selectedEmail === "" || !nominationAccepted}
             >
               Gửi lời mời
             </Button>
@@ -275,11 +296,14 @@ export function RevokeDialog({
             {executor.inviteeEmail} sẽ không còn là Người thực thi của kho này.
           </DialogDescription>
         </DialogHeader>
-        <p className="rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
+        <p className="rounded-lg bg-heritage-warning-bg p-3 text-sm text-heritage-warning">
           Hồ sơ đang xử lý (nếu có) sẽ được giữ nguyên.
         </p>
         {action.error && (
-          <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
+          <p
+            role="alert"
+            className="rounded-lg bg-heritage-danger-bg p-3 text-sm text-heritage-danger"
+          >
             {action.error}
           </p>
         )}
@@ -352,7 +376,7 @@ function ChosenCard(props: ChosenCardProps) {
           {manageable && (
             <Button
               size="lg"
-              className={`${GOLD_BUTTON} mt-4`}
+              className={`${PRIMARY_BUTTON} mt-4`}
               disabled={busy}
               onClick={() => props.onInvite(null)}
             >
@@ -411,7 +435,7 @@ function ChosenCard(props: ChosenCardProps) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <span
-              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#E0C486] font-semibold text-[#0A281E]"
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft font-semibold text-heritage-primary"
               aria-hidden="true"
             >
               {holder.inviteeEmail.charAt(0).toUpperCase()}
@@ -433,13 +457,13 @@ function ChosenCard(props: ChosenCardProps) {
           </p>
         )}
         {holder.status === "INVITED" && !holder.invitationSentAt && (
-          <p role="status" className="mt-3 text-sm text-amber-800">
+          <p role="status" className="mt-3 text-sm text-heritage-warning">
             Chưa xác nhận gửi được email mời tới người này, nên họ có thể chưa nhận được thư. Hãy
             bấm Gửi lại lời mời.
           </p>
         )}
         {pending !== null && (
-          <p className="mt-3 rounded-lg bg-[#F1E7D0] p-3 text-sm text-[#7A5B24]">
+          <p className="mt-3 rounded-lg bg-heritage-warning-bg p-3 text-sm text-heritage-warning">
             Đã mời người thay: {pending.inviteeEmail} · {statusLabels[pending.status]}. Người hiện
             tại vẫn giữ quyền đến khi người mới đồng ý.
           </p>
@@ -506,8 +530,8 @@ function ReviewerCard() {
     <section aria-label="Người xét duyệt" className={CARD}>
       <h2 className="text-xl font-medium text-heritage-primary">Người xét duyệt</h2>
       <p className="mt-3 text-sm leading-6 text-heritage-muted">
-        Hệ thống tự phân công khi có báo tin, bạn không cần chọn. Người xét duyệt khác Người thực
-        thi, nên không ai một mình vừa báo tin vừa duyệt được.
+        Hệ thống tự phân công luật sư khi người nhận gửi yêu cầu nhận tài sản, bạn không cần chọn.
+        Luật sư lập biên bản; Người thực thi chỉ giữ hộ và giao theo biên bản.
       </p>
     </section>
   );
@@ -577,7 +601,7 @@ function InvitationNotice({
     };
   }, [notice.id, onClose]);
 
-  let tone = "border-amber-200 bg-amber-50 text-amber-800";
+  let tone = "border-heritage-warning-border bg-heritage-warning-bg text-heritage-warning";
   let message: ReactNode = (
     <>
       Đã gửi lời mời tới <strong>{notice.email}</strong>. Người này chưa có tài khoản. Họ cần mở
@@ -585,7 +609,7 @@ function InvitationNotice({
     </>
   );
   if (notice.accountExists) {
-    tone = "border-green-200 bg-green-50 text-green-800";
+    tone = "border-heritage-success-border bg-heritage-success-bg text-heritage-success";
     message = (
       <>
         Đã gửi lời mời tới <strong>{notice.email}</strong>. Người này đã có tài khoản LegacyVault,
@@ -685,7 +709,10 @@ export function ExecutorsSection({ vaultId, noteSlot }: ExecutorsSectionProps) {
         <InvitationNotice notice={invitationNotice} onClose={closeNotice} />
       )}
       {banner !== null && (
-        <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
+        <p
+          role="status"
+          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
+        >
           {banner}
         </p>
       )}
@@ -693,14 +720,17 @@ export function ExecutorsSection({ vaultId, noteSlot }: ExecutorsSectionProps) {
       {resent && !resendAction.pending && resent.invitationSentAt && (
         <p
           role="status"
-          className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800"
+          className="rounded-xl border border-heritage-success-border bg-heritage-success-bg px-4 py-3 text-sm font-medium text-heritage-success"
         >
           Đã gửi lại lời mời tới {resent.inviteeEmail}. Lời mời còn hiệu lực đến ngày{" "}
           {formatDate(resent.expiresAt)}.
         </p>
       )}
       {resent && !resendAction.pending && !resent.invitationSentAt && (
-        <p role="status" className="rounded-xl bg-[#F1E7D0] px-4 py-3 text-sm text-[#7A5B24]">
+        <p
+          role="status"
+          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
+        >
           Đã tạo lời mời mới cho {resent.inviteeEmail} nhưng chưa gửi được email. Kiểm tra cấu hình
           gửi thư rồi bấm Gửi lại lời mời.
         </p>

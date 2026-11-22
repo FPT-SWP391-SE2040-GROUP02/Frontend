@@ -51,7 +51,7 @@ export const planSetupService = {
     );
   },
   /**
-   * Ký di chúc và kích hoạt kế hoạch. Chủ kho ký bằng mã PIN của kho (header X-Vault-Pin). Form có ô PIN riêng nên
+   * Ký biên bản phân chia và kích hoạt kế hoạch. Chủ kho ký bằng mã PIN của kho (header X-Vault-Pin). Form có ô PIN riêng nên
    * lỗi PIN trả về form, không mở hộp thoại PIN chung. PIN chỉ đi qua header, không vào body, log hay storage.
    */
   async activate(
@@ -74,7 +74,7 @@ export const planSetupService = {
     );
   },
   /**
-   * Chủ kho ký lại di chúc khi kế hoạch đang chạy và có thay đổi chưa ký. `configVersion` là bản cấu hình đang xem
+   * Chủ kho ký lại biên bản phân chia khi kế hoạch đang chạy và có thay đổi chưa ký. `configVersion` là bản cấu hình đang xem
    * (cũ hơn thì Backend trả 409 EDIT_CONFLICT). PIN chỉ đi qua header, như `activate`.
    */
   async signWill(id: string, configVersion: number, pin: string) {
@@ -87,7 +87,7 @@ export const planSetupService = {
     );
   },
   /**
-   * Danh tính đầy đủ (CCCD, ngày sinh, thường trú) để in trong di chúc; chỉ Chủ kho. Dữ liệu nhạy cảm: không log,
+   * Danh tính đầy đủ (CCCD, ngày sinh, thường trú) để in trong biên bản phân chia; chỉ Chủ kho. Dữ liệu nhạy cảm: không log,
    * không lưu storage, không giữ trong cache (xem useWillIdentity).
    */
   async getWillIdentity(id: string, signal?: AbortSignal, pin?: string) {

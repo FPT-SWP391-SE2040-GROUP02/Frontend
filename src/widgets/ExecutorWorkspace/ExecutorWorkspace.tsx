@@ -2,7 +2,6 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
-  FileText,
   Home,
   ListChecks,
   Mail,
@@ -38,10 +37,9 @@ interface NavItem {
  */
 const executorNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT, icon: Home },
-  { label: "Báo tin", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
+  { label: "Biên bản bàn giao", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
   { label: "Bàn giao", to: ROUTES.EXECUTOR.PROGRESS, icon: Send },
   { label: "Tài sản và hướng dẫn", to: ROUTES.EXECUTOR.ASSETS, icon: Package },
-  { label: "Biên bản", to: ROUTES.EXECUTOR.DOCUMENTS, icon: FileText },
   { label: "Cài đặt", to: ROUTES.EXECUTOR.SETTINGS, icon: Settings },
 ];
 
@@ -130,7 +128,7 @@ export function ExecutorWorkspace({
             <Link
               to={ROUTES.EXECUTOR.INVITATIONS}
               aria-current={isCurrent(ROUTES.EXECUTOR.INVITATIONS) ? "page" : undefined}
-              className="flex min-h-9 w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm leading-snug text-[#E9EFE9] hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:font-semibold"
+              className="flex min-h-9 w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm leading-snug text-heritage-primary-light hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:font-semibold"
               onClick={() => setNavigationOpen(false)}
             >
               <Mail className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -143,11 +141,11 @@ export function ExecutorWorkspace({
             <UserAvatar
               user={user}
               fallbackLetter="N"
-              className="size-10 bg-[#E0C486] text-[#0A281E]"
+              className="size-10 bg-heritage-gold-soft text-heritage-primary"
             />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
-              <p className="mt-0.5 text-sm text-[#E6C98B]">Người thực thi</p>
+              <p className="mt-0.5 text-sm text-heritage-gold-soft">Người thực thi</p>
             </div>
           </div>
         </>

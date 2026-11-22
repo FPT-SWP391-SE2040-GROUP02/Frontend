@@ -1,10 +1,8 @@
-/** Public API của slice Admin: dashboard, tạm giữ, tài khoản và cấu hình hệ thống. */
+/** Public API của slice Admin: dashboard, tài khoản và cấu hình hệ thống. */
 export { AdminOverview } from "./ui/AdminOverview";
 export { AdminOverviewToolbar } from "./ui/AdminOverviewToolbar";
 export { AdminUsers } from "./ui/AdminUsers";
 export { AdminPayments } from "./ui/AdminPayments";
-export { AdminEmailTemplates } from "./ui/AdminEmailTemplates";
-export { AdminHandoverTemplates } from "./ui/AdminHandoverTemplates";
 export { AdminDevTools } from "./ui/AdminDevTools";
 export { ExecutorEmailPreviewPanel } from "./ui/ExecutorEmailPreviewPanel";
 export { AdminSettings } from "./ui/AdminSettings";

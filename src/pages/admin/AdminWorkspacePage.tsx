@@ -1,7 +1,6 @@
 import { useLocation, useSearchParams } from "react-router-dom";
 import {
   CreditCard,
-  FileText,
   History,
   Home,
   ShieldCheck,
@@ -12,7 +11,6 @@ import {
 } from "lucide-react";
 import {
   AdminDevTools,
-  AdminHandoverTemplates,
   AdminOverview,
   AdminOverviewToolbar,
   AdminPayments,
@@ -46,13 +44,6 @@ const NAVIGATION: WorkspaceNavigationItem[] = [
     label: "Gói dịch vụ",
     icon: Tag,
     to: `${ROUTES.ADMIN.ROOT}?view=plans`,
-    group: "Hệ thống",
-  },
-  {
-    id: "templates",
-    label: "Mẫu biên bản",
-    icon: FileText,
-    to: `${ROUTES.ADMIN.ROOT}?view=templates`,
     group: "Hệ thống",
   },
   {
@@ -99,7 +90,6 @@ const NAVIGATION_WITH_DEV_TOOLS: WorkspaceNavigationItem[] = DEV_TOOLS_ENABLED
     ]
   : NAVIGATION;
 
-// Trang "Mẫu thư" (AdminEmailTemplates) đang được ẩn khỏi menu và đường dẫn; code vẫn còn ở features/admin.
 const VIEWS = {
   overview: {
     title: "Tổng quan",
@@ -108,10 +98,6 @@ const VIEWS = {
   plans: {
     title: "Gói dịch vụ",
     description: "",
-  },
-  templates: {
-    title: "Mẫu biên bản",
-    description: "Sửa các mục 1 đến 8 của biên bản đồng ý nhận khi luật thay đổi.",
   },
   settings: {
     title: "Cấu hình",
@@ -141,18 +127,12 @@ const VIEWS = {
 
 type AdminView = keyof typeof VIEWS;
 
-/** Cấu hình và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
+/** Cấu hình, gói dịch vụ và giao dịch dùng `?view=` trên route gốc để không cần thêm route mới. */
 function viewFor(pathname: string, search: string): AdminView {
   if (pathname === ROUTES.DASHBOARD.USERS) return "users";
   if (pathname === ROUTES.ADMIN.AUDIT_LOG) return "audit";
   const view = new URLSearchParams(search).get("view");
-  if (
-    view === "settings" ||
-    view === "plans" ||
-    view === "templates" ||
-    view === "payments" ||
-    view === "security"
-  )
+  if (view === "settings" || view === "plans" || view === "payments" || view === "security")
     return view;
   // Đường dẫn cũ của trang Cấu hình dịch vụ nay nằm trong trang Cấu hình.
   if (view === "system-config") return "settings";
@@ -201,7 +181,7 @@ function SettingsTabs() {
   );
 }
 
-/** Khu vực Admin: dashboard, tạm giữ và tài khoản; dữ liệu chỉ từ API quản trị thật. */
+/** Khu vực Admin: dashboard và tài khoản; dữ liệu chỉ từ API quản trị thật. */
 export function AdminWorkspacePage() {
   const location = useLocation();
   const view = viewFor(location.pathname, location.search);
@@ -221,7 +201,6 @@ export function AdminWorkspacePage() {
       )}
       {view === "settings" && <SettingsTabs />}
       {view === "plans" && <AdminSettings section="plans" />}
-      {view === "templates" && <AdminHandoverTemplates />}
       {view === "payments" && <AdminPayments />}
       {view === "users" && (
         <AdminUsers

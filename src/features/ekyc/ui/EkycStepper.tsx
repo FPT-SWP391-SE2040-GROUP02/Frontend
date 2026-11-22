@@ -22,10 +22,10 @@ export function EkycStepper({ current }: { current: 1 | 2 | 3 | 4 }) {
     let circle = "border border-heritage-border bg-heritage-surface text-heritage-muted";
     let content: ReactNode = index;
     if (done) {
-      circle = "bg-green-600 text-white";
+      circle = "bg-heritage-success text-white";
       content = <Check className="size-5" aria-hidden="true" />;
     } else if (active) {
-      circle = "bg-[#1d4d3c] text-white ring-4 ring-green-200";
+      circle = "bg-heritage-primary-hover text-white ring-4 ring-heritage-success-border";
     }
     // Đoạn nối bên trái nối với bước trước (đã xong thì liền xanh); bước đầu không có đoạn nối trái.
     let leftLine = "";
@@ -69,7 +69,7 @@ export function EkycStepper({ current }: { current: 1 | 2 | 3 | 4 }) {
 /** Đoạn nối sau bước `index`: liền xanh nếu bước đó đã xong, nét đứt nếu chưa. */
 function lineFor(index: number, current: number): string {
   if (index < current) {
-    return "border-t-2 border-green-600";
+    return "border-t-2 border-heritage-success";
   }
   return "border-t-2 border-dashed border-heritage-border";
 }

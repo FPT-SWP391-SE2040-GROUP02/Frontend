@@ -4,12 +4,12 @@ import { CircleAlert, CircleCheck } from "lucide-react";
 const TONES = {
   error: {
     role: "alert",
-    style: "border-red-200 bg-red-50 text-red-800",
+    style: "border-heritage-danger-border bg-heritage-danger-bg text-heritage-danger",
     Icon: CircleAlert,
   },
   success: {
     role: "status",
-    style: "border-green-200 bg-green-50 text-green-800",
+    style: "border-heritage-success-border bg-heritage-success-bg text-heritage-success",
     Icon: CircleCheck,
   },
 } as const;

@@ -9,10 +9,9 @@ import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
 import { endedStatusLabel, remainingTime } from "../lib/myInvitationHelpers";
 import { useExecutorSigning } from "../model/useExecutorSigning";
-import { AuthorizationLetterPreview } from "./AuthorizationLetterPreview";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
-const CAPABILITIES = ["Báo tin cho hệ thống khi Chủ kho qua đời", "Theo dõi tiến trình bàn giao"];
+const CAPABILITIES = ["Giữ mã mở gói cho tới khi bàn giao", "Ký biên bản và gửi mã nhận"];
 
 /**
  * Trang Lời mời: lời mời đang chờ (chấp nhận/từ chối ngay, không cần link email) và lời mời đã kết thúc.
@@ -82,7 +81,7 @@ export function MyInvitationsInbox() {
       <Panel title="Đang chờ bạn trả lời" labelledBy="pending-invitations-heading">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-sm text-heritage-muted">
-            Người thực thi báo tin khi Chủ kho qua đời.{" "}
+            Người thực thi giữ mã mở gói và gửi mã nhận khi biên bản đủ chữ ký.{" "}
             <strong className="text-heritage-primary">Không ai mở được kho</strong>, kể cả bạn.
           </p>
           {pendingCount > 0 && (
@@ -139,11 +138,11 @@ function PendingInvitationCard({
   return (
     <article
       aria-label={`Lời mời của ${invitation.ownerName}`}
-      className={`space-y-4 rounded-2xl border bg-white p-5 ${remaining.expiringSoon ? "border-red-200" : "border-heritage-border"}`}
+      className={`space-y-4 rounded-2xl border bg-white p-5 ${remaining.expiringSoon ? "border-heritage-danger-border" : "border-heritage-border"}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <Initial name={invitation.ownerName} className="bg-[#E3ECE6]" />
+          <Initial name={invitation.ownerName} className="bg-heritage-primary-light" />
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold text-heritage-primary">
               {invitation.ownerName}
@@ -158,7 +157,7 @@ function PendingInvitationCard({
       {remaining.expiringSoon && (
         <p
           role="alert"
-          className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800"
+          className="flex items-center gap-2 rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
         >
           <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
           Lời mời này sắp hết hạn. Hết hạn thì bạn không trả lời được nữa, Chủ kho phải gửi lại lời
@@ -171,11 +170,11 @@ function PendingInvitationCard({
           <ul className="mt-2 space-y-2 text-sm">
             {CAPABILITIES.map((item) => (
               <li key={item} className="flex items-center gap-2">
-                <Check className="size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+                <Check className="size-4 shrink-0 text-heritage-success" aria-hidden="true" />
                 {item}
               </li>
             ))}
-            <li className="text-red-800">
+            <li className="text-heritage-danger">
               <strong>Không</strong> đọc được nội dung kho
             </li>
             <li className="text-heritage-muted">
@@ -184,14 +183,12 @@ function PendingInvitationCard({
           </ul>
         </div>
         <div className="space-y-3">
-          <AuthorizationLetterPreview
-            ownerName={invitation.ownerName}
-            executorEmail={invitation.inviteeEmail}
-            scopeText={scopeText}
-          />
+          <p className="whitespace-pre-line rounded-xl border border-heritage-border bg-white/70 px-4 py-3 text-sm leading-6">
+            {scopeText}
+          </p>
           <label
             htmlFor={checkboxId}
-            className="flex min-h-11 items-start gap-3 rounded-xl bg-[#F4F1E6] px-4 py-3 text-sm leading-6"
+            className="flex min-h-11 items-start gap-3 rounded-xl bg-heritage-sunken px-4 py-3 text-sm leading-6"
           >
             <input
               id={checkboxId}
@@ -201,7 +198,7 @@ function PendingInvitationCard({
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc di chúc và đồng ý nhận vai Người thực thi
+            Tôi đã đọc phạm vi công việc và đồng ý nhận vai Người thực thi
           </label>
           <ExecutorSigningPasswordField
             value={password}

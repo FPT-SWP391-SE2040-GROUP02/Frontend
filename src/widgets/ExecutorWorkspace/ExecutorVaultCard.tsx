@@ -6,9 +6,9 @@ import type { Tone } from "@/shared/ui/heritageKit";
 
 /** Màu chữ trạng thái trên nền menu tối. */
 const STAGE_COLOR: Record<Tone, string> = {
-  success: "text-[#8FD1B0]",
-  warning: "text-[#E6C98B]",
-  danger: "text-[#F0A39B]",
+  success: "text-heritage-success-border",
+  warning: "text-heritage-gold-soft",
+  danger: "text-heritage-danger-border",
   neutral: "text-white/60",
 };
 
@@ -38,11 +38,11 @@ export function ExecutorVaultCard() {
       <div
         aria-label={`Kho đang làm việc: ${selected.ownerFullName}`}
         role="group"
-        className="flex items-center gap-3 rounded-xl border border-[#C9A45C] bg-white/10 p-2.5"
+        className="flex items-center gap-3 rounded-xl border border-heritage-gold bg-white/10 p-2.5"
       >
         <span
           aria-hidden="true"
-          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#E0C486] text-sm font-bold text-[#0A281E]"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft text-sm font-bold text-heritage-primary"
         >
           {selected.ownerFullName.trim().charAt(0).toLocaleUpperCase("vi-VN")}
         </span>
@@ -76,7 +76,7 @@ export function ExecutorVaultCard() {
       {card}
       <Link
         to={ROUTES.EXECUTOR.INVITATIONS}
-        className="mt-2 inline-block px-1 text-sm font-semibold text-[#E6C98B] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+        className="mt-2 inline-block px-1 text-sm font-semibold text-heritage-gold-soft hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
       >
         {linkText}
       </Link>

@@ -30,7 +30,7 @@ function Tile({
   emphasis?: boolean;
 }) {
   let tone = "border-heritage-border bg-heritage-surface";
-  if (emphasis) tone = "border-[#E0C486] bg-[#FBF3E0]";
+  if (emphasis) tone = "border-heritage-gold-soft bg-heritage-warning-bg";
   return (
     <div className={`rounded-2xl border p-5 ${tone}`}>
       <dt className="text-sm text-heritage-muted">{label}</dt>
@@ -41,11 +41,11 @@ function Tile({
 }
 
 function ProgressBody({
-  caseId,
+  recordId,
   vaultId,
   data,
 }: {
-  caseId: string;
+  recordId: string;
   vaultId?: string;
   data: HandoverProgress;
 }) {
@@ -67,7 +67,7 @@ function ProgressBody({
         {rows.map((row) => (
           <HandoverTurnRow
             key={row.turn.turnId}
-            caseId={caseId}
+            recordId={recordId}
             vaultId={vaultId}
             turn={row.turn}
             progress={row.progress}
@@ -75,8 +75,7 @@ function ProgressBody({
         ))}
       </ul>
       <p className="text-sm leading-5 text-heritage-muted">
-        Thanh bước: Mời → Đồng ý / từ chối → Người xét duyệt kiểm tra biên bản → Nhập mã mở gói →
-        Tải xong.
+        Thanh bước: Mời → Luật sư kiểm danh tính → Ba bên ký biên bản → Nhập mã mở gói → Tải xong.
       </p>
     </>
   );
@@ -87,14 +86,14 @@ function ProgressBody({
  * do Backend kiểm); không có hạn chót. Quyền và trạng thái do Backend quyết định.
  */
 export function HandoverProgressPanel({
-  caseId,
+  recordId,
   vaultId,
 }: {
-  caseId: string;
+  recordId: string;
   /** Kho của hồ sơ; có thì ô gửi mã cho phép lấy mã đã nhận trên hệ thống. */
   vaultId?: string;
 }) {
-  const query = useHandoverProgress(caseId);
+  const query = useHandoverProgress(recordId);
   let body;
   if (query.isPending) {
     body = <p role="status">Đang tải tiến độ bàn giao…</p>;
@@ -110,13 +109,13 @@ export function HandoverProgressPanel({
   } else if (!query.data.handoverStarted) {
     body = (
       <p role="status">
-        Bàn giao chưa bắt đầu. Bàn giao chỉ mở sau khi Người xét duyệt chấp thuận hồ sơ báo tin.
+        Bàn giao chưa bắt đầu. Bàn giao chỉ mở sau khi luật sư chốt biên bản bàn giao.
       </p>
     );
   } else if (query.data.turns.length === 0) {
     body = <p role="status">Hồ sơ đã duyệt nhưng chưa có người nhận nào để bàn giao.</p>;
   } else {
-    body = <ProgressBody caseId={caseId} vaultId={vaultId} data={query.data} />;
+    body = <ProgressBody recordId={recordId} vaultId={vaultId} data={query.data} />;
   }
   return (
     <section aria-labelledby="handover-progress-title" className="space-y-5">

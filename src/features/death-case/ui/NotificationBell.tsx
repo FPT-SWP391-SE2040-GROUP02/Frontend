@@ -15,7 +15,7 @@ import {
   type ExecutorNotification,
   type NotificationTone,
 } from "../model/notifications";
-import { useActiveCaseId, useDeathCase } from "../model/useDeathCase";
+import { useExecutorRecord } from "@/entities/handoverRecord";
 import { useSelectedExecutorVault } from "../model/useExecutorVaults";
 
 const KEY_PREFIX = "lv-executor-bell:";
@@ -51,23 +51,23 @@ function writeSeen(vaultId: string, ids: Set<string>) {
 const TONE_STYLE: Record<NotificationTone, { icon: LucideIcon; badge: string; card: string }> = {
   attention: {
     icon: AlertTriangle,
-    badge: "bg-[#F1E6CC] text-[#7A5B25]",
-    card: "border-[#E3CFA0] bg-[#FBF5E6]",
+    badge: "bg-heritage-warning-bg text-heritage-warning",
+    card: "border-heritage-gold-soft bg-heritage-gold-light",
   },
   info: {
     icon: Info,
-    badge: "bg-[#E6EEF0] text-[#2F5560]",
+    badge: "bg-heritage-primary-light text-heritage-muted",
     card: "border-heritage-border bg-white",
   },
   success: {
     icon: CheckCircle2,
-    badge: "bg-[#DDF1E7] text-[#1F7A55]",
+    badge: "bg-heritage-success-bg text-heritage-success",
     card: "border-heritage-border bg-white",
   },
   danger: {
     icon: XCircle,
-    badge: "bg-[#F8E0DE] text-[#A32119]",
-    card: "border-[#EBC3BF] bg-[#FDF3F2]",
+    badge: "bg-heritage-danger-bg text-heritage-danger",
+    card: "border-heritage-danger-border bg-heritage-danger-bg",
   },
 };
 
@@ -87,7 +87,7 @@ function NotificationRow({ item, fresh }: { item: ExecutorNotification; fresh: b
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-semibold leading-5 text-heritage-primary">{item.title}</p>
           {fresh && (
-            <span className="shrink-0 rounded-full bg-[#A32119] px-2 py-0.5 text-[0.875rem] font-semibold text-white">
+            <span className="shrink-0 rounded-full bg-heritage-danger px-2 py-0.5 text-[0.875rem] font-semibold text-white">
               Mới
             </span>
           )}
@@ -109,8 +109,7 @@ function NotificationRow({ item, fresh }: { item: ExecutorNotification; fresh: b
  */
 export function NotificationBell() {
   const { selected } = useSelectedExecutorVault();
-  const caseId = useActiveCaseId(selected);
-  const record = useDeathCase(caseId).data;
+  const record = useExecutorRecord(selected ? selected.vaultId : "").data;
   const [open, setOpen] = useState(false);
   const [, setVersion] = useState(0);
   /** Các thông báo chưa đọc lúc mở hộp thoại, để đánh nhãn "Mới" dù đã ghi nhận là đã đọc. */
@@ -139,7 +138,7 @@ export function NotificationBell() {
         {unread > 0 && (
           <span
             aria-hidden="true"
-            className="absolute -right-0.5 -top-0.5 flex min-w-5 items-center justify-center rounded-full bg-[#A32119] px-1 text-sm font-bold text-white"
+            className="absolute -right-0.5 -top-0.5 flex min-w-5 items-center justify-center rounded-full bg-heritage-danger px-1 text-sm font-bold text-white"
           >
             {unread}
           </span>

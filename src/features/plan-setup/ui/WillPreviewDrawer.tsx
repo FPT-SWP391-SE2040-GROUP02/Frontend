@@ -21,12 +21,12 @@ type PlanSetup = z.infer<typeof planSetupSchema>;
 /** Tên khung theo trạng thái: nháp (xem trước), đang chạy có thay đổi chưa ký (ký phiên bản mới), còn lại (đã ký). */
 function drawerTitle(setup: PlanSetup): string {
   if (setup.planStatus === "DRAFT") {
-    return "Xem trước di chúc";
+    return "Xem trước biên bản phân chia";
   }
   if (needsResign(setup)) {
-    return "Ký phiên bản mới của di chúc";
+    return "Ký phiên bản mới của biên bản phân chia";
   }
-  return "Di chúc đã ký";
+  return "Biên bản phân chia đã ký";
 }
 
 /**
@@ -57,7 +57,7 @@ function exportHint(
   return "Đã đủ 2 chữ ký";
 }
 
-/** Dòng báo tình trạng tải danh tính phía trên tờ di chúc; không hiện khi đã tải xong. */
+/** Dòng báo tình trạng tải danh tính phía trên tờ biên bản phân chia; không hiện khi đã tải xong. */
 function IdentityNotice({
   status,
   waitingForPin,
@@ -79,7 +79,7 @@ function IdentityNotice({
       >
         <p>
           Nhập mã PIN của kho ở cuối khung rồi bấm nút để hiện ngày sinh, CCCD và nơi thường trú
-          trong di chúc.
+          trong biên bản phân chia.
         </p>
         <Button variant="outline" disabled={!canReveal} onClick={onReveal}>
           Hiện thông tin đầy đủ
@@ -90,7 +90,7 @@ function IdentityNotice({
   if (status === "loading") {
     return (
       <p role="status" className="mb-4 text-[13px] text-heritage-muted">
-        Đang tải thông tin danh tính (ngày sinh, CCCD, thường trú) để điền vào di chúc…
+        Đang tải thông tin danh tính (ngày sinh, CCCD, thường trú) để điền vào biên bản phân chia…
       </p>
     );
   }
@@ -98,7 +98,7 @@ function IdentityNotice({
     return (
       <div
         role="alert"
-        className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-medium text-[#a32119]"
+        className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-medium text-heritage-danger"
       >
         <p>Chưa tải được thông tin danh tính nên chưa xuất được file PDF.</p>
         <Button variant="outline" onClick={onRetry}>
@@ -224,7 +224,7 @@ function WillDrawerBody({
         <div className="min-w-0">
           <DialogTitle className="text-lg font-semibold">{drawerTitle(setup)}</DialogTitle>
           <DialogDescription className="sr-only">
-            Tờ di chúc điền sẵn từ kế hoạch bàn giao của kho.
+            Tờ biên bản phân chia điền sẵn từ kế hoạch bàn giao của kho.
           </DialogDescription>
         </div>
         <div className="ml-auto flex items-start gap-3">
@@ -257,7 +257,7 @@ function WillDrawerBody({
           onReveal={revealIdentity}
           onRetry={() => void identityQuery.refetch()}
         />
-        <article aria-label="Di chúc" className="min-w-0">
+        <article aria-label="Biên bản phân chia" className="min-w-0">
           {renderDocument("owner", onGapClick)}
         </article>
       </div>
@@ -280,10 +280,10 @@ function WillDrawerBody({
 }
 
 /**
- * Khung xem trước di chúc hiện giữa màn hình, phóng to gần hết chiều cao (Base UI Dialog: giữ focus trong khung, Esc đóng, có aria-label).
+ * Khung xem trước biên bản phân chia hiện giữa màn hình, phóng to gần hết chiều cao (Base UI Dialog: giữ focus trong khung, Esc đóng, có aria-label).
  * Chân khung là phần ký bằng mã PIN: "Ký và kích hoạt" khi kế hoạch còn nháp, "Ký phiên bản mới" khi kế hoạch đang chạy
  * mà có thay đổi chưa ký; kế hoạch đang chạy không có thay đổi thì khung chỉ để xem và xuất. Danh tính đầy đủ (CCCD, ngày
- * sinh, thường trú) tải khi khung mở; chưa có thì nút xuất khóa. Chỗ trống đỏ trong di chúc gọi `onGapClick` để nơi dùng
+ * sinh, thường trú) tải khi khung mở; chưa có thì nút xuất khóa. Chỗ trống đỏ trong biên bản phân chia gọi `onGapClick` để nơi dùng
  * đóng khung và đưa tới đúng thẻ cần điền. `finalFocus` cho nơi dùng chọn phần tử nhận focus khi khung đóng.
  */
 export function WillPreviewDrawer({

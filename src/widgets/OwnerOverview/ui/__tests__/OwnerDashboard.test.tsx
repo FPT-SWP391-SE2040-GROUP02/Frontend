@@ -40,6 +40,7 @@ const setupFixture = () =>
     assetsOutsideContainer: [],
     warnings: [],
   });
+
 function problem(code: string, status: number) {
   const config = { headers: new AxiosHeaders() };
   return new AxiosError("Test response", undefined, config, undefined, {

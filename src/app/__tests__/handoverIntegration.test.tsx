@@ -77,7 +77,7 @@ it("does not submit selfie before the OCR confirmation and keeps OCR out of the 
       return {
         status: "PENDING",
         verificationId: VAULT_ID,
-        citizenIdLast4: "8901",
+        citizenId: "8901",
         faceMatchScore: null,
         matchThreshold: 0.363,
         spoofCheckPassed: null,
@@ -170,13 +170,35 @@ const turn = {
   items: [],
   grant: null,
 };
-it("requires an explicit receiving decision and preserves absence of grant after server rejection", async () => {
+it("ký biên bản bị Backend từ chối thì báo lỗi và không có quyền tải", async () => {
+  const record = {
+    id: "0198a000-0000-7000-8000-000000000003",
+    vaultId: VAULT_ID,
+    vaultName: "Kho thử",
+    ownerName: "Chủ kho thử",
+    status: "SIGNING",
+    revisionNo: 1,
+    requestedAt: CREATED_AT,
+    finalizedAt: CREATED_AT,
+    completedAt: null,
+    verifierName: "Luật sư thử",
+    executorName: "Người thực thi thử",
+    verifierSignedAt: null,
+    executorSignedAt: null,
+    recipients: [],
+    canSign: true,
+    availableAssets: [],
+    availableRecipients: [],
+    ownerSplit: [],
+  };
   apiClient.defaults.adapter = async (config) => {
-    if (config.method === "get")
-      return { config, data: [turn], status: 200, statusText: "OK", headers: new AxiosHeaders() };
+    if (config.method === "get") {
+      const data = config.url?.endsWith("/record") ? record : [turn];
+      return { config, data, status: 200, statusText: "OK", headers: new AxiosHeaders() };
+    }
     throw new AxiosError("private", "ERR_BAD_REQUEST", config, undefined, {
       config,
-      data: { code: "HANDOVER_DECISION_EXPIRED" },
+      data: { code: "HANDOVER_NOT_ALLOWED", reason: "WRONG_STATE" },
       status: 409,
       statusText: "Conflict",
       headers: new AxiosHeaders(),
@@ -184,14 +206,11 @@ it("requires an explicit receiving decision and preserves absence of grant after
   };
   const post = vi.spyOn(apiClient, "post");
   setup(<HandoverPortal />);
-  const accept = await screen.findByRole("button", { name: "Đồng ý nhận" });
-  expect(accept).toBeDisabled();
-  fireEvent.click(screen.getByRole("checkbox"));
-  fireEvent.click(accept);
-  expect(await screen.findByRole("alert")).toHaveTextContent("Thời hạn quyết định đã kết thúc");
+  fireEvent.click(await screen.findByRole("button", { name: "Ký biên bản" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("không còn ở bước phù hợp");
   expect(post).toHaveBeenCalledTimes(1);
-  expect(post).toHaveBeenCalledWith(`/handover/turns/${CONTAINER_ID}/accept`);
-  expect(screen.queryByRole("button", { name: "Tải nội dung" })).not.toBeInTheDocument();
+  expect(post).toHaveBeenCalledWith(`/handover/turns/${CONTAINER_ID}/record/sign`);
+  expect(screen.queryByRole("button", { name: /^Tải xuống/ })).not.toBeInTheDocument();
 });
 it("lets a system USER reach Executor data and leaves resource permissions to Backend", async () => {
   const get = vi.spyOn(apiClient, "get").mockResolvedValue([]);
@@ -231,42 +250,16 @@ it("drops local private form state when the logged-in account changes on the sam
   });
   expect(screen.getByLabelText("Private form")).toHaveValue("");
 });
-it("uses the real death-case routes and parses away any full ID accidentally added to a response", async () => {
-  const fixture = {
-    id: CONTAINER_ID,
-    vaultId: VAULT_ID,
-    status: "DRAFT",
-    currentVersion: {
-      versionNo: 1,
-      isDraft: true,
-      ownerFullName: null,
-      ownerCitizenIdLast4: null,
-      ownerCitizenId: "012345678901",
-      dateOfDeath: null,
-      certificateNumber: null,
-      issuedOn: null,
-      issuedBy: null,
-      files: [],
-      submittedAt: null,
-    },
-    reviewVersionNo: null,
-    missingRequirements: ["FILES"],
-    ownerNotice: null,
-    createdAt: CREATED_AT,
-    updatedAt: null,
-    etag: "case-v1",
-  };
-  const put = vi.spyOn(apiClient, "put").mockResolvedValue(fixture);
-  const result = await deathCaseService.update(CONTAINER_ID, {
-    etag: "case-v1",
-    ownerFullName: "Fixture",
-    ownerCitizenId: "012345678901",
-    certificateNumber: "fixture",
-    issuedBy: "fixture",
+it("đọc tiến độ bàn giao theo đường dẫn của biên bản bàn giao", async () => {
+  const get = vi.spyOn(apiClient, "get").mockResolvedValue({
+    caseId: CONTAINER_ID,
+    handoverStarted: false,
+    serverTime: CREATED_AT,
+    turns: [],
   });
-  expect(put).toHaveBeenCalledWith(
-    `/executor/death-cases/${CONTAINER_ID}/draft`,
-    expect.objectContaining({ etag: "case-v1" }),
+  await deathCaseService.handoverProgress(CONTAINER_ID).catch(() => undefined);
+  expect(get).toHaveBeenCalledWith(
+    `/executor/handover-records/${CONTAINER_ID}/handover-progress`,
+    expect.anything(),
   );
-  expect(JSON.stringify(result)).not.toContain("012345678901");
 });

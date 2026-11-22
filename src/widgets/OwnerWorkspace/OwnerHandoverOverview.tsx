@@ -7,6 +7,7 @@ import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.schema";
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
 import { formatTimeThenDate } from "@/shared/lib/dateFormat";
+import { OwnerRequestNotice } from "@/features/handover-request";
 import { HandoverStepsCard } from "./HandoverStepsCard";
 
 type PlanSetup = z.infer<typeof planSetupSchema>;
@@ -32,15 +33,14 @@ function HandoverHeader({
   );
 }
 
-/** Ghi chú pháp lý: di chúc số chỉ áp dụng cho dữ liệu trong LegacyVault. */
+/** Ghi chú pháp lý: biên bản phân chia số chỉ áp dụng cho dữ liệu trong LegacyVault. */
 function LegacyDisclaimer() {
   return (
-    <div className="rounded-xl border border-[#fde68a] bg-[#fffbeb] px-4 py-3.5 text-sm leading-[1.55] text-[#78490b]">
+    <div className="rounded-xl border border-heritage-warning-border bg-heritage-warning-bg px-4 py-3.5 text-sm leading-[1.55] text-heritage-warning">
       <strong className="font-semibold">
-        Di chúc số chỉ áp dụng cho dữ liệu trong LegacyVault.
+        Biên bản phân chia số chỉ áp dụng cho dữ liệu trong LegacyVault.
       </strong>{" "}
-      Tài sản thật như nhà đất, tiền gửi vẫn chia theo di chúc có người làm chứng, công chứng hoặc
-      theo pháp luật.
+      Tài sản thật như nhà đất, tiền gửi do gia đình và luật sư xử lý ở ngoài hệ thống.
     </div>
   );
 }
@@ -48,12 +48,12 @@ function LegacyDisclaimer() {
 /** Câu dẫn đầu trang nháp: nói còn thiếu gì hoặc đã đủ để ký. */
 function draftSubtitle(setup: PlanSetup): string {
   if (setup.canActivate) {
-    return "Mọi việc đã xong. Bấm Xem trước và ký, đọc lại di chúc một lượt rồi ký bằng mã PIN để kế hoạch bàn giao bắt đầu chạy.";
+    return "Mọi việc đã xong. Bấm Xem trước và ký, đọc lại biên bản phân chia một lượt rồi ký bằng mã PIN để kế hoạch bàn giao bắt đầu chạy.";
   }
-  return "Hoàn tất các việc bên dưới, rồi bấm Xem trước di chúc. Di chúc tự điền từ kho của bạn; đọc xong bạn mới ký.";
+  return "Hoàn tất các việc bên dưới, rồi bấm Xem trước biên bản phân chia. Biên bản phân chia tự điền từ kho của bạn; đọc xong bạn mới ký.";
 }
 
-/** Kế hoạch còn nháp: thẻ việc ở trái; tiến độ và nút xem trước di chúc ở phải. */
+/** Kế hoạch còn nháp: thẻ việc ở trái; tiến độ và nút xem trước biên bản phân chia ở phải. */
 function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   return (
     <div className="space-y-7">
@@ -64,7 +64,14 @@ function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
       />
       <PlanSetupPanel
         vaultId={vaultId}
-        belowCards={<HandoverStepsCard />}
+        belowCards={
+          <>
+            <HandoverStepsCard />
+            <p className="text-sm text-heritage-muted">
+              Người nhận chỉ gửi yêu cầu nhận được sau khi kích hoạt.
+            </p>
+          </>
+        }
         sideNote={<LegacyDisclaimer />}
       />
     </div>
@@ -90,8 +97,8 @@ function ActivePlanCard({ activatedAt }: { activatedAt: string | null | undefine
         <dd className="font-semibold">{activatedText}</dd>
       </dl>
       <p className="mt-3 text-sm text-heritage-muted">
-        Mỗi lần sửa gói, người nhận hoặc Người thực thi cần mã PIN. Di chúc bên trái luôn hiện nội
-        dung đang áp dụng.
+        Mỗi lần sửa gói, người nhận hoặc Người thực thi cần mã PIN. Biên bản phân chia bên trái luôn
+        hiện nội dung đang áp dụng.
       </p>
       <div className="mt-3.5 flex flex-wrap gap-2.5">
         <Link className={buttonStyles.outline} to={ROUTES.DASHBOARD.ASSETS}>
@@ -103,8 +110,8 @@ function ActivePlanCard({ activatedAt }: { activatedAt: string | null | undefine
 }
 
 /**
- * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là kế hoạch đang áp dụng và tiến trình.
- * Bên phải: nút "Xem di chúc đã ký" mở khung di chúc đủ chữ ký.
+ * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là kế hoạch đang áp dụng, mã mở gói và tiến trình.
+ * Bên phải: nút "Xem biên bản phân chia đã ký" mở khung biên bản phân chia đủ chữ ký.
  */
 function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   let chipText = `Trạng thái kế hoạch: ${setup.planStatus}`;
@@ -113,10 +120,11 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
   }
   return (
     <div className="space-y-7">
+      <OwnerRequestNotice vaultId={vaultId} />
       <HandoverHeader
         chipText={chipText}
         chipTone="success"
-        subtitle="Di chúc đã có đủ chữ ký. Kế hoạch đang được áp dụng."
+        subtitle="Biên bản phân chia đã ký. Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ và luật sư lập biên bản."
       />
       <PlanSetupPanel
         vaultId={vaultId}
@@ -125,7 +133,7 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
             <ActivePlanCard activatedAt={setup.activatedAt} />
             <HandoverStepsCard
               title="Tiến trình bàn giao"
-              subtitle="Chưa có báo tin. Khi Người thực thi báo tin, bước đang diễn ra sẽ được tô đậm tại đây."
+              subtitle="Chưa có yêu cầu nhận tài sản. Khi người nhận gửi yêu cầu, bước đang diễn ra sẽ được tô đậm tại đây."
             />
           </>
         }
@@ -136,9 +144,9 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
 }
 
 /**
- * Trang Bàn giao của Chủ kho. Cột trái là các thẻ việc, cột phải là tiến độ và nút xem trước di chúc; di chúc (sinh từ
- * kế hoạch, cả bản nháp lẫn đã ký) trượt ra từ bên phải, ký bằng PIN ở chân khung. Kế hoạch đã chạy thêm kế hoạch đang
- * áp dụng và tiến trình bàn giao. Quyền và trạng thái
+ * Trang Bàn giao của Chủ kho. Cột trái là các thẻ việc, cột phải là tiến độ và nút xem trước biên bản phân chia; biên bản phân chia (sinh từ
+ * kế hoạch, cả bản nháp lẫn đã ký) trượt ra từ bên phải, ký bằng PIN ở chân khung. Kế hoạch đã chạy thêm kế
+ * hoạch đang áp dụng, mã mở gói (hệ thống tự giữ, Chủ kho chỉ đổi mã mới) và tiến trình bàn giao. Quyền và trạng thái
  * luôn do Backend quyết định.
  */
 export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
@@ -153,8 +161,11 @@ export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
   }
   if (planQuery.isError) {
     return (
-      <div role="alert" className="space-y-3 rounded-2xl border border-red-200 bg-red-50 p-6">
-        <p className="text-sm text-red-800">Không tải được kế hoạch bàn giao.</p>
+      <div
+        role="alert"
+        className="space-y-3 rounded-2xl border border-heritage-danger-border bg-heritage-danger-bg p-6"
+      >
+        <p className="text-sm text-heritage-danger">Không tải được kế hoạch bàn giao.</p>
         <Button
           variant="outline"
           disabled={planQuery.isFetching}

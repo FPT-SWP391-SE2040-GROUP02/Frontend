@@ -10,6 +10,7 @@ import {
   type CreatePackageFormInput,
 } from "@/entities/package/model/package.schema";
 import { ROUTES } from "@/shared/config/routes.config";
+import type { VaultPinConfirmation } from "@/shared/api/vaultPin";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import {
@@ -39,6 +40,11 @@ export interface CreateGroupDialogProps {
   beneficiaries: GroupBeneficiaryOption[];
   /** Tài sản người dùng đã chọn ở màn Tài sản; được tick sẵn nếu còn chọn được. */
   preselectedAssetIds?: string[];
+  /**
+   * Hỏi mã PIN của kho một lần (widget truyền vào). Có thì tạo gói và gắn thành viên dùng chung PIN đó,
+   * người dùng không bị hỏi lại ở từng bước.
+   */
+  confirmPin?: () => Promise<VaultPinConfirmation>;
 }
 
 /** Chỉ giữ những id còn chọn được (tài sản chưa thuộc gói nào). */
@@ -59,6 +65,7 @@ export function CreateGroupDialog({
   assets,
   beneficiaries,
   preselectedAssetIds = [],
+  confirmPin,
 }: CreateGroupDialogProps) {
   const client = useQueryClient();
   const action = usePrivateAction();
@@ -84,15 +91,31 @@ export function CreateGroupDialog({
     defaultValues: { name: "" },
   });
 
-  async function createAndAttach(request: CreatePackageFormInput): Promise<PackageResponse> {
+  async function createAndAttach(request: CreatePackageFormInput): Promise<PackageResponse | null> {
+    let pin: string | undefined;
+    if (confirmPin) {
+      const confirmation = await confirmPin();
+      if (!confirmation.confirmed) {
+        return null;
+      }
+      pin = confirmation.pin;
+    }
     let group = createdGroup;
     if (group === null) {
-      group = await ownerVaultService.createPackage(vaultId, request);
+      group = await ownerVaultService.createPackage(vaultId, request, pin);
       setCreatedGroup(group);
     }
     // Gắn lại thành viên đã có trong gói không gây lỗi nên thử lại sau lỗi giữa chừng vẫn an toàn.
     for (const assetId of selectedAssetIds) {
-      group = await ownerVaultService.changeMember(vaultId, group.id, "assets", assetId, true);
+      group = await ownerVaultService.changeMember(
+        vaultId,
+        group.id,
+        "assets",
+        assetId,
+        true,
+        false,
+        pin,
+      );
     }
     for (const beneficiaryId of selectedBeneficiaryIds) {
       group = await ownerVaultService.changeMember(
@@ -101,6 +124,8 @@ export function CreateGroupDialog({
         "beneficiaries",
         beneficiaryId,
         true,
+        false,
+        pin,
       );
     }
     return group;
@@ -137,9 +162,9 @@ export function CreateGroupDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && close()}>
-      <DialogContent className="max-h-[92vh] gap-5 bg-[#FBFAF5] p-6 sm:max-w-3xl">
+      <DialogContent className="max-h-[92vh] gap-5 bg-heritage-surface p-6 sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-[#0A281E]">
+          <DialogTitle className="text-2xl font-semibold text-heritage-primary">
             Tạo gói bàn giao
           </DialogTitle>
           <DialogDescription>
@@ -151,9 +176,9 @@ export function CreateGroupDialog({
         {initialSelection.length > 0 && (
           <p
             role="status"
-            className="flex items-center gap-3 rounded-xl bg-[#DDEFE6] px-4 py-3 text-sm text-[#1F4D3A]"
+            className="flex items-center gap-3 rounded-xl bg-heritage-success-bg px-4 py-3 text-sm text-heritage-primary-hover"
           >
-            <CircleCheck className="size-5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+            <CircleCheck className="size-5 shrink-0 text-heritage-success" aria-hidden="true" />
             <span>
               Mở từ <strong>{initialSelection.length} tài sản</strong> bạn đang chọn ở màn Tài sản,
               nên chúng đã được tick sẵn bên dưới.
@@ -165,17 +190,22 @@ export function CreateGroupDialog({
           noValidate
           className="space-y-5"
           onSubmit={handleSubmit(async (request) => {
+            const outcome: { group: PackageResponse | null } = { group: null };
             const saved = await action.execute(
-              () => createAndAttach(request),
+              async () => {
+                outcome.group = await createAndAttach(request);
+                return outcome.group;
+              },
               () => invalidateGroupQueries(client, vaultId),
             );
-            if (saved) {
+            // Hủy hộp thoại PIN thì chưa làm gì: giữ nguyên form để bấm lại.
+            if (saved && outcome.group !== null) {
               onClose();
             }
           })}
         >
           <fieldset disabled={action.pending} className="space-y-5">
-            <label className="block space-y-2 text-sm font-semibold text-[#0A281E]">
+            <label className="block space-y-2 text-sm font-semibold text-heritage-primary">
               Tên gói bàn giao
               <Input
                 placeholder="Ví dụ: Gói cho các con"
@@ -215,7 +245,7 @@ export function CreateGroupDialog({
                 footer={
                   <Link
                     to={ROUTES.DASHBOARD.BENEFICIARIES}
-                    className="text-[#0A281E] hover:underline"
+                    className="text-heritage-primary hover:underline"
                   >
                     + Thêm người nhận mới
                   </Link>
@@ -227,9 +257,9 @@ export function CreateGroupDialog({
           {willBeReady && (
             <p
               role="status"
-              className="flex items-center gap-3 rounded-xl bg-[#DDEFE6] px-4 py-3 text-sm text-[#1F4D3A]"
+              className="flex items-center gap-3 rounded-xl bg-heritage-success-bg px-4 py-3 text-sm text-heritage-primary-hover"
             >
-              <CircleCheck className="size-5 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+              <CircleCheck className="size-5 shrink-0 text-heritage-success" aria-hidden="true" />
               <span>
                 Có {selectedAssetIds.length} tài sản và {selectedBeneficiaryIds.length} người nhận,
                 nên gói sẽ ở trạng thái <strong>Sẵn sàng</strong> ngay sau khi tạo.
@@ -239,7 +269,7 @@ export function CreateGroupDialog({
           {!willBeReady && (
             <p
               role="status"
-              className="flex items-center gap-3 rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B25]"
+              className="flex items-center gap-3 rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
             >
               <CircleAlert className="size-5 shrink-0" aria-hidden="true" />
               <span>

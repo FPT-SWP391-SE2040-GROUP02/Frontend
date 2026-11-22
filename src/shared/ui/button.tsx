@@ -3,30 +3,29 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-[20px] border border-transparent bg-clip-padding text-sm font-[550] whitespace-nowrap transition-all outline-none select-none cursor-pointer focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-xl border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-colors duration-200 outline-none select-none cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold-hover active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default:
-          "bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] shadow-[0_3px_10px_rgba(11,41,30,0.2)]",
+        default: "bg-heritage-primary text-white hover:bg-heritage-primary-hover",
         outline:
-          "border-[#DDD8CB] dark:border-[#1E432F] bg-[var(--surface)] text-[var(--text-main)] hover:bg-[var(--primary-light)] hover:text-[var(--primary)]",
-        secondary: "bg-[var(--primary-light)] text-[var(--primary)] hover:bg-[#D5E3D9]",
-        ghost: "hover:bg-[var(--primary-light)] hover:text-[var(--primary)]",
-        destructive: "bg-[#991B1B] text-white hover:bg-[#7F1D1D]",
-        gold: "bg-[var(--gold)] text-white hover:bg-[var(--gold-hover)] shadow-sm",
+          "border-heritage-border-strong bg-heritage-surface text-heritage-primary hover:bg-heritage-sunken",
+        secondary: "bg-heritage-primary-light text-heritage-primary hover:brightness-95",
+        ghost: "text-heritage-primary hover:bg-heritage-sunken",
+        destructive: "bg-heritage-danger text-white hover:brightness-110",
+        gold: "bg-heritage-gold-soft text-heritage-primary hover:brightness-105",
         pressed:
-          "bg-[var(--primary-surface)] text-[#E2ECE6] shadow-[inset_0_2px_6px_rgba(0,0,0,0.3)] border border-[#1A4D3B]",
-        link: "text-[var(--gold)] underline-offset-4 hover:underline font-semibold",
+          "border border-heritage-primary-hover bg-heritage-primary-hover text-heritage-primary-light",
+        link: "text-heritage-gold-hover underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-9 gap-1.5 px-4 text-sm",
-        xs: "h-6 gap-1 rounded-[14px] px-2 text-[10.5px]",
-        sm: "h-7 gap-1 rounded-[16px] px-3 text-[0.875rem]",
-        lg: "h-11 gap-2 rounded-[20px] px-6 text-sm",
-        icon: "size-9 rounded-full",
-        "icon-sm": "size-7 rounded-full",
-        "icon-lg": "size-11 rounded-full",
+        default: "h-11 gap-2 px-4 sm:px-5",
+        xs: "h-8 gap-1 rounded-lg px-3",
+        sm: "h-10 gap-1.5 px-4",
+        lg: "h-12 gap-2 px-6 text-base",
+        icon: "size-11",
+        "icon-sm": "size-10",
+        "icon-lg": "size-12",
       },
     },
     defaultVariants: {

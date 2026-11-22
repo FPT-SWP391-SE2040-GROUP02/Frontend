@@ -8,14 +8,15 @@ const vault: ExecutorVault = {
   vaultId: "11111111-1111-4111-8111-111111111111",
   ownerFullName: "Anh Nam",
   planStatus: "HANDOVER_IN_PROGRESS",
-  openDeathCaseId: "33333333-3333-4333-8333-333333333333",
+  handoverRecordId: "33333333-3333-4333-8333-333333333333",
+  handoverRecordStatus: "COMPLETED",
 };
 
 const SENT = "2026-12-23T06:14:00+00:00";
 const turn = (index: number, overrides: Record<string, unknown>) => ({
   turnId: `5555555${index}-5555-4555-8555-555555555555`,
   containerName: `Gói ${index}`,
-  beneficiaryCitizenIdLast4: "1234",
+  beneficiaryCitizenId: "1234",
   status: "INVITED",
   claimedByYou: false,
   identityConfirmedByExecutor: false,
@@ -34,11 +35,11 @@ const turn = (index: number, overrides: Record<string, unknown>) => ({
 
 describe("VaultJourney", () => {
   it("chỉ 3 bước của cả kho, không có thanh 5 bước theo người nhận", () => {
-    render(<VaultJourney vault={vault} caseStatus={null} progress={null} />);
+    render(<VaultJourney vault={vault} recordStatus="" progress={null} />);
     expect(screen.getByRole("heading", { name: "Kho đang ở đâu" })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
-    expect(screen.getByText("Báo tin")).toBeInTheDocument();
-    expect(screen.getByText("Xét duyệt")).toBeInTheDocument();
+    expect(screen.getByText("Yêu cầu nhận")).toBeInTheDocument();
+    expect(screen.getByText("Biên bản bàn giao")).toBeInTheDocument();
     expect(screen.getByText("Bàn giao cho người nhận")).toBeInTheDocument();
     expect(screen.queryByText(/eKYC/i)).not.toBeInTheDocument();
   });
@@ -67,7 +68,7 @@ describe("VaultJourney", () => {
         turn(2, { invitationSentAt: SENT }),
       ],
     });
-    render(<VaultJourney vault={vault} caseStatus="APPROVED_FOR_HANDOVER" progress={progress} />);
+    render(<VaultJourney vault={vault} recordStatus="COMPLETED" progress={progress} />);
     expect(screen.getByText("1/2 người đã nhận xong")).toBeInTheDocument();
     expect(screen.getByText("Bàn giao cho người nhận").closest("li")).toHaveAttribute(
       "aria-current",

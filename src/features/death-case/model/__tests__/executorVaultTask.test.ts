@@ -1,32 +1,48 @@
 import { describe, expect, it } from "vitest";
 import type { ExecutorVault } from "../deathCase.schema";
-import { sortVaultsByUrgency, vaultTask } from "../executorVaultTask";
+import { countVaultsNeedingAttention, sortVaultsByUrgency, vaultTask } from "../executorVaultTask";
 
-function vault(
-  id: string,
-  planStatus: string,
-  openDeathCaseId: string | null = null,
-): ExecutorVault {
+function vault(overrides: Partial<ExecutorVault> = {}): ExecutorVault {
   return {
-    vaultId: id,
-    ownerFullName: `Chủ kho ${id}`,
-    planStatus,
-    openDeathCaseId,
+    vaultId: "11111111-1111-4111-8111-111111111111",
+    ownerFullName: "Anh Nam",
+    planStatus: "ACTIVE",
+    handoverRecordStatus: "",
+    ...overrides,
   };
 }
 
 describe("vaultTask", () => {
-  it("kế hoạch đang chạy, chưa có hồ sơ: kho an toàn", () => {
-    const task = vaultTask(vault("a", "ACTIVE"));
+  it("chưa có yêu cầu nhận: chưa cần làm gì", () => {
+    const task = vaultTask(vault());
     expect(task.urgency).toBe("safe");
-    expect(task.tone).toBe("success");
+    expect(task.label).toBe("Chưa có yêu cầu nhận");
+    expect(task.task).toBeNull();
   });
 
-  it("kho có hồ sơ đang mở đứng trước kho an toàn", () => {
-    const sorted = sortVaultsByUrgency([
-      vault("safe", "ACTIVE"),
-      vault("case", "DEATH_CASE_OPEN", "11111111-1111-4111-8111-111111111111"),
+  it("đang ký hoặc đã đủ chữ ký: cần Người thực thi", () => {
+    expect(vaultTask(vault({ handoverRecordStatus: "SIGNING" })).urgency).toBe("sign");
+    expect(
+      vaultTask(vault({ planStatus: "HANDOVER_IN_PROGRESS", handoverRecordStatus: "COMPLETED" }))
+        .label,
+    ).toBe("Gửi mã nhận");
+  });
+
+  it("kho cần ký đứng trước kho đang lập biên bản, kho chưa có yêu cầu nhận đứng cuối", () => {
+    const safe = vault({ vaultId: "a1111111-1111-4111-8111-111111111111" });
+    const drafting = vault({
+      vaultId: "b1111111-1111-4111-8111-111111111111",
+      handoverRecordStatus: "DRAFTING",
+    });
+    const signing = vault({
+      vaultId: "c1111111-1111-4111-8111-111111111111",
+      handoverRecordStatus: "SIGNING",
+    });
+    expect(sortVaultsByUrgency([safe, drafting, signing]).map((item) => item.vaultId)).toEqual([
+      signing.vaultId,
+      drafting.vaultId,
+      safe.vaultId,
     ]);
-    expect(sorted.map((item) => item.vaultId)).toEqual(["case", "safe"]);
+    expect(countVaultsNeedingAttention([safe, drafting, signing])).toBe(2);
   });
 });

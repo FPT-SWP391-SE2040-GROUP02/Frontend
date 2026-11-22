@@ -7,7 +7,7 @@ export const notaryCardKeys = {
   image: (stamp: string | null | undefined) => ["verifier", "notary-card", "image", stamp] as const,
 };
 
-/** Tình trạng thẻ công chứng viên của Người xét duyệt đang đăng nhập. */
+/** Tình trạng thẻ luật sư của Người xét duyệt đang đăng nhập. */
 export function useNotaryCardStatus() {
   return useQuery({
     queryKey: notaryCardKeys.status(),

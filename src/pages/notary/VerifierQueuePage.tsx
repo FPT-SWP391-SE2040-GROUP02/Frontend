@@ -2,17 +2,17 @@ import { useSearchParams } from "react-router-dom";
 import { VerifierQueue } from "@/widgets/VerifierWorkspace/VerifierQueue";
 import { VerifierShell } from "@/widgets/VerifierWorkspace/VerifierShell";
 
-/** Hồ sơ báo tin: danh sách hồ sơ, hoặc chi tiết một hồ sơ khi có ?caseId=. */
+/** Biên bản bàn giao: danh sách biên bản, hoặc ba bước của một biên bản khi có ?recordId=. */
 export function VerifierQueuePage() {
   const [params] = useSearchParams();
-  const hasCase = Boolean(params.get("caseId"));
+  const hasRecord = Boolean(params.get("recordId"));
   return (
     <VerifierShell
-      title="Hồ sơ báo tin"
+      title="Biên bản bàn giao"
       description={
-        hasCase
-          ? "Xem giấy tờ, kiểm tra các cảnh báo rồi ra quyết định."
-          : "Các hồ sơ báo tin Người thực thi đã nộp. Bạn chỉ xác nhận hồ sơ, không xem nội dung kho."
+        hasRecord
+          ? "Làm đúng thứ tự: xét giấy tờ và lập biên bản, kiểm danh tính người nhận, rồi ba bên ký."
+          : "Các kho có người nhận gửi yêu cầu nhận tài sản và được giao cho bạn xét giấy tờ, lập biên bản."
       }
     >
       <VerifierQueue />

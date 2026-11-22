@@ -1,23 +1,21 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api/axiosClient";
-import {
-  deathCaseSchema,
-  deathDraftSchema,
-  executorPackageSchema,
-  executorVaultSchema,
-} from "../model/deathCase.schema";
+import { executorPackageSchema, executorVaultSchema } from "../model/deathCase.schema";
 import { handoverProgressSchema, sendHandoverKeySchema } from "../model/handoverProgress.schema";
+
 const id = z.string().uuid();
-const path = (caseId: string) => `/executor/death-cases/${id.parse(caseId)}`;
-const versionRequest = z.object({ etag: z.string().min(1).max(64) });
-/** Transport Executor theo controller thực; không dùng claims/di chúc legacy. */
+/** Đường dẫn theo biên bản bàn giao của kho (thay cho hồ sơ chứng tử cũ). */
+const path = (recordId: string) => `/executor/handover-records/${id.parse(recordId)}`;
+
+/** Transport phía Người thực thi: các kho, tài sản, tiến độ bàn giao và gửi mã nhận. */
 export const deathCaseService = {
+  /** Các kho tôi đang là Người thực thi, kèm tình trạng biên bản bàn giao. */
   async vaults(signal?: AbortSignal) {
     return z
       .array(executorVaultSchema)
       .parse(await apiClient.get<unknown, unknown>("/executor/vaults", { signal }));
   },
-  /** Danh sách tài sản của kho theo từng gói: chỉ tên, loại, dung lượng, không có nội dung. */
+  /** Danh sách tài sản (không có nội dung); chỉ xem được sau khi luật sư chốt biên bản. */
   async packages(vaultId: string, signal?: AbortSignal) {
     return z.array(executorPackageSchema).parse(
       await apiClient.get<unknown, unknown>(`/executor/vaults/${id.parse(vaultId)}/assets`, {
@@ -25,96 +23,17 @@ export const deathCaseService = {
       }),
     );
   },
-  async open(vaultId: string) {
-    return deathCaseSchema.parse(
-      await apiClient.post<unknown, unknown>(`/executor/vaults/${id.parse(vaultId)}/death-case`),
-    );
-  },
-  async get(caseId: string, signal?: AbortSignal) {
-    return deathCaseSchema.parse(await apiClient.get<unknown, unknown>(path(caseId), { signal }));
-  },
-  async update(caseId: string, values: z.infer<typeof deathDraftSchema>) {
-    return deathCaseSchema.parse(
-      await apiClient.put<unknown, unknown>(
-        `${path(caseId)}/draft`,
-        deathDraftSchema.parse(values),
-      ),
-    );
-  },
-  /** Multipart tệp kèm tiến độ theo byte đã gửi; không cache nội dung giấy tờ. */
-  async upload(
-    caseId: string,
-    file: File,
-    kind: "DEATH_CERTIFICATE" | "DEATH_NOTICE",
-    onUploadProgress?: (percent: number) => void,
-  ) {
-    const body = new FormData();
-    body.append("file", file);
-    body.append("kind", kind);
-    return deathCaseSchema.parse(
-      await apiClient.post<unknown, unknown>(`${path(caseId)}/files`, body, {
-        headers: { "Content-Type": undefined },
-        onUploadProgress: (event) => {
-          if (onUploadProgress && event.total) {
-            onUploadProgress(Math.round((event.loaded / event.total) * 100));
-          }
-        },
-      }),
-    );
-  },
-  /** Xem lại tệp mình đã tải lên (bản nháp hay đã gửi); blob chỉ nằm trong RAM, không cache. */
-  async viewFile(caseId: string, fileId: string): Promise<Blob> {
-    return apiClient.get<Blob, Blob>(`${path(caseId)}/files/${id.parse(fileId)}/content`, {
-      responseType: "blob",
-    });
-  },
-  async removeFile(caseId: string, fileId: string) {
-    return deathCaseSchema.parse(
-      await apiClient.delete<unknown, unknown>(`${path(caseId)}/files/${id.parse(fileId)}`),
-    );
-  },
-  /** Hủy hồ sơ còn nháp (chưa gửi lần nào): BE xóa hồ sơ và các trang đã tải, trả 204. */
-  async cancelDraft(caseId: string) {
-    await apiClient.delete<unknown, unknown>(`${path(caseId)}/draft`);
-  },
-  async submit(caseId: string, etag: string) {
-    return deathCaseSchema.parse(
-      await apiClient.post<unknown, unknown>(`${path(caseId)}/submit`, {
-        ...versionRequest.parse({ etag }),
-        confirm: true,
-      }),
-    );
-  },
-  async newVersion(caseId: string, etag: string) {
-    return deathCaseSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${path(caseId)}/versions`,
-        versionRequest.parse({ etag }),
-      ),
-    );
-  },
-  /** Tiến độ bàn giao chỉ đọc; người gọi không phải Executor đang hiệu lực nhận 404 DEATH_CASE_NOT_FOUND. */
-  async handoverProgress(caseId: string, signal?: AbortSignal) {
+  /** Tiến độ bàn giao chỉ đọc theo biên bản; người gọi không phải Người thực thi đang hiệu lực nhận 404. */
+  async handoverProgress(recordId: string, signal?: AbortSignal) {
     return handoverProgressSchema.parse(
-      await apiClient.get<unknown, unknown>(`${path(caseId)}/handover-progress`, { signal }),
+      await apiClient.get<unknown, unknown>(`${path(recordId)}/handover-progress`, { signal }),
     );
   },
-  /** Gửi lại lời mời cho lượt chưa ai nhận; link cũ hết dùng, cách nhau tối thiểu 15 phút (BE mục 6.16). */
-  /** Ảnh văn bản từ chối hoặc biên bản đồng ý của lượt đã có quyết định; Backend kiểm toàn vẹn trước byte đầu tiên. */
-  async declinePaper(caseId: string, turnId: string, signal?: AbortSignal): Promise<Blob> {
-    return apiClient.get<Blob, Blob>(
-      `${path(caseId)}/handover-turns/${id.parse(turnId)}/decline-paper`,
-      {
-        responseType: "blob",
-        signal,
-      },
-    );
-  },
-  /** Gửi khóa mở gói tới email người nhận của lượt; BE kiểm khóa Executor nhập (sai → 403 HANDOVER_KEY_INVALID) và không lưu khóa. */
-  async sendKey(caseId: string, turnId: string, key: string) {
+  /** Gửi mã nhận tới email người nhận của lượt; chỉ khi biên bản đã đủ chữ ký. BE kiểm khóa và không lưu khóa. */
+  async sendKey(recordId: string, turnId: string, key: string) {
     return sendHandoverKeySchema.parse(
       await apiClient.post<unknown, unknown>(
-        `${path(caseId)}/handover-turns/${id.parse(turnId)}/send-key`,
+        `${path(recordId)}/handover-turns/${id.parse(turnId)}/send-key`,
         { key },
       ),
     );

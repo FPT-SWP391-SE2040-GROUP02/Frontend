@@ -2,13 +2,12 @@ import { Link } from "react-router-dom";
 import { Check, Lock, X } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { ExecutorVault } from "../model/deathCase.schema";
-import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
-import { executorTodo, type CaseStatus } from "../model/executorTodo";
+import { buttonStyles, Panel } from "@/shared/ui/heritageKit";
+import { useExecutorRecord } from "@/entities/handoverRecord";
+import { executorTodo } from "../model/executorTodo";
 import { EXECUTOR_ALLOWED, EXECUTOR_DENIED } from "../model/executorPermissions";
-import { useDeathCase } from "../model/useDeathCase";
 import { useExecutorPackages } from "../model/useExecutorPackages";
 import { useHandoverProgress } from "../model/useHandoverProgress";
-import { useRejectedAck } from "../model/useRejectedAck";
 import { VaultJourney } from "./VaultJourney";
 
 /** Hai thẻ gọn dưới cùng chỉ lấy vài dòng đầu của danh sách quyền hạn đầy đủ. */
@@ -47,7 +46,7 @@ function CanAndCannotCard() {
       <ul className="space-y-2 text-sm">
         {EXECUTOR_ALLOWED.slice(0, SHORT_LIST_SIZE).map((item) => (
           <li key={item} className="flex items-start gap-2">
-            <Check className="mt-0.5 size-4 shrink-0 text-[#1F7A55]" aria-hidden="true" />
+            <Check className="mt-0.5 size-4 shrink-0 text-heritage-success" aria-hidden="true" />
             <span>
               <span className="sr-only">Làm được: </span>
               {item}
@@ -56,7 +55,7 @@ function CanAndCannotCard() {
         ))}
         {EXECUTOR_DENIED.slice(0, SHORT_LIST_SIZE).map((item) => (
           <li key={item} className="flex items-start gap-2 text-heritage-muted">
-            <X className="mt-0.5 size-4 shrink-0 text-[#A32119]" aria-hidden="true" />
+            <X className="mt-0.5 size-4 shrink-0 text-heritage-danger" aria-hidden="true" />
             <span>
               <span className="sr-only">Không làm được: </span>
               {item}
@@ -66,7 +65,7 @@ function CanAndCannotCard() {
       </ul>
       <p className="mt-3 flex items-center gap-2 text-sm text-heritage-muted">
         <Lock className="size-3.5" aria-hidden="true" />
-        Bạn chỉ báo tin và theo dõi, không xem được nội dung kho.
+        Bạn chỉ giữ hộ và giao theo biên bản, không xem được nội dung kho.
       </p>
     </Panel>
   );
@@ -77,42 +76,24 @@ function CanAndCannotCard() {
  * rồi hai thẻ gọn. Tiến độ từng người nhận nằm ở trang Bàn giao.
  */
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
-  const hasCase = Boolean(vault.openDeathCaseId);
-  const record = useDeathCase(vault.openDeathCaseId).data ?? null;
-  const approved = record?.status === "APPROVED_FOR_HANDOVER";
-  const progress =
-    useHandoverProgress(vault.openDeathCaseId ?? "", hasCase && approved).data ?? null;
-  const rejectedAck = useRejectedAck(vault.lastRejectedDeathCaseId);
-  // Báo "bị từ chối" đi TRƯỚC mọi việc khác (từ chối trả kế hoạch về trạng thái trước đó nên kho có thể quá hạn ngay);
-  // bấm "Tiếp tục" thì mới tới việc theo trạng thái kế hoạch.
-  const showRejected =
-    !hasCase && Boolean(vault.lastRejectedDeathCaseId) && !rejectedAck.acknowledged;
-
-  let caseStatus: CaseStatus | null = null;
-  if (record) caseStatus = record.status;
-  const todo = executorTodo({ vault, caseStatus, progress, rejectedPending: showRejected });
+  const record = useExecutorRecord(vault.vaultId).data ?? null;
+  const recordStatus = record ? record.status : "";
+  const completed = recordStatus === "COMPLETED";
+  const progress = useHandoverProgress(record ? record.id : "", completed).data ?? null;
+  const todo = executorTodo({
+    vault,
+    recordStatus,
+    canSign: record ? record.canSign : false,
+    progress,
+  });
 
   return (
     <div className="space-y-6">
-      {showRejected && (
-        <Notice
-          tone="danger"
-          title={`Hồ sơ báo tin về ${vault.ownerFullName} đã bị từ chối`}
-          action={
-            <button type="button" className={buttonStyles.gold} onClick={rejectedAck.acknowledge}>
-              Tiếp tục
-            </button>
-          }
-        >
-          Hồ sơ của bạn không được Người xét duyệt chấp thuận. Hồ sơ đã được xử lý và đóng; bạn chỉ
-          nên báo tin lại khi chắc chắn và có giấy tờ phù hợp.
-        </Notice>
-      )}
       <section
         aria-labelledby="executor-todo-title"
-        className="rounded-2xl border border-[#E0C486] bg-[#FBF3E0] p-5 sm:p-6"
+        className="rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg p-5 sm:p-6"
       >
-        <p className="text-sm font-semibold uppercase tracking-widest text-[#7A5B25]">
+        <p className="text-sm font-semibold uppercase tracking-widest text-heritage-warning">
           Việc của bạn bây giờ
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
@@ -129,7 +110,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           )}
         </div>
       </section>
-      <VaultJourney vault={vault} caseStatus={caseStatus} progress={progress} />
+      <VaultJourney vault={vault} recordStatus={recordStatus} progress={progress} />
       <div className="grid gap-6 lg:grid-cols-2">
         <GuideAndAssetsCard vault={vault} />
         <CanAndCannotCard />

@@ -129,13 +129,13 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
       void goNext();
       return;
     }
-    // Ảnh thẻ là bằng chứng xác minh: Người xét duyệt (thẻ công chứng viên) và Người thực thi (thẻ luật sư) đều bắt buộc.
+    // Ảnh thẻ là bằng chứng xác minh: Người xét duyệt và Người thực thi đều dùng thẻ luật sư và bắt buộc.
     const needCard = values.role === "VERIFIER" || values.role === "EXECUTOR";
     if (needCard && cardFile === null) {
       setCardError(
         values.role === "EXECUTOR"
           ? "Vui lòng tải ảnh thẻ luật sư hoặc chứng chỉ hành nghề."
-          : "Vui lòng tải ảnh thẻ công chứng viên.",
+          : "Vui lòng tải ảnh thẻ luật sư.",
       );
       return;
     }
@@ -188,7 +188,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                   className={
                     index === stepIndex
                       ? "whitespace-nowrap rounded-full bg-heritage-primary px-3 py-1 font-semibold text-white"
-                      : "whitespace-nowrap rounded-full bg-[#ECE8DB] px-3 py-1 text-heritage-muted"
+                      : "whitespace-nowrap rounded-full bg-heritage-sunken px-3 py-1 text-heritage-muted"
                   }
                 >
                   {index + 1}. {STEP_LABELS[key]}
@@ -324,7 +324,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                 >
                   {role === "EXECUTOR"
                     ? "Ảnh thẻ luật sư / chứng chỉ hành nghề"
-                    : "Ảnh thẻ công chứng viên"}{" "}
+                    : "Ảnh thẻ luật sư"}{" "}
                   <span className="text-destructive">*</span>
                 </label>
                 <input

@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   useOwnerPackages,
@@ -11,7 +10,6 @@ import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiarie
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
 import { BeneficiaryRow, EditBeneficiaryDialog } from "@/features/beneficiaries/ui/BeneficiaryRow";
 import { beneficiaryResponseSchema } from "@/features/beneficiaries/model/beneficiary.schema";
-import { useWillIdentity, willIdentityQueryKey } from "@/features/plan-setup/model/useWillIdentity";
 import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles } from "@/shared/ui/heritageKit";
@@ -31,7 +29,7 @@ type Beneficiary = z.infer<typeof beneficiaryResponseSchema>;
 function PaidTierDialog({ onClose }: { onClose: () => void }) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg bg-[#FBFAF5] p-7" showCloseButton={false}>
+      <DialogContent className="max-w-lg bg-heritage-surface p-7" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-heritage-primary">
             Cần gói trả phí
@@ -41,14 +39,14 @@ function PaidTierDialog({ onClose }: { onClose: () => void }) {
             nhận.
           </DialogDescription>
         </DialogHeader>
-        <p className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
           Kho và nội dung hiện có vẫn giữ nguyên.
         </p>
         <DialogFooter>
           <button type="button" className={buttonStyles.outline} onClick={onClose}>
             Để sau
           </button>
-          <Link to={ROUTES.BILLING.PLANS} className={buttonStyles.gold}>
+          <Link to={ROUTES.BILLING.PLANS} className={buttonStyles.dark}>
             Xem gói dịch vụ
           </Link>
         </DialogFooter>
@@ -57,10 +55,7 @@ function PaidTierDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** Tự ẩn lại CCCD đầy đủ sau khoảng này để số không nằm lâu trên màn hình. */
-const REVEAL_SECONDS = 60;
-
-/** Trang quản lý hồ sơ chỉ cache DTO đã che CCCD; CCCD đầy đủ chỉ hiện khi bấm "Hiện" và nhập PIN. */
+/** Trang quản lý hồ sơ người nhận của Chủ kho; số CCCD hiện đầy đủ. */
 export function OwnerBeneficiaries() {
   const [params, setParams] = useSearchParams();
   const [adding, setAdding] = useState(false);
@@ -68,30 +63,7 @@ export function OwnerBeneficiaries() {
   const requested = Number(params.get("page") ?? 1);
   const page =
     Number.isSafeInteger(requested) && requested > 0 && requested <= 1_000_000 ? requested : 1;
-  const [revealed, setRevealed] = useState(false);
-  const pinRef = useRef("");
-  const client = useQueryClient();
   const vault = useOwnerVault(true);
-  const identity = useWillIdentity(vault.data?.id ?? "", revealed && Boolean(vault.data), {
-    getPin: () => pinRef.current,
-    remember: (pin) => {
-      pinRef.current = pin;
-    },
-  });
-  const hide = () => {
-    setRevealed(false);
-    pinRef.current = "";
-    if (vault.data) {
-      client.removeQueries({ queryKey: willIdentityQueryKey(vault.data.id) });
-    }
-  };
-  const shown = revealed && identity.isSuccess;
-  useEffect(() => {
-    if (!revealed) return undefined;
-    const timer = window.setTimeout(hide, REVEAL_SECONDS * 1000);
-    return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [revealed]);
   const list = useBeneficiaries(vault.data?.id ?? "", { pageIndex: page, pageSize: 10 });
   // Tên gói bàn giao để báo rõ người nhận đang nằm trong gói bàn giao nào khi chặn xóa hồ sơ.
   const groups = useOwnerPackages(vault.data?.id ?? "", Boolean(vault.data), {
@@ -129,12 +101,6 @@ export function OwnerBeneficiaries() {
   // Số hồ sơ (tính cả hồ sơ chưa ở gói nào) không vượt tổng suất; BE vẫn chặn lại bằng 409 BENEFICIARY_SLOTS_EXCEEDED.
   // Danh sách không lọc nên totalCount là tổng số hồ sơ của kho.
   const profileLimitReached = !freeTier && list.data.totalCount >= vault.data.beneficiarySlots;
-  const fullIds: Record<string, string> = {};
-  if (shown && identity.data) {
-    for (const recipient of identity.data.recipients) {
-      fullIds[recipient.beneficiaryId] = recipient.citizenId;
-    }
-  }
   const rows: ReactNode[] = [];
   for (const record of list.data.items) {
     rows.push(
@@ -145,20 +111,25 @@ export function OwnerBeneficiaries() {
         groupNames={groupNames}
         readOnly={readOnly}
         locked={locked}
-        fullCitizenId={Object.hasOwn(fullIds, record.id) ? fullIds[record.id] : undefined}
       />,
     );
   }
   return (
     <div className="space-y-6">
       {readOnly && (
-        <p role="status" className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <p
+          role="status"
+          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
+        >
           Gói dịch vụ đang trong thời gian gia hạn. Bạn chưa thêm hoặc sửa được người nhận, nhưng
           vẫn xóa được.
         </p>
       )}
       {profileLimitReached && !readOnly && (
-        <p role="status" className="rounded-xl bg-[#F1E6CC] px-4 py-3 text-sm text-[#7A5B24]">
+        <p
+          role="status"
+          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
+        >
           Kho đã đủ {vault.data.beneficiarySlots} người nhận theo suất hiện có. Mua thêm suất hoặc
           xóa hồ sơ chưa dùng để thêm người mới.{" "}
           <Link className="font-semibold underline" to={ROUTES.BILLING.PLANS}>
@@ -174,28 +145,12 @@ export function OwnerBeneficiaries() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-medium text-heritage-primary">Danh sách người nhận</h2>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-semibold text-[#7A5B24]">
+            <span className="text-sm font-semibold text-heritage-warning">
               {list.data.totalCount} người
             </span>
-            {list.data.items.length > 0 && (
-              <button
-                type="button"
-                className={buttonStyles.outline}
-                disabled={revealed && identity.isPending}
-                onClick={() => {
-                  if (shown) {
-                    hide();
-                  } else {
-                    setRevealed(true);
-                  }
-                }}
-              >
-                {shown ? "Ẩn CCCD" : "Hiện CCCD"}
-              </button>
-            )}
             <button
               type="button"
-              className={`${buttonStyles.gold} disabled:bg-[#ECE8DB] disabled:text-[#8A8574] disabled:opacity-100`}
+              className={`${buttonStyles.dark} disabled:bg-heritage-sunken disabled:text-heritage-subtle disabled:opacity-100`}
               disabled={readOnly || locked || profileLimitReached}
               title={lockReason ?? undefined}
               onClick={() => setAdding(true)}
@@ -209,11 +164,6 @@ export function OwnerBeneficiaries() {
           {vault.data.usedBeneficiarySlots} người đang ở gói bàn giao. Tạo hồ sơ không tự gắn người
           nhận vào gói bàn giao.
         </p>
-        {revealed && identity.isError && (
-          <p role="alert" className="mt-2 text-sm text-destructive">
-            Chưa xem được CCCD đầy đủ (cần nhập đúng mã PIN của kho).
-          </p>
-        )}
         {rows.length === 0 && (
           <p role="status" className="mt-4 text-sm text-heritage-muted">
             Chưa có hồ sơ trên trang này.
@@ -271,7 +221,7 @@ export function OwnerBeneficiaries() {
       {adding && !freeTier && (
         <Dialog open onOpenChange={(open) => !open && setAdding(false)}>
           <DialogContent
-            className="max-h-[90dvh] max-w-lg overflow-y-auto bg-[#FBFAF5] p-7"
+            className="max-h-[90dvh] max-w-lg overflow-y-auto bg-heritage-surface p-7"
             showCloseButton={false}
           >
             <DialogHeader>

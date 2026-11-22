@@ -25,8 +25,10 @@ export function Switch({
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E0C486] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-        checked ? "bg-[#1E7A55] dark:bg-[#62D2A2]" : "bg-zinc-300 dark:bg-zinc-700",
+        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-heritage-gold-soft focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        checked
+          ? "bg-heritage-success dark:bg-heritage-success"
+          : "bg-heritage-border-strong dark:bg-heritage-muted",
         className,
       )}
       {...props}

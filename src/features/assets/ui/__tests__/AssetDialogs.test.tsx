@@ -293,17 +293,6 @@ describe("AssetDetail", () => {
     expect(screen.getByRole("link", { name: "Mở gói bàn giao" })).toBeInTheDocument();
   });
 
-  it("explains a hold on the vault when deletion is blocked by VAULT_NOT_EDITABLE", async () => {
-    const user = userEvent.setup();
-    vi.spyOn(backendAssetService, "remove").mockRejectedValue(
-      problem(409, "VAULT_NOT_EDITABLE", "HOLD_ACTIVE"),
-    );
-    renderDetail();
-    const dialog = await openDeleteDialog(user);
-    await user.click(within(dialog).getByRole("button", { name: "Xóa mục" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(/tạm giữ/);
-  });
-
   it("deletes only after confirmation, once, then refreshes and leaves the page", async () => {
     const user = userEvent.setup();
     const remove = vi.spyOn(backendAssetService, "remove").mockResolvedValue();

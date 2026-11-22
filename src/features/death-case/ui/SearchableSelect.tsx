@@ -7,7 +7,7 @@ export interface SearchableOption {
 }
 
 const TRIGGER_CLASS =
-  "flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-[8px] border border-[#D5D0C3] bg-[var(--surface)] px-3 py-1.5 text-left text-sm text-[var(--text-main)] outline-none focus-visible:border-[var(--gold)] focus-visible:ring-3 focus-visible:ring-[var(--gold)]/20 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-[#D9534F] aria-invalid:bg-[#FFF9F9]";
+  "flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-[8px] border border-heritage-border-strong bg-heritage-surface px-3 py-1.5 text-left text-sm text-heritage-text outline-none focus-visible:border-heritage-gold focus-visible:ring-3 focus-visible:ring-heritage-gold/20 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-heritage-danger aria-invalid:bg-heritage-danger-bg";
 
 /** Bỏ dấu và chữ hoa để lọc "ben thanh" ra "Phường Bến Thành". */
 function normalize(text: string): string {
@@ -122,14 +122,14 @@ export function SearchableSelect({
           }
         }}
       >
-        <span className={`truncate ${selected ? "" : "text-[#8E9F96]"}`}>
+        <span className={`truncate ${selected ? "" : "text-heritage-subtle"}`}>
           {selected ? selected.name : placeholder}
         </span>
         <ChevronDown className="size-4 shrink-0 text-heritage-muted" aria-hidden="true" />
       </button>
       {open && (
-        <div className="absolute left-0 right-0 z-30 mt-1 overflow-hidden rounded-xl border border-[#D5D0C3] bg-white shadow-lg">
-          <div className="flex items-center gap-2 border-b border-[#E7E3D6] px-3 py-2">
+        <div className="absolute left-0 right-0 z-30 mt-1 overflow-hidden rounded-xl border border-heritage-border-strong bg-white shadow-lg">
+          <div className="flex items-center gap-2 border-b border-heritage-border px-3 py-2">
             <Search className="size-4 shrink-0 text-heritage-muted" aria-hidden="true" />
             <input
               ref={searchRef}
@@ -139,7 +139,7 @@ export function SearchableSelect({
               aria-activedescendant={visible.length > 0 ? `${listId}-${active}` : undefined}
               placeholder="Gõ tên để lọc"
               value={query}
-              className="h-8 w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-[#8E9F96]"
+              className="h-8 w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-heritage-subtle"
               onChange={(event) => {
                 setQuery(event.target.value);
                 setActive(0);
@@ -176,7 +176,7 @@ export function SearchableSelect({
                 role="option"
                 aria-selected={item.code === value}
                 className={`flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm ${
-                  index === active ? "bg-[#F1E6CC]" : "hover:bg-[#F7F3E6]"
+                  index === active ? "bg-heritage-warning-bg" : "hover:bg-heritage-sunken"
                 }`}
                 onMouseEnter={() => setActive(index)}
                 onClick={() => choose(item)}

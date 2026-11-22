@@ -58,7 +58,7 @@ export function WorkQueueTabs({
               className={
                 selected
                   ? "inline-flex min-h-11 items-center gap-2 rounded-full bg-heritage-primary px-4 text-sm font-semibold text-white shadow-sm"
-                  : "inline-flex min-h-11 items-center gap-2 rounded-full border border-heritage-border bg-white/60 px-4 text-sm hover:bg-[#F4F1E6]"
+                  : "inline-flex min-h-11 items-center gap-2 rounded-full border border-heritage-border bg-white/60 px-4 text-sm hover:bg-heritage-sunken"
               }
               onClick={() => onSelect(tab.key)}
             >
@@ -99,7 +99,7 @@ export function WorkQueueTabs({
                   data-featured={featured ? "true" : undefined}
                   className={
                     featured
-                      ? "flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-l-8 border-[#E0C486] border-l-[#B8892D] bg-[#FFFBEF] p-4 shadow-sm"
+                      ? "flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-l-8 border-heritage-gold-soft border-l-heritage-gold bg-heritage-gold-light p-4 shadow-sm"
                       : "flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-heritage-border bg-white p-4 shadow-sm"
                   }
                 >

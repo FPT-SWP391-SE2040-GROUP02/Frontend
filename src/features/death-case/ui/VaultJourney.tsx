@@ -1,18 +1,18 @@
 import { Check } from "lucide-react";
 import { Panel } from "@/shared/ui/heritageKit";
 import type { ExecutorVault } from "../model/deathCase.schema";
-import { vaultJourney, type CaseStatus, type JourneyState } from "../model/executorTodo";
+import { vaultJourney, type RecordStatus, type JourneyState } from "../model/executorTodo";
 import type { HandoverProgress } from "../model/handoverProgress.schema";
 
 const circleStyles: Record<JourneyState, string> = {
-  done: "border-[#1F7A55] bg-[#1F7A55] text-white",
-  current: "border-[#C9A55C] bg-[#E0C486] text-[#0A281E]",
-  pending: "border-[#BDB8A6] bg-white text-heritage-muted",
+  done: "border-heritage-success bg-heritage-success text-white",
+  current: "border-heritage-gold bg-heritage-gold-soft text-heritage-primary",
+  pending: "border-heritage-border-strong bg-white text-heritage-muted",
 };
 
 const captionStyles: Record<JourneyState, string> = {
-  done: "text-[#1F7A55]",
-  current: "text-[#7A5B25]",
+  done: "text-heritage-success",
+  current: "text-heritage-warning",
   pending: "text-heritage-muted",
 };
 
@@ -22,14 +22,14 @@ const captionStyles: Record<JourneyState, string> = {
  */
 export function VaultJourney({
   vault,
-  caseStatus,
+  recordStatus,
   progress,
 }: {
   vault: ExecutorVault;
-  caseStatus: CaseStatus | null;
+  recordStatus: RecordStatus;
   progress: HandoverProgress | null;
 }) {
-  const steps = vaultJourney(vault, caseStatus, progress);
+  const steps = vaultJourney(vault, recordStatus, progress);
   return (
     <Panel title="Kho đang ở đâu">
       <ol className="grid gap-5 sm:grid-cols-3">

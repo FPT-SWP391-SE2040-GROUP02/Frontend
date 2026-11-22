@@ -27,7 +27,7 @@ export function PinCodeInput({ value, onValueChange, className, ...props }: PinC
         onValueChange(event.target.value.replace(/\D/g, "").slice(0, PIN_DIGITS));
       }}
       className={cn(
-        "mt-1.5 h-[52px] bg-heritage-surface text-center text-2xl tracking-[0.6em] [text-indent:0.6em] placeholder:text-[#9aa59f]",
+        "mt-1.5 h-[52px] bg-heritage-surface text-center text-2xl tracking-[0.6em] [text-indent:0.6em] placeholder:text-heritage-subtle",
         className,
       )}
       {...props}

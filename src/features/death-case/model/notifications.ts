@@ -1,6 +1,6 @@
-import type { DeathCase, ExecutorVault } from "./deathCase.schema";
+import type { ExecutorVault } from "./deathCase.schema";
 
-/** Mức chú ý để giao diện tô màu: attention là việc cần bạn làm, success/danger là kết quả xét duyệt. */
+/** Mức chú ý để giao diện tô màu: attention là việc cần bạn làm, success/danger là kết quả. */
 export type NotificationTone = "attention" | "info" | "success" | "danger";
 
 export interface ExecutorNotification {
@@ -12,21 +12,42 @@ export interface ExecutorNotification {
   text: string;
   /** Dòng đầu, ngắn: chuyện gì đã xảy ra. */
   title: string;
-  /** Dòng giải thích bên dưới (lý do, số bản...); không có thì bỏ trống. */
+  /** Dòng giải thích bên dưới; không có thì bỏ trống. */
   detail?: string;
   tone: NotificationTone;
 }
 
+/** Các mốc của biên bản bàn giao mà Người thực thi cần biết. */
+export interface RecordMoments {
+  id: string;
+  status: string;
+  revisionNo: number;
+  requestedAt: string;
+  finalizedAt: string | null;
+  completedAt: string | null;
+  canSign: boolean;
+}
+
 /**
- * Thông báo cho Người thực thi, chỉ lấy từ dữ liệu Backend đã trả (kho và hồ sơ chứng tử).
+ * Thông báo cho Người thực thi, chỉ lấy từ dữ liệu Backend đã trả (kho và biên bản bàn giao).
  * Tình trạng đang diễn ra nằm trên cùng, các sự kiện có mốc thời gian xếp mới nhất trước.
  */
 export function deriveNotifications(
   vault: ExecutorVault,
-  record: DeathCase | null | undefined,
+  record: RecordMoments | null | undefined,
 ): ExecutorNotification[] {
   const current: ExecutorNotification[] = [];
   const events: ExecutorNotification[] = [];
+  if (record && record.status === "SIGNING" && record.canSign) {
+    current.push({
+      id: `sign:${record.id}:${record.revisionNo}`,
+      at: null,
+      text: "Biên bản bàn giao đang chờ bạn ký.",
+      title: "Đến lượt bạn ký biên bản",
+      detail: "Mọi người nhận đã được xác nhận danh tính.",
+      tone: "attention",
+    });
+  }
   if (vault.executorNoteUpdatedAt) {
     events.push({
       id: `note:${vault.executorNoteUpdatedAt}`,
@@ -40,49 +61,29 @@ export function deriveNotifications(
   if (record) {
     events.push({
       id: `opened:${record.id}`,
-      at: record.createdAt,
-      text: "Bạn mở hồ sơ báo tin.",
-      title: "Bạn đã mở hồ sơ báo tin",
+      at: record.requestedAt,
+      text: "Người nhận đã gửi yêu cầu nhận tài sản. Luật sư đang xét giấy tờ.",
+      title: "Có yêu cầu nhận tài sản",
       tone: "info",
     });
-    const submittedAt = record.currentVersion.submittedAt;
-    if (submittedAt) {
+    if (record.finalizedAt) {
       events.push({
-        id: `submitted:${record.id}:${record.currentVersion.versionNo}`,
-        at: submittedAt,
-        text: `Bạn đã gửi hồ sơ (bản ${record.currentVersion.versionNo}).`,
-        title: "Bạn đã gửi hồ sơ",
-        detail: `Bản số ${record.currentVersion.versionNo}`,
+        id: `finalized:${record.id}:${record.revisionNo}`,
+        at: record.finalizedAt,
+        text: `Luật sư đã chốt biên bản (bản ${record.revisionNo}).`,
+        title: "Luật sư đã chốt biên bản",
+        detail: `Bản số ${record.revisionNo}`,
         tone: "info",
       });
     }
-    if (record.supplementRequest) {
+    if (record.completedAt) {
       events.push({
-        id: `supplement:${record.id}:${record.supplementRequest.requestedAt}`,
-        at: record.supplementRequest.requestedAt,
-        text: `Người xét duyệt yêu cầu bổ sung: ${record.supplementRequest.reason}`,
-        title: "Người xét duyệt yêu cầu bổ sung",
-        detail: `Lý do: ${record.supplementRequest.reason}`,
-        tone: "attention",
-      });
-    }
-    if (record.status === "APPROVED_FOR_HANDOVER" && record.updatedAt) {
-      events.push({
-        id: `approved:${record.id}`,
-        at: record.updatedAt,
-        text: "Hồ sơ đã được duyệt để bàn giao.",
-        title: "Hồ sơ đã được duyệt",
-        detail: "Hồ sơ đã được duyệt để bàn giao.",
+        id: `completed:${record.id}`,
+        at: record.completedAt,
+        text: "Biên bản đã đủ chữ ký ba bên. Hãy gửi mã nhận cho người nhận.",
+        title: "Biên bản đã đủ chữ ký",
+        detail: "Gửi mã nhận cho từng người ở mục Bàn giao.",
         tone: "success",
-      });
-    }
-    if (record.status === "REJECTED" && record.updatedAt) {
-      events.push({
-        id: `rejected:${record.id}`,
-        at: record.updatedAt,
-        text: "Hồ sơ không được chấp thuận.",
-        title: "Hồ sơ không được chấp thuận",
-        tone: "danger",
       });
     }
   }

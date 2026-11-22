@@ -44,7 +44,7 @@ export function AdminRevenue() {
   return (
     <section
       aria-labelledby="admin-revenue-heading"
-      className="space-y-4 rounded-2xl border border-heritage-border bg-[#faf9f5] p-5"
+      className="space-y-4 rounded-2xl border border-heritage-border bg-heritage-surface p-5"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="admin-revenue-heading" className="text-lg font-bold text-heritage-primary">

@@ -12,7 +12,7 @@ import type {
 } from "../model/willDocument.types";
 
 export interface WillDocumentProps {
-  /** Họ tên Chủ kho (người lập di chúc). */
+  /** Họ tên Chủ kho (Chủ kho). */
   ownerName: string;
   /** Email tài khoản LegacyVault của Chủ kho; bỏ trống thì mục I không nêu tài khoản. */
   ownerEmail?: string;
@@ -107,14 +107,14 @@ function Gap({
   onGapClick: ((target: WillGapTarget) => void) | undefined;
 }) {
   if (!clickable || onGapClick === undefined) {
-    return <span className="font-semibold text-[#a32119]">{text}</span>;
+    return <span className="font-semibold text-heritage-danger">{text}</span>;
   }
   return (
     <button
       type="button"
       data-will-gap={target}
       onClick={() => onGapClick(target)}
-      className="inline-flex min-h-8 cursor-pointer items-center rounded-md border border-dashed border-[#a32119] bg-[#fdeceb] px-2.5 py-0.5 text-left text-sm font-semibold text-[#a32119] hover:bg-[#f9d9d6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+      className="inline-flex min-h-8 cursor-pointer items-center rounded-md border border-dashed border-heritage-danger bg-heritage-danger-bg px-2.5 py-0.5 text-left text-sm font-semibold text-heritage-danger hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
     >
       {text} — bấm để điền
     </button>
@@ -141,7 +141,7 @@ function executorDisplayName(executor: WillExecutorView): string {
   return executor.email;
 }
 
-/** Mục I: Người lập di chúc. Thêm ngày sinh, CCCD và thường trú khi đã tải danh tính đầy đủ. */
+/** Mục I: Chủ kho. Thêm ngày sinh, CCCD và thường trú khi đã tải danh tính đầy đủ. */
 function OwnerSectionBlock({
   ownerName,
   ownerEmail,
@@ -164,8 +164,8 @@ function OwnerSectionBlock({
     if (ownerIdentity === null) {
       // Không bịa: chưa có eKYC thì không có CCCD hay thường trú để in.
       missingNote = (
-        <p className="mb-2 text-sm font-semibold text-[#a32119]">
-          Chưa có thông tin CCCD và nơi thường trú của Người lập di chúc (chưa có danh tính eKYC).
+        <p className="mb-2 text-sm font-semibold text-heritage-danger">
+          Chưa có thông tin CCCD và nơi thường trú của Chủ kho (chưa có danh tính eKYC).
         </p>
       );
     } else {
@@ -183,13 +183,13 @@ function OwnerSectionBlock({
   }
   return (
     <section id="muc-1" className={SECTION}>
-      <h3 className={HEADING}>I. Người lập di chúc</h3>
+      <h3 className={HEADING}>I. Chủ kho</h3>
       <InfoRows rows={rows} />
       {missingNote}
       <p className={`${BODY} mt-2`}>
         Nay trong trạng thái tinh thần hoàn toàn minh mẫn, sáng suốt, không bị bất kỳ sự lừa dối, đe
-        dọa hoặc cưỡng ép nào, tôi lập di chúc này để định đoạt các gói tài sản số trong kho của tôi
-        tại LegacyVault sau khi tôi qua đời như sau:
+        dọa hoặc cưỡng ép nào, tôi lập biên bản phân chia này để định đoạt các gói tài sản số trong
+        kho của tôi tại LegacyVault sau khi tôi qua đời như sau:
       </p>
     </section>
   );
@@ -243,7 +243,8 @@ function AssetsSectionBlock({
         {heading}
         <p className={BODY}>
           Các gói tài sản trong kho được để lại cho những người nhận mà tôi đã chỉ định cho từng gói
-          trong kế hoạch bàn giao. Di chúc chỉ ghi tên gói, không ghi tên hay nội dung tài sản.
+          trong kế hoạch bàn giao. Biên bản phân chia chỉ ghi tên gói, không ghi tên hay nội dung
+          tài sản.
         </p>
       </section>
     );
@@ -383,10 +384,10 @@ function ExecutorSectionBlock({
     <section id="muc-3" className={SECTION}>
       <h3 className={HEADING}>III. Người thực thi</h3>
       <p className={BODY}>
-        Sau khi tôi qua đời, {who} được làm các thủ tục theo quy định để thực hiện di chúc này: báo
-        tin, nộp giấy chứng tử và giấy tờ liên quan để mở hồ sơ, giữ mã mở gói và trao mã cho người
-        nhận sau khi hồ sơ được duyệt. Người này không được xem nội dung kho, không tự đổi người
-        nhận hay phần được nhận.
+        Tôi đề cử {who} làm Người thực thi. Đây chỉ là đề cử: sau khi tôi qua đời, người này mở bàn
+        giao trên hệ thống, giữ hộ tài sản, ký biên bản bàn giao do luật sư lập và gửi mã nhận cho
+        người nhận khi biên bản đủ chữ ký. Người này không được xem nội dung kho, không tự chia, bán
+        hay cho tài sản, không tự đổi người nhận hay phần được nhận.
       </p>
     </section>
   );
@@ -408,8 +409,8 @@ function SignatureBox({
   let statusStyle = "text-heritage-muted";
   let mark: ReactNode = null;
   if (signed) {
-    boxStyle = "border-solid border-[#1f7a55] bg-[#e3efe8]";
-    statusStyle = "text-[#1f7a55] font-semibold";
+    boxStyle = "border-solid border-heritage-success bg-heritage-success-bg";
+    statusStyle = "text-heritage-success font-semibold";
     mark = <Check className="mr-1 inline size-4 align-text-bottom" aria-hidden="true" />;
   }
   return (
@@ -456,7 +457,7 @@ function SignatureBlock({
   return (
     <div className="mt-9 grid grid-cols-2 items-start gap-3 border-t border-heritage-border pt-6 max-[480px]:grid-cols-1">
       <SignatureBox
-        title="Người lập di chúc"
+        title="Chủ kho"
         name={ownerName}
         statusText={ownerStatus}
         signed={ownerWhen !== null}
@@ -477,7 +478,7 @@ function SignatureBlock({
 }
 
 /**
- * Di chúc số của một kho, sinh từ dữ liệu kế hoạch bàn giao: quốc hiệu, tiêu đề, bốn mục I đến IV, hai ô chữ ký
+ * Biên bản phân chia số của một kho, sinh từ dữ liệu kế hoạch bàn giao: quốc hiệu, tiêu đề, bốn mục I đến IV, hai ô chữ ký
  * ngang hàng và câu lưu ý. Chỉ có tên và số đếm, không có tên hay nội dung tài sản, không có lời nhắn.
  *
  * Dùng chung cho khung xem trước của Chủ kho (viewer "owner", chỗ trống đỏ bấm được), bản Người thực thi xem khi nhận
@@ -529,7 +530,7 @@ export function WillDocument({
         </p>
       </header>
       <h2 className="mt-6 text-center text-[26px] font-bold leading-[1.3] tracking-[0.08em] text-heritage-primary">
-        DI CHÚC
+        BIÊN BẢN PHÂN CHIA
       </h2>
       <p className="mt-3 text-center leading-7">Hôm nay, ngày {dateText}, tại LegacyVault.</p>
       {versionLine}
@@ -553,9 +554,9 @@ export function WillDocument({
       <section id="muc-4" className={SECTION}>
         <h3 className={HEADING}>IV. Hiệu lực, sửa đổi và thu hồi</h3>
         <p className={BODY}>
-          Di chúc này có hiệu lực từ khi tôi qua đời. Quá hạn điểm danh chỉ tạo bước kiểm tra, không
-          tự bàn giao; việc bàn giao chỉ diễn ra khi hồ sơ chứng tử được duyệt. Khi còn sống, tôi có
-          quyền sửa đổi, đổi Người thực thi hoặc thu hồi di chúc này bất cứ lúc nào.
+          Biên bản phân chia này chỉ ghi lại mong muốn của tôi, không phải giấy tờ pháp lý. Việc bàn
+          giao chỉ làm theo biên bản bàn giao do luật sư lập và ba bên ký. Khi còn sống, tôi có
+          quyền sửa đổi, đổi Người thực thi hoặc thu hồi biên bản phân chia này bất cứ lúc nào.
         </p>
       </section>
 

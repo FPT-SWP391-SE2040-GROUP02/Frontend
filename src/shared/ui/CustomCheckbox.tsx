@@ -33,9 +33,7 @@ export const CustomCheckbox = React.forwardRef<HTMLInputElement, CustomCheckboxP
       <label htmlFor={inputId} className={`custom-checkbox ${className}`}>
         <input ref={ref} type="checkbox" id={inputId} {...props} />
         {label && (
-          <span className="text-[0.875rem] text-[var(--text-main)] select-none pt-0.5">
-            {label}
-          </span>
+          <span className="text-[0.875rem] text-heritage-text select-none pt-0.5">{label}</span>
         )}
       </label>
     );

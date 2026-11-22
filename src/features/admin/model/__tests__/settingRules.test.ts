@@ -3,30 +3,24 @@ import { limitOf, settingErrors, settingRelationErrors, settingValueError } from
 
 describe("settingValueError", () => {
   it("giá trị trong khoảng thì không lỗi", () => {
-    expect(settingValueError("Handover.ResponseWindowDays", "3")).toBe("");
-    expect(settingValueError("Handover.ResponseWindowDays", " 5 ")).toBe("");
-    expect(settingValueError("Handover.ResponseWindowDays", "60")).toBe("");
+    expect(settingValueError("Executor.InvitationExpiresDays", "7")).toBe("");
+    expect(settingValueError("Executor.InvitationExpiresDays", " 60 ")).toBe("");
+    expect(settingValueError("Handover.GrantWindowDays", "365")).toBe("");
   });
 
   it("ngoài khoảng thì nói rõ khoảng hợp lệ", () => {
-    expect(settingValueError("Handover.ResponseWindowDays", "0")).toBe("Phải từ 1 đến 60.");
-    expect(settingValueError("Handover.ResponseWindowDays", "61")).toBe("Phải từ 1 đến 60.");
+    expect(settingValueError("Executor.InvitationExpiresDays", "0")).toBe("Phải từ 1 đến 60.");
+    expect(settingValueError("Executor.InvitationExpiresDays", "61")).toBe("Phải từ 1 đến 60.");
+    expect(settingValueError("Handover.GrantWindowDays", "366")).toBe("Phải từ 1 đến 365.");
     expect(settingValueError("Security.PinLockoutMinutes", "99999")).toBe("Phải từ 1 đến 1440.");
   });
 
   it("không phải số nguyên không âm thì báo lỗi", () => {
-    expect(settingValueError("Handover.ResponseWindowDays", "")).toBe(
-      "Phải là số nguyên không âm.",
-    );
-    expect(settingValueError("Handover.ResponseWindowDays", "abc")).toBe(
-      "Phải là số nguyên không âm.",
-    );
-    expect(settingValueError("Handover.ResponseWindowDays", "2.5")).toBe(
-      "Phải là số nguyên không âm.",
-    );
-    expect(settingValueError("Handover.ResponseWindowDays", "-1")).toBe(
-      "Phải là số nguyên không âm.",
-    );
+    for (const bad of ["", "abc", "2.5", "-1"]) {
+      expect(settingValueError("Executor.InvitationExpiresDays", bad)).toBe(
+        "Phải là số nguyên không âm.",
+      );
+    }
   });
 
   it("số điện thoại công ty: chặn chữ và số quá ngắn hoặc quá dài, cho để trống", () => {
@@ -53,11 +47,12 @@ describe("settingValueError", () => {
     expect(settingValueError("Company.Email", "co khoang@x.vn")).toBe("Không đúng dạng email.");
   });
 
-  it("khóa không có luật (Plans.*, khóa lạ) thì bỏ qua", () => {
+  it("khóa không có luật (Plans.*, khóa lạ, khóa điểm danh đã bỏ) thì bỏ qua", () => {
     expect(settingValueError("Plans.Xs.Price1Y", "abc")).toBe("");
     expect(settingValueError("Khoa.La", "bat-ky")).toBe("");
     expect(limitOf("Khoa.La")).toBeNull();
-    expect(limitOf("Handover.ResponseWindowDays")).toEqual({ min: 1, max: 60 });
+    expect(limitOf("CheckIn.MaxLateReminders")).toBeNull();
+    expect(limitOf("Executor.InvitationExpiresDays")).toEqual({ min: 1, max: 60 });
   });
 });
 
@@ -82,9 +77,9 @@ describe("settingRelationErrors", () => {
 describe("settingErrors", () => {
   it("chỉ kiểm cặp khi Admin vừa sửa một khóa của cặp đó", () => {
     // Dữ liệu trên máy chủ đang lệch cặp nhưng Admin chỉ sửa một khóa không liên quan: không chặn.
-    const errors = settingErrors({ "Handover.ResponseWindowDays": "4" }, (key) => {
+    const errors = settingErrors({ "Handover.GrantWindowDays": "40" }, (key) => {
       if (key === "Executor.InvitationExpiresDays") return "1";
-      if (key === "Executor.ReminderAfterHours") return "48";
+      if (key === "Executor.ReminderAfterHours") return "30";
       return undefined;
     });
 
@@ -92,8 +87,8 @@ describe("settingErrors", () => {
   });
 
   it("sửa một khóa của cặp làm cặp lệch thì báo lỗi", () => {
-    const errors = settingErrors({ "Executor.ReminderAfterHours": "200" }, (key) => {
-      if (key === "Executor.ReminderAfterHours") return "200";
+    const errors = settingErrors({ "Executor.InvitationExpiresDays": "1" }, (key) => {
+      if (key === "Executor.InvitationExpiresDays") return "1";
       return undefined;
     });
 

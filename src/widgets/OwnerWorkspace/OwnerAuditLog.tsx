@@ -131,7 +131,7 @@ export function OwnerAuditLog() {
     return (
       <div
         role="alert"
-        className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-800"
+        className="space-y-3 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-6 text-sm text-heritage-danger"
       >
         <p>Không tải được thông tin kho.</p>
         <Button
@@ -185,7 +185,7 @@ export function OwnerAuditLog() {
       {filterError ? null : logs.isError ? (
         <div
           role="alert"
-          className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-800"
+          className="space-y-3 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-6 text-sm text-heritage-danger"
         >
           <p>Không tải được nhật ký. Kiểm tra bộ lọc hoặc thử lại.</p>
           <Button
@@ -207,7 +207,7 @@ export function OwnerAuditLog() {
       ) : isOutOfRange ? (
         <div
           role="alert"
-          className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+          className="flex items-center gap-3 rounded-xl border border-heritage-warning-border bg-heritage-warning-bg p-4 text-sm text-heritage-warning"
         >
           <AlertCircle className="size-4" aria-hidden="true" />
           <p>Trang hiện vượt quá phạm vi. Quay lại trang 1 để tiếp tục.</p>

@@ -39,7 +39,7 @@ export function AssetsManagementPage() {
     headerAction = (
       <Button
         size="lg"
-        className="bg-[#E0C486] font-semibold text-[#0A281E] shadow-none hover:bg-[#E6C98B]"
+        className="bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover"
         disabled={lockReason !== null}
         title={lockReason ?? undefined}
         onClick={() => setCreating(true)}

@@ -22,7 +22,7 @@ export const pendingInvitationSchema = z.object({
   invitedAt: timestamp,
 });
 export type PendingInvitation = z.infer<typeof pendingInvitationSchema>;
-/** Kết quả kiểm thư mời bằng mã hồ sơ và 4 số cuối căn cước (POST /handover/invitations/{token}/check-mail). */
+/** Kết quả kiểm thư mời bằng mã hồ sơ và số căn cước (POST /handover/invitations/{token}/check-mail). */
 export const mailCheckSchema = z.object({
   verified: z.boolean(),
   attemptsLeft: z.number().int().min(0),
@@ -47,6 +47,8 @@ export const handoverItemSchema = z.object({
   fileName: z.string().nullable(),
   contentType: z.string(),
   sizeBytes: z.number().int().nonnegative(),
+  /** Người nhận đã tải mục này ít nhất một lần; Backend cũ không gửi thì coi như đã tải (không chặn xác nhận). */
+  downloaded: z.boolean().default(true),
 });
 /** Snapshot và quyền từ BE, không suy ra eligibility bằng đồng hồ/role FE. */
 export const handoverTurnSchema = z.object({
