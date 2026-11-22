@@ -7,7 +7,7 @@ import { Initial } from "./heritageKit";
 export interface ChipOverflowItem {
   id: string;
   label: string;
-  /** Dòng phụ trong popup, ví dụ "CCCD ****1234" hoặc loại tài sản. */
+  /** Dòng phụ trong popup, ví dụ "CCCD 012345671234" hoặc loại tài sản. */
   detail?: string;
 }
 

@@ -30,7 +30,7 @@ vi.mock("../EkycUploads", () => ({
 const pending: Status = {
   status: "PENDING",
   verificationId: "11111111-1111-4111-8111-111111111111",
-  citizenIdLast4: "5608",
+  citizenId: "5608",
   faceMatchScore: null,
   matchThreshold: 0.363,
   spoofCheckPassed: null,
@@ -78,7 +78,7 @@ it("Owner quét mặt đạt thì vào thẳng màn Danh tính đã được xá
   fireEvent.click(await screen.findByRole("button", { name: "Quét xong" }));
   expect(await screen.findByText("Danh tính đã được xác minh.")).toBeInTheDocument();
   expect(screen.getByRole("region", { name: "Kết quả xác minh danh tính" })).toHaveTextContent(
-    "•••• 5608",
+    "5608",
   );
   expect(screen.queryByText("Màn so khớp khuôn mặt")).not.toBeInTheDocument();
 });

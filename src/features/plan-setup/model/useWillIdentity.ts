@@ -4,7 +4,7 @@ import { confirmVaultPin } from "@/shared/api/vaultPin";
 import { planSetupService } from "../api/planSetupService";
 import type { willIdentitySchema } from "./willIdentity.schema";
 
-/** Khóa cache danh tính lập file phân chia; làm mới sau khi ký lại. */
+/** Khóa cache danh tính lập biên bản phân chia; làm mới sau khi ký lại. */
 export function willIdentityQueryKey(vaultId: string): readonly ["will-identity", string] {
   return ["will-identity", vaultId];
 }
@@ -16,7 +16,7 @@ export interface WillPinMemory {
 }
 
 /**
- * Danh tính đầy đủ (CCCD, ngày sinh, thường trú) để in trong file phân chia. Chỉ bật khi khung xem trước đang mở. Không giữ
+ * Danh tính đầy đủ (CCCD, ngày sinh, thường trú) để in trong biên bản phân chia. Chỉ bật khi khung xem trước đang mở. Không giữ
  * trong cache: staleTime 0 và gcTime 0 để dữ liệu nhạy cảm mất ngay khi khung đóng; không tự gọi lại, không retry.
  * Backend đòi PIN kho: hỏi một lần qua hộp thoại PIN chung, PIN đúng được nhớ để dùng lại, không hỏi lần hai.
  */

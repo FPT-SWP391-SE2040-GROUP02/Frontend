@@ -21,14 +21,14 @@ export const recordAssetSchema = z.object({
 export const recordPersonSchema = z.object({
   beneficiaryId: z.string().uuid(),
   fullName: z.string(),
-  citizenIdLast4: z.string(),
+  citizenId: z.string(),
 });
 
 /** Một người nhận trong biên bản: tài sản được nhận, danh tính và chữ ký. */
 export const recordRecipientSchema = z.object({
   beneficiaryId: z.string().uuid(),
   fullName: z.string(),
-  citizenIdLast4: z.string(),
+  citizenId: z.string(),
   assets: z.array(recordAssetSchema),
   turnId: z.string().uuid().nullable(),
   turnStatus: z.string(),
@@ -39,7 +39,7 @@ export const recordRecipientSchema = z.object({
   signedAt: timestamp.nullable(),
 });
 
-/** Một gói trong file phân chia của Chủ kho. */
+/** Một gói trong biên bản phân chia của Chủ kho. */
 export const ownerSplitPackageSchema = z.object({
   packageName: z.string(),
   beneficiaryIds: z.array(z.string().uuid()),
@@ -68,7 +68,7 @@ export const recordClaimSchema = z.object({
   id: z.string().uuid(),
   beneficiaryId: z.string().uuid(),
   fullName: z.string(),
-  citizenIdLast4: z.string(),
+  citizenId: z.string(),
   status: claimStatusSchema,
   note: z.string(),
   reviewReason: z.string().nullable(),

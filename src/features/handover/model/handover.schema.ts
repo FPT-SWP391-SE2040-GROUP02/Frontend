@@ -22,7 +22,7 @@ export const pendingInvitationSchema = z.object({
   invitedAt: timestamp,
 });
 export type PendingInvitation = z.infer<typeof pendingInvitationSchema>;
-/** Kết quả kiểm thư mời bằng mã hồ sơ và 4 số cuối căn cước (POST /handover/invitations/{token}/check-mail). */
+/** Kết quả kiểm thư mời bằng mã hồ sơ và số căn cước (POST /handover/invitations/{token}/check-mail). */
 export const mailCheckSchema = z.object({
   verified: z.boolean(),
   attemptsLeft: z.number().int().min(0),

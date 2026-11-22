@@ -50,7 +50,7 @@ const started = {
     {
       turnId: TURN_ID,
       containerName: "Tài liệu gia đình",
-      beneficiaryCitizenIdLast4: "8901",
+      beneficiaryCitizenId: "8901",
       claimedByYou: false,
       identityConfirmedByExecutor: false,
       status: "INVITED",
@@ -76,7 +76,7 @@ const started = {
     {
       turnId: OTHER_CASE_ID,
       containerName: "Tài khoản ngân hàng",
-      beneficiaryCitizenIdLast4: "1234",
+      beneficiaryCitizenId: "1234",
       beneficiaryFullName: "Nguyễn Văn An",
       beneficiaryPhone: "0901234567",
       claimedByYou: false,
@@ -185,7 +185,7 @@ it("shows four tiles and one row per turn, with detail only after pressing Chi t
   // Chưa có họ tên thì hiện CCCD che; mỗi lượt đúng một dòng kèm tên gói.
   const rows = within(list).getAllByRole("listitem", { name: /, gói / });
   expect(rows).toHaveLength(2);
-  expect(screen.getByText("Người nhận CCCD ***8901")).toBeInTheDocument();
+  expect(screen.getByText("Người nhận CCCD 8901")).toBeInTheDocument();
   expect(screen.getByText("Gói “Tài liệu gia đình”")).toBeInTheDocument();
   expect(screen.getByText("Nguyễn Văn An")).toBeInTheDocument();
   expect(screen.getByText("Gói “Tài khoản ngân hàng”")).toBeInTheDocument();

@@ -175,7 +175,7 @@ export const LANDING_CONTENT = {
           "Đề cử một Người thực thi; luật sư do hệ thống phân công khi có yêu cầu nhận. Họ không đọc được nội dung kho.",
       },
       {
-        title: "Lập file phân chia",
+        title: "Lập biên bản phân chia",
         detail: "Ghi mong muốn của bạn: ai nhận gói nào. Luật sư dùng làm bản đầu của biên bản.",
       },
       {
@@ -199,7 +199,7 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Ảnh căn cước không lưu",
-        detail: "Ảnh chỉ dùng để đọc và so khớp, kết quả lưu kèm 4 số cuối số căn cước.",
+        detail: "Ảnh chỉ dùng để đọc và so khớp, kết quả lưu kèm số căn cước.",
       },
       {
         title: "Không làm thay pháp lý",

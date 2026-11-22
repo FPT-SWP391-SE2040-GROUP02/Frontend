@@ -92,11 +92,9 @@ export function assetBadge(name: string, kind: "FILE" | "TEXT"): string {
   return "TỆP";
 }
 
-/** Tên người nhận của gói để hiện và để tìm: họ tên nếu có, không thì 4 số cuối CCCD che. */
+/** Tên người nhận của gói để hiện và để tìm: họ tên nếu có, không thì số CCCD. */
 export function recipientLabels(item: ExecutorPackage): string[] {
-  return item.recipients.map(
-    (recipient) => recipient.fullName ?? `CCCD ***${recipient.citizenIdLast4}`,
-  );
+  return item.recipients.map((recipient) => recipient.fullName ?? `CCCD ${recipient.citizenId}`);
 }
 
 function normalize(text: string): string {

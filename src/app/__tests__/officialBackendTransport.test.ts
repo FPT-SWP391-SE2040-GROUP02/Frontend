@@ -39,7 +39,7 @@ const asset = {
 };
 const beneficiary = {
   id: CONTAINER_ID,
-  citizenIdLast4: "1234",
+  citizenId: "1234",
   fullName: "Người nhận",
   dateOfBirth: "2000-01-01",
   email: null,
@@ -55,7 +55,7 @@ describe("official Backend transport through real Axios interceptors", () => {
     const status = {
       status: "NOT_STARTED",
       verificationId: null,
-      citizenIdLast4: "",
+      citizenId: "",
       faceMatchScore: null,
       matchThreshold: 0.363,
       spoofCheckPassed: null,
@@ -137,7 +137,7 @@ describe("official Backend transport through real Axios interceptors", () => {
       {
         status: "PASSED",
         verificationId: CONTAINER_ID,
-        citizenIdLast4: "8901",
+        citizenId: "8901",
         faceMatchScore: 0.42,
         matchThreshold: 0.363,
         spoofCheckPassed: true,
@@ -262,9 +262,12 @@ describe("official Backend transport through real Axios interceptors", () => {
     });
     expect(result).not.toHaveProperty("content");
   });
-  it("strips full citizenId from public beneficiary response", async () => {
-    respond(pageFixture([{ ...beneficiary, citizenId: "public-test-id" }]));
-    expect((await beneficiaryService.list(VAULT_ID)).items[0]).toEqual(beneficiary);
+  it("keeps the full citizenId in the beneficiary response", async () => {
+    respond(pageFixture([{ ...beneficiary, citizenId: "012345678901" }]));
+    expect((await beneficiaryService.list(VAULT_ID)).items[0]).toEqual({
+      ...beneficiary,
+      citizenId: "012345678901",
+    });
   });
   it("does not allow changing citizenId in beneficiary PUT", async () => {
     respond(beneficiary, (config) => {

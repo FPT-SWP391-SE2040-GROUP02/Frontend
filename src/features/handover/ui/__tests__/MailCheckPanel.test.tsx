@@ -16,26 +16,26 @@ function httpError(status: number) {
   });
 }
 
-async function fill(user: ReturnType<typeof userEvent.setup>, code: string, last4: string) {
+async function fill(user: ReturnType<typeof userEvent.setup>, code: string, citizenId: string) {
   await user.type(screen.getByLabelText("Mã hồ sơ"), code);
-  await user.type(screen.getByLabelText("4 số cuối căn cước"), last4);
+  await user.type(screen.getByLabelText("Số căn cước"), citizenId);
 }
 
 afterEach(() => vi.restoreAllMocks());
 
 describe("MailCheckPanel", () => {
-  it("nút Kiểm tra chỉ mở khi có mã hồ sơ và đủ 4 chữ số", async () => {
+  it("nút Kiểm tra chỉ mở khi có mã hồ sơ và đủ 12 chữ số", async () => {
     const user = userEvent.setup();
     render(<MailCheckPanel token="tok" />);
     const button = screen.getByRole("button", { name: "Kiểm tra" });
     expect(button).toBeDisabled();
 
     await user.type(screen.getByLabelText("Mã hồ sơ"), "01A16CF1");
-    await user.type(screen.getByLabelText("4 số cuối căn cước"), "12a3");
-    expect(screen.getByLabelText("4 số cuối căn cước")).toHaveValue("123");
+    await user.type(screen.getByLabelText("Số căn cước"), "01234567a891");
+    expect(screen.getByLabelText("Số căn cước")).toHaveValue("01234567891");
     expect(button).toBeDisabled();
 
-    await user.type(screen.getByLabelText("4 số cuối căn cước"), "4");
+    await user.type(screen.getByLabelText("Số căn cước"), "0");
     expect(button).toBeEnabled();
   });
 
@@ -49,12 +49,12 @@ describe("MailCheckPanel", () => {
     });
     render(<MailCheckPanel token="tok-1" />);
 
-    await fill(user, "01A16CF1", "1234");
+    await fill(user, "01A16CF1", "012345678910");
     await user.click(screen.getByRole("button", { name: "Kiểm tra" }));
 
     expect(post).toHaveBeenCalledWith("/handover/invitations/tok-1/check-mail", {
       caseCode: "01A16CF1",
-      citizenIdLast4: "1234",
+      citizenId: "012345678910",
     });
     expect(await screen.findByText(/Thư là thật/)).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Gói “Gói gia đình”");
@@ -66,7 +66,7 @@ describe("MailCheckPanel", () => {
     vi.spyOn(apiClient, "post").mockResolvedValue({ verified: false, attemptsLeft: 4 });
     render(<MailCheckPanel token="tok" />);
 
-    await fill(user, "SAI", "0000");
+    await fill(user, "SAI", "000000000000");
     await user.click(screen.getByRole("button", { name: "Kiểm tra" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Không khớp. Còn 4 lần thử.");
@@ -78,7 +78,7 @@ describe("MailCheckPanel", () => {
     vi.spyOn(apiClient, "post").mockRejectedValue(httpError(423));
     render(<MailCheckPanel token="tok" />);
 
-    await fill(user, "01A16CF1", "1234");
+    await fill(user, "01A16CF1", "012345678910");
     await user.click(screen.getByRole("button", { name: "Kiểm tra" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/quá số lần cho phép/);
@@ -89,7 +89,7 @@ describe("MailCheckPanel", () => {
     vi.spyOn(apiClient, "post").mockRejectedValue(httpError(404));
     render(<MailCheckPanel token="tok" />);
 
-    await fill(user, "01A16CF1", "1234");
+    await fill(user, "01A16CF1", "012345678910");
     await user.click(screen.getByRole("button", { name: "Kiểm tra" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/Không kiểm tra được lúc này/);

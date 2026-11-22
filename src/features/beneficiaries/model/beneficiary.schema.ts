@@ -1,9 +1,9 @@
 import { z } from "zod";
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-/** Response chỉ có bốn số cuối CCCD; parse loại bỏ full citizenId ngoài contract. */
+/** Hồ sơ người nhận Backend trả, kèm số CCCD đầy đủ. */
 export const beneficiaryResponseSchema = z.object({
   id: z.string().uuid(),
-  citizenIdLast4: z.string().regex(/^\d{4}$/),
+  citizenId: z.string(),
   fullName: z.string(),
   dateOfBirth: date,
   email: z.string().nullable(),

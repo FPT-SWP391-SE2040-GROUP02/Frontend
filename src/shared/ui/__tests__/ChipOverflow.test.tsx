@@ -5,7 +5,7 @@ import { ChipOverflow, type ChipOverflowItem } from "../ChipOverflow";
 function people(count: number): ChipOverflowItem[] {
   const items: ChipOverflowItem[] = [];
   for (let index = 1; index <= count; index += 1) {
-    items.push({ id: `p${index}`, label: `Người ${index}`, detail: `CCCD ****000${index}` });
+    items.push({ id: `p${index}`, label: `Người ${index}`, detail: `CCCD 000${index}` });
   }
   return items;
 }
@@ -35,7 +35,7 @@ describe("ChipOverflow", () => {
     fireEvent.click(toggle);
     expect(await screen.findByText("5 người nhận của gói")).toBeInTheDocument();
     expect(screen.getByText("Người 5")).toBeInTheDocument();
-    expect(screen.getByText("CCCD ****0005")).toBeInTheDocument();
+    expect(screen.getByText("CCCD 0005")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Quản lý người nhận" })).toBeInTheDocument();
     expect(screen.queryByRole("searchbox")).not.toBeInTheDocument();
   });

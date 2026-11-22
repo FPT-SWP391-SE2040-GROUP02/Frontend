@@ -190,7 +190,7 @@ describe("useLiveness", () => {
     vi.mocked(ekycService.completeLiveness).mockResolvedValue({
       status: "PASSED",
       verificationId: "11111111-1111-1111-1111-111111111111",
-      citizenIdLast4: "8901",
+      citizenId: "8901",
       faceMatchScore: 0.42,
       matchThreshold: 0.363,
       spoofCheckPassed: true,

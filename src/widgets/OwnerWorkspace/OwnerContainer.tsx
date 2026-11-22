@@ -129,7 +129,7 @@ export function OwnerContainer() {
         beneficiaries={
           beneficiaries.data?.items.map((item) => ({
             id: item.id,
-            label: `${item.fullName} · ****${item.citizenIdLast4}`,
+            label: `${item.fullName} · ${item.citizenId}`,
           })) ?? []
         }
       />

@@ -9,7 +9,7 @@ const ekycPurposeSchema = z.literal("OWNER_ENROLLMENT");
 export const ekycStatusSchema = z.object({
   status: z.enum(["NOT_STARTED", "PENDING", "PASSED", "FAILED"]),
   verificationId: z.string().uuid().nullable(),
-  citizenIdLast4: z.string().regex(/^(?:\d{4})?$/),
+  citizenId: z.string().regex(/^\d*$/),
   faceMatchScore: z.number().nullable(),
   matchThreshold: z.number(),
   spoofCheckPassed: z.boolean().nullable(),

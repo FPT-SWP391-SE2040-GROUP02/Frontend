@@ -35,7 +35,7 @@ const progressTurnSchema = z.object({
   containerName: z.string(),
   /** Mã hồ sơ người nhận trong kho; các lượt cùng mã là cùng một người. Backend cũ chưa gửi thì null. */
   beneficiaryId: z.string().uuid().nullable().default(null),
-  beneficiaryCitizenIdLast4: z.string(),
+  beneficiaryCitizenId: z.string(),
   /** Họ tên và số điện thoại người nhận: Backend gửi ở lượt còn hiệu lực hoặc đã bàn giao; lượt đã kết thúc là null. */
   beneficiaryFullName: z.string().nullable().default(null),
   beneficiaryPhone: z.string().nullable().default(null),
@@ -71,7 +71,7 @@ const progressTurnSchema = z.object({
 
 /**
  * HandoverProgressResponse của GET /executor/handover-records/{recordId}/handover-progress.
- * Chỉ có tên/loại tài sản và 4 số cuối CCCD người nhận; không có nội dung tài sản.
+ * Chỉ có tên/loại tài sản và số CCCD người nhận; không có nội dung tài sản.
  * Họ tên và số điện thoại người nhận chỉ có ở lượt còn hiệu lực hoặc đã bàn giao.
  * Hồ sơ chưa duyệt: handoverStarted = false, turns rỗng, summary toàn 0.
  */

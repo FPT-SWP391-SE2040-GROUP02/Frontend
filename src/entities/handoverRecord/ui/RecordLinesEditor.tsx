@@ -19,7 +19,7 @@ function linesOf(record: HandoverRecord): Set<string> {
 
 /**
  * Bước 1 của luật sư: chọn ai nhận tài sản nào. Mỗi ô là một cặp người nhận - tài sản; một tài sản có thể
- * giao cho nhiều người (đồng thừa kế). Có thể lấy file phân chia của Chủ kho làm bản đầu rồi sửa.
+ * giao cho nhiều người (đồng thừa kế). Có thể lấy biên bản phân chia của Chủ kho làm bản đầu rồi sửa.
  * Lưu xong mới chốt được; đã chốt thì phải mở lại biên bản mới sửa.
  */
 export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
@@ -75,7 +75,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
         </p>
         {record.ownerSplit.length > 0 ? (
           <div className="space-y-2 rounded-xl border border-heritage-border p-4 text-sm">
-            <p className="font-semibold">File phân chia của Chủ kho</p>
+            <p className="font-semibold">Biên bản phân chia của Chủ kho</p>
             <ul className="list-disc space-y-1 pl-4">
               {record.ownerSplit.map((pkg) => (
                 <li key={pkg.packageName}>
@@ -91,7 +91,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
                 void split.execute(() => handoverRecordService.useOwnerSplit(record.id), apply)
               }
             >
-              {split.pending ? "Đang lấy…" : "Lấy file phân chia làm bản đầu"}
+              {split.pending ? "Đang lấy…" : "Lấy biên bản phân chia làm bản đầu"}
             </button>
             {split.error && (
               <p role="alert" className="text-destructive">
@@ -101,7 +101,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           </div>
         ) : (
           <p className="text-sm text-heritage-muted">
-            Chủ kho chưa lập file phân chia. Bạn tự lập biên bản.
+            Chủ kho chưa lập biên bản phân chia. Bạn tự lập biên bản.
           </p>
         )}
 
@@ -116,7 +116,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
                 {record.availableRecipients.map((person) => (
                   <th key={person.beneficiaryId} scope="col" className="px-4 py-3 font-semibold">
                     <span className="block">{person.fullName || "—"}</span>
-                    <span className="font-normal">{`****${person.citizenIdLast4}`}</span>
+                    <span className="font-normal">{`CCCD ${person.citizenId}`}</span>
                   </th>
                 ))}
               </tr>

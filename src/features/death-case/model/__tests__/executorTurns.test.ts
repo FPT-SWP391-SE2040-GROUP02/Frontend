@@ -5,7 +5,7 @@ import { countTurns, deriveTurnProgress, formatStepTime, sortTurnRows } from "..
 const BASE = {
   turnId: "55555555-5555-4555-8555-555555555555",
   containerName: "Gói A",
-  beneficiaryCitizenIdLast4: "1234",
+  beneficiaryCitizenId: "1234",
   status: "INVITED",
   claimedByYou: false,
   identityConfirmedByExecutor: false,

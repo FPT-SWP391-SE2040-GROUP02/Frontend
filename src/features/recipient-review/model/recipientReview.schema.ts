@@ -15,14 +15,14 @@ export type RecipientSubmissionSummary = z.infer<typeof recipientSubmissionSumma
 
 /**
  * Chi tiết một hồ sơ người nhận. Backend không trả họ tên, ngày sinh hay số căn cước đầy đủ: chỉ kết quả đối chiếu
- * với thông tin Chủ kho đã khai và 4 số cuối để người xét duyệt đối chiếu với ảnh.
+ * với thông tin Chủ kho đã khai và số căn cước để người xét duyệt đối chiếu với ảnh.
  */
 export const recipientSubmissionDetailSchema = recipientSubmissionSummarySchema.extend({
   status: z.enum(["SUBMITTED", "SUPPLEMENT_REQUESTED", "APPROVED", "SUPERSEDED"]),
   nameMatches: z.boolean(),
   citizenIdMatches: z.boolean(),
   dateOfBirthMatches: z.boolean(),
-  citizenIdLast4: z.string(),
+  citizenId: z.string(),
   acknowledged: z.boolean(),
   voluntaryDecline: z.boolean(),
   supplementReason: z.string().nullish(),

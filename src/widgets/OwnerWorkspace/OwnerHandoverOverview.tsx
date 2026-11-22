@@ -33,12 +33,12 @@ function HandoverHeader({
   );
 }
 
-/** Ghi chú pháp lý: file phân chia số chỉ áp dụng cho dữ liệu trong LegacyVault. */
+/** Ghi chú pháp lý: biên bản phân chia số chỉ áp dụng cho dữ liệu trong LegacyVault. */
 function LegacyDisclaimer() {
   return (
     <div className="rounded-xl border border-heritage-warning-border bg-heritage-warning-bg px-4 py-3.5 text-sm leading-[1.55] text-heritage-warning">
       <strong className="font-semibold">
-        File phân chia số chỉ áp dụng cho dữ liệu trong LegacyVault.
+        Biên bản phân chia số chỉ áp dụng cho dữ liệu trong LegacyVault.
       </strong>{" "}
       Tài sản thật như nhà đất, tiền gửi do gia đình và luật sư xử lý ở ngoài hệ thống.
     </div>
@@ -48,12 +48,12 @@ function LegacyDisclaimer() {
 /** Câu dẫn đầu trang nháp: nói còn thiếu gì hoặc đã đủ để ký. */
 function draftSubtitle(setup: PlanSetup): string {
   if (setup.canActivate) {
-    return "Mọi việc đã xong. Bấm Xem trước và ký, đọc lại file phân chia một lượt rồi ký bằng mã PIN để kế hoạch bàn giao bắt đầu chạy.";
+    return "Mọi việc đã xong. Bấm Xem trước và ký, đọc lại biên bản phân chia một lượt rồi ký bằng mã PIN để kế hoạch bàn giao bắt đầu chạy.";
   }
-  return "Hoàn tất các việc bên dưới, rồi bấm Xem trước file phân chia. File phân chia tự điền từ kho của bạn; đọc xong bạn mới ký.";
+  return "Hoàn tất các việc bên dưới, rồi bấm Xem trước biên bản phân chia. Biên bản phân chia tự điền từ kho của bạn; đọc xong bạn mới ký.";
 }
 
-/** Kế hoạch còn nháp: thẻ việc ở trái; tiến độ và nút xem trước file phân chia ở phải. */
+/** Kế hoạch còn nháp: thẻ việc ở trái; tiến độ và nút xem trước biên bản phân chia ở phải. */
 function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   return (
     <div className="space-y-7">
@@ -97,7 +97,7 @@ function ActivePlanCard({ activatedAt }: { activatedAt: string | null | undefine
         <dd className="font-semibold">{activatedText}</dd>
       </dl>
       <p className="mt-3 text-sm text-heritage-muted">
-        Mỗi lần sửa gói, người nhận hoặc Người thực thi cần mã PIN. File phân chia bên trái luôn
+        Mỗi lần sửa gói, người nhận hoặc Người thực thi cần mã PIN. Biên bản phân chia bên trái luôn
         hiện nội dung đang áp dụng.
       </p>
       <div className="mt-3.5 flex flex-wrap gap-2.5">
@@ -111,7 +111,7 @@ function ActivePlanCard({ activatedAt }: { activatedAt: string | null | undefine
 
 /**
  * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là điểm danh, kế hoạch đang áp dụng, mã mở gói và tiến trình.
- * Bên phải: nút "Xem file phân chia đã ký" mở khung file phân chia đủ chữ ký.
+ * Bên phải: nút "Xem biên bản phân chia đã ký" mở khung biên bản phân chia đủ chữ ký.
  */
 function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   let chipText = `Trạng thái kế hoạch: ${setup.planStatus}`;
@@ -124,7 +124,7 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
       <HandoverHeader
         chipText={chipText}
         chipTone="success"
-        subtitle="File phân chia đã ký. Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ và luật sư lập biên bản."
+        subtitle="Biên bản phân chia đã ký. Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ và luật sư lập biên bản."
       />
       <PlanSetupPanel
         vaultId={vaultId}
@@ -144,7 +144,7 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
 }
 
 /**
- * Trang Bàn giao của Chủ kho. Cột trái là các thẻ việc, cột phải là tiến độ và nút xem trước file phân chia; file phân chia (sinh từ
+ * Trang Bàn giao của Chủ kho. Cột trái là các thẻ việc, cột phải là tiến độ và nút xem trước biên bản phân chia; biên bản phân chia (sinh từ
  * kế hoạch, cả bản nháp lẫn đã ký) trượt ra từ bên phải, ký bằng PIN ở chân khung. Kế hoạch đã chạy thêm kế
  * hoạch đang áp dụng, mã mở gói (hệ thống tự giữ, Chủ kho chỉ đổi mã mới) và tiến trình bàn giao. Quyền và trạng thái
  * luôn do Backend quyết định.

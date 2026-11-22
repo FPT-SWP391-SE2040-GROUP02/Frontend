@@ -1,4 +1,4 @@
-/** Dữ liệu một bản file phân chia để hiển thị (WillDocument). Chỉ có tên và số đếm, không có nội dung tài sản hay lời nhắn. */
+/** Dữ liệu một bản biên bản phân chia để hiển thị (WillDocument). Chỉ có tên và số đếm, không có nội dung tài sản hay lời nhắn. */
 
 export interface WillExecutorView {
   /** Email tài khoản LegacyVault của Người thực thi. */
@@ -21,7 +21,7 @@ export interface WillRecipientView {
   packages: WillPackageView[];
   /** Ngày sinh "yyyy-MM-dd" của người nhận; chỉ có khi nơi xem đã tải danh tính đầy đủ. */
   dateOfBirth?: string | null;
-  /** Số CCCD đầy đủ của người nhận; chỉ in trong file phân chia, không ghi log hay lưu trữ. */
+  /** Số CCCD đầy đủ của người nhận; chỉ in trong biên bản phân chia, không ghi log hay lưu trữ. */
   citizenId?: string | null;
 }
 
@@ -39,11 +39,11 @@ export interface WillOwnerIdentityView {
  */
 export type WillIdentityStatus = "none" | "loading" | "error" | "ready";
 
-/** Phiên bản file phân chia đã ký gần nhất, in ở đầu tờ. */
+/** Phiên bản biên bản phân chia đã ký gần nhất, in ở đầu tờ. */
 export interface WillVersionView {
   number: number;
   signedAt: string | null;
 }
 
-/** Chỗ trống trong file phân chia mà Chủ kho có thể bấm để được đưa tới nơi điền. */
+/** Chỗ trống trong biên bản phân chia mà Chủ kho có thể bấm để được đưa tới nơi điền. */
 export type WillGapTarget = "executor" | "packages";

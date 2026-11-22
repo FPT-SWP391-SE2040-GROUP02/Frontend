@@ -20,7 +20,7 @@ const document = {
 const status = {
   status: "PENDING",
   verificationId,
-  citizenIdLast4: "8901",
+  citizenId: "8901",
   faceMatchScore: null,
   matchThreshold: 0.363,
   spoofCheckPassed: null,

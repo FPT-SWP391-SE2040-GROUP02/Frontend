@@ -12,7 +12,7 @@ const RECORD_ID = "22222222-2222-4222-8222-222222222222";
 
 const saved = {
   id: RECORD_ID,
-  citizenIdLast4: "8901",
+  citizenId: "8901",
   fullName: "Nguyễn Văn An",
   dateOfBirth: "1990-05-20",
   email: "an@example.com",

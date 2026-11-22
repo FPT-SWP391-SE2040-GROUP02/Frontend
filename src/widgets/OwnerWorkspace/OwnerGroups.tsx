@@ -97,7 +97,7 @@ export function OwnerGroups({
       const option: GroupBeneficiaryOption = {
         id: item.id,
         fullName: item.fullName,
-        citizenIdLast4: item.citizenIdLast4,
+        citizenId: item.citizenId,
       };
       beneficiaries.push(option);
       beneficiariesById.set(option.id, option);

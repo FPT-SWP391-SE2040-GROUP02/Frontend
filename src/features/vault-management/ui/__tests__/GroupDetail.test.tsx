@@ -176,7 +176,7 @@ describe("chi tiết gói bàn giao", () => {
     expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
   });
 
-  it("hộp thoại xóa nói gói không còn được bàn giao và nhắc ký lại file phân chia", async () => {
+  it("hộp thoại xóa nói gói không còn được bàn giao và nhắc ký lại biên bản phân chia", async () => {
     renderGroup();
 
     fireEvent.click(screen.getByRole("button", { name: "Xóa gói bàn giao" }));
@@ -185,7 +185,7 @@ describe("chi tiết gói bàn giao", () => {
       "Gói này sẽ không còn được bàn giao, kể cả khi bạn chưa ký lại.",
     );
     expect(dialog).toHaveTextContent(
-      "Nếu kế hoạch đã ký, hãy vào trang Bàn giao để ký lại file phân chia.",
+      "Nếu kế hoạch đã ký, hãy vào trang Bàn giao để ký lại biên bản phân chia.",
     );
     expect(dialog).toHaveTextContent("Các mục trong gói bàn giao vẫn ở lại kho");
   });

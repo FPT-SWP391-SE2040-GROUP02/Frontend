@@ -140,7 +140,7 @@ export function GroupCard({
       peopleChips.push({
         id,
         label: person.fullName,
-        detail: maskedCitizenId(person.citizenIdLast4),
+        detail: maskedCitizenId(person.citizenId),
       });
     } else {
       peopleChips.push({ id, label: "Người nhận chưa tải được tên" });

@@ -42,7 +42,7 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
         <div className="min-w-0">
           <h3 className="font-semibold text-heritage-primary">{claim.fullName || "Người nhận"}</h3>
           <p className="text-sm text-heritage-muted">
-            CCCD ****{claim.citizenIdLast4} · gửi {formatDateTime(claim.createdAt)}
+            CCCD {claim.citizenId} · gửi {formatDateTime(claim.createdAt)}
           </p>
         </div>
         <Chip tone={status.tone}>{status.label}</Chip>

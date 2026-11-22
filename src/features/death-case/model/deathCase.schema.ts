@@ -22,7 +22,7 @@ export const executorPackageSchema = z.object({
   recipients: z.array(
     z.object({
       fullName: z.string().nullish(),
-      citizenIdLast4: z.string(),
+      citizenId: z.string(),
     }),
   ),
   assets: z.array(

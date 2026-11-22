@@ -52,7 +52,7 @@ const handoverNotAllowedReasons: Record<string, string> = {
   HANDOVER_NOT_STARTED: "Chỉ xem được sau khi luật sư chốt biên bản bàn giao.",
   PLAN_NOT_ACTIVE: "Kho chưa kích hoạt kế hoạch bàn giao nên chưa nhận yêu cầu.",
   NO_VERIFIER: "Hiện chưa có luật sư nào nhận được hồ sơ này. Vui lòng thử lại sau.",
-  NO_OWNER_SPLIT: "Chủ kho chưa lập file phân chia. Hãy tự chọn người nhận cho từng tài sản.",
+  NO_OWNER_SPLIT: "Chủ kho chưa lập biên bản phân chia. Hãy tự chọn người nhận cho từng tài sản.",
   RECORD_INVALID: "Biên bản chưa hợp lệ. Kiểm tra lại người nhận và tài sản trước khi chốt.",
   NOT_IDENTITY_STEP: "Biên bản chưa ở bước kiểm danh tính. Hãy chốt biên bản trước.",
   NOT_SIGNING_STEP:
@@ -158,7 +158,7 @@ const messages: Record<string, string> = {
   EXECUTOR_NOT_ALLOWED: "Trạng thái hoặc tài khoản hiện không cho phép thao tác Executor này.",
   PLAN_ACTIVATION_NOT_ALLOWED: "Trạng thái kế hoạch hiện không cho phép kích hoạt lại.",
   WILL_SIGN_NOT_ALLOWED:
-    "Kế hoạch hiện không ở trạng thái cho phép ký lại file phân chia. Tải lại để xem trạng thái mới nhất.",
+    "Kế hoạch hiện không ở trạng thái cho phép ký lại biên bản phân chia. Tải lại để xem trạng thái mới nhất.",
   PLAN_ACTIVATION_REQUIREMENTS_NOT_MET:
     "Kế hoạch chưa đủ điều kiện. Tải lại checklist để kiểm tra trước khi kích hoạt.",
   POLICY_ACKNOWLEDGEMENT_REQUIRED: "Cần đọc và xác nhận nội dung hiện hành trước khi tiếp tục.",

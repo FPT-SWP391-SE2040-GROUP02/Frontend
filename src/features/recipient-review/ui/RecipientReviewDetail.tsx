@@ -46,7 +46,7 @@ function IdentityImage({ id, side, label }: { id: string; side: "front" | "back"
 
 /**
  * Luật sư kiểm danh tính một người nhận có tên trong biên bản: xem kết quả đối chiếu với thông tin Chủ kho đã khai,
- * ảnh căn cước hai mặt, rồi xác nhận hoặc yêu cầu làm lại. Chưa khớp thì chưa sang bước ký.
+ * ảnh căn cước hai mặt, rồi tự quyết xác nhận hoặc yêu cầu làm lại. Kết quả đối chiếu chỉ để tham khảo.
  */
 export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void }) {
   const client = useQueryClient();
@@ -95,7 +95,7 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
             <MatchRow label="Họ tên" matches={detail.nameMatches} />
             <MatchRow label="Số căn cước" matches={detail.citizenIdMatches} />
             <MatchRow label="Ngày sinh" matches={detail.dateOfBirthMatches} />
-            <InfoRow label="4 số cuối căn cước">{`****${detail.citizenIdLast4}`}</InfoRow>
+            <InfoRow label="Số căn cước khai">{detail.citizenId}</InfoRow>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <IdentityImage id={detail.id} side="front" label="Căn cước mặt trước" />
@@ -103,8 +103,8 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
           </div>
           {!detail.allMatch && (
             <Notice tone="warning" title="Có trường không khớp">
-              Thông tin người nhận khai không khớp với thông tin Chủ kho đã khai. Yêu cầu người nhận
-              làm lại xác minh.
+              Thông tin người nhận khai không khớp với thông tin Chủ kho đã khai. Hãy xem kỹ ảnh căn
+              cước rồi tự quyết định: xác nhận đúng người hoặc yêu cầu làm lại.
             </Notice>
           )}
         </div>

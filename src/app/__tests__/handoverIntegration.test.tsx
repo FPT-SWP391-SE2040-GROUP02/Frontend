@@ -77,7 +77,7 @@ it("does not submit selfie before the OCR confirmation and keeps OCR out of the 
       return {
         status: "PENDING",
         verificationId: VAULT_ID,
-        citizenIdLast4: "8901",
+        citizenId: "8901",
         faceMatchScore: null,
         matchThreshold: 0.363,
         spoofCheckPassed: null,
