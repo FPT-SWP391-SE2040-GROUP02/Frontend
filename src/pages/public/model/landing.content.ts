@@ -176,7 +176,8 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Lập biên bản phân chia",
-        detail: "Ghi mong muốn của bạn: ai nhận gói nào. Luật sư dùng làm bản đầu của biên bản.",
+        detail:
+          "Ghi mong muốn của bạn: ai nhận tài sản nào. Luật sư dùng làm bản đầu của biên bản.",
       },
       {
         title: "Bàn giao đúng lúc",

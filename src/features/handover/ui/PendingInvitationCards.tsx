@@ -71,7 +71,7 @@ function InvitationCard({ invitation, email }: { invitation: PendingInvitation; 
 }
 
 /**
- * Khu "GÓI MỚI CHỜ BẠN XÁC NHẬN" ở đầu cổng người nhận. Chỉ hiện khi Backend trả lời mời cho tài khoản này
+ * Khu "TÀI SẢN MỚI CHỜ BẠN XÁC NHẬN" ở đầu cổng người nhận. Chỉ hiện khi Backend trả lời mời cho tài khoản này
  * (đúng email đã xác minh); không có lời mời hoặc lỗi tải thì không hiện gì.
  */
 export function PendingInvitationCards() {
@@ -84,7 +84,7 @@ export function PendingInvitationCards() {
         id="pending-invitations-title"
         className="text-sm font-semibold tracking-widest text-heritage-warning"
       >
-        GÓI MỚI CHỜ BẠN XÁC NHẬN
+        TÀI SẢN MỚI CHỜ BẠN XÁC NHẬN
       </h2>
       {invitations.data.map((invitation) => (
         <InvitationCard key={invitation.turnId} invitation={invitation} email={email ?? ""} />

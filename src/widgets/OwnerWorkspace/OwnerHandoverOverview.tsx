@@ -80,7 +80,7 @@ function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   );
 }
 
-/** Thẻ "Kế hoạch đang áp dụng": lúc Chủ kho ký kích hoạt và lối sửa gói, người nhận. */
+/** Thẻ "Kế hoạch đang áp dụng": lúc Chủ kho ký kích hoạt và lối sửa phần phân chia, người nhận. */
 function ActivePlanCard({ setup }: { setup: PlanSetup }) {
   const activatedAt = setup.activatedAt;
   let activatedText = "Chưa có";
@@ -100,12 +100,12 @@ function ActivePlanCard({ setup }: { setup: PlanSetup }) {
         <dd className="font-semibold">{activatedText}</dd>
       </dl>
       <p className="mt-3 text-sm text-heritage-muted">
-        Mỗi lần sửa gói, người nhận hoặc Người thực thi cần mã PIN. Biên bản phân chia bên trái luôn
-        hiện nội dung đang áp dụng.
+        Mỗi lần sửa phần phân chia, người nhận hoặc Người thực thi cần mã PIN. Biên bản phân chia
+        bên trái luôn hiện nội dung đang áp dụng.
       </p>
       <div className="mt-3.5 flex flex-wrap gap-2.5">
         <Link className={buttonStyles.outline} to={ROUTES.DASHBOARD.ASSETS}>
-          Sửa gói và người nhận
+          Sửa phân chia và người nhận
         </Link>
         <PaperPreviewButton
           label="Xem phiếu gửi"

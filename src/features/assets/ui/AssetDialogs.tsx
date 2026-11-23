@@ -15,12 +15,12 @@ import {
 import { backendAssetService } from "../api/backendAssetService";
 import type { BackendAsset } from "../model/backendAsset.schema";
 
-/** Backend từ chối xóa khi tài sản đang nằm trong gói hoặc đã ghim vào lượt bàn giao. */
+/** Backend từ chối xóa khi tài sản đang được gán cho người nhận hoặc đã ghim vào lượt bàn giao. */
 const isAssetInUse = (error: unknown) =>
   isAxiosError<{ code?: string }>(error) && error.response?.data?.code === "ASSET_IN_USE";
 
 /**
- * Xóa tài sản: cần tick xác nhận. Nếu Backend từ chối vì đang được dùng (trong gói hoặc đã ghim),
+ * Xóa tài sản: cần tick xác nhận. Nếu Backend từ chối vì đang được dùng (đã gán hoặc đã ghim),
  * hộp thoại chuyển sang giải thích lý do thay vì báo lỗi chung.
  */
 export function DeleteDialog({

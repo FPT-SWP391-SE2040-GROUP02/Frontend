@@ -260,7 +260,7 @@ export function LoginForm({
           {adminOnly
             ? "Hệ thống đang bảo trì. Chỉ tài khoản Quản trị viên được đăng nhập."
             : invitationContext
-              ? "Tiếp tục để xác minh tư cách người nhận gói di sản."
+              ? "Tiếp tục để xác minh tư cách người nhận tài sản."
               : getLoginSubtitle(fromReceive)}
         </p>
       </div>

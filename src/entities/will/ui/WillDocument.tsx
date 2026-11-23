@@ -173,8 +173,8 @@ function OwnerSectionBlock({
       {missingNote}
       <p className={`${BODY} mt-2`}>
         Nay trong trạng thái tinh thần hoàn toàn minh mẫn, sáng suốt, không bị bất kỳ sự lừa dối, đe
-        dọa hoặc cưỡng ép nào, tôi lập biên bản phân chia này để định đoạt các gói tài sản số trong
-        kho của tôi tại LegacyVault sau khi tôi qua đời như sau:
+        dọa hoặc cưỡng ép nào, tôi lập biên bản phân chia này để định đoạt các tài sản số trong kho
+        của tôi tại LegacyVault sau khi tôi qua đời như sau:
       </p>
     </section>
   );

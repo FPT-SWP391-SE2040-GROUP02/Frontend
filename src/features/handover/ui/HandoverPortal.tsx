@@ -342,7 +342,7 @@ export function HandoverPortal() {
       ) : query.data.length === 0 ? (
         !hasInvitations && (
           <div className="space-y-2">
-            <p role="status">Hiện chưa có gói nào chờ bạn trên tài khoản này.</p>
+            <p role="status">Hiện chưa có tài sản nào chờ bạn trên tài khoản này.</p>
             <p className="text-sm text-heritage-muted">
               Nếu bạn vừa nhận thư mời, hãy đăng nhập bằng đúng email ghi trong thư.
             </p>
