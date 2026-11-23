@@ -177,4 +177,30 @@ describe("tab Phân chia", () => {
     expect(await screen.findByText("Nguyễn Văn An")).toBeInTheDocument();
     expect(screen.getByText(/Chưa được gán tài sản nào/)).toBeInTheDocument();
   });
+
+  it("theo người nhận: tài sản thu lại sau nút, mở ra thì hiện và nút báo trạng thái mở", async () => {
+    mockData([link(HOUSE_ID, AN_ID), link(CAR_ID, AN_ID)]);
+    renderBoard();
+
+    await userEvent.click(await screen.findByRole("tab", { name: "Theo người nhận" }));
+    const toggle = await screen.findByRole("button", { name: "2 tài sản của Nguyễn Văn An" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    const body = document.getElementById(toggle.getAttribute("aria-controls") as string);
+    expect(body).toHaveAttribute("inert");
+
+    await userEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(body).not.toHaveAttribute("inert");
+    expect(within(body as HTMLElement).getByText("Nhà")).toBeInTheDocument();
+    expect(within(body as HTMLElement).getByText("Xe")).toBeInTheDocument();
+  });
+
+  it("theo người nhận: người chưa được gán không có nút mở và ghi rõ không nhận gì khi bàn giao", async () => {
+    mockData([link(HOUSE_ID, AN_ID)]);
+    renderBoard();
+
+    await userEvent.click(await screen.findByRole("tab", { name: "Theo người nhận" }));
+    expect(await screen.findByText("Sẽ không nhận gì khi bàn giao.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /tài sản của Trần Thị Bình/ })).toBeNull();
+  });
 });

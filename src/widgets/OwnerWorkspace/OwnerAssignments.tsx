@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { CircleCheck, FileText, Lock, StickyNote, Users } from "lucide-react";
+import { ChevronDown, CircleCheck, FileText, Lock, StickyNote, Users } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { confirmVaultPin } from "@/shared/api/vaultPin";
@@ -172,40 +172,114 @@ function AssetRow({
   );
 }
 
+/** Biểu tượng loại tài sản không nền, dùng trong danh sách gọn của từng người nhận. */
+function KindGlyph({ kind }: { kind: string }) {
+  if (kind === "FILE") {
+    return <FileText className="size-5 text-heritage-muted" aria-hidden="true" />;
+  }
+  return <StickyNote className="size-5 text-heritage-muted" aria-hidden="true" />;
+}
+
+/**
+ * Một người nhận trên danh sách "Theo người nhận": hàng gọn, đường kẻ mảnh, tài sản của người đó thu lại sau nút
+ * "N tài sản" và trượt ra khi mở. Người chưa được gán gì có nền ấm nhạt để dễ thấy. Phần thu lại dùng `inert` nên
+ * không nhận tiêu điểm bàn phím và trình đọc màn hình bỏ qua cho tới khi mở.
+ */
 function RecipientCard({ card }: { card: RecipientAssignmentCard }) {
+  const [open, setOpen] = useState(false);
+  const bodyId = useId();
+  const count = card.assets.length;
+  const none = count === 0;
   const lines: ReactNode[] = [];
   for (const item of card.assets) {
     lines.push(
-      <li key={item.asset.id} className="flex items-center justify-between gap-3 py-2">
-        <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-heritage-primary">
-          <KindIcon kind={item.asset.kind} />
-          <span className="break-words">{item.asset.name}</span>
+      <li
+        key={item.asset.id}
+        className="grid grid-cols-[1.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-0.5 py-2 sm:grid-cols-[1.5rem_minmax(0,1fr)_7rem_9.5rem]"
+      >
+        <span className="row-span-2 sm:row-span-1">
+          <KindGlyph kind={item.asset.kind} />
         </span>
-        {item.sharedWithCount > 1 && (
-          <Chip tone="neutral" className="text-xs">
-            Chung với {item.sharedWithCount - 1} người
-          </Chip>
-        )}
+        <span className="break-words text-sm font-medium text-heritage-primary">
+          {item.asset.name}
+        </span>
+        <span className="col-start-2 text-sm text-heritage-muted sm:col-start-auto">
+          {assetKindLabel(item.asset.kind)}
+        </span>
+        <span className="col-start-2 sm:col-start-auto sm:justify-self-end">
+          {item.sharedWithCount > 1 && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-heritage-muted">
+              <Users className="size-3.5" aria-hidden="true" />
+              Chung với {item.sharedWithCount - 1} người
+            </span>
+          )}
+        </span>
       </li>,
     );
   }
+  let itemClass = "border-t border-heritage-border first:border-t-0";
+  let rowClass = "rounded-xl px-3 py-3 transition-colors hover:bg-heritage-sunken/60";
+  if (none) {
+    itemClass = "pt-2";
+    rowClass = "rounded-xl bg-heritage-gold/10 px-3 py-3 ring-1 ring-inset ring-heritage-gold/25";
+  }
+  let chevronClass = "size-4 transition-transform duration-200 motion-reduce:transition-none";
+  let bodyClass =
+    "grid grid-rows-[0fr] transition-[grid-template-rows] duration-200 motion-reduce:transition-none";
+  if (open) {
+    chevronClass += " rotate-180";
+    bodyClass =
+      "grid grid-rows-[1fr] transition-[grid-template-rows] duration-200 motion-reduce:transition-none";
+  }
   return (
-    <li className="rounded-2xl border border-heritage-border bg-white p-5">
-      <div className="flex items-center gap-3">
-        <Initial name={card.recipient.fullName} />
-        <div className="min-w-0">
-          <p className="break-words text-base font-semibold text-heritage-primary">
-            {card.recipient.fullName}
-          </p>
-          <p className="text-sm text-heritage-muted">CCCD {card.recipient.citizenId}</p>
+    <li className={itemClass}>
+      <div className={rowClass}>
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex min-w-56 flex-1 items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full border border-heritage-gold text-base font-medium text-heritage-gold-hover"
+            >
+              {card.recipient.fullName.trim().charAt(0).toLocaleUpperCase("vi-VN") || "?"}
+            </span>
+            <div className="min-w-0">
+              <p className="break-words text-base font-medium text-heritage-primary">
+                {card.recipient.fullName}
+              </p>
+              <p className="text-sm text-heritage-muted">CCCD {card.recipient.citizenId}</p>
+            </div>
+          </div>
+          {none && (
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              <span className="inline-flex items-center gap-2 font-medium text-heritage-warning">
+                <span className="size-1.5 rounded-full bg-heritage-gold" aria-hidden="true" />
+                Chưa được gán tài sản nào
+              </span>
+              <span className="text-heritage-muted">Sẽ không nhận gì khi bàn giao.</span>
+            </p>
+          )}
+          {!none && (
+            <button
+              type="button"
+              aria-expanded={open}
+              aria-controls={bodyId}
+              aria-label={`${count} tài sản của ${card.recipient.fullName}`}
+              onClick={() => setOpen(!open)}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-heritage-muted transition-colors hover:bg-heritage-sunken hover:text-heritage-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+            >
+              <b className="font-medium text-heritage-primary">{count}</b> tài sản
+              <ChevronDown className={chevronClass} aria-hidden="true" />
+            </button>
+          )}
         </div>
+        {!none && (
+          <div id={bodyId} className={bodyClass} inert={!open}>
+            <div className="min-h-0 overflow-hidden">
+              <ul className="mt-2 ml-5 border-l border-heritage-border pl-4">{lines}</ul>
+            </div>
+          </div>
+        )}
       </div>
-      {card.assets.length === 0 && (
-        <p className="mt-4 rounded-xl bg-heritage-sunken px-4 py-3 text-sm text-heritage-muted">
-          Chưa được gán tài sản nào. Người này sẽ không nhận gì khi bàn giao.
-        </p>
-      )}
-      {card.assets.length > 0 && <ul className="mt-3 divide-y divide-heritage-border">{lines}</ul>}
     </li>
   );
 }
@@ -369,7 +443,7 @@ export function OwnerAssignments({
       );
     } else {
       body = (
-        <ul className="grid gap-4 md:grid-cols-2">
+        <ul aria-label="Người nhận và tài sản được gán">
           {cards.map((card) => (
             <RecipientCard key={card.recipient.id} card={card} />
           ))}
