@@ -210,7 +210,7 @@ function WillDrawerBody({
   let noticeBlock: ReactNode = null;
   if (notice !== null) {
     noticeBlock = (
-      <div className="shrink-0 border-t border-heritage-border bg-heritage-canvas px-5 py-3">
+      <div className="border-t border-heritage-border bg-heritage-canvas px-5 py-3">
         <StatusBanner tone={notice.tone}>
           <p>{notice.text}</p>
         </StatusBanner>
@@ -249,36 +249,42 @@ function WillDrawerBody({
           </button>
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto bg-heritage-border px-3 py-5 sm:px-8 sm:py-8">
-        <IdentityNotice
-          status={identityStatus}
-          waitingForPin={hasSignFooter}
-          canReveal={canReveal}
-          onReveal={revealIdentity}
-          onRetry={() => void identityQuery.refetch()}
-        />
-        {/* Tờ giấy khổ A4 trên nền xám, giống khi mở file PDF. */}
-        <article
-          aria-label="Biên bản phân chia"
-          className="mx-auto w-full max-w-[210mm] bg-white px-5 py-8 shadow-md sm:min-h-[297mm] sm:px-[20mm] sm:py-[18mm]"
-        >
-          {renderDocument("owner", onGapClick)}
-        </article>
+      <div className="min-h-0 flex-1 overflow-y-auto bg-heritage-border">
+        <div className="px-3 py-5 sm:px-8 sm:py-8">
+          <IdentityNotice
+            status={identityStatus}
+            waitingForPin={hasSignFooter}
+            canReveal={canReveal}
+            onReveal={revealIdentity}
+            onRetry={() => void identityQuery.refetch()}
+          />
+          {/* Tờ giấy khổ A4 trên nền xám, giống khi mở file PDF. */}
+          <article
+            aria-label="Biên bản phân chia"
+            className="mx-auto w-full max-w-[210mm] bg-white px-5 py-8 shadow-md sm:min-h-[297mm] sm:px-[20mm] sm:py-[18mm]"
+          >
+            {renderDocument("owner", onGapClick)}
+          </article>
+        </div>
+        {/* Màn hẹp: phần ký nằm cuối biên bản, đọc hết mới tới. Từ màn rộng: dính đáy khung để ký ngay. */}
+        {(isDraft || resignNeeded) && (
+          <div className="sm:sticky sm:bottom-0">
+            {noticeBlock}
+            <WillSignFooter
+              key={`${vaultId}:${setup.configVersion}:${setup.policyVersion}:${setup.planStatus}`}
+              vaultId={vaultId}
+              setup={setup}
+              onPinChange={(pin) => {
+                pinRef.current = pin;
+                setTypedPin(pin);
+              }}
+              externalPinFailure={typedPinFailure}
+              onNotice={setNotice}
+            />
+          </div>
+        )}
       </div>
-      {noticeBlock}
-      {(isDraft || resignNeeded) && (
-        <WillSignFooter
-          key={`${vaultId}:${setup.configVersion}:${setup.policyVersion}:${setup.planStatus}`}
-          vaultId={vaultId}
-          setup={setup}
-          onPinChange={(pin) => {
-            pinRef.current = pin;
-            setTypedPin(pin);
-          }}
-          externalPinFailure={typedPinFailure}
-          onNotice={setNotice}
-        />
-      )}
+      {!(isDraft || resignNeeded) && noticeBlock}
     </>
   );
 }
