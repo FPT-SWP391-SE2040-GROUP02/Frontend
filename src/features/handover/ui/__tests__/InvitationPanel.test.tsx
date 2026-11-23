@@ -67,7 +67,7 @@ describe("InvitationPanel (cửa vào của link email)", () => {
     setup(null);
 
     expect(
-      await screen.findByRole("heading", { name: "Nguyễn Văn A đã để lại cho bạn một gói" }),
+      await screen.findByRole("heading", { name: "Nguyễn Văn A đã để lại tài sản cho bạn" }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Chúng tôi rất tiếc về mất mát của bạn/)).toBeInTheDocument();
     expect(screen.getByText("nguoi-nhan@example.com")).toBeInTheDocument();

@@ -39,12 +39,12 @@ describe("MailCheckPanel", () => {
     expect(button).toBeEnabled();
   });
 
-  it("thư đúng: gửi đúng body lên API và hiện tên gói, tên Chủ kho", async () => {
+  it("thư đúng: gửi đúng body lên API và hiện tên biên bản, tên Chủ kho", async () => {
     const user = userEvent.setup();
     const post = vi.spyOn(apiClient, "post").mockResolvedValue({
       verified: true,
       attemptsLeft: 5,
-      containerName: "Gói gia đình",
+      containerName: "Biên bản bàn giao",
       ownerFullName: "Nguyễn Văn Chủ",
     });
     render(<MailCheckPanel token="tok-1" />);
@@ -57,11 +57,11 @@ describe("MailCheckPanel", () => {
       citizenId: "012345678910",
     });
     expect(await screen.findByText(/Thư là thật/)).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("Gói “Gói gia đình”");
+    expect(screen.getByRole("status")).toHaveTextContent("Về “Biên bản bàn giao”");
     expect(screen.getByRole("status")).toHaveTextContent("Chủ kho Nguyễn Văn Chủ");
   });
 
-  it("thư sai: báo không khớp và số lần thử còn lại, không hiện thông tin gói", async () => {
+  it("thư sai: báo không khớp và số lần thử còn lại, không hiện thông tin biên bản", async () => {
     const user = userEvent.setup();
     vi.spyOn(apiClient, "post").mockResolvedValue({ verified: false, attemptsLeft: 4 });
     render(<MailCheckPanel token="tok" />);

@@ -105,7 +105,7 @@ export function MailCheckPanel({ token }: { token: string }) {
             <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>
               <b>Thư là thật.</b>
-              {outcome.result.containerName && <> Gói “{outcome.result.containerName}”</>}
+              {outcome.result.containerName && <> Về “{outcome.result.containerName}”</>}
               {outcome.result.ownerFullName && <> · Chủ kho {outcome.result.ownerFullName}</>}.
             </span>
           </p>

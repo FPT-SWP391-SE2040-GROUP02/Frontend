@@ -72,10 +72,10 @@ export function InvitationPanel({ onSignOut, signingOut = false }: InvitationPan
             Bạn đang đăng nhập bằng tài khoản khác
           </h2>
           <p className="text-sm leading-6 text-heritage-muted">
-            Bạn đang dùng <b className="break-all text-heritage-primary">{accountEmail}</b>, còn gói
-            này được gửi tới{" "}
+            Bạn đang dùng <b className="break-all text-heritage-primary">{accountEmail}</b>, còn lời
+            mời này được gửi tới{" "}
             <b className="break-all text-heritage-primary">{invitedEmail || maskedEmail}</b>. Hãy
-            đăng nhập bằng đúng email trong thư để mở gói.
+            đăng nhập bằng đúng email trong thư để xem tài sản.
           </p>
           <button
             type="button"
@@ -102,9 +102,9 @@ export function InvitationPanel({ onSignOut, signingOut = false }: InvitationPan
   }
   const registerTo = `${ROUTES.AUTH.REGISTER}?${registerParams}`;
   const owner = invitation.ownerFullName?.trim() ?? "";
-  let title = "Có người đã để lại cho bạn một gói";
+  let title = "Có người đã để lại tài sản cho bạn";
   if (owner) {
-    title = `${owner} đã để lại cho bạn một gói`;
+    title = `${owner} đã để lại tài sản cho bạn`;
   }
   let firstStep = "Tạo tài khoản bằng email này";
   if (invitation.accountExists) {
@@ -124,7 +124,7 @@ export function InvitationPanel({ onSignOut, signingOut = false }: InvitationPan
           {(invitedEmail || maskedEmail) && (
             <>
               {" "}
-              Gói này được gửi tới <b className="break-all">{invitedEmail || maskedEmail}</b>.
+              Lời mời này được gửi tới <b className="break-all">{invitedEmail || maskedEmail}</b>.
             </>
           )}{" "}
           Bạn có thể mở bất cứ lúc nào bạn sẵn sàng.

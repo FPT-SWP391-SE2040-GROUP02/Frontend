@@ -2,7 +2,7 @@
 export const AUTH_LAYOUT_CONTENT = {
   brand: "LegacyVault",
   title: "Kho của bạn vẫn kín, dù bạn vắng mặt.",
-  subtitle: "Đăng nhập để quản lý tài sản, các gói và người nhận.",
+  subtitle: "Đăng nhập để quản lý tài sản và người nhận.",
   footer: "Dịch vụ lưu giữ và bàn giao dữ liệu số.",
   note: "Không thay thế di chúc.",
   register: {

@@ -78,7 +78,7 @@ const notAllowedReasons: Record<string, string> = {
   WRONG_STATE:
     "Lượt bàn giao đang ở trạng thái không cho phép thao tác này. Tải lại để xem trạng thái mới nhất.",
   PLAN_NOT_READY: "Kế hoạch chưa sẵn sàng để bàn giao.",
-  NOTHING_TO_HAND_OVER: "Gói này hiện không còn tài sản để bàn giao.",
+  NOTHING_TO_HAND_OVER: "Lượt bàn giao này hiện không còn tài sản để bàn giao.",
 };
 
 /**

@@ -21,7 +21,7 @@ export const RECIPIENT_PORTAL_CONTENT = {
   },
   statuses: ["Hồ sơ mẫu", "Chờ xác minh", "Nội dung đang khóa"],
   sender: "Người gửi mẫu",
-  package: "Gói lưu giữ gia đình",
+  package: "Tài sản lưu giữ gia đình",
   profile: "Thông tin hồ sơ",
   demoId: "Mã mẫu: DEMO-RECIPIENT-01",
   verify: "Bắt đầu xác minh",
@@ -29,7 +29,7 @@ export const RECIPIENT_PORTAL_CONTENT = {
   content: "Xem nội dung",
   messages: "Đọc lời nhắn",
   summary: [
-    { label: "Gói được chỉ định", value: "1" },
+    { label: "Tài sản được chỉ định", value: "1" },
     { label: "Nội dung mẫu", value: "3" },
     { label: "Lời nhắn mẫu", value: "1" },
   ],

@@ -88,7 +88,7 @@ describe("PendingInvitationCards (thẻ thư mời trong cổng người nhận)
     const post = vi.spyOn(apiClient, "post");
     setup();
 
-    expect(await screen.findByText("GÓI MỚI CHỜ BẠN XÁC NHẬN")).toBeInTheDocument();
+    expect(await screen.findByText("TÀI SẢN MỚI CHỜ BẠN XÁC NHẬN")).toBeInTheDocument();
     expect(screen.getByText("Gói gia đình")).toBeInTheDocument();
     expect(
       screen.getByText("Từ Nguyễn Văn A · gửi tới nguoi-nhan@example.com"),
@@ -106,7 +106,7 @@ describe("PendingInvitationCards (thẻ thư mời trong cổng người nhận)
     setup();
 
     await waitFor(() => expect(get).toHaveBeenCalled());
-    expect(screen.queryByText("GÓI MỚI CHỜ BẠN XÁC NHẬN")).toBeNull();
+    expect(screen.queryByText("TÀI SẢN MỚI CHỜ BẠN XÁC NHẬN")).toBeNull();
   });
 
   it("Bắt đầu: chỉ gọi API nhận lượt rồi chuyển sang màn nộp căn cước", async () => {
