@@ -107,7 +107,10 @@ function normalize(text: string): string {
  * Lọc theo ô "Tìm tên tài sản hoặc người nhận". Khớp tên người nhận thì giữ cả người đó;
  * khớp tên tài sản thì chỉ giữ các tài sản khớp; không khớp gì thì bỏ. Ô trống giữ nguyên tất cả.
  */
-export function filterRecipients(recipients: ExecutorRecipient[], query: string): ExecutorRecipient[] {
+export function filterRecipients(
+  recipients: ExecutorRecipient[],
+  query: string,
+): ExecutorRecipient[] {
   const needle = normalize(query);
   if (needle === "") return recipients;
   const result: ExecutorRecipient[] = [];

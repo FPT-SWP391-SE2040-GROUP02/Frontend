@@ -337,7 +337,10 @@ export function AppRoutes() {
           <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
           <Route path="/wills" element={<WillManagementPage />} />
           <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
-          <Route path="/dashboard/wills/:id" element={<Navigate to={ROUTES.WILLS.ROOT} replace />} />
+          <Route
+            path="/dashboard/wills/:id"
+            element={<Navigate to={ROUTES.WILLS.ROOT} replace />}
+          />
           <Route path="/wills/new" element={<WillWizardPage />} />
           {/* Đã bỏ điểm danh: đường dẫn cũ về trang tổng quan của Chủ kho. */}
           <Route path={ROUTES.DMS.ROOT} element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />} />

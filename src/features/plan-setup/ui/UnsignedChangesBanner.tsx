@@ -47,9 +47,7 @@ export function UnsignedChangesBanner({
           </h3>
           <ul className="mt-1 list-disc space-y-0.5 pl-5">
             {showRemovedNote && <li>Phần đã gỡ gán không còn được bàn giao.</li>}
-            {summary.hasAddedOrChanged && (
-              <li>Phần gán thêm chưa được bàn giao.</li>
-            )}
+            {summary.hasAddedOrChanged && <li>Phần gán thêm chưa được bàn giao.</li>}
           </ul>
         </div>
         <p className="text-sm leading-6">Người thực thi không phải ký lại.</p>

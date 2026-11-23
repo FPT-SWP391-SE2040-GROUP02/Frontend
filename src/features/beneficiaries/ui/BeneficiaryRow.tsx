@@ -109,8 +109,8 @@ function DeleteBeneficiaryDialog({
             role="alert"
             className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
           >
-            {record.fullName} đang được gán {record.assetIds.length} tài sản. Hãy gỡ người nhận
-            khỏi các tài sản trên, rồi xóa lại.
+            {record.fullName} đang được gán {record.assetIds.length} tài sản. Hãy gỡ người nhận khỏi
+            các tài sản trên, rồi xóa lại.
           </p>
           <DialogFooter>
             <button type="button" className={buttonStyles.outline} onClick={onClose}>

@@ -6,11 +6,7 @@ import type { ReactNode } from "react";
 import { AxiosHeaders } from "axios";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
-import {
-  VAULT_ID,
-  CONTAINER_ID,
-  CREATED_AT,
-} from "@/shared/api/__tests__/backend.fixtures";
+import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
 import { AssignAssetDialog } from "@/features/assignments/ui/AssignAssetDialog";
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";

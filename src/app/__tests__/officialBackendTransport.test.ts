@@ -181,14 +181,19 @@ describe("official Backend transport through real Axios interceptors", () => {
   });
   it("sends plan-impact confirmation only when the Owner agreed", async () => {
     respond([], (config) => {
-      expect(JSON.parse(config.data)).toEqual({ beneficiaryIds: [], confirmPlanDeactivation: true });
+      expect(JSON.parse(config.data)).toEqual({
+        beneficiaryIds: [],
+        confirmPlanDeactivation: true,
+      });
     });
     await assignmentService.setRecipients(VAULT_ID, CONTAINER_ID, [], true);
   });
   it("unassigns one recipient with DELETE and an explicit confirmation flag", async () => {
     respond([], (config) => {
       expect(config.method).toBe("delete");
-      expect(config.url).toBe(`/vaults/${VAULT_ID}/assets/${CONTAINER_ID}/assignments/${CONTAINER_ID}`);
+      expect(config.url).toBe(
+        `/vaults/${VAULT_ID}/assets/${CONTAINER_ID}/assignments/${CONTAINER_ID}`,
+      );
       expect(config.params).toEqual({ confirmPlanDeactivation: false });
     });
     await assignmentService.unassign(VAULT_ID, CONTAINER_ID, CONTAINER_ID);
@@ -207,7 +212,9 @@ describe("official Backend transport through real Axios interceptors", () => {
         config,
       });
     };
-    await expect(assignmentService.unassign(VAULT_ID, CONTAINER_ID, CONTAINER_ID)).rejects.toMatchObject({
+    await expect(
+      assignmentService.unassign(VAULT_ID, CONTAINER_ID, CONTAINER_ID),
+    ).rejects.toMatchObject({
       response: { status: 409 },
     });
     expect(calls).toBe(1);

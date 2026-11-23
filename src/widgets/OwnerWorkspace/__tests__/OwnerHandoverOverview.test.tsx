@@ -121,9 +121,7 @@ function setupData(overrides: Record<string, unknown> = {}) {
         beneficiaryId: "88888888-8888-4888-8888-888888888888",
         fullName: "Trần Minh Cường",
         hasMessage: false,
-        assets: [
-          { id: BANK_ID, name: "Tài khoản ngân hàng", kind: "TEXT", sharedWithCount: 1 },
-        ],
+        assets: [{ id: BANK_ID, name: "Tài khoản ngân hàng", kind: "TEXT", sharedWithCount: 1 }],
       },
     ],
     ...overrides,
@@ -270,7 +268,9 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
       within(progress).getByRole("button", { name: "Xem trước biên bản phân chia" }),
     ).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Chọn Người thực thi" }));
-    expect(await screen.findByRole("dialog", { name: "Chọn Người thực thi của bạn" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("dialog", { name: "Chọn Người thực thi của bạn" }),
+    ).toBeInTheDocument();
   });
 
   it("đã mời nhưng chưa chấp nhận: thẻ có Gửi lại lời mời và Đổi người, gửi lại gọi đúng API", async () => {
@@ -312,11 +312,7 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
   it("thiếu eKYC, gói và gói dịch vụ: mỗi thẻ có nút dẫn tới nơi xử lý", () => {
     showPlan({
       canActivate: false,
-      missingRequirements: [
-        "OWNER_EKYC_REQUIRED",
-        "ASSIGNMENT_REQUIRED",
-        "PAID_SERVICE_REQUIRED",
-      ],
+      missingRequirements: ["OWNER_EKYC_REQUIRED", "ASSIGNMENT_REQUIRED", "PAID_SERVICE_REQUIRED"],
       assignedAssetCount: 0,
       recipients: [],
     });
@@ -490,7 +486,9 @@ describe("chỗ trống đỏ trong biên bản phân chia", () => {
     await openDrawer();
 
     await userEvent.click(
-      within(paper()).getByRole("button", { name: "Chưa gán tài sản cho người nhận — bấm để điền" }),
+      within(paper()).getByRole("button", {
+        name: "Chưa gán tài sản cho người nhận — bấm để điền",
+      }),
     );
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -1033,14 +1031,10 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
       "Hãy ký phiên bản mới để bản biên bản phân chia khớp với cấu hình hiện tại.",
     );
     expect(within(banner).getByText("Gán thêm 2 lượt tài sản cho người nhận")).toBeInTheDocument();
-    expect(
-      within(banner).getByText("Đã gỡ 3 lượt gán tài sản cho người nhận"),
-    ).toBeInTheDocument();
+    expect(within(banner).getByText("Đã gỡ 3 lượt gán tài sản cho người nhận")).toBeInTheDocument();
     expect(within(banner).getByText("4 người nhận bị ảnh hưởng")).toBeInTheDocument();
     expect(within(banner).getByText("Trong lúc chờ ký lại")).toBeInTheDocument();
-    expect(
-      within(banner).getByText("Phần đã gỡ gán không còn được bàn giao."),
-    ).toBeInTheDocument();
+    expect(within(banner).getByText("Phần đã gỡ gán không còn được bàn giao.")).toBeInTheDocument();
     expect(within(banner).getByText("Phần gán thêm chưa được bàn giao.")).toBeInTheDocument();
     expect(banner).toHaveTextContent("Người thực thi không phải ký lại");
     // Không còn cách chia cũ khiến xóa nghe như không cần ký.
@@ -1057,14 +1051,10 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
     renderOverview();
 
     const banner = screen.getByRole("region", { name: BANNER });
-    expect(
-      within(banner).getByText("Đã gỡ 1 lượt gán tài sản cho người nhận"),
-    ).toBeInTheDocument();
+    expect(within(banner).getByText("Đã gỡ 1 lượt gán tài sản cho người nhận")).toBeInTheDocument();
     expect(banner).not.toHaveTextContent(/Đã gỡ 0|Gán thêm 0|0 người nhận bị ảnh hưởng/);
     expect(within(banner).getByText("Trong lúc chờ ký lại")).toBeInTheDocument();
-    expect(
-      within(banner).getByText("Phần đã gỡ gán không còn được bàn giao."),
-    ).toBeInTheDocument();
+    expect(within(banner).getByText("Phần đã gỡ gán không còn được bàn giao.")).toBeInTheDocument();
     expect(banner).not.toHaveTextContent("chưa được bàn giao");
     expect(banner).not.toHaveTextContent("Chưa có hiệu lực");
     expect(banner).toHaveTextContent("Hãy ký phiên bản mới");

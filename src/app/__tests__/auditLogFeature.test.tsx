@@ -180,9 +180,9 @@ describe("OwnerAuditLog transport", () => {
       ]),
     });
     setup("/dashboard/audit-log");
-    const row = (
-      await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })
-    ).closest("tr") as HTMLElement;
+    const row = (await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })).closest(
+      "tr",
+    ) as HTMLElement;
     expect(row).toHaveTextContent("Chủ kho");
     expect(row).toHaveTextContent("Tài sản");
     expect(row).toHaveTextContent("Thành công");
@@ -234,9 +234,9 @@ describe("OwnerAuditLog transport", () => {
       return { data, config, status: 200, statusText: "OK", headers: new AxiosHeaders() };
     };
     setup("/dashboard/audit-log");
-    const added = (
-      await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })
-    ).closest("tr") as HTMLElement;
+    const added = (await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })).closest(
+      "tr",
+    ) as HTMLElement;
     await waitFor(() => expect(added).toHaveTextContent("Người nhận Trịnh Lê Thiên Quan"));
     const removed = screen
       .getByRole("cell", { name: "Gỡ gán tài sản khỏi người nhận" })
@@ -461,7 +461,9 @@ describe("OwnerAuditLog UI states", () => {
     });
     expect(locationRef.current).toContain("action=ASSET_ASSIGNED");
     expect(locationRef.current).toContain("from=2026-10-01");
-    expect(await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/Trang hiện vượt quá phạm vi/)).not.toBeInTheDocument();
   });
 });
@@ -498,7 +500,9 @@ describe("OwnerAuditLog cache", () => {
     hasNewEntry = true;
     await client.invalidateQueries({ queryKey: ["owner-vault"] });
     setup("/dashboard/audit-log");
-    expect(await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("Chưa có dòng nhật ký nào khớp bộ lọc.")).not.toBeInTheDocument();
   });
 });

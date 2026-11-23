@@ -226,8 +226,8 @@ function AssetsSectionBlock({
         {heading}
         <p className={BODY}>
           Các tài sản trong kho được để lại cho những người nhận mà tôi đã chọn cho từng tài sản
-          trong kế hoạch bàn giao. Tài sản chọn cho nhiều người thì những người đó nhận chung.
-          Biên bản phân chia không ghi nội dung tài sản.
+          trong kế hoạch bàn giao. Tài sản chọn cho nhiều người thì những người đó nhận chung. Biên
+          bản phân chia không ghi nội dung tài sản.
         </p>
       </section>
     );
