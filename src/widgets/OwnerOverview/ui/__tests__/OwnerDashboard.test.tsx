@@ -111,7 +111,7 @@ describe("Owner dashboard from server metadata", () => {
       "href",
       "/dashboard/receive-assets",
     );
-    expect(screen.queryByText(/đã để lại cho bạn một gói/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/đã để lại tài sản cho bạn/)).not.toBeInTheDocument();
   });
 
   it("hides the card when no vault needs action", async () => {

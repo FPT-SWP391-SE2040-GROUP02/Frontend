@@ -158,7 +158,7 @@ export function OwnerBeneficiaries() {
         </div>
         <p className="mt-1 text-sm text-heritage-muted">
           Đã thêm {list.data.totalCount}/{vault.data.beneficiarySlots} người nhận,{" "}
-          {vault.data.usedBeneficiarySlots} người đang được gán tài sản. Tạo hồ sơ không tự gán tài
+          {vault.data.usedBeneficiarySlots} người đã được gán tài sản. Tạo hồ sơ không tự gán tài
           sản cho người nhận.
         </p>
         {rows.length === 0 && (

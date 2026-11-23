@@ -75,7 +75,7 @@ export function VerifyEmailPage() {
   return (
     <HeritageAuthLayout
       sideTitle="Kho của bạn vẫn kín, dù bạn vắng mặt."
-      sideSubtitle="Đăng nhập để quản lý tài sản, các gói và người nhận. Không ai đọc được tài sản của bạn."
+      sideSubtitle="Đăng nhập để quản lý tài sản và người nhận. Không ai đọc được tài sản của bạn."
     >
       {verified && token === null ? (
         <section className="w-full space-y-5 text-left" aria-labelledby="verified-email-title">

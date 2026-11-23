@@ -94,7 +94,7 @@ export const backendAssetService = {
       ),
     );
   },
-  /** Xóa tài sản cùng nội dung; bị chặn khi tài sản nằm trong gói hoặc đã ghim vào lượt bàn giao. */
+  /** Xóa tài sản cùng nội dung; bị chặn khi tài sản đang được gán cho người nhận hoặc đã ghim vào lượt bàn giao. */
   async remove(vaultId: string, assetId: string): Promise<void> {
     await apiClient.delete<unknown, unknown>(`${assets(vaultId)}/${id.parse(assetId)}`);
   },

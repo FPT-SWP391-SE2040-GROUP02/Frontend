@@ -5,7 +5,7 @@ export function BeneficiariesPage() {
   return (
     <OwnerWorkspace
       title="Người nhận"
-      description="Hồ sơ người nhận của kho. Gán tài sản cho từng người ở phần Phân chia trong Kho của tôi."
+      description="Hồ sơ người nhận của kho. Gán tài sản cho từng người ở tab Phân chia."
     >
       <OwnerBeneficiaries />
     </OwnerWorkspace>
