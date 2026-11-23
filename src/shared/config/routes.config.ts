@@ -47,6 +47,8 @@ export const ROUTES = {
     AUDIT_LOG: "/dashboard/audit-log",
     USERS: "/dashboard/users",
     SETTINGS: "/dashboard/settings",
+    /** Các kho được để lại cho tài khoản này: gửi yêu cầu nhận tài sản và theo dõi bước tiếp theo. */
+    RECEIVE_ASSETS: "/dashboard/receive-assets",
     /** Lời mời làm Người thực thi gửi tới tài khoản (xem khi chưa là Executor). */
     INVITATIONS: "/dashboard/invitations",
   },

@@ -5,7 +5,7 @@ import {
 } from "@/features/vault-management/model/useOwnerVault";
 import { VaultEmailRequiredNotice } from "@/features/vault-management/ui/VaultEmailRequiredNotice";
 import { MyInvitationsBanner } from "@/features/plan-setup/ui/MyInvitationsBanner";
-import { RecipientInvitationBanner } from "@/features/handover/ui/RecipientInvitationBanner";
+import { OwnerReceiveCard } from "@/features/handover-request";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { useOverviewResources } from "../model/useOverviewResources";
@@ -44,7 +44,7 @@ function OwnerDashboardContent({ vault }: { vault: VaultResponse }) {
   return (
     <div className="owner-overview-layout">
       <MyInvitationsBanner invitationsHref={ROUTES.DASHBOARD.INVITATIONS} />
-      <RecipientInvitationBanner />
+      <OwnerReceiveCard />
       <section className="overview-tier" aria-label="Trạng thái chung">
         <OwnerOverviewSummary vault={vault} data={data} />
       </section>

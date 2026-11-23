@@ -10,7 +10,6 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { ROUTES } from "@/shared/config/routes.config";
 import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { SwitchToRecipientLink } from "../SwitchToRecipientLink";
-import { RecipientInvitationBanner } from "../RecipientInvitationBanner";
 
 const user = {
   id: VAULT_ID,
@@ -98,29 +97,5 @@ describe("SwitchToRecipientLink", () => {
 
     expect(await screen.findByRole("link", { name: /Sang vai Người nhận/ })).toBeInTheDocument();
     expect(screen.queryByLabelText(/lời mời đang chờ/)).toBeNull();
-  });
-});
-
-describe("RecipientInvitationBanner (Tổng quan Chủ kho)", () => {
-  it("hiện khung vàng với nút Mở cổng người nhận khi có lời mời chờ", async () => {
-    backend([invitation], []);
-    setup(<RecipientInvitationBanner />);
-
-    expect(await screen.findByText("Nguyễn Văn A đã để lại cho bạn một gói")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Gói nằm ở cổng người nhận, bạn có thể mở bất cứ lúc nào bạn sẵn sàng/),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Mở cổng người nhận" })).toHaveAttribute(
-      "href",
-      ROUTES.BENEFICIARY.CLAIM,
-    );
-  });
-
-  it("không hiện khi không có lời mời chờ", async () => {
-    const get = backend([], [turn]);
-    setup(<RecipientInvitationBanner />);
-
-    await waitFor(() => expect(get).toHaveBeenCalled());
-    expect(screen.queryByRole("link", { name: "Mở cổng người nhận" })).toBeNull();
   });
 });
