@@ -7,16 +7,17 @@ import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router-dom";
 import authReducer from "@/entities/user/model/authSlice";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
-import { useOwnerPackages, useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
+import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
+import { useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID } from "@/shared/api/__tests__/backend.fixtures";
 import { OwnerBeneficiaries } from "../OwnerBeneficiaries";
 
 vi.mock("@/features/vault-management/model/useOwnerVault", () => ({
   useOwnerVault: vi.fn(),
-  useOwnerPackages: vi.fn(),
   isOwnerVaultMissing: () => false,
 }));
+vi.mock("@/features/assets/model/useVaultAssets", () => ({ useVaultAssets: vi.fn() }));
 vi.mock("@/features/beneficiaries/model/useBeneficiaries", () => ({ useBeneficiaries: vi.fn() }));
 
 function mockVault(overrides: Record<string, unknown>) {
@@ -37,7 +38,7 @@ function mockVault(overrides: Record<string, unknown>) {
 beforeEach(() => {
   vi.resetAllMocks();
   accessTokenMemory.set("owner-beneficiaries-fixture");
-  vi.mocked(useOwnerPackages).mockReturnValue({ data: { items: [] } } as never);
+  vi.mocked(useVaultAssets).mockReturnValue({ data: { items: [] } } as never);
   vi.mocked(useBeneficiaries).mockReturnValue({
     isError: false,
     isPending: false,

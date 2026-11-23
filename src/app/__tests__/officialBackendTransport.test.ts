@@ -5,10 +5,10 @@ import { ownerVaultService } from "@/features/vault-management/api/ownerVaultSer
 import { backendAssetService } from "@/features/assets/api/backendAssetService";
 import { beneficiaryService } from "@/features/beneficiaries/api/beneficiaryService";
 import { ekycService } from "@/features/ekyc/api/ekycService";
-import { updatePackageSchema, createPackageSchema } from "@/entities/package/model/package.schema";
+import { assignmentService } from "@/features/assignments/api/assignmentService";
 import {
   vaultFixture,
-  containerFixture,
+  assignmentFixture,
   pageFixture,
   VAULT_ID,
   CONTAINER_ID,
@@ -45,7 +45,7 @@ const beneficiary = {
   email: null,
   phone: null,
   message: null,
-  containerIds: [],
+  assetIds: [],
   createdAt: CREATED_AT,
   updatedAt: null,
   etag: "beneficiary-v1",
@@ -157,65 +157,43 @@ describe("official Backend transport through real Axios interceptors", () => {
     respond({ data: vaultFixture });
     await expect(ownerVaultService.getMine()).rejects.toThrow();
   });
-  it("scopes containers by vault and sends official pagination", async () => {
-    respond(pageFixture([containerFixture]), (config) => {
-      expect(config.url).toBe(`/vaults/${VAULT_ID}/containers`);
-      expect(config.params).toEqual({
-        pageIndex: 2,
-        pageSize: 20,
-        searchTerm: "gia đình",
-        sortBy: "name",
-        isAscending: false,
-        includeRemoved: false,
-      });
+  it("reads the assignments of a vault as a plain array", async () => {
+    respond([assignmentFixture], (config) => {
+      expect(config.method).toBe("get");
+      expect(config.url).toBe(`/vaults/${VAULT_ID}/assignments`);
     });
-    expect(
-      (
-        await ownerVaultService.listPackages(VAULT_ID, {
-          pageIndex: 2,
-          pageSize: 20,
-          searchTerm: "gia đình",
-          sortBy: "name",
-          isAscending: false,
-        })
-      ).items,
-    ).toEqual([containerFixture]);
+    expect(await assignmentService.list(VAULT_ID)).toEqual([assignmentFixture]);
   });
-  it("rejects old data/meta pagination", async () => {
-    respond({ data: [], meta: { totalItems: 0 } });
-    await expect(ownerVaultService.listPackages(VAULT_ID)).rejects.toThrow();
+  it("rejects a paginated envelope for assignments", async () => {
+    respond(pageFixture([assignmentFixture]));
+    await expect(assignmentService.list(VAULT_ID)).rejects.toThrow();
   });
-  it("uses PUT with etag, preserving null fields", async () => {
-    respond(containerFixture, (config) => {
+  it("replaces the recipients of an asset with PUT and the final list", async () => {
+    respond([assignmentFixture], (config) => {
       expect(config.method).toBe("put");
-      expect(config.url).toBe(`/vaults/${VAULT_ID}/containers/${CONTAINER_ID}`);
+      expect(config.url).toBe(`/vaults/${VAULT_ID}/assets/${CONTAINER_ID}/assignments`);
       expect(JSON.parse(config.data)).toEqual({
-        etag: "container-v1",
-        name: null,
-        description: "",
+        beneficiaryIds: [CONTAINER_ID],
+        confirmPlanDeactivation: false,
       });
     });
-    await ownerVaultService.updatePackage(VAULT_ID, CONTAINER_ID, {
-      etag: "container-v1",
-      name: null,
-      description: "",
+    await assignmentService.setRecipients(VAULT_ID, CONTAINER_ID, [CONTAINER_ID]);
+  });
+  it("sends plan-impact confirmation only when the Owner agreed", async () => {
+    respond([], (config) => {
+      expect(JSON.parse(config.data)).toEqual({ beneficiaryIds: [], confirmPlanDeactivation: true });
     });
-    expect(updatePackageSchema.safeParse({ name: "Missing etag" }).success).toBe(false);
+    await assignmentService.setRecipients(VAULT_ID, CONTAINER_ID, [], true);
   });
-  it("accepts the official 200-character container name and rejects 201", () => {
-    expect(createPackageSchema.safeParse({ name: "a".repeat(200) }).success).toBe(true);
-    expect(createPackageSchema.safeParse({ name: "a".repeat(201) }).success).toBe(false);
-  });
-  it("removes a package with DELETE and requires explicit plan-impact confirmation", async () => {
-    respond({ ...containerFixture, status: "REMOVED", removedAt: CREATED_AT }, (config) => {
+  it("unassigns one recipient with DELETE and an explicit confirmation flag", async () => {
+    respond([], (config) => {
       expect(config.method).toBe("delete");
+      expect(config.url).toBe(`/vaults/${VAULT_ID}/assets/${CONTAINER_ID}/assignments/${CONTAINER_ID}`);
       expect(config.params).toEqual({ confirmPlanDeactivation: false });
     });
-    expect((await ownerVaultService.removePackage(VAULT_ID, CONTAINER_ID)).status).toBe("REMOVED");
-    respond({ ...containerFixture, status: "REMOVED", removedAt: CREATED_AT }, (config) =>
-      expect(config.params).toEqual({ confirmPlanDeactivation: true }),
-    );
-    await ownerVaultService.removePackage(VAULT_ID, CONTAINER_ID, true);
+    await assignmentService.unassign(VAULT_ID, CONTAINER_ID, CONTAINER_ID);
+    respond([], (config) => expect(config.params).toEqual({ confirmPlanDeactivation: true }));
+    await assignmentService.unassign(VAULT_ID, CONTAINER_ID, CONTAINER_ID, true);
   });
   it("does not retry a 409 mutation or turn it into success", async () => {
     let calls = 0;
@@ -229,7 +207,7 @@ describe("official Backend transport through real Axios interceptors", () => {
         config,
       });
     };
-    await expect(ownerVaultService.removePackage(VAULT_ID, CONTAINER_ID)).rejects.toMatchObject({
+    await expect(assignmentService.unassign(VAULT_ID, CONTAINER_ID, CONTAINER_ID)).rejects.toMatchObject({
       response: { status: 409 },
     });
     expect(calls).toBe(1);
@@ -286,7 +264,7 @@ describe("official Backend transport through real Axios interceptors", () => {
     respond({}, () => {
       calls++;
     });
-    await expect(ownerVaultService.listPackages("../other")).rejects.toThrow();
+    await expect(assignmentService.list("../other")).rejects.toThrow();
     await expect(backendAssetService.get(VAULT_ID, "../other")).rejects.toThrow();
     expect(calls).toBe(0);
   });

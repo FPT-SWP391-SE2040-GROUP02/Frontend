@@ -106,25 +106,8 @@ function setupData(overrides: Record<string, unknown> = {}) {
     ownerEmail: "an.tran@example.test",
     activatedAt: null,
     executors: [executor()],
-    containers: [
-      {
-        id: HOUSE_ID,
-        name: "Giấy tờ nhà đất",
-        status: "READY",
-        assetCount: 4,
-        designationCount: 1,
-        missingRequirements: [],
-      },
-      {
-        id: BANK_ID,
-        name: "Tài khoản ngân hàng",
-        status: "READY",
-        assetCount: 3,
-        designationCount: 1,
-        missingRequirements: [],
-      },
-    ],
-    assetsOutsideContainer: [],
+    assignedAssetCount: 2,
+    unassignedAssets: [],
     warnings: [],
     recipients: [
       {
@@ -132,13 +115,15 @@ function setupData(overrides: Record<string, unknown> = {}) {
         fullName: "Trần Thị Bình",
         hasMessage: true,
         message: SECRET_MESSAGE,
-        containers: [{ id: HOUSE_ID, name: "Giấy tờ nhà đất", assetCount: 4, status: "READY" }],
+        assets: [{ id: HOUSE_ID, name: "Giấy tờ nhà đất", kind: "FILE", sharedWithCount: 1 }],
       },
       {
         beneficiaryId: "88888888-8888-4888-8888-888888888888",
         fullName: "Trần Minh Cường",
         hasMessage: false,
-        containers: [{ id: BANK_ID, name: "Tài khoản ngân hàng", assetCount: 3, status: "READY" }],
+        assets: [
+          { id: BANK_ID, name: "Tài khoản ngân hàng", kind: "TEXT", sharedWithCount: 1 },
+        ],
       },
     ],
     ...overrides,
@@ -249,7 +234,7 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
     for (const name of [
       /Xác minh danh tính \(eKYC\)/,
       /Người thực thi/,
-      /Gói tài sản và người nhận/,
+      /Tài sản và người nhận/,
       /Gói dịch vụ/,
     ]) {
       expect(screen.getAllByRole("heading", { name }).length).toBeGreaterThan(0);
@@ -260,7 +245,7 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
     expect(
       screen.getByRole("progressbar", { name: "Tiến độ điền biên bản phân chia" }),
     ).toHaveAttribute("aria-valuenow", "4");
-    expect(screen.getByText(/^2 gói · 7 tài sản · 2 người nhận/)).toBeInTheDocument();
+    expect(screen.getByText(/^2 tài sản đã gán · 2 người nhận/)).toBeInTheDocument();
     expect(
       screen.getByText(/Tài sản thật như nhà đất, tiền gửi do gia đình và luật sư xử lý/),
     ).toBeVisible();
@@ -285,7 +270,7 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
       within(progress).getByRole("button", { name: "Xem trước biên bản phân chia" }),
     ).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Chọn Người thực thi" }));
-    expect(await screen.findByRole("dialog", { name: "Mời Người thực thi" })).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: "Chọn Người thực thi của bạn" })).toBeInTheDocument();
   });
 
   it("đã mời nhưng chưa chấp nhận: thẻ có Gửi lại lời mời và Đổi người, gửi lại gọi đúng API", async () => {
@@ -329,10 +314,10 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
       canActivate: false,
       missingRequirements: [
         "OWNER_EKYC_REQUIRED",
-        "READY_CONTAINER_REQUIRED",
+        "ASSIGNMENT_REQUIRED",
         "PAID_SERVICE_REQUIRED",
       ],
-      containers: [],
+      assignedAssetCount: 0,
       recipients: [],
     });
     renderOverview();
@@ -341,35 +326,26 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
       "href",
       "/dashboard/identity",
     );
-    expect(screen.getByRole("link", { name: "Tạo gói và chọn người nhận" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Chọn người nhận cho tài sản" })).toHaveAttribute(
       "href",
-      "/dashboard/assets",
+      "/dashboard/assets?tab=assignments",
     );
     expect(screen.getByRole("link", { name: "Xem gói dịch vụ" })).toBeInTheDocument();
     expect(screen.getByText("Còn 3 điều kiện chưa đạt")).toBeInTheDocument();
   });
 
-  it("gói chưa có người nhận: thẻ gói có lối chọn người nhận cho từng gói", () => {
+  it("tài sản chưa gán cho ai: thẻ nhắc số tài sản và dẫn tới tab Phân chia", () => {
     showPlan({
       canActivate: false,
-      containers: [
-        {
-          id: LETTER_ID,
-          name: "Thư gửi các con",
-          status: "DRAFT",
-          assetCount: 2,
-          designationCount: 0,
-          missingRequirements: ["NO_DESIGNATION"],
-        },
-      ],
-      assetsOutsideContainer: [{ id: BANK_ID, name: "Sổ đỏ", kind: "FILE" }],
+      unassignedAssets: [{ id: BANK_ID, name: "Sổ đỏ", kind: "FILE" }],
     });
     renderOverview();
 
-    expect(
-      screen.getByRole("link", { name: "Chọn người nhận cho gói “Thư gửi các con”" }),
-    ).toHaveAttribute("href", `/dashboard/assets/groups/${LETTER_ID}`);
-    expect(screen.getByText(/Còn 1 tài sản chưa nằm trong gói nào/)).toBeInTheDocument();
+    expect(screen.getByText(/Còn 1 tài sản chưa gán cho ai/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Quản lý phần phân chia" })).toHaveAttribute(
+      "href",
+      "/dashboard/assets?tab=assignments",
+    );
   });
 
   it("hiện cảnh báo thiếu Người thực thi dự phòng ở cột phải", () => {
@@ -401,7 +377,7 @@ describe("khung xem trước biên bản phân chia", () => {
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
   });
 
-  it("tờ biên bản phân chia điền đủ: quốc hiệu, mục I đến IV, bảng gói và người nhận, không ghi tên tài sản", async () => {
+  it("tờ biên bản phân chia điền đủ: quốc hiệu, mục I đến IV, bảng tài sản và người nhận, không ghi nội dung", async () => {
     showPlan();
     renderOverview();
     await openDrawer();
@@ -426,17 +402,16 @@ describe("khung xem trước biên bản phân chia", () => {
     expect(paper()).toHaveTextContent(
       "trạng thái tinh thần hoàn toàn minh mẫn, sáng suốt, không bị bất kỳ sự lừa dối, đe dọa hoặc cưỡng ép nào",
     );
-    // Bảng: STT, gói kèm số tài sản, người nhận.
+    // Bảng: STT, tài sản, người nhận.
     const rows = doc.getAllByRole("row");
     expect(rows).toHaveLength(3);
     expect(within(rows[1]).getByText("Giấy tờ nhà đất")).toBeInTheDocument();
-    expect(within(rows[1]).getByText("4 tài sản")).toBeInTheDocument();
     expect(within(rows[1]).getByText("Trần Thị Bình")).toBeInTheDocument();
     expect(within(rows[2]).getByText("Tài khoản ngân hàng")).toBeInTheDocument();
     expect(within(rows[2]).getByText("Trần Minh Cường")).toBeInTheDocument();
     expect(
       doc.getByText(
-        "Ngoài những người nêu trên, tôi không để lại các gói tài sản này cho bất cứ ai khác.",
+        "Ngoài những người nêu trên, tôi không để lại các tài sản này cho bất cứ ai khác.",
       ),
     ).toBeInTheDocument();
     expect(document.body.textContent ?? "").not.toContain(SECRET_MESSAGE);
@@ -462,7 +437,7 @@ describe("khung xem trước biên bản phân chia", () => {
     await openDrawer();
 
     const doc = within(paper());
-    expect(doc.getByText(/những người nhận mà tôi đã chỉ định cho từng gói/)).toBeInTheDocument();
+    expect(doc.getByText(/những người nhận mà tôi đã chọn cho từng tài sản/)).toBeInTheDocument();
     expect(doc.getAllByText("Tên đăng nhập khác")).toHaveLength(2);
   });
 });
@@ -501,52 +476,37 @@ describe("chỗ trống đỏ trong biên bản phân chia", () => {
     await waitFor(() => expect(card).toContainElement(document.activeElement as HTMLElement));
     expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toHaveFocus();
     // Các thẻ khác không nháy.
-    expect(document.getElementById("handover-task-packages")).not.toHaveClass("ring-4");
+    expect(document.getElementById("handover-task-assignments")).not.toHaveClass("ring-4");
   });
 
-  it("chưa có gói và người nhận: chỗ trống đưa về thẻ Gói tài sản và người nhận", async () => {
+  it("chưa gán tài sản: chỗ trống đưa về thẻ Tài sản và người nhận", async () => {
     showPlan({
       canActivate: false,
-      missingRequirements: ["READY_CONTAINER_REQUIRED"],
-      containers: [],
+      missingRequirements: ["ASSIGNMENT_REQUIRED"],
+      assignedAssetCount: 0,
       recipients: [],
     });
     renderOverview();
     await openDrawer();
 
     await userEvent.click(
-      within(paper()).getByRole("button", { name: "Chưa có gói và người nhận — bấm để điền" }),
+      within(paper()).getByRole("button", { name: "Chưa gán tài sản cho người nhận — bấm để điền" }),
     );
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
-    expect(document.getElementById("handover-task-packages")).toHaveClass("ring-4");
+    expect(document.getElementById("handover-task-assignments")).toHaveClass("ring-4");
   });
 
-  it("gói chưa có người nhận: dòng bảng có chỗ trống đỏ bấm được", async () => {
+  it("tài sản chưa có người nhận: ghi chú dưới bảng nhắc số tài sản chưa gán", async () => {
     showPlan({
       canActivate: false,
-      containers: [
-        {
-          id: LETTER_ID,
-          name: "Thư gửi các con",
-          status: "DRAFT",
-          assetCount: 2,
-          designationCount: 0,
-          missingRequirements: ["NO_DESIGNATION"],
-        },
-      ],
-      recipients: [],
+      unassignedAssets: [{ id: LETTER_ID, name: "Thư gửi các con", kind: "TEXT" }],
     });
     renderOverview();
     await openDrawer();
 
-    const doc = within(paper());
-    expect(doc.getByText("Thư gửi các con")).toBeInTheDocument();
-    await userEvent.click(doc.getByRole("button", { name: "Chưa có người nhận — bấm để điền" }));
-    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    await waitFor(() => expect(scrollIntoView).toHaveBeenCalled());
-    expect(document.getElementById("handover-task-packages")).toHaveClass("ring-4");
+    expect(within(paper()).getByText(/Còn 1 tài sản chưa gán cho ai/)).toBeInTheDocument();
   });
 
   it("đã mời nhưng chưa chấp nhận: không còn chỗ trống, ghi chờ chấp nhận và chờ ký nhận vai", async () => {
@@ -1048,13 +1008,9 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
 
   function counts(overrides: Record<string, number> = {}) {
     return {
-      removedContainers: 0,
-      addedContainers: 0,
-      removedAssets: 0,
-      addedAssets: 0,
-      removedRecipients: 0,
-      addedRecipients: 0,
-      changedRecipientCount: 0,
+      addedAssignments: 0,
+      removedAssignments: 0,
+      affectedRecipientCount: 0,
       ...overrides,
     };
   }
@@ -1064,13 +1020,9 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
       ...RUNNING,
       hasUnsignedChanges: true,
       unsignedChanges: counts({
-        removedContainers: 1,
-        removedAssets: 3,
-        removedRecipients: 2,
-        addedContainers: 1,
-        addedAssets: 2,
-        addedRecipients: 1,
-        changedRecipientCount: 4,
+        removedAssignments: 3,
+        addedAssignments: 2,
+        affectedRecipientCount: 4,
       }),
     });
     renderOverview();
@@ -1080,18 +1032,16 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
     expect(banner).toHaveTextContent(
       "Hãy ký phiên bản mới để bản biên bản phân chia khớp với cấu hình hiện tại.",
     );
-    expect(within(banner).getByText("Thêm 1 gói mới")).toBeInTheDocument();
-    expect(within(banner).getByText("Thêm 2 tài sản vào gói")).toBeInTheDocument();
-    expect(within(banner).getByText("Thêm 1 người nhận mới")).toBeInTheDocument();
-    expect(within(banner).getByText("Đổi người nhận ở 4 gói")).toBeInTheDocument();
-    expect(within(banner).getByText("Đã xóa 1 gói")).toBeInTheDocument();
-    expect(within(banner).getByText("Đã xóa 3 tài sản khỏi gói")).toBeInTheDocument();
-    expect(within(banner).getByText("Đã xóa 2 người nhận")).toBeInTheDocument();
-    expect(within(banner).getByText("Trong lúc chờ ký lại")).toBeInTheDocument();
-    expect(within(banner).getByText("Phần đã xóa không còn được bàn giao.")).toBeInTheDocument();
+    expect(within(banner).getByText("Gán thêm 2 lượt tài sản cho người nhận")).toBeInTheDocument();
     expect(
-      within(banner).getByText("Phần thêm hoặc đổi người nhận chưa được bàn giao."),
+      within(banner).getByText("Đã gỡ 3 lượt gán tài sản cho người nhận"),
     ).toBeInTheDocument();
+    expect(within(banner).getByText("4 người nhận bị ảnh hưởng")).toBeInTheDocument();
+    expect(within(banner).getByText("Trong lúc chờ ký lại")).toBeInTheDocument();
+    expect(
+      within(banner).getByText("Phần đã gỡ gán không còn được bàn giao."),
+    ).toBeInTheDocument();
+    expect(within(banner).getByText("Phần gán thêm chưa được bàn giao.")).toBeInTheDocument();
     expect(banner).toHaveTextContent("Người thực thi không phải ký lại");
     // Không còn cách chia cũ khiến xóa nghe như không cần ký.
     expect(banner).not.toHaveTextContent("Chưa có hiệu lực");
@@ -1102,34 +1052,36 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
     showPlan({
       ...RUNNING,
       hasUnsignedChanges: true,
-      unsignedChanges: counts({ removedContainers: 1 }),
+      unsignedChanges: counts({ removedAssignments: 1 }),
     });
     renderOverview();
 
     const banner = screen.getByRole("region", { name: BANNER });
-    expect(within(banner).getByText("Đã xóa 1 gói")).toBeInTheDocument();
-    expect(banner).not.toHaveTextContent(/Đã xóa 0|Thêm 0|Đổi người nhận ở 0/);
+    expect(
+      within(banner).getByText("Đã gỡ 1 lượt gán tài sản cho người nhận"),
+    ).toBeInTheDocument();
+    expect(banner).not.toHaveTextContent(/Đã gỡ 0|Gán thêm 0|0 người nhận bị ảnh hưởng/);
     expect(within(banner).getByText("Trong lúc chờ ký lại")).toBeInTheDocument();
-    expect(within(banner).getByText("Phần đã xóa không còn được bàn giao.")).toBeInTheDocument();
+    expect(
+      within(banner).getByText("Phần đã gỡ gán không còn được bàn giao."),
+    ).toBeInTheDocument();
     expect(banner).not.toHaveTextContent("chưa được bàn giao");
     expect(banner).not.toHaveTextContent("Chưa có hiệu lực");
     expect(banner).toHaveTextContent("Hãy ký phiên bản mới");
   });
 
-  it("chỉ thêm người nhận mới: có dòng chưa được bàn giao, không có dòng đã xóa", () => {
+  it("chỉ gán thêm: có dòng chưa được bàn giao, không có dòng đã gỡ", () => {
     showPlan({
       ...RUNNING,
       hasUnsignedChanges: true,
-      unsignedChanges: counts({ addedRecipients: 1 }),
+      unsignedChanges: counts({ addedAssignments: 1 }),
     });
     renderOverview();
 
     const banner = screen.getByRole("region", { name: BANNER });
-    expect(within(banner).getByText("Thêm 1 người nhận mới")).toBeInTheDocument();
-    expect(
-      within(banner).getByText("Phần thêm hoặc đổi người nhận chưa được bàn giao."),
-    ).toBeInTheDocument();
-    expect(banner).not.toHaveTextContent("Phần đã xóa không còn được bàn giao");
+    expect(within(banner).getByText("Gán thêm 1 lượt tài sản cho người nhận")).toBeInTheDocument();
+    expect(within(banner).getByText("Phần gán thêm chưa được bàn giao.")).toBeInTheDocument();
+    expect(banner).not.toHaveTextContent("Phần đã gỡ gán không còn được bàn giao");
   });
 
   it("Backend báo có thay đổi nhưng không có số đếm: vẫn hiện thanh nhắc và nút ký", () => {
@@ -1151,7 +1103,7 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
     expect(screen.queryByRole("region", { name: BANNER })).not.toBeInTheDocument();
     second.unmount();
 
-    showPlan({ hasUnsignedChanges: true, unsignedChanges: counts({ addedContainers: 1 }) });
+    showPlan({ hasUnsignedChanges: true, unsignedChanges: counts({ addedAssignments: 1 }) });
     renderOverview();
     expect(screen.queryByRole("region", { name: BANNER })).not.toBeInTheDocument();
   });
@@ -1160,7 +1112,7 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
     showPlan({
       ...RUNNING,
       hasUnsignedChanges: true,
-      unsignedChanges: counts({ addedContainers: 1 }),
+      unsignedChanges: counts({ addedAssignments: 1 }),
     });
     renderOverview();
 
@@ -1180,13 +1132,9 @@ describe("ký phiên bản mới trong khung", () => {
     willSignedAt: ACTIVATED_AT,
     hasUnsignedChanges: true,
     unsignedChanges: {
-      removedContainers: 0,
-      addedContainers: 1,
-      removedAssets: 0,
-      addedAssets: 0,
-      removedRecipients: 0,
-      addedRecipients: 0,
-      changedRecipientCount: 0,
+      addedAssignments: 1,
+      removedAssignments: 0,
+      affectedRecipientCount: 1,
     },
   };
   const RESIGN_TICK =

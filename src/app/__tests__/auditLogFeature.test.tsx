@@ -71,8 +71,8 @@ const entry = {
   at: "2026-10-15T08:30:00+00:00",
   actorRole: "OWNER" as const,
   actorUserId: "0199e7a4-0000-7c3e-9a51-3f0f5d2b8a10",
-  action: "CONTAINER_CREATED" as const,
-  targetType: "CONTAINER" as const,
+  action: "ASSET_ASSIGNED" as const,
+  targetType: "ASSET" as const,
   targetId: "0199e7a4-1111-7c3e-9a51-3f0f5d2b8a10",
   targetVersion: 1,
   outcome: "SUCCEEDED" as const,
@@ -174,20 +174,20 @@ describe("OwnerAuditLog transport", () => {
       page: pageFixture([
         {
           ...entry,
-          action: "CONTAINER_BENEFICIARY_ADDED",
+          action: "ASSET_ASSIGNED",
           reason: "Người nhận 01a15ccf-7c06-797e-b417-086d7d963788",
         },
       ]),
     });
     setup("/dashboard/audit-log");
     const row = (
-      await screen.findByRole("cell", { name: "Gán người nhận cho gói bàn giao" })
+      await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })
     ).closest("tr") as HTMLElement;
     expect(row).toHaveTextContent("Chủ kho");
-    expect(row).toHaveTextContent("Gói bàn giao");
+    expect(row).toHaveTextContent("Tài sản");
     expect(row).toHaveTextContent("Thành công");
     expect(row).toHaveTextContent("Người nhận #963788");
-    expect(row).not.toHaveTextContent("CONTAINER_BENEFICIARY_ADDED");
+    expect(row).not.toHaveTextContent("ASSET_ASSIGNED");
     expect(row).not.toHaveTextContent("SUCCEEDED");
     expect(row).not.toHaveTextContent("086d7d963788");
   });
@@ -201,7 +201,7 @@ describe("OwnerAuditLog transport", () => {
       dateOfBirth: "1990-05-20",
       email: "quan@example.test",
       phone: null,
-      containerIds: [],
+      assetIds: [],
       createdAt: "2026-10-14T00:00:00Z",
       updatedAt: null,
       etag: '"0"',
@@ -209,13 +209,13 @@ describe("OwnerAuditLog transport", () => {
     const auditPage = pageFixture([
       {
         ...entry,
-        action: "CONTAINER_BENEFICIARY_ADDED" as const,
+        action: "ASSET_ASSIGNED" as const,
         reason: `Người nhận ${personId}`,
       },
       {
         ...entry,
         id: "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a11",
-        action: "CONTAINER_BENEFICIARY_REMOVED" as const,
+        action: "ASSET_UNASSIGNED" as const,
         reason: "Người nhận 01a15ccf-aaaa-797e-b417-000000abcdef",
       },
       {
@@ -235,11 +235,11 @@ describe("OwnerAuditLog transport", () => {
     };
     setup("/dashboard/audit-log");
     const added = (
-      await screen.findByRole("cell", { name: "Gán người nhận cho gói bàn giao" })
+      await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })
     ).closest("tr") as HTMLElement;
     await waitFor(() => expect(added).toHaveTextContent("Người nhận Trịnh Lê Thiên Quan"));
     const removed = screen
-      .getByRole("cell", { name: "Gỡ người nhận khỏi gói bàn giao" })
+      .getByRole("cell", { name: "Gỡ gán tài sản khỏi người nhận" })
       .closest("tr") as HTMLElement;
     expect(removed).toHaveTextContent("Người nhận #abcdef");
     const vaultRow = screen
@@ -297,8 +297,8 @@ describe("OwnerAuditLog URL state", () => {
     installAdapter();
     setup("/dashboard/audit-log?page=3");
     const actionSelect = await screen.findByLabelText("Loại thao tác");
-    fireEvent.change(actionSelect, { target: { value: "CONTAINER_CREATED" } });
-    await waitFor(() => expect(locationRef.current).toContain("action=CONTAINER_CREATED"));
+    fireEvent.change(actionSelect, { target: { value: "ASSET_ASSIGNED" } });
+    await waitFor(() => expect(locationRef.current).toContain("action=ASSET_ASSIGNED"));
     expect(locationRef.current).toMatch(/[?&]page=1(?:&|$)/);
   });
 
@@ -340,7 +340,7 @@ describe("OwnerAuditLog URL state", () => {
       expect(await screen.findByRole("alert")).toHaveTextContent("Ngày lọc không hợp lệ");
       expect(calls.filter((c) => c.url?.endsWith("/audit-logs"))).toHaveLength(0);
       fireEvent.click(screen.getByRole("button", { name: "Đặt lại" }));
-      await screen.findByRole("cell", { name: "Tạo gói bàn giao" });
+      await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" });
       expect(locationRef.current).not.toContain("from=");
       expect(locationRef.current).not.toContain("to=");
     },
@@ -449,7 +449,7 @@ describe("OwnerAuditLog UI states", () => {
         headers: new AxiosHeaders(),
       };
     };
-    setup("/dashboard/audit-log?page=5&action=CONTAINER_CREATED&from=2026-10-01");
+    setup("/dashboard/audit-log?page=5&action=ASSET_ASSIGNED&from=2026-10-01");
     const recoveryButton = await screen.findByRole("button", { name: "Về trang 1" });
     fireEvent.click(recoveryButton);
     await waitFor(() => expect(locationRef.current).toMatch(/[?&]page=1(?:&|$)/));
@@ -459,9 +459,9 @@ describe("OwnerAuditLog UI states", () => {
       );
       expect(pageOneCalls.length).toBeGreaterThanOrEqual(1);
     });
-    expect(locationRef.current).toContain("action=CONTAINER_CREATED");
+    expect(locationRef.current).toContain("action=ASSET_ASSIGNED");
     expect(locationRef.current).toContain("from=2026-10-01");
-    expect(await screen.findByRole("cell", { name: "Tạo gói bàn giao" })).toBeInTheDocument();
+    expect(await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })).toBeInTheDocument();
     expect(screen.queryByText(/Trang hiện vượt quá phạm vi/)).not.toBeInTheDocument();
   });
 });
@@ -498,7 +498,7 @@ describe("OwnerAuditLog cache", () => {
     hasNewEntry = true;
     await client.invalidateQueries({ queryKey: ["owner-vault"] });
     setup("/dashboard/audit-log");
-    expect(await screen.findByRole("cell", { name: "Tạo gói bàn giao" })).toBeInTheDocument();
+    expect(await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })).toBeInTheDocument();
     expect(screen.queryByText("Chưa có dòng nhật ký nào khớp bộ lọc.")).not.toBeInTheDocument();
   });
 });

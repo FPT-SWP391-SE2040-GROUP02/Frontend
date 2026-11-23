@@ -278,7 +278,7 @@ describe("AssetDetail", () => {
   });
 
   it.each([
-    ["IN_CONTAINER", /gỡ khỏi gói/i],
+    ["ASSIGNED", /gỡ gán/i],
     ["PINNED_IN_HANDOVER", /ghim/i],
   ])("explains why deletion is refused (%s) and keeps the asset", async (reason, expected) => {
     const user = userEvent.setup();
@@ -290,7 +290,7 @@ describe("AssetDetail", () => {
       await screen.findByRole("heading", { name: "Chưa xóa được mục này" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent(expected);
-    expect(screen.getByRole("link", { name: "Mở gói bàn giao" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Mở phần phân chia" })).toBeInTheDocument();
   });
 
   it("deletes only after confirmation, once, then refreshes and leaves the page", async () => {
