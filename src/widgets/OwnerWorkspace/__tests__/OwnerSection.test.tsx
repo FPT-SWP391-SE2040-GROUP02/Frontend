@@ -15,7 +15,7 @@ import { vaultFixture } from "@/shared/api/__tests__/backend.fixtures";
 import { OwnerSection } from "../OwnerSection";
 
 vi.mock("@/features/vault-management/api/ownerVaultService", () => ({
-  ownerVaultService: { getMine: vi.fn(), createMine: vi.fn(), listPackages: vi.fn() },
+  ownerVaultService: { getMine: vi.fn(), createMine: vi.fn() },
 }));
 vi.mock("@/features/vault-pin/api/vaultPinService", () => ({
   vaultPinService: { getStatus: vi.fn(), set: vi.fn(), verify: vi.fn() },
@@ -91,7 +91,6 @@ describe("official workspace data states", () => {
     expect(await screen.findByText("Xác minh email để mở kho di sản")).toBeInTheDocument();
     expect(ownerVaultService.createMine).toHaveBeenCalledWith();
     expect(backendAssetService.list).not.toHaveBeenCalled();
-    expect(ownerVaultService.listPackages).not.toHaveBeenCalled();
   });
   it("auto-creates the vault without a name and goes straight to its content", async () => {
     vi.mocked(ownerVaultService.getMine).mockRejectedValue({
@@ -197,8 +196,8 @@ describe("official workspace data states", () => {
         executorScopeVersion: "s1",
         executorScopeText: "Phạm vi thử.",
         executors: [],
-        containers: [],
-        assetsOutsideContainer: [],
+        assignedAssetCount: 0,
+        unassignedAssets: [],
         warnings: [],
       },
     } as never);

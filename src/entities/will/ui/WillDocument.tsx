@@ -6,7 +6,6 @@ import type {
   WillGapTarget,
   WillIdentityStatus,
   WillOwnerIdentityView,
-  WillPackageView,
   WillRecipientView,
   WillVersionView,
 } from "../model/willDocument.types";
@@ -25,10 +24,8 @@ export interface WillDocumentProps {
    * mục II khi đó dùng câu chung.
    */
   recipients?: WillRecipientView[];
-  /** Các gói chưa có người nhận; chỉ hiện khi biết `recipients`. */
-  unassignedPackages?: WillPackageView[];
-  /** Số tài sản chưa nằm trong gói nào (sẽ không được bàn giao). */
-  assetsOutsideCount?: number;
+  /** Số tài sản chưa gán cho ai (sẽ không được bàn giao); chỉ hiện khi biết `recipients`. */
+  unassignedAssetCount?: number;
   /**
    * "owner": Chủ kho đang soạn, chỗ trống đỏ bấm được (khi có `onGapClick`).
    * "reader": chỉ đọc (Người thực thi xem trước, bản in), chỗ trống chỉ là chữ đỏ.
@@ -51,42 +48,30 @@ const SECTION = "mt-7";
 const HEADING = "mb-2 text-base font-semibold text-heritage-primary";
 const BODY = "max-w-[68ch] leading-7";
 
-/** Một dòng của bảng mục II: một gói kèm những người được nhận gói đó (rỗng nghĩa là gói chưa có người nhận). */
-interface PackageRow {
+/** Một dòng của bảng mục II: một tài sản kèm những người nhận tài sản đó (nhiều người là nhận chung). */
+interface AssetRow {
   id: string;
   name: string;
-  assetCount: number;
   recipients: WillRecipientView[];
 }
 
-/** Đổi dữ liệu "người nhận → các gói" thành "gói → các người nhận"; gói chưa có người nhận xếp sau cùng. */
-function buildPackageRows(
-  recipients: WillRecipientView[],
-  unassignedPackages: WillPackageView[],
-): PackageRow[] {
-  const rows: PackageRow[] = [];
+/** Đổi dữ liệu "người nhận → các tài sản" thành "tài sản → các người nhận", theo thứ tự xuất hiện. */
+function buildAssetRows(recipients: WillRecipientView[]): AssetRow[] {
+  const rows: AssetRow[] = [];
   for (const recipient of recipients) {
-    for (const item of recipient.packages) {
-      let found: PackageRow | null = null;
+    for (const item of recipient.assets) {
+      let found: AssetRow | null = null;
       for (const row of rows) {
         if (row.id === item.id) {
           found = row;
         }
       }
       if (found === null) {
-        rows.push({
-          id: item.id,
-          name: item.name,
-          assetCount: item.assetCount,
-          recipients: [recipient],
-        });
+        rows.push({ id: item.id, name: item.name, recipients: [recipient] });
       } else {
         found.recipients.push(recipient);
       }
     }
-  }
-  for (const item of unassignedPackages) {
-    rows.push({ id: item.id, name: item.name, assetCount: item.assetCount, recipients: [] });
   }
   return rows;
 }
@@ -220,18 +205,16 @@ function RecipientIdentityLine({
   );
 }
 
-/** Mục II: bảng gói tài sản và người nhận. Chỉ ghi tên gói và số tài sản, không ghi tên từng tài sản. */
+/** Mục II: bảng tài sản và người nhận. Ghi tên từng tài sản, không ghi nội dung. Tài sản nhận chung có nhiều người. */
 function AssetsSectionBlock({
   recipients,
-  unassignedPackages,
-  assetsOutsideCount,
+  unassignedAssetCount,
   clickable,
   onGapClick,
   identityStatus,
 }: {
   recipients: WillRecipientView[] | undefined;
-  unassignedPackages: WillPackageView[];
-  assetsOutsideCount: number;
+  unassignedAssetCount: number;
   clickable: boolean;
   onGapClick: ((target: WillGapTarget) => void) | undefined;
   identityStatus: WillIdentityStatus;
@@ -242,22 +225,22 @@ function AssetsSectionBlock({
       <section id="muc-2" className={SECTION}>
         {heading}
         <p className={BODY}>
-          Các gói tài sản trong kho được để lại cho những người nhận mà tôi đã chỉ định cho từng gói
-          trong kế hoạch bàn giao. Biên bản phân chia chỉ ghi tên gói, không ghi tên hay nội dung
-          tài sản.
+          Các tài sản trong kho được để lại cho những người nhận mà tôi đã chọn cho từng tài sản
+          trong kế hoạch bàn giao. Tài sản chọn cho nhiều người thì những người đó nhận chung. Biên
+          bản phân chia không ghi nội dung tài sản.
         </p>
       </section>
     );
   }
-  const packageRows = buildPackageRows(recipients, unassignedPackages);
-  if (packageRows.length === 0) {
+  const assetRows = buildAssetRows(recipients);
+  if (assetRows.length === 0) {
     return (
       <section id="muc-2" className={SECTION}>
         {heading}
         <p>
           <Gap
-            text="Chưa có gói và người nhận"
-            target="packages"
+            text="Chưa gán tài sản cho người nhận"
+            target="assignments"
             clickable={clickable}
             onGapClick={onGapClick}
           />
@@ -267,47 +250,42 @@ function AssetsSectionBlock({
   }
   const rowNodes: ReactNode[] = [];
   let order = 0;
-  for (const row of packageRows) {
+  for (const row of assetRows) {
     order = order + 1;
-    let recipientCell: ReactNode;
-    if (row.recipients.length === 0) {
-      recipientCell = (
-        <Gap
-          text="Chưa có người nhận"
-          target="packages"
-          clickable={clickable}
-          onGapClick={onGapClick}
-        />
+    const people: ReactNode[] = [];
+    for (const person of row.recipients) {
+      people.push(
+        <div key={person.id} className="mb-1.5 last:mb-0">
+          <span className="font-semibold">{person.fullName}</span>
+          <RecipientIdentityLine recipient={person} identityStatus={identityStatus} />
+        </div>,
       );
-    } else {
-      const people: ReactNode[] = [];
-      for (const person of row.recipients) {
-        people.push(
-          <div key={person.id} className="mb-1.5 last:mb-0">
-            <span className="font-semibold">{person.fullName}</span>
-            <RecipientIdentityLine recipient={person} identityStatus={identityStatus} />
-          </div>,
-        );
-      }
-      recipientCell = <div>{people}</div>;
+    }
+    const recipientCell = <div>{people}</div>;
+    let sharedNote: ReactNode = null;
+    if (row.recipients.length > 1) {
+      sharedNote = (
+        <small className="block text-heritage-muted">
+          Nhận chung, {row.recipients.length} người
+        </small>
+      );
     }
     rowNodes.push(
       <tr key={row.id}>
         <td className="border border-heritage-border px-2.5 py-2 align-top">{order}</td>
         <td className="border border-heritage-border px-2.5 py-2 align-top">
           {row.name}
-          <br />
-          <small className="text-heritage-muted">{row.assetCount} tài sản</small>
+          {sharedNote}
         </td>
         <td className="border border-heritage-border px-2.5 py-2 align-top">{recipientCell}</td>
       </tr>,
     );
   }
   let outsideNote: ReactNode = null;
-  if (assetsOutsideCount > 0) {
+  if (unassignedAssetCount > 0) {
     outsideNote = (
       <p className="mt-2 text-sm text-heritage-muted">
-        Còn {assetsOutsideCount} tài sản chưa nằm trong gói nào nên sẽ không được bàn giao.
+        Còn {unassignedAssetCount} tài sản chưa gán cho ai nên sẽ không được bàn giao.
       </p>
     );
   }
@@ -322,7 +300,7 @@ function AssetsSectionBlock({
                 STT
               </th>
               <th scope="col" className="border border-heritage-border px-2.5 py-2 text-left">
-                Gói tài sản
+                Tài sản
               </th>
               <th scope="col" className="border border-heritage-border px-2.5 py-2 text-left">
                 Người nhận
@@ -333,7 +311,7 @@ function AssetsSectionBlock({
         </table>
       </div>
       <p className={`${BODY} mt-2.5`}>
-        Ngoài những người nêu trên, tôi không để lại các gói tài sản này cho bất cứ ai khác.
+        Ngoài những người nêu trên, tôi không để lại các tài sản này cho bất cứ ai khác.
       </p>
       {outsideNote}
     </section>
@@ -491,8 +469,7 @@ export function WillDocument({
   signedAt = null,
   executor = null,
   recipients,
-  unassignedPackages = [],
-  assetsOutsideCount = 0,
+  unassignedAssetCount = 0,
   viewer = "reader",
   onGapClick,
   identityStatus = "none",
@@ -543,8 +520,7 @@ export function WillDocument({
       />
       <AssetsSectionBlock
         recipients={recipients}
-        unassignedPackages={unassignedPackages}
-        assetsOutsideCount={assetsOutsideCount}
+        unassignedAssetCount={unassignedAssetCount}
         clickable={clickable}
         onGapClick={onGapClick}
         identityStatus={identityStatus}

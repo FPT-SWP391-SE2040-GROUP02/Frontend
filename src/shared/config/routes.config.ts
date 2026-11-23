@@ -39,8 +39,8 @@ export const ROUTES = {
     ASSETS: "/dashboard/assets",
     /** Chi tiết một mục trong kho: thông tin, phiên bản, thêm phiên bản, xóa. */
     ASSET_DETAIL: (id: string) => `/dashboard/assets/${id}`,
-    /** Chi tiết một gói bàn giao (container): mục, người nhận, đổi tên, xóa. */
-    GROUP_DETAIL: (id: string) => `/dashboard/assets/groups/${id}`,
+    /** Tab "Phân chia" của Kho của tôi: gán từng tài sản cho người nhận. */
+    ASSIGNMENTS: "/dashboard/assets?tab=assignments",
     BENEFICIARIES: "/dashboard/beneficiaries",
     /** Trang Người thực thi của Chủ kho (tên đường dẫn giữ nguyên để không phá link). */
     TRUSTED_PEOPLE: "/dashboard/trusted-people",

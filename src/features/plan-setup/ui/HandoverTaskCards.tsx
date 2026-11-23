@@ -263,17 +263,9 @@ function ExecutorTask({
   );
 }
 
-/** Tóm tắt các gói sẵn sàng: số gói, số tài sản, những người nhận (không ghi tên tài sản). */
-function packagesSummary(setup: PlanSetup): string {
-  let packageCount = 0;
-  let assetCount = 0;
-  for (const container of setup.containers) {
-    if (container.status === "READY") {
-      packageCount = packageCount + 1;
-      assetCount = assetCount + container.assetCount;
-    }
-  }
-  let summary = `${packageCount} gói · ${assetCount} tài sản`;
+/** Tóm tắt phần gán: số tài sản đã gán, những người nhận (không ghi tên tài sản). */
+function assignmentsSummary(setup: PlanSetup): string {
+  let summary = `${setup.assignedAssetCount} tài sản đã gán`;
   if (setup.recipients !== undefined && setup.recipients.length > 0) {
     const names: string[] = [];
     for (const recipient of setup.recipients) {
@@ -284,7 +276,7 @@ function packagesSummary(setup: PlanSetup): string {
   return `${summary}.`;
 }
 
-function PackagesTask({
+function AssignmentsTask({
   setup,
   done,
   readOnly,
@@ -295,67 +287,47 @@ function PackagesTask({
   readOnly: boolean;
   flashing: boolean;
 }) {
-  let description = "Cần ít nhất một gói có tài sản và người nhận hợp lệ.";
+  let description = "Cần gán ít nhất một tài sản cho một người nhận.";
   if (done) {
-    description = packagesSummary(setup);
-  }
-  const unassignedLinks: ReactNode[] = [];
-  for (const container of setup.containers) {
-    if (container.designationCount === 0) {
-      unassignedLinks.push(
-        <Link
-          key={container.id}
-          className={SECONDARY_LINK}
-          to={ROUTES.DASHBOARD.GROUP_DETAIL(container.id)}
-        >
-          Chọn người nhận cho gói “{container.name}”
-        </Link>,
-      );
-    }
+    description = assignmentsSummary(setup);
   }
   let mainLink: ReactNode = (
-    <Link className={SECONDARY_LINK} to={ROUTES.DASHBOARD.ASSETS}>
-      Quản lý gói
+    <Link className={SECONDARY_LINK} to={ROUTES.DASHBOARD.ASSIGNMENTS}>
+      Quản lý phần phân chia
     </Link>
   );
   if (!done) {
     mainLink = (
-      <Link className={PRIMARY_LINK} to={ROUTES.DASHBOARD.ASSETS}>
-        Tạo gói và chọn người nhận
+      <Link className={PRIMARY_LINK} to={ROUTES.DASHBOARD.ASSIGNMENTS}>
+        Chọn người nhận cho tài sản
       </Link>
     );
   }
   let outsideNote: ReactNode = null;
-  if (setup.assetsOutsideContainer.length > 0) {
+  if (setup.unassignedAssets.length > 0) {
     outsideNote = (
       <p className={DESCRIPTION}>
-        Còn {setup.assetsOutsideContainer.length} tài sản chưa nằm trong gói nào nên sẽ không được
-        bàn giao.
+        Còn {setup.unassignedAssets.length} tài sản chưa gán cho ai nên sẽ không được bàn giao.
       </p>
     );
   }
   return (
     <TaskCard
-      task="packages"
+      task="assignments"
       order={3}
       done={done}
-      title="Gói tài sản và người nhận"
+      title="Tài sản và người nhận"
       flashing={flashing}
     >
       <p className={DESCRIPTION}>{description}</p>
       {outsideNote}
-      {!readOnly && (
-        <Actions>
-          {mainLink}
-          {unassignedLinks}
-        </Actions>
-      )}
+      {!readOnly && <Actions>{mainLink}</Actions>}
     </TaskCard>
   );
 }
 
 /**
- * Cột trái của trang Bàn giao: bốn thẻ việc (eKYC, Người thực thi, Gói tài sản và người nhận, Gói dịch vụ). Trạng thái
+ * Cột trái của trang Bàn giao: bốn thẻ việc (eKYC, Người thực thi, Tài sản và người nhận, Gói dịch vụ). Trạng thái
  * xong hay chưa lấy từ `missingRequirements` của Backend. `readOnly` (kế hoạch đã chạy) chỉ hiện tóm tắt, không có nút.
  */
 export function HandoverTaskCards({
@@ -372,7 +344,7 @@ export function HandoverTaskCards({
   const missing = setup.missingRequirements;
   const ekycDone = !missing.includes("OWNER_EKYC_REQUIRED");
   const executorDone = !missing.includes("PRIMARY_EXECUTOR_REQUIRED");
-  const packagesDone = !missing.includes("READY_CONTAINER_REQUIRED");
+  const assignmentsDone = !missing.includes("ASSIGNMENT_REQUIRED");
   const planDone = !missing.includes("PAID_SERVICE_REQUIRED");
 
   let ekycDescription = "Chủ kho cần hoàn tất xác minh danh tính eKYC.";
@@ -409,11 +381,11 @@ export function HandoverTaskCards({
         readOnly={readOnly}
         flashing={flashTask === "executor"}
       />
-      <PackagesTask
+      <AssignmentsTask
         setup={setup}
-        done={packagesDone}
+        done={assignmentsDone}
         readOnly={readOnly}
-        flashing={flashTask === "packages"}
+        flashing={flashTask === "assignments"}
       />
       <TaskCard
         task="plan"

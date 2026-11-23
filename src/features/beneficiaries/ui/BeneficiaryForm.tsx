@@ -225,8 +225,8 @@ export function BeneficiaryForm({
   };
 
   let note = "Email là bắt buộc để gửi thông báo nhận bàn giao.";
-  if (record && record.containerIds.length > 0) {
-    note = `Người này đang thuộc ${record.containerIds.length} gói bàn giao. Sửa thông tin sẽ cập nhật cấu hình kế hoạch bàn giao.`;
+  if (record && record.assetIds.length > 0) {
+    note = `Người này đang được gán ${record.assetIds.length} tài sản. Sửa thông tin sẽ cập nhật cấu hình kế hoạch bàn giao.`;
   } else if (record) {
     note = "Email là bắt buộc để gửi thông báo nhận bàn giao.";
   }

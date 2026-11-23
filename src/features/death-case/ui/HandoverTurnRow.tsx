@@ -174,7 +174,7 @@ export function HandoverTurnRow({
   const highlighted = progress.needsAction;
   return (
     <li
-      aria-label={`${name}, gói ${turn.containerName}`}
+      aria-label={`${name}, ${turn.containerName}`}
       data-needs-action={highlighted ? "true" : undefined}
       className={cn(
         "rounded-2xl border bg-heritage-surface p-4",
@@ -188,7 +188,7 @@ export function HandoverTurnRow({
           <Initial name={turn.beneficiaryFullName ?? "?"} className="size-10 text-sm" />
           <div className="min-w-0">
             <p className="truncate font-semibold">{name}</p>
-            <p className="truncate text-sm text-heritage-muted">Gói “{turn.containerName}”</p>
+            <p className="truncate text-sm text-heritage-muted">{turn.containerName}</p>
           </div>
         </div>
         <div className="min-w-0 space-y-2">

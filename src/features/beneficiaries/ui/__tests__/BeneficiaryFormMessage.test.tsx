@@ -18,7 +18,7 @@ const saved = {
   email: "an@example.com",
   phone: null,
   message: "Con ơi, bố để lại phần này cho con.",
-  containerIds: [],
+  assetIds: [],
   createdAt: "2026-11-08T08:00:00+00:00",
   updatedAt: null,
   etag: '"0"',

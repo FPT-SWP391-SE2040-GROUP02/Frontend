@@ -27,7 +27,7 @@ function matches(executor: SystemExecutor, keyword: string): boolean {
 }
 
 /**
- * Danh bạ Người thực thi hệ thống: Chủ kho tìm và chọn một người thay cho việc gõ email tự do.
+ * Danh sách người thực thi hệ thống: Chủ kho tìm và chọn một người thay cho việc gõ email tự do.
  * Danh sách và quyền mời đều do Backend quyết định; ở đây chỉ hiển thị và lọc theo chữ.
  */
 export function SystemExecutorDirectory({
@@ -108,7 +108,7 @@ export function SystemExecutorDirectory({
           Không có Người thực thi nào khớp với từ khóa đang tìm.
         </p>
       )}
-      <ul aria-label="Danh bạ Người thực thi hệ thống" className="space-y-3">
+      <ul aria-label="Danh sách người thực thi hệ thống" className="space-y-3">
         {visible.map((executor) => (
           <SystemExecutorCard
             key={executor.id}

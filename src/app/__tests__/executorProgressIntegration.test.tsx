@@ -183,12 +183,12 @@ it("shows four tiles and one row per turn, with detail only after pressing Chi t
   setup(<HandoverProgressPanel recordId={CASE_ID} />);
   const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
   // Chưa có họ tên thì hiện CCCD che; mỗi lượt đúng một dòng kèm tên gói.
-  const rows = within(list).getAllByRole("listitem", { name: /, gói / });
+  const rows = within(list).getAllByRole("listitem", { name: /, / });
   expect(rows).toHaveLength(2);
   expect(screen.getByText("Người nhận CCCD 8901")).toBeInTheDocument();
-  expect(screen.getByText("Gói “Tài liệu gia đình”")).toBeInTheDocument();
+  expect(screen.getByText("Tài liệu gia đình")).toBeInTheDocument();
   expect(screen.getByText("Nguyễn Văn An")).toBeInTheDocument();
-  expect(screen.getByText("Gói “Tài khoản ngân hàng”")).toBeInTheDocument();
+  expect(screen.getByText("Tài khoản ngân hàng")).toBeInTheDocument();
   expect(screen.getByText("trên 2 người nhận")).toBeInTheDocument();
   // Chi tiết chỉ mở khi bấm.
   expect(screen.queryByRole("region", { name: "Thông tin liên hệ" })).not.toBeInTheDocument();
@@ -214,8 +214,8 @@ it("keeps two packages of the same recipient as two separate rows", async () => 
   setup(<HandoverProgressPanel recordId={CASE_ID} />);
   const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
   expect(within(list).getAllByText("Trần Thị Bình")).toHaveLength(2);
-  expect(within(list).getByText("Gói “Tài liệu gia đình”")).toBeInTheDocument();
-  expect(within(list).getByText("Gói “Tài khoản ngân hàng”")).toBeInTheDocument();
+  expect(within(list).getByText("Tài liệu gia đình")).toBeInTheDocument();
+  expect(within(list).getByText("Tài khoản ngân hàng")).toBeInTheDocument();
   expect(within(list).getAllByRole("button", { name: "Chi tiết" })).toHaveLength(2);
 });
 

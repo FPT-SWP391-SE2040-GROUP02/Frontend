@@ -9,16 +9,17 @@ export interface WillExecutorView {
   signedAt?: string | null;
 }
 
-export interface WillPackageView {
+/** Một tài sản trong biên bản phân chia; `sharedWithCount` lớn hơn 1 là tài sản nhận chung. */
+export interface WillAssetView {
   id: string;
   name: string;
-  assetCount: number;
+  sharedWithCount: number;
 }
 
 export interface WillRecipientView {
   id: string;
   fullName: string;
-  packages: WillPackageView[];
+  assets: WillAssetView[];
   /** Ngày sinh "yyyy-MM-dd" của người nhận; chỉ có khi nơi xem đã tải danh tính đầy đủ. */
   dateOfBirth?: string | null;
   /** Số CCCD đầy đủ của người nhận; chỉ in trong biên bản phân chia, không ghi log hay lưu trữ. */
@@ -46,4 +47,4 @@ export interface WillVersionView {
 }
 
 /** Chỗ trống trong biên bản phân chia mà Chủ kho có thể bấm để được đưa tới nơi điền. */
-export type WillGapTarget = "executor" | "packages";
+export type WillGapTarget = "executor" | "assignments";

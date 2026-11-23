@@ -40,8 +40,8 @@ const setupFixture = () =>
     executorScopeVersion: "1",
     executorScopeText: "Test scope",
     executors: [],
-    containers: [],
-    assetsOutsideContainer: [],
+    assignedAssetCount: 0,
+    unassignedAssets: [],
     warnings: [],
   });
 
@@ -140,7 +140,7 @@ describe("Owner dashboard from server metadata", () => {
     ];
     vi.mocked(planSetupService.get).mockResolvedValue(setup);
     mount();
-    const step = await screen.findByText("Người thực thi chính chấp nhận nhiệm vụ");
+    const step = await screen.findByText("Chuẩn bị kế hoạch bàn giao");
     expect(within(step.closest("li")!).getByRole("link", { name: "Làm ngay" })).toBeInTheDocument();
   });
   it("does not request private resources without a ready session", () => {

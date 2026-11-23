@@ -63,8 +63,8 @@ function setupData(overrides: Record<string, unknown> = {}) {
     executorScopeVersion: "scope-test",
     executorScopeText: "Phạm vi thử.",
     executors: [],
-    containers: [],
-    assetsOutsideContainer: [],
+    assignedAssetCount: 0,
+    unassignedAssets: [],
     warnings: [],
     ...overrides,
   };
@@ -151,14 +151,14 @@ function renderPage() {
 }
 
 describe("trang Người thực thi: thẻ Người bạn chọn", () => {
-  it("chưa mời ai: khung Bạn chưa mời ai và nút Mời Người thực thi", async () => {
+  it("chưa mời ai: khung Bạn chưa mời ai và nút Chọn Người thực thi", async () => {
     showPlan({});
     renderPage();
 
     expect(await screen.findByRole("heading", { name: "Người bạn chọn" })).toBeInTheDocument();
     expect(screen.getByText("Mỗi kho một người · bắt buộc để kích hoạt")).toBeInTheDocument();
     expect(screen.getByText("Bạn chưa mời ai")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Mời Người thực thi" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toBeInTheDocument();
   });
 
   it("INVITED: chip Chờ đồng ý, ngày mời, nút Gửi lại lời mời và Thu hồi lời mời", async () => {
@@ -289,7 +289,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
 
     expect(await screen.findByText(/Bạn chỉ xem được/)).toBeInTheDocument();
     for (const name of [
-      "Mời Người thực thi",
+      "Chọn Người thực thi",
       "Thay người khác",
       "Gửi lại lời mời",
       "Thu hồi lời mời",
@@ -307,14 +307,14 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
       executor({ inviteeEmail: "moi@example.test", accountExists }) as never,
     );
     renderPage();
-    await userEvent.click(await screen.findByRole("button", { name: "Mời Người thực thi" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Chọn Người thực thi" }));
     const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText("Mời Người thực thi")).toBeInTheDocument();
+    expect(within(dialog).getByText("Chọn Người thực thi của bạn")).toBeInTheDocument();
     expect(dialog).toHaveTextContent("Lời mời có hiệu lực 10 phút.");
     await userEvent.click(
       await within(dialog).findByRole("button", { name: "Chọn người này: Luật sư Thử" }),
     );
-    await userEvent.click(within(dialog).getByRole("checkbox", { name: /chỉ là đề cử/ }));
+    await userEvent.click(within(dialog).getByRole("switch", { name: /chỉ là đề cử/ }));
     await userEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   }
 

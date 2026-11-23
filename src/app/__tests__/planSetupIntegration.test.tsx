@@ -27,17 +27,8 @@ const setupFixture = {
   executorScopeVersion: "executor-2026-10-15",
   executorScopeText: "Phạm vi Executor.",
   executors: [],
-  containers: [
-    {
-      id: CONTAINER_ID,
-      name: "Gói gia đình",
-      status: "READY",
-      assetCount: 5,
-      designationCount: 2,
-      missingRequirements: [],
-    },
-  ],
-  assetsOutsideContainer: [],
+  assignedAssetCount: 5,
+  unassignedAssets: [],
   warnings: [],
 };
 const invitationFixture = {
@@ -150,8 +141,8 @@ it("missing eKYC and Executor keep activation disabled even after acknowledgemen
     ...setupFixture,
     canActivate: false,
     missingRequirements: ["OWNER_EKYC_REQUIRED", "PRIMARY_EXECUTOR_REQUIRED"],
-    containers: [],
-    assetsOutsideContainer: [],
+    assignedAssetCount: 0,
+    unassignedAssets: [],
     warnings: [],
   });
   const post = vi.spyOn(apiClient, "post");
@@ -360,7 +351,7 @@ it("tolerates an older backend without the will fields and parses the new ones",
         beneficiaryId: VAULT_ID,
         fullName: "Trần Thị Bình",
         hasMessage: true,
-        containers: [{ id: CONTAINER_ID, name: "Gói gia đình", assetCount: 5, status: "READY" }],
+        assets: [{ id: CONTAINER_ID, name: "Sổ đỏ", kind: "FILE", sharedWithCount: 2 }],
       },
     ],
   });
@@ -372,7 +363,7 @@ it("tolerates an older backend without the will fields and parses the new ones",
   }
 });
 
-it.each(["containers", "assetsOutsideContainer", "warnings"])(
+it.each(["assignedAssetCount", "unassignedAssets", "warnings"])(
   "rejects a missing %s contract field",
   (field) => {
     const response: Record<string, unknown> = { ...setupFixture };
@@ -388,8 +379,8 @@ it("hiện thẻ việc: việc đạt có dấu xong, việc thiếu kèm nút 
     missingRequirements: ["OWNER_EKYC_REQUIRED", "PRIMARY_EXECUTOR_REQUIRED"],
   });
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
-  expect(await screen.findByRole("heading", { name: /Gói tài sản và người nhận/ })).toBeVisible();
-  expect(screen.getByText(/^1 gói · 5 tài sản/)).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: /Tài sản và người nhận/ })).toBeVisible();
+  expect(screen.getByText(/^5 tài sản đã gán/)).toBeInTheDocument();
   expect(screen.getByText("Gói dịch vụ trả phí còn hạn.")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Đi xác minh danh tính" })).toBeInTheDocument();
@@ -421,12 +412,12 @@ it("Người thực thi: kế hoạch nháp mời được Người thực thi, 
   mockGetWith(setupFixture);
   const post = vi.spyOn(apiClient, "post").mockResolvedValue(invitationFixture);
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
-  fireEvent.click(await screen.findByRole("button", { name: "Mời Người thực thi" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Chọn Người thực thi" }));
   const dialog = await screen.findByRole("dialog");
   fireEvent.click(
     await within(dialog).findByRole("button", { name: "Chọn người này: Luật sư Một" }),
   );
-  fireEvent.click(within(dialog).getByRole("checkbox", { name: /chỉ là đề cử/ }));
+  fireEvent.click(within(dialog).getByRole("switch", { name: /chỉ là đề cử/ }));
   fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   // Người thực thi không còn kiêm người nhận: payload chỉ có email.
@@ -535,7 +526,7 @@ it("Người thực thi: kế hoạch có hồ sơ báo tử chỉ xem, không c
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
   await screen.findByText("chinh@example.test");
   expect(screen.getByText(/Bạn chỉ xem được/)).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Mời Người thực thi" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Chọn Người thực thi" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Thu hồi lời mời" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Thay người khác" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Gửi lại lời mời" })).not.toBeInTheDocument();
@@ -545,7 +536,7 @@ it("Người thực thi: rào lỗi ngay trên form nếu Owner tự mời chín
   mockGetWith(setupFixture);
   const post = vi.spyOn(apiClient, "post");
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
-  fireEvent.click(await screen.findByRole("button", { name: "Mời Người thực thi" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Chọn Người thực thi" }));
   const dialog = await screen.findByRole("dialog");
   expect(
     await within(dialog).findByRole("button", { name: "Chọn người này: Chủ kho" }),
