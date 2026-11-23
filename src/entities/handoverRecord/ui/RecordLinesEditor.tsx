@@ -108,7 +108,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           </p>
         )}
 
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full min-w-[480px] text-left text-sm">
             <caption className="sr-only">Chọn người nhận cho từng tài sản</caption>
             <thead>

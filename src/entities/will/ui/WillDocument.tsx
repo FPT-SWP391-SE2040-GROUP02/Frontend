@@ -290,7 +290,7 @@ function AssetsSectionBlock({
   return (
     <section id="muc-2" className={SECTION}>
       {heading}
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr>

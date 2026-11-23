@@ -54,7 +54,7 @@ export function AuditLogTable({
           return (
             <TableRow key={entry.id}>
               <TableCell>{formatDateTime(entry.at)}</TableCell>
-              <TableCell>
+              <TableCell className="whitespace-normal">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{ACTOR_ROLE_LABELS[entry.actorRole]}</span>
                   {showActorId && entry.actorUserId && (
@@ -64,10 +64,10 @@ export function AuditLogTable({
                   )}
                 </div>
               </TableCell>
-              <TableCell className="font-medium" title={entry.action}>
+              <TableCell className="font-medium whitespace-normal" title={entry.action}>
                 {ACTION_LABELS[entry.action]}
               </TableCell>
-              <TableCell>
+              <TableCell className="whitespace-normal">
                 <div className="flex flex-col">
                   <span className="text-sm" title={entry.targetId ?? undefined}>
                     {TARGET_TYPE_LABELS[entry.targetType]}

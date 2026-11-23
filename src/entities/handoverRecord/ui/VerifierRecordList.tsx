@@ -58,7 +58,7 @@ export function VerifierRecordList({
           {scope === "open" ? "Chưa có biên bản nào cần xử lý." : "Chưa có biên bản nào hoàn tất."}
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full min-w-[520px] text-left text-sm">
             <caption className="sr-only">Biên bản bàn giao</caption>
             <thead>
