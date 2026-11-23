@@ -98,9 +98,9 @@ describe("tab Phân chia", () => {
     const stats = screen.getByText("Đã gán").closest("dl") as HTMLElement;
     expect(within(stats).getByText("1/2")).toBeInTheDocument();
     expect(within(stats).getByText("Người nhận")).toBeInTheDocument();
-    const rows = screen
-      .getAllByRole("listitem")
-      .filter((item) => item.className.includes("border-l-4"));
+    const rows = Array.from(
+      screen.getByRole("list", { name: "Tài sản và người nhận" }).children,
+    ) as HTMLElement[];
     expect(within(rows[0]).getByText("Nhà")).toBeInTheDocument();
     expect(within(rows[0]).getByText("Chưa gán cho ai")).toBeInTheDocument();
     expect(within(rows[1]).getByText("Nhận chung, 2 người cùng ký")).toBeInTheDocument();
