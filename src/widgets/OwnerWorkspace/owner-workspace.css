@@ -70,6 +70,13 @@
   overflow-x: auto;
   padding: 0 16px 16px;
 }
+.owner-nav-group {
+  margin: 12px 12px 2px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  color: #ffffffa6;
+}
 .owner-nav-link {
   display: flex;
   min-height: 46px;
@@ -290,6 +297,10 @@
   .owner-navigation[data-open="true"] {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .owner-nav-group {
+    grid-column: 1 / -1;
+    margin: 8px 4px 0;
   }
   .owner-nav-link {
     min-width: 0;

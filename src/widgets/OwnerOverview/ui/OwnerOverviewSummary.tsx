@@ -37,7 +37,8 @@ export function OwnerOverviewSummary({
           </h3>
           <p>
             Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ. Luật sư xét và lập biên bản bàn
-            giao, kiểm danh tính người nhận rồi ký. Hệ thống chỉ giao tài sản theo biên bản đó.
+            giao, kiểm danh tính người nhận, rồi ba bên ký. Hệ thống chỉ giao tài sản theo biên bản
+            đó.
           </p>
         </div>
       </section>

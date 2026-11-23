@@ -51,13 +51,6 @@ const directoryFixture = [
   email,
   phoneMasked: null,
   executorRoleTitle: "Người thực thi",
-  legalVerification: {
-    status: "VERIFIED",
-    lawyerCardNumber: "LS-1",
-    practiceCertificateNumber: null,
-    organization: null,
-    verifiedAt: null,
-  },
   assignedVaultsCount: 0,
   isAvailable: true,
 }));

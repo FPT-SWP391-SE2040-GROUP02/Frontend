@@ -29,6 +29,11 @@ const BeneficiariesPage = lazy(() =>
     default: module.BeneficiariesPage,
   })),
 );
+const ReceiveAssetsPage = lazy(() =>
+  import("@/pages/dashboard/ReceiveAssetsPage").then((module) => ({
+    default: module.ReceiveAssetsPage,
+  })),
+);
 const InvitationPage = lazy(() =>
   import("@/pages/beneficiary/InvitationPage").then((module) => ({
     default: module.InvitationPage,
@@ -332,6 +337,7 @@ export function AppRoutes() {
           <Route path={ROUTES.DASHBOARD.IDENTITY} element={<OwnerIdentityPage />} />
           <Route path={ROUTES.DASHBOARD.BENEFICIARIES} element={<BeneficiariesPage />} />
           <Route path={ROUTES.DASHBOARD.TRUSTED_PEOPLE} element={<TrustedPeoplePage />} />
+          <Route path={ROUTES.DASHBOARD.RECEIVE_ASSETS} element={<ReceiveAssetsPage />} />
           <Route path={ROUTES.DASHBOARD.AUDIT_LOG} element={<AuditLogPage />} />
           <Route path="/assets" element={<AssetsManagementPage />} />
           <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />

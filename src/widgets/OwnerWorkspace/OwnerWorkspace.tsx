@@ -1,7 +1,7 @@
-import { useRef, useState, type ReactNode } from "react";
+import { Fragment, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { ArrowLeftRight, Mail, Menu, ScanFace, X } from "lucide-react";
+import { ArrowLeftRight, Gift, Mail, Menu, ScanFace, X, type LucideIcon } from "lucide-react";
 import {
   OverviewIcon,
   VaultIcon,
@@ -21,6 +21,7 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useExecutorVaults } from "@/features/death-case/model/useExecutorVaults";
 import { useMyInvitations } from "@/features/plan-setup/model/useMyInvitations";
 import { SwitchToRecipientLink } from "@/features/handover/ui/SwitchToRecipientLink";
+import { countNeedsAction, useAvailableHandovers } from "@/features/handover-request";
 import { getDisplayedServiceTier } from "@/entities/vault/model/vaultServicePresentation";
 import { VaultServiceBadge } from "@/entities/vault/ui/VaultServiceInfo";
 import {
@@ -45,17 +46,62 @@ function OwnerServiceTier() {
   return <VaultServiceBadge tier={getDisplayedServiceTier(vault.data)} sidebar />;
 }
 
-const navigation = [
+interface OwnerNavItem {
+  label: string;
+  to: string;
+  icon: LucideIcon | typeof OverviewIcon;
+  /** Tiêu đề nhóm hiện phía trên mục đầu tiên của nhóm; "Tổng quan" không thuộc nhóm nào. */
+  group?: string;
+  /** Mục này hiện số việc cần làm của kho được để lại cho tài khoản. */
+  showsReceiveCount?: boolean;
+}
+
+const GROUP_RECEIVE = "ĐƯỢC ĐỂ LẠI CHO TÔI";
+const GROUP_MY_VAULT = "KHO CỦA TÔI";
+const GROUP_ACCOUNT = "TÀI KHOẢN";
+
+const navigation: OwnerNavItem[] = [
   { label: "Tổng quan", to: ROUTES.DASHBOARD.ROOT, icon: OverviewIcon },
-  { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon },
-  { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon },
-  { label: "Người nhận", to: ROUTES.DASHBOARD.BENEFICIARIES, icon: RecipientsIcon },
-  { label: "Người thực thi", to: ROUTES.DASHBOARD.TRUSTED_PEOPLE, icon: TrustedIcon },
-  { label: "Xác minh", to: ROUTES.DASHBOARD.IDENTITY, icon: ScanFace },
-  { label: "Nhật ký hoạt động", to: ROUTES.DASHBOARD.AUDIT_LOG, icon: HistoryIcon },
-  { label: "Gói dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon },
-  { label: "Cài đặt", to: ROUTES.DASHBOARD.SETTINGS, icon: SettingsIcon },
+  {
+    label: "Nhận tài sản",
+    to: ROUTES.DASHBOARD.RECEIVE_ASSETS,
+    icon: Gift,
+    group: GROUP_RECEIVE,
+    showsReceiveCount: true,
+  },
+  { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon, group: GROUP_MY_VAULT },
+  { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon, group: GROUP_MY_VAULT },
+  {
+    label: "Người nhận",
+    to: ROUTES.DASHBOARD.BENEFICIARIES,
+    icon: RecipientsIcon,
+    group: GROUP_MY_VAULT,
+  },
+  {
+    label: "Người thực thi",
+    to: ROUTES.DASHBOARD.TRUSTED_PEOPLE,
+    icon: TrustedIcon,
+    group: GROUP_MY_VAULT,
+  },
+  { label: "Xác minh", to: ROUTES.DASHBOARD.IDENTITY, icon: ScanFace, group: GROUP_ACCOUNT },
+  {
+    label: "Nhật ký hoạt động",
+    to: ROUTES.DASHBOARD.AUDIT_LOG,
+    icon: HistoryIcon,
+    group: GROUP_ACCOUNT,
+  },
+  { label: "Gói dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon, group: GROUP_ACCOUNT },
+  { label: "Cài đặt", to: ROUTES.DASHBOARD.SETTINGS, icon: SettingsIcon, group: GROUP_ACCOUNT },
 ];
+
+/** Số kho đang chờ người nhận làm bước tiếp theo; 0 khi chưa đăng nhập, đang tải hoặc lỗi. */
+function useReceiveActionCount(): number {
+  const available = useAvailableHandovers();
+  if (!available.isSuccess) {
+    return 0;
+  }
+  return countNeedsAction(available.data);
+}
 
 /**
  * Chỉ tài khoản đang là Executor của ít nhất một kho mới có nút sang vai Người thực thi;
@@ -112,6 +158,7 @@ export function OwnerWorkspace({
   const showSwitchRole = useCanSwitchToExecutor();
   // Lời mời đang chờ hiện ở chân sidebar: người chưa là Executor không có nút chuyển vai để tìm lời mời.
   const pendingInvitations = usePendingInvitationCount();
+  const receiveActionCount = useReceiveActionCount();
   const [navigationOpen, setNavigationOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
@@ -149,24 +196,37 @@ export function OwnerWorkspace({
             data-open={navigationOpen}
           >
             <span ref={indicatorRef} className="owner-nav-indicator" aria-hidden="true" />
-            {navigation.map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                aria-current={current?.to === to ? "page" : undefined}
-                className="owner-nav-link"
-                onClick={() => setNavigationOpen(false)}
-              >
-                <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                {label}
-                {current?.to === to && (
-                  <span
-                    className="ml-auto size-1.5 rounded-full bg-heritage-gold"
-                    aria-hidden="true"
-                  />
-                )}
-              </Link>
-            ))}
+            {navigation.map((item, index) => {
+              const Icon = item.icon;
+              const previous: OwnerNavItem | undefined = navigation[index - 1];
+              const startsGroup = item.group !== undefined && item.group !== previous?.group;
+              const isCurrent = current?.to === item.to;
+              let count = 0;
+              if (item.showsReceiveCount === true) {
+                count = receiveActionCount;
+              }
+              return (
+                <Fragment key={item.to}>
+                  {startsGroup && <p className="owner-nav-group">{item.group}</p>}
+                  <Link
+                    to={item.to}
+                    aria-current={isCurrent ? "page" : undefined}
+                    className="owner-nav-link"
+                    onClick={() => setNavigationOpen(false)}
+                  >
+                    <Icon className="size-[18px] shrink-0" aria-hidden="true" />
+                    {item.label}
+                    {count > 0 && <ActionCountBadge count={count} />}
+                    {isCurrent && count === 0 && (
+                      <span
+                        className="ml-auto size-1.5 rounded-full bg-heritage-gold"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </Link>
+                </Fragment>
+              );
+            })}
             {pendingInvitations > 0 && (
               <Link
                 to={ROUTES.DASHBOARD.INVITATIONS}
@@ -262,6 +322,18 @@ export function OwnerWorkspace({
         kế.
       </footer>
     </WorkspaceShell>
+  );
+}
+
+/** Huy hiệu số kho đang chờ người nhận làm bước tiếp theo, trên mục Nhận tài sản. */
+export function ActionCountBadge({ count }: { count: number }) {
+  return (
+    <span
+      aria-label={`${count} việc cần làm`}
+      className="ml-auto rounded-full bg-heritage-gold-soft px-2 py-0.5 text-sm font-semibold text-heritage-primary"
+    >
+      {count}
+    </span>
   );
 }
 

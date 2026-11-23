@@ -1,5 +1,5 @@
-import { BadgeCheck, Check } from "lucide-react";
-import { buttonStyles, Chip, Initial } from "@/shared/ui/heritageKit";
+import { Check } from "lucide-react";
+import { buttonStyles, Initial } from "@/shared/ui/heritageKit";
 import { cn } from "cn";
 import type { SystemExecutor } from "../model/systemExecutor.schema";
 
@@ -11,25 +11,14 @@ export interface SystemExecutorCardProps {
   onSelect?: (executor: SystemExecutor) => void;
 }
 
-function LegalRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-xs text-heritage-muted">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-medium">{value}</dd>
-    </div>
-  );
-}
-
-/** Thẻ một Người thực thi hệ thống: họ tên, liên hệ, vai trò chuyên môn và hồ sơ pháp lý do Backend trả. */
+/** Thẻ một Người thực thi hệ thống: họ tên, liên hệ, vai trò chuyên môn. */
 export function SystemExecutorCard({
   executor,
   selected = false,
   disabledReason = null,
   onSelect,
 }: SystemExecutorCardProps) {
-  const legal = executor.legalVerification;
-  const verified = legal.status === "VERIFIED";
-  const blocked = disabledReason !== null || !verified || !executor.isAvailable;
+  const blocked = disabledReason !== null || !executor.isAvailable;
 
   let buttonText = "Chọn người này";
   let buttonStyle = buttonStyles.outline;
@@ -39,9 +28,7 @@ export function SystemExecutorCard({
   }
 
   let reason = disabledReason;
-  if (reason === null && !verified) {
-    reason = "Chưa có hồ sơ pháp lý nên chưa thể chọn.";
-  } else if (reason === null && !executor.isAvailable) {
+  if (reason === null && !executor.isAvailable) {
     reason = "Người này hiện chưa nhận thêm kho.";
   }
 
@@ -49,10 +36,6 @@ export function SystemExecutorCard({
   if (executor.phoneMasked) {
     contact = `${executor.email} · ${executor.phoneMasked}`;
   }
-
-  const hasLegalDetails = Boolean(
-    legal.lawyerCardNumber || legal.practiceCertificateNumber || legal.organization,
-  );
 
   return (
     <li
@@ -70,29 +53,10 @@ export function SystemExecutorCard({
             <p className="break-all text-xs text-heritage-muted">{contact}</p>
           </div>
         </div>
-        {verified && (
-          <Chip tone="success" className="gap-1">
-            <BadgeCheck className="size-3.5" aria-hidden="true" />
-            Đã xác minh pháp lý
-          </Chip>
-        )}
-        {!verified && <Chip tone="neutral">Chưa có hồ sơ pháp lý</Chip>}
       </div>
 
       {executor.executorRoleTitle !== "" && (
         <p className="mt-3 text-sm font-medium">{executor.executorRoleTitle}</p>
-      )}
-
-      {hasLegalDetails && (
-        <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 rounded-xl bg-heritage-gold-light p-3">
-          {legal.lawyerCardNumber && (
-            <LegalRow label="Số thẻ luật sư" value={legal.lawyerCardNumber} />
-          )}
-          {legal.practiceCertificateNumber && (
-            <LegalRow label="Chứng chỉ hành nghề" value={legal.practiceCertificateNumber} />
-          )}
-          {legal.organization && <LegalRow label="Tổ chức hành nghề" value={legal.organization} />}
-        </dl>
       )}
 
       {onSelect && (

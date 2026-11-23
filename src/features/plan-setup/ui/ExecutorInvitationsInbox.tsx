@@ -11,7 +11,7 @@ import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
 const ABILITIES = [
   "Giữ mã mở gói cho tới khi bàn giao",
-  "Gửi mã nhận và ký phiếu giao nhận với người nhận",
+  "Ký biên bản và gửi mã nhận cho người nhận",
 ];
 
 /**

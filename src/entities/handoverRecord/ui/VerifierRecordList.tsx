@@ -4,7 +4,7 @@ import { useVerifierRecords } from "../model/useHandoverRecord";
 import { recordStatusLabel } from "../model/recordPresentation";
 
 /**
- * Danh sách biên bản được giao cho luật sư. scope="open": biên bản luật sư chưa ký;
+ * Danh sách biên bản được giao cho luật sư. scope="open": biên bản chưa đủ chữ ký;
  * scope="closed": biên bản đã hoàn tất. Chọn biên bản qua onSelect (URL ?recordId=).
  */
 export function VerifierRecordList({

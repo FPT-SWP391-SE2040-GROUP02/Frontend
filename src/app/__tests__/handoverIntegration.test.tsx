@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { AxiosError, AxiosHeaders } from "axios";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
@@ -10,6 +11,7 @@ import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { EkycUploads } from "@/features/ekyc/ui/EkycUploads";
+import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
 import { InvitationPanel } from "@/features/handover/ui/InvitationPanel";
 import { deathCaseService } from "@/features/death-case/api/deathCaseService";
 import { ProtectedRoute } from "@/app/routes/ProtectedRoute";
@@ -154,6 +156,61 @@ it("opens the actual /receive?token email URL without auto-claim and keeps redir
     expect.objectContaining({ signal: expect.any(AbortSignal) }),
   );
   expect(post).not.toHaveBeenCalled();
+});
+const turn = {
+  id: CONTAINER_ID,
+  status: "READY_TO_ACCEPT",
+  serverTime: CREATED_AT,
+  invitedAt: CREATED_AT,
+  responseDeadline: "2026-12-01T00:00:00Z",
+  decisionDeadline: "2026-12-02T00:00:00Z",
+  identityBypassed: false,
+  identityConfirmedByExecutor: false,
+  container: { name: "Gói thử" },
+  items: [],
+  grant: null,
+};
+it("ký biên bản bị Backend từ chối thì báo lỗi và không có quyền tải", async () => {
+  const record = {
+    id: "0198a000-0000-7000-8000-000000000003",
+    vaultId: VAULT_ID,
+    vaultName: "Kho thử",
+    ownerName: "Chủ kho thử",
+    status: "SIGNING",
+    revisionNo: 1,
+    requestedAt: CREATED_AT,
+    finalizedAt: CREATED_AT,
+    completedAt: null,
+    verifierName: "Luật sư thử",
+    executorName: "Người thực thi thử",
+    verifierSignedAt: null,
+    executorSignedAt: null,
+    recipients: [],
+    canSign: true,
+    availableAssets: [],
+    availableRecipients: [],
+    ownerSplit: [],
+  };
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "get") {
+      const data = config.url?.endsWith("/record") ? record : [turn];
+      return { config, data, status: 200, statusText: "OK", headers: new AxiosHeaders() };
+    }
+    throw new AxiosError("private", "ERR_BAD_REQUEST", config, undefined, {
+      config,
+      data: { code: "HANDOVER_NOT_ALLOWED", reason: "WRONG_STATE" },
+      status: 409,
+      statusText: "Conflict",
+      headers: new AxiosHeaders(),
+    });
+  };
+  const post = vi.spyOn(apiClient, "post");
+  setup(<HandoverPortal />);
+  fireEvent.click(await screen.findByRole("button", { name: "Ký biên bản" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("không còn ở bước phù hợp");
+  expect(post).toHaveBeenCalledTimes(1);
+  expect(post).toHaveBeenCalledWith(`/handover/turns/${CONTAINER_ID}/record/sign`);
+  expect(screen.queryByRole("button", { name: /^Tải xuống/ })).not.toBeInTheDocument();
 });
 it("lets a system USER reach Executor data and leaves resource permissions to Backend", async () => {
   const get = vi.spyOn(apiClient, "get").mockResolvedValue([]);

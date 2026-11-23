@@ -2,8 +2,8 @@
 export const EXECUTOR_ALLOWED: string[] = [
   "Xem ghi chú của Chủ kho",
   "Nhận thông báo khi người nhận gửi yêu cầu nhận tài sản",
-  "Giao tài sản theo biên bản luật sư đã ký",
-  "Gửi mã nhận và ký phiếu giao nhận với người nhận",
+  "Ký biên bản bàn giao luật sư đã lập",
+  "Gửi mã nhận cho từng người nhận khi lượt của người đó đã được mở",
   "Theo dõi tiến trình bàn giao",
   "Nhận thông báo cho từng bước",
 ];

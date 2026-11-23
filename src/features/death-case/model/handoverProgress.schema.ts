@@ -49,8 +49,11 @@ const progressTurnSchema = z.object({
   responseDeadline: timestamp,
   /** Lúc máy chủ email nhận thư mời; null: hệ thống chưa gửi được lời mời (sẽ tự thử lại). */
   invitationSentAt: timestamp.nullable().default(null),
+  /** Lúc luật sư xác nhận danh tính người nhận; null khi chưa. Backend cũ chưa gửi thì null. */
   identityConfirmedAt: timestamp.nullable().default(null),
-  /** Lúc luật sư ký biên bản; null khi chưa. Backend cũ chưa gửi thì null. */
+  /** Lúc người nhận ký biên bản; null khi chưa ký. Backend cũ chưa gửi thì null. */
+  recipientSignedAt: timestamp.nullable().default(null),
+  /** Lúc lượt này được mở quyền tải (có chữ ký luật sư, Người thực thi và người nhận này); null khi chưa. Backend cũ chưa gửi thì null. */
   documentApprovedAt: timestamp.nullable().default(null),
   /** Lúc người nhận nhập đúng mã mở gói; null khi chưa nhập hoặc kho không dùng mã. Backend cũ chưa gửi thì null. */
   keyVerifiedAt: timestamp.nullable().default(null),
@@ -96,8 +99,9 @@ export type HandoverProgress = z.infer<typeof handoverProgressSchema>;
 export type HandoverProgressTurn = z.infer<typeof progressTurnSchema>;
 
 /**
- * Executor chỉ gửi được mã mở gói khi người nhận đã xác nhận danh tính và luật sư đã ký biên bản (HANDOVER_COMMITTED)
- * mà người nhận chưa nhập mã. Trước đó người nhận chưa xác minh xong nên chưa được có mã; nhập mã rồi thì không cần gửi nữa.
+ * Executor gửi được mã mở gói cho một người khi lượt của người đó đã được mở quyền tải (HANDOVER_COMMITTED: đủ chữ ký
+ * luật sư, Người thực thi và chính người nhận) mà người nhận chưa nhập mã. Không chờ người nhận khác; trước đó chưa được
+ * có mã; nhập mã rồi thì không cần gửi nữa.
  */
 export function canMailHandoverKey(turn: HandoverProgressTurn): boolean {
   return turn.status === "HANDOVER_COMMITTED" && turn.keyVerifiedAt === null;

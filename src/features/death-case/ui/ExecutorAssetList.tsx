@@ -13,7 +13,7 @@ import {
   type AssetDownloadState,
 } from "../model/executorAssets";
 import type { HandoverProgressTurn } from "../model/handoverProgress.schema";
-import { useExecutorRecord } from "@/entities/handoverRecord";
+import { isSigningStage, useExecutorRecord } from "@/entities/handoverRecord";
 import { useExecutorRecipients } from "../model/useExecutorRecipients";
 import { useHandoverProgress } from "../model/useHandoverProgress";
 
@@ -64,7 +64,7 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
   const record = useExecutorRecord(vault.vaultId).data ?? null;
   const progress = useHandoverProgress(
     record ? record.id : "",
-    record !== null && record.status === "COMPLETED",
+    record !== null && (record.status === "COMPLETED" || isSigningStage(record.status)),
   );
 
   if (recipients.isPending) return <p role="status">Đang tải danh sách tài sản…</p>;

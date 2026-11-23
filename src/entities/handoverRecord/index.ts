@@ -1,4 +1,4 @@
-/** Biên bản bàn giao: căn cứ duy nhất để giao tài sản (luật sư lập và ký); phiếu giao nhận ký sau khi giao. */
+/** Biên bản bàn giao: căn cứ duy nhất để giao tài sản (luật sư lập, ba bên ký). */
 export * from "./model/handoverRecord.schema";
 export * from "./model/recordPresentation";
 export * from "./model/useHandoverRecord";

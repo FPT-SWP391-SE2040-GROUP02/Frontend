@@ -1,9 +1,24 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
-import { useRecipientRecord } from "../model/useHandoverRecord";
+import { handoverRecordService } from "../api/handoverRecordService";
+import { handoverRecordKeys, useRecipientRecord } from "../model/useHandoverRecord";
 import { RecordDocument } from "./RecordDocument";
 
-/** Người nhận xem phần của mình trong biên bản bàn giao và phiếu giao nhận. Biên bản do luật sư ký. */
-export function RecipientRecordPanel({ turnId }: { turnId: string }) {
+/**
+ * Người nhận xem phần của mình trong biên bản bàn giao và ký khi tới bước ký.
+ * Phần của người này đủ chữ ký (luật sư, Người thực thi và chính người đó) thì lượt được mở quyền tải,
+ * không chờ người nhận khác; onChanged để trang làm mới lượt.
+ */
+export function RecipientRecordPanel({
+  turnId,
+  onChanged,
+}: {
+  turnId: string;
+  onChanged?: () => void;
+}) {
+  const client = useQueryClient();
+  const sign = usePrivateAction();
   const query = useRecipientRecord(turnId);
   if (query.isPending) return <p role="status">Đang tải biên bản…</p>;
   if (query.isError) {
@@ -17,19 +32,55 @@ export function RecipientRecordPanel({ turnId }: { turnId: string }) {
     );
   }
   const record = query.data;
-  let text = "Danh tính của bạn đã được xác nhận. Đang chờ luật sư ký biên bản.";
-  if (record.status === "DRAFTING") text = "Luật sư đang sửa biên bản. Bạn chờ bản mới.";
-  if (record.status === "COMPLETED")
+  const me = record.recipients[0];
+  const opened = me !== undefined && me.turnStatus === "HANDOVER_COMMITTED";
+  let text = "Bạn cần nộp ảnh căn cước để luật sư xác nhận danh tính, sau đó mới ký được.";
+  if (me !== undefined && me.identityConfirmedAt) {
+    text = "Danh tính của bạn đã được xác nhận. Chờ tới lượt ký biên bản.";
+  }
+  if (record.status === "DRAFTING") text = "Luật sư đang sửa biên bản. Bạn chờ bản mới rồi ký.";
+  if (record.canSign) text = "Đọc kỹ phần tài sản của bạn rồi bấm Ký biên bản.";
+  if (me !== undefined && me.signedAt) {
+    text = "Bạn đã ký. Chờ luật sư hoặc Người thực thi ký.";
+  }
+  if (opened) {
     text =
-      "Luật sư đã ký biên bản. Người thực thi sẽ gửi mã nhận vào email của bạn; tải và kiểm tra xong thì ký phiếu giao nhận.";
+      "Phần của bạn đã đủ chữ ký. Người thực thi sẽ gửi mã nhận vào email của bạn để mở tài sản.";
+  }
   return (
     <div className="space-y-4">
-      <Notice tone={record.status === "COMPLETED" ? "success" : "neutral"} role="status">
+      <Notice
+        tone={opened ? "success" : "neutral"}
+        role="status"
+        action={
+          record.canSign ? (
+            <button
+              type="button"
+              className={buttonStyles.dark}
+              disabled={sign.pending}
+              onClick={() =>
+                void sign.execute(
+                  () => handoverRecordService.signAsRecipient(turnId),
+                  (next) => {
+                    client.setQueryData(handoverRecordKeys.recipient(turnId), next);
+                    onChanged?.();
+                  },
+                )
+              }
+            >
+              {sign.pending ? "Đang ký…" : "Ký biên bản"}
+            </button>
+          ) : undefined
+        }
+      >
         {text}
       </Notice>
-      {record.recipients.length > 0 && (
-        <RecordDocument record={record} title="Phần của bạn trong biên bản bàn giao" />
+      {sign.error && (
+        <p role="alert" className="text-sm text-destructive">
+          {sign.error}
+        </p>
       )}
+      {me && <RecordDocument record={record} title="Phần của bạn trong biên bản bàn giao" />}
     </div>
   );
 }

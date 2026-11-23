@@ -38,6 +38,20 @@ export function deriveNotifications(
 ): ExecutorNotification[] {
   const current: ExecutorNotification[] = [];
   const events: ExecutorNotification[] = [];
+  if (
+    record &&
+    (record.status === "SIGNING" || record.status === "IDENTITY_CHECK") &&
+    record.canSign
+  ) {
+    current.push({
+      id: `sign:${record.id}:${record.revisionNo}`,
+      at: null,
+      text: "Biên bản bàn giao đang chờ bạn ký.",
+      title: "Đến lượt bạn ký biên bản",
+      detail: "Luật sư đã chốt biên bản. Bạn ký được ngay, không cần chờ người nhận.",
+      tone: "attention",
+    });
+  }
   if (vault.executorNoteUpdatedAt) {
     events.push({
       id: `note:${vault.executorNoteUpdatedAt}`,
@@ -70,8 +84,8 @@ export function deriveNotifications(
       events.push({
         id: `completed:${record.id}`,
         at: record.completedAt,
-        text: "Luật sư đã ký biên bản. Hãy gửi mã nhận cho người nhận.",
-        title: "Luật sư đã ký biên bản",
+        text: "Mọi người nhận đã ký biên bản. Hãy gửi mã nhận cho người nhận chưa có mã.",
+        title: "Mọi người nhận đã ký biên bản",
         detail: "Gửi mã nhận cho từng người ở mục Bàn giao.",
         tone: "success",
       });

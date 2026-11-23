@@ -192,6 +192,14 @@ describe("pricing reference policies", () => {
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
   });
 
+  it("explains that lawyer-added recipients do not use a slot and are free", () => {
+    setup();
+    const policy = screen.getByRole("region", { name: "Mua thêm suất người nhận" });
+    expect(policy).toHaveTextContent(
+      "Suất là số người nhận bạn được chọn. Người do luật sư thêm theo quy định pháp luật không tính suất và không mất phí.",
+    );
+  });
+
   it("explains add-on limits and expiry as reference information only", () => {
     setup();
     const policy = screen.getByRole("region", { name: "Mua thêm suất người nhận" });

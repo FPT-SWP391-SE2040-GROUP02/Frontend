@@ -1,14 +1,5 @@
 import { z } from "zod";
 
-/** Hồ sơ pháp lý của Người thực thi hệ thống (BE SystemExecutorLegalVerification). Thiếu số thì Backend trả null. */
-const legalVerificationSchema = z.object({
-  status: z.enum(["VERIFIED", "UNVERIFIED"]),
-  lawyerCardNumber: z.string().nullable(),
-  practiceCertificateNumber: z.string().nullable(),
-  organization: z.string().nullable(),
-  verifiedAt: z.string().nullable(),
-});
-
 /** Một Người thực thi hệ thống trong danh bạ (BE SystemExecutorResponse). */
 export const systemExecutorSchema = z.object({
   id: z.string().uuid(),
@@ -17,7 +8,6 @@ export const systemExecutorSchema = z.object({
   avatarUrl: z.string().nullable().optional(),
   phoneMasked: z.string().nullable().optional(),
   executorRoleTitle: z.string(),
-  legalVerification: legalVerificationSchema,
   assignedVaultsCount: z.number().int().nonnegative(),
   isAvailable: z.boolean(),
 });

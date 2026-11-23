@@ -80,7 +80,7 @@ function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   );
 }
 
-/** Thẻ "Kế hoạch đang áp dụng": lúc Chủ kho ký kích hoạt lối sửa gói, người nhận và phiếu gửi. */
+/** Thẻ "Kế hoạch đang áp dụng": lúc Chủ kho ký kích hoạt và lối sửa gói, người nhận. */
 function ActivePlanCard({ setup }: { setup: PlanSetup }) {
   const activatedAt = setup.activatedAt;
   let activatedText = "Chưa có";

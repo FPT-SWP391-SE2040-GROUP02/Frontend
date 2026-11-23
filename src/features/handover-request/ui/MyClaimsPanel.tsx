@@ -59,6 +59,7 @@ function SupplementForm({ claim }: { claim: MyClaim }) {
             () => handoverRequestService.supplement(claim.id, note, files),
             () => {
               void client.invalidateQueries({ queryKey: handoverRequestKeys.mine });
+              void client.invalidateQueries({ queryKey: handoverRequestKeys.available });
               setFiles([]);
               setNote("");
               setTouched(false);
