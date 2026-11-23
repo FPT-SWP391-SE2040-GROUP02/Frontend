@@ -287,8 +287,9 @@ describe("Tài khoản", () => {
     await userEvent.type(within(dialog).getByLabelText(/Họ và tên/), "Luật sư Thử");
     await userEvent.type(within(dialog).getByLabelText(/Email đăng nhập/), "ls.thu@example.test");
     await userEvent.selectOptions(within(dialog).getByLabelText(/Vai trò hệ thống/), "EXECUTOR");
-    // Người thực thi nhận thư mời đặt mật khẩu nên không có ô mật khẩu khởi tạo.
-    expect(within(dialog).queryByLabelText(/Mật khẩu khởi tạo/)).not.toBeInTheDocument();
+    // Người thực thi có ô mật khẩu khởi tạo nhưng không bắt buộc: để trống thì nhận thư mời đặt mật khẩu.
+    expect(within(dialog).getByLabelText(/Mật khẩu khởi tạo/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Để trống thì hệ thống gửi thư mời/)).toBeInTheDocument();
     expect(within(dialog).getAllByRole("listitem")).toHaveLength(2);
 
     // Bước 1 → 2 (ảnh thẻ); chỉ bước cuối mới có nút tạo, không còn ô số thẻ hay chứng chỉ.
@@ -306,7 +307,7 @@ describe("Tài khoản", () => {
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("tạo tài khoản: Người xét duyệt 2 bước, Quản trị viên 1 bước và vẫn nhập mật khẩu", async () => {
+  it("tạo tài khoản: Người xét duyệt 2 bước (mật khẩu không bắt buộc), Quản trị viên 1 bước và bắt buộc mật khẩu", async () => {
     usersBackend();
     setup(ROUTES.DASHBOARD.USERS);
     fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
@@ -315,7 +316,8 @@ describe("Tài khoản", () => {
 
     await userEvent.selectOptions(role, "VERIFIER");
     expect(within(dialog).getAllByRole("listitem")).toHaveLength(2);
-    expect(within(dialog).queryByLabelText(/Mật khẩu khởi tạo/)).not.toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/Mật khẩu khởi tạo/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Để trống thì hệ thống gửi thư mời/)).toBeInTheDocument();
 
     await userEvent.selectOptions(role, "ADMIN");
     expect(within(dialog).queryByRole("listitem")).not.toBeInTheDocument();

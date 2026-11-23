@@ -35,8 +35,11 @@ const createUserSchema = z
     phone: z.string().trim().max(32).optional(),
   })
   .superRefine((data, ctx) => {
-    // Quản trị viên bắt buộc mật khẩu khởi tạo; Người xét duyệt / Người thực thi nhận thư mời đặt mật khẩu qua email.
-    if (data.role === "ADMIN" && (data.password ?? "").length < 8) {
+    // Quản trị viên bắt buộc mật khẩu khởi tạo. Người xét duyệt / Người thực thi có thể để trống (Backend gửi thư mời đặt
+    // mật khẩu tới email) hoặc nhập mật khẩu khởi tạo; có nhập thì phải đủ 8 ký tự.
+    const password = data.password ?? "";
+    const required = data.role === "ADMIN";
+    if ((required || password.length > 0) && password.length < 8) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["password"],
@@ -46,6 +49,14 @@ const createUserSchema = z
   });
 
 type CreateUserInput = z.infer<typeof createUserSchema>;
+
+/** Ô mật khẩu để trống thì coi như không nhập (undefined), để Backend chọn cách gửi thư mời. */
+function passwordToSend(password: string | undefined): string | undefined {
+  if (password === undefined || password === "") {
+    return undefined;
+  }
+  return password;
+}
 
 type StepKey = "account" | "card";
 const STEPS_BY_ROLE: Record<"VERIFIER" | "EXECUTOR" | "ADMIN", StepKey[]> = {
@@ -148,8 +159,8 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
           createdUser ??
           (await adminService.createUser({
             ...values,
-            // Không gửi mật khẩu cho vai trò nhận thư mời; Backend gửi link đặt mật khẩu tới email.
-            password: values.role === "ADMIN" ? values.password : undefined,
+            // Để trống thì không gửi mật khẩu; Backend gửi link đặt mật khẩu tới email (chỉ với Người xét duyệt / Người thực thi).
+            password: passwordToSend(values.password),
           }));
         setCreatedUser(user);
         if (needCard && cardFile !== null) {
@@ -261,39 +272,47 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                 </select>
               </div>
 
-              {role === "ADMIN" && (
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="create-user-password"
-                      className="block text-sm font-medium text-heritage-text"
-                    >
-                      Mật khẩu khởi tạo <span className="text-destructive">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="text-sm text-heritage-gold hover:underline"
-                    >
-                      {showPassword ? "Ẩn" : "Hiện"}
-                    </button>
-                  </div>
-                  <Input
-                    id="create-user-password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="new-password"
-                    {...form.register("password")}
-                    aria-invalid={Boolean(form.formState.errors.password)}
-                    className="mt-1"
-                    placeholder="Tối thiểu 8 ký tự"
-                  />
-                  {form.formState.errors.password && (
-                    <p role="alert" className="mt-1 text-sm text-destructive">
-                      {form.formState.errors.password.message}
-                    </p>
-                  )}
+              <div>
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="create-user-password"
+                    className="block text-sm font-medium text-heritage-text"
+                  >
+                    Mật khẩu khởi tạo{" "}
+                    {role === "ADMIN" ? (
+                      <span className="text-destructive">*</span>
+                    ) : (
+                      <span className="text-sm text-heritage-muted">(không bắt buộc)</span>
+                    )}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="text-sm text-heritage-gold hover:underline"
+                  >
+                    {showPassword ? "Ẩn" : "Hiện"}
+                  </button>
                 </div>
-              )}
+                <Input
+                  id="create-user-password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  {...form.register("password")}
+                  aria-invalid={Boolean(form.formState.errors.password)}
+                  className="mt-1"
+                  placeholder="Tối thiểu 8 ký tự"
+                />
+                {role !== "ADMIN" && (
+                  <p className="mt-1 text-sm text-heritage-muted">
+                    Để trống thì hệ thống gửi thư mời đặt mật khẩu tới email.
+                  </p>
+                )}
+                {form.formState.errors.password && (
+                  <p role="alert" className="mt-1 text-sm text-destructive">
+                    {form.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
 
               <div>
                 <label
