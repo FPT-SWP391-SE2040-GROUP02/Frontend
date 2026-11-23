@@ -1,7 +1,15 @@
 import { useState, type ReactNode } from "react";
 import { cn } from "cn";
-import { Initial } from "@/shared/ui/heritageKit";
-import type { MemberPickerItem } from "../model/groupMembers";
+import { Initial } from "./heritageKit";
+
+/** Một dòng trong cột chọn. */
+export interface MemberPickerItem {
+  id: string;
+  label: string;
+  detail?: string;
+  /** Không chọn được. */
+  disabled?: boolean;
+}
 
 export interface MemberPickerProps {
   title: string;
@@ -20,7 +28,7 @@ export interface MemberPickerProps {
   disabled?: boolean;
 }
 
-/** Một cột chọn nhiều có ô tìm, dùng trong dialog tạo gói và dialog bổ sung thành viên cho gói. */
+/** Một cột chọn nhiều có ô tìm, dùng khi chọn người nhận cho một tài sản. */
 export function MemberPicker(props: MemberPickerProps) {
   const [search, setSearch] = useState("");
   const keyword = search.trim().toLocaleLowerCase("vi-VN");

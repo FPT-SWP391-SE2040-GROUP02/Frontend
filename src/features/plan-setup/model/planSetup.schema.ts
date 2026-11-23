@@ -16,46 +16,37 @@ export const executorSchema = z.object({
   /** Họ tên trong tài khoản đã liên kết; null khi chưa có tài khoản. Backend cũ không có trường này. */
   fullName: z.string().nullable().optional(),
 });
-/** Gói của một người nhận trong biên bản phân chia. Không có nội dung tài sản. */
-const recipientContainerSchema = z.object({
+/**
+ * Tài sản được gán cho một người nhận trong biên bản phân chia. Không có nội dung tài sản.
+ * `sharedWithCount` là số người nhận tài sản này, tính cả người đang xem; lớn hơn 1 là nhận chung.
+ */
+const recipientAssetSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
-  assetCount: z.number().int().nonnegative(),
-  status: z.enum(["READY", "DRAFT"]),
+  kind: z.enum(["FILE", "TEXT"]),
+  sharedWithCount: z.number().int().positive(),
 });
 /** Người nhận theo từng người. `hasMessage` chỉ cho biết đã viết lời nhắn hay chưa, không có nội dung. */
 const recipientSchema = z.object({
   beneficiaryId: z.string().min(1),
   fullName: z.string(),
   hasMessage: z.boolean(),
-  containers: z.array(recipientContainerSchema),
+  assets: z.array(recipientAssetSchema),
 });
 export type PlanRecipient = z.infer<typeof recipientSchema>;
-const containerSchema = z.object({
-  id: z.string().uuid(),
-  name: z.string(),
-  status: z.enum(["READY", "DRAFT"]),
-  assetCount: z.number().int().nonnegative(),
-  designationCount: z.number().int().nonnegative(),
-  missingRequirements: z.array(z.string()),
-});
-const assetOutsideContainerSchema = z.object({
+const unassignedAssetSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   kind: z.enum(["FILE", "TEXT"]),
 });
 /**
- * Số thay đổi so với bản biên bản phân chia ký gần nhất (chỉ số đếm, không có tên). Xóa có hiệu lực ngay; thêm gói, thêm tài sản,
- * thêm hoặc đổi người nhận chưa được bàn giao cho tới khi Chủ kho ký lại.
+ * Số thay đổi so với bản biên bản phân chia ký gần nhất (chỉ số đếm, không có tên). Gỡ gán có hiệu lực ngay; gán thêm
+ * hoặc đổi người nhận chưa được bàn giao cho tới khi Chủ kho ký lại.
  */
 export const unsignedChangesSchema = z.object({
-  removedContainers: z.number().int().nonnegative().default(0),
-  addedContainers: z.number().int().nonnegative().default(0),
-  removedAssets: z.number().int().nonnegative().default(0),
-  addedAssets: z.number().int().nonnegative().default(0),
-  removedRecipients: z.number().int().nonnegative().default(0),
-  addedRecipients: z.number().int().nonnegative().default(0),
-  changedRecipientCount: z.number().int().nonnegative().default(0),
+  addedAssignments: z.number().int().nonnegative().default(0),
+  removedAssignments: z.number().int().nonnegative().default(0),
+  affectedRecipientCount: z.number().int().nonnegative().default(0),
 });
 export type UnsignedChanges = z.infer<typeof unsignedChangesSchema>;
 export const planSetupSchema = z.object({
@@ -68,10 +59,10 @@ export const planSetupSchema = z.object({
   executorScopeVersion: z.string(),
   executorScopeText: z.string(),
   executors: z.array(executorSchema),
-  /** Các gói trong kho, kèm lý do chưa sẵn sàng. */
-  containers: z.array(containerSchema),
-  /** Tài sản chưa thuộc gói nào — nằm ngoài phạm vi bàn giao. */
-  assetsOutsideContainer: z.array(assetOutsideContainerSchema),
+  /** Số tài sản khác nhau đã gán cho ít nhất một người nhận. */
+  assignedAssetCount: z.number().int().nonnegative(),
+  /** Tài sản chưa gán cho ai — nằm ngoài phạm vi bàn giao. */
+  unassignedAssets: z.array(unassignedAssetSchema),
   /** Cảnh báo không chặn activate; chỉ đọc, không disable nút. */
   warnings: z.array(z.string()),
   /** Điều khoản Chủ kho thêm vào biên bản phân chia; Backend cũ không có trường này. */

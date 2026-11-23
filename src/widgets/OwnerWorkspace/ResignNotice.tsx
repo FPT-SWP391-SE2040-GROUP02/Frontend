@@ -6,7 +6,7 @@ import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { ROUTES } from "@/shared/config/routes.config";
 
 /**
- * Nhắc ký lại ở các trang gói bàn giao: kế hoạch đã ký mà cấu hình hiện tại khác bản ký gần nhất (cờ do Backend tính,
+ * Nhắc ký lại ở tab Phân chia: kế hoạch đã ký mà cấu hình hiện tại khác bản ký gần nhất (cờ do Backend tính,
  * dùng chung cache `plan-setup` với màn Bàn giao). Chỉ nhắc và dẫn sang màn Bàn giao, nơi Chủ kho xem trước và ký.
  * Chưa có dữ liệu, lỗi tải hoặc kế hoạch chưa ký thì không hiện gì, để không chặn trang chính.
  */
@@ -18,12 +18,12 @@ export function ResignNotice({ vaultId }: { vaultId: string }) {
 
   const summary = describeUnsignedChanges(planSetup.data.unsignedChanges);
   const consequences: string[] = [];
-  // Không có số đếm thì chưa biết loại thay đổi: vẫn nói phần đã xóa không còn được bàn giao.
+  // Không có số đếm thì chưa biết loại thay đổi: vẫn nói phần đã gỡ gán không còn được bàn giao.
   if (summary.hasRemoved || summary.lines.length === 0) {
-    consequences.push("Phần đã xóa không còn được bàn giao.");
+    consequences.push("Phần đã gỡ gán không còn được bàn giao.");
   }
   if (summary.hasAddedOrChanged) {
-    consequences.push("Phần thêm hoặc đổi người nhận chưa được bàn giao cho tới khi bạn ký lại.");
+    consequences.push("Phần gán thêm chưa được bàn giao cho tới khi bạn ký lại.");
   }
 
   return (

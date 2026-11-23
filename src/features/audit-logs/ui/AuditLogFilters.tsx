@@ -9,10 +9,18 @@ const REMOVED_ACTIONS: ReadonlySet<string> = new Set([
   "INCIDENT_RESOLVED",
   "OBJECTION_REPORTED",
   "OBJECTION_CONCLUDED",
-  "CONTAINER_ARCHIVED", // đã đổi tên thành CONTAINER_REMOVED, chỉ còn trong nhật ký cũ
+  // Gói tài sản đã bỏ: chỉ còn trong nhật ký cũ.
+  "CONTAINER_CREATED",
+  "CONTAINER_UPDATED",
+  "CONTAINER_ARCHIVED",
+  "CONTAINER_REMOVED",
+  "CONTAINER_ASSET_ADDED",
+  "CONTAINER_ASSET_REMOVED",
+  "CONTAINER_BENEFICIARY_ADDED",
+  "CONTAINER_BENEFICIARY_REMOVED",
 ]);
 
-/** Mỗi nhãn một lần (CONTAINER_ARCHIVED và CONTAINER_REMOVED cùng nhãn), bỏ hành động của tính năng đã gỡ. */
+/** Mỗi nhãn một lần, bỏ hành động của tính năng đã gỡ. */
 const ACTION_OPTIONS = (() => {
   const seen = new Set<string>();
   const options: { value: (typeof auditActionValues)[number]; label: string }[] = [];

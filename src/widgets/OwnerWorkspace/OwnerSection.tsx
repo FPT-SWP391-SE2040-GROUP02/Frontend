@@ -17,7 +17,8 @@ import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
 import { AssetList } from "@/features/assets/ui/AssetList";
 import { OwnerTrustedPeople } from "./OwnerTrustedPeople";
 import { OwnerHandoverOverview } from "./OwnerHandoverOverview";
-import { OwnerGroups } from "./OwnerGroups";
+import { OwnerAssignments } from "./OwnerAssignments";
+import { ResignNotice } from "./ResignNotice";
 
 /** Kho chưa đặt mã PIN: mời đặt PIN trên đầu màn Tài sản (BE chặn tạo tài sản tới khi có PIN). */
 function VaultPinSetupBanner({ vaultId }: { vaultId: string }) {
@@ -95,11 +96,8 @@ function QueryError({ retry, pending }: { retry: () => void; pending: boolean })
 /** Chỉ đọc DTO đã được tích hợp; chờ kho thật trước khi mount các truy vấn phụ thuộc. */
 export function OwnerSection({
   section,
-  groupCreate,
 }: {
-  section: "assets" | "groups" | "plans" | "trusted";
-  /** Chỉ dùng cho section "groups": trạng thái hộp thoại "Tạo gói bàn giao" do trang cha điều khiển. */
-  groupCreate?: { open: boolean; onOpenChange: (open: boolean) => void };
+  section: "assets" | "assignments" | "plans" | "trusted";
 }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const vault = useOwnerVault(authenticated && Boolean(accessTokenMemory.get()));
@@ -119,22 +117,12 @@ export function OwnerSection({
       </div>
     );
   if (section === "trusted") return <OwnerTrustedPeople vaultId={vault.data.id} />;
-  if (section === "groups") {
-    let open = false;
-    let onOpenChange = (value: boolean): void => {
-      void value;
-    };
-    if (groupCreate) {
-      open = groupCreate.open;
-      onOpenChange = groupCreate.onOpenChange;
-    }
+  if (section === "assignments") {
     return (
-      <OwnerGroups
-        vaultId={vault.data.id}
-        createOpen={open}
-        onCreateOpenChange={onOpenChange}
-        lockReason={getVaultLockReason(vault.data)}
-      />
+      <div className="space-y-6">
+        <ResignNotice vaultId={vault.data.id} />
+        <OwnerAssignments vaultId={vault.data.id} lockReason={getVaultLockReason(vault.data)} />
+      </div>
     );
   }
   if (section === "assets") {

@@ -30,14 +30,14 @@ function formatBirthDate(value: string): string {
   return `${day}/${month}/${year}`;
 }
 
-/** Tên các gói bàn giao đang chứa người nhận; gói không tra được tên thì ghi chung. */
-function listGroupNames(containerIds: string[], groupNames: Record<string, string>): string[] {
+/** Tên các tài sản đang gán cho người nhận; tài sản không tra được tên thì ghi chung. */
+function listAssetNames(assetIds: string[], assetNames: Record<string, string>): string[] {
   const names: string[] = [];
-  for (const id of containerIds) {
-    if (Object.hasOwn(groupNames, id)) {
-      names.push(groupNames[id]);
+  for (const id of assetIds) {
+    if (Object.hasOwn(assetNames, id)) {
+      names.push(assetNames[id]);
     } else {
-      names.push("Gói bàn giao khác");
+      names.push("Tài sản khác");
     }
   }
   return names;
@@ -76,18 +76,18 @@ export function EditBeneficiaryDialog({
 function DeleteBeneficiaryDialog({
   vaultId,
   record,
-  groupNames,
+  assetNames,
   onClose,
 }: {
   vaultId: string;
   record: Beneficiary;
-  groupNames: Record<string, string>;
+  assetNames: Record<string, string>;
   onClose: () => void;
 }) {
   const action = usePrivateAction();
   const client = useQueryClient();
   const [understood, setUnderstood] = useState(false);
-  const blocked = record.containerIds.length > 0;
+  const blocked = record.assetIds.length > 0;
   if (blocked) {
     return (
       <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -95,11 +95,11 @@ function DeleteBeneficiaryDialog({
           <DialogHeader>
             <DialogTitle className={DIALOG_TITLE}>Không xóa được người nhận</DialogTitle>
             <DialogDescription className="text-heritage-muted">
-              {record.fullName} đang được gán vào gói bàn giao nên hệ thống giữ lại.
+              {record.fullName} đang được gán tài sản nên hệ thống giữ lại.
             </DialogDescription>
           </DialogHeader>
           <ul className="divide-y divide-heritage-border">
-            {listGroupNames(record.containerIds, groupNames).map((name, index) => (
+            {listAssetNames(record.assetIds, assetNames).map((name, index) => (
               <li key={`${name}-${index}`} className="py-3 text-sm font-semibold">
                 {name}
               </li>
@@ -109,15 +109,15 @@ function DeleteBeneficiaryDialog({
             role="alert"
             className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
           >
-            {record.fullName} đang ở trong {record.containerIds.length} gói bàn giao. Hãy gỡ người
-            nhận khỏi các gói trên, rồi xóa lại.
+            {record.fullName} đang được gán {record.assetIds.length} tài sản. Hãy gỡ người nhận
+            khỏi các tài sản trên, rồi xóa lại.
           </p>
           <DialogFooter>
             <button type="button" className={buttonStyles.outline} onClick={onClose}>
               Đóng
             </button>
-            <Link to={`${ROUTES.DASHBOARD.ASSETS}?tab=groups`} className={buttonStyles.dark}>
-              Mở gói bàn giao
+            <Link to={ROUTES.DASHBOARD.ASSIGNMENTS} className={buttonStyles.dark}>
+              Mở phần phân chia
             </Link>
           </DialogFooter>
         </DialogContent>
@@ -191,14 +191,14 @@ function DeleteBeneficiaryDialog({
 export function BeneficiaryRow({
   vaultId,
   record,
-  groupNames = {},
+  assetNames = {},
   readOnly = false,
   locked = false,
 }: {
   vaultId: string;
   record: Beneficiary;
   /** id gói bàn giao → tên gói bàn giao, do widget tra; thiếu thì thông báo chỉ nêu số gói bàn giao. */
-  groupNames?: Record<string, string>;
+  assetNames?: Record<string, string>;
   readOnly?: boolean;
   /** Kho đang bị khóa (hồ sơ chứng tử, bàn giao...): khóa cả "Sửa" lẫn "Xóa". */
   locked?: boolean;
@@ -211,9 +211,9 @@ export function BeneficiaryRow({
   } else if (record.phone) {
     contact = record.phone;
   }
-  let groupLabel = "Chưa vào gói bàn giao nào";
-  if (record.containerIds.length > 0) {
-    groupLabel = `${record.containerIds.length} gói bàn giao`;
+  let groupLabel = "Chưa được gán tài sản";
+  if (record.assetIds.length > 0) {
+    groupLabel = `${record.assetIds.length} tài sản`;
   }
   return (
     <tr>
@@ -275,7 +275,7 @@ export function BeneficiaryRow({
           <DeleteBeneficiaryDialog
             vaultId={vaultId}
             record={record}
-            groupNames={groupNames}
+            assetNames={assetNames}
             onClose={() => setDeleting(false)}
           />
         )}

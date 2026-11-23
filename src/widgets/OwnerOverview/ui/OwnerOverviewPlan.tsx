@@ -16,18 +16,16 @@ export function OwnerOverviewPlan({ data, aside }: { data: OverviewResources; as
           to: ROUTES.DASHBOARD.ASSETS,
         },
         {
-          label: "Chuẩn bị gói bàn giao sẵn sàng",
-          done: setup.containers.some((item) => item.status === "READY"),
-          to: ROUTES.WILLS.ROOT,
-        },
-        {
           label: "Xác minh danh tính Chủ kho",
           done: !setup.missingRequirements.includes("OWNER_EKYC_REQUIRED"),
           to: ROUTES.DASHBOARD.IDENTITY,
         },
         {
-          label: "Người thực thi chính chấp nhận nhiệm vụ",
-          done: !setup.missingRequirements.includes("PRIMARY_EXECUTOR_REQUIRED"),
+          // Gán tài sản cho người nhận và Người thực thi chính chấp nhận đều làm ở trang Bàn giao nên gộp một bước.
+          label: "Chuẩn bị kế hoạch bàn giao",
+          done:
+            !setup.missingRequirements.includes("ASSIGNMENT_REQUIRED") &&
+            !setup.missingRequirements.includes("PRIMARY_EXECUTOR_REQUIRED"),
           to: ROUTES.WILLS.ROOT,
         },
       ]

@@ -1,29 +1,9 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api";
-import { VAULT_PIN_HEADER } from "@/shared/api/vaultPin";
-import { paginatedListSchema, paginationRequestSchema } from "@/shared/api/pagination.schema";
-import type { PaginationParams } from "@/shared/types";
 import { vaultResponseSchema } from "@/entities/vault/model/vault.schema";
-import {
-  createPackageSchema,
-  packageResponseSchema,
-  updatePackageSchema,
-} from "@/entities/package/model/package.schema";
-import type {
-  CreatePackageRequest,
-  UpdatePackageRequest,
-} from "@/entities/package/model/package.types";
 
 const idSchema = z.string().uuid();
 
-/** POST kèm PIN đã nhập sẵn; không có PIN thì để transport tự hỏi khi Backend đòi. */
-function postWithPin(url: string, body: unknown, pin?: string): Promise<unknown> {
-  if (pin === undefined) {
-    return apiClient.post<unknown, unknown>(url, body);
-  }
-  return apiClient.post<unknown, unknown>(url, body, { headers: { [VAULT_PIN_HEADER]: pin } });
-}
-const packageListSchema = paginatedListSchema(packageResponseSchema);
 const createVaultSchema = z.object({
   name: z.string().max(200).nullable().optional(),
   description: z.string().max(1000).nullable().optional(),
@@ -32,8 +12,6 @@ const updateVaultSchema = createVaultSchema.extend({
   etag: z.string().min(1).max(64),
   executorNote: z.string().max(2000).optional(),
 });
-const containers = (vaultId: string) => `/vaults/${idSchema.parse(vaultId)}/containers`;
-const container = (vaultId: string, id: string) => `${containers(vaultId)}/${idSchema.parse(id)}`;
 
 /** Transport raw của Backend chính thức; không cấp quyền từ role UI. */
 export const ownerVaultService = {
@@ -58,75 +36,5 @@ export const ownerVaultService = {
     return vaultResponseSchema.parse(
       await apiClient.put<unknown, unknown>(`/vaults/${idSchema.parse(vaultId)}`, body),
     );
-  },
-  /** Scope theo vaultId, phân trang raw items/totalCount. */
-  async listPackages(
-    vaultId: string,
-    params?: PaginationParams,
-    signal?: AbortSignal,
-    includeRemoved = false,
-  ) {
-    return packageListSchema.parse(
-      await apiClient.get<unknown, unknown>(containers(vaultId), {
-        params: { ...paginationRequestSchema.parse(params ?? {}), includeRemoved },
-        signal,
-      }),
-    );
-  },
-  /** Đọc gói trong kho; không dùng alias /packages. */
-  async getPackage(vaultId: string, id: string, signal?: AbortSignal) {
-    return packageResponseSchema.parse(
-      await apiClient.get<unknown, unknown>(container(vaultId, id), { signal }),
-    );
-  },
-  /**
-   * Tạo gói rỗng, trạng thái do server quyết định. `pin` là mã PIN đã nhập sẵn (RAM): có thì gửi kèm để Backend
-   * không đòi lại, dùng khi một form làm nhiều thao tác liên tiếp.
-   */
-  async createPackage(vaultId: string, request: CreatePackageRequest, pin?: string) {
-    return packageResponseSchema.parse(
-      await postWithPin(containers(vaultId), createPackageSchema.parse(request), pin),
-    );
-  },
-  /** PUT với etag, không retry ghi đè khi 409. */
-  async updatePackage(vaultId: string, id: string, request: UpdatePackageRequest) {
-    return packageResponseSchema.parse(
-      await apiClient.put<unknown, unknown>(
-        container(vaultId, id),
-        updatePackageSchema.parse(request),
-      ),
-    );
-  },
-  /** DELETE xóa gói (trả gói REMOVED, không khôi phục được); caller phải có đồng ý của người dùng trước khi gửi xác nhận tác động kế hoạch. */
-  async removePackage(vaultId: string, id: string, confirmPlanDeactivation = false) {
-    return packageResponseSchema.parse(
-      await apiClient.delete<unknown, unknown>(container(vaultId, id), {
-        params: { confirmPlanDeactivation },
-      }),
-    );
-  },
-  /** Quan hệ container: thêm bằng body DTO, gỡ bằng URL + confirmation tường minh. */
-  async changeMember(
-    vaultId: string,
-    containerId: string,
-    relation: "assets" | "beneficiaries",
-    memberId: string,
-    attach: boolean,
-    confirmPlanDeactivation = false,
-    pin?: string,
-  ) {
-    const base = `${container(vaultId, containerId)}/${relation}`;
-    const member = idSchema.parse(memberId);
-    const result = attach
-      ? await postWithPin(
-          base,
-          relation === "assets" ? { assetId: member } : { beneficiaryId: member },
-          pin,
-        )
-      : await apiClient.delete<unknown, unknown>(`${base}/${member}`, {
-          params: { confirmPlanDeactivation },
-          ...(pin === undefined ? {} : { headers: { [VAULT_PIN_HEADER]: pin } }),
-        });
-    return packageResponseSchema.parse(result);
   },
 };

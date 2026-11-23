@@ -6,7 +6,6 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import {
   isOwnerVaultMissing,
-  useOwnerPackages,
   useOwnerVault,
 } from "@/features/vault-management/model/useOwnerVault";
 import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
@@ -61,10 +60,8 @@ export function OwnerAuditLog() {
     ready && Boolean(vault.data) && !filterError,
   );
 
-  const lookupEnabled = ready && Boolean(vault.data);
   const assetNames = useVaultAssets(vaultId, NAME_LOOKUP);
   const beneficiaryNames = useBeneficiaries(vaultId, NAME_LOOKUP);
-  const groupNames = useOwnerPackages(vaultId, lookupEnabled, NAME_LOOKUP, true);
   const names: AuditNameMap = {};
   if (vault.data) {
     let vaultName = "Kho của tôi";
@@ -81,11 +78,6 @@ export function OwnerAuditLog() {
   if (beneficiaryNames.data) {
     for (const item of beneficiaryNames.data.items) {
       names[item.id] = item.fullName;
-    }
-  }
-  if (groupNames.data) {
-    for (const item of groupNames.data.items) {
-      names[item.id] = item.name;
     }
   }
 

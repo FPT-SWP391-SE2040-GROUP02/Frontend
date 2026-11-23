@@ -68,8 +68,8 @@ export function DeleteDialog({
             <button type="button" className={buttonStyles.outline} onClick={onClose}>
               Đóng
             </button>
-            <Link to={`${ROUTES.DASHBOARD.ASSETS}?tab=groups`} className={buttonStyles.dark}>
-              Mở gói bàn giao
+            <Link to={ROUTES.DASHBOARD.ASSIGNMENTS} className={buttonStyles.dark}>
+              Mở phần phân chia
             </Link>
           </DialogFooter>
         </DialogContent>
@@ -82,8 +82,8 @@ export function DeleteDialog({
         <DialogHeader>
           <DialogTitle>Xóa “{asset.name}”?</DialogTitle>
           <DialogDescription>
-            Mục và nội dung sẽ bị xóa khỏi kho. Thao tác này không thể hoàn tác. Mục đang nằm trong
-            gói hoặc đã ghim vào lượt bàn giao thì không xóa được.
+            Mục và nội dung sẽ bị xóa khỏi kho. Thao tác này không thể hoàn tác. Mục đang được gán
+            cho người nhận hoặc đã ghim vào lượt bàn giao thì không xóa được.
           </DialogDescription>
         </DialogHeader>
         <label className="flex min-h-11 items-center gap-3 text-sm">
