@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check } from "lucide-react";
+import { Check, Info, X } from "lucide-react";
 import { buttonStyles, Chip, Initial, Notice } from "@/shared/ui/heritageKit";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { planSetupService } from "../api/planSetupService";
@@ -81,7 +81,7 @@ export function ExecutorInvitationsInbox() {
       {hasPending && (
         <h2
           id="executor-pending-invitations"
-          className="text-[0.875rem] font-semibold uppercase tracking-widest text-heritage-muted"
+          className="text-lg font-semibold text-heritage-primary"
         >
           Lời mời đang chờ
         </h2>
@@ -136,9 +136,9 @@ function PendingCard({
   return (
     <article
       aria-label={`Lời mời của ${invitation.ownerName}`}
-      className="space-y-4 rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg p-5"
+      className="overflow-hidden rounded-2xl border border-heritage-border bg-heritage-surface shadow-card"
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-heritage-border px-5 py-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Initial name={invitation.ownerName} />
           <div className="min-w-0">
@@ -152,36 +152,43 @@ function PendingCard({
         </div>
         <Chip tone="warning">Chờ bạn trả lời</Chip>
       </div>
-      <div className="grid gap-5 border-t border-heritage-gold-soft pt-4 md:grid-cols-2">
-        <div className="text-sm">
-          <p className="font-semibold">Quyền hạn của Người thực thi</p>
-          <ul className="mt-2 space-y-2">
-            {ABILITIES.map((item) => (
-              <li key={item} className="flex items-center gap-2">
-                <Check className="size-4 shrink-0 text-heritage-success" aria-hidden="true" />
-                {item}
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="space-y-5 p-5 text-sm leading-6 sm:p-6">
+          <p className="max-w-prose whitespace-pre-line">{scopeText}</p>
+          <div>
+            <p className="font-semibold text-heritage-primary">Quyền hạn của Người thực thi</p>
+            <ul className="mt-3 space-y-3">
+              {ABILITIES.map((item) => (
+                <li key={item} className="flex items-start gap-3">
+                  <Check
+                    className="mt-1 size-4 shrink-0 text-heritage-success"
+                    aria-hidden="true"
+                  />
+                  {item}
+                </li>
+              ))}
+              <li className="flex items-start gap-3">
+                <X className="mt-1 size-4 shrink-0 text-heritage-danger" aria-hidden="true" />
+                <span>
+                  <strong>Không</strong> đọc được nội dung kho
+                </span>
               </li>
-            ))}
-            <li className="text-heritage-danger">
-              <strong>Không</strong> đọc được nội dung kho
-            </li>
-            <li className="text-heritage-muted">
-              Email và số điện thoại của bạn được gửi cho người nhận khi kế hoạch được kích hoạt
-            </li>
-          </ul>
-        </div>
-        <div className="space-y-3">
-          <p className="whitespace-pre-line rounded-xl border border-heritage-border bg-white/70 px-4 py-3 text-sm leading-6">
-            {scopeText}
+            </ul>
+          </div>
+          <p className="flex max-w-prose items-start gap-3 border-t border-heritage-border pt-4 text-heritage-muted">
+            <Info className="mt-1 size-4 shrink-0" aria-hidden="true" />
+            Email và số điện thoại của bạn được gửi cho người nhận khi kế hoạch được kích hoạt
           </p>
+        </div>
+        <div className="space-y-4 border-t border-heritage-border bg-heritage-sunken p-5 sm:p-6 lg:border-l lg:border-t-0">
           <label
             htmlFor={checkboxId}
-            className="flex min-h-11 items-start gap-3 rounded-xl bg-white/70 px-4 py-3 text-sm leading-6"
+            className="flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-6"
           >
             <input
               id={checkboxId}
               type="checkbox"
-              className="mt-1 size-5"
+              className="mt-0.5 size-5 shrink-0 accent-heritage-primary"
               checked={acknowledge}
               disabled={action.pending}
               onChange={(event) => setAcknowledge(event.target.checked)}
@@ -194,10 +201,10 @@ function PendingCard({
             disabled={action.pending}
             error={passwordError}
           />
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 pt-1">
             <button
               type="button"
-              className={buttonStyles.dark}
+              className={`${buttonStyles.dark} flex-1`}
               disabled={action.pending || !acknowledge || password.length === 0}
               onClick={() => respond(true)}
             >
