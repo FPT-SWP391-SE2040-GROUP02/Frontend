@@ -64,7 +64,7 @@ export function RecordDocument({
             Biên bản chưa có người nhận nào.
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
               <caption className="sr-only">Người nhận và tài sản trong biên bản</caption>
               <thead>

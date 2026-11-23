@@ -305,7 +305,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
       )}
 
       <div className="overflow-hidden rounded-2xl border border-heritage-border bg-heritage-surface shadow-sm">
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-heritage-border bg-heritage-primary/5">

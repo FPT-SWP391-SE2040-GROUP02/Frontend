@@ -157,7 +157,7 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
 
       <section className={SECTION}>
         <p className={HEADING}>Điều 1. Tài sản giao cho từng người nhận</p>
-        <div className="overflow-x-auto">{table}</div>
+        <div className="relative overflow-x-auto">{table}</div>
       </section>
 
       <section className={SECTION}>

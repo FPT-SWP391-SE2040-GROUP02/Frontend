@@ -368,7 +368,7 @@ function ServicePlansContent({
           }}
         />
       )}
-      <p className="service-plan-intro">
+      <p className="service-plan-intro mt-6">
         Giá là tổng cho cả kỳ, đã gồm thuế nếu có. Thanh toán một lần bằng chuyển khoản, không tự
         động trừ tiền. Không hoàn tiền giữa kỳ.
       </p>

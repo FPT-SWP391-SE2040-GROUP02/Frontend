@@ -50,7 +50,7 @@ export function RecipientReviewList({ onOpen }: { onOpen: (submissionId: string)
           Chưa có người nhận nào nộp căn cước.
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full min-w-[480px] text-left text-sm">
             <caption className="sr-only">Hồ sơ danh tính chờ kiểm</caption>
             <thead>

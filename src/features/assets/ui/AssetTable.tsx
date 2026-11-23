@@ -224,7 +224,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
         </div>
       ) : (
         <div className="bg-heritage-surface border border-heritage-border rounded-[24px] overflow-hidden shadow-[0_4px_20px_rgba(11,41,30,0.04)]">
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table
               className="w-full text-left border-collapse"
               aria-label="Bảng danh sách tài sản số"

@@ -187,7 +187,7 @@ export function AssetList({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full min-w-[560px] text-left text-sm">
               <caption className="sr-only">Các mục trong kho</caption>
               <thead>

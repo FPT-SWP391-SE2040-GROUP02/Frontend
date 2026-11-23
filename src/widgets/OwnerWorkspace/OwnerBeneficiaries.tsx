@@ -167,7 +167,7 @@ export function OwnerBeneficiaries() {
           </p>
         )}
         {rows.length > 0 && (
-          <div className="mt-4 overflow-x-auto">
+          <div className="relative mt-4 overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-sm">
               <caption className="sr-only">Danh sách người nhận</caption>
               <thead>
