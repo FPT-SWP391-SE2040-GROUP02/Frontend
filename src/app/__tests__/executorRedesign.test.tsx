@@ -56,11 +56,11 @@ const turns = [
     status: "HANDOVER_COMMITTED",
     invitationSentAt: SENT,
     identityConfirmedAt: SIGNED,
-    recipientSignedAt: SIGNED,
     documentApprovedAt: APPROVED,
     decidedAt: APPROVED,
     keyVerifiedAt: KEY,
     receivedAllAt: RECEIVED,
+    receiptExecutorSignedAt: RECEIVED,
     downloadedItems: 3,
     items: [
       {
@@ -81,7 +81,6 @@ const turns = [
   turn(4, "Phạm Văn Cường", {
     status: "HANDOVER_COMMITTED",
     invitationSentAt: SENT,
-    recipientSignedAt: SIGNED,
     documentApprovedAt: APPROVED,
     decidedAt: APPROVED,
   }),
@@ -121,7 +120,7 @@ const vault = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-/** Biên bản đã đủ chữ ký ba bên của kho (GET /executor/vaults/{vaultId}/handover-record). */
+/** Biên bản luật sư đã ký của kho (GET /executor/vaults/{vaultId}/handover-record). */
 const record = {
   id: CASE_ID,
   vaultId: VAULT_ID,
@@ -135,7 +134,6 @@ const record = {
   verifierName: "Luật sư Dũng",
   executorName: "Chú Hải",
   verifierSignedAt: APPROVED,
-  executorSignedAt: APPROVED,
   recipients: [],
   canSign: false,
   availableAssets: [],
@@ -299,9 +297,9 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(columns.map((column) => column.textContent)).toEqual([
       "Đã mời13:14 23/12",
       "Kiểm danh tính14:00 23/12",
-      "Ký biên bản15:00 23/12",
+      "Luật sư ký15:00 23/12",
       "Nhập mã mở gói16:00 23/12",
-      "Tải xong16:52 23/12",
+      "Phiếu giao nhận16:52 23/12",
     ]);
     expect(within(finished).getByRole("region", { name: "Thông tin liên hệ" })).toHaveTextContent(
       "0901234567",
@@ -312,7 +310,7 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(within(finished).getByRole("region", { name: "Tài sản" })).toHaveTextContent(
       "3/3 đã tải",
     );
-    expect(within(finished).getByRole("region", { name: "Biên bản" })).toHaveTextContent(
+    expect(within(finished).getByRole("region", { name: "Phiếu giao nhận" })).toHaveTextContent(
       "Người nhận đã ký lúc",
     );
 
@@ -320,7 +318,7 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(within(finished).queryByRole("list", { name: "Giờ từng bước" })).not.toBeInTheDocument();
   });
 
-  it("đang chờ: giờ bước chờ là 'đang chờ', bước chưa tới là gạch ngang, biên bản là 'Chưa ký'", async () => {
+  it("đang chờ: giờ bước chờ là 'đang chờ', bước chưa tới là gạch ngang, phiếu là 'Chưa ký'", async () => {
     render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const replying = row(list, /Lê Thị Bình/);
@@ -331,11 +329,26 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(columns.map((column) => column.textContent)).toEqual([
       "Đã mời13:14 23/12",
       "Kiểm danh tínhđang chờ",
-      "Ký biên bản—",
+      "Luật sư ký—",
       "Nhập mã mở gói—",
-      "Tải xong—",
+      "Phiếu giao nhận—",
     ]);
-    expect(within(replying).getByRole("region", { name: "Biên bản" })).toHaveTextContent("Chưa ký");
+    expect(within(replying).getByRole("region", { name: "Phiếu giao nhận" })).toHaveTextContent(
+      "Chưa ký",
+    );
+  });
+
+  it("người nhận đã ký phiếu: bấm Ký phiếu giao nhận gọi đúng API", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue({
+      ...progress,
+      turns: progress.turns.map((turn) => ({ ...turn, receiptExecutorSignedAt: null })),
+    });
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(undefined);
+    render2(<HandoverProgressPanel recordId={CASE_ID} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Ký phiếu giao nhận" }));
+    expect(post).toHaveBeenCalledWith(
+      expect.stringMatching(/handover-turns\/[0-9a-f-]+\/sign-receipt$/),
+    );
   });
 
   it("người từ chối (dữ liệu cũ): chi tiết chỉ 2 cột, tài sản 'Không bàn giao'", async () => {
@@ -363,7 +376,7 @@ describe("Bàn giao: bảng người nhận", () => {
     }
     expect(
       screen.getByText(
-        /Thanh bước: Mời → Luật sư kiểm danh tính → Ba bên ký biên bản → Nhập mã mở gói → Tải xong\./,
+        /Thanh bước: Mời → Luật sư kiểm danh tính → Luật sư ký biên bản → Nhập mã mở gói → Hai bên ký phiếu giao nhận\./,
       ),
     ).toBeInTheDocument();
     const text = document.body.textContent ?? "";

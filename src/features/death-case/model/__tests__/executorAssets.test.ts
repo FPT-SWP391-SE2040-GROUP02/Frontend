@@ -88,6 +88,7 @@ describe("packageStatus", () => {
           keyVerifiedAt: SENT,
           downloadedItems: 2,
           receivedAllAt: SENT,
+          receiptExecutorSignedAt: SENT,
         }),
       ]).label,
     ).toBe("Đã nhận xong");

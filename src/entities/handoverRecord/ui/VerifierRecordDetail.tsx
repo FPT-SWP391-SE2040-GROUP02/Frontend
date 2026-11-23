@@ -40,35 +40,33 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
   return (
     <Panel
       title={
-        record.status === "IDENTITY_CHECK"
-          ? "Bước 2 · Danh tính người nhận"
-          : "Bước 3 · Chữ ký ba bên"
+        record.status === "IDENTITY_CHECK" ? "Bước 2 · Danh tính người nhận" : "Bước 3 · Luật sư ký"
       }
       labelledBy="record-actions"
     >
       <div className="space-y-4 text-sm leading-6">
         {record.status === "IDENTITY_CHECK" && (
           <p>
-            {`Còn ${waiting} người nhận chưa được xác nhận danh tính. Bấm "Kiểm danh tính" ở từng dòng khi người nhận đã nộp căn cước. Đủ người thì biên bản sang bước ký.`}
+            {`Còn ${waiting} người nhận chưa được xác nhận danh tính. Bấm "Kiểm danh tính" ở từng dòng khi người nhận đã nộp căn cước. Bạn ký được ngay khi có người đã xác nhận; người xác nhận sau được giao sau.`}
           </p>
         )}
         {record.status === "SIGNING" && (
           <p>
-            Mọi người nhận đã được xác nhận danh tính. Bạn, Người thực thi và từng người nhận cùng
-            ký. Đủ chữ ký thì người nhận được mở quyền tải và Người thực thi gửi mã nhận.
+            Mọi người nhận đã được xác nhận danh tính. Bạn ký thì biên bản thành yêu cầu chuyển
+            giao: Người thực thi gửi mã, người nhận tải rồi hai bên ký phiếu giao nhận.
           </p>
         )}
         <div className="flex flex-wrap gap-2">
-          {record.status === "SIGNING" && (
+          {record.canSign && (
             <button
               type="button"
               className={buttonStyles.dark}
-              disabled={busy || !record.canSign}
+              disabled={busy}
               onClick={() =>
                 void sign.execute(() => handoverRecordService.signAsVerifier(record.id), apply)
               }
             >
-              {record.canSign ? (sign.pending ? "Đang ký…" : "Ký xác minh") : "Bạn đã ký"}
+              {sign.pending ? "Đang ký…" : "Ký biên bản"}
             </button>
           )}
           <button
@@ -83,8 +81,8 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
           </button>
         </div>
         <p className="text-heritage-muted">
-          Mở lại biên bản thì mọi chữ ký đã có mất hiệu lực, cả ba bên phải ký lại. Người nhận đã
-          được xác nhận danh tính vẫn giữ nguyên.
+          Ký rồi thì không sửa được nữa và Chủ kho không hủy được nữa. Mở lại để sửa thì người nhận
+          đã được xác nhận danh tính vẫn giữ nguyên.
         </p>
         {(sign.error || reopen.error) && (
           <p role="alert" className="text-destructive">
@@ -147,14 +145,15 @@ export function VerifierRecordDetail({
         <FinalizedActions record={record} />
       )}
       {record.status === "COMPLETED" && (
-        <Notice tone="success" title="Biên bản đã đủ chữ ký ba bên">
-          Người nhận đã được mở quyền tải. Người thực thi gửi mã nhận cho từng người.
+        <Notice tone="success" title="Bạn đã ký biên bản">
+          Yêu cầu chuyển giao đã gửi Người thực thi. Người nhận xác nhận danh tính sau vẫn được giao
+          khi bạn kiểm xong.
         </Notice>
       )}
       <RecordDocument
         record={record}
         renderRecipientAction={
-          record.status === "IDENTITY_CHECK"
+          record.status === "IDENTITY_CHECK" || record.status === "COMPLETED"
             ? (recipient) => <IdentityAction recipient={recipient} />
             : undefined
         }

@@ -33,7 +33,6 @@ function recipient(beneficiaryId: string, fullName: string, assets: unknown[], e
     submissionId: null,
     submissionStatus: "",
     identityConfirmedAt: null,
-    signedAt: null,
     ...extra,
   };
 }
@@ -53,7 +52,6 @@ function record(extra: Record<string, unknown> = {}) {
     verifierName: "Luật sư Dũng",
     executorName: "Chú Hải",
     verifierSignedAt: null,
-    executorSignedAt: null,
     recipients: [recipient(AN, "Trần An", [houseAsset])],
     canSign: false,
     availableAssets: [houseAsset, savingsAsset],
@@ -226,14 +224,24 @@ describe("Luật sư ký và mở lại biên bản (bước 3)", () => {
       ...extra,
     });
 
-  it("ký xác minh xong thì nút đổi thành Bạn đã ký", async () => {
+  it("ký biên bản xong thì báo đã ký, không còn nút thao tác", async () => {
     const user = userEvent.setup();
-    const { post } = backend(signing(), signing({ canSign: false, verifierSignedAt: AT }));
+    const { post } = backend(
+      signing(),
+      signing({ status: "COMPLETED", canSign: false, verifierSignedAt: AT, completedAt: AT }),
+    );
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    await user.click(await screen.findByRole("button", { name: "Ký xác minh" }));
+    await user.click(await screen.findByRole("button", { name: "Ký biên bản" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/sign`);
-    expect(await screen.findByRole("button", { name: "Bạn đã ký" })).toBeDisabled();
+    expect(await screen.findByText("Bạn đã ký biên bản")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Ký biên bản|Mở lại/ })).not.toBeInTheDocument();
+  });
+
+  it("mới một người xác nhận danh tính thì ký được ngay, không phải chờ người khác", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue(signing({ status: "IDENTITY_CHECK" }));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+    expect(await screen.findByRole("button", { name: "Ký biên bản" })).toBeEnabled();
   });
 
   it("mở lại biên bản thì quay về bước lập để sửa", async () => {
@@ -241,22 +249,39 @@ describe("Luật sư ký và mở lại biên bản (bước 3)", () => {
     const { post } = backend(signing(), record({ revisionNo: 2 }));
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    expect(
-      await screen.findByText(/mọi chữ ký đã có mất hiệu lực, cả ba bên phải ký lại/),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Ký rồi thì không sửa được nữa/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Mở lại biên bản để sửa" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/reopen`);
     expect(await screen.findByText("Bước 1 · Lập biên bản")).toBeInTheDocument();
   });
 
-  it("đủ chữ ký ba bên thì chỉ còn thông báo hoàn tất, không còn nút thao tác", async () => {
+  it("phiếu giao nhận: hiện nội dung người nhận báo thiếu và xem được tờ phiếu bản nháp", async () => {
+    const user = userEvent.setup();
     vi.spyOn(apiClient, "get").mockResolvedValue(
-      signing({ status: "COMPLETED", canSign: false, completedAt: AT }),
+      signing({
+        status: "COMPLETED",
+        canSign: false,
+        completedAt: AT,
+        verifierSignedAt: AT,
+        recipients: [
+          recipient(AN, "Trần An", [houseAsset], {
+            turnId: TURN_ID,
+            turnStatus: "HANDOVER_COMMITTED",
+            identityConfirmedAt: AT,
+            receiptIssueNote: "Thiếu trang 2",
+            receiptIssueAt: AT,
+          }),
+        ],
+      }),
     );
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    expect(await screen.findByText("Biên bản đã đủ chữ ký ba bên")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Ký xác minh|Mở lại/ })).not.toBeInTheDocument();
+    expect(await screen.findByText("“Thiếu trang 2”")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Xem phiếu" }));
+    const paper = await screen.findByRole("article", { name: "Tờ Phiếu giao nhận" });
+    expect(paper).toHaveTextContent("chưa đủ chữ ký hai bên");
+    expect(paper).toHaveTextContent("Sổ đỏ");
+    expect(within(paper).getAllByText("(Chưa ký)")).toHaveLength(2);
   });
 
   it("biên bản không được giao cho mình thì báo lỗi và có nút về danh sách", async () => {
@@ -272,38 +297,23 @@ describe("Luật sư ký và mở lại biên bản (bước 3)", () => {
   });
 });
 
-describe("Người nhận ký biên bản", () => {
-  it("tới lượt ký thì bấm Ký biên bản; ký xong báo đang chờ các bên còn lại", async () => {
-    const user = userEvent.setup();
-    const changed = vi.fn();
-    const mine = [
-      recipient(AN, "Trần An", [houseAsset], { turnId: TURN_ID, identityConfirmedAt: AT }),
-    ];
-    const { post } = backend(
-      record({ status: "SIGNING", finalizedAt: AT, canSign: true, recipients: mine }),
-      record({ status: "SIGNING", finalizedAt: AT, canSign: false, recipients: mine }),
+describe("Người nhận xem biên bản", () => {
+  it("luật sư đã ký thì báo chờ mã; người nhận không ký biên bản", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue(
+      record({ status: "COMPLETED", completedAt: AT, verifierSignedAt: AT }),
     );
-    setup(<RecipientRecordPanel turnId={TURN_ID} onChanged={changed} />);
-
-    expect(
-      await screen.findByText("Đọc kỹ phần tài sản của bạn rồi bấm Ký biên bản."),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Phần của bạn trong biên bản bàn giao")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Ký biên bản" }));
-    expect(post).toHaveBeenCalledWith(`/handover/turns/${TURN_ID}/record/sign`);
-    expect(await screen.findByText("Bạn đã ký. Đang chờ các bên còn lại ký.")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
-    expect(changed).toHaveBeenCalledTimes(1);
-  });
-
-  it("luật sư đang sửa biên bản thì người nhận chưa ký được", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(record({ status: "DRAFTING" }));
     setup(<RecipientRecordPanel turnId={TURN_ID} />);
 
-    expect(
-      await screen.findByText("Luật sư đang sửa biên bản. Bạn chờ bản mới rồi ký."),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Luật sư đã ký biên bản\. Người thực thi/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
+  });
+
+  it("luật sư đang sửa biên bản thì người nhận chờ bản mới", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue(record({ status: "DRAFTING" }));
+    setup(<RecipientRecordPanel turnId={TURN_ID} />);
+    expect(
+      await screen.findByText("Luật sư đang sửa biên bản. Bạn chờ bản mới."),
+    ).toBeInTheDocument();
   });
 });
 

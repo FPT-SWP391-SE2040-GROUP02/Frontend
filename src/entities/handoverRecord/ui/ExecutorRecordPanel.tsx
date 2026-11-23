@@ -1,9 +1,6 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
-import { handoverRecordService } from "../api/handoverRecordService";
 import type { HandoverRecord } from "../model/handoverRecord.schema";
-import { handoverRecordKeys, useExecutorRecord } from "../model/useHandoverRecord";
+import { useExecutorRecord } from "../model/useHandoverRecord";
 import { RecordDocument } from "./RecordDocument";
 import { RecordStepper } from "./RecordStepper";
 
@@ -15,11 +12,9 @@ function waitingText(record: HandoverRecord): string {
     case "IDENTITY_CHECK":
       return "Biên bản đã chốt. Người nhận đã nhận thư mời và đang nộp căn cước để luật sư kiểm.";
     case "SIGNING":
-      if (record.canSign)
-        return "Mọi người nhận đã được xác nhận danh tính. Mời bạn đọc lại biên bản và ký.";
-      return "Bạn đã ký. Đang chờ luật sư và người nhận ký.";
+      return "Mọi người nhận đã được xác nhận danh tính. Đang chờ luật sư ký biên bản.";
     case "COMPLETED":
-      return "Biên bản đã đủ chữ ký. Vào mục Bàn giao để gửi mã nhận cho từng người.";
+      return "Luật sư đã ký: đây là yêu cầu chuyển giao. Vào mục Bàn giao để gửi mã và ký phiếu giao nhận.";
     case "CANCELLED":
       return "Chủ kho đã hủy yêu cầu nhận tài sản. Kho đã mở khóa.";
   }
@@ -43,10 +38,8 @@ function WaitingForRequest() {
   );
 }
 
-/** Mục Biên bản bàn giao của Người thực thi: theo dõi ba bước và ký khi tới lượt. */
+/** Mục Biên bản bàn giao của Người thực thi: theo dõi ba bước; biên bản luật sư ký là yêu cầu chuyển giao. */
 export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
-  const client = useQueryClient();
-  const sign = usePrivateAction();
   const query = useExecutorRecord(vaultId);
   if (query.isPending) return <p role="status">Đang tải biên bản…</p>;
   if (query.isError) {
@@ -64,37 +57,9 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
   return (
     <div className="space-y-6">
       <RecordStepper status={record.status} />
-      <Notice
-        tone={record.status === "COMPLETED" ? "success" : "neutral"}
-        role="status"
-        action={
-          record.canSign ? (
-            <button
-              type="button"
-              className={buttonStyles.dark}
-              disabled={sign.pending}
-              onClick={() =>
-                void sign.execute(
-                  () => handoverRecordService.signAsExecutor(vaultId),
-                  (next) => {
-                    client.setQueryData(handoverRecordKeys.executor(vaultId), next);
-                    void client.invalidateQueries({ queryKey: ["executor-vaults"] });
-                  },
-                )
-              }
-            >
-              {sign.pending ? "Đang ký…" : "Ký biên bản"}
-            </button>
-          ) : undefined
-        }
-      >
+      <Notice tone={record.status === "COMPLETED" ? "success" : "neutral"} role="status">
         {waitingText(record)}
       </Notice>
-      {sign.error && (
-        <p role="alert" className="text-sm text-destructive">
-          {sign.error}
-        </p>
-      )}
       <RecordDocument record={record} />
     </div>
   );

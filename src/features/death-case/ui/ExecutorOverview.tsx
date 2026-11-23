@@ -83,7 +83,6 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   const todo = executorTodo({
     vault,
     recordStatus,
-    canSign: record ? record.canSign : false,
     progress,
   });
 

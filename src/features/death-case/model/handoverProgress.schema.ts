@@ -50,10 +50,8 @@ const progressTurnSchema = z.object({
   responseDeadline: timestamp,
   /** Lúc máy chủ email nhận thư mời; null: hệ thống chưa gửi được lời mời (sẽ tự thử lại). */
   invitationSentAt: timestamp.nullable().default(null),
-  /** Lúc người nhận ký biên bản đồng ý hoặc văn bản từ chối; null khi chưa có biên bản hoặc chưa ký. Backend cũ chưa gửi thì null. */
   identityConfirmedAt: timestamp.nullable().default(null),
-  recipientSignedAt: timestamp.nullable().default(null),
-  /** Lúc Người xét duyệt ký biên bản của lượt; null khi chưa. Backend cũ chưa gửi thì null. */
+  /** Lúc luật sư ký biên bản; null khi chưa. Backend cũ chưa gửi thì null. */
   documentApprovedAt: timestamp.nullable().default(null),
   /** Lúc người nhận nhập đúng mã mở gói; null khi chưa nhập hoặc kho không dùng mã. Backend cũ chưa gửi thì null. */
   keyVerifiedAt: timestamp.nullable().default(null),
@@ -62,6 +60,11 @@ const progressTurnSchema = z.object({
   decidedAt: timestamp.nullable(),
   /** Người nhận đã bấm "Tôi đã nhận đủ" lúc này; Backend cũ chưa gửi thì null. */
   receivedAllAt: timestamp.nullable().default(null),
+  /** Lúc Người thực thi ký phiếu giao nhận; null khi chưa. */
+  receiptExecutorSignedAt: timestamp.nullable().default(null),
+  /** Người nhận báo tài sản thiếu hoặc sai. */
+  receiptIssueNote: z.string().nullable().default(null),
+  receiptIssueAt: timestamp.nullable().default(null),
   grantStatus: handoverGrantStatusSchema.nullable(),
   grantExpiresAt: timestamp.nullable(),
   totalItems: z.number().int().nonnegative(),
@@ -94,11 +97,20 @@ export type HandoverProgress = z.infer<typeof handoverProgressSchema>;
 export type HandoverProgressTurn = z.infer<typeof progressTurnSchema>;
 
 /**
- * Executor chỉ gửi được mã mở gói khi người nhận đã đồng ý và biên bản đã được Người xét duyệt duyệt (HANDOVER_COMMITTED)
+ * Executor chỉ gửi được mã mở gói khi người nhận đã xác nhận danh tính và luật sư đã ký biên bản (HANDOVER_COMMITTED)
  * mà người nhận chưa nhập mã. Trước đó người nhận chưa xác minh xong nên chưa được có mã; nhập mã rồi thì không cần gửi nữa.
  */
 export function canMailHandoverKey(turn: HandoverProgressTurn): boolean {
   return turn.status === "HANDOVER_COMMITTED" && turn.keyVerifiedAt === null;
+}
+
+/** Người nhận đã ký phiếu giao nhận, tới lượt Người thực thi ký bên giao. */
+export function canSignReceipt(turn: HandoverProgressTurn): boolean {
+  return (
+    turn.status === "HANDOVER_COMMITTED" &&
+    turn.receivedAllAt !== null &&
+    turn.receiptExecutorSignedAt === null
+  );
 }
 
 /** SendHandoverKeyResponse của POST .../handover-turns/{turnId}/send-key. */

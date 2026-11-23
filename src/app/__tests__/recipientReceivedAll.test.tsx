@@ -105,7 +105,7 @@ it("hiện Người xét duyệt kèm số thẻ luật sư và nút Tôi đã n
   expect(await screen.findByTestId("reviewer-line")).toHaveTextContent(
     "Luật sư Dũng (thẻ luật sư LS-12345)",
   );
-  fireEvent.click(screen.getByRole("button", { name: "Tôi đã nhận đủ" }));
+  fireEvent.click(screen.getByRole("button", { name: "Tôi đã nhận đủ, ký phiếu" }));
 
   await waitFor(() => expect(posts).toHaveLength(1));
   expect(posts[0]).toContain(`/handover/turns/${CONTAINER_ID}/received-all`);
@@ -126,7 +126,24 @@ it("chưa tải hết các mục thì khóa nút Tôi đã nhận đủ và báo
     );
   setup();
 
-  const button = await screen.findByRole("button", { name: "Tôi đã nhận đủ" });
+  const button = await screen.findByRole("button", { name: "Tôi đã nhận đủ, ký phiếu" });
   expect(button).toBeDisabled();
   expect(screen.getByText(/Còn 1 mục chưa tải/)).toBeInTheDocument();
+});
+
+it("báo thiếu hoặc sai gửi đúng nội dung", async () => {
+  let body: unknown = null;
+  apiClient.defaults.adapter = async (config) => {
+    if (config.method === "post" && config.url?.endsWith("/receipt-issue")) {
+      body = JSON.parse(String(config.data));
+    }
+    return ok(config, config.url?.endsWith("/handover/turns/me") ? [turn()] : turn());
+  };
+  setup();
+
+  fireEvent.change(await screen.findByLabelText("Tài sản thiếu hoặc sai"), {
+    target: { value: "Thiếu ảnh" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Báo thiếu hoặc sai" }));
+  await waitFor(() => expect(body).toEqual({ note: "Thiếu ảnh" }));
 });

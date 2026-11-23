@@ -60,6 +60,7 @@ const doneTurn = {
   keyVerifiedAt: SENT,
   downloadedItems: 2,
   receivedAllAt: SENT,
+  receiptExecutorSignedAt: SENT,
 };
 const needsKey = { status: "HANDOVER_COMMITTED", invitationSentAt: SENT, decidedAt: SENT };
 const waitingTurn = { status: "INVITED", invitationSentAt: SENT };
@@ -68,7 +69,6 @@ const unsentTurn = { status: "INVITED", invitationSentAt: null };
 const input = (overrides: Partial<Parameters<typeof executorTodo>[0]> = {}) => ({
   vault: vault(),
   recordStatus: "",
-  canSign: false,
   progress: null,
   ...overrides,
 });
@@ -79,7 +79,7 @@ describe("vaultStage", () => {
     expect(vaultStage(vault({ handoverRecordStatus: "DRAFTING" })).label).toBe(
       "Luật sư đang lập biên bản",
     );
-    expect(vaultStage(vault({ handoverRecordStatus: "SIGNING" })).label).toBe("Đang ký biên bản");
+    expect(vaultStage(vault({ handoverRecordStatus: "SIGNING" })).label).toBe("Chờ luật sư ký");
     expect(
       vaultStage(vault({ planStatus: "CLOSED", handoverRecordStatus: "COMPLETED" })).label,
     ).toBe("Đã hoàn tất");
@@ -106,11 +106,16 @@ describe("executorTodo", () => {
     expect(todo.to).toBe("/executor/progress");
   });
 
-  it("đến lượt ký thì việc là ký; đã ký thì chờ các bên còn lại", () => {
-    expect(executorTodo(input({ recordStatus: "SIGNING", canSign: true })).title).toBe(
-      "Ký biên bản bàn giao",
+  it("bước ký là của luật sư: Người thực thi chờ", () => {
+    expect(executorTodo(input({ recordStatus: "SIGNING" })).title).toBe("Chờ luật sư ký biên bản");
+  });
+
+  it("người nhận đã ký phiếu: việc là ký phiếu giao nhận", () => {
+    const waitingReceipt = { ...doneTurn, receiptExecutorSignedAt: null };
+    const todo = executorTodo(
+      input({ recordStatus: "COMPLETED", progress: progress([waitingReceipt, needsKey]) }),
     );
-    expect(executorTodo(input({ recordStatus: "SIGNING" })).title).toBe("Chờ các bên còn lại ký");
+    expect(todo.title).toBe("Ký phiếu giao nhận với 1 người nhận");
   });
 
   it("đủ chữ ký: gửi mã nhận cho người cần mã, xong hết thì hoàn tất", () => {
@@ -149,7 +154,7 @@ describe("vaultJourney", () => {
     expect(steps[1]).toEqual({
       label: "Biên bản bàn giao",
       state: "current",
-      caption: "Đang ký ba bên",
+      caption: "Chờ luật sư ký",
     });
   });
 
