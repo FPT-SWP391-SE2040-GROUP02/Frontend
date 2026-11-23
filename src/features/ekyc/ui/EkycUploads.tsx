@@ -193,7 +193,7 @@ function ConsentStep({
 
         <p className="flex items-start gap-2 text-sm text-heritage-muted">
           <Lock className="mt-0.5 size-3.5 shrink-0 text-heritage-success" aria-hidden="true" />
-          Ảnh chỉ dùng để đối chiếu. Không chia sẻ cho chủ kho hay người khác.
+          Ảnh chỉ dùng để đối chiếu danh tính. Không chia sẻ cho người khác.
         </p>
       </section>
     </div>
