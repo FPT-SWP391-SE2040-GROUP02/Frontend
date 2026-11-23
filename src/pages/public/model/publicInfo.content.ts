@@ -198,7 +198,7 @@ export const TERMS_CONTENT = {
       title: "4. Biên bản và bàn giao",
       paragraphs: [
         "LegacyVault chỉ quản lý tài sản, không làm pháp lý. Bàn giao chỉ diễn ra theo biên bản bàn giao do luật sư lập, sau khi luật sư xác nhận danh tính từng người nhận và luật sư, Người thực thi, người nhận cùng ký.",
-        "Người thực thi chỉ giữ hộ và giao tài sản theo biên bản, không được chia, bán hay cho tài sản. Người nhận có {grantDays} ngày để tải nội dung sau khi biên bản đủ chữ ký.",
+        "Người thực thi chỉ giữ hộ và giao tài sản theo biên bản, không được chia, bán hay cho tài sản. Mỗi người nhận có {grantDays} ngày để tải nội dung, tính từ lúc phần của người đó đủ chữ ký (luật sư, Người thực thi và chính người đó).",
       ],
     },
     {

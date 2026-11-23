@@ -57,7 +57,7 @@ function committedTurn(grantStatus: string) {
     grant: { id: GRANT_ID, status: grantStatus, expiresAt: "2026-12-30T00:00:00Z" },
   };
 }
-/** Biên bản bàn giao đã đủ chữ ký ba bên mà màn người nhận đọc kèm lượt. */
+/** Biên bản bàn giao đã đủ chữ ký (mọi người nhận đã ký) mà màn người nhận đọc kèm lượt. */
 const COMPLETED_RECORD = {
   id: "0198a000-0000-7000-8000-000000000003",
   vaultId: VAULT_ID,
@@ -366,4 +366,85 @@ it("biên bản đủ chữ ký và kho có khóa mở gói: nhập đúng mã n
   fireEvent.click(screen.getByRole("button", { name: "Xác nhận khóa" }));
   expect(await screen.findByText("Khóa mở gói đã được xác nhận.")).toBeInTheDocument();
   expect(posts.some((url) => url.endsWith("/verify-key"))).toBe(true);
+});
+
+/** Biên bản còn đang ký (SIGNING), người nhận chỉ thấy phần của mình. */
+function signingRecordFor(me: object, extra: object = {}) {
+  return {
+    ...COMPLETED_RECORD,
+    status: "SIGNING",
+    completedAt: null,
+    verifierSignedAt: null,
+    executorSignedAt: null,
+    recipients: [
+      {
+        beneficiaryId: "0198a000-0000-7000-8000-000000000004",
+        fullName: "Người nhận thử",
+        citizenId: "001090000001",
+        assets: [],
+        turnId: CONTAINER_ID,
+        turnStatus: "READY_TO_ACCEPT",
+        claimed: true,
+        submissionId: null,
+        submissionStatus: "",
+        identityConfirmedAt: null,
+        signedAt: null,
+        ...me,
+      },
+    ],
+    canSign: false,
+    ...extra,
+  };
+}
+
+function backendWithRecord(turn: object, record: object) {
+  apiClient.defaults.adapter = async (config) => {
+    if (config.url?.endsWith("/record")) return ok(config, record);
+    return ok(config, [turn]);
+  };
+}
+
+it("chưa xong danh tính: nhắc nộp ảnh căn cước, không có nút ký biên bản", async () => {
+  backendWithRecord(turnWithStatus("IDENTITY_IN_PROGRESS"), signingRecordFor({}));
+  setup();
+
+  expect(await screen.findByText(/Nộp ảnh căn cước ở khung/)).toBeInTheDocument();
+  expect(screen.getByText(/Bạn không phải chờ người nhận khác/)).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
+});
+
+it("danh tính xong thì ký được; ký xong mà luật sư hoặc Người thực thi chưa ký thì chờ họ", async () => {
+  const ready = signingRecordFor({ identityConfirmedAt: CREATED_AT }, { canSign: true });
+  backendWithRecord(turnWithStatus("READY_TO_ACCEPT"), ready);
+  setup();
+  expect(await screen.findByRole("button", { name: "Ký biên bản" })).toBeEnabled();
+  cleanup();
+
+  const signed = signingRecordFor({ identityConfirmedAt: CREATED_AT, signedAt: CREATED_AT });
+  backendWithRecord(turnWithStatus("READY_TO_ACCEPT"), signed);
+  setup();
+  expect(
+    await screen.findByText("Bạn đã ký. Chờ luật sư hoặc Người thực thi ký."),
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
+});
+
+it("có quyền tải khi biên bản vẫn SIGNING (người khác chưa ký): nhập mã và tải, không chờ ai", async () => {
+  const opened = signingRecordFor(
+    { turnStatus: "HANDOVER_COMMITTED", identityConfirmedAt: CREATED_AT, signedAt: CREATED_AT },
+    { verifierSignedAt: CREATED_AT, executorSignedAt: CREATED_AT },
+  );
+  backendWithRecord(
+    {
+      ...committedTurn("ACTIVE"),
+      keyRequired: true,
+      keyVerified: false,
+    },
+    opened,
+  );
+  setup();
+
+  expect(await screen.findByLabelText("Khóa mở gói do Người thực thi đưa")).toBeInTheDocument();
+  expect(screen.getByText(/Phần của bạn đã đủ chữ ký/)).toBeInTheDocument();
+  expect(screen.queryByText(/ba bên/)).not.toBeInTheDocument();
 });

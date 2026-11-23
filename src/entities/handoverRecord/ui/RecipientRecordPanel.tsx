@@ -7,7 +7,8 @@ import { RecordDocument } from "./RecordDocument";
 
 /**
  * Người nhận xem phần của mình trong biên bản bàn giao và ký khi tới bước ký.
- * Đủ chữ ký ba bên thì lượt được mở quyền tải; onChanged để trang làm mới lượt.
+ * Phần của người này đủ chữ ký (luật sư, Người thực thi và chính người đó) thì lượt được mở quyền tải,
+ * không chờ người nhận khác; onChanged để trang làm mới lượt.
  */
 export function RecipientRecordPanel({
   turnId,
@@ -32,19 +33,24 @@ export function RecipientRecordPanel({
   }
   const record = query.data;
   const me = record.recipients[0];
-  let text =
-    "Luật sư đang kiểm danh tính những người nhận khác. Khi đủ người, bạn sẽ ký được biên bản.";
+  const opened = me !== undefined && me.turnStatus === "HANDOVER_COMMITTED";
+  let text = "Bạn cần nộp ảnh căn cước để luật sư xác nhận danh tính, sau đó mới ký được.";
+  if (me !== undefined && me.identityConfirmedAt) {
+    text = "Danh tính của bạn đã được xác nhận. Chờ tới lượt ký biên bản.";
+  }
   if (record.status === "DRAFTING") text = "Luật sư đang sửa biên bản. Bạn chờ bản mới rồi ký.";
-  if (record.status === "SIGNING" && record.canSign)
-    text = "Đọc kỹ phần tài sản của bạn rồi bấm Ký biên bản.";
-  if (record.status === "SIGNING" && !record.canSign)
-    text = "Bạn đã ký. Đang chờ các bên còn lại ký.";
-  if (record.status === "COMPLETED")
-    text = "Biên bản đã đủ chữ ký. Người thực thi sẽ gửi mã nhận vào email của bạn để mở tài sản.";
+  if (record.canSign) text = "Đọc kỹ phần tài sản của bạn rồi bấm Ký biên bản.";
+  if (me !== undefined && me.signedAt) {
+    text = "Bạn đã ký. Chờ luật sư hoặc Người thực thi ký.";
+  }
+  if (opened) {
+    text =
+      "Phần của bạn đã đủ chữ ký. Người thực thi sẽ gửi mã nhận vào email của bạn để mở tài sản.";
+  }
   return (
     <div className="space-y-4">
       <Notice
-        tone={record.status === "COMPLETED" ? "success" : "neutral"}
+        tone={opened ? "success" : "neutral"}
         role="status"
         action={
           record.canSign ? (

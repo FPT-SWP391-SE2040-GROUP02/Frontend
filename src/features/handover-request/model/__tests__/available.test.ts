@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiClient } from "@/shared/api/axiosClient";
 import { handoverRequestService } from "../../api/handoverRequestService";
-import { availableAction } from "../availablePresentation";
+import { availableAction, availableStatusLabel } from "../availablePresentation";
 import { availableHandoverSchema, type AvailableHandover } from "../handoverRequest.schema";
 import { countNeedsAction, sortAvailable } from "../useHandoverRequest";
 
@@ -159,5 +159,18 @@ describe("nút cho bước tiếp theo", () => {
       "Xem yêu cầu",
     );
     expect(availableAction(parsed({ status: "REJECTED" }))).toBeNull();
+  });
+});
+
+describe("nhãn trạng thái theo lượt của chính người nhận", () => {
+  it("WAITING_OTHERS: đã ký, chờ luật sư hoặc Người thực thi ký", () => {
+    expect(availableStatusLabel.WAITING_OTHERS.label).toBe("Chờ luật sư hoặc Người thực thi ký");
+  });
+
+  it("CODE_READY vẫn là đã có mã nhận, dẫn vào cổng nhập mã", () => {
+    expect(availableStatusLabel.CODE_READY.label).toBe("Đã có mã nhận");
+    expect(availableAction(parsed({ status: "CODE_READY", turnId: TURN_ID }))?.label).toBe(
+      "Nhập mã và tải",
+    );
   });
 });

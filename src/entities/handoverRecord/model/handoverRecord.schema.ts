@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const timestamp = z.string().datetime({ offset: true });
 
-/** Bước của biên bản bàn giao (Backend: DRAFTING, IDENTITY_CHECK, SIGNING, COMPLETED; CANCELLED khi Chủ kho hủy). */
+/** Bước của biên bản bàn giao (Backend: DRAFTING, SIGNING, COMPLETED; CANCELLED khi Chủ kho hủy; IDENTITY_CHECK chỉ còn ở biên bản cũ, xử lý như SIGNING). */
 export const recordStatusSchema = z.enum([
   "DRAFTING",
   "IDENTITY_CHECK",

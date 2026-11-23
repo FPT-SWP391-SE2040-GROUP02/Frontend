@@ -100,17 +100,27 @@ describe("executorTodo", () => {
     );
   });
 
-  it("đang kiểm danh tính: xem người nhận ở mục Bàn giao", () => {
-    const todo = executorTodo(input({ recordStatus: "IDENTITY_CHECK" }));
-    expect(todo.title).toBe("Người nhận đang xác minh danh tính");
-    expect(todo.to).toBe("/executor/progress");
+  it("biên bản cũ còn ở IDENTITY_CHECK xử lý như đang ký: Người thực thi ký ngay được", () => {
+    const todo = executorTodo(input({ recordStatus: "IDENTITY_CHECK", canSign: true }));
+    expect(todo.title).toBe("Ký biên bản bàn giao");
+    expect(todo.to).toBe("/executor/report");
   });
 
-  it("đến lượt ký thì việc là ký; đã ký thì chờ các bên còn lại", () => {
+  it("vừa chốt: việc là ký ngay; đã ký mà chưa ai được mở thì chờ người nhận hoàn tất phần của mình", () => {
     expect(executorTodo(input({ recordStatus: "SIGNING", canSign: true })).title).toBe(
       "Ký biên bản bàn giao",
     );
-    expect(executorTodo(input({ recordStatus: "SIGNING" })).title).toBe("Chờ các bên còn lại ký");
+    const waiting = executorTodo(input({ recordStatus: "SIGNING" }));
+    expect(waiting.title).toBe("Chờ người nhận hoàn tất phần của mình");
+    expect(waiting.to).toBe("/executor/progress");
+  });
+
+  it("đang ký mà người A đã được mở, người B chưa ký: vẫn gửi mã cho A", () => {
+    const todo = executorTodo(
+      input({ recordStatus: "SIGNING", progress: progress([needsKey, waitingTurn]) }),
+    );
+    expect(todo.title).toBe("Gửi mã nhận cho 1 người nhận");
+    expect(todo.to).toBe("/executor/progress");
   });
 
   it("đủ chữ ký: gửi mã nhận cho người cần mã, xong hết thì hoàn tất", () => {
@@ -149,8 +159,20 @@ describe("vaultJourney", () => {
     expect(steps[1]).toEqual({
       label: "Biên bản bàn giao",
       state: "current",
-      caption: "Đang ký ba bên",
+      caption: "Đang ký, giao từng người",
     });
+  });
+
+  it("biên bản còn đang ký nhưng đã có người được mở: bước 3 bắt đầu theo từng người", () => {
+    const steps = vaultJourney(vault(), "SIGNING", progress([needsKey, waitingTurn]));
+    expect(steps[1].state).toBe("current");
+    expect(steps[2]).toEqual({
+      label: "Bàn giao cho người nhận",
+      state: "current",
+      caption: "0/2 người đã nhận xong",
+    });
+    const none = vaultJourney(vault(), "SIGNING", progress([waitingTurn]));
+    expect(none[2].state).toBe("pending");
   });
 
   it("đủ chữ ký: bước 3 đang ở đây với x/y người đã nhận xong", () => {

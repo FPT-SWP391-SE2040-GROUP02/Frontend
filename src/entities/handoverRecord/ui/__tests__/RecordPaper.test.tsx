@@ -13,7 +13,7 @@ function buildRecord(extra: Record<string, unknown> = {}): HandoverRecord {
     vaultId: "11111111-1111-4111-8111-111111111111",
     vaultName: "Kho gia đình",
     ownerName: "Anh Nam",
-    status: "IDENTITY_CHECK",
+    status: "SIGNING",
     revisionNo: 1,
     requestedAt: AT,
     finalizedAt: AT,
@@ -81,5 +81,46 @@ describe("RecordPaper: người nhận đồng ý nhận, chưa phải đã nh�
     expect(container).toHaveTextContent("bên nhận đồng ý nhận tài sản trong kho nêu trên");
     expect(container).not.toHaveTextContent("đã nhận đủ phần tài sản");
     expect(container).not.toHaveTextContent("bên nhận đã nhận tài sản");
+  });
+});
+
+describe("RecordPaper: khối chữ ký từng người", () => {
+  const AN = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const BINH = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+  const SIGNED_AT = "2026-11-22T09:15:00+00:00";
+
+  function person(beneficiaryId: string, fullName: string, signedAt: string | null) {
+    return {
+      beneficiaryId,
+      fullName,
+      citizenId: "001090000001",
+      assets: [],
+      turnId: null,
+      turnStatus: "",
+      claimed: true,
+      submissionId: null,
+      submissionStatus: "",
+      identityConfirmedAt: null,
+      signedAt,
+    };
+  }
+
+  it("hiện người đã ký (kèm giờ) và người chưa ký theo dữ liệu Backend", () => {
+    const { container } = render(
+      <RecordPaper
+        record={buildRecord({
+          verifierSignedAt: SIGNED_AT,
+          recipients: [person(AN, "Trần An", SIGNED_AT), person(BINH, "Lê Bình", null)],
+        })}
+      />,
+    );
+
+    const slots = Array.from(container.querySelectorAll(".break-inside-avoid"));
+    const byName = (name: string) => slots.find((slot) => slot.textContent?.includes(name));
+    expect(byName("Trần An")).toHaveTextContent("Đã ký điện tử");
+    expect(byName("Trần An")).toHaveTextContent(formatDateTime(SIGNED_AT));
+    expect(byName("Lê Bình")).toHaveTextContent("(Chưa ký)");
+    expect(byName("Luật sư Dũng")).toHaveTextContent("Đã ký điện tử");
+    expect(byName("Chú Hải")).toHaveTextContent("(Chưa ký)");
   });
 });

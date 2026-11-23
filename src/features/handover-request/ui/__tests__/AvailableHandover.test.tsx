@@ -159,7 +159,7 @@ describe("Trang Nhận tài sản: danh sách", () => {
     ]);
     setup(<AvailableHandoverList />);
     const cards = await screen.findAllByRole("article");
-    expect(cards[0]).toHaveTextContent("Chờ các bên khác ký");
+    expect(cards[0]).toHaveTextContent("Chờ luật sư hoặc Người thực thi ký");
     expect(within(cards[0]).queryByRole("link")).not.toBeInTheDocument();
     expect(within(cards[1]).getByRole("link", { name: /Xem biên bản/ })).toBeInTheDocument();
   });

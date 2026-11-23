@@ -75,7 +75,9 @@ function ProgressBody({
         ))}
       </ul>
       <p className="text-sm leading-5 text-heritage-muted">
-        Thanh bước: Mời → Luật sư kiểm danh tính → Ba bên ký biên bản → Nhập mã mở gói → Tải xong.
+        Thanh bước của từng người: Mời → Luật sư kiểm danh tính → Ký biên bản (luật sư, Người thực
+        thi và người này) → Nhập mã mở gói → Tải xong. Mỗi người được mở riêng, không chờ người
+        khác.
       </p>
     </>
   );

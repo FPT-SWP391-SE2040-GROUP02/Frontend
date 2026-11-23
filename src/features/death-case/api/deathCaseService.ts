@@ -29,7 +29,7 @@ export const deathCaseService = {
       await apiClient.get<unknown, unknown>(`${path(recordId)}/handover-progress`, { signal }),
     );
   },
-  /** Gửi mã nhận tới email người nhận của lượt; chỉ khi biên bản đã đủ chữ ký. BE kiểm khóa và không lưu khóa. */
+  /** Gửi mã nhận tới email người nhận của lượt; chỉ khi lượt của người nhận đã được mở quyền tải (HANDOVER_COMMITTED), không chờ người nhận khác. BE kiểm khóa và không lưu khóa. */
   async sendKey(recordId: string, turnId: string, key: string) {
     return sendHandoverKeySchema.parse(
       await apiClient.post<unknown, unknown>(

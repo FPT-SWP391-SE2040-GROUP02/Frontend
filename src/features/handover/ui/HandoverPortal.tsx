@@ -24,7 +24,7 @@ const labels: Record<string, string> = {
   INVITED: "Được mời",
   INITIAL_RESPONSE_EXPIRED: "Đã qua hạn phản hồi ban đầu",
   IDENTITY_IN_PROGRESS: "Đang xác minh danh tính",
-  READY_TO_ACCEPT: "Chờ ký biên bản",
+  READY_TO_ACCEPT: "Danh tính đã xong, chờ ký biên bản",
   HANDOVER_COMMITTED: "Đã tiếp nhận",
   DECLINED: "Đã từ chối",
   DECISION_EXPIRED: "Đã hết hạn quyết định",
@@ -208,8 +208,8 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
               )}
               {turn.status === "IDENTITY_IN_PROGRESS" && (
                 <p className="text-sm leading-6 text-heritage-muted">
-                  Nộp căn cước ở khung “Xác minh danh tính” phía trên. Luật sư đối chiếu xong thì
-                  bạn ký biên bản bàn giao cùng luật sư và Người thực thi.
+                  Nộp ảnh căn cước ở khung “Xác minh danh tính” phía trên. Luật sư đối chiếu xong
+                  thì bạn ký biên bản bàn giao. Bạn không phải chờ người nhận khác.
                 </p>
               )}
               {turn.reviewer && (
@@ -227,8 +227,8 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                 <h3 className="text-base font-semibold text-heritage-primary">Khóa mở gói</h3>
                 <div className="space-y-3">
                   <p className="text-sm leading-6 text-heritage-muted">
-                    Biên bản đã đủ chữ ký ba bên. Nhập mã nhận Người thực thi gửi vào email của bạn
-                    để tải tài sản.
+                    Phần của bạn đã đủ chữ ký (luật sư, Người thực thi và bạn). Nhập mã nhận Người
+                    thực thi gửi vào email của bạn để tải tài sản.
                   </p>
                   {turn.keyRequired && !turn.keyVerified && (
                     <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">

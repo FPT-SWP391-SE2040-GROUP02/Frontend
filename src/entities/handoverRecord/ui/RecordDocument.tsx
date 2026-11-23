@@ -1,7 +1,12 @@
 import type { ReactNode } from "react";
 import { Chip, formatDateTime, InfoRow, Panel } from "@/shared/ui/heritageKit";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
-import { identityText, recordStatusLabel, signatureCount } from "../model/recordPresentation";
+import {
+  deliveryText,
+  identityText,
+  recordStatusLabel,
+  signatureCount,
+} from "../model/recordPresentation";
 import { RecordPreviewButton } from "./RecordPreviewButton";
 
 function SignedCell({ at }: { at: string | null }) {
@@ -11,7 +16,7 @@ function SignedCell({ at }: { at: string | null }) {
 
 /**
  * Nội dung biên bản bàn giao dùng chung cho luật sư, Người thực thi và người nhận: thông tin kho,
- * bảng "ai nhận tài sản nào" kèm danh tính và chữ ký, rồi ô chữ ký của luật sư và Người thực thi.
+ * bảng "ai nhận tài sản nào" kèm danh tính, chữ ký và việc giao phần của từng người, rồi ô chữ ký của luật sư và Người thực thi.
  * renderRecipientAction thêm một cột thao tác cho từng người nhận (ví dụ nút kiểm danh tính của luật sư).
  */
 export function RecordDocument({
@@ -52,7 +57,7 @@ export function RecordDocument({
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-sm">
+            <table className="w-full min-w-[640px] text-left text-sm">
               <caption className="sr-only">Người nhận và tài sản trong biên bản</caption>
               <thead>
                 <tr className="border-b border-heritage-border text-sm text-heritage-muted">
@@ -68,6 +73,9 @@ export function RecordDocument({
                   <th scope="col" className="px-4 py-3 font-semibold">
                     Chữ ký
                   </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Giao phần của mình
+                  </th>
                   {renderRecipientAction && (
                     <th scope="col" className="px-4 py-3 font-semibold">
                       <span className="sr-only">Thao tác</span>
@@ -78,6 +86,7 @@ export function RecordDocument({
               <tbody className="divide-y divide-heritage-border">
                 {record.recipients.map((recipient) => {
                   const identity = identityText(recipient);
+                  const delivery = deliveryText(record, recipient);
                   return (
                     <tr key={recipient.beneficiaryId} className="align-top">
                       <td className="py-4 pr-4">
@@ -96,6 +105,9 @@ export function RecordDocument({
                       </td>
                       <td className="px-4 py-4">
                         <SignedCell at={recipient.signedAt} />
+                      </td>
+                      <td className="px-4 py-4">
+                        <Chip tone={delivery.tone}>{delivery.label}</Chip>
                       </td>
                       {renderRecipientAction && (
                         <td className="px-4 py-4">{renderRecipientAction(recipient)}</td>

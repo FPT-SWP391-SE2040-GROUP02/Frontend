@@ -38,13 +38,17 @@ export function deriveNotifications(
 ): ExecutorNotification[] {
   const current: ExecutorNotification[] = [];
   const events: ExecutorNotification[] = [];
-  if (record && record.status === "SIGNING" && record.canSign) {
+  if (
+    record &&
+    (record.status === "SIGNING" || record.status === "IDENTITY_CHECK") &&
+    record.canSign
+  ) {
     current.push({
       id: `sign:${record.id}:${record.revisionNo}`,
       at: null,
       text: "Biên bản bàn giao đang chờ bạn ký.",
       title: "Đến lượt bạn ký biên bản",
-      detail: "Mọi người nhận đã được xác nhận danh tính.",
+      detail: "Luật sư đã chốt biên bản. Bạn ký được ngay, không cần chờ người nhận.",
       tone: "attention",
     });
   }
@@ -80,8 +84,8 @@ export function deriveNotifications(
       events.push({
         id: `completed:${record.id}`,
         at: record.completedAt,
-        text: "Biên bản đã đủ chữ ký ba bên. Hãy gửi mã nhận cho người nhận.",
-        title: "Biên bản đã đủ chữ ký",
+        text: "Mọi người nhận đã ký biên bản. Hãy gửi mã nhận cho người nhận chưa có mã.",
+        title: "Mọi người nhận đã ký biên bản",
         detail: "Gửi mã nhận cho từng người ở mục Bàn giao.",
         tone: "success",
       });

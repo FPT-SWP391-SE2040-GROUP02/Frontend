@@ -9,12 +9,12 @@ import { HandoverProgressPanel } from "./HandoverProgressPanel";
 function notStartedText(status: string | null): string {
   if (status === "DRAFTING")
     return "Luật sư đang lập biên bản. Danh sách người nhận hiện ở đây sau khi biên bản được chốt.";
-  return "Chưa có yêu cầu nhận tài sản. Khi người nhận gửi yêu cầu và biên bản đủ chữ ký, tiến độ hiện ở đây.";
+  return "Chưa có yêu cầu nhận tài sản. Khi người nhận gửi yêu cầu và luật sư chốt biên bản, tiến độ từng người nhận hiện ở đây.";
 }
 
 /**
- * Trang Bàn giao của một kho: khi luật sư đã chốt biên bản thì hiện bảng người nhận (và nút gửi mã khi biên bản
- * đủ chữ ký), còn không thì nói rõ bàn giao chưa bắt đầu và dẫn về mục Biên bản bàn giao.
+ * Trang Bàn giao của một kho: khi luật sư đã chốt biên bản thì hiện bảng người nhận (và nút gửi mã cho từng người
+ * khi lượt của người đó được mở), còn không thì nói rõ bàn giao chưa bắt đầu và dẫn về mục Biên bản bàn giao.
  */
 export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
   const query = useExecutorRecord(vault.vaultId);

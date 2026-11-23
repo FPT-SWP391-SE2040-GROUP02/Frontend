@@ -114,9 +114,9 @@ export const LANDING_CONTENT = {
       },
       {
         tag: "03 · Bàn giao",
-        title: "Chỉ giao theo biên bản đủ chữ ký ba bên",
+        title: "Chỉ giao theo biên bản có đủ chữ ký",
         detail:
-          "Hệ thống chỉ quản lý tài sản, không làm pháp lý. Luật sư lập biên bản bàn giao, kiểm danh tính người nhận; đủ chữ ký ba bên thì người nhận mới mở được kho, rồi có {grantDays} ngày để tải về.",
+          "Hệ thống chỉ quản lý tài sản, không làm pháp lý. Luật sư lập biên bản bàn giao, kiểm danh tính người nhận; mỗi người nhận được mở phần của mình khi biên bản có đủ chữ ký luật sư, Người thực thi và của chính người đó, rồi có {grantDays} ngày để tải về.",
         points: [
           "Biên bản bàn giao là căn cứ duy nhất để giao tài sản",
           "Luật sư, Người thực thi và người nhận cùng ký",
@@ -180,7 +180,8 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Bàn giao đúng lúc",
-        detail: "Biên bản đủ chữ ký ba bên, người nhận có {grantDays} ngày để tải về.",
+        detail:
+          "Có đủ chữ ký luật sư, Người thực thi và người nhận, người đó có {grantDays} ngày để tải về.",
       },
     ],
   },

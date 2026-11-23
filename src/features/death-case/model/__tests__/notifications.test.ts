@@ -46,7 +46,7 @@ describe("deriveNotifications", () => {
       }),
     );
     expect(items.map((item) => item.title)).toEqual([
-      "Biên bản đã đủ chữ ký",
+      "Mọi người nhận đã ký biên bản",
       "Luật sư đã chốt biên bản",
       "Có yêu cầu nhận tài sản",
     ]);

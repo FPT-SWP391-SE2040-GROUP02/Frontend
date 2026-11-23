@@ -13,13 +13,12 @@ function waitingText(record: HandoverRecord): string {
     case "DRAFTING":
       return "Người nhận đã gửi yêu cầu kèm giấy tờ. Luật sư đang xét giấy tờ và lập biên bản: ai nhận tài sản nào. Bạn chưa phải làm gì.";
     case "IDENTITY_CHECK":
-      return "Biên bản đã chốt. Người nhận đã nhận thư mời và đang nộp căn cước để luật sư kiểm.";
     case "SIGNING":
       if (record.canSign)
-        return "Mọi người nhận đã được xác nhận danh tính. Mời bạn đọc lại biên bản và ký.";
-      return "Bạn đã ký. Đang chờ luật sư và người nhận ký.";
+        return "Biên bản đã chốt. Mời bạn đọc lại biên bản và ký ngay, không cần chờ người nhận. Người nhận nào có đủ chữ ký thì được mở phần của mình.";
+      return "Bạn đã ký. Mỗi người nhận được mở phần của mình khi có chữ ký của luật sư, của bạn và của chính người đó. Vào mục Bàn giao để gửi mã nhận cho người đã được mở.";
     case "COMPLETED":
-      return "Biên bản đã đủ chữ ký. Vào mục Bàn giao để gửi mã nhận cho từng người.";
+      return "Mọi người nhận đã ký. Vào mục Bàn giao để gửi mã nhận cho người chưa có mã.";
     case "CANCELLED":
       return "Chủ kho đã hủy yêu cầu nhận tài sản. Kho đã mở khóa.";
   }
@@ -43,7 +42,7 @@ function WaitingForRequest() {
   );
 }
 
-/** Mục Biên bản bàn giao của Người thực thi: theo dõi ba bước và ký khi tới lượt. */
+/** Mục Biên bản bàn giao của Người thực thi: theo dõi biên bản và ký ngay sau khi luật sư chốt. */
 export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
   const client = useQueryClient();
   const sign = usePrivateAction();

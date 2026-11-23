@@ -266,8 +266,9 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
       <section className={SECTION}>
         <p className={HEADING}>Điều 4. Hiệu lực</p>
         <p className={BODY}>
-          Biên bản có hiệu lực khi đủ chữ ký của Người thực thi, luật sư và tất cả người nhận. Biên
-          bản được lưu trên hệ thống để các bên đối chiếu khi cần; mọi sửa đổi phải lập bản số mới.
+          Phần của mỗi người nhận có hiệu lực khi có chữ ký của Người thực thi, luật sư và chính
+          người nhận đó. Biên bản được lưu trên hệ thống để các bên đối chiếu khi cần; mọi sửa đổi
+          phải lập bản số mới.
         </p>
       </section>
 

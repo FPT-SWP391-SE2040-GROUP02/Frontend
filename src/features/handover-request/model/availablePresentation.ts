@@ -10,7 +10,7 @@ export const availableStatusLabel: Record<AvailableStatus, { label: string; tone
   REJECTED: { label: "Bị từ chối", tone: "danger" },
   IN_REVIEW: { label: "Luật sư đang xử lý", tone: "warning" },
   NEED_MY_SIGNATURE: { label: "Cần bạn ký biên bản", tone: "warning" },
-  WAITING_OTHERS: { label: "Chờ các bên khác ký", tone: "neutral" },
+  WAITING_OTHERS: { label: "Chờ luật sư hoặc Người thực thi ký", tone: "neutral" },
   CODE_READY: { label: "Đã có mã nhận", tone: "success" },
   RECEIVED: { label: "Đã nhận tài sản", tone: "success" },
   NEED_IDENTITY: { label: "Cần bạn nộp ảnh căn cước", tone: "warning" },

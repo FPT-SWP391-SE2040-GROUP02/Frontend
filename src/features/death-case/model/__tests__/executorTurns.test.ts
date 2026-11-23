@@ -98,18 +98,18 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
     expect(progress.chip).toBe("Đang kiểm danh tính");
   });
 
-  it("luật sư đã xác nhận danh tính: chờ ba bên ký biên bản", () => {
+  it("luật sư đã xác nhận danh tính: chờ người nhận ký biên bản", () => {
     const progress = deriveTurnProgress(
       turn({ status: "READY_TO_ACCEPT", invitationSentAt: SENT, identityConfirmedAt: SIGNED }),
     );
     expect(states(progress)).toEqual(["done", "done", "current", "pending", "pending"]);
     expect(progress.segments[1].timeText).toBe("14:00 23/12");
-    expect(progress.headline).toBe("Chờ ba bên ký biên bản");
-    expect(progress.detail).toBe("chưa đủ chữ ký");
+    expect(progress.headline).toBe("Chờ người nhận ký biên bản");
+    expect(progress.detail).toBe("danh tính đã xong, người nhận chưa ký");
     expect(progress.group).toBe("waiting");
   });
 
-  it("người nhận đã ký mà biên bản chưa đủ chữ ký: ghi giờ người nhận ký", () => {
+  it("người nhận đã ký mà luật sư hoặc Người thực thi chưa ký: chờ họ, ghi giờ người nhận ký", () => {
     const progress = deriveTurnProgress(
       turn({
         status: "READY_TO_ACCEPT",
@@ -118,6 +118,7 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
         recipientSignedAt: APPROVED,
       }),
     );
+    expect(progress.headline).toBe("Chờ luật sư hoặc Người thực thi ký");
     expect(progress.detail).toBe("người nhận đã ký 15:00 23/12");
   });
 

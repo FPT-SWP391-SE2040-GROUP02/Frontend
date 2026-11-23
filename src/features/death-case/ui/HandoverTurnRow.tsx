@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { Lock } from "lucide-react";
 import { cn } from "cn";
 import { buttonStyles, formatDateTime, Initial } from "@/shared/ui/heritageKit";
@@ -84,11 +84,23 @@ function DetailBoxes({ turn, progress }: { turn: HandoverProgressTurn; progress:
   const declined = progress.group === "declined" || progress.group === "ended";
   let assetText = `${turn.downloadedItems}/${turn.totalItems} đã tải`;
   if (declined) assetText = "Không bàn giao";
-  // Chữ ký của người nhận trên biên bản bàn giao chung (luật sư lập, ba bên ký).
-  let paper = <p className="text-sm">Chưa ký</p>;
+  // Chữ ký của người nhận trên biên bản bàn giao chung (luật sư lập, ba bên ký) và lúc lượt này được mở quyền tải.
+  const paperLines: ReactNode[] = [];
+  let signedText = "Người nhận chưa ký";
   if (turn.recipientSignedAt) {
-    paper = (
-      <p className="text-sm">{`Người nhận đã ký lúc ${formatDateTime(turn.recipientSignedAt)}`}</p>
+    signedText = `Người nhận đã ký lúc ${formatDateTime(turn.recipientSignedAt)}`;
+  }
+  paperLines.push(
+    <p key="signed" className="text-sm">
+      {signedText}
+    </p>,
+  );
+  if (turn.documentApprovedAt) {
+    const openedText = `Được mở quyền tải lúc ${formatDateTime(turn.documentApprovedAt)}`;
+    paperLines.push(
+      <p key="opened" className="mt-1 text-sm">
+        {openedText}
+      </p>,
     );
   }
   const boxClass = "min-w-0 rounded-xl border border-heritage-border bg-white/60 p-3 text-sm";
@@ -131,7 +143,7 @@ function DetailBoxes({ turn, progress }: { turn: HandoverProgressTurn; progress:
       </section>
       <section aria-label="Biên bản" className={boxClass}>
         <h4 className={titleClass}>Biên bản</h4>
-        {paper}
+        {paperLines}
       </section>
     </div>
   );

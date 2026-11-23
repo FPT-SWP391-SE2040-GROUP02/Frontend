@@ -5,6 +5,7 @@ import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
 import { handoverRecordService } from "../api/handoverRecordService";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
+import { isSigningStage } from "../model/recordPresentation";
 import { handoverRecordKeys, useVerifierRecord } from "../model/useHandoverRecord";
 import { AddRecipientPanel } from "./AddRecipientPanel";
 import { ClaimsReviewPanel } from "./ClaimsReviewPanel";
@@ -26,7 +27,7 @@ function IdentityAction({ recipient }: { recipient: RecordRecipient }) {
   );
 }
 
-/** Bước 2 và 3: kiểm danh tính, ký, hoặc mở lại biên bản để sửa. */
+/** Bước 2: ký ngay sau khi chốt, kiểm danh tính từng người nhận, hoặc mở lại biên bản để sửa. */
 function FinalizedActions({ record }: { record: HandoverRecord }) {
   const client = useQueryClient();
   const sign = usePrivateAction();
@@ -38,28 +39,18 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
   };
   const waiting = record.recipients.filter((recipient) => !recipient.identityConfirmedAt).length;
   return (
-    <Panel
-      title={
-        record.status === "IDENTITY_CHECK"
-          ? "Bước 2 · Danh tính người nhận"
-          : "Bước 3 · Chữ ký ba bên"
-      }
-      labelledBy="record-actions"
-    >
+    <Panel title="Bước 2 · Ký và giao từng người" labelledBy="record-actions">
       <div className="space-y-4 text-sm leading-6">
-        {record.status === "IDENTITY_CHECK" && (
-          <p>
-            {`Còn ${waiting} người nhận chưa được xác nhận danh tính. Bấm "Kiểm danh tính" ở từng dòng khi người nhận đã nộp căn cước. Đủ người thì biên bản sang bước ký.`}
-          </p>
-        )}
-        {record.status === "SIGNING" && (
-          <p>
-            Mọi người nhận đã được xác nhận danh tính. Bạn, Người thực thi và từng người nhận cùng
-            ký. Đủ chữ ký thì người nhận được mở quyền tải và Người thực thi gửi mã nhận.
-          </p>
-        )}
+        <p>
+          Bạn và Người thực thi ký được ngay. Mỗi người nhận đi riêng: nộp căn cước, bạn xác nhận
+          danh tính, rồi người đó ký. Có chữ ký của bạn, Người thực thi và một người nhận thì người
+          đó được mở quyền tải, không chờ người nhận khác.
+        </p>
+        <p>
+          {`Còn ${waiting} người nhận chưa được xác nhận danh tính. Bấm "Kiểm danh tính" ở dòng của người đã nộp căn cước.`}
+        </p>
         <div className="flex flex-wrap gap-2">
-          {record.status === "SIGNING" && (
+          {isSigningStage(record.status) && (
             <button
               type="button"
               className={buttonStyles.dark}
@@ -84,7 +75,8 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
         </div>
         <p className="text-heritage-muted">
           Mở lại biên bản thì mọi chữ ký đã có mất hiệu lực, cả ba bên phải ký lại. Người nhận đã
-          được xác nhận danh tính vẫn giữ nguyên.
+          được xác nhận danh tính vẫn giữ nguyên. Không mở lại được khi đã có người nhận được mở
+          quyền tải.
         </p>
         {(sign.error || reopen.error) && (
           <p role="alert" className="text-destructive">
@@ -96,7 +88,7 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
   );
 }
 
-/** Chi tiết một biên bản của luật sư: thanh ba bước, việc của bước hiện tại, rồi nội dung biên bản. */
+/** Chi tiết một biên bản của luật sư: thanh hai bước, việc của bước hiện tại, rồi nội dung biên bản. */
 export function VerifierRecordDetail({
   recordId,
   onBack,
@@ -143,18 +135,17 @@ export function VerifierRecordDetail({
       )}
       {record.status === "DRAFTING" && <AddRecipientPanel record={record} />}
       {record.status !== "CANCELLED" && <EvidencePanel record={record} />}
-      {(record.status === "IDENTITY_CHECK" || record.status === "SIGNING") && (
-        <FinalizedActions record={record} />
-      )}
+      {isSigningStage(record.status) && <FinalizedActions record={record} />}
       {record.status === "COMPLETED" && (
-        <Notice tone="success" title="Biên bản đã đủ chữ ký ba bên">
-          Người nhận đã được mở quyền tải. Người thực thi gửi mã nhận cho từng người.
+        <Notice tone="success" title="Mọi người nhận đã ký">
+          Biên bản đã đủ chữ ký của bạn, Người thực thi và mọi người nhận. Từng người nhận đã được
+          mở quyền tải phần của mình; Người thực thi gửi mã nhận cho từng người.
         </Notice>
       )}
       <RecordDocument
         record={record}
         renderRecipientAction={
-          record.status === "IDENTITY_CHECK"
+          isSigningStage(record.status)
             ? (recipient) => <IdentityAction recipient={recipient} />
             : undefined
         }

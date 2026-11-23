@@ -178,7 +178,7 @@ describe("Executor workspace shell", () => {
     setup("/executor");
     const group = await screen.findByRole("region", { name: "Đang làm việc với kho" });
     const card = await within(group).findByRole("group", { name: "Kho đang làm việc: Anh Nam" });
-    expect(card).toHaveTextContent("Đang kiểm danh tính");
+    expect(card).toHaveTextContent("Đang ký biên bản");
     // Không còn danh sách kho để bấm chuyển trong menu.
     expect(screen.queryByRole("button", { name: "Kho của Bà Hạnh" })).not.toBeInTheDocument();
     expect(within(group).queryByRole("button")).not.toBeInTheDocument();
@@ -409,13 +409,109 @@ describe("Executor handover record", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Ký biên bản" }));
     expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/handover-record/sign`);
     expect(
-      await screen.findByText("Bạn đã ký. Đang chờ luật sư và người nhận ký."),
+      await screen.findByText(/Bạn đã ký\. Mỗi người nhận được mở phần của mình khi có chữ ký/),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
+  });
+
+  it("vừa chốt, người nhận chưa nộp căn cước: Người thực thi vẫn ký được ngay", async () => {
+    mockGets(
+      [vault({ handoverRecordId: RECORD_ID, handoverRecordStatus: "SIGNING" })],
+      record("SIGNING", { canSign: true }),
+    );
+    setup("/executor/report");
+    expect(await screen.findByRole("button", { name: "Ký biên bản" })).toBeEnabled();
+    expect(screen.getByText(/ký ngay, không cần chờ người nhận/)).toBeInTheDocument();
   });
 });
 
 describe("Executor progress", () => {
+  const TURN_A = "55555555-5555-4555-8555-555555555551";
+  const TURN_B = "55555555-5555-4555-8555-555555555552";
+
+  /** Biên bản còn SIGNING: A đã đủ chữ ký (HANDOVER_COMMITTED), B mới có danh tính, chưa ký. */
+  function partiallyDelivered() {
+    const baseTurn = {
+      containerName: "Gói",
+      beneficiaryCitizenId: "0791",
+      claimedByYou: false,
+      identityConfirmedByExecutor: false,
+      invitedAt: CREATED_AT,
+      responseDeadline: CREATED_AT,
+      invitationSentAt: CREATED_AT,
+      identityConfirmedAt: CREATED_AT,
+      claimedAt: null,
+      decisionDeadline: null,
+      decidedAt: null,
+      grantStatus: null,
+      grantExpiresAt: null,
+      totalItems: 1,
+      downloadedItems: 0,
+      items: [],
+    };
+    const progress = {
+      caseId: RECORD_ID,
+      handoverStarted: true,
+      serverTime: CREATED_AT,
+      summary: {
+        totalTurns: 2,
+        waitingResponse: 0,
+        inVerification: 0,
+        accepted: 1,
+        declined: 0,
+        ended: 0,
+      },
+      turns: [
+        {
+          ...baseTurn,
+          turnId: TURN_A,
+          beneficiaryFullName: "Người A",
+          status: "HANDOVER_COMMITTED",
+          recipientSignedAt: CREATED_AT,
+          documentApprovedAt: CREATED_AT,
+        },
+        {
+          ...baseTurn,
+          turnId: TURN_B,
+          beneficiaryFullName: "Người B",
+          status: "READY_TO_ACCEPT",
+          recipientSignedAt: null,
+          documentApprovedAt: null,
+        },
+      ],
+    };
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/executor/vaults") {
+        return [vault({ handoverRecordId: RECORD_ID, handoverRecordStatus: "SIGNING" })];
+      }
+      if (url === `/executor/vaults/${VAULT_ID}/handover-record`) {
+        return record("SIGNING", { canSign: false, executorSignedAt: CREATED_AT });
+      }
+      if (url === `/executor/handover-records/${RECORD_ID}/handover-progress`) return progress;
+      return [];
+    });
+  }
+
+  it("biên bản còn SIGNING: gửi được mã cho người A đã đủ chữ ký, người B chưa ký thì chưa có nút", async () => {
+    partiallyDelivered();
+    setup("/executor/progress");
+    const rowA = await screen.findByRole("listitem", { name: /Người A/ });
+    const rowB = await screen.findByRole("listitem", { name: /Người B/ });
+    expect(within(rowA).getByRole("button", { name: "Gửi mã qua email" })).toBeInTheDocument();
+    expect(
+      within(rowB).queryByRole("button", { name: "Gửi mã qua email" }),
+    ).not.toBeInTheDocument();
+    expect(rowB).toHaveTextContent("Chờ người nhận ký biên bản");
+  });
+
+  it("tổng quan: biên bản còn SIGNING mà A đã được mở thì việc là gửi mã nhận", async () => {
+    partiallyDelivered();
+    setup("/executor");
+    expect(
+      await screen.findByRole("heading", { name: "Gửi mã nhận cho 1 người nhận" }),
+    ).toBeInTheDocument();
+  });
+
   it("chưa có yêu cầu nhận thì dẫn về mục Biên bản bàn giao", async () => {
     mockGets([vault()]);
     setup("/executor/progress");

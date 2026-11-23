@@ -22,6 +22,8 @@ describe("vaultTask", () => {
 
   it("đang ký hoặc đã đủ chữ ký: cần Người thực thi", () => {
     expect(vaultTask(vault({ handoverRecordStatus: "SIGNING" })).urgency).toBe("sign");
+    // Biên bản cũ còn ở IDENTITY_CHECK cũng là đang ký.
+    expect(vaultTask(vault({ handoverRecordStatus: "IDENTITY_CHECK" })).urgency).toBe("sign");
     expect(
       vaultTask(vault({ planStatus: "HANDOVER_IN_PROGRESS", handoverRecordStatus: "COMPLETED" }))
         .label,

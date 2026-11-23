@@ -320,7 +320,7 @@ describe("Bàn giao: bảng người nhận", () => {
     expect(within(finished).queryByRole("list", { name: "Giờ từng bước" })).not.toBeInTheDocument();
   });
 
-  it("đang chờ: giờ bước chờ là 'đang chờ', bước chưa tới là gạch ngang, biên bản là 'Chưa ký'", async () => {
+  it("đang chờ: giờ bước chờ là 'đang chờ', bước chưa tới là gạch ngang, biên bản là 'Người nhận chưa ký'", async () => {
     render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const replying = row(list, /Lê Thị Bình/);
@@ -335,7 +335,9 @@ describe("Bàn giao: bảng người nhận", () => {
       "Nhập mã mở gói—",
       "Tải xong—",
     ]);
-    expect(within(replying).getByRole("region", { name: "Biên bản" })).toHaveTextContent("Chưa ký");
+    expect(within(replying).getByRole("region", { name: "Biên bản" })).toHaveTextContent(
+      "Người nhận chưa ký",
+    );
   });
 
   it("người từ chối (dữ liệu cũ): chi tiết chỉ 2 cột, tài sản 'Không bàn giao'", async () => {
@@ -363,7 +365,7 @@ describe("Bàn giao: bảng người nhận", () => {
     }
     expect(
       screen.getByText(
-        /Thanh bước: Mời → Luật sư kiểm danh tính → Ba bên ký biên bản → Nhập mã mở gói → Tải xong\./,
+        /Thanh bước của từng người: Mời → Luật sư kiểm danh tính → Ký biên bản \(luật sư, Người thực thi và người này\) → Nhập mã mở gói → Tải xong\./,
       ),
     ).toBeInTheDocument();
     const text = document.body.textContent ?? "";
