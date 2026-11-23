@@ -5,7 +5,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { confirmVaultPin } from "@/shared/api/vaultPin";
 import { SlidingTabs } from "@/shared/ui/SlidingTabs";
-import { Chip, Initial, Panel } from "@/shared/ui/heritageKit";
+import { Panel } from "@/shared/ui/heritageKit";
 import { RollingNumber, VaultDial } from "@/shared/ui/VaultFx";
 import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
@@ -38,21 +38,6 @@ const VIEWS = [
   { key: "recipients" as const, label: "Theo người nhận" },
 ];
 
-function KindIcon({ kind }: { kind: string }) {
-  let icon = <StickyNote className="size-5" aria-hidden="true" />;
-  if (kind === "FILE") {
-    icon = <FileText className="size-5" aria-hidden="true" />;
-  }
-  return (
-    <span
-      aria-hidden="true"
-      className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-heritage-sunken text-heritage-primary"
-    >
-      {icon}
-    </span>
-  );
-}
-
 function Stat({
   label,
   value,
@@ -83,6 +68,10 @@ function Stat({
   );
 }
 
+/**
+ * Một tài sản trên danh sách "Theo tài sản": hàng gọn cùng kiểu với danh sách "Theo người nhận" (đường kẻ mảnh, avatar
+ * viền vàng). Tài sản chưa gán cho ai có nền ấm nhạt và nút xanh đặc để dễ thấy việc cần làm; tài sản đã gán chỉ có nút chữ.
+ */
 function AssetRow({
   row,
   locked,
@@ -107,67 +96,87 @@ function AssetRow({
     people.push(
       <li
         key={person.id}
-        className="flex items-center gap-2 rounded-full bg-heritage-sunken py-1 pl-1 pr-3 text-sm font-medium text-heritage-primary"
+        className="flex items-center gap-2 text-sm font-medium text-heritage-primary"
       >
-        <Initial name={person.fullName} className="size-6 text-xs" />
-        <span className="max-w-40 truncate">{person.fullName}</span>
+        <span
+          aria-hidden="true"
+          className="flex size-6 shrink-0 items-center justify-center rounded-full border border-heritage-gold text-xs font-medium text-heritage-gold-hover"
+        >
+          {person.fullName.trim().charAt(0).toLocaleUpperCase("vi-VN") || "?"}
+        </span>
+        <span className="max-w-48 truncate">{person.fullName}</span>
       </li>,
     );
   }
-  let borderClass = "border-l-transparent";
+  let itemClass = "border-t border-heritage-border first:border-t-0";
+  let rowClass = "hover:bg-heritage-sunken/60";
+  let buttonClass =
+    "inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-medium text-heritage-muted transition-colors hover:bg-heritage-sunken hover:text-heritage-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50";
   if (unassigned) {
-    borderClass = "border-l-heritage-gold";
+    itemClass = "py-1";
+    rowClass = "bg-heritage-gold/10 ring-1 ring-inset ring-heritage-gold/25";
+    buttonClass = SMALL_DARK;
   }
   return (
-    <li
-      className={`grid gap-3 border-l-4 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-5 ${borderClass}`}
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        {selecting && (
-          <input
-            type="checkbox"
-            className="size-5 shrink-0 accent-heritage-primary"
-            checked={selected}
-            onChange={() => onToggle(row.asset.id)}
-            aria-label={`Chọn ${row.asset.name}`}
-          />
-        )}
-        <KindIcon kind={row.asset.kind} />
-        <div className="min-w-0">
-          <p className="break-words text-base font-semibold text-heritage-primary">
-            {row.asset.name}
-          </p>
-          <p className="text-sm text-heritage-muted">{assetKindLabel(row.asset.kind)}</p>
-        </div>
-      </div>
-      <div className="min-w-0">
-        {unassigned && <Chip tone="warning">Chưa gán cho ai</Chip>}
-        {!unassigned && (
-          <div className="space-y-2">
-            <ul className="flex flex-wrap gap-2" aria-label={`Người nhận ${row.asset.name}`}>
-              {people}
-            </ul>
-            {row.recipients.length > 1 && (
-              <p className="flex items-center gap-1.5 text-sm text-heritage-muted">
-                <Users className="size-4" aria-hidden="true" />
-                Nhận chung, {row.recipients.length} người cùng ký
-              </p>
-            )}
+    <li className={itemClass}>
+      <div
+        className={`grid gap-3 rounded-xl px-3 py-3 transition-colors sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-5 ${rowClass}`}
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          {selecting && (
+            <input
+              type="checkbox"
+              className="size-5 shrink-0 accent-heritage-primary"
+              checked={selected}
+              onChange={() => onToggle(row.asset.id)}
+              aria-label={`Chọn ${row.asset.name}`}
+            />
+          )}
+          <KindGlyph kind={row.asset.kind} />
+          <div className="min-w-0">
+            <p className="break-words text-base font-medium text-heritage-primary">
+              {row.asset.name}
+            </p>
+            <p className="text-sm text-heritage-muted">{assetKindLabel(row.asset.kind)}</p>
           </div>
+        </div>
+        <div className="min-w-0">
+          {unassigned && (
+            <p className="inline-flex items-center gap-2 text-sm font-medium text-heritage-warning">
+              <span className="size-1.5 rounded-full bg-heritage-gold" aria-hidden="true" />
+              Chưa gán cho ai
+            </p>
+          )}
+          {!unassigned && (
+            <div className="space-y-2">
+              <ul
+                className="flex flex-wrap gap-x-4 gap-y-1.5"
+                aria-label={`Người nhận ${row.asset.name}`}
+              >
+                {people}
+              </ul>
+              {row.recipients.length > 1 && (
+                <p className="flex items-center gap-1.5 text-sm text-heritage-muted">
+                  <Users className="size-4" aria-hidden="true" />
+                  Nhận chung, {row.recipients.length} người cùng ký
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        {!selecting && (
+          <button
+            type="button"
+            className={buttonClass}
+            disabled={locked}
+            title={lockReason ?? undefined}
+            aria-label={`${unassigned ? "Chọn" : "Sửa"} người nhận cho ${row.asset.name}`}
+            onClick={() => onEdit(row.asset)}
+          >
+            {unassigned ? "Chọn người nhận" : "Sửa người nhận"}
+          </button>
         )}
       </div>
-      {!selecting && (
-        <button
-          type="button"
-          className={unassigned ? SMALL_DARK : SMALL_OUTLINE}
-          disabled={locked}
-          title={lockReason ?? undefined}
-          aria-label={`${unassigned ? "Chọn" : "Sửa"} người nhận cho ${row.asset.name}`}
-          onClick={() => onEdit(row.asset)}
-        >
-          {unassigned ? "Chọn người nhận" : "Sửa người nhận"}
-        </button>
-      )}
     </li>
   );
 }
@@ -405,7 +414,7 @@ export function OwnerAssignments({
             </>
           )}
         </div>
-        <ul className="divide-y divide-heritage-border overflow-hidden rounded-xl border border-heritage-border bg-white">
+        <ul aria-label="Tài sản và người nhận">
           {rows.map((row) => (
             <AssetRow
               key={row.asset.id}
