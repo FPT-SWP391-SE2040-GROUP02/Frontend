@@ -127,6 +127,8 @@ export interface OwnerWorkspaceProps {
   eyebrow?: string;
   description: string;
   headerAction?: ReactNode;
+  /** Ẩn dòng lưu ý cuối trang khi trang đã tự hiển thị lưu ý này ở chỗ khác. */
+  hideDisclaimer?: boolean;
   children: ReactNode;
 }
 
@@ -136,6 +138,7 @@ export function OwnerWorkspace({
   eyebrow,
   description,
   headerAction,
+  hideDisclaimer = false,
   children,
 }: OwnerWorkspaceProps) {
   const accountHome = useAccountHome();
@@ -317,10 +320,12 @@ export function OwnerWorkspace({
       </header>
       {lockReason !== null && <OwnerVaultLockedBanner reason={lockReason} />}
       {children}
-      <footer className="max-w-prose border-t border-heritage-border pt-4 text-sm leading-5 text-heritage-muted">
-        LegacyVault hỗ trợ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc hoặc thủ tục thừa
-        kế.
-      </footer>
+      {!hideDisclaimer && (
+        <footer className="max-w-prose border-t border-heritage-border pt-4 text-sm leading-5 text-heritage-muted">
+          LegacyVault hỗ trợ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc hoặc thủ tục
+          thừa kế.
+        </footer>
+      )}
     </WorkspaceShell>
   );
 }

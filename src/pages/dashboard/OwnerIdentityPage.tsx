@@ -12,6 +12,7 @@ export function OwnerIdentityPage() {
   const purchased = vault.isSuccess && vault.data.serviceTier !== "FREE";
   return (
     <OwnerWorkspace
+      hideDisclaimer
       title="Xác minh danh tính"
       description="Xác minh giấy tờ và khuôn mặt để chuẩn bị kế hoạch bàn giao của bạn."
     >

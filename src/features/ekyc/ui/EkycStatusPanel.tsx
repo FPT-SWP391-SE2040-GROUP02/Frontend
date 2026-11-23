@@ -92,10 +92,10 @@ export function EkycStatusPanel({
       {authenticated && status.isSuccess && !locked && (
         <EkycUploads key={userId} onVerified={handleVerified} />
       )}
-      <div className="flex flex-wrap justify-between gap-2 text-sm text-heritage-muted">
-        <p>Xác minh cơ bản, không có giá trị pháp lý. LegacyVault không thay thế di chúc.</p>
-        <p>Chưa xác thực giấy tờ thật/giả hoặc bảo đảm chống deepfake.</p>
-      </div>
+      <p className="max-w-prose text-sm leading-6 text-heritage-muted">
+        Dịch vụ của chúng tôi chỉ hỗ trợ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc hoặc
+        thủ tục thừa kế. Chưa xác thực giấy tờ thật/giả hoặc bảo đảm chống deepfake.
+      </p>
     </section>
   );
 }
