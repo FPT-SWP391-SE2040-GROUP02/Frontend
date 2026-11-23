@@ -10,6 +10,7 @@ import { SUPPORT_EMAIL } from "@/shared/constants";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
+import { Switch } from "@/shared/ui/switch";
 import { Chip } from "@/shared/ui/heritageKit";
 import {
   Dialog,
@@ -177,9 +178,9 @@ export function InviteDialog({
     return null;
   }
 
-  let title = "Mời Người thực thi";
+  let title = "Chọn Người thực thi của bạn";
   let description =
-    "Chọn một Người thực thi hệ thống đã được thẩm định. Khi cần, người này giao tài sản theo biên bản luật sư ký: gửi mã nhận và ký phiếu giao nhận với người nhận. Họ không đọc được nội dung kho và không nhận tài sản.";
+    "Chọn một Người thực thi hệ thống đã được thẩm định. Người này giữ hộ tài sản, gửi mã nhận và ký phiếu giao nhận khi bàn giao; không đọc được nội dung kho.";
   let notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút.`;
   let cancelLabel = "Hủy";
   if (replacing !== null) {
@@ -213,7 +214,7 @@ export function InviteDialog({
           })}
         >
           <fieldset disabled={action.pending} className="space-y-4">
-            <legend className="text-sm font-semibold">Danh bạ Người thực thi hệ thống</legend>
+            <legend className="text-sm font-semibold">Danh sách người thực thi hệ thống</legend>
             <input type="hidden" {...form.register("email")} />
             <SystemExecutorDirectory
               selectedEmail={selectedEmail === "" ? null : selectedEmail}
@@ -231,19 +232,19 @@ export function InviteDialog({
           <p className="rounded-lg bg-heritage-warning-bg p-3 text-sm text-heritage-warning">
             {notice}
           </p>
-          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
-            <input
-              type="checkbox"
-              className="mt-1 size-5 cursor-pointer accent-heritage-primary"
+          <div className="flex items-start gap-3 text-sm leading-6">
+            <Switch
+              id="nomination-switch"
               checked={nominationAccepted}
               disabled={action.pending}
-              onChange={(event) => setNominationAccepted(event.target.checked)}
+              onCheckedChange={setNominationAccepted}
+              aria-labelledby="nomination-switch-label"
+              className="mt-0.5"
             />
-            <span>
-              Tôi hiểu đây chỉ là đề cử. Người thực thi chỉ giữ hộ và giao tài sản theo biên bản bàn
-              giao do luật sư lập, không có quyền chia, bán hay cho tài sản.
+            <span id="nomination-switch-label">
+              Tôi hiểu đây chỉ là đề cử. Người thực thi không có quyền chia, bán hay cho tài sản.
             </span>
-          </label>
+          </div>
           {action.error && (
             <p role="alert" className="text-sm text-destructive">
               {action.error}
@@ -380,7 +381,7 @@ function ChosenCard(props: ChosenCardProps) {
               disabled={busy}
               onClick={() => props.onInvite(null)}
             >
-              Mời Người thực thi
+              Chọn Người thực thi
               <ArrowRight className="size-4" aria-hidden="true" />
             </Button>
           )}

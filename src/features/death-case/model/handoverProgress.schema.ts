@@ -30,8 +30,7 @@ const progressItemSchema = z.object({
 
 const progressTurnSchema = z.object({
   turnId: z.string().uuid(),
-  /** Mã gói, để nối lượt với gói trong danh sách tài sản. Backend cũ chưa gửi thì null. */
-  containerId: z.string().uuid().nullable().default(null),
+  /** Tiêu đề lượt lúc mở bàn giao (tên trường giữ lại từ thời còn gói tài sản). */
   containerName: z.string(),
   /** Mã hồ sơ người nhận trong kho; các lượt cùng mã là cùng một người. Backend cũ chưa gửi thì null. */
   beneficiaryId: z.string().uuid().nullable().default(null),

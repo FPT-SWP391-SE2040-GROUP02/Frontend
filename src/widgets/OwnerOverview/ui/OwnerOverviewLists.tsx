@@ -72,7 +72,7 @@ export function OwnerOverviewLists({ data }: { data: OverviewResources }) {
                   </span>
                   <div>
                     <strong>{person.fullName}</strong>
-                    <p className="overview-muted">{person.containerIds.length} gói được chỉ định</p>
+                    <p className="overview-muted">{person.assetIds.length} tài sản được gán</p>
                   </div>
                 </li>
               ))}

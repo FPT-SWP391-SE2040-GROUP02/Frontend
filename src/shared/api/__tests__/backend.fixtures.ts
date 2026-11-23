@@ -21,24 +21,16 @@ export const vaultFixture = {
   includedBeneficiarySlots: 1,
   extraBeneficiarySlots: 0,
   usedBeneficiarySlots: 0,
-  activeContainerCount: 1,
+  assignedAssetCount: 1,
   createdAt: CREATED_AT,
   updatedAt: null,
   etag: "vault-v1",
 } as const;
-export const containerFixture = {
-  id: CONTAINER_ID,
-  vaultId: VAULT_ID,
-  name: "Giấy tờ gia đình",
-  description: null,
-  status: "DRAFT",
-  assetIds: [],
-  beneficiaryIds: [],
-  missingRequirements: ["NO_ASSET", "NO_DESIGNATION"],
+export const assignmentFixture = {
+  id: "33333333-3333-4333-8333-333333333333",
+  assetId: CONTAINER_ID,
+  beneficiaryId: CONTAINER_ID,
   createdAt: CREATED_AT,
-  updatedAt: null,
-  removedAt: null,
-  etag: "container-v1",
 } as const;
 /** Raw PaginatedList<T>. */
 export const pageFixture = <T>(items: T[]) => ({

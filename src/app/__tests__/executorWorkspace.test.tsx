@@ -255,27 +255,29 @@ describe("Executor workspace shell", () => {
 });
 
 describe("Executor assets", () => {
-  it("lists the packages with recipients and assets, without any view or download button", async () => {
+  it("lists the recipients with their assets, without any view or download button", async () => {
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
       if (url === "/executor/vaults") return [vault({ planStatus: "HANDOVER_IN_PROGRESS" })];
       if (url === `/executor/vaults/${VAULT_ID}/assets`) {
         return [
           {
-            containerId: "66666666-6666-4666-8666-666666666666",
-            containerName: "Gói gia đình",
-            recipients: [{ fullName: "Trần Minh Anh", citizenId: "0791" }],
+            beneficiaryId: "66666666-6666-4666-8666-666666666666",
+            fullName: "Trần Minh Anh",
+            citizenId: "0791",
             assets: [
               {
                 id: "77777777-7777-4777-8777-777777777777",
                 name: "Email gia đình",
                 kind: "TEXT",
                 sizeBytes: 640,
+                sharedWithCount: 1,
               },
               {
                 id: "88888888-8888-4888-8888-888888888888",
                 name: "Sổ tiết kiệm",
                 kind: "FILE",
                 sizeBytes: 2457600,
+                sharedWithCount: 2,
               },
             ],
           },
@@ -285,12 +287,12 @@ describe("Executor assets", () => {
     });
     setup("/executor/assets");
 
-    expect(await screen.findByText("Gói gia đình")).toBeInTheDocument();
-    expect(screen.getByText("Người nhận: Trần Minh Anh")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Trần Minh Anh" })).toBeInTheDocument();
     expect(screen.getByText("Email gia đình")).toBeInTheDocument();
     expect(screen.getByText("Sổ tiết kiệm")).toBeInTheDocument();
-    expect(screen.getByText("2 tài sản trong 1 gói")).toBeInTheDocument();
-    // Chưa có lượt bàn giao: gói "Chưa bàn giao", từng tài sản "Chưa tải".
+    expect(screen.getByText("2 tài sản cho 1 người nhận")).toBeInTheDocument();
+    expect(screen.getByText(/Nhận chung với 1 người/)).toBeInTheDocument();
+    // Chưa có lượt bàn giao: người nhận "Chưa bàn giao", từng tài sản "Chưa tải".
     expect(screen.getByText("Chưa bàn giao")).toBeInTheDocument();
     expect(screen.getAllByText("Chưa tải")).toHaveLength(2);
     expect(screen.getByText("Chủ kho chưa để lại hướng dẫn.")).toBeInTheDocument();
@@ -298,14 +300,14 @@ describe("Executor assets", () => {
     expect(screen.queryByRole("button", { name: /Xem|Tải/ })).not.toBeInTheDocument();
   });
 
-  it("says so when the vault has no package ready", async () => {
+  it("says so when no asset is assigned yet", async () => {
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
       if (url === "/executor/vaults") return [vault()];
       return [];
     });
     setup("/executor/assets");
 
-    expect(await screen.findByText("Chưa có gói bàn giao")).toBeInTheDocument();
+    expect(await screen.findByText("Chưa có tài sản nào được gán")).toBeInTheDocument();
   });
 
   it("offers a retry when the list cannot be loaded", async () => {

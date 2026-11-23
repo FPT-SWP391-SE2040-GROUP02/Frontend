@@ -1,26 +1,26 @@
 import { describe, expect, it } from "vitest";
-import type { ExecutorPackage } from "../deathCase.schema";
+import type { ExecutorRecipient } from "../deathCase.schema";
 import {
   assetBadge,
   assetDownloadState,
-  filterPackages,
-  packageStatus,
-  turnsOfPackage,
+  filterRecipients,
+  recipientStatus,
+  turnsOfRecipient,
 } from "../executorAssets";
 import { handoverProgressSchema, type HandoverProgressTurn } from "../handoverProgress.schema";
 
-const CONTAINER = "66666666-6666-4666-8666-666666666666";
+const BENEFICIARY = "66666666-6666-4666-8666-666666666666";
 const ASSET_A = "77777777-7777-4777-8777-777777777777";
 const ASSET_B = "88888888-8888-4888-8888-888888888888";
 const SENT = "2026-12-23T06:14:00+00:00";
 
-const pkg: ExecutorPackage = {
-  containerId: CONTAINER,
-  containerName: "Gói gia đình",
-  recipients: [{ fullName: "Trần Minh Anh", citizenId: "0791" }],
+const recipient: ExecutorRecipient = {
+  beneficiaryId: BENEFICIARY,
+  fullName: "Trần Minh Anh",
+  citizenId: "0791",
   assets: [
-    { id: ASSET_A, name: "Sổ tiết kiệm.pdf", kind: "FILE", sizeBytes: 100 },
-    { id: ASSET_B, name: "Mật khẩu ví", kind: "TEXT", sizeBytes: 10 },
+    { id: ASSET_A, name: "Sổ tiết kiệm.pdf", kind: "FILE", sizeBytes: 100, sharedWithCount: 1 },
+    { id: ASSET_B, name: "Mật khẩu ví", kind: "TEXT", sizeBytes: 10, sharedWithCount: 2 },
   ],
 };
 
@@ -40,8 +40,8 @@ function turn(overrides: Record<string, unknown>): HandoverProgressTurn {
     turns: [
       {
         turnId: "55555555-5555-4555-8555-555555555555",
-        containerId: CONTAINER,
-        containerName: "Gói gia đình",
+        beneficiaryId: BENEFICIARY,
+        containerName: "Biên bản bàn giao",
         beneficiaryCitizenId: "0791",
         status: "INVITED",
         claimedByYou: false,
@@ -71,17 +71,17 @@ const item = (assetId: string, downloaded: boolean) => ({
   firstDownloadedAt: downloaded ? SENT : null,
 });
 
-describe("packageStatus", () => {
+describe("recipientStatus", () => {
   it("chưa có lượt: Chưa bàn giao", () => {
-    expect(packageStatus([])).toEqual({ label: "Chưa bàn giao", tone: "neutral" });
+    expect(recipientStatus([])).toEqual({ label: "Chưa bàn giao", tone: "neutral" });
   });
   it("chờ trả lời, chờ nhập mã, đã nhận xong, từ chối nhận", () => {
-    expect(packageStatus([turn({ invitationSentAt: SENT })]).label).toBe("Chờ trả lời");
+    expect(recipientStatus([turn({ invitationSentAt: SENT })]).label).toBe("Chờ trả lời");
     expect(
-      packageStatus([turn({ status: "HANDOVER_COMMITTED", invitationSentAt: SENT })]).label,
+      recipientStatus([turn({ status: "HANDOVER_COMMITTED", invitationSentAt: SENT })]).label,
     ).toBe("Chờ nhập mã");
     expect(
-      packageStatus([
+      recipientStatus([
         turn({
           status: "HANDOVER_COMMITTED",
           invitationSentAt: SENT,
@@ -92,7 +92,7 @@ describe("packageStatus", () => {
         }),
       ]).label,
     ).toBe("Đã nhận xong");
-    expect(packageStatus([turn({ status: "DECLINED" })]).label).toBe("Từ chối nhận");
+    expect(recipientStatus([turn({ status: "DECLINED" })]).label).toBe("Từ chối nhận");
   });
 });
 
@@ -116,10 +116,10 @@ describe("assetDownloadState", () => {
   });
 });
 
-describe("turnsOfPackage, assetBadge, filterPackages", () => {
-  it("chỉ lấy lượt đúng mã gói", () => {
-    const other = turn({ containerId: "99999999-9999-4999-8999-999999999999" });
-    expect(turnsOfPackage(pkg, [turn({}), other])).toHaveLength(1);
+describe("turnsOfRecipient, assetBadge, filterRecipients", () => {
+  it("chỉ lấy lượt đúng mã người nhận", () => {
+    const other = turn({ beneficiaryId: "99999999-9999-4999-8999-999999999999" });
+    expect(turnsOfRecipient(recipient, [turn({}), other])).toHaveLength(1);
   });
   it("ô loại theo đuôi tên", () => {
     expect(assetBadge("a.pdf", "FILE")).toBe("PDF");
@@ -128,10 +128,10 @@ describe("turnsOfPackage, assetBadge, filterPackages", () => {
     expect(assetBadge("ghi chú", "TEXT")).toBe("TXT");
   });
   it("tìm theo tên tài sản hoặc người nhận", () => {
-    expect(filterPackages([pkg], "")).toHaveLength(1);
-    expect(filterPackages([pkg], "trần minh")[0].assets).toHaveLength(2);
-    const byAsset = filterPackages([pkg], "ví");
+    expect(filterRecipients([recipient], "")).toHaveLength(1);
+    expect(filterRecipients([recipient], "trần minh")[0].assets).toHaveLength(2);
+    const byAsset = filterRecipients([recipient], "ví");
     expect(byAsset[0].assets.map((asset) => asset.id)).toEqual([ASSET_B]);
-    expect(filterPackages([pkg], "không có")).toHaveLength(0);
+    expect(filterRecipients([recipient], "không có")).toHaveLength(0);
   });
 });

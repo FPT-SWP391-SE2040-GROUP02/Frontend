@@ -10,24 +10,16 @@ vi.mock("@/features/plan-setup/model/usePlanSetup", () => ({ usePlanSetup: vi.fn
 const VAULT_ID = "11111111-1111-4111-8111-111111111111";
 
 interface Changes {
-  removedContainers: number;
-  addedContainers: number;
-  removedAssets: number;
-  addedAssets: number;
-  removedRecipients: number;
-  addedRecipients: number;
-  changedRecipientCount: number;
+  addedAssignments: number;
+  removedAssignments: number;
+  affectedRecipientCount: number;
 }
 
 function changes(overrides: Partial<Changes>): Changes {
   return {
-    removedContainers: 0,
-    addedContainers: 0,
-    removedAssets: 0,
-    addedAssets: 0,
-    removedRecipients: 0,
-    addedRecipients: 0,
-    changedRecipientCount: 0,
+    addedAssignments: 0,
+    removedAssignments: 0,
+    affectedRecipientCount: 0,
     ...overrides,
   };
 }
@@ -70,38 +62,38 @@ describe("ResignNotice", () => {
     expect(screen.queryByRole("status")).toBeNull();
   });
 
-  it("hiện số đếm, hệ quả của phần đã xóa và đường dẫn sang màn Bàn giao", () => {
+  it("hiện số đếm, hệ quả của phần đã gỡ gán và đường dẫn sang màn Bàn giao", () => {
     mockPlan({
       planStatus: "ACTIVE",
       hasUnsignedChanges: true,
-      unsignedChanges: changes({ removedContainers: 1 }),
+      unsignedChanges: changes({ removedAssignments: 1 }),
     });
     renderNotice();
     expect(screen.getByRole("status")).toBeTruthy();
     expect(screen.getByText("Có thay đổi chưa ký lại")).toBeTruthy();
-    expect(screen.getByText("Đã xóa 1 gói")).toBeTruthy();
-    expect(screen.getByText("Phần đã xóa không còn được bàn giao.")).toBeTruthy();
+    expect(screen.getByText(/Đã gỡ 1 lượt gán tài sản cho người nhận/)).toBeTruthy();
+    expect(screen.getByText(/Phần đã gỡ gán không còn được bàn giao\./)).toBeTruthy();
     expect(screen.queryByText(/chưa được bàn giao cho tới khi/)).toBeNull();
     const link = screen.getByRole("link", { name: "Đi tới Bàn giao để ký lại" });
     expect(link.getAttribute("href")).toBe(ROUTES.WILLS.ROOT);
   });
 
-  it("nói phần thêm hoặc đổi người nhận chưa được bàn giao", () => {
+  it("nói phần gán thêm chưa được bàn giao", () => {
     mockPlan({
       planStatus: "ACTIVE",
       hasUnsignedChanges: true,
-      unsignedChanges: changes({ addedAssets: 2, changedRecipientCount: 1 }),
+      unsignedChanges: changes({ addedAssignments: 2, affectedRecipientCount: 1 }),
     });
     renderNotice();
     expect(
-      screen.getByText("Phần thêm hoặc đổi người nhận chưa được bàn giao cho tới khi bạn ký lại."),
+      screen.getByText(/Phần gán thêm chưa được bàn giao cho tới khi bạn ký lại\./),
     ).toBeTruthy();
-    expect(screen.queryByText("Phần đã xóa không còn được bàn giao.")).toBeNull();
+    expect(screen.queryByText(/Phần đã gỡ gán không còn được bàn giao/)).toBeNull();
   });
 
-  it("không có số đếm thì vẫn nói phần đã xóa không còn được bàn giao", () => {
+  it("không có số đếm thì vẫn nói phần đã gỡ gán không còn được bàn giao", () => {
     mockPlan({ planStatus: "ACTIVE", hasUnsignedChanges: true, unsignedChanges: null });
     renderNotice();
-    expect(screen.getByText("Phần đã xóa không còn được bàn giao.")).toBeTruthy();
+    expect(screen.getByText(/Phần đã gỡ gán không còn được bàn giao\./)).toBeTruthy();
   });
 });

@@ -15,25 +15,24 @@ export const executorVaultSchema = z.object({
   handoverRecordStatus: z.string().optional().default(""),
 });
 
-/** Một gói bàn giao nhìn từ Người thực thi: chỉ tên gói, người nhận, tên và loại tài sản; không có nội dung. */
-export const executorPackageSchema = z.object({
-  containerId: z.string().uuid(),
-  containerName: z.string(),
-  recipients: z.array(
-    z.object({
-      fullName: z.string().nullish(),
-      citizenId: z.string(),
-    }),
-  ),
+/**
+ * Một người nhận nhìn từ Người thực thi: họ tên, số CCCD và các tài sản được gán (tên, loại, dung lượng);
+ * không có nội dung. `sharedWithCount` lớn hơn 1 là tài sản nhận chung với người khác.
+ */
+export const executorRecipientSchema = z.object({
+  beneficiaryId: z.string().uuid(),
+  fullName: z.string().nullish(),
+  citizenId: z.string(),
   assets: z.array(
     z.object({
       id: z.string().uuid(),
       name: z.string(),
       kind: z.enum(["FILE", "TEXT"]),
       sizeBytes: z.number().int().nonnegative(),
+      sharedWithCount: z.number().int().positive(),
     }),
   ),
 });
-export type ExecutorPackage = z.infer<typeof executorPackageSchema>;
+export type ExecutorRecipient = z.infer<typeof executorRecipientSchema>;
 /** Hồ sơ chỉ có CCCD che, không có nội dung file hoặc Verifier được giao. */
 export type ExecutorVault = z.infer<typeof executorVaultSchema>;

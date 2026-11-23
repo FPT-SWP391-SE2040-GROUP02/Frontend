@@ -35,14 +35,14 @@ function HandoverHeader({
   );
 }
 
-/** Ghi chú pháp lý: biên bản phân chia số chỉ áp dụng cho dữ liệu trong LegacyVault. */
+/** Ghi chú pháp lý: biên bản chỉ chia các tài sản đã lưu trong LegacyVault. */
 function LegacyDisclaimer() {
   return (
     <div className="rounded-xl border border-heritage-warning-border bg-heritage-warning-bg px-4 py-3.5 text-sm leading-[1.55] text-heritage-warning">
       <strong className="font-semibold">
-        Biên bản phân chia số chỉ áp dụng cho dữ liệu trong LegacyVault.
+        Biên bản này chỉ chia các tài sản đã lưu trong LegacyVault.
       </strong>{" "}
-      Tài sản thật như nhà đất, tiền gửi do gia đình và luật sư xử lý ở ngoài hệ thống.
+      Tài sản thật như nhà đất, tiền gửi do gia đình và luật sư xử lý riêng, ngoài hệ thống.
     </div>
   );
 }

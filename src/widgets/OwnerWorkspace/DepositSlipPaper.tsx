@@ -8,7 +8,30 @@ type PlanSetup = z.infer<typeof planSetupSchema>;
 
 const CELL = "border border-[#333] px-2.5 py-2 align-top";
 
-/** Phiếu gửi tài sản của Chủ kho: gửi những gói nào, từ lúc nào, ai giữ. Giống vé gửi xe, không ghi nội dung tài sản. */
+/** Tên mọi tài sản đang gửi: đã gán (nhận chung chỉ ghi một lần) rồi tới chưa gán cho ai. */
+function depositedAssetNames(setup: PlanSetup): string[] {
+  const names: string[] = [];
+  const seen = new Set<string>();
+  if (setup.recipients !== undefined) {
+    for (const recipient of setup.recipients) {
+      for (const asset of recipient.assets) {
+        if (!seen.has(asset.id)) {
+          seen.add(asset.id);
+          names.push(asset.name);
+        }
+      }
+    }
+  }
+  for (const asset of setup.unassignedAssets) {
+    if (!seen.has(asset.id)) {
+      seen.add(asset.id);
+      names.push(asset.name);
+    }
+  }
+  return names;
+}
+
+/** Phiếu gửi tài sản của Chủ kho: gửi những tài sản nào, từ lúc nào, ai giữ. Giống vé gửi xe, không ghi nội dung tài sản. */
 export function DepositSlipPaper({ setup }: { setup: PlanSetup }) {
   const executor = pickWillExecutor(setup.executors);
   let executorName = "Chưa có";
@@ -27,11 +50,13 @@ export function DepositSlipPaper({ setup }: { setup: PlanSetup }) {
     activatedText = formatTimeThenDate(setup.activatedAt);
   }
   const rows: ReactNode[] = [];
-  for (const container of setup.containers) {
+  let order = 0;
+  for (const name of depositedAssetNames(setup)) {
+    order = order + 1;
     rows.push(
-      <tr key={container.id}>
-        <td className={CELL}>{container.name}</td>
-        <td className={`${CELL} text-center`}>{container.assetCount}</td>
+      <tr key={order}>
+        <td className={`${CELL} text-center`}>{order}</td>
+        <td className={CELL}>{name}</td>
       </tr>,
     );
   }
@@ -56,11 +81,11 @@ export function DepositSlipPaper({ setup }: { setup: PlanSetup }) {
       <table className="mt-6 w-full border-collapse text-[15px]">
         <thead>
           <tr>
-            <th scope="col" className={`${CELL} text-left`}>
-              Gói tài sản
+            <th scope="col" className={`${CELL} w-12 text-center`}>
+              STT
             </th>
-            <th scope="col" className={`${CELL} w-32 text-center`}>
-              Số tài sản
+            <th scope="col" className={`${CELL} text-left`}>
+              Tài sản
             </th>
           </tr>
         </thead>

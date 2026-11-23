@@ -6,7 +6,7 @@ import { buttonStyles, Panel } from "@/shared/ui/heritageKit";
 import { useExecutorRecord } from "@/entities/handoverRecord";
 import { executorTodo } from "../model/executorTodo";
 import { EXECUTOR_ALLOWED, EXECUTOR_DENIED } from "../model/executorPermissions";
-import { useExecutorPackages } from "../model/useExecutorPackages";
+import { useExecutorRecipients } from "../model/useExecutorRecipients";
 import { useHandoverProgress } from "../model/useHandoverProgress";
 import { VaultJourney } from "./VaultJourney";
 
@@ -15,20 +15,22 @@ const SHORT_LIST_SIZE = 3;
 
 /** Tóm tắt hướng dẫn của Chủ kho và số tài sản giao cho Người thực thi quản lý việc bàn giao. */
 function GuideAndAssetsCard({ vault }: { vault: ExecutorVault }) {
-  const packages = useExecutorPackages(vault.vaultId);
-  let assetCount = 0;
-  let packageCount = 0;
-  if (packages.isSuccess) {
-    packageCount = packages.data.length;
-    for (const item of packages.data) {
-      assetCount += item.assets.length;
+  const recipients = useExecutorRecipients(vault.vaultId);
+  const assetIds = new Set<string>();
+  let recipientCount = 0;
+  if (recipients.isSuccess) {
+    recipientCount = recipients.data.length;
+    for (const item of recipients.data) {
+      for (const asset of item.assets) {
+        assetIds.add(asset.id);
+      }
     }
   }
   let lead = `${vault.ownerFullName} chưa để lại hướng dẫn bàn giao`;
   if (vault.executorNote) lead = `${vault.ownerFullName} để lại hướng dẫn bàn giao`;
   let summary = `${lead}.`;
-  if (packages.isSuccess) {
-    summary = `${lead} và giao bạn ${assetCount} tài sản trong ${packageCount} gói.`;
+  if (recipients.isSuccess) {
+    summary = `${lead} và giao bạn ${assetIds.size} tài sản cho ${recipientCount} người nhận.`;
   }
   return (
     <Panel title="Hướng dẫn và tài sản">

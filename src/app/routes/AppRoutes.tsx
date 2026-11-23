@@ -14,11 +14,6 @@ const AssetDetailPage = lazy(() =>
     default: module.AssetDetailPage,
   })),
 );
-const ContainerDetailPage = lazy(() =>
-  import("@/pages/dashboard/ContainerDetailPage").then((module) => ({
-    default: module.ContainerDetailPage,
-  })),
-);
 const TrustedPeoplePage = lazy(() =>
   import("@/pages/dashboard/TrustedPeoplePage").then((module) => ({
     default: module.TrustedPeoplePage,
@@ -328,7 +323,11 @@ export function AppRoutes() {
         <Route element={<ProtectedRoute allowedRoles={[ROLES.USER]} />}>
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
           <Route path={ROUTES.DASHBOARD.ASSETS} element={<AssetsManagementPage />} />
-          <Route path="/dashboard/assets/groups/:id" element={<ContainerDetailPage />} />
+          {/* Đã bỏ gói tài sản: đường dẫn cũ về tab Phân chia. */}
+          <Route
+            path="/dashboard/assets/groups/:id"
+            element={<Navigate to={ROUTES.DASHBOARD.ASSIGNMENTS} replace />}
+          />
           <Route path="/dashboard/assets/:assetId" element={<AssetDetailPage />} />
           <Route path={ROUTES.DASHBOARD.IDENTITY} element={<OwnerIdentityPage />} />
           <Route path={ROUTES.DASHBOARD.BENEFICIARIES} element={<BeneficiariesPage />} />
@@ -338,7 +337,10 @@ export function AppRoutes() {
           <Route path={ROUTES.WILLS.ROOT} element={<WillManagementPage />} />
           <Route path="/wills" element={<WillManagementPage />} />
           <Route path={ROUTES.WILLS.NEW} element={<WillWizardPage />} />
-          <Route path="/dashboard/wills/:id" element={<ContainerDetailPage />} />
+          <Route
+            path="/dashboard/wills/:id"
+            element={<Navigate to={ROUTES.WILLS.ROOT} replace />}
+          />
           <Route path="/wills/new" element={<WillWizardPage />} />
           {/* Đã bỏ điểm danh: đường dẫn cũ về trang tổng quan của Chủ kho. */}
           <Route path={ROUTES.DMS.ROOT} element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />} />

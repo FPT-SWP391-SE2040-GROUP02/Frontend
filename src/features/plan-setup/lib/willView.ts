@@ -2,7 +2,7 @@ import type { z } from "zod";
 import type {
   WillExecutorView,
   WillOwnerIdentityView,
-  WillPackageView,
+  WillAssetView,
   WillRecipientView,
   WillVersionView,
 } from "@/entities/will/model/willDocument.types";
@@ -45,14 +45,14 @@ export function pickWillRecipients(
   }
   const result: WillRecipientView[] = [];
   for (const recipient of setup.recipients) {
-    const packages: WillPackageView[] = [];
-    for (const container of recipient.containers) {
-      packages.push({ id: container.id, name: container.name, assetCount: container.assetCount });
+    const assets: WillAssetView[] = [];
+    for (const asset of recipient.assets) {
+      assets.push({ id: asset.id, name: asset.name, sharedWithCount: asset.sharedWithCount });
     }
     const view: WillRecipientView = {
       id: recipient.beneficiaryId,
       fullName: recipient.fullName,
-      packages,
+      assets,
     };
     if (identity !== undefined) {
       for (const person of identity.recipients) {
@@ -103,17 +103,6 @@ export function needsResign(setup: PlanSetup): boolean {
     return false;
   }
   return setup.hasUnsignedChanges === true;
-}
-
-/** Gói chưa có người nhận (designationCount = 0): chỗ trống của Điều 2. */
-export function pickUnassignedPackages(containers: PlanSetup["containers"]): WillPackageView[] {
-  const result: WillPackageView[] = [];
-  for (const container of containers) {
-    if (container.designationCount === 0) {
-      result.push({ id: container.id, name: container.name, assetCount: container.assetCount });
-    }
-  }
-  return result;
 }
 
 /**

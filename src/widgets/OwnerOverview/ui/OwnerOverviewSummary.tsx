@@ -76,13 +76,13 @@ export function OwnerOverviewSummary({
           <OverviewQueryState query={data.beneficiaries}>
             <p className="overview-stat-value">{data.beneficiaries.data?.totalCount}</p>
             <p className="overview-muted">
-              {vault.usedBeneficiarySlots} / {vault.beneficiarySlots} suất đã chỉ định
+              {vault.usedBeneficiarySlots} / {vault.beneficiarySlots} suất đã dùng
             </p>
           </OverviewQueryState>
         </div>
         <div className="overview-stat">
-          <h2>Gói bàn giao</h2>
-          <p className="overview-stat-value">{vault.activeContainerCount}</p>
+          <h2>Tài sản đã gán</h2>
+          <p className="overview-stat-value">{vault.assignedAssetCount}</p>
         </div>
       </section>
     </>
