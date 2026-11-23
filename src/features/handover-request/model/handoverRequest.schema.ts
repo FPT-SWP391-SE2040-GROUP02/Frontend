@@ -38,6 +38,7 @@ export const availableStatusSchema = z.enum([
   "WAITING_OTHERS",
   "CODE_READY",
   "RECEIVED",
+  "NEED_IDENTITY",
 ]);
 export type AvailableStatus = z.infer<typeof availableStatusSchema>;
 

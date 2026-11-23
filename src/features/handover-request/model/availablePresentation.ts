@@ -8,11 +8,12 @@ export const availableStatusLabel: Record<AvailableStatus, { label: string; tone
   REQUEST_PENDING: { label: "Chờ luật sư xét", tone: "warning" },
   SUPPLEMENT_REQUESTED: { label: "Cần bổ sung giấy tờ", tone: "warning" },
   REJECTED: { label: "Bị từ chối", tone: "danger" },
-  IN_REVIEW: { label: "Luật sư đang lập biên bản", tone: "warning" },
+  IN_REVIEW: { label: "Luật sư đang xử lý", tone: "warning" },
   NEED_MY_SIGNATURE: { label: "Cần bạn ký biên bản", tone: "warning" },
   WAITING_OTHERS: { label: "Chờ các bên khác ký", tone: "neutral" },
   CODE_READY: { label: "Đã có mã nhận", tone: "success" },
   RECEIVED: { label: "Đã nhận tài sản", tone: "success" },
+  NEED_IDENTITY: { label: "Cần bạn nộp ảnh căn cước", tone: "warning" },
 };
 
 /** Bước tiếp theo của một dòng: nhãn nút và nơi dẫn tới. */
@@ -42,6 +43,8 @@ export function availableAction(row: AvailableHandover): AvailableAction | null 
       return { label: "Nộp bổ sung", to: portal };
     case "NEED_MY_SIGNATURE":
       return { label: "Ký biên bản", to: portal };
+    case "NEED_IDENTITY":
+      return { label: "Nộp ảnh căn cước", to: portal };
     case "CODE_READY":
       return { label: "Nhập mã và tải", to: portal };
     case "REJECTED":

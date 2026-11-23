@@ -163,6 +163,19 @@ describe("Trang Nhận tài sản: danh sách", () => {
     expect(within(cards[0]).queryByRole("link")).not.toBeInTheDocument();
     expect(within(cards[1]).getByRole("link", { name: /Xem biên bản/ })).toBeInTheDocument();
   });
+
+  it("bước danh tính: nhắc nộp ảnh căn cước; đã nộp thì luật sư đang xử lý", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      row({ status: "NEED_IDENTITY", needsAction: true, turnId: TURN_ID }),
+      row({ vaultId: VAULT_B, ownerName: "Đã Nộp", status: "IN_REVIEW", turnId: TURN_ID }),
+    ]);
+    setup(<AvailableHandoverList />);
+    const cards = await screen.findAllByRole("article");
+    expect(cards[0]).toHaveTextContent("Cần bạn nộp ảnh căn cước");
+    const submit = within(cards[0]).getByRole("link", { name: /Nộp ảnh căn cước/ });
+    expect(submit).toHaveAttribute("href", "/claim/beneficiary");
+    expect(cards[1]).toHaveTextContent("Luật sư đang xử lý");
+  });
 });
 
 describe("Thẻ trên Tổng quan Chủ kho", () => {

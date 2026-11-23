@@ -139,6 +139,7 @@ describe("nút cho bước tiếp theo", () => {
     ["SUPPLEMENT_REQUESTED", "Nộp bổ sung"],
     ["NEED_MY_SIGNATURE", "Ký biên bản"],
     ["CODE_READY", "Nhập mã và tải"],
+    ["NEED_IDENTITY", "Nộp ảnh căn cước"],
   ])("%s dẫn vào cổng người nhận với nút %s", (status, label) => {
     const action = availableAction(parsed({ status }));
     expect(action?.label).toBe(label);
