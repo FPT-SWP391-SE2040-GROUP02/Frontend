@@ -100,6 +100,11 @@ export const FAQ_CONTENT = {
             "Không. Hệ thống chỉ quản lý và giao tài sản theo biên bản bàn giao do luật sư lập. Di chúc và thủ tục thừa kế làm ở ngoài hệ thống. Người thực thi bạn chọn chỉ là đề cử, chỉ giữ hộ và giao theo biên bản.",
         },
         {
+          question: "LegacyVault có giao nhà, đất, xe không?",
+          answer:
+            "Không. Hệ thống chỉ giữ và giao tài sản số. Nhà, đất, xe… vẫn chia theo di chúc và thủ tục ở ngoài. Tải bản scan giấy tờ lên không chuyển quyền sở hữu.",
+        },
+        {
           question: "Người nhận có bao lâu để tải nội dung?",
           answer:
             "Sau khi qua đủ các lớp xác nhận, người nhận có {grantDays} ngày để tải nội dung về.",

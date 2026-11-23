@@ -290,6 +290,11 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
         Chữ ký điện tử là bấm xác nhận bằng tài khoản LegacyVault; hệ thống lưu người ký và thời
         điểm.
       </p>
+
+      <p className="mt-4 text-sm italic leading-6">
+        Biên bản này chỉ áp dụng cho tài sản số lưu trong LegacyVault, không thay thế văn bản khai
+        nhận, thỏa thuận phân chia di sản đối với tài sản khác.
+      </p>
     </div>
   );
 }

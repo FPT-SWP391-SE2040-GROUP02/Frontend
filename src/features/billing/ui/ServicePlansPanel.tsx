@@ -381,6 +381,10 @@ function ServicePlansContent({
           <section aria-labelledby={policyId}>
             <h3 id={policyId}>Mua thêm suất người nhận</h3>
             <p>
+              Suất là số người nhận bạn được chọn. Người do luật sư thêm theo quy định pháp luật
+              không tính suất và không mất phí.
+            </p>
+            <p>
               {(slotPricePerYear ?? 49000).toLocaleString("vi-VN")}đ/suất/năm. Tối đa{" "}
               {maxExtraSlots} suất mỗi đơn, hết hạn cùng ngày với gói. Mua giữa kỳ tính theo thời
               gian còn lại, làm tròn lên đến đồng.

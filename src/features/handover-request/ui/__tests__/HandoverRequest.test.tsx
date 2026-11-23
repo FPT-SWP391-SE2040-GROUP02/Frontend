@@ -256,7 +256,7 @@ describe("Trang gửi yêu cầu bằng vaultId (từ trang Nhận tài sản)",
 describe("Yêu cầu nhận tài sản của tôi", () => {
   it("luật sư yêu cầu bổ sung: hiện lý do và cho nộp thêm tệp", async () => {
     const user = userEvent.setup();
-    let current = claim({ status: "SUPPLEMENT_REQUESTED", reviewReason: "Thiếu giấy chứng tử" });
+    let current = claim({ status: "SUPPLEMENT_REQUESTED", reviewReason: "Thiếu giấy tờ chứng minh" });
     vi.spyOn(apiClient, "get").mockImplementation(async () => [current]);
     const post = vi.spyOn(apiClient, "post").mockImplementation(async () => {
       current = claim({ status: "SUBMITTED" });
@@ -268,7 +268,7 @@ describe("Yêu cầu nhận tài sản của tôi", () => {
       name: "Yêu cầu nhận tài sản của Nguyễn Văn A",
     });
     expect(card).toHaveTextContent("Cần bổ sung giấy tờ");
-    expect(card).toHaveTextContent("Lý do của luật sư: Thiếu giấy chứng tử");
+    expect(card).toHaveTextContent("Lý do của luật sư: Thiếu giấy tờ chứng minh");
     expect(within(card).getByRole("button", { name: "Tải về di-chuc.pdf" })).toBeInTheDocument();
 
     await user.upload(within(card).getByLabelText(/Tệp giấy tờ/), pdf("giay-chung-tu.pdf"));

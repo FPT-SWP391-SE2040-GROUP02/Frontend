@@ -58,3 +58,15 @@ describe("RecordPaper: xác nhận căn cứ pháp lý", () => {
     expect(screen.queryByText(/xác nhận căn cứ pháp lý/)).not.toBeInTheDocument();
   });
 });
+
+describe("RecordPaper: phạm vi tài sản số", () => {
+  it("in câu chỉ áp dụng cho tài sản số ở cuối văn bản", () => {
+    const { container } = render(<RecordPaper record={buildRecord()} />);
+
+    const sentence =
+      "Biên bản này chỉ áp dụng cho tài sản số lưu trong LegacyVault, không thay thế văn bản khai nhận, thỏa thuận phân chia di sản đối với tài sản khác.";
+    expect(screen.getByText(sentence)).toBeInTheDocument();
+    const lastParagraph = container.firstElementChild?.lastElementChild;
+    expect(lastParagraph).toHaveTextContent(sentence);
+  });
+});

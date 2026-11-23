@@ -110,7 +110,7 @@ describe("Trang Nhận tài sản: danh sách", () => {
         ownerName: "Cần Bổ Sung",
         status: "SUPPLEMENT_REQUESTED",
         needsAction: true,
-        reviewReason: "Thiếu giấy chứng tử",
+        reviewReason: "Thiếu giấy tờ chứng minh",
         claimId: CLAIM_ID,
       }),
       row({
@@ -132,7 +132,7 @@ describe("Trang Nhận tài sản: danh sách", () => {
 
     const supplement = cards[0];
     expect(supplement).toHaveTextContent("Cần bổ sung giấy tờ");
-    expect(supplement).toHaveTextContent("Lý do của luật sư: Thiếu giấy chứng tử");
+    expect(supplement).toHaveTextContent("Lý do của luật sư: Thiếu giấy tờ chứng minh");
     expect(within(supplement).getAllByRole("link")).toHaveLength(1);
     expect(within(supplement).getByRole("link", { name: /Nộp bổ sung/ })).toHaveAttribute(
       "href",

@@ -5,7 +5,7 @@ import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Lock } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { buttonStyles, Panel } from "@/shared/ui/heritageKit";
+import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { backendAssetService } from "../api/backendAssetService";
@@ -117,6 +117,10 @@ export function CreateAssetForm({
           if (saved) clear();
         })}
       >
+        <Notice tone="warning">
+          LegacyVault chỉ giữ và giao tài sản số. Nhà, đất, xe… vẫn chia theo di chúc và thủ tục ở
+          ngoài. Tải bản scan giấy tờ nhà, xe lên không phải là chuyển quyền sở hữu.
+        </Notice>
         <div className="grid grid-cols-2 gap-3" role="group" aria-label="Loại mục">
           {kinds.map((item) => (
             <button
