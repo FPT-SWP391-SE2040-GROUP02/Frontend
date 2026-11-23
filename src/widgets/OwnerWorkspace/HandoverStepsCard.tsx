@@ -5,14 +5,14 @@ import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 function handoverSteps(grantDays: number): Array<{ title: string; detail: string }> {
   return [
     { title: "Yêu cầu nhận", detail: "Người nhận gửi yêu cầu kèm giấy tờ." },
-    { title: "Xét duyệt", detail: "Người xét duyệt kiểm tra hồ sơ." },
+    { title: "Lập biên bản", detail: "Luật sư xem yêu cầu, lập và chốt biên bản bàn giao." },
     {
-      title: "Người nhận xác nhận",
-      detail: "Người nhận viết biên bản đồng ý hoặc từ chối, chờ duyệt.",
+      title: "Xác minh và ký",
+      detail: "Luật sư kiểm danh tính người nhận; luật sư, Người thực thi và người nhận cùng ký.",
     },
     {
-      title: "Nhập mã và tải",
-      detail: `Người nhận nhập mã mở gói do Người thực thi trao, tải trong ${grantDays} ngày.`,
+      title: "Nhận mã và tải",
+      detail: `Người thực thi gửi mã mở gói; người nhận tải trong ${grantDays} ngày.`,
     },
   ];
 }
