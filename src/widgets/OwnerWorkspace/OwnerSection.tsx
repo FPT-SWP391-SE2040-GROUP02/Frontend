@@ -8,6 +8,7 @@ import { useVaultPinStatus, VaultPinSetupNotice } from "@/features/vault-pin";
 import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import { Button } from "@/shared/ui/button";
+import { RollingNumber, VaultMeter } from "@/shared/ui/VaultFx";
 import {
   useOwnerVault,
   isOwnerVaultMissing,
@@ -78,6 +79,20 @@ function AssetCreatePanel({
   return <CreateAssetForm vaultId={vaultId} remainingBytes={remainingBytes} />;
 }
 
+/** Dung lượng đã dùng: phần số cuộn như khóa số, còn "< 0,01 MB" hay dấu gạch thì giữ nguyên chữ. */
+function UsedAmount({ bytes }: { bytes: number }) {
+  const text = formatStorageMegabytes(bytes);
+  const match = /^([\d.,]+) MB$/.exec(text);
+  if (match === null) {
+    return <>{text}</>;
+  }
+  return (
+    <>
+      <RollingNumber value={match[1]} small /> MB
+    </>
+  );
+}
+
 /** Hiển thị lỗi có đường phục hồi; không chuyển lỗi API thành empty/zero. */
 function QueryError({ retry, pending }: { retry: () => void; pending: boolean }) {
   return (
@@ -127,8 +142,6 @@ export function OwnerSection({
   }
   if (section === "assets") {
     const usedBytes = Math.max(0, vault.data.storageUsedBytes);
-    const quotaBytes = Math.max(1, vault.data.storageQuotaBytes);
-    const usedPercent = Math.min(100, Math.round((usedBytes / quotaBytes) * 100));
     return (
       <div className="space-y-6">
         <section
@@ -140,25 +153,17 @@ export function OwnerSection({
             <span className="text-heritage-muted">
               Đã dùng{" "}
               <strong className="font-semibold text-heritage-text">
-                {formatStorageMegabytes(usedBytes)}
+                <UsedAmount bytes={usedBytes} />
               </strong>{" "}
               / {formatStorageMegabytes(vault.data.storageQuotaBytes)} (còn{" "}
               {formatStorageMegabytes(vault.data.storageRemainingBytes)})
             </span>
           </div>
-          <div
-            role="progressbar"
-            aria-label="Dung lượng đã dùng"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={usedPercent}
-            className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-heritage-sunken"
-          >
-            <div
-              className="h-full rounded-full bg-heritage-primary transition-all"
-              style={{ width: `${usedPercent}%` }}
-            />
-          </div>
+          <VaultMeter
+            usedBytes={usedBytes}
+            quotaBytes={vault.data.storageQuotaBytes}
+            label="Dung lượng đã dùng"
+          />
         </section>
         <VaultPinSetupBanner vaultId={vault.data.id} />
         {/* Lưới 12 cột: danh sách (nội dung chính, đọc trước) chiếm 8 cột, form thêm mục 4 cột; dưới xl xếp dọc để bảng đủ rộng. */}

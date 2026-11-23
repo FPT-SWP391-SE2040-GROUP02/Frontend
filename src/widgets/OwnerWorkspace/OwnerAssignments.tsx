@@ -5,6 +5,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { SlidingTabs } from "@/shared/ui/SlidingTabs";
 import { Chip, Initial, Panel } from "@/shared/ui/heritageKit";
+import { RollingNumber, VaultDial } from "@/shared/ui/VaultFx";
 import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
 import { useAssignments } from "@/features/assignments/model/useAssignments";
@@ -53,10 +54,13 @@ function Stat({
   label,
   value,
   tone = "neutral",
+  gauge,
 }: {
   label: string;
   value: ReactNode;
   tone?: "neutral" | "warning" | "success";
+  /** Đồng hồ quay số đặt bên phải ô; chỉ trang trí. */
+  gauge?: ReactNode;
 }) {
   let valueClass = "text-heritage-primary";
   if (tone === "warning") {
@@ -66,9 +70,12 @@ function Stat({
     valueClass = "text-heritage-success";
   }
   return (
-    <div className="rounded-xl border border-heritage-border bg-white px-4 py-3">
+    <div className="relative rounded-xl border border-heritage-border bg-white px-4 py-3">
       <dt className="text-sm text-heritage-muted">{label}</dt>
-      <dd className={`mt-1 text-2xl font-semibold ${valueClass}`}>{value}</dd>
+      <dd className={`mt-1 text-2xl font-semibold ${valueClass}`}>
+        {value}
+        {gauge && <span className="absolute right-3.5 top-1/2 -translate-y-1/2">{gauge}</span>}
+      </dd>
     </div>
   );
 }
@@ -323,13 +330,27 @@ export function OwnerAssignments({
           </p>
         )}
         <dl className="grid gap-3 sm:grid-cols-3">
-          <Stat label="Đã gán" value={`${summary.assignedAssets}/${summary.totalAssets}`} />
-          <Stat label="Người nhận" value={summary.recipientCount} />
+          <Stat
+            label="Đã gán"
+            value={<RollingNumber value={`${summary.assignedAssets}/${summary.totalAssets}`} />}
+            gauge={
+              <VaultDial
+                fraction={
+                  summary.totalAssets > 0 ? summary.assignedAssets / summary.totalAssets : 0
+                }
+                complete={unassignedTone === "success"}
+              />
+            }
+          />
+          <Stat
+            label="Người nhận"
+            value={<RollingNumber value={String(summary.recipientCount)} />}
+          />
           <Stat
             label="Chưa gán cho ai"
             value={
               <span className="inline-flex items-center gap-2">
-                {summary.unassignedAssets}
+                <RollingNumber value={String(summary.unassignedAssets)} />
                 {unassignedTone === "success" && (
                   <CircleCheck className="size-5" aria-label="Đã gán hết" />
                 )}
