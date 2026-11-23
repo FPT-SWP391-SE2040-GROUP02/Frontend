@@ -52,7 +52,7 @@ describe("ExecutorVaultCard", () => {
     const card = screen.getByRole("group", { name: "Kho đang làm việc: Nguyễn Thị Mai" });
     expect(card).toHaveTextContent("N");
     expect(card).toHaveTextContent("Nguyễn Thị Mai");
-    expect(card).toHaveTextContent("Đang ký biên bản");
+    expect(card).toHaveTextContent("Chờ luật sư ký");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
     fireEvent.click(card);
     expect(select).not.toHaveBeenCalled();

@@ -71,7 +71,6 @@ const COMPLETED_RECORD = {
   verifierName: "Luật sư thử",
   executorName: "Người thực thi thử",
   verifierSignedAt: CREATED_AT,
-  executorSignedAt: CREATED_AT,
   recipients: [],
   canSign: false,
   availableAssets: [],

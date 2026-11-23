@@ -1,7 +1,7 @@
 import { ROUTES } from "@/shared/config/routes.config";
 import type { Tone } from "@/shared/ui/heritageKit";
 import type { ExecutorVault } from "./deathCase.schema";
-import type { HandoverProgress } from "./handoverProgress.schema";
+import { canSignReceipt, type HandoverProgress } from "./handoverProgress.schema";
 import { countTurns } from "./executorTurns";
 
 /**
@@ -18,12 +18,12 @@ export interface VaultStage {
   tone: Tone;
 }
 
-/** Kho đang ở giai đoạn nào: chưa có yêu cầu nhận, luật sư đang lập biên bản, đang ký, đang giao hay đã xong. */
+/** Kho đang ở giai đoạn nào: chưa có yêu cầu nhận, luật sư đang lập biên bản, chờ luật sư ký, đang giao hay đã xong. */
 export function vaultStage(vault: ExecutorVault): VaultStage {
   if (vault.planStatus === "CLOSED") return { label: "Đã hoàn tất", tone: "success" };
   const status = vault.handoverRecordStatus;
   if (status === "COMPLETED") return { label: "Đang giao tài sản", tone: "warning" };
-  if (status === "SIGNING") return { label: "Đang ký biên bản", tone: "warning" };
+  if (status === "SIGNING") return { label: "Chờ luật sư ký", tone: "warning" };
   if (status === "IDENTITY_CHECK") return { label: "Đang kiểm danh tính", tone: "warning" };
   if (status === "DRAFTING") return { label: "Luật sư đang lập biên bản", tone: "warning" };
   if (vault.planStatus === "DRAFT") return { label: "Kế hoạch chưa kích hoạt", tone: "neutral" };
@@ -35,8 +35,6 @@ export interface ExecutorTodoInput {
   vault: ExecutorVault;
   /** Bước của biên bản; rỗng khi chưa có yêu cầu nhận tài sản. */
   recordStatus: RecordStatus;
-  /** Biên bản đang chờ chữ ký của bạn. */
-  canSign: boolean;
   /** Tiến độ bàn giao; null khi chưa tải xong hoặc biên bản chưa chốt. */
   progress: HandoverProgress | null;
 }
@@ -55,16 +53,26 @@ function handoverTodo(progress: HandoverProgress | null): ExecutorTodo {
   if (!progress || !progress.handoverStarted || progress.turns.length === 0) {
     return {
       title: "Theo dõi bàn giao",
-      text: "Biên bản đã đủ chữ ký. Xem từng người nhận đang ở bước nào.",
+      text: "Luật sư đã ký biên bản. Xem từng người nhận đang ở bước nào.",
       buttonLabel: "Mở Bàn giao",
       to: ROUTES.EXECUTOR.PROGRESS,
     };
   }
   const counts = countTurns(progress.turns);
-  if (counts.action > 0) {
+  const receipts = progress.turns.filter((turn) => canSignReceipt(turn)).length;
+  const keys = counts.action - receipts;
+  if (receipts > 0) {
     return {
-      title: `Gửi mã nhận cho ${counts.action} người nhận`,
-      text: "Biên bản đã đủ chữ ký ba bên. Người nhận cần mã nhận do bạn giữ mới mở được tài sản.",
+      title: `Ký phiếu giao nhận với ${receipts} người nhận`,
+      text: "Người nhận đã xác nhận nhận đủ. Bạn ký bên giao để hoàn tất.",
+      buttonLabel: "Xem phiếu chờ ký",
+      to: ROUTES.EXECUTOR.PROGRESS,
+    };
+  }
+  if (keys > 0) {
+    return {
+      title: `Gửi mã nhận cho ${keys} người nhận`,
+      text: "Luật sư đã ký biên bản. Người nhận cần mã nhận do bạn giữ mới mở được tài sản.",
       buttonLabel: "Xem người cần mã",
       to: ROUTES.EXECUTOR.PROGRESS,
     };
@@ -79,7 +87,7 @@ function handoverTodo(progress: HandoverProgress | null): ExecutorTodo {
   }
   return {
     title: "Chưa có việc cần bạn làm",
-    text: `Đang chờ ${counts.waiting} người nhận nhập mã và tải tài sản.`,
+    text: `Đang chờ ${counts.waiting} người nhận xác minh, nhập mã, tải hoặc ký phiếu.`,
     buttonLabel: "Xem bàn giao",
     to: ROUTES.EXECUTOR.PROGRESS,
   };
@@ -87,10 +95,10 @@ function handoverTodo(progress: HandoverProgress | null): ExecutorTodo {
 
 /**
  * Việc quan trọng nhất của Người thực thi với một kho. Thứ tự: chưa có yêu cầu nhận → luật sư đang lập biên bản →
- * danh tính người nhận → đến lượt bạn ký → gửi mã nhận → hoàn tất.
+ * danh tính người nhận → luật sư ký → gửi mã nhận → ký phiếu giao nhận → hoàn tất.
  */
 export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
-  const { vault, recordStatus, canSign, progress } = input;
+  const { vault, recordStatus, progress } = input;
   if (vault.planStatus === "CLOSED") {
     return {
       title: "Bàn giao đã hoàn tất",
@@ -124,17 +132,9 @@ export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
     };
   }
   if (recordStatus === "SIGNING") {
-    if (canSign) {
-      return {
-        title: "Ký biên bản bàn giao",
-        text: "Mọi người nhận đã được xác nhận danh tính. Đọc lại biên bản rồi ký.",
-        buttonLabel: "Ký biên bản",
-        to: ROUTES.EXECUTOR.REPORT,
-      };
-    }
     return {
-      title: "Chờ các bên còn lại ký",
-      text: "Bạn đã ký. Khi luật sư và người nhận ký xong, bạn gửi mã nhận cho từng người.",
+      title: "Chờ luật sư ký biên bản",
+      text: "Mọi người nhận đã được xác nhận danh tính. Luật sư ký xong thì bạn gửi mã nhận cho từng người.",
       buttonLabel: "Xem biên bản",
       to: ROUTES.EXECUTOR.REPORT,
     };
@@ -153,7 +153,7 @@ export interface JourneyStep {
 
 /**
  * "Kho đang ở đâu": 3 bước của cả kho, không theo từng người nhận:
- * Yêu cầu nhận → Biên bản (xét giấy tờ, lập, kiểm danh tính, ký ba bên) → Bàn giao cho người nhận.
+ * Yêu cầu nhận → Biên bản (xét giấy tờ, lập, kiểm danh tính, luật sư ký) → Bàn giao cho người nhận.
  */
 export function vaultJourney(
   vault: ExecutorVault,
@@ -167,8 +167,8 @@ export function vaultJourney(
   let recordCaption = "Chưa tới";
   if (recordStatus === "DRAFTING") recordCaption = "Luật sư đang lập";
   if (recordStatus === "IDENTITY_CHECK") recordCaption = "Đang kiểm danh tính";
-  if (recordStatus === "SIGNING") recordCaption = "Đang ký ba bên";
-  if (completed) recordCaption = "Đã đủ chữ ký";
+  if (recordStatus === "SIGNING") recordCaption = "Chờ luật sư ký";
+  if (completed) recordCaption = "Luật sư đã ký";
 
   let handoverCaption = "Chưa bắt đầu";
   let handoverDone = closed;

@@ -1,9 +1,16 @@
 import { useId, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { deathCaseService } from "../api/deathCaseService";
 import { Lock } from "lucide-react";
 import { cn } from "cn";
 import { buttonStyles, formatDateTime, Initial } from "@/shared/ui/heritageKit";
 import type { TurnProgress, TurnSegment, SegmentState, TurnTone } from "../model/executorTurns";
-import { canMailHandoverKey, type HandoverProgressTurn } from "../model/handoverProgress.schema";
+import {
+  canMailHandoverKey,
+  canSignReceipt,
+  type HandoverProgressTurn,
+} from "../model/handoverProgress.schema";
 import { HandoverSendKey } from "./HandoverSendKey";
 
 /** Đoạn thanh: xanh đậm (xong), vàng (đang chờ), xám nhạt (chưa tới), xám đậm (dừng). */
@@ -79,16 +86,20 @@ function recipientName(turn: HandoverProgressTurn): string {
   return `Người nhận CCCD ${turn.beneficiaryCitizenId}`;
 }
 
-/** Ba ô nhỏ viền mảnh: Thông tin liên hệ, Tài sản, Biên bản. */
+/** Ba ô nhỏ viền mảnh: Thông tin liên hệ, Tài sản, Phiếu giao nhận. */
 function DetailBoxes({ turn, progress }: { turn: HandoverProgressTurn; progress: TurnProgress }) {
   const declined = progress.group === "declined" || progress.group === "ended";
   let assetText = `${turn.downloadedItems}/${turn.totalItems} đã tải`;
   if (declined) assetText = "Không bàn giao";
-  // Chữ ký của người nhận trên biên bản bàn giao chung (luật sư lập, ba bên ký).
   let paper = <p className="text-sm">Chưa ký</p>;
-  if (turn.recipientSignedAt) {
+  if (turn.receivedAllAt) {
     paper = (
-      <p className="text-sm">{`Người nhận đã ký lúc ${formatDateTime(turn.recipientSignedAt)}`}</p>
+      <div className="space-y-1">
+        <p className="text-sm">{`Người nhận đã ký lúc ${formatDateTime(turn.receivedAllAt)}`}</p>
+        {turn.receiptExecutorSignedAt && (
+          <p className="text-sm">{`Bạn đã ký lúc ${formatDateTime(turn.receiptExecutorSignedAt)}`}</p>
+        )}
+      </div>
     );
   }
   const boxClass = "min-w-0 rounded-xl border border-heritage-border bg-white/60 p-3 text-sm";
@@ -129,9 +140,14 @@ function DetailBoxes({ turn, progress }: { turn: HandoverProgressTurn; progress:
           Chỉ thấy tên và trạng thái tải, không có nội dung.
         </p>
       </section>
-      <section aria-label="Biên bản" className={boxClass}>
-        <h4 className={titleClass}>Biên bản</h4>
+      <section aria-label="Phiếu giao nhận" className={boxClass}>
+        <h4 className={titleClass}>Phiếu giao nhận</h4>
         {paper}
+        {turn.receiptIssueNote && turn.receiptIssueAt && (
+          <p className="mt-2 break-words text-sm text-heritage-danger">
+            {`Người nhận báo lúc ${formatDateTime(turn.receiptIssueAt)}: ${turn.receiptIssueNote}`}
+          </p>
+        )}
       </section>
     </div>
   );
@@ -158,6 +174,8 @@ export function HandoverTurnRow({
   const [keyFormOpen, setKeyFormOpen] = useState(false);
   const [keySentAt, setKeySentAt] = useState<string | null>(null);
   const canMailKey = canMailHandoverKey(turn);
+  const client = useQueryClient();
+  const receipt = usePrivateAction();
   const name = recipientName(turn);
   const highlighted = progress.needsAction;
   return (
@@ -198,6 +216,25 @@ export function HandoverTurnRow({
               Gửi mã qua email
             </button>
           )}
+          {canSignReceipt(turn) && (
+            <button
+              type="button"
+              className={buttonStyles.dark}
+              disabled={receipt.pending}
+              onClick={() =>
+                void receipt.execute(
+                  () => deathCaseService.signReceipt(recordId, turn.turnId),
+                  () => {
+                    void client.invalidateQueries({ queryKey: ["death-case"] });
+                    void client.invalidateQueries({ queryKey: ["handover-record"] });
+                    void client.invalidateQueries({ queryKey: ["executor-vaults"] });
+                  },
+                )
+              }
+            >
+              {receipt.pending ? "Đang ký…" : "Ký phiếu giao nhận"}
+            </button>
+          )}
           <button
             type="button"
             className={cn(buttonStyles.outline, "min-h-10 px-4")}
@@ -209,6 +246,11 @@ export function HandoverTurnRow({
           </button>
         </div>
       </div>
+      {receipt.error && (
+        <p role="alert" className="mt-3 text-sm text-destructive">
+          {receipt.error}
+        </p>
+      )}
       {keyFormOpen && (
         <div className="mt-4">
           <HandoverSendKey

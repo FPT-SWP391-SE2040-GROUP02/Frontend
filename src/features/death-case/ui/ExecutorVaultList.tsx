@@ -89,8 +89,8 @@ export function ExecutorVaultList({
       <p className="flex items-center gap-2 text-sm text-heritage-muted">
         <Lock className="size-4 shrink-0" aria-hidden="true" />
         <span>
-          Mỗi kho có hồ sơ và tiến trình riêng. Quyền của bạn chỉ gồm ký biên bản, gửi mã nhận và
-          theo dõi tiến trình —{" "}
+          Mỗi kho có hồ sơ và tiến trình riêng. Quyền của bạn chỉ gồm gửi mã nhận, ký phiếu giao
+          nhận và theo dõi tiến trình —{" "}
           <strong className="text-heritage-primary">không đọc được nội dung kho nào</strong>.
         </span>
       </p>

@@ -173,7 +173,7 @@ describe("Verifier overview", () => {
 });
 
 describe("Verifier queue and history", () => {
-  it("trang Biên bản bàn giao chỉ có biên bản chưa đủ chữ ký; bấm mã thì mở biên bản", async () => {
+  it("trang Biên bản bàn giao chỉ có biên bản chưa ký; bấm mã thì mở biên bản", async () => {
     const get = mockApi([summary(OPEN_ID, "DRAFTING"), summary(DONE_ID, "COMPLETED")]);
     setup("/notary/queue");
     const table = await screen.findByRole("table");
@@ -188,12 +188,12 @@ describe("Verifier queue and history", () => {
     );
   });
 
-  it("lịch sử chỉ có biên bản đã đủ chữ ký", async () => {
+  it("lịch sử chỉ có biên bản đã ký", async () => {
     mockApi([summary(OPEN_ID, "SIGNING"), summary(DONE_ID, "COMPLETED")]);
     setup("/notary/history");
     const table = await screen.findByRole("table");
     expect(within(table).getByRole("button", { name: "Biên bản #66666666" })).toBeInTheDocument();
-    expect(within(table).getByText("Đã đủ chữ ký")).toBeInTheDocument();
+    expect(within(table).getByText("Luật sư đã ký")).toBeInTheDocument();
     expect(
       within(table).queryByRole("button", { name: "Biên bản #33333333" }),
     ).not.toBeInTheDocument();

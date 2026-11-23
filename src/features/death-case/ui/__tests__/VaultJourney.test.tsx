@@ -64,6 +64,7 @@ describe("VaultJourney", () => {
           keyVerifiedAt: SENT,
           downloadedItems: 2,
           receivedAllAt: SENT,
+          receiptExecutorSignedAt: SENT,
         }),
         turn(2, { invitationSentAt: SENT }),
       ],

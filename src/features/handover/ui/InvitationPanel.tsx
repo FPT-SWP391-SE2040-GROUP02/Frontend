@@ -112,7 +112,7 @@ export function InvitationPanel({ onSignOut, signingOut = false }: InvitationPan
   }
   const steps = [
     firstStep,
-    "Chọn đồng ý hoặc từ chối nhận, tải ảnh căn cước, ký biên bản",
+    "Chọn đồng ý hoặc từ chối nhận, tải ảnh căn cước",
     "Chờ Người xét duyệt, rồi nhập mã mở gói Người thực thi đưa cho bạn",
   ];
   return (

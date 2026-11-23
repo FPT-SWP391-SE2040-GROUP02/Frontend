@@ -92,4 +92,8 @@ export const handoverTurnSchema = z.object({
     .default(null),
   /** Lúc người nhận xác nhận đã nhận đủ tài sản; null khi chưa. */
   receivedAllAt: timestamp.nullable().default(null),
+  /** Lúc Người thực thi ký phiếu giao nhận; null khi chưa. */
+  receiptExecutorSignedAt: timestamp.nullable().default(null),
+  receiptIssueNote: z.string().nullable().default(null),
+  receiptIssueAt: timestamp.nullable().default(null),
 });

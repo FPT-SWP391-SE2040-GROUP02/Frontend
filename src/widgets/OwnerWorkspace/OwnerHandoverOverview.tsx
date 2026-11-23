@@ -8,6 +8,8 @@ import type { planSetupSchema } from "@/features/plan-setup/model/planSetup.sche
 import { PlanSetupPanel } from "@/features/plan-setup/ui/PlanSetupPanel";
 import { formatTimeThenDate } from "@/shared/lib/dateFormat";
 import { OwnerRequestNotice } from "@/features/handover-request";
+import { PaperPreviewButton } from "@/entities/handoverRecord";
+import { DepositSlipPaper } from "./DepositSlipPaper";
 import { HandoverStepsCard } from "./HandoverStepsCard";
 
 type PlanSetup = z.infer<typeof planSetupSchema>;
@@ -78,8 +80,9 @@ function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
   );
 }
 
-/** Thẻ "Kế hoạch đang áp dụng": lúc Chủ kho ký kích hoạt và lối sửa gói, người nhận. */
-function ActivePlanCard({ activatedAt }: { activatedAt: string | null | undefined }) {
+/** Thẻ "Kế hoạch đang áp dụng": lúc Chủ kho ký kích hoạt lối sửa gói, người nhận và phiếu gửi. */
+function ActivePlanCard({ setup }: { setup: PlanSetup }) {
+  const activatedAt = setup.activatedAt;
   let activatedText = "Chưa có";
   if (activatedAt) {
     activatedText = formatTimeThenDate(activatedAt);
@@ -104,6 +107,12 @@ function ActivePlanCard({ activatedAt }: { activatedAt: string | null | undefine
         <Link className={buttonStyles.outline} to={ROUTES.DASHBOARD.ASSETS}>
           Sửa gói và người nhận
         </Link>
+        <PaperPreviewButton
+          label="Xem phiếu gửi"
+          title="Phiếu gửi tài sản"
+          fileName="Phieu-gui-tai-san"
+          paper={<DepositSlipPaper setup={setup} />}
+        />
       </div>
     </section>
   );
@@ -130,7 +139,7 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
         vaultId={vaultId}
         belowCards={
           <>
-            <ActivePlanCard activatedAt={setup.activatedAt} />
+            <ActivePlanCard setup={setup} />
             <HandoverStepsCard
               title="Tiến trình bàn giao"
               subtitle="Chưa có yêu cầu nhận tài sản. Khi người nhận gửi yêu cầu, bước đang diễn ra sẽ được tô đậm tại đây."

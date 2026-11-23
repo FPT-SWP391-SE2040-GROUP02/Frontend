@@ -107,19 +107,19 @@ export const LANDING_CONTENT = {
         visualTitle: "Các vai trong kế hoạch",
         rows: [
           { title: "Chủ kho", detail: "Lập kho, chọn người" },
-          { title: "Người thực thi", detail: "Giữ mã, ký biên bản, gửi mã" },
+          { title: "Người thực thi", detail: "Giữ mã, gửi mã, ký phiếu" },
           { title: "Luật sư", detail: "Lập biên bản bàn giao" },
           { title: "Người nhận", detail: "Xác minh rồi tải về" },
         ],
       },
       {
         tag: "03 · Bàn giao",
-        title: "Chỉ giao theo biên bản đủ chữ ký ba bên",
+        title: "Chỉ giao theo biên bản luật sư ký",
         detail:
-          "Hệ thống chỉ quản lý tài sản, không làm pháp lý. Luật sư lập biên bản bàn giao, kiểm danh tính người nhận; đủ chữ ký ba bên thì người nhận mới mở được kho, rồi có {grantDays} ngày để tải về.",
+          "Hệ thống chỉ quản lý tài sản, không làm pháp lý. Luật sư lập biên bản bàn giao, kiểm danh tính người nhận; luật sư ký thì người nhận mới mở được kho, rồi có {grantDays} ngày để tải về.",
         points: [
           "Biên bản bàn giao là căn cứ duy nhất để giao tài sản",
-          "Luật sư, Người thực thi và người nhận cùng ký",
+          "Giao xong hai bên ký phiếu giao nhận",
           "Người nhận có {grantDays} ngày để tải về",
         ],
         visualTitle: "Từ yêu cầu nhận đến nhận tài sản",
@@ -127,7 +127,7 @@ export const LANDING_CONTENT = {
           { title: "Người nhận gửi yêu cầu", detail: "Bắt đầu" },
           { title: "Luật sư lập biên bản", detail: "Bước 1" },
           { title: "Người nhận được xác minh danh tính", detail: "Bước 2" },
-          { title: "Ba bên ký biên bản", detail: "Bước 3" },
+          { title: "Luật sư ký biên bản", detail: "Bước 3" },
           { title: "{grantDays} ngày để tải về", detail: "Hoàn tất" },
         ],
       },
@@ -153,9 +153,9 @@ export const LANDING_CONTENT = {
         detail: "Luật sư đối chiếu căn cước để đúng người mới nhận được kho.",
       },
       {
-        title: "Ba bên ký",
+        title: "Luật sư ký, rồi giao",
         detail:
-          "Luật sư, Người thực thi và người nhận cùng ký biên bản. Đủ chữ ký mới giao tài sản.",
+          "Luật sư ký biên bản rồi Người thực thi mới giao. Giao xong, hai bên ký phiếu giao nhận.",
       },
     ],
   },
@@ -180,7 +180,7 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Bàn giao đúng lúc",
-        detail: "Biên bản đủ chữ ký ba bên, người nhận có {grantDays} ngày để tải về.",
+        detail: "Luật sư ký biên bản, người nhận có {grantDays} ngày để tải về.",
       },
     ],
   },

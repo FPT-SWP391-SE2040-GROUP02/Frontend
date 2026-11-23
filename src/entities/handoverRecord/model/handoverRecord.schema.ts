@@ -24,7 +24,7 @@ export const recordPersonSchema = z.object({
   citizenId: z.string(),
 });
 
-/** Một người nhận trong biên bản: tài sản được nhận, danh tính và chữ ký. */
+/** Một người nhận trong biên bản: tài sản được nhận, danh tính và phiếu giao nhận. */
 export const recordRecipientSchema = z.object({
   beneficiaryId: z.string().uuid(),
   fullName: z.string(),
@@ -36,7 +36,12 @@ export const recordRecipientSchema = z.object({
   submissionId: z.string().uuid().nullable(),
   submissionStatus: z.string(),
   identityConfirmedAt: timestamp.nullable(),
-  signedAt: timestamp.nullable(),
+  /** Phiếu giao nhận: lúc bên nhận xác nhận đã nhận đủ và lúc Người thực thi ký bên giao. */
+  receivedAllAt: timestamp.nullable().default(null),
+  receiptExecutorSignedAt: timestamp.nullable().default(null),
+  /** Người nhận báo tài sản thiếu hoặc sai. */
+  receiptIssueNote: z.string().nullable().default(null),
+  receiptIssueAt: timestamp.nullable().default(null),
 });
 
 /** Một gói trong biên bản phân chia của Chủ kho. */
@@ -90,7 +95,6 @@ export const handoverRecordSchema = z.object({
   verifierName: z.string(),
   executorName: z.string(),
   verifierSignedAt: timestamp.nullable(),
-  executorSignedAt: timestamp.nullable(),
   recipients: z.array(recordRecipientSchema),
   canSign: z.boolean(),
   availableAssets: z.array(recordAssetSchema),

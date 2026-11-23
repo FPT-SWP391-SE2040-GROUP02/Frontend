@@ -36,16 +36,16 @@ export interface TurnProgress {
   /** Chữ phụ cạnh chữ đậm, ví dụ "bạn cần đưa mã cho người này". */
   detail: string;
   tone: TurnTone;
-  /** Người thực thi cần làm gì đó cho dòng này (hiện chỉ là đưa mã mở gói). */
+  /** Người thực thi cần làm gì đó cho dòng này (đưa mã mở gói hoặc ký phiếu giao nhận). */
   needsAction: boolean;
 }
 
 export const STEP_LABELS: Record<TurnStepKey, string> = {
   invited: "Đã mời",
   identity: "Kiểm danh tính",
-  signed: "Ký biên bản",
+  signed: "Luật sư ký",
   key: "Nhập mã mở gói",
-  received: "Tải xong",
+  received: "Phiếu giao nhận",
 };
 
 const STEP_ORDER: TurnStepKey[] = ["invited", "identity", "signed", "key", "received"];
@@ -83,18 +83,6 @@ export function formatStepTime(value: string | null): string {
 
 function isWaitingForInvitationReply(turn: HandoverProgressTurn): boolean {
   return turn.status === "INVITED" || turn.status === "INITIAL_RESPONSE_EXPIRED";
-}
-
-/** Lần tải gần nhất của các tài sản trong lượt; null khi chưa tải gì. */
-function lastDownloadAt(turn: HandoverProgressTurn): string | null {
-  let latest: string | null = null;
-  for (const item of turn.items) {
-    if (!item.firstDownloadedAt) continue;
-    if (latest === null || new Date(item.firstDownloadedAt) > new Date(latest)) {
-      latest = item.firstDownloadedAt;
-    }
-  }
-  return latest;
 }
 
 function downloadText(turn: HandoverProgressTurn): string {
@@ -178,13 +166,13 @@ function stoppedProgress(turn: HandoverProgressTurn): TurnProgress {
 /**
  * Bước hiện tại, 5 đoạn và giờ từng bước của một lượt.
  *
- * Năm bước: Đã mời → Kiểm danh tính → Ký biên bản → Nhập mã mở gói → Tải xong.
+ * Năm bước: Đã mời → Kiểm danh tính → Luật sư ký → Nhập mã mở gói → Phiếu giao nhận.
  * - Đã mời: xong khi máy chủ email nhận thư mời (invitationSentAt) hoặc khi lượt đã đi xa hơn.
  * - Kiểm danh tính: xong khi luật sư xác nhận danh tính (identityConfirmedAt) hoặc lượt đã chờ ký trở đi.
- * - Ký biên bản: xong khi biên bản đủ chữ ký ba bên (documentApprovedAt) hoặc lượt đã HANDOVER_COMMITTED.
+ * - Luật sư ký: xong khi luật sư ký biên bản (documentApprovedAt) hoặc lượt đã HANDOVER_COMMITTED.
  * - Nhập mã mở gói: xong khi keyVerifiedAt có giờ. Kho không dùng mã thì không có giờ này, nên đã tải được tài sản
  *   (hoặc người nhận đã xác nhận nhận đủ) cũng coi là qua bước, giờ hiện "—".
- * - Tải xong: xong khi tải đủ tài sản hoặc người nhận đã xác nhận nhận đủ (receivedAllAt).
+ * - Phiếu giao nhận: xong khi người nhận xác nhận nhận đủ và Người thực thi ký bên giao.
  */
 export function deriveTurnProgress(turn: HandoverProgressTurn): TurnProgress {
   if (
@@ -221,9 +209,9 @@ export function deriveTurnProgress(turn: HandoverProgressTurn): TurnProgress {
     signedDone = turn.decidedAt;
   }
 
-  const receivedAt = turn.receivedAllAt ?? lastDownloadAt(turn);
-  const allDownloaded = turn.totalItems > 0 && turn.downloadedItems >= turn.totalItems;
-  const receivedDone = committed && (allDownloaded || turn.receivedAllAt !== null);
+  const receivedAt = turn.receiptExecutorSignedAt;
+  const receivedDone =
+    committed && turn.receivedAllAt !== null && turn.receiptExecutorSignedAt !== null;
 
   let keyDone: string | null | false = false;
   if (turn.keyVerifiedAt) {
@@ -279,18 +267,25 @@ export function deriveTurnProgress(turn: HandoverProgressTurn): TurnProgress {
       detail = "người nhận nộp căn cước cho luật sư";
     }
   } else if (firstOpen === 2) {
-    chip = "Chờ ký biên bản";
-    headline = "Chờ ba bên ký biên bản";
-    detail = "chưa đủ chữ ký";
-    if (turn.recipientSignedAt) {
-      detail = `người nhận đã ký ${formatStepTime(turn.recipientSignedAt)}`;
-    }
+    chip = "Chờ luật sư ký";
+    headline = "Chờ luật sư ký biên bản";
+    detail = "người nhận đã xác nhận danh tính";
   } else if (firstOpen === 3) {
     group = "action";
     needsAction = true;
     chip = "Chờ nhập mã";
     headline = "Chờ nhập mã mở gói";
     detail = "bạn cần đưa mã cho người này";
+  } else if (turn.receivedAllAt !== null) {
+    group = "action";
+    needsAction = true;
+    chip = "Chờ bạn ký phiếu";
+    headline = "Chờ bạn ký phiếu giao nhận";
+    detail = `người nhận đã ký ${formatStepTime(turn.receivedAllAt)}`;
+  } else if (turn.receiptIssueNote) {
+    chip = "Người nhận báo thiếu hoặc sai";
+    headline = "Người nhận báo thiếu hoặc sai";
+    detail = turn.receiptIssueNote;
   } else {
     chip = "Đang tải";
     headline = "Chờ người nhận tải tài sản";

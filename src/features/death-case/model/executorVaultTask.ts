@@ -22,20 +22,20 @@ export function vaultTask(vault: ExecutorVault): VaultTask {
   const status = vault.handoverRecordStatus;
   if (status === "SIGNING") {
     return {
-      urgency: "sign",
-      label: "Đang ký biên bản",
+      urgency: "handover",
+      label: "Chờ luật sư ký",
       tone: "warning",
-      detail: "Biên bản bàn giao đang chờ chữ ký",
-      task: "đọc lại biên bản và ký nếu bạn chưa ký.",
+      detail: "Biên bản bàn giao đang chờ luật sư ký",
+      task: null,
     };
   }
   if (status === "COMPLETED" && vault.planStatus !== "CLOSED") {
     return {
       urgency: "sign",
-      label: "Gửi mã nhận",
+      label: "Đang giao tài sản",
       tone: "warning",
-      detail: "Biên bản đã đủ chữ ký",
-      task: "gửi mã nhận cho từng người nhận ở mục Bàn giao.",
+      detail: "Luật sư đã ký biên bản",
+      task: "gửi mã nhận và ký phiếu giao nhận ở mục Bàn giao.",
     };
   }
   if (status === "DRAFTING" || status === "IDENTITY_CHECK") {

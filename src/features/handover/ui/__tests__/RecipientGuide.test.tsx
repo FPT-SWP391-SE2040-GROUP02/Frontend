@@ -23,9 +23,9 @@ describe("RecipientGuide", () => {
     const titles = [
       "Mở thư mời",
       "Nộp văn bản và ảnh căn cước",
-      "Đồng ý hoặc từ chối",
+      "Luật sư ký biên bản",
       "Lấy khóa mở gói",
-      "Tải nội dung",
+      "Tải, kiểm tra và ký phiếu giao nhận",
     ];
     const items = screen.getAllByRole("listitem");
     expect(items).toHaveLength(5);
@@ -40,8 +40,7 @@ describe("RecipientGuide", () => {
     });
     renderGuide(true);
 
-    expect(await screen.findByText(/có 3 ngày để quyết định/)).toBeInTheDocument();
-    expect(screen.getByText(/trong 45 ngày/)).toBeInTheDocument();
+    expect(await screen.findByText(/trong 45 ngày/)).toBeInTheDocument();
   });
 
   it("mặc định thu gọn ở cổng nhận, mở sẵn ở trang lời mời", () => {

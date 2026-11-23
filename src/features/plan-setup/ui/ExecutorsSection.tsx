@@ -77,7 +77,7 @@ const DANGER_BUTTON =
   "border-heritage-danger-border text-heritage-danger hover:bg-heritage-danger-bg";
 const ALLOWED_ACTIONS = [
   "Giữ mã mở gói cho tới khi bàn giao",
-  "Ký biên bản bàn giao do luật sư lập",
+  "Giao tài sản theo biên bản luật sư ký",
   "Trao mã mở gói cho người nhận",
 ];
 
@@ -180,7 +180,7 @@ export function InviteDialog({
 
   let title = "Chọn Người thực thi của bạn";
   let description =
-    "Chọn một Người thực thi hệ thống đã được thẩm định. Người này giữ hộ tài sản, ký biên bản và gửi mã nhận khi bàn giao; không đọc được nội dung kho.";
+    "Chọn một Người thực thi hệ thống đã được thẩm định. Người này giữ hộ tài sản, gửi mã nhận và ký phiếu giao nhận khi bàn giao; không đọc được nội dung kho.";
   let notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút.`;
   let cancelLabel = "Hủy";
   if (replacing !== null) {

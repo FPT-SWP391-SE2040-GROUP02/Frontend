@@ -277,7 +277,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
 
     expect(await screen.findByText("Người thực thi được làm gì?")).toBeInTheDocument();
     expect(screen.getByText("Giữ mã mở gói cho tới khi bàn giao")).toBeInTheDocument();
-    expect(screen.getByText("Ký biên bản bàn giao do luật sư lập")).toBeInTheDocument();
+    expect(screen.getByText("Giao tài sản theo biên bản luật sư ký")).toBeInTheDocument();
     expect(screen.getByText("Trao mã mở gói cho người nhận")).toBeInTheDocument();
     expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
     expect(screen.getByText("Tự duyệt hồ sơ")).toBeInTheDocument();

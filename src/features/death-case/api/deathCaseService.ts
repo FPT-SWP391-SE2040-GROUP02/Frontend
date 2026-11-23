@@ -29,13 +29,19 @@ export const deathCaseService = {
       await apiClient.get<unknown, unknown>(`${path(recordId)}/handover-progress`, { signal }),
     );
   },
-  /** Gửi mã nhận tới email người nhận của lượt; chỉ khi biên bản đã đủ chữ ký. BE kiểm khóa và không lưu khóa. */
+  /** Gửi mã nhận tới email người nhận của lượt; chỉ khi luật sư đã ký biên bản. BE kiểm khóa và không lưu khóa. */
   async sendKey(recordId: string, turnId: string, key: string) {
     return sendHandoverKeySchema.parse(
       await apiClient.post<unknown, unknown>(
         `${path(recordId)}/handover-turns/${id.parse(turnId)}/send-key`,
         { key },
       ),
+    );
+  },
+  /** Người thực thi ký bên giao của phiếu giao nhận; chỉ khi người nhận đã xác nhận nhận đủ. */
+  async signReceipt(recordId: string, turnId: string) {
+    await apiClient.post<unknown, unknown>(
+      `${path(recordId)}/handover-turns/${id.parse(turnId)}/sign-receipt`,
     );
   },
 };

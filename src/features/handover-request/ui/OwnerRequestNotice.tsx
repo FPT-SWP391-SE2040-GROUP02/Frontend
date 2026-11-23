@@ -7,7 +7,7 @@ import { handoverRequestKeys, useOwnerRequest } from "../model/useHandoverReques
 
 /**
  * Chủ kho thấy khi có người nhận gửi yêu cầu nhận tài sản: kho đang khóa, luật sư đang xét. Chủ kho còn sống thì hủy
- * được tới khi biên bản đủ chữ ký; hủy xong kho mở khóa.
+ * được tới khi luật sư ký biên bản; hủy xong kho mở khóa.
  */
 export function OwnerRequestNotice({ vaultId }: { vaultId: string }) {
   const client = useQueryClient();

@@ -14,6 +14,7 @@ import { remainingText } from "../model/handover.format";
 import { currentHandoverStep } from "../model/handoverStep";
 import { myTurnsKey, usePendingInvitations } from "../model/usePendingInvitations";
 import { HandoverStepper } from "./HandoverStepper";
+import { ReceiptSection } from "./ReceiptSection";
 import { RecipientGuide } from "./RecipientGuide";
 import { RecipientIdentityPanel } from "./RecipientIdentityPanel";
 import { PendingInvitationCards } from "./PendingInvitationCards";
@@ -24,7 +25,7 @@ const labels: Record<string, string> = {
   INVITED: "Được mời",
   INITIAL_RESPONSE_EXPIRED: "Đã qua hạn phản hồi ban đầu",
   IDENTITY_IN_PROGRESS: "Đang xác minh danh tính",
-  READY_TO_ACCEPT: "Chờ ký biên bản",
+  READY_TO_ACCEPT: "Chờ luật sư ký biên bản",
   HANDOVER_COMMITTED: "Đã tiếp nhận",
   DECLINED: "Đã từ chối",
   DECISION_EXPIRED: "Đã hết hạn quyết định",
@@ -85,8 +86,9 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
   const [typedKey, setTypedKey] = useState("");
   const refresh = () => {
     void client.invalidateQueries({ queryKey: ["handover"] });
+    void client.invalidateQueries({ queryKey: ["handover-record"] });
   };
-  // Bước 2 của tiến trình: danh tính đã được luật sư xác nhận, đang chờ ký biên bản bàn giao.
+  // Bước 2 của tiến trình: danh tính đã được luật sư xác nhận, đang chờ luật sư ký biên bản.
   const signed = turn.status === "READY_TO_ACCEPT";
   const step = currentHandoverStep(turn.status, signed, Boolean(turn.receivedAllAt));
   const hasGroupName = turn.container !== null;
@@ -135,7 +137,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
             </Panel>
           )}
           {(turn.status === "READY_TO_ACCEPT" || turn.status === "HANDOVER_COMMITTED") && (
-            <RecipientRecordPanel turnId={turn.id} onChanged={refresh} />
+            <RecipientRecordPanel turnId={turn.id} />
           )}
         </div>
         <div className="min-w-0 space-y-4">
@@ -209,7 +211,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
               {turn.status === "IDENTITY_IN_PROGRESS" && (
                 <p className="text-sm leading-6 text-heritage-muted">
                   Nộp căn cước ở khung “Xác minh danh tính” phía trên. Luật sư đối chiếu xong thì
-                  bạn ký biên bản bàn giao cùng luật sư và Người thực thi.
+                  luật sư ký biên bản để Người thực thi giao tài sản cho bạn.
                 </p>
               )}
               {turn.reviewer && (
@@ -227,8 +229,8 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                 <h3 className="text-base font-semibold text-heritage-primary">Khóa mở gói</h3>
                 <div className="space-y-3">
                   <p className="text-sm leading-6 text-heritage-muted">
-                    Biên bản đã đủ chữ ký ba bên. Nhập mã nhận Người thực thi gửi vào email của bạn
-                    để tải tài sản.
+                    Luật sư đã ký biên bản. Nhập mã nhận Người thực thi gửi vào email của bạn để tải
+                    tài sản.
                   </p>
                   {turn.keyRequired && !turn.keyVerified && (
                     <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">
@@ -277,40 +279,8 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
             )}
             {turn.status === "HANDOVER_COMMITTED" && turn.grant && (
               <section className="mt-4 space-y-3 border-t border-heritage-border pt-4">
-                <h3 className="text-base font-semibold text-heritage-primary">
-                  Xác nhận đã nhận đủ
-                </h3>
-                {turn.receivedAllAt ? (
-                  <p role="status" className="text-sm">
-                    Bạn đã xác nhận nhận đủ lúc {formatDateTime(turn.receivedAllAt)}.
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm leading-6 text-heritage-muted">
-                      Tải xong các mục ở khung “Các mục dành cho bạn” thì bấm xác nhận để Người thực
-                      thi biết lượt này đã hoàn tất.
-                    </p>
-                    {turn.items.some((item) => !item.downloaded) && (
-                      <p role="status" className="text-sm font-medium text-[#7A5B24]">
-                        Còn {turn.items.filter((item) => !item.downloaded).length} mục chưa tải. Tải
-                        hết rồi mới xác nhận được.
-                      </p>
-                    )}
-                    <button
-                      type="button"
-                      className={buttonStyles.dark}
-                      disabled={action.pending || turn.items.some((item) => !item.downloaded)}
-                      onClick={() =>
-                        void action.execute(
-                          () => handoverService.confirmReceivedAll(turn.id),
-                          refresh,
-                        )
-                      }
-                    >
-                      Tôi đã nhận đủ
-                    </button>
-                  </div>
-                )}
+                <h3 className="text-base font-semibold text-heritage-primary">Phiếu giao nhận</h3>
+                <ReceiptSection turn={turn} onChanged={refresh} />
               </section>
             )}
           </Panel>

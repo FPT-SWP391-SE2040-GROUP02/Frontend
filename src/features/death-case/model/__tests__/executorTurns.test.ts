@@ -98,27 +98,46 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
     expect(progress.chip).toBe("Đang kiểm danh tính");
   });
 
-  it("luật sư đã xác nhận danh tính: chờ ba bên ký biên bản", () => {
+  it("luật sư đã xác nhận danh tính: chờ luật sư ký biên bản", () => {
     const progress = deriveTurnProgress(
       turn({ status: "READY_TO_ACCEPT", invitationSentAt: SENT, identityConfirmedAt: SIGNED }),
     );
     expect(states(progress)).toEqual(["done", "done", "current", "pending", "pending"]);
     expect(progress.segments[1].timeText).toBe("14:00 23/12");
-    expect(progress.headline).toBe("Chờ ba bên ký biên bản");
-    expect(progress.detail).toBe("chưa đủ chữ ký");
+    expect(progress.headline).toBe("Chờ luật sư ký biên bản");
+    expect(progress.detail).toBe("người nhận đã xác nhận danh tính");
     expect(progress.group).toBe("waiting");
   });
 
-  it("người nhận đã ký mà biên bản chưa đủ chữ ký: ghi giờ người nhận ký", () => {
+  it("người nhận đã ký phiếu: tới lượt Người thực thi ký", () => {
     const progress = deriveTurnProgress(
       turn({
-        status: "READY_TO_ACCEPT",
+        status: "HANDOVER_COMMITTED",
         invitationSentAt: SENT,
-        identityConfirmedAt: SIGNED,
-        recipientSignedAt: APPROVED,
+        documentApprovedAt: APPROVED,
+        keyVerifiedAt: KEY,
+        downloadedItems: 3,
+        receivedAllAt: RECEIVED,
       }),
     );
-    expect(progress.detail).toBe("người nhận đã ký 15:00 23/12");
+    expect(states(progress)).toEqual(["done", "done", "done", "done", "current"]);
+    expect(progress.headline).toBe("Chờ bạn ký phiếu giao nhận");
+    expect(progress.needsAction).toBe(true);
+  });
+
+  it("người nhận báo thiếu: hiện nội dung báo", () => {
+    const progress = deriveTurnProgress(
+      turn({
+        status: "HANDOVER_COMMITTED",
+        invitationSentAt: SENT,
+        documentApprovedAt: APPROVED,
+        keyVerifiedAt: KEY,
+        receiptIssueNote: "Thiếu ảnh",
+        receiptIssueAt: RECEIVED,
+      }),
+    );
+    expect(progress.headline).toBe("Người nhận báo thiếu hoặc sai");
+    expect(progress.detail).toBe("Thiếu ảnh");
   });
 
   it("Người xét duyệt đã duyệt, chưa nhập mã: cần bạn đưa mã", () => {
@@ -126,7 +145,6 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
       turn({
         status: "HANDOVER_COMMITTED",
         invitationSentAt: SENT,
-        recipientSignedAt: SIGNED,
         documentApprovedAt: APPROVED,
         decidedAt: APPROVED,
       }),
@@ -144,7 +162,6 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
       turn({
         status: "HANDOVER_COMMITTED",
         invitationSentAt: SENT,
-        recipientSignedAt: SIGNED,
         documentApprovedAt: APPROVED,
         decidedAt: APPROVED,
         keyVerifiedAt: KEY,
@@ -158,17 +175,17 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
     expect(progress.segments[3].timeText).toBe("16:00 23/12");
   });
 
-  it("tải đủ: đã nhận xong, cả 5 đoạn xanh", () => {
+  it("hai bên đã ký phiếu: đã nhận xong, cả 5 đoạn xanh", () => {
     const progress = deriveTurnProgress(
       turn({
         status: "HANDOVER_COMMITTED",
         invitationSentAt: SENT,
-        recipientSignedAt: SIGNED,
         documentApprovedAt: APPROVED,
         decidedAt: APPROVED,
         keyVerifiedAt: KEY,
         downloadedItems: 3,
         receivedAllAt: RECEIVED,
+        receiptExecutorSignedAt: RECEIVED,
       }),
     );
     expect(states(progress)).toEqual(["done", "done", "done", "done", "done"]);
@@ -183,7 +200,6 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
       turn({
         status: "HANDOVER_COMMITTED",
         invitationSentAt: SENT,
-        recipientSignedAt: SIGNED,
         documentApprovedAt: APPROVED,
         decidedAt: APPROVED,
         downloadedItems: 1,
@@ -266,6 +282,7 @@ describe("sortTurnRows và countTurns", () => {
     keyVerifiedAt: KEY,
     downloadedItems: 3,
     receivedAllAt: RECEIVED,
+    receiptExecutorSignedAt: RECEIVED,
   });
   const declined = turn({ turnId: "00000000-0000-4000-8000-000000000002", status: "DECLINED" });
   const waiting = turn({

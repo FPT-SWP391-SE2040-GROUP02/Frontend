@@ -104,7 +104,6 @@ const SIGNING_RECORD = {
   verifierName: "Luật sư thử",
   executorName: "Người thực thi thử",
   verifierSignedAt: null,
-  executorSignedAt: null,
   recipients: [],
   canSign: true,
   availableAssets: [],
