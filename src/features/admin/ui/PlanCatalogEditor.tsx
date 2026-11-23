@@ -528,29 +528,6 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                   </td>
                 ))}
               </tr>
-              <tr>
-                <th scope="row" className="p-4 font-medium">
-                  Số gói bàn giao tối đa
-                </th>
-                <td className="p-4">
-                  <QuotaInput
-                    label="Số gói bàn giao tối đa gói Free"
-                    unit="gói"
-                    value={getValue("Plans.Free.MaxPackages", "50")}
-                    onChange={(next) => setKeyValue("Plans.Free.MaxPackages", next)}
-                  />
-                </td>
-                {visible.map((plan) => (
-                  <td key={plan.code} className="p-4">
-                    <QuotaInput
-                      label={`Số gói bàn giao tối đa gói ${plan.name}`}
-                      unit="gói"
-                      value={getValue(`Plans.${plan.code}.MaxPackages`, "50")}
-                      onChange={(next) => setKeyValue(`Plans.${plan.code}.MaxPackages`, next)}
-                    />
-                  </td>
-                ))}
-              </tr>
 
               <SectionRow span={2 + visible.length}>Mô tả tính năng trên thẻ gói</SectionRow>
               <tr>

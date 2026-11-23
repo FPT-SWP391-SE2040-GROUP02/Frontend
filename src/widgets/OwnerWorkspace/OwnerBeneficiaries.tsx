@@ -158,8 +158,8 @@ export function OwnerBeneficiaries() {
         </div>
         <p className="mt-1 text-sm text-heritage-muted">
           Đã thêm {list.data.totalCount}/{vault.data.beneficiarySlots} người nhận,{" "}
-          {vault.data.usedBeneficiarySlots} người đang ở gói bàn giao. Tạo hồ sơ không tự gắn người
-          nhận vào gói bàn giao.
+          {vault.data.usedBeneficiarySlots} người đang được gán tài sản. Tạo hồ sơ không tự gán tài
+          sản cho người nhận.
         </p>
         {rows.length === 0 && (
           <p role="status" className="mt-4 text-sm text-heritage-muted">
@@ -182,7 +182,7 @@ export function OwnerBeneficiaries() {
                     Liên hệ
                   </th>
                   <th scope="col" className="px-4 py-3 font-semibold">
-                    Gói bàn giao
+                    Tài sản
                   </th>
                   <th scope="col" className="py-3 pl-4 text-right font-semibold">
                     <span className="sr-only">Thao tác</span>
@@ -226,8 +226,8 @@ export function OwnerBeneficiaries() {
                 Thêm người nhận
               </DialogTitle>
               <DialogDescription className="text-heritage-muted">
-                Nhập thông tin để đối chiếu khi bàn giao. Tạo hồ sơ không tự gắn người nhận vào gói
-                bàn giao.
+                Nhập thông tin để đối chiếu khi bàn giao. Tạo hồ sơ không tự gán tài sản cho người
+                nhận.
               </DialogDescription>
             </DialogHeader>
             <BeneficiaryForm

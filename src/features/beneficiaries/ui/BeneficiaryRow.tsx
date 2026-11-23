@@ -62,8 +62,8 @@ export function EditBeneficiaryDialog({
         <DialogHeader>
           <DialogTitle className={DIALOG_TITLE}>Sửa người nhận</DialogTitle>
           <DialogDescription className="text-heritage-muted">
-            Thay đổi áp dụng cho các gói bàn giao đã gán người này. Muốn đổi số CCCD thì xóa hồ sơ
-            rồi tạo lại.
+            Thay đổi áp dụng cho các tài sản đã gán người này. Muốn đổi số CCCD thì xóa hồ sơ rồi
+            tạo lại.
           </DialogDescription>
         </DialogHeader>
         <BeneficiaryForm vaultId={vaultId} record={record} onCancel={onClose} />
@@ -72,7 +72,7 @@ export function EditBeneficiaryDialog({
   );
 }
 
-/** Hộp thoại xóa; hồ sơ còn nằm trong gói bàn giao thì không cho xóa (Backend cũng chặn). */
+/** Hộp thoại xóa; hồ sơ còn được gán tài sản thì không cho xóa (Backend cũng chặn). */
 function DeleteBeneficiaryDialog({
   vaultId,
   record,
@@ -130,8 +130,8 @@ function DeleteBeneficiaryDialog({
         <DialogHeader>
           <DialogTitle className={DIALOG_TITLE}>Xóa “{record.fullName}”?</DialogTitle>
           <DialogDescription className="text-heritage-muted">
-            Hồ sơ người nhận (CCCD {record.citizenId}) sẽ bị xóa khỏi kho. Người này chưa thuộc gói
-            bàn giao nào.
+            Hồ sơ người nhận (CCCD {record.citizenId}) sẽ bị xóa khỏi kho. Người này chưa được gán
+            tài sản nào.
           </DialogDescription>
         </DialogHeader>
         <label className="flex min-h-11 items-center gap-3 text-sm">
@@ -185,7 +185,7 @@ function DeleteBeneficiaryDialog({
 }
 
 /**
- * Một hàng trong bảng người nhận: avatar, họ tên và ngày sinh, CCCD che, liên hệ, số gói bàn giao;
+ * Một hàng trong bảng người nhận: avatar, họ tên và ngày sinh, CCCD che, liên hệ, số tài sản được gán;
  * "Sửa" và "Xóa" mở hộp thoại. `readOnly` (gói dịch vụ đang gia hạn) khóa "Sửa" nhưng vẫn cho xóa.
  */
 export function BeneficiaryRow({
@@ -197,7 +197,7 @@ export function BeneficiaryRow({
 }: {
   vaultId: string;
   record: Beneficiary;
-  /** id gói bàn giao → tên gói bàn giao, do widget tra; thiếu thì thông báo chỉ nêu số gói bàn giao. */
+  /** id tài sản → tên tài sản, do widget tra; thiếu thì thông báo chỉ nêu số tài sản. */
   assetNames?: Record<string, string>;
   readOnly?: boolean;
   /** Kho đang bị khóa (đang bàn giao tài sản số...): khóa cả "Sửa" lẫn "Xóa". */

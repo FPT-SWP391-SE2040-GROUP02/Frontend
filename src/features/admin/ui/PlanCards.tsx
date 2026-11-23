@@ -53,7 +53,6 @@ interface PlanModel {
   free: boolean;
   quotaKey: string;
   slotsKey: string | null;
-  packagesKey: string;
   featuresKey: string;
   featureDefaults: readonly string[];
   saleKey: string | null;
@@ -69,7 +68,6 @@ const FREE_PLAN: PlanModel = {
   free: true,
   quotaKey: "Plans.Free.QuotaMb",
   slotsKey: null,
-  packagesKey: "Plans.Free.MaxPackages",
   featuresKey: FREE_FEATURES_KEY,
   featureDefaults: FREE_FEATURE_DEFAULTS,
   saleKey: null,
@@ -86,7 +84,6 @@ function paidModel(plan: PaidPlanMeta): PlanModel {
     free: false,
     quotaKey: `Plans.${plan.code}.QuotaMb`,
     slotsKey: `Plans.${plan.code}.Slots`,
-    packagesKey: `Plans.${plan.code}.MaxPackages`,
     featuresKey: featuresKey(plan.code),
     featureDefaults: plan.featureDefaults,
     saleKey: saleKey(plan.code),
@@ -255,7 +252,7 @@ function PlanCard({
             )}
           </div>
         )}
-        <dl className="grid grid-cols-3 gap-2 border-t border-heritage-border pt-3 text-sm">
+        <dl className="grid grid-cols-2 gap-2 border-t border-heritage-border pt-3 text-sm">
           <Fact
             label="Dung lượng"
             value={formatQuota(getValue(model.quotaKey, model.quotaDefault))}
@@ -264,7 +261,6 @@ function PlanCard({
             label={model.free ? "Người nhận" : "Người nhận kèm gói"}
             value={model.free ? "0 · không kích hoạt" : `${slots} người`}
           />
-          <Fact label="Số gói bàn giao" value={`${getValue(model.packagesKey, "50")} gói`} />
         </dl>
         <ul className="space-y-1.5 border-t border-heritage-border pt-3 text-sm">
           {shown.length === 0 ? (
@@ -365,14 +361,6 @@ function PlanCard({
             idPrefix={model.code}
           />
         )}
-        <Stepper
-          label="Số gói bàn giao tối đa"
-          unit="gói"
-          step={5}
-          value={getValue(model.packagesKey, "50")}
-          onChange={(next) => setKeyValue(model.packagesKey, next)}
-          idPrefix={model.code}
-        />
       </div>
       <FeatureEditor
         lines={features}
