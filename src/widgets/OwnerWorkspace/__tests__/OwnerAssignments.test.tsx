@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
+import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
 import { VAULT_ID, CREATED_AT, pageFixture } from "@/shared/api/__tests__/backend.fixtures";
 import { OwnerAssignments } from "../OwnerAssignments";
 
@@ -119,6 +120,35 @@ describe("tab Phân chia", () => {
     await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
     expect(put).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/assets/${HOUSE_ID}/assignments`, {
       beneficiaryIds: [AN_ID, BINH_ID],
+      confirmPlanDeactivation: false,
+    });
+  });
+
+  it("chọn nhiều tài sản: hỏi PIN đúng một lần rồi lưu lần lượt từng tài sản", async () => {
+    mockData([]);
+    const verify = vi.spyOn(vaultPinService, "verify").mockResolvedValue(undefined);
+    const put = vi.spyOn(apiClient, "put").mockResolvedValue([]);
+    renderBoard();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Chọn nhiều tài sản" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Chọn Nhà" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Chọn Xe" }));
+    expect(screen.getByText("Đã chọn 2/2 tài sản")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Chọn người nhận cho 2 tài sản" }));
+
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.click(within(dialog).getByRole("checkbox", { name: /Nguyễn Văn An/ }));
+    await userEvent.click(within(dialog).getByRole("button", { name: "Lưu" }));
+
+    await waitFor(() => expect(put).toHaveBeenCalledTimes(2));
+    expect(verify).toHaveBeenCalledTimes(1);
+    const urls = put.mock.calls.map((call) => call[0]);
+    expect(urls).toEqual([
+      `/vaults/${VAULT_ID}/assets/${HOUSE_ID}/assignments`,
+      `/vaults/${VAULT_ID}/assets/${CAR_ID}/assignments`,
+    ]);
+    expect(put.mock.calls[0][1]).toEqual({
+      beneficiaryIds: [AN_ID],
       confirmPlanDeactivation: false,
     });
   });

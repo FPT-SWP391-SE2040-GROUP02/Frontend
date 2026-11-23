@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api";
+import { VAULT_PIN_HEADER } from "@/shared/api/vaultPin";
 import {
   assignmentListSchema,
   setAssetRecipientsSchema,
@@ -30,11 +31,20 @@ export const assignmentService = {
     assetId: string,
     beneficiaryIds: string[],
     confirmPlanDeactivation = false,
+    pin?: string,
   ) {
     const body = setAssetRecipientsSchema.parse({ beneficiaryIds, confirmPlanDeactivation });
-    return assignmentListSchema.parse(
-      await apiClient.put<unknown, unknown>(assetAssignments(vaultId, assetId), body),
-    );
+    const url = assetAssignments(vaultId, assetId);
+    // Gán nhiều tài sản một lượt: gửi sẵn PIN đã kiểm để không hỏi lại ở từng tài sản.
+    let response: unknown;
+    if (pin === undefined) {
+      response = await apiClient.put<unknown, unknown>(url, body);
+    } else {
+      response = await apiClient.put<unknown, unknown>(url, body, {
+        headers: { [VAULT_PIN_HEADER]: pin },
+      });
+    }
+    return assignmentListSchema.parse(response);
   },
   /** Gỡ một người nhận khỏi một tài sản. */
   async unassign(

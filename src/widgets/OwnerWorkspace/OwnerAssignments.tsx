@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { CircleCheck, FileText, Lock, StickyNote, Users } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
+import { confirmVaultPin } from "@/shared/api/vaultPin";
 import { SlidingTabs } from "@/shared/ui/SlidingTabs";
 import { Chip, Initial, Panel } from "@/shared/ui/heritageKit";
 import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
@@ -20,6 +21,8 @@ import {
   type RecipientAssignmentCard,
 } from "@/features/assignments/model/assignmentView";
 import { AssignAssetDialog } from "@/features/assignments/ui/AssignAssetDialog";
+import { BulkAssignDialog } from "@/features/assignments/ui/BulkAssignDialog";
+import { vaultPinService } from "@/features/vault-pin/api/vaultPinService";
 
 /** Một kho cho phép hàng trăm tài sản; một trang 100 dòng đủ cho màn phân chia hiện tại. */
 const LOOKUP_PAGE = { pageIndex: 1, pageSize: 100 };
@@ -78,11 +81,18 @@ function AssetRow({
   locked,
   lockReason,
   onEdit,
+  selecting,
+  selected,
+  onToggle,
 }: {
   row: AssetAssignmentRow;
   locked: boolean;
   lockReason: string | null;
   onEdit: (asset: AssignableAsset) => void;
+  /** Đang ở chế độ chọn nhiều: hiện ô tick thay cho nút sửa từng tài sản. */
+  selecting: boolean;
+  selected: boolean;
+  onToggle: (assetId: string) => void;
 }) {
   const unassigned = row.recipients.length === 0;
   const people: ReactNode[] = [];
@@ -106,6 +116,15 @@ function AssetRow({
       className={`grid gap-3 border-l-4 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center sm:gap-5 ${borderClass}`}
     >
       <div className="flex min-w-0 items-center gap-3">
+        {selecting && (
+          <input
+            type="checkbox"
+            className="size-5 shrink-0 accent-heritage-primary"
+            checked={selected}
+            onChange={() => onToggle(row.asset.id)}
+            aria-label={`Chọn ${row.asset.name}`}
+          />
+        )}
         <KindIcon kind={row.asset.kind} />
         <div className="min-w-0">
           <p className="break-words text-base font-semibold text-heritage-primary">
@@ -130,16 +149,18 @@ function AssetRow({
           </div>
         )}
       </div>
-      <button
-        type="button"
-        className={unassigned ? SMALL_DARK : SMALL_OUTLINE}
-        disabled={locked}
-        title={lockReason ?? undefined}
-        aria-label={`${unassigned ? "Chọn" : "Sửa"} người nhận cho ${row.asset.name}`}
-        onClick={() => onEdit(row.asset)}
-      >
-        {unassigned ? "Chọn người nhận" : "Sửa người nhận"}
-      </button>
+      {!selecting && (
+        <button
+          type="button"
+          className={unassigned ? SMALL_DARK : SMALL_OUTLINE}
+          disabled={locked}
+          title={lockReason ?? undefined}
+          aria-label={`${unassigned ? "Chọn" : "Sửa"} người nhận cho ${row.asset.name}`}
+          onClick={() => onEdit(row.asset)}
+        >
+          {unassigned ? "Chọn người nhận" : "Sửa người nhận"}
+        </button>
+      )}
     </li>
   );
 }
@@ -196,6 +217,9 @@ export function OwnerAssignments({
 }) {
   const [view, setView] = useState<ViewKey>("assets");
   const [editing, setEditing] = useState<AssignableAsset | null>(null);
+  const [selecting, setSelecting] = useState(false);
+  const [pickedAssetIds, setPickedAssetIds] = useState<string[]>([]);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const assignments = useAssignments(vaultId);
   const assetQuery = useVaultAssets(vaultId, LOOKUP_PAGE);
   const beneficiaryQuery = useBeneficiaries(vaultId, LOOKUP_PAGE);
@@ -259,18 +283,68 @@ export function OwnerAssignments({
     );
   } else if (view === "assets") {
     const rows = buildAssetRows(assets, recipients, assignments.data);
+    const pickedCount = pickedAssetIds.length;
+    const allPicked = pickedCount === assets.length;
     body = (
-      <ul className="divide-y divide-heritage-border overflow-hidden rounded-xl border border-heritage-border bg-white">
-        {rows.map((row) => (
-          <AssetRow
-            key={row.asset.id}
-            row={row}
-            locked={locked}
-            lockReason={lockReason}
-            onEdit={setEditing}
-          />
-        ))}
-      </ul>
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            className={SMALL_OUTLINE}
+            disabled={locked}
+            title={lockReason ?? undefined}
+            aria-pressed={selecting}
+            onClick={() => {
+              setSelecting(!selecting);
+              setPickedAssetIds([]);
+            }}
+          >
+            {selecting ? "Thoát chọn nhiều" : "Chọn nhiều tài sản"}
+          </button>
+          {selecting && (
+            <>
+              <button
+                type="button"
+                className={SMALL_OUTLINE}
+                onClick={() => setPickedAssetIds(allPicked ? [] : assets.map((item) => item.id))}
+              >
+                {allPicked ? "Bỏ chọn hết" : "Chọn tất cả"}
+              </button>
+              <span role="status" className="text-sm text-heritage-muted">
+                Đã chọn {pickedCount}/{assets.length} tài sản
+              </span>
+              <button
+                type="button"
+                className={`${SMALL_DARK} sm:ml-auto`}
+                disabled={pickedCount === 0}
+                onClick={() => setBulkOpen(true)}
+              >
+                Chọn người nhận cho {pickedCount} tài sản
+              </button>
+            </>
+          )}
+        </div>
+        <ul className="divide-y divide-heritage-border overflow-hidden rounded-xl border border-heritage-border bg-white">
+          {rows.map((row) => (
+            <AssetRow
+              key={row.asset.id}
+              row={row}
+              locked={locked}
+              lockReason={lockReason}
+              onEdit={setEditing}
+              selecting={selecting}
+              selected={pickedAssetIds.includes(row.asset.id)}
+              onToggle={(assetId) =>
+                setPickedAssetIds(
+                  pickedAssetIds.includes(assetId)
+                    ? pickedAssetIds.filter((id) => id !== assetId)
+                    : [...pickedAssetIds, assetId],
+                )
+              }
+            />
+          ))}
+        </ul>
+      </div>
     );
   } else {
     const cards = buildRecipientCards(assets, recipients, assignments.data);
@@ -343,6 +417,21 @@ export function OwnerAssignments({
         )}
         {body}
       </div>
+      {bulkOpen && (
+        <BulkAssignDialog
+          vaultId={vaultId}
+          assets={assets.filter((item) => pickedAssetIds.includes(item.id))}
+          recipients={recipients}
+          currentIdsFor={(assetId) => currentRecipientIds(assetId, assignments.data)}
+          confirmPin={() => confirmVaultPin(vaultId, (pin) => vaultPinService.verify(vaultId, pin))}
+          onClose={() => setBulkOpen(false)}
+          onSaved={() => {
+            setBulkOpen(false);
+            setSelecting(false);
+            setPickedAssetIds([]);
+          }}
+        />
+      )}
       {editing && (
         <AssignAssetDialog
           vaultId={vaultId}
