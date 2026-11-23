@@ -107,6 +107,14 @@ function backend(first: unknown, next?: unknown) {
   return { get, post, put };
 }
 
+const LEGAL_BASIS_LABEL =
+  "Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) hoặc xác định không có di chúc, và lập biên bản này theo đúng quy định. Tôi chịu trách nhiệm về nội dung biên bản.";
+
+/** Luật sư tick ô xác nhận căn cứ pháp lý trước khi chốt. */
+async function confirmLegalBasis(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("checkbox", { name: LEGAL_BASIS_LABEL }));
+}
+
 function setup(children: ReactNode) {
   return render(
     <QueryClientProvider client={client}>
@@ -131,6 +139,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
 
     expect(await screen.findByLabelText("Trần An nhận Sổ đỏ")).toBeChecked();
     const finalize = screen.getByRole("button", { name: "Chốt biên bản" });
+    await confirmLegalBasis(user);
     expect(finalize).toBeEnabled();
 
     await user.click(screen.getByLabelText("Lê Bình nhận Sổ đỏ"));
@@ -149,9 +158,11 @@ describe("Luật sư lập biên bản (bước 1)", () => {
       ]),
     );
     expect((body as { lines: unknown[] }).lines).toHaveLength(2);
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled(),
-    );
+    // Lưu xong, nội dung biên bản đã đổi nên luật sư phải xác nhận lại căn cứ pháp lý rồi mới chốt.
+    await waitFor(() => expect(screen.getByLabelText("Lê Bình nhận Sổ đỏ")).toBeEnabled());
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
+    await confirmLegalBasis(user);
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled();
   });
 
   it("có biên bản phân chia của Chủ kho thì lấy làm bản đầu được", async () => {
@@ -191,8 +202,11 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     );
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
+    await confirmLegalBasis(user);
     await user.click(await screen.findByRole("button", { name: "Chốt biên bản" }));
-    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`);
+    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
+      confirmLegalBasis: true,
+    });
     expect(await screen.findByText("Bước 2 · Danh tính người nhận")).toBeInTheDocument();
     expect(screen.getByText(/Còn 1 người nhận chưa được xác nhận danh tính/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Kiểm danh tính" })).toHaveAttribute(
@@ -208,9 +222,78 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     vi.spyOn(apiClient, "post").mockRejectedValue(new Error("down"));
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
+    await confirmLegalBasis(user);
     await user.click(await screen.findByRole("button", { name: "Chốt biên bản" }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled();
+  });
+});
+
+describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
+  it("chưa tick thì nút Chốt bị khóa; tick xong bật và gửi confirmLegalBasis: true", async () => {
+    const user = userEvent.setup();
+    const { post } = backend(record(), record({ status: "IDENTITY_CHECK", finalizedAt: AT }));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    const checkbox = await screen.findByRole("checkbox", { name: LEGAL_BASIS_LABEL });
+    const finalize = screen.getByRole("button", { name: "Chốt biên bản" });
+    expect(checkbox).not.toBeChecked();
+    expect(finalize).toBeDisabled();
+
+    await user.click(checkbox);
+    expect(finalize).toBeEnabled();
+
+    await user.click(finalize);
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
+      confirmLegalBasis: true,
+    });
+  });
+
+  it("bỏ tick thì nút Chốt khóa lại", async () => {
+    const user = userEvent.setup();
+    backend(record());
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await confirmLegalBasis(user);
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled();
+    await user.click(screen.getByRole("checkbox", { name: LEGAL_BASIS_LABEL }));
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
+  });
+
+  it("biên bản mở lại về bước lập (bản mới) thì ô xác nhận bỏ tick", async () => {
+    const user = userEvent.setup();
+    const finalized = record({
+      status: "IDENTITY_CHECK",
+      finalizedAt: AT,
+      legalBasisConfirmedAt: AT,
+      legalBasisConfirmedByUserId: AN,
+      legalBasisConfirmedByName: "Luật sư Dũng",
+    });
+    const reopened = record({ revisionNo: 2 });
+    let current: unknown = record();
+    vi.spyOn(apiClient, "get").mockImplementation(async () => current);
+    const post = vi.spyOn(apiClient, "post").mockImplementation(async (url: string) => {
+      if (url.endsWith("/finalize")) {
+        current = finalized;
+      } else {
+        current = reopened;
+      }
+      return current;
+    });
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await confirmLegalBasis(user);
+    await user.click(screen.getByRole("button", { name: "Chốt biên bản" }));
+    await screen.findByText("Bước 2 · Danh tính người nhận");
+
+    await user.click(screen.getByRole("button", { name: "Mở lại biên bản để sửa" }));
+    expect(post).toHaveBeenCalledTimes(2);
+
+    // Quay về bước lập bản số 2: ô xác nhận trống, nút Chốt khóa dù biên bản đã có dữ liệu hợp lệ.
+    const checkbox = await screen.findByRole("checkbox", { name: LEGAL_BASIS_LABEL });
+    expect(checkbox).not.toBeChecked();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
   });
 });
 

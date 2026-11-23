@@ -22,18 +22,13 @@ function matches(executor: SystemExecutor, keyword: string): boolean {
   if (keyword === "") {
     return true;
   }
-  const fields = [
-    executor.fullName,
-    executor.email,
-    executor.executorRoleTitle,
-    executor.legalVerification.organization ?? "",
-  ];
+  const fields = [executor.fullName, executor.email, executor.executorRoleTitle];
   return fields.some((field) => normalize(field).includes(keyword));
 }
 
 /**
  * Danh bạ Người thực thi hệ thống: Chủ kho tìm và chọn một người thay cho việc gõ email tự do.
- * Danh sách, hồ sơ pháp lý và quyền mời đều do Backend quyết định; ở đây chỉ hiển thị và lọc theo chữ.
+ * Danh sách và quyền mời đều do Backend quyết định; ở đây chỉ hiển thị và lọc theo chữ.
  */
 export function SystemExecutorDirectory({
   selectedEmail,

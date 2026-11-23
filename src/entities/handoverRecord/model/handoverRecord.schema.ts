@@ -86,6 +86,10 @@ export const handoverRecordSchema = z.object({
   revisionNo: z.number().int().positive(),
   requestedAt: timestamp,
   finalizedAt: timestamp.nullable(),
+  // Luật sư xác nhận căn cứ pháp lý khi chốt; dữ liệu cũ có thể thiếu hoặc null.
+  legalBasisConfirmedAt: timestamp.nullable().default(null),
+  legalBasisConfirmedByUserId: z.string().uuid().nullable().default(null),
+  legalBasisConfirmedByName: z.string().default(""),
   completedAt: timestamp.nullable(),
   verifierName: z.string(),
   executorName: z.string(),

@@ -39,9 +39,12 @@ export const handoverRecordService = {
       await apiClient.put<unknown, unknown>(`${verifierPath(recordId)}/lines`, body),
     );
   },
+  /** Chốt biên bản; Backend bắt buộc luật sư xác nhận căn cứ pháp lý (confirmLegalBasis: true). */
   async finalize(recordId: string) {
     return handoverRecordSchema.parse(
-      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/finalize`),
+      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/finalize`, {
+        confirmLegalBasis: true,
+      }),
     );
   },
   async reopen(recordId: string) {

@@ -168,6 +168,15 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
     );
   }
 
+  let legalBasisNote: ReactNode = null;
+  if (record.legalBasisConfirmedAt) {
+    legalBasisNote = (
+      <p className="mt-6 leading-7">
+        {`Luật sư ${record.legalBasisConfirmedByName} xác nhận căn cứ pháp lý lúc ${formatDateTime(record.legalBasisConfirmedAt)}`}
+      </p>
+    );
+  }
+
   return (
     <div className="text-[#111]" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
       <header className="text-center leading-6">
@@ -260,6 +269,8 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
           bản được lưu trên hệ thống để các bên đối chiếu khi cần; mọi sửa đổi phải lập bản số mới.
         </p>
       </section>
+
+      {legalBasisNote}
 
       <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-8 max-[480px]:grid-cols-1">
         <SignatureSlot

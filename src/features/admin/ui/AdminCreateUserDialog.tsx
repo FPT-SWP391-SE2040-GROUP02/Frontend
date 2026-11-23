@@ -62,7 +62,7 @@ type StepKey = "account" | "card";
 const STEPS_BY_ROLE: Record<"VERIFIER" | "EXECUTOR" | "ADMIN", StepKey[]> = {
   ADMIN: ["account"],
   VERIFIER: ["account", "card"],
-  EXECUTOR: ["account", "card"],
+  EXECUTOR: ["account"],
 };
 const STEP_LABELS: Record<StepKey, string> = {
   account: "Tài khoản",
@@ -81,7 +81,7 @@ interface AdminCreateUserDialogProps {
 
 /**
  * Hộp thoại tạo tài khoản nhân sự mới (Người xét duyệt, Người thực thi hệ thống, Quản trị viên).
- * Người xét duyệt và Người thực thi chỉ bắt buộc ảnh thẻ (bằng chứng xác minh), không nhập số thẻ hay chứng chỉ.
+ * Chỉ Người xét duyệt bắt buộc ảnh thẻ (không nhập số thẻ hay chứng chỉ); Người thực thi và Quản trị viên chỉ có bước tài khoản.
  * Tài khoản được kích hoạt ngay lập tức (không cần chờ email verification).
  */
 export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUserDialogProps) {
@@ -100,7 +100,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
   });
 
   const role = useWatch({ control: form.control, name: "role" });
-  // Form dài nên tách bước theo vai trò: Admin 1 bước, Người xét duyệt và Người thực thi 2 bước (thêm ảnh thẻ).
+  // Form dài nên tách bước theo vai trò: Admin và Người thực thi 1 bước, Người xét duyệt 2 bước (thêm ảnh thẻ).
   const [stepIndex, setStepIndex] = useState(0);
   const steps = STEPS_BY_ROLE[role];
   const stepKey = steps[Math.min(stepIndex, steps.length - 1)];
@@ -140,14 +140,10 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
       void goNext();
       return;
     }
-    // Ảnh thẻ là bằng chứng xác minh: Người xét duyệt và Người thực thi đều dùng thẻ luật sư và bắt buộc.
-    const needCard = values.role === "VERIFIER" || values.role === "EXECUTOR";
+    // Chỉ Người xét duyệt (luật sư) cần ảnh thẻ; Người thực thi là nhân viên hệ thống, không có ảnh thẻ.
+    const needCard = values.role === "VERIFIER";
     if (needCard && cardFile === null) {
-      setCardError(
-        values.role === "EXECUTOR"
-          ? "Vui lòng tải ảnh thẻ luật sư hoặc chứng chỉ hành nghề."
-          : "Vui lòng tải ảnh thẻ luật sư.",
-      );
+      setCardError("Vui lòng tải ảnh thẻ luật sư.");
       return;
     }
     if (cardError !== null) {
@@ -341,10 +337,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                   htmlFor="create-user-notary-card"
                   className="block text-sm font-medium text-heritage-text"
                 >
-                  {role === "EXECUTOR"
-                    ? "Ảnh thẻ luật sư / chứng chỉ hành nghề"
-                    : "Ảnh thẻ luật sư"}{" "}
-                  <span className="text-destructive">*</span>
+                  Ảnh thẻ luật sư <span className="text-destructive">*</span>
                 </label>
                 <input
                   id="create-user-notary-card"
@@ -357,8 +350,6 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                 />
                 <p className="mt-1 text-sm text-heritage-muted">
                   {cardFile ? `Đã chọn: ${cardFile.name}. ` : ""}JPEG, PNG hoặc WebP, tối đa 2 MB.
-                  {role === "EXECUTOR" &&
-                    " Có ảnh thì Người thực thi mới được tính là đã xác minh pháp lý; Chủ kho chỉ thấy huy hiệu, không thấy ảnh."}
                 </p>
                 {cardError && (
                   <p role="alert" className="mt-1 text-sm text-destructive">
