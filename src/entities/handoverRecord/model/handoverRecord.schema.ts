@@ -45,10 +45,9 @@ export const recordRecipientSchema = z.object({
   receiptIssueAt: timestamp.nullable().default(null),
 });
 
-/** Một gói trong biên bản phân chia của Chủ kho. */
-export const ownerSplitPackageSchema = z.object({
-  packageName: z.string(),
-  beneficiaryIds: z.array(z.string().uuid()),
+/** Một người nhận trong biên bản phân chia của Chủ kho, kèm các tài sản Chủ kho đã gán cho người đó. */
+export const ownerSplitRecipientSchema = z.object({
+  beneficiaryId: z.string().uuid(),
   assetIds: z.array(z.string().uuid()),
 });
 
@@ -105,7 +104,7 @@ export const handoverRecordSchema = z.object({
   canSign: z.boolean(),
   availableAssets: z.array(recordAssetSchema),
   availableRecipients: z.array(recordPersonSchema),
-  ownerSplit: z.array(ownerSplitPackageSchema),
+  ownerSplit: z.array(ownerSplitRecipientSchema),
   claims: z.array(recordClaimSchema).default([]),
   evidenceFiles: z.array(recordFileSchema).default([]),
 });

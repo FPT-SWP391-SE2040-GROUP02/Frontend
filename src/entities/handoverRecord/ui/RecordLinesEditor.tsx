@@ -17,6 +17,12 @@ function linesOf(record: HandoverRecord): Set<string> {
   return result;
 }
 
+/** Tên người nhận trong danh sách của kho; không thấy thì ghi chung để dòng vẫn đọc được. */
+function recipientName(record: HandoverRecord, beneficiaryId: string): string {
+  const person = record.availableRecipients.find((item) => item.beneficiaryId === beneficiaryId);
+  return person ? person.fullName : "Người nhận";
+}
+
 /**
  * Bước 1 của luật sư: chọn ai nhận tài sản nào. Mỗi ô là một cặp người nhận - tài sản; một tài sản có thể
  * giao cho nhiều người (đồng thừa kế). Có thể lấy biên bản phân chia của Chủ kho làm bản đầu rồi sửa.
@@ -80,9 +86,9 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           <div className="space-y-2 rounded-xl border border-heritage-border p-4 text-sm">
             <p className="font-semibold">Biên bản phân chia của Chủ kho</p>
             <ul className="list-disc space-y-1 pl-4">
-              {record.ownerSplit.map((pkg) => (
-                <li key={pkg.packageName}>
-                  {`${pkg.packageName}: ${pkg.assetIds.length} tài sản cho ${pkg.beneficiaryIds.length} người nhận`}
+              {record.ownerSplit.map((entry) => (
+                <li key={entry.beneficiaryId}>
+                  {`${recipientName(record, entry.beneficiaryId)}: ${entry.assetIds.length} tài sản`}
                 </li>
               ))}
             </ul>
