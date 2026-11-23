@@ -42,7 +42,12 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   const claimsPending = record.claims.some(
     (claim) => claim.status === "SUBMITTED" || claim.status === "SUPPLEMENT_REQUESTED",
   );
-  const noAccepted = !record.claims.some((claim) => claim.status === "ACCEPTED");
+  // Biên bản mở từ hồ sơ báo tin đã chấp nhận thì không cần thêm yêu cầu nhận nào.
+  const noAccepted =
+    record.reports.length === 0 && !record.claims.some((claim) => claim.status === "ACCEPTED");
+  const recipientNames = new Map(
+    record.availableRecipients.map((person) => [person.beneficiaryId, person.fullName]),
+  );
 
   const apply = (next: HandoverRecord) => {
     client.setQueryData(handoverRecordKeys.verifier(next.id), next);
@@ -64,7 +69,9 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   if (record.availableAssets.length === 0 || record.availableRecipients.length === 0) {
     return (
       <Notice tone="warning" title="Kho chưa có đủ dữ liệu để lập biên bản">
-        Chủ kho chưa khai tài sản hoặc người nhận nào.
+        {record.availableAssets.length === 0
+          ? "Kho không có tài sản nào."
+          : "Chưa có người nhận nào. Thêm người nhận ở mục bên dưới rồi chọn tài sản cho họ."}
       </Notice>
     );
   }
@@ -80,9 +87,9 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           <div className="space-y-2 rounded-xl border border-heritage-border p-4 text-sm">
             <p className="font-semibold">Biên bản phân chia của Chủ kho</p>
             <ul className="list-disc space-y-1 pl-4">
-              {record.ownerSplit.map((pkg) => (
-                <li key={pkg.packageName}>
-                  {`${pkg.packageName}: ${pkg.assetIds.length} tài sản cho ${pkg.beneficiaryIds.length} người nhận`}
+              {record.ownerSplit.map((entry) => (
+                <li key={entry.beneficiaryId}>
+                  {`${recipientNames.get(entry.beneficiaryId) || "Người nhận"}: ${entry.assetIds.length} tài sản`}
                 </li>
               ))}
             </ul>

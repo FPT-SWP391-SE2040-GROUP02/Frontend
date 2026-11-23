@@ -24,7 +24,7 @@ export function OwnerOverviewPlan({ data, aside }: { data: OverviewResources; as
           // Gán tài sản cho người nhận và Người thực thi chính chấp nhận đều làm ở trang Bàn giao nên gộp một bước.
           label: "Chuẩn bị kế hoạch bàn giao",
           done:
-            !setup.missingRequirements.includes("ASSIGNMENT_REQUIRED") &&
+            !setup.missingRequirements.includes("ASSET_REQUIRED") &&
             !setup.missingRequirements.includes("PRIMARY_EXECUTOR_REQUIRED"),
           to: ROUTES.WILLS.ROOT,
         },

@@ -3,11 +3,13 @@ import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { POLLING_INTERVAL } from "@/shared/config";
+import { handoverReportService } from "../api/handoverReportService";
 import { handoverRequestService } from "../api/handoverRequestService";
 import type { AvailableHandover } from "./handoverRequest.schema";
 
 export const handoverRequestKeys = {
   mine: ["handover-request", "mine"] as const,
+  reports: ["handover-request", "reports"] as const,
   /** Một khóa duy nhất cho menu, trang Nhận tài sản, thẻ Tổng quan và trang gửi yêu cầu. */
   available: ["handover-request", "available"] as const,
   owner: (vaultId: string) => ["handover-request", "owner", vaultId] as const,
@@ -18,6 +20,17 @@ export function useMyClaims() {
   return useQuery({
     queryKey: handoverRequestKeys.mine,
     queryFn: ({ signal }) => handoverRequestService.mine(signal),
+    retry: false,
+    refetchInterval: POLLING_INTERVAL.NORMAL,
+    refetchIntervalInBackground: false,
+  });
+}
+
+/** Các hồ sơ báo tin người đang đăng nhập đã nộp. */
+export function useMyReports() {
+  return useQuery({
+    queryKey: handoverRequestKeys.reports,
+    queryFn: ({ signal }) => handoverReportService.mine(signal),
     retry: false,
     refetchInterval: POLLING_INTERVAL.NORMAL,
     refetchIntervalInBackground: false,

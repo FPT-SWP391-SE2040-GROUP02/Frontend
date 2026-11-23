@@ -1,5 +1,9 @@
 import { useSearchParams } from "react-router-dom";
-import { VerifierRecordDetail, VerifierRecordList } from "@/entities/handoverRecord";
+import {
+  VerifierRecordDetail,
+  VerifierRecordList,
+  VerifierReportList,
+} from "@/entities/handoverRecord";
 
 /**
  * Nội dung trang Biên bản bàn giao của luật sư: chưa chọn biên bản thì hiện danh sách, chọn rồi (?recordId=)
@@ -14,6 +18,12 @@ export function VerifierQueue({ scope = "open" }: { scope?: "open" | "closed" })
     else next.delete("recordId");
     setParams(next);
   };
-  if (!recordId) return <VerifierRecordList scope={scope} onSelect={select} />;
+  if (!recordId)
+    return (
+      <div className="space-y-6">
+        {scope === "open" && <VerifierReportList onOpenRecord={select} />}
+        <VerifierRecordList scope={scope} onSelect={select} />
+      </div>
+    );
   return <VerifierRecordDetail key={recordId} recordId={recordId} onBack={() => select(null)} />;
 }

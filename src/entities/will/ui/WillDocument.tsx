@@ -211,14 +211,10 @@ function RecipientIdentityLine({
 function AssetsSectionBlock({
   recipients,
   unassignedAssetCount,
-  clickable,
-  onGapClick,
   identityStatus,
 }: {
   recipients: WillRecipientView[] | undefined;
   unassignedAssetCount: number;
-  clickable: boolean;
-  onGapClick: ((target: WillGapTarget) => void) | undefined;
   identityStatus: WillIdentityStatus;
 }) {
   const heading = <h3 className={HEADING}>II. Tài sản và định đoạt tài sản</h3>;
@@ -239,13 +235,9 @@ function AssetsSectionBlock({
     return (
       <section id="muc-2" className={SECTION}>
         {heading}
-        <p>
-          <Gap
-            text="Chưa gán tài sản cho người nhận"
-            target="assignments"
-            clickable={clickable}
-            onGapClick={onGapClick}
-          />
+        <p className={BODY}>
+          Tôi chưa chọn người nhận cho tài sản nào. Người nhận do luật sư xác định khi bàn giao,
+          theo giấy tờ hợp lệ.
         </p>
       </section>
     );
@@ -283,7 +275,8 @@ function AssetsSectionBlock({
   if (unassignedAssetCount > 0) {
     outsideNote = (
       <p className="mt-2 text-[15px] text-heritage-muted">
-        Còn {unassignedAssetCount} tài sản chưa gán cho ai nên sẽ không được bàn giao.
+        Còn {unassignedAssetCount} tài sản chưa chọn người nhận; luật sư xác định người nhận khi bàn
+        giao.
       </p>
     );
   }
@@ -522,8 +515,6 @@ export function WillDocument({
       <AssetsSectionBlock
         recipients={recipients}
         unassignedAssetCount={unassignedAssetCount}
-        clickable={clickable}
-        onGapClick={onGapClick}
         identityStatus={identityStatus}
       />
       <ExecutorSectionBlock executor={executor} clickable={clickable} onGapClick={onGapClick} />

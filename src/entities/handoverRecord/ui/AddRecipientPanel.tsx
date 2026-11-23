@@ -36,6 +36,13 @@ export function AddRecipientPanel({ record }: { record: HandoverRecord }) {
   const [open, setOpen] = useState(false);
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
+  // Bỏ người đã có trong kho (trùng họ tên); còn lại luật sư bấm để điền sẵn.
+  const existing = new Set(
+    record.availableRecipients.map((person) => person.fullName.trim().toLowerCase()),
+  );
+  const suggestions = record.reports
+    .flatMap((report) => report.recipients)
+    .filter((person) => !existing.has(person.fullName.trim().toLowerCase()));
   const submit = () => {
     const parsed = newRecipientSchema.safeParse({ ...values, phone: values.phone || undefined });
     if (!parsed.success) {
@@ -61,7 +68,43 @@ export function AddRecipientPanel({ record }: { record: HandoverRecord }) {
           <p className="text-heritage-muted">
             Dùng khi giấy tờ cho thấy có người được nhận mà Chủ kho chưa khai trong kho.
           </p>
-          <button type="button" className={buttonStyles.outline} onClick={() => setOpen(true)}>
+          {suggestions.length > 0 && (
+            <div className="space-y-2">
+              <p className="font-semibold">Điền sẵn từ hồ sơ báo tin</p>
+              <p className="text-heritage-muted">
+                Thông tin do người nộp tự khai. Kiểm lại với giấy tờ trước khi lưu.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((person, index) => (
+                  <button
+                    key={`${index}:${person.email}`}
+                    type="button"
+                    className={buttonStyles.outline}
+                    onClick={() => {
+                      setValues({
+                        ...EMPTY,
+                        fullName: person.fullName,
+                        email: person.email,
+                        phone: person.phone,
+                      });
+                      setErrors({});
+                      setOpen(true);
+                    }}
+                  >
+                    {person.fullName}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <button
+            type="button"
+            className={buttonStyles.outline}
+            onClick={() => {
+              setValues(EMPTY);
+              setOpen(true);
+            }}
+          >
             Thêm người nhận
           </button>
         </div>

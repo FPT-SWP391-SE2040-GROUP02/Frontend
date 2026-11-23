@@ -12,6 +12,7 @@ import { ClaimsReviewPanel } from "./ClaimsReviewPanel";
 import { EvidencePanel } from "./EvidencePanel";
 import { RecordDocument } from "./RecordDocument";
 import { RecordLinesEditor } from "./RecordLinesEditor";
+import { RecordReportsPanel } from "./RecordReportsPanel";
 import { RecordStepper } from "./RecordStepper";
 
 /** Nút mở hồ sơ danh tính của một người nhận ở trang Danh tính người nhận. */
@@ -144,7 +145,11 @@ export function VerifierRecordDetail({
           Biên bản này không còn hiệu lực. Kho đã mở khóa cho Chủ kho.
         </Notice>
       )}
-      {record.status === "DRAFTING" && <ClaimsReviewPanel record={record} />}
+      {record.status === "DRAFTING" && <RecordReportsPanel record={record} />}
+      {record.status === "DRAFTING" &&
+        (record.claims.length > 0 || record.reports.length === 0) && (
+          <ClaimsReviewPanel record={record} />
+        )}
       {record.status === "DRAFTING" && (
         <RecordLinesEditor key={`${record.id}-${record.revisionNo}`} record={record} />
       )}

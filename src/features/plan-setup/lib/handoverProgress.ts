@@ -6,7 +6,7 @@ type PlanSetup = z.infer<typeof planSetupSchema>;
 /** Bốn điều kiện chính của trang Bàn giao, theo mã `missingRequirements` của Backend. */
 const KNOWN_CODES = [
   "OWNER_EKYC_REQUIRED",
-  "ASSIGNMENT_REQUIRED",
+  "ASSET_REQUIRED",
   "PRIMARY_EXECUTOR_REQUIRED",
   "PAID_SERVICE_REQUIRED",
 ];
@@ -18,7 +18,7 @@ const MISSING_LABELS: Record<string, string> = {
   VAULT_NOT_OPEN: "Kho phải đang mở",
   PAID_SERVICE_REQUIRED: "Cần gói dịch vụ trả phí còn hạn",
   OWNER_EKYC_REQUIRED: "Chưa xác minh danh tính (eKYC)",
-  ASSIGNMENT_REQUIRED: "Chưa gán tài sản nào cho người nhận",
+  ASSET_REQUIRED: "Kho chưa có tài sản nào",
   PLAN_NOT_DRAFT: "Kế hoạch đã rời trạng thái nháp",
 };
 

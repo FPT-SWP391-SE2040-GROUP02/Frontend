@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { POLLING_INTERVAL } from "@/shared/config";
 import { handoverRecordService } from "../api/handoverRecordService";
+import { verifierReportService } from "../api/verifierReportService";
 
 /** Khóa cache của biên bản; mọi thao tác ký, chốt, mở lại làm mới các khóa dưới gốc này. */
 export const handoverRecordKeys = {
   root: ["handover-record"] as const,
   verifierList: () => ["handover-record", "verifier", "list"] as const,
+  reports: () => ["handover-record", "verifier", "reports"] as const,
   verifier: (recordId: string) => ["handover-record", "verifier", recordId] as const,
   executor: (vaultId: string) => ["handover-record", "executor", vaultId] as const,
   recipient: (turnId: string) => ["handover-record", "recipient", turnId] as const,
@@ -16,6 +18,17 @@ export function useVerifierRecords() {
   return useQuery({
     queryKey: handoverRecordKeys.verifierList(),
     queryFn: ({ signal }) => handoverRecordService.list(signal),
+    retry: false,
+    refetchInterval: POLLING_INTERVAL.NORMAL,
+    refetchIntervalInBackground: false,
+  });
+}
+
+/** Hồ sơ báo tin được giao cho luật sư đang đăng nhập. */
+export function useVerifierReports() {
+  return useQuery({
+    queryKey: handoverRecordKeys.reports(),
+    queryFn: ({ signal }) => verifierReportService.list(signal),
     retry: false,
     refetchInterval: POLLING_INTERVAL.NORMAL,
     refetchIntervalInBackground: false,

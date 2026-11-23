@@ -170,13 +170,13 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     const { post } = backend(
       record({
         recipients: [],
-        ownerSplit: [{ packageName: "Gói nhà", beneficiaryIds: [AN], assetIds: [HOUSE] }],
+        ownerSplit: [{ beneficiaryId: AN, assetIds: [HOUSE] }],
       }),
       record(),
     );
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    expect(await screen.findByText("Gói nhà: 1 tài sản cho 1 người nhận")).toBeInTheDocument();
+    expect(await screen.findByText("Trần An: 1 tài sản")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Lấy biên bản phân chia làm bản đầu" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/use-owner-split`);
