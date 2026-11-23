@@ -3,7 +3,7 @@ import { Check, Lock, X } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { ExecutorVault } from "../model/deathCase.schema";
 import { buttonStyles, Panel } from "@/shared/ui/heritageKit";
-import { useExecutorRecord } from "@/entities/handoverRecord";
+import { isSigningStage, useExecutorRecord } from "@/entities/handoverRecord";
 import { executorTodo } from "../model/executorTodo";
 import { EXECUTOR_ALLOWED, EXECUTOR_DENIED } from "../model/executorPermissions";
 import { useExecutorRecipients } from "../model/useExecutorRecipients";
@@ -80,11 +80,13 @@ function CanAndCannotCard() {
 export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
   const record = useExecutorRecord(vault.vaultId).data ?? null;
   const recordStatus = record ? record.status : "";
-  const completed = recordStatus === "COMPLETED";
-  const progress = useHandoverProgress(record ? record.id : "", completed).data ?? null;
+  // Tiến độ từng người cần cả khi biên bản còn đang ký: có người đã được mở quyền tải thì bạn gửi mã ngay.
+  const deliveryOpen = recordStatus === "COMPLETED" || isSigningStage(recordStatus);
+  const progress = useHandoverProgress(record ? record.id : "", deliveryOpen).data ?? null;
   const todo = executorTodo({
     vault,
     recordStatus,
+    canSign: record ? record.canSign : false,
     progress,
   });
 

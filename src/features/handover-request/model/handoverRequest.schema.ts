@@ -27,6 +27,35 @@ export const myClaimSchema = z.object({
 });
 export type MyClaim = z.infer<typeof myClaimSchema>;
 
+/** Trạng thái của một kho được để lại cho người đang đăng nhập (GET /handover/requests/available). */
+export const availableStatusSchema = z.enum([
+  "NOT_REQUESTED",
+  "REQUEST_PENDING",
+  "SUPPLEMENT_REQUESTED",
+  "REJECTED",
+  "IN_REVIEW",
+  "NEED_MY_SIGNATURE",
+  "WAITING_OTHERS",
+  "CODE_READY",
+  "RECEIVED",
+  "NEED_IDENTITY",
+]);
+export type AvailableStatus = z.infer<typeof availableStatusSchema>;
+
+/** Một kho mà Chủ kho đã khai tài khoản này là người nhận. Các trường null có thể vắng mặt. */
+export const availableHandoverSchema = z.object({
+  vaultId: z.string().uuid(),
+  beneficiaryId: z.string().uuid(),
+  ownerName: z.string(),
+  status: availableStatusSchema,
+  needsAction: z.boolean(),
+  canRequest: z.boolean(),
+  reviewReason: z.string().nullish(),
+  claimId: z.string().uuid().nullish(),
+  turnId: z.string().uuid().nullish(),
+});
+export type AvailableHandover = z.infer<typeof availableHandoverSchema>;
+
 /** GET /vaults/{id}/handover-request: yêu cầu đang mở của kho, cho Chủ kho xem và hủy. */
 export const ownerRequestSchema = z.object({
   recordId: z.string().uuid(),

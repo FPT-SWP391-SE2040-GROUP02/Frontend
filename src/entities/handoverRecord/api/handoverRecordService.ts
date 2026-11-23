@@ -15,7 +15,7 @@ const verifierPath = (recordId: string) => `/verifier/handover-records/${id.pars
 const executorPath = (vaultId: string) => `/executor/vaults/${id.parse(vaultId)}/handover-record`;
 const recipientPath = (turnId: string) => `/handover/turns/${id.parse(turnId)}/record`;
 
-/** Biên bản bàn giao: luật sư lập và ký; Người thực thi và người nhận xem. */
+/** Biên bản bàn giao: luật sư lập và ký, Người thực thi ký, người nhận gửi yêu cầu rồi ký. */
 export const handoverRecordService = {
   // Luật sư
   async list(signal?: AbortSignal) {
@@ -39,9 +39,12 @@ export const handoverRecordService = {
       await apiClient.put<unknown, unknown>(`${verifierPath(recordId)}/lines`, body),
     );
   },
+  /** Chốt biên bản; Backend bắt buộc luật sư xác nhận căn cứ pháp lý (confirmLegalBasis: true). */
   async finalize(recordId: string) {
     return handoverRecordSchema.parse(
-      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/finalize`),
+      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/finalize`, {
+        confirmLegalBasis: true,
+      }),
     );
   },
   async reopen(recordId: string) {
@@ -114,11 +117,21 @@ export const handoverRecordService = {
     if (data === undefined || data === null || data === "") return null;
     return handoverRecordSchema.parse(data);
   },
+  async signAsExecutor(vaultId: string) {
+    return handoverRecordSchema.parse(
+      await apiClient.post<unknown, unknown>(`${executorPath(vaultId)}/sign`),
+    );
+  },
 
   // Người nhận
   async getForRecipient(turnId: string, signal?: AbortSignal) {
     return handoverRecordSchema.parse(
       await apiClient.get<unknown, unknown>(recipientPath(turnId), { signal }),
+    );
+  },
+  async signAsRecipient(turnId: string) {
+    return handoverRecordSchema.parse(
+      await apiClient.post<unknown, unknown>(`${recipientPath(turnId)}/sign`),
     );
   },
 };

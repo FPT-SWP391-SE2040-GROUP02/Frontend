@@ -33,6 +33,7 @@ function recipient(beneficiaryId: string, fullName: string, assets: unknown[], e
     submissionId: null,
     submissionStatus: "",
     identityConfirmedAt: null,
+    signedAt: null,
     ...extra,
   };
 }
@@ -52,6 +53,7 @@ function record(extra: Record<string, unknown> = {}) {
     verifierName: "Luật sư Dũng",
     executorName: "Chú Hải",
     verifierSignedAt: null,
+    executorSignedAt: null,
     recipients: [recipient(AN, "Trần An", [houseAsset])],
     canSign: false,
     availableAssets: [houseAsset, savingsAsset],
@@ -105,6 +107,14 @@ function backend(first: unknown, next?: unknown) {
   return { get, post, put };
 }
 
+const LEGAL_BASIS_LABEL =
+  "Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) hoặc xác định không có di chúc, và lập biên bản này theo đúng quy định. Tôi chịu trách nhiệm về nội dung biên bản.";
+
+/** Luật sư tick ô xác nhận căn cứ pháp lý trước khi chốt. */
+async function confirmLegalBasis(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("checkbox", { name: LEGAL_BASIS_LABEL }));
+}
+
 function setup(children: ReactNode) {
   return render(
     <QueryClientProvider client={client}>
@@ -129,6 +139,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
 
     expect(await screen.findByLabelText("Trần An nhận Sổ đỏ")).toBeChecked();
     const finalize = screen.getByRole("button", { name: "Chốt biên bản" });
+    await confirmLegalBasis(user);
     expect(finalize).toBeEnabled();
 
     await user.click(screen.getByLabelText("Lê Bình nhận Sổ đỏ"));
@@ -147,9 +158,11 @@ describe("Luật sư lập biên bản (bước 1)", () => {
       ]),
     );
     expect((body as { lines: unknown[] }).lines).toHaveLength(2);
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled(),
-    );
+    // Lưu xong, nội dung biên bản đã đổi nên luật sư phải xác nhận lại căn cứ pháp lý rồi mới chốt.
+    await waitFor(() => expect(screen.getByLabelText("Lê Bình nhận Sổ đỏ")).toBeEnabled());
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
+    await confirmLegalBasis(user);
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled();
   });
 
   it("có biên bản phân chia của Chủ kho thì lấy làm bản đầu được", async () => {
@@ -170,13 +183,13 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     expect(await screen.findByLabelText("Trần An nhận Sổ đỏ")).toBeChecked();
   });
 
-  it("chốt biên bản thì sang bước kiểm danh tính và hiện nút kiểm cho người đã nộp căn cước", async () => {
+  it("chốt biên bản thì sang bước ký và giao từng người, hiện nút kiểm cho người đã nộp căn cước", async () => {
     const user = userEvent.setup();
     const submissionId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
     const { post } = backend(
       record(),
       record({
-        status: "IDENTITY_CHECK",
+        status: "SIGNING",
         finalizedAt: AT,
         recipients: [
           recipient(AN, "Trần An", [houseAsset], {
@@ -189,9 +202,12 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     );
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
+    await confirmLegalBasis(user);
     await user.click(await screen.findByRole("button", { name: "Chốt biên bản" }));
-    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`);
-    expect(await screen.findByText("Bước 2 · Danh tính người nhận")).toBeInTheDocument();
+    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
+      confirmLegalBasis: true,
+    });
+    expect(await screen.findByText("Bước 2 · Ký và giao từng người")).toBeInTheDocument();
     expect(screen.getByText(/Còn 1 người nhận chưa được xác nhận danh tính/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Kiểm danh tính" })).toHaveAttribute(
       "href",
@@ -206,13 +222,82 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     vi.spyOn(apiClient, "post").mockRejectedValue(new Error("down"));
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
+    await confirmLegalBasis(user);
     await user.click(await screen.findByRole("button", { name: "Chốt biên bản" }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled();
   });
 });
 
-describe("Luật sư ký và mở lại biên bản (bước 3)", () => {
+describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
+  it("chưa tick thì nút Chốt bị khóa; tick xong bật và gửi confirmLegalBasis: true", async () => {
+    const user = userEvent.setup();
+    const { post } = backend(record(), record({ status: "SIGNING", finalizedAt: AT }));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    const checkbox = await screen.findByRole("checkbox", { name: LEGAL_BASIS_LABEL });
+    const finalize = screen.getByRole("button", { name: "Chốt biên bản" });
+    expect(checkbox).not.toBeChecked();
+    expect(finalize).toBeDisabled();
+
+    await user.click(checkbox);
+    expect(finalize).toBeEnabled();
+
+    await user.click(finalize);
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
+      confirmLegalBasis: true,
+    });
+  });
+
+  it("bỏ tick thì nút Chốt khóa lại", async () => {
+    const user = userEvent.setup();
+    backend(record());
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await confirmLegalBasis(user);
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled();
+    await user.click(screen.getByRole("checkbox", { name: LEGAL_BASIS_LABEL }));
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
+  });
+
+  it("biên bản mở lại về bước lập (bản mới) thì ô xác nhận bỏ tick", async () => {
+    const user = userEvent.setup();
+    const finalized = record({
+      status: "SIGNING",
+      finalizedAt: AT,
+      legalBasisConfirmedAt: AT,
+      legalBasisConfirmedByUserId: AN,
+      legalBasisConfirmedByName: "Luật sư Dũng",
+    });
+    const reopened = record({ revisionNo: 2 });
+    let current: unknown = record();
+    vi.spyOn(apiClient, "get").mockImplementation(async () => current);
+    const post = vi.spyOn(apiClient, "post").mockImplementation(async (url: string) => {
+      if (url.endsWith("/finalize")) {
+        current = finalized;
+      } else {
+        current = reopened;
+      }
+      return current;
+    });
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await confirmLegalBasis(user);
+    await user.click(screen.getByRole("button", { name: "Chốt biên bản" }));
+    await screen.findByText("Bước 2 · Ký và giao từng người");
+
+    await user.click(screen.getByRole("button", { name: "Mở lại biên bản để sửa" }));
+    expect(post).toHaveBeenCalledTimes(2);
+
+    // Quay về bước lập bản số 2: ô xác nhận trống, nút Chốt khóa dù biên bản đã có dữ liệu hợp lệ.
+    const checkbox = await screen.findByRole("checkbox", { name: LEGAL_BASIS_LABEL });
+    expect(checkbox).not.toBeChecked();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
+  });
+});
+
+describe("Luật sư ký và mở lại biên bản (bước 2)", () => {
   const signing = (extra: Record<string, unknown> = {}) =>
     record({
       status: "SIGNING",
@@ -224,24 +309,107 @@ describe("Luật sư ký và mở lại biên bản (bước 3)", () => {
       ...extra,
     });
 
-  it("ký biên bản xong thì báo đã ký, không còn nút thao tác", async () => {
+  it("ký xác minh xong thì nút đổi thành Bạn đã ký", async () => {
     const user = userEvent.setup();
+    const { post } = backend(signing(), signing({ canSign: false, verifierSignedAt: AT }));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await user.click(await screen.findByRole("button", { name: "Ký xác minh" }));
+    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/sign`);
+    expect(await screen.findByRole("button", { name: "Bạn đã ký" })).toBeDisabled();
+  });
+
+  it("vừa chốt, người nhận chưa danh tính: nút ký của luật sư hiện ngay", async () => {
     const { post } = backend(
-      signing(),
-      signing({ status: "COMPLETED", canSign: false, verifierSignedAt: AT, completedAt: AT }),
+      signing({
+        recipients: [recipient(AN, "Trần An", [houseAsset], { turnId: TURN_ID })],
+      }),
+      signing({ canSign: false, verifierSignedAt: AT }),
+    );
+    const user = userEvent.setup();
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    const button = await screen.findByRole("button", { name: "Ký xác minh" });
+    expect(button).toBeEnabled();
+    expect(screen.getByText("Chờ xác nhận danh tính")).toBeInTheDocument();
+    await user.click(button);
+    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/sign`);
+  });
+
+  it("biên bản cũ còn IDENTITY_CHECK vẫn hiện nút ký như SIGNING", async () => {
+    backend(signing({ status: "IDENTITY_CHECK" }));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    expect(await screen.findByRole("button", { name: "Ký xác minh" })).toBeEnabled();
+  });
+
+  it("tiến độ theo từng người: An đã được mở quyền tải, Bình chưa ký", async () => {
+    const wholeRecord = signing({
+      verifierSignedAt: AT,
+      executorSignedAt: AT,
+      canSign: false,
+      recipients: [
+        recipient(AN, "Trần An", [houseAsset], {
+          turnId: TURN_ID,
+          turnStatus: "HANDOVER_COMMITTED",
+          identityConfirmedAt: AT,
+          signedAt: AT,
+        }),
+        recipient(BINH, "Lê Bình", [savingsAsset], {
+          turnId: "88888888-8888-4888-8888-888888888888",
+          turnStatus: "READY_TO_ACCEPT",
+          identityConfirmedAt: AT,
+        }),
+      ],
+    });
+    backend(wholeRecord);
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    const rows = await screen.findAllByRole("row");
+    const an = rows.find((row) => within(row).queryByText("Trần An") !== null);
+    const binh = rows.find((row) => within(row).queryByText("Lê Bình") !== null);
+    expect(an).toHaveTextContent("Đã mở quyền tải");
+    expect(binh).toHaveTextContent("Chờ người này ký");
+    expect(screen.queryByText(/chờ tất cả/i)).not.toBeInTheDocument();
+    // Đã giao cho An: không còn nút Mở lại, hiện lý do.
+    expect(
+      screen.queryByRole("button", { name: "Mở lại biên bản để sửa" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản. Sai sót sau khi giao xử lý ngoài hệ thống.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("chưa giao cho ai thì vẫn có nút Mở lại", async () => {
+    backend(signing());
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    expect(await screen.findByRole("button", { name: "Mở lại biên bản để sửa" })).toBeEnabled();
+    expect(
+      screen.queryByText(/Đã giao tài sản cho ít nhất một người nhận/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("mở lại bị chặn vì đã có người được mở quyền tải thì báo câu dễ hiểu", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue(signing());
+    vi.spyOn(apiClient, "post").mockRejectedValue(
+      Object.assign(new Error("conflict"), {
+        isAxiosError: true,
+        response: {
+          status: 409,
+          data: { code: "HANDOVER_NOT_ALLOWED", reason: "PARTIALLY_DELIVERED" },
+        },
+      }),
     );
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    await user.click(await screen.findByRole("button", { name: "Ký biên bản" }));
-    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/sign`);
-    expect(await screen.findByText("Bạn đã ký biên bản")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Ký biên bản|Mở lại/ })).not.toBeInTheDocument();
-  });
-
-  it("mới một người xác nhận danh tính thì ký được ngay, không phải chờ người khác", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(signing({ status: "IDENTITY_CHECK" }));
-    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
-    expect(await screen.findByRole("button", { name: "Ký biên bản" })).toBeEnabled();
+    await user.click(await screen.findByRole("button", { name: "Mở lại biên bản để sửa" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản.",
+    );
   });
 
   it("mở lại biên bản thì quay về bước lập để sửa", async () => {
@@ -249,16 +417,130 @@ describe("Luật sư ký và mở lại biên bản (bước 3)", () => {
     const { post } = backend(signing(), record({ revisionNo: 2 }));
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    expect(await screen.findByText(/Ký rồi thì không sửa được nữa/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/mọi chữ ký đã có mất hiệu lực, cả ba bên phải ký lại/),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Mở lại biên bản để sửa" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/reopen`);
     expect(await screen.findByText("Bước 1 · Lập biên bản")).toBeInTheDocument();
   });
 
+  it("mọi người nhận đã ký thì chỉ còn thông báo hoàn tất, không còn nút thao tác", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue(
+      signing({ status: "COMPLETED", canSign: false, completedAt: AT }),
+    );
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    expect(await screen.findByText("Mọi người nhận đã ký")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Ký xác minh|Mở lại/ })).not.toBeInTheDocument();
+  });
+
+  it("biên bản không được giao cho mình thì báo lỗi và có nút về danh sách", async () => {
+    const back = vi.fn();
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockRejectedValue(new Error("404"));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={back} />);
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("biên bản không được giao cho bạn");
+    await user.click(within(alert).getByRole("button", { name: "Về danh sách" }));
+    expect(back).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Người nhận ký biên bản", () => {
+  it("tới lượt ký thì bấm Ký biên bản; ký xong báo chờ luật sư hoặc Người thực thi ký", async () => {
+    const user = userEvent.setup();
+    const changed = vi.fn();
+    const mine = [
+      recipient(AN, "Trần An", [houseAsset], { turnId: TURN_ID, identityConfirmedAt: AT }),
+    ];
+    const { post } = backend(
+      record({ status: "SIGNING", finalizedAt: AT, canSign: true, recipients: mine }),
+      record({
+        status: "SIGNING",
+        finalizedAt: AT,
+        canSign: false,
+        recipients: [
+          recipient(AN, "Trần An", [houseAsset], {
+            turnId: TURN_ID,
+            identityConfirmedAt: AT,
+            signedAt: AT,
+          }),
+        ],
+      }),
+    );
+    setup(<RecipientRecordPanel turnId={TURN_ID} onChanged={changed} />);
+
+    expect(
+      await screen.findByText("Đọc kỹ phần tài sản của bạn rồi bấm Ký biên bản."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Phần của bạn trong biên bản bàn giao")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Ký biên bản" }));
+    expect(post).toHaveBeenCalledWith(`/handover/turns/${TURN_ID}/record/sign`);
+    expect(
+      await screen.findByText("Bạn đã ký. Chờ luật sư hoặc Người thực thi ký."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
+    expect(changed).toHaveBeenCalledTimes(1);
+  });
+
+  it("chưa xong danh tính thì nhắc nộp ảnh căn cước và không có nút ký", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue(
+      record({
+        status: "SIGNING",
+        finalizedAt: AT,
+        canSign: false,
+        recipients: [recipient(AN, "Trần An", [houseAsset], { turnId: TURN_ID })],
+      }),
+    );
+    setup(<RecipientRecordPanel turnId={TURN_ID} />);
+
+    expect(
+      await screen.findByText(/nộp ảnh căn cước để luật sư xác nhận danh tính/),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
+  });
+
+  it("phần của mình đã đủ chữ ký (HANDOVER_COMMITTED) dù biên bản còn đang ký: chờ mã nhận", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue(
+      record({
+        status: "SIGNING",
+        finalizedAt: AT,
+        canSign: false,
+        verifierSignedAt: AT,
+        executorSignedAt: AT,
+        recipients: [
+          recipient(AN, "Trần An", [houseAsset], {
+            turnId: TURN_ID,
+            turnStatus: "HANDOVER_COMMITTED",
+            identityConfirmedAt: AT,
+            signedAt: AT,
+          }),
+        ],
+      }),
+    );
+    setup(<RecipientRecordPanel turnId={TURN_ID} />);
+
+    expect(await screen.findByText(/Phần của bạn đã đủ chữ ký/)).toBeInTheDocument();
+  });
+
+  it("luật sư đang sửa biên bản thì người nhận chưa ký được", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue(record({ status: "DRAFTING" }));
+    setup(<RecipientRecordPanel turnId={TURN_ID} />);
+
+    expect(
+      await screen.findByText("Luật sư đang sửa biên bản. Bạn chờ bản mới rồi ký."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Phiếu giao nhận", () => {
   it("phiếu giao nhận: hiện nội dung người nhận báo thiếu và xem được tờ phiếu bản nháp", async () => {
     const user = userEvent.setup();
     vi.spyOn(apiClient, "get").mockResolvedValue(
-      signing({
+      record({
         status: "COMPLETED",
         canSign: false,
         completedAt: AT,
@@ -282,38 +564,6 @@ describe("Luật sư ký và mở lại biên bản (bước 3)", () => {
     expect(paper).toHaveTextContent("chưa đủ chữ ký hai bên");
     expect(paper).toHaveTextContent("Sổ đỏ");
     expect(within(paper).getAllByText("(Chưa ký)")).toHaveLength(2);
-  });
-
-  it("biên bản không được giao cho mình thì báo lỗi và có nút về danh sách", async () => {
-    const back = vi.fn();
-    const user = userEvent.setup();
-    vi.spyOn(apiClient, "get").mockRejectedValue(new Error("404"));
-    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={back} />);
-
-    const alert = await screen.findByRole("alert");
-    expect(alert).toHaveTextContent("biên bản không được giao cho bạn");
-    await user.click(within(alert).getByRole("button", { name: "Về danh sách" }));
-    expect(back).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe("Người nhận xem biên bản", () => {
-  it("luật sư đã ký thì báo chờ mã; người nhận không ký biên bản", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(
-      record({ status: "COMPLETED", completedAt: AT, verifierSignedAt: AT }),
-    );
-    setup(<RecipientRecordPanel turnId={TURN_ID} />);
-
-    expect(await screen.findByText(/Luật sư đã ký biên bản\. Người thực thi/)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
-  });
-
-  it("luật sư đang sửa biên bản thì người nhận chờ bản mới", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(record({ status: "DRAFTING" }));
-    setup(<RecipientRecordPanel turnId={TURN_ID} />);
-    expect(
-      await screen.findByText("Luật sư đang sửa biên bản. Bạn chờ bản mới."),
-    ).toBeInTheDocument();
   });
 });
 

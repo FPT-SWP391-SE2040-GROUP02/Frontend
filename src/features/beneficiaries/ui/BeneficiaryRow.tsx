@@ -200,7 +200,7 @@ export function BeneficiaryRow({
   /** id gói bàn giao → tên gói bàn giao, do widget tra; thiếu thì thông báo chỉ nêu số gói bàn giao. */
   assetNames?: Record<string, string>;
   readOnly?: boolean;
-  /** Kho đang bị khóa (hồ sơ chứng tử, bàn giao...): khóa cả "Sửa" lẫn "Xóa". */
+  /** Kho đang bị khóa (đang bàn giao tài sản số...): khóa cả "Sửa" lẫn "Xóa". */
   locked?: boolean;
 }) {
   const [editing, setEditing] = useState(false);

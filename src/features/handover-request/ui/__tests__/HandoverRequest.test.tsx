@@ -165,10 +165,101 @@ describe("Trang gửi yêu cầu nhận tài sản", () => {
   });
 });
 
+function availableRow(extra: Record<string, unknown> = {}) {
+  return {
+    vaultId: VAULT_ID,
+    beneficiaryId: RECORD_ID,
+    ownerName: "Nguyễn Văn A",
+    status: "NOT_REQUESTED",
+    needsAction: true,
+    canRequest: true,
+    reviewReason: null,
+    claimId: null,
+    turnId: null,
+    ...extra,
+  };
+}
+
+describe("Trang gửi yêu cầu bằng vaultId (từ trang Nhận tài sản)", () => {
+  const path = `/request?vaultId=${VAULT_ID}`;
+
+  it("gọi by-account kèm vaultId, hiện dòng email đã xác minh và làm mới danh sách", async () => {
+    const user = userEvent.setup();
+    const get = vi.spyOn(apiClient, "get").mockResolvedValue([availableRow()]);
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(claim());
+    setup(<RequestPanel />, "an@example.com", path);
+
+    expect(
+      await screen.findByText("Email đã xác minh, khớp email Chủ kho khai"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Nguyễn Văn A đã khai bạn là người nhận/)).toBeInTheDocument();
+    // Không dùng link riêng nên không gọi preview.
+    expect(get).not.toHaveBeenCalledWith("/handover/requests/preview", expect.anything());
+
+    await user.upload(screen.getByLabelText(/Tệp giấy tờ/), pdf());
+    await user.type(screen.getByLabelText(/Lời nhắn cho luật sư/), "Bố tôi mất ngày 1/11");
+    get.mockClear();
+    await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
+
+    expect(await screen.findByText("Đã gửi yêu cầu")).toBeInTheDocument();
+    const [url, body] = post.mock.calls[0];
+    expect(url).toBe("/handover/requests/by-account");
+    const form = body as FormData;
+    expect(form.get("vaultId")).toBe(VAULT_ID);
+    expect(form.get("token")).toBeNull();
+    expect(form.get("note")).toBe("Bố tôi mất ngày 1/11");
+    // Danh sách available đang được xem nên bị tải lại ngay sau khi gửi xong.
+    await waitFor(() =>
+      expect(get).toHaveBeenCalledWith("/handover/requests/available", expect.anything()),
+    );
+  });
+
+  it("phải đính kèm tệp trước khi gửi", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue([availableRow()]);
+    const post = vi.spyOn(apiClient, "post");
+    setup(<RequestPanel />, "an@example.com", path);
+
+    await user.click(await screen.findByRole("button", { name: "Gửi yêu cầu" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng đính kèm ít nhất một tệp");
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("kho không có trong danh sách thì báo không thấy kho, không cho gửi", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    setup(<RequestPanel />, "an@example.com", path);
+
+    expect(await screen.findByText("Không thấy kho này")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Gửi yêu cầu" })).not.toBeInTheDocument();
+  });
+
+  it("canRequest false thì báo chưa gửi được", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([availableRow({ canRequest: false })]);
+    setup(<RequestPanel />, "an@example.com", path);
+
+    expect(await screen.findByText("Chưa gửi yêu cầu được")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Gửi yêu cầu" })).not.toBeInTheDocument();
+  });
+
+  it("chưa đăng nhập thì chỉ có nút đăng nhập quay lại đúng đường dẫn", () => {
+    const get = vi.spyOn(apiClient, "get");
+    setup(<RequestPanel />, null, path);
+
+    const login = screen.getByRole("link", { name: "Đăng nhập" });
+    expect(decodeURIComponent(login.getAttribute("href") ?? "")).toContain(
+      `redirect=/request?vaultId=${VAULT_ID}`,
+    );
+    expect(get).not.toHaveBeenCalled();
+  });
+});
+
 describe("Yêu cầu nhận tài sản của tôi", () => {
   it("luật sư yêu cầu bổ sung: hiện lý do và cho nộp thêm tệp", async () => {
     const user = userEvent.setup();
-    let current = claim({ status: "SUPPLEMENT_REQUESTED", reviewReason: "Thiếu giấy chứng tử" });
+    let current = claim({
+      status: "SUPPLEMENT_REQUESTED",
+      reviewReason: "Thiếu giấy tờ chứng minh",
+    });
     vi.spyOn(apiClient, "get").mockImplementation(async () => [current]);
     const post = vi.spyOn(apiClient, "post").mockImplementation(async () => {
       current = claim({ status: "SUBMITTED" });
@@ -180,7 +271,7 @@ describe("Yêu cầu nhận tài sản của tôi", () => {
       name: "Yêu cầu nhận tài sản của Nguyễn Văn A",
     });
     expect(card).toHaveTextContent("Cần bổ sung giấy tờ");
-    expect(card).toHaveTextContent("Lý do của luật sư: Thiếu giấy chứng tử");
+    expect(card).toHaveTextContent("Lý do của luật sư: Thiếu giấy tờ chứng minh");
     expect(within(card).getByRole("button", { name: "Tải về di-chuc.pdf" })).toBeInTheDocument();
 
     await user.upload(within(card).getByLabelText(/Tệp giấy tờ/), pdf("giay-chung-tu.pdf"));

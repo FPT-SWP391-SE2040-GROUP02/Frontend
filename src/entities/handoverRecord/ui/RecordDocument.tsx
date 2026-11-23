@@ -1,7 +1,13 @@
 import type { ReactNode } from "react";
 import { Chip, formatDateTime, InfoRow, Panel } from "@/shared/ui/heritageKit";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
-import { identityText, receiptText, recordStatusLabel } from "../model/recordPresentation";
+import {
+  deliveryText,
+  identityText,
+  recordStatusLabel,
+  receiptText,
+  signatureCount,
+} from "../model/recordPresentation";
 import { PaperPreviewButton } from "./PaperPreviewButton";
 import { ReceiptPaper } from "./ReceiptPaper";
 import { RecordPaper } from "./RecordPaper";
@@ -13,7 +19,7 @@ function SignedCell({ at }: { at: string | null }) {
 
 /**
  * Nội dung biên bản bàn giao dùng chung cho luật sư, Người thực thi và người nhận: thông tin kho,
- * bảng "ai nhận tài sản nào" kèm danh tính và phiếu giao nhận, rồi ô chữ ký của luật sư.
+ * bảng "ai nhận tài sản nào" kèm danh tính, chữ ký và việc giao phần của từng người, rồi ô chữ ký của luật sư và Người thực thi.
  * renderRecipientAction thêm một cột thao tác cho từng người nhận (ví dụ nút kiểm danh tính của luật sư).
  */
 export function RecordDocument({
@@ -26,6 +32,7 @@ export function RecordDocument({
   renderRecipientAction?: (recipient: RecordRecipient) => ReactNode;
 }) {
   const status = recordStatusLabel[record.status];
+  const signatures = signatureCount(record);
   return (
     <Panel
       title={title}
@@ -49,6 +56,7 @@ export function RecordDocument({
           <InfoRow label="Luật sư">{record.verifierName || "—"}</InfoRow>
           <InfoRow label="Người thực thi">{record.executorName || "—"}</InfoRow>
           <InfoRow label="Bản số">{String(record.revisionNo)}</InfoRow>
+          <InfoRow label="Chữ ký">{`${signatures.signed}/${signatures.total}`}</InfoRow>
         </div>
 
         {record.recipients.length === 0 ? (
@@ -57,7 +65,7 @@ export function RecordDocument({
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[560px] text-left text-sm">
+            <table className="w-full min-w-[760px] text-left text-sm">
               <caption className="sr-only">Người nhận và tài sản trong biên bản</caption>
               <thead>
                 <tr className="border-b border-heritage-border text-sm text-heritage-muted">
@@ -69,6 +77,12 @@ export function RecordDocument({
                   </th>
                   <th scope="col" className="px-4 py-3 font-semibold">
                     Danh tính
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Chữ ký
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Giao phần của mình
                   </th>
                   <th scope="col" className="px-4 py-3 font-semibold">
                     Phiếu giao nhận
@@ -83,6 +97,7 @@ export function RecordDocument({
               <tbody className="divide-y divide-heritage-border">
                 {record.recipients.map((recipient) => {
                   const identity = identityText(recipient);
+                  const delivery = deliveryText(record, recipient);
                   const receipt = receiptText(recipient);
                   return (
                     <tr key={recipient.beneficiaryId} className="align-top">
@@ -99,6 +114,12 @@ export function RecordDocument({
                       </td>
                       <td className="px-4 py-4">
                         <Chip tone={identity.tone}>{identity.label}</Chip>
+                      </td>
+                      <td className="px-4 py-4">
+                        <SignedCell at={recipient.signedAt} />
+                      </td>
+                      <td className="px-4 py-4">
+                        <Chip tone={delivery.tone}>{delivery.label}</Chip>
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex flex-col items-start gap-2">
@@ -127,9 +148,15 @@ export function RecordDocument({
           </div>
         )}
 
-        <div className="space-y-2 rounded-xl border border-heritage-border p-4">
-          <p className="text-sm font-semibold">Luật sư ký biên bản</p>
-          <SignedCell at={record.verifierSignedAt} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-2 rounded-xl border border-heritage-border p-4">
+            <p className="text-sm font-semibold">Luật sư ký xác minh</p>
+            <SignedCell at={record.verifierSignedAt} />
+          </div>
+          <div className="space-y-2 rounded-xl border border-heritage-border p-4">
+            <p className="text-sm font-semibold">Người thực thi ký</p>
+            <SignedCell at={record.executorSignedAt} />
+          </div>
         </div>
         <p className="text-sm leading-6 text-heritage-muted">
           LegacyVault chỉ giữ và giao tài sản theo biên bản này. Việc pháp lý (biên bản phân chia,

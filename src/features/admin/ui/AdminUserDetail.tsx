@@ -59,8 +59,8 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
     );
   const user = query.data;
   const isVerifier = user.role === "VERIFIER";
-  // Người thực thi hệ thống cũng xác minh bằng ảnh thẻ (luật sư / chứng chỉ hành nghề).
-  const hasCard = isVerifier || user.role === "EXECUTOR";
+  // Chỉ Người xét duyệt (luật sư) có ảnh thẻ; Người thực thi là nhân viên hệ thống, không có ảnh thẻ.
+  const hasCard = isVerifier;
   return (
     <div className="mt-6 space-y-6">
       {back}

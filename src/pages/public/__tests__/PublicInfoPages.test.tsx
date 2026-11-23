@@ -34,6 +34,13 @@ describe("Trang thông tin công khai", () => {
     expect(contact.getAttribute("href")).toBe(ROUTES.PUBLIC.CONTACT);
   });
 
+  it("Hỏi đáp có câu về nhà, đất, xe và trả lời bắt đầu bằng Không.", () => {
+    renderPage(<FaqPage />);
+    expect(screen.getByText("LegacyVault có giao nhà, đất, xe không?")).toBeTruthy();
+    expect(screen.getByText(/^Không\. Hệ thống chỉ giữ và giao tài sản số\./)).toBeTruthy();
+    expect(screen.getByText(/Tải bản scan giấy tờ lên không chuyển quyền sở hữu/)).toBeTruthy();
+  });
+
   it("Liên hệ hiển thị kênh hỗ trợ và đường về Hỏi đáp", () => {
     renderPage(<ContactPage />);
     expect(screen.getByRole("heading", { level: 1, name: "Liên hệ LegacyVault" })).toBeTruthy();

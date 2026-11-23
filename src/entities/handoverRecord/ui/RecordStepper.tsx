@@ -3,11 +3,11 @@ import { cn } from "cn";
 import type { RecordStatus } from "../model/handoverRecord.schema";
 import { currentStepIndex, recordSteps } from "../model/recordPresentation";
 
-/** Thanh ba bước của biên bản: bước đã xong có dấu tích, bước đang làm được tô, bước sau còn khóa. */
+/** Thanh hai bước của biên bản: bước đã xong có dấu tích, bước đang làm được tô, bước sau còn khóa. */
 export function RecordStepper({ status }: { status: RecordStatus }) {
   const current = currentStepIndex(status);
   return (
-    <ol aria-label="Các bước của biên bản" className="grid gap-3 sm:grid-cols-3">
+    <ol aria-label="Các bước của biên bản" className="grid gap-3 sm:grid-cols-2">
       {recordSteps.map((step, index) => {
         const done = index < current;
         const active = index === current;

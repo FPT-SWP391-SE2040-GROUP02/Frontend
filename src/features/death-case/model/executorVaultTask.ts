@@ -20,13 +20,13 @@ const URGENCY_ORDER: Record<VaultUrgency, number> = { sign: 0, handover: 1, safe
 /** Việc cần làm của Người thực thi với một kho, chỉ suy từ dữ liệu `/executor/vaults` có sẵn. */
 export function vaultTask(vault: ExecutorVault): VaultTask {
   const status = vault.handoverRecordStatus;
-  if (status === "SIGNING") {
+  if (status === "SIGNING" || status === "IDENTITY_CHECK") {
     return {
-      urgency: "handover",
-      label: "Chờ luật sư ký",
+      urgency: "sign",
+      label: "Đang ký biên bản",
       tone: "warning",
-      detail: "Biên bản bàn giao đang chờ luật sư ký",
-      task: null,
+      detail: "Biên bản đã chốt, đang ký và giao từng người",
+      task: "đọc lại biên bản và ký nếu bạn chưa ký, rồi gửi mã nhận cho người đã được mở ở mục Bàn giao.",
     };
   }
   if (status === "COMPLETED" && vault.planStatus !== "CLOSED") {
@@ -34,16 +34,16 @@ export function vaultTask(vault: ExecutorVault): VaultTask {
       urgency: "sign",
       label: "Đang giao tài sản",
       tone: "warning",
-      detail: "Luật sư đã ký biên bản",
+      detail: "Mọi người nhận đã ký",
       task: "gửi mã nhận và ký phiếu giao nhận ở mục Bàn giao.",
     };
   }
-  if (status === "DRAFTING" || status === "IDENTITY_CHECK") {
+  if (status === "DRAFTING") {
     return {
       urgency: "handover",
       label: "Đang lập biên bản",
       tone: "warning",
-      detail: "Luật sư đang lập biên bản hoặc kiểm danh tính người nhận",
+      detail: "Luật sư đang lập biên bản",
       task: null,
     };
   }

@@ -23,22 +23,15 @@ const KEY = {
   status: "ACTIVE_ON_SYSTEM",
 };
 
-function executor(status: "VERIFIED" | "UNVERIFIED"): SystemExecutor {
+function executor(isAvailable = true): SystemExecutor {
   return {
     id: "22222222-2222-4222-8222-222222222222",
-    fullName: "Luật sư Thử",
+    fullName: "Nhân viên Thử",
     email: "thu@example.test",
     phoneMasked: null,
     executorRoleTitle: "Người thực thi",
-    legalVerification: {
-      status,
-      lawyerCardNumber: null,
-      practiceCertificateNumber: null,
-      organization: null,
-      verifiedAt: null,
-    },
     assignedVaultsCount: 0,
-    isAvailable: true,
+    isAvailable,
   };
 }
 
@@ -86,19 +79,26 @@ describe("ExecutorReceivedKeyCard", () => {
 });
 
 describe("SystemExecutorCard", () => {
-  it("người đã xác minh chọn được", async () => {
+  it("chọn được người thực thi đang nhận kho", async () => {
     const onSelect = vi.fn();
-    render(<SystemExecutorCard executor={executor("VERIFIED")} onSelect={onSelect} />);
+    render(<SystemExecutorCard executor={executor()} onSelect={onSelect} />);
 
-    await userEvent.click(screen.getByRole("button", { name: "Chọn người này: Luật sư Thử" }));
+    await userEvent.click(screen.getByRole("button", { name: "Chọn người này: Nhân viên Thử" }));
 
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
 
-  it("người chưa có hồ sơ pháp lý bị khóa kèm lý do", () => {
-    render(<SystemExecutorCard executor={executor("UNVERIFIED")} onSelect={vi.fn()} />);
+  it("thẻ không còn chữ xác minh pháp lý hay hồ sơ luật sư", () => {
+    render(<SystemExecutorCard executor={executor()} onSelect={vi.fn()} />);
 
-    expect(screen.getByRole("button", { name: "Chọn người này: Luật sư Thử" })).toBeDisabled();
-    expect(screen.getByText("Chưa có hồ sơ pháp lý nên chưa thể chọn.")).toBeInTheDocument();
+    expect(screen.queryByText(/pháp lý/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/thẻ luật sư|chứng chỉ hành nghề/i)).not.toBeInTheDocument();
+  });
+
+  it("người không nhận thêm kho bị khóa kèm lý do", () => {
+    render(<SystemExecutorCard executor={executor(false)} onSelect={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: "Chọn người này: Nhân viên Thử" })).toBeDisabled();
+    expect(screen.getByText("Người này hiện chưa nhận thêm kho.")).toBeInTheDocument();
   });
 });

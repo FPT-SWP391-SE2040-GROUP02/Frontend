@@ -2,6 +2,7 @@ import { z } from "zod";
 import { apiClient } from "@/shared/api";
 import { readBlobFailure } from "@/shared/lib/saveBlob";
 import {
+  availableHandoverSchema,
   myClaimSchema,
   ownerRequestSchema,
   requestPreviewSchema,
@@ -10,9 +11,16 @@ import {
 const id = z.string().uuid();
 const base = "/handover/requests";
 
-function filesForm(files: File[], note: string, token?: string): FormData {
+/** Trường định danh kho: token của link riêng, hoặc vaultId khi người nhận đã đăng nhập. */
+interface RequestTarget {
+  token?: string;
+  vaultId?: string;
+}
+
+function filesForm(files: File[], note: string, target: RequestTarget = {}): FormData {
   const form = new FormData();
-  if (token !== undefined) form.append("token", token);
+  if (target.token !== undefined) form.append("token", target.token);
+  if (target.vaultId !== undefined) form.append("vaultId", target.vaultId);
   form.append("note", note.trim());
   for (const file of files) form.append("files", file);
   return form;
@@ -28,10 +36,26 @@ export const handoverRequestService = {
   /** Multipart: bỏ Content-Type mặc định để trình duyệt tự đặt boundary. */
   async submit(token: string, note: string, files: File[]) {
     return myClaimSchema.parse(
-      await apiClient.post<unknown, unknown>(base, filesForm(files, note, token), {
+      await apiClient.post<unknown, unknown>(base, filesForm(files, note, { token }), {
         headers: { "Content-Type": undefined },
       }),
     );
+  },
+  /** Gửi yêu cầu bằng tài khoản đã đăng nhập (email đã xác minh khớp email Chủ kho khai), không cần link riêng. */
+  async submitByAccount(vaultId: string, note: string, files: File[]) {
+    return myClaimSchema.parse(
+      await apiClient.post<unknown, unknown>(
+        `${base}/by-account`,
+        filesForm(files, note, { vaultId: id.parse(vaultId) }),
+        { headers: { "Content-Type": undefined } },
+      ),
+    );
+  },
+  /** Các kho được để lại cho tài khoản này; email chưa xác minh thì Backend trả mảng rỗng. */
+  async available(signal?: AbortSignal) {
+    return z
+      .array(availableHandoverSchema)
+      .parse(await apiClient.get<unknown, unknown>(`${base}/available`, { signal }));
   },
   async mine(signal?: AbortSignal) {
     return z

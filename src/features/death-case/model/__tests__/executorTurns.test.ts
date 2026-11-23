@@ -98,15 +98,65 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
     expect(progress.chip).toBe("Đang kiểm danh tính");
   });
 
-  it("luật sư đã xác nhận danh tính: chờ luật sư ký biên bản", () => {
+  it("luật sư đã xác nhận danh tính: chờ người nhận ký biên bản", () => {
     const progress = deriveTurnProgress(
       turn({ status: "READY_TO_ACCEPT", invitationSentAt: SENT, identityConfirmedAt: SIGNED }),
     );
     expect(states(progress)).toEqual(["done", "done", "current", "pending", "pending"]);
     expect(progress.segments[1].timeText).toBe("14:00 23/12");
-    expect(progress.headline).toBe("Chờ luật sư ký biên bản");
-    expect(progress.detail).toBe("người nhận đã xác nhận danh tính");
+    expect(progress.headline).toBe("Chờ người nhận ký biên bản");
+    expect(progress.detail).toBe("danh tính đã xong, người nhận chưa ký");
     expect(progress.group).toBe("waiting");
+  });
+
+  it("người nhận đã ký mà luật sư hoặc Người thực thi chưa ký: chờ họ, ghi giờ người nhận ký", () => {
+    const progress = deriveTurnProgress(
+      turn({
+        status: "READY_TO_ACCEPT",
+        invitationSentAt: SENT,
+        identityConfirmedAt: SIGNED,
+        recipientSignedAt: APPROVED,
+      }),
+    );
+    expect(progress.headline).toBe("Chờ luật sư hoặc Người thực thi ký");
+    expect(progress.detail).toBe("người nhận đã ký 15:00 23/12");
+  });
+
+  it("Người xét duyệt đã duyệt, chưa nhập mã: cần bạn đưa mã", () => {
+    const progress = deriveTurnProgress(
+      turn({
+        status: "HANDOVER_COMMITTED",
+        invitationSentAt: SENT,
+        recipientSignedAt: SIGNED,
+        documentApprovedAt: APPROVED,
+        decidedAt: APPROVED,
+      }),
+    );
+    expect(states(progress)).toEqual(["done", "done", "done", "current", "pending"]);
+    expect(progress.headline).toBe("Chờ nhập mã mở gói");
+    expect(progress.detail).toBe("bạn cần đưa mã cho người này");
+    expect(progress.group).toBe("action");
+    expect(progress.needsAction).toBe(true);
+    expect(progress.chip).toBe("Chờ nhập mã");
+  });
+
+  it("đã nhập mã, đang tải dở", () => {
+    const progress = deriveTurnProgress(
+      turn({
+        status: "HANDOVER_COMMITTED",
+        invitationSentAt: SENT,
+        recipientSignedAt: SIGNED,
+        documentApprovedAt: APPROVED,
+        decidedAt: APPROVED,
+        keyVerifiedAt: KEY,
+        downloadedItems: 1,
+      }),
+    );
+    expect(states(progress)).toEqual(["done", "done", "done", "done", "current"]);
+    expect(progress.headline).toBe("Chờ người nhận tải tài sản");
+    expect(progress.detail).toBe("tải 1/3 tài sản");
+    expect(progress.needsAction).toBe(false);
+    expect(progress.segments[3].timeText).toBe("16:00 23/12");
   });
 
   it("người nhận đã ký phiếu: tới lượt Người thực thi ký", () => {
@@ -140,46 +190,12 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
     expect(progress.detail).toBe("Thiếu ảnh");
   });
 
-  it("Người xét duyệt đã duyệt, chưa nhập mã: cần bạn đưa mã", () => {
+  it("tải đủ: đã nhận xong, cả 5 đoạn xanh", () => {
     const progress = deriveTurnProgress(
       turn({
         status: "HANDOVER_COMMITTED",
         invitationSentAt: SENT,
-        documentApprovedAt: APPROVED,
-        decidedAt: APPROVED,
-      }),
-    );
-    expect(states(progress)).toEqual(["done", "done", "done", "current", "pending"]);
-    expect(progress.headline).toBe("Chờ nhập mã mở gói");
-    expect(progress.detail).toBe("bạn cần đưa mã cho người này");
-    expect(progress.group).toBe("action");
-    expect(progress.needsAction).toBe(true);
-    expect(progress.chip).toBe("Chờ nhập mã");
-  });
-
-  it("đã nhập mã, đang tải dở", () => {
-    const progress = deriveTurnProgress(
-      turn({
-        status: "HANDOVER_COMMITTED",
-        invitationSentAt: SENT,
-        documentApprovedAt: APPROVED,
-        decidedAt: APPROVED,
-        keyVerifiedAt: KEY,
-        downloadedItems: 1,
-      }),
-    );
-    expect(states(progress)).toEqual(["done", "done", "done", "done", "current"]);
-    expect(progress.headline).toBe("Chờ người nhận tải tài sản");
-    expect(progress.detail).toBe("tải 1/3 tài sản");
-    expect(progress.needsAction).toBe(false);
-    expect(progress.segments[3].timeText).toBe("16:00 23/12");
-  });
-
-  it("hai bên đã ký phiếu: đã nhận xong, cả 5 đoạn xanh", () => {
-    const progress = deriveTurnProgress(
-      turn({
-        status: "HANDOVER_COMMITTED",
-        invitationSentAt: SENT,
+        recipientSignedAt: SIGNED,
         documentApprovedAt: APPROVED,
         decidedAt: APPROVED,
         keyVerifiedAt: KEY,
@@ -200,6 +216,7 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
       turn({
         status: "HANDOVER_COMMITTED",
         invitationSentAt: SENT,
+        recipientSignedAt: SIGNED,
         documentApprovedAt: APPROVED,
         decidedAt: APPROVED,
         downloadedItems: 1,

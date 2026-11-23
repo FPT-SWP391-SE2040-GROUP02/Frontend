@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { configureStore } from "@reduxjs/toolkit";
+import { Provider } from "react-redux";
+import authReducer from "@/entities/user/model/authSlice";
+import { handoverRequestService } from "@/features/handover-request";
 import { AxiosError, AxiosHeaders } from "axios";
 import { OwnerDashboard } from "../OwnerDashboard";
 import { ownerVaultService } from "@/features/vault-management/api/ownerVaultService";
@@ -60,6 +64,7 @@ beforeEach(() => {
   vi.spyOn(beneficiaryService, "list").mockResolvedValue(pageFixture([]));
   vi.spyOn(planSetupService, "get").mockResolvedValue(setupFixture());
   vi.spyOn(auditLogService, "list").mockResolvedValue(pageFixture([]));
+  vi.spyOn(handoverRequestService, "available").mockResolvedValue([]);
 });
 afterEach(() => {
   cleanup();
@@ -68,16 +73,57 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 function mount(enabled = true) {
+  const store = configureStore({
+    reducer: { auth: authReducer },
+    preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
+  });
   return render(
-    <QueryClientProvider client={client}>
-      <MemoryRouter>
-        <OwnerDashboard enabled={enabled} />
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <Provider store={store}>
+      <QueryClientProvider client={client}>
+        <MemoryRouter>
+          <OwnerDashboard enabled={enabled} />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </Provider>,
   );
 }
 
+const RECEIVE_CARD = "Tài sản được để lại cho bạn";
+const availableRow = {
+  vaultId: "11111111-1111-4111-8111-111111111111",
+  beneficiaryId: "22222222-2222-4222-8222-222222222222",
+  ownerName: "Nguyễn Thị A",
+  status: "CODE_READY" as const,
+  needsAction: true,
+  canRequest: false,
+  reviewReason: null,
+  claimId: null,
+  turnId: null,
+};
+
 describe("Owner dashboard from server metadata", () => {
+  it("shows one card with the Owner name and a link to Nhận tài sản when a vault needs action", async () => {
+    vi.mocked(handoverRequestService.available).mockResolvedValue([availableRow]);
+    mount();
+    const card = await screen.findByRole("region", { name: RECEIVE_CARD });
+    expect(card).toHaveTextContent("Nguyễn Thị A để lại tài sản cho bạn");
+    expect(within(card).getByRole("link", { name: "Mở trang Nhận tài sản" })).toHaveAttribute(
+      "href",
+      "/dashboard/receive-assets",
+    );
+    expect(screen.queryByText(/đã để lại cho bạn một gói/)).not.toBeInTheDocument();
+  });
+
+  it("hides the card when no vault needs action", async () => {
+    vi.mocked(handoverRequestService.available).mockResolvedValue([
+      { ...availableRow, status: "WAITING_OTHERS", needsAction: false },
+    ]);
+    mount();
+    await screen.findByRole("heading", { name: "Tài sản mới thêm" });
+    await vi.waitFor(() => expect(handoverRequestService.available).toHaveBeenCalled());
+    expect(screen.queryByRole("region", { name: RECEIVE_CARD })).not.toBeInTheDocument();
+  });
+
   it("keeps the executor step incomplete when server readiness rejects an accepted invitation", async () => {
     const setup = setupFixture();
     setup.executors = [

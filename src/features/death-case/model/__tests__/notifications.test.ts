@@ -27,6 +27,15 @@ describe("deriveNotifications", () => {
     expect(deriveNotifications(vault, null)).toEqual([]);
   });
 
+  it("biên bản chờ bạn ký thì báo đứng trên cùng", () => {
+    const items = deriveNotifications(
+      vault,
+      record({ status: "SIGNING", canSign: true, finalizedAt: "2026-11-02T03:00:00Z" }),
+    );
+    expect(items[0].title).toBe("Đến lượt bạn ký biên bản");
+    expect(items[0].tone).toBe("attention");
+  });
+
   it("các mốc của biên bản xếp mới nhất trước", () => {
     const items = deriveNotifications(
       vault,
@@ -37,7 +46,7 @@ describe("deriveNotifications", () => {
       }),
     );
     expect(items.map((item) => item.title)).toEqual([
-      "Luật sư đã ký biên bản",
+      "Mọi người nhận đã ký biên bản",
       "Luật sư đã chốt biên bản",
       "Có yêu cầu nhận tài sản",
     ]);

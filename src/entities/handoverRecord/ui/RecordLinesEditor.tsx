@@ -30,6 +30,8 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   const saved = useMemo(() => linesOf(record), [record]);
   const [selected, setSelected] = useState<Set<string>>(saved);
   const dirty = selected.size !== saved.size || [...selected].some((key) => !saved.has(key));
+  // Luật sư phải tick xác nhận căn cứ pháp lý mỗi lần chốt; state nằm trong component được remount theo revisionNo nên reopen sẽ bỏ tick.
+  const [legalBasisConfirmed, setLegalBasisConfirmed] = useState(false);
   const busy = save.pending || split.pending || finalize.pending;
   // Người bị từ chối giấy tờ không được ghi vào biên bản; còn yêu cầu chưa xét thì chưa chốt được.
   const rejected = new Set(
@@ -45,6 +47,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   const apply = (next: HandoverRecord) => {
     client.setQueryData(handoverRecordKeys.verifier(next.id), next);
     setSelected(linesOf(next));
+    setLegalBasisConfirmed(false);
     void client.invalidateQueries({ queryKey: handoverRecordKeys.root });
   };
   const toggle = (key: string) => {
@@ -148,6 +151,20 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           </table>
         </div>
 
+        <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+          <input
+            type="checkbox"
+            className="mt-1 size-5 shrink-0 cursor-pointer accent-heritage-primary"
+            checked={legalBasisConfirmed}
+            disabled={busy}
+            onChange={(event) => setLegalBasisConfirmed(event.target.checked)}
+          />
+          <span>
+            Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) hoặc xác định không có di chúc, và lập
+            biên bản này theo đúng quy định. Tôi chịu trách nhiệm về nội dung biên bản.
+          </span>
+        </label>
+
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
@@ -162,7 +179,14 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           <button
             type="button"
             className={buttonStyles.dark}
-            disabled={busy || dirty || saved.size === 0 || claimsPending || noAccepted}
+            disabled={
+              busy ||
+              dirty ||
+              saved.size === 0 ||
+              claimsPending ||
+              noAccepted ||
+              !legalBasisConfirmed
+            }
             onClick={() =>
               void finalize.execute(() => handoverRecordService.finalize(record.id), apply)
             }

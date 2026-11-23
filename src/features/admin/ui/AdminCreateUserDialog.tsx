@@ -35,8 +35,11 @@ const createUserSchema = z
     phone: z.string().trim().max(32).optional(),
   })
   .superRefine((data, ctx) => {
-    // Quản trị viên bắt buộc mật khẩu khởi tạo; Người xét duyệt / Người thực thi nhận thư mời đặt mật khẩu qua email.
-    if (data.role === "ADMIN" && (data.password ?? "").length < 8) {
+    // Quản trị viên bắt buộc mật khẩu khởi tạo. Người xét duyệt / Người thực thi có thể để trống (Backend gửi thư mời đặt
+    // mật khẩu tới email) hoặc nhập mật khẩu khởi tạo; có nhập thì phải đủ 8 ký tự.
+    const password = data.password ?? "";
+    const required = data.role === "ADMIN";
+    if ((required || password.length > 0) && password.length < 8) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["password"],
@@ -47,11 +50,19 @@ const createUserSchema = z
 
 type CreateUserInput = z.infer<typeof createUserSchema>;
 
+/** Ô mật khẩu để trống thì coi như không nhập (undefined), để Backend chọn cách gửi thư mời. */
+function passwordToSend(password: string | undefined): string | undefined {
+  if (password === undefined || password === "") {
+    return undefined;
+  }
+  return password;
+}
+
 type StepKey = "account" | "card";
 const STEPS_BY_ROLE: Record<"VERIFIER" | "EXECUTOR" | "ADMIN", StepKey[]> = {
   ADMIN: ["account"],
   VERIFIER: ["account", "card"],
-  EXECUTOR: ["account", "card"],
+  EXECUTOR: ["account"],
 };
 const STEP_LABELS: Record<StepKey, string> = {
   account: "Tài khoản",
@@ -70,7 +81,7 @@ interface AdminCreateUserDialogProps {
 
 /**
  * Hộp thoại tạo tài khoản nhân sự mới (Người xét duyệt, Người thực thi hệ thống, Quản trị viên).
- * Người xét duyệt và Người thực thi chỉ bắt buộc ảnh thẻ (bằng chứng xác minh), không nhập số thẻ hay chứng chỉ.
+ * Chỉ Người xét duyệt bắt buộc ảnh thẻ (không nhập số thẻ hay chứng chỉ); Người thực thi và Quản trị viên chỉ có bước tài khoản.
  * Tài khoản được kích hoạt ngay lập tức (không cần chờ email verification).
  */
 export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUserDialogProps) {
@@ -89,7 +100,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
   });
 
   const role = useWatch({ control: form.control, name: "role" });
-  // Form dài nên tách bước theo vai trò: Admin 1 bước, Người xét duyệt và Người thực thi 2 bước (thêm ảnh thẻ).
+  // Form dài nên tách bước theo vai trò: Admin và Người thực thi 1 bước, Người xét duyệt 2 bước (thêm ảnh thẻ).
   const [stepIndex, setStepIndex] = useState(0);
   const steps = STEPS_BY_ROLE[role];
   const stepKey = steps[Math.min(stepIndex, steps.length - 1)];
@@ -129,14 +140,10 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
       void goNext();
       return;
     }
-    // Ảnh thẻ là bằng chứng xác minh: Người xét duyệt và Người thực thi đều dùng thẻ luật sư và bắt buộc.
-    const needCard = values.role === "VERIFIER" || values.role === "EXECUTOR";
+    // Chỉ Người xét duyệt (luật sư) cần ảnh thẻ; Người thực thi là nhân viên hệ thống, không có ảnh thẻ.
+    const needCard = values.role === "VERIFIER";
     if (needCard && cardFile === null) {
-      setCardError(
-        values.role === "EXECUTOR"
-          ? "Vui lòng tải ảnh thẻ luật sư hoặc chứng chỉ hành nghề."
-          : "Vui lòng tải ảnh thẻ luật sư.",
-      );
+      setCardError("Vui lòng tải ảnh thẻ luật sư.");
       return;
     }
     if (cardError !== null) {
@@ -148,8 +155,8 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
           createdUser ??
           (await adminService.createUser({
             ...values,
-            // Không gửi mật khẩu cho vai trò nhận thư mời; Backend gửi link đặt mật khẩu tới email.
-            password: values.role === "ADMIN" ? values.password : undefined,
+            // Để trống thì không gửi mật khẩu; Backend gửi link đặt mật khẩu tới email (chỉ với Người xét duyệt / Người thực thi).
+            password: passwordToSend(values.password),
           }));
         setCreatedUser(user);
         if (needCard && cardFile !== null) {
@@ -261,39 +268,47 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                 </select>
               </div>
 
-              {role === "ADMIN" && (
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label
-                      htmlFor="create-user-password"
-                      className="block text-sm font-medium text-heritage-text"
-                    >
-                      Mật khẩu khởi tạo <span className="text-destructive">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="text-sm text-heritage-gold hover:underline"
-                    >
-                      {showPassword ? "Ẩn" : "Hiện"}
-                    </button>
-                  </div>
-                  <Input
-                    id="create-user-password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="new-password"
-                    {...form.register("password")}
-                    aria-invalid={Boolean(form.formState.errors.password)}
-                    className="mt-1"
-                    placeholder="Tối thiểu 8 ký tự"
-                  />
-                  {form.formState.errors.password && (
-                    <p role="alert" className="mt-1 text-sm text-destructive">
-                      {form.formState.errors.password.message}
-                    </p>
-                  )}
+              <div>
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="create-user-password"
+                    className="block text-sm font-medium text-heritage-text"
+                  >
+                    Mật khẩu khởi tạo{" "}
+                    {role === "ADMIN" ? (
+                      <span className="text-destructive">*</span>
+                    ) : (
+                      <span className="text-sm text-heritage-muted">(không bắt buộc)</span>
+                    )}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="text-sm text-heritage-gold hover:underline"
+                  >
+                    {showPassword ? "Ẩn" : "Hiện"}
+                  </button>
                 </div>
-              )}
+                <Input
+                  id="create-user-password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  {...form.register("password")}
+                  aria-invalid={Boolean(form.formState.errors.password)}
+                  className="mt-1"
+                  placeholder="Tối thiểu 8 ký tự"
+                />
+                {role !== "ADMIN" && (
+                  <p className="mt-1 text-sm text-heritage-muted">
+                    Để trống thì hệ thống gửi thư mời đặt mật khẩu tới email.
+                  </p>
+                )}
+                {form.formState.errors.password && (
+                  <p role="alert" className="mt-1 text-sm text-destructive">
+                    {form.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
 
               <div>
                 <label
@@ -322,10 +337,7 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                   htmlFor="create-user-notary-card"
                   className="block text-sm font-medium text-heritage-text"
                 >
-                  {role === "EXECUTOR"
-                    ? "Ảnh thẻ luật sư / chứng chỉ hành nghề"
-                    : "Ảnh thẻ luật sư"}{" "}
-                  <span className="text-destructive">*</span>
+                  Ảnh thẻ luật sư <span className="text-destructive">*</span>
                 </label>
                 <input
                   id="create-user-notary-card"
@@ -338,8 +350,6 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                 />
                 <p className="mt-1 text-sm text-heritage-muted">
                   {cardFile ? `Đã chọn: ${cardFile.name}. ` : ""}JPEG, PNG hoặc WebP, tối đa 2 MB.
-                  {role === "EXECUTOR" &&
-                    " Có ảnh thì Người thực thi mới được tính là đã xác minh pháp lý; Chủ kho chỉ thấy huy hiệu, không thấy ảnh."}
                 </p>
                 {cardError && (
                   <p role="alert" className="mt-1 text-sm text-destructive">

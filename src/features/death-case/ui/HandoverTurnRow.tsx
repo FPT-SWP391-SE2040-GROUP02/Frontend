@@ -1,8 +1,8 @@
-import { useId, useState } from "react";
+import { useId, useState, type ReactNode } from "react";
+import { Lock } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { deathCaseService } from "../api/deathCaseService";
-import { Lock } from "lucide-react";
 import { cn } from "cn";
 import { buttonStyles, formatDateTime, Initial } from "@/shared/ui/heritageKit";
 import type { TurnProgress, TurnSegment, SegmentState, TurnTone } from "../model/executorTurns";
@@ -86,20 +86,49 @@ function recipientName(turn: HandoverProgressTurn): string {
   return `Người nhận CCCD ${turn.beneficiaryCitizenId}`;
 }
 
-/** Ba ô nhỏ viền mảnh: Thông tin liên hệ, Tài sản, Phiếu giao nhận. */
+/** Ba ô nhỏ viền mảnh: Thông tin liên hệ, Tài sản, Biên bản. */
 function DetailBoxes({ turn, progress }: { turn: HandoverProgressTurn; progress: TurnProgress }) {
   const declined = progress.group === "declined" || progress.group === "ended";
   let assetText = `${turn.downloadedItems}/${turn.totalItems} đã tải`;
   if (declined) assetText = "Không bàn giao";
-  let paper = <p className="text-sm">Chưa ký</p>;
+  // Chữ ký của người nhận trên biên bản bàn giao chung (luật sư lập, ba bên ký) và lúc lượt này được mở quyền tải.
+  const paperLines: ReactNode[] = [];
+  let signedText = "Người nhận chưa ký";
+  if (turn.recipientSignedAt) {
+    signedText = `Người nhận đã ký lúc ${formatDateTime(turn.recipientSignedAt)}`;
+  }
+  paperLines.push(
+    <p key="signed" className="text-sm">
+      {signedText}
+    </p>,
+  );
+  if (turn.documentApprovedAt) {
+    const openedText = `Được mở quyền tải lúc ${formatDateTime(turn.documentApprovedAt)}`;
+    paperLines.push(
+      <p key="opened" className="mt-1 text-sm">
+        {openedText}
+      </p>,
+    );
+  }
   if (turn.receivedAllAt) {
-    paper = (
-      <div className="space-y-1">
-        <p className="text-sm">{`Người nhận đã ký lúc ${formatDateTime(turn.receivedAllAt)}`}</p>
-        {turn.receiptExecutorSignedAt && (
-          <p className="text-sm">{`Bạn đã ký lúc ${formatDateTime(turn.receiptExecutorSignedAt)}`}</p>
-        )}
-      </div>
+    paperLines.push(
+      <p key="received" className="mt-1 text-sm">
+        {`Phiếu giao nhận: người nhận ký lúc ${formatDateTime(turn.receivedAllAt)}`}
+      </p>,
+    );
+  }
+  if (turn.receiptExecutorSignedAt) {
+    paperLines.push(
+      <p key="delivered" className="mt-1 text-sm">
+        {`Phiếu giao nhận: bạn ký lúc ${formatDateTime(turn.receiptExecutorSignedAt)}`}
+      </p>,
+    );
+  }
+  if (turn.receiptIssueNote && turn.receiptIssueAt) {
+    paperLines.push(
+      <p key="issue" className="mt-1 break-words text-sm text-heritage-danger">
+        {`Người nhận báo lúc ${formatDateTime(turn.receiptIssueAt)}: ${turn.receiptIssueNote}`}
+      </p>,
     );
   }
   const boxClass = "min-w-0 rounded-xl border border-heritage-border bg-white/60 p-3 text-sm";
@@ -140,14 +169,9 @@ function DetailBoxes({ turn, progress }: { turn: HandoverProgressTurn; progress:
           Chỉ thấy tên và trạng thái tải, không có nội dung.
         </p>
       </section>
-      <section aria-label="Phiếu giao nhận" className={boxClass}>
-        <h4 className={titleClass}>Phiếu giao nhận</h4>
-        {paper}
-        {turn.receiptIssueNote && turn.receiptIssueAt && (
-          <p className="mt-2 break-words text-sm text-heritage-danger">
-            {`Người nhận báo lúc ${formatDateTime(turn.receiptIssueAt)}: ${turn.receiptIssueNote}`}
-          </p>
-        )}
+      <section aria-label="Biên bản" className={boxClass}>
+        <h4 className={titleClass}>Biên bản</h4>
+        {paperLines}
       </section>
     </div>
   );

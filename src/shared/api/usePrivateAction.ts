@@ -54,9 +54,12 @@ const handoverNotAllowedReasons: Record<string, string> = {
   NO_OWNER_SPLIT: "Chủ kho chưa lập biên bản phân chia. Hãy tự chọn người nhận cho từng tài sản.",
   RECORD_INVALID: "Biên bản chưa hợp lệ. Kiểm tra lại người nhận và tài sản trước khi chốt.",
   NOT_IDENTITY_STEP: "Biên bản chưa ở bước kiểm danh tính. Hãy chốt biên bản trước.",
-  NOT_SIGNING_STEP:
-    "Chưa tới bước ký: biên bản phải được chốt và có ít nhất một người nhận được xác nhận danh tính.",
-  RECORD_COMPLETED: "Luật sư đã ký biên bản nên không đổi được nữa.",
+  NOT_SIGNING_STEP: "Chưa tới bước ký: hãy chờ luật sư chốt biên bản.",
+  IDENTITY_NOT_CONFIRMED:
+    "Danh tính của người nhận chưa được luật sư xác nhận nên chưa ký được. Hãy nộp ảnh căn cước và chờ luật sư xác nhận.",
+  PARTIALLY_DELIVERED:
+    "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản. Sai sót sau khi giao xử lý ngoài hệ thống.",
+  RECORD_COMPLETED: "Biên bản đã đủ chữ ký của luật sư, Người thực thi và mọi người nhận.",
   NOT_RECEIVED: "Người nhận chưa xác nhận đã nhận đủ tài sản.",
   SAME_PERSON: "Bạn là người nhận của phiếu này nên không ký bên giao được.",
   ALREADY_RECEIVED: "Bạn đã xác nhận nhận đủ nên không báo thiếu được nữa.",

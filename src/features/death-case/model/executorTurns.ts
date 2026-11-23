@@ -43,7 +43,7 @@ export interface TurnProgress {
 export const STEP_LABELS: Record<TurnStepKey, string> = {
   invited: "Đã mời",
   identity: "Kiểm danh tính",
-  signed: "Luật sư ký",
+  signed: "Ký biên bản",
   key: "Nhập mã mở gói",
   received: "Phiếu giao nhận",
 };
@@ -166,10 +166,11 @@ function stoppedProgress(turn: HandoverProgressTurn): TurnProgress {
 /**
  * Bước hiện tại, 5 đoạn và giờ từng bước của một lượt.
  *
- * Năm bước: Đã mời → Kiểm danh tính → Luật sư ký → Nhập mã mở gói → Phiếu giao nhận.
+ * Năm bước: Đã mời → Kiểm danh tính → Ký biên bản → Nhập mã mở gói → Phiếu giao nhận.
  * - Đã mời: xong khi máy chủ email nhận thư mời (invitationSentAt) hoặc khi lượt đã đi xa hơn.
  * - Kiểm danh tính: xong khi luật sư xác nhận danh tính (identityConfirmedAt) hoặc lượt đã chờ ký trở đi.
- * - Luật sư ký: xong khi luật sư ký biên bản (documentApprovedAt) hoặc lượt đã HANDOVER_COMMITTED.
+ * - Ký biên bản: xong khi lượt này được mở quyền tải (documentApprovedAt: có chữ ký luật sư, Người thực thi và
+ *   chính người nhận này, không chờ người nhận khác) hoặc lượt đã HANDOVER_COMMITTED.
  * - Nhập mã mở gói: xong khi keyVerifiedAt có giờ. Kho không dùng mã thì không có giờ này, nên đã tải được tài sản
  *   (hoặc người nhận đã xác nhận nhận đủ) cũng coi là qua bước, giờ hiện "—".
  * - Phiếu giao nhận: xong khi người nhận xác nhận nhận đủ và Người thực thi ký bên giao.
@@ -267,9 +268,14 @@ export function deriveTurnProgress(turn: HandoverProgressTurn): TurnProgress {
       detail = "người nhận nộp căn cước cho luật sư";
     }
   } else if (firstOpen === 2) {
-    chip = "Chờ luật sư ký";
-    headline = "Chờ luật sư ký biên bản";
-    detail = "người nhận đã xác nhận danh tính";
+    chip = "Chờ ký biên bản";
+    headline = "Chờ người nhận ký biên bản";
+    detail = "danh tính đã xong, người nhận chưa ký";
+    if (turn.recipientSignedAt) {
+      // Người nhận đã ký thì chỉ còn chờ luật sư hoặc Người thực thi (một trong hai hoặc cả hai).
+      headline = "Chờ luật sư hoặc Người thực thi ký";
+      detail = `người nhận đã ký ${formatStepTime(turn.recipientSignedAt)}`;
+    }
   } else if (firstOpen === 3) {
     group = "action";
     needsAction = true;

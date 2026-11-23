@@ -97,7 +97,7 @@ function installAdapter({
 }
 
 describe("OwnerAuditLog transport", () => {
-  it("đối tượng điểm danh và đơn thanh toán không hiện mã rút gọn khó hiểu, mã đầy đủ ở tooltip", async () => {
+  it("đối tượng nhật ký cũ (điểm danh) và đơn thanh toán không hiện mã rút gọn khó hiểu, mã đầy đủ ở tooltip", async () => {
     installAdapter({
       page: pageFixture([
         { ...entry, action: "CHECKED_IN", targetType: "CHECK_IN" },

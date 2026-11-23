@@ -89,7 +89,7 @@ export const adminService = {
       ),
     );
   },
-  /** Giao lại Người xét duyệt cho hồ sơ chứng tử chưa được xét; BE trả 204 (BR-73). */
+  /** Giao lại Người xét duyệt (luật sư) cho biên bản bàn giao; BE trả 204 (BR-73). */
   async reassignVerifier(caseId: string, request: ReassignVerifierRequest) {
     await apiClient.post<unknown, unknown>(
       `/admin/handover-records/${id.parse(caseId)}/reassign-verifier`,

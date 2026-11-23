@@ -17,12 +17,12 @@ export function RecipientGuide({ defaultOpen = false }: { defaultOpen?: boolean 
       text: "Chọn Chấp nhận hoặc Từ chối, điền họ tên, số căn cước, ngày sinh và chụp hai mặt căn cước. Người xét duyệt đối chiếu với thông tin Chủ kho đã khai; nếu thiếu, họ sẽ nêu lý do để bạn bổ sung.",
     },
     {
-      title: "Luật sư ký biên bản",
-      text: "Luật sư xác nhận danh tính của bạn rồi ký biên bản ghi ai nhận tài sản nào. Bạn không phải chờ những người nhận khác.",
+      title: "Đồng ý hoặc từ chối",
+      text: `Sau khi hồ sơ được duyệt bạn có ${policy.decisionDays} ngày để quyết định. Từ chối thì phần này không được bàn giao cho bạn; quá hạn mà chưa quyết định thì lượt hết hiệu lực.`,
     },
     {
       title: "Lấy khóa mở gói",
-      text: "Người thực thi gửi khóa vào email của bạn; chưa nhận được thì liên hệ trực tiếp Người thực thi của kho rồi nhập khóa vào hệ thống. Nhập sai nhiều lần thì lượt bị khóa và cần Người thực thi hoặc quản trị viên mở lại.",
+      text: "Sau khi đồng ý và được duyệt, hãy liên hệ trực tiếp Người thực thi của kho để lấy khóa mở gói rồi nhập vào hệ thống. Nhập sai nhiều lần thì lượt bị khóa và cần Người thực thi hoặc quản trị viên mở lại.",
     },
     {
       title: "Tải, kiểm tra và ký phiếu giao nhận",

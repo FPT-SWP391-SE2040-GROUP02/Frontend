@@ -144,6 +144,83 @@ describe("workspace logo navigation", () => {
     expect(screen.queryByText("Người tin cậy")).not.toBeInTheDocument();
   });
 
+  it("menu có ba nhóm đúng thứ tự, Tổng quan đứng đầu và không thuộc nhóm", () => {
+    const store = configureStore({ reducer: { auth: authReducer } });
+    renderWorkspace(store, "/dashboard");
+    const nav = screen.getByRole("navigation", { name: "Điều hướng Chủ kho" });
+    const labels = Array.from(nav.children)
+      .map((child) => child.textContent ?? "")
+      .filter((text) => text !== "");
+    expect(labels.slice(0, 13)).toEqual([
+      "Tổng quan",
+      "ĐƯỢC ĐỂ LẠI CHO TÔI",
+      "Nhận tài sản",
+      "KHO CỦA TÔI",
+      "Kho của tôi",
+      "Bàn giao",
+      "Người nhận",
+      "Người thực thi",
+      "TÀI KHOẢN",
+      "Xác minh",
+      "Nhật ký hoạt động",
+      "Gói dịch vụ",
+      "Cài đặt",
+    ]);
+    expect(screen.getByRole("link", { name: "Nhận tài sản" })).toHaveAttribute(
+      "href",
+      "/dashboard/receive-assets",
+    );
+  });
+
+  it("mục Nhận tài sản luôn hiện, không số đếm khi không có việc cần làm", async () => {
+    const get = vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    accessTokenMemory.set("owner-workspace-fixture");
+    const store = configureStore({
+      reducer: { auth: authReducer },
+      preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
+    });
+    renderWorkspace(store, "/dashboard");
+    await waitFor(() =>
+      expect(get).toHaveBeenCalledWith("/handover/requests/available", expect.anything()),
+    );
+    expect(screen.getByRole("link", { name: "Nhận tài sản" })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/việc cần làm/)).not.toBeInTheDocument();
+  });
+
+  it("mục Nhận tài sản hiện số dòng needsAction với tên truy cập được", async () => {
+    const row = (vaultId: string, needsAction: boolean) => ({
+      vaultId,
+      beneficiaryId: "22222222-2222-4222-8222-222222222222",
+      ownerName: "Nguyễn Văn A",
+      status: needsAction ? "CODE_READY" : "WAITING_OTHERS",
+      needsAction,
+      canRequest: false,
+      reviewReason: null,
+      claimId: null,
+      turnId: null,
+    });
+    vi.spyOn(apiClient, "get").mockImplementation((url: string) => {
+      if (url.endsWith("/requests/available")) {
+        return Promise.resolve([
+          row("11111111-1111-4111-8111-111111111111", true),
+          row("21111111-1111-4111-8111-111111111111", false),
+          row("31111111-1111-4111-8111-111111111111", true),
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+    accessTokenMemory.set("owner-workspace-fixture");
+    const store = configureStore({
+      reducer: { auth: authReducer },
+      preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
+    });
+    renderWorkspace(store, "/dashboard");
+    expect(await screen.findByLabelText("2 việc cần làm")).toHaveTextContent("2");
+    expect(screen.getByRole("link", { name: /Nhận tài sản/ })).toContainElement(
+      screen.getByLabelText("2 việc cần làm"),
+    );
+  });
+
   it("shows the eyebrow above the title only when one is given", () => {
     const store = configureStore({ reducer: { auth: authReducer } });
     renderWorkspace(store, "/dashboard", "kho cua tao", "Kho của tôi");

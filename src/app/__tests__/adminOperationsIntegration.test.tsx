@@ -278,35 +278,37 @@ describe("Tài khoản", () => {
     ]);
   });
 
-  it("tạo Người thực thi: 2 bước, bắt buộc ảnh thẻ ở bước cuối, không gọi Backend khi thiếu", async () => {
-    usersBackend();
-    const post = vi.spyOn(apiClient, "post");
+  it("tạo Người thực thi: chỉ 1 bước tài khoản, không có bước ảnh thẻ, tạo xong không tải ảnh", async () => {
+    const NEW_ID = "77777777-7777-4777-8777-777777777777";
+    usersBackend((call) => {
+      if (call.method === "post" && call.url === "/admin/users") {
+        return userBody(NEW_ID, "EXECUTOR", "Nhan Vien Thu");
+      }
+      return undefined;
+    });
     setup(ROUTES.DASHBOARD.USERS);
     fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
     const dialog = await screen.findByRole("dialog");
-    await userEvent.type(within(dialog).getByLabelText(/Họ và tên/), "Luật sư Thử");
-    await userEvent.type(within(dialog).getByLabelText(/Email đăng nhập/), "ls.thu@example.test");
+    await userEvent.type(within(dialog).getByLabelText(/Họ và tên/), "Nhan Vien Thu");
+    await userEvent.type(within(dialog).getByLabelText(/Email đăng nhập/), "nv.thu@example.test");
     await userEvent.selectOptions(within(dialog).getByLabelText(/Vai trò hệ thống/), "EXECUTOR");
-    // Người thực thi nhận thư mời đặt mật khẩu nên không có ô mật khẩu khởi tạo.
-    expect(within(dialog).queryByLabelText(/Mật khẩu khởi tạo/)).not.toBeInTheDocument();
-    expect(within(dialog).getAllByRole("listitem")).toHaveLength(2);
+    // Người thực thi có ô mật khẩu khởi tạo nhưng không bắt buộc: để trống thì nhận thư mời đặt mật khẩu.
+    expect(within(dialog).getByLabelText(/Mật khẩu khởi tạo/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Để trống thì hệ thống gửi thư mời/)).toBeInTheDocument();
+    // Không có thanh bước, không có nút Tiếp tục, không có ô ảnh thẻ và không còn chữ nói Người thực thi có thẻ.
+    expect(within(dialog).queryByRole("listitem")).not.toBeInTheDocument();
+    expect(within(dialog).queryByRole("button", { name: "Tiếp tục" })).not.toBeInTheDocument();
+    expect(within(dialog).queryByLabelText(/Ảnh thẻ/)).not.toBeInTheDocument();
+    expect(within(dialog).queryByText(/xác minh pháp lý/)).not.toBeInTheDocument();
 
-    // Bước 1 → 2 (ảnh thẻ); chỉ bước cuối mới có nút tạo, không còn ô số thẻ hay chứng chỉ.
-    expect(within(dialog).queryByRole("button", { name: "Tạo tài khoản" })).not.toBeInTheDocument();
-    await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
-    // Bấm Tiếp tục chỉ sang bước ảnh thẻ, không tự gửi form: chưa có lỗi thiếu ảnh và chưa gọi Backend.
-    expect(await within(dialog).findByLabelText(/Ảnh thẻ luật sư/)).toBeInTheDocument();
-    expect(within(dialog).queryByText(/Vui lòng tải ảnh thẻ luật sư/)).not.toBeInTheDocument();
-    expect(post).not.toHaveBeenCalled();
-    expect(within(dialog).queryByLabelText(/Số thẻ luật sư/)).not.toBeInTheDocument();
-    expect(within(dialog).queryByLabelText(/Số chứng chỉ hành nghề/)).not.toBeInTheDocument();
-    await userEvent.click(await within(dialog).findByRole("button", { name: "Tạo tài khoản" }));
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tạo tài khoản" }));
 
-    expect(await within(dialog).findByText(/Vui lòng tải ảnh thẻ luật sư/)).toBeInTheDocument();
-    expect(post).not.toHaveBeenCalled();
+    await waitFor(() => expect(callsTo("post", "/admin/users")).toHaveLength(1));
+    expect(callsTo("post", "/admin/users")[0].body).toMatchObject({ role: "EXECUTOR" });
+    expect(calls.some((call) => call.url.includes("notary-card"))).toBe(false);
   });
 
-  it("tạo tài khoản: Người xét duyệt 2 bước, Quản trị viên 1 bước và vẫn nhập mật khẩu", async () => {
+  it("tạo tài khoản: Người xét duyệt 2 bước (mật khẩu không bắt buộc), Quản trị viên 1 bước và bắt buộc mật khẩu", async () => {
     usersBackend();
     setup(ROUTES.DASHBOARD.USERS);
     fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
@@ -315,7 +317,11 @@ describe("Tài khoản", () => {
 
     await userEvent.selectOptions(role, "VERIFIER");
     expect(within(dialog).getAllByRole("listitem")).toHaveLength(2);
-    expect(within(dialog).queryByLabelText(/Mật khẩu khởi tạo/)).not.toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/Mật khẩu khởi tạo/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Để trống thì hệ thống gửi thư mời/)).toBeInTheDocument();
+
+    await userEvent.selectOptions(role, "EXECUTOR");
+    expect(within(dialog).queryByRole("listitem")).not.toBeInTheDocument();
 
     await userEvent.selectOptions(role, "ADMIN");
     expect(within(dialog).queryByRole("listitem")).not.toBeInTheDocument();
@@ -367,7 +373,7 @@ describe("Tài khoản", () => {
     setup(ROUTES.DASHBOARD.USERS);
     fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
     const dialog = await screen.findByRole("dialog");
-    await userEvent.selectOptions(within(dialog).getByLabelText(/Vai trò hệ thống/), "EXECUTOR");
+    await userEvent.selectOptions(within(dialog).getByLabelText(/Vai trò hệ thống/), "VERIFIER");
 
     await userEvent.click(within(dialog).getByRole("button", { name: "Tiếp tục" }));
 

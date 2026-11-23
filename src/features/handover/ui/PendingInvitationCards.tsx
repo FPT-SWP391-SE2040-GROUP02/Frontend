@@ -48,7 +48,7 @@ function InvitationCard({ invitation, email }: { invitation: PendingInvitation; 
       </header>
       <p className="text-sm leading-6">
         Bạn có tên trong biên bản bàn giao do luật sư lập. Bấm Bắt đầu để nộp căn cước cho luật sư
-        kiểm, rồi nhận tài sản và ký phiếu giao nhận.
+        kiểm, rồi ký biên bản và nhận tài sản.
       </p>
       <button type="button" className={buttonStyles.dark} disabled={action.pending} onClick={start}>
         Bắt đầu
