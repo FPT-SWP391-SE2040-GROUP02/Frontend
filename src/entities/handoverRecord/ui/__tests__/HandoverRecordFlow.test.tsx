@@ -371,6 +371,25 @@ describe("Luật sư ký và mở lại biên bản (bước 2)", () => {
     expect(an).toHaveTextContent("Đã mở quyền tải");
     expect(binh).toHaveTextContent("Chờ người này ký");
     expect(screen.queryByText(/chờ tất cả/i)).not.toBeInTheDocument();
+    // Đã giao cho An: không còn nút Mở lại, hiện lý do.
+    expect(
+      screen.queryByRole("button", { name: "Mở lại biên bản để sửa" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản. Sai sót sau khi giao xử lý ngoài hệ thống.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("chưa giao cho ai thì vẫn có nút Mở lại", async () => {
+    backend(signing());
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    expect(await screen.findByRole("button", { name: "Mở lại biên bản để sửa" })).toBeEnabled();
+    expect(
+      screen.queryByText(/Đã giao tài sản cho ít nhất một người nhận/),
+    ).not.toBeInTheDocument();
   });
 
   it("mở lại bị chặn vì đã có người được mở quyền tải thì báo câu dễ hiểu", async () => {
@@ -389,7 +408,7 @@ describe("Luật sư ký và mở lại biên bản (bước 2)", () => {
 
     await user.click(await screen.findByRole("button", { name: "Mở lại biên bản để sửa" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "đã có người nhận được mở quyền tải",
+      "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản.",
     );
   });
 

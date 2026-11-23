@@ -58,7 +58,7 @@ const handoverNotAllowedReasons: Record<string, string> = {
   IDENTITY_NOT_CONFIRMED:
     "Danh tính của người nhận chưa được luật sư xác nhận nên chưa ký được. Hãy nộp ảnh căn cước và chờ luật sư xác nhận.",
   PARTIALLY_DELIVERED:
-    "Không mở lại biên bản được vì đã có người nhận được mở quyền tải tài sản của mình.",
+    "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản. Sai sót sau khi giao xử lý ngoài hệ thống.",
   RECORD_COMPLETED: "Biên bản đã đủ chữ ký của luật sư, Người thực thi và mọi người nhận.",
   NOT_RECEIVED: "Người nhận chưa xác nhận đã nhận đủ tài sản.",
   SAME_PERSON: "Bạn là người nhận của phiếu này nên không ký bên giao được.",

@@ -27,6 +27,10 @@ function IdentityAction({ recipient }: { recipient: RecordRecipient }) {
   );
 }
 
+/** Lý do không mở lại được biên bản khi đã giao cho ít nhất một người nhận. */
+const PARTIALLY_DELIVERED_TEXT =
+  "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản. Sai sót sau khi giao xử lý ngoài hệ thống.";
+
 /** Bước 2: ký ngay sau khi chốt, kiểm danh tính từng người nhận, hoặc mở lại biên bản để sửa. */
 function FinalizedActions({ record }: { record: HandoverRecord }) {
   const client = useQueryClient();
@@ -38,6 +42,10 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
     void client.invalidateQueries({ queryKey: handoverRecordKeys.root });
   };
   const waiting = record.recipients.filter((recipient) => !recipient.identityConfirmedAt).length;
+  // Đã giao cho ít nhất một người (lượt có quyền tải) thì Backend chặn mở lại (PARTIALLY_DELIVERED): ẩn nút.
+  const delivered = record.recipients.some(
+    (recipient) => recipient.turnStatus === "HANDOVER_COMMITTED",
+  );
   return (
     <Panel title="Bước 2 · Ký và giao từng người" labelledBy="record-actions">
       <div className="space-y-4 text-sm leading-6">
@@ -62,22 +70,29 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
               {record.canSign ? (sign.pending ? "Đang ký…" : "Ký xác minh") : "Bạn đã ký"}
             </button>
           )}
-          <button
-            type="button"
-            className={buttonStyles.outline}
-            disabled={busy}
-            onClick={() =>
-              void reopen.execute(() => handoverRecordService.reopen(record.id), apply)
-            }
-          >
-            {reopen.pending ? "Đang mở lại…" : "Mở lại biên bản để sửa"}
-          </button>
+          {!delivered && (
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              disabled={busy}
+              onClick={() =>
+                void reopen.execute(() => handoverRecordService.reopen(record.id), apply)
+              }
+            >
+              {reopen.pending ? "Đang mở lại…" : "Mở lại biên bản để sửa"}
+            </button>
+          )}
         </div>
-        <p className="text-heritage-muted">
-          Mở lại biên bản thì mọi chữ ký đã có mất hiệu lực, cả ba bên phải ký lại. Người nhận đã
-          được xác nhận danh tính vẫn giữ nguyên. Không mở lại được khi đã có người nhận được mở
-          quyền tải.
-        </p>
+        {delivered ? (
+          <p role="note" className="text-heritage-muted">
+            {PARTIALLY_DELIVERED_TEXT}
+          </p>
+        ) : (
+          <p className="text-heritage-muted">
+            Mở lại biên bản thì mọi chữ ký đã có mất hiệu lực, cả ba bên phải ký lại. Người nhận đã
+            được xác nhận danh tính vẫn giữ nguyên.
+          </p>
+        )}
         {(sign.error || reopen.error) && (
           <p role="alert" className="text-destructive">
             {sign.error || reopen.error}
