@@ -17,7 +17,7 @@ function taskForGap(target: WillGapTarget): HandoverTaskId {
   if (target === "executor") {
     return "executor";
   }
-  return "packages";
+  return "assignments";
 }
 
 function findTaskElement(task: HandoverTaskId): HTMLElement | null {

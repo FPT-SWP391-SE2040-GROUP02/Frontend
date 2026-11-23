@@ -1,9 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { PaginationParams } from "@/shared/types";
-import type {
-  CreatePackageRequest,
-  UpdatePackageRequest,
-} from "@/entities/package/model/package.types";
+import { useQuery } from "@tanstack/react-query";
 import { ownerVaultService } from "../api/ownerVaultService";
 import { isAxiosError } from "axios";
 import { z } from "zod";
@@ -42,13 +37,6 @@ export function isOwnerVaultMissing(error: unknown): boolean {
 export const ownerVaultKeys = {
   all: ["owner-vault"] as const,
   mine: ["owner-vault", "mine"] as const,
-  packages: (vaultId: string, params?: PaginationParams, includeRemoved = false) => {
-    if (includeRemoved) {
-      return ["owner-vault", vaultId, "containers", params ?? {}, "with-removed"] as const;
-    }
-    return ["owner-vault", vaultId, "containers", params ?? {}] as const;
-  },
-  package: (vaultId: string, id: string) => ["owner-vault", vaultId, "container", id] as const,
 };
 /**
  * Đọc kho của tài khoản; chưa có kho thì tự tạo (POST /vaults không gửi tên, BE dùng tên mặc định).
@@ -73,74 +61,3 @@ export function useOwnerVault(enabled: boolean) {
     retry: false,
   });
 }
-/** Không gửi request container khi chưa biết vaultId. */
-export function useOwnerPackages(
-  vaultId: string,
-  enabled: boolean,
-  params?: PaginationParams,
-  includeRemoved = false,
-) {
-  return useQuery({
-    queryKey: ownerVaultKeys.packages(vaultId, params, includeRemoved),
-    queryFn: ({ signal }) => {
-      if (includeRemoved) {
-        return ownerVaultService.listPackages(vaultId, params, signal, true);
-      }
-      return ownerVaultService.listPackages(vaultId, params, signal);
-    },
-    enabled: enabled && Boolean(vaultId),
-    retry: false,
-  });
-}
-/** Đọc gói trong scope kho; ownership vẫn do Backend kiểm tra. */
-export function useOwnerPackage(vaultId: string, id: string, enabled: boolean) {
-  return useQuery({
-    queryKey: ownerVaultKeys.package(vaultId, id),
-    queryFn: ({ signal }) => ownerVaultService.getPackage(vaultId, id, signal),
-    enabled: enabled && Boolean(vaultId) && Boolean(id),
-    retry: false,
-  });
-}
-/** Transport tạo gói; UI submit nghiệp vụ vẫn scaffold. */
-export function useCreateOwnerPackage(vaultId: string) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: CreatePackageRequest) =>
-      ownerVaultService.createPackage(vaultId, payload),
-    retry: false,
-    onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
-  });
-}
-/** PUT giữ etag từ lần đọc; 409 cần tải lại và người dùng quyết định. */
-export function useUpdateOwnerPackage(vaultId: string) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, request }: { id: string; request: UpdatePackageRequest }) =>
-      ownerVaultService.updatePackage(vaultId, id, request),
-    retry: false,
-    onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
-  });
-}
-/** Lưu trữ gói; confirmation không được tự bật khi server trả 409. */
-export function useRemoveOwnerPackage(vaultId: string) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      id,
-      confirmPlanDeactivation = false,
-    }: {
-      id: string;
-      confirmPlanDeactivation?: boolean;
-    }) => ownerVaultService.removePackage(vaultId, id, confirmPlanDeactivation),
-    retry: false,
-    onSuccess: () => client.invalidateQueries({ queryKey: ownerVaultKeys.all }),
-  });
-}
-
-// TODO: [P1][VAULT-01] DEVELOPER BLUEPRINT
-// 1. Mục tiêu: nối submit kho/container khi được phép implementation nghiệp vụ.
-// 2. Input/output: vaultId + form/schema + etag -> DTO raw hoặc lỗi giữ nguyên.
-// 3. Bước: RHF/Zod -> hook -> disable pending -> success thật -> invalidate; 409 tải lại,
-//    confirmation tác động kế hoạch chỉ gửi khi người dùng đồng ý.
-// 4. API/thư viện: /vaults, /vaults/{vaultId}/containers, Query, RHF, Zod.
-// 5. Biên/lỗi: 401/403/404/409; không auto-activate; không optimistic; đổi identity clear cache.

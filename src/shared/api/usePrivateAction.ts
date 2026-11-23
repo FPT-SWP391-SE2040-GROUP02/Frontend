@@ -74,7 +74,7 @@ const executorNotAllowedReasons: Record<string, string> = {
 
 /** Reason-specific messages for ASSET_IN_USE */
 const assetInUseReasons: Record<string, string> = {
-  IN_CONTAINER: "Tài sản đang nằm trong một gói. Hãy gỡ khỏi gói trước khi xóa.",
+  ASSIGNED: "Tài sản đang được gán cho người nhận. Hãy gỡ gán trước khi xóa.",
   PINNED_IN_HANDOVER: "Tài sản đã được ghim vào một lượt bàn giao nên không thể xóa.",
 };
 
@@ -163,7 +163,6 @@ const messages: Record<string, string> = {
   VAULT_NOT_FOUND: "Không tìm thấy kho. Tải lại để kiểm tra kho của tài khoản hiện tại.",
   ASSET_IN_USE: "Tài sản đang được sử dụng nên chưa xóa được.",
   ASSET_NOT_FOUND: "Không tìm thấy tài sản trong kho. Tải lại danh sách trước khi tiếp tục.",
-  CONTAINER_NOT_FOUND: "Không tìm thấy gói bàn giao. Tải lại danh sách trước khi tiếp tục.",
   BENEFICIARY_NOT_FOUND: "Không tìm thấy hồ sơ người nhận. Tải lại danh sách trước khi tiếp tục.",
   EMAIL_NOT_VERIFIED: "Vui lòng xác minh email trước khi tạo kho.",
   ACCOUNT_NOT_ACTIVE: "Tài khoản hiện không được phép thực hiện thao tác này.",
@@ -171,15 +170,13 @@ const messages: Record<string, string> = {
   EDIT_CONFLICT: "Dữ liệu đã thay đổi. Tải lại trước khi chỉnh sửa tiếp.",
   VAULT_NOT_EDITABLE: "Kho hiện không cho phép chỉnh sửa.",
   STORAGE_QUOTA_EXCEEDED: "Kho không đủ dung lượng cho nội dung này.",
-  CONTAINER_LIMIT_EXCEEDED: "Kho đã đạt giới hạn số gói bàn giao.",
-  CONTAINER_REMOVED: "Gói bàn giao đã bị xóa, không thể chỉnh sửa.",
-  ASSET_ALREADY_IN_CONTAINER: "Tài sản đang nằm trong một gói khác.",
   PLAN_DEACTIVATION_CONFIRMATION_REQUIRED:
     "Thao tác này sẽ đưa kế hoạch về nháp. Đọc cảnh báo và xác nhận trước khi tiếp tục.",
   BENEFICIARY_IDENTITY_CONFLICT:
     "Số CCCD này đã tồn tại trong danh sách người nhận của kho (với thông tin khác). Vui lòng kiểm tra lại.",
-  BENEFICIARY_IN_USE: "Người nhận đang được gắn vào gói. Hãy gỡ khỏi các gói trước.",
-  BENEFICIARY_SLOTS_EXCEEDED: "Kho không còn suất người nhận.",
+  BENEFICIARY_IN_USE: "Người nhận đang được gán tài sản. Hãy gỡ gán trước.",
+  BENEFICIARY_SLOTS_EXCEEDED:
+    "Kho đã dùng hết suất người nhận. Hãy mua thêm suất hoặc chọn người đã được gán.",
   EKYC_IMAGE_REJECTED:
     "Ảnh chưa đáp ứng yêu cầu xác minh. Hãy chọn ảnh rõ, đúng mặt giấy tờ hoặc selfie rồi thử lại.",
   EKYC_DOCUMENT_EXPIRED: "Bước giấy tờ đã hết hạn hoặc đã được dùng. Bắt đầu lại với ảnh giấy tờ.",

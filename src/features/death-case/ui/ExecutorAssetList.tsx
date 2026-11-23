@@ -6,15 +6,15 @@ import type { ExecutorVault } from "../model/deathCase.schema";
 import {
   assetBadge,
   assetDownloadState,
-  filterPackages,
-  packageStatus,
-  recipientLabels,
-  turnsOfPackage,
+  filterRecipients,
+  recipientLabel,
+  recipientStatus,
+  turnsOfRecipient,
   type AssetDownloadState,
 } from "../model/executorAssets";
 import type { HandoverProgressTurn } from "../model/handoverProgress.schema";
 import { useExecutorRecord } from "@/entities/handoverRecord";
-import { useExecutorPackages } from "../model/useExecutorPackages";
+import { useExecutorRecipients } from "../model/useExecutorRecipients";
 import { useHandoverProgress } from "../model/useHandoverProgress";
 
 const DOWNLOAD_CHIPS: Record<
@@ -54,28 +54,28 @@ function GuideBox({ vault }: { vault: ExecutorVault }) {
 }
 
 /**
- * Tài sản và hướng dẫn của kho, gom theo gói bàn giao. Người thực thi chỉ thấy tên, loại, người nhận và
+ * Tài sản và hướng dẫn của kho, gom theo người nhận. Người thực thi chỉ thấy tên, loại, người nhận và
  * trạng thái tải, không có nút xem hay tải: nội dung chỉ người nhận mở được sau khi nhập mã mở gói.
  */
 export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
   const searchId = useId();
   const [search, setSearch] = useState("");
-  const packages = useExecutorPackages(vault.vaultId);
+  const recipients = useExecutorRecipients(vault.vaultId);
   const record = useExecutorRecord(vault.vaultId).data ?? null;
   const progress = useHandoverProgress(
     record ? record.id : "",
     record !== null && record.status === "COMPLETED",
   );
 
-  if (packages.isPending) return <p role="status">Đang tải danh sách tài sản…</p>;
-  if (packages.isError) {
+  if (recipients.isPending) return <p role="status">Đang tải danh sách tài sản…</p>;
+  if (recipients.isError) {
     return (
       <div role="alert" className="space-y-3">
         <p>Không tải được danh sách tài sản.</p>
         <button
           type="button"
           className={buttonStyles.outline}
-          onClick={() => void packages.refetch()}
+          onClick={() => void recipients.refetch()}
         >
           Thử lại
         </button>
@@ -84,23 +84,26 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
   }
   let turns: HandoverProgressTurn[] = [];
   if (progress.data && progress.data.handoverStarted) turns = progress.data.turns;
-  const shown = filterPackages(packages.data, search);
-  let assetCount = 0;
+  const shown = filterRecipients(recipients.data, search);
+  const shownAssetIds = new Set<string>();
   for (const item of shown) {
-    assetCount += item.assets.length;
+    for (const asset of item.assets) {
+      shownAssetIds.add(asset.id);
+    }
   }
+  const assetCount = shownAssetIds.size;
 
   return (
     <div className="space-y-6">
       <GuideBox vault={vault} />
-      {packages.data.length === 0 && (
-        <Panel title="Chưa có gói bàn giao">
+      {recipients.data.length === 0 && (
+        <Panel title="Chưa có tài sản nào được gán">
           <p role="status" className="text-sm text-heritage-muted">
-            Kho của {vault.ownerFullName} chưa có gói nào sẵn sàng bàn giao.
+            Kho của {vault.ownerFullName} chưa gán tài sản nào cho người nhận.
           </p>
         </Panel>
       )}
-      {packages.data.length > 0 && (
+      {recipients.data.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="relative w-full max-w-md">
             <Search
@@ -120,31 +123,28 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
             />
           </div>
           <p role="status" className="text-sm text-heritage-muted">
-            {assetCount} tài sản trong {shown.length} gói
+            {assetCount} tài sản cho {shown.length} người nhận
           </p>
         </div>
       )}
-      {packages.data.length > 0 && shown.length === 0 && (
+      {recipients.data.length > 0 && shown.length === 0 && (
         <p role="status" className="text-sm text-heritage-muted">
           Không có tài sản hoặc người nhận nào khớp với “{search.trim()}”.
         </p>
       )}
       {shown.map((item) => {
-        const packageTurns = turnsOfPackage(item, turns);
-        const status = packageStatus(packageTurns);
-        const recipients = recipientLabels(item);
+        const recipientTurns = turnsOfRecipient(item, turns);
+        const status = recipientStatus(recipientTurns);
         return (
           <Panel
-            key={item.containerId}
-            title={item.containerName}
+            key={item.beneficiaryId}
+            title={recipientLabel(item)}
             action={<Chip tone={status.tone}>{status.label}</Chip>}
           >
-            <p className="mb-4 text-sm text-heritage-muted">
-              Người nhận: {recipients.length === 0 ? "chưa có người nhận" : recipients.join(", ")}
-            </p>
+            <p className="mb-4 text-sm text-heritage-muted">CCCD {item.citizenId}</p>
             <ul className="divide-y divide-heritage-border">
               {item.assets.map((asset) => {
-                const state = assetDownloadState(asset.id, packageTurns);
+                const state = assetDownloadState(asset.id, recipientTurns);
                 const chip = DOWNLOAD_CHIPS[state];
                 return (
                   <li key={asset.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
@@ -158,6 +158,8 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
                       <p className="break-words font-medium">{asset.name}</p>
                       <p className="text-sm text-heritage-muted">
                         {asset.kind === "TEXT" ? "Nội dung chữ" : "Tệp"}
+                        {asset.sharedWithCount > 1 &&
+                          ` · Nhận chung với ${asset.sharedWithCount - 1} người`}
                       </p>
                     </div>
                     <Chip tone={chip.tone}>{chip.label}</Chip>

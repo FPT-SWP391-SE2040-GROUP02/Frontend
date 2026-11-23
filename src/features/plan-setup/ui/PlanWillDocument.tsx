@@ -4,7 +4,6 @@ import { WillDocument } from "@/entities/will/ui/WillDocument";
 import {
   pickOwnerIdentity,
   pickOwnerSignedAt,
-  pickUnassignedPackages,
   pickWillExecutor,
   pickWillRecipients,
   pickWillVersion,
@@ -62,8 +61,7 @@ export function PlanWillDocument({
       signedAt={pickOwnerSignedAt(setup)}
       executor={pickWillExecutor(setup.executors)}
       recipients={pickWillRecipients(setup, readyIdentity)}
-      unassignedPackages={pickUnassignedPackages(setup.containers)}
-      assetsOutsideCount={setup.assetsOutsideContainer.length}
+      unassignedAssetCount={setup.unassignedAssets.length}
       viewer={viewer}
       onGapClick={onGapClick}
       identityStatus={identityStatus}

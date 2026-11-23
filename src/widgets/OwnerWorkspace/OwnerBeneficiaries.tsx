@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
-  useOwnerPackages,
   useOwnerVault,
   isOwnerVaultMissing,
 } from "@/features/vault-management/model/useOwnerVault";
+import { useVaultAssets } from "@/features/assets/model/useVaultAssets";
 import { VaultEmailRequiredNotice } from "@/features/vault-management/ui/VaultEmailRequiredNotice";
 import { useBeneficiaries } from "@/features/beneficiaries/model/useBeneficiaries";
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
@@ -65,15 +65,12 @@ export function OwnerBeneficiaries() {
     Number.isSafeInteger(requested) && requested > 0 && requested <= 1_000_000 ? requested : 1;
   const vault = useOwnerVault(true);
   const list = useBeneficiaries(vault.data?.id ?? "", { pageIndex: page, pageSize: 10 });
-  // Tên gói bàn giao để báo rõ người nhận đang nằm trong gói bàn giao nào khi chặn xóa hồ sơ.
-  const groups = useOwnerPackages(vault.data?.id ?? "", Boolean(vault.data), {
-    pageIndex: 1,
-    pageSize: 100,
-  });
-  const groupNames: Record<string, string> = {};
-  if (groups.data) {
-    for (const group of groups.data.items) {
-      groupNames[group.id] = group.name;
+  // Tên tài sản để báo rõ người nhận đang được gán tài sản nào khi chặn xóa hồ sơ.
+  const assets = useVaultAssets(vault.data?.id ?? "", { pageIndex: 1, pageSize: 100 });
+  const assetNames: Record<string, string> = {};
+  if (assets.data) {
+    for (const asset of assets.data.items) {
+      assetNames[asset.id] = asset.name;
     }
   }
   if (vault.isError && isOwnerVaultMissing(vault.error)) return <VaultEmailRequiredNotice />;
@@ -98,7 +95,7 @@ export function OwnerBeneficiaries() {
   const lockReason = getVaultLockReason(vault.data);
   const locked = lockReason !== null;
   const freeTier = vault.data.serviceTier === "FREE";
-  // Số hồ sơ (tính cả hồ sơ chưa ở gói nào) không vượt tổng suất; BE vẫn chặn lại bằng 409 BENEFICIARY_SLOTS_EXCEEDED.
+  // Số hồ sơ (tính cả hồ sơ chưa được gán tài sản) không vượt tổng suất; BE vẫn chặn lại bằng 409 BENEFICIARY_SLOTS_EXCEEDED.
   // Danh sách không lọc nên totalCount là tổng số hồ sơ của kho.
   const profileLimitReached = !freeTier && list.data.totalCount >= vault.data.beneficiarySlots;
   const rows: ReactNode[] = [];
@@ -108,7 +105,7 @@ export function OwnerBeneficiaries() {
         key={record.id}
         vaultId={vault.data.id}
         record={record}
-        groupNames={groupNames}
+        assetNames={assetNames}
         readOnly={readOnly}
         locked={locked}
       />,

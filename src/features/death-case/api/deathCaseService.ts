@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api/axiosClient";
-import { executorPackageSchema, executorVaultSchema } from "../model/deathCase.schema";
+import { executorRecipientSchema, executorVaultSchema } from "../model/deathCase.schema";
 import { handoverProgressSchema, sendHandoverKeySchema } from "../model/handoverProgress.schema";
 
 const id = z.string().uuid();
@@ -15,9 +15,9 @@ export const deathCaseService = {
       .array(executorVaultSchema)
       .parse(await apiClient.get<unknown, unknown>("/executor/vaults", { signal }));
   },
-  /** Danh sách tài sản (không có nội dung); chỉ xem được sau khi luật sư chốt biên bản. */
-  async packages(vaultId: string, signal?: AbortSignal) {
-    return z.array(executorPackageSchema).parse(
+  /** Người nhận kèm tài sản được gán (không có nội dung); chỉ xem được sau khi luật sư chốt biên bản. */
+  async recipients(vaultId: string, signal?: AbortSignal) {
+    return z.array(executorRecipientSchema).parse(
       await apiClient.get<unknown, unknown>(`/executor/vaults/${id.parse(vaultId)}/assets`, {
         signal,
       }),

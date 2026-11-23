@@ -1,25 +1,15 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
-import { AxiosHeaders, AxiosError } from "axios";
+import { AxiosHeaders } from "axios";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
-import {
-  VAULT_ID,
-  CONTAINER_ID,
-  CREATED_AT,
-  containerFixture,
-  vaultFixture,
-  pageFixture,
-} from "@/shared/api/__tests__/backend.fixtures";
+import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { CreateAssetForm } from "@/features/assets/ui/CreateAssetForm";
-import { GroupDetail } from "@/features/vault-management/ui/GroupDetail";
-import { CreateGroupDialog } from "@/features/vault-management/ui/CreateGroupDialog";
+import { AssignAssetDialog } from "@/features/assignments/ui/AssignAssetDialog";
 import { BeneficiaryForm } from "@/features/beneficiaries/ui/BeneficiaryForm";
-import { ownerVaultKeys } from "@/features/vault-management/model/useOwnerVault";
-import { OwnerContainer } from "@/widgets/OwnerWorkspace/OwnerContainer";
 
 const originalAdapter = apiClient.defaults.adapter;
 let client: QueryClient;
@@ -41,57 +31,6 @@ function setup(children: ReactNode, path = "/") {
     </QueryClientProvider>,
   );
 }
-it("reads container selection pagination from the URL and lets users reach another page", async () => {
-  const pages: number[] = [];
-  apiClient.defaults.adapter = async (config) => {
-    let data: unknown = pageFixture([]);
-    if (config.url === "/vaults/me") data = vaultFixture;
-    else if (config.url?.endsWith(`/containers/${CONTAINER_ID}`)) data = containerFixture;
-    else if (config.url?.endsWith("/assets")) {
-      pages.push(config.params.pageIndex);
-      data = {
-        ...pageFixture([]),
-        pageIndex: config.params.pageIndex,
-        totalCount: 200,
-        totalPages: 2,
-        hasPreviousPage: config.params.pageIndex > 1,
-        hasNextPage: config.params.pageIndex < 2,
-      };
-    }
-    return { data, config, status: 200, statusText: "OK", headers: new AxiosHeaders() };
-  };
-  setup(
-    <Routes>
-      <Route path="/dashboard/wills/:id" element={<OwnerContainer />} />
-    </Routes>,
-    `/dashboard/wills/${CONTAINER_ID}?assetPage=2`,
-  );
-  const previous = await screen.findByRole("button", { name: "Trang tài sản trước" });
-  expect(pages).toContain(2);
-  fireEvent.click(previous);
-  await waitFor(() => expect(pages).toContain(1));
-});
-it("hides selection pagination when the vault has only one page of choices", async () => {
-  apiClient.defaults.adapter = async (config) => {
-    let data: unknown = pageFixture([]);
-    if (config.url === "/vaults/me") data = vaultFixture;
-    else if (config.url?.endsWith(`/containers/${CONTAINER_ID}`)) data = containerFixture;
-    return { data, config, status: 200, statusText: "OK", headers: new AxiosHeaders() };
-  };
-  setup(
-    <Routes>
-      <Route path="/dashboard/wills/:id" element={<OwnerContainer />} />
-    </Routes>,
-    `/dashboard/wills/${CONTAINER_ID}`,
-  );
-  expect(await screen.findByRole("button", { name: "Xóa gói bàn giao" })).toBeInTheDocument();
-  expect(
-    screen.queryByRole("navigation", { name: "Phân trang lựa chọn cho gói bàn giao" }),
-  ).toBeNull();
-  expect(
-    screen.queryByRole("button", { name: "Tải lại gói bàn giao và bỏ thay đổi chưa lưu" }),
-  ).toBeNull();
-});
 const asset = {
   id: CONTAINER_ID,
   vaultId: VAULT_ID,
@@ -145,71 +84,77 @@ it("rejects an oversized file without sending a request", async () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("khả dụng còn lại");
   expect(post).not.toHaveBeenCalled();
 });
-it("creates a scoped container only after valid submit", async () => {
-  const post = vi.spyOn(apiClient, "post").mockResolvedValue(containerFixture);
+const ASSET_FOR_DIALOG = { id: CONTAINER_ID, name: "Sổ tiết kiệm", kind: "FILE" };
+const RECIPIENTS_FOR_DIALOG = [
+  { id: VAULT_ID, fullName: "Trần Thị Bình", citizenId: "012345678901" },
+];
+it("assigns an asset with PUT and the final list, only after the selection changes", async () => {
+  const put = vi.spyOn(apiClient, "put").mockResolvedValue([]);
   const onClose = vi.fn();
-  setup(<CreateGroupDialog vaultId={VAULT_ID} onClose={onClose} assets={[]} beneficiaries={[]} />);
-  fireEvent.click(await screen.findByRole("button", { name: "Tạo gói" }));
-  expect(post).not.toHaveBeenCalled();
-  fireEvent.change(screen.getByLabelText("Tên gói bàn giao"), { target: { value: "Hồ sơ" } });
-  fireEvent.click(screen.getByRole("button", { name: "Tạo gói" }));
+  setup(
+    <AssignAssetDialog
+      vaultId={VAULT_ID}
+      asset={ASSET_FOR_DIALOG}
+      recipients={RECIPIENTS_FOR_DIALOG}
+      currentIds={[]}
+      onClose={onClose}
+    />,
+  );
+  expect(await screen.findByRole("button", { name: "Lưu" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("checkbox", { name: /Trần Thị Bình/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
   await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-  expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/containers`, { name: "Hồ sơ" });
+  expect(put).toHaveBeenCalledTimes(1);
+  expect(put).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/assets/${CONTAINER_ID}/assignments`, {
+    beneficiaryIds: [VAULT_ID],
+    confirmPlanDeactivation: false,
+  });
 });
-it("retains edits after a 409 and never overwrites using a fresh etag or retries", async () => {
+it("keeps the selection after a 409 conflict and never retries", async () => {
   const put = vi.spyOn(apiClient, "put").mockRejectedValue({
     isAxiosError: true,
     response: { status: 409, data: { code: "EDIT_CONFLICT" } },
   });
   setup(
-    <GroupDetail
-      container={{
-        ...containerFixture,
-        assetIds: [],
-        beneficiaryIds: [],
-        missingRequirements: [...containerFixture.missingRequirements],
-      }}
-      assets={[]}
-      beneficiaries={[]}
+    <AssignAssetDialog
+      vaultId={VAULT_ID}
+      asset={ASSET_FOR_DIALOG}
+      recipients={RECIPIENTS_FOR_DIALOG}
+      currentIds={[]}
+      onClose={vi.fn()}
     />,
   );
-  fireEvent.change(screen.getByLabelText("Tên gói bàn giao"), {
-    target: { value: "Tên đang sửa" },
-  });
+  const box = await screen.findByRole("checkbox", { name: /Trần Thị Bình/ });
+  fireEvent.click(box);
   fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Dữ liệu đã thay đổi");
-  expect(screen.getByLabelText("Tên gói bàn giao")).toHaveValue("Tên đang sửa");
+  expect(screen.getByRole("checkbox", { name: /Trần Thị Bình/ })).toBeChecked();
   expect(put).toHaveBeenCalledTimes(1);
-  expect(put.mock.calls[0][1]).toMatchObject({ etag: "container-v1" });
-  expect(client.getQueryData(ownerVaultKeys.package(VAULT_ID, CONTAINER_ID))).toBeUndefined();
 });
-it("does not silently confirm plan deactivation when detaching the last asset", async () => {
-  apiClient.defaults.adapter = async (config) => {
-    throw new AxiosError("fixture", "ERR_BAD_REQUEST", config, undefined, {
-      config,
-      status: 409,
-      statusText: "Conflict",
-      headers: new AxiosHeaders(),
-      data: { code: "PLAN_DEACTIVATION_CONFIRMATION_REQUIRED" },
-    });
-  };
-  const remove = vi.spyOn(apiClient, "delete");
+it("does not silently confirm plan deactivation when clearing the last recipient", async () => {
+  const put = vi.spyOn(apiClient, "put").mockRejectedValue({
+    isAxiosError: true,
+    response: { status: 409, data: { code: "PLAN_DEACTIVATION_CONFIRMATION_REQUIRED" } },
+  });
   setup(
-    <GroupDetail
-      container={{
-        ...containerFixture,
-        assetIds: [VAULT_ID],
-        beneficiaryIds: [],
-        missingRequirements: [...containerFixture.missingRequirements],
-      }}
-      assets={[{ id: VAULT_ID, label: "Tệp" }]}
-      beneficiaries={[]}
+    <AssignAssetDialog
+      vaultId={VAULT_ID}
+      asset={ASSET_FOR_DIALOG}
+      recipients={RECIPIENTS_FOR_DIALOG}
+      currentIds={[VAULT_ID]}
+      onClose={vi.fn()}
     />,
   );
-  fireEvent.click(screen.getByRole("button", { name: "Gỡ khỏi gói bàn giao" }));
-  expect(await screen.findByRole("dialog")).toHaveTextContent("đưa kế hoạch về Nháp");
-  expect(remove).toHaveBeenCalledTimes(1);
-  expect(remove.mock.calls[0][1]).toMatchObject({ params: { confirmPlanDeactivation: false } });
+  fireEvent.click(await screen.findByRole("checkbox", { name: /Trần Thị Bình/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Lưu" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("trở về bản nháp");
+  expect(put).toHaveBeenCalledTimes(1);
+  expect(put.mock.calls[0][1]).toMatchObject({ confirmPlanDeactivation: false });
+  // Chỉ khi Chủ kho bấm đồng ý mới gửi lại kèm xác nhận.
+  put.mockResolvedValue([]);
+  fireEvent.click(screen.getByRole("button", { name: "Đồng ý, đưa kế hoạch về bản nháp" }));
+  await waitFor(() => expect(put).toHaveBeenCalledTimes(2));
+  expect(put.mock.calls[1][1]).toMatchObject({ confirmPlanDeactivation: true });
 });
 it("requires contact information before submitting a beneficiary", async () => {
   const post = vi.spyOn(apiClient, "post");

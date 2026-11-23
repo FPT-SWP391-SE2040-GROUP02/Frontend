@@ -25,7 +25,7 @@ export function isHandoverNotStarted(error: unknown): boolean {
 }
 
 export const systemExecutorsService = {
-  /** Danh bạ Người thực thi hệ thống đang hoạt động (cần đăng nhập). */
+  /** Danh sách người thực thi hệ thống đang hoạt động (cần đăng nhập). */
   async list(signal?: AbortSignal) {
     return systemExecutorListSchema.parse(
       await apiClient.get<unknown, unknown>("/system-executors", { signal }),

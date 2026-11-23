@@ -20,7 +20,7 @@ const record: z.infer<typeof beneficiaryResponseSchema> = {
   email: "an@example.test",
   phone: null,
   message: null,
-  containerIds: [VAULT_ID, CONTAINER_ID],
+  assetIds: [VAULT_ID, CONTAINER_ID],
   createdAt: CREATED_AT,
   updatedAt: null,
   etag: '"0"',
@@ -40,7 +40,7 @@ afterEach(() => {
 
 function renderRow(
   overrides: Partial<z.infer<typeof beneficiaryResponseSchema>> = {},
-  groupNames: Record<string, string> = {},
+  assetNames: Record<string, string> = {},
   locked = false,
 ) {
   const store = configureStore({ reducer: { auth: authReducer } });
@@ -53,7 +53,7 @@ function renderRow(
               <BeneficiaryRow
                 vaultId={VAULT_ID}
                 record={{ ...record, ...overrides }}
-                groupNames={groupNames}
+                assetNames={assetNames}
                 locked={locked}
               />
             </tbody>
@@ -85,18 +85,18 @@ describe("hàng người nhận", () => {
     expect(screen.getByRole("button", { name: /Xóa hồ sơ/ })).toBeEnabled();
   });
 
-  it("hiện tên, số CCCD đầy đủ, liên hệ và số gói bàn giao đang gắn", () => {
+  it("hiện tên, số CCCD đầy đủ, liên hệ và số tài sản được gán", () => {
     renderRow();
     expect(screen.getByText("Nguyễn Văn An")).toBeInTheDocument();
     expect(screen.getByText("Sinh 20/05/1990")).toBeInTheDocument();
     expect(screen.getByText("012345678901")).toBeInTheDocument();
     expect(screen.getByText("an@example.test")).toBeInTheDocument();
-    expect(screen.getByText("2 gói bàn giao")).toBeInTheDocument();
+    expect(screen.getByText("2 tài sản")).toBeInTheDocument();
   });
 
-  it("báo chưa vào gói bàn giao nào và rơi về số điện thoại khi không có email", () => {
-    renderRow({ containerIds: [], email: null, phone: "0901234567" });
-    expect(screen.getByText("Chưa vào gói bàn giao nào")).toBeInTheDocument();
+  it("báo chưa được gán tài sản và rơi về số điện thoại khi không có email", () => {
+    renderRow({ assetIds: [], email: null, phone: "0901234567" });
+    expect(screen.getByText("Chưa được gán tài sản")).toBeInTheDocument();
     expect(screen.getByText(/0901234567/)).toBeInTheDocument();
   });
 
@@ -117,11 +117,11 @@ describe("hàng người nhận", () => {
     expect(put.mock.calls[0][1]).toMatchObject({ etag: '"0"', fullName: "Nguyễn Văn Bình" });
   });
 
-  it("hộp thoại sửa báo số gói bàn giao bị ảnh hưởng và không còn nút xóa", async () => {
+  it("hộp thoại sửa báo số tài sản bị ảnh hưởng và không còn nút xóa", async () => {
     renderRow();
     fireEvent.click(screen.getByRole("button", { name: "Sửa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByText(/Người này đang thuộc 2 gói bàn giao/)).toBeInTheDocument();
+    expect(within(dialog).getByText(/Người này đang được gán 2 tài sản/)).toBeInTheDocument();
     expect(within(dialog).queryByRole("button", { name: /Xóa/ })).not.toBeInTheDocument();
   });
 
@@ -144,9 +144,9 @@ describe("hàng người nhận", () => {
     expect(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" })).toBeEnabled();
   });
 
-  it("Xóa mở hộp thoại xác nhận và gọi API xóa khi hồ sơ chưa vào gói bàn giao", async () => {
+  it("Xóa mở hộp thoại xác nhận và gọi API xóa khi hồ sơ chưa được gán tài sản", async () => {
     const remove = vi.spyOn(apiClient, "delete").mockResolvedValue(undefined);
-    renderRow({ containerIds: [] });
+    renderRow({ assetIds: [] });
     fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
     const confirm = within(dialog).getByRole("button", { name: "Xóa người nhận" });
@@ -156,7 +156,7 @@ describe("hàng người nhận", () => {
     await waitFor(() => expect(remove).toHaveBeenCalledTimes(1));
   });
 
-  it("Xóa báo không xóa được khi hồ sơ còn nằm trong gói bàn giao", async () => {
+  it("Xóa báo không xóa được khi hồ sơ còn được gán tài sản", async () => {
     const remove = vi.spyOn(apiClient, "delete").mockResolvedValue(undefined);
     renderRow();
     fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
@@ -166,26 +166,26 @@ describe("hàng người nhận", () => {
     expect(remove).not.toHaveBeenCalled();
   });
 
-  it("chặn xóa nêu rõ tên gói bàn giao, kèm lối mở gói bàn giao", async () => {
+  it("chặn xóa nêu rõ tên tài sản, kèm lối mở phần phân chia", async () => {
     renderRow({}, { [VAULT_ID]: "Giấy tờ gia đình", [CONTAINER_ID]: "Tài khoản game" });
     fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent("Giấy tờ gia đình");
     expect(dialog).toHaveTextContent("Tài khoản game");
     expect(within(dialog).getByRole("alert")).toHaveTextContent(
-      "Nguyễn Văn An đang ở trong 2 gói bàn giao. Hãy gỡ người nhận khỏi các gói trên, rồi xóa lại.",
+      "Nguyễn Văn An đang được gán 2 tài sản. Hãy gỡ người nhận khỏi các tài sản trên, rồi xóa lại.",
     );
     expect(within(dialog).getByRole("button", { name: "Đóng" })).toBeInTheDocument();
-    expect(within(dialog).getByRole("link", { name: "Mở gói bàn giao" })).toHaveAttribute(
+    expect(within(dialog).getByRole("link", { name: "Mở phần phân chia" })).toHaveAttribute(
       "href",
-      "/dashboard/assets?tab=groups",
+      "/dashboard/assets?tab=assignments",
     );
   });
 
-  it("chưa tra được tên gói bàn giao thì chỉ nêu số gói bàn giao", async () => {
+  it("chưa tra được tên tài sản thì ghi chung", async () => {
     renderRow();
     fireEvent.click(screen.getByRole("button", { name: "Xóa hồ sơ Nguyễn Văn An" }));
     const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByRole("alert")).toHaveTextContent("đang ở trong 2 gói bàn giao.");
+    expect(within(dialog).getByRole("alert")).toHaveTextContent("đang được gán 2 tài sản.");
   });
 });

@@ -1,34 +1,34 @@
 import type { Tone } from "@/shared/ui/heritageKit";
-import type { ExecutorPackage } from "./deathCase.schema";
+import type { ExecutorRecipient } from "./deathCase.schema";
 import { deriveTurnProgress, type TurnGroup } from "./executorTurns";
 import type { HandoverProgressTurn } from "./handoverProgress.schema";
 
 /**
- * Trang "Tài sản và hướng dẫn": gom tài sản theo gói, trạng thái bàn giao của gói và trạng thái tải của từng tài sản.
+ * Trang "Tài sản và hướng dẫn": gom tài sản theo người nhận, trạng thái bàn giao của từng người và trạng thái tải của từng tài sản.
  * Người thực thi chỉ thấy tên, loại và trạng thái tải; hàm thuần, không đụng tới nội dung tài sản.
  */
 
-export interface PackageStatus {
+export interface RecipientStatus {
   label: string;
   tone: Tone;
 }
 
-/** Các lượt bàn giao của một gói. Nối theo mã gói; Backend cũ chưa gửi mã gói thì không nối được (coi như chưa có lượt). */
-export function turnsOfPackage(
-  item: ExecutorPackage,
+/** Các lượt bàn giao của một người nhận, nối theo mã hồ sơ người nhận; lượt chưa có mã thì không nối được. */
+export function turnsOfRecipient(
+  item: ExecutorRecipient,
   turns: HandoverProgressTurn[],
 ): HandoverProgressTurn[] {
-  return turns.filter((turn) => turn.containerId === item.containerId);
+  return turns.filter((turn) => turn.beneficiaryId === item.beneficiaryId);
 }
 
 const PENDING_ORDER: TurnGroup[] = ["action", "waiting"];
 
 /**
- * Chip trạng thái bàn giao của gói: chưa có lượt → "Chưa bàn giao"; mọi lượt xong → "Đã nhận xong";
+ * Chip trạng thái bàn giao của một người nhận: chưa có lượt → "Chưa bàn giao"; mọi lượt xong → "Đã nhận xong";
  * mọi lượt từ chối hoặc kết thúc → "Từ chối nhận"; còn lại lấy lượt đang cần việc nhất
  * (cần bạn làm trước, rồi đang chờ người nhận).
  */
-export function packageStatus(turns: HandoverProgressTurn[]): PackageStatus {
+export function recipientStatus(turns: HandoverProgressTurn[]): RecipientStatus {
   if (turns.length === 0) return { label: "Chưa bàn giao", tone: "neutral" };
   const progresses = turns.map((turn) => deriveTurnProgress(turn));
   let allDone = true;
@@ -51,7 +51,7 @@ export function packageStatus(turns: HandoverProgressTurn[]): PackageStatus {
 export type AssetDownloadState = "downloaded" | "partial" | "not-downloaded" | "not-handed-over";
 
 /**
- * Tài sản đã tải chưa, nhìn qua các lượt của gói: mọi lượt đã từ chối hoặc kết thúc → "Không bàn giao";
+ * Tài sản đã tải chưa, nhìn qua các lượt của người nhận: mọi lượt đã từ chối hoặc kết thúc → "Không bàn giao";
  * mọi lượt còn lại đều đã tải tài sản đó → "Đã tải"; mới một số người tải → "Tải một phần";
  * chưa ai tải (kể cả chưa có lượt) → "Chưa tải".
  */
@@ -94,9 +94,9 @@ export function assetBadge(name: string, kind: "FILE" | "TEXT"): string {
   return "TỆP";
 }
 
-/** Tên người nhận của gói để hiện và để tìm: họ tên nếu có, không thì số CCCD. */
-export function recipientLabels(item: ExecutorPackage): string[] {
-  return item.recipients.map((recipient) => recipient.fullName ?? `CCCD ${recipient.citizenId}`);
+/** Tên người nhận để hiện và để tìm: họ tên nếu có, không thì số CCCD. */
+export function recipientLabel(item: ExecutorRecipient): string {
+  return item.fullName ?? `CCCD ${item.citizenId}`;
 }
 
 function normalize(text: string): string {
@@ -104,19 +104,18 @@ function normalize(text: string): string {
 }
 
 /**
- * Lọc theo ô "Tìm tên tài sản hoặc người nhận". Khớp tên người nhận thì giữ cả gói;
- * khớp tên tài sản thì chỉ giữ các tài sản khớp; không khớp gì thì bỏ gói. Ô trống giữ nguyên tất cả.
+ * Lọc theo ô "Tìm tên tài sản hoặc người nhận". Khớp tên người nhận thì giữ cả người đó;
+ * khớp tên tài sản thì chỉ giữ các tài sản khớp; không khớp gì thì bỏ. Ô trống giữ nguyên tất cả.
  */
-export function filterPackages(packages: ExecutorPackage[], query: string): ExecutorPackage[] {
+export function filterRecipients(
+  recipients: ExecutorRecipient[],
+  query: string,
+): ExecutorRecipient[] {
   const needle = normalize(query);
-  if (needle === "") return packages;
-  const result: ExecutorPackage[] = [];
-  for (const item of packages) {
-    let recipientMatches = false;
-    for (const label of recipientLabels(item)) {
-      if (normalize(label).includes(needle)) recipientMatches = true;
-    }
-    if (recipientMatches) {
+  if (needle === "") return recipients;
+  const result: ExecutorRecipient[] = [];
+  for (const item of recipients) {
+    if (normalize(recipientLabel(item)).includes(needle)) {
       result.push(item);
       continue;
     }

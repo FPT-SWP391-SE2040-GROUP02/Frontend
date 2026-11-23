@@ -26,9 +26,9 @@ const RECEIVED = "2026-12-23T09:52:00+00:00";
 function turn(index: number, name: string | null, overrides: Record<string, unknown>) {
   return {
     turnId: `5555555${index}-5555-4555-8555-555555555555`,
-    // Chỉ lượt 1 thuộc gói có trong danh sách tài sản của test.
-    containerId: index === 1 ? CONTAINER_ID : `bbbbbbb${index}-bbbb-4bbb-8bbb-bbbbbbbbbbbb`,
-    containerName: `Gói ${index}`,
+    // Chỉ lượt 1 thuộc người nhận có trong danh sách tài sản của test.
+    beneficiaryId: index === 1 ? CONTAINER_ID : `bbbbbbb${index}-bbbb-4bbb-8bbb-bbbbbbbbbbbb`,
+    containerName: "Biên bản bàn giao",
     beneficiaryCitizenId: `000${index}`,
     beneficiaryFullName: name,
     beneficiaryPhone: name ? "0901234567" : null,
@@ -145,16 +145,17 @@ const record = {
 
 const packages = [
   {
-    containerId: CONTAINER_ID,
-    containerName: "Gói 1",
-    recipients: [{ fullName: "Nguyễn Văn An", citizenId: "0001" }],
+    beneficiaryId: CONTAINER_ID,
+    fullName: "Nguyễn Văn An",
+    citizenId: "0001",
     assets: [
-      { id: ASSET_ID, name: "Sổ tiết kiệm.pdf", kind: "FILE", sizeBytes: 100 },
+      { id: ASSET_ID, name: "Sổ tiết kiệm.pdf", kind: "FILE", sizeBytes: 100, sharedWithCount: 1 },
       {
         id: "88888888-8888-4888-8888-888888888888",
         name: "Mật khẩu ví",
         kind: "TEXT",
         sizeBytes: 10,
+        sharedWithCount: 1,
       },
     ],
   },
@@ -233,15 +234,15 @@ describe("Bàn giao: bảng người nhận", () => {
     render2(<HandoverProgressPanel recordId={CASE_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const names = within(list)
-      .getAllByRole("listitem", { name: /, gói / })
+      .getAllByRole("listitem", { name: /, Biên bản bàn giao/ })
       .map((item) => item.getAttribute("aria-label"));
     expect(names).toEqual([
-      "Phạm Văn Cường, gói Gói 4",
-      "Lê Thị Bình, gói Gói 3",
-      "Đỗ Thị Dung, gói Gói 5",
-      "Vũ Văn Em, gói Gói 6",
-      "Nguyễn Văn An, gói Gói 1",
-      "Người nhận CCCD 0002, gói Gói 2",
+      "Phạm Văn Cường, Biên bản bàn giao",
+      "Lê Thị Bình, Biên bản bàn giao",
+      "Đỗ Thị Dung, Biên bản bàn giao",
+      "Vũ Văn Em, Biên bản bàn giao",
+      "Nguyễn Văn An, Biên bản bàn giao",
+      "Người nhận CCCD 0002, Biên bản bàn giao",
     ]);
   });
 
@@ -284,7 +285,7 @@ describe("Bàn giao: bảng người nhận", () => {
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const highlighted = list.querySelectorAll("[data-needs-action='true']");
     expect(highlighted).toHaveLength(1);
-    expect(highlighted[0]).toHaveAttribute("aria-label", "Phạm Văn Cường, gói Gói 4");
+    expect(highlighted[0]).toHaveAttribute("aria-label", "Phạm Văn Cường, Biên bản bàn giao");
     expect(highlighted[0]).toHaveClass("border-l-heritage-gold");
   });
 
@@ -394,22 +395,22 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
     const journey = screen.getByRole("heading", { name: "Kho đang ở đâu" }).closest("section");
     expect(within(journey as HTMLElement).getAllByRole("listitem")).toHaveLength(3);
     expect(
-      await screen.findByText(/để lại hướng dẫn bàn giao và giao bạn 2 tài sản trong 1 gói/),
+      await screen.findByText(/để lại hướng dẫn bàn giao và giao bạn 2 tài sản cho 1 người nhận/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Bạn làm được / không làm được" }),
     ).toBeInTheDocument();
   });
 
-  it("Tài sản và hướng dẫn: hiện hướng dẫn, gom theo gói, chip và tìm kiếm", async () => {
+  it("Tài sản và hướng dẫn: hiện hướng dẫn, gom theo người nhận, chip và tìm kiếm", async () => {
     mockApi();
     render2(<ExecutorAssetsPage />, "/executor/assets");
     expect(await screen.findByText("Hướng dẫn bàn giao từ Chủ kho")).toBeInTheDocument();
     const note = screen.getByText(/Gọi cô Lan trước\./);
     expect(note).toHaveClass("whitespace-pre-line");
     expect(screen.getByText("Cập nhật 05/11/2025".replace("2025", "2026"))).toBeInTheDocument();
-    expect(await screen.findByText("2 tài sản trong 1 gói")).toBeInTheDocument();
-    expect(screen.getByText("Người nhận: Nguyễn Văn An")).toBeInTheDocument();
+    expect(await screen.findByText("2 tài sản cho 1 người nhận")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Nguyễn Văn An" })).toBeInTheDocument();
     expect(await screen.findByText("Đã nhận xong")).toBeInTheDocument();
     expect(screen.getByText("PDF")).toBeInTheDocument();
     expect(screen.getByText("TXT")).toBeInTheDocument();
@@ -423,7 +424,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
     fireEvent.change(screen.getByLabelText("Tìm tên tài sản hoặc người nhận"), {
       target: { value: "ví" },
     });
-    expect(screen.getByText("1 tài sản trong 1 gói")).toBeInTheDocument();
+    expect(screen.getByText("1 tài sản cho 1 người nhận")).toBeInTheDocument();
     expect(screen.queryByText("Sổ tiết kiệm.pdf")).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Tìm tên tài sản hoặc người nhận"), {
       target: { value: "zzz" },
