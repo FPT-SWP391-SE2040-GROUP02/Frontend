@@ -311,7 +311,7 @@ export function describePlanKey(key: string): string | null {
   if (key === FREE_FEATURES_KEY) return "Mô tả tính năng gói Free";
   if (key in ADDON_KEY_LABELS) return ADDON_KEY_LABELS[key];
   const match =
-    /^Plans\.([A-Za-z][A-Za-z0-9_]*)\.(?:Price(\d+)Y|(On|Hidden|QuotaMb|Slots|MaxPackages|Features))$/.exec(
+    /^Plans\.([A-Za-z][A-Za-z0-9_]*)\.(?:Price(\d+)Y|(On|Hidden|QuotaMb|Slots|Features))$/.exec(
       key,
     );
   if (!match || match[1] === "Addon") return null;
@@ -321,7 +321,6 @@ export function describePlanKey(key: string): string | null {
   if (match[3] === "Hidden") return `Xóa gói ${name}`;
   if (match[3] === "QuotaMb") return `Dung lượng gói ${name}`;
   if (match[3] === "Features") return `Mô tả tính năng gói ${name}`;
-  if (match[3] === "MaxPackages") return `Số gói bàn giao tối đa gói ${name}`;
   return `Suất người nhận gói ${name}`;
 }
 
