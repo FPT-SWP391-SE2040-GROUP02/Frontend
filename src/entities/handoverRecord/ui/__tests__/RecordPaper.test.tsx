@@ -70,3 +70,16 @@ describe("RecordPaper: phạm vi tài sản số", () => {
     expect(lastParagraph).toHaveTextContent(sentence);
   });
 });
+
+describe("RecordPaper: người nhận đồng ý nhận, chưa phải đã nhận", () => {
+  it("ghi người nhận đồng ý nhận phần tài sản, không ghi đã nhận đủ khi chưa giao", () => {
+    const { container } = render(<RecordPaper record={buildRecord()} />);
+
+    expect(container).toHaveTextContent(
+      "Mỗi người nhận xác nhận đúng danh tính của mình và đồng ý nhận phần tài sản ghi cho mình",
+    );
+    expect(container).toHaveTextContent("bên nhận đồng ý nhận tài sản trong kho nêu trên");
+    expect(container).not.toHaveTextContent("đã nhận đủ phần tài sản");
+    expect(container).not.toHaveTextContent("bên nhận đã nhận tài sản");
+  });
+});

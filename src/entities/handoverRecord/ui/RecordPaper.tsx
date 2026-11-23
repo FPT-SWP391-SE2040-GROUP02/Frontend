@@ -91,7 +91,8 @@ function SignatureSlot({
 }
 
 /**
- * Tờ biên bản giao nhận dạng văn bản: Người thực thi đã giao, người nhận xác nhận đã nhận, luật sư chứng kiến,
+ * Tờ biên bản giao nhận dạng văn bản: Người thực thi bàn giao, người nhận đồng ý nhận (chưa phải đã nhận: người nhận
+ * chỉ xác nhận "đã nhận đủ" sau khi tải xong, bằng nút riêng ở cổng người nhận), luật sư chứng kiến,
  * LegacyVault không chịu trách nhiệm về tài sản hay tranh chấp. Sinh từ dữ liệu biên bản Backend trả. Dùng cho khung xem trước và bản in, để các bên đọc và đối chiếu sau này. Ghi số căn cước đầy đủ;
  * chữ ký lấy đúng thời điểm hệ thống lưu, component không tự suy ra chữ ký.
  */
@@ -218,8 +219,8 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
       </section>
 
       <p className={`${BODY} mt-4`}>
-        Bên giao đã giao và bên nhận đã nhận tài sản trong kho nêu trên, các bên cùng xác nhận như
-        sau:
+        Bên giao bàn giao và bên nhận đồng ý nhận tài sản trong kho nêu trên, các bên cùng xác nhận
+        như sau:
       </p>
 
       <section className={SECTION}>
@@ -232,8 +233,8 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
         <ol className={`${BODY} list-decimal space-y-1 pl-6`}>
           <li>Bên giao xác nhận đã giao đúng người, đúng và đủ tài sản ghi tại Điều 1.</li>
           <li>
-            Mỗi người nhận xác nhận đúng danh tính của mình, đã nhận đủ phần tài sản ghi cho mình,
-            đã kiểm tra và không có khiếu nại về việc giao nhận.
+            Mỗi người nhận xác nhận đúng danh tính của mình và đồng ý nhận phần tài sản ghi cho
+            mình, đã kiểm tra và không có khiếu nại về việc giao nhận.
           </li>
           <li>Luật sư xác nhận đã kiểm danh tính từng người nhận và chứng kiến việc giao nhận.</li>
           <li>
