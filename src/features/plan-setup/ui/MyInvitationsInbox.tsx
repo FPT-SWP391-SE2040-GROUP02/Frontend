@@ -81,8 +81,9 @@ export function MyInvitationsInbox() {
       <Panel title="Đang chờ bạn trả lời" labelledBy="pending-invitations-heading">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-sm text-heritage-muted">
-            Người thực thi giữ mã mở gói và gửi mã nhận cho từng người nhận khi phần của người đó đủ chữ ký.{" "}
-            <strong className="text-heritage-primary">Không ai mở được kho</strong>, kể cả bạn.
+            Người thực thi giữ mã mở gói và gửi mã nhận cho từng người nhận khi phần của người đó đủ
+            chữ ký. <strong className="text-heritage-primary">Không ai mở được kho</strong>, kể cả
+            bạn.
           </p>
           {pendingCount > 0 && (
             <span className="text-sm font-semibold text-heritage-muted">

@@ -256,7 +256,10 @@ describe("Trang gửi yêu cầu bằng vaultId (từ trang Nhận tài sản)",
 describe("Yêu cầu nhận tài sản của tôi", () => {
   it("luật sư yêu cầu bổ sung: hiện lý do và cho nộp thêm tệp", async () => {
     const user = userEvent.setup();
-    let current = claim({ status: "SUPPLEMENT_REQUESTED", reviewReason: "Thiếu giấy tờ chứng minh" });
+    let current = claim({
+      status: "SUPPLEMENT_REQUESTED",
+      reviewReason: "Thiếu giấy tờ chứng minh",
+    });
     vi.spyOn(apiClient, "get").mockImplementation(async () => [current]);
     const post = vi.spyOn(apiClient, "post").mockImplementation(async () => {
       current = claim({ status: "SUBMITTED" });
