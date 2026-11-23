@@ -7,7 +7,6 @@ import { handoverRecordService } from "../api/handoverRecordService";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
 import { isSigningStage } from "../model/recordPresentation";
 import { handoverRecordKeys, useVerifierRecord } from "../model/useHandoverRecord";
-import { AddRecipientPanel } from "./AddRecipientPanel";
 import { ClaimsReviewPanel } from "./ClaimsReviewPanel";
 import { EvidencePanel } from "./EvidencePanel";
 import { RecordDocument } from "./RecordDocument";
@@ -153,7 +152,6 @@ export function VerifierRecordDetail({
       {record.status === "DRAFTING" && (
         <RecordLinesEditor key={`${record.id}-${record.revisionNo}`} record={record} />
       )}
-      {record.status === "DRAFTING" && <AddRecipientPanel record={record} />}
       {record.status !== "CANCELLED" && <EvidencePanel record={record} />}
       {isSigningStage(record.status) && <FinalizedActions record={record} />}
       {record.status === "COMPLETED" && (

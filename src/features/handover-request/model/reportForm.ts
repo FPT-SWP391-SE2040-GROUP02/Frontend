@@ -18,6 +18,7 @@ export interface ReportErrors {
   deceasedFullName?: string;
   deceasedCitizenId?: string;
   deathCertificates?: string;
+  wills?: string;
   files?: string;
   recipients?: string;
 }
@@ -48,7 +49,11 @@ export function reportErrors(draft: ReportDraft): ReportErrors {
   }
   if (draft.deathCertificates.length === 0) {
     errors.deathCertificates = "Vui lòng đính kèm giấy chứng tử.";
-  } else {
+  }
+  if (draft.wills.length === 0) {
+    errors.wills = "Vui lòng đính kèm di chúc.";
+  }
+  if (!errors.deathCertificates && !errors.wills) {
     const fileError = filesError([...draft.deathCertificates, ...draft.wills, ...draft.others]);
     if (fileError !== "") errors.files = fileError;
   }

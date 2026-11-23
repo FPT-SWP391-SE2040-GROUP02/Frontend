@@ -79,8 +79,8 @@ export function ReportPanel() {
         {!open && (
           <div className="space-y-3 text-sm leading-6">
             <p className="text-heritage-muted">
-              Dùng khi bạn chưa được khai làm người nhận. Nộp giấy chứng tử và di chúc nếu có; luật
-              sư kiểm giấy tờ rồi xác định ai được nhận.
+              Dùng khi bạn chưa được khai làm người nhận. Nộp giấy chứng tử và di chúc; luật sư kiểm
+              giấy tờ rồi xác định ai được nhận.
             </p>
             <button
               type="button"

@@ -205,11 +205,12 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
         />
         <ErrorText>{errors.deathCertificates}</ErrorText>
         <DocumentPicker
-          label="Di chúc (nếu có)"
+          label="Di chúc (bắt buộc)"
           files={wills}
           onChange={setWills}
           disabled={busy}
         />
+        <ErrorText>{errors.wills}</ErrorText>
         <DocumentPicker
           label="Giấy tờ khác (nếu có)"
           files={others}

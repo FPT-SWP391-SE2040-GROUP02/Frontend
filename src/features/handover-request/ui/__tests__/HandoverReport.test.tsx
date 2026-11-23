@@ -82,6 +82,7 @@ describe("Người thân nộp hồ sơ báo tin", () => {
     expect(screen.getByText("Vui lòng nhập họ tên người mất.")).toBeInTheDocument();
     expect(screen.getByText("Số căn cước gồm 12 chữ số.")).toBeInTheDocument();
     expect(screen.getByText("Vui lòng đính kèm giấy chứng tử.")).toBeInTheDocument();
+    expect(screen.getByText("Vui lòng đính kèm di chúc.")).toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
 
@@ -95,6 +96,8 @@ describe("Người thân nộp hồ sơ báo tin", () => {
     await user.type(screen.getByLabelText("Số căn cước người mất (12 số)"), "001099001234");
     const file = new File(["%PDF"], "chung-tu.pdf", { type: "application/pdf" });
     await user.upload(screen.getByLabelText(/^Giấy chứng tử/), file);
+    const will = new File(["%PDF"], "di-chuc.pdf", { type: "application/pdf" });
+    await user.upload(screen.getByLabelText(/^Di chúc/), will);
     const person = within(screen.getByRole("group", { name: "Người nhận 1" }));
     await user.type(person.getByLabelText("Họ tên"), "Trần Con");
     await user.type(person.getByLabelText("Email"), "con@example.com");
@@ -104,6 +107,7 @@ describe("Người thân nộp hồ sơ báo tin", () => {
     const form = post.mock.calls[0][1] as FormData;
     expect(form.get("deceasedCitizenId")).toBe("001099001234");
     expect(form.getAll("deathCertificates")).toHaveLength(1);
+    expect(form.getAll("wills")).toHaveLength(1);
     expect(JSON.parse(form.get("recipients") as string)).toEqual([
       { fullName: "Trần Con", email: "con@example.com", phone: "" },
     ]);
