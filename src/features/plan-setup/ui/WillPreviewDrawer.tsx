@@ -249,7 +249,7 @@ function WillDrawerBody({
           </button>
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-12">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-heritage-border px-3 py-5 sm:px-8 sm:py-8">
         <IdentityNotice
           status={identityStatus}
           waitingForPin={hasSignFooter}
@@ -257,7 +257,11 @@ function WillDrawerBody({
           onReveal={revealIdentity}
           onRetry={() => void identityQuery.refetch()}
         />
-        <article aria-label="Biên bản phân chia" className="min-w-0">
+        {/* Tờ giấy khổ A4 trên nền xám, giống khi mở file PDF. */}
+        <article
+          aria-label="Biên bản phân chia"
+          className="mx-auto w-full max-w-[210mm] bg-white px-5 py-8 shadow-md sm:min-h-[297mm] sm:px-[20mm] sm:py-[18mm]"
+        >
           {renderDocument("owner", onGapClick)}
         </article>
       </div>

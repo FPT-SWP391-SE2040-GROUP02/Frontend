@@ -45,8 +45,10 @@ export interface WillDocumentProps {
 }
 
 const SECTION = "mt-7";
-const HEADING = "mb-2 text-base font-semibold text-heritage-primary";
-const BODY = "max-w-[68ch] leading-7";
+const HEADING = "mb-2 break-after-avoid text-[17px] font-bold";
+const BODY = "text-justify leading-7";
+const CELL = "border border-heritage-text/60 px-2.5 py-2 text-left align-top";
+const CELL_NOTE = "block text-[15px] leading-6 text-heritage-muted";
 
 /** Một dòng của bảng mục II: một tài sản kèm những người nhận tài sản đó (nhiều người là nhận chung). */
 interface AssetRow {
@@ -110,9 +112,9 @@ function InfoRows({ rows }: { rows: Array<[string, string]> }) {
   const nodes: ReactNode[] = [];
   for (const [label, value] of rows) {
     nodes.push(
-      <div key={label} className="grid gap-x-4 sm:grid-cols-[150px_minmax(0,1fr)]">
-        <dt className="text-sm text-heritage-muted">{label}</dt>
-        <dd className="mb-2 break-words font-medium sm:mb-1.5">{value}</dd>
+      <div key={label} className="grid gap-x-4 leading-7 sm:grid-cols-[190px_minmax(0,1fr)]">
+        <dt>{label}</dt>
+        <dd className="break-words font-semibold">{value}</dd>
       </div>,
     );
   }
@@ -189,17 +191,17 @@ function RecipientIdentityLine({
   identityStatus: WillIdentityStatus;
 }) {
   if (identityStatus === "loading") {
-    return <small className="block text-heritage-muted">Đang tải…</small>;
+    return <small className={CELL_NOTE}>Đang tải…</small>;
   }
   if (identityStatus !== "ready") {
     return null;
   }
   const birthText = formatIsoDate(recipient.dateOfBirth);
   if (birthText === null || !recipient.citizenId) {
-    return <small className="block text-heritage-muted">Chưa có thông tin ngày sinh và CCCD</small>;
+    return <small className={CELL_NOTE}>Chưa có thông tin ngày sinh và CCCD</small>;
   }
   return (
-    <small className="block text-heritage-muted">
+    <small className={CELL_NOTE}>
       Sinh {birthText} · CCCD {recipient.citizenId}
     </small>
   );
@@ -264,27 +266,23 @@ function AssetsSectionBlock({
     const recipientCell = <div>{people}</div>;
     let sharedNote: ReactNode = null;
     if (row.recipients.length > 1) {
-      sharedNote = (
-        <small className="block text-heritage-muted">
-          Nhận chung, {row.recipients.length} người
-        </small>
-      );
+      sharedNote = <small className={CELL_NOTE}>Nhận chung, {row.recipients.length} người</small>;
     }
     rowNodes.push(
-      <tr key={row.id}>
-        <td className="border border-heritage-border px-2.5 py-2 align-top">{order}</td>
-        <td className="border border-heritage-border px-2.5 py-2 align-top">
+      <tr key={row.id} className="break-inside-avoid">
+        <td className={CELL}>{order}</td>
+        <td className={CELL}>
           {row.name}
           {sharedNote}
         </td>
-        <td className="border border-heritage-border px-2.5 py-2 align-top">{recipientCell}</td>
+        <td className={CELL}>{recipientCell}</td>
       </tr>,
     );
   }
   let outsideNote: ReactNode = null;
   if (unassignedAssetCount > 0) {
     outsideNote = (
-      <p className="mt-2 text-sm text-heritage-muted">
+      <p className="mt-2 text-[15px] text-heritage-muted">
         Còn {unassignedAssetCount} tài sản chưa gán cho ai nên sẽ không được bàn giao.
       </p>
     );
@@ -293,16 +291,16 @@ function AssetsSectionBlock({
     <section id="muc-2" className={SECTION}>
       {heading}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-[15px]">
+        <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th scope="col" className="w-12 border border-heritage-border px-2.5 py-2 text-left">
+              <th scope="col" className={`w-14 ${CELL}`}>
                 STT
               </th>
-              <th scope="col" className="border border-heritage-border px-2.5 py-2 text-left">
+              <th scope="col" className={CELL}>
                 Tài sản
               </th>
-              <th scope="col" className="border border-heritage-border px-2.5 py-2 text-left">
+              <th scope="col" className={CELL}>
                 Người nhận
               </th>
             </tr>
@@ -371,7 +369,7 @@ function ExecutorSectionBlock({
   );
 }
 
-/** Một ô chữ ký: tên chức danh, tên người ký và dòng trạng thái. */
+/** Một ô chữ ký như trên giấy: chức danh, dòng trạng thái ký rồi tên người ký. */
 function SignatureBox({
   title,
   name,
@@ -383,22 +381,22 @@ function SignatureBox({
   statusText: string;
   signed: boolean;
 }) {
-  let boxStyle = "border-dashed border-heritage-border";
   let statusStyle = "text-heritage-muted";
   let mark: ReactNode = null;
   if (signed) {
-    boxStyle = "border-solid border-heritage-success bg-heritage-success-bg";
     statusStyle = "text-heritage-success font-semibold";
     mark = <Check className="mr-1 inline size-4 align-text-bottom" aria-hidden="true" />;
   }
   return (
-    <div className={`rounded-[10px] border px-3.5 py-3 text-sm ${boxStyle}`}>
+    <div className="text-center">
       <p className="font-bold">{title}</p>
-      <p className="mt-1 break-words text-[17px] font-semibold text-heritage-primary">{name}</p>
-      <p className={`mt-1 ${statusStyle}`}>
-        {mark}
-        {statusText}
+      <p className={`flex min-h-20 items-center justify-center py-3 text-[15px] ${statusStyle}`}>
+        <span>
+          {mark}
+          {statusText}
+        </span>
       </p>
+      <p className="break-words font-bold">{name}</p>
     </div>
   );
 }
@@ -433,7 +431,7 @@ function SignatureBlock({
   }
 
   return (
-    <div className="mt-9 grid grid-cols-2 items-start gap-3 border-t border-heritage-border pt-6 max-[480px]:grid-cols-1">
+    <div className="mt-10 grid break-inside-avoid grid-cols-2 items-start gap-8 max-[480px]:grid-cols-1">
       <SignatureBox
         title="Chủ kho"
         name={ownerName}
@@ -447,7 +445,7 @@ function SignatureBlock({
           statusText={executorStatus}
           signed={executorSigned}
         />
-        <p className="mt-2 text-[13px] leading-5">
+        <p className="mt-2 text-center text-[15px] leading-6">
           Tôi, {confirmName}, xác nhận đã nhận vai trò và phạm vi nhiệm vụ nêu tại mục III.
         </p>
       </div>
@@ -494,19 +492,22 @@ export function WillDocument({
     if (versionWhen !== null) {
       versionText = `Phiên bản ${version.number} · ký lúc ${versionWhen}`;
     }
-    versionLine = <p className="mt-1 text-center text-sm text-heritage-muted">{versionText}</p>;
+    versionLine = <p className="mt-1 text-center text-[15px] text-heritage-muted">{versionText}</p>;
   }
 
   return (
     // Văn bản pháp lý dùng Times New Roman như biên bản bàn giao; áp cho cả khung xem trước và bản in.
-    <div className="text-heritage-text" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
-      <header className="text-center text-sm leading-6">
+    <div
+      className="text-[17px] text-heritage-text"
+      style={{ fontFamily: '"Times New Roman", Times, serif' }}
+    >
+      <header className="text-center leading-7">
         <p className="font-bold tracking-[0.02em]">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
         <p className="inline-block border-b border-heritage-text pb-1 font-semibold">
           Độc lập – Tự do – Hạnh phúc
         </p>
       </header>
-      <h2 className="mt-6 text-center text-[26px] font-bold leading-[1.3] tracking-[0.08em] text-heritage-primary">
+      <h2 className="mt-6 text-center text-[26px] font-bold leading-[1.3] tracking-[0.08em]">
         BIÊN BẢN PHÂN CHIA
       </h2>
       <p className="mt-3 text-center leading-7">Hôm nay, ngày {dateText}, tại LegacyVault.</p>
@@ -537,7 +538,7 @@ export function WillDocument({
       </section>
 
       <SignatureBlock ownerName={ownerName} signedAt={signedAt} executor={executor} />
-      <p className="mt-5 text-[13px] italic leading-5 text-heritage-muted">
+      <p className="mt-8 border-t border-heritage-border pt-3 text-[15px] italic leading-6 text-heritage-muted">
         Chữ ký điện tử được xác thực qua tài khoản LegacyVault; chi tiết trong nhật ký ký. Đây là
         chỉ dẫn bàn giao dữ liệu số, không thay thế di chúc theo quy định của pháp luật dân sự.
       </p>

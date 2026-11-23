@@ -28,18 +28,21 @@ export function ExecutorHeldVaults() {
     );
   } else if (vaults.length === 0) {
     body = (
-      <p role="status" className="text-sm text-heritage-muted">
+      <p
+        role="status"
+        className="rounded-xl border border-dashed border-heritage-border px-6 py-10 text-center text-sm text-heritage-muted"
+      >
         Bạn chưa giữ kho nào. Khi bạn chấp nhận lời mời, kho đó sẽ hiện ở đây.
       </p>
     );
   } else {
     body = (
-      <ul className="divide-y divide-heritage-border rounded-2xl border border-heritage-border bg-heritage-surface">
+      <ul className="divide-y divide-heritage-border rounded-2xl border border-heritage-border bg-heritage-surface shadow-card">
         {vaults.map((vault) => {
           const stage = vaultStage(vault);
           const isOpen = selected?.vaultId === vault.vaultId;
           return (
-            <li key={vault.vaultId} className="flex flex-wrap items-center gap-4 p-4">
+            <li key={vault.vaultId} className="flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
               <Initial name={vault.ownerFullName} />
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-heritage-primary">Kho của {vault.ownerFullName}</p>
