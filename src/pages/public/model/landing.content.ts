@@ -171,7 +171,7 @@ export const LANDING_CONTENT = {
       {
         title: "Chỉ định Người thực thi",
         detail:
-          "Đề cử một Người thực thi; luật sư do hệ thống phân công khi có yêu cầu nhận. Họ không đọc được nội dung kho.",
+          "Chọn một Người thực thi; luật sư do hệ thống phân công khi có yêu cầu nhận. Họ không đọc được nội dung kho.",
       },
       {
         title: "Lập biên bản phân chia",

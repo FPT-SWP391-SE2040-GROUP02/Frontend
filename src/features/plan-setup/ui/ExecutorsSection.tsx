@@ -153,7 +153,7 @@ export function InviteDialog({
     defaultValues: { email: "" },
   });
   const selectedEmail = useWatch({ control: form.control, name: "email" });
-  // Điều khoản đề cử: Chủ kho phải đồng ý trước khi gửi lời mời (chỉ ghi nhận mong muốn, không tạo quyền pháp lý).
+  // Điều khoản về vai trò Người thực thi: Chủ kho phải đồng ý trước khi gửi lời mời (nhân viên LegacyVault chỉ giữ hộ và giao tài sản theo biên bản của luật sư).
   const [nominationAccepted, setNominationAccepted] = useState(false);
 
   /** Lý do không chọn được một người trong danh bạ (Backend vẫn là nơi quyết định cuối cùng). */
@@ -241,7 +241,8 @@ export function InviteDialog({
               className="mt-0.5"
             />
             <span id="nomination-switch-label">
-              Tôi hiểu đây chỉ là đề cử. Người thực thi không có quyền chia, bán hay cho tài sản.
+              Tôi hiểu Người thực thi là nhân viên LegacyVault, chỉ giữ hộ và giao tài sản theo biên
+              bản bàn giao do luật sư lập; không có quyền xem nội dung, chia, bán hay cho tài sản.
             </span>
           </div>
           {action.error && (

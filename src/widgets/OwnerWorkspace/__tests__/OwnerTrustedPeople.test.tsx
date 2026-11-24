@@ -314,7 +314,7 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
     await userEvent.click(
       await within(dialog).findByRole("button", { name: "Chọn người này: Luật sư Thử" }),
     );
-    await userEvent.click(within(dialog).getByRole("switch", { name: /chỉ là đề cử/ }));
+    await userEvent.click(within(dialog).getByRole("switch", { name: /là nhân viên LegacyVault/ }));
     await userEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   }
 
