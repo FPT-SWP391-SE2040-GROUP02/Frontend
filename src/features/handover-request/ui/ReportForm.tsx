@@ -8,6 +8,7 @@ import {
   filledRecipients,
   MAX_REPORT_RECIPIENTS,
   reportErrors,
+  todayInVietnam,
   type ReportErrors,
 } from "../model/reportForm";
 import { DocumentPicker } from "./DocumentPicker";
@@ -116,6 +117,8 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
   const action = usePrivateAction();
   const [name, setName] = useState("");
   const [citizenId, setCitizenId] = useState("");
+  const [dateOfDeath, setDateOfDeath] = useState("");
+  const [attested, setAttested] = useState(false);
   const [note, setNote] = useState("");
   const [deathCertificates, setDeathCertificates] = useState<File[]>([]);
   const [wills, setWills] = useState<File[]>([]);
@@ -127,6 +130,8 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
   const draft = {
     deceasedFullName: name,
     deceasedCitizenId: citizenId,
+    dateOfDeath,
+    attested,
     recipients,
     deathCertificates,
     wills,
@@ -191,6 +196,24 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
             />
             <ErrorText id={`${id}-citizen-error`}>{errors.deceasedCitizenId}</ErrorText>
           </div>
+          <div className="space-y-1">
+            <label htmlFor={`${id}-death`} className="block font-semibold">
+              Ngày mất
+            </label>
+            <input
+              id={`${id}-death`}
+              type="date"
+              min="1900-01-01"
+              max={todayInVietnam()}
+              className={INPUT}
+              value={dateOfDeath}
+              disabled={busy}
+              aria-invalid={Boolean(errors.dateOfDeath)}
+              aria-describedby={errors.dateOfDeath ? `${id}-death-error` : undefined}
+              onChange={(event) => setDateOfDeath(event.target.value)}
+            />
+            <ErrorText id={`${id}-death-error`}>{errors.dateOfDeath}</ErrorText>
+          </div>
         </div>
         <p className="text-heritage-muted">Ghi đúng như trên giấy chứng tử.</p>
       </fieldset>
@@ -241,6 +264,22 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
           onChange={(event) => setNote(event.target.value)}
         />
       </label>
+
+      <div className="space-y-1">
+        <label className="flex cursor-pointer items-start gap-3 leading-6">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-5 shrink-0 cursor-pointer accent-heritage-primary"
+            checked={attested}
+            disabled={busy}
+            aria-invalid={Boolean(errors.attested)}
+            aria-describedby={errors.attested ? `${id}-attested-error` : undefined}
+            onChange={(event) => setAttested(event.target.checked)}
+          />
+          <span>Tôi cam đoan thông tin và giấy tờ nộp là thật.</span>
+        </label>
+        <ErrorText id={`${id}-attested-error`}>{errors.attested}</ErrorText>
+      </div>
 
       <div className="flex flex-wrap gap-2">
         <button type="submit" className={buttonStyles.dark} disabled={busy}>

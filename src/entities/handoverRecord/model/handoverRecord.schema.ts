@@ -54,6 +54,8 @@ export const ownerSplitRecipientSchema = z.object({
 /** Một tệp đính kèm biên bản: chỉ tên và kích thước; nội dung tải qua API riêng có kiểm quyền. */
 export const recordFileSchema = z.object({
   id: z.string().uuid(),
+  /** CLAIM_DOCUMENT, WILL hoặc EVIDENCE. */
+  kind: z.string().default(""),
   fileName: z.string(),
   contentType: z.string(),
   sizeBytes: z.number().int().nonnegative(),
@@ -117,6 +119,8 @@ export const handoverRecordSchema = z.object({
   legalBasisConfirmedByUserId: z.string().uuid().nullable().default(null),
   legalBasisConfirmedByName: z.string().default(""),
   completedAt: timestamp.nullable(),
+  /** Lý do luật sư hủy; null khi Chủ kho hủy hoặc chưa hủy. */
+  cancelReason: z.string().nullable().default(null),
   verifierName: z.string(),
   executorName: z.string(),
   verifierSignedAt: timestamp.nullable(),

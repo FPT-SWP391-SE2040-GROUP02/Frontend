@@ -17,11 +17,17 @@ interface RequestTarget {
   vaultId?: string;
 }
 
-function filesForm(files: File[], note: string, target: RequestTarget = {}): FormData {
+function filesForm(
+  files: File[],
+  note: string,
+  target: RequestTarget = {},
+  wills: File[] = [],
+): FormData {
   const form = new FormData();
   if (target.token !== undefined) form.append("token", target.token);
   if (target.vaultId !== undefined) form.append("vaultId", target.vaultId);
   form.append("note", note.trim());
+  for (const file of wills) form.append("wills", file);
   for (const file of files) form.append("files", file);
   return form;
 }
@@ -34,19 +40,19 @@ export const handoverRequestService = {
     );
   },
   /** Multipart: bỏ Content-Type mặc định để trình duyệt tự đặt boundary. */
-  async submit(token: string, note: string, files: File[]) {
+  async submit(token: string, note: string, wills: File[], files: File[]) {
     return myClaimSchema.parse(
-      await apiClient.post<unknown, unknown>(base, filesForm(files, note, { token }), {
+      await apiClient.post<unknown, unknown>(base, filesForm(files, note, { token }, wills), {
         headers: { "Content-Type": undefined },
       }),
     );
   },
   /** Gửi yêu cầu bằng tài khoản đã đăng nhập (email đã xác minh khớp email Chủ kho khai), không cần link riêng. */
-  async submitByAccount(vaultId: string, note: string, files: File[]) {
+  async submitByAccount(vaultId: string, note: string, wills: File[], files: File[]) {
     return myClaimSchema.parse(
       await apiClient.post<unknown, unknown>(
         `${base}/by-account`,
-        filesForm(files, note, { vaultId: id.parse(vaultId) }),
+        filesForm(files, note, { vaultId: id.parse(vaultId) }, wills),
         { headers: { "Content-Type": undefined } },
       ),
     );

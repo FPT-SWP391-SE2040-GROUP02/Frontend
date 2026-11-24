@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ROUTES } from "@/shared/config/routes.config";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
@@ -103,6 +104,74 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
   );
 }
 
+/** Hủy biên bản đang lập (mở nhầm, giấy tờ sai): bắt buộc lý do và bấm xác nhận lần hai. */
+function CancelRecordPanel({ record }: { record: HandoverRecord }) {
+  const client = useQueryClient();
+  const action = usePrivateAction();
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  return (
+    <Panel title="Hủy biên bản" labelledBy="record-cancel">
+      <div className="space-y-3 text-sm leading-6">
+        <p className="text-heritage-muted">
+          Dùng khi mở nhầm hoặc giấy tờ sai. Kho mở khóa; Chủ kho và Người thực thi được báo. Hủy
+          rồi không khôi phục được.
+        </p>
+        {!open && (
+          <button type="button" className={buttonStyles.outline} onClick={() => setOpen(true)}>
+            Hủy biên bản
+          </button>
+        )}
+        {open && (
+          <>
+            <label className="block space-y-1 font-semibold">
+              Lý do hủy
+              <textarea
+                className="min-h-20 w-full rounded-xl border border-heritage-border bg-white p-3 font-normal"
+                maxLength={1000}
+                value={reason}
+                disabled={action.pending}
+                onChange={(event) => setReason(event.target.value)}
+              />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={buttonStyles.dark}
+                disabled={action.pending || reason.trim() === ""}
+                onClick={() =>
+                  void action.execute(
+                    () => handoverRecordService.cancel(record.id, reason.trim()),
+                    (next) => {
+                      client.setQueryData(handoverRecordKeys.verifier(next.id), next);
+                      void client.invalidateQueries({ queryKey: handoverRecordKeys.root });
+                    },
+                  )
+                }
+              >
+                {action.pending ? "Đang hủy…" : "Đồng ý hủy"}
+              </button>
+              <button
+                type="button"
+                className={buttonStyles.outline}
+                disabled={action.pending}
+                onClick={() => setOpen(false)}
+              >
+                Giữ biên bản
+              </button>
+            </div>
+          </>
+        )}
+        {action.error && (
+          <p role="alert" className="text-destructive">
+            {action.error}
+          </p>
+        )}
+      </div>
+    </Panel>
+  );
+}
+
 /** Chi tiết một biên bản của luật sư: thanh hai bước, việc của bước hiện tại, rồi nội dung biên bản. */
 export function VerifierRecordDetail({
   recordId,
@@ -140,7 +209,13 @@ export function VerifierRecordDetail({
       </button>
       <RecordStepper status={record.status} />
       {record.status === "CANCELLED" && (
-        <Notice tone="neutral" title="Chủ kho đã hủy yêu cầu nhận tài sản">
+        <Notice
+          tone="neutral"
+          title={
+            record.cancelReason ? "Bạn đã hủy biên bản này" : "Chủ kho đã hủy yêu cầu nhận tài sản"
+          }
+        >
+          {record.cancelReason ? `Lý do: ${record.cancelReason}. ` : ""}
           Biên bản này không còn hiệu lực. Kho đã mở khóa cho Chủ kho.
         </Notice>
       )}
@@ -153,6 +228,7 @@ export function VerifierRecordDetail({
         <RecordLinesEditor key={`${record.id}-${record.revisionNo}`} record={record} />
       )}
       {record.status !== "CANCELLED" && <EvidencePanel record={record} />}
+      {record.status === "DRAFTING" && <CancelRecordPanel record={record} />}
       {isSigningStage(record.status) && <FinalizedActions record={record} />}
       {record.status === "COMPLETED" && (
         <Notice tone="success" title="Mọi người nhận đã ký">

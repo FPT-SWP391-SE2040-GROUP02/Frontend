@@ -18,7 +18,9 @@ function report(extra: Record<string, unknown> = {}) {
     id: REPORT_ID,
     deceasedFullName: "Nguyễn Văn Mất",
     status: "SUBMITTED",
+    dateOfDeath: "2026-11-01",
     cancelledByOwner: false,
+    cancelReason: null,
     note: "",
     reviewReason: null,
     createdAt: AT,
@@ -47,6 +49,9 @@ function verifierReport(extra: Record<string, unknown> = {}) {
     vaultFound: true,
     ownerName: "Nguyễn Văn Mất",
     nameMatches: true,
+    ownerLastActiveAt: null,
+    activeAfterDeath: false,
+    acceptNote: null,
     recordId: null,
     ...extra,
   });
@@ -83,6 +88,8 @@ describe("Người thân nộp hồ sơ báo tin", () => {
     expect(screen.getByText("Số căn cước gồm 12 chữ số.")).toBeInTheDocument();
     expect(screen.getByText("Vui lòng đính kèm giấy chứng tử.")).toBeInTheDocument();
     expect(screen.getByText("Vui lòng đính kèm di chúc.")).toBeInTheDocument();
+    expect(screen.getByText("Vui lòng nhập ngày mất.")).toBeInTheDocument();
+    expect(screen.getByText("Vui lòng cam đoan giấy tờ là thật.")).toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
 
@@ -94,6 +101,8 @@ describe("Người thân nộp hồ sơ báo tin", () => {
     await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
     await user.type(screen.getByLabelText("Họ tên người mất"), "Nguyễn Văn Mất");
     await user.type(screen.getByLabelText("Số căn cước người mất (12 số)"), "001099001234");
+    await user.type(screen.getByLabelText("Ngày mất"), "2026-11-01");
+    await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
     const file = new File(["%PDF"], "chung-tu.pdf", { type: "application/pdf" });
     await user.upload(screen.getByLabelText(/^Giấy chứng tử/), file);
     const will = new File(["%PDF"], "di-chuc.pdf", { type: "application/pdf" });
@@ -107,6 +116,8 @@ describe("Người thân nộp hồ sơ báo tin", () => {
     const form = post.mock.calls[0][1] as FormData;
     expect(form.get("deceasedCitizenId")).toBe("001099001234");
     expect(form.getAll("deathCertificates")).toHaveLength(1);
+    expect(form.get("dateOfDeath")).toBe("2026-11-01");
+    expect(form.get("attested")).toBe("true");
     expect(form.getAll("wills")).toHaveLength(1);
     expect(JSON.parse(form.get("recipients") as string)).toEqual([
       { fullName: "Trần Con", email: "con@example.com", phone: "" },
@@ -133,6 +144,28 @@ describe("Luật sư xét hồ sơ báo tin", () => {
     setup(<VerifierReportList onOpenRecord={open} />);
     await userEvent.click(await screen.findByRole("button", { name: "Chấp nhận và mở biên bản" }));
     await waitFor(() => expect(open).toHaveBeenCalledWith(RECORD_ID));
+  });
+
+  it("có cảnh báo thì phải tick đối chiếu và ghi lý do mới chấp nhận được", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      verifierReport({ nameMatches: false, activeAfterDeath: true, ownerLastActiveAt: AT }),
+    ]);
+    const post = vi
+      .spyOn(apiClient, "post")
+      .mockResolvedValue(verifierReport({ status: "ACCEPTED", recordId: RECORD_ID }));
+    setup(<VerifierReportList onOpenRecord={() => undefined} />);
+    const accept = await screen.findByRole("button", { name: "Chấp nhận và mở biên bản" });
+    expect(accept).toBeDisabled();
+    expect(screen.getByText(/Có thể Chủ kho vẫn còn sống/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("checkbox", { name: /Tôi đã đối chiếu/ }));
+    expect(accept).toBeDisabled();
+    await userEvent.type(screen.getByLabelText(/^Lý do/), "Đã kiểm với phường");
+    await userEvent.click(accept);
+    expect(post.mock.calls[0][1]).toEqual({
+      decision: "ACCEPT",
+      reason: "Đã kiểm với phường",
+      confirmDocuments: true,
+    });
   });
 
   it("không có kho thì không chấp nhận được; từ chối phải có lý do", async () => {

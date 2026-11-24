@@ -96,7 +96,9 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
   if (record.status === "CANCELLED") {
     cancelledNote = (
       <p className="mt-3 text-center font-bold text-[#a33]">
-        (Biên bản đã hủy do Chủ kho hủy yêu cầu nhận tài sản)
+        {record.cancelReason
+          ? "(Biên bản đã được luật sư hủy)"
+          : "(Biên bản đã hủy do Chủ kho hủy yêu cầu nhận tài sản)"}
       </p>
     );
   }

@@ -24,7 +24,7 @@ export function ReportFiles({
         return (
           <div key={kind} className="space-y-2">
             <p className="text-sm font-semibold text-heritage-primary">{KIND_LABEL[kind]}</p>
-            <RecordFileList files={items} download={download} />
+            <RecordFileList files={items} download={download} showWillLabel={false} />
           </div>
         );
       })}

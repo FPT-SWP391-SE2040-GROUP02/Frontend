@@ -131,12 +131,10 @@ describe("Trang gửi yêu cầu nhận tài sản", () => {
     setup(<RequestPanel />, "an@example.com");
 
     await user.click(await screen.findByRole("button", { name: "Gửi yêu cầu" }));
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Vui lòng đính kèm ít nhất một tệp giấy tờ.",
-    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng đính kèm di chúc.");
     expect(post).not.toHaveBeenCalled();
 
-    await user.upload(screen.getByLabelText(/Tệp giấy tờ/), pdf());
+    await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
     await user.type(screen.getByLabelText(/Lời nhắn cho luật sư/), "Bố tôi mất ngày 1/11");
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
 
@@ -146,7 +144,7 @@ describe("Trang gửi yêu cầu nhận tài sản", () => {
     const form = body as FormData;
     expect(form.get("token")).toBe(TOKEN);
     expect(form.get("note")).toBe("Bố tôi mất ngày 1/11");
-    expect((form.get("files") as File).name).toBe("di-chuc.pdf");
+    expect((form.get("wills") as File).name).toBe("di-chuc.pdf");
   });
 
   it("kho chưa kích hoạt thì báo chưa gửi được", async () => {
@@ -196,7 +194,7 @@ describe("Trang gửi yêu cầu bằng vaultId (từ trang Nhận tài sản)",
     // Không dùng link riêng nên không gọi preview.
     expect(get).not.toHaveBeenCalledWith("/handover/requests/preview", expect.anything());
 
-    await user.upload(screen.getByLabelText(/Tệp giấy tờ/), pdf());
+    await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
     await user.type(screen.getByLabelText(/Lời nhắn cho luật sư/), "Bố tôi mất ngày 1/11");
     get.mockClear();
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
@@ -221,7 +219,7 @@ describe("Trang gửi yêu cầu bằng vaultId (từ trang Nhận tài sản)",
     setup(<RequestPanel />, "an@example.com", path);
 
     await user.click(await screen.findByRole("button", { name: "Gửi yêu cầu" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng đính kèm ít nhất một tệp");
+    expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng đính kèm di chúc.");
     expect(post).not.toHaveBeenCalled();
   });
 

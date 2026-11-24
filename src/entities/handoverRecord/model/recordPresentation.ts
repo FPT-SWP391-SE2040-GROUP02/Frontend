@@ -13,7 +13,7 @@ export const recordStatusLabel: Record<RecordStatus, { label: string; tone: Tone
   IDENTITY_CHECK: { label: "Đang ký và giao từng người", tone: "warning" },
   SIGNING: { label: "Đang ký và giao từng người", tone: "warning" },
   COMPLETED: { label: "Đã đủ chữ ký", tone: "success" },
-  CANCELLED: { label: "Chủ kho đã hủy", tone: "neutral" },
+  CANCELLED: { label: "Đã hủy", tone: "neutral" },
 };
 
 /** Nhãn và màu của kết quả xét giấy tờ. */

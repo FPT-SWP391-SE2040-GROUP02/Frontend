@@ -8,6 +8,7 @@ import { SupplementForm } from "./SupplementForm";
 
 /** Câu cho người nhận biết yêu cầu đang ở đâu. */
 function claimText(claim: MyClaim): string {
+  if (claim.cancelReason) return `Luật sư đã hủy yêu cầu này. Lý do: ${claim.cancelReason}`;
   if (claim.recordStatus === "CANCELLED") return "Chủ kho đã hủy yêu cầu này.";
   switch (claim.status) {
     case "SUBMITTED":
@@ -32,7 +33,10 @@ export function MyClaimsPanel() {
         {query.data.map((claim) => {
           let status = claimStatusLabel[claim.status];
           if (claim.recordStatus === "CANCELLED")
-            status = { label: "Chủ kho đã hủy", tone: "neutral" };
+            status = {
+              label: claim.cancelReason ? "Luật sư đã hủy" : "Chủ kho đã hủy",
+              tone: "neutral",
+            };
           return (
             <article
               key={claim.id}

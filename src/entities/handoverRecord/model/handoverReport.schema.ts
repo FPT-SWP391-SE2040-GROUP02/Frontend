@@ -12,7 +12,9 @@ export const myReportSchema = z.object({
   id: z.string().uuid(),
   deceasedFullName: z.string(),
   status: claimStatusSchema,
+  dateOfDeath: z.string().nullable(),
   cancelledByOwner: z.boolean(),
+  cancelReason: z.string().nullable(),
   note: z.string(),
   reviewReason: z.string().nullable(),
   createdAt: timestamp,
@@ -30,6 +32,10 @@ export const verifierReportSchema = myReportSchema.extend({
   vaultFound: z.boolean(),
   ownerName: z.string(),
   nameMatches: z.boolean(),
+  ownerLastActiveAt: timestamp.nullable(),
+  /** Chủ kho còn hoạt động sau ngày mất đã khai. */
+  activeAfterDeath: z.boolean(),
+  acceptNote: z.string().nullable(),
   recordId: z.string().uuid().nullable(),
 });
 

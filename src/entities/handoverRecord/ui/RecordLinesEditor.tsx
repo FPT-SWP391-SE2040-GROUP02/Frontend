@@ -227,8 +227,8 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
             onChange={(event) => setLegalBasisConfirmed(event.target.checked)}
           />
           <span>
-            Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) hoặc xác định không có di chúc, và lập
-            biên bản này theo đúng quy định. Tôi chịu trách nhiệm về nội dung biên bản.
+            Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) và lập biên bản này theo đúng quy định.
+            Tôi chịu trách nhiệm về nội dung biên bản.
           </span>
         </label>
 

@@ -121,7 +121,7 @@ function TokenRequestPanel({ token }: { token: string }) {
     <div className="space-y-6">
       {heading}
       <RequestForm
-        send={(note, files) => handoverRequestService.submit(token, note, files)}
+        send={(note, wills, files) => handoverRequestService.submit(token, note, wills, files)}
         onSent={() => {
           void client.invalidateQueries({ queryKey: handoverRequestKeys.mine });
           void client.invalidateQueries({ queryKey: handoverRequestKeys.available });

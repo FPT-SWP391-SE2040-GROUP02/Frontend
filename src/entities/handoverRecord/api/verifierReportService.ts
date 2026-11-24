@@ -17,11 +17,13 @@ export const verifierReportService = {
     reportId: string,
     decision: "ACCEPT" | "REQUEST_SUPPLEMENT" | "REJECT",
     reason?: string,
+    confirmDocuments = false,
   ) {
     return verifierReportSchema.parse(
       await apiClient.post<unknown, unknown>(`${base}/${id.parse(reportId)}/review`, {
         decision,
         reason,
+        confirmDocuments,
       }),
     );
   },

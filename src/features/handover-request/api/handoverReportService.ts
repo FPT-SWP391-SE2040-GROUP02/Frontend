@@ -11,6 +11,8 @@ const multipart = { headers: { "Content-Type": undefined } };
 export interface ReportInput {
   deceasedFullName: string;
   deceasedCitizenId: string;
+  dateOfDeath: string;
+  attested: boolean;
   note: string;
   recipients: SuggestedRecipient[];
   deathCertificates: File[];
@@ -24,6 +26,8 @@ export const handoverReportService = {
     const form = new FormData();
     form.append("deceasedFullName", input.deceasedFullName.trim());
     form.append("deceasedCitizenId", input.deceasedCitizenId.trim());
+    form.append("dateOfDeath", input.dateOfDeath);
+    form.append("attested", String(input.attested));
     form.append("note", input.note.trim());
     form.append("recipients", JSON.stringify(input.recipients));
     for (const file of input.deathCertificates) form.append("deathCertificates", file);

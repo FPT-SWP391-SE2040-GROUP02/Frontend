@@ -121,7 +121,9 @@ export function AccountRequestPanel({ vaultId }: { vaultId: string }) {
         Email đã xác minh, khớp email Chủ kho khai
       </p>
       <RequestForm
-        send={(note, files) => handoverRequestService.submitByAccount(vaultId, note, files)}
+        send={(note, wills, files) =>
+          handoverRequestService.submitByAccount(vaultId, note, wills, files)
+        }
         onSent={() => {
           void client.invalidateQueries({ queryKey: handoverRequestKeys.mine });
           void client.invalidateQueries({ queryKey: handoverRequestKeys.available });

@@ -108,7 +108,7 @@ function backend(first: unknown, next?: unknown) {
 }
 
 const LEGAL_BASIS_LABEL =
-  "Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) hoặc xác định không có di chúc, và lập biên bản này theo đúng quy định. Tôi chịu trách nhiệm về nội dung biên bản.";
+  "Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) và lập biên bản này theo đúng quy định. Tôi chịu trách nhiệm về nội dung biên bản.";
 
 /** Luật sư tick ô xác nhận căn cứ pháp lý trước khi chốt. */
 async function confirmLegalBasis(user: ReturnType<typeof userEvent.setup>) {
@@ -751,6 +751,25 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     await user.click(retry);
     expect(await screen.findByText("Bước 2 · Ký và giao từng người")).toBeInTheDocument();
     expect(post.mock.calls.filter(([url]) => String(url).endsWith("/recipients"))).toHaveLength(1);
+  });
+
+  it("luật sư hủy biên bản đang lập: phải có lý do, hủy xong hiện lý do", async () => {
+    const user = userEvent.setup();
+    const { post } = backend(
+      record(),
+      record({ status: "CANCELLED", cancelReason: "Mở nhầm hồ sơ" }),
+    );
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await user.click(await screen.findByRole("button", { name: "Hủy biên bản" }));
+    expect(screen.getByRole("button", { name: "Đồng ý hủy" })).toBeDisabled();
+    await user.type(screen.getByLabelText("Lý do hủy"), "Mở nhầm hồ sơ");
+    await user.click(screen.getByRole("button", { name: "Đồng ý hủy" }));
+    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/cancel`, {
+      reason: "Mở nhầm hồ sơ",
+    });
+    expect(await screen.findByText("Bạn đã hủy biên bản này")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Chốt và gửi thư" })).not.toBeInTheDocument();
   });
 
   it("Chủ kho đã hủy thì chỉ còn thông báo, không còn bước lập", async () => {

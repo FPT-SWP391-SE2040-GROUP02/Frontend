@@ -20,7 +20,7 @@ function waitingText(record: HandoverRecord): string {
     case "COMPLETED":
       return "Mọi người nhận đã ký. Vào mục Bàn giao để gửi mã nhận cho người chưa có mã.";
     case "CANCELLED":
-      return "Chủ kho đã hủy yêu cầu nhận tài sản. Kho đã mở khóa.";
+      return "Yêu cầu nhận tài sản đã được hủy. Kho đã mở khóa.";
   }
 }
 

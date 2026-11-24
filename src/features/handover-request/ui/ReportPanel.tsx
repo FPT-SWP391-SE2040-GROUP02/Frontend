@@ -14,6 +14,7 @@ import { SupplementForm } from "./SupplementForm";
 
 /** Câu cho người nộp biết hồ sơ đang ở đâu. */
 function reportText(report: MyReport): string {
+  if (report.cancelReason) return `Luật sư đã hủy việc bàn giao. Lý do: ${report.cancelReason}`;
   if (report.cancelledByOwner) return "Chủ kho đã hủy việc bàn giao.";
   switch (report.status) {
     case "SUBMITTED":
@@ -30,6 +31,7 @@ function reportText(report: MyReport): string {
 function ReportCard({ report }: { report: MyReport }) {
   const client = useQueryClient();
   let status = claimStatusLabel[report.status];
+  if (report.cancelReason) status = { label: "Luật sư đã hủy", tone: "neutral" };
   if (report.cancelledByOwner) status = { label: "Chủ kho đã hủy", tone: "neutral" };
   return (
     <article
