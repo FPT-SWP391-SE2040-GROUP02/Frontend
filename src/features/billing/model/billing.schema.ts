@@ -36,12 +36,6 @@ export const billingPlansSchema = z.object({
       ),
     }),
   ),
-  extraSlot: z.object({
-    pricePerYear: money,
-    maxPerOrder: z.number().int().positive(),
-    /** Tổng người nhận tối đa mỗi tài khoản (suất kèm gói + suất mua thêm); Backend cũ không gửi thì chỉ giới hạn theo đơn. */
-    maxTotal: z.number().int().positive().optional(),
-  }),
   notice: z.string(),
   /** Mô tả tính năng của gói Free do Admin viết; rỗng hoặc thiếu thì dùng mô tả mặc định. */
   freeFeatures: z.array(z.string()).optional(),
@@ -55,21 +49,18 @@ export const billingPlansSchema = z.object({
 });
 
 /** Loại đơn do Backend tự xác định từ quyền dịch vụ của kho. */
-export const billingKindSchema = z.enum(["PURCHASE", "ADDON", "UPGRADE", "RENEWAL"]);
+export const billingKindSchema = z.enum(["PURCHASE", "UPGRADE", "RENEWAL"]);
 
 /** POST /billing/quote: báo giá không ghi DB. Số tiền chỉ hiển thị, không bao giờ gửi lại. */
 export const billingQuoteSchema = z.object({
   kind: billingKindSchema,
   tier: billingTierSchema,
   years: z.number().int().nullable(),
-  extraSlots: z.number().int().nonnegative(),
   tierAmount: money,
-  slotAmount: money,
   totalAmount: money,
   currency: z.string(),
   storageQuotaBytes: z.number().int().positive(),
   includedBeneficiarySlots: z.number().int().nonnegative(),
-  beneficiarySlots: z.number().int().nonnegative(),
   serviceDays: z.number().int().nullable(),
   serviceStartsAt: z.string().nullable(),
   serviceExpiresAt: z.string().nullable(),
@@ -87,9 +78,7 @@ export const paymentOrderSchema = z.object({
   status: paymentOrderStatusSchema,
   tier: billingTierSchema,
   years: z.number().int().nullable(),
-  extraSlots: z.number().int().nonnegative(),
   tierAmount: money,
-  slotAmount: money,
   totalAmount: money,
   currency: z.string(),
   storageQuotaBytes: z.number().int().positive(),
@@ -117,7 +106,6 @@ export const paymentOrderSummarySchema = z.object({
   status: paymentOrderStatusSchema,
   tier: billingTierSchema,
   years: z.number().int().nullable(),
-  extraSlots: z.number().int().nonnegative(),
   totalAmount: money,
   currency: z.string(),
   paymentCode: z.string(),
@@ -133,8 +121,6 @@ export const paymentOrderPageSchema = paginatedListSchema(paymentOrderSummarySch
 export const billingSelectionSchema = z.object({
   tier: billingTierSchema.optional(),
   years: billingYearsSchema.optional(),
-  /** Trần thật do Backend quyết theo cấu hình Admin (tối đa 100); ở đây chỉ chặn giá trị vô lý. */
-  extraSlots: z.number().int().min(0).max(100),
   /** true = gia hạn khi kho còn hạn; kho đã hết hạn Backend tự hiểu là gia hạn. */
   renew: z.boolean().optional(),
 });

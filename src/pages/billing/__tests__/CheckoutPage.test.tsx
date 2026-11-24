@@ -12,13 +12,11 @@ import { CheckoutPage } from "../CheckoutPage";
 const ORDER_ID = "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a10";
 const order = {
   id: ORDER_ID,
-  kind: "ADDON",
+  kind: "UPGRADE",
   status: "PENDING",
-  tier: "XS",
+  tier: "XS_MAX",
   years: null,
-  extraSlots: 1,
-  tierAmount: 0,
-  slotAmount: 24165,
+  tierAmount: 24165,
   totalAmount: 24165,
   currency: "VND",
   storageQuotaBytes: 209715200,

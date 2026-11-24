@@ -36,11 +36,7 @@ import { Switch } from "@/shared/ui/switch";
 import { describePlanKey, describePlanValue } from "../model/planCatalog";
 import { PlanCatalogEditor } from "./PlanCatalogEditor";
 import { PlanCards } from "./PlanCards";
-import {
-  DEFAULT_MAX_TOTAL_SLOTS,
-  MAX_SLOT_PRICE_PER_YEAR,
-  MAX_TOTAL_SLOTS_LIMIT,
-} from "../model/planCatalog";
+import { DEFAULT_MAX_TOTAL_SLOTS, MAX_TOTAL_SLOTS_LIMIT } from "../model/planCatalog";
 import { settingsSaveError } from "../model/adminError";
 import { limitOf, settingErrors, textMaxLengthOf } from "../model/settingRules";
 
@@ -868,102 +864,40 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
             </div>
           </details>
 
-          {/* Sub-card: Add-on & Order Limits */}
+          {/* Sub-card: giới hạn suất kèm gói và hạn đơn */}
           <section className="rounded-2xl border border-heritage-border bg-heritage-surface p-5">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-heritage-primary">
-              Suất người nhận thêm và thanh toán SePay
+              Giới hạn suất kèm gói và thanh toán SePay
             </h3>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-heritage-muted">
-                  Giá một suất thêm / năm
-                </label>
-                <div className="flex items-center gap-1">
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={getValue("Plans.Addon.SlotPricePerYear", "49000")}
-                    onChange={(e) =>
-                      setKeyValue("Plans.Addon.SlotPricePerYear", e.target.value.replace(/\D/g, ""))
-                    }
-                    className="h-9 font-mono text-sm font-semibold"
-                  />
-                  <span className="text-sm text-heritage-muted">đ</span>
-                </div>
-                {parseInt(getValue("Plans.Addon.SlotPricePerYear", "49000"), 10) >
-                  MAX_SLOT_PRICE_PER_YEAR && (
-                  <p role="alert" className="text-[0.875rem] text-heritage-danger">
-                    Tối đa {MAX_SLOT_PRICE_PER_YEAR.toLocaleString("vi-VN")}đ mỗi năm
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-heritage-muted">
-                  Số suất thêm tối đa / đơn
+                  Số người nhận kèm tối đa / gói
                 </label>
                 <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
                   <button
                     type="button"
-                    onClick={() => stepValue("Plans.Addon.MaxSlotsPerOrder", -1, 1)}
+                    onClick={() => stepValue("Plans.MaxTotalSlots", -5, 1, MAX_TOTAL_SLOTS_LIMIT)}
                     className="flex size-9 items-center justify-center text-heritage-muted hover:bg-heritage-sunken"
+                    aria-label="Giảm số người nhận kèm tối đa"
                   >
                     <Minus className="size-3.5" />
                   </button>
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={getValue("Plans.Addon.MaxSlotsPerOrder", "20")}
+                    value={getValue("Plans.MaxTotalSlots", String(DEFAULT_MAX_TOTAL_SLOTS))}
                     onChange={(e) =>
-                      setKeyValue("Plans.Addon.MaxSlotsPerOrder", e.target.value.replace(/\D/g, ""))
+                      setKeyValue("Plans.MaxTotalSlots", e.target.value.replace(/\D/g, ""))
                     }
+                    aria-label="Số người nhận kèm tối đa mỗi gói"
                     className="h-9 w-full text-center font-mono text-sm font-semibold focus:outline-none"
                   />
                   <button
                     type="button"
-                    onClick={() => stepValue("Plans.Addon.MaxSlotsPerOrder", 1)}
+                    onClick={() => stepValue("Plans.MaxTotalSlots", 5, 1, MAX_TOTAL_SLOTS_LIMIT)}
                     className="flex size-9 items-center justify-center text-heritage-muted hover:bg-heritage-sunken"
-                  >
-                    <Plus className="size-3.5" />
-                  </button>
-                  <span className="border-l border-heritage-border px-3 text-sm text-heritage-muted">
-                    suất
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-heritage-muted">
-                  Tổng người nhận tối đa / tài khoản
-                </label>
-                <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      stepValue("Plans.Addon.MaxTotalSlots", -5, 1, MAX_TOTAL_SLOTS_LIMIT)
-                    }
-                    className="flex size-9 items-center justify-center text-heritage-muted hover:bg-heritage-sunken"
-                    aria-label="Giảm tổng người nhận tối đa"
-                  >
-                    <Minus className="size-3.5" />
-                  </button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={getValue("Plans.Addon.MaxTotalSlots", String(DEFAULT_MAX_TOTAL_SLOTS))}
-                    onChange={(e) =>
-                      setKeyValue("Plans.Addon.MaxTotalSlots", e.target.value.replace(/\D/g, ""))
-                    }
-                    aria-label="Tổng người nhận tối đa mỗi tài khoản"
-                    className="h-9 w-full text-center font-mono text-sm font-semibold focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      stepValue("Plans.Addon.MaxTotalSlots", 5, 1, MAX_TOTAL_SLOTS_LIMIT)
-                    }
-                    className="flex size-9 items-center justify-center text-heritage-muted hover:bg-heritage-sunken"
-                    aria-label="Tăng tổng người nhận tối đa"
+                    aria-label="Tăng số người nhận kèm tối đa"
                   >
                     <Plus className="size-3.5" />
                   </button>
@@ -972,7 +906,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                   </span>
                 </div>
                 <p className="text-[0.875rem] text-heritage-muted">
-                  Gồm cả suất kèm gói. Mua nhiều đơn cũng không vượt số này.
+                  Mỗi gói không được kèm nhiều người nhận hơn số này.
                 </p>
               </div>
 
@@ -983,7 +917,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                 <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
                   <button
                     type="button"
-                    onClick={() => stepValue("Plans.Addon.OrderTimeoutMinutes", -5, 5)}
+                    onClick={() => stepValue("Plans.OrderTimeoutMinutes", -5, 5)}
                     className="flex size-9 items-center justify-center text-heritage-muted hover:bg-heritage-sunken"
                   >
                     <Minus className="size-3.5" />
@@ -991,18 +925,15 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                   <input
                     type="text"
                     inputMode="numeric"
-                    value={getValue("Plans.Addon.OrderTimeoutMinutes", "15")}
+                    value={getValue("Plans.OrderTimeoutMinutes", "15")}
                     onChange={(e) =>
-                      setKeyValue(
-                        "Plans.Addon.OrderTimeoutMinutes",
-                        e.target.value.replace(/\D/g, ""),
-                      )
+                      setKeyValue("Plans.OrderTimeoutMinutes", e.target.value.replace(/\D/g, ""))
                     }
                     className="h-9 w-full text-center font-mono text-sm font-semibold focus:outline-none"
                   />
                   <button
                     type="button"
-                    onClick={() => stepValue("Plans.Addon.OrderTimeoutMinutes", 5)}
+                    onClick={() => stepValue("Plans.OrderTimeoutMinutes", 5)}
                     className="flex size-9 items-center justify-center text-heritage-muted hover:bg-heritage-sunken"
                   >
                     <Plus className="size-3.5" />

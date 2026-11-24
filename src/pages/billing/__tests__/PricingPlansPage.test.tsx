@@ -45,7 +45,6 @@ const plansFixture: BillingPlans = {
       ],
     },
   ],
-  extraSlot: { pricePerYear: 49000, maxPerOrder: 20 },
   notice: "Thanh toán không tự kích hoạt bàn giao.",
 };
 
@@ -53,14 +52,11 @@ const purchaseQuote: BillingQuote = {
   kind: "PURCHASE",
   tier: "XS",
   years: 1,
-  extraSlots: 0,
   tierAmount: 199000,
-  slotAmount: 0,
   totalAmount: 199000,
   currency: "VND",
   storageQuotaBytes: 209715200,
   includedBeneficiarySlots: 2,
-  beneficiarySlots: 2,
   serviceDays: 365,
   serviceStartsAt: "ON_PAYMENT",
   serviceExpiresAt: null,
@@ -69,15 +65,15 @@ const purchaseQuote: BillingQuote = {
   serverTime: "2026-10-20T00:00:00Z",
 };
 
-const addonQuote: BillingQuote = {
+const upgradeQuote: BillingQuote = {
   ...purchaseQuote,
-  kind: "ADDON",
+  kind: "UPGRADE",
+  tier: "XS_MAX",
   years: null,
-  extraSlots: 1,
-  tierAmount: 0,
-  slotAmount: 24165,
-  totalAmount: 24165,
-  beneficiarySlots: 3,
+  tierAmount: 250000,
+  totalAmount: 250000,
+  storageQuotaBytes: 524288000,
+  includedBeneficiarySlots: 5,
   serviceDays: null,
   serviceStartsAt: null,
   serviceExpiresAt: "2099-10-20T00:00:00Z",
@@ -137,9 +133,7 @@ function setup(
       serviceTier: "XS",
       serviceStatus: "PAID_ACTIVE",
       serviceExpiresAt: "2099-10-20T00:00:00Z",
-      beneficiarySlots: 3,
-      includedBeneficiarySlots: 2,
-      extraBeneficiarySlots: 1,
+      beneficiarySlots: 2,
       ...vaultChanges,
     });
   }
@@ -168,9 +162,9 @@ describe("pricing reference policies", () => {
     expect(planCard("Owner Free").getByText("20 MB")).toBeInTheDocument();
     expect(planCard("Legacy XS").getByText("200 MB")).toBeInTheDocument();
     expect(planCard("Legacy XS Max").getByText("500 MB")).toBeInTheDocument();
-    // Mục chính sách "Dung lượng" đã bỏ khỏi phần Chính sách chi tiết; chỉ còn mua thêm suất và gói Free.
+    // Mục chính sách "Dung lượng" đã bỏ khỏi phần Chính sách chi tiết; chỉ còn suất người nhận và gói Free.
     expect(screen.queryByText(/Không giới hạn số tài sản theo hạng/)).not.toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Mua thêm suất người nhận" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Suất người nhận" })).toBeInTheDocument();
     expect(screen.getByText("Gói Free")).toBeInTheDocument();
   });
 
@@ -194,84 +188,35 @@ describe("pricing reference policies", () => {
 
   it("explains that lawyer-added recipients do not use a slot and are free", () => {
     setup();
-    const policy = screen.getByRole("region", { name: "Mua thêm suất người nhận" });
+    const policy = screen.getByRole("region", { name: "Suất người nhận" });
     expect(policy).toHaveTextContent(
-      "Suất là số người nhận bạn được chọn. Người do luật sư thêm theo quy định pháp luật không tính suất và không mất phí.",
+      "Suất là số người nhận bạn được chọn, kèm theo gói. Người do luật sư thêm theo quy định pháp luật không tính suất và không mất phí.",
     );
   });
 
-  it("explains add-on limits and expiry as reference information only", () => {
+  it("says more slots come from a bigger plan, with no per-slot purchase", () => {
     setup();
-    const policy = screen.getByRole("region", { name: "Mua thêm suất người nhận" });
-    expect(policy).toHaveTextContent("49.000đ/suất/năm");
-    expect(policy).toHaveTextContent("Tối đa 20 suất mỗi đơn");
-    expect(policy).toHaveTextContent("hết hạn cùng ngày với gói");
-    expect(policy).toHaveTextContent("thời gian còn lại");
-    expect(policy).not.toHaveTextContent("Chưa hỗ trợ mua thêm suất");
+    const policy = screen.getByRole("region", { name: "Suất người nhận" });
+    expect(policy).toHaveTextContent("nâng lên gói có nhiều suất hơn");
+    expect(policy).not.toHaveTextContent("49.000đ/suất/năm");
+    expect(policy).not.toHaveTextContent("mỗi đơn");
   });
 
   it("keeps the current account entitlement from the server separate from the catalog", () => {
     setup(true);
     const current = screen.getByRole("region", { name: "Gói hiện tại của kho" });
-    expect(within(current).getByText(/\/ 3 đã dùng/)).toBeInTheDocument();
+    expect(within(current).getByText(/\/ 2 đã dùng/)).toBeInTheDocument();
     expect(planCard("Legacy XS").getByText("2 người")).toBeInTheDocument();
     expect(planCard("Legacy XS").getByText("Gói hiện tại")).toBeInTheDocument();
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
   });
 
-  it("mua thêm suất: hiện báo giá của Backend và chỉ tạo đơn khi người dùng xác nhận", async () => {
-    const post = vi.spyOn(apiClient, "post").mockImplementation((url: string) => {
-      if (url === "/billing/quote") return Promise.resolve(addonQuote);
-      return Promise.reject(new Error(`không mong đợi ${url}`));
-    });
+  it("kho XS còn hạn: thẻ gói đang dùng bị khóa và không còn nút mua thêm suất", () => {
     setup(true);
-    expect(screen.getByRole("heading", { level: 1, name: "Gói dịch vụ" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Mua thêm suất người nhận" }));
-    const panel = screen.getByRole("region", { name: "Mua thêm suất" });
-    await waitFor(() => expect(panel).toHaveTextContent("24.165"));
-    expect(panel).toHaveTextContent("Tổng thanh toán");
-    expect(panel).toHaveTextContent("3 người");
-    // Chỉ gửi số suất: không gửi số tiền, hạng, loại đơn hay vaultId (SEC-04, PAY-11).
-    expect(post).toHaveBeenCalledTimes(1);
-    expect(post.mock.calls[0][0]).toBe("/billing/quote");
-    expect(post.mock.calls[0][1]).toEqual({ extraSlots: 1 });
-    fireEvent.click(within(panel).getByRole("button", { name: "Đóng khung mua" }));
-    expect(screen.queryByRole("region", { name: "Mua thêm suất" })).not.toBeInTheDocument();
-    expect(post).toHaveBeenCalledTimes(1);
-  });
-
-  it("đổi số suất mua thêm thì báo giá lại và giữ trong giới hạn của Backend", async () => {
-    const post = vi
-      .spyOn(apiClient, "post")
-      .mockResolvedValue({ ...addonQuote, extraSlots: 5, slotAmount: 120825, totalAmount: 120825 });
-    setup(true);
-    fireEvent.click(screen.getByRole("button", { name: "Mua thêm suất người nhận" }));
-    const input = await screen.findByLabelText(/Suất người nhận mua thêm/);
-    fireEvent.change(input, { target: { value: "5" } });
-    await waitFor(() =>
-      expect(post).toHaveBeenLastCalledWith("/billing/quote", { extraSlots: 5 }, expect.anything()),
-    );
-    fireEvent.change(input, { target: { value: "99" } });
-    expect(input).toHaveValue(20);
-    fireEvent.change(input, { target: { value: "0" } });
-    expect(input).toHaveValue(1);
-  });
-
-  it("mua thêm suất: không cho vượt tổng người nhận tối đa mỗi tài khoản và nói rõ còn mua được bao nhiêu", async () => {
-    vi.spyOn(apiClient, "post").mockResolvedValue(addonQuote);
-    setup(true);
-    // Kho đang có 3 người nhận, trần tổng 5: chỉ còn mua thêm được 2 suất dù mỗi đơn cho tới 20.
-    client.setQueryData(billingKeys.plans(), {
-      ...plansFixture,
-      extraSlot: { pricePerYear: 49000, maxPerOrder: 20, maxTotal: 5 },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Mua thêm suất người nhận" }));
-    const input = await screen.findByLabelText(/Suất người nhận mua thêm \(tối đa 2\)/);
-    fireEvent.change(input, { target: { value: "9" } });
-    expect(input).toHaveValue(2);
+    expect(planCard("Legacy XS").getByRole("button", { name: "Đang sử dụng" })).toBeDisabled();
     expect(
-      screen.getByText(/Mỗi tài khoản tối đa 5 người nhận.*còn mua thêm được tối đa 2 suất/),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
+    ).not.toBeInTheDocument();
   });
 
   it("Chủ kho có nút sang Lịch sử thanh toán", () => {
@@ -301,19 +246,7 @@ describe("pricing reference policies", () => {
     ).toBeInTheDocument();
   });
 
-  it("nâng hạng: báo giá của Backend, không có ô chọn năm hay suất, chỉ tạo đơn khi xác nhận", async () => {
-    const upgradeQuote: BillingQuote = {
-      ...addonQuote,
-      kind: "UPGRADE",
-      tier: "XS_MAX",
-      extraSlots: 0,
-      tierAmount: 250000,
-      slotAmount: 0,
-      totalAmount: 250000,
-      storageQuotaBytes: 524288000,
-      includedBeneficiarySlots: 5,
-      beneficiarySlots: 6,
-    };
+  it("nâng hạng: báo giá của Backend, không có ô chọn năm, chỉ tạo đơn khi xác nhận", async () => {
     const post = vi.spyOn(apiClient, "post").mockImplementation((url: string) => {
       if (url === "/billing/quote") return Promise.resolve(upgradeQuote);
       return Promise.reject(new Error("dừng ở đây"));
@@ -324,17 +257,14 @@ describe("pricing reference policies", () => {
     await waitFor(() => expect(panel).toHaveTextContent("250.000"));
     expect(panel).toHaveTextContent("Phần chênh nâng lên Legacy XS Max");
     expect(panel).toHaveTextContent("500 MB");
-    expect(panel).toHaveTextContent("6 người");
-    expect(within(panel).queryByLabelText(/Suất người nhận mua thêm/)).not.toBeInTheDocument();
+    expect(panel).toHaveTextContent("5 người");
     expect(within(panel).queryByRole("group", { name: "Chọn kỳ dịch vụ" })).not.toBeInTheDocument();
-    // Chỉ gửi hạng đích và số suất 0: không gửi số tiền hay số năm (SEC-04, PAY-11).
+    // Chỉ gửi hạng đích: không gửi số tiền hay số năm (SEC-04, PAY-11).
     expect(post.mock.calls[0][0]).toBe("/billing/quote");
-    expect(post.mock.calls[0][1]).toEqual({ tier: "XS_MAX", extraSlots: 0 });
+    expect(post.mock.calls[0][1]).toEqual({ tier: "XS_MAX" });
     expect(post).toHaveBeenCalledTimes(1);
     fireEvent.click(within(panel).getByRole("button", { name: "Tạo đơn nâng hạng" }));
-    await waitFor(() =>
-      expect(post).toHaveBeenCalledWith("/billing/orders", { tier: "XS_MAX", extraSlots: 0 }),
-    );
+    await waitFor(() => expect(post).toHaveBeenCalledWith("/billing/orders", { tier: "XS_MAX" }));
   });
 
   it("giá của Owner lấy từ Backend, không phải bảng tĩnh", async () => {
@@ -355,19 +285,19 @@ describe("pricing reference policies", () => {
     );
   });
 
-  it("hết kỳ khi đang mở khung mua thêm thì đóng khung và bỏ nút mua thêm", async () => {
-    vi.spyOn(apiClient, "post").mockResolvedValue(addonQuote);
+  it("hết kỳ khi đang mở khung nâng hạng thì đóng khung và bỏ nút nâng hạng", async () => {
+    vi.spyOn(apiClient, "post").mockResolvedValue(upgradeQuote);
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-10-20T00:00:00Z"));
     try {
       setup(true, { serviceExpiresAt: "2026-10-20T00:00:01Z" });
-      fireEvent.click(screen.getByRole("button", { name: "Mua thêm suất người nhận" }));
-      expect(screen.getByRole("region", { name: "Mua thêm suất" })).toBeInTheDocument();
+      fireEvent.click(planCard("Legacy XS Max").getByRole("button", { name: "Nâng lên XS Max" }));
+      expect(screen.getByRole("region", { name: "Nâng lên Legacy XS Max" })).toBeInTheDocument();
       act(() => vi.advanceTimersByTime(1001));
-      expect(screen.queryByRole("region", { name: "Mua thêm suất" })).not.toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
+        screen.queryByRole("region", { name: "Nâng lên Legacy XS Max" }),
       ).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Nâng lên XS Max" })).not.toBeInTheDocument();
       expect(screen.getByRole("region", { name: "Gói hiện tại của kho" })).toHaveTextContent(
         "Đã hết hạn dịch vụ",
       );
@@ -381,10 +311,7 @@ describe("pricing reference policies", () => {
     const renewalQuote: BillingQuote = {
       ...purchaseQuote,
       kind: "RENEWAL",
-      extraSlots: 1,
-      slotAmount: 49000,
-      totalAmount: 248000,
-      beneficiarySlots: 3,
+      totalAmount: 199000,
       serviceStartsAt: "AFTER_CURRENT_TERM",
       serviceExpiresAt: "2099-10-20T00:00:00Z",
     };
@@ -395,11 +322,11 @@ describe("pricing reference policies", () => {
     setup(true);
     fireEvent.click(screen.getByRole("button", { name: "Gia hạn gói" }));
     const panel = screen.getByRole("region", { name: "Gia hạn Legacy XS" });
-    await waitFor(() => expect(panel).toHaveTextContent("248.000"));
+    await waitFor(() => expect(panel).toHaveTextContent("199.000"));
     expect(panel).toHaveTextContent("Nối tiếp hạn hiện tại");
-    // Điền sẵn số suất thêm đang có (1), gửi cờ renew; Backend tự tính tiền.
+    // Gửi cờ renew; Backend tự tính tiền.
     expect(post.mock.calls[0][0]).toBe("/billing/quote");
-    expect(post.mock.calls[0][1]).toEqual({ tier: "XS", years: 1, extraSlots: 1, renew: true });
+    expect(post.mock.calls[0][1]).toEqual({ tier: "XS", years: 1, renew: true });
     // Còn hạn thì giữ nguyên hạng: không có ô chọn hạng, chỉ có lời chỉ sang Nâng hạng.
     expect(
       within(panel).queryByRole("group", { name: "Chọn hạng cho kỳ mới" }),
@@ -413,7 +340,6 @@ describe("pricing reference policies", () => {
       expect(post).toHaveBeenCalledWith("/billing/orders", {
         tier: "XS",
         years: 1,
-        extraSlots: 1,
         renew: true,
       }),
     );
@@ -429,9 +355,6 @@ describe("pricing reference policies", () => {
     const post = vi.spyOn(apiClient, "post").mockResolvedValue(lateQuote);
     setup(true, { serviceStatus: "GRACE_READ_ONLY", serviceExpiresAt: "2020-01-01T00:00:00Z" });
     expect(
-      screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
-    ).not.toBeInTheDocument();
-    expect(
       planCard("Legacy XS Max").getByRole("button", { name: "Gia hạn Legacy XS Max" }),
     ).toBeEnabled();
     fireEvent.click(planCard("Legacy XS").getByRole("button", { name: "Gia hạn Legacy XS" }));
@@ -443,7 +366,7 @@ describe("pricing reference policies", () => {
     await waitFor(() =>
       expect(post).toHaveBeenLastCalledWith(
         "/billing/quote",
-        { tier: "XS_MAX", years: 1, extraSlots: 1, renew: true },
+        { tier: "XS_MAX", years: 1, renew: true },
         expect.anything(),
       ),
     );
@@ -482,20 +405,18 @@ describe("pricing reference policies", () => {
       serviceTier: "FREE",
       serviceStatus: "FREE",
       serviceExpiresAt: null,
-      extraBeneficiarySlots: 0,
     });
     fireEvent.click(screen.getByRole("button", { name: "Mua gói XS" }));
     const panel = screen.getByRole("region", { name: "Mua Legacy XS" });
     await waitFor(() => expect(panel).toHaveTextContent("199.000"));
     expect(panel).toHaveTextContent("Từ lúc thanh toán thành công");
     expect(panel).not.toHaveTextContent("2099");
-    expect(post.mock.calls[0][1]).toEqual({ tier: "XS", years: 1, extraSlots: 0 });
+    expect(post.mock.calls[0][1]).toEqual({ tier: "XS", years: 1 });
     fireEvent.click(within(panel).getByRole("button", { name: "Tạo đơn và thanh toán" }));
     await waitFor(() =>
       expect(post).toHaveBeenCalledWith("/billing/orders", {
         tier: "XS",
         years: 1,
-        extraSlots: 0,
       }),
     );
   });
@@ -508,7 +429,6 @@ describe("pricing reference policies", () => {
       serviceTier: "FREE",
       serviceStatus: "FREE",
       serviceExpiresAt: null,
-      extraBeneficiarySlots: 0,
     });
     fireEvent.click(screen.getByRole("button", { name: "Mua gói XS" }));
     const panel = screen.getByRole("region", { name: "Mua Legacy XS" });
@@ -533,9 +453,6 @@ describe("pricing reference policies", () => {
     "does not offer payment actions for locked state %s",
     (locked) => {
       setup(true, locked === "CLOSED" ? { status: "CLOSED" } : { planStatus: locked });
-      expect(
-        screen.queryByRole("button", { name: "Mua thêm suất người nhận" }),
-      ).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Gia hạn gói" })).not.toBeInTheDocument();
     },
   );

@@ -260,7 +260,7 @@ function FinishedOrder({ order }: { order: PaymentOrder }) {
     void client.invalidateQueries({ queryKey: billingKeys.currentOrder() });
   }, [paid, client]);
 
-  let kindLabel = "Mua thêm suất người nhận";
+  let kindLabel = "";
   if (order.kind === "RENEWAL") {
     let renewTierName = "XS Max";
     if (order.tier === "XS") {

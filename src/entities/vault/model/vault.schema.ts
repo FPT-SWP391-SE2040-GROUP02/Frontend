@@ -22,8 +22,6 @@ export const vaultResponseSchema = z.object({
   storageUsedBytes: z.number().int().nonnegative(),
   storageRemainingBytes: z.number().int().nonnegative(),
   beneficiarySlots: z.number().int().nonnegative(),
-  includedBeneficiarySlots: z.number().int().nonnegative(),
-  extraBeneficiarySlots: z.number().int().nonnegative(),
   usedBeneficiarySlots: z.number().int().nonnegative(),
   assignedAssetCount: z.number().int().nonnegative(),
   createdAt: z.string().datetime({ offset: true }),

@@ -127,8 +127,8 @@ export function OwnerBeneficiaries() {
           role="status"
           className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
         >
-          Kho đã đủ {vault.data.beneficiarySlots} người nhận theo suất hiện có. Mua thêm suất hoặc
-          xóa hồ sơ chưa dùng để thêm người mới.{" "}
+          Kho đã đủ {vault.data.beneficiarySlots} người nhận theo suất của gói. Nâng lên gói nhiều
+          suất hơn hoặc xóa hồ sơ chưa dùng để thêm người mới.{" "}
           <Link className="font-semibold underline" to={ROUTES.BILLING.PLANS}>
             Xem gói dịch vụ
           </Link>

@@ -14,7 +14,6 @@ import { billingKeys, useBillingQuote } from "../model/useBilling";
 import {
   collectTermYears,
   referenceMoney,
-  remainingTerm,
   type ReferencePlanTerm,
   type ReferenceServicePlan,
 } from "../model/servicePlanPreview";
@@ -50,19 +49,14 @@ export function ServiceTermPicker({
 }
 
 /**
- * Bước chọn mua một hạng (PURCHASE) hoặc mua thêm suất người nhận (ADDON).
+ * Bước chọn mua một hạng (PURCHASE), gia hạn (RENEWAL) hoặc nâng hạng (UPGRADE).
  * Giá, dung lượng và thời hạn lấy từ báo giá của Backend; client chỉ gửi lựa chọn và không tự tính tiền.
  */
 export function PurchasePanel({
   plan,
   mode,
   years,
-  maxExtraSlots,
-  maxTotalSlots,
-  currentSlots = 0,
-  slotPricePerYear,
   catalog = [],
-  defaultExtraSlots = 0,
   lockTier = false,
   onTermChange,
   onClose,
@@ -70,17 +64,8 @@ export function PurchasePanel({
   plan: ReferenceServicePlan;
   mode: BillingKind;
   years: ReferencePlanTerm["years"];
-  maxExtraSlots: number;
-  /** Tổng người nhận tối đa mỗi tài khoản (suất kèm gói + suất mua thêm); thiếu thì chỉ giới hạn theo từng đơn. */
-  maxTotalSlots?: number;
-  /** Số người nhận kho đang có (khi mua thêm suất); các chế độ khác dùng suất kèm theo gói đang chọn. */
-  currentSlots?: number;
-  /** Giá một suất người nhận thêm cho một năm (GET /billing/plans); dùng để giải thích cách tính. */
-  slotPricePerYear?: number;
   /** Các hạng trả phí để chọn hạng cho kỳ mới khi gia hạn. */
   catalog?: readonly ReferenceServicePlan[];
-  /** Số suất thêm đang có của kho, điền sẵn khi gia hạn (người dùng đổi được). */
-  defaultExtraSlots?: number;
   /** Gia hạn khi còn hạn phải giữ nguyên hạng (lên hạng dùng nâng hạng); đã hết hạn thì chọn hạng tự do. */
   lockTier?: boolean;
   onTermChange: (years: ReferencePlanTerm["years"]) => void;
@@ -90,27 +75,8 @@ export function PurchasePanel({
   const navigate = useNavigate();
   const client = useQueryClient();
   const action = usePrivateAction();
-  const isAddon = mode === "ADDON";
   const isUpgrade = mode === "UPGRADE";
   const isRenewal = mode === "RENEWAL";
-  let minExtraSlots = 0;
-  let initialSlots = 0;
-  if (isAddon) {
-    minExtraSlots = 1;
-    initialSlots = 1;
-  }
-  // Số suất còn mua thêm được: không quá mỗi đơn và không quá trần tổng của tài khoản.
-  const slotRoom = (base: number): number =>
-    maxTotalSlots === undefined
-      ? maxExtraSlots
-      : Math.min(maxExtraSlots, Math.max(0, maxTotalSlots - base));
-  if (isRenewal) {
-    initialSlots = Math.min(
-      slotRoom(plan.includedBeneficiarySlots),
-      Math.max(0, defaultExtraSlots),
-    );
-  }
-  const [extraSlots, setExtraSlots] = useState(initialSlots);
   // Gia hạn được chọn hạng cho kỳ mới (cùng hạng hoặc đổi hạng).
   const [renewTier, setRenewTier] = useState(plan.serviceTier);
   let activePlan = plan;
@@ -122,35 +88,17 @@ export function PurchasePanel({
     }
   }
 
-  const slotLimit = slotRoom(isAddon ? currentSlots : activePlan.includedBeneficiarySlots);
-  // Mua thêm suất: Backend bỏ qua hạng và số năm, chỉ cần số suất.
-  let selection: BillingSelection = {
-    tier: plan.serviceTier,
-    years,
-    extraSlots,
-  };
-  if (isAddon) {
-    selection = { extraSlots };
-  }
+  let selection: BillingSelection = { tier: plan.serviceTier, years };
   if (isUpgrade) {
-    // Nâng hạng: chỉ chọn gói đích, không kèm suất; số tiền do Backend tính theo thời gian còn lại.
-    selection = { tier: plan.serviceTier, extraSlots: 0 };
+    // Nâng hạng: chỉ chọn gói đích; số tiền do Backend tính theo thời gian còn lại.
+    selection = { tier: plan.serviceTier };
   }
   if (isRenewal) {
-    // Gia hạn: gửi cờ renew để Backend hiểu là gia hạn dù kho còn hạn; số suất là suất thêm của kỳ mới.
-    selection = {
-      tier: activePlan.serviceTier,
-      years,
-      extraSlots,
-      renew: true,
-    };
+    // Gia hạn: gửi cờ renew để Backend hiểu là gia hạn dù kho còn hạn.
+    selection = { tier: activePlan.serviceTier, years, renew: true };
   }
   const quote = useBillingQuote(selection, true);
 
-  let slotsLabel = "Suất người nhận mua thêm";
-  if (isRenewal) {
-    slotsLabel = "Suất người nhận mua thêm cho kỳ mới";
-  }
   let createLabel = "Tạo đơn và thanh toán";
   if (action.pending) {
     createLabel = "Đang tạo đơn…";
@@ -158,14 +106,6 @@ export function PurchasePanel({
   let title = `Mua ${plan.name}`;
   let periodHeading = "Kỳ dịch vụ";
   let periodHint = "Kỳ mới bắt đầu từ lúc thanh toán thành công.";
-  if (isAddon) {
-    title = "Mua thêm suất";
-    periodHeading = "Số suất mua thêm";
-    periodHint =
-      slotPricePerYear === undefined
-        ? "Mỗi suất tính theo năm. Suất mới dùng đến hết hạn của gói, nên giá = giá một suất mỗi năm × số suất × số năm còn lại của gói."
-        : `Mỗi suất là ${referenceMoney.format(slotPricePerYear)} cho 1 năm. Suất mới dùng đến hết hạn của gói, nên tiền = ${referenceMoney.format(slotPricePerYear)} × số suất × số năm còn lại của gói.`;
-  }
   if (isRenewal) {
     title = `Gia hạn ${activePlan.name}`;
     periodHeading = "Kỳ gia hạn";
@@ -185,11 +125,6 @@ export function PurchasePanel({
     if (action.pending) {
       createLabel = "Đang tạo đơn…";
     }
-  }
-
-  function changeSlots(value: number): void {
-    if (!Number.isFinite(value)) return;
-    setExtraSlots(Math.min(slotLimit, Math.max(minExtraSlots, Math.trunc(value))));
   }
 
   function createOrder(): void {
@@ -220,14 +155,13 @@ export function PurchasePanel({
         periodLabel = `Nối tiếp hạn hiện tại (${currentExpiry})`;
       }
     }
-    if (data.kind === "ADDON" || data.kind === "UPGRADE") {
+    if (data.kind === "UPGRADE") {
       periodLabel = "Giữ nguyên hạn hiện tại";
       const expiry = formatVaultServiceExpiry(data.serviceExpiresAt);
       if (expiry) {
         periodLabel = `Đến hết ${expiry}`;
       }
     }
-    const term = remainingTerm(data.serviceExpiresAt, data.serverTime);
     body = (
       <>
         <dl className="service-plan-summary">
@@ -245,26 +179,6 @@ export function PurchasePanel({
               <dd>{referenceMoney.format(data.tierAmount)}</dd>
             </div>
           )}
-          {data.kind === "ADDON" && slotPricePerYear !== undefined && (
-            <div>
-              <dt>Giá một suất</dt>
-              <dd>{referenceMoney.format(slotPricePerYear)} / năm</dd>
-            </div>
-          )}
-          {data.kind === "ADDON" && term && (
-            <div>
-              <dt>Số năm còn lại của gói</dt>
-              <dd>
-                {term.years} năm ({term.days} ngày)
-              </dd>
-            </div>
-          )}
-          {data.kind !== "UPGRADE" && (
-            <div>
-              <dt>Suất người nhận mua thêm · {data.extraSlots} suất</dt>
-              <dd>{referenceMoney.format(data.slotAmount)}</dd>
-            </div>
-          )}
           <div>
             <dt>Thời hạn dịch vụ</dt>
             <dd>{periodLabel}</dd>
@@ -272,7 +186,8 @@ export function PurchasePanel({
           <div>
             <dt>Dung lượng · Người nhận</dt>
             <dd>
-              {formatStorageMegabytes(data.storageQuotaBytes)} · {data.beneficiarySlots} người
+              {formatStorageMegabytes(data.storageQuotaBytes)} · {data.includedBeneficiarySlots}{" "}
+              người
             </dd>
           </div>
         </dl>
@@ -313,7 +228,7 @@ export function PurchasePanel({
           <h3>{periodHeading}</h3>
           <p>{periodHint}</p>
         </div>
-        {!isAddon && !isUpgrade && (
+        {!isUpgrade && (
           <ServiceTermPicker
             years={years}
             onChange={onTermChange}
@@ -341,29 +256,6 @@ export function PurchasePanel({
             </Button>
           ))}
         </div>
-      )}
-      {!isUpgrade && (
-        <label className="service-plan-slots">
-          <span>
-            {slotsLabel} (tối đa {slotLimit})
-          </span>
-          <input
-            type="number"
-            inputMode="numeric"
-            min={minExtraSlots}
-            max={slotLimit}
-            disabled={isAddon && slotLimit < 1}
-            value={extraSlots}
-            onChange={(event) => changeSlots(event.target.valueAsNumber)}
-          />
-        </label>
-      )}
-      {!isUpgrade && maxTotalSlots !== undefined && slotLimit < maxExtraSlots && (
-        <p className="service-plan-fineprint" role="status">
-          {slotLimit < 1
-            ? `Kho đã đạt mức tối đa ${maxTotalSlots} người nhận nên không mua thêm suất được.`
-            : `Mỗi tài khoản tối đa ${maxTotalSlots} người nhận (kể cả suất kèm gói), nên bạn còn mua thêm được tối đa ${slotLimit} suất.`}
-        </p>
       )}
       {body}
       {action.error && (

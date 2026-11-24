@@ -4,7 +4,6 @@ import {
   buildPlanCatalog,
   collectTermYears,
   getReferencePlanAction,
-  remainingTerm,
   type ReferenceServicePlan,
 } from "../servicePlanPreview";
 import type { BillingPlans } from "../billing.types";
@@ -40,14 +39,14 @@ describe("hành động trên thẻ gói", () => {
     expect(getReferencePlanAction(free, vaultFixture, now)).toBe("none");
   });
 
-  it("kho XS còn hạn: cùng hạng mua thêm suất, lên XS Max là nâng hạng giữa kỳ", () => {
-    expect(getReferencePlanAction(xs, paidVault, now)).toBe("addon");
+  it("kho XS còn hạn: cùng hạng không có gì để mua, lên XS Max là nâng hạng giữa kỳ", () => {
+    expect(getReferencePlanAction(xs, paidVault, now)).toBe("none");
     expect(getReferencePlanAction(xsMax, paidVault, now)).toBe("upgrade");
   });
 
-  it("kho XS Max còn hạn: mua thêm suất ở XS Max, hạ về XS chọn ở bước gia hạn", () => {
+  it("kho XS Max còn hạn: cùng hạng không có gì để mua, hạ về XS chọn ở bước gia hạn", () => {
     const maxVault = { ...paidVault, serviceTier: "XS_MAX" as const };
-    expect(getReferencePlanAction(xsMax, maxVault, now)).toBe("addon");
+    expect(getReferencePlanAction(xsMax, maxVault, now)).toBe("none");
     expect(getReferencePlanAction(xs, maxVault, now)).toBe("downgrade");
   });
 
@@ -65,12 +64,9 @@ describe("hành động trên thẻ gói", () => {
     expect(getReferencePlanAction(xs, past, now)).toBe("renew");
   });
 
-  it.each([null, "invalid"])(
-    "hạn dịch vụ là %s thì không mua thêm được, chỉ gia hạn",
-    (serviceExpiresAt) => {
-      expect(getReferencePlanAction(xs, { ...paidVault, serviceExpiresAt }, now)).toBe("renew");
-    },
-  );
+  it.each([null, "invalid"])("hạn dịch vụ là %s thì chỉ còn gia hạn", (serviceExpiresAt) => {
+    expect(getReferencePlanAction(xs, { ...paidVault, serviceExpiresAt }, now)).toBe("renew");
+  });
 
   it.each(["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"])(
     "kế hoạch %s thì chặn mua",
@@ -83,11 +79,10 @@ describe("hành động trên thẻ gói", () => {
     expect(getReferencePlanAction(xs, { ...vaultFixture, status: "CLOSED" }, now)).toBe("blocked");
   });
 
-  it("hạng Admin đã tạm ngừng bán: không mua mới, không mua thêm suất, không nâng lên", () => {
+  it("hạng Admin đã tạm ngừng bán: không mua mới, không nâng lên", () => {
     const xsOff = { ...xs, onSale: false };
     const xsMaxOff = { ...xsMax, onSale: false };
     expect(getReferencePlanAction(xsOff, vaultFixture, now)).toBe("offSale");
-    expect(getReferencePlanAction(xsOff, paidVault, now)).toBe("offSale");
     expect(getReferencePlanAction(xsMaxOff, paidVault, now)).toBe("offSale");
   });
 
@@ -107,7 +102,7 @@ describe("gói Admin tạo thêm trên thẻ gói", () => {
     expect(getReferencePlanAction(gold, paidVault, now, catalog)).toBe("upgrade");
     const goldVault = { ...paidVault, serviceTier: "GOLD" };
     expect(getReferencePlanAction(xsMax, goldVault, now, catalog)).toBe("downgrade");
-    expect(getReferencePlanAction(gold, goldVault, now, catalog)).toBe("addon");
+    expect(getReferencePlanAction(gold, goldVault, now, catalog)).toBe("none");
   });
 
   it("kho Free mua được gói mới; gói mới đang tạm ngừng thì không", () => {
@@ -133,7 +128,6 @@ describe("bảng giá lấy từ Backend", () => {
         ],
       },
     ],
-    extraSlot: { pricePerYear: 49000, maxPerOrder: 20 },
     notice: "Thanh toán không tự kích hoạt bàn giao.",
   };
 
@@ -210,23 +204,5 @@ describe("bảng giá lấy từ Backend", () => {
     };
     expect(buildPlanCatalog(off, {}, {}, free)[1].onSale).toBe(false);
     expect(buildPlanCatalog(plans, {}, {}, free)[1].onSale).toBe(true);
-  });
-});
-
-describe("thời gian còn lại để giải thích giá mua thêm suất", () => {
-  it("đổi hạn dịch vụ thành số ngày và số năm", () => {
-    expect(remainingTerm("2028-11-02T00:00:00Z", "2026-11-04T00:00:00Z")).toEqual({
-      days: 729,
-      years: 2,
-    });
-    expect(remainingTerm("2027-11-04T00:00:00Z", "2026-11-04T00:00:00Z")).toEqual({
-      days: 365,
-      years: 1,
-    });
-  });
-
-  it("thiếu mốc thời gian hoặc đã hết hạn thì không hiện", () => {
-    expect(remainingTerm(null, "2026-11-04T00:00:00Z")).toBeNull();
-    expect(remainingTerm("2026-11-03T00:00:00Z", "2026-11-04T00:00:00Z")).toBeNull();
   });
 });

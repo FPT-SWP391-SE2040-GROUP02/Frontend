@@ -21,23 +21,22 @@ describe("billingService", () => {
       billingService.createOrder({
         tier: "XS",
         years: 3,
-        extraSlots: 1,
         // Trường ngoài hợp đồng: không được lọt lên máy chủ (SEC-04, PAY-11).
+        extraSlots: 1,
         totalAmount: 1,
-        kind: "ADDON",
+        kind: "UPGRADE",
         vaultId: "x",
       } as never),
     ).rejects.toThrow("dừng ở đây");
-    expect(post).toHaveBeenCalledWith("/billing/orders", { tier: "XS", years: 3, extraSlots: 1 });
+    expect(post).toHaveBeenCalledWith("/billing/orders", { tier: "XS", years: 3 });
   });
 
   it("từ chối lựa chọn ngoài hợp đồng trước khi gọi mạng", async () => {
     const post = vi.spyOn(apiClient, "post");
-    await expect(billingService.quote({ extraSlots: 101 })).rejects.toThrow();
     // Kỳ do Admin cấu hình nên chỉ chặn số năm vô lý: ngoài 1 đến 10 hoặc không nguyên.
-    await expect(billingService.quote({ tier: "XS", years: 0, extraSlots: 0 })).rejects.toThrow();
-    await expect(billingService.quote({ tier: "XS", years: 11, extraSlots: 0 })).rejects.toThrow();
-    await expect(billingService.quote({ tier: "XS", years: 1.5, extraSlots: 0 })).rejects.toThrow();
+    await expect(billingService.quote({ tier: "XS", years: 0 })).rejects.toThrow();
+    await expect(billingService.quote({ tier: "XS", years: 11 })).rejects.toThrow();
+    await expect(billingService.quote({ tier: "XS", years: 1.5 })).rejects.toThrow();
     expect(post).not.toHaveBeenCalled();
   });
 
