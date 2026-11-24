@@ -68,7 +68,7 @@ describe("hành động trên thẻ gói", () => {
     expect(getReferencePlanAction(xs, { ...paidVault, serviceExpiresAt }, now)).toBe("renew");
   });
 
-  it.each(["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"])(
+  it.each(["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "CLOSED"])(
     "kế hoạch %s thì chặn mua",
     (planStatus) => {
       expect(getReferencePlanAction(xs, { ...vaultFixture, planStatus }, now)).toBe("blocked");

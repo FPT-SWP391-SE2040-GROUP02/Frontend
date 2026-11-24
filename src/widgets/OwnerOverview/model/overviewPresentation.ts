@@ -20,10 +20,6 @@ const planLabels: Record<string, { title: string; description: string }> = {
     title: "Kế hoạch đã đóng",
     description: "Kiểm tra thông tin kho và nhật ký để xem các cập nhật trước đó.",
   },
-  BLOCKED: {
-    title: "Kế hoạch đang bị chặn",
-    description: "Kiểm tra thông báo của hệ thống trước khi thực hiện thao tác tiếp theo.",
-  },
 };
 
 /** Chỉ mô tả trạng thái server; giá trị mới không bị biến thành trạng thái an toàn. */

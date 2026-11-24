@@ -771,12 +771,4 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     expect(await screen.findByText("Bạn đã hủy biên bản này")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Chốt và gửi thư" })).not.toBeInTheDocument();
   });
-
-  it("Chủ kho đã hủy thì chỉ còn thông báo, không còn bước lập", async () => {
-    backend(record({ status: "CANCELLED" }));
-    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
-
-    expect(await screen.findByText("Chủ kho đã hủy yêu cầu nhận tài sản")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Chốt và gửi thư" })).not.toBeInTheDocument();
-  });
 });

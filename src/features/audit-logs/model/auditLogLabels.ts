@@ -37,8 +37,6 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   USER_ROLE_CHANGED: "Đổi vai trò tài khoản",
   USER_STATUS_CHANGED: "Đổi trạng thái tài khoản",
   VERIFIER_REASSIGNED: "Giao lại Người xét duyệt",
-  OBJECTION_REPORTED: "Báo còn sống (luồng đã gỡ)",
-  OBJECTION_CONCLUDED: "Kết luận báo còn sống (luồng đã gỡ)",
   DEATH_CASE_OPENED: "Mở hồ sơ chứng tử",
   DEATH_CASE_DRAFT_CANCELLED: "Hủy hồ sơ chứng tử nháp",
   DEATH_CASE_SUBMITTED: "Gửi hồ sơ chứng tử",

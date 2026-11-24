@@ -19,7 +19,7 @@ export const myClaimSchema = z.object({
   ownerName: z.string(),
   status: claimStatusSchema,
   recordStatus: recordStatusSchema,
-  /** Lý do luật sư hủy; null khi Chủ kho hủy hoặc chưa hủy. */
+  /** Lý do luật sư hủy; null khi chưa hủy. */
   cancelReason: z.string().nullable().default(null),
   note: z.string(),
   reviewReason: z.string().nullable(),
@@ -58,13 +58,12 @@ export const availableHandoverSchema = z.object({
 });
 export type AvailableHandover = z.infer<typeof availableHandoverSchema>;
 
-/** GET /vaults/{id}/handover-request: yêu cầu đang mở của kho, cho Chủ kho xem và hủy. */
+/** GET /vaults/{id}/handover-request: yêu cầu đang mở của kho, cho Chủ kho xem. */
 export const ownerRequestSchema = z.object({
   recordId: z.string().uuid(),
   status: recordStatusSchema,
   requestedAt: timestamp,
   requesterNames: z.array(z.string()),
-  canCancel: z.boolean(),
 });
 export type OwnerRequest = z.infer<typeof ownerRequestSchema>;
 

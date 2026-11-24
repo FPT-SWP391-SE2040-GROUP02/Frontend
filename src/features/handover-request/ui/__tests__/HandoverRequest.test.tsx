@@ -288,55 +288,36 @@ describe("Yêu cầu nhận tài sản của tôi", () => {
     expect(screen.queryByText("Yêu cầu nhận tài sản")).not.toBeInTheDocument();
   });
 
-  it("Chủ kho đã hủy thì ghi rõ, không cho nộp bổ sung", async () => {
+  it("luật sư đã hủy thì ghi rõ lý do, không cho nộp bổ sung", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
-      claim({ status: "SUPPLEMENT_REQUESTED", recordStatus: "CANCELLED" }),
+      claim({
+        status: "SUPPLEMENT_REQUESTED",
+        recordStatus: "CANCELLED",
+        cancelReason: "Mở nhầm hồ sơ",
+      }),
     ]);
     setup(<MyClaimsPanel />, "an@example.com", "/claim/beneficiary");
 
-    expect(await screen.findByText("Chủ kho đã hủy yêu cầu này.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Luật sư đã hủy yêu cầu này. Lý do: Mở nhầm hồ sơ"),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Nộp bổ sung" })).not.toBeInTheDocument();
   });
 });
 
-describe("Chủ kho thấy và hủy yêu cầu nhận tài sản", () => {
-  it("hiện người gửi; hủy phải xác nhận rồi mới gọi Backend", async () => {
-    const user = userEvent.setup();
+describe("Chủ kho thấy yêu cầu nhận tài sản", () => {
+  it("hiện người gửi và không có nút hủy", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue({
       recordId: RECORD_ID,
       status: "DRAFTING",
       requestedAt: AT,
       requesterNames: ["Trần Minh Anh"],
-      canCancel: true,
     });
-    const post = vi.spyOn(apiClient, "post").mockResolvedValue(undefined);
     setup(<OwnerRequestNotice vaultId={VAULT_ID} />, "owner@example.com", "/dashboard/wills");
 
     expect(
       await screen.findByText(/Trần Minh Anh đã gửi yêu cầu nhận tài sản/),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Hủy yêu cầu" }));
-    expect(post).not.toHaveBeenCalled();
-    await user.click(screen.getByRole("button", { name: "Giữ yêu cầu" }));
-    await user.click(screen.getByRole("button", { name: "Hủy yêu cầu" }));
-    await user.click(screen.getByRole("button", { name: "Đồng ý hủy" }));
-
-    await waitFor(() =>
-      expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/handover-request/cancel`),
-    );
-  });
-
-  it("biên bản đã đủ chữ ký thì không còn nút hủy", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue({
-      recordId: RECORD_ID,
-      status: "COMPLETED",
-      requestedAt: AT,
-      requesterNames: ["Trần Minh Anh"],
-      canCancel: false,
-    });
-    setup(<OwnerRequestNotice vaultId={VAULT_ID} />, "owner@example.com", "/dashboard/wills");
-
-    expect(await screen.findByText(/Trần Minh Anh đã gửi yêu cầu/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Hủy yêu cầu" })).not.toBeInTheDocument();
   });
 

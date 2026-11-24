@@ -141,8 +141,7 @@ export const LANDING_CONTENT = {
     layers: [
       {
         title: "Người nhận gửi yêu cầu",
-        detail:
-          "Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ. Bạn còn sống thì hủy được.",
+        detail: "Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ.",
       },
       {
         title: "Luật sư lập biên bản",

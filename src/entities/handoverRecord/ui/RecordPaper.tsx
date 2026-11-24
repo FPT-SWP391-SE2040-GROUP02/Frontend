@@ -95,11 +95,7 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
   let cancelledNote: ReactNode = null;
   if (record.status === "CANCELLED") {
     cancelledNote = (
-      <p className="mt-3 text-center font-bold text-[#a33]">
-        {record.cancelReason
-          ? "(Biên bản đã được luật sư hủy)"
-          : "(Biên bản đã hủy do Chủ kho hủy yêu cầu nhận tài sản)"}
-      </p>
+      <p className="mt-3 text-center font-bold text-[#a33]">(Biên bản đã được luật sư hủy)</p>
     );
   }
 

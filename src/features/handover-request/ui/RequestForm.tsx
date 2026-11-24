@@ -13,7 +13,7 @@ const NOTE_MAX_LENGTH = 1000;
 /** Ba bước người nhận đọc trước khi gửi yêu cầu. */
 const REQUEST_STEPS = [
   "Đính kèm di chúc (bắt buộc) và giấy tờ khác nếu có.",
-  "Hệ thống khóa kho và báo cho Chủ kho, Người thực thi. Chủ kho còn sống thì hủy được.",
+  "Hệ thống khóa kho và báo cho Chủ kho, Người thực thi.",
   "Luật sư xét giấy tờ: chấp nhận, yêu cầu bổ sung hoặc từ chối có lý do.",
 ];
 

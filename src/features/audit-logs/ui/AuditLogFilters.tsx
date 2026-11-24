@@ -7,8 +7,6 @@ import type { AuditLogFilterState } from "../model/auditLog.types";
 const REMOVED_ACTIONS: ReadonlySet<string> = new Set([
   "INCIDENT_ASSIGNED",
   "INCIDENT_RESOLVED",
-  "OBJECTION_REPORTED",
-  "OBJECTION_CONCLUDED",
   // Gói tài sản đã bỏ: chỉ còn trong nhật ký cũ.
   "CONTAINER_CREATED",
   "CONTAINER_UPDATED",

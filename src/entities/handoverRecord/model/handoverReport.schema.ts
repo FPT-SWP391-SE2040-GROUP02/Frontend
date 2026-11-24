@@ -12,7 +12,6 @@ export const myReportSchema = z.object({
   id: z.string().uuid(),
   deceasedFullName: z.string(),
   status: claimStatusSchema,
-  cancelledByOwner: z.boolean(),
   cancelReason: z.string().nullable(),
   note: z.string(),
   reviewReason: z.string().nullable(),
@@ -31,9 +30,6 @@ export const verifierReportSchema = myReportSchema.extend({
   vaultFound: z.boolean(),
   ownerName: z.string(),
   nameMatches: z.boolean(),
-  ownerLastActiveAt: timestamp.nullable(),
-  /** Chủ kho còn hoạt động sau khi hồ sơ được nộp. */
-  activeAfterReport: z.boolean(),
   acceptNote: z.string().nullable(),
   recordId: z.string().uuid().nullable(),
 });

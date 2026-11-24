@@ -9,7 +9,7 @@ import { SupplementForm } from "./SupplementForm";
 /** Câu cho người nhận biết yêu cầu đang ở đâu. */
 function claimText(claim: MyClaim): string {
   if (claim.cancelReason) return `Luật sư đã hủy yêu cầu này. Lý do: ${claim.cancelReason}`;
-  if (claim.recordStatus === "CANCELLED") return "Chủ kho đã hủy yêu cầu này.";
+  if (claim.recordStatus === "CANCELLED") return "Yêu cầu này đã bị hủy.";
   switch (claim.status) {
     case "SUBMITTED":
       return "Luật sư đang xét giấy tờ của bạn.";
@@ -34,7 +34,7 @@ export function MyClaimsPanel() {
           let status = claimStatusLabel[claim.status];
           if (claim.recordStatus === "CANCELLED")
             status = {
-              label: claim.cancelReason ? "Luật sư đã hủy" : "Chủ kho đã hủy",
+              label: claim.cancelReason ? "Luật sư đã hủy" : "Đã hủy",
               tone: "neutral",
             };
           return (

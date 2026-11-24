@@ -54,7 +54,6 @@ export const PLAN_STAGE_LABELS: Record<string, string> = {
   ACTIVE: "Đang chạy",
   HANDOVER_REQUESTED: "Đang lập biên bản",
   HANDOVER_IN_PROGRESS: "Đang bàn giao",
-  BLOCKED: "Bị đóng băng",
 };
 
 export const planStageLabel = (stage: string) => PLAN_STAGE_LABELS[stage] ?? stage;

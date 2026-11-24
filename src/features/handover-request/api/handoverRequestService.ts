@@ -96,7 +96,4 @@ export const handoverRequestService = {
     if (data === undefined || data === null || data === "") return null;
     return ownerRequestSchema.parse(data);
   },
-  async cancel(vaultId: string) {
-    await apiClient.post<unknown, unknown>(`/vaults/${id.parse(vaultId)}/handover-request/cancel`);
-  },
 };

@@ -8,7 +8,6 @@ const LOCK_REASONS: Record<string, string> = {
   [VAULT_PLAN_STATUS.HANDOVER_REQUESTED]:
     "Có người nhận gửi yêu cầu nhận tài sản nên kho đang bị khóa trong lúc luật sư xét giấy tờ và lập biên bản.",
   [VAULT_PLAN_STATUS.HANDOVER_IN_PROGRESS]: "Kế hoạch đang bàn giao nên kho không thay đổi được.",
-  [VAULT_PLAN_STATUS.BLOCKED]: "Kế hoạch đang bị chặn nên kho không thay đổi được.",
   [VAULT_PLAN_STATUS.CLOSED]: "Kế hoạch đã đóng nên kho không thay đổi được.",
 };
 

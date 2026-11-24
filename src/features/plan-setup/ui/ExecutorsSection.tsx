@@ -56,14 +56,13 @@ const statusTones: Record<Executor["status"], ChipTone> = {
 };
 
 /** Kế hoạch ở các trạng thái này thì Backend chặn mời, gửi lại và thu hồi Người thực thi (SETUP-21). */
-const LOCKED_PLAN_STATUSES = ["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"];
+const LOCKED_PLAN_STATUSES = ["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "CLOSED"];
 const RUNNING_PLAN_STATUSES = ["ACTIVE"];
 
 /** Lý do khóa ở đầu câu thông báo chỉ xem (thiết kế 186). */
 const LOCKED_REASONS: Record<string, string> = {
   HANDOVER_REQUESTED: "Có người nhận gửi yêu cầu nhận tài sản",
   HANDOVER_IN_PROGRESS: "Kế hoạch đang bàn giao",
-  BLOCKED: "Kế hoạch đang bị chặn",
   CLOSED: "Kế hoạch đã đóng",
 };
 

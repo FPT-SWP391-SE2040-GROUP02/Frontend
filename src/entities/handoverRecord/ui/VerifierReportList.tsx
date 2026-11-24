@@ -26,11 +26,6 @@ function reportWarnings(report: VerifierReport): string[] {
   const warnings: string[] = [];
   if (!report.vaultFound) return warnings;
   if (!report.nameMatches) warnings.push("Họ tên khai không khớp họ tên eKYC của Chủ kho.");
-  if (report.activeAfterReport && report.ownerLastActiveAt) {
-    warnings.push(
-      `Chủ kho còn hoạt động sau khi hồ sơ được nộp: ${formatDateTime(report.ownerLastActiveAt)}. Có thể Chủ kho vẫn còn sống.`,
-    );
-  }
   return warnings;
 }
 
@@ -75,12 +70,6 @@ function ReportCard({
         <Chip tone={status.tone}>{status.label}</Chip>
       </header>
       <p className="text-sm leading-6">{vaultText(report)}</p>
-      {report.vaultFound && (
-        <p className="text-sm leading-6">
-          <span className="font-semibold">Chủ kho hoạt động gần nhất: </span>
-          {formatDateTime(report.ownerLastActiveAt)}. So với ngày mất trên giấy chứng tử.
-        </p>
-      )}
       {warnings.length > 0 && (
         <Notice tone="warning" title="Cần đối chiếu kỹ">
           <ul className="list-disc space-y-1 pl-4">

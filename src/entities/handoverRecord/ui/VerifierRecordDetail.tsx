@@ -209,12 +209,7 @@ export function VerifierRecordDetail({
       </button>
       <RecordStepper status={record.status} />
       {record.status === "CANCELLED" && (
-        <Notice
-          tone="neutral"
-          title={
-            record.cancelReason ? "Bạn đã hủy biên bản này" : "Chủ kho đã hủy yêu cầu nhận tài sản"
-          }
-        >
+        <Notice tone="neutral" title="Bạn đã hủy biên bản này">
           {record.cancelReason ? `Lý do: ${record.cancelReason}. ` : ""}
           Biên bản này không còn hiệu lực. Kho đã mở khóa cho Chủ kho.
         </Notice>

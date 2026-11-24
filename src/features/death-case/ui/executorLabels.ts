@@ -9,7 +9,6 @@ const planStatusLabels: Record<string, string> = {
   HANDOVER_REQUESTED: "Có yêu cầu nhận",
   HANDOVER_IN_PROGRESS: "Đang bàn giao",
   CLOSED: "Đã hoàn tất",
-  BLOCKED: "Đang bị chặn",
 };
 
 export function planStatusLabel(status: string): string {

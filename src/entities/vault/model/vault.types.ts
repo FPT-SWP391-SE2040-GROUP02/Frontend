@@ -8,7 +8,6 @@ export const VAULT_PLAN_STATUS = {
   HANDOVER_REQUESTED: "HANDOVER_REQUESTED",
   HANDOVER_IN_PROGRESS: "HANDOVER_IN_PROGRESS",
   CLOSED: "CLOSED",
-  BLOCKED: "BLOCKED",
 } as const;
 /** DTO raw của Backend; giữ etag khi sửa. */
 export type VaultResponse = z.infer<typeof vaultResponseSchema>;

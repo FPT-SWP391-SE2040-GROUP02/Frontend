@@ -18,7 +18,6 @@ function report(extra: Record<string, unknown> = {}) {
     id: REPORT_ID,
     deceasedFullName: "Nguyễn Văn Mất",
     status: "SUBMITTED",
-    cancelledByOwner: false,
     cancelReason: null,
     note: "",
     reviewReason: null,
@@ -48,8 +47,6 @@ function verifierReport(extra: Record<string, unknown> = {}) {
     vaultFound: true,
     ownerName: "Nguyễn Văn Mất",
     nameMatches: true,
-    ownerLastActiveAt: null,
-    activeAfterReport: false,
     acceptNote: null,
     recordId: null,
     ...extra,
@@ -143,16 +140,14 @@ describe("Luật sư xét hồ sơ báo tin", () => {
   });
 
   it("có cảnh báo thì phải tick đối chiếu và ghi lý do mới chấp nhận được", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue([
-      verifierReport({ nameMatches: false, activeAfterReport: true, ownerLastActiveAt: AT }),
-    ]);
+    vi.spyOn(apiClient, "get").mockResolvedValue([verifierReport({ nameMatches: false })]);
     const post = vi
       .spyOn(apiClient, "post")
       .mockResolvedValue(verifierReport({ status: "ACCEPTED", recordId: RECORD_ID }));
     setup(<VerifierReportList onOpenRecord={() => undefined} />);
     const accept = await screen.findByRole("button", { name: "Chấp nhận và mở biên bản" });
     expect(accept).toBeDisabled();
-    expect(screen.getByText(/Có thể Chủ kho vẫn còn sống/)).toBeInTheDocument();
+    expect(screen.getByText(/Họ tên khai không khớp/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("checkbox", { name: /Tôi đã đối chiếu/ }));
     expect(accept).toBeDisabled();
     await userEvent.type(screen.getByLabelText(/^Lý do/), "Đã kiểm với phường");

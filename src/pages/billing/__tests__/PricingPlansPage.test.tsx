@@ -449,7 +449,7 @@ describe("pricing reference policies", () => {
     );
   });
 
-  it.each(["CLOSED", "HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "BLOCKED"])(
+  it.each(["CLOSED", "HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS"])(
     "does not offer payment actions for locked state %s",
     (locked) => {
       setup(true, locked === "CLOSED" ? { status: "CLOSED" } : { planStatus: locked });

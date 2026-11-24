@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const timestamp = z.string().datetime({ offset: true });
 
-/** Bước của biên bản bàn giao (Backend: DRAFTING, SIGNING, COMPLETED; CANCELLED khi Chủ kho hủy; IDENTITY_CHECK chỉ còn ở biên bản cũ, xử lý như SIGNING). */
+/** Bước của biên bản bàn giao (Backend: DRAFTING, SIGNING, COMPLETED; CANCELLED khi luật sư hủy; IDENTITY_CHECK chỉ còn ở biên bản cũ, xử lý như SIGNING). */
 export const recordStatusSchema = z.enum([
   "DRAFTING",
   "IDENTITY_CHECK",
@@ -119,7 +119,7 @@ export const handoverRecordSchema = z.object({
   legalBasisConfirmedByUserId: z.string().uuid().nullable().default(null),
   legalBasisConfirmedByName: z.string().default(""),
   completedAt: timestamp.nullable(),
-  /** Lý do luật sư hủy; null khi Chủ kho hủy hoặc chưa hủy. */
+  /** Lý do luật sư hủy; null khi chưa hủy. */
   cancelReason: z.string().nullable().default(null),
   verifierName: z.string(),
   executorName: z.string(),

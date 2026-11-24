@@ -6,7 +6,6 @@ const PLAN_STATUS_LABELS: Record<string, string> = {
   ACTIVE: "Đang hoạt động",
   HANDOVER_REQUESTED: "Đang lập biên bản",
   HANDOVER_IN_PROGRESS: "Đang bàn giao",
-  BLOCKED: "Bị chặn",
   CLOSED: "Đã đóng",
 };
 
