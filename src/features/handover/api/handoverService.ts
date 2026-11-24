@@ -103,7 +103,7 @@ export const handoverService = {
       await apiClient.post<unknown, unknown>(`${turn(value)}/receipt-issue`, { note }),
     );
   },
-  /** Nhập khóa mở gói do Người thực thi đưa; sai thì 403 HANDOVER_KEY_INVALID, quá giới hạn thì 423. */
+  /** Nhập mã nhận do Người thực thi đưa; sai thì 403 HANDOVER_KEY_INVALID, quá giới hạn thì 423. */
   async verifyKey(value: string, key: string) {
     return handoverTurnSchema.parse(
       await apiClient.post<unknown, unknown>(`${turn(value)}/verify-key`, {

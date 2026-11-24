@@ -9,10 +9,7 @@ import type { MyInvitation } from "../model/myInvitations.schema";
 import { useExecutorSigning } from "../model/useExecutorSigning";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
-const ABILITIES = [
-  "Giữ mã mở gói cho tới khi bàn giao",
-  "Ký biên bản và gửi mã nhận cho người nhận",
-];
+const ABILITIES = ["Giữ mã nhận cho tới khi bàn giao", "Ký biên bản và gửi mã nhận cho người nhận"];
 
 /**
  * Lời mời làm Người thực thi trong không gian Người thực thi. Dùng cùng API và cùng luật xác nhận với

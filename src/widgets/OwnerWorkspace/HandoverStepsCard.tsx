@@ -12,7 +12,7 @@ function handoverSteps(grantDays: number): Array<{ title: string; detail: string
     },
     {
       title: "Nhận mã và tải",
-      detail: `Người thực thi gửi mã mở gói; người nhận tải trong ${grantDays} ngày.`,
+      detail: `Người thực thi gửi mã nhận; người nhận tải trong ${grantDays} ngày.`,
     },
   ];
 }

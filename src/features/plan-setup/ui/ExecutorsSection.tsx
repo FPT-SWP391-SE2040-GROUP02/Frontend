@@ -76,9 +76,9 @@ const PRIMARY_BUTTON =
 const DANGER_BUTTON =
   "border-heritage-danger-border text-heritage-danger hover:bg-heritage-danger-bg";
 const ALLOWED_ACTIONS = [
-  "Giữ mã mở gói cho tới khi bàn giao",
+  "Giữ mã nhận cho tới khi bàn giao",
   "Ký biên bản bàn giao do luật sư lập",
-  "Trao mã mở gói cho người nhận",
+  "Trao mã nhận cho người nhận",
 ];
 
 /** Lời mời thay đang chờ phản hồi (khác người đang giữ vai). */
@@ -186,7 +186,7 @@ export function InviteDialog({
   if (replacing !== null) {
     title = "Mời người thay";
     description = `Người mới sẽ là Người thực thi khi đồng ý lời mời; lúc đó ${replacing.inviteeEmail} tự động thành “Đã thu hồi”. Trong lúc chờ, người cũ vẫn giữ quyền.`;
-    description = `${description} Khi người mới đồng ý, hệ thống tự đổi mã mở gói để người cũ không còn dùng được mã cũ.`;
+    description = `${description} Khi người mới đồng ý, hệ thống tự đổi mã nhận để người cũ không còn dùng được mã cũ.`;
     notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút. Hết hạn mà chưa đồng ý thì ${replacing.inviteeEmail} vẫn là Người thực thi.`;
     cancelLabel = "Giữ nguyên";
   }
@@ -421,10 +421,10 @@ function ChosenCard(props: ChosenCardProps) {
     statusText = "Người này cần đồng ý lại. Bấm Gửi lại lời mời để họ xác nhận.";
   } else if (planRunning) {
     statusText =
-      "Hệ thống tự giữ mã mở gói và chỉ gửi cho người này khi hồ sơ được duyệt và bàn giao bắt đầu.";
+      "Hệ thống tự giữ mã nhận và chỉ gửi cho người này khi hồ sơ được duyệt và bàn giao bắt đầu.";
   } else {
     statusText =
-      "Hệ thống tạo mã mở gói khi bạn ký và kích hoạt kế hoạch, rồi chỉ gửi cho người này khi hồ sơ được duyệt.";
+      "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch, rồi chỉ gửi cho người này khi hồ sơ được duyệt.";
   }
 
   const forbidden: string[] = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Nhận tài sản trong kho này"];

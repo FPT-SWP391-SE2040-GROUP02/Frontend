@@ -31,12 +31,12 @@ export interface TurnProgress {
   detailColumns: TurnSegment[];
   /** Nhãn ngắn trên chip của gói, ví dụ "Chờ nhập mã". */
   chip: string;
-  /** Chữ đậm có màu dưới thanh, ví dụ "Chờ nhập mã mở gói". */
+  /** Chữ đậm có màu dưới thanh, ví dụ "Chờ nhập mã nhận". */
   headline: string;
   /** Chữ phụ cạnh chữ đậm, ví dụ "bạn cần đưa mã cho người này". */
   detail: string;
   tone: TurnTone;
-  /** Người thực thi cần làm gì đó cho dòng này (đưa mã mở gói hoặc ký phiếu giao nhận). */
+  /** Người thực thi cần làm gì đó cho dòng này (đưa mã nhận hoặc ký phiếu giao nhận). */
   needsAction: boolean;
 }
 
@@ -44,7 +44,7 @@ export const STEP_LABELS: Record<TurnStepKey, string> = {
   invited: "Đã mời",
   identity: "Kiểm danh tính",
   signed: "Ký biên bản",
-  key: "Nhập mã mở gói",
+  key: "Nhập mã nhận",
   received: "Phiếu giao nhận",
 };
 
@@ -166,12 +166,12 @@ function stoppedProgress(turn: HandoverProgressTurn): TurnProgress {
 /**
  * Bước hiện tại, 5 đoạn và giờ từng bước của một lượt.
  *
- * Năm bước: Đã mời → Kiểm danh tính → Ký biên bản → Nhập mã mở gói → Phiếu giao nhận.
+ * Năm bước: Đã mời → Kiểm danh tính → Ký biên bản → Nhập mã nhận → Phiếu giao nhận.
  * - Đã mời: xong khi máy chủ email nhận thư mời (invitationSentAt) hoặc khi lượt đã đi xa hơn.
  * - Kiểm danh tính: xong khi luật sư xác nhận danh tính (identityConfirmedAt) hoặc lượt đã chờ ký trở đi.
  * - Ký biên bản: xong khi lượt này được mở quyền tải (documentApprovedAt: có chữ ký luật sư, Người thực thi và
  *   chính người nhận này, không chờ người nhận khác) hoặc lượt đã HANDOVER_COMMITTED.
- * - Nhập mã mở gói: xong khi keyVerifiedAt có giờ. Kho không dùng mã thì không có giờ này, nên đã tải được tài sản
+ * - Nhập mã nhận: xong khi keyVerifiedAt có giờ. Kho không dùng mã thì không có giờ này, nên đã tải được tài sản
  *   (hoặc người nhận đã xác nhận nhận đủ) cũng coi là qua bước, giờ hiện "—".
  * - Phiếu giao nhận: xong khi người nhận xác nhận nhận đủ và Người thực thi ký bên giao.
  */
@@ -280,7 +280,7 @@ export function deriveTurnProgress(turn: HandoverProgressTurn): TurnProgress {
     group = "action";
     needsAction = true;
     chip = "Chờ nhập mã";
-    headline = "Chờ nhập mã mở gói";
+    headline = "Chờ nhập mã nhận";
     detail = "bạn cần đưa mã cho người này";
   } else if (turn.receivedAllAt !== null) {
     group = "action";

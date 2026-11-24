@@ -65,7 +65,7 @@ describe("ExecutorKeyCard (Chủ kho)", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("Bản đang dùng")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Tạo mã mở gói/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Tạo mã nhận/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /phiếu/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Biên bản phân chia" })).not.toBeInTheDocument();
   });

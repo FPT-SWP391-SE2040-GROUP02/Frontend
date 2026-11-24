@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Trạng thái mã mở gói của kho (BE ExecutorKeyStatusResponse). Không bao giờ có mã gốc hay hash:
+ * Trạng thái mã nhận của kho (BE ExecutorKeyStatusResponse). Không bao giờ có mã gốc hay hash:
  * hệ thống tự giữ mã, Chủ kho chỉ thấy bản số mấy và đổi mã mới được.
  */
 export const executorKeyStatusSchema = z.object({

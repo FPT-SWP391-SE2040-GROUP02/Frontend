@@ -226,7 +226,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
             </div>
             {turn.status === "HANDOVER_COMMITTED" && turn.keyRequired && (
               <section className="mt-4 space-y-3 border-t border-heritage-border pt-4">
-                <h3 className="text-base font-semibold text-heritage-primary">Khóa mở gói</h3>
+                <h3 className="text-base font-semibold text-heritage-primary">Mã nhận</h3>
                 <div className="space-y-3">
                   <p className="text-sm leading-6 text-heritage-muted">
                     Phần của bạn đã đủ chữ ký (luật sư, Người thực thi và bạn). Nhập mã nhận Người
@@ -235,7 +235,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                   {turn.keyRequired && !turn.keyVerified && (
                     <div className="space-y-2 rounded-xl border border-heritage-border bg-white p-3">
                       <label className="block text-sm font-medium" htmlFor={`key-${turn.id}`}>
-                        Khóa mở gói do Người thực thi đưa
+                        Mã nhận do Người thực thi đưa
                       </label>
                       <input
                         id={`key-${turn.id}`}
@@ -271,7 +271,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                   )}
                   {turn.keyRequired && turn.keyVerified && (
                     <p role="status" className="text-sm text-heritage-success">
-                      Khóa mở gói đã được xác nhận.
+                      Mã nhận đã được xác nhận.
                     </p>
                   )}
                 </div>

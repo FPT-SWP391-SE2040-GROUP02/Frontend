@@ -76,7 +76,7 @@ function ProgressBody({
       </ul>
       <p className="text-sm leading-5 text-heritage-muted">
         Thanh bước của từng người: Mời → Luật sư kiểm danh tính → Ký biên bản (luật sư, Người thực
-        thi và người này) → Nhập mã mở gói → Hai bên ký phiếu giao nhận. Mỗi người được mở riêng,
+        thi và người này) → Nhập mã nhận → Hai bên ký phiếu giao nhận. Mỗi người được mở riêng,
         không chờ người khác.
       </p>
     </>
@@ -84,7 +84,7 @@ function ProgressBody({
 }
 
 /**
- * Trang Bàn giao của Người thực thi: bốn ô số rồi mỗi người nhận một dòng. Chỉ đọc (trừ gửi mã mở gói qua email
+ * Trang Bàn giao của Người thực thi: bốn ô số rồi mỗi người nhận một dòng. Chỉ đọc (trừ gửi mã nhận qua email
  * do Backend kiểm); không có hạn chót. Quyền và trạng thái do Backend quyết định.
  */
 export function HandoverProgressPanel({

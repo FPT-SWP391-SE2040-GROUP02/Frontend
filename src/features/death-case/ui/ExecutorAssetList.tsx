@@ -55,7 +55,7 @@ function GuideBox({ vault }: { vault: ExecutorVault }) {
 
 /**
  * Tài sản và hướng dẫn của kho, gom theo người nhận. Người thực thi chỉ thấy tên, loại, người nhận và
- * trạng thái tải, không có nút xem hay tải: nội dung chỉ người nhận mở được sau khi nhập mã mở gói.
+ * trạng thái tải, không có nút xem hay tải: nội dung chỉ người nhận mở được sau khi nhập mã nhận.
  */
 export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
   const searchId = useId();
@@ -178,7 +178,7 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
       <p className="flex items-start gap-2 text-sm leading-5 text-heritage-muted">
         <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
         Người thực thi chỉ thấy tên tài sản, loại và trạng thái tải. Nội dung chỉ người nhận mở được
-        sau khi nhập mã mở gói.
+        sau khi nhập mã nhận.
       </p>
     </div>
   );

@@ -5,9 +5,9 @@ import {
   systemExecutorListSchema,
 } from "../model/systemExecutor.schema";
 
-/** Câu hiện cho Người thực thi khi kho chưa tới bước bàn giao nên chưa xem được mã mở gói. */
+/** Câu hiện cho Người thực thi khi kho chưa tới bước bàn giao nên chưa xem được mã nhận. */
 export const HANDOVER_NOT_STARTED_MESSAGE =
-  "Mã mở gói sẽ hiện khi hồ sơ được duyệt và bàn giao bắt đầu.";
+  "Mã nhận sẽ hiện khi hồ sơ được duyệt và bàn giao bắt đầu.";
 
 /**
  * Lỗi 409 HANDOVER_NOT_ALLOWED với reason HANDOVER_NOT_STARTED: Người thực thi hợp lệ nhưng kho chưa bắt đầu bàn giao.
@@ -32,7 +32,7 @@ export const systemExecutorsService = {
     );
   },
   /**
-   * Mã mở gói của kho mình phụ trách. Chỉ Người thực thi đã chấp nhận đọc được; người khác nhận 404. Kho chưa
+   * Mã nhận của kho mình phụ trách. Chỉ Người thực thi đã chấp nhận đọc được; người khác nhận 404. Kho chưa
    * bắt đầu bàn giao (hồ sơ chưa được duyệt) nhận 409 HANDOVER_NOT_ALLOWED, reason HANDOVER_NOT_STARTED
    * (xem isHandoverNotStarted); mã cấp trước khi có tính năng gửi trên hệ thống nhận 409 EXECUTOR_KEY_NOT_ISSUED.
    */

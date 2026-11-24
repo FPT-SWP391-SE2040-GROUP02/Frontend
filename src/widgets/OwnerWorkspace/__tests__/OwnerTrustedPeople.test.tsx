@@ -22,7 +22,7 @@ vi.mock("@/features/plan-setup/api/planSetupService", () => ({
 vi.mock("@/entities/executor/api/systemExecutorsService", () => ({
   systemExecutorsService: { list: vi.fn(), getHandoverKey: vi.fn() },
 }));
-// Trang này không còn thẻ Mã mở gói; giữ hàm giả để kiểm không có yêu cầu tải trạng thái mã nào.
+// Trang này không còn thẻ Mã nhận; giữ hàm giả để kiểm không có yêu cầu tải trạng thái mã nào.
 vi.mock("@/features/executor-key/api/executorKeyService", () => ({
   executorKeyService: { getStatus: vi.fn(), reissue: vi.fn() },
 }));
@@ -182,7 +182,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     expect(screen.getByText(/Mời ngày .* · Đồng ý ngày /)).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Hệ thống tạo mã mở gói khi bạn ký và kích hoạt kế hoạch, rồi chỉ gửi cho người này khi hồ sơ được duyệt.",
+        "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch, rồi chỉ gửi cho người này khi hồ sơ được duyệt.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Thay người khác" })).toBeInTheDocument();
@@ -215,7 +215,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     expect(screen.queryByRole("button", { name: "Thu hồi lời mời" })).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "Hệ thống tự giữ mã mở gói và chỉ gửi cho người này khi hồ sơ được duyệt và bàn giao bắt đầu.",
+        "Hệ thống tự giữ mã nhận và chỉ gửi cho người này khi hồ sơ được duyệt và bàn giao bắt đầu.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(/không thu hồi trực tiếp/)).toBeInTheDocument();
@@ -234,7 +234,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Thay người khác" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByText("Mời người thay")).toBeInTheDocument();
-    expect(dialog).toHaveTextContent("hệ thống tự đổi mã mở gói");
+    expect(dialog).toHaveTextContent("hệ thống tự đổi mã nhận");
     expect(dialog).not.toHaveTextContent("bạn nên đổi mã mới");
     expect(within(dialog).getByRole("button", { name: "Giữ nguyên" })).toBeInTheDocument();
   });
@@ -269,9 +269,9 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     renderPage();
 
     expect(await screen.findByText("Người thực thi được làm gì?")).toBeInTheDocument();
-    expect(screen.getByText("Giữ mã mở gói cho tới khi bàn giao")).toBeInTheDocument();
+    expect(screen.getByText("Giữ mã nhận cho tới khi bàn giao")).toBeInTheDocument();
     expect(screen.getByText("Ký biên bản bàn giao do luật sư lập")).toBeInTheDocument();
-    expect(screen.getByText("Trao mã mở gói cho người nhận")).toBeInTheDocument();
+    expect(screen.getByText("Trao mã nhận cho người nhận")).toBeInTheDocument();
     expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
     expect(screen.getByText("Tự duyệt hồ sơ")).toBeInTheDocument();
     expect(screen.getByText("Nhận tài sản trong kho này")).toBeInTheDocument();
@@ -372,8 +372,8 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
   });
 });
 
-describe("trang Người thực thi: không có thẻ Mã mở gói", () => {
-  it("Chủ kho không thao tác mã mở gói ở đây: không có thẻ, không có nút Đổi mã mới, không tải trạng thái mã", async () => {
+describe("trang Người thực thi: không có thẻ Mã nhận", () => {
+  it("Chủ kho không thao tác mã nhận ở đây: không có thẻ, không có nút Đổi mã mới, không tải trạng thái mã", async () => {
     showPlan(
       {
         planStatus: "ACTIVE",
@@ -384,7 +384,7 @@ describe("trang Người thực thi: không có thẻ Mã mở gói", () => {
     renderPage();
 
     expect(await screen.findByRole("heading", { name: "Người bạn chọn" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Mã mở gói" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Mã nhận" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
     expect(screen.queryByText(/Bản đang dùng/)).not.toBeInTheDocument();
     expect(executorKeyService.getStatus).not.toHaveBeenCalled();

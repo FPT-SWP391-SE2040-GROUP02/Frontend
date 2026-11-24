@@ -24,7 +24,7 @@ describe("RecipientGuide", () => {
       "Mở thư mời",
       "Nộp văn bản và ảnh căn cước",
       "Đồng ý hoặc từ chối",
-      "Lấy khóa mở gói",
+      "Lấy mã nhận",
       "Tải, kiểm tra và ký phiếu giao nhận",
     ];
     const items = screen.getAllByRole("listitem");

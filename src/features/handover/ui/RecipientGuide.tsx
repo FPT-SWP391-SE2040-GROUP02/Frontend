@@ -21,8 +21,8 @@ export function RecipientGuide({ defaultOpen = false }: { defaultOpen?: boolean 
       text: `Sau khi hồ sơ được duyệt bạn có ${policy.decisionDays} ngày để quyết định. Từ chối thì phần này không được bàn giao cho bạn; quá hạn mà chưa quyết định thì lượt hết hiệu lực.`,
     },
     {
-      title: "Lấy khóa mở gói",
-      text: "Sau khi đồng ý và được duyệt, hãy liên hệ trực tiếp Người thực thi của kho để lấy khóa mở gói rồi nhập vào hệ thống. Nhập sai nhiều lần thì lượt bị khóa và cần Người thực thi hoặc quản trị viên mở lại.",
+      title: "Lấy mã nhận",
+      text: "Sau khi đồng ý và được duyệt, hãy liên hệ trực tiếp Người thực thi của kho để lấy mã nhận rồi nhập vào hệ thống. Nhập sai nhiều lần thì lượt bị khóa và cần Người thực thi hoặc quản trị viên mở lại.",
     },
     {
       title: "Tải, kiểm tra và ký phiếu giao nhận",
