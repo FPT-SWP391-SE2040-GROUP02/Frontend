@@ -100,7 +100,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
           Việc của bạn bây giờ
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 basis-64">
             <h2 id="executor-todo-title" className="text-xl font-semibold text-heritage-primary">
               {todo.title}
             </h2>
