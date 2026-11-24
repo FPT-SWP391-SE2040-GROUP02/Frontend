@@ -1,10 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ZodError } from "zod";
-import { AxiosError, AxiosHeaders } from "axios";
+import { AxiosError, AxiosHeaders, type InternalAxiosRequestConfig } from "axios";
 import { apiClient } from "@/shared/api/axiosClient";
 import { adminService } from "../api/adminService";
 import { adminUserSchema } from "../model/admin.schema";
-import { classifyAdminError } from "../model/adminError";
+import {
+  EXECUTOR_HANDOVER_WARNING,
+  executorAssignedMessage,
+  isExecutorSwapImmediate,
+} from "../model/admin.content";
+import { adminActionError, classifyAdminError } from "../model/adminError";
 
 const USER_ID = "66666666-6666-4666-8666-666666666666";
 export const dashboardFixture = {
@@ -102,7 +107,7 @@ describe("classifyAdminError", () => {
   });
 
   it("giao Người thực thi: gọi đúng đường dẫn, kiểm lý do và mã kho trước khi gửi", async () => {
-    const post = vi.spyOn(apiClient, "post").mockResolvedValue({});
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue({ status: "INVITED" });
     const VAULT = "77777777-7777-4777-8777-777777777777";
     await adminService.assignExecutor(VAULT, {
       userId: USER_ID,
@@ -119,5 +124,41 @@ describe("classifyAdminError", () => {
       adminService.assignExecutor("khong-phai-uuid", { userId: USER_ID, reason: "x" }),
     ).rejects.toThrow();
     expect(post).toHaveBeenCalledTimes(1);
+  });
+
+  it("giao Người thực thi khi kho đang bàn giao: nhận trạng thái ACCEPTED", async () => {
+    vi.spyOn(apiClient, "post").mockResolvedValue({ status: "ACCEPTED" });
+    const result = await adminService.assignExecutor("77777777-7777-4777-8777-777777777777", {
+      userId: USER_ID,
+      reason: "Người cũ vắng mặt",
+    });
+    expect(result.status).toBe("ACCEPTED");
+    expect(executorAssignedMessage(result.status)).toBe("Người mới nhận việc ngay.");
+    expect(executorAssignedMessage("INVITED")).toContain("lời mời");
+  });
+
+  it("chỉ coi kho đang bàn giao là đổi Người thực thi có hiệu lực ngay", () => {
+    expect(isExecutorSwapImmediate("HANDOVER_REQUESTED")).toBe(true);
+    expect(isExecutorSwapImmediate("HANDOVER_IN_PROGRESS")).toBe(true);
+    expect(isExecutorSwapImmediate("ACTIVE")).toBe(false);
+    expect(isExecutorSwapImmediate("CLOSED")).toBe(false);
+    expect(EXECUTOR_HANDOVER_WARNING).toContain(
+      "Chữ ký người cũ đã ký trên biên bản vẫn giữ hiệu lực.",
+    );
+  });
+
+  it.each([
+    ["ALREADY_EXECUTOR", "Người này đang là Người thực thi của kho."],
+    ["PLAN_LOCKED", "Kho đã đóng nên không đổi Người thực thi được."],
+  ])("EXECUTOR_NOT_ALLOWED %s hiện đúng câu tiếng Việt", (reason, text) => {
+    const config = { headers: new AxiosHeaders() } as InternalAxiosRequestConfig;
+    const error = new AxiosError("x", "ERR", config, undefined, {
+      config,
+      data: { code: "EXECUTOR_NOT_ALLOWED", reason },
+      status: 409,
+      statusText: "Conflict",
+      headers: new AxiosHeaders(),
+    });
+    expect(adminActionError(error)).toBe(text);
   });
 });
