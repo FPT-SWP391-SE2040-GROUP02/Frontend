@@ -11,8 +11,10 @@ import {
   type RecipientDraft,
   type RecipientDraftErrors,
 } from "../model/recipientDraft";
+import { SPLIT_DEVIATION_LABEL } from "../model/splitDifference";
 import { handoverRecordKeys } from "../model/useHandoverRecord";
 import { NewRecipientCards } from "./NewRecipientCards";
+import { SplitDeviationPanel } from "./SplitDeviationPanel";
 
 const pairKey = (beneficiaryId: string, assetId: string) => `${beneficiaryId}:${assetId}`;
 
@@ -41,9 +43,13 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   const dirty = selected.size !== saved.size || [...selected].some((key) => !saved.has(key));
   // Luật sư phải tick xác nhận căn cứ pháp lý mỗi lần chốt; state nằm trong component được remount theo revisionNo nên reopen sẽ bỏ tick.
   const [legalBasisConfirmed, setLegalBasisConfirmed] = useState(false);
+  // Biên bản khác cách chia của Chủ kho thì phải tick thêm ô này; cũng bỏ tick mỗi khi nội dung đổi.
+  const [splitDeviationConfirmed, setSplitDeviationConfirmed] = useState(false);
   const [drafts, setDrafts] = useState<RecipientDraft[]>(() => draftsFromReports(record));
   const [draftErrors, setDraftErrors] = useState<Record<string, RecipientDraftErrors>>({});
   const prefilled = record.reports.some((report) => report.recipients.length > 0);
+  const hasDeviation = record.splitDifferences.length > 0;
+  const deviationReady = !hasDeviation || splitDeviationConfirmed;
   const busy = save.pending || split.pending || finalize.pending;
   // Người bị từ chối giấy tờ không được ghi vào biên bản; còn yêu cầu chưa xét thì chưa chốt được.
   const rejected = new Set(
@@ -65,6 +71,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
     client.setQueryData(handoverRecordKeys.verifier(next.id), next);
     setSelected(linesOf(next));
     setLegalBasisConfirmed(false);
+    setSplitDeviationConfirmed(false);
     void client.invalidateQueries({ queryKey: handoverRecordKeys.root });
   };
   const toggle = (key: string) => {
@@ -73,11 +80,13 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
     else next.add(key);
     setSelected(next);
     setLegalBasisConfirmed(false);
+    setSplitDeviationConfirmed(false);
   };
   const changeDrafts = (next: RecipientDraft[]) => {
     setDrafts(next);
     setDraftErrors({});
     setLegalBasisConfirmed(false);
+    setSplitDeviationConfirmed(false);
   };
   /** Lưu từng người nhận mới, lưu các dòng rồi chốt; chốt xong Backend gửi thư mời. */
   const sendAll = async (): Promise<HandoverRecord> => {
@@ -102,7 +111,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
       current = await handoverRecordService.setLines(record.id, all);
       client.setQueryData(handoverRecordKeys.verifier(record.id), current);
     }
-    return handoverRecordService.finalize(record.id);
+    return handoverRecordService.finalize(record.id, splitDeviationConfirmed);
   };
   const handleSend = () => {
     const errors = recipientDraftErrors(drafts);
@@ -218,6 +227,20 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           </div>
         )}
 
+        <SplitDeviationPanel differences={record.splitDifferences} />
+        {hasDeviation && (
+          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+            <input
+              type="checkbox"
+              className="mt-1 size-5 shrink-0 cursor-pointer accent-heritage-primary"
+              checked={splitDeviationConfirmed}
+              disabled={busy}
+              onChange={(event) => setSplitDeviationConfirmed(event.target.checked)}
+            />
+            <span>{SPLIT_DEVIATION_LABEL}</span>
+          </label>
+        )}
+
         <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
           <input
             type="checkbox"
@@ -247,7 +270,13 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
             type="button"
             className={buttonStyles.dark}
             disabled={
-              busy || recipientCount === 0 || claimsPending || noAccepted || !legalBasisConfirmed
+              busy ||
+              recipientCount === 0 ||
+              claimsPending ||
+              noAccepted ||
+              !record.vaultLocked ||
+              !legalBasisConfirmed ||
+              !deviationReady
             }
             onClick={handleSend}
           >
@@ -257,6 +286,11 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
         {claimsPending && (
           <p role="status" className="text-sm text-heritage-muted">
             Còn yêu cầu nhận chưa xét xong. Xét giấy tờ của mọi người nhận rồi mới chốt được.
+          </p>
+        )}
+        {!record.vaultLocked && (
+          <p role="status" className="text-sm text-heritage-muted">
+            Kho chưa khóa: chấp nhận giấy tờ của ít nhất một yêu cầu trước khi chốt.
           </p>
         )}
         {!claimsPending && noAccepted && (

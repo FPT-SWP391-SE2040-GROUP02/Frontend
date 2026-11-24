@@ -39,11 +39,15 @@ export const handoverRecordService = {
       await apiClient.put<unknown, unknown>(`${verifierPath(recordId)}/lines`, body),
     );
   },
-  /** Chốt biên bản; Backend bắt buộc luật sư xác nhận căn cứ pháp lý (confirmLegalBasis: true). */
-  async finalize(recordId: string) {
+  /**
+   * Chốt biên bản; Backend bắt buộc luật sư xác nhận căn cứ pháp lý (confirmLegalBasis: true). Khi biên bản khác cách chia
+   * của Chủ kho thì phải kèm confirmSplitDeviation: true; không có chỗ khác thì Backend bỏ qua cờ này.
+   */
+  async finalize(recordId: string, confirmSplitDeviation: boolean) {
     return handoverRecordSchema.parse(
       await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/finalize`, {
         confirmLegalBasis: true,
+        confirmSplitDeviation,
       }),
     );
   },
@@ -113,6 +117,12 @@ export const handoverRecordService = {
   async signAsVerifier(recordId: string) {
     return handoverRecordSchema.parse(
       await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/sign`),
+    );
+  },
+  /** Luật sư nhắc Người thực thi ký biên bản đã chốt; Backend giới hạn 24 giờ một lần. */
+  async remindExecutor(recordId: string) {
+    return handoverRecordSchema.parse(
+      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/remind-executor`),
     );
   },
 

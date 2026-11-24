@@ -232,8 +232,16 @@ export const changeUserStatusRequestSchema = z.object({
   reason: reason500,
 });
 export const reassignVerifierRequestSchema = z.object({ verifierUserId: uuid, reason: reason500 });
-/** Admin giao hoặc đổi Người thực thi của một kho; người được giao phải chấp nhận lời mời. */
+/**
+ * Admin giao hoặc đổi Người thực thi của một kho. Ngoài bàn giao: người được giao phải chấp nhận lời mời
+ * (INVITED). Khi kho đang bàn giao: người mới nhận việc ngay (ACCEPTED), người cũ bị thu hồi ngay.
+ */
 export const assignExecutorRequestSchema = z.object({ userId: uuid, reason: reason500 });
+/** Kết quả giao Người thực thi; ACCEPTED nghĩa là người mới đã nhận việc ngay, không gửi thư mời. */
+export const assignExecutorResultSchema = z.object({
+  status: z.enum(["INVITED", "ACCEPTED"]),
+});
+export type AssignExecutorResult = z.infer<typeof assignExecutorResultSchema>;
 
 export type ChangeUserRoleRequest = z.infer<typeof changeUserRoleRequestSchema>;
 export type ChangeUserStatusRequest = z.infer<typeof changeUserStatusRequestSchema>;

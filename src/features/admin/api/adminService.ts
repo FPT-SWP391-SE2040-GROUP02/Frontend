@@ -14,6 +14,7 @@ import {
   adminRevenueSchema,
   adminRevenueQuerySchema,
   assignExecutorRequestSchema,
+  assignExecutorResultSchema,
   reassignVerifierRequestSchema,
   type AdminUsersQuery,
   type CreateAdminUserRequest,
@@ -96,11 +97,16 @@ export const adminService = {
       reassignVerifierRequestSchema.parse(request),
     );
   },
-  /** Giao hoặc đổi Người thực thi của kho; trả lời mời đã gửi (người được giao phải chấp nhận). */
+  /**
+   * Giao hoặc đổi Người thực thi của kho. Trạng thái trả về INVITED (đã gửi lời mời) hoặc ACCEPTED
+   * (kho đang bàn giao nên người mới nhận việc ngay).
+   */
   async assignExecutor(vaultId: string, request: AssignExecutorRequest) {
-    await apiClient.post<unknown, unknown>(
-      `/admin/vaults/${id.parse(vaultId)}/executor`,
-      assignExecutorRequestSchema.parse(request),
+    return assignExecutorResultSchema.parse(
+      await apiClient.post<unknown, unknown>(
+        `/admin/vaults/${id.parse(vaultId)}/executor`,
+        assignExecutorRequestSchema.parse(request),
+      ),
     );
   },
 

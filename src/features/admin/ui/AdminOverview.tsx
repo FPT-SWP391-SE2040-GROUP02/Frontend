@@ -22,8 +22,6 @@ function planStageBarColor(stage: string) {
       return "bg-heritage-warning";
     case "HANDOVER_IN_PROGRESS":
       return "bg-heritage-primary";
-    case "BLOCKED":
-      return "bg-heritage-danger";
     default:
       return "bg-heritage-subtle";
   }

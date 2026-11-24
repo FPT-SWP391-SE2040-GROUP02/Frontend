@@ -14,7 +14,7 @@ const orderId = z.string().uuid();
 
 /**
  * Gọi API thanh toán `/billing/*` (hợp đồng mục 6.18). Kho luôn là kho của người đang đăng nhập;
- * client chỉ gửi lựa chọn (hạng, số năm, suất thêm), không gửi số tiền, loại đơn hay trạng thái.
+ * client chỉ gửi lựa chọn (hạng, số năm), không gửi số tiền, loại đơn hay trạng thái.
  */
 export const billingService = {
   /** Bảng giá hiện hành do Backend công bố. */

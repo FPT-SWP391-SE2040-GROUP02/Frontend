@@ -92,12 +92,12 @@ export const FAQ_CONTENT = {
         {
           question: "Bàn giao bắt đầu thế nào?",
           answer:
-            "Khi có việc xảy ra, người nhận mở link riêng trong thư, gửi yêu cầu nhận tài sản kèm giấy tờ. Hệ thống khóa kho, báo Chủ kho (còn sống thì hủy được) và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ, lập biên bản bàn giao (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký. Đủ chữ ký mới giao tài sản.",
+            "Khi có việc xảy ra, người nhận mở link riêng trong thư, gửi yêu cầu nhận tài sản kèm giấy tờ. Hệ thống khóa kho, báo Chủ kho và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ, lập biên bản bàn giao (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký. Đủ chữ ký mới giao tài sản.",
         },
         {
           question: "LegacyVault có làm thủ tục thừa kế không?",
           answer:
-            "Không. Hệ thống chỉ quản lý và giao tài sản theo biên bản bàn giao do luật sư lập. Di chúc và thủ tục thừa kế làm ở ngoài hệ thống. Người thực thi bạn chọn chỉ là đề cử, chỉ giữ hộ và giao theo biên bản.",
+            "Không. Hệ thống chỉ quản lý và giao tài sản theo biên bản bàn giao do luật sư lập. Di chúc và thủ tục thừa kế làm ở ngoài hệ thống. Người thực thi bạn chọn chỉ giữ hộ và giao tài sản theo biên bản bàn giao do luật sư lập.",
         },
         {
           question: "LegacyVault có giao nhà, đất, xe không?",

@@ -417,7 +417,7 @@ it("Người thực thi: kế hoạch nháp mời được Người thực thi, 
   fireEvent.click(
     await within(dialog).findByRole("button", { name: "Chọn người này: Luật sư Một" }),
   );
-  fireEvent.click(within(dialog).getByRole("switch", { name: /chỉ là đề cử/ }));
+  fireEvent.click(within(dialog).getByRole("switch", { name: /là nhân viên LegacyVault/ }));
   fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   // Người thực thi không còn kiêm người nhận: payload chỉ có email.

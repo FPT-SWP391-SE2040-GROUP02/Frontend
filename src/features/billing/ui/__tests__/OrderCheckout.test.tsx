@@ -17,17 +17,14 @@ const pendingOrder: PaymentOrder = {
   status: "PENDING",
   tier: "XS",
   years: 3,
-  extraSlots: 1,
   tierAmount: 499000,
-  slotAmount: 147000,
-  totalAmount: 646000,
+  totalAmount: 499000,
   currency: "VND",
   storageQuotaBytes: 209715200,
-  includedBeneficiarySlots: 2,
   paymentCode: "LV7K2M9QXA",
   transferContent: "LV7K2M9QXA",
   bank: { bankCode: "MBBank", accountNumber: "0000000000", accountName: "LEGACYVAULT TEST" },
-  qrImageUrl: "https://qr.sepay.vn/img?acc=0000000000&bank=MBBank&amount=646000&des=LV7K2M9QXA",
+  qrImageUrl: "https://qr.sepay.vn/img?acc=0000000000&bank=MBBank&amount=499000&des=LV7K2M9QXA",
   expiresAt: "2026-10-18T12:15:00+00:00",
   createdAt: "2026-10-18T12:00:00+00:00",
   paidAt: null,
@@ -77,7 +74,7 @@ describe("thanh toán đơn đang chờ", () => {
       "src",
       pendingOrder.qrImageUrl,
     );
-    expect(screen.getByText(/646\.000/)).toBeInTheDocument();
+    expect(screen.getByText(/499\.000/)).toBeInTheDocument();
     expect(screen.getByText("LV7K2M9QXA")).toBeInTheDocument();
     expect(screen.getByText("0000000000")).toBeInTheDocument();
     expect(screen.getByText("MBBank")).toBeInTheDocument();
@@ -175,9 +172,7 @@ describe("thanh toán đơn đang chờ", () => {
       kind: "UPGRADE",
       tier: "XS_MAX",
       years: null,
-      extraSlots: 0,
       tierAmount: 250000,
-      slotAmount: 0,
       totalAmount: 250000,
       status: "PAID",
       qrImageUrl: null,

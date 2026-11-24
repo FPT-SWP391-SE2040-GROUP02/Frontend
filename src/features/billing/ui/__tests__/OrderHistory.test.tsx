@@ -14,7 +14,6 @@ const base: PaymentOrderSummary = {
   status: "PAID",
   tier: "XS",
   years: 3,
-  extraSlots: 0,
   totalAmount: 499000,
   currency: "VND",
   paymentCode: "LV7K2M9QXA",
@@ -67,10 +66,9 @@ describe("lịch sử thanh toán", () => {
         {
           ...base,
           id: "0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a11",
-          kind: "ADDON",
+          kind: "UPGRADE",
           status: "PENDING",
           years: null,
-          extraSlots: 2,
           totalAmount: 24165,
           paymentCode: "LVPENDING1",
           paidAt: null,
@@ -111,9 +109,7 @@ describe("lịch sử thanh toán", () => {
       "/billing/checkout?order=0199e7a4-5c1b-7c3e-9a51-3f0f5d2b8a10",
     );
     expect(screen.getByText("LVPENDING1").closest("tr")).toHaveTextContent("Đang chờ thanh toán");
-    expect(screen.getByText("LVPENDING1").closest("tr")).toHaveTextContent(
-      "Mua thêm 2 suất người nhận",
-    );
+    expect(screen.getByText("LVPENDING1").closest("tr")).toHaveTextContent("Nâng lên XS");
     expect(screen.getByText("LVEXPIRED1").closest("tr")).toHaveTextContent("Hết hạn");
     expect(screen.getByText("LVCANCELL1").closest("tr")).toHaveTextContent("Đã hủy");
     expect(screen.getByText(/LegacyVault không lưu số thẻ/)).toBeInTheDocument();
@@ -172,7 +168,6 @@ describe("lịch sử thanh toán", () => {
 describe("mô tả nội dung đơn", () => {
   it.each([
     [{ ...base }, "Mua gói XS · 3 năm"],
-    [{ ...base, extraSlots: 2 }, "Mua gói XS · 3 năm + 2 suất"],
     [
       { ...base, kind: "RENEWAL" as const, tier: "XS_MAX" as const, years: 1 },
       "Gia hạn gói XS Max · 1 năm",
@@ -181,7 +176,6 @@ describe("mô tả nội dung đơn", () => {
       { ...base, kind: "UPGRADE" as const, tier: "XS_MAX" as const, years: null },
       "Nâng lên XS Max",
     ],
-    [{ ...base, kind: "ADDON" as const, years: null, extraSlots: 1 }, "Mua thêm 1 suất người nhận"],
   ])("đơn %#", (order, expected) => {
     expect(describeOrder(order)).toBe(expected);
   });

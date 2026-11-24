@@ -44,8 +44,6 @@ const activityLabels: Record<string, string> = {
   DEATH_CASE_SUBMITTED: "Gửi hồ sơ chứng tử",
   DEATH_CASE_APPROVED: "Duyệt hồ sơ chứng tử",
   DEATH_CASE_REJECTED: "Từ chối hồ sơ chứng tử",
-  OBJECTION_REPORTED: "Báo còn sống (luồng đã gỡ)",
-  OBJECTION_CONCLUDED: "Kết luận báo còn sống (luồng đã gỡ)",
   HOLD_PLACED: "Tạm giữ kho",
   HOLD_RELEASED: "Gỡ tạm giữ kho",
   PAYMENT_ORDER_CREATED: "Tạo đơn thanh toán",

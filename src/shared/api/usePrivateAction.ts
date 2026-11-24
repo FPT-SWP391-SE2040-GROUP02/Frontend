@@ -94,7 +94,7 @@ const paymentNotAllowedReasons: Record<string, string> = {
   OWNER_EKYC_REQUIRED: "Cần hoàn tất xác minh danh tính eKYC của Chủ kho trước khi mua gói.",
   RENEWAL_NOT_SUPPORTED: "Kho không có kỳ dịch vụ phù hợp để thao tác này.",
   USAGE_EXCEEDS_PLAN:
-    "Dữ liệu đang dùng (dung lượng hoặc số người nhận) vượt mức của lựa chọn này. Chọn hạng lớn hơn, thêm suất người nhận hoặc giảm dữ liệu trước.",
+    "Dung lượng đang dùng vượt mức của lựa chọn này. Chọn hạng lớn hơn hoặc giảm dữ liệu trước.",
 };
 
 /** Reason-specific messages for PAYMENT_ORDER_NOT_PAYABLE */
@@ -181,8 +181,6 @@ const messages: Record<string, string> = {
   BENEFICIARY_IDENTITY_CONFLICT:
     "Số CCCD này đã tồn tại trong danh sách người nhận của kho (với thông tin khác). Vui lòng kiểm tra lại.",
   BENEFICIARY_IN_USE: "Người nhận đang được gán tài sản. Hãy gỡ gán trước.",
-  BENEFICIARY_SLOTS_EXCEEDED:
-    "Kho đã dùng hết suất người nhận. Hãy mua thêm suất hoặc chọn người đã được gán.",
   EKYC_IMAGE_REJECTED:
     "Ảnh chưa đáp ứng yêu cầu xác minh. Hãy chọn ảnh rõ, đúng mặt giấy tờ hoặc selfie rồi thử lại.",
   EKYC_DOCUMENT_EXPIRED: "Bước giấy tờ đã hết hạn hoặc đã được dùng. Bắt đầu lại với ảnh giấy tờ.",

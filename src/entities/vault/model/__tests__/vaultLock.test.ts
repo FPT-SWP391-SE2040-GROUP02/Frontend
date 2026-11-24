@@ -11,7 +11,7 @@ describe("getVaultLockReason", () => {
     expect(getVaultLockReason({ status: "OPEN", planStatus })).toBeNull();
   });
 
-  it.each(["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"])(
+  it.each(["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "CLOSED"])(
     "khóa khi kế hoạch %s và có lý do để hiện",
     (planStatus) => {
       const reason = getVaultLockReason({ status: "OPEN", planStatus });

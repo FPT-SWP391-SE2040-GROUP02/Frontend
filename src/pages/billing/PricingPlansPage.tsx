@@ -81,9 +81,6 @@ function OwnerCatalog() {
           )}
           vault={vault.data}
           access="owner"
-          maxExtraSlots={plans.data.extraSlot.maxPerOrder}
-          maxTotalSlots={plans.data.extraSlot.maxTotal}
-          slotPricePerYear={plans.data.extraSlot.pricePerYear}
         />
       )}
       {!vault.isSuccess && (

@@ -3,7 +3,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 /**
  * Nội dung landing theo Mẫu G "Bông hoa là logo" của bộ thiết kế handoff.
  * Giá và dung lượng chép từ biểu phí SRS §8.1 (khớp trang bảng giá); backend chỉ giới hạn theo
- * dung lượng và số suất người nhận, không giới hạn số tài sản. Không phải cam kết đã nghiệm thu.
+ * dung lượng, không giới hạn số tài sản hay số người nhận. Không phải cam kết đã nghiệm thu.
  */
 export const LANDING_CONTENT = {
   brand: "LegacyVault",
@@ -141,8 +141,7 @@ export const LANDING_CONTENT = {
     layers: [
       {
         title: "Người nhận gửi yêu cầu",
-        detail:
-          "Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ. Bạn còn sống thì hủy được.",
+        detail: "Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ.",
       },
       {
         title: "Luật sư lập biên bản",
@@ -172,7 +171,7 @@ export const LANDING_CONTENT = {
       {
         title: "Chỉ định Người thực thi",
         detail:
-          "Đề cử một Người thực thi; luật sư do hệ thống phân công khi có yêu cầu nhận. Họ không đọc được nội dung kho.",
+          "Chọn một Người thực thi; luật sư do hệ thống phân công khi có yêu cầu nhận. Họ không đọc được nội dung kho.",
       },
       {
         title: "Lập biên bản phân chia",

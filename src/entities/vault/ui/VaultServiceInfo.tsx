@@ -90,12 +90,6 @@ function VaultServiceDetails({ service, showQuota = false }: VaultServiceInfoPro
               {formatStorageMegabytes(service.storageQuotaBytes)}
             </dd>
           </div>
-          <div>
-            <dt className="text-sm text-heritage-muted">Suất người nhận</dt>
-            <dd className="mt-1 text-xl font-semibold text-heritage-primary">
-              {service.beneficiarySlots}
-            </dd>
-          </div>
         </dl>
       )}
     </div>

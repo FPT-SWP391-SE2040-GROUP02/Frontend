@@ -18,7 +18,6 @@ export interface PaidPlanMeta {
   /** Giá mặc định theo cấu hình gốc, chỉ để hiển thị khi chưa có dòng trong DB. */
   priceDefaults: Record<number, string>;
   quotaDefault: string;
-  slotsDefault: string;
   /** Mô tả tính năng hiển thị khi Admin chưa viết (trùng mặc định ở trang gói của chủ kho). */
   featureDefaults: readonly string[];
 }
@@ -30,7 +29,6 @@ export const PAID_PLANS: readonly PaidPlanMeta[] = [
     subtitle: "Legacy Căn bản",
     priceDefaults: { 1: "199000", 3: "499000", 5: "799000" },
     quotaDefault: "200",
-    slotsDefault: "2",
     featureDefaults: ["Thiết lập kế hoạch bàn giao", "Biên bản và quy trình bàn giao"],
   },
   {
@@ -39,7 +37,6 @@ export const PAID_PLANS: readonly PaidPlanMeta[] = [
     subtitle: "Legacy Cao cấp",
     priceDefaults: { 1: "399000", 3: "999000", 5: "1599000" },
     quotaDefault: "500",
-    slotsDefault: "5",
     featureDefaults: ["Các tính năng của Legacy XS"],
   },
 ];
@@ -104,7 +101,7 @@ export function serializeCustomPlans(plans: readonly CustomPlan[]): string {
   );
 }
 
-/** Cột gói để vẽ: gói Admin tạo thêm có mặc định dung lượng 100 MiB, 1 suất và chưa có giá. */
+/** Cột gói để vẽ: gói Admin tạo thêm có mặc định dung lượng 100 MiB và chưa có giá. */
 export function customPlanMeta(plan: CustomPlan): PaidPlanMeta {
   return {
     code: plan.code,
@@ -113,7 +110,6 @@ export function customPlanMeta(plan: CustomPlan): PaidPlanMeta {
     subtitle: plan.subtitle,
     priceDefaults: {},
     quotaDefault: "100",
-    slotsDefault: "1",
     featureDefaults: ["Thiết lập kế hoạch bàn giao", "Biên bản và quy trình bàn giao"],
   };
 }
@@ -191,10 +187,6 @@ const RESERVED_DISPLAY_NAMES: readonly string[] = [
  * một lần chuyển khoản (đơn tối đa 500.000.000đ). Gói đắt nhất hiện nay là 1.599.000đ nên còn dư rất xa.
  */
 export const MAX_TIER_PRICE = 50_000_000;
-export const MAX_SLOT_PRICE_PER_YEAR = 2_000_000;
-/** Tổng người nhận tối đa mỗi tài khoản: mặc định 50, Admin chọn từ 1 đến 1000. */
-export const DEFAULT_MAX_TOTAL_SLOTS = 50;
-export const MAX_TOTAL_SLOTS_LIMIT = 1000;
 
 /** Khóa mô tả tính năng của gói Free và của các gói trả phí. */
 export const FREE_FEATURES_KEY = "Plans.Free.Features";
@@ -296,12 +288,9 @@ function planLabel(segment: string): string {
   return segment;
 }
 
-/** Tên dễ đọc của các khóa mua thêm suất và thanh toán trong danh sách thay đổi. */
-const ADDON_KEY_LABELS: Record<string, string> = {
-  "Plans.Addon.SlotPricePerYear": "Giá một suất thêm / năm",
-  "Plans.Addon.MaxSlotsPerOrder": "Số suất thêm tối đa / đơn",
-  "Plans.Addon.MaxTotalSlots": "Tổng người nhận tối đa mỗi tài khoản",
-  "Plans.Addon.OrderTimeoutMinutes": "Hạn đơn chờ thanh toán SePay (phút)",
+/** Tên dễ đọc của các khóa luật chung của bảng giá trong danh sách thay đổi. */
+const ORDER_RULE_KEY_LABELS: Record<string, string> = {
+  "Plans.OrderTimeoutMinutes": "Hạn đơn chờ thanh toán SePay (phút)",
 };
 
 /** Tên dễ đọc của một khóa Plans.* trong danh sách thay đổi; null nếu không phải khóa gói. */
@@ -309,19 +298,16 @@ export function describePlanKey(key: string): string | null {
   if (key === PERIODS_KEY) return "Danh sách kỳ bán";
   if (key === CATALOG_KEY) return "Danh sách gói";
   if (key === FREE_FEATURES_KEY) return "Mô tả tính năng gói Free";
-  if (key in ADDON_KEY_LABELS) return ADDON_KEY_LABELS[key];
+  if (key in ORDER_RULE_KEY_LABELS) return ORDER_RULE_KEY_LABELS[key];
   const match =
-    /^Plans\.([A-Za-z][A-Za-z0-9_]*)\.(?:Price(\d+)Y|(On|Hidden|QuotaMb|Slots|Features))$/.exec(
-      key,
-    );
-  if (!match || match[1] === "Addon") return null;
+    /^Plans\.([A-Za-z][A-Za-z0-9_]*)\.(?:Price(\d+)Y|(On|Hidden|QuotaMb|Features))$/.exec(key);
+  if (!match) return null;
   const name = planLabel(match[1]);
   if (match[2]) return `Giá gói ${name} (${match[2]} năm)`;
   if (match[3] === "On") return `Mở bán gói ${name}`;
   if (match[3] === "Hidden") return `Xóa gói ${name}`;
   if (match[3] === "QuotaMb") return `Dung lượng gói ${name}`;
-  if (match[3] === "Features") return `Mô tả tính năng gói ${name}`;
-  return `Suất người nhận gói ${name}`;
+  return `Mô tả tính năng gói ${name}`;
 }
 
 /** Giá trị hiển thị trong bảng so sánh thay đổi (kỳ bán đọc từ JSON, cờ true/false thành chữ). */

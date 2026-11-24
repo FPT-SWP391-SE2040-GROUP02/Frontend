@@ -153,7 +153,6 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
     // Gói mới bắt đầu ở trạng thái tạm ngừng để Admin điền giá các kỳ rồi mới mở bán.
     setKeyValue(saleKey(code), "false");
     setKeyValue(`Plans.${code}.QuotaMb`, "100");
-    setKeyValue(`Plans.${code}.Slots`, "1");
     setNewPlanName("");
     setNewPlanSubtitle("");
     setPlanError("");
@@ -501,29 +500,6 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                       unit="MiB"
                       value={getValue(`Plans.${plan.code}.QuotaMb`, plan.quotaDefault)}
                       onChange={(next) => setKeyValue(`Plans.${plan.code}.QuotaMb`, next)}
-                    />
-                  </td>
-                ))}
-              </tr>
-              <tr>
-                <th scope="row" className="p-4 font-medium">
-                  Suất người nhận kèm
-                </th>
-                <td className="p-4">
-                  <QuotaInput
-                    label="Suất người nhận gói Free"
-                    unit="người"
-                    value={getValue("Plans.Free.Slots", "0")}
-                    onChange={(next) => setKeyValue("Plans.Free.Slots", next)}
-                  />
-                </td>
-                {visible.map((plan) => (
-                  <td key={plan.code} className="p-4">
-                    <QuotaInput
-                      label={`Suất người nhận gói ${plan.name}`}
-                      unit="người"
-                      value={getValue(`Plans.${plan.code}.Slots`, plan.slotsDefault)}
-                      onChange={(next) => setKeyValue(`Plans.${plan.code}.Slots`, next)}
                     />
                   </td>
                 ))}

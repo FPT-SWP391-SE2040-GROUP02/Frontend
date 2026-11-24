@@ -6,19 +6,12 @@ export function describeOrder(order: PaymentOrderSummary): string {
   if (order.tier === "XS") {
     tierName = "XS";
   }
-  let text = `Mua thêm ${order.extraSlots} suất người nhận`;
   if (order.kind === "UPGRADE") {
-    text = `Nâng lên ${tierName}`;
+    return `Nâng lên ${tierName}`;
   }
-  if (order.kind === "PURCHASE" || order.kind === "RENEWAL") {
-    let verb = "Mua gói";
-    if (order.kind === "RENEWAL") {
-      verb = "Gia hạn gói";
-    }
-    text = `${verb} ${tierName} · ${order.years} năm`;
-    if (order.extraSlots > 0) {
-      text = `${text} + ${order.extraSlots} suất`;
-    }
+  let verb = "Mua gói";
+  if (order.kind === "RENEWAL") {
+    verb = "Gia hạn gói";
   }
-  return text;
+  return `${verb} ${tierName} · ${order.years} năm`;
 }

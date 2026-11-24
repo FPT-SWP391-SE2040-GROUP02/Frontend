@@ -59,6 +59,44 @@ describe("RecordPaper: xác nhận căn cứ pháp lý", () => {
   });
 });
 
+describe("RecordPaper: khác cách chia ban đầu của Chủ kho", () => {
+  const differences = [
+    {
+      kind: "RECIPIENT_REMOVED",
+      beneficiaryId: null,
+      recipientName: "Lê Bình",
+      assetId: null,
+      assetName: "",
+      ownerRecipientNames: [],
+      recordRecipientNames: [],
+    },
+  ];
+
+  it("có khác biệt thì in mục và dòng luật sư xác nhận", () => {
+    render(
+      <RecordPaper
+        record={buildRecord({
+          splitDifferences: differences,
+          splitDeviationConfirmedAt: CONFIRMED_AT,
+          splitDeviationConfirmedByName: "Trần Văn Dũng",
+        })}
+      />,
+    );
+
+    expect(screen.getByText("Khác với cách chia ban đầu của Chủ kho")).toBeInTheDocument();
+    expect(screen.getByText("Bỏ người nhận: Lê Bình")).toBeInTheDocument();
+    expect(
+      screen.getByText(`Luật sư Trần Văn Dũng xác nhận lúc ${formatDateTime(CONFIRMED_AT)}`),
+    ).toBeInTheDocument();
+  });
+
+  it("không có khác biệt thì không in mục này", () => {
+    render(<RecordPaper record={buildRecord()} />);
+
+    expect(screen.queryByText("Khác với cách chia ban đầu của Chủ kho")).not.toBeInTheDocument();
+  });
+});
+
 describe("RecordPaper: phạm vi tài sản số", () => {
   it("in câu chỉ áp dụng cho tài sản số ở cuối văn bản", () => {
     const { container } = render(<RecordPaper record={buildRecord()} />);

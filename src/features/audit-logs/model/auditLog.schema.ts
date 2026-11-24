@@ -38,8 +38,6 @@ export const auditActionValues = [
   "USER_ROLE_CHANGED",
   "USER_STATUS_CHANGED",
   "VERIFIER_REASSIGNED",
-  "OBJECTION_REPORTED",
-  "OBJECTION_CONCLUDED",
   "DEATH_CASE_OPENED",
   "DEATH_CASE_DRAFT_CANCELLED",
   "DEATH_CASE_SUBMITTED",
@@ -84,6 +82,8 @@ export const auditActionValues = [
   // Xét duyệt hoặc yêu cầu bổ sung hồ sơ người nhận (đối tượng là lượt bàn giao).
   "HANDOVER_SUBMISSION_APPROVED",
   "HANDOVER_SUBMISSION_SUPPLEMENT_REQUESTED",
+  // Luật sư nhắc Người thực thi ký biên bản đã chốt.
+  "HANDOVER_EXECUTOR_REMINDED",
   "PLAN_ACTIVATED",
   "EXECUTOR_ACCEPTED",
   "WILL_RESIGNED",

@@ -95,9 +95,6 @@ export function OwnerBeneficiaries() {
   const lockReason = getVaultLockReason(vault.data);
   const locked = lockReason !== null;
   const freeTier = vault.data.serviceTier === "FREE";
-  // Số hồ sơ (tính cả hồ sơ chưa được gán tài sản) không vượt tổng suất; BE vẫn chặn lại bằng 409 BENEFICIARY_SLOTS_EXCEEDED.
-  // Danh sách không lọc nên totalCount là tổng số hồ sơ của kho.
-  const profileLimitReached = !freeTier && list.data.totalCount >= vault.data.beneficiarySlots;
   const rows: ReactNode[] = [];
   for (const record of list.data.items) {
     rows.push(
@@ -122,18 +119,6 @@ export function OwnerBeneficiaries() {
           vẫn xóa được.
         </p>
       )}
-      {profileLimitReached && !readOnly && (
-        <p
-          role="status"
-          className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
-        >
-          Kho đã đủ {vault.data.beneficiarySlots} người nhận theo suất hiện có. Mua thêm suất hoặc
-          xóa hồ sơ chưa dùng để thêm người mới.{" "}
-          <Link className="font-semibold underline" to={ROUTES.BILLING.PLANS}>
-            Xem gói dịch vụ
-          </Link>
-        </p>
-      )}
       <section
         aria-label="Danh sách người nhận"
         className="rounded-2xl border border-heritage-border bg-heritage-surface p-6"
@@ -148,7 +133,7 @@ export function OwnerBeneficiaries() {
             <button
               type="button"
               className={`${buttonStyles.dark} disabled:bg-heritage-sunken disabled:text-heritage-subtle disabled:opacity-100`}
-              disabled={readOnly || locked || profileLimitReached}
+              disabled={readOnly || locked}
               title={lockReason ?? undefined}
               onClick={() => setAdding(true)}
             >
@@ -157,9 +142,7 @@ export function OwnerBeneficiaries() {
           </div>
         </div>
         <p className="mt-1 text-sm text-heritage-muted">
-          Đã thêm {list.data.totalCount}/{vault.data.beneficiarySlots} người nhận,{" "}
-          {vault.data.usedBeneficiarySlots} người đã được gán tài sản. Tạo hồ sơ không tự gán tài
-          sản cho người nhận.
+          Đã thêm {list.data.totalCount} người nhận. Tạo hồ sơ không tự gán tài sản cho người nhận.
         </p>
         {rows.length === 0 && (
           <p role="status" className="mt-4 text-sm text-heritage-muted">

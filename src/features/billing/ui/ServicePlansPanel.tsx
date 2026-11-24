@@ -31,12 +31,6 @@ interface ServicePlansPanelProps {
   vault?: VaultResponse;
   access: "guest" | "owner" | "unavailable";
   unavailableLabel?: string;
-  /** Số suất tối đa mỗi đơn do Backend công bố (GET /billing/plans). */
-  maxExtraSlots?: number;
-  /** Tổng người nhận tối đa mỗi tài khoản (GET /billing/plans); thiếu thì chỉ giới hạn theo từng đơn. */
-  maxTotalSlots?: number;
-  /** Giá một suất người nhận thêm cho một năm do Backend công bố. */
-  slotPricePerYear?: number;
 }
 
 /** Dữ liệu kho đổi thì đóng bản xem trước cũ và lấy lại mốc giờ, không đổi cache hay quyền. */
@@ -55,9 +49,6 @@ function ServicePlansContent({
   vault,
   access,
   unavailableLabel = "Chưa thể chọn mua gói",
-  maxExtraSlots = 20,
-  maxTotalSlots,
-  slotPricePerYear,
 }: ServicePlansPanelProps) {
   const [pickedYears, setYears] = useState<ReferencePlanTerm["years"]>(1);
   // Kỳ do Admin cấu hình: kỳ đang chọn không còn bán thì lấy kỳ ngắn nhất còn bán.
@@ -90,17 +81,10 @@ function ServicePlansContent({
       selectedAction = "renew";
     }
   }
-  if (
-    !vault ||
-    access !== "owner" ||
-    !["buy", "addon", "upgrade", "renew"].includes(selectedAction)
-  ) {
+  if (!vault || access !== "owner" || !["buy", "upgrade", "renew"].includes(selectedAction)) {
     selectedPlan = undefined;
   }
-  let selectedMode: "PURCHASE" | "ADDON" | "UPGRADE" | "RENEWAL" = "PURCHASE";
-  if (selectedAction === "addon") {
-    selectedMode = "ADDON";
-  }
+  let selectedMode: "PURCHASE" | "UPGRADE" | "RENEWAL" = "PURCHASE";
   if (selectedAction === "upgrade") {
     selectedMode = "UPGRADE";
   }
@@ -153,12 +137,6 @@ function ServicePlansContent({
                 {formatStorageMegabytes(vault.storageQuotaBytes)}
               </dd>
             </div>
-            <div>
-              <dt>Suất người nhận</dt>
-              <dd>
-                {vault.usedBeneficiarySlots} / {vault.beneficiarySlots} đã dùng
-              </dd>
-            </div>
           </dl>
           {access === "owner" &&
             vault.serviceTier !== "FREE" &&
@@ -198,6 +176,7 @@ function ServicePlansContent({
             if (action === "upgrade") label = `Nâng lên ${plan.name.replace("Legacy ", "")}`;
             if (action === "downgrade") label = "Hạ hạng khi gia hạn";
             if (action === "renew") label = `Gia hạn ${plan.name}`;
+            if (action === "none" && current) label = "Đang sử dụng";
             if (action === "blocked" && access === "owner") label = "Chưa thể chọn mua gói";
             if (action === "offSale" && access === "owner") label = "Tạm ngừng mở bán";
             if (access === "unavailable") label = unavailableLabel;
@@ -216,17 +195,7 @@ function ServicePlansContent({
               >
                 <div className="service-plan-card-heading">
                   <h2>{plan.name}</h2>
-                  {current ? (
-                    <span className="service-plan-badge">Gói hiện tại</span>
-                  ) : (
-                    plan.order !== undefined &&
-                    plan.order > 10 &&
-                    plan.serviceTier !== "FREE" && (
-                      <span className="service-plan-badge service-plan-badge-muted">
-                        Nhiều người nhận
-                      </span>
-                    )
-                  )}
+                  {current && <span className="service-plan-badge">Gói hiện tại</span>}
                 </div>
                 <p className="service-plan-price">{referenceMoney.format(term?.price ?? 0)}</p>
                 <p className="service-plan-price-caption">{caption}</p>
@@ -234,10 +203,6 @@ function ServicePlansContent({
                   <div>
                     <dt>Dung lượng</dt>
                     <dd>{formatStorageMegabytes(plan.storage * 1_048_576)}</dd>
-                  </div>
-                  <div>
-                    <dt>{isFree ? "Người nhận" : "Người nhận kèm gói"}</dt>
-                    <dd>{plan.includedBeneficiarySlots} người</dd>
                   </div>
                 </dl>
                 <ul className="service-plan-features">
@@ -257,17 +222,6 @@ function ServicePlansContent({
                     <p className="service-plan-fineprint">Gói mặc định, không cần mua.</p>
                   ) : (
                     <>
-                      {action === "addon" && access === "owner" && (
-                        <Button
-                          className="service-plan-button service-plan-primary"
-                          onClick={(event) => {
-                            opener.current = event.currentTarget;
-                            setSelectedTier(plan.serviceTier);
-                          }}
-                        >
-                          Mua thêm suất người nhận
-                        </Button>
-                      )}
                       {action === "upgrade" && access === "owner" && (
                         <Button
                           className="service-plan-button service-plan-primary"
@@ -285,7 +239,6 @@ function ServicePlansContent({
                           to={ROUTES.AUTH.LOGIN}
                         >{`Mua gói ${shortName(plan)}`}</Link>
                       ) : (
-                        action !== "addon" &&
                         action !== "upgrade" && (
                           <Button
                             variant="outline"
@@ -320,7 +273,7 @@ function ServicePlansContent({
                       )}
                       {action === "offSale" && access === "owner" && (
                         <p role="status" className="service-plan-fineprint">
-                          Gói này đang tạm ngừng mở bán nên chưa thể mua, gia hạn hay mua thêm suất.
+                          Gói này đang tạm ngừng mở bán nên chưa thể mua, gia hạn hay nâng hạng.
                           Dịch vụ đã trả vẫn dùng đến hết kỳ.
                         </p>
                       )}
@@ -353,12 +306,7 @@ function ServicePlansContent({
           plan={selectedPlan}
           mode={selectedMode}
           years={years}
-          maxExtraSlots={maxExtraSlots}
-          maxTotalSlots={maxTotalSlots}
-          currentSlots={vault.beneficiarySlots}
-          slotPricePerYear={slotPricePerYear}
           catalog={paidCatalog}
-          defaultExtraSlots={vault.extraBeneficiarySlots}
           lockTier={Boolean(currentPaid)}
           onTermChange={setYears}
           onClose={() => {
@@ -379,15 +327,10 @@ function ServicePlansContent({
         </summary>
         <div className="service-plan-policy-list">
           <section aria-labelledby={policyId}>
-            <h3 id={policyId}>Mua thêm suất người nhận</h3>
+            <h3 id={policyId}>Người nhận</h3>
             <p>
-              Suất là số người nhận bạn được chọn. Người do luật sư thêm theo quy định pháp luật
-              không tính suất và không mất phí.
-            </p>
-            <p>
-              {(slotPricePerYear ?? 49000).toLocaleString("vi-VN")}đ/suất/năm. Tối đa{" "}
-              {maxExtraSlots} suất mỗi đơn, hết hạn cùng ngày với gói. Mua giữa kỳ tính theo thời
-              gian còn lại, làm tròn lên đến đồng.
+              Gói trả phí không giới hạn số người nhận; các gói chỉ khác nhau về dung lượng và giá.
+              Người do luật sư thêm theo quy định pháp luật không mất phí.
             </p>
           </section>
           <section>

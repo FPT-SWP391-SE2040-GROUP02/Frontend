@@ -56,14 +56,13 @@ const statusTones: Record<Executor["status"], ChipTone> = {
 };
 
 /** Kế hoạch ở các trạng thái này thì Backend chặn mời, gửi lại và thu hồi Người thực thi (SETUP-21). */
-const LOCKED_PLAN_STATUSES = ["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "BLOCKED", "CLOSED"];
+const LOCKED_PLAN_STATUSES = ["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS", "CLOSED"];
 const RUNNING_PLAN_STATUSES = ["ACTIVE"];
 
 /** Lý do khóa ở đầu câu thông báo chỉ xem (thiết kế 186). */
 const LOCKED_REASONS: Record<string, string> = {
   HANDOVER_REQUESTED: "Có người nhận gửi yêu cầu nhận tài sản",
   HANDOVER_IN_PROGRESS: "Kế hoạch đang bàn giao",
-  BLOCKED: "Kế hoạch đang bị chặn",
   CLOSED: "Kế hoạch đã đóng",
 };
 
@@ -154,7 +153,7 @@ export function InviteDialog({
     defaultValues: { email: "" },
   });
   const selectedEmail = useWatch({ control: form.control, name: "email" });
-  // Điều khoản đề cử: Chủ kho phải đồng ý trước khi gửi lời mời (chỉ ghi nhận mong muốn, không tạo quyền pháp lý).
+  // Điều khoản về vai trò Người thực thi: Chủ kho phải đồng ý trước khi gửi lời mời (nhân viên LegacyVault chỉ giữ hộ và giao tài sản theo biên bản của luật sư).
   const [nominationAccepted, setNominationAccepted] = useState(false);
 
   /** Lý do không chọn được một người trong danh bạ (Backend vẫn là nơi quyết định cuối cùng). */
@@ -242,7 +241,8 @@ export function InviteDialog({
               className="mt-0.5"
             />
             <span id="nomination-switch-label">
-              Tôi hiểu đây chỉ là đề cử. Người thực thi không có quyền chia, bán hay cho tài sản.
+              Tôi hiểu Người thực thi là nhân viên LegacyVault, chỉ giữ hộ và giao tài sản theo biên
+              bản bàn giao do luật sư lập; không có quyền xem nội dung, chia, bán hay cho tài sản.
             </span>
           </div>
           {action.error && (

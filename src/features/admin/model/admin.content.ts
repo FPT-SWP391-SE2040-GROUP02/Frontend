@@ -54,7 +54,6 @@ export const PLAN_STAGE_LABELS: Record<string, string> = {
   ACTIVE: "Đang chạy",
   HANDOVER_REQUESTED: "Đang lập biên bản",
   HANDOVER_IN_PROGRESS: "Đang bàn giao",
-  BLOCKED: "Bị đóng băng",
 };
 
 export const planStageLabel = (stage: string) => PLAN_STAGE_LABELS[stage] ?? stage;
@@ -121,3 +120,20 @@ const moneyFormatter = new Intl.NumberFormat("vi-VN");
 /** Số tiền nguyên kèm đơn vị Backend trả, ví dụ "199.000 VND". */
 export const formatMoney = (amount: number, currency: string) =>
   `${moneyFormatter.format(amount)} ${currency}`;
+
+/** Trạng thái kế hoạch mà Backend cho đổi Người thực thi và nhận việc ngay. */
+const HANDOVER_PLAN_STATUSES = ["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS"];
+
+/** Kho đang bàn giao: đổi Người thực thi có hiệu lực ngay, không qua lời mời. */
+export const isExecutorSwapImmediate = (planStatus: string) =>
+  HANDOVER_PLAN_STATUSES.includes(planStatus);
+
+/** Cảnh báo hiện trước khi gửi khi kho đang bàn giao. */
+export const EXECUTOR_HANDOVER_WARNING =
+  "Kho đang bàn giao: Người thực thi mới nhận việc ngay, người cũ thôi vai trò ngay. Chữ ký người cũ đã ký trên biên bản vẫn giữ hiệu lực.";
+
+/** Thông báo sau khi giao thành công theo trạng thái Backend trả. */
+export const executorAssignedMessage = (status: "INVITED" | "ACCEPTED") =>
+  status === "ACCEPTED"
+    ? "Người mới nhận việc ngay."
+    : "Đã gửi lời mời cho Người thực thi mới. Người này cần chấp nhận để nhận việc.";

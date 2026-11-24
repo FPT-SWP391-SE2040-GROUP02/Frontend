@@ -27,6 +27,12 @@ const ACTION_REASONS: Record<string, string> = {
     "Hồ sơ này không còn ở giai đoạn chờ xét nên không giao lại người xét duyệt được.",
 };
 
+/** Lý do cụ thể của 409 EXECUTOR_NOT_ALLOWED khi Admin giao Người thực thi. */
+const EXECUTOR_REASONS: Record<string, string> = {
+  ALREADY_EXECUTOR: "Người này đang là Người thực thi của kho.",
+  PLAN_LOCKED: "Kho đã đóng nên không đổi Người thực thi được.",
+};
+
 /** Câu báo theo mã lỗi riêng của khu vực quản trị. */
 const ACTION_CODES: Record<string, string> = {
   USER_NOT_FOUND: "Không tìm thấy tài khoản. Tải lại danh sách trước khi tiếp tục.",
@@ -47,6 +53,9 @@ export function adminActionError(failure: unknown): string {
     const { code, reason } = parsed.data;
     if (code === "ADMIN_ACTION_NOT_ALLOWED") {
       return reason && Object.hasOwn(ACTION_REASONS, reason) ? ACTION_REASONS[reason] : "";
+    }
+    if (code === "EXECUTOR_NOT_ALLOWED") {
+      return reason && Object.hasOwn(EXECUTOR_REASONS, reason) ? EXECUTOR_REASONS[reason] : "";
     }
     if (code && Object.hasOwn(ACTION_CODES, code)) return ACTION_CODES[code];
   }
