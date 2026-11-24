@@ -11,7 +11,7 @@ export function VerifierRecipientsPage() {
       title="Danh tính người nhận"
       description={
         hasSubmission
-          ? "Đối chiếu căn cước với thông tin Chủ kho đã khai, rồi xác nhận hoặc yêu cầu làm lại."
+          ? "Bạn chịu trách nhiệm xác nhận đúng người: đối chiếu căn cước với thông tin trong biên bản, rồi xác nhận hoặc yêu cầu làm lại."
           : "Bước 2 của biên bản bàn giao: người nhận có tên trong biên bản nộp căn cước để bạn kiểm."
       }
     >
