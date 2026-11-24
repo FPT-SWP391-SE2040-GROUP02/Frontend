@@ -1,5 +1,6 @@
 import { useSelectedExecutorVault } from "@/features/death-case/model/useExecutorVaults";
 import { ExecutorRecordPanel } from "@/entities/handoverRecord";
+import { ExecutorWillButton } from "@/features/death-case/ui/ExecutorWillButton";
 import { VaultGate } from "@/features/death-case/ui/VaultGate";
 import { ExecutorWorkspace } from "@/widgets/ExecutorWorkspace/ExecutorWorkspace";
 
@@ -12,7 +13,12 @@ export function ExecutorReportPage() {
       description="Luật sư lập biên bản và xác nhận đúng người nhận. Bạn giữ hộ và giao đúng biên bản."
     >
       <VaultGate state={state}>
-        {(vault) => <ExecutorRecordPanel vaultId={vault.vaultId} />}
+        {(vault) => (
+          <div className="space-y-6">
+            <ExecutorWillButton vault={vault} />
+            <ExecutorRecordPanel vaultId={vault.vaultId} />
+          </div>
+        )}
       </VaultGate>
     </ExecutorWorkspace>
   );

@@ -8,6 +8,9 @@ export const executorVaultSchema = z.object({
   executorNote: z.string().nullish(),
   executorNoteUpdatedAt: timestamp.nullish(),
   /** Lúc tài khoản chấp nhận lời mời làm Người thực thi của kho; dữ liệu cũ không có thì null. */
+  /** Phiên bản biên bản phân chia Chủ kho ký gần nhất; null khi chưa ký. */
+  willVersionNo: z.number().int().positive().nullish(),
+  willSignedAt: z.string().datetime({ offset: true }).nullish(),
   acceptedAt: timestamp.nullish(),
   /** Biên bản bàn giao của kho; null khi chưa có yêu cầu nhận tài sản. */
   handoverRecordId: z.string().uuid().nullish(),

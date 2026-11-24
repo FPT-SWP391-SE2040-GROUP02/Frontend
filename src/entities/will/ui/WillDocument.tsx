@@ -223,9 +223,9 @@ function AssetsSectionBlock({
       <section id="muc-2" className={SECTION}>
         {heading}
         <p className={BODY}>
-          Các tài sản trong kho được để lại cho những người nhận mà tôi đã chọn cho từng tài sản
-          trong kế hoạch bàn giao. Tài sản chọn cho nhiều người thì những người đó nhận chung. Biên
-          bản phân chia không ghi nội dung tài sản.
+          Các tài sản trong kho được để lại cho những người nhận tôi đã chọn, nếu có. Phần chưa chọn
+          người nhận do luật sư xác định khi bàn giao. Biên bản phân chia không ghi nội dung tài
+          sản.
         </p>
       </section>
     );
@@ -353,10 +353,10 @@ function ExecutorSectionBlock({
     <section id="muc-3" className={SECTION}>
       <h3 className={HEADING}>III. Người thực thi</h3>
       <p className={BODY}>
-        Tôi đề cử {who} làm Người thực thi. Đây chỉ là đề cử: sau khi tôi qua đời, người này mở bàn
-        giao trên hệ thống, giữ hộ tài sản, ký biên bản bàn giao do luật sư lập và gửi mã nhận cho
-        người nhận khi biên bản đủ chữ ký. Người này không được xem nội dung kho, không tự chia, bán
-        hay cho tài sản, không tự đổi người nhận hay phần được nhận.
+        Tôi đề cử {who} làm Người thực thi. Đây chỉ là đề cử: sau khi tôi qua đời, người này giữ hộ
+        tài sản, ký biên bản bàn giao do luật sư lập và gửi mã nhận cho người nhận khi biên bản đủ
+        chữ ký. Người này không được xem nội dung kho, không tự chia, bán hay cho tài sản, không tự
+        đổi người nhận hay phần được nhận.
       </p>
     </section>
   );
