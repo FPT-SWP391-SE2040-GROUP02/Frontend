@@ -43,7 +43,7 @@ export const DASHBOARD_GROUPS: DashboardGroup[] = [
     counters: [
       { key: "activeVerifiers", label: "Người xét duyệt hoạt động", attention: false },
       { key: "activeAdmins", label: "Quản trị viên hoạt động", attention: false },
-      { key: "casesWithoutVerifier", label: "Hồ sơ chưa có người xét duyệt", attention: true },
+      { key: "casesWithoutVerifier", label: "Việc chưa có luật sư", attention: true },
     ],
   },
 ];
@@ -58,15 +58,35 @@ export const PLAN_STAGE_LABELS: Record<string, string> = {
 
 export const planStageLabel = (stage: string) => PLAN_STAGE_LABELS[stage] ?? stage;
 
-/** Trạng thái hồ sơ chứng tử (DeathCaseStatus dạng API) hiện ở chi tiết người dùng. */
-export const CASE_STATUS_LABELS: Record<string, string> = {
-  UNDER_REVIEW: "Đang xét",
-  SUPPLEMENT_REQUIRED: "Cần bổ sung",
+/** Loại việc của luật sư hiện ở chi tiết người dùng. */
+export const CASE_KIND_LABELS: Record<string, string> = {
+  HANDOVER_RECORD: "Biên bản",
+  HANDOVER_REPORT: "Hồ sơ báo tin",
 };
 
-export const DECISION_KIND_LABELS: Record<string, string> = {
-  APPROVED: "Đã duyệt",
+/** Trạng thái việc đang giữ: bước của biên bản (DRAFTING...) hoặc của hồ sơ báo tin (SUBMITTED...). */
+export const CASE_STATUS_LABELS: Record<string, string> = {
+  DRAFTING: "Đang lập",
+  IDENTITY_CHECK: "Kiểm danh tính",
+  SIGNING: "Đang ký",
+  SUBMITTED: "Chờ xét",
+  SUPPLEMENT_REQUESTED: "Chờ bổ sung",
+};
+
+/** Kết quả luật sư đã quyết định. */
+export const DECISION_LABELS: Record<string, string> = {
+  ACCEPTED: "Chấp nhận",
+  REJECTED: "Từ chối",
   SUPPLEMENT_REQUESTED: "Yêu cầu bổ sung",
+};
+
+/** Trạng thái kế hoạch (PlanStatus dạng API) của kho Người thực thi đang giữ. */
+export const PLAN_STATUS_LABELS: Record<string, string> = {
+  DRAFT: "Đang thiết lập",
+  ACTIVE: "Đang hoạt động",
+  HANDOVER_REQUESTED: "Có yêu cầu nhận",
+  HANDOVER_IN_PROGRESS: "Đang bàn giao",
+  CLOSED: "Đã hoàn tất",
 };
 
 export const AUDIT_OUTCOME_LABELS: Record<string, string> = {
@@ -128,9 +148,13 @@ const HANDOVER_PLAN_STATUSES = ["HANDOVER_REQUESTED", "HANDOVER_IN_PROGRESS"];
 export const isExecutorSwapImmediate = (planStatus: string) =>
   HANDOVER_PLAN_STATUSES.includes(planStatus);
 
-/** Cảnh báo hiện trước khi gửi khi kho đang bàn giao. */
+/** Cảnh báo khi kho đang bàn giao: người mới nhận việc ngay. */
 export const EXECUTOR_HANDOVER_WARNING =
-  "Kho đang bàn giao: Người thực thi mới nhận việc ngay, người cũ thôi vai trò ngay. Chữ ký người cũ đã ký trên biên bản vẫn giữ hiệu lực.";
+  "Người mới nhận việc ngay, người cũ mất quyền với kho này. Chữ ký người cũ đã ký vẫn giữ hiệu lực.";
+
+/** Ghi chú khi kho chưa bàn giao: người mới phải chấp nhận lời mời. */
+export const EXECUTOR_INVITE_NOTE =
+  "Người mới nhận lời mời và phải chấp nhận; người cũ giữ vai trò tới khi người mới chấp nhận.";
 
 /** Thông báo sau khi giao thành công theo trạng thái Backend trả. */
 export const executorAssignedMessage = (status: "INVITED" | "ACCEPTED") =>

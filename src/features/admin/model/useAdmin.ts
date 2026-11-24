@@ -13,6 +13,7 @@ export const adminKeys = {
   dashboard: () => [...adminKeys.all, "dashboard"] as const,
   users: (query: AdminUsersQuery) => [...adminKeys.all, "users", query] as const,
   user: (userId: string) => [...adminKeys.all, "user", userId] as const,
+  executorSearch: (search: string) => [...adminKeys.all, "executor-search", search] as const,
   userOptions: (role: AdminUserRole) => [...adminKeys.all, "user-options", role] as const,
   paymentTransactions: (query: PaymentTransactionsQuery) =>
     [...adminKeys.all, "payment-transactions", query] as const,
@@ -58,6 +59,26 @@ export function useAdminUserOptions(role: AdminUserRole, enabled = true) {
       adminService.listUsers({ role, status: "ACTIVE", pageIndex: 1, pageSize: 100 }, signal),
     enabled,
     staleTime: 60_000,
+    retry: false,
+  });
+}
+
+/** Tìm Người thực thi đang hoạt động theo tên hoặc email, để chọn người mới cho một kho (tối đa 20). */
+export function useAdminExecutorSearch(search: string) {
+  return useQuery({
+    queryKey: adminKeys.executorSearch(search),
+    queryFn: ({ signal }) =>
+      adminService.listUsers(
+        {
+          search: search || undefined,
+          role: "EXECUTOR",
+          status: "ACTIVE",
+          pageIndex: 1,
+          pageSize: 20,
+        },
+        signal,
+      ),
+    staleTime: 15_000,
     retry: false,
   });
 }

@@ -171,9 +171,9 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
         />
         <Tile
           icon={UserCheck}
-          label="Chờ người xét duyệt"
+          label="Việc chưa có luật sư"
           value={data.casesWithoutVerifier}
-          caption="Biên bản cần giao lại luật sư"
+          caption="Biên bản hoặc hồ sơ báo tin có luật sư không còn hoạt động"
           tone={data.casesWithoutVerifier > 0 ? "warn" : "neutral"}
         />
       </div>
