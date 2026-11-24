@@ -8,7 +8,6 @@ export const MAX_REPORT_RECIPIENTS = 20;
 export interface ReportDraft {
   deceasedFullName: string;
   deceasedCitizenId: string;
-  dateOfDeath: string;
   attested: boolean;
   recipients: SuggestedRecipient[];
   deathCertificates: File[];
@@ -19,7 +18,6 @@ export interface ReportDraft {
 export interface ReportErrors {
   deceasedFullName?: string;
   deceasedCitizenId?: string;
-  dateOfDeath?: string;
   attested?: string;
   deathCertificates?: string;
   wills?: string;
@@ -42,11 +40,6 @@ export function filledRecipients(recipients: SuggestedRecipient[]): SuggestedRec
     }));
 }
 
-/** Hôm nay theo giờ Việt Nam, dạng yyyy-mm-dd (giống Backend). */
-export function todayInVietnam(now: Date = new Date()): string {
-  return new Date(now.getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
-}
-
 /** Lỗi của biểu mẫu; đối tượng rỗng khi hợp lệ. */
 export function reportErrors(draft: ReportDraft): ReportErrors {
   const errors: ReportErrors = {};
@@ -55,11 +48,6 @@ export function reportErrors(draft: ReportDraft): ReportErrors {
   }
   if (!/^\d{12}$/.test(draft.deceasedCitizenId.trim())) {
     errors.deceasedCitizenId = "Số căn cước gồm 12 chữ số.";
-  }
-  if (draft.dateOfDeath === "") {
-    errors.dateOfDeath = "Vui lòng nhập ngày mất.";
-  } else if (draft.dateOfDeath > todayInVietnam() || draft.dateOfDeath < "1900-01-01") {
-    errors.dateOfDeath = "Ngày mất không hợp lệ hoặc ở tương lai.";
   }
   if (!draft.attested) {
     errors.attested = "Vui lòng cam đoan giấy tờ là thật.";

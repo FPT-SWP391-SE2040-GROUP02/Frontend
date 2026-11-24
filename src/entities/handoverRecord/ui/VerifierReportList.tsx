@@ -1,14 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import {
-  buttonStyles,
-  Chip,
-  formatDate,
-  formatDateTime,
-  Notice,
-  Panel,
-} from "@/shared/ui/heritageKit";
+import { buttonStyles, Chip, formatDateTime, Notice, Panel } from "@/shared/ui/heritageKit";
 import { verifierReportService } from "../api/verifierReportService";
 import type { VerifierReport } from "../model/handoverReport.schema";
 import { claimStatusLabel } from "../model/recordPresentation";
@@ -33,9 +26,9 @@ function reportWarnings(report: VerifierReport): string[] {
   const warnings: string[] = [];
   if (!report.vaultFound) return warnings;
   if (!report.nameMatches) warnings.push("Họ tên khai không khớp họ tên eKYC của Chủ kho.");
-  if (report.activeAfterDeath && report.ownerLastActiveAt) {
+  if (report.activeAfterReport && report.ownerLastActiveAt) {
     warnings.push(
-      `Chủ kho còn hoạt động sau ngày mất: ${formatDateTime(report.ownerLastActiveAt)}. Có thể Chủ kho vẫn còn sống.`,
+      `Chủ kho còn hoạt động sau khi hồ sơ được nộp: ${formatDateTime(report.ownerLastActiveAt)}. Có thể Chủ kho vẫn còn sống.`,
     );
   }
   return warnings;
@@ -76,14 +69,18 @@ function ReportCard({
             Người mất: {report.deceasedFullName}
           </h3>
           <p className="text-sm text-heritage-muted">
-            CCCD {report.deceasedCitizenId}
-            {report.dateOfDeath ? ` · mất ${formatDate(report.dateOfDeath)}` : ""} · nộp{" "}
-            {formatDateTime(report.createdAt)}
+            CCCD {report.deceasedCitizenId} · nộp {formatDateTime(report.createdAt)}
           </p>
         </div>
         <Chip tone={status.tone}>{status.label}</Chip>
       </header>
       <p className="text-sm leading-6">{vaultText(report)}</p>
+      {report.vaultFound && (
+        <p className="text-sm leading-6">
+          <span className="font-semibold">Chủ kho hoạt động gần nhất: </span>
+          {formatDateTime(report.ownerLastActiveAt)}. So với ngày mất trên giấy chứng tử.
+        </p>
+      )}
       {warnings.length > 0 && (
         <Notice tone="warning" title="Cần đối chiếu kỹ">
           <ul className="list-disc space-y-1 pl-4">
