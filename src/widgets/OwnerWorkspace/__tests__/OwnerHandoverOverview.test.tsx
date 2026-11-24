@@ -781,7 +781,7 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     );
   }
 
-  it("thẻ việc chỉ tóm tắt (không nút), kèm Kế hoạch đang áp dụng và tiến trình, không có thẻ Mã mở gói", async () => {
+  it("thẻ việc chỉ tóm tắt (không nút), kèm Kế hoạch đang áp dụng và tiến trình, không có thẻ Mã nhận", async () => {
     showRunning();
     renderOverview();
 
@@ -791,8 +791,8 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     const active = screen.getByRole("region", { name: "Kế hoạch đang áp dụng" });
     expect(within(active).getByText("Kích hoạt lúc")).toBeInTheDocument();
     expect(within(active).getByText("09:42 15/11/2026")).toBeInTheDocument();
-    // Chủ kho không giữ hay đổi mã mở gói: hệ thống tự cấp, trang này không có thẻ Mã mở gói.
-    expect(screen.queryByRole("heading", { name: "Mã mở gói" })).not.toBeInTheDocument();
+    // Chủ kho không giữ hay đổi mã nhận: hệ thống tự cấp, trang này không có thẻ Mã nhận.
+    expect(screen.queryByRole("heading", { name: "Mã nhận" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Tiến trình bàn giao" })).toBeInTheDocument();
     expect(

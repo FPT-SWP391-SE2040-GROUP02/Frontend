@@ -6,7 +6,7 @@ import { printWill } from "../lib/printWill";
 
 /**
  * Nút in biên bản phân chia (mặc định chữ "In biên bản phân chia"). Bản in được render thêm qua portal vào body (class `print-slip`, chỉ hiện
- * khi in) để PDF chỉ có tờ biên bản phân chia, nền trắng chữ gần đen. Biên bản phân chia không có mã mở gói: hệ thống giữ mã, Chủ kho không
+ * khi in) để PDF chỉ có tờ biên bản phân chia, nền trắng chữ gần đen. Biên bản phân chia không có mã nhận: hệ thống giữ mã, Chủ kho không
  * cần in. `disabled` khóa nút (ví dụ chưa đủ hai chữ ký); nơi gọi tự giải thích lý do khóa.
  */
 export function PrintWillButton({

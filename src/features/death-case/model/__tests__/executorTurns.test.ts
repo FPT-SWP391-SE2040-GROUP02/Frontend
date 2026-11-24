@@ -133,7 +133,7 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
       }),
     );
     expect(states(progress)).toEqual(["done", "done", "done", "current", "pending"]);
-    expect(progress.headline).toBe("Chờ nhập mã mở gói");
+    expect(progress.headline).toBe("Chờ nhập mã nhận");
     expect(progress.detail).toBe("bạn cần đưa mã cho người này");
     expect(progress.group).toBe("action");
     expect(progress.needsAction).toBe(true);

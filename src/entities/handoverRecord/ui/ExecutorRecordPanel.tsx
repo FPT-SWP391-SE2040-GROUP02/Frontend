@@ -34,8 +34,8 @@ function WaitingForRequest() {
           thống khóa kho, báo cho bạn và phân công một luật sư xét giấy tờ, lập biên bản bàn giao.
         </p>
         <p className="text-heritage-muted">
-          Bạn chỉ giữ mã mở gói và giao tài sản theo biên bản luật sư lập. Bạn không tự chia, bán
-          hay cho tài sản.
+          Bạn chỉ giữ mã nhận và giao tài sản theo biên bản luật sư lập. Bạn không tự chia, bán hay
+          cho tài sản.
         </p>
       </div>
     </Panel>

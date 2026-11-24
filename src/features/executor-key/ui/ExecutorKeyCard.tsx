@@ -133,10 +133,10 @@ function ReissueDialog({
 }
 
 /**
- * Thẻ "Mã mở gói" của Chủ kho. Hệ thống tự tạo và giữ mã, chỉ gửi cho người nhận sau khi hồ sơ được duyệt, nên
+ * Thẻ "Mã nhận" của Chủ kho. Hệ thống tự tạo và giữ mã, chỉ gửi cho người nhận sau khi hồ sơ được duyệt, nên
  * thẻ không hiện mã, không có phiếu in. Chủ kho chỉ thấy bản đang dùng và đổi mã mới được (đòi mã PIN).
  */
-export function ExecutorKeyCard({ vaultId, title = "Mã mở gói" }: ExecutorKeyCardProps) {
+export function ExecutorKeyCard({ vaultId, title = "Mã nhận" }: ExecutorKeyCardProps) {
   const query = useExecutorKeyStatus(vaultId);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [changedVersion, setChangedVersion] = useState<number | null>(null);
@@ -144,14 +144,14 @@ export function ExecutorKeyCard({ vaultId, title = "Mã mở gói" }: ExecutorKe
   if (query.isPending) {
     return (
       <p role="status" className="text-sm text-heritage-muted">
-        Đang tải mã mở gói…
+        Đang tải mã nhận…
       </p>
     );
   }
   if (query.isError) {
     return (
       <div role="alert" className="space-y-3">
-        <p className="text-sm">Không tải được trạng thái mã mở gói.</p>
+        <p className="text-sm">Không tải được trạng thái mã nhận.</p>
         <button type="button" className={buttonStyles.outline} onClick={() => void query.refetch()}>
           Thử lại
         </button>

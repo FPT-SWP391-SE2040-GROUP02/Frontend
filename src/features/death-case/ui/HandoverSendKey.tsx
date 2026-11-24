@@ -9,7 +9,7 @@ import {
 import { deathCaseService } from "../api/deathCaseService";
 
 /**
- * Gửi mã mở gói cho người nhận qua email. Người thực thi bấm "Dùng mã đã nhận trên hệ thống" để điền mã Chủ kho
+ * Gửi mã nhận cho người nhận qua email. Người thực thi bấm "Dùng mã đã nhận trên hệ thống" để điền mã Chủ kho
  * đã gửi (hoặc tự nhập mã đang giữ); Backend kiểm rồi gửi. Mã chỉ nằm trong ô nhập, được xóa sau khi gửi xong.
  * Không optimistic: chỉ báo thành công sau response của BE.
  */
@@ -52,7 +52,7 @@ export function HandoverSendKey({
   return (
     <div className="space-y-3 rounded-xl border border-heritage-border bg-white/60 p-4 text-sm">
       <label className="block space-y-1">
-        <span className="font-medium">Mã mở gói bạn đang giữ</span>
+        <span className="font-medium">Mã nhận bạn đang giữ</span>
         <input
           type="text"
           value={key}

@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-const stepLabels = ["Đồng ý hoặc từ chối", "Xét duyệt", "Nhập mã và mở gói"];
+const stepLabels = ["Đồng ý hoặc từ chối", "Xét duyệt", "Nhập mã nhận"];
 
 /** Ba bước của người nhận: xong, đang ở đây, chờ. Không có bước "Nhận thư mời" (nhận lượt chạy ngầm). */
 export function HandoverStepper({ current }: { current: number }) {
