@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
 import { useRecipientSubmissions } from "@/features/recipient-review";
-import { recordStatusLabel, useVerifierRecords } from "@/entities/handoverRecord";
+import {
+  recordStatusLabel,
+  useVerifierRecords,
+  useVerifierReports,
+  waitingReports,
+} from "@/entities/handoverRecord";
 import { caseCode } from "@/shared/lib/caseCode";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatTimeThenDate } from "@/shared/lib/dateFormat";
@@ -56,11 +61,15 @@ function WorkCard({
   );
 }
 
-/** Tổng quan luật sư: hai thẻ việc đang chờ (biên bản cần lập hoặc ký, danh tính người nhận) và phạm vi được xem. */
+/** Tổng quan luật sư: ba thẻ việc đang chờ (hồ sơ báo tin, biên bản cần lập hoặc ký, danh tính người nhận) và phạm vi được xem. */
 export function VerifierOverview() {
   const records = useVerifierRecords();
+  const reports = useVerifierReports();
+  const newReports = waitingReports(reports.data);
   const recipients = useRecipientSubmissions();
-  const open = (records.data ?? []).filter((item) => item.status !== "COMPLETED");
+  const open = (records.data ?? []).filter(
+    (item) => item.status !== "COMPLETED" && item.status !== "CANCELLED",
+  );
   const waiting = open.filter((item) => item.status === "DRAFTING" || item.status === "SIGNING");
 
   const caseMoments: string[] = [];
@@ -78,7 +87,15 @@ export function VerifierOverview() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
+        <WorkCard
+          to={ROUTES.NOTARY.QUEUE}
+          title="Hồ sơ báo tin chờ xét"
+          count={newReports.length}
+          oldest={oldestMoment(newReports.map((report) => report.createdAt))}
+          pending={reports.isPending}
+          failed={reports.isError}
+        />
         <WorkCard
           to={ROUTES.NOTARY.QUEUE}
           title="Biên bản cần lập hoặc ký"
@@ -96,7 +113,7 @@ export function VerifierOverview() {
           failed={recipients.isError}
         />
       </div>
-      {(records.isError || recipients.isError) && (
+      {(records.isError || reports.isError || recipients.isError) && (
         <div role="alert" className="space-y-3 rounded-2xl bg-heritage-danger-bg p-5">
           <p className="text-sm text-heritage-danger">Không tải được một phần số liệu.</p>
           <button
@@ -104,9 +121,10 @@ export function VerifierOverview() {
             className={buttonStyles.outline}
             onClick={() => {
               void records.refetch();
+              void reports.refetch();
               void recipients.refetch();
             }}
-            disabled={records.isFetching || recipients.isFetching}
+            disabled={records.isFetching || reports.isFetching || recipients.isFetching}
           >
             Thử lại
           </button>

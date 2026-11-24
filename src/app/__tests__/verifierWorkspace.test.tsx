@@ -40,9 +40,10 @@ const submission = (id: string, submittedAt: string = CREATED_AT) => ({
 });
 
 /** Biên bản và hồ sơ danh tính người nhận ở hai đường dẫn khác nhau nên mock theo đường dẫn. */
-function mockApi(records: unknown[], recipients: unknown[] = []) {
+function mockApi(records: unknown[], recipients: unknown[] = [], reports: unknown[] = []) {
   return vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
     if (url.includes("handover-submissions")) return recipients;
+    if (url.includes("handover-reports")) return reports;
     return records;
   });
 }
@@ -156,11 +157,11 @@ describe("Verifier overview", () => {
     expect(screen.queryByRole("link", { name: "Xem biên bản #66666666" })).not.toBeInTheDocument();
   });
 
-  it("không còn việc thì hai thẻ ghi 0 và Không còn việc", async () => {
+  it("không còn việc thì ba thẻ ghi 0 và Không còn việc", async () => {
     mockApi([]);
     setup("/notary/workspace");
     expect(await screen.findByText("Chưa có biên bản nào đang được giao.")).toBeInTheDocument();
-    await waitFor(() => expect(screen.getAllByText("Không còn việc")).toHaveLength(2));
+    await waitFor(() => expect(screen.getAllByText("Không còn việc")).toHaveLength(3));
   });
 
   it("lỗi tải thì báo lỗi kèm Thử lại, thẻ không hiện số giả", async () => {
@@ -173,6 +174,43 @@ describe("Verifier overview", () => {
 });
 
 describe("Verifier queue and history", () => {
+  it("hồ sơ báo tin chờ xét hiện ở huy hiệu menu và thẻ Tổng quan", async () => {
+    mockApi(
+      [],
+      [],
+      [
+        {
+          id: OPEN_ID,
+          deceasedFullName: "Nguyễn Văn Mất",
+          status: "SUBMITTED",
+          cancelledByOwner: false,
+          cancelReason: null,
+          note: "",
+          reviewReason: null,
+          createdAt: CREATED_AT,
+          reviewedAt: null,
+          recipients: [],
+          files: [],
+          deceasedCitizenId: "001099001234",
+          submitterName: "Lê Nộp",
+          submitterEmail: "nop@example.com",
+          submitterPhone: "",
+          vaultFound: true,
+          ownerName: "Nguyễn Văn Mất",
+          nameMatches: true,
+          ownerLastActiveAt: null,
+          activeAfterReport: false,
+          acceptNote: null,
+          recordId: null,
+        },
+      ],
+    );
+    setup("/notary/workspace");
+    expect(await screen.findByLabelText("1 việc đang chờ bạn duyệt")).toBeInTheDocument();
+    const card = screen.getByText("Hồ sơ báo tin chờ xét").closest("a")!;
+    expect(within(card).getByText("1")).toBeInTheDocument();
+  });
+
   it("trang Biên bản bàn giao chỉ có biên bản chưa đủ chữ ký; bấm mã thì mở biên bản", async () => {
     const get = mockApi([summary(OPEN_ID, "DRAFTING"), summary(DONE_ID, "COMPLETED")]);
     setup("/notary/queue");

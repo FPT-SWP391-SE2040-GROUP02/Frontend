@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Chip, formatDateTime, Notice, Panel } from "@/shared/ui/heritageKit";
@@ -32,6 +32,94 @@ function reportWarnings(report: VerifierReport): string[] {
     );
   }
   return warnings;
+}
+
+/** Tìm lại kho khi người nộp ghi sai họ tên hoặc số căn cước: luật sư sửa theo giấy chứng tử. */
+function FindVaultForm({ report }: { report: VerifierReport }) {
+  const client = useQueryClient();
+  const action = usePrivateAction();
+  const id = useId();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(report.deceasedFullName);
+  const [citizenId, setCitizenId] = useState(report.deceasedCitizenId);
+  const valid = name.trim() !== "" && /^\d{12}$/.test(citizenId.trim());
+  if (!open) {
+    return (
+      <button type="button" className={buttonStyles.outline} onClick={() => setOpen(true)}>
+        Tìm lại kho
+      </button>
+    );
+  }
+  return (
+    <div className="space-y-3 rounded-xl border border-heritage-border bg-white p-4 text-sm">
+      <p className="text-heritage-muted">Sửa theo đúng giấy chứng tử rồi tìm lại.</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <label htmlFor={`${id}-name`} className="block font-semibold">
+            Họ tên người mất
+          </label>
+          <input
+            id={`${id}-name`}
+            className="h-11 w-full rounded-xl border border-heritage-border bg-white px-3"
+            maxLength={200}
+            value={name}
+            disabled={action.pending}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </div>
+        <div className="space-y-1">
+          <label htmlFor={`${id}-citizen`} className="block font-semibold">
+            Số căn cước (12 số)
+          </label>
+          <input
+            id={`${id}-citizen`}
+            inputMode="numeric"
+            className="h-11 w-full rounded-xl border border-heritage-border bg-white px-3"
+            maxLength={12}
+            value={citizenId}
+            disabled={action.pending}
+            onChange={(event) => setCitizenId(event.target.value)}
+          />
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          className={buttonStyles.dark}
+          disabled={action.pending || !valid}
+          onClick={() =>
+            void action.execute(
+              () => verifierReportService.findVault(report.id, name, citizenId),
+              (next) => {
+                client.setQueryData<VerifierReport[]>(handoverRecordKeys.reports(), (items) =>
+                  items?.map((item) => (item.id === next.id ? next : item)),
+                );
+                setOpen(!next.vaultFound);
+              },
+            )
+          }
+        >
+          {action.pending ? "Đang tìm…" : "Tìm kho"}
+        </button>
+        <button
+          type="button"
+          className={buttonStyles.outline}
+          disabled={action.pending}
+          onClick={() => setOpen(false)}
+        >
+          Đóng
+        </button>
+      </div>
+      {action.succeeded && !report.vaultFound && (
+        <p role="status">Vẫn không có kho theo số căn cước này.</p>
+      )}
+      {action.error && (
+        <p role="alert" className="text-destructive">
+          {action.error}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function ReportCard({
@@ -75,6 +163,16 @@ function ReportCard({
         <Chip tone={status.tone}>{status.label}</Chip>
       </header>
       <p className="text-sm leading-6">{vaultText(report)}</p>
+      {canReview && <FindVaultForm report={report} />}
+      {report.status === "ACCEPTED" && report.recordId && (
+        <button
+          type="button"
+          className={buttonStyles.outline}
+          onClick={() => onOpenRecord(report.recordId!)}
+        >
+          Mở biên bản
+        </button>
+      )}
       {report.vaultFound && (
         <p className="text-sm leading-6">
           <span className="font-semibold">Chủ kho hoạt động gần nhất: </span>
@@ -178,9 +276,40 @@ function ReportCard({
   );
 }
 
-/** Hồ sơ báo tin còn chờ xét được giao cho luật sư; không có thì không chiếm chỗ. */
+type ReportFilter = "WAITING" | "ACCEPTED" | "REJECTED" | "ALL";
+
+const FILTERS: { value: ReportFilter; label: string }[] = [
+  { value: "WAITING", label: "Chờ xét" },
+  { value: "ACCEPTED", label: "Đã chấp nhận" },
+  { value: "REJECTED", label: "Đã từ chối" },
+  { value: "ALL", label: "Tất cả" },
+];
+
+function matchesFilter(report: VerifierReport, filter: ReportFilter): boolean {
+  if (filter === "ALL") return true;
+  if (filter === "WAITING") {
+    return report.status === "SUBMITTED" || report.status === "SUPPLEMENT_REQUESTED";
+  }
+  return report.status === filter;
+}
+
+/** Tìm theo tên hoặc căn cước người mất, tên hoặc email người nộp. */
+function matchesText(report: VerifierReport, text: string): boolean {
+  const needle = text.trim().toLocaleLowerCase("vi-VN");
+  return [
+    report.deceasedFullName,
+    report.deceasedCitizenId,
+    report.submitterName,
+    report.submitterEmail,
+  ].some((value) => value.toLocaleLowerCase("vi-VN").includes(needle));
+}
+
+/** Mọi hồ sơ báo tin được giao cho luật sư: mặc định chờ xét, lọc và tìm lại được hồ sơ đã xét. */
 export function VerifierReportList({ onOpenRecord }: { onOpenRecord: (recordId: string) => void }) {
   const query = useVerifierReports();
+  const searchId = useId();
+  const [filter, setFilter] = useState<ReportFilter>("WAITING");
+  const [text, setText] = useState("");
   if (query.isPending) return null;
   if (query.isError)
     return (
@@ -197,12 +326,43 @@ export function VerifierReportList({ onOpenRecord }: { onOpenRecord: (recordId: 
       </div>
     );
   const items = query.data.filter(
-    (report) => report.status === "SUBMITTED" || report.status === "SUPPLEMENT_REQUESTED",
+    (report) => matchesFilter(report, filter) && matchesText(report, text),
   );
-  if (items.length === 0) return null;
+  if (query.data.length === 0) return null;
   return (
-    <Panel title="Hồ sơ báo tin chờ xét" labelledBy="verifier-reports">
+    <Panel title="Hồ sơ báo tin" labelledBy="verifier-reports">
       <div className="space-y-4">
+        <div className="space-y-1 text-sm">
+          <label htmlFor={searchId} className="block font-semibold">
+            Tìm hồ sơ
+          </label>
+          <input
+            id={searchId}
+            type="search"
+            className="h-11 w-full rounded-xl border border-heritage-border bg-white px-3"
+            placeholder="Tên hoặc căn cước người mất, tên hoặc email người nộp"
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+          />
+        </div>
+        <div role="group" aria-label="Lọc hồ sơ" className="flex flex-wrap gap-2">
+          {FILTERS.map((item) => (
+            <button
+              key={item.value}
+              type="button"
+              aria-pressed={filter === item.value}
+              className={filter === item.value ? buttonStyles.dark : buttonStyles.outline}
+              onClick={() => setFilter(item.value)}
+            >
+              {`${item.label} (${query.data.filter((report) => matchesFilter(report, item.value)).length})`}
+            </button>
+          ))}
+        </div>
+        {items.length === 0 && (
+          <p role="status" className="text-sm text-heritage-muted">
+            Không có hồ sơ nào ở mục này.
+          </p>
+        )}
         {items.map((report) => (
           <ReportCard key={report.id} report={report} onOpenRecord={onOpenRecord} />
         ))}

@@ -15,7 +15,7 @@ import {
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { NotaryCardMissingNotice } from "@/features/notary-card";
 import { usePendingRecipientCount } from "@/features/recipient-review";
-import { useVerifierRecords } from "@/entities/handoverRecord";
+import { useVerifierRecords, useVerifierReports, waitingReports } from "@/entities/handoverRecord";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
@@ -91,9 +91,11 @@ export function VerifierShell({
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const [navigationOpen, setNavigationOpen] = useState(false);
   const path = location.pathname;
-  const waitingCases = (useVerifierRecords().data ?? []).filter(
+  const waitingRecords = (useVerifierRecords().data ?? []).filter(
     (item) => item.status === "DRAFTING" || item.status === "SIGNING",
   ).length;
+  // Hồ sơ báo tin xét ở cùng trang Biên bản bàn giao nên cộng chung vào một huy hiệu.
+  const waitingCases = waitingRecords + waitingReports(useVerifierReports().data).length;
   const waitingRecipients = usePendingRecipientCount();
   const current = allNavigationItems.find(({ to }) =>
     to === ROUTES.NOTARY.WORKSPACE ? path === to : path === to || path.startsWith(`${to}/`),

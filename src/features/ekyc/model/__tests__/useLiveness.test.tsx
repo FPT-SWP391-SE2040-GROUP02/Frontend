@@ -15,7 +15,6 @@ vi.mock("../../api/ekycService", () => ({
 interface Harness {
   start: () => Promise<void>;
   complete: () => Promise<unknown>;
-  cancel: () => void;
   state: ReturnType<typeof useLiveness>["state"];
 }
 
@@ -23,8 +22,8 @@ function createHarness() {
   const ref: { current: Harness | null } = { current: null };
   const completedRef: { current: unknown } = { current: null };
   function Probe() {
-    const { state, start, complete, cancel, videoRef, canvasRef } = useLiveness();
-    ref.current = { start, complete, cancel, state };
+    const { state, start, complete, videoRef, canvasRef } = useLiveness();
+    ref.current = { start, complete, state };
     return (
       <div>
         <video ref={videoRef} aria-label="probe" />
@@ -280,9 +279,9 @@ describe("useLiveness", () => {
       await new Promise((resolve) => setTimeout(resolve, 700));
     });
     expect(ekycService.sendLivenessFrame).toHaveBeenCalledTimes(1);
-    // Cancel an actual pending frame; its response must not be published.
+    // Leaving the page with a pending frame: its response must not be published.
     await act(async () => {
-      ref.current!.cancel();
+      cleanup();
     });
     await act(async () => {
       resolveFrame({
@@ -299,6 +298,7 @@ describe("useLiveness", () => {
         expiresInSeconds: null,
       });
     });
-    expect(ref.current!.state.kind).toBe("idle");
+    expect(ekycService.completeLiveness).not.toHaveBeenCalled();
+    expect(ref.current!.state.kind).not.toBe("passed");
   });
 });

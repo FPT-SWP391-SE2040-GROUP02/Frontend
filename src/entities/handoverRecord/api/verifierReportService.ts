@@ -27,6 +27,15 @@ export const verifierReportService = {
       }),
     );
   },
+  /** Tìm lại kho theo họ tên và số căn cước đúng trên giấy chứng tử. */
+  async findVault(reportId: string, deceasedFullName: string, deceasedCitizenId: string) {
+    return verifierReportSchema.parse(
+      await apiClient.post<unknown, unknown>(`${base}/${id.parse(reportId)}/find-vault`, {
+        deceasedFullName: deceasedFullName.trim(),
+        deceasedCitizenId: deceasedCitizenId.trim(),
+      }),
+    );
+  },
   async downloadFile(reportId: string, fileId: string): Promise<Blob> {
     try {
       return await apiClient.get<Blob, Blob>(

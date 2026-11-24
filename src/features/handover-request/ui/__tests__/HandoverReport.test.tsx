@@ -142,6 +142,38 @@ describe("Luật sư xét hồ sơ báo tin", () => {
     await waitFor(() => expect(open).toHaveBeenCalledWith(RECORD_ID));
   });
 
+  it("không khớp kho thì tìm lại theo căn cước đúng, thấy kho rồi chấp nhận được", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([verifierReport({ vaultFound: false })]);
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(verifierReport());
+    setup(<VerifierReportList onOpenRecord={() => undefined} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Tìm lại kho" }));
+    const citizen = screen.getByLabelText("Số căn cước (12 số)");
+    await userEvent.clear(citizen);
+    expect(screen.getByRole("button", { name: "Tìm kho" })).toBeDisabled();
+    await userEvent.type(citizen, "001099005678");
+    await userEvent.click(screen.getByRole("button", { name: "Tìm kho" }));
+    expect(post.mock.calls[0]).toEqual([
+      `/verifier/handover-reports/${REPORT_ID}/find-vault`,
+      { deceasedFullName: "Nguyễn Văn Mất", deceasedCitizenId: "001099005678" },
+    ]);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Chấp nhận và mở biên bản" })).toBeEnabled(),
+    );
+  });
+
+  it("tìm lại hồ sơ đã xét và mở biên bản của hồ sơ đã chấp nhận", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      verifierReport({ status: "ACCEPTED", recordId: RECORD_ID }),
+    ]);
+    const open = vi.fn();
+    setup(<VerifierReportList onOpenRecord={open} />);
+    expect(await screen.findByText("Không có hồ sơ nào ở mục này.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Đã chấp nhận (1)" }));
+    await userEvent.type(screen.getByLabelText("Tìm hồ sơ"), "lê nộp");
+    await userEvent.click(screen.getByRole("button", { name: "Mở biên bản" }));
+    expect(open).toHaveBeenCalledWith(RECORD_ID);
+  });
+
   it("có cảnh báo thì phải tick đối chiếu và ghi lý do mới chấp nhận được", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
       verifierReport({ nameMatches: false, activeAfterReport: true, ownerLastActiveAt: AT }),

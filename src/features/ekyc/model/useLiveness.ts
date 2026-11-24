@@ -331,21 +331,10 @@ export function useLiveness() {
     }
   }, [publish, stop]);
 
-  const cancel = useCallback(() => {
-    epoch.current += 1;
-
-    stop();
-
-    releaseSelfie();
-
-    if (mounted.current) publish({ kind: "idle" });
-  }, [publish, stop, releaseSelfie]);
-
   return {
     state,
     start,
     complete,
-    cancel,
     videoRef,
     canvasRef,
     releaseSelfie,

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { POLLING_INTERVAL } from "@/shared/config";
 import { handoverRecordService } from "../api/handoverRecordService";
 import { verifierReportService } from "../api/verifierReportService";
+import type { VerifierReport } from "./handoverReport.schema";
 
 /** Khóa cache của biên bản; mọi thao tác ký, chốt, mở lại làm mới các khóa dưới gốc này. */
 export const handoverRecordKeys = {
@@ -22,6 +23,11 @@ export function useVerifierRecords() {
     refetchInterval: POLLING_INTERVAL.NORMAL,
     refetchIntervalInBackground: false,
   });
+}
+
+/** Hồ sơ báo tin chờ chính luật sư xét (không tính hồ sơ đang chờ người nộp bổ sung). */
+export function waitingReports(reports: VerifierReport[] | undefined): VerifierReport[] {
+  return (reports ?? []).filter((report) => report.status === "SUBMITTED");
 }
 
 /** Hồ sơ báo tin được giao cho luật sư đang đăng nhập. */
