@@ -167,7 +167,10 @@ describe("EkycUploads: mặt sau trước khi xác nhận (BR-88)", () => {
 
   it("mặt sau bắt buộc: chưa đọc mặt sau thì chưa cho sang camera", async () => {
     await reachReview("Địa chỉ mặt trước");
-    expect(screen.getByRole("button", { name: "Tiếp tục so khớp mặt" })).toBeDisabled();
+    const blocked = screen.getByRole("button", { name: "Tiếp tục so khớp mặt" });
+    expect(blocked).toBeDisabled();
+    expect(screen.getByText(/Cần đọc mặt sau giấy tờ/)).toBeInTheDocument();
+    expect(blocked).toHaveAccessibleDescription(/Cần đọc mặt sau giấy tờ/);
 
     vi.mocked(ekycService.submitDocumentBack).mockResolvedValue({
       ...status,

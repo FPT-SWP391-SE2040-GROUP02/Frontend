@@ -182,7 +182,7 @@ export function OwnerBeneficiaries() {
                     Liên hệ
                   </th>
                   <th scope="col" className="px-4 py-3 font-semibold">
-                    Tài sản được gán
+                    Tài sản
                   </th>
                   <th scope="col" className="py-3 pl-4 text-right font-semibold">
                     <span className="sr-only">Thao tác</span>

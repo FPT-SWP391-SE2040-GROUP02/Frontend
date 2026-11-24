@@ -18,6 +18,9 @@ const REMOVED_ACTIONS: ReadonlySet<string> = new Set([
   "CONTAINER_ASSET_REMOVED",
   "CONTAINER_BENEFICIARY_ADDED",
   "CONTAINER_BENEFICIARY_REMOVED",
+  // Tạm giữ kho đã bỏ: chỉ còn trong nhật ký cũ.
+  "HOLD_PLACED",
+  "HOLD_RELEASED",
 ]);
 
 /** Mỗi nhãn một lần, bỏ hành động của tính năng đã gỡ. */
