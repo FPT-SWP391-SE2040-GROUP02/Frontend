@@ -82,6 +82,8 @@ export const auditActionValues = [
   // Xét duyệt hoặc yêu cầu bổ sung hồ sơ người nhận (đối tượng là lượt bàn giao).
   "HANDOVER_SUBMISSION_APPROVED",
   "HANDOVER_SUBMISSION_SUPPLEMENT_REQUESTED",
+  // Luật sư nhắc Người thực thi ký biên bản đã chốt.
+  "HANDOVER_EXECUTOR_REMINDED",
   "PLAN_ACTIVATED",
   "EXECUTOR_ACCEPTED",
   "WILL_RESIGNED",

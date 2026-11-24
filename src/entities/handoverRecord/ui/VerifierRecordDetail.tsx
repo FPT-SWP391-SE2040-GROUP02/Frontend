@@ -14,6 +14,7 @@ import { RecordDocument } from "./RecordDocument";
 import { RecordLinesEditor } from "./RecordLinesEditor";
 import { RecordReportsPanel } from "./RecordReportsPanel";
 import { RecordStepper } from "./RecordStepper";
+import { RemindExecutorButton } from "./RemindExecutorButton";
 
 /** Nút mở hồ sơ danh tính của một người nhận ở trang Danh tính người nhận. */
 function IdentityAction({ recipient }: { recipient: RecordRecipient }) {
@@ -84,6 +85,9 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
             </button>
           )}
         </div>
+        {isSigningStage(record.status) && !record.executorSignedAt && (
+          <RemindExecutorButton record={record} onUpdated={apply} />
+        )}
         {delivered ? (
           <p role="note" className="text-heritage-muted">
             {PARTIALLY_DELIVERED_TEXT}

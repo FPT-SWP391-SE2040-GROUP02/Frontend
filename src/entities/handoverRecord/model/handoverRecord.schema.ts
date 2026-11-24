@@ -144,6 +144,10 @@ export const handoverRecordSchema = z.object({
   executorName: z.string(),
   verifierSignedAt: timestamp.nullable(),
   executorSignedAt: timestamp.nullable(),
+  /** Lần luật sư nhắc Người thực thi ký gần nhất; null khi chưa nhắc. Dữ liệu cũ có thể thiếu. */
+  executorReminderSentAt: timestamp.nullable().default(null),
+  /** Từ lúc này luật sư mới nhắc lại được (lần nhắc + 24 giờ); null khi chưa nhắc. */
+  executorRemindAvailableAt: timestamp.nullable().default(null),
   recipients: z.array(recordRecipientSchema),
   canSign: z.boolean(),
   availableAssets: z.array(recordAssetSchema),

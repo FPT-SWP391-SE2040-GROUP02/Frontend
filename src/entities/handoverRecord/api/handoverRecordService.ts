@@ -119,6 +119,12 @@ export const handoverRecordService = {
       await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/sign`),
     );
   },
+  /** Luật sư nhắc Người thực thi ký biên bản đã chốt; Backend giới hạn 24 giờ một lần. */
+  async remindExecutor(recordId: string) {
+    return handoverRecordSchema.parse(
+      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/remind-executor`),
+    );
+  },
 
   // Người thực thi
   /** Biên bản của kho; Backend trả 204 khi chưa có yêu cầu nhận tài sản thì trả null. */

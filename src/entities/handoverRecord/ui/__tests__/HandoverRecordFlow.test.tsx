@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AxiosError, type AxiosResponse } from "axios";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { apiClient } from "@/shared/api/axiosClient";
 import { RecipientRecordPanel } from "../RecipientRecordPanel";
@@ -848,5 +849,80 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     });
     expect(await screen.findByText("Bạn đã hủy biên bản này")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Chốt và gửi thư" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Luật sư nhắc Người thực thi ký", () => {
+  const REMIND = "Nhắc Người thực thi ký";
+  const FUTURE = "2099-01-02T03:00:00+00:00";
+
+  it("hiện nút khi biên bản đã chốt và Người thực thi chưa ký", async () => {
+    backend(record({ status: "SIGNING", finalizedAt: AT }));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    expect(await screen.findByRole("button", { name: REMIND })).toBeEnabled();
+    expect(screen.queryByText(/Đã nhắc lúc/)).not.toBeInTheDocument();
+  });
+
+  it("ẩn nút khi Người thực thi đã ký", async () => {
+    backend(record({ status: "SIGNING", finalizedAt: AT, executorSignedAt: AT }));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    expect(await screen.findByRole("button", { name: "Bạn đã ký" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: REMIND })).not.toBeInTheDocument();
+  });
+
+  it("bấm nhắc thì gọi đúng endpoint rồi hiện Đã nhắc lúc", async () => {
+    const user = userEvent.setup();
+    const { post } = backend(
+      record({ status: "SIGNING", finalizedAt: AT }),
+      record({
+        status: "SIGNING",
+        finalizedAt: AT,
+        executorReminderSentAt: AT,
+        executorRemindAvailableAt: FUTURE,
+      }),
+    );
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await user.click(await screen.findByRole("button", { name: REMIND }));
+    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/remind-executor`);
+    expect(await screen.findByText(/Đã nhắc lúc/)).toBeInTheDocument();
+  });
+
+  it("khóa nút và hiện gợi ý khi chưa tới lúc nhắc lại", async () => {
+    backend(
+      record({
+        status: "SIGNING",
+        finalizedAt: AT,
+        executorReminderSentAt: AT,
+        executorRemindAvailableAt: FUTURE,
+      }),
+    );
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    expect(await screen.findByRole("button", { name: REMIND })).toBeDisabled();
+    expect(screen.getByText(/Nhắc lại được sau/)).toBeInTheDocument();
+  });
+
+  it("báo REMINDED_RECENTLY bằng thông báo tiếng Việt kèm thời điểm được nhắc lại", async () => {
+    const user = userEvent.setup();
+    backend(record({ status: "SIGNING", finalizedAt: AT }));
+    const response = {
+      status: 409,
+      data: {
+        code: "HANDOVER_NOT_ALLOWED",
+        reason: "REMINDED_RECENTLY",
+        remindAvailableAt: FUTURE,
+      },
+    } as AxiosResponse;
+    vi.spyOn(apiClient, "post").mockRejectedValue(
+      new AxiosError("conflict", "ERR_BAD_REQUEST", undefined, undefined, response),
+    );
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await user.click(await screen.findByRole("button", { name: REMIND }));
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/Bạn vừa nhắc Người thực thi\. Nhắc lại được sau .+\./);
   });
 });

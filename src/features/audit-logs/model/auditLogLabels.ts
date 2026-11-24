@@ -70,6 +70,7 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   DEV_TOGGLE_EKYC_PAUSE: "Bật hoặc tắt tạm ngừng eKYC",
   HANDOVER_SUBMISSION_APPROVED: "Duyệt hồ sơ người nhận",
   HANDOVER_SUBMISSION_SUPPLEMENT_REQUESTED: "Yêu cầu người nhận bổ sung hồ sơ",
+  HANDOVER_EXECUTOR_REMINDED: "Luật sư nhắc Người thực thi ký biên bản",
   SYSTEM_SETTING_UPDATED: "Cập nhật tham số hệ thống",
   PLAN_ACTIVATED: "Kích hoạt kế hoạch bàn giao",
   EXECUTOR_ACCEPTED: "Người thực thi nhận vai",
