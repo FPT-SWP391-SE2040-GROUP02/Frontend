@@ -216,7 +216,7 @@ export function WillSignFooter({
 
   return (
     <form
-      className="max-h-[50vh] shrink-0 overflow-y-auto border-t border-heritage-border bg-heritage-canvas px-5 py-4"
+      className="border-t border-heritage-border bg-heritage-canvas px-5 py-3 sm:max-h-[50vh] sm:overflow-y-auto"
       aria-label={formLabel}
       noValidate
       onSubmit={(event) => {
@@ -225,12 +225,12 @@ export function WillSignFooter({
       }}
     >
       {isResign && (
-        <p className="mb-3 text-[13px] leading-5 text-heritage-muted">
+        <p className="mb-2 text-xs leading-5 text-heritage-muted">
           Ký lại để bản biên bản phân chia khớp với cấu hình hiện tại và phần thêm hoặc đổi người
           nhận được bàn giao. Phần đã xóa không còn được bàn giao. Người thực thi không phải ký lại.
         </p>
       )}
-      <label className="flex cursor-pointer items-start gap-2.5 text-sm leading-6">
+      <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-5">
         <input
           type="checkbox"
           className="mt-0.5 size-5 shrink-0 accent-heritage-primary"
@@ -240,53 +240,60 @@ export function WillSignFooter({
         />
         <span>{tickText}</span>
       </label>
-      <label htmlFor="sign-pin" className="mt-3 block text-[13px] font-semibold">
-        Nhập mã PIN của kho (6 số)
-      </label>
-      <PinCodeInput
-        id="sign-pin"
-        value={pin}
-        placeholder="••••••"
-        disabled={action.pending || lockedOut || !eligible}
-        aria-invalid={pinErrorText !== "" ? true : undefined}
-        aria-describedby="sign-pin-error"
-        onValueChange={(digits) => {
-          setPin(digits);
-          setPinFailure(null);
-          action.reset();
-          if (onPinChange) {
-            onPinChange(digits);
-          }
-        }}
-      />
-      <p className="mt-2 text-[13px] text-heritage-muted">
-        Cùng mã PIN bạn dùng khi sửa tài sản.{" "}
-        <Link
-          className="font-semibold text-heritage-gold-hover underline underline-offset-4"
-          to={ROUTES.DASHBOARD.SETTINGS}
+      {/* Ô PIN và nút ký cùng một hàng từ màn rộng; màn hẹp xếp dọc. */}
+      <div className="mt-2.5 grid gap-x-3 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="min-w-0">
+          <label htmlFor="sign-pin" className="mb-1 block text-[13px] font-semibold">
+            Nhập mã PIN của kho (6 số)
+          </label>
+          <PinCodeInput
+            id="sign-pin"
+            value={pin}
+            placeholder="••••••"
+            disabled={action.pending || lockedOut || !eligible}
+            aria-invalid={pinErrorText !== "" ? true : undefined}
+            aria-describedby="sign-pin-error"
+            onValueChange={(digits) => {
+              setPin(digits);
+              setPinFailure(null);
+              action.reset();
+              if (onPinChange) {
+                onPinChange(digits);
+              }
+            }}
+          />
+        </div>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full rounded-xl bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover disabled:opacity-50 sm:w-56"
+          disabled={!canSign}
+          aria-describedby="sign-reason"
         >
-          Quên mã PIN?
-        </Link>
-      </p>
+          {buttonText}
+        </Button>
+      </div>
       <p
         id="sign-pin-error"
         role="alert"
-        className="mb-3 mt-1.5 min-h-0 text-sm font-medium text-heritage-danger"
+        className="mt-1 min-h-0 text-sm font-medium text-heritage-danger"
       >
         {pinErrorText}
       </p>
-      <Button
-        type="submit"
-        size="lg"
-        className="w-full rounded-xl bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover disabled:opacity-50"
-        disabled={!canSign}
-        aria-describedby="sign-reason"
-      >
-        {buttonText}
-      </Button>
-      <p id="sign-reason" role="status" className="mt-2.5 min-h-5 text-[13px] text-heritage-muted">
-        {reasonText}
-      </p>
+      <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-xs text-heritage-muted">
+        <p id="sign-reason" role="status" className="min-h-4 text-[13px]">
+          {reasonText}
+        </p>
+        <p>
+          Cùng mã PIN bạn dùng khi sửa tài sản.{" "}
+          <Link
+            className="font-semibold text-heritage-gold-hover underline underline-offset-4"
+            to={ROUTES.DASHBOARD.SETTINGS}
+          >
+            Quên mã PIN?
+          </Link>
+        </p>
+      </div>
       {generalError !== "" && (
         <div className="mt-3">
           <StatusBanner tone="error">

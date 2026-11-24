@@ -315,7 +315,7 @@ export function HandoverPortal() {
       {/* Hàng đầu: hướng dẫn nhận tài sản bên trái, nút tải lại bên phải (một hàng thay vì hai hàng lệch nhau). */}
       <div className="flex flex-wrap items-start gap-3">
         {query.isSuccess && query.data.length > 0 && (
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 basis-64">
             <RecipientGuide />
           </div>
         )}
