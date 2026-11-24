@@ -3,12 +3,7 @@ import type { VaultResponse } from "./vault.types";
 /** Thông tin hiển thị quyền dịch vụ; không thay thế kiểm tra quyền ở Backend. */
 export type VaultServiceData = Pick<
   VaultResponse,
-  | "id"
-  | "serviceTier"
-  | "serviceStatus"
-  | "serviceExpiresAt"
-  | "storageQuotaBytes"
-  | "beneficiarySlots"
+  "id" | "serviceTier" | "serviceStatus" | "serviceExpiresAt" | "storageQuotaBytes"
 >;
 
 /** Tên gói để hiển thị; gói Admin tạo thêm lấy tên từ bảng giá (`customNames`), thiếu thì hiện mã gói. */

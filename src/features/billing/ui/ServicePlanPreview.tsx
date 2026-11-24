@@ -120,7 +120,7 @@ export function PurchasePanel({
     title = `Nâng lên ${plan.name}`;
     periodHeading = "Nâng hạng giữa kỳ";
     periodHint =
-      "Chỉ trả phần chênh theo thời gian còn lại của kỳ hiện tại. Hạn dịch vụ giữ nguyên; dung lượng và số suất tăng ngay.";
+      "Chỉ trả phần chênh theo thời gian còn lại của kỳ hiện tại. Hạn dịch vụ giữ nguyên; dung lượng tăng ngay.";
     createLabel = "Tạo đơn nâng hạng";
     if (action.pending) {
       createLabel = "Đang tạo đơn…";
@@ -184,11 +184,8 @@ export function PurchasePanel({
             <dd>{periodLabel}</dd>
           </div>
           <div>
-            <dt>Dung lượng · Người nhận</dt>
-            <dd>
-              {formatStorageMegabytes(data.storageQuotaBytes)} · {data.includedBeneficiarySlots}{" "}
-              người
-            </dd>
+            <dt>Dung lượng</dt>
+            <dd>{formatStorageMegabytes(data.storageQuotaBytes)}</dd>
           </div>
         </dl>
         <div className="service-plan-total">

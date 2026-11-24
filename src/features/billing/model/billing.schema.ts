@@ -26,7 +26,6 @@ export const billingPlansSchema = z.object({
       /** Các dòng mô tả tính năng do Admin viết; rỗng hoặc thiếu thì dùng mô tả mặc định. */
       features: z.array(z.string()).optional(),
       storageQuotaBytes: z.number().int().positive(),
-      includedBeneficiarySlots: z.number().int().nonnegative(),
       prices: z.array(
         z.object({
           years: billingYearsSchema,
@@ -43,7 +42,6 @@ export const billingPlansSchema = z.object({
   free: z
     .object({
       storageQuotaBytes: z.number().int().nonnegative(),
-      includedBeneficiarySlots: z.number().int().nonnegative(),
     })
     .optional(),
 });
@@ -60,7 +58,6 @@ export const billingQuoteSchema = z.object({
   totalAmount: money,
   currency: z.string(),
   storageQuotaBytes: z.number().int().positive(),
-  includedBeneficiarySlots: z.number().int().nonnegative(),
   serviceDays: z.number().int().nullable(),
   serviceStartsAt: z.string().nullable(),
   serviceExpiresAt: z.string().nullable(),
@@ -82,7 +79,6 @@ export const paymentOrderSchema = z.object({
   totalAmount: money,
   currency: z.string(),
   storageQuotaBytes: z.number().int().positive(),
-  includedBeneficiarySlots: z.number().int().nonnegative(),
   paymentCode: z.string(),
   transferContent: z.string(),
   bank: z.object({

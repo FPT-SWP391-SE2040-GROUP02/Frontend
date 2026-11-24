@@ -27,7 +27,6 @@ const plansFixture: BillingPlans = {
     {
       tier: "XS",
       storageQuotaBytes: 209715200,
-      includedBeneficiarySlots: 2,
       prices: [
         { years: 1, amount: 199000, serviceDays: 365 },
         { years: 3, amount: 499000, serviceDays: 1095 },
@@ -37,7 +36,6 @@ const plansFixture: BillingPlans = {
     {
       tier: "XS_MAX",
       storageQuotaBytes: 524288000,
-      includedBeneficiarySlots: 5,
       prices: [
         { years: 1, amount: 399000, serviceDays: 365 },
         { years: 3, amount: 999000, serviceDays: 1095 },
@@ -56,7 +54,6 @@ const purchaseQuote: BillingQuote = {
   totalAmount: 199000,
   currency: "VND",
   storageQuotaBytes: 209715200,
-  includedBeneficiarySlots: 2,
   serviceDays: 365,
   serviceStartsAt: "ON_PAYMENT",
   serviceExpiresAt: null,
@@ -73,7 +70,6 @@ const upgradeQuote: BillingQuote = {
   tierAmount: 250000,
   totalAmount: 250000,
   storageQuotaBytes: 524288000,
-  includedBeneficiarySlots: 5,
   serviceDays: null,
   serviceStartsAt: null,
   serviceExpiresAt: "2099-10-20T00:00:00Z",
@@ -133,7 +129,6 @@ function setup(
       serviceTier: "XS",
       serviceStatus: "PAID_ACTIVE",
       serviceExpiresAt: "2099-10-20T00:00:00Z",
-      beneficiarySlots: 2,
       ...vaultChanges,
     });
   }
@@ -153,18 +148,16 @@ function planCard(name: string) {
 }
 
 describe("pricing reference policies", () => {
-  it("shows included beneficiary slots without imposing asset-count limits", () => {
+  it("shows storage per plan without imposing asset-count or recipient limits", () => {
     setup();
     expect(screen.queryAllByText(/(?:3|20|50) tài sản/)).toHaveLength(0);
-    expect(planCard("Owner Free").getByText("0 người")).toBeInTheDocument();
-    expect(planCard("Legacy XS").getByText("2 người")).toBeInTheDocument();
-    expect(planCard("Legacy XS Max").getByText("5 người")).toBeInTheDocument();
+    expect(screen.queryAllByText(/\d+ người$/)).toHaveLength(0);
     expect(planCard("Owner Free").getByText("20 MB")).toBeInTheDocument();
     expect(planCard("Legacy XS").getByText("200 MB")).toBeInTheDocument();
     expect(planCard("Legacy XS Max").getByText("500 MB")).toBeInTheDocument();
-    // Mục chính sách "Dung lượng" đã bỏ khỏi phần Chính sách chi tiết; chỉ còn suất người nhận và gói Free.
+    // Mục chính sách "Dung lượng" đã bỏ khỏi phần Chính sách chi tiết; chỉ còn mục người nhận và gói Free.
     expect(screen.queryByText(/Không giới hạn số tài sản theo hạng/)).not.toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Suất người nhận" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Người nhận" })).toBeInTheDocument();
     expect(screen.getByText("Gói Free")).toBeInTheDocument();
   });
 
@@ -186,27 +179,18 @@ describe("pricing reference policies", () => {
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
   });
 
-  it("explains that lawyer-added recipients do not use a slot and are free", () => {
+  it("explains that paid plans have no recipient limit and lawyer-added recipients are free", () => {
     setup();
-    const policy = screen.getByRole("region", { name: "Suất người nhận" });
+    const policy = screen.getByRole("region", { name: "Người nhận" });
     expect(policy).toHaveTextContent(
-      "Suất là số người nhận bạn được chọn, kèm theo gói. Người do luật sư thêm theo quy định pháp luật không tính suất và không mất phí.",
+      "Gói trả phí không giới hạn số người nhận; các gói chỉ khác nhau về dung lượng và giá. Người do luật sư thêm theo quy định pháp luật không mất phí.",
     );
-  });
-
-  it("says more slots come from a bigger plan, with no per-slot purchase", () => {
-    setup();
-    const policy = screen.getByRole("region", { name: "Suất người nhận" });
-    expect(policy).toHaveTextContent("nâng lên gói có nhiều suất hơn");
-    expect(policy).not.toHaveTextContent("49.000đ/suất/năm");
-    expect(policy).not.toHaveTextContent("mỗi đơn");
   });
 
   it("keeps the current account entitlement from the server separate from the catalog", () => {
     setup(true);
     const current = screen.getByRole("region", { name: "Gói hiện tại của kho" });
-    expect(within(current).getByText(/\/ 2 đã dùng/)).toBeInTheDocument();
-    expect(planCard("Legacy XS").getByText("2 người")).toBeInTheDocument();
+    expect(within(current).queryByText(/người nhận/i)).not.toBeInTheDocument();
     expect(planCard("Legacy XS").getByText("Gói hiện tại")).toBeInTheDocument();
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
   });
@@ -257,7 +241,6 @@ describe("pricing reference policies", () => {
     await waitFor(() => expect(panel).toHaveTextContent("250.000"));
     expect(panel).toHaveTextContent("Phần chênh nâng lên Legacy XS Max");
     expect(panel).toHaveTextContent("500 MB");
-    expect(panel).toHaveTextContent("5 người");
     expect(within(panel).queryByRole("group", { name: "Chọn kỳ dịch vụ" })).not.toBeInTheDocument();
     // Chỉ gửi hạng đích: không gửi số tiền hay số năm (SEC-04, PAY-11).
     expect(post.mock.calls[0][0]).toBe("/billing/quote");

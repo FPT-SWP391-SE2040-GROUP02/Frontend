@@ -52,12 +52,10 @@ interface PlanModel {
   subtitle: string;
   free: boolean;
   quotaKey: string;
-  slotsKey: string | null;
   featuresKey: string;
   featureDefaults: readonly string[];
   saleKey: string | null;
   quotaDefault: string;
-  slotsDefault: string;
   priceDefaults: Record<number, string>;
 }
 
@@ -67,12 +65,10 @@ const FREE_PLAN: PlanModel = {
   subtitle: "Mặc định, luôn bật",
   free: true,
   quotaKey: "Plans.Free.QuotaMb",
-  slotsKey: null,
   featuresKey: FREE_FEATURES_KEY,
   featureDefaults: FREE_FEATURE_DEFAULTS,
   saleKey: null,
   quotaDefault: "20",
-  slotsDefault: "0",
   priceDefaults: {},
 };
 
@@ -83,19 +79,17 @@ function paidModel(plan: PaidPlanMeta): PlanModel {
     subtitle: plan.subtitle,
     free: false,
     quotaKey: `Plans.${plan.code}.QuotaMb`,
-    slotsKey: `Plans.${plan.code}.Slots`,
     featuresKey: featuresKey(plan.code),
     featureDefaults: plan.featureDefaults,
     saleKey: saleKey(plan.code),
     quotaDefault: plan.quotaDefault,
-    slotsDefault: plan.slotsDefault,
     priceDefaults: plan.priceDefaults,
   };
 }
 
 /**
  * Các gói theo prototype: mỗi gói một thẻ; bấm "Sửa gói" thì chính thẻ mở ra để sửa giá từng kỳ, dung lượng,
- * số người nhận, số gói bàn giao và tính năng, bấm "Xong" để thu lại. Chỉ ghi vào bản nháp, lưu thật ở thanh phía dưới.
+ * số gói bàn giao và tính năng, bấm "Xong" để thu lại. Chỉ ghi vào bản nháp, lưu thật ở thanh phía dưới.
  */
 export function PlanCards({ getValue, setKeyValue }: PlanCardsProps) {
   const allPeriods = parsePeriods(getValue(PERIODS_KEY, serializePeriods(DEFAULT_PERIODS)));
@@ -184,7 +178,6 @@ function PlanCard({
   const shown = features.map((line) => line.trim()).filter(Boolean);
   const onPeriods = periods.filter((period) => period.on);
   const first = onPeriods[0];
-  const slots = model.slotsKey ? getValue(model.slotsKey, model.slotsDefault) : model.slotsDefault;
 
   const removePlan = () => {
     setKeyValue(hiddenKey(model.code), "true");
@@ -256,10 +249,6 @@ function PlanCard({
           <Fact
             label="Dung lượng"
             value={formatQuota(getValue(model.quotaKey, model.quotaDefault))}
-          />
-          <Fact
-            label={model.free ? "Người nhận" : "Người nhận kèm gói"}
-            value={model.free ? "0 · không kích hoạt" : `${slots} người`}
           />
         </dl>
         <ul className="space-y-1.5 border-t border-heritage-border pt-3 text-sm">
@@ -344,23 +333,6 @@ function PlanCard({
           onChange={(next) => setKeyValue(model.quotaKey, next)}
           idPrefix={model.code}
         />
-        {model.free ? (
-          <div>
-            <span className="text-sm font-semibold text-heritage-muted">Người nhận</span>
-            <p className="mt-1 rounded-xl border border-heritage-border px-3 py-2.5 text-sm text-heritage-muted">
-              0 người · không kích hoạt
-            </p>
-          </div>
-        ) : (
-          <Stepper
-            label="Người nhận kèm gói"
-            unit="người"
-            step={1}
-            value={slots}
-            onChange={(next) => setKeyValue(model.slotsKey!, next)}
-            idPrefix={model.code}
-          />
-        )}
       </div>
       <FeatureEditor
         lines={features}

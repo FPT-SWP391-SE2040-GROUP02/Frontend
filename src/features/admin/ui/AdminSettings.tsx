@@ -36,7 +36,6 @@ import { Switch } from "@/shared/ui/switch";
 import { describePlanKey, describePlanValue } from "../model/planCatalog";
 import { PlanCatalogEditor } from "./PlanCatalogEditor";
 import { PlanCards } from "./PlanCards";
-import { DEFAULT_MAX_TOTAL_SLOTS, MAX_TOTAL_SLOTS_LIMIT } from "../model/planCatalog";
 import { settingsSaveError } from "../model/adminError";
 import { limitOf, settingErrors, textMaxLengthOf } from "../model/settingRules";
 
@@ -864,52 +863,12 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
             </div>
           </details>
 
-          {/* Sub-card: giới hạn suất kèm gói và hạn đơn */}
+          {/* Sub-card: hạn đơn thanh toán */}
           <section className="rounded-2xl border border-heritage-border bg-heritage-surface p-5">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-heritage-primary">
-              Giới hạn suất kèm gói và thanh toán SePay
+              Thanh toán SePay
             </h3>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-heritage-muted">
-                  Số người nhận kèm tối đa / gói
-                </label>
-                <div className="flex items-center rounded-lg border border-heritage-border bg-white shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => stepValue("Plans.MaxTotalSlots", -5, 1, MAX_TOTAL_SLOTS_LIMIT)}
-                    className="flex size-9 items-center justify-center text-heritage-muted hover:bg-heritage-sunken"
-                    aria-label="Giảm số người nhận kèm tối đa"
-                  >
-                    <Minus className="size-3.5" />
-                  </button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={getValue("Plans.MaxTotalSlots", String(DEFAULT_MAX_TOTAL_SLOTS))}
-                    onChange={(e) =>
-                      setKeyValue("Plans.MaxTotalSlots", e.target.value.replace(/\D/g, ""))
-                    }
-                    aria-label="Số người nhận kèm tối đa mỗi gói"
-                    className="h-9 w-full text-center font-mono text-sm font-semibold focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => stepValue("Plans.MaxTotalSlots", 5, 1, MAX_TOTAL_SLOTS_LIMIT)}
-                    className="flex size-9 items-center justify-center text-heritage-muted hover:bg-heritage-sunken"
-                    aria-label="Tăng số người nhận kèm tối đa"
-                  >
-                    <Plus className="size-3.5" />
-                  </button>
-                  <span className="border-l border-heritage-border px-3 text-sm text-heritage-muted">
-                    người
-                  </span>
-                </div>
-                <p className="text-[0.875rem] text-heritage-muted">
-                  Mỗi gói không được kèm nhiều người nhận hơn số này.
-                </p>
-              </div>
-
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-heritage-muted">
                   Hạn đơn chờ thanh toán SePay

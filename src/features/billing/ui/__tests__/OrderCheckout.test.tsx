@@ -21,7 +21,6 @@ const pendingOrder: PaymentOrder = {
   totalAmount: 499000,
   currency: "VND",
   storageQuotaBytes: 209715200,
-  includedBeneficiarySlots: 2,
   paymentCode: "LV7K2M9QXA",
   transferContent: "LV7K2M9QXA",
   bank: { bankCode: "MBBank", accountNumber: "0000000000", accountName: "LEGACYVAULT TEST" },

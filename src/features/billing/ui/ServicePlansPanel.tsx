@@ -137,12 +137,6 @@ function ServicePlansContent({
                 {formatStorageMegabytes(vault.storageQuotaBytes)}
               </dd>
             </div>
-            <div>
-              <dt>Suất người nhận</dt>
-              <dd>
-                {vault.usedBeneficiarySlots} / {vault.beneficiarySlots} đã dùng
-              </dd>
-            </div>
           </dl>
           {access === "owner" &&
             vault.serviceTier !== "FREE" &&
@@ -201,17 +195,7 @@ function ServicePlansContent({
               >
                 <div className="service-plan-card-heading">
                   <h2>{plan.name}</h2>
-                  {current ? (
-                    <span className="service-plan-badge">Gói hiện tại</span>
-                  ) : (
-                    plan.order !== undefined &&
-                    plan.order > 10 &&
-                    plan.serviceTier !== "FREE" && (
-                      <span className="service-plan-badge service-plan-badge-muted">
-                        Nhiều người nhận
-                      </span>
-                    )
-                  )}
+                  {current && <span className="service-plan-badge">Gói hiện tại</span>}
                 </div>
                 <p className="service-plan-price">{referenceMoney.format(term?.price ?? 0)}</p>
                 <p className="service-plan-price-caption">{caption}</p>
@@ -219,10 +203,6 @@ function ServicePlansContent({
                   <div>
                     <dt>Dung lượng</dt>
                     <dd>{formatStorageMegabytes(plan.storage * 1_048_576)}</dd>
-                  </div>
-                  <div>
-                    <dt>{isFree ? "Người nhận" : "Người nhận kèm gói"}</dt>
-                    <dd>{plan.includedBeneficiarySlots} người</dd>
                   </div>
                 </dl>
                 <ul className="service-plan-features">
@@ -347,12 +327,11 @@ function ServicePlansContent({
         </summary>
         <div className="service-plan-policy-list">
           <section aria-labelledby={policyId}>
-            <h3 id={policyId}>Suất người nhận</h3>
+            <h3 id={policyId}>Người nhận</h3>
             <p>
-              Suất là số người nhận bạn được chọn, kèm theo gói. Người do luật sư thêm theo quy định
-              pháp luật không tính suất và không mất phí.
+              Gói trả phí không giới hạn số người nhận; các gói chỉ khác nhau về dung lượng và giá.
+              Người do luật sư thêm theo quy định pháp luật không mất phí.
             </p>
-            <p>Cần thêm suất thì nâng lên gói có nhiều suất hơn.</p>
           </section>
           <section>
             <h3>Gói Free</h3>

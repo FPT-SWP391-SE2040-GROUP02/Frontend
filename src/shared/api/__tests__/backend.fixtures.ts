@@ -17,8 +17,6 @@ export const vaultFixture = {
   storageQuotaBytes: 1024,
   storageUsedBytes: 128,
   storageRemainingBytes: 896,
-  beneficiarySlots: 1,
-  usedBeneficiarySlots: 0,
   assignedAssetCount: 1,
   createdAt: CREATED_AT,
   updatedAt: null,

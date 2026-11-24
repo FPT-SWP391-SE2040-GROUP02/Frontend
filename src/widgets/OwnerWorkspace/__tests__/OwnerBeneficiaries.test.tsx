@@ -28,8 +28,6 @@ function mockVault(overrides: Record<string, unknown>) {
       id: VAULT_ID,
       serviceTier: "XS",
       serviceStatus: "ACTIVE",
-      usedBeneficiarySlots: 0,
-      beneficiarySlots: 5,
       ...overrides,
     },
   } as never);
@@ -66,7 +64,7 @@ function renderPage() {
 
 describe("trang người nhận của Chủ kho", () => {
   it("gói Miễn phí: Thêm người nhận mở hộp thoại cần gói trả phí thay cho form", async () => {
-    mockVault({ serviceTier: "FREE", beneficiarySlots: 0 });
+    mockVault({ serviceTier: "FREE" });
     renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     const dialog = await screen.findByRole("dialog");

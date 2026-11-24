@@ -116,7 +116,6 @@ describe("gói Admin tạo thêm", () => {
     expect(describePlanKey("Plans.GOLD.On")).toBe("Mở bán gói GOLD");
     expect(describePlanKey("Plans.GOLD.QuotaMb")).toBe("Dung lượng gói GOLD");
     expect(describePlanKey("Plans.Catalog")).toBe("Danh sách gói");
-    expect(describePlanKey("Plans.MaxTotalSlots")).toBe("Số người nhận kèm tối đa mỗi gói");
     expect(describePlanValue("Plans.GOLD.Hidden", "true")).toBe("Đã xóa");
     expect(describePlanValue("Plans.Catalog", '[{"code":"GOLD","name":"Gold","order":30}]')).toBe(
       "Gold (GOLD)",

@@ -13,7 +13,6 @@ const free: ReferenceServicePlan = {
   serviceTier: "FREE",
   name: "Owner Free",
   storage: 20,
-  includedBeneficiarySlots: 0,
   termPrices: [],
   features: [],
 };
@@ -21,7 +20,6 @@ const xs: ReferenceServicePlan = {
   serviceTier: "XS",
   name: "Legacy XS",
   storage: 200,
-  includedBeneficiarySlots: 2,
   termPrices: [{ years: 1, days: 365, price: 199000 }],
   features: [],
 };
@@ -121,7 +119,6 @@ describe("bảng giá lấy từ Backend", () => {
       {
         tier: "XS",
         storageQuotaBytes: 209715200,
-        includedBeneficiarySlots: 2,
         prices: [
           { years: 1, amount: 199000, serviceDays: 365 },
           { years: 3, amount: 499000, serviceDays: 1095 },

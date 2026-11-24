@@ -12,7 +12,6 @@ export interface ReferenceServicePlan {
   readonly serviceTier: VaultResponse["serviceTier"];
   readonly name: string;
   readonly termPrices: readonly ReferencePlanTerm[];
-  readonly includedBeneficiarySlots: number;
   readonly storage: number;
   readonly features: readonly string[];
   /** false = Admin đã tạm ngừng mở bán hạng này (GET /billing/plans); thiếu thì coi là đang bán. */
@@ -114,11 +113,10 @@ export function buildPlanCatalog(
   const freePlan: ReferenceServicePlan = {
     ...free,
     ...(freeLines.length > 0 ? { features: freeLines } : {}),
-    // Dung lượng và số suất của Free do Admin cấu hình; chưa có thì giữ số mặc định.
+    // Dung lượng của Free do Admin cấu hình; chưa có thì giữ số mặc định.
     ...(plans.free
       ? {
           storage: Math.round(plans.free.storageQuotaBytes / BYTES_PER_MB),
-          includedBeneficiarySlots: plans.free.includedBeneficiarySlots,
         }
       : {}),
   };
@@ -135,7 +133,6 @@ export function buildPlanCatalog(
       order: tier.order,
       hidden: tier.hidden === true,
       termPrices,
-      includedBeneficiarySlots: tier.includedBeneficiarySlots,
       storage: Math.round(tier.storageQuotaBytes / BYTES_PER_MB),
       // Admin viết mô tả thì dùng, chưa viết thì dùng mô tả mặc định của FE.
       features:

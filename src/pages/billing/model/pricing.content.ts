@@ -6,7 +6,6 @@ export const PRICING_CATALOG = [
     serviceTier: "FREE",
     name: "Owner Free",
     termPrices: [],
-    includedBeneficiarySlots: 0,
     storage: 20,
     features: [
       "Lưu trữ nội dung cá nhân",
@@ -22,7 +21,6 @@ export const PRICING_CATALOG = [
       { years: 3, days: 1095, price: 499000 },
       { years: 5, days: 1825, price: 799000 },
     ],
-    includedBeneficiarySlots: 2,
     storage: 200,
     features: ["Thiết lập kế hoạch bàn giao", "Biên bản và quy trình bàn giao"],
   },
@@ -34,7 +32,6 @@ export const PRICING_CATALOG = [
       { years: 3, days: 1095, price: 999000 },
       { years: 5, days: 1825, price: 1599000 },
     ],
-    includedBeneficiarySlots: 5,
     storage: 500,
     features: ["Các tính năng của Legacy XS"],
   },

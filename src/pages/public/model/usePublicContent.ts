@@ -54,9 +54,7 @@ function plansSummary(plans: BillingPlans | undefined, freeQuotaMb: number): str
     const price = first
       ? `${money.format(first.amount)}đ / ${first.serviceDays} ngày`
       : "chưa mở bán";
-    parts.push(
-      `${tier.name ?? tier.tier}: ${price}, ${mib(tier.storageQuotaBytes)} MiB, ${tier.includedBeneficiarySlots} người nhận kèm gói.`,
-    );
+    parts.push(`${tier.name ?? tier.tier}: ${price}, ${mib(tier.storageQuotaBytes)} MiB.`);
   }
   return parts.join(" ");
 }

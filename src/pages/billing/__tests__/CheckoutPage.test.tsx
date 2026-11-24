@@ -20,7 +20,6 @@ const order = {
   totalAmount: 24165,
   currency: "VND",
   storageQuotaBytes: 209715200,
-  includedBeneficiarySlots: 2,
   paymentCode: "LVABCDEFGH",
   transferContent: "LVABCDEFGH",
   bank: { bankCode: "MBBank", accountNumber: "0000000000", accountName: "LEGACYVAULT TEST" },
