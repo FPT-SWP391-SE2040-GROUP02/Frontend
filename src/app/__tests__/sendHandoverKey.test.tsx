@@ -84,12 +84,12 @@ afterEach(() => {
 });
 
 const VAULT_ID = "22222222-2222-4222-8222-222222222222";
-const NOT_STARTED_MESSAGE = "Mã mở gói sẽ hiện khi hồ sơ được duyệt và bàn giao bắt đầu.";
+const NOT_STARTED_MESSAGE = "Mã nhận sẽ hiện khi hồ sơ được duyệt và bàn giao bắt đầu.";
 const notStartedProblem = () =>
   problem(409, {
     code: "HANDOVER_NOT_ALLOWED",
     reason: "HANDOVER_NOT_STARTED",
-    message: "Mã mở gói chỉ xem được sau khi hồ sơ được duyệt và bàn giao đã bắt đầu.",
+    message: "Mã nhận chỉ xem được sau khi hồ sơ được duyệt và bàn giao đã bắt đầu.",
   });
 
 function renderPanel(vaultId?: string) {
@@ -130,7 +130,7 @@ it("nhập mã rồi mới gọi BE, báo đã gửi và xóa ô nhập", async 
   await user.click(screen.getByRole("button", { name: "Gửi mã qua email" }));
   const send = screen.getByRole("button", { name: "Gửi mã" });
   expect(send).toBeDisabled();
-  await user.type(screen.getByLabelText("Mã mở gói bạn đang giữ"), "ABCD-1234");
+  await user.type(screen.getByLabelText("Mã nhận bạn đang giữ"), "ABCD-1234");
   await user.click(send);
   await screen.findByText(/Đã gửi mã cho người nhận lúc/);
   expect(post).toHaveBeenCalledTimes(1);
@@ -138,7 +138,7 @@ it("nhập mã rồi mới gọi BE, báo đã gửi và xóa ô nhập", async 
     `/executor/handover-records/${CASE_ID}/handover-turns/${DONE_TURN}/send-key`,
     { key: "ABCD-1234" },
   );
-  expect(screen.queryByLabelText("Mã mở gói bạn đang giữ")).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Mã nhận bạn đang giữ")).not.toBeInTheDocument();
 });
 
 it("mã sai thì hiện lỗi và không báo thành công", async () => {
@@ -148,9 +148,9 @@ it("mã sai thì hiện lỗi và không báo thành công", async () => {
   renderPanel();
   await screen.findAllByText(/Gói đang chờ/);
   await user.click(screen.getByRole("button", { name: "Gửi mã qua email" }));
-  await user.type(screen.getByLabelText("Mã mở gói bạn đang giữ"), "SAI");
+  await user.type(screen.getByLabelText("Mã nhận bạn đang giữ"), "SAI");
   await user.click(screen.getByRole("button", { name: "Gửi mã" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent(/Khóa mở gói chưa đúng/);
+  expect(await screen.findByRole("alert")).toHaveTextContent(/Mã nhận chưa đúng/);
   expect(screen.queryByText(/Đã gửi mã cho người nhận lúc/)).not.toBeInTheDocument();
 });
 
@@ -167,7 +167,7 @@ it("Dùng mã đã nhận trên hệ thống: 409 HANDOVER_NOT_STARTED hiện c�
 
   expect(await screen.findByText(NOT_STARTED_MESSAGE)).toBeInTheDocument();
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  expect(screen.getByLabelText("Mã mở gói bạn đang giữ")).toHaveValue("");
+  expect(screen.getByLabelText("Mã nhận bạn đang giữ")).toHaveValue("");
   expect(get).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/handover-key`, expect.anything());
 });
 
@@ -186,7 +186,7 @@ it("Dùng mã đã nhận trên hệ thống: lỗi khác 409 HANDOVER_NOT_START
   expect(screen.queryByText(NOT_STARTED_MESSAGE)).not.toBeInTheDocument();
 });
 
-it("thẻ Mã mở gói của Người thực thi: 409 HANDOVER_NOT_STARTED hiện câu chờ, không dẫn tới phiếu của Chủ kho", async () => {
+it("thẻ Mã nhận của Người thực thi: 409 HANDOVER_NOT_STARTED hiện câu chờ, không dẫn tới phiếu của Chủ kho", async () => {
   const user = userEvent.setup();
   vi.spyOn(apiClient, "get").mockRejectedValue(notStartedProblem());
   render(

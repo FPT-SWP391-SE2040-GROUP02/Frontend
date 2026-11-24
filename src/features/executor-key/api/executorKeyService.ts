@@ -7,7 +7,7 @@ function keyUrl(vaultId: string): string {
 }
 
 /**
- * Mã mở gói của kho (BE ExecutorKeyController). Mã do server tạo khi Chủ kho ký kích hoạt và chỉ gửi cho người
+ * Mã nhận của kho (BE ExecutorKeyController). Mã do server tạo khi Chủ kho ký kích hoạt và chỉ gửi cho người
  * nhận sau khi hồ sơ được duyệt; Chủ kho không cấp lần đầu và không bao giờ nhận lại mã gốc.
  */
 export const executorKeyService = {

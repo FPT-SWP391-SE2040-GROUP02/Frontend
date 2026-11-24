@@ -100,7 +100,7 @@ export function WillSignFooter({
     void client.invalidateQueries({ queryKey: ["owner-vault"] });
     void client.invalidateQueries({ queryKey: ["vault-check-in", vaultId] });
     void client.invalidateQueries({ queryKey: willIdentityQueryKey(vaultId) });
-    // Kích hoạt xong server tự tạo mã mở gói: trạng thái mã cũ (chưa có) không còn đúng.
+    // Kích hoạt xong server tự tạo mã nhận: trạng thái mã cũ (chưa có) không còn đúng.
     void client.invalidateQueries({ queryKey: ["executor-key", vaultId] });
   }
 

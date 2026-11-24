@@ -119,7 +119,7 @@ function ActivePlanCard({ setup }: { setup: PlanSetup }) {
 }
 
 /**
- * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là kế hoạch đang áp dụng, mã mở gói và tiến trình.
+ * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là kế hoạch đang áp dụng, mã nhận và tiến trình.
  * Bên phải: nút "Xem biên bản phân chia đã ký" mở khung biên bản phân chia đủ chữ ký.
  */
 function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
@@ -155,7 +155,7 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
 /**
  * Trang Bàn giao của Chủ kho. Cột trái là các thẻ việc, cột phải là tiến độ và nút xem trước biên bản phân chia; biên bản phân chia (sinh từ
  * kế hoạch, cả bản nháp lẫn đã ký) trượt ra từ bên phải, ký bằng PIN ở chân khung. Kế hoạch đã chạy thêm kế
- * hoạch đang áp dụng, mã mở gói (hệ thống tự giữ, Chủ kho chỉ đổi mã mới) và tiến trình bàn giao. Quyền và trạng thái
+ * hoạch đang áp dụng, mã nhận (hệ thống tự giữ, Chủ kho chỉ đổi mã mới) và tiến trình bàn giao. Quyền và trạng thái
  * luôn do Backend quyết định.
  */
 export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {

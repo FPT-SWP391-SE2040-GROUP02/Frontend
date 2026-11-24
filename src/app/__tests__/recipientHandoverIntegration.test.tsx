@@ -328,7 +328,7 @@ it("still lets the recipient claim after the initial response deadline (BR-58)",
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
-it("biên bản đủ chữ ký và kho có khóa mở gói: nhập đúng mã nhận mới được xác nhận", async () => {
+it("biên bản đủ chữ ký và kho có mã nhận: nhập đúng mã nhận mới được xác nhận", async () => {
   let verified = false;
   const posts: string[] = [];
   apiClient.defaults.adapter = async (config) => {
@@ -355,16 +355,16 @@ it("biên bản đủ chữ ký và kho có khóa mở gói: nhập đúng mã n
   };
   setup();
 
-  const input = await screen.findByLabelText("Khóa mở gói do Người thực thi đưa");
+  const input = await screen.findByLabelText("Mã nhận do Người thực thi đưa");
   fireEvent.change(input, { target: { value: "SAI-SAI" } });
   fireEvent.click(screen.getByRole("button", { name: "Xác nhận khóa" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Khóa mở gói chưa đúng");
+  expect(await screen.findByRole("alert")).toHaveTextContent("Mã nhận chưa đúng");
 
-  fireEvent.change(screen.getByLabelText("Khóa mở gói do Người thực thi đưa"), {
+  fireEvent.change(screen.getByLabelText("Mã nhận do Người thực thi đưa"), {
     target: { value: "ABCD-1234" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Xác nhận khóa" }));
-  expect(await screen.findByText("Khóa mở gói đã được xác nhận.")).toBeInTheDocument();
+  expect(await screen.findByText("Mã nhận đã được xác nhận.")).toBeInTheDocument();
   expect(posts.some((url) => url.endsWith("/verify-key"))).toBe(true);
 });
 
@@ -444,7 +444,7 @@ it("có quyền tải khi biên bản vẫn SIGNING (người khác chưa ký): 
   );
   setup();
 
-  expect(await screen.findByLabelText("Khóa mở gói do Người thực thi đưa")).toBeInTheDocument();
+  expect(await screen.findByLabelText("Mã nhận do Người thực thi đưa")).toBeInTheDocument();
   expect(screen.getByText(/Phần của bạn đã đủ chữ ký/)).toBeInTheDocument();
   expect(screen.queryByText(/ba bên/)).not.toBeInTheDocument();
 });

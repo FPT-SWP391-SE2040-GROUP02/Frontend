@@ -55,7 +55,7 @@ const progressTurnSchema = z.object({
   recipientSignedAt: timestamp.nullable().default(null),
   /** Lúc lượt này được mở quyền tải (có chữ ký luật sư, Người thực thi và người nhận này); null khi chưa. Backend cũ chưa gửi thì null. */
   documentApprovedAt: timestamp.nullable().default(null),
-  /** Lúc người nhận nhập đúng mã mở gói; null khi chưa nhập hoặc kho không dùng mã. Backend cũ chưa gửi thì null. */
+  /** Lúc người nhận nhập đúng mã nhận; null khi chưa nhập hoặc kho không dùng mã. Backend cũ chưa gửi thì null. */
   keyVerifiedAt: timestamp.nullable().default(null),
   claimedAt: timestamp.nullable(),
   decisionDeadline: timestamp.nullable(),
@@ -99,7 +99,7 @@ export type HandoverProgress = z.infer<typeof handoverProgressSchema>;
 export type HandoverProgressTurn = z.infer<typeof progressTurnSchema>;
 
 /**
- * Executor gửi được mã mở gói cho một người khi lượt của người đó đã được mở quyền tải (HANDOVER_COMMITTED: đủ chữ ký
+ * Executor gửi được mã nhận cho một người khi lượt của người đó đã được mở quyền tải (HANDOVER_COMMITTED: đủ chữ ký
  * luật sư, Người thực thi và chính người nhận) mà người nhận chưa nhập mã. Không chờ người nhận khác; trước đó chưa được
  * có mã; nhập mã rồi thì không cần gửi nữa.
  */

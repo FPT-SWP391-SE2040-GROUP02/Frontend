@@ -257,7 +257,7 @@ describe("Bàn giao: bảng người nhận", () => {
 
     const needKey = row(list, /Phạm Văn Cường/);
     expect(segmentStates(needKey)).toEqual(["done", "done", "done", "current", "pending"]);
-    expect(needKey).toHaveTextContent("Chờ nhập mã mở gói");
+    expect(needKey).toHaveTextContent("Chờ nhập mã nhận");
     expect(needKey).toHaveTextContent("bạn cần đưa mã cho người này");
 
     const replying = row(list, /Lê Thị Bình/);
@@ -302,7 +302,7 @@ describe("Bàn giao: bảng người nhận", () => {
       "Đã mời13:14 23/12",
       "Kiểm danh tính14:00 23/12",
       "Ký biên bản15:00 23/12",
-      "Nhập mã mở gói16:00 23/12",
+      "Nhập mã nhận16:00 23/12",
       "Phiếu giao nhận16:52 23/12",
     ]);
     expect(within(finished).getByRole("region", { name: "Thông tin liên hệ" })).toHaveTextContent(
@@ -334,7 +334,7 @@ describe("Bàn giao: bảng người nhận", () => {
       "Đã mời13:14 23/12",
       "Kiểm danh tínhđang chờ",
       "Ký biên bản—",
-      "Nhập mã mở gói—",
+      "Nhập mã nhận—",
       "Phiếu giao nhận—",
     ]);
     expect(within(replying).getByRole("region", { name: "Biên bản" })).toHaveTextContent(
@@ -380,7 +380,7 @@ describe("Bàn giao: bảng người nhận", () => {
     }
     expect(
       screen.getByText(
-        /Thanh bước của từng người: Mời → Luật sư kiểm danh tính → Ký biên bản \(luật sư, Người thực thi và người này\) → Nhập mã mở gói → Hai bên ký phiếu giao nhận\./,
+        /Thanh bước của từng người: Mời → Luật sư kiểm danh tính → Ký biên bản \(luật sư, Người thực thi và người này\) → Nhập mã nhận → Hai bên ký phiếu giao nhận\./,
       ),
     ).toBeInTheDocument();
     const text = document.body.textContent ?? "";
@@ -434,7 +434,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
     expect(screen.getByText("Đã tải")).toBeInTheDocument();
     expect(screen.getByText("Chưa tải")).toBeInTheDocument();
     expect(
-      screen.getByText(/Nội dung chỉ người nhận mở được sau khi nhập mã mở gói/),
+      screen.getByText(/Nội dung chỉ người nhận mở được sau khi nhập mã nhận/),
     ).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Tìm tên tài sản hoặc người nhận"), {

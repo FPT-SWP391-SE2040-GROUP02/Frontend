@@ -11,7 +11,7 @@ describe("currentHandoverStep (3 bước của người nhận)", () => {
     expect(currentHandoverStep("IDENTITY_IN_PROGRESS", true)).toBe(2);
   });
 
-  it("được duyệt rồi thì ở bước nhập mã và mở gói", () => {
+  it("được duyệt rồi thì ở bước nhập mã nhận", () => {
     expect(currentHandoverStep("READY_TO_ACCEPT")).toBe(3);
     expect(currentHandoverStep("HANDOVER_COMMITTED")).toBe(3);
   });
