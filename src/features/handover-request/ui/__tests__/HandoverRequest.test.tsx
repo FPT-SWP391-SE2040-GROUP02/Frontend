@@ -312,6 +312,7 @@ describe("Chủ kho thấy yêu cầu nhận tài sản", () => {
       status: "DRAFTING",
       requestedAt: AT,
       requesterNames: ["Trần Minh Anh"],
+      vaultLocked: true,
     });
     setup(<OwnerRequestNotice vaultId={VAULT_ID} />, "owner@example.com", "/dashboard/wills");
 
@@ -319,6 +320,41 @@ describe("Chủ kho thấy yêu cầu nhận tài sản", () => {
       await screen.findByText(/Trần Minh Anh đã gửi yêu cầu nhận tài sản/),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Hủy yêu cầu" })).not.toBeInTheDocument();
+  });
+
+  it("kho chưa khóa thì báo luật sư đang xét và Chủ kho vẫn sửa được kho", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue({
+      recordId: RECORD_ID,
+      status: "DRAFTING",
+      requestedAt: AT,
+      requesterNames: ["Trần Minh Anh"],
+      vaultLocked: false,
+    });
+    setup(<OwnerRequestNotice vaultId={VAULT_ID} />, "owner@example.com", "/dashboard/wills");
+
+    expect(
+      await screen.findByText(
+        /Có yêu cầu nhận tài sản đang được luật sư xét\. Kho chưa khóa; bạn vẫn sửa được kho cho tới khi luật sư chấp nhận giấy tờ\./,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Kho đang khóa/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Hủy yêu cầu" })).not.toBeInTheDocument();
+  });
+
+  it("kho đã khóa thì báo kho đang khóa trong lúc luật sư xét giấy tờ", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue({
+      recordId: RECORD_ID,
+      status: "DRAFTING",
+      requestedAt: AT,
+      requesterNames: ["Trần Minh Anh"],
+      vaultLocked: true,
+    });
+    setup(<OwnerRequestNotice vaultId={VAULT_ID} />, "owner@example.com", "/dashboard/wills");
+
+    expect(
+      await screen.findByText(/Kho đang khóa trong lúc luật sư xét giấy tờ và lập biên bản\./),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Kho chưa khóa/)).not.toBeInTheDocument();
   });
 
   it("không có yêu cầu (204) thì không hiện gì", async () => {

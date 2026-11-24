@@ -64,6 +64,8 @@ export const ownerRequestSchema = z.object({
   status: recordStatusSchema,
   requestedAt: timestamp,
   requesterNames: z.array(z.string()),
+  /** false: luật sư đang xét giấy tờ, kho chưa khóa, Chủ kho vẫn sửa được; true: luật sư đã chấp nhận giấy tờ, kho khóa. */
+  vaultLocked: z.boolean(),
 });
 export type OwnerRequest = z.infer<typeof ownerRequestSchema>;
 
