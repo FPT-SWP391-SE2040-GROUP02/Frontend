@@ -205,6 +205,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     await user.click(await screen.findByRole("button", { name: "Chốt và gửi thư" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
       confirmLegalBasis: true,
+      confirmSplitDeviation: false,
     });
     expect(await screen.findByText("Bước 2 · Ký và giao từng người")).toBeInTheDocument();
     expect(screen.getByText(/Còn 1 người nhận chưa được xác nhận danh tính/)).toBeInTheDocument();
@@ -228,6 +229,82 @@ describe("Luật sư lập biên bản (bước 1)", () => {
   });
 });
 
+const DEVIATION_LABEL =
+  "Biên bản này khác cách chia ban đầu của Chủ kho (danh sách trên). Tôi xác nhận việc thay đổi là theo di chúc hoặc quy định pháp luật và chịu trách nhiệm về căn cứ này. LegacyVault chỉ giao tài sản theo biên bản luật sư đã lập.";
+
+const differences = [
+  {
+    kind: "RECIPIENT_ADDED",
+    beneficiaryId: BINH,
+    recipientName: "Lê Bình",
+    assetId: null,
+    assetName: "",
+    ownerRecipientNames: [],
+    recordRecipientNames: [],
+  },
+  {
+    kind: "ASSET_RECIPIENTS_CHANGED",
+    beneficiaryId: null,
+    recipientName: "",
+    assetId: HOUSE,
+    assetName: "Sổ đỏ",
+    ownerRecipientNames: ["Trần An"],
+    recordRecipientNames: [],
+  },
+];
+
+describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ kho", () => {
+  it("không có khác biệt thì không hiện cảnh báo và chốt được sau khi tick căn cứ pháp lý", async () => {
+    const user = userEvent.setup();
+    backend(record());
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await confirmLegalBasis(user);
+    expect(screen.queryByRole("checkbox", { name: DEVIATION_LABEL })).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Biên bản khác cách chia ban đầu của Chủ kho"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Chốt và gửi thư" })).toBeEnabled();
+  });
+
+  it("có khác biệt thì liệt kê, khóa Chốt tới khi tick ô xác nhận và gửi confirmSplitDeviation: true", async () => {
+    const user = userEvent.setup();
+    const { post } = backend(
+      record({ splitDifferences: differences }),
+      record({ status: "SIGNING", finalizedAt: AT }),
+    );
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    expect(await screen.findByText("Thêm người nhận: Lê Bình")).toBeInTheDocument();
+    expect(
+      screen.getByText("Sổ đỏ: Chủ kho chia cho Trần An → biên bản ghi không ai"),
+    ).toBeInTheDocument();
+    const finalize = screen.getByRole("button", { name: "Chốt và gửi thư" });
+    await confirmLegalBasis(user);
+    expect(finalize).toBeDisabled();
+
+    await user.click(screen.getByRole("checkbox", { name: DEVIATION_LABEL }));
+    expect(finalize).toBeEnabled();
+    await user.click(finalize);
+    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
+      confirmLegalBasis: true,
+      confirmSplitDeviation: true,
+    });
+  });
+
+  it("kho chưa khóa thì báo và khóa nút Chốt dù đã tick", async () => {
+    const user = userEvent.setup();
+    backend(record({ vaultLocked: false }));
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await confirmLegalBasis(user);
+    expect(
+      screen.getByText("Kho chưa khóa: chấp nhận giấy tờ của ít nhất một yêu cầu trước khi chốt."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Chốt và gửi thư" })).toBeDisabled();
+  });
+});
+
 describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
   it("chưa tick thì nút Chốt bị khóa; tick xong bật và gửi confirmLegalBasis: true", async () => {
     const user = userEvent.setup();
@@ -246,6 +323,7 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
     expect(post).toHaveBeenCalledTimes(1);
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
       confirmLegalBasis: true,
+      confirmSplitDeviation: false,
     });
   });
 

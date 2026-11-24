@@ -105,6 +105,18 @@ export const recordReportSchema = z.object({
   files: z.array(reportFileSchema),
 });
 
+/** Một chỗ biên bản khác cách chia ban đầu của Chủ kho; không có số căn cước. */
+export const splitDifferenceSchema = z.object({
+  kind: z.enum(["RECIPIENT_ADDED", "RECIPIENT_REMOVED", "ASSET_RECIPIENTS_CHANGED"]),
+  beneficiaryId: z.string().nullable().default(null),
+  recipientName: z.string().default(""),
+  assetId: z.string().nullable().default(null),
+  assetName: z.string().default(""),
+  ownerRecipientNames: z.array(z.string()).default([]),
+  recordRecipientNames: z.array(z.string()).default([]),
+});
+export type SplitDifference = z.infer<typeof splitDifferenceSchema>;
+
 export const handoverRecordSchema = z.object({
   id: z.string().uuid(),
   vaultId: z.string().uuid(),
@@ -118,6 +130,13 @@ export const handoverRecordSchema = z.object({
   legalBasisConfirmedAt: timestamp.nullable().default(null),
   legalBasisConfirmedByUserId: z.string().uuid().nullable().default(null),
   legalBasisConfirmedByName: z.string().default(""),
+  /** Kho đã khóa chưa; chỉ khi luật sư chấp nhận giấy tờ thì kho mới khóa và mới chốt được. Dữ liệu cũ coi là đã khóa. */
+  vaultLocked: z.boolean().default(true),
+  /** Chỗ biên bản khác cách chia ban đầu của Chủ kho; rỗng khi giống hoặc khi xem bằng tài khoản người nhận. */
+  splitDifferences: z.array(splitDifferenceSchema).default([]),
+  /** Lúc luật sư xác nhận việc khác cách chia khi chốt; null khi chưa xác nhận hoặc đã mở lại. */
+  splitDeviationConfirmedAt: timestamp.nullable().default(null),
+  splitDeviationConfirmedByName: z.string().default(""),
   completedAt: timestamp.nullable(),
   /** Lý do luật sư hủy; null khi chưa hủy. */
   cancelReason: z.string().nullable().default(null),

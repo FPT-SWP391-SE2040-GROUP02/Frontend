@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { formatDateTime } from "@/shared/ui/heritageKit";
 import { BODY, CELL, HEADING, longDate, orBlank, SECTION } from "../model/paperFormat";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
+import { splitDifferenceText } from "../model/splitDifference";
 import { SignatureSlot } from "./paperKit";
 
 /** Ngày lập biên bản: lúc đủ chữ ký nếu đã xong, không thì lúc biên bản được chốt, cuối cùng là lúc có yêu cầu. */
@@ -108,6 +109,31 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
     );
   }
 
+  let deviationSection: ReactNode = null;
+  if (record.splitDifferences.length > 0) {
+    const deviationItems: ReactNode[] = [];
+    for (let index = 0; index < record.splitDifferences.length; index = index + 1) {
+      deviationItems.push(
+        <li key={index}>{splitDifferenceText(record.splitDifferences[index])}</li>,
+      );
+    }
+    let deviationConfirm: ReactNode = null;
+    if (record.splitDeviationConfirmedAt) {
+      deviationConfirm = (
+        <p className="mt-2 leading-7">
+          {`Luật sư ${record.splitDeviationConfirmedByName} xác nhận lúc ${formatDateTime(record.splitDeviationConfirmedAt)}`}
+        </p>
+      );
+    }
+    deviationSection = (
+      <section className={SECTION}>
+        <p className={HEADING}>Khác với cách chia ban đầu của Chủ kho</p>
+        <ul className={`${BODY} list-disc space-y-1 pl-6`}>{deviationItems}</ul>
+        {deviationConfirm}
+      </section>
+    );
+  }
+
   return (
     <div className="text-[#111]" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
       <header className="text-center leading-6">
@@ -201,6 +227,8 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
           phải lập bản số mới.
         </p>
       </section>
+
+      {deviationSection}
 
       {legalBasisNote}
 
