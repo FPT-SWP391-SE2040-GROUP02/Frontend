@@ -433,7 +433,7 @@ describe("khung xem trước biên bản phân chia", () => {
     await openDrawer();
 
     const doc = within(paper());
-    expect(doc.getByText(/những người nhận mà tôi đã chọn cho từng tài sản/)).toBeInTheDocument();
+    expect(doc.getByText(/những người nhận tôi đã chọn, nếu có/)).toBeInTheDocument();
     expect(doc.getAllByText("Tên đăng nhập khác")).toHaveLength(2);
   });
 });
