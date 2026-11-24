@@ -88,20 +88,20 @@ describe("handoverRequestService", () => {
       files: [],
     });
     const file = new File(["%PDF-1.4"], "di-chuc.pdf", { type: "application/pdf" });
-    await handoverRequestService.submitByAccount(VAULT_ID, "  xin chào  ", [file]);
+    await handoverRequestService.submitByAccount(VAULT_ID, "  xin chào  ", [file], []);
     const [url, body] = post.mock.calls[0];
     expect(url).toBe("/handover/requests/by-account");
     const form = body as FormData;
     expect(form.get("vaultId")).toBe(VAULT_ID);
     expect(form.get("token")).toBeNull();
     expect(form.get("note")).toBe("xin chào");
-    expect((form.get("files") as File).name).toBe("di-chuc.pdf");
+    expect((form.get("wills") as File).name).toBe("di-chuc.pdf");
   });
 
   it("submitByAccount từ chối vaultId không phải uuid, không gọi Backend", async () => {
     const post = vi.spyOn(apiClient, "post");
     await expect(
-      handoverRequestService.submitByAccount("khong-phai-uuid", "", []),
+      handoverRequestService.submitByAccount("khong-phai-uuid", "", [], []),
     ).rejects.toThrow();
     expect(post).not.toHaveBeenCalled();
   });

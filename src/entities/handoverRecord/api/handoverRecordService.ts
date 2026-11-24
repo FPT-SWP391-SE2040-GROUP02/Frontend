@@ -47,6 +47,12 @@ export const handoverRecordService = {
       }),
     );
   },
+  /** Luật sư hủy biên bản đang lập; kho mở khóa. */
+  async cancel(recordId: string, reason: string) {
+    return handoverRecordSchema.parse(
+      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/cancel`, { reason }),
+    );
+  },
   async reopen(recordId: string) {
     return handoverRecordSchema.parse(
       await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/reopen`),

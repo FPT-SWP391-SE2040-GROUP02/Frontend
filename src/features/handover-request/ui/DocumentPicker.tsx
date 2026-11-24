@@ -16,10 +16,12 @@ export function DocumentPicker({
   files,
   onChange,
   disabled,
+  label = "Tệp giấy tờ",
 }: {
   files: File[];
   onChange: (files: File[]) => void;
   disabled?: boolean;
+  label?: string;
 }) {
   const inputId = useId();
 
@@ -44,7 +46,7 @@ export function DocumentPicker({
 
   return (
     <div className="space-y-3 text-sm">
-      <span className="block font-semibold text-heritage-primary">Tệp giấy tờ</span>
+      <span className="block font-semibold text-heritage-primary">{label}</span>
       <label
         htmlFor={inputId}
         className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-heritage-border-strong bg-white px-4 py-6 text-center hover:bg-heritage-sunken has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-heritage-gold-hover"
@@ -60,7 +62,7 @@ export function DocumentPicker({
           multiple
           accept={ACCEPT_ATTRIBUTE}
           disabled={disabled}
-          aria-label="Tệp giấy tờ (PDF hoặc ảnh, tối đa 10 tệp, mỗi tệp 10 MB)"
+          aria-label={`${label} (PDF hoặc ảnh, tối đa 10 tệp, mỗi tệp 10 MB)`}
           className="sr-only"
           onChange={handlePick}
         />

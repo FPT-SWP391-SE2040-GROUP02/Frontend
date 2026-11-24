@@ -1,15 +1,14 @@
-import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { claimStatusLabel, RecordFileList } from "@/entities/handoverRecord";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { buttonStyles, Chip, formatDateTime, Panel } from "@/shared/ui/heritageKit";
+import { Chip, formatDateTime, Panel } from "@/shared/ui/heritageKit";
 import { handoverRequestService } from "../api/handoverRequestService";
-import { filesError, type MyClaim } from "../model/handoverRequest.schema";
+import { type MyClaim } from "../model/handoverRequest.schema";
 import { handoverRequestKeys, useMyClaims } from "../model/useHandoverRequest";
-import { DocumentPicker } from "./DocumentPicker";
+import { SupplementForm } from "./SupplementForm";
 
 /** Câu cho người nhận biết yêu cầu đang ở đâu. */
 function claimText(claim: MyClaim): string {
+  if (claim.cancelReason) return `Luật sư đã hủy yêu cầu này. Lý do: ${claim.cancelReason}`;
   if (claim.recordStatus === "CANCELLED") return "Chủ kho đã hủy yêu cầu này.";
   switch (claim.status) {
     case "SUBMITTED":
@@ -23,63 +22,9 @@ function claimText(claim: MyClaim): string {
   }
 }
 
-function SupplementForm({ claim }: { claim: MyClaim }) {
-  const client = useQueryClient();
-  const action = usePrivateAction();
-  const [files, setFiles] = useState<File[]>([]);
-  const [note, setNote] = useState("");
-  const [touched, setTouched] = useState(false);
-  const error = filesError(files);
-  return (
-    <div className="space-y-3 border-t border-heritage-border pt-4">
-      <DocumentPicker files={files} onChange={setFiles} disabled={action.pending} />
-      {touched && error && (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
-      <label className="block space-y-1 text-sm font-semibold">
-        Lời nhắn (không bắt buộc)
-        <textarea
-          className="min-h-20 w-full rounded-xl border border-heritage-border bg-white p-3 font-normal"
-          maxLength={1000}
-          value={note}
-          disabled={action.pending}
-          onChange={(event) => setNote(event.target.value)}
-        />
-      </label>
-      <button
-        type="button"
-        className={buttonStyles.dark}
-        disabled={action.pending}
-        onClick={() => {
-          setTouched(true);
-          if (error) return;
-          void action.execute(
-            () => handoverRequestService.supplement(claim.id, note, files),
-            () => {
-              void client.invalidateQueries({ queryKey: handoverRequestKeys.mine });
-              void client.invalidateQueries({ queryKey: handoverRequestKeys.available });
-              setFiles([]);
-              setNote("");
-              setTouched(false);
-            },
-          );
-        }}
-      >
-        {action.pending ? "Đang nộp…" : "Nộp bổ sung"}
-      </button>
-      {action.error && (
-        <p role="alert" className="text-sm text-destructive">
-          {action.error}
-        </p>
-      )}
-    </div>
-  );
-}
-
 /** Mục "Yêu cầu nhận tài sản" trong cổng người nhận: kết quả luật sư xét, tệp đã nộp, nộp bổ sung khi được yêu cầu. */
 export function MyClaimsPanel() {
+  const client = useQueryClient();
   const query = useMyClaims();
   if (!query.isSuccess || query.data.length === 0) return null;
   return (
@@ -88,7 +33,10 @@ export function MyClaimsPanel() {
         {query.data.map((claim) => {
           let status = claimStatusLabel[claim.status];
           if (claim.recordStatus === "CANCELLED")
-            status = { label: "Chủ kho đã hủy", tone: "neutral" };
+            status = {
+              label: claim.cancelReason ? "Luật sư đã hủy" : "Chủ kho đã hủy",
+              tone: "neutral",
+            };
           return (
             <article
               key={claim.id}
@@ -116,7 +64,13 @@ export function MyClaimsPanel() {
                 download={(file) => handoverRequestService.downloadFile(claim.id, file.id)}
               />
               {claim.status === "SUPPLEMENT_REQUESTED" && claim.recordStatus !== "CANCELLED" && (
-                <SupplementForm claim={claim} />
+                <SupplementForm
+                  send={(note, files) => handoverRequestService.supplement(claim.id, note, files)}
+                  onSent={() => {
+                    void client.invalidateQueries({ queryKey: handoverRequestKeys.mine });
+                    void client.invalidateQueries({ queryKey: handoverRequestKeys.available });
+                  }}
+                />
               )}
             </article>
           );

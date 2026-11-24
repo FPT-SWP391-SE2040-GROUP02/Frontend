@@ -9,7 +9,7 @@ export function ExecutorProgressPage() {
   return (
     <ExecutorWorkspace
       title="Bàn giao"
-      description="Mỗi dòng là một người nhận. Nhìn cột Bước hiện tại để biết họ đang ở đâu và bạn cần làm gì."
+      description="Luật sư xác nhận đúng người; bạn giao đúng biên bản. Mỗi dòng là một người nhận, nhìn cột Bước hiện tại để biết họ đang ở đâu và bạn cần làm gì."
     >
       <VaultGate state={state}>{(vault) => <ExecutorProgress vault={vault} />}</VaultGate>
     </ExecutorWorkspace>

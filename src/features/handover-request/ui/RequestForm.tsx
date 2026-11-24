@@ -12,7 +12,7 @@ const NOTE_MAX_LENGTH = 1000;
 
 /** Ba bước người nhận đọc trước khi gửi yêu cầu. */
 const REQUEST_STEPS = [
-  "Đính kèm giấy tờ luật sư cần (ví dụ di chúc, văn bản phân chia, bản án).",
+  "Đính kèm di chúc (bắt buộc) và giấy tờ khác nếu có.",
   "Hệ thống khóa kho và báo cho Chủ kho, Người thực thi. Chủ kho còn sống thì hủy được.",
   "Luật sư xét giấy tờ: chấp nhận, yêu cầu bổ sung hoặc từ chối có lý do.",
 ];
@@ -25,20 +25,22 @@ export function RequestForm({
   send,
   onSent,
 }: {
-  send: (note: string, files: File[]) => Promise<MyClaim>;
+  send: (note: string, wills: File[], files: File[]) => Promise<MyClaim>;
   onSent: () => void;
 }) {
   const submit = usePrivateAction();
   const [note, setNote] = useState("");
+  const [wills, setWills] = useState<File[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [touched, setTouched] = useState(false);
-  const fileError = filesError(files);
+  let fileError = filesError([...wills, ...files]);
+  if (wills.length === 0) fileError = "Vui lòng đính kèm di chúc.";
 
   function handleSend() {
     setTouched(true);
     if (fileError) return;
     void submit.execute(
-      () => send(note, files),
+      () => send(note, wills, files),
       () => onSent(),
     );
   }
@@ -59,7 +61,18 @@ export function RequestForm({
         ))}
       </ol>
       <div className="space-y-2">
-        <DocumentPicker files={files} onChange={setFiles} disabled={submit.pending} />
+        <DocumentPicker
+          label="Di chúc (bắt buộc)"
+          files={wills}
+          onChange={setWills}
+          disabled={submit.pending}
+        />
+        <DocumentPicker
+          label="Giấy tờ khác (nếu có)"
+          files={files}
+          onChange={setFiles}
+          disabled={submit.pending}
+        />
         {touched && fileError && (
           <p role="alert" className="text-sm text-destructive">
             {fileError}

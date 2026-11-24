@@ -9,7 +9,7 @@ export function ExecutorReportPage() {
   return (
     <ExecutorWorkspace
       title="Biên bản bàn giao"
-      description="Luật sư lập biên bản ai nhận tài sản nào. Bạn chỉ giữ hộ và giao theo biên bản."
+      description="Luật sư lập biên bản và xác nhận đúng người nhận. Bạn giữ hộ và giao đúng biên bản."
     >
       <VaultGate state={state}>
         {(vault) => <ExecutorRecordPanel vaultId={vault.vaultId} />}

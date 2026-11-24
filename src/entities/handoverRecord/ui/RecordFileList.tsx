@@ -14,12 +14,15 @@ export function RecordFileList({
   onRemove,
   removing = false,
   emptyText = "Chưa có tệp nào.",
+  showWillLabel = true,
 }: {
   files: RecordFile[];
   download: (file: RecordFile) => Promise<Blob>;
   onRemove?: (file: RecordFile) => void;
   removing?: boolean;
   emptyText?: string;
+  /** Tắt khi danh sách đã chia sẵn theo loại giấy tờ. */
+  showWillLabel?: boolean;
 }) {
   const action = usePrivateAction();
   if (files.length === 0) return <p className="text-sm text-heritage-muted">{emptyText}</p>;
@@ -32,7 +35,11 @@ export function RecordFileList({
             className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
           >
             <div className="min-w-0">
-              <p className="break-all font-medium">{file.fileName}</p>
+              <p className="break-all font-medium">
+                {file.kind === "WILL" && showWillLabel
+                  ? `Di chúc: ${file.fileName}`
+                  : file.fileName}
+              </p>
               <p className="text-heritage-muted">
                 {fileSizeText(file.sizeBytes)} · {formatDateTime(file.createdAt)}
               </p>

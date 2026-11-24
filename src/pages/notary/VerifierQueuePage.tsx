@@ -12,7 +12,7 @@ export function VerifierQueuePage() {
       description={
         hasRecord
           ? "Làm đúng thứ tự: xét giấy tờ và lập biên bản, chốt biên bản rồi ký; kiểm danh tính từng người nhận khi họ nộp căn cước."
-          : "Các kho có người nhận gửi yêu cầu nhận tài sản và được giao cho bạn xét giấy tờ, lập biên bản."
+          : "Hồ sơ báo tin chờ bạn kiểm giấy tờ và các biên bản bàn giao được giao cho bạn."
       }
     >
       <VerifierQueue />

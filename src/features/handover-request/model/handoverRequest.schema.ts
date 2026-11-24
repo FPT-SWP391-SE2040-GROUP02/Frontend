@@ -19,6 +19,8 @@ export const myClaimSchema = z.object({
   ownerName: z.string(),
   status: claimStatusSchema,
   recordStatus: recordStatusSchema,
+  /** Lý do luật sư hủy; null khi Chủ kho hủy hoặc chưa hủy. */
+  cancelReason: z.string().nullable().default(null),
   note: z.string(),
   reviewReason: z.string().nullable(),
   createdAt: timestamp,

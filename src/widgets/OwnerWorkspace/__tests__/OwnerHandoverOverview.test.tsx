@@ -312,7 +312,7 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
   it("thiếu eKYC, gói và gói dịch vụ: mỗi thẻ có nút dẫn tới nơi xử lý", () => {
     showPlan({
       canActivate: false,
-      missingRequirements: ["OWNER_EKYC_REQUIRED", "ASSIGNMENT_REQUIRED", "PAID_SERVICE_REQUIRED"],
+      missingRequirements: ["OWNER_EKYC_REQUIRED", "ASSET_REQUIRED", "PAID_SERVICE_REQUIRED"],
       assignedAssetCount: 0,
       recipients: [],
     });
@@ -322,9 +322,9 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
       "href",
       "/dashboard/identity",
     );
-    expect(screen.getByRole("link", { name: "Chọn người nhận cho tài sản" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Thêm tài sản" })).toHaveAttribute(
       "href",
-      "/dashboard/assets?tab=assignments",
+      "/dashboard/assets",
     );
     expect(screen.getByRole("link", { name: "Xem gói dịch vụ" })).toBeInTheDocument();
     expect(screen.getByText("Còn 3 điều kiện chưa đạt")).toBeInTheDocument();
@@ -337,7 +337,7 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
     });
     renderOverview();
 
-    expect(screen.getByText(/Còn 1 tài sản chưa gán cho ai/)).toBeInTheDocument();
+    expect(screen.getByText(/Còn 1 tài sản chưa chọn người nhận/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Quản lý phần phân chia" })).toHaveAttribute(
       "href",
       "/dashboard/assets?tab=assignments",
@@ -475,25 +475,15 @@ describe("chỗ trống đỏ trong biên bản phân chia", () => {
     expect(document.getElementById("handover-task-assignments")).not.toHaveClass("ring-4");
   });
 
-  it("chưa gán tài sản: chỗ trống đưa về thẻ Tài sản và người nhận", async () => {
-    showPlan({
-      canActivate: false,
-      missingRequirements: ["ASSIGNMENT_REQUIRED"],
-      assignedAssetCount: 0,
-      recipients: [],
-    });
+  it("chưa chọn người nhận: biên bản ghi luật sư xác định, không có chỗ trống đỏ", async () => {
+    showPlan({ assignedAssetCount: 0, recipients: [] });
     renderOverview();
     await openDrawer();
 
-    await userEvent.click(
-      within(paper()).getByRole("button", {
-        name: "Chưa gán tài sản cho người nhận — bấm để điền",
-      }),
-    );
-
-    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1));
-    expect(document.getElementById("handover-task-assignments")).toHaveClass("ring-4");
+    expect(paper()).toHaveTextContent("Người nhận do luật sư xác định khi bàn giao");
+    expect(
+      within(paper()).queryByRole("button", { name: /Chưa gán tài sản/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("tài sản chưa có người nhận: ghi chú dưới bảng nhắc số tài sản chưa gán", async () => {
@@ -504,7 +494,7 @@ describe("chỗ trống đỏ trong biên bản phân chia", () => {
     renderOverview();
     await openDrawer();
 
-    expect(within(paper()).getByText(/Còn 1 tài sản chưa gán cho ai/)).toBeInTheDocument();
+    expect(within(paper()).getByText(/Còn 1 tài sản chưa chọn người nhận/)).toBeInTheDocument();
   });
 
   it("đã mời nhưng chưa chấp nhận: không còn chỗ trống, ghi chờ chấp nhận và chờ ký nhận vai", async () => {

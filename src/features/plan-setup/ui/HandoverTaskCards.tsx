@@ -287,7 +287,7 @@ function AssignmentsTask({
   readOnly: boolean;
   flashing: boolean;
 }) {
-  let description = "Cần gán ít nhất một tài sản cho một người nhận.";
+  let description = "Kho cần có ít nhất một tài sản.";
   if (done) {
     description = assignmentsSummary(setup);
   }
@@ -298,8 +298,8 @@ function AssignmentsTask({
   );
   if (!done) {
     mainLink = (
-      <Link className={PRIMARY_LINK} to={ROUTES.DASHBOARD.ASSIGNMENTS}>
-        Chọn người nhận cho tài sản
+      <Link className={PRIMARY_LINK} to={ROUTES.DASHBOARD.ASSETS}>
+        Thêm tài sản
       </Link>
     );
   }
@@ -307,7 +307,8 @@ function AssignmentsTask({
   if (setup.unassignedAssets.length > 0) {
     outsideNote = (
       <p className={DESCRIPTION}>
-        Còn {setup.unassignedAssets.length} tài sản chưa gán cho ai nên sẽ không được bàn giao.
+        Còn {setup.unassignedAssets.length} tài sản chưa chọn người nhận. Bạn không bắt buộc chọn;
+        luật sư xác định người nhận khi bàn giao.
       </p>
     );
   }
@@ -344,7 +345,7 @@ export function HandoverTaskCards({
   const missing = setup.missingRequirements;
   const ekycDone = !missing.includes("OWNER_EKYC_REQUIRED");
   const executorDone = !missing.includes("PRIMARY_EXECUTOR_REQUIRED");
-  const assignmentsDone = !missing.includes("ASSIGNMENT_REQUIRED");
+  const assignmentsDone = !missing.includes("ASSET_REQUIRED");
   const planDone = !missing.includes("PAID_SERVICE_REQUIRED");
 
   let ekycDescription = "Chủ kho cần hoàn tất xác minh danh tính eKYC.";

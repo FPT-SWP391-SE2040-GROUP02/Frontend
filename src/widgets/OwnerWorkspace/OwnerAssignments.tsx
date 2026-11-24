@@ -475,7 +475,7 @@ export function OwnerAssignments({
         <p className="max-w-2xl text-sm text-heritage-muted">
           Chọn từng tài sản sẽ về tay ai. Tài sản gán cho nhiều người thì những người đó{" "}
           <strong className="font-semibold text-heritage-primary">nhận chung</strong> và cùng ký
-          biên bản. Tài sản chưa gán cho ai sẽ không nằm trong phạm vi bàn giao.
+          biên bản. Tài sản chưa gán thì luật sư xác định người nhận khi bàn giao.
         </p>
         {locked && (
           <p
