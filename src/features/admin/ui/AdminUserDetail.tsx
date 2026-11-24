@@ -4,14 +4,18 @@ import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
   AUDIT_OUTCOME_LABELS,
+  CASE_KIND_LABELS,
   CASE_STATUS_LABELS,
-  DECISION_KIND_LABELS,
+  DECISION_LABELS,
+  PLAN_STATUS_LABELS,
   ROLE_LABELS,
   STATUS_LABELS,
   formatDate,
   formatDateTime,
 } from "../model/admin.content";
 import { useAdminUser } from "../model/useAdmin";
+import type { AdminHeldVault } from "../model/admin.schema";
+import { AdminChangeExecutorDialog } from "./AdminChangeExecutorDialog";
 import { AdminNotaryCardDialog } from "./AdminNotaryCardDialog";
 import { AdminUserActions } from "./AdminUserActions";
 import { AdminErrorMessage } from "./AdminStateMessage";
@@ -27,6 +31,8 @@ interface AdminUserDetailProps {
 export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetailProps) {
   const query = useAdminUser(userId);
   const [cardOpen, setCardOpen] = useState(false);
+  const [changingVault, setChangingVault] = useState<AdminHeldVault | null>(null);
+  const [successMessage, setSuccessMessage] = useState("");
   const label = actionLabel ?? ((action: string) => action);
   const back = (
     <Button variant="outline" className="min-h-11" onClick={onBack}>
@@ -59,6 +65,7 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
     );
   const user = query.data;
   const isVerifier = user.role === "VERIFIER";
+  const isExecutor = user.role === "EXECUTOR";
   // Chỉ Người xét duyệt (luật sư) có ảnh thẻ; Người thực thi là nhân viên hệ thống, không có ảnh thẻ.
   const hasCard = isVerifier;
   return (
@@ -117,26 +124,87 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
         />
       )}
 
+      {isExecutor && (
+        <section aria-labelledby="user-vaults" className="space-y-3">
+          <h3 id="user-vaults" className="text-base font-semibold">
+            Kho đang giữ
+          </h3>
+          {successMessage && (
+            <p role="status" className="text-sm text-heritage-primary">
+              {successMessage}
+            </p>
+          )}
+          {user.heldVaults.length === 0 ? (
+            <p className="text-sm text-heritage-muted">Hiện không giữ kho nào</p>
+          ) : (
+            <ul className="divide-y divide-heritage-border rounded-2xl border border-heritage-border bg-heritage-surface">
+              {user.heldVaults.map((vault) => (
+                <li
+                  key={vault.vaultId}
+                  className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm"
+                >
+                  <span className="font-medium">{vault.ownerNameMasked}</span>
+                  <span>{PLAN_STATUS_LABELS[vault.planStatus] ?? vault.planStatus}</span>
+                  {vault.handoverRecordStatus && (
+                    <span className="text-heritage-muted">
+                      Biên bản:{" "}
+                      {CASE_STATUS_LABELS[vault.handoverRecordStatus] ?? vault.handoverRecordStatus}
+                    </span>
+                  )}
+                  {vault.handoverUnderway && (
+                    <span className="rounded-full bg-heritage-primary-light px-2.5 py-0.5 text-xs font-semibold text-heritage-primary">
+                      Đang bàn giao
+                    </span>
+                  )}
+                  {vault.canChangeExecutor && (
+                    <Button
+                      variant="outline"
+                      className="min-h-11"
+                      aria-label={`Đổi Người thực thi của kho ${vault.ownerNameMasked}`}
+                      onClick={() => {
+                        setSuccessMessage("");
+                        setChangingVault(vault);
+                      }}
+                    >
+                      Đổi Người thực thi
+                    </Button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {changingVault && (
+        <AdminChangeExecutorDialog
+          vault={changingVault}
+          currentUserId={user.id}
+          onClose={() => setChangingVault(null)}
+          onDone={setSuccessMessage}
+        />
+      )}
+
       {isVerifier && (
         <section aria-labelledby="user-cases" className="space-y-3">
           <h3 id="user-cases" className="text-base font-semibold">
-            Hồ sơ đang giao
+            Việc đang giữ
           </h3>
           {user.assignedCases.length === 0 ? (
-            <p className="text-sm text-heritage-muted">Hiện không giữ hồ sơ nào.</p>
+            <p className="text-sm text-heritage-muted">Hiện không giữ việc nào.</p>
           ) : (
             <ul className="divide-y divide-heritage-border rounded-2xl border border-heritage-border bg-heritage-surface">
               {user.assignedCases.map((item) => (
                 <li
-                  key={item.caseId}
+                  key={`${item.kind}-${item.caseId}`}
                   className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm"
                 >
-                  <span className="font-mono">#{item.caseId.slice(0, 8)}</span>
+                  <span>{CASE_KIND_LABELS[item.kind] ?? item.kind}</span>
+                  <span className="font-mono">{item.caseCode}</span>
                   <span>{CASE_STATUS_LABELS[item.status] ?? item.status}</span>
-                  <span className={item.overdue ? "font-semibold text-heritage-danger" : ""}>
-                    Hạn xét: {formatDateTime(item.dueAt)}
-                    {item.overdue && " · quá hạn"}
-                  </span>
+                  <time dateTime={item.receivedAt} className="tabular-nums text-heritage-muted">
+                    Nhận: {formatDate(item.receivedAt)}
+                  </time>
                 </li>
               ))}
             </ul>
@@ -158,8 +226,9 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
                   key={`${item.caseId}-${index}`}
                   className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm"
                 >
-                  <span className="font-mono">#{item.caseId.slice(0, 8)}</span>
-                  <span>{DECISION_KIND_LABELS[item.kind] ?? item.kind}</span>
+                  <span>{CASE_KIND_LABELS[item.kind] ?? item.kind}</span>
+                  <span className="font-mono">{item.caseCode}</span>
+                  <span>{DECISION_LABELS[item.decision] ?? item.decision}</span>
                   <time dateTime={item.decidedAt} className="tabular-nums text-heritage-muted">
                     {formatDateTime(item.decidedAt)}
                   </time>

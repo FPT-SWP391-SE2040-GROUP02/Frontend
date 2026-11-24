@@ -81,21 +81,21 @@ describe("AdminOverview: ô số", () => {
 
   it("không còn ô Kho đang tạm giữ và không nhắc tới tạm giữ", async () => {
     renderOverview();
-    await screen.findByText("Chờ người xét duyệt");
+    await screen.findByText("Việc chưa có luật sư");
     expect(screen.queryByText("Kho đang tạm giữ")).not.toBeInTheDocument();
     expect(screen.queryByText(/tạm giữ|rà soát/i)).not.toBeInTheDocument();
   });
 
   it("hiện doanh thu tiền thật tháng này, tổng tài khoản và người xét duyệt đang hoạt động", async () => {
     renderOverview();
-    await screen.findByText("Chờ người xét duyệt");
+    await screen.findByText("Việc chưa có luật sư");
     expect(
       await within(tile("Doanh thu tháng này")).findByText("1.590.000 VND"),
     ).toBeInTheDocument();
     expect(tile("Doanh thu tháng này")).toHaveTextContent("4 giao dịch tiền thật");
     expect(await within(tile("Tổng tài khoản")).findByText("27")).toBeInTheDocument();
     expect(tile("Người xét duyệt đang hoạt động")).toHaveTextContent("3");
-    expect(tile("Chờ người xét duyệt")).toHaveTextContent("0");
+    expect(tile("Việc chưa có luật sư")).toHaveTextContent("0");
   });
 
   it("gọi doanh thu đúng tiền thật, chia theo tháng và đúng khoảng tháng này", async () => {
@@ -130,7 +130,7 @@ describe("AdminOverview: một ô lỗi không làm hỏng cả trang", () => {
       return { services: [] };
     });
     renderOverview();
-    await screen.findByText("Chờ người xét duyệt");
+    await screen.findByText("Việc chưa có luật sư");
     expect(await within(tile("Doanh thu tháng này")).findByText("—")).toBeInTheDocument();
     expect(await within(tile("Tổng tài khoản")).findByText("—")).toBeInTheDocument();
     expect(tile("Người xét duyệt đang hoạt động")).toHaveTextContent("3");

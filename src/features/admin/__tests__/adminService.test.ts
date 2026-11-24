@@ -142,14 +142,14 @@ describe("classifyAdminError", () => {
     expect(isExecutorSwapImmediate("HANDOVER_IN_PROGRESS")).toBe(true);
     expect(isExecutorSwapImmediate("ACTIVE")).toBe(false);
     expect(isExecutorSwapImmediate("CLOSED")).toBe(false);
-    expect(EXECUTOR_HANDOVER_WARNING).toContain(
-      "Chữ ký người cũ đã ký trên biên bản vẫn giữ hiệu lực.",
-    );
+    expect(EXECUTOR_HANDOVER_WARNING).toContain("Chữ ký người cũ đã ký vẫn giữ hiệu lực.");
   });
 
   it.each([
     ["ALREADY_EXECUTOR", "Người này đang là Người thực thi của kho."],
     ["PLAN_LOCKED", "Kho đã đóng nên không đổi Người thực thi được."],
+    ["OWNER_CANNOT_ACCEPT", "Chủ kho không làm Người thực thi của kho mình được."],
+    ["ROLE_CONFLICT", "Tài khoản này không được làm Người thực thi."],
   ])("EXECUTOR_NOT_ALLOWED %s hiện đúng câu tiếng Việt", (reason, text) => {
     const config = { headers: new AxiosHeaders() } as InternalAxiosRequestConfig;
     const error = new AxiosError("x", "ERR", config, undefined, {

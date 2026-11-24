@@ -181,16 +181,19 @@ it("chi tiết người dùng hiện hồ sơ đang giao, quyết định và ho
     role: "VERIFIER",
     assignedCases: [
       {
+        kind: "HANDOVER_RECORD",
         caseId: "11111111-1111-4111-8111-111111111111",
-        status: "UNDER_REVIEW",
-        dueAt: "2026-10-20T02:00:00+00:00",
-        overdue: true,
+        caseCode: "11111111",
+        status: "SIGNING",
+        receivedAt: "2026-10-20T02:00:00+00:00",
       },
     ],
     recentDecisions: [
       {
+        kind: "HANDOVER_REPORT",
         caseId: "22222222-2222-4222-8222-222222222222",
-        kind: "APPROVED",
+        caseCode: "22222222",
+        decision: "ACCEPTED",
         decidedAt: "2026-10-17T02:00:00+00:00",
       },
     ],
@@ -199,11 +202,11 @@ it("chi tiết người dùng hiện hồ sơ đang giao, quyết định và ho
     ],
   });
   setup(`${ROUTES.DASHBOARD.USERS}?user=${userId}`);
-  expect(await screen.findByText("Hồ sơ đang giao")).toBeInTheDocument();
+  expect(await screen.findByText("Việc đang giữ")).toBeInTheDocument();
   expect(get).toHaveBeenCalledWith(`/admin/users/${userId}`, expect.anything());
-  expect(screen.getByText("#11111111")).toBeInTheDocument();
-  expect(screen.getByText(/quá hạn/)).toBeInTheDocument();
-  expect(screen.getByText("Đã duyệt")).toBeInTheDocument();
+  expect(screen.getAllByText(/11111111/).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/Đang ký/).length).toBeGreaterThan(0);
+  expect(screen.getAllByText(/Chấp nhận/).length).toBeGreaterThan(0);
   expect(screen.getByText("Tạo kho")).toBeInTheDocument();
   expect(screen.getByText("Bị từ chối")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Về danh sách" })).toBeInTheDocument();

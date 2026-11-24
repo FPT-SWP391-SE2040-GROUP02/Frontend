@@ -60,19 +60,49 @@ export const adminUserSchema = z.object({
 });
 export type AdminUser = z.infer<typeof adminUserSchema>;
 
-/** GET /admin/users/{id}: thông tin tài khoản cộng hồ sơ đang giữ, quyết định và hoạt động gần đây (không lý do, không nội dung hồ sơ). */
+/** Loại việc của luật sư: biên bản bàn giao hoặc hồ sơ báo tin. */
+export const adminCaseKindSchema = z.enum(["HANDOVER_RECORD", "HANDOVER_REPORT"]);
+export type AdminCaseKind = z.infer<typeof adminCaseKindSchema>;
+
+/** Kho Người thực thi đang giữ (chỉ tài khoản EXECUTOR): chủ kho đã che tên, không có tài sản. */
+export const adminHeldVaultSchema = z.object({
+  vaultId: z.string().uuid(),
+  ownerNameMasked: z.string(),
+  planStatus: z.string(),
+  handoverRecordStatus: z.string().nullable(),
+  handoverUnderway: z.boolean(),
+  canChangeExecutor: z.boolean(),
+});
+export type AdminHeldVault = z.infer<typeof adminHeldVaultSchema>;
+
+/**
+ * GET /admin/users/{id}: thông tin tài khoản cộng việc luật sư đang giữ, quyết định gần đây,
+ * kho Người thực thi đang giữ và hoạt động gần đây (không lý do, không nội dung hồ sơ).
+ */
 export const adminUserDetailSchema = adminUserSchema.extend({
-  assignedCases: z.array(
-    z.object({
-      caseId: z.string().uuid(),
-      status: z.string(),
-      dueAt: dateTime,
-      overdue: z.boolean(),
-    }),
-  ),
-  recentDecisions: z.array(
-    z.object({ caseId: z.string().uuid(), kind: z.string(), decidedAt: dateTime }),
-  ),
+  assignedCases: z
+    .array(
+      z.object({
+        kind: adminCaseKindSchema,
+        caseId: z.string().uuid(),
+        caseCode: z.string(),
+        status: z.string(),
+        receivedAt: dateTime,
+      }),
+    )
+    .default([]),
+  recentDecisions: z
+    .array(
+      z.object({
+        kind: adminCaseKindSchema,
+        caseId: z.string().uuid(),
+        caseCode: z.string(),
+        decision: z.string(),
+        decidedAt: dateTime,
+      }),
+    )
+    .default([]),
+  heldVaults: z.array(adminHeldVaultSchema).default([]),
   recentActivity: z.array(z.object({ at: dateTime, action: z.string(), outcome: z.string() })),
 });
 export type AdminUserDetail = z.infer<typeof adminUserDetailSchema>;
