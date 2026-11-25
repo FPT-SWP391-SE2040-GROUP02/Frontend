@@ -4,6 +4,7 @@ import {
   getAdminLoginErrorMessage,
   getLoginErrorMessage,
   getLoginSubtitle,
+  isReceiveAssetsRedirect,
   isReceiveRedirect,
   MAINTENANCE_LOGIN_DENIED_MESSAGE,
 } from "../loginFeedback";
@@ -74,4 +75,12 @@ it("recognises the receive page as the return path of an invitation", () => {
 it("uses the recipient sentence only when the user comes from an invitation", () => {
   expect(getLoginSubtitle(true)).toBe("Đăng nhập hoặc tạo tài khoản để nhận lời mời này.");
   expect(getLoginSubtitle(false)).toContain("quản lý kho của bạn");
+});
+
+it("nhận ra đường vào để nhận tài sản và đổi dòng phụ cho người nhận", () => {
+  expect(isReceiveAssetsRedirect("/dashboard/receive-assets")).toBe(true);
+  expect(isReceiveAssetsRedirect("/request?token=abc")).toBe(true);
+  expect(isReceiveAssetsRedirect("/dashboard")).toBe(false);
+  expect(isReceiveAssetsRedirect("/request-other")).toBe(false);
+  expect(getLoginSubtitle(false, true)).toContain("nhận tài sản");
 });

@@ -52,7 +52,7 @@ export const FAQ_CONTENT = {
         {
           question: "LegacyVault là gì?",
           answer:
-            "Là két số để bạn cất thông tin và tài sản số quan trọng, rồi trao lại cho người bạn chọn vào đúng lúc. Hệ thống nhắc bạn xác nhận mình vẫn ổn theo định kỳ; nếu bạn không phản hồi và các lớp xác nhận đều đạt, người nhận mới được bàn giao.",
+            "Là két số để bạn cất thông tin và tài sản số quan trọng, rồi trao lại cho người bạn chọn vào đúng lúc. Hệ thống không tự biết khi nào bạn qua đời: người nhận gửi yêu cầu kèm giấy tờ, luật sư xét và lập biên bản bàn giao, đủ chữ ký mới giao tài sản.",
         },
         {
           question: "LegacyVault có thay thế di chúc không?",
@@ -92,7 +92,7 @@ export const FAQ_CONTENT = {
         {
           question: "Bàn giao bắt đầu thế nào?",
           answer:
-            "Khi có việc xảy ra, người nhận mở link riêng trong thư, gửi yêu cầu nhận tài sản kèm giấy tờ. Hệ thống khóa kho, báo Chủ kho và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ, lập biên bản bàn giao (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký. Đủ chữ ký mới giao tài sản.",
+            "Khi Chủ kho qua đời, người nhận chủ động gửi yêu cầu nhận tài sản kèm giấy tờ, qua link trong thư hoặc mục Nhận tài sản. Hệ thống báo Chủ kho và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ (chấp nhận thì kho khóa), lập biên bản bàn giao (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký. Đủ chữ ký mới giao tài sản.",
         },
         {
           question: "LegacyVault có làm thủ tục thừa kế không?",
@@ -107,7 +107,7 @@ export const FAQ_CONTENT = {
         {
           question: "Người nhận có bao lâu để tải nội dung?",
           answer:
-            "Sau khi qua đủ các lớp xác nhận, người nhận có {grantDays} ngày để tải nội dung về.",
+            "Mỗi người nhận có {grantDays} ngày để tải nội dung, tính từ lúc phần của người đó đủ chữ ký (luật sư, Người thực thi và chính người đó).",
         },
       ],
     },

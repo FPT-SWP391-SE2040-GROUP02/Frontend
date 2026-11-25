@@ -1,3 +1,4 @@
+import { RECEIVE_STEPS_DONE } from "@/entities/handoverRecord";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { Tone } from "@/shared/ui/heritageKit";
 import type { AvailableHandover, AvailableStatus } from "./handoverRequest.schema";
@@ -17,6 +18,41 @@ export const availableStatusLabel: Record<AvailableStatus, { label: string; tone
 };
 
 /** Bước tiếp theo của một dòng: nhãn nút và nơi dẫn tới. */
+/**
+ * Bước của người nhận ở một kho, theo sáu bước chung (RECEIVE_STEP_TITLES); RECEIVE_STEPS_DONE khi đã nhận xong; null
+ * khi bị từ chối hoặc chưa gửi yêu cầu được. IN_REVIEW có lượt là đã nộp căn cước (bước 4), chưa có lượt là luật sư
+ * còn đang xét và lập biên bản (bước 2).
+ */
+export function availableStep(row: AvailableHandover): number | null {
+  const hasTurn = row.turnId !== null && row.turnId !== undefined;
+  switch (row.status) {
+    case "NOT_REQUESTED":
+      if (row.canRequest) {
+        return 1;
+      }
+      return null;
+    case "REQUEST_PENDING":
+    case "SUPPLEMENT_REQUESTED":
+      return 2;
+    case "IN_REVIEW":
+      if (hasTurn) {
+        return 4;
+      }
+      return 2;
+    case "NEED_IDENTITY":
+      return 3;
+    case "NEED_MY_SIGNATURE":
+    case "WAITING_OTHERS":
+      return 5;
+    case "CODE_READY":
+      return 6;
+    case "RECEIVED":
+      return RECEIVE_STEPS_DONE;
+    case "REJECTED":
+      return null;
+  }
+}
+
 export interface AvailableAction {
   label: string;
   to: string;

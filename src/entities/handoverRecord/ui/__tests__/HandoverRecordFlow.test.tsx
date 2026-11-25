@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AxiosError, type AxiosResponse } from "axios";
+import { AxiosError, AxiosHeaders, type AxiosResponse } from "axios";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { apiClient } from "@/shared/api/axiosClient";
 import { RecipientRecordPanel } from "../RecipientRecordPanel";
@@ -778,7 +778,12 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     const added = {
       ...drafting,
       availableRecipients: [
-        { beneficiaryId: NEW_ID, fullName: "Lê Văn Mới", citizenId: "001090000099" },
+        {
+          beneficiaryId: NEW_ID,
+          fullName: "Lê Văn Mới",
+          citizenId: "001090000099",
+          email: "moi@example.com",
+        },
       ],
     };
     let current: unknown = drafting;
@@ -786,7 +791,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     const put = vi.spyOn(apiClient, "put").mockResolvedValue(added);
     let finalizeFails = true;
     const post = vi.spyOn(apiClient, "post").mockImplementation(async (url: string) => {
-      if (url.endsWith("/recipients")) return added;
+      if (url.endsWith("/recipients/batch")) return added;
       if (finalizeFails) {
         finalizeFails = false;
         throw new Error("down");
@@ -814,12 +819,16 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
 
     await waitFor(() => expect(post).toHaveBeenCalledTimes(2));
     expect(post.mock.calls[0]).toEqual([
-      `/verifier/handover-records/${RECORD_ID}/recipients`,
+      `/verifier/handover-records/${RECORD_ID}/recipients/batch`,
       {
-        fullName: "Lê Văn Mới",
-        citizenId: "001090000099",
-        dateOfBirth: "1990-01-01",
-        email: "moi@example.com",
+        recipients: [
+          {
+            fullName: "Lê Văn Mới",
+            citizenId: "001090000099",
+            dateOfBirth: "1990-01-01",
+            email: "moi@example.com",
+          },
+        ],
       },
     ]);
     expect(put.mock.calls[0][1]).toEqual({ lines: [{ beneficiaryId: NEW_ID, assetId: HOUSE }] });
@@ -829,7 +838,100 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     await waitFor(() => expect(retry).toBeEnabled());
     await user.click(retry);
     expect(await screen.findByText("Bước 2 · Ký và giao từng người")).toBeInTheDocument();
-    expect(post.mock.calls.filter(([url]) => String(url).endsWith("/recipients"))).toHaveLength(1);
+    expect(
+      post.mock.calls.filter(([url]) => String(url).endsWith("/recipients/batch")),
+    ).toHaveLength(1);
+  });
+
+  it("người khai trong hồ sơ: trùng email thì không điền sẵn, trùng tên thì điền và nhắc kiểm lại", async () => {
+    // Chuẩn bị
+    const drafting = record({
+      recipients: [],
+      claims: [],
+      availableRecipients: [
+        { beneficiaryId: AN, fullName: "Trần An", citizenId: "0001", email: "an@example.com" },
+      ],
+      ownerSplit: [{ beneficiaryId: AN, assetIds: [HOUSE] }],
+      reports: [
+        {
+          id: DOC,
+          submitterName: "Lê Nộp",
+          note: "",
+          createdAt: AT,
+          recipients: [
+            { fullName: "Trần Văn An", email: "AN@example.com", phone: "" },
+            { fullName: "Trần An", email: "an-khac@example.com", phone: "" },
+          ],
+          files: [],
+        },
+      ],
+    });
+    vi.spyOn(apiClient, "get").mockResolvedValue(drafting);
+
+    // Hành động
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    // Kiểm tra: một ô điền sẵn (người trùng tên), người trùng email chỉ được nêu tên
+    expect(await screen.findByLabelText("Email (nhận thư mời)")).toHaveValue("an-khac@example.com");
+    expect(screen.getByText(/Trong kho đã có người tên Trần An/)).toBeInTheDocument();
+    expect(screen.getByText(/Trần Văn An \(trùng email với Trần An\)/)).toBeInTheDocument();
+    expect(screen.getByText("Chủ kho đã chia")).toBeInTheDocument();
+    // Người đang nhập làm biên bản khác cách chia: ô xác nhận hiện ngay, chưa cần gửi gì
+    expect(screen.getByText("Thêm người nhận: Trần An")).toBeInTheDocument();
+  });
+
+  it("máy chủ từ chối một người nhận thì báo lỗi đúng ô, giữ nguyên phần đang nhập", async () => {
+    // Chuẩn bị
+    const user = userEvent.setup();
+    const drafting = record({
+      recipients: [],
+      availableRecipients: [],
+      claims: [],
+      reports: [
+        {
+          id: DOC,
+          submitterName: "Lê Nộp",
+          note: "",
+          createdAt: AT,
+          recipients: [{ fullName: "Lê Văn Mới", email: "moi@example.com", phone: "" }],
+          files: [],
+        },
+      ],
+    });
+    vi.spyOn(apiClient, "get").mockResolvedValue(drafting);
+    const put = vi.spyOn(apiClient, "put");
+    const post = vi.spyOn(apiClient, "post").mockRejectedValue(
+      new AxiosError("bad", AxiosError.ERR_BAD_REQUEST, undefined, undefined, {
+        status: 400,
+        statusText: "Bad Request",
+        headers: {},
+        config: { headers: new AxiosHeaders() },
+        data: {
+          code: "VALIDATION_ERROR",
+          errors: {
+            "recipients[0].email": [
+              "Người nhận mới 1: Email người nhận không được trùng với email của Chủ kho.",
+            ],
+          },
+        },
+      }),
+    );
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    // Hành động
+    await user.type(await screen.findByLabelText("Số căn cước (12 số)"), "001090000099");
+    await user.type(screen.getByLabelText("Ngày sinh"), "1990-01-01");
+    await user.click(screen.getByRole("checkbox", { name: "Sổ đỏ" }));
+    await confirmLegalBasis(user);
+    await user.click(screen.getByRole("button", { name: "Chốt và gửi thư" }));
+
+    // Kiểm tra
+    expect(
+      await screen.findByText("Email người nhận không được trùng với email của Chủ kho."),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Họ tên")).toHaveValue("Lê Văn Mới");
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(put).not.toHaveBeenCalled();
   });
 
   it("luật sư hủy biên bản đang lập: phải có lý do, hủy xong hiện lý do", async () => {

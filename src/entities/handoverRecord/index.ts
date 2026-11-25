@@ -3,6 +3,8 @@ export * from "./model/handoverRecord.schema";
 export * from "./model/handoverReport.schema";
 export * from "./model/recordPresentation";
 export * from "./model/useHandoverRecord";
+export * from "./model/receiveSteps";
+export { ReceiveGuide } from "./ui/ReceiveGuide";
 export { handoverRecordService } from "./api/handoverRecordService";
 export { RecordDocument } from "./ui/RecordDocument";
 export { RecordFileList } from "./ui/RecordFileList";

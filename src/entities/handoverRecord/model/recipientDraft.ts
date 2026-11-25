@@ -1,8 +1,11 @@
+import { isAxiosError } from "axios";
+import { z } from "zod";
 import {
   newRecipientSchema,
   type HandoverRecord,
   type NewRecipient,
 } from "./handoverRecord.schema";
+import type { SuggestedRecipient } from "./handoverReport.schema";
 
 export const RECIPIENT_FIELDS = ["fullName", "citizenId", "dateOfBirth", "email", "phone"] as const;
 export type RecipientField = (typeof RECIPIENT_FIELDS)[number];
@@ -27,21 +30,97 @@ export function emptyRecipientDraft(): RecipientDraft {
   };
 }
 
-/** Điền sẵn từ hồ sơ báo tin; bỏ người đã có trong kho và người khai trùng (theo họ tên và email). */
-export function draftsFromReports(record: HandoverRecord): RecipientDraft[] {
-  const normalize = (text: string) => text.trim().toLowerCase();
-  const known = new Set(record.availableRecipients.map((person) => normalize(person.fullName)));
+const normalize = (text: string) => text.trim().toLowerCase();
+
+/**
+ * Người nhận được khai trong các hồ sơ báo tin, bỏ người khai lặp: trùng email; người không khai email thì trùng cả họ
+ * tên và số điện thoại.
+ */
+function declaredPeople(record: HandoverRecord): SuggestedRecipient[] {
   const seen = new Set<string>();
-  const drafts: RecipientDraft[] = [];
+  const people: SuggestedRecipient[] = [];
   for (const report of record.reports) {
     for (const person of report.recipients) {
-      const key = `${normalize(person.fullName)}|${normalize(person.email)}`;
-      if (known.has(normalize(person.fullName)) || seen.has(key)) continue;
+      let key = normalize(person.email);
+      if (key === "") key = `${normalize(person.fullName)}|${normalize(person.phone)}`;
+      if (seen.has(key)) continue;
       seen.add(key);
-      drafts.push({ ...emptyRecipientDraft(), ...person });
+      people.push(person);
     }
   }
-  return drafts;
+  return people;
+}
+
+/** Người đã có trong kho mang email này. Email là duy nhất giữa các người nhận nên trùng email là cùng một chỗ. */
+function findByEmail(record: HandoverRecord, email: string) {
+  const wanted = normalize(email);
+  if (wanted === "") return undefined;
+  return record.availableRecipients.find((person) => normalize(person.email) === wanted);
+}
+
+/** Điền sẵn từ hồ sơ báo tin; bỏ người có email đã nằm trong kho. Trùng họ tên mà khác email vẫn điền sẵn. */
+export function draftsFromReports(record: HandoverRecord): RecipientDraft[] {
+  return declaredPeople(record)
+    .filter((person) => !findByEmail(record, person.email))
+    .map((person) => ({ ...emptyRecipientDraft(), ...person }));
+}
+
+/** Câu cho luật sư biết người nào trong hồ sơ không được điền sẵn vì email đã có trong kho. */
+export function skippedDeclarations(record: HandoverRecord): string[] {
+  const result: string[] = [];
+  for (const person of declaredPeople(record)) {
+    const existing = findByEmail(record, person.email);
+    if (!existing) continue;
+    if (normalize(existing.fullName) === normalize(person.fullName)) {
+      result.push(person.fullName);
+    } else {
+      result.push(`${person.fullName} (trùng email với ${existing.fullName})`);
+    }
+  }
+  return result;
+}
+
+/** Nhắc luật sư khi người đang nhập có vẻ đã nằm trong kho; rỗng khi không có gì đáng ngờ. */
+export function draftWarning(record: HandoverRecord, draft: RecipientDraft): string {
+  const sameEmail = findByEmail(record, draft.email);
+  if (sameEmail) {
+    return `Email này đã dùng cho ${sameEmail.fullName} trong kho. Nếu là cùng một người, hãy bỏ ô này.`;
+  }
+  const name = normalize(draft.fullName);
+  const sameName = record.availableRecipients.find((person) => normalize(person.fullName) === name);
+  if (name !== "" && sameName) {
+    return `Trong kho đã có người tên ${sameName.fullName}. Chỉ giữ ô này nếu đây là người khác.`;
+  }
+  return "";
+}
+
+const serverErrorsSchema = z.object({ errors: z.record(z.string(), z.array(z.string())) });
+
+/**
+ * Lỗi máy chủ trả theo khóa recipients[chỉ số].trường được gắn về đúng ô của người nhận đang nhập, theo thứ tự đã gửi.
+ * Lỗi khác dạng thì trả đối tượng rỗng.
+ */
+export function serverDraftErrors(
+  failure: unknown,
+  drafts: RecipientDraft[],
+): Record<string, RecipientDraftErrors> {
+  const result: Record<string, RecipientDraftErrors> = {};
+  if (!isAxiosError(failure)) return result;
+  const parsed = serverErrorsSchema.safeParse(failure.response?.data);
+  if (!parsed.success) return result;
+  for (const [key, messages] of Object.entries(parsed.data.errors)) {
+    const match = /^recipients\[(\d+)\]\.(\w+)$/i.exec(key);
+    if (!match || messages.length === 0) continue;
+    const draft = drafts[Number(match[1])];
+    const name = match[2].charAt(0).toLowerCase() + match[2].slice(1);
+    const field = RECIPIENT_FIELDS.find((item) => item === name);
+    if (!draft || !field) continue;
+    result[draft.key] = {
+      ...result[draft.key],
+      [field]: messages[0].replace(/^Người nhận mới \d+:\s*/, ""),
+    };
+  }
+  return result;
 }
 
 export function draftToRecipient(draft: RecipientDraft): NewRecipient {

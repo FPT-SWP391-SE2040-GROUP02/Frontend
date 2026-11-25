@@ -45,10 +45,13 @@ export function PlanSetupPanel({
   vaultId,
   belowCards,
   sideNote,
+  justActivated = false,
 }: {
   vaultId: string;
   belowCards?: ReactNode;
   sideNote?: ReactNode;
+  /** Trạng thái ký vừa đổi ngay trên trang này: hai cột trượt nhẹ vào và thẻ trạng thái báo. */
+  justActivated?: boolean;
 }) {
   const query = usePlanSetup(vaultId);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -80,6 +83,14 @@ export function PlanSetupPanel({
     );
   }
   const setup = query.data;
+  let leftClass = "min-w-0 space-y-5";
+  let rightClass = "min-w-0 space-y-5 lg:sticky lg:top-6";
+  // Ký xong khung biên bản vẫn mở: chờ đóng khung rồi mới chạy chuyển động, nếu không nó diễn ra sau lớp phủ.
+  const celebrate = justActivated && !drawerOpen;
+  if (celebrate) {
+    leftClass = `${leftClass} activated-rise activated-rise-2`;
+    rightClass = `${rightClass} activated-rise activated-rise-3`;
+  }
 
   function handleGapClick(target: WillGapTarget): void {
     pendingTask.current = taskForGap(target);
@@ -122,7 +133,7 @@ export function PlanSetupPanel({
         />
       )}
       <div className="grid max-w-[1180px] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0 space-y-5">
+        <div className={leftClass}>
           <HandoverTaskCards
             vaultId={vaultId}
             setup={setup}
@@ -131,8 +142,12 @@ export function PlanSetupPanel({
           />
           {belowCards}
         </div>
-        <div className="min-w-0 space-y-5 lg:sticky lg:top-6">
-          <HandoverProgressCard setup={setup} onOpenPreview={() => handleOpenChange(true)} />
+        <div className={rightClass}>
+          <HandoverProgressCard
+            setup={setup}
+            justActivated={celebrate}
+            onOpenPreview={() => handleOpenChange(true)}
+          />
           {sideNote}
         </div>
       </div>

@@ -5,17 +5,17 @@ import type { z } from "zod";
 import { formatDate, formatDateTime } from "@/shared/lib/dateFormat";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
 import { buttonStyles, Chip, Notice, Panel, type Tone } from "@/shared/ui/heritageKit";
-import { RecipientRecordPanel } from "@/entities/handoverRecord";
+import { ReceiveGuide, RecipientRecordPanel } from "@/entities/handoverRecord";
 import { handoverService } from "../api/handoverService";
 import type { handoverTurnSchema } from "../model/handover.schema";
 import { useGrantDownload } from "../model/useGrantDownload";
 import { useHandoverAction } from "../model/useHandoverAction";
+import { useLatestSubmission } from "../model/useLatestSubmission";
 import { remainingText } from "../model/handover.format";
 import { currentHandoverStep } from "../model/handoverStep";
 import { myTurnsKey, usePendingInvitations } from "../model/usePendingInvitations";
 import { HandoverStepper } from "./HandoverStepper";
 import { ReceiptSection } from "./ReceiptSection";
-import { RecipientGuide } from "./RecipientGuide";
 import { RecipientIdentityPanel } from "./RecipientIdentityPanel";
 import { PendingInvitationCards } from "./PendingInvitationCards";
 
@@ -88,9 +88,10 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
     void client.invalidateQueries({ queryKey: ["handover"] });
     void client.invalidateQueries({ queryKey: ["handover-record"] });
   };
-  // Bước 2 của tiến trình: danh tính đã được luật sư xác nhận, đang chờ ký biên bản bàn giao.
-  const signed = turn.status === "READY_TO_ACCEPT";
-  const step = currentHandoverStep(turn.status, signed, Boolean(turn.receivedAllAt));
+  // Đã nộp căn cước và đang chờ luật sư thì thanh tiến trình sang bước xác nhận danh tính.
+  const submission = useLatestSubmission(turn.id, turn.status === "IDENTITY_IN_PROGRESS");
+  const identitySubmitted = submission.data?.status === "SUBMITTED";
+  const step = currentHandoverStep(turn.status, identitySubmitted, Boolean(turn.receivedAllAt));
   const hasGroupName = turn.container !== null;
   let groupName = "Lượt bàn giao";
   if (turn.container) {
@@ -264,8 +265,8 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                         Xác nhận khóa
                       </button>
                       <p className="text-sm text-heritage-muted">
-                        Liên hệ trực tiếp Người thực thi của kho để lấy khóa. Nhập sai nhiều lần sẽ
-                        bị khóa.
+                        Chưa thấy thư thì liên hệ trực tiếp Người thực thi của kho. Nhập sai nhiều
+                        lần sẽ bị khóa.
                       </p>
                     </div>
                   )}
@@ -314,11 +315,9 @@ export function HandoverPortal() {
       <PendingInvitationCards />
       {/* Hàng đầu: hướng dẫn nhận tài sản bên trái, nút tải lại bên phải (một hàng thay vì hai hàng lệch nhau). */}
       <div className="flex flex-wrap items-start gap-3">
-        {query.isSuccess && query.data.length > 0 && (
-          <div className="min-w-0 flex-1 basis-64">
-            <RecipientGuide />
-          </div>
-        )}
+        <div className="min-w-0 flex-1 basis-64">
+          <ReceiveGuide />
+        </div>
         <button
           type="button"
           className={`${buttonStyles.outline} ml-auto`}

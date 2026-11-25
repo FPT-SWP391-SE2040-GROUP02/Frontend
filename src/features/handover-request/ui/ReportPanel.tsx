@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { FileText } from "lucide-react";
 import {
   claimStatusLabel,
   ReportFiles,
   SuggestedRecipientList,
   type MyReport,
 } from "@/entities/handoverRecord";
-import { buttonStyles, Chip, formatDateTime, Notice, Panel } from "@/shared/ui/heritageKit";
+import { buttonStyles, Chip, formatDateTime, Notice } from "@/shared/ui/heritageKit";
 import { handoverReportService } from "../api/handoverReportService";
 import { handoverRequestKeys, useMyReports } from "../model/useHandoverRequest";
 import { ReportForm } from "./ReportForm";
@@ -67,42 +68,104 @@ function ReportCard({ report }: { report: MyReport }) {
   );
 }
 
-/** Mục "Báo tin Chủ kho đã mất" ở trang Nhận tài sản: nộp hồ sơ và theo dõi các hồ sơ đã nộp. */
-export function ReportPanel() {
+/** Hai vùng của mục báo tin để trang xếp vào hai cột: lối vào, và phần đang điền hoặc đang theo dõi. */
+export interface ReportPanelParts {
+  entry: ReactNode;
+  /** null khi chưa mở form, chưa nộp hồ sơ nào và không có lỗi tải. */
+  activity: ReactNode;
+}
+
+function stacked({ entry, activity }: ReportPanelParts): ReactNode {
+  return (
+    <div className="space-y-6">
+      {entry}
+      {activity}
+    </div>
+  );
+}
+
+/**
+ * Mục "Báo tin Chủ kho đã mất" ở trang Nhận tài sản: nộp hồ sơ và theo dõi các hồ sơ đã nộp. Đây là luồng ngoại lệ
+ * nên lối vào có nền ngả vàng và nút viền, không tranh chỗ với nút chính của danh sách kho.
+ */
+export function ReportPanel({
+  layout = stacked,
+}: {
+  layout?: (parts: ReportPanelParts) => ReactNode;
+}) {
   const client = useQueryClient();
   const query = useMyReports();
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
-  return (
-    <Panel title="Báo tin Chủ kho đã mất" labelledBy="handover-reports">
-      <div className="space-y-5">
-        {!open && (
-          <div className="space-y-3 text-sm leading-6">
-            <p className="text-heritage-muted">
-              Dùng khi bạn chưa được khai làm người nhận. Nộp giấy chứng tử và di chúc; luật sư kiểm
-              giấy tờ rồi xác định ai được nhận.
-            </p>
-            <button
-              type="button"
-              className={buttonStyles.dark}
-              onClick={() => {
-                setSent(false);
-                setOpen(true);
-              }}
-            >
-              Nộp hồ sơ
-            </button>
-          </div>
-        )}
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Form hiện ở cột chính, có thể nằm ngoài màn hình so với nút vừa bấm: cuộn tới.
+  useEffect(() => {
+    if (!open || formRef.current === null) {
+      return;
+    }
+    if (typeof formRef.current.scrollIntoView !== "function") {
+      return;
+    }
+    let behavior: ScrollBehavior = "smooth";
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      behavior = "auto";
+    }
+    formRef.current.scrollIntoView({ behavior, block: "nearest" });
+  }, [open]);
+
+  const entry = (
+    <section
+      aria-labelledby="handover-reports"
+      className="space-y-3 rounded-2xl border border-heritage-gold-border bg-heritage-gold-light p-5"
+    >
+      <h2
+        id="handover-reports"
+        className="flex items-center gap-2.5 text-lg font-semibold text-heritage-primary"
+      >
+        <FileText className="size-5 shrink-0 text-heritage-gold-hover" aria-hidden="true" />
+        Báo tin Chủ kho đã mất
+      </h2>
+      <p className="text-sm leading-6 text-heritage-muted">
+        Dùng khi bạn chưa được khai làm người nhận. Nộp giấy chứng tử và di chúc; luật sư kiểm giấy
+        tờ rồi xác định ai được nhận.
+      </p>
+      {!open && (
+        <button
+          type="button"
+          className={`${buttonStyles.outline} receive-press w-full border-heritage-gold-hover`}
+          onClick={() => {
+            setSent(false);
+            setOpen(true);
+          }}
+        >
+          Nộp hồ sơ
+        </button>
+      )}
+      {open && <p className="text-sm font-semibold text-heritage-primary">Bạn đang điền hồ sơ.</p>}
+    </section>
+  );
+
+  let activity: ReactNode = null;
+  const hasReports = query.isSuccess && query.data.length > 0;
+  if (open || sent || query.isError || hasReports) {
+    activity = (
+      <section aria-label="Hồ sơ báo tin của bạn" className="space-y-4">
+        <h2 className="text-lg font-semibold text-heritage-primary">Hồ sơ báo tin của bạn</h2>
         {open && (
-          <ReportForm
-            onCancel={() => setOpen(false)}
-            onSent={() => {
-              setOpen(false);
-              setSent(true);
-              void client.invalidateQueries({ queryKey: handoverRequestKeys.reports });
-            }}
-          />
+          <div
+            ref={formRef}
+            className="receive-rise rounded-2xl border border-heritage-border bg-heritage-surface p-5 shadow-sm sm:p-6"
+          >
+            <ReportForm
+              onCancel={() => setOpen(false)}
+              onSent={() => {
+                setOpen(false);
+                setSent(true);
+                void client.invalidateQueries({ queryKey: handoverRequestKeys.reports });
+              }}
+            />
+          </div>
         )}
         {sent && (
           <Notice tone="success" title="Đã tiếp nhận hồ sơ" role="status">
@@ -124,7 +187,9 @@ export function ReportPanel() {
         )}
         {query.isSuccess &&
           query.data.map((report) => <ReportCard key={report.id} report={report} />)}
-      </div>
-    </Panel>
-  );
+      </section>
+    );
+  }
+
+  return <>{layout({ entry, activity })}</>;
 }

@@ -32,6 +32,7 @@ function DraftCard({
   order,
   assets,
   errors,
+  warning,
   disabled,
   onChange,
   onRemove,
@@ -40,6 +41,7 @@ function DraftCard({
   order: number;
   assets: HandoverRecord["availableAssets"];
   errors: RecipientDraftErrors;
+  warning: string;
   disabled: boolean;
   onChange: (next: RecipientDraft) => void;
   onRemove: () => void;
@@ -70,6 +72,11 @@ function DraftCard({
           <X className="size-4" aria-hidden="true" />
         </button>
       </div>
+      {warning !== "" && (
+        <p className="rounded-xl bg-heritage-warning-bg px-3 py-2 text-heritage-warning">
+          {warning}
+        </p>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
         {RECIPIENT_FIELDS.map((field) => (
           <div key={field} className="space-y-1">
@@ -123,6 +130,8 @@ export function NewRecipientCards({
   errors,
   assets,
   prefilled,
+  warnings,
+  skipped,
   disabled,
   onChange,
 }: {
@@ -130,6 +139,10 @@ export function NewRecipientCards({
   errors: Record<string, RecipientDraftErrors>;
   assets: HandoverRecord["availableAssets"];
   prefilled: boolean;
+  /** Cảnh báo của từng người đang nhập, theo khóa. */
+  warnings: Record<string, string>;
+  /** Người trong hồ sơ báo tin không được điền sẵn vì email đã có trong kho. */
+  skipped: string[];
   disabled: boolean;
   onChange: (next: RecipientDraft[]) => void;
 }) {
@@ -141,6 +154,17 @@ export function NewRecipientCards({
           Họ tên, email và số điện thoại điền sẵn do người nộp tự khai. Kiểm lại với giấy tờ.
         </p>
       )}
+      {skipped.length > 0 && (
+        <p className="text-sm leading-6 text-heritage-muted">
+          {`Không điền sẵn vì email đã có trong kho: ${skipped.join(", ")}.`}
+        </p>
+      )}
+      {drafts.length > 0 && (
+        <p className="text-sm leading-6 text-heritage-muted">
+          Người đang nhập chỉ được thêm vào kho khi bấm Chốt và gửi thư. Một người không hợp lệ thì
+          chưa ai được thêm.
+        </p>
+      )}
       {drafts.map((draft, index) => (
         <DraftCard
           key={draft.key}
@@ -148,6 +172,7 @@ export function NewRecipientCards({
           order={index + 1}
           assets={assets}
           errors={errors[draft.key] ?? {}}
+          warning={warnings[draft.key] ?? ""}
           disabled={disabled}
           onChange={(next) => onChange(drafts.map((item) => (item.key === next.key ? next : item)))}
           onRemove={() => onChange(drafts.filter((item) => item.key !== draft.key))}

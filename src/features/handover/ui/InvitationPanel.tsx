@@ -17,7 +17,7 @@ export interface InvitationPanelProps {
 
 /**
  * Trang mở từ link trong thư: chỉ là "cửa vào" (đăng nhập hoặc tạo tài khoản), KHÔNG có nút nhận ở đây.
- * Người đã đăng nhập đúng email được chuyển thẳng tới cổng người nhận, nơi có thẻ thư mời để chọn Đồng ý hoặc Từ chối.
+ * Người đã đăng nhập đúng email được chuyển thẳng tới cổng người nhận, nơi có thẻ thư mời với nút Bắt đầu.
  * Link công khai chỉ cho biết tên Chủ kho và email được mời đã che bớt; không hiện hạn chót nào.
  */
 export function InvitationPanel({ onSignOut, signingOut = false }: InvitationPanelProps) {
@@ -112,8 +112,8 @@ export function InvitationPanel({ onSignOut, signingOut = false }: InvitationPan
   }
   const steps = [
     firstStep,
-    "Chọn đồng ý hoặc từ chối nhận, tải ảnh căn cước, ký biên bản",
-    "Chờ Người xét duyệt, rồi nhập mã nhận Người thực thi đưa cho bạn",
+    "Bấm Bắt đầu, nộp ảnh căn cước rồi chờ luật sư xác nhận danh tính",
+    "Ký biên bản, rồi nhập mã nhận Người thực thi gửi cho bạn để tải tài sản",
   ];
   return (
     <div className="space-y-6">

@@ -25,3 +25,7 @@ export const AUTH_LAYOUT_CONTENT = {
 
 /** Dòng phụ dưới tiêu đề đăng nhập và đăng ký khi người dùng đến từ liên kết lời mời nhận bàn giao. */
 export const RECEIVE_INVITATION_SUBTITLE = "Đăng nhập hoặc tạo tài khoản để nhận lời mời này.";
+
+/** Dòng phụ khi người dùng đi vào để nhận tài sản (nút ở trang chủ hoặc link gửi yêu cầu trong thư). */
+export const RECEIVE_ASSETS_SUBTITLE =
+  "Đăng nhập hoặc tạo tài khoản để nhận tài sản hoặc báo tin Chủ kho đã mất.";

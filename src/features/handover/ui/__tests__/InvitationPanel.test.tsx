@@ -77,7 +77,7 @@ describe("InvitationPanel (cửa vào của link email)", () => {
     expect(screen.queryByRole("link", { name: "Tạo tài khoản bằng email này" })).toBeNull();
     expect(screen.queryByRole("button", { name: /Nhận lời mời|Đồng ý nhận/ })).toBeNull();
     expect(screen.getByText("Đăng nhập tài khoản của bạn")).toBeInTheDocument();
-    expect(screen.getByText(/Chờ Người xét duyệt, rồi nhập mã nhận/)).toBeInTheDocument();
+    expect(screen.getByText(/Ký biên bản, rồi nhập mã nhận/)).toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
 
