@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { Button } from "@/shared/ui/button";
@@ -122,21 +123,36 @@ function ActivePlanCard({ setup }: { setup: PlanSetup }) {
  * Kế hoạch đã chạy: thẻ việc chỉ còn tóm tắt; bên dưới là kế hoạch đang áp dụng, mã nhận và tiến trình.
  * Bên phải: nút "Xem biên bản phân chia đã ký" mở khung biên bản phân chia đủ chữ ký.
  */
-function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
+function RunningView({
+  vaultId,
+  setup,
+  justActivated,
+}: {
+  vaultId: string;
+  setup: PlanSetup;
+  justActivated: boolean;
+}) {
   let chipText = `Trạng thái kế hoạch: ${setup.planStatus}`;
   if (setup.planStatus === "ACTIVE") {
     chipText = "Kế hoạch đang chạy";
   }
+  let headerClass = "";
+  if (justActivated) {
+    headerClass = "activated-rise";
+  }
   return (
     <div className="space-y-7">
       <OwnerRequestNotice vaultId={vaultId} />
-      <HandoverHeader
-        chipText={chipText}
-        chipTone="success"
-        subtitle="Biên bản phân chia đã ký. Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ và luật sư lập biên bản."
-      />
+      <div className={headerClass}>
+        <HandoverHeader
+          chipText={chipText}
+          chipTone="success"
+          subtitle="Biên bản phân chia đã ký. Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ và luật sư lập biên bản."
+        />
+      </div>
       <PlanSetupPanel
         vaultId={vaultId}
+        justActivated={justActivated}
         belowCards={
           <>
             <ActivePlanCard setup={setup} />
@@ -160,6 +176,17 @@ function RunningView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) 
  */
 export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
   const planQuery = usePlanSetup(vaultId);
+  // Chỉ coi là "vừa ký" khi trang đang mở thấy kế hoạch đổi từ nháp sang đang chạy; mở lại trang thì không.
+  const [seenStatus, setSeenStatus] = useState<string | null>(null);
+  const [justActivated, setJustActivated] = useState(false);
+  let currentStatus: string | null = null;
+  if (planQuery.data !== undefined) {
+    currentStatus = planQuery.data.planStatus;
+  }
+  if (currentStatus !== null && currentStatus !== seenStatus) {
+    setSeenStatus(currentStatus);
+    setJustActivated(seenStatus === "DRAFT" && currentStatus === "ACTIVE");
+  }
 
   if (planQuery.isPending) {
     return (
@@ -188,5 +215,5 @@ export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
   if (planQuery.data.planStatus === "DRAFT") {
     return <DraftView vaultId={vaultId} setup={planQuery.data} />;
   }
-  return <RunningView vaultId={vaultId} setup={planQuery.data} />;
+  return <RunningView vaultId={vaultId} setup={planQuery.data} justActivated={justActivated} />;
 }

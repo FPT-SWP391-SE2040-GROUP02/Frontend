@@ -194,16 +194,23 @@ function renderOverview() {
       },
     }),
   );
-  const result = render(
-    <Provider store={store}>
-      <QueryClientProvider client={client}>
-        <MemoryRouter>
-          <OwnerHandoverOverview vaultId={VAULT_ID} />
-        </MemoryRouter>
-      </QueryClientProvider>
-    </Provider>,
-  );
-  return { ...result, store };
+  // Dựng cây mới mỗi lần để vẽ lại được sau khi dữ liệu kế hoạch đổi.
+  function tree() {
+    return (
+      <Provider store={store}>
+        <QueryClientProvider client={client}>
+          <MemoryRouter>
+            <OwnerHandoverOverview vaultId={VAULT_ID} />
+          </MemoryRouter>
+        </QueryClientProvider>
+      </Provider>
+    );
+  }
+  const result = render(tree());
+  function redraw() {
+    result.rerender(tree());
+  }
+  return { ...result, store, redraw };
 }
 
 /** Nút ở cột phải mở khung xem trước; chữ nút đổi theo trạng thái. */
@@ -798,6 +805,56 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     expect(
       screen.getByRole("button", { name: "Xem biên bản phân chia đã ký" }),
     ).toBeInTheDocument();
+  });
+
+  it("đã ký: thẻ trạng thái không còn thanh tiến độ; mở lại trang thì không báo vừa ký", () => {
+    // Chuẩn bị
+    showRunning();
+
+    // Hành động
+    renderOverview();
+
+    // Kiểm tra
+    const progress = screen.getByRole("region", { name: "Tiến độ bàn giao" });
+    expect(within(progress).getByText("Kế hoạch đang chạy")).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.queryByText("Bạn vừa ký xong biên bản phân chia.")).not.toBeInTheDocument();
+    expect(progress.parentElement).not.toHaveClass("activated-rise");
+  });
+
+  it("vừa ký trên trang đang mở: báo đã ký xong và chạy chuyển trạng thái", () => {
+    // Chuẩn bị: đang ở bản nháp
+    showPlan();
+    const view = renderOverview();
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+
+    // Hành động: máy chủ trả kế hoạch đã kích hoạt
+    showRunning();
+    view.redraw();
+
+    // Kiểm tra
+    const progress = screen.getByRole("region", { name: "Tiến độ bàn giao" });
+    expect(within(progress).getByRole("status")).toHaveTextContent(
+      "Bạn vừa ký xong biên bản phân chia.",
+    );
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(progress.parentElement).toHaveClass("activated-rise");
+  });
+
+  it.each([
+    ["HANDOVER_IN_PROGRESS", "Kế hoạch đang bàn giao"],
+    ["CLOSED", "Kế hoạch đã đóng"],
+  ])("trạng thái %s: thẻ ghi đúng tên, không ghi là đang chạy", (planStatus, title) => {
+    // Chuẩn bị
+    showPlan({ planStatus, canActivate: false, activatedAt: ACTIVATED_AT });
+
+    // Hành động
+    renderOverview();
+
+    // Kiểm tra
+    const progress = screen.getByRole("region", { name: "Tiến độ bàn giao" });
+    expect(within(progress).getByText(title)).toBeInTheDocument();
+    expect(within(progress).queryByText("Kế hoạch đang chạy")).not.toBeInTheDocument();
   });
 
   it("lỗi tải kế hoạch hiện thử lại", () => {

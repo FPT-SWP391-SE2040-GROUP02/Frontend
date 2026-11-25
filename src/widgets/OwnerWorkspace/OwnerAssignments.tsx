@@ -1,6 +1,6 @@
 import { useId, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, CircleCheck, FileText, Lock, StickyNote, Users } from "lucide-react";
+import { ChevronDown, CircleCheck, FileText, Lock, Pencil, StickyNote, Users } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button } from "@/shared/ui/button";
 import { confirmVaultPin } from "@/shared/api/vaultPin";
@@ -110,8 +110,8 @@ function AssetRow({
   }
   let itemClass = "border-t border-heritage-border first:border-t-0";
   let rowClass = "hover:bg-heritage-sunken/60";
-  let buttonClass =
-    "inline-flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-medium text-heritage-muted transition-colors hover:bg-heritage-sunken hover:text-heritage-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold disabled:pointer-events-none disabled:opacity-50";
+  // Nút sửa có viền và biểu tượng để thấy ngay là bấm được; dòng chưa gán dùng nút đậm hơn vì cần làm trước.
+  let buttonClass = `${SMALL_OUTLINE} gap-2`;
   if (unassigned) {
     itemClass = "py-1";
     rowClass = "bg-heritage-gold/10 ring-1 ring-inset ring-heritage-gold/25";
@@ -173,6 +173,7 @@ function AssetRow({
             aria-label={`${unassigned ? "Chọn" : "Sửa"} người nhận cho ${row.asset.name}`}
             onClick={() => onEdit(row.asset)}
           >
+            {!unassigned && <Pencil className="size-4" aria-hidden="true" />}
             {unassigned ? "Chọn người nhận" : "Sửa người nhận"}
           </button>
         )}
