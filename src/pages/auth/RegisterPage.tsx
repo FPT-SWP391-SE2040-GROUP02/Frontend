@@ -1,8 +1,13 @@
 import { RegisterForm } from "@/features/auth/ui/RegisterForm";
 import { HeritageAuthLayout } from "@/features/auth/ui/HeritageAuthLayout";
-import { getLoginRedirect, isReceiveRedirect } from "@/features/auth/lib/loginFeedback";
+import {
+  getLoginRedirect,
+  isReceiveAssetsRedirect,
+  isReceiveRedirect,
+} from "@/features/auth/lib/loginFeedback";
 import {
   AUTH_LAYOUT_CONTENT,
+  RECEIVE_ASSETS_SUBTITLE,
   RECEIVE_INVITATION_SUBTITLE,
 } from "@/features/auth/model/authLayout.content";
 import { Link, useSearchParams } from "react-router-dom";
@@ -36,6 +41,8 @@ export function RegisterPage() {
   let description: string = content.description;
   if (fromReceive) {
     description = RECEIVE_INVITATION_SUBTITLE;
+  } else if (redirect !== null && isReceiveAssetsRedirect(redirect)) {
+    description = RECEIVE_ASSETS_SUBTITLE;
   }
   let loginTo: string = ROUTES.AUTH.LOGIN;
   if (redirect) {

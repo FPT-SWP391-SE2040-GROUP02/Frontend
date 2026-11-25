@@ -15,6 +15,7 @@ import {
   getLoginErrorMessage,
   getLoginRedirect,
   getLoginSubtitle,
+  isReceiveAssetsRedirect,
   isReceiveRedirect,
   MAINTENANCE_LOGIN_DENIED_MESSAGE,
 } from "../lib/loginFeedback";
@@ -91,6 +92,9 @@ export function LoginForm({
   const redirectUrl = getLoginRedirect(searchParams.get("redirect"));
   // Đi từ liên kết lời mời nhận bàn giao: dùng chữ cho người nhận và mang lời mời theo sang trang đăng ký.
   const fromReceive = isReceiveRedirect(redirectUrl);
+  const fromReceiveAssets = isReceiveAssetsRedirect(redirectUrl);
+  // Người nhận tạo tài khoản mới thì vẫn mang đường dẫn quay lại, không bị mời lập kho.
+  const keepRedirect = fromReceive || fromReceiveAssets;
   const registerFromReceive = `${ROUTES.AUTH.REGISTER}?${new URLSearchParams({ redirect: redirectUrl })}`;
   const { mutate: login, isPending: loginPending, isError, error } = useLogin();
   const google = useGoogleLogin();
@@ -261,7 +265,7 @@ export function LoginForm({
             ? "Hệ thống đang bảo trì. Chỉ tài khoản Quản trị viên được đăng nhập."
             : invitationContext
               ? "Tiếp tục để xác minh tư cách người nhận tài sản."
-              : getLoginSubtitle(fromReceive)}
+              : getLoginSubtitle(fromReceive, fromReceiveAssets)}
         </p>
       </div>
 
@@ -435,10 +439,10 @@ export function LoginForm({
           <p>
             Chưa có tài khoản?{" "}
             <Link
-              to={fromReceive ? registerFromReceive : ROUTES.AUTH.REGISTER}
+              to={keepRedirect ? registerFromReceive : ROUTES.AUTH.REGISTER}
               className="text-heritage-primary font-bold hover:underline"
             >
-              {fromReceive ? "Tạo tài khoản" : "Tạo kho miễn phí"}
+              {keepRedirect ? "Tạo tài khoản" : "Tạo kho miễn phí"}
             </Link>
           </p>
         )}

@@ -22,9 +22,11 @@ export const LANDING_CONTENT = {
   hero: {
     tagline: "Di sản được giao đúng người, đúng lúc.",
     description:
-      "Nơi bạn gửi lại tài sản số, giấy tờ và lời nhắn cho người thân. Chỉ trao đi khi đã qua nhiều lớp xác nhận, và bạn vẫn có thể dừng lại.",
+      "Nơi bạn gửi lại tài sản số, giấy tờ và lời nhắn cho người thân. Khi bạn qua đời, người nhận gửi yêu cầu; luật sư xét giấy tờ, đủ chữ ký mới trao đi.",
     start: "Lập kho của bạn",
     explore: "Xem cách hoạt động",
+    receiveQuestion: "Người thân đã mất?",
+    receiveAction: "Nhận tài sản",
   },
   problem: {
     eyebrow: "Vấn đề",
@@ -68,7 +70,7 @@ export const LANDING_CONTENT = {
       {
         title: "Trao đúng người",
         detail:
-          "Quyền truy cập chỉ mở cho người bạn chọn, vào đúng thời điểm và sau khi qua đủ các lớp xác nhận.",
+          "Quyền truy cập chỉ mở cho người nhận ghi trong biên bản bàn giao, sau khi xác minh danh tính và đủ chữ ký.",
       },
     ],
   },
@@ -274,7 +276,7 @@ export const LANDING_CONTENT = {
     commitmentTitle: "Cam kết của chúng tôi",
     commitments: [
       "Nói rõ giới hạn.",
-      "Bạn luôn dừng được bàn giao.",
+      "Chỉ giao khi đủ chữ ký.",
       "Không ai nắm toàn quyền một mình.",
     ],
     productTitle: "Sản phẩm",

@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
 import { LANDING_CONTENT as content } from "./model/landing.content";
-import { AnimatedGuilloche, HEADING, LandingFooter, LandingHeader } from "./ui/LandingChrome";
+import {
+  AnimatedGuilloche,
+  FOCUS_RING,
+  HEADING,
+  LandingFooter,
+  LandingHeader,
+} from "./ui/LandingChrome";
 import {
   FaqSection,
   FinalCtaSection,
@@ -70,6 +76,19 @@ export function LandingPage() {
                 {content.hero.explore}
               </a>
             </div>
+            {/* Lối vào cho người thân: chưa đăng nhập thì ProtectedRoute đưa qua đăng nhập rồi quay lại đúng trang. */}
+            <p
+              className="landing-rise mt-5 flex flex-wrap items-center justify-center gap-x-2 text-sm text-heritage-sunken/80"
+              style={{ animationDelay: "600ms" }}
+            >
+              {content.hero.receiveQuestion}
+              <Link
+                to={ROUTES.DASHBOARD.RECEIVE_ASSETS}
+                className={`inline-flex min-h-11 items-center font-semibold text-heritage-gold-soft underline underline-offset-4 ${FOCUS_RING}`}
+              >
+                {content.hero.receiveAction}
+              </Link>
+            </p>
           </div>
         </div>
       </section>

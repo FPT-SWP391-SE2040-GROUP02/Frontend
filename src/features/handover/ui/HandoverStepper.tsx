@@ -1,11 +1,14 @@
 import { Check } from "lucide-react";
-const stepLabels = ["Đồng ý hoặc từ chối", "Xét duyệt", "Nhập mã nhận"];
+import { RECEIVE_STEP_TITLES } from "@/entities/handoverRecord";
 
-/** Ba bước của người nhận: xong, đang ở đây, chờ. Không có bước "Nhận thư mời" (nhận lượt chạy ngầm). */
+/** Sáu bước của người nhận cho một lượt bàn giao: xong, đang ở đây, chờ. current = 7 khi đã xong hết. */
 export function HandoverStepper({ current }: { current: number }) {
   return (
-    <ol className="grid grid-cols-3 gap-y-6" aria-label="Tiến trình bàn giao">
-      {stepLabels.map((label, index) => {
+    <ol
+      className="grid grid-cols-2 gap-y-6 sm:grid-cols-3 xl:grid-cols-6"
+      aria-label="Tiến trình bàn giao"
+    >
+      {RECEIVE_STEP_TITLES.map((label, index) => {
         const number = index + 1;
         const done = number < current;
         const here = number === current;

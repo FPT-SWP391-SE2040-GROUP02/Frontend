@@ -110,9 +110,9 @@ it("hiện Người xét duyệt kèm số thẻ luật sư và nút Tôi đã n
   await waitFor(() => expect(posts).toHaveLength(1));
   expect(posts[0]).toContain(`/handover/turns/${CONTAINER_ID}/received-all`);
   expect(await screen.findByText(/Bạn đã xác nhận nhận đủ lúc/)).toBeInTheDocument();
-  // Nhận đủ rồi: nút tải khóa lại và cả 3 bước của tiến trình đều "Xong".
+  // Nhận đủ rồi: nút tải khóa lại và cả 6 bước của tiến trình đều "Xong".
   expect(screen.getByRole("button", { name: "Tải xuống Mục A" })).toBeDisabled();
-  expect(screen.getAllByText("Xong")).toHaveLength(3);
+  expect(screen.getAllByText("Xong")).toHaveLength(6);
   expect(screen.queryByText("Đang ở đây")).not.toBeInTheDocument();
 });
 

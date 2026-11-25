@@ -1,7 +1,7 @@
 import { AxiosError, isAxiosError } from "axios";
 import { APP_MESSAGES, HTTP_STATUS } from "@/shared/constants";
 import { ROUTES } from "@/shared/config/routes.config";
-import { RECEIVE_INVITATION_SUBTITLE } from "../model/authLayout.content";
+import { RECEIVE_ASSETS_SUBTITLE, RECEIVE_INVITATION_SUBTITLE } from "../model/authLayout.content";
 import { isMaintenanceError } from "@/shared/api/maintenance";
 import { z } from "zod";
 
@@ -39,7 +39,7 @@ export function getLoginRedirect(value: string | null): string {
  * @returns true khi người dùng đang đi từ liên kết lời mời.
  */
 export function isReceiveRedirect(redirect: string): boolean {
-  // Link thư mời cũ (/receive) và cổng người nhận (nơi người nhận chọn Đồng ý/Từ chối sau khi đăng nhập).
+  // Link thư mời cũ (/receive) và cổng người nhận (nơi người nhận bấm Bắt đầu sau khi đăng nhập).
   const portal = ROUTES.BENEFICIARY.CLAIM;
   return (
     redirect === ROUTES.RECEIVE ||
@@ -51,13 +51,31 @@ export function isReceiveRedirect(redirect: string): boolean {
 }
 
 /**
+ * @description Cho biết đường dẫn quay lại là trang Nhận tài sản hoặc trang gửi yêu cầu nhận tài sản.
+ * @param redirect Đường dẫn quay lại đã qua getLoginRedirect.
+ */
+export function isReceiveAssetsRedirect(redirect: string): boolean {
+  const list = ROUTES.DASHBOARD.RECEIVE_ASSETS;
+  return (
+    redirect === list ||
+    redirect.startsWith(`${list}?`) ||
+    redirect === ROUTES.REQUEST ||
+    redirect.startsWith(`${ROUTES.REQUEST}?`)
+  );
+}
+
+/**
  * @description Dòng phụ dưới tiêu đề đăng nhập.
  * @param fromReceive true khi người dùng đi từ liên kết lời mời nhận bàn giao.
+ * @param fromReceiveAssets true khi người dùng đi vào để nhận tài sản hoặc gửi yêu cầu.
  * @returns Câu cho người nhận, hoặc câu mặc định cho Chủ kho.
  */
-export function getLoginSubtitle(fromReceive: boolean): string {
+export function getLoginSubtitle(fromReceive: boolean, fromReceiveAssets = false): string {
   if (fromReceive) {
     return RECEIVE_INVITATION_SUBTITLE;
+  }
+  if (fromReceiveAssets) {
+    return RECEIVE_ASSETS_SUBTITLE;
   }
   return "Chào mừng trở lại. Tiếp tục để quản lý kho của bạn.";
 }

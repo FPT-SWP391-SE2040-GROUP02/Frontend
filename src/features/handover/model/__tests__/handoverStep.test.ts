@@ -1,24 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { currentHandoverStep } from "../handoverStep";
 
-describe("currentHandoverStep (3 bước của người nhận)", () => {
-  it("chưa ký thì ở bước Đồng ý hoặc từ chối", () => {
-    expect(currentHandoverStep("INVITED")).toBe(1);
-    expect(currentHandoverStep("IDENTITY_IN_PROGRESS")).toBe(1);
+describe("currentHandoverStep (theo 6 bước của người nhận)", () => {
+  it("chưa nộp căn cước thì ở bước Nộp ảnh căn cước", () => {
+    expect(currentHandoverStep("INVITED")).toBe(3);
+    expect(currentHandoverStep("IDENTITY_IN_PROGRESS")).toBe(3);
   });
 
-  it("đã ký và gửi thì chờ Người xét duyệt", () => {
-    expect(currentHandoverStep("IDENTITY_IN_PROGRESS", true)).toBe(2);
+  it("đã nộp căn cước thì chờ luật sư xác nhận danh tính", () => {
+    expect(currentHandoverStep("IDENTITY_IN_PROGRESS", true)).toBe(4);
   });
 
-  it("được duyệt rồi thì ở bước nhập mã nhận", () => {
-    expect(currentHandoverStep("READY_TO_ACCEPT")).toBe(3);
-    expect(currentHandoverStep("HANDOVER_COMMITTED")).toBe(3);
+  it("danh tính đã xong thì ở bước Ký biên bản, được giao thì ở bước nhập mã", () => {
+    expect(currentHandoverStep("READY_TO_ACCEPT")).toBe(5);
+    expect(currentHandoverStep("HANDOVER_COMMITTED")).toBe(6);
   });
 
-  it("bấm Tôi đã nhận đủ thì cả 3 bước xong", () => {
-    expect(currentHandoverStep("HANDOVER_COMMITTED", false, true)).toBe(4);
-    expect(currentHandoverStep("HANDOVER_COMMITTED", false, false)).toBe(3);
+  it("bấm Tôi đã nhận đủ thì cả 6 bước xong", () => {
+    expect(currentHandoverStep("HANDOVER_COMMITTED", false, true)).toBe(7);
+    expect(currentHandoverStep("HANDOVER_COMMITTED", false, false)).toBe(6);
   });
 
   it("lượt đã kết thúc không thành công không có bước hiện tại", () => {

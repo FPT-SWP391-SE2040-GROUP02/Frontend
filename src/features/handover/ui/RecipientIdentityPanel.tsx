@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { TriangleAlert } from "lucide-react";
 import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
+import { useLatestSubmission } from "../model/useLatestSubmission";
 import {
   MAX_RESIDENCE_ADDRESS_LENGTH,
   submissionFormError,
@@ -143,11 +143,7 @@ export function RecipientIdentityPanel({
   turnId: string;
   onChanged: () => void;
 }) {
-  const query = useQuery({
-    queryKey: ["handover", "submission", turnId],
-    queryFn: ({ signal }) => handoverService.latestSubmission(turnId, signal),
-    retry: false,
-  });
+  const query = useLatestSubmission(turnId);
   if (query.isPending) return <p role="status">Đang tải hồ sơ danh tính…</p>;
   if (query.isError) {
     return (
@@ -171,8 +167,8 @@ export function RecipientIdentityPanel({
           Đã gửi cho luật sư <Chip>Chờ kiểm</Chip>
         </p>
         <p className="text-heritage-muted">
-          Luật sư đang đối chiếu căn cước của bạn. Khi mọi người nhận được xác nhận, bạn sẽ ký biên
-          bản bàn giao.
+          Luật sư đang đối chiếu căn cước của bạn. Được xác nhận thì bạn ký biên bản bàn giao, không
+          phải chờ người nhận khác.
         </p>
       </div>
     );

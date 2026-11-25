@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom";
+import { RECEIVE_STEP_TITLES, RECEIVE_STEPS_DONE } from "@/entities/handoverRecord";
 import { Chip, buttonStyles } from "@/shared/ui/heritageKit";
 import type { AvailableHandover } from "../model/handoverRequest.schema";
-import { availableAction, availableStatusLabel } from "../model/availablePresentation";
+import {
+  availableAction,
+  availableStatusLabel,
+  availableStep,
+} from "../model/availablePresentation";
 import { useAvailableHandovers } from "../model/useHandoverRequest";
 
 /** Câu giải thích ngắn khi dòng chưa có nút để bấm. */
@@ -15,9 +20,22 @@ function noActionHint(row: AvailableHandover): string {
   return "";
 }
 
+/** Dòng "Bước x/6" của một kho; rỗng khi kho không ở bước nào. */
+function stepLine(row: AvailableHandover): string {
+  const step = availableStep(row);
+  if (step === null) {
+    return "";
+  }
+  if (step === RECEIVE_STEPS_DONE) {
+    return "Đã xong cả 6 bước.";
+  }
+  return `Bước ${step}/${RECEIVE_STEP_TITLES.length}: ${RECEIVE_STEP_TITLES[step - 1]}`;
+}
+
 function AvailableRow({ row }: { row: AvailableHandover }) {
   const status = availableStatusLabel[row.status];
   const action = availableAction(row);
+  const progress = stepLine(row);
   let hint = "";
   if (action === null) {
     hint = noActionHint(row);
@@ -37,6 +55,7 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
           <Chip tone={status.tone}>{status.label}</Chip>
           {row.needsAction && <Chip tone="warning">Cần bạn làm</Chip>}
         </div>
+        {progress !== "" && <p className="text-sm font-medium">{progress}</p>}
         {notRequestedNote !== "" && (
           <p className="text-sm text-heritage-muted">{notRequestedNote}</p>
         )}
