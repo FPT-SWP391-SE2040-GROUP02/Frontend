@@ -9,7 +9,13 @@ export function ExecutorPermissionsSection() {
   if (query.isError) return <p role="alert">Không tải được các kho được phân công.</p>;
   return (
     <div className="space-y-6">
-      {selected && <ExecutorReceivedKeyCard key={selected.vaultId} vaultId={selected.vaultId} />}
+      {selected && (
+        <ExecutorReceivedKeyCard
+          key={selected.vaultId}
+          vaultId={selected.vaultId}
+          planStatus={selected.planStatus}
+        />
+      )}
       <ExecutorPermissions selected={selected} />
     </div>
   );

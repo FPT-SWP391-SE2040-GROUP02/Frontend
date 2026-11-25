@@ -84,7 +84,7 @@ afterEach(() => {
 });
 
 const VAULT_ID = "22222222-2222-4222-8222-222222222222";
-const NOT_STARTED_MESSAGE = "Mã nhận sẽ hiện khi hồ sơ được duyệt và bàn giao bắt đầu.";
+const NOT_STARTED_MESSAGE = "Mã nhận sẽ hiện sau khi luật sư chốt biên bản bàn giao.";
 const notStartedProblem = () =>
   problem(409, {
     code: "HANDOVER_NOT_ALLOWED",
@@ -191,7 +191,7 @@ it("thẻ Mã nhận của Người thực thi: 409 HANDOVER_NOT_STARTED hiện 
   vi.spyOn(apiClient, "get").mockRejectedValue(notStartedProblem());
   render(
     <QueryClientProvider client={client}>
-      <ExecutorReceivedKeyCard vaultId={VAULT_ID} />
+      <ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus="HANDOVER_IN_PROGRESS" />
     </QueryClientProvider>,
   );
   expect(screen.queryByText(/phiếu/i)).not.toBeInTheDocument();

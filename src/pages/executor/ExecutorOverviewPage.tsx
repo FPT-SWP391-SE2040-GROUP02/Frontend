@@ -38,7 +38,11 @@ export function ExecutorOverviewPage() {
           {(vault) => (
             <div className="space-y-6">
               <ExecutorOverview vault={vault} />
-              <ExecutorReceivedKeyCard key={vault.vaultId} vaultId={vault.vaultId} />
+              <ExecutorReceivedKeyCard
+                key={vault.vaultId}
+                vaultId={vault.vaultId}
+                planStatus={vault.planStatus}
+              />
             </div>
           )}
         </VaultGate>

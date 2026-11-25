@@ -196,7 +196,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     expect(screen.getByText(/Mời ngày .* · Đồng ý ngày /)).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch, rồi chỉ gửi cho người này khi hồ sơ được duyệt.",
+        "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch. Người này chỉ xem được sau khi luật sư chốt biên bản bàn giao.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Thay người khác" })).toBeInTheDocument();
@@ -229,7 +229,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     expect(screen.queryByRole("button", { name: /^Thu hồi/ })).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "Hệ thống tự giữ mã nhận và chỉ gửi cho người này khi hồ sơ được duyệt và bàn giao bắt đầu.",
+        "Hệ thống tự giữ mã nhận. Người này chỉ xem được sau khi luật sư chốt biên bản bàn giao.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText(/không thu hồi trực tiếp/)).toBeInTheDocument();

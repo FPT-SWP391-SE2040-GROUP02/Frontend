@@ -487,10 +487,10 @@ function ChosenCard(props: ChosenCardProps) {
     statusText = "Người này cần đồng ý lại. Bấm Gửi lại lời mời để họ xác nhận.";
   } else if (planRunning) {
     statusText =
-      "Hệ thống tự giữ mã nhận và chỉ gửi cho người này khi hồ sơ được duyệt và bàn giao bắt đầu.";
+      "Hệ thống tự giữ mã nhận. Người này chỉ xem được sau khi luật sư chốt biên bản bàn giao.";
   } else {
     statusText =
-      "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch, rồi chỉ gửi cho người này khi hồ sơ được duyệt.";
+      "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch. Người này chỉ xem được sau khi luật sư chốt biên bản bàn giao.";
   }
 
   const forbidden: string[] = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Nhận tài sản trong kho này"];
