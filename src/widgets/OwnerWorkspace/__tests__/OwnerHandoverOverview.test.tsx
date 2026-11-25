@@ -9,6 +9,7 @@ import { AxiosError, AxiosHeaders } from "axios";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { apiClient } from "@/shared/api/axiosClient";
+import { registerVaultPinHandler } from "@/shared/api/vaultPin";
 import { usePlanSetup } from "@/features/plan-setup/model/usePlanSetup";
 import { executorKeyService } from "@/features/executor-key/api/executorKeyService";
 import { OwnerHandoverOverview } from "../OwnerHandoverOverview";
@@ -308,14 +309,19 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
     expect(await screen.findByText("Đã gửi lại lời mời tới hai@example.test.")).toBeVisible();
   });
 
-  it("Người thực thi đã nhận vai: thẻ xong, có nút Đổi người", () => {
+  it("Người thực thi đã nhận vai: thẻ xong, bấm Đổi người mở hộp đúng tên", async () => {
     showPlan();
     renderOverview();
 
     expect(
       screen.getByText(/Lê Thị Mẫu \(executor@example.test\) — đã ký nhận vai ngày/),
     ).toBeVisible();
-    expect(screen.getByRole("button", { name: "Đổi người" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Đổi người" }));
+    const dialog = await screen.findByRole("dialog", { name: "Đổi Người thực thi?" });
+    expect(dialog).toHaveTextContent("Thu hồi xong, bạn chọn người mới ngay ở thẻ này.");
+    expect(
+      within(dialog).getByRole("button", { name: "Thu hồi để đổi người" }),
+    ).toBeInTheDocument();
   });
 
   it("thiếu eKYC, gói và gói dịch vụ: mỗi thẻ có nút dẫn tới nơi xử lý", () => {
@@ -996,6 +1002,41 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeEnabled();
     expect(screen.getByText("Đã đủ 2 chữ ký")).toBeInTheDocument();
+  });
+
+  it("đóng hộp PIN: nhắc nhập PIN chứ không báo đỏ; nhập PIN thì hiện danh tính và mở khóa xuất", async () => {
+    showPlan(RUNNING);
+    let calls = 0;
+    mockIdentityGet(() => {
+      calls = calls + 1;
+      // Lần mở khung bị đòi PIN và người dùng hủy; lần sau bị đòi PIN, nhập xong thì Backend trả danh tính.
+      if (calls < 3) {
+        return Promise.reject(pinProblem("VAULT_PIN_REQUIRED"));
+      }
+      return Promise.resolve(identityBody());
+    });
+    const requestPin = vi.fn().mockResolvedValueOnce(null).mockResolvedValueOnce("123456");
+    const unregister = registerVaultPinHandler({
+      requestPin,
+      requestNewPin: vi.fn(),
+      notifyLocked: vi.fn(),
+      afterAssetCreated: vi.fn(),
+    });
+    renderOverview();
+    const dialog = await openDrawer();
+
+    expect(
+      await within(dialog).findByText(/Chưa xác nhận mã PIN nên ngày sinh/),
+    ).toBeInTheDocument();
+    expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeDisabled();
+    expect(screen.getByText("Nhập mã PIN để xuất")).toBeInTheDocument();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Nhập mã PIN" }));
+    expect(await within(paper()).findByText("079203001234")).toBeInTheDocument();
+    expect(requestPin).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeEnabled();
+    unregister();
   });
 
   it("Chủ kho chưa có danh tính eKYC: ghi rõ chưa có CCCD và thường trú, dùng họ tên từ kế hoạch, không bịa", async () => {

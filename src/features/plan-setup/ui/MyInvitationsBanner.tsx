@@ -24,7 +24,7 @@ export function MyInvitationsBanner({ invitationsHref }: { invitationsHref: stri
       className="flex flex-wrap items-center gap-4 rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg px-5 py-4"
     >
       <Mail className="size-5 shrink-0 text-heritage-warning" aria-hidden="true" />
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 basis-56">
         <p className="font-semibold text-heritage-primary">
           {first.ownerName} mời bạn làm Người thực thi
         </p>

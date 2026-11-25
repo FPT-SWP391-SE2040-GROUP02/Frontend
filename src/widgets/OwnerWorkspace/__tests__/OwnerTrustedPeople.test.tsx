@@ -174,6 +174,20 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     expect(screen.getByRole("button", { name: "Thu hồi lời mời" })).toBeInTheDocument();
   });
 
+  it("hộp thu hồi lời mời chưa đồng ý: có người được mời và nói rõ hậu quả", async () => {
+    showPlan({ executors: [executor()] });
+    renderPage();
+
+    await userEvent.click(await screen.findByRole("button", { name: "Thu hồi lời mời" }));
+    const dialog = await screen.findByRole("dialog", { name: "Thu hồi lời mời?" });
+    expect(dialog).toHaveTextContent("thuc-thi@example.test");
+    expect(dialog).toHaveTextContent(/Chờ đồng ý · mời ngày /);
+    expect(dialog).toHaveTextContent("Liên kết trong email mời sẽ không dùng được nữa.");
+    expect(dialog).toHaveTextContent("Kế hoạch cần có Người thực thi mới kích hoạt được.");
+    expect(dialog).not.toHaveTextContent("không còn là Người thực thi");
+    expect(dialog).not.toHaveTextContent("Hồ sơ đang xử lý");
+  });
+
   it("ACCEPTED: chip Đã đồng ý, ngày mời và ngày đồng ý, nút Thay người khác", async () => {
     showPlan({ executors: [executor({ status: "ACCEPTED", acceptedAt: ACCEPTED_AT })] });
     renderPage();
@@ -212,7 +226,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     renderPage();
 
     expect(await screen.findByRole("button", { name: "Thay người khác" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Thu hồi lời mời" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Thu hồi/ })).not.toBeInTheDocument();
     expect(
       screen.getByText(
         "Hệ thống tự giữ mã nhận và chỉ gửi cho người này khi hồ sơ được duyệt và bàn giao bắt đầu.",
@@ -293,6 +307,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
       "Thay người khác",
       "Gửi lại lời mời",
       "Thu hồi lời mời",
+      "Thu hồi vai",
       "Đổi mã mới",
     ]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
@@ -314,7 +329,9 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
     await userEvent.click(
       await within(dialog).findByRole("button", { name: "Chọn người này: Luật sư Thử" }),
     );
-    await userEvent.click(within(dialog).getByRole("switch", { name: /là nhân viên LegacyVault/ }));
+    await userEvent.click(
+      within(dialog).getByRole("checkbox", { name: /là nhân viên LegacyVault/ }),
+    );
     await userEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   }
 

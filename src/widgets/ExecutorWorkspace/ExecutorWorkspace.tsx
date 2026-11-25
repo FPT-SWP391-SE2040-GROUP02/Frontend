@@ -1,9 +1,10 @@
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   Home,
   ListChecks,
+  Lock,
   Mail,
   Menu,
   Package,
@@ -23,23 +24,31 @@ import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "./executor-workspace.css";
 import { NotificationBell } from "@/features/death-case/ui/NotificationBell";
 import { ExecutorVaultCard } from "./ExecutorVaultCard";
+import { useSelectedExecutorVault } from "@/features/death-case/model/useExecutorVaults";
+
+const INVITATIONS_LABEL = "Lời mời và kho";
+/** Dòng giải thích ổ khóa; các mục bị khóa trỏ tới nó qua aria-describedby. */
+const LOCKED_NOTE_ID = "executor-locked-note";
 
 interface NavItem {
   label: string;
   to: string;
   icon: LucideIcon;
+  /** Mục chỉ có nghĩa khi đang giữ ít nhất một kho. */
+  needsVault?: boolean;
 }
 
 /**
- * Menu theo kho đang chọn: Tổng quan, Báo tin, Bàn giao, Tài sản và hướng dẫn, Biên bản, Cài đặt.
- * "Lời mời và các kho bạn đang làm việc" nằm ở chân thanh bên, dưới nút đổi vai. Không còn mục Xác minh trong menu
- * (trang vẫn còn, chỉ không có liên kết).
+ * Menu theo kho đang chọn: Tổng quan, Biên bản bàn giao, Bàn giao, Tài sản và hướng dẫn, Cài đặt. Chưa giữ kho nào
+ * thì ba mục cần kho vẫn hiện nhưng mờ, có ổ khóa và không bấm được. "Lời mời và kho" nằm ở chân thanh bên; dưới
+ * 768px chân thanh bị ẩn nên có thêm một mục trong menu. Không còn mục Xác minh trong menu (trang vẫn còn, chỉ không
+ * có liên kết).
  */
 const executorNavigation: NavItem[] = [
   { label: "Tổng quan", to: ROUTES.EXECUTOR.ROOT, icon: Home },
-  { label: "Biên bản bàn giao", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks },
-  { label: "Bàn giao", to: ROUTES.EXECUTOR.PROGRESS, icon: Send },
-  { label: "Tài sản và hướng dẫn", to: ROUTES.EXECUTOR.ASSETS, icon: Package },
+  { label: "Biên bản bàn giao", to: ROUTES.EXECUTOR.REPORT, icon: ListChecks, needsVault: true },
+  { label: "Bàn giao", to: ROUTES.EXECUTOR.PROGRESS, icon: Send, needsVault: true },
+  { label: "Tài sản và hướng dẫn", to: ROUTES.EXECUTOR.ASSETS, icon: Package, needsVault: true },
   { label: "Cài đặt", to: ROUTES.EXECUTOR.SETTINGS, icon: Settings },
 ];
 
@@ -66,6 +75,10 @@ export function ExecutorWorkspace({
   const invitations = useMyInvitations(isAuthenticated && Boolean(accessTokenMemory.get()));
   let pendingInvitations = 0;
   if (invitations.isSuccess) pendingInvitations = invitations.data.pending.length;
+  const vaultState = useSelectedExecutorVault();
+  // Chỉ khóa khi đã biết chắc là không giữ kho nào; đang tải hay lỗi thì menu vẫn bấm được.
+  const noVault = vaultState.query.isSuccess && vaultState.vaults.length === 0;
+  const firstVaultItem = executorNavigation.findIndex((item) => item.needsVault);
   const path = location.pathname;
   const isCurrent = (to: string): boolean => {
     if (to === ROUTES.EXECUTOR.ROOT) return path === to;
@@ -104,21 +117,61 @@ export function ExecutorWorkspace({
             data-open={navigationOpen}
           >
             <ExecutorVaultCard />
-            <p className="mt-3 truncate px-3 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
-              Kho này
-            </p>
-            {executorNavigation.map(({ to, label, icon: Icon }) => (
-              <Link
-                key={to}
-                to={to}
-                aria-current={isCurrent(to) ? "page" : undefined}
-                className="owner-nav-link"
-                onClick={() => setNavigationOpen(false)}
-              >
-                <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                {label}
-              </Link>
-            ))}
+            {!noVault && (
+              <p className="mt-3 truncate px-3 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
+                Kho này
+              </p>
+            )}
+            {executorNavigation.map(({ to, label, icon: Icon, needsVault }, index) => {
+              if (noVault && needsVault) {
+                return (
+                  <Fragment key={to}>
+                    {index === firstVaultItem && (
+                      <div className="col-span-2 mt-3 pl-3">
+                        <p className="text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
+                          Kho này
+                        </p>
+                        <p id={LOCKED_NOTE_ID} className="mt-1 text-sm text-heritage-gold-soft">
+                          Mở khi bạn nhận một kho
+                        </p>
+                      </div>
+                    )}
+                    <span
+                      role="link"
+                      aria-disabled="true"
+                      aria-describedby={LOCKED_NOTE_ID}
+                      className="owner-nav-link executor-nav-locked"
+                    >
+                      <Icon className="size-[18px] shrink-0" aria-hidden="true" />
+                      <span className="min-w-0 flex-1">{label}</span>
+                      <Lock className="size-3.5 shrink-0" aria-hidden="true" />
+                    </span>
+                  </Fragment>
+                );
+              }
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  aria-current={isCurrent(to) ? "page" : undefined}
+                  className="owner-nav-link"
+                  onClick={() => setNavigationOpen(false)}
+                >
+                  <Icon className="size-[18px] shrink-0" aria-hidden="true" />
+                  {label}
+                </Link>
+              );
+            })}
+            <Link
+              to={ROUTES.EXECUTOR.INVITATIONS}
+              aria-current={isCurrent(ROUTES.EXECUTOR.INVITATIONS) ? "page" : undefined}
+              className="owner-nav-link owner-nav-link--phone-only"
+              onClick={() => setNavigationOpen(false)}
+            >
+              <Mail className="size-[18px] shrink-0" aria-hidden="true" />
+              {INVITATIONS_LABEL}
+              {pendingInvitations > 0 && <InvitationCountBadge count={pendingInvitations} />}
+            </Link>
           </nav>
         </>
       }
@@ -132,7 +185,7 @@ export function ExecutorWorkspace({
               onClick={() => setNavigationOpen(false)}
             >
               <Mail className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              <span className="min-w-0 flex-1">Lời mời và các kho bạn đang làm việc</span>
+              <span className="min-w-0 flex-1">{INVITATIONS_LABEL}</span>
               {pendingInvitations > 0 && <InvitationCountBadge count={pendingInvitations} />}
             </Link>
           </nav>

@@ -481,14 +481,15 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     });
   }
 
-  it("thẻ lời mời: chip chờ trả lời, quyền hạn ngắn, Chấp nhận khóa tới khi tick", async () => {
+  it("thẻ lời mời: chip chờ trả lời, ba bước theo thứ tự, nút ký khóa tới khi đủ", async () => {
     mockApi([]);
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
     expect(card).toHaveTextContent("Cô Lan mời bạn làm Người thực thi");
     expect(card).toHaveTextContent("Mời ngày 01/11/2026");
     expect(within(card).getByText("Chờ bạn trả lời")).toBeInTheDocument();
-    expect(card).toHaveTextContent("Không đọc được nội dung kho");
+    // Đoạn phạm vi do Backend trả đã nói đủ quyền hạn, không lặp lại thành danh sách.
+    expect(within(card).queryByText("Quyền hạn của Người thực thi")).not.toBeInTheDocument();
     expect(card).toHaveTextContent(
       "Email và số điện thoại của bạn được gửi cho người nhận khi kế hoạch được kích hoạt",
     );
@@ -496,6 +497,14 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     expect(card).not.toHaveTextContent(/Còn \d|Lời mời hết hạn|Hết hạn|hạn chót/);
     const accept = within(card).getByRole("button", { name: "Ký nhận vai" });
     expect(accept).toBeDisabled();
+    const steps = within(card).getAllByRole("listitem");
+    expect(steps).toHaveLength(3);
+    expect(steps[0]).toHaveTextContent("Đọc biên bản");
+    expect(steps[1]).toHaveTextContent("Đồng ý (đang khóa)");
+    expect(steps[2]).toHaveTextContent("Ký bằng mật khẩu (đang khóa)");
+    const password = within(card).getByLabelText("Mật khẩu tài khoản");
+    expect(password).toBeDisabled();
+    expect(password).toHaveAttribute("placeholder", "Mở biên bản trước");
     fireEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
     fireEvent.click(await screen.findByRole("button", { name: "Đóng" }));
     fireEvent.click(
@@ -505,10 +514,30 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     );
     // Đã tick phạm vi nhưng chưa nhập mật khẩu thì vẫn khóa.
     expect(accept).toBeDisabled();
+    expect(steps[0]).toHaveTextContent("Đọc biên bản (đã xong)");
+    expect(steps[1]).toHaveTextContent("Đồng ý (đã xong)");
+    expect(steps[2]).not.toHaveTextContent("đang khóa");
+    expect(password).not.toHaveAttribute("placeholder");
     fireEvent.change(within(card).getByLabelText("Mật khẩu tài khoản"), {
       target: { value: "mat-khau-thu" },
     });
     expect(accept).toBeEnabled();
+  });
+
+  it("bấm Từ chối thì hỏi lại; chỉ gửi khi xác nhận", async () => {
+    mockApi([]);
+    const post = vi.spyOn(apiClient, "post").mockRejectedValue(new Error("down"));
+    render2(<ExecutorInvitationsPage />, "/executor/invitations");
+    const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
+    fireEvent.click(within(card).getByRole("button", { name: "Từ chối" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Chủ kho phải gửi lời mời mới");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Quay lại" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(post).not.toHaveBeenCalled();
+    fireEvent.click(within(card).getByRole("button", { name: "Từ chối" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Từ chối lời mời" }));
+    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   });
 
   it("chấp nhận xong gọi Backend và tải lại danh sách kho; kho mới hiện ở Kho bạn đang giữ", async () => {
@@ -613,11 +642,11 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     expect(screen.queryByText(/Không có lời mời nào đang chờ/)).not.toBeInTheDocument();
   });
 
-  it("lời mời đã kết thúc gom thành một dòng nhỏ có nút Xem", async () => {
+  it("lời mời đã kết thúc gom thành một dòng nhỏ, mở ra thấy lý do", async () => {
     mockApi([]);
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
-    expect(await screen.findByText("Lời mời đã từ chối hoặc hết hạn: 1")).toBeInTheDocument();
-    expect(screen.getByText("· Xem")).toBeInTheDocument();
+    fireEvent.click(await screen.findByText("Lời mời cũ (1)"));
+    expect(screen.getByText("Đã từ chối · 02/11/2026")).toBeInTheDocument();
   });
 
   it("trang Cài đặt không còn phần lời mời", async () => {

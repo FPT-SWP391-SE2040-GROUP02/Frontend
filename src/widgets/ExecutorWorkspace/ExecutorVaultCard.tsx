@@ -15,14 +15,15 @@ const STAGE_COLOR: Record<Tone, string> = {
 /**
  * Thẻ "Đang làm việc với kho" ở đầu menu trái: chỉ hiển thị kho đang chọn (chữ cái đầu tên Chủ kho, tên Chủ kho,
  * trạng thái gọn), không bấm được. Đổi kho chỉ làm ở trang "Lời mời và các kho bạn đang làm việc" qua liên kết
- * "Đổi kho →". Chưa giữ kho nào thì thẻ ghi "Chưa giữ kho nào" và liên kết thành "Xem lời mời →".
+ * "Đổi kho →". Chưa giữ kho nào thì không hiện khối này; lời mời đã có lối vào riêng ở menu.
  * Quyền trên từng kho vẫn do Backend kiểm tra.
  */
 export function ExecutorVaultCard() {
   const { query, selected } = useSelectedExecutorVault();
+  if (!query.isPending && !selected) return null;
   let card;
-  let linkText = "Xem lời mời →";
-  if (query.isPending) {
+  let switchLink = null;
+  if (!selected) {
     card = (
       <div
         role="status"
@@ -31,9 +32,16 @@ export function ExecutorVaultCard() {
         Đang tải kho…
       </div>
     );
-  } else if (selected) {
+  } else {
     const stage = vaultStage(selected);
-    linkText = "Đổi kho →";
+    switchLink = (
+      <Link
+        to={ROUTES.EXECUTOR.INVITATIONS}
+        className="mt-2 inline-block px-1 text-sm font-semibold text-heritage-gold-soft hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+      >
+        Đổi kho →
+      </Link>
+    );
     card = (
       <div
         aria-label={`Kho đang làm việc: ${selected.ownerFullName}`}
@@ -54,16 +62,6 @@ export function ExecutorVaultCard() {
         </span>
       </div>
     );
-  } else {
-    card = (
-      <div
-        role="group"
-        aria-label="Chưa giữ kho nào"
-        className="rounded-xl border border-white/15 bg-white/5 p-3 text-sm text-white/70"
-      >
-        Chưa giữ kho nào
-      </div>
-    );
   }
   return (
     <section aria-labelledby="executor-current-vault-heading" className="px-2 pt-2">
@@ -74,12 +72,7 @@ export function ExecutorVaultCard() {
         Đang làm việc với kho
       </h2>
       {card}
-      <Link
-        to={ROUTES.EXECUTOR.INVITATIONS}
-        className="mt-2 inline-block px-1 text-sm font-semibold text-heritage-gold-soft hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
-      >
-        {linkText}
-      </Link>
+      {switchLink}
     </section>
   );
 }

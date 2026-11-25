@@ -67,21 +67,19 @@ describe("ExecutorVaultCard", () => {
     expect(await screen.findByText("Trang lời mời và kho")).toBeInTheDocument();
   });
 
-  it("chưa giữ kho nào: thẻ ghi Chưa giữ kho nào và liên kết thành Xem lời mời →", () => {
+  it("chưa giữ kho nào thì không hiện khối kho", () => {
     mockState(null);
     renderCard();
-    expect(screen.getByText("Chưa giữ kho nào")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Xem lời mời →" })).toHaveAttribute(
-      "href",
-      "/executor/invitations",
-    );
-    expect(screen.queryByRole("link", { name: "Đổi kho →" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Đang làm việc với kho" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("đang tải danh sách kho thì chưa nói là chưa giữ kho nào", () => {
+  it("đang tải danh sách kho thì chỉ báo đang tải, chưa có liên kết đổi kho", () => {
     mockState(null, true);
     renderCard();
-    expect(screen.queryByText("Chưa giữ kho nào")).not.toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Đang tải kho…");
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 });

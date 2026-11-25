@@ -150,6 +150,9 @@ describe("MyInvitationsInbox", () => {
     renderWithRoutes(<MyInvitationsInbox />);
     const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
     await userEvent.click(within(card).getByRole("button", { name: "Từ chối" }));
+    // Hỏi lại trước khi gửi.
+    expect(planSetupService.respondById).not.toHaveBeenCalled();
+    await userEvent.click(await screen.findByRole("button", { name: "Từ chối lời mời" }));
     expect(planSetupService.respondById).toHaveBeenCalledWith(
       FIRST_ID,
       false,

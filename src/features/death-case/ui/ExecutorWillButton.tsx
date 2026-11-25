@@ -12,9 +12,11 @@ import type { ExecutorVault } from "../model/deathCase.schema";
 export function ExecutorWillButton({
   vault,
   onOpen,
+  primary,
 }: {
   vault: ExecutorVault;
   onOpen?: () => void;
+  primary?: boolean;
 }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   let version: WillVersionView | null = null;
@@ -33,6 +35,7 @@ export function ExecutorWillButton({
   return (
     <PaperPreviewButton
       onOpen={onOpen}
+      primary={primary}
       label="Xem biên bản với Chủ kho"
       title="Biên bản phân chia"
       fileName="Bien-ban-phan-chia"

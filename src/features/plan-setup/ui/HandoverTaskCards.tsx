@@ -13,6 +13,8 @@ import { isExecutorBehind } from "../lib/willView";
 import { currentHolder } from "../lib/executorHolder";
 import { handoverTaskElementId, type HandoverTaskId } from "../lib/handoverTasks";
 import { InviteDialog, RevokeDialog } from "./ExecutorsSection";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 type PlanSetup = z.infer<typeof planSetupSchema>;
 type Executor = z.infer<typeof executorSchema>;
@@ -103,6 +105,7 @@ function ExecutorTask({
 }) {
   const client = useQueryClient();
   const resendAction = usePrivateAction();
+  const resendSuccess = useSuccessHold();
   const [dialog, setDialog] = useState<ExecutorDialog>(null);
   const [notice, setNotice] = useState("");
   const holder: Executor | null = currentHolder(setup.executors);
@@ -116,7 +119,12 @@ function ExecutorTask({
   function resend(executor: Executor): void {
     setNotice("");
     void resendAction.execute(
-      () => planSetupService.resend(vaultId, executor.id, executor.etag),
+      () =>
+        resendSuccess.hold(
+          () => planSetupService.resend(vaultId, executor.id, executor.etag),
+          // Chỉ hiện dấu tích khi thư thật sự gửi được.
+          (result) => Boolean(result.invitationSentAt),
+        ),
       (result) => {
         if (result.invitationSentAt) {
           setNotice(`Đã gửi lại lời mời tới ${result.inviteeEmail}.`);
@@ -210,14 +218,17 @@ function ExecutorTask({
     let resendButton: ReactNode = null;
     if (holder.status === "INVITED" || holder.status === "SUSPENDED") {
       resendButton = (
-        <button
-          type="button"
+        <ActionButton
           className={SECONDARY_LINK}
           disabled={resendAction.pending}
+          pending={resendAction.pending}
+          done={resendSuccess.done}
+          pendingLabel="Đang gửi…"
+          doneLabel="Đã gửi"
           onClick={() => resend(holder)}
         >
           Gửi lại lời mời
-        </button>
+        </ActionButton>
       );
     }
     actions = (
@@ -246,14 +257,6 @@ function ExecutorTask({
       </p>
     );
   }
-  let pendingText: ReactNode = null;
-  if (resendAction.pending) {
-    pendingText = (
-      <p role="status" className="mt-2 text-sm text-heritage-muted">
-        Đang gửi lại lời mời…
-      </p>
-    );
-  }
   let noticeText: ReactNode = null;
   if (notice !== "" && !resendAction.pending) {
     noticeText = (
@@ -275,7 +278,6 @@ function ExecutorTask({
     <TaskCard task="executor" order={4} done={done} title="Người thực thi" flashing={flashing}>
       {description}
       {undeliverable}
-      {pendingText}
       {noticeText}
       {errorText}
       {actions !== null && <Actions>{actions}</Actions>}
@@ -291,6 +293,7 @@ function ExecutorTask({
       )}
       {dialog === "revoke" && holder !== null && (
         <RevokeDialog
+          changing
           vaultId={vaultId}
           executor={holder}
           sync={sync}

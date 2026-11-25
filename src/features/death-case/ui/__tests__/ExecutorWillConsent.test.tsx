@@ -56,6 +56,20 @@ it("phải mở biên bản rồi mới đồng ý và ký được", async () =
   );
 });
 
+it("không đồng ý thì hỏi lại; chỉ gửi khi xác nhận", async () => {
+  setup({ willConsentRequired: true });
+  await userEvent.click(screen.getByRole("button", { name: "Xem biên bản với Chủ kho" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Đóng" }));
+  await userEvent.click(screen.getByRole("button", { name: "Không đồng ý" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Quay lại" }));
+  expect(deathCaseService.respondWill).not.toHaveBeenCalled();
+  await userEvent.click(screen.getByRole("button", { name: "Không đồng ý" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Xác nhận không đồng ý" }));
+  await waitFor(() =>
+    expect(deathCaseService.respondWill).toHaveBeenCalledWith(VAULT_ID, false, 2, ""),
+  );
+});
+
 it("đã không đồng ý thì chỉ nhắc lại", () => {
   setup({ willConsentRequired: false, declinedWillVersionNo: 2 });
   expect(screen.getByText("Bạn không đồng ý biên bản phiên bản 2")).toBeInTheDocument();
