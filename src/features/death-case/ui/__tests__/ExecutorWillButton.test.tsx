@@ -42,13 +42,20 @@ function setup(extra: Record<string, unknown>) {
 }
 
 it("mở biên bản có tên hai bên, phiên bản và hai chữ ký", async () => {
-  setup({ willVersionNo: 2, willSignedAt: AT });
+  setup({ willVersionNo: 2, willSignedAt: AT, confirmedWillVersionNo: 2, willConfirmedAt: AT });
   await userEvent.click(screen.getByRole("button", { name: "Xem biên bản với Chủ kho" }));
   const paper = await screen.findByRole("article", { name: "Tờ Biên bản phân chia" });
   expect(paper).toHaveTextContent("Nguyễn Chủ Kho");
   expect(paper).toHaveTextContent("Trần Thực Thi");
   expect(paper).toHaveTextContent("Phiên bản 2");
   expect(paper.textContent?.match(/Đã ký điện tử/g)).toHaveLength(2);
+});
+
+it("chưa đồng ý phiên bản mới thì chưa in chữ ký Người thực thi", async () => {
+  setup({ willVersionNo: 2, willSignedAt: AT, confirmedWillVersionNo: 1, willConfirmedAt: AT });
+  await userEvent.click(screen.getByRole("button", { name: "Xem biên bản với Chủ kho" }));
+  const paper = await screen.findByRole("article", { name: "Tờ Biên bản phân chia" });
+  expect(paper.textContent?.match(/Đã ký điện tử/g)).toHaveLength(1);
 });
 
 it("Chủ kho chưa ký thì ghi chờ Chủ kho ký", async () => {

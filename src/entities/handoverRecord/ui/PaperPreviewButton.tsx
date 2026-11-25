@@ -28,6 +28,7 @@ export function PaperPreviewButton({
   title,
   fileName,
   paper,
+  onOpen,
 }: {
   /** Chữ trên nút. */
   label: string;
@@ -36,11 +37,20 @@ export function PaperPreviewButton({
   /** Tên tệp gợi ý khi lưu PDF, không dấu. */
   fileName: string;
   paper: ReactNode;
+  /** Gọi khi người dùng mở tờ giấy (để biết họ đã xem trước khi ký). */
+  onOpen?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button type="button" className={buttonStyles.outline} onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className={buttonStyles.outline}
+        onClick={() => {
+          setOpen(true);
+          onOpen?.();
+        }}
+      >
         <FileText className="size-4" aria-hidden="true" />
         {label}
       </button>

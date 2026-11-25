@@ -15,6 +15,10 @@ export const executorSchema = z.object({
   emailUndeliverable: z.boolean().optional(),
   /** Họ tên trong tài khoản đã liên kết; null khi chưa có tài khoản. Backend cũ không có trường này. */
   fullName: z.string().nullable().optional(),
+  /** Phiên bản biên bản phân chia Người thực thi đã xem và ký. */
+  confirmedWillVersionNo: z.number().int().nullish(),
+  /** Phiên bản Người thực thi không đồng ý. */
+  declinedWillVersionNo: z.number().int().nullish(),
 });
 /**
  * Tài sản được gán cho một người nhận trong biên bản phân chia. Không có nội dung tài sản.
@@ -80,6 +84,10 @@ export const planSetupSchema = z.object({
   /** Kế hoạch đang chạy mà cấu hình khác bản ký gần nhất. */
   hasUnsignedChanges: z.boolean().optional(),
   unsignedChanges: unsignedChangesSchema.nullable().optional(),
+  /** Kế hoạch nháp: Chủ kho đã ký, đang chờ Người thực thi xem và ký để có hiệu lực. */
+  willAwaitingExecutor: z.boolean().optional(),
+  /** Mọi bước khác đã xong nên mời được Người thực thi. */
+  canInviteExecutor: z.boolean().optional(),
 });
 export const executorInfoSchema = z.object({
   expiresAt: date,

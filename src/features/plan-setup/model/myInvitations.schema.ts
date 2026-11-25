@@ -11,7 +11,14 @@ export const myInvitationSchema = z.object({
   invitedAt: date,
   expiresAt: date,
   endedAt: date.nullable(),
-  /** Điều khoản Chủ kho thêm vào biên bản phân chia để người được mời đọc trước khi ký. */
+  /** Chủ kho đã ký biên bản phân chia nên xem và ký nhận vai được. */
+  willReady: z.boolean().default(false),
+  /** Phiên bản đang xem, gửi lại khi ký. */
+  willVersionNo: z.number().int().positive().nullish(),
+  willSignedAt: date.nullish(),
+  /** Chỉ là số đếm, không có tên. */
+  assetCount: z.number().int().nonnegative().default(0),
+  recipientCount: z.number().int().nonnegative().default(0),
 });
 
 export const myInvitationsSchema = z.object({

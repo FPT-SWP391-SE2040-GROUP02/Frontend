@@ -42,6 +42,8 @@ export interface WillDocumentProps {
   ownerIdentity?: WillOwnerIdentityView | null;
   /** Phiên bản đã ký gần nhất; bỏ trống thì không in dòng phiên bản. */
   version?: WillVersionView | null;
+  /** Số tài sản và người nhận khi người xem không được biết tên (Người thực thi); chỉ dùng khi không có `recipients`. */
+  counts?: { assets: number; recipients: number };
 }
 
 const SECTION = "mt-7";
@@ -212,20 +214,27 @@ function AssetsSectionBlock({
   recipients,
   unassignedAssetCount,
   identityStatus,
+  counts,
 }: {
   recipients: WillRecipientView[] | undefined;
   unassignedAssetCount: number;
   identityStatus: WillIdentityStatus;
+  counts: { assets: number; recipients: number } | undefined;
 }) {
   const heading = <h3 className={HEADING}>II. Tài sản và định đoạt tài sản</h3>;
   if (recipients === undefined) {
     return (
       <section id="muc-2" className={SECTION}>
         {heading}
+        {counts !== undefined && (
+          <p className={BODY}>
+            Kho có {counts.assets} tài sản. Số người nhận đã khai: {counts.recipients}.
+          </p>
+        )}
         <p className={BODY}>
-          Các tài sản trong kho được để lại cho những người nhận mà tôi đã chọn cho từng tài sản
-          trong kế hoạch bàn giao. Tài sản chọn cho nhiều người thì những người đó nhận chung. Biên
-          bản phân chia không ghi nội dung tài sản.
+          Các tài sản trong kho được để lại cho những người nhận tôi đã chọn, nếu có. Phần chưa chọn
+          người nhận do luật sư xác định khi bàn giao. Biên bản phân chia không ghi nội dung tài
+          sản.
         </p>
       </section>
     );
@@ -358,6 +367,11 @@ function ExecutorSectionBlock({
         phần của người đó đủ chữ ký và ký phiếu giao nhận. Người này không được xem nội dung kho,
         không tự chia, bán hay cho tài sản, không tự đổi người nhận hay phần được nhận.
       </p>
+      <p className={`${BODY} mt-2`}>
+        Người thực thi được xem biên bản này trước khi ký, được từ chối nhận vai và được đồng ý hoặc
+        không đồng ý mỗi khi tôi ký phiên bản mới. Người thực thi không chịu trách nhiệm về tranh
+        chấp giữa những người nhận và không phải ứng tiền riêng cho việc bàn giao.
+      </p>
     </section>
   );
 }
@@ -466,6 +480,7 @@ export function WillDocument({
   identityStatus = "none",
   ownerIdentity = null,
   version = null,
+  counts,
 }: WillDocumentProps) {
   const clickable = viewer === "owner";
 
@@ -516,6 +531,7 @@ export function WillDocument({
         recipients={recipients}
         unassignedAssetCount={unassignedAssetCount}
         identityStatus={identityStatus}
+        counts={counts}
       />
       <ExecutorSectionBlock executor={executor} clickable={clickable} onGapClick={onGapClick} />
 

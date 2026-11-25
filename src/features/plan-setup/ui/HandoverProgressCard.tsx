@@ -31,10 +31,14 @@ export function HandoverProgressCard({
   let hint =
     "Biên bản phân chia có hiệu lực từ lúc bạn ký. Bạn vẫn có thể sửa hoặc thu hồi trước khi qua đời.";
   if (isDraft) {
-    if (setup.canActivate) {
+    if (setup.willAwaitingExecutor) {
+      title = "Bạn đã ký, chờ Người thực thi ký";
+      buttonText = "Xem biên bản phân chia đã ký";
+      hint = "Kế hoạch có hiệu lực khi Người thực thi xem biên bản và ký nhận vai.";
+    } else if (setup.canActivate) {
       title = "Đã đủ điều kiện để ký";
       buttonText = "Xem trước và ký";
-      hint = "Đọc kỹ rồi ký bằng PIN trong khung xem trước.";
+      hint = "Đọc kỹ rồi ký bằng PIN. Người thực thi xem bản bạn ký và ký sau cùng.";
     } else {
       title = `Còn ${remaining} điều kiện chưa đạt`;
       if (remaining === 0) {

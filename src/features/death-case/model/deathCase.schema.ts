@@ -12,6 +12,16 @@ export const executorVaultSchema = z.object({
   willVersionNo: z.number().int().positive().nullish(),
   willSignedAt: z.string().datetime({ offset: true }).nullish(),
   acceptedAt: timestamp.nullish(),
+  /** Phiên bản tôi đã xem và ký gần nhất, và lúc ký. */
+  confirmedWillVersionNo: z.number().int().positive().nullish(),
+  willConfirmedAt: timestamp.nullish(),
+  /** Phiên bản tôi đã không đồng ý. */
+  declinedWillVersionNo: z.number().int().positive().nullish(),
+  /** Chủ kho đã ký phiên bản mới mà tôi chưa trả lời. */
+  willConsentRequired: z.boolean().optional(),
+  /** Chỉ là số đếm. */
+  assetCount: z.number().int().nonnegative().optional(),
+  recipientCount: z.number().int().nonnegative().optional(),
   /** Biên bản bàn giao của kho; null khi chưa có yêu cầu nhận tài sản. */
   handoverRecordId: z.string().uuid().nullish(),
   /** DRAFTING, SIGNING, COMPLETED (IDENTITY_CHECK chỉ còn ở biên bản cũ); rỗng khi chưa có yêu cầu nhận tài sản. */

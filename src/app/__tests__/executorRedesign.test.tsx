@@ -458,6 +458,11 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     invitedAt: "2026-11-01T03:00:00Z",
     expiresAt: "2026-11-20T03:00:00Z",
     endedAt: null,
+    willReady: true,
+    willVersionNo: 1,
+    willSignedAt: "2026-11-01T04:00:00Z",
+    assetCount: 2,
+    recipientCount: 1,
   };
   const ended = {
     ...invitation,
@@ -491,8 +496,12 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     expect(card).not.toHaveTextContent(/Còn \d|Lời mời hết hạn|Hết hạn|hạn chót/);
     const accept = within(card).getByRole("button", { name: "Ký nhận vai" });
     expect(accept).toBeDisabled();
+    fireEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Đóng" }));
     fireEvent.click(
-      within(card).getByLabelText("Tôi đã đọc phạm vi công việc và đồng ý nhận vai Người thực thi"),
+      within(card).getByLabelText(
+        "Tôi đã đọc biên bản phân chia, phạm vi công việc và đồng ý nhận vai Người thực thi",
+      ),
     );
     // Đã tick phạm vi nhưng chưa nhập mật khẩu thì vẫn khóa.
     expect(accept).toBeDisabled();
@@ -533,8 +542,12 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     });
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
+    fireEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Đóng" }));
     fireEvent.click(
-      within(card).getByLabelText("Tôi đã đọc phạm vi công việc và đồng ý nhận vai Người thực thi"),
+      within(card).getByLabelText(
+        "Tôi đã đọc biên bản phân chia, phạm vi công việc và đồng ý nhận vai Người thực thi",
+      ),
     );
     fireEvent.change(within(card).getByLabelText("Mật khẩu tài khoản"), {
       target: { value: "mat-khau-thu" },

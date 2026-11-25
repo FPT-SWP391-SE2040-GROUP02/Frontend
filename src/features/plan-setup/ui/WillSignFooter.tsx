@@ -61,8 +61,8 @@ function readErrorCode(error: unknown): string {
 
 /**
  * Chân khung xem trước biên bản phân chia: tick đã đọc, nhập mã PIN kho và nút ký. Hai chế độ theo trạng thái kế hoạch:
- * - Còn nháp: "Ký và kích hoạt" (gửi bản cấu hình và chính sách hiện hành).
- * - Đang chạy mà có thay đổi chưa ký: "Ký phiên bản mới" (gửi bản cấu hình đang xem; Người thực thi không phải ký lại).
+ * - Còn nháp: "Ký và gửi Người thực thi" (gửi bản cấu hình và chính sách hiện hành).
+ * - Đang chạy mà có thay đổi chưa ký: "Ký phiên bản mới" (gửi bản cấu hình đang xem; Người thực thi được mời xem và đồng ý bản mới).
  * PIN đi ở header X-Vault-Pin (không trong body). Không tự ký: mọi xác nhận mặc định chưa tick, quyền và điều kiện do
  * Backend quyết định. Lỗi cấu hình đã đổi (EDIT_CONFLICT) và kế hoạch không cho ký lại báo qua `onNotice` rồi làm mới.
  */
@@ -121,7 +121,7 @@ export function WillSignFooter({
   if (action.pending) {
     reasonText = "Chờ hệ thống xác nhận mã PIN.";
   }
-  let buttonText = "Ký và kích hoạt";
+  let buttonText = "Ký và gửi Người thực thi";
   if (isResign) {
     buttonText = "Ký phiên bản mới";
   }
@@ -129,8 +129,8 @@ export function WillSignFooter({
     buttonText = "Đang kiểm tra…";
   }
   let tickText =
-    "Tôi đã đọc toàn bộ biên bản phân chia, tự nguyện lập, ký biên bản phân chia này và chủ động kích hoạt kế hoạch.";
-  let formLabel = "Ký biên bản phân chia và kích hoạt";
+    "Tôi đã đọc toàn bộ biên bản phân chia, tự nguyện lập và ký biên bản phân chia này. Kế hoạch có hiệu lực khi Người thực thi xem và ký.";
+  let formLabel = "Ký biên bản phân chia";
   if (isResign) {
     tickText =
       "Tôi đã đọc toàn bộ biên bản phân chia phiên bản mới, tự nguyện ký lại và đồng ý với các thay đổi đã nêu.";
@@ -148,6 +148,15 @@ export function WillSignFooter({
 
   function handleSigned(result: PlanSetup): void {
     if (!isResign) {
+      setPin("");
+      setAcknowledge(false);
+      client.setQueryData(["plan-setup", vaultId], result);
+      if (result.willAwaitingExecutor) {
+        onNotice({
+          tone: "success",
+          text: "Đã ký. Kế hoạch có hiệu lực khi Người thực thi xem biên bản và ký.",
+        });
+      }
       sync();
       return;
     }
@@ -227,7 +236,8 @@ export function WillSignFooter({
       {isResign && (
         <p className="mb-2 text-xs leading-5 text-heritage-muted">
           Ký lại để bản biên bản phân chia khớp với cấu hình hiện tại và phần thêm hoặc đổi người
-          nhận được bàn giao. Phần đã xóa không còn được bàn giao. Người thực thi không phải ký lại.
+          nhận được bàn giao. Phần đã xóa không còn được bàn giao. Người thực thi được xem bản mới
+          để đồng ý hoặc không.
         </p>
       )}
       <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-5">

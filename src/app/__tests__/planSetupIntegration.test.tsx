@@ -117,7 +117,7 @@ it("requires explicit Owner acknowledgement and PIN, sends current config/policy
     .mockResolvedValue({ ...setupFixture, planStatus: "ACTIVE", canActivate: false });
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
   await openPreview();
-  const activate = await screen.findByRole("button", { name: "Ký và kích hoạt" });
+  const activate = await screen.findByRole("button", { name: "Ký và gửi Người thực thi" });
   expect(activate).toBeDisabled();
   expect(post).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("checkbox"));
@@ -152,7 +152,7 @@ it("missing eKYC and Executor keep activation disabled even after acknowledgemen
   ).toBeInTheDocument();
   await openPreview();
   fireEvent.click(screen.getByRole("checkbox"));
-  expect(screen.getByRole("button", { name: "Ký và kích hoạt" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Ký và gửi Người thực thi" })).toBeDisabled();
   expect(screen.getByLabelText(PIN_LABEL)).toBeDisabled();
   expect(post).not.toHaveBeenCalled();
 });
@@ -170,7 +170,7 @@ it("retains server failure and does not retry activation or show success", async
   );
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
   await openPreview();
-  const activate = await screen.findByRole("button", { name: "Ký và kích hoạt" });
+  const activate = await screen.findByRole("button", { name: "Ký và gửi Người thực thi" });
   agreeAndEnterPin();
   fireEvent.click(activate);
   expect(await screen.findByText(/Kế hoạch chưa đủ điều kiện/)).toBeInTheDocument();
@@ -222,25 +222,13 @@ it("keeps inspect separate from acceptance, sends token in body and never caches
     };
   };
   setup(<ExecutorInvitationPanel token={token} />);
-  const accept = await screen.findByRole("button", { name: "Ký nhận vai" });
-  expect(accept).toBeDisabled();
+  // Trả lời ở trang Lời mời, nơi xem được biên bản phân chia trước khi ký.
+  expect(await screen.findByRole("link", { name: "Xem biên bản và trả lời" })).toHaveAttribute(
+    "href",
+    "/executor/invitations",
+  );
+  expect(screen.queryByRole("button", { name: "Ký nhận vai" })).not.toBeInTheDocument();
   expect(requests).toHaveLength(1);
-  fireEvent.click(screen.getByRole("checkbox"));
-  expect(accept).toBeDisabled();
-  fireEvent.change(screen.getByLabelText("Mật khẩu tài khoản"), {
-    target: { value: "mat-khau-thu" },
-  });
-  expect(accept).toBeEnabled();
-  fireEvent.click(accept);
-  expect(await screen.findByText("Bạn đã là Người thực thi")).toBeInTheDocument();
-  expect(requests).toHaveLength(2);
-  expect(requests[1].url).toBe("/executor-invitations/respond");
-  expect(JSON.parse(String(requests[1].data))).toMatchObject({
-    token,
-    accept: true,
-    acknowledgeScope: true,
-    password: "mat-khau-thu",
-  });
   expect(
     JSON.stringify(
       client
@@ -304,10 +292,12 @@ it("lets Owner activate when the server says canActivate and shows no backup war
   vi.spyOn(apiClient, "get").mockResolvedValue(setupFixture);
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
   await openPreview();
-  expect(await screen.findByRole("button", { name: "Ký và kích hoạt" })).toBeInTheDocument();
+  expect(
+    await screen.findByRole("button", { name: "Ký và gửi Người thực thi" }),
+  ).toBeInTheDocument();
   expect(screen.queryByText(/dự phòng/)).not.toBeInTheDocument();
   agreeAndEnterPin();
-  expect(screen.getByRole("button", { name: "Ký và kích hoạt" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "Ký và gửi Người thực thi" })).toBeEnabled();
 });
 
 it("sends Owner eKYC to the Owner dashboard", async () => {
