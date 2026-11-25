@@ -6,6 +6,8 @@ import type { HandoverRecord } from "../model/handoverRecord.schema";
 import { handoverRecordKeys, useExecutorRecord } from "../model/useHandoverRecord";
 import { RecordDocument } from "./RecordDocument";
 import { RecordStepper } from "./RecordStepper";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 /** Câu cho Người thực thi biết biên bản đang chờ ai. */
 function waitingText(record: HandoverRecord): string {
@@ -47,6 +49,7 @@ function WaitingForRequest() {
 export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
   const client = useQueryClient();
   const sign = usePrivateAction();
+  const signed = useSuccessHold();
   const query = useExecutorRecord(vaultId);
   if (query.isPending) return <p role="status">Đang tải biên bản…</p>;
   if (query.isError) {
@@ -69,13 +72,15 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
         role="status"
         action={
           record.canSign ? (
-            <button
-              type="button"
+            <ActionButton
               className={buttonStyles.dark}
-              disabled={sign.pending}
+              pending={sign.pending}
+              done={signed.done}
+              pendingLabel="Đang ký…"
+              doneLabel="Đã ký"
               onClick={() =>
                 void sign.execute(
-                  () => handoverRecordService.signAsExecutor(vaultId),
+                  () => signed.hold(() => handoverRecordService.signAsExecutor(vaultId)),
                   (next) => {
                     client.setQueryData(handoverRecordKeys.executor(vaultId), next);
                     void client.invalidateQueries({ queryKey: ["executor-vaults"] });
@@ -83,8 +88,8 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
                 )
               }
             >
-              {sign.pending ? "Đang ký…" : "Ký biên bản"}
-            </button>
+              Ký biên bản
+            </ActionButton>
           ) : undefined
         }
       >

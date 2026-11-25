@@ -29,25 +29,26 @@ type Prompt =
   | { id: number; kind: "set"; vaultId: string; resolve: (pin: string | null) => void }
   | { id: number; kind: "locked"; lockedUntil?: string };
 
-function enterMessage(request: VaultPinPromptRequest): string {
-  if (request.reason === "invalid") {
-    const left = request.attemptsRemaining;
-    return left === undefined
-      ? "Mã PIN chưa đúng. Vui lòng nhập lại."
-      : `Mã PIN chưa đúng. Còn ${left} trên ${PIN_MAX_ATTEMPTS} lần thử trước khi bị khóa tạm.`;
+/** Câu báo khi hộp mở lại vì PIN vừa nhập chưa đúng; lần hỏi đầu thì không có. */
+function wrongPinMessage(request: VaultPinPromptRequest): string | undefined {
+  if (request.reason !== "invalid") {
+    return undefined;
   }
-  return "Thao tác này cần Mã PIN bảo vệ. Nhập mã PIN để tiếp tục.";
+  const left = request.attemptsRemaining;
+  if (left === undefined) {
+    return "Mã PIN chưa đúng. Vui lòng nhập lại.";
+  }
+  // Số trước dấu gạch là số lần còn được thử.
+  return `Mã PIN chưa đúng (${left}/${PIN_MAX_ATTEMPTS})`;
 }
 
 function EnterPinPrompt({
   prompt,
   onSubmit,
-  onCancel,
   onForgotDone,
 }: {
   prompt: Extract<Prompt, { kind: "enter" }>;
   onSubmit: (pin: string) => void;
-  onCancel: () => void;
   onForgotDone: (pin: string) => void;
 }) {
   const [forgot, setForgot] = useState(false);
@@ -73,9 +74,15 @@ function EnterPinPrompt({
     <>
       <DialogHeader>
         <DialogTitle>Nhập Mã PIN bảo vệ</DialogTitle>
-        <DialogDescription>{enterMessage(prompt.request)}</DialogDescription>
+        <DialogDescription>
+          Thao tác này cần Mã PIN bảo vệ. Nhập mã PIN để tiếp tục.
+        </DialogDescription>
       </DialogHeader>
-      <EnterPinForm onSubmit={onSubmit} onCancel={onCancel} onForgot={() => setForgot(true)} />
+      <EnterPinForm
+        error={wrongPinMessage(prompt.request)}
+        onSubmit={onSubmit}
+        onForgot={() => setForgot(true)}
+      />
     </>
   );
 }
@@ -183,12 +190,7 @@ export function VaultPinDialogHost() {
       {current && (
         <DialogContent key={current.id} className="max-w-md">
           {current.kind === "enter" && (
-            <EnterPinPrompt
-              prompt={current}
-              onSubmit={finish}
-              onCancel={cancel}
-              onForgotDone={finish}
-            />
+            <EnterPinPrompt prompt={current} onSubmit={finish} onForgotDone={finish} />
           )}
           {current.kind === "set" && (
             <>

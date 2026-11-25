@@ -2,6 +2,7 @@ import { z } from "zod";
 import { apiClient } from "@/shared/api";
 import { readBlobFailure } from "@/shared/lib/saveBlob";
 import { verifierReportSchema } from "../model/handoverReport.schema";
+import type { TransferOptions } from "@/shared/lib/useTransfer";
 
 const id = z.string().uuid();
 const base = "/verifier/handover-reports";
@@ -27,11 +28,11 @@ export const verifierReportService = {
       }),
     );
   },
-  async downloadFile(reportId: string, fileId: string): Promise<Blob> {
+  async downloadFile(reportId: string, fileId: string, options?: TransferOptions): Promise<Blob> {
     try {
       return await apiClient.get<Blob, Blob>(
         `${base}/${id.parse(reportId)}/files/${id.parse(fileId)}`,
-        { responseType: "blob" },
+        { responseType: "blob", ...options },
       );
     } catch (failure) {
       throw await readBlobFailure(failure);

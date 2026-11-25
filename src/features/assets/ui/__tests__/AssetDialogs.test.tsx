@@ -118,7 +118,11 @@ describe("AssetDetail", () => {
     renderDetail();
     await user.click(await screen.findByRole("button", { name: "Tải xuống nội dung" }));
     await waitFor(() => expect(click).toHaveBeenCalled());
-    expect(download).toHaveBeenCalledWith(VAULT_ID, ASSET_ID);
+    expect(download).toHaveBeenCalledWith(
+      VAULT_ID,
+      ASSET_ID,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
     expect(create).toHaveBeenCalledTimes(1);
   });
 

@@ -1,0 +1,181 @@
+/* Lucian UX/UI Prompt #004 · MIT License (c) 2026 Seokwoooo. Chỉ style trong .u004; màu lấy theo token của app.
+   Không đặt trong @layer để thắng được class Tailwind (ví dụ disabled:opacity-50 lúc đang chạy). */
+.u004 {
+  --u004-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --u004-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    transform 0.5s var(--u004-spring),
+    background-color 0.5s var(--u004-ease),
+    color 0.35s var(--u004-ease);
+}
+.u004:not(:disabled):active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  .u004:not(:disabled):hover {
+    transform: translateY(-2px);
+  }
+  .u004:not(:disabled):active {
+    transform: scale(0.97);
+  }
+}
+
+/* Đang chạy hoặc đã xong: không làm mờ nút, nhìn rõ là hệ thống đang làm việc. */
+.u004[data-state="run"],
+.u004[data-state="done"] {
+  opacity: 1;
+}
+.u004[data-state="run"]:disabled {
+  cursor: progress;
+}
+.u004[data-state="done"] {
+  background-color: var(--success);
+  border-color: var(--success);
+  color: var(--bg-canvas);
+  transition-timing-function: var(--u004-spring), var(--u004-spring), var(--u004-ease);
+}
+
+.u004-track {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.u004-bar {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  transform-origin: 0 50%;
+  transition: transform 0.2s linear;
+}
+.u004[data-state="run"] .u004-track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, currentColor 22%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  animation: u004-shine 1.3s linear infinite;
+}
+
+/* Các mặt chữ chồng lên cùng một ô lưới. */
+.u004-faces {
+  display: grid;
+  justify-items: center;
+  align-items: center;
+}
+.u004-faces > * {
+  grid-area: 1 / 1;
+}
+.u004-face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+  transition:
+    opacity 0.35s var(--u004-ease),
+    transform 0.5s var(--u004-ease);
+}
+.u004:not([data-state="idle"]) .u004-idle {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+.u004-run {
+  animation:
+    u004-fade 0.35s var(--u004-ease),
+    u004-rise 0.5s var(--u004-ease);
+}
+.u004-ok {
+  animation:
+    u004-fade 0.35s var(--u004-ease),
+    u004-pop 0.5s var(--u004-spring);
+}
+.u004-sizer {
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+.u004-sizer::after {
+  content: attr(data-label);
+  /* Chừa chỗ cho vòng xoay đứng trước chữ. */
+  padding-left: 1.5rem;
+}
+.u004-spin {
+  animation: u004-spin 0.8s linear infinite;
+}
+.u004-check path {
+  stroke-dasharray: 24;
+  animation: u004-draw 0.45s var(--u004-ease) 0.25s backwards;
+}
+
+@keyframes u004-shine {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@keyframes u004-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes u004-rise {
+  from {
+    transform: translateY(12px);
+  }
+}
+@keyframes u004-pop {
+  from {
+    transform: scale(0.6);
+  }
+}
+@keyframes u004-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes u004-draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+}
+
+/* Giảm chuyển động: bỏ di chuyển và vệt sáng, giữ đổi mờ; vòng xoay chậm lại để vẫn biết đang chạy. */
+@media (prefers-reduced-motion: reduce) {
+  .u004,
+  .u004:not(:disabled):hover,
+  .u004:not(:disabled):active,
+  .u004:not([data-state="idle"]) .u004-idle {
+    transform: none;
+  }
+  .u004-run,
+  .u004-ok {
+    animation-name: u004-fade;
+  }
+  .u004[data-state="run"] .u004-track::after {
+    display: none;
+  }
+  .u004-check path {
+    animation: none;
+  }
+}
+/* Luật chung của app tắt mọi chuyển động khi giảm chuyển động (trong @layer base, có !important). Vòng chờ phải còn quay
+   chậm để biết đang chạy, nên khai trong cùng layer đó. */
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    .u004 .u004-spin {
+      animation-duration: 2s !important;
+      animation-iteration-count: infinite !important;
+    }
+  }
+}

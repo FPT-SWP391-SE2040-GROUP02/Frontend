@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { Link } from "react-router-dom";
 import type { z } from "zod";
-import { Button } from "@/shared/ui/button";
+import { Button, buttonVariants } from "@/shared/ui/button";
 import { privateActionError, usePrivateAction } from "@/shared/api/usePrivateAction";
 import { readVaultPinFailure, type VaultPinFailure } from "@/shared/api/vaultPin";
 import { PIN_DIGITS, PinCodeInput } from "@/shared/ui/pin-input";
@@ -14,6 +14,8 @@ import type { planSetupSchema } from "../model/planSetup.schema";
 import { planSetupService } from "../api/planSetupService";
 import { computeHandoverProgress } from "../lib/handoverProgress";
 import { willIdentityQueryKey } from "../model/useWillIdentity";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 type PlanSetup = z.infer<typeof planSetupSchema>;
 
@@ -86,6 +88,7 @@ export function WillSignFooter({
 }) {
   const client = useQueryClient();
   const action = usePrivateAction();
+  const success = useSuccessHold();
   const [acknowledge, setAcknowledge] = useState(false);
   const [typedPin, setPin] = useState<string | null>(null);
   const pin = typedPin ?? initialPin;
@@ -124,9 +127,6 @@ export function WillSignFooter({
   let buttonText = "Ký và gửi Người thực thi";
   if (isResign) {
     buttonText = "Ký phiên bản mới";
-  }
-  if (action.pending) {
-    buttonText = "Đang kiểm tra…";
   }
   let tickText =
     "Tôi đã đọc toàn bộ biên bản phân chia, tự nguyện lập và ký biên bản phân chia này. Kế hoạch có hiệu lực khi Người thực thi xem và ký.";
@@ -201,7 +201,7 @@ export function WillSignFooter({
     onNotice(null);
     if (isResign) {
       void action.execute(
-        () => planSetupService.signWill(vaultId, setup.configVersion, pin),
+        () => success.hold(() => planSetupService.signWill(vaultId, setup.configVersion, pin)),
         handleSigned,
         handleFailure,
       );
@@ -209,14 +209,16 @@ export function WillSignFooter({
     }
     void action.execute(
       () =>
-        planSetupService.activate(
-          vaultId,
-          {
-            configVersion: setup.configVersion,
-            policyVersion: setup.policyVersion,
-            acknowledgePolicy: acknowledge,
-          },
-          pin,
+        success.hold(() =>
+          planSetupService.activate(
+            vaultId,
+            {
+              configVersion: setup.configVersion,
+              policyVersion: setup.policyVersion,
+              acknowledgePolicy: acknowledge,
+            },
+            pin,
+          ),
         ),
       handleSigned,
       handleFailure,
@@ -273,15 +275,22 @@ export function WillSignFooter({
             }}
           />
         </div>
-        <Button
+        <ActionButton
           type="submit"
-          size="lg"
-          className="w-full rounded-xl bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover disabled:opacity-50 sm:w-56"
+          className={buttonVariants({
+            size: "lg",
+            className:
+              "w-full rounded-xl bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover disabled:opacity-50 sm:w-56",
+          })}
           disabled={!canSign}
           aria-describedby="sign-reason"
+          pending={action.pending}
+          done={success.done}
+          pendingLabel="Đang kiểm tra…"
+          doneLabel="Đã ký"
         >
           {buttonText}
-        </Button>
+        </ActionButton>
       </div>
       <p
         id="sign-pin-error"

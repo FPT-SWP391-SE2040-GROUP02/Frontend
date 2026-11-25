@@ -1,6 +1,7 @@
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { backendAssetService } from "../api/backendAssetService";
 import type { BackendAsset } from "./backendAsset.schema";
+import { useTransfer } from "@/shared/lib/useTransfer";
 
 /** Tên tệp tải về an toàn, không chứa ký tự đường dẫn hoặc điều khiển. */
 const safeFileName = (value: string) => value.replace(/[^\p{L}\p{N} ._()-]/gu, "_").slice(0, 120);
@@ -11,10 +12,13 @@ const safeFileName = (value: string) => value.replace(/[^\p{L}\p{N} ._()-]/gu, "
  */
 export function useAssetDownload(vaultId: string, asset: BackendAsset) {
   const action = usePrivateAction();
+  const transfer = useTransfer();
   const fileName = asset.kind === "TEXT" ? `${asset.name}.txt` : (asset.fileName ?? asset.name);
   const download = () =>
     void action.execute(
-      () => backendAssetService.download(vaultId, asset.id),
+      transfer.track(asset.id, (options) =>
+        backendAssetService.download(vaultId, asset.id, options),
+      ),
       (blob) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -24,5 +28,12 @@ export function useAssetDownload(vaultId: string, asset: BackendAsset) {
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       },
     );
-  return { download, pending: action.pending, error: action.error };
+  return {
+    download,
+    pending: action.pending,
+    error: action.error,
+    percent: transfer.percent,
+    done: transfer.done,
+    cancel: transfer.cancel,
+  };
 }

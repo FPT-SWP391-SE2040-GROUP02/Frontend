@@ -4,6 +4,8 @@ import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
 import { handoverRecordService } from "../api/handoverRecordService";
 import { handoverRecordKeys, useRecipientRecord } from "../model/useHandoverRecord";
 import { RecordDocument } from "./RecordDocument";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 /**
  * Người nhận xem phần của mình trong biên bản bàn giao và ký khi tới bước ký.
@@ -19,6 +21,7 @@ export function RecipientRecordPanel({
 }) {
   const client = useQueryClient();
   const sign = usePrivateAction();
+  const signed = useSuccessHold();
   const query = useRecipientRecord(turnId);
   if (query.isPending) return <p role="status">Đang tải biên bản…</p>;
   if (query.isError) {
@@ -54,13 +57,15 @@ export function RecipientRecordPanel({
         role="status"
         action={
           record.canSign ? (
-            <button
-              type="button"
+            <ActionButton
               className={buttonStyles.dark}
-              disabled={sign.pending}
+              pending={sign.pending}
+              done={signed.done}
+              pendingLabel="Đang ký…"
+              doneLabel="Đã ký"
               onClick={() =>
                 void sign.execute(
-                  () => handoverRecordService.signAsRecipient(turnId),
+                  () => signed.hold(() => handoverRecordService.signAsRecipient(turnId)),
                   (next) => {
                     client.setQueryData(handoverRecordKeys.recipient(turnId), next);
                     onChanged?.();
@@ -68,8 +73,8 @@ export function RecipientRecordPanel({
                 )
               }
             >
-              {sign.pending ? "Đang ký…" : "Ký biên bản"}
-            </button>
+              Ký biên bản
+            </ActionButton>
           ) : undefined
         }
       >

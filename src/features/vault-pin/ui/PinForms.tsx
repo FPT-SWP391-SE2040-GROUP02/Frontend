@@ -8,15 +8,14 @@ import { vaultPinService } from "../api/vaultPinService";
 import { PIN_LENGTH } from "../model/pinRules";
 import {
   changePinFormSchema,
-  enterPinFormSchema,
   resetPinFormSchema,
   setPinFormSchema,
   type ChangePinFormValues,
-  type EnterPinFormValues,
   type ResetPinFormValues,
   type SetPinFormValues,
   type VaultPinStatus,
 } from "../model/vaultPin.schema";
+import { PinKeypad } from "./PinKeypad";
 
 const LABEL = "block text-sm font-semibold";
 const FIELD = "min-h-11 bg-white font-normal tracking-[0.3em] placeholder:tracking-normal";
@@ -112,47 +111,27 @@ function FormActions({
 }
 
 interface EnterPinFormProps {
+  /** Câu báo PIN vừa nhập chưa đúng. */
+  error?: string;
   onSubmit: (pin: string) => void;
-  onCancel: () => void;
   onForgot: () => void;
 }
 
-/** Nhập PIN hiện tại. Chưa gọi API: người gọi gửi lại request gốc kèm PIN này. */
-export function EnterPinForm({ onSubmit, onCancel, onForgot }: EnterPinFormProps) {
-  const form = useForm<EnterPinFormValues>({
-    resolver: zodResolver(enterPinFormSchema),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
-    defaultValues: { pin: "" },
-  });
-  const errors = form.formState.errors;
+/** Nhập PIN hiện tại bằng bàn phím số. Chưa gọi API: người gọi gửi lại request gốc kèm PIN này. */
+export function EnterPinForm({ error, onSubmit, onForgot }: EnterPinFormProps) {
   return (
-    <form
-      noValidate
-      className="space-y-4"
-      onSubmit={form.handleSubmit((values) => onSubmit(values.pin))}
-    >
-      <PinField
-        id="vault-pin-enter"
-        label="Mã PIN bảo vệ"
-        autoFocus
-        error={errors.pin?.message}
-        {...form.register("pin")}
-      />
-      <button
-        type="button"
-        className="min-h-11 text-sm font-medium underline underline-offset-4"
-        onClick={onForgot}
-      >
-        Quên mã PIN?
-      </button>
-      <FormActions
-        submitLabel="Xác nhận"
-        pendingLabel="Đang xử lý…"
-        pending={false}
-        onCancel={onCancel}
-      />
-    </form>
+    <div className="space-y-3">
+      <PinKeypad error={error} onSubmit={onSubmit} />
+      <div className="border-t border-heritage-border pt-1 text-center">
+        <button
+          type="button"
+          className="min-h-11 px-3 text-sm font-medium text-heritage-gold-hover underline underline-offset-4"
+          onClick={onForgot}
+        >
+          Quên mã PIN?
+        </button>
+      </div>
+    </div>
   );
 }
 

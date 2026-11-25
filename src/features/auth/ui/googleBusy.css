@@ -1,0 +1,147 @@
+/* Lucian UX/UI Prompt #401 · MIT License (c) 2026 Seokwoooo. Chỉ style trong các class .u401; màu lấy theo token của app,
+   riêng vòng xoay giữ bốn màu nhận diện của Google. */
+.u401-gis {
+  display: flex;
+  justify-content: center;
+  transition: transform 0.5s cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .u401-gis:not([inert]):hover {
+    transform: translateY(-2px);
+  }
+}
+
+.u401-pill {
+  --u401-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --u401-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 18px 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.u401-ic {
+  position: relative;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+.u401-ic svg {
+  position: absolute;
+  inset: 0;
+  width: 20px;
+  height: 20px;
+  overflow: visible;
+}
+.u401-arc {
+  transition:
+    transform 0.55s var(--u401-spring),
+    opacity 0.2s;
+  animation: u401-in 0.55s var(--u401-spring);
+}
+.u401-arc g {
+  transform-origin: 10px 10px;
+  animation: u401-spin 0.9s linear infinite;
+}
+.u401-arc circle {
+  fill: none;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-dasharray: 8.6 41.7;
+  transition: stroke-dasharray 0.35s var(--u401-ease);
+}
+.u401-ck {
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    transform 0.5s var(--u401-spring),
+    opacity 0.2s;
+}
+.u401-ck path {
+  fill: none;
+  stroke: var(--success);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 18;
+  stroke-dashoffset: 18;
+  transition: stroke-dashoffset 0.4s var(--u401-ease) 0.08s;
+}
+.u401-pill.is-ok .u401-arc {
+  opacity: 0;
+  transform: scale(1.5);
+}
+.u401-pill.is-ok .u401-arc circle {
+  stroke-dasharray: 0 50.3;
+}
+.u401-pill.is-ok .u401-ck {
+  opacity: 1;
+  transform: none;
+}
+.u401-pill.is-ok .u401-ck path {
+  stroke-dashoffset: 0;
+}
+
+/* Hai câu chồng lên nhau; bề rộng khung chữ đổi theo câu đang hiện nên nút co lại hoặc giãn ra. */
+.u401-lb {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow-x: clip;
+  transition: width 0.55s var(--u401-spring);
+}
+.u401-lb span {
+  grid-area: 1 / 1;
+  justify-self: center;
+  transition:
+    opacity 0.22s,
+    transform 0.45s var(--u401-spring),
+    filter 0.3s;
+}
+.u401-lb .u401-ok {
+  opacity: 0;
+  transform: translateY(9px);
+  filter: blur(2px);
+}
+.u401-pill.is-ok .u401-lb .u401-busy {
+  opacity: 0;
+  transform: translateY(-9px);
+  filter: blur(2px);
+}
+.u401-pill.is-ok .u401-lb .u401-ok {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+@keyframes u401-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes u401-in {
+  from {
+    opacity: 0;
+    transform: scale(0.35) rotate(-120deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u401-gis:not([inert]):hover {
+    transform: none;
+  }
+}
+/* Luật chung của app tắt mọi chuyển động khi giảm chuyển động (trong @layer base, có !important). Vòng chờ phải còn quay
+   chậm để biết đang chạy, nên khai trong cùng layer đó. */
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    .u401-arc g {
+      animation-duration: 2s !important;
+    }
+  }
+}

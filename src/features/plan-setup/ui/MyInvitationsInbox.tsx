@@ -11,6 +11,8 @@ import { endedStatusLabel, remainingTime } from "../lib/myInvitationHelpers";
 import { useExecutorSigning } from "../model/useExecutorSigning";
 import { InvitationPaper } from "./InvitationPaper";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { DeclineConfirmDialog } from "@/shared/ui/DeclineConfirmDialog";
 
 const CAPABILITIES = ["Giữ mã nhận cho tới khi bàn giao", "Ký biên bản và gửi mã nhận"];
 
@@ -120,7 +122,16 @@ function PendingInvitationCard({
   const versionNo = invitation.willVersionNo ?? null;
   const read = invitation.willReady && versionNo !== null && readVersion === versionNo;
   const agreed = acknowledge && read;
-  const { action, password, setPassword, passwordError, respond: sign } = useExecutorSigning();
+  const [askingDecline, setAskingDecline] = useState(false);
+  const {
+    action,
+    password,
+    setPassword,
+    passwordError,
+    respond: sign,
+    signing,
+    signed,
+  } = useExecutorSigning();
   const serverNow = useServerNow();
   const remaining = remainingTime(invitation.expiresAt, serverNow.getTime());
   const respond = (accept: boolean) =>
@@ -224,19 +235,22 @@ function PendingInvitationCard({
           />
           {invitation.willReady ? (
             <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
+              <ActionButton
                 className={buttonStyles.dark}
                 disabled={action.pending || !agreed || password.length === 0}
                 onClick={() => respond(true)}
+                pending={signing}
+                done={signed}
+                pendingLabel="Đang ký…"
+                doneLabel="Đã ký"
               >
                 Ký nhận vai
-              </button>
+              </ActionButton>
               <button
                 type="button"
                 className={buttonStyles.outline}
                 disabled={action.pending}
-                onClick={() => respond(false)}
+                onClick={() => setAskingDecline(true)}
               >
                 Từ chối
               </button>
@@ -257,6 +271,18 @@ function PendingInvitationCard({
           )}
         </div>
       </div>
+      {askingDecline && (
+        <DeclineConfirmDialog
+          title="Từ chối lời mời này?"
+          description={`Bạn sẽ không làm Người thực thi cho kho của ${invitation.ownerName}. Muốn nhận lại thì Chủ kho phải gửi lời mời mới.`}
+          confirmLabel="Từ chối lời mời"
+          onClose={() => setAskingDecline(false)}
+          onConfirm={() => {
+            setAskingDecline(false);
+            respond(false);
+          }}
+        />
+      )}
     </article>
   );
 }

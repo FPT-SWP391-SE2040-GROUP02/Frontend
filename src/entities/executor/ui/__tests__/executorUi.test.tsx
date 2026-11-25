@@ -45,8 +45,25 @@ afterEach(() => {
 });
 
 describe("ExecutorReceivedKeyCard", () => {
+  it.each(["ACTIVE", "HANDOVER_REQUESTED", "DRAFT"])(
+    "kế hoạch %s: chỉ báo chờ bàn giao, không có nút Xem mã",
+    (planStatus) => {
+      render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus={planStatus} />);
+
+      expect(screen.getByText("Chờ bàn giao")).toBeInTheDocument();
+      expect(screen.getByText(/sau khi luật sư chốt biên bản bàn giao/)).toBeInTheDocument();
+      expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    },
+  );
+
+  it("kế hoạch đã đóng vẫn xem được mã", () => {
+    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus="CLOSED" />);
+
+    expect(screen.getByRole("button", { name: "Xem mã" })).toBeInTheDocument();
+  });
+
   it("mặc định ẩn mã và không gọi Backend", () => {
-    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} />);
+    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus="HANDOVER_IN_PROGRESS" />);
 
     expect(screen.getByRole("button", { name: "Xem mã" })).toBeInTheDocument();
     expect(screen.queryByText(KEY.shard)).not.toBeInTheDocument();
@@ -55,7 +72,7 @@ describe("ExecutorReceivedKeyCard", () => {
 
   it("Xem mã hiện mã, Ẩn mã xóa mã khỏi màn hình", async () => {
     vi.mocked(systemExecutorsService.getHandoverKey).mockResolvedValue(KEY);
-    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} />);
+    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus="HANDOVER_IN_PROGRESS" />);
 
     await userEvent.click(screen.getByRole("button", { name: "Xem mã" }));
     expect(await screen.findByText(KEY.shard)).toBeInTheDocument();
@@ -68,7 +85,7 @@ describe("ExecutorReceivedKeyCard", () => {
 
   it("lỗi từ Backend hiện thông báo, không hiện mã và cho thử lại", async () => {
     vi.mocked(systemExecutorsService.getHandoverKey).mockRejectedValue(new Error("boom"));
-    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} />);
+    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus="HANDOVER_IN_PROGRESS" />);
 
     await userEvent.click(screen.getByRole("button", { name: "Xem mã" }));
 

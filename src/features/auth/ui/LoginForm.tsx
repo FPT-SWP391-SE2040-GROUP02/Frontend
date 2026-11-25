@@ -1,10 +1,12 @@
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, ArrowRight, CheckCircle2, Info, Lock, Mail } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, Info } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { AuthField, PasswordEye } from "./AuthField";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { MorphButton } from "./MorphButton";
+import { useFieldFeedback } from "../lib/useFieldFeedback";
 import { LinkGoogleAccountCard } from "./LinkGoogleAccountCard";
 import { getGoogleErrorMessage } from "../lib/googleFeedback";
 import type { BackendUserResponse } from "@/entities/user/model/backendUser.schema";
@@ -15,6 +17,7 @@ import {
   getLoginErrorMessage,
   getLoginRedirect,
   getLoginSubtitle,
+  isCredentialError,
   isReceiveAssetsRedirect,
   isReceiveRedirect,
   MAINTENANCE_LOGIN_DENIED_MESSAGE,
@@ -96,24 +99,28 @@ export function LoginForm({
   // Người nhận tạo tài khoản mới thì vẫn mang đường dẫn quay lại, không bị mời lập kho.
   const keepRedirect = fromReceive || fromReceiveAssets;
   const registerFromReceive = `${ROUTES.AUTH.REGISTER}?${new URLSearchParams({ redirect: redirectUrl })}`;
-  const { mutate: login, isPending: loginPending, isError, error } = useLogin();
+  const { mutateAsync: login, isPending: loginPending, isError, error } = useLogin();
   const google = useGoogleLogin();
   const logout = useLogout();
   const [maintenanceDenied, setMaintenanceDenied] = useState(false);
-  const isPending = loginPending || google.isPending || logout.isPending;
+  // Giữ dấu tích trên nút một nhịp rồi mới chuyển trang; trong nhịp đó form vẫn khóa.
+  const passwordSignIn = useSuccessHold();
+  const googleSignIn = useSuccessHold();
+  // Server báo sai email hoặc mật khẩu: tô đỏ cả hai ô vì server không nói ô nào sai.
+  const [rejected, setRejected] = useState(false);
+  const isPending =
+    loginPending ||
+    google.isPending ||
+    logout.isPending ||
+    passwordSignIn.done ||
+    googleSignIn.done;
 
   const emailParam = searchParams.get("email") ?? "";
   const isVerifiedBanner = searchParams.get("verified") === "true";
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    getValues,
-    formState: { errors },
-  } = useForm<LoginInput>({
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+  const form = useForm<LoginInput>({
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: emailParam,
@@ -121,6 +128,14 @@ export function LoginForm({
       rememberMe: true,
     },
   });
+  const {
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = form;
+  const { field, shake, shakes } = useFieldFeedback(form);
+  const clearRejected = () => setRejected(false);
 
   useEffect(() => {
     if (emailParam) {
@@ -128,10 +143,14 @@ export function LoginForm({
     }
   }, [emailParam, setValue]);
 
+  /** Đang bảo trì (hoặc lối quản trị) mà tài khoản không phải Admin. */
+  const isDenied = (user: BackendUserResponse): boolean =>
+    (adminOnly || isMaintenanceActive()) && user.role !== ROLES.ADMIN;
+
   const finishLogin = (user: BackendUserResponse): void => {
     // Đang bảo trì mà tài khoản không phải Admin: báo đỏ "không có quyền" và hủy phiên vừa mở, không điều hướng.
     // Backend mới đã tự chặn (503); nhánh này giữ đúng hành vi cả khi Backend chưa cập nhật.
-    if ((adminOnly || isMaintenanceActive()) && user.role !== ROLES.ADMIN) {
+    if (isDenied(user)) {
       setLink(null);
       setMaintenanceDenied(true);
       logout.mutate(undefined);
@@ -160,7 +179,7 @@ export function LoginForm({
    * @description Xử lý nộp form đăng nhập
    * @param {LoginInput} data Dữ liệu email và mật khẩu
    */
-  const onSubmit = (data: LoginInput): void => {
+  const onSubmit = async (data: LoginInput): Promise<void> => {
     // TODO: [P0][AUTH-02] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
     // 1. [MỤC TIÊU]: Hiển thị trạng thái khóa/lượt thử từ BE thay cho thông báo lỗi chung.
     // 2. [INPUT & OUTPUT]: ProblemDetails và Retry-After -> thông báo/thời gian thử lại từ server.
@@ -171,28 +190,44 @@ export function LoginForm({
     //    không in response nội bộ hoặc suy diễn unlockAt khi server không trả.
     if (isPending || typeof data.email !== "string" || typeof data.password !== "string") return;
     setMaintenanceDenied(false);
+    setRejected(false);
+    const credentials = {
+      email: data.email,
+      password: data.password,
+      rememberMe: data.rememberMe,
+    };
 
-    login(
-      { email: data.email, password: data.password, rememberMe: data.rememberMe },
-      {
-        onSuccess: (outcome) => {
-          if ("twoFactorRequired" in outcome) navigate(ROUTES.AUTH.TWO_FACTOR);
-          else finishLogin(outcome.user);
-        },
-      },
-    );
+    try {
+      const outcome = await passwordSignIn.hold(
+        () => login(credentials),
+        (result) => "user" in result && !isDenied(result.user),
+      );
+      if (!mounted.current) return;
+      if ("twoFactorRequired" in outcome) navigate(ROUTES.AUTH.TWO_FACTOR);
+      else finishLogin(outcome.user);
+    } catch (failure) {
+      // Mutation giữ lỗi cho khung báo; ở đây chỉ rung và tô đỏ khi sai thông tin đăng nhập.
+      if (mounted.current && isCredentialError(failure)) {
+        setRejected(true);
+        shake(["email", "password"]);
+      }
+    }
   };
 
   const handleGoogleCredential = async (idToken: string, nonce: string): Promise<void> => {
     if (isPending) return;
     setMaintenanceDenied(false);
     try {
-      const result = await google.mutateAsync({
-        idToken,
-        nonce,
-        rememberMe: getValues("rememberMe") ?? false,
-        returnUrl: redirectUrl,
-      });
+      const result = await googleSignIn.hold(
+        () =>
+          google.mutateAsync({
+            idToken,
+            nonce,
+            rememberMe: getValues("rememberMe") ?? false,
+            returnUrl: redirectUrl,
+          }),
+        (outcome) => outcome.signedIn && !isDenied(outcome.user),
+      );
       if (!mounted.current) return;
       if (result.signedIn) finishLogin(result.user);
       else if ("twoFactorRequired" in result) navigate(ROUTES.AUTH.TWO_FACTOR);
@@ -201,6 +236,10 @@ export function LoginForm({
       // Mutation giữ lỗi cho UI; không retry cookie mutation tự động.
     }
   };
+
+  let googleProgress: "busy" | "done" | null = null;
+  if (googleSignIn.done) googleProgress = "done";
+  else if (google.isPending) googleProgress = "busy";
 
   if (link)
     return (
@@ -271,6 +310,7 @@ export function LoginForm({
 
       {(isError || maintenanceDenied) && (
         <div
+          id="login-error"
           role="alert"
           className="rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4 text-sm text-heritage-danger"
         >
@@ -286,7 +326,11 @@ export function LoginForm({
       {/* Lối quản trị chỉ có email và mật khẩu: tài khoản Admin tạo trực tiếp trên hệ thống, không qua Google. */}
       {!adminOnly && (
         <>
-          <GoogleSignInButton disabled={isPending} onCredential={handleGoogleCredential} />
+          <GoogleSignInButton
+            disabled={isPending}
+            progress={googleProgress}
+            onCredential={handleGoogleCredential}
+          />
           {google.isError && (
             <p role="alert" className="text-sm text-heritage-danger">
               {getGoogleErrorMessage(google.error)}
@@ -304,108 +348,75 @@ export function LoginForm({
       )}
 
       {/* 6. FORM NHẬP EMAIL VÀ PASSWORD */}
-      <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email Field */}
-        <div className="space-y-1.5 text-left">
-          <label htmlFor="login-email" className="text-sm font-semibold text-heritage-text">
-            Email
-          </label>
-          <div className="relative">
-            <Mail className="w-4 h-4 text-heritage-subtle absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <Input
-              id="login-email"
-              autoComplete="username"
-              aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? "login-email-error" : undefined}
-              {...register("email")}
-              type="email"
-              placeholder="nam@example.com"
-              disabled={isPending}
-              className={`pl-10 h-11 text-sm rounded-xl bg-white border-heritage-border-strong focus-visible:border-heritage-primary ${
-                errors.email ? "border-heritage-danger" : ""
-              }`}
-            />
-          </div>
-          {errors.email && (
-            <p
-              id="login-email-error"
-              role="alert"
-              className="text-[0.875rem] text-heritage-danger font-medium"
-            >
-              {errors.email.message}
-            </p>
-          )}
-        </div>
+      <form
+        noValidate
+        onSubmit={(event) =>
+          void handleSubmit(onSubmit, (invalid) => shake(Object.keys(invalid)))(event)
+        }
+        className="space-y-4"
+      >
+        <AuthField
+          id="login-email"
+          label="Email"
+          type="email"
+          autoComplete="username"
+          disabled={isPending}
+          error={errors.email?.message}
+          rejected={rejected}
+          rejectedBy="login-error"
+          shake={shakes.email}
+          {...field("email", { onEdit: clearRejected })}
+        />
 
-        {/* Password Field */}
-        <div className="space-y-1.5 text-left">
-          <div className="flex justify-between items-baseline">
-            <label htmlFor="login-password" className="text-sm font-semibold text-heritage-text">
-              Mật khẩu
-            </label>
-            {!adminOnly && (
+        <div className="space-y-1">
+          <AuthField
+            id="login-password"
+            label="Mật khẩu"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            disabled={isPending}
+            error={errors.password?.message}
+            rejected={rejected}
+            rejectedBy="login-error"
+            shake={shakes.password}
+            end={
+              <PasswordEye
+                shown={showPassword}
+                disabled={isPending}
+                onToggle={() => setShowPassword(!showPassword)}
+              />
+            }
+            {...field("password", { onEdit: clearRejected })}
+          />
+          {!adminOnly && (
+            <div className="text-right">
               <Link
                 to={ROUTES.AUTH.FORGOT_PASSWORD}
-                className="text-[0.875rem] text-heritage-gold hover:underline font-semibold"
+                className="inline-block py-1 text-[0.875rem] text-heritage-gold hover:underline font-semibold"
               >
                 Quên mật khẩu?
               </Link>
-            )}
-          </div>
-          <div className="relative">
-            <Lock className="w-4 h-4 text-heritage-subtle absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <Input
-              id="login-password"
-              autoComplete="current-password"
-              aria-invalid={Boolean(errors.password)}
-              aria-describedby={errors.password ? "login-password-error" : undefined}
-              {...register("password")}
-              type={showPassword ? "text" : "password"}
-              placeholder="Nhập mật khẩu của bạn"
-              disabled={isPending}
-              className={`pl-10 pr-12 h-11 text-sm rounded-xl bg-white border-heritage-border-strong focus-visible:border-heritage-primary ${
-                errors.password ? "border-heritage-danger" : ""
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-              aria-pressed={showPassword}
-              disabled={isPending}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-heritage-muted hover:text-heritage-primary px-1 py-0.5 rounded focus-visible:outline-none"
-            >
-              {showPassword ? "Ẩn" : "Hiện"}
-            </button>
-          </div>
-          {errors.password && (
-            <p
-              id="login-password-error"
-              role="alert"
-              className="text-[0.875rem] text-heritage-danger font-medium"
-            >
-              {errors.password.message}
-            </p>
+            </div>
           )}
         </div>
 
         {/* Nút bấm Đăng nhập */}
-        <Button
-          type="submit"
+        <MorphButton
+          pending={loginPending || passwordSignIn.done}
+          done={passwordSignIn.done}
           disabled={isPending}
-          className="w-full h-11 rounded-xl bg-heritage-primary hover:bg-heritage-primary-hover text-heritage-surface text-sm font-semibold shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+          pendingLabel="Đang xác thực..."
+          doneLabel="Đã đăng nhập"
         >
-          {isPending ? (
-            <span>Đang xác thực...</span>
-          ) : invitationContext ? (
+          {invitationContext ? (
             <>
               <span>Đăng nhập và tiếp tục</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             </>
           ) : (
             <span>Đăng nhập</span>
           )}
-        </Button>
+        </MorphButton>
       </form>
 
       {/* 7. NÚT PASSKEY NẾU CÓ */}

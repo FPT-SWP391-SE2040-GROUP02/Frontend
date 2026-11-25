@@ -22,7 +22,9 @@ export function EvidencePanel({ record }: { record: HandoverRecord }) {
         <RecordFileList
           files={record.evidenceFiles}
           emptyText="Chưa đính kèm tệp căn cứ nào."
-          download={(file) => handoverRecordService.downloadFile(record.id, file.id)}
+          download={(file, options) =>
+            handoverRecordService.downloadFile(record.id, file.id, options)
+          }
           removing={remove.pending}
           onRemove={
             editable

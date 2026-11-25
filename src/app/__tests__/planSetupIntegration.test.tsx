@@ -407,7 +407,7 @@ it("Người thực thi: kế hoạch nháp mời được Người thực thi, 
   fireEvent.click(
     await within(dialog).findByRole("button", { name: "Chọn người này: Luật sư Một" }),
   );
-  fireEvent.click(within(dialog).getByRole("switch", { name: /là nhân viên LegacyVault/ }));
+  fireEvent.click(within(dialog).getByRole("checkbox", { name: /là nhân viên LegacyVault/ }));
   fireEvent.click(within(dialog).getByRole("button", { name: "Gửi lời mời" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   // Người thực thi không còn kiêm người nhận: payload chỉ có email.
@@ -427,8 +427,8 @@ it("Người thực thi: kế hoạch đang chạy không cho thu hồi trực t
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
   await screen.findByText("chinh@example.test");
   expect(screen.getByRole("button", { name: "Thay người khác" })).toBeInTheDocument();
-  // Người thực thi đã đồng ý phải đi qua "Thay người khác", không có nút Thu hồi lời mời.
-  expect(screen.queryByRole("button", { name: "Thu hồi lời mời" })).not.toBeInTheDocument();
+  // Người thực thi đã đồng ý phải đi qua "Thay người khác", không có nút thu hồi.
+  expect(screen.queryByRole("button", { name: /^Thu hồi/ })).not.toBeInTheDocument();
   expect(screen.getByText(/không thu hồi trực tiếp/)).toBeInTheDocument();
 });
 
@@ -441,12 +441,14 @@ it("Người thực thi: kế hoạch nháp thu hồi gửi etag hiện tại v�
     .spyOn(apiClient, "post")
     .mockResolvedValue({ ...acceptedPrimary, status: "REVOKED" });
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
-  fireEvent.click(await screen.findByRole("button", { name: "Thu hồi lời mời" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Thu hồi vai" }));
   const dialog = await screen.findByRole("dialog");
-  expect(within(dialog).getByText("Thu hồi lời mời?")).toBeInTheDocument();
+  expect(within(dialog).getByText("Thu hồi vai Người thực thi?")).toBeInTheDocument();
+  expect(dialog).toHaveTextContent("Người này sẽ không còn là Người thực thi của kho.");
+  expect(dialog).not.toHaveTextContent("Liên kết trong email mời");
   expect(within(dialog).getByRole("button", { name: "Giữ nguyên" })).toBeInTheDocument();
   expect(post).not.toHaveBeenCalled();
-  fireEvent.click(within(dialog).getByRole("button", { name: "Thu hồi lời mời" }));
+  fireEvent.click(within(dialog).getByRole("button", { name: "Thu hồi vai" }));
   await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   expect(post).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/executors/${VAULT_ID}/revoke`, {
     etag: '"0"',
@@ -501,9 +503,9 @@ it("Người thực thi: giữ nguyên lỗi của Backend khi thu hồi bị ch
     }),
   );
   setup(<ExecutorsSection vaultId={VAULT_ID} />);
-  fireEvent.click(await screen.findByRole("button", { name: "Thu hồi lời mời" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Thu hồi vai" }));
   const dialog = await screen.findByRole("dialog");
-  fireEvent.click(within(dialog).getByRole("button", { name: "Thu hồi lời mời" }));
+  fireEvent.click(within(dialog).getByRole("button", { name: "Thu hồi vai" }));
   expect(await within(dialog).findByRole("alert")).toHaveTextContent("nên không thu hồi trực tiếp");
 });
 
@@ -517,7 +519,7 @@ it("Người thực thi: kế hoạch có hồ sơ báo tử chỉ xem, không c
   await screen.findByText("chinh@example.test");
   expect(screen.getByText(/Bạn chỉ xem được/)).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Chọn Người thực thi" })).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Thu hồi lời mời" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /^Thu hồi/ })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Thay người khác" })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Gửi lại lời mời" })).not.toBeInTheDocument();
 });

@@ -29,6 +29,7 @@ export function PaperPreviewButton({
   fileName,
   paper,
   onOpen,
+  primary = false,
 }: {
   /** Chữ trên nút. */
   label: string;
@@ -39,13 +40,19 @@ export function PaperPreviewButton({
   paper: ReactNode;
   /** Gọi khi người dùng mở tờ giấy (để biết họ đã xem trước khi ký). */
   onOpen?: () => void;
+  /** Nút nền đậm: đây là việc người dùng cần làm tiếp theo. */
+  primary?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  let buttonClass = buttonStyles.outline;
+  if (primary) {
+    buttonClass = buttonStyles.dark;
+  }
   return (
     <>
       <button
         type="button"
-        className={buttonStyles.outline}
+        className={buttonClass}
         onClick={() => {
           setOpen(true);
           onOpen?.();

@@ -13,11 +13,14 @@ export function InvitationPaper({
   invitation,
   read,
   onRead,
+  asStep = false,
 }: {
   invitation: MyInvitation;
   /** Đã mở tờ của đúng phiên bản này. */
   read: boolean;
   onRead: () => void;
+  /** Nằm trong danh sách bước: nút nổi bật khi chưa đọc và không cần câu nhắc đọc trước. */
+  asStep?: boolean;
 }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   if (!invitation.willReady || !invitation.willVersionNo) {
@@ -27,7 +30,10 @@ export function InvitationPaper({
       </Notice>
     );
   }
-  let hint = "Mở biên bản và đọc trước khi ký.";
+  let hint: string | null = "Mở biên bản và đọc trước khi ký.";
+  if (asStep) {
+    hint = null;
+  }
   if (read) {
     hint = `Bạn đã mở biên bản phiên bản ${invitation.willVersionNo}.`;
   }
@@ -38,6 +44,7 @@ export function InvitationPaper({
         title="Biên bản phân chia"
         fileName="Bien-ban-phan-chia"
         onOpen={onRead}
+        primary={asStep && !read}
         paper={
           <WillDocument
             ownerName={invitation.ownerName}
@@ -55,7 +62,7 @@ export function InvitationPaper({
           />
         }
       />
-      <p className="text-sm text-heritage-muted">{hint}</p>
+      {hint && <p className="text-sm text-heritage-muted">{hint}</p>}
     </div>
   );
 }

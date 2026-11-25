@@ -9,8 +9,7 @@ import { z } from "zod";
 import { SUPPORT_EMAIL } from "@/shared/constants";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button } from "@/shared/ui/button";
-import { Switch } from "@/shared/ui/switch";
+import { Button, buttonVariants } from "@/shared/ui/button";
 import { Chip } from "@/shared/ui/heritageKit";
 import {
   Dialog,
@@ -28,6 +27,8 @@ import { planSetupService } from "../api/planSetupService";
 import { usePlanSetup } from "../model/usePlanSetup";
 import { currentHolder } from "../lib/executorHolder";
 import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 type Executor = z.infer<typeof executorSchema>;
 
@@ -144,6 +145,7 @@ export function InviteDialog({
 }: InviteDialogProps) {
   const { executorInviteMinutes } = usePolicyWindows();
   const action = usePrivateAction();
+  const success = useSuccessHold();
   const ownerEmail = useSelector((state: { auth: AuthState }) => state.auth.user?.email);
 
   const form = useForm<z.infer<typeof inviteExecutorSchema>>({
@@ -201,7 +203,7 @@ export function InviteDialog({
           noValidate
           onSubmit={form.handleSubmit(async (values) => {
             const done = await action.execute(
-              () => planSetupService.invite(vaultId, values),
+              () => success.hold(() => planSetupService.invite(vaultId, values)),
               (result) => {
                 onSuccess?.(result);
                 sync();
@@ -231,20 +233,19 @@ export function InviteDialog({
           <p className="rounded-lg bg-heritage-warning-bg p-3 text-sm text-heritage-warning">
             {notice}
           </p>
-          <div className="flex items-start gap-3 text-sm leading-6">
-            <Switch
-              id="nomination-switch"
+          <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-6">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-5 shrink-0 cursor-pointer accent-heritage-primary"
               checked={nominationAccepted}
               disabled={action.pending}
-              onCheckedChange={setNominationAccepted}
-              aria-labelledby="nomination-switch-label"
-              className="mt-0.5"
+              onChange={(event) => setNominationAccepted(event.target.checked)}
             />
-            <span id="nomination-switch-label">
+            <span>
               Tôi hiểu Người thực thi là nhân viên LegacyVault, chỉ giữ hộ và giao tài sản theo biên
               bản bàn giao do luật sư lập; không có quyền xem nội dung, chia, bán hay cho tài sản.
             </span>
-          </div>
+          </label>
           {action.error && (
             <p role="alert" className="text-sm text-destructive">
               {action.error}
@@ -260,14 +261,17 @@ export function InviteDialog({
             >
               {cancelLabel}
             </Button>
-            <Button
-              size="lg"
+            <ActionButton
               type="submit"
-              className={PRIMARY_BUTTON}
+              className={buttonVariants({ size: "lg", className: PRIMARY_BUTTON })}
               disabled={action.pending || selectedEmail === "" || !nominationAccepted}
+              pending={action.pending}
+              done={success.done}
+              pendingLabel="Đang gửi…"
+              doneLabel="Đã gửi"
             >
               Gửi lời mời
-            </Button>
+            </ActionButton>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -275,31 +279,80 @@ export function InviteDialog({
   );
 }
 
-/** Hộp thoại thu hồi lời mời; dùng chung cho trang Người thực thi và thẻ việc ở trang Bàn giao. */
+/** Chữ trong hộp thu hồi, khác nhau theo việc người đó đã đồng ý hay chưa và nơi mở hộp. */
+function revokeCopy(accepted: boolean, changing: boolean) {
+  if (changing) {
+    return { title: "Đổi Người thực thi?", confirm: "Thu hồi để đổi người" };
+  }
+  if (accepted) {
+    return { title: "Thu hồi vai Người thực thi?", confirm: "Thu hồi vai" };
+  }
+  return { title: "Thu hồi lời mời?", confirm: "Thu hồi lời mời" };
+}
+
+/** Hộp thoại thu hồi lời mời hoặc vai; dùng chung cho trang Người thực thi và thẻ việc ở trang Bàn giao. */
 export function RevokeDialog({
   vaultId,
   executor,
+  changing = false,
+  planRunning = false,
   sync,
   onClose,
 }: {
   vaultId: string;
   executor: Executor;
+  /** Mở từ nút "Đổi người": thu hồi xong sẽ chọn người mới. */
+  changing?: boolean;
+  /** Kế hoạch đã chạy thì không còn nói về điều kiện kích hoạt. */
+  planRunning?: boolean;
   sync: () => void;
   onClose: () => void;
 }) {
   const action = usePrivateAction();
+  const success = useSuccessHold();
+  const accepted = executor.status === "ACCEPTED";
+  const copy = revokeCopy(accepted, changing);
+
+  const facts: string[] = [statusLabels[executor.status]];
+  if (accepted && executor.acceptedAt !== null) {
+    facts[0] = `${facts[0]} ngày ${formatDate(executor.acceptedAt)}`;
+  } else if (executor.invitationSentAt !== null) {
+    facts.push(`mời ngày ${formatDate(executor.invitationSentAt)}`);
+  }
+
+  const consequences: string[] = [];
+  if (accepted) {
+    consequences.push("Người này sẽ không còn là Người thực thi của kho.");
+  } else {
+    consequences.push("Liên kết trong email mời sẽ không dùng được nữa.");
+  }
+  if (changing) {
+    consequences.push("Thu hồi xong, bạn chọn người mới ngay ở thẻ này.");
+  } else {
+    consequences.push("Bạn có thể mời lại người này hoặc người khác.");
+  }
+  if (planRunning) {
+    consequences.push("Kế hoạch đang hoạt động, hãy sớm mời người mới.");
+  } else {
+    consequences.push("Kế hoạch cần có Người thực thi mới kích hoạt được.");
+  }
+
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Thu hồi lời mời?</DialogTitle>
-          <DialogDescription>
-            {executor.inviteeEmail} sẽ không còn là Người thực thi của kho này.
-          </DialogDescription>
+          <DialogTitle>{copy.title}</DialogTitle>
         </DialogHeader>
-        <p className="rounded-lg bg-heritage-warning-bg p-3 text-sm text-heritage-warning">
-          Hồ sơ đang xử lý (nếu có) sẽ được giữ nguyên.
-        </p>
+        <div className="rounded-xl border border-heritage-border px-4 py-3">
+          {executor.fullName && <p className="break-words font-semibold">{executor.fullName}</p>}
+          <p className="break-all text-sm">{executor.inviteeEmail}</p>
+          <p className="mt-1 text-sm text-heritage-muted">{facts.join(" · ")}</p>
+        </div>
+        <DialogDescription render={<ul className="list-disc space-y-1.5 pl-5 leading-6" />}>
+          {consequences.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </DialogDescription>
         {action.error && (
           <p
             role="alert"
@@ -318,15 +371,21 @@ export function RevokeDialog({
           >
             Giữ nguyên
           </Button>
-          <Button
-            size="lg"
-            type="button"
-            variant="outline"
-            className={DANGER_BUTTON}
+          <ActionButton
+            className={buttonVariants({
+              size: "lg",
+              variant: "outline",
+              className: DANGER_BUTTON,
+            })}
             disabled={action.pending}
+            pending={action.pending}
+            done={success.done}
+            pendingLabel="Đang thu hồi…"
+            doneLabel="Đã thu hồi"
             onClick={() =>
               void action.execute(
-                () => planSetupService.revoke(vaultId, executor.id, executor.etag),
+                () =>
+                  success.hold(() => planSetupService.revoke(vaultId, executor.id, executor.etag)),
                 () => {
                   sync();
                   onClose();
@@ -334,8 +393,8 @@ export function RevokeDialog({
               )
             }
           >
-            Thu hồi lời mời
-          </Button>
+            {copy.confirm}
+          </ActionButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -349,6 +408,9 @@ interface ChosenCardProps {
   planRunning: boolean;
   scopeVersion: string;
   busy: boolean;
+  /** Đang gửi lại lời mời, và server đã báo gửi xong (giữ dấu tích một nhịp). */
+  resending: boolean;
+  resendDone: boolean;
   onInvite: (replacing: Executor | null) => void;
   onRevoke: (executor: Executor) => void;
   onResend: (executor: Executor) => void;
@@ -407,6 +469,10 @@ function ChosenCard(props: ChosenCardProps) {
     (holder.status === "ACCEPTED" && holder.acceptedScopeVersion !== scopeVersion);
   // Người thực thi đã nhận nhiệm vụ khi kế hoạch chạy: Backend yêu cầu mời người thay, không thu hồi trực tiếp.
   const mustReplace = holder.status === "ACCEPTED" && planRunning;
+  let revokeLabel = "Thu hồi lời mời";
+  if (holder.status === "ACCEPTED") {
+    revokeLabel = "Thu hồi vai";
+  }
 
   let statusText: ReactNode;
   if (holder.status === "INVITED") {
@@ -421,10 +487,10 @@ function ChosenCard(props: ChosenCardProps) {
     statusText = "Người này cần đồng ý lại. Bấm Gửi lại lời mời để họ xác nhận.";
   } else if (planRunning) {
     statusText =
-      "Hệ thống tự giữ mã nhận và chỉ gửi cho người này khi hồ sơ được duyệt và bàn giao bắt đầu.";
+      "Hệ thống tự giữ mã nhận. Người này chỉ xem được sau khi luật sư chốt biên bản bàn giao.";
   } else {
     statusText =
-      "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch, rồi chỉ gửi cho người này khi hồ sơ được duyệt.";
+      "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch. Người này chỉ xem được sau khi luật sư chốt biên bản bàn giao.";
   }
 
   const forbidden: string[] = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Nhận tài sản trong kho này"];
@@ -483,14 +549,17 @@ function ChosenCard(props: ChosenCardProps) {
               </Button>
             )}
             {needsResend && (
-              <Button
-                size="lg"
-                variant="outline"
+              <ActionButton
+                className={buttonVariants({ size: "lg", variant: "outline" })}
                 disabled={busy}
+                pending={props.resending}
+                done={props.resendDone}
+                pendingLabel="Đang gửi…"
+                doneLabel="Đã gửi"
                 onClick={() => props.onResend(holder)}
               >
                 Gửi lại lời mời
-              </Button>
+              </ActionButton>
             )}
             {!mustReplace && (
               <Button
@@ -500,7 +569,7 @@ function ChosenCard(props: ChosenCardProps) {
                 disabled={busy}
                 onClick={() => props.onRevoke(holder)}
               >
-                Thu hồi lời mời
+                {revokeLabel}
               </Button>
             )}
           </div>
@@ -650,6 +719,7 @@ export function ExecutorsSection({ vaultId, noteSlot }: ExecutorsSectionProps) {
   const query = usePlanSetup(vaultId);
   const client = useQueryClient();
   const resendAction = usePrivateAction();
+  const resendSuccess = useSuccessHold();
   /** Lời mời vừa gửi lại thành công (BE xác nhận), để báo cho Owner; null khi chưa gửi hoặc đang gửi lần khác. */
   const [resent, setResent] = useState<Executor | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -665,7 +735,12 @@ export function ExecutorsSection({ vaultId, noteSlot }: ExecutorsSectionProps) {
   function resend(executor: Executor): void {
     setResent(null);
     void resendAction.execute(
-      () => planSetupService.resend(vaultId, executor.id, executor.etag),
+      () =>
+        resendSuccess.hold(
+          () => planSetupService.resend(vaultId, executor.id, executor.etag),
+          // Chỉ hiện dấu tích khi thư thật sự gửi được.
+          (result) => Boolean(result.invitationSentAt),
+        ),
       (result) => {
         setResent(result);
         sync();
@@ -717,7 +792,6 @@ export function ExecutorsSection({ vaultId, noteSlot }: ExecutorsSectionProps) {
           {banner}
         </p>
       )}
-      {resendAction.pending && <p role="status">Đang gửi lại lời mời…</p>}
       {resent && !resendAction.pending && resent.invitationSentAt && (
         <p
           role="status"
@@ -752,6 +826,8 @@ export function ExecutorsSection({ vaultId, noteSlot }: ExecutorsSectionProps) {
         planRunning={planRunning}
         scopeVersion={setup.executorScopeVersion}
         busy={busy}
+        resending={resendAction.pending}
+        resendDone={resendSuccess.done}
         onInvite={(replacing) => setDialog({ kind: "invite", replacing })}
         onRevoke={(executor) => setDialog({ kind: "revoke", executor })}
         onResend={resend}
@@ -783,6 +859,7 @@ export function ExecutorsSection({ vaultId, noteSlot }: ExecutorsSectionProps) {
       )}
       {dialog !== null && dialog.kind === "revoke" && (
         <RevokeDialog
+          planRunning={planRunning}
           vaultId={vaultId}
           executor={dialog.executor}
           sync={sync}

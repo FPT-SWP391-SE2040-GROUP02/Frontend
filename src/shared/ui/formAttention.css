@@ -1,0 +1,144 @@
+/* Lucian UX/UI Prompt #244 · MIT License (c) 2026 Seokwoooo. Chỉ style trong các class .u244; màu lấy theo token của app. */
+.u244-sm {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-bottom: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.4s cubic-bezier(0.3, 1, 0.4, 1),
+    margin 0.4s,
+    visibility 0.4s;
+}
+.u244-sm > div {
+  min-height: 0;
+  overflow: hidden;
+}
+.u244-sm.is-open {
+  grid-template-rows: 1fr;
+  margin-bottom: 14px;
+  visibility: visible;
+}
+.u244-sb {
+  padding: 11px 13px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--danger) 30%, transparent);
+  color: var(--danger);
+}
+.u244-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.u244-title i {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--danger);
+  color: var(--bg-canvas);
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+.u244-sb ul {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  margin-top: 2px;
+  padding-left: 24px;
+}
+.u244-sb li {
+  transition: opacity 0.25s;
+}
+.u244-sb li.is-fixed {
+  opacity: 0.4;
+}
+.u244-sb button {
+  min-height: 28px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.u244-sb li.is-fixed button {
+  text-decoration: line-through;
+}
+
+.u244-bx {
+  position: relative;
+  margin-top: 6px;
+}
+.u244-fd.is-good .u244-bx :where(input) {
+  border-color: color-mix(in srgb, var(--success) 60%, transparent);
+}
+.u244-fd.is-shake .u244-bx {
+  animation: u244-sh 0.4s;
+}
+@keyframes u244-sh {
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+.u244-ok {
+  position: absolute;
+  right: 12px;
+  top: calc(50% - 10px);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--success);
+  pointer-events: none;
+  transform: scale(0);
+  transition: transform 0.35s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+.u244-ok::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 4px;
+  width: 5px;
+  height: 9px;
+  border: solid var(--bg-canvas);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+/* Ô đã có nút ở mép phải (nút lịch): đặt dấu tích lùi vào trong. */
+.u244-ok.is-inset {
+  right: 48px;
+}
+.u244-fd.is-good .u244-ok {
+  transform: none;
+}
+.u244-ms {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.3, 1, 0.4, 1);
+}
+.u244-ms > div {
+  min-height: 0;
+  overflow: hidden;
+}
+.u244-fd.is-bad .u244-ms {
+  grid-template-rows: 1fr;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u244-sm,
+  .u244-ms,
+  .u244-ok {
+    transition: none;
+  }
+  .u244-fd.is-shake .u244-bx {
+    animation: none;
+  }
+}

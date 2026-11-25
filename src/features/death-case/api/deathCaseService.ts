@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { apiClient } from "@/shared/api/axiosClient";
-import { executorRecipientSchema, executorVaultSchema } from "../model/deathCase.schema";
+import {
+  executorAssetNameSchema,
+  executorRecipientSchema,
+  executorVaultSchema,
+} from "../model/deathCase.schema";
 import { handoverProgressSchema, sendHandoverKeySchema } from "../model/handoverProgress.schema";
 
 const id = z.string().uuid();
@@ -30,6 +34,14 @@ export const deathCaseService = {
   async recipients(vaultId: string, signal?: AbortSignal) {
     return z.array(executorRecipientSchema).parse(
       await apiClient.get<unknown, unknown>(`/executor/vaults/${id.parse(vaultId)}/assets`, {
+        signal,
+      }),
+    );
+  },
+  /** Tên và loại mọi tài sản của kho; xem được cả trước khi bàn giao, không có người nhận hay nội dung. */
+  async assetNames(vaultId: string, signal?: AbortSignal) {
+    return z.array(executorAssetNameSchema).parse(
+      await apiClient.get<unknown, unknown>(`/executor/vaults/${id.parse(vaultId)}/asset-names`, {
         signal,
       }),
     );

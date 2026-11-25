@@ -58,7 +58,7 @@ describe("form thêm người nhận", () => {
     renderForm();
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     expect(await screen.findByText("Vui lòng nhập họ tên.")).toBeInTheDocument();
-    expect(screen.getByText("Vui lòng chọn ngày sinh.")).toBeInTheDocument();
+    expect(screen.getByText("Vui lòng nhập hoặc chọn ngày sinh hợp lệ.")).toBeInTheDocument();
     expect(screen.getByText("Vui lòng nhập email.")).toBeInTheDocument();
     expect(screen.queryByText(/invalid/i)).not.toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
@@ -69,7 +69,7 @@ describe("form thêm người nhận", () => {
     renderForm();
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "083206000699" } });
     fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "A" } });
-    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2000-02-16" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "16/02/2000" } });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "valid@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     expect(await screen.findByText("Họ và tên phải có ít nhất 2 ký tự.")).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe("form thêm người nhận", () => {
     renderForm();
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "083206000699" } });
     fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Văn An" } });
-    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2000-02-16" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "16/02/2000" } });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "invalid-email" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     expect(await screen.findByText("Email không hợp lệ.")).toBeInTheDocument();
@@ -97,7 +97,9 @@ describe("form thêm người nhận", () => {
   it("hiện lỗi ngay dưới ô tương ứng", async () => {
     renderForm();
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
-    const nameLabel = (await screen.findByLabelText(/^Họ và tên/)).closest("label") as HTMLElement;
+    const nameLabel = (await screen.findByLabelText(/^Họ và tên/)).closest(
+      "[data-field]",
+    ) as HTMLElement;
     expect(nameLabel).toHaveTextContent("Vui lòng nhập họ tên.");
   });
 
@@ -114,7 +116,7 @@ describe("form thêm người nhận", () => {
     renderForm();
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "083206000699" } });
     fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Quan" } });
-    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2000-02-16" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "16/02/2000" } });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "quan@example.test" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("gói dịch vụ trả phí");
@@ -129,11 +131,11 @@ describe("form thêm người nhận", () => {
     renderForm();
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "123456789" } });
     fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Văn A" } });
-    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2000-01-01" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "01/01/2000" } });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "a@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     const citizenIdLabel = (await screen.findByLabelText(/^Số CCCD/)).closest(
-      "label",
+      "[data-field]",
     ) as HTMLElement;
     expect(citizenIdLabel).toHaveTextContent("CCCD cần đủ 12 chữ số.");
     expect(post).not.toHaveBeenCalled();
@@ -146,12 +148,14 @@ describe("form thêm người nhận", () => {
     fireEvent.change(screen.getByLabelText(/^Họ và tên/), {
       target: { value: "Nguyễn Thanh Duy" },
     });
-    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2006-10-12" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "12/10/2006" } });
     fireEvent.change(screen.getByLabelText(/^Email/), {
       target: { value: "nthanhduy310@gmail.com" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
-    const emailLabel = (await screen.findByLabelText(/^Email/)).closest("label") as HTMLElement;
+    const emailLabel = (await screen.findByLabelText(/^Email/)).closest(
+      "[data-field]",
+    ) as HTMLElement;
     expect(emailLabel).toHaveTextContent(
       "Email người thụ hưởng không được trùng với email của Chủ kho.",
     );
@@ -165,10 +169,12 @@ describe("form thêm người nhận", () => {
     fireEvent.change(screen.getByLabelText(/^Họ và tên/), {
       target: { value: "Nguyễn Thanh Duy" },
     });
-    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2099-01-01" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "01/01/2099" } });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "duy@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
-    const dobLabel = (await screen.findByLabelText(/^Ngày sinh/)).closest("label") as HTMLElement;
+    const dobLabel = (await screen.findByLabelText(/^Ngày sinh/)).closest(
+      "[data-field]",
+    ) as HTMLElement;
     expect(dobLabel).toHaveTextContent("Ngày sinh không được ở tương lai.");
     expect(post).not.toHaveBeenCalled();
   });
@@ -189,7 +195,9 @@ describe("form thêm người nhận", () => {
     });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "duy@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
-    const dobLabel = (await screen.findByLabelText(/^Ngày sinh/)).closest("label") as HTMLElement;
+    const dobLabel = (await screen.findByLabelText(/^Ngày sinh/)).closest(
+      "[data-field]",
+    ) as HTMLElement;
     expect(dobLabel).toHaveTextContent("Người nhận phải đủ 18 tuổi.");
     expect(post).not.toHaveBeenCalled();
   });
@@ -215,24 +223,26 @@ describe("form thêm người nhận", () => {
     fireEvent.change(screen.getByLabelText(/^Họ và tên/), {
       target: { value: "Nguyễn Thanh Duy" },
     });
-    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2006-10-12" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "12/10/2006" } });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "other@example.com" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
 
-    const emailLabel = (await screen.findByLabelText(/^Email/)).closest("label") as HTMLElement;
+    const emailLabel = (await screen.findByLabelText(/^Email/)).closest(
+      "[data-field]",
+    ) as HTMLElement;
     expect(emailLabel).toHaveTextContent(
       "Email người thụ hưởng không được trùng với email của Chủ kho.",
     );
 
-    const citizenIdLabel = screen.getByLabelText(/^Số CCCD/).closest("label") as HTMLElement;
+    const citizenIdLabel = screen.getByLabelText(/^Số CCCD/).closest("[data-field]") as HTMLElement;
     expect(citizenIdLabel).toHaveTextContent(
       "Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho.",
     );
 
-    // Banner hiển thị chỉ dẫn rõ ràng trường nào đang bị lỗi
-    expect(
-      screen.getByText(/Vui lòng kiểm tra và chỉnh sửa lại các ô có thông báo lỗi màu đỏ ở trên/),
-    ).toBeInTheDocument();
+    // Khung tóm tắt ở đầu form liệt kê các ô đang bị lỗi
+    expect(screen.getByText("Còn 2 ô cần sửa")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Số CCCD" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Email" })).toBeInTheDocument();
   });
 });
 
@@ -240,7 +250,7 @@ describe("form thêm người nhận: định dạng CCCD và số điện tho�
   function fillValid() {
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "083206000699" } });
     fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Nguyễn Văn An" } });
-    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "2000-02-16" } });
+    fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "16/02/2000" } });
     fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "an@example.test" } });
   }
 
@@ -250,7 +260,7 @@ describe("form thêm người nhận: định dạng CCCD và số điện tho�
     fillValid();
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "179206021795" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
-    const label = (await screen.findByLabelText(/^Số CCCD/)).closest("label") as HTMLElement;
+    const label = (await screen.findByLabelText(/^Số CCCD/)).closest("[data-field]") as HTMLElement;
     expect(label).toHaveTextContent("Số CCCD không đúng định dạng");
     expect(post).not.toHaveBeenCalled();
   });
@@ -261,7 +271,9 @@ describe("form thêm người nhận: định dạng CCCD và số điện tho�
     fillValid();
     fireEvent.change(screen.getByLabelText(/^Số điện thoại/), { target: { value: "1787712815" } });
     fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
-    const label = (await screen.findByLabelText(/^Số điện thoại/)).closest("label") as HTMLElement;
+    const label = (await screen.findByLabelText(/^Số điện thoại/)).closest(
+      "[data-field]",
+    ) as HTMLElement;
     expect(label).toHaveTextContent("Số điện thoại không đúng định dạng Việt Nam");
     expect(post).not.toHaveBeenCalled();
   });

@@ -6,15 +6,17 @@ import { WillDocument } from "@/entities/will/ui/WillDocument";
 import type { ExecutorVault } from "../model/deathCase.schema";
 
 /**
- * Nút xem lại biên bản phân chia giữa Chủ kho và Người thực thi, chỉ đọc, in được. Không có tên tài sản hay người nhận:
- * Người thực thi chỉ thấy phần này khi luật sư đã chốt biên bản bàn giao.
+ * Nút xem lại biên bản phân chia giữa Chủ kho và Người thực thi, chỉ đọc, in được. Tờ này không có tên tài sản hay
+ * người nhận: tên và loại tài sản xem ở trang Tài sản; người nhận chỉ thấy khi luật sư đã chốt biên bản bàn giao.
  */
 export function ExecutorWillButton({
   vault,
   onOpen,
+  primary,
 }: {
   vault: ExecutorVault;
   onOpen?: () => void;
+  primary?: boolean;
 }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   let version: WillVersionView | null = null;
@@ -33,6 +35,7 @@ export function ExecutorWillButton({
   return (
     <PaperPreviewButton
       onOpen={onOpen}
+      primary={primary}
       label="Xem biên bản với Chủ kho"
       title="Biên bản phân chia"
       fileName="Bien-ban-phan-chia"

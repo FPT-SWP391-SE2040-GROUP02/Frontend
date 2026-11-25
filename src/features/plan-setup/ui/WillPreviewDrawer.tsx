@@ -12,7 +12,7 @@ import { needsResign, pickOwnerSignedAt, pickWillExecutor } from "../lib/willVie
 import type { planSetupSchema } from "../model/planSetup.schema";
 import { readVaultPinFailure } from "@/shared/api/vaultPin";
 import { PIN_DIGITS } from "@/shared/ui/pin-input";
-import { useWillIdentity } from "../model/useWillIdentity";
+import { useWillIdentity, WillPinNotConfirmedError } from "../model/useWillIdentity";
 import { PlanWillDocument } from "./PlanWillDocument";
 import { WillSignFooter, type WillSignNotice } from "./WillSignFooter";
 
@@ -54,6 +54,9 @@ function exportHint(
   if (identityStatus === "error") {
     return "Cần tải được thông tin danh tính";
   }
+  if (identityStatus === "none") {
+    return "Nhập mã PIN để xuất";
+  }
   return "Đã đủ 2 chữ ký";
 }
 
@@ -83,6 +86,20 @@ function IdentityNotice({
         </p>
         <Button variant="outline" disabled={!canReveal} onClick={onReveal}>
           Hiện thông tin đầy đủ
+        </Button>
+      </div>
+    );
+  }
+  if (status === "none") {
+    // Khung chỉ để xem mà người dùng đã đóng hộp PIN: đây là lựa chọn của họ, không phải lỗi.
+    return (
+      <div
+        role="status"
+        className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-heritage-muted"
+      >
+        <p>Chưa xác nhận mã PIN nên ngày sinh, CCCD và nơi thường trú đang ẩn.</p>
+        <Button variant="outline" onClick={onRetry}>
+          Nhập mã PIN
         </Button>
       </div>
     );
@@ -181,7 +198,11 @@ function WillDrawerBody({
     // Chưa gõ đủ PIN, chưa bấm nút với PIN này, hoặc PIN sai: chưa có danh tính, không phải đang tải hay lỗi mạng.
     identityStatus = "none";
   } else if (identityQuery.isError && !identityQuery.isFetching) {
-    identityStatus = "error";
+    if (identityQuery.error instanceof WillPinNotConfirmedError) {
+      identityStatus = "none";
+    } else {
+      identityStatus = "error";
+    }
   }
 
   const ownerSigned = pickOwnerSignedAt(setup) !== null;

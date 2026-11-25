@@ -25,7 +25,9 @@ export function RecordReportsPanel({ record }: { record: HandoverRecord }) {
             <SuggestedRecipientList recipients={report.recipients} />
             <ReportFiles
               files={report.files}
-              download={(file) => verifierReportService.downloadFile(report.id, file.id)}
+              download={(file, options) =>
+                verifierReportService.downloadFile(report.id, file.id, options)
+              }
             />
           </article>
         ))}

@@ -11,11 +11,34 @@ import {
 import type { ExecutorHandoverKey } from "../model/systemExecutor.schema";
 
 /**
- * Thẻ "Mã nhận" ở cổng Người thực thi: hệ thống giữ mã và chỉ cho xem khi hồ sơ được duyệt và bàn giao
- * bắt đầu; trước đó trả 409 HANDOVER_NOT_STARTED và thẻ hiện câu chờ thay vì lỗi.
- * Mã chỉ tải về khi bấm "Xem mã", chỉ nằm trong state của thẻ (không vào cache hay storage) và mất khi ẩn hoặc rời trang.
+ * Thẻ "Mã nhận" ở cổng Người thực thi. Backend chỉ cho xem mã khi kế hoạch đang bàn giao (luật sư đã chốt biên bản)
+ * hoặc đã đóng; trước đó thẻ chỉ báo đang chờ, không có nút, để người dùng khỏi bấm vào chỗ chắc chắn bị từ chối.
  */
-export function ExecutorReceivedKeyCard({ vaultId }: { vaultId: string }) {
+export function ExecutorReceivedKeyCard({
+  vaultId,
+  planStatus,
+}: {
+  vaultId: string;
+  planStatus: string;
+}) {
+  if (planStatus !== "HANDOVER_IN_PROGRESS" && planStatus !== "CLOSED") {
+    return (
+      <Panel title="Mã nhận" action={<Chip tone="neutral">Chờ bàn giao</Chip>}>
+        <p className="text-sm leading-6 text-heritage-muted">
+          Bạn sẽ xem được mã sau khi luật sư chốt biên bản bàn giao.
+        </p>
+      </Panel>
+    );
+  }
+  // Tách thành phần riêng để mã đã tải bị bỏ ngay khi thẻ quay về trạng thái chờ.
+  return <RevealKeyCard vaultId={vaultId} />;
+}
+
+/**
+ * Mã chỉ tải về khi bấm "Xem mã", chỉ nằm trong state của thẻ (không vào cache hay storage) và mất khi ẩn hoặc rời
+ * trang. Backend vẫn là nơi quyết định: trả 409 HANDOVER_NOT_STARTED thì thẻ hiện câu chờ thay vì lỗi.
+ */
+function RevealKeyCard({ vaultId }: { vaultId: string }) {
   const action = usePrivateAction();
   const [key, setKey] = useState<ExecutorHandoverKey | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
@@ -57,8 +80,7 @@ export function ExecutorReceivedKeyCard({ vaultId }: { vaultId: string }) {
       className="border-heritage-gold-soft/60 bg-heritage-warning-bg"
     >
       <p className="text-sm leading-6">
-        Hệ thống giữ mã và cho bạn xem khi hồ sơ được duyệt và bàn giao bắt đầu. Khi đó bạn gửi mã
-        cho người nhận để họ nhận tài sản. Không chia sẻ mã cho ai khác.
+        Gửi mã cho người nhận để họ nhận tài sản. Không chia sẻ mã cho ai khác.
       </p>
 
       {key === null && (

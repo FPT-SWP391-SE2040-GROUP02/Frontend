@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -6,6 +6,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
+import { AxiosError, AxiosHeaders } from "axios";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
@@ -148,10 +149,12 @@ describe("Executor workspace shell", () => {
       "Bàn giao",
       "Tài sản và hướng dẫn",
       "Cài đặt",
+      // Mục chỉ hiện dưới 768px, thay cho chân thanh bên bị ẩn trên điện thoại.
+      "Lời mời và kho",
     ]);
     const account = screen.getByRole("navigation", { name: "Tài khoản" });
     expect(Array.from(account.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
-      "Lời mời và các kho bạn đang làm việc",
+      "Lời mời và kho",
     ]);
     expect(screen.queryByRole("link", { name: "Xác minh" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tổng quan" })).toHaveAttribute("aria-current", "page");
@@ -188,6 +191,7 @@ describe("Executor workspace shell", () => {
     );
     // Tiêu đề nhóm menu bên dưới.
     expect(screen.getByText("Kho này")).toBeInTheDocument();
+    expect(screen.queryByText("Mở khi bạn nhận một kho")).not.toBeInTheDocument();
   });
 
   it("chưa chọn kho nào thì tự chọn kho đầu tiên; kho đã nhớ trong phiên thì dùng kho đó", async () => {
@@ -207,19 +211,27 @@ describe("Executor workspace shell", () => {
     ).toBeInTheDocument();
   });
 
-  it("không có kho nào: thẻ ghi Chưa giữ kho nào và liên kết thành Xem lời mời →", async () => {
+  it("không có kho nào: không hiện thẻ kho, ba mục cần kho vẫn hiện nhưng khóa", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([]);
     setup("/executor");
-    const group = await screen.findByRole("region", { name: "Đang làm việc với kho" });
-    expect(await within(group).findByText("Chưa giữ kho nào")).toBeInTheDocument();
-    expect(within(group).getByRole("link", { name: "Xem lời mời →" })).toHaveAttribute(
-      "href",
-      "/executor/invitations",
-    );
-    expect(within(group).queryByRole("link", { name: "Đổi kho →" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Chưa có kho nào" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Đang làm việc với kho" })).not.toBeInTheDocument();
+    const nav = screen.getByRole("navigation", { name: "Điều hướng Người thực thi" });
+    expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
+      "Tổng quan",
+      "Cài đặt",
+      "Lời mời và kho",
+    ]);
+    expect(within(nav).getByText("Kho này")).toBeInTheDocument();
+    for (const name of ["Biên bản bàn giao", "Bàn giao", "Tài sản và hướng dẫn"]) {
+      const locked = within(nav).getByRole("link", { name });
+      expect(locked).toHaveAttribute("aria-disabled", "true");
+      expect(locked).not.toHaveAttribute("href");
+      expect(locked).toHaveAccessibleDescription("Mở khi bạn nhận một kho");
+    }
   });
 
-  it("shows the pending invitation count on Lời mời và các kho bạn đang làm việc and hides it at zero", async () => {
+  it("shows the pending invitation count on Lời mời và kho and hides it at zero", async () => {
     const mine = (pending: unknown[]) => ({
       scopeVersion: "v1",
       scopeText: "scope",
@@ -242,15 +254,15 @@ describe("Executor workspace shell", () => {
       return [];
     });
     setup("/executor");
-    const link = await screen.findByRole("link", { name: /Lời mời và các kho bạn đang làm việc/ });
+    const account = await screen.findByRole("navigation", { name: "Tài khoản" });
+    const link = within(account).getByRole("link", { name: /Lời mời và kho/ });
     expect(await within(link).findByLabelText("1 lời mời đang chờ")).toBeInTheDocument();
     cleanup();
     client.clear();
     pending = [];
     setup("/executor");
-    const emptyLink = await screen.findByRole("link", {
-      name: /Lời mời và các kho bạn đang làm việc/,
-    });
+    const emptyAccount = await screen.findByRole("navigation", { name: "Tài khoản" });
+    const emptyLink = within(emptyAccount).getByRole("link", { name: /Lời mời và kho/ });
     await screen.findByRole("heading", { level: 1, name: "Kho của Anh Nam" });
     expect(within(emptyLink).queryByLabelText(/lời mời đang chờ/)).not.toBeInTheDocument();
   });
@@ -312,6 +324,39 @@ describe("Executor assets", () => {
     expect(await screen.findByText("Chưa có tài sản nào được gán")).toBeInTheDocument();
   });
 
+  it("chưa bàn giao: hiện tên, loại tài sản và hướng dẫn, không báo lỗi, không có người nhận", async () => {
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/executor/vaults") return [vault()];
+      if (url === `/executor/vaults/${VAULT_ID}/assets`) {
+        throw new AxiosError("not started", AxiosError.ERR_BAD_REQUEST, undefined, undefined, {
+          status: 409,
+          statusText: "Conflict",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+          data: { code: "HANDOVER_NOT_ALLOWED", reason: "HANDOVER_NOT_STARTED" },
+        });
+      }
+      if (url === `/executor/vaults/${VAULT_ID}/asset-names`) {
+        return [
+          { name: "Email gia đình", kind: "TEXT" },
+          { name: "Sổ tiết kiệm", kind: "FILE" },
+        ];
+      }
+      return [];
+    });
+    setup("/executor/assets");
+
+    expect(await screen.findByText("Email gia đình")).toBeInTheDocument();
+    expect(screen.getByText("Sổ tiết kiệm")).toBeInTheDocument();
+    expect(screen.getByText("Ghi chú bí mật")).toBeInTheDocument();
+    expect(screen.getByText("Tệp tải lên")).toBeInTheDocument();
+    expect(screen.getByText("Chủ kho chưa để lại hướng dẫn.")).toBeInTheDocument();
+    expect(screen.getByText(/Người nhận sẽ hiện sau khi luật sư/)).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Thử lại|Xem|Tải/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/CCCD/)).not.toBeInTheDocument();
+  });
+
   it("offers a retry when the list cannot be loaded", async () => {
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
       if (url === "/executor/vaults") return [vault()];
@@ -352,12 +397,44 @@ describe("Executor overview", () => {
     expect(within(dialog).getByText("Đến lượt bạn ký biên bản")).toBeInTheDocument();
   });
 
-  it("says there is no duty when the account is not an Executor of any vault", async () => {
+  it("says there is no vault when the account is not an Executor of any vault", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([]);
     setup("/executor");
-    expect(
-      await screen.findByText("Tài khoản chưa có nhiệm vụ Executor đang hiệu lực."),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Lời mời mới sẽ hiện ở trang Tổng quan.")).toBeInTheDocument();
+  });
+
+  it("chưa giữ kho mà có lời mời chờ: hiện khung mời, không hiện thẻ Chưa có kho nào", async () => {
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url.includes("executor-invitations")) {
+        return {
+          scopeVersion: "v1",
+          scopeText: "scope",
+          pending: [
+            {
+              id: "99999999-9999-4999-8999-999999999999",
+              ownerName: "Cô Lan",
+              inviteeEmail: "hai@example.test",
+              status: "INVITED",
+              invitedAt: "2026-11-01T03:00:00Z",
+              expiresAt: "2026-11-20T03:00:00Z",
+              endedAt: null,
+            },
+          ],
+          ended: [],
+        };
+      }
+      return [];
+    });
+    setup("/executor");
+    const banner = await screen.findByRole("region", { name: "Lời mời làm Người thực thi" });
+    expect(banner).toHaveTextContent("Cô Lan mời bạn làm Người thực thi");
+    expect(within(banner).getByRole("link", { name: "Xem lời mời" })).toHaveAttribute(
+      "href",
+      "/executor/invitations",
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole("heading", { name: "Chưa có kho nào" })).not.toBeInTheDocument(),
+    );
   });
 
   it("reports a failed vault list with a retry instead of an empty page", async () => {

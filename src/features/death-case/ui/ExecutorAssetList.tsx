@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { Lock, Search } from "lucide-react";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { buttonStyles, Chip, Panel } from "@/shared/ui/heritageKit";
+import { isHandoverNotStarted } from "@/entities/executor/api/systemExecutorsService";
 import type { ExecutorVault } from "../model/deathCase.schema";
 import {
   assetBadge,
@@ -14,6 +15,7 @@ import {
 } from "../model/executorAssets";
 import type { HandoverProgressTurn } from "../model/handoverProgress.schema";
 import { isSigningStage, useExecutorRecord } from "@/entities/handoverRecord";
+import { useExecutorAssetNames } from "../model/useExecutorAssetNames";
 import { useExecutorRecipients } from "../model/useExecutorRecipients";
 import { useHandoverProgress } from "../model/useHandoverProgress";
 
@@ -53,6 +55,89 @@ function GuideBox({ vault }: { vault: ExecutorVault }) {
   );
 }
 
+/** Ô chữ viết tắt đứng trước tên tài sản. */
+function AssetBadge({ name, kind }: { name: string; kind: "FILE" | "TEXT" }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-heritage-gold-border bg-heritage-gold-light text-[0.875rem] font-bold text-heritage-gold"
+    >
+      {assetBadge(name, kind)}
+    </span>
+  );
+}
+
+/** Báo không tải được danh sách, kèm nút thử lại. */
+function ListError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div role="alert" className="space-y-3">
+      <p>Không tải được danh sách tài sản.</p>
+      <button type="button" className={buttonStyles.outline} onClick={onRetry}>
+        Thử lại
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Trước khi luật sư chốt biên bản bàn giao: chỉ tên và loại tài sản cùng hướng dẫn của Chủ kho. Người nhận và ai
+ * nhận tài sản nào chưa được xem.
+ */
+function AssetNamesBeforeHandover({ vault }: { vault: ExecutorVault }) {
+  const names = useExecutorAssetNames(vault.vaultId, true);
+  let content;
+  if (names.isPending) {
+    content = <p role="status">Đang tải danh sách tài sản…</p>;
+  } else if (names.isError) {
+    content = <ListError onRetry={() => void names.refetch()} />;
+  } else if (names.data.length === 0) {
+    content = (
+      <Panel title="Chưa có tài sản nào">
+        <p role="status" className="text-sm text-heritage-muted">
+          Kho của {vault.ownerFullName} chưa có tài sản nào.
+        </p>
+      </Panel>
+    );
+  } else {
+    content = (
+      <Panel title={`Tài sản trong kho (${names.data.length})`}>
+        <ul className="divide-y divide-heritage-border">
+          {names.data.map((asset, index) => {
+            let kindLabel = "Tệp tải lên";
+            if (asset.kind === "TEXT") kindLabel = "Ghi chú bí mật";
+            return (
+              // Backend cố ý không trả mã tài sản; danh sách chỉ đọc, không đổi thứ tự.
+              <li key={index} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                <AssetBadge name={asset.name} kind={asset.kind} />
+                <div className="min-w-0 flex-1">
+                  <p className="break-words font-medium">{asset.name}</p>
+                  <p className="text-sm text-heritage-muted">{kindLabel}</p>
+                </div>
+                <Lock
+                  className="size-4 shrink-0 text-heritage-muted"
+                  aria-label="Nội dung được khóa, bạn không mở được"
+                  role="img"
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </Panel>
+    );
+  }
+  return (
+    <div className="space-y-6">
+      <GuideBox vault={vault} />
+      {content}
+      <p className="flex items-start gap-2 text-sm leading-5 text-heritage-muted">
+        <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+        Bạn chỉ thấy tên và loại tài sản, không mở được nội dung. Người nhận sẽ hiện sau khi luật sư
+        chốt biên bản bàn giao.
+      </p>
+    </div>
+  );
+}
+
 /**
  * Tài sản và hướng dẫn của kho, gom theo người nhận. Người thực thi chỉ thấy tên, loại, người nhận và
  * trạng thái tải, không có nút xem hay tải: nội dung chỉ người nhận mở được sau khi nhập mã nhận.
@@ -69,18 +154,11 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
 
   if (recipients.isPending) return <p role="status">Đang tải danh sách tài sản…</p>;
   if (recipients.isError) {
-    return (
-      <div role="alert" className="space-y-3">
-        <p>Không tải được danh sách tài sản.</p>
-        <button
-          type="button"
-          className={buttonStyles.outline}
-          onClick={() => void recipients.refetch()}
-        >
-          Thử lại
-        </button>
-      </div>
-    );
+    // Chưa bàn giao là trạng thái chờ bình thường, không phải lỗi tải.
+    if (isHandoverNotStarted(recipients.error)) {
+      return <AssetNamesBeforeHandover vault={vault} />;
+    }
+    return <ListError onRetry={() => void recipients.refetch()} />;
   }
   let turns: HandoverProgressTurn[] = [];
   if (progress.data && progress.data.handoverStarted) turns = progress.data.turns;
@@ -148,12 +226,7 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
                 const chip = DOWNLOAD_CHIPS[state];
                 return (
                   <li key={asset.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                    <span
-                      aria-hidden="true"
-                      className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-heritage-gold-border bg-heritage-gold-light text-[0.875rem] font-bold text-heritage-gold"
-                    >
-                      {assetBadge(asset.name, asset.kind)}
-                    </span>
+                    <AssetBadge name={asset.name} kind={asset.kind} />
                     <div className="min-w-0 flex-1">
                       <p className="break-words font-medium">{asset.name}</p>
                       <p className="text-sm text-heritage-muted">

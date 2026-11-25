@@ -209,8 +209,7 @@ export function OwnerBeneficiaries() {
                 Thêm người nhận
               </DialogTitle>
               <DialogDescription className="text-heritage-muted">
-                Nhập thông tin để đối chiếu khi bàn giao. Tạo hồ sơ không tự gán tài sản cho người
-                nhận.
+                Thông tin dùng để đối chiếu khi bàn giao. Bước này chưa gán tài sản.
               </DialogDescription>
             </DialogHeader>
             <BeneficiaryForm

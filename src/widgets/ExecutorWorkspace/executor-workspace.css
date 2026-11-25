@@ -7,3 +7,15 @@
     display: flex;
   }
 }
+/* Mục cần kho khi chưa giữ kho nào: mờ và không đổi màu khi rê chuột. */
+.owner-nav-link.executor-nav-locked,
+.owner-nav-link.executor-nav-locked:hover {
+  background: transparent;
+  color: #ffffff80;
+  cursor: default;
+}
+/* Hẹp khoảng cách để chừa chỗ cho ổ khóa, tên mục không bị xuống dòng thêm. */
+.owner-nav-link.executor-nav-locked {
+  gap: 8px;
+  padding-right: 4px;
+}

@@ -25,7 +25,9 @@ export function Switch({
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-heritage-gold-soft focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        // min-h-0: CSS gốc đặt mọi nút cao tối thiểu 44px làm công tắc méo thành hình tròn to.
+        // after: vùng bấm trong suốt cao hơn công tắc, giữ đủ 44px cho người lớn tuổi.
+        "relative inline-flex h-6 min-h-0 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out after:absolute after:inset-x-0 after:-inset-y-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-heritage-gold-soft focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         checked
           ? "bg-heritage-success dark:bg-heritage-success"
           : "bg-heritage-border-strong dark:bg-heritage-muted",

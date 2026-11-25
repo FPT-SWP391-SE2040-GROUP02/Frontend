@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AxiosError, isAxiosError } from "axios";
+import { AxiosError, isAxiosError, isCancel } from "axios";
 import { z } from "zod";
 import { accessTokenMemory } from "./accessToken";
 import { HTTP_STATUS, SUPPORT_EMAIL } from "@/shared/constants";
@@ -352,7 +352,8 @@ export function usePrivateAction() {
       setSucceeded(true);
       return true;
     } catch (failure) {
-      if (current()) {
+      // Người dùng chủ động hủy (nút tải) thì không báo lỗi.
+      if (current() && !isCancel(failure)) {
         const extracted = extractValidationFieldErrors(failure);
         setError(privateActionError(failure));
         setFieldErrors(extracted);

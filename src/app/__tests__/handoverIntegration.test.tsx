@@ -222,9 +222,7 @@ it("lets a system USER reach Executor data and leaves resource permissions to Ba
     </Routes>,
     "/executor",
   );
-  expect(
-    await screen.findByText("Tài khoản chưa có nhiệm vụ Executor đang hiệu lực."),
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Lời mời mới sẽ hiện ở trang Tổng quan.")).toBeInTheDocument();
   expect(get).toHaveBeenCalledWith(
     "/executor/vaults",
     expect.objectContaining({ signal: expect.any(AbortSignal) }),
