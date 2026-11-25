@@ -168,8 +168,10 @@ describe("MyInvitationsInbox", () => {
     const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
     expect(within(card).getByText("Chờ Chủ kho ký")).toBeInTheDocument();
     expect(within(card).getByRole("checkbox")).toBeDisabled();
-    expect(within(card).getByRole("button", { name: SIGN_BUTTON })).toBeDisabled();
-    expect(within(card).getByRole("button", { name: "Từ chối" })).toBeEnabled();
+    // Chủ kho chưa ký: ẩn cả nút ký nhận vai lẫn nút từ chối, chỉ báo chờ.
+    expect(within(card).queryByRole("button", { name: SIGN_BUTTON })).not.toBeInTheDocument();
+    expect(within(card).queryByRole("button", { name: "Từ chối" })).not.toBeInTheDocument();
+    expect(within(card).getByText(/Chủ kho chưa ký biên bản phân chia/)).toBeInTheDocument();
   });
 
   async function acceptWithError(error: AxiosError, password: string) {
