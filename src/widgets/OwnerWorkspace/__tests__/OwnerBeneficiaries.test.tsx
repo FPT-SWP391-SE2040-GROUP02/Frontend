@@ -84,7 +84,7 @@ describe("trang người nhận của Chủ kho", () => {
     renderPage();
     await userEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent("Nhập thông tin để đối chiếu khi bàn giao.");
+    expect(dialog).toHaveTextContent("Thông tin dùng để đối chiếu khi bàn giao.");
     expect(screen.getByLabelText(/^Họ và tên/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Hủy" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

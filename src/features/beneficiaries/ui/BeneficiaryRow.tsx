@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
+import { cn } from "cn";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles } from "@/shared/ui/heritageKit";
@@ -87,6 +89,7 @@ function DeleteBeneficiaryDialog({
   const action = usePrivateAction();
   const client = useQueryClient();
   const [understood, setUnderstood] = useState(false);
+  const hintId = useId();
   const blocked = record.assetIds.length > 0;
   if (blocked) {
     return (
@@ -124,26 +127,68 @@ function DeleteBeneficiaryDialog({
       </Dialog>
     );
   }
+  // Thông tin để Chủ kho nhận ra đúng người trước khi xóa.
+  let email = "Chưa có";
+  if (record.email) {
+    email = record.email;
+  }
+  let phone = "Chưa có";
+  if (record.phone) {
+    phone = record.phone;
+  }
+  const details = [
+    { label: "Ngày sinh", value: formatBirthDate(record.dateOfBirth) },
+    { label: "Số CCCD", value: record.citizenId },
+    { label: "Email", value: email },
+    { label: "Số điện thoại", value: phone },
+    { label: "Tài sản được gán", value: "Chưa có" },
+  ];
   return (
     <Dialog open onOpenChange={(open) => !open && !action.pending && onClose()}>
       <DialogContent className={DIALOG_CLASS} showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle className={DIALOG_TITLE}>Xóa “{record.fullName}”?</DialogTitle>
-          <DialogDescription className="text-heritage-muted">
-            Hồ sơ người nhận (CCCD {record.citizenId}) sẽ bị xóa khỏi kho. Người này chưa được gán
-            tài sản nào.
-          </DialogDescription>
+          <div className="flex items-center gap-3">
+            <span
+              className="flex size-11 shrink-0 items-center justify-center rounded-full bg-heritage-danger-bg text-heritage-danger"
+              aria-hidden="true"
+            >
+              <Trash2 className="size-5" />
+            </span>
+            <DialogTitle className={DIALOG_TITLE}>Xóa người nhận này?</DialogTitle>
+          </div>
         </DialogHeader>
-        <label className="flex min-h-11 items-center gap-3 text-sm">
-          <input
-            type="checkbox"
-            className="size-5"
-            checked={understood}
-            disabled={action.pending}
-            onChange={(event) => setUnderstood(event.target.checked)}
-          />
-          Tôi hiểu thao tác này không hoàn tác được.
-        </label>
+        <div className="rounded-xl border border-heritage-border px-4 py-3.5">
+          <p className="break-words text-base font-semibold">{record.fullName}</p>
+          <dl className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm">
+            {details.map((detail) => (
+              <div key={detail.label} className="contents">
+                <dt className="text-heritage-muted">{detail.label}</dt>
+                <dd className="break-all">{detail.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        <DialogDescription className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger">
+          Hồ sơ và lời nhắn của người này sẽ bị xóa, không hoàn tác được. Tài sản trong kho không bị
+          ảnh hưởng.
+        </DialogDescription>
+        <div>
+          <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
+            <input
+              type="checkbox"
+              className="size-5 shrink-0 cursor-pointer accent-heritage-danger"
+              checked={understood}
+              disabled={action.pending}
+              onChange={(event) => setUnderstood(event.target.checked)}
+            />
+            Tôi hiểu thao tác này không hoàn tác được.
+          </label>
+          {!understood && (
+            <p id={hintId} className="pl-8 text-sm text-heritage-muted">
+              Tick ô này thì nút Xóa mới bấm được.
+            </p>
+          )}
+        </div>
         {action.error && (
           <p
             role="alert"
@@ -152,7 +197,8 @@ function DeleteBeneficiaryDialog({
             {action.error}
           </p>
         )}
-        <DialogFooter>
+        {/* Lề âm khớp lề hộp thoại: p-7 ở màn hẹp, sm:p-6 từ màn rộng. */}
+        <DialogFooter className="-mx-7 -mb-7 bg-heritage-surface px-7 sm:-mx-6 sm:-mb-6 sm:px-6">
           <button
             type="button"
             className={buttonStyles.outline}
@@ -163,7 +209,12 @@ function DeleteBeneficiaryDialog({
           </button>
           <button
             type="button"
-            className={RED_BUTTON}
+            className={cn(
+              RED_BUTTON,
+              // Đang khóa thì hiện xám như nút bị khóa, không phải đỏ nhạt trông như hỏng.
+              "disabled:border disabled:border-heritage-border disabled:bg-heritage-sunken disabled:text-heritage-subtle disabled:opacity-100",
+            )}
+            aria-describedby={understood ? undefined : hintId}
             disabled={action.pending || !understood}
             onClick={() =>
               void action.execute(

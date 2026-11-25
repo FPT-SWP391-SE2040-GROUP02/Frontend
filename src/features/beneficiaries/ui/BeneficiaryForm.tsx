@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { useContext, useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useContext, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useController, useForm, useWatch } from "react-hook-form";
 import { ReactReduxContext } from "react-redux";
 import { Link } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
@@ -10,6 +10,15 @@ import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
 import { buttonStyles } from "@/shared/ui/heritageKit";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { DatePickerInput } from "@/shared/ui/date-picker-input";
+import {
+  AttentionField,
+  ErrorSummary,
+  jumpToField,
+  type SummaryItem,
+} from "@/shared/ui/FormAttention";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import type { User } from "@/entities/user";
@@ -35,22 +44,25 @@ interface BeneficiaryFormValues {
   message?: string;
 }
 
-const LABEL = "block space-y-1.5 text-sm font-semibold";
-const HINT = "block text-sm font-normal text-heritage-muted";
-const FIELD = "min-h-11 bg-white font-normal placeholder:text-heritage-muted";
+const FIELD = "min-h-11 bg-white pr-10 font-normal placeholder:text-heritage-muted";
+const GROUP_TITLE = "text-sm font-semibold text-heritage-muted";
+/** Chờ ô rung một nhịp rồi mới cuộn tới ô sai đầu tiên, giữ như mẫu gốc. */
+const JUMP_DELAY_MS = 200;
+const MESSAGE_MAX = 300;
 
-function FieldError({ message }: { message?: string }) {
-  if (!message) {
-    return null;
-  }
-  return (
-    <span role="alert" className="block text-sm font-normal text-destructive">
-      {message}
-    </span>
-  );
-}
+type FieldName = keyof BeneficiaryFormValues;
 
-const FIELD_LABELS: Record<string, string> = {
+/** Thứ tự các ô trên form, dùng cho khung tóm tắt lỗi và để chọn ô sai đầu tiên. */
+const FIELD_ORDER: FieldName[] = [
+  "fullName",
+  "dateOfBirth",
+  "citizenId",
+  "email",
+  "phone",
+  "message",
+];
+
+const FIELD_LABELS: Record<FieldName, string> = {
   citizenId: "Số CCCD",
   fullName: "Họ và tên",
   dateOfBirth: "Ngày sinh",
@@ -60,7 +72,8 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 /**
- * Form thêm/sửa người nhận theo thiết kế 154/155/172: hai cột, gợi ý dưới từng ô, khung thông tin cuối form.
+ * Form thêm/sửa người nhận: ô định danh, nhóm thông tin liên hệ, gợi ý một dòng, hai nút ghim ở đáy hộp thoại.
+ * Lỗi "chưa nhập" chỉ hiện khi bấm lưu; lỗi định dạng hiện khi rời ô; sau lần bấm đầu thì kiểm ngay khi gõ.
  * CCCD đầy đủ chỉ ở form RAM; sửa giữ etag ban đầu và không cho thay CCCD. Xóa hồ sơ nằm ở hộp thoại riêng của hàng.
  * Backend chưa có trường "Quan hệ" nên form không có ô này.
  */
@@ -78,6 +91,7 @@ export function BeneficiaryForm({
   onOpenExisting?: (existing: Beneficiary) => void;
 }) {
   const action = usePrivateAction();
+  const success = useSuccessHold();
   const client = useQueryClient();
   const reduxContext = useContext(ReactReduxContext);
   const store = reduxContext?.store;
@@ -101,100 +115,79 @@ export function BeneficiaryForm({
 
   const formSchema = useMemo(
     () =>
-      z
-        .object({
-          citizenId: z.string().max(32, "Số CCCD quá dài."),
-          fullName: z
-            .string()
-            .min(1, "Vui lòng nhập họ tên.")
-            .regex(/\S/, "Vui lòng nhập họ tên.")
-            .min(2, "Họ và tên phải có ít nhất 2 ký tự.")
-            .max(200, "Họ tên tối đa 200 ký tự.")
-            .regex(/^[\p{L}\s]+$/u, "Họ và tên chỉ được chứa chữ cái và khoảng trắng."),
-          dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Vui lòng chọn ngày sinh."),
-          email: z
-            .string()
-            .min(1, "Vui lòng nhập email.")
-            .max(254, "Email tối đa 254 ký tự.")
-            .refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()), "Email không hợp lệ."),
-          phone: z.string().max(20, "Số điện thoại tối đa 20 ký tự.").optional().or(z.literal("")),
-          message: z.string().max(300, "Lời nhắn tối đa 300 ký tự.").optional(),
-        })
-        .superRefine((values, ctx) => {
-          // 1. Kiểm tra ngày sinh không ở tương lai
-          if (values.dateOfBirth && values.dateOfBirth > todayStr) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ["dateOfBirth"],
-              message: "Ngày sinh không được ở tương lai.",
-            });
-          }
-
-          // 2. Phải đủ 18 tuổi. Khi sửa chỉ kiểm nếu ngày sinh được đổi, giống backend.
-          if (
-            values.dateOfBirth &&
-            values.dateOfBirth <= todayStr &&
-            values.dateOfBirth !== record?.dateOfBirth &&
-            values.dateOfBirth > latestAdultBirthDate()
-          ) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ["dateOfBirth"],
-              message: MIN_AGE_MESSAGE,
-            });
-          }
-
-          // 3. Kiểm tra CCCD khi thêm mới (không áp dụng khi sửa vì CCCD cố định)
-          if (!record) {
-            const rawCitizenId = values.citizenId.replace(/\s/g, "");
-            if (!rawCitizenId) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["citizenId"],
-                message: "Vui lòng nhập số CCCD.",
-              });
-            } else if (!/^\d{12}$/.test(rawCitizenId)) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["citizenId"],
-                message: "CCCD cần đủ 12 chữ số.",
-              });
-            } else if (!isValidCitizenIdFormat(rawCitizenId)) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["citizenId"],
-                message: CITIZEN_ID_FORMAT_MESSAGE,
-              });
+      z.object({
+        citizenId: z
+          .string()
+          .max(32, "Số CCCD quá dài.")
+          .superRefine((value, ctx) => {
+            // CCCD chỉ nhập khi thêm mới; sửa hồ sơ thì số này cố định.
+            if (record) {
+              return;
             }
+            const raw = value.replace(/\s/g, "");
+            let message = "";
+            if (!raw) {
+              message = "Vui lòng nhập số CCCD.";
+            } else if (!/^\d{12}$/.test(raw)) {
+              message = "CCCD cần đủ 12 chữ số.";
+            } else if (!isValidCitizenIdFormat(raw)) {
+              message = CITIZEN_ID_FORMAT_MESSAGE;
+            }
+            if (message !== "") {
+              ctx.addIssue({ code: "custom", message });
+            }
+          }),
+        fullName: z
+          .string()
+          .min(1, "Vui lòng nhập họ tên.")
+          .regex(/\S/, "Vui lòng nhập họ tên.")
+          .min(2, "Họ và tên phải có ít nhất 2 ký tự.")
+          .max(200, "Họ tên tối đa 200 ký tự.")
+          .regex(/^[\p{L}\s]+$/u, "Họ và tên chỉ được chứa chữ cái và khoảng trắng."),
+        dateOfBirth: z.string().superRefine((value, ctx) => {
+          let message = "";
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            message = "Vui lòng nhập hoặc chọn ngày sinh hợp lệ.";
+          } else if (value > todayStr) {
+            message = "Ngày sinh không được ở tương lai.";
+          } else if (value !== record?.dateOfBirth && value > latestAdultBirthDate()) {
+            // Phải đủ 18 tuổi. Khi sửa chỉ kiểm nếu ngày sinh được đổi, giống backend.
+            message = MIN_AGE_MESSAGE;
           }
-
-          // 3. Email bắt buộc và không trùng email Chủ kho
-          const trimmedEmail = values.email?.trim() ?? "";
-          if (!trimmedEmail) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ["email"],
-              message: "Vui lòng nhập email.",
-            });
-          } else if (ownerEmail && trimmedEmail.toLowerCase() === ownerEmail.trim().toLowerCase()) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ["email"],
-              message: "Email người thụ hưởng không được trùng với email của Chủ kho.",
-            });
-          }
-
-          // 4. Số điện thoại Việt Nam nếu có nhập. Khi sửa chỉ kiểm lúc đổi số, để hồ sơ cũ vẫn sửa được.
-          const hasPhone = Boolean(values.phone?.trim());
-          const phoneChanged = !record || (values.phone ?? "") !== (record.phone ?? "");
-          if (hasPhone && values.phone && phoneChanged && !isVietnamPhone(values.phone)) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ["phone"],
-              message: PHONE_FORMAT_MESSAGE,
-            });
+          if (message !== "") {
+            ctx.addIssue({ code: "custom", message });
           }
         }),
+        email: z.string().superRefine((value, ctx) => {
+          // Email bắt buộc và không trùng email Chủ kho.
+          const trimmed = value.trim();
+          let message = "";
+          if (!trimmed) {
+            message = "Vui lòng nhập email.";
+          } else if (trimmed.length > 254) {
+            message = "Email tối đa 254 ký tự.";
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+            message = "Email không hợp lệ.";
+          } else if (ownerEmail && trimmed.toLowerCase() === ownerEmail.trim().toLowerCase()) {
+            message = "Email người thụ hưởng không được trùng với email của Chủ kho.";
+          }
+          if (message !== "") {
+            ctx.addIssue({ code: "custom", message });
+          }
+        }),
+        phone: z
+          .string()
+          .max(20, "Số điện thoại tối đa 20 ký tự.")
+          .superRefine((value, ctx) => {
+            // Số điện thoại Việt Nam nếu có nhập. Khi sửa chỉ kiểm lúc đổi số, để hồ sơ cũ vẫn sửa được.
+            const changed = !record || value !== (record.phone ?? "");
+            if (value.trim() && changed && !isVietnamPhone(value)) {
+              ctx.addIssue({ code: "custom", message: PHONE_FORMAT_MESSAGE });
+            }
+          })
+          .optional(),
+        message: z.string().max(MESSAGE_MAX, "Lời nhắn tối đa 300 ký tự.").optional(),
+      }),
     [record, todayStr, ownerEmail],
   );
 
@@ -204,11 +197,15 @@ export function BeneficiaryForm({
     reset,
     setError,
     clearErrors,
-    formState: { errors },
+    trigger,
+    control,
+    formState: { errors, isSubmitted },
   } = useForm<BeneficiaryFormValues>({
     resolver: zodResolver(formSchema),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    // Tự cuộn mượt rồi mới đặt con trỏ (showProblems), nên tắt tự nhảy con trỏ của thư viện.
+    shouldFocusError: false,
     defaultValues: {
       citizenId: "",
       fullName: record?.fullName ?? "",
@@ -224,210 +221,316 @@ export function BeneficiaryForm({
     void client.invalidateQueries({ queryKey: ["owner-vault"] });
   };
 
-  let note = "Email là bắt buộc để gửi thông báo nhận bàn giao.";
+  let assignedNote = "";
   if (record && record.assetIds.length > 0) {
-    note = `Người này đang được gán ${record.assetIds.length} tài sản. Sửa thông tin sẽ cập nhật cấu hình kế hoạch bàn giao.`;
-  } else if (record) {
-    note = "Email là bắt buộc để gửi thông báo nhận bàn giao.";
+    assignedNote = `Người này đang được gán ${record.assetIds.length} tài sản. Sửa thông tin sẽ cập nhật cấu hình kế hoạch bàn giao.`;
   }
   let submitLabel = "Thêm người nhận";
   if (record) {
     submitLabel = "Lưu thay đổi";
   }
 
-  const errorFieldNames = Array.from(
-    new Set(
-      Object.keys(errors)
-        .map((k) => FIELD_LABELS[k])
-        .filter(Boolean),
-    ),
-  );
+  const baseId = useId();
+  const inputId = (name: FieldName) => `${baseId}-${name}`;
+  const typedValues = useWatch({ control });
+  const birth = useController({ control, name: "dateOfBirth" });
+  // Các ô sai ở lần bấm lưu gần nhất (khung tóm tắt) và số lần rung của từng ô.
+  const [listed, setListed] = useState<FieldName[]>([]);
+  const [shakes, setShakes] = useState<Partial<Record<FieldName, number>>>({});
+  const jumpTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(jumpTimer.current), []);
+
+  /** Liệt kê ô sai lên đầu form, rung các ô đó rồi cuộn tới ô đầu tiên. */
+  function showProblems(names: FieldName[]): void {
+    const ordered = FIELD_ORDER.filter((name) => names.includes(name));
+    if (ordered.length === 0) {
+      return;
+    }
+    setListed(ordered);
+    setShakes((current) => {
+      const next = { ...current };
+      for (const name of ordered) {
+        next[name] = (next[name] ?? 0) + 1;
+      }
+      return next;
+    });
+    window.clearTimeout(jumpTimer.current);
+    jumpTimer.current = window.setTimeout(() => jumpToField(inputId(ordered[0])), JUMP_DELAY_MS);
+  }
+
+  /** Trước lần bấm lưu đầu tiên: gõ lại thì ẩn lỗi cũ (sau đó thư viện tự kiểm khi gõ). */
+  function editField(name: FieldName): void {
+    if (!isSubmitted) {
+      clearErrors(name);
+    }
+  }
+
+  /** Rời ô trước lần bấm lưu đầu tiên: ô đã nhập thì báo lỗi định dạng ngay, ô trống thì chưa nhắc. */
+  function leaveField(name: FieldName, typed: string): void {
+    if (!isSubmitted && typed.trim() !== "") {
+      void trigger(name);
+    }
+  }
+
+  /** Gắn một ô vào khung báo lỗi: id, trạng thái lỗi và câu mô tả đang hiện. */
+  function fieldProps(name: FieldName, hasHint: boolean) {
+    let describedBy: string | undefined;
+    if (hasHint) {
+      describedBy = `${inputId(name)}-hint`;
+    }
+    if (errors[name]) {
+      describedBy = `${inputId(name)}-error`;
+    }
+    return {
+      id: inputId(name),
+      "aria-invalid": Boolean(errors[name]),
+      "aria-describedby": describedBy,
+    };
+  }
+
+  function registerField(name: FieldName) {
+    return register(name, {
+      onChange: () => {
+        editField(name);
+        if (name === "citizenId") {
+          setExisting(null);
+        }
+      },
+      onBlur: (event: { target: { value: string } }) => leaveField(name, event.target.value),
+    });
+  }
+
+  /** Thuộc tính chung của khung ô: lỗi, dấu tích sau lần bấm đầu, và nhịp rung. */
+  function attention(name: FieldName) {
+    return {
+      inputId: inputId(name),
+      error: errors[name]?.message,
+      good: isSubmitted && !errors[name] && Boolean(typedValues[name]),
+      shake: shakes[name] ?? 0,
+    };
+  }
+
+  const summary: SummaryItem[] = [];
+  if (listed.length > 0) {
+    for (const name of FIELD_ORDER) {
+      if (listed.includes(name) || errors[name]) {
+        summary.push({ inputId: inputId(name), label: FIELD_LABELS[name], fixed: !errors[name] });
+      }
+    }
+  }
+  const messageLength = (typedValues.message ?? "").length;
 
   return (
     <div>
       <form
         noValidate
-        className="space-y-4"
-        onSubmit={handleSubmit(async (values) => {
-          setExisting(null);
-          const cleanCitizenId = values.citizenId.replace(/\s/g, "");
-          let createdNew = false;
-          const saved = await action.execute(
-            () =>
-              record
-                ? beneficiaryService.update(vaultId, record.id, {
-                    fullName: values.fullName.trim(),
-                    dateOfBirth: values.dateOfBirth,
-                    email: values.email.trim(),
-                    phone: values.phone?.trim() ? values.phone.replace(/[\s.-]/g, "") : null,
-                    message: values.message?.trim() ?? "",
-                    etag: etag!,
-                  })
-                : beneficiaryService.create(vaultId, {
-                    fullName: values.fullName.trim(),
-                    dateOfBirth: values.dateOfBirth,
-                    email: values.email.trim(),
-                    phone: values.phone?.trim() ? values.phone.replace(/[\s.-]/g, "") : null,
-                    message: values.message?.trim() ? values.message.trim() : null,
-                    citizenId: cleanCitizenId,
-                  }),
-            (result) => {
-              if (result.isExisting) {
-                setExisting(result);
-                setError("citizenId", {
-                  message: `Số CCCD này đã có trong kho: “${result.fullName}”. Hãy kiểm tra lại, hoặc mở hồ sơ đã có để sửa.`,
-                });
-                return;
-              }
-              createdNew = true;
-              sync();
-              setEtag(result.etag);
-              if (record) {
-                reset({
-                  citizenId: "",
-                  fullName: result.fullName,
-                  dateOfBirth: result.dateOfBirth,
-                  email: result.email ?? "",
-                  phone: result.phone ?? "",
-                  message: result.message ?? "",
-                });
-              }
+        className="space-y-5"
+        onSubmit={(event) => {
+          const submit = handleSubmit(
+            async (values) => {
+              setExisting(null);
+              setListed([]);
+              const cleanCitizenId = values.citizenId.replace(/\s/g, "");
+              let createdNew = false;
+              const send = () =>
+                record
+                  ? beneficiaryService.update(vaultId, record.id, {
+                      fullName: values.fullName.trim(),
+                      dateOfBirth: values.dateOfBirth,
+                      email: values.email.trim(),
+                      phone: values.phone?.trim() ? values.phone.replace(/[\s.-]/g, "") : null,
+                      message: values.message?.trim() ?? "",
+                      etag: etag!,
+                    })
+                  : beneficiaryService.create(vaultId, {
+                      fullName: values.fullName.trim(),
+                      dateOfBirth: values.dateOfBirth,
+                      email: values.email.trim(),
+                      phone: values.phone?.trim() ? values.phone.replace(/[\s.-]/g, "") : null,
+                      message: values.message?.trim() ? values.message.trim() : null,
+                      citizenId: cleanCitizenId,
+                    });
+              const saved = await action.execute(
+                () => success.hold(send, (result) => !result.isExisting),
+                (result) => {
+                  if (result.isExisting) {
+                    setExisting(result);
+                    setError("citizenId", {
+                      message: `Số CCCD này đã có trong kho: “${result.fullName}”. Hãy kiểm tra lại, hoặc mở hồ sơ đã có để sửa.`,
+                    });
+                    showProblems(["citizenId"]);
+                    return;
+                  }
+                  createdNew = true;
+                  sync();
+                  setEtag(result.etag);
+                  if (record) {
+                    reset({
+                      citizenId: "",
+                      fullName: result.fullName,
+                      dateOfBirth: result.dateOfBirth,
+                      email: result.email ?? "",
+                      phone: result.phone ?? "",
+                      message: result.message ?? "",
+                    });
+                  }
+                },
+                (_failure, fieldErrors) => {
+                  // Ánh xạ lỗi xác thực từ máy chủ về trực tiếp từng ô input tương ứng
+                  const wrong: FieldName[] = [];
+                  const fail = (name: FieldName, message: string) => {
+                    setError(name, { type: "server", message });
+                    wrong.push(name);
+                  };
+                  for (const [key, msgs] of Object.entries(fieldErrors)) {
+                    const msg = msgs[0];
+                    if (!msg) continue;
+                    const normalized = key.toLowerCase();
+                    if (normalized.includes("citizen") || normalized === "citizenid") {
+                      fail("citizenId", msg);
+                    } else if (normalized.includes("fullname") || normalized === "name") {
+                      fail("fullName", msg);
+                    } else if (
+                      normalized.includes("date") ||
+                      normalized.includes("birth") ||
+                      normalized === "dateofbirth"
+                    ) {
+                      fail("dateOfBirth", msg);
+                    } else if (normalized.includes("email")) {
+                      fail("email", msg);
+                    } else if (normalized.includes("phone")) {
+                      fail("phone", msg);
+                    } else if (normalized.includes("message")) {
+                      fail("message", msg);
+                    } else if (normalized.includes("contact")) {
+                      fail("email", msg);
+                    }
+                  }
+                  showProblems(wrong);
+                },
+              );
+              if (saved && !record && createdNew) reset();
             },
-            (_failure, fieldErrors) => {
-              // Ánh xạ lỗi xác thực từ máy chủ về trực tiếp từng ô input tương ứng
-              for (const [key, msgs] of Object.entries(fieldErrors)) {
-                const msg = msgs[0];
-                if (!msg) continue;
-                const normalized = key.toLowerCase();
-                if (normalized.includes("citizen") || normalized === "citizenid") {
-                  setError("citizenId", { type: "server", message: msg });
-                } else if (normalized.includes("fullname") || normalized === "name") {
-                  setError("fullName", { type: "server", message: msg });
-                } else if (
-                  normalized.includes("date") ||
-                  normalized.includes("birth") ||
-                  normalized === "dateofbirth"
-                ) {
-                  setError("dateOfBirth", { type: "server", message: msg });
-                } else if (normalized.includes("email")) {
-                  setError("email", { type: "server", message: msg });
-                } else if (normalized.includes("phone")) {
-                  setError("phone", { type: "server", message: msg });
-                } else if (normalized.includes("message")) {
-                  setError("message", { type: "server", message: msg });
-                } else if (normalized.includes("contact")) {
-                  setError("email", { type: "server", message: msg });
-                }
-              }
-            },
+            (invalid) => showProblems(Object.keys(invalid) as FieldName[]),
           );
-          if (saved && !record && createdNew) reset();
-        })}
+          void submit(event);
+        }}
       >
-        <fieldset disabled={action.pending} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className={LABEL}>
-              Họ và tên *
+        <ErrorSummary items={summary} />
+        <fieldset disabled={action.pending} className="space-y-5">
+          <div className="space-y-3">
+            <AttentionField {...attention("fullName")} label="Họ và tên *">
               <Input
-                placeholder="Ví dụ: Nguyễn Văn An"
+                {...fieldProps("fullName", false)}
+                {...registerField("fullName")}
+                placeholder="Nguyễn Văn An"
                 className={FIELD}
-                {...register("fullName", { onChange: () => clearErrors("fullName") })}
-                aria-invalid={Boolean(errors.fullName)}
               />
-              <FieldError message={errors.fullName?.message} />
-            </label>
-            <label className={LABEL}>
-              Ngày sinh *
-              <Input
-                type="date"
-                className={FIELD}
-                {...register("dateOfBirth", { onChange: () => clearErrors("dateOfBirth") })}
-                aria-invalid={Boolean(errors.dateOfBirth)}
-              />
-              <span className={HINT}>Người nhận phải đủ 18 tuổi.</span>
-              <FieldError message={errors.dateOfBirth?.message} />
-            </label>
-            {record ? (
-              <div className={LABEL}>
-                <span>Số CCCD</span>
-                <p className="flex min-h-11 items-center gap-2 rounded-lg border border-heritage-border bg-heritage-sunken px-3 font-mono text-sm font-normal text-heritage-muted">
-                  <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
-                  <span>{record.citizenId}</span>
-                </p>
-                <span className={HINT}>Không đổi được sau khi lưu.</span>
-              </div>
-            ) : (
-              <label className={LABEL}>
-                Số CCCD *
-                <Input
-                  autoComplete="off"
-                  inputMode="numeric"
-                  placeholder="12 chữ số"
-                  className={FIELD}
-                  {...register("citizenId", {
-                    onChange: () => {
-                      clearErrors("citizenId");
-                      setExisting(null);
-                    },
-                  })}
-                  aria-invalid={Boolean(errors.citizenId)}
+            </AttentionField>
+            <div className="grid items-start gap-3 sm:grid-cols-2">
+              <AttentionField
+                {...attention("dateOfBirth")}
+                label="Ngày sinh *"
+                hint="Từ đủ 18 tuổi."
+                checkClassName="is-inset"
+              >
+                <DatePickerInput
+                  {...fieldProps("dateOfBirth", true)}
+                  value={birth.field.value}
+                  max={latestAdultBirthDate()}
+                  placeholder="ngày/tháng/năm"
+                  className="min-h-11 bg-white font-normal placeholder:text-heritage-muted"
+                  onChange={(iso) => {
+                    birth.field.onChange(iso);
+                    editField("dateOfBirth");
+                  }}
+                  onBlur={(event) => {
+                    birth.field.onBlur();
+                    leaveField("dateOfBirth", event.target.value);
+                  }}
                 />
-                <span className={HINT}>
-                  Đúng 12 chữ số, giữ cả số 0 ở đầu. Không đổi được sau khi lưu.
-                </span>
-                <FieldError message={errors.citizenId?.message} />
-              </label>
-            )}
-            <label className={LABEL}>
-              Email *
-              <Input
-                type="email"
-                placeholder="ten@email.com"
-                className={FIELD}
-                {...register("email", {
-                  onChange: () => {
-                    clearErrors("email");
-                  },
-                })}
-                aria-invalid={Boolean(errors.email)}
-              />
-              <FieldError message={errors.email?.message} />
-            </label>
-            <label className={`${LABEL} sm:col-start-2`}>
-              Số điện thoại
-              <Input
-                type="tel"
-                placeholder="09xx xxx xxx"
-                className={FIELD}
-                {...register("phone", {
-                  onChange: () => {
-                    clearErrors("phone");
-                  },
-                })}
-                aria-invalid={Boolean(errors.phone)}
-              />
-              <span className={HINT}>Số Việt Nam, ví dụ 0912345678 hoặc +84912345678.</span>
-              <FieldError message={errors.phone?.message} />
-            </label>
-            <label className={`${LABEL} sm:col-span-2`}>
-              Lời nhắn gửi người nhận (không bắt buộc)
-              <Textarea
-                rows={4}
-                maxLength={300}
-                placeholder="Ví dụ: Con ơi, bố để lại phần này để con lo cho cháu. Con đừng buồn nhé."
-                className="min-h-24 bg-white font-normal placeholder:text-heritage-muted"
-                {...register("message", { onChange: () => clearErrors("message") })}
-                aria-invalid={Boolean(errors.message)}
-              />
-              <span className={HINT}>
-                Lời này sẽ được in trong thư gửi người nhận khi đến lúc bàn giao, tối đa 300 chữ.
-                Thư đó chưa qua bước xác minh danh tính, nên đừng ghi mật khẩu, số tài khoản hay nội
-                dung tài sản. Để trống thì thư bỏ phần này.
-              </span>
-              <FieldError message={errors.message?.message} />
-            </label>
+              </AttentionField>
+              {record ? (
+                <div className="space-y-1.5 text-sm">
+                  <span className="block font-semibold">Số CCCD</span>
+                  <p className="flex min-h-11 items-center gap-2 rounded-lg border border-heritage-border bg-heritage-sunken px-3 font-mono text-heritage-muted">
+                    <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
+                    <span>{record.citizenId}</span>
+                  </p>
+                  <span className="block text-heritage-muted">Không đổi được sau khi lưu.</span>
+                </div>
+              ) : (
+                <AttentionField
+                  {...attention("citizenId")}
+                  label="Số CCCD *"
+                  hint="Không đổi được sau khi lưu."
+                >
+                  <Input
+                    {...fieldProps("citizenId", true)}
+                    {...registerField("citizenId")}
+                    autoComplete="off"
+                    inputMode="numeric"
+                    placeholder="12 chữ số"
+                    className={FIELD}
+                  />
+                </AttentionField>
+              )}
+            </div>
           </div>
-          {existing ? (
+          <div role="group" aria-labelledby={`${baseId}-contact`} className="space-y-3">
+            <p id={`${baseId}-contact`} className={GROUP_TITLE}>
+              Thông tin liên hệ
+            </p>
+            <div className="grid items-start gap-3 sm:grid-cols-2">
+              <AttentionField
+                {...attention("email")}
+                label="Email *"
+                hint="Thư bàn giao gửi tới đây."
+              >
+                <Input
+                  {...fieldProps("email", true)}
+                  {...registerField("email")}
+                  type="email"
+                  placeholder="ten@email.com"
+                  className={FIELD}
+                />
+              </AttentionField>
+              <AttentionField {...attention("phone")} label="Số điện thoại" optional>
+                <Input
+                  {...fieldProps("phone", false)}
+                  {...registerField("phone")}
+                  type="tel"
+                  placeholder="0912 345 678"
+                  className={FIELD}
+                />
+              </AttentionField>
+            </div>
+          </div>
+          <AttentionField
+            {...attention("message")}
+            good={false}
+            label="Lời nhắn gửi người nhận"
+            optional
+            hint={
+              <span className="flex justify-between gap-3">
+                <span>
+                  In trong thư bàn giao, gửi trước bước xác minh danh tính: đừng ghi mật khẩu, số
+                  tài khoản hay nội dung tài sản.
+                </span>
+                <span className="shrink-0 tabular-nums">{`${messageLength}/${MESSAGE_MAX}`}</span>
+              </span>
+            }
+          >
+            <Textarea
+              {...fieldProps("message", true)}
+              {...registerField("message")}
+              rows={3}
+              maxLength={MESSAGE_MAX}
+              placeholder="Ví dụ: Con ơi, bố để lại phần này để con lo cho cháu. Con đừng buồn nhé."
+              className="min-h-20 bg-white font-normal placeholder:text-heritage-muted"
+            />
+          </AttentionField>
+          {existing && (
             <p
               role="alert"
               className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
@@ -435,59 +538,69 @@ export function BeneficiaryForm({
               Số CCCD này đã có trong kho: “{existing.fullName}”. Hãy kiểm tra lại, hoặc mở hồ sơ đã
               có để sửa.
             </p>
-          ) : (
+          )}
+          {!existing && assignedNote !== "" && (
             <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
-              {note}
+              {assignedNote}
             </p>
           )}
-          <div className="flex flex-wrap justify-end gap-3">
-            {existing && onOpenExisting && (
-              <button
-                type="button"
-                className={buttonStyles.outline}
-                onClick={() => onOpenExisting(existing)}
-              >
-                Mở hồ sơ đã có
-              </button>
-            )}
-            {onCancel && (
-              <button type="button" className={buttonStyles.outline} onClick={onCancel}>
-                Hủy
-              </button>
-            )}
-            <button type="submit" className={buttonStyles.dark}>
-              {action.pending ? "Đang lưu…" : submitLabel}
-            </button>
-          </div>
         </fieldset>
-      </form>
-      {action.error && (
-        <div
-          role="alert"
-          className="mt-4 rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger space-y-1"
-        >
-          <p className="font-semibold">{action.error}</p>
-          {errorFieldNames.length > 0 && (
-            <p className="text-sm text-heritage-danger">
-              Vui lòng kiểm tra và chỉnh sửa lại các ô có thông báo lỗi màu đỏ ở trên:{" "}
-              <span className="font-semibold">{errorFieldNames.join(", ")}</span>.
-            </p>
+        {action.error && (
+          <div
+            role="alert"
+            className="space-y-1 rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
+          >
+            <p className="font-semibold">{action.error}</p>
+            {action.error.includes("gói dịch vụ trả phí") && (
+              <Link className="mt-1 inline-block font-semibold underline" to={ROUTES.BILLING.PLANS}>
+                Xem gói dịch vụ
+              </Link>
+            )}
+          </div>
+        )}
+        {action.succeeded && !existing && (
+          <p
+            role="status"
+            className="rounded-xl bg-heritage-success-bg px-4 py-3 text-sm text-heritage-success"
+          >
+            Đã lưu thay đổi.
+          </p>
+        )}
+        {/* Ghim ở đáy hộp thoại (lề p-7, từ màn sm là p-6) để luôn thấy nút lưu mà không phải cuộn. */}
+        <div className="sticky -bottom-7 z-10 -mx-7 -mb-7 flex flex-wrap justify-end gap-3 border-t border-heritage-border bg-heritage-surface px-7 py-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6">
+          {existing && onOpenExisting && (
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              disabled={action.pending}
+              onClick={() => onOpenExisting(existing)}
+            >
+              Mở hồ sơ đã có
+            </button>
           )}
-          {action.error.includes("gói dịch vụ trả phí") && (
-            <Link className="mt-1 inline-block font-semibold underline" to={ROUTES.BILLING.PLANS}>
-              Xem gói dịch vụ
-            </Link>
+          {onCancel && (
+            <button
+              type="button"
+              className={buttonStyles.outline}
+              disabled={action.pending}
+              onClick={onCancel}
+            >
+              Hủy
+            </button>
           )}
+          <ActionButton
+            type="submit"
+            className={buttonStyles.dark}
+            disabled={action.pending}
+            pending={action.pending}
+            done={success.done}
+            pendingLabel="Đang lưu…"
+            doneLabel="Đã lưu"
+          >
+            {submitLabel}
+          </ActionButton>
         </div>
-      )}
-      {action.succeeded && !existing && (
-        <p
-          role="status"
-          className="mt-4 rounded-xl bg-heritage-success-bg px-4 py-3 text-sm text-heritage-success"
-        >
-          Đã lưu thay đổi.
-        </p>
-      )}
+      </form>
     </div>
   );
 }

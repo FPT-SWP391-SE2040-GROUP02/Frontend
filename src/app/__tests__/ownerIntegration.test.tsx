@@ -161,8 +161,8 @@ it("requires contact information before submitting a beneficiary", async () => {
   setup(<BeneficiaryForm vaultId={VAULT_ID} />);
   fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "012345678901" } });
   fireEvent.change(screen.getByLabelText(/^Họ và tên/), { target: { value: "Người nhận thử" } });
-  fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "1990-01-01" } });
+  fireEvent.change(screen.getByLabelText(/^Ngày sinh/), { target: { value: "01/01/1990" } });
   fireEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Vui lòng nhập email.");
+  expect(await screen.findByText("Vui lòng nhập email.")).toBeInTheDocument();
   expect(post).not.toHaveBeenCalled();
 });
