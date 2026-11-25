@@ -3,15 +3,6 @@ import { claimStatusSchema, recordFileSchema, recordStatusSchema } from "@/entit
 
 const timestamp = z.string().datetime({ offset: true });
 
-/** GET /handover/requests/preview: thông tin link riêng, không cần đăng nhập. */
-export const requestPreviewSchema = z.object({
-  ownerName: z.string(),
-  recipientName: z.string(),
-  invitedEmailMasked: z.string(),
-  canRequest: z.boolean(),
-});
-export type RequestPreview = z.infer<typeof requestPreviewSchema>;
-
 /** Một yêu cầu nhận tài sản của người đang đăng nhập. */
 export const myClaimSchema = z.object({
   id: z.string().uuid(),

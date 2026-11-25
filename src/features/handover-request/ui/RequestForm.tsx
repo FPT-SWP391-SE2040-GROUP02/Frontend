@@ -18,7 +18,7 @@ const REQUEST_STEPS = [
 ];
 
 /**
- * Form gửi yêu cầu dùng chung cho hai cách vào: link riêng (token) và tài khoản đã đăng nhập (vaultId).
+ * Form gửi yêu cầu nằm trong thẻ kho ở trang Nhận tài sản (gửi bằng tài khoản đã đăng nhập).
  * Việc gọi API do nơi dùng truyền vào; form lo kiểm tệp, lời nhắn và chống gửi trùng.
  */
 export function RequestForm({

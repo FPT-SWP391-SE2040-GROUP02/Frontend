@@ -1,7 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiClient } from "@/shared/api/axiosClient";
 import { handoverRequestService } from "../../api/handoverRequestService";
-import { availableAction, availableStatusLabel } from "../availablePresentation";
+import {
+  availableAction,
+  availableStatusLabel,
+  canSendRequestHere,
+} from "../availablePresentation";
 import { availableHandoverSchema, type AvailableHandover } from "../handoverRequest.schema";
 import { countNeedsAction, sortAvailable } from "../useHandoverRequest";
 
@@ -127,11 +131,11 @@ describe("thứ tự và đếm", () => {
 });
 
 describe("nút cho bước tiếp theo", () => {
-  it("gửi yêu cầu kèm vaultId chỉ khi canRequest", () => {
-    const action = availableAction(parsed({ canRequest: true }));
-    expect(action?.label).toBe("Gửi yêu cầu");
-    expect(action?.to).toBe(`/request?vaultId=${VAULT_ID}`);
-    expect(availableAction(parsed({ canRequest: false }))).toBeNull();
+  it("chưa gửi yêu cầu: không có liên kết, form gửi mở ngay trong thẻ khi canRequest", () => {
+    expect(availableAction(parsed({ canRequest: true }))).toBeNull();
+    expect(canSendRequestHere(parsed({ canRequest: true }))).toBe(true);
+    expect(canSendRequestHere(parsed({ canRequest: false }))).toBe(false);
+    expect(canSendRequestHere(parsed({ status: "REQUEST_PENDING", canRequest: true }))).toBe(false);
   });
 
   it.each([

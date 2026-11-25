@@ -1,3 +1,4 @@
+import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import { Link } from "react-router-dom";
 import { RECEIVE_STEP_TITLES, RECEIVE_STEPS_DONE } from "@/entities/handoverRecord";
 import { Chip, buttonStyles } from "@/shared/ui/heritageKit";
@@ -6,9 +7,12 @@ import {
   availableAction,
   availableStatusLabel,
   availableStep,
+  canSendRequestHere,
 } from "../model/availablePresentation";
 import { useAvailableHandovers } from "../model/useHandoverRequest";
+import { InlineRequestForm } from "./InlineRequestForm";
 import { ReceiveEmptyState } from "./ReceiveEmptyState";
+import { RequestSentNotice } from "./RequestForm";
 
 /** Câu giải thích ngắn khi dòng chưa có nút để bấm. */
 function noActionHint(row: AvailableHandover): string {
@@ -72,13 +76,45 @@ function waitingHint(row: AvailableHandover): string {
   return "";
 }
 
+/** Hai trạng thái của nút "Gửi yêu cầu": form đang mở hay đã gửi xong (thông báo ở lại dù dòng đã đổi trạng thái). */
+function useRequestForm(regionRef: RefObject<HTMLDivElement | null>) {
+  const [open, setOpen] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  // Form mở dưới nút bấm, có thể nằm ngoài màn hình: cuộn tới sau khi khung trượt xong một nhịp.
+  useEffect(() => {
+    if (!open || regionRef.current === null) {
+      return;
+    }
+    const region = regionRef.current;
+    if (typeof region.scrollIntoView !== "function") {
+      return;
+    }
+    let behavior: ScrollBehavior = "smooth";
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      behavior = "auto";
+    }
+    const timer = window.setTimeout(
+      () => region.scrollIntoView({ behavior, block: "nearest" }),
+      120,
+    );
+    return () => window.clearTimeout(timer);
+  }, [open, regionRef]);
+
+  return { open, setOpen, sent, setSent };
+}
+
 function AvailableRow({ row }: { row: AvailableHandover }) {
   const status = availableStatusLabel[row.status];
   const action = availableAction(row);
+  const requestHere = canSendRequestHere(row);
+  const regionRef = useRef<HTMLDivElement>(null);
+  const form = useRequestForm(regionRef);
+  const regionId = useId();
   const step = availableStep(row);
   const progress = stepLine(row);
   let hint = waitingHint(row);
-  if (action === null && hint === "") {
+  if (action === null && !requestHere && hint === "") {
     hint = noActionHint(row);
   }
   let notRequestedNote = "";
@@ -114,7 +150,7 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
           {row.reviewReason}
         </p>
       )}
-      {(hint !== "" || action !== null) && (
+      {(hint !== "" || action !== null || requestHere) && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="min-w-0 flex-1 basis-60 text-sm text-heritage-muted">{hint}</p>
           {action !== null && (
@@ -126,6 +162,34 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
               {action.label}
             </Link>
           )}
+          {requestHere && (
+            <button
+              type="button"
+              aria-expanded={form.open}
+              aria-controls={regionId}
+              aria-label={`Gửi yêu cầu - kho của ${row.ownerName}`}
+              className={`${actionClass} receive-press`}
+              onClick={() => form.setOpen((current) => !current)}
+            >
+              {form.open ? "Thu gọn" : "Gửi yêu cầu"}
+            </button>
+          )}
+        </div>
+      )}
+      {form.sent && <RequestSentNotice />}
+      {requestHere && !form.sent && (
+        <div
+          id={regionId}
+          ref={regionRef}
+          data-open={form.open}
+          inert={!form.open}
+          className="receive-collapse receive-collapse-slow"
+        >
+          <div>
+            <div className="border-t border-heritage-border pt-5">
+              <InlineRequestForm vaultId={row.vaultId} onSent={() => form.setSent(true)} />
+            </div>
+          </div>
         </div>
       )}
     </article>

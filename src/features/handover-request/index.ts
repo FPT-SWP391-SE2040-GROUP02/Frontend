@@ -1,4 +1,3 @@
-export { RequestPanel } from "./ui/RequestPanel";
 export { MyClaimsPanel } from "./ui/MyClaimsPanel";
 export { AvailableHandoverList } from "./ui/AvailableHandoverList";
 export { ReportPanel } from "./ui/ReportPanel";

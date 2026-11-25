@@ -5,15 +5,13 @@ import {
   availableHandoverSchema,
   myClaimSchema,
   ownerRequestSchema,
-  requestPreviewSchema,
 } from "../model/handoverRequest.schema";
 
 const id = z.string().uuid();
 const base = "/handover/requests";
 
-/** Trường định danh kho: token của link riêng, hoặc vaultId khi người nhận đã đăng nhập. */
+/** Trường định danh kho khi người nhận gửi yêu cầu bằng tài khoản đã đăng nhập. */
 interface RequestTarget {
-  token?: string;
   vaultId?: string;
 }
 
@@ -24,7 +22,6 @@ function filesForm(
   wills: File[] = [],
 ): FormData {
   const form = new FormData();
-  if (target.token !== undefined) form.append("token", target.token);
   if (target.vaultId !== undefined) form.append("vaultId", target.vaultId);
   form.append("note", note.trim());
   for (const file of wills) form.append("wills", file);
@@ -34,20 +31,10 @@ function filesForm(
 
 /** Người nhận gửi yêu cầu nhận tài sản kèm giấy tờ; Chủ kho xem và hủy yêu cầu đang mở của kho. */
 export const handoverRequestService = {
-  async preview(token: string, signal?: AbortSignal) {
-    return requestPreviewSchema.parse(
-      await apiClient.get<unknown, unknown>(`${base}/preview`, { params: { token }, signal }),
-    );
-  },
-  /** Multipart: bỏ Content-Type mặc định để trình duyệt tự đặt boundary. */
-  async submit(token: string, note: string, wills: File[], files: File[]) {
-    return myClaimSchema.parse(
-      await apiClient.post<unknown, unknown>(base, filesForm(files, note, { token }, wills), {
-        headers: { "Content-Type": undefined },
-      }),
-    );
-  },
-  /** Gửi yêu cầu bằng tài khoản đã đăng nhập (email đã xác minh khớp email Chủ kho khai), không cần link riêng. */
+  /**
+   * Gửi yêu cầu bằng tài khoản đã đăng nhập (email đã xác minh khớp email Chủ kho khai), không cần link riêng.
+   * Multipart: bỏ Content-Type mặc định để trình duyệt tự đặt boundary.
+   */
   async submitByAccount(vaultId: string, note: string, wills: File[], files: File[]) {
     return myClaimSchema.parse(
       await apiClient.post<unknown, unknown>(
