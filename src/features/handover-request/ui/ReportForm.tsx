@@ -1,19 +1,13 @@
 import { useId, useState, type ReactNode } from "react";
-import { X } from "lucide-react";
 import type { SuggestedRecipient } from "@/entities/handoverRecord";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { handoverReportService } from "../api/handoverReportService";
-import {
-  filledRecipients,
-  MAX_REPORT_RECIPIENTS,
-  reportErrors,
-  type ReportErrors,
-} from "../model/reportForm";
+import { filledRecipients, reportErrors, type ReportErrors } from "../model/reportForm";
 import { DocumentPicker } from "./DocumentPicker";
+import { RecipientRows } from "./RecipientRows";
 
 const INPUT = "h-11 w-full rounded-xl border border-heritage-border bg-white px-3";
-const EMPTY_RECIPIENT: SuggestedRecipient = { fullName: "", email: "", phone: "" };
 
 function ErrorText({ id, children }: { id?: string; children?: ReactNode }) {
   if (!children) return null;
@@ -21,89 +15,6 @@ function ErrorText({ id, children }: { id?: string; children?: ReactNode }) {
     <p id={id} role="alert" className="text-sm text-destructive">
       {children}
     </p>
-  );
-}
-
-/** Các dòng người nhận để luật sư liên hệ nhanh: họ tên, email, số điện thoại. */
-function RecipientRows({
-  rows,
-  disabled,
-  onChange,
-}: {
-  rows: SuggestedRecipient[];
-  disabled: boolean;
-  onChange: (rows: SuggestedRecipient[]) => void;
-}) {
-  const update = (index: number, field: keyof SuggestedRecipient, value: string) =>
-    onChange(rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
-  return (
-    <div className="space-y-3">
-      {rows.map((row, index) => (
-        <div
-          key={index}
-          role="group"
-          aria-label={`Người nhận ${index + 1}`}
-          className="space-y-3 rounded-xl border border-heritage-border bg-white p-4"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <p className="font-semibold text-heritage-primary">Người nhận {index + 1}</p>
-            <button
-              type="button"
-              disabled={disabled}
-              aria-label={`Bỏ người nhận ${index + 1}`}
-              className="-my-2 -mr-2 inline-flex size-11 cursor-pointer items-center justify-center rounded-lg text-heritage-muted hover:bg-heritage-sunken hover:text-heritage-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold-hover disabled:pointer-events-none disabled:opacity-50"
-              onClick={() => onChange(rows.filter((_, i) => i !== index))}
-            >
-              <X className="size-4" aria-hidden="true" />
-            </button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label className="space-y-1">
-              <span className="block font-semibold">Họ tên</span>
-              <input
-                className={INPUT}
-                maxLength={200}
-                value={row.fullName}
-                disabled={disabled}
-                onChange={(event) => update(index, "fullName", event.target.value)}
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="block font-semibold">Email</span>
-              <input
-                type="email"
-                className={INPUT}
-                maxLength={256}
-                value={row.email}
-                disabled={disabled}
-                onChange={(event) => update(index, "email", event.target.value)}
-              />
-            </label>
-            <label className="space-y-1">
-              <span className="block font-semibold">Số điện thoại</span>
-              <input
-                type="tel"
-                className={INPUT}
-                maxLength={32}
-                value={row.phone}
-                disabled={disabled}
-                onChange={(event) => update(index, "phone", event.target.value)}
-              />
-            </label>
-          </div>
-        </div>
-      ))}
-      {rows.length < MAX_REPORT_RECIPIENTS && (
-        <button
-          type="button"
-          className={buttonStyles.outline}
-          disabled={disabled}
-          onClick={() => onChange([...rows, EMPTY_RECIPIENT])}
-        >
-          Thêm người nhận
-        </button>
-      )}
-    </div>
   );
 }
 
@@ -121,7 +32,8 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
   const [deathCertificates, setDeathCertificates] = useState<File[]>([]);
   const [wills, setWills] = useState<File[]>([]);
   const [others, setOthers] = useState<File[]>([]);
-  const [recipients, setRecipients] = useState<SuggestedRecipient[]>([EMPTY_RECIPIENT]);
+  // Dòng người nhận do RecipientRows giữ (kèm hoạt ảnh); ở đây chỉ nhận bản dữ liệu để kiểm và gửi.
+  const [recipients, setRecipients] = useState<SuggestedRecipient[]>([]);
   const [touched, setTouched] = useState(false);
   const busy = action.pending;
 
@@ -229,7 +141,7 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
         <p className="leading-6 text-heritage-muted">
           Không bắt buộc. Luật sư dùng email và số điện thoại này để liên hệ, sau khi đã kiểm lại.
         </p>
-        <RecipientRows rows={recipients} disabled={busy} onChange={setRecipients} />
+        <RecipientRows disabled={busy} onChange={setRecipients} />
         <ErrorText>{errors.recipients}</ErrorText>
       </fieldset>
 
@@ -255,7 +167,7 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
             aria-describedby={errors.attested ? `${id}-attested-error` : undefined}
             onChange={(event) => setAttested(event.target.checked)}
           />
-          <span>Tôi cam đoan thông tin và giấy tờ nộp là thật.</span>
+          <span>Tôi cam đoan thông tin, giấy tờ nộp là thật.</span>
         </label>
         <ErrorText id={`${id}-attested-error`}>{errors.attested}</ErrorText>
       </div>

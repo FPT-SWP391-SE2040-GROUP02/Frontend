@@ -127,6 +127,59 @@ describe("Người thân nộp hồ sơ báo tin", () => {
   });
 });
 
+describe("Form báo tin: người nhận và cam đoan", () => {
+  it("có sẵn Người nhận 1; thanh Thêm người nhận mở thêm khối, bỏ thì khối thu lại", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    setup(<ReportPanel />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
+
+    expect(screen.getByRole("group", { name: "Người nhận 1" })).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Người nhận 2" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    expect(screen.getByRole("group", { name: "Người nhận 2" })).toBeInTheDocument();
+    // Thanh nằm dưới khối mới nhất, không đổi chỗ.
+    const bar = screen.getByRole("button", { name: "Thêm người nhận" });
+    expect(bar).toHaveClass("w-full");
+
+    await user.click(screen.getByRole("button", { name: "Bỏ người nhận 2" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("group", { name: "Người nhận 2" })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole("group", { name: "Người nhận 1" })).toBeInTheDocument();
+  });
+
+  it("khối đang thu lại không còn nằm trong dữ liệu gửi đi", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(report());
+    setup(<ReportPanel />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
+    await user.type(screen.getByLabelText("Họ tên người mất"), "Nguyễn Văn Mất");
+    await user.type(screen.getByLabelText("Số căn cước người mất (12 số)"), "001099001234");
+    await user.upload(
+      screen.getByLabelText(/^Giấy chứng tử/),
+      new File(["%PDF"], "chung-tu.pdf", { type: "application/pdf" }),
+    );
+    await user.upload(
+      screen.getByLabelText(/^Di chúc/),
+      new File(["%PDF"], "di-chuc.pdf", { type: "application/pdf" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    const second = within(screen.getByRole("group", { name: "Người nhận 2" }));
+    await user.type(second.getByLabelText("Họ tên"), "Trần Con");
+    await user.type(second.getByLabelText("Email"), "con@example.com");
+    await user.click(screen.getByRole("button", { name: "Bỏ người nhận 2" }));
+    await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
+
+    expect(await screen.findByText("Đã tiếp nhận hồ sơ")).toBeInTheDocument();
+    const form = post.mock.calls[0][1] as FormData;
+    expect(JSON.parse(form.get("recipients") as string)).toEqual([]);
+  });
+});
+
 describe("Luật sư xét hồ sơ báo tin", () => {
   it("chấp nhận thì mở biên bản vừa tạo", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([verifierReport()]);

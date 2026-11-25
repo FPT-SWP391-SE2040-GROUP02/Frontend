@@ -39,11 +39,6 @@ const InvitationPage = lazy(() =>
     default: module.InvitationPage,
   })),
 );
-const RequestPage = lazy(() =>
-  import("@/pages/beneficiary/RequestPage").then((module) => ({
-    default: module.RequestPage,
-  })),
-);
 const ExecutorInvitationPage = lazy(() =>
   import("@/pages/claims/ExecutorInvitationPage").then((module) => ({
     default: module.ExecutorInvitationPage,
@@ -251,7 +246,12 @@ export function AppRoutes() {
         <Route path={ROUTES.PUBLIC.PRIVACY} element={<PrivacyPage />} />
         <Route path="/invitations/:token" element={<InvitationPage />} />
         <Route path={ROUTES.RECEIVE} element={<InvitationPage />} />
-        <Route path={ROUTES.REQUEST} element={<RequestPage />} />
+        {/* Link cũ trong thư báo kích hoạt (/request?token=…): trang gửi yêu cầu đã bỏ, vào thẳng Nhận tài sản
+            (chưa đăng nhập thì được chuyển tới đăng nhập rồi quay lại đó). */}
+        <Route
+          path={ROUTES.REQUEST}
+          element={<Navigate to={ROUTES.DASHBOARD.RECEIVE_ASSETS} replace />}
+        />
         <Route path={ROUTES.EXECUTOR.INVITATION} element={<ExecutorInvitationPage />} />
         <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMIN]} />}>
           <Route path={ROUTES.ADMIN.ROOT} element={<AdminWorkspacePage />} />

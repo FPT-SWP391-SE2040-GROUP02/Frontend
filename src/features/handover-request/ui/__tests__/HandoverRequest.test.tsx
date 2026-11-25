@@ -9,23 +9,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { apiClient } from "@/shared/api/axiosClient";
+import { AvailableHandoverList } from "../AvailableHandoverList";
 import { MyClaimsPanel } from "../MyClaimsPanel";
 import { OwnerRequestNotice } from "../OwnerRequestNotice";
-import { RequestPanel } from "../RequestPanel";
 
 const VAULT_ID = "11111111-1111-4111-8111-111111111111";
 const RECORD_ID = "33333333-3333-4333-8333-333333333333";
 const CLAIM_ID = "44444444-4444-4444-8444-444444444444";
 const FILE_ID = "55555555-5555-4555-8555-555555555555";
 const AT = "2026-11-21T03:00:00+00:00";
-const TOKEN = "link-rieng-thu";
-
-const preview = {
-  ownerName: "Nguyễn Văn A",
-  recipientName: "Trần Minh Anh",
-  invitedEmailMasked: "a•••@example.com",
-  canRequest: true,
-};
 
 function claim(extra: Record<string, unknown> = {}) {
   return {
@@ -63,7 +55,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function setup(children: ReactNode, email: string | null, path = `/request?token=${TOKEN}`) {
+function setup(children: ReactNode, email: string | null, path = "/dashboard/receive-assets") {
   const store = configureStore({ reducer: { auth: authReducer } });
   if (email) {
     store.dispatch(
@@ -94,75 +86,6 @@ function pdf(name = "di-chuc.pdf") {
   return new File(["%PDF-1.4"], name, { type: "application/pdf" });
 }
 
-describe("Trang gửi yêu cầu nhận tài sản", () => {
-  it("chưa đăng nhập: chỉ thấy tên Chủ kho, email đã che và nút đăng nhập quay lại đúng link", async () => {
-    const get = vi.spyOn(apiClient, "get").mockResolvedValue(preview);
-    setup(<RequestPanel />, null);
-
-    expect(
-      await screen.findByText(/Nguyễn Văn A đã khai Trần Minh Anh là người nhận/),
-    ).toBeInTheDocument();
-    expect(screen.getByText("a•••@example.com")).toBeInTheDocument();
-    const login = screen.getByRole("link", { name: "Đăng nhập" });
-    expect(decodeURIComponent(login.getAttribute("href") ?? "")).toContain(
-      `redirect=/request?token=${TOKEN}`,
-    );
-    expect(get).toHaveBeenCalledWith(
-      "/handover/requests/preview",
-      expect.objectContaining({ params: { token: TOKEN } }),
-    );
-    expect(screen.queryByRole("button", { name: "Gửi yêu cầu" })).not.toBeInTheDocument();
-  });
-
-  it("đăng nhập sai email thì báo rõ, không cho gửi", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue(preview);
-    setup(<RequestPanel />, "khac@example.com");
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "link này dành cho a•••@example.com",
-    );
-    expect(screen.queryByRole("button", { name: "Gửi yêu cầu" })).not.toBeInTheDocument();
-  });
-
-  it("phải đính kèm tệp; gửi kèm tệp và lời nhắn thì báo đã gửi", async () => {
-    const user = userEvent.setup();
-    vi.spyOn(apiClient, "get").mockResolvedValue(preview);
-    const post = vi.spyOn(apiClient, "post").mockResolvedValue(claim());
-    setup(<RequestPanel />, "an@example.com");
-
-    await user.click(await screen.findByRole("button", { name: "Gửi yêu cầu" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng đính kèm di chúc.");
-    expect(post).not.toHaveBeenCalled();
-
-    await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
-    await user.type(screen.getByLabelText(/Lời nhắn cho luật sư/), "Bố tôi mất ngày 1/11");
-    await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
-
-    expect(await screen.findByText("Đã gửi yêu cầu")).toBeInTheDocument();
-    const [url, body] = post.mock.calls[0];
-    expect(url).toBe("/handover/requests");
-    const form = body as FormData;
-    expect(form.get("token")).toBe(TOKEN);
-    expect(form.get("note")).toBe("Bố tôi mất ngày 1/11");
-    expect((form.get("wills") as File).name).toBe("di-chuc.pdf");
-  });
-
-  it("kho chưa kích hoạt thì báo chưa gửi được", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue({ ...preview, canRequest: false });
-    setup(<RequestPanel />, "an@example.com");
-
-    expect(await screen.findByText("Chưa gửi yêu cầu được")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Gửi yêu cầu" })).not.toBeInTheDocument();
-  });
-
-  it("link sai thì báo link chưa dùng được", async () => {
-    vi.spyOn(apiClient, "get").mockRejectedValue(new Error("404"));
-    setup(<RequestPanel />, null);
-
-    expect(await screen.findByRole("alert")).toHaveTextContent("Link chưa dùng được");
-  });
-});
-
 function availableRow(extra: Record<string, unknown> = {}) {
   return {
     vaultId: VAULT_ID,
@@ -178,21 +101,24 @@ function availableRow(extra: Record<string, unknown> = {}) {
   };
 }
 
-describe("Trang gửi yêu cầu bằng vaultId (từ trang Nhận tài sản)", () => {
-  const path = `/request?vaultId=${VAULT_ID}`;
-
-  it("gọi by-account kèm vaultId, hiện dòng email đã xác minh và làm mới danh sách", async () => {
+describe("Gửi yêu cầu nhận tài sản ngay trong thẻ kho", () => {
+  it("bấm Gửi yêu cầu thì form mở trong thẻ, gọi by-account kèm vaultId và làm mới danh sách", async () => {
     const user = userEvent.setup();
     const get = vi.spyOn(apiClient, "get").mockResolvedValue([availableRow()]);
     const post = vi.spyOn(apiClient, "post").mockResolvedValue(claim());
-    setup(<RequestPanel />, "an@example.com", path);
+    setup(<AvailableHandoverList />, "an@example.com");
 
-    expect(
-      await screen.findByText("Email đã xác minh, khớp email Chủ kho khai"),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Nguyễn Văn A đã khai bạn là người nhận/)).toBeInTheDocument();
-    // Không dùng link riêng nên không gọi preview.
-    expect(get).not.toHaveBeenCalledWith("/handover/requests/preview", expect.anything());
+    const toggle = await screen.findByRole("button", {
+      name: "Gửi yêu cầu - kho của Nguyễn Văn A",
+    });
+    const region = document.getElementById(toggle.getAttribute("aria-controls") ?? "");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    // Form thu gọn thì không nhận tab hay chuột.
+    expect(region).toHaveAttribute("inert");
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(region).not.toHaveAttribute("inert");
 
     await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
     await user.type(screen.getByLabelText(/Lời nhắn cho luật sư/), "Bố tôi mất ngày 1/11");
@@ -212,42 +138,24 @@ describe("Trang gửi yêu cầu bằng vaultId (từ trang Nhận tài sản)",
     );
   });
 
-  it("phải đính kèm tệp trước khi gửi", async () => {
+  it("phải đính kèm di chúc trước khi gửi", async () => {
     const user = userEvent.setup();
     vi.spyOn(apiClient, "get").mockResolvedValue([availableRow()]);
     const post = vi.spyOn(apiClient, "post");
-    setup(<RequestPanel />, "an@example.com", path);
+    setup(<AvailableHandoverList />, "an@example.com");
 
-    await user.click(await screen.findByRole("button", { name: "Gửi yêu cầu" }));
+    await user.click(await screen.findByRole("button", { name: /Gửi yêu cầu - kho của/ }));
+    await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng đính kèm di chúc.");
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("kho không có trong danh sách thì báo không thấy kho, không cho gửi", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue([]);
-    setup(<RequestPanel />, "an@example.com", path);
-
-    expect(await screen.findByText("Không thấy kho này")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Gửi yêu cầu" })).not.toBeInTheDocument();
-  });
-
-  it("canRequest false thì báo chưa gửi được", async () => {
+  it("canRequest false thì không có nút Gửi yêu cầu", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([availableRow({ canRequest: false })]);
-    setup(<RequestPanel />, "an@example.com", path);
+    setup(<AvailableHandoverList />, "an@example.com");
 
-    expect(await screen.findByText("Chưa gửi yêu cầu được")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Gửi yêu cầu" })).not.toBeInTheDocument();
-  });
-
-  it("chưa đăng nhập thì chỉ có nút đăng nhập quay lại đúng đường dẫn", () => {
-    const get = vi.spyOn(apiClient, "get");
-    setup(<RequestPanel />, null, path);
-
-    const login = screen.getByRole("link", { name: "Đăng nhập" });
-    expect(decodeURIComponent(login.getAttribute("href") ?? "")).toContain(
-      `redirect=/request?vaultId=${VAULT_ID}`,
-    );
-    expect(get).not.toHaveBeenCalled();
+    expect(await screen.findByText(/Chưa gửi được yêu cầu lúc này/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Gửi yêu cầu/ })).not.toBeInTheDocument();
   });
 });
 

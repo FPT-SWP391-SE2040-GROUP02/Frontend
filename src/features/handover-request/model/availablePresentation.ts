@@ -59,8 +59,17 @@ export interface AvailableAction {
 }
 
 /**
- * Nút duy nhất của một dòng. Ký biên bản, nhập mã và tải đều làm ở cổng người nhận có sẵn,
- * trang này chỉ dẫn vào đó. Trả null khi không có gì để mở (chỉ hiện nhãn trạng thái).
+ * Kho chưa gửi yêu cầu và gửi được: dòng có nút "Gửi yêu cầu" mở form ngay trong thẻ kho (không còn trang riêng),
+ * khác các nút còn lại là liên kết sang cổng người nhận.
+ */
+export function canSendRequestHere(row: AvailableHandover): boolean {
+  return row.status === "NOT_REQUESTED" && row.canRequest;
+}
+
+/**
+ * Liên kết duy nhất của một dòng. Ký biên bản, nhập mã và tải đều làm ở cổng người nhận có sẵn,
+ * trang này chỉ dẫn vào đó. Trả null khi không có gì để mở (chỉ hiện nhãn trạng thái) hoặc khi dòng dùng form gửi
+ * yêu cầu ngay tại chỗ (`canSendRequestHere`).
  */
 export function availableAction(row: AvailableHandover): AvailableAction | null {
   const portal = ROUTES.BENEFICIARY.CLAIM;
@@ -68,10 +77,6 @@ export function availableAction(row: AvailableHandover): AvailableAction | null 
   const hasTurn = row.turnId !== null && row.turnId !== undefined;
   switch (row.status) {
     case "NOT_REQUESTED":
-      if (row.canRequest) {
-        const query = new URLSearchParams({ vaultId: row.vaultId });
-        return { label: "Gửi yêu cầu", to: `${ROUTES.REQUEST}?${query.toString()}` };
-      }
       return null;
     case "REQUEST_PENDING":
       return { label: "Xem yêu cầu", to: portal };

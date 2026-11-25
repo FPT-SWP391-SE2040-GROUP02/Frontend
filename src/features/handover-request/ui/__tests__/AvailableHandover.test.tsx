@@ -197,11 +197,12 @@ describe("Trang Nhận tài sản: danh sách", () => {
     expect(within(cards[2]).getByRole("link", { name: /Xem yêu cầu/ })).toBeInTheDocument();
   });
 
-  it("chưa gửi và gửi được thì dẫn tới trang gửi yêu cầu kèm vaultId", async () => {
+  it("chưa gửi và gửi được thì có nút mở form gửi yêu cầu ngay trong thẻ, không còn liên kết sang trang khác", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([row({ canRequest: true, needsAction: true })]);
     setup(<AvailableHandoverList />);
-    const link = await screen.findByRole("link", { name: /Gửi yêu cầu/ });
-    expect(link).toHaveAttribute("href", `/request?vaultId=${VAULT_A}`);
+    const button = await screen.findByRole("button", { name: /Gửi yêu cầu - kho của/ });
+    expect(button).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("link", { name: /Gửi yêu cầu/ })).not.toBeInTheDocument();
   });
 
   it("trạng thái chỉ để xem không có biên bản thì chỉ hiện nhãn, không có nút", async () => {

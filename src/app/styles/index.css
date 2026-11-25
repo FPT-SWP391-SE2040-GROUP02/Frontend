@@ -597,6 +597,10 @@ aside::-webkit-scrollbar-thumb:hover,
 .receive-collapse > div {
   overflow: hidden;
 }
+/* Khối thêm hoặc bỏ trong form (dòng người nhận): trượt chậm hơn lời giải thích một chút để mắt kịp theo. */
+.receive-collapse-slow {
+  transition-duration: 300ms;
+}
 
 @keyframes receive-rise {
   from {
@@ -624,5 +628,8 @@ aside::-webkit-scrollbar-thumb:hover,
   }
   .receive-press:active {
     transform: none;
+  }
+  .receive-collapse {
+    transition: none;
   }
 }
