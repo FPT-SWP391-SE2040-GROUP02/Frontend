@@ -9,6 +9,17 @@ export function willIdentityQueryKey(vaultId: string): readonly ["will-identity"
   return ["will-identity", vaultId];
 }
 
+/**
+ * Người dùng đóng hộp PIN, hoặc PIN đang bị khóa (hộp PIN đã báo): chưa có danh tính nhưng không phải lỗi mạng hay
+ * lỗi hệ thống, nên nơi dùng không báo đỏ.
+ */
+export class WillPinNotConfirmedError extends Error {
+  constructor() {
+    super("Chưa xác nhận mã PIN nên chưa xem được danh tính đầy đủ.");
+    this.name = "WillPinNotConfirmedError";
+  }
+}
+
 /** PIN đã xác nhận khi mở khung, chỉ giữ trong RAM của khung để khỏi bắt nhập lại (lúc tải lại và ở ô ký). */
 export interface WillPinMemory {
   getPin: () => string;
@@ -41,8 +52,11 @@ export function useWillIdentity(
           typed || memory.getPin() || undefined,
         );
       });
-      if (!result.confirmed || box.value === undefined) {
-        throw new Error("Chưa nhập mã PIN nên chưa xem được danh tính đầy đủ.");
+      if (!result.confirmed) {
+        throw new WillPinNotConfirmedError();
+      }
+      if (box.value === undefined) {
+        throw new Error("Máy chủ không trả danh tính.");
       }
       if (result.pin) {
         memory.remember(result.pin);

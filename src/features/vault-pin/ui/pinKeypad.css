@@ -1,0 +1,131 @@
+/* Lucian UX/UI Prompt #480 · MIT License (c) 2026 Seokwoooo. Chỉ style trong các class .u480; màu lấy theo token của app. */
+.u480 {
+  --u480-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --u480-spring: cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+
+/* Ô nhập thật nằm trong suốt trên hàng chấm: bàn phím máy tính, dán và trình đọc màn hình vẫn dùng được. */
+.u480-field {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.u480-field > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: default;
+}
+.u480-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 46px;
+  pointer-events: none;
+}
+.u480-d {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface-sunken);
+  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+  transition:
+    background-color 0.2s,
+    box-shadow 0.2s;
+}
+/* Đang chọn ô nhập: chấm sắp điền có viền vàng. */
+.u480-field:focus-within .u480-d.is-next {
+  box-shadow: 0 0 0 2px var(--gold-hover);
+}
+.u480-d.is-on {
+  background: var(--primary);
+  box-shadow: none;
+  animation: u480-pop 0.42s cubic-bezier(0.34, 1.9, 0.5, 1);
+}
+.u480-d.is-off {
+  animation: u480-out 0.25s var(--u480-ease);
+}
+.u480-dots.is-bad .u480-d {
+  background: var(--danger);
+  box-shadow: none;
+}
+.u480-dots.is-bad {
+  animation: u480-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@keyframes u480-pop {
+  0% {
+    transform: scale(0.4);
+  }
+  55% {
+    transform: scale(1.45);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes u480-out {
+  from {
+    transform: scale(1.3);
+    background: var(--primary);
+  }
+}
+@keyframes u480-shake {
+  12%,
+  52% {
+    transform: translateX(-9px);
+  }
+  32%,
+  72% {
+    transform: translateX(9px);
+  }
+  88% {
+    transform: translateX(-3px);
+  }
+}
+
+.u480-pad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  max-width: 280px;
+  margin: 0 auto;
+}
+.u480-k {
+  display: grid;
+  place-items: center;
+  height: 56px;
+  border-radius: 14px;
+  color: var(--text-main);
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color 0.2s,
+    transform 0.3s cubic-bezier(0.34, 1.8, 0.5, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .u480-k:hover {
+    background: var(--surface-sunken);
+  }
+}
+.u480-k:active,
+.u480-k.is-down {
+  background: var(--primary-light);
+  transform: scale(0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u480-d.is-on,
+  .u480-d.is-off,
+  .u480-dots.is-bad {
+    animation: none;
+  }
+  .u480-k:active,
+  .u480-k.is-down {
+    transform: none;
+  }
+}

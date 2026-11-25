@@ -56,8 +56,8 @@ describe("VaultPinDialogHost", () => {
     const user = userEvent.setup();
 
     const request = apiClient.delete<unknown, unknown>(deleteUrl);
+    // Đủ 6 số là tự gửi, không có nút Xác nhận.
     await user.type(await screen.findByLabelText(/^Mã PIN bảo vệ$/i), "482913");
-    await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
     await expect(request).resolves.toEqual({ ok: true });
     expect(sent).toEqual([undefined, "482913"]);
@@ -71,11 +71,9 @@ describe("VaultPinDialogHost", () => {
 
     const request = apiClient.delete<unknown, unknown>(deleteUrl);
     await user.type(await screen.findByLabelText(/^Mã PIN bảo vệ$/i), "999000");
-    await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
-    expect(await screen.findByText(/Còn 4 trên 5 lần thử/)).toBeInTheDocument();
+    expect(await screen.findByText("Mã PIN chưa đúng (4/5)")).toBeInTheDocument();
     await user.type(screen.getByLabelText(/^Mã PIN bảo vệ$/i), "482913");
-    await user.click(screen.getByRole("button", { name: "Xác nhận" }));
 
     await expect(request).resolves.toEqual({ ok: true });
     expect(sent).toEqual([undefined, "999000", "482913"]);
@@ -91,7 +89,7 @@ describe("VaultPinDialogHost", () => {
       response: { status: 403, data: { code: "VAULT_PIN_REQUIRED" } },
     });
     await screen.findByLabelText(/^Mã PIN bảo vệ$/i);
-    await user.click(screen.getByRole("button", { name: "Hủy" }));
+    await user.click(screen.getByRole("button", { name: "Close" }));
 
     await assertion;
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -104,13 +102,35 @@ describe("VaultPinDialogHost", () => {
 
     const request = apiClient.delete<unknown, unknown>(deleteUrl);
     const assertion = expect(request).rejects.toBeDefined();
-    await user.type(await screen.findByLabelText(/^Mã PIN bảo vệ$/i), "4829");
-    await user.click(screen.getByRole("button", { name: "Xác nhận" }));
+    await user.type(await screen.findByLabelText(/^Mã PIN bảo vệ$/i), "4829{Enter}");
 
     expect(await screen.findByText("Mã PIN gồm đúng 6 chữ số.")).toBeInTheDocument();
     expect(sent).toEqual([undefined]);
-    await user.click(screen.getByRole("button", { name: "Hủy" }));
+    await user.click(screen.getByRole("button", { name: "Close" }));
     await assertion;
+  });
+
+  it("nhập bằng bàn phím trên màn hình: xóa được một số và đủ 6 số thì gửi một lần", async () => {
+    const sent = backendWithPin("482913");
+    renderHost();
+    const user = userEvent.setup();
+
+    const request = apiClient.delete<unknown, unknown>(deleteUrl);
+    await screen.findByLabelText(/^Mã PIN bảo vệ$/i);
+    const press = (name: string) => user.click(screen.getByRole("button", { name }));
+    await press("4");
+    await press("8");
+    await press("9");
+    await press("Xóa một số");
+    for (const digit of ["2", "9", "1"]) {
+      await press(digit);
+    }
+    // Đang đứng ở một phím rồi gõ bàn phím máy tính vẫn vào ô PIN.
+    screen.getByRole("button", { name: "7" }).focus();
+    await user.keyboard("3");
+
+    await expect(request).resolves.toEqual({ ok: true });
+    expect(sent).toEqual([undefined, "482913"]);
   });
 
   it("shows the lock time instead of asking when the pin is locked", async () => {
