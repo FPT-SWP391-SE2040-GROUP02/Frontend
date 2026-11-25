@@ -1,4 +1,5 @@
 import { RecordFileList } from "./RecordFileList";
+import type { TransferOptions } from "@/shared/lib/useTransfer";
 import type { ReportFile, SuggestedRecipient } from "../model/handoverReport.schema";
 
 const KIND_LABEL: Record<ReportFile["kind"], string> = {
@@ -14,7 +15,7 @@ export function ReportFiles({
   download,
 }: {
   files: ReportFile[];
-  download: (file: { id: string }) => Promise<Blob>;
+  download: (file: { id: string }, options: TransferOptions) => Promise<Blob>;
 }) {
   return (
     <div className="space-y-4">

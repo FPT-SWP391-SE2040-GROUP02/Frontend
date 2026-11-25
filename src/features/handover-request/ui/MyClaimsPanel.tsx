@@ -61,7 +61,9 @@ export function MyClaimsPanel() {
               )}
               <RecordFileList
                 files={claim.files}
-                download={(file) => handoverRequestService.downloadFile(claim.id, file.id)}
+                download={(file, options) =>
+                  handoverRequestService.downloadFile(claim.id, file.id, options)
+                }
               />
               {claim.status === "SUPPLEMENT_REQUESTED" && claim.recordStatus !== "CANCELLED" && (
                 <SupplementForm

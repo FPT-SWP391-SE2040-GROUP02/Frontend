@@ -18,6 +18,8 @@ import { SPLIT_DEVIATION_LABEL } from "../model/splitDifference";
 import { handoverRecordKeys } from "../model/useHandoverRecord";
 import { NewRecipientCards } from "./NewRecipientCards";
 import { SplitDeviationPanel } from "./SplitDeviationPanel";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 const pairKey = (beneficiaryId: string, assetId: string) => `${beneficiaryId}:${assetId}`;
 
@@ -56,6 +58,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   const save = usePrivateAction();
   const split = usePrivateAction();
   const finalize = usePrivateAction();
+  const finalized = useSuccessHold();
   const saved = useMemo(() => linesOf(record), [record]);
   const [selected, setSelected] = useState<Set<string>>(saved);
   const dirty = selected.size !== saved.size || [...selected].some((key) => !saved.has(key));
@@ -165,9 +168,13 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
     const errors = recipientDraftErrors(drafts);
     setDraftErrors(errors);
     if (Object.keys(errors).length > 0) return;
-    void finalize.execute(sendAll, apply, (failure) => {
-      setDraftErrors(serverDraftErrors(failure, drafts));
-    });
+    void finalize.execute(
+      () => finalized.hold(sendAll),
+      apply,
+      (failure) => {
+        setDraftErrors(serverDraftErrors(failure, drafts));
+      },
+    );
   };
   const recipientCount =
     new Set([...selected].map((key) => key.split(":")[0])).size + drafts.length;
@@ -323,9 +330,12 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           >
             {save.pending ? "Đang lưu…" : "Lưu biên bản"}
           </button>
-          <button
-            type="button"
+          <ActionButton
             className={buttonStyles.dark}
+            pending={finalize.pending}
+            done={finalized.done}
+            pendingLabel="Đang chốt và gửi thư…"
+            doneLabel="Đã chốt"
             disabled={
               busy ||
               recipientCount === 0 ||
@@ -337,8 +347,8 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
             }
             onClick={handleSend}
           >
-            {finalize.pending ? "Đang chốt và gửi thư…" : "Chốt và gửi thư"}
-          </button>
+            Chốt và gửi thư
+          </ActionButton>
         </div>
         {claimsPending && (
           <p role="status" className="text-sm text-heritage-muted">

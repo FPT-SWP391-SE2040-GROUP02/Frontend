@@ -6,6 +6,7 @@ import {
   myClaimSchema,
   ownerRequestSchema,
 } from "../model/handoverRequest.schema";
+import type { TransferOptions } from "@/shared/lib/useTransfer";
 
 const id = z.string().uuid();
 const base = "/handover/requests";
@@ -64,11 +65,11 @@ export const handoverRequestService = {
       ),
     );
   },
-  async downloadFile(claimId: string, fileId: string): Promise<Blob> {
+  async downloadFile(claimId: string, fileId: string, options?: TransferOptions): Promise<Blob> {
     try {
       return await apiClient.get<Blob, Blob>(
         `${base}/${id.parse(claimId)}/files/${id.parse(fileId)}`,
-        { responseType: "blob" },
+        { responseType: "blob", ...options },
       );
     } catch (failure) {
       throw await readBlobFailure(failure);

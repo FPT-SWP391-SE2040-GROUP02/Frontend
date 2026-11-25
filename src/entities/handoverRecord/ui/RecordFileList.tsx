@@ -3,6 +3,8 @@ import { saveBlob } from "@/shared/lib/saveBlob";
 import { buttonStyles, formatDateTime } from "@/shared/ui/heritageKit";
 import type { RecordFile } from "../model/handoverRecord.schema";
 import { fileSizeText } from "../model/recordPresentation";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { useTransfer, type TransferOptions } from "@/shared/lib/useTransfer";
 
 /**
  * Danh sách tệp đính kèm: tên, dung lượng, ngày nộp và nút Tải về. download do nơi dùng truyền vào (API của luật sư
@@ -17,7 +19,7 @@ export function RecordFileList({
   showWillLabel = true,
 }: {
   files: RecordFile[];
-  download: (file: RecordFile) => Promise<Blob>;
+  download: (file: RecordFile, options: TransferOptions) => Promise<Blob>;
   onRemove?: (file: RecordFile) => void;
   removing?: boolean;
   emptyText?: string;
@@ -25,6 +27,7 @@ export function RecordFileList({
   showWillLabel?: boolean;
 }) {
   const action = usePrivateAction();
+  const transfer = useTransfer();
   if (files.length === 0) return <p className="text-sm text-heritage-muted">{emptyText}</p>;
   return (
     <div className="space-y-2">
@@ -45,20 +48,26 @@ export function RecordFileList({
               </p>
             </div>
             <div className="flex gap-2">
-              <button
-                type="button"
+              <ActionButton
                 className={buttonStyles.outline}
                 disabled={action.pending}
                 aria-label={`Tải về ${file.fileName}`}
                 onClick={() =>
                   void action.execute(
-                    () => download(file),
+                    transfer.track(file.id, (options) => download(file, options)),
                     (blob) => saveBlob(blob, file.fileName),
                   )
                 }
+                pending={action.pending && transfer.activeKey === file.id}
+                done={transfer.done}
+                progress={transfer.activeKey === file.id ? transfer.percent : null}
+                onCancel={transfer.cancel}
+                preparingLabel="Đang chuẩn bị…"
+                pendingLabel="Đang tải"
+                doneLabel="Đã tải xong"
               >
                 Tải về
-              </button>
+              </ActionButton>
               {onRemove && (
                 <button
                   type="button"

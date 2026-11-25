@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { downloadErrorMessage } from "./handover.errors";
+import { useTransfer, type TransferOptions } from "@/shared/lib/useTransfer";
 
 /**
  * Tải nội dung qua grant: chặn bấm lặp, chỉ lưu file khi Backend trả đủ nội dung.
@@ -17,6 +18,7 @@ export function useGrantDownload() {
   const busy = useRef(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const transfer = useTransfer();
   useEffect(() => {
     currentUser.current = userId;
   }, [userId]);
@@ -26,9 +28,13 @@ export function useGrantDownload() {
       mounted.current = false;
     };
   }, []);
-  /** `onSaved` chạy sau khi đã lưu file (ví dụ để làm mới trạng thái "đã tải" của từng mục). */
+  /**
+   * `key` cho biết nút nào đang tải. `onSaved` chạy sau khi đã lưu file (ví dụ để làm mới trạng thái "đã tải" của
+   * từng mục).
+   */
   async function download(
-    fetchContent: () => Promise<Blob>,
+    key: string,
+    fetchContent: (options: TransferOptions) => Promise<Blob>,
     fileName: string,
     onSaved?: () => void,
   ) {
@@ -43,7 +49,7 @@ export function useGrantDownload() {
     setPending(true);
     setError("");
     try {
-      const blob = await fetchContent();
+      const blob = await transfer.track(key, fetchContent)();
       // Màn hình đã đóng hoặc đã đổi tài khoản: bỏ nội dung, không lưu file cho người khác.
       if (!sameSession()) return;
       const url = URL.createObjectURL(blob);
@@ -60,5 +66,12 @@ export function useGrantDownload() {
       if (mounted.current) setPending(false);
     }
   }
-  return { download, pending, error };
+  return {
+    download,
+    pending,
+    error,
+    activeKey: transfer.activeKey,
+    percent: transfer.percent,
+    done: transfer.done,
+  };
 }

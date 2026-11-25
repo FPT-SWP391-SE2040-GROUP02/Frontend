@@ -9,6 +9,7 @@ import {
   type NewRecipient,
   type RecordLine,
 } from "../model/handoverRecord.schema";
+import type { TransferOptions } from "@/shared/lib/useTransfer";
 
 const id = z.string().uuid();
 const verifierPath = (recordId: string) => `/verifier/handover-records/${id.parse(recordId)}`;
@@ -102,12 +103,13 @@ export const handoverRecordService = {
     );
   },
   /** Tải một tệp đính kèm biên bản về dạng Blob; không cache. */
-  async downloadFile(recordId: string, fileId: string): Promise<Blob> {
+  async downloadFile(recordId: string, fileId: string, options?: TransferOptions): Promise<Blob> {
     try {
       return await apiClient.get<Blob, Blob>(
         `${verifierPath(recordId)}/files/${id.parse(fileId)}`,
         {
           responseType: "blob",
+          ...options,
         },
       );
     } catch (failure) {

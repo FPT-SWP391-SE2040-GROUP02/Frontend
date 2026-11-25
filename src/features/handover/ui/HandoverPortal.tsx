@@ -18,6 +18,7 @@ import { HandoverStepper } from "./HandoverStepper";
 import { ReceiptSection } from "./ReceiptSection";
 import { RecipientIdentityPanel } from "./RecipientIdentityPanel";
 import { PendingInvitationCards } from "./PendingInvitationCards";
+import { ActionButton } from "@/shared/ui/ActionButton";
 
 type Turn = z.infer<typeof handoverTurnSchema>;
 
@@ -158,10 +159,15 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                       </span>
                     </span>
                     {turn.grant?.status === "ACTIVE" && (
-                      <button
-                        type="button"
+                      <ActionButton
                         className={buttonStyles.outline}
                         aria-label={`Tải xuống ${item.name}`}
+                        pending={content.pending && content.activeKey === item.id}
+                        done={content.done}
+                        progress={content.activeKey === item.id ? content.percent : null}
+                        preparingLabel="Đang chuẩn bị…"
+                        pendingLabel="Đang tải"
+                        doneLabel="Đã tải xong"
                         disabled={
                           content.pending ||
                           action.pending ||
@@ -170,7 +176,8 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                         }
                         onClick={() =>
                           void content.download(
-                            () => handoverService.download(turn.grant!.id, item.id),
+                            item.id,
+                            (options) => handoverService.download(turn.grant!.id, item.id, options),
                             (item.fileName ?? `${item.name}.txt`).replace(
                               /[^\p{L}\p{N} ._()-]/gu,
                               "_",
@@ -181,7 +188,7 @@ function TurnCard({ turn, showInvitedDate }: { turn: Turn; showInvitedDate: bool
                       >
                         <Download className="size-4" aria-hidden="true" />
                         Tải xuống
-                      </button>
+                      </ActionButton>
                     )}
                   </li>
                 ))}

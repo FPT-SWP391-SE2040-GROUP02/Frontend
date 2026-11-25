@@ -12,6 +12,8 @@ import {
   type HandoverProgressTurn,
 } from "../model/handoverProgress.schema";
 import { HandoverSendKey } from "./HandoverSendKey";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 /** Đoạn thanh: xanh đậm (xong), vàng (đang chờ), xám nhạt (chưa tới), xám đậm (dừng). */
 const SEGMENT_COLORS: Record<SegmentState, string> = {
@@ -200,6 +202,7 @@ export function HandoverTurnRow({
   const canMailKey = canMailHandoverKey(turn);
   const client = useQueryClient();
   const receipt = usePrivateAction();
+  const receiptSigned = useSuccessHold();
   const name = recipientName(turn);
   const highlighted = progress.needsAction;
   return (
@@ -241,13 +244,16 @@ export function HandoverTurnRow({
             </button>
           )}
           {canSignReceipt(turn) && (
-            <button
-              type="button"
+            <ActionButton
               className={buttonStyles.dark}
-              disabled={receipt.pending}
+              pending={receipt.pending}
+              done={receiptSigned.done}
+              pendingLabel="Đang ký…"
+              doneLabel="Đã ký"
               onClick={() =>
                 void receipt.execute(
-                  () => deathCaseService.signReceipt(recordId, turn.turnId),
+                  () =>
+                    receiptSigned.hold(() => deathCaseService.signReceipt(recordId, turn.turnId)),
                   () => {
                     void client.invalidateQueries({ queryKey: ["death-case"] });
                     void client.invalidateQueries({ queryKey: ["handover-record"] });
@@ -256,8 +262,8 @@ export function HandoverTurnRow({
                 )
               }
             >
-              {receipt.pending ? "Đang ký…" : "Ký phiếu giao nhận"}
-            </button>
+              Ký phiếu giao nhận
+            </ActionButton>
           )}
           <button
             type="button"

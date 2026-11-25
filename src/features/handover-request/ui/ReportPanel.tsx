@@ -56,7 +56,9 @@ function ReportCard({ report }: { report: MyReport }) {
       <SuggestedRecipientList recipients={report.recipients} />
       <ReportFiles
         files={report.files}
-        download={(file) => handoverReportService.downloadFile(report.id, file.id)}
+        download={(file, options) =>
+          handoverReportService.downloadFile(report.id, file.id, options)
+        }
       />
       {report.status === "SUPPLEMENT_REQUESTED" && (
         <SupplementForm

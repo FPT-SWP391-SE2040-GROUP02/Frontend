@@ -15,6 +15,8 @@ import { RecordLinesEditor } from "./RecordLinesEditor";
 import { RecordReportsPanel } from "./RecordReportsPanel";
 import { RecordStepper } from "./RecordStepper";
 import { RemindExecutorButton } from "./RemindExecutorButton";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 /** Nút mở hồ sơ danh tính của một người nhận ở trang Danh tính người nhận. */
 function IdentityAction({ recipient }: { recipient: RecordRecipient }) {
@@ -37,6 +39,7 @@ const PARTIALLY_DELIVERED_TEXT =
 function FinalizedActions({ record }: { record: HandoverRecord }) {
   const client = useQueryClient();
   const sign = usePrivateAction();
+  const signed = useSuccessHold();
   const reopen = usePrivateAction();
   const busy = sign.pending || reopen.pending;
   const apply = (next: HandoverRecord) => {
@@ -48,6 +51,10 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
   const delivered = record.recipients.some(
     (recipient) => recipient.turnStatus === "HANDOVER_COMMITTED",
   );
+  let signLabel = "Bạn đã ký";
+  if (record.canSign) {
+    signLabel = "Ký xác minh";
+  }
   return (
     <Panel title="Bước 2 · Ký và giao từng người" labelledBy="record-actions">
       <div className="space-y-4 text-sm leading-6">
@@ -61,16 +68,22 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
         </p>
         <div className="flex flex-wrap gap-2">
           {isSigningStage(record.status) && (
-            <button
-              type="button"
+            <ActionButton
               className={buttonStyles.dark}
               disabled={busy || !record.canSign}
               onClick={() =>
-                void sign.execute(() => handoverRecordService.signAsVerifier(record.id), apply)
+                void sign.execute(
+                  () => signed.hold(() => handoverRecordService.signAsVerifier(record.id)),
+                  apply,
+                )
               }
+              pending={sign.pending}
+              done={signed.done}
+              pendingLabel="Đang ký…"
+              doneLabel="Đã ký"
             >
-              {record.canSign ? (sign.pending ? "Đang ký…" : "Ký xác minh") : "Bạn đã ký"}
-            </button>
+              {signLabel}
+            </ActionButton>
           )}
           {!delivered && (
             <button

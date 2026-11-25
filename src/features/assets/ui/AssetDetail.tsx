@@ -15,6 +15,7 @@ import type { BackendAsset } from "../model/backendAsset.schema";
 import { useAssetDownload } from "../model/useAssetDownload";
 import { useVaultPinUnlock } from "../model/useVaultPinUnlock";
 import { DeleteDialog } from "./AssetDialogs";
+import { ActionButton } from "@/shared/ui/ActionButton";
 
 const editSchema = z.object({
   name: z.string().regex(/\S/, "Nhập tên mục.").max(200, "Tên tối đa 200 ký tự."),
@@ -336,15 +337,20 @@ export function AssetDetail({
                 {formatDateTime(asset.createdAt)} · {formatStorageSize(asset.sizeBytes)}
               </p>
             </div>
-            <button
-              type="button"
+            <ActionButton
               aria-label="Tải xuống nội dung"
               className={buttonStyles.outline}
-              disabled={download.pending}
               onClick={download.download}
+              pending={download.pending}
+              done={download.done}
+              progress={download.percent}
+              onCancel={download.cancel}
+              preparingLabel="Đang chuẩn bị…"
+              pendingLabel="Đang tải"
+              doneLabel="Đã tải xong"
             >
               Tải xuống
-            </button>
+            </ActionButton>
           </div>
         ) : (
           <div>

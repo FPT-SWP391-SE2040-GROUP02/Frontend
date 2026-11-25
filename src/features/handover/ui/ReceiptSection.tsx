@@ -5,6 +5,8 @@ import { buttonStyles } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
 import type { handoverTurnSchema } from "../model/handover.schema";
 import { useHandoverAction } from "../model/useHandoverAction";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 type Turn = z.infer<typeof handoverTurnSchema>;
 
@@ -56,6 +58,7 @@ function IssueForm({ turn, onChanged }: { turn: Turn; onChanged: () => void }) {
 /** Phiếu giao nhận phía người nhận: tải và kiểm tra xong thì ký bên nhận, hoặc báo thiếu, sai. */
 export function ReceiptSection({ turn, onChanged }: { turn: Turn; onChanged: () => void }) {
   const action = useHandoverAction();
+  const signed = useSuccessHold();
   const missing = turn.items.filter((item) => !item.downloaded).length;
   if (turn.receivedAllAt) {
     let executorText = "Đang chờ Người thực thi ký bên giao.";
@@ -80,16 +83,22 @@ export function ReceiptSection({ turn, onChanged }: { turn: Turn; onChanged: () 
           Còn {missing} mục chưa tải. Tải hết rồi mới xác nhận được.
         </p>
       )}
-      <button
-        type="button"
+      <ActionButton
         className={buttonStyles.dark}
         disabled={action.pending || missing > 0}
         onClick={() =>
-          void action.execute(() => handoverService.confirmReceivedAll(turn.id), onChanged)
+          void action.execute(
+            () => signed.hold(() => handoverService.confirmReceivedAll(turn.id)),
+            onChanged,
+          )
         }
+        pending={action.pending}
+        done={signed.done}
+        pendingLabel="Đang ký…"
+        doneLabel="Đã ký"
       >
         Tôi đã nhận đủ, ký phiếu
-      </button>
+      </ActionButton>
       {action.error && (
         <p role="alert" className="text-sm text-heritage-danger">
           {action.error}

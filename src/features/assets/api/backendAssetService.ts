@@ -7,6 +7,7 @@ import {
   createTextAssetSchema,
   updateAssetSchema,
 } from "../model/backendAsset.schema";
+import type { TransferOptions } from "@/shared/lib/useTransfer";
 const id = z.string().uuid();
 const assets = (vaultId: string) => `/vaults/${id.parse(vaultId)}/assets`;
 const page = paginatedListSchema(backendAssetSchema);
@@ -69,9 +70,10 @@ export const backendAssetService = {
    * Tải nội dung gốc của Owner; BE giải mã và kiểm toàn vẹn trước byte đầu tiên (BE mục 6.5).
    * Trả blob tạm, caller phải tự thu hồi object URL.
    */
-  async download(vaultId: string, assetId: string): Promise<Blob> {
+  async download(vaultId: string, assetId: string, options?: TransferOptions): Promise<Blob> {
     return apiClient.get<Blob, Blob>(`${assets(vaultId)}/${id.parse(assetId)}/content`, {
       responseType: "blob",
+      ...options,
     });
   },
   /**

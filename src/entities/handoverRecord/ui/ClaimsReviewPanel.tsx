@@ -50,7 +50,9 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
       {claim.note && <p className="whitespace-pre-line text-sm leading-6">“{claim.note}”</p>}
       <RecordFileList
         files={claim.files}
-        download={(file) => handoverRecordService.downloadFile(record.id, file.id)}
+        download={(file, options) =>
+          handoverRecordService.downloadFile(record.id, file.id, options)
+        }
       />
       {claim.reviewReason && (
         <p className="text-sm">

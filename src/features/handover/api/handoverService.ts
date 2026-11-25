@@ -10,6 +10,7 @@ import {
 } from "../model/handover.schema";
 import type { SubmissionDraft } from "../model/submissionForm";
 import { readBlobProblem } from "../model/handover.errors";
+import type { TransferOptions } from "@/shared/lib/useTransfer";
 const id = z.string().uuid();
 const token = z.string().min(1).max(512);
 const turn = (value: string) => `/handover/turns/${id.parse(value)}`;
@@ -119,11 +120,11 @@ export const handoverService = {
     );
   },
   /** Không cache blob, không dùng public URL để vượt Bearer hoặc integrity check của BE. */
-  async download(grantId: string, itemId: string): Promise<Blob> {
+  async download(grantId: string, itemId: string, options?: TransferOptions): Promise<Blob> {
     try {
       return await apiClient.get<Blob, Blob>(
         `/handover/grants/${id.parse(grantId)}/assets/${id.parse(itemId)}/content`,
-        { responseType: "blob" },
+        { responseType: "blob", ...options },
       );
     } catch (failure) {
       throw await readBlobProblem(failure);
