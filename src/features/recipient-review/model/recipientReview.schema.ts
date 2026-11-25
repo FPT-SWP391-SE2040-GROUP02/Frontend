@@ -14,8 +14,8 @@ export const recipientSubmissionSummarySchema = z.object({
 export type RecipientSubmissionSummary = z.infer<typeof recipientSubmissionSummarySchema>;
 
 /**
- * Chi tiết một hồ sơ người nhận. Backend không trả họ tên, ngày sinh hay số căn cước đầy đủ: chỉ kết quả đối chiếu
- * với thông tin Chủ kho đã khai và số căn cước để người xét duyệt đối chiếu với ảnh.
+ * Chi tiết một hồ sơ người nhận: thông tin người nhận khai và thông tin Chủ kho đã khai cạnh nhau, kèm kết quả đối chiếu,
+ * để người xét duyệt so với ảnh căn cước.
  */
 export const recipientSubmissionDetailSchema = recipientSubmissionSummarySchema.extend({
   status: z.enum(["SUBMITTED", "SUPPLEMENT_REQUESTED", "APPROVED", "SUPERSEDED"]),
@@ -23,6 +23,13 @@ export const recipientSubmissionDetailSchema = recipientSubmissionSummarySchema.
   citizenIdMatches: z.boolean(),
   dateOfBirthMatches: z.boolean(),
   citizenId: z.string(),
+  /** Thông tin người nhận đã gõ lúc nộp; hồ sơ nộp trước khi Backend lưu các trường này thì trống. */
+  claimedFullName: z.string().nullish(),
+  claimedDateOfBirth: z.string().nullish(),
+  /** Thông tin Chủ kho đã khai cho người nhận này; trống khi Backend không đọc được. */
+  declaredFullName: z.string().nullish(),
+  declaredCitizenId: z.string().nullish(),
+  declaredDateOfBirth: z.string().nullish(),
   acknowledged: z.boolean(),
   voluntaryDecline: z.boolean(),
   supplementReason: z.string().nullish(),

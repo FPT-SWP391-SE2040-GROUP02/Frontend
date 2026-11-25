@@ -53,6 +53,30 @@ export function Chip({
   );
 }
 
+const statusTextTones: Record<Tone, string> = {
+  success: "text-heritage-success",
+  warning: "text-heritage-warning",
+  neutral: "text-heritage-muted",
+  danger: "text-heritage-danger",
+};
+
+/** Trạng thái chỉ đổi màu chữ (không nền, không viền), dùng ở bảng và danh sách cần nhìn gọn. */
+export function StatusText({
+  tone = "neutral",
+  children,
+  className,
+}: {
+  tone?: Tone;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span className={cn("text-sm font-semibold", statusTextTones[tone], className)}>
+      {children}
+    </span>
+  );
+}
+
 /** Thẻ nội dung có tiêu đề tùy chọn. */
 export function Panel({
   title,

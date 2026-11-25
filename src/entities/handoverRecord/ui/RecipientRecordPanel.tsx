@@ -80,7 +80,13 @@ export function RecipientRecordPanel({
           {sign.error}
         </p>
       )}
-      {me && <RecordDocument record={record} title="Phần của bạn trong biên bản bàn giao" />}
+      {me && (
+        <RecordDocument
+          record={record}
+          title="Phần của bạn trong biên bản bàn giao"
+          layout="stacked"
+        />
+      )}
     </div>
   );
 }

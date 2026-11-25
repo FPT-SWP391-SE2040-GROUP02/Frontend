@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { buttonStyles, Chip, InfoRow, Notice, Panel } from "@/shared/ui/heritageKit";
+import { buttonStyles, Notice, Panel, StatusText } from "@/shared/ui/heritageKit";
+import { formatDate } from "@/shared/lib/dateFormat";
 import { recipientReviewService } from "../api/recipientReviewService";
 import { SUBMISSION_STATUS_LABELS } from "../model/recipientReview.schema";
 import {
@@ -10,11 +11,35 @@ import {
   useRecipientSubmission,
 } from "../model/useRecipientReview";
 
-function MatchRow({ label, matches }: { label: string; matches: boolean }) {
+function dateText(value: string | null | undefined): string {
+  return value ? formatDate(value) : "—";
+}
+
+/** Một dòng đối chiếu: người nhận khai, Chủ kho khai và kết quả khớp (chỉ đổi màu chữ). */
+function CompareRow({
+  label,
+  claimed,
+  declared,
+  matches,
+}: {
+  label: string;
+  claimed: string;
+  declared: string;
+  matches: boolean;
+}) {
   return (
-    <InfoRow label={label}>
-      {matches ? <Chip tone="success">Khớp</Chip> : <Chip tone="danger">Không khớp</Chip>}
-    </InfoRow>
+    <tr>
+      <th scope="row" className="py-3 pr-4 text-left font-medium">
+        {label}
+      </th>
+      <td className="px-4 py-3 font-semibold">{claimed}</td>
+      <td className="px-4 py-3 font-semibold">{declared}</td>
+      <td className="py-3 pl-4">
+        <StatusText tone={matches ? "success" : "danger"}>
+          {matches ? "Khớp" : "Không khớp"}
+        </StatusText>
+      </td>
+    </tr>
   );
 }
 
@@ -88,14 +113,51 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
       <Panel
         title="Danh tính người nhận"
         labelledBy="recipient-identity"
-        action={<Chip>{SUBMISSION_STATUS_LABELS[detail.status]}</Chip>}
+        action={<StatusText>{SUBMISSION_STATUS_LABELS[detail.status]}</StatusText>}
       >
         <div className="space-y-5">
-          <div className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
-            <MatchRow label="Họ tên" matches={detail.nameMatches} />
-            <MatchRow label="Số căn cước" matches={detail.citizenIdMatches} />
-            <MatchRow label="Ngày sinh" matches={detail.dateOfBirthMatches} />
-            <InfoRow label="Số căn cước khai">{detail.citizenId}</InfoRow>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px] text-sm">
+              <caption className="sr-only">
+                Đối chiếu thông tin người nhận với thông tin Chủ kho đã khai
+              </caption>
+              <thead>
+                <tr className="border-b border-heritage-border text-left text-heritage-muted">
+                  <th scope="col" className="py-2 pr-4 font-semibold">
+                    Thông tin
+                  </th>
+                  <th scope="col" className="px-4 py-2 font-semibold">
+                    Người nhận khai
+                  </th>
+                  <th scope="col" className="px-4 py-2 font-semibold">
+                    Chủ kho đã khai
+                  </th>
+                  <th scope="col" className="py-2 pl-4 font-semibold">
+                    <span className="sr-only">Kết quả</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-heritage-border">
+                <CompareRow
+                  label="Họ tên"
+                  claimed={detail.claimedFullName || "—"}
+                  declared={detail.declaredFullName || "—"}
+                  matches={detail.nameMatches}
+                />
+                <CompareRow
+                  label="Ngày sinh"
+                  claimed={dateText(detail.claimedDateOfBirth)}
+                  declared={dateText(detail.declaredDateOfBirth)}
+                  matches={detail.dateOfBirthMatches}
+                />
+                <CompareRow
+                  label="Số căn cước"
+                  claimed={detail.citizenId || "—"}
+                  declared={detail.declaredCitizenId || "—"}
+                  matches={detail.citizenIdMatches}
+                />
+              </tbody>
+            </table>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <IdentityImage id={detail.id} side="front" label="Căn cước mặt trước" />
