@@ -213,24 +213,31 @@ function PendingCard({
             disabled={action.pending || !read}
             error={passwordError}
           />
-          <div className="flex flex-wrap gap-3 pt-1">
-            <button
-              type="button"
-              className={`${buttonStyles.dark} flex-1`}
-              disabled={action.pending || !agreed || password.length === 0}
-              onClick={() => respond(true)}
-            >
-              Ký nhận vai
-            </button>
-            <button
-              type="button"
-              className={buttonStyles.outline}
-              disabled={action.pending}
-              onClick={() => respond(false)}
-            >
-              Từ chối
-            </button>
-          </div>
+          {invitation.willReady ? (
+            <div className="flex flex-wrap gap-3 pt-1">
+              <button
+                type="button"
+                className={`${buttonStyles.dark} flex-1`}
+                disabled={action.pending || !agreed || password.length === 0}
+                onClick={() => respond(true)}
+              >
+                Ký nhận vai
+              </button>
+              <button
+                type="button"
+                className={buttonStyles.outline}
+                disabled={action.pending}
+                onClick={() => respond(false)}
+              >
+                Từ chối
+              </button>
+            </div>
+          ) : (
+            <p role="status" className="text-sm leading-6 text-heritage-muted">
+              Chủ kho chưa ký biên bản phân chia. Khi Chủ kho ký xong, bạn mới ký nhận vai hoặc từ
+              chối được.
+            </p>
+          )}
           {action.error && passwordError === null && (
             <p role="alert" className="text-sm text-destructive">
               {action.error}

@@ -182,6 +182,29 @@ describe("RecipientReviewQueue: kiểm một hồ sơ", () => {
     );
   });
 
+  it("hiện thông tin người nhận khai và Chủ kho khai cạnh nhau để luật sư đối chiếu", async () => {
+    backend({
+      detail: detail({
+        citizenId: "079206021793",
+        claimedFullName: "Nguyen Ngoc Minh Tan",
+        claimedDateOfBirth: "2006-11-11",
+        declaredFullName: "Phan Khanh Duy",
+        declaredCitizenId: "079206015608",
+        declaredDateOfBirth: "2006-01-23",
+        nameMatches: false,
+        citizenIdMatches: false,
+        dateOfBirthMatches: false,
+      }),
+    });
+    renderQueue(`/notary/recipients?submissionId=${ID}`);
+
+    const table = await screen.findByRole("table", { name: /Đối chiếu thông tin người nhận/ });
+    const rows = within(table).getAllByRole("row").slice(1);
+    expect(rows[0]).toHaveTextContent("Họ tênNguyen Ngoc Minh TanPhan Khanh DuyKhông khớp");
+    expect(rows[1]).toHaveTextContent("Ngày sinh11/11/200623/01/2006Không khớp");
+    expect(rows[2]).toHaveTextContent("Số căn cước079206021793079206015608Không khớp");
+  });
+
   it("hồ sơ không mở được (không thuộc biên bản của mình) thì báo lỗi và có nút về danh sách", async () => {
     vi.spyOn(apiClient, "get").mockRejectedValue(new Error("404"));
     renderQueue(`/notary/recipients?submissionId=${ID}`);
