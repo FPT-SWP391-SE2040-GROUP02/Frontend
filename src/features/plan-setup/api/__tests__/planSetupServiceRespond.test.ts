@@ -4,7 +4,6 @@ import { CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { planSetupService } from "../planSetupService";
 
 const INVITATION_ID = "11111111-1111-4111-8111-111111111111";
-const TOKEN = "synthetic-invitation-token-at-least-32-characters";
 
 const executorResponse = {
   id: INVITATION_ID,
@@ -24,12 +23,13 @@ afterEach(() => {
 describe("planSetupService respond", () => {
   it("gửi password khi chấp nhận theo id lời mời", async () => {
     const post = vi.spyOn(apiClient, "post").mockResolvedValue(executorResponse);
-    await planSetupService.respondById(INVITATION_ID, true, true, "v1", "mat-khau-thu");
+    await planSetupService.respondById(INVITATION_ID, true, true, "v1", "mat-khau-thu", 3);
     expect(post).toHaveBeenCalledWith(`/executor-invitations/${INVITATION_ID}/respond`, {
       accept: true,
       acknowledgeScope: true,
       scopeVersion: "v1",
       password: "mat-khau-thu",
+      willVersionNo: 3,
     });
   });
 
@@ -38,15 +38,5 @@ describe("planSetupService respond", () => {
     await planSetupService.respondById(INVITATION_ID, false, false, "v1", "mat-khau-thu");
     const body = post.mock.calls[0][1] as Record<string, unknown>;
     expect(body).not.toHaveProperty("password");
-  });
-
-  it("gửi password khi chấp nhận theo token và bỏ khi từ chối", async () => {
-    const post = vi.spyOn(apiClient, "post").mockResolvedValue(executorResponse);
-    await planSetupService.respond(TOKEN, true, true, "v1", "mat-khau-thu");
-    await planSetupService.respond(TOKEN, false, false, "v1");
-    const accepted = post.mock.calls[0][1] as Record<string, unknown>;
-    const declined = post.mock.calls[1][1] as Record<string, unknown>;
-    expect(accepted.password).toBe("mat-khau-thu");
-    expect(declined).not.toHaveProperty("password");
   });
 });

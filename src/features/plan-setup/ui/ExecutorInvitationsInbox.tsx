@@ -7,6 +7,7 @@ import { planSetupService } from "../api/planSetupService";
 import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
 import { useExecutorSigning } from "../model/useExecutorSigning";
+import { InvitationPaper } from "./InvitationPaper";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
 const ABILITIES = ["Giữ mã nhận cho tới khi bàn giao", "Ký biên bản và gửi mã nhận cho người nhận"];
@@ -110,6 +111,11 @@ function PendingCard({
   const checkboxId = useId();
   const client = useQueryClient();
   const [acknowledge, setAcknowledge] = useState(false);
+  // Phiên bản đã mở xem; Chủ kho ký bản khác thì phải xem lại và tick lại.
+  const [readVersion, setReadVersion] = useState<number | null>(null);
+  const versionNo = invitation.willVersionNo ?? null;
+  const read = invitation.willReady && versionNo !== null && readVersion === versionNo;
+  const agreed = acknowledge && read;
   const { action, password, setPassword, passwordError, respond: sign } = useExecutorSigning();
   const respond = (accept: boolean) =>
     sign(
@@ -118,9 +124,10 @@ function PendingCard({
         planSetupService.respondById(
           invitation.id,
           accept,
-          acknowledge,
+          agreed,
           scopeVersion,
           signingPassword,
+          versionNo,
         ),
       () => {
         if (accept) onAccepted();
@@ -178,6 +185,14 @@ function PendingCard({
           </p>
         </div>
         <div className="space-y-4 border-t border-heritage-border bg-heritage-sunken p-5 sm:p-6 lg:border-l lg:border-t-0">
+          <InvitationPaper
+            invitation={invitation}
+            read={read}
+            onRead={() => {
+              setAcknowledge(false);
+              setReadVersion(versionNo);
+            }}
+          />
           <label
             htmlFor={checkboxId}
             className="flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-6"
@@ -186,23 +201,23 @@ function PendingCard({
               id={checkboxId}
               type="checkbox"
               className="mt-0.5 size-5 shrink-0 accent-heritage-primary"
-              checked={acknowledge}
-              disabled={action.pending}
+              checked={agreed}
+              disabled={action.pending || !read}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc phạm vi công việc và đồng ý nhận vai Người thực thi
+            Tôi đã đọc biên bản phân chia, phạm vi công việc và đồng ý nhận vai Người thực thi
           </label>
           <ExecutorSigningPasswordField
             value={password}
             onChange={setPassword}
-            disabled={action.pending}
+            disabled={action.pending || !read}
             error={passwordError}
           />
           <div className="flex flex-wrap gap-3 pt-1">
             <button
               type="button"
               className={`${buttonStyles.dark} flex-1`}
-              disabled={action.pending || !acknowledge || password.length === 0}
+              disabled={action.pending || !agreed || password.length === 0}
               onClick={() => respond(true)}
             >
               Ký nhận vai

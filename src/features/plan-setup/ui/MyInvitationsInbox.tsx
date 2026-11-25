@@ -9,6 +9,7 @@ import { myInvitationsKey, useMyInvitations } from "../model/useMyInvitations";
 import type { MyInvitation } from "../model/myInvitations.schema";
 import { endedStatusLabel, remainingTime } from "../lib/myInvitationHelpers";
 import { useExecutorSigning } from "../model/useExecutorSigning";
+import { InvitationPaper } from "./InvitationPaper";
 import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
 const CAPABILITIES = ["Giữ mã nhận cho tới khi bàn giao", "Ký biên bản và gửi mã nhận"];
@@ -114,6 +115,11 @@ function PendingInvitationCard({
   const checkboxId = useId();
   const client = useQueryClient();
   const [acknowledge, setAcknowledge] = useState(false);
+  // Phiên bản đã mở xem; Chủ kho ký bản khác thì phải xem lại và tick lại.
+  const [readVersion, setReadVersion] = useState<number | null>(null);
+  const versionNo = invitation.willVersionNo ?? null;
+  const read = invitation.willReady && versionNo !== null && readVersion === versionNo;
+  const agreed = acknowledge && read;
   const { action, password, setPassword, passwordError, respond: sign } = useExecutorSigning();
   const serverNow = useServerNow();
   const remaining = remainingTime(invitation.expiresAt, serverNow.getTime());
@@ -124,9 +130,10 @@ function PendingInvitationCard({
         planSetupService.respondById(
           invitation.id,
           accept,
-          acknowledge,
+          agreed,
           scopeVersion,
           signingPassword,
+          versionNo,
         ),
       () => {
         if (accept) onAccepted();
@@ -187,6 +194,14 @@ function PendingInvitationCard({
           <p className="whitespace-pre-line rounded-xl border border-heritage-border bg-white/70 px-4 py-3 text-sm leading-6">
             {scopeText}
           </p>
+          <InvitationPaper
+            invitation={invitation}
+            read={read}
+            onRead={() => {
+              setAcknowledge(false);
+              setReadVersion(versionNo);
+            }}
+          />
           <label
             htmlFor={checkboxId}
             className="flex min-h-11 items-start gap-3 rounded-xl bg-heritage-sunken px-4 py-3 text-sm leading-6"
@@ -195,23 +210,23 @@ function PendingInvitationCard({
               id={checkboxId}
               type="checkbox"
               className="mt-1 size-5"
-              checked={acknowledge}
-              disabled={action.pending}
+              checked={agreed}
+              disabled={action.pending || !read}
               onChange={(event) => setAcknowledge(event.target.checked)}
             />
-            Tôi đã đọc phạm vi công việc và đồng ý nhận vai Người thực thi
+            Tôi đã đọc biên bản phân chia, phạm vi công việc và đồng ý nhận vai Người thực thi
           </label>
           <ExecutorSigningPasswordField
             value={password}
             onChange={setPassword}
-            disabled={action.pending}
+            disabled={action.pending || !read}
             error={passwordError}
           />
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
               className={buttonStyles.dark}
-              disabled={action.pending || !acknowledge || password.length === 0}
+              disabled={action.pending || !agreed || password.length === 0}
               onClick={() => respond(true)}
             >
               Ký nhận vai

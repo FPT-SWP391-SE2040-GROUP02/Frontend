@@ -50,23 +50,58 @@ function LegacyDisclaimer() {
 
 /** Câu dẫn đầu trang nháp: nói còn thiếu gì hoặc đã đủ để ký. */
 function draftSubtitle(setup: PlanSetup): string {
+  if (setup.willAwaitingExecutor) {
+    return "Bạn đã ký biên bản phân chia. Kế hoạch có hiệu lực khi Người thực thi xem biên bản và ký nhận vai.";
+  }
   if (setup.canActivate) {
-    return "Mọi việc đã xong. Bấm Xem trước và ký, đọc lại biên bản phân chia một lượt rồi ký bằng mã PIN để kế hoạch bàn giao bắt đầu chạy.";
+    return "Mọi việc đã xong. Bấm Xem trước và ký, đọc lại biên bản phân chia rồi ký bằng mã PIN. Người thực thi xem bản bạn ký và ký sau cùng.";
   }
   return "Hoàn tất các việc bên dưới, rồi bấm Xem trước biên bản phân chia. Biên bản phân chia tự điền từ kho của bạn; đọc xong bạn mới ký.";
 }
 
+function draftChip(setup: PlanSetup): string {
+  if (setup.willAwaitingExecutor) {
+    return "Chờ Người thực thi ký";
+  }
+  return "Kế hoạch chưa kích hoạt";
+}
+
+/** Bước ký của kế hoạch: nháp, Chủ kho đã ký đang chờ Người thực thi, hoặc trạng thái máy chủ trả. */
+function signingStage(setup: PlanSetup): string {
+  if (setup.planStatus === "DRAFT" && setup.willAwaitingExecutor) {
+    return "AWAITING_EXECUTOR";
+  }
+  return setup.planStatus;
+}
+
+/** Chủ kho vừa ký (nháp sang chờ ký) hoặc kế hoạch vừa có hiệu lực. */
+function isSigningProgress(from: string | null, to: string): boolean {
+  if (from === "DRAFT") {
+    return to === "AWAITING_EXECUTOR" || to === "ACTIVE";
+  }
+  return from === "AWAITING_EXECUTOR" && to === "ACTIVE";
+}
+
 /** Kế hoạch còn nháp: thẻ việc ở trái; tiến độ và nút xem trước biên bản phân chia ở phải. */
-function DraftView({ vaultId, setup }: { vaultId: string; setup: PlanSetup }) {
+function DraftView({
+  vaultId,
+  setup,
+  justActivated,
+}: {
+  vaultId: string;
+  setup: PlanSetup;
+  justActivated: boolean;
+}) {
   return (
     <div className="space-y-7">
       <HandoverHeader
-        chipText="Kế hoạch chưa kích hoạt"
+        chipText={draftChip(setup)}
         chipTone="warning"
         subtitle={draftSubtitle(setup)}
       />
       <PlanSetupPanel
         vaultId={vaultId}
+        justActivated={justActivated}
         belowCards={
           <>
             <HandoverStepsCard />
@@ -176,16 +211,16 @@ function RunningView({
  */
 export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
   const planQuery = usePlanSetup(vaultId);
-  // Chỉ coi là "vừa ký" khi trang đang mở thấy kế hoạch đổi từ nháp sang đang chạy; mở lại trang thì không.
-  const [seenStatus, setSeenStatus] = useState<string | null>(null);
+  // Chỉ coi là "vừa đổi" khi trang đang mở thấy bước ký tiến lên; mở lại trang thì không.
+  const [seenStage, setSeenStage] = useState<string | null>(null);
   const [justActivated, setJustActivated] = useState(false);
-  let currentStatus: string | null = null;
+  let currentStage: string | null = null;
   if (planQuery.data !== undefined) {
-    currentStatus = planQuery.data.planStatus;
+    currentStage = signingStage(planQuery.data);
   }
-  if (currentStatus !== null && currentStatus !== seenStatus) {
-    setSeenStatus(currentStatus);
-    setJustActivated(seenStatus === "DRAFT" && currentStatus === "ACTIVE");
+  if (currentStage !== null && currentStage !== seenStage) {
+    setSeenStage(currentStage);
+    setJustActivated(isSigningProgress(seenStage, currentStage));
   }
 
   if (planQuery.isPending) {
@@ -213,7 +248,7 @@ export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {
     );
   }
   if (planQuery.data.planStatus === "DRAFT") {
-    return <DraftView vaultId={vaultId} setup={planQuery.data} />;
+    return <DraftView vaultId={vaultId} setup={planQuery.data} justActivated={justActivated} />;
   }
   return <RunningView vaultId={vaultId} setup={planQuery.data} justActivated={justActivated} />;
 }

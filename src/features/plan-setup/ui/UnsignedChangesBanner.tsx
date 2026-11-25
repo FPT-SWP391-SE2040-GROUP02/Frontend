@@ -7,7 +7,7 @@ import type { UnsignedChanges } from "../model/planSetup.schema";
 /**
  * Thanh nhắc ở đầu màn Bàn giao khi kế hoạch đang chạy mà cấu hình khác bản biên bản phân chia ký gần nhất. Mọi thay đổi (xóa
  * lẫn thêm) đều cần Chủ kho ký lại để bản ký khớp tờ hiện tại. Trong lúc chờ: phần đã xóa không còn được bàn giao;
- * phần thêm hoặc đổi người nhận chưa được bàn giao cho tới khi ký lại. Người thực thi không phải ký lại.
+ * phần thêm hoặc đổi người nhận chưa được bàn giao cho tới khi ký lại. Ký xong, Người thực thi xem và đồng ý bản mới.
  * Chỉ hiện số đếm (Backend không trả tên).
  */
 export function UnsignedChangesBanner({
@@ -50,7 +50,9 @@ export function UnsignedChangesBanner({
             {summary.hasAddedOrChanged && <li>Phần gán thêm chưa được bàn giao.</li>}
           </ul>
         </div>
-        <p className="text-sm leading-6">Người thực thi không phải ký lại.</p>
+        <p className="text-sm leading-6">
+          Ký lại xong, Người thực thi được xem bản mới để đồng ý hoặc không.
+        </p>
         <button
           type="button"
           className={`${buttonStyles.dark} w-full sm:w-auto`}

@@ -50,7 +50,7 @@ export function PlanSetupPanel({
   vaultId: string;
   belowCards?: ReactNode;
   sideNote?: ReactNode;
-  /** Chủ kho vừa ký kích hoạt ngay trên trang này: hai cột trượt nhẹ vào và thẻ trạng thái báo đã ký xong. */
+  /** Trạng thái ký vừa đổi ngay trên trang này: hai cột trượt nhẹ vào và thẻ trạng thái báo. */
   justActivated?: boolean;
 }) {
   const query = usePlanSetup(vaultId);
@@ -85,7 +85,9 @@ export function PlanSetupPanel({
   const setup = query.data;
   let leftClass = "min-w-0 space-y-5";
   let rightClass = "min-w-0 space-y-5 lg:sticky lg:top-6";
-  if (justActivated) {
+  // Ký xong khung biên bản vẫn mở: chờ đóng khung rồi mới chạy chuyển động, nếu không nó diễn ra sau lớp phủ.
+  const celebrate = justActivated && !drawerOpen;
+  if (celebrate) {
     leftClass = `${leftClass} activated-rise activated-rise-2`;
     rightClass = `${rightClass} activated-rise activated-rise-3`;
   }
@@ -143,7 +145,7 @@ export function PlanSetupPanel({
         <div className={rightClass}>
           <HandoverProgressCard
             setup={setup}
-            justActivated={justActivated}
+            justActivated={celebrate}
             onOpenPreview={() => handleOpenChange(true)}
           />
           {sideNote}

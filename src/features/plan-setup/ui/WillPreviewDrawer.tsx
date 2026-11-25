@@ -20,7 +20,7 @@ type PlanSetup = z.infer<typeof planSetupSchema>;
 
 /** Tên khung theo trạng thái: nháp (xem trước), đang chạy có thay đổi chưa ký (ký phiên bản mới), còn lại (đã ký). */
 function drawerTitle(setup: PlanSetup): string {
-  if (setup.planStatus === "DRAFT") {
+  if (setup.planStatus === "DRAFT" && !setup.willAwaitingExecutor) {
     return "Xem trước biên bản phân chia";
   }
   if (needsResign(setup)) {
@@ -128,7 +128,8 @@ function WillDrawerBody({
   onGapClick: (target: WillGapTarget) => void;
 }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
-  const isDraft = setup.planStatus === "DRAFT";
+  // Đã ký, chờ Người thực thi: khung chỉ để xem như bản đã ký.
+  const isDraft = setup.planStatus === "DRAFT" && !setup.willAwaitingExecutor;
   const resignNeeded = needsResign(setup);
   // Còn chân khung ký (nháp hoặc cần ký lại): PIN gõ ở ô ký cũng dùng để tải danh tính đầy đủ, không hỏi PIN lần hai.
   // Khung chỉ để xem (đã ký, không có thay đổi) thì không có ô ký nên hỏi PIN bằng hộp thoại chung khi mở.
@@ -184,7 +185,7 @@ function WillDrawerBody({
   }
 
   const ownerSigned = pickOwnerSignedAt(setup) !== null;
-  const executor = pickWillExecutor(setup.executors);
+  const executor = pickWillExecutor(setup);
   let executorSigned = false;
   if (executor !== null && executor.signedAt) {
     executorSigned = true;
@@ -291,7 +292,7 @@ function WillDrawerBody({
 
 /**
  * Khung xem trước biên bản phân chia hiện giữa màn hình, phóng to gần hết chiều cao (Base UI Dialog: giữ focus trong khung, Esc đóng, có aria-label).
- * Chân khung là phần ký bằng mã PIN: "Ký và kích hoạt" khi kế hoạch còn nháp, "Ký phiên bản mới" khi kế hoạch đang chạy
+ * Chân khung là phần ký bằng mã PIN: "Ký và gửi Người thực thi" khi kế hoạch còn nháp, "Ký phiên bản mới" khi kế hoạch đang chạy
  * mà có thay đổi chưa ký; kế hoạch đang chạy không có thay đổi thì khung chỉ để xem và xuất. Danh tính đầy đủ (CCCD, ngày
  * sinh, thường trú) tải khi khung mở; chưa có thì nút xuất khóa. Chỗ trống đỏ trong biên bản phân chia gọi `onGapClick` để nơi dùng
  * đóng khung và đưa tới đúng thẻ cần điền. `finalFocus` cho nơi dùng chọn phần tử nhận focus khi khung đóng.

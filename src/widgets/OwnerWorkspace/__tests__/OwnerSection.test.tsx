@@ -207,15 +207,13 @@ describe("official workspace data states", () => {
     // Chưa mở khung xem trước thì chưa có tờ biên bản phân chia và ô ký trên trang.
     expect(screen.queryByRole("article", { name: "Biên bản phân chia" })).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { name: "Ký biên bản phân chia và kích hoạt" }),
+      screen.queryByRole("heading", { name: "Ký biên bản phân chia" }),
     ).not.toBeInTheDocument();
     expect(screen.getAllByRole("region", { name: "Tiến độ bàn giao" })).toHaveLength(1);
     expect(screen.getByRole("heading", { name: "Bàn giao diễn ra thế nào" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Xem trước biên bản phân chia" }));
     expect(await screen.findByRole("article", { name: "Biên bản phân chia" })).toBeInTheDocument();
-    expect(
-      screen.getAllByRole("form", { name: "Ký biên bản phân chia và kích hoạt" }),
-    ).toHaveLength(1);
+    expect(screen.getAllByRole("form", { name: "Ký biên bản phân chia" })).toHaveLength(1);
   });
 });

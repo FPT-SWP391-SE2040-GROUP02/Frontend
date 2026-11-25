@@ -15,6 +15,17 @@ export const deathCaseService = {
       .array(executorVaultSchema)
       .parse(await apiClient.get<unknown, unknown>("/executor/vaults", { signal }));
   },
+  /** Đồng ý (ký bằng mật khẩu) hoặc không đồng ý phiên bản biên bản phân chia Chủ kho ký lại. */
+  async respondWill(vaultId: string, accept: boolean, willVersionNo: number, password: string) {
+    const body: Record<string, unknown> = { accept, willVersionNo };
+    if (accept) {
+      body.password = password;
+    }
+    await apiClient.post<unknown, unknown>(
+      `/executor/vaults/${id.parse(vaultId)}/will/respond`,
+      body,
+    );
+  },
   /** Người nhận kèm tài sản được gán (không có nội dung); chỉ xem được sau khi luật sư chốt biên bản. */
   async recipients(vaultId: string, signal?: AbortSignal) {
     return z.array(executorRecipientSchema).parse(

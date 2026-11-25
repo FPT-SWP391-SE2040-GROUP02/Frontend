@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AxiosError, AxiosHeaders } from "axios";
+import { configureStore } from "@reduxjs/toolkit";
+import { Provider } from "react-redux";
+import authReducer from "@/entities/user/model/authSlice";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { accessTokenMemory } from "@/shared/api/accessToken";
@@ -30,6 +33,11 @@ function invitation(overrides: Partial<MyInvitation> = {}): MyInvitation {
     // Trừ một phút để làm tròn lên vẫn ra đúng 5 ngày.
     expiresAt: new Date(Date.now() + 5 * DAY_MS - 60_000).toISOString(),
     endedAt: null,
+    willReady: true,
+    willVersionNo: 2,
+    willSignedAt: "2026-11-02T00:00:00Z",
+    assetCount: 3,
+    recipientCount: 1,
     ...overrides,
   };
 }
@@ -71,16 +79,26 @@ afterEach(() => {
 
 function renderWithRoutes(element: ReactNode) {
   return render(
-    <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={["/start"]}>
-        <Routes>
-          <Route path="/start" element={element} />
-          <Route path="/executor-invitation" element={<p>Trang trả lời lời mời</p>} />
-          <Route path="/invitations" element={<p>Trang lời mời</p>} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <Provider store={configureStore({ reducer: { auth: authReducer } })}>
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={["/start"]}>
+          <Routes>
+            <Route path="/start" element={element} />
+            <Route path="/executor-invitation" element={<p>Trang trả lời lời mời</p>} />
+            <Route path="/invitations" element={<p>Trang lời mời</p>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </Provider>,
   );
+}
+
+/** Mở xem biên bản phân chia rồi đóng: bắt buộc trước khi ký. */
+async function readPaper(card: HTMLElement): Promise<void> {
+  await userEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
+  const paper = await screen.findByRole("article", { name: "Tờ Biên bản phân chia" });
+  expect(paper).toHaveTextContent("Kho có 3 tài sản. Số người nhận đã khai: 1.");
+  await userEvent.click(screen.getByRole("button", { name: "Đóng" }));
 }
 
 describe("MyInvitationsInbox", () => {
@@ -102,6 +120,8 @@ describe("MyInvitationsInbox", () => {
     const accept = within(card).getByRole("button", { name: SIGN_BUTTON });
     expect(accept).toBeDisabled();
 
+    expect(within(card).getByRole("checkbox")).toBeDisabled();
+    await readPaper(card);
     await userEvent.click(within(card).getByRole("checkbox"));
     // Đã tick phạm vi nhưng chưa có mật khẩu thì vẫn khóa.
     expect(accept).toBeDisabled();
@@ -118,6 +138,7 @@ describe("MyInvitationsInbox", () => {
       true,
       "scope-test",
       "mat-khau-thu",
+      2,
     );
     // Ô mật khẩu được xóa sau lần thử.
     expect(passwordInput).toHaveValue("");
@@ -135,7 +156,20 @@ describe("MyInvitationsInbox", () => {
       false,
       "scope-test",
       undefined,
+      2,
     );
+  });
+
+  it("Chủ kho chưa ký thì chỉ báo chờ, không ký được", async () => {
+    vi.mocked(planSetupService.mine).mockResolvedValue(
+      data({ pending: [invitation({ willReady: false, willVersionNo: null })] }),
+    );
+    renderWithRoutes(<MyInvitationsInbox />);
+    const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
+    expect(within(card).getByText("Chờ Chủ kho ký")).toBeInTheDocument();
+    expect(within(card).getByRole("checkbox")).toBeDisabled();
+    expect(within(card).getByRole("button", { name: SIGN_BUTTON })).toBeDisabled();
+    expect(within(card).getByRole("button", { name: "Từ chối" })).toBeEnabled();
   });
 
   async function acceptWithError(error: AxiosError, password: string) {
@@ -143,6 +177,8 @@ describe("MyInvitationsInbox", () => {
     vi.mocked(planSetupService.respondById).mockRejectedValue(error);
     renderWithRoutes(<MyInvitationsInbox />);
     const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
+    expect(within(card).getByRole("checkbox")).toBeDisabled();
+    await readPaper(card);
     await userEvent.click(within(card).getByRole("checkbox"));
     const passwordInput = within(card).getByLabelText(PASSWORD_LABEL);
     await userEvent.type(passwordInput, password);

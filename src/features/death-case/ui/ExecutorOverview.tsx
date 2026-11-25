@@ -8,6 +8,7 @@ import { executorTodo } from "../model/executorTodo";
 import { EXECUTOR_ALLOWED, EXECUTOR_DENIED } from "../model/executorPermissions";
 import { useExecutorRecipients } from "../model/useExecutorRecipients";
 import { useHandoverProgress } from "../model/useHandoverProgress";
+import { ExecutorWillConsent } from "./ExecutorWillConsent";
 import { VaultJourney } from "./VaultJourney";
 
 /** Hai thẻ gọn dưới cùng chỉ lấy vài dòng đầu của danh sách quyền hạn đầy đủ. */
@@ -92,6 +93,7 @@ export function ExecutorOverview({ vault }: { vault: ExecutorVault }) {
 
   return (
     <div className="space-y-6">
+      <ExecutorWillConsent vault={vault} />
       <section
         aria-labelledby="executor-todo-title"
         className="rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg p-5 sm:p-6"

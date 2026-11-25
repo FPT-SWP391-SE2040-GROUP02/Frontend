@@ -75,6 +75,12 @@ const executorNotAllowedReasons: Record<string, string> = {
   REPLACEMENT_REQUIRED:
     "Người thực thi đã nhận nhiệm vụ nên không thu hồi trực tiếp. Hãy mời người thay; người cũ tự thôi khi người mới chấp nhận.",
   PLAN_NOT_DRAFT: "Kế hoạch của kho không ở trạng thái cho phép phản hồi lời mời Executor lúc này.",
+  SETUP_NOT_COMPLETE:
+    "Chủ kho cần làm xong các bước khác trước. Mời Người thực thi là bước sau cùng.",
+  WILL_NOT_SIGNED: "Chủ kho chưa ký biên bản phân chia hiện tại. Chờ Chủ kho ký rồi thử lại.",
+  WILL_VERSION_CHANGED: "Chủ kho vừa ký phiên bản khác. Tải lại và xem biên bản mới trước khi ký.",
+  WILL_ALREADY_CONFIRMED: "Bạn đã ký phiên bản này nên không đổi sang không đồng ý được.",
+  PLAN_NOT_RUNNING: "Kế hoạch không còn đang chạy nên không trả lời biên bản lúc này.",
   INDEPENDENT_EXECUTOR_REQUIRED: "Bạn đã đảm nhiệm một vai trò Người thực thi khác trong kho này.",
 };
 
