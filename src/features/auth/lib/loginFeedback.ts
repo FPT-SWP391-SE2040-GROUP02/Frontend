@@ -104,6 +104,18 @@ export function getAdminLoginErrorMessage(error: unknown): string {
 }
 
 /**
+ * @description Server từ chối vì email hoặc mật khẩu sai (không phải lỗi mạng hay lỗi hệ thống).
+ * @param error Lỗi mutation chưa xác định.
+ */
+export function isCredentialError(error: unknown): boolean {
+  if (!isAxiosError(error) || error.response?.status !== HTTP_STATUS.UNAUTHORIZED) {
+    return false;
+  }
+  const parsed = authProblem.safeParse(error.response.data);
+  return parsed.success && parsed.data.code === "INVALID_CREDENTIALS";
+}
+
+/**
  * @description Hiển thị lỗi transport an toàn; không suy diễn lượt thử, lockout hoặc lộ response BE.
  * @param error Lỗi mutation chưa xác định.
  * @returns Thông báo chung phù hợp mạng/timeout/server hoặc lỗi đăng nhập chưa phân loại.

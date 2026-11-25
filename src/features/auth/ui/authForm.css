@@ -1,0 +1,271 @@
+/* Lucian UX/UI Prompt #403 · MIT License (c) 2026 Seokwoooo. Chỉ style trong các class .u403; màu lấy theo token của app.
+   Không đặt trong @layer để thắng được class Tailwind của ô nhập dùng chung. */
+.u403-f {
+  --u403-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --u403-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+  position: relative;
+}
+.u403-f > input.u403-in {
+  height: 56px;
+  padding: 22px 15px 6px;
+}
+.u403-f.has-end > input.u403-in {
+  padding-right: 56px;
+}
+.u403-f > label {
+  position: absolute;
+  left: 16px;
+  top: 17px;
+  font-size: 0.875rem;
+  line-height: 22px;
+  color: var(--text-subtle);
+  transform-origin: left top;
+  transition:
+    transform 0.4s var(--u403-spring),
+    color 0.2s;
+  pointer-events: none;
+}
+/* Nhãn nổi lên khi ô đang được chọn hoặc đã có chữ. Thu còn 80% để chữ vẫn đọc được. */
+.u403-f > input:focus ~ label,
+.u403-f > input:not(:placeholder-shown) ~ label {
+  transform: translateY(-11px) scale(0.8);
+  color: var(--text-muted);
+}
+/* Trình duyệt tự điền: tách riêng để trình duyệt không hiểu bộ chọn này cũng không làm hỏng luật phía trên. */
+.u403-f > input:-webkit-autofill ~ label {
+  transform: translateY(-11px) scale(0.8);
+  color: var(--text-muted);
+}
+.u403-f > input:focus ~ label {
+  color: var(--gold-hover);
+}
+.u403-fd.is-bad .u403-f > label {
+  color: var(--danger);
+}
+
+/* Gạch đỏ chạy ngang dưới ô sai. */
+.u403-f::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--danger);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--u403-ease);
+  pointer-events: none;
+}
+.u403-fd.is-bad .u403-f::after {
+  transform: scaleX(1);
+}
+.u403-f.is-shake {
+  animation: u403-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@keyframes u403-shake {
+  15% {
+    transform: translateX(-7px);
+  }
+  35% {
+    transform: translateX(6px);
+  }
+  55% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+.u403-msg {
+  animation: u403-msg 0.35s cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+@keyframes u403-msg {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Con mắt: mí mắt khép lại khi đang ẩn mật khẩu, mở ra khi đang hiện. */
+.u403-eye {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  color: var(--text-subtle);
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+.u403-eye:hover:not(:disabled) {
+  color: var(--text-main);
+  background: var(--surface-sunken);
+}
+.u403-eye:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.u403-eye svg {
+  width: 22px;
+  height: 22px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.u403-eye .lid {
+  transform-origin: 10px 10px;
+  transform: scaleY(0.1);
+  transition: transform 0.45s cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+.u403-eye .lash {
+  transform-origin: 10px 10px;
+  transition:
+    opacity 0.2s,
+    transform 0.4s cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+.u403-eye[aria-pressed="true"] .lid {
+  transform: none;
+}
+.u403-eye[aria-pressed="true"] .lash {
+  opacity: 0;
+  transform: translateY(-3px);
+}
+
+/* Nút gửi: co thành vòng tròn lúc chờ server, xong thì hiện dấu tích. */
+.u403-go {
+  --u403-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --u403-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+  position: relative;
+  display: grid;
+  /* Một cột đúng bằng bề rộng nút: chữ đang ẩn dài hơn vòng tròn cũng không đẩy lệch vòng xoay và dấu tích. */
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  width: 100%;
+  height: 48px;
+  margin: 0 auto;
+  border-radius: 16px;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    width 0.55s var(--u403-spring),
+    border-radius 0.45s var(--u403-ease),
+    background-color 0.35s,
+    color 0.35s,
+    transform 0.4s var(--u403-spring),
+    opacity 0.2s;
+}
+@media (hover: hover) and (pointer: fine) {
+  .u403-go:not(:disabled):hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+  }
+}
+.u403-go:not(:disabled):active {
+  transform: scale(0.97, 0.94);
+}
+.u403-go[data-state="idle"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.u403-go[data-state="busy"],
+.u403-go[data-state="ok"] {
+  width: 48px;
+  border-radius: 24px;
+  cursor: default;
+}
+.u403-go[data-state="ok"] {
+  background: var(--success);
+  color: var(--bg-canvas);
+}
+.u403-go > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity 0.2s,
+    transform 0.4s var(--u403-spring);
+}
+.u403-lb {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+.u403-go:not([data-state="idle"]) .u403-lb {
+  opacity: 0;
+  transform: scale(0.8);
+}
+.u403-ring {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.5);
+  animation: u403-spin 0.7s linear infinite;
+}
+.u403-go[data-state="busy"] .u403-ring {
+  opacity: 1;
+  transform: none;
+}
+.u403-ck {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform: scale(0.5);
+}
+.u403-ck path {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  transition: stroke-dashoffset 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s;
+}
+.u403-go[data-state="ok"] .u403-ck {
+  opacity: 1;
+  transform: none;
+}
+.u403-go[data-state="ok"] .u403-ck path {
+  stroke-dashoffset: 0;
+}
+@keyframes u403-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u403-f.is-shake,
+  .u403-msg {
+    animation: none;
+  }
+  .u403-go:not(:disabled):hover,
+  .u403-go:not(:disabled):active {
+    transform: none;
+  }
+}
+/* Luật chung của app tắt mọi chuyển động khi giảm chuyển động (trong @layer base, có !important). Vòng chờ phải còn quay
+   chậm để biết đang chạy, nên khai trong cùng layer đó. */
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    .u403-go .u403-ring {
+      animation-duration: 2s !important;
+    }
+  }
+}

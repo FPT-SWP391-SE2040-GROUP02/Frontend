@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { cn } from "cn";
 import { z } from "zod";
+import { GoogleBusyPill } from "./GoogleBusyPill";
 import { ENV } from "@/shared/config/env";
 import { authService } from "../api/authService";
 import { captureAuthContext } from "../model/authTransitions";
@@ -21,9 +23,16 @@ const credentialSchema = z.object({ credential: googleLoginRequestSchema.shape.i
 export function GoogleSignInButton({
   disabled,
   onCredential,
+  progress = null,
+  busyLabel = "Đang kết nối…",
+  doneLabel = "Đã đăng nhập",
 }: {
   disabled: boolean;
   onCredential: (idToken: string, nonce: string) => Promise<void>;
+  /** Sau khi chọn tài khoản: "busy" khi server đang xử lý, "done" khi xong; nút Google được thay bằng nút trạng thái. */
+  progress?: "busy" | "done" | null;
+  busyLabel?: string;
+  doneLabel?: string;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const latest = useRef({ disabled, onCredential });
@@ -79,6 +88,7 @@ export function GoogleSignInButton({
           theme: "outline",
           size: "large",
           text: "continue_with",
+          shape: "pill",
           locale: "vi",
           width: Math.min(
             320,
@@ -122,13 +132,24 @@ export function GoogleSignInButton({
 
   return (
     <div className="space-y-2">
-      {/* GIS large cao 40px; phóng đồng đều để hit target đạt 44px. */}
-      <div
-        ref={container}
-        inert={disabled || status !== "ready"}
-        className="min-h-11"
-        style={{ zoom: 1.1 }}
-      />
+      <div className="relative">
+        {/* GIS large cao 40px; phóng đồng đều để hit target đạt 44px. Đang xử lý thì chỉ ẩn, không gỡ nút. */}
+        <div
+          ref={container}
+          inert={disabled || status !== "ready" || progress !== null}
+          className={cn("u401-gis min-h-11", progress !== null && "invisible")}
+          style={{ zoom: 1.1 }}
+        />
+        {progress !== null && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <GoogleBusyPill
+              done={progress === "done"}
+              busyLabel={busyLabel}
+              doneLabel={doneLabel}
+            />
+          </div>
+        )}
+      </div>
       {status === "loading" && <p role="status">Đang tải đăng nhập Google...</p>}
       {status === "error" && (
         <div role="alert">

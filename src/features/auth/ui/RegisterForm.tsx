@@ -1,17 +1,19 @@
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, Lock, Mail, Phone, User } from "lucide-react";
-import { useState, type FocusEvent } from "react";
+import { AlertCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { emailMatchesMask } from "@/shared/lib/invitedEmail";
-import { getRegisterErrorMessage } from "../lib/registerFeedback";
+import { getRegisterErrorMessage, getRegisterRejectedField } from "../lib/registerFeedback";
+import { useFieldFeedback } from "../lib/useFieldFeedback";
 import { registerSchema, type RegisterInput } from "../model/auth.schema";
 import { NEW_PASSWORD_HINT } from "../model/password.schema";
 import { PHONE_SHARING_HINT } from "../model/phone.schema";
 import { useRegister } from "../model/useAuth";
+import { AuthField, PasswordEye } from "./AuthField";
+import { MorphButton } from "./MorphButton";
 
 /**
  * @description Thuộc tính cấu hình cho RegisterForm component.
@@ -54,49 +56,51 @@ export function RegisterForm({
   className = "",
 }: RegisterFormProps) {
   const navigate = useNavigate();
-  const { mutate: registerUser, isPending, isError, error } = useRegister();
+  const { mutateAsync: registerUser, isPending, isError, error } = useRegister();
+  // Giữ dấu tích trên nút một nhịp rồi mới sang trang xác minh email.
+  const created = useSuccessHold();
+  const locked = isPending || created.done;
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
-  const {
-    register,
-    handleSubmit,
-    trigger,
-    setError,
-    formState: { errors, touchedFields },
-  } = useForm<RegisterInput>({
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+  const form = useForm<RegisterInput>({
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     resolver: zodResolver(registerSchema),
     defaultValues: lockedEmail ? { email: lockedEmail } : undefined,
   });
+  const {
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = form;
+  const { field, shake, shakes } = useFieldFeedback(form);
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const passwordField = register("password");
-
-  // Ghi chú chia sẻ số điện thoại chỉ hiện với Chủ kho và Người thực thi; người nhận không thấy.
-  let phoneDescribedBy: string | undefined = undefined;
-  if (!fromInvitation) {
-    phoneDescribedBy = "register-phone-hint";
-  }
-  if (errors.phone) {
-    phoneDescribedBy = phoneDescribedBy
-      ? `${phoneDescribedBy} register-phone-error`
-      : "register-phone-error";
-  }
-
-  /**
-   * @description Kiểm tra mật khẩu khi rời ô và cập nhật lỗi xác nhận đã được chạm.
-   * @param event Sự kiện rời ô mật khẩu.
-   * @returns Promise hoàn thành việc kiểm tra các trường liên quan.
-   */
-  const handlePasswordBlur = async (event: FocusEvent<HTMLInputElement>): Promise<void> => {
-    await passwordField.onBlur(event);
-
-    if (touchedFields.confirmPassword) {
-      await trigger("confirmPassword");
-    }
+  // Ô bị server từ chối (email hoặc số điện thoại đã dùng); sửa ô đó thì hết đỏ.
+  const [rejected, setRejected] = useState<"email" | "phone" | null>(null);
+  const clearRejected = (name: "email" | "phone") => {
+    if (rejected === name) setRejected(null);
   };
 
-  const onSubmit = (data: RegisterInput) => {
+  // Ghi chú chia sẻ số điện thoại chỉ hiện với Chủ kho và Người thực thi; người nhận không thấy.
+  let phoneHint: string | undefined = undefined;
+  if (!fromInvitation) {
+    phoneHint = PHONE_SHARING_HINT;
+  }
+  let emailHint: string | undefined = undefined;
+  if (lockedEmail) {
+    emailHint = "Email đã điền sẵn theo thư mời, không đổi được.";
+  } else if (invitedEmailMasked) {
+    emailHint = `Hãy dùng đúng email được mời: ${invitedEmailMasked}`;
+  }
+
+  const onSubmit = async (data: RegisterInput): Promise<void> => {
     // TODO: [P0][AUTH-04] DEVELOPER BLUEPRINT - thứ tự trong module theo mã số.
     // 1. [MỤC TIÊU]: Giữ ngữ cảnh lời mời qua đăng ký và xác minh khi contract được duyệt.
     // 2. [INPUT & OUTPUT]: Invitation marker chưa tin cậy + form -> return context đã validate.
@@ -105,29 +109,46 @@ export function RegisterForm({
     // 4. [HÀM / THƯ VIỆN]: useRegister, React Router, Zod; API invitation cần được chốt.
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Lời mời hết hạn/sai account; không tự cấp role,
     //    không coi đăng ký là đăng nhập hoặc làm lộ nội dung từ marker chưa xác minh.
-    if (isPending) return;
+    if (locked) return;
 
     if (!lockedEmail && invitedEmailMasked && !emailMatchesMask(data.email, invitedEmailMasked)) {
       setError("email", { type: "validate", message: "Email này không phải email được mời." });
+      shake(["email"]);
       return;
     }
 
-    registerUser(data, {
-      onSuccess: () => {
-        onSuccess?.();
-        const verifyParams = new URLSearchParams({ email: data.email });
-        if (redirect) {
-          verifyParams.set("redirect", redirect);
-        }
-        navigate(`${ROUTES.AUTH.VERIFY_EMAIL}?${verifyParams}`);
-      },
-    });
+    setRejected(null);
+    try {
+      await created.hold(() => registerUser(data));
+    } catch (failure) {
+      // Mutation giữ lỗi cho khung báo; ở đây chỉ rung và tô đỏ ô bị trùng.
+      const name = getRegisterRejectedField(failure);
+      if (mounted.current && name !== null) {
+        setRejected(name);
+        shake([name]);
+      }
+      return;
+    }
+    if (!mounted.current) return;
+    onSuccess?.();
+    const verifyParams = new URLSearchParams({ email: data.email });
+    if (redirect) {
+      verifyParams.set("redirect", redirect);
+    }
+    navigate(`${ROUTES.AUTH.VERIFY_EMAIL}?${verifyParams}`);
   };
 
   return (
-    <form noValidate onSubmit={handleSubmit(onSubmit)} className={`space-y-5 w-full ${className}`}>
+    <form
+      noValidate
+      onSubmit={(event) =>
+        void handleSubmit(onSubmit, (invalid) => shake(Object.keys(invalid)))(event)
+      }
+      className={`space-y-5 w-full ${className}`}
+    >
       {isError && (
         <div
+          id="register-error"
           role="alert"
           className="rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4 text-sm text-heritage-danger"
         >
@@ -135,193 +156,85 @@ export function RegisterForm({
           {getRegisterErrorMessage(error)}
         </div>
       )}
-      {/* Full Name */}
-      <div className="space-y-1 text-left">
-        <label
-          htmlFor="register-fullName"
-          className="text-sm font-medium text-heritage-primary dark:text-heritage-primary-light"
-        >
-          Họ và tên
-        </label>
-        <div className="relative">
-          <User className="w-4 h-4 text-heritage-subtle absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            id="register-fullName"
-            aria-invalid={Boolean(errors.fullName)}
-            aria-describedby={errors.fullName ? "register-fullName-error" : undefined}
-            autoComplete="name"
-            disabled={isPending}
-            {...register("fullName")}
-            placeholder="Nguyễn Văn A"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-primary-hover border-heritage-primary-light dark:border-heritage-primary-hover"
-          />
-        </div>
-        {errors.fullName && (
-          <p id="register-fullName-error" role="alert" className="text-sm text-destructive">
-            {errors.fullName.message}
-          </p>
-        )}
-      </div>
+      <AuthField
+        id="register-fullName"
+        label="Họ và tên"
+        autoComplete="name"
+        disabled={locked}
+        error={errors.fullName?.message}
+        shake={shakes.fullName}
+        {...field("fullName")}
+      />
 
-      {/* Email */}
-      <div className="space-y-1 text-left">
-        <label
-          htmlFor="register-email"
-          className="text-sm font-medium text-heritage-primary dark:text-heritage-primary-light"
-        >
-          Email
-        </label>
-        <div className="relative">
-          <Mail className="w-4 h-4 text-heritage-subtle absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            id="register-email"
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={errors.email ? "register-email-error" : undefined}
-            autoComplete="email"
-            disabled={isPending}
-            readOnly={Boolean(lockedEmail)}
-            {...register("email")}
-            type="email"
-            placeholder="owner@legacyvault.io"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-primary-hover border-heritage-primary-light dark:border-heritage-primary-hover"
-          />
-        </div>
-        {lockedEmail && (
-          <p className="text-sm text-heritage-muted">
-            Email đã điền sẵn theo thư mời, không đổi được.
-          </p>
-        )}
-        {!lockedEmail && invitedEmailMasked && (
-          <p className="text-sm text-heritage-muted">
-            Hãy dùng đúng email được mời: {invitedEmailMasked}
-          </p>
-        )}
-        {errors.email && (
-          <p id="register-email-error" role="alert" className="text-sm text-destructive">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+      <AuthField
+        id="register-email"
+        label="Email"
+        type="email"
+        autoComplete="email"
+        disabled={locked}
+        readOnly={Boolean(lockedEmail)}
+        hint={emailHint}
+        error={errors.email?.message}
+        rejected={rejected === "email"}
+        rejectedBy="register-error"
+        shake={shakes.email}
+        {...field("email", { onEdit: () => clearRejected("email") })}
+      />
 
-      {/* Phone */}
-      <div className="space-y-1 text-left">
-        <label
-          htmlFor="register-phone"
-          className="text-sm font-medium text-heritage-primary dark:text-heritage-primary-light"
-        >
-          Số điện thoại
-        </label>
-        <div className="relative">
-          <Phone className="w-4 h-4 text-heritage-subtle absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            id="register-phone"
-            aria-invalid={Boolean(errors.phone)}
-            aria-describedby={phoneDescribedBy}
-            autoComplete="tel"
-            inputMode="tel"
-            disabled={isPending}
-            {...register("phone")}
-            type="tel"
-            placeholder="0912 345 678"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-primary-hover border-heritage-primary-light dark:border-heritage-primary-hover"
-          />
-        </div>
-        {!fromInvitation && (
-          <p id="register-phone-hint" className="text-sm text-heritage-muted">
-            {PHONE_SHARING_HINT}
-          </p>
-        )}
-        {errors.phone && (
-          <p id="register-phone-error" role="alert" className="text-sm text-destructive">
-            {errors.phone.message}
-          </p>
-        )}
-      </div>
+      <AuthField
+        id="register-phone"
+        label="Số điện thoại"
+        type="tel"
+        autoComplete="tel"
+        inputMode="tel"
+        disabled={locked}
+        hint={phoneHint}
+        error={errors.phone?.message}
+        rejected={rejected === "phone"}
+        rejectedBy="register-error"
+        shake={shakes.phone}
+        {...field("phone", { onEdit: () => clearRejected("phone") })}
+      />
 
-      {/* Password */}
-      <div className="space-y-1 text-left">
-        <label
-          htmlFor="register-password"
-          className="text-sm font-medium text-heritage-primary dark:text-heritage-primary-light"
-        >
-          Mật khẩu
-        </label>
-        <div className="relative">
-          <Lock className="w-4 h-4 text-heritage-subtle absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            id="register-password"
-            aria-invalid={Boolean(errors.password)}
-            aria-describedby={
-              errors.password
-                ? "register-password-hint register-password-error"
-                : "register-password-hint"
-            }
-            autoComplete="new-password"
-            disabled={isPending}
-            {...passwordField}
-            onBlur={handlePasswordBlur}
-            type={showPassword ? "text" : "password"}
-            placeholder="Nhập mật khẩu"
-            className="pl-9 pr-12 h-12 text-sm rounded-xl bg-white dark:bg-heritage-primary-hover border-heritage-primary-light dark:border-heritage-primary-hover"
+      <AuthField
+        id="register-password"
+        label="Mật khẩu"
+        type={showPassword ? "text" : "password"}
+        autoComplete="new-password"
+        disabled={locked}
+        hint={NEW_PASSWORD_HINT}
+        error={errors.password?.message}
+        shake={shakes.password}
+        end={
+          <PasswordEye
+            shown={showPassword}
+            disabled={locked}
+            onToggle={() => setShowPassword(!showPassword)}
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-            aria-pressed={showPassword}
-            disabled={isPending}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-heritage-muted hover:text-heritage-primary px-1 py-0.5 rounded focus-visible:outline-none"
-          >
-            {showPassword ? "Ẩn" : "Hiện"}
-          </button>
-        </div>
-        <p id="register-password-hint" className="text-sm text-heritage-muted">
-          {NEW_PASSWORD_HINT}
-        </p>
-        {errors.password && (
-          <p id="register-password-error" role="alert" className="text-sm text-destructive">
-            {errors.password.message}
-          </p>
-        )}
-      </div>
+        }
+        {...field("password", { partner: "confirmPassword" })}
+      />
 
-      {/* Confirm Password */}
-      <div className="space-y-1 text-left">
-        <label
-          htmlFor="register-confirmPassword"
-          className="text-sm font-medium text-heritage-primary dark:text-heritage-primary-light"
-        >
-          Xác nhận mật khẩu
-        </label>
-        <div className="relative">
-          <Lock className="w-4 h-4 text-heritage-subtle absolute left-3 top-1/2 -translate-y-1/2" />
-          <Input
-            id="register-confirmPassword"
-            aria-invalid={Boolean(errors.confirmPassword)}
-            aria-describedby={errors.confirmPassword ? "register-confirmPassword-error" : undefined}
-            autoComplete="new-password"
-            disabled={isPending}
-            {...register("confirmPassword")}
-            type={showPassword ? "text" : "password"}
-            placeholder="Nhập lại mật khẩu"
-            className="pl-9 h-12 text-sm rounded-xl bg-white dark:bg-heritage-primary-hover border-heritage-primary-light dark:border-heritage-primary-hover"
-          />
-        </div>
-        {errors.confirmPassword && (
-          <p id="register-confirmPassword-error" role="alert" className="text-sm text-destructive">
-            {errors.confirmPassword.message}
-          </p>
-        )}
-      </div>
+      <AuthField
+        id="register-confirmPassword"
+        label="Xác nhận mật khẩu"
+        type={showPassword ? "text" : "password"}
+        autoComplete="new-password"
+        disabled={locked}
+        error={errors.confirmPassword?.message}
+        shake={shakes.confirmPassword}
+        {...field("confirmPassword")}
+      />
 
       {/* Submit Button */}
-      <Button
-        type="submit"
-        disabled={isPending}
-        className="w-full h-12 bg-heritage-primary hover:bg-heritage-primary-hover text-white font-medium text-sm rounded-xl shadow-xs mt-2"
+      <MorphButton
+        pending={locked}
+        done={created.done}
+        pendingLabel="Đang khởi tạo tài khoản..."
+        doneLabel="Đã tạo tài khoản"
       >
-        {isPending ? "Đang khởi tạo tài khoản..." : "Tạo tài khoản"}
-      </Button>
+        Tạo tài khoản
+      </MorphButton>
     </form>
   );
 }

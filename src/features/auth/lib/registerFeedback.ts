@@ -5,6 +5,27 @@ import { getLoginErrorMessage } from "./loginFeedback";
 const registerProblem = z.object({ code: z.string().optional() });
 
 /**
+ * @description Ô bị server từ chối vì đã có người dùng, để tô đỏ đúng ô đó.
+ * @param error Lỗi đăng ký từ mutation.
+ */
+export function getRegisterRejectedField(error: unknown): "email" | "phone" | null {
+  if (!isAxiosError(error) || !error.response) {
+    return null;
+  }
+  const parsed = registerProblem.safeParse(error.response.data);
+  if (!parsed.success) {
+    return null;
+  }
+  if (parsed.data.code === "EMAIL_ALREADY_EXISTS") {
+    return "email";
+  }
+  if (parsed.data.code === "PHONE_ALREADY_EXISTS") {
+    return "phone";
+  }
+  return null;
+}
+
+/**
  * @description Hiển thị lỗi đăng ký tài khoản, phát hiện chính xác mã lỗi EMAIL_ALREADY_EXISTS và PHONE_ALREADY_EXISTS từ Backend.
  * @param error Lỗi đăng ký từ mutation.
  * @returns Thông báo tiếng Việt rõ ràng cho người dùng.

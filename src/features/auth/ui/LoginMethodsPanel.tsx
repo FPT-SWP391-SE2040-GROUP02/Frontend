@@ -327,7 +327,12 @@ function LinkGoogleDialog({ onClose, onDone }: DialogProps) {
             <p role="status" className="text-sm text-heritage-success">
               Mật khẩu đúng. Bấm tài khoản Google để liên kết.
             </p>
-            <GoogleSignInButton disabled={action.pending} onCredential={submit} />
+            <GoogleSignInButton
+              disabled={action.pending}
+              progress={action.pending ? "busy" : null}
+              busyLabel="Đang liên kết…"
+              onCredential={submit}
+            />
           </>
         ) : (
           !action.error && (
@@ -489,7 +494,12 @@ function SetPasswordDialog({ onClose, onDone }: DialogProps) {
         <p className="text-sm text-heritage-muted">
           Bước cuối: xác nhận bằng tài khoản Google đã liên kết để đặt mật khẩu.
         </p>
-        <GoogleSignInButton disabled={action.pending || !fields.success} onCredential={submit} />
+        <GoogleSignInButton
+          disabled={action.pending || !fields.success}
+          progress={action.pending ? "busy" : null}
+          busyLabel="Đang đặt mật khẩu…"
+          onCredential={submit}
+        />
         <ErrorLine message={action.error} />
         <DialogFooter>
           <CancelButton onClick={onClose} disabled={action.pending} />
