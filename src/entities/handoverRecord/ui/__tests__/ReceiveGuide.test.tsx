@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { apiClient } from "@/shared/api/axiosClient";
@@ -41,6 +42,33 @@ describe("ReceiveGuide", () => {
     expect(items[2]).toHaveAttribute("aria-current", "step");
     expect(items[2]).toHaveTextContent("Bạn đang ở đây");
     expect(screen.getAllByText("Đã xong")).toHaveLength(2);
+  });
+
+  it("ghi ai làm ở từng bước; bấm một bước thì mở lời giải thích, bấm lại thì đóng", async () => {
+    // Chuẩn bị
+    vi.spyOn(apiClient, "get").mockResolvedValue({});
+    renderGuide(null);
+    const items = stepItems();
+    expect(items[1]).toHaveTextContent("Luật sư");
+    expect(items[4]).toHaveTextContent("Ba bên cùng ký");
+    expect(items[5]).toHaveTextContent("Bạn và Người thực thi");
+    const button = within(items[0]).getByRole("button");
+    expect(button).toHaveAttribute("aria-expanded", "false");
+
+    // Hành động, Kiểm tra
+    await userEvent.click(button);
+    expect(button).toHaveAttribute("aria-expanded", "true");
+    await userEvent.click(button);
+    expect(button).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("bước đang làm tự mở sẵn lời giải thích", () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue({});
+    renderGuide(3);
+
+    const items = stepItems();
+    expect(within(items[2]).getByRole("button")).toHaveAttribute("aria-expanded", "true");
+    expect(within(items[0]).getByRole("button")).toHaveAttribute("aria-expanded", "false");
   });
 
   it("số ngày tải lấy từ tham số Admin đã đặt", async () => {

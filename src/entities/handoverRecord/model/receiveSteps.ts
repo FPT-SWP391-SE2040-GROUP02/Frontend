@@ -11,6 +11,22 @@ export const RECEIVE_STEP_TITLES = [
   "Nhập mã và tải về",
 ] as const;
 
+/** Ai làm ở một bước: người nhận, luật sư, hay nhiều bên cùng làm. */
+export interface ReceiveStepRole {
+  label: string;
+  kind: "mine" | "lawyer" | "shared";
+}
+
+/** Vai trò của từng bước, cùng thứ tự với RECEIVE_STEP_TITLES. */
+export const RECEIVE_STEP_ROLES: readonly ReceiveStepRole[] = [
+  { label: "Bạn", kind: "mine" },
+  { label: "Luật sư", kind: "lawyer" },
+  { label: "Bạn", kind: "mine" },
+  { label: "Luật sư", kind: "lawyer" },
+  { label: "Ba bên cùng ký", kind: "shared" },
+  { label: "Bạn và Người thực thi", kind: "shared" },
+];
+
 /** Giá trị bước khi người nhận đã xong cả sáu bước. */
 export const RECEIVE_STEPS_DONE = RECEIVE_STEP_TITLES.length + 1;
 

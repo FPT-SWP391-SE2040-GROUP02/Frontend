@@ -88,6 +88,58 @@ describe("Trang Nhận tài sản: danh sách", () => {
     expect(screen.getByText(/kích hoạt kế hoạch/)).toBeInTheDocument();
   });
 
+  it("rỗng thì hiện email đang đăng nhập đã xác minh và sao chép được", async () => {
+    // Chuẩn bị
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    const write = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    setup(<AvailableHandoverList />);
+
+    // Hành động
+    await user.click(await screen.findByRole("button", { name: "Sao chép email" }));
+
+    // Kiểm tra
+    expect(write).toHaveBeenCalledWith("an@example.com");
+    expect(screen.getByText("an@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Đã xác minh")).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Đã sao chép" })).toBeInTheDocument();
+  });
+
+  it("trình duyệt chặn sao chép thì báo để người dùng tự chép", async () => {
+    // Chuẩn bị
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    vi.spyOn(navigator.clipboard, "writeText").mockRejectedValue(new Error("blocked"));
+    setup(<AvailableHandoverList />);
+
+    // Hành động
+    await user.click(await screen.findByRole("button", { name: "Sao chép email" }));
+
+    // Kiểm tra
+    expect(await screen.findByRole("alert")).toHaveTextContent("Không sao chép được");
+  });
+
+  it("thẻ kho ghi bước hiện tại; chỉ kho đang chờ mới có câu chưa cần làm gì", async () => {
+    // Chuẩn bị
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      row({ status: "NEED_IDENTITY", needsAction: true, turnId: TURN_ID }),
+      row({ vaultId: VAULT_B, ownerName: "Đang Chờ", status: "REQUEST_PENDING" }),
+    ]);
+
+    // Hành động
+    setup(<AvailableHandoverList />);
+    const cards = await screen.findAllByRole("article");
+
+    // Kiểm tra
+    expect(
+      screen.getByRole("heading", { name: "Kho được để lại cho bạn (2)" }),
+    ).toBeInTheDocument();
+    expect(cards[0]).toHaveTextContent("Bước 3/6: Nộp ảnh căn cước");
+    expect(cards[0]).not.toHaveTextContent("Bạn chưa cần làm gì");
+    expect(cards[1]).toHaveTextContent("Bước 2/6: Luật sư xét giấy tờ");
+    expect(cards[1]).toHaveTextContent("Bạn chưa cần làm gì");
+  });
+
   it("lỗi thì báo và có nút thử lại", async () => {
     const user = userEvent.setup();
     const get = vi.spyOn(apiClient, "get").mockRejectedValueOnce(new Error("503"));
