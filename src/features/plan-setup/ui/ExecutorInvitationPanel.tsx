@@ -1,7 +1,7 @@
-import { useId, useState } from "react";
+import { useId } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
@@ -11,8 +11,6 @@ import { useServerNow } from "@/shared/clock/useServerNow";
 import { planSetupService } from "../api/planSetupService";
 import { invitationInspectFailure } from "../lib/invitationInspectError";
 import { invitationTimeLeft } from "../lib/invitationTimeLeft";
-import { useExecutorSigning } from "../model/useExecutorSigning";
-import { ExecutorSigningPasswordField } from "./ExecutorSigningPasswordField";
 
 const capabilities = [
   "Nhận thông báo khi người nhận gửi yêu cầu nhận tài sản",
@@ -24,29 +22,14 @@ const capabilities = [
 export function ExecutorInvitationPanel({ token }: { token: string }) {
   const id = useId();
   const serverNow = useServerNow();
-  const [acknowledge, setAcknowledge] = useState(false);
-  const [decision, setDecision] = useState<boolean | null>(null);
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
-  const client = useQueryClient();
-  const { action, password, setPassword, passwordError, respond: sign } = useExecutorSigning();
   const query = useQuery({
     queryKey: ["executor-invitation", id],
     queryFn: ({ signal }) => planSetupService.inspect(token, signal),
     retry: false,
     gcTime: 0,
   });
-  const respond = (accept: boolean, scopeVersion: string) =>
-    sign(
-      accept,
-      (signingPassword) =>
-        planSetupService.respond(token, accept, acknowledge, scopeVersion, signingPassword),
-      () => {
-        setDecision(accept);
-        void client.invalidateQueries({ queryKey: ["executor"] });
-        void client.invalidateQueries({ queryKey: ["executor-vaults"] });
-      },
-    );
   if (query.isPending) return <p role="status">Đang kiểm tra lời mời Người thực thi…</p>;
   if (query.isError) {
     const failure = invitationInspectFailure(query.error, token);
@@ -68,38 +51,6 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
             Về trang chủ
           </Link>
         )}
-      </div>
-    );
-  }
-  if (action.succeeded && decision) {
-    return (
-      <div role="status" className="space-y-5">
-        <h1 className="text-3xl font-semibold leading-tight text-heritage-primary">
-          Bạn đã là Người thực thi
-        </h1>
-        <p className="text-sm leading-6 text-heritage-muted">
-          Kho đã được thêm vào tài khoản của bạn.
-        </p>
-        <Notice tone="success">Bạn có thể xem kho và tiến trình trong trang Tổng quan.</Notice>
-        <Link className={`${buttonStyles.dark} w-full`} to={ROUTES.EXECUTOR.ROOT}>
-          Vào trang Tổng quan
-        </Link>
-      </div>
-    );
-  }
-  if (action.succeeded) {
-    return (
-      <div role="status" className="space-y-5">
-        <h1 className="text-3xl font-semibold leading-tight text-heritage-primary">
-          Bạn đã từ chối lời mời
-        </h1>
-        <p className="text-sm leading-6 text-heritage-muted">
-          Không cần làm thêm gì. Bạn có thể đóng trang này.
-        </p>
-        <Notice tone="warning">Nếu bấm nhầm, hãy nhờ Chủ kho gửi lại lời mời.</Notice>
-        <Link className={`${buttonStyles.dark} w-full`} to={ROUTES.HOME}>
-          Về trang chủ
-        </Link>
       </div>
     );
   }
@@ -163,54 +114,14 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
               </Link>
             </div>
           )}
-          <label className="flex min-h-11 items-start gap-3 text-sm leading-6">
-            <input
-              type="checkbox"
-              className="mt-1 size-5"
-              checked={acknowledge}
-              disabled={action.pending}
-              onChange={(event) => setAcknowledge(event.target.checked)}
-            />
-            Tôi đã đọc phạm vi công việc, hiểu nhiệm vụ và tự nguyện nhận vai Người thực thi.
-          </label>
-          <ExecutorSigningPasswordField
-            value={password}
-            onChange={setPassword}
-            disabled={action.pending}
-            error={passwordError}
-          />
-          <div className="space-y-3">
-            {[true, false].map((accept) => (
-              <button
-                key={String(accept)}
-                type="button"
-                className={`${accept ? buttonStyles.dark : buttonStyles.outline} w-full`}
-                disabled={action.pending || (accept && (!acknowledge || password.length === 0))}
-                onClick={() => respond(accept, query.data.scopeVersion)}
-              >
-                {accept ? "Ký nhận vai" : "Từ chối"}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-      {action.error && passwordError === null && (
-        <div
-          role="alert"
-          className="space-y-2 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4"
-        >
-          <p className="text-sm font-medium text-destructive">{action.error}</p>
-          <p className="text-sm text-heritage-danger">
-            Nếu đây không phải tài khoản được mời, hãy{" "}
-            <Link
-              to={`${ROUTES.AUTH.LOGIN}?redirect=${encodeURIComponent(`${ROUTES.EXECUTOR.INVITATION}#token=${encodeURIComponent(token)}`)}`}
-              className="font-semibold underline hover:text-heritage-danger"
-            >
-              đăng xuất và đăng nhập bằng email người được mời
-            </Link>
-            .
+          <p className="text-sm leading-6 text-heritage-muted">
+            Bạn xem biên bản phân chia Chủ kho đã ký rồi mới quyết định. Cần đăng nhập đúng email
+            được mời.
           </p>
-        </div>
+          <Link className={`${buttonStyles.dark} w-full`} to={ROUTES.EXECUTOR.INVITATIONS}>
+            Xem biên bản và trả lời
+          </Link>
+        </>
       )}
     </div>
   );

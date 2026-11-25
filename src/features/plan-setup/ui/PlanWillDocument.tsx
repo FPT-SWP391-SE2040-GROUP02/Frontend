@@ -59,7 +59,7 @@ export function PlanWillDocument({
       ownerName={ownerName}
       ownerEmail={ownerEmail}
       signedAt={pickOwnerSignedAt(setup)}
-      executor={pickWillExecutor(setup.executors)}
+      executor={pickWillExecutor(setup)}
       recipients={pickWillRecipients(setup, readyIdentity)}
       unassignedAssetCount={setup.unassignedAssets.length}
       viewer={viewer}

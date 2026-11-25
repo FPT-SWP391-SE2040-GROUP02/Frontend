@@ -9,6 +9,7 @@ import { formatDate } from "@/shared/lib/dateFormat";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { planSetupService } from "../api/planSetupService";
 import type { executorSchema, planSetupSchema } from "../model/planSetup.schema";
+import { isExecutorBehind } from "../lib/willView";
 import { currentHolder } from "../lib/executorHolder";
 import { handoverTaskElementId, type HandoverTaskId } from "../lib/handoverTasks";
 import { InviteDialog, RevokeDialog } from "./ExecutorsSection";
@@ -135,13 +136,23 @@ function ExecutorTask({
       kho).
     </p>
   );
+  // Mời sau cùng để Người thực thi có biên bản đầy đủ mà xem trước khi ký; Backend cũng chặn.
+  const inviteLocked = setup.planStatus === "DRAFT" && setup.canInviteExecutor === false;
+  if (holder === null && inviteLocked) {
+    description = (
+      <p className={DESCRIPTION}>
+        Làm xong các bước trên rồi mới chọn Người thực thi. Người thực thi xem biên bản bạn đã ký và
+        ký sau cùng.
+      </p>
+    );
+  }
   let actions: ReactNode;
   if (holder === null) {
     actions = (
       <button
         type="button"
         className={PRIMARY_LINK}
-        disabled={resendAction.pending}
+        disabled={resendAction.pending || inviteLocked}
         onClick={() => setDialog("invite")}
       >
         Chọn Người thực thi
@@ -157,17 +168,44 @@ function ExecutorTask({
       if (holder.acceptedAt !== null) {
         acceptedText = `đã ký nhận vai ngày ${formatDate(holder.acceptedAt)}.`;
       }
+      let consentText: ReactNode = null;
+      if (isExecutorBehind(setup, holder)) {
+        consentText = (
+          <p className="mt-1 text-sm leading-6 text-heritage-warning">
+            Đang chờ họ xem và đồng ý biên bản phiên bản {setup.willVersion}.
+          </p>
+        );
+        if (holder.declinedWillVersionNo === setup.willVersion) {
+          consentText = (
+            <p role="alert" className="mt-1 text-sm leading-6 text-heritage-danger">
+              Họ không đồng ý biên bản phiên bản {setup.willVersion}. Bạn sửa rồi ký lại, hoặc mời
+              người khác ở mục Người liên quan.
+            </p>
+          );
+        }
+      }
       description = (
-        <p className={DESCRIPTION}>
-          {who} — {acceptedText}
-        </p>
+        <>
+          <p className={DESCRIPTION}>
+            {who} — {acceptedText}
+          </p>
+          {consentText}
+        </>
       );
     } else if (holder.status === "SUSPENDED") {
       description = (
         <p className={DESCRIPTION}>{who} — cần đồng ý lại. Bấm Gửi lại lời mời để họ xác nhận.</p>
       );
     } else {
-      description = <p className={DESCRIPTION}>{who} — đã gửi lời mời, đang chờ họ ký nhận vai.</p>;
+      let waitingText = "đã gửi lời mời. Bạn ký biên bản trước, họ xem rồi ký sau.";
+      if (setup.willAwaitingExecutor || setup.planStatus !== "DRAFT") {
+        waitingText = "đang chờ họ xem biên bản và ký nhận vai.";
+      }
+      description = (
+        <p className={DESCRIPTION}>
+          {who} — {waitingText}
+        </p>
+      );
     }
     let resendButton: ReactNode = null;
     if (holder.status === "INVITED" || holder.status === "SUSPENDED") {
@@ -234,7 +272,7 @@ function ExecutorTask({
   }
 
   return (
-    <TaskCard task="executor" order={2} done={done} title="Người thực thi" flashing={flashing}>
+    <TaskCard task="executor" order={4} done={done} title="Người thực thi" flashing={flashing}>
       {description}
       {undeliverable}
       {pendingText}
@@ -315,7 +353,7 @@ function AssignmentsTask({
   return (
     <TaskCard
       task="assignments"
-      order={3}
+      order={2}
       done={done}
       title="Tài sản và người nhận"
       flashing={flashing}
@@ -375,13 +413,6 @@ export function HandoverTaskCards({
           </Actions>
         )}
       </TaskCard>
-      <ExecutorTask
-        vaultId={vaultId}
-        setup={setup}
-        done={executorDone}
-        readOnly={readOnly}
-        flashing={flashTask === "executor"}
-      />
       <AssignmentsTask
         setup={setup}
         done={assignmentsDone}
@@ -390,7 +421,7 @@ export function HandoverTaskCards({
       />
       <TaskCard
         task="plan"
-        order={4}
+        order={3}
         done={planDone}
         title="Gói dịch vụ"
         flashing={flashTask === "plan"}
@@ -404,6 +435,13 @@ export function HandoverTaskCards({
           </Actions>
         )}
       </TaskCard>
+      <ExecutorTask
+        vaultId={vaultId}
+        setup={setup}
+        done={executorDone}
+        readOnly={readOnly}
+        flashing={flashTask === "executor"}
+      />
     </div>
   );
 }

@@ -220,7 +220,7 @@ function paper() {
 }
 
 const TICK_LABEL =
-  "Tôi đã đọc toàn bộ biên bản phân chia, tự nguyện lập, ký biên bản phân chia này và chủ động kích hoạt kế hoạch.";
+  "Tôi đã đọc toàn bộ biên bản phân chia, tự nguyện lập và ký biên bản phân chia này. Kế hoạch có hiệu lực khi Người thực thi xem và ký.";
 const PIN_LABEL = "Nhập mã PIN của kho (6 số)";
 
 describe("trang Bàn giao: thẻ việc và tiến độ", () => {
@@ -288,7 +288,9 @@ describe("trang Bàn giao: thẻ việc và tiến độ", () => {
     renderOverview();
 
     expect(
-      screen.getByText(/hai@example.test.*đã gửi lời mời, đang chờ họ ký nhận vai/),
+      screen.getByText(
+        /hai@example.test.*đã gửi lời mời. Bạn ký biên bản trước, họ xem rồi ký sau/,
+      ),
     ).toBeVisible();
     expect(screen.getByText("Người thực thi chưa chấp nhận")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Đổi người" })).toBeInTheDocument();
@@ -433,7 +435,7 @@ describe("khung xem trước biên bản phân chia", () => {
     await openDrawer();
 
     const doc = within(paper());
-    expect(doc.getByText(/những người nhận mà tôi đã chọn cho từng tài sản/)).toBeInTheDocument();
+    expect(doc.getByText(/những người nhận tôi đã chọn, nếu có/)).toBeInTheDocument();
     expect(doc.getAllByText("Tên đăng nhập khác")).toHaveLength(2);
   });
 });
@@ -648,7 +650,7 @@ describe("chân khung: ký và kích hoạt", () => {
     renderOverview();
     await openDrawer();
 
-    const button = screen.getByRole("button", { name: "Ký và kích hoạt" });
+    const button = screen.getByRole("button", { name: "Ký và gửi Người thực thi" });
     expect(button).toBeDisabled();
     expect(screen.getByText("Cần tick ô xác nhận phía trên.")).toBeInTheDocument();
 
@@ -672,7 +674,7 @@ describe("chân khung: ký và kích hoạt", () => {
     renderOverview();
     await openDrawer();
 
-    expect(screen.getByRole("button", { name: "Ký và kích hoạt" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Ký và gửi Người thực thi" })).toBeDisabled();
     expect(screen.getByLabelText(PIN_LABEL)).toBeDisabled();
     expect(screen.getByRole("checkbox")).toBeDisabled();
     expect(
@@ -689,7 +691,7 @@ describe("chân khung: ký và kích hoạt", () => {
     await openDrawer();
 
     await tickAndType(PIN);
-    await userEvent.click(screen.getByRole("button", { name: "Ký và kích hoạt" }));
+    await userEvent.click(screen.getByRole("button", { name: "Ký và gửi Người thực thi" }));
 
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
     const [url, body, config] = post.mock.calls[0];
@@ -715,7 +717,7 @@ describe("chân khung: ký và kích hoạt", () => {
     await openDrawer();
 
     await tickAndType("111222");
-    await userEvent.click(screen.getByRole("button", { name: "Ký và kích hoạt" }));
+    await userEvent.click(screen.getByRole("button", { name: "Ký và gửi Người thực thi" }));
 
     expect(await screen.findByText("Mã PIN không đúng. Còn 4 lần thử.")).toBeVisible();
     const input = screen.getByLabelText(PIN_LABEL);
@@ -734,11 +736,11 @@ describe("chân khung: ký và kích hoạt", () => {
     await openDrawer();
 
     await tickAndType(PIN);
-    await userEvent.click(screen.getByRole("button", { name: "Ký và kích hoạt" }));
+    await userEvent.click(screen.getByRole("button", { name: "Ký và gửi Người thực thi" }));
 
     expect(await screen.findByText(/Mã PIN đang bị khóa tạm vì nhập sai nhiều lần/)).toBeVisible();
     expect(screen.getByLabelText(PIN_LABEL)).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Ký và kích hoạt" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Ký và gửi Người thực thi" })).toBeDisabled();
   });
 
   it("đang gửi: nút đổi thành Đang kiểm tra… và có dòng chờ xác nhận", async () => {
@@ -748,7 +750,7 @@ describe("chân khung: ký và kích hoạt", () => {
     await openDrawer();
 
     await tickAndType(PIN);
-    await userEvent.click(screen.getByRole("button", { name: "Ký và kích hoạt" }));
+    await userEvent.click(screen.getByRole("button", { name: "Ký và gửi Người thực thi" }));
 
     expect(await screen.findByRole("button", { name: "Đang kiểm tra…" })).toBeDisabled();
     expect(screen.getByText("Chờ hệ thống xác nhận mã PIN.")).toBeInTheDocument();
@@ -762,7 +764,9 @@ describe("chân khung: ký và kích hoạt", () => {
       await screen.findByRole("dialog", { name: "Biên bản phân chia đã ký" }),
     ).toBeInTheDocument();
 
-    expect(screen.queryByRole("button", { name: "Ký và kích hoạt" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Ký và gửi Người thực thi" }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByLabelText(PIN_LABEL)).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
@@ -1026,7 +1030,7 @@ describe("thanh nhắc có thay đổi chưa ký lại", () => {
     expect(within(banner).getByText("Trong lúc chờ ký lại")).toBeInTheDocument();
     expect(within(banner).getByText("Phần đã gỡ gán không còn được bàn giao.")).toBeInTheDocument();
     expect(within(banner).getByText("Phần gán thêm chưa được bàn giao.")).toBeInTheDocument();
-    expect(banner).toHaveTextContent("Người thực thi không phải ký lại");
+    expect(banner).toHaveTextContent("Người thực thi được xem bản mới để đồng ý hoặc không");
     // Không còn cách chia cũ khiến xóa nghe như không cần ký.
     expect(banner).not.toHaveTextContent("Chưa có hiệu lực");
     expect(banner).not.toHaveTextContent("Đã có hiệu lực");
@@ -1155,7 +1159,9 @@ describe("ký phiên bản mới trong khung", () => {
     expect(screen.getByText("Nhập đủ 6 số của mã PIN.")).toBeInTheDocument();
     await userEvent.type(screen.getByLabelText(PIN_LABEL), PIN);
     expect(button).toBeEnabled();
-    expect(screen.queryByRole("button", { name: "Ký và kích hoạt" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Ký và gửi Người thực thi" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeDisabled();
     expect(screen.getByText("Ký phiên bản mới trước khi xuất")).toBeInTheDocument();
   });
@@ -1296,5 +1302,25 @@ describe("ký phiên bản mới trong khung", () => {
     expect(await screen.findByText(/Mã PIN đang bị khóa tạm vì nhập sai nhiều lần/)).toBeVisible();
     expect(screen.getByLabelText(PIN_LABEL)).toBeDisabled();
     expect(screen.getByRole("button", { name: SIGN_BUTTON })).toBeDisabled();
+  });
+});
+
+describe("Người thực thi ký sau cùng", () => {
+  it("chưa xong các bước khác thì khóa nút chọn Người thực thi", () => {
+    showPlan({ executors: [], canActivate: false, canInviteExecutor: false });
+    renderOverview();
+    expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toBeDisabled();
+    expect(screen.getByText(/Làm xong các bước trên rồi mới chọn/)).toBeInTheDocument();
+  });
+
+  it("đã ký thì báo chờ Người thực thi và không còn ô ký", async () => {
+    showPlan({ willAwaitingExecutor: true, willVersion: 1, willSignedAt: "2026-11-24T03:00:00Z" });
+    renderOverview();
+    expect(screen.getByText("Chờ Người thực thi ký")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Xem biên bản phân chia đã ký" }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Ký và gửi Người thực thi" }),
+    ).not.toBeInTheDocument();
   });
 });

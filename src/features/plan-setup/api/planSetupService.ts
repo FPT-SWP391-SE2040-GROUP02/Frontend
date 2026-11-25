@@ -109,27 +109,6 @@ export const planSetupService = {
       ),
     );
   },
-  /** `password` chỉ gửi khi chấp nhận (ký nhận vai bằng mật khẩu tài khoản); từ chối không gửi. */
-  async respond(
-    token: string,
-    accept: boolean,
-    acknowledgeScope: boolean,
-    scopeVersion: string,
-    password?: string,
-  ) {
-    const body: Record<string, unknown> = {
-      token: tokenSchema.parse(token),
-      accept,
-      acknowledgeScope,
-      scopeVersion,
-    };
-    if (accept && password !== undefined) {
-      body.password = password;
-    }
-    return executorSchema.parse(
-      await apiClient.post<unknown, unknown>("/executor-invitations/respond", body),
-    );
-  },
   /** Lời mời gửi tới email đã xác minh của tài khoản đang đăng nhập; không có token trong response. */
   async mine(signal?: AbortSignal) {
     return myInvitationsSchema.parse(
@@ -143,11 +122,15 @@ export const planSetupService = {
     acknowledgeScope: boolean,
     scopeVersion: string,
     password?: string,
+    willVersionNo?: number | null,
   ) {
     const id = z.string().uuid().parse(invitationId);
     const body: Record<string, unknown> = { accept, acknowledgeScope, scopeVersion };
     if (accept && password !== undefined) {
       body.password = password;
+    }
+    if (accept && willVersionNo) {
+      body.willVersionNo = willVersionNo;
     }
     return executorSchema.parse(
       await apiClient.post<unknown, unknown>(`/executor-invitations/${id}/respond`, body),

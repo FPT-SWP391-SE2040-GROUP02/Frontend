@@ -2,6 +2,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { formatDate } from "@/shared/lib/dateFormat";
 import { buttonStyles, Chip, Initial } from "@/shared/ui/heritageKit";
 import { vaultStage } from "../model/executorTodo";
+import { ExecutorWillButton } from "./ExecutorWillButton";
 import { useSelectedExecutorVault } from "../model/useExecutorVaults";
 
 /**
@@ -53,6 +54,7 @@ export function ExecutorHeldVaults() {
                 )}
               </div>
               <Chip tone={stage.tone}>{stage.label}</Chip>
+              <ExecutorWillButton vault={vault} />
               {isOpen ? (
                 <Chip tone="success">Đang mở</Chip>
               ) : (

@@ -33,7 +33,7 @@ function depositedAssetNames(setup: PlanSetup): string[] {
 
 /** Phiếu gửi tài sản của Chủ kho: gửi những tài sản nào, từ lúc nào, ai giữ. Giống vé gửi xe, không ghi nội dung tài sản. */
 export function DepositSlipPaper({ setup }: { setup: PlanSetup }) {
-  const executor = pickWillExecutor(setup.executors);
+  const executor = pickWillExecutor(setup);
   let executorName = "Chưa có";
   if (executor) {
     executorName = executor.email;
