@@ -67,20 +67,20 @@ function RecipientBlock({
         </div>
         <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 py-3">
           <dt className="text-heritage-muted">Phiếu giao nhận</dt>
-          <dd className="space-y-2">
-            <StatusText tone={receipt.tone}>{receipt.label}</StatusText>
-            {recipient.receiptIssueNote && (
-              <p className="text-heritage-muted">{`“${recipient.receiptIssueNote}”`}</p>
-            )}
+          <dd className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-1">
+              <StatusText tone={receipt.tone}>{receipt.label}</StatusText>
+              {recipient.receiptIssueNote && (
+                <p className="text-heritage-muted">{`“${recipient.receiptIssueNote}”`}</p>
+              )}
+            </div>
             {recipient.turnStatus === "HANDOVER_COMMITTED" && (
-              <div>
-                <PaperPreviewButton
-                  label="Xem phiếu"
-                  title="Phiếu giao nhận"
-                  fileName="Phieu-giao-nhan"
-                  paper={<ReceiptPaper record={record} recipient={recipient} />}
-                />
-              </div>
+              <PaperPreviewButton
+                label="Xem phiếu"
+                title="Phiếu giao nhận"
+                fileName="Phieu-giao-nhan"
+                paper={<ReceiptPaper record={record} recipient={recipient} />}
+              />
             )}
           </dd>
         </div>
