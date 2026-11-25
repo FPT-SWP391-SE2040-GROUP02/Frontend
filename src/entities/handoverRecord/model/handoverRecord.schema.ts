@@ -22,6 +22,7 @@ export const recordPersonSchema = z.object({
   beneficiaryId: z.string().uuid(),
   fullName: z.string(),
   citizenId: z.string(),
+  email: z.string().default(""),
 });
 
 /** Một người nhận trong biên bản: tài sản được nhận, danh tính và chữ ký. */

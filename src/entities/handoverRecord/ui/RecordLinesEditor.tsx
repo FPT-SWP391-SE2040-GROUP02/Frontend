@@ -3,11 +3,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
 import { handoverRecordService } from "../api/handoverRecordService";
-import type { HandoverRecord, RecordLine } from "../model/handoverRecord.schema";
+import type { HandoverRecord, RecordLine, SplitDifference } from "../model/handoverRecord.schema";
 import {
   draftsFromReports,
   draftToRecipient,
+  draftWarning,
   recipientDraftErrors,
+  serverDraftErrors,
+  skippedDeclarations,
   type RecipientDraft,
   type RecipientDraftErrors,
 } from "../model/recipientDraft";
@@ -25,6 +28,21 @@ function linesOf(record: HandoverRecord): Set<string> {
       result.add(pairKey(recipient.beneficiaryId, asset.assetId));
   }
   return result;
+}
+
+/** Dưới tên người nhận ở đầu cột: Chủ kho có chia tài sản cho người này hay không. */
+function RecipientSource({ fromOwnerSplit }: { fromOwnerSplit: boolean }) {
+  let text = "Ngoài cách chia của Chủ kho";
+  let tone = "bg-heritage-warning-bg text-heritage-warning";
+  if (fromOwnerSplit) {
+    text = "Chủ kho đã chia";
+    tone = "bg-heritage-success-bg text-heritage-success";
+  }
+  return (
+    <span className={`mt-1 block w-fit rounded-full px-2 py-0.5 text-xs font-semibold ${tone}`}>
+      {text}
+    </span>
+  );
 }
 
 /**
@@ -48,7 +66,28 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   const [drafts, setDrafts] = useState<RecipientDraft[]>(() => draftsFromReports(record));
   const [draftErrors, setDraftErrors] = useState<Record<string, RecipientDraftErrors>>({});
   const prefilled = record.reports.some((report) => report.recipients.length > 0);
-  const hasDeviation = record.splitDifferences.length > 0;
+  // Người đang nhập chưa lưu nên máy chủ chưa tính: thêm họ vào danh sách khác biệt để luật sư xác nhận ngay, tránh
+  // lưu người nhận xong mới bị chặn ở bước chốt. Chủ kho không chia gì thì không có gì để khác.
+  const pendingDifferences: SplitDifference[] = [];
+  if (record.ownerSplit.length > 0) {
+    for (const draft of drafts) {
+      pendingDifferences.push({
+        kind: "RECIPIENT_ADDED",
+        beneficiaryId: null,
+        recipientName: draft.fullName.trim() || "người nhận mới",
+        assetId: null,
+        assetName: "",
+        ownerRecipientNames: [],
+        recordRecipientNames: [],
+      });
+    }
+  }
+  const differences = [...record.splitDifferences, ...pendingDifferences];
+  const hasDeviation = differences.length > 0;
+  const ownerRecipientIds = new Set(record.ownerSplit.map((entry) => entry.beneficiaryId));
+  const draftWarnings = Object.fromEntries(
+    drafts.map((draft) => [draft.key, draftWarning(record, draft)]),
+  );
   const deviationReady = !hasDeviation || splitDeviationConfirmed;
   const busy = save.pending || split.pending || finalize.pending;
   // Người bị từ chối giấy tờ không được ghi vào biên bản; còn yêu cầu chưa xét thì chưa chốt được.
@@ -88,19 +127,28 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
     setLegalBasisConfirmed(false);
     setSplitDeviationConfirmed(false);
   };
-  /** Lưu từng người nhận mới, lưu các dòng rồi chốt; chốt xong Backend gửi thư mời. */
+  /** Lưu mọi người nhận mới trong một lần, lưu các dòng rồi chốt; chốt xong Backend gửi thư mời. */
   const sendAll = async (): Promise<HandoverRecord> => {
-    let current = record;
     const pairs = new Set(selected);
-    for (const draft of drafts) {
-      const before = new Set(current.availableRecipients.map((person) => person.beneficiaryId));
-      current = await handoverRecordService.addRecipient(record.id, draftToRecipient(draft));
-      const added = current.availableRecipients.find((person) => !before.has(person.beneficiaryId));
-      if (!added) throw new Error("Không đọc được người nhận vừa thêm.");
-      for (const assetId of draft.assetIds) pairs.add(pairKey(added.beneficiaryId, assetId));
-      // Người này đã lưu: bỏ khỏi phần nhập để bấm lại không thêm trùng.
-      client.setQueryData(handoverRecordKeys.verifier(record.id), current);
-      setDrafts((items) => items.filter((item) => item.key !== draft.key));
+    if (drafts.length > 0) {
+      const added = await handoverRecordService.addRecipients(
+        record.id,
+        drafts.map(draftToRecipient),
+      );
+      const idByEmail = new Map(
+        added.availableRecipients.map((person) => [
+          person.email.trim().toLowerCase(),
+          person.beneficiaryId,
+        ]),
+      );
+      for (const draft of drafts) {
+        const addedId = idByEmail.get(draft.email.trim().toLowerCase());
+        if (!addedId) throw new Error("Không đọc được người nhận vừa thêm.");
+        for (const assetId of draft.assetIds) pairs.add(pairKey(addedId, assetId));
+      }
+      // Đã lưu cả nhóm: bỏ khỏi phần nhập để bấm lại không thêm trùng.
+      client.setQueryData(handoverRecordKeys.verifier(record.id), added);
+      setDrafts([]);
       setSelected(new Set(pairs));
     }
     if (dirty || drafts.length > 0) {
@@ -108,8 +156,8 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
         const [beneficiaryId, assetId] = key.split(":");
         return { beneficiaryId, assetId };
       });
-      current = await handoverRecordService.setLines(record.id, all);
-      client.setQueryData(handoverRecordKeys.verifier(record.id), current);
+      const saved = await handoverRecordService.setLines(record.id, all);
+      client.setQueryData(handoverRecordKeys.verifier(record.id), saved);
     }
     return handoverRecordService.finalize(record.id, splitDeviationConfirmed);
   };
@@ -117,7 +165,9 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
     const errors = recipientDraftErrors(drafts);
     setDraftErrors(errors);
     if (Object.keys(errors).length > 0) return;
-    void finalize.execute(sendAll, apply);
+    void finalize.execute(sendAll, apply, (failure) => {
+      setDraftErrors(serverDraftErrors(failure, drafts));
+    });
   };
   const recipientCount =
     new Set([...selected].map((key) => key.split(":")[0])).size + drafts.length;
@@ -178,6 +228,8 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           errors={draftErrors}
           assets={record.availableAssets}
           prefilled={prefilled}
+          warnings={draftWarnings}
+          skipped={skippedDeclarations(record)}
           disabled={busy}
           onChange={changeDrafts}
         />
@@ -195,6 +247,11 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
                     <th key={person.beneficiaryId} scope="col" className="px-4 py-3 font-semibold">
                       <span className="block">{person.fullName || "—"}</span>
                       <span className="font-normal">{`CCCD ${person.citizenId}`}</span>
+                      {record.ownerSplit.length > 0 && (
+                        <RecipientSource
+                          fromOwnerSplit={ownerRecipientIds.has(person.beneficiaryId)}
+                        />
+                      )}
                     </th>
                   ))}
                 </tr>
@@ -227,7 +284,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           </div>
         )}
 
-        <SplitDeviationPanel differences={record.splitDifferences} />
+        <SplitDeviationPanel differences={differences} />
         {hasDeviation && (
           <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
             <input
@@ -300,7 +357,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
         )}
         {Object.keys(draftErrors).length > 0 && (
           <p role="alert" className="text-sm text-destructive">
-            Thông tin người nhận chưa đủ. Kiểm lại các ô báo lỗi ở trên.
+            Thông tin người nhận chưa đủ hoặc chưa hợp lệ. Kiểm lại các ô báo lỗi ở trên.
           </p>
         )}
         {(save.error || finalize.error) && (

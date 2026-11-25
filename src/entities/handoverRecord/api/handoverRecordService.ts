@@ -76,12 +76,12 @@ export const handoverRecordService = {
       ),
     );
   },
-  async addRecipient(recordId: string, recipient: NewRecipient) {
+  /** Thêm mọi người nhận mới trong một lần: một người không hợp lệ thì máy chủ không thêm ai. */
+  async addRecipients(recordId: string, recipients: NewRecipient[]) {
     return handoverRecordSchema.parse(
-      await apiClient.post<unknown, unknown>(
-        `${verifierPath(recordId)}/recipients`,
-        newRecipientSchema.parse(recipient),
-      ),
+      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/recipients/batch`, {
+        recipients: recipients.map((recipient) => newRecipientSchema.parse(recipient)),
+      }),
     );
   },
   /** Đính kèm tệp căn cứ (multipart); bỏ Content-Type mặc định để trình duyệt tự đặt boundary. */
