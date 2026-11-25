@@ -47,5 +47,11 @@ export const executorRecipientSchema = z.object({
   ),
 });
 export type ExecutorRecipient = z.infer<typeof executorRecipientSchema>;
+/** Một tài sản nhìn từ Người thực thi trước khi bàn giao: chỉ tên và loại. */
+export const executorAssetNameSchema = z.object({
+  name: z.string(),
+  kind: z.enum(["FILE", "TEXT"]),
+});
+export type ExecutorAssetName = z.infer<typeof executorAssetNameSchema>;
 /** Hồ sơ chỉ có CCCD che, không có nội dung file hoặc Verifier được giao. */
 export type ExecutorVault = z.infer<typeof executorVaultSchema>;

@@ -6,6 +6,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
+import { AxiosError, AxiosHeaders } from "axios";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
@@ -321,6 +322,39 @@ describe("Executor assets", () => {
     setup("/executor/assets");
 
     expect(await screen.findByText("Chưa có tài sản nào được gán")).toBeInTheDocument();
+  });
+
+  it("chưa bàn giao: hiện tên, loại tài sản và hướng dẫn, không báo lỗi, không có người nhận", async () => {
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/executor/vaults") return [vault()];
+      if (url === `/executor/vaults/${VAULT_ID}/assets`) {
+        throw new AxiosError("not started", AxiosError.ERR_BAD_REQUEST, undefined, undefined, {
+          status: 409,
+          statusText: "Conflict",
+          headers: {},
+          config: { headers: new AxiosHeaders() },
+          data: { code: "HANDOVER_NOT_ALLOWED", reason: "HANDOVER_NOT_STARTED" },
+        });
+      }
+      if (url === `/executor/vaults/${VAULT_ID}/asset-names`) {
+        return [
+          { name: "Email gia đình", kind: "TEXT" },
+          { name: "Sổ tiết kiệm", kind: "FILE" },
+        ];
+      }
+      return [];
+    });
+    setup("/executor/assets");
+
+    expect(await screen.findByText("Email gia đình")).toBeInTheDocument();
+    expect(screen.getByText("Sổ tiết kiệm")).toBeInTheDocument();
+    expect(screen.getByText("Ghi chú bí mật")).toBeInTheDocument();
+    expect(screen.getByText("Tệp tải lên")).toBeInTheDocument();
+    expect(screen.getByText("Chủ kho chưa để lại hướng dẫn.")).toBeInTheDocument();
+    expect(screen.getByText(/Người nhận sẽ hiện sau khi luật sư/)).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Thử lại|Xem|Tải/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/CCCD/)).not.toBeInTheDocument();
   });
 
   it("offers a retry when the list cannot be loaded", async () => {
