@@ -138,6 +138,11 @@ describe("nút cho bước tiếp theo", () => {
     expect(canSendRequestHere(parsed({ status: "REQUEST_PENDING", canRequest: true }))).toBe(false);
   });
 
+  it("yêu cầu bị từ chối là đã đóng: gửi lại được khi canRequest", () => {
+    expect(canSendRequestHere(parsed({ status: "REJECTED", canRequest: true }))).toBe(true);
+    expect(canSendRequestHere(parsed({ status: "REJECTED", canRequest: false }))).toBe(false);
+  });
+
   it.each([
     ["REQUEST_PENDING", "Xem yêu cầu"],
     ["SUPPLEMENT_REQUESTED", "Nộp bổ sung"],

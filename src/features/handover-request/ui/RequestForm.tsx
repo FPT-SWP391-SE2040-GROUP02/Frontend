@@ -1,131 +1,138 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Link } from "react-router-dom";
-import { Info } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
-import { filesError, type MyClaim } from "../model/handoverRequest.schema";
+import { type MyClaim } from "../model/handoverRequest.schema";
+import { REQUEST_NOTE_MAX_LENGTH, requestErrors, type RequestErrors } from "../model/requestForm";
 import { DocumentPicker } from "./DocumentPicker";
-
-/** Độ dài tối đa của lời nhắn cho luật sư. */
-const NOTE_MAX_LENGTH = 1000;
-
-/** Ba bước người nhận đọc trước khi gửi yêu cầu. */
-const REQUEST_STEPS = [
-  "Đính kèm di chúc (bắt buộc) và giấy tờ khác nếu có.",
-  "Hệ thống báo cho Chủ tài sản, Người thực thi và phân công một luật sư.",
-  "Luật sư xét giấy tờ: chấp nhận (lúc này tài sản mới khóa), yêu cầu bổ sung hoặc từ chối có lý do.",
-];
+import { ErrorText } from "./ErrorText";
 
 /**
- * Form gửi yêu cầu nằm trong thẻ kho ở trang Nhận tài sản (gửi bằng tài khoản đã đăng nhập).
- * Việc gọi API do nơi dùng truyền vào; form lo kiểm tệp, lời nhắn và chống gửi trùng.
+ * Form gửi yêu cầu nằm trong thẻ kho ở trang Nhận tài sản (gửi bằng tài khoản đã đăng nhập). Cùng bố cục, cùng cách báo
+ * lỗi và cùng ô cam đoan với form nộp hồ sơ báo tin (ReportForm). Việc gọi API do nơi dùng truyền vào; form lo kiểm
+ * tệp, lời nhắn và chống gửi trùng.
  */
 export function RequestForm({
   send,
   onSent,
+  onCancel,
 }: {
   send: (note: string, wills: File[], files: File[]) => Promise<MyClaim>;
   onSent: () => void;
+  /** Có thì hiện nút Hủy để thu gọn form, như form nộp hồ sơ. */
+  onCancel?: () => void;
 }) {
+  const id = useId();
   const submit = usePrivateAction();
   // Gửi xong thì nút giữ dấu tích một nhịp rồi mới đổi sang thông báo đã gửi.
   const sent = useSuccessHold();
+  const [attested, setAttested] = useState(false);
   const [note, setNote] = useState("");
   const [wills, setWills] = useState<File[]>([]);
-  const [files, setFiles] = useState<File[]>([]);
+  const [others, setOthers] = useState<File[]>([]);
   const [touched, setTouched] = useState(false);
-  let fileError = filesError([...wills, ...files]);
-  if (wills.length === 0) fileError = "Vui lòng đính kèm di chúc.";
+  const busy = submit.pending;
 
-  function handleSend() {
-    setTouched(true);
-    if (fileError) return;
-    void submit.execute(
-      () => sent.hold(() => send(note, wills, files)),
-      () => onSent(),
-    );
+  const draft = { attested, wills, others };
+  let errors: RequestErrors = {};
+  if (touched) {
+    errors = requestErrors(draft);
   }
 
+  const handleSend = () => {
+    setTouched(true);
+    if (Object.keys(requestErrors(draft)).length > 0) return;
+    void submit.execute(
+      () => sent.hold(() => send(note, wills, others)),
+      () => onSent(),
+    );
+  };
+
   return (
-    <div className="space-y-6">
-      <ol className="space-y-3 rounded-2xl border border-heritage-border bg-heritage-sunken p-4 text-sm leading-6">
-        {REQUEST_STEPS.map((step, index) => (
-          <li key={step} className="flex gap-3">
-            <span
-              aria-hidden="true"
-              className="flex size-6 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft text-xs font-semibold text-heritage-primary"
-            >
-              {index + 1}
-            </span>
-            <span>{step}</span>
-          </li>
-        ))}
-      </ol>
-      <div className="space-y-5">
+    <form
+      noValidate
+      className="space-y-6 text-sm"
+      onSubmit={(event) => {
+        event.preventDefault();
+        handleSend();
+      }}
+    >
+      <fieldset className="space-y-4">
+        <legend className="font-serif text-xl text-heritage-primary">1. Giấy tờ</legend>
+        <p className="leading-6 text-heritage-muted">
+          Hệ thống báo cho Chủ tài sản, Người thực thi và phân công một luật sư. Luật sư xét giấy
+          tờ: chấp nhận (lúc này tài sản mới khóa), yêu cầu bổ sung hoặc từ chối có lý do.
+        </p>
         <DocumentPicker
           label="Di chúc (bắt buộc)"
           files={wills}
           onChange={setWills}
-          disabled={submit.pending}
-          reserved={files.length}
+          disabled={busy}
+          reserved={others.length}
         />
+        <ErrorText>{errors.wills}</ErrorText>
         <DocumentPicker
           label="Giấy tờ khác (nếu có)"
-          files={files}
-          onChange={setFiles}
-          disabled={submit.pending}
+          files={others}
+          onChange={setOthers}
+          disabled={busy}
           reserved={wills.length}
         />
-        {touched && fileError && (
-          <p role="alert" className="text-sm text-destructive">
-            {fileError}
-          </p>
-        )}
-      </div>
-      <label className="block space-y-2 text-sm font-semibold text-heritage-primary">
-        <span className="block">
-          Lời nhắn cho luật sư{" "}
-          <span className="font-normal text-heritage-muted">(không bắt buộc)</span>
-        </span>
+        <ErrorText>{errors.files}</ErrorText>
+        <p className="text-heritage-muted">
+          Hệ thống chỉ lưu tệp, không kiểm từng ô giấy tờ. Luật sư xác minh ở ngoài hệ thống.
+        </p>
+      </fieldset>
+
+      <label className="block space-y-1 font-semibold">
+        Lời nhắn cho luật sư (không bắt buộc)
         <textarea
-          className="min-h-28 w-full rounded-xl border border-heritage-border bg-white p-3 font-normal text-heritage-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold-hover"
-          maxLength={NOTE_MAX_LENGTH}
+          className="min-h-20 w-full rounded-xl border border-heritage-border bg-white p-3 font-normal"
+          maxLength={REQUEST_NOTE_MAX_LENGTH}
           value={note}
-          disabled={submit.pending}
-          placeholder="Ví dụ: Tôi gửi kèm di chúc và văn bản phân chia, bản sao có chứng thực."
+          disabled={busy}
           onChange={(event) => setNote(event.target.value)}
         />
-        <span className="block text-right text-xs font-normal text-heritage-muted">
-          {note.length}/{NOTE_MAX_LENGTH}
-        </span>
       </label>
-      <div className="space-y-3">
+
+      <div className="space-y-1">
+        <label className="flex cursor-pointer items-start gap-3 leading-6">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-5 shrink-0 cursor-pointer accent-heritage-primary"
+            checked={attested}
+            disabled={busy}
+            aria-invalid={Boolean(errors.attested)}
+            aria-describedby={errors.attested ? `${id}-attested-error` : undefined}
+            onChange={(event) => setAttested(event.target.checked)}
+          />
+          <span>Tôi cam đoan thông tin, giấy tờ nộp là thật.</span>
+        </label>
+        <ErrorText id={`${id}-attested-error`}>{errors.attested}</ErrorText>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
         <ActionButton
-          className={`${buttonStyles.dark} w-full`}
-          pending={submit.pending}
+          type="submit"
+          className={buttonStyles.dark}
+          pending={busy}
           done={sent.done}
           pendingLabel="Đang gửi…"
           doneLabel="Đã gửi"
-          onClick={handleSend}
         >
           Gửi yêu cầu
         </ActionButton>
-        {submit.error && (
-          <p role="alert" className="text-sm text-destructive">
-            {submit.error}
-          </p>
+        {onCancel && (
+          <button type="button" className={buttonStyles.outline} disabled={busy} onClick={onCancel}>
+            Hủy
+          </button>
         )}
-        <p className="flex gap-2 text-xs leading-5 text-heritage-muted">
-          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <span>
-            Hệ thống chỉ lưu tệp, không kiểm từng ô giấy tờ. Luật sư xác minh ở ngoài hệ thống.
-          </span>
-        </p>
       </div>
-    </div>
+      <ErrorText>{submit.error}</ErrorText>
+    </form>
   );
 }
 

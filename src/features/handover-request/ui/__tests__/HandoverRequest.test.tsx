@@ -122,6 +122,7 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
 
     await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
     await user.type(screen.getByLabelText(/Lời nhắn cho luật sư/), "Bố tôi mất ngày 1/11");
+    await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
     get.mockClear();
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
 
@@ -145,9 +146,63 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
     setup(<AvailableHandoverList />, "an@example.com");
 
     await user.click(await screen.findByRole("button", { name: /Gửi yêu cầu - tài sản của/ }));
+    await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng đính kèm di chúc.");
     expect(post).not.toHaveBeenCalled();
+  });
+
+  it("phải cam đoan giấy tờ là thật trước khi gửi, giống form nộp hồ sơ", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue([availableRow()]);
+    const post = vi.spyOn(apiClient, "post");
+    setup(<AvailableHandoverList />, "an@example.com");
+
+    await user.click(await screen.findByRole("button", { name: /Gửi yêu cầu - tài sản của/ }));
+    await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
+    await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng cam đoan giấy tờ là thật.");
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("nút Hủy thu gọn form lại", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue([availableRow()]);
+    setup(<AvailableHandoverList />, "an@example.com");
+
+    const toggle = await screen.findByRole("button", { name: /Gửi yêu cầu - tài sản của/ });
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await user.click(screen.getByRole("button", { name: "Hủy" }));
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("yêu cầu trước bị từ chối là đã đóng: vẫn có nút Gửi yêu cầu mới", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      availableRow({
+        status: "REJECTED",
+        needsAction: false,
+        canRequest: true,
+        claimId: CLAIM_ID,
+        reviewReason: "Thiếu di chúc",
+      }),
+    ]);
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(claim());
+    setup(<AvailableHandoverList />, "an@example.com");
+
+    expect(await screen.findByText(/Yêu cầu trước đã bị từ chối và đã đóng/)).toBeInTheDocument();
+    expect(screen.getByText("Thiếu di chúc")).toBeInTheDocument();
+    const toggle = screen.getByRole("button", {
+      name: "Gửi yêu cầu mới - tài sản của Nguyễn Văn A",
+    });
+    await user.click(toggle);
+    await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
+    await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
+    await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
+
+    expect(await screen.findByText("Đã gửi yêu cầu")).toBeInTheDocument();
+    expect(post.mock.calls[0][0]).toBe("/handover/requests/by-account");
   });
 
   it("canRequest false thì không có nút Gửi yêu cầu", async () => {

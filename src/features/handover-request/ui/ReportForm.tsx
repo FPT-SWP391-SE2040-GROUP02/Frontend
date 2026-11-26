@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from "react";
+import { useId, useState } from "react";
 import type { SuggestedRecipient } from "@/entities/handoverRecord";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
@@ -13,18 +13,10 @@ import {
   type ReportErrors,
 } from "../model/reportForm";
 import { DocumentPicker } from "./DocumentPicker";
+import { ErrorText } from "./ErrorText";
 import { RecipientRows } from "./RecipientRows";
 
 const INPUT = "h-11 w-full rounded-xl border border-heritage-border bg-white px-3";
-
-function ErrorText({ id, children }: { id?: string; children?: ReactNode }) {
-  if (!children) return null;
-  return (
-    <p id={id} role="alert" className="text-sm text-destructive">
-      {children}
-    </p>
-  );
-}
 
 /**
  * Biểu mẫu nộp hồ sơ báo tin: người thân không cần được Chủ tài sản khai từ trước. Người nộp chưa phải người nhận;
