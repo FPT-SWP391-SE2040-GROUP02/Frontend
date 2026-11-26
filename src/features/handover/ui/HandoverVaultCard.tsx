@@ -61,7 +61,7 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
 
   return (
     <Card className="p-6 bg-heritage-surface border-heritage-border rounded-[22px] space-y-5 shadow-sm">
-      {/* Header Thẻ Kho */}
+      {/* Header Thẻ Tài sản */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-heritage-sunken">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-[14px] bg-heritage-primary flex items-center justify-center text-heritage-gold shadow-sm">
@@ -77,7 +77,9 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
                     : "bg-heritage-warning-bg text-heritage-warning"
                 }`}
               >
-                {vault.recipientMode === "SINGLE_RECIPIENT" ? "Kho 1 Người" : "Kho Đồng Sở Hữu"}
+                {vault.recipientMode === "SINGLE_RECIPIENT"
+                  ? "Tài sản 1 Người"
+                  : "Tài sản Đồng Sở Hữu"}
               </span>
             </div>
             <p className="text-sm text-heritage-subtle">
@@ -87,7 +89,7 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
           </div>
         </div>
 
-        {/* Trạng thái kho */}
+        {/* Trạng thái tài sản */}
         <div className="flex items-center gap-2">
           {isCommitted ? (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-heritage-primary-light text-heritage-success text-sm font-bold">
@@ -123,7 +125,9 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
             <div className="flex items-center gap-2">
               <ArrowRightLeft className="w-4 h-4 text-heritage-gold" />
               <div>
-                <span className="font-bold text-heritage-primary">Dự kiến chuyển nguyên kho: </span>
+                <span className="font-bold text-heritage-primary">
+                  Dự kiến chuyển nguyên tài sản:{" "}
+                </span>
                 <span className="text-heritage-success font-semibold">
                   {vault.transferChoice?.targetRecipientName}
                 </span>
@@ -146,19 +150,19 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
           </div>
         )}
 
-        {/* Thông báo tiến độ đồng thuận kho đồng sở hữu */}
+        {/* Thông báo tiến độ đồng thuận tài sản đồng sở hữu */}
         {vault.recipientMode === "CO_OWNED" && (
           <div className="p-2.5 rounded-[12px] bg-heritage-surface border border-heritage-sunken flex items-center gap-2 text-[0.875rem] text-heritage-subtle">
             <Info className="w-4 h-4 text-heritage-gold shrink-0" />
             <span>
               {vault.coOwnedConsensusText ||
-                "Kho đồng sở hữu: Bắt buộc 100% người thụ hưởng cùng bấm Nhận mới mở quyền tải."}
+                "Tài sản đồng sở hữu: Bắt buộc 100% người thụ hưởng cùng bấm Nhận mới mở quyền tải."}
             </span>
           </div>
         )}
       </div>
 
-      {/* Danh sách tài sản trong kho bàn giao */}
+      {/* Danh sách tài sản trong tài sản bàn giao */}
       <div className="space-y-2.5 pt-2">
         <span className="text-sm font-bold uppercase tracking-wider text-heritage-subtle block">
           Danh mục tài sản ({vault.assets.length})
@@ -225,7 +229,7 @@ export const HandoverVaultCard: React.FC<HandoverVaultCardProps> = ({
               className="rounded-[14px] text-sm font-bold gap-1.5 border-heritage-gold text-heritage-primary hover:bg-heritage-gold-light min-h-[40px]"
             >
               <ArrowRightLeft className="w-4 h-4 text-heritage-gold" />
-              <span>{hasTransferChoice ? "Đổi Đích Chuyển 1:1" : "Chuyển Nguyên Kho 1:1"}</span>
+              <span>{hasTransferChoice ? "Đổi Đích Chuyển 1:1" : "Chuyển Nguyên Tài sản 1:1"}</span>
             </Button>
           )}
 

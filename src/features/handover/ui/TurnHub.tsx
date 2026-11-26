@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -11,7 +11,9 @@ import {
 } from "lucide-react";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatDate } from "@/shared/lib/dateFormat";
+import { CountUp } from "@/shared/ui/CountUp";
 import { buttonStyles, Chip, Initial, type Tone } from "@/shared/ui/heritageKit";
+import { PortalSkeleton } from "@/shared/ui/PortalSkeleton";
 import { handoverService } from "../api/handoverService";
 import type { PendingInvitation } from "../model/handover.schema";
 import type { TurnGroup } from "../model/turnPresentation";
@@ -21,6 +23,7 @@ import { MiniStepBar } from "./portalKit";
 
 /** Một dòng việc: chữ cái đầu, tên phần tài sản kèm nhãn, câu gợi ý, thanh bước và nút việc tiếp theo. */
 function Row({
+  index,
   name,
   chip,
   tone,
@@ -30,6 +33,8 @@ function Row({
   step,
   action,
 }: {
+  /** Thứ tự dòng trên trang: các dòng vào chỗ lần lượt. */
+  index: number;
   name: string;
   chip: string;
   tone: Tone;
@@ -42,7 +47,8 @@ function Row({
   return (
     <article
       aria-label={name}
-      className={`flex flex-wrap items-center gap-x-[18px] gap-y-3.5 rounded-2xl border bg-heritage-surface px-5 py-[18px] shadow-card transition-colors hover:border-heritage-gold ${urgent ? "border-heritage-gold bg-white" : "border-heritage-border"}`}
+      style={{ "--pm-i": index } as CSSProperties}
+      className={`pm-rise pm-lift flex flex-wrap items-center gap-x-[18px] gap-y-3.5 rounded-2xl border bg-heritage-surface px-5 py-[18px] shadow-card hover:border-heritage-gold ${urgent ? "pm-breathe border-heritage-gold bg-white" : "border-heritage-border"}`}
     >
       <Initial name={name} className="size-12 shrink-0 text-base" />
       <div className="min-w-0 flex-[1_1_280px]">
@@ -69,7 +75,7 @@ function stepSub(entry: TurnEntry): string {
 }
 
 /** Thư mời chưa nhận: bấm Bắt đầu thì nhận lượt rồi mở thẳng trang các bước. */
-function InvitationRow({ invitation }: { invitation: PendingInvitation }) {
+function InvitationRow({ invitation, index }: { invitation: PendingInvitation; index: number }) {
   const action = useHandoverAction();
   const client = useQueryClient();
   const navigate = useNavigate();
@@ -84,6 +90,7 @@ function InvitationRow({ invitation }: { invitation: PendingInvitation }) {
   return (
     <div className="space-y-2">
       <Row
+        index={index}
         name={invitation.containerName}
         chip="Thư mời mới"
         tone="warning"
@@ -94,12 +101,12 @@ function InvitationRow({ invitation }: { invitation: PendingInvitation }) {
         action={
           <button
             type="button"
-            className={buttonStyles.dark}
+            className={`${buttonStyles.dark} pm-link`}
             disabled={action.pending}
             onClick={start}
           >
             {action.pending ? "Đang mở…" : "Bắt đầu ngay"}
-            <ChevronRight className="size-4" aria-hidden="true" />
+            <ChevronRight className="pm-chev size-4" aria-hidden="true" />
           </button>
         }
       />
@@ -115,11 +122,12 @@ function InvitationRow({ invitation }: { invitation: PendingInvitation }) {
   );
 }
 
-function TurnRow({ entry }: { entry: TurnEntry }) {
+function TurnRow({ entry, index }: { entry: TurnEntry; index: number }) {
   const { turn, view } = entry;
   const name = turn.container?.name ?? "Lượt bàn giao";
   return (
     <Row
+      index={index}
       name={name}
       chip={view.chip}
       tone={view.tone}
@@ -130,10 +138,10 @@ function TurnRow({ entry }: { entry: TurnEntry }) {
       action={
         <Link
           to={ROUTES.BENEFICIARY.TURN(turn.id)}
-          className={view.group === "urgent" ? buttonStyles.dark : buttonStyles.outline}
+          className={`${view.group === "urgent" ? buttonStyles.dark : buttonStyles.outline} pm-link`}
         >
           {view.actionLabel}
-          <ChevronRight className="size-4" aria-hidden="true" />
+          <ChevronRight className="pm-chev size-4" aria-hidden="true" />
         </Link>
       }
     />
@@ -153,11 +161,13 @@ function Group({ icon, title, children }: { icon: ReactNode; title: string; chil
 }
 
 function Kpi({
+  index,
   icon,
   tone,
   count,
   label,
 }: {
+  index: number;
   icon: ReactNode;
   tone: "warn" | "info" | "ok";
   count: number;
@@ -169,7 +179,10 @@ function Kpi({
     ok: "bg-heritage-success-bg text-heritage-success",
   };
   return (
-    <div className="flex items-center gap-3.5 rounded-2xl border border-heritage-border bg-heritage-surface px-[18px] py-4 shadow-card">
+    <div
+      style={{ "--pm-i": index } as CSSProperties}
+      className="pm-rise flex items-center gap-3.5 rounded-2xl border border-heritage-border bg-heritage-surface px-[18px] py-4 shadow-card"
+    >
       <span
         aria-hidden="true"
         className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[tone]}`}
@@ -178,7 +191,7 @@ function Kpi({
       </span>
       <div>
         <b className="block text-2xl font-semibold leading-tight text-heritage-primary tabular-nums">
-          {count}
+          <CountUp value={count} />
         </b>
         <span className="text-sm text-heritage-muted">{label}</span>
       </div>
@@ -193,7 +206,7 @@ function Kpi({
  */
 export function TurnHub({ notice }: { notice?: ReactNode }) {
   const overview = useTurnOverview();
-  if (overview.isPending) return <p role="status">Đang tải các lượt bàn giao…</p>;
+  if (overview.isPending) return <PortalSkeleton label="Đang tải các lượt bàn giao…" />;
   if (overview.isError) {
     return (
       <div role="alert" className="space-y-3">
@@ -212,22 +225,28 @@ export function TurnHub({ notice }: { notice?: ReactNode }) {
   const done = inGroup("done");
   const ended = inGroup("ended");
   const empty = overview.entries.length === 0 && overview.invitations.length === 0;
+  // Số thứ tự chạy suốt các nhóm để mọi dòng vào chỗ lần lượt từ trên xuống.
+  let order = 3;
+  const next = () => order++;
   return (
     <div className="space-y-6">
       <div className="grid gap-3.5 lg:grid-cols-3">
         <Kpi
+          index={0}
           icon={<AlertTriangle className="size-5" />}
           tone="warn"
           count={overview.urgentCount}
           label="Cần bạn thao tác ngay"
         />
         <Kpi
+          index={1}
           icon={<Clock className="size-5" />}
           tone="info"
           count={waiting.length}
           label="Đang chờ luật sư hoặc Người thực thi"
         />
         <Kpi
+          index={2}
           icon={<CheckCircle2 className="size-5" />}
           tone="ok"
           count={done.length}
@@ -249,10 +268,10 @@ export function TurnHub({ notice }: { notice?: ReactNode }) {
           title={`Cần bạn thao tác ngay (${urgent.length + overview.invitations.length})`}
         >
           {overview.invitations.map((invitation) => (
-            <InvitationRow key={invitation.turnId} invitation={invitation} />
+            <InvitationRow key={invitation.turnId} invitation={invitation} index={next()} />
           ))}
           {urgent.map((entry) => (
-            <TurnRow key={entry.turn.id} entry={entry} />
+            <TurnRow key={entry.turn.id} entry={entry} index={next()} />
           ))}
         </Group>
       )}
@@ -262,7 +281,7 @@ export function TurnHub({ notice }: { notice?: ReactNode }) {
           title={`Đang chờ luật sư hoặc Người thực thi (${waiting.length})`}
         >
           {waiting.map((entry) => (
-            <TurnRow key={entry.turn.id} entry={entry} />
+            <TurnRow key={entry.turn.id} entry={entry} index={next()} />
           ))}
         </Group>
       )}
@@ -272,7 +291,7 @@ export function TurnHub({ notice }: { notice?: ReactNode }) {
           title={`Đã hoàn tất bàn giao (${done.length})`}
         >
           {done.map((entry) => (
-            <TurnRow key={entry.turn.id} entry={entry} />
+            <TurnRow key={entry.turn.id} entry={entry} index={next()} />
           ))}
         </Group>
       )}
@@ -282,7 +301,7 @@ export function TurnHub({ notice }: { notice?: ReactNode }) {
           title={`Đã kết thúc (${ended.length})`}
         >
           {ended.map((entry) => (
-            <TurnRow key={entry.turn.id} entry={entry} />
+            <TurnRow key={entry.turn.id} entry={entry} index={next()} />
           ))}
         </Group>
       )}

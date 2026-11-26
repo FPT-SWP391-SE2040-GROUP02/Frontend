@@ -69,11 +69,11 @@ export function ExecutorVaultList({
                   {!urgent && <span className="text-sm text-heritage-muted">Chưa có việc gì</span>}
                   <button
                     type="button"
-                    aria-label={`Mở kho của ${vault.ownerFullName}`}
+                    aria-label={`Mở tài sản của ${vault.ownerFullName}`}
                     className={buttonStyles.outline}
                     onClick={() => onSelect(vault.vaultId)}
                   >
-                    Mở kho
+                    Mở tài sản
                   </button>
                 </div>
               </div>
@@ -89,9 +89,9 @@ export function ExecutorVaultList({
       <p className="flex items-center gap-2 text-sm text-heritage-muted">
         <Lock className="size-4 shrink-0" aria-hidden="true" />
         <span>
-          Mỗi kho có hồ sơ và tiến trình riêng. Quyền của bạn chỉ gồm ký biên bản, gửi mã nhận và
-          theo dõi tiến trình —{" "}
-          <strong className="text-heritage-primary">không đọc được nội dung kho nào</strong>.
+          Mỗi tài sản có hồ sơ và tiến trình riêng. Quyền của bạn chỉ gồm ký biên bản, gửi mã nhận
+          và theo dõi tiến trình —{" "}
+          <strong className="text-heritage-primary">không đọc được nội dung tài sản nào</strong>.
         </span>
       </p>
     </div>

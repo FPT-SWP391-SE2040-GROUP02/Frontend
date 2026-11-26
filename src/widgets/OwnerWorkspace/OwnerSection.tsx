@@ -58,7 +58,7 @@ function AssetCreatePanel({
   if (pinStatus.isPending) {
     return (
       <p role="status" className="text-sm text-heritage-muted">
-        Đang kiểm tra mã PIN của kho…
+        Đang kiểm tra mã PIN tài sản…
       </p>
     );
   }
@@ -71,7 +71,7 @@ function AssetCreatePanel({
         <Lock className="mx-auto mb-3 size-6 text-heritage-gold" aria-hidden="true" />
         <p className="text-sm font-semibold">Thêm tài sản đang bị khóa</p>
         <p className="mx-auto mt-1 max-w-xs text-sm text-heritage-muted">
-          Đặt mã PIN cho kho ở phía trên để bắt đầu thêm tài sản.
+          Đặt mã PIN cho tài sản ở phía trên để bắt đầu thêm tài sản.
         </p>
       </div>
     );
@@ -120,7 +120,7 @@ export function OwnerSection({
   if (vault.isError && isOwnerVaultMissing(vault.error)) return <VaultEmailRequiredNotice />;
   if (vault.isError)
     return <QueryError retry={() => void vault.refetch()} pending={vault.isFetching} />;
-  if (!authenticated) return <p role="status">Vui lòng đăng nhập để xem kho.</p>;
+  if (!authenticated) return <p role="status">Vui lòng đăng nhập để xem tài sản.</p>;
   if (vault.isPending)
     return (
       <div
@@ -128,7 +128,7 @@ export function OwnerSection({
         className="flex items-center gap-3 rounded-xl border border-heritage-border p-6 text-sm text-heritage-muted"
       >
         <Vault className="size-5" aria-hidden="true" />
-        Đang tải kho của bạn…
+        Đang tải tài sản của bạn…
       </div>
     );
   if (section === "trusted") return <OwnerTrustedPeople vaultId={vault.data.id} />;
@@ -145,7 +145,7 @@ export function OwnerSection({
     return (
       <div className="space-y-6">
         <section
-          aria-label="Dung lượng kho"
+          aria-label="Dung lượng lưu trữ"
           className="rounded-2xl border border-heritage-border bg-heritage-surface p-5"
         >
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">

@@ -252,14 +252,41 @@
 .u040--rail.is-collapsed .u040-avatar--small {
   margin-left: 2px;
 }
-.u040--rail .u040-art {
-  transition: opacity 0.2s;
+
+/* Menu tài khoản của Chủ tài sản: thu gọn thì còn ảnh đại diện, danh sách nổi lên chỉ còn biểu tượng (cột menu cắt
+   phần tràn ngang nên danh sách không rộng hơn cột được). */
+/* Dòng gói dịch vụ dài (ví dụ báo chưa tải được) thì xuống dòng thay vì bị cắt. */
+.u040--rail:not(.is-collapsed) .account-menu-tier {
+  white-space: normal;
 }
-.u040--rail.is-collapsed .u040-art {
-  opacity: 0;
+.u040--rail.is-collapsed .account-menu-trigger {
+  gap: 0;
+  padding: 1px;
+}
+.u040--rail.is-collapsed .account-menu-trigger .u040-avatar {
+  width: 40px;
+  height: 40px;
+}
+.u040--rail.is-collapsed .account-menu-trigger > .u040-label {
+  height: 0;
+}
+.u040--rail.is-collapsed .account-menu-chevron {
+  display: none;
+}
+.u040--rail.is-collapsed .account-menu-panel {
+  padding: 3px;
+}
+.u040--rail.is-collapsed .account-menu-link {
+  justify-content: center;
+  gap: 0;
+  padding-inline: 0;
+}
+.u040--rail.is-collapsed .account-menu-link > .u040-label {
+  width: 0;
+  overflow: hidden;
 }
 
-/* Thẻ kho đang làm việc của Người thực thi. */
+/* Thẻ tài sản đang làm việc của Người thực thi. */
 .u040--rail .u040-card-section > h2 {
   font-size: 0.8125rem;
   letter-spacing: 0.04em;

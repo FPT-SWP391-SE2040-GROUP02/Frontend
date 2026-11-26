@@ -1,12 +1,11 @@
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { Initial } from "@/shared/ui/heritageKit";
-import guilloche from "@/shared/assets/auth-guilloche.svg";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ArrowLeftRight, BookOpen, FileText, Home } from "lucide-react";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useQuery } from "@tanstack/react-query";
@@ -41,7 +40,10 @@ export interface RecipientLayoutProps {
 function Badge({ count }: { count: number }) {
   if (count === 0) return null;
   return (
-    <span className="u040-badge ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-heritage-gold-soft px-1.5 text-xs font-bold text-heritage-primary">
+    <span
+      key={count}
+      className="u040-badge pm-badge ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-heritage-gold-soft px-1.5 text-xs font-bold text-heritage-primary"
+    >
       {count}
     </span>
   );
@@ -49,6 +51,7 @@ function Badge({ count }: { count: number }) {
 
 /** Sidebar dùng chung cho cổng người nhận. */
 export function RecipientLayout({ active, activeTurnId, children }: RecipientLayoutProps) {
+  const { pathname } = useLocation();
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const fullName = user?.fullName;
   // Chỉ tài khoản đã có kho (Chủ tài sản) mới có nút sang vai Chủ tài sản; không cấp quyền gì, Backend vẫn kiểm tra từng request.
@@ -157,12 +160,6 @@ export function RecipientLayout({ active, activeTurnId, children }: RecipientLay
               <RailLabel>Sang vai Chủ tài sản</RailLabel>
             </Link>
           )}
-          <img
-            src={guilloche}
-            alt=""
-            aria-hidden="true"
-            className="u040-art mx-auto mb-3 hidden size-16 opacity-40 [@media(min-height:800px)]:block"
-          />
           <div className="u040-me flex items-center gap-3">
             {fullName && <Initial name={fullName} className="u040-avatar size-10" />}
             <div className="u040-label min-w-0">
@@ -173,7 +170,10 @@ export function RecipientLayout({ active, activeTurnId, children }: RecipientLay
         </>
       }
     >
-      {children}
+      {/* Đổi trang thì nội dung trượt nhẹ vào, không nhảy giật. */}
+      <div key={pathname} className="pm-fade space-y-6">
+        {children}
+      </div>
     </WorkspaceShell>
   );
 }

@@ -18,6 +18,7 @@ import { RecordStepper } from "./RecordStepper";
 import { RemindExecutorButton } from "./RemindExecutorButton";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { Collapse } from "@/shared/ui/Collapse";
 
 /** Nút mở hồ sơ danh tính của một người nhận ở trang Danh tính người nhận. */
 function IdentityAction({ recipient }: { recipient: RecordRecipient }) {
@@ -121,16 +122,16 @@ function CancelRecordPanel({ record }: { record: HandoverRecord }) {
           Hủy biên bản này
         </h2>
         <p className="text-heritage-muted">
-          Dùng khi mở nhầm hoặc giấy tờ sai. Kho mở khóa; Chủ tài sản và Người thực thi được báo.
-          Hủy rồi không khôi phục được.
+          Dùng khi mở nhầm hoặc giấy tờ sai. Tài sản mở khóa; Chủ tài sản và Người thực thi được
+          báo. Hủy rồi không khôi phục được.
         </p>
         {!open && (
           <button type="button" className={compactButton.danger} onClick={() => setOpen(true)}>
             Hủy biên bản
           </button>
         )}
-        {open && (
-          <>
+        <Collapse open={open}>
+          <div className="space-y-3">
             <label className="block space-y-1 font-semibold">
               Lý do hủy
               <textarea
@@ -167,8 +168,8 @@ function CancelRecordPanel({ record }: { record: HandoverRecord }) {
                 Giữ biên bản
               </button>
             </div>
-          </>
-        )}
+          </div>
+        </Collapse>
         {action.error && (
           <p role="alert" className="text-destructive">
             {action.error}
@@ -252,7 +253,7 @@ export function VerifierRecordDetail({
       {record.status === "CANCELLED" && (
         <Notice tone="neutral" title="Bạn đã hủy biên bản này">
           {record.cancelReason ? `Lý do: ${record.cancelReason}. ` : ""}
-          Biên bản này không còn hiệu lực. Kho đã mở khóa cho Chủ tài sản.
+          Biên bản này không còn hiệu lực. Tài sản đã mở khóa cho Chủ tài sản.
         </Notice>
       )}
       {record.status === "DRAFTING" && (

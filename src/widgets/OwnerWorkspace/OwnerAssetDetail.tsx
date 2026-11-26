@@ -23,7 +23,7 @@ const kindLabels = { FILE: "Tệp tải lên", TEXT: "Ghi chú bí mật" } as c
 function BackToVault() {
   return (
     <Link to={ROUTES.DASHBOARD.ASSETS} className={buttonStyles.outline}>
-      Quay lại kho
+      Quay lại tài sản
     </Link>
   );
 }
@@ -50,8 +50,8 @@ export function OwnerAssetDetail({ assetId }: { assetId: string }) {
       title={asset.data && revealed ? asset.data.name : "Chi tiết mục"}
       description={
         asset.data && revealed
-          ? `${kindLabels[asset.data.kind]} trong kho cá nhân của bạn`
-          : "Nhập mã PIN của kho để xem thông tin mục."
+          ? `${kindLabels[asset.data.kind]} của bạn`
+          : "Nhập mã PIN tài sản để xem thông tin mục."
       }
       headerAction={
         <div className="flex flex-wrap items-center gap-3">
@@ -61,10 +61,10 @@ export function OwnerAssetDetail({ assetId }: { assetId: string }) {
       }
     >
       {!authenticated ? (
-        <p role="status">Vui lòng đăng nhập để xem kho.</p>
+        <p role="status">Vui lòng đăng nhập để xem tài sản.</p>
       ) : missingVault ? (
-        <Notice tone="warning" title="Bạn chưa có kho di sản">
-          Xác minh email để mở kho trước khi thêm mục.
+        <Notice tone="warning" title="Bạn chưa có tài sản">
+          Xác minh email để bắt đầu trước khi thêm mục.
         </Notice>
       ) : vault.isError ? (
         <div role="alert" className="space-y-3">
@@ -79,7 +79,7 @@ export function OwnerAssetDetail({ assetId }: { assetId: string }) {
         </p>
       ) : notFound ? (
         <Notice tone="warning" title="Không tìm thấy mục này" role="alert">
-          Mục có thể đã bị xóa hoặc không thuộc kho của bạn.
+          Mục có thể đã bị xóa hoặc không thuộc tài sản của bạn.
         </Notice>
       ) : asset.isError ? (
         <div role="alert" className="space-y-3">

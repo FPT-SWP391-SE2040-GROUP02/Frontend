@@ -57,7 +57,7 @@ describe("OwnerResourcesPanel", () => {
     emptyResponses();
     vi.mocked(backendAssetService.list).mockRejectedValue(new Error("test failure"));
     setup();
-    const section = screen.getByRole("region", { name: "Tài sản trong kho" });
+    const section = screen.getByRole("region", { name: "Tài sản đang lưu" });
     expect(await within(section).findByRole("alert")).toHaveTextContent("Không tải được tài sản");
     fireEvent.click(within(section).getByRole("button", { name: "Thử lại" }));
     await vi.waitFor(() => expect(backendAssetService.list).toHaveBeenCalledTimes(2));

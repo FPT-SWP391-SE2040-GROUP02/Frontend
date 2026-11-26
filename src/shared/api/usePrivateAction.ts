@@ -46,10 +46,10 @@ const handoverNotAllowedReasons: Record<string, string> = {
   NO_EMAIL: "Người nhận chưa có email.",
   INVITATION_SEND_FAILED: "Chưa gửi được thư mời. Chưa có gì thay đổi, vui lòng thử lại sau.",
   KEY_REQUIRED: "Cần nhập mã nhận do Người thực thi đưa trước khi đồng ý nhận.",
-  NO_KEY: "Kho này chưa cấp mã nhận nên chưa có khóa để gửi.",
+  NO_KEY: "Tài sản này chưa cấp mã nhận nên chưa có khóa để gửi.",
   KEY_SEND_FAILED: "Chưa gửi được khóa. Vui lòng thử lại sau.",
   HANDOVER_NOT_STARTED: "Chỉ xem được sau khi luật sư chốt biên bản bàn giao.",
-  PLAN_NOT_ACTIVE: "Kho chưa kích hoạt kế hoạch bàn giao nên chưa nhận yêu cầu.",
+  PLAN_NOT_ACTIVE: "Tài sản chưa kích hoạt kế hoạch bàn giao nên chưa nhận yêu cầu.",
   NO_VERIFIER: "Hiện chưa có luật sư nào nhận được hồ sơ này. Vui lòng thử lại sau.",
   NO_OWNER_SPLIT:
     "Chủ tài sản chưa lập biên bản phân chia. Hãy tự chọn người nhận cho từng tài sản.",
@@ -70,12 +70,13 @@ const handoverNotAllowedReasons: Record<string, string> = {
 /** Reason-specific messages for EXECUTOR_NOT_ALLOWED */
 const executorNotAllowedReasons: Record<string, string> = {
   OWNER_CANNOT_ACCEPT:
-    "Bạn đang đăng nhập bằng tài khoản Chủ tài sản. Chủ tài sản không thể tự nhận làm Người thực thi cho kho của chính mình. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
+    "Bạn đang đăng nhập bằng tài khoản Chủ tài sản. Chủ tài sản không thể tự nhận làm Người thực thi cho tài sản của chính mình. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
   INVITEE_EMAIL_MISMATCH:
     "Lời mời này gửi tới một email khác. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
   REPLACEMENT_REQUIRED:
     "Người thực thi đã nhận nhiệm vụ nên không thu hồi trực tiếp. Hãy mời người thay; người cũ tự thôi khi người mới chấp nhận.",
-  PLAN_NOT_DRAFT: "Kế hoạch của kho không ở trạng thái cho phép phản hồi lời mời Executor lúc này.",
+  PLAN_NOT_DRAFT:
+    "Kế hoạch của tài sản không ở trạng thái cho phép phản hồi lời mời Executor lúc này.",
   SETUP_NOT_COMPLETE:
     "Chủ tài sản cần làm xong các bước khác trước. Mời Người thực thi là bước sau cùng.",
   WILL_NOT_SIGNED:
@@ -84,7 +85,8 @@ const executorNotAllowedReasons: Record<string, string> = {
     "Chủ tài sản vừa ký phiên bản khác. Tải lại và xem biên bản mới trước khi ký.",
   WILL_ALREADY_CONFIRMED: "Bạn đã ký phiên bản này nên không đổi sang không đồng ý được.",
   PLAN_NOT_RUNNING: "Kế hoạch không còn đang chạy nên không trả lời biên bản lúc này.",
-  INDEPENDENT_EXECUTOR_REQUIRED: "Bạn đã đảm nhiệm một vai trò Người thực thi khác trong kho này.",
+  INDEPENDENT_EXECUTOR_REQUIRED:
+    "Bạn đã đảm nhiệm một vai trò Người thực thi khác trong tài sản này.",
 };
 
 /** Reason-specific messages for ASSET_IN_USE */
@@ -98,10 +100,10 @@ const vaultNotEditableReasons: Record<string, string> = {};
 
 /** Reason-specific messages for PAYMENT_NOT_ALLOWED (báo giá/tạo đơn, mục 6.18) */
 const paymentNotAllowedReasons: Record<string, string> = {
-  VAULT_CLOSED: "Kho đã đóng nên không mua được dịch vụ.",
+  VAULT_CLOSED: "Tài sản đã đóng nên không mua được dịch vụ.",
   PLAN_LOCKED: "Kế hoạch đang trong giai đoạn bàn giao hoặc bị khóa nên chưa mua được dịch vụ.",
   OWNER_EKYC_REQUIRED: "Cần hoàn tất xác minh danh tính eKYC của Chủ tài sản trước khi mua gói.",
-  RENEWAL_NOT_SUPPORTED: "Kho không có kỳ dịch vụ phù hợp để thao tác này.",
+  RENEWAL_NOT_SUPPORTED: "Tài sản không có kỳ dịch vụ phù hợp để thao tác này.",
   USAGE_EXCEEDS_PLAN:
     "Dung lượng đang dùng vượt mức của lựa chọn này. Chọn hạng lớn hơn hoặc giảm dữ liệu trước.",
 };
@@ -111,8 +113,8 @@ const paymentOrderNotPayableReasons: Record<string, string> = {
   PAID: "Đơn này đã được thanh toán.",
   EXPIRED: "Đơn đã hết hạn. Hãy tạo đơn mới.",
   CANCELLED: "Đơn đã bị hủy. Hãy tạo đơn mới.",
-  VAULT_CLOSED: "Kho đã đóng nên không thanh toán được đơn này.",
-  ENTITLEMENT_CHANGED: "Quyền dịch vụ của kho đã thay đổi sau khi tạo đơn. Hãy tạo đơn mới.",
+  VAULT_CLOSED: "Tài sản đã đóng nên không thanh toán được đơn này.",
+  ENTITLEMENT_CHANGED: "Quyền dịch vụ của bạn đã thay đổi sau khi tạo đơn. Hãy tạo đơn mới.",
 };
 
 /** Reason-specific messages for EKYC_SERVICE_UNAVAILABLE (BE giữ mã 503 nhưng cho biết nguyên nhân thật) */
@@ -175,20 +177,20 @@ const messages: Record<string, string> = {
     "Kế hoạch chưa đủ điều kiện. Tải lại checklist để kiểm tra trước khi kích hoạt.",
   POLICY_ACKNOWLEDGEMENT_REQUIRED: "Cần đọc và xác nhận nội dung hiện hành trước khi tiếp tục.",
   VALIDATION_ERROR: "Dữ liệu chưa hợp lệ. Kiểm tra các trường đã nhập trước khi gửi lại.",
-  VAULT_NOT_FOUND: "Không tìm thấy kho. Tải lại để kiểm tra kho của tài khoản hiện tại.",
+  VAULT_NOT_FOUND: "Không tìm thấy tài sản. Tải lại để kiểm tra tài sản của tài khoản hiện tại.",
   ASSET_IN_USE: "Tài sản đang được sử dụng nên chưa xóa được.",
-  ASSET_NOT_FOUND: "Không tìm thấy tài sản trong kho. Tải lại danh sách trước khi tiếp tục.",
+  ASSET_NOT_FOUND: "Không tìm thấy tài sản. Tải lại danh sách trước khi tiếp tục.",
   BENEFICIARY_NOT_FOUND: "Không tìm thấy hồ sơ người nhận. Tải lại danh sách trước khi tiếp tục.",
-  EMAIL_NOT_VERIFIED: "Vui lòng xác minh email trước khi tạo kho.",
+  EMAIL_NOT_VERIFIED: "Vui lòng xác minh email trước khi tạo tài sản.",
   ACCOUNT_NOT_ACTIVE: "Tài khoản hiện không được phép thực hiện thao tác này.",
   PAID_TIER_REQUIRED: "Thao tác này cần gói dịch vụ trả phí còn hiệu lực.",
   EDIT_CONFLICT: "Dữ liệu đã thay đổi. Tải lại trước khi chỉnh sửa tiếp.",
-  VAULT_NOT_EDITABLE: "Kho hiện không cho phép chỉnh sửa.",
-  STORAGE_QUOTA_EXCEEDED: "Kho không đủ dung lượng cho nội dung này.",
+  VAULT_NOT_EDITABLE: "Tài sản hiện không cho phép chỉnh sửa.",
+  STORAGE_QUOTA_EXCEEDED: "Không đủ dung lượng cho nội dung này.",
   PLAN_DEACTIVATION_CONFIRMATION_REQUIRED:
     "Thao tác này sẽ đưa kế hoạch về nháp. Đọc cảnh báo và xác nhận trước khi tiếp tục.",
   BENEFICIARY_IDENTITY_CONFLICT:
-    "Số CCCD này đã tồn tại trong danh sách người nhận của kho (với thông tin khác). Vui lòng kiểm tra lại.",
+    "Số CCCD này đã tồn tại trong danh sách người nhận (với thông tin khác). Vui lòng kiểm tra lại.",
   BENEFICIARY_IN_USE: "Người nhận đang được gán tài sản. Hãy gỡ gán trước.",
   EKYC_IMAGE_REJECTED:
     "Ảnh chưa đáp ứng yêu cầu xác minh. Hãy chọn ảnh rõ, đúng mặt giấy tờ hoặc selfie rồi thử lại.",
@@ -207,16 +209,16 @@ const messages: Record<string, string> = {
   HANDOVER_ALREADY_CLAIMED: "Lời mời đã được nhận. Kiểm tra danh sách lượt bàn giao của bạn.",
   HANDOVER_DECISION_EXPIRED: "Thời hạn quyết định đã kết thúc. Tải lại trạng thái bàn giao.",
   GRANT_NOT_ACTIVE: "Quyền tải nội dung hiện không còn hiệu lực. Tải lại trạng thái bàn giao.",
-  PAYMENT_NOT_ALLOWED: "Chưa thể mua dịch vụ lúc này. Tải lại để kiểm tra trạng thái kho.",
+  PAYMENT_NOT_ALLOWED: "Chưa thể mua dịch vụ lúc này. Tải lại để kiểm tra trạng thái tài sản.",
   PAYMENT_ORDER_PENDING:
-    "Kho đang có một đơn chờ thanh toán khác. Hãy hoàn tất hoặc hủy đơn đó trước khi tạo đơn mới.",
+    "Tài sản đang có một đơn chờ thanh toán khác. Hãy hoàn tất hoặc hủy đơn đó trước khi tạo đơn mới.",
   PAYMENT_ORDER_NOT_PAYABLE: "Đơn này không còn thanh toán được. Tải lại để xem trạng thái.",
-  PAYMENT_ORDER_NOT_FOUND: "Không tìm thấy đơn thanh toán của kho này.",
+  PAYMENT_ORDER_NOT_FOUND: "Không tìm thấy đơn thanh toán của tài sản này.",
   CONTENT_INTEGRITY_FAILED:
     "Không thể xác nhận tính toàn vẹn của nội dung. Vui lòng liên hệ hỗ trợ.",
-  VAULT_PIN_NOT_SET: "Kho đã có tài sản nên cần đặt mã PIN trước khi tiếp tục.",
-  VAULT_PIN_ALREADY_SET: "Kho đã có mã PIN. Dùng chức năng đổi mã PIN.",
-  VAULT_PIN_REQUIRED: "Thao tác này cần nhập mã PIN của kho.",
+  VAULT_PIN_NOT_SET: "Đã có tài sản nên cần đặt mã PIN trước khi tiếp tục.",
+  VAULT_PIN_ALREADY_SET: "Tài sản đã có mã PIN. Dùng chức năng đổi mã PIN.",
+  VAULT_PIN_REQUIRED: "Thao tác này cần nhập mã PIN tài sản.",
   INVALID_VAULT_PIN: "Mã PIN chưa đúng.",
   HANDOVER_KEY_INVALID: "Mã nhận chưa đúng. Kiểm tra lại với Người thực thi rồi nhập lại.",
   HANDOVER_KEY_LOCKED:
@@ -224,7 +226,7 @@ const messages: Record<string, string> = {
   VAULT_PIN_LOCKED: "Mã PIN đang bị khóa tạm vì nhập sai nhiều lần. Vui lòng thử lại sau.",
   VAULT_PIN_TOO_WEAK:
     "Mã PIN quá dễ đoán. Không dùng các số giống nhau hoặc dãy số liên tiếp (111111, 123456...).",
-  EXECUTOR_KEY_NOT_ISSUED: "Kho chưa cấp mã nhận nên chưa cấp lại được. Tải lại trang.",
+  EXECUTOR_KEY_NOT_ISSUED: "Tài sản chưa cấp mã nhận nên chưa cấp lại được. Tải lại trang.",
   VAULT_PIN_RESET_NEEDS_PASSWORD:
     "Tài khoản của bạn chưa có mật khẩu nên chưa đặt lại mã PIN được. Hãy đặt mật khẩu ở mục Phương thức đăng nhập trước.",
 };

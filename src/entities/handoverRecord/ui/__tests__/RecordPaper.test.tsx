@@ -11,7 +11,7 @@ function buildRecord(extra: Record<string, unknown> = {}): HandoverRecord {
   return handoverRecordSchema.parse({
     id: "33333333-3333-4333-8333-333333333333",
     vaultId: "11111111-1111-4111-8111-111111111111",
-    vaultName: "Kho gia đình",
+    vaultName: "Tài sản gia đình",
     ownerName: "Anh Nam",
     status: "SIGNING",
     revisionNo: 1,
@@ -118,7 +118,7 @@ describe("RecordPaper: người nhận đồng ý nhận, chưa phải đã nh�
     expect(container).toHaveTextContent(
       "Mỗi người nhận xác nhận đúng danh tính của mình và đồng ý nhận phần tài sản ghi cho mình",
     );
-    expect(container).toHaveTextContent("bên nhận đồng ý nhận tài sản trong kho nêu trên");
+    expect(container).toHaveTextContent("bên nhận đồng ý nhận tài sản nêu trên");
     expect(container).not.toHaveTextContent("đã nhận đủ phần tài sản");
     expect(container).not.toHaveTextContent("bên nhận đã nhận tài sản");
   });

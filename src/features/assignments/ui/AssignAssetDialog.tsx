@@ -121,7 +121,7 @@ export function AssignAssetDialog({
           selectedIds={selectedIds}
           onChange={changeSelection}
           searchPlaceholder="Tìm người nhận…"
-          emptyText="Kho chưa có hồ sơ người nhận nào để gán."
+          emptyText="Chưa có hồ sơ người nhận nào để gán."
           withInitial
           hint="Chọn từ hai người trở lên nếu tài sản này nhận chung."
           footer={
@@ -152,8 +152,8 @@ export function AssignAssetDialog({
             className="space-y-3 rounded-xl border border-heritage-warning/30 bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning"
           >
             <p>
-              Sau thay đổi này kho không còn tài sản nào được gán cho người nhận, nên kế hoạch sẽ
-              trở về <strong>bản nháp</strong>. Bạn cần kích hoạt lại sau.
+              Sau thay đổi này không còn tài sản nào được gán cho người nhận, nên kế hoạch sẽ trở về{" "}
+              <strong>bản nháp</strong>. Bạn cần kích hoạt lại sau.
             </p>
             <button
               type="button"

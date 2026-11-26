@@ -29,9 +29,9 @@ const ACTION_REASONS: Record<string, string> = {
 
 /** Lý do cụ thể của 409 EXECUTOR_NOT_ALLOWED khi Admin giao Người thực thi. */
 const EXECUTOR_REASONS: Record<string, string> = {
-  ALREADY_EXECUTOR: "Người này đang là Người thực thi của kho.",
-  PLAN_LOCKED: "Kho đã đóng nên không đổi Người thực thi được.",
-  OWNER_CANNOT_ACCEPT: "Chủ tài sản không làm Người thực thi của kho mình được.",
+  ALREADY_EXECUTOR: "Người này đang là Người thực thi của tài sản.",
+  PLAN_LOCKED: "Tài sản đã đóng nên không đổi Người thực thi được.",
+  OWNER_CANNOT_ACCEPT: "Chủ tài sản không làm Người thực thi của tài sản mình được.",
   ROLE_CONFLICT: "Tài khoản này không được làm Người thực thi.",
 };
 
@@ -41,7 +41,7 @@ const ACTION_CODES: Record<string, string> = {
   EDIT_CONFLICT: "Dữ liệu vừa bị thay đổi ở nơi khác. Tải lại để xem bản mới nhất rồi thử lại.",
   DEV_TOOL_NOT_ALLOWED:
     "Hồ sơ không còn ở trạng thái tua được mốc này. Tải lại để xem trạng thái mới nhất.",
-  VAULT_NOT_FOUND: "Không tìm thấy kho. Chọn lại hồ sơ thử.",
+  VAULT_NOT_FOUND: "Không tìm thấy tài sản. Chọn lại hồ sơ thử.",
 };
 
 /**

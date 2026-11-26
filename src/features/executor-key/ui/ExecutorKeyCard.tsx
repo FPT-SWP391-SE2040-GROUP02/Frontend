@@ -91,7 +91,7 @@ function ReissueDialog({
           }}
         >
           <label htmlFor="reissue-pin" className="block text-sm font-semibold">
-            Nhập mã PIN của kho (6 số)
+            Nhập mã PIN tài sản (6 số)
           </label>
           <PinCodeInput
             id="reissue-pin"

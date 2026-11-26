@@ -76,7 +76,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 const PIN = "482913";
-const PIN_LABEL = "Nhập mã PIN của kho (6 số)";
+const PIN_LABEL = "Nhập mã PIN tài sản (6 số)";
 /** Tick ô xác nhận và nhập đủ PIN để nút Ký và kích hoạt mở khóa. */
 function agreeAndEnterPin(pin = PIN): void {
   fireEvent.click(screen.getByRole("checkbox"));
@@ -444,7 +444,7 @@ it("Người thực thi: kế hoạch nháp thu hồi gửi etag hiện tại v�
   fireEvent.click(await screen.findByRole("button", { name: "Thu hồi vai" }));
   const dialog = await screen.findByRole("dialog");
   expect(within(dialog).getByText("Thu hồi vai Người thực thi?")).toBeInTheDocument();
-  expect(dialog).toHaveTextContent("Người này sẽ không còn là Người thực thi của kho.");
+  expect(dialog).toHaveTextContent("Người này sẽ không còn là Người thực thi của tài sản.");
   expect(dialog).not.toHaveTextContent("Liên kết trong email mời");
   expect(within(dialog).getByRole("button", { name: "Giữ nguyên" })).toBeInTheDocument();
   expect(post).not.toHaveBeenCalled();

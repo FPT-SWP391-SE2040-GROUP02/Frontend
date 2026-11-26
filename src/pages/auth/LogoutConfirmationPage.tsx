@@ -14,7 +14,7 @@ export function LogoutConfirmationPage() {
   return (
     <HeritageAuthLayout
       sideTitle="Hẹn gặp lại."
-      sideSubtitle="Kho của bạn vẫn được bảo vệ khi bạn đăng xuất."
+      sideSubtitle="Tài sản của bạn vẫn được bảo vệ khi bạn đăng xuất."
       sideBadge="BẢO VỆ DI SẢN LIÊN TỤC"
     >
       <LogoutConfirmationCard onClose={() => navigate(-1)} />

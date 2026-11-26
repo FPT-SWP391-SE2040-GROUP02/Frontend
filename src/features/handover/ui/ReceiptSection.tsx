@@ -6,6 +6,7 @@ import { handoverService } from "../api/handoverService";
 import type { handoverTurnSchema } from "../model/handover.schema";
 import { useHandoverAction } from "../model/useHandoverAction";
 import { ActionButton } from "@/shared/ui/ActionButton";
+import { RecipientReceiptSignButton } from "@/entities/handoverRecord";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 type Turn = z.infer<typeof handoverTurnSchema>;
@@ -75,35 +76,43 @@ export function ReceiptSection({ turn, onChanged }: { turn: Turn; onChanged: () 
   return (
     <div className="space-y-3">
       <p className="text-sm leading-6 text-heritage-muted">
-        Tải và kiểm tra các mục ở bước 6B phía trên, rồi ký phiếu giao nhận. Ký rồi là bạn xác nhận
-        đã nhận đủ và tự chịu trách nhiệm quản lý tài sản.
+        Tải và kiểm tra các mục ở bước 6B phía trên, rồi bấm Xem và ký phiếu giao nhận và ký ở ô chữ
+        ký của bạn. Ký rồi là bạn xác nhận đã nhận đủ và tự chịu trách nhiệm quản lý tài sản.
       </p>
       {missing > 0 && (
         <p role="status" className="text-sm font-medium text-heritage-warning">
           Còn {missing} mục chưa tải. Tải hết rồi mới xác nhận được.
         </p>
       )}
-      <ActionButton
-        className={buttonStyles.dark}
-        disabled={action.pending || missing > 0}
-        onClick={() =>
-          void action.execute(
-            () => signed.hold(() => handoverService.confirmReceivedAll(turn.id)),
-            onChanged,
-          )
+      <RecipientReceiptSignButton
+        turnId={turn.id}
+        disabled={missing > 0}
+        signNode={
+          <>
+            <ActionButton
+              className={buttonStyles.dark}
+              disabled={action.pending}
+              onClick={() =>
+                void action.execute(
+                  () => signed.hold(() => handoverService.confirmReceivedAll(turn.id)),
+                  onChanged,
+                )
+              }
+              pending={action.pending}
+              done={signed.done}
+              pendingLabel="Đang ký…"
+              doneLabel="Đã ký"
+            >
+              Tôi đã nhận đủ, ký phiếu
+            </ActionButton>
+            {action.error && (
+              <p role="alert" className="max-w-56 text-center text-sm text-heritage-danger">
+                {action.error}
+              </p>
+            )}
+          </>
         }
-        pending={action.pending}
-        done={signed.done}
-        pendingLabel="Đang ký…"
-        doneLabel="Đã ký"
-      >
-        Tôi đã nhận đủ, ký phiếu
-      </ActionButton>
-      {action.error && (
-        <p role="alert" className="text-sm text-heritage-danger">
-          {action.error}
-        </p>
-      )}
+      />
       <IssueForm turn={turn} onChanged={onChanged} />
     </div>
   );

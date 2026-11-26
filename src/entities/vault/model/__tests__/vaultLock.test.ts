@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getVaultLockReason } from "../vaultLock";
 
 describe("getVaultLockReason", () => {
-  it("không khóa khi kho chưa tải", () => {
+  it("không khóa khi tài sản chưa tải", () => {
     expect(getVaultLockReason(undefined)).toBeNull();
     expect(getVaultLockReason(null)).toBeNull();
   });
@@ -20,8 +20,10 @@ describe("getVaultLockReason", () => {
     },
   );
 
-  it("khóa khi kho đã đóng dù kế hoạch còn hoạt động", () => {
-    expect(getVaultLockReason({ status: "CLOSED", planStatus: "ACTIVE" })).toContain("Kho đã đóng");
+  it("khóa khi tài sản đã đóng dù kế hoạch còn hoạt động", () => {
+    expect(getVaultLockReason({ status: "CLOSED", planStatus: "ACTIVE" })).toContain(
+      "Tài khoản đã đóng",
+    );
   });
 
   it("trạng thái kế hoạch lạ không bị coi là khóa", () => {

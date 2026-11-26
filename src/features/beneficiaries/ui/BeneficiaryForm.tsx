@@ -356,7 +356,7 @@ export function BeneficiaryForm({
                   if (result.isExisting) {
                     setExisting(result);
                     setError("citizenId", {
-                      message: `Số CCCD này đã có trong kho: “${result.fullName}”. Hãy kiểm tra lại, hoặc mở hồ sơ đã có để sửa.`,
+                      message: `Số CCCD này đã có trong danh sách: “${result.fullName}”. Hãy kiểm tra lại, hoặc mở hồ sơ đã có để sửa.`,
                     });
                     showProblems(["citizenId"]);
                     return;
@@ -535,8 +535,8 @@ export function BeneficiaryForm({
               role="alert"
               className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
             >
-              Số CCCD này đã có trong kho: “{existing.fullName}”. Hãy kiểm tra lại, hoặc mở hồ sơ đã
-              có để sửa.
+              Số CCCD này đã có trong danh sách: “{existing.fullName}”. Hãy kiểm tra lại, hoặc mở hồ
+              sơ đã có để sửa.
             </p>
           )}
           {!existing && assignedNote !== "" && (

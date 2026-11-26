@@ -47,7 +47,7 @@ export function ExecutorSettingsPage() {
   return (
     <ExecutorWorkspace
       title="Cài đặt"
-      description="Thông tin cá nhân, đăng nhập và quyền hạn của bạn. Vai trò do hệ thống cấp, bạn không đọc được nội dung kho."
+      description="Thông tin cá nhân, đăng nhập và quyền hạn của bạn. Vai trò do hệ thống cấp, bạn không đọc được nội dung tài sản."
     >
       <div className="space-y-6">
         <AccountSettingsContent showVaultPin={false} />

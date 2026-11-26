@@ -77,7 +77,7 @@ export function getLoginSubtitle(fromReceive: boolean, fromReceiveAssets = false
   if (fromReceiveAssets) {
     return RECEIVE_ASSETS_SUBTITLE;
   }
-  return "Chào mừng trở lại. Tiếp tục để quản lý kho của bạn.";
+  return "Chào mừng trở lại. Tiếp tục để quản lý tài sản của bạn.";
 }
 
 /** Báo đỏ khi tài khoản không phải Quản trị viên đăng nhập trong lúc hệ thống bảo trì. */

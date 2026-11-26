@@ -20,7 +20,7 @@ export function validateAssetFile(file: File | null, remainingBytes: number): st
     return `Kích thước tệp vượt quá giới hạn tối đa (${formatStorageSize(MAX_ASSET_FILE_BYTES)}).`;
   }
   if (file.size > remainingBytes) {
-    return `Dung lượng tệp (${formatStorageSize(file.size)}) vượt quá dung lượng khả dụng còn lại của kho (${formatStorageSize(remainingBytes)}).`;
+    return `Dung lượng tệp (${formatStorageSize(file.size)}) vượt quá dung lượng lưu trữ còn lại (${formatStorageSize(remainingBytes)}).`;
   }
   return "";
 }

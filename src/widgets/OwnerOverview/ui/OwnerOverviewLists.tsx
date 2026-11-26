@@ -49,12 +49,12 @@ export function OwnerOverviewLists({ data }: { data: OverviewResources }) {
           ) : (
             <div className="overview-empty">
               <FileText size={28} aria-hidden="true" />
-              <p>Kho chưa có tài sản.</p>
+              <p>Chưa có tài sản.</p>
             </div>
           )}
         </OverviewQueryState>
         <Link className="overview-text-link" to={ROUTES.DASHBOARD.ASSETS}>
-          Xem toàn bộ kho →
+          Xem toàn bộ tài sản →
         </Link>
       </section>
       <section className="overview-card" aria-labelledby="overview-beneficiaries-title">

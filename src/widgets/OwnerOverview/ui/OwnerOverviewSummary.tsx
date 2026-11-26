@@ -17,7 +17,7 @@ export function OwnerOverviewSummary({
   const plan = presentOverviewPlan(vault.planStatus);
   return (
     <>
-      <section className="overview-hero" aria-label="Trạng thái kho và bàn giao">
+      <section className="overview-hero" aria-label="Trạng thái tài sản và bàn giao">
         <div className="overview-hero-message">
           <p className="overview-eyebrow">
             <span className="overview-status-dot" /> Trạng thái kế hoạch
@@ -42,9 +42,9 @@ export function OwnerOverviewSummary({
           </p>
         </div>
       </section>
-      <section aria-label="Thống kê kho" className="overview-metrics">
+      <section aria-label="Thống kê tài sản" className="overview-metrics">
         <div className="overview-stat">
-          <h2>Tài sản trong kho</h2>
+          <h2>Tài sản đang lưu</h2>
           <OverviewQueryState query={data.assets}>
             <p className="overview-stat-value">{data.assets.data?.totalCount}</p>
           </OverviewQueryState>

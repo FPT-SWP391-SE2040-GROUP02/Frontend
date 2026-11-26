@@ -19,11 +19,11 @@ export function VaultGate({
   children: (vault: ExecutorVault) => ReactNode;
 }) {
   const { query, vaults, selected, select, open } = state;
-  if (query.isPending) return <p role="status">Đang tải các kho được phân công…</p>;
+  if (query.isPending) return <p role="status">Đang tải các tài sản được phân công…</p>;
   if (query.isError) {
     return (
       <div role="alert" className="space-y-3">
-        <p>Không tải được các kho được phân công.</p>
+        <p>Không tải được các tài sản được phân công.</p>
         <button type="button" className={buttonStyles.dark} onClick={() => void query.refetch()}>
           Thử lại
         </button>
@@ -32,7 +32,7 @@ export function VaultGate({
   }
   if (vaults.length === 0) {
     return (
-      <Panel title="Chưa có kho nào">
+      <Panel title="Chưa có tài sản nào">
         <p role="status" className="text-sm leading-6 text-heritage-muted">
           Lời mời mới sẽ hiện ở trang Tổng quan.
         </p>

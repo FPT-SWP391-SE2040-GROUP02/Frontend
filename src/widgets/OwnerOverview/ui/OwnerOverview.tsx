@@ -10,11 +10,11 @@ export function OwnerOverview() {
   const sessionReady = isAuthenticated && Boolean(accessTokenMemory.get());
   return (
     <OwnerWorkspace
-      title={user?.fullName ? `Chào ${user.fullName}` : "Kho của bạn"}
+      title={user?.fullName ? `Chào ${user.fullName}` : "Tài sản của bạn"}
       description={
         user?.fullName
-          ? "Đây là tổng quan kho của bạn."
-          : "Sắp xếp nội dung quan trọng và theo dõi kho di sản của bạn."
+          ? "Đây là tổng quan tài sản của bạn."
+          : "Sắp xếp nội dung quan trọng và theo dõi tài sản của bạn."
       }
     >
       <OwnerDashboard enabled={sessionReady} />

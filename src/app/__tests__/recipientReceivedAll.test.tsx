@@ -55,6 +55,42 @@ function turn(extra: object = {}) {
   };
 }
 
+/** Biên bản người nhận đọc kèm lượt: dùng cho tờ phiếu giao nhận (ô chữ ký Bên nhận). */
+const RECORD = {
+  id: "0198a000-0000-7000-8000-000000000003",
+  vaultId: VAULT_ID,
+  vaultName: "Tài sản thử",
+  ownerName: "Chủ tài sản thử",
+  status: "COMPLETED",
+  revisionNo: 1,
+  requestedAt: CREATED_AT,
+  finalizedAt: CREATED_AT,
+  completedAt: CREATED_AT,
+  verifierName: "Luật sư Dũng",
+  executorName: "Người thực thi thử",
+  verifierSignedAt: CREATED_AT,
+  executorSignedAt: CREATED_AT,
+  recipients: [
+    {
+      beneficiaryId: "0198a000-0000-7000-8000-000000000004",
+      fullName: "Người nhận thử",
+      citizenId: "001090000001",
+      assets: [],
+      turnId: CONTAINER_ID,
+      turnStatus: "HANDOVER_COMMITTED",
+      claimed: true,
+      submissionId: null,
+      submissionStatus: "",
+      identityConfirmedAt: CREATED_AT,
+      signedAt: CREATED_AT,
+    },
+  ],
+  canSign: false,
+  availableAssets: [],
+  availableRecipients: [],
+  ownerSplit: [],
+};
+
 function ok(config: InternalAxiosRequestConfig, data: unknown): AxiosResponse {
   return { config, data, status: 200, statusText: "OK", headers: new AxiosHeaders() };
 }
@@ -85,7 +121,7 @@ function setup() {
   );
 }
 
-it("hiện Người xét duyệt kèm số thẻ luật sư và nút Tôi đã nhận đủ gọi đúng API", async () => {
+it("hiện Người xét duyệt kèm số thẻ luật sư và ký phiếu trong tờ phiếu gọi đúng API", async () => {
   const posts: string[] = [];
   let received: string | null = null;
   apiClient.defaults.adapter = async (config) => {
@@ -93,6 +129,7 @@ it("hiện Người xét duyệt kèm số thẻ luật sư và nút Tôi đã n
       posts.push(config.url);
       received = "2026-10-20T03:00:00Z";
     }
+    if (config.url?.endsWith("/record")) return ok(config, RECORD);
     return ok(
       config,
       config.url?.endsWith("/handover/turns/me")
@@ -103,7 +140,15 @@ it("hiện Người xét duyệt kèm số thẻ luật sư và nút Tôi đã n
   setup();
 
   expect(await screen.findByText("Luật sư Dũng (thẻ luật sư LS-12345)")).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "Tôi đã nhận đủ, ký phiếu" }));
+  // Ngoài tờ phiếu không có nút ký: chỉ có nút mở phiếu.
+  expect(
+    screen.queryByRole("button", { name: "Tôi đã nhận đủ, ký phiếu" }),
+  ).not.toBeInTheDocument();
+  fireEvent.click(await screen.findByRole("button", { name: "Xem và ký phiếu giao nhận" }));
+  const sign = await screen.findByRole("button", { name: "Tôi đã nhận đủ, ký phiếu" });
+  // Nút ký nằm ngay ô chữ ký của Bên nhận.
+  expect(sign.closest("div.break-inside-avoid")).toHaveTextContent("Bên nhận");
+  fireEvent.click(sign);
 
   await waitFor(() => expect(posts).toHaveLength(1));
   expect(posts[0]).toContain(`/handover/turns/${CONTAINER_ID}/received-all`);
@@ -114,13 +159,15 @@ it("hiện Người xét duyệt kèm số thẻ luật sư và nút Tôi đã n
   expect(screen.queryByText("Đang ở đây")).not.toBeInTheDocument();
 });
 
-it("chưa tải hết các mục thì khóa nút Tôi đã nhận đủ và báo còn mấy mục", async () => {
+it("chưa tải hết các mục thì khóa nút Xem và ký phiếu giao nhận và báo còn mấy mục", async () => {
   const pending = turn({ items: [{ ...turn().items[0], downloaded: false }] });
-  apiClient.defaults.adapter = async (config) =>
-    ok(config, config.url?.endsWith("/handover/turns/me") ? [pending] : pending);
+  apiClient.defaults.adapter = async (config) => {
+    if (config.url?.endsWith("/record")) return ok(config, RECORD);
+    return ok(config, config.url?.endsWith("/handover/turns/me") ? [pending] : pending);
+  };
   setup();
 
-  const button = await screen.findByRole("button", { name: "Tôi đã nhận đủ, ký phiếu" });
+  const button = await screen.findByRole("button", { name: "Xem và ký phiếu giao nhận" });
   expect(button).toBeDisabled();
   expect(screen.getByText(/Tải hết rồi mới xác nhận được/)).toBeInTheDocument();
 });

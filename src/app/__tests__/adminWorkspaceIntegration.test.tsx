@@ -165,11 +165,11 @@ it("Tổng quan hiện kế hoạch theo giai đoạn, tải việc người xé
   expect(await screen.findByText("Kế hoạch theo giai đoạn")).toBeInTheDocument();
   expect(screen.getByText("Đang chạy")).toBeInTheDocument();
   expect(screen.getByText("Đang lập biên bản")).toBeInTheDocument();
-  expect(screen.getByText(/Chưa tính 41 kho đã đóng/)).toBeInTheDocument();
+  expect(screen.getByText(/Chưa tính 41 tài sản đã đóng/)).toBeInTheDocument();
   expect(screen.getByText("Lê Hoàng")).toBeInTheDocument();
   expect(screen.getByText(/3 hồ sơ/)).toHaveTextContent("1 quá hạn");
   expect(screen.getByText("Trần An")).toBeInTheDocument();
-  expect(screen.getByText("Tạo kho", { exact: false })).toBeInTheDocument();
+  expect(screen.getByText("Tạo tài sản", { exact: false })).toBeInTheDocument();
   expect(screen.getByText("Tải tài sản lên", { exact: false })).toBeInTheDocument();
 });
 
@@ -207,7 +207,7 @@ it("chi tiết người dùng hiện hồ sơ đang giao, quyết định và ho
   expect(screen.getAllByText(/11111111/).length).toBeGreaterThan(0);
   expect(screen.getAllByText(/Đang ký/).length).toBeGreaterThan(0);
   expect(screen.getAllByText(/Chấp nhận/).length).toBeGreaterThan(0);
-  expect(screen.getByText("Tạo kho")).toBeInTheDocument();
+  expect(screen.getByText("Tạo tài sản")).toBeInTheDocument();
   expect(screen.getByText("Bị từ chối")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Về danh sách" })).toBeInTheDocument();
 });

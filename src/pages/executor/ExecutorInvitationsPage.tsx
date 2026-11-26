@@ -6,8 +6,8 @@ import { ExecutorWorkspace } from "@/widgets/ExecutorWorkspace/ExecutorWorkspace
 export function ExecutorInvitationsPage() {
   return (
     <ExecutorWorkspace
-      title="Lời mời và các kho bạn đang làm việc"
-      description="Chọn kho để làm việc. Lời mời mới nằm ở trên cùng."
+      title="Lời mời và các tài sản bạn đang làm việc"
+      description="Chọn tài sản để làm việc. Lời mời mới nằm ở trên cùng."
     >
       <div className="space-y-8">
         <ExecutorInvitationsInbox />

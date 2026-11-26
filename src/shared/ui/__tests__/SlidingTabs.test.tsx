@@ -5,12 +5,12 @@ import userEvent from "@testing-library/user-event";
 import { SlidingTabs } from "../SlidingTabs";
 
 const TABS = [
-  { key: "items", label: "Mục trong kho" },
+  { key: "items", label: "Mục tài sản" },
   { key: "groups", label: "Gói bàn giao" },
 ];
 // Vị trí và bề rộng giả cho từng tab, vì jsdom không dàn trang.
 const LAYOUT: Record<string, { left: number; width: number }> = {
-  "Mục trong kho": { left: 4, width: 120 },
+  "Mục tài sản": { left: 4, width: 120 },
   "Gói bàn giao": { left: 128, width: 100 },
 };
 
@@ -58,7 +58,7 @@ afterEach(() => {
 
 function Harness({ initial = "items" }: { initial?: string }) {
   const [value, setValue] = useState(initial);
-  return <SlidingTabs label="Kho của tôi" tabs={TABS} value={value} onChange={setValue} />;
+  return <SlidingTabs label="Tài sản của tôi" tabs={TABS} value={value} onChange={setValue} />;
 }
 
 function pillOf(container: HTMLElement): HTMLElement {
@@ -72,8 +72,8 @@ function pillOf(container: HTMLElement): HTMLElement {
 describe("SlidingTabs", () => {
   it("có vai trò tablist và tab, đánh dấu tab đang chọn", () => {
     render(<Harness />);
-    expect(screen.getByRole("tablist", { name: "Kho của tôi" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Mục trong kho" })).toHaveAttribute(
+    expect(screen.getByRole("tablist", { name: "Tài sản của tôi" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Mục tài sản" })).toHaveAttribute(
       "aria-selected",
       "true",
     );

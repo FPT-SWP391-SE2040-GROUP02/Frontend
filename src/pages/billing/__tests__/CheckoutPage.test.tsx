@@ -72,7 +72,7 @@ function setup(path: string) {
 }
 
 describe("trang thanh toán", () => {
-  it("không có ?order thì theo dõi đơn đang chờ của kho", async () => {
+  it("không có ?order thì theo dõi đơn đang chờ của tài sản", async () => {
     const get = vi.spyOn(apiClient, "get").mockResolvedValue(order);
     setup("/billing/checkout");
     expect(await screen.findByRole("img", { name: "Mã QR chuyển khoản" })).toBeInTheDocument();

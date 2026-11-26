@@ -3,6 +3,7 @@ import { formatDateTime } from "@/shared/ui/heritageKit";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
 import { BODY, CELL, HEADING, longDate, orBlank, SECTION } from "../model/paperFormat";
 import { PaperFrame, SignatureSlot } from "./paperKit";
+import { type PaperSignAction, signActionFor } from "./paperSignAction";
 
 /** Ngày lập phiếu: lúc người nhận xác nhận; chưa xác nhận thì để trống. */
 function receiptDate(recipient: RecordRecipient): string | null {
@@ -19,9 +20,12 @@ function receiptDate(recipient: RecordRecipient): string | null {
 export function ReceiptPaper({
   record,
   recipient,
+  signAction,
 }: {
   record: HandoverRecord;
   recipient: RecordRecipient;
+  /** Nút ký của người đang xem, đặt ngay ô chữ ký của họ ("Bên giao" cho Người thực thi, "Bên nhận" cho người nhận). */
+  signAction?: PaperSignAction;
 }) {
   const complete = recipient.receivedAllAt !== null && recipient.receiptExecutorSignedAt !== null;
   const rows: ReactNode[] = [];
@@ -75,7 +79,7 @@ export function ReceiptPaper({
           {orBlank(recipient.fullName)}, căn cước số {orBlank(recipient.citizenId)}.
         </li>
         <li>
-          <span className="font-bold">Kho tài sản: </span>
+          <span className="font-bold">Tài sản: </span>
           {orBlank(record.vaultName)}, của Chủ tài sản {orBlank(record.ownerName)}.
         </li>
       </ol>
@@ -128,11 +132,13 @@ export function ReceiptPaper({
           role="Bên giao"
           name={record.executorName}
           signedAt={recipient.receiptExecutorSignedAt}
+          action={signActionFor(signAction, "executor")}
         />
         <SignatureSlot
           role="Bên nhận"
           name={recipient.fullName}
           signedAt={recipient.receivedAllAt}
+          action={signActionFor(signAction, { recipientId: recipient.beneficiaryId })}
         />
       </div>
     </PaperFrame>

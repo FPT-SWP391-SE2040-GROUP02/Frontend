@@ -11,7 +11,7 @@ import { LinkGoogleAccountCard } from "@/features/auth/ui/LinkGoogleAccountCard"
 export function LinkGooglePage() {
   return (
     <HeritageAuthLayout
-      sideTitle="Kho của bạn vẫn kín, dù bạn vắng mặt."
+      sideTitle="Tài sản của bạn vẫn kín, dù bạn vắng mặt."
       sideSubtitle="Chúng tôi không tự gộp tài khoản chỉ dựa trên email. Bạn xác nhận bằng mật khẩu hiện có."
     >
       <LinkGoogleAccountCard />

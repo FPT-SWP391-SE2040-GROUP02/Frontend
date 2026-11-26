@@ -7,8 +7,8 @@ import type {
 
 /** Nhãn tiếng Việt cho wire action; giữ mapping tập trung ở UI. */
 export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> = {
-  VAULT_CREATED: "Tạo kho",
-  VAULT_UPDATED: "Sửa thông tin kho",
+  VAULT_CREATED: "Tạo tài sản",
+  VAULT_UPDATED: "Sửa thông tin tài sản",
   ASSET_CREATED: "Tải tài sản lên",
   ASSET_UPDATED: "Sửa tài sản",
   ASSET_VERSION_CREATED: "Tạo phiên bản tài sản",
@@ -49,17 +49,17 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   PAYMENT_ORDER_CANCELLED: "Hủy đơn thanh toán",
   PAYMENT_PAID: "Thanh toán thành công",
   SERVICE_GRACE_STARTED: "Hết hạn dịch vụ, chuyển sang chỉ đọc",
-  VAULT_PIN_SET: "Đặt mã PIN kho",
-  VAULT_PIN_CHANGED: "Đổi mã PIN kho",
-  VAULT_PIN_RESET: "Đặt lại mã PIN kho",
-  VAULT_PIN_WRONG: "Nhập sai mã PIN kho",
-  VAULT_PIN_LOCKED: "Mã PIN kho bị khóa tạm",
+  VAULT_PIN_SET: "Đặt mã PIN tài sản",
+  VAULT_PIN_CHANGED: "Đổi mã PIN tài sản",
+  VAULT_PIN_RESET: "Đặt lại mã PIN tài sản",
+  VAULT_PIN_WRONG: "Nhập sai mã PIN tài sản",
+  VAULT_PIN_LOCKED: "Mã PIN tài sản bị khóa tạm",
   TIER_OVERRIDE_BELOW_RECOMMENDED: "Chọn tầng bảo mật thấp hơn khuyến nghị",
   DEATH_CASE_SUPPLEMENT_EXHAUSTED: "Đóng hồ sơ sau 3 vòng bổ sung",
   DEV_TIME_TRAVEL: "Tua thời gian thử nghiệm",
   DEV_CLOCK_RESET: "Đưa đồng hồ về thời gian thực",
   DEV_EKYC_RESET: "Đặt lại dữ liệu eKYC",
-  DEV_REWIND_BEFORE_EKYC: "Tua kho về trước eKYC",
+  DEV_REWIND_BEFORE_EKYC: "Tua tài sản về trước eKYC",
   DEV_UPDATE_EKYC_THRESHOLD: "Cập nhật ngưỡng so khớp khuôn mặt",
   ADMIN_CREATED_USER: "Tạo tài khoản hệ thống",
   SYSTEM_CONFIG_UPDATED: "Cập nhật cấu hình dịch vụ",
@@ -101,7 +101,7 @@ export const ACTOR_ROLE_LABELS: Record<(typeof auditActorRoleValues)[number], st
 };
 
 export const TARGET_TYPE_LABELS: Record<(typeof auditTargetTypeValues)[number], string> = {
-  VAULT: "Kho",
+  VAULT: "Tài sản",
   PLAN: "Kế hoạch bàn giao",
   ASSET: "Tài sản",
   CONTAINER: "Gói bàn giao (tính năng cũ)",

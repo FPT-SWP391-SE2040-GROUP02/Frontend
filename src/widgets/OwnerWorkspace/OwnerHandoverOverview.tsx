@@ -56,7 +56,7 @@ function draftSubtitle(setup: PlanSetup): string {
   if (setup.canActivate) {
     return "Mọi việc đã xong. Bấm Xem trước và ký, đọc lại biên bản phân chia rồi ký bằng mã PIN. Người thực thi xem bản bạn ký và ký sau cùng.";
   }
-  return "Hoàn tất các việc bên dưới, rồi bấm Xem trước biên bản phân chia. Biên bản phân chia tự điền từ kho của bạn; đọc xong bạn mới ký.";
+  return "Hoàn tất các việc bên dưới, rồi bấm Xem trước biên bản phân chia. Biên bản phân chia tự điền từ tài sản của bạn; đọc xong bạn mới ký.";
 }
 
 function draftChip(setup: PlanSetup): string {

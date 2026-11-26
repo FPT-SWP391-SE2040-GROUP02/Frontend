@@ -19,7 +19,7 @@ beforeEach(() => {
   vi.spyOn(executorWillService, "get").mockResolvedValue({
     versionNo: 2,
     signedAt: AT,
-    ownerName: "Nguyễn Chủ Kho",
+    ownerName: "Nguyễn Chủ Tài sản",
     ownerEmail: "chu@example.test",
     recipients: [],
     unassignedAssetCount: 0,
@@ -39,7 +39,7 @@ function setup(extra: Record<string, unknown>) {
         <ExecutorWillConsent
           vault={{
             vaultId: VAULT_ID,
-            ownerFullName: "Nguyễn Chủ Kho",
+            ownerFullName: "Nguyễn Chủ Tài sản",
             planStatus: "ACTIVE",
             handoverRecordStatus: "",
             acceptedAt: AT,

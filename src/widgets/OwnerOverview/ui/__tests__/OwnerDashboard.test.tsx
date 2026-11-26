@@ -164,7 +164,9 @@ describe("Owner dashboard from server metadata", () => {
     expect(
       await screen.findByRole("heading", { name: "Kế hoạch đang được chuẩn bị" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Thống kê kho" })).toHaveTextContent("7 MB / 200 MB");
+    expect(screen.getByRole("region", { name: "Thống kê tài sản" })).toHaveTextContent(
+      "7 MB / 200 MB",
+    );
     expect(await screen.findByRole("link", { name: "Xác minh ngay" })).toHaveAttribute(
       "href",
       "/dashboard/identity",
@@ -173,7 +175,7 @@ describe("Owner dashboard from server metadata", () => {
     expect(
       screen.queryByRole("button", { name: "Tôi đồng ý và tiếp tục" }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText("Kho đang an toàn")).not.toBeInTheDocument();
+    expect(screen.queryByText("Tài sản đang an toàn")).not.toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
 
@@ -182,7 +184,7 @@ describe("Owner dashboard from server metadata", () => {
     mount();
     await screen.findByRole("heading", { name: "Tài sản mới thêm" });
     await vi.waitFor(() =>
-      expect(screen.getByRole("region", { name: "Thống kê kho" })).toHaveTextContent("27"),
+      expect(screen.getByRole("region", { name: "Thống kê tài sản" })).toHaveTextContent("27"),
     );
     expect(backendAssetService.list).toHaveBeenCalledWith(
       VAULT_ID,
@@ -196,11 +198,13 @@ describe("Owner dashboard from server metadata", () => {
     mount();
     const section = await screen.findByRole("region", { name: "Tài sản mới thêm" });
     expect(await within(section).findByRole("alert")).toHaveTextContent("Không tải được dữ liệu");
-    expect(within(section).queryByText("Kho chưa có tài sản.")).not.toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Thống kê kho" })).toHaveTextContent("7 MB / 200 MB");
+    expect(within(section).queryByText("Chưa có tài sản.")).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Thống kê tài sản" })).toHaveTextContent(
+      "7 MB / 200 MB",
+    );
     vi.mocked(backendAssetService.list).mockResolvedValue(pageFixture([]));
     fireEvent.click(within(section).getByRole("button", { name: "Thử lại" }));
-    expect(await within(section).findByText("Kho chưa có tài sản.")).toBeInTheDocument();
+    expect(await within(section).findByText("Chưa có tài sản.")).toBeInTheDocument();
   });
 
   it("auto-creates a missing vault and opens the dashboard without a naming step", async () => {
@@ -210,21 +214,23 @@ describe("Owner dashboard from server metadata", () => {
     await screen.findByRole("heading", { name: "Tài sản mới thêm" });
     expect(createMine).toHaveBeenCalledTimes(1);
     expect(createMine).toHaveBeenCalledWith();
-    expect(screen.queryByText("Đặt tên kho")).not.toBeInTheDocument();
+    expect(screen.queryByText("Đặt tên tài sản")).not.toBeInTheDocument();
   });
 
   it("asks to verify email when the vault cannot be created yet", async () => {
     vi.mocked(ownerVaultService.getMine).mockRejectedValue(problem("VAULT_NOT_FOUND", 404));
     vi.spyOn(ownerVaultService, "createMine").mockRejectedValue(problem("EMAIL_NOT_VERIFIED", 403));
     mount();
-    expect(await screen.findByText("Xác minh email để mở kho di sản")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Xác minh email để bắt đầu lưu giữ tài sản"),
+    ).toBeInTheDocument();
     expect(backendAssetService.list).not.toHaveBeenCalled();
   });
 
   it("keeps an unknown 404 visible instead of inventing an empty vault", async () => {
     vi.mocked(ownerVaultService.getMine).mockRejectedValue(problem("NOT_FOUND", 404));
     mount();
-    expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được kho");
-    expect(screen.queryByRole("region", { name: "Tạo kho di sản" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được tài sản");
+    expect(screen.queryByRole("region", { name: "Khởi tạo tài sản" })).not.toBeInTheDocument();
   });
 });

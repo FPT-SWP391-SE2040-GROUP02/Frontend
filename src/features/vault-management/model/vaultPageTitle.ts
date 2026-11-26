@@ -1,5 +1,5 @@
 /** Tên mặc định Backend đặt khi tạo kho mà không nhập tên; cũng là nhãn mục menu. */
-export const DEFAULT_VAULT_TITLE = "Kho của tôi";
+export const DEFAULT_VAULT_TITLE = "Tài sản của tôi";
 
 export interface VaultPageTitle {
   /** Tiêu đề lớn của trang: tên kho Chủ tài sản đặt, hoặc nhãn mặc định khi chưa có. */
