@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { paginatedListSchema } from "@/shared/api/pagination.schema";
+import { isVietnamesePhone, VIETNAM_PHONE_MESSAGE } from "@/shared/lib/vietnamPhone";
 
 /** Vai trò tài khoản theo `UserRole` của Backend (wire viết hoa). */
 export const ADMIN_USER_ROLES = ["USER", "VERIFIER", "ADMIN", "EXECUTOR"] as const;
@@ -289,7 +290,15 @@ export const createAdminUserRequestSchema = z.object({
   /** Bắt buộc với ADMIN; bỏ trống với VERIFIER/EXECUTOR thì Backend gửi thư mời đặt mật khẩu. */
   password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự.").max(128).optional(),
   role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),
-  phone: z.string().trim().max(32).optional(),
+  phone: z
+    .string()
+    .trim()
+    .max(32)
+    .optional()
+    .refine(
+      (text) => text === undefined || text === "" || isVietnamesePhone(text),
+      VIETNAM_PHONE_MESSAGE,
+    ),
   practiceCertificateNumber: z.string().trim().max(64).optional(),
   lawyerCardNumber: z.string().trim().max(64).optional(),
   /** Chỉ dùng cho EXECUTOR: vai trò chuyên môn và tổ chức hành nghề hiện trong danh bạ của Chủ tài sản. */

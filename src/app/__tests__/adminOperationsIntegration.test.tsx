@@ -308,6 +308,37 @@ describe("Tài khoản", () => {
     expect(calls.some((call) => call.url.includes("notary-card"))).toBe(false);
   });
 
+  it("tạo tài khoản: số điện thoại sai định dạng bị chặn ngay dưới ô, đúng thì gửi đi", async () => {
+    const NEW_ID = "77777777-7777-4777-8777-777777777778";
+    usersBackend((call) => {
+      if (call.method === "post" && call.url === "/admin/users") {
+        return userBody(NEW_ID, "EXECUTOR", "Nhan Vien Thu");
+      }
+      return undefined;
+    });
+    setup(ROUTES.DASHBOARD.USERS);
+    fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(within(dialog).getByLabelText(/Họ và tên/), "Nhan Vien Thu");
+    await userEvent.type(within(dialog).getByLabelText(/Email đăng nhập/), "nv.thu@example.test");
+    await userEvent.selectOptions(within(dialog).getByLabelText(/Vai trò hệ thống/), "EXECUTOR");
+    const phone = within(dialog).getByLabelText(/Số điện thoại/);
+
+    await userEvent.type(phone, "3232");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tạo tài khoản" }));
+    expect(
+      await within(dialog).findByText(/Số điện thoại không đúng định dạng/),
+    ).toBeInTheDocument();
+    expect(phone).toHaveAttribute("aria-invalid", "true");
+    expect(callsTo("post", "/admin/users")).toHaveLength(0);
+
+    await userEvent.clear(phone);
+    await userEvent.type(phone, "091 234 5678");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Tạo tài khoản" }));
+    await waitFor(() => expect(callsTo("post", "/admin/users")).toHaveLength(1));
+    expect(callsTo("post", "/admin/users")[0].body).toMatchObject({ phone: "091 234 5678" });
+  });
+
   it("tạo tài khoản: Người xét duyệt 2 bước (mật khẩu không bắt buộc), Quản trị viên 1 bước và bắt buộc mật khẩu", async () => {
     usersBackend();
     setup(ROUTES.DASHBOARD.USERS);
