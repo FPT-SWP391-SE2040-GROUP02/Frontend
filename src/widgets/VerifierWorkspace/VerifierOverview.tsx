@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 import { useRecipientSubmissions } from "@/features/recipient-review";
-import { recordStatusLabel, useVerifierRecords } from "@/entities/handoverRecord";
+import {
+  recordStatusLabel,
+  usePendingReports,
+  useVerifierRecords,
+} from "@/entities/handoverRecord";
 import { caseCode } from "@/shared/lib/caseCode";
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatTimeThenDate } from "@/shared/lib/dateFormat";
@@ -60,12 +64,18 @@ function WorkCard({
 export function VerifierOverview() {
   const records = useVerifierRecords();
   const recipients = useRecipientSubmissions();
-  const open = (records.data ?? []).filter((item) => item.status !== "COMPLETED");
+  const reports = usePendingReports();
+  const open = (records.data ?? []).filter(
+    (item) => item.status !== "COMPLETED" && item.status !== "CANCELLED",
+  );
   const waiting = open.filter((item) => item.status === "DRAFTING" || item.status === "SIGNING");
 
   const caseMoments: string[] = [];
   for (const item of waiting) {
     caseMoments.push(item.requestedAt);
+  }
+  for (const report of reports.waiting) {
+    caseMoments.push(report.createdAt);
   }
   const recipientMoments: string[] = [];
   let recipientCount = 0;
@@ -81,8 +91,8 @@ export function VerifierOverview() {
       <div className="grid gap-4 md:grid-cols-2">
         <WorkCard
           to={ROUTES.NOTARY.QUEUE}
-          title="Biên bản cần lập hoặc ký"
-          count={waiting.length}
+          title="Hồ sơ và biên bản cần xử lý"
+          count={waiting.length + reports.waiting.length}
           oldest={oldestMoment(caseMoments)}
           pending={records.isPending}
           failed={records.isError}

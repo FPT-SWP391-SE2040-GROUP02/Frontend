@@ -4,11 +4,21 @@ import { verifierReportService } from "../api/verifierReportService";
 import type { HandoverRecord } from "../model/handoverRecord.schema";
 import { ReportFiles, SuggestedRecipientList } from "./ReportDetails";
 
-/** Hồ sơ báo tin đã chấp nhận của biên bản: người nộp, giấy tờ và người nhận họ khai. */
+/**
+ * Hồ sơ báo tin đã chấp nhận của biên bản: người nộp, giấy tờ và người nhận họ khai.
+ * Mặc định thu gọn để trang không quá dài; bấm mũi tên ở đầu mục để mở hoặc thu lại.
+ */
 export function RecordReportsPanel({ record }: { record: HandoverRecord }) {
   if (record.reports.length === 0) return null;
+  const submitters = record.reports.map((report) => report.submitterName).join(", ");
   return (
-    <SectionCard title="Hồ sơ báo tin" labelledBy="record-reports">
+    <SectionCard
+      title="A. Hồ sơ báo tin"
+      subtitle={`Người nộp: ${submitters}`}
+      labelledBy="record-reports"
+      collapsible
+      defaultOpen={false}
+    >
       <div className="divide-y divide-heritage-border">
         {record.reports.map((report) => (
           <article

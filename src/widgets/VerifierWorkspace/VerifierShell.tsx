@@ -15,7 +15,7 @@ import {
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { NotaryCardMissingNotice } from "@/features/notary-card";
 import { usePendingRecipientCount } from "@/features/recipient-review";
-import { useVerifierRecords } from "@/entities/handoverRecord";
+import { usePendingReports, useVerifierRecords } from "@/entities/handoverRecord";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
@@ -92,9 +92,10 @@ export function VerifierShell({
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const [navigationOpen, setNavigationOpen] = useState(false);
   const path = location.pathname;
-  const waitingCases = (useVerifierRecords().data ?? []).filter(
+  const openRecords = (useVerifierRecords().data ?? []).filter(
     (item) => item.status === "DRAFTING" || item.status === "SIGNING",
   ).length;
+  const waitingCases = openRecords + usePendingReports().waiting.length;
   const waitingRecipients = usePendingRecipientCount();
   const current = allNavigationItems.find(({ to }) =>
     to === ROUTES.NOTARY.WORKSPACE ? path === to : path === to || path.startsWith(`${to}/`),

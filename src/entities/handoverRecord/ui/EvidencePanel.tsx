@@ -21,6 +21,8 @@ export function EvidencePanel({ record }: { record: HandoverRecord }) {
       title="C. Giấy tờ đính kèm thêm (nếu có)"
       subtitle="Tệp PDF hoặc ảnh, tối đa 10 tệp, mỗi tệp 10 MB."
       labelledBy="record-evidence"
+      collapsible
+      defaultOpen={false}
     >
       <div className="space-y-3 p-5 text-sm">
         <RecordFileList

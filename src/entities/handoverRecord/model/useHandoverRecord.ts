@@ -35,6 +35,15 @@ export function useVerifierReports() {
   });
 }
 
+/** Hồ sơ báo tin còn chờ luật sư xét; dùng để đếm việc ở menu và Tổng quan. */
+export function usePendingReports() {
+  const reports = useVerifierReports();
+  const waiting = (reports.data ?? []).filter(
+    (report) => report.status === "SUBMITTED" || report.status === "SUPPLEMENT_REQUESTED",
+  );
+  return { ...reports, waiting };
+}
+
 export function useVerifierRecord(recordId: string | null) {
   return useQuery({
     queryKey: handoverRecordKeys.verifier(recordId ?? "none"),

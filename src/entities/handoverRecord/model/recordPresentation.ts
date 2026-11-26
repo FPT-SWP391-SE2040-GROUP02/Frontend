@@ -75,12 +75,15 @@ export function deliveryText(
     return { label: "Đã mở quyền tải", tone: "success" };
   }
   if (!recipient.turnId) return { label: "Chưa chốt biên bản", tone: "neutral" };
+  // Chữ ký riêng cho người này; dữ liệu cũ chỉ có chữ ký chung của biên bản.
+  const verifierAt = recipient.verifierSignedAt ?? record.verifierSignedAt;
+  const executorAt = recipient.executorSignedAt ?? record.executorSignedAt;
   if (recipient.signedAt) {
-    if (!record.verifierSignedAt && !record.executorSignedAt) {
+    if (!verifierAt && !executorAt) {
       return { label: "Chờ luật sư và Người thực thi ký", tone: "warning" };
     }
-    if (!record.verifierSignedAt) return { label: "Chờ luật sư ký", tone: "warning" };
-    if (!record.executorSignedAt) return { label: "Chờ Người thực thi ký", tone: "warning" };
+    if (!verifierAt) return { label: "Chờ luật sư ký", tone: "warning" };
+    if (!executorAt) return { label: "Chờ Người thực thi ký", tone: "warning" };
     return { label: "Chờ mở quyền tải", tone: "warning" };
   }
   if (recipient.identityConfirmedAt) return { label: "Chờ người này ký", tone: "warning" };
@@ -99,15 +102,15 @@ export function identityText(recipient: RecordRecipient): { label: string; tone:
   return { label: "Chưa mở thư mời", tone: "neutral" };
 }
 
-/** Số chữ ký đã có trên tổng số chữ ký cần (luật sư + Người thực thi + từng người nhận). */
+/** Số chữ ký đã có trên tổng số cần: mỗi người nhận cần luật sư, Người thực thi và chính người đó. */
 export function signatureCount(record: HandoverRecord): { signed: number; total: number } {
   let signed = 0;
-  if (record.verifierSignedAt) signed += 1;
-  if (record.executorSignedAt) signed += 1;
   for (const recipient of record.recipients) {
+    if (recipient.verifierSignedAt ?? record.verifierSignedAt) signed += 1;
+    if (recipient.executorSignedAt ?? record.executorSignedAt) signed += 1;
     if (recipient.signedAt) signed += 1;
   }
-  return { signed, total: 2 + record.recipients.length };
+  return { signed, total: 3 * record.recipients.length };
 }
 
 /** Phiếu giao nhận của một người nhận đang ở đâu; chỉ dùng khi phần của người đó đã mở quyền tải. */

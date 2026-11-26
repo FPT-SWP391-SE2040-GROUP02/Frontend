@@ -51,11 +51,17 @@ const handoverNotAllowedReasons: Record<string, string> = {
   HANDOVER_NOT_STARTED: "Chỉ xem được sau khi luật sư chốt biên bản bàn giao.",
   PLAN_NOT_ACTIVE: "Tài sản chưa kích hoạt kế hoạch bàn giao nên chưa nhận yêu cầu.",
   NO_VERIFIER: "Hiện chưa có luật sư nào nhận được hồ sơ này. Vui lòng thử lại sau.",
+  ALREADY_REPORTED: "Bạn đã nộp hồ sơ cho người này và luật sư đang xét. Chờ kết quả nhé.",
+  REPORT_LIMIT_REACHED:
+    "Bạn đã nộp 3 hồ sơ cho người này trong 30 ngày. Vui lòng liên hệ luật sư hoặc thử lại sau.",
+  TOO_MANY_REPORTS: "Bạn đang có 3 hồ sơ chờ xét. Chờ kết quả trước khi nộp thêm.",
+  OWNER_CANNOT_CLAIM: "Bạn không nộp hồ sơ báo tin cho chính mình.",
   NO_OWNER_SPLIT:
     "Chủ tài sản chưa lập biên bản phân chia. Hãy tự chọn người nhận cho từng tài sản.",
   RECORD_INVALID: "Biên bản chưa hợp lệ. Kiểm tra lại người nhận và tài sản trước khi chốt.",
   NOT_IDENTITY_STEP: "Biên bản chưa ở bước kiểm danh tính. Hãy chốt biên bản trước.",
   NOT_SIGNING_STEP: "Chưa tới bước ký: hãy chờ luật sư chốt biên bản.",
+  RECIPIENT_NOT_CONFIRMED: "Chưa ký được: người nhận này chưa được xác nhận danh tính.",
   IDENTITY_NOT_CONFIRMED:
     "Danh tính của người nhận chưa được luật sư xác nhận nên chưa ký được. Hãy nộp ảnh căn cước và chờ luật sư xác nhận.",
   PARTIALLY_DELIVERED:

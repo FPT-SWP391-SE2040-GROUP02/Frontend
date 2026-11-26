@@ -161,8 +161,8 @@ export function NewRecipientCards({
       )}
       {drafts.length > 0 && (
         <p className="text-sm leading-6 text-heritage-muted">
-          Người đang nhập chỉ được thêm vào danh sách khi bấm Chốt và gửi thư. Một người không hợp
-          lệ thì chưa ai được thêm.
+          Người đang nhập chỉ được thêm vào danh sách khi bấm Phát hành biên bản. Một người không
+          hợp lệ thì chưa ai được thêm.
         </p>
       )}
       {drafts.map((draft, index) => (
