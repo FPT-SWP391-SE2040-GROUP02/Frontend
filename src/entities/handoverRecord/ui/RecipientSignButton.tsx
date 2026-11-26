@@ -9,8 +9,8 @@ import { RecordPaper } from "./RecordPaper";
 const SIGN_TEXT = { verifier: "Ký xác minh", executor: "Ký biên bản" };
 
 /**
- * Nút "Xem và ký" trên dòng một người nhận: mở tờ biên bản với chữ ký của đúng người nhận đó, nút ký nằm ngay ô chữ ký
- * của người đang xem. Luật sư và Người thực thi ký riêng cho từng người nhận.
+ * Nút "Xem và ký" trên dòng một người nhận: mở tờ riêng của phần người đó, nút ký nằm ngay ô chữ ký của người đang xem.
+ * Luật sư và Người thực thi ký riêng cho từng người nhận. Ký rồi (kể cả đã giao) vẫn mở lại tờ này được.
  */
 export function RecipientSignButton({
   record,
@@ -28,9 +28,12 @@ export function RecipientSignButton({
   const action = usePrivateAction();
   const done = useSuccessHold();
   const name = recipient.fullName || "người nhận";
-  // Ô chữ ký trên tờ hiện đúng chữ ký đã có cho người nhận này, không phải của cả biên bản.
+  // Tờ riêng giống tờ người nhận tự xem: một người ở Điều 1, một ô Bên nhận, chữ ký của đúng phần này, không liệt kê
+  // khác biệt của cả biên bản (trong đó có người nhận khác).
   const forRecipient: HandoverRecord = {
     ...record,
+    recipients: [recipient],
+    splitDifferences: [],
     verifierSignedAt: recipient.verifierSignedAt,
     executorSignedAt: recipient.executorSignedAt,
   };

@@ -3,7 +3,7 @@ import { formatDateTime } from "@/shared/ui/heritageKit";
 import { BODY, CELL, HEADING, longDate, orBlank, SECTION } from "../model/paperFormat";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
 import { splitDifferenceText } from "../model/splitDifference";
-import { SignatureSlot } from "./paperKit";
+import { SignatureSlot, type SignaturePart } from "./paperKit";
 import { type PaperSignAction, signActionFor } from "./paperSignAction";
 
 export type { PaperSignAction };
@@ -17,6 +17,29 @@ function recordDate(record: HandoverRecord): string | null {
     return record.finalizedAt;
   }
   return record.requestedAt;
+}
+
+/**
+ * Người thực thi và luật sư ký riêng cho từng người nhận. Biên bản nhiều người thì ô ký ghi theo từng phần kèm giờ ký
+ * của phần đó, không đợi đủ mọi người; biên bản một người giữ một dòng chữ ký.
+ */
+function signatureParts(
+  record: HandoverRecord,
+  field: "executorSignedAt" | "verifierSignedAt",
+): SignaturePart[] | undefined {
+  if (record.recipients.length < 2) {
+    return undefined;
+  }
+  const parts: SignaturePart[] = [];
+  for (const recipient of record.recipients) {
+    // Dữ liệu cũ ký một lần cho cả biên bản thì lấy chữ ký chung.
+    parts.push({
+      id: recipient.beneficiaryId,
+      recipientName: orBlank(recipient.fullName),
+      signedAt: recipient[field] ?? record[field],
+    });
+  }
+  return parts;
 }
 
 function identityLine(recipient: RecordRecipient): string {
@@ -248,12 +271,14 @@ export function RecordPaper({
           role="Bên giao"
           name={record.executorName}
           signedAt={record.executorSignedAt}
+          parts={signatureParts(record, "executorSignedAt")}
           action={actionFor("executor")}
         />
         <SignatureSlot
           role="Luật sư chứng kiến"
           name={record.verifierName}
           signedAt={record.verifierSignedAt}
+          parts={signatureParts(record, "verifierSignedAt")}
           action={actionFor("verifier")}
         />
         {recipientSlots}

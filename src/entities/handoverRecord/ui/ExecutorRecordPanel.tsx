@@ -76,14 +76,18 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
     client.setQueryData(handoverRecordKeys.executor(vaultId), next);
     void client.invalidateQueries({ queryKey: ["executor-vaults"] });
   };
+  // Ký xong hết vẫn giữ danh sách để mở lại tờ riêng của từng người.
+  const completed = record.status === "COMPLETED";
+  let recipientsTitle = "Ký cho từng người nhận";
+  if (completed) recipientsTitle = "Tờ biên bản của từng người nhận";
   return (
     <div className="space-y-6">
       <RecordStepper status={record.status} />
       <Notice tone={record.status === "COMPLETED" ? "success" : "neutral"} role="status">
         {waitingText(record)}
       </Notice>
-      {isSigningStage(record.status) && (
-        <Panel title="Ký cho từng người nhận" labelledBy="executor-signing">
+      {(isSigningStage(record.status) || completed) && (
+        <Panel title={recipientsTitle} labelledBy="executor-signing">
           <ul className="divide-y divide-heritage-border text-sm">
             {record.recipients.map((recipient) => (
               <li

@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AxiosError, AxiosHeaders, type AxiosResponse } from "axios";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { apiClient } from "@/shared/api/axiosClient";
+import { ExecutorRecordPanel } from "../ExecutorRecordPanel";
 import { RecipientRecordPanel } from "../RecipientRecordPanel";
 import { VerifierRecordDetail } from "../VerifierRecordDetail";
 
@@ -493,6 +494,55 @@ describe("Luật sư ký và mở lại biên bản (bước 2)", () => {
     const dialog = screen.getByRole("dialog");
     expect((await within(dialog).findAllByText("Đã ký điện tử")).length).toBeGreaterThan(0);
     expect(screen.queryByRole("button", { name: "Ký xác minh" })).not.toBeInTheDocument();
+  });
+
+  const delivered = (beneficiaryId: string, fullName: string, asset: unknown) =>
+    recipient(beneficiaryId, fullName, [asset], {
+      ...confirmed,
+      turnStatus: "HANDOVER_COMMITTED",
+      signedAt: AT,
+      executorSignedAt: AT,
+      verifierSignedAt: AT,
+    });
+
+  it("đã giao cho một người vẫn mở được tờ riêng của họ, không lẫn người nhận khác", async () => {
+    const user = userEvent.setup();
+    backend(
+      signing({
+        canSign: false,
+        splitDifferences: differences,
+        recipients: [
+          delivered(AN, "Trần An", houseAsset),
+          recipient(BINH, "Lê Bình", [savingsAsset]),
+        ],
+      }),
+    );
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await user.click(await screen.findByRole("button", { name: "Xem tờ đã ký" }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toHaveTextContent("Trần An");
+    expect(dialog).toHaveTextContent("1 người, có tên tại Điều 1.");
+    expect(dialog).not.toHaveTextContent("Lê Bình");
+    expect(dialog).not.toHaveTextContent("Khác với cách chia ban đầu");
+  });
+
+  it("Người thực thi: mọi người đã ký vẫn mở lại được tờ riêng của từng người", async () => {
+    backend(
+      signing({
+        status: "COMPLETED",
+        completedAt: AT,
+        canSign: false,
+        recipients: [
+          delivered(AN, "Trần An", houseAsset),
+          delivered(BINH, "Lê Bình", savingsAsset),
+        ],
+      }),
+    );
+    setup(<ExecutorRecordPanel vaultId={VAULT_ID} />);
+
+    expect(await screen.findByText("Tờ biên bản của từng người nhận")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Xem tờ đã ký" })).toHaveLength(2);
   });
 
   it("người nhận chưa được xác nhận danh tính thì luật sư chưa có nút ký", async () => {

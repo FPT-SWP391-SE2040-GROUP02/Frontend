@@ -145,22 +145,69 @@ describe("RecordPaper: khối chữ ký từng người", () => {
     };
   }
 
+  /** Các ô ký theo thứ tự trên tờ: Bên giao, Luật sư, rồi từng Bên nhận. */
+  function slotsOf(container: HTMLElement) {
+    return Array.from(container.querySelectorAll(".break-inside-avoid")).filter((slot) =>
+      slot.textContent?.includes("(Ký, ghi rõ họ tên)"),
+    );
+  }
+
   it("hiện người đã ký (kèm giờ) và người chưa ký theo dữ liệu Backend", () => {
     const { container } = render(
       <RecordPaper
         record={buildRecord({
-          verifierSignedAt: SIGNED_AT,
           recipients: [person(AN, "Trần An", SIGNED_AT), person(BINH, "Lê Bình", null)],
         })}
       />,
     );
 
-    const slots = Array.from(container.querySelectorAll(".break-inside-avoid"));
-    const byName = (name: string) => slots.find((slot) => slot.textContent?.includes(name));
-    expect(byName("Trần An")).toHaveTextContent("Đã ký điện tử");
-    expect(byName("Trần An")).toHaveTextContent(formatDateTime(SIGNED_AT));
-    expect(byName("Lê Bình")).toHaveTextContent("(Chưa ký)");
-    expect(byName("Luật sư Dũng")).toHaveTextContent("Đã ký điện tử");
-    expect(byName("Chú Hải")).toHaveTextContent("(Chưa ký)");
+    const [, , an, binh] = slotsOf(container);
+    expect(an).toHaveTextContent("Đã ký điện tử");
+    expect(an).toHaveTextContent(formatDateTime(SIGNED_AT));
+    expect(binh).toHaveTextContent("(Chưa ký)");
+  });
+
+  it("nhiều người nhận: ô Bên giao và Luật sư ghi từng phần, phần đã ký hiện ngay dù người khác chưa", () => {
+    const EXECUTOR_AT = "2026-11-22T02:40:00+00:00";
+    const { container } = render(
+      <RecordPaper
+        record={buildRecord({
+          recipients: [
+            {
+              ...person(AN, "Trần An", SIGNED_AT),
+              executorSignedAt: EXECUTOR_AT,
+              verifierSignedAt: SIGNED_AT,
+            },
+            person(BINH, "Lê Bình", null),
+          ],
+        })}
+      />,
+    );
+
+    const [executor, verifier] = slotsOf(container);
+    expect(executor).toHaveTextContent(
+      `Phần của Trần AnĐã ký điện tử ${formatDateTime(EXECUTOR_AT)}`,
+    );
+    expect(executor).toHaveTextContent("Phần của Lê Bình: chưa ký");
+    expect(verifier).toHaveTextContent(
+      `Phần của Trần AnĐã ký điện tử ${formatDateTime(SIGNED_AT)}`,
+    );
+    expect(verifier).toHaveTextContent("Phần của Lê Bình: chưa ký");
+  });
+
+  it("một người nhận thì ô Bên giao và Luật sư giữ một dòng chữ ký", () => {
+    const { container } = render(
+      <RecordPaper
+        record={buildRecord({
+          verifierSignedAt: SIGNED_AT,
+          recipients: [person(AN, "Trần An", null)],
+        })}
+      />,
+    );
+
+    const [executor, verifier] = slotsOf(container);
+    expect(executor).toHaveTextContent("(Chưa ký)");
+    expect(verifier).toHaveTextContent("Đã ký điện tử");
+    expect(container).not.toHaveTextContent("Phần của Trần An");
   });
 });

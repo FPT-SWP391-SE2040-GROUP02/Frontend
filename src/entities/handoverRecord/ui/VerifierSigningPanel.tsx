@@ -89,31 +89,33 @@ function RecipientRow({
         </div>
       </td>
       <td className={`${tableStyles.td} text-right`}>
-        {canCheck && (
-          <Link
-            className={compactButton.dark}
-            to={`${ROUTES.NOTARY.RECIPIENTS}?submissionId=${recipient.submissionId}`}
-          >
-            Kiểm danh tính
-          </Link>
-        )}
-        {(recipient.canSign || (!delivered && recipient.verifierSignedAt)) && (
-          <RecipientSignButton
-            record={record}
-            recipient={recipient}
-            target="verifier"
-            sign={() => handoverRecordService.signAsVerifier(record.id, recipient.beneficiaryId)}
-            onSigned={onSigned}
-          />
-        )}
-        {delivered && (
-          <PaperPreviewButton
-            label="Xem phiếu"
-            title="Phiếu giao nhận"
-            fileName="Phieu-giao-nhan"
-            paper={<ReceiptPaper record={record} recipient={recipient} />}
-          />
-        )}
+        <div className="flex flex-col items-end gap-2">
+          {canCheck && (
+            <Link
+              className={compactButton.dark}
+              to={`${ROUTES.NOTARY.RECIPIENTS}?submissionId=${recipient.submissionId}`}
+            >
+              Kiểm danh tính
+            </Link>
+          )}
+          {(recipient.canSign || recipient.verifierSignedAt) && (
+            <RecipientSignButton
+              record={record}
+              recipient={recipient}
+              target="verifier"
+              sign={() => handoverRecordService.signAsVerifier(record.id, recipient.beneficiaryId)}
+              onSigned={onSigned}
+            />
+          )}
+          {delivered && (
+            <PaperPreviewButton
+              label="Xem phiếu"
+              title="Phiếu giao nhận"
+              fileName="Phieu-giao-nhan"
+              paper={<ReceiptPaper record={record} recipient={recipient} />}
+            />
+          )}
+        </div>
       </td>
     </tr>
   );

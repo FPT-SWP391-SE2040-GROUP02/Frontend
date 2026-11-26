@@ -2,16 +2,38 @@ import type { ReactNode } from "react";
 import { formatDateTime } from "@/shared/ui/heritageKit";
 import { orBlank } from "../model/paperFormat";
 
+/** Chữ ký của một bên cho phần của một người nhận. */
+export interface SignaturePart {
+  id: string;
+  recipientName: string;
+  signedAt: string | null;
+}
+
+function PartLine({ part }: { part: SignaturePart }) {
+  if (!part.signedAt) {
+    return <li className="italic text-[#666]">{`Phần của ${part.recipientName}: chưa ký`}</li>;
+  }
+  return (
+    <li className="pm-stamp rounded border border-[#2f6b4f] px-2 py-1.5 text-[#2f6b4f]">
+      <span className="block font-semibold">{`Phần của ${part.recipientName}`}</span>
+      <span className="block">{`Đã ký điện tử ${formatDateTime(part.signedAt)}`}</span>
+    </li>
+  );
+}
+
 /** Một ô ký: chức danh, tên, và dòng "Đã ký điện tử lúc …" hoặc chỗ trống chờ ký. */
 export function SignatureSlot({
   role,
   name,
   signedAt,
+  parts,
   action,
 }: {
   role: string;
   name: string;
   signedAt: string | null;
+  /** Bên ký riêng cho nhiều người nhận: ghi từng phần thay cho một dòng chung. */
+  parts?: SignaturePart[];
   /** Nút ký đặt ngay dưới ô này, chỉ hiện trên màn hình (không in ra giấy). */
   action?: ReactNode;
 }) {
@@ -23,6 +45,15 @@ export function SignatureSlot({
         <br />
         <span className="font-normal">{formatDateTime(signedAt)}</span>
       </p>
+    );
+  }
+  if (parts) {
+    status = (
+      <ul className="mt-4 space-y-2 text-sm">
+        {parts.map((part) => (
+          <PartLine key={part.id} part={part} />
+        ))}
+      </ul>
     );
   }
   return (
