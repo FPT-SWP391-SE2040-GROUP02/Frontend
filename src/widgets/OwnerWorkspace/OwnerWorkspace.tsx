@@ -13,7 +13,6 @@ import {
   TrustedIcon,
 } from "@/shared/ui/LegacyVaultArtwork";
 import type { AuthState } from "@/entities/user/model/authSlice";
-import { UserAvatar } from "@/entities/user/ui/UserAvatar";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
@@ -30,6 +29,7 @@ import {
 } from "@/features/vault-management/model/useOwnerVault";
 import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { OwnerVaultLockedBanner } from "@/features/vault-management/ui/OwnerVaultLockedBanner";
+import { AccountMenu } from "./AccountMenu";
 import { useNavIndicator } from "./useNavIndicator";
 import "./owner-workspace.css";
 
@@ -54,6 +54,8 @@ interface OwnerNavItem {
   group?: string;
   /** Mục này hiện số việc cần làm của kho được để lại cho tài khoản. */
   showsReceiveCount?: boolean;
+  /** Từ 768px mục nằm trong menu tài khoản ở chân thanh bên; trong danh sách này chỉ còn cho điện thoại. */
+  inAccountMenu?: boolean;
 }
 
 const GROUP_RECEIVE = "ĐƯỢC ĐỂ LẠI CHO TÔI";
@@ -89,9 +91,22 @@ const navigation: OwnerNavItem[] = [
     to: ROUTES.DASHBOARD.AUDIT_LOG,
     icon: HistoryIcon,
     group: GROUP_ACCOUNT,
+    inAccountMenu: true,
   },
-  { label: "Gói dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon, group: GROUP_ACCOUNT },
-  { label: "Cài đặt", to: ROUTES.DASHBOARD.SETTINGS, icon: SettingsIcon, group: GROUP_ACCOUNT },
+  {
+    label: "Gói dịch vụ",
+    to: ROUTES.BILLING.PLANS,
+    icon: PlanIcon,
+    group: GROUP_ACCOUNT,
+    inAccountMenu: true,
+  },
+  {
+    label: "Cài đặt",
+    to: ROUTES.DASHBOARD.SETTINGS,
+    icon: SettingsIcon,
+    group: GROUP_ACCOUNT,
+    inAccountMenu: true,
+  },
 ];
 
 /** Số kho đang chờ người nhận làm bước tiếp theo; 0 khi chưa đăng nhập, đang tải hoặc lỗi. */
@@ -208,13 +223,17 @@ export function OwnerWorkspace({
               if (item.showsReceiveCount === true) {
                 count = receiveActionCount;
               }
+              let linkClass = "owner-nav-link";
+              if (item.inAccountMenu === true) {
+                linkClass = "owner-nav-link owner-nav-link--phone-only";
+              }
               return (
                 <Fragment key={item.to}>
                   {startsGroup && <p className="owner-nav-group">{item.group}</p>}
                   <Link
                     to={item.to}
                     aria-current={isCurrent ? "page" : undefined}
-                    className="owner-nav-link"
+                    className={linkClass}
                     onClick={() => setNavigationOpen(false)}
                   >
                     <Icon className="size-[18px] shrink-0" aria-hidden="true" />
@@ -283,24 +302,11 @@ export function OwnerWorkspace({
             </Link>
           )}
           <SwitchToRecipientLink className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-heritage-gold-soft px-3 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold" />
-          <div className="flex items-center gap-3">
-            <UserAvatar
-              user={user}
-              fallbackLetter="T"
-              className="size-10 bg-heritage-gold-soft text-heritage-primary"
-            />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-white">
-                {user?.fullName ?? "Tài khoản"}
-              </p>
-              <p className="text-sm text-heritage-gold-soft">Chủ tài sản</p>
-              {showOwnerService && (
-                <div className="mt-1">
-                  <OwnerServiceTier key={user.id} />
-                </div>
-              )}
-            </div>
-          </div>
+          <AccountMenu
+            user={user}
+            currentPath={path}
+            tier={showOwnerService ? <OwnerServiceTier key={user.id} /> : null}
+          />
         </>
       }
     >

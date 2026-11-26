@@ -18,6 +18,7 @@ import { RecordStepper } from "./RecordStepper";
 import { RemindExecutorButton } from "./RemindExecutorButton";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { Collapse } from "@/shared/ui/Collapse";
 
 /** Nút mở hồ sơ danh tính của một người nhận ở trang Danh tính người nhận. */
 function IdentityAction({ recipient }: { recipient: RecordRecipient }) {
@@ -129,8 +130,8 @@ function CancelRecordPanel({ record }: { record: HandoverRecord }) {
             Hủy biên bản
           </button>
         )}
-        {open && (
-          <>
+        <Collapse open={open}>
+          <div className="space-y-3">
             <label className="block space-y-1 font-semibold">
               Lý do hủy
               <textarea
@@ -167,8 +168,8 @@ function CancelRecordPanel({ record }: { record: HandoverRecord }) {
                 Giữ biên bản
               </button>
             </div>
-          </>
-        )}
+          </div>
+        </Collapse>
         {action.error && (
           <p role="alert" className="text-destructive">
             {action.error}

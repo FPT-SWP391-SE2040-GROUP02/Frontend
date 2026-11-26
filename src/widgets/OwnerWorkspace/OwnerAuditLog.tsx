@@ -25,6 +25,7 @@ import { AuditLogFilters } from "@/features/audit-logs/ui/AuditLogFilters";
 import { AuditLogTable } from "@/features/audit-logs/ui/AuditLogTable";
 import type { AuditLogFilterState } from "@/features/audit-logs/model/auditLog.types";
 import type { AuditNameMap } from "@/features/audit-logs/model/auditLogLabels";
+import { NumberedPagination } from "@/shared/ui/NumberedPagination";
 
 /**
  * Tra tên cho nhật ký từ trang đầu (tối đa 100) của tài sản, người nhận, gói bàn giao.
@@ -231,28 +232,13 @@ export function OwnerAuditLog() {
             {Math.max(1, logs.data.totalPages)}
           </p>
           <AuditLogTable items={logs.data.items} names={names} />
-          <nav
-            aria-label="Phân trang nhật ký"
-            className="flex flex-wrap items-center justify-between gap-3"
-          >
-            <Button
-              variant="outline"
-              onClick={() => setPage(state.pageIndex - 1)}
-              disabled={!logs.data.hasPreviousPage || logs.isFetching}
-              className="min-h-11"
-            >
-              Trang trước
-            </Button>
-            <span className="text-sm">Trang {state.pageIndex}</span>
-            <Button
-              variant="outline"
-              onClick={() => setPage(state.pageIndex + 1)}
-              disabled={!logs.data.hasNextPage || logs.isFetching}
-              className="min-h-11"
-            >
-              Trang sau
-            </Button>
-          </nav>
+          <NumberedPagination
+            label="Phân trang nhật ký"
+            pageIndex={state.pageIndex}
+            totalPages={logs.data.totalPages}
+            busy={logs.isFetching}
+            onPage={setPage}
+          />
         </div>
       )}
     </section>

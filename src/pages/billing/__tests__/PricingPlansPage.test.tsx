@@ -175,7 +175,7 @@ describe("pricing reference policies", () => {
       planCard("Legacy XS Max").getByText(/1\.599\.000/, { selector: "p" }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Giá là tổng cho cả kỳ/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Mua gói XS" })).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("link", { name: "Chọn gói XS" })).toHaveAttribute("href", "/login");
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
   });
 
@@ -389,7 +389,7 @@ describe("pricing reference policies", () => {
       serviceStatus: "FREE",
       serviceExpiresAt: null,
     });
-    fireEvent.click(screen.getByRole("button", { name: "Mua gói XS" }));
+    fireEvent.click(screen.getByRole("button", { name: "Chọn gói XS" }));
     const panel = screen.getByRole("region", { name: "Mua Legacy XS" });
     await waitFor(() => expect(panel).toHaveTextContent("199.000"));
     expect(panel).toHaveTextContent("Từ lúc thanh toán thành công");
@@ -413,7 +413,7 @@ describe("pricing reference policies", () => {
       serviceStatus: "FREE",
       serviceExpiresAt: null,
     });
-    fireEvent.click(screen.getByRole("button", { name: "Mua gói XS" }));
+    fireEvent.click(screen.getByRole("button", { name: "Chọn gói XS" }));
     const panel = screen.getByRole("region", { name: "Mua Legacy XS" });
     expect(await within(panel).findByRole("alert")).toHaveTextContent("xác minh danh tính eKYC");
     expect(within(panel).getByRole("button", { name: "Tạo đơn và thanh toán" })).toBeDisabled();

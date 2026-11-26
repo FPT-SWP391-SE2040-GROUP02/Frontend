@@ -319,7 +319,12 @@ describe("Bàn giao: bảng người nhận", () => {
     );
 
     fireEvent.click(within(finished).getByRole("button", { name: "Thu gọn" }));
-    expect(within(finished).queryByRole("list", { name: "Giờ từng bước" })).not.toBeInTheDocument();
+    // Khối chi tiết trượt đóng rồi mới gỡ khỏi trang.
+    await waitFor(() =>
+      expect(
+        within(finished).queryByRole("list", { name: "Giờ từng bước" }),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it("đang chờ: giờ bước chờ là 'đang chờ', bước chưa tới là gạch ngang, biên bản là 'Người nhận chưa ký'", async () => {

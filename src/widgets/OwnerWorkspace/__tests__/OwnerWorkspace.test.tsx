@@ -232,18 +232,21 @@ describe("workspace logo navigation", () => {
   });
 
   it.each([
-    ["/assets?filter=all#list", "Kho của tôi"],
-    ["/wills/new", "Bàn giao"],
-    ["/dashboard/wills/new", "Bàn giao"],
-    ["/billing/history", "Gói dịch vụ"],
-    ["/dashboard/identity", "Xác minh"],
-  ])("keeps the correct navigation item active on %s", (path, label) => {
+    ["/assets?filter=all#list", "Kho của tôi", 1],
+    ["/wills/new", "Bàn giao", 1],
+    ["/dashboard/wills/new", "Bàn giao", 1],
+    // Mục thuộc menu tài khoản có hai liên kết cùng tên: một trong danh sách điện thoại, một trong menu tài khoản.
+    ["/billing/history", "Gói dịch vụ", 2],
+    ["/dashboard/identity", "Xác minh", 1],
+  ])("keeps the correct navigation item active on %s", (path, label, linkCount) => {
     const store = configureStore({ reducer: { auth: authReducer } });
     renderWorkspace(store, path);
-    expect(screen.getByRole("link", { name: label })).toHaveAttribute("aria-current", "page");
+    for (const link of screen.getAllByRole("link", { name: label })) {
+      expect(link).toHaveAttribute("aria-current", "page");
+    }
     expect(
       screen.getAllByRole("link").filter((link) => link.getAttribute("aria-current") === "page"),
-    ).toHaveLength(1);
+    ).toHaveLength(linkCount);
   });
 
   it.each(["USER", "ADMIN", "VERIFIER"] as const)(

@@ -38,6 +38,7 @@ import { PlanCatalogEditor } from "./PlanCatalogEditor";
 import { PlanCards } from "./PlanCards";
 import { settingsSaveError } from "../model/adminError";
 import { limitOf, settingErrors, textMaxLengthOf } from "../model/settingRules";
+import { Collapse } from "@/shared/ui/Collapse";
 
 interface SettingMeta {
   key: string;
@@ -678,7 +679,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                     </div>
                   </button>
 
-                  {isOpen && (
+                  <Collapse open={isOpen}>
                     <div className="divide-y divide-heritage-border/40 px-5">
                       {items.map((item) => {
                         const currentVal = getValue(item.key, item.defaultValue);
@@ -825,7 +826,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                         );
                       })}
                     </div>
-                  )}
+                  </Collapse>
                 </section>
               );
             })}

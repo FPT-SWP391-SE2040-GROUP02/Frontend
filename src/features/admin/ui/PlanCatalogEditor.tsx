@@ -36,6 +36,7 @@ import {
   type PaidPlanMeta,
   type PlanPeriod,
 } from "../model/planCatalog";
+import { Collapse } from "@/shared/ui/Collapse";
 
 interface PlanCatalogEditorProps {
   /** Đọc giá trị đang sửa (bản nháp trước, rồi tới máy chủ, rồi mặc định). */
@@ -188,7 +189,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
         </Button>
       </div>
 
-      {showRestore && (
+      <Collapse open={showRestore}>
         <div
           role="status"
           className="rounded-xl border border-heritage-border bg-heritage-surface p-4 text-sm"
@@ -264,7 +265,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
             )}
           </div>
         </div>
-      )}
+      </Collapse>
 
       {deleting && (
         <div

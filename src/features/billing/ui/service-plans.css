@@ -121,6 +121,23 @@
   border-color: var(--gold);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 12%, transparent);
 }
+.service-plans .service-plan-card {
+  transition:
+    border-color 250ms,
+    box-shadow 350ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+/* Thẻ đang được chọn để mua: vòng vàng sáng lên, thẻ khác giữ nguyên. */
+.service-plans .service-plan-card-selected {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--gold) 28%, transparent),
+    0 14px 30px -20px rgba(11, 41, 30, 0.4);
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-plans .service-plan-card {
+    transition: none;
+  }
+}
 .service-plans .service-plan-card-heading {
   display: flex;
   align-items: center;
@@ -168,31 +185,6 @@
   margin: 23px 0 19px;
   border-top: 1px solid var(--border-ui);
   border-bottom: 1px solid var(--border-ui);
-}
-.service-plans .service-plan-features {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  gap: 12px;
-  margin-bottom: 25px;
-}
-.service-plans .service-plan-features li {
-  display: flex;
-  align-items: start;
-  gap: 8px;
-  font-size: 0.875rem;
-  line-height: 1.6;
-}
-.service-plans .service-plan-features svg {
-  flex-shrink: 0;
-  width: 15px;
-  height: 15px;
-  margin-top: 2px;
-  color: var(--primary);
-}
-.service-plans .service-plan-features .service-plan-muted,
-.service-plans .service-plan-muted svg {
-  color: var(--text-muted);
 }
 .service-plans .service-plan-card-actions {
   display: grid;
@@ -453,4 +445,152 @@
   border-radius: 0.75rem;
   background: transparent;
   text-align: right;
+}
+
+/* Bảng so sánh gói: cột nổi là một tấm nền liền mạch phía sau cả cột, trượt ngang giữa các cột. */
+.service-plans .plan-compare {
+  margin-top: 24px;
+  border: 1px solid var(--border-ui);
+  border-radius: 16px;
+  background: var(--surface);
+  overflow: clip;
+}
+.service-plans .plan-compare-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-ui);
+}
+.service-plans .plan-compare-top h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.service-plans .plan-compare-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 6px 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  box-shadow: inset 0 0 0 1px var(--border-ui);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.service-plans .plan-compare-switch i {
+  position: relative;
+  width: 38px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--border-strong);
+  transition: background 200ms;
+}
+.service-plans .plan-compare-switch i::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 250ms cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.service-plans .plan-compare-switch[aria-checked="true"] i {
+  background: var(--primary);
+}
+.service-plans .plan-compare-switch[aria-checked="true"] i::after {
+  transform: translateX(14px);
+}
+.service-plans .plan-compare-switch:focus-visible,
+.service-plans .plan-compare-head > span:focus-visible {
+  outline: 2px solid var(--gold-hover);
+  outline-offset: 2px;
+}
+.service-plans .plan-compare-table {
+  position: relative;
+  isolation: isolate;
+  padding: 0 10px 14px;
+}
+.service-plans .plan-compare-hl {
+  position: absolute;
+  z-index: -1;
+  top: 6px;
+  bottom: 8px;
+  left: calc(10px + (100% - 20px) * var(--pc-start, 1.5) / var(--pc-total, 4.5));
+  width: calc((100% - 20px) / var(--pc-total, 4.5));
+  border-radius: 16px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--gold) 15%, transparent),
+    color-mix(in srgb, var(--gold) 6%, transparent)
+  );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold) 26%, transparent);
+  transition:
+    left 420ms cubic-bezier(0.3, 1.25, 0.5, 1),
+    opacity 250ms;
+}
+.service-plans .plan-compare-hl[data-on="true"] {
+  opacity: 1;
+}
+.service-plans .plan-compare-row {
+  display: grid;
+  align-items: center;
+}
+.service-plans .plan-compare-head {
+  padding: 8px 0 10px;
+  box-shadow: 0 1px 0 var(--border-ui);
+}
+.service-plans .plan-compare-head > span {
+  padding: 10px 6px;
+  text-align: center;
+  font-size: 0.9rem;
+  border-radius: 10px;
+}
+.service-plans .plan-compare-body {
+  min-height: 48px;
+  border-bottom: 1px solid var(--border-ui);
+}
+.service-plans .plan-compare-body > span:first-child {
+  padding: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.service-plans .plan-compare-body > span + span {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  padding: 4px;
+  text-align: center;
+  font-size: 0.84rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.service-plans .plan-compare-yes {
+  width: 16px;
+  height: 16px;
+  color: var(--success);
+}
+.service-plans .plan-compare-no {
+  width: 16px;
+  height: 16px;
+  color: var(--text-subtle);
+  opacity: 0.7;
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-plans .plan-compare-hl,
+  .service-plans .plan-compare-switch i,
+  .service-plans .plan-compare-switch i::after {
+    transition: none;
+  }
 }

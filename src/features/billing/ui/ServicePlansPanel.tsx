@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, ChevronDown, Minus, ShieldCheck } from "lucide-react";
+import { ChevronDown, ShieldCheck } from "lucide-react";
 import type { VaultResponse } from "@/entities/vault/model/vault.types";
 import {
   formatVaultServiceExpiry,
@@ -23,6 +23,7 @@ import {
   type ReferencePlanTerm,
 } from "../model/servicePlanPreview";
 import { PurchasePanel, ServiceTermPicker } from "./ServicePlanPreview";
+import { ServicePlanCompare } from "./ServicePlanCompare";
 import { useCurrentOrder } from "../model/useBilling";
 import "./service-plans.css";
 
@@ -172,7 +173,7 @@ function ServicePlansContent({
             const current = vault?.serviceTier === plan.serviceTier;
             const term = plan.termPrices.find((value) => value.years === years);
             const action = vault ? getReferencePlanAction(plan, vault, now, catalog) : "blocked";
-            let label = `Mua gói ${shortName(plan)}`;
+            let label = `Chọn gói ${shortName(plan)}`;
             if (action === "upgrade") label = `Nâng lên ${plan.name.replace("Legacy ", "")}`;
             if (action === "downgrade") label = "Hạ hạng khi gia hạn";
             if (action === "renew") label = `Gia hạn ${plan.name}`;
@@ -191,7 +192,7 @@ function ServicePlansContent({
             return (
               <article
                 key={plan.serviceTier}
-                className={`service-plan-card${current ? " service-plan-card-current" : ""}`}
+                className={`service-plan-card${current ? " service-plan-card-current" : ""}${selectedPlan?.serviceTier === plan.serviceTier ? " service-plan-card-selected" : ""}`}
               >
                 <div className="service-plan-card-heading">
                   <h2>{plan.name}</h2>
@@ -205,22 +206,8 @@ function ServicePlansContent({
                     <dd>{formatStorageMegabytes(plan.storage * 1_048_576)}</dd>
                   </div>
                 </dl>
-                <ul className="service-plan-features">
-                  {plan.features.map((feature, index) => (
-                    <li key={feature} className={isFree && index > 0 ? "service-plan-muted" : ""}>
-                      {isFree && index > 0 ? (
-                        <Minus aria-hidden="true" />
-                      ) : (
-                        <Check aria-hidden="true" />
-                      )}
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
                 <div className="service-plan-card-actions">
-                  {isFree ? (
-                    <p className="service-plan-fineprint">Gói mặc định, không cần mua.</p>
-                  ) : (
+                  {!isFree && (
                     <>
                       {action === "upgrade" && access === "owner" && (
                         <Button
@@ -237,7 +224,7 @@ function ServicePlansContent({
                         <Link
                           className={`${buttonVariants({ variant: "outline" })} service-plan-button service-plan-primary`}
                           to={ROUTES.AUTH.LOGIN}
-                        >{`Mua gói ${shortName(plan)}`}</Link>
+                        >{`Chọn gói ${shortName(plan)}`}</Link>
                       ) : (
                         action !== "upgrade" && (
                           <Button
@@ -289,6 +276,7 @@ function ServicePlansContent({
             );
           })}
       </section>
+      <ServicePlanCompare catalog={catalog} years={years} />
       {pendingOrder.data && access === "owner" && (
         <p role="status" className="service-plan-notice">
           Bạn đang có một đơn chờ thanh toán.{" "}

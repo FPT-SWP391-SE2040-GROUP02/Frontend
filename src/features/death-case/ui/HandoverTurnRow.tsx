@@ -14,6 +14,7 @@ import {
 import { HandoverSendKey } from "./HandoverSendKey";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { Collapse } from "@/shared/ui/Collapse";
 
 /** Đoạn thanh: xanh đậm (xong), vàng (đang chờ), xám nhạt (chưa tới), xám đậm (dừng). */
 const SEGMENT_COLORS: Record<SegmentState, string> = {
@@ -300,8 +301,8 @@ export function HandoverTurnRow({
           Đã gửi mã cho người nhận lúc {formatDateTime(keySentAt)}.
         </p>
       )}
-      {expanded && (
-        <div id={detailId} className="mt-4 space-y-4 border-t border-heritage-border pt-4">
+      <Collapse open={expanded} id={detailId}>
+        <div className="mt-4 space-y-4 border-t border-heritage-border pt-4">
           <div className="grid gap-4 lg:grid-cols-[minmax(0,13rem)_minmax(0,1fr)_11rem]">
             <div className="hidden lg:block" aria-hidden="true" />
             <StepTimes columns={progress.detailColumns} />
@@ -309,7 +310,7 @@ export function HandoverTurnRow({
           </div>
           <DetailBoxes turn={turn} progress={progress} />
         </div>
-      )}
+      </Collapse>
     </li>
   );
 }
