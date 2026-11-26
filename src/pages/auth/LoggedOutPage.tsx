@@ -11,7 +11,7 @@ export function LoggedOutPage() {
   return (
     <HeritageAuthLayout
       sideTitle="Hẹn gặp lại."
-      sideSubtitle="Kho của bạn vẫn được bảo vệ khi bạn đăng xuất. Mọi tài sản đều an toàn."
+      sideSubtitle="Tài sản của bạn vẫn được bảo vệ khi bạn đăng xuất. Mọi tài sản đều an toàn."
       sideBadge="PHIÊN ĐÃ KẾT THÚC AN TOÀN"
     >
       <LoggedOutCard />

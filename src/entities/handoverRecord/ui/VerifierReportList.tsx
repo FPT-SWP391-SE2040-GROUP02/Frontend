@@ -15,12 +15,12 @@ type Decision = "ACCEPT" | "REJECT";
 /** Kết quả tìm kho theo số căn cước người mất. */
 function vaultText(report: VerifierReport): string {
   if (!report.vaultFound) {
-    return "Không có kho nào theo số căn cước này. Bạn chỉ từ chối được.";
+    return "Không có tài sản nào theo số căn cước này. Bạn chỉ từ chối được.";
   }
   if (!report.nameMatches) {
-    return `Có kho của ${report.ownerName}, số căn cước khớp.`;
+    return `Có tài sản của ${report.ownerName}, số căn cước khớp.`;
   }
-  return `Có kho của ${report.ownerName}, họ tên và số căn cước đều khớp.`;
+  return `Có tài sản của ${report.ownerName}, họ tên và số căn cước đều khớp.`;
 }
 
 /** Các cảnh báo buộc luật sư đối chiếu giấy chứng tử và ghi lý do trước khi chấp nhận. */
@@ -128,7 +128,7 @@ function ReportCard({
             </label>
           )}
           <p className="text-sm text-heritage-muted">
-            Chấp nhận thì kho bị khóa, Chủ tài sản được báo và biên bản bàn giao được mở.
+            Chấp nhận thì tài sản bị khóa, Chủ tài sản được báo và biên bản bàn giao được mở.
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -165,9 +165,9 @@ function ReportCard({
 
 /** Một chữ cho biết có tìm ra kho không, dùng ở bảng; câu đầy đủ nằm trong hồ sơ. */
 function VaultChip({ report }: { report: VerifierReport }) {
-  if (!report.vaultFound) return <Chip tone="danger">Không tìm thấy kho</Chip>;
+  if (!report.vaultFound) return <Chip tone="danger">Không tìm thấy tài sản</Chip>;
   if (!report.nameMatches) return <Chip tone="warning">Cần đối chiếu tên</Chip>;
-  return <Chip tone="success">Tìm thấy kho</Chip>;
+  return <Chip tone="success">Tìm thấy tài sản</Chip>;
 }
 
 /** Hồ sơ báo tin còn chờ xét được giao cho luật sư; không có thì không chiếm chỗ. */
@@ -197,7 +197,7 @@ export function VerifierReportList({ onOpenRecord }: { onOpenRecord: (recordId: 
   return (
     <SectionCard
       title="Hồ sơ báo tin chờ xét"
-      subtitle="Người thân nộp giấy tờ. Chấp nhận thì kho bị khóa và biên bản được mở."
+      subtitle="Người thân nộp giấy tờ. Chấp nhận thì tài sản bị khóa và biên bản được mở."
       labelledBy="verifier-reports"
     >
       <div className="relative overflow-x-auto">
@@ -215,7 +215,7 @@ export function VerifierReportList({ onOpenRecord }: { onOpenRecord: (recordId: 
                 Lúc nộp
               </th>
               <th scope="col" className={tableStyles.th}>
-                Kết quả tìm kho
+                Kết quả tìm tài sản
               </th>
               <th scope="col" className={tableStyles.th}>
                 <span className="sr-only">Thao tác</span>

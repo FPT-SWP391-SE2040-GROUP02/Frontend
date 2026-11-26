@@ -27,7 +27,7 @@ function remindFailureMessage(failure: unknown): string | null {
     return "Bạn vừa nhắc Người thực thi. Hãy thử lại sau.";
   }
   if (parsed.data.reason === "EXECUTOR_ALREADY_SIGNED") return "Người thực thi đã ký biên bản.";
-  if (parsed.data.reason === "NO_EXECUTOR") return "Kho chưa có Người thực thi để nhắc.";
+  if (parsed.data.reason === "NO_EXECUTOR") return "Chưa có Người thực thi để nhắc.";
   return null;
 }
 

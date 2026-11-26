@@ -14,7 +14,7 @@ const PERSON = "33333333-3333-4333-8333-333333333333";
 const PAPER = {
   versionNo: 2,
   signedAt: AT,
-  ownerName: "Nguyễn Chủ Kho",
+  ownerName: "Nguyễn Chủ Tài sản",
   ownerEmail: "chu@example.test",
   recipients: [
     {
@@ -27,7 +27,7 @@ const PAPER = {
   unassignedAssetCount: 1,
   identity: {
     owner: {
-      fullName: "Nguyễn Chủ Kho",
+      fullName: "Nguyễn Chủ Tài sản",
       dateOfBirth: "1975-03-12",
       citizenId: "000000000001",
       residenceAddress: "12 Đường Thử",
@@ -71,7 +71,7 @@ function setup(extra: Record<string, unknown>) {
           onOpen={onOpen}
           vault={{
             vaultId: VAULT_ID,
-            ownerFullName: "Nguyễn Chủ Kho",
+            ownerFullName: "Nguyễn Chủ Tài sản",
             planStatus: "ACTIVE",
             handoverRecordStatus: "",
             acceptedAt: AT,

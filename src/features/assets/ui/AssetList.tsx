@@ -183,13 +183,13 @@ export function AssetList({
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-heritage-muted">
               {searchTerm
                 ? "Thử một tên khác hoặc xóa ô tìm kiếm."
-                : "Mục bạn thêm vào kho sẽ hiện ở đây."}
+                : "Mục tài sản bạn thêm sẽ hiện ở đây."}
             </p>
           </div>
         ) : (
           <div className="relative overflow-x-auto">
             <table className="w-full min-w-[560px] text-left text-sm">
-              <caption className="sr-only">Các mục trong kho</caption>
+              <caption className="sr-only">Các mục tài sản</caption>
               <thead>
                 <tr className="border-b border-heritage-border text-sm text-heritage-muted">
                   <th scope="col" className="py-3 pr-4 font-semibold">

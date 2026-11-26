@@ -126,7 +126,7 @@ const vault = (overrides: Record<string, unknown> = {}) => ({
 const record = {
   id: CASE_ID,
   vaultId: VAULT_ID,
-  vaultName: "Kho gia đình",
+  vaultName: "Tài sản gia đình",
   ownerName: "Anh Nam",
   status: "COMPLETED",
   revisionNo: 1,
@@ -217,7 +217,7 @@ describe("Bàn giao: bảng người nhận", () => {
   });
 
   it("bốn ô số đúng: đã nhận xong, cần bạn làm, đang chờ người nhận, từ chối nhận", async () => {
-    render2(<HandoverProgressPanel recordId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
     await screen.findByRole("list", { name: "Danh sách người nhận" });
     const tile = (label: string) =>
       screen.getByText(label, { selector: "dt" }).closest("div") as HTMLElement;
@@ -232,7 +232,7 @@ describe("Bàn giao: bảng người nhận", () => {
   });
 
   it("xếp dòng: cần bạn làm, đang chờ, đã nhận xong, từ chối", async () => {
-    render2(<HandoverProgressPanel recordId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const names = within(list)
       .getAllByRole("listitem", { name: /, Biên bản bàn giao/ })
@@ -248,7 +248,7 @@ describe("Bàn giao: bảng người nhận", () => {
   });
 
   it("mỗi trạng thái ra đúng bước hiện tại, màu đoạn và chữ", async () => {
-    render2(<HandoverProgressPanel recordId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const segmentStates = (item: HTMLElement) =>
       Array.from(item.querySelectorAll("ol[aria-label='Các bước của người nhận'] > li")).map(
@@ -282,7 +282,7 @@ describe("Bàn giao: bảng người nhận", () => {
   });
 
   it("chỉ dòng cần bạn làm được tô nổi", async () => {
-    render2(<HandoverProgressPanel recordId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const highlighted = list.querySelectorAll("[data-needs-action='true']");
     expect(highlighted).toHaveLength(1);
@@ -291,7 +291,7 @@ describe("Bàn giao: bảng người nhận", () => {
   });
 
   it("Chi tiết mở hàng 5 cột có giờ và ba ô; Thu gọn đóng lại", async () => {
-    render2(<HandoverProgressPanel recordId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const finished = row(list, /Nguyễn Văn An/);
     fireEvent.click(within(finished).getByRole("button", { name: "Chi tiết" }));
@@ -319,11 +319,16 @@ describe("Bàn giao: bảng người nhận", () => {
     );
 
     fireEvent.click(within(finished).getByRole("button", { name: "Thu gọn" }));
-    expect(within(finished).queryByRole("list", { name: "Giờ từng bước" })).not.toBeInTheDocument();
+    // Khối chi tiết trượt đóng rồi mới gỡ khỏi trang.
+    await waitFor(() =>
+      expect(
+        within(finished).queryByRole("list", { name: "Giờ từng bước" }),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it("đang chờ: giờ bước chờ là 'đang chờ', bước chưa tới là gạch ngang, biên bản là 'Người nhận chưa ký'", async () => {
-    render2(<HandoverProgressPanel recordId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const replying = row(list, /Lê Thị Bình/);
     fireEvent.click(within(replying).getByRole("button", { name: "Chi tiết" }));
@@ -342,21 +347,55 @@ describe("Bàn giao: bảng người nhận", () => {
     );
   });
 
-  it("người nhận đã ký phiếu: bấm Ký phiếu giao nhận gọi đúng API", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue({
-      ...progress,
-      turns: progress.turns.map((turn) => ({ ...turn, receiptExecutorSignedAt: null })),
+  it("người nhận đã ký phiếu: bấm Xem và ký phiếu giao nhận rồi ký ở ô Bên giao gọi đúng API", async () => {
+    const signable = turns[0].turnId;
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === `/executor/vaults/${VAULT_ID}/handover-record`) {
+        return {
+          ...record,
+          recipients: [
+            {
+              beneficiaryId: CONTAINER_ID,
+              fullName: "Nguyễn Văn An",
+              citizenId: "0001",
+              assets: [],
+              turnId: signable,
+              turnStatus: "HANDOVER_COMMITTED",
+              claimed: true,
+              submissionId: null,
+              submissionStatus: "",
+              identityConfirmedAt: SIGNED,
+              signedAt: SIGNED,
+              receivedAllAt: RECEIVED,
+              receiptExecutorSignedAt: null,
+            },
+          ],
+        };
+      }
+      return {
+        ...progress,
+        turns: progress.turns.map((turn) => ({ ...turn, receiptExecutorSignedAt: null })),
+      };
     });
     const post = vi.spyOn(apiClient, "post").mockResolvedValue(undefined);
-    render2(<HandoverProgressPanel recordId={CASE_ID} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Ký phiếu giao nhận" }));
-    expect(post).toHaveBeenCalledWith(
-      expect.stringMatching(/handover-turns\/[0-9a-f-]+\/sign-receipt$/),
+    render2(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
+    // Ngoài khung xem phiếu không có nút ký.
+    await screen.findByRole("button", { name: "Xem và ký phiếu giao nhận" });
+    expect(screen.queryByRole("button", { name: "Ký phiếu giao nhận" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Xem và ký phiếu giao nhận" }));
+    const sign = await screen.findByRole("button", { name: "Ký phiếu giao nhận" });
+    // Nút ký nằm ngay ô chữ ký của Bên giao.
+    expect(sign.closest("div.break-inside-avoid")).toHaveTextContent("Bên giao");
+    fireEvent.click(sign);
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith(
+        expect.stringMatching(/handover-turns\/[0-9a-f-]+\/sign-receipt$/),
+      ),
     );
   });
 
   it("người từ chối (dữ liệu cũ): chi tiết chỉ 2 cột, tài sản 'Không bàn giao'", async () => {
-    render2(<HandoverProgressPanel recordId={CASE_ID} />);
+    render2(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     const declined = row(list, /CCCD 0002/);
     fireEvent.click(within(declined).getByRole("button", { name: "Chi tiết" }));
@@ -372,17 +411,14 @@ describe("Bàn giao: bảng người nhận", () => {
     );
   });
 
-  it("có chú thích cuối bảng và không còn chữ eKYC hay hạn chót", async () => {
-    render2(<HandoverProgressPanel recordId={CASE_ID} />);
+  it("không còn chú thích cuối bảng, chữ eKYC hay hạn chót", async () => {
+    render2(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
     const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
     for (const button of within(list).getAllByRole("button", { name: "Chi tiết" })) {
       fireEvent.click(button);
     }
-    expect(
-      screen.getByText(
-        /Thanh bước của từng người: Mời → Luật sư kiểm danh tính → Ký biên bản \(luật sư, Người thực thi và người này\) → Nhập mã nhận → Hai bên ký phiếu giao nhận\./,
-      ),
-    ).toBeInTheDocument();
+    // Dòng giải thích "Thanh bước của từng người" đã bỏ.
+    expect(screen.queryByText(/Thanh bước của từng người/)).not.toBeInTheDocument();
     const text = document.body.textContent ?? "";
     expect(text).not.toMatch(/eKYC/i);
     expect(text).not.toMatch(/Còn \d+ ngày|còn \d+ ngày|Hạn tải|Quá hạn|quá hạn|đếm ngược/);
@@ -400,7 +436,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
     });
   }
 
-  it("Tổng quan đang bàn giao: việc đưa mã, chỉ 3 bước kho và hai thẻ gọn", async () => {
+  it("Tổng quan đang bàn giao: việc đưa mã, chỉ 3 bước tài sản và hai thẻ gọn", async () => {
     mockApi();
     render2(<ExecutorOverviewPage />, "/executor");
     expect(
@@ -408,7 +444,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Việc của bạn bây giờ")).toBeInTheDocument();
     expect(await screen.findByText("1/6 người đã nhận xong")).toBeInTheDocument();
-    const journey = screen.getByRole("heading", { name: "Kho đang ở đâu" }).closest("section");
+    const journey = screen.getByRole("heading", { name: "Tài sản đang ở đâu" }).closest("section");
     expect(within(journey as HTMLElement).getAllByRole("listitem")).toHaveLength(3);
     expect(
       await screen.findByText(/để lại hướng dẫn bàn giao và giao bạn 2 tài sản cho 1 người nhận/),
@@ -449,7 +485,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
   });
 });
 
-describe("Lời mời và các kho bạn đang làm việc", () => {
+describe("Lời mời và các tài sản bạn đang làm việc", () => {
   const invitation = {
     id: "99999999-9999-4999-8999-999999999999",
     ownerName: "Cô Lan",
@@ -557,7 +593,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   });
 
-  it("chấp nhận xong gọi Backend và tải lại danh sách kho; kho mới hiện ở Kho bạn đang giữ", async () => {
+  it("chấp nhận xong gọi Backend và tải lại danh sách tài sản; tài sản mới hiện ở Tài sản bạn đang giữ", async () => {
     let held: unknown[] = [];
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
       if (url.endsWith("/will")) return paper;
@@ -600,13 +636,13 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     });
     fireEvent.click(within(card).getByRole("button", { name: "Ký nhận vai" }));
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(await screen.findByText("Kho của Cô Lan", { selector: "p" })).toBeInTheDocument();
+    expect(await screen.findByText("Tài sản của Cô Lan", { selector: "p" })).toBeInTheDocument();
     expect(screen.getByText("Bạn nhận vai ngày 01/10/2026")).toBeInTheDocument();
     // Chip trạng thái ở dòng kho và ở menu trái.
     expect(screen.getAllByText("Chưa có yêu cầu nhận").length).toBeGreaterThan(0);
   });
 
-  it("kho đang mở hiện chip Đang mở thay cho nút; kho khác có Mở kho, bấm thì chọn kho (chỗ duy nhất đổi kho)", async () => {
+  it("tài sản đang mở hiện chip Đang mở thay cho nút; tài sản khác có Mở tài sản, bấm thì chọn tài sản (chỗ duy nhất đổi tài sản)", async () => {
     const other = vault({
       vaultId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
       ownerFullName: "Bà Hạnh",
@@ -616,32 +652,34 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     });
     mockApi([vault(), other]);
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
-    expect(await screen.findByText("Kho của Anh Nam", { selector: "p" })).toBeInTheDocument();
+    expect(await screen.findByText("Tài sản của Anh Nam", { selector: "p" })).toBeInTheDocument();
     expect(screen.getAllByText("Bạn nhận vai ngày 01/10/2026", { selector: "p" })).toHaveLength(2);
     expect(screen.getAllByText("Đang giao tài sản").length).toBeGreaterThan(0);
     // Kho đầu tiên được tự chọn: chip "Đang mở", không có nút Mở kho cho kho này.
     expect(screen.getByText("Đang mở")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Mở kho của Anh Nam" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Mở kho của Bà Hạnh" }));
+    expect(
+      screen.queryByRole("button", { name: "Mở tài sản của Anh Nam" }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Mở tài sản của Bà Hạnh" }));
     expect(window.sessionStorage.getItem("lv-executor-vault")).toBe(
       "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
     );
   });
 
-  it("dòng phụ của trang và thứ tự: lời mời đang chờ ở trên cùng, rồi Kho bạn đang giữ", async () => {
+  it("dòng phụ của trang và thứ tự: lời mời đang chờ ở trên cùng, rồi Tài sản bạn đang giữ", async () => {
     mockApi([vault()]);
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     expect(
       await screen.findByRole("heading", {
         level: 1,
-        name: "Lời mời và các kho bạn đang làm việc",
+        name: "Lời mời và các tài sản bạn đang làm việc",
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Chọn kho để làm việc. Lời mời mới nằm ở trên cùng."),
+      screen.getByText("Chọn tài sản để làm việc. Lời mời mới nằm ở trên cùng."),
     ).toBeInTheDocument();
     const label = await screen.findByRole("heading", { name: "Lời mời đang chờ" });
-    const held = screen.getByRole("heading", { name: "Kho bạn đang giữ" });
+    const held = screen.getByRole("heading", { name: "Tài sản bạn đang giữ" });
     expect(label.compareDocumentPosition(held) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
@@ -654,7 +692,9 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
       return [];
     });
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
-    expect(await screen.findByRole("heading", { name: "Kho bạn đang giữ" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Tài sản bạn đang giữ" }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Lời mời đang chờ" })).not.toBeInTheDocument();
     expect(screen.queryByText(/Không có lời mời nào đang chờ/)).not.toBeInTheDocument();
   });

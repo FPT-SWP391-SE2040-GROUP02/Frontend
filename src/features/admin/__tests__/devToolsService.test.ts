@@ -8,11 +8,11 @@ const VAULT_ID = "77777777-7777-4777-8777-777777777777";
 afterEach(() => vi.restoreAllMocks());
 
 describe("devToolsService", () => {
-  it("đọc danh sách kho đúng DTO", async () => {
+  it("đọc danh sách tài sản đúng DTO", async () => {
     const vaults = [
       {
         vaultId: VAULT_ID,
-        vaultName: "Kho của An",
+        vaultName: "Tài sản của An",
         ownerName: "Nguyễn Văn An",
         planStatus: "ACTIVE",
       },
@@ -42,7 +42,7 @@ describe("devToolsService", () => {
     });
   });
 
-  it("đưa kho về trước eKYC gọi đúng endpoint và đọc số lượng đã đổi", async () => {
+  it("đưa tài sản về trước eKYC gọi đúng endpoint và đọc số lượng đã đổi", async () => {
     const result = {
       vaultId: VAULT_ID,
       ownerEmail: "owner@example.test",
@@ -59,7 +59,7 @@ describe("devToolsService", () => {
     expect(post).toHaveBeenCalledWith(`/admin/dev-tools/vaults/${VAULT_ID}/rewind-before-ekyc`);
   });
 
-  it("không gọi API đưa về trước eKYC khi mã kho không hợp lệ", async () => {
+  it("không gọi API đưa về trước eKYC khi mã tài sản không hợp lệ", async () => {
     const post = vi.spyOn(apiClient, "post");
     await expect(devToolsService.rewindBeforeEkyc("khong-phai-uuid")).rejects.toBeInstanceOf(
       ZodError,

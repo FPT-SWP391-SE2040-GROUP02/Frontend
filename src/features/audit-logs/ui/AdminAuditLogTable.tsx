@@ -51,7 +51,7 @@ export function AdminAuditLogTable({ items }: { items: AdminAuditLogEntry[] }) {
               <small className="text-heritage-muted" title={entry.targetId ?? undefined}>
                 {TARGET_TYPE_LABELS[entry.targetType]}
                 {entry.targetId ? ` · ${shortId(entry.targetId)}` : ""}
-                {entry.vaultId ? ` · Kho ${shortId(entry.vaultId)}` : ""}
+                {entry.vaultId ? ` · Tài sản ${shortId(entry.vaultId)}` : ""}
               </small>
             </div>
             <div className="flex flex-col items-start gap-1">

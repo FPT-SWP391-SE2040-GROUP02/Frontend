@@ -43,7 +43,7 @@ export function CheckoutPage() {
   return (
     <OwnerWorkspace
       title="Thanh toán"
-      description="Hoàn tất thanh toán để cập nhật gói dịch vụ của kho. Thanh toán không tự kích hoạt bàn giao."
+      description="Hoàn tất thanh toán để cập nhật gói dịch vụ của bạn. Thanh toán không tự kích hoạt bàn giao."
     >
       <CheckoutContent />
     </OwnerWorkspace>

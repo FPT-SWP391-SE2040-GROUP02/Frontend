@@ -46,7 +46,7 @@ export function VerifierRecordDetail({
       {record.status === "CANCELLED" && (
         <Notice tone="neutral" title="Biên bản này đã hủy">
           {record.cancelReason ? `Lý do: ${record.cancelReason}. ` : ""}
-          Biên bản này không còn hiệu lực. Kho đã mở khóa cho Chủ tài sản.
+          Biên bản này không còn hiệu lực. Tài sản đã mở khóa cho Chủ tài sản.
         </Notice>
       )}
       {record.status === "DRAFTING" && (

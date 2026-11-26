@@ -1,0 +1,297 @@
+/* Chuyển động cổng người nhận. Tham khảo thư viện Lucian UX/UI Prompt (hàm chuyển động ease và spring, nhịp 0,3 đến 0,7 giây):
+   thanh bước đổ đầy dần (#087), vòng sóng ở bước hiện tại (#093), dấu tích tự vẽ, ô chữ ký đóng dấu (#353),
+   ổ khóa mở (#350), ô nhập rung khi sai (#427), khung chờ nhấp nháy (#439).
+   Mọi chuyển động tắt khi máy bật "giảm chuyển động" và khi in. Không đặt trong @layer để thắng class Tailwind. */
+:root {
+  --pm-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --pm-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+  --pm-glide: cubic-bezier(0.5, 0, 0.2, 1);
+}
+
+/* ---- Vào chỗ: thẻ, dòng, trang trượt nhẹ lên rồi hiện; --pm-i là số thứ tự để các dòng vào lần lượt cách nhau 70ms. */
+.pm-rise {
+  animation: pm-rise 560ms var(--pm-ease) backwards;
+  animation-delay: calc(var(--pm-i, 0) * 70ms);
+}
+@keyframes pm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+.pm-fade {
+  animation: pm-fade 360ms var(--pm-ease) backwards;
+}
+@keyframes pm-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.pm-pop {
+  animation: pm-pop 460ms var(--pm-spring) backwards;
+  animation-delay: calc(var(--pm-i, 0) * 90ms);
+}
+@keyframes pm-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+}
+
+/* ---- Nhấc lên khi rê chuột, lún khi bấm. */
+.pm-lift {
+  transition:
+    transform 480ms var(--pm-spring),
+    box-shadow 320ms var(--pm-ease),
+    border-color 240ms var(--pm-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pm-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 26px -14px color-mix(in srgb, var(--primary) 45%, transparent);
+  }
+  .pm-link:hover .pm-chev {
+    transform: translateX(4px);
+  }
+}
+.pm-chev {
+  transition: transform 360ms var(--pm-spring);
+}
+
+/* ---- Đoạn thanh bước tô đầy từ trái sang. */
+.pm-fill {
+  transform-origin: left;
+  animation: pm-fill 700ms var(--pm-glide) backwards;
+  animation-delay: calc(var(--pm-i, 0) * 110ms + 160ms);
+}
+@keyframes pm-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* ---- Vòng sóng lan ra quanh bước đang làm, và dòng việc cần làm gấp thở nhẹ. */
+.pm-here {
+  animation: pm-wave 2.4s var(--pm-ease) 0.9s infinite;
+}
+@keyframes pm-wave {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 55%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 14px color-mix(in srgb, var(--gold) 0%, transparent);
+  }
+}
+.pm-breathe {
+  animation: pm-breathe 2.8s ease-in-out 1s infinite;
+}
+@keyframes pm-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--gold) 20%, transparent);
+  }
+}
+/* Dòng vừa vào chỗ vừa thở: hai hiệu ứng chạy cùng lúc (khai báo riêng thì cái sau ghi đè cái trước). */
+.pm-rise.pm-breathe {
+  animation:
+    pm-rise 560ms var(--pm-ease) calc(var(--pm-i, 0) * 70ms) backwards,
+    pm-breathe 2.8s ease-in-out 1s infinite;
+}
+.pm-dot {
+  animation: pm-dot 1.8s ease-out infinite;
+}
+@keyframes pm-dot {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, currentColor 0%, transparent);
+  }
+}
+
+/* ---- Nút chính của bước: thỉnh thoảng toả một vòng sáng để mắt tìm tới. */
+.pm-glow {
+  animation: pm-glow 3.2s var(--pm-ease) 1.2s infinite;
+}
+@keyframes pm-glow {
+  0%,
+  55%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 0%, transparent);
+  }
+  25% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--gold) 38%, transparent);
+  }
+}
+
+/* ---- Dấu tích tự vẽ (cho biểu tượng Check của lucide: một nét dài khoảng 24). */
+.pm-check path {
+  stroke-dasharray: 24;
+  animation: pm-draw 460ms var(--pm-ease) 140ms backwards;
+}
+@keyframes pm-draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+}
+
+/* ---- Ô chữ ký đóng dấu: to rồi đập xuống, nảy nhẹ. */
+.pm-stamp {
+  animation: pm-stamp 620ms var(--pm-spring) backwards;
+  transform-origin: center;
+}
+@keyframes pm-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.8) rotate(-9deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.94) rotate(1.5deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* ---- Hoàn tất: một vòng sóng xanh lan ra từ dấu tích. */
+.pm-burst {
+  position: relative;
+  display: inline-flex;
+}
+.pm-burst::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  animation: pm-burst 1.1s var(--pm-ease) 0.35s backwards;
+  pointer-events: none;
+}
+@keyframes pm-burst {
+  from {
+    opacity: 0.9;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+/* ---- Sai mã: ô nhập rung ngang. Dùng bằng Web Animations ở nơi gọi, class này cho trường hợp CSS thuần. */
+.pm-shake {
+  animation: pm-shake 420ms var(--pm-ease);
+}
+@keyframes pm-shake {
+  20% {
+    transform: translateX(-7px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+/* ---- Vừa xong một mục: viền xanh nháy rồi lặng. */
+.pm-flash {
+  animation: pm-flash 900ms var(--pm-ease);
+}
+@keyframes pm-flash {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 12px color-mix(in srgb, var(--success) 0%, transparent);
+  }
+}
+
+/* ---- Số trên huy hiệu đổi thì nảy lên. */
+.pm-badge {
+  animation: pm-badge 420ms var(--pm-spring);
+}
+@keyframes pm-badge {
+  0% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* ---- Khung chờ: vệt sáng quét qua các khối xám. */
+.pm-skel {
+  background: linear-gradient(
+    100deg,
+    var(--surface-sunken) 30%,
+    color-mix(in srgb, var(--surface) 80%, white) 50%,
+    var(--surface-sunken) 70%
+  );
+  background-size: 240% 100%;
+  animation: pm-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes pm-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+/* ---- Biểu tượng tải lên nhún nhẹ khi rê vào ô chọn ảnh. */
+.pm-bob {
+  transition: transform 420ms var(--pm-spring);
+}
+.group:hover .pm-bob {
+  transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pm-rise,
+  .pm-fade,
+  .pm-pop,
+  .pm-fill,
+  .pm-here,
+  .pm-breathe,
+  .pm-rise.pm-breathe,
+  .pm-dot,
+  .pm-glow,
+  .pm-check path,
+  .pm-stamp,
+  .pm-burst::after,
+  .pm-shake,
+  .pm-flash,
+  .pm-badge,
+  .pm-skel {
+    animation: none;
+  }
+  .pm-lift,
+  .pm-chev,
+  .pm-bob {
+    transition: none;
+  }
+  .pm-lift:hover,
+  .group:hover .pm-bob {
+    transform: none;
+  }
+}
+@media print {
+  .pm-rise,
+  .pm-fade,
+  .pm-pop,
+  .pm-stamp,
+  .pm-flash {
+    animation: none;
+  }
+}

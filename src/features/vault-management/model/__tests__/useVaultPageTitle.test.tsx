@@ -33,11 +33,11 @@ afterEach(() => {
 describe("useVaultPageTitle", () => {
   it("shows the default label first, then the vault name once it loads", async () => {
     accessTokenMemory.set("vault-title-fixture");
-    vi.spyOn(apiClient, "get").mockResolvedValue({ ...vaultFixture, name: "kho cua tao" });
+    vi.spyOn(apiClient, "get").mockResolvedValue({ ...vaultFixture, name: "tài sản cua tao" });
     const { result } = renderHook(() => useVaultPageTitle(), { wrapper: wrapper(true) });
-    expect(result.current).toEqual({ title: "Kho của tôi" });
+    expect(result.current).toEqual({ title: "Tài sản của tôi" });
     await waitFor(() =>
-      expect(result.current).toEqual({ title: "kho cua tao", eyebrow: "Kho của tôi" }),
+      expect(result.current).toEqual({ title: "tài sản cua tao", eyebrow: "Tài sản của tôi" }),
     );
   });
 
@@ -45,16 +45,16 @@ describe("useVaultPageTitle", () => {
     accessTokenMemory.set("vault-title-fixture");
     const get = vi
       .spyOn(apiClient, "get")
-      .mockResolvedValue({ ...vaultFixture, name: "Kho của tôi" });
+      .mockResolvedValue({ ...vaultFixture, name: "Tài sản của tôi" });
     const { result } = renderHook(() => useVaultPageTitle(), { wrapper: wrapper(true) });
     await waitFor(() => expect(get).toHaveBeenCalled());
-    expect(result.current).toEqual({ title: "Kho của tôi" });
+    expect(result.current).toEqual({ title: "Tài sản của tôi" });
   });
 
   it("does not call the API without a ready session", () => {
     const get = vi.spyOn(apiClient, "get").mockResolvedValue(vaultFixture);
     const { result } = renderHook(() => useVaultPageTitle(), { wrapper: wrapper(false) });
-    expect(result.current).toEqual({ title: "Kho của tôi" });
+    expect(result.current).toEqual({ title: "Tài sản của tôi" });
     expect(get).not.toHaveBeenCalled();
   });
 });

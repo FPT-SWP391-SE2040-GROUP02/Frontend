@@ -175,7 +175,7 @@ describe("pricing reference policies", () => {
       planCard("Legacy XS Max").getByText(/1\.599\.000/, { selector: "p" }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Giá là tổng cho cả kỳ/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Mua gói XS" })).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("link", { name: "Chọn gói XS" })).toHaveAttribute("href", "/login");
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
   });
 
@@ -189,13 +189,13 @@ describe("pricing reference policies", () => {
 
   it("keeps the current account entitlement from the server separate from the catalog", () => {
     setup(true);
-    const current = screen.getByRole("region", { name: "Gói hiện tại của kho" });
+    const current = screen.getByRole("region", { name: "Gói hiện tại" });
     expect(within(current).queryByText(/người nhận/i)).not.toBeInTheDocument();
     expect(planCard("Legacy XS").getByText("Gói hiện tại")).toBeInTheDocument();
     expect(ownerVaultService.getMine).not.toHaveBeenCalled();
   });
 
-  it("kho XS còn hạn: thẻ gói đang dùng bị khóa và không còn nút mua thêm suất", () => {
+  it("tài sản XS còn hạn: thẻ gói đang dùng bị khóa và không còn nút mua thêm suất", () => {
     setup(true);
     expect(planCard("Legacy XS").getByRole("button", { name: "Đang sử dụng" })).toBeDisabled();
     expect(
@@ -211,7 +211,7 @@ describe("pricing reference policies", () => {
     );
   });
 
-  it("kho XS Max: thẻ XS bị khóa, hạ hạng chọn ở bước Gia hạn gói", () => {
+  it("tài sản XS Max: thẻ XS bị khóa, hạ hạng chọn ở bước Gia hạn gói", () => {
     setup(true, { serviceTier: "XS_MAX" });
     expect(
       planCard("Legacy XS").getByRole("button", { name: "Hạ hạng khi gia hạn" }),
@@ -219,7 +219,7 @@ describe("pricing reference policies", () => {
     expect(planCard("Legacy XS").getByText(/chọn ở bước Gia hạn gói/)).toBeInTheDocument();
   });
 
-  it("kho XS còn hạn: thẻ XS Max có nút Nâng lên XS Max, không còn chữ đợi hết kỳ", () => {
+  it("tài sản XS còn hạn: thẻ XS Max có nút Nâng lên XS Max, không còn chữ đợi hết kỳ", () => {
     setup(true);
     expect(
       planCard("Legacy XS Max").getByRole("button", { name: "Nâng lên XS Max" }),
@@ -281,7 +281,7 @@ describe("pricing reference policies", () => {
         screen.queryByRole("region", { name: "Nâng lên Legacy XS Max" }),
       ).not.toBeInTheDocument();
       expect(screen.queryByRole("button", { name: "Nâng lên XS Max" })).not.toBeInTheDocument();
-      expect(screen.getByRole("region", { name: "Gói hiện tại của kho" })).toHaveTextContent(
+      expect(screen.getByRole("region", { name: "Gói hiện tại" })).toHaveTextContent(
         "Đã hết hạn dịch vụ",
       );
     } finally {
@@ -328,7 +328,7 @@ describe("pricing reference policies", () => {
     );
   });
 
-  it("kho đã hết hạn: các thẻ đều là Gia hạn, kỳ mới tính từ lúc thanh toán", async () => {
+  it("tài sản đã hết hạn: các thẻ đều là Gia hạn, kỳ mới tính từ lúc thanh toán", async () => {
     const lateQuote: BillingQuote = {
       ...purchaseQuote,
       kind: "RENEWAL",
@@ -371,15 +371,13 @@ describe("pricing reference policies", () => {
     (role) => {
       setup(true, {}, role);
       expect(ownerVaultService.getMine).not.toHaveBeenCalled();
-      expect(
-        screen.queryByRole("region", { name: "Gói hiện tại của kho" }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("region", { name: "Gói hiện tại" })).not.toBeInTheDocument();
       for (const button of screen.getAllByRole("button", { name: "Gói dành cho chủ tài sản" }))
         expect(button).toBeDisabled();
     },
   );
 
-  it("kho Free mua gói: báo giá từ Backend, kỳ bắt đầu khi thanh toán, tạo đơn mới gọi /billing/orders", async () => {
+  it("tài sản Free mua gói: báo giá từ Backend, kỳ bắt đầu khi thanh toán, tạo đơn mới gọi /billing/orders", async () => {
     const post = vi.spyOn(apiClient, "post").mockImplementation((url: string) => {
       if (url === "/billing/quote") return Promise.resolve(purchaseQuote);
       return Promise.reject(new Error("dừng ở đây"));
@@ -389,7 +387,7 @@ describe("pricing reference policies", () => {
       serviceStatus: "FREE",
       serviceExpiresAt: null,
     });
-    fireEvent.click(screen.getByRole("button", { name: "Mua gói XS" }));
+    fireEvent.click(screen.getByRole("button", { name: "Chọn gói XS" }));
     const panel = screen.getByRole("region", { name: "Mua Legacy XS" });
     await waitFor(() => expect(panel).toHaveTextContent("199.000"));
     expect(panel).toHaveTextContent("Từ lúc thanh toán thành công");
@@ -413,7 +411,7 @@ describe("pricing reference policies", () => {
       serviceStatus: "FREE",
       serviceExpiresAt: null,
     });
-    fireEvent.click(screen.getByRole("button", { name: "Mua gói XS" }));
+    fireEvent.click(screen.getByRole("button", { name: "Chọn gói XS" }));
     const panel = screen.getByRole("region", { name: "Mua Legacy XS" });
     expect(await within(panel).findByRole("alert")).toHaveTextContent("xác minh danh tính eKYC");
     expect(within(panel).getByRole("button", { name: "Tạo đơn và thanh toán" })).toBeDisabled();

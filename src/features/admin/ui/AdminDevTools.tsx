@@ -74,7 +74,7 @@ export function AdminDevTools() {
         </Notice>
       )}
 
-      <Panel title="Kho thử" labelledBy="dev-tools-vault">
+      <Panel title="Tài sản thử" labelledBy="dev-tools-vault">
         {vaults.isPending && <Skeleton className="h-11 rounded-xl" />}
         {vaults.isError && (
           <AdminErrorMessage
@@ -85,13 +85,13 @@ export function AdminDevTools() {
         )}
         {vaults.isSuccess && vaults.data.length === 0 && (
           <p className="text-sm text-heritage-muted">
-            Chưa có kho nào. Tạo kho và kích hoạt kế hoạch bằng tài khoản Chủ tài sản trước.
+            Chưa có tài sản nào. Tạo tài sản và kích hoạt kế hoạch bằng tài khoản Chủ tài sản trước.
           </p>
         )}
         {vaults.isSuccess && vaults.data.length > 0 && (
           <div className="space-y-4">
             <label className="block text-sm font-semibold" htmlFor="dev-tools-vault-select">
-              Chọn kho thử
+              Chọn tài sản thử
             </label>
             <select
               id="dev-tools-vault-select"
@@ -99,7 +99,7 @@ export function AdminDevTools() {
               onChange={(event) => selectVault(event.target.value)}
               className="min-h-11 w-full rounded-xl border border-heritage-border bg-white px-4 text-sm"
             >
-              <option value="">— Chọn một kho —</option>
+              <option value="">— Chọn một tài sản —</option>
               {vaults.data.map((item) => (
                 <option key={item.vaultId} value={item.vaultId}>
                   {item.vaultName} · {item.ownerName} · {planStatusLabel(item.planStatus)}
@@ -123,11 +123,11 @@ export function AdminDevTools() {
             }}
           >
             <Rewind className="size-4" aria-hidden="true" />
-            Đưa kho về trước eKYC và mua gói
+            Đưa tài sản về trước eKYC và mua gói
           </button>
           {selected !== undefined && selected.planStatus !== "DRAFT" && (
             <p className="mt-2 text-sm text-heritage-muted">
-              Kế hoạch đã kích hoạt nên không thể đưa kho về thời điểm này.
+              Kế hoạch đã kích hoạt nên không thể đưa tài sản về thời điểm này.
             </p>
           )}
         </Panel>
@@ -154,7 +154,7 @@ export function AdminDevTools() {
 
       {dialog?.kind === "rewind" && (
         <AdminActionDialog
-          title="Đưa kho về trước eKYC và mua gói?"
+          title="Đưa tài sản về trước eKYC và mua gói?"
           description={`${vaultLabel}: eKYC của Chủ tài sản sẽ bị xóa, gói dịch vụ trở về Free và các đơn thanh toán đang chờ bị hủy. Thao tác thay đổi dữ liệu của hồ sơ thử và không hoàn tác được. Chỉ dùng trên môi trường Development.`}
           submitLabel="Đưa về trước eKYC"
           fields={[]}
@@ -174,7 +174,7 @@ export function AdminDevTools() {
       {dialog?.kind === "ekyc" && (
         <AdminActionDialog
           title="Đặt lại eKYC?"
-          description="Toàn bộ eKYC và kho của tài khoản (kèm mọi dữ liệu trong kho và tệp mã hóa) sẽ bị xóa, không hoàn tác được. Tài khoản quay về lúc vừa đăng ký: phải tạo kho, làm eKYC, mua gói lại từ đầu. Chỉ dùng trên môi trường Development."
+          description="Toàn bộ eKYC và tài sản của tài khoản (kèm mọi dữ liệu và tệp mã hóa) sẽ bị xóa, không hoàn tác được. Tài khoản quay về lúc vừa đăng ký: phải tạo tài sản, làm eKYC, mua gói lại từ đầu. Chỉ dùng trên môi trường Development."
           submitLabel="Đặt lại eKYC"
           fields={[{ name: "email", label: "Email tài khoản", kind: "text", maxLength: 256 }]}
           defaultValues={{ email: "" }}

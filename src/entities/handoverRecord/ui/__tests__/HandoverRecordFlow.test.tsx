@@ -44,7 +44,7 @@ function record(extra: Record<string, unknown> = {}) {
   return {
     id: RECORD_ID,
     vaultId: VAULT_ID,
-    vaultName: "Kho gia đình",
+    vaultName: "Tài sản gia đình",
     ownerName: "Anh Nam",
     status: "DRAFTING",
     revisionNo: 1,
@@ -363,13 +363,15 @@ describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ t�
     });
   });
 
-  it("kho chưa khóa thì báo và khóa nút Chốt dù đã tick", async () => {
+  it("tài sản chưa khóa thì báo và khóa nút Chốt dù đã tick", async () => {
     backend(record({ vaultLocked: false }));
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await screen.findByText("Xét giấy tờ ở mục A để mở bước tiếp theo");
     expect(
-      screen.getByText("Kho chưa khóa: chấp nhận giấy tờ của ít nhất một yêu cầu trước khi chốt."),
+      screen.getByText(
+        "Tài sản chưa khóa: chấp nhận giấy tờ của ít nhất một yêu cầu trước khi chốt.",
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Phát hành biên bản" })).not.toBeInTheDocument();
   });
@@ -986,7 +988,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
 
     // Kiểm tra: một ô điền sẵn (người trùng tên), người trùng email chỉ được nêu tên
     expect(await screen.findByLabelText("Email (nhận thư mời)")).toHaveValue("an-khac@example.com");
-    expect(screen.getByText(/Trong kho đã có người tên Trần An/)).toBeInTheDocument();
+    expect(screen.getByText(/Trong danh sách đã có người tên Trần An/)).toBeInTheDocument();
     expect(screen.getByText(/Trần Văn An \(trùng email với Trần An\)/)).toBeInTheDocument();
     expect(screen.getByText("Chủ tài sản chia: Trần An")).toBeInTheDocument();
     // Người đang nhập làm biên bản khác cách chia: ô xác nhận hiện ngay, chưa cần gửi gì

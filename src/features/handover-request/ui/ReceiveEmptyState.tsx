@@ -87,11 +87,11 @@ export function ReceiveEmptyState() {
       </span>
       <div className="max-w-[46ch] space-y-1.5">
         <h2 className="text-lg font-semibold text-heritage-primary">
-          Hiện tại bạn chưa là người nhận của kho nào
+          Hiện tại bạn chưa là người nhận của tài sản nào
         </h2>
         <p className="text-sm leading-6 text-heritage-muted">
-          Một kho sẽ hiện ở đây khi Chủ tài sản khai đúng email đã xác minh của bạn làm người nhận
-          và kích hoạt kế hoạch bàn giao.
+          Một tài sản sẽ hiện ở đây khi Chủ tài sản khai đúng email đã xác minh của bạn làm người
+          nhận và kích hoạt kế hoạch bàn giao.
         </p>
       </div>
       {user && (

@@ -39,16 +39,16 @@ function OwnerCatalog() {
       {vault.isPending && <p role="status">Đang tải gói dịch vụ…</p>}
       {vault.isError && isOwnerVaultMissing(vault.error) && (
         <p className="text-sm text-heritage-muted">
-          Bạn chưa có kho.{" "}
+          Bạn chưa có tài sản.{" "}
           <Link className="underline" to={ROUTES.AUTH.VERIFY_EMAIL}>
             Xác minh email
           </Link>{" "}
-          để mở kho và xem gói dịch vụ, quyền lợi hiện tại.
+          để bắt đầu và xem gói dịch vụ, quyền lợi hiện tại.
         </p>
       )}
       {vault.isError && !isOwnerVaultMissing(vault.error) && (
         <div role="alert" className="space-y-3">
-          <p>Không tải được gói hiện tại của kho.</p>
+          <p>Không tải được gói hiện tại của bạn.</p>
           <Button
             variant="outline"
             disabled={vault.isFetching}
@@ -87,7 +87,7 @@ function OwnerCatalog() {
         <ServicePlansPanel
           catalog={PRICING_CATALOG}
           access="unavailable"
-          unavailableLabel={vault.isPending ? "Đang tải gói dịch vụ…" : "Tải kho để chọn gói"}
+          unavailableLabel={vault.isPending ? "Đang tải gói dịch vụ…" : "Tải thông tin để chọn gói"}
         />
       )}
     </>

@@ -80,7 +80,7 @@ export function AdminChangeExecutorDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Đổi Người thực thi</DialogTitle>
-          <DialogDescription>Kho của {vault.ownerNameMasked}</DialogDescription>
+          <DialogDescription>Tài sản của {vault.ownerNameMasked}</DialogDescription>
         </DialogHeader>
         <form
           onSubmit={(event) => {

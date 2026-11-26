@@ -32,6 +32,8 @@ export function PaperPreviewButton({
   onClose,
   printDisabled = false,
   primary = false,
+  disabled = false,
+  attention = false,
 }: {
   /** Chữ trên nút. */
   label: string;
@@ -47,17 +49,25 @@ export function PaperPreviewButton({
   printDisabled?: boolean;
   /** Nút nền đậm: đây là việc người dùng cần làm tiếp theo. */
   primary?: boolean;
+  /** Khóa nút khi chưa tới lúc xem (ví dụ chưa tải đủ tài sản nên chưa ký được phiếu). */
+  disabled?: boolean;
+  /** Đây là việc người dùng cần làm ngay: nút thỉnh thoảng toả vòng sáng để mắt tìm tới. */
+  attention?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   let buttonClass = buttonStyles.outline;
   if (primary) {
     buttonClass = buttonStyles.dark;
   }
+  if (attention && !disabled) {
+    buttonClass = `${buttonClass} pm-glow`;
+  }
   return (
     <>
       <button
         type="button"
         className={buttonClass}
+        disabled={disabled}
         onClick={() => {
           setOpen(true);
           onOpen?.();

@@ -17,7 +17,7 @@ export const DEV_TOOLS_NOTICE =
   "Trang này chỉ có ở môi trường Development và chỉ quản trị viên dùng được. Bản chạy thật không có. Mọi thao tác được ghi vào nhật ký hoạt động.";
 
 export const EKYC_RESET_DESCRIPTION =
-  "Đưa một tài khoản về lúc vừa đăng ký và đăng nhập được: xóa toàn bộ eKYC và xóa hẳn kho của tài khoản cùng mọi thứ trong kho (tài sản, gói, người nhận, Người thực thi, kế hoạch, biên bản bàn giao, bàn giao, thanh toán, tệp mã hóa). Email, mật khẩu, vai trò và vai Người thực thi ở kho người khác giữ nguyên.";
+  "Đưa một tài khoản về lúc vừa đăng ký và đăng nhập được: xóa toàn bộ eKYC và xóa hẳn tài sản của tài khoản cùng mọi thứ đi kèm (tài sản, gói, người nhận, Người thực thi, kế hoạch, biên bản bàn giao, bàn giao, thanh toán, tệp mã hóa). Email, mật khẩu, vai trò và vai Người thực thi ở tài sản người khác giữ nguyên.";
 
 /** Thông báo sau khi đặt lại; chỉ dùng số lượng máy chủ trả về. */
 export function ekycResetDone(result: DevEkycReset) {
@@ -28,15 +28,15 @@ export function ekycResetDone(result: DevEkycReset) {
     result.faceTemplatesRemoved === 0 &&
     !result.vaultRemoved;
   if (removedNothing)
-    return `Tài khoản ${result.email} chưa có eKYC và chưa có kho, không có gì để xóa.`;
+    return `Tài khoản ${result.email} chưa có eKYC và chưa có tài sản, không có gì để xóa.`;
   const vaultPart = result.vaultRemoved
-    ? `, xóa kho cùng toàn bộ dữ liệu trong kho và ${result.filesRemoved} tệp mã hóa`
+    ? `, xóa tài sản cùng toàn bộ dữ liệu và ${result.filesRemoved} tệp mã hóa`
     : "";
-  return `Đã đặt lại ${result.email} về lúc vừa đăng ký: xóa ${result.verificationsRemoved} lượt xác minh, ${result.consentsRemoved} lần đồng ý${result.identityRemoved ? ", danh tính đã gắn" : ""}${result.faceTemplatesRemoved > 0 ? ", mẫu khuôn mặt" : ""}${vaultPart}. Tài khoản đăng nhập lại để tạo kho, làm eKYC và mua gói từ đầu.`;
+  return `Đã đặt lại ${result.email} về lúc vừa đăng ký: xóa ${result.verificationsRemoved} lượt xác minh, ${result.consentsRemoved} lần đồng ý${result.identityRemoved ? ", danh tính đã gắn" : ""}${result.faceTemplatesRemoved > 0 ? ", mẫu khuôn mặt" : ""}${vaultPart}. Tài khoản đăng nhập lại để tạo tài sản, làm eKYC và mua gói từ đầu.`;
 }
 
 export const REWIND_DESCRIPTION =
-  "Đưa kho đang chọn về thời điểm ngay trước bước xác minh danh tính và mua gói: xóa eKYC của Chủ tài sản, trả gói dịch vụ về Free và hủy đơn thanh toán đang chờ. Đơn đã trả, tài sản, người nhận, gói tài sản và Người thực thi giữ nguyên. Chỉ dùng khi kế hoạch còn Nháp.";
+  "Đưa tài sản đang chọn về thời điểm ngay trước bước xác minh danh tính và mua gói: xóa eKYC của Chủ tài sản, trả gói dịch vụ về Free và hủy đơn thanh toán đang chờ. Đơn đã trả, tài sản, người nhận, gói tài sản và Người thực thi giữ nguyên. Chỉ dùng khi kế hoạch còn Nháp.";
 
 export const EKYC_PAUSE_DESCRIPTION =
   "Bật khi cần chạy thử cả luồng mà không có giấy tờ thật hay camera: mọi bước eKYC (giấy tờ, thử thách camera, so khớp khuôn mặt) đều tự đạt. Người nhận được đọc ra đúng họ tên và số CCCD chủ tài sản đã khai; chủ tài sản nhận một số CCCD thử riêng cho từng tài khoản. Chỉ ở bộ nhớ máy chủ, khởi động lại là về tắt. Nhớ tắt sau khi thử xong.";
@@ -67,7 +67,7 @@ export function rewindDone(result: DevRewindBeforeEkyc) {
     result.faceTemplatesRemoved > 0;
   const changed = ekycRemoved || result.entitlementReset || result.pendingOrdersCancelled > 0;
   if (!changed) {
-    return `Kho của ${result.ownerEmail} đã ở trước bước eKYC và mua gói, không có gì để đổi.`;
+    return `Tài sản của ${result.ownerEmail} đã ở trước bước eKYC và mua gói, không có gì để đổi.`;
   }
   const parts: string[] = [];
   if (ekycRemoved) parts.push("xóa eKYC");
@@ -75,5 +75,5 @@ export function rewindDone(result: DevRewindBeforeEkyc) {
   if (result.pendingOrdersCancelled > 0) {
     parts.push(`hủy ${result.pendingOrdersCancelled} đơn đang chờ`);
   }
-  return `Đã đưa kho của ${result.ownerEmail} về trước eKYC và mua gói: ${parts.join(", ")}. Chủ tài sản có thể làm eKYC rồi mua gói lại.`;
+  return `Đã đưa tài sản của ${result.ownerEmail} về trước eKYC và mua gói: ${parts.join(", ")}. Chủ tài sản có thể làm eKYC rồi mua gói lại.`;
 }

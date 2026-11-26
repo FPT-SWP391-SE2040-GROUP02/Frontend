@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { buttonStyles, formatDateTime, Notice, Panel } from "@/shared/ui/heritageKit";
 import { handoverRecordService } from "../api/handoverRecordService";
@@ -5,6 +6,8 @@ import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.sc
 import { isSigningStage } from "../model/recordPresentation";
 import { handoverRecordKeys, useExecutorRecord } from "../model/useHandoverRecord";
 import { RecipientSignButton } from "./RecipientSignButton";
+import { PaperPreviewButton } from "./PaperPreviewButton";
+import { ReceiptPaper } from "./ReceiptPaper";
 import { RecordDocument } from "./RecordDocument";
 import { RecordStepper } from "./RecordStepper";
 
@@ -21,7 +24,7 @@ function waitingText(record: HandoverRecord): string {
     case "COMPLETED":
       return "Mọi người nhận đã ký. Vào mục Bàn giao để gửi mã nhận cho người chưa có mã.";
     case "CANCELLED":
-      return "Yêu cầu nhận tài sản đã được hủy. Kho đã mở khóa.";
+      return "Yêu cầu nhận tài sản đã được hủy. Tài sản đã mở khóa.";
   }
 }
 
@@ -40,8 +43,8 @@ function WaitingForRequest() {
       <div className="space-y-3 text-sm leading-6">
         <p>
           Khi Chủ tài sản qua đời, người nhận sẽ gửi yêu cầu nhận tài sản kèm giấy tờ. Hệ thống báo
-          cho bạn và phân công một luật sư xét giấy tờ. Luật sư chấp nhận thì kho mới khóa, rồi lập
-          biên bản bàn giao.
+          cho bạn và phân công một luật sư xét giấy tờ. Luật sư chấp nhận thì tài sản mới khóa, rồi
+          lập biên bản bàn giao.
         </p>
         <p className="text-heritage-muted">
           Bạn chỉ giữ mã nhận và giao tài sản theo biên bản luật sư lập. Bạn không tự chia, bán hay
@@ -60,7 +63,7 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
   if (query.isError) {
     return (
       <div role="alert" className="space-y-3">
-        <p>Không tải được biên bản hoặc bạn không có quyền trong kho này.</p>
+        <p>Không tải được biên bản hoặc bạn không có quyền trong tài sản này.</p>
         <button type="button" className={buttonStyles.outline} onClick={() => void query.refetch()}>
           Thử lại
         </button>
@@ -109,5 +112,39 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
       )}
       <RecordDocument record={record} />
     </div>
+  );
+}
+
+/**
+ * Nút "Xem và ký phiếu giao nhận" của Người thực thi cho một người nhận: mở tờ phiếu, nút ký nằm ngay ô chữ ký "Bên giao".
+ * `signNode` do nơi gọi dựng (nút ký gọi API nằm ở tầng feature). Chưa có biên bản hoặc người nhận thì chưa hiện nút.
+ */
+export function ExecutorReceiptSignButton({
+  vaultId,
+  turnId,
+  signNode,
+}: {
+  vaultId: string;
+  turnId: string;
+  signNode: ReactNode;
+}) {
+  const query = useExecutorRecord(vaultId);
+  const record = query.data;
+  const recipient = record?.recipients.find((item) => item.turnId === turnId);
+  if (!record || !recipient) return null;
+  return (
+    <PaperPreviewButton
+      label="Xem và ký phiếu giao nhận"
+      title="Phiếu giao nhận"
+      fileName="Phieu-giao-nhan"
+      primary
+      paper={
+        <ReceiptPaper
+          record={record}
+          recipient={recipient}
+          signAction={{ target: "executor", node: signNode }}
+        />
+      }
+    />
   );
 }

@@ -141,7 +141,7 @@ function ExecutorTask({
   let description: ReactNode = (
     <p className={DESCRIPTION}>
       Chưa chọn. Người thực thi là người làm thủ tục sau khi bạn qua đời (không xem được nội dung
-      kho).
+      tài sản).
     </p>
   );
   // Mời sau cùng để Người thực thi có biên bản đầy đủ mà xem trước khi ký; Backend cũng chặn.
@@ -328,7 +328,7 @@ function AssignmentsTask({
   readOnly: boolean;
   flashing: boolean;
 }) {
-  let description = "Kho cần có ít nhất một tài sản.";
+  let description = "Cần có ít nhất một tài sản.";
   if (done) {
     description = assignmentsSummary(setup);
   }

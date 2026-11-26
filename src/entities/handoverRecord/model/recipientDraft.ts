@@ -84,12 +84,12 @@ export function skippedDeclarations(record: HandoverRecord): string[] {
 export function draftWarning(record: HandoverRecord, draft: RecipientDraft): string {
   const sameEmail = findByEmail(record, draft.email);
   if (sameEmail) {
-    return `Email này đã dùng cho ${sameEmail.fullName} trong kho. Nếu là cùng một người, hãy bỏ ô này.`;
+    return `Email này đã dùng cho ${sameEmail.fullName} trong danh sách. Nếu là cùng một người, hãy bỏ ô này.`;
   }
   const name = normalize(draft.fullName);
   const sameName = record.availableRecipients.find((person) => normalize(person.fullName) === name);
   if (name !== "" && sameName) {
-    return `Trong kho đã có người tên ${sameName.fullName}. Chỉ giữ ô này nếu đây là người khác.`;
+    return `Trong danh sách đã có người tên ${sameName.fullName}. Chỉ giữ ô này nếu đây là người khác.`;
   }
   return "";
 }

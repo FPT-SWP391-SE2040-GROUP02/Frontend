@@ -38,6 +38,7 @@ import { PlanCatalogEditor } from "./PlanCatalogEditor";
 import { PlanCards } from "./PlanCards";
 import { settingsSaveError } from "../model/adminError";
 import { limitOf, settingErrors, textMaxLengthOf } from "../model/settingRules";
+import { Collapse } from "@/shared/ui/Collapse";
 
 interface SettingMeta {
   key: string;
@@ -147,13 +148,13 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
   },
   {
     key: "Limits.MaxAssetsPerVault",
-    label: "Số tài sản tối đa mỗi kho",
+    label: "Số mục tài sản tối đa mỗi tài khoản",
     category: "Limits",
     categoryTitle: "Giới hạn chống lạm dụng",
     unit: "tài sản",
     step: 100,
     defaultValue: "2000",
-    description: "Giới hạn số lượng mục tài sản kỹ thuật số tối đa cho một kho di sản.",
+    description: "Giới hạn số lượng mục tài sản kỹ thuật số tối đa cho một tài khoản.",
     src: "VaultLimits.MaxAssets",
     dataType: "NUMBER",
   },
@@ -179,7 +180,7 @@ const SETTING_DEFINITIONS: SettingMeta[] = [
     unit: "lần",
     step: 1,
     defaultValue: "5",
-    description: "Số lần cho phép thử mã PIN bảo vệ kho trước khi kích hoạt tạm khóa.",
+    description: "Số lần cho phép thử mã PIN bảo vệ tài sản trước khi kích hoạt tạm khóa.",
     src: "VaultPinRules.MaxFailedAttempts",
     dataType: "NUMBER",
     isSecurity: true,
@@ -678,7 +679,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                     </div>
                   </button>
 
-                  {isOpen && (
+                  <Collapse open={isOpen}>
                     <div className="divide-y divide-heritage-border/40 px-5">
                       {items.map((item) => {
                         const currentVal = getValue(item.key, item.defaultValue);
@@ -825,7 +826,7 @@ export function AdminSettings({ section }: { section: "params" | "plans" }) {
                         );
                       })}
                     </div>
-                  )}
+                  </Collapse>
                 </section>
               );
             })}

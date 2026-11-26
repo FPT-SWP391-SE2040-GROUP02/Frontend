@@ -74,7 +74,7 @@ it("recognises the receive page as the return path of an invitation", () => {
 
 it("uses the recipient sentence only when the user comes from an invitation", () => {
   expect(getLoginSubtitle(true)).toBe("Đăng nhập hoặc tạo tài khoản để nhận lời mời này.");
-  expect(getLoginSubtitle(false)).toContain("quản lý kho của bạn");
+  expect(getLoginSubtitle(false)).toContain("quản lý tài sản của bạn");
 });
 
 it("nhận ra đường vào để nhận tài sản và đổi dòng phụ cho người nhận", () => {

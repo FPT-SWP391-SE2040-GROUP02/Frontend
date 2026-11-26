@@ -19,5 +19,5 @@ export const LOGOUT_CONTENT = {
   accountUnavailable: "Chưa có thông tin tài khoản để hiển thị.",
   unnamedAccount: "Tài khoản của bạn",
   dmsReminder: "Đăng xuất không ảnh hưởng tới kế hoạch bàn giao.",
-  dmsGuidance: "Kho và tài sản của bạn vẫn được giữ an toàn.",
+  dmsGuidance: "Tài sản của bạn vẫn được giữ an toàn.",
 } as const;

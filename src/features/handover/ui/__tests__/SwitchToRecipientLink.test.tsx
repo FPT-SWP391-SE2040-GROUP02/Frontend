@@ -13,7 +13,7 @@ import { SwitchToRecipientLink } from "../SwitchToRecipientLink";
 
 const user = {
   id: VAULT_ID,
-  email: "chu-kho@example.com",
+  email: "chu-tài sản@example.com",
   fullName: "Chủ tài sản",
   role: "USER" as const,
   status: "ACTIVE" as const,

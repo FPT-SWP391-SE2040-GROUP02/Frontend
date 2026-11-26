@@ -26,7 +26,7 @@ import { NotificationBell } from "@/features/death-case/ui/NotificationBell";
 import { ExecutorVaultCard } from "./ExecutorVaultCard";
 import { useSelectedExecutorVault } from "@/features/death-case/model/useExecutorVaults";
 
-const INVITATIONS_LABEL = "Lời mời và kho";
+const INVITATIONS_LABEL = "Lời mời và tài sản";
 /** Dòng giải thích ổ khóa; các mục bị khóa trỏ tới nó qua aria-describedby. */
 const LOCKED_NOTE_ID = "executor-locked-note";
 
@@ -119,7 +119,7 @@ export function ExecutorWorkspace({
             <ExecutorVaultCard />
             {!noVault && (
               <p className="mt-3 truncate px-3 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
-                Kho này
+                Tài sản này
               </p>
             )}
             {executorNavigation.map(({ to, label, icon: Icon, needsVault }, index) => {
@@ -129,10 +129,10 @@ export function ExecutorWorkspace({
                     {index === firstVaultItem && (
                       <div className="col-span-2 mt-3 pl-3">
                         <p className="text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
-                          Kho này
+                          Tài sản này
                         </p>
                         <p id={LOCKED_NOTE_ID} className="mt-1 text-sm text-heritage-gold-soft">
-                          Mở khi bạn nhận một kho
+                          Mở khi bạn nhận một tài sản
                         </p>
                       </div>
                     )}

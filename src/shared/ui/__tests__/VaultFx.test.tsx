@@ -36,7 +36,7 @@ describe("VaultMeter", () => {
     expect(container.querySelectorAll(".vm-tip")).toHaveLength(1);
   });
 
-  it("kho có dữ liệu rất nhỏ vẫn sáng một ngăn, kho trống thì không sáng ngăn nào", () => {
+  it("tài sản có dữ liệu rất nhỏ vẫn sáng một ngăn, tài sản trống thì không sáng ngăn nào", () => {
     const { container, rerender } = render(
       <VaultMeter usedBytes={1} quotaBytes={1_000_000} label="Dung lượng đã dùng" />,
     );

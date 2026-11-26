@@ -214,7 +214,7 @@ describe("Luật sư xét hồ sơ báo tin", () => {
     });
   });
 
-  it("không có kho thì không chấp nhận được; từ chối phải có lý do", async () => {
+  it("không có tài sản thì không chấp nhận được; từ chối phải có lý do", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
       verifierReport({ vaultFound: false, ownerName: "", nameMatches: false }),
     ]);

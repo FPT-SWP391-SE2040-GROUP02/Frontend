@@ -22,7 +22,7 @@ const DONE_ID = "66666666-6666-4666-8666-666666666666";
 const summary = (id: string, status: string, extra: Record<string, unknown> = {}) => ({
   id,
   vaultId: VAULT_ID,
-  vaultName: "Kho gia đình",
+  vaultName: "Tài sản gia đình",
   ownerName: "Anh Nam",
   status,
   recipientCount: 2,

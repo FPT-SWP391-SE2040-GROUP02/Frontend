@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { Lock } from "lucide-react";
+import { FileText, Lock, X } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Panel } from "@/shared/ui/heritageKit";
 import { Input } from "@/shared/ui/input";
@@ -11,6 +11,7 @@ import { Textarea } from "@/shared/ui/textarea";
 import { backendAssetService } from "../api/backendAssetService";
 import { ADD_ASSET_NAME_ID, MAX_ASSET_FILE_BYTES, validateAssetFile } from "../model/addAssetForm";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
+import "./create-asset-form.css";
 
 const schema = z.object({
   name: z.string().regex(/\S/, "Nhập tên mục.").max(200),
@@ -189,10 +190,24 @@ export function CreateAssetForm({
                 />
               </label>
               {file && (
-                <p className="break-all text-sm text-heritage-muted">
-                  Đã chọn: <span className="font-medium text-heritage-text">{file.name}</span> ·{" "}
-                  {file.size} bytes
-                </p>
+                <div className="asset-file-chip">
+                  <FileText aria-hidden="true" className="size-5 shrink-0 text-heritage-muted" />
+                  <div className="min-w-0 flex-1">
+                    <p className="break-all text-sm font-medium text-heritage-text">{file.name}</p>
+                    <p className="text-sm text-heritage-muted">{formatStorageSize(file.size)}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="asset-file-chip-x"
+                    aria-label={`Bỏ tệp ${file.name}`}
+                    onClick={() => {
+                      pickFile(null);
+                      setFileInputKey((value) => value + 1);
+                    }}
+                  >
+                    <X aria-hidden="true" className="size-4" />
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -216,7 +231,9 @@ export function CreateAssetForm({
                 className="h-2 overflow-hidden rounded-full bg-heritage-canvas"
               >
                 <div
-                  className="h-full rounded-full bg-heritage-success"
+                  className={`h-full rounded-full bg-heritage-success transition-[width] duration-300 ease-out ${
+                    uploadPercent === null || uploadPercent >= 100 ? "animate-pulse" : ""
+                  }`}
                   style={{
                     width:
                       uploadPercent === null || uploadPercent >= 100 ? "100%" : `${uploadPercent}%`,
@@ -237,7 +254,7 @@ export function CreateAssetForm({
           </p>
           <div className="flex flex-wrap gap-3">
             <button type="submit" className={buttonStyles.dark}>
-              {action.pending ? "Đang lưu…" : "Lưu vào kho"}
+              {action.pending ? "Đang lưu…" : "Lưu tài sản"}
             </button>
             <button type="button" className={buttonStyles.outline} onClick={clear}>
               Hủy
@@ -251,7 +268,7 @@ export function CreateAssetForm({
         )}
         {action.succeeded && (
           <p role="status" className="text-sm text-heritage-success">
-            Đã lưu vào kho.
+            Đã lưu tài sản.
           </p>
         )}
       </form>

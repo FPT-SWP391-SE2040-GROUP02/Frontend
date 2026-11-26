@@ -185,7 +185,7 @@ function renderOverview() {
     setCredentials({
       user: {
         id: "11111111-1111-4111-8111-111111111111",
-        email: "chu-kho@example.test",
+        email: "chu-tài sản@example.test",
         fullName: "Tên đăng nhập khác",
         role: "USER",
         status: "ACTIVE",
@@ -229,7 +229,7 @@ function paper() {
 
 const TICK_LABEL =
   "Tôi đã đọc toàn bộ biên bản phân chia, tự nguyện lập và ký biên bản phân chia này. Kế hoạch có hiệu lực khi Người thực thi xem và ký.";
-const PIN_LABEL = "Nhập mã PIN của kho (6 số)";
+const PIN_LABEL = "Nhập mã PIN tài sản (6 số)";
 
 describe("trang Bàn giao: thẻ việc và tiến độ", () => {
   it("đủ điều kiện: bốn thẻ việc, tiến độ đầy và nút Xem trước và ký", () => {
@@ -428,7 +428,9 @@ describe("khung xem trước biên bản phân chia", () => {
     expect(document.body.textContent ?? "").not.toContain(SECRET_MESSAGE);
     // Mục III và IV.
     expect(paper()).toHaveTextContent("Lê Thị Mẫu, email executor@example.test");
-    expect(paper()).toHaveTextContent("không được xem nội dung kho, không tự chia, bán hay cho");
+    expect(paper()).toHaveTextContent(
+      "không được xem nội dung tài sản, không tự chia, bán hay cho",
+    );
     expect(paper()).toHaveTextContent("chỉ làm theo biên bản bàn giao do luật sư lập");
     expect(paper()).toHaveTextContent("thu hồi biên bản phân chia này bất cứ lúc nào");
     // Chân tờ.

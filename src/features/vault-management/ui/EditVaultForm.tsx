@@ -17,7 +17,7 @@ const NAME_MAX = 200;
 const DESCRIPTION_MAX = 1000;
 
 const schema = z.object({
-  name: z.string().regex(/\S/, "Tên kho không được để trống.").max(NAME_MAX),
+  name: z.string().regex(/\S/, "Tên tài sản không được để trống.").max(NAME_MAX),
   description: z.string().max(DESCRIPTION_MAX),
 });
 
@@ -93,15 +93,15 @@ export function EditVaultForm({
         <div className="space-y-2">
           <FieldHeader
             htmlFor="vault-name"
-            label="Tên kho"
-            hint="Tên giúp bạn nhận ra kho, chỉ bạn nhìn thấy."
+            label="Tên tài sản"
+            hint="Tên giúp bạn nhận ra tài sản, chỉ bạn nhìn thấy."
             length={name.length}
             max={NAME_MAX}
           />
           <Input
             id="vault-name"
             maxLength={NAME_MAX}
-            placeholder="Ví dụ: Kho của gia đình"
+            placeholder="Ví dụ: Tài sản của gia đình"
             className="h-11 rounded-xl border-heritage-border-strong bg-white"
             {...form.register("name")}
             aria-invalid={Boolean(errors.name)}
@@ -116,8 +116,8 @@ export function EditVaultForm({
         <div className="space-y-2">
           <FieldHeader
             htmlFor="vault-description"
-            label="Mô tả kho"
-            hint="Ghi chú ngắn về những gì kho lưu giữ (không bắt buộc)."
+            label="Mô tả tài sản"
+            hint="Ghi chú ngắn về những gì tài sản lưu giữ (không bắt buộc)."
             length={description.length}
             max={DESCRIPTION_MAX}
           />
@@ -144,7 +144,7 @@ export function EditVaultForm({
               className="mr-auto inline-flex items-center gap-1.5 text-sm font-medium text-heritage-success"
             >
               <CheckCircle2 className="size-4" aria-hidden="true" />
-              Đã lưu thông tin kho.
+              Đã lưu thông tin tài sản.
             </p>
           )}
           {lockReason !== null && (
@@ -162,7 +162,7 @@ export function EditVaultForm({
             Hoàn tác
           </button>
           <button type="submit" className={buttonStyles.dark} disabled={!isDirty}>
-            {action.pending ? "Đang lưu…" : "Lưu thông tin kho"}
+            {action.pending ? "Đang lưu…" : "Lưu thông tin tài sản"}
           </button>
         </div>
       </fieldset>

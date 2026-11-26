@@ -119,17 +119,17 @@ describe("workspace logo navigation", () => {
 
   it("opens the phone navigation and closes it after choosing an Owner page", () => {
     const store = configureStore({ reducer: { auth: authReducer } });
-    renderWorkspace(store, "/dashboard", "Kho");
+    renderWorkspace(store, "/dashboard", "Tài sản");
     const toggle = screen.getByRole("button", { name: "Menu Chủ tài sản" });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
-    fireEvent.click(screen.getByRole("link", { name: "Kho của tôi" }));
+    fireEvent.click(screen.getByRole("link", { name: "Tài sản của tôi" }));
     expect(screen.getByRole("button", { name: "Menu Chủ tài sản" })).toHaveAttribute(
       "aria-expanded",
       "false",
     );
-    expect(screen.getByRole("link", { name: "Kho của tôi" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Tài sản của tôi" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -155,8 +155,8 @@ describe("workspace logo navigation", () => {
       "Tổng quan",
       "ĐƯỢC ĐỂ LẠI CHO TÔI",
       "Nhận tài sản",
-      "KHO CỦA TÔI",
-      "Kho của tôi",
+      "TÀI SẢN CỦA TÔI",
+      "Tài sản của tôi",
       "Bàn giao",
       "Người nhận",
       "Người thực thi",
@@ -223,27 +223,30 @@ describe("workspace logo navigation", () => {
 
   it("shows the eyebrow above the title only when one is given", () => {
     const store = configureStore({ reducer: { auth: authReducer } });
-    renderWorkspace(store, "/dashboard", "kho cua tao", "Kho của tôi");
-    expect(screen.getByRole("heading", { level: 1, name: "kho cua tao" })).toBeInTheDocument();
-    expect(screen.getByText("Kho của tôi", { selector: "p" })).toBeInTheDocument();
+    renderWorkspace(store, "/dashboard", "tài sản cua tao", "Tài sản của tôi");
+    expect(screen.getByRole("heading", { level: 1, name: "tài sản cua tao" })).toBeInTheDocument();
+    expect(screen.getByText("Tài sản của tôi", { selector: "p" })).toBeInTheDocument();
     cleanup();
     renderWorkspace(store, "/dashboard", "Fixture");
-    expect(screen.queryByText("Kho của tôi", { selector: "p" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Tài sản của tôi", { selector: "p" })).not.toBeInTheDocument();
   });
 
   it.each([
-    ["/assets?filter=all#list", "Kho của tôi"],
-    ["/wills/new", "Bàn giao"],
-    ["/dashboard/wills/new", "Bàn giao"],
-    ["/billing/history", "Gói dịch vụ"],
-    ["/dashboard/identity", "Xác minh"],
-  ])("keeps the correct navigation item active on %s", (path, label) => {
+    ["/assets?filter=all#list", "Tài sản của tôi", 1],
+    ["/wills/new", "Bàn giao", 1],
+    ["/dashboard/wills/new", "Bàn giao", 1],
+    // Mục thuộc menu tài khoản có hai liên kết cùng tên: một trong danh sách điện thoại, một trong menu tài khoản.
+    ["/billing/history", "Gói dịch vụ", 2],
+    ["/dashboard/identity", "Xác minh", 1],
+  ])("keeps the correct navigation item active on %s", (path, label, linkCount) => {
     const store = configureStore({ reducer: { auth: authReducer } });
     renderWorkspace(store, path);
-    expect(screen.getByRole("link", { name: label })).toHaveAttribute("aria-current", "page");
+    for (const link of screen.getAllByRole("link", { name: label })) {
+      expect(link).toHaveAttribute("aria-current", "page");
+    }
     expect(
       screen.getAllByRole("link").filter((link) => link.getAttribute("aria-current") === "page"),
-    ).toHaveLength(1);
+    ).toHaveLength(linkCount);
   });
 
   it.each(["USER", "ADMIN", "VERIFIER"] as const)(
@@ -284,7 +287,7 @@ describe("workspace logo navigation", () => {
                 <Route
                   path="/dashboard/assets"
                   element={
-                    <OwnerWorkspace title="Kho" description="Fixture">
+                    <OwnerWorkspace title="Tài sản" description="Fixture">
                       <p>Current page</p>
                     </OwnerWorkspace>
                   }

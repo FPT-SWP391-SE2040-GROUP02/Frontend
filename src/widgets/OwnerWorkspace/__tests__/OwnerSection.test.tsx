@@ -88,7 +88,9 @@ describe("official workspace data states", () => {
       response: { status: 403, data: { code: "EMAIL_NOT_VERIFIED" } },
     });
     setup();
-    expect(await screen.findByText("Xác minh email để mở kho di sản")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Xác minh email để bắt đầu lưu giữ tài sản"),
+    ).toBeInTheDocument();
     expect(ownerVaultService.createMine).toHaveBeenCalledWith();
     expect(backendAssetService.list).not.toHaveBeenCalled();
   });
@@ -116,7 +118,7 @@ describe("official workspace data states", () => {
     vi.mocked(ownerVaultService.getMine).mockRejectedValue(new Error("private exception"));
     setup();
     expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được dữ liệu");
-    expect(screen.queryByText("Xác minh email để mở kho di sản")).not.toBeInTheDocument();
+    expect(screen.queryByText("Xác minh email để bắt đầu lưu giữ tài sản")).not.toBeInTheDocument();
     expect(ownerVaultService.createMine).not.toHaveBeenCalled();
     expect(screen.queryByText("private exception")).not.toBeInTheDocument();
   });
@@ -144,7 +146,7 @@ describe("official workspace data states", () => {
     vi.mocked(backendAssetService.list).mockResolvedValue(emptyAssetPage);
     vi.mocked(vaultPinService.getStatus).mockResolvedValue(pinStatus(false));
     setup();
-    expect(await screen.findByText("Bạn chưa đặt mã PIN cho kho")).toBeInTheDocument();
+    expect(await screen.findByText("Bạn chưa đặt mã PIN cho tài sản")).toBeInTheDocument();
     expect(screen.getByText("Thêm tài sản đang bị khóa")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Đặt mã PIN" })).toBeInTheDocument();
   });
@@ -166,7 +168,7 @@ describe("official workspace data states", () => {
       confirmPin: "482913",
     });
     await vi.waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    expect(screen.queryByText("Bạn chưa đặt mã PIN cho kho")).not.toBeInTheDocument();
+    expect(screen.queryByText("Bạn chưa đặt mã PIN cho tài sản")).not.toBeInTheDocument();
     expect(await screen.findByRole("group", { name: "Loại mục" })).toBeInTheDocument();
   });
   it("shows the add-asset form without the PIN notice once a PIN is set", async () => {
@@ -175,7 +177,7 @@ describe("official workspace data states", () => {
     setup();
     expect(await screen.findByText("Chưa có nội dung")).toBeInTheDocument();
     await vi.waitFor(() => expect(vaultPinService.getStatus).toHaveBeenCalled());
-    expect(screen.queryByText("Bạn chưa đặt mã PIN cho kho")).not.toBeInTheDocument();
+    expect(screen.queryByText("Bạn chưa đặt mã PIN cho tài sản")).not.toBeInTheDocument();
     expect(screen.queryByText("Thêm tài sản đang bị khóa")).not.toBeInTheDocument();
     expect(await screen.findByRole("group", { name: "Loại mục" })).toBeInTheDocument();
   });

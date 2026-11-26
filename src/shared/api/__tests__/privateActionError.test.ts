@@ -17,7 +17,7 @@ describe("official BE business errors", () => {
   it.each([
     [400, "VALIDATION_ERROR", "Dữ liệu chưa hợp lệ"],
     [403, "PAID_TIER_REQUIRED", "trả phí"],
-    [404, "VAULT_NOT_FOUND", "Không tìm thấy kho"],
+    [404, "VAULT_NOT_FOUND", "Không tìm thấy tài sản"],
     [404, "ASSET_NOT_FOUND", "Không tìm thấy tài sản"],
     [404, "ASSET_NOT_FOUND", "Không tìm thấy tài sản"],
     [404, "BENEFICIARY_NOT_FOUND", "Không tìm thấy hồ sơ"],
