@@ -62,6 +62,7 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   DEV_REWIND_BEFORE_EKYC: "Tua tài sản về trước eKYC",
   DEV_UPDATE_EKYC_THRESHOLD: "Cập nhật ngưỡng so khớp khuôn mặt",
   ADMIN_CREATED_USER: "Tạo tài khoản hệ thống",
+  ADMIN_UPDATED_USER_PROFILE: "Sửa thông tin tài khoản nhân sự",
   SYSTEM_CONFIG_UPDATED: "Cập nhật cấu hình dịch vụ",
   SYSTEM_CONFIG_RESET: "Khôi phục cấu hình dịch vụ",
   EXECUTOR_KEY_ISSUED: "Cấp mã nhận cho Người thực thi",

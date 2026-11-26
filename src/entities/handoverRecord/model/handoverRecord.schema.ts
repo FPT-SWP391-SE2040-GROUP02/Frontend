@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isVietnamesePhone, VIETNAM_PHONE_MESSAGE } from "@/shared/lib/vietnamPhone";
 
 const timestamp = z.string().datetime({ offset: true });
 
@@ -242,6 +243,15 @@ export const newRecipientSchema = z.object({
     .refine((value) => value <= todayText(), "Ngày sinh không được ở tương lai.")
     .refine((value) => value <= latestAdultBirthDate(), "Người nhận phải đủ 18 tuổi."),
   email: z.string().trim().email("Email không hợp lệ.").max(256),
-  phone: z.string().trim().max(32).optional(),
+  // Không bắt buộc, nhưng đã nhập thì phải là số di động Việt Nam (giống Backend).
+  phone: z
+    .string()
+    .trim()
+    .max(32)
+    .optional()
+    .refine(
+      (text) => text === undefined || text === "" || isVietnamesePhone(text),
+      VIETNAM_PHONE_MESSAGE,
+    ),
 });
 export type NewRecipient = z.infer<typeof newRecipientSchema>;
