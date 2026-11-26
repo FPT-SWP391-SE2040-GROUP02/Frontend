@@ -1,5 +1,6 @@
 import { compactButton } from "@/shared/ui/SectionCard";
 import type { RecipientDraft } from "../model/recipientDraft";
+import { declaredIdentity } from "../model/declaredIdentity";
 
 /**
  * Người nhận được khai trong hồ sơ báo tin mà chưa có trong danh sách. Thông tin do người nộp tự khai nên luật sư phải
@@ -42,6 +43,9 @@ export function SuggestedRecipients({
                     {[suggestion.email, suggestion.phone].filter(Boolean).join(" · ") ||
                       "Chưa có email"}
                   </p>
+                  {declaredIdentity(suggestion) !== "" && (
+                    <p className="text-heritage-muted">{declaredIdentity(suggestion)}</p>
+                  )}
                 </div>
                 <button
                   type="button"

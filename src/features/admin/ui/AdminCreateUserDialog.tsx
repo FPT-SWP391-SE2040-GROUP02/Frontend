@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
+import { isVietnamesePhone, VIETNAM_PHONE_MESSAGE } from "@/shared/lib/vietnamPhone";
 import { adminService } from "../api/adminService";
 import type { AdminUser } from "../model/admin.schema";
 import { useAdminAction } from "../model/useAdminAction";
@@ -32,7 +33,16 @@ const createUserSchema = z
       .max(256),
     password: z.string().max(128).optional(),
     role: z.enum(["VERIFIER", "EXECUTOR", "ADMIN"]),
-    phone: z.string().trim().max(32).optional(),
+    // Số không bắt buộc, nhưng đã nhập thì phải là số di động Việt Nam (giống Backend).
+    phone: z
+      .string()
+      .trim()
+      .max(32)
+      .optional()
+      .refine(
+        (text) => text === undefined || text === "" || isVietnamesePhone(text),
+        VIETNAM_PHONE_MESSAGE,
+      ),
   })
   .superRefine((data, ctx) => {
     // Quản trị viên bắt buộc mật khẩu khởi tạo. Người xét duyệt / Người thực thi có thể để trống (Backend gửi thư mời đặt
@@ -323,9 +333,22 @@ export function AdminCreateUserDialog({ open, onClose, onDone }: AdminCreateUser
                   type="tel"
                   autoComplete="tel"
                   {...form.register("phone")}
+                  aria-invalid={Boolean(form.formState.errors.phone)}
+                  aria-describedby={
+                    form.formState.errors.phone ? "create-user-phone-error" : undefined
+                  }
                   className="mt-1"
                   placeholder="0912345678"
                 />
+                {form.formState.errors.phone && (
+                  <p
+                    id="create-user-phone-error"
+                    role="alert"
+                    className="mt-1 text-sm text-destructive"
+                  >
+                    {form.formState.errors.phone.message}
+                  </p>
+                )}
               </div>
             </>
           )}
