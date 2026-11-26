@@ -20,8 +20,7 @@ export interface WillDocumentProps {
   /** Người thực thi hiện hành; null hoặc bỏ trống nghĩa là chưa có. */
   executor?: WillExecutorView | null;
   /**
-   * Người nhận theo từng người. Bỏ trống khi nơi xem không có dữ liệu này (ví dụ Người thực thi xem lời mời):
-   * mục II khi đó dùng câu chung.
+   * Người nhận theo từng người. Bỏ trống khi Backend chưa trả: mục II khi đó dùng câu chung.
    */
   recipients?: WillRecipientView[];
   /** Số tài sản chưa gán cho ai (sẽ không được bàn giao); chỉ hiện khi biết `recipients`. */
@@ -42,8 +41,6 @@ export interface WillDocumentProps {
   ownerIdentity?: WillOwnerIdentityView | null;
   /** Phiên bản đã ký gần nhất; bỏ trống thì không in dòng phiên bản. */
   version?: WillVersionView | null;
-  /** Số tài sản và người nhận khi người xem không được biết tên (Người thực thi); chỉ dùng khi không có `recipients`. */
-  counts?: { assets: number; recipients: number };
 }
 
 const SECTION = "mt-7";
@@ -214,23 +211,16 @@ function AssetsSectionBlock({
   recipients,
   unassignedAssetCount,
   identityStatus,
-  counts,
 }: {
   recipients: WillRecipientView[] | undefined;
   unassignedAssetCount: number;
   identityStatus: WillIdentityStatus;
-  counts: { assets: number; recipients: number } | undefined;
 }) {
   const heading = <h3 className={HEADING}>II. Tài sản và định đoạt tài sản</h3>;
   if (recipients === undefined) {
     return (
       <section id="muc-2" className={SECTION}>
         {heading}
-        {counts !== undefined && (
-          <p className={BODY}>
-            Kho có {counts.assets} tài sản. Số người nhận đã khai: {counts.recipients}.
-          </p>
-        )}
         <p className={BODY}>
           Các tài sản trong kho được để lại cho những người nhận tôi đã chọn, nếu có. Phần chưa chọn
           người nhận do luật sư xác định khi bàn giao. Biên bản phân chia không ghi nội dung tài
@@ -462,10 +452,10 @@ function SignatureBlock({
 
 /**
  * Biên bản phân chia số của một kho, sinh từ dữ liệu kế hoạch bàn giao: quốc hiệu, tiêu đề, bốn mục I đến IV, hai ô chữ ký
- * ngang hàng và câu lưu ý. Chỉ có tên và số đếm, không có tên hay nội dung tài sản, không có lời nhắn.
+ * ngang hàng và câu lưu ý. Có tên tài sản và người nhận, không có nội dung tài sản hay lời nhắn.
  *
- * Dùng chung cho khung xem trước của Chủ tài sản (viewer "owner", chỗ trống đỏ bấm được), bản Người thực thi xem khi nhận
- * lời mời và bản in (viewer "reader"). Hai chữ ký lấy từ dữ liệu thật: Chủ tài sản ký khi kích hoạt kế hoạch, Người thực
+ * Dùng chung cho khung xem trước của Chủ tài sản (viewer "owner", chỗ trống đỏ bấm được), bản Người thực thi xem và bản
+ * in (viewer "reader"). Hai chữ ký lấy từ dữ liệu thật: Chủ tài sản ký khi kích hoạt kế hoạch, Người thực
  * thi ký khi nhận lời mời; component không tự suy ra chữ ký.
  */
 export function WillDocument({
@@ -480,7 +470,6 @@ export function WillDocument({
   identityStatus = "none",
   ownerIdentity = null,
   version = null,
-  counts,
 }: WillDocumentProps) {
   const clickable = viewer === "owner";
 
@@ -531,7 +520,6 @@ export function WillDocument({
         recipients={recipients}
         unassignedAssetCount={unassignedAssetCount}
         identityStatus={identityStatus}
-        counts={counts}
       />
       <ExecutorSectionBlock executor={executor} clickable={clickable} onGapClick={onGapClick} />
 

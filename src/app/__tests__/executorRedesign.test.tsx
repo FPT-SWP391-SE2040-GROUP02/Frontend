@@ -471,8 +471,26 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     endedAt: "2026-11-02T03:00:00Z",
   };
 
+  const paper = {
+    versionNo: 1,
+    signedAt: "2026-11-01T04:00:00Z",
+    ownerName: "Cô Lan",
+    ownerEmail: "lan@example.test",
+    recipients: [],
+    unassignedAssetCount: 0,
+    identity: { owner: null, recipients: [] },
+  };
+
+  /** Mở biên bản, đợi tờ hiện ra rồi đóng: lúc đó mới tính là đã đọc. */
+  async function readPaper(card: HTMLElement): Promise<void> {
+    fireEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
+    expect(await screen.findAllByText("III. Người thực thi")).not.toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "Đóng" }));
+  }
+
   function mockApi(held: unknown[]) {
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url.endsWith("/will")) return paper;
       if (url === "/executor/vaults") return held;
       if (url.includes("executor-invitations")) {
         return { scopeVersion: "v1", scopeText: "x", pending: [invitation], ended: [ended] };
@@ -505,8 +523,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     const password = within(card).getByLabelText("Mật khẩu tài khoản");
     expect(password).toBeDisabled();
     expect(password).toHaveAttribute("placeholder", "Mở biên bản trước");
-    fireEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Đóng" }));
+    await readPaper(card);
     fireEvent.click(
       within(card).getByLabelText(
         "Tôi đã đọc biên bản phân chia, phạm vi công việc và đồng ý nhận vai Người thực thi",
@@ -543,6 +560,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
   it("chấp nhận xong gọi Backend và tải lại danh sách kho; kho mới hiện ở Kho bạn đang giữ", async () => {
     let held: unknown[] = [];
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url.endsWith("/will")) return paper;
       if (url === "/executor/vaults") return held;
       if (url.includes("executor-invitations")) {
         return { scopeVersion: "v1", scopeText: "x", pending: [invitation], ended: [] };
@@ -571,8 +589,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     });
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
-    fireEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Đóng" }));
+    await readPaper(card);
     fireEvent.click(
       within(card).getByLabelText(
         "Tôi đã đọc biên bản phân chia, phạm vi công việc và đồng ý nhận vai Người thực thi",

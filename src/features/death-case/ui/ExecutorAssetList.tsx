@@ -131,8 +131,8 @@ function AssetNamesBeforeHandover({ vault }: { vault: ExecutorVault }) {
       {content}
       <p className="flex items-start gap-2 text-sm leading-5 text-heritage-muted">
         <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-        Bạn chỉ thấy tên và loại tài sản, không mở được nội dung. Người nhận sẽ hiện sau khi luật sư
-        chốt biên bản bàn giao.
+        Bạn chỉ thấy tên và loại tài sản, không mở được nội dung. Danh sách bàn giao chính thức hiện
+        sau khi luật sư chốt biên bản bàn giao.
       </p>
     </div>
   );

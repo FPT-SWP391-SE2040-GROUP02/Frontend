@@ -351,7 +351,9 @@ describe("Executor assets", () => {
     expect(screen.getByText("Ghi chú bí mật")).toBeInTheDocument();
     expect(screen.getByText("Tệp tải lên")).toBeInTheDocument();
     expect(screen.getByText("Chủ tài sản chưa để lại hướng dẫn.")).toBeInTheDocument();
-    expect(screen.getByText(/Người nhận sẽ hiện sau khi luật sư/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Danh sách bàn giao chính thức hiện sau khi luật sư/),
+    ).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Thử lại|Xem|Tải/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/CCCD/)).not.toBeInTheDocument();

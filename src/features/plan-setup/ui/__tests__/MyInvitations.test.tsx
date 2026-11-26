@@ -8,6 +8,7 @@ import { Provider } from "react-redux";
 import authReducer from "@/entities/user/model/authSlice";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { executorWillService } from "@/entities/will/api/executorWillService";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { planSetupService } from "../../api/planSetupService";
@@ -17,6 +18,9 @@ import { MyInvitationsBanner } from "../MyInvitationsBanner";
 
 vi.mock("../../api/planSetupService", () => ({
   planSetupService: { mine: vi.fn(), respondById: vi.fn() },
+}));
+vi.mock("@/entities/will/api/executorWillService", () => ({
+  executorWillService: { get: vi.fn() },
 }));
 
 const FIRST_ID = "11111111-1111-4111-8111-111111111111";
@@ -70,6 +74,15 @@ beforeEach(() => {
   vi.resetAllMocks();
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   accessTokenMemory.set("invitation-fixture");
+  vi.mocked(executorWillService.get).mockResolvedValue({
+    versionNo: 2,
+    signedAt: "2026-11-02T00:00:00Z",
+    ownerName: "Chủ tài sản thử nghiệm",
+    ownerEmail: "chu@example.test",
+    recipients: [],
+    unassignedAssetCount: 0,
+    identity: { owner: null, recipients: [] },
+  });
 });
 afterEach(() => {
   cleanup();
@@ -97,7 +110,7 @@ function renderWithRoutes(element: ReactNode) {
 async function readPaper(card: HTMLElement): Promise<void> {
   await userEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
   const paper = await screen.findByRole("article", { name: "Tờ Biên bản phân chia" });
-  expect(paper).toHaveTextContent("Kho có 3 tài sản. Số người nhận đã khai: 1.");
+  expect(await within(paper).findByText("III. Người thực thi")).toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Đóng" }));
 }
 

@@ -90,6 +90,7 @@ export const auditActionValues = [
   "WILL_SIGNED",
   "EXECUTOR_WILL_CONFIRMED",
   "EXECUTOR_WILL_DECLINED",
+  "EXECUTOR_WILL_VIEWED",
   "WILL_IDENTITY_VIEWED",
   // Sự kiện xác thực và eKYC (không gắn kho; chỉ Admin xem).
   "LOGIN_SUCCEEDED",

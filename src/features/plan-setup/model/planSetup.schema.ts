@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { recipientSchema, type PlanRecipient } from "@/entities/will/model/willRecipient.schema";
 const date = z.string().datetime({ offset: true });
 /** Cùng giới hạn độ dài với `InspectExecutorInvitationRequest.Token` phía Backend. */
 export const invitationTokenSchema = z.string().min(32).max(512);
@@ -20,24 +21,7 @@ export const executorSchema = z.object({
   /** Phiên bản Người thực thi không đồng ý. */
   declinedWillVersionNo: z.number().int().nullish(),
 });
-/**
- * Tài sản được gán cho một người nhận trong biên bản phân chia. Không có nội dung tài sản.
- * `sharedWithCount` là số người nhận tài sản này, tính cả người đang xem; lớn hơn 1 là nhận chung.
- */
-const recipientAssetSchema = z.object({
-  id: z.string().min(1),
-  name: z.string(),
-  kind: z.enum(["FILE", "TEXT"]),
-  sharedWithCount: z.number().int().positive(),
-});
-/** Người nhận theo từng người. `hasMessage` chỉ cho biết đã viết lời nhắn hay chưa, không có nội dung. */
-const recipientSchema = z.object({
-  beneficiaryId: z.string().min(1),
-  fullName: z.string(),
-  hasMessage: z.boolean(),
-  assets: z.array(recipientAssetSchema),
-});
-export type PlanRecipient = z.infer<typeof recipientSchema>;
+export type { PlanRecipient };
 const unassignedAssetSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),

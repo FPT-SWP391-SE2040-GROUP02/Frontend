@@ -29,6 +29,8 @@ export function PaperPreviewButton({
   fileName,
   paper,
   onOpen,
+  onClose,
+  printDisabled = false,
   primary = false,
 }: {
   /** Chữ trên nút. */
@@ -40,6 +42,9 @@ export function PaperPreviewButton({
   paper: ReactNode;
   /** Gọi khi người dùng mở tờ giấy (để biết họ đã xem trước khi ký). */
   onOpen?: () => void;
+  onClose?: () => void;
+  /** Khóa nút in khi tờ giấy chưa tải xong. */
+  printDisabled?: boolean;
   /** Nút nền đậm: đây là việc người dùng cần làm tiếp theo. */
   primary?: boolean;
 }) {
@@ -61,7 +66,13 @@ export function PaperPreviewButton({
         <FileText className="size-4" aria-hidden="true" />
         {label}
       </button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next);
+          if (!next) onClose?.();
+        }}
+      >
         <DialogContent
           showCloseButton={false}
           aria-label={`Xem trước ${title}`}
@@ -78,6 +89,7 @@ export function PaperPreviewButton({
               <button
                 type="button"
                 className={buttonStyles.outline}
+                disabled={printDisabled}
                 onClick={() => printPaper(fileName)}
               >
                 <Printer className="size-4" aria-hidden="true" />
@@ -86,7 +98,10 @@ export function PaperPreviewButton({
               <button
                 type="button"
                 aria-label="Đóng"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  onClose?.();
+                }}
                 className="flex size-11 shrink-0 items-center justify-center rounded-full text-heritage-text hover:bg-heritage-primary/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
               >
                 <X className="size-6" aria-hidden="true" />

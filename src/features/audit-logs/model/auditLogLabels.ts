@@ -78,6 +78,7 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   WILL_SIGNED: "Chủ tài sản ký biên bản phân chia",
   EXECUTOR_WILL_CONFIRMED: "Người thực thi đồng ý biên bản mới",
   EXECUTOR_WILL_DECLINED: "Người thực thi không đồng ý biên bản mới",
+  EXECUTOR_WILL_VIEWED: "Người thực thi xem biên bản phân chia",
   WILL_IDENTITY_VIEWED: "Xem CCCD đầy đủ của người nhận",
   LOGIN_SUCCEEDED: "Đăng nhập thành công",
   LOGIN_FAILED: "Đăng nhập sai mật khẩu",

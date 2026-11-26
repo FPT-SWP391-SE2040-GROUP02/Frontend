@@ -1,13 +1,13 @@
 import { useSelector } from "react-redux";
 import { PaperPreviewButton } from "@/entities/handoverRecord";
 import type { AuthState } from "@/entities/user/model/authSlice";
-import { WillDocument } from "@/entities/will/ui/WillDocument";
+import { useExecutorWillPaper } from "@/entities/will/model/useExecutorWillPaper";
 import { Notice } from "@/shared/ui/heritageKit";
 import type { MyInvitation } from "../model/myInvitations.schema";
 
 /**
- * Tờ biên bản phân chia Chủ tài sản đã ký, để người được mời đọc trước khi ký nhận vai. Chỉ có số đếm, không có tên tài sản
- * hay người nhận. Chủ tài sản chưa ký thì chỉ báo chờ.
+ * Tờ biên bản phân chia Chủ tài sản đã ký, để người được mời đọc trước khi ký nhận vai; nội dung giống bên Chủ tài sản.
+ * Chủ tài sản chưa ký thì chỉ báo chờ.
  */
 export function InvitationPaper({
   invitation,
@@ -23,7 +23,21 @@ export function InvitationPaper({
   asStep?: boolean;
 }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
-  if (!invitation.willReady || !invitation.willVersionNo) {
+  let versionNo: number | null = null;
+  if (invitation.willReady && invitation.willVersionNo) {
+    versionNo = invitation.willVersionNo;
+  }
+  const will = useExecutorWillPaper({
+    source: { kind: "invitation", id: invitation.id },
+    versionNo,
+    executor: {
+      email: invitation.inviteeEmail,
+      fullName: user?.fullName ?? null,
+      signedAt: null,
+    },
+    onRead,
+  });
+  if (versionNo === null) {
     return (
       <Notice tone="warning" title="Chờ Chủ tài sản ký">
         Chủ tài sản ký biên bản phân chia trước. Khi đó bạn xem được biên bản rồi mới ký nhận vai.
@@ -43,24 +57,11 @@ export function InvitationPaper({
         label="Xem biên bản phân chia"
         title="Biên bản phân chia"
         fileName="Bien-ban-phan-chia"
-        onOpen={onRead}
+        onOpen={will.onOpen}
+        onClose={will.onClose}
+        printDisabled={!will.ready}
         primary={asStep && !read}
-        paper={
-          <WillDocument
-            ownerName={invitation.ownerName}
-            signedAt={invitation.willSignedAt}
-            executor={{
-              email: invitation.inviteeEmail,
-              fullName: user?.fullName ?? null,
-              signedAt: null,
-            }}
-            version={{
-              number: invitation.willVersionNo,
-              signedAt: invitation.willSignedAt ?? null,
-            }}
-            counts={{ assets: invitation.assetCount, recipients: invitation.recipientCount }}
-          />
-        }
+        paper={will.paper}
       />
       {hint && <p className="text-sm text-heritage-muted">{hint}</p>}
     </div>
