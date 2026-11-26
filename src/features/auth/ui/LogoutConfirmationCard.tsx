@@ -83,7 +83,7 @@ export function LogoutConfirmationCard({ onClose, className = "" }: LogoutConfir
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-heritage-text">{displayName}</p>
-              <p className="text-sm leading-5 break-all text-heritage-muted">
+              <p className="text-sm leading-5 break-words text-heritage-muted">
                 {LOGOUT_ROLE_LABELS[user.role]} · {user.email}
               </p>
             </div>
