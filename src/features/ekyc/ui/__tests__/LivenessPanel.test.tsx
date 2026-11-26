@@ -130,7 +130,7 @@ it("stops camera and frame requests after a terminal frame", async () => {
   expect(vi.mocked(ekycService.sendLivenessFrame)).toHaveBeenCalledTimes(count);
 });
 
-it("serializes frames and aborts an outstanding frame on cancel", async () => {
+it("serializes frames and aborts an outstanding frame when the panel is closed", async () => {
   vi.useFakeTimers();
   let resolveFrame!: (value: typeof passing) => void;
   vi.mocked(ekycService.sendLivenessFrame).mockImplementation(
@@ -145,14 +145,15 @@ it("serializes frames and aborts an outstanding frame on cancel", async () => {
   });
   expect(ekycService.sendLivenessFrame).toHaveBeenCalledTimes(1);
   const signal = vi.mocked(ekycService.sendLivenessFrame).mock.calls[0][1];
-  fireEvent.click(screen.getByRole("button", { name: "Hủy thử thách" }));
+  // Không còn nút hủy: rời màn là dừng camera và hủy khung hình đang chờ.
+  expect(screen.queryByRole("button", { name: /Hủy/ })).not.toBeInTheDocument();
+  cleanup();
   expect(signal?.aborted).toBe(true);
   await act(async () => {
     resolveFrame(passing);
   });
   expect(ekycService.completeLiveness).not.toHaveBeenCalled();
   expect(trackStops[0]).toHaveBeenCalled();
-  expect(screen.getByRole("button", { name: "Bắt đầu thử thách camera" })).toBeInTheDocument();
 });
 
 it("expires a camera session even while a frame is outstanding", async () => {

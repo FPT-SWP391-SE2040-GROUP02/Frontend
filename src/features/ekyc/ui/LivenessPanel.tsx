@@ -19,7 +19,7 @@ export function LivenessPanel({
 }: {
   onCompleted: (status: z.infer<typeof ekycStatusSchema>, selfieUrl?: string | null) => void;
 }) {
-  const { state, start, complete, cancel, videoRef, canvasRef, handoffSelfie } = useLiveness();
+  const { state, start, complete, videoRef, canvasRef, handoffSelfie } = useLiveness();
 
   useEffect(() => {
     if (state.kind !== "completed") return;
@@ -203,14 +203,6 @@ export function LivenessPanel({
             >
               {startLabel}
             </Button>
-          )}
-
-          {cameraOn && (
-            <>
-              <Button type="button" variant="outline" size="lg" onClick={cancel}>
-                Hủy thử thách
-              </Button>
-            </>
           )}
         </div>
       </section>
