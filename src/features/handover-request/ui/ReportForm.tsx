@@ -5,7 +5,13 @@ import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { handoverReportService } from "../api/handoverReportService";
-import { filledRecipients, reportErrors, type ReportErrors } from "../model/reportForm";
+import {
+  filledRecipients,
+  recipientRowErrors,
+  reportErrors,
+  type RecipientFieldErrors,
+  type ReportErrors,
+} from "../model/reportForm";
 import { DocumentPicker } from "./DocumentPicker";
 import { RecipientRows } from "./RecipientRows";
 
@@ -50,7 +56,11 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
     others,
   };
   let errors: ReportErrors = {};
-  if (touched) errors = reportErrors(draft);
+  let rowErrors: RecipientFieldErrors[] = [];
+  if (touched) {
+    errors = reportErrors(draft);
+    rowErrors = recipientRowErrors(recipients);
+  }
 
   const send = () => {
     setTouched(true);
@@ -151,9 +161,10 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
           3. Những người nhận bạn biết
         </legend>
         <p className="leading-6 text-heritage-muted">
-          Không bắt buộc. Luật sư dùng email và số điện thoại này để liên hệ, sau khi đã kiểm lại.
+          Không bắt buộc. Luật sư dùng thông tin này để liên hệ và điền sẵn vào biên bản, sau khi đã
+          kiểm lại. Chưa biết số căn cước hoặc ngày sinh thì để trống.
         </p>
-        <RecipientRows disabled={busy} showErrors={touched} onChange={setRecipients} />
+        <RecipientRows disabled={busy} errors={rowErrors} onChange={setRecipients} />
         <ErrorText>{errors.recipients}</ErrorText>
       </fieldset>
 

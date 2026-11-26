@@ -23,15 +23,7 @@ function report(extra: Record<string, unknown> = {}) {
     reviewReason: null,
     createdAt: AT,
     reviewedAt: null,
-    recipients: [
-      {
-        fullName: "Trần Con",
-        email: "con@example.com",
-        phone: "",
-        citizenId: "",
-        dateOfBirth: "",
-      },
-    ],
+    recipients: [{ fullName: "Trần Con", email: "con@example.com", phone: "" }],
     files: [
       {
         id: "55555555-5555-4555-8555-555555555555",
@@ -81,6 +73,21 @@ function setup(children: ReactNode) {
   );
 }
 
+/** Điền phần người mất, giấy tờ và cam đoan để chỉ còn phần người nhận cần kiểm. */
+async function fillReportBasics(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText("Họ tên người mất"), "Nguyễn Văn Mất");
+  await user.type(screen.getByLabelText("Số căn cước người mất (12 số)"), "001099001234");
+  await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
+  await user.upload(
+    screen.getByLabelText(/^Giấy chứng tử/),
+    new File(["%PDF"], "chung-tu.pdf", { type: "application/pdf" }),
+  );
+  await user.upload(
+    screen.getByLabelText(/^Di chúc/),
+    new File(["%PDF"], "di-chuc.pdf", { type: "application/pdf" }),
+  );
+}
+
 describe("Người thân nộp hồ sơ báo tin", () => {
   it("thiếu thông tin thì báo lỗi và không gửi", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([]);
@@ -121,32 +128,22 @@ describe("Người thân nộp hồ sơ báo tin", () => {
     expect(form.get("attested")).toBe("true");
     expect(form.getAll("wills")).toHaveLength(1);
     expect(JSON.parse(form.get("recipients") as string)).toEqual([
-      { fullName: "Trần Con", email: "con@example.com", phone: "", citizenId: "", dateOfBirth: "" },
+      { fullName: "Trần Con", citizenId: "", dateOfBirth: "", email: "con@example.com", phone: "" },
     ]);
   });
 
-  it("gửi kèm số căn cước và ngày sinh người nhận đã khai", async () => {
+  it("người nhận khai căn cước, ngày sinh và số điện thoại đúng thì gửi kèm đủ", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([]);
     const post = vi.spyOn(apiClient, "post").mockResolvedValue(report());
     setup(<ReportPanel />);
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
-    await user.type(screen.getByLabelText("Họ tên người mất"), "Nguyễn Văn Mất");
-    await user.type(screen.getByLabelText("Số căn cước người mất (12 số)"), "001099001234");
-    await user.upload(
-      screen.getByLabelText(/^Giấy chứng tử/),
-      new File(["%PDF"], "chung-tu.pdf", { type: "application/pdf" }),
-    );
-    await user.upload(
-      screen.getByLabelText(/^Di chúc/),
-      new File(["%PDF"], "di-chuc.pdf", { type: "application/pdf" }),
-    );
+    await fillReportBasics(user);
     const person = within(screen.getByRole("group", { name: "Người nhận 1" }));
     await user.type(person.getByLabelText("Họ tên"), "Trần Con");
-    await user.type(person.getByLabelText("Số điện thoại"), "0912 345 678");
-    await user.type(person.getByLabelText(/^Số căn cước/), "079 20 1234567");
-    await user.type(person.getByLabelText("Ngày sinh của người nhận 1"), "01011990");
-    await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
+    await user.type(person.getByLabelText("Số căn cước"), "001099000222");
+    await user.type(person.getByLabelText("Ngày sinh"), "1990-02-28");
+    await user.type(person.getByLabelText("Số điện thoại"), "091 234 5678");
     await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
 
     expect(await screen.findByText("Đã tiếp nhận hồ sơ")).toBeInTheDocument();
@@ -154,64 +151,55 @@ describe("Người thân nộp hồ sơ báo tin", () => {
     expect(JSON.parse(form.get("recipients") as string)).toEqual([
       {
         fullName: "Trần Con",
+        citizenId: "001099000222",
+        dateOfBirth: "1990-02-28",
         email: "",
-        phone: "0912 345 678",
-        citizenId: "079201234567",
-        dateOfBirth: "1990-01-01",
+        phone: "091 234 5678",
       },
     ]);
   });
 
-  it("báo lỗi ngay dưới ô khi rời ô: số điện thoại, căn cước, ngày sinh; ô số điện thoại không nhận chữ", async () => {
+  it("căn cước, ngày sinh, số điện thoại sai thì báo lỗi ngay dưới từng ô và không gửi", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    const post = vi.spyOn(apiClient, "post");
     setup(<ReportPanel />);
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
-    const person = within(screen.getByRole("group", { name: "Người nhận 1" }));
-
-    const phone = person.getByLabelText("Số điện thoại");
-    await user.type(phone, "09ab12");
-    expect(phone).toHaveValue("0912");
-    await user.tab();
-    expect(await person.findByText(/Số điện thoại gồm 9 đến 15 chữ số/)).toBeInTheDocument();
-
-    const citizen = person.getByLabelText(/^Số căn cước/);
-    await user.type(citizen, "12345");
-    await user.tab();
-    expect(await person.findByText("Số căn cước gồm đúng 12 chữ số.")).toBeInTheDocument();
-
-    const birth = person.getByLabelText("Ngày sinh của người nhận 1");
-    await user.type(birth, "01012099");
-    await user.tab();
-    expect(await person.findByText("Ngày sinh không được ở tương lai.")).toBeInTheDocument();
-  });
-
-  it("người nhận đã nhập mà sai căn cước thì chặn nộp và nói rõ người nào", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue([]);
-    const post = vi.spyOn(apiClient, "post").mockResolvedValue(report());
-    setup(<ReportPanel />);
-    const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
-    await user.type(screen.getByLabelText("Họ tên người mất"), "Nguyễn Văn Mất");
-    await user.type(screen.getByLabelText("Số căn cước người mất (12 số)"), "001099001234");
-    await user.upload(
-      screen.getByLabelText(/^Giấy chứng tử/),
-      new File(["%PDF"], "chung-tu.pdf", { type: "application/pdf" }),
-    );
-    await user.upload(
-      screen.getByLabelText(/^Di chúc/),
-      new File(["%PDF"], "di-chuc.pdf", { type: "application/pdf" }),
-    );
+    await fillReportBasics(user);
     const person = within(screen.getByRole("group", { name: "Người nhận 1" }));
     await user.type(person.getByLabelText("Họ tên"), "Trần Con");
-    await user.type(person.getByLabelText("Email"), "con@example.com");
-    await user.type(person.getByLabelText(/^Số căn cước/), "12345");
-    await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
+    await user.type(person.getByLabelText("Số căn cước"), "123");
+    await user.type(person.getByLabelText("Ngày sinh"), "2015-05-05");
+    await user.type(person.getByLabelText("Số điện thoại"), "3232");
     await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
 
-    expect(
-      await screen.findByText("Người nhận 1: Số căn cước gồm đúng 12 chữ số."),
-    ).toBeInTheDocument();
+    expect(await person.findByText("Số căn cước gồm 12 chữ số.")).toBeInTheDocument();
+    expect(person.getByText("Người nhận phải đủ 18 tuổi.")).toBeInTheDocument();
+    expect(person.getByText(/Số điện thoại không đúng định dạng/)).toBeInTheDocument();
+    expect(person.getByLabelText("Số căn cước")).toHaveAttribute("aria-invalid", "true");
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("hai người nhận khai trùng số căn cước thì báo ở người sau", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    const post = vi.spyOn(apiClient, "post");
+    setup(<ReportPanel />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
+    await fillReportBasics(user);
+    const first = within(screen.getByRole("group", { name: "Người nhận 1" }));
+    await user.type(first.getByLabelText("Họ tên"), "Trần Con");
+    await user.type(first.getByLabelText("Số căn cước"), "001099000222");
+    await user.type(first.getByLabelText("Email"), "con@example.com");
+    await user.click(screen.getByRole("button", { name: "Thêm người nhận" }));
+    const second = within(screen.getByRole("group", { name: "Người nhận 2" }));
+    await user.type(second.getByLabelText("Họ tên"), "Trần Cháu");
+    await user.type(second.getByLabelText("Số căn cước"), "001099000222");
+    await user.type(second.getByLabelText("Email"), "chau@example.com");
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
+
+    expect(await second.findByText("Số căn cước này đã khai cho người khác.")).toBeInTheDocument();
+    expect(first.queryByText("Số căn cước này đã khai cho người khác.")).not.toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
 

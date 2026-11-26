@@ -1,9 +1,6 @@
 import { z } from "zod";
-import {
-  latestAdultBirthDate,
-  todayText,
-  type SuggestedRecipient,
-} from "@/entities/handoverRecord";
+import { newRecipientSchema, type SuggestedRecipient } from "@/entities/handoverRecord";
+import { isVietnamesePhone, VIETNAM_PHONE_MESSAGE } from "@/shared/lib/vietnamPhone";
 import { filesError } from "./handoverRequest.schema";
 
 /** Giống Backend: khai tối đa 20 người nhận. */
@@ -29,13 +26,18 @@ export interface ReportErrors {
   recipients?: string;
 }
 
-/** Số điện thoại hợp lệ: 9 đến 15 chữ số, có thể bắt đầu bằng +; bỏ khoảng trắng, dấu chấm, gạch ngang trước khi kiểm. */
-export function isValidPhone(phone: string): boolean {
-  return /^\+?\d{9,15}$/.test(phone.replace(/[\s.-]/g, ""));
+/** Lỗi từng ô của một người nhận; ô không có lỗi thì vắng mặt. */
+export type RecipientFieldErrors = Partial<
+  Record<"fullName" | "citizenId" | "dateOfBirth" | "email" | "phone", string>
+>;
+
+/** Bỏ khoảng trắng như Backend; không bỏ ký tự khác để ô sai vẫn báo sai. */
+function compactCitizenId(text: string): string {
+  return text.replace(/\s/g, "");
 }
 
 export function isBlankRecipient(person: SuggestedRecipient): boolean {
-  return [person.fullName, person.email, person.phone, person.citizenId, person.dateOfBirth].every(
+  return [person.fullName, person.citizenId, person.dateOfBirth, person.email, person.phone].every(
     (text) => text.trim() === "",
   );
 }
@@ -46,62 +48,72 @@ export function filledRecipients(recipients: SuggestedRecipient[]): SuggestedRec
     .filter((person) => !isBlankRecipient(person))
     .map((person) => ({
       fullName: person.fullName.trim(),
+      citizenId: compactCitizenId(person.citizenId),
+      dateOfBirth: person.dateOfBirth.trim(),
       email: person.email.trim(),
       phone: person.phone.trim(),
-      citizenId: person.citizenId.replace(/\s/g, ""),
-      dateOfBirth: person.dateOfBirth.trim(),
     }));
 }
 
-/** Ô của một dòng người nhận; "contact" là lỗi chung khi chưa có cả email lẫn số điện thoại. */
-export type RecipientField = "fullName" | "email" | "phone" | "citizenId" | "dateOfBirth";
-export type RecipientFieldErrors = Partial<Record<RecipientField | "contact", string>>;
+/** Lời báo đầu tiên của newRecipientSchema cho một ô, hoặc rỗng khi ô hợp lệ. */
+function firstIssue(schema: z.ZodTypeAny, value: string): string {
+  const parsed = schema.safeParse(value);
+  if (parsed.success) {
+    return "";
+  }
+  return parsed.error.issues[0].message;
+}
 
 /**
- * Lỗi từng ô của một người nhận, dùng cho cả báo lỗi ngay dưới ô lẫn kiểm lúc nộp. Căn cước và ngày sinh không bắt
- * buộc nhưng đã nhập thì phải đúng. `others` là các dòng khác để bắt trùng email, căn cước.
+ * Lỗi từng ô của từng dòng người nhận, cùng thứ tự với `recipients`; dòng trống hoàn toàn hoặc hợp lệ cho đối tượng
+ * rỗng. Căn cước và ngày sinh không bắt buộc nhưng đã điền thì phải đúng (cùng luật với form của luật sư); cần ít nhất
+ * email hoặc số điện thoại.
  */
-export function recipientFieldErrors(
-  person: SuggestedRecipient,
-  others: SuggestedRecipient[] = [],
-): RecipientFieldErrors {
-  const errors: RecipientFieldErrors = {};
-  const name = person.fullName.trim();
-  const email = person.email.trim();
-  const phone = person.phone.trim();
-  const citizenId = person.citizenId.replace(/\s/g, "");
-  const dateOfBirth = person.dateOfBirth.trim();
-  if (name === "") errors.fullName = "Vui lòng nhập họ tên.";
-  if (email !== "" && !z.string().email().safeParse(email).success) {
-    errors.email = "Email không hợp lệ.";
-  } else if (
-    email !== "" &&
-    others.some((other) => other.email.trim().toLowerCase() === email.toLowerCase())
-  ) {
-    errors.email = "Email này đã khai cho người nhận khác.";
-  }
-  if (phone !== "" && !isValidPhone(phone)) {
-    errors.phone = "Số điện thoại gồm 9 đến 15 chữ số, ví dụ 0912345678.";
-  }
-  if (email === "" && phone === "") errors.contact = "Cần có email hoặc số điện thoại.";
-  if (citizenId !== "" && !/^\d{12}$/.test(citizenId)) {
-    errors.citizenId = "Số căn cước gồm đúng 12 chữ số.";
-  } else if (
-    citizenId !== "" &&
-    others.some((other) => other.citizenId.replace(/\s/g, "") === citizenId)
-  ) {
-    errors.citizenId = "Số căn cước này đã khai cho người nhận khác.";
-  }
-  if (dateOfBirth !== "") {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
-      errors.dateOfBirth = "Ngày sinh chưa đúng, nhập ngày/tháng/năm.";
-    } else if (dateOfBirth > todayText()) {
-      errors.dateOfBirth = "Ngày sinh không được ở tương lai.";
-    } else if (dateOfBirth > latestAdultBirthDate()) {
-      errors.dateOfBirth = "Người nhận phải đủ 18 tuổi.";
+export function recipientRowErrors(recipients: SuggestedRecipient[]): RecipientFieldErrors[] {
+  const emails = new Set<string>();
+  const citizenIds = new Set<string>();
+  return recipients.map((person) => {
+    const errors: RecipientFieldErrors = {};
+    if (isBlankRecipient(person)) {
+      return errors;
     }
-  }
-  return errors;
+    const email = person.email.trim();
+    const phone = person.phone.trim();
+    const citizenId = compactCitizenId(person.citizenId);
+    const dateOfBirth = person.dateOfBirth.trim();
+    if (person.fullName.trim() === "") {
+      errors.fullName = "Vui lòng nhập họ tên.";
+    }
+    if (citizenId !== "") {
+      const citizenIssue = firstIssue(newRecipientSchema.shape.citizenId, citizenId);
+      if (citizenIssue !== "") {
+        errors.citizenId = citizenIssue;
+      } else if (citizenIds.has(citizenId)) {
+        errors.citizenId = "Số căn cước này đã khai cho người khác.";
+      }
+      citizenIds.add(citizenId);
+    }
+    if (dateOfBirth !== "") {
+      const birthIssue = firstIssue(newRecipientSchema.shape.dateOfBirth, dateOfBirth);
+      if (birthIssue !== "") {
+        errors.dateOfBirth = birthIssue;
+      }
+    }
+    if (email === "" && phone === "") {
+      errors.email = "Cần có email hoặc số điện thoại.";
+    } else if (email !== "" && !z.string().email().safeParse(email).success) {
+      errors.email = "Email không hợp lệ.";
+    } else if (email !== "" && emails.has(email.toLowerCase())) {
+      errors.email = "Email này đã khai cho người khác.";
+    }
+    if (phone !== "" && !isVietnamesePhone(phone)) {
+      errors.phone = VIETNAM_PHONE_MESSAGE;
+    }
+    if (email !== "") {
+      emails.add(email.toLowerCase());
+    }
+    return errors;
+  });
 }
 
 /** Lỗi của biểu mẫu; đối tượng rỗng khi hợp lệ. */
@@ -126,22 +138,10 @@ export function reportErrors(draft: ReportDraft): ReportErrors {
     const fileError = filesError([...draft.deathCertificates, ...draft.wills, ...draft.others]);
     if (fileError !== "") errors.files = fileError;
   }
-  const people = filledRecipients(draft.recipients);
-  for (const [index, person] of people.entries()) {
-    const fieldErrors = recipientFieldErrors(
-      person,
-      people.filter((_, other) => other < index),
-    );
-    const first =
-      fieldErrors.fullName ??
-      fieldErrors.contact ??
-      fieldErrors.email ??
-      fieldErrors.phone ??
-      fieldErrors.citizenId ??
-      fieldErrors.dateOfBirth;
-    if (first !== undefined) {
-      errors.recipients = `Người nhận ${index + 1}: ${first}`;
-      break;
+  // Lỗi chi tiết hiện ngay dưới từng ô; ở đây chỉ báo chung để người dùng biết còn chỗ phải sửa ở mục này.
+  for (const rowErrors of recipientRowErrors(draft.recipients)) {
+    if (Object.keys(rowErrors).length > 0) {
+      errors.recipients = "Kiểm tra lại thông tin người nhận ở các ô báo đỏ.";
     }
   }
   return errors;

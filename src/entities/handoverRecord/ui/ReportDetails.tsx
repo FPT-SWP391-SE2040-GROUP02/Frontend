@@ -1,7 +1,7 @@
 import { RecordFileList } from "./RecordFileList";
 import type { TransferOptions } from "@/shared/lib/useTransfer";
 import type { ReportFile, SuggestedRecipient } from "../model/handoverReport.schema";
-import { suggestedDetailLine } from "../model/recipientDraft";
+import { declaredIdentity } from "../model/declaredIdentity";
 
 const KIND_LABEL: Record<ReportFile["kind"], string> = {
   DEATH_CERTIFICATE: "Giấy chứng tử",
@@ -34,7 +34,7 @@ export function ReportFiles({
   );
 }
 
-/** Người nhận do người nộp khai, kèm email và số điện thoại. */
+/** Người nhận do người nộp khai, kèm email, số điện thoại, căn cước và ngày sinh nếu có. */
 export function SuggestedRecipientList({ recipients }: { recipients: SuggestedRecipient[] }) {
   if (recipients.length === 0) return null;
   return (
@@ -44,7 +44,12 @@ export function SuggestedRecipientList({ recipients }: { recipients: SuggestedRe
         {recipients.map((person, index) => (
           <li key={`${index}:${person.email}`} className="px-4 py-3">
             <p className="font-medium">{person.fullName}</p>
-            <p className="break-all text-heritage-muted">{suggestedDetailLine(person)}</p>
+            <p className="break-all text-heritage-muted">
+              {[person.email, person.phone].filter((text) => text !== "").join(" · ")}
+            </p>
+            {declaredIdentity(person) !== "" && (
+              <p className="text-heritage-muted">{declaredIdentity(person)}</p>
+            )}
           </li>
         ))}
       </ul>

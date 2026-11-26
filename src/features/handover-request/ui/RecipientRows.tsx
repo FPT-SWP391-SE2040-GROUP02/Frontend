@@ -1,39 +1,59 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, X } from "lucide-react";
-import { cn } from "cn";
-import { latestAdultBirthDate, type SuggestedRecipient } from "@/entities/handoverRecord";
-import { DatePickerInput } from "@/shared/ui/date-picker-input";
 import {
-  isBlankRecipient,
-  MAX_REPORT_RECIPIENTS,
-  recipientFieldErrors,
-  type RecipientField,
-  type RecipientFieldErrors,
-} from "../model/reportForm";
+  cloneElement,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type InputHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+} from "react";
+import { ChevronDown, X } from "lucide-react";
+import type { SuggestedRecipient } from "@/entities/handoverRecord";
+import { MAX_REPORT_RECIPIENTS, type RecipientFieldErrors } from "../model/reportForm";
 
 const INPUT = "h-11 w-full rounded-xl border border-heritage-border bg-white px-3";
-const INVALID = "border-heritage-danger focus-visible:outline-heritage-danger";
 const EMPTY_RECIPIENT: SuggestedRecipient = {
   fullName: "",
-  email: "",
-  phone: "",
   citizenId: "",
   dateOfBirth: "",
+  email: "",
+  phone: "",
 };
+const NO_ERRORS: RecipientFieldErrors = {};
 
-/** Lọc ký tự ngay lúc gõ để ô không nhận chữ cái: số điện thoại chỉ giữ số, +, khoảng trắng, chấm, gạch; căn cước chỉ giữ 12 số. */
-const FILTERS: Partial<Record<RecipientField, (value: string) => string>> = {
-  phone: (value) => value.replace(/[^\d+\s.-]/g, ""),
-  citizenId: (value) => value.replace(/\D/g, "").slice(0, 12),
-};
-
-/** Câu báo lỗi dưới ô: hiện nhẹ nhàng, trình đọc màn hình đọc ngay. */
-function FieldError({ id, children }: { id: string; children?: string }) {
-  if (!children) return null;
+/** Một ô của người nhận: nhãn ở trên, lỗi báo ngay dưới ô và gắn vào ô bằng aria-describedby. */
+function RecipientField({
+  id,
+  label,
+  error,
+  className,
+  children,
+}: {
+  id: string;
+  label: string;
+  error: string | undefined;
+  className: string;
+  children: ReactElement<InputHTMLAttributes<HTMLInputElement>>;
+}) {
+  const errorId = `${id}-error`;
+  const hasError = error !== undefined && error !== "";
+  let describedBy: string | undefined;
+  if (hasError) {
+    describedBy = errorId;
+  }
   return (
-    <p id={id} role="alert" className="pm-fade text-sm font-normal text-destructive">
-      {children}
-    </p>
+    <div className={`space-y-1 ${className}`}>
+      <label htmlFor={id} className="block font-semibold">
+        {label}
+      </label>
+      {cloneElement(children, { id, "aria-invalid": hasError, "aria-describedby": describedBy })}
+      {hasError && (
+        <p id={errorId} role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -90,23 +110,21 @@ function SlideRow({
 }
 
 /**
- * Các dòng người nhận để luật sư liên hệ và đối chiếu: họ tên, email, số điện thoại, số căn cước, ngày sinh. Có sẵn Người nhận 1; thanh
+ * Các dòng người nhận để luật sư liên hệ nhanh: họ tên, số căn cước, ngày sinh, email, số điện thoại. Có sẵn Người nhận 1; thanh
  * "Thêm người nhận" ở dưới mở thêm khối mới trượt xuống ngay trong form, dấu × thu khối lại.
  * Dòng đang thu không còn nằm trong dữ liệu gửi lên `onChange`.
  */
 export function RecipientRows({
   disabled,
-  showErrors = false,
+  errors,
   onChange,
 }: {
   disabled: boolean;
-  /** Đã bấm nộp: hiện mọi lỗi, kể cả ô chưa chạm tới. */
-  showErrors?: boolean;
+  /** Lỗi từng ô, cùng thứ tự với các khối chưa đóng (đúng thứ tự dữ liệu của `onChange`). */
+  errors: RecipientFieldErrors[];
   onChange: (rows: SuggestedRecipient[]) => void;
 }) {
-  const id = useId();
-  // Ô đã rời khỏi (blur) thì mới báo lỗi, để người dùng không bị mắng giữa lúc đang gõ.
-  const [visited, setVisited] = useState<ReadonlySet<string>>(new Set());
+  const baseId = useId();
   const nextKey = useRef(1);
   const timers = useRef<number[]>([]);
   const [entries, setEntries] = useState<RecipientEntry[]>([
@@ -127,12 +145,10 @@ export function RecipientRows({
     onChange(next.filter((entry) => !entry.closing).map((entry) => entry.person));
   }
 
-  function update(key: number, field: RecipientField, value: string) {
+  function update(key: number, field: keyof SuggestedRecipient, value: string) {
     commit(
       entries.map((entry) =>
-        entry.key === key
-          ? { ...entry, person: { ...entry.person, [field]: FILTERS[field]?.(value) ?? value } }
-          : entry,
+        entry.key === key ? { ...entry, person: { ...entry.person, [field]: value } } : entry,
       ),
     );
   }
@@ -155,28 +171,6 @@ export function RecipientRows({
     timers.current.push(timer);
   }
 
-  function visit(key: number, field: RecipientField) {
-    setVisited((current) => new Set(current).add(`${key}.${field}`));
-  }
-
-  /** Lỗi của một dòng; dòng để trống hoàn toàn không báo lỗi gì. Trùng email, căn cước tính với các dòng đứng trước. */
-  function errorsOf(entry: RecipientEntry): RecipientFieldErrors {
-    if (isBlankRecipient(entry.person)) return {};
-    const before = entries
-      .filter((other) => !other.closing && other.key < entry.key)
-      .map((other) => other.person);
-    return recipientFieldErrors(entry.person, before);
-  }
-
-  function shown(
-    key: number,
-    field: RecipientField,
-    errors: RecipientFieldErrors,
-  ): string | undefined {
-    if (!showErrors && !visited.has(`${key}.${field}`)) return undefined;
-    return errors[field];
-  }
-
   // Số thứ tự hiển thị chỉ tính các khối chưa đóng; khối đang thu giữ chỗ ngay sau khối mở liền trước để nhãn không đổi giữa lúc mờ dần.
   const numbers: number[] = [];
   let openCount = 0;
@@ -192,6 +186,10 @@ export function RecipientRows({
     <div>
       {entries.map((entry, index) => {
         const number = numbers[index];
+        let rowErrors = NO_ERRORS;
+        if (!entry.closing && errors[number - 1] !== undefined) {
+          rowErrors = errors[number - 1];
+        }
         return (
           <SlideRow key={entry.key} slideIn={entry.slideIn} closing={entry.closing}>
             <div
@@ -211,118 +209,84 @@ export function RecipientRows({
                   <X className="size-4" aria-hidden="true" />
                 </button>
               </div>
-              {(() => {
-                const errors = errorsOf(entry);
-                const nameError = shown(entry.key, "fullName", errors);
-                const emailError = shown(entry.key, "email", errors);
-                const phoneError = shown(entry.key, "phone", errors);
-                const citizenError = shown(entry.key, "citizenId", errors);
-                const birthError = shown(entry.key, "dateOfBirth", errors);
-                // Thiếu cả email lẫn số điện thoại: báo khi người dùng đã rời một trong hai ô, hoặc sau khi bấm nộp.
-                let contactError: string | undefined;
-                if (
-                  showErrors ||
-                  visited.has(`${entry.key}.email`) ||
-                  visited.has(`${entry.key}.phone`)
-                ) {
-                  contactError = errors.contact;
-                }
-                const base = `${id}-${entry.key}`;
-                return (
-                  <>
-                    <div className="grid gap-3 sm:grid-cols-3">
-                      <label className="space-y-1">
-                        <span className="block font-semibold">Họ tên</span>
-                        <input
-                          className={cn(INPUT, nameError && INVALID)}
-                          maxLength={200}
-                          value={entry.person.fullName}
-                          disabled={disabled}
-                          aria-invalid={Boolean(nameError)}
-                          aria-describedby={nameError ? `${base}-name` : undefined}
-                          onChange={(event) => update(entry.key, "fullName", event.target.value)}
-                          onBlur={() => visit(entry.key, "fullName")}
-                        />
-                        <FieldError id={`${base}-name`}>{nameError}</FieldError>
-                      </label>
-                      <label className="space-y-1">
-                        <span className="block font-semibold">Email</span>
-                        <input
-                          type="email"
-                          className={cn(INPUT, emailError && INVALID)}
-                          maxLength={256}
-                          value={entry.person.email}
-                          disabled={disabled}
-                          aria-invalid={Boolean(emailError)}
-                          aria-describedby={emailError ? `${base}-email` : undefined}
-                          onChange={(event) => update(entry.key, "email", event.target.value)}
-                          onBlur={() => visit(entry.key, "email")}
-                        />
-                        <FieldError id={`${base}-email`}>{emailError}</FieldError>
-                      </label>
-                      <label className="space-y-1">
-                        <span className="block font-semibold">Số điện thoại</span>
-                        <input
-                          type="tel"
-                          inputMode="tel"
-                          autoComplete="off"
-                          placeholder="0912345678"
-                          className={cn(INPUT, phoneError && INVALID)}
-                          maxLength={32}
-                          value={entry.person.phone}
-                          disabled={disabled}
-                          aria-invalid={Boolean(phoneError)}
-                          aria-describedby={phoneError ? `${base}-phone` : undefined}
-                          onChange={(event) => update(entry.key, "phone", event.target.value)}
-                          onBlur={() => visit(entry.key, "phone")}
-                        />
-                        <FieldError id={`${base}-phone`}>{phoneError}</FieldError>
-                      </label>
-                    </div>
-                    <FieldError id={`${base}-contact`}>{contactError}</FieldError>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="space-y-1">
-                        <span className="block font-semibold">
-                          Số căn cước{" "}
-                          <span className="font-normal text-heritage-muted">(12 số)</span>
-                        </span>
-                        <input
-                          inputMode="numeric"
-                          autoComplete="off"
-                          className={cn(INPUT, citizenError && INVALID)}
-                          maxLength={12}
-                          value={entry.person.citizenId}
-                          disabled={disabled}
-                          aria-invalid={Boolean(citizenError)}
-                          aria-describedby={citizenError ? `${base}-citizen` : undefined}
-                          onChange={(event) => update(entry.key, "citizenId", event.target.value)}
-                          onBlur={() => visit(entry.key, "citizenId")}
-                        />
-                        <FieldError id={`${base}-citizen`}>{citizenError}</FieldError>
-                      </label>
-                      <div className="space-y-1">
-                        <span className="block font-semibold">Ngày sinh</span>
-                        <DatePickerInput
-                          aria-label={`Ngày sinh của người nhận ${number}`}
-                          value={entry.person.dateOfBirth}
-                          max={latestAdultBirthDate()}
-                          disabled={disabled}
-                          placeholder="ngày/tháng/năm"
-                          aria-invalid={Boolean(birthError)}
-                          aria-describedby={birthError ? `${base}-birth` : undefined}
-                          className={cn(
-                            "min-h-11 bg-white font-normal placeholder:text-heritage-muted",
-                            birthError && `${INVALID} aria-invalid:bg-white`,
-                          )}
-                          onChange={(iso) => update(entry.key, "dateOfBirth", iso)}
-                          onBlur={() => visit(entry.key, "dateOfBirth")}
-                        />
-                        <FieldError id={`${base}-birth`}>{birthError}</FieldError>
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
+              <div className="grid gap-3 sm:grid-cols-6">
+                <RecipientField
+                  id={`${baseId}-${entry.key}-fullName`}
+                  label="Họ tên"
+                  error={rowErrors.fullName}
+                  className="sm:col-span-2"
+                >
+                  <input
+                    className={INPUT}
+                    maxLength={200}
+                    value={entry.person.fullName}
+                    disabled={disabled}
+                    onChange={(event) => update(entry.key, "fullName", event.target.value)}
+                  />
+                </RecipientField>
+                <RecipientField
+                  id={`${baseId}-${entry.key}-citizenId`}
+                  label="Số căn cước"
+                  error={rowErrors.citizenId}
+                  className="sm:col-span-2"
+                >
+                  <input
+                    inputMode="numeric"
+                    autoComplete="off"
+                    className={INPUT}
+                    maxLength={12}
+                    value={entry.person.citizenId}
+                    disabled={disabled}
+                    onChange={(event) => update(entry.key, "citizenId", event.target.value)}
+                  />
+                </RecipientField>
+                <RecipientField
+                  id={`${baseId}-${entry.key}-dateOfBirth`}
+                  label="Ngày sinh"
+                  error={rowErrors.dateOfBirth}
+                  className="sm:col-span-2"
+                >
+                  <input
+                    type="date"
+                    className={INPUT}
+                    value={entry.person.dateOfBirth}
+                    disabled={disabled}
+                    onChange={(event) => update(entry.key, "dateOfBirth", event.target.value)}
+                  />
+                </RecipientField>
+                <RecipientField
+                  id={`${baseId}-${entry.key}-email`}
+                  label="Email"
+                  error={rowErrors.email}
+                  className="sm:col-span-3"
+                >
+                  <input
+                    type="email"
+                    className={INPUT}
+                    maxLength={256}
+                    value={entry.person.email}
+                    disabled={disabled}
+                    onChange={(event) => update(entry.key, "email", event.target.value)}
+                  />
+                </RecipientField>
+                <RecipientField
+                  id={`${baseId}-${entry.key}-phone`}
+                  label="Số điện thoại"
+                  error={rowErrors.phone}
+                  className="sm:col-span-3"
+                >
+                  <input
+                    type="tel"
+                    autoComplete="off"
+                    placeholder="0912345678"
+                    className={INPUT}
+                    maxLength={32}
+                    value={entry.person.phone}
+                    disabled={disabled}
+                    onChange={(event) => update(entry.key, "phone", event.target.value)}
+                  />
+                </RecipientField>
+              </div>
             </div>
           </SlideRow>
         );
