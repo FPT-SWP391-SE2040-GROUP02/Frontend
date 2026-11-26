@@ -602,6 +602,25 @@ aside::-webkit-scrollbar-thumb:hover,
 .receive-collapse-slow {
   transition-duration: 300ms;
 }
+/* Mọi thẻ <details> trượt mở và đóng. Trình duyệt chưa hỗ trợ ::details-content thì mở ngay như trước. */
+:root {
+  interpolate-size: allow-keywords;
+}
+details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size 350ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    content-visibility 350ms allow-discrete;
+}
+details[open]::details-content {
+  block-size: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  details::details-content {
+    transition: none;
+  }
+}
 
 @keyframes receive-rise {
   from {

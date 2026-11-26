@@ -9,6 +9,7 @@ import type { PaymentOrderStatus } from "../model/billing.types";
 import { describeOrder } from "../model/orderLabels";
 import { referenceMoney } from "../model/servicePlanPreview";
 import { useOrderHistory } from "../model/useBilling";
+import { NumberedPagination } from "@/shared/ui/NumberedPagination";
 
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
 
@@ -120,30 +121,13 @@ export function OrderHistory() {
           ))}
         </TableBody>
       </Table>
-      {data.totalPages > 1 && (
-        <nav
-          aria-label="Phân trang lịch sử thanh toán"
-          className="flex items-center justify-between gap-3"
-        >
-          <Button
-            variant="outline"
-            disabled={!data.hasPreviousPage || history.isFetching}
-            onClick={() => setPage(page - 1)}
-          >
-            Trang trước
-          </Button>
-          <span className="text-sm">
-            Trang {data.pageIndex}/{data.totalPages}
-          </span>
-          <Button
-            variant="outline"
-            disabled={!data.hasNextPage || history.isFetching}
-            onClick={() => setPage(page + 1)}
-          >
-            Trang sau
-          </Button>
-        </nav>
-      )}
+      <NumberedPagination
+        label="Phân trang lịch sử thanh toán"
+        pageIndex={data.pageIndex}
+        totalPages={data.totalPages}
+        busy={history.isFetching}
+        onPage={setPage}
+      />
       <p className="flex items-center gap-2 text-sm text-heritage-muted">
         <Lock className="size-3.5" aria-hidden="true" />
         Thanh toán qua mã QR chuyển khoản. LegacyVault không lưu số thẻ.

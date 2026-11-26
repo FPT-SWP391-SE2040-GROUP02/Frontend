@@ -1,4 +1,4 @@
-import { Button } from "@/shared/ui/button";
+import { NumberedPagination } from "@/shared/ui/NumberedPagination";
 
 interface AdminPaginationProps {
   label: string;
@@ -15,33 +15,18 @@ export function AdminPagination({
   label,
   pageIndex,
   totalPages,
-  hasPreviousPage,
-  hasNextPage,
   busy,
   onPage,
 }: AdminPaginationProps) {
-  if (totalPages <= 1) return null;
   return (
-    <nav aria-label={label} className="mt-4 flex items-center justify-between gap-4">
-      <Button
-        variant="outline"
-        className="min-h-11"
-        disabled={!hasPreviousPage || busy}
-        onClick={() => onPage(pageIndex - 1)}
-      >
-        Trang trước
-      </Button>
-      <span className="text-sm">
-        Trang {pageIndex} / {totalPages}
-      </span>
-      <Button
-        variant="outline"
-        className="min-h-11"
-        disabled={!hasNextPage || busy}
-        onClick={() => onPage(pageIndex + 1)}
-      >
-        Trang sau
-      </Button>
-    </nav>
+    <div className="mt-4 flex justify-center">
+      <NumberedPagination
+        label={label}
+        pageIndex={pageIndex}
+        totalPages={totalPages}
+        busy={busy}
+        onPage={onPage}
+      />
+    </div>
   );
 }

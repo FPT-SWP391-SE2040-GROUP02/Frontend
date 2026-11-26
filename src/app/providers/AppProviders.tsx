@@ -3,6 +3,7 @@ import { Provider } from "react-redux";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { TooltipProvider } from "@/shared/ui/tooltip";
+import { ToastHost } from "@/shared/ui/ToastHost";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { queryClient } from "./queryClient";
 import { store } from "@/app/store";
@@ -22,6 +23,7 @@ export function AppProviders({ children }: AppProvidersProps) {
             {/* Dải "đang giả lập ngày" chỉ hiện khi bật cờ dev và Backend đang giả lập. */}
             <TooltipProvider>{children}</TooltipProvider>
             <VaultPinDialogHost />
+            <ToastHost />
           </AuthBootstrap>
           {import.meta.env.DEV && (
             <ReactQueryDevtools

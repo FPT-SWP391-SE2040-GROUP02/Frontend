@@ -4,6 +4,8 @@ import { isAxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Copy } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { showToast } from "@/shared/lib/toastStore";
+import { SlideToConfirm } from "@/shared/ui/SlideToConfirm";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonVariants, Button } from "@/shared/ui/button";
 import { StatusBanner } from "@/shared/ui/status-banner";
@@ -12,6 +14,7 @@ import { billingService } from "../api/billingService";
 import type { PaymentOrder } from "../model/billing.types";
 import { referenceMoney } from "../model/servicePlanPreview";
 import { billingKeys, useOrder } from "../model/useBilling";
+import "./order-checkout.css";
 
 const CARD = "rounded-2xl border border-heritage-border bg-heritage-surface p-6";
 
@@ -65,6 +68,7 @@ function CopyField({
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
+      showToast({ message: `Đã chép ${label.toLowerCase()}.`, durationMs: 2500 });
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
       // Trình duyệt chặn clipboard: người dùng vẫn chép tay được từ ô hiển thị.
@@ -130,11 +134,18 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <section aria-label="Mã QR thanh toán" className={`${CARD} space-y-4 text-center`}>
           {order.qrImageUrl && (
-            <img
-              src={order.qrImageUrl}
-              alt="Mã QR chuyển khoản"
-              className="mx-auto aspect-square w-full max-w-[260px] rounded-xl border border-heritage-border bg-white p-2"
-            />
+            <div className="qr-frame">
+              <img
+                src={order.qrImageUrl}
+                alt="Mã QR chuyển khoản"
+                className="aspect-square rounded-xl border border-heritage-border bg-white p-2"
+              />
+              <span aria-hidden="true" className="qr-corner tl" />
+              <span aria-hidden="true" className="qr-corner tr" />
+              <span aria-hidden="true" className="qr-corner bl" />
+              <span aria-hidden="true" className="qr-corner br" />
+              <span aria-hidden="true" className="qr-scan" />
+            </div>
           )}
           <p className="text-sm text-heritage-muted">Còn lại để thanh toán</p>
           <p
@@ -186,12 +197,13 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
       )}
       <div className="flex flex-wrap items-center gap-3">
         {!devPayOff && (
-          <Button
-            type="button"
-            size="lg"
-            className="bg-heritage-primary font-semibold text-white shadow-none hover:bg-heritage-primary-hover"
-            disabled={devPay.pending || cancel.pending}
-            onClick={() =>
+          <SlideToConfirm
+            label="Trượt để mô phỏng thanh toán"
+            name="Mô phỏng đã thanh toán (Demo)"
+            busyLabel="Đang xử lý mô phỏng…"
+            disabled={cancel.pending}
+            busy={devPay.pending}
+            onConfirm={() =>
               void devPay.execute(
                 () =>
                   billingService.devPay(order.id).catch((failure: unknown) => {
@@ -203,9 +215,7 @@ function PendingOrder({ order }: { order: PaymentOrder }) {
                 publish,
               )
             }
-          >
-            {devPay.pending ? "Đang xử lý mô phỏng…" : "Mô phỏng đã thanh toán (Demo)"}
-          </Button>
+          />
         )}
         {!confirmingCancel && (
           <Button

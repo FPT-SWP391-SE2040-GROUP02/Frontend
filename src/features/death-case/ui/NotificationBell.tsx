@@ -1,15 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, Bell, CheckCircle2, Info, XCircle, type LucideIcon } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
 import { formatDateTime } from "@/shared/lib/dateFormat";
-import { buttonStyles } from "@/shared/ui/heritageKit";
+import "./notification-bell.css";
 import {
   deriveNotifications,
   type ExecutorNotification,
@@ -111,9 +103,35 @@ export function NotificationBell() {
   const { selected } = useSelectedExecutorVault();
   const record = useExecutorRecord(selected ? selected.vaultId : "").data;
   const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLSpanElement>(null);
+  const bellRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [, setVersion] = useState(0);
   /** Các thông báo chưa đọc lúc mở hộp thoại, để đánh nhãn "Mới" dù đã ghi nhận là đã đọc. */
   const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    panelRef.current?.focus();
+    const onPointer = (event: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        bellRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
   if (!selected) return null;
   const items = deriveNotifications(selected, record);
   if (items.length === 0) return null;
@@ -127,11 +145,19 @@ export function NotificationBell() {
     setOpen(true);
   };
   return (
-    <>
+    <span ref={rootRef} className="bell-root">
       <button
+        ref={bellRef}
         type="button"
         aria-label={label}
-        onClick={openList}
+        aria-expanded={open}
+        onClick={() => {
+          if (open) {
+            setOpen(false);
+            return;
+          }
+          openList();
+        }}
         className="relative flex size-11 shrink-0 items-center justify-center rounded-full border border-heritage-border bg-heritage-surface hover:bg-heritage-gold-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
       >
         <Bell className="size-5" aria-hidden="true" />
@@ -145,25 +171,24 @@ export function NotificationBell() {
         )}
       </button>
       {open && (
-        <Dialog open onOpenChange={(next) => !next && setOpen(false)}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Thông báo</DialogTitle>
-              <DialogDescription>Tài sản của {selected.ownerFullName}</DialogDescription>
-            </DialogHeader>
-            <ul className="max-h-[60vh] space-y-2.5 overflow-y-auto pr-1">
-              {items.map((item) => (
-                <NotificationRow key={item.id} item={item} fresh={freshIds.has(item.id)} />
-              ))}
-            </ul>
-            <DialogFooter>
-              <button type="button" className={buttonStyles.outline} onClick={() => setOpen(false)}>
-                Đóng
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-label="Thông báo"
+          tabIndex={-1}
+          className="bell-panel"
+        >
+          <div className="bell-panel-head">
+            <p className="font-semibold text-heritage-primary">Thông báo</p>
+            <p className="text-sm text-heritage-muted">Tài sản của {selected.ownerFullName}</p>
+          </div>
+          <ul className="max-h-[60vh] space-y-2.5 overflow-y-auto p-3">
+            {items.map((item) => (
+              <NotificationRow key={item.id} item={item} fresh={freshIds.has(item.id)} />
+            ))}
+          </ul>
+        </div>
       )}
-    </>
+    </span>
   );
 }

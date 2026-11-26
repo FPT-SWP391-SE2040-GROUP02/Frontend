@@ -7,6 +7,7 @@ import { Eye, Lock } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import type { VaultPinConfirmation } from "@/shared/api/vaultPin";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
+import { showToast } from "@/shared/lib/toastStore";
 import { buttonStyles, formatDate, formatDateTime, Panel } from "@/shared/ui/heritageKit";
 import { Input } from "@/shared/ui/input";
 import { Textarea } from "@/shared/ui/textarea";
@@ -21,6 +22,12 @@ const editSchema = z.object({
   name: z.string().regex(/\S/, "Nhập tên mục.").max(200, "Tên tối đa 200 ký tự."),
   description: z.string().max(1000, "Ghi chú tối đa 1000 ký tự."),
 });
+
+/** Giá trị cũ của các trường vừa đổi, dùng để hoàn tác bản lưu. */
+interface PreviousFields {
+  name?: string;
+  description?: string;
+}
 
 const kindLabels = { FILE: "Tệp tải lên", TEXT: "Ghi chú bí mật" } as const;
 
@@ -38,7 +45,8 @@ function EditForm({
   vaultId: string;
   asset: BackendAsset;
   pin?: string;
-  onSaved: () => void;
+  /** Báo đã lưu: bản mới từ Backend và giá trị cũ của các trường đã đổi (để hoàn tác). */
+  onSaved: (updated: BackendAsset, previous: PreviousFields) => void;
   onCancel: () => void;
 }) {
   const action = usePrivateAction();
@@ -56,6 +64,13 @@ function EditForm({
     const nameChanged = values.name !== asset.name;
     const descriptionChanged = values.description !== (asset.description ?? "");
     if (!nameChanged && !descriptionChanged) return;
+    const previous: PreviousFields = {};
+    if (nameChanged) {
+      previous.name = asset.name;
+    }
+    if (descriptionChanged) {
+      previous.description = asset.description ?? "";
+    }
     void action.execute(
       () =>
         backendAssetService.update(
@@ -68,7 +83,7 @@ function EditForm({
           },
           pin,
         ),
-      onSaved,
+      (updated) => onSaved(updated, previous),
     );
   });
   return (
@@ -190,7 +205,6 @@ export function AssetDetail({
   const [dialog, setDialog] = useState<"delete" | null>(null);
   /** null: chỉ xem. Có giá trị: form sửa đang mở với PIN đã kiểm. */
   const [editing, setEditing] = useState<{ pin?: string } | null>(null);
-  const [saved, setSaved] = useState(false);
   // Đang sửa dở thì không tự che, tránh mất phần đang gõ.
   const gate = useVaultPinUnlock(vaultId, confirmPin, editing !== null);
   const revealed = gate.unlocked || editing !== null;
@@ -230,7 +244,6 @@ export function AssetDetail({
 
   const startEditing = () => {
     if (locked) return;
-    setSaved(false);
     gate.request(undefined, (pin) => setEditing({ pin }));
   };
 
@@ -261,21 +274,32 @@ export function AssetDetail({
             vaultId={vaultId}
             asset={asset}
             pin={editing.pin}
-            onSaved={() => {
+            onSaved={(updated, previous) => {
+              const pin = editing.pin;
               setEditing(null);
-              setSaved(true);
               refresh();
+              showToast({
+                message: "Đã lưu thay đổi.",
+                actionLabel: "Hoàn tác",
+                onAction: () => {
+                  void backendAssetService
+                    .update(vaultId, updated.id, { etag: updated.etag, ...previous }, pin)
+                    .then(refresh)
+                    .catch(() => {
+                      showToast({
+                        message: "Chưa hoàn tác được. Mục đã được sửa ở nơi khác, hãy tải lại.",
+                        tone: "danger",
+                      });
+                    });
+                },
+                durationMs: 8000,
+              });
             }}
             onCancel={() => setEditing(null)}
           />
         ) : revealed ? (
           <>
             <AssetInfo asset={asset} />
-            {saved && (
-              <p role="status" className="mt-4 text-sm text-heritage-success">
-                Đã lưu thay đổi.
-              </p>
-            )}
             <div className="mt-5 flex flex-wrap gap-3">
               <button
                 type="button"
@@ -376,6 +400,7 @@ export function AssetDetail({
           onClose={() => setDialog(null)}
           onDone={() => {
             refresh();
+            showToast({ message: "Đã xóa tài sản." });
             onDeleted();
           }}
         />
