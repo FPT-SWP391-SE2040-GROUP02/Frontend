@@ -85,6 +85,38 @@
   }
 }
 
+/* Ô sáu chấm không kèm bàn phím (đặt, đổi, quên PIN): có viền để thấy chỗ bấm vào gõ. */
+.u480-box {
+  align-items: center;
+  height: 48px;
+  border: 1px solid var(--border-ui);
+  border-radius: 14px;
+  background: var(--surface);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.u480-box:focus-within {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 22%, transparent);
+}
+.u480-box > input {
+  cursor: text;
+}
+.u480-box[data-state="bad"] {
+  border-color: var(--danger);
+  animation: u480-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+.u480-box[data-state="bad"] .u480-d.is-on {
+  background: var(--danger);
+}
+.u480-box[data-state="good"] {
+  border-color: var(--success);
+}
+.u480-box[data-state="good"] .u480-d.is-on {
+  background: var(--success);
+}
+
 .u480-pad {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -121,7 +153,8 @@
 @media (prefers-reduced-motion: reduce) {
   .u480-d.is-on,
   .u480-d.is-off,
-  .u480-dots.is-bad {
+  .u480-dots.is-bad,
+  .u480-box[data-state="bad"] {
     animation: none;
   }
   .u480-k:active,
