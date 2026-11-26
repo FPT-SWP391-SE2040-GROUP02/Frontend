@@ -1,4 +1,5 @@
-import { buttonStyles, Chip, formatDate, Panel } from "@/shared/ui/heritageKit";
+import { compactButton, SectionCard, tableStyles } from "@/shared/ui/SectionCard";
+import { buttonStyles, Chip, formatDate } from "@/shared/ui/heritageKit";
 import { caseCode } from "@/shared/lib/caseCode";
 import { useVerifierRecords } from "../model/useHandoverRecord";
 import { recordStatusLabel } from "../model/recordPresentation";
@@ -39,13 +40,18 @@ export function VerifierRecordList({
     scope === "open" ? item.status !== "COMPLETED" : item.status === "COMPLETED",
   );
   return (
-    <Panel
+    <SectionCard
       title={scope === "open" ? "Biên bản cần xử lý" : "Biên bản đã hoàn tất"}
+      subtitle={
+        scope === "open"
+          ? "Các biên bản bàn giao được giao cho bạn."
+          : "Đã có đủ chữ ký của luật sư, Người thực thi và mọi người nhận."
+      }
       labelledBy={`record-list-${scope}`}
       action={
         <button
           type="button"
-          className={buttonStyles.outline}
+          className={compactButton.outline}
           disabled={query.isFetching}
           onClick={() => void query.refetch()}
         >
@@ -54,38 +60,41 @@ export function VerifierRecordList({
       }
     >
       {items.length === 0 ? (
-        <p role="status" className="py-4 text-sm">
+        <p role="status" className="p-8 text-center text-sm text-heritage-muted">
           {scope === "open" ? "Chưa có biên bản nào cần xử lý." : "Chưa có biên bản nào hoàn tất."}
         </p>
       ) : (
         <div className="relative overflow-x-auto">
-          <table className="w-full min-w-[520px] text-left text-sm">
+          <table className={`${tableStyles.table} min-w-[620px]`}>
             <caption className="sr-only">Biên bản bàn giao</caption>
             <thead>
-              <tr className="border-b border-heritage-border text-sm text-heritage-muted">
-                <th scope="col" className="py-3 pr-4 font-semibold">
+              <tr className={tableStyles.head}>
+                <th scope="col" className={tableStyles.th}>
                   Mã biên bản
                 </th>
-                <th scope="col" className="px-4 py-3 font-semibold">
+                <th scope="col" className={tableStyles.th}>
                   Chủ kho
                 </th>
-                <th scope="col" className="px-4 py-3 font-semibold">
+                <th scope="col" className={tableStyles.th}>
                   Người nhận
                 </th>
-                <th scope="col" className="px-4 py-3 font-semibold">
+                <th scope="col" className={tableStyles.th}>
                   Bước
                 </th>
-                <th scope="col" className="px-4 py-3 font-semibold">
+                <th scope="col" className={tableStyles.th}>
                   Ngày mở
+                </th>
+                <th scope="col" className={tableStyles.th}>
+                  <span className="sr-only">Thao tác</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-heritage-border">
+            <tbody className={tableStyles.body}>
               {items.map((item) => {
                 const status = recordStatusLabel[item.status];
                 return (
                   <tr key={item.id}>
-                    <td className="py-4 pr-4">
+                    <td className={tableStyles.td}>
                       <button
                         type="button"
                         className="cursor-pointer font-semibold underline-offset-4 hover:underline"
@@ -94,13 +103,23 @@ export function VerifierRecordList({
                         {`Biên bản #${caseCode(item.id)}`}
                       </button>
                     </td>
-                    <td className="px-4 py-4">{item.ownerName || "—"}</td>
-                    <td className="px-4 py-4">{item.recipientCount}</td>
-                    <td className="px-4 py-4">
+                    <td className={tableStyles.td}>{item.ownerName || "—"}</td>
+                    <td className={tableStyles.td}>{item.recipientCount}</td>
+                    <td className={tableStyles.td}>
                       <Chip tone={status.tone}>{status.label}</Chip>
                     </td>
-                    <td className="px-4 py-4 text-heritage-muted">
+                    <td className={`${tableStyles.td} text-heritage-muted`}>
                       {formatDate(item.requestedAt)}
+                    </td>
+                    <td className={`${tableStyles.td} text-right`}>
+                      <button
+                        type="button"
+                        className={compactButton.dark}
+                        aria-label={`Mở #${caseCode(item.id)}`}
+                        onClick={() => onSelect(item.id)}
+                      >
+                        Mở
+                      </button>
                     </td>
                   </tr>
                 );
@@ -109,6 +128,6 @@ export function VerifierRecordList({
           </table>
         </div>
       )}
-    </Panel>
+    </SectionCard>
   );
 }

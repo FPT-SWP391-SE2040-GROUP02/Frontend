@@ -1,4 +1,5 @@
-import { formatDateTime, Panel } from "@/shared/ui/heritageKit";
+import { SectionCard } from "@/shared/ui/SectionCard";
+import { formatDateTime } from "@/shared/ui/heritageKit";
 import { verifierReportService } from "../api/verifierReportService";
 import type { HandoverRecord } from "../model/handoverRecord.schema";
 import { ReportFiles, SuggestedRecipientList } from "./ReportDetails";
@@ -7,13 +8,13 @@ import { ReportFiles, SuggestedRecipientList } from "./ReportDetails";
 export function RecordReportsPanel({ record }: { record: HandoverRecord }) {
   if (record.reports.length === 0) return null;
   return (
-    <Panel title="Hồ sơ báo tin" labelledBy="record-reports">
-      <div className="space-y-4">
+    <SectionCard title="Hồ sơ báo tin" labelledBy="record-reports">
+      <div className="divide-y divide-heritage-border">
         {record.reports.map((report) => (
           <article
             key={report.id}
             aria-label={`Hồ sơ của ${report.submitterName}`}
-            className="space-y-4 rounded-2xl border border-heritage-border bg-white/70 p-5"
+            className="space-y-3 p-5"
           >
             <header>
               <h3 className="font-semibold text-heritage-primary">{report.submitterName}</h3>
@@ -32,6 +33,6 @@ export function RecordReportsPanel({ record }: { record: HandoverRecord }) {
           </article>
         ))}
       </div>
-    </Panel>
+    </SectionCard>
   );
 }
