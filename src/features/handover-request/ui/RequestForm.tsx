@@ -60,18 +60,20 @@ export function RequestForm({
           </li>
         ))}
       </ol>
-      <div className="space-y-2">
+      <div className="space-y-5">
         <DocumentPicker
           label="Di chúc (bắt buộc)"
           files={wills}
           onChange={setWills}
           disabled={submit.pending}
+          reserved={files.length}
         />
         <DocumentPicker
           label="Giấy tờ khác (nếu có)"
           files={files}
           onChange={setFiles}
           disabled={submit.pending}
+          reserved={wills.length}
         />
         {touched && fileError && (
           <p role="alert" className="text-sm text-destructive">

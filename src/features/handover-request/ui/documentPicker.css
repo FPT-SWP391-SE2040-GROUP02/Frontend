@@ -1,0 +1,257 @@
+/* Lucian UX/UI Prompt #432 · MIT License (c) 2026 Seokwoooo. Chỉ style trong .u432; màu lấy theo token của app.
+   Hoạt ảnh chỉ báo tệp vừa được chọn, không phải tiến độ tải lên (tệp chỉ gửi khi người dùng bấm gửi).
+   Mốc thời gian: tờ giấy rơi 0,75s; vòng chạy 0,4s → 1,3s; dấu tích bật ở 1,3s; lớp phủ rút ở 2,1s. */
+/* Thẻ tệp nằm ngoài .u432 nên cũng cần các mốc thời gian. */
+.u432,
+.u432-card {
+  --u432-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --u432-done: 1.3s;
+  --u432-out: 2.1s;
+}
+
+.u432-dz {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 9.25rem;
+  padding: 1rem;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 1rem;
+  background: var(--surface);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color 0.25s var(--u432-ease),
+    border-color 0.25s var(--u432-ease),
+    transform 0.5s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .u432-dz:hover {
+    border-color: var(--primary);
+    background: var(--surface-sunken);
+  }
+}
+.u432-dz:has(:focus-visible) {
+  outline: 2px solid var(--gold-hover);
+  outline-offset: 3px;
+}
+.u432-dz:has(:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.u432[data-drag] .u432-dz {
+  transform: scale(1.02);
+  border-style: solid;
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+
+.u432-idle,
+.u432-up {
+  grid-area: 1 / 1;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+.u432-idle {
+  transition:
+    opacity 0.25s var(--u432-ease),
+    transform 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.u432-dz[data-busy] .u432-idle {
+  opacity: 0;
+  transform: scale(0.85);
+}
+.u432-arrow {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 0.625rem;
+  border: 1px solid var(--border-ui);
+  border-radius: 0.875rem;
+  background: var(--surface);
+  color: var(--primary);
+  animation: u432-bob 2.6s ease-in-out infinite;
+  transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.u432[data-drag] .u432-arrow {
+  animation: none;
+  transform: translateY(-8px) scale(1.08);
+}
+
+/* Lớp phủ hoạt ảnh: để chuột xuyên qua, người dùng vẫn bấm chọn thêm tệp được. */
+.u432-up {
+  pointer-events: none;
+  animation: u432-out 0.35s var(--u432-ease) var(--u432-out) forwards;
+}
+.u432-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 6rem;
+  height: 6rem;
+}
+.u432-ring {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.u432-ring circle {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.u432-track {
+  stroke: var(--border-ui);
+}
+.u432-progress {
+  stroke: var(--primary);
+  stroke-dasharray: 289;
+  stroke-dashoffset: 289;
+  animation:
+    u432-fill 0.9s cubic-bezier(0.45, 0, 0.55, 1) 0.4s forwards,
+    u432-green 0.3s var(--u432-ease) var(--u432-done) forwards;
+}
+.u432-doc {
+  overflow: visible;
+  animation: u432-drop 0.75s cubic-bezier(0.3, 1.2, 0.5, 1) both;
+}
+.u432-paper {
+  fill: var(--surface);
+  stroke: var(--border-strong);
+  stroke-width: 1.4;
+}
+.u432-fold {
+  fill: var(--surface-sunken);
+}
+.u432-line {
+  fill: var(--border-strong);
+}
+.u432-tag {
+  fill: var(--danger);
+}
+.u432-tag-text {
+  fill: var(--surface);
+  font-size: 8.5px;
+  font-weight: 800;
+}
+.u432-ok {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.625rem;
+  display: grid;
+  place-items: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--success);
+  color: var(--surface);
+  animation: u432-pop 0.55s cubic-bezier(0.3, 1.9, 0.5, 1) var(--u432-done) both;
+}
+.u432-name {
+  display: grid;
+  max-width: 100%;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.u432-name > span {
+  grid-area: 1 / 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.u432-name-before {
+  animation: u432-hide 0.15s linear var(--u432-done) forwards;
+}
+.u432-name-after {
+  animation: u432-show 0.15s linear var(--u432-done) both;
+}
+
+/* Thẻ vừa thêm hiện ra đúng lúc dấu tích bật. */
+.u432-card[data-fresh] {
+  animation: u432-card 0.35s cubic-bezier(0.23, 1, 0.32, 1) var(--u432-done) both;
+}
+
+@keyframes u432-bob {
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes u432-drop {
+  0% {
+    transform: translateY(-120px) rotate(-14deg);
+    opacity: 0;
+  }
+  45% {
+    transform: translateY(4px) rotate(2deg) scale(1.06, 0.9);
+    opacity: 1;
+  }
+  65% {
+    transform: translateY(-3px) scale(0.98, 1.03);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes u432-fill {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes u432-green {
+  to {
+    stroke: var(--success);
+  }
+}
+@keyframes u432-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+}
+@keyframes u432-hide {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes u432-show {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes u432-out {
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
+  }
+}
+@keyframes u432-card {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+}
+
+/* Giảm chuyển động: hiện ngay trạng thái cuối, giữ dấu tích một lát rồi ẩn. */
+@media (prefers-reduced-motion: reduce) {
+  .u432,
+  .u432-card {
+    --u432-done: 0s;
+    --u432-out: 0.9s;
+  }
+  .u432-arrow {
+    animation: none;
+  }
+  .u432-progress {
+    animation-delay: 0s;
+  }
+  .u432[data-drag] .u432-dz,
+  .u432[data-drag] .u432-arrow {
+    transform: none;
+  }
+}

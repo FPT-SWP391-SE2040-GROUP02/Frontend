@@ -116,6 +116,7 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
           files={deathCertificates}
           onChange={setDeathCertificates}
           disabled={busy}
+          reserved={wills.length + others.length}
         />
         <ErrorText>{errors.deathCertificates}</ErrorText>
         <DocumentPicker
@@ -123,6 +124,7 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
           files={wills}
           onChange={setWills}
           disabled={busy}
+          reserved={deathCertificates.length + others.length}
         />
         <ErrorText>{errors.wills}</ErrorText>
         <DocumentPicker
@@ -130,6 +132,7 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
           files={others}
           onChange={setOthers}
           disabled={busy}
+          reserved={deathCertificates.length + wills.length}
         />
         <ErrorText>{errors.files}</ErrorText>
       </fieldset>

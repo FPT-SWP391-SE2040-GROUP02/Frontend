@@ -66,14 +66,23 @@ export const MAX_FILE_BYTES = 10 * 1024 * 1024;
 const ACCEPTED = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 export const ACCEPT_ATTRIBUTE = ACCEPTED.join(",");
 
+export const TOO_MANY_FILES_MESSAGE = "Mỗi lần nộp tối đa 10 tệp.";
+
+/** Lỗi riêng của một tệp (dung lượng, loại), hoặc chuỗi rỗng khi tệp dùng được. */
+export function fileProblem(file: File): string {
+  if (file.size > MAX_FILE_BYTES) return `Tệp ${file.name} lớn hơn 10 MB.`;
+  if (file.type && !ACCEPTED.includes(file.type))
+    return `Tệp ${file.name} không phải PDF hoặc ảnh.`;
+  return "";
+}
+
 /** Lỗi của bộ tệp đã chọn, hoặc chuỗi rỗng khi hợp lệ. */
 export function filesError(files: File[]): string {
   if (files.length === 0) return "Vui lòng đính kèm ít nhất một tệp giấy tờ.";
-  if (files.length > MAX_FILES) return "Mỗi lần nộp tối đa 10 tệp.";
+  if (files.length > MAX_FILES) return TOO_MANY_FILES_MESSAGE;
   for (const file of files) {
-    if (file.size > MAX_FILE_BYTES) return `Tệp ${file.name} lớn hơn 10 MB.`;
-    if (file.type && !ACCEPTED.includes(file.type))
-      return `Tệp ${file.name} không phải PDF hoặc ảnh.`;
+    const problem = fileProblem(file);
+    if (problem) return problem;
   }
   return "";
 }
