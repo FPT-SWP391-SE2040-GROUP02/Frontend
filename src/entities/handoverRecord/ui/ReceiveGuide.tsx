@@ -133,3 +133,47 @@ export function ReceiveGuide({
     </details>
   );
 }
+
+/**
+ * Hướng dẫn sáu bước dạng đường thời gian mở sẵn toàn bộ (trang Hướng dẫn): số bước, tên, ai làm và lời giải thích.
+ * Bước luật sư làm tô vàng, bước của bạn tô xanh đậm. Không hiện dữ liệu của hồ sơ cụ thể.
+ */
+export function ReceiveGuideTimeline() {
+  const policy = usePolicyWindows();
+  const texts = receiveStepTexts(policy.grantDays);
+  return (
+    <ol aria-label="Các bước nhận tài sản">
+      {RECEIVE_STEP_TITLES.map((title, index) => {
+        const role = RECEIVE_STEP_ROLES[index];
+        const last = index === RECEIVE_STEP_TITLES.length - 1;
+        let circle = "bg-heritage-primary text-white";
+        if (role.kind === "lawyer") {
+          circle = "border border-heritage-gold-soft bg-heritage-warning-bg text-heritage-warning";
+        }
+        return (
+          <li key={title} className="flex gap-4">
+            <div aria-hidden="true" className="flex flex-col items-center">
+              <span
+                className={`flex size-[34px] shrink-0 items-center justify-center rounded-full font-semibold ${circle}`}
+              >
+                {index + 1}
+              </span>
+              {!last && <span className="mt-1.5 w-0.5 flex-1 bg-heritage-border" />}
+            </div>
+            <div className={`min-w-0 flex-1 pt-1 ${last ? "" : "pb-5"}`}>
+              <h3 className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-heritage-primary">
+                {title}
+                <span
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_BADGE[role.kind]}`}
+                >
+                  {role.label}
+                </span>
+              </h3>
+              <p className="mt-1 text-sm leading-6 text-heritage-muted">{texts[index]}</p>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}

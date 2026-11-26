@@ -12,7 +12,7 @@ import { useHandoverAction } from "../model/useHandoverAction";
 import { ImagePicker } from "./ImagePicker";
 
 const FIELD =
-  "h-11 w-full rounded-xl border border-heritage-gold-soft bg-heritage-warning-bg px-3 text-sm font-semibold text-heritage-primary outline-none focus-visible:ring-2 focus-visible:ring-heritage-gold/40";
+  "h-11 w-full rounded-[10px] border border-heritage-border bg-white px-3 text-sm font-semibold text-heritage-primary outline-none focus-visible:border-heritage-gold focus-visible:ring-2 focus-visible:ring-heritage-gold/40";
 
 function emptyDraft(): SubmissionDraft {
   return {
@@ -101,7 +101,7 @@ function IdentityForm({ turnId, onDone }: { turnId: string; onDone: () => void }
       <p className="text-sm text-heritage-muted">
         Ảnh căn cước chỉ để luật sư đối chiếu danh tính, xóa khi bàn giao xong.
       </p>
-      <label className="flex cursor-pointer items-start gap-3 text-sm">
+      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-heritage-border bg-white p-3.5 text-sm">
         <input
           type="checkbox"
           className="mt-1 size-5 cursor-pointer accent-heritage-primary"

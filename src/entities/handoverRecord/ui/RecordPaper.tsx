@@ -24,12 +24,36 @@ function identityLine(recipient: RecordRecipient): string {
 }
 
 /**
+ * Nút ký đặt ngay tại ô chữ ký của chính người đang xem: Người thực thi ở ô "Bên giao", luật sư ở ô "Luật sư chứng kiến",
+ * người nhận ở ô "Bên nhận" của mình (`recipientId` là beneficiaryId của người đó).
+ */
+export interface PaperSignAction {
+  target: "executor" | "verifier" | { recipientId: string };
+  node: ReactNode;
+}
+
+/**
  * Tờ biên bản giao nhận dạng văn bản: Người thực thi bàn giao, người nhận đồng ý nhận (chưa phải đã nhận: người nhận
  * chỉ xác nhận "đã nhận đủ" sau khi tải xong, trên phiếu giao nhận riêng), luật sư chứng kiến,
  * LegacyVault không chịu trách nhiệm về tài sản hay tranh chấp. Sinh từ dữ liệu biên bản Backend trả. Dùng cho khung xem trước và bản in, để các bên đọc và đối chiếu sau này. Ghi số căn cước đầy đủ;
  * chữ ký lấy đúng thời điểm hệ thống lưu, component không tự suy ra chữ ký.
  */
-export function RecordPaper({ record }: { record: HandoverRecord }) {
+export function RecordPaper({
+  record,
+  signAction,
+}: {
+  record: HandoverRecord;
+  signAction?: PaperSignAction;
+}) {
+  const actionFor = (target: "executor" | "verifier" | { recipientId: string }): ReactNode => {
+    if (!signAction) {
+      return undefined;
+    }
+    if (typeof target === "string" || typeof signAction.target === "string") {
+      return target === signAction.target ? signAction.node : undefined;
+    }
+    return target.recipientId === signAction.target.recipientId ? signAction.node : undefined;
+  };
   const recipientRows: ReactNode[] = [];
   let order = 0;
   for (const recipient of record.recipients) {
@@ -89,6 +113,7 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
         role="Bên nhận"
         name={recipient.fullName}
         signedAt={recipient.signedAt}
+        action={actionFor({ recipientId: recipient.beneficiaryId })}
       />,
     );
   }
@@ -237,11 +262,13 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
           role="Bên giao"
           name={record.executorName}
           signedAt={record.executorSignedAt}
+          action={actionFor("executor")}
         />
         <SignatureSlot
           role="Luật sư chứng kiến"
           name={record.verifierName}
           signedAt={record.verifierSignedAt}
+          action={actionFor("verifier")}
         />
         {recipientSlots}
       </div>

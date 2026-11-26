@@ -487,7 +487,11 @@ describe("Executor handover record", () => {
       .spyOn(apiClient, "post")
       .mockResolvedValue(record("SIGNING", { canSign: false, executorSignedAt: CREATED_AT }));
     setup("/executor/report");
-    await userEvent.click(await screen.findByRole("button", { name: "Ký biên bản" }));
+    expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("button", { name: "Xem và ký biên bản" }));
+    const signButton = await screen.findByRole("button", { name: "Ký biên bản" });
+    expect(signButton.closest("div.break-inside-avoid")).toHaveTextContent("Bên giao");
+    await userEvent.click(signButton);
     expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/handover-record/sign`);
     expect(
       await screen.findByText(/Bạn đã ký\. Mỗi người nhận được mở phần của mình khi có chữ ký/),
@@ -501,8 +505,9 @@ describe("Executor handover record", () => {
       record("SIGNING", { canSign: true }),
     );
     setup("/executor/report");
+    await userEvent.click(await screen.findByRole("button", { name: "Xem và ký biên bản" }));
     expect(await screen.findByRole("button", { name: "Ký biên bản" })).toBeEnabled();
-    expect(screen.getByText(/ký ngay, không cần chờ người nhận/)).toBeInTheDocument();
+    expect(screen.getByText(/không cần chờ người nhận/)).toBeInTheDocument();
   });
 });
 
