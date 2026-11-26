@@ -262,7 +262,7 @@ describe("Chủ tài sản thấy yêu cầu nhận tài sản", () => {
 
     expect(
       await screen.findByText(
-        /Tài khoản đang khóa trong lúc luật sư xét giấy tờ và lập biên bản\./,
+        /Tài khoản đang khóa trong lúc luật sư xét giấy tờ và lập phương án chia\./,
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Tài khoản chưa khóa/)).not.toBeInTheDocument();

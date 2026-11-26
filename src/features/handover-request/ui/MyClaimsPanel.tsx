@@ -21,7 +21,7 @@ function claimText(claim: MyClaim): string {
     case "SUPPLEMENT_REQUESTED":
       return "Luật sư cần thêm giấy tờ. Nộp bổ sung ở dưới.";
     case "ACCEPTED":
-      return "Giấy tờ đã được chấp nhận. Khi luật sư chốt biên bản, bạn sẽ nhận thư mời nộp căn cước rồi ký.";
+      return "Giấy tờ đã được chấp nhận. Khi luật sư chốt phương án chia, bạn sẽ nhận thư mời nộp căn cước rồi ký.";
     case "REJECTED":
       return "Luật sư đã từ chối yêu cầu này.";
   }

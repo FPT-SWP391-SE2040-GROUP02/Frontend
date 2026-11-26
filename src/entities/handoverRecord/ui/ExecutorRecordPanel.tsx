@@ -15,7 +15,7 @@ import { RecordStepper } from "./RecordStepper";
 function waitingText(record: HandoverRecord): string {
   switch (record.status) {
     case "DRAFTING":
-      return "Người nhận đã gửi yêu cầu kèm giấy tờ. Luật sư đang xét giấy tờ và lập biên bản: ai nhận tài sản nào. Bạn chưa phải làm gì.";
+      return "Người nhận đã gửi yêu cầu kèm giấy tờ. Luật sư đang xét giấy tờ và lập phương án chia: ai nhận tài sản nào. Bạn chưa phải làm gì.";
     case "IDENTITY_CHECK":
     case "SIGNING":
       if (record.canSign)
@@ -47,7 +47,7 @@ function WaitingForRequest() {
         <p>
           Khi Chủ tài sản qua đời, người nhận sẽ gửi yêu cầu nhận tài sản kèm giấy tờ. Hệ thống báo
           cho bạn và phân công một luật sư xét giấy tờ. Luật sư chấp nhận thì kho mới khóa, rồi lập
-          biên bản bàn giao.
+          phương án chia tài sản.
         </p>
         <p className="text-heritage-muted">
           Bạn chỉ giữ mã nhận và giao tài sản theo biên bản luật sư lập. Bạn không tự chia, bán hay

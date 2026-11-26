@@ -26,7 +26,7 @@ export function vaultStage(vault: ExecutorVault): VaultStage {
   if (status === "SIGNING" || status === "IDENTITY_CHECK") {
     return { label: "Đang ký biên bản", tone: "warning" };
   }
-  if (status === "DRAFTING") return { label: "Luật sư đang lập biên bản", tone: "warning" };
+  if (status === "DRAFTING") return { label: "Luật sư đang lập phương án chia", tone: "warning" };
   if (vault.planStatus === "DRAFT") return { label: "Kế hoạch chưa kích hoạt", tone: "neutral" };
   return { label: "Chưa có yêu cầu nhận", tone: "success" };
 }
@@ -119,7 +119,7 @@ export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
   }
   if (recordStatus === "DRAFTING") {
     return {
-      title: "Luật sư đang lập biên bản",
+      title: "Luật sư đang lập phương án chia",
       text: "Luật sư đang ghi ai nhận tài sản nào. Bạn chưa cần làm gì.",
       buttonLabel: "Xem biên bản",
       to: ROUTES.EXECUTOR.REPORT,
@@ -129,7 +129,7 @@ export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
     if (canSign) {
       return {
         title: "Ký biên bản bàn giao",
-        text: "Luật sư đã chốt biên bản. Đọc lại biên bản rồi ký ngay, không cần chờ người nhận.",
+        text: "Luật sư đã chốt phương án chia. Đọc lại biên bản rồi ký ngay, không cần chờ người nhận.",
         buttonLabel: "Ký biên bản",
         to: ROUTES.EXECUTOR.REPORT,
       };

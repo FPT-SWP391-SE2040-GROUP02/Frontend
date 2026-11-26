@@ -30,9 +30,9 @@ import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 /**
  * Bước 1 của luật sư: chọn ai nhận tài sản nào. Mỗi ô là một cặp người nhận - tài sản; một tài sản có thể
  * giao cho nhiều người (đồng thừa kế). Có thể lấy biên bản phân chia của Chủ tài sản làm bản đầu rồi sửa.
- * Người nhận chưa có trong danh sách thì thêm trong cửa sổ riêng (lưu ngay, sửa và xóa được trước khi phát hành).
- * Cách chia giữ trên màn hình tới khi bấm "Lưu nháp"; "Phát hành biên bản" lưu phần còn lại, chốt và gửi thư mời. Đã
- * chốt thì phải mở lại biên bản mới sửa.
+ * Người nhận chưa có trong danh sách thì thêm trong cửa sổ riêng (lưu ngay, sửa và xóa được trước khi chốt).
+ * Cách chia giữ trên màn hình tới khi bấm "Lưu nháp"; "Chốt phương án chia" lưu phần còn lại, chốt và gửi thư mời. Đã
+ * chốt thì phải mở lại phương án chia mới sửa.
  */
 export function RecordLinesEditor({
   record,
@@ -57,7 +57,7 @@ export function RecordLinesEditor({
   const [legalBasisConfirmed, setLegalBasisConfirmed] = useState(false);
   // Biên bản khác cách chia của Chủ tài sản thì phải tick thêm ô này; cũng bỏ tick mỗi khi nội dung đổi.
   const [splitDeviationConfirmed, setSplitDeviationConfirmed] = useState(false);
-  // Người khai trong hồ sơ báo tin mà chưa có trong danh sách: phải thêm hoặc bỏ rồi mới phát hành.
+  // Người khai trong hồ sơ báo tin mà chưa có trong danh sách: phải thêm hoặc bỏ rồi mới chốt.
   const [suggestions, setSuggestions] = useState<RecipientDraft[]>(() => draftsFromReports(record));
   const [dialog, setDialog] = useState<RecipientDialogState | null>(null);
   const [recipientNotice, setRecipientNotice] = useState("");
@@ -69,7 +69,7 @@ export function RecordLinesEditor({
   const hasDeviation = differences.length > 0;
   const deviationReady = !hasDeviation || splitDeviationConfirmed;
   const busy = save.pending || split.pending || finalize.pending;
-  // Người bị từ chối giấy tờ không được ghi vào biên bản; còn yêu cầu chưa xét thì chưa chốt được.
+  // Người bị từ chối giấy tờ không được ghi vào phương án chia; còn yêu cầu chưa xét thì chưa chốt được.
   const rejected = new Set(
     record.claims
       .filter((claim) => claim.status === "REJECTED")
@@ -164,7 +164,7 @@ export function RecordLinesEditor({
 
   if (record.availableAssets.length === 0) {
     return columns(
-      <Notice tone="warning" title="Chưa đủ dữ liệu để lập biên bản">
+      <Notice tone="warning" title="Chưa đủ dữ liệu để lập phương án chia">
         Không có tài sản nào.
       </Notice>,
     );
@@ -232,7 +232,7 @@ export function RecordLinesEditor({
       <div className="space-y-4 p-5">
         {record.ownerSplit.length === 0 && (
           <p className="text-sm text-heritage-muted">
-            Chủ tài sản chưa lập biên bản phân chia. Bạn tự lập biên bản.
+            Chủ tài sản chưa lập biên bản phân chia. Bạn tự lập phương án chia.
           </p>
         )}
         {split.error && (
@@ -289,7 +289,7 @@ export function RecordLinesEditor({
 
   const finalizePanel = (
     <SectionCard
-      title="Chốt biên bản"
+      title="Chốt phương án chia"
       labelledBy="record-finalize"
       action={<span className="text-sm text-heritage-muted">{`Mã: #${caseCode(record.id)}`}</span>}
     >
@@ -341,8 +341,8 @@ export function RecordLinesEditor({
             onChange={(event) => setLegalBasisConfirmed(event.target.checked)}
           />
           <span>
-            Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) và lập biên bản này theo đúng quy định.
-            Tôi chịu trách nhiệm về nội dung biên bản.
+            Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) và lập phương án chia này theo đúng quy
+            định. Tôi chịu trách nhiệm về nội dung phương án.
           </span>
         </label>
 
@@ -350,9 +350,9 @@ export function RecordLinesEditor({
           {/* Xem trước đúng cách đang chia (kể cả chưa lưu) trước khi chốt. */}
           <div className="flex flex-col [&>button]:w-full [&>button]:justify-center">
             <PaperPreviewButton
-              label="Xem trước biên bản"
-              title="Bản nháp biên bản bàn giao"
-              fileName={`ban-nhap-bien-ban-ban-giao-${caseCode(record.id)}`}
+              label="Xem trước phương án chia"
+              title="Bản nháp phương án chia tài sản"
+              fileName={`ban-nhap-phuong-an-chia-${caseCode(record.id)}`}
               paper={<DivisionDraftSheet record={record} assets={assets} />}
             />
           </div>
@@ -360,8 +360,8 @@ export function RecordLinesEditor({
             className={`${buttonStyles.dark} w-full`}
             pending={finalize.pending}
             done={finalized.done}
-            pendingLabel="Đang phát hành biên bản…"
-            doneLabel="Đã phát hành"
+            pendingLabel="Đang chốt phương án chia…"
+            doneLabel="Đã chốt"
             disabled={
               busy ||
               recipientCount === 0 ||
@@ -371,7 +371,7 @@ export function RecordLinesEditor({
             }
             onClick={handleSend}
           >
-            Phát hành biên bản
+            Chốt phương án chia
           </ActionButton>
           <button
             type="button"
@@ -393,7 +393,8 @@ export function RecordLinesEditor({
           )}
         </div>
         <p className="text-sm text-heritage-muted">
-          {`Bấm "Phát hành biên bản": hệ thống lưu và khóa nội dung biên bản, gửi thư mời cho ${recipientCount} người nhận để họ nộp căn cước, rồi mở bước ký.`}
+          Bấm “Chốt phương án chia”: hệ thống lưu và khóa phương án, tạo biên bản bàn giao để ba bên
+          ký, rồi gửi thư mời cho người nhận chưa được mời để họ nộp căn cước.
         </p>
         {(save.error || finalize.error) && (
           <p role="alert" className="text-sm text-destructive">

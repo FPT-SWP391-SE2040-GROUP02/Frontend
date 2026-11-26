@@ -15,7 +15,7 @@ function noteText(asset: DivisionAsset, hasOwnerSplit: boolean): string {
   return asset.differsFromOwner ? "Khác Chủ tài sản" : "Khớp Chủ tài sản";
 }
 
-/** Bản nháp biên bản bàn giao để luật sư soát và in ra trước khi chốt. Không phải biên bản đã ký. */
+/** Bản nháp phương án chia để luật sư soát và in ra trước khi chốt. Không phải biên bản bàn giao đã ký. */
 export function DivisionDraftSheet({
   record,
   assets,
@@ -36,7 +36,7 @@ export function DivisionDraftSheet({
   }
   const info: [string, string][] = [
     ["Chủ tài sản", record.ownerName || "—"],
-    ["Luật sư lập biên bản", record.verifierName || "—"],
+    ["Luật sư lập phương án", record.verifierName || "—"],
     [
       "Tổng số tài sản",
       `${assets.length} (đã chia ${divided}, chưa chia ${assets.length - divided})`,
@@ -51,14 +51,14 @@ export function DivisionDraftSheet({
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
             Hệ thống bàn giao tài sản LegacyVault
           </p>
-          <h1 className="mt-1 text-xl font-bold">BIÊN BẢN BÀN GIAO TÀI SẢN</h1>
+          <h1 className="mt-1 text-xl font-bold">PHƯƠNG ÁN CHIA TÀI SẢN</h1>
           <p className="text-xs font-semibold text-amber-800">
             BẢN NHÁP để kiểm tra, chưa có giá trị bàn giao
           </p>
         </div>
         <div className="shrink-0 text-right text-xs">
           <p>
-            Mã biên bản: <strong>#{caseCode(record.id)}</strong>
+            Mã hồ sơ: <strong>#{caseCode(record.id)}</strong>
           </p>
           <p>Ngày xem: {formatDateTime(new Date().toISOString())}</p>
         </div>
@@ -84,7 +84,7 @@ export function DivisionDraftSheet({
               <th className={HEAD}>STT</th>
               <th className={HEAD}>Tên tài sản</th>
               <th className={HEAD}>Dự kiến của Chủ tài sản</th>
-              <th className={HEAD}>Người nhận theo biên bản</th>
+              <th className={HEAD}>Người nhận theo phương án</th>
               <th className={HEAD}>Đối chiếu</th>
             </tr>
           </thead>
@@ -141,7 +141,7 @@ export function DivisionDraftSheet({
 
       <section className="flex break-inside-avoid justify-end pt-2">
         <div className="w-64 text-center">
-          <p className="font-bold uppercase">Luật sư lập biên bản</p>
+          <p className="font-bold uppercase">Luật sư lập phương án</p>
           <p className="text-xs italic text-slate-500">(Ký, ghi rõ họ tên)</p>
           <div className="h-20" />
           <p className="font-bold">{record.verifierName}</p>

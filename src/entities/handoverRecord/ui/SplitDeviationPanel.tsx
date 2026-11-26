@@ -16,7 +16,11 @@ export function SplitDeviationPanel({ differences }: { differences: SplitDiffere
     items.push(<li key={index}>{splitDifferenceText(differences[index])}</li>);
   }
   return (
-    <Notice tone="warning" title="Biên bản khác cách chia ban đầu của Chủ tài sản" role="status">
+    <Notice
+      tone="warning"
+      title="Phương án chia khác cách chia ban đầu của Chủ tài sản"
+      role="status"
+    >
       <ul className="list-disc space-y-1 pl-5">{items}</ul>
     </Notice>
   );

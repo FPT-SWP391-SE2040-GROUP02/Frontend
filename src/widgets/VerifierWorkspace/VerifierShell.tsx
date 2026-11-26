@@ -48,7 +48,7 @@ const verifierNavigation: NavGroup[] = [
   {
     heading: "Việc cần làm",
     items: [
-      { label: "Đang lập biên bản", to: ROUTES.NOTARY.QUEUE, icon: ListChecks, badge: "cases" },
+      { label: "Lập phương án", to: ROUTES.NOTARY.QUEUE, icon: ListChecks, badge: "cases" },
       {
         label: "Kiểm tra CCCD",
         to: ROUTES.NOTARY.RECIPIENTS,

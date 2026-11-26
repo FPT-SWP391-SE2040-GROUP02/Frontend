@@ -110,7 +110,7 @@ function backend(first: unknown, next?: unknown) {
 }
 
 const LEGAL_BASIS_LABEL =
-  "Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) và lập biên bản này theo đúng quy định. Tôi chịu trách nhiệm về nội dung biên bản.";
+  "Tôi đã kiểm tra di chúc (bản sau cùng, hợp pháp) và lập phương án chia này theo đúng quy định. Tôi chịu trách nhiệm về nội dung phương án.";
 
 /** Luật sư tick ô xác nhận căn cứ pháp lý trước khi chốt. */
 async function confirmLegalBasis(user: ReturnType<typeof userEvent.setup>) {
@@ -149,7 +149,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await screen.findByRole("button", { name: "Chọn người nhận Sổ đỏ" });
-    const finalize = screen.getByRole("button", { name: "Phát hành biên bản" });
+    const finalize = screen.getByRole("button", { name: "Chốt phương án chia" });
     await confirmLegalBasis(user);
     expect(finalize).toBeEnabled();
 
@@ -175,9 +175,9 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Gỡ Lê Bình khỏi Sổ đỏ" })).toBeEnabled(),
     );
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Chốt phương án chia" })).toBeDisabled();
     await confirmLegalBasis(user);
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Chốt phương án chia" })).toBeEnabled();
   });
 
   it("có biên bản phân chia của Chủ tài sản thì lấy làm bản đầu được", async () => {
@@ -192,7 +192,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     expect(await screen.findByText("Chủ tài sản chia: Trần An")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Chốt phương án chia" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Lấy theo Chủ tài sản" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/use-owner-split`);
     expect(
@@ -220,7 +220,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await confirmLegalBasis(user);
-    await user.click(await screen.findByRole("button", { name: "Phát hành biên bản" }));
+    await user.click(await screen.findByRole("button", { name: "Chốt phương án chia" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
       confirmLegalBasis: true,
       confirmSplitDeviation: false,
@@ -241,14 +241,14 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await confirmLegalBasis(user);
-    await user.click(await screen.findByRole("button", { name: "Phát hành biên bản" }));
+    await user.click(await screen.findByRole("button", { name: "Chốt phương án chia" }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Chốt phương án chia" })).toBeEnabled();
   });
 });
 
 const DEVIATION_LABEL =
-  "Biên bản này khác cách chia ban đầu của Chủ tài sản (danh sách trên). Tôi xác nhận việc thay đổi là theo di chúc hoặc quy định pháp luật và chịu trách nhiệm về căn cứ này. LegacyVault chỉ giao tài sản theo biên bản luật sư đã lập.";
+  "Phương án chia này khác cách chia ban đầu của Chủ tài sản (danh sách trên). Tôi xác nhận việc thay đổi là theo di chúc hoặc quy định pháp luật và chịu trách nhiệm về căn cứ này. LegacyVault chỉ giao tài sản theo biên bản lập từ phương án này.";
 
 const differences = [
   {
@@ -317,8 +317,8 @@ describe("Danh sách chia tài sản", () => {
     backend(record());
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    await user.click(await screen.findByRole("button", { name: "Xem trước biên bản" }));
-    const sheet = screen.getByRole("article", { name: "Tờ Bản nháp biên bản bàn giao" });
+    await user.click(await screen.findByRole("button", { name: "Xem trước phương án chia" }));
+    const sheet = screen.getByRole("article", { name: "Tờ Bản nháp phương án chia tài sản" });
     expect(sheet).toHaveTextContent("BẢN NHÁP để kiểm tra");
     expect(sheet).toHaveTextContent("Trần An (0001)");
     expect(sheet).toHaveTextContent("2 (đã chia 1, chưa chia 1)");
@@ -334,9 +334,9 @@ describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ t�
     await confirmLegalBasis(user);
     expect(screen.queryByRole("checkbox", { name: DEVIATION_LABEL })).not.toBeInTheDocument();
     expect(
-      screen.queryByText("Biên bản khác cách chia ban đầu của Chủ tài sản"),
+      screen.queryByText("Phương án chia khác cách chia ban đầu của Chủ tài sản"),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Chốt phương án chia" })).toBeEnabled();
   });
 
   it("có khác biệt thì liệt kê, khóa Chốt tới khi tick ô xác nhận và gửi confirmSplitDeviation: true", async () => {
@@ -349,9 +349,9 @@ describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ t�
 
     expect(await screen.findByText("Thêm người nhận: Lê Bình")).toBeInTheDocument();
     expect(
-      screen.getByText("Sổ đỏ: Chủ tài sản chia cho Trần An → biên bản ghi không ai"),
+      screen.getByText("Sổ đỏ: Chủ tài sản chia cho Trần An → phương án chia ghi không ai"),
     ).toBeInTheDocument();
-    const finalize = screen.getByRole("button", { name: "Phát hành biên bản" });
+    const finalize = screen.getByRole("button", { name: "Chốt phương án chia" });
     await confirmLegalBasis(user);
     expect(finalize).toBeDisabled();
 
@@ -374,7 +374,7 @@ describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ t�
         "Tài sản chưa khóa: chấp nhận giấy tờ của ít nhất một yêu cầu trước khi chốt.",
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Phát hành biên bản" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Chốt phương án chia" })).not.toBeInTheDocument();
   });
 });
 
@@ -385,7 +385,7 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     const checkbox = await screen.findByRole("checkbox", { name: LEGAL_BASIS_LABEL });
-    const finalize = screen.getByRole("button", { name: "Phát hành biên bản" });
+    const finalize = screen.getByRole("button", { name: "Chốt phương án chia" });
     expect(checkbox).not.toBeChecked();
     expect(finalize).toBeDisabled();
 
@@ -406,9 +406,9 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await confirmLegalBasis(user);
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Chốt phương án chia" })).toBeEnabled();
     await user.click(screen.getByRole("checkbox", { name: LEGAL_BASIS_LABEL }));
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Chốt phương án chia" })).toBeDisabled();
   });
 
   it("biên bản mở lại về bước lập (bản mới) thì ô xác nhận bỏ tick", async () => {
@@ -434,16 +434,16 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await confirmLegalBasis(user);
-    await user.click(screen.getByRole("button", { name: "Phát hành biên bản" }));
+    await user.click(screen.getByRole("button", { name: "Chốt phương án chia" }));
     await screen.findByText("Bước 2 · Ký và giao từng người");
 
-    await user.click(screen.getByRole("button", { name: "Mở lại biên bản để sửa" }));
+    await user.click(screen.getByRole("button", { name: "Mở lại phương án chia để sửa" }));
     expect(post).toHaveBeenCalledTimes(2);
 
     // Quay về bước lập bản số 2: ô xác nhận trống, nút Chốt khóa dù biên bản đã có dữ liệu hợp lệ.
     const checkbox = await screen.findByRole("checkbox", { name: LEGAL_BASIS_LABEL });
     expect(checkbox).not.toBeChecked();
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Chốt phương án chia" })).toBeDisabled();
   });
 });
 
@@ -609,11 +609,11 @@ describe("Luật sư ký và mở lại biên bản (bước 2)", () => {
     expect(screen.queryByText(/chờ tất cả/i)).not.toBeInTheDocument();
     // Đã giao cho An: không còn nút Mở lại, hiện lý do.
     expect(
-      screen.queryByRole("button", { name: "Mở lại biên bản để sửa" }),
+      screen.queryByRole("button", { name: "Mở lại phương án chia để sửa" }),
     ).not.toBeInTheDocument();
     expect(
       screen.getByText(
-        "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản. Sai sót sau khi giao xử lý ngoài hệ thống.",
+        "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được phương án chia. Sai sót sau khi giao xử lý ngoài hệ thống.",
       ),
     ).toBeInTheDocument();
   });
@@ -622,7 +622,9 @@ describe("Luật sư ký và mở lại biên bản (bước 2)", () => {
     backend(signing());
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    expect(await screen.findByRole("button", { name: "Mở lại biên bản để sửa" })).toBeEnabled();
+    expect(
+      await screen.findByRole("button", { name: "Mở lại phương án chia để sửa" }),
+    ).toBeEnabled();
     expect(
       screen.queryByText(/Đã giao tài sản cho ít nhất một người nhận/),
     ).not.toBeInTheDocument();
@@ -642,9 +644,9 @@ describe("Luật sư ký và mở lại biên bản (bước 2)", () => {
     );
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    await user.click(await screen.findByRole("button", { name: "Mở lại biên bản để sửa" }));
+    await user.click(await screen.findByRole("button", { name: "Mở lại phương án chia để sửa" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản.",
+      "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được phương án chia.",
     );
   });
 
@@ -656,7 +658,7 @@ describe("Luật sư ký và mở lại biên bản (bước 2)", () => {
     expect(
       await screen.findByText(/mọi chữ ký mất hiệu lực, các bên phải ký lại/),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Mở lại biên bản để sửa" }));
+    await user.click(screen.getByRole("button", { name: "Mở lại phương án chia để sửa" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/reopen`);
     expect(await screen.findByText("B. Chia tài sản cho từng người")).toBeInTheDocument();
   });
@@ -775,7 +777,7 @@ describe("Người nhận ký biên bản", () => {
     setup(<RecipientRecordPanel turnId={TURN_ID} />);
 
     expect(
-      await screen.findByText("Luật sư đang sửa biên bản. Bạn chờ bản mới rồi ký."),
+      await screen.findByText("Luật sư đang sửa phương án chia. Bạn chờ biên bản mới rồi ký."),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
   });
@@ -864,7 +866,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     expect(card).toHaveTextContent("Chờ luật sư xét");
     expect(card).toHaveTextContent("“Tôi là con”");
     expect(within(card).getByRole("button", { name: "Tải về khai-sinh.pdf" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Phát hành biên bản" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Chốt phương án chia" })).not.toBeInTheDocument();
     expect(screen.getByText(/Còn yêu cầu nhận chưa xét xong/)).toBeInTheDocument();
     expect(within(card).getByRole("button", { name: "Từ chối" })).toBeDisabled();
     expect(within(card).queryByRole("button", { name: "Yêu cầu bổ sung" })).not.toBeInTheDocument();
@@ -978,7 +980,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     expect(
       await screen.findByText(/Còn 1 người trong hồ sơ báo tin chưa xử lý/),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Chốt phương án chia" })).toBeDisabled();
 
     // Cửa sổ điền sẵn; thiếu căn cước, ngày sinh, tài sản thì không gửi gì.
     await user.click(screen.getByRole("button", { name: "Nhập tiếp Lê Văn Mới" }));
@@ -1014,7 +1016,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     expect(put.mock.calls[0][1]).toEqual({ lines: [{ beneficiaryId: NEW_ID, assetId: HOUSE }] });
 
     await confirmLegalBasis(user);
-    await user.click(screen.getByRole("button", { name: "Phát hành biên bản" }));
+    await user.click(screen.getByRole("button", { name: "Chốt phương án chia" }));
     expect(await screen.findByText("Bước 2 · Ký và giao từng người")).toBeInTheDocument();
     expect(put).toHaveBeenCalledTimes(1);
   });
@@ -1147,7 +1149,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
       }),
     );
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
-    const stale = "Sổ đỏ: Chủ tài sản chia cho Trần An → biên bản ghi không ai";
+    const stale = "Sổ đỏ: Chủ tài sản chia cho Trần An → phương án chia ghi không ai";
     expect(await screen.findByText(stale)).toBeInTheDocument();
 
     // Chọn đúng như Chủ tài sản: cảnh báo mất ngay, chưa cần lưu.
@@ -1163,7 +1165,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     await closePicker(user);
     expect(screen.getByText("Thêm người nhận: Lê Bình")).toBeInTheDocument();
     expect(
-      screen.getByText("Sổ đỏ: Chủ tài sản chia cho Trần An → biên bản ghi Trần An, Lê Bình"),
+      screen.getByText("Sổ đỏ: Chủ tài sản chia cho Trần An → phương án chia ghi Trần An, Lê Bình"),
     ).toBeInTheDocument();
   });
 

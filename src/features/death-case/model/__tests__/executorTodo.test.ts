@@ -78,7 +78,7 @@ describe("vaultStage", () => {
   it("theo bước của biên bản bàn giao", () => {
     expect(vaultStage(vault()).label).toBe("Chưa có yêu cầu nhận");
     expect(vaultStage(vault({ handoverRecordStatus: "DRAFTING" })).label).toBe(
-      "Luật sư đang lập biên bản",
+      "Luật sư đang lập phương án chia",
     );
     expect(vaultStage(vault({ handoverRecordStatus: "SIGNING" })).label).toBe("Đang ký biên bản");
     expect(
@@ -97,7 +97,7 @@ describe("executorTodo", () => {
 
   it("luật sư đang lập biên bản: chưa cần làm gì", () => {
     expect(executorTodo(input({ recordStatus: "DRAFTING" })).title).toBe(
-      "Luật sư đang lập biên bản",
+      "Luật sư đang lập phương án chia",
     );
   });
 

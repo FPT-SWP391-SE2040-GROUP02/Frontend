@@ -84,7 +84,7 @@ afterEach(() => {
 });
 
 const VAULT_ID = "22222222-2222-4222-8222-222222222222";
-const NOT_STARTED_MESSAGE = "Mã nhận sẽ hiện sau khi luật sư chốt biên bản bàn giao.";
+const NOT_STARTED_MESSAGE = "Mã nhận sẽ hiện sau khi luật sư chốt phương án chia.";
 const notStartedProblem = () =>
   problem(409, {
     code: "HANDOVER_NOT_ALLOWED",

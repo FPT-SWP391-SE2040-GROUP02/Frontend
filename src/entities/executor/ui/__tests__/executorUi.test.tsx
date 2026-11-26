@@ -69,7 +69,7 @@ describe("ExecutorReceivedKeyCard", () => {
       renderCard(planStatus);
 
       expect(screen.getByText("Chờ bàn giao")).toBeInTheDocument();
-      expect(screen.getByText(/sau khi luật sư chốt biên bản bàn giao/)).toBeInTheDocument();
+      expect(screen.getByText(/sau khi luật sư chốt phương án chia/)).toBeInTheDocument();
       expect(screen.queryByRole("button")).not.toBeInTheDocument();
     },
   );

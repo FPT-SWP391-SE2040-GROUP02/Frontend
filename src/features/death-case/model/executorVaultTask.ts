@@ -25,7 +25,7 @@ export function vaultTask(vault: ExecutorVault): VaultTask {
       urgency: "sign",
       label: "Đang ký biên bản",
       tone: "warning",
-      detail: "Biên bản đã chốt, đang ký và giao từng người",
+      detail: "Đã chốt phương án chia, đang ký và giao từng người",
       task: "đọc lại biên bản và ký nếu bạn chưa ký, rồi gửi mã nhận cho người đã được mở ở mục Bàn giao.",
     };
   }
@@ -41,9 +41,9 @@ export function vaultTask(vault: ExecutorVault): VaultTask {
   if (status === "DRAFTING") {
     return {
       urgency: "handover",
-      label: "Đang lập biên bản",
+      label: "Đang lập phương án chia",
       tone: "warning",
-      detail: "Luật sư đang lập biên bản",
+      detail: "Luật sư đang lập phương án chia",
       task: null,
     };
   }

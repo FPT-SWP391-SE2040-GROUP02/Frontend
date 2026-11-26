@@ -164,7 +164,7 @@ it("Tổng quan hiện kế hoạch theo giai đoạn, tải việc người xé
   setup(ROUTES.ADMIN.ROOT);
   expect(await screen.findByText("Kế hoạch theo giai đoạn")).toBeInTheDocument();
   expect(screen.getByText("Đang chạy")).toBeInTheDocument();
-  expect(screen.getByText("Đang lập biên bản")).toBeInTheDocument();
+  expect(screen.getByText("Đang lập phương án chia")).toBeInTheDocument();
   expect(screen.getByText(/Chưa tính 41 tài sản đã đóng/)).toBeInTheDocument();
   expect(screen.getByText("Lê Hoàng")).toBeInTheDocument();
   expect(screen.getByText(/3 hồ sơ/)).toHaveTextContent("1 quá hạn");

@@ -317,7 +317,7 @@ it("explains a cancelled turn as a stopped handover, not a system error", async 
     listOrRecord(config, [turnWithStatus("CANCELLED")]);
   setup();
   expect(
-    await screen.findByText(/Lượt này đã bị hủy vì luật sư đã sửa biên bản/),
+    await screen.findByText(/Lượt này đã bị hủy vì luật sư đã sửa phương án chia/),
   ).toBeInTheDocument();
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });

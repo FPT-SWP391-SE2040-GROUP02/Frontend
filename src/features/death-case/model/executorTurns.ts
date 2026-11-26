@@ -143,7 +143,7 @@ function stoppedProgress(turn: HandoverProgressTurn): TurnProgress {
     headline = "Lượt đã kết thúc";
     stopTime = null;
     if (turn.status === "DECISION_EXPIRED") detail = "người nhận không hoàn tất việc nhận";
-    if (turn.status === "CANCELLED") detail = "luật sư sửa biên bản và bỏ người này ra";
+    if (turn.status === "CANCELLED") detail = "luật sư sửa phương án chia và bỏ người này ra";
     if (turn.status === "LAPSED") detail = "dữ liệu của lượt đã được dọn";
   }
   const stopped: TurnSegment = {

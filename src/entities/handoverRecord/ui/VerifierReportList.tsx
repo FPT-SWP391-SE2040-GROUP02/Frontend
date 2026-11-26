@@ -128,7 +128,7 @@ function ReportCard({
             </label>
           )}
           <p className="text-sm text-heritage-muted">
-            Chấp nhận thì tài sản bị khóa, Chủ tài sản được báo và biên bản bàn giao được mở.
+            Chấp nhận thì tài sản bị khóa, Chủ tài sản được báo và bước lập phương án chia được mở.
           </p>
           <div className="flex flex-wrap gap-2">
             <button
@@ -141,7 +141,7 @@ function ReportCard({
               }
               onClick={() => review("ACCEPT")}
             >
-              Chấp nhận và mở biên bản
+              Chấp nhận và lập phương án
             </button>
             <button
               type="button"
@@ -197,7 +197,7 @@ export function VerifierReportList({ onOpenRecord }: { onOpenRecord: (recordId: 
   return (
     <SectionCard
       title="Hồ sơ báo tin chờ xét"
-      subtitle="Người thân nộp giấy tờ. Chấp nhận thì tài sản bị khóa và biên bản được mở."
+      subtitle="Người thân nộp giấy tờ. Chấp nhận thì tài sản bị khóa và bước lập phương án chia được mở."
       labelledBy="verifier-reports"
     >
       <div className="relative overflow-x-auto">

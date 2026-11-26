@@ -52,7 +52,7 @@ export const DASHBOARD_GROUPS: DashboardGroup[] = [
 export const PLAN_STAGE_LABELS: Record<string, string> = {
   DRAFT: "Đang thiết lập",
   ACTIVE: "Đang chạy",
-  HANDOVER_REQUESTED: "Đang lập biên bản",
+  HANDOVER_REQUESTED: "Đang lập phương án chia",
   HANDOVER_IN_PROGRESS: "Đang bàn giao",
 };
 

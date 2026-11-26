@@ -487,7 +487,9 @@ describe("Executor handover record", () => {
       record("DRAFTING"),
     );
     setup("/executor/report");
-    expect(await screen.findByText(/Luật sư đang xét giấy tờ và lập biên bản/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Luật sư đang xét giấy tờ và lập phương án chia/),
+    ).toBeInTheDocument();
     expect(screen.getByText("Trần Minh Anh")).toBeInTheDocument();
   });
 

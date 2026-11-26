@@ -98,7 +98,7 @@ describe("Verifier workspace shell", () => {
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người xét duyệt" });
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
       "Tổng quan",
-      "Đang lập biên bản",
+      "Lập phương án",
       "Kiểm tra CCCD",
       "Đã hoàn tất",
       "Hướng dẫn",
@@ -181,7 +181,7 @@ describe("Verifier queue and history", () => {
     expect(
       within(table).queryByRole("button", { name: "Biên bản #66666666" }),
     ).not.toBeInTheDocument();
-    expect(within(table).getByText("Đang lập biên bản")).toBeInTheDocument();
+    expect(within(table).getByText("Đang lập phương án chia")).toBeInTheDocument();
     fireEvent.click(within(table).getByRole("button", { name: "Biên bản #33333333" }));
     await waitFor(() =>
       expect(get).toHaveBeenCalledWith(`/verifier/handover-records/${OPEN_ID}`, expect.anything()),

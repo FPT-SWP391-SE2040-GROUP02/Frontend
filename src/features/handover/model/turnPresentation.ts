@@ -40,8 +40,7 @@ export const TURN_STATUS_LABELS: Record<Turn["status"], string> = {
 export const TURN_ENDED_HINTS: Partial<Record<Turn["status"], string>> = {
   DECISION_EXPIRED: "Hạn quyết định đã kết thúc nên lượt này không còn nhận được nữa.",
   DECLINED: "Bạn đã từ chối lượt bàn giao này.",
-  CANCELLED:
-    "Lượt này đã bị hủy vì luật sư đã sửa biên bản bàn giao và bạn không còn tên trong đó.",
+  CANCELLED: "Lượt này đã bị hủy vì luật sư đã sửa phương án chia và bạn không còn tên trong đó.",
   LAPSED: "Lượt bàn giao này đã kết thúc.",
 };
 

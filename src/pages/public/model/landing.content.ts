@@ -111,7 +111,7 @@ export const LANDING_CONTENT = {
         signing: false,
       },
       {
-        title: "Luật sư lập biên bản",
+        title: "Luật sư lập phương án chia",
         detail: "Một luật sư độc lập ghi ai nhận tài sản nào, theo kết quả đã xử lý ở ngoài.",
         signing: false,
       },

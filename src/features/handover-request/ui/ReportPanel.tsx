@@ -22,7 +22,7 @@ function reportText(report: MyReport): string {
     case "SUPPLEMENT_REQUESTED":
       return "Luật sư cần thêm giấy tờ. Nộp bổ sung ở dưới.";
     case "ACCEPTED":
-      return "Giấy tờ đã được chấp nhận. Luật sư lập biên bản và gửi thư cho từng người nhận.";
+      return "Giấy tờ đã được chấp nhận. Luật sư lập phương án chia và gửi thư cho từng người nhận.";
     case "REJECTED":
       return "Luật sư đã từ chối hồ sơ này.";
   }

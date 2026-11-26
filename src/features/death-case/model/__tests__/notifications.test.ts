@@ -47,7 +47,7 @@ describe("deriveNotifications", () => {
     );
     expect(items.map((item) => item.title)).toEqual([
       "Mọi người nhận đã ký biên bản",
-      "Luật sư đã chốt biên bản",
+      "Luật sư đã chốt phương án chia",
       "Có yêu cầu nhận tài sản",
     ]);
   });

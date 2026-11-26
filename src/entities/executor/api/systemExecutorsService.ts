@@ -6,8 +6,7 @@ import {
 } from "../model/systemExecutor.schema";
 
 /** Câu hiện cho Người thực thi khi kho chưa tới bước bàn giao nên chưa xem được mã nhận. */
-export const HANDOVER_NOT_STARTED_MESSAGE =
-  "Mã nhận sẽ hiện sau khi luật sư chốt biên bản bàn giao.";
+export const HANDOVER_NOT_STARTED_MESSAGE = "Mã nhận sẽ hiện sau khi luật sư chốt phương án chia.";
 
 /**
  * Lỗi 409 HANDOVER_NOT_ALLOWED với reason HANDOVER_NOT_STARTED: Người thực thi hợp lệ nhưng kho chưa bắt đầu bàn giao.

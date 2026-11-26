@@ -6,7 +6,7 @@ import { VAULT_PLAN_STATUS } from "./vault.types";
  */
 const LOCK_REASONS: Record<string, string> = {
   [VAULT_PLAN_STATUS.HANDOVER_REQUESTED]:
-    "Có người nhận gửi yêu cầu nhận tài sản nên tài khoản đang bị khóa trong lúc luật sư xét giấy tờ và lập biên bản.",
+    "Có người nhận gửi yêu cầu nhận tài sản nên tài khoản đang bị khóa trong lúc luật sư xét giấy tờ và lập phương án chia.",
   [VAULT_PLAN_STATUS.HANDOVER_IN_PROGRESS]:
     "Kế hoạch đang bàn giao nên tài khoản không thay đổi được.",
   [VAULT_PLAN_STATUS.CLOSED]: "Kế hoạch đã đóng nên tài khoản không thay đổi được.",

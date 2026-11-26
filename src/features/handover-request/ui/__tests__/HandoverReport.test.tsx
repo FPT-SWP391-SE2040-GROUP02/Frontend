@@ -275,7 +275,9 @@ describe("Luật sư xét hồ sơ báo tin", () => {
     const open = vi.fn();
     setup(<VerifierReportList onOpenRecord={open} />);
     await userEvent.click(await screen.findByRole("button", { name: /^Xem hồ sơ / }));
-    await userEvent.click(await screen.findByRole("button", { name: "Chấp nhận và mở biên bản" }));
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Chấp nhận và lập phương án" }),
+    );
     await waitFor(() => expect(open).toHaveBeenCalledWith(RECORD_ID));
   });
 
@@ -286,7 +288,7 @@ describe("Luật sư xét hồ sơ báo tin", () => {
       .mockResolvedValue(verifierReport({ status: "ACCEPTED", recordId: RECORD_ID }));
     setup(<VerifierReportList onOpenRecord={() => undefined} />);
     await userEvent.click(await screen.findByRole("button", { name: /^Xem hồ sơ / }));
-    const accept = await screen.findByRole("button", { name: "Chấp nhận và mở biên bản" });
+    const accept = await screen.findByRole("button", { name: "Chấp nhận và lập phương án" });
     expect(accept).toBeDisabled();
     expect(screen.getByText(/Họ tên khai không khớp/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("checkbox", { name: /Tôi đã đối chiếu/ }));
@@ -306,7 +308,9 @@ describe("Luật sư xét hồ sơ báo tin", () => {
     ]);
     setup(<VerifierReportList onOpenRecord={() => undefined} />);
     await userEvent.click(await screen.findByRole("button", { name: /^Xem hồ sơ / }));
-    expect(await screen.findByRole("button", { name: "Chấp nhận và mở biên bản" })).toBeDisabled();
+    expect(
+      await screen.findByRole("button", { name: "Chấp nhận và lập phương án" }),
+    ).toBeDisabled();
     expect(screen.getByRole("button", { name: "Từ chối" })).toBeDisabled();
     await userEvent.type(screen.getByLabelText(/^Lý do/), "Giấy tờ không hợp lệ");
     expect(screen.getByRole("button", { name: "Từ chối" })).toBeEnabled();
