@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import {
@@ -9,8 +9,8 @@ import {
 import { deathCaseService } from "../api/deathCaseService";
 
 /**
- * Gửi mã nhận cho người nhận qua email. Người thực thi bấm "Dùng mã đã nhận trên hệ thống" để điền mã Chủ kho
- * đã gửi (hoặc tự nhập mã đang giữ); Backend kiểm rồi gửi. Mã chỉ nằm trong ô nhập, được xóa sau khi gửi xong.
+ * Gửi mã nhận cho người nhận qua email. Mở khung là mã Chủ kho đã gửi trên hệ thống hiện sẵn trong ô (chưa có thì
+ * Người thực thi tự nhập mã đang giữ); Backend kiểm rồi gửi. Mã chỉ nằm trong ô nhập, được xóa sau khi gửi xong.
  * Không optimistic: chỉ báo thành công sau response của BE.
  */
 export function HandoverSendKey({
@@ -22,7 +22,7 @@ export function HandoverSendKey({
 }: {
   recordId: string;
   turnId: string;
-  /** Kho của hồ sơ; có thì cho lấy mã đã nhận trên hệ thống thay vì gõ tay. */
+  /** Kho của hồ sơ; có thì tự điền mã đã nhận trên hệ thống. */
   vaultId?: string;
   /** Gọi sau khi Backend xác nhận đã gửi; sentAt là giờ máy chủ. */
   onSent: (sentAt: string) => void;
@@ -32,7 +32,7 @@ export function HandoverSendKey({
   const fill = usePrivateAction();
   const [key, setKey] = useState("");
   const [notStarted, setNotStarted] = useState(false);
-  const busy = action.pending || fill.pending;
+  const busy = action.pending;
   const send = () =>
     void action.execute(
       () => deathCaseService.sendKey(recordId, turnId, key.trim()),
@@ -41,14 +41,17 @@ export function HandoverSendKey({
         onSent(result.sentAt);
       },
     );
-  const fillFromSystem = (id: string) => {
-    setNotStarted(false);
+  // Lấy mã một lần khi mở khung. Không ghi đè mã người dùng đã tự gõ trong lúc chờ.
+  useEffect(() => {
+    if (!vaultId) return;
     void fill.execute(
-      () => systemExecutorsService.getHandoverKey(id),
-      (received) => setKey(received.shard),
+      () => systemExecutorsService.getHandoverKey(vaultId),
+      (received) => setKey((typed) => typed || received.shard),
       (error) => setNotStarted(isHandoverNotStarted(error)),
     );
-  };
+    // fill đổi mỗi lần render; chỉ cần chạy lại khi đổi kho.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vaultId]);
   return (
     <div className="space-y-3 rounded-xl border border-heritage-border bg-white/60 p-4 text-sm">
       <label className="block space-y-1">
@@ -64,15 +67,10 @@ export function HandoverSendKey({
           onChange={(event) => setKey(event.target.value)}
         />
       </label>
-      {vaultId && (
-        <button
-          type="button"
-          className={buttonStyles.outline}
-          disabled={busy}
-          onClick={() => fillFromSystem(vaultId)}
-        >
-          {fill.pending ? "Đang lấy mã…" : "Dùng mã đã nhận trên hệ thống"}
-        </button>
+      {fill.pending && (
+        <p role="status" className="text-heritage-muted">
+          Đang lấy mã…
+        </p>
       )}
       {notStarted && (
         <p role="status" className="text-heritage-muted">

@@ -2,13 +2,13 @@ import { useSearchParams } from "react-router-dom";
 import { RecipientReviewQueue } from "@/features/recipient-review";
 import { VerifierShell } from "@/widgets/VerifierWorkspace/VerifierShell";
 
-/** Danh tính người nhận chờ kiểm: danh sách, hoặc chi tiết một hồ sơ khi có ?submissionId=. */
+/** Kiểm tra CCCD người nhận: danh sách, hoặc chi tiết một hồ sơ khi có ?submissionId=. */
 export function VerifierRecipientsPage() {
   const [params] = useSearchParams();
   const hasSubmission = Boolean(params.get("submissionId"));
   return (
     <VerifierShell
-      title="Danh tính người nhận"
+      title="Kiểm tra CCCD"
       description={
         hasSubmission
           ? "Bạn chịu trách nhiệm xác nhận đúng người: đối chiếu căn cước với thông tin trong biên bản, rồi xác nhận hoặc yêu cầu làm lại."

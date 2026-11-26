@@ -1,7 +1,8 @@
+import { compactButton, SectionCard } from "@/shared/ui/SectionCard";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { buttonStyles, Chip, formatDateTime, Panel } from "@/shared/ui/heritageKit";
+import { Chip, formatDateTime } from "@/shared/ui/heritageKit";
 import { handoverRecordService } from "../api/handoverRecordService";
 import type { HandoverRecord, RecordClaim } from "../model/handoverRecord.schema";
 import { claimStatusLabel } from "../model/recordPresentation";
@@ -34,10 +35,7 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
     );
   const needsReason = reason.trim().length === 0;
   return (
-    <article
-      aria-label={`Yêu cầu của ${claim.fullName || "người nhận"}`}
-      className="space-y-4 rounded-2xl border border-heritage-border bg-white/70 p-5"
-    >
+    <article aria-label={`Yêu cầu của ${claim.fullName || "người nhận"}`} className="space-y-3 p-5">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-semibold text-heritage-primary">{claim.fullName || "Người nhận"}</h3>
@@ -61,21 +59,21 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
         </p>
       )}
       {canReview && (
-        <div className="space-y-3 border-t border-heritage-border pt-4">
-          <label className="block space-y-1 text-sm font-semibold">
-            Lý do (bắt buộc khi yêu cầu bổ sung hoặc từ chối)
-            <textarea
-              className="min-h-20 w-full rounded-xl border border-heritage-border bg-white p-3 font-normal"
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <input
+              type="text"
+              aria-label="Lý do (bắt buộc khi yêu cầu bổ sung hoặc từ chối)"
+              placeholder="Ghi lý do (chỉ cần khi yêu cầu bổ sung hoặc từ chối)"
+              className="h-9 min-w-0 flex-1 basis-60 rounded-[10px] border border-heritage-border bg-white px-3 text-sm"
               maxLength={1000}
               value={reason}
               disabled={action.pending}
               onChange={(event) => setReason(event.target.value)}
             />
-          </label>
-          <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              className={buttonStyles.dark}
+              className={compactButton.success}
               disabled={action.pending || claim.status === "ACCEPTED"}
               onClick={() => review("ACCEPT")}
             >
@@ -83,7 +81,7 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
             </button>
             <button
               type="button"
-              className={buttonStyles.outline}
+              className={compactButton.outline}
               disabled={action.pending || needsReason}
               onClick={() => review("REQUEST_SUPPLEMENT")}
             >
@@ -91,7 +89,7 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
             </button>
             <button
               type="button"
-              className={buttonStyles.outline}
+              className={compactButton.danger}
               disabled={action.pending || needsReason || claim.status === "REJECTED"}
               onClick={() => review("REJECT")}
             >
@@ -115,16 +113,16 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
  */
 export function ClaimsReviewPanel({ record }: { record: HandoverRecord }) {
   return (
-    <Panel title="Giấy tờ người nhận nộp" labelledBy="record-claims">
+    <SectionCard title="A. Giấy tờ người nhận nộp" labelledBy="record-claims">
       {record.claims.length === 0 ? (
-        <p className="text-sm text-heritage-muted">Chưa có yêu cầu nhận tài sản nào.</p>
+        <p className="p-5 text-sm text-heritage-muted">Chưa có yêu cầu nhận tài sản nào.</p>
       ) : (
-        <div className="space-y-4">
+        <div className="divide-y divide-heritage-border">
           {record.claims.map((claim) => (
             <ClaimCard key={claim.id} record={record} claim={claim} />
           ))}
         </div>
       )}
-    </Panel>
+    </SectionCard>
   );
 }
