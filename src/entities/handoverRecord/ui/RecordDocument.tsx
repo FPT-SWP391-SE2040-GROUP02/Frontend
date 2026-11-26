@@ -35,9 +35,12 @@ function RecipientBlock({
         <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 py-3">
           <dt className="text-heritage-muted">Tài sản được nhận</dt>
           <dd>
-            <ul className="space-y-1">
+            <ul className="flex flex-wrap gap-1.5">
               {recipient.assets.map((asset) => (
-                <li key={asset.assetId} className="font-medium">
+                <li
+                  key={asset.assetId}
+                  className="rounded-full bg-heritage-sunken px-2.5 py-0.5 font-medium"
+                >
                   {asset.name || "Tài sản đã bị xóa"}
                 </li>
               ))}
@@ -189,9 +192,14 @@ export function RecordDocument({
                         <span className="text-heritage-muted">{`CCCD ${recipient.citizenId}`}</span>
                       </td>
                       <td className="px-4 py-4">
-                        <ul className="list-disc space-y-1 pl-4">
+                        <ul className="flex flex-wrap gap-1.5">
                           {recipient.assets.map((asset) => (
-                            <li key={asset.assetId}>{asset.name || "Tài sản đã bị xóa"}</li>
+                            <li
+                              key={asset.assetId}
+                              className="rounded-full bg-heritage-sunken px-2.5 py-0.5"
+                            >
+                              {asset.name || "Tài sản đã bị xóa"}
+                            </li>
                           ))}
                         </ul>
                       </td>
