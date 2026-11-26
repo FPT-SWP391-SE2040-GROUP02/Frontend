@@ -103,23 +103,6 @@ export const handoverRecordService = {
       ),
     );
   },
-  /** Đính kèm tệp căn cứ (multipart); bỏ Content-Type mặc định để trình duyệt tự đặt boundary. */
-  async addEvidence(recordId: string, files: File[]) {
-    const form = new FormData();
-    for (const file of files) form.append("files", file);
-    return handoverRecordSchema.parse(
-      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/evidence`, form, {
-        headers: { "Content-Type": undefined },
-      }),
-    );
-  },
-  async removeEvidence(recordId: string, fileId: string) {
-    return handoverRecordSchema.parse(
-      await apiClient.delete<unknown, unknown>(
-        `${verifierPath(recordId)}/evidence/${id.parse(fileId)}`,
-      ),
-    );
-  },
   /** Tải một tệp đính kèm biên bản về dạng Blob; không cache. */
   async downloadFile(recordId: string, fileId: string, options?: TransferOptions): Promise<Blob> {
     try {
