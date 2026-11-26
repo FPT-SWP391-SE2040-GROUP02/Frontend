@@ -108,6 +108,7 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
   const status = availableStatusLabel[row.status];
   const action = availableAction(row);
   const requestHere = canSendRequestHere(row);
+  const requestLabel = row.status === "REJECTED" ? "Gửi yêu cầu mới" : "Gửi yêu cầu";
   const regionRef = useRef<HTMLDivElement>(null);
   const form = useRequestForm(regionRef);
   const regionId = useId();
@@ -116,6 +117,10 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
   let hint = waitingHint(row);
   if (action === null && !requestHere && hint === "") {
     hint = noActionHint(row);
+  }
+  // Yêu cầu trước bị từ chối là đã đóng: không khóa người nhận, cho gửi yêu cầu mới.
+  if (row.status === "REJECTED" && requestHere) {
+    hint = "Yêu cầu trước đã bị từ chối và đã đóng. Bạn có thể gửi yêu cầu mới.";
   }
   let notRequestedNote = "";
   if (row.status === "NOT_REQUESTED" && row.needsAction) {
@@ -167,11 +172,11 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
               type="button"
               aria-expanded={form.open}
               aria-controls={regionId}
-              aria-label={`Gửi yêu cầu - tài sản của ${row.ownerName}`}
+              aria-label={`${requestLabel} - tài sản của ${row.ownerName}`}
               className={`${actionClass} receive-press`}
               onClick={() => form.setOpen((current) => !current)}
             >
-              {form.open ? "Thu gọn" : "Gửi yêu cầu"}
+              {form.open ? "Thu gọn" : requestLabel}
             </button>
           )}
         </div>
@@ -187,7 +192,11 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
         >
           <div>
             <div className="border-t border-heritage-border pt-5">
-              <InlineRequestForm vaultId={row.vaultId} onSent={() => form.setSent(true)} />
+              <InlineRequestForm
+                vaultId={row.vaultId}
+                onSent={() => form.setSent(true)}
+                onCancel={() => form.setOpen(false)}
+              />
             </div>
           </div>
         </div>

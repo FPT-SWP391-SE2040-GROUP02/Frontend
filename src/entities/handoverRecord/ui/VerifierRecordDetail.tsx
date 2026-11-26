@@ -1,7 +1,6 @@
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
 import { useVerifierRecord } from "../model/useHandoverRecord";
 import { ClaimsReviewPanel } from "./ClaimsReviewPanel";
-import { EvidencePanel } from "./EvidencePanel";
 import { RecordLinesEditor } from "./RecordLinesEditor";
 import { RecordReportsPanel } from "./RecordReportsPanel";
 import { RecordStepper } from "./RecordStepper";
@@ -61,7 +60,6 @@ export function VerifierRecordDetail({
               )}
             </>
           }
-          after={<EvidencePanel record={record} />}
         />
       )}
       {record.status === "COMPLETED" && (
@@ -71,9 +69,6 @@ export function VerifierRecordDetail({
         </Notice>
       )}
       {record.status !== "DRAFTING" && <VerifierSigningPanel record={record} />}
-      {record.status !== "DRAFTING" && record.status !== "CANCELLED" && (
-        <EvidencePanel record={record} />
-      )}
     </div>
   );
 }

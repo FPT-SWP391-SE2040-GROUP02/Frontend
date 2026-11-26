@@ -30,20 +30,17 @@ import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 /**
  * Bước 1 của luật sư: chọn ai nhận tài sản nào. Mỗi ô là một cặp người nhận - tài sản; một tài sản có thể
  * giao cho nhiều người (đồng thừa kế). Có thể lấy biên bản phân chia của Chủ tài sản làm bản đầu rồi sửa.
- * Người nhận chưa có trong danh sách thì thêm trong cửa sổ riêng (lưu ngay, sửa và xóa được trước khi phát hành).
- * Cách chia giữ trên màn hình tới khi bấm "Lưu nháp"; "Phát hành biên bản" lưu phần còn lại, chốt và gửi thư mời. Đã
+ * Người nhận chưa có trong danh sách thì thêm trong cửa sổ riêng (lưu ngay, sửa và xóa được trước khi chốt biên bản).
+ * Cách chia giữ trên màn hình tới khi bấm "Lưu nháp"; "Chốt biên bản" lưu phần còn lại, chốt và gửi thư mời. Đã
  * chốt thì phải mở lại biên bản mới sửa.
  */
 export function RecordLinesEditor({
   record,
   before,
-  after,
 }: {
   record: HandoverRecord;
   /** Việc làm trước khi chia (hồ sơ, giấy tờ), nằm đầu cột trái. */
   before?: ReactNode;
-  /** Phần đính kèm, nằm cuối cột trái. */
-  after?: ReactNode;
 }) {
   const client = useQueryClient();
   const save = usePrivateAction();
@@ -57,7 +54,7 @@ export function RecordLinesEditor({
   const [legalBasisConfirmed, setLegalBasisConfirmed] = useState(false);
   // Biên bản khác cách chia của Chủ tài sản thì phải tick thêm ô này; cũng bỏ tick mỗi khi nội dung đổi.
   const [splitDeviationConfirmed, setSplitDeviationConfirmed] = useState(false);
-  // Người khai trong hồ sơ báo tin mà chưa có trong danh sách: phải thêm hoặc bỏ rồi mới phát hành.
+  // Người khai trong hồ sơ báo tin mà chưa có trong danh sách: phải thêm hoặc bỏ rồi mới chốt biên bản.
   const [suggestions, setSuggestions] = useState<RecipientDraft[]>(() => draftsFromReports(record));
   const [dialog, setDialog] = useState<RecipientDialogState | null>(null);
   const [recipientNotice, setRecipientNotice] = useState("");
@@ -149,14 +146,13 @@ export function RecordLinesEditor({
   };
   const recipientCount = new Set([...selected].map((key) => key.split(":")[0])).size;
 
-  // Làm tuần tự: giấy tờ ở mục A xét xong, có người được chấp nhận và kho đã khóa thì mới mở mục B, C và Chốt.
+  // Làm tuần tự: giấy tờ ở mục A xét xong, có người được chấp nhận và kho đã khóa thì mới mở mục B và Chốt.
   const unlocked = !claimsPending && !noAccepted && record.vaultLocked;
   const columns = (main: ReactNode, side?: ReactNode) => (
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
       <div className="min-w-0 space-y-5">
         {before}
         {main}
-        {unlocked && after}
       </div>
       <div className="min-w-0 space-y-4 xl:sticky xl:top-6">{side}</div>
     </div>
@@ -360,8 +356,8 @@ export function RecordLinesEditor({
             className={`${buttonStyles.dark} w-full`}
             pending={finalize.pending}
             done={finalized.done}
-            pendingLabel="Đang phát hành biên bản…"
-            doneLabel="Đã phát hành"
+            pendingLabel="Đang chốt biên bản…"
+            doneLabel="Đã chốt biên bản"
             disabled={
               busy ||
               recipientCount === 0 ||
@@ -371,7 +367,7 @@ export function RecordLinesEditor({
             }
             onClick={handleSend}
           >
-            Phát hành biên bản
+            Chốt biên bản
           </ActionButton>
           <button
             type="button"
@@ -393,7 +389,7 @@ export function RecordLinesEditor({
           )}
         </div>
         <p className="text-sm text-heritage-muted">
-          {`Bấm "Phát hành biên bản": hệ thống lưu và khóa nội dung biên bản, gửi thư mời cho ${recipientCount} người nhận để họ nộp căn cước, rồi mở bước ký.`}
+          {`Bấm "Chốt biên bản": hệ thống lưu và khóa nội dung biên bản, gửi thư mời cho ${recipientCount} người nhận để họ nộp căn cước, rồi mở bước ký.`}
         </p>
         {(save.error || finalize.error) && (
           <p role="alert" className="text-sm text-destructive">

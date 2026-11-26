@@ -49,6 +49,10 @@ export function availableStep(row: AvailableHandover): number | null {
     case "RECEIVED":
       return RECEIVE_STEPS_DONE;
     case "REJECTED":
+      // Yêu cầu bị từ chối là đã đóng: gửi lại được thì quay về bước 1.
+      if (row.canRequest) {
+        return 1;
+      }
       return null;
   }
 }
@@ -59,11 +63,11 @@ export interface AvailableAction {
 }
 
 /**
- * Kho chưa gửi yêu cầu và gửi được: dòng có nút "Gửi yêu cầu" mở form ngay trong thẻ kho (không còn trang riêng),
- * khác các nút còn lại là liên kết sang cổng người nhận.
+ * Kho chưa gửi yêu cầu hoặc yêu cầu trước đã bị từ chối (đã đóng), và gửi được: dòng có nút "Gửi yêu cầu" mở form ngay
+ * trong thẻ kho (không còn trang riêng), khác các nút còn lại là liên kết sang cổng người nhận.
  */
 export function canSendRequestHere(row: AvailableHandover): boolean {
-  return row.status === "NOT_REQUESTED" && row.canRequest;
+  return (row.status === "NOT_REQUESTED" || row.status === "REJECTED") && row.canRequest;
 }
 
 /**

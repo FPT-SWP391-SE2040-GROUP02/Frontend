@@ -149,7 +149,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await screen.findByRole("button", { name: "Chọn người nhận Sổ đỏ" });
-    const finalize = screen.getByRole("button", { name: "Phát hành biên bản" });
+    const finalize = screen.getByRole("button", { name: "Chốt biên bản" });
     await confirmLegalBasis(user);
     expect(finalize).toBeEnabled();
 
@@ -175,9 +175,9 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: "Gỡ Lê Bình khỏi Sổ đỏ" })).toBeEnabled(),
     );
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
     await confirmLegalBasis(user);
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled();
   });
 
   it("có biên bản phân chia của Chủ tài sản thì lấy làm bản đầu được", async () => {
@@ -192,7 +192,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     expect(await screen.findByText("Chủ tài sản chia: Trần An")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Lấy theo Chủ tài sản" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/use-owner-split`);
     expect(
@@ -220,7 +220,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await confirmLegalBasis(user);
-    await user.click(await screen.findByRole("button", { name: "Phát hành biên bản" }));
+    await user.click(await screen.findByRole("button", { name: "Chốt biên bản" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/finalize`, {
       confirmLegalBasis: true,
       confirmSplitDeviation: false,
@@ -241,9 +241,9 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await confirmLegalBasis(user);
-    await user.click(await screen.findByRole("button", { name: "Phát hành biên bản" }));
+    await user.click(await screen.findByRole("button", { name: "Chốt biên bản" }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled();
   });
 });
 
@@ -272,7 +272,7 @@ const differences = [
 ];
 
 describe("Làm tuần tự: giấy tờ, chia tài sản, chốt rồi mới ký", () => {
-  it("còn giấy tờ chưa xét thì chưa mở mục B, C và chưa có tờ biên bản bàn giao", async () => {
+  it("còn giấy tờ chưa xét thì chưa mở mục B và chưa có tờ biên bản bàn giao", async () => {
     const pending = record();
     pending.claims[0].status = "SUBMITTED";
     backend(pending);
@@ -280,17 +280,16 @@ describe("Làm tuần tự: giấy tờ, chia tài sản, chốt rồi mới ký
 
     expect(await screen.findByText("Xét giấy tờ ở mục A để mở bước tiếp theo")).toBeInTheDocument();
     expect(screen.queryByText("B. Chia tài sản cho từng người")).not.toBeInTheDocument();
-    expect(screen.queryByText("C. Giấy tờ đính kèm thêm (nếu có)")).not.toBeInTheDocument();
     expect(screen.queryByText("Biên bản bàn giao")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ký xác minh" })).not.toBeInTheDocument();
   });
 
-  it("đã chấp nhận thì mở mục B, C; tờ biên bản vẫn chờ tới khi chốt", async () => {
+  it("đã chấp nhận thì mở mục B; tờ biên bản vẫn chờ tới khi chốt", async () => {
     backend(record());
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     expect(await screen.findByText("B. Chia tài sản cho từng người")).toBeInTheDocument();
-    expect(screen.getByText("C. Giấy tờ đính kèm thêm (nếu có)")).toBeInTheDocument();
+    expect(screen.queryByText(/C\. Giấy tờ đính kèm/)).not.toBeInTheDocument();
     expect(screen.queryByText("Biên bản bàn giao")).not.toBeInTheDocument();
   });
 });
@@ -336,7 +335,7 @@ describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ t�
     expect(
       screen.queryByText("Biên bản khác cách chia ban đầu của Chủ tài sản"),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled();
   });
 
   it("có khác biệt thì liệt kê, khóa Chốt tới khi tick ô xác nhận và gửi confirmSplitDeviation: true", async () => {
@@ -351,7 +350,7 @@ describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ t�
     expect(
       screen.getByText("Sổ đỏ: Chủ tài sản chia cho Trần An → biên bản ghi không ai"),
     ).toBeInTheDocument();
-    const finalize = screen.getByRole("button", { name: "Phát hành biên bản" });
+    const finalize = screen.getByRole("button", { name: "Chốt biên bản" });
     await confirmLegalBasis(user);
     expect(finalize).toBeDisabled();
 
@@ -374,7 +373,7 @@ describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ t�
         "Tài sản chưa khóa: chấp nhận giấy tờ của ít nhất một yêu cầu trước khi chốt.",
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Phát hành biên bản" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Chốt biên bản" })).not.toBeInTheDocument();
   });
 });
 
@@ -385,7 +384,7 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     const checkbox = await screen.findByRole("checkbox", { name: LEGAL_BASIS_LABEL });
-    const finalize = screen.getByRole("button", { name: "Phát hành biên bản" });
+    const finalize = screen.getByRole("button", { name: "Chốt biên bản" });
     expect(checkbox).not.toBeChecked();
     expect(finalize).toBeDisabled();
 
@@ -406,9 +405,9 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await confirmLegalBasis(user);
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeEnabled();
     await user.click(screen.getByRole("checkbox", { name: LEGAL_BASIS_LABEL }));
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
   });
 
   it("biên bản mở lại về bước lập (bản mới) thì ô xác nhận bỏ tick", async () => {
@@ -434,7 +433,7 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     await confirmLegalBasis(user);
-    await user.click(screen.getByRole("button", { name: "Phát hành biên bản" }));
+    await user.click(screen.getByRole("button", { name: "Chốt biên bản" }));
     await screen.findByText("Bước 2 · Ký và giao từng người");
 
     await user.click(screen.getByRole("button", { name: "Mở lại biên bản để sửa" }));
@@ -443,7 +442,7 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
     // Quay về bước lập bản số 2: ô xác nhận trống, nút Chốt khóa dù biên bản đã có dữ liệu hợp lệ.
     const checkbox = await screen.findByRole("checkbox", { name: LEGAL_BASIS_LABEL });
     expect(checkbox).not.toBeChecked();
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
   });
 });
 
@@ -864,7 +863,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     expect(card).toHaveTextContent("Chờ luật sư xét");
     expect(card).toHaveTextContent("“Tôi là con”");
     expect(within(card).getByRole("button", { name: "Tải về khai-sinh.pdf" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Phát hành biên bản" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Chốt biên bản" })).not.toBeInTheDocument();
     expect(screen.getByText(/Còn yêu cầu nhận chưa xét xong/)).toBeInTheDocument();
     expect(within(card).getByRole("button", { name: "Từ chối" })).toBeDisabled();
     expect(within(card).queryByRole("button", { name: "Yêu cầu bổ sung" })).not.toBeInTheDocument();
@@ -899,38 +898,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     );
   });
 
-  it("đính kèm và gỡ tệp căn cứ", async () => {
-    const user = userEvent.setup();
-    const withEvidence = record({
-      evidenceFiles: [
-        {
-          id: DOC,
-          fileName: "di-chuc.pdf",
-          contentType: "application/pdf",
-          sizeBytes: 2048,
-          createdAt: AT,
-        },
-      ],
-    });
-    const { post } = backend(record(), withEvidence);
-    const del = vi.spyOn(apiClient, "delete").mockResolvedValue(record());
-    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
-
-    expect(await screen.findByText("Chưa đính kèm tệp căn cứ nào.")).toBeInTheDocument();
-    // Mục C mặc định thu gọn: mở ra trước khi đính kèm.
-    const evidence = screen.getByRole("region", { name: /C\. Giấy tờ đính kèm/ });
-    await user.click(within(evidence).getByRole("button", { name: "Mở" }));
-    await user.upload(
-      screen.getByLabelText(/Đính kèm tệp/),
-      new File(["%PDF-1.4"], "di-chuc.pdf", { type: "application/pdf" }),
-    );
-    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(post.mock.calls[0][0]).toBe(`/verifier/handover-records/${RECORD_ID}/evidence`);
-    await user.click(await screen.findByRole("button", { name: "Gỡ di-chuc.pdf" }));
-    expect(del).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/evidence/${DOC}`);
-  });
-
-  it("hồ sơ báo tin: Nhập tiếp rồi Thêm là lưu người và tài sản ngay, sau đó mới phát hành được", async () => {
+  it("hồ sơ báo tin: Nhập tiếp rồi Thêm là lưu người và tài sản ngay, sau đó mới chốt biên bản được", async () => {
     const user = userEvent.setup();
     const NEW_ID = "99999999-9999-4999-8999-999999999999";
     const person = {
@@ -974,11 +942,11 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     });
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    // Còn người trong hồ sơ chưa xử lý thì chưa phát hành được.
+    // Còn người trong hồ sơ chưa xử lý thì chưa chốt biên bản được.
     expect(
       await screen.findByText(/Còn 1 người trong hồ sơ báo tin chưa xử lý/),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Phát hành biên bản" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Chốt biên bản" })).toBeDisabled();
 
     // Cửa sổ điền sẵn; thiếu căn cước, ngày sinh, tài sản thì không gửi gì.
     await user.click(screen.getByRole("button", { name: "Nhập tiếp Lê Văn Mới" }));
@@ -1014,7 +982,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     expect(put.mock.calls[0][1]).toEqual({ lines: [{ beneficiaryId: NEW_ID, assetId: HOUSE }] });
 
     await confirmLegalBasis(user);
-    await user.click(screen.getByRole("button", { name: "Phát hành biên bản" }));
+    await user.click(screen.getByRole("button", { name: "Chốt biên bản" }));
     expect(await screen.findByText("Bước 2 · Ký và giao từng người")).toBeInTheDocument();
     expect(put).toHaveBeenCalledTimes(1);
   });

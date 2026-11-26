@@ -121,7 +121,7 @@ export function RecipientDialog({
   let submitLabel = "Thêm";
   if (state.mode === "edit") {
     title = "Sửa người nhận";
-    description = "Chỉ sửa được người do bạn thêm, trước khi phát hành biên bản.";
+    description = "Chỉ sửa được người do bạn thêm, trước khi chốt biên bản.";
     submitLabel = "Lưu";
   }
   if (state.mode === "remove") {

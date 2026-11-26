@@ -42,7 +42,8 @@ describe("availableStep", () => {
     expect(availableStep(row({ status: "RECEIVED" }))).toBe(7);
   });
 
-  it("bị từ chối thì không có bước", () => {
-    expect(availableStep(row({ status: "REJECTED" }))).toBeNull();
+  it("bị từ chối thì không có bước, trừ khi được gửi lại thì về bước 1", () => {
+    expect(availableStep(row({ status: "REJECTED", canRequest: false }))).toBeNull();
+    expect(availableStep(row({ status: "REJECTED", canRequest: true }))).toBe(1);
   });
 });
