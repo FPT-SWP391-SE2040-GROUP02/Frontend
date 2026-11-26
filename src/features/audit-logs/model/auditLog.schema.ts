@@ -67,6 +67,7 @@ export const auditActionValues = [
   "DEV_REWIND_BEFORE_EKYC",
   "DEV_UPDATE_EKYC_THRESHOLD",
   "ADMIN_CREATED_USER",
+  "ADMIN_UPDATED_USER_PROFILE",
   // Admin sửa hoặc khôi phục cấu hình dịch vụ ngoài trên trang Cấu hình dịch vụ
   "SYSTEM_CONFIG_UPDATED",
   "SYSTEM_CONFIG_RESET",
