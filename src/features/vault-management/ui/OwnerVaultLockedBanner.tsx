@@ -14,7 +14,7 @@ export function OwnerVaultLockedBanner({ reason }: { reason: string }) {
       <LockKeyhole className="mt-0.5 size-5 shrink-0 text-heritage-warning" aria-hidden="true" />
       <div className="min-w-0 space-y-1">
         <h2 id="vault-locked-title" className="text-sm font-semibold text-heritage-warning">
-          Tài sản đang bị khóa
+          Tài khoản bị khóa
         </h2>
         <p className="max-w-2xl text-sm leading-6 text-heritage-warning">
           {reason} Bạn vẫn xem được dữ liệu, nhưng các nút thêm, sửa, xóa đã bị khóa.

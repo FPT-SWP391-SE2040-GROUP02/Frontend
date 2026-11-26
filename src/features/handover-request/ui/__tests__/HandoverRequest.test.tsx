@@ -231,7 +231,7 @@ describe("Chủ tài sản thấy yêu cầu nhận tài sản", () => {
     expect(screen.queryByRole("button", { name: "Hủy yêu cầu" })).not.toBeInTheDocument();
   });
 
-  it("tài sản chưa khóa thì báo luật sư đang xét và Chủ tài sản vẫn sửa được tài sản", async () => {
+  it("tài khoản chưa khóa thì báo luật sư đang xét và Chủ tài sản vẫn sửa được tài sản", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue({
       recordId: RECORD_ID,
       status: "DRAFTING",
@@ -243,14 +243,14 @@ describe("Chủ tài sản thấy yêu cầu nhận tài sản", () => {
 
     expect(
       await screen.findByText(
-        /Có yêu cầu nhận tài sản đang được luật sư xét\. Tài sản chưa khóa; bạn vẫn sửa được tài sản cho tới khi luật sư chấp nhận giấy tờ\./,
+        /Có yêu cầu nhận tài sản đang được luật sư xét\. Tài khoản chưa khóa; bạn vẫn sửa được tài sản cho tới khi luật sư chấp nhận giấy tờ\./,
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/Tài sản đang khóa/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Tài khoản đang khóa/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Hủy yêu cầu" })).not.toBeInTheDocument();
   });
 
-  it("tài sản đã khóa thì báo tài sản đang khóa trong lúc luật sư xét giấy tờ", async () => {
+  it("tài khoản đã khóa thì báo tài khoản đang khóa trong lúc luật sư xét giấy tờ", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue({
       recordId: RECORD_ID,
       status: "DRAFTING",
@@ -261,9 +261,11 @@ describe("Chủ tài sản thấy yêu cầu nhận tài sản", () => {
     setup(<OwnerRequestNotice vaultId={VAULT_ID} />, "owner@example.com", "/dashboard/wills");
 
     expect(
-      await screen.findByText(/Tài sản đang khóa trong lúc luật sư xét giấy tờ và lập biên bản\./),
+      await screen.findByText(
+        /Tài khoản đang khóa trong lúc luật sư xét giấy tờ và lập biên bản\./,
+      ),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/Tài sản chưa khóa/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Tài khoản chưa khóa/)).not.toBeInTheDocument();
   });
 
   it("không có yêu cầu (204) thì không hiện gì", async () => {

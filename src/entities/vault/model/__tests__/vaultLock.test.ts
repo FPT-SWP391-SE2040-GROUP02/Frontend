@@ -22,7 +22,7 @@ describe("getVaultLockReason", () => {
 
   it("khóa khi tài sản đã đóng dù kế hoạch còn hoạt động", () => {
     expect(getVaultLockReason({ status: "CLOSED", planStatus: "ACTIVE" })).toContain(
-      "Tài sản đã đóng",
+      "Tài khoản đã đóng",
     );
   });
 
