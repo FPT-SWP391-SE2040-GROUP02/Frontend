@@ -18,7 +18,7 @@ function recipientsOfAsset(lines: RecordLine[], assetId: string): string[] {
 /**
  * Chỗ khác cách chia của Chủ tài sản tính theo đúng nội dung đang hiện trên màn hình (chưa lưu), cùng cách so của
  * Backend (HandoverRecordRules.FindSplitDifferences): người nhận được thêm, người nhận bị bỏ, rồi tài sản đổi người
- * nhận. Chỉ để hiển thị; khi lưu và phát hành Backend vẫn tự so lại.
+ * nhận. Chỉ để hiển thị; khi lưu và chốt Backend vẫn tự so lại.
  */
 export function screenDifferences(
   record: HandoverRecord,

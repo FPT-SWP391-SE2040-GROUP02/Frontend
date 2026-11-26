@@ -202,7 +202,11 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
         >
           <div>
             <div className="border-t border-heritage-border pt-5">
-              <InlineRequestForm vaultId={row.vaultId} onSent={() => form.setSent(true)} />
+              <InlineRequestForm
+                vaultId={row.vaultId}
+                onSent={() => form.setSent(true)}
+                onCancel={() => form.setOpen(false)}
+              />
             </div>
           </div>
         </div>

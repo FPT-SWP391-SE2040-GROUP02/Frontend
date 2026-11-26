@@ -49,6 +49,10 @@ export function availableStep(row: AvailableHandover): number | null {
     case "RECEIVED":
       return RECEIVE_STEPS_DONE;
     case "REJECTED":
+      // Yêu cầu bị từ chối là đã đóng: gửi lại được thì quay về bước 1.
+      if (row.canRequest) {
+        return 1;
+      }
       return null;
   }
 }

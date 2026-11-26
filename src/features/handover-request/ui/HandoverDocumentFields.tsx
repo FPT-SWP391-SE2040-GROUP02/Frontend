@@ -1,14 +1,7 @@
+import type { ReactNode } from "react";
 import type { DocumentErrors, HandoverDocuments } from "../model/handoverDocuments";
 import { DocumentPicker } from "./DocumentPicker";
-
-function FieldError({ children }: { children?: string }) {
-  if (!children) return null;
-  return (
-    <p role="alert" className="text-sm text-destructive">
-      {children}
-    </p>
-  );
-}
+import { ErrorText } from "./ErrorText";
 
 /**
  * Phần giấy tờ chia theo loại (giấy chứng tử, di chúc, giấy tờ khác) dùng chung cho form gửi yêu cầu nhận tài sản và form
@@ -16,12 +9,15 @@ function FieldError({ children }: { children?: string }) {
  */
 export function HandoverDocumentFields({
   legend,
+  intro,
   documents,
   errors,
   disabled,
   onChange,
 }: {
   legend: string;
+  /** Lời dẫn riêng của form, đặt trước câu hướng dẫn chung. */
+  intro?: ReactNode;
   documents: HandoverDocuments;
   errors: DocumentErrors;
   disabled?: boolean;
@@ -31,6 +27,7 @@ export function HandoverDocumentFields({
   return (
     <fieldset className="space-y-4">
       <legend className="font-serif text-xl text-heritage-primary">{legend}</legend>
+      {intro && <p className="text-sm leading-6 text-heritage-muted">{intro}</p>}
       <p className="text-sm leading-6 text-heritage-muted">
         Bắt buộc có giấy chứng tử và di chúc; giấy tờ khác nộp nếu có. Tối đa 10 tệp PDF hoặc ảnh,
         mỗi tệp 10 MB. Hệ thống chỉ lưu tệp, luật sư xác minh ở ngoài hệ thống.
@@ -42,7 +39,7 @@ export function HandoverDocumentFields({
         disabled={disabled}
         reserved={wills.length + others.length}
       />
-      <FieldError>{errors.deathCertificates}</FieldError>
+      <ErrorText>{errors.deathCertificates}</ErrorText>
       <DocumentPicker
         label="Di chúc (bắt buộc)"
         files={wills}
@@ -50,7 +47,7 @@ export function HandoverDocumentFields({
         disabled={disabled}
         reserved={deathCertificates.length + others.length}
       />
-      <FieldError>{errors.wills}</FieldError>
+      <ErrorText>{errors.wills}</ErrorText>
       <DocumentPicker
         label="Giấy tờ khác (nếu có)"
         files={others}
@@ -58,7 +55,7 @@ export function HandoverDocumentFields({
         disabled={disabled}
         reserved={deathCertificates.length + wills.length}
       />
-      <FieldError>{errors.files}</FieldError>
+      <ErrorText>{errors.files}</ErrorText>
     </fieldset>
   );
 }

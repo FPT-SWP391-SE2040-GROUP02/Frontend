@@ -8,7 +8,15 @@ import { RequestForm } from "./RequestForm";
  * không cần link riêng. Backend kiểm lại email đã xác minh và quyền người nhận của kho; xong thì làm mới danh sách
  * kho và danh sách yêu cầu của tôi.
  */
-export function InlineRequestForm({ vaultId, onSent }: { vaultId: string; onSent: () => void }) {
+export function InlineRequestForm({
+  vaultId,
+  onSent,
+  onCancel,
+}: {
+  vaultId: string;
+  onSent: () => void;
+  onCancel?: () => void;
+}) {
   const client = useQueryClient();
   return (
     <RequestForm
@@ -18,6 +26,7 @@ export function InlineRequestForm({ vaultId, onSent }: { vaultId: string; onSent
         void client.invalidateQueries({ queryKey: handoverRequestKeys.available });
         onSent();
       }}
+      onCancel={onCancel}
     />
   );
 }

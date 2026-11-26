@@ -272,7 +272,7 @@ const differences = [
 ];
 
 describe("Làm tuần tự: giấy tờ, chia tài sản, chốt rồi mới ký", () => {
-  it("còn giấy tờ chưa xét thì chưa mở mục B, C và chưa có tờ biên bản bàn giao", async () => {
+  it("còn giấy tờ chưa xét thì chưa mở mục B và chưa có tờ biên bản bàn giao", async () => {
     const pending = record();
     pending.claims[0].status = "SUBMITTED";
     backend(pending);
@@ -280,17 +280,16 @@ describe("Làm tuần tự: giấy tờ, chia tài sản, chốt rồi mới ký
 
     expect(await screen.findByText("Xét giấy tờ ở mục A để mở bước tiếp theo")).toBeInTheDocument();
     expect(screen.queryByText("B. Chia tài sản cho từng người")).not.toBeInTheDocument();
-    expect(screen.queryByText("C. Giấy tờ đính kèm thêm (nếu có)")).not.toBeInTheDocument();
     expect(screen.queryByText("Biên bản bàn giao")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ký xác minh" })).not.toBeInTheDocument();
   });
 
-  it("đã chấp nhận thì mở mục B, C; tờ biên bản vẫn chờ tới khi chốt", async () => {
+  it("đã chấp nhận thì mở mục B; tờ biên bản vẫn chờ tới khi chốt", async () => {
     backend(record());
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     expect(await screen.findByText("B. Chia tài sản cho từng người")).toBeInTheDocument();
-    expect(screen.getByText("C. Giấy tờ đính kèm thêm (nếu có)")).toBeInTheDocument();
+    expect(screen.queryByText(/C\. Giấy tờ đính kèm/)).not.toBeInTheDocument();
     expect(screen.queryByText("Biên bản bàn giao")).not.toBeInTheDocument();
   });
 });
@@ -918,38 +917,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     );
   });
 
-  it("đính kèm và gỡ tệp căn cứ", async () => {
-    const user = userEvent.setup();
-    const withEvidence = record({
-      evidenceFiles: [
-        {
-          id: DOC,
-          fileName: "di-chuc.pdf",
-          contentType: "application/pdf",
-          sizeBytes: 2048,
-          createdAt: AT,
-        },
-      ],
-    });
-    const { post } = backend(record(), withEvidence);
-    const del = vi.spyOn(apiClient, "delete").mockResolvedValue(record());
-    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
-
-    expect(await screen.findByText("Chưa đính kèm tệp căn cứ nào.")).toBeInTheDocument();
-    // Mục C mặc định thu gọn: mở ra trước khi đính kèm.
-    const evidence = screen.getByRole("region", { name: /C\. Giấy tờ đính kèm/ });
-    await user.click(within(evidence).getByRole("button", { name: "Mở" }));
-    await user.upload(
-      screen.getByLabelText(/Đính kèm tệp/),
-      new File(["%PDF-1.4"], "di-chuc.pdf", { type: "application/pdf" }),
-    );
-    await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(post.mock.calls[0][0]).toBe(`/verifier/handover-records/${RECORD_ID}/evidence`);
-    await user.click(await screen.findByRole("button", { name: "Gỡ di-chuc.pdf" }));
-    expect(del).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/evidence/${DOC}`);
-  });
-
-  it("hồ sơ báo tin: Nhập tiếp rồi Thêm là lưu người và tài sản ngay, sau đó mới phát hành được", async () => {
+  it("hồ sơ báo tin: Nhập tiếp rồi Thêm là lưu người và tài sản ngay, sau đó mới chốt biên bản được", async () => {
     const user = userEvent.setup();
     const NEW_ID = "99999999-9999-4999-8999-999999999999";
     const person = {
@@ -993,7 +961,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     });
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    // Còn người trong hồ sơ chưa xử lý thì chưa phát hành được.
+    // Còn người trong hồ sơ chưa xử lý thì chưa chốt biên bản được.
     expect(
       await screen.findByText(/Còn 1 người trong hồ sơ báo tin chưa xử lý/),
     ).toBeInTheDocument();

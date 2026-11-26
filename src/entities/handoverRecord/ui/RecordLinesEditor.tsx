@@ -37,13 +37,10 @@ import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 export function RecordLinesEditor({
   record,
   before,
-  after,
 }: {
   record: HandoverRecord;
   /** Việc làm trước khi chia (hồ sơ, giấy tờ), nằm đầu cột trái. */
   before?: ReactNode;
-  /** Phần đính kèm, nằm cuối cột trái. */
-  after?: ReactNode;
 }) {
   const client = useQueryClient();
   const save = usePrivateAction();
@@ -149,14 +146,13 @@ export function RecordLinesEditor({
   };
   const recipientCount = new Set([...selected].map((key) => key.split(":")[0])).size;
 
-  // Làm tuần tự: giấy tờ ở mục A xét xong, có người được chấp nhận và kho đã khóa thì mới mở mục B, C và Chốt.
+  // Làm tuần tự: giấy tờ ở mục A xét xong, có người được chấp nhận và kho đã khóa thì mới mở mục B và Chốt.
   const unlocked = !claimsPending && !noAccepted && record.vaultLocked;
   const columns = (main: ReactNode, side?: ReactNode) => (
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
       <div className="min-w-0 space-y-5">
         {before}
         {main}
-        {unlocked && after}
       </div>
       <div className="min-w-0 space-y-4 xl:sticky xl:top-6">{side}</div>
     </div>
