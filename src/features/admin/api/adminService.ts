@@ -19,6 +19,8 @@ import {
   type AdminUsersQuery,
   type CreateAdminUserRequest,
   createAdminUserRequestSchema,
+  updateAdminUserProfileRequestSchema,
+  type UpdateAdminUserProfileRequest,
   type ChangeUserRoleRequest,
   type ChangeUserStatusRequest,
   type AdminRevenueQuery,
@@ -42,6 +44,15 @@ export const adminService = {
     const payload = createAdminUserRequestSchema.parse(body);
     return adminUserSchema.parse(
       await apiClient.post<unknown, unknown>("/admin/users", payload, { signal }),
+    );
+  },
+  /** Sửa họ tên, số điện thoại, số chứng chỉ và số thẻ luật sư của tài khoản nhân sự (không áp dụng cho Chủ tài sản). */
+  async updateUserProfile(userId: string, body: UpdateAdminUserProfileRequest) {
+    return adminUserSchema.parse(
+      await apiClient.put<unknown, unknown>(
+        `/admin/users/${id.parse(userId)}/profile`,
+        updateAdminUserProfileRequestSchema.parse(body),
+      ),
     );
   },
   /** Tải ảnh thẻ luật sư của một Người xét duyệt (multipart: file); BE trả 204. */

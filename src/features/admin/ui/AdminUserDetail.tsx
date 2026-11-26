@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ArrowLeft, IdCard } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, IdCard, Pencil } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import {
@@ -13,9 +14,10 @@ import {
   formatDate,
   formatDateTime,
 } from "../model/admin.content";
-import { useAdminUser } from "../model/useAdmin";
+import { adminKeys, useAdminUser } from "../model/useAdmin";
 import type { AdminHeldVault } from "../model/admin.schema";
 import { AdminChangeExecutorDialog } from "./AdminChangeExecutorDialog";
+import { AdminEditUserDialog } from "./AdminEditUserDialog";
 import { AdminNotaryCardDialog } from "./AdminNotaryCardDialog";
 import { AdminUserActions } from "./AdminUserActions";
 import { AdminErrorMessage } from "./AdminStateMessage";
@@ -30,7 +32,10 @@ interface AdminUserDetailProps {
 /** Chi tiết một tài khoản: thông tin, hồ sơ đang giữ, quyết định và hoạt động gần đây; đổi vai trò, khóa, mở ngay tại đây. */
 export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetailProps) {
   const query = useAdminUser(userId);
+  const client = useQueryClient();
   const [cardOpen, setCardOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
   const [changingVault, setChangingVault] = useState<AdminHeldVault | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
   const label = actionLabel ?? ((action: string) => action);
@@ -68,6 +73,8 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
   const isExecutor = user.role === "EXECUTOR";
   // Chỉ Người xét duyệt (luật sư) có ảnh thẻ; Người thực thi là nhân viên hệ thống, không có ảnh thẻ.
   const hasCard = isVerifier;
+  // Admin sửa được thông tin tài khoản nhân sự; Chủ tài sản (người dùng thường) không thuộc phạm vi này.
+  const canEditProfile = user.role !== "USER";
   return (
     <div className="mt-6 space-y-6">
       {back}
@@ -99,9 +106,28 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
                 {isVerifier ? "Xem thẻ luật sư" : "Xem thẻ xác minh"}
               </Button>
             )}
+            {canEditProfile && (
+              <Button
+                variant="outline"
+                className="min-h-11"
+                aria-label={`Sửa thông tin của ${user.fullName || user.email}`}
+                onClick={() => {
+                  setProfileSaved(false);
+                  setEditOpen(true);
+                }}
+              >
+                <Pencil className="size-4" aria-hidden="true" />
+                Sửa thông tin
+              </Button>
+            )}
             <AdminUserActions user={user} />
           </div>
         </div>
+        {profileSaved && (
+          <p role="status" className="text-sm text-heritage-primary">
+            Đã lưu thông tin tài khoản.
+          </p>
+        )}
         <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <Fact label="Vai trò" value={ROLE_LABELS[user.role]} />
           <Fact label="Trạng thái" value={STATUS_LABELS[user.status]} />
@@ -111,8 +137,31 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
             label="Đăng nhập gần nhất"
             value={user.lastLoginAt ? formatDateTime(user.lastLoginAt) : "Chưa đăng nhập"}
           />
+          {canEditProfile && <Fact label="Số điện thoại" value={user.phone ?? "Chưa có"} />}
+          {(isVerifier || isExecutor) && (
+            <>
+              <Fact
+                label="Số chứng chỉ hành nghề"
+                value={user.practiceCertificateNumber ?? "Chưa có"}
+              />
+              <Fact label="Số thẻ luật sư" value={user.lawyerCardNumber ?? "Chưa có"} />
+            </>
+          )}
         </dl>
       </section>
+
+      {canEditProfile && editOpen && (
+        <AdminEditUserDialog
+          key={`${user.id}:${user.etag}`}
+          open={editOpen}
+          user={user}
+          onClose={() => setEditOpen(false)}
+          onDone={() => {
+            setProfileSaved(true);
+            void client.invalidateQueries({ queryKey: adminKeys.all });
+          }}
+        />
+      )}
 
       {hasCard && (
         <AdminNotaryCardDialog
