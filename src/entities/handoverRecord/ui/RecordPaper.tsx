@@ -4,6 +4,9 @@ import { BODY, CELL, HEADING, longDate, orBlank, SECTION } from "../model/paperF
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
 import { splitDifferenceText } from "../model/splitDifference";
 import { SignatureSlot } from "./paperKit";
+import { type PaperSignAction, signActionFor } from "./paperSignAction";
+
+export type { PaperSignAction };
 
 /** Ngày lập biên bản: lúc đủ chữ ký nếu đã xong, không thì lúc biên bản được chốt, cuối cùng là lúc có yêu cầu. */
 function recordDate(record: HandoverRecord): string | null {
@@ -24,15 +27,6 @@ function identityLine(recipient: RecordRecipient): string {
 }
 
 /**
- * Nút ký đặt ngay tại ô chữ ký của chính người đang xem: Người thực thi ở ô "Bên giao", luật sư ở ô "Luật sư chứng kiến",
- * người nhận ở ô "Bên nhận" của mình (`recipientId` là beneficiaryId của người đó).
- */
-export interface PaperSignAction {
-  target: "executor" | "verifier" | { recipientId: string };
-  node: ReactNode;
-}
-
-/**
  * Tờ biên bản giao nhận dạng văn bản: Người thực thi bàn giao, người nhận đồng ý nhận (chưa phải đã nhận: người nhận
  * chỉ xác nhận "đã nhận đủ" sau khi tải xong, trên phiếu giao nhận riêng), luật sư chứng kiến,
  * LegacyVault không chịu trách nhiệm về tài sản hay tranh chấp. Sinh từ dữ liệu biên bản Backend trả. Dùng cho khung xem trước và bản in, để các bên đọc và đối chiếu sau này. Ghi số căn cước đầy đủ;
@@ -45,15 +39,8 @@ export function RecordPaper({
   record: HandoverRecord;
   signAction?: PaperSignAction;
 }) {
-  const actionFor = (target: "executor" | "verifier" | { recipientId: string }): ReactNode => {
-    if (!signAction) {
-      return undefined;
-    }
-    if (typeof target === "string" || typeof signAction.target === "string") {
-      return target === signAction.target ? signAction.node : undefined;
-    }
-    return target.recipientId === signAction.target.recipientId ? signAction.node : undefined;
-  };
+  const actionFor = (target: Parameters<typeof signActionFor>[1]): ReactNode =>
+    signActionFor(signAction, target);
   const recipientRows: ReactNode[] = [];
   let order = 0;
   for (const recipient of record.recipients) {
@@ -180,7 +167,7 @@ export function RecordPaper({
         <p className={HEADING}>I. CÁC BÊN</p>
         <ol className="list-none space-y-2 leading-7">
           <li>
-            <span className="font-bold">1. Kho tài sản: </span>
+            <span className="font-bold">1. Tài sản: </span>
             {orBlank(record.vaultName)}, của Chủ tài sản{" "}
             <span className="font-bold">{orBlank(record.ownerName)}</span>.
           </li>
@@ -200,8 +187,7 @@ export function RecordPaper({
       </section>
 
       <p className={`${BODY} mt-4`}>
-        Bên giao bàn giao và bên nhận đồng ý nhận tài sản trong kho nêu trên, các bên cùng xác nhận
-        như sau:
+        Bên giao bàn giao và bên nhận đồng ý nhận tài sản nêu trên, các bên cùng xác nhận như sau:
       </p>
 
       <section className={SECTION}>

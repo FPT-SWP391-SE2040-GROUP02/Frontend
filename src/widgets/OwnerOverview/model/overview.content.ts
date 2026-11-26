@@ -23,7 +23,7 @@ export const OWNER_OVERVIEW = {
   navLabel: "Điều hướng Chủ tài sản",
   nav: [
     { label: "Tổng quan", to: ROUTES.DASHBOARD.ROOT, icon: OverviewIcon, active: true },
-    { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon, active: false },
+    { label: "Tài sản của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon, active: false },
     { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon, active: false },
     { label: "Gói dịch vụ", to: ROUTES.BILLING.PLANS, icon: PlanIcon, active: false },
   ],
@@ -34,7 +34,7 @@ export const OWNER_OVERVIEW = {
     "Anh có thể tiếp tục sắp xếp tài sản và cập nhật kế hoạch. Nếu phát sinh yêu cầu bàn giao, trạng thái và hướng xử lý sẽ xuất hiện tại đây.",
   statusTag: "Trạng thái mẫu",
   stats: [
-    { label: "Tài sản trong kho", value: "12", detail: "Đã sắp xếp trong kho", icon: VaultIcon },
+    { label: "Tài sản đang lưu", value: "12", detail: "Đã sắp xếp", icon: VaultIcon },
     {
       label: "Dung lượng đã dùng",
       value: "38 MB",
@@ -69,12 +69,12 @@ export const OWNER_OVERVIEW = {
   ],
   setupAction: "Xem kế hoạch",
   heartbeatTitle: "Đừng quên giữ liên lạc",
-  heartbeatDescription: "Điểm danh định kỳ giúp hệ thống biết anh vẫn đang sử dụng kho.",
+  heartbeatDescription: "Điểm danh định kỳ giúp hệ thống biết anh vẫn đang sử dụng tài sản.",
   heartbeatDate: "Kỳ tiếp theo · 28/10/2026",
   heartbeatLast: "Lần gần nhất · 28/09/2026",
   assetsTitle: "Tài sản gần đây",
   assetsDescription: "Những mục anh vừa sắp xếp hoặc cập nhật.",
-  assetsAction: "Xem toàn bộ kho",
+  assetsAction: "Xem toàn bộ tài sản",
   columns: ["Tên tài sản", "Loại", "Người nhận", "Cập nhật"],
   assets: [
     { name: "Giấy tờ gia đình", type: "Tài liệu", recipient: "An và Bình", updated: "Hôm nay" },
@@ -95,7 +95,7 @@ export const OWNER_OVERVIEW = {
   activity: [
     { title: "Cập nhật Giấy tờ gia đình", time: "Hôm nay" },
     { title: "Đã gửi lời mời Người thực thi", time: "Hôm qua" },
-    { title: "Thêm Kỷ niệm gia đình vào kho", time: "3 ngày trước" },
+    { title: "Thêm Kỷ niệm gia đình vào danh sách", time: "3 ngày trước" },
   ],
   footer:
     "LegacyVault hỗ trợ lưu giữ và bàn giao dữ liệu số. Không thay thế di chúc hoặc thủ tục thừa kế.",

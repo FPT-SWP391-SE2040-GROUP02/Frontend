@@ -109,7 +109,7 @@ beforeEach(() => {
   ] as never);
   vi.mocked(ownerVaultService.getMine).mockResolvedValue({
     id: VAULT_ID,
-    name: "Kho gia đình",
+    name: "Tài sản gia đình",
     status: "OPEN",
     etag: "vault-v1",
     executorNote: null,
@@ -129,7 +129,7 @@ function renderPage() {
     setCredentials({
       user: {
         id: "11111111-1111-4111-8111-111111111111",
-        email: "chu-kho@example.test",
+        email: "chu-tài sản@example.test",
         fullName: "Nguyễn Văn A",
         role: "USER",
         status: "ACTIVE",
@@ -156,7 +156,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     renderPage();
 
     expect(await screen.findByRole("heading", { name: "Người bạn chọn" })).toBeInTheDocument();
-    expect(screen.getByText("Mỗi kho một người · bắt buộc để kích hoạt")).toBeInTheDocument();
+    expect(screen.getByText("Mỗi tài sản một người · bắt buộc để kích hoạt")).toBeInTheDocument();
     expect(screen.getByText("Bạn chưa mời ai")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chọn Người thực thi" })).toBeInTheDocument();
   });
@@ -167,7 +167,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
 
     expect(await screen.findByText("Chờ đồng ý")).toBeInTheDocument();
     expect(screen.getByText("thuc-thi@example.test")).toBeInTheDocument();
-    expect(screen.getByText("Người thực thi của kho")).toBeInTheDocument();
+    expect(screen.getByText("Người thực thi của tài sản")).toBeInTheDocument();
     expect(screen.getByText(/^Mời ngày /)).toBeInTheDocument();
     expect(screen.getByText(/Đang chờ người này đồng ý/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Gửi lại lời mời" })).toBeInTheDocument();
@@ -235,7 +235,7 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     expect(screen.getByText(/không thu hồi trực tiếp/)).toBeInTheDocument();
   });
 
-  it("thay người khi kho đã có mã: hộp thoại nói hệ thống tự đổi mã khi người mới đồng ý", async () => {
+  it("thay người khi tài sản đã có mã: hộp thoại nói hệ thống tự đổi mã khi người mới đồng ý", async () => {
     showPlan(
       {
         planStatus: "ACTIVE",
@@ -286,9 +286,9 @@ describe("trang Người thực thi: thẻ Người bạn chọn", () => {
     expect(screen.getByText("Giữ mã nhận cho tới khi bàn giao")).toBeInTheDocument();
     expect(screen.getByText("Ký biên bản bàn giao do luật sư lập")).toBeInTheDocument();
     expect(screen.getByText("Trao mã nhận cho người nhận")).toBeInTheDocument();
-    expect(screen.getByText("Đọc nội dung kho")).toBeInTheDocument();
+    expect(screen.getByText("Đọc nội dung tài sản")).toBeInTheDocument();
     expect(screen.getByText("Tự duyệt hồ sơ")).toBeInTheDocument();
-    expect(screen.getByText("Nhận tài sản trong kho này")).toBeInTheDocument();
+    expect(screen.getByText("Nhận tài sản này")).toBeInTheDocument();
   });
 
   it("kế hoạch bị khóa: chỉ xem, không có nút nào và có lý do", async () => {

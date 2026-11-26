@@ -10,7 +10,7 @@ export function ReceiveAssetsPage() {
   return (
     <OwnerWorkspace
       title="Nhận tài sản"
-      description="Các kho được để lại cho bạn và việc bạn cần làm tiếp theo."
+      description="Các tài sản được để lại cho bạn và việc bạn cần làm tiếp theo."
     >
       <ReportPanel
         layout={({ entry, activity }) => (

@@ -69,7 +69,7 @@ describe("summarizeAssignments", () => {
     });
   });
 
-  it("kho chưa có tài sản thì toàn số 0", () => {
+  it("tài sản chưa có tài sản thì toàn số 0", () => {
     expect(summarizeAssignments([], [])).toEqual({
       totalAssets: 0,
       assignedAssets: 0,

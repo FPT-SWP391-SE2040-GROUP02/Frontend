@@ -5,6 +5,7 @@ import { ExecutorOverview } from "@/features/death-case/ui/ExecutorOverview";
 import { VaultGate } from "@/features/death-case/ui/VaultGate";
 import { ExecutorWorkspace } from "@/widgets/ExecutorWorkspace/ExecutorWorkspace";
 import { ExecutorReceivedKeyCard } from "@/entities/executor";
+import { loginMethodsService } from "@/features/auth/api/loginMethodsService";
 import { useMyInvitations } from "@/features/plan-setup/model/useMyInvitations";
 import { MyInvitationsBanner } from "@/features/plan-setup/ui/MyInvitationsBanner";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -24,10 +25,10 @@ export function ExecutorOverviewPage() {
   let title = "Tổng quan";
   if (user?.fullName) title = `Chào ${user.fullName}`;
 
-  let description = "Các kho bạn được tin tưởng giao vai trò Người thực thi.";
+  let description = "Các tài sản bạn được tin tưởng giao vai trò Người thực thi.";
   if (state.selected) {
-    title = `Kho của ${state.selected.ownerFullName}`;
-    description = "Bạn là Người thực thi của kho này. Bạn không đọc được nội dung kho.";
+    title = `Tài sản của ${state.selected.ownerFullName}`;
+    description = "Bạn là Người thực thi của tài sản này. Bạn không đọc được nội dung tài sản.";
   }
 
   return (
@@ -42,6 +43,9 @@ export function ExecutorOverviewPage() {
                 key={vault.vaultId}
                 vaultId={vault.vaultId}
                 planStatus={vault.planStatus}
+                verifyPassword={(password) =>
+                  loginMethodsService.verifyPassword({ currentPassword: password })
+                }
               />
             </div>
           )}

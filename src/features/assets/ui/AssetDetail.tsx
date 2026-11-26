@@ -400,7 +400,7 @@ export function AssetDetail({
           onClose={() => setDialog(null)}
           onDone={() => {
             refresh();
-            showToast({ message: "Đã xóa mục khỏi kho." });
+            showToast({ message: "Đã xóa tài sản." });
             onDeleted();
           }}
         />

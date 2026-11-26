@@ -31,7 +31,7 @@ export function OwnerReceiveCard() {
   const others = countNeedsAction(query.data) - 1;
   let moreText = "";
   if (others > 0) {
-    moreText = ` Còn ${others} kho nữa.`;
+    moreText = ` Còn ${others} tài sản nữa.`;
   }
   return (
     <section

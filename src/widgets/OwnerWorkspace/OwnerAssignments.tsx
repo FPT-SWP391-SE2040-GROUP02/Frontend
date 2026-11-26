@@ -360,15 +360,15 @@ export function OwnerAssignments({
   if (assets.length === 0) {
     body = (
       <div className="rounded-xl border border-dashed border-heritage-border px-6 py-10 text-center">
-        <p className="font-semibold text-heritage-primary">Kho chưa có tài sản nào.</p>
+        <p className="font-semibold text-heritage-primary">Chưa có tài sản nào.</p>
         <p className="mx-auto mt-1 max-w-sm text-sm text-heritage-muted">
-          Thêm tài sản ở tab “Mục trong kho”, rồi quay lại đây để chọn ai sẽ nhận.
+          Thêm tài sản ở tab “Mục tài sản”, rồi quay lại đây để chọn ai sẽ nhận.
         </p>
         <Link
           to={ROUTES.DASHBOARD.ASSETS}
           className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-heritage-primary underline decoration-heritage-gold underline-offset-4"
         >
-          Về mục trong kho
+          Về mục tài sản
         </Link>
       </div>
     );
@@ -442,7 +442,7 @@ export function OwnerAssignments({
     if (cards.length === 0) {
       body = (
         <div className="rounded-xl border border-dashed border-heritage-border px-6 py-10 text-center">
-          <p className="font-semibold text-heritage-primary">Kho chưa có người nhận nào.</p>
+          <p className="font-semibold text-heritage-primary">Chưa có người nhận nào.</p>
           <Link
             to={ROUTES.DASHBOARD.BENEFICIARIES}
             className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-heritage-primary underline decoration-heritage-gold underline-offset-4"

@@ -94,13 +94,13 @@ function AssetNamesBeforeHandover({ vault }: { vault: ExecutorVault }) {
     content = (
       <Panel title="Chưa có tài sản nào">
         <p role="status" className="text-sm text-heritage-muted">
-          Kho của {vault.ownerFullName} chưa có tài sản nào.
+          Chủ tài sản {vault.ownerFullName} chưa có tài sản nào.
         </p>
       </Panel>
     );
   } else {
     content = (
-      <Panel title={`Tài sản trong kho (${names.data.length})`}>
+      <Panel title={`Danh sách tài sản (${names.data.length})`}>
         <ul className="divide-y divide-heritage-border">
           {names.data.map((asset, index) => {
             let kindLabel = "Tệp tải lên";
@@ -177,7 +177,7 @@ export function ExecutorAssetList({ vault }: { vault: ExecutorVault }) {
       {recipients.data.length === 0 && (
         <Panel title="Chưa có tài sản nào được gán">
           <p role="status" className="text-sm text-heritage-muted">
-            Kho của {vault.ownerFullName} chưa gán tài sản nào cho người nhận.
+            Chủ tài sản {vault.ownerFullName} chưa gán tài sản nào cho người nhận.
           </p>
         </Panel>
       )}

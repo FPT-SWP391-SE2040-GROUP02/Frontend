@@ -15,7 +15,7 @@ import { invitationTimeLeft } from "../lib/invitationTimeLeft";
 const capabilities = [
   "Nhận thông báo khi người nhận gửi yêu cầu nhận tài sản",
   "Theo dõi tiến trình bàn giao",
-  "Không đọc được nội dung kho",
+  "Không đọc được nội dung tài sản",
 ];
 
 /** Token only in fragment/component RAM; inspect never claims, confirmation never defaults true. */
@@ -84,7 +84,8 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         )}
       </div>
       <Notice tone="warning">
-        {validity} (đến {formatDateTime(query.data.expiresAt)}). Bạn không đọc được nội dung kho.
+        {validity} (đến {formatDateTime(query.data.expiresAt)}). Bạn không đọc được nội dung tài
+        sản.
       </Notice>
       <p className="text-sm leading-6 text-heritage-muted">
         Khi Chủ tài sản kích hoạt kế hoạch, email và số điện thoại của bạn sẽ được gửi cho người

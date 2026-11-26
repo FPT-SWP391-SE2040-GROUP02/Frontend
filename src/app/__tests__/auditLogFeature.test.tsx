@@ -243,9 +243,9 @@ describe("OwnerAuditLog transport", () => {
       .closest("tr") as HTMLElement;
     expect(removed).toHaveTextContent("Người nhận #abcdef");
     const vaultRow = screen
-      .getByRole("cell", { name: "Sửa thông tin kho" })
+      .getByRole("cell", { name: "Sửa thông tin tài sản" })
       .closest("tr") as HTMLElement;
-    await waitFor(() => expect(vaultRow).toHaveTextContent("Kho thử nghiệm"));
+    await waitFor(() => expect(vaultRow).toHaveTextContent("Tài sản thử nghiệm"));
   });
 
   it("calls GET /vaults/{vaultId}/audit-logs with sortBy=at and isAscending=false", async () => {

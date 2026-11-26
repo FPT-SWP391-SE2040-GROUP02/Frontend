@@ -65,7 +65,7 @@ export function OwnerAuditLog() {
   const beneficiaryNames = useBeneficiaries(vaultId, NAME_LOOKUP);
   const names: AuditNameMap = {};
   if (vault.data) {
-    let vaultName = "Kho của tôi";
+    let vaultName = "Tài sản của tôi";
     if (vault.data.name) {
       vaultName = vault.data.name;
     }
@@ -116,7 +116,7 @@ export function OwnerAuditLog() {
         role="status"
         className="rounded-xl border border-heritage-border bg-heritage-surface p-6 text-sm"
       >
-        Kho của bạn chưa sẵn sàng. Xác minh email để mở kho trước khi xem nhật ký.
+        Tài sản của bạn chưa sẵn sàng. Xác minh email để bắt đầu trước khi xem nhật ký.
       </div>
     );
   }
@@ -126,7 +126,7 @@ export function OwnerAuditLog() {
         role="alert"
         className="space-y-3 rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-6 text-sm text-heritage-danger"
       >
-        <p>Không tải được thông tin kho.</p>
+        <p>Không tải được thông tin tài sản.</p>
         <Button
           variant="outline"
           onClick={() => void vault.refetch()}
@@ -141,7 +141,7 @@ export function OwnerAuditLog() {
   }
   if (vault.isPending) {
     return (
-      <div role="status" className="space-y-3" aria-label="Đang tải thông tin kho">
+      <div role="status" className="space-y-3" aria-label="Đang tải thông tin tài sản">
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-40 w-full" />
       </div>
@@ -161,11 +161,11 @@ export function OwnerAuditLog() {
     >
       <header className="space-y-1">
         <h2 id="owner-audit-log" className="text-base font-semibold">
-          Nhật ký hoạt động của kho
+          Nhật ký hoạt động của tài sản
         </h2>
         <p className="text-sm text-heritage-muted">
-          Mỗi dòng ghi lại một thao tác đã lưu thành công lên kho của bạn. Dùng bộ lọc để thu hẹp
-          theo loại thao tác hoặc khoảng ngày.
+          Mỗi dòng ghi lại một thao tác đã lưu thành công lên tài sản của bạn. Dùng bộ lọc để thu
+          hẹp theo loại thao tác hoặc khoảng ngày.
         </p>
       </header>
       <AuditLogFilters
@@ -222,7 +222,7 @@ export function OwnerAuditLog() {
           <Inbox className="size-8 text-heritage-gold" aria-hidden="true" />
           <p className="text-sm font-medium">Chưa có dòng nhật ký nào khớp bộ lọc.</p>
           <p className="text-sm text-heritage-muted">
-            Hãy thử bỏ bộ lọc hoặc chờ thao tác tiếp theo trên kho.
+            Hãy thử bỏ bộ lọc hoặc chờ thao tác tiếp theo trên tài sản.
           </p>
         </div>
       ) : (

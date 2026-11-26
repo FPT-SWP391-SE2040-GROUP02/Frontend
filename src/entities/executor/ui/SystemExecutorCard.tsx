@@ -29,7 +29,7 @@ export function SystemExecutorCard({
 
   let reason = disabledReason;
   if (reason === null && !executor.isAvailable) {
-    reason = "Người này hiện chưa nhận thêm kho.";
+    reason = "Người này hiện chưa nhận thêm tài sản.";
   }
 
   let contact = executor.email;

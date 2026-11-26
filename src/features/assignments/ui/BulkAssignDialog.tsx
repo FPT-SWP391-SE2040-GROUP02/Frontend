@@ -145,7 +145,7 @@ export function BulkAssignDialog({
             action.reset();
           }}
           searchPlaceholder="Tìm người nhận…"
-          emptyText="Kho chưa có hồ sơ người nhận nào để gán."
+          emptyText="Chưa có hồ sơ người nhận nào để gán."
           allowSelectAll
           withInitial
           hint="Chọn từ hai người trở lên nếu các tài sản này nhận chung."

@@ -30,7 +30,7 @@ describe("vaultTask", () => {
     ).toBe("Đang giao tài sản");
   });
 
-  it("kho cần ký đứng trước kho đang lập biên bản, kho chưa có yêu cầu nhận đứng cuối", () => {
+  it("tài sản cần ký đứng trước tài sản đang lập biên bản, tài sản chưa có yêu cầu nhận đứng cuối", () => {
     const safe = vault({ vaultId: "a1111111-1111-4111-8111-111111111111" });
     const drafting = vault({
       vaultId: "b1111111-1111-4111-8111-111111111111",

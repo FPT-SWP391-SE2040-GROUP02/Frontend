@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,6 +10,7 @@ import {
   IdCard,
   KeyRound,
   Lock,
+  LockOpen,
   Mail,
   PenLine,
 } from "lucide-react";
@@ -22,9 +23,11 @@ import {
 import { ROUTES } from "@/shared/config/routes.config";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { formatStorageSize } from "@/shared/lib/formatStorageSize";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { Hero } from "@/shared/ui/Hero";
 import { buttonStyles, Chip, Initial, Notice, Panel } from "@/shared/ui/heritageKit";
+import { PortalSkeleton } from "@/shared/ui/PortalSkeleton";
 import { handoverService } from "../api/handoverService";
 import type { handoverTurnSchema } from "../model/handover.schema";
 import { remainingText } from "../model/handover.format";
@@ -106,7 +109,7 @@ export function TurnDetail({ turnId }: { turnId: string }) {
     queryFn: ({ signal }) => handoverService.get(turnId, signal),
     retry: false,
   });
-  if (query.isPending) return <p role="status">Đang tải lượt bàn giao…</p>;
+  if (query.isPending) return <PortalSkeleton label="Đang tải lượt bàn giao…" rows={2} />;
   if (query.isError) {
     return (
       <div role="alert" className="space-y-3">
@@ -134,8 +137,28 @@ export function TurnDetail({ turnId }: { turnId: string }) {
 function TurnBody({ turn }: { turn: Turn }) {
   const action = useHandoverAction();
   const content = useGrantDownload();
+  // Sai mã thì ô nhập rung ngang một nhịp. Máy bật giảm chuyển động hoặc không hỗ trợ thì thôi.
+  useEffect(() => {
+    if (!action.error || !keyInput.current) return;
+    if (typeof window.matchMedia !== "function") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (typeof keyInput.current.animate !== "function") return;
+    keyInput.current.animate(
+      [
+        { transform: "translateX(0)" },
+        { transform: "translateX(-7px)" },
+        { transform: "translateX(6px)" },
+        { transform: "translateX(-4px)" },
+        { transform: "translateX(2px)" },
+        { transform: "translateX(0)" },
+      ],
+      { duration: 420, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" },
+    );
+  }, [action.error]);
   const client = useQueryClient();
   const [typedKey, setTypedKey] = useState("");
+  const keySuccess = useSuccessHold();
+  const keyInput = useRef<HTMLInputElement>(null);
   const refresh = () => {
     void client.invalidateQueries({ queryKey: ["handover"] });
     void client.invalidateQueries({ queryKey: ["handover-record"] });
@@ -247,7 +270,9 @@ function TurnBody({ turn }: { turn: Turn }) {
         tone="ok"
         eyebrow={
           <>
-            <Check className="size-4" aria-hidden="true" />
+            <span className="pm-burst">
+              <Check className="pm-check size-4" aria-hidden="true" />
+            </span>
             Hoàn tất bàn giao (6/6 bước)
           </>
         }
@@ -286,6 +311,7 @@ function TurnBody({ turn }: { turn: Turn }) {
                 Mã nhận do Người thực thi đưa
               </label>
               <input
+                ref={keyInput}
                 id={`key-${turn.id}`}
                 type="text"
                 autoComplete="off"
@@ -295,13 +321,16 @@ function TurnBody({ turn }: { turn: Turn }) {
                 onChange={(event) => setTypedKey(event.target.value)}
                 className="h-12 min-w-0 flex-[1_1_200px] rounded-xl border-2 border-heritage-gold bg-white px-3.5 font-mono text-base font-bold uppercase tracking-widest"
               />
-              <button
-                type="button"
+              <ActionButton
                 className={buttonStyles.dark}
                 disabled={action.pending || !typedKey.trim()}
+                pending={action.pending}
+                done={keySuccess.done}
+                pendingLabel="Đang kiểm tra…"
+                doneLabel="Đã mở khóa"
                 onClick={() =>
                   void action.execute(
-                    () => handoverService.verifyKey(turn.id, typedKey),
+                    () => keySuccess.hold(() => handoverService.verifyKey(turn.id, typedKey)),
                     () => {
                       setTypedKey("");
                       refresh();
@@ -309,13 +338,17 @@ function TurnBody({ turn }: { turn: Turn }) {
                   )
                 }
               >
-                <Lock className="size-4" aria-hidden="true" />
+                {keySuccess.done ? (
+                  <LockOpen className="pm-pop size-4" aria-hidden="true" />
+                ) : (
+                  <Lock className="size-4" aria-hidden="true" />
+                )}
                 Xác nhận khóa
-              </button>
+              </ActionButton>
             </div>
             <p className="mt-2.5 text-xs text-heritage-muted">
-              Chưa thấy thư thì liên hệ trực tiếp Người thực thi của kho. Nhập sai nhiều lần sẽ bị
-              khóa.
+              Chưa thấy thư thì liên hệ trực tiếp Người thực thi của tài sản. Nhập sai nhiều lần sẽ
+              bị khóa.
             </p>
           </Hero>
         )}
@@ -336,7 +369,7 @@ function TurnBody({ turn }: { turn: Turn }) {
           >
             <div className="h-2 overflow-hidden rounded bg-heritage-border/60" aria-hidden="true">
               <i
-                className="block h-full bg-heritage-success transition-[width] duration-200"
+                className="block h-full bg-heritage-success transition-[width] duration-700 ease-[cubic-bezier(0.5,0,0.2,1)]"
                 style={{ width: `${percent}%` }}
               />
             </div>
@@ -344,14 +377,14 @@ function TurnBody({ turn }: { turn: Turn }) {
               {turn.items.map((item) => (
                 <li
                   key={item.id}
-                  className={`flex flex-wrap items-center gap-x-3.5 gap-y-3 rounded-2xl border px-4 py-3.5 ${item.downloaded ? "border-heritage-success-border bg-heritage-success-bg/50" : "border-heritage-border bg-white"}`}
+                  className={`flex flex-wrap items-center gap-x-3.5 gap-y-3 rounded-2xl border px-4 py-3.5 transition-colors duration-500 ${item.downloaded ? "pm-flash border-heritage-success-border bg-heritage-success-bg/50" : "border-heritage-border bg-white"}`}
                 >
                   <span
                     aria-hidden="true"
                     className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${item.downloaded ? "bg-heritage-success-bg text-heritage-success" : "bg-heritage-sunken text-heritage-primary"}`}
                   >
                     {item.downloaded ? (
-                      <Check className="size-5" />
+                      <Check className="pm-pop pm-check size-5" />
                     ) : (
                       <FileText className="size-5" />
                     )}

@@ -17,7 +17,7 @@ import { RequestSentNotice } from "./RequestForm";
 /** Câu giải thích ngắn khi dòng chưa có nút để bấm. */
 function noActionHint(row: AvailableHandover): string {
   if (row.status === "NOT_REQUESTED") {
-    return "Chưa gửi được yêu cầu lúc này: kế hoạch của kho chưa kích hoạt hoặc việc bàn giao đã hoàn tất.";
+    return "Chưa gửi được yêu cầu lúc này: kế hoạch của tài sản chưa kích hoạt hoặc việc bàn giao đã hoàn tất.";
   }
   if (row.status === "REJECTED") {
     return "Yêu cầu đã bị từ chối.";
@@ -119,7 +119,7 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
   }
   let notRequestedNote = "";
   if (row.status === "NOT_REQUESTED" && row.needsAction) {
-    notRequestedNote = "Đã có yêu cầu nhận tài sản cho kho này từ người nhận khác.";
+    notRequestedNote = "Đã có yêu cầu nhận tài sản này từ người nhận khác.";
   }
   // Kho cần người nhận làm gì đó: viền vàng và nút đậm; kho đang chờ: viền thường và nút viền.
   let border = "border-heritage-border";
@@ -130,11 +130,11 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
   }
   return (
     <article
-      aria-label={`Kho của ${row.ownerName}`}
+      aria-label={`Tài sản của ${row.ownerName}`}
       className={`space-y-4 rounded-2xl border bg-heritage-surface p-5 shadow-sm ${border}`}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <h3 className="font-semibold text-heritage-primary">Kho của {row.ownerName}</h3>
+        <h3 className="font-semibold text-heritage-primary">Tài sản của {row.ownerName}</h3>
         <Chip tone={status.tone}>{status.label}</Chip>
       </div>
       {step !== null && (
@@ -157,7 +157,7 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
             <Link
               to={action.to}
               className={`${actionClass} receive-press`}
-              aria-label={`${action.label} - kho của ${row.ownerName}`}
+              aria-label={`${action.label} - tài sản của ${row.ownerName}`}
             >
               {action.label}
             </Link>
@@ -167,7 +167,7 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
               type="button"
               aria-expanded={form.open}
               aria-controls={regionId}
-              aria-label={`Gửi yêu cầu - kho của ${row.ownerName}`}
+              aria-label={`Gửi yêu cầu - tài sản của ${row.ownerName}`}
               className={`${actionClass} receive-press`}
               onClick={() => form.setOpen((current) => !current)}
             >
@@ -205,7 +205,7 @@ export function AvailableHandoverList() {
   if (query.isPending) {
     return (
       <p role="status" className="text-sm text-heritage-muted">
-        Đang tải danh sách kho được để lại cho bạn…
+        Đang tải danh sách tài sản được để lại cho bạn…
       </p>
     );
   }
@@ -230,9 +230,9 @@ export function AvailableHandoverList() {
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold text-heritage-primary">
-        Kho được để lại cho bạn ({query.data.length})
+        Tài sản được để lại cho bạn ({query.data.length})
       </h2>
-      <ul className="space-y-4" aria-label="Kho được để lại cho bạn">
+      <ul className="space-y-4" aria-label="Tài sản được để lại cho bạn">
         {query.data.map((row, index) => (
           <li
             key={`${row.vaultId}:${row.beneficiaryId}`}

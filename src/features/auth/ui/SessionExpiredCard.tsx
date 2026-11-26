@@ -36,7 +36,7 @@ export function SessionExpiredCard({ idleMinutes = 30, className = "" }: Session
         <p className="text-sm sm:text-sm text-heritage-muted leading-relaxed">
           Bạn đã không hoạt động trong{" "}
           <span className="font-semibold text-heritage-text">{idleMinutes} phút</span> nên chúng tôi
-          đăng xuất bạn để bảo vệ kho di sản.
+          đăng xuất bạn để bảo vệ tài sản.
         </p>
       </div>
 

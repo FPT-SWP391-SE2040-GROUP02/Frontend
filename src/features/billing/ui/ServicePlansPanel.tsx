@@ -110,7 +110,7 @@ function ServicePlansContent({
   return (
     <div className="service-plans">
       {vault && status && (
-        <section className="service-plan-current" aria-label="Gói hiện tại của kho">
+        <section className="service-plan-current" aria-label="Gói hiện tại">
           <span className="service-plan-shield">
             <ShieldCheck aria-hidden="true" className="size-5" />
           </span>
@@ -266,7 +266,7 @@ function ServicePlansContent({
                       )}
                       {action === "blocked" && access === "owner" && (
                         <p className="service-plan-fineprint">
-                          Kiểm tra trạng thái kho và hạn dịch vụ trước.
+                          Kiểm tra trạng thái tài sản và hạn dịch vụ trước.
                         </p>
                       )}
                     </>

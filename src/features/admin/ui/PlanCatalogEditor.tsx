@@ -484,7 +484,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
               <SectionRow span={2 + visible.length}>Hạn mức tài nguyên</SectionRow>
               <tr>
                 <th scope="row" className="p-4 font-medium">
-                  Dung lượng kho
+                  Dung lượng lưu trữ
                 </th>
                 <td className="p-4">
                   <QuotaInput

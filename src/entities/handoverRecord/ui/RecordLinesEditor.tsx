@@ -201,8 +201,8 @@ export function RecordLinesEditor({
 
   if (record.availableAssets.length === 0) {
     return columns(
-      <Notice tone="warning" title="Kho chưa có đủ dữ liệu để lập biên bản">
-        Kho không có tài sản nào.
+      <Notice tone="warning" title="Chưa đủ dữ liệu để lập biên bản">
+        Không có tài sản nào.
       </Notice>,
     );
   }
@@ -215,7 +215,7 @@ export function RecordLinesEditor({
       );
     }
     if (!record.vaultLocked) {
-      reasons.push("Kho chưa khóa: chấp nhận giấy tờ của ít nhất một yêu cầu trước khi chốt.");
+      reasons.push("Tài sản chưa khóa: chấp nhận giấy tờ của ít nhất một yêu cầu trước khi chốt.");
     }
     if (!claimsPending && noAccepted) {
       reasons.push("Chưa có yêu cầu nhận nào được chấp nhận nên chưa chốt được.");

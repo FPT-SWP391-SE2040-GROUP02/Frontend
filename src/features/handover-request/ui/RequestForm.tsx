@@ -14,7 +14,7 @@ const NOTE_MAX_LENGTH = 1000;
 const REQUEST_STEPS = [
   "Đính kèm di chúc (bắt buộc) và giấy tờ khác nếu có.",
   "Hệ thống báo cho Chủ tài sản, Người thực thi và phân công một luật sư.",
-  "Luật sư xét giấy tờ: chấp nhận (lúc này kho mới khóa), yêu cầu bổ sung hoặc từ chối có lý do.",
+  "Luật sư xét giấy tờ: chấp nhận (lúc này tài sản mới khóa), yêu cầu bổ sung hoặc từ chối có lý do.",
 ];
 
 /**

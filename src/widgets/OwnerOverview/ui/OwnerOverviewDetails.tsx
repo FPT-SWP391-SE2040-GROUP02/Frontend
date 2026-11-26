@@ -16,8 +16,8 @@ const executorLabels: Record<string, string> = {
   SUSPENDED: "Cần chấp nhận lại",
 };
 const activityLabels: Record<string, string> = {
-  VAULT_CREATED: "Tạo kho di sản",
-  VAULT_UPDATED: "Cập nhật kho",
+  VAULT_CREATED: "Khởi tạo tài sản",
+  VAULT_UPDATED: "Cập nhật tài sản",
   ASSET_CREATED: "Thêm tài sản",
   ASSET_UPDATED: "Cập nhật tài sản",
   ASSET_VERSION_CREATED: "Thêm phiên bản tài sản",
@@ -44,8 +44,8 @@ const activityLabels: Record<string, string> = {
   DEATH_CASE_SUBMITTED: "Gửi hồ sơ chứng tử",
   DEATH_CASE_APPROVED: "Duyệt hồ sơ chứng tử",
   DEATH_CASE_REJECTED: "Từ chối hồ sơ chứng tử",
-  HOLD_PLACED: "Tạm giữ kho",
-  HOLD_RELEASED: "Gỡ tạm giữ kho",
+  HOLD_PLACED: "Tạm giữ tài sản",
+  HOLD_RELEASED: "Gỡ tạm giữ tài sản",
   PAYMENT_ORDER_CREATED: "Tạo đơn thanh toán",
   PAYMENT_ORDER_CANCELLED: "Hủy đơn thanh toán",
   PAYMENT_PAID: "Thanh toán thành công",
@@ -107,7 +107,7 @@ export function OwnerOverviewDetails({
                     aria-hidden="true"
                   />
                   <div>
-                    <p>{activityLabels[entry.action] ?? "Hoạt động của kho"}</p>
+                    <p>{activityLabels[entry.action] ?? "Hoạt động của tài sản"}</p>
                     <p className="overview-muted">
                       {overviewDate(entry.at)}
                       {entry.outcome === "FAILED"

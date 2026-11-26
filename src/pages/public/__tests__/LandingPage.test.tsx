@@ -38,7 +38,7 @@ describe("Landing", () => {
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     const titles = screen.getAllByRole("heading", { level: 2 }).map((node) => node.textContent);
     expect(titles[0]).toContain("Tài sản số của bạn nằm rải rác");
-    expect(titles).toContain("Bắt đầu lập kho hôm nay.");
+    expect(titles).toContain("Bắt đầu cất tài sản hôm nay.");
   });
 
   it("hỏi đáp có liên kết sang trang đầy đủ và nút kêu gọi dẫn tới đăng ký", () => {

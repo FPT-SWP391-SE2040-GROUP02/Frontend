@@ -29,7 +29,7 @@ export function MyInvitationsBanner({ invitationsHref }: { invitationsHref: stri
           {first.ownerName} mời bạn làm Người thực thi
         </p>
         <p className="text-sm text-heritage-muted">
-          Giữ mã nhận, giao tài sản theo biên bản. Không đọc được nội dung kho.
+          Giữ mã nhận, giao tài sản theo biên bản. Không đọc được nội dung tài sản.
           {others > 0 && ` Còn ${others} lời mời nữa.`}
         </p>
       </div>

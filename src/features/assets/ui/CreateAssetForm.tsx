@@ -254,7 +254,7 @@ export function CreateAssetForm({
           </p>
           <div className="flex flex-wrap gap-3">
             <button type="submit" className={buttonStyles.dark}>
-              {action.pending ? "Đang lưu…" : "Lưu vào kho"}
+              {action.pending ? "Đang lưu…" : "Lưu tài sản"}
             </button>
             <button type="button" className={buttonStyles.outline} onClick={clear}>
               Hủy
@@ -268,7 +268,7 @@ export function CreateAssetForm({
         )}
         {action.succeeded && (
           <p role="status" className="text-sm text-heritage-success">
-            Đã lưu vào kho.
+            Đã lưu tài sản.
           </p>
         )}
       </form>

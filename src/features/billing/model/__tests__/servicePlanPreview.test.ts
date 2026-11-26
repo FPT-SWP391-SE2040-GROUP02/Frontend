@@ -32,17 +32,17 @@ const paidVault = {
 };
 
 describe("hành động trên thẻ gói", () => {
-  it("kho Free mua mới một hạng trả phí, gói Free thì không có hành động", () => {
+  it("tài sản Free mua mới một hạng trả phí, gói Free thì không có hành động", () => {
     expect(getReferencePlanAction(xs, vaultFixture, now)).toBe("buy");
     expect(getReferencePlanAction(free, vaultFixture, now)).toBe("none");
   });
 
-  it("kho XS còn hạn: cùng hạng không có gì để mua, lên XS Max là nâng hạng giữa kỳ", () => {
+  it("tài sản XS còn hạn: cùng hạng không có gì để mua, lên XS Max là nâng hạng giữa kỳ", () => {
     expect(getReferencePlanAction(xs, paidVault, now)).toBe("none");
     expect(getReferencePlanAction(xsMax, paidVault, now)).toBe("upgrade");
   });
 
-  it("kho XS Max còn hạn: cùng hạng không có gì để mua, hạ về XS chọn ở bước gia hạn", () => {
+  it("tài sản XS Max còn hạn: cùng hạng không có gì để mua, hạ về XS chọn ở bước gia hạn", () => {
     const maxVault = { ...paidVault, serviceTier: "XS_MAX" as const };
     expect(getReferencePlanAction(xsMax, maxVault, now)).toBe("none");
     expect(getReferencePlanAction(xs, maxVault, now)).toBe("downgrade");
@@ -73,7 +73,7 @@ describe("hành động trên thẻ gói", () => {
     },
   );
 
-  it("kho đã đóng thì chặn mua", () => {
+  it("tài sản đã đóng thì chặn mua", () => {
     expect(getReferencePlanAction(xs, { ...vaultFixture, status: "CLOSED" }, now)).toBe("blocked");
   });
 
@@ -103,7 +103,7 @@ describe("gói Admin tạo thêm trên thẻ gói", () => {
     expect(getReferencePlanAction(gold, goldVault, now, catalog)).toBe("none");
   });
 
-  it("kho Free mua được gói mới; gói mới đang tạm ngừng thì không", () => {
+  it("tài sản Free mua được gói mới; gói mới đang tạm ngừng thì không", () => {
     expect(getReferencePlanAction(gold, vaultFixture, now, catalog)).toBe("buy");
     expect(getReferencePlanAction({ ...gold, onSale: false }, vaultFixture, now, catalog)).toBe(
       "offSale",

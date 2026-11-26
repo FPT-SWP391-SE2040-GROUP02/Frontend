@@ -2,6 +2,8 @@ import { useId, useState, type ReactNode } from "react";
 import { Lock } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { ExecutorReceiptSignButton } from "@/entities/handoverRecord";
+import { HANDOVER_NOT_STARTED_MESSAGE } from "@/entities/executor";
 import { deathCaseService } from "../api/deathCaseService";
 import { cn } from "cn";
 import { buttonStyles, formatDateTime, Initial } from "@/shared/ui/heritageKit";
@@ -11,7 +13,7 @@ import {
   canSignReceipt,
   type HandoverProgressTurn,
 } from "../model/handoverProgress.schema";
-import { HandoverSendKey } from "./HandoverSendKey";
+import { useSendHandoverKey } from "../model/useSendHandoverKey";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { Collapse } from "@/shared/ui/Collapse";
@@ -192,20 +194,48 @@ export function HandoverTurnRow({
   progress,
 }: {
   recordId: string;
-  vaultId?: string;
+  vaultId: string;
   turn: HandoverProgressTurn;
   progress: TurnProgress;
 }) {
   const detailId = useId();
   const [expanded, setExpanded] = useState(false);
-  const [keyFormOpen, setKeyFormOpen] = useState(false);
-  const [keySentAt, setKeySentAt] = useState<string | null>(null);
   const canMailKey = canMailHandoverKey(turn);
+  const mailKey = useSendHandoverKey({ recordId, turnId: turn.turnId, vaultId });
   const client = useQueryClient();
   const receipt = usePrivateAction();
   const receiptSigned = useSuccessHold();
   const name = recipientName(turn);
   const highlighted = progress.needsAction;
+  // Nút ký chỉ nằm trong khung "Xem và ký phiếu giao nhận", ngay ô chữ ký "Bên giao"; lỗi ký hiện ngay dưới nút vì cửa sổ che trang.
+  const signNode = (
+    <>
+      <ActionButton
+        className={buttonStyles.dark}
+        pending={receipt.pending}
+        done={receiptSigned.done}
+        pendingLabel="Đang ký…"
+        doneLabel="Đã ký"
+        onClick={() =>
+          void receipt.execute(
+            () => receiptSigned.hold(() => deathCaseService.signReceipt(recordId, turn.turnId)),
+            () => {
+              void client.invalidateQueries({ queryKey: ["death-case"] });
+              void client.invalidateQueries({ queryKey: ["handover-record"] });
+              void client.invalidateQueries({ queryKey: ["executor-vaults"] });
+            },
+          )
+        }
+      >
+        Ký phiếu giao nhận
+      </ActionButton>
+      {receipt.error && (
+        <p role="alert" className="max-w-56 text-center text-sm text-destructive">
+          {receipt.error}
+        </p>
+      )}
+    </>
+  );
   return (
     <li
       aria-label={`${name}, ${turn.containerName}`}
@@ -238,33 +268,14 @@ export function HandoverTurnRow({
             <button
               type="button"
               className={buttonStyles.dark}
-              aria-expanded={keyFormOpen}
-              onClick={() => setKeyFormOpen(!keyFormOpen)}
+              disabled={mailKey.pending}
+              onClick={mailKey.send}
             >
-              Gửi mã qua email
+              {mailKey.pending ? "Đang gửi…" : "Gửi mã qua email"}
             </button>
           )}
           {canSignReceipt(turn) && (
-            <ActionButton
-              className={buttonStyles.dark}
-              pending={receipt.pending}
-              done={receiptSigned.done}
-              pendingLabel="Đang ký…"
-              doneLabel="Đã ký"
-              onClick={() =>
-                void receipt.execute(
-                  () =>
-                    receiptSigned.hold(() => deathCaseService.signReceipt(recordId, turn.turnId)),
-                  () => {
-                    void client.invalidateQueries({ queryKey: ["death-case"] });
-                    void client.invalidateQueries({ queryKey: ["handover-record"] });
-                    void client.invalidateQueries({ queryKey: ["executor-vaults"] });
-                  },
-                )
-              }
-            >
-              Ký phiếu giao nhận
-            </ActionButton>
+            <ExecutorReceiptSignButton vaultId={vaultId} turnId={turn.turnId} signNode={signNode} />
           )}
           <button
             type="button"
@@ -277,28 +288,19 @@ export function HandoverTurnRow({
           </button>
         </div>
       </div>
-      {receipt.error && (
-        <p role="alert" className="mt-3 text-sm text-destructive">
-          {receipt.error}
+      {mailKey.notStarted && (
+        <p role="status" className="mt-3 text-sm text-heritage-muted">
+          {HANDOVER_NOT_STARTED_MESSAGE}
         </p>
       )}
-      {keyFormOpen && (
-        <div className="mt-4">
-          <HandoverSendKey
-            recordId={recordId}
-            vaultId={vaultId}
-            turnId={turn.turnId}
-            onSent={(sentAt) => {
-              setKeySentAt(sentAt);
-              setKeyFormOpen(false);
-            }}
-            onCancel={() => setKeyFormOpen(false)}
-          />
-        </div>
+      {mailKey.error && !mailKey.notStarted && (
+        <p role="alert" className="mt-3 text-sm text-destructive">
+          {mailKey.error}
+        </p>
       )}
-      {keySentAt && (
+      {mailKey.sentAt && (
         <p role="status" className="mt-3 text-sm">
-          Đã gửi mã cho người nhận lúc {formatDateTime(keySentAt)}.
+          Đã gửi mã cho người nhận lúc {formatDateTime(mailKey.sentAt)}.
         </p>
       )}
       <Collapse open={expanded} id={detailId}>

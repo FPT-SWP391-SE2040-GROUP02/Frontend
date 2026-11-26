@@ -78,11 +78,11 @@ describe("Trang Nhận tài sản: danh sách", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Đang tải");
   });
 
-  it("rỗng thì giải thích khi nào kho hiện ra", async () => {
+  it("rỗng thì giải thích khi nào tài sản hiện ra", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([]);
     setup(<AvailableHandoverList />);
     expect(
-      await screen.findByText("Hiện tại bạn chưa là người nhận của kho nào"),
+      await screen.findByText("Hiện tại bạn chưa là người nhận của tài sản nào"),
     ).toBeInTheDocument();
     expect(screen.getByText(/email đã xác minh của bạn/)).toBeInTheDocument();
     expect(screen.getByText(/kích hoạt kế hoạch/)).toBeInTheDocument();
@@ -119,7 +119,7 @@ describe("Trang Nhận tài sản: danh sách", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Không sao chép được");
   });
 
-  it("thẻ kho ghi bước hiện tại; chỉ kho đang chờ mới có câu chưa cần làm gì", async () => {
+  it("thẻ tài sản ghi bước hiện tại; chỉ tài sản đang chờ mới có câu chưa cần làm gì", async () => {
     // Chuẩn bị
     vi.spyOn(apiClient, "get").mockResolvedValue([
       row({ status: "NEED_IDENTITY", needsAction: true, turnId: TURN_ID }),
@@ -132,7 +132,7 @@ describe("Trang Nhận tài sản: danh sách", () => {
 
     // Kiểm tra
     expect(
-      screen.getByRole("heading", { name: "Kho được để lại cho bạn (2)" }),
+      screen.getByRole("heading", { name: "Tài sản được để lại cho bạn (2)" }),
     ).toBeInTheDocument();
     expect(cards[0]).toHaveTextContent("Bước 3/6: Nộp ảnh căn cước");
     expect(cards[0]).not.toHaveTextContent("Bạn chưa cần làm gì");
@@ -149,7 +149,7 @@ describe("Trang Nhận tài sản: danh sách", () => {
     get.mockResolvedValue([row({ canRequest: true })]);
     await user.click(screen.getByRole("button", { name: "Thử lại" }));
     expect(
-      await screen.findByRole("article", { name: "Kho của Nguyễn Văn A" }),
+      await screen.findByRole("article", { name: "Tài sản của Nguyễn Văn A" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
@@ -177,9 +177,9 @@ describe("Trang Nhận tài sản: danh sách", () => {
 
     const cards = await screen.findAllByRole("article");
     expect(cards.map((card) => card.getAttribute("aria-label"))).toEqual([
-      "Kho của Cần Bổ Sung",
-      "Kho của Có Mã",
-      "Kho của Chờ Xét",
+      "Tài sản của Cần Bổ Sung",
+      "Tài sản của Có Mã",
+      "Tài sản của Chờ Xét",
     ]);
 
     const supplement = cards[0];
@@ -200,7 +200,7 @@ describe("Trang Nhận tài sản: danh sách", () => {
   it("chưa gửi và gửi được thì có nút mở form gửi yêu cầu ngay trong thẻ, không còn liên kết sang trang khác", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([row({ canRequest: true, needsAction: true })]);
     setup(<AvailableHandoverList />);
-    const button = await screen.findByRole("button", { name: /Gửi yêu cầu - kho của/ });
+    const button = await screen.findByRole("button", { name: /Gửi yêu cầu - tài sản của/ });
     expect(button).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("link", { name: /Gửi yêu cầu/ })).not.toBeInTheDocument();
   });
@@ -250,34 +250,34 @@ describe("Thẻ trên Tổng quan Chủ tài sản", () => {
     expect(screen.queryByRole("region", { name: "Tài sản được để lại cho bạn" })).toBeNull();
   });
 
-  it("một kho cần làm: ghi tên Chủ tài sản và nút tới trang Nhận tài sản", async () => {
+  it("một tài sản cần làm: ghi tên Chủ tài sản và nút tới trang Nhận tài sản", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
       row({ status: "CODE_READY", needsAction: true }),
     ]);
     setup(<OwnerReceiveCard />);
     const card = await screen.findByRole("region", { name: "Tài sản được để lại cho bạn" });
     expect(card).toHaveTextContent("Nguyễn Văn A để lại tài sản cho bạn");
-    expect(card).not.toHaveTextContent("kho nữa");
+    expect(card).not.toHaveTextContent("tài sản nữa");
     expect(within(card).getByRole("link", { name: "Mở trang Nhận tài sản" })).toHaveAttribute(
       "href",
       "/dashboard/receive-assets",
     );
   });
 
-  it("nhiều kho cần làm: nêu kho đầu và còn bao nhiêu kho nữa", async () => {
+  it("nhiều tài sản cần làm: nêu tài sản đầu và còn bao nhiêu tài sản nữa", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
-      row({ ownerName: "Kho Một", status: "REQUEST_PENDING" }),
+      row({ ownerName: "Tài sản Một", status: "REQUEST_PENDING" }),
       row({
         vaultId: VAULT_B,
-        ownerName: "Kho Hai",
+        ownerName: "Tài sản Hai",
         status: "NEED_MY_SIGNATURE",
         needsAction: true,
       }),
-      row({ vaultId: VAULT_C, ownerName: "Kho Ba", status: "CODE_READY", needsAction: true }),
+      row({ vaultId: VAULT_C, ownerName: "Tài sản Ba", status: "CODE_READY", needsAction: true }),
     ]);
     setup(<OwnerReceiveCard />);
     const card = await screen.findByRole("region", { name: "Tài sản được để lại cho bạn" });
-    expect(card).toHaveTextContent("Kho Hai để lại tài sản cho bạn");
-    expect(card).toHaveTextContent("Còn 1 kho nữa");
+    expect(card).toHaveTextContent("Tài sản Hai để lại tài sản cho bạn");
+    expect(card).toHaveTextContent("Còn 1 tài sản nữa");
   });
 });

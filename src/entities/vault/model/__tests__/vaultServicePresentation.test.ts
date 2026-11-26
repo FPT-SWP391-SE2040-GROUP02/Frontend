@@ -15,14 +15,17 @@ describe("getDisplayedServiceTier", () => {
     ).toBe("XS_MAX");
   });
 
-  it.each(["GRACE_READ_ONLY", "EXPIRED_REVIEW"])("hiện Free khi kho ở trạng thái %s", (status) => {
-    expect(
-      getDisplayedServiceTier(
-        { serviceTier: "XS_MAX", serviceStatus: status, serviceExpiresAt: PAST },
-        NOW,
-      ),
-    ).toBe("FREE");
-  });
+  it.each(["GRACE_READ_ONLY", "EXPIRED_REVIEW"])(
+    "hiện Free khi tài sản ở trạng thái %s",
+    (status) => {
+      expect(
+        getDisplayedServiceTier(
+          { serviceTier: "XS_MAX", serviceStatus: status, serviceExpiresAt: PAST },
+          NOW,
+        ),
+      ).toBe("FREE");
+    },
+  );
 
   it("hiện Free khi quá hạn mà job chưa kịp chuyển trạng thái", () => {
     expect(

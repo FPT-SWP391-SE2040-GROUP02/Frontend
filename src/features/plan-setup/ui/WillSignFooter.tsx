@@ -249,7 +249,7 @@ export function WillSignFooter({
       <div className="mt-2.5 grid gap-x-3 gap-y-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
         <div className="min-w-0">
           <label htmlFor="sign-pin" className="mb-1 block text-[13px] font-semibold">
-            Nhập mã PIN của kho (6 số)
+            Nhập mã PIN tài sản (6 số)
           </label>
           <PinCodeInput
             id="sign-pin"

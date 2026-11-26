@@ -44,11 +44,29 @@ afterEach(() => {
   accessTokenMemory.clear();
 });
 
+function renderCard(planStatus: string, verifyPassword = vi.fn().mockResolvedValue(undefined)) {
+  render(
+    <ExecutorReceivedKeyCard
+      vaultId={VAULT_ID}
+      planStatus={planStatus}
+      verifyPassword={verifyPassword}
+    />,
+  );
+  return verifyPassword;
+}
+
+/** Bấm Xem mã, nhập mật khẩu rồi xác nhận. */
+async function revealWithPassword(password = "MatKhau123") {
+  await userEvent.click(screen.getByRole("button", { name: "Xem mã" }));
+  await userEvent.type(screen.getByLabelText("Nhập lại mật khẩu để xem mã"), password);
+  await userEvent.click(screen.getByRole("button", { name: "Xác nhận và xem mã" }));
+}
+
 describe("ExecutorReceivedKeyCard", () => {
   it.each(["ACTIVE", "HANDOVER_REQUESTED", "DRAFT"])(
     "kế hoạch %s: chỉ báo chờ bàn giao, không có nút Xem mã",
     (planStatus) => {
-      render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus={planStatus} />);
+      renderCard(planStatus);
 
       expect(screen.getByText("Chờ bàn giao")).toBeInTheDocument();
       expect(screen.getByText(/sau khi luật sư chốt biên bản bàn giao/)).toBeInTheDocument();
@@ -57,46 +75,72 @@ describe("ExecutorReceivedKeyCard", () => {
   );
 
   it("kế hoạch đã đóng vẫn xem được mã", () => {
-    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus="CLOSED" />);
+    renderCard("CLOSED");
 
     expect(screen.getByRole("button", { name: "Xem mã" })).toBeInTheDocument();
   });
 
-  it("mặc định ẩn mã và không gọi Backend", () => {
-    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus="HANDOVER_IN_PROGRESS" />);
+  it("mặc định ẩn mã, không hỏi mật khẩu và không gọi Backend", () => {
+    renderCard("HANDOVER_IN_PROGRESS");
 
     expect(screen.getByRole("button", { name: "Xem mã" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Nhập lại mật khẩu để xem mã")).not.toBeInTheDocument();
     expect(screen.queryByText(KEY.shard)).not.toBeInTheDocument();
     expect(systemExecutorsService.getHandoverKey).not.toHaveBeenCalled();
   });
 
-  it("Xem mã hiện mã, Ẩn mã xóa mã khỏi màn hình", async () => {
-    vi.mocked(systemExecutorsService.getHandoverKey).mockResolvedValue(KEY);
-    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus="HANDOVER_IN_PROGRESS" />);
+  it("bấm Xem mã chỉ mở ô nhập lại mật khẩu, chưa lấy mã; Hủy đóng ô lại", async () => {
+    renderCard("HANDOVER_IN_PROGRESS");
 
     await userEvent.click(screen.getByRole("button", { name: "Xem mã" }));
-    expect(await screen.findByText(KEY.shard)).toBeInTheDocument();
-    expect(screen.getByText("Bản 2")).toBeInTheDocument();
+    expect(screen.getByLabelText("Nhập lại mật khẩu để xem mã")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Xác nhận và xem mã" })).toBeDisabled();
+    expect(systemExecutorsService.getHandoverKey).not.toHaveBeenCalled();
 
-    await userEvent.click(screen.getByRole("button", { name: "Ẩn mã" }));
-    expect(screen.queryByText(KEY.shard)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Hủy" }));
+    expect(screen.queryByLabelText("Nhập lại mật khẩu để xem mã")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Xem mã" })).toBeInTheDocument();
   });
 
-  it("lỗi từ Backend hiện thông báo, không hiện mã và cho thử lại", async () => {
-    vi.mocked(systemExecutorsService.getHandoverKey).mockRejectedValue(new Error("boom"));
-    render(<ExecutorReceivedKeyCard vaultId={VAULT_ID} planStatus="HANDOVER_IN_PROGRESS" />);
+  it("nhập đúng mật khẩu thì hiện mã; Ẩn mã xóa mã và lần sau phải nhập lại mật khẩu", async () => {
+    vi.mocked(systemExecutorsService.getHandoverKey).mockResolvedValue(KEY);
+    const verifyPassword = renderCard("HANDOVER_IN_PROGRESS");
 
+    await revealWithPassword();
+    expect(await screen.findByText(KEY.shard)).toBeInTheDocument();
+    expect(screen.getByText("Bản 2")).toBeInTheDocument();
+    expect(verifyPassword).toHaveBeenCalledWith("MatKhau123");
+
+    await userEvent.click(screen.getByRole("button", { name: "Ẩn mã" }));
+    expect(screen.queryByText(KEY.shard)).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Xem mã" }));
+    expect(screen.getByLabelText("Nhập lại mật khẩu để xem mã")).toHaveValue("");
+  });
+
+  it("sai mật khẩu thì báo lỗi, không lấy mã và không hiện mã", async () => {
+    const verifyPassword = vi.fn().mockRejectedValue(new Error("401"));
+    renderCard("HANDOVER_IN_PROGRESS", verifyPassword);
+
+    await revealWithPassword("sai-mat-khau");
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(systemExecutorsService.getHandoverKey).not.toHaveBeenCalled();
+    expect(screen.queryByText(KEY.shard)).not.toBeInTheDocument();
+  });
+
+  it("lỗi từ Backend khi lấy mã hiện thông báo, không hiện mã", async () => {
+    vi.mocked(systemExecutorsService.getHandoverKey).mockRejectedValue(new Error("boom"));
+    renderCard("HANDOVER_IN_PROGRESS");
+
+    await revealWithPassword();
 
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(screen.queryByText(KEY.shard)).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Xem mã" })).toBeEnabled();
   });
 });
 
 describe("SystemExecutorCard", () => {
-  it("chọn được người thực thi đang nhận kho", async () => {
+  it("chọn được người thực thi đang nhận tài sản", async () => {
     const onSelect = vi.fn();
     render(<SystemExecutorCard executor={executor()} onSelect={onSelect} />);
 
@@ -112,10 +156,10 @@ describe("SystemExecutorCard", () => {
     expect(screen.queryByText(/thẻ luật sư|chứng chỉ hành nghề/i)).not.toBeInTheDocument();
   });
 
-  it("người không nhận thêm kho bị khóa kèm lý do", () => {
+  it("người không nhận thêm tài sản bị khóa kèm lý do", () => {
     render(<SystemExecutorCard executor={executor(false)} onSelect={vi.fn()} />);
 
     expect(screen.getByRole("button", { name: "Chọn người này: Nhân viên Thử" })).toBeDisabled();
-    expect(screen.getByText("Người này hiện chưa nhận thêm kho.")).toBeInTheDocument();
+    expect(screen.getByText("Người này hiện chưa nhận thêm tài sản.")).toBeInTheDocument();
   });
 });

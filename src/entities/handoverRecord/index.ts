@@ -14,6 +14,10 @@ export { RecordStepper } from "./ui/RecordStepper";
 export { VerifierRecordList } from "./ui/VerifierRecordList";
 export { VerifierReportList } from "./ui/VerifierReportList";
 export { VerifierRecordDetail } from "./ui/VerifierRecordDetail";
-export { ExecutorRecordPanel } from "./ui/ExecutorRecordPanel";
-export { RecipientPaperButtons, RecipientRecordPanel } from "./ui/RecipientRecordPanel";
+export { ExecutorReceiptSignButton, ExecutorRecordPanel } from "./ui/ExecutorRecordPanel";
+export {
+  RecipientPaperButtons,
+  RecipientReceiptSignButton,
+  RecipientRecordPanel,
+} from "./ui/RecipientRecordPanel";
 export { ReceiveGuideTimeline } from "./ui/ReceiveGuide";

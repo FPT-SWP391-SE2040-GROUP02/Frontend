@@ -174,7 +174,7 @@ it("ký biên bản bị Backend từ chối thì báo lỗi và không có quy�
   const record = {
     id: "0198a000-0000-7000-8000-000000000003",
     vaultId: VAULT_ID,
-    vaultName: "Kho thử",
+    vaultName: "Tài sản thử",
     ownerName: "Chủ tài sản thử",
     status: "SIGNING",
     revisionNo: 1,

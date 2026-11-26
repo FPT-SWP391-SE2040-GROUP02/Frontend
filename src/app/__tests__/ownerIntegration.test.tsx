@@ -55,8 +55,8 @@ it("creates TEXT via raw Axios transport, clears the form, and never caches plai
   fireEvent.change(screen.getByLabelText("Nội dung bí mật"), {
     target: { value: "private-content-fixture" },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Lưu vào kho" }));
-  expect(await screen.findByRole("status")).toHaveTextContent("Đã lưu vào kho");
+  fireEvent.click(screen.getByRole("button", { name: "Lưu tài sản" }));
+  expect(await screen.findByRole("status")).toHaveTextContent("Đã lưu tài sản");
   expect(request.mock.calls[0][0].url).toBe(`/vaults/${VAULT_ID}/assets/text`);
   expect(JSON.parse(request.mock.calls[0][0].data)).toMatchObject({
     content: "private-content-fixture",
@@ -80,8 +80,8 @@ it("rejects an oversized file without sending a request", async () => {
   fireEvent.change(screen.getByLabelText("Tệp tài sản"), {
     target: { files: [new File(["oversize"], "fixture.txt")] },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Lưu vào kho" }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("khả dụng còn lại");
+  fireEvent.click(screen.getByRole("button", { name: "Lưu tài sản" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("lưu trữ còn lại");
   expect(post).not.toHaveBeenCalled();
 });
 const ASSET_FOR_DIALOG = { id: CONTAINER_ID, name: "Sổ tiết kiệm", kind: "FILE" };

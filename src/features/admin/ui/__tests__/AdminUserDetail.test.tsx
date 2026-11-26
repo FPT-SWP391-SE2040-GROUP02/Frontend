@@ -120,10 +120,10 @@ afterEach(() => {
 });
 
 describe("AdminUserDetail - Người thực thi", () => {
-  it("hiện kho đang giữ với tên che, trạng thái, bước biên bản và nhãn Đang bàn giao", async () => {
+  it("hiện tài sản đang giữ với tên che, trạng thái, bước biên bản và nhãn Đang bàn giao", async () => {
     mockGet(executorDetail([heldVaultA, heldVaultB]));
     renderDetail(EXECUTOR_ID);
-    expect(await screen.findByText("Kho đang giữ")).toBeInTheDocument();
+    expect(await screen.findByText("Tài sản đang giữ")).toBeInTheDocument();
     expect(screen.getByText("N. V. A.")).toBeInTheDocument();
     expect(screen.getByText("Biên bản: Đang ký")).toBeInTheDocument();
     expect(screen.getAllByText("Đang bàn giao")).toHaveLength(2);
@@ -131,10 +131,10 @@ describe("AdminUserDetail - Người thực thi", () => {
     expect(screen.getByText("T. T. B.")).toBeInTheDocument();
   });
 
-  it("không giữ kho nào thì hiện câu rỗng", async () => {
+  it("không giữ tài sản nào thì hiện câu rỗng", async () => {
     mockGet(executorDetail([]));
     renderDetail(EXECUTOR_ID);
-    expect(await screen.findByText("Hiện không giữ kho nào")).toBeInTheDocument();
+    expect(await screen.findByText("Hiện không giữ tài sản nào")).toBeInTheDocument();
   });
 
   it("ẩn nút Đổi Người thực thi khi canChangeExecutor là false", async () => {
@@ -148,11 +148,11 @@ describe("AdminUserDetail - Người thực thi", () => {
     mockGet(executorDetail([heldVaultA]));
     const post = vi.spyOn(apiClient, "post").mockResolvedValue({ status: "ACCEPTED" });
     renderDetail(EXECUTOR_ID);
-    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của kho/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của tài sản/ }));
     const dialog = await screen.findByRole("dialog");
     expect(
       within(dialog).getByText(
-        "Người mới nhận việc ngay, người cũ mất quyền với kho này. Chữ ký người cũ đã ký vẫn giữ hiệu lực.",
+        "Người mới nhận việc ngay, người cũ mất quyền với tài sản này. Chữ ký người cũ đã ký vẫn giữ hiệu lực.",
       ),
     ).toBeInTheDocument();
     await within(dialog).findByText(/new@example.test/);
@@ -179,7 +179,7 @@ describe("AdminUserDetail - Người thực thi", () => {
   it("tìm kiếm gọi danh sách Người thực thi đang hoạt động kèm từ khóa", async () => {
     const get = mockGet(executorDetail([heldVaultB]));
     renderDetail(EXECUTOR_ID);
-    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của kho/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của tài sản/ }));
     const dialog = await screen.findByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText("Tìm Người thực thi mới"), {
       target: { value: "moi" },
@@ -194,10 +194,10 @@ describe("AdminUserDetail - Người thực thi", () => {
     );
   });
 
-  it("kho chưa bàn giao hiện câu lời mời", async () => {
+  it("tài sản chưa bàn giao hiện câu lời mời", async () => {
     mockGet(executorDetail([heldVaultB]));
     renderDetail(EXECUTOR_ID);
-    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của kho/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của tài sản/ }));
     const dialog = await screen.findByRole("dialog");
     expect(
       within(dialog).getByText(
@@ -210,7 +210,7 @@ describe("AdminUserDetail - Người thực thi", () => {
     mockGet(executorDetail([heldVaultB]));
     vi.spyOn(apiClient, "post").mockResolvedValue({ status: "INVITED" });
     renderDetail(EXECUTOR_ID);
-    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của kho/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của tài sản/ }));
     const dialog = await screen.findByRole("dialog");
     await within(dialog).findByText(/new@example.test/);
     fireEvent.click(within(dialog).getByRole("radio"));
@@ -225,7 +225,7 @@ describe("AdminUserDetail - Người thực thi", () => {
       failure({ code: "EXECUTOR_NOT_ALLOWED", reason: "ROLE_CONFLICT" }, 409),
     );
     renderDetail(EXECUTOR_ID);
-    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của kho/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của tài sản/ }));
     const dialog = await screen.findByRole("dialog");
     await within(dialog).findByText(/new@example.test/);
     fireEvent.click(within(dialog).getByRole("radio"));
@@ -241,7 +241,7 @@ describe("AdminUserDetail - Người thực thi", () => {
     mockGet(executorDetail([heldVaultB]));
     vi.spyOn(apiClient, "post").mockRejectedValue(failure({}, 500));
     renderDetail(EXECUTOR_ID);
-    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của kho/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Đổi Người thực thi của tài sản/ }));
     const dialog = await screen.findByRole("dialog");
     await within(dialog).findByText(/new@example.test/);
     fireEvent.click(within(dialog).getByRole("radio"));
@@ -301,7 +301,7 @@ describe("AdminUserDetail - luật sư", () => {
     expect(screen.getByText("Chấp nhận")).toBeInTheDocument();
     expect(screen.getAllByText("Biên bản")).toHaveLength(2);
     expect(screen.getAllByText("Hồ sơ báo tin")).toHaveLength(2);
-    expect(screen.queryByText("Kho đang giữ")).not.toBeInTheDocument();
+    expect(screen.queryByText("Tài sản đang giữ")).not.toBeInTheDocument();
   });
 
   it("không có việc nào thì hiện câu rỗng", async () => {

@@ -62,7 +62,7 @@ function committedTurn(grantStatus: string) {
 const COMPLETED_RECORD = {
   id: "0198a000-0000-7000-8000-000000000003",
   vaultId: VAULT_ID,
-  vaultName: "Kho thử",
+  vaultName: "Tài sản thử",
   ownerName: "Chủ tài sản thử",
   status: "COMPLETED",
   revisionNo: 1,
@@ -334,7 +334,7 @@ it("still lets the recipient claim after the initial response deadline (BR-58)",
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });
 
-it("biên bản đủ chữ ký và kho có mã nhận: nhập đúng mã nhận mới được xác nhận", async () => {
+it("biên bản đủ chữ ký và tài sản có mã nhận: nhập đúng mã nhận mới được xác nhận", async () => {
   let verified = false;
   const posts: string[] = [];
   apiClient.defaults.adapter = async (config) => {

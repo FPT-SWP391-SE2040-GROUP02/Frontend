@@ -155,7 +155,7 @@ function WillDrawerBody({
         <div className="min-w-0">
           <DialogTitle className="text-lg font-semibold">{drawerTitle(setup)}</DialogTitle>
           <DialogDescription className="sr-only">
-            Tờ biên bản phân chia điền sẵn từ kế hoạch bàn giao của kho.
+            Tờ biên bản phân chia điền sẵn từ kế hoạch bàn giao của tài sản.
           </DialogDescription>
         </div>
         <div className="ml-auto flex items-start gap-3">

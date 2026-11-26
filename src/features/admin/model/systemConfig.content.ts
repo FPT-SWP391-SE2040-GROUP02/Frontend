@@ -84,7 +84,7 @@ export const SYSTEM_CONFIG_SERVICES: Record<string, ServiceContent> = {
   R2: {
     title: "Cloudflare R2 (lưu nội dung đã mã hóa)",
     description:
-      "Nơi lưu nội dung tài sản đã mã hóa. Chỉ có tác dụng khi máy chủ đang chạy chế độ lưu trữ R2. Đổi tài khoản hoặc bucket nghĩa là kho không còn đọc được dữ liệu đã lưu ở nơi cũ.",
+      "Nơi lưu nội dung tài sản đã mã hóa. Chỉ có tác dụng khi máy chủ đang chạy chế độ lưu trữ R2. Đổi tài khoản hoặc bucket nghĩa là hệ thống không còn đọc được dữ liệu đã lưu ở nơi cũ.",
     fields: [
       {
         name: "accountId",

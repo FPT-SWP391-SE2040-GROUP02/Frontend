@@ -153,20 +153,20 @@ describe("tab Phân chia", () => {
     });
   });
 
-  it("kho bị khóa: nêu lý do và khóa nút gán", async () => {
+  it("tài sản bị khóa: nêu lý do và khóa nút gán", async () => {
     mockData([]);
-    renderBoard("Kho đang bàn giao nên chưa sửa được.");
+    renderBoard("Tài sản đang bàn giao nên chưa sửa được.");
 
-    expect(await screen.findByText("Kho đang bàn giao nên chưa sửa được.")).toBeInTheDocument();
+    expect(await screen.findByText("Tài sản đang bàn giao nên chưa sửa được.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chọn người nhận cho Nhà" })).toBeDisabled();
   });
 
-  it("kho chưa có tài sản: hướng dẫn thêm tài sản trước", async () => {
+  it("tài sản chưa có tài sản: hướng dẫn thêm tài sản trước", async () => {
     mockData([], []);
     renderBoard();
 
-    expect(await screen.findByText("Kho chưa có tài sản nào.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Về mục trong kho" })).toBeInTheDocument();
+    expect(await screen.findByText("Chưa có tài sản nào.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Về mục tài sản" })).toBeInTheDocument();
   });
 
   it("theo người nhận: người chưa được gán hiện thông báo thay vì danh sách trống", async () => {
