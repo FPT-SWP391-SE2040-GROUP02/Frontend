@@ -1,7 +1,7 @@
+import { compactButton, SectionCard } from "@/shared/ui/SectionCard";
 import { useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { Panel } from "@/shared/ui/heritageKit";
 import { handoverRecordService } from "../api/handoverRecordService";
 import type { HandoverRecord } from "../model/handoverRecord.schema";
 import { handoverRecordKeys } from "../model/useHandoverRecord";
@@ -17,8 +17,12 @@ export function EvidencePanel({ record }: { record: HandoverRecord }) {
   const apply = (next: HandoverRecord) =>
     client.setQueryData(handoverRecordKeys.verifier(next.id), next);
   return (
-    <Panel title="Tệp căn cứ của biên bản" labelledBy="record-evidence">
-      <div className="space-y-4 text-sm">
+    <SectionCard
+      title="C. Giấy tờ đính kèm thêm (nếu có)"
+      subtitle="Tệp PDF hoặc ảnh, tối đa 10 tệp, mỗi tệp 10 MB."
+      labelledBy="record-evidence"
+    >
+      <div className="space-y-3 p-5 text-sm">
         <RecordFileList
           files={record.evidenceFiles}
           emptyText="Chưa đính kèm tệp căn cứ nào."
@@ -37,17 +41,16 @@ export function EvidencePanel({ record }: { record: HandoverRecord }) {
           }
         />
         {editable && (
-          <label className="block space-y-2">
-            <span className="font-semibold">
-              Đính kèm tệp (PDF hoặc ảnh, tối đa 10 tệp, mỗi tệp 10 MB)
-            </span>
+          <label className={`${compactButton.outline} w-fit focus-within:outline-2`}>
+            Chọn tệp từ máy
             <input
               ref={input}
               type="file"
               multiple
+              aria-label="Đính kèm tệp (PDF hoặc ảnh, tối đa 10 tệp, mỗi tệp 10 MB)"
               accept="application/pdf,image/jpeg,image/png,image/webp"
               disabled={upload.pending}
-              className="block w-full text-sm"
+              className="sr-only"
               onChange={(event) => {
                 const files = Array.from(event.target.files ?? []);
                 if (files.length === 0) return;
@@ -72,6 +75,6 @@ export function EvidencePanel({ record }: { record: HandoverRecord }) {
           Hệ thống chỉ lưu tệp, không kiểm nội dung. Việc xác minh pháp lý làm ở ngoài hệ thống.
         </p>
       </div>
-    </Panel>
+    </SectionCard>
   );
 }

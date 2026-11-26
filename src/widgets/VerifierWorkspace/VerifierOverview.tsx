@@ -89,7 +89,7 @@ export function VerifierOverview() {
         />
         <WorkCard
           to={ROUTES.NOTARY.RECIPIENTS}
-          title="Danh tính người nhận chờ kiểm"
+          title="Chờ kiểm tra CCCD"
           count={recipientCount}
           oldest={oldestMoment(recipientMoments)}
           pending={recipients.isPending}

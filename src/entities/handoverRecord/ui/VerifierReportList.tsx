@@ -1,7 +1,9 @@
+import { compactButton, SectionCard, tableStyles } from "@/shared/ui/SectionCard";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { buttonStyles, Chip, formatDateTime, Notice, Panel } from "@/shared/ui/heritageKit";
+import { buttonStyles, Chip, formatDateTime, Notice } from "@/shared/ui/heritageKit";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
 import { verifierReportService } from "../api/verifierReportService";
 import type { VerifierReport } from "../model/handoverReport.schema";
 import { claimStatusLabel } from "../model/recordPresentation";
@@ -169,9 +171,17 @@ function ReportCard({
   );
 }
 
+/** Một chữ cho biết có tìm ra kho không, dùng ở bảng; câu đầy đủ nằm trong hồ sơ. */
+function VaultChip({ report }: { report: VerifierReport }) {
+  if (!report.vaultFound) return <Chip tone="danger">Không tìm thấy kho</Chip>;
+  if (!report.nameMatches) return <Chip tone="warning">Cần đối chiếu tên</Chip>;
+  return <Chip tone="success">Tìm thấy kho</Chip>;
+}
+
 /** Hồ sơ báo tin còn chờ xét được giao cho luật sư; không có thì không chiếm chỗ. */
 export function VerifierReportList({ onOpenRecord }: { onOpenRecord: (recordId: string) => void }) {
   const query = useVerifierReports();
+  const [openId, setOpenId] = useState<string | null>(null);
   if (query.isPending) return null;
   if (query.isError)
     return (
@@ -191,13 +201,75 @@ export function VerifierReportList({ onOpenRecord }: { onOpenRecord: (recordId: 
     (report) => report.status === "SUBMITTED" || report.status === "SUPPLEMENT_REQUESTED",
   );
   if (items.length === 0) return null;
+  const opened = items.find((report) => report.id === openId);
   return (
-    <Panel title="Hồ sơ báo tin chờ xét" labelledBy="verifier-reports">
-      <div className="space-y-4">
-        {items.map((report) => (
-          <ReportCard key={report.id} report={report} onOpenRecord={onOpenRecord} />
-        ))}
+    <SectionCard
+      title="Hồ sơ báo tin chờ xét"
+      subtitle="Người thân nộp giấy tờ. Chấp nhận thì kho bị khóa và biên bản được mở."
+      labelledBy="verifier-reports"
+    >
+      <div className="relative overflow-x-auto">
+        <table className={`${tableStyles.table} min-w-[620px]`}>
+          <caption className="sr-only">Hồ sơ báo tin chờ xét</caption>
+          <thead>
+            <tr className={tableStyles.head}>
+              <th scope="col" className={tableStyles.th}>
+                Người mất
+              </th>
+              <th scope="col" className={tableStyles.th}>
+                Người nộp
+              </th>
+              <th scope="col" className={tableStyles.th}>
+                Lúc nộp
+              </th>
+              <th scope="col" className={tableStyles.th}>
+                Kết quả tìm kho
+              </th>
+              <th scope="col" className={tableStyles.th}>
+                <span className="sr-only">Thao tác</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody className={tableStyles.body}>
+            {items.map((report) => (
+              <tr key={report.id}>
+                <td className={tableStyles.td}>
+                  <p className="font-semibold">{report.deceasedFullName}</p>
+                  <p className="text-heritage-muted">CCCD {report.deceasedCitizenId}</p>
+                </td>
+                <td className={tableStyles.td}>{report.submitterName}</td>
+                <td className={`${tableStyles.td} text-heritage-muted`}>
+                  {formatDateTime(report.createdAt)}
+                </td>
+                <td className={tableStyles.td}>
+                  <VaultChip report={report} />
+                </td>
+                <td className={`${tableStyles.td} text-right`}>
+                  <button
+                    type="button"
+                    className={compactButton.outline}
+                    aria-label={`Xem hồ sơ ${report.deceasedFullName}`}
+                    onClick={() => setOpenId(report.id)}
+                  >
+                    Xem hồ sơ
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </Panel>
+      {opened && (
+        <Dialog open onOpenChange={(open) => !open && setOpenId(null)}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+            <DialogTitle className="text-lg font-semibold">Xét hồ sơ báo tin</DialogTitle>
+            <DialogDescription className="sr-only">
+              Giấy tờ người nộp gửi và các lựa chọn xét hồ sơ.
+            </DialogDescription>
+            <ReportCard key={opened.id} report={opened} onOpenRecord={onOpenRecord} />
+          </DialogContent>
+        </Dialog>
+      )}
+    </SectionCard>
   );
 }

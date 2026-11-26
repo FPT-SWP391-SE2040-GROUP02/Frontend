@@ -1,11 +1,15 @@
-import { useMemo, useState } from "react";
+import { compactButton, SectionCard } from "@/shared/ui/SectionCard";
+import { useMemo, useState, type ReactNode } from "react";
+import { Check, Plus, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
+import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
+import { caseCode } from "@/shared/lib/caseCode";
 import { handoverRecordService } from "../api/handoverRecordService";
 import type { HandoverRecord, RecordLine, SplitDifference } from "../model/handoverRecord.schema";
 import {
   draftsFromReports,
+  emptyRecipientDraft,
   draftToRecipient,
   draftWarning,
   recipientDraftErrors,
@@ -16,12 +20,14 @@ import {
 } from "../model/recipientDraft";
 import { SPLIT_DEVIATION_LABEL } from "../model/splitDifference";
 import { handoverRecordKeys } from "../model/useHandoverRecord";
+import { divisionAssets, pairKey } from "../model/divisionView";
+import { DivisionDraftSheet } from "./DivisionDraftSheet";
 import { NewRecipientCards } from "./NewRecipientCards";
+import { PaperPreviewButton } from "./PaperPreviewButton";
+import { RecipientSplitPanel } from "./RecipientSplitPanel";
 import { SplitDeviationPanel } from "./SplitDeviationPanel";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
-
-const pairKey = (beneficiaryId: string, assetId: string) => `${beneficiaryId}:${assetId}`;
 
 function linesOf(record: HandoverRecord): Set<string> {
   const result = new Set<string>();
@@ -32,28 +38,26 @@ function linesOf(record: HandoverRecord): Set<string> {
   return result;
 }
 
-/** Dưới tên người nhận ở đầu cột: Chủ tài sản có chia tài sản cho người này hay không. */
-function RecipientSource({ fromOwnerSplit }: { fromOwnerSplit: boolean }) {
-  let text = "Ngoài cách chia của Chủ tài sản";
-  let tone = "bg-heritage-warning-bg text-heritage-warning";
-  if (fromOwnerSplit) {
-    text = "Chủ tài sản đã chia";
-    tone = "bg-heritage-success-bg text-heritage-success";
-  }
-  return (
-    <span className={`mt-1 block w-fit rounded-full px-2 py-0.5 text-xs font-semibold ${tone}`}>
-      {text}
-    </span>
-  );
-}
-
 /**
  * Bước 1 của luật sư: chọn ai nhận tài sản nào. Mỗi ô là một cặp người nhận - tài sản; một tài sản có thể
  * giao cho nhiều người (đồng thừa kế). Có thể lấy biên bản phân chia của Chủ tài sản làm bản đầu rồi sửa.
  * Người nhận chưa có trong kho thì nhập ngay tại đây. Một nút "Chốt và gửi thư" lưu người nhận, lưu biên bản, chốt và
  * gửi thư mời; lỗi giữa chừng thì phần đã lưu được giữ, bấm lại để làm tiếp. Đã chốt thì phải mở lại biên bản mới sửa.
  */
-export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
+export function RecordLinesEditor({
+  record,
+  before,
+  after,
+  aside,
+}: {
+  record: HandoverRecord;
+  /** Việc làm trước khi chia (hồ sơ, giấy tờ), nằm đầu cột trái. */
+  before?: ReactNode;
+  /** Phần đính kèm, nằm cuối cột trái. */
+  after?: ReactNode;
+  /** Việc phụ (hủy biên bản), nằm dưới khung Chốt ở cột phải. */
+  aside?: ReactNode;
+}) {
   const client = useQueryClient();
   const save = usePrivateAction();
   const split = usePrivateAction();
@@ -87,7 +91,6 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   }
   const differences = [...record.splitDifferences, ...pendingDifferences];
   const hasDeviation = differences.length > 0;
-  const ownerRecipientIds = new Set(record.ownerSplit.map((entry) => entry.beneficiaryId));
   const draftWarnings = Object.fromEntries(
     drafts.map((draft) => [draft.key, draftWarning(record, draft)]),
   );
@@ -105,9 +108,6 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   // Biên bản mở từ hồ sơ báo tin đã chấp nhận thì không cần thêm yêu cầu nhận nào.
   const noAccepted =
     record.reports.length === 0 && !record.claims.some((claim) => claim.status === "ACCEPTED");
-  const recipientNames = new Map(
-    record.availableRecipients.map((person) => [person.beneficiaryId, person.fullName]),
-  );
 
   const apply = (next: HandoverRecord) => {
     client.setQueryData(handoverRecordKeys.verifier(next.id), next);
@@ -183,53 +183,106 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
     return { beneficiaryId, assetId };
   });
 
+  // Làm tuần tự: giấy tờ ở mục A xét xong, có người được chấp nhận và kho đã khóa thì mới mở mục B, C và Chốt.
+  const unlocked = !claimsPending && !noAccepted && record.vaultLocked;
+  const columns = (main: ReactNode, side?: ReactNode) => (
+    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
+      <div className="min-w-0 space-y-5">
+        {before}
+        {main}
+        {unlocked && after}
+      </div>
+      <div className="min-w-0 space-y-4 xl:sticky xl:top-6">
+        {side}
+        {aside}
+      </div>
+    </div>
+  );
+
   if (record.availableAssets.length === 0) {
-    return (
+    return columns(
       <Notice tone="warning" title="Kho chưa có đủ dữ liệu để lập biên bản">
         Kho không có tài sản nào.
-      </Notice>
+      </Notice>,
     );
   }
 
-  return (
-    <Panel title="Bước 1 · Lập biên bản" labelledBy="record-lines">
-      <div className="space-y-4">
-        <p className="text-sm leading-6">
-          Đánh dấu người nhận cho từng tài sản theo kết quả bạn đã xử lý ở ngoài hệ thống. Một tài
-          sản có thể giao cho nhiều người.
-        </p>
-        {record.ownerSplit.length > 0 ? (
-          <div className="space-y-2 rounded-xl border border-heritage-border p-4 text-sm">
-            <p className="font-semibold">Biên bản phân chia của Chủ tài sản</p>
-            <ul className="list-disc space-y-1 pl-4">
-              {record.ownerSplit.map((entry) => (
-                <li key={entry.beneficiaryId}>
-                  {`${recipientNames.get(entry.beneficiaryId) || "Người nhận"}: ${entry.assetIds.length} tài sản`}
-                </li>
-              ))}
-            </ul>
+  if (!unlocked) {
+    const reasons: string[] = [];
+    if (claimsPending) {
+      reasons.push(
+        "Còn yêu cầu nhận chưa xét xong. Xét giấy tờ của mọi người nhận rồi mới chốt được.",
+      );
+    }
+    if (!record.vaultLocked) {
+      reasons.push("Kho chưa khóa: chấp nhận giấy tờ của ít nhất một yêu cầu trước khi chốt.");
+    }
+    if (!claimsPending && noAccepted) {
+      reasons.push("Chưa có yêu cầu nhận nào được chấp nhận nên chưa chốt được.");
+    }
+    return columns(
+      <Notice tone="neutral" title="Xét giấy tờ ở mục A để mở bước tiếp theo">
+        <ul className="list-disc space-y-1 pl-5">
+          {reasons.map((text) => (
+            <li key={text}>{text}</li>
+          ))}
+        </ul>
+      </Notice>,
+    );
+  }
+
+  const assets = divisionAssets(record, selected, drafts);
+  const dividedCount = assets.filter((asset) => asset.people.length > 0).length;
+
+  const splitPanel = (
+    <SectionCard
+      title="B. Chia tài sản cho từng người"
+      subtitle="Chia theo kết quả bạn đã xử lý ở ngoài hệ thống. Một tài sản có thể giao cho nhiều người."
+      labelledBy="record-lines"
+      action={
+        <div className="flex flex-wrap gap-2">
+          {record.ownerSplit.length > 0 && (
             <button
               type="button"
-              className={buttonStyles.outline}
+              className={compactButton.outline}
               disabled={busy}
               onClick={() =>
                 void split.execute(() => handoverRecordService.useOwnerSplit(record.id), apply)
               }
             >
-              {split.pending ? "Đang lấy…" : "Lấy biên bản phân chia làm bản đầu"}
+              {split.pending ? "Đang lấy…" : "Lấy theo Chủ tài sản"}
             </button>
-            {split.error && (
-              <p role="alert" className="text-destructive">
-                {split.error}
-              </p>
-            )}
-          </div>
-        ) : (
+          )}
+          <button
+            type="button"
+            className={compactButton.dark}
+            disabled={busy}
+            onClick={() => changeDrafts([...drafts, emptyRecipientDraft()])}
+          >
+            <Plus className="size-4" aria-hidden="true" />
+            Thêm người nhận
+          </button>
+        </div>
+      }
+    >
+      <div className="space-y-4 p-5">
+        {record.ownerSplit.length === 0 && (
           <p className="text-sm text-heritage-muted">
             Chủ tài sản chưa lập biên bản phân chia. Bạn tự lập biên bản.
           </p>
         )}
-
+        {split.error && (
+          <p role="alert" className="text-sm text-destructive">
+            {split.error}
+          </p>
+        )}
+        <RecipientSplitPanel
+          record={record}
+          selected={selected}
+          rejected={rejected}
+          disabled={busy}
+          onToggle={toggle}
+        />
         <NewRecipientCards
           drafts={drafts}
           errors={draftErrors}
@@ -240,63 +293,50 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           disabled={busy}
           onChange={changeDrafts}
         />
+        <SplitDeviationPanel differences={differences} />
+      </div>
+    </SectionCard>
+  );
 
-        {record.availableRecipients.length > 0 && (
-          <div className="relative overflow-x-auto">
-            <table className="w-full min-w-[480px] text-left text-sm">
-              <caption className="sr-only">Chọn người nhận cho từng tài sản</caption>
-              <thead>
-                <tr className="border-b border-heritage-border text-sm text-heritage-muted">
-                  <th scope="col" className="py-3 pr-4 font-semibold">
-                    Tài sản
-                  </th>
-                  {record.availableRecipients.map((person) => (
-                    <th key={person.beneficiaryId} scope="col" className="px-4 py-3 font-semibold">
-                      <span className="block">{person.fullName || "—"}</span>
-                      <span className="font-normal">{`CCCD ${person.citizenId}`}</span>
-                      {record.ownerSplit.length > 0 && (
-                        <RecipientSource
-                          fromOwnerSplit={ownerRecipientIds.has(person.beneficiaryId)}
-                        />
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-heritage-border">
-                {record.availableAssets.map((asset) => (
-                  <tr key={asset.assetId}>
-                    <th scope="row" className="py-3 pr-4 font-medium">
-                      {asset.name}
-                    </th>
-                    {record.availableRecipients.map((person) => {
-                      const key = pairKey(person.beneficiaryId, asset.assetId);
-                      return (
-                        <td key={key} className="px-4 py-3">
-                          <input
-                            type="checkbox"
-                            className="size-5 cursor-pointer accent-heritage-primary"
-                            aria-label={`${person.fullName} nhận ${asset.name}`}
-                            checked={selected.has(key)}
-                            disabled={busy || rejected.has(person.beneficiaryId)}
-                            onChange={() => toggle(key)}
-                          />
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+  const confirmBox =
+    "flex cursor-pointer items-start gap-2.5 rounded-[10px] border p-3 text-sm leading-6";
+  const checkbox = "mt-1 size-4 shrink-0 cursor-pointer accent-heritage-primary";
+
+  const finalizePanel = (
+    <SectionCard
+      title="Chốt biên bản"
+      labelledBy="record-finalize"
+      action={<span className="text-sm text-heritage-muted">{`Mã: #${caseCode(record.id)}`}</span>}
+    >
+      <div className="space-y-4 p-5">
+        {recipientCount === 0 ? (
+          <p role="status" className="flex gap-2 text-sm text-heritage-danger">
+            <X className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            Chọn ít nhất một người nhận ở mục B.
+          </p>
+        ) : (
+          <p className="flex gap-2 text-sm text-heritage-success">
+            <Check className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            Đã chọn người nhận. Đánh dấu xác nhận bên dưới rồi chốt.
+          </p>
         )}
 
-        <SplitDeviationPanel differences={differences} />
+        <dl className="space-y-1 rounded-[10px] bg-heritage-sunken p-3 text-sm">
+          <div className="flex justify-between gap-3">
+            <dt className="text-heritage-muted">Tài sản đã chia:</dt>
+            <dd className="font-semibold">{`${dividedCount} / ${assets.length}`}</dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-heritage-muted">Sẽ gửi thư mời nộp căn cước cho:</dt>
+            <dd className="font-semibold">{`${recipientCount} người`}</dd>
+          </div>
+        </dl>
+
         {hasDeviation && (
-          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+          <label className={`${confirmBox} border-heritage-warning-border bg-heritage-warning-bg`}>
             <input
               type="checkbox"
-              className="mt-1 size-5 shrink-0 cursor-pointer accent-heritage-primary"
+              className={checkbox}
               checked={splitDeviationConfirmed}
               disabled={busy}
               onChange={(event) => setSplitDeviationConfirmed(event.target.checked)}
@@ -304,11 +344,10 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
             <span>{SPLIT_DEVIATION_LABEL}</span>
           </label>
         )}
-
-        <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+        <label className={`${confirmBox} border-heritage-border bg-heritage-sunken`}>
           <input
             type="checkbox"
-            className="mt-1 size-5 shrink-0 cursor-pointer accent-heritage-primary"
+            className={checkbox}
             checked={legalBasisConfirmed}
             disabled={busy}
             onChange={(event) => setLegalBasisConfirmed(event.target.checked)}
@@ -319,10 +358,30 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           </span>
         </label>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2">
+          {/* Xem trước đúng cách đang chia (kể cả chưa lưu) trước khi chốt. */}
+          <div className="flex flex-col [&>button]:w-full [&>button]:justify-center">
+            <PaperPreviewButton
+              label="Xem trước biên bản"
+              title="Bản nháp biên bản bàn giao"
+              fileName={`ban-nhap-bien-ban-ban-giao-${caseCode(record.id)}`}
+              paper={<DivisionDraftSheet record={record} assets={assets} />}
+            />
+          </div>
+          <ActionButton
+            className={`${buttonStyles.dark} w-full`}
+            pending={finalize.pending}
+            done={finalized.done}
+            pendingLabel="Đang chốt và gửi thư…"
+            doneLabel="Đã chốt"
+            disabled={busy || recipientCount === 0 || !legalBasisConfirmed || !deviationReady}
+            onClick={handleSend}
+          >
+            Chốt và gửi thư
+          </ActionButton>
           <button
             type="button"
-            className={buttonStyles.outline}
+            className={compactButton.outline}
             disabled={busy || !dirty || selected.size === 0}
             onClick={() =>
               void save.execute(() => handoverRecordService.setLines(record.id, lines), apply)
@@ -330,44 +389,13 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           >
             {save.pending ? "Đang lưu…" : "Lưu biên bản"}
           </button>
-          <ActionButton
-            className={buttonStyles.dark}
-            pending={finalize.pending}
-            done={finalized.done}
-            pendingLabel="Đang chốt và gửi thư…"
-            doneLabel="Đã chốt"
-            disabled={
-              busy ||
-              recipientCount === 0 ||
-              claimsPending ||
-              noAccepted ||
-              !record.vaultLocked ||
-              !legalBasisConfirmed ||
-              !deviationReady
-            }
-            onClick={handleSend}
-          >
-            Chốt và gửi thư
-          </ActionButton>
         </div>
-        {claimsPending && (
-          <p role="status" className="text-sm text-heritage-muted">
-            Còn yêu cầu nhận chưa xét xong. Xét giấy tờ của mọi người nhận rồi mới chốt được.
-          </p>
-        )}
-        {!record.vaultLocked && (
-          <p role="status" className="text-sm text-heritage-muted">
-            Kho chưa khóa: chấp nhận giấy tờ của ít nhất một yêu cầu trước khi chốt.
-          </p>
-        )}
-        {!claimsPending && noAccepted && (
-          <p role="status" className="text-sm text-heritage-muted">
-            Chưa có yêu cầu nhận nào được chấp nhận nên chưa chốt được.
-          </p>
-        )}
+        <p className="text-sm text-heritage-muted">
+          {`Bấm "Chốt và gửi thư": hệ thống lưu và khóa nội dung biên bản, gửi thư mời cho ${recipientCount} người nhận để họ nộp căn cước, rồi mở bước ký.`}
+        </p>
         {Object.keys(draftErrors).length > 0 && (
           <p role="alert" className="text-sm text-destructive">
-            Thông tin người nhận chưa đủ hoặc chưa hợp lệ. Kiểm lại các ô báo lỗi ở trên.
+            Thông tin người nhận chưa đủ hoặc chưa hợp lệ. Kiểm lại các ô báo lỗi ở mục B.
           </p>
         )}
         {(save.error || finalize.error) && (
@@ -375,10 +403,9 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
             {save.error || finalize.error}
           </p>
         )}
-        <p className="text-sm text-heritage-muted">
-          {`Bấm "Chốt và gửi thư": hệ thống lưu biên bản rồi gửi thư mời cho ${recipientCount} người nhận để họ nộp căn cước.`}
-        </p>
       </div>
-    </Panel>
+    </SectionCard>
   );
+
+  return columns(splitPanel, finalizePanel);
 }

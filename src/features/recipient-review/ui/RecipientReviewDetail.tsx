@@ -111,7 +111,7 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
         Về danh sách
       </button>
       <Panel
-        title="Danh tính người nhận"
+        title="Kiểm tra CCCD"
         labelledBy="recipient-identity"
         action={<StatusText>{SUBMISSION_STATUS_LABELS[detail.status]}</StatusText>}
       >

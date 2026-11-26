@@ -98,9 +98,9 @@ describe("Verifier workspace shell", () => {
     const nav = screen.getByRole("navigation", { name: "Điều hướng Người xét duyệt" });
     expect(Array.from(nav.querySelectorAll("a")).map((a) => a.textContent)).toEqual([
       "Tổng quan",
-      "Biên bản bàn giao",
-      "Danh tính người nhận",
-      "Biên bản đã hoàn tất",
+      "Đang lập biên bản",
+      "Kiểm tra CCCD",
+      "Đã hoàn tất",
       "Hướng dẫn",
       "Tài khoản",
     ]);
@@ -146,7 +146,7 @@ describe("Verifier overview", () => {
     const records = await screen.findByRole("link", { name: /Biên bản cần lập hoặc ký/ });
     await waitFor(() => expect(records).toHaveTextContent("2"));
     expect(records).toHaveAttribute("href", "/notary/queue");
-    const recipients = screen.getByRole("link", { name: /Danh tính người nhận chờ kiểm/ });
+    const recipients = screen.getByRole("link", { name: /Chờ kiểm tra CCCD/ });
     await waitFor(() => expect(recipients).toHaveTextContent("1"));
     expect(recipients).toHaveTextContent(/Cũ nhất: nộp/);
     expect(screen.getByRole("link", { name: "Xem biên bản #33333333" })).toHaveAttribute(
