@@ -1,0 +1,85 @@
+/* Lucian UX/UI Prompt #260 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#260 */
+
+/* Đoạn cuộn dài, bên trong ghim một câu lớn; cuộn tới đâu chữ đậm dần tới đó. */
+.u260-run {
+  height: 220vh;
+}
+
+.u260-pin {
+  position: sticky;
+  top: 0;
+  display: flex;
+  min-height: 100vh;
+  min-height: 100svh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.u260-w {
+  color: color-mix(in oklab, var(--ux-ink) calc(var(--f, 0) * 100%), var(--ux-line-2));
+  transition: color 0.15s;
+}
+
+.u260-w.em {
+  color: color-mix(in oklab, var(--gold-hover) calc(var(--f, 0) * 100%), var(--ux-line-2));
+}
+
+.u260-w.em.on {
+  text-shadow: 0 0 18px color-mix(in srgb, var(--gold) 45%, transparent);
+}
+
+/* Đọc hết câu thì đoạn giải thích nổi lên. */
+.u260-nx {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 0.35s,
+    transform 0.5s var(--ux-spring);
+}
+
+.u260-run.is-done .u260-nx {
+  opacity: 1;
+  transform: none;
+}
+
+.u260-pg {
+  width: 3px;
+  height: 90px;
+  position: absolute;
+  right: 14px;
+  top: calc(50% - 45px);
+  border-radius: 3px;
+  background: var(--ux-line);
+}
+
+.u260-pg i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--ux-ink);
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u260-run {
+    height: auto;
+  }
+
+  .u260-pin {
+    position: relative;
+    min-height: 0;
+    padding-block: 6rem;
+  }
+
+  .u260-nx {
+    opacity: 1;
+    transform: none;
+  }
+
+  .u260-pg {
+    display: none;
+  }
+}

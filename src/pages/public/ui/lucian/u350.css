@@ -1,0 +1,145 @@
+/* Lucian UX/UI Prompt #350 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#350 */
+
+/* Ổ khóa: bấm thì lỗ khóa xoay rồi càng khóa bật lên; bấm lần nữa thì sập xuống, thân khóa lún nhẹ. */
+.u350 {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 28px;
+  background: var(--ux-surface-2);
+  box-shadow: inset 0 0 0 1px var(--ux-line);
+  padding: 32px 24px;
+  text-align: center;
+  --c: var(--gold-soft);
+}
+
+.u350.is-open {
+  --c: var(--ux-mint);
+}
+
+.u350-lk {
+  position: relative;
+  width: 96px;
+  height: 112px;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: none;
+  cursor: pointer;
+}
+
+.u350-lk svg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.u350-sh {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 9;
+  stroke-linecap: round;
+  transition: stroke 0.35s;
+}
+
+.u350-bd {
+  transform-box: view-box;
+  transform-origin: 48px 108px;
+}
+
+.u350-bd > rect {
+  fill: var(--c);
+  transition: fill 0.35s;
+}
+
+.u350-kh {
+  transform-box: view-box;
+  transform-origin: 48px 80px;
+}
+
+.u350-kh * {
+  fill: var(--primary);
+}
+
+.u350-ring {
+  position: absolute;
+  left: 50%;
+  top: 72%;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ux-mint) 35%, transparent),
+    transparent 70%
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+
+.u350-ring.is-pulse {
+  animation: u350-ring 0.8s ease-out;
+}
+
+@keyframes u350-ring {
+  0% {
+    opacity: 1;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+.u350-ppl {
+  display: flex;
+  height: 40px;
+  margin-top: 20px;
+}
+
+.u350-av {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  margin-left: -8px;
+  border: 2.5px solid var(--primary);
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--a), var(--b));
+  color: #fff;
+  opacity: 0;
+  transform: translateX(-10px) scale(0.5);
+  transition:
+    opacity 0.3s,
+    transform 0.5s var(--ux-spring);
+}
+
+.u350-av:first-child {
+  margin-left: 0;
+  opacity: 1;
+  transform: none;
+}
+
+.u350.is-open .u350-av {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--i) * 70ms + 0.35s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u350-av,
+  .u350-sh,
+  .u350-bd > rect {
+    transition: none;
+  }
+
+  .u350-ring.is-pulse {
+    animation: none;
+  }
+}

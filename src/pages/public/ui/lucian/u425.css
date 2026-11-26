@@ -1,0 +1,166 @@
+/* Lucian UX/UI Prompt #425 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#425 */
+
+/* Thẻ kêu gọi: quầng sáng đi theo con trỏ, vệt sáng quét qua nút vài giây một lần. */
+.u425-cd {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #0b291e 0%, #1b5a43 55%, #6f5527 100%);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.08) inset,
+    0 24px 50px -24px rgb(11 41 30 / 0.7);
+  color: #fff;
+}
+
+.u425-cd i.b {
+  position: absolute;
+  z-index: -2;
+  border-radius: 50%;
+  filter: blur(28px);
+  animation: u425-drift 12s ease-in-out infinite alternate;
+}
+
+.u425-cd i.b1 {
+  left: -50px;
+  top: -70px;
+  width: 260px;
+  height: 260px;
+  background: rgb(224 196 134 / 0.4);
+}
+
+.u425-cd i.b2 {
+  right: -50px;
+  bottom: -80px;
+  width: 240px;
+  height: 240px;
+  background: rgb(80 200 160 / 0.35);
+  animation-duration: 15s;
+  animation-delay: -6s;
+}
+
+@keyframes u425-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, 18px) scale(1.1);
+  }
+  100% {
+    transform: translate(-14px, 26px) scale(0.94);
+  }
+}
+
+.u425-gl {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(
+    240px circle at var(--mx, 50%) var(--my, 40%),
+    rgb(255 255 255 / 0.22),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.u425-cd:hover .u425-gl {
+  opacity: 1;
+}
+
+.u425-cd::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 40%);
+  pointer-events: none;
+}
+
+.u425-go {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 28px;
+  border-radius: 99px;
+  background: #fff;
+  color: #0b291e;
+  font-size: 0.875rem;
+  font-weight: 800;
+  box-shadow:
+    0 8px 20px -8px rgb(5 20 14 / 0.55),
+    inset 0 -2px 0 rgb(11 41 30 / 0.08);
+  transition:
+    transform 0.5s cubic-bezier(0.3, 1.8, 0.5, 1),
+    box-shadow 0.3s;
+}
+
+.u425-go::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 50%;
+  background: linear-gradient(100deg, transparent, rgb(224 196 134 / 0.7), transparent);
+  transform: skewX(-20deg);
+  animation: u425-shine 3.4s ease-in-out infinite;
+}
+
+@keyframes u425-shine {
+  0%,
+  62% {
+    left: -60%;
+  }
+  100% {
+    left: 130%;
+  }
+}
+
+.u425-go > * {
+  position: relative;
+}
+
+.u425-go:hover {
+  box-shadow: 0 14px 26px -10px rgb(5 20 14 / 0.6);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.u425-go:active {
+  transform: scale(0.92);
+  transition-duration: 0.12s;
+}
+
+.u425-go svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.45s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+.u425-go:hover svg {
+  transform: translateX(3px);
+}
+
+.u425-go:focus-visible {
+  outline-color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u425-cd i.b,
+  .u425-go::before {
+    animation: none !important;
+  }
+
+  .u425-go::before {
+    display: none;
+  }
+}

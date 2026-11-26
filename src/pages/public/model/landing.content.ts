@@ -1,9 +1,8 @@
 import { ROUTES } from "@/shared/config/routes.config";
 
 /**
- * Nội dung landing theo Mẫu G "Bông hoa là logo" của bộ thiết kế handoff.
- * Giá và dung lượng chép từ biểu phí SRS §8.1 (khớp trang bảng giá); backend chỉ giới hạn theo
- * dung lượng, không giới hạn số tài sản hay số người nhận. Không phải cam kết đã nghiệm thu.
+ * Nội dung landing tám mục. Giá và dung lượng chép từ biểu phí SRS §8.1 (khớp trang bảng giá); backend chỉ
+ * giới hạn theo dung lượng, không giới hạn số tài sản hay số người nhận. Không phải cam kết đã nghiệm thu.
  */
 export const LANDING_CONTENT = {
   brand: "LegacyVault",
@@ -27,10 +26,28 @@ export const LANDING_CONTENT = {
     explore: "Xem cách hoạt động",
     receiveQuestion: "Người thân đã mất?",
     receiveAction: "Nhận tài sản",
+    screen: {
+      label: "Hình minh họa danh sách tài sản, dùng dữ liệu mẫu",
+      title: "Tài sản của bạn",
+      sample: "Dữ liệu mẫu",
+      status: "Đã mã hóa",
+      stats: [
+        { label: "Tài sản", value: "3" },
+        { label: "Người nhận", value: "2" },
+        { label: "Người thực thi", value: "1" },
+      ],
+      rows: [
+        { title: "Ví tiền mã hóa", recipient: "Người nhận A" },
+        { title: "Tài khoản email", recipient: "Người nhận B" },
+        { title: "Bản scan giấy tờ", recipient: "Người nhận A" },
+      ],
+    },
   },
   problem: {
     eyebrow: "Vấn đề",
     title: "Tài sản số của bạn nằm rải rác, và chỉ mình bạn biết chúng ở đâu.",
+    /** Cụm chữ được tô vàng khi câu đậm dần. */
+    highlights: ["rải rác,", "chỉ mình bạn"],
     description:
       "Mỗi thứ một nơi, mỗi thứ một mật khẩu. Khi bạn không thể tự mở, người thân không biết phải bắt đầu từ đâu, và có thể không biết chúng tồn tại.",
     items: [
@@ -50,147 +67,91 @@ export const LANDING_CONTENT = {
     ],
     closing: "LegacyVault gom tất cả về một nơi, rồi trao lại đúng người, đúng lúc.",
   },
-  statement: {
-    text: "Đây không chỉ là chuyện của sau cùng. Biết mình có gì, để ở đâu và ai được tiếp cận quan trọng ngay từ hôm nay.",
-  },
-  principles: {
-    eyebrow: "Ba nguyên tắc",
-    title: "Để trao lại đúng cách, cần ba điều.",
-    items: [
-      {
-        title: "Được ghi lại",
-        detail:
-          "Thứ chưa ai biết đến thì không thể trao đi. Mọi thứ bắt đầu từ việc ghi lại những gì bạn có.",
-      },
-      {
-        title: "Tìm thấy được",
-        detail:
-          "Tài sản phải nằm ở một nơi có thể truy ra, thay vì rải qua nhiều ứng dụng và thiết bị.",
-      },
-      {
-        title: "Trao đúng người",
-        detail:
-          "Quyền truy cập chỉ mở cho người nhận ghi trong biên bản bàn giao, sau khi xác minh danh tính và đủ chữ ký.",
-      },
-    ],
-  },
-  pillars: {
+  features: {
     eyebrow: "Hệ thống",
     title: "Tài sản, những người tin cậy, một quy trình bàn giao.",
-    description: "Ba phần ăn khớp với nhau thành một chuỗi liền mạch.",
-    items: [
-      {
-        tag: "01 · Tài sản số",
-        title: "Nơi cất mọi thứ bạn muốn để lại",
-        detail:
-          "Ghi lại ví tiền mã hóa, tài khoản số và tài liệu ở một nơi duy nhất. Nội dung được mã hóa AES-256-GCM trên máy chủ; bạn quyết định cất gì và trao cho ai.",
-        points: [
-          "Ba loại tài sản: ví tiền mã hóa, tài khoản số, tài liệu số",
-          "Mã hóa AES-256-GCM phía máy chủ",
-          "Gắn từng mục cho từng người nhận",
-        ],
-        visualTitle: "Tài sản của bạn",
-        rows: [
-          { title: "Ví tiền mã hóa", detail: "Đã mã hóa" },
-          { title: "Tài khoản email", detail: "Đã mã hóa" },
-          { title: "Bản scan giấy tờ", detail: "Đã mã hóa" },
-        ],
-      },
-      {
-        tag: "02 · Người thực thi",
-        title: "Bốn vai, không ai nắm toàn quyền một mình",
-        detail:
-          "Người nhận gửi yêu cầu kèm giấy tờ, luật sư xét và lập biên bản bàn giao, Người thực thi giữ mã, Người nhận được xác minh danh tính. Hai vai đầu không đọc được nội dung tài sản.",
-        points: [
-          "Chủ tài sản là người duy nhất khai báo và sửa tài sản",
-          "Người thực thi và luật sư không mở được nội dung",
-          "Người nhận chỉ được mở sau khi được xác minh danh tính",
-        ],
-        visualTitle: "Các vai trong kế hoạch",
-        rows: [
-          { title: "Chủ tài sản", detail: "Khai báo tài sản, chọn người" },
-          { title: "Người thực thi", detail: "Giữ mã, ký biên bản, gửi mã" },
-          { title: "Luật sư", detail: "Lập biên bản bàn giao" },
-          { title: "Người nhận", detail: "Xác minh rồi tải về" },
-        ],
-      },
-      {
-        tag: "03 · Bàn giao",
-        title: "Chỉ giao theo biên bản có đủ chữ ký",
-        detail:
-          "Hệ thống chỉ quản lý tài sản, không làm pháp lý. Luật sư lập biên bản bàn giao, kiểm danh tính người nhận; mỗi người nhận được mở phần của mình khi biên bản có đủ chữ ký luật sư, Người thực thi và của chính người đó, rồi có {grantDays} ngày để tải về.",
-        points: [
-          "Biên bản bàn giao là căn cứ duy nhất để giao tài sản",
-          "Luật sư, Người thực thi và người nhận cùng ký",
-          "Người nhận có {grantDays} ngày để tải về",
-        ],
-        visualTitle: "Từ yêu cầu nhận đến nhận tài sản",
-        rows: [
-          { title: "Người nhận gửi yêu cầu", detail: "Bắt đầu" },
-          { title: "Luật sư lập biên bản", detail: "Bước 1" },
-          { title: "Người nhận được xác minh danh tính", detail: "Bước 2" },
-          { title: "Ba bên ký biên bản", detail: "Bước 3" },
-          { title: "{grantDays} ngày để tải về", detail: "Hoàn tất" },
-        ],
-      },
-    ],
-  },
-  meaning: {
-    eyebrow: "Vì sao là bông hoa",
-    title: "Mỗi vòng là một lớp bảo vệ.",
     description:
-      "Biểu tượng của LegacyVault được dệt từ nhiều vòng đường nét chồng lên nhau, như hoa văn trên giấy tờ có giá. Càng nhiều lớp, càng khó đi tắt. Trước khi tài sản được mở ra, mọi bàn giao đều phải đi qua bốn lớp xác nhận.",
-    layers: [
+      "Ghi lại một lần, quyết định trao cho ai. Người thực thi và luật sư không đọc được nội dung tài sản.",
+    assets: {
+      title: "Tài sản số",
+      detail: "Ví tiền mã hóa, tài khoản số và tài liệu ở một nơi. Chỉ bạn khai báo và sửa.",
+      typing: "Đang ghi lại: ví tiền mã hóa",
+    },
+    recipients: {
+      title: "Người nhận",
+      detail: "Gắn từng mục cho từng người nhận.",
+      rows: [
+        { asset: "Ví tiền mã hóa", recipient: "Người nhận A" },
+        { asset: "Tài khoản email", recipient: "Người nhận B" },
+        { asset: "Bản scan giấy tờ", recipient: "Người nhận A" },
+      ],
+    },
+    executor: {
+      title: "Người thực thi",
+      detail: "Giữ mã, ký biên bản và gửi mã. Không mở được nội dung.",
+    },
+    encryption: {
+      title: "Mã hóa AES-256-GCM",
+      detail: "Nội dung tài sản được mã hóa trên máy chủ.",
+    },
+    record: {
+      title: "Biên bản phân chia",
+      detail: "Ghi mong muốn của bạn: ai nhận tài sản nào. Luật sư dùng làm bản đầu của biên bản.",
+    },
+  },
+  handover: {
+    eyebrow: "Cách hoạt động",
+    title: "Bạn sắp đặt một lần. Phần còn lại, nhẹ nhàng.",
+    description:
+      "Hệ thống chỉ quản lý tài sản, không làm pháp lý. Biên bản bàn giao là căn cứ duy nhất để giao tài sản.",
+    steps: [
       {
         title: "Người nhận gửi yêu cầu",
         detail: "Khi có việc xảy ra, người nhận gửi yêu cầu kèm giấy tờ.",
+        signing: false,
       },
       {
         title: "Luật sư lập biên bản",
         detail: "Một luật sư độc lập ghi ai nhận tài sản nào, theo kết quả đã xử lý ở ngoài.",
+        signing: false,
       },
       {
-        title: "Người nhận xác minh danh tính",
+        title: "Người nhận được xác minh danh tính",
         detail: "Luật sư đối chiếu căn cước để đúng người mới nhận được tài sản.",
+        signing: false,
       },
       {
-        title: "Ba bên ký",
+        title: "Ba bên ký biên bản",
         detail:
-          "Luật sư, Người thực thi và người nhận cùng ký biên bản. Đủ chữ ký mới giao tài sản.",
+          "Mỗi người nhận được mở phần của mình khi biên bản có đủ chữ ký luật sư, Người thực thi và của chính người đó.",
+        signing: true,
+      },
+      {
+        title: "{grantDays} ngày để tải về",
+        detail: "Được mở quyền rồi, người nhận có {grantDays} ngày để tải tài sản về.",
+        signing: false,
       },
     ],
-  },
-  how: {
-    eyebrow: "Cách hoạt động",
-    title: "Bạn sắp đặt một lần. Phần còn lại, nhẹ nhàng.",
-    description:
-      "Nội dung tài sản được mã hóa AES-256-GCM trên máy chủ. Người thực thi và luật sư không đọc được nội dung.",
-    steps: [
-      {
-        title: "Khai báo tài sản",
-        detail: "Chủ tài sản ghi lại tài sản số, tài liệu và lời nhắn, rồi chọn người nhận.",
-      },
-      {
-        title: "Chỉ định Người thực thi",
-        detail:
-          "Chọn một Người thực thi; luật sư do hệ thống phân công khi có yêu cầu nhận. Họ không đọc được nội dung tài sản.",
-      },
-      {
-        title: "Lập biên bản phân chia",
-        detail:
-          "Ghi mong muốn của bạn: ai nhận tài sản nào. Luật sư dùng làm bản đầu của biên bản.",
-      },
-      {
-        title: "Bàn giao đúng lúc",
-        detail:
-          "Có đủ chữ ký luật sư, Người thực thi và người nhận, người đó có {grantDays} ngày để tải về.",
-      },
-    ],
+    signatures: {
+      label: "Minh họa chữ ký ba bên",
+      roles: ["Luật sư", "Người thực thi", "Người nhận"],
+      seal: "Ký",
+      hint: "Bấm từng ô để đóng dấu. Ký trước hay sau đều được.",
+      complete: "Đủ ba chữ ký: người nhận được mở phần của mình.",
+      reset: "Làm lại",
+    },
   },
   trust: {
     eyebrow: "Tin cậy có cơ sở",
     title: "Bảo mật nói thật, không hứa quá.",
     description: "Những gì hệ thống làm được, và cả những gì nó chưa làm.",
+    lock: {
+      label: "Khóa tài sản (minh họa)",
+      file: "Tài liệu mẫu.pdf",
+      locked: { tag: "Đang khóa", detail: "Người thực thi và luật sư không đọc được nội dung." },
+      open: { tag: "Mở cho người nhận", detail: "Chỉ sau khi xác minh danh tính và đủ chữ ký." },
+      hint: "Bấm ổ khóa để xem thử.",
+    },
     items: [
       {
         title: "Mã hóa AES-256-GCM",

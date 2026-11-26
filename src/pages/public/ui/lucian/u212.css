@@ -1,0 +1,61 @@
+/* Lucian UX/UI Prompt #212 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#212 */
+
+/* Thanh đầu trang: trong suốt ở đỉnh; cuộn xuống thì trượt đi, cuộn lên thì hiện lại, thấp hơn và mờ nền. */
+.u212-hd {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 40;
+  color: var(--surface-sunken);
+  transition:
+    transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 0.3s,
+    box-shadow 0.3s,
+    backdrop-filter 0.3s;
+}
+
+.u212-hd > div {
+  transition: padding 0.3s;
+}
+
+.u212-hd.is-solid {
+  background: color-mix(in srgb, var(--primary) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.08),
+    0 8px 20px -14px rgb(0 0 0 / 0.6);
+}
+
+.u212-hd.is-solid > div {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.u212-hd.is-hide {
+  transform: translateY(-110%);
+}
+
+/* Vạch mảnh cho biết đã đọc tới đâu. */
+.u212-pg {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 2px;
+  width: 0;
+  background: var(--gold-soft);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.u212-hd.is-solid .u212-pg {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u212-hd,
+  .u212-hd > div {
+    transition: none;
+  }
+}

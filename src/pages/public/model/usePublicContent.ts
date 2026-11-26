@@ -9,10 +9,19 @@ import { FAQ_CONTENT, TERMS_CONTENT } from "./publicInfo.content";
 const money = new Intl.NumberFormat("vi-VN");
 const BYTES_PER_MIB = 1_048_576;
 
-interface PricingCard {
+/** Giá của một gói ở một kỳ, đúng như Backend công bố. */
+export interface PricingTerm {
+  years: number;
+  amount: number;
+  serviceDays: number;
+}
+
+export interface PricingCard {
   name: string;
   price: string;
   features: readonly string[];
+  /** Chỉ có khi đã tải được bảng giá: dùng để chọn kỳ trên trang giới thiệu. */
+  terms?: readonly PricingTerm[];
 }
 
 interface PricingContent {
@@ -82,6 +91,7 @@ function pricingFromPlans(base: PricingContent, plans: BillingPlans | undefined)
     cards.push({
       name: label,
       price: first ? `${money.format(first.amount)}đ / ${first.serviceDays} ngày` : "Tạm ngừng bán",
+      terms: tier.prices,
       features: [
         `Dung lượng ${mib(tier.storageQuotaBytes)} MiB`,
         ...(written ??
