@@ -61,6 +61,7 @@ const handoverNotAllowedReasons: Record<string, string> = {
   RECORD_INVALID: "Biên bản chưa hợp lệ. Kiểm tra lại người nhận và tài sản trước khi chốt.",
   NOT_IDENTITY_STEP: "Biên bản chưa ở bước kiểm danh tính. Hãy chốt biên bản trước.",
   NOT_SIGNING_STEP: "Chưa tới bước ký: hãy chờ luật sư chốt biên bản.",
+  RECIPIENT_NOT_CONFIRMED: "Chưa ký được: người nhận này chưa được xác nhận danh tính.",
   IDENTITY_NOT_CONFIRMED:
     "Danh tính của người nhận chưa được luật sư xác nhận nên chưa ký được. Hãy nộp ảnh căn cước và chờ luật sư xác nhận.",
   PARTIALLY_DELIVERED:

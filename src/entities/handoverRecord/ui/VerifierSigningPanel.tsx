@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -18,7 +17,8 @@ import {
 import { handoverRecordKeys } from "../model/useHandoverRecord";
 import { PaperPreviewButton } from "./PaperPreviewButton";
 import { ReceiptPaper } from "./ReceiptPaper";
-import { RecordPaper, type PaperSignAction } from "./RecordPaper";
+import { RecipientSignButton } from "./RecipientSignButton";
+import { RecordPaper } from "./RecordPaper";
 import { RemindExecutorButton } from "./RemindExecutorButton";
 
 /** Lý do không mở lại được biên bản khi đã giao cho ít nhất một người nhận. */
@@ -30,38 +30,33 @@ function SignedChip({ at }: { at: string | null }) {
   return <Chip tone="neutral">Chưa ký</Chip>;
 }
 
-/** Một dòng chữ ký của bên lập hoặc bên thực thi, kèm việc làm được ngay trên dòng đó. */
-function SignerRow({
-  role,
-  name,
-  at,
-  children,
-}: {
-  role: string;
-  name: string;
-  at: string | null;
-  children?: ReactNode;
-}) {
+/** Ba chữ ký của phần một người nhận, theo thứ tự: Người thực thi, luật sư, người nhận. */
+function Signatures({ record, recipient }: { record: HandoverRecord; recipient: RecordRecipient }) {
+  const rows: [string, string | null][] = [
+    ["Người thực thi", recipient.executorSignedAt ?? record.executorSignedAt],
+    ["Luật sư", recipient.verifierSignedAt ?? record.verifierSignedAt],
+    ["Người nhận", recipient.signedAt],
+  ];
   return (
-    <tr>
-      <th scope="row" className={`${tableStyles.td} font-semibold`}>
-        {role}
-      </th>
-      <td className={tableStyles.td}>{name || "—"}</td>
-      <td className={tableStyles.td}>
-        <SignedChip at={at} />
-      </td>
-      <td className={`${tableStyles.td} text-right`}>{children}</td>
-    </tr>
+    <ul className="space-y-1">
+      {rows.map(([role, at]) => (
+        <li key={role} className="flex flex-wrap items-center gap-2">
+          <span className="w-28 text-heritage-muted">{role}</span>
+          <SignedChip at={at} />
+        </li>
+      ))}
+    </ul>
   );
 }
 
 function RecipientRow({
   record,
   recipient,
+  onSigned,
 }: {
   record: HandoverRecord;
   recipient: RecordRecipient;
+  onSigned: (next: HandoverRecord) => void;
 }) {
   const identity = identityText(recipient);
   const delivery = deliveryText(record, recipient);
@@ -82,7 +77,7 @@ function RecipientRow({
         <Chip tone={identity.tone}>{identity.label}</Chip>
       </td>
       <td className={tableStyles.td}>
-        <SignedChip at={recipient.signedAt} />
+        <Signatures record={record} recipient={recipient} />
       </td>
       <td className={tableStyles.td}>
         <div className="flex flex-col items-start gap-1">
@@ -102,6 +97,15 @@ function RecipientRow({
             Kiểm danh tính
           </Link>
         )}
+        {(recipient.canSign || (!delivered && recipient.verifierSignedAt)) && (
+          <RecipientSignButton
+            record={record}
+            recipient={recipient}
+            target="verifier"
+            sign={() => handoverRecordService.signAsVerifier(record.id, recipient.beneficiaryId)}
+            onSigned={onSigned}
+          />
+        )}
         {delivered && (
           <PaperPreviewButton
             label="Xem phiếu"
@@ -116,18 +120,10 @@ function RecipientRow({
 }
 
 /**
- * Màn của luật sư sau khi chốt (kể cả đã hoàn tất hoặc đã hủy): hai bảng ngắn, một cho chữ ký của luật sư và Người
- * thực thi, một cho từng người nhận. Nút ký nằm trong khung xem biên bản, ngay ô chữ ký (signAction).
+ * Màn của luật sư sau khi chốt (kể cả đã hoàn tất hoặc đã hủy): thông tin biên bản và một bảng người nhận. Chữ ký và
+ * nút "Xem và ký" nằm trên dòng của từng người nhận: ai xong danh tính trước thì ký và giao trước.
  */
-export function VerifierSigningPanel({
-  record,
-  signAction,
-  signPending,
-}: {
-  record: HandoverRecord;
-  signAction?: PaperSignAction;
-  signPending: boolean;
-}) {
+export function VerifierSigningPanel({ record }: { record: HandoverRecord }) {
   const client = useQueryClient();
   const reopen = usePrivateAction();
   const signing = isSigningStage(record.status);
@@ -150,31 +146,21 @@ export function VerifierSigningPanel({
           <div className="flex flex-wrap items-center gap-2">
             <Chip tone={status.tone}>{status.label}</Chip>
             <PaperPreviewButton
-              label={signAction ? "Xem và ký biên bản" : "Xem biên bản"}
+              label="Xem biên bản"
               title="Biên bản bàn giao"
               fileName={`Bien-ban-ban-giao-ban-${record.revisionNo}`}
-              primary={Boolean(signAction)}
-              paper={<RecordPaper record={record} signAction={signAction} />}
+              paper={<RecordPaper record={record} />}
             />
           </div>
         }
       >
-        <div className="overflow-x-auto">
-          <table className={`${tableStyles.table} min-w-[560px]`}>
-            <caption className="sr-only">Chữ ký của luật sư và Người thực thi</caption>
-            <tbody className={tableStyles.body}>
-              <SignerRow role="Luật sư" name={record.verifierName} at={record.verifierSignedAt} />
-              <SignerRow
-                role="Người thực thi"
-                name={record.executorName}
-                at={record.executorSignedAt}
-              >
-                {signing && !record.executorSignedAt && (
-                  <RemindExecutorButton record={record} onUpdated={apply} />
-                )}
-              </SignerRow>
-            </tbody>
-          </table>
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm">
+          <p className="text-heritage-muted">
+            {`Luật sư: ${record.verifierName || "—"} · Người thực thi: ${record.executorName || "—"}`}
+          </p>
+          {signing && !record.executorSignedAt && (
+            <RemindExecutorButton record={record} onUpdated={apply} />
+          )}
         </div>
       </SectionCard>
 
@@ -182,8 +168,8 @@ export function VerifierSigningPanel({
         title="Người nhận"
         subtitle={
           signing && waiting > 0
-            ? `Còn ${waiting} người nhận chưa được xác nhận danh tính.`
-            : undefined
+            ? `Còn ${waiting} người nhận chưa được xác nhận danh tính. Xác nhận xong ai thì ký được cho người đó.`
+            : "Xác nhận danh tính người nào thì ký được cho người đó."
         }
         labelledBy="record-recipients"
       >
@@ -207,7 +193,7 @@ export function VerifierSigningPanel({
                     Danh tính
                   </th>
                   <th scope="col" className={tableStyles.th}>
-                    Chữ ký
+                    Chữ ký phần này
                   </th>
                   <th scope="col" className={tableStyles.th}>
                     Giao nhận
@@ -223,6 +209,7 @@ export function VerifierSigningPanel({
                     key={recipient.beneficiaryId}
                     record={record}
                     recipient={recipient}
+                    onSigned={apply}
                   />
                 ))}
               </tbody>
@@ -239,7 +226,7 @@ export function VerifierSigningPanel({
           <button
             type="button"
             className={compactButton.outline}
-            disabled={signPending || reopen.pending}
+            disabled={reopen.pending}
             onClick={() =>
               void reopen.execute(() => handoverRecordService.reopen(record.id), apply)
             }

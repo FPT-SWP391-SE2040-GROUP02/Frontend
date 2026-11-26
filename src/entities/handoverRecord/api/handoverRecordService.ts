@@ -116,9 +116,11 @@ export const handoverRecordService = {
       throw await readBlobFailure(failure);
     }
   },
-  async signAsVerifier(recordId: string) {
+  async signAsVerifier(recordId: string, beneficiaryId: string) {
     return handoverRecordSchema.parse(
-      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/sign`),
+      await apiClient.post<unknown, unknown>(
+        `${verifierPath(recordId)}/recipients/${id.parse(beneficiaryId)}/sign`,
+      ),
     );
   },
   /** Luật sư nhắc Người thực thi ký biên bản đã chốt; Backend giới hạn 24 giờ một lần. */
@@ -135,9 +137,11 @@ export const handoverRecordService = {
     if (data === undefined || data === null || data === "") return null;
     return handoverRecordSchema.parse(data);
   },
-  async signAsExecutor(vaultId: string) {
+  async signAsExecutor(vaultId: string, beneficiaryId: string) {
     return handoverRecordSchema.parse(
-      await apiClient.post<unknown, unknown>(`${executorPath(vaultId)}/sign`),
+      await apiClient.post<unknown, unknown>(
+        `${executorPath(vaultId)}/recipients/${id.parse(beneficiaryId)}/sign`,
+      ),
     );
   },
 

@@ -38,6 +38,11 @@ export const recordRecipientSchema = z.object({
   submissionStatus: z.string(),
   identityConfirmedAt: timestamp.nullable(),
   signedAt: timestamp.nullable(),
+  /** Luật sư và Người thực thi ký riêng cho từng người nhận. */
+  verifierSignedAt: timestamp.nullable().default(null),
+  executorSignedAt: timestamp.nullable().default(null),
+  /** Người đang xem (luật sư hoặc Người thực thi) ký được cho người nhận này. */
+  canSign: z.boolean().default(false),
   /** Phiếu giao nhận: lúc bên nhận xác nhận đã nhận đủ và lúc Người thực thi ký bên giao. */
   receivedAllAt: timestamp.nullable().default(null),
   receiptExecutorSignedAt: timestamp.nullable().default(null),

@@ -1,11 +1,5 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { useSuccessHold } from "@/shared/lib/useSuccessHold";
-import { ActionButton } from "@/shared/ui/ActionButton";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
-import { handoverRecordService } from "../api/handoverRecordService";
-import { isSigningStage } from "../model/recordPresentation";
-import { handoverRecordKeys, useVerifierRecord } from "../model/useHandoverRecord";
+import { useVerifierRecord } from "../model/useHandoverRecord";
 import { ClaimsReviewPanel } from "./ClaimsReviewPanel";
 import { EvidencePanel } from "./EvidencePanel";
 import { RecordLinesEditor } from "./RecordLinesEditor";
@@ -21,9 +15,6 @@ export function VerifierRecordDetail({
   recordId: string;
   onBack: () => void;
 }) {
-  const client = useQueryClient();
-  const sign = usePrivateAction();
-  const signed = useSuccessHold();
   const query = useVerifierRecord(recordId);
   if (query.isPending) return <p role="status">Đang tải biên bản…</p>;
   if (query.isError) {
@@ -46,37 +37,6 @@ export function VerifierRecordDetail({
     );
   }
   const record = query.data;
-  // Nút ký xác minh chỉ nằm trong khung "Xem biên bản", ngay ô chữ ký của luật sư. Ký rồi thì ô đó hiện "Đã ký điện tử".
-  const signButton =
-    isSigningStage(record.status) && record.canSign ? (
-      <>
-        <ActionButton
-          className={buttonStyles.dark}
-          disabled={sign.pending}
-          onClick={() =>
-            void sign.execute(
-              () => signed.hold(() => handoverRecordService.signAsVerifier(record.id)),
-              (next) => {
-                client.setQueryData(handoverRecordKeys.verifier(next.id), next);
-                void client.invalidateQueries({ queryKey: handoverRecordKeys.root });
-              },
-            )
-          }
-          pending={sign.pending}
-          done={signed.done}
-          pendingLabel="Đang ký…"
-          doneLabel="Đã ký"
-        >
-          Ký xác minh
-        </ActionButton>
-        {sign.error && (
-          <p role="alert" className="max-w-56 text-center text-sm text-destructive">
-            {sign.error}
-          </p>
-        )}
-      </>
-    ) : undefined;
-  const signAction = signButton ? { target: "verifier" as const, node: signButton } : undefined;
   return (
     <div className="space-y-6">
       <button type="button" className={buttonStyles.outline} onClick={onBack}>
@@ -110,9 +70,7 @@ export function VerifierRecordDetail({
           người.
         </Notice>
       )}
-      {record.status !== "DRAFTING" && (
-        <VerifierSigningPanel record={record} signAction={signAction} signPending={sign.pending} />
-      )}
+      {record.status !== "DRAFTING" && <VerifierSigningPanel record={record} />}
       {record.status !== "DRAFTING" && record.status !== "CANCELLED" && (
         <EvidencePanel record={record} />
       )}

@@ -1,13 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { usePrivateAction } from "@/shared/api/usePrivateAction";
-import { buttonStyles, Notice, Panel } from "@/shared/ui/heritageKit";
+import { buttonStyles, formatDateTime, Notice, Panel } from "@/shared/ui/heritageKit";
 import { handoverRecordService } from "../api/handoverRecordService";
-import type { HandoverRecord } from "../model/handoverRecord.schema";
+import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
+import { isSigningStage } from "../model/recordPresentation";
 import { handoverRecordKeys, useExecutorRecord } from "../model/useHandoverRecord";
+import { RecipientSignButton } from "./RecipientSignButton";
 import { RecordDocument } from "./RecordDocument";
 import { RecordStepper } from "./RecordStepper";
-import { ActionButton } from "@/shared/ui/ActionButton";
-import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 /** Câu cho Người thực thi biết biên bản đang chờ ai. */
 function waitingText(record: HandoverRecord): string {
@@ -17,13 +16,21 @@ function waitingText(record: HandoverRecord): string {
     case "IDENTITY_CHECK":
     case "SIGNING":
       if (record.canSign)
-        return "Biên bản đã chốt. Bấm Xem và ký biên bản, đọc lại rồi bấm Ký biên bản ở ô chữ ký của Người thực thi, không cần chờ người nhận. Người nhận nào có đủ chữ ký thì được mở phần của mình.";
-      return "Bạn đã ký. Mỗi người nhận được mở phần của mình khi có chữ ký của luật sư, của bạn và của chính người đó. Vào mục Bàn giao để gửi mã nhận cho người đã được mở.";
+        return "Có người nhận đã được xác nhận danh tính. Bấm Xem và ký ở dòng người đó; bạn và luật sư ký trước hay sau đều được. Ai đủ chữ ký trước thì được bàn giao trước.";
+      return "Bạn ký riêng cho từng người nhận sau khi luật sư xác nhận danh tính người đó. Người nào đủ chữ ký thì vào mục Bàn giao để gửi mã nhận.";
     case "COMPLETED":
       return "Mọi người nhận đã ký. Vào mục Bàn giao để gửi mã nhận cho người chưa có mã.";
     case "CANCELLED":
       return "Yêu cầu nhận tài sản đã được hủy. Kho đã mở khóa.";
   }
+}
+
+/** Phần của một người nhận đang chờ gì, nói cho Người thực thi. */
+function executorStepText(record: HandoverRecord, recipient: RecordRecipient): string {
+  if (recipient.canSign) return "Đã xác nhận danh tính. Bạn ký được ngay.";
+  const signedAt = recipient.executorSignedAt ?? record.executorSignedAt;
+  if (signedAt) return `Bạn đã ký ${formatDateTime(signedAt)}.`;
+  return "Chờ luật sư xác nhận danh tính người này.";
 }
 
 /** Chưa có yêu cầu nhận tài sản: Người thực thi chưa phải làm gì; người nhận là người gửi yêu cầu kèm giấy tờ. */
@@ -48,8 +55,6 @@ function WaitingForRequest() {
 /** Mục Biên bản bàn giao của Người thực thi: theo dõi biên bản và ký ngay sau khi luật sư chốt. */
 export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
   const client = useQueryClient();
-  const sign = usePrivateAction();
-  const signed = useSuccessHold();
   const query = useExecutorRecord(vaultId);
   if (query.isPending) return <p role="status">Đang tải biên bản…</p>;
   if (query.isError) {
@@ -64,42 +69,45 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
   }
   const record = query.data;
   if (!record) return <WaitingForRequest />;
-  // Nút ký chỉ nằm trong khung "Xem biên bản", ngay ô chữ ký của Người thực thi.
-  const signButton = record.canSign ? (
-    <>
-      <ActionButton
-        className={buttonStyles.dark}
-        pending={sign.pending}
-        done={signed.done}
-        pendingLabel="Đang ký…"
-        doneLabel="Đã ký"
-        onClick={() =>
-          void sign.execute(
-            () => signed.hold(() => handoverRecordService.signAsExecutor(vaultId)),
-            (next) => {
-              client.setQueryData(handoverRecordKeys.executor(vaultId), next);
-              void client.invalidateQueries({ queryKey: ["executor-vaults"] });
-            },
-          )
-        }
-      >
-        Ký biên bản
-      </ActionButton>
-      {sign.error && (
-        <p role="alert" className="max-w-56 text-center text-sm text-destructive">
-          {sign.error}
-        </p>
-      )}
-    </>
-  ) : undefined;
-  const signAction = signButton ? { target: "executor" as const, node: signButton } : undefined;
+  const apply = (next: HandoverRecord) => {
+    client.setQueryData(handoverRecordKeys.executor(vaultId), next);
+    void client.invalidateQueries({ queryKey: ["executor-vaults"] });
+  };
   return (
     <div className="space-y-6">
       <RecordStepper status={record.status} />
       <Notice tone={record.status === "COMPLETED" ? "success" : "neutral"} role="status">
         {waitingText(record)}
       </Notice>
-      <RecordDocument record={record} signAction={signAction} />
+      {isSigningStage(record.status) && (
+        <Panel title="Ký cho từng người nhận" labelledBy="executor-signing">
+          <ul className="divide-y divide-heritage-border text-sm">
+            {record.recipients.map((recipient) => (
+              <li
+                key={recipient.beneficiaryId}
+                className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+              >
+                <div className="min-w-0">
+                  <p className="font-semibold">{recipient.fullName || "—"}</p>
+                  <p className="text-heritage-muted">{executorStepText(record, recipient)}</p>
+                </div>
+                {(recipient.canSign || recipient.executorSignedAt) && (
+                  <RecipientSignButton
+                    record={record}
+                    recipient={recipient}
+                    target="executor"
+                    sign={() =>
+                      handoverRecordService.signAsExecutor(vaultId, recipient.beneficiaryId)
+                    }
+                    onSigned={apply}
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
+      <RecordDocument record={record} />
     </div>
   );
 }

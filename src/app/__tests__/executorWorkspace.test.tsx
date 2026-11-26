@@ -478,36 +478,49 @@ describe("Executor handover record", () => {
     expect(screen.getByText("Trần Minh Anh")).toBeInTheDocument();
   });
 
-  it("tới bước ký thì Người thực thi bấm Ký biên bản; không ký khi chưa tới lượt", async () => {
+  const BENEFICIARY = "66666666-6666-4666-8666-666666666666";
+  /** Người nhận duy nhất của biên bản mẫu, với phần chữ ký riêng của họ. */
+  const one = (extra: Record<string, unknown>) => ({
+    ...record("SIGNING").recipients[0],
+    identityConfirmedAt: CREATED_AT,
+    ...extra,
+  });
+
+  it("Người thực thi ký riêng cho người nhận đã xác nhận danh tính", async () => {
     mockGets(
       [vault({ handoverRecordId: RECORD_ID, handoverRecordStatus: "SIGNING" })],
-      record("SIGNING", { canSign: true }),
+      record("SIGNING", { canSign: true, recipients: [one({ canSign: true })] }),
     );
-    const post = vi
-      .spyOn(apiClient, "post")
-      .mockResolvedValue(record("SIGNING", { canSign: false, executorSignedAt: CREATED_AT }));
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(
+      record("SIGNING", {
+        canSign: false,
+        recipients: [one({ executorSignedAt: CREATED_AT })],
+      }),
+    );
     setup("/executor/report");
     expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
-    await userEvent.click(await screen.findByRole("button", { name: "Xem và ký biên bản" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Xem và ký" }));
     const signButton = await screen.findByRole("button", { name: "Ký biên bản" });
     expect(signButton.closest("div.break-inside-avoid")).toHaveTextContent("Bên giao");
     await userEvent.click(signButton);
-    expect(post).toHaveBeenCalledWith(`/executor/vaults/${VAULT_ID}/handover-record/sign`);
-    expect(
-      await screen.findByText(/Bạn đã ký\. Mỗi người nhận được mở phần của mình khi có chữ ký/),
-    ).toBeInTheDocument();
+    expect(post).toHaveBeenCalledWith(
+      `/executor/vaults/${VAULT_ID}/handover-record/recipients/${BENEFICIARY}/sign`,
+    );
+    expect(await screen.findByText(/^Bạn đã ký \d/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
   });
 
-  it("vừa chốt, người nhận chưa nộp căn cước: Người thực thi vẫn ký được ngay", async () => {
+  it("người nhận chưa được xác nhận danh tính thì Người thực thi chưa ký được", async () => {
     mockGets(
       [vault({ handoverRecordId: RECORD_ID, handoverRecordStatus: "SIGNING" })],
-      record("SIGNING", { canSign: true }),
+      record("SIGNING", { canSign: false }),
     );
     setup("/executor/report");
-    await userEvent.click(await screen.findByRole("button", { name: "Xem và ký biên bản" }));
-    expect(await screen.findByRole("button", { name: "Ký biên bản" })).toBeEnabled();
-    expect(screen.getByText(/không cần chờ người nhận/)).toBeInTheDocument();
+
+    expect(
+      await screen.findByText("Chờ luật sư xác nhận danh tính người này."),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Xem và ký" })).not.toBeInTheDocument();
   });
 });
 

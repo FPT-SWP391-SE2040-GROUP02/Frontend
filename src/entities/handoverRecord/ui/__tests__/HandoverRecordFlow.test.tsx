@@ -445,64 +445,69 @@ describe("Luật sư xác nhận căn cứ pháp lý khi chốt", () => {
 });
 
 describe("Luật sư ký và mở lại biên bản (bước 2)", () => {
+  const confirmed = { turnId: TURN_ID, identityConfirmedAt: AT };
   const signing = (extra: Record<string, unknown> = {}) =>
     record({
       status: "SIGNING",
       finalizedAt: AT,
       canSign: true,
       recipients: [
-        recipient(AN, "Trần An", [houseAsset], { turnId: TURN_ID, identityConfirmedAt: AT }),
+        recipient(AN, "Trần An", [houseAsset], {
+          ...confirmed,
+          executorSignedAt: AT,
+          canSign: true,
+        }),
       ],
       ...extra,
     });
 
-  it("ký xác minh xong thì ô chữ ký của luật sư hiện Đã ký điện tử và nút ký biến mất", async () => {
+  it("ký riêng cho người nhận trên dòng của họ; ký xong ô chữ ký hiện Đã ký điện tử", async () => {
     const user = userEvent.setup();
-    const { post } = backend(signing(), signing({ canSign: false, verifierSignedAt: AT }));
-    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
-
-    await user.click(await screen.findByRole("button", { name: "Xem và ký biên bản" }));
-    await user.click(await screen.findByRole("button", { name: "Ký xác minh" }));
-    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/sign`);
-    const dialog = screen.getByRole("dialog");
-    expect(await within(dialog).findByText("Đã ký điện tử")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Ký xác minh" })).not.toBeInTheDocument();
-  });
-
-  it("nút ký xác minh chỉ có trong khung Xem và ký biên bản, ngay ô chữ ký của luật sư", async () => {
-    const user = userEvent.setup();
-    backend(signing());
-    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
-
-    // Chưa mở khung xem biên bản thì ở đâu cũng chưa có nút ký (khung Bước 2 cũng không có).
-    await screen.findByRole("button", { name: "Xem và ký biên bản" });
-    expect(screen.queryByRole("button", { name: "Ký xác minh" })).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Xem và ký biên bản" }));
-    const button = await screen.findByRole("button", { name: "Ký xác minh" });
-    expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Ký xác minh" })).toBe(
-      button,
-    );
-    const slot = button.closest("div.break-inside-avoid");
-    expect(slot).toHaveTextContent("Luật sư chứng kiến");
-    expect(slot).not.toHaveTextContent("Bên giao");
-  });
-
-  it("vừa chốt, người nhận chưa danh tính: nút ký của luật sư hiện ngay", async () => {
     const { post } = backend(
+      signing(),
       signing({
-        recipients: [recipient(AN, "Trần An", [houseAsset], { turnId: TURN_ID })],
+        canSign: false,
+        recipients: [
+          recipient(AN, "Trần An", [houseAsset], {
+            ...confirmed,
+            executorSignedAt: AT,
+            verifierSignedAt: AT,
+          }),
+        ],
       }),
-      signing({ canSign: false, verifierSignedAt: AT }),
     );
-    const user = userEvent.setup();
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    await user.click(await screen.findByRole("button", { name: "Xem và ký biên bản" }));
+    // Chưa mở tờ biên bản thì chưa có nút ký ở đâu cả.
+    await screen.findByRole("button", { name: "Xem và ký" });
+    expect(screen.queryByRole("button", { name: "Ký xác minh" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Xem và ký" }));
     const button = await screen.findByRole("button", { name: "Ký xác minh" });
-    expect(button).toBeEnabled();
-    expect(screen.getByText("Chờ xác nhận danh tính")).toBeInTheDocument();
+    expect(button.closest("div.break-inside-avoid")).toHaveTextContent("Luật sư chứng kiến");
     await user.click(button);
-    expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/sign`);
+    expect(post).toHaveBeenCalledWith(
+      `/verifier/handover-records/${RECORD_ID}/recipients/${AN}/sign`,
+    );
+    const dialog = screen.getByRole("dialog");
+    expect((await within(dialog).findAllByText("Đã ký điện tử")).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "Ký xác minh" })).not.toBeInTheDocument();
+  });
+
+  it("người nhận chưa được xác nhận danh tính thì luật sư chưa có nút ký", async () => {
+    backend(
+      signing({
+        canSign: false,
+        recipients: [
+          recipient(AN, "Trần An", [houseAsset], { turnId: TURN_ID }),
+          recipient(BINH, "Lê Bình", [savingsAsset]),
+        ],
+      }),
+    );
+    setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
+
+    await screen.findAllByText("Chờ xác nhận danh tính");
+    expect(screen.queryByRole("button", { name: "Xem và ký" })).not.toBeInTheDocument();
+    expect(screen.getByText(/ký được cho người đó/)).toBeInTheDocument();
   });
 
   it("biên bản cũ còn IDENTITY_CHECK vẫn hiện nút ký như SIGNING", async () => {
@@ -510,7 +515,7 @@ describe("Luật sư ký và mở lại biên bản (bước 2)", () => {
     backend(signing({ status: "IDENTITY_CHECK" }));
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    await user.click(await screen.findByRole("button", { name: "Xem và ký biên bản" }));
+    await user.click(await screen.findByRole("button", { name: "Xem và ký" }));
     expect(await screen.findByRole("button", { name: "Ký xác minh" })).toBeEnabled();
   });
 
