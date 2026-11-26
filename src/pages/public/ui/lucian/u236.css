@@ -1,0 +1,61 @@
+/* Lucian UX/UI Prompt #236 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#236 */
+
+/* Chân trang lộ dần: thân trang kéo lên như tấm màn, chân trang nằm dưới lớn và sáng dần. */
+.u236-mn {
+  position: relative;
+  z-index: 10;
+}
+
+.u236-mn > :last-child {
+  border-radius: 0 0 28px 28px;
+  box-shadow: 0 20px 40px -10px rgb(0 0 0 / 0.5);
+}
+
+.u236 {
+  background: var(--primary);
+}
+
+/* Chỉ ghim dưới đáy khi chân trang thấp hơn màn hình, nếu không phần trên sẽ không xem được. */
+.u236.is-curtain {
+  position: sticky;
+  bottom: 0;
+  z-index: 0;
+}
+
+.u236.is-curtain > footer {
+  opacity: calc(0.35 + 0.65 * var(--r, 0));
+  transform: scale(calc(0.94 + 0.06 * var(--r, 0)));
+  transform-origin: 50% 100%;
+}
+
+.u236-wm {
+  overflow: hidden;
+  padding-top: 0.1em;
+  background: linear-gradient(180deg, #fff, rgb(255 255 255 / 0.08));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Theo cả chiều cao màn hình để chân trang còn vừa màn thấp. */
+  font-size: clamp(2rem, min(13vw, 11vh), 8rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-align: center;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.u236.is-curtain .u236-wm {
+  transform: translateY(calc(26px * (1 - var(--r, 0))));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u236.is-curtain > footer {
+    opacity: 1;
+    transform: none;
+  }
+
+  .u236.is-curtain .u236-wm {
+    transform: none;
+  }
+}

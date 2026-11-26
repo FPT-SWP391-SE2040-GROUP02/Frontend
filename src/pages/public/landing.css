@@ -51,23 +51,6 @@ html:has(#top) [id] {
   transform: none;
 }
 
-/* Hero vào cảnh lần lượt: tiêu đề, khẩu hiệu, mô tả, nút. */
-.landing-rise {
-  opacity: 0;
-  animation: landing-rise 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes landing-rise {
-  from {
-    opacity: 0;
-    transform: translateY(1.25rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 /* Hoa nền hiện từ mờ và hơi nhỏ, rồi mới xoay chậm. */
 .landing-flower-in {
   animation: landing-flower-in 1800ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -116,7 +99,6 @@ html:has(#top) [id] {
 
 @media (prefers-reduced-motion: reduce) {
   .landing-reveal,
-  .landing-rise,
   .landing-flower-in {
     opacity: 1;
     transform: none;
@@ -135,27 +117,5 @@ html:has(#top) [id] {
 
   .landing-lift:hover {
     transform: none;
-  }
-}
-
-/* Câu trả lời hỏi đáp trượt xuống nhẹ khi mở. */
-.landing-faq[open] .landing-faq-answer {
-  animation: landing-faq-open 350ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@keyframes landing-faq-open {
-  from {
-    opacity: 0;
-    transform: translateY(-0.5rem);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-faq[open] .landing-faq-answer {
-    animation: none;
   }
 }
