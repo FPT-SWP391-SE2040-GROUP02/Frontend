@@ -57,7 +57,7 @@ describe("workspace logo navigation", () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
       {
         vaultId: "22222222-2222-4222-8222-222222222222",
-        ownerFullName: "Chủ kho",
+        ownerFullName: "Chủ tài sản",
         planStatus: "ACTIVE",
         checkInOverdue: false,
         openDeathCaseId: null,
@@ -120,12 +120,12 @@ describe("workspace logo navigation", () => {
   it("opens the phone navigation and closes it after choosing an Owner page", () => {
     const store = configureStore({ reducer: { auth: authReducer } });
     renderWorkspace(store, "/dashboard", "Kho");
-    const toggle = screen.getByRole("button", { name: "Menu Chủ kho" });
+    const toggle = screen.getByRole("button", { name: "Menu Chủ tài sản" });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     fireEvent.click(screen.getByRole("link", { name: "Kho của tôi" }));
-    expect(screen.getByRole("button", { name: "Menu Chủ kho" })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: "Menu Chủ tài sản" })).toHaveAttribute(
       "aria-expanded",
       "false",
     );
@@ -147,7 +147,7 @@ describe("workspace logo navigation", () => {
   it("menu có ba nhóm đúng thứ tự, Tổng quan đứng đầu và không thuộc nhóm", () => {
     const store = configureStore({ reducer: { auth: authReducer } });
     renderWorkspace(store, "/dashboard");
-    const nav = screen.getByRole("navigation", { name: "Điều hướng Chủ kho" });
+    const nav = screen.getByRole("navigation", { name: "Điều hướng Chủ tài sản" });
     const labels = Array.from(nav.children)
       .map((child) => child.textContent ?? "")
       .filter((text) => text !== "");

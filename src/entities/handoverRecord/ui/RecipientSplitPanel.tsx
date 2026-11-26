@@ -72,7 +72,7 @@ function PeoplePicker({
       <DialogContent className="flex max-h-[85vh] flex-col gap-3 sm:max-w-md">
         <DialogTitle className="text-lg font-semibold">{`Chọn người nhận: ${asset.name}`}</DialogTitle>
         <DialogDescription className="text-sm text-heritage-muted">
-          {ownerText ? `Chủ kho chia cho: ${ownerText}` : "Chủ kho chưa chia tài sản này."}
+          {ownerText ? `Chủ tài sản chia cho: ${ownerText}` : "Chủ tài sản chưa chia tài sản này."}
         </DialogDescription>
         <input
           type="search"
@@ -103,7 +103,7 @@ function PeoplePicker({
                   </span>
                   {blocked && <Chip tone="danger">Giấy tờ bị từ chối</Chip>}
                   {!blocked && ownerIds.has(person.beneficiaryId) && (
-                    <Chip tone="success">Chủ kho đã chia</Chip>
+                    <Chip tone="success">Chủ tài sản đã chia</Chip>
                   )}
                 </label>
               </li>
@@ -208,7 +208,7 @@ export function RecipientSplitPanel({
           >
             <option value="all">Tất cả</option>
             <option value="empty">Chưa chia ai</option>
-            {record.ownerSplit.length > 0 && <option value="differs">Khác Chủ kho</option>}
+            {record.ownerSplit.length > 0 && <option value="differs">Khác Chủ tài sản</option>}
           </select>
         )}
       </div>
@@ -224,11 +224,11 @@ export function RecipientSplitPanel({
                 <p className="flex flex-wrap items-center gap-2 font-semibold">
                   <span className="font-normal text-heritage-muted">{index + 1}.</span>
                   <span>{asset.name}</span>
-                  {asset.differsFromOwner && <Chip tone="warning">Khác Chủ kho</Chip>}
+                  {asset.differsFromOwner && <Chip tone="warning">Khác Chủ tài sản</Chip>}
                 </p>
                 {record.ownerSplit.length > 0 && (
                   <p className="text-heritage-muted">
-                    {`Chủ kho chia: ${asset.ownerPeople.map((p) => p.fullName).join(", ") || "chưa chia"}`}
+                    {`Chủ tài sản chia: ${asset.ownerPeople.map((p) => p.fullName).join(", ") || "chưa chia"}`}
                   </p>
                 )}
               </div>

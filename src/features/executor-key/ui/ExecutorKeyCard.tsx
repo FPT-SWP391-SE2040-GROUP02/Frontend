@@ -133,8 +133,8 @@ function ReissueDialog({
 }
 
 /**
- * Thẻ "Mã nhận" của Chủ kho. Hệ thống tự tạo và giữ mã, chỉ gửi cho người nhận sau khi hồ sơ được duyệt, nên
- * thẻ không hiện mã, không có phiếu in. Chủ kho chỉ thấy bản đang dùng và đổi mã mới được (đòi mã PIN).
+ * Thẻ "Mã nhận" của Chủ tài sản. Hệ thống tự tạo và giữ mã, chỉ gửi cho người nhận sau khi hồ sơ được duyệt, nên
+ * thẻ không hiện mã, không có phiếu in. Chủ tài sản chỉ thấy bản đang dùng và đổi mã mới được (đòi mã PIN).
  */
 export function ExecutorKeyCard({ vaultId, title = "Mã nhận" }: ExecutorKeyCardProps) {
   const query = useExecutorKeyStatus(vaultId);

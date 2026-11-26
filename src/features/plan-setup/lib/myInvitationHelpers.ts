@@ -30,7 +30,7 @@ export function remainingTime(expiresAt: string, now: number = Date.now()): Rema
 const STATUS_LABELS: Record<string, string> = {
   DECLINED: "Đã từ chối",
   EXPIRED: "Đã hết hạn",
-  REVOKED: "Chủ kho đã thu hồi",
+  REVOKED: "Chủ tài sản đã thu hồi",
 };
 
 /** Nhãn trạng thái của lời mời đã kết thúc. */

@@ -72,18 +72,12 @@ export function WillSignFooter({
   vaultId,
   setup,
   initialPin = "",
-  onPinChange,
-  externalPinFailure = null,
   onNotice,
 }: {
   vaultId: string;
   setup: PlanSetup;
   /** PIN đã xác nhận khi mở khung xem trước, điền sẵn để khỏi nhập lại; người dùng vẫn sửa hoặc xóa được. */
   initialPin?: string;
-  /** Báo PIN người dùng gõ cho khung cha (để tải danh tính đầy đủ bằng chính PIN này, khỏi hỏi lần hai). */
-  onPinChange?: (pin: string) => void;
-  /** Lỗi PIN khi tải danh tính bằng PIN vừa gõ; hiện ngay dưới ô PIN. */
-  externalPinFailure?: VaultPinFailure | null;
   onNotice: (notice: WillSignNotice | null) => void;
 }) {
   const client = useQueryClient();
@@ -92,8 +86,7 @@ export function WillSignFooter({
   const [acknowledge, setAcknowledge] = useState(false);
   const [typedPin, setPin] = useState<string | null>(null);
   const pin = typedPin ?? initialPin;
-  const [ownPinFailure, setPinFailure] = useState<VaultPinFailure | null>(null);
-  const pinFailure = ownPinFailure ?? externalPinFailure;
+  const [pinFailure, setPinFailure] = useState<VaultPinFailure | null>(null);
   // Lỗi đã báo qua onNotice thì không lặp lại ở khung lỗi của chân khung.
   const [errorReported, setErrorReported] = useState(false);
   const isResign = setup.planStatus !== "DRAFT";
@@ -269,9 +262,6 @@ export function WillSignFooter({
               setPin(digits);
               setPinFailure(null);
               action.reset();
-              if (onPinChange) {
-                onPinChange(digits);
-              }
             }}
           />
         </div>

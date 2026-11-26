@@ -9,7 +9,7 @@ import { HandoverTaskCards } from "./HandoverTaskCards";
 import { UnsignedChangesBanner } from "./UnsignedChangesBanner";
 import { WillPreviewDrawer } from "./WillPreviewDrawer";
 
-/** Thẻ nháy sáng bao lâu (ms) sau khi Chủ kho bấm chỗ trống trong biên bản phân chia. */
+/** Thẻ nháy sáng bao lâu (ms) sau khi Chủ tài sản bấm chỗ trống trong biên bản phân chia. */
 const FLASH_MS = 1800;
 
 /** Chỗ trống trong biên bản phân chia ứng với thẻ việc nào. */
@@ -35,7 +35,7 @@ function scrollBehavior(): ScrollBehavior {
 }
 
 /**
- * Màn Bàn giao của Chủ kho: cột trái là các thẻ việc (cộng `belowCards` do widget ghép, ví dụ điểm danh và mã nhận),
+ * Màn Bàn giao của Chủ tài sản: cột trái là các thẻ việc (cộng `belowCards` do widget ghép, ví dụ điểm danh và mã nhận),
  * cột phải (dính khi cuộn trên máy tính, xuống dưới trên điện thoại) là tiến độ và nút mở khung xem trước biên bản phân chia.
  * Khung xem trước hiện giữa màn hình; bấm chỗ trống đỏ trong biên bản phân chia thì đóng khung, cuộn tới và nháy sáng đúng thẻ cần điền.
  * Quyền, trạng thái và điều kiện ký luôn do Backend quyết định. Feature này không import feature khác nên các thẻ

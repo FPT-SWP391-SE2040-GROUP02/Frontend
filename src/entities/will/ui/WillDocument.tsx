@@ -7,43 +7,37 @@ import type {
   WillIdentityStatus,
   WillOwnerIdentityView,
   WillRecipientView,
-  WillVersionView,
 } from "../model/willDocument.types";
 
 export interface WillDocumentProps {
-  /** Họ tên Chủ kho (Chủ kho). */
+  /** Họ tên Chủ tài sản (Chủ tài sản). */
   ownerName: string;
-  /** Email tài khoản LegacyVault của Chủ kho; bỏ trống thì mục I không nêu tài khoản. */
+  /** Email tài khoản LegacyVault của Chủ tài sản; bỏ trống thì mục I không nêu tài khoản. */
   ownerEmail?: string;
-  /** Lúc Chủ kho ký (kích hoạt kế hoạch). Chưa có nghĩa là Chủ kho chưa ký. */
+  /** Lúc Chủ tài sản ký (kích hoạt kế hoạch). Chưa có nghĩa là Chủ tài sản chưa ký. */
   signedAt?: string | null;
   /** Người thực thi hiện hành; null hoặc bỏ trống nghĩa là chưa có. */
   executor?: WillExecutorView | null;
   /**
-   * Người nhận theo từng người. Bỏ trống khi nơi xem không có dữ liệu này (ví dụ Người thực thi xem lời mời):
-   * mục II khi đó dùng câu chung.
+   * Người nhận theo từng người. Bỏ trống khi Backend chưa trả: mục II khi đó dùng câu chung.
    */
   recipients?: WillRecipientView[];
   /** Số tài sản chưa gán cho ai (sẽ không được bàn giao); chỉ hiện khi biết `recipients`. */
   unassignedAssetCount?: number;
   /**
-   * "owner": Chủ kho đang soạn, chỗ trống đỏ bấm được (khi có `onGapClick`).
+   * "owner": Chủ tài sản đang soạn, chỗ trống đỏ bấm được (khi có `onGapClick`).
    * "reader": chỉ đọc (Người thực thi xem trước, bản in), chỗ trống chỉ là chữ đỏ.
    */
   viewer?: "owner" | "reader";
-  /** Chủ kho bấm vào một chỗ trống: nơi gọi đóng khung xem trước rồi đưa tới thẻ cần điền. */
+  /** Chủ tài sản bấm vào một chỗ trống: nơi gọi đóng khung xem trước rồi đưa tới thẻ cần điền. */
   onGapClick?: (target: WillGapTarget) => void;
   /**
    * Tình trạng tải danh tính đầy đủ (ngày sinh, CCCD, thường trú). Mặc định "none": không hiện các dòng này
    * (Người thực thi xem lời mời không có dữ liệu này). "loading" hiện "Đang tải…", "error" ẩn các dòng.
    */
   identityStatus?: WillIdentityStatus;
-  /** Danh tính Chủ kho khi `identityStatus` = "ready"; null nghĩa là chưa có danh tính eKYC gắn với kho. */
+  /** Danh tính Chủ tài sản khi `identityStatus` = "ready"; null nghĩa là chưa có danh tính eKYC gắn với kho. */
   ownerIdentity?: WillOwnerIdentityView | null;
-  /** Phiên bản đã ký gần nhất; bỏ trống thì không in dòng phiên bản. */
-  version?: WillVersionView | null;
-  /** Số tài sản và người nhận khi người xem không được biết tên (Người thực thi); chỉ dùng khi không có `recipients`. */
-  counts?: { assets: number; recipients: number };
 }
 
 const SECTION = "mt-7";
@@ -81,7 +75,7 @@ function buildAssetRows(recipients: WillRecipientView[]): AssetRow[] {
 }
 
 /**
- * Chỗ còn thiếu: chữ đỏ. Chủ kho đang soạn (có `onGapClick`) thì là nút bấm được, kèm lời nhắc "bấm để điền".
+ * Chỗ còn thiếu: chữ đỏ. Chủ tài sản đang soạn (có `onGapClick`) thì là nút bấm được, kèm lời nhắc "bấm để điền".
  * Bản chỉ đọc và bản in chỉ hiện chữ đỏ.
  */
 function Gap({
@@ -130,7 +124,7 @@ function executorDisplayName(executor: WillExecutorView): string {
   return executor.email;
 }
 
-/** Mục I: Chủ kho. Thêm ngày sinh, CCCD và thường trú khi đã tải danh tính đầy đủ. */
+/** Mục I: Chủ tài sản. Thêm ngày sinh, CCCD và thường trú khi đã tải danh tính đầy đủ. */
 function OwnerSectionBlock({
   ownerName,
   ownerEmail,
@@ -154,7 +148,7 @@ function OwnerSectionBlock({
       // Không bịa: chưa có eKYC thì không có CCCD hay thường trú để in.
       missingNote = (
         <p className="mb-2 text-sm font-semibold text-heritage-danger">
-          Chưa có thông tin CCCD và nơi thường trú của Chủ kho (chưa có danh tính eKYC).
+          Chưa có thông tin CCCD và nơi thường trú của Chủ tài sản (chưa có danh tính eKYC).
         </p>
       );
     } else {
@@ -172,7 +166,7 @@ function OwnerSectionBlock({
   }
   return (
     <section id="muc-1" className={SECTION}>
-      <h3 className={HEADING}>I. Chủ kho</h3>
+      <h3 className={HEADING}>I. Chủ tài sản</h3>
       <InfoRows rows={rows} />
       {missingNote}
       <p className={`${BODY} mt-2`}>
@@ -214,23 +208,16 @@ function AssetsSectionBlock({
   recipients,
   unassignedAssetCount,
   identityStatus,
-  counts,
 }: {
   recipients: WillRecipientView[] | undefined;
   unassignedAssetCount: number;
   identityStatus: WillIdentityStatus;
-  counts: { assets: number; recipients: number } | undefined;
 }) {
   const heading = <h3 className={HEADING}>II. Tài sản và định đoạt tài sản</h3>;
   if (recipients === undefined) {
     return (
       <section id="muc-2" className={SECTION}>
         {heading}
-        {counts !== undefined && (
-          <p className={BODY}>
-            Kho có {counts.assets} tài sản. Số người nhận đã khai: {counts.recipients}.
-          </p>
-        )}
         <p className={BODY}>
           Các tài sản trong kho được để lại cho những người nhận tôi đã chọn, nếu có. Phần chưa chọn
           người nhận do luật sư xác định khi bàn giao. Biên bản phân chia không ghi nội dung tài
@@ -418,7 +405,7 @@ function SignatureBlock({
   executor: WillExecutorView | null;
 }) {
   const ownerWhen = formatTimeOnDate(signedAt);
-  let ownerStatus = "Chờ Chủ kho ký";
+  let ownerStatus = "Chờ Chủ tài sản ký";
   if (ownerWhen !== null) {
     ownerStatus = `Đã ký điện tử · ${ownerWhen}`;
   }
@@ -440,7 +427,7 @@ function SignatureBlock({
   return (
     <div className="mt-10 grid break-inside-avoid grid-cols-2 items-start gap-8 max-[480px]:grid-cols-1">
       <SignatureBox
-        title="Chủ kho"
+        title="Chủ tài sản"
         name={ownerName}
         statusText={ownerStatus}
         signed={ownerWhen !== null}
@@ -462,10 +449,10 @@ function SignatureBlock({
 
 /**
  * Biên bản phân chia số của một kho, sinh từ dữ liệu kế hoạch bàn giao: quốc hiệu, tiêu đề, bốn mục I đến IV, hai ô chữ ký
- * ngang hàng và câu lưu ý. Chỉ có tên và số đếm, không có tên hay nội dung tài sản, không có lời nhắn.
+ * ngang hàng và câu lưu ý. Có tên tài sản và người nhận, không có nội dung tài sản hay lời nhắn.
  *
- * Dùng chung cho khung xem trước của Chủ kho (viewer "owner", chỗ trống đỏ bấm được), bản Người thực thi xem khi nhận
- * lời mời và bản in (viewer "reader"). Hai chữ ký lấy từ dữ liệu thật: Chủ kho ký khi kích hoạt kế hoạch, Người thực
+ * Dùng chung cho khung xem trước của Chủ tài sản (viewer "owner", chỗ trống đỏ bấm được), bản Người thực thi xem và bản
+ * in (viewer "reader"). Hai chữ ký lấy từ dữ liệu thật: Chủ tài sản ký khi kích hoạt kế hoạch, Người thực
  * thi ký khi nhận lời mời; component không tự suy ra chữ ký.
  */
 export function WillDocument({
@@ -479,28 +466,16 @@ export function WillDocument({
   onGapClick,
   identityStatus = "none",
   ownerIdentity = null,
-  version = null,
-  counts,
 }: WillDocumentProps) {
   const clickable = viewer === "owner";
 
   const signedDate = formatLongDate(signedAt);
-  let dateText = "… tháng … năm … (điền tự động khi Chủ kho ký)";
+  let dateText = "… tháng … năm … (điền tự động khi Chủ tài sản ký)";
   if (viewer === "owner") {
     dateText = "… tháng … năm … (điền tự động khi bạn ký)";
   }
   if (signedDate !== null) {
     dateText = signedDate;
-  }
-
-  let versionLine: ReactNode = null;
-  if (version !== null) {
-    let versionText = `Phiên bản ${version.number}`;
-    const versionWhen = formatTimeOnDate(version.signedAt);
-    if (versionWhen !== null) {
-      versionText = `Phiên bản ${version.number} · ký lúc ${versionWhen}`;
-    }
-    versionLine = <p className="mt-1 text-center text-[15px] text-heritage-muted">{versionText}</p>;
   }
 
   return (
@@ -519,7 +494,6 @@ export function WillDocument({
         BIÊN BẢN PHÂN CHIA
       </h2>
       <p className="mt-3 text-center leading-7">Hôm nay, ngày {dateText}, tại LegacyVault.</p>
-      {versionLine}
 
       <OwnerSectionBlock
         ownerName={ownerName}
@@ -531,7 +505,6 @@ export function WillDocument({
         recipients={recipients}
         unassignedAssetCount={unassignedAssetCount}
         identityStatus={identityStatus}
-        counts={counts}
       />
       <ExecutorSectionBlock executor={executor} clickable={clickable} onGapClick={onGapClick} />
 

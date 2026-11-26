@@ -15,7 +15,7 @@ vi.mock("../../api/systemExecutorsService", async (importOriginal) => ({
 const VAULT_ID = "11111111-1111-4111-8111-111111111111";
 const KEY = {
   vaultId: VAULT_ID,
-  ownerFullName: "Chủ kho thử",
+  ownerFullName: "Chủ tài sản thử",
   version: 2,
   shard: "ABCD-EFGH-JKMN-PQRS",
   issuedAt: "2026-11-15T02:00:00Z",

@@ -85,7 +85,7 @@ export function AdminDevTools() {
         )}
         {vaults.isSuccess && vaults.data.length === 0 && (
           <p className="text-sm text-heritage-muted">
-            Chưa có kho nào. Tạo kho và kích hoạt kế hoạch bằng tài khoản Chủ kho trước.
+            Chưa có kho nào. Tạo kho và kích hoạt kế hoạch bằng tài khoản Chủ tài sản trước.
           </p>
         )}
         {vaults.isSuccess && vaults.data.length > 0 && (
@@ -155,7 +155,7 @@ export function AdminDevTools() {
       {dialog?.kind === "rewind" && (
         <AdminActionDialog
           title="Đưa kho về trước eKYC và mua gói?"
-          description={`${vaultLabel}: eKYC của Chủ kho sẽ bị xóa, gói dịch vụ trở về Free và các đơn thanh toán đang chờ bị hủy. Thao tác thay đổi dữ liệu của hồ sơ thử và không hoàn tác được. Chỉ dùng trên môi trường Development.`}
+          description={`${vaultLabel}: eKYC của Chủ tài sản sẽ bị xóa, gói dịch vụ trở về Free và các đơn thanh toán đang chờ bị hủy. Thao tác thay đổi dữ liệu của hồ sơ thử và không hoàn tác được. Chỉ dùng trên môi trường Development.`}
           submitLabel="Đưa về trước eKYC"
           fields={[]}
           defaultValues={{}}

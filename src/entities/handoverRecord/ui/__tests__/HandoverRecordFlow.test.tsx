@@ -179,7 +179,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     expect(screen.getByRole("button", { name: "Chốt và gửi thư" })).toBeEnabled();
   });
 
-  it("có biên bản phân chia của Chủ kho thì lấy làm bản đầu được", async () => {
+  it("có biên bản phân chia của Chủ tài sản thì lấy làm bản đầu được", async () => {
     const user = userEvent.setup();
     const { post } = backend(
       record({
@@ -190,9 +190,9 @@ describe("Luật sư lập biên bản (bước 1)", () => {
     );
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
-    expect(await screen.findByText("Chủ kho chia: Trần An")).toBeInTheDocument();
+    expect(await screen.findByText("Chủ tài sản chia: Trần An")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chốt và gửi thư" })).toBeDisabled();
-    await user.click(screen.getByRole("button", { name: "Lấy theo Chủ kho" }));
+    await user.click(screen.getByRole("button", { name: "Lấy theo Chủ tài sản" }));
     expect(post).toHaveBeenCalledWith(`/verifier/handover-records/${RECORD_ID}/use-owner-split`);
     expect(
       await screen.findByRole("button", { name: "Gỡ Trần An khỏi Sổ đỏ" }),
@@ -247,7 +247,7 @@ describe("Luật sư lập biên bản (bước 1)", () => {
 });
 
 const DEVIATION_LABEL =
-  "Biên bản này khác cách chia ban đầu của Chủ kho (danh sách trên). Tôi xác nhận việc thay đổi là theo di chúc hoặc quy định pháp luật và chịu trách nhiệm về căn cứ này. LegacyVault chỉ giao tài sản theo biên bản luật sư đã lập.";
+  "Biên bản này khác cách chia ban đầu của Chủ tài sản (danh sách trên). Tôi xác nhận việc thay đổi là theo di chúc hoặc quy định pháp luật và chịu trách nhiệm về căn cứ này. LegacyVault chỉ giao tài sản theo biên bản luật sư đã lập.";
 
 const differences = [
   {
@@ -324,7 +324,7 @@ describe("Danh sách chia tài sản", () => {
   });
 });
 
-describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ kho", () => {
+describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ tài sản", () => {
   it("không có khác biệt thì không hiện cảnh báo và chốt được sau khi tick căn cứ pháp lý", async () => {
     const user = userEvent.setup();
     backend(record());
@@ -333,7 +333,7 @@ describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ kh
     await confirmLegalBasis(user);
     expect(screen.queryByRole("checkbox", { name: DEVIATION_LABEL })).not.toBeInTheDocument();
     expect(
-      screen.queryByText("Biên bản khác cách chia ban đầu của Chủ kho"),
+      screen.queryByText("Biên bản khác cách chia ban đầu của Chủ tài sản"),
     ).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Chốt và gửi thư" })).toBeEnabled();
   });
@@ -348,7 +348,7 @@ describe("Luật sư xác nhận khi biên bản khác cách chia của Chủ kh
 
     expect(await screen.findByText("Thêm người nhận: Lê Bình")).toBeInTheDocument();
     expect(
-      screen.getByText("Sổ đỏ: Chủ kho chia cho Trần An → biên bản ghi không ai"),
+      screen.getByText("Sổ đỏ: Chủ tài sản chia cho Trần An → biên bản ghi không ai"),
     ).toBeInTheDocument();
     const finalize = screen.getByRole("button", { name: "Chốt và gửi thư" });
     await confirmLegalBasis(user);
@@ -947,7 +947,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
     expect(await screen.findByLabelText("Email (nhận thư mời)")).toHaveValue("an-khac@example.com");
     expect(screen.getByText(/Trong kho đã có người tên Trần An/)).toBeInTheDocument();
     expect(screen.getByText(/Trần Văn An \(trùng email với Trần An\)/)).toBeInTheDocument();
-    expect(screen.getByText("Chủ kho chia: Trần An")).toBeInTheDocument();
+    expect(screen.getByText("Chủ tài sản chia: Trần An")).toBeInTheDocument();
     // Người đang nhập làm biên bản khác cách chia: ô xác nhận hiện ngay, chưa cần gửi gì
     expect(screen.getByText("Thêm người nhận: Trần An")).toBeInTheDocument();
   });
@@ -982,7 +982,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
           code: "VALIDATION_ERROR",
           errors: {
             "recipients[0].email": [
-              "Người nhận mới 1: Email người nhận không được trùng với email của Chủ kho.",
+              "Người nhận mới 1: Email người nhận không được trùng với email của Chủ tài sản.",
             ],
           },
         },
@@ -999,7 +999,7 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
 
     // Kiểm tra
     expect(
-      await screen.findByText("Email người nhận không được trùng với email của Chủ kho."),
+      await screen.findByText("Email người nhận không được trùng với email của Chủ tài sản."),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Họ tên")).toHaveValue("Lê Văn Mới");
     expect(post).toHaveBeenCalledTimes(1);

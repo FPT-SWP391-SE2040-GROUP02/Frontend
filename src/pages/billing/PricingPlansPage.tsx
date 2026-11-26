@@ -120,7 +120,7 @@ export function PricingPlansPage() {
           <ServicePlansPanel
             catalog={PRICING_CATALOG}
             access="unavailable"
-            unavailableLabel="Gói dành cho chủ kho"
+            unavailableLabel="Gói dành cho chủ tài sản"
           />
         )}
       </OwnerWorkspace>

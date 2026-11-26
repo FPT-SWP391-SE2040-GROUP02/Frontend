@@ -34,7 +34,7 @@ export const devToolsService = {
       ),
     );
   },
-  /** Đưa kho về trước eKYC và mua gói: xóa eKYC của Chủ kho, trả gói về Free, hủy đơn đang chờ. */
+  /** Đưa kho về trước eKYC và mua gói: xóa eKYC của Chủ tài sản, trả gói về Free, hủy đơn đang chờ. */
   async rewindBeforeEkyc(vaultId: string) {
     return devRewindBeforeEkycSchema.parse(
       await apiClient.post<unknown, unknown>(`${vault(vaultId)}/rewind-before-ekyc`),

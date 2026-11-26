@@ -1,5 +1,4 @@
-import { type ComponentProps } from "react";
-import { useForm } from "react-hook-form";
+import { useController, useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { Input } from "@/shared/ui/input";
@@ -15,15 +14,20 @@ import {
   type SetPinFormValues,
   type VaultPinStatus,
 } from "../model/vaultPin.schema";
+import { NewPinPair } from "./NewPinPair";
+import { PinDotsField } from "./PinDotsField";
 import { PinKeypad } from "./PinKeypad";
 
-const LABEL = "block text-sm font-semibold";
-const FIELD = "min-h-11 bg-white font-normal tracking-[0.3em] placeholder:tracking-normal";
+const LABEL = "block text-center text-sm font-semibold text-heritage-primary";
 
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
-    <span id={id} role="alert" className="block text-sm font-normal text-destructive">
+    <span
+      id={id}
+      role="alert"
+      className="block text-center text-sm font-medium text-heritage-danger"
+    >
       {message}
     </span>
   );
@@ -38,41 +42,6 @@ function ServerError({ message }: { message: string }) {
     >
       {message}
     </p>
-  );
-}
-
-interface PinFieldProps extends Omit<
-  ComponentProps<"input">,
-  "type" | "inputMode" | "maxLength" | "autoComplete"
-> {
-  id: string;
-  label: string;
-  hint?: string;
-  error?: string;
-}
-
-/** Ô nhập mã PIN 6 chữ số: ẩn ký tự, bàn phím số, không cho trình duyệt tự điền. */
-export function PinField({ id, label, hint, error, ...props }: PinFieldProps) {
-  const errorId = `${id}-error`;
-  return (
-    <div className="space-y-1.5">
-      <label htmlFor={id} className={LABEL}>
-        {label}
-      </label>
-      <Input
-        id={id}
-        type="password"
-        inputMode="numeric"
-        autoComplete="off"
-        maxLength={PIN_LENGTH}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? errorId : undefined}
-        className={FIELD}
-        {...props}
-      />
-      {hint && !error && <span className="block text-sm text-heritage-muted">{hint}</span>}
-      <FieldError id={errorId} message={error} />
-    </div>
   );
 }
 
@@ -148,11 +117,10 @@ export function SetPinForm({ vaultId, onDone, onCancel, cancelLabel }: SetPinFor
   const action = usePrivateAction();
   const form = useForm<SetPinFormValues>({
     resolver: zodResolver(setPinFormSchema),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
     defaultValues: { pin: "", confirmPin: "" },
   });
-  const errors = form.formState.errors;
   return (
     <form
       noValidate
@@ -164,19 +132,13 @@ export function SetPinForm({ vaultId, onDone, onCancel, cancelLabel }: SetPinFor
         );
       })}
     >
-      <PinField
-        id="vault-pin-set"
-        label="Mã PIN mới"
-        hint="Đúng 6 chữ số, không dùng số giống nhau hoặc dãy liên tiếp."
+      <NewPinPair
+        form={form}
+        pinName="pin"
+        confirmName="confirmPin"
+        idPrefix="vault-pin-set"
+        confirmLabel="Nhập lại mã PIN"
         autoFocus
-        error={errors.pin?.message}
-        {...form.register("pin")}
-      />
-      <PinField
-        id="vault-pin-set-confirm"
-        label="Nhập lại mã PIN"
-        error={errors.confirmPin?.message}
-        {...form.register("confirmPin")}
       />
       <ServerError message={action.error} />
       <FormActions
@@ -187,6 +149,30 @@ export function SetPinForm({ vaultId, onDone, onCancel, cancelLabel }: SetPinFor
         cancelLabel={cancelLabel}
       />
     </form>
+  );
+}
+
+/** Ô PIN đang dùng ở form đổi PIN; đủ 6 số thì sang ô mã mới. Đúng hay sai do Backend kiểm lúc lưu. */
+function CurrentPinField({ form }: { form: UseFormReturn<ChangePinFormValues> }) {
+  const {
+    field: { ref, value, onChange, onBlur },
+    fieldState,
+  } = useController({ control: form.control, name: "currentPin" });
+  return (
+    <PinDotsField
+      ref={ref}
+      id="vault-pin-current"
+      label="Mã PIN hiện tại"
+      autoFocus
+      value={value}
+      error={fieldState.error?.message}
+      onBlur={onBlur}
+      onChange={(digits) => {
+        onChange(digits);
+        form.clearErrors("currentPin");
+        if (digits.length === PIN_LENGTH) form.setFocus("newPin");
+      }}
+    />
   );
 }
 
@@ -201,11 +187,10 @@ export function ChangePinForm({ vaultId, onDone, onCancel }: ChangePinFormProps)
   const action = usePrivateAction();
   const form = useForm<ChangePinFormValues>({
     resolver: zodResolver(changePinFormSchema),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
     defaultValues: { currentPin: "", newPin: "", confirmPin: "" },
   });
-  const errors = form.formState.errors;
   return (
     <form
       noValidate
@@ -214,25 +199,13 @@ export function ChangePinForm({ vaultId, onDone, onCancel }: ChangePinFormProps)
         void action.execute(() => vaultPinService.change(vaultId, values), onDone);
       })}
     >
-      <PinField
-        id="vault-pin-current"
-        label="Mã PIN hiện tại"
-        autoFocus
-        error={errors.currentPin?.message}
-        {...form.register("currentPin")}
-      />
-      <PinField
-        id="vault-pin-new"
-        label="Mã PIN mới"
-        hint="Đúng 6 chữ số, không dùng số giống nhau hoặc dãy liên tiếp."
-        error={errors.newPin?.message}
-        {...form.register("newPin")}
-      />
-      <PinField
-        id="vault-pin-new-confirm"
-        label="Nhập lại mã PIN mới"
-        error={errors.confirmPin?.message}
-        {...form.register("confirmPin")}
+      <CurrentPinField form={form} />
+      <NewPinPair
+        form={form}
+        pinName="newPin"
+        confirmName="confirmPin"
+        idPrefix="vault-pin-change"
+        confirmLabel="Nhập lại mã PIN mới"
       />
       <ServerError message={action.error} />
       <FormActions
@@ -257,8 +230,8 @@ export function ForgotPinForm({ vaultId, onDone, onCancel }: ForgotPinFormProps)
   const action = usePrivateAction();
   const form = useForm<ResetPinFormValues>({
     resolver: zodResolver(resetPinFormSchema),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
     defaultValues: { password: "", newPin: "", confirmPin: "" },
   });
   const errors = form.formState.errors;
@@ -283,25 +256,19 @@ export function ForgotPinForm({ vaultId, onDone, onCancel }: ForgotPinFormProps)
           autoComplete="current-password"
           autoFocus
           maxLength={128}
-          className="min-h-11 bg-white font-normal"
+          className="min-h-11 rounded-xl bg-white font-normal"
           aria-invalid={errors.password ? true : undefined}
           aria-describedby={errors.password ? "vault-pin-forgot-password-error" : undefined}
-          {...form.register("password")}
+          {...form.register("password", { onChange: () => form.clearErrors("password") })}
         />
         <FieldError id="vault-pin-forgot-password-error" message={errors.password?.message} />
       </div>
-      <PinField
-        id="vault-pin-forgot-new"
-        label="Mã PIN mới"
-        hint="Đúng 6 chữ số, không dùng số giống nhau hoặc dãy liên tiếp."
-        error={errors.newPin?.message}
-        {...form.register("newPin")}
-      />
-      <PinField
-        id="vault-pin-forgot-confirm"
-        label="Nhập lại mã PIN mới"
-        error={errors.confirmPin?.message}
-        {...form.register("confirmPin")}
+      <NewPinPair
+        form={form}
+        pinName="newPin"
+        confirmName="confirmPin"
+        idPrefix="vault-pin-forgot"
+        confirmLabel="Nhập lại mã PIN mới"
       />
       <ServerError message={action.error} />
       <FormActions

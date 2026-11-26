@@ -9,10 +9,10 @@ const HEADING = "mb-2 text-xs font-bold uppercase tracking-wider";
 
 function noteText(asset: DivisionAsset, hasOwnerSplit: boolean): string {
   if (asset.people.length === 0) {
-    return asset.differsFromOwner ? "Chưa chia (khác Chủ kho)" : "Chưa chia";
+    return asset.differsFromOwner ? "Chưa chia (khác Chủ tài sản)" : "Chưa chia";
   }
   if (!hasOwnerSplit) return "—";
-  return asset.differsFromOwner ? "Khác Chủ kho" : "Khớp Chủ kho";
+  return asset.differsFromOwner ? "Khác Chủ tài sản" : "Khớp Chủ tài sản";
 }
 
 /** Bản nháp biên bản bàn giao để luật sư soát và in ra trước khi chốt. Không phải biên bản đã ký. */
@@ -27,15 +27,15 @@ export function DivisionDraftSheet({
   const hasOwnerSplit = record.ownerSplit.length > 0;
   const divided = assets.filter((asset) => asset.people.length > 0).length;
   const differing = assets.filter((asset) => asset.differsFromOwner).length;
-  let ownerText = "Chủ kho chưa lập cách chia";
+  let ownerText = "Chủ tài sản chưa lập cách chia";
   if (hasOwnerSplit) {
     ownerText =
       differing > 0
-        ? `Có ${differing} tài sản khác dự kiến của Chủ kho`
-        : "Khớp dự kiến của Chủ kho";
+        ? `Có ${differing} tài sản khác dự kiến của Chủ tài sản`
+        : "Khớp dự kiến của Chủ tài sản";
   }
   const info: [string, string][] = [
-    ["Chủ kho tài sản", record.ownerName || "—"],
+    ["Chủ tài sản", record.ownerName || "—"],
     ["Luật sư lập biên bản", record.verifierName || "—"],
     [
       "Tổng số tài sản",
@@ -83,7 +83,7 @@ export function DivisionDraftSheet({
             <tr>
               <th className={HEAD}>STT</th>
               <th className={HEAD}>Tên tài sản</th>
-              <th className={HEAD}>Dự kiến của Chủ kho</th>
+              <th className={HEAD}>Dự kiến của Chủ tài sản</th>
               <th className={HEAD}>Người nhận theo biên bản</th>
               <th className={HEAD}>Đối chiếu</th>
             </tr>

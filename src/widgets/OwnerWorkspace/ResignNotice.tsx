@@ -7,7 +7,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 
 /**
  * Nhắc ký lại ở tab Phân chia: kế hoạch đã ký mà cấu hình hiện tại khác bản ký gần nhất (cờ do Backend tính,
- * dùng chung cache `plan-setup` với màn Bàn giao). Chỉ nhắc và dẫn sang màn Bàn giao, nơi Chủ kho xem trước và ký.
+ * dùng chung cache `plan-setup` với màn Bàn giao). Chỉ nhắc và dẫn sang màn Bàn giao, nơi Chủ tài sản xem trước và ký.
  * Chưa có dữ liệu, lỗi tải hoặc kế hoạch chưa ký thì không hiện gì, để không chặn trang chính.
  */
 export function ResignNotice({ vaultId }: { vaultId: string }) {

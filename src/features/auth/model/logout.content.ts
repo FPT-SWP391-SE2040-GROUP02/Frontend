@@ -4,7 +4,7 @@ import { ROLES, type Role } from "@/shared/constants/roles";
 export const LOGOUT_ROLE_LABELS: Record<Role, string> = {
   [ROLES.USER]: "Thành viên",
   [ROLES.ADMIN]: "Quản trị viên",
-  [ROLES.OWNER]: "Chủ kho di sản",
+  [ROLES.OWNER]: "Chủ tài sản",
   [ROLES.VERIFIER]: "Người xác minh",
   [ROLES.EXECUTOR]: "Người giám hộ di sản",
   [ROLES.BENEFICIARY]: "Người thụ hưởng",

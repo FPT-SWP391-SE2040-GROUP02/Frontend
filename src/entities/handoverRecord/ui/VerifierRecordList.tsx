@@ -73,7 +73,7 @@ export function VerifierRecordList({
                   Mã biên bản
                 </th>
                 <th scope="col" className={tableStyles.th}>
-                  Chủ kho
+                  Chủ tài sản
                 </th>
                 <th scope="col" className={tableStyles.th}>
                   Người nhận

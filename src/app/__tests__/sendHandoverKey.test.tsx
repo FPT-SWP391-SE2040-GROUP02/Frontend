@@ -212,7 +212,7 @@ it("Mở khung gửi mã: lỗi khác 409 HANDOVER_NOT_STARTED vẫn hiện như
   expect(screen.queryByText(NOT_STARTED_MESSAGE)).not.toBeInTheDocument();
 });
 
-it("thẻ Mã nhận của Người thực thi: 409 HANDOVER_NOT_STARTED hiện câu chờ, không dẫn tới phiếu của Chủ kho", async () => {
+it("thẻ Mã nhận của Người thực thi: 409 HANDOVER_NOT_STARTED hiện câu chờ, không dẫn tới phiếu của Chủ tài sản", async () => {
   const user = userEvent.setup();
   vi.spyOn(apiClient, "get").mockRejectedValue(notStartedProblem());
   render(

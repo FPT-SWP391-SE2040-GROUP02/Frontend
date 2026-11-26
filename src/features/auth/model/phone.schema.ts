@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /** Ghi chú dưới ô số điện thoại: số này được chia sẻ cho người nhận khi kế hoạch được kích hoạt. */
 export const PHONE_SHARING_HINT =
-  "Số điện thoại và email của bạn sẽ được gửi cho người nhận khi kế hoạch bàn giao mà bạn là Chủ kho hoặc Người thực thi được kích hoạt.";
+  "Số điện thoại và email của bạn sẽ được gửi cho người nhận khi kế hoạch bàn giao mà bạn là Chủ tài sản hoặc Người thực thi được kích hoạt.";
 
 /** Số điện thoại tối đa 20 ký tự, khớp giới hạn của Backend. */
 export const PHONE_MAX_LENGTH = 20;

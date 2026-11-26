@@ -1,7 +1,7 @@
 import { VAULT_PLAN_STATUS } from "./vault.types";
 
 /**
- * Lý do kho đang bị khóa với Chủ kho, theo trạng thái kế hoạch. Khớp VaultRules.GetNotEditableReason của Backend:
+ * Lý do kho đang bị khóa với Chủ tài sản, theo trạng thái kế hoạch. Khớp VaultRules.GetNotEditableReason của Backend:
  * từ lúc người nhận gửi yêu cầu nhận tài sản thì mọi thao tác thay đổi kho đều bị từ chối.
  */
 const LOCK_REASONS: Record<string, string> = {

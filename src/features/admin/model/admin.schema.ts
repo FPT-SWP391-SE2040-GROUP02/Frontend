@@ -64,7 +64,7 @@ export type AdminUser = z.infer<typeof adminUserSchema>;
 export const adminCaseKindSchema = z.enum(["HANDOVER_RECORD", "HANDOVER_REPORT"]);
 export type AdminCaseKind = z.infer<typeof adminCaseKindSchema>;
 
-/** Kho Người thực thi đang giữ (chỉ tài khoản EXECUTOR): chủ kho đã che tên, không có tài sản. */
+/** Kho Người thực thi đang giữ (chỉ tài khoản EXECUTOR): chủ tài sản đã che tên, không có tài sản. */
 export const adminHeldVaultSchema = z.object({
   vaultId: z.string().uuid(),
   ownerNameMasked: z.string(),
@@ -292,7 +292,7 @@ export const createAdminUserRequestSchema = z.object({
   phone: z.string().trim().max(32).optional(),
   practiceCertificateNumber: z.string().trim().max(64).optional(),
   lawyerCardNumber: z.string().trim().max(64).optional(),
-  /** Chỉ dùng cho EXECUTOR: vai trò chuyên môn và tổ chức hành nghề hiện trong danh bạ của Chủ kho. */
+  /** Chỉ dùng cho EXECUTOR: vai trò chuyên môn và tổ chức hành nghề hiện trong danh bạ của Chủ tài sản. */
   executorRoleTitle: z.string().trim().max(200).optional(),
   legalOrganization: z.string().trim().max(200).optional(),
 });

@@ -36,13 +36,13 @@ function VerifiedBadge() {
   );
 }
 
-/** Màn kết quả của Chủ kho khi xác minh đạt: tóm tắt từ trạng thái của máy chủ và gợi ý bước tiếp theo. */
+/** Màn kết quả của Chủ tài sản khi xác minh đạt: tóm tắt từ trạng thái của máy chủ và gợi ý bước tiếp theo. */
 export function EkycVerifiedCard({
   live,
   hidePurchaseStep,
 }: {
   live: z.infer<typeof ekycStatusSchema>;
-  /** Chủ kho đã có gói trả phí còn hiệu lực thì không nhắc mua gói nữa. */
+  /** Chủ tài sản đã có gói trả phí còn hiệu lực thì không nhắc mua gói nữa. */
   hidePurchaseStep?: boolean;
 }) {
   let completedAt = "Không có thông tin";

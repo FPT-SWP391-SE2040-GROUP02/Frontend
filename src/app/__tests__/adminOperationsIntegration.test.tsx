@@ -254,7 +254,7 @@ describe("Tài khoản", () => {
     });
   });
 
-  it("tạo và đổi sang vai trò EXECUTOR được (Người thực thi hệ thống cho danh bạ của Chủ kho)", async () => {
+  it("tạo và đổi sang vai trò EXECUTOR được (Người thực thi hệ thống cho danh bạ của Chủ tài sản)", async () => {
     usersBackend();
     setup(ROUTES.DASHBOARD.USERS);
     fireEvent.click(await screen.findByRole("button", { name: /Tạo tài khoản/ }));

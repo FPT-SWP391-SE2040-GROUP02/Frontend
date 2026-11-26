@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useSelector } from "react-redux";
 import { X } from "lucide-react";
 import type { z } from "zod";
@@ -10,8 +10,6 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/
 import { StatusBanner } from "@/shared/ui/status-banner";
 import { needsResign, pickOwnerSignedAt, pickWillExecutor } from "../lib/willView";
 import type { planSetupSchema } from "../model/planSetup.schema";
-import { readVaultPinFailure } from "@/shared/api/vaultPin";
-import { PIN_DIGITS } from "@/shared/ui/pin-input";
 import { useWillIdentity, WillPinNotConfirmedError } from "../model/useWillIdentity";
 import { PlanWillDocument } from "./PlanWillDocument";
 import { WillSignFooter, type WillSignNotice } from "./WillSignFooter";
@@ -30,7 +28,7 @@ function drawerTitle(setup: PlanSetup): string {
 }
 
 /**
- * Câu dưới nút "Xuất file PDF": nói vì sao nút khóa hoặc xác nhận đã đủ điều kiện. Chủ kho ký lúc kích hoạt kế hoạch,
+ * Câu dưới nút "Xuất file PDF": nói vì sao nút khóa hoặc xác nhận đã đủ điều kiện. Chủ tài sản ký lúc kích hoạt kế hoạch,
  * Người thực thi ký khi nhận vai; cả hai lấy từ dữ liệu thật của Backend. Tờ in phải có đủ danh tính và khớp bản ký.
  */
 function exportHint(
@@ -54,56 +52,11 @@ function exportHint(
   if (identityStatus === "error") {
     return "Cần tải được thông tin danh tính";
   }
-  if (identityStatus === "none") {
-    return "Nhập mã PIN để xuất";
-  }
   return "Đã đủ 2 chữ ký";
 }
 
 /** Dòng báo tình trạng tải danh tính phía trên tờ biên bản phân chia; không hiện khi đã tải xong. */
-function IdentityNotice({
-  status,
-  waitingForPin,
-  canReveal,
-  onReveal,
-  onRetry,
-}: {
-  status: WillIdentityStatus;
-  waitingForPin: boolean;
-  canReveal: boolean;
-  onReveal: () => void;
-  onRetry: () => void;
-}) {
-  if (status === "none" && waitingForPin) {
-    return (
-      <div
-        role="status"
-        className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-heritage-muted"
-      >
-        <p>
-          Nhập mã PIN của kho ở cuối khung rồi bấm nút để hiện ngày sinh, CCCD và nơi thường trú
-          trong biên bản phân chia.
-        </p>
-        <Button variant="outline" disabled={!canReveal} onClick={onReveal}>
-          Hiện thông tin đầy đủ
-        </Button>
-      </div>
-    );
-  }
-  if (status === "none") {
-    // Khung chỉ để xem mà người dùng đã đóng hộp PIN: đây là lựa chọn của họ, không phải lỗi.
-    return (
-      <div
-        role="status"
-        className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] text-heritage-muted"
-      >
-        <p>Chưa xác nhận mã PIN nên ngày sinh, CCCD và nơi thường trú đang ẩn.</p>
-        <Button variant="outline" onClick={onRetry}>
-          Nhập mã PIN
-        </Button>
-      </div>
-    );
-  }
+function IdentityNotice({ status, onRetry }: { status: WillIdentityStatus; onRetry: () => void }) {
   if (status === "loading") {
     return (
       <p role="status" className="mb-4 text-[13px] text-heritage-muted">
@@ -132,56 +85,22 @@ function IdentityNotice({
  * dung khi đóng nên truy vấn (gcTime 0) và thông báo ký bị xóa theo.
  */
 function WillDrawerBody({
-  open,
   onOpenChange,
   vaultId,
   setup,
   onGapClick,
+  identityQuery,
 }: {
-  open: boolean;
   onOpenChange: (open: boolean) => void;
   vaultId: string;
   setup: PlanSetup;
   onGapClick: (target: WillGapTarget) => void;
+  identityQuery: ReturnType<typeof useWillIdentity>;
 }) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   // Đã ký, chờ Người thực thi: khung chỉ để xem như bản đã ký.
   const isDraft = setup.planStatus === "DRAFT" && !setup.willAwaitingExecutor;
   const resignNeeded = needsResign(setup);
-  // Còn chân khung ký (nháp hoặc cần ký lại): PIN gõ ở ô ký cũng dùng để tải danh tính đầy đủ, không hỏi PIN lần hai.
-  // Khung chỉ để xem (đã ký, không có thay đổi) thì không có ô ký nên hỏi PIN bằng hộp thoại chung khi mở.
-  const hasSignFooter = isDraft || resignNeeded;
-  const pinRef = useRef("");
-  const [typedPin, setTypedPin] = useState("");
-  const identityQuery = useWillIdentity(
-    vaultId,
-    open && !hasSignFooter,
-    {
-      getPin: () => pinRef.current,
-      remember: (pin) => {
-        pinRef.current = pin;
-      },
-    },
-    hasSignFooter,
-  );
-  // PIN đã gửi đi ở lần bấm gần nhất: chỉ hiện lỗi PIN khi PIN đang gõ vẫn là PIN đó, và không gửi lại đúng PIN sai.
-  const [submittedPin, setSubmittedPin] = useState("");
-  const refetchIdentity = identityQuery.refetch;
-  const canReveal =
-    typedPin.length === PIN_DIGITS && typedPin !== submittedPin && !identityQuery.isFetching;
-  function revealIdentity(): void {
-    setSubmittedPin(typedPin);
-    void refetchIdentity();
-  }
-  let typedPinFailure = null;
-  if (
-    hasSignFooter &&
-    identityQuery.isError &&
-    !identityQuery.isFetching &&
-    typedPin === submittedPin
-  ) {
-    typedPinFailure = readVaultPinFailure(identityQuery.error);
-  }
   const [notice, setNotice] = useState<WillSignNotice | null>(null);
 
   let ownerFallback = { fullName: "", email: "" };
@@ -191,18 +110,8 @@ function WillDrawerBody({
   let identityStatus: WillIdentityStatus = "loading";
   if (identityQuery.data !== undefined) {
     identityStatus = "ready";
-  } else if (
-    hasSignFooter &&
-    (typedPin.length < PIN_DIGITS || typedPin !== submittedPin || typedPinFailure !== null)
-  ) {
-    // Chưa gõ đủ PIN, chưa bấm nút với PIN này, hoặc PIN sai: chưa có danh tính, không phải đang tải hay lỗi mạng.
-    identityStatus = "none";
   } else if (identityQuery.isError && !identityQuery.isFetching) {
-    if (identityQuery.error instanceof WillPinNotConfirmedError) {
-      identityStatus = "none";
-    } else {
-      identityStatus = "error";
-    }
+    identityStatus = "error";
   }
 
   const ownerSigned = pickOwnerSignedAt(setup) !== null;
@@ -273,13 +182,7 @@ function WillDrawerBody({
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto bg-heritage-border">
         <div className="px-3 py-5 sm:px-8 sm:py-8">
-          <IdentityNotice
-            status={identityStatus}
-            waitingForPin={hasSignFooter}
-            canReveal={canReveal}
-            onReveal={revealIdentity}
-            onRetry={() => void identityQuery.refetch()}
-          />
+          <IdentityNotice status={identityStatus} onRetry={() => void identityQuery.refetch()} />
           {/* Tờ giấy khổ A4 trên nền xám, giống khi mở file PDF. */}
           <article
             aria-label="Biên bản phân chia"
@@ -296,11 +199,6 @@ function WillDrawerBody({
               key={`${vaultId}:${setup.configVersion}:${setup.policyVersion}:${setup.planStatus}`}
               vaultId={vaultId}
               setup={setup}
-              onPinChange={(pin) => {
-                pinRef.current = pin;
-                setTypedPin(pin);
-              }}
-              externalPinFailure={typedPinFailure}
               onNotice={setNotice}
             />
           </div>
@@ -312,31 +210,57 @@ function WillDrawerBody({
 }
 
 /**
- * Khung xem trước biên bản phân chia hiện giữa màn hình, phóng to gần hết chiều cao (Base UI Dialog: giữ focus trong khung, Esc đóng, có aria-label).
- * Chân khung là phần ký bằng mã PIN: "Ký và gửi Người thực thi" khi kế hoạch còn nháp, "Ký phiên bản mới" khi kế hoạch đang chạy
- * mà có thay đổi chưa ký; kế hoạch đang chạy không có thay đổi thì khung chỉ để xem và xuất. Danh tính đầy đủ (CCCD, ngày
- * sinh, thường trú) tải khi khung mở; chưa có thì nút xuất khóa. Chỗ trống đỏ trong biên bản phân chia gọi `onGapClick` để nơi dùng
- * đóng khung và đưa tới đúng thẻ cần điền. `finalFocus` cho nơi dùng chọn phần tử nhận focus khi khung đóng.
+ * Một lượt mở khung. Hỏi mã PIN trước (hộp PIN chung); chỉ khi PIN đúng khung mới hiện, đóng hộp PIN hoặc PIN bị khóa
+ * thì đóng luôn. Lỗi khác (mạng) vẫn hiện khung kèm nút Thử lại. Danh tính (CCCD đầy đủ) chỉ tồn tại trong lượt mở
+ * này: lượt kết thúc thì truy vấn (gcTime 0) bị xóa.
  */
-export function WillPreviewDrawer({
+function WillDrawerSession({
   open,
   onOpenChange,
   onOpenChangeComplete,
+  onClosed,
   finalFocus,
   vaultId,
   setup,
   onGapClick,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onOpenChangeComplete: (open: boolean) => void;
-  finalFocus: () => HTMLElement | null;
-  vaultId: string;
-  setup: PlanSetup;
-  onGapClick: (target: WillGapTarget) => void;
-}) {
+}: WillPreviewDrawerProps & { onClosed: () => void }) {
+  // PIN vừa xác nhận, chỉ giữ trong RAM để tải lại danh tính sau khi ký mà không hỏi lần nữa.
+  const pinRef = useRef("");
+  const identityQuery = useWillIdentity(vaultId, open, {
+    getPin: () => pinRef.current,
+    remember: (pin) => {
+      pinRef.current = pin;
+    },
+  });
+  const hasData = identityQuery.data !== undefined;
+  const refused = !hasData && identityQuery.error instanceof WillPinNotConfirmedError;
+  // Đã hiện rồi thì giữ nguyên khung trong lúc tải lại (nút Thử lại).
+  const [shown, setShown] = useState(false);
+  if (!shown && !refused && (hasData || identityQuery.isError)) {
+    setShown(true);
+  }
+
+  useEffect(() => {
+    if (refused) {
+      onOpenChange(false);
+    }
+    // Chưa từng hiện khung thì không có hoạt ảnh đóng để chờ.
+    if (refused || (!open && !shown)) {
+      onClosed();
+    }
+  }, [refused, open, shown, onOpenChange, onClosed]);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} onOpenChangeComplete={onOpenChangeComplete}>
+    <Dialog
+      open={open && shown && !refused}
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={(isOpen) => {
+        onOpenChangeComplete(isOpen);
+        if (!isOpen && !open) {
+          onClosed();
+        }
+      }}
+    >
       <DialogContent
         showCloseButton={false}
         aria-label={drawerTitle(setup)}
@@ -350,13 +274,43 @@ export function WillPreviewDrawer({
         className="flex h-[calc(100vh-2rem)] w-full max-w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-[960px] motion-reduce:animate-none"
       >
         <WillDrawerBody
-          open={open}
           onOpenChange={onOpenChange}
           vaultId={vaultId}
           setup={setup}
           onGapClick={onGapClick}
+          identityQuery={identityQuery}
         />
       </DialogContent>
     </Dialog>
   );
+}
+
+interface WillPreviewDrawerProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onOpenChangeComplete: (open: boolean) => void;
+  finalFocus: () => HTMLElement | null;
+  vaultId: string;
+  setup: PlanSetup;
+  onGapClick: (target: WillGapTarget) => void;
+}
+
+/**
+ * Khung xem trước biên bản phân chia hiện giữa màn hình, phóng to gần hết chiều cao (Base UI Dialog: giữ focus trong khung, Esc đóng, có aria-label).
+ * Phải nhập đúng mã PIN của kho mới xem được. Chân khung là phần ký bằng mã PIN: "Ký và gửi Người thực thi" khi kế
+ * hoạch còn nháp, "Ký phiên bản mới" khi kế hoạch đang chạy mà có thay đổi chưa ký; kế hoạch đang chạy không có thay đổi
+ * thì khung chỉ để xem và xuất. Chỗ trống đỏ trong biên bản phân chia gọi `onGapClick` để nơi dùng đóng khung và đưa tới
+ * đúng thẻ cần điền. `finalFocus` cho nơi dùng chọn phần tử nhận focus khi khung đóng.
+ */
+export function WillPreviewDrawer(props: WillPreviewDrawerProps) {
+  // Giữ lượt mở tới khi khung đóng hẳn để còn hoạt ảnh đóng.
+  const [alive, setAlive] = useState(false);
+  if (props.open && !alive) {
+    setAlive(true);
+  }
+  const [endSession] = useState(() => () => setAlive(false));
+  if (!alive) {
+    return null;
+  }
+  return <WillDrawerSession {...props} onClosed={endSession} />;
 }

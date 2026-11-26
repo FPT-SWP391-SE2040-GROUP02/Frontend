@@ -43,7 +43,7 @@ const invitationFixture = {
 };
 const directoryFixture = [
   ["executor@example.test", "Luật sư Một"],
-  ["fixture@example.test", "Chủ kho"],
+  ["fixture@example.test", "Chủ tài sản"],
   ["moi@example.test", "Luật sư Mới"],
 ].map(([email, fullName], index) => ({
   id: `00000000-0000-4000-8000-00000000000${index + 1}`,
@@ -148,7 +148,7 @@ it("missing eKYC and Executor keep activation disabled even after acknowledgemen
   const post = vi.spyOn(apiClient, "post");
   setup(<PlanSetupPanel vaultId={VAULT_ID} />);
   expect(
-    await screen.findByText("Chủ kho cần hoàn tất xác minh danh tính eKYC."),
+    await screen.findByText("Chủ tài sản cần hoàn tất xác minh danh tính eKYC."),
   ).toBeInTheDocument();
   await openPreview();
   fireEvent.click(screen.getByRole("checkbox"));
@@ -531,7 +531,7 @@ it("Người thực thi: rào lỗi ngay trên form nếu Owner tự mời chín
   fireEvent.click(await screen.findByRole("button", { name: "Chọn Người thực thi" }));
   const dialog = await screen.findByRole("dialog");
   expect(
-    await within(dialog).findByRole("button", { name: "Chọn người này: Chủ kho" }),
+    await within(dialog).findByRole("button", { name: "Chọn người này: Chủ tài sản" }),
   ).toBeDisabled();
   expect(within(dialog).getByText("Đây là tài khoản của bạn.")).toBeInTheDocument();
   expect(post).not.toHaveBeenCalled();

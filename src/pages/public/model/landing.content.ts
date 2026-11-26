@@ -102,13 +102,13 @@ export const LANDING_CONTENT = {
         detail:
           "Người nhận gửi yêu cầu kèm giấy tờ, luật sư xét và lập biên bản bàn giao, Người thực thi giữ mã, Người nhận được xác minh danh tính. Hai vai đầu không đọc được nội dung kho.",
         points: [
-          "Chủ kho là người duy nhất lập và sửa kho",
+          "Chủ tài sản là người duy nhất lập và sửa kho",
           "Người thực thi và luật sư không mở được nội dung",
           "Người nhận chỉ được mở sau khi được xác minh danh tính",
         ],
         visualTitle: "Các vai trong kế hoạch",
         rows: [
-          { title: "Chủ kho", detail: "Lập kho, chọn người" },
+          { title: "Chủ tài sản", detail: "Lập kho, chọn người" },
           { title: "Người thực thi", detail: "Giữ mã, ký biên bản, gửi mã" },
           { title: "Luật sư", detail: "Lập biên bản bàn giao" },
           { title: "Người nhận", detail: "Xác minh rồi tải về" },
@@ -168,7 +168,7 @@ export const LANDING_CONTENT = {
     steps: [
       {
         title: "Lập kho",
-        detail: "Chủ kho ghi lại tài sản số, tài liệu và lời nhắn, rồi chọn người nhận.",
+        detail: "Chủ tài sản ghi lại tài sản số, tài liệu và lời nhắn, rồi chọn người nhận.",
       },
       {
         title: "Chỉ định Người thực thi",
@@ -220,7 +220,8 @@ export const LANDING_CONTENT = {
     },
     {
       title: "Xác minh ở mức cơ bản",
-      detail: "eKYC giúp nhận diện Chủ kho, nhưng chưa có giá trị pháp lý như thủ tục công chứng.",
+      detail:
+        "eKYC giúp nhận diện Chủ tài sản, nhưng chưa có giá trị pháp lý như thủ tục công chứng.",
     },
     {
       title: "Không thay thế di chúc",

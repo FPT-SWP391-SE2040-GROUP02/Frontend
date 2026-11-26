@@ -13,7 +13,7 @@ const NOTE_MAX_LENGTH = 1000;
 /** Ba bước người nhận đọc trước khi gửi yêu cầu. */
 const REQUEST_STEPS = [
   "Đính kèm di chúc (bắt buộc) và giấy tờ khác nếu có.",
-  "Hệ thống báo cho Chủ kho, Người thực thi và phân công một luật sư.",
+  "Hệ thống báo cho Chủ tài sản, Người thực thi và phân công một luật sư.",
   "Luật sư xét giấy tờ: chấp nhận (lúc này kho mới khóa), yêu cầu bổ sung hoặc từ chối có lý do.",
 ];
 
@@ -60,18 +60,20 @@ export function RequestForm({
           </li>
         ))}
       </ol>
-      <div className="space-y-2">
+      <div className="space-y-5">
         <DocumentPicker
           label="Di chúc (bắt buộc)"
           files={wills}
           onChange={setWills}
           disabled={submit.pending}
+          reserved={files.length}
         />
         <DocumentPicker
           label="Giấy tờ khác (nếu có)"
           files={files}
           onChange={setFiles}
           disabled={submit.pending}
+          reserved={wills.length}
         />
         {touched && fileError && (
           <p role="alert" className="text-sm text-destructive">

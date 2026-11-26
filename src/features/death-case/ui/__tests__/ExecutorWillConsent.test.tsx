@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import authReducer from "@/entities/user/model/authSlice";
+import { executorWillService } from "@/entities/will/api/executorWillService";
 import { deathCaseService } from "../../api/deathCaseService";
 import { ExecutorWillConsent } from "../ExecutorWillConsent";
 
@@ -15,6 +16,15 @@ const VAULT_ID = "22222222-2222-4222-8222-222222222222";
 beforeEach(() => {
   accessTokenMemory.set("will-consent-fixture");
   vi.spyOn(deathCaseService, "respondWill").mockResolvedValue(undefined);
+  vi.spyOn(executorWillService, "get").mockResolvedValue({
+    versionNo: 2,
+    signedAt: AT,
+    ownerName: "Nguyễn Chủ Kho",
+    ownerEmail: "chu@example.test",
+    recipients: [],
+    unassignedAssetCount: 0,
+    identity: { owner: null, recipients: [] },
+  });
 });
 afterEach(() => {
   cleanup();
@@ -44,11 +54,17 @@ function setup(extra: Record<string, unknown>) {
   );
 }
 
+/** Mở biên bản, đợi tờ hiện ra rồi đóng: lúc đó mới tính là đã đọc. */
+async function readPaper(): Promise<void> {
+  await userEvent.click(screen.getByRole("button", { name: "Xem biên bản với Chủ tài sản" }));
+  expect(await screen.findAllByText("III. Người thực thi")).not.toHaveLength(0);
+  await userEvent.click(screen.getByRole("button", { name: "Đóng" }));
+}
+
 it("phải mở biên bản rồi mới đồng ý và ký được", async () => {
   setup({ willConsentRequired: true });
   expect(screen.getByRole("button", { name: "Không đồng ý" })).toBeDisabled();
-  await userEvent.click(screen.getByRole("button", { name: "Xem biên bản với Chủ kho" }));
-  await userEvent.click(await screen.findByRole("button", { name: "Đóng" }));
+  await readPaper();
   await userEvent.type(screen.getByLabelText("Mật khẩu tài khoản"), "mat-khau-thu");
   await userEvent.click(screen.getByRole("button", { name: "Đồng ý và ký" }));
   await waitFor(() =>
@@ -58,8 +74,7 @@ it("phải mở biên bản rồi mới đồng ý và ký được", async () =
 
 it("không đồng ý thì hỏi lại; chỉ gửi khi xác nhận", async () => {
   setup({ willConsentRequired: true });
-  await userEvent.click(screen.getByRole("button", { name: "Xem biên bản với Chủ kho" }));
-  await userEvent.click(await screen.findByRole("button", { name: "Đóng" }));
+  await readPaper();
   await userEvent.click(screen.getByRole("button", { name: "Không đồng ý" }));
   await userEvent.click(await screen.findByRole("button", { name: "Quay lại" }));
   expect(deathCaseService.respondWill).not.toHaveBeenCalled();

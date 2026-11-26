@@ -62,7 +62,7 @@ function renderPage() {
   );
 }
 
-describe("trang người nhận của Chủ kho", () => {
+describe("trang người nhận của Chủ tài sản", () => {
   it("gói Miễn phí: Thêm người nhận mở hộp thoại cần gói trả phí thay cho form", async () => {
     mockVault({ serviceTier: "FREE" });
     renderPage();

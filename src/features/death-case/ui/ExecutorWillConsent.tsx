@@ -13,7 +13,7 @@ import { SigningStep, SigningSteps, type SigningStepState } from "@/shared/ui/Si
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
 /**
- * Chủ kho ký lại biên bản phân chia: Người thực thi phải mở xem rồi đồng ý (ký bằng mật khẩu) hoặc không đồng ý.
+ * Chủ tài sản ký lại biên bản phân chia: Người thực thi phải mở xem rồi đồng ý (ký bằng mật khẩu) hoặc không đồng ý.
  * Đã không đồng ý thì chỉ nhắc lại, vẫn giữ vai theo bản đã ký trước. Không có gì để trả lời thì không hiện.
  */
 export function ExecutorWillConsent({ vault }: { vault: ExecutorVault }) {
@@ -21,8 +21,8 @@ export function ExecutorWillConsent({ vault }: { vault: ExecutorVault }) {
   if (versionNo && vault.declinedWillVersionNo === versionNo) {
     return (
       <Notice tone="warning" title={`Bạn không đồng ý biên bản phiên bản ${versionNo}`}>
-        Chủ kho đã được báo. Bạn vẫn giữ vai theo bản đã ký trước cho tới khi có người thay hoặc Chủ
-        kho ký bản khác.
+        Chủ tài sản đã được báo. Bạn vẫn giữ vai theo bản đã ký trước cho tới khi có người thay hoặc
+        Chủ tài sản ký bản khác.
       </Notice>
     );
   }
@@ -68,7 +68,7 @@ function ConsentForm({ vault, versionNo }: { vault: ExecutorVault; versionNo: nu
           setPasswordError("Vui lòng nhập mật khẩu tài khoản để ký.");
           return;
         }
-        // Chủ kho vừa ký bản khác hoặc kế hoạch đổi trạng thái: tải lại tờ mới nhất.
+        // Chủ tài sản vừa ký bản khác hoặc kế hoạch đổi trạng thái: tải lại tờ mới nhất.
         void client.invalidateQueries({ queryKey: executorVaultsKey });
       },
     );

@@ -27,6 +27,6 @@ describe("endedStatusLabel", () => {
   it("names each ended status", () => {
     expect(endedStatusLabel("DECLINED")).toBe("Đã từ chối");
     expect(endedStatusLabel("EXPIRED")).toBe("Đã hết hạn");
-    expect(endedStatusLabel("REVOKED")).toBe("Chủ kho đã thu hồi");
+    expect(endedStatusLabel("REVOKED")).toBe("Chủ tài sản đã thu hồi");
   });
 });

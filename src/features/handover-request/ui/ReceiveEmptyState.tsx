@@ -9,7 +9,7 @@ const COPIED_MS = 2000;
 
 type CopyState = "idle" | "done" | "failed";
 
-/** Email Chủ kho cần khai để kho hiện ở trang này, kèm trạng thái xác minh và nút sao chép. */
+/** Email Chủ tài sản cần khai để kho hiện ở trang này, kèm trạng thái xác minh và nút sao chép. */
 function ReceiveEmailCard({ email, verified }: { email: string; verified: boolean }) {
   const [copyState, setCopyState] = useState<CopyState>("idle");
 
@@ -77,7 +77,7 @@ function ReceiveEmailCard({ email, verified }: { email: string; verified: boolea
   );
 }
 
-/** Trạng thái chưa có kho: nói khi nào kho hiện ra và đưa sẵn email để gửi cho Chủ kho. */
+/** Trạng thái chưa có kho: nói khi nào kho hiện ra và đưa sẵn email để gửi cho Chủ tài sản. */
 export function ReceiveEmptyState() {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   return (
@@ -90,15 +90,15 @@ export function ReceiveEmptyState() {
           Hiện tại bạn chưa là người nhận của kho nào
         </h2>
         <p className="text-sm leading-6 text-heritage-muted">
-          Một kho sẽ hiện ở đây khi Chủ kho khai đúng email đã xác minh của bạn làm người nhận và
-          kích hoạt kế hoạch bàn giao.
+          Một kho sẽ hiện ở đây khi Chủ tài sản khai đúng email đã xác minh của bạn làm người nhận
+          và kích hoạt kế hoạch bàn giao.
         </p>
       </div>
       {user && (
         <>
           <ReceiveEmailCard email={user.email} verified={user.emailVerified === true} />
           <p className="text-sm text-heritage-muted">
-            Gửi email này cho Chủ kho để họ khai bạn làm người nhận.
+            Gửi email này cho Chủ tài sản để họ khai bạn làm người nhận.
           </p>
         </>
       )}

@@ -66,7 +66,7 @@ function draftChip(setup: PlanSetup): string {
   return "Kế hoạch chưa kích hoạt";
 }
 
-/** Bước ký của kế hoạch: nháp, Chủ kho đã ký đang chờ Người thực thi, hoặc trạng thái máy chủ trả. */
+/** Bước ký của kế hoạch: nháp, Chủ tài sản đã ký đang chờ Người thực thi, hoặc trạng thái máy chủ trả. */
 function signingStage(setup: PlanSetup): string {
   if (setup.planStatus === "DRAFT" && setup.willAwaitingExecutor) {
     return "AWAITING_EXECUTOR";
@@ -74,7 +74,7 @@ function signingStage(setup: PlanSetup): string {
   return setup.planStatus;
 }
 
-/** Chủ kho vừa ký (nháp sang chờ ký) hoặc kế hoạch vừa có hiệu lực. */
+/** Chủ tài sản vừa ký (nháp sang chờ ký) hoặc kế hoạch vừa có hiệu lực. */
 function isSigningProgress(from: string | null, to: string): boolean {
   if (from === "DRAFT") {
     return to === "AWAITING_EXECUTOR" || to === "ACTIVE";
@@ -116,7 +116,7 @@ function DraftView({
   );
 }
 
-/** Thẻ "Kế hoạch đang áp dụng": lúc Chủ kho ký kích hoạt và lối sửa phần phân chia, người nhận. */
+/** Thẻ "Kế hoạch đang áp dụng": lúc Chủ tài sản ký kích hoạt và lối sửa phần phân chia, người nhận. */
 function ActivePlanCard({ setup }: { setup: PlanSetup }) {
   const activatedAt = setup.activatedAt;
   let activatedText = "Chưa có";
@@ -204,9 +204,9 @@ function RunningView({
 }
 
 /**
- * Trang Bàn giao của Chủ kho. Cột trái là các thẻ việc, cột phải là tiến độ và nút xem trước biên bản phân chia; biên bản phân chia (sinh từ
+ * Trang Bàn giao của Chủ tài sản. Cột trái là các thẻ việc, cột phải là tiến độ và nút xem trước biên bản phân chia; biên bản phân chia (sinh từ
  * kế hoạch, cả bản nháp lẫn đã ký) trượt ra từ bên phải, ký bằng PIN ở chân khung. Kế hoạch đã chạy thêm kế
- * hoạch đang áp dụng, mã nhận (hệ thống tự giữ, Chủ kho chỉ đổi mã mới) và tiến trình bàn giao. Quyền và trạng thái
+ * hoạch đang áp dụng, mã nhận (hệ thống tự giữ, Chủ tài sản chỉ đổi mã mới) và tiến trình bàn giao. Quyền và trạng thái
  * luôn do Backend quyết định.
  */
 export function OwnerHandoverOverview({ vaultId }: { vaultId: string }) {

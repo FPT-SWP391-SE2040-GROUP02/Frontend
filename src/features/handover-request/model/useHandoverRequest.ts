@@ -79,7 +79,7 @@ export function useAvailableHandovers() {
   });
 }
 
-/** Yêu cầu nhận tài sản đang mở của kho (Chủ kho); null khi không có. */
+/** Yêu cầu nhận tài sản đang mở của kho (Chủ tài sản); null khi không có. */
 export function useOwnerRequest(vaultId: string) {
   return useQuery({
     queryKey: handoverRequestKeys.owner(vaultId),

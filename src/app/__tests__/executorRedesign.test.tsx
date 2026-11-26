@@ -421,7 +421,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
   it("Tài sản và hướng dẫn: hiện hướng dẫn, gom theo người nhận, chip và tìm kiếm", async () => {
     mockApi();
     render2(<ExecutorAssetsPage />, "/executor/assets");
-    expect(await screen.findByText("Hướng dẫn bàn giao từ Chủ kho")).toBeInTheDocument();
+    expect(await screen.findByText("Hướng dẫn bàn giao từ Chủ tài sản")).toBeInTheDocument();
     const note = screen.getByText(/Gọi cô Lan trước\./);
     expect(note).toHaveClass("whitespace-pre-line");
     expect(screen.getByText("Cập nhật 05/11/2025".replace("2025", "2026"))).toBeInTheDocument();
@@ -471,8 +471,26 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     endedAt: "2026-11-02T03:00:00Z",
   };
 
+  const paper = {
+    versionNo: 1,
+    signedAt: "2026-11-01T04:00:00Z",
+    ownerName: "Cô Lan",
+    ownerEmail: "lan@example.test",
+    recipients: [],
+    unassignedAssetCount: 0,
+    identity: { owner: null, recipients: [] },
+  };
+
+  /** Mở biên bản, đợi tờ hiện ra rồi đóng: lúc đó mới tính là đã đọc. */
+  async function readPaper(card: HTMLElement): Promise<void> {
+    fireEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
+    expect(await screen.findAllByText("III. Người thực thi")).not.toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: "Đóng" }));
+  }
+
   function mockApi(held: unknown[]) {
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url.endsWith("/will")) return paper;
       if (url === "/executor/vaults") return held;
       if (url.includes("executor-invitations")) {
         return { scopeVersion: "v1", scopeText: "x", pending: [invitation], ended: [ended] };
@@ -505,8 +523,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     const password = within(card).getByLabelText("Mật khẩu tài khoản");
     expect(password).toBeDisabled();
     expect(password).toHaveAttribute("placeholder", "Mở biên bản trước");
-    fireEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Đóng" }));
+    await readPaper(card);
     fireEvent.click(
       within(card).getByLabelText(
         "Tôi đã đọc biên bản phân chia, phạm vi công việc và đồng ý nhận vai Người thực thi",
@@ -531,7 +548,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
     fireEvent.click(within(card).getByRole("button", { name: "Từ chối" }));
     const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent("Chủ kho phải gửi lời mời mới");
+    expect(dialog).toHaveTextContent("Chủ tài sản phải gửi lời mời mới");
     fireEvent.click(within(dialog).getByRole("button", { name: "Quay lại" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(post).not.toHaveBeenCalled();
@@ -543,6 +560,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
   it("chấp nhận xong gọi Backend và tải lại danh sách kho; kho mới hiện ở Kho bạn đang giữ", async () => {
     let held: unknown[] = [];
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url.endsWith("/will")) return paper;
       if (url === "/executor/vaults") return held;
       if (url.includes("executor-invitations")) {
         return { scopeVersion: "v1", scopeText: "x", pending: [invitation], ended: [] };
@@ -571,8 +589,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     });
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
-    fireEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Đóng" }));
+    await readPaper(card);
     fireEvent.click(
       within(card).getByLabelText(
         "Tôi đã đọc biên bản phân chia, phạm vi công việc và đồng ý nhận vai Người thực thi",

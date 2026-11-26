@@ -88,7 +88,7 @@ export function RegisterForm({
     if (rejected === name) setRejected(null);
   };
 
-  // Ghi chú chia sẻ số điện thoại chỉ hiện với Chủ kho và Người thực thi; người nhận không thấy.
+  // Ghi chú chia sẻ số điện thoại chỉ hiện với Chủ tài sản và Người thực thi; người nhận không thấy.
   let phoneHint: string | undefined = undefined;
   if (!fromInvitation) {
     phoneHint = PHONE_SHARING_HINT;

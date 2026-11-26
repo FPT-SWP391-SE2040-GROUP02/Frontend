@@ -8,6 +8,7 @@ import { Provider } from "react-redux";
 import authReducer from "@/entities/user/model/authSlice";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { executorWillService } from "@/entities/will/api/executorWillService";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { formatDateTime } from "@/shared/lib/dateFormat";
 import { planSetupService } from "../../api/planSetupService";
@@ -18,6 +19,9 @@ import { MyInvitationsBanner } from "../MyInvitationsBanner";
 vi.mock("../../api/planSetupService", () => ({
   planSetupService: { mine: vi.fn(), respondById: vi.fn() },
 }));
+vi.mock("@/entities/will/api/executorWillService", () => ({
+  executorWillService: { get: vi.fn() },
+}));
 
 const FIRST_ID = "11111111-1111-4111-8111-111111111111";
 const SECOND_ID = "22222222-2222-4222-8222-222222222222";
@@ -26,7 +30,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 function invitation(overrides: Partial<MyInvitation> = {}): MyInvitation {
   return {
     id: FIRST_ID,
-    ownerName: "Chủ kho thử nghiệm",
+    ownerName: "Chủ tài sản thử nghiệm",
     inviteeEmail: "nguoi-duoc-moi@example.test",
     status: "INVITED",
     invitedAt: "2026-11-01T00:00:00Z",
@@ -70,6 +74,15 @@ beforeEach(() => {
   vi.resetAllMocks();
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   accessTokenMemory.set("invitation-fixture");
+  vi.mocked(executorWillService.get).mockResolvedValue({
+    versionNo: 2,
+    signedAt: "2026-11-02T00:00:00Z",
+    ownerName: "Chủ tài sản thử nghiệm",
+    ownerEmail: "chu@example.test",
+    recipients: [],
+    unassignedAssetCount: 0,
+    identity: { owner: null, recipients: [] },
+  });
 });
 afterEach(() => {
   cleanup();
@@ -97,7 +110,7 @@ function renderWithRoutes(element: ReactNode) {
 async function readPaper(card: HTMLElement): Promise<void> {
   await userEvent.click(within(card).getByRole("button", { name: "Xem biên bản phân chia" }));
   const paper = await screen.findByRole("article", { name: "Tờ Biên bản phân chia" });
-  expect(paper).toHaveTextContent("Kho có 3 tài sản. Số người nhận đã khai: 1.");
+  expect(await within(paper).findByText("III. Người thực thi")).toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Đóng" }));
 }
 
@@ -115,7 +128,7 @@ describe("MyInvitationsInbox", () => {
       etag: "e",
     });
     renderWithRoutes(<MyInvitationsInbox />);
-    const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
+    const card = await screen.findByRole("article", { name: "Lời mời của Chủ tài sản thử nghiệm" });
     expect(within(card).getByText("Còn 5 ngày")).toBeInTheDocument();
     const accept = within(card).getByRole("button", { name: SIGN_BUTTON });
     expect(accept).toBeDisabled();
@@ -148,7 +161,7 @@ describe("MyInvitationsInbox", () => {
   it("declines without asking for the scope acknowledgement", async () => {
     vi.mocked(planSetupService.mine).mockResolvedValue(data({ pending: [invitation()] }));
     renderWithRoutes(<MyInvitationsInbox />);
-    const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
+    const card = await screen.findByRole("article", { name: "Lời mời của Chủ tài sản thử nghiệm" });
     await userEvent.click(within(card).getByRole("button", { name: "Từ chối" }));
     // Hỏi lại trước khi gửi.
     expect(planSetupService.respondById).not.toHaveBeenCalled();
@@ -163,25 +176,25 @@ describe("MyInvitationsInbox", () => {
     );
   });
 
-  it("Chủ kho chưa ký thì chỉ báo chờ, không ký được", async () => {
+  it("Chủ tài sản chưa ký thì chỉ báo chờ, không ký được", async () => {
     vi.mocked(planSetupService.mine).mockResolvedValue(
       data({ pending: [invitation({ willReady: false, willVersionNo: null })] }),
     );
     renderWithRoutes(<MyInvitationsInbox />);
-    const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
-    expect(within(card).getByText("Chờ Chủ kho ký")).toBeInTheDocument();
+    const card = await screen.findByRole("article", { name: "Lời mời của Chủ tài sản thử nghiệm" });
+    expect(within(card).getByText("Chờ Chủ tài sản ký")).toBeInTheDocument();
     expect(within(card).getByRole("checkbox")).toBeDisabled();
-    // Chủ kho chưa ký: ẩn cả nút ký nhận vai lẫn nút từ chối, chỉ báo chờ.
+    // Chủ tài sản chưa ký: ẩn cả nút ký nhận vai lẫn nút từ chối, chỉ báo chờ.
     expect(within(card).queryByRole("button", { name: SIGN_BUTTON })).not.toBeInTheDocument();
     expect(within(card).queryByRole("button", { name: "Từ chối" })).not.toBeInTheDocument();
-    expect(within(card).getByText(/Chủ kho chưa ký biên bản phân chia/)).toBeInTheDocument();
+    expect(within(card).getByText(/Chủ tài sản chưa ký biên bản phân chia/)).toBeInTheDocument();
   });
 
   async function acceptWithError(error: AxiosError, password: string) {
     vi.mocked(planSetupService.mine).mockResolvedValue(data({ pending: [invitation()] }));
     vi.mocked(planSetupService.respondById).mockRejectedValue(error);
     renderWithRoutes(<MyInvitationsInbox />);
-    const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
+    const card = await screen.findByRole("article", { name: "Lời mời của Chủ tài sản thử nghiệm" });
     expect(within(card).getByRole("checkbox")).toBeDisabled();
     await readPaper(card);
     await userEvent.click(within(card).getByRole("checkbox"));
@@ -283,7 +296,7 @@ describe("MyInvitationsBanner", () => {
     );
     renderWithRoutes(<MyInvitationsBanner invitationsHref="/invitations" />);
     expect(
-      await screen.findByText("Chủ kho thử nghiệm mời bạn làm Người thực thi"),
+      await screen.findByText("Chủ tài sản thử nghiệm mời bạn làm Người thực thi"),
     ).toBeInTheDocument();
     expect(screen.getByText(/Còn 1 lời mời nữa/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("link", { name: "Xem lời mời" }));

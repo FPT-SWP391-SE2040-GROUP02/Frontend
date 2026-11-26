@@ -150,7 +150,7 @@ it("does not silently confirm plan deactivation when clearing the last recipient
   expect(await screen.findByRole("alert")).toHaveTextContent("trở về bản nháp");
   expect(put).toHaveBeenCalledTimes(1);
   expect(put.mock.calls[0][1]).toMatchObject({ confirmPlanDeactivation: false });
-  // Chỉ khi Chủ kho bấm đồng ý mới gửi lại kèm xác nhận.
+  // Chỉ khi Chủ tài sản bấm đồng ý mới gửi lại kèm xác nhận.
   put.mockResolvedValue([]);
   fireEvent.click(screen.getByRole("button", { name: "Đồng ý, đưa kế hoạch về bản nháp" }));
   await waitFor(() => expect(put).toHaveBeenCalledTimes(2));

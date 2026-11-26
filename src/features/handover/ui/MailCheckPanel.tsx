@@ -106,7 +106,7 @@ export function MailCheckPanel({ token }: { token: string }) {
             <span>
               <b>Thư là thật.</b>
               {outcome.result.containerName && <> Về “{outcome.result.containerName}”</>}
-              {outcome.result.ownerFullName && <> · Chủ kho {outcome.result.ownerFullName}</>}.
+              {outcome.result.ownerFullName && <> · Chủ tài sản {outcome.result.ownerFullName}</>}.
             </span>
           </p>
         )}

@@ -66,7 +66,7 @@ function recipientsOfAsset(
 }
 
 /**
- * Các dòng "Theo tài sản": tài sản chưa gán cho ai xếp lên đầu để Chủ kho thấy việc còn thiếu;
+ * Các dòng "Theo tài sản": tài sản chưa gán cho ai xếp lên đầu để Chủ tài sản thấy việc còn thiếu;
  * trong mỗi nhóm giữ nguyên thứ tự của danh sách tài sản.
  */
 export function buildAssetRows(

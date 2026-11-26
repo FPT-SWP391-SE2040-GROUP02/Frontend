@@ -29,7 +29,7 @@ export interface WorkspaceFrameProps {
   navigation?: WorkspaceNavigationItem[];
 }
 
-const ROLE_LABELS = { owner: "Chủ kho", admin: "Quản trị viên" } as const;
+const ROLE_LABELS = { owner: "Chủ tài sản", admin: "Quản trị viên" } as const;
 
 /** Chữ cái đầu của hai từ cuối trong họ tên, dùng cho ảnh đại diện chữ. */
 function initials(fullName: string) {

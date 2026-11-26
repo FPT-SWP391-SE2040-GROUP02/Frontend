@@ -5,7 +5,7 @@ import { EkycStatusPanel } from "@/features/ekyc/ui/EkycStatusPanel";
 import { ROUTES } from "@/shared/config/routes.config";
 import { useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
 
-/** eKYC của Chủ kho; không suy diễn quyền từ URL. */
+/** eKYC của Chủ tài sản; không suy diễn quyền từ URL. */
 export function OwnerIdentityPage() {
   const client = useQueryClient();
   const vault = useOwnerVault(true);

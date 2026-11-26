@@ -104,7 +104,7 @@ test.describe("Test Suite 4: Verifier & Loading State", () => {
   test("4.2. Trang so khớp danh tính: Kiểm tra không còn element hiển thị ngày sinh", async ({
     verifierPage: page,
   }) => {
-    // Mock dữ liệu hồ sơ thẩm định danh tính Chủ kho
+    // Mock dữ liệu hồ sơ thẩm định danh tính Chủ tài sản
     await page.route(`**/api/v1/verifier/death-cases/${CASE_ID}*`, async (route) => {
       await route.fulfill({
         status: 200,
@@ -115,9 +115,9 @@ test.describe("Test Suite 4: Verifier & Loading State", () => {
 
     await page.goto(`/notary/queue?caseId=${CASE_ID}`);
 
-    // Bước 1: Định vị bảng đối chiếu danh tính Chủ kho
+    // Bước 1: Định vị bảng đối chiếu danh tính Chủ tài sản
     const identityPanel = page.locator("section, region, article, div").filter({
-      hasText: /Đối chiếu danh tính chủ kho/i,
+      hasText: /Đối chiếu danh tính chủ tài sản/i,
     });
     await expect(identityPanel.first()).toBeVisible();
 

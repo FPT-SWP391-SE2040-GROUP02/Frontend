@@ -16,7 +16,7 @@ function firstNeedingAction(rows: AvailableHandover[]): AvailableHandover | null
 }
 
 /**
- * Thẻ trên Tổng quan Chủ kho khi có kho được để lại cho tài khoản này và đang chờ người nhận làm bước tiếp theo.
+ * Thẻ trên Tổng quan Chủ tài sản khi có kho được để lại cho tài khoản này và đang chờ người nhận làm bước tiếp theo.
  * Chỉ dẫn tới trang Nhận tài sản, không làm thay gì. Không có việc cần làm (hoặc đang tải, lỗi) thì không hiện.
  */
 export function OwnerReceiveCard() {

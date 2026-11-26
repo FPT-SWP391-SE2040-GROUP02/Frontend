@@ -1,4 +1,4 @@
-/* Bố cục Tổng quan Chủ kho theo ba tầng; chỉ đổi bố cục và giao diện, không đổi token, nội dung hay chức năng. */
+/* Bố cục Tổng quan Chủ tài sản theo ba tầng; chỉ đổi bố cục và giao diện, không đổi token, nội dung hay chức năng. */
 .owner-overview-layout {
   display: grid;
   gap: 32px;

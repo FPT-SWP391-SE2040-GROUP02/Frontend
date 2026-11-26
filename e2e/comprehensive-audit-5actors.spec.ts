@@ -6,7 +6,7 @@ const SCREENSHOT_DIR =
 
 test.describe.serial("Full System Audit & E2E Verification - 5 Actors on Remote DB", () => {
   // =========================================================================
-  // ACTOR 1: CHỦ KHO (VAULT OWNER) - owner1@legacyvault.vn
+  // ACTOR 1: CHỦ TÀI SẢN (VAULT OWNER) - owner1@legacyvault.vn
   // =========================================================================
   test("1. Owner: Luồng hoàn chỉnh từ Đăng nhập (Worst & Happy) đến Quản lý Kho, Tài sản & DMS", async ({
     page,
@@ -29,7 +29,7 @@ test.describe.serial("Full System Audit & E2E Verification - 5 Actors on Remote 
     await page.waitForURL("**/dashboard**", { timeout: 15000 });
     await page.waitForLoadState("networkidle");
 
-    await expect(page.getByText(/kho di sản của chủ kho nguyễn văn a/i).first()).toBeVisible({
+    await expect(page.getByText(/kho di sản của chủ tài sản nguyễn văn a/i).first()).toBeVisible({
       timeout: 10000,
     });
     await page.screenshot({

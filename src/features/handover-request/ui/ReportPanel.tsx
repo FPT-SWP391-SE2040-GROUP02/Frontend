@@ -87,7 +87,7 @@ function stacked({ entry, activity }: ReportPanelParts): ReactNode {
 }
 
 /**
- * Mục "Báo tin Chủ kho đã mất" ở trang Nhận tài sản: nộp hồ sơ và theo dõi các hồ sơ đã nộp. Đây là luồng ngoại lệ
+ * Mục "Báo tin Chủ tài sản đã mất" ở trang Nhận tài sản: nộp hồ sơ và theo dõi các hồ sơ đã nộp. Đây là luồng ngoại lệ
  * nên lối vào có nền ngả vàng và nút viền, không tranh chỗ với nút chính của danh sách kho.
  */
 export function ReportPanel({
@@ -126,7 +126,7 @@ export function ReportPanel({
         className="flex items-center gap-2.5 text-lg font-semibold text-heritage-primary"
       >
         <FileText className="size-5 shrink-0 text-heritage-gold-hover" aria-hidden="true" />
-        Báo tin Chủ kho đã mất
+        Báo tin Chủ tài sản đã mất
       </h2>
       <p className="text-sm leading-6 text-heritage-muted">
         Dùng khi bạn chưa được khai làm người nhận. Nộp giấy chứng tử và di chúc; luật sư kiểm giấy

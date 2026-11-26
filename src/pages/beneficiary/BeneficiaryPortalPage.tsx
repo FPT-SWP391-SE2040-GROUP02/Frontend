@@ -13,7 +13,7 @@ export function BeneficiaryPortalPage() {
     queryKey: ["handover", "turns"],
     queryFn: ({ signal }) => handoverService.list(signal),
   });
-  /** Ưu tiên tên Chủ kho đã chỉ định cho người nhận, không có thì dùng tên tài khoản. */
+  /** Ưu tiên tên Chủ tài sản đã chỉ định cho người nhận, không có thì dùng tên tài khoản. */
   const designatedName = turns.data?.find((turn) => turn.recipientFullName)?.recipientFullName;
   const fullName = designatedName ?? accountName;
   return (

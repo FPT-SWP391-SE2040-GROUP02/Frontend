@@ -34,7 +34,7 @@ export function getLoginRedirect(value: string | null): string {
 
 /**
  * @description Cho biết đường dẫn quay lại là trang nhận lời mời bàn giao, để màn đăng nhập và đăng ký dùng chữ
- * dành cho người nhận thay cho chữ dành cho Chủ kho.
+ * dành cho người nhận thay cho chữ dành cho Chủ tài sản.
  * @param redirect Đường dẫn quay lại đã qua getLoginRedirect.
  * @returns true khi người dùng đang đi từ liên kết lời mời.
  */
@@ -68,7 +68,7 @@ export function isReceiveAssetsRedirect(redirect: string): boolean {
  * @description Dòng phụ dưới tiêu đề đăng nhập.
  * @param fromReceive true khi người dùng đi từ liên kết lời mời nhận bàn giao.
  * @param fromReceiveAssets true khi người dùng đi vào để nhận tài sản hoặc gửi yêu cầu.
- * @returns Câu cho người nhận, hoặc câu mặc định cho Chủ kho.
+ * @returns Câu cho người nhận, hoặc câu mặc định cho Chủ tài sản.
  */
 export function getLoginSubtitle(fromReceive: boolean, fromReceiveAssets = false): string {
   if (fromReceive) {

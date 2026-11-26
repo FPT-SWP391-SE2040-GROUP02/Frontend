@@ -16,7 +16,7 @@ export interface DivisionAsset {
   name: string;
   ownerPeople: DivisionPerson[];
   people: DivisionPerson[];
-  /** Khác cách chia ban đầu của Chủ kho; luôn false khi Chủ kho chưa chia gì. */
+  /** Khác cách chia ban đầu của Chủ tài sản; luôn false khi Chủ tài sản chưa chia gì. */
   differsFromOwner: boolean;
 }
 

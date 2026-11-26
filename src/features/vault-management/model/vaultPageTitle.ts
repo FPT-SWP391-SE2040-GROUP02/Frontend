@@ -2,7 +2,7 @@
 export const DEFAULT_VAULT_TITLE = "Kho của tôi";
 
 export interface VaultPageTitle {
-  /** Tiêu đề lớn của trang: tên kho Chủ kho đặt, hoặc nhãn mặc định khi chưa có. */
+  /** Tiêu đề lớn của trang: tên kho Chủ tài sản đặt, hoặc nhãn mặc định khi chưa có. */
   title: string;
   /** Nhãn nhỏ phía trên tiêu đề; chỉ có khi tiêu đề là tên riêng của kho. */
   eyebrow?: string;

@@ -27,7 +27,7 @@ function vaultText(report: VerifierReport): string {
 function reportWarnings(report: VerifierReport): string[] {
   const warnings: string[] = [];
   if (!report.vaultFound) return warnings;
-  if (!report.nameMatches) warnings.push("Họ tên khai không khớp họ tên eKYC của Chủ kho.");
+  if (!report.nameMatches) warnings.push("Họ tên khai không khớp họ tên eKYC của Chủ tài sản.");
   return warnings;
 }
 
@@ -128,7 +128,7 @@ function ReportCard({
             </label>
           )}
           <p className="text-sm text-heritage-muted">
-            Chấp nhận thì kho bị khóa, Chủ kho được báo và biên bản bàn giao được mở.
+            Chấp nhận thì kho bị khóa, Chủ tài sản được báo và biên bản bàn giao được mở.
           </p>
           <div className="flex flex-wrap gap-2">
             <button

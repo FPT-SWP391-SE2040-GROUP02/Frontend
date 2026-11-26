@@ -5,7 +5,7 @@ import { useOwnerVault } from "./useOwnerVault";
 import { vaultPageTitle, type VaultPageTitle } from "./vaultPageTitle";
 
 /**
- * Tiêu đề trang theo tên kho của Chủ kho đang đăng nhập.
+ * Tiêu đề trang theo tên kho của Chủ tài sản đang đăng nhập.
  * Dùng chung cache `owner-vault`, nên không gọi thêm API khi trang khác đã tải kho.
  * Chưa có phiên, đang tải hoặc lỗi thì trả nhãn mặc định, không để tiêu đề trống.
  */

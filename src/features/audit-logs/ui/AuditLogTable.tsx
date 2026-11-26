@@ -49,7 +49,7 @@ export function AuditLogTable({
       </TableHeader>
       <TableBody>
         {items.map((entry) => {
-          // Chủ kho tự thao tác trên kho của mình nên không cần hiện mã tài khoản; vai trò khác thì hiện để truy vết.
+          // Chủ tài sản tự thao tác trên kho của mình nên không cần hiện mã tài khoản; vai trò khác thì hiện để truy vết.
           const showActorId = entry.actorRole !== "OWNER" && entry.actorUserId !== null;
           return (
             <TableRow key={entry.id}>

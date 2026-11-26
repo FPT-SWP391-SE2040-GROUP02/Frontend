@@ -9,7 +9,7 @@ import {
 import { deathCaseService } from "../api/deathCaseService";
 
 /**
- * Gửi mã nhận cho người nhận qua email. Mở khung là mã Chủ kho đã gửi trên hệ thống hiện sẵn trong ô (chưa có thì
+ * Gửi mã nhận cho người nhận qua email. Mở khung là mã Chủ tài sản đã gửi trên hệ thống hiện sẵn trong ô (chưa có thì
  * Người thực thi tự nhập mã đang giữ); Backend kiểm rồi gửi. Mã chỉ nằm trong ô nhập, được xóa sau khi gửi xong.
  * Không optimistic: chỉ báo thành công sau response của BE.
  */

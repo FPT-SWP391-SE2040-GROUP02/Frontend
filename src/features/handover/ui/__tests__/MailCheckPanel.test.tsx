@@ -39,7 +39,7 @@ describe("MailCheckPanel", () => {
     expect(button).toBeEnabled();
   });
 
-  it("thư đúng: gửi đúng body lên API và hiện tên biên bản, tên Chủ kho", async () => {
+  it("thư đúng: gửi đúng body lên API và hiện tên biên bản, tên Chủ tài sản", async () => {
     const user = userEvent.setup();
     const post = vi.spyOn(apiClient, "post").mockResolvedValue({
       verified: true,
@@ -58,7 +58,7 @@ describe("MailCheckPanel", () => {
     });
     expect(await screen.findByText(/Thư là thật/)).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Về “Biên bản bàn giao”");
-    expect(screen.getByRole("status")).toHaveTextContent("Chủ kho Nguyễn Văn Chủ");
+    expect(screen.getByRole("status")).toHaveTextContent("Chủ tài sản Nguyễn Văn Chủ");
   });
 
   it("thư sai: báo không khớp và số lần thử còn lại, không hiện thông tin biên bản", async () => {
