@@ -25,7 +25,8 @@ const ACTION_REASONS: Record<string, string> = {
   LAST_ADMIN: "Hệ thống phải còn ít nhất một quản trị viên đang hoạt động.",
   CASE_NOT_PENDING:
     "Hồ sơ này không còn ở giai đoạn chờ xét nên không giao lại người xét duyệt được.",
-  NOT_STAFF_ACCOUNT: "Chỉ sửa được thông tin của tài khoản nhân sự, không sửa tài khoản Chủ tài sản.",
+  NOT_STAFF_ACCOUNT:
+    "Chỉ sửa được thông tin của tài khoản nhân sự, không sửa tài khoản Chủ tài sản.",
 };
 
 /** Lý do cụ thể của 409 EXECUTOR_NOT_ALLOWED khi Admin giao Người thực thi. */
