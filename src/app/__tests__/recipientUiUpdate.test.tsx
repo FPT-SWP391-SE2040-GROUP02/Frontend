@@ -95,7 +95,7 @@ function setup(children: ReactNode, authenticated = true, path = "/") {
 const SIGNING_RECORD = {
   id: "0198a000-0000-7000-8000-000000000003",
   vaultId: VAULT_ID,
-  vaultName: "Kho thử",
+  vaultName: "Tài sản thử",
   ownerName: "Chủ tài sản thử",
   status: "SIGNING",
   revisionNo: 1,

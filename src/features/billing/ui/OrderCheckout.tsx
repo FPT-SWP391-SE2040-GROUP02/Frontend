@@ -291,7 +291,7 @@ function FinishedOrder({ order }: { order: PaymentOrder }) {
     <div className="space-y-6">
       {order.status === "PAID" && (
         <StatusBanner tone="success">
-          <p>Đã thanh toán. Quyền dịch vụ của kho đã được cập nhật.</p>
+          <p>Đã thanh toán. Quyền dịch vụ của bạn đã được cập nhật.</p>
           <p className="font-normal">{order.notice}</p>
         </StatusBanner>
       )}
@@ -333,7 +333,7 @@ function FinishedOrder({ order }: { order: PaymentOrder }) {
             to={ROUTES.DASHBOARD.ASSETS}
             className={buttonVariants({ variant: "outline", size: "lg" })}
           >
-            Về Kho của tôi
+            Về Tài sản của tôi
           </Link>
         )}
       </div>

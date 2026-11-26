@@ -9,7 +9,7 @@ export function AuditLogPage() {
   return (
     <OwnerWorkspace
       title="Nhật ký hoạt động"
-      description="Lịch sử thao tác đã lưu thành công trên kho của bạn. Nhật ký chỉ đọc; không thể sửa hoặc xóa."
+      description="Lịch sử thao tác đã lưu thành công trên tài sản của bạn. Nhật ký chỉ đọc; không thể sửa hoặc xóa."
     >
       <OwnerAuditLog />
     </OwnerWorkspace>

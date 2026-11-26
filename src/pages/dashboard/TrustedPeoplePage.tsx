@@ -6,7 +6,7 @@ export function TrustedPeoplePage() {
   return (
     <OwnerWorkspace
       title="Người thực thi"
-      description="Người bạn tin để giữ mã nhận và gửi mã nhận cho người nhận theo biên bản. Họ không đọc được nội dung kho."
+      description="Người bạn tin để giữ mã nhận và gửi mã nhận cho người nhận theo biên bản. Họ không đọc được nội dung tài sản."
     >
       <OwnerSection section="trusted" />
     </OwnerWorkspace>

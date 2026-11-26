@@ -106,7 +106,7 @@ describe("classifyAdminError", () => {
     expect(classifyAdminError(new Error("network"))).toBe("other");
   });
 
-  it("giao Người thực thi: gọi đúng đường dẫn, kiểm lý do và mã kho trước khi gửi", async () => {
+  it("giao Người thực thi: gọi đúng đường dẫn, kiểm lý do và mã tài sản trước khi gửi", async () => {
     const post = vi.spyOn(apiClient, "post").mockResolvedValue({ status: "INVITED" });
     const VAULT = "77777777-7777-4777-8777-777777777777";
     await adminService.assignExecutor(VAULT, {
@@ -126,7 +126,7 @@ describe("classifyAdminError", () => {
     expect(post).toHaveBeenCalledTimes(1);
   });
 
-  it("giao Người thực thi khi kho đang bàn giao: nhận trạng thái ACCEPTED", async () => {
+  it("giao Người thực thi khi tài sản đang bàn giao: nhận trạng thái ACCEPTED", async () => {
     vi.spyOn(apiClient, "post").mockResolvedValue({ status: "ACCEPTED" });
     const result = await adminService.assignExecutor("77777777-7777-4777-8777-777777777777", {
       userId: USER_ID,
@@ -137,7 +137,7 @@ describe("classifyAdminError", () => {
     expect(executorAssignedMessage("INVITED")).toContain("lời mời");
   });
 
-  it("chỉ coi kho đang bàn giao là đổi Người thực thi có hiệu lực ngay", () => {
+  it("chỉ coi tài sản đang bàn giao là đổi Người thực thi có hiệu lực ngay", () => {
     expect(isExecutorSwapImmediate("HANDOVER_REQUESTED")).toBe(true);
     expect(isExecutorSwapImmediate("HANDOVER_IN_PROGRESS")).toBe(true);
     expect(isExecutorSwapImmediate("ACTIVE")).toBe(false);
@@ -146,9 +146,9 @@ describe("classifyAdminError", () => {
   });
 
   it.each([
-    ["ALREADY_EXECUTOR", "Người này đang là Người thực thi của kho."],
-    ["PLAN_LOCKED", "Kho đã đóng nên không đổi Người thực thi được."],
-    ["OWNER_CANNOT_ACCEPT", "Chủ tài sản không làm Người thực thi của kho mình được."],
+    ["ALREADY_EXECUTOR", "Người này đang là Người thực thi của tài sản."],
+    ["PLAN_LOCKED", "Tài sản đã đóng nên không đổi Người thực thi được."],
+    ["OWNER_CANNOT_ACCEPT", "Chủ tài sản không làm Người thực thi của tài sản mình được."],
     ["ROLE_CONFLICT", "Tài khoản này không được làm Người thực thi."],
   ])("EXECUTOR_NOT_ALLOWED %s hiện đúng câu tiếng Việt", (reason, text) => {
     const config = { headers: new AxiosHeaders() } as InternalAxiosRequestConfig;

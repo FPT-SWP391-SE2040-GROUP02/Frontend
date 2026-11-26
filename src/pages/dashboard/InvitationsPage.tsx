@@ -22,7 +22,7 @@ function ResponsibleVaults({ inExecutorWorkspace }: { inExecutorWorkspace: boole
   const vaults = useExecutorVaults(authenticated && Boolean(accessTokenMemory.get()));
   if (!vaults.isSuccess || vaults.data.length === 0) return null;
   return (
-    <Panel title="Kho bạn đang nhận trách nhiệm" labelledBy="responsible-vaults-heading">
+    <Panel title="Tài sản bạn đang nhận trách nhiệm" labelledBy="responsible-vaults-heading">
       <ul className="divide-y divide-heritage-border">
         {vaults.data.map((vault) => {
           const state = vaultState(vault);
@@ -65,7 +65,7 @@ export function InvitationsContent({
 }
 
 const DESCRIPTION =
-  "Ai mời bạn làm Người thực thi, bạn nhận hay từ chối, và bạn đang nhận trách nhiệm cho những kho nào.";
+  "Ai mời bạn làm Người thực thi, bạn nhận hay từ chối, và bạn đang nhận trách nhiệm cho những tài sản nào.";
 
 export function InvitationsPage() {
   return (

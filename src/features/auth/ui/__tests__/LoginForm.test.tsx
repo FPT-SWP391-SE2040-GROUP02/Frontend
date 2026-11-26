@@ -310,7 +310,7 @@ describe("LoginForm", () => {
     expect(screen.queryByRole("button", { name: "Tiếp tục với Google" })).not.toBeInTheDocument();
     expect(screen.queryByText("hoặc dùng email")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Quên mật khẩu?" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Tạo kho miễn phí" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Bắt đầu miễn phí" })).not.toBeInTheDocument();
 
     fillCredentials();
     fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
@@ -347,7 +347,7 @@ describe("LoginForm", () => {
     setup();
     expect(screen.getByRole("button", { name: "Tiếp tục với Google" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Quên mật khẩu?" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Tạo kho miễn phí" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Bắt đầu miễn phí" })).toBeInTheDocument();
     fillCredentials();
     fireEvent.click(screen.getByRole("button", { name: "Đăng nhập" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Email hoặc mật khẩu chưa đúng.");

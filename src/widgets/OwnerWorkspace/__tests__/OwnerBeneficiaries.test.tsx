@@ -69,7 +69,7 @@ describe("trang người nhận của Chủ tài sản", () => {
     await userEvent.click(screen.getByRole("button", { name: "Thêm người nhận" }));
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent("Cần gói trả phí");
-    expect(dialog).toHaveTextContent("Kho và nội dung hiện có vẫn giữ nguyên.");
+    expect(dialog).toHaveTextContent("Nội dung hiện có vẫn giữ nguyên.");
     expect(screen.getByRole("link", { name: "Xem gói dịch vụ" })).toHaveAttribute(
       "href",
       "/pricing",

@@ -79,10 +79,10 @@ describe("AdminOverview: ô số", () => {
     });
   });
 
-  it("không còn ô Kho đang tạm giữ và không nhắc tới tạm giữ", async () => {
+  it("không còn ô Tài sản đang tạm giữ và không nhắc tới tạm giữ", async () => {
     renderOverview();
     await screen.findByText("Việc chưa có luật sư");
-    expect(screen.queryByText("Kho đang tạm giữ")).not.toBeInTheDocument();
+    expect(screen.queryByText("Tài sản đang tạm giữ")).not.toBeInTheDocument();
     expect(screen.queryByText(/tạm giữ|rà soát/i)).not.toBeInTheDocument();
   });
 

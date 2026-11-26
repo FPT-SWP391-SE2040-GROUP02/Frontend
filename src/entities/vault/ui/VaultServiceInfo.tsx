@@ -69,7 +69,7 @@ function VaultServiceDetails({ service, showQuota = false }: VaultServiceInfoPro
     neutral: "text-heritage-muted",
   };
   return (
-    <div className="space-y-4" aria-label="Thông tin gói dịch vụ của kho">
+    <div className="space-y-4" aria-label="Thông tin gói dịch vụ của bạn">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <VaultServiceBadge tier={getDisplayedServiceTier(service, now)} />
         <span className={`inline-flex items-center gap-2 text-sm ${statusColors[status.tone]}`}>

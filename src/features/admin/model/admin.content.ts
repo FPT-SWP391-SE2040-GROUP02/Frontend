@@ -150,7 +150,7 @@ export const isExecutorSwapImmediate = (planStatus: string) =>
 
 /** Cảnh báo khi kho đang bàn giao: người mới nhận việc ngay. */
 export const EXECUTOR_HANDOVER_WARNING =
-  "Người mới nhận việc ngay, người cũ mất quyền với kho này. Chữ ký người cũ đã ký vẫn giữ hiệu lực.";
+  "Người mới nhận việc ngay, người cũ mất quyền với tài sản này. Chữ ký người cũ đã ký vẫn giữ hiệu lực.";
 
 /** Ghi chú khi kho chưa bàn giao: người mới phải chấp nhận lời mời. */
 export const EXECUTOR_INVITE_NOTE =

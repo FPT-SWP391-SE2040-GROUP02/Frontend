@@ -189,7 +189,7 @@ export function readVaultPinFailure(error: unknown): VaultPinFailure | null {
     return { code, message, attemptsRemaining };
   }
   if (code === "VAULT_PIN_REQUIRED") {
-    return { code, message: "Thao tác này cần nhập mã PIN của kho." };
+    return { code, message: "Thao tác này cần nhập mã PIN tài sản." };
   }
   if (code === "VAULT_PIN_LOCKED") {
     let message = "Mã PIN đang bị khóa tạm vì nhập sai nhiều lần. Vui lòng thử lại sau.";

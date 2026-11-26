@@ -156,7 +156,7 @@ export const AssetTable: React.FC<AssetTableProps> = ({
           <Lock className="w-8 h-8" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-heritage-text">Kho Di Sản Chưa Có Tài Sản Nào</h3>
+          <h3 className="text-lg font-bold text-heritage-text">Chưa Có Tài Sản Nào</h3>
           <p className="text-sm sm:text-sm text-heritage-subtle max-w-md mx-auto mt-1 leading-relaxed">
             Hãy bắt đầu bảo vệ ví tiền mã hóa, tài khoản số hoặc tài liệu mật bằng mã hóa cấp quân
             sự AES-256-GCM.
@@ -182,11 +182,11 @@ export const AssetTable: React.FC<AssetTableProps> = ({
           <Search className="w-4 h-4 text-heritage-border-strong absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             type="text"
-            placeholder="Tìm kiếm tài sản trong kho..."
+            placeholder="Tìm kiếm tài sản..."
             value={internalSearch}
             onChange={(e) => setInternalSearch(e.target.value)}
             className="h-11 pl-10 pr-9 bg-heritage-surface border-heritage-border focus:border-heritage-gold rounded-[16px] text-sm font-medium focus-visible:ring-2 focus-visible:ring-heritage-gold"
-            aria-label="Tìm kiếm tài sản trong kho"
+            aria-label="Tìm kiếm tài sản"
           />
           {internalSearch && (
             <button

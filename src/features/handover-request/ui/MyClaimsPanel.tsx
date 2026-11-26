@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Check } from "lucide-react";
+import type { CSSProperties } from "react";
 import { claimStatusLabel, RecordFileList } from "@/entities/handoverRecord";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles, Chip, formatDateTime } from "@/shared/ui/heritageKit";
+import { PortalSkeleton } from "@/shared/ui/PortalSkeleton";
 import { handoverRequestService } from "../api/handoverRequestService";
 import { type MyClaim } from "../model/handoverRequest.schema";
 import { handoverRequestKeys, useMyClaims } from "../model/useHandoverRequest";
@@ -43,7 +45,7 @@ export function ClaimSupplementNotice() {
       <AlertTriangle className="mt-0.5 size-5 shrink-0 text-heritage-danger" aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <b className="block text-heritage-primary">
-          {`Giấy tờ cần bổ sung: kho của ${claim.ownerName}`}
+          {`Giấy tờ cần bổ sung: tài sản của ${claim.ownerName}`}
         </b>
         {claim.reviewReason && <p>{claim.reviewReason}</p>}
       </div>
@@ -61,7 +63,7 @@ export function ClaimSupplementNotice() {
 export function MyClaimsPanel() {
   const client = useQueryClient();
   const query = useMyClaims();
-  if (query.isPending) return <p role="status">Đang tải các yêu cầu…</p>;
+  if (query.isPending) return <PortalSkeleton label="Đang tải các yêu cầu…" rows={2} />;
   if (query.isError) {
     return (
       <div role="alert" className="space-y-3">
@@ -92,7 +94,7 @@ export function MyClaimsPanel() {
   }
   return (
     <div className="space-y-5">
-      {query.data.map((claim) => {
+      {query.data.map((claim, index) => {
         let status = claimStatusLabel[claim.status];
         if (claim.recordStatus === "CANCELLED")
           status = {
@@ -106,12 +108,13 @@ export function MyClaimsPanel() {
           <article
             key={claim.id}
             aria-label={`Yêu cầu nhận tài sản của ${claim.ownerName}`}
-            className={`space-y-3.5 rounded-2xl border bg-heritage-surface p-5 shadow-card ${supplement ? "border-heritage-danger bg-white" : "border-heritage-border"}`}
+            style={{ "--pm-i": index } as CSSProperties}
+            className={`pm-rise space-y-3.5 rounded-2xl border bg-heritage-surface p-5 shadow-card ${supplement ? "border-heritage-danger bg-white" : "border-heritage-border"}`}
           >
             <header className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-semibold text-heritage-primary">
-                  Kho của {claim.ownerName}
+                  Tài sản của {claim.ownerName}
                 </h3>
                 <p className="text-sm text-heritage-muted">
                   Đã gửi {formatDateTime(claim.createdAt)}

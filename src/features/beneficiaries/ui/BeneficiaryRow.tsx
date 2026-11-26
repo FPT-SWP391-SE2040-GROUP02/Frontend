@@ -169,8 +169,8 @@ function DeleteBeneficiaryDialog({
           </dl>
         </div>
         <DialogDescription className="rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger">
-          Hồ sơ và lời nhắn của người này sẽ bị xóa, không hoàn tác được. Tài sản trong kho không bị
-          ảnh hưởng.
+          Hồ sơ và lời nhắn của người này sẽ bị xóa, không hoàn tác được. Tài sản không bị ảnh
+          hưởng.
         </DialogDescription>
         <div>
           <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">

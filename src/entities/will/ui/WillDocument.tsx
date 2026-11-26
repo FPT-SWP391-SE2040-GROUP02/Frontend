@@ -171,8 +171,8 @@ function OwnerSectionBlock({
       {missingNote}
       <p className={`${BODY} mt-2`}>
         Nay trong trạng thái tinh thần hoàn toàn minh mẫn, sáng suốt, không bị bất kỳ sự lừa dối, đe
-        dọa hoặc cưỡng ép nào, tôi lập biên bản phân chia này để định đoạt các tài sản số trong kho
-        của tôi tại LegacyVault sau khi tôi qua đời như sau:
+        dọa hoặc cưỡng ép nào, tôi lập biên bản phân chia này để định đoạt các tài sản số của tôi
+        tại LegacyVault sau khi tôi qua đời như sau:
       </p>
     </section>
   );
@@ -219,9 +219,8 @@ function AssetsSectionBlock({
       <section id="muc-2" className={SECTION}>
         {heading}
         <p className={BODY}>
-          Các tài sản trong kho được để lại cho những người nhận tôi đã chọn, nếu có. Phần chưa chọn
-          người nhận do luật sư xác định khi bàn giao. Biên bản phân chia không ghi nội dung tài
-          sản.
+          Các tài sản được để lại cho những người nhận tôi đã chọn, nếu có. Phần chưa chọn người
+          nhận do luật sư xác định khi bàn giao. Biên bản phân chia không ghi nội dung tài sản.
         </p>
       </section>
     );
@@ -351,8 +350,8 @@ function ExecutorSectionBlock({
       <p className={BODY}>
         Tôi chọn {who}, nhân viên LegacyVault, làm Người thực thi. Sau khi tôi qua đời, người này
         giữ hộ tài sản, ký biên bản bàn giao do luật sư lập, gửi mã nhận cho từng người nhận khi
-        phần của người đó đủ chữ ký và ký phiếu giao nhận. Người này không được xem nội dung kho,
-        không tự chia, bán hay cho tài sản, không tự đổi người nhận hay phần được nhận.
+        phần của người đó đủ chữ ký và ký phiếu giao nhận. Người này không được xem nội dung tài
+        sản, không tự chia, bán hay cho tài sản, không tự đổi người nhận hay phần được nhận.
       </p>
       <p className={`${BODY} mt-2`}>
         Người thực thi được xem biên bản này trước khi ký, được từ chối nhận vai và được đồng ý hoặc

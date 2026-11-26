@@ -31,7 +31,7 @@ export function LoggedOutCard({ className = "" }: LoggedOutCardProps) {
           Bạn đã đăng xuất.
         </h1>
         <p className="text-sm sm:text-sm text-heritage-muted leading-relaxed">
-          Phiên trên thiết bị này đã kết thúc. Kho di sản của bạn vẫn được bảo vệ an toàn.
+          Phiên trên thiết bị này đã kết thúc. Tài sản của bạn vẫn được bảo vệ an toàn.
         </p>
       </div>
 

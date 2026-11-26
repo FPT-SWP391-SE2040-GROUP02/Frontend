@@ -78,15 +78,15 @@ export function MyInvitationsInbox() {
     <div className="space-y-6">
       {acceptedOwner && (
         <Notice tone="success" role="status" title="Bạn đã là Người thực thi">
-          Cho kho của {acceptedOwner}. Nút Sang vai Người thực thi đã hiện ở thanh bên.
+          Cho tài sản của {acceptedOwner}. Nút Sang vai Người thực thi đã hiện ở thanh bên.
         </Notice>
       )}
       <Panel title="Đang chờ bạn trả lời" labelledBy="pending-invitations-heading">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-sm text-heritage-muted">
             Người thực thi giữ mã nhận và gửi mã nhận cho từng người nhận khi phần của người đó đủ
-            chữ ký. <strong className="text-heritage-primary">Không ai mở được kho</strong>, kể cả
-            bạn.
+            chữ ký. <strong className="text-heritage-primary">Không ai mở được tài sản</strong>, kể
+            cả bạn.
           </p>
           {pendingCount > 0 && (
             <span className="text-sm font-semibold text-heritage-muted">
@@ -194,7 +194,7 @@ function PendingInvitationCard({
               </li>
             ))}
             <li className="text-heritage-danger">
-              <strong>Không</strong> đọc được nội dung kho
+              <strong>Không</strong> đọc được nội dung tài sản
             </li>
             <li className="text-heritage-muted">
               Email và số điện thoại của bạn được gửi cho người nhận khi kế hoạch được kích hoạt
@@ -274,7 +274,7 @@ function PendingInvitationCard({
       {askingDecline && (
         <DeclineConfirmDialog
           title="Từ chối lời mời này?"
-          description={`Bạn sẽ không làm Người thực thi cho kho của ${invitation.ownerName}. Muốn nhận lại thì Chủ tài sản phải gửi lời mời mới.`}
+          description={`Bạn sẽ không làm Người thực thi cho tài sản của ${invitation.ownerName}. Muốn nhận lại thì Chủ tài sản phải gửi lời mời mới.`}
           confirmLabel="Từ chối lời mời"
           onClose={() => setAskingDecline(false)}
           onConfirm={() => {

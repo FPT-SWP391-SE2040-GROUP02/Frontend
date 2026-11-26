@@ -18,7 +18,7 @@ export function SignatureSlot({
   let status: ReactNode = <p className="mt-10 text-sm italic text-[#666]">(Chưa ký)</p>;
   if (signedAt) {
     status = (
-      <p className="mt-3 rounded border border-[#2f6b4f] px-2 py-3 text-sm font-semibold text-[#2f6b4f]">
+      <p className="pm-stamp mt-3 rounded border border-[#2f6b4f] px-2 py-3 text-sm font-semibold text-[#2f6b4f]">
         Đã ký điện tử
         <br />
         <span className="font-normal">{formatDateTime(signedAt)}</span>

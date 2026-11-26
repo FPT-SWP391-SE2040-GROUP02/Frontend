@@ -33,7 +33,7 @@ function renderCard() {
     <MemoryRouter initialEntries={["/executor/report"]}>
       <Routes>
         <Route path="/executor/report" element={<ExecutorVaultCard />} />
-        <Route path="/executor/invitations" element={<p>Trang lời mời và kho</p>} />
+        <Route path="/executor/invitations" element={<p>Trang lời mời và tài sản</p>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -45,11 +45,11 @@ afterEach(() => {
 });
 
 describe("ExecutorVaultCard", () => {
-  it("chỉ hiển thị kho đang chọn: chữ cái đầu, tên Chủ tài sản, trạng thái, không bấm được", () => {
+  it("chỉ hiển thị tài sản đang chọn: chữ cái đầu, tên Chủ tài sản, trạng thái, không bấm được", () => {
     const { select } = mockState(handoverVault);
     renderCard();
-    expect(screen.getByRole("heading", { name: "Đang làm việc với kho" })).toBeInTheDocument();
-    const card = screen.getByRole("group", { name: "Kho đang làm việc: Nguyễn Thị Mai" });
+    expect(screen.getByRole("heading", { name: "Đang làm việc với tài sản" })).toBeInTheDocument();
+    const card = screen.getByRole("group", { name: "Tài sản đang làm việc: Nguyễn Thị Mai" });
     expect(card).toHaveTextContent("N");
     expect(card).toHaveTextContent("Nguyễn Thị Mai");
     expect(card).toHaveTextContent("Đang ký biên bản");
@@ -58,28 +58,28 @@ describe("ExecutorVaultCard", () => {
     expect(select).not.toHaveBeenCalled();
   });
 
-  it("có liên kết Đổi kho → dẫn tới trang lời mời và các kho", async () => {
+  it("có liên kết Đổi tài sản → dẫn tới trang lời mời và các tài sản", async () => {
     mockState(handoverVault);
     renderCard();
-    const link = screen.getByRole("link", { name: "Đổi kho →" });
+    const link = screen.getByRole("link", { name: "Đổi tài sản →" });
     expect(link).toHaveAttribute("href", "/executor/invitations");
     fireEvent.click(link);
-    expect(await screen.findByText("Trang lời mời và kho")).toBeInTheDocument();
+    expect(await screen.findByText("Trang lời mời và tài sản")).toBeInTheDocument();
   });
 
-  it("chưa giữ kho nào thì không hiện khối kho", () => {
+  it("chưa giữ tài sản nào thì không hiện khối tài sản", () => {
     mockState(null);
     renderCard();
     expect(
-      screen.queryByRole("heading", { name: "Đang làm việc với kho" }),
+      screen.queryByRole("heading", { name: "Đang làm việc với tài sản" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("đang tải danh sách kho thì chỉ báo đang tải, chưa có liên kết đổi kho", () => {
+  it("đang tải danh sách tài sản thì chỉ báo đang tải, chưa có liên kết đổi tài sản", () => {
     mockState(null, true);
     renderCard();
-    expect(screen.getByRole("status")).toHaveTextContent("Đang tải kho…");
+    expect(screen.getByRole("status")).toHaveTextContent("Đang tải tài sản…");
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 });

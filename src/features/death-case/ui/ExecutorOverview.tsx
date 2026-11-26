@@ -68,7 +68,7 @@ function CanAndCannotCard() {
       </ul>
       <p className="mt-3 flex items-center gap-2 text-sm text-heritage-muted">
         <Lock className="size-3.5" aria-hidden="true" />
-        Bạn chỉ giữ hộ và giao theo biên bản, không xem được nội dung kho.
+        Bạn chỉ giữ hộ và giao theo biên bản, không xem được nội dung tài sản.
       </p>
     </Panel>
   );

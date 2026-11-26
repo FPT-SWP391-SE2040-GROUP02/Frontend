@@ -29,7 +29,7 @@ export function ExecutorVaultCard() {
         role="status"
         className="rounded-xl border border-white/15 bg-white/5 p-3 text-sm text-white/70"
       >
-        Đang tải kho…
+        Đang tải tài sản…
       </div>
     );
   } else {
@@ -39,12 +39,12 @@ export function ExecutorVaultCard() {
         to={ROUTES.EXECUTOR.INVITATIONS}
         className="mt-2 inline-block px-1 text-sm font-semibold text-heritage-gold-soft hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
       >
-        Đổi kho →
+        Đổi tài sản →
       </Link>
     );
     card = (
       <div
-        aria-label={`Kho đang làm việc: ${selected.ownerFullName}`}
+        aria-label={`Tài sản đang làm việc: ${selected.ownerFullName}`}
         role="group"
         className="flex items-center gap-3 rounded-xl border border-heritage-gold bg-white/10 p-2.5"
       >
@@ -69,7 +69,7 @@ export function ExecutorVaultCard() {
         id="executor-current-vault-heading"
         className="mb-2 px-1 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60"
       >
-        Đang làm việc với kho
+        Đang làm việc với tài sản
       </h2>
       {card}
       {switchLink}

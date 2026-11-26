@@ -201,7 +201,7 @@ const CreateAssetModalContent: React.FC<CreateAssetModalProps> = ({ isOpen, onCl
             <div>
               <span className="font-bold block">Chính sách bàn giao tài sản (SRS 3.11.0)</span>
               <span className="text-[0.875rem] text-heritage-gold-hover">
-                Tài sản sẽ được tự động gom vào kho bàn giao tương ứng với tập người nhận sau khi
+                Tài sản sẽ được tự động gom vào phần bàn giao tương ứng với tập người nhận sau khi
                 thiết lập di sản.
               </span>
             </div>

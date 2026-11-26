@@ -23,7 +23,7 @@ export const LANDING_CONTENT = {
     tagline: "Di sản được giao đúng người, đúng lúc.",
     description:
       "Nơi bạn gửi lại tài sản số, giấy tờ và lời nhắn cho người thân. Khi bạn qua đời, người nhận gửi yêu cầu; luật sư xét giấy tờ, đủ chữ ký mới trao đi.",
-    start: "Lập kho của bạn",
+    start: "Bắt đầu cất tài sản của bạn",
     explore: "Xem cách hoạt động",
     receiveQuestion: "Người thân đã mất?",
     receiveAction: "Nhận tài sản",
@@ -48,7 +48,7 @@ export const LANDING_CONTENT = {
         detail: "Giấy tờ, hợp đồng, ảnh chụp và những lời nhắn bạn muốn để lại.",
       },
     ],
-    closing: "LegacyVault gom tất cả về một kho, rồi trao lại đúng người, đúng lúc.",
+    closing: "LegacyVault gom tất cả về một nơi, rồi trao lại đúng người, đúng lúc.",
   },
   statement: {
     text: "Đây không chỉ là chuyện của sau cùng. Biết mình có gì, để ở đâu và ai được tiếp cận quan trọng ngay từ hôm nay.",
@@ -76,20 +76,20 @@ export const LANDING_CONTENT = {
   },
   pillars: {
     eyebrow: "Hệ thống",
-    title: "Một kho, những người tin cậy, một quy trình bàn giao.",
+    title: "Tài sản, những người tin cậy, một quy trình bàn giao.",
     description: "Ba phần ăn khớp với nhau thành một chuỗi liền mạch.",
     items: [
       {
-        tag: "01 · Kho số",
+        tag: "01 · Tài sản số",
         title: "Nơi cất mọi thứ bạn muốn để lại",
         detail:
-          "Ghi lại ví tiền mã hóa, tài khoản số và tài liệu trong một kho duy nhất. Nội dung được mã hóa AES-256-GCM trên máy chủ; bạn quyết định cất gì và trao cho ai.",
+          "Ghi lại ví tiền mã hóa, tài khoản số và tài liệu ở một nơi duy nhất. Nội dung được mã hóa AES-256-GCM trên máy chủ; bạn quyết định cất gì và trao cho ai.",
         points: [
           "Ba loại tài sản: ví tiền mã hóa, tài khoản số, tài liệu số",
           "Mã hóa AES-256-GCM phía máy chủ",
           "Gắn từng mục cho từng người nhận",
         ],
-        visualTitle: "Kho của bạn",
+        visualTitle: "Tài sản của bạn",
         rows: [
           { title: "Ví tiền mã hóa", detail: "Đã mã hóa" },
           { title: "Tài khoản email", detail: "Đã mã hóa" },
@@ -100,15 +100,15 @@ export const LANDING_CONTENT = {
         tag: "02 · Người thực thi",
         title: "Bốn vai, không ai nắm toàn quyền một mình",
         detail:
-          "Người nhận gửi yêu cầu kèm giấy tờ, luật sư xét và lập biên bản bàn giao, Người thực thi giữ mã, Người nhận được xác minh danh tính. Hai vai đầu không đọc được nội dung kho.",
+          "Người nhận gửi yêu cầu kèm giấy tờ, luật sư xét và lập biên bản bàn giao, Người thực thi giữ mã, Người nhận được xác minh danh tính. Hai vai đầu không đọc được nội dung tài sản.",
         points: [
-          "Chủ tài sản là người duy nhất lập và sửa kho",
+          "Chủ tài sản là người duy nhất khai báo và sửa tài sản",
           "Người thực thi và luật sư không mở được nội dung",
           "Người nhận chỉ được mở sau khi được xác minh danh tính",
         ],
         visualTitle: "Các vai trong kế hoạch",
         rows: [
-          { title: "Chủ tài sản", detail: "Lập kho, chọn người" },
+          { title: "Chủ tài sản", detail: "Khai báo tài sản, chọn người" },
           { title: "Người thực thi", detail: "Giữ mã, ký biên bản, gửi mã" },
           { title: "Luật sư", detail: "Lập biên bản bàn giao" },
           { title: "Người nhận", detail: "Xác minh rồi tải về" },
@@ -139,7 +139,7 @@ export const LANDING_CONTENT = {
     eyebrow: "Vì sao là bông hoa",
     title: "Mỗi vòng là một lớp bảo vệ.",
     description:
-      "Biểu tượng của LegacyVault được dệt từ nhiều vòng đường nét chồng lên nhau, như hoa văn trên giấy tờ có giá. Càng nhiều lớp, càng khó đi tắt. Trước khi kho mở ra, mọi bàn giao đều phải đi qua bốn lớp xác nhận.",
+      "Biểu tượng của LegacyVault được dệt từ nhiều vòng đường nét chồng lên nhau, như hoa văn trên giấy tờ có giá. Càng nhiều lớp, càng khó đi tắt. Trước khi tài sản được mở ra, mọi bàn giao đều phải đi qua bốn lớp xác nhận.",
     layers: [
       {
         title: "Người nhận gửi yêu cầu",
@@ -151,7 +151,7 @@ export const LANDING_CONTENT = {
       },
       {
         title: "Người nhận xác minh danh tính",
-        detail: "Luật sư đối chiếu căn cước để đúng người mới nhận được kho.",
+        detail: "Luật sư đối chiếu căn cước để đúng người mới nhận được tài sản.",
       },
       {
         title: "Ba bên ký",
@@ -164,16 +164,16 @@ export const LANDING_CONTENT = {
     eyebrow: "Cách hoạt động",
     title: "Bạn sắp đặt một lần. Phần còn lại, nhẹ nhàng.",
     description:
-      "Nội dung kho được mã hóa AES-256-GCM trên máy chủ. Người thực thi và luật sư không đọc được nội dung.",
+      "Nội dung tài sản được mã hóa AES-256-GCM trên máy chủ. Người thực thi và luật sư không đọc được nội dung.",
     steps: [
       {
-        title: "Lập kho",
+        title: "Khai báo tài sản",
         detail: "Chủ tài sản ghi lại tài sản số, tài liệu và lời nhắn, rồi chọn người nhận.",
       },
       {
         title: "Chỉ định Người thực thi",
         detail:
-          "Chọn một Người thực thi; luật sư do hệ thống phân công khi có yêu cầu nhận. Họ không đọc được nội dung kho.",
+          "Chọn một Người thực thi; luật sư do hệ thống phân công khi có yêu cầu nhận. Họ không đọc được nội dung tài sản.",
       },
       {
         title: "Lập biên bản phân chia",
@@ -194,11 +194,11 @@ export const LANDING_CONTENT = {
     items: [
       {
         title: "Mã hóa AES-256-GCM",
-        detail: "Nội dung kho được mã hóa trên máy chủ trước khi lưu.",
+        detail: "Nội dung tài sản được mã hóa trên máy chủ trước khi lưu.",
       },
       {
         title: "Người xác nhận không đọc được",
-        detail: "Người thực thi và luật sư không mở được nội dung kho.",
+        detail: "Người thực thi và luật sư không mở được nội dung tài sản.",
       },
       {
         title: "Ảnh căn cước không lưu",
@@ -236,7 +236,7 @@ export const LANDING_CONTENT = {
     limit: 6,
   },
   cta: {
-    title: "Bắt đầu lập kho hôm nay.",
+    title: "Bắt đầu cất tài sản hôm nay.",
     description:
       "Gói Free cho bạn {freeQuotaMb} MiB để làm quen. Nâng cấp khi sẵn sàng thiết lập kế hoạch bàn giao.",
     primary: "Tạo tài khoản",

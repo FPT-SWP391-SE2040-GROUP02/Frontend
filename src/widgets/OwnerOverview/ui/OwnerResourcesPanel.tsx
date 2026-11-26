@@ -9,7 +9,7 @@ export function OwnerResourcesPanel({ vaultId }: { vaultId: string }) {
   const beneficiaries = useBeneficiaries(vaultId);
   const sections = [
     {
-      title: "Tài sản trong kho",
+      title: "Tài sản đang lưu",
       icon: FileText,
       query: assets,
       value: assets.data ? `${assets.data.totalCount} tài sản` : "",

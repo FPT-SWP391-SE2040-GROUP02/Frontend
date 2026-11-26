@@ -213,7 +213,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
                 ))}
               </ul>
               <p className="mt-3 text-sm text-heritage-muted">
-                Chưa tính {data.closedPlans} kho đã đóng.
+                Chưa tính {data.closedPlans} tài sản đã đóng.
               </p>
             </section>
           )}
@@ -344,7 +344,7 @@ export function AdminOverview({ actionLabel }: { actionLabel?: (action: string) 
 
       <p className="text-sm text-heritage-muted">
         Zero-Knowledge: Quản trị viên chỉ quản lý hạ tầng và giám sát vận hành, tuyệt đối không giải
-        mã và không đọc nội dung kho của người dùng.
+        mã và không đọc nội dung tài sản của người dùng.
       </p>
     </div>
   );

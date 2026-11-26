@@ -39,7 +39,7 @@ export function Hero({
   actions?: ReactNode;
 }) {
   return (
-    <section className={cn("rounded-[18px] border px-6 py-5 shadow-card", heroTones[tone])}>
+    <section className={cn("pm-rise rounded-[18px] border px-6 py-5 shadow-card", heroTones[tone])}>
       <p
         className={cn(
           "mb-1 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider",

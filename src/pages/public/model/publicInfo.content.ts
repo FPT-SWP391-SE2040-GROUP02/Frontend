@@ -65,14 +65,14 @@ export const FAQ_CONTENT = {
       title: "Bảo mật và quyền riêng tư",
       items: [
         {
-          question: "Nội dung trong kho được bảo vệ thế nào?",
+          question: "Nội dung tài sản được bảo vệ thế nào?",
           answer:
             "Nội dung được mã hóa AES-256-GCM phía máy chủ. Đây không phải mã hóa đầu cuối: chúng tôi nói rõ để bạn cân nhắc nội dung nào nên cất.",
         },
         {
-          question: "Người thực thi và người xét duyệt có đọc được nội dung kho không?",
+          question: "Người thực thi và người xét duyệt có đọc được nội dung tài sản không?",
           answer:
-            "Không. Họ chỉ tham gia các bước xác nhận và xét duyệt, không có quyền đọc nội dung bên trong kho.",
+            "Không. Họ chỉ tham gia các bước xác nhận và xét duyệt, không có quyền đọc nội dung tài sản.",
         },
         {
           question: "Ảnh căn cước và khuôn mặt của tôi có được lưu không?",
@@ -92,7 +92,7 @@ export const FAQ_CONTENT = {
         {
           question: "Bàn giao bắt đầu thế nào?",
           answer:
-            "Khi Chủ tài sản qua đời, người nhận chủ động gửi yêu cầu nhận tài sản kèm giấy tờ, qua link trong thư hoặc mục Nhận tài sản. Hệ thống báo Chủ tài sản và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ (chấp nhận thì kho khóa), lập biên bản bàn giao (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký. Đủ chữ ký mới giao tài sản.",
+            "Khi Chủ tài sản qua đời, người nhận chủ động gửi yêu cầu nhận tài sản kèm giấy tờ, qua link trong thư hoặc mục Nhận tài sản. Hệ thống báo Chủ tài sản và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ (chấp nhận thì tài sản khóa), lập biên bản bàn giao (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký. Đủ chữ ký mới giao tài sản.",
         },
         {
           question: "LegacyVault có làm thủ tục thừa kế không?",
@@ -134,7 +134,7 @@ export const CONTACT_CONTENT = {
   eyebrow: "Hỗ trợ",
   title: "Liên hệ LegacyVault",
   description:
-    "Gửi thắc mắc về tài khoản, kế hoạch bàn giao hoặc thanh toán. Vì bảo mật, đừng gửi mật khẩu, mã xác thực hay nội dung trong kho qua email.",
+    "Gửi thắc mắc về tài khoản, kế hoạch bàn giao hoặc thanh toán. Vì bảo mật, đừng gửi mật khẩu, mã xác thực hay nội dung tài sản qua email.",
   channels: [
     {
       title: "Hỗ trợ chung",
@@ -244,7 +244,7 @@ export const PRIVACY_CONTENT = {
       ],
       bullets: [
         "Thông tin tài khoản: họ tên, email, thông tin đăng nhập (mật khẩu được băm, không lưu dạng thô).",
-        "Nội dung bạn lưu trong kho, được mã hóa AES-256-GCM phía máy chủ.",
+        "Nội dung bạn lưu, được mã hóa AES-256-GCM phía máy chủ.",
         "Thông tin kế hoạch bàn giao: người nhận, Người thực thi, Người xét duyệt do bạn chỉ định.",
         "Nhật ký hoạt động phục vụ bảo mật và đối soát.",
         "Dữ liệu thanh toán do cổng thanh toán xử lý; chúng tôi không lưu số thẻ.",
@@ -261,7 +261,7 @@ export const PRIVACY_CONTENT = {
       title: "3. Mục đích sử dụng",
       paragraphs: [],
       bullets: [
-        "Cung cấp và bảo vệ tài khoản, kho và kế hoạch bàn giao.",
+        "Cung cấp và bảo vệ tài khoản, tài sản và kế hoạch bàn giao.",
         "Gửi email xác minh, thư mời người nhận và mã nhận.",
         "Xác minh người nhận trước khi bàn giao.",
         "Phát hiện gian lận, sự cố bảo mật và tuân thủ nghĩa vụ pháp lý.",
@@ -271,7 +271,7 @@ export const PRIVACY_CONTENT = {
       title: "4. Chia sẻ dữ liệu",
       paragraphs: [
         "Chúng tôi không bán dữ liệu cá nhân. Dữ liệu chỉ được chia sẻ với nhà cung cấp dịch vụ cần thiết (gửi email, thanh toán, hạ tầng) theo hợp đồng bảo mật, hoặc khi pháp luật yêu cầu.",
-        "Người nhận chỉ truy cập nội dung được chỉ định cho họ sau khi bàn giao hoàn tất. Người thực thi và Người xét duyệt không đọc được nội dung kho.",
+        "Người nhận chỉ truy cập nội dung được chỉ định cho họ sau khi bàn giao hoàn tất. Người thực thi và Người xét duyệt không đọc được nội dung tài sản.",
       ],
     },
     {
