@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { InfoRow, Panel, StatusText } from "@/shared/ui/heritageKit";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
 import {
-  citizenIdText,
   deliveryText,
   fullySignedCount,
   identityText,
@@ -19,11 +18,9 @@ import { SignatureParties } from "./SignatureParties";
 function RecipientBlock({
   record,
   recipient,
-  maskCitizenId,
 }: {
   record: HandoverRecord;
   recipient: RecordRecipient;
-  maskCitizenId: boolean;
 }) {
   const identity = identityText(recipient);
   const delivery = deliveryText(record, recipient);
@@ -32,7 +29,7 @@ function RecipientBlock({
     <section className="space-y-4">
       <div>
         <p className="text-base font-semibold">{recipient.fullName || "—"}</p>
-        <p className="text-sm text-heritage-muted">{`CCCD ${citizenIdText(recipient.citizenId, maskCitizenId)}`}</p>
+        <p className="text-sm text-heritage-muted">{`CCCD ${recipient.citizenId}`}</p>
       </div>
       <dl className="divide-y divide-heritage-border border-y border-heritage-border text-sm">
         <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 py-3">
@@ -95,7 +92,6 @@ function RecipientBlock({
  * luật sư và Người thực thi đã ký.
  * renderRecipientAction thêm một cột thao tác cho từng người nhận (ví dụ nút kiểm danh tính của luật sư).
  * layout="stacked" xếp mỗi người nhận thành một khối dọc thay cho bảng ngang, hợp cột hẹp của người nhận.
- * maskCitizenId (màn Người thực thi) chỉ hiện 4 số cuối căn cước.
  * signAction là nút ký của người đang xem (khi có, nút mở khung đổi nhãn thành "Xem và ký biên bản"); nó chỉ hiện trong khung "Xem biên bản", ngay tại ô chữ ký của chính người đó
  * (Người thực thi, luật sư hoặc người nhận), để người ký đọc xong tờ biên bản rồi ký ngay tại đó.
  */
@@ -105,14 +101,12 @@ export function RecordDocument({
   renderRecipientAction,
   layout = "table",
   signAction,
-  maskCitizenId = false,
 }: {
   record: HandoverRecord;
   title?: string;
   renderRecipientAction?: (recipient: RecordRecipient) => ReactNode;
   layout?: "table" | "stacked";
   signAction?: PaperSignAction;
-  maskCitizenId?: boolean;
 }) {
   const status = recordStatusLabel[record.status];
   const signatures = fullySignedCount(record);
@@ -149,12 +143,7 @@ export function RecordDocument({
         ) : layout === "stacked" ? (
           <div className="space-y-6">
             {record.recipients.map((recipient) => (
-              <RecipientBlock
-                key={recipient.beneficiaryId}
-                record={record}
-                recipient={recipient}
-                maskCitizenId={maskCitizenId}
-              />
+              <RecipientBlock key={recipient.beneficiaryId} record={record} recipient={recipient} />
             ))}
           </div>
         ) : (
@@ -197,9 +186,7 @@ export function RecordDocument({
                     <tr key={recipient.beneficiaryId} className="align-top">
                       <td className="py-4 pr-4">
                         <span className="block font-semibold">{recipient.fullName || "—"}</span>
-                        <span className="text-heritage-muted">
-                          {`CCCD ${citizenIdText(recipient.citizenId, maskCitizenId)}`}
-                        </span>
+                        <span className="text-heritage-muted">{`CCCD ${recipient.citizenId}`}</span>
                       </td>
                       <td className="px-4 py-4">
                         <ul className="list-disc space-y-1 pl-4">

@@ -160,16 +160,6 @@ export function signBlockedText(reason: string): string {
   }
 }
 
-/**
- * Số căn cước hiển thị. masked (màn Người thực thi) chỉ giữ 4 số cuối "•••• 1793"; Backend đã che sẵn cho Người thực
- * thi, hàm này chỉ giữ nguyên chuỗi đã che và che phòng khi nhận số đầy đủ.
- */
-export function citizenIdText(citizenId: string, masked: boolean): string {
-  if (!masked || citizenId.includes("•")) return citizenId;
-  if (citizenId.length < 4) return "••••";
-  return `•••• ${citizenId.slice(-4)}`;
-}
-
 /** Danh tính của một người nhận đang ở đâu, nói bằng chữ dễ hiểu. */
 export function identityText(recipient: RecordRecipient): { label: string; tone: Tone } {
   if (recipient.identityConfirmedAt) return { label: "Đã xác nhận", tone: "success" };

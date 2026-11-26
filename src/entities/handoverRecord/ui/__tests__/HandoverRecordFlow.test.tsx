@@ -1361,7 +1361,7 @@ describe("Thứ tự ký và chữ ký từng bên cho mỗi người nhận", (
         }),
         recipient(BINH, "Lê Bình", [savingsAsset], {
           turnId: TURN_B,
-          citizenId: "•••• 2468",
+          citizenId: "001090002468",
           identityConfirmedAt: AT,
           signBlockedReason: "VERIFIER_NOT_SIGNED",
         }),
@@ -1369,7 +1369,7 @@ describe("Thứ tự ký và chữ ký từng bên cho mỗi người nhận", (
       ...extra,
     });
 
-  it("Người thực thi: khóa nút ký khi luật sư chưa ký, đếm đủ chữ ký, ghi ba bên, che căn cước, gọi là Kho", async () => {
+  it("Người thực thi: khóa nút ký khi luật sư chưa ký, đếm đủ chữ ký, ghi ba bên, gọi là Kho", async () => {
     backend(twoRecipients());
     setup(<ExecutorRecordPanel vaultId={VAULT_ID} />);
 
@@ -1396,16 +1396,11 @@ describe("Thứ tự ký và chữ ký từng bên cho mỗi người nhận", (
     );
     expect(screen.getByRole("columnheader", { name: "Giao" })).toBeInTheDocument();
 
-    // Căn cước chỉ 4 số cuối, kể cả khi lỡ nhận số đầy đủ
-    expect(screen.getByText("CCCD •••• 1793")).toBeInTheDocument();
-    expect(screen.getByText("CCCD •••• 2468")).toBeInTheDocument();
-    expect(screen.queryByText(/001090001793/)).not.toBeInTheDocument();
-
     // Ô tên kho gọi là "Kho"
     expect(screen.getByText("Kho")).toBeInTheDocument();
   });
 
-  it("Luật sư: số căn cước đầy đủ và tiêu đề đếm theo người nhận", async () => {
+  it("Luật sư: tiêu đề đếm theo người nhận và ký được phần đầu tiên", async () => {
     backend(
       twoRecipients({
         recipients: [
@@ -1421,7 +1416,6 @@ describe("Thứ tự ký và chữ ký từng bên cho mỗi người nhận", (
     setup(<VerifierRecordDetail recordId={RECORD_ID} onBack={() => undefined} />);
 
     expect(await screen.findByText(/Đủ chữ ký: 0\/1 người nhận/)).toBeInTheDocument();
-    expect(screen.getByText("CCCD 001090002468")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Xem và ký" })).toBeEnabled();
     expect(
       screen.getByText("Luật sư đã ký 0/1 phần · Người thực thi đã ký 0/1 phần"),

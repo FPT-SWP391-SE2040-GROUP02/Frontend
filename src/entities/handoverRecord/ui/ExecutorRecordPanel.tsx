@@ -117,8 +117,7 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
           </ul>
         </Panel>
       )}
-      {/* Người thực thi chỉ thấy 4 số cuối căn cước người nhận (Backend đã che sẵn). */}
-      <RecordDocument record={record} maskCitizenId />
+      <RecordDocument record={record} />
     </div>
   );
 }
