@@ -12,7 +12,7 @@ const ITEMS_TAB = "items";
 /** Phạm vi dịch vụ: chỉ tài sản số, không nhận giấy tờ nhà đất, xe. */
 const DIGITAL_ONLY_NOTICE = "Chỉ nhận tài sản số. Không xử lý giấy tờ nhà đất, xe…";
 const TABS = [
-  { key: ITEMS_TAB, label: "Mục trong kho" },
+  { key: ITEMS_TAB, label: "Mục tài sản" },
   { key: ASSIGNMENTS_TAB, label: "Phân chia" },
 ];
 
@@ -46,7 +46,7 @@ export function AssetsManagementPage() {
         {DIGITAL_ONLY_NOTICE}
       </p>
       <SlidingTabs
-        label="Kho của tôi"
+        label="Tài sản của tôi"
         tabs={TABS}
         value={activeTab}
         onChange={(key) => selectTab(key === ASSIGNMENTS_TAB)}

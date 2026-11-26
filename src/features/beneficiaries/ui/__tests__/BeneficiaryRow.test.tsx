@@ -73,13 +73,13 @@ describe("hàng người nhận", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("kho bị khóa thì khóa cả Sửa lẫn Xóa", () => {
+  it("tài sản bị khóa thì khóa cả Sửa lẫn Xóa", () => {
     renderRow({}, {}, true);
     expect(screen.getByRole("button", { name: /Sửa hồ sơ/ })).toBeDisabled();
     expect(screen.getByRole("button", { name: /Xóa hồ sơ/ })).toBeDisabled();
   });
 
-  it("kho không bị khóa thì Sửa và Xóa bấm được", () => {
+  it("tài sản không bị khóa thì Sửa và Xóa bấm được", () => {
     renderRow();
     expect(screen.getByRole("button", { name: /Sửa hồ sơ/ })).toBeEnabled();
     expect(screen.getByRole("button", { name: /Xóa hồ sơ/ })).toBeEnabled();

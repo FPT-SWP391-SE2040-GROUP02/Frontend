@@ -35,11 +35,11 @@ export function ImagePicker({
 
   return (
     <label
-      className={`flex cursor-pointer flex-col items-center gap-2 rounded-[14px] border-2 p-5 text-center text-sm transition-colors hover:border-heritage-gold ${file ? "border-solid border-heritage-success bg-heritage-success-bg" : "border-dashed border-heritage-gold-soft bg-heritage-warning-bg"}`}
+      className={`group flex cursor-pointer flex-col items-center gap-2 rounded-[14px] border-2 p-5 text-center text-sm transition-colors hover:border-heritage-gold ${file ? "border-solid border-heritage-success bg-heritage-success-bg" : "border-dashed border-heritage-gold-soft bg-heritage-warning-bg"}`}
     >
       <span className="font-semibold text-heritage-primary">{label}</span>
       {activePreview && (
-        <div className="overflow-hidden rounded-lg border border-heritage-border bg-heritage-canvas p-1.5">
+        <div className="pm-pop overflow-hidden rounded-lg border border-heritage-border bg-heritage-canvas p-1.5">
           <img
             src={activePreview}
             alt={`Ảnh đối chiếu ${label}`}
@@ -47,17 +47,20 @@ export function ImagePicker({
           />
         </div>
       )}
-      <span className="flex items-center gap-2 text-heritage-muted">
-        {file ? (
-          <Check className="size-5 shrink-0 text-heritage-success" aria-hidden="true" />
-        ) : (
-          <Upload className="size-5 shrink-0" aria-hidden="true" />
-        )}
-        <span className="truncate">
-          {file
-            ? `${file.name} (bấm để đổi)`
-            : "Bấm để chọn ảnh (JPEG, PNG hoặc WEBP, tối đa 8 MiB)"}
-        </span>
+      {/* Chỉ hiện biểu tượng, không chữ hướng dẫn: chưa chọn thì dấu tải lên, đã chọn thì dấu tích. Tên tệp và định dạng
+          cho trình đọc màn hình. */}
+      {file ? (
+        <Check
+          className="pm-pop pm-check size-7 shrink-0 text-heritage-success"
+          aria-hidden="true"
+        />
+      ) : (
+        <Upload className="pm-bob size-8 shrink-0 text-heritage-gold-hover" aria-hidden="true" />
+      )}
+      <span className="sr-only">
+        {file
+          ? `Đã chọn ${file.name}. Bấm để đổi ảnh.`
+          : "Bấm để chọn ảnh JPEG, PNG hoặc WEBP, tối đa 8 MiB."}
       </span>
       <input
         type="file"

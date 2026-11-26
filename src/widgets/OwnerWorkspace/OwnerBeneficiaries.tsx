@@ -40,7 +40,7 @@ function PaidTierDialog({ onClose }: { onClose: () => void }) {
           </DialogDescription>
         </DialogHeader>
         <p className="rounded-xl bg-heritage-warning-bg px-4 py-3 text-sm text-heritage-warning">
-          Kho và nội dung hiện có vẫn giữ nguyên.
+          Nội dung hiện có vẫn giữ nguyên.
         </p>
         <DialogFooter>
           <button type="button" className={buttonStyles.outline} onClick={onClose}>

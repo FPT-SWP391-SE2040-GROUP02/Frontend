@@ -34,7 +34,7 @@ export function VaultPinSetupNotice({ vaultId }: { vaultId: string }) {
         </span>
         <div className="min-w-0 space-y-1">
           <h2 id="vault-pin-setup-title" className="text-base font-semibold text-heritage-primary">
-            Bạn chưa đặt mã PIN cho kho
+            Bạn chưa đặt mã PIN cho tài sản
           </h2>
           <p className="text-sm leading-6 text-heritage-muted">
             Mã PIN là lớp khóa thứ hai. Có nó thì người mượn máy bạn vẫn không xem được nội dung tài

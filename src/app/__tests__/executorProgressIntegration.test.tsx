@@ -13,6 +13,7 @@ import { deathCaseService } from "@/features/death-case/api/deathCaseService";
 import { HandoverProgressPanel } from "@/features/death-case/ui/HandoverProgressPanel";
 
 const CASE_ID = "33333333-3333-4333-8333-333333333333";
+const VAULT_ID = "22222222-2222-4222-8222-222222222222";
 const OTHER_CASE_ID = "44444444-4444-4444-8444-444444444444";
 const TURN_ID = "55555555-5555-4555-8555-555555555555";
 const ITEM_ID = "66666666-6666-4666-8666-666666666666";
@@ -173,14 +174,14 @@ it("rejects a non-UUID case id before sending any request", async () => {
 
 it("explains that handover has not started instead of showing an empty list", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(notStarted);
-  setup(<HandoverProgressPanel recordId={CASE_ID} />);
+  setup(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
   expect(await screen.findByText(/Bàn giao chưa bắt đầu/)).toBeInTheDocument();
   expect(screen.queryByRole("list", { name: "Danh sách người nhận" })).not.toBeInTheDocument();
 });
 
 it("shows four tiles and one row per turn, with detail only after pressing Chi tiết", async () => {
   vi.spyOn(apiClient, "get").mockResolvedValue(started);
-  setup(<HandoverProgressPanel recordId={CASE_ID} />);
+  setup(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
   const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
   // Chưa có họ tên thì hiện CCCD che; mỗi lượt đúng một dòng kèm tên gói.
   const rows = within(list).getAllByRole("listitem", { name: /, / });
@@ -211,7 +212,7 @@ it("keeps two packages of the same recipient as two separate rows", async () => 
       { ...second, beneficiaryId: BENEFICIARY_ID, beneficiaryFullName: "Trần Thị Bình" },
     ],
   });
-  setup(<HandoverProgressPanel recordId={CASE_ID} />);
+  setup(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
   const list = await screen.findByRole("list", { name: "Danh sách người nhận" });
   expect(within(list).getAllByText("Trần Thị Bình")).toHaveLength(2);
   expect(within(list).getByText("Tài liệu gia đình")).toBeInTheDocument();
@@ -222,7 +223,7 @@ it("keeps two packages of the same recipient as two separate rows", async () => 
 it("turns a 404 into a permission message with retry, never into an empty progress", async () => {
   const url = `/executor/handover-records/${CASE_ID}/handover-progress`;
   const get = vi.spyOn(apiClient, "get").mockRejectedValue(notFound(url));
-  setup(<HandoverProgressPanel recordId={CASE_ID} />);
+  setup(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "không còn là Người thực thi đang hiệu lực",
   );
@@ -234,7 +235,7 @@ it("turns a 404 into a permission message with retry, never into an empty progre
 it("reports a response that breaks the contract instead of rendering partial data", async () => {
   const broken = { ...started, summary: undefined };
   vi.spyOn(apiClient, "get").mockResolvedValue(broken);
-  setup(<HandoverProgressPanel recordId={CASE_ID} />);
+  setup(<HandoverProgressPanel recordId={CASE_ID} vaultId={VAULT_ID} />);
   expect(await screen.findByRole("alert")).toHaveTextContent("không đúng định dạng");
 });
 
@@ -249,13 +250,13 @@ it("keeps the newly selected case when the previous case answers late", async ()
     }
     return Promise.resolve(otherProgress);
   });
-  const view = setup(<HandoverProgressPanel key={CASE_ID} recordId={CASE_ID} />);
+  const view = setup(<HandoverProgressPanel key={CASE_ID} recordId={CASE_ID} vaultId={VAULT_ID} />);
   expect(screen.getByText("Đang tải tiến độ bàn giao…")).toBeInTheDocument();
   view.rerender(
     <Provider store={configureStore({ reducer: { auth: authReducer } })}>
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <HandoverProgressPanel key={OTHER_CASE_ID} recordId={OTHER_CASE_ID} />
+          <HandoverProgressPanel key={OTHER_CASE_ID} recordId={OTHER_CASE_ID} vaultId={VAULT_ID} />
         </MemoryRouter>
       </QueryClientProvider>
     </Provider>,

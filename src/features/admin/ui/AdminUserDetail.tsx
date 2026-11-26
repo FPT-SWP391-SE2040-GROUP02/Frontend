@@ -127,7 +127,7 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
       {isExecutor && (
         <section aria-labelledby="user-vaults" className="space-y-3">
           <h3 id="user-vaults" className="text-base font-semibold">
-            Kho đang giữ
+            Tài sản đang giữ
           </h3>
           {successMessage && (
             <p role="status" className="text-sm text-heritage-primary">
@@ -135,7 +135,7 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
             </p>
           )}
           {user.heldVaults.length === 0 ? (
-            <p className="text-sm text-heritage-muted">Hiện không giữ kho nào</p>
+            <p className="text-sm text-heritage-muted">Hiện không giữ tài sản nào</p>
           ) : (
             <ul className="divide-y divide-heritage-border rounded-2xl border border-heritage-border bg-heritage-surface">
               {user.heldVaults.map((vault) => (
@@ -160,7 +160,7 @@ export function AdminUserDetail({ userId, onBack, actionLabel }: AdminUserDetail
                     <Button
                       variant="outline"
                       className="min-h-11"
-                      aria-label={`Đổi Người thực thi của kho ${vault.ownerNameMasked}`}
+                      aria-label={`Đổi Người thực thi của tài sản ${vault.ownerNameMasked}`}
                       onClick={() => {
                         setSuccessMessage("");
                         setChangingVault(vault);

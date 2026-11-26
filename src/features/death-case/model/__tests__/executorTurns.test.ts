@@ -211,7 +211,7 @@ describe("deriveTurnProgress: từng trạng thái của lượt", () => {
     expect(progress.tone).toBe("success");
   });
 
-  it("kho không dùng mã: đã tải được thì bước nhập mã coi là qua, giờ hiện gạch ngang", () => {
+  it("tài sản không dùng mã: đã tải được thì bước nhập mã coi là qua, giờ hiện gạch ngang", () => {
     const progress = deriveTurnProgress(
       turn({
         status: "HANDOVER_COMMITTED",

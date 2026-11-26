@@ -145,7 +145,7 @@ describe("executorTodo", () => {
     expect(todo.title).toBe("Ký phiếu giao nhận với 1 người nhận");
   });
 
-  it("kho đã đóng thì không còn việc", () => {
+  it("tài sản đã đóng thì không còn việc", () => {
     expect(executorTodo(input({ vault: vault({ planStatus: "CLOSED" }) })).title).toBe(
       "Bàn giao đã hoàn tất",
     );

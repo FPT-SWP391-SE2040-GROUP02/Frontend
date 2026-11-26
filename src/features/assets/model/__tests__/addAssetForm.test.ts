@@ -17,10 +17,10 @@ describe("validateAssetFile", () => {
       "Kích thước tệp vượt quá giới hạn tối đa (500 MB).",
     );
   });
-  it("vượt dung lượng còn lại của kho", () => {
+  it("vượt dung lượng còn lại của tài sản", () => {
     const file = new File(["abc"], "a.txt"); // 3 byte
     expect(validateAssetFile(file, 2)).toBe(
-      "Dung lượng tệp (3 B) vượt quá dung lượng khả dụng còn lại của kho (2 B).",
+      "Dung lượng tệp (3 B) vượt quá dung lượng lưu trữ còn lại (2 B).",
     );
   });
   it("hợp lệ trả rỗng", () => {

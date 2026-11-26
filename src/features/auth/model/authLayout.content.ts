@@ -1,7 +1,7 @@
 /** Nội dung thương hiệu dùng chung cho khung Auth. */
 export const AUTH_LAYOUT_CONTENT = {
   brand: "LegacyVault",
-  title: "Kho của bạn vẫn kín, dù bạn vắng mặt.",
+  title: "Tài sản của bạn vẫn kín, dù bạn vắng mặt.",
   subtitle: "Đăng nhập để quản lý tài sản và người nhận.",
   footer: "Dịch vụ lưu giữ và bàn giao dữ liệu số.",
   note: "Không thay thế di chúc.",
@@ -17,7 +17,7 @@ export const AUTH_LAYOUT_CONTENT = {
   forgot: {
     title: "Quên mật khẩu?",
     description: "Nhập email đã đăng ký để yêu cầu đặt lại mật khẩu.",
-    sideTitle: "Một bước để trở lại kho của bạn.",
+    sideTitle: "Một bước để trở lại tài sản của bạn.",
     sideDescription:
       "Khôi phục quyền đăng nhập bằng email đã đăng ký. Không chia sẻ mật khẩu hoặc mã xác nhận với người khác.",
   },

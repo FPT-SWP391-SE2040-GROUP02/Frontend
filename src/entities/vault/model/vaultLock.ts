@@ -6,9 +6,10 @@ import { VAULT_PLAN_STATUS } from "./vault.types";
  */
 const LOCK_REASONS: Record<string, string> = {
   [VAULT_PLAN_STATUS.HANDOVER_REQUESTED]:
-    "Có người nhận gửi yêu cầu nhận tài sản nên kho đang bị khóa trong lúc luật sư xét giấy tờ và lập biên bản.",
-  [VAULT_PLAN_STATUS.HANDOVER_IN_PROGRESS]: "Kế hoạch đang bàn giao nên kho không thay đổi được.",
-  [VAULT_PLAN_STATUS.CLOSED]: "Kế hoạch đã đóng nên kho không thay đổi được.",
+    "Có người nhận gửi yêu cầu nhận tài sản nên tài sản đang bị khóa trong lúc luật sư xét giấy tờ và lập biên bản.",
+  [VAULT_PLAN_STATUS.HANDOVER_IN_PROGRESS]:
+    "Kế hoạch đang bàn giao nên tài sản không thay đổi được.",
+  [VAULT_PLAN_STATUS.CLOSED]: "Kế hoạch đã đóng nên tài sản không thay đổi được.",
 };
 
 /** Chỉ cần hai trường này của kho; nhận null khi kho chưa tải để caller không phải kiểm tra trước. */
@@ -26,7 +27,7 @@ export function getVaultLockReason(vault: VaultLockInput | null | undefined): st
     return null;
   }
   if (vault.status === "CLOSED") {
-    return "Kho đã đóng nên không thay đổi được.";
+    return "Tài sản đã đóng nên không thay đổi được.";
   }
   if (Object.hasOwn(LOCK_REASONS, vault.planStatus)) {
     return LOCK_REASONS[vault.planStatus];

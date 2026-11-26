@@ -156,13 +156,13 @@ export function NewRecipientCards({
       )}
       {skipped.length > 0 && (
         <p className="text-sm leading-6 text-heritage-muted">
-          {`Không điền sẵn vì email đã có trong kho: ${skipped.join(", ")}.`}
+          {`Không điền sẵn vì email đã có trong danh sách: ${skipped.join(", ")}.`}
         </p>
       )}
       {drafts.length > 0 && (
         <p className="text-sm leading-6 text-heritage-muted">
-          Người đang nhập chỉ được thêm vào kho khi bấm Chốt và gửi thư. Một người không hợp lệ thì
-          chưa ai được thêm.
+          Người đang nhập chỉ được thêm vào danh sách khi bấm Chốt và gửi thư. Một người không hợp
+          lệ thì chưa ai được thêm.
         </p>
       )}
       {drafts.map((draft, index) => (

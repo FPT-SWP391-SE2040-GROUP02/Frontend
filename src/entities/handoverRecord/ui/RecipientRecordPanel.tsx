@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, PenLine } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { Hero } from "@/shared/ui/Hero";
+import { PortalSkeleton } from "@/shared/ui/PortalSkeleton";
 import { buttonStyles, Chip, formatDateTime, Panel } from "@/shared/ui/heritageKit";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { handoverRecordService } from "../api/handoverRecordService";
@@ -87,7 +89,7 @@ export function RecipientRecordPanel({
   const sign = usePrivateAction();
   const signed = useSuccessHold();
   const query = useRecipientRecord(turnId);
-  if (query.isPending) return <p role="status">Đang tải biên bản…</p>;
+  if (query.isPending) return <PortalSkeleton label="Đang tải biên bản…" rows={1} />;
   if (query.isError) {
     return (
       <div role="alert" className="space-y-3">
@@ -164,6 +166,7 @@ export function RecipientRecordPanel({
               title="Biên bản bàn giao"
               fileName={`Bien-ban-ban-giao-ban-${record.revisionNo}`}
               primary={record.canSign}
+              attention={record.canSign}
               paper={<RecordPaper record={record} signAction={signAction} />}
             />
           ) : undefined
@@ -259,5 +262,41 @@ export function RecipientPaperButtons({
         />
       )}
     </>
+  );
+}
+
+/**
+ * Nút "Xem và ký phiếu giao nhận" của người nhận: mở tờ phiếu, nút ký nằm ngay ô chữ ký "Bên nhận" của chính họ. `signNode`
+ * do nơi gọi dựng (nút ký gọi API nằm ở tầng feature). Chưa tải được biên bản thì chưa hiện nút nào.
+ */
+export function RecipientReceiptSignButton({
+  turnId,
+  signNode,
+  disabled = false,
+}: {
+  turnId: string;
+  signNode: ReactNode;
+  disabled?: boolean;
+}) {
+  const query = useRecipientRecord(turnId);
+  const record = query.data;
+  const me = record?.recipients[0];
+  if (!record || !me) return null;
+  return (
+    <PaperPreviewButton
+      label="Xem và ký phiếu giao nhận"
+      title="Phiếu giao nhận"
+      fileName="Phieu-giao-nhan"
+      primary
+      attention
+      disabled={disabled}
+      paper={
+        <ReceiptPaper
+          record={record}
+          recipient={me}
+          signAction={{ target: { recipientId: me.beneficiaryId }, node: signNode }}
+        />
+      }
+    />
   );
 }

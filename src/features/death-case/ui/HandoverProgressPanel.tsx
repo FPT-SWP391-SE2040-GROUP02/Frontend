@@ -9,7 +9,7 @@ import { HandoverTurnRow } from "./HandoverTurnRow";
 
 function errorMessage(error: unknown): string {
   if (isAxiosError(error) && error.response?.status === HTTP_STATUS.NOT_FOUND) {
-    return "Không tìm thấy hồ sơ, hoặc tài khoản không còn là Người thực thi đang hiệu lực của kho này.";
+    return "Không tìm thấy hồ sơ, hoặc tài khoản không còn là Người thực thi đang hiệu lực của tài sản này.";
   }
   if (error instanceof ZodError) {
     return "Dữ liệu tiến độ trả về không đúng định dạng. Báo nhóm Backend kiểm tra hợp đồng API.";
@@ -46,7 +46,7 @@ function ProgressBody({
   data,
 }: {
   recordId: string;
-  vaultId?: string;
+  vaultId: string;
   data: HandoverProgress;
 }) {
   const counts = countTurns(data.turns);
@@ -74,11 +74,6 @@ function ProgressBody({
           />
         ))}
       </ul>
-      <p className="text-sm leading-5 text-heritage-muted">
-        Thanh bước của từng người: Mời → Luật sư kiểm danh tính → Ký biên bản (luật sư, Người thực
-        thi và người này) → Nhập mã nhận → Hai bên ký phiếu giao nhận. Mỗi người được mở riêng,
-        không chờ người khác.
-      </p>
     </>
   );
 }
@@ -92,8 +87,8 @@ export function HandoverProgressPanel({
   vaultId,
 }: {
   recordId: string;
-  /** Kho của hồ sơ; có thì ô gửi mã cho phép lấy mã đã nhận trên hệ thống. */
-  vaultId?: string;
+  /** Tài sản của hồ sơ; dùng lấy mã nhận để gửi và mở tờ phiếu giao nhận của Người thực thi. */
+  vaultId: string;
 }) {
   const query = useHandoverProgress(recordId);
   let body;

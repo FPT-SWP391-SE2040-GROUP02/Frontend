@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AssetsManagementPage } from "../AssetsManagementPage";
 
 vi.mock("@/features/vault-management/model/useVaultPageTitle", () => ({
-  useVaultPageTitle: () => ({ title: "Kho của tôi", eyebrow: undefined }),
+  useVaultPageTitle: () => ({ title: "Tài sản của tôi", eyebrow: undefined }),
 }));
 vi.mock("@/widgets/OwnerWorkspace/OwnerSection", () => ({
   OwnerSection: () => <div>nội dung</div>,

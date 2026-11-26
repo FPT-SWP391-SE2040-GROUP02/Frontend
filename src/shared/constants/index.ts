@@ -202,7 +202,7 @@ export const PLAN_TIERS = {
   RECIPIENT_FREE: {
     id: "plan_recipient_free",
     tier: "RECIPIENT_FREE",
-    name: "Kho Người Nhận Free",
+    name: "Gói Người Nhận Free",
     price: 0,
     cycle: "Vĩnh viễn",
     maxAssets: 2,
@@ -212,7 +212,7 @@ export const PLAN_TIERS = {
   RECIPIENT_PLUS: {
     id: "plan_recipient_plus",
     tier: "RECIPIENT_PLUS",
-    name: "Kho Người Nhận Plus",
+    name: "Gói Người Nhận Plus",
     price: 49000,
     cycle: "30 ngày",
     maxAssets: 10,

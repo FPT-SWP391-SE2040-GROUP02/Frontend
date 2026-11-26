@@ -39,7 +39,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("schema kho được để lại", () => {
+describe("schema tài sản được để lại", () => {
   it("nhận dòng đủ trường", () => {
     const value = parsed({ status: "CODE_READY", claimId: CLAIM_ID, turnId: TURN_ID });
     expect(value.status).toBe("CODE_READY");

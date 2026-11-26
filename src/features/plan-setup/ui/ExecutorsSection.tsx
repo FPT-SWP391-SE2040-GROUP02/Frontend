@@ -181,7 +181,7 @@ export function InviteDialog({
 
   let title = "Chọn Người thực thi của bạn";
   let description =
-    "Chọn một Người thực thi hệ thống đã được thẩm định. Người này giữ hộ tài sản, ký biên bản và gửi mã nhận khi bàn giao; không đọc được nội dung kho.";
+    "Chọn một Người thực thi hệ thống đã được thẩm định. Người này giữ hộ tài sản, ký biên bản và gửi mã nhận khi bàn giao; không đọc được nội dung tài sản.";
   let notice = `Lời mời có hiệu lực ${executorInviteMinutes} phút.`;
   let cancelLabel = "Hủy";
   if (replacing !== null) {
@@ -322,7 +322,7 @@ export function RevokeDialog({
 
   const consequences: string[] = [];
   if (accepted) {
-    consequences.push("Người này sẽ không còn là Người thực thi của kho.");
+    consequences.push("Người này sẽ không còn là Người thực thi của tài sản.");
   } else {
     consequences.push("Liên kết trong email mời sẽ không dùng được nữa.");
   }
@@ -422,7 +422,7 @@ function ChosenCard(props: ChosenCardProps) {
   const header = (
     <div className="flex flex-wrap items-baseline justify-between gap-2">
       <h2 className="text-xl font-medium text-heritage-primary">Người bạn chọn</h2>
-      <p className="text-sm text-heritage-muted">Mỗi kho một người · bắt buộc để kích hoạt</p>
+      <p className="text-sm text-heritage-muted">Mỗi tài sản một người · bắt buộc để kích hoạt</p>
     </div>
   );
 
@@ -493,7 +493,7 @@ function ChosenCard(props: ChosenCardProps) {
       "Hệ thống tạo mã nhận khi bạn ký và kích hoạt kế hoạch. Người này chỉ xem được sau khi luật sư chốt biên bản bàn giao.";
   }
 
-  const forbidden: string[] = ["Đọc nội dung kho", "Tự duyệt hồ sơ", "Nhận tài sản trong kho này"];
+  const forbidden: string[] = ["Đọc nội dung tài sản", "Tự duyệt hồ sơ", "Nhận tài sản này"];
 
   return (
     <section aria-label="Người bạn chọn" className={CARD}>
@@ -509,7 +509,7 @@ function ChosenCard(props: ChosenCardProps) {
             </span>
             <div className="min-w-0">
               <p className="break-all font-semibold">{holder.inviteeEmail}</p>
-              <p className="text-sm text-heritage-muted">Người thực thi của kho</p>
+              <p className="text-sm text-heritage-muted">Người thực thi của tài sản</p>
             </div>
           </div>
           <Chip tone={statusTones[holder.status]}>{statusLabels[holder.status]}</Chip>

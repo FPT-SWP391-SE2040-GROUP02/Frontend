@@ -149,7 +149,7 @@ export function RecipientSplitPanel({
   if (record.availableRecipients.length === 0) {
     return (
       <p className="text-sm text-heritage-muted">
-        Kho chưa có người nhận nào. Thêm người nhận ở bên dưới.
+        Chưa có người nhận nào. Thêm người nhận ở bên dưới.
       </p>
     );
   }

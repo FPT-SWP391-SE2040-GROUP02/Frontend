@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useState, type CSSProperties } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { usePolicyWindows } from "@/shared/settings/usePolicyWindows";
 import {
@@ -151,10 +151,14 @@ export function ReceiveGuideTimeline() {
           circle = "border border-heritage-gold-soft bg-heritage-warning-bg text-heritage-warning";
         }
         return (
-          <li key={title} className="flex gap-4">
+          <li
+            key={title}
+            style={{ "--pm-i": index } as CSSProperties}
+            className="pm-rise flex gap-4"
+          >
             <div aria-hidden="true" className="flex flex-col items-center">
               <span
-                className={`flex size-[34px] shrink-0 items-center justify-center rounded-full font-semibold ${circle}`}
+                className={`pm-pop flex size-[34px] shrink-0 items-center justify-center rounded-full font-semibold ${circle}`}
               >
                 {index + 1}
               </span>

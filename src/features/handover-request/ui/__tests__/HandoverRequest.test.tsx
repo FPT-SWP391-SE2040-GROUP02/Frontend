@@ -101,7 +101,7 @@ function availableRow(extra: Record<string, unknown> = {}) {
   };
 }
 
-describe("Gửi yêu cầu nhận tài sản ngay trong thẻ kho", () => {
+describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () => {
   it("bấm Gửi yêu cầu thì form mở trong thẻ, gọi by-account kèm vaultId và làm mới danh sách", async () => {
     const user = userEvent.setup();
     const get = vi.spyOn(apiClient, "get").mockResolvedValue([availableRow()]);
@@ -109,7 +109,7 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ kho", () => {
     setup(<AvailableHandoverList />, "an@example.com");
 
     const toggle = await screen.findByRole("button", {
-      name: "Gửi yêu cầu - kho của Nguyễn Văn A",
+      name: "Gửi yêu cầu - tài sản của Nguyễn Văn A",
     });
     const region = document.getElementById(toggle.getAttribute("aria-controls") ?? "");
     expect(toggle).toHaveAttribute("aria-expanded", "false");
@@ -144,7 +144,7 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ kho", () => {
     const post = vi.spyOn(apiClient, "post");
     setup(<AvailableHandoverList />, "an@example.com");
 
-    await user.click(await screen.findByRole("button", { name: /Gửi yêu cầu - kho của/ }));
+    await user.click(await screen.findByRole("button", { name: /Gửi yêu cầu - tài sản của/ }));
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng đính kèm di chúc.");
     expect(post).not.toHaveBeenCalled();
@@ -231,7 +231,7 @@ describe("Chủ tài sản thấy yêu cầu nhận tài sản", () => {
     expect(screen.queryByRole("button", { name: "Hủy yêu cầu" })).not.toBeInTheDocument();
   });
 
-  it("kho chưa khóa thì báo luật sư đang xét và Chủ tài sản vẫn sửa được kho", async () => {
+  it("tài sản chưa khóa thì báo luật sư đang xét và Chủ tài sản vẫn sửa được tài sản", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue({
       recordId: RECORD_ID,
       status: "DRAFTING",
@@ -243,14 +243,14 @@ describe("Chủ tài sản thấy yêu cầu nhận tài sản", () => {
 
     expect(
       await screen.findByText(
-        /Có yêu cầu nhận tài sản đang được luật sư xét\. Kho chưa khóa; bạn vẫn sửa được kho cho tới khi luật sư chấp nhận giấy tờ\./,
+        /Có yêu cầu nhận tài sản đang được luật sư xét\. Tài sản chưa khóa; bạn vẫn sửa được tài sản cho tới khi luật sư chấp nhận giấy tờ\./,
       ),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/Kho đang khóa/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Tài sản đang khóa/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Hủy yêu cầu" })).not.toBeInTheDocument();
   });
 
-  it("kho đã khóa thì báo kho đang khóa trong lúc luật sư xét giấy tờ", async () => {
+  it("tài sản đã khóa thì báo tài sản đang khóa trong lúc luật sư xét giấy tờ", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue({
       recordId: RECORD_ID,
       status: "DRAFTING",
@@ -261,9 +261,9 @@ describe("Chủ tài sản thấy yêu cầu nhận tài sản", () => {
     setup(<OwnerRequestNotice vaultId={VAULT_ID} />, "owner@example.com", "/dashboard/wills");
 
     expect(
-      await screen.findByText(/Kho đang khóa trong lúc luật sư xét giấy tờ và lập biên bản\./),
+      await screen.findByText(/Tài sản đang khóa trong lúc luật sư xét giấy tờ và lập biên bản\./),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/Kho chưa khóa/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Tài sản chưa khóa/)).not.toBeInTheDocument();
   });
 
   it("không có yêu cầu (204) thì không hiện gì", async () => {

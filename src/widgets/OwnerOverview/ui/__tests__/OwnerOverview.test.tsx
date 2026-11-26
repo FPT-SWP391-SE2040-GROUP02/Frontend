@@ -34,7 +34,7 @@ describe("OwnerOverview data boundaries", () => {
     expect(screen.queryByText("Anh Nam")).not.toBeInTheDocument();
     expect(screen.queryByText("12")).not.toBeInTheDocument();
     expect(screen.queryByText("Mọi thứ đang ở đúng nơi.")).not.toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { level: 1 })[0]).toHaveTextContent("Kho của bạn");
+    expect(screen.getAllByRole("heading", { level: 1 })[0]).toHaveTextContent("Tài sản của bạn");
   });
   it("never restores fixture data on a retired preview URL", () => {
     setup("/preview/owner");

@@ -39,7 +39,7 @@ function OwnerServiceTier() {
   if (vault.isPending) return <p className="text-sm text-white/65">Đang tải gói…</p>;
   if (vault.isError) {
     if (isOwnerVaultMissing(vault.error)) {
-      return <p className="text-sm text-white/65">Chưa có kho</p>;
+      return <p className="text-sm text-white/65">Chưa có tài sản</p>;
     }
     return <p className="text-sm text-white/65">Chưa tải được gói</p>;
   }
@@ -57,7 +57,7 @@ interface OwnerNavItem {
 }
 
 const GROUP_RECEIVE = "ĐƯỢC ĐỂ LẠI CHO TÔI";
-const GROUP_MY_VAULT = "KHO CỦA TÔI";
+const GROUP_MY_VAULT = "TÀI SẢN CỦA TÔI";
 const GROUP_ACCOUNT = "TÀI KHOẢN";
 
 const navigation: OwnerNavItem[] = [
@@ -69,7 +69,7 @@ const navigation: OwnerNavItem[] = [
     group: GROUP_RECEIVE,
     showsReceiveCount: true,
   },
-  { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon, group: GROUP_MY_VAULT },
+  { label: "Tài sản của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon, group: GROUP_MY_VAULT },
   { label: "Bàn giao", to: ROUTES.WILLS.ROOT, icon: HandoverIcon, group: GROUP_MY_VAULT },
   {
     label: "Người nhận",

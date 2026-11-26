@@ -55,7 +55,7 @@ export function DeleteDialog({
         <DialogContent className="rounded-2xl bg-heritage-surface p-6 sm:max-w-[540px]">
           <DialogHeader>
             <DialogTitle>Chưa xóa được mục này</DialogTitle>
-            <DialogDescription>Mục đang được dùng nên kho giữ lại.</DialogDescription>
+            <DialogDescription>Mục đang được dùng nên được giữ lại.</DialogDescription>
           </DialogHeader>
           <Notice tone="danger" role="alert">
             {action.error}
@@ -82,8 +82,8 @@ export function DeleteDialog({
         <DialogHeader>
           <DialogTitle>Xóa “{asset.name}”?</DialogTitle>
           <DialogDescription>
-            Mục và nội dung sẽ bị xóa khỏi kho. Thao tác này không thể hoàn tác. Mục đang được gán
-            cho người nhận hoặc đã ghim vào lượt bàn giao thì không xóa được.
+            Mục và nội dung sẽ bị xóa. Thao tác này không thể hoàn tác. Mục đang được gán cho người
+            nhận hoặc đã ghim vào lượt bàn giao thì không xóa được.
           </DialogDescription>
         </DialogHeader>
         <label className="flex min-h-11 items-center gap-3 text-sm">

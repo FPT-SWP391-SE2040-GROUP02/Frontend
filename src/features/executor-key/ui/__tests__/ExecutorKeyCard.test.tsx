@@ -92,7 +92,7 @@ describe("ExecutorKeyCard (Chủ tài sản)", () => {
     expect(post).not.toHaveBeenCalled();
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent("Mã cũ hết dùng được ngay");
-    await userEvent.type(within(dialog).getByLabelText(/Nhập mã PIN của kho/), PIN);
+    await userEvent.type(within(dialog).getByLabelText(/Nhập mã PIN tài sản/), PIN);
     await userEvent.click(within(dialog).getByRole("button", { name: "Đổi mã mới" }));
 
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
@@ -114,7 +114,7 @@ describe("ExecutorKeyCard (Chủ tài sản)", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
     const dialog = await screen.findByRole("dialog");
-    const input = within(dialog).getByLabelText(/Nhập mã PIN của kho/);
+    const input = within(dialog).getByLabelText(/Nhập mã PIN tài sản/);
     await userEvent.type(input, PIN);
     await userEvent.click(within(dialog).getByRole("button", { name: "Đổi mã mới" }));
 
@@ -129,11 +129,11 @@ describe("ExecutorKeyCard (Chủ tài sản)", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: "Đổi mã mới" }));
     const dialog = await screen.findByRole("dialog");
-    await userEvent.type(within(dialog).getByLabelText(/Nhập mã PIN của kho/), PIN);
+    await userEvent.type(within(dialog).getByLabelText(/Nhập mã PIN tài sản/), PIN);
     await userEvent.click(within(dialog).getByRole("button", { name: "Đổi mã mới" }));
 
     expect(await within(dialog).findByText(/Mã PIN đang bị khóa tạm/)).toBeVisible();
-    expect(within(dialog).getByLabelText(/Nhập mã PIN của kho/)).toBeDisabled();
+    expect(within(dialog).getByLabelText(/Nhập mã PIN tài sản/)).toBeDisabled();
   });
 
   it("kế hoạch đã khóa: ẩn nút đổi mã và có lời giải thích", async () => {

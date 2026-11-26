@@ -453,7 +453,7 @@ export function LoginForm({
               to={keepRedirect ? registerFromReceive : ROUTES.AUTH.REGISTER}
               className="text-heritage-primary font-bold hover:underline"
             >
-              {keepRedirect ? "Tạo tài khoản" : "Tạo kho miễn phí"}
+              {keepRedirect ? "Tạo tài khoản" : "Bắt đầu miễn phí"}
             </Link>
           </p>
         )}

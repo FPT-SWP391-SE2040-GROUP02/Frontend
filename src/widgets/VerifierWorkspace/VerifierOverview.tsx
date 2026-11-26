@@ -8,7 +8,7 @@ import { buttonStyles, Chip, Panel } from "@/shared/ui/heritageKit";
 
 const visible = [
   { label: "Tên tài sản, người nhận, ảnh căn cước người nhận", value: "Có" },
-  { label: "Nội dung kho", value: "Không" },
+  { label: "Nội dung tài sản", value: "Không" },
 ];
 
 /** Thời điểm sớm nhất trong danh sách (ISO); danh sách rỗng thì trả null. */

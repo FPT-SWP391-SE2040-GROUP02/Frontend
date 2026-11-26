@@ -15,10 +15,10 @@ const KNOWN_CODES = [
 const MISSING_LABELS: Record<string, string> = {
   ACCOUNT_NOT_ACTIVE: "Tài khoản chưa hoạt động",
   EMAIL_VERIFICATION_REQUIRED: "Cần xác minh email",
-  VAULT_NOT_OPEN: "Kho phải đang mở",
+  VAULT_NOT_OPEN: "Tài sản phải đang mở",
   PAID_SERVICE_REQUIRED: "Cần gói dịch vụ trả phí còn hạn",
   OWNER_EKYC_REQUIRED: "Chưa xác minh danh tính (eKYC)",
-  ASSET_REQUIRED: "Kho chưa có tài sản nào",
+  ASSET_REQUIRED: "Chưa có tài sản nào",
   PLAN_NOT_DRAFT: "Kế hoạch đã rời trạng thái nháp",
 };
 

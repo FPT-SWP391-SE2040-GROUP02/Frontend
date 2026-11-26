@@ -108,7 +108,7 @@ describe("thanh toán đơn đang chờ", () => {
     expect(screen.queryByRole("img", { name: "Mã QR chuyển khoản" })).not.toBeInTheDocument();
   });
 
-  it("thanh toán thử (dev) thành công thì hiện đã thanh toán và tải lại thông tin kho", async () => {
+  it("thanh toán thử (dev) thành công thì hiện đã thanh toán và tải lại thông tin tài sản", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue(pendingOrder);
     const post = vi.spyOn(apiClient, "post").mockResolvedValue({
       ...pendingOrder,
@@ -123,7 +123,7 @@ describe("thanh toán đơn đang chờ", () => {
     );
     await waitFor(() => expect(post).toHaveBeenCalledWith(`/billing/orders/${ORDER_ID}/dev-pay`));
     expect(await screen.findByText(/Đã thanh toán/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Về Kho của tôi" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Về Tài sản của tôi" })).toBeInTheDocument();
     await waitFor(() => expect(invalidate).toHaveBeenCalledWith({ queryKey: ["owner-vault"] }));
   });
 
@@ -150,7 +150,7 @@ describe("thanh toán đơn đang chờ", () => {
         paidAt: "2026-10-18T12:05:00+00:00",
       });
     });
-    expect(await screen.findByText(/Quyền dịch vụ của kho đã được cập nhật/)).toBeInTheDocument();
+    expect(await screen.findByText(/Quyền dịch vụ của bạn đã được cập nhật/)).toBeInTheDocument();
     expect(screen.queryByRole("timer")).not.toBeInTheDocument();
   });
 
@@ -183,7 +183,7 @@ describe("thanh toán đơn đang chờ", () => {
       await screen.findByText(/Nâng hạng lên XS Max \(giữ nguyên hạn dịch vụ\)/),
     ).toBeInTheDocument();
     expect(screen.getByText(/250\.000/)).toBeInTheDocument();
-    expect(screen.getByText(/Quyền dịch vụ của kho đã được cập nhật/)).toBeInTheDocument();
+    expect(screen.getByText(/Quyền dịch vụ của bạn đã được cập nhật/)).toBeInTheDocument();
   });
 
   it.each([

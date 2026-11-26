@@ -121,8 +121,8 @@ function CancelRecordPanel({ record }: { record: HandoverRecord }) {
           Hủy biên bản này
         </h2>
         <p className="text-heritage-muted">
-          Dùng khi mở nhầm hoặc giấy tờ sai. Kho mở khóa; Chủ tài sản và Người thực thi được báo.
-          Hủy rồi không khôi phục được.
+          Dùng khi mở nhầm hoặc giấy tờ sai. Tài sản mở khóa; Chủ tài sản và Người thực thi được
+          báo. Hủy rồi không khôi phục được.
         </p>
         {!open && (
           <button type="button" className={compactButton.danger} onClick={() => setOpen(true)}>
@@ -252,7 +252,7 @@ export function VerifierRecordDetail({
       {record.status === "CANCELLED" && (
         <Notice tone="neutral" title="Bạn đã hủy biên bản này">
           {record.cancelReason ? `Lý do: ${record.cancelReason}. ` : ""}
-          Biên bản này không còn hiệu lực. Kho đã mở khóa cho Chủ tài sản.
+          Biên bản này không còn hiệu lực. Tài sản đã mở khóa cho Chủ tài sản.
         </Notice>
       )}
       {record.status === "DRAFTING" && (

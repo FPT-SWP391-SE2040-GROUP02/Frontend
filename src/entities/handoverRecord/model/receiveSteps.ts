@@ -33,8 +33,8 @@ export const RECEIVE_STEPS_DONE = RECEIVE_STEP_TITLES.length + 1;
 /** Câu giải thích của từng bước, cùng thứ tự với RECEIVE_STEP_TITLES; số ngày tải lấy từ tham số Admin đặt. */
 export function receiveStepTexts(grantDays: number): string[] {
   return [
-    "Khi Chủ tài sản đã qua đời, bạn bấm Gửi yêu cầu ở dòng kho của mình (hoặc mở link trong thư) và đính kèm di chúc.",
-    "Luật sư chấp nhận, yêu cầu bổ sung hoặc từ chối kèm lý do. Chấp nhận thì kho bị khóa, sau đó luật sư lập và chốt biên bản bàn giao.",
+    "Khi Chủ tài sản đã qua đời, bạn bấm Gửi yêu cầu ở dòng tài sản của mình (hoặc mở link trong thư) và đính kèm di chúc.",
+    "Luật sư chấp nhận, yêu cầu bổ sung hoặc từ chối kèm lý do. Chấp nhận thì tài sản bị khóa, sau đó luật sư lập và chốt biên bản bàn giao.",
     "Chốt biên bản xong, bạn nhận thư mời. Mở cổng người nhận, bấm Bắt đầu rồi nộp ảnh căn cước hai mặt.",
     "Luật sư đối chiếu căn cước với thông tin đã khai. Thiếu hoặc sai thì bạn được yêu cầu nộp lại.",
     "Bạn đọc phần tài sản của mình rồi ký. Luật sư và Người thực thi cũng ký.",

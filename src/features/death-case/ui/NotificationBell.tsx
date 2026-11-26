@@ -149,7 +149,7 @@ export function NotificationBell() {
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Thông báo</DialogTitle>
-              <DialogDescription>Kho của {selected.ownerFullName}</DialogDescription>
+              <DialogDescription>Tài sản của {selected.ownerFullName}</DialogDescription>
             </DialogHeader>
             <ul className="max-h-[60vh] space-y-2.5 overflow-y-auto pr-1">
               {items.map((item) => (

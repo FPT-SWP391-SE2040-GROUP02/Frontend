@@ -4,7 +4,7 @@ export const CONTAINER_ID = "22222222-2222-4222-8222-222222222222";
 export const CREATED_AT = "2026-10-14T00:00:00Z";
 export const vaultFixture = {
   id: VAULT_ID,
-  name: "Kho thử nghiệm",
+  name: "Tài sản thử nghiệm",
   description: null,
   status: "OPEN",
   closedAt: null,
