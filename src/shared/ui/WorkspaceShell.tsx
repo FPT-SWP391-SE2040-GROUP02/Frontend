@@ -125,7 +125,8 @@ export function WorkspaceShell({
         className={`min-w-0 px-4 py-6 focus:outline-none sm:px-6 lg:px-8 ${admin ? "pb-28 lg:pb-14 lg:pt-7" : "lg:py-8"}`}
       >
         <div
-          className={`mx-auto w-full space-y-6 [&_h1]:text-2xl [&_h1]:tracking-normal ${admin ? "max-w-[1180px]" : "max-w-7xl"}`}
+          key={location.pathname}
+          className={`pm-fade mx-auto w-full space-y-6 [&_h1]:text-2xl [&_h1]:tracking-normal ${admin ? "max-w-[1180px]" : "max-w-7xl"}`}
         >
           {children}
         </div>

@@ -1,5 +1,5 @@
 import { Link, useInRouterContext } from "react-router-dom";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { LegacyVaultMark } from "./LegacyVaultArtwork";
 import { buttonVariants } from "./button";
 import { ROUTES } from "@/shared/config/routes.config";
@@ -34,14 +34,25 @@ export function ErrorScreen({
         </HomeLink>
       </header>
       <main className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-12 text-center">
-        <p className="font-heading text-8xl font-semibold tracking-tight text-heritage-gold sm:text-9xl">
+        <p className="pm-pop font-heading text-8xl font-semibold tracking-tight text-heritage-gold sm:text-9xl">
           {code}
         </p>
-        <h1 className="mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
-        <p className="mt-5 max-w-lg text-sm leading-7 text-heritage-muted sm:text-base">
+        <h1
+          className="pm-rise mt-6 text-3xl font-semibold tracking-tight sm:text-4xl"
+          style={{ "--pm-i": 1 } as CSSProperties}
+        >
+          {title}
+        </h1>
+        <p
+          className="pm-rise mt-5 max-w-lg text-sm leading-7 text-heritage-muted sm:text-base"
+          style={{ "--pm-i": 2 } as CSSProperties}
+        >
           {description}
         </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <div
+          className="pm-rise mt-8 flex flex-wrap justify-center gap-3"
+          style={{ "--pm-i": 3 } as CSSProperties}
+        >
           <HomeLink href={homeHref} className={buttonVariants({ size: "lg" })}>
             {content.home}
           </HomeLink>

@@ -5,7 +5,7 @@ import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowLeftRight, BookOpen, FileText, Home } from "lucide-react";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useQuery } from "@tanstack/react-query";
@@ -51,7 +51,6 @@ function Badge({ count }: { count: number }) {
 
 /** Sidebar dùng chung cho cổng người nhận. */
 export function RecipientLayout({ active, activeTurnId, children }: RecipientLayoutProps) {
-  const { pathname } = useLocation();
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const fullName = user?.fullName;
   // Chỉ tài khoản đã có kho (Chủ tài sản) mới có nút sang vai Chủ tài sản; không cấp quyền gì, Backend vẫn kiểm tra từng request.
@@ -170,10 +169,7 @@ export function RecipientLayout({ active, activeTurnId, children }: RecipientLay
         </>
       }
     >
-      {/* Đổi trang thì nội dung trượt nhẹ vào, không nhảy giật. */}
-      <div key={pathname} className="pm-fade space-y-6">
-        {children}
-      </div>
+      {children}
     </WorkspaceShell>
   );
 }

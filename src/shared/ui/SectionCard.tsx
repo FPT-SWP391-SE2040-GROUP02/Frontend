@@ -18,7 +18,7 @@ export const tableStyles = {
   table: "w-full text-left text-sm",
   head: "border-b border-heritage-border bg-heritage-sunken text-heritage-muted",
   th: "px-5 py-2.5 font-semibold",
-  body: "divide-y divide-heritage-border",
+  body: "pm-rows divide-y divide-heritage-border",
   td: "px-5 py-3",
 };
 
@@ -97,7 +97,7 @@ export function SectionCard({
     <section
       aria-labelledby={labelledBy}
       className={cn(
-        "min-w-0 overflow-hidden rounded-2xl border border-heritage-border bg-heritage-surface",
+        "pm-rise min-w-0 overflow-hidden rounded-2xl border border-heritage-border bg-heritage-surface",
         className,
       )}
     >

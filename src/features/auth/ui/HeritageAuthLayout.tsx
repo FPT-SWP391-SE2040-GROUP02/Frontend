@@ -64,7 +64,7 @@ export function HeritageAuthLayout({
         </div>
       </aside>
       <main className="relative flex flex-1 flex-col items-center justify-center p-6 sm:p-12 lg:p-16">
-        <div className="mx-auto w-full max-w-[460px] py-6">{children}</div>
+        <div className="pm-fade mx-auto w-full max-w-[460px] py-6">{children}</div>
       </main>
     </div>
   );

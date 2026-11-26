@@ -27,7 +27,7 @@ function Alert({
     <div
       data-slot="alert"
       role="alert"
-      className={cn(alertVariants({ variant }), className)}
+      className={cn("pm-fade", alertVariants({ variant }), className)}
       {...props}
     />
   );

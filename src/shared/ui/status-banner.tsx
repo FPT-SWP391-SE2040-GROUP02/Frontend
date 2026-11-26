@@ -28,7 +28,7 @@ export function StatusBanner({
   return (
     <div
       role={role}
-      className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm font-medium ${style} ${className}`}
+      className={`pm-fade flex items-start gap-3 rounded-xl border px-4 py-3 text-sm font-medium ${style} ${className}`}
     >
       <Icon className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
       <div className="min-w-0 space-y-2">{children}</div>

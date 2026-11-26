@@ -110,10 +110,10 @@ export const AssetTable: React.FC<AssetTableProps> = ({
         aria-label="Đang tải danh sách tài sản"
         className="bg-heritage-surface border border-heritage-border rounded-[24px] p-6 space-y-4"
       >
-        <div className="h-10 bg-heritage-canvas rounded-[14px] w-1/3 animate-pulse" />
+        <div className="h-10 bg-heritage-canvas rounded-[14px] w-1/3 pm-skel" />
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-heritage-canvas rounded-[16px] animate-pulse" />
+            <div key={i} className="h-16 bg-heritage-canvas rounded-[16px] pm-skel" />
           ))}
         </div>
       </div>

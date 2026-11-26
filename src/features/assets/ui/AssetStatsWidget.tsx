@@ -15,7 +15,7 @@ export const AssetStatsWidget: React.FC = () => {
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-28 bg-heritage-surface border border-heritage-border rounded-[20px] animate-pulse"
+            className="h-28 bg-heritage-surface border border-heritage-border rounded-[20px] pm-skel"
           />
         ))}
       </div>
