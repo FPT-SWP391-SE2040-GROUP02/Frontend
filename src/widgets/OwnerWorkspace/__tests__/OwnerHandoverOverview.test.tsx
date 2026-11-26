@@ -911,13 +911,6 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
     expect(get).not.toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
 
     await openDrawer();
-    // Chưa gõ PIN ở ô ký thì chưa gọi API danh tính và không hiện hộp thoại PIN riêng.
-    expect(get).not.toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
-    expect(screen.getByText(/Nhập mã PIN của kho ở cuối khung/)).toBeInTheDocument();
-    await userEvent.type(screen.getByLabelText(PIN_LABEL), "123456");
-    // Gõ đủ PIN vẫn chưa gọi API: chỉ gọi khi người dùng bấm nút.
-    expect(get).not.toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
-    await userEvent.click(screen.getByRole("button", { name: "Hiện thông tin đầy đủ" }));
     const doc = within(paper());
     expect(await doc.findByText("079203001234")).toBeInTheDocument();
     expect(get).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything());
@@ -938,43 +931,18 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
     await waitFor(() => expect(client.getQueryData(["will-identity", VAULT_ID])).toBeUndefined());
   });
 
-  it("PIN sai: báo lỗi ở ô ký; sửa PIN thì lỗi mất, nút bấm được lại và không gửi lại đúng PIN sai", async () => {
-    showPlan();
-    const get = mockIdentityGet(() =>
-      Promise.reject(pinProblem("INVALID_VAULT_PIN", { attemptsRemaining: 2 })),
-    );
-    renderOverview();
-    await openDrawer();
-    const input = screen.getByLabelText(PIN_LABEL);
-    const reveal = () => screen.getByRole("button", { name: "Hiện thông tin đầy đủ" });
-
-    await userEvent.type(input, "123456");
-    await userEvent.click(reveal());
-    await waitFor(() => expect(input).toHaveAttribute("aria-invalid", "true"));
-    expect(reveal()).toBeDisabled();
-
-    await userEvent.type(input, "{Backspace}");
-    await waitFor(() => expect(input).not.toHaveAttribute("aria-invalid", "true"));
-    await userEvent.type(input, "7");
-    expect(reveal()).toBeEnabled();
-    const identityCalls = get.mock.calls.filter(([url]) => String(url).endsWith("/will/identity"));
-    expect(identityCalls).toHaveLength(1);
-  });
-
-  it("đang tải: các dòng ghi Đang tải…, có dòng báo, nút Xuất file PDF khóa dù đã đủ chữ ký", async () => {
+  it("chưa có kết quả kiểm PIN thì khung biên bản chưa hiện", async () => {
     showPlan(RUNNING);
-    mockIdentityGet(() => new Promise(() => undefined));
+    const get = mockIdentityGet(() => new Promise(() => undefined));
     renderOverview();
-    await openDrawer();
 
-    const doc = within(paper());
-    // Ngày sinh, CCCD, thường trú của Chủ tài sản và dòng của hai người nhận.
-    expect(doc.getAllByText("Đang tải…")).toHaveLength(5);
-    expect(screen.getByText(/Đang tải thông tin danh tính \(ngày sinh/)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeDisabled();
-    expect(screen.getByText("Đang tải thông tin danh tính…")).toBeInTheDocument();
-    // Phần còn lại của tờ vẫn hiện.
-    expect(doc.getByText("Giấy tờ nhà đất")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /^Xem biên bản phân chia đã ký/ }));
+
+    await waitFor(() =>
+      expect(get).toHaveBeenCalledWith(`/vaults/${VAULT_ID}/will/identity`, expect.anything()),
+    );
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: "Biên bản phân chia" })).not.toBeInTheDocument();
   });
 
   it("tải lỗi: tờ vẫn hiện phần còn lại, có nút Thử lại, nút xuất khóa; thử lại thành công thì mở khóa", async () => {
@@ -1004,12 +972,12 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
     expect(screen.getByText("Đã đủ 2 chữ ký")).toBeInTheDocument();
   });
 
-  it("đóng hộp PIN: nhắc nhập PIN chứ không báo đỏ; nhập PIN thì hiện danh tính và mở khóa xuất", async () => {
+  it("đóng hộp PIN thì không mở biên bản; mở lại và nhập đúng mới xem được", async () => {
     showPlan(RUNNING);
     let calls = 0;
     mockIdentityGet(() => {
       calls = calls + 1;
-      // Lần mở khung bị đòi PIN và người dùng hủy; lần sau bị đòi PIN, nhập xong thì Backend trả danh tính.
+      // Hai lần đầu bị đòi PIN (lần một người dùng hủy, lần hai nhập), lần ba Backend trả danh tính.
       if (calls < 3) {
         return Promise.reject(pinProblem("VAULT_PIN_REQUIRED"));
       }
@@ -1023,16 +991,14 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
       afterAssetCreated: vi.fn(),
     });
     renderOverview();
-    const dialog = await openDrawer();
+    const open = screen.getByRole("button", { name: /^Xem biên bản phân chia đã ký/ });
 
-    expect(
-      await within(dialog).findByText(/Chưa xác nhận mã PIN nên ngày sinh/),
-    ).toBeInTheDocument();
-    expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeDisabled();
-    expect(screen.getByText("Nhập mã PIN để xuất")).toBeInTheDocument();
+    await userEvent.click(open);
+    await waitFor(() => expect(requestPin).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(client.getQueryData(["will-identity", VAULT_ID])).toBeUndefined());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-    await userEvent.click(within(dialog).getByRole("button", { name: "Nhập mã PIN" }));
+    await openDrawer();
     expect(await within(paper()).findByText("079203001234")).toBeInTheDocument();
     expect(requestPin).toHaveBeenCalledTimes(2);
     expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeEnabled();
@@ -1326,9 +1292,8 @@ describe("ký phiên bản mới trong khung", () => {
     vi.spyOn(apiClient, "post").mockResolvedValue(SIGNED_BODY as never);
     const view = renderOverview();
     await openResignDrawer();
-    await tickAndType(PIN);
-    await userEvent.click(screen.getByRole("button", { name: "Hiện thông tin đầy đủ" }));
     await within(paper()).findByText("079203001234");
+    await tickAndType(PIN);
     await userEvent.click(screen.getByRole("button", { name: SIGN_BUTTON }));
     await screen.findByText(/Đã ký phiên bản 2 của biên bản phân chia/);
 
