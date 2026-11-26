@@ -5,6 +5,7 @@ import guilloche from "@/shared/assets/auth-guilloche.svg";
 import { ROUTES } from "@/shared/config/routes.config";
 import { OverviewIcon } from "@/shared/ui/LegacyVaultArtwork";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
+import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeftRight } from "lucide-react";
@@ -56,17 +57,18 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
       navigation={
         <nav
           aria-label={shell.menu}
-          className="flex shrink-0 gap-1 overflow-x-auto px-3 pb-3 lg:flex-col"
+          className="u040-nav flex shrink-0 gap-1 overflow-x-auto px-3 pb-3 lg:flex-col"
         >
-          {items.map(({ id, label, icon: Icon, to }) => (
+          {items.map(({ id, label, icon: Icon, to }, index) => (
             <Link
               key={id}
               to={to}
               aria-current={active === id ? "page" : undefined}
-              className={`flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-heritage-gold ${active === id ? "border-l-2 border-heritage-gold bg-heritage-surface/10 font-semibold text-heritage-gold" : "text-heritage-surface/80 hover:bg-heritage-surface/10"}`}
+              title={label}
+              className={`u040-item flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-heritage-gold ${active === id ? "bg-heritage-surface/10 font-semibold text-heritage-gold max-lg:border-l-2 max-lg:border-heritage-gold" : "text-heritage-surface/80 hover:bg-heritage-surface/10"}`}
             >
               <Icon className="size-5 shrink-0" aria-hidden="true" />
-              {label}
+              <RailLabel order={index}>{label}</RailLabel>
             </Link>
           ))}
         </nav>
@@ -76,21 +78,22 @@ export function RecipientLayout({ active, children }: RecipientLayoutProps) {
           {isOwner && (
             <Link
               to={ROUTES.DASHBOARD.ROOT}
-              className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-heritage-gold-soft px-4 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+              title="Sang vai Chủ tài sản"
+              className="u040-action mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-heritage-gold-soft px-2 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
             >
-              <ArrowLeftRight className="size-4" aria-hidden="true" />
-              Sang vai Chủ tài sản
+              <ArrowLeftRight className="size-4 shrink-0" aria-hidden="true" />
+              <RailLabel>Sang vai Chủ tài sản</RailLabel>
             </Link>
           )}
           <img
             src={guilloche}
             alt=""
             aria-hidden="true"
-            className="mx-auto mb-3 hidden size-16 opacity-40 [@media(min-height:800px)]:block"
+            className="u040-art mx-auto mb-3 hidden size-16 opacity-40 [@media(min-height:800px)]:block"
           />
-          <div className="flex items-center gap-3">
-            {fullName && <Initial name={fullName} className="size-10" />}
-            <div className="min-w-0">
+          <div className="u040-me flex items-center gap-3">
+            {fullName && <Initial name={fullName} className="u040-avatar size-10" />}
+            <div className="u040-label min-w-0">
               <p className="truncate text-sm font-semibold">{fullName ?? shell.role}</p>
               <p className="mt-0.5 text-sm text-heritage-gold">{shell.role}</p>
             </div>

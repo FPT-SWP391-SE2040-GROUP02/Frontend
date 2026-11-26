@@ -1,0 +1,322 @@
+/* Lucian UX/UI Prompt #040 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#040
+   Cột menu bên trái thu gọn được. Chỉ style trong .u040; màu lấy theo token của app. Chỉ áp dụng khi khung có class
+   u040--rail (màn hình đủ rộng), điện thoại giữ kiểu cũ. Không đặt trong @layer để thắng class Tailwind. */
+.u040.u040--rail {
+  --u040-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --u040-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+  --u040-open: 248px;
+  display: grid;
+  grid-template-columns: var(--u040-open) minmax(0, 1fr);
+  transition: grid-template-columns 0.6s var(--u040-spring);
+}
+/* Rộng hơn trước một chút để tên mục và tiêu đề nhóm không bị cắt khi phải nằm trên một dòng. */
+.u040.u040--rail.owner-workspace {
+  --u040-open: 264px;
+}
+.u040.u040--rail.u040--admin {
+  --u040-open: 272px;
+}
+.u040.u040--rail.is-collapsed {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+.u040.u040--rail > aside {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  min-width: 0;
+  overflow: hidden auto;
+  border-bottom: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 142, 76, 0.25) transparent;
+}
+.u040.u040--rail > aside > .u040-brand {
+  min-height: 56px;
+  padding: 6px 8px 6px 20px;
+}
+.u040.u040--rail > aside > div:last-child {
+  flex-shrink: 0;
+  padding: 8px 16px;
+}
+.u040.u040--rail > aside > div:last-child > .u040-action:last-child {
+  margin-top: 4px;
+}
+.u040--rail .u040-home {
+  gap: 10px;
+  white-space: nowrap;
+}
+
+/* Nút thu gọn, mở rộng. */
+.u040 .u040-toggle {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+  height: 32px;
+  margin: 0 16px 4px;
+  padding: 0 0 0 13px;
+  overflow: hidden;
+  border-radius: 12px;
+  color: var(--gold-soft);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.u040 .u040-toggle:hover {
+  background: #ffffff0f;
+}
+.u040 .u040-toggle:focus-visible {
+  outline: 2px solid var(--gold-soft);
+  outline-offset: -2px;
+}
+.u040 .u040-toggle > svg {
+  flex-shrink: 0;
+}
+
+/* Chữ: mở thì hiện lần lượt từng dòng, thu gọn thì mờ đi ngay. */
+.u040--rail .u040-label {
+  transition:
+    opacity 0.3s var(--u040-ease),
+    transform 0.5s var(--u040-spring);
+  transition-delay: calc(0.12s + var(--i, 0) * 35ms);
+}
+.u040--rail.is-collapsed .u040-label {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition:
+    opacity 0.2s,
+    transform 0.35s var(--u040-ease);
+  transition-delay: 0s;
+}
+.u040--rail .u040-item > .u040-label,
+.u040--rail .u040-action > .u040-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Khung chọn trượt giữa các mục (xem useNavIndicator). Màn hình thấp thì chỉ phần menu cuộn, chân menu luôn thấy. */
+.u040--rail .u040-navwrap {
+  position: relative;
+  min-height: 0;
+  overflow: hidden auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184, 142, 76, 0.25) transparent;
+}
+.u040.u040--rail .u040-nav.owner-navigation {
+  gap: 2px;
+  padding-bottom: 8px;
+}
+.u040.u040--rail .u040-nav .owner-nav-link {
+  min-height: 36px;
+  padding-block: 6px;
+}
+.u040.u040--rail .u040-nav .owner-nav-group {
+  margin-block: 6px 0;
+  line-height: 1.35;
+}
+.u040--rail .u040-nav .u040-group {
+  letter-spacing: 0.05em;
+}
+.u040 .u040-hl {
+  position: absolute;
+  top: 0;
+  right: 16px;
+  left: 16px;
+  border: 1px solid #b88e4c40;
+  border-radius: 12px;
+  background: var(--primary-hover);
+  pointer-events: none;
+}
+.u040 .u040-hl::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: -17px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--gold);
+}
+.u040--rail .u040-nav {
+  padding-inline: 16px;
+}
+.u040--rail .u040-item {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+.u040--rail .u040-nav .u040-item {
+  padding-left: 12px;
+}
+.u040--rail .u040-item > svg {
+  flex-shrink: 0;
+}
+.u040--rail .u040-nav .u040-item[aria-current="page"] {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--gold-soft);
+}
+
+/* Tiêu đề nhóm: thu gọn thì thành gạch ngăn, giữ nguyên chiều cao để các mục không nhảy. */
+.u040--rail .u040-group {
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.u040--rail .u040-group::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 1px;
+  translate: -50% 0;
+  background: #ffffff29;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.u040--rail.is-collapsed .u040-group {
+  color: transparent;
+}
+.u040--rail.is-collapsed .u040-group::after {
+  opacity: 1;
+}
+.u040--rail .u040-fade {
+  overflow: hidden;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.u040--rail.is-collapsed .u040-fade {
+  opacity: 0;
+}
+
+/* Huy hiệu số việc: mở thì ở mép phải, thu gọn thì nằm trên góc biểu tượng. */
+.u040--rail .u040-item:has(.u040-badge),
+.u040--rail .u040-action:has(.u040-badge) {
+  padding-right: 40px;
+}
+.u040--rail .u040-badge {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  margin: 0;
+  translate: 0 -50%;
+  transition:
+    top 0.5s var(--u040-spring),
+    right 0.5s var(--u040-spring);
+}
+.u040--rail.is-collapsed .u040-badge {
+  top: 10px;
+  right: 1px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  font-size: 11px;
+  line-height: 17px;
+}
+.u040--rail.is-collapsed .u040-dot {
+  opacity: 0;
+}
+.u040--rail.is-collapsed .u040-lock {
+  position: absolute;
+  top: 6px;
+  right: 3px;
+  width: 11px;
+  height: 11px;
+}
+
+/* Chân menu: thu gọn thì chỉ còn biểu tượng và ảnh đại diện, canh giữa cột. */
+.u040--rail .u040-action {
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: padding 0.5s var(--u040-spring);
+}
+.u040--rail.is-collapsed .u040-action {
+  justify-content: flex-start;
+  gap: 12px;
+  padding-right: 0;
+  padding-left: 14px;
+}
+.u040--rail .u040-me > .u040-label {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.u040--rail .u040-avatar {
+  transition: margin 0.5s var(--u040-spring);
+}
+.u040--rail.is-collapsed .u040-avatar--small {
+  margin-left: 2px;
+}
+.u040--rail .u040-art {
+  transition: opacity 0.2s;
+}
+.u040--rail.is-collapsed .u040-art {
+  opacity: 0;
+}
+
+/* Thẻ kho đang làm việc của Người thực thi. */
+.u040--rail .u040-card-section > h2 {
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+}
+.u040--rail .u040-card {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.u040--rail.is-collapsed .u040-card-section {
+  padding-inline: 0;
+}
+.u040--rail.is-collapsed .u040-card {
+  padding: 3px;
+}
+.u040--rail.is-collapsed .u040-card > [aria-hidden="true"] {
+  width: 36px;
+  height: 36px;
+}
+.u040--rail.is-collapsed .u040-card-switch {
+  visibility: hidden;
+}
+
+/* Giao diện tối. */
+.dark .u040.u040--rail > aside {
+  background: var(--primary-surface);
+  color: var(--text-main);
+}
+.dark .u040--rail .u040-nav .u040-item {
+  color: var(--text-muted);
+}
+.dark .u040--rail .u040-nav .u040-item[aria-current="page"] {
+  color: var(--gold-soft);
+}
+.dark .u040 .u040-hl {
+  background: var(--primary-light);
+}
+.dark .u040.u040--rail > aside > div:last-child > .u040-action:last-child {
+  color: var(--text-muted);
+}
+
+/* Đổi trang: khung kiểu Chủ tài sản đã có hiệu ứng cả trang; các khung còn lại cho tiêu đề trượt lên. */
+@media (prefers-reduced-motion: no-preference) {
+  .u040 .u040-hl {
+    transition: transform 0.5s cubic-bezier(0.34, 1.45, 0.64, 1);
+  }
+  .u040.u040--rail:not(.owner-workspace) > main h1 {
+    animation: u040-title 0.4s var(--u040-spring);
+  }
+}
+@keyframes u040-title {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+/* Luật chung của app đã rút thời lượng về gần 0; ở đây bỏ nốt độ trễ. */
+@media (prefers-reduced-motion: reduce) {
+  .u040 .u040-label {
+    transition-delay: 0s !important;
+  }
+}

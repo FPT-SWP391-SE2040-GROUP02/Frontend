@@ -39,47 +39,20 @@ afterEach(() => {
 });
 
 describe("workspace logo navigation", () => {
-  it("has no Executor menu or role switcher when the account has no Executor vault", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+  it("không có menu hay nút sang vai Người thực thi (đó là nhân sự của hệ thống)", async () => {
+    const get = vi.spyOn(apiClient, "get").mockResolvedValue([]);
     accessTokenMemory.set("owner-workspace-fixture");
     const store = configureStore({
       reducer: { auth: authReducer },
       preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
     });
     renderWorkspace(store, "/dashboard");
-    await waitFor(() => expect(apiClient.get).toHaveBeenCalled());
+    await waitFor(() => expect(get).toHaveBeenCalled());
     expect(screen.queryByText("Chuyển vai trò")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Nhiệm vụ Executor" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Sang vai Người thực thi" })).not.toBeInTheDocument();
-  });
-
-  it("offers the switch to the Executor space only for accounts with an Executor vault", async () => {
-    vi.spyOn(apiClient, "get").mockResolvedValue([
-      {
-        vaultId: "22222222-2222-4222-8222-222222222222",
-        ownerFullName: "Chủ tài sản",
-        planStatus: "ACTIVE",
-        checkInOverdue: false,
-        openDeathCaseId: null,
-      },
-    ]);
-    accessTokenMemory.set("owner-workspace-fixture");
-    const store = configureStore({
-      reducer: { auth: authReducer },
-      preloadedState: { auth: { user: null, isAuthenticated: true, isHydrating: false } },
-    });
-    renderWorkspace(store, "/dashboard");
-    // Có hai lối vào: mục trong menu (điện thoại) và nút ở chân khung.
-    const links = await screen.findAllByRole("link", { name: "Sang vai Người thực thi" });
-    expect(links.length).toBeGreaterThan(0);
-    links.forEach((link) => expect(link).toHaveAttribute("href", "/executor"));
-    // Chỉ một nút hiện ở mỗi cỡ màn hình: mục trong menu chỉ dành cho điện thoại (< 768px), nút ở chân khung từ 768px
-    // trở lên. Trước đây mục trong menu ẩn từ 1024px nên màn 768–1023px thấy hai nút.
-    const inMenu = links.filter((link) => link.className.includes("owner-nav-link"));
-    expect(inMenu).toHaveLength(1);
-    // Dùng class CSS riêng vì `display: flex` của .owner-nav-link nằm ngoài layer nên thắng `md:hidden` của Tailwind.
-    expect(inMenu[0].className).toContain("owner-nav-link--phone-only");
-    expect(inMenu[0].className).not.toContain("md:hidden");
+    // Không còn nút nên khung Chủ tài sản không hỏi danh sách kho của Người thực thi nữa.
+    expect(get).not.toHaveBeenCalledWith("/executor/vaults", expect.anything());
   });
 
   it("offers the switch to the recipient space with a badge only when the account has an invitation or a turn", async () => {

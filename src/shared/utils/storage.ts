@@ -11,6 +11,7 @@ export const STORAGE_KEYS = {
   ROLE: "lv_current_role",
   VIEW_MODE: "lv_view_mode",
   USER: "lv_user_info",
+  SIDE_RAIL: "lv_side_rail",
 } as const;
 
 import { type Role, ROLES } from "@/shared/constants/roles";

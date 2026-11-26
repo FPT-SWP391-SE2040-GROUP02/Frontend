@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
 import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
+import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
 import { ROUTES } from "@/shared/config/routes.config";
 export interface WorkspaceNavigationItem {
   id: string;
@@ -66,7 +67,7 @@ export function WorkspaceFrame({
       logoutLabel="Đăng xuất"
       navigation={
         // Trên điện thoại menu chuyển xuống thanh tab ở đáy màn hình (xem bên dưới); menu bên trái chỉ cho máy tính.
-        <nav aria-label="Menu chính" className="hidden space-y-0.5 p-3 lg:block">
+        <nav aria-label="Menu chính" className="u040-nav hidden space-y-0.5 p-3 lg:block">
           {items.map((item, index) => {
             const startsGroup = item.group && item.group !== items[index - 1]?.group;
             const isActive = item.id === active;
@@ -74,7 +75,7 @@ export function WorkspaceFrame({
             return (
               <div key={item.id}>
                 {startsGroup && (
-                  <p className="px-3 pb-1.5 pt-5 text-[0.875rem] font-semibold uppercase tracking-[0.09em] text-heritage-subtle">
+                  <p className="u040-group px-3 pb-1.5 pt-5 text-[0.875rem] font-semibold uppercase tracking-[0.09em] text-heritage-subtle">
                     {item.group}
                   </p>
                 )}
@@ -82,7 +83,8 @@ export function WorkspaceFrame({
                   <Link
                     to={item.to}
                     aria-current={isActive ? "page" : undefined}
-                    className={`flex min-h-11 items-center gap-3 rounded-[10px] px-3 py-2 text-sm font-medium hover:bg-white/[0.06] ${
+                    title={item.label}
+                    className={`u040-item flex min-h-11 items-center gap-3 rounded-[10px] px-3 py-2 text-sm font-medium hover:bg-white/[0.06] ${
                       isActive
                         ? "bg-[rgba(224,196,134,0.16)] text-white"
                         : "text-heritage-primary-light"
@@ -94,9 +96,9 @@ export function WorkspaceFrame({
                         aria-hidden="true"
                       />
                     )}
-                    {item.label}
+                    <RailLabel order={index}>{item.label}</RailLabel>
                     {item.badge ? (
-                      <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-heritage-gold-soft px-1.5 text-[11.5px] font-bold tabular-nums text-heritage-primary">
+                      <span className="u040-badge ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-heritage-gold-soft px-1.5 text-[11.5px] font-bold tabular-nums text-heritage-primary">
                         {item.badge}
                       </span>
                     ) : null}
@@ -110,14 +112,14 @@ export function WorkspaceFrame({
         </nav>
       }
       footer={
-        <div className="flex items-center gap-2.5">
+        <div className="u040-me flex items-center gap-2.5">
           <span
             aria-hidden="true"
-            className="grid size-9 shrink-0 place-items-center rounded-full bg-heritage-gold-border text-[12.5px] font-semibold text-heritage-primary"
+            className="u040-avatar u040-avatar--small grid size-9 shrink-0 place-items-center rounded-full bg-heritage-gold-border text-[12.5px] font-semibold text-heritage-primary"
           >
             {initials(fullName)}
           </span>
-          <span className="min-w-0">
+          <span className="u040-label min-w-0">
             <b className="block truncate text-[0.875rem] font-semibold">{fullName}</b>
             {role && (
               <small className="text-[11.5px] text-heritage-gold-soft">{ROLE_LABELS[role]}</small>

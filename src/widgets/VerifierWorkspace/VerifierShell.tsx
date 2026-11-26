@@ -18,6 +18,7 @@ import { usePendingRecipientCount } from "@/features/recipient-review";
 import { useVerifierRecords } from "@/entities/handoverRecord";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
+import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "@/widgets/ExecutorWorkspace/executor-workspace.css";
 
@@ -101,6 +102,7 @@ export function VerifierShell({
   return (
     <WorkspaceShell
       className="owner-workspace"
+      compactFrom="md"
       brand="LegacyVault"
       homeHref={ROUTES.NOTARY.WORKSPACE}
       logoutHref={ROUTES.AUTH.LOGOUT}
@@ -127,7 +129,7 @@ export function VerifierShell({
           <nav
             id="verifier-navigation"
             aria-label="Điều hướng Người xét duyệt"
-            className="owner-navigation"
+            className="u040-nav owner-navigation"
             data-open={navigationOpen}
           >
             {verifierNavigation.map((group) => (
@@ -138,7 +140,7 @@ export function VerifierShell({
                 className="contents md:flex md:flex-col md:gap-1"
               >
                 {group.heading && (
-                  <p className="hidden px-3 pb-1 pt-4 text-[0.875rem] font-semibold uppercase tracking-widest text-heritage-gold-soft/70 md:block">
+                  <p className="u040-group hidden px-3 pb-1 pt-4 text-[0.875rem] font-semibold uppercase tracking-widest text-heritage-gold-soft/70 md:block">
                     {group.heading}
                   </p>
                 )}
@@ -151,15 +153,18 @@ export function VerifierShell({
                       key={to}
                       to={to}
                       aria-current={current?.to === to ? "page" : undefined}
-                      className="owner-nav-link"
+                      title={label}
+                      className="u040-item owner-nav-link"
                       onClick={() => setNavigationOpen(false)}
                     >
                       <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                      {label}
+                      <RailLabel order={allNavigationItems.findIndex((item) => item.to === to)}>
+                        {label}
+                      </RailLabel>
                       {count > 0 && (
                         <span
                           aria-label={`${count} việc đang chờ bạn duyệt`}
-                          className="ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-heritage-gold-soft px-2 text-sm font-semibold text-heritage-primary"
+                          className="u040-badge ml-auto inline-flex min-w-6 items-center justify-center rounded-full bg-heritage-gold-soft px-2 text-sm font-semibold text-heritage-primary"
                         >
                           {count}
                         </span>
@@ -173,14 +178,14 @@ export function VerifierShell({
         </>
       }
       footer={
-        <div className="flex items-center gap-3">
+        <div className="u040-me flex items-center gap-3">
           <span
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft font-semibold text-heritage-primary"
+            className="u040-avatar flex size-10 shrink-0 items-center justify-center rounded-full bg-heritage-gold-soft font-semibold text-heritage-primary"
             aria-hidden="true"
           >
             {user?.fullName?.trim().charAt(0).toLocaleUpperCase("vi-VN") || "N"}
           </span>
-          <div className="min-w-0">
+          <div className="u040-label min-w-0">
             <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
             <p className="mt-0.5 text-sm text-heritage-gold-soft">Người xét duyệt</p>
           </div>

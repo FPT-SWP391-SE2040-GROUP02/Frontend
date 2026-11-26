@@ -18,9 +18,20 @@ function setTransform(indicator: HTMLElement, top: number, animate: boolean): vo
   }
 }
 
-/** Đặt vạch vào đúng mục đang chọn; trả false khi không có mục chọn hoặc vạch đang bị ẩn (menu điện thoại). */
+/** Mục đang chọn và đang hiện; mục chỉ dành cho điện thoại bị ẩn trên máy tính thì bỏ qua. */
+function findActive(nav: HTMLElement): HTMLElement | null {
+  const items = Array.from(nav.querySelectorAll<HTMLElement>('[aria-current="page"]'));
+  for (const item of items) {
+    if (getComputedStyle(item).display !== "none") {
+      return item;
+    }
+  }
+  return null;
+}
+
+/** Đặt vạch vào đúng mục đang chọn; không có mục chọn hoặc vạch đang bị ẩn thì ẩn vạch. */
 function place(nav: HTMLElement, indicator: HTMLElement, slideFromLast: boolean): void {
-  const active = nav.querySelector<HTMLElement>('[aria-current="page"]');
+  const active = findActive(nav);
   if (active === null || getComputedStyle(indicator).display === "none") {
     indicator.style.visibility = "hidden";
     lastTop = null;
@@ -63,16 +74,13 @@ export function useNavIndicator(
     if (typeof ResizeObserver === "undefined") {
       return undefined;
     }
-    // ResizeObserver báo ngay một lần lúc bắt đầu quan sát; bỏ lần đó để không cắt chuyển động vừa bắt đầu.
-    let skipFirst = true;
-    const observer = new ResizeObserver(() => {
-      if (skipFirst) {
-        skipFirst = false;
-        return;
-      }
-      place(nav, indicator, false);
-    });
+    // Vạch đã đúng chỗ thì `place` không làm gì, nên lần báo đầu tiên không cắt chuyển động vừa bắt đầu. Quan sát cả
+    // nội dung bên trong: khi menu bị giới hạn chiều cao (cuộn), dữ liệu tải về chậm không làm đổi cỡ khung ngoài.
+    const observer = new ResizeObserver(() => place(nav, indicator, false));
     observer.observe(nav);
+    for (const child of Array.from(nav.children)) {
+      observer.observe(child);
+    }
     return () => observer.disconnect();
   }, [navRef, indicatorRef, activeKey]);
 }
