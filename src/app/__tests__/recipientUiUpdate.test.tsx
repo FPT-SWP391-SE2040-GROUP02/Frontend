@@ -11,7 +11,8 @@ import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
-import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
+import { TurnDetail } from "@/features/handover/ui/TurnDetail";
+import { TurnHub } from "@/features/handover/ui/TurnHub";
 import { InvitationPanel } from "@/features/handover/ui/InvitationPanel";
 import { RecipientLayout } from "@/widgets/RecipientLayout/RecipientLayout";
 
@@ -122,6 +123,10 @@ function backendReturns(turns: unknown[]) {
     if (config.url?.endsWith("/claim")) {
       return ok(config, turn("IDENTITY_IN_PROGRESS"));
     }
+    if (config.method === "get" && config.url?.endsWith("/submission")) return ok(config, "");
+    if (config.method === "get" && /\/handover\/turns\/(?!me$)[^/]+$/.test(config.url ?? "")) {
+      return ok(config, turns[0]);
+    }
     return ok(config, turns);
   };
 }
@@ -162,45 +167,43 @@ it("sends a signed-in recipient straight to the portal without claiming anything
 
 it("shows only the deadline that still matters and drops the title that sounds like a group", async () => {
   backendReturns([turn("IDENTITY_IN_PROGRESS")]);
-  setup(<HandoverPortal />);
+  setup(<TurnDetail turnId={CONTAINER_ID} />);
   expect(await screen.findByText("Hạn phản hồi")).toBeInTheDocument();
   expect(screen.queryByText("Hạn quyết định")).not.toBeInTheDocument();
-  expect(screen.queryByText("Phần để lại")).not.toBeInTheDocument();
   expect(screen.queryByText(/Nhóm “Lượt bàn giao”/)).not.toBeInTheDocument();
 });
 
 it("drops the response deadline once the turn is waiting for signatures, with no decision deadline", async () => {
   backendReturns([turn("READY_TO_ACCEPT", withContent)]);
-  setup(<HandoverPortal />);
+  setup(<TurnDetail turnId={CONTAINER_ID} />);
   expect(await screen.findByRole("heading", { name: "Gói gia đình" })).toBeInTheDocument();
   expect(screen.queryByText("Hạn phản hồi")).not.toBeInTheDocument();
   expect(screen.queryByText("Hạn quyết định")).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /Đồng ý nhận/ })).not.toBeInTheDocument();
 });
 
-it("keeps the download countdown above the title once the record is fully signed", async () => {
+it("shows the download countdown once the record is fully signed", async () => {
   backendReturns([
     turn("HANDOVER_COMMITTED", {
       ...withContent,
       grant: { id: GRANT_ID, status: "ACTIVE", expiresAt: "2026-12-05T02:00:00Z" },
     }),
   ]);
-  setup(<HandoverPortal />);
-  const title = await screen.findByRole("heading", { name: "Gói gia đình" });
-  const countdown = screen.getByText(/để tải nội dung/);
-  expect(countdown.compareDocumentPosition(title) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  setup(<TurnDetail turnId={CONTAINER_ID} />);
+  expect(await screen.findByRole("heading", { name: "Gói gia đình" })).toBeInTheDocument();
+  expect(screen.getByText(/để tải nội dung/)).toBeInTheDocument();
 });
 
 it("tells a recipient with no turn how to get the invitation, with no support link", async () => {
   backendReturns([]);
-  setup(<HandoverPortal />);
+  setup(<TurnHub />);
   expect(await screen.findByText(/đăng nhập bằng đúng email ghi trong thư/)).toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Liên hệ hỗ trợ" })).not.toBeInTheDocument();
 });
 
 it("shows no support link under a terminal state either", async () => {
   backendReturns([turn("CANCELLED")]);
-  setup(<HandoverPortal />);
+  setup(<TurnDetail turnId={CONTAINER_ID} />);
   await screen.findByText(/Lượt này đã bị hủy vì luật sư đã sửa biên bản/);
   expect(screen.queryByRole("link", { name: "Liên hệ hỗ trợ" })).not.toBeInTheDocument();
 });

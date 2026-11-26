@@ -7,10 +7,13 @@ export function SignatureSlot({
   role,
   name,
   signedAt,
+  action,
 }: {
   role: string;
   name: string;
   signedAt: string | null;
+  /** Nút ký đặt ngay dưới ô này, chỉ hiện trên màn hình (không in ra giấy). */
+  action?: ReactNode;
 }) {
   let status: ReactNode = <p className="mt-10 text-sm italic text-[#666]">(Chưa ký)</p>;
   if (signedAt) {
@@ -27,6 +30,7 @@ export function SignatureSlot({
       <p className="font-bold uppercase">{role}</p>
       <p className="text-sm italic">(Ký, ghi rõ họ tên)</p>
       {status}
+      {action && <div className="mt-3 flex flex-col items-center gap-2 print:hidden">{action}</div>}
       <p className="mt-3 font-bold">{orBlank(name)}</p>
     </div>
   );

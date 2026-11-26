@@ -15,7 +15,8 @@ import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
-import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
+import { TurnDetail } from "@/features/handover/ui/TurnDetail";
+import { TurnHub } from "@/features/handover/ui/TurnHub";
 import { remainingText } from "@/features/handover/model/handover.format";
 import { handoverService } from "@/features/handover/api/handoverService";
 
@@ -81,6 +82,10 @@ const COMPLETED_RECORD = {
 /** GET danh sách lượt trả turns; GET biên bản của lượt trả biên bản đã đủ chữ ký. */
 function listOrRecord(config: InternalAxiosRequestConfig, turns: unknown[]): AxiosResponse {
   if (config.url?.endsWith("/record")) return ok(config, COMPLETED_RECORD);
+  if (config.method === "get" && config.url?.endsWith("/submission")) return ok(config, "");
+  if (config.method === "get" && /\/handover\/turns\/(?!me$)[^/]+$/.test(config.url ?? "")) {
+    return ok(config, turns[0]);
+  }
   return ok(config, turns);
 }
 function turnWithStatus(status: string, extra: object = {}) {
@@ -97,7 +102,7 @@ afterEach(() => {
   apiClient.defaults.adapter = originalAdapter;
   vi.restoreAllMocks();
 });
-function setup(children: ReactNode = <HandoverPortal />, path = "/") {
+function setup(children: ReactNode = <TurnDetail turnId={CONTAINER_ID} />, path = "/") {
   const store = configureStore({ reducer: { auth: authReducer } });
   store.dispatch(setCredentials({ user }));
   render(
@@ -263,8 +268,8 @@ it("shows the Backend reason when claiming an invitation is rejected", async () 
       reason: "OWNER_CANNOT_CLAIM",
     });
   });
-  setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Bắt đầu" }));
+  setup(<TurnHub />);
+  fireEvent.click(await screen.findByRole("button", { name: /^Bắt đầu ngay/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Chủ kho không thể tự nhận");
 });
 
@@ -279,8 +284,8 @@ it("tells the recipient the invitation was already claimed by another account", 
   backendInvites((config) => {
     throw problem(config as never, 409, { code: "HANDOVER_ALREADY_CLAIMED" });
   });
-  setup();
-  fireEvent.click(await screen.findByRole("button", { name: "Bắt đầu" }));
+  setup(<TurnHub />);
+  fireEvent.click(await screen.findByRole("button", { name: /^Bắt đầu ngay/ }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Lời mời đã được nhận");
 });
 
@@ -288,9 +293,9 @@ it("does not leak or invent turns when the Backend hides a turn that is not the 
   apiClient.defaults.adapter = async (config) => {
     throw problem(config as never, 404, { code: "HANDOVER_NOT_FOUND" });
   };
-  setup();
+  setup(<TurnHub />);
   expect(await screen.findByRole("alert")).toHaveTextContent("Không tải được các lượt của bạn");
-  expect(screen.queryByRole("button", { name: "Bắt đầu" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: /^Bắt đầu ngay/ })).not.toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /^Tải xuống/ })).not.toBeInTheDocument();
   await expect(handoverService.get(CONTAINER_ID)).rejects.toMatchObject({
     response: { status: 404 },
@@ -308,7 +313,8 @@ it.each([
 });
 
 it("explains a cancelled turn as a stopped handover, not a system error", async () => {
-  apiClient.defaults.adapter = async (config) => ok(config, [turnWithStatus("CANCELLED")]);
+  apiClient.defaults.adapter = async (config) =>
+    listOrRecord(config, [turnWithStatus("CANCELLED")]);
   setup();
   expect(
     await screen.findByText(/Lượt này đã bị hủy vì luật sư đã sửa biên bản/),
@@ -320,8 +326,8 @@ it("still lets the recipient claim after the initial response deadline (BR-58)",
   // Thẻ thư mời vẫn hiện cho lượt quá hạn phản hồi ban đầu; bấm nút thì BE vẫn nhận lượt.
   backendInvites((config) => ok(config, turnWithStatus("IDENTITY_IN_PROGRESS")));
   const post = vi.spyOn(apiClient, "post");
-  setup();
-  const claim = await screen.findByRole("button", { name: "Bắt đầu" });
+  setup(<TurnHub />);
+  const claim = await screen.findByRole("button", { name: /^Bắt đầu ngay/ });
   expect(claim).toBeEnabled();
   fireEvent.click(claim);
   await waitFor(() => expect(post).toHaveBeenCalledWith(`/handover/turns/${CONTAINER_ID}/claim`));
@@ -400,6 +406,10 @@ function signingRecordFor(me: object, extra: object = {}) {
 function backendWithRecord(turn: object, record: object) {
   apiClient.defaults.adapter = async (config) => {
     if (config.url?.endsWith("/record")) return ok(config, record);
+    if (config.method === "get" && config.url?.endsWith("/submission")) return ok(config, "");
+    if (config.method === "get" && /\/handover\/turns\/(?!me$)[^/]+$/.test(config.url ?? "")) {
+      return ok(config, turn);
+    }
     return ok(config, [turn]);
   };
 }
@@ -408,8 +418,8 @@ it("chưa xong danh tính: nhắc nộp ảnh căn cước, không có nút ký 
   backendWithRecord(turnWithStatus("IDENTITY_IN_PROGRESS"), signingRecordFor({}));
   setup();
 
-  expect(await screen.findByText(/Nộp ảnh căn cước ở khung/)).toBeInTheDocument();
-  expect(screen.getByText(/Bạn không phải chờ người nhận khác/)).toBeInTheDocument();
+  expect(await screen.findByText("Bước 3: Xác minh danh tính bằng căn cước")).toBeInTheDocument();
+  expect(await screen.findByRole("button", { name: "Gửi cho luật sư kiểm" })).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
 });
 
@@ -417,6 +427,7 @@ it("danh tính xong thì ký được; ký xong mà luật sư hoặc Người t
   const ready = signingRecordFor({ identityConfirmedAt: CREATED_AT }, { canSign: true });
   backendWithRecord(turnWithStatus("READY_TO_ACCEPT"), ready);
   setup();
+  fireEvent.click(await screen.findByRole("button", { name: "Xem và ký biên bản" }));
   expect(await screen.findByRole("button", { name: "Ký biên bản" })).toBeEnabled();
   cleanup();
 
@@ -445,6 +456,6 @@ it("có quyền tải khi biên bản vẫn SIGNING (người khác chưa ký): 
   setup();
 
   expect(await screen.findByLabelText("Mã nhận do Người thực thi đưa")).toBeInTheDocument();
-  expect(screen.getByText(/Phần của bạn đã đủ chữ ký/)).toBeInTheDocument();
+  expect(screen.getByText(/Biên bản đã đủ ba chữ ký/)).toBeInTheDocument();
   expect(screen.queryByText(/ba bên/)).not.toBeInTheDocument();
 });

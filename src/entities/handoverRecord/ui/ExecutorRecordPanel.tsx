@@ -17,7 +17,7 @@ function waitingText(record: HandoverRecord): string {
     case "IDENTITY_CHECK":
     case "SIGNING":
       if (record.canSign)
-        return "Biên bản đã chốt. Mời bạn đọc lại biên bản và ký ngay, không cần chờ người nhận. Người nhận nào có đủ chữ ký thì được mở phần của mình.";
+        return "Biên bản đã chốt. Bấm Xem và ký biên bản, đọc lại rồi bấm Ký biên bản ở ô chữ ký của Người thực thi, không cần chờ người nhận. Người nhận nào có đủ chữ ký thì được mở phần của mình.";
       return "Bạn đã ký. Mỗi người nhận được mở phần của mình khi có chữ ký của luật sư, của bạn và của chính người đó. Vào mục Bàn giao để gửi mã nhận cho người đã được mở.";
     case "COMPLETED":
       return "Mọi người nhận đã ký. Vào mục Bàn giao để gửi mã nhận cho người chưa có mã.";
@@ -64,43 +64,42 @@ export function ExecutorRecordPanel({ vaultId }: { vaultId: string }) {
   }
   const record = query.data;
   if (!record) return <WaitingForRequest />;
-  return (
-    <div className="space-y-6">
-      <RecordStepper status={record.status} />
-      <Notice
-        tone={record.status === "COMPLETED" ? "success" : "neutral"}
-        role="status"
-        action={
-          record.canSign ? (
-            <ActionButton
-              className={buttonStyles.dark}
-              pending={sign.pending}
-              done={signed.done}
-              pendingLabel="Đang ký…"
-              doneLabel="Đã ký"
-              onClick={() =>
-                void sign.execute(
-                  () => signed.hold(() => handoverRecordService.signAsExecutor(vaultId)),
-                  (next) => {
-                    client.setQueryData(handoverRecordKeys.executor(vaultId), next);
-                    void client.invalidateQueries({ queryKey: ["executor-vaults"] });
-                  },
-                )
-              }
-            >
-              Ký biên bản
-            </ActionButton>
-          ) : undefined
+  // Nút ký chỉ nằm trong khung "Xem biên bản", ngay ô chữ ký của Người thực thi.
+  const signButton = record.canSign ? (
+    <>
+      <ActionButton
+        className={buttonStyles.dark}
+        pending={sign.pending}
+        done={signed.done}
+        pendingLabel="Đang ký…"
+        doneLabel="Đã ký"
+        onClick={() =>
+          void sign.execute(
+            () => signed.hold(() => handoverRecordService.signAsExecutor(vaultId)),
+            (next) => {
+              client.setQueryData(handoverRecordKeys.executor(vaultId), next);
+              void client.invalidateQueries({ queryKey: ["executor-vaults"] });
+            },
+          )
         }
       >
-        {waitingText(record)}
-      </Notice>
+        Ký biên bản
+      </ActionButton>
       {sign.error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="max-w-56 text-center text-sm text-destructive">
           {sign.error}
         </p>
       )}
-      <RecordDocument record={record} />
+    </>
+  ) : undefined;
+  const signAction = signButton ? { target: "executor" as const, node: signButton } : undefined;
+  return (
+    <div className="space-y-6">
+      <RecordStepper status={record.status} />
+      <Notice tone={record.status === "COMPLETED" ? "success" : "neutral"} role="status">
+        {waitingText(record)}
+      </Notice>
+      <RecordDocument record={record} signAction={signAction} />
     </div>
   );
 }

@@ -11,7 +11,7 @@ import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
 import { EkycUploads } from "@/features/ekyc/ui/EkycUploads";
-import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
+import { TurnDetail } from "@/features/handover/ui/TurnDetail";
 import { InvitationPanel } from "@/features/handover/ui/InvitationPanel";
 import { deathCaseService } from "@/features/death-case/api/deathCaseService";
 import { ProtectedRoute } from "@/app/routes/ProtectedRoute";
@@ -185,7 +185,21 @@ it("ký biên bản bị Backend từ chối thì báo lỗi và không có quy�
     executorName: "Người thực thi thử",
     verifierSignedAt: null,
     executorSignedAt: null,
-    recipients: [],
+    recipients: [
+      {
+        beneficiaryId: "0198a000-0000-7000-8000-000000000004",
+        fullName: "Người nhận thử",
+        citizenId: "001090000001",
+        assets: [],
+        turnId: CONTAINER_ID,
+        turnStatus: "READY_TO_ACCEPT",
+        claimed: true,
+        submissionId: null,
+        submissionStatus: "",
+        identityConfirmedAt: CREATED_AT,
+        signedAt: null,
+      },
+    ],
     canSign: true,
     availableAssets: [],
     availableRecipients: [],
@@ -193,7 +207,8 @@ it("ký biên bản bị Backend từ chối thì báo lỗi và không có quy�
   };
   apiClient.defaults.adapter = async (config) => {
     if (config.method === "get") {
-      const data = config.url?.endsWith("/record") ? record : [turn];
+      const url = config.url ?? "";
+      const data = url.endsWith("/record") ? record : url.endsWith("/turns/me") ? [turn] : turn;
       return { config, data, status: 200, statusText: "OK", headers: new AxiosHeaders() };
     }
     throw new AxiosError("private", "ERR_BAD_REQUEST", config, undefined, {
@@ -205,7 +220,8 @@ it("ký biên bản bị Backend từ chối thì báo lỗi và không có quy�
     });
   };
   const post = vi.spyOn(apiClient, "post");
-  setup(<HandoverPortal />);
+  setup(<TurnDetail turnId={CONTAINER_ID} />);
+  fireEvent.click(await screen.findByRole("button", { name: "Xem và ký biên bản" }));
   fireEvent.click(await screen.findByRole("button", { name: "Ký biên bản" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("không còn ở bước phù hợp");
   expect(post).toHaveBeenCalledTimes(1);

@@ -15,4 +15,5 @@ export { VerifierRecordList } from "./ui/VerifierRecordList";
 export { VerifierReportList } from "./ui/VerifierReportList";
 export { VerifierRecordDetail } from "./ui/VerifierRecordDetail";
 export { ExecutorRecordPanel } from "./ui/ExecutorRecordPanel";
-export { RecipientRecordPanel } from "./ui/RecipientRecordPanel";
+export { RecipientPaperButtons, RecipientRecordPanel } from "./ui/RecipientRecordPanel";
+export { ReceiveGuideTimeline } from "./ui/ReceiveGuide";

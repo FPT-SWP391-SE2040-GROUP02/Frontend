@@ -10,7 +10,7 @@ import {
 } from "../model/recordPresentation";
 import { PaperPreviewButton } from "./PaperPreviewButton";
 import { ReceiptPaper } from "./ReceiptPaper";
-import { RecordPaper } from "./RecordPaper";
+import { RecordPaper, type PaperSignAction } from "./RecordPaper";
 
 function SignedCell({ at }: { at: string | null }) {
   if (at) return <StatusText tone="success">{`Đã ký ${formatDateTime(at)}`}</StatusText>;
@@ -94,17 +94,21 @@ function RecipientBlock({
  * bảng "ai nhận tài sản nào" kèm danh tính, chữ ký và việc giao phần của từng người, rồi ô chữ ký của luật sư và Người thực thi.
  * renderRecipientAction thêm một cột thao tác cho từng người nhận (ví dụ nút kiểm danh tính của luật sư).
  * layout="stacked" xếp mỗi người nhận thành một khối dọc thay cho bảng ngang, hợp cột hẹp của người nhận.
+ * signAction là nút ký của người đang xem (khi có, nút mở khung đổi nhãn thành "Xem và ký biên bản"); nó chỉ hiện trong khung "Xem biên bản", ngay tại ô chữ ký của chính người đó
+ * (Người thực thi, luật sư hoặc người nhận), để người ký đọc xong tờ biên bản rồi ký ngay tại đó.
  */
 export function RecordDocument({
   record,
   title = "Biên bản bàn giao",
   renderRecipientAction,
   layout = "table",
+  signAction,
 }: {
   record: HandoverRecord;
   title?: string;
   renderRecipientAction?: (recipient: RecordRecipient) => ReactNode;
   layout?: "table" | "stacked";
+  signAction?: PaperSignAction;
 }) {
   const status = recordStatusLabel[record.status];
   const signatures = signatureCount(record);
@@ -115,10 +119,10 @@ export function RecordDocument({
       action={
         <div className="flex flex-wrap items-center justify-end gap-2">
           <PaperPreviewButton
-            label="Xem biên bản"
+            label={signAction ? "Xem và ký biên bản" : "Xem biên bản"}
             title="Biên bản bàn giao"
             fileName={`Bien-ban-ban-giao-ban-${record.revisionNo}`}
-            paper={<RecordPaper record={record} />}
+            paper={<RecordPaper record={record} signAction={signAction} />}
           />
           <StatusText tone={status.tone}>{status.label}</StatusText>
         </div>

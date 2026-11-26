@@ -177,7 +177,7 @@ describe("Yêu cầu nhận tài sản của tôi", () => {
       name: "Yêu cầu nhận tài sản của Nguyễn Văn A",
     });
     expect(card).toHaveTextContent("Cần bổ sung giấy tờ");
-    expect(card).toHaveTextContent("Lý do của luật sư: Thiếu giấy tờ chứng minh");
+    expect(card).toHaveTextContent("Lý do luật sư yêu cầu bổ sung:Thiếu giấy tờ chứng minh");
     expect(within(card).getByRole("button", { name: "Tải về di-chuc.pdf" })).toBeInTheDocument();
 
     await user.upload(within(card).getByLabelText(/Tệp giấy tờ/), pdf("giay-chung-tu.pdf"));
@@ -188,12 +188,13 @@ describe("Yêu cầu nhận tài sản của tôi", () => {
     expect(await screen.findByText("Luật sư đang xét giấy tờ của bạn.")).toBeInTheDocument();
   });
 
-  it("không có yêu cầu nào thì không hiện mục", async () => {
+  it("không có yêu cầu nào thì báo trống và chỉ đường sang trang Nhận tài sản", async () => {
     const get = vi.spyOn(apiClient, "get").mockResolvedValue([]);
     setup(<MyClaimsPanel />, "an@example.com", "/claim/beneficiary");
 
     await waitFor(() => expect(get).toHaveBeenCalled());
-    expect(screen.queryByText("Yêu cầu nhận tài sản")).not.toBeInTheDocument();
+    expect(await screen.findByText("Bạn chưa gửi yêu cầu nhận tài sản nào.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Mở trang Nhận tài sản" })).toBeInTheDocument();
   });
 
   it("luật sư đã hủy thì ghi rõ lý do, không cho nộp bổ sung", async () => {

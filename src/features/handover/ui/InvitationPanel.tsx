@@ -1,5 +1,6 @@
 import { useParams, useSearchParams, Link, Navigate } from "react-router-dom";
 import { useId } from "react";
+import { Mail } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useQuery } from "@tanstack/react-query";
 import type { AuthState } from "@/entities/user/model/authSlice";
@@ -118,6 +119,10 @@ export function InvitationPanel({ onSignOut, signingOut = false }: InvitationPan
   return (
     <div className="space-y-6">
       <div className="space-y-3">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-heritage-gold-soft bg-heritage-warning-bg px-3 py-1 text-sm font-semibold text-heritage-warning">
+          <Mail className="size-4" aria-hidden="true" />
+          Thư mời tiếp nhận tài sản
+        </span>
         <h2 className="font-serif text-4xl leading-tight text-heritage-primary">{title}</h2>
         <p className="text-sm leading-6 text-heritage-muted">
           Chúng tôi rất tiếc về mất mát của bạn.

@@ -1,4 +1,5 @@
-export { MyClaimsPanel } from "./ui/MyClaimsPanel";
+export { ClaimSupplementNotice, MyClaimsPanel } from "./ui/MyClaimsPanel";
+export { useSupplementCount } from "./model/useSupplementCount";
 export { AvailableHandoverList } from "./ui/AvailableHandoverList";
 export { ReportPanel } from "./ui/ReportPanel";
 export { ReceiveGuidePanel } from "./ui/ReceiveGuidePanel";
