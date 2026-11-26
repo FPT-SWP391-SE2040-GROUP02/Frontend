@@ -20,6 +20,7 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useMyInvitations } from "@/features/plan-setup/model/useMyInvitations";
 import { InvitationCountBadge } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
+import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
 import "@/widgets/OwnerWorkspace/owner-workspace.css";
 import "./executor-workspace.css";
 import { NotificationBell } from "@/features/death-case/ui/NotificationBell";
@@ -87,6 +88,7 @@ export function ExecutorWorkspace({
   return (
     <WorkspaceShell
       className="owner-workspace"
+      compactFrom="md"
       brand="LegacyVault"
       homeHref={ROUTES.EXECUTOR.ROOT}
       logoutHref={ROUTES.AUTH.LOGOUT}
@@ -113,12 +115,12 @@ export function ExecutorWorkspace({
           <nav
             id="executor-navigation"
             aria-label="Điều hướng Người thực thi"
-            className="owner-navigation"
+            className="u040-nav owner-navigation"
             data-open={navigationOpen}
           >
             <ExecutorVaultCard />
             {!noVault && (
-              <p className="mt-3 truncate px-3 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
+              <p className="u040-group mt-3 truncate px-3 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
                 Tài sản này
               </p>
             )}
@@ -128,10 +130,13 @@ export function ExecutorWorkspace({
                   <Fragment key={to}>
                     {index === firstVaultItem && (
                       <div className="col-span-2 mt-3 pl-3">
-                        <p className="text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
+                        <p className="u040-group text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
                           Tài sản này
                         </p>
-                        <p id={LOCKED_NOTE_ID} className="mt-1 text-sm text-heritage-gold-soft">
+                        <p
+                          id={LOCKED_NOTE_ID}
+                          className="u040-fade mt-1 text-sm text-heritage-gold-soft"
+                        >
                           Mở khi bạn nhận một tài sản
                         </p>
                       </div>
@@ -140,11 +145,14 @@ export function ExecutorWorkspace({
                       role="link"
                       aria-disabled="true"
                       aria-describedby={LOCKED_NOTE_ID}
-                      className="owner-nav-link executor-nav-locked"
+                      title={label}
+                      className="u040-item owner-nav-link executor-nav-locked"
                     >
                       <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                      <span className="min-w-0 flex-1">{label}</span>
-                      <Lock className="size-3.5 shrink-0" aria-hidden="true" />
+                      <RailLabel order={index} className="min-w-0 flex-1">
+                        {label}
+                      </RailLabel>
+                      <Lock className="u040-lock size-3.5 shrink-0" aria-hidden="true" />
                     </span>
                   </Fragment>
                 );
@@ -154,11 +162,12 @@ export function ExecutorWorkspace({
                   key={to}
                   to={to}
                   aria-current={isCurrent(to) ? "page" : undefined}
-                  className="owner-nav-link"
+                  title={label}
+                  className="u040-item owner-nav-link"
                   onClick={() => setNavigationOpen(false)}
                 >
                   <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                  {label}
+                  <RailLabel order={index}>{label}</RailLabel>
                 </Link>
               );
             })}
@@ -181,22 +190,23 @@ export function ExecutorWorkspace({
             <Link
               to={ROUTES.EXECUTOR.INVITATIONS}
               aria-current={isCurrent(ROUTES.EXECUTOR.INVITATIONS) ? "page" : undefined}
-              className="flex min-h-9 w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm leading-snug text-heritage-primary-light hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:font-semibold"
+              title={INVITATIONS_LABEL}
+              className="u040-action flex min-h-9 w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm leading-snug text-heritage-primary-light hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:font-semibold"
               onClick={() => setNavigationOpen(false)}
             >
               <Mail className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              <span className="min-w-0 flex-1">{INVITATIONS_LABEL}</span>
+              <RailLabel className="min-w-0 flex-1">{INVITATIONS_LABEL}</RailLabel>
               {pendingInvitations > 0 && <InvitationCountBadge count={pendingInvitations} />}
             </Link>
           </nav>
           {/* Người thực thi là nhân sự của hệ thống: không có nút chuyển sang vai Chủ tài sản hay Người nhận. */}
-          <div className="flex items-center gap-3">
+          <div className="u040-me flex items-center gap-3">
             <UserAvatar
               user={user}
               fallbackLetter="N"
-              className="size-10 bg-heritage-gold-soft text-heritage-primary"
+              className="u040-avatar size-10 bg-heritage-gold-soft text-heritage-primary"
             />
-            <div className="min-w-0">
+            <div className="u040-label min-w-0">
               <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
               <p className="mt-0.5 text-sm text-heritage-gold-soft">Người thực thi</p>
             </div>

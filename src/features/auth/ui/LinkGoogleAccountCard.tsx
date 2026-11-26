@@ -3,11 +3,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { linkGoogleSchema, type LinkGoogleInput } from "../model/auth.schema";
 import { useLinkGoogle } from "../model/useAuth";
-import { Button } from "@/shared/ui/button";
-import { Input } from "@/shared/ui/input";
-import { Lock, ShieldCheck } from "lucide-react";
+import { AlertCircle, ShieldCheck } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
-import { getLoginRedirect } from "../lib/loginFeedback";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { AuthField, PasswordEye } from "./AuthField";
+import { MorphButton } from "./MorphButton";
+import { useFieldFeedback } from "../lib/useFieldFeedback";
+import { getLoginRedirect, isCredentialError } from "../lib/loginFeedback";
 import { getGoogleErrorMessage } from "../lib/googleFeedback";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { BackendUserResponse } from "@/entities/user/model/backendUser.schema";
@@ -54,44 +56,60 @@ export function LinkGoogleAccountCard({
   useEffect(() => {
     heading.current?.focus();
   }, []);
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const navigate = useNavigate();
-  const { mutate: linkAccount, isPending, isError, error } = useLinkGoogle();
+  const { mutateAsync: linkAccount, isPending, isError, error } = useLinkGoogle();
+  // Giữ dấu tích trên nút một nhịp rồi mới chuyển trang; trong nhịp đó form vẫn khóa.
+  const success = useSuccessHold();
+  // Server báo sai mật khẩu: tô đỏ ô, câu giải thích nằm ở khung báo lỗi.
+  const [rejected, setRejected] = useState(false);
+  const isBusy = isPending || success.done;
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LinkGoogleInput>({
+  const form = useForm<LinkGoogleInput>({
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     resolver: zodResolver(linkGoogleSchema),
-    mode: "onBlur",
-    reValidateMode: "onBlur",
     defaultValues: {
       password: "",
     },
   });
+  const {
+    handleSubmit,
+    formState: { errors },
+  } = form;
+  const { field, shake, shakes } = useFieldFeedback(form);
 
   /**
    * @description Xử lý nộp form xác nhận mật khẩu liên kết
    * @param {LinkGoogleInput} data Dữ liệu mật khẩu
    */
-  const onSubmit = (data: LinkGoogleInput): void => {
+  const onSubmit = async (data: LinkGoogleInput): Promise<void> => {
     // Ticket phải đến từ Google response trong RAM.
-    if (isPending || !linkTicket) return;
-    linkAccount(
-      {
-        linkTicket,
-        password: data.password,
-        rememberMe,
-      },
-      {
-        onSuccess: (outcome) => {
-          // Admin đã bật 2FA: chưa có phiên, sang bước nhập mã.
-          if ("twoFactorRequired" in outcome) navigate(ROUTES.AUTH.TWO_FACTOR);
-          else if (onComplete) onComplete(outcome.user);
-          else navigate(getLoginRedirect(returnUrl ?? null));
-        },
-      },
-    );
+    if (isBusy || !linkTicket) return;
+    setRejected(false);
+    try {
+      const outcome = await success.hold(
+        () => linkAccount({ linkTicket, password: data.password, rememberMe }),
+        (result) => "user" in result,
+      );
+      if (!mounted.current) return;
+      // Admin đã bật 2FA: chưa có phiên, sang bước nhập mã.
+      if ("twoFactorRequired" in outcome) navigate(ROUTES.AUTH.TWO_FACTOR);
+      else if (onComplete) onComplete(outcome.user);
+      else navigate(getLoginRedirect(returnUrl ?? null));
+    } catch (failure) {
+      // Mutation giữ lỗi cho khung báo; ở đây chỉ rung và tô đỏ khi sai mật khẩu.
+      if (mounted.current && isCredentialError(failure)) {
+        setRejected(true);
+        shake(["password"]);
+      }
+    }
   };
 
   if (!linkTicket)
@@ -138,63 +156,52 @@ export function LinkGoogleAccountCard({
         </div>
       )}
       {isError && (
-        <p role="alert" className="text-sm text-heritage-danger">
+        <div
+          id="google-link-error"
+          role="alert"
+          className="rounded-xl border border-heritage-danger-border bg-heritage-danger-bg p-4 text-sm text-heritage-danger"
+        >
+          <AlertCircle aria-hidden="true" className="mr-2 inline size-4" />
           {getGoogleErrorMessage(error)}
-        </p>
+        </div>
       )}
       {/* Form nhập mật khẩu hiện tại */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-1.5 text-left">
-          <label
-            htmlFor="google-link-password"
-            className="text-sm font-semibold text-heritage-text"
-          >
-            Mật khẩu hiện có
-          </label>
-          <div className="relative">
-            <Lock className="w-4 h-4 text-heritage-subtle absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <Input
-              id="google-link-password"
-              disabled={isPending || !linkTicket}
-              autoComplete="current-password"
-              aria-invalid={Boolean(errors.password)}
-              aria-describedby={errors.password ? "google-link-password-error" : undefined}
-              {...register("password")}
-              type={showPassword ? "text" : "password"}
-              placeholder="Nhập mật khẩu hiện tại của bạn"
-              className={`pl-10 pr-12 h-11 text-sm rounded-xl bg-white border-heritage-border-strong focus-visible:border-heritage-primary ${
-                errors.password ? "border-heritage-danger" : ""
-              }`}
+      <form
+        noValidate
+        onSubmit={(event) =>
+          void handleSubmit(onSubmit, (invalid) => shake(Object.keys(invalid)))(event)
+        }
+        className="space-y-4"
+      >
+        <AuthField
+          id="google-link-password"
+          label="Mật khẩu hiện có"
+          type={showPassword ? "text" : "password"}
+          autoComplete="current-password"
+          disabled={isBusy}
+          error={errors.password?.message}
+          rejected={rejected}
+          rejectedBy="google-link-error"
+          shake={shakes.password}
+          end={
+            <PasswordEye
+              shown={showPassword}
+              disabled={isBusy}
+              onToggle={() => setShowPassword(!showPassword)}
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-              aria-pressed={showPassword}
-              disabled={isPending}
-              className="absolute right-0 top-1/2 -translate-y-1/2 min-h-11 min-w-11 text-sm font-medium text-heritage-muted hover:text-heritage-primary rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-heritage-primary"
-            >
-              {showPassword ? "Ẩn" : "Hiện"}
-            </button>
-          </div>
-          {errors.password && (
-            <p
-              id="google-link-password-error"
-              role="alert"
-              className="text-[0.875rem] text-heritage-danger font-medium"
-            >
-              {errors.password.message}
-            </p>
-          )}
-        </div>
+          }
+          {...field("password", { onEdit: () => setRejected(false) })}
+        />
 
-        <Button
-          type="submit"
-          disabled={isPending || !linkTicket}
-          className="w-full h-11 rounded-xl bg-heritage-primary hover:bg-heritage-primary-hover text-heritage-surface text-sm font-semibold shadow-md transition-all disabled:opacity-50 mt-2"
+        <MorphButton
+          pending={isBusy}
+          done={success.done}
+          disabled={isBusy}
+          pendingLabel="Đang xác nhận..."
+          doneLabel="Đã liên kết"
         >
-          {isPending ? "Đang xác nhận..." : "Xác nhận và liên kết"}
-        </Button>
+          <span>Xác nhận và liên kết</span>
+        </MorphButton>
       </form>
 
       {/* Nút hủy chuyển về dùng email khác */}
@@ -202,7 +209,7 @@ export function LinkGoogleAccountCard({
         {onCancel ? (
           <button
             type="button"
-            disabled={isPending}
+            disabled={isBusy}
             onClick={onCancel}
             className="min-h-11 text-sm text-heritage-primary underline"
           >

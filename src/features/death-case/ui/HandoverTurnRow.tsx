@@ -265,14 +265,16 @@ export function HandoverTurnRow({
         </div>
         <div className="flex flex-wrap items-center gap-2 lg:justify-end">
           {canMailKey && (
-            <button
-              type="button"
+            <ActionButton
               className={buttonStyles.dark}
-              disabled={mailKey.pending}
+              pending={mailKey.pending}
+              done={mailKey.done}
+              pendingLabel="Đang gửi…"
+              doneLabel="Đã gửi"
               onClick={mailKey.send}
             >
-              {mailKey.pending ? "Đang gửi…" : "Gửi mã qua email"}
-            </button>
+              Gửi mã qua email
+            </ActionButton>
           )}
           {canSignReceipt(turn) && (
             <ExecutorReceiptSignButton vaultId={vaultId} turnId={turn.turnId} signNode={signNode} />

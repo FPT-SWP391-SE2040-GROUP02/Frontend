@@ -1,5 +1,7 @@
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button, buttonVariants } from "@/shared/ui/button";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { buttonVariants } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, CheckCircle2, Mail } from "lucide-react";
@@ -30,6 +32,7 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
   const [error, setError] = useState("");
   const busy = useRef(false);
   const mounted = useRef(true);
+  const sent = useSuccessHold();
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -53,7 +56,7 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
     setIsPending(true);
     setError("");
     try {
-      await passwordRecoveryService.request(input.email);
+      await sent.hold(() => passwordRecoveryService.request(input.email));
       if (mounted.current) setIsSubmitted(true);
     } catch (failure) {
       if (mounted.current) setError(passwordRecoveryFeedback(failure).message);
@@ -125,13 +128,19 @@ export function ForgotPasswordForm({ className = "" }: ForgotPasswordFormProps) 
         )}
       </div>
 
-      <Button
+      <ActionButton
         type="submit"
-        disabled={isPending}
-        className="w-full h-12 bg-heritage-primary hover:bg-heritage-primary-hover text-white font-medium text-sm rounded-xl shadow-xs"
+        pending={isPending}
+        done={sent.done}
+        pendingLabel="Đang gửi yêu cầu..."
+        doneLabel="Đã gửi"
+        className={buttonVariants({
+          className:
+            "w-full h-12 bg-heritage-primary hover:bg-heritage-primary-hover text-white font-medium text-sm rounded-xl shadow-xs",
+        })}
       >
-        {isPending ? "Đang gửi yêu cầu..." : "Yêu cầu đặt lại mật khẩu"}
-      </Button>
+        Yêu cầu đặt lại mật khẩu
+      </ActionButton>
 
       <div className="text-center pt-2">
         <Link

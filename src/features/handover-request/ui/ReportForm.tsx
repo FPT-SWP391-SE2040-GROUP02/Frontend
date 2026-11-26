@@ -1,6 +1,8 @@
 import { useId, useState, type ReactNode } from "react";
 import type { SuggestedRecipient } from "@/entities/handoverRecord";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { ActionButton } from "@/shared/ui/ActionButton";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { handoverReportService } from "../api/handoverReportService";
 import { filledRecipients, reportErrors, type ReportErrors } from "../model/reportForm";
@@ -25,6 +27,7 @@ function ErrorText({ id, children }: { id?: string; children?: ReactNode }) {
 export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel: () => void }) {
   const id = useId();
   const action = usePrivateAction();
+  const sent = useSuccessHold();
   const [name, setName] = useState("");
   const [citizenId, setCitizenId] = useState("");
   const [attested, setAttested] = useState(false);
@@ -54,7 +57,13 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
     if (Object.keys(reportErrors(draft)).length > 0) return;
     void action.execute(
       () =>
-        handoverReportService.submit({ ...draft, note, recipients: filledRecipients(recipients) }),
+        sent.hold(() =>
+          handoverReportService.submit({
+            ...draft,
+            note,
+            recipients: filledRecipients(recipients),
+          }),
+        ),
       onSent,
     );
   };
@@ -176,9 +185,16 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button type="submit" className={buttonStyles.dark} disabled={busy}>
-          {busy ? "Đang nộp…" : "Nộp hồ sơ"}
-        </button>
+        <ActionButton
+          type="submit"
+          className={buttonStyles.dark}
+          pending={busy}
+          done={sent.done}
+          pendingLabel="Đang nộp…"
+          doneLabel="Đã nộp"
+        >
+          Nộp hồ sơ
+        </ActionButton>
         <button type="button" className={buttonStyles.outline} disabled={busy} onClick={onCancel}>
           Hủy
         </button>

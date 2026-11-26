@@ -164,15 +164,23 @@ describe("pricing reference policies", () => {
   it("switches reference prices by term and sends guests to login", () => {
     setup();
     expect(
-      planCard("Legacy XS").getByText(/199\.000/, { selector: "p.service-plan-price" }),
+      planCard("Legacy XS").getByText(/199\.000/, { selector: ".service-plan-price .sr-only" }),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "3 năm" }));
-    expect(planCard("Legacy XS").getByText(/499\.000/, { selector: "p" })).toBeInTheDocument();
-    expect(planCard("Legacy XS Max").getByText(/999\.000/, { selector: "p" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "5 năm" }));
-    expect(planCard("Legacy XS").getByText(/799\.000/, { selector: "p" })).toBeInTheDocument();
     expect(
-      planCard("Legacy XS Max").getByText(/1\.599\.000/, { selector: "p" }),
+      planCard("Legacy XS").getByText(/499\.000/, { selector: ".service-plan-price .sr-only" }),
+    ).toBeInTheDocument();
+    expect(
+      planCard("Legacy XS Max").getByText(/999\.000/, { selector: ".service-plan-price .sr-only" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "5 năm" }));
+    expect(
+      planCard("Legacy XS").getByText(/799\.000/, { selector: ".service-plan-price .sr-only" }),
+    ).toBeInTheDocument();
+    expect(
+      planCard("Legacy XS Max").getByText(/1\.599\.000/, {
+        selector: ".service-plan-price .sr-only",
+      }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Giá là tổng cho cả kỳ/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Chọn gói XS" })).toHaveAttribute("href", "/login");
@@ -263,7 +271,7 @@ describe("pricing reference policies", () => {
     });
     await waitFor(() =>
       expect(
-        planCard("Legacy XS").getByText(/211\.000/, { selector: "p.service-plan-price" }),
+        planCard("Legacy XS").getByText(/211\.000/, { selector: ".service-plan-price .sr-only" }),
       ).toBeInTheDocument(),
     );
   });

@@ -3,6 +3,7 @@ import type { AuthState } from "@/entities/user/model/authSlice";
 import { Initial } from "@/shared/ui/heritageKit";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
+import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ArrowLeftRight, BookOpen, FileText, Home } from "lucide-react";
@@ -41,7 +42,7 @@ function Badge({ count }: { count: number }) {
   return (
     <span
       key={count}
-      className="pm-badge ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-heritage-gold-soft px-1.5 text-xs font-bold text-heritage-primary"
+      className="u040-badge pm-badge ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-heritage-gold-soft px-1.5 text-xs font-bold text-heritage-primary"
     >
       {count}
     </span>
@@ -94,45 +95,50 @@ export function RecipientLayout({ active, activeTurnId, children }: RecipientLay
         <>
           <nav
             aria-label={shell.menu}
-            className="flex shrink-0 gap-1 overflow-x-auto px-3 pb-3 lg:flex-col"
+            className="u040-nav flex shrink-0 gap-1 overflow-x-auto px-3 pb-3 lg:flex-col"
           >
-            {items.map(({ id, label, icon: Icon, to, badge }) => (
+            {items.map(({ id, label, icon: Icon, to, badge }, index) => (
               <Link
                 key={id}
                 to={to}
                 aria-current={active === id ? "page" : undefined}
-                className={`flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-heritage-gold ${active === id ? "border-l-2 border-heritage-gold bg-heritage-surface/10 font-semibold text-heritage-gold" : "text-heritage-surface/80 hover:bg-heritage-surface/10"}`}
+                title={label}
+                className={`u040-item flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-heritage-gold ${active === id ? "bg-heritage-surface/10 font-semibold text-heritage-gold max-lg:border-l-2 max-lg:border-heritage-gold" : "text-heritage-surface/80 hover:bg-heritage-surface/10"}`}
               >
                 <Icon className="size-5 shrink-0" aria-hidden="true" />
-                {label}
+                <RailLabel order={index}>{label}</RailLabel>
                 <Badge count={badge} />
               </Link>
             ))}
           </nav>
           {overview.entries.length > 0 && (
-            <nav aria-label={shell.turns} className="hidden px-3 pb-3 lg:block">
-              <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-widest text-heritage-surface/60">
+            <nav aria-label={shell.turns} className="u040-nav hidden px-3 pb-3 lg:block">
+              <p className="u040-group px-3 pb-1.5 text-xs font-semibold uppercase tracking-widest text-heritage-surface/60">
                 {shell.turns}
               </p>
               <ul className="flex flex-col gap-0.5">
-                {overview.entries.map(({ turn, view }) => {
+                {overview.entries.map(({ turn, view }, index) => {
                   const current = active === "turn" && activeTurnId === turn.id;
                   return (
                     <li key={turn.id}>
                       <Link
                         to={ROUTES.BENEFICIARY.TURN(turn.id)}
                         aria-current={current ? "page" : undefined}
-                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 focus-visible:outline-2 focus-visible:outline-heritage-gold ${current ? "bg-heritage-surface/10 text-white" : "text-heritage-surface/85 hover:bg-heritage-surface/10"}`}
+                        title={turn.container?.name ?? "Lượt bàn giao"}
+                        className={`u040-item flex items-center gap-2.5 rounded-lg px-3 py-2 focus-visible:outline-2 focus-visible:outline-heritage-gold ${current ? "bg-heritage-surface/10 text-white" : "text-heritage-surface/85 hover:bg-heritage-surface/10"}`}
                       >
-                        <StatusDot dot={view.dot} />
-                        <span className="min-w-0 flex-1">
+                        {/* Ô rộng bằng biểu tượng để chấm trạng thái thẳng cột khi menu thu gọn. */}
+                        <span className="grid w-5 shrink-0 place-items-center">
+                          <StatusDot dot={view.dot} />
+                        </span>
+                        <RailLabel order={items.length + index} className="min-w-0 flex-1">
                           <span className="block truncate text-sm leading-tight">
                             {turn.container?.name ?? "Lượt bàn giao"}
                           </span>
                           <small className="block truncate text-xs text-heritage-surface/60">
                             {view.chip}
                           </small>
-                        </span>
+                        </RailLabel>
                       </Link>
                     </li>
                   );
@@ -147,15 +153,16 @@ export function RecipientLayout({ active, activeTurnId, children }: RecipientLay
           {isOwner && (
             <Link
               to={ROUTES.DASHBOARD.ROOT}
-              className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-heritage-gold-soft px-4 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+              title="Sang vai Chủ tài sản"
+              className="u040-action mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-heritage-gold-soft px-2 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
             >
-              <ArrowLeftRight className="size-4" aria-hidden="true" />
-              Sang vai Chủ tài sản
+              <ArrowLeftRight className="size-4 shrink-0" aria-hidden="true" />
+              <RailLabel>Sang vai Chủ tài sản</RailLabel>
             </Link>
           )}
-          <div className="flex items-center gap-3">
-            {fullName && <Initial name={fullName} className="size-10" />}
-            <div className="min-w-0">
+          <div className="u040-me flex items-center gap-3">
+            {fullName && <Initial name={fullName} className="u040-avatar size-10" />}
+            <div className="u040-label min-w-0">
               <p className="truncate text-sm font-semibold">{fullName ?? shell.role}</p>
               <p className="mt-0.5 text-sm text-heritage-gold">{shell.role}</p>
             </div>

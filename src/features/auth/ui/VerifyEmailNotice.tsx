@@ -1,5 +1,7 @@
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button } from "@/shared/ui/button";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { buttonVariants } from "@/shared/ui/button";
 import { ArrowLeft, Mail, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -37,8 +39,11 @@ export function VerifyEmailNotice({
   className = "",
 }: VerifyEmailNoticeProps) {
   const [cooldown, setCooldown] = useState<number>(0);
+  const sent = useSuccessHold();
+  // Còn bật sau khi mutation xong để nút kịp hiện dấu tích.
+  const [sending, setSending] = useState(false);
   const {
-    mutate: resendEmail,
+    mutateAsync: resendEmail,
     isPending,
     isError,
     isSuccess,
@@ -83,14 +88,23 @@ export function VerifyEmailNotice({
     // 5. [ĐIỀU KIỆN BIÊN & NGOẠI LỆ]: Thiếu/sai header, retryAt đã qua; không coi cooldown
     //    cục bộ là policy Backend hoặc 202 là bằng chứng email đã được giao.
 
-    if (isPending || cooldown > 0 || !emailResult.success) return;
+    if (sending || isPending || cooldown > 0 || !emailResult.success) return;
 
-    resendEmail(emailResult.data, {
-      onSuccess: () => {
-        setCooldown(60);
-      },
-    });
+    const target = emailResult.data;
+    setSending(true);
+    void sent
+      .hold(() => resendEmail(target))
+      .then(() => setCooldown(60))
+      .catch(() => {
+        /* Lỗi mutation được hiển thị inline bên trên nút. */
+      })
+      .finally(() => setSending(false));
   };
+
+  let resendLabel = "Gửi lại email";
+  if (cooldown > 0) {
+    resendLabel = `Gửi lại sau ${cooldown}s`;
+  }
 
   if (token !== null) {
     return (
@@ -143,21 +157,23 @@ export function VerifyEmailNotice({
       )}
 
       <div className="space-y-3 pt-2">
-        <Button
-          type="button"
+        <ActionButton
           onClick={handleResend}
-          disabled={!isEmailValid || cooldown > 0 || isPending}
-          className="w-full h-11 rounded-xl bg-heritage-primary hover:bg-heritage-primary-hover text-heritage-surface text-sm font-semibold shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          pending={sending}
+          done={sent.done}
+          pendingLabel="Đang gửi..."
+          doneLabel="Đã gửi"
+          disabled={!isEmailValid || cooldown > 0}
+          className={buttonVariants({
+            className:
+              "w-full h-11 rounded-xl bg-heritage-primary hover:bg-heritage-primary-hover text-heritage-surface text-sm font-semibold shadow-md disabled:opacity-50",
+          })}
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isPending ? "animate-spin" : ""}`} />
-          {cooldown > 0 ? (
-            <span>Gửi lại sau {cooldown}s</span>
-          ) : isPending ? (
-            <span>Đang gửi...</span>
-          ) : (
-            <span>Gửi lại email</span>
-          )}
-        </Button>
+          <span className="inline-flex items-center gap-2">
+            <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>{resendLabel}</span>
+          </span>
+        </ActionButton>
 
         <p className="text-[0.875rem] text-heritage-subtle text-center">
           Chưa thấy email? Hãy kiểm tra thư rác hoặc hộp thư quảng cáo.

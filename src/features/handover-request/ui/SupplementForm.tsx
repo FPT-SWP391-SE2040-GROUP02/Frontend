@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { ActionButton } from "@/shared/ui/ActionButton";
 import { buttonStyles } from "@/shared/ui/heritageKit";
 import { filesError } from "../model/handoverRequest.schema";
 import { DocumentPicker } from "./DocumentPicker";
@@ -13,6 +15,7 @@ export function SupplementForm({
   onSent: () => void;
 }) {
   const action = usePrivateAction();
+  const sent = useSuccessHold();
   const [files, setFiles] = useState<File[]>([]);
   const [note, setNote] = useState("");
   const [touched, setTouched] = useState(false);
@@ -35,15 +38,17 @@ export function SupplementForm({
           onChange={(event) => setNote(event.target.value)}
         />
       </label>
-      <button
-        type="button"
+      <ActionButton
         className={buttonStyles.dark}
-        disabled={action.pending}
+        pending={action.pending}
+        done={sent.done}
+        pendingLabel="Đang nộp…"
+        doneLabel="Đã nộp"
         onClick={() => {
           setTouched(true);
           if (error) return;
           void action.execute(
-            () => send(note, files),
+            () => sent.hold(() => send(note, files)),
             () => {
               setFiles([]);
               setNote("");
@@ -53,8 +58,8 @@ export function SupplementForm({
           );
         }}
       >
-        {action.pending ? "Đang nộp…" : "Nộp bổ sung"}
-      </button>
+        Nộp bổ sung
+      </ActionButton>
       {action.error && (
         <p role="alert" className="text-sm text-destructive">
           {action.error}

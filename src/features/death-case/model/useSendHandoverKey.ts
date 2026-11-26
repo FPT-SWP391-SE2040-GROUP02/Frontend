@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { isHandoverNotStarted, systemExecutorsService } from "@/entities/executor";
 import { deathCaseService } from "../api/deathCaseService";
 
@@ -18,16 +19,18 @@ export function useSendHandoverKey({
   vaultId: string;
 }) {
   const action = usePrivateAction();
+  const sent = useSuccessHold();
   const [sentAt, setSentAt] = useState<string | null>(null);
   const [notStarted, setNotStarted] = useState(false);
 
   function send(): void {
     setNotStarted(false);
     void action.execute(
-      async () => {
-        const received = await systemExecutorsService.getHandoverKey(vaultId);
-        return deathCaseService.sendKey(recordId, turnId, received.shard);
-      },
+      () =>
+        sent.hold(async () => {
+          const received = await systemExecutorsService.getHandoverKey(vaultId);
+          return deathCaseService.sendKey(recordId, turnId, received.shard);
+        }),
       (result) => setSentAt(result.sentAt),
       (error) => setNotStarted(isHandoverNotStarted(error)),
     );
@@ -36,6 +39,7 @@ export function useSendHandoverKey({
   return {
     send,
     pending: action.pending,
+    done: sent.done,
     error: action.error,
     sentAt,
     notStarted,

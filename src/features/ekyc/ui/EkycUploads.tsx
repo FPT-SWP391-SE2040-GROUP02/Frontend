@@ -12,7 +12,11 @@ import { useAccountHome } from "@/entities/user/model/useAccountHome";
 
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 
-import { Button } from "@/shared/ui/button";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+
+import { ActionButton } from "@/shared/ui/ActionButton";
+
+import { Button, buttonVariants } from "@/shared/ui/button";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
 
@@ -68,11 +72,15 @@ const PREPARE_CHIPS = ["Căn cước còn hạn, bản gốc", "Nơi đủ sáng
 function ConsentStep({
   pending,
 
+  done,
+
   error,
 
   onAgree,
 }: {
   pending: boolean;
+
+  done: boolean;
 
   error: string;
 
@@ -85,6 +93,13 @@ function ConsentStep({
   const [readOnly, setReadOnly] = useState(false);
 
   const ready = processing && readOnly;
+
+  // Màu xám chỉ dành cho lúc chưa tick đủ; đang gửi thì giữ màu nút chính.
+  let buttonClass = PRIMARY_BUTTON;
+
+  if (!ready) {
+    buttonClass = `${PRIMARY_BUTTON} disabled:bg-heritage-sunken disabled:text-heritage-subtle disabled:opacity-100`;
+  }
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -139,19 +154,23 @@ function ConsentStep({
         </label>
 
         <div className="flex flex-wrap gap-3">
-          <Button
-            type="button"
+          <ActionButton
+            className={buttonVariants({ size: "lg", className: buttonClass })}
 
-            size="lg"
+            pending={pending}
 
-            className={`${PRIMARY_BUTTON} disabled:bg-heritage-sunken disabled:text-heritage-subtle disabled:opacity-100`}
+            done={done}
 
-            disabled={!ready || pending}
+            pendingLabel="Đang gửi đồng ý…"
+
+            doneLabel="Đã đồng ý"
+
+            disabled={!ready}
 
             onClick={onAgree}
           >
-            {pending ? "Đang gửi đồng ý…" : "Đồng ý và bắt đầu"}
-          </Button>
+            Đồng ý và bắt đầu
+          </ActionButton>
 
           <Link
             to={accountHome}
@@ -573,6 +592,8 @@ export function EkycUploads({
 
   const consentAction = usePrivateAction();
 
+  const consentSent = useSuccessHold();
+
   const frontAction = usePrivateAction();
 
   const backAction = usePrivateAction();
@@ -655,7 +676,7 @@ export function EkycUploads({
 
   async function handleConsent() {
     await consentAction.execute(
-      () => ekycService.submitConsent(),
+      () => consentSent.hold(() => ekycService.submitConsent()),
 
       () => {
         setStep("front");
@@ -835,6 +856,8 @@ export function EkycUploads({
       {step === "consent" && (
         <ConsentStep
           pending={consentAction.pending}
+
+          done={consentSent.done}
 
           error={consentAction.error}
 

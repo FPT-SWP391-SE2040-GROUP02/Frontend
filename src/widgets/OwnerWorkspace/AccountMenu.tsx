@@ -5,6 +5,7 @@ import { HistoryIcon, PlanIcon, SettingsIcon } from "@/shared/ui/LegacyVaultArtw
 import { ROUTES } from "@/shared/config/routes.config";
 import { UserAvatar } from "@/entities/user/ui/UserAvatar";
 import type { AuthState } from "@/entities/user/model/authSlice";
+import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
 
 interface AccountMenuItem {
   label: string;
@@ -75,7 +76,7 @@ export function AccountMenu({
         data-open={open}
         inert={!open}
       >
-        {ITEMS.map((item) => {
+        {ITEMS.map((item, index) => {
           const Icon = item.icon;
           const active = currentPath === item.to || currentPath.startsWith(`${item.to}/`);
           return (
@@ -83,11 +84,12 @@ export function AccountMenu({
               key={item.to}
               to={item.to}
               aria-current={active ? "page" : undefined}
+              title={item.label}
               className="account-menu-link"
               onClick={() => setOpen(false)}
             >
               <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-              {item.label}
+              <RailLabel order={index}>{item.label}</RailLabel>
             </Link>
           );
         })}
@@ -95,7 +97,8 @@ export function AccountMenu({
       <button
         ref={buttonRef}
         type="button"
-        className="account-menu-trigger"
+        className="u040-me account-menu-trigger"
+        title={user?.fullName ?? "Tài khoản"}
         aria-expanded={open}
         aria-controls={menuId}
         data-current={inMenu}
@@ -104,14 +107,14 @@ export function AccountMenu({
         <UserAvatar
           user={user}
           fallbackLetter="T"
-          className="size-10 shrink-0 bg-heritage-gold-soft text-heritage-primary"
+          className="u040-avatar size-10 shrink-0 bg-heritage-gold-soft text-heritage-primary"
         />
-        <span className="min-w-0 flex-1 text-left">
+        <span className="u040-label min-w-0 flex-1 text-left">
           <span className="block truncate text-sm font-semibold text-white">
             {user?.fullName ?? "Tài khoản"}
           </span>
           <span className="block text-sm text-heritage-gold-soft">Chủ tài sản</span>
-          {tier && <span className="mt-1 block">{tier}</span>}
+          {tier && <span className="account-menu-tier mt-1 block">{tier}</span>}
         </span>
         <ChevronUp className="account-menu-chevron size-4 shrink-0" aria-hidden="true" />
       </button>

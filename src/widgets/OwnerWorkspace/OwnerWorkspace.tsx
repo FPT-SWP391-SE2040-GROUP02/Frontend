@@ -1,7 +1,7 @@
-import { Fragment, useRef, useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { ArrowLeftRight, Gift, Mail, Menu, ScanFace, X, type LucideIcon } from "lucide-react";
+import { Gift, Mail, Menu, ScanFace, X, type LucideIcon } from "lucide-react";
 import {
   OverviewIcon,
   VaultIcon,
@@ -17,7 +17,6 @@ import { useAccountHome } from "@/entities/user/model/useAccountHome";
 import { ROUTES } from "@/shared/config/routes.config";
 import { WorkspaceShell } from "@/shared/ui/WorkspaceShell";
 import { accessTokenMemory } from "@/shared/api/accessToken";
-import { useExecutorVaults } from "@/features/death-case/model/useExecutorVaults";
 import { useMyInvitations } from "@/features/plan-setup/model/useMyInvitations";
 import { SwitchToRecipientLink } from "@/features/handover/ui/SwitchToRecipientLink";
 import { countNeedsAction, useAvailableHandovers } from "@/features/handover-request";
@@ -29,8 +28,8 @@ import {
 } from "@/features/vault-management/model/useOwnerVault";
 import { getVaultLockReason } from "@/entities/vault/model/vaultLock";
 import { OwnerVaultLockedBanner } from "@/features/vault-management/ui/OwnerVaultLockedBanner";
+import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
 import { AccountMenu } from "./AccountMenu";
-import { useNavIndicator } from "./useNavIndicator";
 import "./owner-workspace.css";
 
 /** Chỉ mount khi phiên Owner sẵn sàng; dùng chung cache kho với các màn nội dung. */
@@ -118,16 +117,6 @@ function useReceiveActionCount(): number {
   return countNeedsAction(available.data);
 }
 
-/**
- * Chỉ tài khoản đang là Executor của ít nhất một kho mới có nút sang vai Người thực thi;
- * không cấp quyền gì, Backend vẫn kiểm tra từng request.
- */
-function useCanSwitchToExecutor(): boolean {
-  const isAuthenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
-  const vaults = useExecutorVaults(isAuthenticated && Boolean(accessTokenMemory.get()));
-  return (vaults.data?.length ?? 0) > 0;
-}
-
 /** Số lời mời làm Người thực thi đang chờ; 0 khi chưa đăng nhập, đang tải hoặc lỗi. */
 function usePendingInvitationCount(): number {
   const isAuthenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);
@@ -173,17 +162,14 @@ export function OwnerWorkspace({
   // Cùng query với ô gói dịch vụ; kho bị khóa thì hiện dải cảnh báo đầu mọi trang.
   const vault = useOwnerVault(showOwnerService);
   const lockReason = getVaultLockReason(vault.data);
-  const showSwitchRole = useCanSwitchToExecutor();
-  // Lời mời đang chờ hiện ở chân sidebar: người chưa là Executor không có nút chuyển vai để tìm lời mời.
+  // Lời mời đang chờ hiện ở chân sidebar. Người thực thi là nhân sự của hệ thống nên khung này không có nút sang vai đó.
   const pendingInvitations = usePendingInvitationCount();
   const receiveActionCount = useReceiveActionCount();
   const [navigationOpen, setNavigationOpen] = useState(false);
-  const navRef = useRef<HTMLElement>(null);
-  const indicatorRef = useRef<HTMLSpanElement>(null);
-  useNavIndicator(navRef, indicatorRef, current?.to);
   return (
     <WorkspaceShell
       className="owner-workspace"
+      compactFrom="md"
       brand="LegacyVault"
       homeHref={accountHome}
       logoutHref={ROUTES.AUTH.LOGOUT}
@@ -207,13 +193,11 @@ export function OwnerWorkspace({
             </button>
           </div>
           <nav
-            ref={navRef}
             id="owner-navigation"
             aria-label="Điều hướng Chủ tài sản"
-            className="owner-navigation owner-navigation--slide"
+            className="u040-nav owner-navigation"
             data-open={navigationOpen}
           >
-            <span ref={indicatorRef} className="owner-nav-indicator" aria-hidden="true" />
             {navigation.map((item, index) => {
               const Icon = item.icon;
               const previous: OwnerNavItem | undefined = navigation[index - 1];
@@ -223,25 +207,26 @@ export function OwnerWorkspace({
               if (item.showsReceiveCount === true) {
                 count = receiveActionCount;
               }
-              let linkClass = "owner-nav-link";
+              let linkClass = "u040-item owner-nav-link";
               if (item.inAccountMenu === true) {
-                linkClass = "owner-nav-link owner-nav-link--phone-only";
+                linkClass = "u040-item owner-nav-link owner-nav-link--phone-only";
               }
               return (
                 <Fragment key={item.to}>
-                  {startsGroup && <p className="owner-nav-group">{item.group}</p>}
+                  {startsGroup && <p className="u040-group owner-nav-group">{item.group}</p>}
                   <Link
                     to={item.to}
                     aria-current={isCurrent ? "page" : undefined}
+                    title={item.label}
                     className={linkClass}
                     onClick={() => setNavigationOpen(false)}
                   >
                     <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                    {item.label}
+                    <RailLabel order={index}>{item.label}</RailLabel>
                     {count > 0 && <ActionCountBadge count={count} />}
                     {isCurrent && count === 0 && (
                       <span
-                        className="ml-auto size-1.5 rounded-full bg-heritage-gold"
+                        className="u040-dot ml-auto size-1.5 shrink-0 rounded-full bg-heritage-gold"
                         aria-hidden="true"
                       />
                     )}
@@ -261,17 +246,6 @@ export function OwnerWorkspace({
                 <InvitationCountBadge count={pendingInvitations} />
               </Link>
             )}
-            {showSwitchRole && (
-              <Link
-                to={ROUTES.EXECUTOR.ROOT}
-                // Từ 768px trở lên chân khung đã có nút chuyển vai (xem owner-workspace.css), nên mục này chỉ cho điện thoại.
-                className="owner-nav-link owner-nav-link--phone-only"
-                onClick={() => setNavigationOpen(false)}
-              >
-                <ArrowLeftRight className="size-[18px] shrink-0" aria-hidden="true" />
-                Sang vai Người thực thi
-              </Link>
-            )}
             <SwitchToRecipientLink
               className="owner-nav-link owner-nav-link--phone-only"
               onNavigate={() => setNavigationOpen(false)}
@@ -285,23 +259,15 @@ export function OwnerWorkspace({
             <Link
               to={ROUTES.DASHBOARD.INVITATIONS}
               aria-current={path === ROUTES.DASHBOARD.INVITATIONS ? "page" : undefined}
-              className="mb-3 flex min-h-11 items-center gap-2 rounded-lg border border-heritage-gold-soft/60 bg-white/5 px-3 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+              title="Lời mời"
+              className="u040-action mb-3 flex min-h-11 items-center gap-2 rounded-lg border border-heritage-gold-soft/60 bg-white/5 px-3 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
             >
               <Mail className="size-4 shrink-0" aria-hidden="true" />
-              Lời mời
+              <RailLabel>Lời mời</RailLabel>
               <InvitationCountBadge count={pendingInvitations} />
             </Link>
           )}
-          {showSwitchRole && (
-            <Link
-              to={ROUTES.EXECUTOR.ROOT}
-              className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-heritage-gold-soft px-3 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
-            >
-              <ArrowLeftRight className="size-4 shrink-0" aria-hidden="true" />
-              Sang vai Người thực thi
-            </Link>
-          )}
-          <SwitchToRecipientLink className="mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-heritage-gold-soft px-3 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold" />
+          <SwitchToRecipientLink className="u040-action mb-3 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-heritage-gold-soft px-3 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold" />
           <AccountMenu
             user={user}
             currentPath={path}
@@ -341,7 +307,7 @@ export function ActionCountBadge({ count }: { count: number }) {
   return (
     <span
       aria-label={`${count} việc cần làm`}
-      className="ml-auto rounded-full bg-heritage-gold-soft px-2 py-0.5 text-sm font-semibold text-heritage-primary"
+      className="u040-badge ml-auto rounded-full bg-heritage-gold-soft px-2 py-0.5 text-sm font-semibold text-heritage-primary"
     >
       {count}
     </span>
@@ -353,7 +319,7 @@ export function InvitationCountBadge({ count }: { count: number }) {
   return (
     <span
       aria-label={`${count} lời mời đang chờ`}
-      className="ml-auto rounded-full bg-heritage-gold-soft px-2 py-0.5 text-sm font-semibold text-heritage-primary"
+      className="u040-badge ml-auto rounded-full bg-heritage-gold-soft px-2 py-0.5 text-sm font-semibold text-heritage-primary"
     >
       {count}
     </span>

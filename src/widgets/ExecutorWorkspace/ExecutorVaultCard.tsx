@@ -3,6 +3,7 @@ import { useSelectedExecutorVault } from "@/features/death-case/model/useExecuto
 import { vaultStage } from "@/features/death-case/model/executorTodo";
 import { ROUTES } from "@/shared/config/routes.config";
 import type { Tone } from "@/shared/ui/heritageKit";
+import { RailLabel } from "@/shared/ui/sideRail/RailLabel";
 
 /** Màu chữ trạng thái trên nền menu tối. */
 const STAGE_COLOR: Record<Tone, string> = {
@@ -27,9 +28,9 @@ export function ExecutorVaultCard() {
     card = (
       <div
         role="status"
-        className="rounded-xl border border-white/15 bg-white/5 p-3 text-sm text-white/70"
+        className="u040-card rounded-xl border border-white/15 bg-white/5 p-3 text-sm text-white/70"
       >
-        Đang tải tài sản…
+        <RailLabel>Đang tải tài sản…</RailLabel>
       </div>
     );
   } else {
@@ -37,7 +38,7 @@ export function ExecutorVaultCard() {
     switchLink = (
       <Link
         to={ROUTES.EXECUTOR.INVITATIONS}
-        className="mt-2 inline-block px-1 text-sm font-semibold text-heritage-gold-soft hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
+        className="u040-card-switch mt-2 inline-block px-1 text-sm font-semibold text-heritage-gold-soft hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
       >
         Đổi tài sản →
       </Link>
@@ -46,7 +47,8 @@ export function ExecutorVaultCard() {
       <div
         aria-label={`Tài sản đang làm việc: ${selected.ownerFullName}`}
         role="group"
-        className="flex items-center gap-3 rounded-xl border border-heritage-gold bg-white/10 p-2.5"
+        title={selected.ownerFullName}
+        className="u040-card flex items-center gap-3 rounded-xl border border-heritage-gold bg-white/10 p-2.5"
       >
         <span
           aria-hidden="true"
@@ -54,7 +56,7 @@ export function ExecutorVaultCard() {
         >
           {selected.ownerFullName.trim().charAt(0).toLocaleUpperCase("vi-VN")}
         </span>
-        <span className="min-w-0 flex-1">
+        <span className="u040-label min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold text-white">
             {selected.ownerFullName}
           </span>
@@ -64,10 +66,13 @@ export function ExecutorVaultCard() {
     );
   }
   return (
-    <section aria-labelledby="executor-current-vault-heading" className="px-2 pt-2">
+    <section
+      aria-labelledby="executor-current-vault-heading"
+      className="u040-card-section px-2 pt-2"
+    >
       <h2
         id="executor-current-vault-heading"
-        className="mb-2 px-1 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60"
+        className="u040-group mb-2 px-1 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60"
       >
         Đang làm việc với tài sản
       </h2>
