@@ -1,50 +1,53 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Info } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
-import { filesError, type MyClaim } from "../model/handoverRequest.schema";
-import { DocumentPicker } from "./DocumentPicker";
+import {
+  documentErrors,
+  EMPTY_DOCUMENTS,
+  type HandoverDocuments,
+} from "../model/handoverDocuments";
+import type { MyClaim } from "../model/handoverRequest.schema";
+import { HandoverDocumentFields } from "./HandoverDocumentFields";
 
 /** Độ dài tối đa của lời nhắn cho luật sư. */
 const NOTE_MAX_LENGTH = 1000;
 
 /** Ba bước người nhận đọc trước khi gửi yêu cầu. */
 const REQUEST_STEPS = [
-  "Đính kèm di chúc (bắt buộc) và giấy tờ khác nếu có.",
+  "Đính kèm giấy chứng tử, di chúc (bắt buộc) và giấy tờ khác nếu có.",
   "Hệ thống báo cho Chủ tài sản, Người thực thi và phân công một luật sư.",
   "Luật sư xét giấy tờ: chấp nhận (lúc này tài sản mới khóa), yêu cầu bổ sung hoặc từ chối có lý do.",
 ];
 
 /**
  * Form gửi yêu cầu nằm trong thẻ kho ở trang Nhận tài sản (gửi bằng tài khoản đã đăng nhập).
- * Việc gọi API do nơi dùng truyền vào; form lo kiểm tệp, lời nhắn và chống gửi trùng.
+ * Việc gọi API do nơi dùng truyền vào; form lo kiểm giấy tờ (cùng phần với form nộp hồ sơ báo tin), lời nhắn và chống
+ * gửi trùng.
  */
 export function RequestForm({
   send,
   onSent,
 }: {
-  send: (note: string, wills: File[], files: File[]) => Promise<MyClaim>;
+  send: (note: string, documents: HandoverDocuments) => Promise<MyClaim>;
   onSent: () => void;
 }) {
   const submit = usePrivateAction();
   // Gửi xong thì nút giữ dấu tích một nhịp rồi mới đổi sang thông báo đã gửi.
   const sent = useSuccessHold();
   const [note, setNote] = useState("");
-  const [wills, setWills] = useState<File[]>([]);
-  const [files, setFiles] = useState<File[]>([]);
+  const [documents, setDocuments] = useState(EMPTY_DOCUMENTS);
   const [touched, setTouched] = useState(false);
-  let fileError = filesError([...wills, ...files]);
-  if (wills.length === 0) fileError = "Vui lòng đính kèm di chúc.";
+  const errors = touched ? documentErrors(documents) : {};
 
   function handleSend() {
     setTouched(true);
-    if (fileError) return;
+    if (Object.keys(documentErrors(documents)).length > 0) return;
     void submit.execute(
-      () => sent.hold(() => send(note, wills, files)),
+      () => sent.hold(() => send(note, documents)),
       () => onSent(),
     );
   }
@@ -64,27 +67,13 @@ export function RequestForm({
           </li>
         ))}
       </ol>
-      <div className="space-y-5">
-        <DocumentPicker
-          label="Di chúc (bắt buộc)"
-          files={wills}
-          onChange={setWills}
-          disabled={submit.pending}
-          reserved={files.length}
-        />
-        <DocumentPicker
-          label="Giấy tờ khác (nếu có)"
-          files={files}
-          onChange={setFiles}
-          disabled={submit.pending}
-          reserved={wills.length}
-        />
-        {touched && fileError && (
-          <p role="alert" className="text-sm text-destructive">
-            {fileError}
-          </p>
-        )}
-      </div>
+      <HandoverDocumentFields
+        legend="Giấy tờ"
+        documents={documents}
+        errors={errors}
+        disabled={submit.pending}
+        onChange={setDocuments}
+      />
       <label className="block space-y-2 text-sm font-semibold text-heritage-primary">
         <span className="block">
           Lời nhắn cho luật sư{" "}
@@ -95,7 +84,7 @@ export function RequestForm({
           maxLength={NOTE_MAX_LENGTH}
           value={note}
           disabled={submit.pending}
-          placeholder="Ví dụ: Tôi gửi kèm di chúc và văn bản phân chia, bản sao có chứng thực."
+          placeholder="Ví dụ: Tôi gửi kèm văn bản phân chia, các bản sao có chứng thực."
           onChange={(event) => setNote(event.target.value)}
         />
         <span className="block text-right text-xs font-normal text-heritage-muted">
@@ -118,12 +107,6 @@ export function RequestForm({
             {submit.error}
           </p>
         )}
-        <p className="flex gap-2 text-xs leading-5 text-heritage-muted">
-          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-          <span>
-            Hệ thống chỉ lưu tệp, không kiểm từng ô giấy tờ. Luật sư xác minh ở ngoài hệ thống.
-          </span>
-        </p>
       </div>
     </div>
   );

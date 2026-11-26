@@ -7,7 +7,7 @@ import { handoverRecordService } from "../api/handoverRecordService";
 import type { HandoverRecord, RecordClaim } from "../model/handoverRecord.schema";
 import { claimStatusLabel } from "../model/recordPresentation";
 import { handoverRecordKeys } from "../model/useHandoverRecord";
-import { RecordFileList } from "./RecordFileList";
+import { DocumentFiles } from "./ReportDetails";
 
 type Decision = "ACCEPT" | "REJECT";
 
@@ -46,7 +46,7 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
         <Chip tone={status.tone}>{status.label}</Chip>
       </header>
       {claim.note && <p className="whitespace-pre-line text-sm leading-6">“{claim.note}”</p>}
-      <RecordFileList
+      <DocumentFiles
         files={claim.files}
         download={(file, options) =>
           handoverRecordService.downloadFile(record.id, file.id, options)

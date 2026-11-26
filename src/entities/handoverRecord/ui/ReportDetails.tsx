@@ -1,31 +1,42 @@
 import { RecordFileList } from "./RecordFileList";
 import type { TransferOptions } from "@/shared/lib/useTransfer";
-import type { ReportFile, SuggestedRecipient } from "../model/handoverReport.schema";
+import type { RecordFile } from "../model/handoverRecord.schema";
+import type { SuggestedRecipient } from "../model/handoverReport.schema";
 import { declaredIdentity } from "../model/declaredIdentity";
 
-const KIND_LABEL: Record<ReportFile["kind"], string> = {
-  DEATH_CERTIFICATE: "Giấy chứng tử",
-  WILL: "Di chúc",
-  OTHER: "Giấy tờ khác",
-};
-const KINDS: ReportFile["kind"][] = ["DEATH_CERTIFICATE", "WILL", "OTHER"];
+/** Loại giấy tờ theo thứ tự hiện. CLAIM_DOCUMENT: tệp chưa chia loại (nộp bổ sung, yêu cầu lưu từ trước). */
+const GROUPS = [
+  { kind: "DEATH_CERTIFICATE", label: "Giấy chứng tử" },
+  { kind: "WILL", label: "Di chúc" },
+  { kind: "OTHER", label: "Giấy tờ khác" },
+  { kind: "CLAIM_DOCUMENT", label: "Giấy tờ" },
+];
 
-/** Giấy tờ của hồ sơ báo tin, chia theo loại; loại không có tệp thì không hiện. */
-export function ReportFiles({
+/** Loại lạ gom vào nhóm "Giấy tờ" để không tệp nào bị ẩn. */
+function groupOf(kind: string): string {
+  if (GROUPS.some((group) => group.kind === kind)) return kind;
+  return "CLAIM_DOCUMENT";
+}
+
+/**
+ * Giấy tờ của hồ sơ báo tin hoặc yêu cầu nhận tài sản, chia theo loại; loại không có tệp thì không hiện.
+ */
+export function DocumentFiles({
   files,
   download,
 }: {
-  files: ReportFile[];
+  files: RecordFile[];
   download: (file: { id: string }, options: TransferOptions) => Promise<Blob>;
 }) {
+  if (files.length === 0) return <p className="text-sm text-heritage-muted">Chưa có tệp nào.</p>;
   return (
     <div className="space-y-4">
-      {KINDS.map((kind) => {
-        const items = files.filter((file) => file.kind === kind);
+      {GROUPS.map(({ kind, label }) => {
+        const items = files.filter((file) => groupOf(file.kind) === kind);
         if (items.length === 0) return null;
         return (
           <div key={kind} className="space-y-2">
-            <p className="text-sm font-semibold text-heritage-primary">{KIND_LABEL[kind]}</p>
+            <p className="text-sm font-semibold text-heritage-primary">{label}</p>
             <RecordFileList files={items} download={download} showWillLabel={false} />
           </div>
         );

@@ -8,7 +8,7 @@ import { verifierReportService } from "../api/verifierReportService";
 import type { VerifierReport } from "../model/handoverReport.schema";
 import { claimStatusLabel } from "../model/recordPresentation";
 import { handoverRecordKeys, useVerifierReports } from "../model/useHandoverRecord";
-import { ReportFiles, SuggestedRecipientList } from "./ReportDetails";
+import { DocumentFiles, SuggestedRecipientList } from "./ReportDetails";
 
 type Decision = "ACCEPT" | "REJECT";
 
@@ -89,7 +89,7 @@ function ReportCard({
       </p>
       {report.note && <p className="whitespace-pre-line text-sm leading-6">“{report.note}”</p>}
       <SuggestedRecipientList recipients={report.recipients} />
-      <ReportFiles
+      <DocumentFiles
         files={report.files}
         download={(file, options) =>
           verifierReportService.downloadFile(report.id, file.id, options)

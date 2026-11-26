@@ -78,7 +78,7 @@ describe("handoverRequestService", () => {
     await expect(handoverRequestService.available()).rejects.toThrow();
   });
 
-  it("submitByAccount gửi multipart có vaultId, lời nhắn đã cắt khoảng trắng và tệp", async () => {
+  it("submitByAccount gửi multipart có vaultId, lời nhắn đã cắt khoảng trắng và tệp theo loại", async () => {
     const post = vi.spyOn(apiClient, "post").mockResolvedValue({
       id: CLAIM_ID,
       recordId: RECORD_ID,
@@ -91,21 +91,33 @@ describe("handoverRequestService", () => {
       reviewedAt: null,
       files: [],
     });
-    const file = new File(["%PDF-1.4"], "di-chuc.pdf", { type: "application/pdf" });
-    await handoverRequestService.submitByAccount(VAULT_ID, "  xin chào  ", [file], []);
+    const certificate = new File(["%PDF-1.4"], "chung-tu.pdf", { type: "application/pdf" });
+    const will = new File(["%PDF-1.4"], "di-chuc.pdf", { type: "application/pdf" });
+    const other = new File(["%PDF-1.4"], "khac.pdf", { type: "application/pdf" });
+    await handoverRequestService.submitByAccount(VAULT_ID, "  xin chào  ", {
+      deathCertificates: [certificate],
+      wills: [will],
+      others: [other],
+    });
     const [url, body] = post.mock.calls[0];
     expect(url).toBe("/handover/requests/by-account");
     const form = body as FormData;
     expect(form.get("vaultId")).toBe(VAULT_ID);
     expect(form.get("token")).toBeNull();
     expect(form.get("note")).toBe("xin chào");
+    expect((form.get("deathCertificates") as File).name).toBe("chung-tu.pdf");
     expect((form.get("wills") as File).name).toBe("di-chuc.pdf");
+    expect((form.get("files") as File).name).toBe("khac.pdf");
   });
 
   it("submitByAccount từ chối vaultId không phải uuid, không gọi Backend", async () => {
     const post = vi.spyOn(apiClient, "post");
     await expect(
-      handoverRequestService.submitByAccount("khong-phai-uuid", "", [], []),
+      handoverRequestService.submitByAccount("khong-phai-uuid", "", {
+        deathCertificates: [],
+        wills: [],
+        others: [],
+      }),
     ).rejects.toThrow();
     expect(post).not.toHaveBeenCalled();
   });

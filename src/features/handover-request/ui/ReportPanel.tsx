@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { FileText } from "lucide-react";
 import {
   claimStatusLabel,
-  ReportFiles,
+  DocumentFiles,
   SuggestedRecipientList,
   type MyReport,
 } from "@/entities/handoverRecord";
@@ -54,7 +54,7 @@ function ReportCard({ report }: { report: MyReport }) {
         </p>
       )}
       <SuggestedRecipientList recipients={report.recipients} />
-      <ReportFiles
+      <DocumentFiles
         files={report.files}
         download={(file, options) =>
           handoverReportService.downloadFile(report.id, file.id, options)

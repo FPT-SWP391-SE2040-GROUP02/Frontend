@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Check } from "lucide-react";
 import type { CSSProperties } from "react";
-import { claimStatusLabel, RecordFileList } from "@/entities/handoverRecord";
+import { claimStatusLabel, DocumentFiles } from "@/entities/handoverRecord";
 import { ROUTES } from "@/shared/config/routes.config";
 import { buttonStyles, Chip, formatDateTime } from "@/shared/ui/heritageKit";
 import { PortalSkeleton } from "@/shared/ui/PortalSkeleton";
@@ -83,8 +83,8 @@ export function MyClaimsPanel() {
           Bạn chưa gửi yêu cầu nhận tài sản nào.
         </p>
         <p className="text-sm text-heritage-muted">
-          Khi Chủ tài sản đã qua đời, bạn gửi yêu cầu kèm di chúc ở trang Nhận tài sản. Luật sư xét
-          xong, kết quả hiện ở đây.
+          Khi Chủ tài sản đã qua đời, bạn gửi yêu cầu kèm giấy chứng tử và di chúc ở trang Nhận tài
+          sản. Luật sư xét xong, kết quả hiện ở đây.
         </p>
         <Link to={ROUTES.DASHBOARD.RECEIVE_ASSETS} className={buttonStyles.outline}>
           Mở trang Nhận tài sản
@@ -153,7 +153,7 @@ export function MyClaimsPanel() {
                 {claim.reviewReason}
               </p>
             )}
-            <RecordFileList
+            <DocumentFiles
               files={claim.files}
               download={(file, options) =>
                 handoverRequestService.downloadFile(claim.id, file.id, options)

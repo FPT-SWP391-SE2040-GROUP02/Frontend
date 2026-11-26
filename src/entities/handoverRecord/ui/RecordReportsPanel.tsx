@@ -2,7 +2,7 @@ import { SectionCard } from "@/shared/ui/SectionCard";
 import { formatDateTime } from "@/shared/ui/heritageKit";
 import { verifierReportService } from "../api/verifierReportService";
 import type { HandoverRecord } from "../model/handoverRecord.schema";
-import { ReportFiles, SuggestedRecipientList } from "./ReportDetails";
+import { DocumentFiles, SuggestedRecipientList } from "./ReportDetails";
 
 /**
  * Hồ sơ báo tin đã chấp nhận của biên bản: người nộp, giấy tờ và người nhận họ khai.
@@ -34,7 +34,7 @@ export function RecordReportsPanel({ record }: { record: HandoverRecord }) {
               <p className="whitespace-pre-line text-sm leading-6">“{report.note}”</p>
             )}
             <SuggestedRecipientList recipients={report.recipients} />
-            <ReportFiles
+            <DocumentFiles
               files={report.files}
               download={(file, options) =>
                 verifierReportService.downloadFile(report.id, file.id, options)

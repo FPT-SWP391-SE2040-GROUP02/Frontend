@@ -36,7 +36,7 @@ describe("Xem trước giấy tờ", () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:preview");
   });
 
-  it("gắn nhãn cho biết đâu là di chúc, đâu là giấy tờ khác", () => {
+  it("gắn nhãn cho biết đâu là di chúc, đâu là giấy tờ chưa chia loại", () => {
     const will = { ...file("a.pdf", "application/pdf"), kind: "WILL" };
     const other = {
       ...file("b.pdf", "application/pdf"),
@@ -46,7 +46,7 @@ describe("Xem trước giấy tờ", () => {
     render(<RecordFileList files={[will, other]} download={vi.fn()} />);
 
     expect(screen.getByText("Di chúc")).toBeInTheDocument();
-    expect(screen.getByText("Giấy tờ khác")).toBeInTheDocument();
+    expect(screen.getByText("Giấy tờ")).toBeInTheDocument();
   });
 
   it("loại tệp ngoài danh sách cho phép thì chỉ tải về, không có nút Xem", () => {

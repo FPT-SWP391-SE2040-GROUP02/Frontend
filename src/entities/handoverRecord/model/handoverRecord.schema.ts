@@ -76,7 +76,7 @@ export const ownerSplitRecipientSchema = z.object({
 /** Một tệp đính kèm biên bản: chỉ tên và kích thước; nội dung tải qua API riêng có kiểm quyền. */
 export const recordFileSchema = z.object({
   id: z.string().uuid(),
-  /** CLAIM_DOCUMENT, WILL hoặc EVIDENCE. */
+  /** DEATH_CERTIFICATE, WILL, OTHER, CLAIM_DOCUMENT (chưa chia loại) hoặc EVIDENCE. */
   kind: z.string().default(""),
   fileName: z.string(),
   contentType: z.string(),

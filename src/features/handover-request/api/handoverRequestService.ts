@@ -7,25 +7,26 @@ import {
   ownerRequestSchema,
 } from "../model/handoverRequest.schema";
 import type { TransferOptions } from "@/shared/lib/useTransfer";
+import type { HandoverDocuments } from "../model/handoverDocuments";
 
 const id = z.string().uuid();
 const base = "/handover/requests";
 
-/** Trường định danh kho khi người nhận gửi yêu cầu bằng tài khoản đã đăng nhập. */
-interface RequestTarget {
-  vaultId?: string;
+/** Gửi lần đầu: tệp tách theo loại; Backend nhận giấy tờ khác ở trường "files". */
+function requestForm(vaultId: string, note: string, documents: HandoverDocuments): FormData {
+  const form = new FormData();
+  form.append("vaultId", vaultId);
+  form.append("note", note.trim());
+  for (const file of documents.deathCertificates) form.append("deathCertificates", file);
+  for (const file of documents.wills) form.append("wills", file);
+  for (const file of documents.others) form.append("files", file);
+  return form;
 }
 
-function filesForm(
-  files: File[],
-  note: string,
-  target: RequestTarget = {},
-  wills: File[] = [],
-): FormData {
+/** Nộp bổ sung: không chia loại. */
+function supplementForm(note: string, files: File[]): FormData {
   const form = new FormData();
-  if (target.vaultId !== undefined) form.append("vaultId", target.vaultId);
   form.append("note", note.trim());
-  for (const file of wills) form.append("wills", file);
   for (const file of files) form.append("files", file);
   return form;
 }
@@ -36,11 +37,11 @@ export const handoverRequestService = {
    * Gửi yêu cầu bằng tài khoản đã đăng nhập (email đã xác minh khớp email Chủ tài sản khai), không cần link riêng.
    * Multipart: bỏ Content-Type mặc định để trình duyệt tự đặt boundary.
    */
-  async submitByAccount(vaultId: string, note: string, wills: File[], files: File[]) {
+  async submitByAccount(vaultId: string, note: string, documents: HandoverDocuments) {
     return myClaimSchema.parse(
       await apiClient.post<unknown, unknown>(
         `${base}/by-account`,
-        filesForm(files, note, { vaultId: id.parse(vaultId) }, wills),
+        requestForm(id.parse(vaultId), note, documents),
         { headers: { "Content-Type": undefined } },
       ),
     );
@@ -60,7 +61,7 @@ export const handoverRequestService = {
     return myClaimSchema.parse(
       await apiClient.post<unknown, unknown>(
         `${base}/${id.parse(claimId)}/supplement`,
-        filesForm(files, note),
+        supplementForm(note, files),
         { headers: { "Content-Type": undefined } },
       ),
     );

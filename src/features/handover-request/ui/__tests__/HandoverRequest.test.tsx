@@ -120,6 +120,7 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(region).not.toHaveAttribute("inert");
 
+    await user.upload(screen.getByLabelText(/^Giấy chứng tử/), pdf("chung-tu.pdf"));
     await user.upload(screen.getByLabelText(/^Di chúc/), pdf());
     await user.type(screen.getByLabelText(/Lời nhắn cho luật sư/), "Bố tôi mất ngày 1/11");
     get.mockClear();
@@ -132,13 +133,15 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
     expect(form.get("vaultId")).toBe(VAULT_ID);
     expect(form.get("token")).toBeNull();
     expect(form.get("note")).toBe("Bố tôi mất ngày 1/11");
+    expect(form.getAll("deathCertificates")).toHaveLength(1);
+    expect(form.getAll("wills")).toHaveLength(1);
     // Danh sách available đang được xem nên bị tải lại ngay sau khi gửi xong.
     await waitFor(() =>
       expect(get).toHaveBeenCalledWith("/handover/requests/available", expect.anything()),
     );
   });
 
-  it("phải đính kèm di chúc trước khi gửi", async () => {
+  it("phải đính kèm giấy chứng tử và di chúc trước khi gửi", async () => {
     const user = userEvent.setup();
     vi.spyOn(apiClient, "get").mockResolvedValue([availableRow()]);
     const post = vi.spyOn(apiClient, "post");
@@ -146,7 +149,8 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
 
     await user.click(await screen.findByRole("button", { name: /Gửi yêu cầu - tài sản của/ }));
     await user.click(screen.getByRole("button", { name: "Gửi yêu cầu" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("Vui lòng đính kèm di chúc.");
+    expect(screen.getByText("Vui lòng đính kèm giấy chứng tử.")).toBeInTheDocument();
+    expect(screen.getByText("Vui lòng đính kèm di chúc.")).toBeInTheDocument();
     expect(post).not.toHaveBeenCalled();
   });
 
