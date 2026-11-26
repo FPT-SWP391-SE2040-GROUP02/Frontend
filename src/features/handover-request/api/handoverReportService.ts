@@ -20,7 +20,7 @@ export interface ReportInput {
   others: File[];
 }
 
-/** Người thân nộp hồ sơ báo tin Chủ kho đã mất và theo dõi kết quả. */
+/** Người thân nộp hồ sơ báo tin Chủ tài sản đã mất và theo dõi kết quả. */
 export const handoverReportService = {
   async submit(input: ReportInput) {
     const form = new FormData();

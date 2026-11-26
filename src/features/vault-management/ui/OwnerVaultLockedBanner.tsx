@@ -1,7 +1,7 @@
 import { LockKeyhole } from "lucide-react";
 
 /**
- * Dải thông báo đầu mọi trang Chủ kho khi kho đã bị khóa (hồ sơ chứng tử, bàn giao, bị chặn, đã đóng).
+ * Dải thông báo đầu mọi trang Chủ tài sản khi kho đã bị khóa (hồ sơ chứng tử, bàn giao, bị chặn, đã đóng).
  * Các nút thay đổi dữ liệu ở bên dưới được khóa theo; xem dữ liệu vẫn dùng được.
  */
 export function OwnerVaultLockedBanner({ reason }: { reason: string }) {

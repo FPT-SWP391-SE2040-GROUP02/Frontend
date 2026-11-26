@@ -128,7 +128,7 @@ function setup(path: string) {
                 </ExecutorWorkspace>
               }
             />
-            <Route path="/dashboard" element={<p>Không gian Chủ kho (fixture)</p>} />
+            <Route path="/dashboard" element={<p>Không gian Chủ tài sản (fixture)</p>} />
           </Routes>
         </MemoryRouter>
       </QueryClientProvider>
@@ -309,7 +309,7 @@ describe("Executor assets", () => {
     // Chưa có lượt bàn giao: người nhận "Chưa bàn giao", từng tài sản "Chưa tải".
     expect(screen.getByText("Chưa bàn giao")).toBeInTheDocument();
     expect(screen.getAllByText("Chưa tải")).toHaveLength(2);
-    expect(screen.getByText("Chủ kho chưa để lại hướng dẫn.")).toBeInTheDocument();
+    expect(screen.getByText("Chủ tài sản chưa để lại hướng dẫn.")).toBeInTheDocument();
     expect(screen.getByText(/Nội dung chỉ người nhận mở được/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Xem|Tải/ })).not.toBeInTheDocument();
   });
@@ -350,7 +350,7 @@ describe("Executor assets", () => {
     expect(screen.getByText("Sổ tiết kiệm")).toBeInTheDocument();
     expect(screen.getByText("Ghi chú bí mật")).toBeInTheDocument();
     expect(screen.getByText("Tệp tải lên")).toBeInTheDocument();
-    expect(screen.getByText("Chủ kho chưa để lại hướng dẫn.")).toBeInTheDocument();
+    expect(screen.getByText("Chủ tài sản chưa để lại hướng dẫn.")).toBeInTheDocument();
     expect(screen.getByText(/Người nhận sẽ hiện sau khi luật sư/)).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Thử lại|Xem|Tải/ })).not.toBeInTheDocument();
@@ -449,7 +449,7 @@ describe("Executor permissions", () => {
   it("lists what the Executor can and cannot do", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([vault()]);
     setup("/executor/permissions");
-    expect(await screen.findByText("Xem ghi chú của Chủ kho")).toBeInTheDocument();
+    expect(await screen.findByText("Xem ghi chú của Chủ tài sản")).toBeInTheDocument();
     expect(
       screen.getByText("Nhận thông báo khi người nhận gửi yêu cầu nhận tài sản"),
     ).toBeInTheDocument();

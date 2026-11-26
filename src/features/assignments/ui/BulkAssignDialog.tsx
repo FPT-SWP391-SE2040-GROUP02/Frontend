@@ -21,7 +21,7 @@ import type { AssignableAsset, AssignableRecipient } from "../model/assignmentVi
 
 export interface BulkAssignDialogProps {
   vaultId: string;
-  /** Các tài sản Chủ kho đã tick. */
+  /** Các tài sản Chủ tài sản đã tick. */
   assets: AssignableAsset[];
   /** Mọi hồ sơ người nhận của kho. */
   recipients: AssignableRecipient[];

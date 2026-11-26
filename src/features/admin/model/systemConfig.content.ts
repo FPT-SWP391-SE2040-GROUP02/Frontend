@@ -112,7 +112,7 @@ export const SYSTEM_CONFIG_SERVICES: Record<string, ServiceContent> = {
   SEPAY: {
     title: "SePay (nhận tiền thanh toán)",
     description:
-      "Tài khoản nhận tiền hiện QR cho chủ kho và khóa để SePay báo giao dịch về. Đổi sai có thể làm đơn không đối soát được.",
+      "Tài khoản nhận tiền hiện QR cho chủ tài sản và khóa để SePay báo giao dịch về. Đổi sai có thể làm đơn không đối soát được.",
     fields: [
       {
         name: "environment",
@@ -146,7 +146,7 @@ export const SYSTEM_CONFIG_SERVICES: Record<string, ServiceContent> = {
   EKYC: {
     title: "eKYC (xác minh danh tính)",
     description:
-      "Dịch vụ đọc giấy tờ, chống giả mạo và so khớp khuôn mặt của chủ kho. Khi dịch vụ không trả lời, các bước eKYC tạm báo không khả dụng.",
+      "Dịch vụ đọc giấy tờ, chống giả mạo và so khớp khuôn mặt của chủ tài sản. Khi dịch vụ không trả lời, các bước eKYC tạm báo không khả dụng.",
     fields: [
       {
         name: "baseUrl",

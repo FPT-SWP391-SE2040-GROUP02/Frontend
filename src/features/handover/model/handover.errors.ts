@@ -73,7 +73,7 @@ export function downloadErrorMessage(failure: unknown): string {
 
 const notAllowedReasons: Record<string, string> = {
   OWNER_CANNOT_CLAIM:
-    "Chủ kho không thể tự nhận lượt bàn giao của chính mình. Hãy đăng nhập bằng tài khoản của người nhận.",
+    "Chủ tài sản không thể tự nhận lượt bàn giao của chính mình. Hãy đăng nhập bằng tài khoản của người nhận.",
   PLAN_NOT_IN_HANDOVER: "Kế hoạch này hiện không ở giai đoạn bàn giao.",
   WRONG_STATE:
     "Lượt bàn giao đang ở trạng thái không cho phép thao tác này. Tải lại để xem trạng thái mới nhất.",

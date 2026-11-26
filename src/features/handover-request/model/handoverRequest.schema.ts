@@ -35,7 +35,7 @@ export const availableStatusSchema = z.enum([
 ]);
 export type AvailableStatus = z.infer<typeof availableStatusSchema>;
 
-/** Một kho mà Chủ kho đã khai tài khoản này là người nhận. Các trường null có thể vắng mặt. */
+/** Một kho mà Chủ tài sản đã khai tài khoản này là người nhận. Các trường null có thể vắng mặt. */
 export const availableHandoverSchema = z.object({
   vaultId: z.string().uuid(),
   beneficiaryId: z.string().uuid(),
@@ -49,13 +49,13 @@ export const availableHandoverSchema = z.object({
 });
 export type AvailableHandover = z.infer<typeof availableHandoverSchema>;
 
-/** GET /vaults/{id}/handover-request: yêu cầu đang mở của kho, cho Chủ kho xem. */
+/** GET /vaults/{id}/handover-request: yêu cầu đang mở của kho, cho Chủ tài sản xem. */
 export const ownerRequestSchema = z.object({
   recordId: z.string().uuid(),
   status: recordStatusSchema,
   requestedAt: timestamp,
   requesterNames: z.array(z.string()),
-  /** false: luật sư đang xét giấy tờ, kho chưa khóa, Chủ kho vẫn sửa được; true: luật sư đã chấp nhận giấy tờ, kho khóa. */
+  /** false: luật sư đang xét giấy tờ, kho chưa khóa, Chủ tài sản vẫn sửa được; true: luật sư đã chấp nhận giấy tờ, kho khóa. */
   vaultLocked: z.boolean(),
 });
 export type OwnerRequest = z.infer<typeof ownerRequestSchema>;

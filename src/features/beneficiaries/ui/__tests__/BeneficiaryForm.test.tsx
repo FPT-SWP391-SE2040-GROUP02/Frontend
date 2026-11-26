@@ -141,7 +141,7 @@ describe("form thêm người nhận", () => {
     expect(post).not.toHaveBeenCalled();
   });
 
-  it("chặn email trùng với email của Chủ kho ngay trên form", async () => {
+  it("chặn email trùng với email của Chủ tài sản ngay trên form", async () => {
     const post = vi.spyOn(apiClient, "post");
     renderForm({ id: "owner-1", email: "nthanhduy310@gmail.com", fullName: "Nguyễn Thanh Duy" });
     fireEvent.change(screen.getByLabelText(/^Số CCCD/), { target: { value: "087206004150" } });
@@ -157,7 +157,7 @@ describe("form thêm người nhận", () => {
       "[data-field]",
     ) as HTMLElement;
     expect(emailLabel).toHaveTextContent(
-      "Email người thụ hưởng không được trùng với email của Chủ kho.",
+      "Email người thụ hưởng không được trùng với email của Chủ tài sản.",
     );
     expect(post).not.toHaveBeenCalled();
   });
@@ -212,8 +212,8 @@ describe("form thêm người nhận", () => {
         data: {
           code: "VALIDATION_ERROR",
           errors: {
-            email: ["Email người thụ hưởng không được trùng với email của Chủ kho."],
-            citizenId: ["Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho."],
+            email: ["Email người thụ hưởng không được trùng với email của Chủ tài sản."],
+            citizenId: ["Số CCCD người thụ hưởng không được trùng với CCCD của Chủ tài sản."],
           },
         },
       }),
@@ -231,12 +231,12 @@ describe("form thêm người nhận", () => {
       "[data-field]",
     ) as HTMLElement;
     expect(emailLabel).toHaveTextContent(
-      "Email người thụ hưởng không được trùng với email của Chủ kho.",
+      "Email người thụ hưởng không được trùng với email của Chủ tài sản.",
     );
 
     const citizenIdLabel = screen.getByLabelText(/^Số CCCD/).closest("[data-field]") as HTMLElement;
     expect(citizenIdLabel).toHaveTextContent(
-      "Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho.",
+      "Số CCCD người thụ hưởng không được trùng với CCCD của Chủ tài sản.",
     );
 
     // Khung tóm tắt ở đầu form liệt kê các ô đang bị lỗi

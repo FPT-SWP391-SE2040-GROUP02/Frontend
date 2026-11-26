@@ -55,7 +55,7 @@ function PaidTierDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** Trang quản lý hồ sơ người nhận của Chủ kho; số CCCD hiện đầy đủ. */
+/** Trang quản lý hồ sơ người nhận của Chủ tài sản; số CCCD hiện đầy đủ. */
 export function OwnerBeneficiaries() {
   const [params, setParams] = useSearchParams();
   const [adding, setAdding] = useState(false);

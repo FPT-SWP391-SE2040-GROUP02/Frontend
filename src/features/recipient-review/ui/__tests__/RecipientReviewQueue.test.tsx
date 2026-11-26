@@ -105,7 +105,7 @@ describe("RecipientReviewQueue: danh sách hồ sơ danh tính", () => {
     const table = await screen.findByRole("table");
     const rows = within(table).getAllByRole("row").slice(1);
     expect(rows).toHaveLength(2);
-    expect(rows[0]).toHaveTextContent("Khớp thông tin Chủ kho khai");
+    expect(rows[0]).toHaveTextContent("Khớp thông tin Chủ tài sản khai");
     expect(rows[1]).toHaveTextContent("Có trường không khớp");
     expect(screen.queryByText(/Quá hạn|Còn \d+ ngày/)).not.toBeInTheDocument();
   });
@@ -182,7 +182,7 @@ describe("RecipientReviewQueue: kiểm một hồ sơ", () => {
     );
   });
 
-  it("hiện thông tin người nhận khai và Chủ kho khai cạnh nhau để luật sư đối chiếu", async () => {
+  it("hiện thông tin người nhận khai và Chủ tài sản khai cạnh nhau để luật sư đối chiếu", async () => {
     backend({
       detail: detail({
         citizenId: "079206021793",

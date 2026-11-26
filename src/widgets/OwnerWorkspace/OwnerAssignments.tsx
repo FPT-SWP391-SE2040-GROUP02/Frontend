@@ -295,7 +295,7 @@ function RecipientCard({ card }: { card: RecipientAssignmentCard }) {
 }
 
 /**
- * Tab "Phân chia" của Kho của tôi: Chủ kho gán từng tài sản cho từng người nhận. Tài sản gán cho nhiều người
+ * Tab "Phân chia" của Kho của tôi: Chủ tài sản gán từng tài sản cho từng người nhận. Tài sản gán cho nhiều người
  * thì những người đó nhận chung. Hai cách nhìn trên cùng dữ liệu: theo tài sản (để gán) và theo người nhận (để kiểm lại).
  */
 export function OwnerAssignments({

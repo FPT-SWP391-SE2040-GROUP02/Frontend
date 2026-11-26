@@ -6,7 +6,7 @@ import { MAINTENANCE_ADMIN_LOGIN_PARAM, useMaintenanceStatus } from "@/features/
 
 /**
  * @description Trang đăng nhập Bearer RAM/refresh cookie; Google dùng GIS, Passkey chưa khả dụng.
- * URL chỉ cung cấp dấu hiệu có lời mời, không xác minh tên gói/chủ kho hoặc lockout.
+ * URL chỉ cung cấp dấu hiệu có lời mời, không xác minh tên gói/chủ tài sản hoặc lockout.
  * Khi hệ thống bảo trì, lối /login?admin=1 thành trang đăng nhập quản trị chỉ có email và mật khẩu.
  *
  * @returns {React.JSX.Element} Trang đăng nhập

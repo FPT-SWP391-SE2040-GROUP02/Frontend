@@ -45,7 +45,7 @@ afterEach(() => {
 });
 
 describe("ExecutorVaultCard", () => {
-  it("chỉ hiển thị kho đang chọn: chữ cái đầu, tên Chủ kho, trạng thái, không bấm được", () => {
+  it("chỉ hiển thị kho đang chọn: chữ cái đầu, tên Chủ tài sản, trạng thái, không bấm được", () => {
     const { select } = mockState(handoverVault);
     renderCard();
     expect(screen.getByRole("heading", { name: "Đang làm việc với kho" })).toBeInTheDocument();

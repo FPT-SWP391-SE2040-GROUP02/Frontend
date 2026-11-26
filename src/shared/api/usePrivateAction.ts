@@ -51,7 +51,8 @@ const handoverNotAllowedReasons: Record<string, string> = {
   HANDOVER_NOT_STARTED: "Chỉ xem được sau khi luật sư chốt biên bản bàn giao.",
   PLAN_NOT_ACTIVE: "Kho chưa kích hoạt kế hoạch bàn giao nên chưa nhận yêu cầu.",
   NO_VERIFIER: "Hiện chưa có luật sư nào nhận được hồ sơ này. Vui lòng thử lại sau.",
-  NO_OWNER_SPLIT: "Chủ kho chưa lập biên bản phân chia. Hãy tự chọn người nhận cho từng tài sản.",
+  NO_OWNER_SPLIT:
+    "Chủ tài sản chưa lập biên bản phân chia. Hãy tự chọn người nhận cho từng tài sản.",
   RECORD_INVALID: "Biên bản chưa hợp lệ. Kiểm tra lại người nhận và tài sản trước khi chốt.",
   NOT_IDENTITY_STEP: "Biên bản chưa ở bước kiểm danh tính. Hãy chốt biên bản trước.",
   NOT_SIGNING_STEP: "Chưa tới bước ký: hãy chờ luật sư chốt biên bản.",
@@ -69,16 +70,18 @@ const handoverNotAllowedReasons: Record<string, string> = {
 /** Reason-specific messages for EXECUTOR_NOT_ALLOWED */
 const executorNotAllowedReasons: Record<string, string> = {
   OWNER_CANNOT_ACCEPT:
-    "Bạn đang đăng nhập bằng tài khoản Chủ kho. Chủ kho không thể tự nhận làm Người thực thi cho kho của chính mình. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
+    "Bạn đang đăng nhập bằng tài khoản Chủ tài sản. Chủ tài sản không thể tự nhận làm Người thực thi cho kho của chính mình. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
   INVITEE_EMAIL_MISMATCH:
     "Lời mời này gửi tới một email khác. Hãy đăng xuất và đăng nhập bằng đúng email được mời.",
   REPLACEMENT_REQUIRED:
     "Người thực thi đã nhận nhiệm vụ nên không thu hồi trực tiếp. Hãy mời người thay; người cũ tự thôi khi người mới chấp nhận.",
   PLAN_NOT_DRAFT: "Kế hoạch của kho không ở trạng thái cho phép phản hồi lời mời Executor lúc này.",
   SETUP_NOT_COMPLETE:
-    "Chủ kho cần làm xong các bước khác trước. Mời Người thực thi là bước sau cùng.",
-  WILL_NOT_SIGNED: "Chủ kho chưa ký biên bản phân chia hiện tại. Chờ Chủ kho ký rồi thử lại.",
-  WILL_VERSION_CHANGED: "Chủ kho vừa ký phiên bản khác. Tải lại và xem biên bản mới trước khi ký.",
+    "Chủ tài sản cần làm xong các bước khác trước. Mời Người thực thi là bước sau cùng.",
+  WILL_NOT_SIGNED:
+    "Chủ tài sản chưa ký biên bản phân chia hiện tại. Chờ Chủ tài sản ký rồi thử lại.",
+  WILL_VERSION_CHANGED:
+    "Chủ tài sản vừa ký phiên bản khác. Tải lại và xem biên bản mới trước khi ký.",
   WILL_ALREADY_CONFIRMED: "Bạn đã ký phiên bản này nên không đổi sang không đồng ý được.",
   PLAN_NOT_RUNNING: "Kế hoạch không còn đang chạy nên không trả lời biên bản lúc này.",
   INDEPENDENT_EXECUTOR_REQUIRED: "Bạn đã đảm nhiệm một vai trò Người thực thi khác trong kho này.",
@@ -97,7 +100,7 @@ const vaultNotEditableReasons: Record<string, string> = {};
 const paymentNotAllowedReasons: Record<string, string> = {
   VAULT_CLOSED: "Kho đã đóng nên không mua được dịch vụ.",
   PLAN_LOCKED: "Kế hoạch đang trong giai đoạn bàn giao hoặc bị khóa nên chưa mua được dịch vụ.",
-  OWNER_EKYC_REQUIRED: "Cần hoàn tất xác minh danh tính eKYC của Chủ kho trước khi mua gói.",
+  OWNER_EKYC_REQUIRED: "Cần hoàn tất xác minh danh tính eKYC của Chủ tài sản trước khi mua gói.",
   RENEWAL_NOT_SUPPORTED: "Kho không có kỳ dịch vụ phù hợp để thao tác này.",
   USAGE_EXCEEDS_PLAN:
     "Dung lượng đang dùng vượt mức của lựa chọn này. Chọn hạng lớn hơn hoặc giảm dữ liệu trước.",
@@ -115,7 +118,7 @@ const paymentOrderNotPayableReasons: Record<string, string> = {
 /** Reason-specific messages for EKYC_SERVICE_UNAVAILABLE (BE giữ mã 503 nhưng cho biết nguyên nhân thật) */
 const ekycServiceUnavailableReasons: Record<string, string> = {
   FACE_TEMPLATE_MISSING:
-    "Chủ kho chưa có mẫu khuôn mặt vì chưa hoàn tất xác minh eKYC. Hãy hoàn tất eKYC ở mục Xác minh rồi gửi lại selfie.",
+    "Chủ tài sản chưa có mẫu khuôn mặt vì chưa hoàn tất xác minh eKYC. Hãy hoàn tất eKYC ở mục Xác minh rồi gửi lại selfie.",
 };
 
 /** Ưu tiên `reason` của BE trước thông báo chung theo `code`. */
@@ -124,7 +127,7 @@ const ekycIdentityMismatchReasons: Record<string, string> = {
   CITIZEN_ID_ALREADY_USED:
     "Số CCCD này đã được sử dụng để xác minh cho một tài khoản khác trong hệ thống.",
   BENEFICIARY_CONFLICT:
-    "Số CCCD trên giấy tờ trùng với một người nhận bạn đã thêm. Người nhận không được trùng với Chủ kho; hãy xóa hoặc sửa hồ sơ người nhận đó trước.",
+    "Số CCCD trên giấy tờ trùng với một người nhận bạn đã thêm. Người nhận không được trùng với Chủ tài sản; hãy xóa hoặc sửa hồ sơ người nhận đó trước.",
   WRONG_PERSON: "Giấy tờ không khớp với danh tính đã gắn cho tài khoản này.",
 };
 
@@ -162,7 +165,7 @@ const messages: Record<string, string> = {
   TWO_FACTOR_NOT_ENABLED: "Xác thực hai bước chưa được bật. Tải lại để xem trạng thái.",
   TWO_FACTOR_ADMIN_ONLY: "Chỉ tài khoản quản trị mới dùng được xác thực hai bước.",
   EXECUTOR_INVITATION_INVALID:
-    "Lời mời Executor không hợp lệ hoặc đã hết hạn. Liên hệ Chủ kho để gửi lại.",
+    "Lời mời Executor không hợp lệ hoặc đã hết hạn. Liên hệ Chủ tài sản để gửi lại.",
   EXECUTOR_INVITATION_CONFLICT: "Lời mời hoặc phân công đã tồn tại/thay đổi. Tải lại để kiểm tra.",
   EXECUTOR_NOT_ALLOWED: "Trạng thái hoặc tài khoản hiện không cho phép thao tác Executor này.",
   PLAN_ACTIVATION_NOT_ALLOWED: "Trạng thái kế hoạch hiện không cho phép kích hoạt lại.",

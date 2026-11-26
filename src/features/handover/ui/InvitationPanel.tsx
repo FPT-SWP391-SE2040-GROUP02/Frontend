@@ -18,7 +18,7 @@ export interface InvitationPanelProps {
 /**
  * Trang mở từ link trong thư: chỉ là "cửa vào" (đăng nhập hoặc tạo tài khoản), KHÔNG có nút nhận ở đây.
  * Người đã đăng nhập đúng email được chuyển thẳng tới cổng người nhận, nơi có thẻ thư mời với nút Bắt đầu.
- * Link công khai chỉ cho biết tên Chủ kho và email được mời đã che bớt; không hiện hạn chót nào.
+ * Link công khai chỉ cho biết tên Chủ tài sản và email được mời đã che bớt; không hiện hạn chót nào.
  */
 export function InvitationPanel({ onSignOut, signingOut = false }: InvitationPanelProps) {
   const { token: pathToken } = useParams();

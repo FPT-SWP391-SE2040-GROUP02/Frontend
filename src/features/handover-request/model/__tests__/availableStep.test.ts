@@ -6,7 +6,7 @@ function row(extra: Partial<AvailableHandover>): AvailableHandover {
   return {
     vaultId: "11111111-1111-4111-8111-111111111111",
     beneficiaryId: "22222222-2222-4222-8222-222222222222",
-    ownerName: "Chủ kho thử",
+    ownerName: "Chủ tài sản thử",
     status: "NOT_REQUESTED",
     needsAction: false,
     canRequest: true,

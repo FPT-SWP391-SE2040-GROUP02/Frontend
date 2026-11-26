@@ -6,7 +6,7 @@ import { ExecutorWillButton } from "./ExecutorWillButton";
 import { useSelectedExecutorVault } from "../model/useExecutorVaults";
 
 /**
- * "Kho bạn đang giữ": mỗi kho một dòng (chữ cái đầu, "Kho của {Chủ kho}", ngày nhận vai, trạng thái). Kho đang mở
+ * "Kho bạn đang giữ": mỗi kho một dòng (chữ cái đầu, "Kho của {Chủ tài sản}", ngày nhận vai, trạng thái). Kho đang mở
  * hiện chip "Đang mở"; kho khác có nút "Mở kho" để chọn kho rồi về Tổng quan. Đây là chỗ duy nhất để đổi kho. Dữ liệu từ danh sách kho Backend trả, không tự suy thêm quyền.
  */
 export function ExecutorHeldVaults() {

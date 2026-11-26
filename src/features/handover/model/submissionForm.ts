@@ -31,7 +31,7 @@ function imageError(file: File | null, label: string): string | null {
 }
 
 /**
- * Lỗi đầu tiên của bản điền (null khi hợp lệ). Chỉ kiểm hình thức ở máy; việc khớp với thông tin Chủ kho khai
+ * Lỗi đầu tiên của bản điền (null khi hợp lệ). Chỉ kiểm hình thức ở máy; việc khớp với thông tin Chủ tài sản khai
  * do Backend kiểm lúc nộp, nên không báo trước khớp hay lệch để không dò được dữ liệu.
  */
 export function submissionFormError(draft: SubmissionDraft, today = new Date()): string | null {

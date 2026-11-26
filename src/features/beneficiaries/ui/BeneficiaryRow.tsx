@@ -127,7 +127,7 @@ function DeleteBeneficiaryDialog({
       </Dialog>
     );
   }
-  // Thông tin để Chủ kho nhận ra đúng người trước khi xóa.
+  // Thông tin để Chủ tài sản nhận ra đúng người trước khi xóa.
   let email = "Chưa có";
   if (record.email) {
     email = record.email;

@@ -53,7 +53,7 @@ export const handoverItemSchema = z.object({
 /** Snapshot và quyền từ BE, không suy ra eligibility bằng đồng hồ/role FE. */
 export const handoverTurnSchema = z.object({
   id: z.string().uuid(),
-  /** Họ tên người nhận do Chủ kho chỉ định; thiếu thì trang chào bằng tên tài khoản. */
+  /** Họ tên người nhận do Chủ tài sản chỉ định; thiếu thì trang chào bằng tên tài khoản. */
   recipientFullName: z.string().nullish(),
   status: z.enum([
     "INVITED",

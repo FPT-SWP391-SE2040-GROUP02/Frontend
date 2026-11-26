@@ -128,7 +128,8 @@ export function VerifierOverview() {
                     <div className="min-w-0">
                       <p className="font-semibold">Biên bản #{caseCode(item.id)}</p>
                       <p className="text-sm text-heritage-muted">
-                        Chủ kho: {item.ownerName || "—"} · mở {formatTimeThenDate(item.requestedAt)}
+                        Chủ tài sản: {item.ownerName || "—"} · mở{" "}
+                        {formatTimeThenDate(item.requestedAt)}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">

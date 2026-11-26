@@ -134,7 +134,7 @@ function IdentityForm({ turnId, onDone }: { turnId: string; onDone: () => void }
 
 /**
  * Bước danh tính của người nhận (lượt đang xác minh danh tính): nộp căn cước để luật sư đối chiếu với thông tin
- * Chủ kho đã khai. Đã nộp thì chờ; luật sư yêu cầu làm lại thì hiện lý do và cho nộp lại.
+ * Chủ tài sản đã khai. Đã nộp thì chờ; luật sư yêu cầu làm lại thì hiện lý do và cho nộp lại.
  */
 export function RecipientIdentityPanel({
   turnId,

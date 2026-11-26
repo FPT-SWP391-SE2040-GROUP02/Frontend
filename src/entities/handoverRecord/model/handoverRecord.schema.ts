@@ -46,7 +46,7 @@ export const recordRecipientSchema = z.object({
   receiptIssueAt: timestamp.nullable().default(null),
 });
 
-/** Một người nhận trong biên bản phân chia của Chủ kho và các tài sản đã gán. */
+/** Một người nhận trong biên bản phân chia của Chủ tài sản và các tài sản đã gán. */
 export const ownerSplitRecipientSchema = z.object({
   beneficiaryId: z.string().uuid(),
   assetIds: z.array(z.string().uuid()),
@@ -106,7 +106,7 @@ export const recordReportSchema = z.object({
   files: z.array(reportFileSchema),
 });
 
-/** Một chỗ biên bản khác cách chia ban đầu của Chủ kho; không có số căn cước. */
+/** Một chỗ biên bản khác cách chia ban đầu của Chủ tài sản; không có số căn cước. */
 export const splitDifferenceSchema = z.object({
   kind: z.enum(["RECIPIENT_ADDED", "RECIPIENT_REMOVED", "ASSET_RECIPIENTS_CHANGED"]),
   beneficiaryId: z.string().nullable().default(null),
@@ -133,7 +133,7 @@ export const handoverRecordSchema = z.object({
   legalBasisConfirmedByName: z.string().default(""),
   /** Kho đã khóa chưa; chỉ khi luật sư chấp nhận giấy tờ thì kho mới khóa và mới chốt được. Dữ liệu cũ coi là đã khóa. */
   vaultLocked: z.boolean().default(true),
-  /** Chỗ biên bản khác cách chia ban đầu của Chủ kho; rỗng khi giống hoặc khi xem bằng tài khoản người nhận. */
+  /** Chỗ biên bản khác cách chia ban đầu của Chủ tài sản; rỗng khi giống hoặc khi xem bằng tài khoản người nhận. */
   splitDifferences: z.array(splitDifferenceSchema).default([]),
   /** Lúc luật sư xác nhận việc khác cách chia khi chốt; null khi chưa xác nhận hoặc đã mở lại. */
   splitDeviationConfirmedAt: timestamp.nullable().default(null),

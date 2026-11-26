@@ -4,11 +4,11 @@ export const executorVaultSchema = z.object({
   vaultId: z.string().uuid(),
   ownerFullName: z.string(),
   planStatus: z.string(),
-  /** Hướng dẫn Chủ kho để lại cho Người thực thi; null khi Chủ kho chưa viết. */
+  /** Hướng dẫn Chủ tài sản để lại cho Người thực thi; null khi Chủ tài sản chưa viết. */
   executorNote: z.string().nullish(),
   executorNoteUpdatedAt: timestamp.nullish(),
   /** Lúc tài khoản chấp nhận lời mời làm Người thực thi của kho; dữ liệu cũ không có thì null. */
-  /** Phiên bản biên bản phân chia Chủ kho ký gần nhất; null khi chưa ký. */
+  /** Phiên bản biên bản phân chia Chủ tài sản ký gần nhất; null khi chưa ký. */
   willVersionNo: z.number().int().positive().nullish(),
   willSignedAt: z.string().datetime({ offset: true }).nullish(),
   acceptedAt: timestamp.nullish(),
@@ -17,7 +17,7 @@ export const executorVaultSchema = z.object({
   willConfirmedAt: timestamp.nullish(),
   /** Phiên bản tôi đã không đồng ý. */
   declinedWillVersionNo: z.number().int().positive().nullish(),
-  /** Chủ kho đã ký phiên bản mới mà tôi chưa trả lời. */
+  /** Chủ tài sản đã ký phiên bản mới mà tôi chưa trả lời. */
   willConsentRequired: z.boolean().optional(),
   /** Chỉ là số đếm. */
   assetCount: z.number().int().nonnegative().optional(),

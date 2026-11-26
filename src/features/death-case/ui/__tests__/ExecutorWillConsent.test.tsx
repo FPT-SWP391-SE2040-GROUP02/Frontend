@@ -47,7 +47,7 @@ function setup(extra: Record<string, unknown>) {
 it("phải mở biên bản rồi mới đồng ý và ký được", async () => {
   setup({ willConsentRequired: true });
   expect(screen.getByRole("button", { name: "Không đồng ý" })).toBeDisabled();
-  await userEvent.click(screen.getByRole("button", { name: "Xem biên bản với Chủ kho" }));
+  await userEvent.click(screen.getByRole("button", { name: "Xem biên bản với Chủ tài sản" }));
   await userEvent.click(await screen.findByRole("button", { name: "Đóng" }));
   await userEvent.type(screen.getByLabelText("Mật khẩu tài khoản"), "mat-khau-thu");
   await userEvent.click(screen.getByRole("button", { name: "Đồng ý và ký" }));
@@ -58,7 +58,7 @@ it("phải mở biên bản rồi mới đồng ý và ký được", async () =
 
 it("không đồng ý thì hỏi lại; chỉ gửi khi xác nhận", async () => {
   setup({ willConsentRequired: true });
-  await userEvent.click(screen.getByRole("button", { name: "Xem biên bản với Chủ kho" }));
+  await userEvent.click(screen.getByRole("button", { name: "Xem biên bản với Chủ tài sản" }));
   await userEvent.click(await screen.findByRole("button", { name: "Đóng" }));
   await userEvent.click(screen.getByRole("button", { name: "Không đồng ý" }));
   await userEvent.click(await screen.findByRole("button", { name: "Quay lại" }));

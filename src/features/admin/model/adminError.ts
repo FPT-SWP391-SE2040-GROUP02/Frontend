@@ -31,7 +31,7 @@ const ACTION_REASONS: Record<string, string> = {
 const EXECUTOR_REASONS: Record<string, string> = {
   ALREADY_EXECUTOR: "Người này đang là Người thực thi của kho.",
   PLAN_LOCKED: "Kho đã đóng nên không đổi Người thực thi được.",
-  OWNER_CANNOT_ACCEPT: "Chủ kho không làm Người thực thi của kho mình được.",
+  OWNER_CANNOT_ACCEPT: "Chủ tài sản không làm Người thực thi của kho mình được.",
   ROLE_CONFLICT: "Tài khoản này không được làm Người thực thi.",
 };
 

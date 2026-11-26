@@ -369,7 +369,7 @@
 }
 
 /*
- * Vạch nền mục menu đang chọn (menu Chủ kho, từ 768px): một khối đứng sau các mục, trượt theo transform khi đổi trang
+ * Vạch nền mục menu đang chọn (menu Chủ tài sản, từ 768px): một khối đứng sau các mục, trượt theo transform khi đổi trang
  * (xem useNavIndicator). Mục đang chọn chỉ còn đổi màu chữ; nền, viền và vạch vàng do khối này mang. Menu điện thoại
  * giữ kiểu cũ (khối ẩn, mục tự mang nền).
  */

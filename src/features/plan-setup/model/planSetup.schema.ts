@@ -45,7 +45,7 @@ const unassignedAssetSchema = z.object({
 });
 /**
  * Số thay đổi so với bản biên bản phân chia ký gần nhất (chỉ số đếm, không có tên). Gỡ gán có hiệu lực ngay; gán thêm
- * hoặc đổi người nhận chưa được bàn giao cho tới khi Chủ kho ký lại.
+ * hoặc đổi người nhận chưa được bàn giao cho tới khi Chủ tài sản ký lại.
  */
 export const unsignedChangesSchema = z.object({
   addedAssignments: z.number().int().nonnegative().default(0),
@@ -69,11 +69,11 @@ export const planSetupSchema = z.object({
   unassignedAssets: z.array(unassignedAssetSchema),
   /** Cảnh báo không chặn activate; chỉ đọc, không disable nút. */
   warnings: z.array(z.string()),
-  /** Điều khoản Chủ kho thêm vào biên bản phân chia; Backend cũ không có trường này. */
-  /** Họ tên và email Chủ kho in trong biên bản phân chia. Backend cũ không có hai trường này. */
+  /** Điều khoản Chủ tài sản thêm vào biên bản phân chia; Backend cũ không có trường này. */
+  /** Họ tên và email Chủ tài sản in trong biên bản phân chia. Backend cũ không có hai trường này. */
   ownerFullName: z.string().optional(),
   ownerEmail: z.string().optional(),
-  /** Lúc Chủ kho ký (kích hoạt). Chỉ tính là đã ký khi kế hoạch không còn DRAFT và trường này có giá trị. */
+  /** Lúc Chủ tài sản ký (kích hoạt). Chỉ tính là đã ký khi kế hoạch không còn DRAFT và trường này có giá trị. */
   activatedAt: date.nullable().optional(),
   /** Người nhận theo từng người; thiếu nghĩa là Backend cũ chưa trả, giao diện dùng câu chung. */
   recipients: z.array(recipientSchema).optional(),
@@ -84,7 +84,7 @@ export const planSetupSchema = z.object({
   /** Kế hoạch đang chạy mà cấu hình khác bản ký gần nhất. */
   hasUnsignedChanges: z.boolean().optional(),
   unsignedChanges: unsignedChangesSchema.nullable().optional(),
-  /** Kế hoạch nháp: Chủ kho đã ký, đang chờ Người thực thi xem và ký để có hiệu lực. */
+  /** Kế hoạch nháp: Chủ tài sản đã ký, đang chờ Người thực thi xem và ký để có hiệu lực. */
   willAwaitingExecutor: z.boolean().optional(),
   /** Mọi bước khác đã xong nên mời được Người thực thi. */
   canInviteExecutor: z.boolean().optional(),

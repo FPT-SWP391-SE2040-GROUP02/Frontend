@@ -389,7 +389,7 @@ export function HandoverTaskCards({
   const assignmentsDone = !missing.includes("ASSET_REQUIRED");
   const planDone = !missing.includes("PAID_SERVICE_REQUIRED");
 
-  let ekycDescription = "Chủ kho cần hoàn tất xác minh danh tính eKYC.";
+  let ekycDescription = "Chủ tài sản cần hoàn tất xác minh danh tính eKYC.";
   if (ekycDone) {
     ekycDescription = "Đã xác minh. Tên trên biên bản phân chia lấy từ hồ sơ này.";
   }

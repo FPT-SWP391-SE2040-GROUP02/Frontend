@@ -8,7 +8,7 @@ import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { Link } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes.config";
 
-/** Mã PIN của kho: chỉ hiện cho Chủ kho đã có kho (chưa có kho hoặc lỗi tải thì ẩn, không có gì để bảo vệ). */
+/** Mã PIN của kho: chỉ hiện cho Chủ tài sản đã có kho (chưa có kho hoặc lỗi tải thì ẩn, không có gì để bảo vệ). */
 function VaultPinSection() {
   const vault = useOwnerVault(true);
   if (!vault.data) return null;
@@ -16,7 +16,7 @@ function VaultPinSection() {
 }
 
 /**
- * Nội dung cài đặt dùng chung cho mọi không gian (Chủ kho, Người thực thi).
+ * Nội dung cài đặt dùng chung cho mọi không gian (Chủ tài sản, Người thực thi).
  * `showVaultPin=false` ẩn mục mã PIN kho (Người thực thi không sở hữu kho nên không cần).
  */
 export function AccountSettingsContent({ showVaultPin = true }: { showVaultPin?: boolean }) {

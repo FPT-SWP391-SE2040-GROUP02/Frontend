@@ -400,7 +400,7 @@ describe("khung xem trước biên bản phân chia", () => {
       doc.getByText("Hôm nay, ngày … tháng … năm … (điền tự động khi bạn ký), tại LegacyVault."),
     ).toBeInTheDocument();
     for (const heading of [
-      "I. Chủ kho",
+      "I. Chủ tài sản",
       "II. Tài sản và định đoạt tài sản",
       "III. Người thực thi",
       "IV. Hiệu lực, sửa đổi và thu hồi",
@@ -529,21 +529,21 @@ describe("chỗ trống đỏ trong biên bản phân chia", () => {
 });
 
 describe("hai ô chữ ký", () => {
-  it("hai ô ngang hàng: không ai ký thì ghi Chờ Chủ kho ký và Chờ Người thực thi nhận vai", async () => {
+  it("hai ô ngang hàng: không ai ký thì ghi Chờ Chủ tài sản ký và Chờ Người thực thi nhận vai", async () => {
     showPlan({ canActivate: false, executors: [] });
     renderOverview();
     await openDrawer();
 
     const doc = within(paper());
-    expect(doc.getByText("Chủ kho", { selector: "p" })).toBeInTheDocument();
+    expect(doc.getByText("Chủ tài sản", { selector: "p" })).toBeInTheDocument();
     expect(doc.getByText("Người thực thi", { selector: "p" })).toBeInTheDocument();
-    expect(doc.getByText("Chờ Chủ kho ký")).toBeInTheDocument();
+    expect(doc.getByText("Chờ Chủ tài sản ký")).toBeInTheDocument();
     expect(doc.getByText("Chờ Người thực thi nhận vai")).toBeInTheDocument();
     expect(doc.queryByText(/Đã ký điện tử/)).not.toBeInTheDocument();
     expect(doc.getByText(/^Tôi, Người thực thi, xác nhận đã nhận vai trò/)).toBeInTheDocument();
   });
 
-  it("Người thực thi đã ký, Chủ kho chưa: ô Người thực thi có giờ ký, dòng xác nhận dưới ô; không ghi cách ký", async () => {
+  it("Người thực thi đã ký, Chủ tài sản chưa: ô Người thực thi có giờ ký, dòng xác nhận dưới ô; không ghi cách ký", async () => {
     showPlan();
     renderOverview();
     await openDrawer();
@@ -551,7 +551,7 @@ describe("hai ô chữ ký", () => {
     const doc = within(paper());
     expect(doc.getAllByText(/^Đã ký điện tử/)).toHaveLength(1);
     expect(doc.getByText("Đã ký điện tử · 14:20 ngày 14/11/2026")).toBeInTheDocument();
-    expect(doc.getByText("Chờ Chủ kho ký")).toBeInTheDocument();
+    expect(doc.getByText("Chờ Chủ tài sản ký")).toBeInTheDocument();
     expect(
       doc.getByText(
         "Tôi, Lê Thị Mẫu, xác nhận đã nhận vai trò và phạm vi nhiệm vụ nêu tại mục III.",
@@ -559,7 +559,7 @@ describe("hai ô chữ ký", () => {
     ).toBeInTheDocument();
     expect(paper()).not.toHaveTextContent(/bằng PIN|bằng mã PIN|bằng mật khẩu/);
     // Hai ô cùng một hàng: cùng nằm trong một lưới hai cột.
-    const grid = doc.getByText("Chờ Chủ kho ký").closest(".grid");
+    const grid = doc.getByText("Chờ Chủ tài sản ký").closest(".grid");
     expect(grid).not.toBeNull();
     expect(grid).toHaveClass("grid-cols-2");
   });
@@ -575,10 +575,10 @@ describe("hai ô chữ ký", () => {
 
     const doc = within(paper());
     expect(doc.getByText("Chờ Người thực thi nhận vai")).toBeInTheDocument();
-    expect(doc.getByText("Chờ Chủ kho ký")).toBeInTheDocument();
+    expect(doc.getByText("Chờ Chủ tài sản ký")).toBeInTheDocument();
   });
 
-  it("cả hai đã ký (kế hoạch đang chạy): hai ô đã ký, ngày lập và giờ ký của Chủ kho", async () => {
+  it("cả hai đã ký (kế hoạch đang chạy): hai ô đã ký, ngày lập và giờ ký của Chủ tài sản", async () => {
     showPlan({ planStatus: "ACTIVE", canActivate: false, activatedAt: ACTIVATED_AT });
     renderOverview();
     await openDrawer();
@@ -592,19 +592,19 @@ describe("hai ô chữ ký", () => {
     expect(doc.queryByText(/Chờ/)).not.toBeInTheDocument();
   });
 
-  it("kế hoạch không còn DRAFT nhưng thiếu activatedAt thì chưa tính là Chủ kho đã ký", async () => {
+  it("kế hoạch không còn DRAFT nhưng thiếu activatedAt thì chưa tính là Chủ tài sản đã ký", async () => {
     showPlan({ planStatus: "ACTIVE", canActivate: false, activatedAt: null });
     renderOverview();
     await openDrawer();
 
     const doc = within(paper());
     expect(doc.getAllByText(/^Đã ký điện tử/)).toHaveLength(1);
-    expect(doc.getByText("Chờ Chủ kho ký")).toBeInTheDocument();
+    expect(doc.getByText("Chờ Chủ tài sản ký")).toBeInTheDocument();
   });
 });
 
 describe("nút Xuất file PDF", () => {
-  it("khóa khi Chủ kho chưa ký, có dòng giải thích dưới nút", async () => {
+  it("khóa khi Chủ tài sản chưa ký, có dòng giải thích dưới nút", async () => {
     showPlan();
     renderOverview();
     await openDrawer();
@@ -615,7 +615,7 @@ describe("nút Xuất file PDF", () => {
     expect(button).toHaveAccessibleDescription("Xuất được sau khi 2 bên đã ký");
   });
 
-  it("Chủ kho đã ký nhưng Người thực thi chưa ký: vẫn khóa, ghi Chờ Người thực thi ký", async () => {
+  it("Chủ tài sản đã ký nhưng Người thực thi chưa ký: vẫn khóa, ghi Chờ Người thực thi ký", async () => {
     showPlan({
       planStatus: "ACTIVE",
       canActivate: false,
@@ -808,7 +808,7 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     const active = screen.getByRole("region", { name: "Kế hoạch đang áp dụng" });
     expect(within(active).getByText("Kích hoạt lúc")).toBeInTheDocument();
     expect(within(active).getByText("09:42 15/11/2026")).toBeInTheDocument();
-    // Chủ kho không giữ hay đổi mã nhận: hệ thống tự cấp, trang này không có thẻ Mã nhận.
+    // Chủ tài sản không giữ hay đổi mã nhận: hệ thống tự cấp, trang này không có thẻ Mã nhận.
     expect(screen.queryByRole("heading", { name: "Mã nhận" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Đổi mã mới" })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Tiến trình bàn giao" })).toBeInTheDocument();
@@ -851,12 +851,12 @@ describe("trang Bàn giao: kế hoạch đã chạy", () => {
     expect(progress.parentElement).toHaveClass("activated-rise");
   });
 
-  it("Chủ kho vừa ký, chờ Người thực thi: thẻ trạng thái thay thanh tiến độ và báo đã ký xong", () => {
+  it("Chủ tài sản vừa ký, chờ Người thực thi: thẻ trạng thái thay thanh tiến độ và báo đã ký xong", () => {
     // Chuẩn bị: đang ở bản nháp
     showPlan();
     const view = renderOverview();
 
-    // Hành động: máy chủ trả kế hoạch còn nháp, đã có chữ ký Chủ kho
+    // Hành động: máy chủ trả kế hoạch còn nháp, đã có chữ ký Chủ tài sản
     showPlan({ canActivate: true, willAwaitingExecutor: true });
     view.redraw();
 
@@ -968,7 +968,7 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
     await openDrawer();
 
     const doc = within(paper());
-    // Ngày sinh, CCCD, thường trú của Chủ kho và dòng của hai người nhận.
+    // Ngày sinh, CCCD, thường trú của Chủ tài sản và dòng của hai người nhận.
     expect(doc.getAllByText("Đang tải…")).toHaveLength(5);
     expect(screen.getByText(/Đang tải thông tin danh tính \(ngày sinh/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeDisabled();
@@ -1039,7 +1039,7 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
     unregister();
   });
 
-  it("Chủ kho chưa có danh tính eKYC: ghi rõ chưa có CCCD và thường trú, dùng họ tên từ kế hoạch, không bịa", async () => {
+  it("Chủ tài sản chưa có danh tính eKYC: ghi rõ chưa có CCCD và thường trú, dùng họ tên từ kế hoạch, không bịa", async () => {
     showPlan(RUNNING);
     mockIdentityGet(() => Promise.resolve(identityBody({ owner: null })));
     renderOverview();
@@ -1047,7 +1047,7 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
 
     const doc = within(paper());
     expect(
-      await doc.findByText(/Chưa có thông tin CCCD và nơi thường trú của Chủ kho/),
+      await doc.findByText(/Chưa có thông tin CCCD và nơi thường trú của Chủ tài sản/),
     ).toBeInTheDocument();
     expect(doc.getAllByText("Trần Văn An")).toHaveLength(2);
     expect(doc.queryByText("Số CCCD")).not.toBeInTheDocument();
@@ -1056,7 +1056,7 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
     expect(doc.getByText("Sinh 20/05/1990 · CCCD 012345678901")).toBeInTheDocument();
   });
 
-  it("danh tính Chủ kho lấy họ tên trên giấy tờ; người nhận không có trong danh tính ghi chưa có thông tin", async () => {
+  it("danh tính Chủ tài sản lấy họ tên trên giấy tờ; người nhận không có trong danh tính ghi chưa có thông tin", async () => {
     showPlan(RUNNING);
     mockIdentityGet(() =>
       Promise.resolve(
@@ -1080,7 +1080,7 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
     expect(doc.getAllByText("Chưa có thông tin ngày sinh và CCCD")).toHaveLength(2);
   });
 
-  it("dòng Phiên bản N · ký lúc: có khi kế hoạch đang chạy và có willVersion; giờ ký của Chủ kho theo bản ký gần nhất", async () => {
+  it("dòng Phiên bản N · ký lúc: có khi kế hoạch đang chạy và có willVersion; giờ ký của Chủ tài sản theo bản ký gần nhất", async () => {
     showPlan({ ...RUNNING, willVersion: 2, willSignedAt: "2026-11-16T03:05:00Z" });
     renderOverview();
     await openDrawer();

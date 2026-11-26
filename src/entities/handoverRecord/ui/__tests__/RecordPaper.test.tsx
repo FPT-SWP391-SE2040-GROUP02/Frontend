@@ -59,7 +59,7 @@ describe("RecordPaper: xác nhận căn cứ pháp lý", () => {
   });
 });
 
-describe("RecordPaper: khác cách chia ban đầu của Chủ kho", () => {
+describe("RecordPaper: khác cách chia ban đầu của Chủ tài sản", () => {
   const differences = [
     {
       kind: "RECIPIENT_REMOVED",
@@ -83,7 +83,7 @@ describe("RecordPaper: khác cách chia ban đầu của Chủ kho", () => {
       />,
     );
 
-    expect(screen.getByText("Khác với cách chia ban đầu của Chủ kho")).toBeInTheDocument();
+    expect(screen.getByText("Khác với cách chia ban đầu của Chủ tài sản")).toBeInTheDocument();
     expect(screen.getByText("Bỏ người nhận: Lê Bình")).toBeInTheDocument();
     expect(
       screen.getByText(`Luật sư Trần Văn Dũng xác nhận lúc ${formatDateTime(CONFIRMED_AT)}`),
@@ -93,7 +93,9 @@ describe("RecordPaper: khác cách chia ban đầu của Chủ kho", () => {
   it("không có khác biệt thì không in mục này", () => {
     render(<RecordPaper record={buildRecord()} />);
 
-    expect(screen.queryByText("Khác với cách chia ban đầu của Chủ kho")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Khác với cách chia ban đầu của Chủ tài sản"),
+    ).not.toBeInTheDocument();
   });
 });
 

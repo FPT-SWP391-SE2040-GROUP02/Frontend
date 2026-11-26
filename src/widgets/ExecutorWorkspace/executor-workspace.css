@@ -1,4 +1,4 @@
-/* Khung Executor dùng lại kiểu của khung Chủ kho; chỉ khác ở thanh nhãn vai trò, chỉ hiện trên điện thoại. */
+/* Khung Executor dùng lại kiểu của khung Chủ tài sản; chỉ khác ở thanh nhãn vai trò, chỉ hiện trên điện thoại. */
 .executor-controls {
   display: none;
 }

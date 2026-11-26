@@ -67,7 +67,7 @@ export function VerifierRecordList({
                   Mã biên bản
                 </th>
                 <th scope="col" className="px-4 py-3 font-semibold">
-                  Chủ kho
+                  Chủ tài sản
                 </th>
                 <th scope="col" className="px-4 py-3 font-semibold">
                   Người nhận

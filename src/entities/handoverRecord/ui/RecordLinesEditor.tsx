@@ -32,12 +32,12 @@ function linesOf(record: HandoverRecord): Set<string> {
   return result;
 }
 
-/** Dưới tên người nhận ở đầu cột: Chủ kho có chia tài sản cho người này hay không. */
+/** Dưới tên người nhận ở đầu cột: Chủ tài sản có chia tài sản cho người này hay không. */
 function RecipientSource({ fromOwnerSplit }: { fromOwnerSplit: boolean }) {
-  let text = "Ngoài cách chia của Chủ kho";
+  let text = "Ngoài cách chia của Chủ tài sản";
   let tone = "bg-heritage-warning-bg text-heritage-warning";
   if (fromOwnerSplit) {
-    text = "Chủ kho đã chia";
+    text = "Chủ tài sản đã chia";
     tone = "bg-heritage-success-bg text-heritage-success";
   }
   return (
@@ -49,7 +49,7 @@ function RecipientSource({ fromOwnerSplit }: { fromOwnerSplit: boolean }) {
 
 /**
  * Bước 1 của luật sư: chọn ai nhận tài sản nào. Mỗi ô là một cặp người nhận - tài sản; một tài sản có thể
- * giao cho nhiều người (đồng thừa kế). Có thể lấy biên bản phân chia của Chủ kho làm bản đầu rồi sửa.
+ * giao cho nhiều người (đồng thừa kế). Có thể lấy biên bản phân chia của Chủ tài sản làm bản đầu rồi sửa.
  * Người nhận chưa có trong kho thì nhập ngay tại đây. Một nút "Chốt và gửi thư" lưu người nhận, lưu biên bản, chốt và
  * gửi thư mời; lỗi giữa chừng thì phần đã lưu được giữ, bấm lại để làm tiếp. Đã chốt thì phải mở lại biên bản mới sửa.
  */
@@ -64,13 +64,13 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
   const dirty = selected.size !== saved.size || [...selected].some((key) => !saved.has(key));
   // Luật sư phải tick xác nhận căn cứ pháp lý mỗi lần chốt; state nằm trong component được remount theo revisionNo nên reopen sẽ bỏ tick.
   const [legalBasisConfirmed, setLegalBasisConfirmed] = useState(false);
-  // Biên bản khác cách chia của Chủ kho thì phải tick thêm ô này; cũng bỏ tick mỗi khi nội dung đổi.
+  // Biên bản khác cách chia của Chủ tài sản thì phải tick thêm ô này; cũng bỏ tick mỗi khi nội dung đổi.
   const [splitDeviationConfirmed, setSplitDeviationConfirmed] = useState(false);
   const [drafts, setDrafts] = useState<RecipientDraft[]>(() => draftsFromReports(record));
   const [draftErrors, setDraftErrors] = useState<Record<string, RecipientDraftErrors>>({});
   const prefilled = record.reports.some((report) => report.recipients.length > 0);
   // Người đang nhập chưa lưu nên máy chủ chưa tính: thêm họ vào danh sách khác biệt để luật sư xác nhận ngay, tránh
-  // lưu người nhận xong mới bị chặn ở bước chốt. Chủ kho không chia gì thì không có gì để khác.
+  // lưu người nhận xong mới bị chặn ở bước chốt. Chủ tài sản không chia gì thì không có gì để khác.
   const pendingDifferences: SplitDifference[] = [];
   if (record.ownerSplit.length > 0) {
     for (const draft of drafts) {
@@ -200,7 +200,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
         </p>
         {record.ownerSplit.length > 0 ? (
           <div className="space-y-2 rounded-xl border border-heritage-border p-4 text-sm">
-            <p className="font-semibold">Biên bản phân chia của Chủ kho</p>
+            <p className="font-semibold">Biên bản phân chia của Chủ tài sản</p>
             <ul className="list-disc space-y-1 pl-4">
               {record.ownerSplit.map((entry) => (
                 <li key={entry.beneficiaryId}>
@@ -226,7 +226,7 @@ export function RecordLinesEditor({ record }: { record: HandoverRecord }) {
           </div>
         ) : (
           <p className="text-sm text-heritage-muted">
-            Chủ kho chưa lập biên bản phân chia. Bạn tự lập biên bản.
+            Chủ tài sản chưa lập biên bản phân chia. Bạn tự lập biên bản.
           </p>
         )}
 

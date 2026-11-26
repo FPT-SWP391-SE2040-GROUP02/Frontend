@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-/** Danh tính đầy đủ của Chủ kho (đã giải mã) để in trong biên bản phân chia. */
+/** Danh tính đầy đủ của Chủ tài sản (đã giải mã) để in trong biên bản phân chia. */
 const willOwnerIdentitySchema = z.object({
   fullName: z.string(),
   /** "yyyy-MM-dd". */
@@ -19,7 +19,7 @@ const willRecipientIdentitySchema = z.object({
 });
 
 /**
- * Phản hồi GET /vaults/{vaultId}/will/identity (chỉ Chủ kho, không cache). `owner` null khi chưa có danh tính eKYC gắn
+ * Phản hồi GET /vaults/{vaultId}/will/identity (chỉ Chủ tài sản, không cache). `owner` null khi chưa có danh tính eKYC gắn
  * với kho. Dữ liệu nhạy cảm: chỉ giữ trong bộ nhớ khi khung xem trước đang mở, không log, không lưu storage.
  */
 export const willIdentitySchema = z.object({

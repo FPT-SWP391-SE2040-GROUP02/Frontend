@@ -45,7 +45,7 @@ describe("official BE business errors", () => {
   });
 
   it.each([
-    ["EXECUTOR_NOT_ALLOWED", "OWNER_CANNOT_ACCEPT", "chủ kho"],
+    ["EXECUTOR_NOT_ALLOWED", "OWNER_CANNOT_ACCEPT", "chủ tài sản"],
     ["EXECUTOR_NOT_ALLOWED", "INVITEE_EMAIL_MISMATCH", "email khác"],
     ["HANDOVER_NOT_ALLOWED", "RESEND_TOO_SOON", "ít phút"],
     ["ASSET_IN_USE", "ASSIGNED", "gỡ gán"],
@@ -113,13 +113,13 @@ describe("VALIDATION_ERROR shows the specific Vietnamese message from the Backen
       failure(400, {
         code: "VALIDATION_ERROR",
         errors: {
-          citizenId: ["Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho."],
+          citizenId: ["Số CCCD người thụ hưởng không được trùng với CCCD của Chủ tài sản."],
           email: ["Email không hợp lệ."],
         },
       }),
     );
     expect(message).toBe(
-      "Số CCCD người thụ hưởng không được trùng với CCCD của Chủ kho. Email không hợp lệ.",
+      "Số CCCD người thụ hưởng không được trùng với CCCD của Chủ tài sản. Email không hợp lệ.",
     );
   });
 

@@ -117,7 +117,7 @@ function PendingInvitationCard({
   const checkboxId = useId();
   const client = useQueryClient();
   const [acknowledge, setAcknowledge] = useState(false);
-  // Phiên bản đã mở xem; Chủ kho ký bản khác thì phải xem lại và tick lại.
+  // Phiên bản đã mở xem; Chủ tài sản ký bản khác thì phải xem lại và tick lại.
   const [readVersion, setReadVersion] = useState<number | null>(null);
   const versionNo = invitation.willVersionNo ?? null;
   const read = invitation.willReady && versionNo !== null && readVersion === versionNo;
@@ -179,8 +179,8 @@ function PendingInvitationCard({
           className="flex items-center gap-2 rounded-xl bg-heritage-danger-bg px-4 py-3 text-sm text-heritage-danger"
         >
           <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-          Lời mời này sắp hết hạn. Hết hạn thì bạn không trả lời được nữa, Chủ kho phải gửi lại lời
-          mời mới.
+          Lời mời này sắp hết hạn. Hết hạn thì bạn không trả lời được nữa, Chủ tài sản phải gửi lại
+          lời mời mới.
         </p>
       )}
       <div className="grid gap-5 border-t border-heritage-border pt-4 md:grid-cols-2">
@@ -257,8 +257,8 @@ function PendingInvitationCard({
             </div>
           ) : (
             <p role="status" className="text-sm leading-6 text-heritage-muted">
-              Chủ kho chưa ký biên bản phân chia. Khi Chủ kho ký xong, bạn mới ký nhận vai hoặc từ
-              chối được.
+              Chủ tài sản chưa ký biên bản phân chia. Khi Chủ tài sản ký xong, bạn mới ký nhận vai
+              hoặc từ chối được.
             </p>
           )}
           <p className="text-sm text-heritage-muted">
@@ -274,7 +274,7 @@ function PendingInvitationCard({
       {askingDecline && (
         <DeclineConfirmDialog
           title="Từ chối lời mời này?"
-          description={`Bạn sẽ không làm Người thực thi cho kho của ${invitation.ownerName}. Muốn nhận lại thì Chủ kho phải gửi lời mời mới.`}
+          description={`Bạn sẽ không làm Người thực thi cho kho của ${invitation.ownerName}. Muốn nhận lại thì Chủ tài sản phải gửi lời mời mới.`}
           confirmLabel="Từ chối lời mời"
           onClose={() => setAskingDecline(false)}
           onConfirm={() => {
@@ -296,7 +296,7 @@ function EndedInvitations({ items }: { items: MyInvitation[] }) {
             Lời mời đã kết thúc
           </span>
           <span className="block text-sm text-heritage-muted">
-            Đã từ chối, hết hạn hoặc bị Chủ kho thu hồi. Giữ lại để bạn đối chiếu khi cần.
+            Đã từ chối, hết hạn hoặc bị Chủ tài sản thu hồi. Giữ lại để bạn đối chiếu khi cần.
           </span>
         </span>
         <Chip tone="neutral">{items.length} mục · Xem</Chip>

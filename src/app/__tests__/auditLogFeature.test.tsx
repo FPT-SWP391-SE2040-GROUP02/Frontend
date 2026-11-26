@@ -183,7 +183,7 @@ describe("OwnerAuditLog transport", () => {
     const row = (await screen.findByRole("cell", { name: "Gán tài sản cho người nhận" })).closest(
       "tr",
     ) as HTMLElement;
-    expect(row).toHaveTextContent("Chủ kho");
+    expect(row).toHaveTextContent("Chủ tài sản");
     expect(row).toHaveTextContent("Tài sản");
     expect(row).toHaveTextContent("Thành công");
     expect(row).toHaveTextContent("Người nhận #963788");

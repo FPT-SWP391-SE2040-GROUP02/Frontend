@@ -16,7 +16,7 @@ interface SignedState {
   icon: ReactNode;
 }
 
-/** Chủ kho đã ký, kế hoạch còn nháp cho tới khi Người thực thi xem biên bản và ký nhận vai. */
+/** Chủ tài sản đã ký, kế hoạch còn nháp cho tới khi Người thực thi xem biên bản và ký nhận vai. */
 const AWAITING_EXECUTOR: SignedState = {
   title: "Bạn đã ký, chờ Người thực thi ký",
   hint: "Kế hoạch có hiệu lực khi Người thực thi xem biên bản và ký nhận vai.",
@@ -82,7 +82,7 @@ function SignedHeading({ state, notice }: { state: SignedState; notice: string }
 /**
  * Cột phải của trang Bàn giao: tiến độ, các điều kiện chưa đạt và nút mở khung xem trước biên bản phân chia. Chữ nút đổi theo
  * trạng thái: "Xem trước biên bản phân chia" (còn thiếu), "Xem trước và ký" (đủ điều kiện), "Xem biên bản phân chia đã ký"
- * (đã ký). Thanh tiến độ chỉ có khi còn nháp và Chủ kho chưa ký.
+ * (đã ký). Thanh tiến độ chỉ có khi còn nháp và Chủ tài sản chưa ký.
  */
 export function HandoverProgressCard({
   setup,

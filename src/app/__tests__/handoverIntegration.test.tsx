@@ -175,7 +175,7 @@ it("ký biên bản bị Backend từ chối thì báo lỗi và không có quy�
     id: "0198a000-0000-7000-8000-000000000003",
     vaultId: VAULT_ID,
     vaultName: "Kho thử",
-    ownerName: "Chủ kho thử",
+    ownerName: "Chủ tài sản thử",
     status: "SIGNING",
     revisionNo: 1,
     requestedAt: CREATED_AT,

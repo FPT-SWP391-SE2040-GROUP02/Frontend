@@ -72,7 +72,7 @@ export function RecipientReviewList({ onOpen }: { onOpen: (submissionId: string)
                   <td className="py-4 pr-4">{formatDateTime(item.submittedAt)}</td>
                   <td className="px-4 py-4">
                     {item.allMatch ? (
-                      <Chip tone="success">Khớp thông tin Chủ kho khai</Chip>
+                      <Chip tone="success">Khớp thông tin Chủ tài sản khai</Chip>
                     ) : (
                       <Chip tone="danger">Có trường không khớp</Chip>
                     )}

@@ -14,7 +14,7 @@ import { VaultJourney } from "./VaultJourney";
 /** Hai thẻ gọn dưới cùng chỉ lấy vài dòng đầu của danh sách quyền hạn đầy đủ. */
 const SHORT_LIST_SIZE = 3;
 
-/** Tóm tắt hướng dẫn của Chủ kho và số tài sản giao cho Người thực thi quản lý việc bàn giao. */
+/** Tóm tắt hướng dẫn của Chủ tài sản và số tài sản giao cho Người thực thi quản lý việc bàn giao. */
 function GuideAndAssetsCard({ vault }: { vault: ExecutorVault }) {
   const recipients = useExecutorRecipients(vault.vaultId);
   const assetIds = new Set<string>();

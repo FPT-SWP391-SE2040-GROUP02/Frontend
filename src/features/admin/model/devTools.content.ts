@@ -36,10 +36,10 @@ export function ekycResetDone(result: DevEkycReset) {
 }
 
 export const REWIND_DESCRIPTION =
-  "Đưa kho đang chọn về thời điểm ngay trước bước xác minh danh tính và mua gói: xóa eKYC của Chủ kho, trả gói dịch vụ về Free và hủy đơn thanh toán đang chờ. Đơn đã trả, tài sản, người nhận, gói tài sản và Người thực thi giữ nguyên. Chỉ dùng khi kế hoạch còn Nháp.";
+  "Đưa kho đang chọn về thời điểm ngay trước bước xác minh danh tính và mua gói: xóa eKYC của Chủ tài sản, trả gói dịch vụ về Free và hủy đơn thanh toán đang chờ. Đơn đã trả, tài sản, người nhận, gói tài sản và Người thực thi giữ nguyên. Chỉ dùng khi kế hoạch còn Nháp.";
 
 export const EKYC_PAUSE_DESCRIPTION =
-  "Bật khi cần chạy thử cả luồng mà không có giấy tờ thật hay camera: mọi bước eKYC (giấy tờ, thử thách camera, so khớp khuôn mặt) đều tự đạt. Người nhận được đọc ra đúng họ tên và số CCCD chủ kho đã khai; chủ kho nhận một số CCCD thử riêng cho từng tài khoản. Chỉ ở bộ nhớ máy chủ, khởi động lại là về tắt. Nhớ tắt sau khi thử xong.";
+  "Bật khi cần chạy thử cả luồng mà không có giấy tờ thật hay camera: mọi bước eKYC (giấy tờ, thử thách camera, so khớp khuôn mặt) đều tự đạt. Người nhận được đọc ra đúng họ tên và số CCCD chủ tài sản đã khai; chủ tài sản nhận một số CCCD thử riêng cho từng tài khoản. Chỉ ở bộ nhớ máy chủ, khởi động lại là về tắt. Nhớ tắt sau khi thử xong.";
 
 export function ekycPauseDone(paused: boolean) {
   return paused
@@ -75,5 +75,5 @@ export function rewindDone(result: DevRewindBeforeEkyc) {
   if (result.pendingOrdersCancelled > 0) {
     parts.push(`hủy ${result.pendingOrdersCancelled} đơn đang chờ`);
   }
-  return `Đã đưa kho của ${result.ownerEmail} về trước eKYC và mua gói: ${parts.join(", ")}. Chủ kho có thể làm eKYC rồi mua gói lại.`;
+  return `Đã đưa kho của ${result.ownerEmail} về trước eKYC và mua gói: ${parts.join(", ")}. Chủ tài sản có thể làm eKYC rồi mua gói lại.`;
 }

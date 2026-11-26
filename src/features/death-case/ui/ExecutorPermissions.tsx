@@ -5,7 +5,7 @@ import { Panel } from "@/shared/ui/heritageKit";
 
 /** Quyền hạn của Người thực thi (thiết kế 55). Lời mời và kho đang giữ nằm ở trang "Lời mời và các kho bạn đang làm việc". */
 export function ExecutorPermissions({ selected }: { selected: ExecutorVault | null }) {
-  const owner = selected?.ownerFullName ?? "Chủ kho";
+  const owner = selected?.ownerFullName ?? "Chủ tài sản";
   return (
     <div className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
@@ -35,8 +35,8 @@ export function ExecutorPermissions({ selected }: { selected: ExecutorVault | nu
       </div>
       <Panel title="Rút khỏi vai trò">
         <p className="text-sm leading-6 text-heritage-muted">
-          Nếu bạn không thể tiếp tục, hãy báo cho {owner} để họ chọn người khác. Chỉ Chủ kho mới thu
-          hồi được vai trò này hoặc mời người thay.
+          Nếu bạn không thể tiếp tục, hãy báo cho {owner} để họ chọn người khác. Chỉ Chủ tài sản mới
+          thu hồi được vai trò này hoặc mời người thay.
         </p>
       </Panel>
     </div>

@@ -179,7 +179,7 @@ export function OwnerWorkspace({
             <button
               type="button"
               className="owner-menu-toggle"
-              aria-label="Menu Chủ kho"
+              aria-label="Menu Chủ tài sản"
               aria-expanded={navigationOpen}
               aria-controls="owner-navigation"
               onClick={() => setNavigationOpen(!navigationOpen)}
@@ -194,7 +194,7 @@ export function OwnerWorkspace({
           <nav
             ref={navRef}
             id="owner-navigation"
-            aria-label="Điều hướng Chủ kho"
+            aria-label="Điều hướng Chủ tài sản"
             className="owner-navigation owner-navigation--slide"
             data-open={navigationOpen}
           >
@@ -293,7 +293,7 @@ export function OwnerWorkspace({
               <p className="truncate text-sm font-semibold text-white">
                 {user?.fullName ?? "Tài khoản"}
               </p>
-              <p className="text-sm text-heritage-gold-soft">Chủ kho</p>
+              <p className="text-sm text-heritage-gold-soft">Chủ tài sản</p>
               {showOwnerService && (
                 <div className="mt-1">
                   <OwnerServiceTier key={user.id} />

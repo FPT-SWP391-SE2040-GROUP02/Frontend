@@ -6,8 +6,8 @@ import { Notice } from "@/shared/ui/heritageKit";
 import type { MyInvitation } from "../model/myInvitations.schema";
 
 /**
- * Tờ biên bản phân chia Chủ kho đã ký, để người được mời đọc trước khi ký nhận vai. Chỉ có số đếm, không có tên tài sản
- * hay người nhận. Chủ kho chưa ký thì chỉ báo chờ.
+ * Tờ biên bản phân chia Chủ tài sản đã ký, để người được mời đọc trước khi ký nhận vai. Chỉ có số đếm, không có tên tài sản
+ * hay người nhận. Chủ tài sản chưa ký thì chỉ báo chờ.
  */
 export function InvitationPaper({
   invitation,
@@ -25,8 +25,8 @@ export function InvitationPaper({
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   if (!invitation.willReady || !invitation.willVersionNo) {
     return (
-      <Notice tone="warning" title="Chờ Chủ kho ký">
-        Chủ kho ký biên bản phân chia trước. Khi đó bạn xem được biên bản rồi mới ký nhận vai.
+      <Notice tone="warning" title="Chờ Chủ tài sản ký">
+        Chủ tài sản ký biên bản phân chia trước. Khi đó bạn xem được biên bản rồi mới ký nhận vai.
       </Notice>
     );
   }

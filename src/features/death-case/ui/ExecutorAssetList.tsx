@@ -29,7 +29,7 @@ const DOWNLOAD_CHIPS: Record<
   "not-handed-over": { label: "Không bàn giao", tone: "neutral" },
 };
 
-/** Khung vàng nhạt: hướng dẫn bàn giao Chủ kho để lại cho Người thực thi (giữ xuống dòng). */
+/** Khung vàng nhạt: hướng dẫn bàn giao Chủ tài sản để lại cho Người thực thi (giữ xuống dòng). */
 function GuideBox({ vault }: { vault: ExecutorVault }) {
   return (
     <section
@@ -37,7 +37,7 @@ function GuideBox({ vault }: { vault: ExecutorVault }) {
       className="rounded-2xl border border-heritage-gold-soft bg-heritage-warning-bg p-5"
     >
       <h2 id="executor-guide-title" className="text-base font-semibold text-heritage-primary">
-        Hướng dẫn bàn giao từ Chủ kho
+        Hướng dẫn bàn giao từ Chủ tài sản
       </h2>
       {vault.executorNote ? (
         <>
@@ -49,7 +49,7 @@ function GuideBox({ vault }: { vault: ExecutorVault }) {
           )}
         </>
       ) : (
-        <p className="mt-3 text-sm text-heritage-muted">Chủ kho chưa để lại hướng dẫn.</p>
+        <p className="mt-3 text-sm text-heritage-muted">Chủ tài sản chưa để lại hướng dẫn.</p>
       )}
     </section>
   );
@@ -80,7 +80,7 @@ function ListError({ onRetry }: { onRetry: () => void }) {
 }
 
 /**
- * Trước khi luật sư chốt biên bản bàn giao: chỉ tên và loại tài sản cùng hướng dẫn của Chủ kho. Người nhận và ai
+ * Trước khi luật sư chốt biên bản bàn giao: chỉ tên và loại tài sản cùng hướng dẫn của Chủ tài sản. Người nhận và ai
  * nhận tài sản nào chưa được xem.
  */
 function AssetNamesBeforeHandover({ vault }: { vault: ExecutorVault }) {

@@ -26,7 +26,7 @@ export interface WillRecipientView {
   citizenId?: string | null;
 }
 
-/** Danh tính đầy đủ của Chủ kho in ở mục I. */
+/** Danh tính đầy đủ của Chủ tài sản in ở mục I. */
 export interface WillOwnerIdentityView {
   /** Ngày sinh "yyyy-MM-dd". */
   dateOfBirth: string;
@@ -36,7 +36,7 @@ export interface WillOwnerIdentityView {
 
 /**
  * Tình trạng tải danh tính đầy đủ: "none" là nơi xem không dùng danh tính (Người thực thi xem lời mời), "loading" và
- * "error" là chưa có dữ liệu, "ready" là đã có (Chủ kho có thể chưa có danh tính eKYC: `ownerIdentity` = null).
+ * "error" là chưa có dữ liệu, "ready" là đã có (Chủ tài sản có thể chưa có danh tính eKYC: `ownerIdentity` = null).
  */
 export type WillIdentityStatus = "none" | "loading" | "error" | "ready";
 
@@ -46,5 +46,5 @@ export interface WillVersionView {
   signedAt: string | null;
 }
 
-/** Chỗ trống trong biên bản phân chia mà Chủ kho có thể bấm để được đưa tới nơi điền. */
+/** Chỗ trống trong biên bản phân chia mà Chủ tài sản có thể bấm để được đưa tới nơi điền. */
 export type WillGapTarget = "executor" | "assignments";

@@ -30,7 +30,7 @@ function drawerTitle(setup: PlanSetup): string {
 }
 
 /**
- * Câu dưới nút "Xuất file PDF": nói vì sao nút khóa hoặc xác nhận đã đủ điều kiện. Chủ kho ký lúc kích hoạt kế hoạch,
+ * Câu dưới nút "Xuất file PDF": nói vì sao nút khóa hoặc xác nhận đã đủ điều kiện. Chủ tài sản ký lúc kích hoạt kế hoạch,
  * Người thực thi ký khi nhận vai; cả hai lấy từ dữ liệu thật của Backend. Tờ in phải có đủ danh tính và khớp bản ký.
  */
 function exportHint(

@@ -19,7 +19,7 @@ function ErrorText({ id, children }: { id?: string; children?: ReactNode }) {
 }
 
 /**
- * Biểu mẫu nộp hồ sơ báo tin: người thân không cần được Chủ kho khai từ trước. Người nộp chưa phải người nhận;
+ * Biểu mẫu nộp hồ sơ báo tin: người thân không cần được Chủ tài sản khai từ trước. Người nộp chưa phải người nhận;
  * luật sư xác định người nhận khi lập biên bản.
  */
 export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel: () => void }) {

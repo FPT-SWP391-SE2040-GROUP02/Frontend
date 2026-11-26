@@ -51,7 +51,7 @@ function pinProblem(code: string, extra: Record<string, unknown> = {}, httpStatu
   });
 }
 
-describe("ExecutorKeyCard (Chủ kho)", () => {
+describe("ExecutorKeyCard (Chủ tài sản)", () => {
   it("hệ thống tự giữ mã: chỉ có số bản, không hiện mã, không có phiếu hay nút tạo mã", async () => {
     vi.spyOn(axiosClient, "get").mockResolvedValue(
       status({ hasKey: true, version: 1, issuedAt: "2026-11-08T01:00:00Z" }),

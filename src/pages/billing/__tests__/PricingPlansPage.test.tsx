@@ -203,7 +203,7 @@ describe("pricing reference policies", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("Chủ kho có nút sang Lịch sử thanh toán", () => {
+  it("Chủ tài sản có nút sang Lịch sử thanh toán", () => {
     setup(true);
     expect(screen.getByRole("link", { name: "Lịch sử thanh toán" })).toHaveAttribute(
       "href",
@@ -374,7 +374,7 @@ describe("pricing reference policies", () => {
       expect(
         screen.queryByRole("region", { name: "Gói hiện tại của kho" }),
       ).not.toBeInTheDocument();
-      for (const button of screen.getAllByRole("button", { name: "Gói dành cho chủ kho" }))
+      for (const button of screen.getAllByRole("button", { name: "Gói dành cho chủ tài sản" }))
         expect(button).toBeDisabled();
     },
   );

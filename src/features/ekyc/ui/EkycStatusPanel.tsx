@@ -16,13 +16,13 @@ const labels = {
   FAILED: "Lần xác minh chưa đạt yêu cầu.",
 } as const;
 
-/** Màn eKYC của Chủ kho: trạng thái lấy từ server, không tạo kết quả thành công ở client. */
+/** Màn eKYC của Chủ tài sản: trạng thái lấy từ server, không tạo kết quả thành công ở client. */
 export function EkycStatusPanel({
   onVerified,
   ownerPlanPurchased,
 }: {
   onVerified?: () => void;
-  /** Chủ kho đã có gói trả phí: màn kết quả không nhắc mua gói nữa (page truyền vào để tránh phụ thuộc chéo feature). */
+  /** Chủ tài sản đã có gói trả phí: màn kết quả không nhắc mua gói nữa (page truyền vào để tránh phụ thuộc chéo feature). */
   ownerPlanPurchased?: boolean;
 }) {
   const authenticated = useSelector((state: { auth: AuthState }) => state.auth.isAuthenticated);

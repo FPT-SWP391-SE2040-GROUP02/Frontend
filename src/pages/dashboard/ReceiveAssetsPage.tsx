@@ -2,7 +2,7 @@ import { AvailableHandoverList, ReceiveGuidePanel, ReportPanel } from "@/feature
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 
 /**
- * Trang "Nhận tài sản" của Chủ kho: các kho người khác để lại cho tài khoản này, kèm bước tiếp theo.
+ * Trang "Nhận tài sản" của Chủ tài sản: các kho người khác để lại cho tài khoản này, kèm bước tiếp theo.
  * Màn rộng chia hai cột: trái là việc chính (danh sách kho và hồ sơ báo tin đang theo dõi), phải là lối báo tin và
  * hướng dẫn. Màn hẹp xếp một cột, danh sách kho đứng trước.
  */

@@ -2,8 +2,8 @@ import { formatDateTime, Notice } from "@/shared/ui/heritageKit";
 import { useOwnerRequest } from "../model/useHandoverRequest";
 
 /**
- * Chủ kho thấy khi có người nhận gửi yêu cầu nhận tài sản. Chưa khóa kho (vaultLocked = false): luật sư đang xét,
- * Chủ kho vẫn sửa được kho. Luật sư chấp nhận giấy tờ thì kho khóa. Chỉ để xem; Chủ kho không hủy được vì yêu cầu
+ * Chủ tài sản thấy khi có người nhận gửi yêu cầu nhận tài sản. Chưa khóa kho (vaultLocked = false): luật sư đang xét,
+ * Chủ tài sản vẫn sửa được kho. Luật sư chấp nhận giấy tờ thì kho khóa. Chỉ để xem; Chủ tài sản không hủy được vì yêu cầu
  * luôn kèm giấy chứng tử.
  */
 export function OwnerRequestNotice({ vaultId }: { vaultId: string }) {

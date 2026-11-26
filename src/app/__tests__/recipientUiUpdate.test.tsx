@@ -95,7 +95,7 @@ const SIGNING_RECORD = {
   id: "0198a000-0000-7000-8000-000000000003",
   vaultId: VAULT_ID,
   vaultName: "Kho thử",
-  ownerName: "Chủ kho thử",
+  ownerName: "Chủ tài sản thử",
   status: "SIGNING",
   revisionNo: 1,
   requestedAt: CREATED_AT,
@@ -133,7 +133,7 @@ it("keeps the way to the portal when the recipient creates an account, and lists
       responseExpired: false,
       invitedEmailMasked: "r•••••t@example.test",
       accountExists: false,
-      ownerFullName: "Chủ kho thử",
+      ownerFullName: "Chủ tài sản thử",
     });
   setup(<InvitationPanel />, false, `/receive?token=${TOKEN}`);
   const create = await screen.findByRole("link", { name: "Tạo tài khoản bằng email này" });

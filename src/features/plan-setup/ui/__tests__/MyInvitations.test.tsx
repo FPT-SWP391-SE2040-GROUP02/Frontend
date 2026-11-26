@@ -26,7 +26,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 function invitation(overrides: Partial<MyInvitation> = {}): MyInvitation {
   return {
     id: FIRST_ID,
-    ownerName: "Chủ kho thử nghiệm",
+    ownerName: "Chủ tài sản thử nghiệm",
     inviteeEmail: "nguoi-duoc-moi@example.test",
     status: "INVITED",
     invitedAt: "2026-11-01T00:00:00Z",
@@ -115,7 +115,7 @@ describe("MyInvitationsInbox", () => {
       etag: "e",
     });
     renderWithRoutes(<MyInvitationsInbox />);
-    const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
+    const card = await screen.findByRole("article", { name: "Lời mời của Chủ tài sản thử nghiệm" });
     expect(within(card).getByText("Còn 5 ngày")).toBeInTheDocument();
     const accept = within(card).getByRole("button", { name: SIGN_BUTTON });
     expect(accept).toBeDisabled();
@@ -148,7 +148,7 @@ describe("MyInvitationsInbox", () => {
   it("declines without asking for the scope acknowledgement", async () => {
     vi.mocked(planSetupService.mine).mockResolvedValue(data({ pending: [invitation()] }));
     renderWithRoutes(<MyInvitationsInbox />);
-    const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
+    const card = await screen.findByRole("article", { name: "Lời mời của Chủ tài sản thử nghiệm" });
     await userEvent.click(within(card).getByRole("button", { name: "Từ chối" }));
     // Hỏi lại trước khi gửi.
     expect(planSetupService.respondById).not.toHaveBeenCalled();
@@ -163,25 +163,25 @@ describe("MyInvitationsInbox", () => {
     );
   });
 
-  it("Chủ kho chưa ký thì chỉ báo chờ, không ký được", async () => {
+  it("Chủ tài sản chưa ký thì chỉ báo chờ, không ký được", async () => {
     vi.mocked(planSetupService.mine).mockResolvedValue(
       data({ pending: [invitation({ willReady: false, willVersionNo: null })] }),
     );
     renderWithRoutes(<MyInvitationsInbox />);
-    const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
-    expect(within(card).getByText("Chờ Chủ kho ký")).toBeInTheDocument();
+    const card = await screen.findByRole("article", { name: "Lời mời của Chủ tài sản thử nghiệm" });
+    expect(within(card).getByText("Chờ Chủ tài sản ký")).toBeInTheDocument();
     expect(within(card).getByRole("checkbox")).toBeDisabled();
-    // Chủ kho chưa ký: ẩn cả nút ký nhận vai lẫn nút từ chối, chỉ báo chờ.
+    // Chủ tài sản chưa ký: ẩn cả nút ký nhận vai lẫn nút từ chối, chỉ báo chờ.
     expect(within(card).queryByRole("button", { name: SIGN_BUTTON })).not.toBeInTheDocument();
     expect(within(card).queryByRole("button", { name: "Từ chối" })).not.toBeInTheDocument();
-    expect(within(card).getByText(/Chủ kho chưa ký biên bản phân chia/)).toBeInTheDocument();
+    expect(within(card).getByText(/Chủ tài sản chưa ký biên bản phân chia/)).toBeInTheDocument();
   });
 
   async function acceptWithError(error: AxiosError, password: string) {
     vi.mocked(planSetupService.mine).mockResolvedValue(data({ pending: [invitation()] }));
     vi.mocked(planSetupService.respondById).mockRejectedValue(error);
     renderWithRoutes(<MyInvitationsInbox />);
-    const card = await screen.findByRole("article", { name: "Lời mời của Chủ kho thử nghiệm" });
+    const card = await screen.findByRole("article", { name: "Lời mời của Chủ tài sản thử nghiệm" });
     expect(within(card).getByRole("checkbox")).toBeDisabled();
     await readPaper(card);
     await userEvent.click(within(card).getByRole("checkbox"));
@@ -283,7 +283,7 @@ describe("MyInvitationsBanner", () => {
     );
     renderWithRoutes(<MyInvitationsBanner invitationsHref="/invitations" />);
     expect(
-      await screen.findByText("Chủ kho thử nghiệm mời bạn làm Người thực thi"),
+      await screen.findByText("Chủ tài sản thử nghiệm mời bạn làm Người thực thi"),
     ).toBeInTheDocument();
     expect(screen.getByText(/Còn 1 lời mời nữa/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("link", { name: "Xem lời mời" }));

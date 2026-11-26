@@ -5,10 +5,10 @@ export const vaultResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   description: z.string().nullable(),
-  /** Hướng dẫn Chủ kho để lại cho Executor. Backend cũ không có trường này. */
+  /** Hướng dẫn Chủ tài sản để lại cho Executor. Backend cũ không có trường này. */
   executorNote: z.string().nullish(),
   executorNoteUpdatedAt: z.string().datetime({ offset: true }).nullish(),
-  /** Điều khoản Chủ kho thêm vào biên bản phân chia, theo thứ tự. Backend cũ không có trường này. */
+  /** Điều khoản Chủ tài sản thêm vào biên bản phân chia, theo thứ tự. Backend cũ không có trường này. */
   status: z.enum(["OPEN", "CLOSED"]),
   closedAt: z.string().datetime({ offset: true }).nullable(),
   planStatus: z.string().min(1),

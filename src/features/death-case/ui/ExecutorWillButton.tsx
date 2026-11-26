@@ -6,7 +6,7 @@ import { WillDocument } from "@/entities/will/ui/WillDocument";
 import type { ExecutorVault } from "../model/deathCase.schema";
 
 /**
- * Nút xem lại biên bản phân chia giữa Chủ kho và Người thực thi, chỉ đọc, in được. Tờ này không có tên tài sản hay
+ * Nút xem lại biên bản phân chia giữa Chủ tài sản và Người thực thi, chỉ đọc, in được. Tờ này không có tên tài sản hay
  * người nhận: tên và loại tài sản xem ở trang Tài sản; người nhận chỉ thấy khi luật sư đã chốt biên bản bàn giao.
  */
 export function ExecutorWillButton({
@@ -36,7 +36,7 @@ export function ExecutorWillButton({
     <PaperPreviewButton
       onOpen={onOpen}
       primary={primary}
-      label="Xem biên bản với Chủ kho"
+      label="Xem biên bản với Chủ tài sản"
       title="Biên bản phân chia"
       fileName="Bien-ban-phan-chia"
       paper={

@@ -15,7 +15,7 @@ function dateText(value: string | null | undefined): string {
   return value ? formatDate(value) : "—";
 }
 
-/** Một dòng đối chiếu: người nhận khai, Chủ kho khai và kết quả khớp (chỉ đổi màu chữ). */
+/** Một dòng đối chiếu: người nhận khai, Chủ tài sản khai và kết quả khớp (chỉ đổi màu chữ). */
 function CompareRow({
   label,
   claimed,
@@ -70,7 +70,7 @@ function IdentityImage({ id, side, label }: { id: string; side: "front" | "back"
 }
 
 /**
- * Luật sư kiểm danh tính một người nhận có tên trong biên bản: xem kết quả đối chiếu với thông tin Chủ kho đã khai,
+ * Luật sư kiểm danh tính một người nhận có tên trong biên bản: xem kết quả đối chiếu với thông tin Chủ tài sản đã khai,
  * ảnh căn cước hai mặt, rồi tự quyết xác nhận hoặc yêu cầu làm lại. Kết quả đối chiếu chỉ để tham khảo.
  */
 export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () => void }) {
@@ -119,7 +119,7 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
           <div className="overflow-x-auto">
             <table className="w-full min-w-[520px] text-sm">
               <caption className="sr-only">
-                Đối chiếu thông tin người nhận với thông tin Chủ kho đã khai
+                Đối chiếu thông tin người nhận với thông tin Chủ tài sản đã khai
               </caption>
               <thead>
                 <tr className="border-b border-heritage-border text-left text-heritage-muted">
@@ -130,7 +130,7 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
                     Người nhận khai
                   </th>
                   <th scope="col" className="px-4 py-2 font-semibold">
-                    Chủ kho đã khai
+                    Chủ tài sản đã khai
                   </th>
                   <th scope="col" className="py-2 pl-4 font-semibold">
                     <span className="sr-only">Kết quả</span>
@@ -165,8 +165,8 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
           </div>
           {!detail.allMatch && (
             <Notice tone="warning" title="Có trường không khớp">
-              Thông tin người nhận khai không khớp với thông tin Chủ kho đã khai. Hãy xem kỹ ảnh căn
-              cước rồi tự quyết định: xác nhận đúng người hoặc yêu cầu làm lại.
+              Thông tin người nhận khai không khớp với thông tin Chủ tài sản đã khai. Hãy xem kỹ ảnh
+              căn cước rồi tự quyết định: xác nhận đúng người hoặc yêu cầu làm lại.
             </Notice>
           )}
         </div>

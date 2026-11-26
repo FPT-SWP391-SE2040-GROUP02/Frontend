@@ -52,7 +52,7 @@ const CONSENT_PROMISES = [
 
   "So khớp khuôn mặt với ảnh trên căn cước",
 
-  "Chỉ dùng để xác minh danh tính Chủ kho của bạn",
+  "Chỉ dùng để xác minh danh tính Chủ tài sản của bạn",
 ];
 
 const PREPARE_CHIPS = ["Căn cước còn hạn, bản gốc", "Nơi đủ sáng", "Bỏ khẩu trang, kính tối màu"];
@@ -104,8 +104,8 @@ function ConsentStep({
         </ul>
 
         <p className="border-b border-heritage-border pb-4 text-sm text-heritage-muted">
-          Mục đích: xác minh Chủ kho. Đây là xác minh cơ bản, không có giá trị pháp lý. Ảnh được mã
-          hóa và xóa theo chính sách lưu giữ. Phiên đồng ý có hiệu lực trong 30 phút.
+          Mục đích: xác minh Chủ tài sản. Đây là xác minh cơ bản, không có giá trị pháp lý. Ảnh được
+          mã hóa và xóa theo chính sách lưu giữ. Phiên đồng ý có hiệu lực trong 30 phút.
         </p>
 
         <label className="flex items-start gap-3 text-sm">

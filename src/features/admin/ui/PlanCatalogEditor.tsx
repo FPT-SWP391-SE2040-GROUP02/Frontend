@@ -510,7 +510,7 @@ export function PlanCatalogEditor({ getValue, setKeyValue }: PlanCatalogEditorPr
                 <th scope="row" className="p-4 align-top font-medium">
                   Mỗi dòng một tính năng
                   <span className="mt-1 block text-sm font-normal text-heritage-muted">
-                    Hiện trên thẻ gói của chủ kho. Tối đa 8 dòng, mỗi dòng 120 ký tự.
+                    Hiện trên thẻ gói của chủ tài sản. Tối đa 8 dòng, mỗi dòng 120 ký tự.
                   </span>
                 </th>
                 <td className="p-4 align-top">

@@ -75,7 +75,7 @@ export function countVaultsNeedingAttention(vaults: ExecutorVault[]): number {
   return count;
 }
 
-/** Hai chữ cái đầu cho ô tròn đại diện Chủ kho (chữ đầu của họ và tên). */
+/** Hai chữ cái đầu cho ô tròn đại diện Chủ tài sản (chữ đầu của họ và tên). */
 export function ownerInitials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return "CK";

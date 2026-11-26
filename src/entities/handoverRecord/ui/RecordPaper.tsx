@@ -127,7 +127,7 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
     }
     deviationSection = (
       <section className={SECTION}>
-        <p className={HEADING}>Khác với cách chia ban đầu của Chủ kho</p>
+        <p className={HEADING}>Khác với cách chia ban đầu của Chủ tài sản</p>
         <ul className={`${BODY} list-disc space-y-1 pl-6`}>{deviationItems}</ul>
         {deviationConfirm}
       </section>
@@ -156,7 +156,7 @@ export function RecordPaper({ record }: { record: HandoverRecord }) {
         <ol className="list-none space-y-2 leading-7">
           <li>
             <span className="font-bold">1. Kho tài sản: </span>
-            {orBlank(record.vaultName)}, của Chủ kho{" "}
+            {orBlank(record.vaultName)}, của Chủ tài sản{" "}
             <span className="font-bold">{orBlank(record.ownerName)}</span>.
           </li>
           <li>

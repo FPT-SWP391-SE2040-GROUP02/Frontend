@@ -12,7 +12,7 @@ import { countTurns } from "./executorTurns";
 /** Bước của biên bản bàn giao (DRAFTING, SIGNING, COMPLETED; IDENTITY_CHECK chỉ còn ở biên bản cũ, xử lý như SIGNING); rỗng khi chưa có yêu cầu nhận tài sản. */
 export type RecordStatus = string;
 
-/** Trạng thái gọn của kho dưới tên Chủ kho (menu trái, trang Lời mời và các kho bạn đang làm việc). */
+/** Trạng thái gọn của kho dưới tên Chủ tài sản (menu trái, trang Lời mời và các kho bạn đang làm việc). */
 export interface VaultStage {
   label: string;
   tone: Tone;

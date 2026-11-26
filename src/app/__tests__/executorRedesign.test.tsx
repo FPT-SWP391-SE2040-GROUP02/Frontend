@@ -421,7 +421,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
   it("Tài sản và hướng dẫn: hiện hướng dẫn, gom theo người nhận, chip và tìm kiếm", async () => {
     mockApi();
     render2(<ExecutorAssetsPage />, "/executor/assets");
-    expect(await screen.findByText("Hướng dẫn bàn giao từ Chủ kho")).toBeInTheDocument();
+    expect(await screen.findByText("Hướng dẫn bàn giao từ Chủ tài sản")).toBeInTheDocument();
     const note = screen.getByText(/Gọi cô Lan trước\./);
     expect(note).toHaveClass("whitespace-pre-line");
     expect(screen.getByText("Cập nhật 05/11/2025".replace("2025", "2026"))).toBeInTheDocument();
@@ -531,7 +531,7 @@ describe("Lời mời và các kho bạn đang làm việc", () => {
     const card = await screen.findByRole("article", { name: "Lời mời của Cô Lan" });
     fireEvent.click(within(card).getByRole("button", { name: "Từ chối" }));
     const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent("Chủ kho phải gửi lời mời mới");
+    expect(dialog).toHaveTextContent("Chủ tài sản phải gửi lời mời mới");
     fireEvent.click(within(dialog).getByRole("button", { name: "Quay lại" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     expect(post).not.toHaveBeenCalled();

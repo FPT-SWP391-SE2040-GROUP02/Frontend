@@ -189,7 +189,7 @@ export function ExecutorWorkspace({
               {pendingInvitations > 0 && <InvitationCountBadge count={pendingInvitations} />}
             </Link>
           </nav>
-          {/* Người thực thi là nhân sự của hệ thống: không có nút chuyển sang vai Chủ kho hay Người nhận. */}
+          {/* Người thực thi là nhân sự của hệ thống: không có nút chuyển sang vai Chủ tài sản hay Người nhận. */}
           <div className="flex items-center gap-3">
             <UserAvatar
               user={user}

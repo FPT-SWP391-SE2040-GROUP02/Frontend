@@ -1,7 +1,7 @@
 import { z } from "zod";
 const timestamp = z.string().datetime({ offset: true });
 /**
- * Mục đích eKYC: FE chỉ còn eKYC của Chủ kho. Backend vẫn nhận trường `purpose` trong request đồng ý và xác nhận bản
+ * Mục đích eKYC: FE chỉ còn eKYC của Chủ tài sản. Backend vẫn nhận trường `purpose` trong request đồng ý và xác nhận bản
  * khai nên giá trị này được gửi cố định.
  */
 const ekycPurposeSchema = z.literal("OWNER_ENROLLMENT");

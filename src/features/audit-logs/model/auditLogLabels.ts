@@ -75,7 +75,7 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
   PLAN_ACTIVATED: "Kích hoạt kế hoạch bàn giao",
   EXECUTOR_ACCEPTED: "Người thực thi nhận vai",
   WILL_RESIGNED: "Ký lại biên bản phân chia",
-  WILL_SIGNED: "Chủ kho ký biên bản phân chia",
+  WILL_SIGNED: "Chủ tài sản ký biên bản phân chia",
   EXECUTOR_WILL_CONFIRMED: "Người thực thi đồng ý biên bản mới",
   EXECUTOR_WILL_DECLINED: "Người thực thi không đồng ý biên bản mới",
   WILL_IDENTITY_VIEWED: "Xem CCCD đầy đủ của người nhận",
@@ -91,7 +91,7 @@ export const ACTION_LABELS: Record<(typeof auditActionValues)[number], string> =
 };
 
 export const ACTOR_ROLE_LABELS: Record<(typeof auditActorRoleValues)[number], string> = {
-  OWNER: "Chủ kho",
+  OWNER: "Chủ tài sản",
   EXECUTOR: "Người thực thi",
   BENEFICIARY: "Người nhận",
   VERIFIER: "Người xét duyệt",
