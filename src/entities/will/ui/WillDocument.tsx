@@ -7,7 +7,6 @@ import type {
   WillIdentityStatus,
   WillOwnerIdentityView,
   WillRecipientView,
-  WillVersionView,
 } from "../model/willDocument.types";
 
 export interface WillDocumentProps {
@@ -39,8 +38,6 @@ export interface WillDocumentProps {
   identityStatus?: WillIdentityStatus;
   /** Danh tính Chủ tài sản khi `identityStatus` = "ready"; null nghĩa là chưa có danh tính eKYC gắn với kho. */
   ownerIdentity?: WillOwnerIdentityView | null;
-  /** Phiên bản đã ký gần nhất; bỏ trống thì không in dòng phiên bản. */
-  version?: WillVersionView | null;
 }
 
 const SECTION = "mt-7";
@@ -469,7 +466,6 @@ export function WillDocument({
   onGapClick,
   identityStatus = "none",
   ownerIdentity = null,
-  version = null,
 }: WillDocumentProps) {
   const clickable = viewer === "owner";
 
@@ -480,16 +476,6 @@ export function WillDocument({
   }
   if (signedDate !== null) {
     dateText = signedDate;
-  }
-
-  let versionLine: ReactNode = null;
-  if (version !== null) {
-    let versionText = `Phiên bản ${version.number}`;
-    const versionWhen = formatTimeOnDate(version.signedAt);
-    if (versionWhen !== null) {
-      versionText = `Phiên bản ${version.number} · ký lúc ${versionWhen}`;
-    }
-    versionLine = <p className="mt-1 text-center text-[15px] text-heritage-muted">{versionText}</p>;
   }
 
   return (
@@ -508,7 +494,6 @@ export function WillDocument({
         BIÊN BẢN PHÂN CHIA
       </h2>
       <p className="mt-3 text-center leading-7">Hôm nay, ngày {dateText}, tại LegacyVault.</p>
-      {versionLine}
 
       <OwnerSectionBlock
         ownerName={ownerName}

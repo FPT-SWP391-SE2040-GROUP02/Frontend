@@ -60,7 +60,6 @@ export function useExecutorWillPaper({
         unassignedAssetCount={data.unassignedAssetCount}
         identityStatus="ready"
         ownerIdentity={pickOwnerIdentity(data.identity)}
-        version={{ number: data.versionNo, signedAt: data.signedAt }}
       />
     );
   } else if (query.isError && !query.isFetching) {

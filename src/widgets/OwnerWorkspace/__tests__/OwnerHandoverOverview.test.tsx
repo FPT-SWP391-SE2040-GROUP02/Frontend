@@ -1046,28 +1046,15 @@ describe("tờ biên bản phân chia dùng danh tính đầy đủ", () => {
     expect(doc.getAllByText("Chưa có thông tin ngày sinh và CCCD")).toHaveLength(2);
   });
 
-  it("dòng Phiên bản N · ký lúc: có khi kế hoạch đang chạy và có willVersion; giờ ký của Chủ tài sản theo bản ký gần nhất", async () => {
+  it("không in dòng phiên bản; giờ ký của Chủ tài sản theo bản ký gần nhất", async () => {
     showPlan({ ...RUNNING, willVersion: 2, willSignedAt: "2026-11-16T03:05:00Z" });
     renderOverview();
     await openDrawer();
 
     const doc = within(paper());
-    expect(doc.getByText("Phiên bản 2 · ký lúc 10:05 ngày 16/11/2026")).toBeInTheDocument();
+    expect(paper()).not.toHaveTextContent("Phiên bản");
     expect(doc.getByText("Đã ký điện tử · 10:05 ngày 16/11/2026")).toBeInTheDocument();
     expect(doc.getByText("Đã ký điện tử · 14:20 ngày 14/11/2026")).toBeInTheDocument();
-  });
-
-  it("không có willVersion hoặc kế hoạch còn nháp thì không in dòng phiên bản", async () => {
-    showPlan({ ...RUNNING });
-    renderOverview();
-    await openDrawer();
-    expect(paper()).not.toHaveTextContent("Phiên bản");
-    cleanup();
-
-    showPlan({ willVersion: 1, willSignedAt: ACTIVATED_AT });
-    renderOverview();
-    await openDrawer();
-    expect(paper()).not.toHaveTextContent("Phiên bản");
   });
 });
 
@@ -1287,7 +1274,7 @@ describe("ký phiên bản mới trong khung", () => {
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ["will-identity", VAULT_ID] });
   });
 
-  it("sau khi ký xong và kế hoạch làm mới: thanh nhắc biến mất, tờ hiện Phiên bản N+1, thông báo còn", async () => {
+  it("sau khi ký xong và kế hoạch làm mới: thanh nhắc biến mất, tờ hiện giờ ký mới, thông báo còn", async () => {
     showPlan(RUNNING_UNSIGNED);
     vi.spyOn(apiClient, "post").mockResolvedValue(SIGNED_BODY as never);
     const view = renderOverview();
@@ -1313,9 +1300,7 @@ describe("ký phiên bản mới trong khung", () => {
       expect(screen.queryByRole("button", { name: SIGN_BUTTON })).not.toBeInTheDocument(),
     );
     expect(screen.getByText(/Đã ký phiên bản 2 của biên bản phân chia/)).toBeVisible();
-    expect(
-      within(paper()).getByText("Phiên bản 2 · ký lúc 10:00 ngày 17/11/2026"),
-    ).toBeInTheDocument();
+    expect(within(paper()).getByText("Đã ký điện tử · 10:00 ngày 17/11/2026")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Xuất file PDF" })).toBeEnabled();
   });
 

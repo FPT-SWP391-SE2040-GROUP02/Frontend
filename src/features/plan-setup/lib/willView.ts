@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import type { WillExecutorView, WillVersionView } from "@/entities/will/model/willDocument.types";
+import type { WillExecutorView } from "@/entities/will/model/willDocument.types";
 import type { planSetupSchema } from "../model/planSetup.schema";
 
 type PlanSetup = z.infer<typeof planSetupSchema>;
@@ -51,24 +51,6 @@ export function pickWillExecutor(setup: PlanSetup): WillExecutorView | null {
     }
   }
   return pending;
-}
-
-/**
- * Phiên bản đã ký gần nhất để in ở đầu tờ. Kế hoạch còn nháp thì chưa có bản ký hiệu lực nên không in; Backend cũ
- * hoặc kế hoạch chạy từ trước khi có phiên bản (`willVersion` null) cũng không in.
- */
-export function pickWillVersion(setup: PlanSetup): WillVersionView | null {
-  if (setup.planStatus === "DRAFT" && !setup.willAwaitingExecutor) {
-    return null;
-  }
-  if (setup.willVersion === undefined || setup.willVersion === null) {
-    return null;
-  }
-  let signedAt: string | null = null;
-  if (setup.willSignedAt !== undefined) {
-    signedAt = setup.willSignedAt;
-  }
-  return { number: setup.willVersion, signedAt };
 }
 
 /** Kế hoạch đang chạy (không phải nháp) mà cấu hình khác bản ký gần nhất, cần Chủ tài sản ký lại. */

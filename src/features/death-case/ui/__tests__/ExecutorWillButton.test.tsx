@@ -89,7 +89,7 @@ async function openPaper(): Promise<HTMLElement> {
   return screen.findByRole("article", { name: "Tờ Biên bản phân chia" });
 }
 
-it("tờ giống bên Chủ tài sản: danh tính, tài sản, người nhận, phiên bản và hai chữ ký", async () => {
+it("tờ giống bên Chủ tài sản: danh tính, tài sản, người nhận và hai chữ ký", async () => {
   const get = vi.spyOn(executorWillService, "get").mockResolvedValue(PAPER);
   const onOpen = setup({
     willVersionNo: 2,
@@ -108,7 +108,7 @@ it("tờ giống bên Chủ tài sản: danh tính, tài sản, người nhận,
   expect(paper).toHaveTextContent("Sinh 20/05/1990 · CCCD 000000000002");
   expect(paper).toHaveTextContent("Còn 1 tài sản chưa chọn người nhận");
   expect(paper).toHaveTextContent("Trần Thực Thi");
-  expect(paper).toHaveTextContent("Phiên bản 2");
+  expect(paper).not.toHaveTextContent("Phiên bản");
   expect(paper.textContent?.match(/Đã ký điện tử/g)).toHaveLength(2);
   expect(onOpen).toHaveBeenCalledTimes(1);
 });

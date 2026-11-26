@@ -6,7 +6,6 @@ import {
   pickOwnerSignedAt,
   pickWillExecutor,
   pickWillRecipients,
-  pickWillVersion,
 } from "../lib/willView";
 import type { planSetupSchema } from "../model/planSetup.schema";
 import type { WillIdentity } from "../model/willIdentity.schema";
@@ -66,7 +65,6 @@ export function PlanWillDocument({
       onGapClick={onGapClick}
       identityStatus={identityStatus}
       ownerIdentity={ownerIdentity}
-      version={pickWillVersion(setup)}
     />
   );
 }

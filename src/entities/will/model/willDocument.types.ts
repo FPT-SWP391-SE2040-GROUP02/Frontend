@@ -40,11 +40,5 @@ export interface WillOwnerIdentityView {
  */
 export type WillIdentityStatus = "none" | "loading" | "error" | "ready";
 
-/** Phiên bản biên bản phân chia đã ký gần nhất, in ở đầu tờ. */
-export interface WillVersionView {
-  number: number;
-  signedAt: string | null;
-}
-
 /** Chỗ trống trong biên bản phân chia mà Chủ tài sản có thể bấm để được đưa tới nơi điền. */
 export type WillGapTarget = "executor" | "assignments";
