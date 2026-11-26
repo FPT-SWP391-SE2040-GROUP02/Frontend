@@ -103,6 +103,36 @@
   font-size: 0.875rem;
   font-weight: 400;
 }
+/* Khối chọn trượt giữa các kỳ, nhịp theo Lucian UX/UI Prompt #423 (MIT, (c) 2026 Seokwoooo). */
+.service-plans .service-plan-terms-sliding {
+  position: relative;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+.service-plans .service-plan-terms-thumb {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px - (var(--count) - 1) * 3px) / var(--count));
+  border-radius: 7px;
+  background: var(--primary);
+  transform: translateX(calc(var(--index) * (100% + 3px)));
+  transition: transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1);
+  pointer-events: none;
+}
+.service-plans .service-plan-terms-sliding button {
+  position: relative;
+}
+.service-plans .service-plan-terms-sliding button[aria-pressed="true"] {
+  background: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-plans .service-plan-terms-thumb {
+    transition: none;
+  }
+}
 .service-plans .service-plan-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -169,6 +199,29 @@
   letter-spacing: -0.045em;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+}
+/* Số cuộn của giá: cỡ theo chữ giá, nhịp cuộn theo Lucian UX/UI Prompt #423 (MIT, (c) 2026 Seokwoooo). */
+.service-plans .service-plan-price .rn {
+  --h: 1.35em;
+}
+.service-plans .service-plan-price .rn-digit {
+  width: 0.6em;
+  -webkit-mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+}
+.service-plans .service-plan-price .rn-reel {
+  transition: transform 0.7s cubic-bezier(0.3, 1.25, 0.45, 1);
+  transition-delay: calc(var(--i) * 45ms);
+}
+.service-plans .service-plan-price .rn-sep {
+  padding: 0;
+  color: inherit;
+  font-weight: inherit;
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-plans .service-plan-price .rn-reel {
+    transition-delay: 0s;
+  }
 }
 .service-plans .service-plan-price-caption {
   min-height: 34px;

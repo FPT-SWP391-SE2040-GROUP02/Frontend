@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
@@ -30,8 +30,18 @@ export function ServiceTermPicker({
   options: readonly number[];
   showDays?: boolean;
 }) {
+  // Nền xanh của kỳ đang chọn là một khối riêng, trượt theo vị trí kỳ; các nút rộng bằng nhau nên chỉ cần số thứ tự.
+  const selectedIndex = options.indexOf(years);
+  const thumbPosition = { "--count": options.length, "--index": selectedIndex } as CSSProperties;
   return (
-    <div className="service-plan-terms" role="group" aria-label="Chọn kỳ dịch vụ">
+    <div
+      className="service-plan-terms service-plan-terms-sliding"
+      role="group"
+      aria-label="Chọn kỳ dịch vụ"
+    >
+      {selectedIndex >= 0 && (
+        <span className="service-plan-terms-thumb" aria-hidden="true" style={thumbPosition} />
+      )}
       {options.map((value) => (
         <Button
           key={value}

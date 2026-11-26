@@ -10,6 +10,7 @@ import {
 } from "@/entities/vault/model/vaultServicePresentation";
 import { ROUTES } from "@/shared/config/routes.config";
 import { Button, buttonVariants } from "@/shared/ui/button";
+import { RollingNumber } from "@/shared/ui/VaultFx";
 import { formatStorageMegabytes } from "@/shared/lib/formatStorageSize";
 import {
   canPreviewBilling,
@@ -198,7 +199,10 @@ function ServicePlansContent({
                   <h2>{plan.name}</h2>
                   {current && <span className="service-plan-badge">Gói hiện tại</span>}
                 </div>
-                <p className="service-plan-price">{referenceMoney.format(term?.price ?? 0)}</p>
+                {/* Đổi kỳ hạn thì từng chữ số cuộn sang giá mới. */}
+                <p className="service-plan-price">
+                  <RollingNumber value={referenceMoney.format(term?.price ?? 0)} />
+                </p>
                 <p className="service-plan-price-caption">{caption}</p>
                 <dl className="service-plan-quota">
                   <div>
