@@ -77,12 +77,30 @@ export const handoverRecordService = {
       ),
     );
   },
-  /** Thêm mọi người nhận mới trong một lần: một người không hợp lệ thì máy chủ không thêm ai. */
-  async addRecipients(recordId: string, recipients: NewRecipient[]) {
+  /** Thêm một người nhận theo di chúc; máy chủ kiểm trùng căn cước, email và tuổi rồi mới lưu. */
+  async addRecipient(recordId: string, recipient: NewRecipient) {
     return handoverRecordSchema.parse(
-      await apiClient.post<unknown, unknown>(`${verifierPath(recordId)}/recipients/batch`, {
-        recipients: recipients.map((recipient) => newRecipientSchema.parse(recipient)),
-      }),
+      await apiClient.post<unknown, unknown>(
+        `${verifierPath(recordId)}/recipients`,
+        newRecipientSchema.parse(recipient),
+      ),
+    );
+  },
+  /** Sửa người nhận do luật sư thêm; số căn cước phải giữ nguyên. */
+  async updateRecipient(recordId: string, beneficiaryId: string, recipient: NewRecipient) {
+    return handoverRecordSchema.parse(
+      await apiClient.put<unknown, unknown>(
+        `${verifierPath(recordId)}/recipients/${id.parse(beneficiaryId)}`,
+        newRecipientSchema.parse(recipient),
+      ),
+    );
+  },
+  /** Xóa người nhận do luật sư thêm, kèm tài sản đã chia cho người đó trong biên bản. */
+  async removeRecipient(recordId: string, beneficiaryId: string) {
+    return handoverRecordSchema.parse(
+      await apiClient.delete<unknown, unknown>(
+        `${verifierPath(recordId)}/recipients/${id.parse(beneficiaryId)}`,
+      ),
     );
   },
   /** Đính kèm tệp căn cứ (multipart); bỏ Content-Type mặc định để trình duyệt tự đặt boundary. */

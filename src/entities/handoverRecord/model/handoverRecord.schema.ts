@@ -23,6 +23,11 @@ export const recordPersonSchema = z.object({
   fullName: z.string(),
   citizenId: z.string(),
   email: z.string().default(""),
+  /** Luật sư sửa, xóa được người này (do mình thêm ở biên bản đang lập, chưa gửi thư mời). */
+  canEdit: z.boolean().default(false),
+  /** Ngày sinh và số điện thoại chỉ có khi canEdit, để điền sẵn ô sửa. */
+  dateOfBirth: z.string().nullable().default(null),
+  phone: z.string().default(""),
 });
 
 /** Một người nhận trong biên bản: tài sản được nhận, danh tính và chữ ký. */

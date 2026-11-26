@@ -39,6 +39,8 @@ function validationMessages(errors: Record<string, string[]> | undefined): strin
 const handoverNotAllowedReasons: Record<string, string> = {
   NOTARY_CARD_REQUIRED: `Tài khoản của bạn chưa có ảnh thẻ luật sư. Hãy liên hệ quản trị viên qua ${SUPPORT_EMAIL} để nộp thẻ rồi mới duyệt được.`,
   PLAN_NOT_IN_HANDOVER: "Kế hoạch không còn ở giai đoạn bàn giao.",
+  RECIPIENT_NOT_EDITABLE:
+    "Người nhận này không sửa, xóa được nữa. Tải lại để xem trạng thái mới nhất.",
   WRONG_STATE:
     "Lượt này không còn ở bước phù hợp để thực hiện thao tác này (đã có người nhận, đã chuyển bước hoặc đã kết thúc).",
   OWN_TURN: "Lượt này do chính tài khoản của bạn nhận nên bạn không tự xác nhận được.",
