@@ -36,7 +36,7 @@ test.describe("Test Suite 2: Executor Flow", () => {
   test("2.1. Kiểm tra hiển thị khung 'Hướng dẫn từ...' tại URL /executor", async ({
     executorPage: page,
   }) => {
-    // Mock danh sách kho được giao cho Executor, có lời nhắn hướng dẫn của Chủ kho
+    // Mock danh sách kho được giao cho Executor, có lời nhắn hướng dẫn của Chủ tài sản
     await page.route("**/api/v1/executor/vaults", async (route) => {
       await route.fulfill({
         status: 200,
@@ -58,7 +58,7 @@ test.describe("Test Suite 2: Executor Flow", () => {
 
     await page.goto("/executor");
 
-    // Bước 1: Kiểm tra tiêu đề khung hiển thị đúng cú pháp "Hướng dẫn từ {Chủ kho}"
+    // Bước 1: Kiểm tra tiêu đề khung hiển thị đúng cú pháp "Hướng dẫn từ {Chủ tài sản}"
     const notePanelTitle = page.getByText("Hướng dẫn từ Nguyễn Văn Nam");
     await expect(notePanelTitle).toBeVisible();
 

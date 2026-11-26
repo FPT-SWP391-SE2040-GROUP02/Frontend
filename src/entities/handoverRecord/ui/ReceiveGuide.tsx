@@ -111,8 +111,8 @@ export function ReceiveGuide({
         />
       </summary>
       <p className="mt-2 text-sm leading-6 text-heritage-muted">
-        LegacyVault không tự biết khi nào Chủ kho qua đời, nên bạn cần chủ động gửi yêu cầu. Bấm một
-        bước để xem chi tiết.
+        LegacyVault không tự biết khi nào Chủ tài sản qua đời, nên bạn cần chủ động gửi yêu cầu. Bấm
+        một bước để xem chi tiết.
       </p>
       <ol className="mt-4" aria-label="Các bước nhận tài sản">
         {RECEIVE_STEP_TITLES.map((title, index) => (
@@ -127,7 +127,7 @@ export function ReceiveGuide({
         ))}
       </ol>
       <p className="mt-1 text-sm leading-6 text-heritage-muted">
-        Chưa được khai làm người nhận? Dùng mục Báo tin Chủ kho đã mất ở trang Nhận tài sản. Khi
+        Chưa được khai làm người nhận? Dùng mục Báo tin Chủ tài sản đã mất ở trang Nhận tài sản. Khi
         luật sư ghi bạn vào biên bản, bạn đi tiếp từ bước 3.
       </p>
     </details>

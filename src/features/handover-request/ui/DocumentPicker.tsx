@@ -1,94 +1,133 @@
-import { useId, type ChangeEvent } from "react";
-import { FileText, UploadCloud, X } from "lucide-react";
-import { formatStorageSize } from "@/shared/lib/formatStorageSize";
-import { ACCEPT_ATTRIBUTE } from "../model/handoverRequest.schema";
+import { useId, useRef, useState } from "react";
+import {
+  ACCEPT_ATTRIBUTE,
+  fileProblem,
+  MAX_FILES,
+  TOO_MANY_FILES_MESSAGE,
+} from "../model/handoverRequest.schema";
+import { FileDropZone, type Arrival } from "./FileDropZone";
+import { FilePreviewDialog } from "./FilePreviewDialog";
+import { PickedFileCard } from "./PickedFileCard";
+import "./documentPicker.css";
 
 /** Khóa nhận diện một tệp trong danh sách (tên + dung lượng + thời điểm sửa). */
 function fileKey(file: File): string {
   return `${file.name}-${file.size}-${file.lastModified}`;
 }
 
+/** Tách phần ghi chú trong ngoặc ở cuối nhãn, ví dụ "(bắt buộc)", để in nhạt hơn. */
+function splitLabel(label: string): [string, string] {
+  const match = /^(.*?)\s*(\([^()]*\))$/.exec(label);
+  if (!match) return [label, ""];
+  return [match[1], match[2]];
+}
+
 /**
- * Ô chọn nhiều tệp giấy tờ. Mỗi lần chọn thêm tệp vào danh sách (bỏ tệp trùng),
- * từng tệp bỏ được bằng nút X. Kiểm số lượng và dung lượng thuộc feature gọi nó.
+ * Ô chọn hoặc kéo thả nhiều tệp giấy tờ. Mỗi lần chọn thêm tệp vào danh sách (bỏ tệp trùng), tệp quá cỡ, sai loại
+ * hoặc vượt tổng số bị chặn ngay. `reserved` là số tệp đã chọn ở các ô khác trong cùng lần nộp.
+ * Việc bắt buộc đính kèm do feature gọi nó kiểm.
  */
 export function DocumentPicker({
   files,
   onChange,
   disabled,
   label = "Tệp giấy tờ",
+  reserved = 0,
 }: {
   files: File[];
   onChange: (files: File[]) => void;
   disabled?: boolean;
   label?: string;
+  reserved?: number;
 }) {
   const inputId = useId();
+  const [problems, setProblems] = useState<string[]>([]);
+  const [arrival, setArrival] = useState<Arrival | null>(null);
+  const [preview, setPreview] = useState<File | null>(null);
+  const arrivals = useRef(0);
+  const [title, hint] = splitLabel(label);
 
-  const handlePick = (event: ChangeEvent<HTMLInputElement>) => {
-    const picked = Array.from(event.target.files ?? []);
-    event.target.value = "";
-    if (picked.length === 0) return;
+  const add = (picked: File[]) => {
+    if (disabled || picked.length === 0) return;
     const known = new Set(files.map(fileKey));
-    const next = [...files];
+    const added: File[] = [];
+    const rejected: string[] = [];
     for (const file of picked) {
-      if (!known.has(fileKey(file))) {
+      if (known.has(fileKey(file))) continue;
+      const problem = fileProblem(file);
+      if (problem) {
+        rejected.push(problem);
+      } else if (reserved + files.length + added.length >= MAX_FILES) {
+        rejected.push(TOO_MANY_FILES_MESSAGE);
+        break;
+      } else {
         known.add(fileKey(file));
-        next.push(file);
+        added.push(file);
       }
     }
-    onChange(next);
+    setProblems(rejected);
+    if (added.length === 0) return;
+    arrivals.current += 1;
+    setArrival({ id: arrivals.current, files: added });
+    onChange([...files, ...added]);
   };
 
   const remove = (target: File) => {
+    setProblems([]);
+    setArrival(null);
     onChange(files.filter((file) => fileKey(file) !== fileKey(target)));
   };
 
+  let count = "Chưa có tệp";
+  let countStyle = "bg-heritage-sunken text-heritage-muted";
+  if (files.length > 0) {
+    count = `${files.length} tệp`;
+    countStyle = "bg-heritage-success-bg text-heritage-success";
+  }
+
   return (
-    <div className="space-y-3 text-sm">
-      <span className="block font-semibold text-heritage-primary">{label}</span>
-      <label
-        htmlFor={inputId}
-        className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-heritage-border-strong bg-white px-4 py-6 text-center hover:bg-heritage-sunken has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-heritage-gold-hover"
-      >
-        <UploadCloud className="size-6 text-heritage-primary" aria-hidden="true" />
+    <div className="space-y-2.5 text-sm">
+      <div className="flex items-center justify-between gap-3">
         <span className="font-semibold text-heritage-primary">
-          {files.length > 0 ? "Chọn thêm tệp" : "Chọn tệp giấy tờ"}
+          {title}
+          {hint && <span className="font-normal text-heritage-muted"> {hint}</span>}
         </span>
-        <span className="text-heritage-muted">PDF hoặc ảnh, tối đa 10 tệp, mỗi tệp 10 MB</span>
-        <input
-          id={inputId}
-          type="file"
-          multiple
-          accept={ACCEPT_ATTRIBUTE}
-          disabled={disabled}
-          aria-label={`${label} (PDF hoặc ảnh, tối đa 10 tệp, mỗi tệp 10 MB)`}
-          className="sr-only"
-          onChange={handlePick}
-        />
-      </label>
-      {files.length > 0 && (
-        <ul className="divide-y divide-heritage-border rounded-xl border border-heritage-border bg-white">
-          {files.map((file) => (
-            <li key={fileKey(file)} className="flex items-center gap-3 px-3 py-2.5">
-              <FileText className="size-5 shrink-0 text-heritage-muted" aria-hidden="true" />
-              <span className="w-0 min-w-0 flex-1 truncate" title={file.name}>
-                {file.name}
-              </span>
-              <span className="shrink-0 text-heritage-muted">{formatStorageSize(file.size)}</span>
-              <button
-                type="button"
-                disabled={disabled}
-                aria-label={`Bỏ tệp ${file.name}`}
-                className="-my-2 -mr-1 inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-heritage-muted hover:bg-heritage-sunken hover:text-heritage-danger focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold-hover disabled:pointer-events-none disabled:opacity-50"
-                onClick={() => remove(file)}
-              >
-                <X className="size-4" aria-hidden="true" />
-              </button>
-            </li>
+        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${countStyle}`}>
+          {count}
+        </span>
+      </div>
+      <FileDropZone
+        inputId={inputId}
+        inputLabel={`${label} (PDF hoặc ảnh, tối đa 10 tệp, mỗi tệp 10 MB)`}
+        accept={ACCEPT_ATTRIBUTE}
+        hasFiles={files.length > 0}
+        disabled={disabled}
+        arrival={arrival}
+        onArrivalEnd={() => setArrival(null)}
+        onFiles={add}
+      />
+      {problems.length > 0 && (
+        <ul role="alert" className="text-destructive">
+          {problems.map((problem, index) => (
+            <li key={`${index}-${problem}`}>{problem}</li>
           ))}
         </ul>
       )}
+      {files.length > 0 && (
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(17rem,100%),1fr))] gap-2.5">
+          {files.map((file) => (
+            <PickedFileCard
+              key={fileKey(file)}
+              file={file}
+              fresh={arrival?.files.includes(file) ?? false}
+              disabled={disabled}
+              onPreview={() => setPreview(file)}
+              onRemove={() => remove(file)}
+            />
+          ))}
+        </ul>
+      )}
+      <FilePreviewDialog file={preview} onClose={() => setPreview(null)} />
     </div>
   );
 }

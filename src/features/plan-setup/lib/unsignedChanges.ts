@@ -18,7 +18,7 @@ function addLine(lines: string[], count: number, text: string): void {
 
 /**
  * Đổi số đếm thay đổi của Backend sang câu tiếng Việt, mỗi loại thay đổi một dòng. Mọi thay đổi (xóa lẫn thêm) đều
- * cần Chủ kho ký lại; hai cờ chỉ dùng để nói đúng hệ quả trong lúc chờ ký lại.
+ * cần Chủ tài sản ký lại; hai cờ chỉ dùng để nói đúng hệ quả trong lúc chờ ký lại.
  */
 export function describeUnsignedChanges(
   changes: UnsignedChanges | null | undefined,

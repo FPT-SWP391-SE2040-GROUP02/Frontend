@@ -187,7 +187,7 @@ export function RecipientRecordPanel({
           <dl className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-x-4 gap-y-2.5 text-sm">
             <dt className="text-heritage-muted">Người nhận</dt>
             <dd className="font-semibold">{`${me.fullName} · CCCD ${me.citizenId}`}</dd>
-            <dt className="text-heritage-muted">Chủ kho</dt>
+            <dt className="text-heritage-muted">Chủ tài sản</dt>
             <dd className="font-semibold">{record.ownerName || "—"}</dd>
             <dt className="text-heritage-muted">Phần tài sản</dt>
             <dd>

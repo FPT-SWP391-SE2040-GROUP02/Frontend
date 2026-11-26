@@ -51,7 +51,7 @@ export function invitationInspectFailure(error: unknown, token: string): Invitat
         return {
           title: "Lời mời không còn dùng được",
           message:
-            "Lời mời đã hết hạn, đã bị thay bằng lời mời mới (khi Chủ kho gửi lại), đã bị thu hồi hoặc đã bị từ chối. Hãy nhờ Chủ kho gửi lại lời mời và dùng liên kết trong email mới nhất.",
+            "Lời mời đã hết hạn, đã bị thay bằng lời mời mới (khi Chủ tài sản gửi lại), đã bị thu hồi hoặc đã bị từ chối. Hãy nhờ Chủ tài sản gửi lại lời mời và dùng liên kết trong email mới nhất.",
           retryable: false,
         };
       return {

@@ -155,7 +155,7 @@ export function InviteDialog({
     defaultValues: { email: "" },
   });
   const selectedEmail = useWatch({ control: form.control, name: "email" });
-  // Điều khoản về vai trò Người thực thi: Chủ kho phải đồng ý trước khi gửi lời mời (nhân viên LegacyVault chỉ giữ hộ và giao tài sản theo biên bản của luật sư).
+  // Điều khoản về vai trò Người thực thi: Chủ tài sản phải đồng ý trước khi gửi lời mời (nhân viên LegacyVault chỉ giữ hộ và giao tài sản theo biên bản của luật sư).
   const [nominationAccepted, setNominationAccepted] = useState(false);
 
   /** Lý do không chọn được một người trong danh bạ (Backend vẫn là nơi quyết định cuối cùng). */
@@ -712,8 +712,8 @@ export interface ExecutorsSectionProps {
 }
 
 /**
- * Trang "Người thực thi": mỗi kho một người do Chủ kho mời; Người xét duyệt do hệ thống phân công.
- * Mọi thao tác (mời, thay người, gửi lại, thu hồi) do Chủ kho chủ động; kết quả và điều kiện do Backend quyết định.
+ * Trang "Người thực thi": mỗi kho một người do Chủ tài sản mời; Người xét duyệt do hệ thống phân công.
+ * Mọi thao tác (mời, thay người, gửi lại, thu hồi) do Chủ tài sản chủ động; kết quả và điều kiện do Backend quyết định.
  */
 export function ExecutorsSection({ vaultId, noteSlot }: ExecutorsSectionProps) {
   const query = usePlanSetup(vaultId);

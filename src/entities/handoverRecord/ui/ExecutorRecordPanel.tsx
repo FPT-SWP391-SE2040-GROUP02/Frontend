@@ -32,9 +32,9 @@ function WaitingForRequest() {
     <Panel title="Chưa có yêu cầu nhận tài sản" labelledBy="waiting-request">
       <div className="space-y-3 text-sm leading-6">
         <p>
-          Khi Chủ kho qua đời, người nhận sẽ gửi yêu cầu nhận tài sản kèm giấy tờ. Hệ thống báo cho
-          bạn và phân công một luật sư xét giấy tờ. Luật sư chấp nhận thì kho mới khóa, rồi lập biên
-          bản bàn giao.
+          Khi Chủ tài sản qua đời, người nhận sẽ gửi yêu cầu nhận tài sản kèm giấy tờ. Hệ thống báo
+          cho bạn và phân công một luật sư xét giấy tờ. Luật sư chấp nhận thì kho mới khóa, rồi lập
+          biên bản bàn giao.
         </p>
         <p className="text-heritage-muted">
           Bạn chỉ giữ mã nhận và giao tài sản theo biên bản luật sư lập. Bạn không tự chia, bán hay

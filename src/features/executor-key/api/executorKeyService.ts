@@ -7,8 +7,8 @@ function keyUrl(vaultId: string): string {
 }
 
 /**
- * Mã nhận của kho (BE ExecutorKeyController). Mã do server tạo khi Chủ kho ký kích hoạt và chỉ gửi cho người
- * nhận sau khi hồ sơ được duyệt; Chủ kho không cấp lần đầu và không bao giờ nhận lại mã gốc.
+ * Mã nhận của kho (BE ExecutorKeyController). Mã do server tạo khi Chủ tài sản ký kích hoạt và chỉ gửi cho người
+ * nhận sau khi hồ sơ được duyệt; Chủ tài sản không cấp lần đầu và không bao giờ nhận lại mã gốc.
  */
 export const executorKeyService = {
   async getStatus(vaultId: string, signal?: AbortSignal) {

@@ -50,7 +50,7 @@ function Badge({ count }: { count: number }) {
 export function RecipientLayout({ active, activeTurnId, children }: RecipientLayoutProps) {
   const user = useSelector((state: { auth: AuthState }) => state.auth.user);
   const fullName = user?.fullName;
-  // Chỉ tài khoản đã có kho (Chủ kho) mới có nút sang vai Chủ kho; không cấp quyền gì, Backend vẫn kiểm tra từng request.
+  // Chỉ tài khoản đã có kho (Chủ tài sản) mới có nút sang vai Chủ tài sản; không cấp quyền gì, Backend vẫn kiểm tra từng request.
   // Chỉ ĐỌC kho (getMine), không dùng hook tự tạo kho: người nhận thuần túy không được vô tình có thêm một kho.
   const vault = useQuery({
     queryKey: ["recipient-layout", "owner-vault"],
@@ -147,7 +147,7 @@ export function RecipientLayout({ active, activeTurnId, children }: RecipientLay
               className="mb-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-heritage-gold-soft px-4 text-sm font-semibold text-heritage-primary hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
             >
               <ArrowLeftRight className="size-4" aria-hidden="true" />
-              Sang vai Chủ kho
+              Sang vai Chủ tài sản
             </Link>
           )}
           <img

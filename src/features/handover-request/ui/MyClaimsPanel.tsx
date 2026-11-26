@@ -81,7 +81,7 @@ export function MyClaimsPanel() {
           Bạn chưa gửi yêu cầu nhận tài sản nào.
         </p>
         <p className="text-sm text-heritage-muted">
-          Khi Chủ kho đã qua đời, bạn gửi yêu cầu kèm di chúc ở trang Nhận tài sản. Luật sư xét
+          Khi Chủ tài sản đã qua đời, bạn gửi yêu cầu kèm di chúc ở trang Nhận tài sản. Luật sư xét
           xong, kết quả hiện ở đây.
         </p>
         <Link to={ROUTES.DASHBOARD.RECEIVE_ASSETS} className={buttonStyles.outline}>

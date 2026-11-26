@@ -21,12 +21,12 @@ test.use({
 
 test.describe.serial("Deep Interactive Walkthrough - Full End-to-End Across 5 Actors", () => {
   // =========================================================================
-  // GIAI ĐOẠN 1: CHỦ KHO THIẾT LẬP KHO, TÀI SẢN, NGƯỜI THỪA KẾ & DMS
+  // GIAI ĐOẠN 1: CHỦ TÀI SẢN THIẾT LẬP KHO, TÀI SẢN, NGƯỜI THỪA KẾ & DMS
   // =========================================================================
-  test("Giai đoạn 1: Chủ kho thiết lập kho, quản lý tài sản, người nhận và điểm danh DMS", async ({
+  test("Giai đoạn 1: Chủ tài sản thiết lập kho, quản lý tài sản, người nhận và điểm danh DMS", async ({
     page,
   }) => {
-    // 1.1 Đăng nhập Chủ kho
+    // 1.1 Đăng nhập Chủ tài sản
     await page.goto("/login");
     await page.waitForLoadState("networkidle");
     await page.locator("#login-email").fill("owner1@legacyvault.vn");

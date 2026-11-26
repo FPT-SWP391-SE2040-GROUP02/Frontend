@@ -13,7 +13,7 @@ const STAGE_COLOR: Record<Tone, string> = {
 };
 
 /**
- * Thẻ "Đang làm việc với kho" ở đầu menu trái: chỉ hiển thị kho đang chọn (chữ cái đầu tên Chủ kho, tên Chủ kho,
+ * Thẻ "Đang làm việc với kho" ở đầu menu trái: chỉ hiển thị kho đang chọn (chữ cái đầu tên Chủ tài sản, tên Chủ tài sản,
  * trạng thái gọn), không bấm được. Đổi kho chỉ làm ở trang "Lời mời và các kho bạn đang làm việc" qua liên kết
  * "Đổi kho →". Chưa giữ kho nào thì không hiện khối này; lời mời đã có lối vào riêng ở menu.
  * Quyền trên từng kho vẫn do Backend kiểm tra.

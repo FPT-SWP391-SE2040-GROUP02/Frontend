@@ -20,7 +20,7 @@ export class WillPinNotConfirmedError extends Error {
   }
 }
 
-/** PIN đã xác nhận khi mở khung, chỉ giữ trong RAM của khung để khỏi bắt nhập lại (lúc tải lại và ở ô ký). */
+/** PIN đã xác nhận khi mở khung, chỉ giữ trong RAM của khung để khỏi bắt nhập lại lúc tải lại. */
 export interface WillPinMemory {
   getPin: () => string;
   remember: (pin: string) => void;
@@ -31,19 +31,10 @@ export interface WillPinMemory {
  * trong cache: staleTime 0 và gcTime 0 để dữ liệu nhạy cảm mất ngay khi khung đóng; không tự gọi lại, không retry.
  * Backend đòi PIN kho: hỏi một lần qua hộp thoại PIN chung, PIN đúng được nhớ để dùng lại, không hỏi lần hai.
  */
-export function useWillIdentity(
-  vaultId: string,
-  enabled: boolean,
-  memory: WillPinMemory,
-  /** true: PIN do người dùng gõ ở chân khung ký, gửi thẳng không mở hộp thoại PIN (lỗi PIN báo ở chân khung). */
-  typedPin = false,
-) {
+export function useWillIdentity(vaultId: string, enabled: boolean, memory: WillPinMemory) {
   return useQuery({
     queryKey: willIdentityQueryKey(vaultId),
     queryFn: async ({ signal }) => {
-      if (typedPin) {
-        return planSetupService.getWillIdentity(vaultId, signal, memory.getPin() || undefined);
-      }
       const box: { value?: z.infer<typeof willIdentitySchema> } = {};
       const result = await confirmVaultPin(vaultId, async (typed) => {
         box.value = await planSetupService.getWillIdentity(

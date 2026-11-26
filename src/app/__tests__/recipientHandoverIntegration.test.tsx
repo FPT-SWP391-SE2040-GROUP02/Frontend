@@ -63,7 +63,7 @@ const COMPLETED_RECORD = {
   id: "0198a000-0000-7000-8000-000000000003",
   vaultId: VAULT_ID,
   vaultName: "Kho thử",
-  ownerName: "Chủ kho thử",
+  ownerName: "Chủ tài sản thử",
   status: "COMPLETED",
   revisionNo: 1,
   requestedAt: CREATED_AT,
@@ -130,7 +130,7 @@ function problem(config: never, status: number, body: object) {
 const INVITATION = {
   turnId: CONTAINER_ID,
   containerName: "Gói thử",
-  ownerFullName: "Chủ kho thử",
+  ownerFullName: "Chủ tài sản thử",
   invitedAt: CREATED_AT,
 };
 function backendInvites(onPost: (config: InternalAxiosRequestConfig) => AxiosResponse) {
@@ -270,7 +270,7 @@ it("shows the Backend reason when claiming an invitation is rejected", async () 
   });
   setup(<TurnHub />);
   fireEvent.click(await screen.findByRole("button", { name: /^Bắt đầu ngay/ }));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Chủ kho không thể tự nhận");
+  expect(await screen.findByRole("alert")).toHaveTextContent("Chủ tài sản không thể tự nhận");
 });
 
 it("formats the remaining time from server time", () => {

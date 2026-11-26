@@ -91,7 +91,7 @@ function progressHandler(
     }
   };
 }
-/** Transport eKYC của Chủ kho; không retry gửi ảnh, không tự quyết PASSED. */
+/** Transport eKYC của Chủ tài sản; không retry gửi ảnh, không tự quyết PASSED. */
 export const ekycService = {
   /** Xác nhận bản tự khai sau khi người dùng sửa; không nâng kết quả đối chiếu ảnh. */
   async confirmDocument(request: z.input<typeof ekycDocumentConfirmationSchema>) {

@@ -30,7 +30,7 @@ describe("ReceiveGuide", () => {
     const items = stepItems();
     expect(items).toHaveLength(6);
     RECEIVE_STEP_TITLES.forEach((title, index) => expect(items[index]).toHaveTextContent(title));
-    expect(screen.getByText(/không tự biết khi nào Chủ kho qua đời/)).toBeInTheDocument();
+    expect(screen.getByText(/không tự biết khi nào Chủ tài sản qua đời/)).toBeInTheDocument();
     expect(screen.queryByText("Bạn đang ở đây")).not.toBeInTheDocument();
   });
 

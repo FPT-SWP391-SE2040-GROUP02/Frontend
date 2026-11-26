@@ -16,11 +16,11 @@ export const OWNER_OVERVIEW = {
   preview: "Bản xem trước UI · Dữ liệu minh họa",
   notice: "Các số liệu dưới đây là dữ liệu mẫu. Điểm danh chưa được thực thi trên màn hình này.",
   owner: "Anh Nam",
-  role: "Chủ kho",
+  role: "Chủ tài sản",
   greeting: "Chào anh Nam,",
   subtitle: "Một nơi để sắp xếp những điều quan trọng với anh.",
   add: "Thêm tài sản",
-  navLabel: "Điều hướng Chủ kho",
+  navLabel: "Điều hướng Chủ tài sản",
   nav: [
     { label: "Tổng quan", to: ROUTES.DASHBOARD.ROOT, icon: OverviewIcon, active: true },
     { label: "Kho của tôi", to: ROUTES.DASHBOARD.ASSETS, icon: VaultIcon, active: false },

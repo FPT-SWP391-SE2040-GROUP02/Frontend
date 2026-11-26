@@ -14,7 +14,7 @@ export function BeneficiaryPortalPage() {
   const accountName = useSelector((state: { auth: AuthState }) => state.auth.user?.fullName);
   /** Cùng khóa với danh sách lượt trong thanh bên nên chỉ gọi API một lần. */
   const overview = useTurnOverview();
-  /** Ưu tiên tên Chủ kho đã chỉ định cho người nhận, không có thì dùng tên tài khoản. */
+  /** Ưu tiên tên Chủ tài sản đã chỉ định cho người nhận, không có thì dùng tên tài khoản. */
   const designatedName = overview.entries.find((entry) => entry.turn.recipientFullName)?.turn
     .recipientFullName;
   const fullName = designatedName ?? accountName;

@@ -159,7 +159,7 @@ export function BeneficiaryForm({
           }
         }),
         email: z.string().superRefine((value, ctx) => {
-          // Email bắt buộc và không trùng email Chủ kho.
+          // Email bắt buộc và không trùng email Chủ tài sản.
           const trimmed = value.trim();
           let message = "";
           if (!trimmed) {
@@ -169,7 +169,7 @@ export function BeneficiaryForm({
           } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
             message = "Email không hợp lệ.";
           } else if (ownerEmail && trimmed.toLowerCase() === ownerEmail.trim().toLowerCase()) {
-            message = "Email người thụ hưởng không được trùng với email của Chủ kho.";
+            message = "Email người thụ hưởng không được trùng với email của Chủ tài sản.";
           }
           if (message !== "") {
             ctx.addIssue({ code: "custom", message });

@@ -27,7 +27,7 @@ function matches(executor: SystemExecutor, keyword: string): boolean {
 }
 
 /**
- * Danh sách người thực thi hệ thống: Chủ kho tìm và chọn một người thay cho việc gõ email tự do.
+ * Danh sách người thực thi hệ thống: Chủ tài sản tìm và chọn một người thay cho việc gõ email tự do.
  * Danh sách và quyền mời đều do Backend quyết định; ở đây chỉ hiển thị và lọc theo chữ.
  */
 export function SystemExecutorDirectory({

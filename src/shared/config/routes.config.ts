@@ -42,7 +42,7 @@ export const ROUTES = {
     /** Tab "Phân chia" của Kho của tôi: gán từng tài sản cho người nhận. */
     ASSIGNMENTS: "/dashboard/assets?tab=assignments",
     BENEFICIARIES: "/dashboard/beneficiaries",
-    /** Trang Người thực thi của Chủ kho (tên đường dẫn giữ nguyên để không phá link). */
+    /** Trang Người thực thi của Chủ tài sản (tên đường dẫn giữ nguyên để không phá link). */
     TRUSTED_PEOPLE: "/dashboard/trusted-people",
     AUDIT_LOG: "/dashboard/audit-log",
     USERS: "/dashboard/users",
@@ -90,7 +90,7 @@ export const ROUTES = {
     ROOT: "/executor",
     REPORT: "/executor/report",
     PROGRESS: "/executor/progress",
-    /** Mục Biên Bản: điền Phần 1 về Chủ kho, ký và xem lại mọi biên bản của các kho mình làm Người thực thi. */
+    /** Mục Biên Bản: điền Phần 1 về Chủ tài sản, ký và xem lại mọi biên bản của các kho mình làm Người thực thi. */
     DOCUMENTS: "/executor/documents",
     /** Danh sách tài sản của kho theo từng gói (chỉ danh sách, không có nội dung). */
     ASSETS: "/executor/assets",

@@ -30,10 +30,10 @@ function filesForm(
   return form;
 }
 
-/** Người nhận gửi yêu cầu nhận tài sản kèm giấy tờ; Chủ kho xem và hủy yêu cầu đang mở của kho. */
+/** Người nhận gửi yêu cầu nhận tài sản kèm giấy tờ; Chủ tài sản xem và hủy yêu cầu đang mở của kho. */
 export const handoverRequestService = {
   /**
-   * Gửi yêu cầu bằng tài khoản đã đăng nhập (email đã xác minh khớp email Chủ kho khai), không cần link riêng.
+   * Gửi yêu cầu bằng tài khoản đã đăng nhập (email đã xác minh khớp email Chủ tài sản khai), không cần link riêng.
    * Multipart: bỏ Content-Type mặc định để trình duyệt tự đặt boundary.
    */
   async submitByAccount(vaultId: string, note: string, wills: File[], files: File[]) {

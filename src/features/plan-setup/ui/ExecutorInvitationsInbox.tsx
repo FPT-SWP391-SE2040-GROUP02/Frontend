@@ -16,7 +16,7 @@ import { SigningStep, SigningSteps, type SigningStepState } from "@/shared/ui/Si
 
 /**
  * Lời mời làm Người thực thi trong không gian Người thực thi. Dùng cùng API và cùng luật xác nhận với
- * MyInvitationsInbox của Chủ kho: phải tick "đã đọc" mới Chấp nhận được, Backend kiểm email và phạm vi.
+ * MyInvitationsInbox của Chủ tài sản: phải tick "đã đọc" mới Chấp nhận được, Backend kiểm email và phạm vi.
  * Không hiện hạn của lời mời; lời mời đã kết thúc gom thành một dòng nhỏ.
  */
 export function ExecutorInvitationsInbox() {
@@ -113,7 +113,7 @@ function PendingCard({
   const checkboxId = useId();
   const client = useQueryClient();
   const [acknowledge, setAcknowledge] = useState(false);
-  // Phiên bản đã mở xem; Chủ kho ký bản khác thì phải xem lại và tick lại.
+  // Phiên bản đã mở xem; Chủ tài sản ký bản khác thì phải xem lại và tick lại.
   const [readVersion, setReadVersion] = useState<number | null>(null);
   const versionNo = invitation.willVersionNo ?? null;
   const read = invitation.willReady && versionNo !== null && readVersion === versionNo;
@@ -253,8 +253,8 @@ function PendingCard({
             </div>
           ) : (
             <p role="status" className="text-sm leading-6 text-heritage-muted">
-              Chủ kho chưa ký biên bản phân chia. Khi Chủ kho ký xong, bạn mới ký nhận vai hoặc từ
-              chối được.
+              Chủ tài sản chưa ký biên bản phân chia. Khi Chủ tài sản ký xong, bạn mới ký nhận vai
+              hoặc từ chối được.
             </p>
           )}
           {action.error && passwordError === null && (
@@ -267,7 +267,7 @@ function PendingCard({
       {askingDecline && (
         <DeclineConfirmDialog
           title="Từ chối lời mời này?"
-          description={`Bạn sẽ không làm Người thực thi cho kho của ${invitation.ownerName}. Muốn nhận lại thì Chủ kho phải gửi lời mời mới.`}
+          description={`Bạn sẽ không làm Người thực thi cho kho của ${invitation.ownerName}. Muốn nhận lại thì Chủ tài sản phải gửi lời mời mới.`}
           confirmLabel="Từ chối lời mời"
           onClose={() => setAskingDecline(false)}
           onConfirm={() => {

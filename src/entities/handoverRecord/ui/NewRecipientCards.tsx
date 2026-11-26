@@ -1,9 +1,7 @@
 import { useId } from "react";
 import { X } from "lucide-react";
-import { buttonStyles } from "@/shared/ui/heritageKit";
 import type { HandoverRecord } from "../model/handoverRecord.schema";
 import {
-  emptyRecipientDraft,
   RECIPIENT_FIELDS,
   type RecipientDraft,
   type RecipientDraftErrors,
@@ -146,6 +144,8 @@ export function NewRecipientCards({
   disabled: boolean;
   onChange: (next: RecipientDraft[]) => void;
 }) {
+  // Chưa nhập ai và hồ sơ cũng không khai ai thì không chiếm chỗ.
+  if (drafts.length === 0 && !prefilled && skipped.length === 0) return null;
   return (
     <section aria-label="Người nhận trong di chúc" className="space-y-3">
       <h3 className="font-semibold text-heritage-primary">Người nhận trong di chúc</h3>
@@ -178,14 +178,6 @@ export function NewRecipientCards({
           onRemove={() => onChange(drafts.filter((item) => item.key !== draft.key))}
         />
       ))}
-      <button
-        type="button"
-        className={buttonStyles.outline}
-        disabled={disabled}
-        onClick={() => onChange([...drafts, emptyRecipientDraft()])}
-      >
-        Thêm người nhận
-      </button>
     </section>
   );
 }

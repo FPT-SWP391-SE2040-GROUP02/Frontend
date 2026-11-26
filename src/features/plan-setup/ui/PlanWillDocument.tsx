@@ -6,7 +6,6 @@ import {
   pickOwnerSignedAt,
   pickWillExecutor,
   pickWillRecipients,
-  pickWillVersion,
 } from "../lib/willView";
 import type { planSetupSchema } from "../model/planSetup.schema";
 import type { WillIdentity } from "../model/willIdentity.schema";
@@ -15,8 +14,8 @@ type PlanSetup = z.infer<typeof planSetupSchema>;
 
 /**
  * Biên bản phân chia của kho, sinh từ dữ liệu kế hoạch bàn giao (plan-setup) và danh tính đầy đủ (`identity`, do nơi gọi tải qua
- * useWillIdentity). Họ tên và email Chủ kho lấy từ Backend; Backend cũ chưa trả thì dùng `ownerFallback` (tài khoản đang
- * đăng nhập). Có danh tính eKYC của Chủ kho thì dùng họ tên trên giấy tờ. `identityStatus` mặc định "none": không in
+ * useWillIdentity). Họ tên và email Chủ tài sản lấy từ Backend; Backend cũ chưa trả thì dùng `ownerFallback` (tài khoản đang
+ * đăng nhập). Có danh tính eKYC của Chủ tài sản thì dùng họ tên trên giấy tờ. `identityStatus` mặc định "none": không in
  * ngày sinh, CCCD, thường trú. Không gọi thêm API.
  */
 export function PlanWillDocument({
@@ -66,7 +65,6 @@ export function PlanWillDocument({
       onGapClick={onGapClick}
       identityStatus={identityStatus}
       ownerIdentity={ownerIdentity}
-      version={pickWillVersion(setup)}
     />
   );
 }

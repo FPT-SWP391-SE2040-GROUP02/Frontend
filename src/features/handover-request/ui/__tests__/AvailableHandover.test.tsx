@@ -231,7 +231,7 @@ describe("Trang Nhận tài sản: danh sách", () => {
   });
 });
 
-describe("Thẻ trên Tổng quan Chủ kho", () => {
+describe("Thẻ trên Tổng quan Chủ tài sản", () => {
   it("không hiện khi không có dòng cần làm", async () => {
     const get = vi
       .spyOn(apiClient, "get")
@@ -250,7 +250,7 @@ describe("Thẻ trên Tổng quan Chủ kho", () => {
     expect(screen.queryByRole("region", { name: "Tài sản được để lại cho bạn" })).toBeNull();
   });
 
-  it("một kho cần làm: ghi tên Chủ kho và nút tới trang Nhận tài sản", async () => {
+  it("một kho cần làm: ghi tên Chủ tài sản và nút tới trang Nhận tài sản", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([
       row({ status: "CODE_READY", needsAction: true }),
     ]);

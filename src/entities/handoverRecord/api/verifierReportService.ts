@@ -7,7 +7,7 @@ import type { TransferOptions } from "@/shared/lib/useTransfer";
 const id = z.string().uuid();
 const base = "/verifier/handover-reports";
 
-/** Luật sư xét hồ sơ báo tin Chủ kho đã mất. */
+/** Luật sư xét hồ sơ báo tin Chủ tài sản đã mất. */
 export const verifierReportService = {
   async list(signal?: AbortSignal) {
     return z

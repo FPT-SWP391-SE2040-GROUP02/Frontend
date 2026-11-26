@@ -144,7 +144,7 @@ function TurnBody({ turn }: { turn: Turn }) {
   const submission = useLatestSubmission(turn.id, verifying);
   const view = describeTurn(turn, submission.data);
   const hasRecord = turn.status === "READY_TO_ACCEPT" || turn.status === "HANDOVER_COMMITTED";
-  // Biên bản cho tên Chủ kho và Người thực thi (lượt không có hai tên này); dùng chung một lần tải với khung ký.
+  // Biên bản cho tên Chủ tài sản và Người thực thi (lượt không có hai tên này); dùng chung một lần tải với khung ký.
   const record = useRecipientRecord(turn.id, hasRecord);
   const executorName = record.data?.executorName;
   const name = turn.container?.name ?? "Lượt bàn giao";
@@ -506,7 +506,7 @@ function TurnBody({ turn }: { turn: Turn }) {
           )}
           <Panel title="Thông tin hồ sơ bàn giao" labelledBy="turn-info">
             <dl className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-x-3.5 gap-y-2.5 text-sm">
-              {ownerName && <Row label="Chủ kho">{ownerName}</Row>}
+              {ownerName && <Row label="Chủ tài sản">{ownerName}</Row>}
               <Row label="Phần để lại">{name}</Row>
               {turn.reviewer && (
                 <Row label="Luật sư phụ trách">

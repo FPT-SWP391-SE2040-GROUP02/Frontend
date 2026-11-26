@@ -5,7 +5,7 @@ import { VerifierShell } from "@/widgets/VerifierWorkspace/VerifierShell";
 export function VerifierHistoryPage() {
   return (
     <VerifierShell
-      title="Biên bản đã hoàn tất"
+      title="Đã hoàn tất"
       description="Các biên bản mà luật sư, Người thực thi và mọi người nhận đã ký. Mỗi người nhận được mở phần của mình khi có đủ chữ ký của luật sư, Người thực thi và của chính người đó."
     >
       <VerifierQueue scope="closed" />

@@ -27,8 +27,8 @@ export const caseStatusInfo: Record<string, { label: string; tone: Tone }> = {
 
 /** Mã phần cần bổ sung / còn thiếu của hồ sơ (missingRequirements, requestedParts) bằng tiếng Việt. */
 export const requirementLabels: Record<string, string> = {
-  OWNER_FULL_NAME: "Họ tên Chủ kho",
-  OWNER_CITIZEN_ID: "Số CCCD Chủ kho",
+  OWNER_FULL_NAME: "Họ tên Chủ tài sản",
+  OWNER_CITIZEN_ID: "Số CCCD Chủ tài sản",
   DATE_OF_DEATH: "Ngày mất",
   CERTIFICATE_NUMBER: "Số giấy chứng tử",
   ISSUED_ON: "Ngày cấp",

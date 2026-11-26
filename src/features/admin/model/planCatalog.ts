@@ -18,7 +18,7 @@ export interface PaidPlanMeta {
   /** Giá mặc định theo cấu hình gốc, chỉ để hiển thị khi chưa có dòng trong DB. */
   priceDefaults: Record<number, string>;
   quotaDefault: string;
-  /** Mô tả tính năng hiển thị khi Admin chưa viết (trùng mặc định ở trang gói của chủ kho). */
+  /** Mô tả tính năng hiển thị khi Admin chưa viết (trùng mặc định ở trang gói của chủ tài sản). */
   featureDefaults: readonly string[];
 }
 

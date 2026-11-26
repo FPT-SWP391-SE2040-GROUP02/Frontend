@@ -16,7 +16,7 @@ export function OwnerOverviewPlan({ data, aside }: { data: OverviewResources; as
           to: ROUTES.DASHBOARD.ASSETS,
         },
         {
-          label: "Xác minh danh tính Chủ kho",
+          label: "Xác minh danh tính Chủ tài sản",
           done: !setup.missingRequirements.includes("OWNER_EKYC_REQUIRED"),
           to: ROUTES.DASHBOARD.IDENTITY,
         },
@@ -90,7 +90,7 @@ export function OwnerOverviewPlan({ data, aside }: { data: OverviewResources; as
       </div>
       <div className="overview-panel-row">
         {aside}
-        <section className="overview-identity" aria-label="Xác minh danh tính Chủ kho">
+        <section className="overview-identity" aria-label="Xác minh danh tính Chủ tài sản">
           <TrustedIcon className="size-6 text-heritage-gold shrink-0" aria-hidden="true" />
           <div>
             <h2>Xác minh danh tính</h2>

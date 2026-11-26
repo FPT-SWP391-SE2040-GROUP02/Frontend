@@ -1,7 +1,7 @@
 import { OwnerWorkspace } from "@/widgets/OwnerWorkspace/OwnerWorkspace";
 import { OwnerSection } from "@/widgets/OwnerWorkspace/OwnerSection";
 
-/** Trang Người thực thi của Chủ kho (đường dẫn vẫn là trusted-people); chỉ đọc dữ liệu Backend đã xác nhận. */
+/** Trang Người thực thi của Chủ tài sản (đường dẫn vẫn là trusted-people); chỉ đọc dữ liệu Backend đã xác nhận. */
 export function TrustedPeoplePage() {
   return (
     <OwnerWorkspace

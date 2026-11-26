@@ -47,9 +47,9 @@ const verifierNavigation: NavGroup[] = [
   {
     heading: "Việc cần làm",
     items: [
-      { label: "Biên bản bàn giao", to: ROUTES.NOTARY.QUEUE, icon: ListChecks, badge: "cases" },
+      { label: "Đang lập biên bản", to: ROUTES.NOTARY.QUEUE, icon: ListChecks, badge: "cases" },
       {
-        label: "Danh tính người nhận",
+        label: "Kiểm tra CCCD",
         to: ROUTES.NOTARY.RECIPIENTS,
         icon: Users,
         badge: "recipients",
@@ -58,7 +58,7 @@ const verifierNavigation: NavGroup[] = [
   },
   {
     heading: "Đã xử lý",
-    items: [{ label: "Biên bản đã hoàn tất", to: ROUTES.NOTARY.HISTORY, icon: Clock }],
+    items: [{ label: "Đã hoàn tất", to: ROUTES.NOTARY.HISTORY, icon: Clock }],
   },
   {
     heading: "Khác",

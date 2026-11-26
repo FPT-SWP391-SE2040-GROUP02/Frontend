@@ -341,7 +341,7 @@ export function AppRoutes() {
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
 
         {/* ========================================================================
-          5. TUYẾN ĐƯỜNG BẢO VỆ — Chủ Kho Di Sản (Vault Owner & Admin)
+          5. TUYẾN ĐƯỜNG BẢO VỆ — Chủ Tài Sản (Vault Owner & Admin)
          ======================================================================== */}
         <Route element={<ProtectedRoute allowedRoles={[ROLES.USER]} />}>
           <Route path={ROUTES.DASHBOARD.ROOT} element={<OwnerOverviewPage />} />
@@ -366,7 +366,7 @@ export function AppRoutes() {
             element={<Navigate to={ROUTES.WILLS.ROOT} replace />}
           />
           <Route path="/wills/new" element={<WillWizardPage />} />
-          {/* Đã bỏ điểm danh: đường dẫn cũ về trang tổng quan của Chủ kho. */}
+          {/* Đã bỏ điểm danh: đường dẫn cũ về trang tổng quan của Chủ tài sản. */}
           <Route path={ROUTES.DMS.ROOT} element={<Navigate to={ROUTES.DASHBOARD.ROOT} replace />} />
           <Route
             path={ROUTES.DMS.CONFIG}
@@ -381,7 +381,7 @@ export function AppRoutes() {
         {/* ========================================================================
           6. TUYẾN ĐƯỜNG BẢO VỆ — Người Thi Hành Di Chúc (Digital Executor)
          ======================================================================== */}
-        {/* Người thực thi là tài khoản thường được Chủ kho mời; Admin/Verifier mở nhầm thì về trang của họ. */}
+        {/* Người thực thi là tài khoản thường được Chủ tài sản mời; Admin/Verifier mở nhầm thì về trang của họ. */}
         <Route
           element={<ProtectedRoute allowedRoles={[ROLES.USER, ROLES.EXECUTOR]} wrongRoleGoesHome />}
         >

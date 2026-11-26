@@ -8,7 +8,7 @@ export const beneficiaryResponseSchema = z.object({
   dateOfBirth: date,
   email: z.string().nullable(),
   phone: z.string().nullable(),
-  /** Lời nhắn Chủ kho để lại cho người nhận, gửi kèm thư mời nhận tài sản. Backend cũ chưa gửi thì null. */
+  /** Lời nhắn Chủ tài sản để lại cho người nhận, gửi kèm thư mời nhận tài sản. Backend cũ chưa gửi thì null. */
   message: z.string().nullable().default(null),
   assetIds: z.array(z.string().uuid()),
   createdAt: z.string().datetime({ offset: true }),

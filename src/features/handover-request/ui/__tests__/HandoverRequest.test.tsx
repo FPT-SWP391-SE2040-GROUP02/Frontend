@@ -214,7 +214,7 @@ describe("Yêu cầu nhận tài sản của tôi", () => {
   });
 });
 
-describe("Chủ kho thấy yêu cầu nhận tài sản", () => {
+describe("Chủ tài sản thấy yêu cầu nhận tài sản", () => {
   it("hiện người gửi và không có nút hủy", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue({
       recordId: RECORD_ID,
@@ -231,7 +231,7 @@ describe("Chủ kho thấy yêu cầu nhận tài sản", () => {
     expect(screen.queryByRole("button", { name: "Hủy yêu cầu" })).not.toBeInTheDocument();
   });
 
-  it("kho chưa khóa thì báo luật sư đang xét và Chủ kho vẫn sửa được kho", async () => {
+  it("kho chưa khóa thì báo luật sư đang xét và Chủ tài sản vẫn sửa được kho", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue({
       recordId: RECORD_ID,
       status: "DRAFTING",

@@ -76,7 +76,7 @@ export function ReceiptPaper({
         </li>
         <li>
           <span className="font-bold">Kho tài sản: </span>
-          {orBlank(record.vaultName)}, của Chủ kho {orBlank(record.ownerName)}.
+          {orBlank(record.vaultName)}, của Chủ tài sản {orBlank(record.ownerName)}.
         </li>
       </ol>
 

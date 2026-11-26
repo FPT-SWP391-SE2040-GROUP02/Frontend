@@ -18,7 +18,7 @@ import {
 /**
  * Bản OCR chỉ ở RAM: xác nhận → chuyển sang thử thách camera sau phản hồi BE.
  * Số căn cước luôn khóa theo bản máy đọc (Backend kiểm tra trùng CCCD trên số đọc từ ảnh).
- * Chủ kho sửa được họ tên, ngày sinh vì Backend lưu bản Chủ kho xác nhận làm danh tính (đã gửi thì khóa).
+ * Chủ tài sản sửa được họ tên, ngày sinh vì Backend lưu bản Chủ tài sản xác nhận làm danh tính (đã gửi thì khóa).
  * Nơi cư trú luôn sửa được.
  */
 export function EkycReviewForm({
@@ -83,7 +83,7 @@ export function EkycReviewForm({
     statusStyle = "bg-heritage-success-bg text-heritage-success";
   }
 
-  // Chủ kho sửa được họ tên, ngày sinh cho đến khi đã gửi; số căn cước luôn khóa theo bản máy đọc.
+  // Chủ tài sản sửa được họ tên, ngày sinh cho đến khi đã gửi; số căn cước luôn khóa theo bản máy đọc.
   const nameAndBirthLocked = confirmed;
   const lockedStyle = "bg-heritage-sunken";
   let birthClass = "min-h-11 w-full min-w-0";

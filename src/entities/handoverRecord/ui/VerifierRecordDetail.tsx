@@ -1,3 +1,4 @@
+import { compactButton } from "@/shared/ui/SectionCard";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -111,14 +112,20 @@ function CancelRecordPanel({ record }: { record: HandoverRecord }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   return (
-    <Panel title="Hủy biên bản" labelledBy="record-cancel">
+    <section
+      aria-labelledby="record-cancel"
+      className="rounded-2xl border border-heritage-danger-border bg-heritage-surface p-4"
+    >
       <div className="space-y-3 text-sm leading-6">
+        <h2 id="record-cancel" className="font-semibold text-heritage-danger">
+          Hủy biên bản này
+        </h2>
         <p className="text-heritage-muted">
-          Dùng khi mở nhầm hoặc giấy tờ sai. Kho mở khóa; Chủ kho và Người thực thi được báo. Hủy
-          rồi không khôi phục được.
+          Dùng khi mở nhầm hoặc giấy tờ sai. Kho mở khóa; Chủ tài sản và Người thực thi được báo.
+          Hủy rồi không khôi phục được.
         </p>
         {!open && (
-          <button type="button" className={buttonStyles.outline} onClick={() => setOpen(true)}>
+          <button type="button" className={compactButton.danger} onClick={() => setOpen(true)}>
             Hủy biên bản
           </button>
         )}
@@ -168,7 +175,7 @@ function CancelRecordPanel({ record }: { record: HandoverRecord }) {
           </p>
         )}
       </div>
-    </Panel>
+    </section>
   );
 }
 
@@ -245,19 +252,28 @@ export function VerifierRecordDetail({
       {record.status === "CANCELLED" && (
         <Notice tone="neutral" title="Bạn đã hủy biên bản này">
           {record.cancelReason ? `Lý do: ${record.cancelReason}. ` : ""}
-          Biên bản này không còn hiệu lực. Kho đã mở khóa cho Chủ kho.
+          Biên bản này không còn hiệu lực. Kho đã mở khóa cho Chủ tài sản.
         </Notice>
       )}
-      {record.status === "DRAFTING" && <RecordReportsPanel record={record} />}
-      {record.status === "DRAFTING" &&
-        (record.claims.length > 0 || record.reports.length === 0) && (
-          <ClaimsReviewPanel record={record} />
-        )}
       {record.status === "DRAFTING" && (
-        <RecordLinesEditor key={`${record.id}-${record.revisionNo}`} record={record} />
+        <RecordLinesEditor
+          key={`${record.id}-${record.revisionNo}`}
+          record={record}
+          before={
+            <>
+              <RecordReportsPanel record={record} />
+              {(record.claims.length > 0 || record.reports.length === 0) && (
+                <ClaimsReviewPanel record={record} />
+              )}
+            </>
+          }
+          after={<EvidencePanel record={record} />}
+          aside={<CancelRecordPanel record={record} />}
+        />
       )}
-      {record.status !== "CANCELLED" && <EvidencePanel record={record} />}
-      {record.status === "DRAFTING" && <CancelRecordPanel record={record} />}
+      {record.status !== "DRAFTING" && record.status !== "CANCELLED" && (
+        <EvidencePanel record={record} />
+      )}
       {isSigningStage(record.status) && (
         <FinalizedActions record={record} signPending={sign.pending} />
       )}
@@ -267,15 +283,17 @@ export function VerifierRecordDetail({
           mở quyền tải phần của mình; Người thực thi gửi mã nhận cho từng người.
         </Notice>
       )}
-      <RecordDocument
-        record={record}
-        signAction={signAction}
-        renderRecipientAction={
-          isSigningStage(record.status)
-            ? (recipient) => <IdentityAction recipient={recipient} />
-            : undefined
-        }
-      />
+      {record.status !== "DRAFTING" && (
+        <RecordDocument
+          record={record}
+          signAction={signAction}
+          renderRecipientAction={
+            isSigningStage(record.status)
+              ? (recipient) => <IdentityAction recipient={recipient} />
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 }

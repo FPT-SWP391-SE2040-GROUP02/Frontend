@@ -26,7 +26,7 @@ export function InvitationPage() {
   return (
     <HeritageAuthLayout
       sideTitle="Có người đã để lại điều quan trọng cho bạn."
-      sideSubtitle="Chủ kho đã chọn bạn làm người nhận tài sản. Việc xác minh giấy tờ và tiếp nhận được bảo vệ nhiều lớp, bạn chỉ xem được khi đủ điều kiện bàn giao."
+      sideSubtitle="Chủ tài sản đã chọn bạn làm người nhận tài sản. Việc xác minh giấy tờ và tiếp nhận được bảo vệ nhiều lớp, bạn chỉ xem được khi đủ điều kiện bàn giao."
     >
       <h1 className="sr-only">Lời mời tiếp nhận</h1>
       <InvitationPanel

@@ -31,7 +31,7 @@ function depositedAssetNames(setup: PlanSetup): string[] {
   return names;
 }
 
-/** Phiếu gửi tài sản của Chủ kho: gửi những tài sản nào, từ lúc nào, ai giữ. Giống vé gửi xe, không ghi nội dung tài sản. */
+/** Phiếu gửi của Chủ tài sản: gửi những tài sản nào, từ lúc nào, ai giữ. Giống vé gửi xe, không ghi nội dung tài sản. */
 export function DepositSlipPaper({ setup }: { setup: PlanSetup }) {
   const executor = pickWillExecutor(setup);
   let executorName = "Chưa có";
@@ -66,7 +66,7 @@ export function DepositSlipPaper({ setup }: { setup: PlanSetup }) {
       <p className="mt-1 text-center">LegacyVault giữ hộ tài sản theo phiếu này</p>
       <ol className="mt-6 list-none space-y-2 leading-7">
         <li>
-          <span className="font-bold">Người gửi (Chủ kho): </span>
+          <span className="font-bold">Người gửi (Chủ tài sản): </span>
           {ownerName}
         </li>
         <li>
@@ -92,9 +92,9 @@ export function DepositSlipPaper({ setup }: { setup: PlanSetup }) {
         <tbody>{rows}</tbody>
       </table>
       <p className="mt-6 text-justify leading-7">
-        Chủ kho giữ quyền với tài sản; hệ thống chỉ giữ hộ và không xem nội dung. Người nhận muốn
-        lấy phải gửi yêu cầu kèm giấy tờ; tài sản chỉ được giao theo biên bản bàn giao do luật sư
-        ký.
+        Quyền với tài sản vẫn thuộc Chủ tài sản; hệ thống chỉ giữ hộ và không xem nội dung. Người
+        nhận muốn lấy phải gửi yêu cầu kèm giấy tờ; tài sản chỉ được giao theo biên bản bàn giao do
+        luật sư ký.
       </p>
     </div>
   );

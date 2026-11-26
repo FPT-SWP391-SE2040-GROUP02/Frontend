@@ -14,7 +14,7 @@ export const systemExecutorSchema = z.object({
 export const systemExecutorListSchema = z.array(systemExecutorSchema);
 export type SystemExecutor = z.infer<typeof systemExecutorSchema>;
 
-/** Mã nhận Chủ kho gửi cho Người thực thi trên hệ thống (BE ExecutorHandoverKeyResponse). */
+/** Mã nhận Chủ tài sản gửi cho Người thực thi trên hệ thống (BE ExecutorHandoverKeyResponse). */
 export const executorHandoverKeySchema = z.object({
   vaultId: z.string().uuid(),
   ownerFullName: z.string(),

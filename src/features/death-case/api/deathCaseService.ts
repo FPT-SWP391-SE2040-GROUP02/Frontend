@@ -19,7 +19,7 @@ export const deathCaseService = {
       .array(executorVaultSchema)
       .parse(await apiClient.get<unknown, unknown>("/executor/vaults", { signal }));
   },
-  /** Đồng ý (ký bằng mật khẩu) hoặc không đồng ý phiên bản biên bản phân chia Chủ kho ký lại. */
+  /** Đồng ý (ký bằng mật khẩu) hoặc không đồng ý phiên bản biên bản phân chia Chủ tài sản ký lại. */
   async respondWill(vaultId: string, accept: boolean, willVersionNo: number, password: string) {
     const body: Record<string, unknown> = { accept, willVersionNo };
     if (accept) {

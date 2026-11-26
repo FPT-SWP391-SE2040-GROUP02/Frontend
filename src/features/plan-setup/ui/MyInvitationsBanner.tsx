@@ -6,7 +6,7 @@ import { useMyInvitations } from "../model/useMyInvitations";
 import { remainingTime } from "../lib/myInvitationHelpers";
 
 /**
- * Dải mỏng trên Tổng quan Chủ kho khi có lời mời làm Người thực thi đang chờ. Người chưa là Executor không có
+ * Dải mỏng trên Tổng quan Chủ tài sản khi có lời mời làm Người thực thi đang chờ. Người chưa là Executor không có
  * nút chuyển vai, nên lời mời phải hiện ở đây. Không có lời mời (hoặc lỗi tải) thì không hiện gì.
  */
 export function MyInvitationsBanner({ invitationsHref }: { invitationsHref: string }) {

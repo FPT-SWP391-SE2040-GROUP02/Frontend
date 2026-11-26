@@ -57,7 +57,7 @@ export function deriveNotifications(
       id: `note:${vault.executorNoteUpdatedAt}`,
       at: vault.executorNoteUpdatedAt,
       text: `${vault.ownerFullName} cập nhật hướng dẫn cho bạn.`,
-      title: "Chủ kho cập nhật hướng dẫn",
+      title: "Chủ tài sản cập nhật hướng dẫn",
       detail: `${vault.ownerFullName} đã cập nhật hướng dẫn dành cho bạn.`,
       tone: "info",
     });

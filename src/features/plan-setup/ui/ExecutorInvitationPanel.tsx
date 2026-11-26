@@ -87,8 +87,8 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
         {validity} (đến {formatDateTime(query.data.expiresAt)}). Bạn không đọc được nội dung kho.
       </Notice>
       <p className="text-sm leading-6 text-heritage-muted">
-        Khi Chủ kho kích hoạt kế hoạch, email và số điện thoại của bạn sẽ được gửi cho người nhận để
-        họ liên hệ.
+        Khi Chủ tài sản kích hoạt kế hoạch, email và số điện thoại của bạn sẽ được gửi cho người
+        nhận để họ liên hệ.
       </p>
       {query.data.status === "ACCEPTED" ? (
         <p>Lời mời đã được chấp nhận.</p>
@@ -115,8 +115,8 @@ export function ExecutorInvitationPanel({ token }: { token: string }) {
             </div>
           )}
           <p className="text-sm leading-6 text-heritage-muted">
-            Bạn xem biên bản phân chia Chủ kho đã ký rồi mới quyết định. Cần đăng nhập đúng email
-            được mời.
+            Bạn xem biên bản phân chia Chủ tài sản đã ký rồi mới quyết định. Cần đăng nhập đúng
+            email được mời.
           </p>
           <Link className={`${buttonStyles.dark} w-full`} to={ROUTES.EXECUTOR.INVITATIONS}>
             Xem biên bản và trả lời

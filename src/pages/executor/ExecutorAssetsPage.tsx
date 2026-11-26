@@ -9,7 +9,7 @@ export function ExecutorAssetsPage() {
   return (
     <ExecutorWorkspace
       title="Tài sản và hướng dẫn"
-      description="Những tài sản Chủ kho giao bạn quản lý việc bàn giao. Bạn không mở được nội dung."
+      description="Những tài sản bạn được giao quản lý việc bàn giao. Bạn không mở được nội dung."
     >
       <VaultGate state={state}>{(vault) => <ExecutorAssetList vault={vault} />}</VaultGate>
     </ExecutorWorkspace>

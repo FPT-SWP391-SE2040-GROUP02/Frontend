@@ -390,7 +390,7 @@ describe("trang Người thực thi: thông báo sau khi mời", () => {
 });
 
 describe("trang Người thực thi: không có thẻ Mã nhận", () => {
-  it("Chủ kho không thao tác mã nhận ở đây: không có thẻ, không có nút Đổi mã mới, không tải trạng thái mã", async () => {
+  it("Chủ tài sản không thao tác mã nhận ở đây: không có thẻ, không có nút Đổi mã mới, không tải trạng thái mã", async () => {
     showPlan(
       {
         planStatus: "ACTIVE",

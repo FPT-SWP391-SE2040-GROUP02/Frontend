@@ -6,7 +6,7 @@ import type { UnsignedChanges } from "../model/planSetup.schema";
 
 /**
  * Thanh nhắc ở đầu màn Bàn giao khi kế hoạch đang chạy mà cấu hình khác bản biên bản phân chia ký gần nhất. Mọi thay đổi (xóa
- * lẫn thêm) đều cần Chủ kho ký lại để bản ký khớp tờ hiện tại. Trong lúc chờ: phần đã xóa không còn được bàn giao;
+ * lẫn thêm) đều cần Chủ tài sản ký lại để bản ký khớp tờ hiện tại. Trong lúc chờ: phần đã xóa không còn được bàn giao;
  * phần thêm hoặc đổi người nhận chưa được bàn giao cho tới khi ký lại. Ký xong, Người thực thi xem và đồng ý bản mới.
  * Chỉ hiện số đếm (Backend không trả tên).
  */

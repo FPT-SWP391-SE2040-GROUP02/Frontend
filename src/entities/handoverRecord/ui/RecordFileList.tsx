@@ -1,10 +1,18 @@
+import { compactButton } from "@/shared/ui/SectionCard";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { saveBlob } from "@/shared/lib/saveBlob";
-import { buttonStyles, formatDateTime } from "@/shared/ui/heritageKit";
+import { Chip, formatDateTime, type Tone } from "@/shared/ui/heritageKit";
 import type { RecordFile } from "../model/handoverRecord.schema";
 import { fileSizeText } from "../model/recordPresentation";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { useTransfer, type TransferOptions } from "@/shared/lib/useTransfer";
+import { FilePreviewButton } from "./FilePreviewButton";
+
+/** Nhãn cho biết loại giấy tờ người nhận đã nộp; tệp loại khác (căn cứ của luật sư) không gắn nhãn. */
+const KIND_LABELS: Record<string, { text: string; tone: Tone }> = {
+  WILL: { text: "Di chúc", tone: "warning" },
+  CLAIM_DOCUMENT: { text: "Giấy tờ khác", tone: "neutral" },
+};
 
 /**
  * Danh sách tệp đính kèm: tên, dung lượng, ngày nộp và nút Tải về. download do nơi dùng truyền vào (API của luật sư
@@ -35,21 +43,23 @@ export function RecordFileList({
         {files.map((file) => (
           <li
             key={file.id}
-            className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm"
+            className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 text-sm"
           >
             <div className="min-w-0">
-              <p className="break-all font-medium">
-                {file.kind === "WILL" && showWillLabel
-                  ? `Di chúc: ${file.fileName}`
-                  : file.fileName}
+              <p className="flex flex-wrap items-center gap-2 font-medium">
+                {showWillLabel && KIND_LABELS[file.kind] && (
+                  <Chip tone={KIND_LABELS[file.kind].tone}>{KIND_LABELS[file.kind].text}</Chip>
+                )}
+                <span className="break-all">{file.fileName}</span>
               </p>
               <p className="text-heritage-muted">
                 {fileSizeText(file.sizeBytes)} · {formatDateTime(file.createdAt)}
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <FilePreviewButton file={file} download={() => download(file, {})} />
               <ActionButton
-                className={buttonStyles.outline}
+                className={compactButton.outline}
                 disabled={action.pending}
                 aria-label={`Tải về ${file.fileName}`}
                 onClick={() =>
@@ -71,7 +81,7 @@ export function RecordFileList({
               {onRemove && (
                 <button
                   type="button"
-                  className={buttonStyles.outline}
+                  className={compactButton.outline}
                   disabled={removing}
                   aria-label={`Gỡ ${file.fileName}`}
                   onClick={() => onRemove(file)}

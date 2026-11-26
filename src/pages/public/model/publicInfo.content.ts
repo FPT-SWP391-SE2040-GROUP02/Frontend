@@ -77,12 +77,12 @@ export const FAQ_CONTENT = {
         {
           question: "Ảnh căn cước và khuôn mặt của tôi có được lưu không?",
           answer:
-            "Ảnh chụp chỉ được xử lý để đọc thông tin và so khớp, không lưu thành ảnh trong hệ thống. Kết quả xác minh được lưu kèm số căn cước. Với chủ kho, thông tin danh tính và mẫu khuôn mặt được lưu ở dạng mã hóa để đối chiếu các lần sau.",
+            "Ảnh chụp chỉ được xử lý để đọc thông tin và so khớp, không lưu thành ảnh trong hệ thống. Kết quả xác minh được lưu kèm số căn cước. Với chủ tài sản, thông tin danh tính và mẫu khuôn mặt được lưu ở dạng mã hóa để đối chiếu các lần sau.",
         },
         {
           question: "eKYC trong LegacyVault có giá trị pháp lý không?",
           answer:
-            "Không. Đây là xác minh cơ bản để nhận diện Chủ kho, chưa có giá trị pháp lý như thủ tục công chứng, và chưa xác thực giấy tờ thật hay giả.",
+            "Không. Đây là xác minh cơ bản để nhận diện Chủ tài sản, chưa có giá trị pháp lý như thủ tục công chứng, và chưa xác thực giấy tờ thật hay giả.",
         },
       ],
     },
@@ -92,7 +92,7 @@ export const FAQ_CONTENT = {
         {
           question: "Bàn giao bắt đầu thế nào?",
           answer:
-            "Khi Chủ kho qua đời, người nhận chủ động gửi yêu cầu nhận tài sản kèm giấy tờ, qua link trong thư hoặc mục Nhận tài sản. Hệ thống báo Chủ kho và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ (chấp nhận thì kho khóa), lập biên bản bàn giao (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký. Đủ chữ ký mới giao tài sản.",
+            "Khi Chủ tài sản qua đời, người nhận chủ động gửi yêu cầu nhận tài sản kèm giấy tờ, qua link trong thư hoặc mục Nhận tài sản. Hệ thống báo Chủ tài sản và Người thực thi, rồi phân công một luật sư. Luật sư xét giấy tờ (chấp nhận thì kho khóa), lập biên bản bàn giao (ai nhận tài sản nào), kiểm danh tính từng người nhận, rồi luật sư, Người thực thi và người nhận cùng ký. Đủ chữ ký mới giao tài sản.",
         },
         {
           question: "LegacyVault có làm thủ tục thừa kế không?",
@@ -254,7 +254,7 @@ export const PRIVACY_CONTENT = {
       title: "2. Dữ liệu eKYC",
       paragraphs: [
         "Chỉ xác minh sau khi bạn đồng ý rõ ràng. Ảnh giấy tờ và ảnh khuôn mặt chỉ dùng để đọc thông tin và so khớp trong phiên xác minh, không được lưu thành ảnh.",
-        "Hệ thống lưu kết quả xác minh kèm số căn cước. Với chủ kho đã xác minh, danh tính và mẫu khuôn mặt được lưu ở dạng mã hóa để đối chiếu các lần sau. Thời gian lưu cụ thể: [THỜI HẠN LƯU TRỮ: bổ sung].",
+        "Hệ thống lưu kết quả xác minh kèm số căn cước. Với chủ tài sản đã xác minh, danh tính và mẫu khuôn mặt được lưu ở dạng mã hóa để đối chiếu các lần sau. Thời gian lưu cụ thể: [THỜI HẠN LƯU TRỮ: bổ sung].",
       ],
     },
     {

@@ -131,7 +131,7 @@ export function RecordDocument({
       <div className="space-y-5">
         <div className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
           <InfoRow label="Kho">{record.vaultName}</InfoRow>
-          <InfoRow label="Chủ kho">{record.ownerName || "—"}</InfoRow>
+          <InfoRow label="Chủ tài sản">{record.ownerName || "—"}</InfoRow>
           <InfoRow label="Luật sư">{record.verifierName || "—"}</InfoRow>
           <InfoRow label="Người thực thi">{record.executorName || "—"}</InfoRow>
           <InfoRow label="Bản số">{String(record.revisionNo)}</InfoRow>

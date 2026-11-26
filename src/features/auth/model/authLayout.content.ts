@@ -28,4 +28,4 @@ export const RECEIVE_INVITATION_SUBTITLE = "Đăng nhập hoặc tạo tài kho�
 
 /** Dòng phụ khi người dùng đi vào để nhận tài sản (nút ở trang chủ hoặc link gửi yêu cầu trong thư). */
 export const RECEIVE_ASSETS_SUBTITLE =
-  "Đăng nhập hoặc tạo tài khoản để nhận tài sản hoặc báo tin Chủ kho đã mất.";
+  "Đăng nhập hoặc tạo tài khoản để nhận tài sản hoặc báo tin Chủ tài sản đã mất.";

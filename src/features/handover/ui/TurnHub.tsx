@@ -89,7 +89,7 @@ function InvitationRow({ invitation }: { invitation: PendingInvitation }) {
         tone="warning"
         urgent
         hint="Bấm Bắt đầu để nộp căn cước, rồi ký biên bản và nhận tài sản."
-        sub={`Chủ kho: ${invitation.ownerFullName} · mời ngày ${formatDate(invitation.invitedAt)}`}
+        sub={`Chủ tài sản: ${invitation.ownerFullName} · mời ngày ${formatDate(invitation.invitedAt)}`}
         step={3}
         action={
           <button

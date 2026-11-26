@@ -3,15 +3,15 @@ import { Panel } from "@/shared/ui/heritageKit";
 import { VerifierShell } from "@/widgets/VerifierWorkspace/VerifierShell";
 
 const approveWhen = [
-  { title: "Giấy tờ rõ ràng", text: "Đúng tên Chủ kho, không bị che hay chỉnh sửa." },
-  { title: "Người thực thi đúng", text: "Họ tên trùng với người Chủ kho đã mời." },
+  { title: "Giấy tờ rõ ràng", text: "Đúng tên Chủ tài sản, không bị che hay chỉnh sửa." },
+  { title: "Người thực thi đúng", text: "Họ tên trùng với người Chủ tài sản đã mời." },
   { title: "Ngày xảy ra hợp lý", text: "Không ở tương lai và khớp với giấy tờ." },
 ];
 
 const rejectWhen = [
   "Giấy tờ mờ hoặc nghi giả",
   "Thông tin không khớp",
-  "Chủ kho vẫn còn liên lạc được",
+  "Chủ tài sản vẫn còn liên lạc được",
 ];
 
 /** Hướng dẫn xét duyệt (nội dung hướng dẫn tĩnh; quyết định cuối cùng do Verifier ra trên hồ sơ). */

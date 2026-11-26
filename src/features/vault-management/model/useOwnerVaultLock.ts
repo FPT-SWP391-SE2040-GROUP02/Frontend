@@ -5,7 +5,7 @@ import { accessTokenMemory } from "@/shared/api/accessToken";
 import { useOwnerVault } from "./useOwnerVault";
 
 /**
- * Lý do kho của Chủ kho đang bị khóa (hồ sơ chứng tử, bàn giao, bị chặn, đã đóng), hoặc null khi còn thao tác được.
+ * Lý do kho của Chủ tài sản đang bị khóa (hồ sơ chứng tử, bàn giao, bị chặn, đã đóng), hoặc null khi còn thao tác được.
  * Dùng chung cache kho với các màn khác nên gọi ở nhiều nút không tạo thêm request.
  */
 export function useOwnerVaultLock(): string | null {

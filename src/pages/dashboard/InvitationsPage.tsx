@@ -41,14 +41,15 @@ function ResponsibleVaults({ inExecutorWorkspace }: { inExecutorWorkspace: boole
         })}
       </ul>
       <p className="mt-4 text-sm text-heritage-muted">
-        Bạn có thể rời vai Người thực thi bất cứ lúc nào bằng cách báo Chủ kho để họ mời người khác.
+        Bạn có thể rời vai Người thực thi bất cứ lúc nào bằng cách báo Chủ tài sản để họ mời người
+        khác.
       </p>
     </Panel>
   );
 }
 
 /**
- * Nội dung trang Lời mời, dùng chung cho không gian Chủ kho và Người thực thi.
+ * Nội dung trang Lời mời, dùng chung cho không gian Chủ tài sản và Người thực thi.
  */
 export function InvitationsContent({
   inExecutorWorkspace = false,
