@@ -9,9 +9,9 @@ import { claimStatusLabel } from "../model/recordPresentation";
 import { handoverRecordKeys } from "../model/useHandoverRecord";
 import { RecordFileList } from "./RecordFileList";
 
-type Decision = "ACCEPT" | "REQUEST_SUPPLEMENT" | "REJECT";
+type Decision = "ACCEPT" | "REJECT";
 
-/** Một yêu cầu nhận: giấy tờ đã nộp, lời nhắn, kết quả xét và ba nút xét khi biên bản đang lập. */
+/** Một yêu cầu nhận: giấy tờ đã nộp, lời nhắn, kết quả xét và hai nút xét khi biên bản đang lập. */
 function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordClaim }) {
   const client = useQueryClient();
   const action = usePrivateAction();
@@ -63,8 +63,8 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
           <div className="flex flex-wrap gap-2">
             <input
               type="text"
-              aria-label="Lý do (bắt buộc khi yêu cầu bổ sung hoặc từ chối)"
-              placeholder="Ghi lý do (chỉ cần khi yêu cầu bổ sung hoặc từ chối)"
+              aria-label="Lý do (bắt buộc khi từ chối)"
+              placeholder="Ghi lý do (chỉ cần khi từ chối)"
               className="h-9 min-w-0 flex-1 basis-60 rounded-[10px] border border-heritage-border bg-white px-3 text-sm"
               maxLength={1000}
               value={reason}
@@ -78,14 +78,6 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
               onClick={() => review("ACCEPT")}
             >
               Chấp nhận
-            </button>
-            <button
-              type="button"
-              className={compactButton.outline}
-              disabled={action.pending || needsReason}
-              onClick={() => review("REQUEST_SUPPLEMENT")}
-            >
-              Yêu cầu bổ sung
             </button>
             <button
               type="button"
@@ -109,7 +101,7 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
 
 /**
  * Giấy tờ người nhận nộp kèm yêu cầu nhận tài sản. Luật sư xem tệp (không xem nội dung tài sản), xác minh ở ngoài
- * hệ thống rồi chấp nhận, yêu cầu bổ sung hoặc từ chối có lý do. Người bị từ chối không được ghi vào biên bản.
+ * hệ thống rồi chấp nhận hoặc từ chối có lý do. Người bị từ chối không được ghi vào biên bản.
  */
 export function ClaimsReviewPanel({ record }: { record: HandoverRecord }) {
   return (

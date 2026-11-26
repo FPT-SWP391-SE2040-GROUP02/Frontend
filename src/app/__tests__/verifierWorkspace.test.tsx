@@ -143,7 +143,7 @@ describe("Verifier overview", () => {
       [submission("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "2026-10-18T03:00:00Z")],
     );
     setup("/notary/workspace");
-    const records = await screen.findByRole("link", { name: /Biên bản cần lập hoặc ký/ });
+    const records = await screen.findByRole("link", { name: /Hồ sơ và biên bản cần xử lý/ });
     await waitFor(() => expect(records).toHaveTextContent("2"));
     expect(records).toHaveAttribute("href", "/notary/queue");
     const recipients = screen.getByRole("link", { name: /Chờ kiểm tra CCCD/ });

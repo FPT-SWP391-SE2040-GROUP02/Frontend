@@ -161,7 +161,7 @@ export function NewRecipientCards({
       )}
       {drafts.length > 0 && (
         <p className="text-sm leading-6 text-heritage-muted">
-          Người đang nhập chỉ được thêm vào kho khi bấm Chốt và gửi thư. Một người không hợp lệ thì
+          Người đang nhập chỉ được thêm vào kho khi bấm Phát hành biên bản. Một người không hợp lệ thì
           chưa ai được thêm.
         </p>
       )}

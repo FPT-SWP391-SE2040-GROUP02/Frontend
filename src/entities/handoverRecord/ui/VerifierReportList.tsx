@@ -10,12 +10,12 @@ import { claimStatusLabel } from "../model/recordPresentation";
 import { handoverRecordKeys, useVerifierReports } from "../model/useHandoverRecord";
 import { ReportFiles, SuggestedRecipientList } from "./ReportDetails";
 
-type Decision = "ACCEPT" | "REQUEST_SUPPLEMENT" | "REJECT";
+type Decision = "ACCEPT" | "REJECT";
 
 /** Kết quả tìm kho theo số căn cước người mất. */
 function vaultText(report: VerifierReport): string {
   if (!report.vaultFound) {
-    return "Không có kho nào theo số căn cước này. Bạn chỉ yêu cầu bổ sung hoặc từ chối được.";
+    return "Không có kho nào theo số căn cước này. Bạn chỉ từ chối được.";
   }
   if (!report.nameMatches) {
     return `Có kho của ${report.ownerName}, số căn cước khớp.`;
@@ -106,7 +106,7 @@ function ReportCard({
           <label className="block space-y-1 text-sm font-semibold">
             {warnings.length > 0
               ? "Lý do (bắt buộc với mọi kết quả vì hồ sơ có cảnh báo)"
-              : "Lý do (bắt buộc khi yêu cầu bổ sung hoặc từ chối)"}
+              : "Lý do (bắt buộc khi từ chối)"}
             <textarea
               className="min-h-20 w-full rounded-xl border border-heritage-border bg-white p-3 font-normal"
               maxLength={1000}
@@ -142,14 +142,6 @@ function ReportCard({
               onClick={() => review("ACCEPT")}
             >
               Chấp nhận và mở biên bản
-            </button>
-            <button
-              type="button"
-              className={buttonStyles.outline}
-              disabled={action.pending || needsReason}
-              onClick={() => review("REQUEST_SUPPLEMENT")}
-            >
-              Yêu cầu bổ sung
             </button>
             <button
               type="button"

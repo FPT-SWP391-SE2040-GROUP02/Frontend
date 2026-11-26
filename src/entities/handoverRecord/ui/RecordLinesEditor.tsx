@@ -41,22 +41,19 @@ function linesOf(record: HandoverRecord): Set<string> {
 /**
  * Bước 1 của luật sư: chọn ai nhận tài sản nào. Mỗi ô là một cặp người nhận - tài sản; một tài sản có thể
  * giao cho nhiều người (đồng thừa kế). Có thể lấy biên bản phân chia của Chủ tài sản làm bản đầu rồi sửa.
- * Người nhận chưa có trong kho thì nhập ngay tại đây. Một nút "Chốt và gửi thư" lưu người nhận, lưu biên bản, chốt và
+ * Người nhận chưa có trong kho thì nhập ngay tại đây. Một nút "Phát hành biên bản" lưu người nhận, lưu biên bản, chốt và
  * gửi thư mời; lỗi giữa chừng thì phần đã lưu được giữ, bấm lại để làm tiếp. Đã chốt thì phải mở lại biên bản mới sửa.
  */
 export function RecordLinesEditor({
   record,
   before,
   after,
-  aside,
 }: {
   record: HandoverRecord;
   /** Việc làm trước khi chia (hồ sơ, giấy tờ), nằm đầu cột trái. */
   before?: ReactNode;
   /** Phần đính kèm, nằm cuối cột trái. */
   after?: ReactNode;
-  /** Việc phụ (hủy biên bản), nằm dưới khung Chốt ở cột phải. */
-  aside?: ReactNode;
 }) {
   const client = useQueryClient();
   const save = usePrivateAction();
@@ -192,10 +189,7 @@ export function RecordLinesEditor({
         {main}
         {unlocked && after}
       </div>
-      <div className="min-w-0 space-y-4 xl:sticky xl:top-6">
-        {side}
-        {aside}
-      </div>
+      <div className="min-w-0 space-y-4 xl:sticky xl:top-6">{side}</div>
     </div>
   );
 
@@ -239,6 +233,7 @@ export function RecordLinesEditor({
       title="B. Chia tài sản cho từng người"
       subtitle="Chia theo kết quả bạn đã xử lý ở ngoài hệ thống. Một tài sản có thể giao cho nhiều người."
       labelledBy="record-lines"
+      collapsible
       action={
         <div className="flex flex-wrap gap-2">
           {record.ownerSplit.length > 0 && (
@@ -326,10 +321,6 @@ export function RecordLinesEditor({
             <dt className="text-heritage-muted">Tài sản đã chia:</dt>
             <dd className="font-semibold">{`${dividedCount} / ${assets.length}`}</dd>
           </div>
-          <div className="flex justify-between gap-3">
-            <dt className="text-heritage-muted">Sẽ gửi thư mời nộp căn cước cho:</dt>
-            <dd className="font-semibold">{`${recipientCount} người`}</dd>
-          </div>
         </dl>
 
         {hasDeviation && (
@@ -372,12 +363,12 @@ export function RecordLinesEditor({
             className={`${buttonStyles.dark} w-full`}
             pending={finalize.pending}
             done={finalized.done}
-            pendingLabel="Đang chốt và gửi thư…"
-            doneLabel="Đã chốt"
+            pendingLabel="Đang phát hành biên bản…"
+            doneLabel="Đã phát hành"
             disabled={busy || recipientCount === 0 || !legalBasisConfirmed || !deviationReady}
             onClick={handleSend}
           >
-            Chốt và gửi thư
+            Phát hành biên bản
           </ActionButton>
           <button
             type="button"
@@ -391,7 +382,7 @@ export function RecordLinesEditor({
           </button>
         </div>
         <p className="text-sm text-heritage-muted">
-          {`Bấm "Chốt và gửi thư": hệ thống lưu và khóa nội dung biên bản, gửi thư mời cho ${recipientCount} người nhận để họ nộp căn cước, rồi mở bước ký.`}
+          {`Bấm "Phát hành biên bản": hệ thống lưu và khóa nội dung biên bản, gửi thư mời cho ${recipientCount} người nhận để họ nộp căn cước, rồi mở bước ký.`}
         </p>
         {Object.keys(draftErrors).length > 0 && (
           <p role="alert" className="text-sm text-destructive">

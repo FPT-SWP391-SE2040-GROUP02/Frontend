@@ -36,8 +36,11 @@ export function VerifierRecordList({
         </button>
       </div>
     );
+  // Biên bản đã hủy không còn việc gì để làm nên không nằm ở danh sách cần xử lý.
   const items = query.data.filter((item) =>
-    scope === "open" ? item.status !== "COMPLETED" : item.status === "COMPLETED",
+    scope === "open"
+      ? item.status !== "COMPLETED" && item.status !== "CANCELLED"
+      : item.status === "COMPLETED",
   );
   return (
     <SectionCard
@@ -106,7 +109,9 @@ export function VerifierRecordList({
                     <td className={tableStyles.td}>{item.ownerName || "—"}</td>
                     <td className={tableStyles.td}>{item.recipientCount}</td>
                     <td className={tableStyles.td}>
-                      <Chip tone={status.tone}>{status.label}</Chip>
+                      <span className="whitespace-nowrap">
+                        <Chip tone={status.tone}>{status.label}</Chip>
+                      </span>
                     </td>
                     <td className={`${tableStyles.td} text-heritage-muted`}>
                       {formatDate(item.requestedAt)}

@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "cn";
 
 const BUTTON =
@@ -21,7 +22,11 @@ export const tableStyles = {
   td: "px-5 py-3",
 };
 
-/** Thẻ có đầu mục tách bằng vạch ngang; phần thân tự quyết lề để bảng và danh sách chạy sát mép. */
+/**
+ * Thẻ có đầu mục tách bằng vạch ngang; phần thân tự quyết lề để bảng và danh sách chạy sát mép.
+ * Khi `collapsible`, đầu mục có nút mũi tên Mở/Thu gọn; lúc thu gọn thì ẩn cả thân lẫn `action`
+ * (thân vẫn được giữ trong cây để không mất dữ liệu đang nhập).
+ */
 export function SectionCard({
   title,
   subtitle,
@@ -29,6 +34,8 @@ export function SectionCard({
   labelledBy,
   children,
   className,
+  collapsible = false,
+  defaultOpen = true,
 }: {
   title: ReactNode;
   subtitle?: ReactNode;
@@ -36,7 +43,56 @@ export function SectionCard({
   labelledBy: string;
   children: ReactNode;
   className?: string;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const bodyId = useId();
+  let expanded = true;
+  if (collapsible) {
+    expanded = open;
+  }
+  let toggleLabel = "Mở";
+  let chevronClass = "size-4 transition-transform";
+  if (expanded) {
+    toggleLabel = "Thu gọn";
+    chevronClass = "size-4 rotate-180 transition-transform";
+  }
+  const heading = (
+    <div className={cn("min-w-0", collapsible && "flex-1")}>
+      <h2 id={labelledBy} className="text-base font-bold text-heritage-primary">
+        {title}
+      </h2>
+      {subtitle && <p className="mt-0.5 text-sm text-heritage-muted">{subtitle}</p>}
+    </div>
+  );
+  let header = (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-heritage-border px-5 py-3.5">
+      {heading}
+      {action}
+    </div>
+  );
+  if (collapsible) {
+    // Nút Mở/Thu gọn luôn ở góc phải hàng tiêu đề; nút việc của mục xuống hàng riêng để tiêu đề không bị ép hẹp.
+    header = (
+      <div className={cn("px-5 py-3.5", expanded && "border-b border-heritage-border")}>
+        <div className="flex items-center justify-between gap-3">
+          {heading}
+          <button
+            type="button"
+            className={cn(compactButton.outline, "shrink-0")}
+            aria-expanded={expanded}
+            aria-controls={bodyId}
+            onClick={() => setOpen(!open)}
+          >
+            {toggleLabel}
+            <ChevronDown className={chevronClass} aria-hidden="true" />
+          </button>
+        </div>
+        {expanded && action && <div className="mt-3">{action}</div>}
+      </div>
+    );
+  }
   return (
     <section
       aria-labelledby={labelledBy}
@@ -45,16 +101,10 @@ export function SectionCard({
         className,
       )}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-heritage-border px-5 py-3.5">
-        <div className="min-w-0">
-          <h2 id={labelledBy} className="text-base font-bold text-heritage-primary">
-            {title}
-          </h2>
-          {subtitle && <p className="mt-0.5 text-sm text-heritage-muted">{subtitle}</p>}
-        </div>
-        {action}
+      {header}
+      <div id={bodyId} hidden={!expanded}>
+        {children}
       </div>
-      {children}
     </section>
   );
 }
