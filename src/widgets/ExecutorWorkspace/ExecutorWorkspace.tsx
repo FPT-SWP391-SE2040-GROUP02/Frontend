@@ -27,7 +27,7 @@ import { NotificationBell } from "@/features/death-case/ui/NotificationBell";
 import { ExecutorVaultCard } from "./ExecutorVaultCard";
 import { useSelectedExecutorVault } from "@/features/death-case/model/useExecutorVaults";
 
-const INVITATIONS_LABEL = "Lời mời và tài sản";
+const INVITATIONS_LABEL = "Lời mời và kho";
 /** Dòng giải thích ổ khóa; các mục bị khóa trỏ tới nó qua aria-describedby. */
 const LOCKED_NOTE_ID = "executor-locked-note";
 
@@ -120,8 +120,8 @@ export function ExecutorWorkspace({
           >
             <ExecutorVaultCard />
             {!noVault && (
-              <p className="u040-group mt-3 truncate px-3 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
-                Tài sản này
+              <p className="u040-group executor-wrap mt-3 px-3 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
+                Kho này
               </p>
             )}
             {executorNavigation.map(({ to, label, icon: Icon, needsVault }, index) => {
@@ -130,14 +130,14 @@ export function ExecutorWorkspace({
                   <Fragment key={to}>
                     {index === firstVaultItem && (
                       <div className="col-span-2 mt-3 pl-3">
-                        <p className="u040-group text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
-                          Tài sản này
+                        <p className="u040-group executor-wrap text-[0.875rem] font-semibold uppercase tracking-widest text-white/60">
+                          Kho này
                         </p>
                         <p
                           id={LOCKED_NOTE_ID}
                           className="u040-fade mt-1 text-sm text-heritage-gold-soft"
                         >
-                          Mở khi bạn nhận một tài sản
+                          Mở khi bạn nhận một kho
                         </p>
                       </div>
                     )}
@@ -149,7 +149,7 @@ export function ExecutorWorkspace({
                       className="u040-item owner-nav-link executor-nav-locked"
                     >
                       <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                      <RailLabel order={index} className="min-w-0 flex-1">
+                      <RailLabel order={index} className="executor-wrap min-w-0 flex-1">
                         {label}
                       </RailLabel>
                       <Lock className="u040-lock size-3.5 shrink-0" aria-hidden="true" />
@@ -167,7 +167,9 @@ export function ExecutorWorkspace({
                   onClick={() => setNavigationOpen(false)}
                 >
                   <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-                  <RailLabel order={index}>{label}</RailLabel>
+                  <RailLabel order={index} className="executor-wrap">
+                    {label}
+                  </RailLabel>
                 </Link>
               );
             })}
@@ -195,7 +197,7 @@ export function ExecutorWorkspace({
               onClick={() => setNavigationOpen(false)}
             >
               <Mail className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              <RailLabel className="min-w-0 flex-1">{INVITATIONS_LABEL}</RailLabel>
+              <RailLabel className="executor-wrap min-w-0 flex-1">{INVITATIONS_LABEL}</RailLabel>
               {pendingInvitations > 0 && <InvitationCountBadge count={pendingInvitations} />}
             </Link>
           </nav>
@@ -206,8 +208,10 @@ export function ExecutorWorkspace({
               fallbackLetter="N"
               className="u040-avatar size-10 bg-heritage-gold-soft text-heritage-primary"
             />
-            <div className="u040-label min-w-0">
-              <p className="truncate text-sm font-semibold">{user?.fullName ?? "Tài khoản"}</p>
+            <div className="u040-label executor-wrap min-w-0">
+              <p className="break-words text-sm font-semibold leading-snug">
+                {user?.fullName ?? "Tài khoản"}
+              </p>
               <p className="mt-0.5 text-sm text-heritage-gold-soft">Người thực thi</p>
             </div>
           </div>

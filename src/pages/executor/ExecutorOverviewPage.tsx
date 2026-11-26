@@ -25,10 +25,10 @@ export function ExecutorOverviewPage() {
   let title = "Tổng quan";
   if (user?.fullName) title = `Chào ${user.fullName}`;
 
-  let description = "Các tài sản bạn được tin tưởng giao vai trò Người thực thi.";
+  let description = "Các kho bạn được tin tưởng giao vai trò Người thực thi.";
   if (state.selected) {
-    title = `Tài sản của ${state.selected.ownerFullName}`;
-    description = "Bạn là Người thực thi của tài sản này. Bạn không đọc được nội dung tài sản.";
+    title = `Kho của ${state.selected.ownerFullName}`;
+    description = "Bạn là Người thực thi của kho này. Bạn không đọc được nội dung tài sản.";
   }
 
   return (

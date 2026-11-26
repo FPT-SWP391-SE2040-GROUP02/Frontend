@@ -1,29 +1,29 @@
 import type { ReactNode } from "react";
-import { formatDateTime, InfoRow, Panel, StatusText } from "@/shared/ui/heritageKit";
+import { InfoRow, Panel, StatusText } from "@/shared/ui/heritageKit";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
 import {
+  citizenIdText,
   deliveryText,
+  fullySignedCount,
   identityText,
+  partySignedText,
   recordStatusLabel,
   receiptText,
-  signatureCount,
 } from "../model/recordPresentation";
 import { PaperPreviewButton } from "./PaperPreviewButton";
 import { ReceiptPaper } from "./ReceiptPaper";
 import { RecordPaper, type PaperSignAction } from "./RecordPaper";
-
-function SignedCell({ at }: { at: string | null }) {
-  if (at) return <StatusText tone="success">{`Đã ký ${formatDateTime(at)}`}</StatusText>;
-  return <StatusText>Chưa ký</StatusText>;
-}
+import { SignatureParties } from "./SignatureParties";
 
 /** Một người nhận dạng thẻ dọc (cột hẹp của người nhận): tên, rồi từng dòng "nhãn: giá trị". */
 function RecipientBlock({
   record,
   recipient,
+  maskCitizenId,
 }: {
   record: HandoverRecord;
   recipient: RecordRecipient;
+  maskCitizenId: boolean;
 }) {
   const identity = identityText(recipient);
   const delivery = deliveryText(record, recipient);
@@ -32,7 +32,7 @@ function RecipientBlock({
     <section className="space-y-4">
       <div>
         <p className="text-base font-semibold">{recipient.fullName || "—"}</p>
-        <p className="text-sm text-heritage-muted">{`CCCD ${recipient.citizenId}`}</p>
+        <p className="text-sm text-heritage-muted">{`CCCD ${citizenIdText(recipient.citizenId, maskCitizenId)}`}</p>
       </div>
       <dl className="divide-y divide-heritage-border border-y border-heritage-border text-sm">
         <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 py-3">
@@ -54,13 +54,13 @@ function RecipientBlock({
           </dd>
         </div>
         <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 py-3">
-          <dt className="text-heritage-muted">Chữ ký của bạn</dt>
+          <dt className="text-heritage-muted">Chữ ký</dt>
           <dd>
-            <SignedCell at={recipient.signedAt} />
+            <SignatureParties record={record} recipient={recipient} />
           </dd>
         </div>
         <div className="grid grid-cols-[8.5rem_minmax(0,1fr)] gap-3 py-3">
-          <dt className="text-heritage-muted">Giao phần</dt>
+          <dt className="text-heritage-muted">Giao</dt>
           <dd>
             <StatusText tone={delivery.tone}>{delivery.label}</StatusText>
           </dd>
@@ -91,9 +91,11 @@ function RecipientBlock({
 
 /**
  * Nội dung biên bản bàn giao dùng chung cho luật sư, Người thực thi và người nhận: thông tin kho,
- * bảng "ai nhận tài sản nào" kèm danh tính, chữ ký và việc giao phần của từng người, rồi ô chữ ký của luật sư và Người thực thi.
+ * bảng "ai nhận tài sản nào" kèm danh tính, chữ ký ba bên theo thứ tự ký và việc giao phần của từng người, rồi số phần
+ * luật sư và Người thực thi đã ký.
  * renderRecipientAction thêm một cột thao tác cho từng người nhận (ví dụ nút kiểm danh tính của luật sư).
  * layout="stacked" xếp mỗi người nhận thành một khối dọc thay cho bảng ngang, hợp cột hẹp của người nhận.
+ * maskCitizenId (màn Người thực thi) chỉ hiện 4 số cuối căn cước.
  * signAction là nút ký của người đang xem (khi có, nút mở khung đổi nhãn thành "Xem và ký biên bản"); nó chỉ hiện trong khung "Xem biên bản", ngay tại ô chữ ký của chính người đó
  * (Người thực thi, luật sư hoặc người nhận), để người ký đọc xong tờ biên bản rồi ký ngay tại đó.
  */
@@ -103,15 +105,17 @@ export function RecordDocument({
   renderRecipientAction,
   layout = "table",
   signAction,
+  maskCitizenId = false,
 }: {
   record: HandoverRecord;
   title?: string;
   renderRecipientAction?: (recipient: RecordRecipient) => ReactNode;
   layout?: "table" | "stacked";
   signAction?: PaperSignAction;
+  maskCitizenId?: boolean;
 }) {
   const status = recordStatusLabel[record.status];
-  const signatures = signatureCount(record);
+  const signatures = fullySignedCount(record);
   return (
     <Panel
       title={title}
@@ -130,12 +134,12 @@ export function RecordDocument({
     >
       <div className="space-y-5">
         <div className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
-          <InfoRow label="Tài sản">{record.vaultName}</InfoRow>
+          <InfoRow label="Kho">{record.vaultName}</InfoRow>
           <InfoRow label="Chủ tài sản">{record.ownerName || "—"}</InfoRow>
           <InfoRow label="Luật sư">{record.verifierName || "—"}</InfoRow>
           <InfoRow label="Người thực thi">{record.executorName || "—"}</InfoRow>
           <InfoRow label="Bản số">{String(record.revisionNo)}</InfoRow>
-          <InfoRow label="Chữ ký">{`${signatures.signed}/${signatures.total}`}</InfoRow>
+          <InfoRow label="Đủ chữ ký">{`${signatures.signed}/${signatures.total} người nhận`}</InfoRow>
         </div>
 
         {record.recipients.length === 0 ? (
@@ -145,7 +149,12 @@ export function RecordDocument({
         ) : layout === "stacked" ? (
           <div className="space-y-6">
             {record.recipients.map((recipient) => (
-              <RecipientBlock key={recipient.beneficiaryId} record={record} recipient={recipient} />
+              <RecipientBlock
+                key={recipient.beneficiaryId}
+                record={record}
+                recipient={recipient}
+                maskCitizenId={maskCitizenId}
+              />
             ))}
           </div>
         ) : (
@@ -167,7 +176,7 @@ export function RecordDocument({
                     Chữ ký
                   </th>
                   <th scope="col" className="px-4 py-3 font-semibold">
-                    Giao phần của mình
+                    Giao
                   </th>
                   <th scope="col" className="px-4 py-3 font-semibold">
                     Phiếu giao nhận
@@ -188,7 +197,9 @@ export function RecordDocument({
                     <tr key={recipient.beneficiaryId} className="align-top">
                       <td className="py-4 pr-4">
                         <span className="block font-semibold">{recipient.fullName || "—"}</span>
-                        <span className="text-heritage-muted">{`CCCD ${recipient.citizenId}`}</span>
+                        <span className="text-heritage-muted">
+                          {`CCCD ${citizenIdText(recipient.citizenId, maskCitizenId)}`}
+                        </span>
                       </td>
                       <td className="px-4 py-4">
                         <ul className="list-disc space-y-1 pl-4">
@@ -201,7 +212,7 @@ export function RecordDocument({
                         <StatusText tone={identity.tone}>{identity.label}</StatusText>
                       </td>
                       <td className="px-4 py-4">
-                        <SignedCell at={recipient.signedAt} />
+                        <SignatureParties record={record} recipient={recipient} />
                       </td>
                       <td className="px-4 py-4">
                         <StatusText tone={delivery.tone}>{delivery.label}</StatusText>
@@ -233,14 +244,7 @@ export function RecordDocument({
           </div>
         )}
 
-        <dl className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
-          <InfoRow label="Luật sư ký xác minh">
-            <SignedCell at={record.verifierSignedAt} />
-          </InfoRow>
-          <InfoRow label="Người thực thi ký">
-            <SignedCell at={record.executorSignedAt} />
-          </InfoRow>
-        </dl>
+        <p className="text-sm font-semibold">{partySignedText(record)}</p>
         <p className="text-sm leading-6 text-heritage-muted">
           LegacyVault chỉ giữ và giao tài sản theo biên bản này. Việc pháp lý (biên bản phân chia,
           chia theo luật) do luật sư xử lý ở ngoài hệ thống. Ký là bấm xác nhận; hệ thống lưu người

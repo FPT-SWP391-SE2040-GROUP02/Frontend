@@ -31,7 +31,7 @@ export function VaultJourney({
 }) {
   const steps = vaultJourney(vault, recordStatus, progress);
   return (
-    <Panel title="Tài sản đang ở đâu">
+    <Panel title="Kho đang ở đâu">
       <ol className="grid gap-5 sm:grid-cols-3">
         {steps.map((step, index) => (
           <li

@@ -104,7 +104,7 @@ export function executorTodo(input: ExecutorTodoInput): ExecutorTodo {
   if (vault.planStatus === "CLOSED") {
     return {
       title: "Bàn giao đã hoàn tất",
-      text: "Tài sản này đã bàn giao xong. Bạn không còn việc gì cần làm.",
+      text: "Kho này đã bàn giao xong. Bạn không còn việc gì cần làm.",
       buttonLabel: "Xem bàn giao",
       to: ROUTES.EXECUTOR.PROGRESS,
     };

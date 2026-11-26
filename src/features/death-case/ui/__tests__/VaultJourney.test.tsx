@@ -36,7 +36,7 @@ const turn = (index: number, overrides: Record<string, unknown>) => ({
 describe("VaultJourney", () => {
   it("chỉ 3 bước của cả tài sản, không có thanh 5 bước theo người nhận", () => {
     render(<VaultJourney vault={vault} recordStatus="" progress={null} />);
-    expect(screen.getByRole("heading", { name: "Tài sản đang ở đâu" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Kho đang ở đâu" })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
     expect(screen.getByText("Yêu cầu nhận")).toBeInTheDocument();
     expect(screen.getByText("Biên bản bàn giao")).toBeInTheDocument();

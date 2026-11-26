@@ -434,9 +434,7 @@ it("danh tính xong thì ký được; ký xong mà luật sư hoặc Người t
   const signed = signingRecordFor({ identityConfirmedAt: CREATED_AT, signedAt: CREATED_AT });
   backendWithRecord(turnWithStatus("READY_TO_ACCEPT"), signed);
   setup();
-  expect(
-    await screen.findByText("Bạn đã ký. Chờ luật sư hoặc Người thực thi ký."),
-  ).toBeInTheDocument();
+  expect(await screen.findByText("Bạn đã ký. Chờ mở quyền tải phần của bạn.")).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Ký biên bản" })).not.toBeInTheDocument();
 });
 

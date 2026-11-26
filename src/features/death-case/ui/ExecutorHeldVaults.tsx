@@ -15,13 +15,13 @@ export function ExecutorHeldVaults() {
   if (query.isPending) {
     body = (
       <p role="status" className="text-sm text-heritage-muted">
-        Đang tải các tài sản bạn đang giữ…
+        Đang tải các kho bạn đang giữ…
       </p>
     );
   } else if (query.isError) {
     body = (
       <div role="alert" className="space-y-3 text-sm">
-        <p>Không tải được các tài sản bạn đang giữ.</p>
+        <p>Không tải được các kho bạn đang giữ.</p>
         <button type="button" className={buttonStyles.outline} onClick={() => void query.refetch()}>
           Thử lại
         </button>
@@ -33,7 +33,7 @@ export function ExecutorHeldVaults() {
         role="status"
         className="rounded-xl border border-dashed border-heritage-border px-6 py-10 text-center text-sm text-heritage-muted"
       >
-        Bạn chưa giữ tài sản nào. Khi bạn chấp nhận lời mời, tài sản đó sẽ hiện ở đây.
+        Bạn chưa giữ kho nào. Khi bạn chấp nhận lời mời, kho đó sẽ hiện ở đây.
       </p>
     );
   } else {
@@ -46,9 +46,7 @@ export function ExecutorHeldVaults() {
             <li key={vault.vaultId} className="flex flex-wrap items-center gap-4 px-5 py-4 sm:px-6">
               <Initial name={vault.ownerFullName} />
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-heritage-primary">
-                  Tài sản của {vault.ownerFullName}
-                </p>
+                <p className="font-semibold text-heritage-primary">Kho của {vault.ownerFullName}</p>
                 {vault.acceptedAt && (
                   <p className="text-sm text-heritage-muted">
                     Bạn nhận vai ngày {formatDate(vault.acceptedAt)}
@@ -63,10 +61,10 @@ export function ExecutorHeldVaults() {
                 <button
                   type="button"
                   className={buttonStyles.outline}
-                  aria-label={`Mở tài sản của ${vault.ownerFullName}`}
+                  aria-label={`Mở kho của ${vault.ownerFullName}`}
                   onClick={() => open(vault.vaultId, ROUTES.EXECUTOR.ROOT)}
                 >
-                  Mở tài sản
+                  Mở kho
                 </button>
               )}
             </li>
@@ -78,7 +76,7 @@ export function ExecutorHeldVaults() {
   return (
     <section aria-labelledby="executor-held-vaults" className="space-y-4">
       <h2 id="executor-held-vaults" className="text-lg font-semibold text-heritage-primary">
-        Tài sản bạn đang giữ
+        Kho bạn đang giữ
       </h2>
       {body}
     </section>

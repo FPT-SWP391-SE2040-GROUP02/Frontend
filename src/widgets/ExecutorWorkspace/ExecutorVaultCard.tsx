@@ -30,7 +30,7 @@ export function ExecutorVaultCard() {
         role="status"
         className="u040-card rounded-xl border border-white/15 bg-white/5 p-3 text-sm text-white/70"
       >
-        <RailLabel>Đang tải tài sản…</RailLabel>
+        <RailLabel>Đang tải kho…</RailLabel>
       </div>
     );
   } else {
@@ -40,12 +40,12 @@ export function ExecutorVaultCard() {
         to={ROUTES.EXECUTOR.INVITATIONS}
         className="u040-card-switch mt-2 inline-block px-1 text-sm font-semibold text-heritage-gold-soft hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-heritage-gold"
       >
-        Đổi tài sản →
+        Đổi kho →
       </Link>
     );
     card = (
       <div
-        aria-label={`Tài sản đang làm việc: ${selected.ownerFullName}`}
+        aria-label={`Kho đang làm việc: ${selected.ownerFullName}`}
         role="group"
         title={selected.ownerFullName}
         className="u040-card flex items-center gap-3 rounded-xl border border-heritage-gold bg-white/10 p-2.5"
@@ -56,11 +56,13 @@ export function ExecutorVaultCard() {
         >
           {selected.ownerFullName.trim().charAt(0).toLocaleUpperCase("vi-VN")}
         </span>
-        <span className="u040-label min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold text-white">
+        <span className="u040-label executor-wrap min-w-0 flex-1">
+          <span className="block break-words text-sm font-semibold leading-snug text-white">
             {selected.ownerFullName}
           </span>
-          <span className={`block truncate text-sm ${STAGE_COLOR[stage.tone]}`}>{stage.label}</span>
+          <span className={`block break-words text-sm leading-snug ${STAGE_COLOR[stage.tone]}`}>
+            {stage.label}
+          </span>
         </span>
       </div>
     );
@@ -72,9 +74,9 @@ export function ExecutorVaultCard() {
     >
       <h2
         id="executor-current-vault-heading"
-        className="u040-group mb-2 px-1 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60"
+        className="u040-group executor-wrap mb-2 px-1 text-[0.875rem] font-semibold uppercase tracking-widest text-white/60"
       >
-        Đang làm việc với tài sản
+        Đang làm việc với kho
       </h2>
       {card}
       {switchLink}

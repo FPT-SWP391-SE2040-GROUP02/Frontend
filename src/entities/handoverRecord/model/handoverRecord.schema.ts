@@ -46,8 +46,18 @@ export const recordRecipientSchema = z.object({
   /** Luật sư và Người thực thi ký riêng cho từng người nhận. */
   verifierSignedAt: timestamp.nullable().default(null),
   executorSignedAt: timestamp.nullable().default(null),
-  /** Người đang xem (luật sư hoặc Người thực thi) ký được cho người nhận này. */
+  /**
+   * Người đang xem ký được phần của người nhận này ngay lúc này (Backend quyết theo thứ tự luật sư → Người thực thi →
+   * người nhận; FE không tự suy luật).
+   */
   canSign: z.boolean().default(false),
+  /**
+   * Lý do người đang xem chưa ký được phần này; rỗng khi ký được. VERIFIER_NOT_SIGNED, EXECUTOR_NOT_SIGNED,
+   * RECIPIENT_NOT_CONFIRMED, IDENTITY_NOT_CONFIRMED, ALREADY_SIGNED, NOT_SIGNING_STEP, RECORD_COMPLETED.
+   */
+  signBlockedReason: z.string().default(""),
+  /** Phần của người nhận này đã đủ chữ ký ba bên (Backend tính). */
+  fullySigned: z.boolean().default(false),
   /** Phiếu giao nhận: lúc bên nhận xác nhận đã nhận đủ và lúc Người thực thi ký bên giao. */
   receivedAllAt: timestamp.nullable().default(null),
   receiptExecutorSignedAt: timestamp.nullable().default(null),
@@ -159,6 +169,8 @@ export const handoverRecordSchema = z.object({
   executorReminderSentAt: timestamp.nullable().default(null),
   /** Từ lúc này luật sư mới nhắc lại được (lần nhắc + 24 giờ); null khi chưa nhắc. */
   executorRemindAvailableAt: timestamp.nullable().default(null),
+  /** Có phần luật sư đã ký mà Người thực thi chưa ký: chỉ khi đó luật sư mới nhắc được Người thực thi. */
+  hasPartWaitingForExecutor: z.boolean().default(false),
   recipients: z.array(recordRecipientSchema),
   canSign: z.boolean(),
   availableAssets: z.array(recordAssetSchema),

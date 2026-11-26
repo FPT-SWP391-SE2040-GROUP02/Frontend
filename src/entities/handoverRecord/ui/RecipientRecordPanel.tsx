@@ -9,6 +9,7 @@ import { buttonStyles, Chip, formatDateTime, Panel } from "@/shared/ui/heritageK
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { handoverRecordService } from "../api/handoverRecordService";
 import type { HandoverRecord, RecordRecipient } from "../model/handoverRecord.schema";
+import { isSigningStage, signBlockedText } from "../model/recordPresentation";
 import { handoverRecordKeys, useRecipientRecord } from "../model/useHandoverRecord";
 import { PaperPreviewButton } from "./PaperPreviewButton";
 import { ReceiptPaper } from "./ReceiptPaper";
@@ -55,7 +56,12 @@ function recipientText(record: HandoverRecord, me: RecordRecipient | undefined):
   const opened = me !== undefined && me.turnStatus === "HANDOVER_COMMITTED";
   let text = "Bạn cần nộp ảnh căn cước để luật sư xác nhận danh tính, sau đó mới ký được.";
   if (me !== undefined && me.identityConfirmedAt) {
+    // Thứ tự ký phần của bạn: luật sư → Người thực thi → bạn. Lý do chờ do Backend trả.
+    const reason = signBlockedText(me.signBlockedReason);
     text = "Danh tính của bạn đã được xác nhận. Chờ tới lượt ký biên bản.";
+    if (me.signBlockedReason === "EXECUTOR_NOT_SIGNED") {
+      text = `Danh tính của bạn đã được xác nhận. ${reason}: luật sư và Người thực thi ký trước, rồi tới bạn.`;
+    }
   }
   if (record.status === "DRAFTING") text = "Luật sư đang sửa biên bản. Bạn chờ bản mới rồi ký.";
   if (record.canSign) {
@@ -63,7 +69,7 @@ function recipientText(record: HandoverRecord, me: RecordRecipient | undefined):
       "Bấm Xem và ký biên bản, đọc kỹ phần tài sản của bạn rồi bấm Ký biên bản ở ô chữ ký của bạn.";
   }
   if (me !== undefined && me.signedAt) {
-    text = "Bạn đã ký. Chờ luật sư hoặc Người thực thi ký.";
+    text = "Bạn đã ký. Chờ mở quyền tải phần của bạn.";
   }
   if (opened) {
     text =
@@ -132,8 +138,22 @@ export function RecipientRecordPanel({
       )}
     </>
   ) : undefined;
+  // Chưa tới lượt ký (Backend trả canSign = false kèm lý do): nút bị khóa và hiện lý do ngay ô chữ ký của bạn.
+  let blockedReason = "";
+  if (me && !record.canSign && !me.signedAt && isSigningStage(record.status)) {
+    blockedReason = signBlockedText(me.signBlockedReason) || "Chưa tới lượt ký";
+  }
+  const lockedButton = blockedReason ? (
+    <>
+      <button type="button" className={buttonStyles.outline} disabled>
+        Ký biên bản
+      </button>
+      <p className="max-w-56 text-center text-sm text-heritage-muted">{blockedReason}</p>
+    </>
+  ) : undefined;
+  const signNode = signButton ?? lockedButton;
   const signAction =
-    signButton && me ? { target: { recipientId: me.beneficiaryId }, node: signButton } : undefined;
+    signNode && me ? { target: { recipientId: me.beneficiaryId }, node: signNode } : undefined;
   let tone: "gold" | "ok" | "info" = "info";
   let eyebrow = "Biên bản bàn giao";
   let title = "Biên bản bàn giao của bạn";
@@ -205,13 +225,13 @@ export function RecipientRecordPanel({
             <SignatureBox
               caption="1. Luật sư lập biên bản"
               name={record.verifierName}
-              signedAt={record.verifierSignedAt}
+              signedAt={me.verifierSignedAt ?? record.verifierSignedAt}
               pendingText="Chờ ký"
             />
             <SignatureBox
               caption="2. Người thực thi"
               name={record.executorName}
-              signedAt={record.executorSignedAt}
+              signedAt={me.executorSignedAt ?? record.executorSignedAt}
               pendingText="Chờ ký"
             />
             <SignatureBox
@@ -219,7 +239,7 @@ export function RecipientRecordPanel({
               name={me.fullName}
               signedAt={me.signedAt}
               you
-              pendingText={record.canSign ? "● Mở biên bản để ký" : "Chờ tới lượt"}
+              pendingText={record.canSign ? "● Mở biên bản để ký" : blockedReason || "Chờ tới lượt"}
             />
           </div>
         </Panel>

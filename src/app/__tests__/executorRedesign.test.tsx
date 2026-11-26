@@ -444,7 +444,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Việc của bạn bây giờ")).toBeInTheDocument();
     expect(await screen.findByText("1/6 người đã nhận xong")).toBeInTheDocument();
-    const journey = screen.getByRole("heading", { name: "Tài sản đang ở đâu" }).closest("section");
+    const journey = screen.getByRole("heading", { name: "Kho đang ở đâu" }).closest("section");
     expect(within(journey as HTMLElement).getAllByRole("listitem")).toHaveLength(3);
     expect(
       await screen.findByText(/để lại hướng dẫn bàn giao và giao bạn 2 tài sản cho 1 người nhận/),
@@ -485,7 +485,7 @@ describe("Tổng quan, Tài sản và hướng dẫn", () => {
   });
 });
 
-describe("Lời mời và các tài sản bạn đang làm việc", () => {
+describe("Lời mời và các kho bạn đang làm việc", () => {
   const invitation = {
     id: "99999999-9999-4999-8999-999999999999",
     ownerName: "Cô Lan",
@@ -593,7 +593,7 @@ describe("Lời mời và các tài sản bạn đang làm việc", () => {
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
   });
 
-  it("chấp nhận xong gọi Backend và tải lại danh sách tài sản; tài sản mới hiện ở Tài sản bạn đang giữ", async () => {
+  it("chấp nhận xong gọi Backend và tải lại danh sách tài sản; tài sản mới hiện ở Kho bạn đang giữ", async () => {
     let held: unknown[] = [];
     vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
       if (url.endsWith("/will")) return paper;
@@ -636,7 +636,7 @@ describe("Lời mời và các tài sản bạn đang làm việc", () => {
     });
     fireEvent.click(within(card).getByRole("button", { name: "Ký nhận vai" }));
     await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-    expect(await screen.findByText("Tài sản của Cô Lan", { selector: "p" })).toBeInTheDocument();
+    expect(await screen.findByText("Kho của Cô Lan", { selector: "p" })).toBeInTheDocument();
     expect(screen.getByText("Bạn nhận vai ngày 01/10/2026")).toBeInTheDocument();
     // Chip trạng thái ở dòng kho và ở menu trái.
     expect(screen.getAllByText("Chưa có yêu cầu nhận").length).toBeGreaterThan(0);
@@ -652,34 +652,32 @@ describe("Lời mời và các tài sản bạn đang làm việc", () => {
     });
     mockApi([vault(), other]);
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
-    expect(await screen.findByText("Tài sản của Anh Nam", { selector: "p" })).toBeInTheDocument();
+    expect(await screen.findByText("Kho của Anh Nam", { selector: "p" })).toBeInTheDocument();
     expect(screen.getAllByText("Bạn nhận vai ngày 01/10/2026", { selector: "p" })).toHaveLength(2);
     expect(screen.getAllByText("Đang giao tài sản").length).toBeGreaterThan(0);
     // Kho đầu tiên được tự chọn: chip "Đang mở", không có nút Mở kho cho kho này.
     expect(screen.getByText("Đang mở")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Mở tài sản của Anh Nam" }),
-    ).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Mở tài sản của Bà Hạnh" }));
+    expect(screen.queryByRole("button", { name: "Mở kho của Anh Nam" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Mở kho của Bà Hạnh" }));
     expect(window.sessionStorage.getItem("lv-executor-vault")).toBe(
       "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
     );
   });
 
-  it("dòng phụ của trang và thứ tự: lời mời đang chờ ở trên cùng, rồi Tài sản bạn đang giữ", async () => {
+  it("dòng phụ của trang và thứ tự: lời mời đang chờ ở trên cùng, rồi Kho bạn đang giữ", async () => {
     mockApi([vault()]);
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
     expect(
       await screen.findByRole("heading", {
         level: 1,
-        name: "Lời mời và các tài sản bạn đang làm việc",
+        name: "Lời mời và các kho bạn đang làm việc",
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Chọn tài sản để làm việc. Lời mời mới nằm ở trên cùng."),
+      screen.getByText("Chọn kho để làm việc. Lời mời mới nằm ở trên cùng."),
     ).toBeInTheDocument();
     const label = await screen.findByRole("heading", { name: "Lời mời đang chờ" });
-    const held = screen.getByRole("heading", { name: "Tài sản bạn đang giữ" });
+    const held = screen.getByRole("heading", { name: "Kho bạn đang giữ" });
     expect(label.compareDocumentPosition(held) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
@@ -692,9 +690,7 @@ describe("Lời mời và các tài sản bạn đang làm việc", () => {
       return [];
     });
     render2(<ExecutorInvitationsPage />, "/executor/invitations");
-    expect(
-      await screen.findByRole("heading", { name: "Tài sản bạn đang giữ" }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Kho bạn đang giữ" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Lời mời đang chờ" })).not.toBeInTheDocument();
     expect(screen.queryByText(/Không có lời mời nào đang chờ/)).not.toBeInTheDocument();
   });
