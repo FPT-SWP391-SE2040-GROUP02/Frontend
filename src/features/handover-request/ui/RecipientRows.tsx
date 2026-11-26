@@ -1,10 +1,61 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  cloneElement,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type InputHTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { ChevronDown, X } from "lucide-react";
 import type { SuggestedRecipient } from "@/entities/handoverRecord";
-import { MAX_REPORT_RECIPIENTS } from "../model/reportForm";
+import { MAX_REPORT_RECIPIENTS, type RecipientFieldErrors } from "../model/reportForm";
 
 const INPUT = "h-11 w-full rounded-xl border border-heritage-border bg-white px-3";
-const EMPTY_RECIPIENT: SuggestedRecipient = { fullName: "", email: "", phone: "" };
+const EMPTY_RECIPIENT: SuggestedRecipient = {
+  fullName: "",
+  citizenId: "",
+  dateOfBirth: "",
+  email: "",
+  phone: "",
+};
+const NO_ERRORS: RecipientFieldErrors = {};
+
+/** Một ô của người nhận: nhãn ở trên, lỗi báo ngay dưới ô và gắn vào ô bằng aria-describedby. */
+function RecipientField({
+  id,
+  label,
+  error,
+  className,
+  children,
+}: {
+  id: string;
+  label: string;
+  error: string | undefined;
+  className: string;
+  children: ReactElement<InputHTMLAttributes<HTMLInputElement>>;
+}) {
+  const errorId = `${id}-error`;
+  const hasError = error !== undefined && error !== "";
+  let describedBy: string | undefined;
+  if (hasError) {
+    describedBy = errorId;
+  }
+  return (
+    <div className={`space-y-1 ${className}`}>
+      <label htmlFor={id} className="block font-semibold">
+        {label}
+      </label>
+      {cloneElement(children, { id, "aria-invalid": hasError, "aria-describedby": describedBy })}
+      {hasError && (
+        <p id={errorId} role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
 
 /** Thời gian trượt khi thêm hoặc bỏ một khối; bằng `.receive-collapse-slow` trong CSS. */
 const SLIDE_MS = 300;
@@ -59,17 +110,21 @@ function SlideRow({
 }
 
 /**
- * Các dòng người nhận để luật sư liên hệ nhanh: họ tên, email, số điện thoại. Có sẵn Người nhận 1; thanh
+ * Các dòng người nhận để luật sư liên hệ nhanh: họ tên, số căn cước, ngày sinh, email, số điện thoại. Có sẵn Người nhận 1; thanh
  * "Thêm người nhận" ở dưới mở thêm khối mới trượt xuống ngay trong form, dấu × thu khối lại.
  * Dòng đang thu không còn nằm trong dữ liệu gửi lên `onChange`.
  */
 export function RecipientRows({
   disabled,
+  errors,
   onChange,
 }: {
   disabled: boolean;
+  /** Lỗi từng ô, cùng thứ tự với các khối chưa đóng (đúng thứ tự dữ liệu của `onChange`). */
+  errors: RecipientFieldErrors[];
   onChange: (rows: SuggestedRecipient[]) => void;
 }) {
+  const baseId = useId();
   const nextKey = useRef(1);
   const timers = useRef<number[]>([]);
   const [entries, setEntries] = useState<RecipientEntry[]>([
@@ -131,6 +186,10 @@ export function RecipientRows({
     <div>
       {entries.map((entry, index) => {
         const number = numbers[index];
+        let rowErrors = NO_ERRORS;
+        if (!entry.closing && errors[number - 1] !== undefined) {
+          rowErrors = errors[number - 1];
+        }
         return (
           <SlideRow key={entry.key} slideIn={entry.slideIn} closing={entry.closing}>
             <div
@@ -150,9 +209,13 @@ export function RecipientRows({
                   <X className="size-4" aria-hidden="true" />
                 </button>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <label className="space-y-1">
-                  <span className="block font-semibold">Họ tên</span>
+              <div className="grid gap-3 sm:grid-cols-6">
+                <RecipientField
+                  id={`${baseId}-${entry.key}-fullName`}
+                  label="Họ tên"
+                  error={rowErrors.fullName}
+                  className="sm:col-span-2"
+                >
                   <input
                     className={INPUT}
                     maxLength={200}
@@ -160,9 +223,43 @@ export function RecipientRows({
                     disabled={disabled}
                     onChange={(event) => update(entry.key, "fullName", event.target.value)}
                   />
-                </label>
-                <label className="space-y-1">
-                  <span className="block font-semibold">Email</span>
+                </RecipientField>
+                <RecipientField
+                  id={`${baseId}-${entry.key}-citizenId`}
+                  label="Số căn cước"
+                  error={rowErrors.citizenId}
+                  className="sm:col-span-2"
+                >
+                  <input
+                    inputMode="numeric"
+                    autoComplete="off"
+                    className={INPUT}
+                    maxLength={12}
+                    value={entry.person.citizenId}
+                    disabled={disabled}
+                    onChange={(event) => update(entry.key, "citizenId", event.target.value)}
+                  />
+                </RecipientField>
+                <RecipientField
+                  id={`${baseId}-${entry.key}-dateOfBirth`}
+                  label="Ngày sinh"
+                  error={rowErrors.dateOfBirth}
+                  className="sm:col-span-2"
+                >
+                  <input
+                    type="date"
+                    className={INPUT}
+                    value={entry.person.dateOfBirth}
+                    disabled={disabled}
+                    onChange={(event) => update(entry.key, "dateOfBirth", event.target.value)}
+                  />
+                </RecipientField>
+                <RecipientField
+                  id={`${baseId}-${entry.key}-email`}
+                  label="Email"
+                  error={rowErrors.email}
+                  className="sm:col-span-3"
+                >
                   <input
                     type="email"
                     className={INPUT}
@@ -171,18 +268,24 @@ export function RecipientRows({
                     disabled={disabled}
                     onChange={(event) => update(entry.key, "email", event.target.value)}
                   />
-                </label>
-                <label className="space-y-1">
-                  <span className="block font-semibold">Số điện thoại</span>
+                </RecipientField>
+                <RecipientField
+                  id={`${baseId}-${entry.key}-phone`}
+                  label="Số điện thoại"
+                  error={rowErrors.phone}
+                  className="sm:col-span-3"
+                >
                   <input
                     type="tel"
+                    autoComplete="off"
+                    placeholder="0912345678"
                     className={INPUT}
                     maxLength={32}
                     value={entry.person.phone}
                     disabled={disabled}
                     onChange={(event) => update(entry.key, "phone", event.target.value)}
                   />
-                </label>
+                </RecipientField>
               </div>
             </div>
           </SlideRow>

@@ -105,9 +105,14 @@ export const recordClaimSchema = z.object({
   files: z.array(recordFileSchema),
 });
 
-/** Người nhận do người nộp hồ sơ khai; luật sư phải kiểm lại trước khi dùng. */
+/**
+ * Người nhận do người nộp hồ sơ khai; luật sư phải kiểm lại trước khi dùng. Căn cước và ngày sinh (yyyy-MM-dd) không
+ * bắt buộc: hồ sơ cũ và người không khai trả chuỗi rỗng.
+ */
 export const suggestedRecipientSchema = z.object({
   fullName: z.string(),
+  citizenId: z.string().default(""),
+  dateOfBirth: z.string().default(""),
   email: z.string(),
   phone: z.string(),
 });
