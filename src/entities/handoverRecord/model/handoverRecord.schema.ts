@@ -110,6 +110,10 @@ export const suggestedRecipientSchema = z.object({
   fullName: z.string(),
   email: z.string(),
   phone: z.string(),
+  /** Số căn cước 12 số người nộp khai; rỗng khi không khai (hồ sơ cũ không có trường này). */
+  citizenId: z.string().default(""),
+  /** Ngày sinh dạng yyyy-MM-dd; rỗng khi không khai. */
+  dateOfBirth: z.string().default(""),
 });
 
 export const reportFileSchema = recordFileSchema.extend({
@@ -213,12 +217,13 @@ function isoDate(year: number, month: number, day: number): string {
   return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-function todayText(now: Date = new Date()): string {
+/** Hôm nay dạng yyyy-MM-dd theo giờ máy, để chặn ngày sinh ở tương lai. */
+export function todayText(now: Date = new Date()): string {
   return isoDate(now.getFullYear(), now.getMonth() + 1, now.getDate());
 }
 
 /** Ngày sinh muộn nhất để đủ 18 tuổi hôm nay; sinh 29/2 mà năm đích không nhuận thì tính 28/2 (giống AddYears ở Backend). */
-function latestAdultBirthDate(now: Date = new Date()): string {
+export function latestAdultBirthDate(now: Date = new Date()): string {
   const year = now.getFullYear() - MIN_RECIPIENT_AGE;
   const lastDayOfMonth = new Date(year, now.getMonth() + 1, 0).getDate();
   return isoDate(year, now.getMonth() + 1, Math.min(now.getDate(), lastDayOfMonth));

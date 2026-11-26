@@ -1,5 +1,5 @@
 import { compactButton } from "@/shared/ui/SectionCard";
-import type { RecipientDraft } from "../model/recipientDraft";
+import { suggestedDetailLine, type RecipientDraft } from "../model/recipientDraft";
 
 /**
  * Người nhận được khai trong hồ sơ báo tin mà chưa có trong danh sách. Thông tin do người nộp tự khai nên luật sư phải
@@ -39,8 +39,7 @@ export function SuggestedRecipients({
                 <div className="min-w-0 flex-1 basis-48">
                   <p className="font-semibold">{suggestion.fullName || "—"}</p>
                   <p className="break-words text-heritage-muted">
-                    {[suggestion.email, suggestion.phone].filter(Boolean).join(" · ") ||
-                      "Chưa có email"}
+                    {suggestedDetailLine(suggestion) || "Chưa có email"}
                   </p>
                 </div>
                 <button

@@ -1,6 +1,7 @@
 import { RecordFileList } from "./RecordFileList";
 import type { TransferOptions } from "@/shared/lib/useTransfer";
 import type { ReportFile, SuggestedRecipient } from "../model/handoverReport.schema";
+import { suggestedDetailLine } from "../model/recipientDraft";
 
 const KIND_LABEL: Record<ReportFile["kind"], string> = {
   DEATH_CERTIFICATE: "Giấy chứng tử",
@@ -43,9 +44,7 @@ export function SuggestedRecipientList({ recipients }: { recipients: SuggestedRe
         {recipients.map((person, index) => (
           <li key={`${index}:${person.email}`} className="px-4 py-3">
             <p className="font-medium">{person.fullName}</p>
-            <p className="break-all text-heritage-muted">
-              {[person.email, person.phone].filter((text) => text !== "").join(" · ")}
-            </p>
+            <p className="break-all text-heritage-muted">{suggestedDetailLine(person)}</p>
           </li>
         ))}
       </ul>

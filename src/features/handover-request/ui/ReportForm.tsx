@@ -153,7 +153,7 @@ export function ReportForm({ onSent, onCancel }: { onSent: () => void; onCancel:
         <p className="leading-6 text-heritage-muted">
           Không bắt buộc. Luật sư dùng email và số điện thoại này để liên hệ, sau khi đã kiểm lại.
         </p>
-        <RecipientRows disabled={busy} onChange={setRecipients} />
+        <RecipientRows disabled={busy} showErrors={touched} onChange={setRecipients} />
         <ErrorText>{errors.recipients}</ErrorText>
       </fieldset>
 

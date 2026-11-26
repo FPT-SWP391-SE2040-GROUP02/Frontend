@@ -1,3 +1,4 @@
+import { isoToDisplayDate } from "@/shared/ui/date-input";
 import {
   newRecipientSchema,
   type HandoverRecord,
@@ -29,6 +30,14 @@ export function emptyRecipientDraft(): RecipientDraft {
 }
 
 const normalize = (text: string) => text.trim().toLowerCase();
+
+/** Dòng chi tiết của người nhận do người nộp khai: email, số điện thoại, căn cước, ngày sinh; chỗ không khai thì bỏ. */
+export function suggestedDetailLine(person: SuggestedRecipient): string {
+  const parts = [person.email, person.phone];
+  if (person.citizenId !== "") parts.push(`CCCD ${person.citizenId}`);
+  if (person.dateOfBirth !== "") parts.push(`Sinh ${isoToDisplayDate(person.dateOfBirth)}`);
+  return parts.filter((text) => text !== "").join(" · ");
+}
 
 /**
  * Người nhận được khai trong các hồ sơ báo tin, bỏ người khai lặp: trùng email; người không khai email thì trùng cả họ

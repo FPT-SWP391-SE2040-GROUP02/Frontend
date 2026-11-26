@@ -1,5 +1,9 @@
 import { z } from "zod";
-import type { SuggestedRecipient } from "@/entities/handoverRecord";
+import {
+  latestAdultBirthDate,
+  todayText,
+  type SuggestedRecipient,
+} from "@/entities/handoverRecord";
 import { filesError } from "./handoverRequest.schema";
 
 /** Giống Backend: khai tối đa 20 người nhận. */
@@ -25,8 +29,15 @@ export interface ReportErrors {
   recipients?: string;
 }
 
+/** Số điện thoại hợp lệ: 9 đến 15 chữ số, có thể bắt đầu bằng +; bỏ khoảng trắng, dấu chấm, gạch ngang trước khi kiểm. */
+export function isValidPhone(phone: string): boolean {
+  return /^\+?\d{9,15}$/.test(phone.replace(/[\s.-]/g, ""));
+}
+
 export function isBlankRecipient(person: SuggestedRecipient): boolean {
-  return [person.fullName, person.email, person.phone].every((text) => text.trim() === "");
+  return [person.fullName, person.email, person.phone, person.citizenId, person.dateOfBirth].every(
+    (text) => text.trim() === "",
+  );
 }
 
 /** Các dòng người nhận đã điền; dòng để trống hoàn toàn thì bỏ. */
@@ -37,7 +48,60 @@ export function filledRecipients(recipients: SuggestedRecipient[]): SuggestedRec
       fullName: person.fullName.trim(),
       email: person.email.trim(),
       phone: person.phone.trim(),
+      citizenId: person.citizenId.replace(/\s/g, ""),
+      dateOfBirth: person.dateOfBirth.trim(),
     }));
+}
+
+/** Ô của một dòng người nhận; "contact" là lỗi chung khi chưa có cả email lẫn số điện thoại. */
+export type RecipientField = "fullName" | "email" | "phone" | "citizenId" | "dateOfBirth";
+export type RecipientFieldErrors = Partial<Record<RecipientField | "contact", string>>;
+
+/**
+ * Lỗi từng ô của một người nhận, dùng cho cả báo lỗi ngay dưới ô lẫn kiểm lúc nộp. Căn cước và ngày sinh không bắt
+ * buộc nhưng đã nhập thì phải đúng. `others` là các dòng khác để bắt trùng email, căn cước.
+ */
+export function recipientFieldErrors(
+  person: SuggestedRecipient,
+  others: SuggestedRecipient[] = [],
+): RecipientFieldErrors {
+  const errors: RecipientFieldErrors = {};
+  const name = person.fullName.trim();
+  const email = person.email.trim();
+  const phone = person.phone.trim();
+  const citizenId = person.citizenId.replace(/\s/g, "");
+  const dateOfBirth = person.dateOfBirth.trim();
+  if (name === "") errors.fullName = "Vui lòng nhập họ tên.";
+  if (email !== "" && !z.string().email().safeParse(email).success) {
+    errors.email = "Email không hợp lệ.";
+  } else if (
+    email !== "" &&
+    others.some((other) => other.email.trim().toLowerCase() === email.toLowerCase())
+  ) {
+    errors.email = "Email này đã khai cho người nhận khác.";
+  }
+  if (phone !== "" && !isValidPhone(phone)) {
+    errors.phone = "Số điện thoại gồm 9 đến 15 chữ số, ví dụ 0912345678.";
+  }
+  if (email === "" && phone === "") errors.contact = "Cần có email hoặc số điện thoại.";
+  if (citizenId !== "" && !/^\d{12}$/.test(citizenId)) {
+    errors.citizenId = "Số căn cước gồm đúng 12 chữ số.";
+  } else if (
+    citizenId !== "" &&
+    others.some((other) => other.citizenId.replace(/\s/g, "") === citizenId)
+  ) {
+    errors.citizenId = "Số căn cước này đã khai cho người nhận khác.";
+  }
+  if (dateOfBirth !== "") {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
+      errors.dateOfBirth = "Ngày sinh chưa đúng, nhập ngày/tháng/năm.";
+    } else if (dateOfBirth > todayText()) {
+      errors.dateOfBirth = "Ngày sinh không được ở tương lai.";
+    } else if (dateOfBirth > latestAdultBirthDate()) {
+      errors.dateOfBirth = "Người nhận phải đủ 18 tuổi.";
+    }
+  }
+  return errors;
 }
 
 /** Lỗi của biểu mẫu; đối tượng rỗng khi hợp lệ. */
@@ -62,20 +126,23 @@ export function reportErrors(draft: ReportDraft): ReportErrors {
     const fileError = filesError([...draft.deathCertificates, ...draft.wills, ...draft.others]);
     if (fileError !== "") errors.files = fileError;
   }
-  const emails = new Set<string>();
-  for (const person of filledRecipients(draft.recipients)) {
-    if (person.fullName === "") {
-      errors.recipients = "Mỗi người nhận cần có họ tên.";
-    } else if (person.email === "" && person.phone === "") {
-      errors.recipients = "Mỗi người nhận cần có email hoặc số điện thoại.";
-    } else if (person.email !== "" && !z.string().email().safeParse(person.email).success) {
-      errors.recipients = `Email của ${person.fullName} không hợp lệ.`;
-    } else if (person.email !== "" && emails.has(person.email.toLowerCase())) {
-      errors.recipients = `Email của ${person.fullName} bị trùng.`;
-    } else if (person.phone !== "" && !/^\+?\d{9,15}$/.test(person.phone.replace(/[\s.-]/g, ""))) {
-      errors.recipients = `Số điện thoại của ${person.fullName} không hợp lệ (9 đến 15 chữ số).`;
+  const people = filledRecipients(draft.recipients);
+  for (const [index, person] of people.entries()) {
+    const fieldErrors = recipientFieldErrors(
+      person,
+      people.filter((_, other) => other < index),
+    );
+    const first =
+      fieldErrors.fullName ??
+      fieldErrors.contact ??
+      fieldErrors.email ??
+      fieldErrors.phone ??
+      fieldErrors.citizenId ??
+      fieldErrors.dateOfBirth;
+    if (first !== undefined) {
+      errors.recipients = `Người nhận ${index + 1}: ${first}`;
+      break;
     }
-    if (person.email !== "") emails.add(person.email.toLowerCase());
   }
   return errors;
 }

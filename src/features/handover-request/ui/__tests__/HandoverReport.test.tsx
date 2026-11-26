@@ -23,7 +23,15 @@ function report(extra: Record<string, unknown> = {}) {
     reviewReason: null,
     createdAt: AT,
     reviewedAt: null,
-    recipients: [{ fullName: "Trần Con", email: "con@example.com", phone: "" }],
+    recipients: [
+      {
+        fullName: "Trần Con",
+        email: "con@example.com",
+        phone: "",
+        citizenId: "",
+        dateOfBirth: "",
+      },
+    ],
     files: [
       {
         id: "55555555-5555-4555-8555-555555555555",
@@ -113,8 +121,98 @@ describe("Người thân nộp hồ sơ báo tin", () => {
     expect(form.get("attested")).toBe("true");
     expect(form.getAll("wills")).toHaveLength(1);
     expect(JSON.parse(form.get("recipients") as string)).toEqual([
-      { fullName: "Trần Con", email: "con@example.com", phone: "" },
+      { fullName: "Trần Con", email: "con@example.com", phone: "", citizenId: "", dateOfBirth: "" },
     ]);
+  });
+
+  it("gửi kèm số căn cước và ngày sinh người nhận đã khai", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(report());
+    setup(<ReportPanel />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
+    await user.type(screen.getByLabelText("Họ tên người mất"), "Nguyễn Văn Mất");
+    await user.type(screen.getByLabelText("Số căn cước người mất (12 số)"), "001099001234");
+    await user.upload(
+      screen.getByLabelText(/^Giấy chứng tử/),
+      new File(["%PDF"], "chung-tu.pdf", { type: "application/pdf" }),
+    );
+    await user.upload(
+      screen.getByLabelText(/^Di chúc/),
+      new File(["%PDF"], "di-chuc.pdf", { type: "application/pdf" }),
+    );
+    const person = within(screen.getByRole("group", { name: "Người nhận 1" }));
+    await user.type(person.getByLabelText("Họ tên"), "Trần Con");
+    await user.type(person.getByLabelText("Số điện thoại"), "0912 345 678");
+    await user.type(person.getByLabelText(/^Số căn cước/), "079 20 1234567");
+    await user.type(person.getByLabelText("Ngày sinh của người nhận 1"), "01011990");
+    await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
+
+    expect(await screen.findByText("Đã tiếp nhận hồ sơ")).toBeInTheDocument();
+    const form = post.mock.calls[0][1] as FormData;
+    expect(JSON.parse(form.get("recipients") as string)).toEqual([
+      {
+        fullName: "Trần Con",
+        email: "",
+        phone: "0912 345 678",
+        citizenId: "079201234567",
+        dateOfBirth: "1990-01-01",
+      },
+    ]);
+  });
+
+  it("báo lỗi ngay dưới ô khi rời ô: số điện thoại, căn cước, ngày sinh; ô số điện thoại không nhận chữ", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    setup(<ReportPanel />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
+    const person = within(screen.getByRole("group", { name: "Người nhận 1" }));
+
+    const phone = person.getByLabelText("Số điện thoại");
+    await user.type(phone, "09ab12");
+    expect(phone).toHaveValue("0912");
+    await user.tab();
+    expect(await person.findByText(/Số điện thoại gồm 9 đến 15 chữ số/)).toBeInTheDocument();
+
+    const citizen = person.getByLabelText(/^Số căn cước/);
+    await user.type(citizen, "12345");
+    await user.tab();
+    expect(await person.findByText("Số căn cước gồm đúng 12 chữ số.")).toBeInTheDocument();
+
+    const birth = person.getByLabelText("Ngày sinh của người nhận 1");
+    await user.type(birth, "01012099");
+    await user.tab();
+    expect(await person.findByText("Ngày sinh không được ở tương lai.")).toBeInTheDocument();
+  });
+
+  it("người nhận đã nhập mà sai căn cước thì chặn nộp và nói rõ người nào", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([]);
+    const post = vi.spyOn(apiClient, "post").mockResolvedValue(report());
+    setup(<ReportPanel />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
+    await user.type(screen.getByLabelText("Họ tên người mất"), "Nguyễn Văn Mất");
+    await user.type(screen.getByLabelText("Số căn cước người mất (12 số)"), "001099001234");
+    await user.upload(
+      screen.getByLabelText(/^Giấy chứng tử/),
+      new File(["%PDF"], "chung-tu.pdf", { type: "application/pdf" }),
+    );
+    await user.upload(
+      screen.getByLabelText(/^Di chúc/),
+      new File(["%PDF"], "di-chuc.pdf", { type: "application/pdf" }),
+    );
+    const person = within(screen.getByRole("group", { name: "Người nhận 1" }));
+    await user.type(person.getByLabelText("Họ tên"), "Trần Con");
+    await user.type(person.getByLabelText("Email"), "con@example.com");
+    await user.type(person.getByLabelText(/^Số căn cước/), "12345");
+    await user.click(screen.getByRole("checkbox", { name: /Tôi cam đoan/ }));
+    await user.click(screen.getByRole("button", { name: "Nộp hồ sơ" }));
+
+    expect(
+      await screen.findByText("Người nhận 1: Số căn cước gồm đúng 12 chữ số."),
+    ).toBeInTheDocument();
+    expect(post).not.toHaveBeenCalled();
   });
 
   it("luật sư yêu cầu bổ sung thì hiện lý do và form nộp thêm", async () => {
