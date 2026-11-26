@@ -1,48 +1,38 @@
 import { compactButton, SectionCard } from "@/shared/ui/SectionCard";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Check, Plus, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
 import { caseCode } from "@/shared/lib/caseCode";
 import { handoverRecordService } from "../api/handoverRecordService";
-import type { HandoverRecord, RecordLine, SplitDifference } from "../model/handoverRecord.schema";
+import type { HandoverRecord } from "../model/handoverRecord.schema";
+import type { RecipientChange } from "../model/recipientChanges";
 import {
+  draftFromPerson,
   draftsFromReports,
   emptyRecipientDraft,
-  draftToRecipient,
-  draftWarning,
-  recipientDraftErrors,
-  serverDraftErrors,
   skippedDeclarations,
   type RecipientDraft,
-  type RecipientDraftErrors,
 } from "../model/recipientDraft";
-import { SPLIT_DEVIATION_LABEL } from "../model/splitDifference";
+import { screenDifferences, SPLIT_DEVIATION_LABEL } from "../model/splitDifference";
 import { handoverRecordKeys } from "../model/useHandoverRecord";
-import { divisionAssets, pairKey } from "../model/divisionView";
+import { divisionAssets, pairsToLines, savedPairs } from "../model/divisionView";
 import { DivisionDraftSheet } from "./DivisionDraftSheet";
-import { NewRecipientCards } from "./NewRecipientCards";
 import { PaperPreviewButton } from "./PaperPreviewButton";
+import { RecipientDialog, type RecipientDialogState } from "./RecipientDialog";
 import { RecipientSplitPanel } from "./RecipientSplitPanel";
 import { SplitDeviationPanel } from "./SplitDeviationPanel";
+import { SuggestedRecipients } from "./SuggestedRecipients";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
-
-function linesOf(record: HandoverRecord): Set<string> {
-  const result = new Set<string>();
-  for (const recipient of record.recipients) {
-    for (const asset of recipient.assets)
-      result.add(pairKey(recipient.beneficiaryId, asset.assetId));
-  }
-  return result;
-}
 
 /**
  * Bước 1 của luật sư: chọn ai nhận tài sản nào. Mỗi ô là một cặp người nhận - tài sản; một tài sản có thể
  * giao cho nhiều người (đồng thừa kế). Có thể lấy biên bản phân chia của Chủ tài sản làm bản đầu rồi sửa.
- * Người nhận chưa có trong kho thì nhập ngay tại đây. Một nút "Phát hành biên bản" lưu người nhận, lưu biên bản, chốt và
- * gửi thư mời; lỗi giữa chừng thì phần đã lưu được giữ, bấm lại để làm tiếp. Đã chốt thì phải mở lại biên bản mới sửa.
+ * Người nhận chưa có trong danh sách thì thêm trong cửa sổ riêng (lưu ngay, sửa và xóa được trước khi phát hành).
+ * Cách chia giữ trên màn hình tới khi bấm "Lưu nháp"; "Phát hành biên bản" lưu phần còn lại, chốt và gửi thư mời. Đã
+ * chốt thì phải mở lại biên bản mới sửa.
  */
 export function RecordLinesEditor({
   record,
@@ -60,37 +50,23 @@ export function RecordLinesEditor({
   const split = usePrivateAction();
   const finalize = usePrivateAction();
   const finalized = useSuccessHold();
-  const saved = useMemo(() => linesOf(record), [record]);
+  const saved = useMemo(() => savedPairs(record), [record]);
   const [selected, setSelected] = useState<Set<string>>(saved);
   const dirty = selected.size !== saved.size || [...selected].some((key) => !saved.has(key));
   // Luật sư phải tick xác nhận căn cứ pháp lý mỗi lần chốt; state nằm trong component được remount theo revisionNo nên reopen sẽ bỏ tick.
   const [legalBasisConfirmed, setLegalBasisConfirmed] = useState(false);
   // Biên bản khác cách chia của Chủ tài sản thì phải tick thêm ô này; cũng bỏ tick mỗi khi nội dung đổi.
   const [splitDeviationConfirmed, setSplitDeviationConfirmed] = useState(false);
-  const [drafts, setDrafts] = useState<RecipientDraft[]>(() => draftsFromReports(record));
-  const [draftErrors, setDraftErrors] = useState<Record<string, RecipientDraftErrors>>({});
-  const prefilled = record.reports.some((report) => report.recipients.length > 0);
-  // Người đang nhập chưa lưu nên máy chủ chưa tính: thêm họ vào danh sách khác biệt để luật sư xác nhận ngay, tránh
-  // lưu người nhận xong mới bị chặn ở bước chốt. Chủ tài sản không chia gì thì không có gì để khác.
-  const pendingDifferences: SplitDifference[] = [];
-  if (record.ownerSplit.length > 0) {
-    for (const draft of drafts) {
-      pendingDifferences.push({
-        kind: "RECIPIENT_ADDED",
-        beneficiaryId: null,
-        recipientName: draft.fullName.trim() || "người nhận mới",
-        assetId: null,
-        assetName: "",
-        ownerRecipientNames: [],
-        recordRecipientNames: [],
-      });
-    }
+  // Người khai trong hồ sơ báo tin mà chưa có trong danh sách: phải thêm hoặc bỏ rồi mới phát hành.
+  const [suggestions, setSuggestions] = useState<RecipientDraft[]>(() => draftsFromReports(record));
+  const [dialog, setDialog] = useState<RecipientDialogState | null>(null);
+  const [recipientNotice, setRecipientNotice] = useState("");
+  // Đang có thay đổi chưa lưu thì so theo đúng màn hình; đã khớp bản lưu thì dùng kết quả Backend trả.
+  let differences = record.splitDifferences;
+  if (dirty) {
+    differences = screenDifferences(record, selected);
   }
-  const differences = [...record.splitDifferences, ...pendingDifferences];
   const hasDeviation = differences.length > 0;
-  const draftWarnings = Object.fromEntries(
-    drafts.map((draft) => [draft.key, draftWarning(record, draft)]),
-  );
   const deviationReady = !hasDeviation || splitDeviationConfirmed;
   const busy = save.pending || split.pending || finalize.pending;
   // Người bị từ chối giấy tờ không được ghi vào biên bản; còn yêu cầu chưa xét thì chưa chốt được.
@@ -106,11 +82,20 @@ export function RecordLinesEditor({
   const noAccepted =
     record.reports.length === 0 && !record.claims.some((claim) => claim.status === "ACCEPTED");
 
+  // Đóng hoặc tải lại trang khi còn thay đổi chưa lưu thì trình duyệt hỏi lại.
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+
   const apply = (next: HandoverRecord) => {
     client.setQueryData(handoverRecordKeys.verifier(next.id), next);
-    setSelected(linesOf(next));
+    setSelected(savedPairs(next));
     setLegalBasisConfirmed(false);
     setSplitDeviationConfirmed(false);
+    setRecipientNotice("");
     void client.invalidateQueries({ queryKey: handoverRecordKeys.root });
   };
   const toggle = (key: string) => {
@@ -121,64 +106,48 @@ export function RecordLinesEditor({
     setLegalBasisConfirmed(false);
     setSplitDeviationConfirmed(false);
   };
-  const changeDrafts = (next: RecipientDraft[]) => {
-    setDrafts(next);
-    setDraftErrors({});
+  /** Thêm, sửa, xóa người nhận đã lưu trên máy chủ; giữ nguyên các thay đổi cách chia đang chờ lưu. */
+  const applyRecipientChange = (change: RecipientChange) => {
+    client.setQueryData(handoverRecordKeys.verifier(record.id), change.record);
+    setSelected((current) => {
+      const next = new Set<string>();
+      for (const key of current) {
+        if (key.split(":")[0] !== change.removedId) next.add(key);
+      }
+      for (const key of change.addedPairs) next.add(key);
+      return next;
+    });
+    if (change.addedEmail !== "") {
+      setSuggestions((current) =>
+        current.filter((item) => item.email.trim().toLowerCase() !== change.addedEmail),
+      );
+    }
+    let notice = "";
+    if (change.linesUnsaved) {
+      notice = "Đã thêm người nhận nhưng chưa lưu được tài sản được chia. Bấm “Lưu nháp” để lưu.";
+    }
+    setRecipientNotice(notice);
+    setDialog(null);
     setLegalBasisConfirmed(false);
     setSplitDeviationConfirmed(false);
+    void client.invalidateQueries({ queryKey: handoverRecordKeys.root });
   };
-  /** Lưu mọi người nhận mới trong một lần, lưu các dòng rồi chốt; chốt xong Backend gửi thư mời. */
+  const openPerson = (mode: "edit" | "remove", beneficiaryId: string) => {
+    const person = record.availableRecipients.find((item) => item.beneficiaryId === beneficiaryId);
+    if (person) setDialog({ mode, beneficiaryId, initial: draftFromPerson(person) });
+  };
+  /** Lưu phần chia còn dang dở rồi chốt; chốt xong Backend gửi thư mời. */
   const sendAll = async (): Promise<HandoverRecord> => {
-    const pairs = new Set(selected);
-    if (drafts.length > 0) {
-      const added = await handoverRecordService.addRecipients(
-        record.id,
-        drafts.map(draftToRecipient),
-      );
-      const idByEmail = new Map(
-        added.availableRecipients.map((person) => [
-          person.email.trim().toLowerCase(),
-          person.beneficiaryId,
-        ]),
-      );
-      for (const draft of drafts) {
-        const addedId = idByEmail.get(draft.email.trim().toLowerCase());
-        if (!addedId) throw new Error("Không đọc được người nhận vừa thêm.");
-        for (const assetId of draft.assetIds) pairs.add(pairKey(addedId, assetId));
-      }
-      // Đã lưu cả nhóm: bỏ khỏi phần nhập để bấm lại không thêm trùng.
-      client.setQueryData(handoverRecordKeys.verifier(record.id), added);
-      setDrafts([]);
-      setSelected(new Set(pairs));
-    }
-    if (dirty || drafts.length > 0) {
-      const all = [...pairs].map((key) => {
-        const [beneficiaryId, assetId] = key.split(":");
-        return { beneficiaryId, assetId };
-      });
-      const saved = await handoverRecordService.setLines(record.id, all);
-      client.setQueryData(handoverRecordKeys.verifier(record.id), saved);
+    if (dirty) {
+      const next = await handoverRecordService.setLines(record.id, pairsToLines(selected));
+      client.setQueryData(handoverRecordKeys.verifier(record.id), next);
     }
     return handoverRecordService.finalize(record.id, splitDeviationConfirmed);
   };
   const handleSend = () => {
-    const errors = recipientDraftErrors(drafts);
-    setDraftErrors(errors);
-    if (Object.keys(errors).length > 0) return;
-    void finalize.execute(
-      () => finalized.hold(sendAll),
-      apply,
-      (failure) => {
-        setDraftErrors(serverDraftErrors(failure, drafts));
-      },
-    );
+    void finalize.execute(() => finalized.hold(sendAll), apply);
   };
-  const recipientCount =
-    new Set([...selected].map((key) => key.split(":")[0])).size + drafts.length;
-  const lines: RecordLine[] = [...selected].map((key) => {
-    const [beneficiaryId, assetId] = key.split(":");
-    return { beneficiaryId, assetId };
-  });
+  const recipientCount = new Set([...selected].map((key) => key.split(":")[0])).size;
 
   // Làm tuần tự: giấy tờ ở mục A xét xong, có người được chấp nhận và kho đã khóa thì mới mở mục B, C và Chốt.
   const unlocked = !claimsPending && !noAccepted && record.vaultLocked;
@@ -225,7 +194,7 @@ export function RecordLinesEditor({
     );
   }
 
-  const assets = divisionAssets(record, selected, drafts);
+  const assets = divisionAssets(record, selected);
   const dividedCount = assets.filter((asset) => asset.people.length > 0).length;
 
   const splitPanel = (
@@ -252,7 +221,7 @@ export function RecordLinesEditor({
             type="button"
             className={compactButton.dark}
             disabled={busy}
-            onClick={() => changeDrafts([...drafts, emptyRecipientDraft()])}
+            onClick={() => setDialog({ mode: "add", initial: emptyRecipientDraft() })}
           >
             <Plus className="size-4" aria-hidden="true" />
             Thêm người nhận
@@ -271,24 +240,45 @@ export function RecordLinesEditor({
             {split.error}
           </p>
         )}
+        <SuggestedRecipients
+          suggestions={suggestions}
+          skipped={skippedDeclarations(record)}
+          disabled={busy}
+          onContinue={(suggestion) => setDialog({ mode: "add", initial: suggestion })}
+          onDismiss={(key) =>
+            setSuggestions((current) => current.filter((item) => item.key !== key))
+          }
+        />
+        {recipientNotice !== "" && (
+          <p role="alert" className="text-sm text-destructive">
+            {recipientNotice}
+          </p>
+        )}
         <RecipientSplitPanel
           record={record}
           selected={selected}
           rejected={rejected}
           disabled={busy}
           onToggle={toggle}
-        />
-        <NewRecipientCards
-          drafts={drafts}
-          errors={draftErrors}
-          assets={record.availableAssets}
-          prefilled={prefilled}
-          warnings={draftWarnings}
-          skipped={skippedDeclarations(record)}
-          disabled={busy}
-          onChange={changeDrafts}
+          onEditPerson={(beneficiaryId) => openPerson("edit", beneficiaryId)}
+          onRemovePerson={(beneficiaryId) => openPerson("remove", beneficiaryId)}
         />
         <SplitDeviationPanel differences={differences} />
+        {dialog && (
+          <RecipientDialog
+            // Đổi từ sửa sang xóa hoặc mở người khác thì dựng lại cửa sổ, không giữ lỗi cũ.
+            key={
+              dialog.mode === "add" ? dialog.initial.key : `${dialog.mode}-${dialog.beneficiaryId}`
+            }
+            record={record}
+            state={dialog}
+            onAskRemove={() => {
+              if (dialog.mode === "edit") openPerson("remove", dialog.beneficiaryId);
+            }}
+            onDone={applyRecipientChange}
+            onClose={() => setDialog(null)}
+          />
+        )}
       </div>
     </SectionCard>
   );
@@ -304,12 +294,19 @@ export function RecordLinesEditor({
       action={<span className="text-sm text-heritage-muted">{`Mã: #${caseCode(record.id)}`}</span>}
     >
       <div className="space-y-4 p-5">
-        {recipientCount === 0 ? (
+        {suggestions.length > 0 && (
+          <p role="status" className="flex gap-2 text-sm text-heritage-danger">
+            <X className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            {`Còn ${suggestions.length} người trong hồ sơ báo tin chưa xử lý ở mục B: bấm “Nhập tiếp” hoặc “Bỏ”.`}
+          </p>
+        )}
+        {recipientCount === 0 && (
           <p role="status" className="flex gap-2 text-sm text-heritage-danger">
             <X className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             Chọn ít nhất một người nhận ở mục B.
           </p>
-        ) : (
+        )}
+        {recipientCount > 0 && suggestions.length === 0 && (
           <p className="flex gap-2 text-sm text-heritage-success">
             <Check className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             Đã chọn người nhận. Đánh dấu xác nhận bên dưới rồi chốt.
@@ -365,7 +362,13 @@ export function RecordLinesEditor({
             done={finalized.done}
             pendingLabel="Đang phát hành biên bản…"
             doneLabel="Đã phát hành"
-            disabled={busy || recipientCount === 0 || !legalBasisConfirmed || !deviationReady}
+            disabled={
+              busy ||
+              recipientCount === 0 ||
+              suggestions.length > 0 ||
+              !legalBasisConfirmed ||
+              !deviationReady
+            }
             onClick={handleSend}
           >
             Phát hành biên bản
@@ -375,20 +378,23 @@ export function RecordLinesEditor({
             className={compactButton.outline}
             disabled={busy || !dirty || selected.size === 0}
             onClick={() =>
-              void save.execute(() => handoverRecordService.setLines(record.id, lines), apply)
+              void save.execute(
+                () => handoverRecordService.setLines(record.id, pairsToLines(selected)),
+                apply,
+              )
             }
           >
-            {save.pending ? "Đang lưu…" : "Lưu biên bản"}
+            {save.pending ? "Đang lưu…" : "Lưu nháp"}
           </button>
+          {dirty && (
+            <p role="status" className="text-center text-sm text-heritage-warning">
+              Có thay đổi chưa lưu.
+            </p>
+          )}
         </div>
         <p className="text-sm text-heritage-muted">
           {`Bấm "Phát hành biên bản": hệ thống lưu và khóa nội dung biên bản, gửi thư mời cho ${recipientCount} người nhận để họ nộp căn cước, rồi mở bước ký.`}
         </p>
-        {Object.keys(draftErrors).length > 0 && (
-          <p role="alert" className="text-sm text-destructive">
-            Thông tin người nhận chưa đủ hoặc chưa hợp lệ. Kiểm lại các ô báo lỗi ở mục B.
-          </p>
-        )}
         {(save.error || finalize.error) && (
           <p role="alert" className="text-sm text-destructive">
             {save.error || finalize.error}

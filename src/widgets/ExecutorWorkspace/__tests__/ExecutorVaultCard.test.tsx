@@ -48,8 +48,8 @@ describe("ExecutorVaultCard", () => {
   it("chỉ hiển thị tài sản đang chọn: chữ cái đầu, tên Chủ tài sản, trạng thái, không bấm được", () => {
     const { select } = mockState(handoverVault);
     renderCard();
-    expect(screen.getByRole("heading", { name: "Đang làm việc với tài sản" })).toBeInTheDocument();
-    const card = screen.getByRole("group", { name: "Tài sản đang làm việc: Nguyễn Thị Mai" });
+    expect(screen.getByRole("heading", { name: "Đang làm việc với kho" })).toBeInTheDocument();
+    const card = screen.getByRole("group", { name: "Kho đang làm việc: Nguyễn Thị Mai" });
     expect(card).toHaveTextContent("N");
     expect(card).toHaveTextContent("Nguyễn Thị Mai");
     expect(card).toHaveTextContent("Đang ký biên bản");
@@ -58,10 +58,10 @@ describe("ExecutorVaultCard", () => {
     expect(select).not.toHaveBeenCalled();
   });
 
-  it("có liên kết Đổi tài sản → dẫn tới trang lời mời và các tài sản", async () => {
+  it("có liên kết Đổi kho → dẫn tới trang lời mời và các tài sản", async () => {
     mockState(handoverVault);
     renderCard();
-    const link = screen.getByRole("link", { name: "Đổi tài sản →" });
+    const link = screen.getByRole("link", { name: "Đổi kho →" });
     expect(link).toHaveAttribute("href", "/executor/invitations");
     fireEvent.click(link);
     expect(await screen.findByText("Trang lời mời và tài sản")).toBeInTheDocument();
@@ -71,7 +71,7 @@ describe("ExecutorVaultCard", () => {
     mockState(null);
     renderCard();
     expect(
-      screen.queryByRole("heading", { name: "Đang làm việc với tài sản" }),
+      screen.queryByRole("heading", { name: "Đang làm việc với kho" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
@@ -79,7 +79,7 @@ describe("ExecutorVaultCard", () => {
   it("đang tải danh sách tài sản thì chỉ báo đang tải, chưa có liên kết đổi tài sản", () => {
     mockState(null, true);
     renderCard();
-    expect(screen.getByRole("status")).toHaveTextContent("Đang tải tài sản…");
+    expect(screen.getByRole("status")).toHaveTextContent("Đang tải kho…");
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 });

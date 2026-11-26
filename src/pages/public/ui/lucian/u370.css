@@ -1,0 +1,127 @@
+/* Lucian UX/UI Prompt #370 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#370 */
+
+/* Đường thời gian: vạch giữa sáng dần theo cuộn, tới đâu thì chấm bật lên và thẻ trượt vào tới đó. */
+.u370-tl {
+  position: relative;
+}
+
+.u370-ln {
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--ux-line-2);
+}
+
+.u370-ln i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(var(--ux-accent), var(--ux-accent-2));
+  transform: scaleY(var(--p, 0));
+  transform-origin: 50% 0;
+}
+
+.u370-ln i::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--ux-accent-2);
+  box-shadow: 0 0 14px var(--ux-accent-2);
+  transform: scaleY(calc(1 / max(var(--p, 0), 0.02)));
+}
+
+.u370-ev {
+  position: relative;
+  padding: 0 0 40px 44px;
+}
+
+.u370-dot {
+  position: absolute;
+  left: 0.5px;
+  top: 24px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ux-page);
+  box-shadow: 0 0 0 3px var(--ux-line-2);
+  transition:
+    box-shadow 0.3s,
+    transform 0.45s var(--ux-spring),
+    background-color 0.3s;
+}
+
+.u370-ev.on .u370-dot {
+  background: var(--ux-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ux-accent) 25%, transparent);
+  transform: scale(1.15);
+}
+
+.u370-cd {
+  border-radius: 18px;
+  background: var(--ux-surface-2);
+  box-shadow: inset 0 0 0 1px var(--ux-line);
+  padding: 22px 22px 24px;
+  opacity: 0;
+  transform: translateX(24px);
+  transition:
+    opacity 0.4s,
+    transform 0.6s var(--ux-spring);
+}
+
+.u370-ev.on .u370-cd,
+.u370-cd:focus-within {
+  opacity: 1;
+  transform: none;
+}
+
+@media (min-width: 900px) {
+  .u370-ln {
+    left: 50%;
+    margin-left: -1.5px;
+  }
+
+  .u370-ev {
+    padding: 0 0 48px;
+  }
+
+  .u370-dot {
+    left: 50%;
+    margin-left: -9px;
+  }
+
+  .u370-cd {
+    width: calc(50% - 44px);
+  }
+
+  .u370-ev:nth-child(odd) .u370-cd {
+    transform: translateX(-24px);
+  }
+
+  .u370-ev:nth-child(even) .u370-cd {
+    margin-left: auto;
+    transform: translateX(24px);
+  }
+
+  .u370-ev.on:nth-child(n) .u370-cd,
+  .u370-ev .u370-cd:focus-within {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u370-dot,
+  .u370-cd {
+    transition: none;
+  }
+}

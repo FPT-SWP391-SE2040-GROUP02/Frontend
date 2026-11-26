@@ -9,7 +9,7 @@ import { HandoverTurnRow } from "./HandoverTurnRow";
 
 function errorMessage(error: unknown): string {
   if (isAxiosError(error) && error.response?.status === HTTP_STATUS.NOT_FOUND) {
-    return "Không tìm thấy hồ sơ, hoặc tài khoản không còn là Người thực thi đang hiệu lực của tài sản này.";
+    return "Không tìm thấy hồ sơ, hoặc tài khoản không còn là Người thực thi đang hiệu lực của kho này.";
   }
   if (error instanceof ZodError) {
     return "Dữ liệu tiến độ trả về không đúng định dạng. Báo nhóm Backend kiểm tra hợp đồng API.";

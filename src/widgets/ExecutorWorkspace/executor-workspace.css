@@ -19,3 +19,20 @@
   gap: 8px;
   padding-right: 4px;
 }
+
+/* Menu tối mở rộng: nhãn dài xuống dòng thay vì bị cắt bằng dấu …. Thu gọn (is-collapsed) giữ nguyên một dòng, không đổi. */
+.u040--rail:not(.is-collapsed) .u040-item > .u040-label.executor-wrap,
+.u040--rail:not(.is-collapsed) .u040-action > .u040-label.executor-wrap {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.375;
+}
+.u040--rail:not(.is-collapsed) .u040-group.executor-wrap,
+.u040--rail:not(.is-collapsed) .u040-me > .u040-label.executor-wrap {
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.375;
+}

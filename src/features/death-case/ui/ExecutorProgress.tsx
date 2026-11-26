@@ -22,7 +22,7 @@ export function ExecutorProgress({ vault }: { vault: ExecutorVault }) {
   if (query.isError) {
     return (
       <div role="alert" className="space-y-3">
-        <p>Không đọc được biên bản hoặc bạn không có quyền trong tài sản này.</p>
+        <p>Không đọc được biên bản hoặc bạn không có quyền trong kho này.</p>
         <button type="button" className={buttonStyles.outline} onClick={() => void query.refetch()}>
           Thử lại
         </button>

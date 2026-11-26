@@ -1,0 +1,85 @@
+/* Lucian UX/UI Prompt theme tokens · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/ */
+
+/*
+ * Biến --ux-* của các phần tử Lucian trỏ về màu của LegacyVault (xanh rừng, vàng, kem).
+ * Chỉ áp trong phần tử có lớp `.ux` của trang giới thiệu, không đụng giao diện còn lại.
+ * `.ux-night` dùng cho khối đặt trên nền xanh đậm.
+ */
+.ux {
+  --ux-page: var(--bg-canvas);
+  --ux-surface: var(--surface);
+  --ux-surface-2: var(--surface-sunken);
+  --ux-surface-3: var(--border-ui);
+  --ux-ink: var(--text-main);
+  --ux-ink-2: var(--text-muted);
+  --ux-ink-3: var(--text-subtle);
+  --ux-line: rgb(11 41 30 / 0.1);
+  --ux-line-2: rgb(11 41 30 / 0.2);
+  --ux-accent: var(--gold);
+  --ux-accent-2: var(--gold-soft);
+  --ux-accent-soft: rgb(184 142 76 / 0.16);
+  --ux-mint: var(--success);
+  --ux-shadow: rgb(11 41 30 / 0.12);
+  --ux-shadow-strong: rgb(11 41 30 / 0.3);
+  --ux-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ux-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+
+.ux.ux-night {
+  --ux-page: var(--primary);
+  --ux-surface: var(--primary-surface);
+  --ux-surface-2: rgb(255 255 255 / 0.07);
+  --ux-surface-3: rgb(255 255 255 / 0.12);
+  --ux-ink: var(--surface-sunken);
+  --ux-ink-2: rgb(243 240 232 / 0.78);
+  --ux-ink-3: rgb(243 240 232 / 0.62);
+  --ux-line: rgb(255 255 255 / 0.1);
+  --ux-line-2: rgb(255 255 255 / 0.2);
+  --ux-accent: var(--gold-soft);
+  --ux-accent-2: var(--gold);
+  --ux-mint: #8bd8ae;
+  --ux-shadow: rgb(0 0 0 / 0.35);
+  --ux-shadow-strong: rgb(0 0 0 / 0.6);
+}
+
+/* Đặt trong lớp base để class Tailwind (lớp utilities) vẫn ghi đè được. */
+@layer base {
+  .ux,
+  .ux *,
+  .ux *::before,
+  .ux *::after {
+    box-sizing: border-box;
+  }
+
+  .ux {
+    color: var(--ux-ink);
+    -webkit-tap-highlight-color: transparent;
+    overflow-wrap: break-word;
+  }
+
+  :where(.ux) :is(button, input, textarea, select) {
+    font: inherit;
+    color: inherit;
+  }
+
+  :where(.ux) button {
+    cursor: pointer;
+  }
+
+  .ux :focus-visible {
+    outline: 2px solid var(--ux-accent);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ux,
+  .ux *,
+  .ux *::before,
+  .ux *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+  }
+}

@@ -1,0 +1,207 @@
+/* Lucian UX/UI Prompt #056 · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#056 */
+
+/* Chọn kỳ thì nút trượt sang, chữ số giá cuộn; chọn gói thì khung viền trượt theo. */
+.u056 {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.u056-sw {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-self: center;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--ux-surface);
+  box-shadow: 0 0 0 1px var(--ux-line);
+}
+
+.u056-knob {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: var(--w, 90px);
+  border-radius: 999px;
+  background: var(--primary);
+  transform: translateX(var(--x, 0));
+  transition:
+    transform 0.5s var(--ux-spring),
+    width 0.5s var(--ux-spring);
+}
+
+.u056-sw button {
+  position: relative;
+  min-height: 44px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-size: 0.875rem;
+  font-weight: 650;
+  color: var(--ux-ink-2);
+  transition: color 0.3s;
+}
+
+.u056-sw button[aria-checked="true"] {
+  color: var(--surface);
+}
+
+.u056-plans {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.u056-ring {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 1;
+  height: var(--h, 108px);
+  border-radius: 22px;
+  box-shadow:
+    0 0 0 2px var(--ux-accent),
+    0 18px 34px -22px var(--ux-accent);
+  transform: translateY(var(--y, 0));
+  transition:
+    transform 0.55s var(--ux-spring),
+    height 0.4s;
+  pointer-events: none;
+}
+
+.u056-p {
+  position: relative;
+  display: flex;
+  min-height: 108px;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: var(--ux-surface);
+  box-shadow: 0 0 0 1px var(--ux-line);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.35s var(--ux-spring);
+}
+
+.u056-p:active {
+  transform: scale(0.985);
+}
+
+.u056-p input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.u056-p:has(input:focus-visible) {
+  outline: 2px solid var(--ux-accent);
+  outline-offset: 4px;
+}
+
+.u056-dot {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--ux-line-2);
+  transition: box-shadow 0.3s;
+}
+
+.u056-dot::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ux-accent);
+  transform: scale(0);
+  transition: transform 0.4s var(--ux-spring);
+}
+
+.u056-p:has(input:checked) .u056-dot {
+  box-shadow: inset 0 0 0 2px var(--ux-accent);
+}
+
+.u056-p:has(input:checked) .u056-dot::after {
+  transform: none;
+}
+
+/* Chữ số giá dùng lại RollingNumber của dự án, theo nhịp lò xo của phần tử gốc. */
+.u056 .rn {
+  --h: 2rem;
+  color: var(--primary);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.u056 .rn-digit {
+  width: 0.62em;
+}
+
+.u056 .rn-sep {
+  padding: 0;
+  color: inherit;
+  font-weight: inherit;
+}
+
+.u056 .rn-reel {
+  transition: transform 0.7s var(--ux-spring);
+  transition-delay: calc(var(--i) * 40ms);
+}
+
+.u056-feat {
+  min-height: 6rem;
+  margin: 0;
+  padding: 4px 4px 0;
+  list-style: none;
+}
+
+.u056-feat li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 3px 0;
+  color: var(--ux-ink-2);
+  animation: u056-in 0.45s var(--ux-spring) backwards;
+  animation-delay: calc(var(--i) * 50ms);
+}
+
+.u056-feat svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  margin-top: 4px;
+  fill: none;
+  stroke: var(--ux-mint);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes u056-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u056-knob,
+  .u056-ring,
+  .u056 .rn-reel,
+  .u056-feat li {
+    animation: none;
+    transition: none;
+  }
+}

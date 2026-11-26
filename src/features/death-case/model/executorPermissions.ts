@@ -13,5 +13,5 @@ export const EXECUTOR_DENIED: string[] = [
   "Đọc nội dung tài sản",
   "Tự chia, bán, cho tài sản hoặc đổi người nhận",
   "Sửa biên bản bàn giao (việc của luật sư)",
-  "Làm người nhận tài sản này",
+  "Làm người nhận của kho này",
 ];

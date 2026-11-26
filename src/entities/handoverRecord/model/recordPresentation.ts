@@ -78,16 +78,86 @@ export function deliveryText(
   // Chữ ký riêng cho người này; dữ liệu cũ chỉ có chữ ký chung của biên bản.
   const verifierAt = recipient.verifierSignedAt ?? record.verifierSignedAt;
   const executorAt = recipient.executorSignedAt ?? record.executorSignedAt;
-  if (recipient.signedAt) {
-    if (!verifierAt && !executorAt) {
-      return { label: "Chờ luật sư và Người thực thi ký", tone: "warning" };
-    }
-    if (!verifierAt) return { label: "Chờ luật sư ký", tone: "warning" };
-    if (!executorAt) return { label: "Chờ Người thực thi ký", tone: "warning" };
-    return { label: "Chờ mở quyền tải", tone: "warning" };
+  if (!recipient.identityConfirmedAt && !recipient.signedAt) {
+    return { label: "Chờ xác nhận danh tính", tone: "neutral" };
   }
-  if (recipient.identityConfirmedAt) return { label: "Chờ người này ký", tone: "warning" };
-  return { label: "Chờ xác nhận danh tính", tone: "neutral" };
+  // Thứ tự ký phần của mỗi người nhận: luật sư → Người thực thi → người nhận.
+  if (!verifierAt) return { label: "Chờ luật sư ký", tone: "warning" };
+  if (!executorAt) return { label: "Chờ Người thực thi ký", tone: "warning" };
+  if (!recipient.signedAt) return { label: "Chờ người này ký", tone: "warning" };
+  return { label: "Chờ mở quyền tải", tone: "warning" };
+}
+
+/** Một bên ký phần của người nhận, theo thứ tự ký: luật sư, Người thực thi, người nhận. */
+export type SignatureParty = { role: string; signedAt: string | null };
+
+/** Ba chữ ký của phần một người nhận theo đúng thứ tự ký; dữ liệu cũ dùng chữ ký chung của biên bản. */
+export function signatureParties(
+  record: HandoverRecord,
+  recipient: RecordRecipient,
+): SignatureParty[] {
+  return [
+    { role: "Luật sư", signedAt: recipient.verifierSignedAt ?? record.verifierSignedAt },
+    { role: "Người thực thi", signedAt: recipient.executorSignedAt ?? record.executorSignedAt },
+    { role: "Người nhận", signedAt: recipient.signedAt },
+  ];
+}
+
+/** Phần của người nhận này đã đủ ba chữ ký chưa (Backend trả fullySigned; dữ liệu cũ thiếu trường thì tự đếm). */
+export function isFullySigned(record: HandoverRecord, recipient: RecordRecipient): boolean {
+  if (recipient.fullySigned) return true;
+  return signatureParties(record, recipient).every((party) => party.signedAt !== null);
+}
+
+/** "Đủ chữ ký: x/y người nhận": số người nhận có phần đã đủ ba chữ ký trên tổng số người nhận. */
+export function fullySignedCount(record: HandoverRecord): { signed: number; total: number } {
+  const signed = record.recipients.filter((recipient) => isFullySigned(record, recipient)).length;
+  return { signed, total: record.recipients.length };
+}
+
+/** Số phần luật sư và Người thực thi đã ký trên tổng số người nhận. */
+export function partySignedCount(record: HandoverRecord): {
+  verifier: number;
+  executor: number;
+  total: number;
+} {
+  let verifier = 0;
+  let executor = 0;
+  for (const recipient of record.recipients) {
+    if (recipient.verifierSignedAt ?? record.verifierSignedAt) verifier += 1;
+    if (recipient.executorSignedAt ?? record.executorSignedAt) executor += 1;
+  }
+  return { verifier, executor, total: record.recipients.length };
+}
+
+/** Câu "Luật sư đã ký a/y phần · Người thực thi đã ký b/y phần". */
+export function partySignedText(record: HandoverRecord): string {
+  const count = partySignedCount(record);
+  return `Luật sư đã ký ${count.verifier}/${count.total} phần · Người thực thi đã ký ${count.executor}/${count.total} phần`;
+}
+
+/**
+ * Câu giải thích vì sao người đang xem chưa ký được phần này, theo lý do Backend trả (signBlockedReason).
+ * Rỗng khi ký được hoặc không có lý do.
+ */
+export function signBlockedText(reason: string): string {
+  switch (reason) {
+    case "VERIFIER_NOT_SIGNED":
+      return "Chờ luật sư ký phần này";
+    case "EXECUTOR_NOT_SIGNED":
+      return "Chờ Người thực thi ký phần của bạn";
+    case "RECIPIENT_NOT_CONFIRMED":
+    case "IDENTITY_NOT_CONFIRMED":
+      return "Chờ luật sư xác nhận danh tính";
+    case "ALREADY_SIGNED":
+      return "Đã ký phần này";
+    case "NOT_SIGNING_STEP":
+      return "Biên bản chưa chốt";
+    case "RECORD_COMPLETED":
+      return "Biên bản đã đủ chữ ký";
+    default:
+      return "";
+  }
 }
 
 /** Danh tính của một người nhận đang ở đâu, nói bằng chữ dễ hiểu. */
@@ -100,17 +170,6 @@ export function identityText(recipient: RecordRecipient): { label: string; tone:
     return { label: "Đang làm lại xác minh", tone: "warning" };
   if (recipient.claimed) return { label: "Chưa nộp căn cước", tone: "neutral" };
   return { label: "Chưa mở thư mời", tone: "neutral" };
-}
-
-/** Số chữ ký đã có trên tổng số cần: mỗi người nhận cần luật sư, Người thực thi và chính người đó. */
-export function signatureCount(record: HandoverRecord): { signed: number; total: number } {
-  let signed = 0;
-  for (const recipient of record.recipients) {
-    if (recipient.verifierSignedAt ?? record.verifierSignedAt) signed += 1;
-    if (recipient.executorSignedAt ?? record.executorSignedAt) signed += 1;
-    if (recipient.signedAt) signed += 1;
-  }
-  return { signed, total: 3 * record.recipients.length };
 }
 
 /** Phiếu giao nhận của một người nhận đang ở đâu; chỉ dùng khi phần của người đó đã mở quyền tải. */

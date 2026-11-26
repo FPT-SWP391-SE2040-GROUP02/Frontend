@@ -1,5 +1,3 @@
-import { isAxiosError } from "axios";
-import { z } from "zod";
 import {
   newRecipientSchema,
   type HandoverRecord,
@@ -80,77 +78,58 @@ export function skippedDeclarations(record: HandoverRecord): string[] {
   return result;
 }
 
-/** Nhắc luật sư khi người đang nhập có vẻ đã nằm trong kho; rỗng khi không có gì đáng ngờ. */
-export function draftWarning(record: HandoverRecord, draft: RecipientDraft): string {
-  const sameEmail = findByEmail(record, draft.email);
-  if (sameEmail) {
-    return `Email này đã dùng cho ${sameEmail.fullName} trong danh sách. Nếu là cùng một người, hãy bỏ ô này.`;
-  }
-  const name = normalize(draft.fullName);
-  const sameName = record.availableRecipients.find((person) => normalize(person.fullName) === name);
-  if (name !== "" && sameName) {
-    return `Trong danh sách đã có người tên ${sameName.fullName}. Chỉ giữ ô này nếu đây là người khác.`;
-  }
-  return "";
+type RecordPerson = HandoverRecord["availableRecipients"][number];
+
+/** Điền sẵn ô sửa từ người đã lưu. */
+export function draftFromPerson(person: RecordPerson): RecipientDraft {
+  let dateOfBirth = "";
+  if (person.dateOfBirth) dateOfBirth = person.dateOfBirth;
+  return {
+    ...emptyRecipientDraft(),
+    fullName: person.fullName,
+    citizenId: person.citizenId,
+    dateOfBirth,
+    email: person.email,
+    phone: person.phone,
+  };
 }
 
-const serverErrorsSchema = z.object({ errors: z.record(z.string(), z.array(z.string())) });
-
 /**
- * Lỗi máy chủ trả theo khóa recipients[chỉ số].trường được gắn về đúng ô của người nhận đang nhập, theo thứ tự đã gửi.
- * Lỗi khác dạng thì trả đối tượng rỗng.
+ * Nhắc luật sư khi người đang nhập có vẻ đã nằm trong kho; rỗng khi không có gì đáng ngờ. Khi sửa thì bỏ qua chính người
+ * đang sửa (exceptId).
  */
-export function serverDraftErrors(
-  failure: unknown,
-  drafts: RecipientDraft[],
-): Record<string, RecipientDraftErrors> {
-  const result: Record<string, RecipientDraftErrors> = {};
-  if (!isAxiosError(failure)) return result;
-  const parsed = serverErrorsSchema.safeParse(failure.response?.data);
-  if (!parsed.success) return result;
-  for (const [key, messages] of Object.entries(parsed.data.errors)) {
-    const match = /^recipients\[(\d+)\]\.(\w+)$/i.exec(key);
-    if (!match || messages.length === 0) continue;
-    const draft = drafts[Number(match[1])];
-    const name = match[2].charAt(0).toLowerCase() + match[2].slice(1);
-    const field = RECIPIENT_FIELDS.find((item) => item === name);
-    if (!draft || !field) continue;
-    result[draft.key] = {
-      ...result[draft.key],
-      [field]: messages[0].replace(/^Người nhận mới \d+:\s*/, ""),
-    };
+export function draftWarning(record: HandoverRecord, draft: RecipientDraft, exceptId = ""): string {
+  const others = record.availableRecipients.filter((person) => person.beneficiaryId !== exceptId);
+  const email = normalize(draft.email);
+  const sameEmail = others.find((person) => email !== "" && normalize(person.email) === email);
+  if (sameEmail) {
+    return `Email này đã dùng cho ${sameEmail.fullName} trong danh sách. Nếu là cùng một người, không cần thêm.`;
   }
-  return result;
+  const name = normalize(draft.fullName);
+  const sameName = others.find((person) => normalize(person.fullName) === name);
+  if (name !== "" && sameName) {
+    return `Trong danh sách đã có người tên ${sameName.fullName}. Chỉ thêm nếu đây là người khác.`;
+  }
+  return "";
 }
 
 export function draftToRecipient(draft: RecipientDraft): NewRecipient {
   return newRecipientSchema.parse({ ...draft, phone: draft.phone || undefined });
 }
 
-/** Lỗi của từng người nhận mới theo khóa; đối tượng rỗng khi mọi người hợp lệ. */
-export function recipientDraftErrors(
-  drafts: RecipientDraft[],
-): Record<string, RecipientDraftErrors> {
-  const result: Record<string, RecipientDraftErrors> = {};
-  const citizenIds = new Set<string>();
-  const emails = new Set<string>();
-  for (const draft of drafts) {
-    const errors: RecipientDraftErrors = {};
-    const parsed = newRecipientSchema.safeParse({ ...draft, phone: draft.phone || undefined });
-    if (!parsed.success) {
-      for (const issue of parsed.error.issues) {
-        const field = issue.path[0] as RecipientField;
-        if (!errors[field]) errors[field] = issue.message;
-      }
+/** Lỗi kiểm tại chỗ của một người nhận; trùng căn cước hoặc email với người khác do máy chủ kiểm khi lưu. */
+export function recipientDraftError(
+  draft: RecipientDraft,
+  requireAssets: boolean,
+): RecipientDraftErrors {
+  const errors: RecipientDraftErrors = {};
+  const parsed = newRecipientSchema.safeParse({ ...draft, phone: draft.phone || undefined });
+  if (!parsed.success) {
+    for (const issue of parsed.error.issues) {
+      const field = issue.path[0] as RecipientField;
+      if (!errors[field]) errors[field] = issue.message;
     }
-    const citizenId = draft.citizenId.trim();
-    const email = draft.email.trim().toLowerCase();
-    if (!errors.citizenId && citizenIds.has(citizenId)) errors.citizenId = "Số căn cước bị trùng.";
-    if (!errors.email && emails.has(email)) errors.email = "Email bị trùng.";
-    citizenIds.add(citizenId);
-    emails.add(email);
-    if (draft.assetIds.length === 0) errors.assetIds = "Chọn ít nhất một tài sản.";
-    if (Object.keys(errors).length > 0) result[draft.key] = errors;
   }
-  return result;
+  if (requireAssets && draft.assetIds.length === 0) errors.assetIds = "Chọn ít nhất một tài sản.";
+  return errors;
 }

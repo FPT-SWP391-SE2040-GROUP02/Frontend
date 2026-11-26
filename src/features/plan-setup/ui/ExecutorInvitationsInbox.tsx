@@ -88,7 +88,7 @@ export function ExecutorInvitationsInbox() {
       )}
       {acceptedOwner && (
         <Notice tone="success" role="status" title="Bạn đã là Người thực thi">
-          Tài sản của {acceptedOwner} đã nằm trong danh sách tài sản bạn đang giữ ở bên dưới.
+          Kho của {acceptedOwner} đã nằm trong danh sách kho bạn đang giữ ở bên dưới.
         </Notice>
       )}
       {pendingBody}
@@ -267,7 +267,7 @@ function PendingCard({
       {askingDecline && (
         <DeclineConfirmDialog
           title="Từ chối lời mời này?"
-          description={`Bạn sẽ không làm Người thực thi cho tài sản của ${invitation.ownerName}. Muốn nhận lại thì Chủ tài sản phải gửi lời mời mới.`}
+          description={`Bạn sẽ không làm Người thực thi cho kho của ${invitation.ownerName}. Muốn nhận lại thì Chủ tài sản phải gửi lời mời mới.`}
           confirmLabel="Từ chối lời mời"
           onClose={() => setAskingDecline(false)}
           onConfirm={() => {

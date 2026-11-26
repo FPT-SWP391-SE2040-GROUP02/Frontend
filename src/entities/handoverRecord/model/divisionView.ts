@@ -1,10 +1,30 @@
-import type { HandoverRecord } from "./handoverRecord.schema";
-import type { RecipientDraft } from "./recipientDraft";
+import type { HandoverRecord, RecordLine } from "./handoverRecord.schema";
 
 /** Khóa của một cặp người nhận - tài sản trong biên bản đang lập. */
 export const pairKey = (beneficiaryId: string, assetId: string) => `${beneficiaryId}:${assetId}`;
 
-/** Một người có thể nhận tài sản: đã có trong kho hoặc đang được luật sư nhập. */
+/** Các cặp người nhận - tài sản Backend đã lưu trong biên bản. */
+export function savedPairs(record: HandoverRecord): Set<string> {
+  const result = new Set<string>();
+  for (const recipient of record.recipients) {
+    for (const asset of recipient.assets) {
+      result.add(pairKey(recipient.beneficiaryId, asset.assetId));
+    }
+  }
+  return result;
+}
+
+/** Đổi các cặp đang chọn thành dòng biên bản để gửi lên máy chủ. */
+export function pairsToLines(pairs: Set<string>): RecordLine[] {
+  const lines: RecordLine[] = [];
+  for (const key of pairs) {
+    const [beneficiaryId, assetId] = key.split(":");
+    lines.push({ beneficiaryId, assetId });
+  }
+  return lines;
+}
+
+/** Một người có thể nhận tài sản. */
 export interface DivisionPerson {
   id: string;
   fullName: string;
@@ -24,11 +44,7 @@ export interface DivisionAsset {
  * Cách chia đang hiện trên màn hình (kể cả phần chưa lưu), nhìn theo từng tài sản. Dùng cho danh sách chia tài sản
  * và bản nháp để in; Backend vẫn là nơi quyết định khác biệt khi chốt (splitDifferences).
  */
-export function divisionAssets(
-  record: HandoverRecord,
-  selected: Set<string>,
-  drafts: RecipientDraft[] = [],
-): DivisionAsset[] {
+export function divisionAssets(record: HandoverRecord, selected: Set<string>): DivisionAsset[] {
   return record.availableAssets.map((asset) => {
     const people: DivisionPerson[] = record.availableRecipients
       .filter((person) => selected.has(pairKey(person.beneficiaryId, asset.assetId)))
@@ -37,14 +53,6 @@ export function divisionAssets(
         fullName: person.fullName,
         citizenId: person.citizenId,
       }));
-    for (const draft of drafts) {
-      if (!draft.assetIds.includes(asset.assetId)) continue;
-      people.push({
-        id: draft.key,
-        fullName: draft.fullName.trim() || "Người nhận mới",
-        citizenId: draft.citizenId.trim(),
-      });
-    }
     const ownerIds = record.ownerSplit
       .filter((entry) => entry.assetIds.includes(asset.assetId))
       .map((entry) => entry.beneficiaryId);

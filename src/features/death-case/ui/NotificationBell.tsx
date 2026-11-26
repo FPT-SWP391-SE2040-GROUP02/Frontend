@@ -180,7 +180,7 @@ export function NotificationBell() {
         >
           <div className="bell-panel-head">
             <p className="font-semibold text-heritage-primary">Thông báo</p>
-            <p className="text-sm text-heritage-muted">Tài sản của {selected.ownerFullName}</p>
+            <p className="text-sm text-heritage-muted">Kho của {selected.ownerFullName}</p>
           </div>
           <ul className="max-h-[60vh] space-y-2.5 overflow-y-auto p-3">
             {items.map((item) => (
