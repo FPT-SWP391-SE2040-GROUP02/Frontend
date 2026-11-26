@@ -1,0 +1,93 @@
+/*
+ * Dòng ký ba bên của một người nhận: ba con dấu xếp theo thứ tự ký (luật sư, Người thực thi, người nhận), nối với nhau
+ * bằng một đường mảnh. Dấu chưa ký là vòng nét đứt; dấu đã ký đóng xuống nghiêng, viền liền và có dấu ✓.
+ * Ý tưởng "dòng ký duyệt" lấy từ mẫu #180 của lucianlabs.dev/uxui-prompt (MIT); màu lấy từ biến của sản phẩm.
+ */
+.sign-seals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(4.5rem, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sign-seal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+}
+/* Đường nối từ dấu trước sang dấu này; nằm sau dấu nên không che dấu. */
+.sign-seal + .sign-seal::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: 50%;
+  left: -50%;
+  border-top: 2px solid var(--border-ui);
+  z-index: 0;
+}
+.sign-seal[data-signed="true"] + .sign-seal[data-signed="true"]::before {
+  border-top-color: var(--success);
+}
+.sign-seal-mark {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 2px dashed var(--border-ui);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  transition:
+    background-color 300ms,
+    color 300ms,
+    transform 450ms cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+.sign-seal-mark::after {
+  content: "–";
+}
+.sign-seal[data-signed="true"] .sign-seal-mark {
+  border: 2px solid var(--success);
+  background: var(--success-bg);
+  color: var(--success);
+  font-weight: 700;
+  transform: rotate(-12deg);
+  animation: sign-seal-stamp 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.sign-seal[data-signed="true"] .sign-seal-mark::after {
+  content: "✓";
+}
+.sign-seal-role {
+  font-weight: 600;
+  color: var(--text-main);
+  overflow-wrap: anywhere;
+}
+.sign-seal-state {
+  color: var(--text-muted);
+}
+.sign-seal[data-signed="true"] .sign-seal-state {
+  color: var(--success);
+  font-weight: 600;
+}
+@keyframes sign-seal-stamp {
+  from {
+    transform: rotate(-25deg) scale(1.35);
+    opacity: 0.2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sign-seal-mark {
+    transition: none;
+  }
+  .sign-seal[data-signed="true"] .sign-seal-mark {
+    animation: none;
+  }
+}
