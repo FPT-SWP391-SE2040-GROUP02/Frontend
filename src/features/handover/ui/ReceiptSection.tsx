@@ -75,8 +75,8 @@ export function ReceiptSection({ turn, onChanged }: { turn: Turn; onChanged: () 
   return (
     <div className="space-y-3">
       <p className="text-sm leading-6 text-heritage-muted">
-        Tải và kiểm tra các mục ở khung “Các mục dành cho bạn”, rồi ký phiếu giao nhận. Ký rồi là
-        bạn xác nhận đã nhận đủ và tự chịu trách nhiệm quản lý tài sản.
+        Tải và kiểm tra các mục ở bước 6B phía trên, rồi ký phiếu giao nhận. Ký rồi là bạn xác nhận
+        đã nhận đủ và tự chịu trách nhiệm quản lý tài sản.
       </p>
       {missing > 0 && (
         <p role="status" className="text-sm font-medium text-heritage-warning">

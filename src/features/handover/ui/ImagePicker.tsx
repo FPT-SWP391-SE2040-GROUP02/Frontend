@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent } from "react";
-import { FileImage } from "lucide-react";
+import { Check, Upload } from "lucide-react";
 
 /** Ô chọn một ảnh căn cước (JPEG, PNG hoặc WEBP, tối đa 8 MiB). Hiện ảnh đã tải lên để người nhận đối chiếu trước khi ký. */
 export function ImagePicker({
@@ -34,7 +34,9 @@ export function ImagePicker({
   const activePreview = file ? previewUrl : null;
 
   return (
-    <label className="flex cursor-pointer flex-col gap-2.5 rounded-xl border border-dashed border-heritage-border bg-white p-4 text-sm hover:bg-heritage-sunken">
+    <label
+      className={`flex cursor-pointer flex-col items-center gap-2 rounded-[14px] border-2 p-5 text-center text-sm transition-colors hover:border-heritage-gold ${file ? "border-solid border-heritage-success bg-heritage-success-bg" : "border-dashed border-heritage-gold-soft bg-heritage-warning-bg"}`}
+    >
       <span className="font-semibold text-heritage-primary">{label}</span>
       {activePreview && (
         <div className="overflow-hidden rounded-lg border border-heritage-border bg-heritage-canvas p-1.5">
@@ -46,9 +48,15 @@ export function ImagePicker({
         </div>
       )}
       <span className="flex items-center gap-2 text-heritage-muted">
-        <FileImage className="size-5 shrink-0" aria-hidden="true" />
+        {file ? (
+          <Check className="size-5 shrink-0 text-heritage-success" aria-hidden="true" />
+        ) : (
+          <Upload className="size-5 shrink-0" aria-hidden="true" />
+        )}
         <span className="truncate">
-          {file ? file.name : "Chưa chọn ảnh (JPEG, PNG hoặc WEBP, tối đa 8 MiB)"}
+          {file
+            ? `${file.name} (bấm để đổi)`
+            : "Bấm để chọn ảnh (JPEG, PNG hoặc WEBP, tối đa 8 MiB)"}
         </span>
       </span>
       <input

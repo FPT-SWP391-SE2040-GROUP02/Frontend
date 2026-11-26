@@ -9,7 +9,7 @@ import authReducer, { setCredentials } from "@/entities/user/model/authSlice";
 import { apiClient } from "@/shared/api/axiosClient";
 import { accessTokenMemory } from "@/shared/api/accessToken";
 import { VAULT_ID, CONTAINER_ID, CREATED_AT } from "@/shared/api/__tests__/backend.fixtures";
-import { HandoverPortal } from "@/features/handover/ui/HandoverPortal";
+import { TurnDetail } from "@/features/handover/ui/TurnDetail";
 
 const originalAdapter = apiClient.defaults.adapter;
 let client: QueryClient;
@@ -78,7 +78,7 @@ function setup() {
     <Provider store={store}>
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <HandoverPortal />
+          <TurnDetail turnId={CONTAINER_ID} />
         </MemoryRouter>
       </QueryClientProvider>
     </Provider>,
@@ -102,33 +102,27 @@ it("hiện Người xét duyệt kèm số thẻ luật sư và nút Tôi đã n
   };
   setup();
 
-  expect(await screen.findByTestId("reviewer-line")).toHaveTextContent(
-    "Luật sư Dũng (thẻ luật sư LS-12345)",
-  );
+  expect(await screen.findByText("Luật sư Dũng (thẻ luật sư LS-12345)")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Tôi đã nhận đủ, ký phiếu" }));
 
   await waitFor(() => expect(posts).toHaveLength(1));
   expect(posts[0]).toContain(`/handover/turns/${CONTAINER_ID}/received-all`);
   expect(await screen.findByText(/Bạn đã xác nhận nhận đủ lúc/)).toBeInTheDocument();
-  // Nhận đủ rồi: nút tải khóa lại và cả 6 bước của tiến trình đều "Xong".
-  expect(screen.getByRole("button", { name: "Tải xuống Mục A" })).toBeDisabled();
+  // Nhận đủ rồi: không còn khung tải về và cả 6 bước của tiến trình đều "Xong".
+  expect(screen.queryByRole("button", { name: "Tải xuống Mục A" })).not.toBeInTheDocument();
   expect(screen.getAllByText("Xong")).toHaveLength(6);
   expect(screen.queryByText("Đang ở đây")).not.toBeInTheDocument();
 });
 
 it("chưa tải hết các mục thì khóa nút Tôi đã nhận đủ và báo còn mấy mục", async () => {
+  const pending = turn({ items: [{ ...turn().items[0], downloaded: false }] });
   apiClient.defaults.adapter = async (config) =>
-    ok(
-      config,
-      config.url?.endsWith("/handover/turns/me")
-        ? [turn({ items: [{ ...turn().items[0], downloaded: false }] })]
-        : turn(),
-    );
+    ok(config, config.url?.endsWith("/handover/turns/me") ? [pending] : pending);
   setup();
 
   const button = await screen.findByRole("button", { name: "Tôi đã nhận đủ, ký phiếu" });
   expect(button).toBeDisabled();
-  expect(screen.getByText(/Còn 1 mục chưa tải/)).toBeInTheDocument();
+  expect(screen.getByText(/Tải hết rồi mới xác nhận được/)).toBeInTheDocument();
 });
 
 it("báo thiếu hoặc sai gửi đúng nội dung", async () => {

@@ -127,6 +127,21 @@ const NotFoundPage = lazy(() =>
 const ServerErrorPage = lazy(() =>
   import("@/pages/error/ServerErrorPage").then((module) => ({ default: module.ServerErrorPage })),
 );
+const BeneficiaryTurnPage = lazy(() =>
+  import("@/pages/beneficiary/BeneficiaryTurnPage").then((module) => ({
+    default: module.BeneficiaryTurnPage,
+  })),
+);
+const BeneficiaryRequestsPage = lazy(() =>
+  import("@/pages/beneficiary/BeneficiaryRequestsPage").then((module) => ({
+    default: module.BeneficiaryRequestsPage,
+  })),
+);
+const BeneficiaryGuidePage = lazy(() =>
+  import("@/pages/beneficiary/BeneficiaryGuidePage").then((module) => ({
+    default: module.BeneficiaryGuidePage,
+  })),
+);
 const BeneficiaryPortalPage = lazy(() =>
   import("@/pages/beneficiary/BeneficiaryPortalPage").then((module) => ({
     default: module.BeneficiaryPortalPage,
@@ -264,6 +279,9 @@ export function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route path={ROUTES.BENEFICIARY.CLAIM} element={<BeneficiaryPortalPage />} />
           <Route path={ROUTES.BENEFICIARY.HANDOVER} element={<BeneficiaryPortalPage />} />
+          <Route path={ROUTES.BENEFICIARY.TURN_PATTERN} element={<BeneficiaryTurnPage />} />
+          <Route path={ROUTES.BENEFICIARY.REQUESTS} element={<BeneficiaryRequestsPage />} />
+          <Route path={ROUTES.BENEFICIARY.GUIDE} element={<BeneficiaryGuidePage />} />
           <Route
             path={ROUTES.BENEFICIARY.DOCUMENTS}
             element={<Navigate to={ROUTES.BENEFICIARY.CLAIM} replace />}

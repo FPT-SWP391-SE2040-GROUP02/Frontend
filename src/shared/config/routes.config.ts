@@ -106,6 +106,14 @@ export const ROUTES = {
     HANDOVER: "/claim/beneficiary/handover",
     /** Cũ: mục Biên bản riêng; nay gộp vào Tổng quan nên đường dẫn này chuyển về Tổng quan. */
     DOCUMENTS: "/claim/beneficiary/documents",
+    /** Chi tiết một lượt bàn giao: các bước nộp căn cước, ký biên bản, nhập mã, tải tài sản. */
+    TURN: (turnId: string) => `/claim/beneficiary/turns/${turnId}`,
+    /** Mẫu đường dẫn của trang chi tiết lượt, dùng khai báo route. */
+    TURN_PATTERN: "/claim/beneficiary/turns/:turnId",
+    /** Giấy tờ và yêu cầu nhận tài sản của người nhận. */
+    REQUESTS: "/claim/beneficiary/requests",
+    /** Hướng dẫn sáu bước nhận tài sản. */
+    GUIDE: "/claim/beneficiary/guide",
   },
 
   /** Quản trị hệ thống & Sổ cái kiểm toán WORM */

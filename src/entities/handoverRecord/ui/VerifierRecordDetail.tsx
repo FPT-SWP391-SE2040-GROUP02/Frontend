@@ -37,12 +37,16 @@ const PARTIALLY_DELIVERED_TEXT =
   "Đã giao tài sản cho ít nhất một người nhận nên không mở lại được biên bản. Sai sót sau khi giao xử lý ngoài hệ thống.";
 
 /** Bước 2: ký ngay sau khi chốt, kiểm danh tính từng người nhận, hoặc mở lại biên bản để sửa. */
-function FinalizedActions({ record }: { record: HandoverRecord }) {
+function FinalizedActions({
+  record,
+  signPending,
+}: {
+  record: HandoverRecord;
+  signPending: boolean;
+}) {
   const client = useQueryClient();
-  const sign = usePrivateAction();
-  const signed = useSuccessHold();
   const reopen = usePrivateAction();
-  const busy = sign.pending || reopen.pending;
+  const busy = signPending || reopen.pending;
   const apply = (next: HandoverRecord) => {
     client.setQueryData(handoverRecordKeys.verifier(next.id), next);
     void client.invalidateQueries({ queryKey: handoverRecordKeys.root });
@@ -52,10 +56,6 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
   const delivered = record.recipients.some(
     (recipient) => recipient.turnStatus === "HANDOVER_COMMITTED",
   );
-  let signLabel = "Bạn đã ký";
-  if (record.canSign) {
-    signLabel = "Ký xác minh";
-  }
   return (
     <Panel title="Bước 2 · Ký và giao từng người" labelledBy="record-actions">
       <div className="space-y-4 text-sm leading-6">
@@ -64,28 +64,11 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
           danh tính, rồi người đó ký. Có chữ ký của bạn, Người thực thi và một người nhận thì người
           đó được mở quyền tải, không chờ người nhận khác.
         </p>
+        <p>Bấm "Xem và ký biên bản" ở bên dưới, đọc xong thì bấm nút ký ở ô chữ ký của luật sư.</p>
         <p>
           {`Còn ${waiting} người nhận chưa được xác nhận danh tính. Bấm "Kiểm danh tính" ở dòng của người đã nộp căn cước.`}
         </p>
         <div className="flex flex-wrap gap-2">
-          {isSigningStage(record.status) && (
-            <ActionButton
-              className={buttonStyles.dark}
-              disabled={busy || !record.canSign}
-              onClick={() =>
-                void sign.execute(
-                  () => signed.hold(() => handoverRecordService.signAsVerifier(record.id)),
-                  apply,
-                )
-              }
-              pending={sign.pending}
-              done={signed.done}
-              pendingLabel="Đang ký…"
-              doneLabel="Đã ký"
-            >
-              {signLabel}
-            </ActionButton>
-          )}
           {!delivered && (
             <button
               type="button"
@@ -112,9 +95,9 @@ function FinalizedActions({ record }: { record: HandoverRecord }) {
             được xác nhận danh tính vẫn giữ nguyên.
           </p>
         )}
-        {(sign.error || reopen.error) && (
+        {reopen.error && (
           <p role="alert" className="text-destructive">
-            {sign.error || reopen.error}
+            {reopen.error}
           </p>
         )}
       </div>
@@ -204,6 +187,9 @@ export function VerifierRecordDetail({
   recordId: string;
   onBack: () => void;
 }) {
+  const client = useQueryClient();
+  const sign = usePrivateAction();
+  const signed = useSuccessHold();
   const query = useVerifierRecord(recordId);
   if (query.isPending) return <p role="status">Đang tải biên bản…</p>;
   if (query.isError) {
@@ -226,6 +212,37 @@ export function VerifierRecordDetail({
     );
   }
   const record = query.data;
+  // Nút ký xác minh chỉ nằm trong khung "Xem biên bản", ngay ô chữ ký của luật sư. Ký rồi thì ô đó hiện "Đã ký điện tử".
+  const signButton =
+    isSigningStage(record.status) && record.canSign ? (
+      <>
+        <ActionButton
+          className={buttonStyles.dark}
+          disabled={sign.pending}
+          onClick={() =>
+            void sign.execute(
+              () => signed.hold(() => handoverRecordService.signAsVerifier(record.id)),
+              (next) => {
+                client.setQueryData(handoverRecordKeys.verifier(next.id), next);
+                void client.invalidateQueries({ queryKey: handoverRecordKeys.root });
+              },
+            )
+          }
+          pending={sign.pending}
+          done={signed.done}
+          pendingLabel="Đang ký…"
+          doneLabel="Đã ký"
+        >
+          Ký xác minh
+        </ActionButton>
+        {sign.error && (
+          <p role="alert" className="max-w-56 text-center text-sm text-destructive">
+            {sign.error}
+          </p>
+        )}
+      </>
+    ) : undefined;
+  const signAction = signButton ? { target: "verifier" as const, node: signButton } : undefined;
   return (
     <div className="space-y-6">
       <button type="button" className={buttonStyles.outline} onClick={onBack}>
@@ -257,7 +274,9 @@ export function VerifierRecordDetail({
       {record.status !== "DRAFTING" && record.status !== "CANCELLED" && (
         <EvidencePanel record={record} />
       )}
-      {isSigningStage(record.status) && <FinalizedActions record={record} />}
+      {isSigningStage(record.status) && (
+        <FinalizedActions record={record} signPending={sign.pending} />
+      )}
       {record.status === "COMPLETED" && (
         <Notice tone="success" title="Mọi người nhận đã ký">
           Biên bản đã đủ chữ ký của bạn, Người thực thi và mọi người nhận. Từng người nhận đã được
@@ -267,6 +286,7 @@ export function VerifierRecordDetail({
       {record.status !== "DRAFTING" && (
         <RecordDocument
           record={record}
+          signAction={signAction}
           renderRecipientAction={
             isSigningStage(record.status)
               ? (recipient) => <IdentityAction recipient={recipient} />
