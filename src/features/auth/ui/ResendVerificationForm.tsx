@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link } from "react-router-dom";
@@ -10,7 +10,9 @@ import {
 } from "../model/verifyEmail.schema";
 import { getRegisterErrorMessage } from "../lib/registerFeedback";
 import { ROUTES } from "@/shared/config/routes.config";
-import { Button } from "@/shared/ui/button";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { ActionButton } from "@/shared/ui/ActionButton";
+import { buttonVariants } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 
 const schema = z.object({ email: verificationEmailSchema });
@@ -19,6 +21,9 @@ const schema = z.object({ email: verificationEmailSchema });
 export function ResendVerificationForm({ className = "" }: { className?: string }) {
   const inFlight = useRef(false);
   const mutation = useResendEmailVerification();
+  const sent = useSuccessHold();
+  // Còn bật sau khi mutation xong để nút kịp hiện dấu tích.
+  const [sending, setSending] = useState(false);
   const {
     register,
     handleSubmit,
@@ -37,12 +42,14 @@ export function ResendVerificationForm({ className = "" }: { className?: string 
         void handleSubmit(async ({ email }) => {
           if (inFlight.current || mutation.isPending || mutation.isSuccess) return;
           inFlight.current = true;
+          setSending(true);
           try {
-            await mutation.mutateAsync(email);
+            await sent.hold(() => mutation.mutateAsync(email));
           } catch {
             /* Lỗi mutation được hiển thị inline bên dưới. */
           } finally {
             inFlight.current = false;
+            setSending(false);
           }
         })(event);
       }}
@@ -76,13 +83,17 @@ export function ResendVerificationForm({ className = "" }: { className?: string 
           {content.resendAccepted}
         </p>
       )}
-      <Button
+      <ActionButton
         type="submit"
-        className="min-h-11 w-full"
-        disabled={isSubmitting || mutation.isPending || mutation.isSuccess}
+        className={buttonVariants({ className: "min-h-11 w-full" })}
+        pending={sending}
+        done={sent.done}
+        pendingLabel="Đang gửi…"
+        doneLabel="Đã gửi"
+        disabled={isSubmitting || mutation.isSuccess}
       >
-        {mutation.isPending ? "Đang gửi…" : "Gửi lại email"}
-      </Button>
+        Gửi lại email
+      </ActionButton>
       <Link to={ROUTES.AUTH.LOGIN} className="inline-flex min-h-11 items-center underline">
         {content.login}
       </Link>

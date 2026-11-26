@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Notice, Panel, StatusText } from "@/shared/ui/heritageKit";
+import { ActionButton } from "@/shared/ui/ActionButton";
 import { formatDate } from "@/shared/lib/dateFormat";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 import { recipientReviewService } from "../api/recipientReviewService";
 import { SUBMISSION_STATUS_LABELS } from "../model/recipientReview.schema";
 import {
@@ -78,6 +80,7 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
   const query = useRecipientSubmission(id);
   const approve = usePrivateAction();
   const supplement = usePrivateAction();
+  const supplementSent = useSuccessHold();
   const [reason, setReason] = useState("");
   const busy = approve.pending || supplement.pending;
   const done = () => {
@@ -197,13 +200,19 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
                     onChange={(event) => setReason(event.target.value)}
                   />
                 </label>
-                <button
-                  type="button"
+                <ActionButton
                   className={buttonStyles.outline}
-                  disabled={busy || reason.trim().length === 0}
+                  pending={supplement.pending}
+                  done={supplementSent.done}
+                  pendingLabel="Đang gửi…"
+                  doneLabel="Đã gửi"
+                  disabled={approve.pending || reason.trim().length === 0}
                   onClick={() =>
                     void supplement.execute(
-                      () => recipientReviewService.requestSupplement(detail.id, reason.trim()),
+                      () =>
+                        supplementSent.hold(() =>
+                          recipientReviewService.requestSupplement(detail.id, reason.trim()),
+                        ),
                       () => {
                         setReason("");
                         done();
@@ -211,8 +220,8 @@ export function RecipientReviewDetail({ id, onBack }: { id: string; onBack: () =
                     )
                   }
                 >
-                  {supplement.pending ? "Đang gửi…" : "Yêu cầu làm lại"}
-                </button>
+                  Yêu cầu làm lại
+                </ActionButton>
               </div>
             )}
             {(approve.error || supplement.error) && (

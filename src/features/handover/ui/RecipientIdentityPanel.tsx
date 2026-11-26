@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { TriangleAlert } from "lucide-react";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { ActionButton } from "@/shared/ui/ActionButton";
 import { buttonStyles, Chip } from "@/shared/ui/heritageKit";
 import { handoverService } from "../api/handoverService";
 import { useLatestSubmission } from "../model/useLatestSubmission";
@@ -31,6 +33,7 @@ function emptyDraft(): SubmissionDraft {
 /** Bản khai danh tính: họ tên, ngày sinh, số căn cước, nơi thường trú và ảnh căn cước hai mặt. */
 function IdentityForm({ turnId, onDone }: { turnId: string; onDone: () => void }) {
   const action = useHandoverAction();
+  const sent = useSuccessHold();
   const [draft, setDraft] = useState<SubmissionDraft>(emptyDraft);
   const [touched, setTouched] = useState(false);
   const set = <K extends keyof SubmissionDraft>(key: K, value: SubmissionDraft[K]) =>
@@ -39,7 +42,10 @@ function IdentityForm({ turnId, onDone }: { turnId: string; onDone: () => void }
   const submit = () => {
     setTouched(true);
     if (error) return;
-    void action.execute(() => handoverService.submitSubmission(turnId, draft), onDone);
+    void action.execute(
+      () => sent.hold(() => handoverService.submitSubmission(turnId, draft)),
+      onDone,
+    );
   };
   return (
     <div className="space-y-4">
@@ -115,14 +121,16 @@ function IdentityForm({ turnId, onDone }: { turnId: string; onDone: () => void }
           {error}
         </p>
       )}
-      <button
-        type="button"
+      <ActionButton
         className={buttonStyles.dark}
-        disabled={action.pending}
+        pending={action.pending}
+        done={sent.done}
+        pendingLabel="Đang gửi…"
+        doneLabel="Đã gửi"
         onClick={submit}
       >
-        {action.pending ? "Đang gửi…" : "Gửi cho luật sư kiểm"}
-      </button>
+        Gửi cho luật sư kiểm
+      </ActionButton>
       {action.error && !action.pending && (
         <p role="alert" className="text-sm text-destructive">
           {action.error}

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Info } from "lucide-react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { ROUTES } from "@/shared/config/routes.config";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { ActionButton } from "@/shared/ui/ActionButton";
 import { buttonStyles, Notice } from "@/shared/ui/heritageKit";
 import { filesError, type MyClaim } from "../model/handoverRequest.schema";
 import { DocumentPicker } from "./DocumentPicker";
@@ -29,6 +31,8 @@ export function RequestForm({
   onSent: () => void;
 }) {
   const submit = usePrivateAction();
+  // Gửi xong thì nút giữ dấu tích một nhịp rồi mới đổi sang thông báo đã gửi.
+  const sent = useSuccessHold();
   const [note, setNote] = useState("");
   const [wills, setWills] = useState<File[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -40,7 +44,7 @@ export function RequestForm({
     setTouched(true);
     if (fileError) return;
     void submit.execute(
-      () => send(note, wills, files),
+      () => sent.hold(() => send(note, wills, files)),
       () => onSent(),
     );
   }
@@ -99,14 +103,16 @@ export function RequestForm({
         </span>
       </label>
       <div className="space-y-3">
-        <button
-          type="button"
+        <ActionButton
           className={`${buttonStyles.dark} w-full`}
-          disabled={submit.pending}
+          pending={submit.pending}
+          done={sent.done}
+          pendingLabel="Đang gửi…"
+          doneLabel="Đã gửi"
           onClick={handleSend}
         >
-          {submit.pending ? "Đang gửi…" : "Gửi yêu cầu"}
-        </button>
+          Gửi yêu cầu
+        </ActionButton>
         {submit.error && (
           <p role="alert" className="text-sm text-destructive">
             {submit.error}

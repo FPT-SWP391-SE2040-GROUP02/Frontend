@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles } from "@/shared/ui/heritageKit";
+import { useSuccessHold } from "@/shared/lib/useSuccessHold";
+import { ActionButton } from "@/shared/ui/ActionButton";
 import {
   HANDOVER_NOT_STARTED_MESSAGE,
   isHandoverNotStarted,
@@ -30,12 +32,13 @@ export function HandoverSendKey({
 }) {
   const action = usePrivateAction();
   const fill = usePrivateAction();
+  const sent = useSuccessHold();
   const [key, setKey] = useState("");
   const [notStarted, setNotStarted] = useState(false);
   const busy = action.pending;
   const send = () =>
     void action.execute(
-      () => deathCaseService.sendKey(recordId, turnId, key.trim()),
+      () => sent.hold(() => deathCaseService.sendKey(recordId, turnId, key.trim())),
       (result) => {
         setKey("");
         onSent(result.sentAt);
@@ -86,14 +89,17 @@ export function HandoverSendKey({
         Mã được gửi riêng tới email của người nhận, tách khỏi thư mời.
       </p>
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
+        <ActionButton
           className={buttonStyles.dark}
           onClick={send}
-          disabled={busy || key.trim().length === 0}
+          pending={busy}
+          done={sent.done}
+          pendingLabel="Đang gửi…"
+          doneLabel="Đã gửi"
+          disabled={key.trim().length === 0}
         >
-          {action.pending ? "Đang gửi…" : "Gửi mã"}
-        </button>
+          Gửi mã
+        </ActionButton>
         <button type="button" className={buttonStyles.outline} onClick={onCancel} disabled={busy}>
           Hủy
         </button>
