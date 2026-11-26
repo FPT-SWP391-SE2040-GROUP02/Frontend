@@ -59,11 +59,17 @@ export interface AvailableAction {
 }
 
 /**
- * Kho chưa gửi yêu cầu và gửi được: dòng có nút "Gửi yêu cầu" mở form ngay trong thẻ kho (không còn trang riêng),
- * khác các nút còn lại là liên kết sang cổng người nhận.
+ * Kho gửi được yêu cầu (chưa gửi, hoặc yêu cầu trước bị từ chối): dòng có nút mở form ngay trong thẻ kho (không còn
+ * trang riêng), khác các nút còn lại là liên kết sang cổng người nhận.
  */
 export function canSendRequestHere(row: AvailableHandover): boolean {
-  return row.status === "NOT_REQUESTED" && row.canRequest;
+  return (row.status === "NOT_REQUESTED" || row.status === "REJECTED") && row.canRequest;
+}
+
+/** Chữ trên nút mở form: yêu cầu bị từ chối thì là gửi lại. */
+export function requestButtonLabel(row: AvailableHandover): string {
+  if (row.status === "REJECTED") return "Gửi lại yêu cầu";
+  return "Gửi yêu cầu";
 }
 
 /**

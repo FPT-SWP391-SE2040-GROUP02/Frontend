@@ -24,11 +24,20 @@ function reportText(report: MyReport): string {
     case "ACCEPTED":
       return "Giấy tờ đã được chấp nhận. Luật sư lập phương án chia và gửi thư cho từng người nhận.";
     case "REJECTED":
-      return "Luật sư đã từ chối hồ sơ này.";
+      return "Luật sư đã từ chối hồ sơ này. Bạn có thể nộp hồ sơ mới.";
   }
 }
 
-function ReportCard({ report }: { report: MyReport }) {
+function ReportCard({
+  report,
+  formOpen,
+  onSubmitNew,
+}: {
+  report: MyReport;
+  /** Form nộp hồ sơ đang mở thì khóa nút "Nộp hồ sơ mới". */
+  formOpen: boolean;
+  onSubmitNew: () => void;
+}) {
   const client = useQueryClient();
   let status = claimStatusLabel[report.status];
   if (report.cancelReason) status = { label: "Luật sư đã hủy", tone: "neutral" };
@@ -60,6 +69,16 @@ function ReportCard({ report }: { report: MyReport }) {
           handoverReportService.downloadFile(report.id, file.id, options)
         }
       />
+      {report.status === "REJECTED" && (
+        <button
+          type="button"
+          className={buttonStyles.dark}
+          disabled={formOpen}
+          onClick={onSubmitNew}
+        >
+          Nộp hồ sơ mới
+        </button>
+      )}
       {report.status === "SUPPLEMENT_REQUESTED" && (
         <SupplementForm
           send={(note, files) => handoverReportService.supplement(report.id, note, files)}
@@ -116,6 +135,11 @@ export function ReportPanel({
     formRef.current.scrollIntoView({ behavior, block: "nearest" });
   }, [open]);
 
+  const startNewReport = () => {
+    setSent(false);
+    setOpen(true);
+  };
+
   const entry = (
     <section
       aria-labelledby="handover-reports"
@@ -136,10 +160,7 @@ export function ReportPanel({
         <button
           type="button"
           className={`${buttonStyles.outline} receive-press w-full border-heritage-gold-hover`}
-          onClick={() => {
-            setSent(false);
-            setOpen(true);
-          }}
+          onClick={startNewReport}
         >
           Nộp hồ sơ
         </button>
@@ -188,7 +209,14 @@ export function ReportPanel({
           </div>
         )}
         {query.isSuccess &&
-          query.data.map((report) => <ReportCard key={report.id} report={report} />)}
+          query.data.map((report) => (
+            <ReportCard
+              key={report.id}
+              report={report}
+              formOpen={open}
+              onSubmitNew={startNewReport}
+            />
+          ))}
       </section>
     );
   }

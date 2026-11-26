@@ -182,3 +182,13 @@ export function receiptText(recipient: RecordRecipient): { label: string; tone: 
     return { label: "Chờ người nhận ký", tone: "warning" };
   return { label: "Chưa giao", tone: "neutral" };
 }
+
+/** Câu hỏi lại trước khi luật sư từ chối yêu cầu nhận tài sản hoặc hồ sơ báo tin. */
+export const REJECT_CONFIRM_MESSAGE =
+  "Từ chối sẽ đóng yêu cầu này. Người gửi có thể gửi lại yêu cầu mới.";
+
+/** Nhãn của lý do đã ghi: đang chờ xét mà còn lý do thì đó là lý do của lần xét trước. */
+export function reviewReasonLabel(status: string): string {
+  if (status === "SUBMITTED") return "Lý do xét lần trước: ";
+  return "Lý do đã ghi: ";
+}

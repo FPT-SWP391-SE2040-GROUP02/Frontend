@@ -873,12 +873,29 @@ describe("Luật sư xét giấy tờ và tệp căn cứ", () => {
 
     await user.type(within(card).getByLabelText(/Lý do/), "Giấy tờ không hợp lệ");
     await user.click(within(card).getByRole("button", { name: "Từ chối" }));
+    // Hỏi lại trước: bấm Quay lại thì không gửi gì.
+    const confirm = screen.getByRole("dialog", { name: "Từ chối yêu cầu này?" });
+    expect(confirm).toHaveTextContent(
+      "Từ chối sẽ đóng yêu cầu này. Người gửi có thể gửi lại yêu cầu mới.",
+    );
+    await user.click(within(confirm).getByRole("button", { name: "Quay lại" }));
+    expect(post).not.toHaveBeenCalled();
+    await user.click(within(card).getByRole("button", { name: "Từ chối" }));
+    await user.click(screen.getByRole("button", { name: "Xác nhận từ chối" }));
     expect(post).toHaveBeenCalledWith(
       `/verifier/handover-records/${RECORD_ID}/claims/${CLAIM}/review`,
       {
         decision: "REJECT",
         reason: "Giấy tờ không hợp lệ",
       },
+    );
+    // Yêu cầu đã đóng: không còn nút xét.
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole("article", { name: "Yêu cầu của Lê Bình" })).queryByRole("button", {
+          name: "Chấp nhận",
+        }),
+      ).not.toBeInTheDocument(),
     );
     // Người bị từ chối không được ghi tài sản.
     await openPicker(user, "Sổ đỏ");

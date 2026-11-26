@@ -154,6 +154,39 @@ describe("Gửi yêu cầu nhận tài sản ngay trong thẻ tài sản", () =>
     expect(post).not.toHaveBeenCalled();
   });
 
+  it("yêu cầu bị từ chối còn gửi lại được: hiện lý do và nút Gửi lại yêu cầu mở form", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      availableRow({
+        status: "REJECTED",
+        needsAction: false,
+        reviewReason: "Thiếu bản gốc",
+        claimId: CLAIM_ID,
+      }),
+    ]);
+    setup(<AvailableHandoverList />, "an@example.com");
+
+    const resend = await screen.findByRole("button", {
+      name: "Gửi lại yêu cầu - tài sản của Nguyễn Văn A",
+    });
+    expect(screen.getByText("Bị từ chối")).toBeInTheDocument();
+    expect(screen.getByText("Thiếu bản gốc")).toBeInTheDocument();
+    await user.click(resend);
+    expect(resend).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByLabelText(/^Giấy chứng tử/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Di chúc/)).toBeInTheDocument();
+  });
+
+  it("yêu cầu bị từ chối mà không gửi lại được thì không có nút gửi", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue([
+      availableRow({ status: "REJECTED", needsAction: false, canRequest: false }),
+    ]);
+    setup(<AvailableHandoverList />, "an@example.com");
+
+    expect(await screen.findByText("Yêu cầu đã bị từ chối.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Gửi lại yêu cầu/ })).not.toBeInTheDocument();
+  });
+
   it("canRequest false thì không có nút Gửi yêu cầu", async () => {
     vi.spyOn(apiClient, "get").mockResolvedValue([availableRow({ canRequest: false })]);
     setup(<AvailableHandoverList />, "an@example.com");
@@ -199,6 +232,29 @@ describe("Yêu cầu nhận tài sản của tôi", () => {
     await waitFor(() => expect(get).toHaveBeenCalled());
     expect(await screen.findByText("Bạn chưa gửi yêu cầu nhận tài sản nào.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Mở trang Nhận tài sản" })).toBeInTheDocument();
+  });
+
+  it("yêu cầu bị từ chối (biên bản đã tự đóng) vẫn ghi bị từ chối và có đường gửi lại", async () => {
+    const rejected = claim({
+      status: "REJECTED",
+      recordStatus: "CANCELLED",
+      cancelReason: "Mọi yêu cầu bị từ chối",
+      reviewReason: "Không đúng người",
+    });
+    vi.spyOn(apiClient, "get").mockImplementation(async (url: string) => {
+      if (url === "/handover/requests/available") {
+        return [availableRow({ status: "REJECTED", needsAction: false, claimId: CLAIM_ID })];
+      }
+      return [rejected];
+    });
+    setup(<MyClaimsPanel />, "an@example.com", "/claim/beneficiary");
+
+    const card = await screen.findByRole("article", {
+      name: "Yêu cầu nhận tài sản của Nguyễn Văn A",
+    });
+    expect(card).toHaveTextContent("Luật sư đã từ chối yêu cầu này.");
+    expect(card).toHaveTextContent("Không đúng người");
+    expect(await within(card).findByRole("link", { name: "Gửi lại yêu cầu" })).toBeInTheDocument();
   });
 
   it("luật sư đã hủy thì ghi rõ lý do, không cho nộp bổ sung", async () => {

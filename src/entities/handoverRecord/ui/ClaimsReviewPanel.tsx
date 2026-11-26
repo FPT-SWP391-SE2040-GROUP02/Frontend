@@ -2,10 +2,15 @@ import { compactButton, SectionCard } from "@/shared/ui/SectionCard";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
+import { DeclineConfirmDialog } from "@/shared/ui/DeclineConfirmDialog";
 import { Chip, formatDateTime } from "@/shared/ui/heritageKit";
 import { handoverRecordService } from "../api/handoverRecordService";
 import type { HandoverRecord, RecordClaim } from "../model/handoverRecord.schema";
-import { claimStatusLabel } from "../model/recordPresentation";
+import {
+  claimStatusLabel,
+  REJECT_CONFIRM_MESSAGE,
+  reviewReasonLabel,
+} from "../model/recordPresentation";
 import { handoverRecordKeys } from "../model/useHandoverRecord";
 import { DocumentFiles } from "./ReportDetails";
 
@@ -16,8 +21,11 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
   const client = useQueryClient();
   const action = usePrivateAction();
   const [reason, setReason] = useState("");
+  const [confirmingReject, setConfirmingReject] = useState(false);
   const status = claimStatusLabel[claim.status];
-  const canReview = record.status === "DRAFTING";
+  // Yêu cầu bị từ chối đã đóng: không xét lại; người nhận gửi lại thì nó quay về chờ xét.
+  const closed = claim.status === "REJECTED";
+  const canReview = record.status === "DRAFTING" && !closed;
   const review = (decision: Decision) =>
     void action.execute(
       () =>
@@ -54,7 +62,7 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
       />
       {claim.reviewReason && (
         <p className="text-sm">
-          <span className="font-semibold">Lý do đã ghi: </span>
+          <span className="font-semibold">{reviewReasonLabel(claim.status)}</span>
           {claim.reviewReason}
         </p>
       )}
@@ -82,8 +90,8 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
             <button
               type="button"
               className={compactButton.danger}
-              disabled={action.pending || needsReason || claim.status === "REJECTED"}
-              onClick={() => review("REJECT")}
+              disabled={action.pending || needsReason}
+              onClick={() => setConfirmingReject(true)}
             >
               Từ chối
             </button>
@@ -94,6 +102,18 @@ function ClaimCard({ record, claim }: { record: HandoverRecord; claim: RecordCla
             </p>
           )}
         </div>
+      )}
+      {confirmingReject && (
+        <DeclineConfirmDialog
+          title="Từ chối yêu cầu này?"
+          description={REJECT_CONFIRM_MESSAGE}
+          confirmLabel="Xác nhận từ chối"
+          onClose={() => setConfirmingReject(false)}
+          onConfirm={() => {
+            setConfirmingReject(false);
+            review("REJECT");
+          }}
+        />
       )}
     </article>
   );

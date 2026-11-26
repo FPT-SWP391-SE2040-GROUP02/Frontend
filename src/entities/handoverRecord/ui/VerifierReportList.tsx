@@ -3,10 +3,15 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePrivateAction } from "@/shared/api/usePrivateAction";
 import { buttonStyles, Chip, formatDateTime, Notice } from "@/shared/ui/heritageKit";
+import { DeclineConfirmDialog } from "@/shared/ui/DeclineConfirmDialog";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/shared/ui/dialog";
 import { verifierReportService } from "../api/verifierReportService";
 import type { VerifierReport } from "../model/handoverReport.schema";
-import { claimStatusLabel } from "../model/recordPresentation";
+import {
+  claimStatusLabel,
+  REJECT_CONFIRM_MESSAGE,
+  reviewReasonLabel,
+} from "../model/recordPresentation";
 import { handoverRecordKeys, useVerifierReports } from "../model/useHandoverRecord";
 import { DocumentFiles, SuggestedRecipientList } from "./ReportDetails";
 
@@ -42,6 +47,7 @@ function ReportCard({
   const action = usePrivateAction();
   const [reason, setReason] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [confirmingReject, setConfirmingReject] = useState(false);
   const warnings = reportWarnings(report);
   const status = claimStatusLabel[report.status];
   const canReview = report.status === "SUBMITTED" || report.status === "SUPPLEMENT_REQUESTED";
@@ -97,7 +103,7 @@ function ReportCard({
       />
       {report.reviewReason && (
         <p className="text-sm">
-          <span className="font-semibold">Lý do đã ghi: </span>
+          <span className="font-semibold">{reviewReasonLabel(report.status)}</span>
           {report.reviewReason}
         </p>
       )}
@@ -147,7 +153,7 @@ function ReportCard({
               type="button"
               className={buttonStyles.outline}
               disabled={action.pending || needsReason}
-              onClick={() => review("REJECT")}
+              onClick={() => setConfirmingReject(true)}
             >
               Từ chối
             </button>
@@ -158,6 +164,18 @@ function ReportCard({
         <p role="alert" className="text-sm text-destructive">
           {action.error}
         </p>
+      )}
+      {confirmingReject && (
+        <DeclineConfirmDialog
+          title="Từ chối hồ sơ này?"
+          description={REJECT_CONFIRM_MESSAGE}
+          confirmLabel="Xác nhận từ chối"
+          onClose={() => setConfirmingReject(false)}
+          onConfirm={() => {
+            setConfirmingReject(false);
+            review("REJECT");
+          }}
+        />
       )}
     </article>
   );

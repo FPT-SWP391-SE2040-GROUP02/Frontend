@@ -8,6 +8,7 @@ import {
   availableStatusLabel,
   availableStep,
   canSendRequestHere,
+  requestButtonLabel,
 } from "../model/availablePresentation";
 import { useAvailableHandovers } from "../model/useHandoverRequest";
 import { InlineRequestForm } from "./InlineRequestForm";
@@ -108,6 +109,7 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
   const status = availableStatusLabel[row.status];
   const action = availableAction(row);
   const requestHere = canSendRequestHere(row);
+  const requestLabel = requestButtonLabel(row);
   const regionRef = useRef<HTMLDivElement>(null);
   const form = useRequestForm(regionRef);
   const regionId = useId();
@@ -116,6 +118,11 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
   let hint = waitingHint(row);
   if (action === null && !requestHere && hint === "") {
     hint = noActionHint(row);
+  }
+  // Yêu cầu bị từ chối đã đóng: nút gửi lại là việc chính của dòng này.
+  const resend = row.status === "REJECTED" && requestHere;
+  if (resend) {
+    hint = "Bạn có thể gửi lại yêu cầu mới, kèm giấy chứng tử và di chúc.";
   }
   let notRequestedNote = "";
   if (row.status === "NOT_REQUESTED" && row.needsAction) {
@@ -165,13 +172,21 @@ function AvailableRow({ row }: { row: AvailableHandover }) {
           {requestHere && (
             <button
               type="button"
-              aria-expanded={form.open}
+              aria-expanded={form.open && !form.sent}
               aria-controls={regionId}
-              aria-label={`Gửi yêu cầu - tài sản của ${row.ownerName}`}
-              className={`${actionClass} receive-press`}
-              onClick={() => form.setOpen((current) => !current)}
+              aria-label={`${requestLabel} - tài sản của ${row.ownerName}`}
+              className={`${resend ? buttonStyles.dark : actionClass} receive-press`}
+              onClick={() => {
+                // Vừa gửi trong lần mở trang này rồi lại bị từ chối: bỏ thông báo cũ và mở form mới.
+                if (form.sent) {
+                  form.setSent(false);
+                  form.setOpen(true);
+                  return;
+                }
+                form.setOpen((current) => !current);
+              }}
             >
-              {form.open ? "Thu gọn" : "Gửi yêu cầu"}
+              {form.open && !form.sent ? "Thu gọn" : requestLabel}
             </button>
           )}
         </div>
