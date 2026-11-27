@@ -28,7 +28,7 @@ function executor(isAvailable = true): SystemExecutor {
     id: "22222222-2222-4222-8222-222222222222",
     fullName: "Nhân viên Thử",
     email: "thu@example.test",
-    phoneMasked: null,
+    phone: null,
     executorRoleTitle: "Người thực thi",
     assignedVaultsCount: 0,
     isAvailable,

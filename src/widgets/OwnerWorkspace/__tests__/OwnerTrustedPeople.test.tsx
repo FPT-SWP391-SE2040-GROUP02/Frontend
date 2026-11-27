@@ -101,7 +101,7 @@ beforeEach(() => {
       id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
       fullName: "Luật sư Thử",
       email: "moi@example.test",
-      phoneMasked: null,
+      phone: null,
       executorRoleTitle: "Người thực thi",
       assignedVaultsCount: 0,
       isAvailable: true,

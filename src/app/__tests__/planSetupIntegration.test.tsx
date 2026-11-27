@@ -49,7 +49,7 @@ const directoryFixture = [
   id: `00000000-0000-4000-8000-00000000000${index + 1}`,
   fullName,
   email,
-  phoneMasked: null,
+  phone: null,
   executorRoleTitle: "Người thực thi",
   assignedVaultsCount: 0,
   isAvailable: true,
