@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import type { AuthState } from "@/entities/user/model/authSlice";
-import { LoginMethodsPanel } from "@/features/auth";
+import { LoginMethodsPanel, ProfilePhoneField } from "@/features/auth";
 import { AvatarEditor } from "@/features/profile-avatar";
 import { VaultPinPanel } from "@/features/vault-pin";
 import { useOwnerVault } from "@/features/vault-management/model/useOwnerVault";
@@ -35,11 +35,6 @@ export function AccountSettingsContent({ showVaultPin = true }: { showVaultPin?:
           {[
             ["Họ và tên", user?.fullName],
             ["Email", user?.email],
-            ["Số điện thoại", user?.phone],
-            [
-              "Xác minh email",
-              user ? (user.emailVerified ? "Đã xác minh" : "Chưa xác minh") : undefined,
-            ],
           ].map(([label, value]) => (
             <div key={label}>
               <dt className="text-sm text-heritage-muted">{label}</dt>
@@ -48,10 +43,14 @@ export function AccountSettingsContent({ showVaultPin = true }: { showVaultPin?:
               </dd>
             </div>
           ))}
+          <ProfilePhoneField phone={user?.phone} />
+          <div>
+            <dt className="text-sm text-heritage-muted">Xác minh email</dt>
+            <dd className="mt-2 break-words text-sm font-medium">
+              {user ? (user.emailVerified ? "Đã xác minh" : "Chưa xác minh") : "Chưa có thông tin"}
+            </dd>
+          </div>
         </dl>
-        <p className="mt-6 border-t border-heritage-border pt-4 text-sm text-heritage-muted">
-          Chỉnh sửa hồ sơ đang được hoàn thiện.
-        </p>
       </section>
       <LoginMethodsPanel />
       {showVaultPin && user?.role === "USER" && <VaultPinSection />}
