@@ -13,6 +13,7 @@ export * from "./ui/VerifyEmailNotice";
 export * from "./ui/AdminTwoFactorCard";
 export * from "./ui/AdminTwoFactorSettings";
 export * from "./ui/LoginMethodsPanel";
+export * from "./ui/ProfilePhoneField";
 export * from "./ui/LogoutConfirmationCard";
 export * from "./ui/LoggedOutCard";
 export * from "./ui/SessionExpiredCard";
