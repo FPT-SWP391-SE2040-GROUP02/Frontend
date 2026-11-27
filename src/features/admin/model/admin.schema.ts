@@ -311,7 +311,7 @@ export const createAdminUserRequestSchema = z.object({
 });
 export type CreateAdminUserRequest = z.infer<typeof createAdminUserRequestSchema>;
 
-/** Admin sửa thông tin tài khoản nhân sự: thay trọn bốn trường, ô tùy chọn để trống thì xóa giá trị cũ. */
+/** Admin sửa họ tên và số điện thoại của Người xét duyệt hoặc Người thực thi: thay trọn hai trường, số điện thoại để trống thì xóa số cũ. */
 export const updateAdminUserProfileRequestSchema = z.object({
   fullName: z.string().trim().min(1, "Vui lòng nhập họ và tên.").max(200),
   phone: z
@@ -323,7 +323,5 @@ export const updateAdminUserProfileRequestSchema = z.object({
       (text) => text === undefined || text === "" || isVietnamesePhone(text),
       VIETNAM_PHONE_MESSAGE,
     ),
-  practiceCertificateNumber: z.string().trim().max(64).optional(),
-  lawyerCardNumber: z.string().trim().max(64).optional(),
 });
 export type UpdateAdminUserProfileRequest = z.infer<typeof updateAdminUserProfileRequestSchema>;

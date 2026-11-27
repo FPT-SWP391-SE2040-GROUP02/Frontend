@@ -65,7 +65,7 @@ afterEach(() => {
 });
 
 describe("Admin sửa thông tin tài khoản nhân sự", () => {
-  it("hiện thông tin hiện có và gửi đúng bốn trường khi lưu, rồi tải lại chi tiết", async () => {
+  it("hiện thông tin hiện có và chỉ gửi họ tên, số điện thoại khi lưu, rồi tải lại chi tiết", async () => {
     const get = vi.spyOn(apiClient, "get").mockResolvedValue(detail());
     const put = vi.spyOn(apiClient, "put").mockResolvedValue({ ...detail(), fullName: "Lê Hà" });
     renderDetail();
@@ -81,15 +81,14 @@ describe("Admin sửa thông tin tài khoản nhân sự", () => {
     await user.type(within(dialog).getByLabelText(/Họ và tên/), "Lê Hà");
     await user.clear(within(dialog).getByLabelText(/Số điện thoại/));
     await user.type(within(dialog).getByLabelText(/Số điện thoại/), "098 765 4321");
-    await user.type(within(dialog).getByLabelText(/Số thẻ luật sư/), "LS-678");
+    expect(within(dialog).queryByLabelText(/Số chứng chỉ hành nghề/)).not.toBeInTheDocument();
+    expect(within(dialog).queryByLabelText(/Số thẻ luật sư/)).not.toBeInTheDocument();
     await user.click(within(dialog).getByRole("button", { name: "Lưu thông tin" }));
 
     await waitFor(() => expect(put).toHaveBeenCalledTimes(1));
     expect(put).toHaveBeenCalledWith(`/admin/users/${USER_ID}/profile`, {
       fullName: "Lê Hà",
       phone: "098 765 4321",
-      practiceCertificateNumber: "CC-123",
-      lawyerCardNumber: "LS-678",
     });
     expect(await screen.findByText("Đã lưu thông tin tài khoản.")).toBeInTheDocument();
     await waitFor(() => expect(get.mock.calls.length).toBeGreaterThan(1));
@@ -126,14 +125,16 @@ describe("Admin sửa thông tin tài khoản nhân sự", () => {
     ).toBeInTheDocument();
   });
 
-  it("Quản trị viên không có ô chứng chỉ và thẻ luật sư; Chủ tài sản không có nút sửa", async () => {
+  it("chỉ Người xét duyệt và Người thực thi có nút sửa; Quản trị viên và Chủ tài sản thì không", async () => {
+    vi.spyOn(apiClient, "get").mockResolvedValue(detail({ role: "EXECUTOR" }));
+    renderDetail();
+    expect(await screen.findByRole("button", { name: /Sửa thông tin của/ })).toBeInTheDocument();
+    cleanup();
+
     vi.spyOn(apiClient, "get").mockResolvedValue(detail({ role: "ADMIN" }));
     renderDetail();
-    const user = userEvent.setup();
-    await user.click(await screen.findByRole("button", { name: /Sửa thông tin của/ }));
-    const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).queryByLabelText(/Số chứng chỉ hành nghề/)).not.toBeInTheDocument();
-    expect(within(dialog).queryByLabelText(/Số thẻ luật sư/)).not.toBeInTheDocument();
+    await screen.findByText("Lê Thu Hà");
+    expect(screen.queryByRole("button", { name: /Sửa thông tin của/ })).not.toBeInTheDocument();
     cleanup();
 
     vi.spyOn(apiClient, "get").mockResolvedValue(detail({ role: "USER" }));
