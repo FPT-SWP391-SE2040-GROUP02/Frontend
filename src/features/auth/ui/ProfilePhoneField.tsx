@@ -17,9 +17,25 @@ import {
 } from "@/shared/ui/dialog";
 import { Input } from "@/shared/ui/input";
 import { buttonStyles } from "@/shared/ui/heritageKit";
-import { contactPhoneSchema, PHONE_SHARING_HINT } from "../model/phone.schema";
+import {
+  isVietnamesePhone,
+  stripPhoneSeparators,
+  VIETNAM_PHONE_MESSAGE,
+} from "@/shared/lib/vietnamPhone";
+import { PHONE_SHARING_HINT } from "../model/phone.schema";
 
-const phoneFormSchema = z.object({ phone: contactPhoneSchema });
+/**
+ * Số di động Việt Nam (0 hoặc +84, đầu số 3, 5, 7, 8, 9 và 8 chữ số), cùng luật với Backend `PhoneRules`. Số này được
+ * gửi cho người nhận nên phải đúng định dạng; khoảng trắng, dấu chấm, gạch nối và ngoặc được bỏ trước khi gửi.
+ */
+const phoneFormSchema = z.object({
+  phone: z
+    .string()
+    .trim()
+    .min(1, "Số điện thoại là bắt buộc.")
+    .refine(isVietnamesePhone, VIETNAM_PHONE_MESSAGE)
+    .transform(stripPhoneSeparators),
+});
 type PhoneFormInput = z.input<typeof phoneFormSchema>;
 
 interface PhoneDialogProps {
@@ -29,8 +45,7 @@ interface PhoneDialogProps {
 
 /**
  * Hộp thoại thêm hoặc sửa số điện thoại. Chỉ cập nhật phiên sau khi Backend xác nhận (không optimistic); số bị
- * tài khoản khác dùng hiện đúng câu Backend trả. Luật kiểm giống lúc đăng ký: bắt buộc, tối đa 20 ký tự, không
- * kiểm đầu số.
+ * tài khoản khác dùng hiện đúng câu Backend trả. Số bắt buộc và phải là số di động Việt Nam (`phoneFormSchema`).
  */
 function PhoneDialog({ current, onClose }: PhoneDialogProps) {
   const dispatch = useDispatch();
