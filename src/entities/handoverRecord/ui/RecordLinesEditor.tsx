@@ -24,6 +24,7 @@ import { RecipientDialog, type RecipientDialogState } from "./RecipientDialog";
 import { RecipientSplitPanel } from "./RecipientSplitPanel";
 import { SplitDeviationPanel } from "./SplitDeviationPanel";
 import { SuggestedRecipients } from "./SuggestedRecipients";
+import { DeclineConfirmDialog } from "@/shared/ui/DeclineConfirmDialog";
 import { ActionButton } from "@/shared/ui/ActionButton";
 import { useSuccessHold } from "@/shared/lib/useSuccessHold";
 
@@ -141,6 +142,8 @@ export function RecordLinesEditor({
     }
     return handoverRecordService.finalize(record.id, splitDeviationConfirmed);
   };
+  // Còn tài sản không ghi cho ai thì hỏi lại bằng hộp thoại trước khi chốt.
+  const [askUndivided, setAskUndivided] = useState(false);
   const handleSend = () => {
     void finalize.execute(() => finalized.hold(sendAll), apply);
   };
@@ -192,6 +195,16 @@ export function RecordLinesEditor({
 
   const assets = divisionAssets(record, selected);
   const dividedCount = assets.filter((asset) => asset.people.length > 0).length;
+  const undividedNames = assets
+    .filter((asset) => asset.people.length === 0)
+    .map((asset) => asset.name);
+  const handleFinalizeClick = () => {
+    if (undividedNames.length > 0) {
+      setAskUndivided(true);
+      return;
+    }
+    handleSend();
+  };
 
   const splitPanel = (
     <SectionCard
@@ -365,7 +378,7 @@ export function RecordLinesEditor({
               !legalBasisConfirmed ||
               !deviationReady
             }
-            onClick={handleSend}
+            onClick={handleFinalizeClick}
           >
             Chốt phương án chia
           </ActionButton>
@@ -396,6 +409,18 @@ export function RecordLinesEditor({
           <p role="alert" className="text-sm text-destructive">
             {save.error || finalize.error}
           </p>
+        )}
+        {askUndivided && (
+          <DeclineConfirmDialog
+            title={`Còn ${undividedNames.length} tài sản chưa chia cho ai`}
+            description={`Chưa chia: ${undividedNames.join(", ")}. Nếu chốt như vậy, không ai nhận được và tài sản sẽ bị xóa vĩnh viễn khi đóng kho.`}
+            confirmLabel="Vẫn chốt"
+            onClose={() => setAskUndivided(false)}
+            onConfirm={() => {
+              setAskUndivided(false);
+              handleSend();
+            }}
+          />
         )}
       </div>
     </SectionCard>
